@@ -317,8 +317,8 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	 */
 	protected void setParent(SQLObject newParent) {
 		if (newParent != null
-			&& newParent != pkTable.exportedKeysFolder
-			&& newParent != fkTable.importedKeysFolder) {
+			&& (pkTable != null && newParent != pkTable.exportedKeysFolder)
+			&& (fkTable != null && newParent != fkTable.importedKeysFolder)) {
 			throw new IllegalArgumentException
 				("You can't change the parent of a SQLRelationship this way");
 		}
