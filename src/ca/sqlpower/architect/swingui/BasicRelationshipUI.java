@@ -88,10 +88,10 @@ public class BasicRelationshipUI extends RelationshipUI
 		}
 
 		try {
-			Point pktloc = r.getPkConnectionPoint();
+			Point pktloc = pkConnectionPoint;
 			Point start = new Point(pktloc.x + r.getPkTable().getLocation().x,
 									pktloc.y + r.getPkTable().getLocation().y);
-			Point fktloc = r.getFkConnectionPoint();
+			Point fktloc = fkConnectionPoint;
 			Point end = new Point(fktloc.x + r.getFkTable().getLocation().x,
 								  fktloc.y + r.getFkTable().getLocation().y);
 			
@@ -177,31 +177,33 @@ public class BasicRelationshipUI extends RelationshipUI
 		g2.setColor(oldColor);
 	}
 
-	public void bestConnectionPoints(TablePane tp1, TablePane tp2,
-									 Point tp1point, Point tp2point) {
-		Rectangle tp1b = tp1.getBounds();
-		Rectangle tp2b = tp2.getBounds();
-		orientation = getFacingEdges(tp1, tp2);
+	/**
+	 * Adjusts the UI's connection points to the default "best" position.
+	 */
+	public void bestConnectionPoints() {
+		Rectangle pktBounds = relationship.getPkTable().getBounds();
+		Rectangle fktBounds = relationship.getFkTable().getBounds();
+		orientation = getFacingEdges(relationship.getPkTable(), relationship.getFkTable());
 		if ( (orientation & PARENT_FACES_TOP) != 0) {
-			tp1point.move(tp1b.width/2, 0);
+			pkConnectionPoint.move(pktBounds.width/2, 0);
 		} else if ( (orientation & PARENT_FACES_RIGHT) != 0) {
-			tp1point.move(tp1b.width, tp1b.height/2);
+			pkConnectionPoint.move(pktBounds.width, pktBounds.height/2);
 		} else if ( (orientation & PARENT_FACES_BOTTOM) != 0) {
-			tp1point.move(tp1b.width/2, tp1b.height);
+			pkConnectionPoint.move(pktBounds.width/2, pktBounds.height);
 		} else if ( (orientation & PARENT_FACES_LEFT) != 0) {
-			tp1point.move(0, tp1b.height/2);
+			pkConnectionPoint.move(0, pktBounds.height/2);
 		} else {
 			logger.error("Unrecognised parent orientation");
 		}
 
 		if ( (orientation & CHILD_FACES_TOP) != 0) {
-			tp2point.move(tp2b.width/2, 0);
+			fkConnectionPoint.move(fktBounds.width/2, 0);
 		} else if ( (orientation & CHILD_FACES_RIGHT) != 0) {
-			tp2point.move(tp2b.width, tp2b.height/2);
+			fkConnectionPoint.move(fktBounds.width, fktBounds.height/2);
 		} else if ( (orientation & CHILD_FACES_BOTTOM) != 0) {
-			tp2point.move(tp2b.width/2, tp2b.height);
+			fkConnectionPoint.move(fktBounds.width/2, fktBounds.height);
 		} else if ( (orientation & CHILD_FACES_LEFT) != 0) {
-			tp2point.move(0, tp2b.height/2);
+			fkConnectionPoint.move(0, fktBounds.height/2);
 		} else {
 			logger.error("Unrecognised child orientation");
 		}
@@ -222,7 +224,7 @@ public class BasicRelationshipUI extends RelationshipUI
 
 		if (tp == relationship.getPkTable()) {
 			sp = new Point(relationship.getFkTable().getLocation());
-			translatePoint(sp, relationship.getFkConnectionPoint());
+			translatePoint(sp, fkConnectionPoint);
 			sp.x -= relationship.getPkTable().getX();
 			sp.y -= relationship.getPkTable().getY();
 
@@ -243,7 +245,7 @@ public class BasicRelationshipUI extends RelationshipUI
 			}
 		} else if (tp == relationship.getFkTable()) {
 			sp = new Point(relationship.getPkTable().getLocation());
-			translatePoint(sp, relationship.getPkConnectionPoint());
+			translatePoint(sp, pkConnectionPoint);
 			sp.x -= relationship.getFkTable().getX();
 			sp.y -= relationship.getFkTable().getY();
 
@@ -382,14 +384,12 @@ public class BasicRelationshipUI extends RelationshipUI
 
 		if (!isOrientationLegal()) {
 			// bestConnectionPoints also updates orientation as a side effect
-			bestConnectionPoints(pkTable, fkTable,
-								 relationship.pkConnectionPoint,  // in pktable-space
-								 relationship.fkConnectionPoint); // in fktable-space
+			bestConnectionPoints();
 		}
 
-		Point pkLimits = new Point(relationship.pkConnectionPoint);
+		Point pkLimits = new Point(pkConnectionPoint);
 		pkLimits.translate(pkTable.getX(), pkTable.getY());
-		Point fkLimits = new Point(relationship.fkConnectionPoint);
+		Point fkLimits = new Point(fkConnectionPoint);
 		fkLimits.translate(fkTable.getX(), fkTable.getY());
 
 		if (logger.isDebugEnabled()) {
@@ -413,13 +413,13 @@ public class BasicRelationshipUI extends RelationshipUI
 
 		// make room for child decorations
 		if ( (orientation & (CHILD_FACES_RIGHT | CHILD_FACES_LEFT)) != 0) {
-			if (fkLimits.y <= relationship.pkConnectionPoint.y + pkTable.getY()) {
+			if (fkLimits.y <= pkConnectionPoint.y + pkTable.getY()) {
 				fkLimits.y -= getTerminationWidth();
 			} else {
 				fkLimits.y += getTerminationWidth();
 			}
 		} else {
-			if (fkLimits.x <= relationship.pkConnectionPoint.x + pkTable.getX()) {
+			if (fkLimits.x <= pkConnectionPoint.x + pkTable.getX()) {
 				fkLimits.x -= getTerminationWidth();
 			} else {
 				fkLimits.x += getTerminationWidth();
@@ -468,8 +468,8 @@ public class BasicRelationshipUI extends RelationshipUI
 	 */
 	public boolean isOverPkDecoration(Point p) {
 		Point pkDec = new Point
-		 (relationship.pkConnectionPoint.x + relationship.pkTable.getX() - relationship.getX(),
-		  relationship.pkConnectionPoint.y + relationship.pkTable.getY() - relationship.getY());
+		 (pkConnectionPoint.x + relationship.pkTable.getX() - relationship.getX(),
+		  pkConnectionPoint.y + relationship.pkTable.getY() - relationship.getY());
 		if (logger.isDebugEnabled()) logger.debug("p="+p+"; pkDec = "+pkDec);
 		return ASUtils.distance(p, pkDec) < Math.max(getTerminationWidth(), getTerminationLength());
 	}
@@ -482,8 +482,8 @@ public class BasicRelationshipUI extends RelationshipUI
 	 */
 	public boolean isOverFkDecoration(Point p) {
 		Point fkDec = new Point
-		 (relationship.fkConnectionPoint.x + relationship.fkTable.getX() - relationship.getX(),
-		  relationship.fkConnectionPoint.y + relationship.fkTable.getY() - relationship.getY());
+		 (fkConnectionPoint.x + relationship.fkTable.getX() - relationship.getX(),
+		  fkConnectionPoint.y + relationship.fkTable.getY() - relationship.getY());
 		return ASUtils.distance(p, fkDec) < Math.max(getTerminationWidth(), getTerminationLength());	}
 
 	// --------------- PropertyChangeListener ----------------------
