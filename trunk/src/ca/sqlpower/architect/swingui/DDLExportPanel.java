@@ -7,14 +7,12 @@ import ca.sqlpower.architect.ddl.*;
 import java.io.File;
 import java.util.*;
 import org.apache.log4j.Logger;
+import ca.sqlpower.sql.DBConnectionSpec;
 
 public class DDLExportPanel extends JPanel implements ArchitectPanel {
 	private static final Logger logger = Logger.getLogger(DDLExportPanel.class);
 
 	protected SwingUIProject project;
-	protected JCheckBox allowConnection;
-	protected JTextField filename;
-	protected JButton fileChooserButton;
 	protected JComboBox dbType;
 
 	public DDLExportPanel(SwingUIProject project) {
@@ -26,36 +24,12 @@ public class DDLExportPanel extends JPanel implements ArchitectPanel {
 	protected void setup() {
 		GenericDDLGenerator ddlg = project.getDDLGenerator();
 		setLayout(new FormLayout());
-		add(new JLabel("Allow Connection?"));
-		add(allowConnection = new JCheckBox());
-		allowConnection.setSelected(ddlg.getAllowConnection());
-		add(new JLabel("Output File"));
-		JPanel p = new JPanel(new FlowLayout());
-		File outFile = ddlg.getFile();
-		if (outFile == null) {
-			outFile = new File(System.getProperty("user.dir"), project.getName()+".ddl");
-		}
-		p.add(filename = new JTextField((outFile.getPath()), 35));
-		p.add(fileChooserButton = new JButton("..."));
-		fileChooserButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					JFileChooser fc = new JFileChooser();
-					fc.addChoosableFileFilter(ASUtils.SQL_FILE_FILTER);
-					fc.setSelectedFile(new File(filename.getText()));
-					int rv = fc.showDialog(DDLExportPanel.this, "Ok");
-					if (rv == JFileChooser.APPROVE_OPTION) {
-						filename.setText(fc.getSelectedFile().getPath());
-					}
-				}
-			});
-		add(p);
-
 		Vector dbTypeList = new Vector();
 		dbTypeList.add(ASUtils.lvb("Generic JDBC", GenericDDLGenerator.class));
 		dbTypeList.add(ASUtils.lvb("DB2", DB2DDLGenerator.class));
 		dbTypeList.add(ASUtils.lvb("Oracle 8i/9i", OracleDDLGenerator.class));
 		dbTypeList.add(ASUtils.lvb("SQLServer 2000", SQLServerDDLGenerator.class));
-		add(new JLabel("Database Type"));
+		add(new JLabel("Generate DDL for Database Type:"));
 		add(dbType = new JComboBox(dbTypeList));
 		if (ddlg.getClass() == GenericDDLGenerator.class) {
 			dbType.setSelectedIndex(0);
@@ -84,8 +58,18 @@ public class DDLExportPanel extends JPanel implements ArchitectPanel {
 				throw new RuntimeException("Couldn't create a DDL generator of the selected type");
 			}
 		}
-		ddlg.setAllowConnection(allowConnection.isSelected());
-		ddlg.setFile(new File(filename.getText()));
+		if (selectedGeneratorClass == GenericDDLGenerator.class) {
+			ddlg.setAllowConnection(true);
+			DBConnectionSpec dbcs = project.getTargetDatabase().getConnectionSpec();
+			if (dbcs == null
+				|| dbcs.getDriverClass() == null
+				|| dbcs.getDriverClass().length() == 0) {
+				throw new IllegalStateException("You can't use the Generic JDBC Generator\n"
+												+"until you set up the target database type.");
+			}
+		} else {
+			ddlg.setAllowConnection(false);
+		}
 	}
 
 	public void discardChanges() {
