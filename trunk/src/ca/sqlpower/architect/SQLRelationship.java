@@ -53,14 +53,15 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	 * generate them yourself at a safe time.
 	 *
 	 * <p>Note that <code>table</code>'s database must be fully
-	 * populated before you call this method; it requires that all
+	 * populated up to the table level (the tables themselves can be
+	 * unpopulated) before you call this method; it requires that all
 	 * referenced tables are represented by in-memory SQLTable
 	 * objects.
 	 *
 	 * @throws ArchitectException if a database error occurs or if the
 	 * given table's parent database is not marked as populated.
 	 */
-	static void addRelationshipsToTable(SQLTable table) throws ArchitectException {
+	static void addImportedRelationshipsToTable(SQLTable table) throws ArchitectException {
 		SQLDatabase db = table.getParentDatabase();
 		if (!db.isPopulated()) {
 			throw new ArchitectException("relationship.unpopulatedTargetDatabase");
