@@ -10,7 +10,8 @@ import java.util.*;
 import java.sql.DatabaseMetaData;
 import org.apache.log4j.Logger;
 
-public class ColumnEditPanel extends JPanel implements ListSelectionListener, ActionListener {
+public class ColumnEditPanel extends JPanel
+	implements ListSelectionListener, ActionListener, ArchitectPanel {
 
 	private static final Logger logger = Logger.getLogger(ColumnEditPanel.class);
 
@@ -31,15 +32,13 @@ public class ColumnEditPanel extends JPanel implements ListSelectionListener, Ac
 	protected JCheckBox colAutoInc;
 
 	public ColumnEditPanel(SQLTable table, int idx) throws ArchitectException {
-		model = table;
-
-		setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
-		setLayout(new BorderLayout(12,12));
-		tableListModel = new SQLTableListModel(model);
-		model.addSQLObjectListener(tableListModel);
-		columns = new JList(tableListModel);
+		columns = new JList();
 		columns.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		columns.addListSelectionListener(this);
+
+		setModel(table);
+
+		setLayout(new BorderLayout(12,12));
 		add(new JScrollPane(columns), BorderLayout.WEST);
 
 		JPanel centerBox = new JPanel();
@@ -82,14 +81,21 @@ public class ColumnEditPanel extends JPanel implements ListSelectionListener, Ac
 		centerBox.add(Box.createVerticalGlue());
 		add(centerBox, BorderLayout.CENTER);
 
-		JPanel southPanel = new JPanel();
-		southPanel.setLayout(new FlowLayout());
-		southPanel.add(new JButton("Ok"));
-		southPanel.add(new JButton("Cancel"));
-		add(southPanel, BorderLayout.SOUTH);
-
 		// select the default column
 		columns.setSelectedIndex(idx);
+	}
+
+	/**
+	 * You should call selectColumn with a nonnegative index after calling setModel.
+	 */
+	public void setModel(SQLTable newModel) {
+		if (model != null) {
+			model.removeSQLObjectListener(tableListModel);
+		}
+		model = newModel;
+		tableListModel = new SQLTableListModel(model);
+		model.addSQLObjectListener(tableListModel);
+		columns.setModel(tableListModel);
 	}
 
 	protected JSpinner createScaleEditor() {
@@ -121,17 +127,31 @@ public class ColumnEditPanel extends JPanel implements ListSelectionListener, Ac
 		}
 	}
 
+	public void selectColumn(int index) {
+		columns.setSelectedIndex(index);
+	}
+
 	/**
 	 * Causes the edit panel to edit the properties of the column at
 	 * <code>index</code> in the table's child list.
 	 */
-	public void editColumn(int index) throws ArchitectException {
+	protected void editColumn(int index) throws ArchitectException {
+		if (index < 0) {
+			return;
+		}
 		SQLColumn col = model.getColumn(index);
 		if (col.getSourceColumn() == null) {
 			sourceDB.setText("None Specified");
 			sourceTableCol.setText("None Specified");
 		} else {
-			sourceDB.setText(col.getSourceColumn().getParent().getParent().getName());
+			StringBuffer sb = new StringBuffer();
+			SQLObject so = col.getSourceColumn().getParent().getParent();
+			while (so != null) {
+				sb.insert(0, so.getName());
+				sb.insert(0, ".");
+				so = so.getParent();
+			}
+			sourceDB.setText(sb.toString().substring(1));
 			sourceTableCol.setText(col.getSourceColumn().getParent().getName()
 								   +"."+col.getSourceColumn().getName());
 		}
@@ -236,5 +256,24 @@ public class ColumnEditPanel extends JPanel implements ListSelectionListener, Ac
 	 */
 	protected void cleanup() {
 		model.removeSQLObjectListener(tableListModel);
+	}
+
+	// ------------------ ARCHITECT PANEL INTERFACE ---------------------
+	
+	/**
+	 * Does nothing because this version of ColumnEditPanel works
+	 * directly on the live data.
+	 */
+	public void applyChanges() {
+	}
+
+	/**
+	 * Does nothing because this version of ColumnEditPanel works
+	 * directly on the live data.
+	 *
+	 * <p>XXX: in architect version 2, this will undo the changes to
+	 * the model.
+	 */
+	public void discardChanges() {
 	}
 }
