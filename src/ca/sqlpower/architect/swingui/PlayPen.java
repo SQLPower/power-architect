@@ -125,19 +125,27 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 			comp.setLocation(pos);
 
 			if (pos.x < 0) {
-				translateAllComponents( Math.abs(pos.x), 0 );
+				translateAllComponents(Math.abs(pos.x), 0, false);
 			}
+			
+			parent.scrollRectToVisible(comp.getBounds());
 		}
 
 		/**
 		 * Translates all components left and down by the specified
-		 * amounts.  Tries to make it appear that the components
-		 * didn't move by scrolling the viewport by the same amount as
-		 * the components were translated.
+		 * amounts.
+		 *
+		 * @param scrollToCompensate if true, this method tries to
+		 * make it appear that the components didn't move by scrolling
+		 * the viewport by the same amount as the components were
+		 * translated.  If false, no scrolling is attempted.
 		 */
-		protected void translateAllComponents(int xdist, int ydist) {
+		protected void translateAllComponents(int xdist, int ydist, boolean scrollToCompensate) {
 			synchronized (parent) {
-				Rectangle visibleArea = parent.getVisibleRect();
+				Rectangle visibleArea = null;
+				if (scrollToCompensate) {
+					parent.getVisibleRect();
+				}
 				
 				Point p = new Point();
 				for (int i = 0, n = parent.getComponentCount(); i < n; i++) {
@@ -148,9 +156,11 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 					c.setLocation(p);
 				}
 				
-				visibleArea.x += xdist;
-				visibleArea.y += ydist;
-				parent.scrollRectToVisible(visibleArea);
+				if (scrollToCompensate) {
+					visibleArea.x += xdist;
+					visibleArea.y += ydist;
+					parent.scrollRectToVisible(visibleArea);
+				}
 			}
 		}
 
