@@ -157,20 +157,28 @@ public class ExportDDLAction extends AbstractAction {
 			final JButton saveButton = new JButton("Save");
 			saveButton.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
-						BufferedWriter out = null;
-						try {
-							out = new BufferedWriter(new FileWriter(ddlg.getFile()));
-							out.write(ddlArea.getText());
-						} catch (IOException ex) {
-							JOptionPane.showMessageDialog(d, "Couldn't save DDL: "+ex.getMessage());
-						} finally {
+						JFileChooser fc = new JFileChooser();
+						fc.addChoosableFileFilter(ASUtils.SQL_FILE_FILTER);
+						fc.setSelectedFile(ddlg.getFile());
+						int rv = fc.showSaveDialog(d);
+						if (rv == JFileChooser.APPROVE_OPTION) {
+							ddlg.setFile(fc.getSelectedFile());
+							BufferedWriter out = null;
 							try {
-								if (out != null) out.close();
-							} catch (IOException ioex) {
-								logger.error("Couldn't close file in finally clause", ioex);
+								out = new BufferedWriter(new FileWriter(ddlg.getFile()));
+								out.write(ddlArea.getText());
+							} catch (IOException ex) {
+								JOptionPane.showMessageDialog(d, "Couldn't save DDL:\n"
+															  +ex.getMessage());
+							} finally {
+								try {
+									if (out != null) out.close();
+								} catch (IOException ioex) {
+									logger.error("Couldn't close file in finally clause", ioex);
+								}
+								d.setVisible(false);
+								parent.setVisible(false);
 							}
-							d.setVisible(false);
-							parent.setVisible(false);
 						}
 					}
 				});
@@ -191,7 +199,7 @@ public class ExportDDLAction extends AbstractAction {
 			d.setVisible(true);
 		} catch (Exception e) {
 			logger.error("Couldn't Generate DDL", e);
-			JOptionPane.showMessageDialog(parent, "Couldn't Generate DDL: "+e.getMessage());
+			JOptionPane.showMessageDialog(parent, "Couldn't Generate DDL:\n"+e.getMessage());
 		}
 	}
 }
