@@ -151,7 +151,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 										 String schema,
 										 String tableName) 
 		throws SQLException, DuplicateColumnException, ArchitectException {
-		Connection con = addTo.parentDatabase.getConnection();
+		Connection con = addTo.getParentDatabase().getConnection();
 		ResultSet rs = null;
 		try {
 			DatabaseMetaData dbmd = con.getMetaData();
