@@ -96,6 +96,10 @@ public class GenericTypeDescriptor {
 		}
 	}
 
+	public String toString() {
+		return getName()+" (type="+getDataType()+")";
+	}
+
 	// ------------------- Accessors and Mutators ----------------------
 
 	/**

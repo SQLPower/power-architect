@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Iterator;
 import javax.swing.*;
+import javax.swing.table.AbstractTableModel;
 import ca.sqlpower.architect.*;
 import ca.sqlpower.architect.ddl.*;
 import org.apache.log4j.Logger;
@@ -49,13 +50,16 @@ public class ExportDDLAction extends AbstractAction {
 							(architectFrame,
 							 "Can't export DDL: "+ex.getMessage());
 						logger.error("Got exception while exporting DDL", ex);
+
+						// XXX: this won't always be the appropriate reaction.
+						// should have a separate exception for "connection problems"
+						ArchitectFrame.getMainInstance().playpen.showDbcsDialog();
 					}
-					//d.setVisible(false);
 				}
 			});
 		buttonPanel.add(okButton);
 		
-		JButton cancelButton = new JButton("Cancel");
+		JButton cancelButton = new JButton("Close");
 		cancelButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent evt) {
 					ddlPanel.discardChanges();
@@ -80,6 +84,13 @@ public class ExportDDLAction extends AbstractAction {
 			JPanel cp = new JPanel(new BorderLayout(12, 12));
 			cp.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
 			StringBuffer ddl = ddlg.generateDDL(architectFrame.playpen.getDatabase());
+			List warnings = ddlg.getWarnings();
+			if (warnings.size() > 0) {
+				TableSorter sorter = new TableSorter(new DDLWarningTableModel(warnings));
+				JTable warningTable = new JTable(sorter);
+				sorter.setTableHeader(warningTable.getTableHeader());
+				JOptionPane.showMessageDialog(parent, new JScrollPane(warningTable), "Warnings in generated DDL", JOptionPane.WARNING_MESSAGE);
+			}
 			final JTextArea ddlArea = new JTextArea(ddl.toString(), 25, 60);
 			ddlArea.setEditable(false); // XXX: will make this editable in the future
 			cp.add(new JScrollPane(ddlArea), BorderLayout.CENTER);
@@ -98,12 +109,14 @@ public class ExportDDLAction extends AbstractAction {
 							JOptionPane.showMessageDialog
 								(d, "Couldn't connect to target database: "+ex.getMessage()
 								 +"\nPlease check the connection settings and try again.");
+							architectFrame.getMainInstance().playpen.showDbcsDialog();
 							return;
 						} catch (Exception ex) {
 							JOptionPane.showMessageDialog
 								(d, "You have to specify a target database connection"
 								 +"\nbefore executing this script.");
 							logger.error("Unexpected exception in DDL generation", ex);
+							architectFrame.getMainInstance().playpen.showDbcsDialog();
 							return;
 						}
 
@@ -202,6 +215,49 @@ public class ExportDDLAction extends AbstractAction {
 		} catch (Exception e) {
 			logger.error("Couldn't Generate DDL", e);
 			JOptionPane.showMessageDialog(parent, "Couldn't Generate DDL:\n"+e.getMessage());
+		}
+	}
+
+	public static class DDLWarningTableModel extends AbstractTableModel {
+		protected List warnings;
+
+		public DDLWarningTableModel(List warnings) {
+			this.warnings = warnings;
+		}
+
+		public int getRowCount() {
+			return warnings.size();
+		}
+
+		public int getColumnCount() {
+			return 3;
+		}
+
+		public String getColumnName(int columnIndex) {
+			switch(columnIndex) {
+			case 0:
+				return "Warning Type";
+			case 1:
+				return "Old Value";
+			case 2:
+				return "New Value";
+			default:
+				throw new IndexOutOfBoundsException("Requested column name "+columnIndex+" of "+getColumnCount());
+			}
+		}
+
+		public Object getValueAt(int row, int column) {
+			DDLWarning w = (DDLWarning) warnings.get(row);
+			switch(column) {
+			case 0:
+				return w.getReason();
+			case 1:
+				return w.getOldValue();
+			case 2:
+				return w.getNewValue();
+			default:
+				throw new IndexOutOfBoundsException("Requested column "+column+" of "+getColumnCount());
+			}
 		}
 	}
 }
