@@ -227,6 +227,19 @@ public class DBTree extends JTree implements DragSourceListener {
 		JMenuItem popupProperties = new JMenuItem(new DBCSPropertiesAction());
 		newMenu.add(popupProperties);   // index 2
 
+		if (logger.isDebugEnabled()) {
+			newMenu.addSeparator();
+			JMenuItem showListeners = new JMenuItem("Show Listeners");
+			showListeners.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						SQLObject so = (SQLObject) getLastSelectedPathComponent();
+						if (so != null) {
+							JOptionPane.showMessageDialog(DBTree.this, new JScrollPane(new JList(new java.util.Vector(so.getSQLObjectListeners()))));
+						}
+					}
+				});
+			newMenu.add(showListeners);
+		}
 		return newMenu;
 	}
 
