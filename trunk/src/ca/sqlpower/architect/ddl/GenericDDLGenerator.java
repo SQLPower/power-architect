@@ -49,6 +49,7 @@ public class GenericDDLGenerator {
 		try {
 			writeHeader();
 			writeCreateDB(source);
+			writeDDLTransactionBegin();
 			Iterator it = source.getChildren().iterator();
 			while (it.hasNext()) {
 				SQLTable t = (SQLTable) it.next();
@@ -60,6 +61,7 @@ public class GenericDDLGenerator {
 				SQLTable t = (SQLTable) it.next();
 				writeExportedRelationships(t);
 			}
+			writeDDLTransactionEnd();
 		} finally {
 			if (out != null) {
 				out.close();
@@ -70,6 +72,28 @@ public class GenericDDLGenerator {
 
 	public void writeHeader() {
 		out.println("-- Created by SQLPower Generic DDL Generator "+GENERATOR_VERSION+" --");
+	}
+
+	/**
+	 * Prints a single semicolon character (no newline).  If your
+	 * database needs something else, override this method.
+	 */
+	public void writeStatementTerminator() {
+		out.print(";");
+	}
+
+	/**
+	 * Does nothing.  If your target system supports transactional
+	 * DDL, override this method and print the appropriate statement.
+	 */
+	public void writeDDLTransactionBegin() {
+	}
+
+	/**
+	 * Does nothing.  If your target system supports transactional
+	 * DDL, override this method and print the appropriate statement.
+	 */
+	public void writeDDLTransactionEnd() {
 	}
 
 	public void writeCreateDB(SQLDatabase db) {
@@ -116,7 +140,9 @@ public class GenericDDLGenerator {
 			firstCol = false;
 		}
 		out.println();
-		out.println(")");
+		out.print(")");
+		writeStatementTerminator();
+		out.println("");
 	}
 	
 	protected void writePrimaryKey(SQLTable t) throws ArchitectException {
@@ -136,7 +162,9 @@ public class GenericDDLGenerator {
 			}
 			out.print(col.getName());
 		}
-		out.println(")");
+		out.print(")");
+		writeStatementTerminator();
+		out.println("");
 	}
 
 	protected void writeExportedRelationships(SQLTable t) throws ArchitectException {
@@ -146,7 +174,7 @@ public class GenericDDLGenerator {
 			out.println("");
 			out.println("ALTER TABLE "+rel.getFkTable().getName()
 						+" ADD CONSTRAINT "+rel.getName());
-			out.print("FORIEGN KEY (");
+			out.print("FOREIGN KEY (");
 			StringBuffer pkCols = new StringBuffer();
 			StringBuffer fkCols = new StringBuffer();
 			boolean firstCol = true;
@@ -165,7 +193,9 @@ public class GenericDDLGenerator {
 			out.println(")");
 			out.print("REFERENCES "+rel.getPkTable().getName()+" (");
 			out.print(pkCols.toString());
-			out.println(")");
+			out.print(")");
+			writeStatementTerminator();
+			out.println("");
 		}
 	}
 

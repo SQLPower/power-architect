@@ -12,6 +12,23 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
 	public void writeHeader() {
 		out.println("-- Created by SQLPower SQLServer 2000 DDL Generator "+GENERATOR_VERSION+" --");
 	}
+	
+	public void writeDDLTransactionBegin() {
+	}
+
+	/**
+	 * Prints "GO" on its own line.
+	 */
+	public void writeDDLTransactionEnd() {
+		out.println("GO");
+	}
+
+	/**
+	 * Prints nothing because SS2k doesn't need DDL statement
+	 * terminators.
+	 */
+	public void writeStatementTerminator() {
+	}
 
 	protected void createTypeMap() throws SQLException {
 		typeMap = new HashMap();
