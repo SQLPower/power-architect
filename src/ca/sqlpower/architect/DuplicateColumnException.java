@@ -4,7 +4,7 @@ package ca.sqlpower.architect;
  * The DuplicateColumnException represents a failure to add a column
  * to a table because the table already has a column with that name.
  */
-public class DuplicateColumnException extends ArchitectException {
+public class DuplicateColumnException extends ArchitectException implements java.io.Serializable {
 
 	SQLTable table;
     String dupColName;

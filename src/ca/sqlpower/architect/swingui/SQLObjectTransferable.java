@@ -4,7 +4,7 @@ import java.awt.datatransfer.*;
 import ca.sqlpower.architect.SQLObject;
 import java.io.IOException;
 
-public class SQLObjectTransferable implements Transferable {
+public class SQLObjectTransferable implements Transferable, java.io.Serializable {
 	public static final DataFlavor flavor = new DataFlavor
 		(SQLObject.class, "Database objects");
 	

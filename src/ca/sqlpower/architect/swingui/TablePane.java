@@ -14,7 +14,7 @@ import java.beans.PropertyChangeEvent;
 
 import ca.sqlpower.architect.*;
 
-public class TablePane extends JComponent implements SQLObjectListener {
+public class TablePane extends JComponent implements SQLObjectListener, java.io.Serializable {
 
 	/**
 	 * How many pixels should be left between the surrounding box and

@@ -6,7 +6,7 @@ import java.io.PrintStream;
 /**
  * A general exception class for the Architect application.
  */
-public class ArchitectException extends Exception {
+public class ArchitectException extends Exception implements java.io.Serializable {
 	protected Throwable cause;
 
 	public ArchitectException(String message) {
