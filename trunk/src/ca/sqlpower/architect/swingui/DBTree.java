@@ -22,6 +22,7 @@ public class DBTree extends JTree implements DragSourceListener {
 	public DBTree(List initialDatabases) throws ArchitectException {
 		super(new DBTreeModel(initialDatabases));
 		setRootVisible(false);
+		setShowsRootHandles(true);
 		ds = new DragSource();
 		DragGestureRecognizer dgr = ds.createDefaultDragGestureRecognizer
 			(this, DnDConstants.ACTION_COPY, new DBTreeDragGestureListener());

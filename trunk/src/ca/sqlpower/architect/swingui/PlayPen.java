@@ -335,12 +335,13 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 	 */
 	public synchronized void addTable(SQLTable source, Point preferredLocation) throws ArchitectException {
 		SQLTable newTable = SQLTable.getDerivedInstance(source, db);
-		Integer suffix = (Integer) tableNames.get(source.getTableName());
+		String key = source.getTableName().toLowerCase();
+		Integer suffix = (Integer) tableNames.get(key);
 		if (suffix == null) {
-			tableNames.put(source.getTableName(), new Integer(0));
+			tableNames.put(key, new Integer(0));
 		} else {
 			int newSuffix = suffix.intValue()+1;
-			tableNames.put(source.getTableName(), new Integer(newSuffix));
+			tableNames.put(key, new Integer(newSuffix));
 			newTable.setTableName(source.getTableName()+"_"+newSuffix);
 		}
 		TablePane tp = new TablePane(newTable);

@@ -54,7 +54,7 @@ public class SQLCatalog extends SQLObject {
 		Iterator childit = children.iterator();
 		while (childit.hasNext()) {
 			SQLSchema schema = (SQLSchema) childit.next();
-			if (schema.getName().equals(schemaName)) {
+			if (schema.getName().equalsIgnoreCase(schemaName)) {
 				return schema;
 			}
 		}
