@@ -211,6 +211,10 @@ public class SQLTable extends SQLObject {
 		}
 	}
 
+	public SQLColumn getColumn(int idx) throws ArchitectException {
+		return (SQLColumn) getChild(idx);
+	}
+
 	/**
 	 * Populates this table then searches for the named column.
 	 */
