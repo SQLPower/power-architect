@@ -10,7 +10,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
 	}
 
 	public void writeHeader() {
-		out.println("-- Created by SQLPower Oracle 8i/9i DDL Generator "+GENERATOR_VERSION+" --");
+		println("-- Created by SQLPower Oracle 8i/9i DDL Generator "+GENERATOR_VERSION+" --");
 	}
 
 	protected void createTypeMap() throws SQLException {

@@ -25,10 +25,11 @@ public class CreateRelationshipAction extends AbstractAction
 	protected boolean active;
 
 	public CreateRelationshipAction() {
-		super("Create Relationship",
+		super("New Relationship",
 			  ASUtils.createIcon("NewRelationship",
-								 "Create Relationship",
+								 "New Relationship",
 								 ArchitectFrame.getMainInstance().sprefs.getInt(SwingUserSettings.ICON_SIZE, 24)));
+		putValue(SHORT_DESCRIPTION, "New Relationship");
 		setEnabled(false);
 	}
 

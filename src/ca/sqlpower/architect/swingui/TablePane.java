@@ -157,6 +157,7 @@ public class TablePane
 				columnSelection.remove(ci[i]);
 			}
 			if (columnSelection.size() > 0) {
+				selectNone();
 				columnSelection.set(Math.min(ci[0], columnSelection.size()-1), Boolean.TRUE);
 			}
 		}
@@ -646,11 +647,6 @@ public class TablePane
 
 		public void mousePressed(MouseEvent evt) {
 			evt.getComponent().requestFocus();
-			maybeShowPopup(evt);
-		}
-
-		public void mouseReleased(MouseEvent evt) {
-			maybeShowPopup(evt);
 
 			// table/column selection
 			if ((evt.getModifiers() & MouseEvent.BUTTON1_MASK) != 0) {
@@ -665,6 +661,12 @@ public class TablePane
 					logger.error("Exception converting point to column", e);
 				}
 			}
+
+			maybeShowPopup(evt);
+		}
+
+		public void mouseReleased(MouseEvent evt) {
+			maybeShowPopup(evt);
 		}
 
 		public void maybeShowPopup(MouseEvent evt) {

@@ -16,10 +16,11 @@ public class EditRelationshipAction extends AbstractAction {
 	protected PlayPen pp;
 	
 	public EditRelationshipAction() {
-		super("Edit Relationship",
+		super("Relationship Propertied",
 			  ASUtils.createIcon("RelationshipProperties",
-								 "Create Table",
+								 "Relationship Properties",
 								 ArchitectFrame.getMainInstance().sprefs.getInt(SwingUserSettings.ICON_SIZE, 24)));
+		putValue(SHORT_DESCRIPTION, "Relationship Properties");
 	}
 
 	public void actionPerformed(ActionEvent evt) {

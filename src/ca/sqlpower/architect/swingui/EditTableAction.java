@@ -16,10 +16,11 @@ public class EditTableAction extends AbstractAction {
 	protected PlayPen pp;
 	
 	public EditTableAction() {
-		super("Edit Table Properties...",
+		super("Table Properties...",
 			  ASUtils.createIcon("TableProperties",
-								 "Edit Table Properties",
+								 "Table Properties",
 								 ArchitectFrame.getMainInstance().sprefs.getInt(SwingUserSettings.ICON_SIZE, 24)));
+		putValue(SHORT_DESCRIPTION, "Table Properties");
 	}
 
 	public void actionPerformed(ActionEvent evt) {

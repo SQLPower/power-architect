@@ -270,6 +270,7 @@ public class DBTree extends JTree implements DragSourceListener {
 			if (so instanceof SQLDatabase) {
 				DBConnectionSpec dbcs = ((SQLDatabase) so).getConnectionSpec();
 				logger.debug("Setting existing DBCS on panel: "+dbcs);
+				edittingDB = (SQLDatabase) so;
 				dbcsPanel.setDbcs(dbcs);
 				propDialog.setVisible(true);
 				propDialog.requestFocus();
