@@ -10,10 +10,12 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
 
 import ca.sqlpower.sql.DBConnectionSpec;
 
-public class SQLDatabase extends SQLObject implements java.io.Serializable {
+public class SQLDatabase extends SQLObject implements java.io.Serializable, PropertyChangeListener {
 
 	/**
 	 * Caches connections across serialization attempts.  See {@link
@@ -26,7 +28,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable {
 	protected boolean populated = false;
 
 	public SQLDatabase(DBConnectionSpec connectionSpec) {
-		this.connectionSpec = connectionSpec;
+		setConnectionSpec(connectionSpec);
 		children = new ArrayList();
 	}
 
@@ -163,19 +165,56 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable {
 	 * @param argConnectionSpec Value to assign to this.connectionSpec
 	 */
 	public void setConnectionSpec(DBConnectionSpec argConnectionSpec) {
+		reset();
+		if (connectionSpec != null) connectionSpec.removePropertyChangeListener(this);
+		connectionSpec = argConnectionSpec;
+		connectionSpec.addPropertyChangeListener(this);
+		fireDbObjectChanged("connectionSpec");
+	}
+
+	/**
+	 * Removes all children, closes and discards the JDBC connection.
+	 */
+	protected void reset() {
 		// tear down old connection stuff
 		List old = children;
-		int[] oldIndices = new int[old.size()];
-		for (int i = 0, n = old.size(); i < n; i++) {
-			oldIndices[i] = i;
+		if (old != null && old.size() > 0) {
+			int[] oldIndices = new int[old.size()];
+			for (int i = 0, n = old.size(); i < n; i++) {
+				oldIndices[i] = i;
+			}
+			fireDbChildrenRemoved(oldIndices, old);
+			
 		}
 		children = new ArrayList();
-		fireDbChildrenRemoved(oldIndices, old);
+		if (connection != null) {
+			try {
+				connection.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
 		connection = null;
 		populated = false;
+	}
 
-		connectionSpec = argConnectionSpec;
-		fireDbObjectChanged("connectionSpec");
+	/**
+	 * Listens for changes in DBCS properties, and resets this
+	 * SQLDatabase if a critical property (url, driver, username)
+	 * changes.
+	 */
+	public void propertyChange(PropertyChangeEvent e) {
+		String pn = e.getPropertyName();
+		if ( (e.getOldValue() == null && e.getNewValue() != null)
+			 || (e.getOldValue() != null && e.getNewValue() == null)
+			 || (e.getOldValue() != null && e.getNewValue() != null 
+				 && !e.getOldValue().equals(e.getNewValue())) ) {
+			if (pn.equals("url") || pn.equals("driverClass") || pn.equals("user")) {
+				reset();
+			} else if (pn.equals("displayName")) {
+				fireDbObjectChanged("shortDisplayName");
+			}
+		}
 	}
 
 	/**
