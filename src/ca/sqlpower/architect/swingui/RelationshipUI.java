@@ -17,7 +17,7 @@ public abstract class RelationshipUI extends ComponentUI implements java.io.Seri
 	 */
 	public abstract void bestConnectionPoints();
 
-	public abstract Point closestEdgePoint(TablePane tp, Point p);
+	public abstract Point closestEdgePoint(boolean onPkTable, Point p);
 
 	public abstract Point getPreferredLocation();
 

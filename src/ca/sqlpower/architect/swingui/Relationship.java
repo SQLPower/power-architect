@@ -60,7 +60,11 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 		pkTable.getModel().addExportedKey(model);
 		fkTable.getModel().addImportedKey(model);
 		
-		Iterator pkCols = pkTable.getModel().getColumns().iterator();
+		// iterate over a copy of pktable's column list to avoid comodification
+		// when creating a self-referencing table
+		java.util.List pkColListCopy = new ArrayList(pkTable.getModel().getColumns().size());
+		pkColListCopy.addAll(pkTable.getModel().getColumns());
+		Iterator pkCols = pkColListCopy.iterator();
 		while (pkCols.hasNext()) {
 			SQLColumn pkCol = (SQLColumn) pkCols.next();
 			if (pkCol.getPrimaryKeySeq() == null) break;
@@ -377,11 +381,11 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 			if (movingPk) {
 				p.x = p.x - r.getPkTable().getX();
 				p.y = p.y - r.getPkTable().getY();
-				p = r.ui.closestEdgePoint(r.getPkTable(), p);
+				p = r.ui.closestEdgePoint(movingPk, p);
 			} else {
 				p.x = p.x - r.getFkTable().getX();
 				p.y = p.y - r.getFkTable().getY();
-				p = r.ui.closestEdgePoint(r.getFkTable(), p);
+				p = r.ui.closestEdgePoint(movingPk, p);
 			}
 			return p;
 		}
