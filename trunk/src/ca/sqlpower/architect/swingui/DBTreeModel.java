@@ -169,9 +169,11 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 
 	public SQLObject[] getPathToNode(SQLObject node) {
 		LinkedList path = new LinkedList();
-		while (node != null) {
-			path.add(0, node);
-			node = node.getParent();
+		if (! (node instanceof DBTreeRoot)) {
+			while (node != null) {
+				path.add(0, node);
+				node = node.getParent();
+			}
 		}
 		path.add(0, root);
 		return (SQLObject[]) path.toArray(new SQLObject[path.size()]);
