@@ -12,10 +12,14 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
+import org.apache.log4j.Logger;
 
 import ca.sqlpower.sql.DBConnectionSpec;
 
 public class SQLDatabase extends SQLObject implements java.io.Serializable, PropertyChangeListener {
+	private static Logger logger = Logger.getLogger(SQLDatabase.class);
+
+	private static SQLDatabase playPenInstance;
 
 	/**
 	 * Caches connections across serialization attempts.  See {@link
@@ -31,6 +35,20 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 		setConnectionSpec(connectionSpec);
 		children = new ArrayList();
 	}
+	
+	/**
+	 * Empty constructor for static factory methods.
+	 */
+	private SQLDatabase() {
+	}
+
+	public static synchronized SQLDatabase getPlayPenInstance() {
+		if (playPenInstance == null) {
+			playPenInstance = new SQLDatabase();
+			playPenInstance.populated = true;
+		}
+		return playPenInstance;
+	}
 
 	public synchronized boolean isConnected() {
 		return connection != null;
@@ -42,13 +60,13 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 		if (connection != null) return;
 		try {
 			Class.forName(connectionSpec.getDriverClass());
-			System.out.println("Driver Class "+connectionSpec.getDriverClass()+" loaded without exception");
+			logger.info("Driver Class "+connectionSpec.getDriverClass()+" loaded without exception");
 			connection = DriverManager.getConnection(connectionSpec.getUrl(),
 													 connectionSpec.getUser(),
 													 connectionSpec.getPass());
 			dbConnections.put(connectionSpec, connection);
 		} catch (ClassNotFoundException e) {
-			System.out.println("Driver Class not found");
+			logger.warn("Driver Class not found");
 			throw new ArchitectException("dbconnect.noDriver", e);
 		} catch (SQLException e) {
 			throw new ArchitectException("dbconnect.connectionFailed", e);
@@ -221,14 +239,20 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	 * Returns a reference to the JDBC connection to this database.
 	 * Calls connect() if necessary.
 	 *
-	 * @return the value of con
+	 * @return an open connection if this database has a valid
+	 * connectionSpec; null if this is a dummy database (such as the
+	 * playpen instance).
 	 */
 	public Connection getConnection() throws ArchitectException {
-		if (connection == null) connect();
+		if (connection == null && connectionSpec != null) connect();
 		return this.connection;
 	}
 
 	public String toString() {
-		return connectionSpec.getDisplayName();
+		if (connectionSpec != null) {
+			return connectionSpec.getDisplayName();
+		} else {
+			return "PlayPen Database";
+		}
 	}
 }
