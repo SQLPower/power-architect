@@ -9,6 +9,7 @@ import java.awt.dnd.*;
 import java.awt.event.*;
 
 import java.util.List;
+import java.util.Iterator;
 import java.util.ArrayList;
 import org.apache.log4j.Logger;
 

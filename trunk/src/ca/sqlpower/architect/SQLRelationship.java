@@ -3,6 +3,7 @@ package ca.sqlpower.architect;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.ResultSet;
@@ -54,6 +55,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 			DatabaseMetaData dbmd = con.getMetaData();
 			SQLRelationship r = null;
 			int currentKeySeq;
+			LinkedList newKeys = new LinkedList();
 			rs = dbmd.getImportedKeys(table.getCatalogName(),
 									  table.getSchemaName(),
 									  table.getTableName());
@@ -61,8 +63,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 				currentKeySeq = rs.getInt(9);
 				if (currentKeySeq == 1) {
 					r = new SQLRelationship();
-					table.children.add(r);
-					logger.debug("Added relationship to "+table.getName());
+					newKeys.add(r);
 				}
 				ColumnMapping m = r.new ColumnMapping();
 				r.children.add(m);
@@ -74,6 +75,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 				if (m.pkColumn == null) {
 					throw new ArchitectException("relationship.populate.nullPkColumn");
 				}
+
 				r.fkTable = db.getTableByName(rs.getString(5),  // catalog
 											  rs.getString(6),  // schema
 											  rs.getString(7)); // table
@@ -91,6 +93,17 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 				r.pkName = rs.getString(13);
 				r.deferrability = rs.getInt(14);
 			}
+
+			// now that all the new SQLRelationship objects are set up, add them to their tables
+			Iterator it = newKeys.iterator();
+			while (it.hasNext()) {
+				r = (SQLRelationship) it.next();
+				r.pkTable.addExportedKey(r);
+				logger.debug("Added exported key to "+r.pkTable.getName());
+				r.fkTable.addImportedKey(r);
+				logger.debug("Added imported key to "+r.fkTable.getName());
+			}
+
 		} catch (SQLException e) {
 			throw new ArchitectException("relationship.populate", e);
 		} finally {
@@ -103,7 +116,10 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	}
 
 	public String toString() {
-		return getShortDisplayName();
+		return "[SQLRelationship: "+getShortDisplayName()
+			+", pkTable="+pkTable.getName()
+			+", fkTable="+fkTable.getName()
+			+"]";
 	}
 
 	// ---------------------- SQLRelationship SQLObject support ------------------------

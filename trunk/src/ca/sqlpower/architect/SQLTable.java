@@ -25,15 +25,33 @@ public class SQLTable extends SQLObject {
 	protected String tableName;
 	protected String remarks;
 	protected String objectType;
+	protected String primaryKeyName;
+	
+	/**
+	 * A List of SQLColumn objects which make up all the columns of
+	 * this table.
+	 */
+	protected List columns;
+	protected Folder columnsFolder;
 
 	/**
 	 * A List of SQLRelationship objects describing keys that this
-	 * table imports.
+	 * table exports.  This SQLTable is the "pkTable" in its exported
+	 * keys.
+	 */
+	protected List exportedKeys;
+	protected Folder exportedKeysFolder;
+
+	/**
+	 * A List of SQLRelationship objects describing keys that this
+	 * table imports.  This SQLTable is the "fkTable" in its imported
+	 * keys.
 	 */
 	protected List importedKeys;
+	protected Folder importedKeysFolder;
+
 	protected boolean columnsPopulated;
 	protected boolean relationshipsPopulated;
-	protected String primaryKeyName;
 
 	public SQLTable(SQLDatabase parentDb, SQLObject parent, SQLCatalog catalog, SQLSchema schema, String name, String remarks, String objectType) {
 		this.parentDatabase = parentDb;
@@ -46,7 +64,13 @@ public class SQLTable extends SQLObject {
 		this.relationshipsPopulated = false;
 		this.objectType = objectType;
 
+		this.columns = new ArrayList();
+		this.importedKeys = new ArrayList();
+		this.exportedKeys = new ArrayList();
 		this.children = new ArrayList();
+		children.add(columnsFolder = new Folder("Columns", this, columns));
+		children.add(exportedKeysFolder = new Folder("Exported Keys", this, exportedKeys));
+		children.add(importedKeysFolder = new Folder("Imported Keys", this, importedKeys));
 	}
 	
 	/**
@@ -120,7 +144,7 @@ public class SQLTable extends SQLObject {
 
 	protected synchronized void populateColumns() throws ArchitectException {
 		if (columnsPopulated) return;
-		int oldSize = children.size();
+		int oldSize = columns.size();
 		try {
 			SQLColumn.addColumnsToTable(this,
 										getCatalogName(),
@@ -131,39 +155,55 @@ public class SQLTable extends SQLObject {
 			throw new ArchitectException("table.populate", e);
 		} finally {
 			columnsPopulated = true;
-			int newSize = children.size();
+			int newSize = columns.size();
 			if (newSize > oldSize) {
 				int[] changedIndices = new int[newSize - oldSize];
 				for (int i = 0, n = newSize - oldSize; i < n; i++) {
 					changedIndices[i] = oldSize + i;
 				}
-				fireDbChildrenInserted(changedIndices, children.subList(oldSize, newSize));
+				columnsFolder.fireDbChildrenInserted(changedIndices,
+													 columns.subList(oldSize, newSize));
 			}
 		}
 	}
-
+	
+	/**
+	 * Populates all the imported key relationships.  This has the
+	 * side effect of populating the exported key side of the
+	 * relationships for the exporting tables.
+	 */
 	public synchronized void populateRelationships() throws ArchitectException {
 		if (!columnsPopulated) throw new IllegalStateException("Table must be populated before relationships are added");
 		if (relationshipsPopulated) return;
-		int oldSize = children.size();
+		int oldSize = importedKeys.size();
 		try {
 			SQLRelationship.addRelationshipsToTable(this);
 			relationshipsPopulated = true;
 		} finally {
 			relationshipsPopulated = true;
-			int newSize = children.size();
+			int newSize = importedKeys.size();
 			if (newSize > oldSize) {
 				int[] changedIndices = new int[newSize - oldSize];
 				for (int i = 0, n = newSize - oldSize; i < n; i++) {
 					changedIndices[i] = oldSize + i;
 				}
-				fireDbChildrenInserted(changedIndices, children.subList(oldSize, newSize));
+				importedKeysFolder.fireDbChildrenInserted(changedIndices,
+														  children.subList(oldSize, newSize));
 			}
 		}
 	}
 
+	public void addImportedKey(SQLRelationship r) {
+		importedKeys.add(r);
+	}
+
+	public void addExportedKey(SQLRelationship r) {
+		exportedKeys.add(r);
+	}
+
 	public static SQLTable getDerivedInstance(SQLTable source, SQLDatabase parent)
 		throws ArchitectException {
+		source.populate();
 		SQLTable t = new SQLTable(parent);
 		t.columnsPopulated = true;
 		t.relationshipsPopulated = true;
@@ -180,12 +220,12 @@ public class SQLTable extends SQLObject {
 	 */
 	public void inherit(SQLTable source) throws ArchitectException {
 		SQLColumn c;
-		Iterator it = source.getChildren().iterator();
+		Iterator it = source.getColumns().iterator();
 		while (it.hasNext()) {
 			SQLObject child = (SQLObject) it.next();
 			if (child instanceof SQLColumn) {
 				c = SQLColumn.getDerivedInstance((SQLColumn) child, this);
-				addChild(c);
+				columnsFolder.addChild(c);
 			} else {
 				logger.warn("inherit doesn't support child of type "+child.getClass().getName());
 			}
@@ -198,12 +238,12 @@ public class SQLTable extends SQLObject {
 	 */
 	public void inherit(int pos, SQLTable source) throws ArchitectException {
 		SQLColumn c;
-		Iterator it = source.getChildren().iterator();
+		Iterator it = source.getColumns().iterator();
 		while (it.hasNext()) {
 			SQLObject child = (SQLObject) it.next();
 			if (child instanceof SQLColumn) {
 				c = SQLColumn.getDerivedInstance((SQLColumn) child, this);
-				addChild(pos, c);
+				columnsFolder.addChild(pos, c);
 				pos += 1;
 			} else {
 				logger.warn("inherit doesn't support child of type "+child.getClass().getName());
@@ -212,7 +252,7 @@ public class SQLTable extends SQLObject {
 	}
 
 	public SQLColumn getColumn(int idx) throws ArchitectException {
-		return (SQLColumn) getChild(idx);
+		return (SQLColumn) columnsFolder.getChild(idx);
 	}
 
 	/**
@@ -232,7 +272,7 @@ public class SQLTable extends SQLObject {
 	public SQLColumn getColumnByName(String colName, boolean populate) throws ArchitectException {
 		if (populate && !columnsPopulated) populate();
 		logger.debug("Looking for column "+colName+" in "+children);
-		Iterator it = children.iterator();
+		Iterator it = columns.iterator();
 		while (it.hasNext()) {
 			SQLColumn col = (SQLColumn) it.next();
 			if (col.getColumnName().equalsIgnoreCase(colName)) {
@@ -245,11 +285,11 @@ public class SQLTable extends SQLObject {
 	}
 
 	public void addColumn(SQLColumn col) {
-		addChild(col);
+		columnsFolder.addChild(col);
 	}
 
 	public void addColumn(int index, SQLColumn col) {
-		addChild(index, col);
+		columnsFolder.addChild(index, col);
 	}
 	
 	public String toString() {
@@ -278,7 +318,7 @@ public class SQLTable extends SQLObject {
 	}
 
 	/**
-	 * Just calls populateColumns.
+	 * Just calls populateColumns and populateRelationships.
 	 */
 	public void populate() throws ArchitectException {
 		populateColumns();
@@ -290,12 +330,63 @@ public class SQLTable extends SQLObject {
 	}
 
 	/**
-	 * Returns true (tables have columns as children).
+	 * Returns true (tables have several folders as children).
 	 */
 	public boolean allowsChildren() {
 		return true;
 	}
 
+	public void removeDependencies() {
+		Iterator it = importedKeys.iterator();
+		while (it.hasNext()) {
+			SQLRelationship r = (SQLRelationship) it.next();
+			// FIXME: have to actually remove relationships
+			logger.debug(r);
+		}
+	}
+
+	/**
+	 * The Folder class is a SQLObject that holds a SQLTable's child
+	 * folders (columns and relationships).
+	 */
+	public static class Folder extends SQLObject {
+		protected String name;
+		protected SQLObject parent;
+
+		public Folder(String name, SQLObject parent, List children) {
+			this.name = name;
+			this.parent = parent;
+			this.children = children;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public SQLObject getParent() {
+			return parent;
+		}
+
+		public void populate() {
+		}
+
+		public boolean isPopulated() {
+			return true;
+		}
+
+		public String getShortDisplayName() {
+			return name;
+		}
+
+		public boolean allowsChildren() {
+			return true;
+		}
+
+		public String toString() {
+			return name;
+		}
+
+	}
 
 	// ------------------ Accessors and mutators below this line ------------------------
 
@@ -360,6 +451,10 @@ public class SQLTable extends SQLObject {
 		// XXX: fire event?
 	}
 
+	public Folder getColumnsFolder() {
+		return columnsFolder;
+	}
+
 	/**
 	 * Gets the value of tableName
 	 *
@@ -404,7 +499,7 @@ public class SQLTable extends SQLObject {
 	 * @return the value of columns
 	 */
 	public synchronized List getColumns() throws ArchitectException {
-		return getChildren();
+		return columnsFolder.getChildren();
 	}
 
 	// 	/**
@@ -426,6 +521,15 @@ public class SQLTable extends SQLObject {
 	 */
 	public List getImportedKeys()  {
 		return this.importedKeys;
+	}
+
+	/**
+	 * Gets the value of exportedKeys
+	 *
+	 * @return the value of exportedKeys
+	 */
+	public List getExportedKeys()  {
+		return this.exportedKeys;
 	}
 
 	/**
