@@ -464,7 +464,9 @@ public class SwingUIProject {
 				+" allowConnection=\""+ddlGenerator.getAllowConnection()+"\""
 				+">");
 		indent++;
-		println("<file path=\""+ddlGenerator.getFile().getPath()+"\" />");
+		if (ddlGenerator.getFile() != null) {
+			println("<file path=\""+ddlGenerator.getFile().getPath()+"\" />");
+		}
 		indent--;
 		println("</ddl-generator>");
 	}

@@ -23,7 +23,7 @@ import ca.sqlpower.architect.*;
 
 public class TablePane 
 	extends JComponent 
-	implements SQLObjectListener, java.io.Serializable, Selectable {
+	implements SQLObjectListener, java.io.Serializable, Selectable, DragSourceListener {
 
 	private static final Logger logger = Logger.getLogger(TablePane.class);
 
@@ -64,6 +64,13 @@ public class TablePane
 	protected DropTarget dt;
 
 	protected ArrayList columnSelection;
+
+	/**
+	 * During a drag operation where a column is being dragged from
+	 * this TablePane, this variable points to the column being
+	 * dragged.  At all other times, it should be null.
+	 */
+	protected SQLColumn draggingColumn;
 
 	static {
 		UIManager.put(TablePaneUI.UI_CLASS_ID, "ca.sqlpower.architect.swingui.BasicTablePaneUI");
@@ -396,6 +403,10 @@ public class TablePane
 		 * DropTarget registered with this listener.
 		 */
 		public void dragEnter(DropTargetDragEvent dtde) {
+			if (logger.isDebugEnabled()) {
+				TablePane tp = (TablePane) dtde.getDropTargetContext().getComponent();
+				logger.debug("DragEnter event on "+tp.getName());
+			}
 			dragOver(dtde);
 		}
 		
@@ -405,7 +416,11 @@ public class TablePane
 		 * DropTarget registered with this listener.
 		 */
 		public void dragExit(DropTargetEvent dte) {
-			((TablePane) dte.getDropTargetContext().getComponent()).setInsertionPoint(COLUMN_INDEX_NONE);
+			TablePane tp = (TablePane) dte.getDropTargetContext().getComponent();
+			if (logger.isDebugEnabled()) {
+				logger.debug("DragExit event on "+tp.getName());
+			}
+			tp.setInsertionPoint(COLUMN_INDEX_NONE);
 		}
 		
 		/**
@@ -414,9 +429,14 @@ public class TablePane
 		 * the DropTarget registered with this listener.
 		 */
 		public void dragOver(DropTargetDragEvent dtde) {
-			dtde.acceptDrag(DnDConstants.ACTION_COPY);
+			TablePane tp = (TablePane) dtde.getDropTargetContext().getComponent();
+			if (logger.isDebugEnabled()) {
+				logger.debug("DragOver event on "+tp.getName()+": "+dtde);
+				logger.debug("Drop Action = "+dtde.getDropAction());
+				logger.debug("Source Actions = "+dtde.getSourceActions());
+			}
+			dtde.acceptDrag(DnDConstants.ACTION_COPY_OR_MOVE & dtde.getDropAction());
 			try {
-				TablePane tp = (TablePane) dtde.getDropTargetContext().getComponent();
 				int idx = tp.pointToColumnIndex(dtde.getLocation());
 				if (idx < 0) idx = 0;
 				tp.setInsertionPoint(idx);
@@ -431,52 +451,69 @@ public class TablePane
 		 * registered with this listener.
 		 */
 		public void drop(DropTargetDropEvent dtde) {
+			TablePane tp = (TablePane) dtde.getDropTargetContext().getComponent();
+			logger.debug("Drop target drop event on "+tp.getName()+": "+dtde);
 			Transferable t = dtde.getTransferable();
-			TablePane c = (TablePane) dtde.getDropTargetContext().getComponent();
-			DataFlavor importFlavor = bestImportFlavor(c, t.getTransferDataFlavors());
+			DataFlavor importFlavor = bestImportFlavor(tp, t.getTransferDataFlavors());
 			if (importFlavor == null) {
 				dtde.rejectDrop();
-				c.setInsertionPoint(COLUMN_INDEX_NONE);
+				tp.setInsertionPoint(COLUMN_INDEX_NONE);
 			} else {
 				try {
 					DBTree dbtree = ArchitectFrame.getMainInstance().dbTree;  // XXX: bad
-					int insertionPoint = c.pointToColumnIndex(dtde.getLocation());
+					int insertionPoint = tp.pointToColumnIndex(dtde.getLocation());
 					if (insertionPoint < 0) insertionPoint = 0;
-					int[] rows = (int[]) t.getTransferData(importFlavor);
-					for (int rownum = 0; rownum < rows.length; rownum++) {
-						TreePath p = dbtree.getPathForRow(rows[rownum]);
-						Object someData = p.getLastPathComponent();
+					ArrayList paths = (ArrayList) t.getTransferData(importFlavor);
+					Iterator pathIt = paths.iterator();
+					while (pathIt.hasNext()) {
+						Object someData = dbtree.getNodeForDnDPath((int[]) pathIt.next());
 						logger.debug("drop: got object of type "+someData.getClass().getName());
 						if (someData instanceof SQLTable) {
-							dtde.acceptDrop(DnDConstants.ACTION_COPY);
-							c.getModel().inherit(insertionPoint, (SQLTable) someData);
-							dtde.dropComplete(true);
+							SQLTable table = (SQLTable) someData;
+							if (table.getParentDatabase() == tp.getModel().getParentDatabase()) {
+								// can't import table from target into target!!
+								dtde.rejectDrop();
+							} else {
+								dtde.acceptDrop(DnDConstants.ACTION_COPY);
+								tp.getModel().inherit(insertionPoint, table);
+								dtde.dropComplete(true);
+							}
 							return;
 						} else if (someData instanceof SQLColumn) {
-							dtde.acceptDrop(DnDConstants.ACTION_COPY);
-							SQLColumn column = (SQLColumn) someData;
-							c.getModel().inherit(insertionPoint, column);
-							logger.debug("Added "+column.getColumnName()+" to table");
-							dtde.dropComplete(true);
+							SQLColumn col = (SQLColumn) someData;
+							if (col.getParentTable().getParentDatabase()
+								== tp.getModel().getParentDatabase()) {
+								dtde.acceptDrop(DnDConstants.ACTION_MOVE);
+								int removedIndex = col.getParent().getChildren().indexOf(col);
+								if (tp.getModel() == col.getParentTable()) {
+									// moving column inside the same table
+									if (insertionPoint > removedIndex) {
+										insertionPoint--;
+									}
+								}
+								col.getParentTable().removeColumn(col);
+								logger.debug("Adding column '"+col.getName()
+											 +"' to table '"+tp.getModel().getName()
+											 +"' at position "+insertionPoint);
+								tp.getModel().addColumn(insertionPoint, col);
+								dtde.dropComplete(true);
+							} else {
+								dtde.acceptDrop(DnDConstants.ACTION_COPY);
+								tp.getModel().inherit(insertionPoint, col);
+								logger.debug("Inherited "+col.getColumnName()+" to table");
+								dtde.dropComplete(true);
+							}
 							return;
 						} else {
 							dtde.rejectDrop();
 						}
 					}
-				} catch (UnsupportedFlavorException ufe) {
-					ufe.printStackTrace();
-					dtde.rejectDrop();
-				} catch (IOException ioe) {
-					ioe.printStackTrace();
-					dtde.rejectDrop();
-				} catch (InvalidDnDOperationException ex) {
-					ex.printStackTrace();
-					dtde.rejectDrop();
-				} catch (ArchitectException ex) {
-					ex.printStackTrace();
+				} catch(Exception ex) {
+					JOptionPane.showMessageDialog(tp, "Drop failed: "+ex.getMessage());
+					logger.error("Error processing drop operation", ex);
 					dtde.rejectDrop();
 				} finally {
-					c.setInsertionPoint(COLUMN_INDEX_NONE);
+					tp.setInsertionPoint(COLUMN_INDEX_NONE);
 				}
 			}
 		}
@@ -510,7 +547,7 @@ public class TablePane
 				logger.debug("isLocalObject = "+flavors[i].getMimeType().equals(DataFlavor.javaJVMLocalObjectMimeType));
 
 
- 				if (flavors[i].equals(SelectedTreeRowsTransferable.flavor)) {
+ 				if (flavors[i].equals(DnDTreePathTransferable.flavor)) {
 					logger.debug("YES");
  					return flavors[i];
 				}
@@ -549,7 +586,32 @@ public class TablePane
 				TablePaneMover tpm = new TablePaneMover(tp, dge.getDragOrigin());
 			} else if (colIndex >= 0) {
 				// export column as DnD event
-				logger.error("Dragging columns is not implemented yet");
+				logger.debug("Exporting column with DnD");
+				try {
+					tp.draggingColumn = tp.model.getColumn(colIndex);
+					DBTree tree = ArchitectFrame.getMainInstance().dbTree;
+					int[] path = tree.getDnDPathToNode(tp.draggingColumn);
+					if (logger.isDebugEnabled()) {
+						StringBuffer array = new StringBuffer();
+						for (int i = 0; i < path.length; i++) {
+							array.append(path[i]);
+							array.append(",");
+						}
+						logger.debug("Path to dragged node: "+array);
+					}
+					// export list of DnD-type tree paths
+					ArrayList paths = new ArrayList(1);
+					paths.add(path);
+					logger.info("DBTree: exporting 1-item list of DnD-type tree path");
+					dge.getDragSource().startDrag
+						(dge, 
+						 null, //DragSource.DefaultCopyNoDrop, 
+						 new DnDTreePathTransferable(paths),
+						 tp);
+				} catch (ArchitectException ex) {
+					logger.error("Couldn't drag column", ex);
+					JOptionPane.showMessageDialog(tp, "Can't drag column: "+ex.getMessage());
+				}
 			}
 		}
 	}
@@ -696,5 +758,27 @@ public class TablePane
 				pp.tablePanePopup.show(tp, evt.getX(), evt.getY());
 			}
 		}
+	}
+	
+	// --------------------- Drag Source Listener ------------------------
+	public void dragEnter(DragSourceDragEvent dsde) {
+	}
+
+	public void dragOver(DragSourceDragEvent dsde) {
+	}
+
+	public void dropActionChanged(DragSourceDragEvent dsde) {
+	}
+		
+	public void dragExit(DragSourceEvent dse) {
+	}
+
+	public void dragDropEnd(DragSourceDropEvent dsde) {
+		if (dsde.getDropSuccess()) {
+			logger.debug("Succesful drop");
+		} else {
+			logger.debug("Unsuccesful drop");
+		}
+		draggingColumn = null;
 	}
 }

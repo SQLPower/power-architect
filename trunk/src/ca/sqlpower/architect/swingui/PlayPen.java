@@ -9,6 +9,7 @@ import java.awt.datatransfer.*;
 import java.awt.dnd.*;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.ListIterator;
@@ -880,14 +881,10 @@ public class PlayPen extends JPanel
 			} else {
 				try {
 					DBTree dbtree = ArchitectFrame.getMainInstance().dbTree; // XXX: this is bad
-					int rows[] = (int[]) t.getTransferData(importFlavor);
-					for (int rownum = 0; rownum < rows.length; rownum++) {
-												TreePath p = dbtree.getPathForRow(rows[rownum]);
-						if (p == null) {
-							logger.debug("Null path for selected row "+rows[rownum]);
-							continue;
-						}
-						Object someData = p.getLastPathComponent();
+					ArrayList paths = (ArrayList) t.getTransferData(importFlavor);
+					Iterator pathIt = paths.iterator();
+					while (pathIt.hasNext()) {
+						Object someData = dbtree.getNodeForDnDPath((int[]) pathIt.next());
 						
 						if (someData instanceof SQLTable) {
 							dtde.acceptDrop(DnDConstants.ACTION_COPY);
@@ -925,22 +922,6 @@ public class PlayPen extends JPanel
 							c.add(colName, dtde.getLocation());
 							logger.debug("Added "+column.getColumnName()+" to playpen (temporary, only for testing)");
 							colName.revalidate();
-							dtde.dropComplete(true);
-							return;
-						} else if (someData instanceof SQLObject[]) {
-							// needs work (should use addSchema())
-							dtde.acceptDrop(DnDConstants.ACTION_COPY);
-							SQLObject[] objects = (SQLObject[]) someData;
-							for (int i = 0; i < objects.length; i++) {
-								if (objects[i] instanceof SQLTable) {
-									c.importTableCopy((SQLTable) objects[i], dtde.getLocation());
-								} else if (objects[i] instanceof SQLSchema) {
-									c.addSchema((SQLSchema) objects[i], dtde.getLocation());
-								} else {
-									logger.warn("Unsupported object in multi-item drop: "
-												+objects[i]);
-								}
-							}
 							dtde.dropComplete(true);
 							return;
 						} else {
@@ -993,7 +974,7 @@ public class PlayPen extends JPanel
 				logger.debug("isLocalObject = "+flavors[i].getMimeType().equals(DataFlavor.javaJVMLocalObjectMimeType));
 
 
- 				if (flavors[i].equals(SelectedTreeRowsTransferable.flavor)) {
+ 				if (flavors[i].equals(DnDTreePathTransferable.flavor)) {
 					logger.debug("YES");
 					best = flavors[i];
 				} else {

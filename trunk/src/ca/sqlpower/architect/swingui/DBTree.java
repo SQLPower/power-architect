@@ -92,6 +92,38 @@ public class DBTree extends JTree implements DragSourceListener {
 		propDialog.pack();
 	}
 
+	/**
+	 * Creates an integer array which holds the child indices of each
+	 * node starting from the root which lead to node "node."
+	 *
+	 * @param node A node in this tree.
+	 */
+	public int[] getDnDPathToNode(SQLObject node) {
+		DBTreeModel m = (DBTreeModel) getModel();
+		SQLObject[] sop = m.getPathToNode(node);
+		int[] dndp = new int[sop.length-1];
+		SQLObject current = sop[0];
+		for (int i = 1; i < sop.length; i++) {
+			dndp[i-1] = m.getIndexOfChild(current, sop[i]);
+			current = sop[i];
+		}
+		return dndp;
+	}
+
+	public SQLObject getNodeForDnDPath(int[] path) throws ArchitectException {
+		SQLObject current = (SQLObject) getModel().getRoot();
+		for (int i = 0; i < path.length; i++) {
+			current = current.getChild(path[i]);
+		}
+		return current;
+	}
+
+	public int getRowForNode(SQLObject node) {
+		DBTreeModel m = (DBTreeModel) getModel();
+		TreePath path = new TreePath(m.getPathToNode(node));
+		return getRowForPath(path);
+	}
+
 	// ---------- methods of DragSourceListener -----------
 	public void dragEnter(DragSourceDragEvent dsde) {
 		logger.debug("DBTree: got dragEnter event");
@@ -129,18 +161,22 @@ public class DBTree extends JTree implements DragSourceListener {
 			}
 
 			DBTree t = (DBTree) dge.getComponent();
-  			int[] p = t.getSelectionRows();
+  			TreePath[] p = t.getSelectionPaths();
 
 			if (p ==  null || p.length == 0) {
 				// nothing to export
 				return;
 			} else {
-				// export list of tree paths
-				logger.info("DBTree: exporting list of tree paths");
+				// export list of DnD-type tree paths
+				ArrayList paths = new ArrayList(p.length);
+				for (int i = 0; i < p.length; i++) {
+					paths.add(t.getDnDPathToNode((SQLObject) p[i].getLastPathComponent()));
+				}
+				logger.info("DBTree: exporting list of DnD-type tree paths");
 				dge.getDragSource().startDrag
 					(dge, 
-					 DragSource.DefaultCopyNoDrop, 
-					 new SelectedTreeRowsTransferable(p), 
+					 null, //DragSource.DefaultCopyNoDrop, 
+					 new DnDTreePathTransferable(paths),
 					 t);
 			}
  		}

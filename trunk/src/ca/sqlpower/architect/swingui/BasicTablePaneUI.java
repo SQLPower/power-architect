@@ -168,9 +168,11 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 		int numCols = tablePane.getModel().getColumns().size();
 		if (firstColStart <= p.y && p.y <= firstColStart + fontHeight*numCols) {
 			return (p.y - firstColStart) / fontHeight;
+		} else if (p.y > firstColStart + fontHeight*numCols) {
+			return numCols;
+		} else {
+			return TablePane.COLUMN_INDEX_NONE;
 		}
-
-		return TablePane.COLUMN_INDEX_NONE;
 	}
 
 	/**

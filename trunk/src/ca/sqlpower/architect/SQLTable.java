@@ -377,7 +377,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	}
 
 	public void addColumn(SQLColumn col) {
-		addChild(columnsFolder.children.size(), col);
+		addColumn(columnsFolder.children.size(), col);
 	}
 
 	public void addColumn(int pos, SQLColumn col) {
@@ -402,13 +402,17 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		}
 		columnsFolder.addChild(pos, col);
 	}
+
+	public void addChild(SQLObject child) {
+		addChild(children.size(), child);
+	}
 	
 	/**
 	 * Connects up the columnsFolder, exportedKeysFolder, and
 	 * importedKeysFolder pointers to the children at indices 0, 1,
 	 * and 2 respectively.
 	 */
-	public void addChild(SQLObject child) {
+	public void addChild(int index, SQLObject child) {
 		if (child instanceof Folder) {
 			if (children.size() == 0) {
 				columnsFolder = (Folder) child;
@@ -423,7 +427,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		} else {
 			throw new UnsupportedOperationException("You can only add Folders to SQLTable");
 		}
-		super.addChild(child);
+		super.addChild(index, child);
 	}
 
 	public void removeColumn(int index) {
