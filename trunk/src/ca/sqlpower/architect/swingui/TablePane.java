@@ -1,8 +1,6 @@
 package ca.sqlpower.architect.swingui;
 
-import java.awt.Dimension;
-import java.awt.Insets;
-import java.awt.Point;
+import java.awt.*;
 import java.awt.event.*;
 import java.awt.datatransfer.*;
 import java.awt.dnd.*;
@@ -12,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Iterator;
+import java.util.ListIterator;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
 import java.io.IOException;
@@ -20,7 +19,9 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.*;
 
-public class TablePane extends JComponent implements SQLObjectListener, java.io.Serializable {
+public class TablePane 
+	extends JComponent 
+	implements SQLObjectListener, java.io.Serializable, Selectable {
 
 	private static final Logger logger = Logger.getLogger(TablePane.class);
 
@@ -52,7 +53,15 @@ public class TablePane extends JComponent implements SQLObjectListener, java.io.
 	 */
 	protected Insets margin = new Insets(1,1,1,1);
 
+	/**
+	 * A selected TablePane is one that the user has clicked on.  It
+	 * will appear more prominently than non-selected TablePanes.
+	 */
+	protected boolean selected;
+
 	protected DropTarget dt;
+
+	protected ArrayList columnSelection;
 
 	static {
 		UIManager.put(TablePaneUI.UI_CLASS_ID, "ca.sqlpower.architect.swingui.BasicTablePaneUI");
@@ -61,6 +70,7 @@ public class TablePane extends JComponent implements SQLObjectListener, java.io.
 	private SQLTable model;
 
 	public TablePane(SQLTable m) {
+		setOpaque(true);
 		setModel(m);
 		setMinimumSize(new Dimension(100,200));
 		setPreferredSize(new Dimension(100,200));
@@ -70,6 +80,7 @@ public class TablePane extends JComponent implements SQLObjectListener, java.io.
 		ds = new DragSource();
 		dgr = getToolkit().createDragGestureRecognizer(MouseDragGestureRecognizer.class, ds, this, DnDConstants.ACTION_MOVE, dgl);
 		setInsertionPoint(COLUMN_INDEX_NONE);
+		addMouseListener(new PopupListener());
 		updateUI();
 	}
 
@@ -103,6 +114,10 @@ public class TablePane extends JComponent implements SQLObjectListener, java.io.
 	 * delegate) with a ChangeEvent.
 	 */
 	public void dbChildrenInserted(SQLObjectEvent e) {
+		int ci[] = e.getChangedIndices();
+		for (int i = 0; i < ci.length; i++) {
+			columnSelection.add(ci[i], Boolean.FALSE);
+		}
 		firePropertyChange("model.children", null, null);
 		revalidate();
 	}
@@ -114,6 +129,10 @@ public class TablePane extends JComponent implements SQLObjectListener, java.io.
 	 * delegate) with a ChangeEvent.
 	 */
 	public void dbChildrenRemoved(SQLObjectEvent e) {
+		int ci[] = e.getChangedIndices();
+		for (int i = 0; i < ci.length; i++) {
+			columnSelection.remove(ci[i]);
+		}
 		firePropertyChange("model.children", null, null);
 		revalidate();
 	}
@@ -136,6 +155,10 @@ public class TablePane extends JComponent implements SQLObjectListener, java.io.
 	 * delegate) with a ChangeEvent.
 	 */
 	public void dbStructureChanged(SQLObjectEvent e) {
+		columnSelection = new ArrayList(e.getChildren().length);
+		for (int i = 0; i < e.getChildren().length; i++) {
+			columnSelection.add(Boolean.FALSE);
+		}
 		firePropertyChange("model.children", null, null);
 		revalidate();
 	}
@@ -169,6 +192,16 @@ public class TablePane extends JComponent implements SQLObjectListener, java.io.
 		} else {
             model = m;
 		}
+
+		try {
+			columnSelection = new ArrayList(m.getChildren().size());
+			for (int i = 0; i < m.getChildren().size(); i++) {
+				columnSelection.add(Boolean.FALSE);
+			}
+		} catch (ArchitectException e) {
+			logger.error("Error getting children on new model", e);
+		}
+
 		model.addSQLObjectListener(this);
 		setName("TablePanel: "+model.getShortDisplayName());
 
@@ -196,10 +229,16 @@ public class TablePane extends JComponent implements SQLObjectListener, java.io.
 		revalidate();
 	}
 
+	/**
+	 * See {@link #insertionPoint}.
+	 */
 	public int getInsertionPoint() {
 		return insertionPoint;
 	}
 
+	/**
+	 * See {@link #insertionPoint}.
+	 */
 	public void setInsertionPoint(int ip) {
 		int old = insertionPoint;
 		this.insertionPoint = ip;
@@ -209,6 +248,58 @@ public class TablePane extends JComponent implements SQLObjectListener, java.io.
 		}
 	}
 	
+	/**
+	 * See {@link #selected}.
+	 */
+	public boolean isSelected() {
+		return selected;
+	}
+
+	/**
+	 * See {@link #selected}.
+	 */
+	public void setSelected(boolean v) {
+		if (v == false) {
+			selectNone();
+		}
+		boolean old = selected;
+		this.selected = v;
+		if (v != old) {
+			firePropertyChange("selected", old, selected);
+			repaint();
+		}
+	}
+
+	// --------------------- column selection support --------------------
+
+	public void selectNone() {
+		for (int i = 0; i < columnSelection.size(); i++) {
+			columnSelection.set(i, Boolean.FALSE);
+		}
+	}
+
+	public void selectColumn(int i) {
+		columnSelection.set(i, Boolean.TRUE);
+	}
+
+	public boolean isColumnSelected(int i) {
+		return ((Boolean) columnSelection.get(i)).booleanValue();
+	}
+
+	/**
+	 * Returns the index of the first selected column, or
+	 * COLUMN_INDEX_NONE if there are no selected columns.
+	 */
+	public int getSelectedColumnIndex() {
+		ListIterator it = columnSelection.listIterator();
+		while (it.hasNext()) {
+			if (((Boolean) it.next()).booleanValue() == true) {
+				return it.previousIndex();
+			}
+		}
+		return COLUMN_INDEX_NONE;
+	}
+
 	// ------------------ utility methods ---------------------
 
 	/**
@@ -376,6 +467,12 @@ public class TablePane extends JComponent implements SQLObjectListener, java.io.
 		public void dragGestureRecognized(DragGestureEvent dge) {
 			TablePane tp = (TablePane) dge.getComponent();
 			int colIndex = COLUMN_INDEX_NONE;
+
+			// ignore drag events that aren't from the left mouse button
+			if (dge.getTriggerEvent() instanceof MouseEvent
+			   && (dge.getTriggerEvent().getModifiers() & InputEvent.BUTTON1_MASK) == 0)
+				return;
+			
 			try {
 				colIndex = tp.pointToColumnIndex(dge.getDragOrigin());
 			} catch (ArchitectException e) {
@@ -430,6 +527,7 @@ public class TablePane extends JComponent implements SQLObjectListener, java.io.
 			tp.setVisible(false);
 			ghost = new TablePane(tp.getModel());
 			ghost.setFont(tp.getFont());  // XXX: this shouldn't be necessary (but it is!)
+			ghost.setBackground(tp.getBackground());
 			ghost.setName(tp.getName()+" GHOST");
 			((PlayPen) tp.getParent()).addGhost(ghost, tp.getLocation());
 			tp.addMouseListener(this);
@@ -468,4 +566,47 @@ public class TablePane extends JComponent implements SQLObjectListener, java.io.
 		}
 	}
 
+	public static class PopupListener extends MouseAdapter {
+
+		public void mouseClicked(MouseEvent evt) {
+			if ((evt.getModifiers() & MouseEvent.BUTTON1_MASK) != 0) {
+				TablePane tp = (TablePane) evt.getComponent();
+				PlayPen pp = (PlayPen) tp.getParent();
+				try {
+					pp.selectNone();
+					tp.setSelected(true);
+					tp.selectNone();
+					tp.selectColumn(tp.pointToColumnIndex(evt.getPoint()));
+				} catch (ArchitectException e) {
+					logger.error("Exception converting point to column", e);
+				}
+			}
+		}
+
+		public void mousePressed(MouseEvent evt) {
+			evt.getComponent().requestFocus();
+			maybeShowPopup(evt);
+		}
+
+		public void mouseReleased(MouseEvent evt) {
+			maybeShowPopup(evt);
+		}
+
+		public void maybeShowPopup(MouseEvent evt) {
+			if (evt.isPopupTrigger() && !evt.isConsumed()) {
+				TablePane tp = (TablePane) evt.getComponent();
+				PlayPen pp = (PlayPen) tp.getParent();
+				pp.selectNone();
+				tp.setSelected(true);
+				try {
+					tp.selectNone();
+					tp.selectColumn(tp.pointToColumnIndex(evt.getPoint()));
+				} catch (ArchitectException e) {
+					logger.error("Exception converting point to column", e);
+					return;
+				}
+				pp.tablePanePopup.show(tp, evt.getX(), evt.getY());
+			}
+		}
+	}
 }
