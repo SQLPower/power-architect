@@ -54,6 +54,8 @@ public class ArchitectFrame extends JFrame {
 		};
 
 	public ArchitectFrame() throws ArchitectException {
+		mainInstance = this;
+
 		try {
 			ConfigFile cf = ConfigFile.getDefaultInstance();
 			prefs = cf.read();
@@ -112,7 +114,7 @@ public class ArchitectFrame extends JFrame {
 	 * an acceptable way to launch the Architect application.
 	 */
 	public static void main(String args[]) throws Exception {
-		mainInstance = new ArchitectFrame();
+		new ArchitectFrame();
 		
 		SwingUtilities.invokeLater(new Runnable() {
 				public void run() {

@@ -47,7 +47,7 @@ public class DBTree extends JTree implements DragSourceListener {
 		final JButton cancelButton = new JButton("Cancel");
 		
 		final JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		dbcsPanel = new DBCSPanel(new DBConnectionSpec());
+		dbcsPanel = new DBCSPanel();
 		
 		okButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
@@ -146,10 +146,12 @@ public class DBTree extends JTree implements DragSourceListener {
 		popupNewDatabase.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					DBConnectionSpec dbcs = new DBConnectionSpec();
+					dbcs.setName("New Connection");
 					dbcs.setDisplayName("New Connection");
 					SQLDatabase db = new SQLDatabase(dbcs);
 					((DBTreeModel.DBTreeRoot) getModel().getRoot()).addChild(db);
 					ArchitectFrame.getMainInstance().getUserSettings().getConnections().add(dbcs);
+					logger.debug("Setting new DBCS on panel: "+dbcs);
 					dbcsPanel.setDbcs(dbcs);
 					propDialog.setVisible(true);
 					propDialog.requestFocus();
@@ -214,7 +216,9 @@ public class DBTree extends JTree implements DragSourceListener {
 			}
 			SQLObject so = (SQLObject) p.getLastPathComponent();
 			if (so instanceof SQLDatabase) {
-				dbcsPanel.setDbcs(((SQLDatabase) so).getConnectionSpec());
+				DBConnectionSpec dbcs = ((SQLDatabase) so).getConnectionSpec();
+				logger.debug("Setting existing DBCS on panel: "+dbcs);
+				dbcsPanel.setDbcs(dbcs);
 				propDialog.setVisible(true);
 				propDialog.requestFocus();
 			} else if (so instanceof SQLCatalog) {
