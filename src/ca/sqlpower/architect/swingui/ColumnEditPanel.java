@@ -84,10 +84,13 @@ public class ColumnEditPanel extends JPanel
 													  "Please select a column, then click delete");
 					} else {
 						try {
-							model.removeColumn(idx);
 							int size = model.getColumns().size();
-							if (size > 0) {
-								columns.setSelectedIndex(Math.min(idx, size-1));
+							if (idx == size - 1) {
+								columns.setSelectedIndex(size-2);
+								model.removeColumn(idx);
+							} else {
+								model.removeColumn(idx);
+								columns.setSelectedIndex(idx);
 							}
 						} catch (LockedColumnException ex) {
 							JOptionPane.showMessageDialog
