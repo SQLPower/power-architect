@@ -4,6 +4,7 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
 import javax.swing.plaf.metal.MetalComboBoxEditor;
+import java.awt.GridLayout;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Component;
@@ -20,24 +21,30 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 	private static final Logger logger = Logger.getLogger(PLExportPanel.class);
 
 	protected DBConnectionSpec dbcs;
-	protected TextPanel form;
 	protected Vector history;
 	protected Vector plodbc;
+
+	// Left-hand side fields
 	protected JComboBox historyBox;
-	protected JComboBox plODBCSourceName;
 	protected JTextField plRepOwner;
 	protected JTextField plFolderName;
 	protected JTextField plJobId;
 	protected JTextField plJobDescription;
 	protected JTextField plJobComment;
 	protected JTextField plOutputTableOwner;
+
+	// Right-hand side fields
+	protected JComboBox plODBCSourceBox;
+	protected JTextField plUserName;
+	protected JPasswordField plPassword;
 	protected JCheckBox  runPLEngine;
+
 	protected String     projName;
 	private Map jdbcDrivers;
 	private JButton newConnButton;
 	
 	public PLExportPanel() {
-		setLayout(new BorderLayout());
+		setLayout(new GridLayout(1,2));
 		ArchitectFrame af = ArchitectFrame.getMainInstance();
 		SwingUIProject project = af.getProject();
 		projName = new String(project.getName());
@@ -45,7 +52,26 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		newConnButton.addActionListener(new NewConnectionListener());
 
 		List connectionHistory = af.prefs.getConnections();
-		List plOdbcCon = getPLDBConnection("C:\\workarea\\pltest_april\\");
+
+		String plIniPath = af.getUserSettings().getETLUserSettings().getPlDotIniPath();
+		List plOdbcCon = new ArrayList();
+		try {
+			if (plIniPath != null) {
+				plOdbcCon = getPLDBConnection(plIniPath);
+			} else {
+				JOptionPane.showMessageDialog
+					(this, "Warning: You have not set the PL.INI file location."
+					 +"\nThe PL Connection box will be empty.");
+			}
+		} catch (FileNotFoundException ie) {
+			JOptionPane.showMessageDialog
+				(this, "PL database config file not found in specified path:\n"
+				 +plIniPath+"\nThe PL Connection box will be empty.");
+		} catch (IOException ie){
+			JOptionPane.showMessageDialog(this, "Error reading PL.ini file "+plIniPath
+										  +"\nThe PL Connection box will be empty.");
+		}    
+
 		history = new Vector();
 		history.add(ASUtils.lvb("(Select PL Connection)", null));
 		Iterator it = connectionHistory.iterator();
@@ -55,6 +81,7 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		}
 		historyBox = new JComboBox(history);
 		historyBox.addActionListener(new HistoryBoxListener());
+
 		plodbc = new Vector();
 		plodbc.add(ASUtils.lvb("(Select PL ODBC Connection)", null));
 		Iterator itO = plOdbcCon.iterator();
@@ -62,48 +89,68 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 			PLdbConn plcon = (PLdbConn) itO.next();
 			plodbc.add(ASUtils.lvb(plcon.getLogical(), plcon));
 		}
-		plODBCSourceName = new JComboBox(plodbc);
-		plODBCSourceName.addActionListener(new ODBCSourceListener());
+
+		plODBCSourceBox = new JComboBox(plodbc);
+		plODBCSourceBox.addActionListener(new ODBCSourceListener());
+
 		runPLEngine = new JCheckBox();
 		runPLEngine.setEnabled(false);
-		plFolderName = new JTextField(projName+"_Folder");
-		plJobId      = new JTextField(projName+"_Job");
-		JPanel connectPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        connectPanel.add(historyBox);
-		connectPanel.add(newConnButton);
 
-		JComponent[] fields = new JComponent[] {connectPanel,
-												plODBCSourceName,
-												plRepOwner = new JTextField(),
-												plFolderName,
-												plJobId,
-												plJobDescription = new JTextField(),
-												plJobComment = new JTextField(),
-												plOutputTableOwner = new JTextField(),
-												runPLEngine };
-		String[] labels = new String[] {"PL Connection",
-										"PL ODBC Source Name",
-										"PL Repository Owner",
-										"Folder Name",
-										"Job Id",
-										"Job Description",
-										"Job Comment",
-										"Target Schema Owner",
-										"Run Engine"};
+		plFolderName = new JTextField(toPLIdentifier(projName)+"_Folder");
 
-		char[] mnemonics = new char[] {'p', 's', 'r', 'f', 'i', 'd', 'c', 'o','e'};
-		int[] widths = new int[] {30, 30, 20, 30, 30, 40, 60, 20,10};
-		String[] tips = new String[] {"A list of connections you have made in the past",
-									  "ODBC Source Name connection for PL",
-									  "Owner of PL Repository",
-									  "The folder name for transactions",
-									  "The Job unique Id",
-		                              "The Job Description",
-		                              "Comment about the Job",
-		                              "Owner(Schema) for output transaction tables",
-									  "CheckIt if you want to run the engine"};
-		form = new TextPanel(fields, labels, mnemonics, widths, tips);
-		add(form, BorderLayout.CENTER);
+		plJobId      = new JTextField(toPLIdentifier(projName)+"_Job");
+
+		JPanel jdbcPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        jdbcPanel.add(historyBox);
+		jdbcPanel.add(newConnButton);
+
+		JComponent[] jdbcFields = new JComponent[] {jdbcPanel,
+													plRepOwner = new JTextField(),
+													plFolderName,
+													plJobId,
+													plJobDescription = new JTextField(),
+													plJobComment = new JTextField(),
+													plOutputTableOwner = new JTextField()};
+		String[] jdbcLabels = new String[] {"Architect Connection Name",
+											"PL Repository Owner",
+											"PL Folder Name",
+											"PL Job Id",
+											"PL Job Description",
+											"PL Job Comment",
+											"Target Schema Owner"};
+
+		char[] jdbcMnemonics = new char[] {'t', 'r', 'f', 'i', 'd', 'c', 'o'};
+		int[] jdbcWidths = new int[] {18, 18, 18, 18, 18, 18, 18, 18,10};
+		String[] jdbcTips = new String[] {"Target database and PL repository",
+										  "Owner of PL Repository",
+										  "The folder name for transactions",
+										  "The Job unique Id",
+										  "The Job Description",
+										  "Comment about the Job",
+										  "Owner (Schema) for output transaction tables"};
+
+		TextPanel jdbcForm = new TextPanel(jdbcFields, jdbcLabels, jdbcMnemonics, jdbcWidths, jdbcTips);
+
+		JComponent[] engineFields = new JComponent[] {plODBCSourceBox,
+													  plUserName = new JTextField(),
+													  plPassword = new JPasswordField(),
+													  runPLEngine};
+
+		String[] engineLabels = new String[] {"PL.INI Logical Database Name",
+											  "PL User Name",
+											  "PL Password",
+											  "Run Engine"};
+
+		char[] engineMnemonics = new char[] {'l', 'u', 'p', 'e'};
+		int[] engineWidths = new int[] {18, 18, 18, 10};
+		String[] engineTips = new String[] {"ODBC Source Name connection for PL",
+											"PowerLoader User Name",
+											"PowerLoader Password",
+											"Run PL Engine immediately?"};
+		TextPanel engineForm = new TextPanel(engineFields, engineLabels, engineMnemonics, engineWidths, engineTips);
+
+		add(jdbcForm);
+		add(engineForm);
 	}
 
 	public class HistoryBoxListener implements ActionListener {
@@ -117,16 +164,17 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 
 	public class ODBCSourceListener  implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
-			ASUtils.LabelValueBean lvb = (ASUtils.LabelValueBean) plODBCSourceName.getSelectedItem();
+			ASUtils.LabelValueBean lvb = (ASUtils.LabelValueBean) plODBCSourceBox.getSelectedItem();
 			if (lvb.getValue() == null) {
 			    runPLEngine.setSelected(false);
 				runPLEngine.setEnabled(false);
 				plRepOwner.setText(null);
    		    } else {
 				runPLEngine.setEnabled(true);
-				PLdbConn pldbcon = (PLdbConn) lvb.getValue();	
+				PLdbConn pldbcon = (PLdbConn) lvb.getValue();
 				plRepOwner.setText(pldbcon.getPlsOwner());
-				
+				plUserName.setText(pldbcon.getUid());
+				plPassword.setText(decryptPlIniPassword(9, pldbcon.getPwd()));
 			}
 		}
 	}
@@ -188,85 +236,111 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		return 0;
 	}
 
-	public List getPLDBConnection(String plPath){
+	public List getPLDBConnection(String plDotIniPath) throws FileNotFoundException, IOException {
 		List odbc = new ArrayList();
-		PLdbConn plconn =  new PLdbConn();
-		String fileIni = plPath+"pl.ini";
-		File inputFile = new File(fileIni);
+		PLdbConn plconn = null;
+		File inputFile = new File(plDotIniPath);
+		BufferedInputStream in = new BufferedInputStream(new FileInputStream(inputFile));
+		String line = null;
 
-		try {
-			FileReader in = new FileReader(inputFile);
-			StringBuffer line = new StringBuffer();
-			String label[] = new String[]{"Logical=",
-										  "Type=",
-										  "PL Schema Owner=",
-										  "TNS Name=",
-										  "Database Name="};
-			String       type = "";
-			String       plOwner;
-			String       dbName;
-			int c;
-			int jj = 0;
-			while ((c = in.read()) != -1) {
-				if ( c != 13){
-					line.append((char)c);
+		while ((line = readLine(in)) != null) {
+			if (line.startsWith("[Databases")) {
+				plconn =  new PLdbConn();
+				odbc.add(plconn);
+			} else if (plconn != null) {
+				int equalsIdx = line.indexOf('=');
+				if (equalsIdx > 0) {
+					String key = line.substring(0, equalsIdx);
+					String value = line.substring(equalsIdx+1, line.length());
+					plconn.setProperty(key, value);
 				} else {
-					c = in.read();
-					int k;
-					if ((k = line.indexOf(label[jj])) >= 0){
-					  if (label[jj].equals("Logical=")) {
-						  	plconn =  new PLdbConn();
-							plconn.setLogical(line.substring(k+8));
-							//odbc.add(line.substring(k+8));
-							System.out.println(line.substring(k+8));
-							jj++;
-					  } else {
-						  if (label[jj].equals("Type=")){
-						  	plconn.setDbType(line.substring(k+5));
-							type = line.substring(k+5);
-							System.out.println(line.substring(k+5));
-							jj++;
-						  } else {
-							  if (label[jj].equals("PL Schema Owner=")){
-						         plconn.setPlsOwner(line.substring(k+16));
-								 plOwner = line.substring(k+16);
-							     System.out.println(line.substring(k+16));
-							   	 if ((type.toUpperCase()).equals("ORACLE")){
-								    jj++;
-							     } else {
-								    jj = jj+2;
-							     }
-							  } else {
-								 if (label[jj].equals("TNS Name=") || label[jj].equals("Database Name=")){
-								     if (label[jj].equals("TNS Name=")){
-										dbName =  line.substring(k+9);
-									 } else {
-									    dbName =  line.substring(k+14);
-									 }	
-									 plconn.setDbName(dbName);
-									 odbc.add(plconn);
-							         System.out.println(line.substring(k+9));
-							         jj = 0;
-							     }
-							  }	 
-					      }
-					   }
-					} else {
-					  // System.out.println("*"+line);
-					}
-					  //odbc.add(line.substring(k+8));
-					  //System.out.println(line.substring(k+8));
-					  line.setLength(0);
-				}  
-            }
-			in.close();
-		} catch (FileNotFoundException ie){
-			JOptionPane.showMessageDialog(this, "PL database config file not found in specified path "+fileIni);
-		} catch (IOException ie){
-			JOptionPane.showMessageDialog(this, "Error reading PL.ini file "+fileIni);
-		}    
-
+					logger.debug("pl.ini entry lacks = sign: "+line);
+				}
+			} else {
+				logger.debug("Skipping "+line);
+			}
+		}
+		in.close();
 		return odbc;
+	}
+
+	/**
+	 * Mangles the given string into a valid PL identifier (no spaces,
+	 * at most 80 characters long, all uppercase).
+	 */
+	public static String toPLIdentifier(String text) {
+		final int MAX_PLID_LENGTH = 80;
+		if (text.length() > MAX_PLID_LENGTH) text = text.substring(0, MAX_PLID_LENGTH);
+		StringBuffer plid = new StringBuffer(text.toUpperCase());
+		for (int i = 0, n = plid.length(); i < n; i++) {
+			if (Character.isWhitespace(plid.charAt(i))) {
+				plid.setCharAt(i, '_');
+			}
+		}
+		return plid.toString();
+	}
+
+	protected String readLine(InputStream in) throws IOException {
+		StringBuffer line = new StringBuffer(80);
+
+		for (;;) {
+			int ch = in.read();
+			if (ch == -1 || ch == '\r') break;
+			if (ch != '\n') line.append((char) ch);
+		}
+
+		if (line.length() == 0) {
+			return null;
+		} else {
+			return line.toString();
+		}
+	}
+
+// Function DecryptPassword(pnNumber As Byte, psEncryptedPassword As String) As String
+// Dim lsPassword As String
+// Dim lnCounter As Byte
+// Dim lnTemp As Integer
+
+//     lnCounter = 1
+//     Do Until lnCounter = Len(psEncryptedPassword) + 1
+//         lnTemp = Asc(Mid(psEncryptedPassword, lnCounter, 1)) Xor (10 - pnNumber)
+
+//         If lnCounter Mod 2 = 0 Then 'see if even
+//             lnTemp = lnTemp + pnNumber
+//         Else
+//             lnTemp = lnTemp - pnNumber
+//         End If
+
+//         lsPassword = lsPassword & Chr$(lnTemp)
+
+//         lnCounter = lnCounter + 1
+//     Loop
+
+//     DecryptPassword = lsPassword
+
+// End Function
+
+	/**
+	 * Decrypts a PL.INI password.  The correct argument for
+	 * <code>number</code> is 9.
+	 */
+	public static String decryptPlIniPassword(int number, String encryptedPassword) {
+		StringBuffer password = new StringBuffer(encryptedPassword.length());
+		
+		for (int i = 0, n = encryptedPassword.length(); i < n; i++) {
+			logger.debug("input char = "+(int)encryptedPassword.charAt(i));
+			int temp = ((encryptedPassword.charAt(i) & 0x00ff) ^ (10 - number));
+
+			if (i % 2 == 1) {
+				temp += number;
+			} else {
+				temp -= number;
+			}
+			
+			password.append((char) temp);
+		}
+
+		return password.toString();
 	}
 
 	// -------------------- ARCHITECT PANEL INTERFACE -----------------------
@@ -289,45 +363,60 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 	// ---------------- accessors and mutators ----------------
 
 	/**
+	 * Returns the PLdbConn object representing the currently-selected
+	 * PL.INI database entry.
+	 */
+	public PLdbConn getSelectedPlDatabase() {
+		return (PLdbConn) ((ASUtils.LabelValueBean) plODBCSourceBox.getSelectedItem()).getValue();
+	}
+
+	/**
 	 * returns values typed in panel
 	 */
-	 public String getPlODBCSourceName(){
-		 ASUtils.LabelValueBean lvb = (ASUtils.LabelValueBean) plODBCSourceName.getSelectedItem();
-		 if (lvb.getValue() != null) {
-			 PLdbConn	odbcSource = (PLdbConn) lvb.getValue();
-			 return  odbcSource.getLogical();
-		 } else {
-			  return null;
-		 }	  
-	 }	 
-	 
-	 public String getPlRepOwner(){
-		 return plRepOwner.getText();
-	 }	 
-	 
-	 public String getPlFolderName(){
-		 return plFolderName.getText();
-	 }
+	public String getPlODBCSourceName() {
+		PLdbConn conn = getSelectedPlDatabase();
+		if (conn != null) {
+			return conn.getLogical();
+		} else {
+			return null;
+		}
+	}
+	
+	public String getPlRepOwner(){
+		return toPLIdentifier(plRepOwner.getText());
+	}	 
+	
+	public String getPlFolderName(){
+		return toPLIdentifier(plFolderName.getText());
+	}
+	
+	public String getPlJobId(){
+		return toPLIdentifier(plJobId.getText());
+	}
+	
+	public String getPlJobDescription(){
+		return plJobDescription.getText();
+	}
+	
+	public String getPlJobComment(){
+		return plJobComment.getText();
+	}
+	
+	public String getPlOutputTableOwner(){
+		return toPLIdentifier(plOutputTableOwner.getText());
+	}
+	
+	public boolean isSelectedRunPLEngine(){
+		return runPLEngine.isSelected();
+	}
+	
+	public String getPlUserName() {
+		return toPLIdentifier(plUserName.getText());
+	}
 
-	 public String getPlJobId(){
-		 return plJobId.getText();
-	 }
-	 
-	 public String getPlJobDescription(){
-		 return plJobDescription.getText();
-	 }
-	 
-	 public String getPlJobComment(){
-		 return plJobComment.getText();
-	 }
-	 
-	 public String getPlOutputTableOwner(){
-		 return plOutputTableOwner.getText();
-	 }
-	 
-	 public boolean isSelectedRunPLEngine(){
-		 return runPLEngine.isSelected();
-	 }
+	public String getPlPassword() {
+		return plPassword.getText();
+	}
 	
 	/**
 	 * Returns a reference to the current DBConnectionSpec (that is,

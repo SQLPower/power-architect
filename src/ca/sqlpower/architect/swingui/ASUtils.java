@@ -71,11 +71,14 @@ public class ASUtils {
 		}
 	}
 
-	public static FileFilter architectFileFilter =
+	public static final FileFilter ARCHITECT_FILE_FILTER =
 		new FileExtensionFilter("Architect Project Files", new String[] {"arc", "architect"});
 
-	public static FileFilter sqlFileFilter =
+	public static final FileFilter SQL_FILE_FILTER =
 		new FileExtensionFilter("SQL Script Files", new String[] {"ddl", "sql"});
+
+	public static final FileFilter INI_FILE_FILTER =
+		new FileExtensionFilter(".INI Files", new String[] {"ini"});
 
 	public static class FileExtensionFilter extends FileFilter {
 

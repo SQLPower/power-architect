@@ -53,7 +53,7 @@ public class FormLayout implements LayoutManager {
 
 	public Dimension preferredLayoutSize(Container parent) {
 		Dimension minimum = minimumLayoutSize(parent);
-		minimum.width += 150;
+		//minimum.width += 150;
 		return minimum;
 	}
 

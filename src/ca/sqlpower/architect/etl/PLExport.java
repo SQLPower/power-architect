@@ -42,7 +42,7 @@ public class PLExport {
 				sql.append(" VALUES (");
 				
 				sql.append(SQL.quote(folderName));  // folder_name
-				sql.append(",").append(SQL.quote("This Folder id for jobs and transactions created by the Power*Architect"));  // folder_desc
+				sql.append(",").append(SQL.quote("This Folder is for jobs and transactions created by the Power*Architect"));  // folder_desc
 				sql.append(",").append(SQL.quote(null));  // folder_status
 				sql.append(",").append(SQL.quote(null));  // last_backup_no
 				sql.append(")");

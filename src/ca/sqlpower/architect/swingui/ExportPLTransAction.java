@@ -8,6 +8,7 @@ import javax.swing.*;
 import ca.sqlpower.architect.ddl.*;
 import ca.sqlpower.architect.etl.*;
 import ca.sqlpower.architect.*;
+import ca.sqlpower.security.PLSecurityException;
 import org.apache.log4j.Logger;
 
 public class ExportPLTransAction extends AbstractAction {
@@ -59,36 +60,51 @@ public class ExportPLTransAction extends AbstractAction {
 						plexp.setJobComment(plPanel.getPlJobComment());
 						plexp.setPlDBCS(plPanel.getDbcs()); 
 						plexp.setOutputTableOwner(plPanel.getPlOutputTableOwner());
-						plexp.setPlUsername("pl");
-						plexp.setPlPassword("pl");
+						plexp.setPlUsername(plPanel.getPlUserName());
+						plexp.setPlPassword(plPanel.getPlPassword());
 					} catch (Exception ex) {
-						JOptionPane.showMessageDialog
-							(architectFrame,
-							 "Can't export Transaction: "+ex.getMessage());
+						String message = "Can't export Transaction: "+ex.getMessage();
+						if (plPanel.isSelectedRunPLEngine()) {
+							message += "\nThe engine will not run";
+						}
+						JOptionPane.showMessageDialog(architectFrame, message);
 						logger.error("Got exception while exporting Trans", ex);
+						return;
 					}
 					d.setVisible(false);
 					try {
 						plexp.export(souDB);
 						if (plPanel.isSelectedRunPLEngine()) {
-								System.out.println("run PL LOADER Engine");
-								StringBuffer wcomm = new StringBuffer("C:\\workarea\\pltest_april\\PowerLoader_ODBC.exe");
-								wcomm.append("  JOB=").append(plPanel.getPlJobId());
-								wcomm.append(" USER=").append((plPanel.getDbcs()).getUser()).append("/").append((plPanel.getDbcs()).getPass());
-								wcomm.append("@").append(plPanel.getPlODBCSourceName());
-								wcomm.append(" DEBUG=N SEND_EMAIL=N SKIP_PACKAGES=N CALC_DETAIL_STATS=N COMMIT_FREQ=100 APPEND_TO_JOB_LOG_IND=N");
-								wcomm.append(" JOB_LOG_FILE=\"C:\\workarea\\pltest_april\\front_end\\log\\").append(plPanel.getPlJobId()).append(".log\"");
-								wcomm.append(" APPEND_TO_JOB_ERR_IND=N");
-								wcomm.append(" JOB_ERR_FILE=\"C:\\workarea\\pltest_april\\front_end\\err\\").append(plPanel.getPlJobId()).append(".err\"");
-								wcomm.append(" SHOW_PROGRESS=100" );
-								System.out.println(wcomm.toString());
-								try {
-									Process proc = Runtime.getRuntime().exec("C:\\workarea\\pltest_april\\front_end\\PowerLoader.exe");
-									System.out.println("done");
-								} catch (IOException ie){
-									System.out.println("IOException"+ie);
-								}	
+							logger.debug("run PL LOADER Engine");
+							File plIni = new File(architectFrame.getUserSettings().getETLUserSettings().getPlDotIniPath());
+							File plDir = plIni.getParentFile();
+							File engineExe = new File(plDir, plPanel.getSelectedPlDatabase().getEngineExeutableName());
+							StringBuffer wcomm = new StringBuffer(1000);
+							wcomm.append(engineExe.getPath());
+							wcomm.append(" USER_PROMPT=N");
+							wcomm.append(" JOB=").append(plPanel.getPlJobId());
+							wcomm.append(" USER=").append((plPanel.getDbcs()).getUser()).append("/").append((plPanel.getDbcs()).getPass());
+							wcomm.append("@").append(plPanel.getSelectedPlDatabase().getTNSName());
+							wcomm.append(" DEBUG=N SEND_EMAIL=N SKIP_PACKAGES=N CALC_DETAIL_STATS=N COMMIT_FREQ=100 APPEND_TO_JOB_LOG_IND=N");
+							wcomm.append(" APPEND_TO_JOB_ERR_IND=N");
+							wcomm.append(" SHOW_PROGRESS=100" );
+							System.out.println(wcomm.toString());
+							try {
+								Process proc = Runtime.getRuntime().exec(wcomm.toString());
+								JDialog d = new JDialog(architectFrame, "Power*Loader Engine");
+								d.setContentPane(new EngineExecPanel(proc));
+								d.pack();
+								d.setVisible(true);
+							} catch (IOException ie){
+								JOptionPane.showMessageDialog(playpen, "Unexpected Exception running Engine:\n"+ie);
+								logger.error(ie);
+							}	
 						}
+					} catch (PLSecurityException ex) {
+						JOptionPane.showMessageDialog
+							(architectFrame,
+							 "Can't export Transaction: "+ex.getMessage());
+						logger.error("Got exception while exporting Trans", ex);
 					} catch (SQLException esql) {
 						JOptionPane.showMessageDialog
 							(architectFrame,

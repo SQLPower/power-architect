@@ -12,7 +12,9 @@ import java.awt.*;
  * TextForm is a JPanel that supports a bunch of labelled fields with
  * keyboard mnemonics.
  *
- * <p>This code comes from http://examples.oreilly.com/jswing2/code/ch19/TextForm.java.
+ * <p>This code came from
+ * http://examples.oreilly.com/jswing2/code/ch19/TextForm.java, but
+ * has local modifications.
  */
 public class TextPanel extends JPanel {
 
@@ -21,13 +23,9 @@ public class TextPanel extends JPanel {
 	// Create a form with the specified labels, tooltips, and sizes.
 	public TextPanel(JComponent[] fields, String[] labels, char[] mnemonics,
 					 int[] widths, String[] tips) {
-		super(new BorderLayout());
+		super(new FormLayout(8, 8));
 		this.fields = new JComponent[fields.length];
 		System.arraycopy(fields, 0, this.fields, 0, fields.length);
-		JPanel labelPanel = new JPanel(new GridLayout(labels.length, 1));
-		JPanel fieldPanel = new JPanel(new GridLayout(labels.length, 1));
-		add(labelPanel, BorderLayout.WEST);
-		add(fieldPanel, BorderLayout.CENTER);
 		
 		for (int i = 0; i < labels.length; i += 1) {
 			if (i < tips.length) {
@@ -42,10 +40,11 @@ public class TextPanel extends JPanel {
 			lab.setLabelFor(fields[i]);
 			if (i < mnemonics.length) lab.setDisplayedMnemonic(mnemonics[i]);
 			
-			labelPanel.add(lab);
-			JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT));
-			p.add(fields[i]);
-			fieldPanel.add(p);
+			add(lab);
+			//JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT));
+			//p.add(fields[i]);
+			//add(p);
+			add(fields[i]);
 		}
 	}
 	
