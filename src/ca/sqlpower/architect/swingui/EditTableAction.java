@@ -28,8 +28,12 @@ public class EditTableAction extends AbstractAction {
 		if (invoker instanceof TablePane) {
 			TablePane tp = (TablePane) invoker;
 			
+			JTabbedPane tabbedPane = new JTabbedPane();
+
 			final JDialog d = new JDialog(ArchitectFrame.getMainInstance(),
 										  "Table Properties");
+										  
+			// first tabbed Pane							  
 			JPanel cp = new JPanel(new BorderLayout(12,12));
 			cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
 			final TableEditPanel editPanel = new TableEditPanel(tp.getModel());
@@ -56,8 +60,41 @@ public class EditTableAction extends AbstractAction {
 			buttonPanel.add(cancelButton);
 			
 			cp.add(buttonPanel, BorderLayout.SOUTH);
+			tabbedPane.addTab("TableProperties",cp);
 			
-			d.setContentPane(cp);
+			// second tabbed Pane
+			JPanel mcp = new JPanel(new BorderLayout(12,12));
+			mcp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
+			//
+			JTable mapTable = new JTable();
+			JScrollPane scrollpMap = new JScrollPane(mapTable);
+            mcp.add(scrollpMap,BorderLayout.NORTH);
+			JPanel buttonMapPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+			
+			JButton okMapButton = new JButton("Ok");
+			okMapButton.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent evt) {
+						//editPanel.applyChanges();
+						//d.setVisible(false);
+					}
+				});
+			buttonMapPanel.add(okMapButton);
+			
+			JButton cancelMapButton = new JButton("Cancel");
+			cancelMapButton.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent evt) {
+						//editPanel.discardChanges();
+						//d.setVisible(false);
+					}
+				});
+			buttonMapPanel.add(cancelMapButton);
+			mcp.add(buttonMapPanel, BorderLayout.SOUTH);
+			tabbedPane.addTab("Column Mappings",mcp);
+			
+			
+			
+			
+			d.setContentPane(tabbedPane);
 			d.pack();
 			d.setVisible(true);
 			
