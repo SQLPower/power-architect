@@ -204,9 +204,7 @@ public class PlayPen extends JPanel
 	void setupKeyboardActions() {
 		ArchitectFrame af = ArchitectFrame.getMainInstance();
 
-		// XXX: this appears to have no effect
-		logger.debug("Setting up delete key action");
-		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), KEY_DELETE_SELECTED);
+		getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), KEY_DELETE_SELECTED);
 		getActionMap().put(KEY_DELETE_SELECTED, af.deleteSelectedAction);
 		if (af.deleteSelectedAction == null) logger.warn("af.deleteSelectedAction is null!");
 	}
@@ -1189,6 +1187,7 @@ public class PlayPen extends JPanel
 		}
 		
 		public void mousePressed(MouseEvent evt) {
+			requestFocus();
 			if (!retargetToContentPane(evt)) {
 				maybeShowPopup(evt);
 				if ((evt.getModifiersEx() & InputEvent.BUTTON1_DOWN_MASK) != 0) {
