@@ -109,7 +109,9 @@ public class GenericDDLGenerator {
 	}
 
 	public void writeTable(SQLTable t) throws SQLException, ArchitectException {
-		println("\nCREATE TABLE "+t.getName()+" (");
+		print("\nCREATE TABLE ");
+		printIdentifier(t.getName());
+		println(" (");
 		boolean firstCol = true;
 		Iterator it = t.getColumns().iterator();
 		while (it.hasNext()) {
@@ -122,7 +124,7 @@ public class GenericDDLGenerator {
 			}
 			if (!firstCol) println(",");
 			print("                ");
-			print(c.getName());
+			printIdentifier(c.getName());
 			print(" ");
 			print(td.getName());
 			if (td.getHasScale()) {
@@ -161,18 +163,23 @@ public class GenericDDLGenerator {
 			if (col.getPrimaryKeySeq() == null) break;
 			if (firstCol) {
 				println("");
-				println("ALTER TABLE "+t.getName()
-						  +" ADD CONSTRAINT "+t.getPrimaryKeyName());
+				print("ALTER TABLE ");
+				printIdentifier(t.getName());
+				print(" ADD CONSTRAINT ");
+				printIdentifier(t.getPrimaryKeyName());
+				println("");
 				print("PRIMARY KEY (");
 				firstCol = false;
 			} else {
 				print(", ");
 			}
-			print(col.getName());
+			printIdentifier(col.getName());
 		}
-		print(")");
-		writeStatementTerminator();
-		println("");
+		if (!firstCol) {
+			print(")");
+			writeStatementTerminator();
+			println("");
+		}
 	}
 
 	protected void writeExportedRelationships(SQLTable t) throws ArchitectException {
@@ -180,8 +187,11 @@ public class GenericDDLGenerator {
 		while (it.hasNext()) {
 			SQLRelationship rel = (SQLRelationship) it.next();
 			println("");
-			println("ALTER TABLE "+rel.getFkTable().getName()
-						+" ADD CONSTRAINT "+rel.getName());
+			print("ALTER TABLE ");
+			printIdentifier(rel.getFkTable().getName());
+			print(" ADD CONSTRAINT ");
+			printIdentifier(rel.getName());
+			println("");
 			print("FOREIGN KEY (");
 			StringBuffer pkCols = new StringBuffer();
 			StringBuffer fkCols = new StringBuffer();
@@ -193,13 +203,15 @@ public class GenericDDLGenerator {
 					pkCols.append(", ");
 					fkCols.append(", ");
 				}
-				pkCols.append(cmap.getPkColumn().getName());
-				fkCols.append(cmap.getFkColumn().getName());
+				appendIdentifier(pkCols, cmap.getPkColumn().getName());
+				appendIdentifier(fkCols, cmap.getFkColumn().getName());
 				firstCol = false;
 			}
 			print(fkCols.toString());
 			println(")");
-			print("REFERENCES "+rel.getPkTable().getName()+" (");
+			print("REFERENCES ");
+			printIdentifier(rel.getPkTable().getName());
+			print(" (");
 			print(pkCols.toString());
 			print(")");
 			writeStatementTerminator();
@@ -232,6 +244,28 @@ public class GenericDDLGenerator {
 
 	protected void print(String text) {
 		ddl.append(text);
+	}
+
+	/**
+	 * Calls {@link #appendIdentifier} on <code>ddl</code>, the
+	 * internal StringBuffer that accumulates the results of DDL
+	 * generation.  It should never be necessary to override this
+	 * method, because changes to appendIdentifier will always affect
+	 * this method's behaviour.
+	 */
+	protected final void printIdentifier(String text) {
+		appendIdentifier(ddl, text);
+	}
+
+	/**
+	 * Converts space to underscore in <code>text</code> and appends
+	 * the result to <code>sb</code>.  This will not be completely
+	 * sufficient because it leaves ".", "%", and lots of other
+	 * non-alphanumeric characters alone. Subclasses might choose to
+	 * quote and leave everything alone, or whatever.
+	 */
+	protected void appendIdentifier(StringBuffer sb, String text) {
+		sb.append(text.replace(' ', '_'));		
 	}
 
 	// ---------------------- accessors and mutators ----------------------
