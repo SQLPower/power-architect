@@ -662,9 +662,12 @@ public class PlayPen extends JPanel implements java.io.Serializable, SQLObjectLi
 						SQLObject[] objects = (SQLObject[]) someData;
 						for (int i = 0; i < objects.length; i++) {
 							if (objects[i] instanceof SQLTable) {
-								TablePane tp = new TablePane((SQLTable) objects[i]);
-								c.add(tp, dtde.getLocation());
-								tp.revalidate();
+								c.addTable((SQLTable) objects[i], dtde.getLocation());
+							} else if (objects[i] instanceof SQLSchema) {
+								c.addSchema((SQLSchema) objects[i], dtde.getLocation());
+							} else {
+								logger.warn("Unsupported object in multi-item drop: "
+											+objects[i]);
 							}
 						}
 						dtde.dropComplete(true);
