@@ -6,8 +6,19 @@ import java.sql.SQLException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.DatabaseMetaData;
+import org.apache.log4j.Logger;
 
 public class SQLColumn extends SQLObject implements java.io.Serializable {
+
+	private static Logger logger = Logger.getLogger(SQLColumn.class);
+
+	// *** REMEMBER *** update the getDerivedInstance method if you add new properties!
+
+	/**
+	 * Refers back to the real database-connected SQLColumn that this
+	 * column was originally derived from.
+	 */
+	protected SQLColumn sourceColumn;
 
 	protected SQLTable parent;
 	protected String columnName;
@@ -39,6 +50,14 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	protected String defaultValue;
 	protected Integer primaryKeySeq;
 	protected boolean autoIncrement;
+
+	// *** REMEMBER *** update the getDerivedInstance method if you add new properties!
+
+	/**
+	 * Only for use by static factory methods.
+	 */
+	private SQLColumn() {
+	}
 
 	/**
 	 * Constructs a SQLColumn that will be a part of the given SQLTable.
@@ -89,6 +108,30 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 		this(parent, colName, type, null, scale, precision, DatabaseMetaData.columnNullable, null, null, null, false);
 	}
 
+	/**
+	 * Makes a near clone of the given source column.  The new column
+	 * you get back will have a parent pointer of addTo, but will not
+	 * be attached as a child (you will normally do that right after
+	 * calling this).  It will refer to source as its sourceColumn
+	 * property, and otherwise be identical to source.
+	 */
+	public static SQLColumn getDerivedInstance(SQLColumn source, SQLTable addTo) {
+		SQLColumn c = new SQLColumn();
+		c.sourceColumn = source;
+		c.parent = addTo;
+		c.columnName = source.columnName;
+		c.type = source.type;
+		c.sourceDBTypeName = source.sourceDBTypeName;
+		c.scale = source.scale;
+		c.precision = source.precision;
+		c.nullable = source.nullable;
+		c.remarks = source.remarks;
+		c.defaultValue = source.defaultValue;
+		c.primaryKeySeq = source.primaryKeySeq;
+		c.autoIncrement = source.autoIncrement;
+		return c;
+	}
+
 	public static void addColumnsToTable(SQLTable addTo,
 										 String catalog,
 										 String schema,
@@ -98,7 +141,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 		ResultSet rs = null;
 		try {
 			DatabaseMetaData dbmd = con.getMetaData();
-			System.out.println("SQLColumn.addColumnsToTable: catalog="+catalog+"; schema="+schema+"; tableName="+tableName);
+			logger.debug("SQLColumn.addColumnsToTable: catalog="+catalog+"; schema="+schema+"; tableName="+tableName);
 			rs = dbmd.getColumns(catalog, schema, tableName, "%");
 			while (rs.next()) {
 				SQLColumn col = new SQLColumn(addTo,
@@ -113,7 +156,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 											  null, // primaryKeySeq
 											  false // isAutoIncrement
 											  );
-				System.out.println("Adding column "+col.getColumnName());
+				logger.debug("Adding column "+col.getColumnName());
 				
 				if (addTo.getColumnByName(col.getColumnName()) != null) {
 					throw new DuplicateColumnException(addTo, col.getColumnName());
