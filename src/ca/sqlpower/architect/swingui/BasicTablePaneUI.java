@@ -90,6 +90,10 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			SQLTable table = c.getModel();
 			int cols = table.getColumns().size();
 			Font font = c.getFont();
+			if (font == null) {
+				logger.error("Null font in TablePane "+c);
+				return;
+			}
 			FontMetrics metrics = c.getFontMetrics(font);
 			int fontHeight = metrics.getHeight();
 			height = insets.top + fontHeight + gap + c.getMargin().top + cols*fontHeight + boxLineThickness*2 + c.getMargin().bottom + insets.bottom;
