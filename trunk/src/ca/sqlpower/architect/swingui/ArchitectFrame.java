@@ -2,7 +2,7 @@ package ca.sqlpower.architect.swingui;
 
 import ca.sqlpower.architect.*;
 import ca.sqlpower.architect.ddl.*;
-
+import ca.sqlpower.architect.etl.*;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;
@@ -56,7 +56,7 @@ public class ArchitectFrame extends JFrame {
 
 	protected EditRelationshipAction editRelationshipAction;
 	protected Action exportDDLAction;
-
+	protected ExportPLTransAction exportPLTransAction;
 	protected Action exitAction = new AbstractAction("Exit") {
 			public void actionPerformed(ActionEvent e) {
 				System.exit(0);
@@ -101,9 +101,7 @@ public class ArchitectFrame extends JFrame {
 		// Create actions
 		newProjectAction
 			 = new AbstractAction("New Project",
-								 ASUtils.createJLFIcon("general/New",
-													   "New Project",
-													   sprefs.getInt(sprefs.ICON_SIZE, 24))) {
+					      ASUtils.createJLFIcon("general/New","New Project",sprefs.getInt(sprefs.ICON_SIZE, 24))) {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					setProject(new SwingUIProject("New Project"));
@@ -191,6 +189,7 @@ public class ArchitectFrame extends JFrame {
 		zoomNormalAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Reset Zoom");
 
 		exportDDLAction = new ExportDDLAction();
+		exportPLTransAction = new ExportPLTransAction();
 		deleteSelectedAction = new DeleteSelectedAction();
 		createIdentifyingRelationshipAction = new CreateRelationshipAction(true);
 		createNonIdentifyingRelationshipAction = new CreateRelationshipAction(false);
@@ -209,9 +208,20 @@ public class ArchitectFrame extends JFrame {
 		fileMenu.add(new JMenuItem(saveProjectAsAction));
 		fileMenu.add(new JMenuItem(printAction));
 		fileMenu.add(new JMenuItem(exportDDLAction));
+               // fileMenu.add(new JMenuItem(exportPLTransAction));
 		fileMenu.add(new JMenuItem(saveSettingsAction));
 		fileMenu.add(new JMenuItem(exitAction));
 		menuBar.add(fileMenu);
+		JMenu etlMenu = new JMenu("ETL");
+		etlMenu.setMnemonic('e');
+		JMenu etlSubmenuOne = new JMenu("Power*Loader");
+		JMenu etlSubmenuTwo = new JMenu("Informatica");
+		etlSubmenuOne.add(new JMenuItem(exportPLTransAction));
+		etlSubmenuOne.add(new JMenuItem("PL Transaction File Export"));
+		etlSubmenuOne.add(new JMenuItem("Run Power*Loader"));
+		etlMenu.add(etlSubmenuOne);
+		etlMenu.add(etlSubmenuTwo);
+		menuBar.add(etlMenu);
 		setJMenuBar(menuBar);
 
 		toolBar = new JToolBar(JToolBar.VERTICAL);
@@ -283,6 +293,7 @@ public class ArchitectFrame extends JFrame {
 		createIdentifyingRelationshipAction.setPlayPen(playpen);
 		createNonIdentifyingRelationshipAction.setPlayPen(playpen);
 		editRelationshipAction.setPlayPen(playpen);
+		exportPLTransAction.setPlayPen(playpen);
 		zoomInAction.setPlayPen(playpen);
 		zoomOutAction.setPlayPen(playpen);
 	}

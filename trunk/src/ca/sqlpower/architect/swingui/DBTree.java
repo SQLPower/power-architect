@@ -145,7 +145,7 @@ public class DBTree extends JTree implements DragSourceListener {
 	
 	public void expandPath(TreePath tp) {
 		try {
-			ArchitectFrame.getMainInstance().setCursor(Cursor.WAIT_CURSOR);
+			ArchitectFrame.getMainInstance().setCursor(new Cursor(Cursor.WAIT_CURSOR));
 			super.expandPath(tp);
 		} catch (Exception ex) {
 			JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
