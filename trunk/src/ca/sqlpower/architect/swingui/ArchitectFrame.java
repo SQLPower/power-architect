@@ -86,6 +86,7 @@ public class ArchitectFrame extends JFrame {
 	protected DeleteTableAction deleteTableAction;
 	protected CreateTableAction createTableAction;
 	protected CreateRelationshipAction createRelationshipAction;
+	protected EditRelationshipAction editRelationshipAction;
 	protected Action exportDDLAction;
 
 	protected Action exitAction = new AbstractAction("Exit") {
@@ -132,6 +133,7 @@ public class ArchitectFrame extends JFrame {
 		// Create actions
 		exportDDLAction = new ExportDDLAction();
 		createRelationshipAction = new CreateRelationshipAction();
+		editRelationshipAction = new EditRelationshipAction();
 		createTableAction = new CreateTableAction();
 		editColumnAction = new EditColumnAction();
 		insertColumnAction = new InsertColumnAction();
@@ -161,6 +163,7 @@ public class ArchitectFrame extends JFrame {
 		toolBar.add(new JButton(insertColumnAction));
 		toolBar.add(new JButton(deleteColumnAction));
 		toolBar.add(new JButton(createRelationshipAction));
+		toolBar.add(new JButton(editRelationshipAction));
 		cp.add(toolBar, BorderLayout.NORTH);
 
 		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
@@ -205,6 +208,7 @@ public class ArchitectFrame extends JFrame {
 		deleteTableAction.setPlayPen(playpen);
 		createTableAction.setPlayPen(playpen);
 		createRelationshipAction.setPlayPen(playpen);
+		editRelationshipAction.setPlayPen(playpen);
 	}
 
 	public static ArchitectFrame getMainInstance() {

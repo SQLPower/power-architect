@@ -13,6 +13,11 @@ import org.apache.log4j.Logger;
 public class SQLRelationship extends SQLObject implements java.io.Serializable {
 
 	private static Logger logger = Logger.getLogger(SQLRelationship.class);
+	
+	public static final int ZERO = 1;
+	public static final int ONE = 2;
+	public static final int MANY = 4;
+	
 
 	protected SQLObject parent;
 
@@ -23,10 +28,16 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	protected int deleteRule;
 	protected int deferrability;
 
+	protected int pkCardinality;
+	protected int fkCardinality;
+	protected boolean identifying;
+
 	protected String name;
 
 	public SQLRelationship() {
 		children = new LinkedList();
+		pkCardinality = ONE;
+		fkCardinality = ZERO | ONE | MANY;
 	}
 
 	/**
@@ -193,6 +204,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	 */
 	public void setUpdateRule(int argUpdateRule) {
 		this.updateRule = argUpdateRule;
+		fireDbObjectChanged("updateRule");
 	}
 
 	/**
@@ -211,6 +223,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	 */
 	public void setDeleteRule(int argDeleteRule) {
 		this.deleteRule = argDeleteRule;
+		fireDbObjectChanged("deleteRule");
 	}
 
 	/**
@@ -229,6 +242,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	 */
 	public void setDeferrability(int argDeferrability) {
 		this.deferrability = argDeferrability;
+		fireDbObjectChanged("deferrability");
 	}
 
 	public String getName()  {
@@ -237,7 +251,66 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 
 	public void setName(String argName) {
 		this.name = argName;
+		fireDbObjectChanged("name");
 	}
+
+	/**
+	 * Gets the value of pkCardinality
+	 *
+	 * @return the value of pkCardinality
+	 */
+	public int getPkCardinality()  {
+		return this.pkCardinality;
+	}
+
+	/**
+	 * Sets the value of pkCardinality
+	 *
+	 * @param argPkCardinality Value to assign to this.pkCardinality
+	 */
+	public void setPkCardinality(int argPkCardinality) {
+		this.pkCardinality = argPkCardinality;
+		fireDbObjectChanged("pkCardinality");
+	}
+
+	/**
+	 * Gets the value of fkCardinality
+	 *
+	 * @return the value of fkCardinality
+	 */
+	public int getFkCardinality()  {
+		return this.fkCardinality;
+	}
+
+	/**
+	 * Sets the value of fkCardinality
+	 *
+	 * @param argFkCardinality Value to assign to this.fkCardinality
+	 */
+	public void setFkCardinality(int argFkCardinality) {
+		this.fkCardinality = argFkCardinality;
+		fireDbObjectChanged("fkCardinality");
+	}
+
+	/**
+	 * Gets the value of identifying
+	 *
+	 * @return the value of identifying
+	 */
+	public boolean isIdentifying()  {
+		return this.identifying;
+	}
+
+	/**
+	 * Sets the value of identifying
+	 *
+	 * @param argIdentifying Value to assign to this.identifying
+	 */
+	public void setIdentifying(boolean argIdentifying) {
+		this.identifying = argIdentifying;
+		fireDbObjectChanged("identifying");
+	}
+
 
 	public SQLTable getPkTable() {
 		return pkTable;
@@ -245,6 +318,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 
 	public void setPkTable(SQLTable pkt) {
 		pkTable = pkt;
+		// XXX: fire event?
 	}
 
 	public SQLTable getFkTable() {
@@ -253,6 +327,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 
 	public void setFkTable(SQLTable fkt) {
 		fkTable = fkt;
+		// XXX: fire event?
 	}
 	
 	// -------------------------- COLUMN MAPPING ------------------------
