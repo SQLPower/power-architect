@@ -91,14 +91,14 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 		pkConnectionPoint = new Point();
 		fkConnectionPoint = new Point();
 		updateUI();
-		setOpaque(true);
+		setOpaque(false);
 		setBackground(Color.green);
 		model.addSQLObjectListener(this);
 		setToolTipText(model.getName());
 		
 		ui.bestConnectionPoints(pkTable, fkTable,
-								pkConnectionPoint,  // in pktable-space
-								fkConnectionPoint); // in fktable-space
+								pkConnectionPoint,  // gets updated (in pktable-space)
+								fkConnectionPoint); // gets updated (in fktable-space)
 
 		createPopup();
 		setVisible(true);
@@ -346,10 +346,12 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 		 * of the parent (for PK) or child (for FK) table.
 		 */
 		public void mouseMoved(MouseEvent e) {
+			Point p = new Point(e.getPoint());
+			r.getPlayPen().unzoomPoint(p);
 			if (movingPk) {
-				r.setPkConnectionPoint(translatePoint(e.getPoint()));
+				r.setPkConnectionPoint(translatePoint(p));
 			} else {
-				r.setFkConnectionPoint(translatePoint(e.getPoint()));
+				r.setFkConnectionPoint(translatePoint(p));
 			}
 		}
 
