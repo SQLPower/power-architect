@@ -559,8 +559,7 @@ public class PLExport {
 	/**
 	 * Does the actual insertion of the PL metadata records into the PL database.
 	 */
-	public void export() throws SQLException, ArchitectException {
-		SQLDatabase db = SQLDatabase.getPlayPenInstance();  // we are exporting this into target
+	public void export(SQLDatabase db) throws SQLException, ArchitectException {
 		SQLDatabase target = new SQLDatabase(plDBCS); // we are exporting db into this
 		Connection con = null;
 		try {

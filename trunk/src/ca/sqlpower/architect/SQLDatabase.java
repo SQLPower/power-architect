@@ -19,8 +19,6 @@ import ca.sqlpower.sql.DBConnectionSpec;
 public class SQLDatabase extends SQLObject implements java.io.Serializable, PropertyChangeListener {
 	private static Logger logger = Logger.getLogger(SQLDatabase.class);
 
-	private static SQLDatabase playPenInstance;
-
 	/**
 	 * Caches connections across serialization attempts.  See {@link
 	 * #connect()}.
@@ -31,24 +29,20 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	protected transient Connection connection;
 	protected boolean populated = false;
 
+	/**
+	 * Constructor for instances that connect to a real database by JDBC.
+	 */
 	public SQLDatabase(DBConnectionSpec connectionSpec) {
 		setConnectionSpec(connectionSpec);
 		children = new ArrayList();
 	}
 	
 	/**
-	 * Empty constructor for static factory methods.
+	 * Constructor for non-JDBC connected instances.
 	 */
-	private SQLDatabase() {
-	}
-
-	public static synchronized SQLDatabase getPlayPenInstance() {
-		if (playPenInstance == null) {
-			playPenInstance = new SQLDatabase();
-			playPenInstance.children = new ArrayList();
-			playPenInstance.populated = true;
-		}
-		return playPenInstance;
+	public SQLDatabase() {
+		children = new ArrayList();
+		populated = true;
 	}
 
 	public synchronized boolean isConnected() {

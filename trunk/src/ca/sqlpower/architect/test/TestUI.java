@@ -35,11 +35,12 @@ public class TestUI extends JFrame {
 		dbcs = spec;
 		SQLDatabase db = new SQLDatabase(spec);
 
-		playpen = new PlayPen(SQLDatabase.getPlayPenInstance());
+		SQLDatabase ppdb = new SQLDatabase();
+		playpen = new PlayPen(ppdb);
 
 		ArrayList dblist = new ArrayList(1);
 		dblist.add(db);
-		dblist.add(SQLDatabase.getPlayPenInstance());
+		dblist.add(ppdb);
 		dbTree = new DBTree(dblist);
 		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
 											  new JScrollPane(dbTree),

@@ -11,6 +11,7 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Iterator;
 import ca.sqlpower.sql.DBConnectionSpec;
 
@@ -23,6 +24,7 @@ public class ArchitectFrame extends JFrame {
 	 */
 	protected static ArchitectFrame mainInstance;
 
+	protected SwingUIProject project = null;
 	protected ConfigFile configFile = null;
 	protected UserSettings prefs = null;
 	protected SwingUserSettings sprefs = null;
@@ -64,6 +66,9 @@ public class ArchitectFrame extends JFrame {
 			throw new ArchitectException("prefs.read", e);
 		}
 
+		project = new SwingUIProject("New Project");
+		setName("Power*Architect: "+project.getName());
+
 		Container cp = getContentPane();
 		cp.setLayout(new BorderLayout());
 
@@ -73,14 +78,14 @@ public class ArchitectFrame extends JFrame {
 		menuBar.add(fileMenu);
 		setJMenuBar(menuBar);
 
-		playpen = new PlayPen(SQLDatabase.getPlayPenInstance());
-		ArrayList databases = new ArrayList(prefs.getConnections().size());
-		Iterator it = prefs.getConnections().iterator();
-		while (it.hasNext()) {
-			databases.add(new SQLDatabase((DBConnectionSpec) it.next()));
-		}
+		playpen = new PlayPen(project.getTargetDatabase());
+		List databases = project.getSourceDatabases();
+// 		Iterator it = prefs.getConnections().iterator();
+// 		while (it.hasNext()) {
+// 			databases.add(new SQLDatabase((DBConnectionSpec) it.next()));
+// 		}
 		dbTree = new DBTree(databases);
-		((SQLObject) dbTree.getModel().getRoot()).addChild(SQLDatabase.getPlayPenInstance());
+		((SQLObject) dbTree.getModel().getRoot()).addChild(project.getTargetDatabase());
 		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
 								   new JScrollPane(dbTree),
 								   new JScrollPane(playpen));
