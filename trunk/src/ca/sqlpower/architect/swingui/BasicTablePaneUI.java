@@ -20,7 +20,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 
 	final int boxLineThickness = 1;
 	final int gap = 1;
-	final boolean dropShadowEnabled = true;
+	protected Color selectedColor = new Color(204, 204, 255);
 
 	public static ComponentUI createUI(JComponent c) {
         return new BasicTablePaneUI();
@@ -46,21 +46,31 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			g.translate(insets.left, insets.top);
 			int width = c.getWidth() - insets.left - insets.right;
 			int height = c.getHeight() - insets.top - insets.bottom;
-			
-			// print table name
+
 			Font font = c.getFont();
 			FontMetrics metrics = c.getFontMetrics(font);
 			int fontHeight = metrics.getHeight();
 			int ascent = metrics.getAscent();
 			int y = 0;
+			
+			// hilight title if table is selected
+			if (tp.selected == true) {
+				g2.setColor(selectedColor);
+			} else {
+				g2.setColor(c.getBackground());
+			}
+			g2.fillRect(0, 0, c.getWidth(), fontHeight);
+			g2.setColor(c.getForeground());
+
+			// print table name
 			g2.drawString(tablePane.getModel().getTableName(), 0, y += ascent);
 
-			// draw box
+			// draw box around columns
 			if (fontHeight < 0) {
 				throw new IllegalStateException("FontHeight is negative");
 			}
-			g2.draw3DRect(0, fontHeight+gap, width-boxLineThickness,
-						  height-(fontHeight+gap+boxLineThickness), dropShadowEnabled);
+			g2.drawRect(0, fontHeight+gap,
+						width-boxLineThickness, height-(fontHeight+gap+boxLineThickness));
 			y += gap + boxLineThickness + tp.getMargin().top;
 
 			// print primary key
@@ -69,10 +79,20 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			
 			// print rest of columns
 			Iterator colNameIt = tablePane.getModel().getColumns().iterator();
+			int i = 0;
+			int hwidth = width-tp.getMargin().right-tp.getMargin().left-boxLineThickness*2;
 			while (colNameIt.hasNext()) {
+				if (tp.isColumnSelected(i)) {
+					logger.debug("Column "+i+" is selected");
+					g2.setColor(selectedColor);
+					g2.fillRect(boxLineThickness+tp.getMargin().left, y-ascent+fontHeight,
+								hwidth, fontHeight);
+					g2.setColor(tp.getForeground());
+				}
 				g2.drawString(((SQLColumn) colNameIt.next()).getShortDisplayName(),
 							  boxLineThickness+tp.getMargin().left,
 							  y += fontHeight);
+				i++;
 			}
 
 			// paint insertion point
@@ -87,6 +107,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			}
 
 			g.translate(-insets.left, -insets.top);
+
 		} catch (ArchitectException e) {
 			logger.warn("BasicTablePaneUI.paint failed", e);
 		}
