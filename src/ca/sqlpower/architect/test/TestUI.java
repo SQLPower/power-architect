@@ -44,7 +44,10 @@ public class TestUI extends JFrame {
 		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
 											  new JScrollPane(dbTree),
 											  new JScrollPane(playpen));
-		setContentPane(splitPane);
+		JPanel cp = new JPanel(new BorderLayout());
+		cp.add(splitPane);
+		cp.setOpaque(true);
+		setContentPane(cp);
 		pack();
 		splitPane.setDividerLocation(dbTree.getPreferredSize().width);
 
