@@ -6,13 +6,15 @@ import javax.swing.event.TreeModelEvent;
 import java.util.LinkedList;
 import java.util.Collection;
 import java.util.Iterator;
+import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.*;
 
 public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serializable {
 
+	private static Logger logger = Logger.getLogger(DBTreeModel.class);
+
 	protected SQLObject root;
-	protected boolean debugMode;
 
 	/**
 	 * Creates a tree model with an empty list of databases at its
@@ -39,36 +41,35 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 		}
 		this.treeModelListeners = new LinkedList();
 		listenToSQLObjectAndChildren(root);
-		debugMode = false;
 	}
 
 	public Object getRoot() {
-		if (debugMode) System.out.println("DBTreeModel.getRoot: returning "+root);
+		logger.debug("DBTreeModel.getRoot: returning "+root);
 		return root;
 	}
 
 	public Object getChild(Object parent, int index) {
 		try {
-			if (debugMode) System.out.println("DBTreeModel.getChild("+parent+","+index+"): returning "+((SQLObject) parent).getChild(index));
+			logger.debug("DBTreeModel.getChild("+parent+","+index+"): returning "+((SQLObject) parent).getChild(index));
 			return ((SQLObject) parent).getChild(index);
 		} catch (ArchitectException e) {
-			e.printStackTrace();
+			logger.error("Couldn't get child "+index+" of "+parent, e);
 			return null;
 		}
 	}
 
 	public int getChildCount(Object parent) {
 		try {
-			if (debugMode) System.out.println("DBTreeModel.getChildCount("+parent+"): returning "+((SQLObject) parent).getChildCount());
+			logger.debug("DBTreeModel.getChildCount("+parent+"): returning "+((SQLObject) parent).getChildCount());
 			return ((SQLObject) parent).getChildCount();
 		} catch (ArchitectException e) {
-			e.printStackTrace();
+			logger.error("Couldn't get child count of "+parent, e);
 			return -1;
 		}
 	}
 
 	public boolean isLeaf(Object parent) {
-		if (debugMode) System.out.println("DBTreeModel.isLeaf("+parent+"): returning "+!((SQLObject) parent).allowsChildren());
+		logger.debug("DBTreeModel.isLeaf("+parent+"): returning "+!((SQLObject) parent).allowsChildren());
 		return !((SQLObject) parent).allowsChildren();
 	}
 
@@ -78,10 +79,10 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 
 	public int getIndexOfChild(Object parent, Object child) {
 		try {
-			if (debugMode) System.out.println("DBTreeModel.getIndexOfChild("+parent+","+child+"): returning "+((SQLObject) parent).getChildren().indexOf(child));
+			logger.debug("DBTreeModel.getIndexOfChild("+parent+","+child+"): returning "+((SQLObject) parent).getChildren().indexOf(child));
 			return ((SQLObject) parent).getChildren().indexOf(child);
 		} catch (ArchitectException e) {
-			e.printStackTrace();
+			logger.error("Couldn't get index of child "+child, e);
 			return -1;
 		}
 	}
@@ -132,7 +133,7 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	}
 
 	protected void fireTreeNodesInserted(TreeModelEvent e) {
-		System.out.println("Firing treeNodesInserted event: "+e);
+		logger.debug("Firing treeNodesInserted event: "+e);
 		Iterator it = treeModelListeners.iterator();
 		while (it.hasNext()) {
 			((TreeModelListener) it.next()).treeNodesInserted(e);
