@@ -1,5 +1,6 @@
 package ca.sqlpower.architect.swingui;
 
+import javax.swing.SwingUtilities;
 import javax.swing.tree.*;
 import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeModelEvent;
@@ -50,24 +51,24 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	}
 
 	public Object getChild(Object parent, int index) {
+		if (logger.isDebugEnabled()) logger.debug("DBTreeModel.getChild("+parent+","+index+")");
 		try {
-			if (logger.isDebugEnabled()) logger.debug("DBTreeModel.getChild("+parent+","+index+"): returning "+((SQLObject) parent).getChild(index));
+			if (logger.isDebugEnabled()) logger.debug("returning "+((SQLObject) parent).getChild(index));
 			return ((SQLObject) parent).getChild(index);
-		} catch (ArchitectException e) {
-			//logger.error("Couldn't get child "+index+" of "+parent, e);
-			//return null;
-			throw new ArchitectRuntimeException(e);
+		} catch (Exception e) {
+			SQLExceptionNode fakeChild = putExceptionNodeUnder((SQLObject) parent, e);
+			return fakeChild;
 		}
 	}
 
 	public int getChildCount(Object parent) {
+		if (logger.isDebugEnabled()) logger.debug("DBTreeModel.getChildCount("+parent+")");
 		try {
-			if (logger.isDebugEnabled()) logger.debug("DBTreeModel.getChildCount("+parent+"): returning "+((SQLObject) parent).getChildCount());
+			if (logger.isDebugEnabled()) logger.debug("returning "+((SQLObject) parent).getChildCount());
 			return ((SQLObject) parent).getChildCount();
-		} catch (ArchitectException e) {
-			//logger.error("Couldn't get child count of "+parent, e);
-			//return -1;
-			throw new ArchitectRuntimeException(e);
+		} catch (Exception e) {
+			SQLExceptionNode fakeChild = putExceptionNodeUnder((SQLObject) parent, e);
+			return 1; // XXX: could be incorrect if exception was not a populate problem!
 		}
 	}
 
@@ -183,6 +184,13 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	 * because they have two parents! Use getPkPathToRelationship and
 	 * getFkPathToRelationship instead.
 	 *
+	 * <p>XXX: getPathToNode and get(Pk|Fk)PathToRelationship should
+	 * be merged into a new getPathsToNode method that returns a List
+	 * or array of paths.  Then all methods that call it (currently
+	 * they are only here and in DBTree) should be adapted to allow
+	 * multiple returned paths.  getPathToNode is not part of the
+	 * javax.swing.tree.TreeModel interface.
+	 *
 	 * @throws IllegalArgumentException if <code>node</code> is of class SQLRelationship.
 	 */
 	public SQLObject[] getPathToNode(SQLObject node) {
@@ -212,6 +220,39 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 		System.arraycopy(pathToFkTable, 0, path, 0, pathToFkTable.length);
 		path[path.length - 1] = rel;
 		return path;
+	}
+
+	/**
+	 * Creates a SQLExceptionNode with the given Throwable and places
+	 * it under parent.
+	 *
+	 * @return the node that has been added to parent.
+	 */
+	protected SQLExceptionNode putExceptionNodeUnder(final SQLObject parent, Throwable ex) {
+		// dig for root cause and message
+		logger.info("Adding exception node under "+parent, ex);
+		String message = ex.getMessage();
+		Throwable cause = ex;
+		while (cause.getCause() != null) {
+			cause = cause.getCause();
+			if (cause.getMessage() != null && cause.getMessage().length() > 0) {
+				message = cause.getMessage();
+			}
+		}
+		
+		if (message == null || message.length() == 0) {
+			message = "Check application log for details";
+		}
+		
+		final SQLExceptionNode excNode = new SQLExceptionNode(ex, message);
+		excNode.setParent((SQLObject) parent);
+		// add it later so the call to getChildCount() doesn't cause tree model events!
+// 		SwingUtilities.invokeLater(new Runnable() {
+// 				public void run() {
+					parent.addChild(excNode);
+// 				}
+// 			});
+		return excNode;
 	}
 
 	// --------------------- SQLObject listener support -----------------------

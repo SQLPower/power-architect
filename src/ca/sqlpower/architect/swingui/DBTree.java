@@ -170,25 +170,9 @@ public class DBTree extends JTree implements DragSourceListener {
 		try {
 			ArchitectFrame.getMainInstance().setCursor(new Cursor(Cursor.WAIT_CURSOR));
 			super.expandPath(tp);
-			//		} catch (ArchitectException ex) {
 		} catch (Exception ex) {
 			String message = ex.getMessage();
 			logger.warn("Unexpected exception while expanding path "+tp, ex);
-
-			// dig for root cause and message
-			Throwable cause = ex;
-			while (cause.getCause() != null) {
-				cause = cause.getCause();
-				if (cause.getMessage() != null && cause.getMessage().length() > 0) {
-					message = cause.getMessage();
-				}
-			}
-
-			if (message == null || message.length() == 0) {
-				message = "Check application log for details";
-			}
-
-			ASUtils.showExceptionDialog("Couldn't expand node:\n"+message, ex);
 		} finally {
 			ArchitectFrame.getMainInstance().setCursor(null);
 		}
