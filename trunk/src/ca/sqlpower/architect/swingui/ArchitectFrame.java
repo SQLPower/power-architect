@@ -43,6 +43,7 @@ public class ArchitectFrame extends JFrame {
 	protected Action openProjectAction;
 	protected Action saveProjectAction;
 	protected Action saveProjectAsAction;
+	protected PrintAction printAction;
 // 	protected Action zoomInAction;
 // 	protected Action zoomOutAction;
 // 	protected Action zoomNormalAction;
@@ -175,7 +176,9 @@ public class ArchitectFrame extends JFrame {
 					}
 				};
 		saveProjectAsAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Save As");
-		
+
+		printAction = new PrintAction();
+
 		/*  ------------ no zoom stuff for now ---------------
 		zoomInAction
 			= new AbstractAction("Zoom in",
@@ -228,6 +231,7 @@ public class ArchitectFrame extends JFrame {
 		fileMenu.add(new JMenuItem(openProjectAction));
 		fileMenu.add(new JMenuItem(saveProjectAction));
 		fileMenu.add(new JMenuItem(saveProjectAsAction));
+		fileMenu.add(new JMenuItem(printAction));
 		fileMenu.add(new JMenuItem(exportDDLAction));
 		fileMenu.add(new JMenuItem(saveSettingsAction));
 		fileMenu.add(new JMenuItem(exitAction));
@@ -238,10 +242,12 @@ public class ArchitectFrame extends JFrame {
 		toolBar.add(newProjectAction);
 		toolBar.add(openProjectAction);
 		toolBar.add(saveProjectAction);
-		toolBar.addSeparator();
+//		toolBar.addSeparator();
 // 		toolBar.add(zoomInAction);
 // 		toolBar.add(zoomOutAction);
 // 		toolBar.add(zoomNormalAction);
+		toolBar.addSeparator();
+		toolBar.add(printAction);
 		toolBar.addSeparator();
 		toolBar.add(deleteSelectedAction);
 		toolBar.addSeparator();
@@ -296,6 +302,7 @@ public class ArchitectFrame extends JFrame {
 	 * instances.  This method is called by setProject.
 	 */
 	protected void setupActions() {
+		printAction.setPlayPen(playpen);
 		deleteSelectedAction.setPlayPen(playpen);
 		editColumnAction.setPlayPen(playpen);
 		insertColumnAction.setPlayPen(playpen);
