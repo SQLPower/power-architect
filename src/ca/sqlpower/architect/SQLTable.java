@@ -393,16 +393,18 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	}
 
 	public void addColumn(int pos, SQLColumn col) {
-		boolean addToPK;
+		boolean addToPK = false;
 		int pkSize = pkSize();
-		if (pos <= pkSize) {
-			addToPK = true;
-			normalizePrimaryKey();
-			for (int i = pos; i < pkSize; i++) {
-				((SQLColumn) columnsFolder.children.get(i)).primaryKeySeq = new Integer(i + 1);
+		try {
+			if (getColumns().size() > 0 && pos <= pkSize) {
+				addToPK = true;
+				normalizePrimaryKey();
+				for (int i = pos; i < pkSize; i++) {
+					((SQLColumn) columnsFolder.children.get(i)).primaryKeySeq = new Integer(i + 1);
+				}
 			}
-		} else {
-			addToPK = false;
+		} catch (ArchitectException e) {
+			logger.warn("Unexpected ArchitectException in addColumn", e);
 		}
 
 		col.setParent(null);
