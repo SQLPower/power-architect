@@ -27,6 +27,13 @@ public class PlayPen extends JPanel
 	private static Logger logger = Logger.getLogger(PlayPen.class);
 
 	/**
+	 * The ActionMap key for the action that deletes the selected
+	 * object in this TablePane.
+	 */
+	public static final String KEY_DELETE_SELECTED
+		= "ca.sqlpower.architect.swingui.PlayPen.KEY_DELETE_SELECTED";
+
+	/**
 	 * Links this PlayPen with an instance of PlayPenDropListener so
 	 * users can drop stuff on the playpen.
 	 */
@@ -78,6 +85,7 @@ public class PlayPen extends JPanel
 		dt = new DropTarget(this, new PlayPenDropListener());
 		setupTablePanePopup();
 		setupPlayPenPopup();
+		setupKeyboardActions();
 		addMouseListener(this);
 		addMouseMotionListener(this);
 	}
@@ -162,6 +170,16 @@ public class PlayPen extends JPanel
 		}
 	}
 	
+	void setupKeyboardActions() {
+		ArchitectFrame af = ArchitectFrame.getMainInstance();
+
+		// XXX: this appears to have no effect
+		logger.debug("Setting up delete key action");
+		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), KEY_DELETE_SELECTED);
+		getActionMap().put(KEY_DELETE_SELECTED, af.deleteSelectedAction);
+		if (af.deleteSelectedAction == null) logger.warn("af.deleteSelectedAction is null!");
+	}
+
 	// --------------------- Utility methods -----------------------
 
 	/**
