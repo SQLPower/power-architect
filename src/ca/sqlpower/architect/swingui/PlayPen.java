@@ -464,10 +464,11 @@ public class PlayPen extends JPanel
 	 * preferredLocation as the layout constraint.  Tries to avoid
 	 * adding two tables with identical names.
 	 *
+	 * @return A reference to the newly-created TablePane.
 	 * @see SQLTable#inherit
 	 * @see PlayPenLayout#addComponent(Component,Object)
 	 */
-	public synchronized void importTableCopy(SQLTable source, Point preferredLocation) throws ArchitectException {
+	public synchronized TablePane importTableCopy(SQLTable source, Point preferredLocation) throws ArchitectException {
 		SQLTable newTable = SQLTable.getDerivedInstance(source, db); // adds newTable to db
 		String key = source.getTableName().toLowerCase();
 		Integer suffix = (Integer) tableNames.get(key);
@@ -483,6 +484,7 @@ public class PlayPen extends JPanel
 		logger.info("adding table "+newTable);
 		add(tp, preferredLocation);
 		tp.revalidate();
+		return tp;
 	}
 
 	/**
@@ -499,7 +501,7 @@ public class PlayPen extends JPanel
 
 		public AddSchemaTask(SQLSchema source, Point preferredLocation) {
 			this.source = source;
-			this.preferredLocation = preferredLocation;
+			this.preferredLocation = new Point(preferredLocation);
 		}
 
 		public void run() {
@@ -517,7 +519,8 @@ public class PlayPen extends JPanel
 				while (it.hasNext() && !pm.isCanceled()) {
 					SQLTable sourceTable = (SQLTable) it.next();
 					pm.setNote(sourceTable.getTableName());
-					importTableCopy(sourceTable, preferredLocation);
+					TablePane tp = importTableCopy(sourceTable, preferredLocation);
+					preferredLocation.x += tp.getPreferredSize().width + 5;
 					pm.setProgress(i++);
 				}
 			} catch (ArchitectException e) {
