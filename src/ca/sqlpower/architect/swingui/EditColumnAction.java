@@ -26,7 +26,7 @@ public class EditColumnAction extends AbstractAction {
 			try {
 				int idx = tp.getSelectedColumnIndex();
 				JFrame editFrame = new JFrame("Edit columns of "+tp.getModel().getName());
-				editFrame.setContentPane(new ColumnEditPanel(tp.getModel().getColumn(idx)));
+				editFrame.setContentPane(new ColumnEditPanel(tp.getModel(), idx));
 				editFrame.pack();
 				editFrame.setVisible(true);
 			} catch (ArchitectException e) {
