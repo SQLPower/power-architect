@@ -47,6 +47,10 @@ public class ExportPLTransAction extends AbstractAction {
 		JButton okButton = new JButton("Ok");
 		okButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent evt) {
+					if (plPanel.historyBox.getSelectedIndex() == 0) {
+						JOptionPane.showMessageDialog(plPanel, "You have to select a target database from the list.", "Error", JOptionPane.ERROR_MESSAGE);
+						return;
+					}
 					try {
 						//plPanel.applyChanges();
 						plexp.setJobId(plPanel.getPlJobId());
@@ -60,7 +64,7 @@ public class ExportPLTransAction extends AbstractAction {
 					} catch (Exception ex) {
 						JOptionPane.showMessageDialog
 							(architectFrame,
-							 "Can't export TRansaction: "+ex.getMessage());
+							 "Can't export Transaction: "+ex.getMessage());
 						logger.error("Got exception while exporting Trans", ex);
 					}
 					d.setVisible(false);
@@ -86,7 +90,15 @@ public class ExportPLTransAction extends AbstractAction {
 								}	
 						}
 					} catch (SQLException esql) {
+						JOptionPane.showMessageDialog
+							(architectFrame,
+							 "Can't export Transaction: "+esql.getMessage());
+						logger.error("Got exception while exporting Trans", esql);
 					} catch (ArchitectException arex){
+						JOptionPane.showMessageDialog
+							(architectFrame,
+							 "Can't export Transaction: "+arex.getMessage());
+						logger.error("Got exception while exporting Trans", arex);
 					}
 				}
 			});

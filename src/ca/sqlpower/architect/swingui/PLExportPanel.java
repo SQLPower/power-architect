@@ -193,6 +193,7 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		PLdbConn plconn =  new PLdbConn();
 		String fileIni = plPath+"pl.ini";
 		File inputFile = new File(fileIni);
+
 		try {
 			FileReader in = new FileReader(inputFile);
 			StringBuffer line = new StringBuffer();
@@ -258,12 +259,15 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 					  line.setLength(0);
 				}  
             }
-        in.close();
-    } catch (IOException ie){
-		System.out.println( "File PL.ini not found in specified path");
-    }    
-    return odbc;
-}
+			in.close();
+		} catch (FileNotFoundException ie){
+			JOptionPane.showMessageDialog(this, "PL database config file not found in specified path "+fileIni);
+		} catch (IOException ie){
+			JOptionPane.showMessageDialog(this, "Error reading PL.ini file "+fileIni);
+		}    
+
+		return odbc;
+	}
 
 	// -------------------- ARCHITECT PANEL INTERFACE -----------------------
 
@@ -324,7 +328,7 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 	 public boolean isSelectedRunPLEngine(){
 		 return runPLEngine.isSelected();
 	 }
-	 
+	
 	/**
 	 * Returns a reference to the current DBConnectionSpec (that is,
 	 * the one that will be updated when apply() is called).
