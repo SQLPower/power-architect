@@ -28,17 +28,11 @@ public class Relationship extends JComponent {
 	protected Point fkConnectionPoint;
 
 	static {
-		UIManager.put(RelationshipUI.UI_CLASS_ID, "ca.sqlpower.architect.swingui.BasicRelationshipUI");
+		UIManager.put(RelationshipUI.UI_CLASS_ID, "ca.sqlpower.architect.swingui.IERelationshipUI");
 	}
 
-	public Relationship(PlayPen pp, SQLRelationship model) {
-		this.model = model;
-		pkTable = pp.findTablePane(model.getPkTable());
-		fkTable = pp.findTablePane(model.getFkTable());
-		updateUI();
-		setVisible(true);
-		setBounds(1,1,1,1);
-		logger.debug("Created new Relationship component with pkTable="+pkTable+"; fkTable="+fkTable);
+	public Relationship(PlayPen pp, SQLRelationship model) throws ArchitectException {
+		this (pp, pp.findTablePane(model.getPkTable()), pp.findTablePane(model.getFkTable()));
 	}
 
 	public Relationship(PlayPen pp, TablePane pkTable, TablePane fkTable) throws ArchitectException {
@@ -62,6 +56,8 @@ public class Relationship extends JComponent {
 			model.addMapping(pkCol, fkCol);
 		}
 
+		pkConnectionPoint = new Point();
+		fkConnectionPoint = new Point();
 		recalcConnectionPoints();
 
 		setVisible(true);
@@ -82,22 +78,8 @@ public class Relationship extends JComponent {
 		return new Point(b.x - a.x, b.y - a.y);
 	}
 
-	/**
-	 * Returns a Point where an end of the relationship should meet
-	 * the Table Pane tp when the user is pointing at p.
-	 *
-	 * @param tp the table to determine the connection point for.
-	 * @param p The point in tp's coordinate space where the user is pointing.
-	 */
-	public Point bestConnectionPoint(TablePane tp, Point p) {
-		return ui.bestConnectionPoint(tp, p);
-	}
-
 	protected void recalcConnectionPoints() {
-		pkConnectionPoint = bestConnectionPoint(pkTable, coord(pkTable.getLocation(),
-															   fkTable.getLocation()));
-		fkConnectionPoint = bestConnectionPoint(fkTable, coord(fkTable.getLocation(),
-															   pkTable.getLocation()));
+		ui.bestConnectionPoints(pkTable, fkTable, pkConnectionPoint, fkConnectionPoint);
 	}
 
 	// -------------------- JComponent overrides -------------------
