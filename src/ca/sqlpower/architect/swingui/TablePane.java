@@ -2,6 +2,7 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.Dimension;
 import java.awt.Insets;
+import java.awt.Point;
 import java.awt.event.*;
 import java.awt.datatransfer.*;
 import java.awt.dnd.*;
@@ -23,6 +24,20 @@ public class TablePane extends JComponent implements SQLObjectListener, java.io.
 
 	private static final Logger logger = Logger.getLogger(TablePane.class);
 
+	protected DragGestureListener dgl;
+	protected DragGestureRecognizer dgr;
+	protected DragSource ds;
+	
+	/**
+	 * A constant indicating the title label on a TablePane.
+	 */
+	public static final int COLUMN_INDEX_TITLE = -1;
+
+	/**
+	 * A constant indicating no column or title.
+	 */
+	public static final int COLUMN_INDEX_NONE = -2;
+
 	/**
 	 * How many pixels should be left between the surrounding box and
 	 * the column name labels.
@@ -42,6 +57,11 @@ public class TablePane extends JComponent implements SQLObjectListener, java.io.
 		setMinimumSize(new Dimension(100,200));
 		setPreferredSize(new Dimension(100,200));
 		dt = new DropTarget(this, new TablePaneDropListener());
+
+		dgl = new TablePaneDragGestureListener();
+		ds = new DragSource();
+		dgr = getToolkit().createDragGestureRecognizer(MouseDragGestureRecognizer.class, ds, this, DnDConstants.ACTION_MOVE, dgl);
+
 		updateUI();
 	}
 
@@ -158,6 +178,17 @@ public class TablePane extends JComponent implements SQLObjectListener, java.io.
 		revalidate();
 	}
 
+	// ------------------ utility methods ---------------------
+
+	/**
+	 * Returns the index of the column that point p is on top of.  If
+	 * p is on top of the table name, returns COLUMN_INDEX_TITLE.
+	 * Otherwise, p is not over a column or title and the returned
+	 * index is COLUMN_INDEX_NONE.
+	 */
+	public int pointToColumnIndex(Point p) throws ArchitectException {
+		return ((TablePaneUI) ui).pointToColumnIndex(p);
+	}
 
 	/**
 	 * Tracks incoming objects and adds successfully dropped objects
@@ -295,5 +326,24 @@ public class TablePane extends JComponent implements SQLObjectListener, java.io.
 		public boolean canImport(JComponent c, DataFlavor[] flavors) {
 			return bestImportFlavor(c, flavors) != null;
 		} 
+	}
+
+	public static class TablePaneDragGestureListener implements DragGestureListener {
+		public void dragGestureRecognized(DragGestureEvent dge) {
+			TablePane tp = (TablePane) dge.getComponent();
+			int colIndex = COLUMN_INDEX_NONE;
+			try {
+				colIndex = tp.pointToColumnIndex(dge.getDragOrigin());
+			} catch (ArchitectException e) {
+				logger.error("Got exception while translating drag point", e);
+			}
+			logger.debug("Recognized drag gesture! col="+colIndex);
+			if (colIndex == COLUMN_INDEX_TITLE) {
+				// move the tablepane around
+			} else if (colIndex >= 0) {
+				// export column as DnD event
+				logger.error("Dragging columns is not implemented yet");
+			}
+		}
 	}
 }

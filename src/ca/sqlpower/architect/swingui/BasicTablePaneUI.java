@@ -111,6 +111,30 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 	}
 
 	/**
+	 * This method is specified by TablePane.pointToColumnIndex().
+	 * This implementation depends on the implementation of paint().
+	 */
+	public int pointToColumnIndex(Point p) throws ArchitectException {
+		Insets insets = tablePane.getInsets();
+		Font font = tablePane.getFont();
+		FontMetrics metrics = tablePane.getFontMetrics(font);
+		int fontHeight = metrics.getHeight();
+		int ascent = metrics.getAscent();
+
+		if (0 <= p.y && p.y <= fontHeight) {
+			return TablePane.COLUMN_INDEX_TITLE;
+		}
+
+		int firstColStart = fontHeight + gap + boxLineThickness + tablePane.getMargin().top;
+		int numCols = tablePane.getModel().getColumns().size();
+		if (firstColStart <= p.y && p.y <= firstColStart + fontHeight*numCols) {
+			return (p.y - firstColStart) / fontHeight;
+		}
+
+		return TablePane.COLUMN_INDEX_NONE;
+	}
+
+	/**
 	 * Recomputes the component's size if the given property change
 	 * makes this necessary (any visible changes will make
 	 * recompuation necessary).
