@@ -73,7 +73,7 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 				}
 			}
 			
-			pos.x = rl.findGapToRight(pos.x, comp.getWidth());
+			pos.x = Math.max(pos.x, rl.findGapToRight(pos.x, comp.getWidth()));
 			comp.setLocation(pos);
 		}
 
