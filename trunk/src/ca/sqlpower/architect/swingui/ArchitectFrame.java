@@ -10,6 +10,9 @@ import java.awt.Container;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import ca.sqlpower.sql.DBConnectionSpec;
 
 public class ArchitectFrame extends JFrame {
 
@@ -73,7 +76,12 @@ public class ArchitectFrame extends JFrame {
 		setJMenuBar(menuBar);
 
 		playpen = new PlayPen(SQLDatabase.getPlayPenInstance());
-		dbTree = new DBTree(prefs.getConnections());
+		ArrayList databases = new ArrayList(prefs.getConnections().size());
+		Iterator it = prefs.getConnections().iterator();
+		while (it.hasNext()) {
+			databases.add(new SQLDatabase((DBConnectionSpec) it.next()));
+		}
+		dbTree = new DBTree(databases);
 		((SQLObject) dbTree.getModel().getRoot()).addChild(SQLDatabase.getPlayPenInstance());
 		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
 								   new JScrollPane(dbTree),
@@ -105,7 +113,12 @@ public class ArchitectFrame extends JFrame {
 	 */
 	public static void main(String args[]) throws Exception {
 		mainInstance = new ArchitectFrame();
-		mainInstance.setVisible(true);
+		
+		SwingUtilities.invokeLater(new Runnable() {
+				public void run() {
+					mainInstance.setVisible(true);
+				}
+			});
 	}
 	
 }

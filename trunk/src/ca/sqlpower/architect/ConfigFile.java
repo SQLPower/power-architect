@@ -77,13 +77,30 @@ public class ConfigFile {
 		d.setValidating(false);
 		d.push(this);
 		d.addObjectCreate("architect-settings", UserSettings.class);
+
+		// db connections
+		d.addObjectCreate("architect-settings/db-connections/dbcs", DBConnectionSpec.class);
+		d.addSetProperties
+			("architect-settings/db-connections/dbcs",
+			 new String[] {"connection-name", "driver-class", "jdbc-url", "user-name",
+						   "user-pass", "sequence-number", "single-login"},
+			 new String[] {"displayName", "driverClass", "url", "user",
+						   "pass", "seqNo", "singleLogin"});
+		d.addCallMethod("architect-settings/db-connections/dbcs", "setName", 0); // argument is element body text
+		d.addSetNext("architect-settings/db-connections/dbcs", "addConnection",
+					 "ca.sqlpower.sql.DBConnectionSpec");
+
+		// gui settings
 		d.addObjectCreate("architect-settings/swing-gui-settings", SwingUserSettings.class);
 		d.addCallMethod("architect-settings/swing-gui-settings/setting", "putSetting", 3);
 		d.addCallParam("architect-settings/swing-gui-settings/setting", 0, "name");
 		d.addCallParam("architect-settings/swing-gui-settings/setting", 1, "class");
 		d.addCallParam("architect-settings/swing-gui-settings/setting", 2, "value");
-		d.addSetNext("architect-settings/swing-gui-settings", "setSwingSettings", "ca.sqlpower.architect.swingui.SwingUserSettings");
-		d.addSetNext("architect-settings", "setUserSettings", "ca.sqlpower.architect.UserSettings");
+		d.addSetNext("architect-settings/swing-gui-settings", "setSwingSettings",
+					 "ca.sqlpower.architect.swingui.SwingUserSettings");
+
+		d.addSetNext("architect-settings", "setUserSettings",
+					 "ca.sqlpower.architect.UserSettings");
 		return d;
 	}
 	
@@ -120,12 +137,12 @@ public class ConfigFile {
 	}
 
 	protected void writeDbConnections(List dbConnections) throws IOException {
-		println("<dbconnections>");
+		println("<db-connections>");
 		indent++;
 		Iterator it = dbConnections.iterator();
 		while (it.hasNext()) {
 			DBConnectionSpec dbcs = (DBConnectionSpec) it.next();
-			print("<dbcs ");
+			print("<dbcs");
 			niprint(" connection-name=\""+dbcs.getName()+"\"");
 			niprint(" driver-class=\""+dbcs.getDriverClass()+"\"");
 			niprint(" jdbc-url=\""+dbcs.getUrl()+"\"");
@@ -138,7 +155,7 @@ public class ConfigFile {
 			niprintln("</dbcs>");
 		}
 		indent--;
-		println("</dbconnections>");
+		println("</db-connections>");
 	}
 
 	protected void writeSwingSettings(SwingUserSettings sprefs) {
