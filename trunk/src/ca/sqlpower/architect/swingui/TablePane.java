@@ -273,6 +273,9 @@ public class TablePane
 	// --------------------- column selection support --------------------
 
 	public void selectNone() {
+		PlayPen pp = (PlayPen) getParent();
+		pp.deleteColumnAction.setEnabled(false);
+		pp.editColumnAction.setEnabled(false);
 		for (int i = 0; i < columnSelection.size(); i++) {
 			columnSelection.set(i, Boolean.FALSE);
 		}
@@ -280,6 +283,9 @@ public class TablePane
 
 	public void selectColumn(int i) {
 		columnSelection.set(i, Boolean.TRUE);
+		PlayPen pp = (PlayPen) getParent();
+		pp.deleteColumnAction.setEnabled(true);
+		pp.editColumnAction.setEnabled(true);
 	}
 
 	public boolean isColumnSelected(int i) {
@@ -345,7 +351,9 @@ public class TablePane
 			dtde.acceptDrag(DnDConstants.ACTION_COPY);
 			try {
 				TablePane tp = (TablePane) dtde.getDropTargetContext().getComponent();
-				tp.setInsertionPoint(tp.pointToColumnIndex(dtde.getLocation()));
+				int idx = tp.pointToColumnIndex(dtde.getLocation());
+				if (idx < 0) idx = 0;
+				tp.setInsertionPoint(idx);
 			} catch (ArchitectException e) {
 				logger.error("Got exception translating drag location", e);
 			}
@@ -365,19 +373,19 @@ public class TablePane
 				c.setInsertionPoint(COLUMN_INDEX_NONE);
 			} else {
 				try {
+					int insertionPoint = c.pointToColumnIndex(dtde.getLocation());
+					if (insertionPoint < 0) insertionPoint = 0;
 					Object someData = t.getTransferData(importFlavor);
 					logger.debug("drop: got object of type "+someData.getClass().getName());
 					if (someData instanceof SQLTable) {
 						dtde.acceptDrop(DnDConstants.ACTION_COPY);
-						c.getModel().inherit(c.pointToColumnIndex(dtde.getLocation()),
-											 (SQLTable) someData);
+						c.getModel().inherit(insertionPoint, (SQLTable) someData);
 						dtde.dropComplete(true);
 						return;
 					} else if (someData instanceof SQLColumn) {
 						dtde.acceptDrop(DnDConstants.ACTION_COPY);
 						SQLColumn column = (SQLColumn) someData;
-						c.getModel().addColumn(c.pointToColumnIndex(dtde.getLocation()),
-											   column);
+						c.getModel().addColumn(insertionPoint, column);
 						logger.debug("Added "+column.getColumnName()+" to table");
 						dtde.dropComplete(true);
 						return;
@@ -385,10 +393,10 @@ public class TablePane
 						// needs work (should use addSchema())
 						dtde.acceptDrop(DnDConstants.ACTION_COPY);
 						SQLObject[] objects = (SQLObject[]) someData;
-						int ip = c.pointToColumnIndex(dtde.getLocation());
 						for (int i = 0; i < objects.length; i++) {
 							if (objects[i] instanceof SQLColumn) {
-								c.getModel().addColumn(ip + i, (SQLColumn) objects[i]);
+								c.getModel().addColumn(insertionPoint + i,
+													   (SQLColumn) objects[i]);
 							}
 						}
 						dtde.dropComplete(true);
@@ -600,7 +608,10 @@ public class TablePane
 				tp.setSelected(true);
 				try {
 					tp.selectNone();
-					tp.selectColumn(tp.pointToColumnIndex(evt.getPoint()));
+					int idx = tp.pointToColumnIndex(evt.getPoint());
+					if (idx >= 0) {
+						tp.selectColumn(idx);
+					}
 				} catch (ArchitectException e) {
 					logger.error("Exception converting point to column", e);
 					return;

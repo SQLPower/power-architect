@@ -47,6 +47,11 @@ public class PlayPen extends JPanel implements java.io.Serializable, SQLObjectLi
 	 */
 	protected JPopupMenu tablePanePopup;
 
+	protected InsertColumnAction insertColumnAction;
+	protected DeleteColumnAction deleteColumnAction;
+	protected EditColumnAction editColumnAction;
+	protected DeleteTableAction deleteTableAction;
+
 	public PlayPen(SQLDatabase db) {
 		super();
 		if (db == null) throw new NullPointerException("db must be non-null");
@@ -69,19 +74,25 @@ public class PlayPen extends JPanel implements java.io.Serializable, SQLObjectLi
 	 */
 	protected void setupTablePanePopup() {
 		tablePanePopup = new JPopupMenu();
-		JMenuItem mi = new JMenuItem("Insert Column");
-		//mi.setAction(new InsertColumnAction());
-		tablePanePopup.add(mi);
 
-		mi = new JMenuItem("Edit Column");
-		tablePanePopup.add(mi);
-
-		mi = new JMenuItem();
-		mi.setAction(new DeleteColumnAction(this));
+		JMenuItem mi = new JMenuItem();
+		insertColumnAction = new InsertColumnAction(this);
+		mi.setAction(insertColumnAction);
 		tablePanePopup.add(mi);
 
 		mi = new JMenuItem();
-		mi.setAction(new DeleteTableAction(this));
+		editColumnAction = new EditColumnAction(this);
+		mi.setAction(editColumnAction);
+		tablePanePopup.add(mi);
+
+		mi = new JMenuItem();
+		deleteColumnAction = new DeleteColumnAction(this);
+		mi.setAction(deleteColumnAction);
+		tablePanePopup.add(mi);
+
+		mi = new JMenuItem();
+		deleteTableAction = new DeleteTableAction(this);
+		mi.setAction(deleteTableAction);
 		tablePanePopup.add(mi);
 
 		mi = new JMenuItem("Create Relationship");
@@ -501,7 +512,7 @@ public class PlayPen extends JPanel implements java.io.Serializable, SQLObjectLi
 			}
 		}
 		firePropertyChange("model.children", null, null);
-		revalidate();
+		repaint();
 	}
 
 	/**
