@@ -145,9 +145,11 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	}
 	
 	protected void fireTreeNodesRemoved(TreeModelEvent e) {
+		logger.debug("Firing treeNodesRemoved event "+e);
 		Iterator it = treeModelListeners.iterator();
 		while (it.hasNext()) {
 			((TreeModelListener) it.next()).treeNodesRemoved(e);
+			logger.debug("Sent a copy");
 		}
 	}
 
@@ -165,24 +167,26 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 		}
 	}
 
-	public static SQLObject[] getPathToNode(SQLObject node) {
+	public SQLObject[] getPathToNode(SQLObject node) {
 		LinkedList path = new LinkedList();
 		while (node != null) {
 			path.add(0, node);
 			node = node.getParent();
 		}
+		path.add(0, root);
 		return (SQLObject[]) path.toArray(new SQLObject[path.size()]);
 	}
 
 	// --------------------- SQLObject listener support -----------------------
 	public void dbChildrenInserted(SQLObjectEvent e) {
+		logger.debug("dbChildrenInserted SQLObjectEvent: "+e);
 		try {
 			SQLObject[] newEventSources = e.getChildren();
 			for (int i = 0; i < newEventSources.length; i++) {
 				listenToSQLObjectAndChildren(newEventSources[i]);
 			}
 		} catch (ArchitectException ex) {
-			ex.printStackTrace();
+			logger.error("Error listening to added object", ex);
 		}
 		TreeModelEvent tme = new TreeModelEvent(this,
 												getPathToNode(e.getSQLSource()),
@@ -192,13 +196,14 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	}
 
 	public void dbChildrenRemoved(SQLObjectEvent e) {
+		logger.debug("dbChildrenRemoved SQLObjectEvent: "+e);
 		try {
 			SQLObject[] oldEventSources = e.getChildren();
 			for (int i = 0; i < oldEventSources.length; i++) {
 				unlistenToSQLObjectAndChildren(oldEventSources[i]);
 			}
 		} catch (ArchitectException ex) {
-			ex.printStackTrace();
+			logger.error("Error unlistening to removed object", ex);
 		}
 		TreeModelEvent tme = new TreeModelEvent(this,
 												getPathToNode(e.getSQLSource()),
@@ -208,6 +213,7 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	}
 	
 	public void dbObjectChanged(SQLObjectEvent e) {
+		logger.debug("dbObjectChanged SQLObjectEvent: "+e);
 		SQLObject source = e.getSQLSource();
 		if (e.getPropertyName().equals("shortDisplayName")) {
 			fireTreeNodesChanged(new TreeModelEvent(this, getPathToNode(source)));
@@ -221,8 +227,9 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	}
 
 	protected void listenToSQLObjectAndChildren(SQLObject o) throws ArchitectException {
+		logger.debug("Listening to new SQL Object "+o);
 		o.addSQLObjectListener(this);
-		if (o.isPopulated()) {
+		if (o.isPopulated() && o.allowsChildren()) {
 			Iterator it = o.getChildren().iterator();
 			while (it.hasNext()) {
 				listenToSQLObjectAndChildren((SQLObject) it.next());
@@ -231,8 +238,9 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	}
 
 	protected void unlistenToSQLObjectAndChildren(SQLObject o) throws ArchitectException {
+		logger.debug("Unlistening to SQL Object "+o);
 		o.removeSQLObjectListener(this);
-		if (o.isPopulated()) {
+		if (o.isPopulated() && o.allowsChildren()) {
 			Iterator it = o.getChildren().iterator();
 			while (it.hasNext()) {
 				SQLObject ob = (SQLObject) it.next();
