@@ -10,34 +10,65 @@ public class EngineExecPanel extends JPanel {
 	
 	protected Process proc;
 	protected JTextArea output;
-	protected JButton abortButton;
 	protected Thread iss;
 	protected Thread ess;
+	private Font font;
+	boolean autoMoveInd;
+	
+	protected Action abortAction;
+
+
+	public Action getAbortAction() {
+		return abortAction;
+	}
 
 	public EngineExecPanel(String header, Process pr) {
 		super(new BorderLayout());
 		proc = pr;
+		autoMoveInd = true;
 
-		abortButton = new JButton("Abort");
-		abortButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					proc.destroy();
+		abortAction = new AbstractAction("Abort") {
+			public void actionPerformed(ActionEvent e) {
+				proc.destroy();
+				if ( output != null && output.isEnabled() ) {
+					output.append("Aborted ...");
+					output.setEnabled(false);
 				}
-			});
-		JPanel p = new JPanel(new FlowLayout(FlowLayout.CENTER));
-		p.add(abortButton);
-		add(p, BorderLayout.SOUTH);
+			}
+		};
+		abortAction.setEnabled(true);
+		
+		font = new Font("Courier New", Font.PLAIN, 12 );
 
-		output = new JTextArea(25, 80);
+		output = new JTextArea(25, 120);
 		output.append(header);
+		output.append("\n\n");
+		output.setFont(font);
 		add(new JScrollPane(output), BorderLayout.CENTER);
 
 		InputStream pis = new BufferedInputStream(proc.getInputStream());
 		InputStream pes = new BufferedInputStream(proc.getErrorStream());
+		
 		iss = new Thread(new StreamSink(pis));
 		ess = new Thread(new StreamSink(pes));
+		
+		iss.setPriority(Thread.MIN_PRIORITY);
+		ess.setPriority(Thread.MAX_PRIORITY);
+		
 		iss.start();
 		ess.start();
+		
+		Runnable buttonEnabler = new Runnable() {
+			public void run() {
+				waitForProcessCompletion();
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						abortAction.setEnabled(false);
+					}
+				});
+			}
+		};
+		new Thread(buttonEnabler).start();
 	}
 
 	/**
@@ -54,7 +85,6 @@ public class EngineExecPanel extends JPanel {
 		} catch (InterruptedException ex) {
 			System.out.println("Interrupted while waiting for engine");
 		}
-		abortButton.setEnabled(false);
 		output.append("Execution halted");
 	}
 
@@ -68,9 +98,19 @@ public class EngineExecPanel extends JPanel {
 
 		public void run() {
 			int ch;
+			StringBuffer msg = new StringBuffer();
 			try {
 				while ( (ch = is.read()) >= 0) {
-					output.append(String.valueOf((char) ch));
+					msg.append(String.valueOf((char) ch));
+					if ( ch == '\n' ) {
+						output.append(msg.toString());
+						output.setCaretPosition(output.getText().length());
+						msg.delete(0,msg.length());
+					}
+				}
+				if ( msg.length() > 0 ) {
+					output.append(msg.toString());
+					output.setCaretPosition(output.getText().length());
 				}
 			} catch (IOException ex) {
 				ex.printStackTrace();
