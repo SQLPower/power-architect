@@ -12,6 +12,7 @@ public class CreateRelationshipAction extends AbstractAction
 
 	private static final Logger logger = Logger.getLogger(CreateRelationshipAction.class);
 
+	protected boolean identifying;
 	protected PlayPen pp;
 	protected TablePane pkTable;
 	protected TablePane fkTable;
@@ -24,12 +25,18 @@ public class CreateRelationshipAction extends AbstractAction
 	 */
 	protected boolean active;
 
-	public CreateRelationshipAction() {
-		super("New Relationship",
-			  ASUtils.createIcon("NewRelationship",
-								 "New Relationship",
-								 ArchitectFrame.getMainInstance().sprefs.getInt(SwingUserSettings.ICON_SIZE, 24)));
-		putValue(SHORT_DESCRIPTION, "New Relationship");
+	public CreateRelationshipAction(boolean identifying) {
+		super(identifying ? "New Identifying Relationship" : "New Non-Identifying Relationship",
+			  ASUtils.createIcon
+			  (identifying ? "NewIdentifyingRelationship" : "NewNonIdentifyingRelationship",
+			   "New Relationship",
+			   ArchitectFrame.getMainInstance().sprefs.getInt(SwingUserSettings.ICON_SIZE, 24)));
+		if (identifying) {
+			putValue(SHORT_DESCRIPTION, "New Identifying Relationship");
+		} else {
+			putValue(SHORT_DESCRIPTION, "New Non-Identifying Relationship");
+		}
+		this.identifying = identifying;
 		setEnabled(false);
 	}
 
@@ -43,7 +50,7 @@ public class CreateRelationshipAction extends AbstractAction
 
 	protected void doCreateRelationship() {
 		try {
-			Relationship r = new Relationship(pp, pkTable, fkTable);
+			Relationship r = new Relationship(pp, pkTable, fkTable, identifying);
 			pp.add(r);
 			r.repaint();  // XXX: shouldn't be necessary, but it is.
 		} catch (ArchitectException ex) {
