@@ -7,6 +7,9 @@ import java.awt.Dimension;
 import javax.swing.*;
 import java.awt.geom.AffineTransform;
 
+/**
+ * Warning: this class doesn't work yet, and maybe never will.
+ */
 public class ZoomScrollPane extends JScrollPane {
 	public ZoomScrollPane(JComponent view) {
 		super(view);

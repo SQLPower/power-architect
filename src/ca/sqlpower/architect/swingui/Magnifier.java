@@ -8,6 +8,9 @@ import javax.swing.*;
 import java.awt.geom.AffineTransform;
 import org.apache.log4j.Logger;
 
+/**
+ * Warning: this class doesn't work yet, and maybe never will.
+ */
 public class Magnifier extends JPanel {
 	private static final Logger logger = Logger.getLogger(Magnifier.class);
 

@@ -5,6 +5,9 @@ import java.awt.*;
 import java.awt.event.*;
 import org.apache.log4j.Logger;
 
+/**
+ * Warning: this class doesn't work yet, and maybe never will.
+ */
 public class MagnifierAwareGlassPane extends JComponent implements MouseListener, MouseMotionListener {
 	private static Logger logger = Logger.getLogger(MagnifierAwareGlassPane.class);
 
