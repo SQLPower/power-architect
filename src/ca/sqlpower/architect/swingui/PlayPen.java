@@ -1,6 +1,7 @@
 package ca.sqlpower.architect.swingui;
 
 import javax.swing.*;
+import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.datatransfer.*;
@@ -781,64 +782,73 @@ public class PlayPen extends JPanel
 				dtde.rejectDrop();
 			} else {
 				try {
-					Object someData = t.getTransferData(importFlavor);
-					logger.debug("MyJTreeTransferHandler.importData: got object of type "+someData.getClass().getName()+" @"+someData.hashCode());
-					if (someData instanceof SQLTable) {
-						dtde.acceptDrop(DnDConstants.ACTION_COPY);
-						c.addTable((SQLTable) someData, dtde.getLocation());
-						dtde.dropComplete(true);
-						return;
-					} else if (someData instanceof SQLSchema) {
-						dtde.acceptDrop(DnDConstants.ACTION_COPY);
-						SQLSchema sourceSchema = (SQLSchema) someData;
-						c.addSchema(sourceSchema, dtde.getLocation());
-						dtde.dropComplete(true);
-						return;
-					} else if (someData instanceof SQLCatalog) {
-						dtde.acceptDrop(DnDConstants.ACTION_COPY);
-						SQLCatalog sourceCatalog = (SQLCatalog) someData;
-						Iterator cit = sourceCatalog.getChildren().iterator();
-						if (sourceCatalog.isSchemaContainer()) {
-							while (cit.hasNext()) {
-								SQLSchema sourceSchema = (SQLSchema) cit.next();
-								c.addSchema(sourceSchema, dtde.getLocation());
-							}
-						} else {
-							while (cit.hasNext()) {
-								SQLTable sourceTable = (SQLTable) cit.next();
-								c.addTable(sourceTable, dtde.getLocation());
-							}
+					DBTree dbtree = ArchitectFrame.getMainInstance().dbTree; // XXX: this is bad
+					int rows[] = (int[]) t.getTransferData(importFlavor);
+					for (int rownum = 0; rownum < rows.length; rownum++) {
+												TreePath p = dbtree.getPathForRow(rows[rownum]);
+						if (p == null) {
+							logger.debug("Null path for selected row "+rows[rownum]);
+							continue;
 						}
-						dtde.dropComplete(true);
-						return;
-					} else if (someData instanceof SQLColumn) {
-						dtde.acceptDrop(DnDConstants.ACTION_COPY);
-						SQLColumn column = (SQLColumn) someData;
-						JLabel colName = new JLabel(column.getColumnName());
-						colName.setSize(colName.getPreferredSize());
-						c.add(colName, dtde.getLocation());
-						logger.debug("Added "+column.getColumnName()+" to playpen (temporary, only for testing)");
-						colName.revalidate();
-						dtde.dropComplete(true);
-						return;
-					} else if (someData instanceof SQLObject[]) {
-						// needs work (should use addSchema())
-						dtde.acceptDrop(DnDConstants.ACTION_COPY);
-						SQLObject[] objects = (SQLObject[]) someData;
-						for (int i = 0; i < objects.length; i++) {
-							if (objects[i] instanceof SQLTable) {
-								c.addTable((SQLTable) objects[i], dtde.getLocation());
-							} else if (objects[i] instanceof SQLSchema) {
-								c.addSchema((SQLSchema) objects[i], dtde.getLocation());
+						Object someData = p.getLastPathComponent();
+						
+						if (someData instanceof SQLTable) {
+							dtde.acceptDrop(DnDConstants.ACTION_COPY);
+							c.addTable((SQLTable) someData, dtde.getLocation());
+							dtde.dropComplete(true);
+							return;
+						} else if (someData instanceof SQLSchema) {
+							dtde.acceptDrop(DnDConstants.ACTION_COPY);
+							SQLSchema sourceSchema = (SQLSchema) someData;
+							c.addSchema(sourceSchema, dtde.getLocation());
+							dtde.dropComplete(true);
+							return;
+						} else if (someData instanceof SQLCatalog) {
+							dtde.acceptDrop(DnDConstants.ACTION_COPY);
+							SQLCatalog sourceCatalog = (SQLCatalog) someData;
+							Iterator cit = sourceCatalog.getChildren().iterator();
+							if (sourceCatalog.isSchemaContainer()) {
+								while (cit.hasNext()) {
+									SQLSchema sourceSchema = (SQLSchema) cit.next();
+									c.addSchema(sourceSchema, dtde.getLocation());
+								}
 							} else {
-								logger.warn("Unsupported object in multi-item drop: "
-											+objects[i]);
+								while (cit.hasNext()) {
+									SQLTable sourceTable = (SQLTable) cit.next();
+									c.addTable(sourceTable, dtde.getLocation());
+								}
 							}
+							dtde.dropComplete(true);
+							return;
+						} else if (someData instanceof SQLColumn) {
+							dtde.acceptDrop(DnDConstants.ACTION_COPY);
+							SQLColumn column = (SQLColumn) someData;
+							JLabel colName = new JLabel(column.getColumnName());
+							colName.setSize(colName.getPreferredSize());
+							c.add(colName, dtde.getLocation());
+							logger.debug("Added "+column.getColumnName()+" to playpen (temporary, only for testing)");
+							colName.revalidate();
+							dtde.dropComplete(true);
+							return;
+						} else if (someData instanceof SQLObject[]) {
+							// needs work (should use addSchema())
+							dtde.acceptDrop(DnDConstants.ACTION_COPY);
+							SQLObject[] objects = (SQLObject[]) someData;
+							for (int i = 0; i < objects.length; i++) {
+								if (objects[i] instanceof SQLTable) {
+									c.addTable((SQLTable) objects[i], dtde.getLocation());
+								} else if (objects[i] instanceof SQLSchema) {
+									c.addSchema((SQLSchema) objects[i], dtde.getLocation());
+								} else {
+									logger.warn("Unsupported object in multi-item drop: "
+												+objects[i]);
+								}
+							}
+							dtde.dropComplete(true);
+							return;
+						} else {
+							dtde.rejectDrop();
 						}
-						dtde.dropComplete(true);
-						return;
-					} else {
-						dtde.rejectDrop();
 					}
 				} catch (UnsupportedFlavorException ufe) {
 					ufe.printStackTrace();
@@ -886,8 +896,7 @@ public class PlayPen extends JPanel
 				logger.debug("isLocalObject = "+flavors[i].getMimeType().equals(DataFlavor.javaJVMLocalObjectMimeType));
 
 
- 				if (flavors[i].equals(SQLObjectTransferable.flavor)
-					|| flavors[i].equals(SQLObjectListTransferable.flavor)) {
+ 				if (flavors[i].equals(SelectedTreeRowsTransferable.flavor)) {
 					logger.debug("YES");
 					best = flavors[i];
 				} else {

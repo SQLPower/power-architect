@@ -32,7 +32,7 @@ public class ArchitectFrame extends JFrame {
 	protected JMenuBar menuBar = null;
 	protected JSplitPane splitPane = null;
 	protected PlayPen playpen = null;
-	protected JTree dbTree = null;
+	protected DBTree dbTree = null;
 	
 	protected Action newProjectAction = new AbstractAction("New Project") {
 			public void actionPerformed(ActionEvent e) {
