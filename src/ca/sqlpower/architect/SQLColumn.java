@@ -170,6 +170,20 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 											  null, // primaryKeySeq
 											  false // isAutoIncrement
 											  );
+
+				// work around oracle 8i bug: when table names are long and similar,
+				// getColumns() sometimes returns columns from multiple tables!
+				String dbTableName = rs.getString(3);
+				if (dbTableName != null) {
+					if (!dbTableName.equalsIgnoreCase(tableName)) {
+						logger.warn("Got column "+col.getName()+" from "+dbTableName
+									+" in metadata for "+tableName+"; not adding this column.");
+						continue;
+					}
+				} else {
+					logger.warn("Table name not specified in metadata.  Continuing anyway...");
+				}
+
 				logger.debug("Adding column "+col.getColumnName());
 				
 				if (addTo.getColumnByName(col.getColumnName(), false) != null) {
