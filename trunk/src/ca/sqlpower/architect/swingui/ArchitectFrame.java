@@ -33,7 +33,8 @@ public class ArchitectFrame extends JFrame {
 	protected ConfigFile configFile = null;
 	protected UserSettings prefs = null;
 	protected SwingUserSettings sprefs = null;
-	protected JToolBar toolBar = null;
+	protected JToolBar projectBar = null;
+	protected JToolBar ppBar = null;
 	protected JMenuBar menuBar = null;
 	protected JSplitPane splitPane = null;
 	protected PlayPen playpen = null;
@@ -89,9 +90,6 @@ public class ArchitectFrame extends JFrame {
 		} catch (IOException e) {
 			throw new ArchitectException("prefs.read", e);
 		}
-
-		Container cp = getContentPane();
-		cp.setLayout(new BorderLayout());
 
 		// Create actions
 		newProjectAction
@@ -221,30 +219,39 @@ public class ArchitectFrame extends JFrame {
 		menuBar.add(etlMenu);
 		setJMenuBar(menuBar);
 
-		toolBar = new JToolBar(JToolBar.VERTICAL);
-		toolBar.add(newProjectAction);
-		toolBar.add(openProjectAction);
-		toolBar.add(saveProjectAction);
-		toolBar.addSeparator();
- 		toolBar.add(zoomInAction);
- 		toolBar.add(zoomOutAction);
- 		toolBar.add(zoomNormalAction);
-		toolBar.addSeparator();
-		toolBar.add(printAction);
-		toolBar.addSeparator();
-		toolBar.add(deleteSelectedAction);
-		toolBar.addSeparator();
-		toolBar.add(createTableAction);
-		toolBar.addSeparator();
-		toolBar.add(insertColumnAction);
-		toolBar.add(editColumnAction);
-		toolBar.addSeparator();
-		toolBar.add(createNonIdentifyingRelationshipAction);
-		toolBar.add(createIdentifyingRelationshipAction);
-		toolBar.add(editRelationshipAction);
-		toolBar.addSeparator();
-		toolBar.add(exportDDLAction);
-		cp.add(toolBar, BorderLayout.EAST);
+		projectBar = new JToolBar(JToolBar.HORIZONTAL);
+		ppBar = new JToolBar(JToolBar.VERTICAL);
+
+		projectBar.add(newProjectAction);
+		projectBar.add(openProjectAction);
+		projectBar.add(saveProjectAction);
+		projectBar.addSeparator();
+		projectBar.add(printAction);
+		projectBar.addSeparator();
+		projectBar.add(exportDDLAction);
+
+ 		ppBar.add(zoomInAction);
+ 		ppBar.add(zoomOutAction);
+ 		ppBar.add(zoomNormalAction);
+		ppBar.addSeparator();
+		ppBar.add(deleteSelectedAction);
+		ppBar.addSeparator();
+		ppBar.add(createTableAction);
+		ppBar.addSeparator();
+		ppBar.add(insertColumnAction);
+		ppBar.add(editColumnAction);
+		ppBar.addSeparator();
+		ppBar.add(createNonIdentifyingRelationshipAction);
+		ppBar.add(createIdentifyingRelationshipAction);
+		ppBar.add(editRelationshipAction);
+
+		Container projectBarPane = getContentPane();
+		projectBarPane.setLayout(new BorderLayout());
+		projectBarPane.add(projectBar, BorderLayout.NORTH);
+
+		JPanel cp = new JPanel(new BorderLayout());
+		cp.add(ppBar, BorderLayout.EAST);
+		projectBarPane.add(cp, BorderLayout.CENTER);
 
 		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 		cp.add(splitPane, BorderLayout.CENTER);
