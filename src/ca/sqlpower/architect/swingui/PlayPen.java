@@ -519,10 +519,37 @@ public class PlayPen extends JPanel
 	 * null if no such TablePane is in the play pen.
 	 */
 	public TablePane findTablePane(SQLTable t) {
-		for (int i = 0; i < contentPane.getComponentCount(); i++) {
+		for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
 			Component c = contentPane.getComponent(i);
 			if (c instanceof TablePane 
 				&& ((TablePane) c).getModel() == t) {
+				return (TablePane) c;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Returns a TablePane in this PlayPen whose name is <code>name</code>.
+	 *
+	 * <p>Warning: Unique names are not currently enforced in the
+	 * PlayPen's database; results will be unpredictable if there is
+	 * more than one table with the name you are searching for.
+	 *
+	 * <p>Implementation note: This method may benefit from a
+	 * Map-based lookup rather than the current linear search
+	 * algorithm.
+	 *
+	 * @return A reference to the TablePane whose model name is
+	 * <code>name</code>, or <code>null</code> if no such TablePane is
+	 * in the play pen.
+	 */
+	public TablePane findTablePaneByName(String name) {
+		name = name.toLowerCase();
+		for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
+			Component c = contentPane.getComponent(i);
+			if (c instanceof TablePane 
+				&& ((TablePane) c).getModel().getName().toLowerCase().equals(name)) {
 				return (TablePane) c;
 			}
 		}
@@ -589,6 +616,97 @@ public class PlayPen extends JPanel
 		logger.info("adding table "+newTable);
 		add(tp, preferredLocation);
 		tp.revalidate();
+		
+		// create exported relationships if the importing tables exist in pp
+		Iterator sourceKeys = source.getExportedKeys().iterator();
+		while (sourceKeys.hasNext()) {
+			SQLRelationship r = (SQLRelationship) sourceKeys.next();
+			if (logger.isInfoEnabled()) {
+				logger.info("Looking for fk table "+r.getFkTable().getName()+" in playpen");
+			}
+			TablePane fkTablePane = findTablePaneByName(r.getFkTable().getName());
+			if (fkTablePane != null) {
+				logger.info("FOUND IT!");
+				SQLTable fkTable = fkTablePane.getModel();
+				SQLRelationship newRel = new SQLRelationship();
+				newRel.setName(r.getName());
+				newRel.setIdentifying(true);
+				newRel.setPkTable(newTable);
+				newTable.addExportedKey(newRel);
+				newRel.setFkTable(fkTable);
+				fkTable.addImportedKey(newRel);
+				add(new Relationship(this, newRel));
+
+				Iterator mappings = r.getChildren().iterator();
+				while (mappings.hasNext()) {
+					SQLRelationship.ColumnMapping m
+						= (SQLRelationship.ColumnMapping) mappings.next();
+					SQLColumn pkCol = newTable.getColumnByName(m.getPkColumn().getName());
+					SQLColumn fkCol = fkTable.getColumnByName(m.getFkColumn().getName());
+					if (pkCol == null) {
+						// this shouldn't happen
+						throw new IllegalStateException("Couldn't fink pkCol "+m.getPkColumn().getName()+" in new table");
+					}
+					if (fkCol == null) {
+						// this might reasonably happen (user deleted the column)
+						continue;
+					}
+					SQLRelationship.ColumnMapping newMapping
+						= new SQLRelationship.ColumnMapping();
+					newMapping.setPkColumn(pkCol);
+					newMapping.setFkColumn(fkCol);
+					newRel.addChild(newMapping);
+				}
+			} else {
+				logger.info("NOT FOUND");
+			}
+		}
+
+		// create imported relationships if the exporting tables exist in pp
+		sourceKeys = source.getImportedKeys().iterator();
+		while (sourceKeys.hasNext()) {
+			SQLRelationship r = (SQLRelationship) sourceKeys.next();
+			if (logger.isDebugEnabled()) {
+				logger.info("Looking for pk table "+r.getPkTable().getName()+" in playpen");
+			}
+			TablePane pkTablePane = findTablePaneByName(r.getPkTable().getName());
+			if (pkTablePane != null) {
+				logger.info("FOUND IT!");
+				SQLTable pkTable = pkTablePane.getModel();
+				SQLRelationship newRel = new SQLRelationship();
+				newRel.setName(r.getName());
+				newRel.setIdentifying(true);
+				newRel.setPkTable(pkTable);
+				pkTable.addExportedKey(newRel);
+				newRel.setFkTable(newTable);
+				newTable.addImportedKey(newRel);
+				add(new Relationship(this, newRel));
+
+				Iterator mappings = r.getChildren().iterator();
+				while (mappings.hasNext()) {
+					SQLRelationship.ColumnMapping m
+						= (SQLRelationship.ColumnMapping) mappings.next();
+					SQLColumn pkCol = pkTable.getColumnByName(m.getPkColumn().getName());
+					SQLColumn fkCol = newTable.getColumnByName(m.getFkColumn().getName());
+					if (fkCol == null) {
+						// this shouldn't happen
+						throw new IllegalStateException("Couldn't fink fkCol "+m.getPkColumn().getName()+" in new table");
+					}
+					if (pkCol == null) {
+						// this might reasonably happen (user deleted the column)
+						continue;
+					}
+					SQLRelationship.ColumnMapping newMapping
+						= new SQLRelationship.ColumnMapping();
+					newMapping.setPkColumn(pkCol);
+					newMapping.setFkColumn(fkCol);
+					newRel.addChild(newMapping);
+				}
+			} else {
+				logger.info("NOT FOUND");
+			}
+		}
+
 		return tp;
 	}
 
