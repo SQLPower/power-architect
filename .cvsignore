@@ -3,3 +3,4 @@ user.properties
 build
 *.bak
 *~
+TEST*
