@@ -13,7 +13,8 @@ import org.apache.log4j.Logger;
 public class PLExport { 
 	private static final Logger logger = Logger.getLogger(PLExport.class);
 
-	public static final String PL_GENERATOR_VERSION = "$Revision$";
+	public static final String PL_GENERATOR_VERSION
+		= "PLExport $Revision$".replace('$',' ').trim();
 
 	protected DefaultParameters defParam;
 	protected String folderName;   // = "Architect Jobs";
@@ -45,7 +46,7 @@ public class PLExport {
 				sql.append(" VALUES (");
 				
 				sql.append(SQL.quote(folderName));  // folder_name
-				sql.append(",").append(SQL.quote("This Folder is for jobs and transactions created by the Power*Architect"));  // folder_desc
+				sql.append(",").append(SQL.quote("This Folder contains jobs and transactions created by the Power*Architect"));  // folder_desc
 				sql.append(",").append(SQL.quote(null));  // folder_status
 				sql.append(",").append(SQL.quote(null));  // last_backup_no
 				sql.append(")");
@@ -586,58 +587,53 @@ public class PLExport {
 	public void export(SQLDatabase db) throws SQLException, ArchitectException {
 		SQLDatabase target = new SQLDatabase(plDBCS); // we are exporting db into this
 		Connection con = null;
+
+		con = target.getConnection();
 		try {
-			target.connect();
-			con = target.getConnection();
-			try {
-				defParam=new DefaultParameters(con);
-			} catch (PLSchemaException p) {
-				throw new ArchitectException("couldn't load default parameters",p);
-			}
-
-			sm = new PLSecurityManager(con, plUsername, plPassword);
-			maybeInsertFolder(con);
-			deleteJobCascade(con);
-			insertJob(con);
-			insertFolderDetail(con, job.getObjectType(), job.getObjectName());
-			Iterator tables = db.getChildren().iterator();
-			
-			int outputTableNum = 1;
-			while(tables.hasNext()) {
-				SQLTable outputTable = (SQLTable) tables.next();
-				HashSet inputTables = new HashSet();
-				Iterator cols = outputTable.getColumns().iterator();
-				int transNum = 1;
-				while (cols.hasNext()) {
-					SQLColumn outputCol = (SQLColumn) cols.next();
-					SQLColumn inputCol = outputCol.getSourceColumn();
-					// looking for unique input tables of outputTable
-					if (inputCol != null && !inputTables.contains(inputCol.getParentTable())) {
-						SQLTable inputTable = inputCol.getParentTable();
-						inputTables.add(inputTable);
-						String transName = "LOAD_"+outputTable.getName()+"_"+transNum;
-						insertTrans(con, transName, outputTable.getRemarks());
-						insertFolderDetail(con, "TRANSACTION", transName);
-						insertTransExceptHandler(con, "A", transName);
-						insertTransExceptHandler(con, "U", transName);
-						insertTransExceptHandler(con, "D", transName);
-						insertJobDetail(con, outputTableNum*10, "TRANSACTION", transName);
-
-						String outputTableId = outputTable.getName()+"_OUT_"+outputTableNum;
-						String inputTableId = inputTable.getName()+"_IN_"+transNum;
-						insertTransTableFile(con, transName, outputTableId, outputTable, true, transNum);
-						
-						insertTransTableFile(con, transName, inputTableId, inputTable, false, transNum);
-						insertMappings(con, transName, outputTableId, outputTable, inputTableId, inputTable);
-						transNum++;
-					}
-					outputTableNum++;
-				}
-			}
-		} finally {
-			if (con != null) con.close();
+			defParam = new DefaultParameters(con);
+		} catch (PLSchemaException p) {
+			throw new ArchitectException("couldn't load default parameters", p);
 		}
-
+		
+		sm = new PLSecurityManager(con, plUsername, plPassword);
+		maybeInsertFolder(con);
+		deleteJobCascade(con);
+		insertJob(con);
+		insertFolderDetail(con, job.getObjectType(), job.getObjectName());
+		Iterator tables = db.getChildren().iterator();
+		
+		int outputTableNum = 1;
+		while (tables.hasNext()) {
+			SQLTable outputTable = (SQLTable) tables.next();
+			HashSet inputTables = new HashSet();
+			Iterator cols = outputTable.getColumns().iterator();
+			int transNum = 1;
+			while (cols.hasNext()) {
+				SQLColumn outputCol = (SQLColumn) cols.next();
+				SQLColumn inputCol = outputCol.getSourceColumn();
+				// looking for unique input tables of outputTable
+				if (inputCol != null && !inputTables.contains(inputCol.getParentTable())) {
+					SQLTable inputTable = inputCol.getParentTable();
+					inputTables.add(inputTable);
+					String transName = PLUtils.toPLIdentifier("LOAD_"+outputTable.getName()+"_"+transNum);
+					insertTrans(con, transName, outputTable.getRemarks());
+					insertFolderDetail(con, "TRANSACTION", transName);
+					insertTransExceptHandler(con, "A", transName);
+					insertTransExceptHandler(con, "U", transName);
+					insertTransExceptHandler(con, "D", transName);
+					insertJobDetail(con, outputTableNum*10, "TRANSACTION", transName);
+					
+					String outputTableId = PLUtils.toPLIdentifier(outputTable.getName()+"_OUT_"+outputTableNum);
+					String inputTableId = PLUtils.toPLIdentifier(inputTable.getName()+"_IN_"+transNum);
+					insertTransTableFile(con, transName, outputTableId, outputTable, true, transNum);
+					
+					insertTransTableFile(con, transName, inputTableId, inputTable, false, transNum);
+					insertMappings(con, transName, outputTableId, outputTable, inputTableId, inputTable);
+					transNum++;
+				}
+				outputTableNum++;
+			}
+		}
 	}
 
 
@@ -721,38 +717,74 @@ public class PLExport {
 	// ----------------------- accessors and mutators --------------------------
 	/** set parameters methods **/
 	public void setJobId(String jobId){
-		this.jobId = jobId;
+		this.jobId = PLUtils.toPLIdentifier(jobId);
 	}
 	
-	public void setFolderName(String folderName){
-		this.folderName = folderName;
+	public String getJobId() {
+		return jobId;
 	}
+
+	public void setFolderName(String folderName){
+		this.folderName = PLUtils.toPLIdentifier(folderName);
+	}
+	
+	public String getFolderName() {
+		return folderName;
+	}
+
 	public void setJobDescription(String jobDescription){
 		this.jobDescription = jobDescription;
 	}
-	
+
+	public String getJobDescription() {
+		return jobDescription;
+	}
+
 	public void setJobComment(String jobComment){
 		this.jobComment = jobComment;
+	}
+
+	public String getJobComment() {
+		return jobComment;
 	}
 
 	public void setPlDBCS(DBConnectionSpec dbcs){
 		this.plDBCS = dbcs;
 	}
 
+	public DBConnectionSpec getPlDBCS() {
+		return plDBCS;
+	}
+
 	public void setOutputTableOwner(String outputTableOwner){
-		this.outputTableOwner = outputTableOwner;
+		this.outputTableOwner = PLUtils.toPLIdentifier(outputTableOwner);
+	}
+
+	public String getOutputTableOwner() {
+		return outputTableOwner;
 	}
 
 	public void setPlUsername(String plUsername){
-		this.plUsername = plUsername;
+		this.plUsername = PLUtils.toPLIdentifier(plUsername);
+	}
+
+	public String getPlUsername() {
+		return plUsername;
 	}
 
 	public void setPlPassword(String plPassword){
 		this.plPassword = plPassword;
 	}
 	
-	public void setPlSecurityManager (PLSecurityManager sm){
+	public String getPlPassword() {
+		return plPassword;
+	}
+	
+	public void setPlSecurityManager(PLSecurityManager sm) {
 		this.sm = sm;
 	}
 
+	public PLSecurityManager getPlSecurityManager() {
+		return sm;
+	}
 }

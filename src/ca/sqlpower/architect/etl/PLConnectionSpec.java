@@ -45,7 +45,11 @@ public class PLConnectionSpec {
 	}
 
 	public String getPwd()  {
-		return props.getProperty("PWD");
+		if (props.getProperty("PWD") == null) {
+			return null;
+		} else {
+			return PLUtils.decryptPlIniPassword(9, props.getProperty("PWD"));
+		}
 	}
 
 	public String getEngineExeutableName() throws UnknownDatabaseTypeException {
@@ -60,5 +64,13 @@ public class PLConnectionSpec {
 		} else {
 			throw new UnknownDatabaseTypeException(type);
 		}
+	}
+
+	/**
+	 * Returns the correct argument for USER= when running the PL engine.
+	 */
+	public String getEngineConnectString() {
+		// XXX: getTNSName() may not be correct when target is non-oracle
+		return getUid()+"/"+getPwd()+"@"+getTNSName();
 	}
 }
