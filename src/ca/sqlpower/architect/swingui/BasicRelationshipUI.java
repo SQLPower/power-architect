@@ -21,6 +21,11 @@ public class BasicRelationshipUI extends RelationshipUI
 
 	protected int orientation;
 
+	/**
+	 * This is the path that the relationship line follows.
+	 */
+	protected GeneralPath path;
+
 
 	/**
 	 * Points within radius pixels of this relationship's visible path
@@ -77,9 +82,8 @@ public class BasicRelationshipUI extends RelationshipUI
 								  fktloc.y + r.getFkTable().getLocation().y);
 			
 			// XXX: could optimise by checking if PK or FK tables have moved
-			GeneralPath path = relationship.path;
 			if (path == null) {
-				path = relationship.path = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 5);
+				path = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 5);
 			} else {
 				path.reset();
 			}
@@ -123,12 +127,12 @@ public class BasicRelationshipUI extends RelationshipUI
 	}
 
 	public boolean contains(JComponent c, int x, int y) {
-		if (relationship.path == null) {
+		if (path == null) {
 			return false;
 		} else {
 			Point loc = relationship.getLocation();
-			return relationship.path.intersects(x - radius + loc.x, y - radius + loc.y,
-												radius*2,           radius*2);
+			return path.intersects(x - radius + loc.x, y - radius + loc.y,
+								   radius*2,           radius*2);
 		}
 	}
 

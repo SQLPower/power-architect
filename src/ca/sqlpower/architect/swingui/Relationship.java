@@ -29,12 +29,6 @@ public class Relationship extends JComponent implements Selectable, ComponentLis
 	 */
 	protected Point fkConnectionPoint;
 
-	/**
-	 * This is the path that the relationship line follows.  It is
-	 * initialised and managed by the RelationshipUI delegate.
-	 */
-	protected GeneralPath path;
-
 	static {
 		UIManager.put(RelationshipUI.UI_CLASS_ID, "ca.sqlpower.architect.swingui.IERelationshipUI");
 	}
