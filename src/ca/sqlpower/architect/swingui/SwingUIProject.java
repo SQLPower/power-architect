@@ -1,29 +1,70 @@
 package ca.sqlpower.architect.swingui;
 
-import java.util.*;
 import ca.sqlpower.architect.*;
-import java.io.*;
-import java.beans.*;
+import ca.sqlpower.sql.DBConnectionSpec;
+
 import java.awt.Point;
+import java.beans.*;
+import java.io.*;
+import java.util.*;
 import javax.swing.ProgressMonitor;
+
+import org.apache.commons.digester.*;
 import org.apache.log4j.Logger;
+import org.xml.sax.SAXException;
+import org.xml.sax.Attributes;
 
 public class SwingUIProject {
 	private static final Logger logger = Logger.getLogger(SwingUIProject.class);
 
-	// these are persistent properties
+	//  ---------------- persistent properties -------------------
 	protected String name;
 	protected DBTree sourceDatabases;
 	protected PlayPen playPen;
 	protected File file;
 
-	// these are only useful during a save or load
+
+	// ------------------ load and save support -------------------
+
+	/**
+	 * Should be set to NULL unless we are currently saving the
+	 * project, at which time it's writing to the project file.
+	 */
 	protected PrintWriter out;
+
+	/**
+	 * Used for saving only: this is the current indentation amount in
+	 * the XML output file.
+	 */
 	protected int indent = 0;
+
+	/**
+	 * During a LOAD, this map maps String ID codes to SQLObject instances.
+	 * During a SAVE, it holds mappings from SQLObject instance to String
+	 * ID (the inverse of the LOAD mapping).
+	 */
 	protected Map objectIdMap;
+
+	/**
+	 * During a LOAD, this map maps String ID codes to DBCS instances.
+	 * During a SAVE, it holds mappings from DBCS instance to String
+	 * ID (the inverse of the LOAD mapping).
+	 */
+	protected Map dbcsIdMap;
+
+	/**
+	 * Shows progress during saves and loads.
+	 */
 	protected ProgressMonitor pm;
+
+	/**
+	 * The last value we sent to the progress monitor.
+	 */
 	protected int progress = 0;
 
+	/**
+	 * Sets up a new project with the given name.
+	 */
 	public SwingUIProject(String name) throws ArchitectException {
 		this.name = name;
 		this.playPen = new PlayPen(new SQLDatabase());
@@ -34,12 +75,279 @@ public class SwingUIProject {
 
 	// ------------- READING THE PROJECT FILE ---------------
 	public void load() throws IOException, ArchitectException {
+		InputStream in = new BufferedInputStream(new FileInputStream(file));
+
+		dbcsIdMap = new HashMap();
+		objectIdMap = new HashMap();
+
+		// use digester to read from file
+		try {
+			setupDigester().parse(in);
+		} catch (SAXException ex) {
+			logger.error("SAX Exception in config file parse!", ex);
+			throw new ArchitectException("Syntax error in Project file", ex);
+		} catch (IOException ex) {
+			logger.error("IO Exception in config file parse!", ex);
+			throw new ArchitectException("I/O Error", ex);
+		} catch (Exception ex) {
+			logger.error("General Exception in config file parse!", ex);
+			throw new ArchitectException("Unexpected Exception", ex);
+		}
+
+		((SQLObject) sourceDatabases.getModel().getRoot()).addChild(0, playPen.getDatabase());
+	}
+
+	protected Digester setupDigester() {
+		Digester d = new Digester();
+		d.setValidating(false);
+		d.push(this);
+
+		// project name
+		d.addCallMethod("architect-project/project-name", "setName", 0); // argument is element body text
+
+		// source DB connection specs
+		DBCSFactory dbcsFactory = new DBCSFactory();
+		d.addFactoryCreate("architect-project/source-connection-specs/dbcs", dbcsFactory);
+		d.addSetProperties
+			("architect-project/source-connection-specs/dbcs",
+			 new String[] {"connection-name", "driver-class", "jdbc-url", "user-name",
+						   "user-pass", "sequence-number", "single-login"},
+			 new String[] {"displayName", "driverClass", "url", "user",
+						   "pass", "seqNo", "singleLogin"});
+		d.addCallMethod("architect-project/source-connection-specs/dbcs", "setName", 0);
+		// these instances get picked out of the dbcsIdMap by the SQLDatabase factory
+
+		// source database hierarchy
+		d.addObjectCreate("architect-project/source-databases", LinkedList.class);
+		d.addSetNext("architect-project/source-databases", "setSourceDatabaseList");
+
+		SQLDatabaseFactory dbFactory = new SQLDatabaseFactory();
+		d.addFactoryCreate("architect-project/source-databases/database", dbFactory);
+		d.addSetProperties("architect-project/source-databases/database");
+		d.addSetNext("architect-project/source-databases/database", "add");
+
+		d.addObjectCreate("architect-project/source-databases/database/catalog", SQLCatalog.class);
+		d.addSetProperties("architect-project/source-databases/database/catalog");
+		d.addSetNext("architect-project/source-databases/database/catalog", "addChild");
+
+		d.addObjectCreate("*/schema", SQLSchema.class);
+		d.addSetProperties("*/schema");
+		d.addSetNext("*/schema", "addChild");
+
+		SQLTableFactory tableFactory = new SQLTableFactory();
+		d.addFactoryCreate("*/table", tableFactory);
+		d.addSetProperties("*/table");
+		d.addSetNext("*/table", "addChild");
+
+		d.addObjectCreate("*/folder", SQLTable.Folder.class);
+		d.addSetProperties("*/folder");
+		d.addSetNext("*/folder", "addChild");
+
+		SQLColumnFactory columnFactory = new SQLColumnFactory();
+		d.addFactoryCreate("*/column", columnFactory);
+		d.addSetProperties("*/column");
+		d.addSetNext("*/column", "addChild");
+		
+		SQLRelationshipFactory relationshipFactory = new SQLRelationshipFactory();
+		d.addFactoryCreate("*/relationship", relationshipFactory);
+		d.addSetProperties("*/relationship");
+		// the factory adds the relationships to the correct PK and FK tables
+
+		ColumnMappingFactory columnMappingFactory = new ColumnMappingFactory();
+		d.addFactoryCreate("*/column-mapping", columnMappingFactory);
+		d.addSetProperties("*/column-mapping");
+		d.addSetNext("*/column-mapping", "addChild");
+
+		// target database hierarchy
+		d.addFactoryCreate("architect-project/target-database", dbFactory);
+		d.addSetProperties("architect-project/target-database");
+		d.addSetNext("architect-project/target-database", "setTargetDatabase");
+
+		// the play pen
+		TablePaneFactory tablePaneFactory = new TablePaneFactory();
+		d.addFactoryCreate("architect-project/play-pen/table-pane", tablePaneFactory);
+		// factory will add the tablepanes to the playpen
+
+		PPRelationshipFactory ppRelationshipFactory = new PPRelationshipFactory();
+		d.addFactoryCreate("architect-project/play-pen/table-link", ppRelationshipFactory);
+
+		return d;
+	}
+	
+	/**
+	 * Creates a DBConnectionSpec object and puts a mapping from its
+	 * id (in the attributes) to the new instance into the dbcsIdMap.
+	 */
+	protected class DBCSFactory extends AbstractObjectCreationFactory {
+		public Object createObject(Attributes attributes) {
+			DBConnectionSpec dbcs = new DBConnectionSpec();
+			String id = attributes.getValue("id");
+			if (id != null) {
+				dbcsIdMap.put(id, dbcs);
+			} else {
+				logger.warn("No ID found in dbcs element while loading project!");
+			}
+			return dbcs;
+		}
+	}
+
+	/**
+	 * Creates a SQLDatabase instance and adds it to the objectIdMap.
+	 * Also attaches the DBCS referenced by the dbcsref attribute, if
+	 * there is such an attribute.
+	 */
+	protected class SQLDatabaseFactory extends AbstractObjectCreationFactory {
+		public Object createObject(Attributes attributes) {
+			SQLDatabase db = new SQLDatabase();
+
+			String id = attributes.getValue("id");
+			if (id != null) {
+				objectIdMap.put(id, db);
+			} else {
+				logger.warn("No ID found in database element while loading project!");
+			}
+
+			String dbcsid = attributes.getValue("dbcs-ref");
+			if (dbcsid != null) {
+				db.setConnectionSpec((DBConnectionSpec) dbcsIdMap.get(dbcsid));
+			}
+			return db;
+		}
+	}
+
+	/**
+	 * Creates a SQLTable instance and adds it to the objectIdMap.
+	 */
+	protected class SQLTableFactory extends AbstractObjectCreationFactory {
+		public Object createObject(Attributes attributes) {
+			SQLTable tab = new SQLTable();
+
+			String id = attributes.getValue("id");
+			if (id != null) {
+				objectIdMap.put(id, tab);
+			} else {
+				logger.warn("No ID found in table element while loading project!");
+			}
+
+			return tab;
+		}
+	}
+
+	/**
+	 * Creates a SQLColumn instance and adds it to the
+	 * objectIdMap. Also dereferences the source-column-ref attribute
+	 * if present.
+	 */
+	protected class SQLColumnFactory extends AbstractObjectCreationFactory {
+		public Object createObject(Attributes attributes) {
+			SQLColumn col = new SQLColumn();
+
+			String id = attributes.getValue("id");
+			if (id != null) {
+				objectIdMap.put(id, col);
+			} else {
+				logger.warn("No ID found in column element while loading project!");
+			}
+
+			String sourceId = attributes.getValue("source-column-ref");
+			if (sourceId != null) {
+				col.setSourceColumn((SQLColumn) objectIdMap.get(sourceId));
+			}
+
+			return col;
+		}
+	}
+
+	/**
+	 * Creates a SQLRelationship instance and adds it to the
+	 * objectIdMap.  Also dereferences the fk-table-ref and
+	 * pk-table-ref attributes if present.
+	 */
+	protected class SQLRelationshipFactory extends AbstractObjectCreationFactory {
+		public Object createObject(Attributes attributes) {
+			SQLRelationship rel = new SQLRelationship();
+
+			String id = attributes.getValue("id");
+			if (id != null) {
+				objectIdMap.put(id, rel);
+			} else {
+				logger.warn("No ID found in relationship element while loading project!");
+			}
+
+			String fkTableId = attributes.getValue("fk-table-ref");
+			if (fkTableId != null) {
+				SQLTable fkTable = (SQLTable) objectIdMap.get(fkTableId);
+				rel.setFkTable(fkTable);
+				fkTable.addImportedKey(rel);
+			}
+
+			String pkTableId = attributes.getValue("pk-table-ref");
+			if (pkTableId != null) {
+				SQLTable pkTable = (SQLTable) objectIdMap.get(pkTableId);
+				rel.setPkTable(pkTable);
+				pkTable.addExportedKey(rel);
+			}
+
+			return rel;
+		}
+	}
+
+	/**
+	 * Creates a ColumnMapping instance and adds it to the
+	 * objectIdMap.  Also dereferences the fk-column-ref and
+	 * pk-column-ref attributes if present.
+	 */
+	protected class ColumnMappingFactory extends AbstractObjectCreationFactory {
+		public Object createObject(Attributes attributes) {
+			SQLRelationship.ColumnMapping cmap = new SQLRelationship.ColumnMapping();
+
+			String id = attributes.getValue("id");
+			if (id != null) {
+				objectIdMap.put(id, cmap);
+			} else {
+				logger.warn("No ID found in column-mapping element while loading project!");
+			}
+
+			String fkColumnId = attributes.getValue("fk-column-ref");
+			if (fkColumnId != null) {
+				cmap.setFkColumn((SQLColumn) objectIdMap.get(fkColumnId));
+			}
+
+			String pkColumnId = attributes.getValue("pk-column-ref");
+			if (pkColumnId != null) {
+				cmap.setPkColumn((SQLColumn) objectIdMap.get(pkColumnId));
+			}
+
+			return cmap;
+		}
+	}
+
+	protected class TablePaneFactory extends AbstractObjectCreationFactory {
+		public Object createObject(Attributes attributes) {
+			int x = Integer.parseInt(attributes.getValue("x"));
+			int y = Integer.parseInt(attributes.getValue("y"));
+			SQLTable tab = (SQLTable) objectIdMap.get(attributes.getValue("table-ref"));
+			TablePane tp = new TablePane(tab);
+			playPen.add(tp, new Point(x, y));
+			return tp;
+		}
+	}
+
+	protected class PPRelationshipFactory extends AbstractObjectCreationFactory {
+		public Object createObject(Attributes attributes) {
+			SQLRelationship rel =
+				(SQLRelationship) objectIdMap.get(attributes.getValue("relationship-ref"));
+			Relationship r = new Relationship(playPen, rel);
+			playPen.addRelationship(r);
+			return r;
+		}
 	}
 
 	// ------------- WRITING THE PROJECT FILE ---------------
 	public void save(ProgressMonitor pm) throws IOException, ArchitectException {
 		out = new PrintWriter(new BufferedWriter(new FileWriter(file)));
 		objectIdMap = new HashMap();
+		dbcsIdMap = new HashMap();
 		indent = 0;
 		this.pm = pm;
 		pm.setMinimum(0);
@@ -53,9 +361,10 @@ public class SwingUIProject {
 			println("<architect-project version=\"0.1\">");
 			indent++;
 			println("<project-name>"+name+"</project-name>");
+			saveSourceDBCS();
 			saveSourceDatabases();
 			saveTargetDatabase();
-			saveLayout();
+			savePlayPen();
 			indent--;
 			println("</architect-project>");
 		} finally {
@@ -78,6 +387,47 @@ public class SwingUIProject {
 		return count;
 	}
 
+	protected void saveSourceDBCS() throws IOException, ArchitectException {
+		println("<source-connection-specs>");
+		indent++;
+		int dbcsNum = 0;
+		SQLObject dbTreeRoot = (SQLObject) sourceDatabases.getModel().getRoot();
+		Iterator it = dbTreeRoot.getChildren().iterator();
+		while (it.hasNext()) {
+			SQLObject o = (SQLObject) it.next();
+			if (o != playPen.getDatabase()) {
+				DBConnectionSpec dbcs = ((SQLDatabase) o).getConnectionSpec();
+				if (dbcs != null) {
+					String id = (String) dbcsIdMap.get(dbcs);
+					if (id == null) {
+						id = "DBCS"+dbcsNum;
+						dbcsIdMap.put(dbcs, id);
+					}
+					print("<dbcs");
+					niprint(" id=\""+id+"\"");
+					niprint(" connection-name=\""+dbcs.getName()+"\"");
+					niprint(" driver-class=\""+dbcs.getDriverClass()+"\"");
+					niprint(" jdbc-url=\""+dbcs.getUrl()+"\"");
+					niprint(" user-name=\""+dbcs.getUser()+"\"");
+					niprint(" user-pass=\""+dbcs.getPass()+"\"");
+					niprint(" sequence-number=\""+dbcs.getSeqNo()+"\"");
+					niprint(" single-login=\""+dbcs.isSingleLogin()+"\"");
+					niprint(">");
+					niprint(dbcs.getDisplayName());
+					niprintln("</dbcs>");
+					dbcsNum++;
+				}
+			}
+					dbcsNum++;
+		}
+		indent--;
+		println("</source-connection-specs>");
+	}
+
+	/**
+	 * Creates a &lt;source-databases&gt; element which contains zero
+	 * or more &lt;database&gt; elements.
+	 */
 	protected void saveSourceDatabases() throws IOException, ArchitectException {
 		println("<source-databases>");
 		indent++;
@@ -92,6 +442,35 @@ public class SwingUIProject {
 		indent--;
 		println("</source-databases>");
 	}
+	
+	/**
+	 * Recursively walks through the children of db, writing to the
+	 * output file all SQLRelationship objects encountered.
+	 */
+	protected void saveRelationships(SQLDatabase db) throws ArchitectException, IOException {
+		println("<relationships>");
+		indent++;
+		Iterator it = db.getChildren().iterator();
+		while (it.hasNext()) {
+			saveRelationshipsRecurse((SQLObject) it.next());
+		}
+		indent--;
+		println("</relationships>");
+	}
+
+	/**
+	 * The recursive subroutine of saveRelationships.
+	 */
+	protected void saveRelationshipsRecurse(SQLObject o) throws ArchitectException, IOException {
+		if (o instanceof SQLRelationship) {
+			saveSQLObject(o);
+		} else if (o.allowsChildren()) {
+			Iterator it = o.getChildren().iterator();
+			while (it.hasNext()) {
+				saveRelationshipsRecurse((SQLObject) it.next());
+			}
+		}
+	}
 
 	protected void saveTargetDatabase() throws IOException, ArchitectException {
 		println("<target-database>");
@@ -101,39 +480,62 @@ public class SwingUIProject {
 		while (it.hasNext()) {
 			saveSQLObject((SQLObject) it.next());
 		}
+		saveRelationships(db);
 		indent--;
 		println("</target-database>");
 	}
 	
-	protected void saveLayout() throws IOException, ArchitectException {
-		println("<layout-coordinates>");
+	protected void savePlayPen() throws IOException, ArchitectException {
+		println("<play-pen>");
 		indent++;
 		int n = playPen.getComponentCount();
 		for (int i = 0; i < n; i++) {
 			TablePane tp = (TablePane) playPen.getComponent(i);
 			Point p = tp.getLocation();
-			println("<position tableid=\""+objectIdMap.get(tp.getModel())+"\""
+			println("<table-pane table-ref=\""+objectIdMap.get(tp.getModel())+"\""
 					+" x=\""+p.x+"\" y=\""+p.y+"\" />");
 			pm.setProgress(++progress);
 			pm.setNote(tp.getModel().getShortDisplayName());
 		}
+
+		Iterator it = playPen.getRelationships().iterator();
+		while (it.hasNext()) {
+			Relationship r = (Relationship) it.next();
+			println("<table-link relationship-ref=\""+objectIdMap.get(r.getModel())+"\" />");
+		}
 		indent--;
-		println("</layout-coordinates>");
+		println("</play-pen>");
 	}
 
+	/**
+	 * Creates an XML element describing the given SQLObject and
+	 * writes it to the <code>out</code> PrintWriter.
+	 *
+	 * <p>Design notes: Attribute names that are straight property
+	 * contents (such as name or defaultValue) are chosen so that
+	 * automatic JavaBeans population of object properties is
+	 * possible.  For the same reasons, attributes that need
+	 * non-automatic population (such as reference properties like
+	 * pkColumn) are named to purposely disable automatic JavaBeans
+	 * property setting.  In the pkColumn example, the XML attribute
+	 * name would be pk-column-ref.  Special code in the load routine
+	 * is responsible for deferencing the attribute and setting the
+	 * property manually.
+	 */
 	protected void saveSQLObject(SQLObject o) throws IOException, ArchitectException {
 		String id = (String) objectIdMap.get(o);
 		if (id != null) {
-			println("<reference refid=\""+id+"\" />");
+			println("<reference ref-id=\""+id+"\" />");
 			return;
 		}
 		String type;
 		
 		Map propNames = new TreeMap();
-
+		
 		if (o instanceof SQLDatabase) {
 			id = "DB"+objectIdMap.size();
 			type = "database";
+			propNames.put("dbcs-ref", dbcsIdMap.get(((SQLDatabase) o).getConnectionSpec()));
 		} else if (o instanceof SQLCatalog) {
 			id = "CAT"+objectIdMap.size();
 			type = "catalog";
@@ -166,7 +568,7 @@ public class SwingUIProject {
 							 +", parent "+sourceCol.getParent().getParent()+" hash "+sourceCol.getParent().getParent().hashCode()
 							 +", parent "+sourceCol.getParent().getParent().getParent()+" hash "+sourceCol.getParent().getParent().getParent().hashCode()
 							 +")");
-				propNames.put("sourceColumn", objectIdMap.get(sourceCol));
+				propNames.put("source-column-ref", objectIdMap.get(sourceCol));
 			}
 			propNames.put("columnName", ((SQLColumn) o).getColumnName());
 			propNames.put("type", new Integer(((SQLColumn) o).getType()));
@@ -181,8 +583,8 @@ public class SwingUIProject {
 		} else if (o instanceof SQLRelationship) {
 			id = "REL"+objectIdMap.size();
 			type = "relationship";
-			propNames.put("pkTable", objectIdMap.get(((SQLRelationship) o).getPkTable()));
-			propNames.put("fkTable", objectIdMap.get(((SQLRelationship) o).getFkTable()));
+			propNames.put("pk-table-ref", objectIdMap.get(((SQLRelationship) o).getPkTable()));
+			propNames.put("fk-table-ref", objectIdMap.get(((SQLRelationship) o).getFkTable()));
 			propNames.put("updateRule", new Integer(((SQLRelationship) o).getUpdateRule()));
 			propNames.put("deleteRule", new Integer(((SQLRelationship) o).getDeleteRule()));
 			propNames.put("deferrability", new Integer(((SQLRelationship) o).getDeferrability()));
@@ -191,27 +593,37 @@ public class SwingUIProject {
 		} else if (o instanceof SQLRelationship.ColumnMapping) {
 			id = "CMP"+objectIdMap.size();
 			type = "column-mapping";
-			propNames.put("pkTable", objectIdMap.get(((SQLRelationship.ColumnMapping) o).getPkColumn()));
-			propNames.put("fkTable", objectIdMap.get(((SQLRelationship.ColumnMapping) o).getFkColumn()));
+			propNames.put("pk-column-ref", objectIdMap.get(((SQLRelationship.ColumnMapping) o).getPkColumn()));
+			propNames.put("fk-column-ref", objectIdMap.get(((SQLRelationship.ColumnMapping) o).getFkColumn()));
 		} else {
 			throw new UnsupportedOperationException("Woops, the SQLObject type "
 													+o.getClass().getName()+" is not supported!");
 		}
-
+	
 		objectIdMap.put(o, id);
-
-		print("<"+type+" hashCode=\""+o.hashCode()+"\" id=\""+id+"\" ");
+		
+		//print("<"+type+" hashCode=\""+o.hashCode()+"\" id=\""+id+"\" ");
+		print("<"+type+" id=\""+id+"\" ");
 		Iterator props = propNames.keySet().iterator();
 		while (props.hasNext()) {
 			Object key = props.next();
-			niprint(key+"=\""+propNames.get(key)+"\" ");
+			Object value = propNames.get(key);
+			if (value != null) {
+				niprint(key+"=\""+value+"\" ");
+			}
 		}
 		if (o.allowsChildren()) {
 			niprintln(">");
 			Iterator children = o.getChildren().iterator();
 			indent++;
 			while (children.hasNext()) {
-				saveSQLObject((SQLObject) children.next());
+				SQLObject child = (SQLObject) children.next();
+				if ( ! (child instanceof SQLRelationship)) {
+					saveSQLObject(child);
+				}
+			}
+			if (o instanceof SQLDatabase) {
+				saveRelationships((SQLDatabase) o);
 			}
 			indent--;
 			println("</"+type+">");
@@ -267,13 +679,22 @@ public class SwingUIProject {
 		this.sourceDatabases = argSourceDatabases;
 	}
 
-	/**
-	 * Gets the value of targetDatabase
-	 *
-	 * @return the value of targetDatabase
+	public void setSourceDatabaseList(List databases) throws ArchitectException {
+		this.sourceDatabases.setModel(new DBTreeModel(databases));
+	}
+
+ 	/**
+	 * Gets the target database in the playPen.
 	 */
 	public SQLDatabase getTargetDatabase()  {
 		return playPen.getDatabase();
+	}
+
+	/**
+	 * Sets the value of target database in the PlayPen.
+	 */
+	public void setTargetDatabase(SQLDatabase db)  {
+		playPen.setDatabase(db);
 	}
 
 	/**

@@ -300,8 +300,10 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	 * @param argConnectionSpec Value to assign to this.connectionSpec
 	 */
 	public void setConnectionSpec(DBConnectionSpec argConnectionSpec) {
-		reset();
-		if (connectionSpec != null) connectionSpec.removePropertyChangeListener(this);
+		if (connectionSpec != null) {
+			connectionSpec.removePropertyChangeListener(this);
+			reset();
+		}
 		connectionSpec = argConnectionSpec;
 		connectionSpec.addPropertyChangeListener(this);
 		fireDbObjectChanged("connectionSpec");
@@ -311,6 +313,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	 * Removes all children, closes and discards the JDBC connection.
 	 */
 	protected void reset() {
+		logger.debug("Resetting....");
 		// tear down old connection stuff
 		List old = children;
 		if (old != null && old.size() > 0) {

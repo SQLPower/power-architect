@@ -2,8 +2,10 @@ package ca.sqlpower.architect.swingui;
 
 import javax.swing.*;
 import ca.sqlpower.architect.*;
+import org.apache.log4j.Logger;
 
 public class Relationship extends JComponent {
+	private static final Logger logger = Logger.getLogger(Relationship.class);
 
 	protected RelationshipUI ui;
 	protected PlayPen pp;
@@ -20,6 +22,9 @@ public class Relationship extends JComponent {
 		pkTable = pp.findTablePane(model.getPkTable());
 		fkTable = pp.findTablePane(model.getFkTable());
 		updateUI();
+		setVisible(true);
+		setBounds(1,1,1,1);
+		logger.debug("Created new Relationship component with pkTable="+pkTable+"; fkTable="+fkTable);
 	}
 
 	public Relationship(PlayPen pp, TablePane pkTable, TablePane fkTable) {
@@ -32,7 +37,7 @@ public class Relationship extends JComponent {
 		fkTable.getModel().addImportedKey(model);
 		updateUI();
 		setVisible(true);
-		setBounds(10,10,100,100);
+		setBounds(1,1,1,1);
 		// FIXME: map columns?
 	}
 	

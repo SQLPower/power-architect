@@ -61,6 +61,8 @@ public class PlayPen extends JPanel
 	protected EditColumnAction editColumnAction;
 	protected DeleteTableAction deleteTableAction;
 
+	protected JPopupMenu playPenPopup;
+
 	public PlayPen() {
 		setLayout(new PlayPenLayout(this));
 		setName("Play Pen");
@@ -70,6 +72,7 @@ public class PlayPen extends JPanel
 		dt = new DropTarget(this, new PlayPenDropListener());
 		addContainerListener(this);
 		setupTablePanePopup();
+		setupPlayPenPopup();
 	}
 
 	public PlayPen(SQLDatabase db) {
@@ -136,6 +139,22 @@ public class PlayPen extends JPanel
 		tablePanePopup.add(mi);
 	}
 
+	protected void setupPlayPenPopup() {
+		playPenPopup = new JPopupMenu();
+
+ 		JMenuItem mi = null; //new JMenuItem();
+// 		tablePanePopup.addSeparator();
+		
+		mi = new JMenuItem("Show Relationships");
+		mi.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent evt) {
+					JOptionPane.showMessageDialog(PlayPen.this, new JScrollPane(new JList(new java.util.Vector(relationships))));
+				}
+			});
+		playPenPopup.add(mi);
+		addMouseListener(new PopupListener());
+	}
+
 	/**
 	 * Paints all the relationships using the passed-in graphics
 	 * object directly, then calls super.paint(g) which will paint all
@@ -189,6 +208,14 @@ public class PlayPen extends JPanel
 	public void addRelationship(Relationship r) {
 		relationships.add(r);
 		repaint();
+	}
+
+	/**
+	 * Returns the list of Relationship gui components in this
+	 * playpen.  If you modify it, you will suffer.
+	 */
+	public List getRelationships() {
+		return relationships;
 	}
 
 	/**
@@ -914,5 +941,27 @@ public class PlayPen extends JPanel
 		public boolean canImport(JComponent c, DataFlavor[] flavors) {
 			return bestImportFlavor(c, flavors) != null;
 		} 
+	}
+
+	public static class PopupListener extends MouseAdapter {
+
+		public void mouseClicked(MouseEvent evt) {
+		}
+
+		public void mousePressed(MouseEvent evt) {
+			maybeShowPopup(evt);
+		}
+
+		public void mouseReleased(MouseEvent evt) {
+			maybeShowPopup(evt);
+		}
+
+		public void maybeShowPopup(MouseEvent evt) {
+			if (evt.isPopupTrigger() && !evt.isConsumed()) {
+				PlayPen pp = (PlayPen) evt.getSource();
+				pp.selectNone();
+				pp.playPenPopup.show(pp, evt.getX(), evt.getY());
+			}
+		}
 	}
 }

@@ -5,6 +5,7 @@ import java.awt.event.*;
 import java.awt.datatransfer.*;
 import java.awt.dnd.*;
 import javax.swing.*;
+import javax.swing.tree.TreePath;
 import javax.swing.event.*;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -435,36 +436,29 @@ public class TablePane
 				c.setInsertionPoint(COLUMN_INDEX_NONE);
 			} else {
 				try {
+					DBTree dbtree = ArchitectFrame.getMainInstance().dbTree;  // XXX: bad
 					int insertionPoint = c.pointToColumnIndex(dtde.getLocation());
 					if (insertionPoint < 0) insertionPoint = 0;
-					Object someData = t.getTransferData(importFlavor);
-					logger.debug("drop: got object of type "+someData.getClass().getName());
-					if (someData instanceof SQLTable) {
-						dtde.acceptDrop(DnDConstants.ACTION_COPY);
-						c.getModel().inherit(insertionPoint, (SQLTable) someData);
-						dtde.dropComplete(true);
-						return;
-					} else if (someData instanceof SQLColumn) {
-						dtde.acceptDrop(DnDConstants.ACTION_COPY);
-						SQLColumn column = (SQLColumn) someData;
-						c.getModel().inherit(insertionPoint, column);
-						logger.debug("Added "+column.getColumnName()+" to table");
-						dtde.dropComplete(true);
-						return;
-					} else if (someData instanceof SQLObject[]) {
-						// needs work (should use addSchema())
-						dtde.acceptDrop(DnDConstants.ACTION_COPY);
-						SQLObject[] objects = (SQLObject[]) someData;
-						for (int i = 0; i < objects.length; i++) {
-							if (objects[i] instanceof SQLColumn) {
-								c.getModel().addColumn(insertionPoint + i,
-													   (SQLColumn) objects[i]);
-							}
+					int[] rows = (int[]) t.getTransferData(importFlavor);
+					for (int rownum = 0; rownum < rows.length; rownum++) {
+						TreePath p = dbtree.getPathForRow(rows[rownum]);
+						Object someData = p.getLastPathComponent();
+						logger.debug("drop: got object of type "+someData.getClass().getName());
+						if (someData instanceof SQLTable) {
+							dtde.acceptDrop(DnDConstants.ACTION_COPY);
+							c.getModel().inherit(insertionPoint, (SQLTable) someData);
+							dtde.dropComplete(true);
+							return;
+						} else if (someData instanceof SQLColumn) {
+							dtde.acceptDrop(DnDConstants.ACTION_COPY);
+							SQLColumn column = (SQLColumn) someData;
+							c.getModel().inherit(insertionPoint, column);
+							logger.debug("Added "+column.getColumnName()+" to table");
+							dtde.dropComplete(true);
+							return;
+						} else {
+							dtde.rejectDrop();
 						}
-						dtde.dropComplete(true);
-						return;
-					} else {
-						dtde.rejectDrop();
 					}
 				} catch (UnsupportedFlavorException ufe) {
 					ufe.printStackTrace();
@@ -513,8 +507,7 @@ public class TablePane
 				logger.debug("isLocalObject = "+flavors[i].getMimeType().equals(DataFlavor.javaJVMLocalObjectMimeType));
 
 
- 				if (flavors[i].equals(SQLObjectTransferable.flavor)
-					|| flavors[i].equals(SQLObjectListTransferable.flavor)) {
+ 				if (flavors[i].equals(SelectedTreeRowsTransferable.flavor)) {
 					logger.debug("YES");
  					return flavors[i];
 				}
