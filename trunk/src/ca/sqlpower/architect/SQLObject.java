@@ -170,6 +170,13 @@ public abstract class SQLObject implements java.io.Serializable {
 
 	protected void fireDbObjectChanged(String propertyName) {
 		SQLObjectEvent e = new SQLObjectEvent(this, propertyName);
+
+		if (logger.isDebugEnabled()) {
+			logger.debug("Sending dbObjectChanged event "+e+" to "
+						 +getSQLObjectListeners().size()+" listeners: "
+						 +getSQLObjectListeners());
+		}
+
 		Iterator it = getSQLObjectListeners().iterator();
 		while (it.hasNext()) {
 			((SQLObjectListener) it.next()).dbObjectChanged(e);
