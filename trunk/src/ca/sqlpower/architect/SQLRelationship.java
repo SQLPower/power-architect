@@ -2,7 +2,7 @@ package ca.sqlpower.architect;
 
 import java.util.List;
 
-public class SQLRelationship {
+public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	
 	/**
 	 * A List of ColumnMapping objects that describe the relationship
@@ -12,6 +12,9 @@ public class SQLRelationship {
 	 * @see java.sql.DatabaseMetaData#getImportedKeys
 	 */
 	protected List mappings;
+
+	protected SQLTable pkTable;
+	protected SQLTable fkTable;
 
 	protected int updateRule;
 	protected int deleteRule;
@@ -63,6 +66,47 @@ public class SQLRelationship {
 
 	}
 
+
+	// ---------------------- SQLObject support ------------------------
+
+	/**
+	 * Returns the table that holds the primary keys (the imported table).
+	 */
+	public SQLObject getParent() {
+		return pkTable;
+	}
+
+	/**
+	 * Returns the foreign key name.
+	 */
+	public String getShortDisplayName() {
+		return fkName;
+	}
+	
+	/**
+	 * Relationships do not contain other SQLObjects.
+	 *
+	 * @return false
+	 */
+	public boolean allowsChildren() {
+		return false;
+	}
+
+	/**
+	 * Populates the PK and FK information from the database.
+	 */
+	public void populate() throws ArchitectException {
+		// XXX: must implement
+	}
+
+	/**
+	 * Returns true iff populate doesn't need to be called.
+	 */
+	public boolean isPopulated() {
+		// XXX: must implement
+		return true;
+	}
+	
 	
 	/**
 	 * Gets the value of mappings
@@ -73,6 +117,8 @@ public class SQLRelationship {
 		return this.mappings;
 	}
 
+	// ----------------- accessors and mutators -------------------
+	
 	/**
 	 * Sets the value of mappings
 	 *
