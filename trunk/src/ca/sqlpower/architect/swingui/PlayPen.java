@@ -82,10 +82,12 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 		 * @param comp the component which has been added
 		 * @param position A java.awt.Point, near which the object
 		 * should be positioned.  It will not overlap existing
-		 * components in this play pen.
+		 * components in this play pen.  If this argument is null, the
+		 * layout manager will do nothing for this component addition.
 		 */
 		public void addLayoutComponent(Component comp,
 									   Object position) {
+			if (position == null) return;
 			Point pos = (Point) position;
 			comp.setSize(comp.getPreferredSize());
 			int nh = comp.getHeight();
@@ -367,6 +369,16 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 	public synchronized void addSchema(SQLSchema source, Point preferredLocation) throws ArchitectException {
 		AddSchemaTask t = new AddSchemaTask(source, preferredLocation);
 		new Thread(t, "Schema-Adder").start();
+	}
+
+	/**
+	 * Adds the given component to this playpen as a ghost.  A ghost
+	 * is a transient object that helps the user visualise drag
+	 * events.
+	 */
+	public synchronized void addGhost(JComponent ghost, Point location) {
+		super.add(ghost, null);
+		ghost.setLocation(location);
 	}
 
 	private class AddSchemaTask implements Runnable {
