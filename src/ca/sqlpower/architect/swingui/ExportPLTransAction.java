@@ -36,7 +36,8 @@ public class ExportPLTransAction extends AbstractAction {
 		final SQLDatabase souDB =playpen.getDatabase();
 		final PLExport plexp = new PLExport();
 		final JDialog d = new JDialog(ArchitectFrame.getMainInstance(),
-									  "PL Repository");
+									  "Export ETL Transactions to PL Repository");
+
 		JPanel plp = new JPanel(new BorderLayout(12,12));
 		plp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12)); 
 		
@@ -102,6 +103,7 @@ public class ExportPLTransAction extends AbstractAction {
 								JDialog d = new JDialog(architectFrame, "Power*Loader Engine");
 								d.setContentPane(new EngineExecPanel(proc));
 								d.pack();
+								d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
 								d.setVisible(true);
 							} catch (IOException ie){
 								JOptionPane.showMessageDialog(playpen, "Unexpected Exception running Engine:\n"+ie);
@@ -141,6 +143,7 @@ public class ExportPLTransAction extends AbstractAction {
 		
 		d.setContentPane(plp);
 		d.pack();
+		d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
 		d.setVisible(true); 
 	}
 }

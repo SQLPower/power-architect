@@ -1,14 +1,20 @@
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.etl;
 
 import java.util.Properties;
 
 /**
- * Is a container for POWER*LOADER ODBC Connection stored in PL.ini file
+ * The PLConnectionSpec class is a container for POWER*LOADER ODBC
+ * Connection information (normally retrieved from the PL.ini file).
  */
-public class PLdbConn {
+public class PLConnectionSpec {
+
+	public static final String CONNECTION_TYPE_ORACLE = "ORACLE";
+	public static final String CONNECTION_TYPE_SQLSERVER = "SQL SERVER";
+	public static final String CONNECTION_TYPE_ACCESS = "ACCESS";
+	
 	Properties props;
 	
-	public PLdbConn() {
+	public PLConnectionSpec() {
 		props = new Properties();
 	}
 
@@ -17,13 +23,6 @@ public class PLdbConn {
 	}
 
 	// ----------------- accessors and mutators -------------------
-// 		String label[] = new String[]{"Logical=",
-// 									  "Type=",
-// 									  "PL Schema Owner=",
-// 									  "UID=",
-// 									  "PWD=",
-// 									  "TNS Name=",
-// 									  "Database Name="};
 	
 	public String getLogical()  {
 		return props.getProperty("Logical");
@@ -53,9 +52,10 @@ public class PLdbConn {
 		String type = getDbType();
 		if (type == null) {
 			throw new UnknownDatabaseTypeException("<unspecified>");
-		} else if (type.equalsIgnoreCase("SQL SERVER")) {
+		} else if (type.equalsIgnoreCase(CONNECTION_TYPE_SQLSERVER)
+				   || type.equalsIgnoreCase(CONNECTION_TYPE_ACCESS)) {
 			return "PowerLoader_odbc.exe";
-		} else if (type.equalsIgnoreCase("ORACLE")) {
+		} else if (type.equalsIgnoreCase(CONNECTION_TYPE_ORACLE)) {
 			return "PowerLoader_oracle.exe";
 		} else {
 			throw new UnknownDatabaseTypeException(type);

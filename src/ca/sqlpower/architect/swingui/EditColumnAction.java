@@ -70,6 +70,7 @@ public class EditColumnAction extends AbstractAction implements ActionListener {
 					panel.setOpaque(true);
 					editDialog.setContentPane(panel);
 					editDialog.pack();
+					editDialog.setLocationRelativeTo(ArchitectFrame.getMainInstance());
 					editDialog.setVisible(true);
 				}
 			} catch (ArchitectException e) {

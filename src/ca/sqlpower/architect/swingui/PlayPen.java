@@ -527,6 +527,7 @@ public class PlayPen extends JPanel
 
 				d.setContentPane(cp);
 				d.pack();
+				d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
 				d.setVisible(true);
 			}
 		};

@@ -61,6 +61,7 @@ public class PreferencesAction extends AbstractAction {
 		cp.add(buttonPanel, BorderLayout.SOUTH);
 		d.setContentPane(cp);
 		d.pack();
+		d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
 		d.setVisible(true);
 	}
 
