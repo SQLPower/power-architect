@@ -172,6 +172,15 @@ public class SwingUIProject {
 
 		PPRelationshipFactory ppRelationshipFactory = new PPRelationshipFactory();
 		d.addFactoryCreate("architect-project/play-pen/table-link", ppRelationshipFactory);
+		
+		DDLGeneratorFactory ddlgFactory = new DDLGeneratorFactory();
+		d.addFactoryCreate("architect-project/ddl-generator", ddlgFactory);
+		d.addSetProperties("architect-project/ddl-generator");
+		FileFactory fileFactory = new FileFactory();
+		d.addFactoryCreate("*/file", fileFactory);
+		d.addSetNext("*/file", "setFile");
+
+		d.addSetNext("architect-project/ddl-generator", "setDDLGenerator");
 
 		return d;
 	}
@@ -345,6 +354,25 @@ public class SwingUIProject {
 		}
 	}
 
+	protected class DDLGeneratorFactory extends AbstractObjectCreationFactory {
+		public Object createObject(Attributes attributes) {
+			try {
+				GenericDDLGenerator ddlg = 
+					(GenericDDLGenerator) Class.forName(attributes.getValue("type")).newInstance();
+				return ddlg;
+			} catch (Exception e) {
+				logger.debug("Couldn't create DDL Generator instance. Returning generic instance.", e);
+				return new GenericDDLGenerator();
+			}
+		}
+	}
+
+	protected class FileFactory extends AbstractObjectCreationFactory {
+		public Object createObject(Attributes attributes) {
+			return new File(attributes.getValue("path"));
+		}
+	}
+
 	// ------------- WRITING THE PROJECT FILE ---------------
 	public void save(ProgressMonitor pm) throws IOException, ArchitectException {
 		out = new PrintWriter(new BufferedWriter(new FileWriter(file)));
@@ -368,6 +396,7 @@ public class SwingUIProject {
 			saveDBCS();
 			saveSourceDatabases();
 			saveTargetDatabase();
+			saveDDLGenerator();
 			savePlayPen();
 			indent--;
 			println("</architect-project>");
@@ -427,6 +456,17 @@ public class SwingUIProject {
 		}
 		indent--;
 		println("</project-connection-specs>");
+	}
+
+	protected void saveDDLGenerator() throws IOException {
+		println("<ddl-generator"
+				+" type=\""+ddlGenerator.getClass().getName()+"\""
+				+" allowConnection=\""+ddlGenerator.getAllowConnection()+"\""
+				+">");
+		indent++;
+		println("<file path=\""+ddlGenerator.getFile().getPath()+"\" />");
+		indent--;
+		println("</ddl-generator>");
 	}
 
 	/**
