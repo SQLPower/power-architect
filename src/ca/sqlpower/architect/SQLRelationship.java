@@ -18,9 +18,6 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	public static final int ONE = 2;
 	public static final int MANY = 4;
 	
-
-	protected SQLObject parent;
-
 	protected SQLTable pkTable;
 	protected SQLTable fkTable;
 
@@ -305,11 +302,26 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	 * Returns the table that holds the primary keys (the imported table).
 	 */
 	public SQLObject getParent() {
-		return parent;
+		return pkTable;
 	}
 
+	/**
+	 * This method is not useful, and has no side effects.
+	 *
+	 * @param newParent If this is the same as pkTable or fkTable,
+	 * this method returns normally.  Otherwise, this method throws
+	 * IllegalArgumentException.
+	 * @throws IllegalArgumentException if newParent is anything other
+	 * than this relationship's pkTable.exportedKeysFolder or
+	 * fkTable.importedKeysFolder
+	 */
 	protected void setParent(SQLObject newParent) {
-		parent = newParent;
+		if (newParent != null
+			&& newParent != pkTable.exportedKeysFolder
+			&& newParent != fkTable.importedKeysFolder) {
+			throw new IllegalArgumentException
+				("You can't change the parent of a SQLRelationship this way");
+		}
 	}
 
 	/**

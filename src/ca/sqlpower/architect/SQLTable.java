@@ -417,10 +417,6 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		columnsFolder.addChild(pos, col);
 	}
 
-	public void addChild(SQLObject child) {
-		addChild(children.size(), child);
-	}
-	
 	/**
 	 * Connects up the columnsFolder, exportedKeysFolder, and
 	 * importedKeysFolder pointers to the children at indices 0, 1,
@@ -684,6 +680,11 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 			} finally {
 				populated = true;
 			}
+		}
+
+		public void addChild(int index, SQLObject child) {
+			logger.debug("[31mAdding child "+child.getName()+" to folder "+getName()+"[0m");
+			super.addChild(index, child);
 		}
 
 		public boolean isPopulated() {
