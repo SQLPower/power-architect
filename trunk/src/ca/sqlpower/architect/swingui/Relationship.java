@@ -18,18 +18,6 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 	protected TablePane pkTable;
 	protected TablePane fkTable;
 
-	/**
-	 * This is the point where this relationship meets its PK table.
-	 * The point is in the table's coordinate space.
-	 */
-	protected Point pkConnectionPoint;
-
-	/**
-	 * This is the point where this relationship meets its FK table.
-	 * The point is in the table's coordinate space.
-	 */
-	protected Point fkConnectionPoint;
-
 	protected JPopupMenu popup;
 
 	protected MouseListener mouseListener;
@@ -91,17 +79,14 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 	 * All constructors have to call this after setting pp, model, pkTable, and fkTable.
 	 */
 	protected void setup() {
-		pkConnectionPoint = new Point();
-		fkConnectionPoint = new Point();
 		updateUI();
 		setOpaque(false);
 		setBackground(Color.green);
 		model.addSQLObjectListener(this);
 		setToolTipText(model.getName());
 		
-		ui.bestConnectionPoints(pkTable, fkTable,
-								pkConnectionPoint,  // gets updated (in pktable-space)
-								fkConnectionPoint); // gets updated (in fktable-space)
+		// requires pkTable and fkTable to be initialized
+		//ui.bestConnectionPoints();
 
 		createPopup();
 		setVisible(true);
@@ -230,20 +215,20 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 	}
 
 	public Point getPkConnectionPoint() {
-		return pkConnectionPoint;
+		return ui.getPkConnectionPoint();
 	}
 
 	public Point getFkConnectionPoint() {
-		return fkConnectionPoint;
+		return ui.getFkConnectionPoint();
 	}
 
 	public void setPkConnectionPoint(Point p) {
-		pkConnectionPoint = p;
+		ui.setPkConnectionPoint(p);
 		revalidate();
 	}
 
 	public void setFkConnectionPoint(Point p) {
-		fkConnectionPoint = p;
+		ui.setFkConnectionPoint(p);
 		revalidate();
 	}
 
