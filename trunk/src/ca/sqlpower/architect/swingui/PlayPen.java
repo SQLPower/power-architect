@@ -845,6 +845,7 @@ public class PlayPen extends JPanel
 				dtde.rejectDrop();
 			} else {
 				try {
+					dtde.acceptDrop(DnDConstants.ACTION_COPY);
 					DBTree dbtree = ArchitectFrame.getMainInstance().dbTree; // XXX: this is bad
 					ArrayList paths = (ArrayList) t.getTransferData(importFlavor);
 					Iterator pathIt = paths.iterator();
@@ -853,18 +854,12 @@ public class PlayPen extends JPanel
 						Object someData = dbtree.getNodeForDnDPath((int[]) pathIt.next());
 						
 						if (someData instanceof SQLTable) {
-							dtde.acceptDrop(DnDConstants.ACTION_COPY);
-							c.importTableCopy((SQLTable) someData, dropLoc);
-							dtde.dropComplete(true);
-							return;
+							TablePane tp = c.importTableCopy((SQLTable) someData, dropLoc);
+							dropLoc.x += tp.getPreferredSize().width + 5;
 						} else if (someData instanceof SQLSchema) {
-							dtde.acceptDrop(DnDConstants.ACTION_COPY);
 							SQLSchema sourceSchema = (SQLSchema) someData;
 							c.addSchema(sourceSchema, dropLoc);
-							dtde.dropComplete(true);
-							return;
 						} else if (someData instanceof SQLCatalog) {
-							dtde.acceptDrop(DnDConstants.ACTION_COPY);
 							SQLCatalog sourceCatalog = (SQLCatalog) someData;
 							Iterator cit = sourceCatalog.getChildren().iterator();
 							if (sourceCatalog.isSchemaContainer()) {
@@ -875,36 +870,34 @@ public class PlayPen extends JPanel
 							} else {
 								while (cit.hasNext()) {
 									SQLTable sourceTable = (SQLTable) cit.next();
-									c.importTableCopy(sourceTable, dropLoc);
+									TablePane tp = c.importTableCopy(sourceTable, dropLoc);
+									dropLoc.x += tp.getPreferredSize().width + 5;
 								}
 							}
-							dtde.dropComplete(true);
-							return;
 						} else if (someData instanceof SQLColumn) {
-							dtde.acceptDrop(DnDConstants.ACTION_COPY);
 							SQLColumn column = (SQLColumn) someData;
 							JLabel colName = new JLabel(column.getColumnName());
 							colName.setSize(colName.getPreferredSize());
 							c.add(colName, dropLoc);
 							logger.debug("Added "+column.getColumnName()+" to playpen (temporary, only for testing)");
 							colName.revalidate();
-							dtde.dropComplete(true);
-							return;
 						} else {
+							logger.error("Unknown object dropped in PlayPen: "+someData);
 							dtde.rejectDrop();
 						}
 					}
+					dtde.dropComplete(true);
 				} catch (UnsupportedFlavorException ufe) {
-					ufe.printStackTrace();
+					logger.error(ufe);
 					dtde.rejectDrop();
 				} catch (IOException ioe) {
-					ioe.printStackTrace();
+					logger.error(ioe);
 					dtde.rejectDrop();
 				} catch (InvalidDnDOperationException ex) {
-					ex.printStackTrace();
+					logger.error(ex);
 					dtde.rejectDrop();
 				} catch (ArchitectException ex) {
-					ex.printStackTrace();
+					logger.error(ex);
 					dtde.rejectDrop();
 				}
 			}
