@@ -2,14 +2,15 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.datatransfer.*;
 import java.io.IOException;
+import java.util.ArrayList;
 
-public class SelectedTreeRowsTransferable implements Transferable, java.io.Serializable {
+public class DnDTreePathTransferable implements Transferable, java.io.Serializable {
 	public static final DataFlavor flavor = new DataFlavor
-		(int[].class, "List of selected tree rows");
+		(ArrayList.class, "List of selected tree paths");
 	
-	protected int[] data;
+	protected ArrayList data;
 	
-	public SelectedTreeRowsTransferable(int[] data) {
+	public DnDTreePathTransferable(ArrayList data) {
 		this.data = data;
 	}
 	
