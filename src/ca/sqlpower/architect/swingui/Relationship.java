@@ -8,7 +8,7 @@ import ca.sqlpower.architect.*;
 import org.apache.log4j.Logger;
 import java.util.*;
 
-public class Relationship extends JComponent implements Selectable, ComponentListener {
+public class Relationship extends JComponent implements Selectable, ComponentListener, SQLObjectListener {
 	private static final Logger logger = Logger.getLogger(Relationship.class);
 
 	protected RelationshipUI ui;
@@ -29,6 +29,8 @@ public class Relationship extends JComponent implements Selectable, ComponentLis
 	 */
 	protected Point fkConnectionPoint;
 
+	protected JPopupMenu popup;
+
 	static {
 		UIManager.put(RelationshipUI.UI_CLASS_ID, "ca.sqlpower.architect.swingui.IERelationshipUI");
 	}
@@ -45,7 +47,9 @@ public class Relationship extends JComponent implements Selectable, ComponentLis
 		model.setName(pkTable.getModel().getName()+"_"+fkTable.getModel().getName()+"_fk"); // XXX: need to ensure uniqueness!
 		model.setPkTable(pkTable.getModel());
 		model.setFkTable(fkTable.getModel());
-
+		model.addSQLObjectListener(this);
+		setToolTipText(model.getName());
+		
 		setPkTable(pkTable);
 		setFkTable(fkTable);
 
@@ -65,7 +69,21 @@ public class Relationship extends JComponent implements Selectable, ComponentLis
 		fkConnectionPoint = new Point();
 		updateBounds(); // also sets bounds
 
+		createPopup();
+
 		setVisible(true);
+	}
+
+	protected void createPopup() {
+		ArchitectFrame af = ArchitectFrame.getMainInstance();
+		popup = new JPopupMenu();
+
+		JMenuItem mi;
+
+		mi = new JMenuItem(af.editRelationshipAction);
+		popup.add(mi);
+
+		addMouseListener(new PopupListener());
 	}
 
     public void updateUI() {
@@ -113,6 +131,8 @@ public class Relationship extends JComponent implements Selectable, ComponentLis
 
 	public void setSelected(boolean isSelected) {
 		selected = isSelected;
+		fireSelectionEvent(this);
+		repaint();
 	}
 
 	public boolean isSelected() {
@@ -196,5 +216,62 @@ public class Relationship extends JComponent implements Selectable, ComponentLis
 	}
 	
 	public void componentHidden(ComponentEvent e) {
+	}
+
+	// --------------- mouse listener --------------------
+	public static class PopupListener extends MouseAdapter {
+
+		/**
+		 * Double-click support.
+		 */
+		public void mouseClicked(MouseEvent evt) {
+			if (evt.getClickCount() == 2) {
+				ArchitectFrame.getMainInstance().editRelationshipAction.actionPerformed
+					(new ActionEvent(evt.getSource(), ActionEvent.ACTION_PERFORMED, "DoubleClick"));
+			}
+		}
+
+		public void mousePressed(MouseEvent evt) {
+			evt.getComponent().requestFocus();
+			maybeShowPopup(evt);
+		}
+
+		public void mouseReleased(MouseEvent evt) {
+			maybeShowPopup(evt);
+
+			// selection
+			if ((evt.getModifiers() & MouseEvent.BUTTON1_MASK) != 0) {
+				Relationship r = (Relationship) evt.getComponent();
+				PlayPen pp = (PlayPen) r.getParent();
+				pp.selectNone();
+				r.setSelected(true);
+			}
+		}
+
+		public void maybeShowPopup(MouseEvent evt) {
+			if (evt.isPopupTrigger() && !evt.isConsumed()) {
+				Relationship r = (Relationship) evt.getComponent();
+				PlayPen pp = (PlayPen) r.getParent();
+				pp.selectNone();
+				r.setSelected(true);
+				r.popup.show(r, evt.getX(), evt.getY());
+			}
+		}
+	}
+
+	// ------------------ sqlobject listener ----------------
+	public void dbChildrenInserted(SQLObjectEvent e) {
+	}
+
+	public void dbChildrenRemoved(SQLObjectEvent e) {
+	}
+
+	public void dbObjectChanged(SQLObjectEvent e) {
+		if (e.getPropertyName() != null && e.getPropertyName().equals("name")) {
+			setToolTipText(model.getName());
+		}
+	}
+
+	public void dbStructureChanged(SQLObjectEvent e) {
 	}
 }

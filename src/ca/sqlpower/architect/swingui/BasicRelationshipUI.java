@@ -26,6 +26,8 @@ public class BasicRelationshipUI extends RelationshipUI
 	 */
 	protected GeneralPath path;
 
+	protected Color selectedColor = new Color(204, 204, 255);
+	protected Color unselectedColor = Color.black;
 
 	/**
 	 * Points within radius pixels of this relationship's visible path
@@ -116,6 +118,11 @@ public class BasicRelationshipUI extends RelationshipUI
 				path.lineTo(end.x, end.y);
 			}
 			
+			if (r.isSelected()) {
+				g2.setColor(selectedColor);
+			} else {
+				g2.setColor(unselectedColor);
+			}
 			g2.draw(path);
 			
 			logger.debug("Drew path "+path);

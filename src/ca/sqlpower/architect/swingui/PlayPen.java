@@ -492,7 +492,7 @@ public class PlayPen extends JPanel
 	// --------------------------- CONTAINER LISTENER -------------------------
 
 	/**
-	 * Unregisters this TablePane as a SelectionListener if the
+	 * Unregisters this PlayPen as a SelectionListener if the
 	 * removed component is Selectable.
 	 */
 	public void componentRemoved(ContainerEvent e) {
@@ -502,7 +502,7 @@ public class PlayPen extends JPanel
 	}
 
 	/**
-	 * Registers this TablePane as a SelectionListener if the added
+	 * Registers this PlayPen as a SelectionListener if the added
 	 * component is Selectable.
 	 */
 	public void componentAdded(ContainerEvent e) {
