@@ -10,6 +10,8 @@ import java.awt.Rectangle;
 import java.awt.Container;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,15 +53,14 @@ public class ArchitectFrame extends JFrame {
 	protected EditTableAction editTableAction;
 	protected CreateTableAction createTableAction;
 	protected CreateRelationshipAction createIdentifyingRelationshipAction;
-
 	protected CreateRelationshipAction createNonIdentifyingRelationshipAction;
-
 	protected EditRelationshipAction editRelationshipAction;
 	protected Action exportDDLAction;
 	protected ExportPLTransAction exportPLTransAction;
+	protected ArchitectFrameWindowListener afWindowListener;
 	protected Action exitAction = new AbstractAction("Exit") {
 			public void actionPerformed(ActionEvent e) {
-				System.exit(0);
+				exit();
 			}
 		};
 
@@ -69,15 +70,8 @@ public class ArchitectFrame extends JFrame {
 	 */
 	protected Action saveSettingsAction = new AbstractAction("Save Settings") {
 			public void actionPerformed(ActionEvent e) {
-				if (configFile == null) configFile = ConfigFile.getDefaultInstance();
 				try {
-					sprefs.setInt(SwingUserSettings.DIVIDER_LOCATION, splitPane.getDividerLocation());
-					sprefs.setInt(SwingUserSettings.MAIN_FRAME_X, getLocation().x);
-					sprefs.setInt(SwingUserSettings.MAIN_FRAME_Y, getLocation().y);
-					sprefs.setInt(SwingUserSettings.MAIN_FRAME_WIDTH, getWidth());
-					sprefs.setInt(SwingUserSettings.MAIN_FRAME_HEIGHT, getHeight());
-
-					configFile.write(prefs);
+					saveSettings();
 				} catch (ArchitectException ex) {
 					logger.error("Couldn't save settings", ex);
 				}
@@ -262,7 +256,7 @@ public class ArchitectFrame extends JFrame {
 		bounds.width = sprefs.getInt(SwingUserSettings.MAIN_FRAME_WIDTH, 600);
 		bounds.height = sprefs.getInt(SwingUserSettings.MAIN_FRAME_HEIGHT, 440);
 		setBounds(bounds);
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		addWindowListener(afWindowListener = new ArchitectFrameWindowListener());
 		setProject(new SwingUIProject("New Project"));
 	}
 
@@ -306,11 +300,42 @@ public class ArchitectFrame extends JFrame {
 		return prefs;
 	}
 
+	class ArchitectFrameWindowListener extends WindowAdapter {
+		public void windowClosing(WindowEvent e) {
+			exit();
+		}
+	}
+
+	public void saveSettings() throws ArchitectException {
+		if (configFile == null) configFile = ConfigFile.getDefaultInstance();
+
+		sprefs.setInt(SwingUserSettings.DIVIDER_LOCATION, splitPane.getDividerLocation());
+		sprefs.setInt(SwingUserSettings.MAIN_FRAME_X, getLocation().x);
+		sprefs.setInt(SwingUserSettings.MAIN_FRAME_Y, getLocation().y);
+		sprefs.setInt(SwingUserSettings.MAIN_FRAME_WIDTH, getWidth());
+		sprefs.setInt(SwingUserSettings.MAIN_FRAME_HEIGHT, getHeight());
+		
+		configFile.write(prefs);
+	}
+
+	/**
+	 * Calling this method quits the application and terminates the
+	 * JVM.
+	 */
+	public void exit() {
+		try {
+			saveSettings();
+		} catch (ArchitectException e) {
+			logger.error("Couldn't save settings: "+e);
+		}
+		System.exit(0);
+	}
+
 	/**
 	 * Creates an ArchitectFrame and sets is visible.  This method is
 	 * an acceptable way to launch the Architect application.
 	 */
-	public static void main(String args[]) throws Exception {
+	public static void main(String args[]) throws ArchitectException {
 		new ArchitectFrame();
 		
 		SwingUtilities.invokeLater(new Runnable() {
