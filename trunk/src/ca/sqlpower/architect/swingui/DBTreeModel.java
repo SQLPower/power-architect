@@ -4,6 +4,7 @@ import javax.swing.tree.*;
 import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeModelEvent;
 import java.util.LinkedList;
+import java.util.Collection;
 import java.util.Iterator;
 
 import ca.sqlpower.architect.*;
@@ -13,8 +14,29 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	protected SQLObject root;
 	protected boolean debugMode;
 
-	public DBTreeModel(SQLObject root) throws ArchitectException {
-		this.root = root;
+	/**
+	 * Creates a tree model with an empty list of databases at its
+	 * root.
+	 */
+	public DBTreeModel() throws ArchitectException {
+		this(null);
+	}
+
+	/**
+	 * Creates a tree model with all of the SQLDatabase objects in the
+	 * given collection in its root list of databases.
+	 *
+	 * @param initialDatabases A collection whose items are all
+	 * distinct SQLDatabase objects.
+	 */
+	public DBTreeModel(Collection initialDatabases) throws ArchitectException {
+		this.root = new DBTreeRoot();
+		if (initialDatabases != null) {
+			Iterator it = initialDatabases.iterator();
+			while (it.hasNext()) {
+				root.addChild((SQLDatabase) it.next());
+			}
+		}
 		this.treeModelListeners = new LinkedList();
 		listenToSQLObjectAndChildren(root);
 		debugMode = false;
@@ -64,6 +86,40 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 		}
 	}
 
+	/**
+	 * The backing class for an invisible root node that contains
+	 * SQLDatabase objects.
+	 */
+	protected class DBTreeRoot extends SQLObject {
+		public DBTreeRoot() {
+			children = new LinkedList();
+		}
+
+		public SQLObject getParent() {
+			return null;
+		}
+
+		public String getShortDisplayName() {
+			return "Database Connections";
+		}
+		
+		public boolean allowsChildren() {
+			return true;
+		}
+		
+		public void populate() throws ArchitectException {
+			return;
+		}
+		
+		public boolean isPopulated() {
+			return true;
+		}
+
+		public String toString() {
+			return getShortDisplayName();
+		}
+	}
+
 	// -------------- treeModel event source support -----------------
 	protected LinkedList treeModelListeners;
 
@@ -87,6 +143,20 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 		Iterator it = treeModelListeners.iterator();
 		while (it.hasNext()) {
 			((TreeModelListener) it.next()).treeNodesRemoved(e);
+		}
+	}
+
+	protected void fireTreeNodesChanged(TreeModelEvent e) {
+		Iterator it = treeModelListeners.iterator();
+		while (it.hasNext()) {
+			((TreeModelListener) it.next()).treeNodesChanged(e);
+		}
+	}
+
+	protected void fireTreeStructureChanged(TreeModelEvent e) {
+		Iterator it = treeModelListeners.iterator();
+		while (it.hasNext()) {
+			((TreeModelListener) it.next()).treeStructureChanged(e);
 		}
 	}
 
@@ -132,8 +202,13 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 		fireTreeNodesRemoved(tme);
 	}
 	
-	public void dbObjectChanged(SQLObjectEvent e) { 
-		throw new UnsupportedOperationException("not yet");
+	public void dbObjectChanged(SQLObjectEvent e) {
+		SQLObject source = e.getSQLSource();
+		if (e.getPropertyName().equals("shortDisplayName")) {
+			fireTreeNodesChanged(new TreeModelEvent(this, getPathToNode(source)));
+		} else {
+			throw new UnsupportedOperationException("not yet");
+		}
 	}
 
 	public void dbStructureChanged(SQLObjectEvent e) {
