@@ -764,8 +764,13 @@ public class TablePane
 		if (evt.isPopupTrigger() && !evt.isConsumed()) {
 			TablePane tp = (TablePane) evt.getComponent();
 			PlayPen pp = tp.getPlayPen();
-			pp.selectNone();
-			tp.setSelected(true);
+
+			// this allows the right-click menu to work on multiple tables simultaneously
+			if (!tp.isSelected()) {
+				pp.selectNone();
+				tp.setSelected(true);
+			}
+
 			try {
 				tp.selectNone();
 				int idx = tp.pointToColumnIndex(evt.getPoint());
