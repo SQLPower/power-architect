@@ -40,6 +40,7 @@ public class ArchitectFrame extends JFrame {
 	protected PlayPen playpen = null;
 	protected DBTree dbTree = null;
 	
+	protected AboutAction aboutAction;
 	protected Action newProjectAction;
 	protected Action openProjectAction;
 	protected Action saveProjectAction;
@@ -97,6 +98,8 @@ public class ArchitectFrame extends JFrame {
 		}
 
 		// Create actions
+		aboutAction = new AboutAction();
+
 		newProjectAction
 			 = new AbstractAction("New Project",
 					      ASUtils.createJLFIcon("general/New","New Project",sprefs.getInt(sprefs.ICON_SIZE, 24))) {
@@ -214,6 +217,7 @@ public class ArchitectFrame extends JFrame {
 		fileMenu.add(new JMenuItem(saveSettingsAction));
 		fileMenu.add(new JMenuItem(exitAction));
 		menuBar.add(fileMenu);
+
 		JMenu etlMenu = new JMenu("ETL");
 		etlMenu.setMnemonic('e');
 		JMenu etlSubmenuOne = new JMenu("Power*Loader");
@@ -224,6 +228,12 @@ public class ArchitectFrame extends JFrame {
 		etlMenu.add(etlSubmenuOne);
 		etlMenu.add(etlSubmenuTwo);
 		menuBar.add(etlMenu);
+
+		JMenu helpMenu = new JMenu("Help");
+		helpMenu.setMnemonic('h');
+		helpMenu.add(new JMenuItem(aboutAction));
+		menuBar.add(helpMenu);
+		
 		setJMenuBar(menuBar);
 
 		projectBar = new JToolBar(JToolBar.HORIZONTAL);
@@ -276,7 +286,7 @@ public class ArchitectFrame extends JFrame {
 		addWindowListener(afWindowListener = new ArchitectFrameWindowListener());
 		setProject(new SwingUIProject("New Project"));
 	}
-
+	
 	public void setProject(SwingUIProject p) throws ArchitectException {
 		this.project = p;
 		logger.debug("Setting project to "+project);
@@ -289,17 +299,17 @@ public class ArchitectFrame extends JFrame {
 		splitPane.setLeftComponent(new JScrollPane(dbTree));
 		splitPane.setRightComponent(new JScrollPane(playpen));
 	}
-
+	
+	public SwingUIProject getProject(){
+		return this.project;
+	}
+	
 	/**
 	 * Points all the actions to the correct PlayPen and DBTree
 	 * instances.  This method is called by setProject.
 	 */
-
-	 public SwingUIProject getProject(){
-		 return this.project;
-	 }
-	 
-	 protected void setupActions() {
+	protected void setupActions() {
+		aboutAction.setPlayPen(playpen);
 		printAction.setPlayPen(playpen);
 		deleteSelectedAction.setPlayPen(playpen);
 		editColumnAction.setPlayPen(playpen);
@@ -312,7 +322,7 @@ public class ArchitectFrame extends JFrame {
 		exportPLTransAction.setPlayPen(playpen);
 		zoomInAction.setPlayPen(playpen);
 		zoomOutAction.setPlayPen(playpen);
-		
+
 		prefAction.setArchitectFrame(this);
 		projectSettingsAction.setArchitectFrame(this);
 	}
