@@ -48,9 +48,10 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 	private Map jdbcDrivers;
 	private JButton newConnButton;
 
-	// Timer for watching PL.INI
+	// Watch PL.INI for changes
 	protected javax.swing.Timer timer;
 	protected String plDotIniPath;
+
 	
 	public PLExportPanel() {
 		setLayout(new GridLayout(1,2));
@@ -335,8 +336,11 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		if (selectedExists == false) {
 			logger.debug("connection is gone!  select another!");
 			plOdbcTargetRepositoryBox.setSelectedIndex(0);
-			
 			// pop up a window explaining what happened...
+			JOptionPane.showMessageDialog(ArchitectFrame.getMainInstance(),
+    			"The PL ODBC connection you selected has been removed by another process.  Please select another.",
+    			"Power*Architect",
+    			JOptionPane.WARNING_MESSAGE);			
 		}
 	}		
 
