@@ -39,6 +39,14 @@ public class TablePane extends JComponent implements SQLObjectListener, java.io.
 	public static final int COLUMN_INDEX_NONE = -2;
 
 	/**
+	 * This is the column index at which to the insertion point is
+	 * currently rendered. Columns will be added after this column.
+	 * If it is COLUMN_INDEX_NONE, no insertion point will be
+	 * rendered and columns will be added at the bottom.
+	 */
+	protected int insertionPoint;
+
+	/**
 	 * How many pixels should be left between the surrounding box and
 	 * the column name labels.
 	 */
@@ -61,7 +69,7 @@ public class TablePane extends JComponent implements SQLObjectListener, java.io.
 		dgl = new TablePaneDragGestureListener();
 		ds = new DragSource();
 		dgr = getToolkit().createDragGestureRecognizer(MouseDragGestureRecognizer.class, ds, this, DnDConstants.ACTION_MOVE, dgl);
-
+		setInsertionPoint(COLUMN_INDEX_NONE);
 		updateUI();
 	}
 
@@ -188,6 +196,18 @@ public class TablePane extends JComponent implements SQLObjectListener, java.io.
 		revalidate();
 	}
 
+	public int getInsertionPoint() {
+		return insertionPoint;
+	}
+
+	public void setInsertionPoint(int ip) {
+		int old = insertionPoint;
+		this.insertionPoint = ip;
+		if (ip != old) {
+			firePropertyChange("insertionPoint", old, insertionPoint);
+			repaint();
+		}
+	}
 	
 	// ------------------ utility methods ---------------------
 
@@ -222,6 +242,7 @@ public class TablePane extends JComponent implements SQLObjectListener, java.io.
 		 * DropTarget registered with this listener.
 		 */
 		public void dragExit(DropTargetEvent dte) {
+			((TablePane) dte.getDropTargetContext().getComponent()).setInsertionPoint(COLUMN_INDEX_NONE);
 		}
 		
 		/**
@@ -231,6 +252,12 @@ public class TablePane extends JComponent implements SQLObjectListener, java.io.
 		 */
 		public void dragOver(DropTargetDragEvent dtde) {
 			dtde.acceptDrag(DnDConstants.ACTION_COPY);
+			try {
+				TablePane tp = (TablePane) dtde.getDropTargetContext().getComponent();
+				tp.setInsertionPoint(tp.pointToColumnIndex(dtde.getLocation()));
+			} catch (ArchitectException e) {
+				logger.error("Got exception translating drag location", e);
+			}
 		}
 		
 		/**
@@ -244,19 +271,22 @@ public class TablePane extends JComponent implements SQLObjectListener, java.io.
 			DataFlavor importFlavor = bestImportFlavor(c, t.getTransferDataFlavors());
 			if (importFlavor == null) {
 				dtde.rejectDrop();
+				c.setInsertionPoint(COLUMN_INDEX_NONE);
 			} else {
 				try {
 					Object someData = t.getTransferData(importFlavor);
 					logger.debug("drop: got object of type "+someData.getClass().getName());
 					if (someData instanceof SQLTable) {
 						dtde.acceptDrop(DnDConstants.ACTION_COPY);
-						c.getModel().inherit((SQLTable) someData);
+						c.getModel().inherit(c.pointToColumnIndex(dtde.getLocation()),
+											 (SQLTable) someData);
 						dtde.dropComplete(true);
 						return;
 					} else if (someData instanceof SQLColumn) {
 						dtde.acceptDrop(DnDConstants.ACTION_COPY);
 						SQLColumn column = (SQLColumn) someData;
-						c.getModel().addColumn(column);
+						c.getModel().addColumn(c.pointToColumnIndex(dtde.getLocation()),
+											   column);
 						logger.debug("Added "+column.getColumnName()+" to table");
 						dtde.dropComplete(true);
 						return;
@@ -264,9 +294,10 @@ public class TablePane extends JComponent implements SQLObjectListener, java.io.
 						// needs work (should use addSchema())
 						dtde.acceptDrop(DnDConstants.ACTION_COPY);
 						SQLObject[] objects = (SQLObject[]) someData;
+						int ip = c.pointToColumnIndex(dtde.getLocation());
 						for (int i = 0; i < objects.length; i++) {
 							if (objects[i] instanceof SQLColumn) {
-								c.getModel().addColumn((SQLColumn) objects[i]);
+								c.getModel().addColumn(ip + i, (SQLColumn) objects[i]);
 							}
 						}
 						dtde.dropComplete(true);
@@ -286,6 +317,8 @@ public class TablePane extends JComponent implements SQLObjectListener, java.io.
 				} catch (ArchitectException ex) {
 					ex.printStackTrace();
 					dtde.rejectDrop();
+				} finally {
+					c.setInsertionPoint(COLUMN_INDEX_NONE);
 				}
 			}
 		}

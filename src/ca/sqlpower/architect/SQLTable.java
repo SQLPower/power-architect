@@ -174,7 +174,8 @@ public class SQLTable extends SQLObject {
 	}
 
 	/**
-	 * Adds all the columns of the given source table to this table.
+	 * Adds all the columns of the given source table to the end of
+	 * this table's column list.
 	 */
 	public void inherit(SQLTable source) throws ArchitectException {
 		SQLColumn c;
@@ -184,6 +185,25 @@ public class SQLTable extends SQLObject {
 			if (child instanceof SQLColumn) {
 				c = SQLColumn.getDerivedInstance((SQLColumn) child, this);
 				addChild(c);
+			} else {
+				logger.warn("inherit doesn't support child of type "+child.getClass().getName());
+			}
+		}
+	}
+
+	/**
+	 * Inserts all the columns of the given source table into this
+	 * table at position <code>pos</code>.
+	 */
+	public void inherit(int pos, SQLTable source) throws ArchitectException {
+		SQLColumn c;
+		Iterator it = source.getChildren().iterator();
+		while (it.hasNext()) {
+			SQLObject child = (SQLObject) it.next();
+			if (child instanceof SQLColumn) {
+				c = SQLColumn.getDerivedInstance((SQLColumn) child, this);
+				addChild(pos, c);
+				pos += 1;
 			} else {
 				logger.warn("inherit doesn't support child of type "+child.getClass().getName());
 			}
@@ -221,6 +241,10 @@ public class SQLTable extends SQLObject {
 
 	public void addColumn(SQLColumn col) {
 		addChild(col);
+	}
+
+	public void addColumn(int index, SQLColumn col) {
+		addChild(index, col);
 	}
 	
 	public String toString() {
