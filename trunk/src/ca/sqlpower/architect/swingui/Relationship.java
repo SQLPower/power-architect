@@ -381,8 +381,9 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 		 * into PKTable or FKTable coordinates, with the help of the
 		 * Relationship's UI delegate (which ensures the decoration
 		 * still lines up with the table's edge, and that it faces the
-		 * right way).  Whether the PK or FK table is the target
-		 * depends on the state of the {@link #movingPk} property.
+		 * right way, and that it snaps to a straight line when
+		 * close).  Whether the PK or FK table is the target depends
+		 * on the state of the {@link #movingPk} property.
 		 */
 		protected Point translatePoint(Point p) {
 			if (movingPk) {

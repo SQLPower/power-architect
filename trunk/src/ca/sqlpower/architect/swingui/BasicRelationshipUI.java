@@ -217,30 +217,51 @@ public class BasicRelationshipUI extends RelationshipUI
 	 */
 	public Point closestEdgePoint(TablePane tp, Point p) {
 		Dimension tpsize = tp.getSize();
-		Point ep; // this is the return value, set in one of the cases below
+		Point ep; // this is the return value (edge point), set in one of the cases below
+		Point sp; // this is the stationary point at the non-moving end of the relationship
 
 		if (tp == relationship.getPkTable()) {
-			if ((orientation & PARENT_FACES_LEFT) != 0)
+			sp = new Point(relationship.getFkTable().getLocation());
+			translatePoint(sp, relationship.getFkConnectionPoint());
+			sp.x -= relationship.getPkTable().getX();
+			sp.y -= relationship.getPkTable().getY();
+
+			if ((orientation & PARENT_FACES_LEFT) != 0) {
 				ep = new Point(0, Math.max(0, Math.min(tpsize.height, p.y)));
-			else if ((orientation & PARENT_FACES_RIGHT)  != 0)
+				if (Math.abs(ep.y - sp.y) <= getSnapRadius()) ep.y = sp.y;
+			} else if ((orientation & PARENT_FACES_RIGHT)  != 0) {
 				ep = new Point(tpsize.width, Math.max(0, Math.min(tpsize.height, p.y)));
-			else if ((orientation & PARENT_FACES_TOP)  != 0)
+				if (Math.abs(ep.y - sp.y) <= getSnapRadius()) ep.y = sp.y;
+			} else if ((orientation & PARENT_FACES_TOP)  != 0) {
 				ep = new Point(Math.max(0, Math.min(tpsize.width, p.x)), 0);
-			else if ((orientation & PARENT_FACES_BOTTOM)  != 0)
+				if (Math.abs(ep.x - sp.x) <= getSnapRadius()) ep.x = sp.x;
+			} else if ((orientation & PARENT_FACES_BOTTOM)  != 0) {
 				ep = new Point(Math.max(0, Math.min(tpsize.width, p.x)), tpsize.height);
-			else 
+				if (Math.abs(ep.x - sp.x) <= getSnapRadius()) ep.x = sp.x;
+			} else {
 				ep = new Point(p);
+			}
 		} else if (tp == relationship.getFkTable()) {
-			if ((orientation & CHILD_FACES_LEFT) != 0)
+			sp = new Point(relationship.getPkTable().getLocation());
+			translatePoint(sp, relationship.getPkConnectionPoint());
+			sp.x -= relationship.getFkTable().getX();
+			sp.y -= relationship.getFkTable().getY();
+
+			if ((orientation & CHILD_FACES_LEFT) != 0) {
 				ep = new Point(0, Math.max(0, Math.min(tpsize.height, p.y)));
-			else if ((orientation & CHILD_FACES_RIGHT)  != 0)
+				if (Math.abs(ep.y - sp.y) <= getSnapRadius()) ep.y = sp.y;
+			} else if ((orientation & CHILD_FACES_RIGHT)  != 0) {
 				ep = new Point(tpsize.width, Math.max(0, Math.min(tpsize.height, p.y)));
-			else if ((orientation & CHILD_FACES_TOP)  != 0)
+				if (Math.abs(ep.y - sp.y) <= getSnapRadius()) ep.y = sp.y;
+			} else if ((orientation & CHILD_FACES_TOP)  != 0) {
 				ep = new Point(Math.max(0, Math.min(tpsize.width, p.x)), 0);
-			else if ((orientation & CHILD_FACES_BOTTOM)  != 0)
+				if (Math.abs(ep.x - sp.x) <= getSnapRadius()) ep.x = sp.x;
+			} else if ((orientation & CHILD_FACES_BOTTOM)  != 0) {
 				ep = new Point(Math.max(0, Math.min(tpsize.width, p.x)), tpsize.height);
-			else 
+				if (Math.abs(ep.x - sp.x) <= getSnapRadius()) ep.x = sp.x;
+			} else {
 				ep = new Point(p);
+			}
 		} else {
 
 			// clip point p to inside of tp
@@ -270,6 +291,18 @@ public class BasicRelationshipUI extends RelationshipUI
 		}
 
 		return ep;
+	}
+
+	/**
+	 * Sums the X coordinates of the two arguments and saves the
+	 * result in modify.x.  Does the same for the Y coordinates.
+	 *
+	 * <p>Note that this is similar to Point.translate(int,int) but it
+	 * takes a second point as an argument rather than two integers.
+	 */
+	protected void translatePoint(Point modify, Point noModify) {
+		modify.x += noModify.x;
+		modify.y += noModify.y;
 	}
 
 	protected int getFacingEdges(TablePane parent, TablePane child) {
