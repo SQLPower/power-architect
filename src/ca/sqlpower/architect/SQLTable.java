@@ -160,7 +160,8 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 
 	public static SQLTable getDerivedInstance(SQLTable source, SQLDatabase parent)
 		throws ArchitectException {
-		source.populate();
+		source.populateColumns();
+		source.populateRelationships();
 		SQLTable t = new SQLTable(parent);
 		t.columnsFolder.populated = true;
 		t.importedKeysFolder.populated = true;
@@ -205,10 +206,17 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		if (!columnsFolder.isPopulated()) throw new IllegalStateException("Table must be populated before relationships are added");
 		if (importedKeysFolder.isPopulated()) return;
 		int oldSize = importedKeysFolder.children.size();
+
+		/* this must come before
+		 * SQLRelationship.addImportedRelationshipsToTable because
+		 * addImportedRelationshipsToTable causes SQLObjectEvents to be fired,
+		 * which in turn could cause infinite recursion when listeners
+		 * query the size of the relationships folder.
+		 */
+		importedKeysFolder.populated = true;
 		try {
-			SQLRelationship.addRelationshipsToTable(this);
+			SQLRelationship.addImportedRelationshipsToTable(this);
 		} finally {
-			importedKeysFolder.populated = true;
 			int newSize = importedKeysFolder.children.size();
 			if (newSize > oldSize) {
 				int[] changedIndices = new int[newSize - oldSize];
@@ -366,7 +374,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * list.
 	 */
 	public SQLColumn getColumnByName(String colName, boolean populate) throws ArchitectException {
-		if (populate && !columnsFolder.isPopulated()) populate();
+		if (populate && !columnsFolder.isPopulated()) populateColumns();
 		logger.debug("Looking for column "+colName+" in "+children);
 		Iterator it = columnsFolder.children.iterator();
 		while (it.hasNext()) {
@@ -571,20 +579,21 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * Just calls populateColumns and populateRelationships.
 	 */
 	public void populate() throws ArchitectException {
-		populateColumns();
-		populateRelationships();
+// 		populateColumns();
+// 		populateRelationships();
 	}
 	
 	public boolean isPopulated() {
-		if (columnsFolder == null
-			|| importedKeysFolder == null
-			|| exportedKeysFolder == null) {
-			return false;
-		} else {
-			return columnsFolder.isPopulated()
-				&& importedKeysFolder.isPopulated()
-				&& exportedKeysFolder.isPopulated();
-		}
+		return true;
+// 		if (columnsFolder == null
+// 			|| importedKeysFolder == null
+// 			|| exportedKeysFolder == null) {
+// 			return false;
+// 		} else {
+// 			return columnsFolder.isPopulated()
+// 				&& importedKeysFolder.isPopulated()
+// 				&& exportedKeysFolder.isPopulated();
+// 		}
 	}
 
 	/**
@@ -665,6 +674,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 				if (type == COLUMNS) {
 					parent.populateColumns();
 				} else if (type == IMPORTED_KEYS) {
+					parent.populateColumns();
 					parent.populateRelationships();
 				} else if (type == EXPORTED_KEYS) {
 					// XXX: not implemented yet
@@ -855,7 +865,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * @return the value of columns
 	 */
 	public synchronized List getColumns() throws ArchitectException {
-		populate();
+		populateColumns();
 		return columnsFolder.getChildren();
 	}
 
