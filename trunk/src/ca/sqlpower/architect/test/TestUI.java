@@ -25,9 +25,14 @@ public class TestUI extends JFrame {
 	protected JPanel playpen = null;
 	protected JTree dbTree = null;
 	protected PrintDialogFrame printDialog = null;
+	protected JFrame dbcsDialog = null;
+	protected DBConnectionSpec dbcs;
 
-	public TestUI(SQLDatabase db) throws ArchitectException {
+	public TestUI(DBConnectionSpec spec) throws ArchitectException {
 		super("UI Test Frame");
+
+		dbcs = spec;
+		SQLDatabase db = new SQLDatabase(spec);
 
 		playpen = new PlayPen();
 
@@ -81,6 +86,15 @@ public class TestUI extends JFrame {
 			});
 		box2.add(printButton);
 
+		JButton dbcsButton = new JButton("Database Connections...");
+		dbcsButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					dbcsDialog = DBCSPanel.createFrame(dbcs);
+					dbcsDialog.setVisible(true);
+				}
+			});
+		box2.add(dbcsButton);
+
 		return controlsFrame;
 	}
 
@@ -91,9 +105,7 @@ public class TestUI extends JFrame {
 		}
 		DBCSSource dbcsSource = new XMLFileDBCSSource(args[0]);
 		DBConnectionSpec spec = DBConnectionSpec.searchListForName(dbcsSource.getDBCSList(), args[1]);
-		SQLDatabase db = new SQLDatabase(spec);
-
-		TestUI frame = new TestUI(db);
+		TestUI frame = new TestUI(spec);
 		frame.setSize(400,400);
 		frame.setVisible(true);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
