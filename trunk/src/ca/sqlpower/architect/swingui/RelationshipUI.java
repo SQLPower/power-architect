@@ -11,4 +11,5 @@ public abstract class RelationshipUI extends ComponentUI implements java.io.Seri
 											  Point tp1point, Point tp2point);
 
 	public abstract Point closestEdgePoint(TablePane tp, Point p);
+	public abstract void updateBounds();
 }

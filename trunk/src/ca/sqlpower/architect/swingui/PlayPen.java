@@ -46,14 +46,6 @@ public class PlayPen extends JPanel
 	protected HashMap tableNames;
 	
 	/**
-	 * This is the list of relationships in the play pen.  They are
-	 * kind of like children, but we hide them from Swing because
-	 * they're funny. (They have to be painted in the PlayPen's
-	 * coordinate space, not their own!).
-	 */
-	protected LinkedList relationships;
-
-	/**
 	 * This is the shared popup menu that applies to right-clicks on
 	 * any TablePane in the PlayPen.
 	 */
@@ -66,7 +58,6 @@ public class PlayPen extends JPanel
 		setName("Play Pen");
 		setMinimumSize(new Dimension(200,200));
 		setBackground(java.awt.Color.white);
-		setOpaque(false);   // XXX: it really is opaque, but we can't have super.paintComponent() painting over top of our relationship lines
 		dt = new DropTarget(this, new PlayPenDropListener());
 		addContainerListener(this);
 		setupTablePanePopup();
@@ -91,7 +82,6 @@ public class PlayPen extends JPanel
 			dbcs.setName("Target Database");
 			db.setConnectionSpec(dbcs);
 		}
-		relationships = new LinkedList();
 		try {
 			ArchitectUtils.listenToHierarchy(this, db);
 		} catch (ArchitectException ex) {
@@ -168,7 +158,7 @@ public class PlayPen extends JPanel
 			mi = new JMenuItem("Show Relationships");
 			mi.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent evt) {
-						JOptionPane.showMessageDialog(PlayPen.this, new JScrollPane(new JList(new java.util.Vector(relationships))));
+						JOptionPane.showMessageDialog(PlayPen.this, new JScrollPane(new JList(new java.util.Vector(getRelationships()))));
 					}
 				});
 			playPenPopup.add(mi);
@@ -215,24 +205,6 @@ public class PlayPen extends JPanel
 		};
 
 	/**
-	 * Paints all the relationships using the passed-in graphics
-	 * object directly, then calls super.paint(g) which will paint all
-	 * the child components.
-	 */
-	protected void paintComponent(Graphics g) {
-		Dimension size = getSize();
-		g.setColor(getBackground());
-		g.fillRect(0, 0, size.width, size.height);
-		g.setColor(getForeground());
-		Iterator it = relationships.iterator();
-		while (it.hasNext()) {
-			Relationship r = (Relationship) it.next();
-			r.paint(g);
-		}
-		super.paintComponent(g);
-	}
-
-	/**
 	 * Searches this PlayPen's children for a TablePane whose model is
 	 * t.
 	 *
@@ -251,29 +223,35 @@ public class PlayPen extends JPanel
 	}
 
 	/**
-	 * Works under limited circumstances. Use {@link #importTableCopy} instead.
+	 * Adds the given component to this tablepane.  Only accepts
+	 * Relationship and TablePane components.
 	 */
 	public void add(Component c, Object constraints) {
 		if (c instanceof Relationship) {
-			throw new IllegalArgumentException("Use addRelationship instead");
-		}
-		if (constraints instanceof Point) {
-			super.add(c, constraints);
+			super.add(c);
+		} else if (c instanceof TablePane) {
+			if (constraints instanceof Point) {
+				super.add(c, constraints);
+			} else {
+				throw new IllegalArgumentException("Constraints must be a Point");
+			}
 		} else {
-			throw new IllegalArgumentException("Constraints must be a Point");
+			throw new IllegalArgumentException("TablePane can't contain components of type "
+											   +c.getClass().getName());
 		}
-	}
-
-	public void addRelationship(Relationship r) {
-		relationships.add(r);
-		repaint();
 	}
 
 	/**
-	 * Returns the list of Relationship gui components in this
-	 * playpen.  If you modify it, you will suffer.
+	 * Returns a list of the Relationship gui components in this
+	 * playpen.
 	 */
 	public List getRelationships() {
+		LinkedList relationships = new LinkedList();
+		for (int i = 0, n = getComponentCount(); i < n; i++) {
+			if (getComponent(i) instanceof Relationship) {
+				relationships.add(getComponent(i));
+			}
+		}
 		return relationships;
 	}
 
@@ -428,11 +406,11 @@ public class PlayPen extends JPanel
 					}
 				}
 			} else if (c[i] instanceof SQLRelationship) {
-				ListIterator it = relationships.listIterator();
-				while (it.hasNext()) {
-					Relationship r = (Relationship) it.next();
+				for (int j = 0, n = getComponentCount(); j < n; j++) {
+					Relationship r = (Relationship) getComponent(j);
+					if (selectedChild == r) selectedChild = null;
 					if (r.getModel() == c[i]) {
-						it.remove();
+						remove(j);
 						fireEvent = true;
 					}
 				}
@@ -1034,6 +1012,7 @@ public class PlayPen extends JPanel
 			tp.addMouseMotionListener(this);  // motion down and right
 			pp.addMouseMotionListener(this);  // movement past the top-left edge of tp
 			tp.addMouseListener(this); // the click that ends this operation
+			pp.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
 		}
 
 		public void mouseMoved(MouseEvent e) {
@@ -1047,7 +1026,7 @@ public class PlayPen extends JPanel
 			}
 			Point p = new Point(e.getPoint().x - handle.x, e.getPoint().y - handle.y);
 			tp.setLocation(p);
-			pp.repaint(); // this is required because the relationship lines are not known by swing
+			//pp.repaint(); // this is required because the relationship lines are not known by swing
 		}
 
 		/**
@@ -1058,6 +1037,7 @@ public class PlayPen extends JPanel
 		}
 
 		protected void cleanup() {
+			pp.setCursor(null);
 			tp.removeMouseMotionListener(this);
 			pp.removeMouseMotionListener(this);
 			tp.removeMouseListener(this);

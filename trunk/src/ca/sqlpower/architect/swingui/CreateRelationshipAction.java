@@ -34,12 +34,13 @@ public class CreateRelationshipAction extends AbstractAction
 		fkTable = null;
 		logger.debug("Starting to create relationship!");
 		active = true;
+		pp.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 	}
 
 	protected void doCreateRelationship() {
 		try {
 			Relationship r = new Relationship(pp, pkTable, fkTable);
-			pp.addRelationship(r);
+			pp.add(r);
 		} catch (ArchitectException ex) {
 			logger.error("Couldn't create relationship", ex);
 			JOptionPane.showMessageDialog(pp, "Couldn't create relationship: "+ex.getMessage());
@@ -78,6 +79,7 @@ public class CreateRelationshipAction extends AbstractAction
 				fkTable = (TablePane) s;
 				logger.debug("Creating relationship: FK Table is "+fkTable);
 				doCreateRelationship();
+				pp.setCursor(null);
 				active = false;
 			}
 		} else {
