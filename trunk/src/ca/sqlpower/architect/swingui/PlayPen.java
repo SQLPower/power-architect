@@ -328,12 +328,10 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 	 * Works under limited circumstances. Use {@link #addTable} instead.
 	 */
 	public void add(Component c, Object constraints) {
-		if (c instanceof TablePane) {
-			throw new IllegalArgumentException("You should use addTable.  See javadoc.");
-		} else if (constraints instanceof Point) {
+		if (constraints instanceof Point) {
 			super.add(c, constraints);
 		} else {
-			throw new IllegalArgumentException("You should use addTable.  See javadoc.");
+			throw new IllegalArgumentException("Constraints must be a Point");
 		}
 	}
 
