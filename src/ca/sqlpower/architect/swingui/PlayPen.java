@@ -387,7 +387,7 @@ public class PlayPen extends JPanel implements java.io.Serializable, SQLObjectLi
 	 * @see PlayPenLayout#addComponent(Component,Object)
 	 */
 	public synchronized void addTable(SQLTable source, Point preferredLocation) throws ArchitectException {
-		SQLTable newTable = SQLTable.getDerivedInstance(source, db);
+		SQLTable newTable = SQLTable.getDerivedInstance(source, db); // adds newTable to db
 		String key = source.getTableName().toLowerCase();
 		Integer suffix = (Integer) tableNames.get(key);
 		if (suffix == null) {
@@ -467,6 +467,14 @@ public class PlayPen extends JPanel implements java.io.Serializable, SQLObjectLi
 	 * delegate) with a ChangeEvent.
 	 */
 	public void dbChildrenInserted(SQLObjectEvent e) {
+		logger.debug("SQLObject children got inserted: "+e);
+		SQLObject o = e.getSQLSource();
+		SQLObject[] c = e.getChildren();
+		for (int i = 0; i < c.length; i++) {
+			if (c[i] instanceof SQLTable) {
+				c[i].addSQLObjectListener(this);
+			}
+		}
 		firePropertyChange("model.children", null, null);
 		revalidate();
 	}
@@ -478,12 +486,26 @@ public class PlayPen extends JPanel implements java.io.Serializable, SQLObjectLi
 	 * delegate) with a ChangeEvent.
 	 */
 	public void dbChildrenRemoved(SQLObjectEvent e) {
+		logger.debug("SQLObject children got removed: "+e);
+		SQLObject o = e.getSQLSource();
+		SQLObject[] c = e.getChildren();
+		for (int i = 0; i < c.length; i++) {
+			if (c[i] instanceof SQLTable) {
+				c[i].removeSQLObjectListener(this);
+				for (int j = 0; j < getComponentCount(); j++) {
+					TablePane tp = (TablePane) getComponent(j);
+					if (tp.getModel() == c[i]) {
+						remove(j);
+					}
+				}
+			}
+		}
 		firePropertyChange("model.children", null, null);
 		revalidate();
 	}
 
 	/**
-	 * Listens for property changes in the model (columns
+	 * Listens for property changes in the model (table
 	 * properties modified).  If this change affects the appearance of
 	 * this widget, we will notify all change listeners (the UI
 	 * delegate) with a ChangeEvent.
@@ -498,10 +520,14 @@ public class PlayPen extends JPanel implements java.io.Serializable, SQLObjectLi
 	 * structure change).  If this change affects the appearance of
 	 * this widget, we will notify all change listeners (the UI
 	 * delegate) with a ChangeEvent.
+	 *
+	 * <p>NOTE: This is not currently implemented.
 	 */
 	public void dbStructureChanged(SQLObjectEvent e) {
-		firePropertyChange("model.children", null, null);
-		revalidate();
+		throw new UnsupportedOperationException
+			("FIXME: we have to make sure we're listening to the right objects now!");
+		//firePropertyChange("model.children", null, null);
+		//revalidate();
 	}
 
 	// --------------- SELECTION METHODS ----------------
