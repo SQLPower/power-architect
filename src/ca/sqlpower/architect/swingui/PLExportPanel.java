@@ -20,12 +20,11 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 
 	private static final Logger logger = Logger.getLogger(PLExportPanel.class);
 
-	protected DBConnectionSpec dbcs;
-	protected Vector history;
+	protected Vector connections;
 	protected Vector plodbc;
 
 	// Left-hand side fields
-	protected JComboBox historyBox;
+	protected JComboBox connectionsBox;
 	protected JTextField plRepOwner;
 	protected JTextField plFolderName;
 	protected JTextField plJobId;
@@ -37,9 +36,9 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 	protected JComboBox plODBCSourceBox;
 	protected JTextField plUserName;
 	protected JPasswordField plPassword;
-	protected JCheckBox  runPLEngine;
+	protected JCheckBox runPLEngine;
 
-	protected String     projName;
+	protected String projName;
 	private Map jdbcDrivers;
 	private JButton newConnButton;
 	
@@ -51,13 +50,11 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		newConnButton= new JButton("New");
 		newConnButton.addActionListener(new NewConnectionListener());
 
-		List connectionHistory = af.getUserSettings().getConnections();
-
 		String plIniPath = af.getUserSettings().getETLUserSettings().getPlDotIniPath();
 		List plOdbcCon = new ArrayList();
 		try {
 			if (plIniPath != null) {
-				plOdbcCon = getPLDBConnection(plIniPath);
+				plOdbcCon = parsePlDotIni(plIniPath);
 			} else {
 				JOptionPane.showMessageDialog
 					(this, "Warning: You have not set the PL.INI file location."
@@ -72,15 +69,14 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 										  +"\nThe PL Connection box will be empty.");
 		}    
 
-		history = new Vector();
-		history.add(ASUtils.lvb("(Select PL Connection)", null));
-		Iterator it = connectionHistory.iterator();
+		connections = new Vector();
+		connections.add(ASUtils.lvb("(Select PL Connection)", null));
+		Iterator it = af.getUserSettings().getConnections().iterator();
 		while (it.hasNext()) {
 			DBConnectionSpec spec = (DBConnectionSpec) it.next();
-			history.add(ASUtils.lvb(spec.getDisplayName(), spec));
+			connections.add(ASUtils.lvb(spec.getDisplayName(), spec));
 		}
-		historyBox = new JComboBox(history);
-		historyBox.addActionListener(new HistoryBoxListener());
+		connectionsBox = new JComboBox(connections);
 
 		plodbc = new Vector();
 		plodbc.add(ASUtils.lvb("(Select PL ODBC Connection)", null));
@@ -101,7 +97,7 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		plJobId      = new JTextField(toPLIdentifier(projName)+"_Job");
 
 		JPanel jdbcPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        jdbcPanel.add(historyBox);
+        jdbcPanel.add(connectionsBox);
 		jdbcPanel.add(newConnButton);
 
 		JComponent[] jdbcFields = new JComponent[] {jdbcPanel,
@@ -153,15 +149,6 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		add(engineForm);
 	}
 
-	public class HistoryBoxListener implements ActionListener {
-		public void actionPerformed(ActionEvent e) {
-			ASUtils.LabelValueBean lvb = (ASUtils.LabelValueBean) historyBox.getSelectedItem();
-			if (lvb.getValue() != null) {
-				dbcs = (DBConnectionSpec) lvb.getValue();
-			}
-		}
-	}
-
 	public class ODBCSourceListener  implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			ASUtils.LabelValueBean lvb = (ASUtils.LabelValueBean) plODBCSourceBox.getSelectedItem();
@@ -187,6 +174,7 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 				JPanel plr = new JPanel(new BorderLayout(12,12));
 				plr.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
 				final DBCSPanel dbcsPanel = new DBCSPanel();
+				dbcsPanel.setDbcs(new DBConnectionSpec());
 				plr.add(dbcsPanel, BorderLayout.CENTER);
 
 				JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -194,11 +182,11 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 				JButton okButton = new JButton("Ok");
 				okButton.addActionListener(new ActionListener() {
 						public void actionPerformed(ActionEvent evt) {
-							dbcs = new DBConnectionSpec();
-							dbcsPanel.applyChanges(dbcs);
-							historyBox.addItem(ASUtils.lvb(dbcs.getDisplayName(), dbcs));
+							dbcsPanel.applyChanges();
+							DBConnectionSpec dbcs = dbcsPanel.getDbcs();
+							connectionsBox.addItem(ASUtils.lvb(dbcs.getDisplayName(), dbcs));
+							ArchitectFrame.getMainInstance().getUserSettings().getConnections().add(dbcs);
 							d.setVisible(false);
-							
 						}
 					});
 				buttonPanel.add(okButton);
@@ -219,24 +207,10 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 	}
 	
 	/**
-	 * Returns the index of findMe in the DBCS history vector.  0
-	 * means not found because 0 is the reserved index for new
-	 * connections not in the list.
+	 * Creates a list of PLdbConn objects from the database
+	 * connections described in the PL.INI file at the given path.
 	 */
-	public int findHistoryConnection(DBConnectionSpec findMe) {
-		int i = 0;
-		Iterator it = history.iterator();
-		while (it.hasNext()) {
-			ASUtils.LabelValueBean lvb = (ASUtils.LabelValueBean) it.next();
-			if (lvb.getValue() == findMe) {
-				return i;
-			}
-			i++;
-		}
-		return 0;
-	}
-
-	public List getPLDBConnection(String plDotIniPath) throws FileNotFoundException, IOException {
+	public List parsePlDotIni(String plDotIniPath) throws FileNotFoundException, IOException {
 		List odbc = new ArrayList();
 		PLdbConn plconn = null;
 		File inputFile = new File(plDotIniPath);
@@ -296,30 +270,6 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		}
 	}
 
-// Function DecryptPassword(pnNumber As Byte, psEncryptedPassword As String) As String
-// Dim lsPassword As String
-// Dim lnCounter As Byte
-// Dim lnTemp As Integer
-
-//     lnCounter = 1
-//     Do Until lnCounter = Len(psEncryptedPassword) + 1
-//         lnTemp = Asc(Mid(psEncryptedPassword, lnCounter, 1)) Xor (10 - pnNumber)
-
-//         If lnCounter Mod 2 = 0 Then 'see if even
-//             lnTemp = lnTemp + pnNumber
-//         Else
-//             lnTemp = lnTemp - pnNumber
-//         End If
-
-//         lsPassword = lsPassword & Chr$(lnTemp)
-
-//         lnCounter = lnCounter + 1
-//     Loop
-
-//     DecryptPassword = lsPassword
-
-// End Function
-
 	/**
 	 * Decrypts a PL.INI password.  The correct argument for
 	 * <code>number</code> is 9.
@@ -346,12 +296,9 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 	// -------------------- ARCHITECT PANEL INTERFACE -----------------------
 
 	/**
-	 * Copies the properties displayed in the various fields back into
-	 * the current DBConnectionSpec.  You still need to call getDbcs()
-	 * and save the connection spec yourself.
+	 * Does nothing right now.
 	 */
 	public void applyChanges() {
-		String name = plFolderName.getText();
 	}
 
 	/**
@@ -361,6 +308,16 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 	}
 
 	// ---------------- accessors and mutators ----------------
+
+	/**
+	 * Returns the selected DBConnectionSpec from the combo box, or
+	 * null if the "choose a connection" item is selected.
+	 */
+	public DBConnectionSpec getTargetDBCS() {
+		ASUtils.LabelValueBean item = (ASUtils.LabelValueBean) connectionsBox.getSelectedItem();
+		if (item == null) return null;
+		else return (DBConnectionSpec) item.getValue();
+	}
 
 	/**
 	 * Returns the PLdbConn object representing the currently-selected
@@ -416,13 +373,5 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 
 	public String getPlPassword() {
 		return plPassword.getText();
-	}
-	
-	/**
-	 * Returns a reference to the current DBConnectionSpec (that is,
-	 * the one that will be updated when apply() is called).
-	 */
-	public DBConnectionSpec getDbcs() {
-		return dbcs;
 	}
 }

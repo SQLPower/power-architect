@@ -112,17 +112,6 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
 		dbcs.setPass(new String(dbPassField.getPassword())); // completely defeats the purpose for JPasswordField.getText() being deprecated, but we're saving passwords to the config file so it hardly matters.
 	}
 
-	public void applyChanges(DBConnectionSpec dbcs ) {
-		String name = dbNameField.getText();
-		dbcs.setName(name);
-		dbcs.setDisplayName(name);
-		dbcs.setDriverClass(dbDriverField.getSelectedItem().toString());
-		dbcs.setUrl(dbUrlField.getText());
-		dbcs.setUser(dbUserField.getText());
-		dbcs.setPass(new String(dbPassField.getPassword())); // completely defeats the purpose for JPasswordField.getText() being deprecated, but we're saving passwords to the config file so it hardly matters.
-	}
-	
-	
 	/**
 	 * Does nothing right now.
 	 */
