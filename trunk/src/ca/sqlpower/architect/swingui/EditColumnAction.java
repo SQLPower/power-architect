@@ -1,9 +1,11 @@
 package ca.sqlpower.architect.swingui;
 
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
 import java.awt.event.*;
+import java.util.List;
 import javax.swing.*;
 import javax.swing.event.*;
-import java.awt.*;
 import ca.sqlpower.architect.*;
 import org.apache.log4j.Logger;
 
@@ -30,9 +32,13 @@ public class EditColumnAction extends AbstractAction implements ActionListener {
 	}
 
 	public void actionPerformed(ActionEvent evt) {
-		Selectable invoker = pp.getSelection();
-		if (invoker instanceof TablePane) {
-			TablePane tp = (TablePane) invoker;
+		List selection = pp.getSelectedItems();
+		if (selection.size() < 1) {
+			JOptionPane.showMessageDialog(pp, "Select a column (by clicking on it) and try again.");
+		} else if (selection.size() > 1) {
+			JOptionPane.showMessageDialog(pp, "You have selected multiple items, but you can only edit one at a time.");
+		} else if (selection.get(0) instanceof TablePane) {
+			TablePane tp = (TablePane) selection.get(0);
 			try {
 				int idx = tp.getSelectedColumnIndex();
 				if (editDialog != null) {
@@ -72,8 +78,7 @@ public class EditColumnAction extends AbstractAction implements ActionListener {
 				cleanup();
 			}
 		} else {
-			JOptionPane.showMessageDialog((JComponent) invoker,
-										  "The selected item type is not recognised");
+			JOptionPane.showMessageDialog(pp, "The selected item type is not recognised");
 			cleanup();
 		}
 	}

@@ -6,5 +6,4 @@ public interface Selectable {
 
 	public void addSelectionListener(SelectionListener l);
 	public void removeSelectionListener(SelectionListener l);
-
 }

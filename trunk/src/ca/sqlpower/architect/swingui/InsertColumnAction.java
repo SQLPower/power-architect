@@ -1,6 +1,7 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.event.*;
+import java.util.List;
 import javax.swing.*;
 import javax.swing.event.*;
 import ca.sqlpower.architect.*;
@@ -24,9 +25,13 @@ public class InsertColumnAction extends AbstractAction {
 	}
 
 	public void actionPerformed(ActionEvent evt) {
-		Selectable invoker = pp.getSelection();
-		if (invoker instanceof TablePane) {
-			TablePane tp = (TablePane) invoker;
+		List selection = pp.getSelectedItems();
+		if (selection.size() < 1) {
+			JOptionPane.showMessageDialog(pp, "Select a table (by clicking on it) and try again.");
+		} else if (selection.size() > 1) {
+			JOptionPane.showMessageDialog(pp, "You have selected multiple items, but you can only edit one at a time.");
+		} else if (selection.get(0) instanceof TablePane) {
+			TablePane tp = (TablePane) selection.get(0);
 			int idx = tp.getSelectedColumnIndex();
 			try {
 				if (idx < 0) idx = tp.getModel().getColumnsFolder().getChildCount();
@@ -35,8 +40,7 @@ public class InsertColumnAction extends AbstractAction {
 			}
 			tp.getModel().addColumn(idx, new SQLColumn());
 		} else {
-			JOptionPane.showMessageDialog((JComponent) invoker,
-										  "The selected item type is not recognised");
+			JOptionPane.showMessageDialog(pp, "The selected item type is not recognised");
 		}
 	}
 
