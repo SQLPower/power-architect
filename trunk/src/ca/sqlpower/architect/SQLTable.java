@@ -521,7 +521,11 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		if (schema != null) {
 			return schema.getSchemaName()+"."+tableName+" ("+objectType+")";
 		} else {
-			return tableName+" ("+objectType+")";
+			if (objectType != null) {
+				return tableName+" ("+objectType+")";
+			} else {
+				return tableName;
+			}
 		}
 	}
 
