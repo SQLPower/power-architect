@@ -10,22 +10,21 @@ import java.util.List;
 import java.util.ArrayList;
 
 import ca.sqlpower.architect.*;
+import ca.sqlpower.sql.DBConnectionSpec;
 
 public class DBTree extends JTree implements DragSourceListener {
 
 	protected DragSource ds;
 	protected JPopupMenu popup;
 
-	public DBTree(SQLDatabase root) throws ArchitectException {
-		super(new DBTreeModel(root));
+	public DBTree(List initialDatabases) throws ArchitectException {
+		super(new DBTreeModel(initialDatabases));
+		setRootVisible(false);
 		ds = new DragSource();
 		DragGestureRecognizer dgr = ds.createDefaultDragGestureRecognizer
 			(this, DnDConstants.ACTION_COPY, new DBTreeDragGestureListener());
 
-		popup = new JPopupMenu();
-		JMenuItem item = new JMenuItem("Properties");
-		item.addActionListener(new PopupPropertiesListener());
-		popup.add(item);
+		popup = setupPopupMenu();
 		addMouseListener(new PopupListener());
 	}
 
@@ -93,6 +92,32 @@ public class DBTree extends JTree implements DragSourceListener {
  		}
 	}
 
+	// ----------------- popup menu stuff ----------------
+
+	protected JPopupMenu setupPopupMenu() {
+		JPopupMenu newMenu = new JPopupMenu();
+		
+		JMenuItem popupNewDatabase = new JMenuItem("New Database Connection...");
+		popupNewDatabase.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					DBConnectionSpec dbcs = new DBConnectionSpec();
+					dbcs.setDisplayName("New Connection");
+					SQLDatabase db = new SQLDatabase(dbcs);
+					((DBTreeModel.DBTreeRoot) getModel().getRoot()).addChild(db);
+					JFrame propWindow = DBCSPanel.createFrame(dbcs);
+					propWindow.setVisible(true);
+				}
+			});
+		newMenu.add(popupNewDatabase);  // index 0
+
+		newMenu.addSeparator();         // index 1
+
+		JMenuItem popupProperties = new JMenuItem("Properties");
+		popupProperties.addActionListener(new PopupPropertiesListener());
+		newMenu.add(popupProperties);   // index 2
+
+		return newMenu;
+	}
 	/**
 	 * A simple mouse listener that activates the DBTree's popup menu
 	 * when the user right-clicks (or some other platform-specific action).
@@ -112,7 +137,16 @@ public class DBTree extends JTree implements DragSourceListener {
         private void maybeShowPopup(MouseEvent e) {
             if (e.isPopupTrigger()) {
 				TreePath p = getPathForLocation(e.getX(), e.getY());
-				if (p == null) return;
+				if (p == null) {
+					popup.getComponent(0).setVisible(true);
+					popup.getComponent(1).setVisible(false);
+					popup.getComponent(2).setVisible(false);
+				} else {
+					//SQLObject so = (SQLObject) p.getLastPathComponent();
+					popup.getComponent(0).setVisible(true);
+					popup.getComponent(1).setVisible(true);
+					popup.getComponent(2).setVisible(true);
+				}
 				setSelectionPath(p);
                 popup.show(e.getComponent(),
                            e.getX(), e.getY());
