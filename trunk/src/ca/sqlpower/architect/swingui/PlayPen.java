@@ -21,7 +21,7 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 	 * users can drop stuff on the playpen.
 	 */
 	protected DropTarget dt;
-	
+
 	public PlayPen() {
 		super();
 		setLayout(new PlayPenLayout(this));
@@ -30,7 +30,7 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 		setOpaque(true);
 		dt = new DropTarget(this, new PlayPenDropListener());
 	}
-	
+
 	public static class PlayPenLayout implements LayoutManager2 {
 
 		/**
@@ -44,9 +44,11 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 
 		/**
 		 * Does nothing.  Use the Object-style constraints, not String.
+		 *
+		 * @throws UnsupportedOperationException if called.
 		 */
 		public void addLayoutComponent(String name, Component comp) {
-			System.out.println("PlayPenLayout.addLayoutComponent(String,Component)");
+			throw new UnsupportedOperationException("Use addLayoutComponent(Component,Object) instead");
 		}
 
 		/**
@@ -59,9 +61,10 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 		 */
 		public void addLayoutComponent(Component comp,
 									   Object position) {
-			System.out.println("PlayPenLayout.addLayoutComponent(Component,Object)");
 			Point pos = (Point) position;
 			comp.setSize(comp.getPreferredSize());
+			int nh = comp.getHeight();
+			int nw = comp.getWidth();
 
 			RangeList rl = new RangeList();
 			Rectangle cbounds = null;
@@ -69,12 +72,53 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 				Component c = parent.getComponent(i);
 				if (c.isVisible() && c != comp) {
 					cbounds = c.getBounds(cbounds);
-					rl.blockOut(cbounds.x, cbounds.width);
+					if ( ! ( (cbounds.y+cbounds.height < pos.y) 
+							 || (pos.y + nh < cbounds.y)
+                           )
+                       ) {
+						rl.blockOut(cbounds.x, cbounds.width);
+					}
 				}
 			}
 			
-			pos.x = Math.max(pos.x, rl.findGapToRight(pos.x, comp.getWidth()));
+			int rightGap = Math.max(rl.findGapToRight(pos.x, nw), pos.x);
+			//int leftGap = Math.min(rl.findGapToLeft(pos.x, nw), pos.x);
+			int leftGap = rl.findGapToLeft(pos.x, nw);
+
+			System.out.println("pos.x = "+pos.x+"; rightGap = "+rightGap+"; leftGap = "+leftGap);
+			if (rightGap - pos.x <= pos.x - leftGap) {
+				pos.x = rightGap;
+			} else {
+				pos.x = leftGap;
+			}
 			comp.setLocation(pos);
+
+			if (pos.x < 0) {
+				translateAllComponents( Math.abs(pos.x), 0 );
+			}
+		}
+
+		/**
+		 * Translates all components left and down by the specified
+		 * amounts.  Tries to make it appear that the components
+		 * didn't move by scrolling the viewport by the same amount as
+		 * the components were translated.
+		 */
+		protected void translateAllComponents(int xdist, int ydist) {
+			Rectangle visibleArea = parent.getVisibleRect();
+
+			Point p = new Point();
+			for (int i = 0, n = parent.getComponentCount(); i < n; i++) {
+				JComponent c = (JComponent) parent.getComponent(i);
+				p = c.getLocation(p);
+				p.x += xdist;
+				p.y += ydist;
+				c.setLocation(p);
+			}
+
+			visibleArea.x += xdist;
+			visibleArea.y += ydist;
+			parent.scrollRectToVisible(visibleArea);
 		}
 
 		/**
@@ -89,7 +133,6 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 		 * enclose the visible components inside parent.
 		 */
 		public Dimension preferredLayoutSize(Container parent) {
-			System.out.println("PlayPenLayout.preferredLayoutSize");
 			Rectangle cbounds = null;
 			//int minx = Integer.MAX_VALUE, miny = Integer.MAX_VALUE, maxx = 0, maxy = 0;
 			int minx = 0, miny = 0, maxx = 0, maxy = 0;
@@ -113,7 +156,6 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 		 * Identical to {@link #preferredLayoutSize(Container)}.
 		 */
 		public Dimension minimumLayoutSize(Container parent) {
-			System.out.println("PlayPenLayout.minimumLayoutSize");
 			return preferredLayoutSize(parent);
 		}
 
@@ -153,7 +195,7 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 			public RangeList() {
 				blocks = new LinkedList();
 
-				// we need sentinel values because blockOut() requires non-empty list
+				// blockOut needs non-empty list with something at far right side
 				blocks.add(new Block(Integer.MAX_VALUE, 0));
 			}
 
@@ -186,6 +228,36 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 
 				}
 				return start;
+			}
+
+			//   cc                 XX
+			//     --- --------      --  -----  --    ------                   s
+			public int findGapToLeft(int start, int length) {
+				int closestLeftGap = Integer.MIN_VALUE;
+				int prevBlockEnd = Integer.MIN_VALUE;
+				Iterator it = blocks.iterator();
+				while (it.hasNext()) {
+					Block block = (Block) it.next();
+					if ( (prevBlockEnd < block.start - length)
+						 && (block.start - length <= start) ) {
+						closestLeftGap = block.start - length;
+						System.out.println("Updating leftGap = "+closestLeftGap);
+					}
+					if ( block.start > start ) {
+						// we have reached a block to the right of start
+						break;
+					}
+					prevBlockEnd = block.start + block.length;
+				}
+
+				// if we're still at one of the sentinel values, return the mouse location
+ 				if (//closestLeftGap == Integer.MAX_VALUE-length ||
+ 					closestLeftGap == Integer.MIN_VALUE) {
+ 					return start;
+ 				} else {
+					// otherwise, the answer is correct
+					return closestLeftGap;
+				}
 			}
 
 			protected static class Block {
