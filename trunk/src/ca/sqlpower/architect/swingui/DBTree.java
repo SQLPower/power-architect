@@ -3,6 +3,7 @@ package ca.sqlpower.architect.swingui;
 import javax.swing.*;
 import javax.swing.tree.*;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.datatransfer.*;
@@ -31,6 +32,9 @@ public class DBTree extends JTree implements DragSourceListener {
 	 */
 	protected SQLDatabase edittingDB;
 
+
+	// ----------- CONSTRUCTORS ------------
+
 	public DBTree() {
 		setRootVisible(false);
 		setShowsRootHandles(true);
@@ -47,20 +51,6 @@ public class DBTree extends JTree implements DragSourceListener {
 	public DBTree(List initialDatabases) throws ArchitectException {
 		this();
 		setDatabaseList(initialDatabases);
-	}
-
-	public void setDatabaseList(List databases) throws ArchitectException {
-		setModel(new DBTreeModel(databases));
-	}
-
-	public List getDatabaseList() {
-		ArrayList databases = new ArrayList();
-		TreeModel m = getModel();
-		int dbCount = m.getChildCount(m.getRoot());
-		for (int i = 0; i < dbCount; i++) {
-			databases.add(m.getChild(m.getRoot(), i));
-		}
-		return databases;
 	}
 
 	/**
@@ -101,6 +91,23 @@ public class DBTree extends JTree implements DragSourceListener {
 		propDialog.pack();
 	}
 
+
+	// ----------- INSTANCE METHODS ------------
+
+	public void setDatabaseList(List databases) throws ArchitectException {
+		setModel(new DBTreeModel(databases));
+	}
+
+	public List getDatabaseList() {
+		ArrayList databases = new ArrayList();
+		TreeModel m = getModel();
+		int dbCount = m.getChildCount(m.getRoot());
+		for (int i = 0; i < dbCount; i++) {
+			databases.add(m.getChild(m.getRoot(), i));
+		}
+		return databases;
+	}
+
 	/**
 	 * Creates an integer array which holds the child indices of each
 	 * node starting from the root which lead to node "node."
@@ -133,6 +140,19 @@ public class DBTree extends JTree implements DragSourceListener {
 		return getRowForPath(path);
 	}
 
+	
+	// -------------- JTree Overrides ---------------------
+	
+	public void expandPath(TreePath tp) {
+		try {
+			ArchitectFrame.getMainInstance().setCursor(Cursor.WAIT_CURSOR);
+			super.expandPath(tp);
+		} catch (Exception ex) {
+			JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+		}
+		ArchitectFrame.getMainInstance().setCursor(null);
+	}
+
 	// ---------- methods of DragSourceListener -----------
 	public void dragEnter(DragSourceDragEvent dsde) {
 		logger.debug("DBTree: got dragEnter event");
@@ -154,6 +174,102 @@ public class DBTree extends JTree implements DragSourceListener {
 		logger.debug("DBTree: got dragDropEnd event");
 	}
 
+	// ----------------- popup menu stuff ----------------
+
+	protected JPopupMenu setupPopupMenu() {
+		JPopupMenu newMenu = new JPopupMenu();
+		
+		JMenuItem popupNewDatabase = new JMenuItem("New Database Connection...");
+		popupNewDatabase.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					DBConnectionSpec dbcs = new DBConnectionSpec();
+					dbcs.setName("New Connection");
+					dbcs.setDisplayName("New Connection");
+					SQLDatabase db = new SQLDatabase(dbcs);
+					((DBTreeModel.DBTreeRoot) getModel().getRoot()).addChild(db);
+					edittingDB = db;
+					logger.debug("Setting new DBCS on panel: "+dbcs);
+					dbcsPanel.setDbcs(dbcs);
+					propDialog.setVisible(true);
+					propDialog.requestFocus();
+				}
+			});
+		newMenu.add(popupNewDatabase);  // index 0
+
+		newMenu.addSeparator();         // index 1
+
+		JMenuItem popupProperties = new JMenuItem("Properties");
+		popupProperties.addActionListener(new PopupPropertiesListener());
+		newMenu.add(popupProperties);   // index 2
+
+		return newMenu;
+	}
+
+	/**
+	 * A simple mouse listener that activates the DBTree's popup menu
+	 * when the user right-clicks (or some other platform-specific action).
+	 *
+	 * @author The Swing Tutorial (Sun Microsystems, Inc.)
+	 */
+	class PopupListener extends MouseAdapter {
+
+        public void mousePressed(MouseEvent e) {
+            maybeShowPopup(e);
+        }
+
+        public void mouseReleased(MouseEvent e) {
+            maybeShowPopup(e);
+        }
+
+        private void maybeShowPopup(MouseEvent e) {
+            if (e.isPopupTrigger()) {
+				TreePath p = getPathForLocation(e.getX(), e.getY());
+				if (p == null) {
+					popup.getComponent(0).setVisible(true);
+					popup.getComponent(1).setVisible(false);
+					popup.getComponent(2).setVisible(false);
+				} else {
+					//SQLObject so = (SQLObject) p.getLastPathComponent();
+					popup.getComponent(0).setVisible(true);
+					popup.getComponent(1).setVisible(true);
+					popup.getComponent(2).setVisible(true);
+				}
+				setSelectionPath(p);
+                popup.show(e.getComponent(),
+                           e.getX(), e.getY());
+            }
+        }
+    }
+	
+	/**
+	 * The PopupPropertiesListener responds to the "Properties" item
+	 * in the popup menu.  It determines which item in the tree is
+	 * currently selected, then (creates and) shows its properties window.
+	 */
+	class PopupPropertiesListener implements ActionListener {
+		public void actionPerformed(ActionEvent e) {
+			TreePath p = getSelectionPath();
+			if (p == null) {
+				return;
+			}
+			SQLObject so = (SQLObject) p.getLastPathComponent();
+			if (so instanceof SQLDatabase) {
+				DBConnectionSpec dbcs = ((SQLDatabase) so).getConnectionSpec();
+				logger.debug("Setting existing DBCS on panel: "+dbcs);
+				edittingDB = (SQLDatabase) so;
+				dbcsPanel.setDbcs(dbcs);
+				propDialog.setVisible(true);
+				propDialog.requestFocus();
+			} else if (so instanceof SQLCatalog) {
+			} else if (so instanceof SQLSchema) {
+			} else if (so instanceof SQLTable) {
+			} else if (so instanceof SQLColumn) {
+			}
+		}
+	}
+
+
+	// --------------- INNER CLASSES -----------------
 	/**
 	 * Exports the SQLObject which was under the pointer in a DBTree
 	 * when the drag gesture started.  If the tree contains
@@ -191,72 +307,6 @@ public class DBTree extends JTree implements DragSourceListener {
  		}
 	}
 
-	// ----------------- popup menu stuff ----------------
-
-	protected JPopupMenu setupPopupMenu() {
-		JPopupMenu newMenu = new JPopupMenu();
-		
-		JMenuItem popupNewDatabase = new JMenuItem("New Database Connection...");
-		popupNewDatabase.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					DBConnectionSpec dbcs = new DBConnectionSpec();
-					dbcs.setName("New Connection");
-					dbcs.setDisplayName("New Connection");
-					SQLDatabase db = new SQLDatabase(dbcs);
-					((DBTreeModel.DBTreeRoot) getModel().getRoot()).addChild(db);
-					edittingDB = db;
-					logger.debug("Setting new DBCS on panel: "+dbcs);
-					dbcsPanel.setDbcs(dbcs);
-					propDialog.setVisible(true);
-					propDialog.requestFocus();
-				}
-			});
-		newMenu.add(popupNewDatabase);  // index 0
-
-		newMenu.addSeparator();         // index 1
-
-		JMenuItem popupProperties = new JMenuItem("Properties");
-		popupProperties.addActionListener(new PopupPropertiesListener());
-		newMenu.add(popupProperties);   // index 2
-
-		return newMenu;
-	}
-	/**
-	 * A simple mouse listener that activates the DBTree's popup menu
-	 * when the user right-clicks (or some other platform-specific action).
-	 *
-	 * @author The Swing Tutorial (Sun Microsystems, Inc.)
-	 */
-	class PopupListener extends MouseAdapter {
-
-        public void mousePressed(MouseEvent e) {
-            maybeShowPopup(e);
-        }
-
-        public void mouseReleased(MouseEvent e) {
-            maybeShowPopup(e);
-        }
-
-        private void maybeShowPopup(MouseEvent e) {
-            if (e.isPopupTrigger()) {
-				TreePath p = getPathForLocation(e.getX(), e.getY());
-				if (p == null) {
-					popup.getComponent(0).setVisible(true);
-					popup.getComponent(1).setVisible(false);
-					popup.getComponent(2).setVisible(false);
-				} else {
-					//SQLObject so = (SQLObject) p.getLastPathComponent();
-					popup.getComponent(0).setVisible(true);
-					popup.getComponent(1).setVisible(true);
-					popup.getComponent(2).setVisible(true);
-				}
-				setSelectionPath(p);
-                popup.show(e.getComponent(),
-                           e.getX(), e.getY());
-            }
-        }
-    }
-	
 	public static class SQLObjectRenderer extends DefaultTreeCellRenderer {
 		public static final ImageIcon dbIcon = ASUtils.createIcon("Database", "SQL Database", 16);
 		public static final ImageIcon cataIcon = ASUtils.createIcon("Catalog", "SQL Catalog", 16);
@@ -303,33 +353,6 @@ public class DBTree extends JTree implements DragSourceListener {
 			this.hasFocus = hasFocus;
 
 			return this;
-		}
-	}
-
-	/**
-	 * The PopupPropertiesListener responds to the "Properties" item
-	 * in the popup menu.  It determines which item in the tree is
-	 * currently selected, then (creates and) shows its properties window.
-	 */
-	class PopupPropertiesListener implements ActionListener {
-		public void actionPerformed(ActionEvent e) {
-			TreePath p = getSelectionPath();
-			if (p == null) {
-				return;
-			}
-			SQLObject so = (SQLObject) p.getLastPathComponent();
-			if (so instanceof SQLDatabase) {
-				DBConnectionSpec dbcs = ((SQLDatabase) so).getConnectionSpec();
-				logger.debug("Setting existing DBCS on panel: "+dbcs);
-				edittingDB = (SQLDatabase) so;
-				dbcsPanel.setDbcs(dbcs);
-				propDialog.setVisible(true);
-				propDialog.requestFocus();
-			} else if (so instanceof SQLCatalog) {
-			} else if (so instanceof SQLSchema) {
-			} else if (so instanceof SQLTable) {
-			} else if (so instanceof SQLColumn) {
-			}
 		}
 	}
 }

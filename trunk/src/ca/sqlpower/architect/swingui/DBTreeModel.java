@@ -53,8 +53,9 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 			logger.debug("DBTreeModel.getChild("+parent+","+index+"): returning "+((SQLObject) parent).getChild(index));
 			return ((SQLObject) parent).getChild(index);
 		} catch (ArchitectException e) {
-			logger.error("Couldn't get child "+index+" of "+parent, e);
-			return null;
+			//logger.error("Couldn't get child "+index+" of "+parent, e);
+			//return null;
+			throw new ArchitectRuntimeException(e);
 		}
 	}
 
@@ -63,8 +64,9 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 			logger.debug("DBTreeModel.getChildCount("+parent+"): returning "+((SQLObject) parent).getChildCount());
 			return ((SQLObject) parent).getChildCount();
 		} catch (ArchitectException e) {
-			logger.error("Couldn't get child count of "+parent, e);
-			return -1;
+			//logger.error("Couldn't get child count of "+parent, e);
+			//return -1;
+			throw new ArchitectRuntimeException(e);
 		}
 	}
 
@@ -82,8 +84,9 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 			logger.debug("DBTreeModel.getIndexOfChild("+parent+","+child+"): returning "+((SQLObject) parent).getChildren().indexOf(child));
 			return ((SQLObject) parent).getChildren().indexOf(child);
 		} catch (ArchitectException e) {
-			logger.error("Couldn't get index of child "+child, e);
-			return -1;
+			//logger.error("Couldn't get index of child "+child, e);
+			//return -1;
+			throw new ArchitectRuntimeException(e);
 		}
 	}
 
