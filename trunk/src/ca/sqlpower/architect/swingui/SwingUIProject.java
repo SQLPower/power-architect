@@ -344,16 +344,28 @@ public class SwingUIProject {
 
 	protected class PPRelationshipFactory extends AbstractObjectCreationFactory {
 		public Object createObject(Attributes attributes) {
+			Relationship r = null;
 			try {
 				SQLRelationship rel =
 					(SQLRelationship) objectIdMap.get(attributes.getValue("relationship-ref"));
-				Relationship r = new Relationship(playPen, rel);
+				r = new Relationship(playPen, rel);
 				playPen.add(r);
-				return r;
+
+				int pkx = Integer.parseInt(attributes.getValue("pk-x"));
+				int pky = Integer.parseInt(attributes.getValue("pk-y"));
+				int fkx = Integer.parseInt(attributes.getValue("fk-x"));
+				int fky = Integer.parseInt(attributes.getValue("fk-y"));
+				r.setPkConnectionPoint(new Point(pkx, pky));
+				r.setFkConnectionPoint(new Point(fkx, fky));
 			} catch (ArchitectException e) {
 				logger.error("Couldn't create relationship component", e);
-				return null;
+			} catch (NumberFormatException e) {
+				logger.warn("Didn't set connection points because of integer parse error");
+			} catch (NullPointerException e) {
+				logger.debug("No pk/fk connection points specified in save file;"
+							 +" not setting custom connection points");
 			}
+			return r;
 		}
 	}
 
@@ -385,7 +397,7 @@ public class SwingUIProject {
 		this.pm = pm;
 		pm.setMinimum(0);
 		int pmMax = countSourceTables((SQLObject) sourceDatabases.getModel().getRoot())
-			+ playPen.getComponentCount() * 2;
+			+ playPen.getPPComponentCount() * 2;
 		logger.debug("Setting progress monitor maximum to "+pmMax);
 		pm.setMaximum(pmMax);
 		progress = 0;
@@ -538,22 +550,24 @@ public class SwingUIProject {
 	protected void savePlayPen() throws IOException, ArchitectException {
 		println("<play-pen>");
 		indent++;
-		int n = playPen.getComponentCount();
-		for (int i = 0; i < n; i++) {
-			if (playPen.getComponent(i) instanceof TablePane) {
-				TablePane tp = (TablePane) playPen.getComponent(i);
-				Point p = tp.getLocation();
-				println("<table-pane table-ref=\""+objectIdMap.get(tp.getModel())+"\""
-						+" x=\""+p.x+"\" y=\""+p.y+"\" />");
-				pm.setProgress(++progress);
-				pm.setNote(tp.getModel().getShortDisplayName());
-			}
+		Iterator it = playPen.getTablePanes().iterator();
+		while (it.hasNext()) {
+			TablePane tp = (TablePane) it.next();
+			Point p = tp.getLocation();
+			println("<table-pane table-ref=\""+objectIdMap.get(tp.getModel())+"\""
+					+" x=\""+p.x+"\" y=\""+p.y+"\" />");
+			pm.setProgress(++progress);
+			pm.setNote(tp.getModel().getShortDisplayName());
 		}
 
-		Iterator it = playPen.getRelationships().iterator();
+		it = playPen.getRelationships().iterator();
 		while (it.hasNext()) {
 			Relationship r = (Relationship) it.next();
-			println("<table-link relationship-ref=\""+objectIdMap.get(r.getModel())+"\" />");
+			println("<table-link relationship-ref=\""+objectIdMap.get(r.getModel())+"\""
+					+" pk-x=\""+r.getPkConnectionPoint().x+"\""
+					+" pk-y=\""+r.getPkConnectionPoint().y+"\""
+					+" fk-x=\""+r.getFkConnectionPoint().x+"\""
+					+" fk-y=\""+r.getFkConnectionPoint().y+"\" />");
 		}
 		indent--;
 		println("</play-pen>");
@@ -634,6 +648,9 @@ public class SwingUIProject {
 			propNames.put("updateRule", new Integer(((SQLRelationship) o).getUpdateRule()));
 			propNames.put("deleteRule", new Integer(((SQLRelationship) o).getDeleteRule()));
 			propNames.put("deferrability", new Integer(((SQLRelationship) o).getDeferrability()));
+			propNames.put("pkCardinality", new Integer(((SQLRelationship) o).getPkCardinality()));
+			propNames.put("fkCardinality", new Integer(((SQLRelationship) o).getFkCardinality()));
+			propNames.put("identifying", new Boolean(((SQLRelationship) o).isIdentifying()));
 			propNames.put("name", ((SQLRelationship) o).getName());
 		} else if (o instanceof SQLRelationship.ColumnMapping) {
 			id = "CMP"+objectIdMap.size();
@@ -679,12 +696,13 @@ public class SwingUIProject {
 
 	// ----------------------- utility methods ------------------------
 
-	protected void restoreTPPositions(PlayPen pp, Point[] points) {
-		int n = pp.getComponentCount();
-		for (int i = 0; i < n; i++) {
-			pp.getComponent(i).setLocation(points[i]);
-		}
-	}
+	// OBSOLETE
+// 	protected void restoreTPPositions(PlayPen pp, Point[] points) {
+// 		int n = pp.getComponentCount();
+// 		for (int i = 0; i < n; i++) {
+// 			pp.getComponent(i).setLocation(points[i]);
+// 		}
+// 	}
 
 	// ------------------- accessors and mutators ---------------------
 	
