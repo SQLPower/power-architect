@@ -38,4 +38,11 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
 		typeMap.put(new Integer(Types.VARBINARY), new GenericTypeDescriptor("LONG RAW", Types.VARBINARY, 2000000000L, null, null, DatabaseMetaData.columnNullable, true, false));
 		typeMap.put(new Integer(Types.VARCHAR), new GenericTypeDescriptor("VARCHAR2", Types.VARCHAR, 4000, "'", "'", DatabaseMetaData.columnNullable, true, false));
 	}
+
+	/**
+	 * Replaces space with underscore and converts to uppercase.
+	 */
+	public String toIdentifier(String name) {
+		return name.replace(' ','_').toUpperCase();
+	}
 }

@@ -355,14 +355,22 @@ public class GenericDDLGenerator {
 	}
 
 	/**
-	 * Converts space to underscore in <code>text</code> and appends
-	 * the result to <code>sb</code>.  This will not be completely
+	 * Converts <code>text</code> to a SQL identifier by calling
+	 * {@link #toIdentifier} and appends the result to <code>sb</code>
+	 */
+	protected void appendIdentifier(StringBuffer sb, String text) {
+		sb.append(toIdentifier(text));		
+	}
+
+	/**
+	 * Converts space to underscore in <code>name</code> and returns
+	 * the possibly-modified string.  This will not be completely
 	 * sufficient because it leaves ".", "%", and lots of other
 	 * non-alphanumeric characters alone. Subclasses might choose to
 	 * quote and leave everything alone, or whatever.
 	 */
-	protected void appendIdentifier(StringBuffer sb, String text) {
-		sb.append(text.replace(' ', '_'));		
+	public String toIdentifier(String name) {
+		return name.replace(' ', '_');
 	}
 
 	// ---------------------- accessors and mutators ----------------------
