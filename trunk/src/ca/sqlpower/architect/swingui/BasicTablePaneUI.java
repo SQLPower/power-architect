@@ -126,6 +126,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			Font font = c.getFont();
 			if (font == null) {
 				logger.error("Null font in TablePane "+c);
+				logger.error("TablePane's parent is "+c.getParent());
 				return;
 			}
 			FontMetrics metrics = c.getFontMetrics(font);

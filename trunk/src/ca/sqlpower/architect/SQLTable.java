@@ -54,6 +54,7 @@ public class SQLTable extends SQLObject {
 	protected boolean relationshipsPopulated;
 
 	public SQLTable(SQLDatabase parentDb, SQLObject parent, SQLCatalog catalog, SQLSchema schema, String name, String remarks, String objectType) {
+		logger.debug("NEW TABLE "+name+"@"+hashCode());
 		this.parentDatabase = parentDb;
 		this.parent = parent;
 		this.catalog = catalog;
@@ -81,6 +82,12 @@ public class SQLTable extends SQLObject {
 		this(parent, parent, null, null, "", "", "TABLE");
 	}
 
+	public SQLTable() {
+		this(null);
+		columnsPopulated = true;
+		relationshipsPopulated = true;
+	}
+
 	protected static void addTablesToDatabase(SQLDatabase addTo) 
 		throws SQLException, ArchitectException {
 		HashMap catalogs = new HashMap();
@@ -93,7 +100,7 @@ public class SQLTable extends SQLObject {
 				mdTables = dbmd.getTables(null,
 										  null,
 										  "%",
-										  new String[] {"SYSTEM TABLE", "TABLE", "VIEW"});
+										  new String[] {"TABLE", "VIEW"});
 				while (mdTables.next()) {
 					SQLObject tableParent = addTo;
 
@@ -484,6 +491,10 @@ public class SQLTable extends SQLObject {
 
 		public String getName() {
 			return name;
+		}
+
+		public void setName(String n) {
+			name = n;
 		}
 
 		public SQLObject getParent() {

@@ -282,7 +282,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 
 	// -------------------------- COLUMN MAPPING ------------------------
 
-	protected class ColumnMapping extends SQLObject {
+	public class ColumnMapping extends SQLObject {
 		protected SQLColumn pkColumn;
 		protected SQLColumn fkColumn;
 

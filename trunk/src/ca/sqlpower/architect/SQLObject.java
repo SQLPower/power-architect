@@ -71,6 +71,25 @@ public abstract class SQLObject implements java.io.Serializable {
 		populate();
 		return Collections.unmodifiableList(children);
 	}
+
+	/**
+	 * Replaces the children of this SQLObject with those in the given
+	 * list.
+	 *
+	 * <p>XXX: this is a very inefficient implementation!
+	 *
+	 * @param newChildren A List of SQLObject objects.
+	 */
+	public void setChildren(List newChildren) throws ArchitectException {
+		if (!allowsChildren()) return;
+		while (getChildCount() > 0) {
+			removeChild(0);
+		}
+		Iterator it = newChildren.iterator();
+		while (it.hasNext()) {
+			addChild((SQLObject) it.next());
+		}
+	}
 	
 	public SQLObject getChild(int index) throws ArchitectException {
 		populate();

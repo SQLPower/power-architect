@@ -24,8 +24,7 @@ public class DBTree extends JTree implements DragSourceListener {
 	protected JDialog propDialog;
 	protected DBCSPanel dbcsPanel;
 
-	public DBTree(List initialDatabases) throws ArchitectException {
-		super(new DBTreeModel(initialDatabases));
+	public DBTree() {
 		setRootVisible(false);
 		setShowsRootHandles(true);
 		ds = new DragSource();
@@ -35,6 +34,25 @@ public class DBTree extends JTree implements DragSourceListener {
 		setupPropDialog();
 		popup = setupPopupMenu();
 		addMouseListener(new PopupListener());
+	}
+
+	public DBTree(List initialDatabases) throws ArchitectException {
+		this();
+		setDatabaseList(initialDatabases);
+	}
+
+	public void setDatabaseList(List databases) throws ArchitectException {
+		setModel(new DBTreeModel(databases));
+	}
+
+	public List getDatabaseList() {
+		ArrayList databases = new ArrayList();
+		TreeModel m = getModel();
+		int dbCount = m.getChildCount(m.getRoot());
+		for (int i = 0; i < dbCount; i++) {
+			databases.add(m.getChild(m.getRoot(), i));
+		}
+		return databases;
 	}
 
 	/**
@@ -118,8 +136,8 @@ public class DBTree extends JTree implements DragSourceListener {
 				return;
 			} else if (p.length == 1) {
 				// export single node
-				logger.info("DBTree: exporting single node");
 				SQLObject data = (SQLObject) p[0].getLastPathComponent();
+				logger.info("DBTree: exporting single node "+data.getName()+"@"+data.hashCode());
 				dge.getDragSource().startDrag
 					(dge, DragSource.DefaultCopyNoDrop, new SQLObjectTransferable(data), t);
 			} else {

@@ -34,6 +34,62 @@ public class ArchitectFrame extends JFrame {
 	protected PlayPen playpen = null;
 	protected JTree dbTree = null;
 	
+	protected Action newProjectAction = new AbstractAction("New Project") {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					setProject(new SwingUIProject("New Project"));
+				} catch (Exception ex) {
+					JOptionPane.showMessageDialog(ArchitectFrame.this,
+												  "Can't create new project: "+ex.getMessage());
+					logger.error("Got exception while creating new project", ex);
+				}
+			}
+		};
+
+	protected Action openProjectAction = new AbstractAction("Open Project...") {
+			public void actionPerformed(ActionEvent e) {
+				JFileChooser chooser = new JFileChooser();
+				int returnVal = chooser.showOpenDialog(ArchitectFrame.this);
+				if (returnVal == JFileChooser.APPROVE_OPTION) {
+					try {
+						SwingUIProject project = new SwingUIProject("Loading...");
+						project.setFile(chooser.getSelectedFile());
+						project.load();
+						setProject(project);
+					} catch (Exception ex) {
+						JOptionPane.showMessageDialog(ArchitectFrame.this,
+													  "Can't open project: "+ex.getMessage());
+						logger.error("Got exception while opening project", ex);
+					}
+				}
+			}
+		};
+
+	protected Action saveProjectAction = new AbstractAction("Save Project...") {
+			public void actionPerformed(ActionEvent e) {
+				JFileChooser chooser = new JFileChooser();
+				int returnVal = chooser.showOpenDialog(ArchitectFrame.this);
+				if (returnVal == JFileChooser.APPROVE_OPTION) {
+					project.setFile(chooser.getSelectedFile());
+					project.setName(project.getFile().getName());
+					final ProgressMonitor pm = new ProgressMonitor(ArchitectFrame.this, "Saving Project", "", 0, 100);
+// 					new Thread() {
+// 						public void run() {
+							try {
+								project.save(pm);
+							} catch (Exception ex) {
+								JOptionPane.showMessageDialog(ArchitectFrame.this,
+															  "Can't save project: "+ex.getMessage());
+								logger.error("Got exception while saving project", ex);
+							}
+// 						}
+// 					}.start();
+				}
+			}
+		};
+
+	protected CreateRelationshipAction createRelationshipAction = new CreateRelationshipAction();
+
 	/**
 	 * Updates the swing settings and then writes all settings to the
 	 * config file whenever actionPerformed is invoked.
@@ -66,39 +122,29 @@ public class ArchitectFrame extends JFrame {
 			throw new ArchitectException("prefs.read", e);
 		}
 
-		project = new SwingUIProject("New Project");
-		setName("Power*Architect: "+project.getName());
-
 		Container cp = getContentPane();
 		cp.setLayout(new BorderLayout());
 
 		menuBar = new JMenuBar();
 		JMenu fileMenu = new JMenu("File");
+		fileMenu.add(new JMenuItem(newProjectAction));
+		fileMenu.add(new JMenuItem(openProjectAction));
+		fileMenu.add(new JMenuItem(saveProjectAction));
 		fileMenu.add(new JMenuItem(saveSettingsAction));
 		menuBar.add(fileMenu);
 		setJMenuBar(menuBar);
 
-		playpen = new PlayPen(project.getTargetDatabase());
-		List databases = project.getSourceDatabases();
-// 		Iterator it = prefs.getConnections().iterator();
-// 		while (it.hasNext()) {
-// 			databases.add(new SQLDatabase((DBConnectionSpec) it.next()));
-// 		}
-		dbTree = new DBTree(databases);
-		((SQLObject) dbTree.getModel().getRoot()).addChild(project.getTargetDatabase());
-		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-								   new JScrollPane(dbTree),
-								   new JScrollPane(playpen));
-		cp.add(splitPane, BorderLayout.CENTER);
-		splitPane.setDividerLocation
-			(sprefs.getInt(SwingUserSettings.DIVIDER_LOCATION,
-						   dbTree.getPreferredSize().width));
-
 		toolBar = new JToolBar();
 		toolBar.add(new JButton(saveSettingsAction));
-		toolBar.add(new JButton(new CreateRelationshipAction(playpen)));
+		toolBar.add(new JButton(createRelationshipAction));
 		cp.add(toolBar, BorderLayout.NORTH);
 
+		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+		getContentPane().add(splitPane, BorderLayout.CENTER);
+		logger.debug("Added splitpane to content pane");
+		splitPane.setDividerLocation
+			(sprefs.getInt(SwingUserSettings.DIVIDER_LOCATION,
+						   150)); //dbTree.getPreferredSize().width));
 
 		Rectangle bounds = new Rectangle();
 		bounds.x = sprefs.getInt(SwingUserSettings.MAIN_FRAME_X, 40);
@@ -107,6 +153,21 @@ public class ArchitectFrame extends JFrame {
 		bounds.height = sprefs.getInt(SwingUserSettings.MAIN_FRAME_HEIGHT, 440);
 		setBounds(bounds);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+		setProject(new SwingUIProject("New Project"));
+	}
+
+	public void setProject(SwingUIProject p) throws ArchitectException {
+		this.project = p;
+		logger.debug("Setting project to "+project);
+		setTitle("Power*Architect: "+project.getName());
+		playpen = project.getPlayPen();
+		dbTree = project.getSourceDatabases();
+		createRelationshipAction.setPlayPen(playpen);
+
+		//((SQLObject) dbTree.getModel().getRoot()).addChild(project.getTargetDatabase());
+		splitPane.setLeftComponent(new JScrollPane(dbTree));
+		splitPane.setRightComponent(new JScrollPane(playpen));
 	}
 
 	public static ArchitectFrame getMainInstance() {

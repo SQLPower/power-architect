@@ -24,10 +24,9 @@ public class CreateRelationshipAction extends AbstractAction
 	 */
 	protected boolean active;
 
-	public CreateRelationshipAction(PlayPen pp) {
+	public CreateRelationshipAction() {
 		super("Create Relationship");
-		this.pp = pp;
-		pp.addSelectionListener(this);
+		setEnabled(false);
 	}
 
 	public void actionPerformed(ActionEvent evt) {
@@ -40,6 +39,19 @@ public class CreateRelationshipAction extends AbstractAction
 	protected void doCreateRelationship() {
 		Relationship r = new Relationship(pp, pkTable, fkTable);
 		pp.addRelationship(r);
+	}
+	
+	public void setPlayPen(PlayPen playpen) {
+		if (pp != null) {
+			pp.removeSelectionListener(this);
+		}
+		pp = playpen;
+		if (pp != null) {
+			pp.addSelectionListener(this);
+			setEnabled(true);
+		} else {
+			setEnabled(false);
+		}
 	}
 
 	// -------------------- SELECTION EVENTS --------------------

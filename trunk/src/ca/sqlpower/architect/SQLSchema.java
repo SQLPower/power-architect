@@ -15,6 +15,10 @@ import java.util.Collections;
 public class SQLSchema extends SQLObject {
 	protected SQLObject parent;
 	protected String schemaName;
+	
+	public SQLSchema() {
+		this(null, null);
+	}
 
 	public SQLSchema(SQLObject parent, String name) {
 		this.parent = parent;
@@ -91,16 +95,5 @@ public class SQLSchema extends SQLObject {
 	 */
 	public void setSchemaName(String argSchemaName) {
 		this.schemaName = argSchemaName;
-	}
-
-	/**
-	 * Gets an unmodifiable view to this schema's children.
-	 */
-	public List getChildren()  {
-		return Collections.unmodifiableList(this.children);
-	}
-
-	protected void setChildren(List argChildren) {
-		this.children = argChildren;
 	}
 }
