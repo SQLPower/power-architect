@@ -3,10 +3,12 @@ package ca.sqlpower.architect;
 import java.io.*;
 import java.util.List;
 import java.util.Iterator;
+import java.util.Properties;
 import org.xml.sax.SAXException;
 
 import ca.sqlpower.sql.DBConnectionSpec;
 import ca.sqlpower.architect.swingui.SwingUserSettings; // bad design
+import ca.sqlpower.architect.etl.ETLUserSettings;
 
 import org.apache.log4j.Logger;
 import org.apache.commons.digester.*;
@@ -99,6 +101,14 @@ public class ConfigFile {
 		d.addSetNext("architect-settings/swing-gui-settings", "setSwingSettings",
 					 "ca.sqlpower.architect.swingui.SwingUserSettings");
 
+		// ETL settings
+		d.addObjectCreate("architect-settings/etl-user-settings", ETLUserSettings.class);
+		d.addCallMethod("architect-settings/etl-user-settings/setting", "putProperty", 2);
+		d.addCallParam("architect-settings/etl-user-settings/setting", 0, "name");
+		d.addCallParam("architect-settings/etl-user-settings/setting", 1, "value");
+		d.addSetNext("architect-settings/etl-user-settings", "setETLUserSettings",
+					 "ca.sqlpower.architect.etl.ETLUserSettings");
+
 		d.addSetNext("architect-settings", "setUserSettings",
 					 "ca.sqlpower.architect.UserSettings");
 		return d;
@@ -122,6 +132,7 @@ public class ConfigFile {
 			// generate XML directly from settings
 			writeDbConnections(us.getConnections());
 			writeSwingSettings(us.getSwingSettings());
+			writeETLUserSettings(us.getETLUserSettings());
 
 			indent--;
 			println("</architect-settings>");
@@ -143,15 +154,15 @@ public class ConfigFile {
 		while (it.hasNext()) {
 			DBConnectionSpec dbcs = (DBConnectionSpec) it.next();
 			print("<dbcs");
-			niprint(" connection-name=\""+dbcs.getName()+"\"");
-			niprint(" driver-class=\""+dbcs.getDriverClass()+"\"");
-			niprint(" jdbc-url=\""+dbcs.getUrl()+"\"");
-			niprint(" user-name=\""+dbcs.getUser()+"\"");
-			niprint(" user-pass=\""+dbcs.getPass()+"\"");
+			niprint(" connection-name=\""+escape(dbcs.getName())+"\"");
+			niprint(" driver-class=\""+escape(dbcs.getDriverClass())+"\"");
+			niprint(" jdbc-url=\""+escape(dbcs.getUrl())+"\"");
+			niprint(" user-name=\""+escape(dbcs.getUser())+"\"");
+			niprint(" user-pass=\""+escape(dbcs.getPass())+"\"");
 			niprint(" sequence-number=\""+dbcs.getSeqNo()+"\"");
 			niprint(" single-login=\""+dbcs.isSingleLogin()+"\"");
 			niprint(">");
-			niprint(dbcs.getDisplayName());
+			niprint(escape(dbcs.getDisplayName()));
 			niprintln("</dbcs>");
 		}
 		indent--;
@@ -166,13 +177,29 @@ public class ConfigFile {
 		while (it.hasNext()) {
 			String prefName = (String) it.next();
 			Object pref = sprefs.getObject(prefName, "");
-			println("<setting name=\""+prefName
-					+"\" class=\""+pref.getClass().getName()
-					+"\" value=\""+pref+"\" />");
+			println("<setting name=\""+escape(prefName)
+					+"\" class=\""+escape(pref.getClass().getName())
+					+"\" value=\""+escape(pref.toString())+"\" />");
 		}
 		
 		indent--;
 		println("</swing-gui-settings>");
+	}
+
+	protected void writeETLUserSettings(ETLUserSettings etlprefs) {
+		println("<etl-user-settings>");
+		indent++;
+
+		Properties props = etlprefs.toPropList();
+		Iterator it = props.keySet().iterator();
+		while (it.hasNext()) {
+			String prefName = (String) it.next();
+			println("<setting name=\""+escape(prefName)
+					+"\" value=\""+escape(props.getProperty(prefName))+"\" />");
+		}
+		
+		indent--;
+		println("</etl-user-settings>");
 	}
 
 	/**
@@ -200,6 +227,37 @@ public class ConfigFile {
 	 */
 	protected void niprintln(String text) {
 		out.println(text);
+	}
+
+	/**
+	 * Replaces double quotes, ampersands, and less-than signs with
+	 * their character reference equivalents.  This makes the returned
+	 * string be safe for use as an XML attribute value enclosed in
+	 * double quotes.
+	 */
+	protected String escape(String src) {
+		StringBuffer sb = new StringBuffer(src.length()+10);  //XXX: arbitrary amount of extra space
+		char ch;
+		for (int i = 0, n = src.length(); i < n; i++) {
+			switch (ch = src.charAt(i)) {
+			case '"':
+				sb.append("&#x22;");
+				break;
+				
+			case '&':
+				sb.append("&#x26;");
+				break;
+				
+			case '<':
+				sb.append("&#x3C;");
+				break;
+				
+			default:
+				sb.append(ch);
+				break;
+			}
+		}
+		return sb.toString();
 	}
 
 	/**

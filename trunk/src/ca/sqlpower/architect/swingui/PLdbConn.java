@@ -1,57 +1,64 @@
 package ca.sqlpower.architect.swingui;
 
+import java.util.Properties;
 
 /**
  * Is a container for POWER*LOADER ODBC Connection stored in PL.ini file
  */
 public class PLdbConn {
-	protected String  logical;
-	protected String  dbType;
-    protected String  plsOwner;
-	protected String  dbName;
-	
+	Properties props;
 	
 	public PLdbConn() {
-		this.logical  = new String();
-		this.dbType   = new String();
-		this.plsOwner = new String();
-		this.dbName   = new String();
+		props = new Properties();
+	}
+
+	public void setProperty(String key, String value) {
+		props.setProperty(key, value);
 	}
 
 	// ----------------- accessors and mutators -------------------
-
+// 		String label[] = new String[]{"Logical=",
+// 									  "Type=",
+// 									  "PL Schema Owner=",
+// 									  "UID=",
+// 									  "PWD=",
+// 									  "TNS Name=",
+// 									  "Database Name="};
 	
 	public String getLogical()  {
-		return this.logical;
+		return props.getProperty("Logical");
 	}
 
 	public String getDbType()  {
-		return this.dbType;
+		return props.getProperty("Type");
 	}
 
 	public String getPlsOwner()  {
-		return this.plsOwner;
+		return props.getProperty("PL Schema Owner");
 	}
 
-	public String getDbName()  {
-		return this.dbName;
+	public String getTNSName() {
+		return props.getProperty("TNS Name");
 	}
 
-
-	public void setLogical(String logical)  {
-		this.logical = logical;
+	public String getUid()  {
+		return props.getProperty("UID");
 	}
 
-	public void setDbType(String dbType)  {
-		this.dbType = dbType;
+	public String getPwd()  {
+		return props.getProperty("PWD");
 	}
 
-	public void setPlsOwner(String plsOwner)  {
-		this.plsOwner = plsOwner;
+	public String getEngineExeutableName() throws UnknownDatabaseTypeException {
+		String type = getDbType();
+		if (type == null) {
+			throw new UnknownDatabaseTypeException("<unspecified>");
+		} else if (type.equalsIgnoreCase("SQL SERVER")) {
+			return "PowerLoader_odbc.exe";
+		} else if (type.equalsIgnoreCase("ORACLE")) {
+			return "PowerLoader_oracle.exe";
+		} else {
+			throw new UnknownDatabaseTypeException(type);
+		}
 	}
-
-	public void setDbName(String dbName)  {
-		this.dbName = dbName;
-	}
-
 }

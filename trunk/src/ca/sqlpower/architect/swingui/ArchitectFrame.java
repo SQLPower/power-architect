@@ -43,6 +43,7 @@ public class ArchitectFrame extends JFrame {
 	protected Action openProjectAction;
 	protected Action saveProjectAction;
 	protected Action saveProjectAsAction;
+	protected PreferencesAction prefAction;
 	protected PrintAction printAction;
  	protected ZoomAction zoomInAction;
  	protected ZoomAction zoomOutAction;
@@ -117,7 +118,7 @@ public class ArchitectFrame extends JFrame {
 													   sprefs.getInt(sprefs.ICON_SIZE, 24))) {
 					public void actionPerformed(ActionEvent e) {
 						JFileChooser chooser = new JFileChooser();
-						chooser.addChoosableFileFilter(ASUtils.architectFileFilter);
+						chooser.addChoosableFileFilter(ASUtils.ARCHITECT_FILE_FILTER);
 						int returnVal = chooser.showOpenDialog(ArchitectFrame.this);
 						if (returnVal == JFileChooser.APPROVE_OPTION) {
 							final File file = chooser.getSelectedFile();							new Thread() {
@@ -167,6 +168,7 @@ public class ArchitectFrame extends JFrame {
 				};
 		saveProjectAsAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Save As");
 
+		prefAction = new PreferencesAction();
 		printAction = new PrintAction();
 		zoomInAction = new ZoomAction(ZOOM_STEP);
 		zoomOutAction = new ZoomAction(ZOOM_STEP * -1.0);
@@ -203,6 +205,7 @@ public class ArchitectFrame extends JFrame {
 		fileMenu.add(new JMenuItem(printAction));
 		fileMenu.add(new JMenuItem(exportDDLAction));
                // fileMenu.add(new JMenuItem(exportPLTransAction));
+		fileMenu.add(new JMenuItem(prefAction));
 		fileMenu.add(new JMenuItem(saveSettingsAction));
 		fileMenu.add(new JMenuItem(exitAction));
 		menuBar.add(fileMenu);
@@ -295,6 +298,8 @@ public class ArchitectFrame extends JFrame {
 		exportPLTransAction.setPlayPen(playpen);
 		zoomInAction.setPlayPen(playpen);
 		zoomOutAction.setPlayPen(playpen);
+		
+		prefAction.setArchitectFrame(this);
 	}
 
 	public static ArchitectFrame getMainInstance() {
@@ -353,7 +358,7 @@ public class ArchitectFrame extends JFrame {
 	public void saveOrSaveAs(boolean showChooser) {
 		if (project.getFile() == null || showChooser) {
 			JFileChooser chooser = new JFileChooser(project.getFile());
-			chooser.addChoosableFileFilter(ASUtils.architectFileFilter);
+			chooser.addChoosableFileFilter(ASUtils.ARCHITECT_FILE_FILTER);
 			int response = chooser.showSaveDialog(ArchitectFrame.this);
 			if (response != JFileChooser.APPROVE_OPTION) {
 				return;

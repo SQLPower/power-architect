@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.LinkedList;
 
 import ca.sqlpower.architect.swingui.SwingUserSettings;  // slight breech of MVC
+import ca.sqlpower.architect.etl.ETLUserSettings;
 import ca.sqlpower.sql.DBConnectionSpec;
 
 public class UserSettings {
@@ -22,10 +23,18 @@ public class UserSettings {
 	 */
 	protected SwingUserSettings swingSettings;
 
+	/**
+	 * ETL-related settings.  This is not a design problem like
+	 * swingSettings is, since ETL is part of the app's core
+	 * functionality.
+	 */
+	protected ETLUserSettings etlUserSettings;
+	
 	public UserSettings() {
 		super();
 		dbConnections = new LinkedList();
 		swingSettings = new SwingUserSettings();
+		etlUserSettings = new ETLUserSettings();
 	}
 	
 	public void addConnection(DBConnectionSpec dbcs) {
@@ -42,5 +51,13 @@ public class UserSettings {
 
 	public void setSwingSettings(SwingUserSettings sprefs) {
 		swingSettings = sprefs;
+	}
+
+	public ETLUserSettings getETLUserSettings() {
+		return etlUserSettings;
+	}
+
+	public void setETLUserSettings(ETLUserSettings v) {
+		etlUserSettings = v;
 	}
 }
