@@ -11,8 +11,10 @@ public class EngineExecPanel extends JPanel {
 	protected Process proc;
 	protected JTextArea output;
 	protected JButton abortButton;
-	
-	public EngineExecPanel(Process pr) {
+	protected Thread iss;
+	protected Thread ess;
+
+	public EngineExecPanel(String header, Process pr) {
 		super(new BorderLayout());
 		proc = pr;
 
@@ -27,15 +29,25 @@ public class EngineExecPanel extends JPanel {
 		add(p, BorderLayout.SOUTH);
 
 		output = new JTextArea(25, 80);
-		add(output, BorderLayout.CENTER);
+		output.append(header);
+		add(new JScrollPane(output), BorderLayout.CENTER);
 
 		InputStream pis = new BufferedInputStream(proc.getInputStream());
 		InputStream pes = new BufferedInputStream(proc.getErrorStream());
-		Thread iss = new Thread(new StreamSink(pis));
-		Thread ess = new Thread(new StreamSink(pes));
+		iss = new Thread(new StreamSink(pis));
+		ess = new Thread(new StreamSink(pes));
 		iss.start();
 		ess.start();
+	}
 
+	/**
+	 * Returns only when the process's stdout and stderr streams have
+	 * both been closed (and therefore, no more output will be
+	 * appended to the textarea).  You do not need to call this method
+	 * if you don't want to do something special when the engine is
+	 * finished.
+	 */
+	public void waitForProcessCompletion() {
 		try {
 			iss.join();
 			ess.join();

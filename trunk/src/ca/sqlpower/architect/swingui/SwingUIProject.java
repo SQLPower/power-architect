@@ -2,6 +2,7 @@ package ca.sqlpower.architect.swingui;
 
 import ca.sqlpower.architect.*;
 import ca.sqlpower.architect.ddl.*;
+import ca.sqlpower.architect.etl.*;
 import ca.sqlpower.sql.DBConnectionSpec;
 
 import java.awt.Point;
@@ -25,6 +26,7 @@ public class SwingUIProject {
 	protected File file;
 	protected GenericDDLGenerator ddlGenerator;
 	protected boolean savingEntireSource;
+	protected PLExport plExport;
 
 	// ------------------ load and save support -------------------
 
@@ -74,6 +76,7 @@ public class SwingUIProject {
 		initialDBList.add(playPen.getDatabase());
 		this.sourceDatabases = new DBTree(initialDBList);
 		ddlGenerator = new GenericDDLGenerator();
+		plExport = new PLExport();
 	}
 
 	// ------------- READING THE PROJECT FILE ---------------
@@ -741,15 +744,6 @@ public class SwingUIProject {
 		}
 	}
 
-	// ----------------------- utility methods ------------------------
-
-	// OBSOLETE
-	// 	protected void restoreTPPositions(PlayPen pp, Point[] points) {
-	// 		int n = pp.getComponentCount();
-	// 		for (int i = 0; i < n; i++) {
-	// 			pp.getComponent(i).setLocation(points[i]);
-	// 		}
-	// 	}
 
 	// ------------------- accessors and mutators ---------------------
 	
@@ -867,6 +861,14 @@ public class SwingUIProject {
 	 */
 	public void setSavingEntireSource(boolean argSavingEntireSource) {
 		this.savingEntireSource = argSavingEntireSource;
+	}
+
+	public PLExport getPLExport() {
+		return plExport;
+	}
+
+	public void setPLExport(PLExport v) {
+		plExport = v;
 	}
 
 	// ------------------- utility methods -------------------

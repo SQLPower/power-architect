@@ -198,7 +198,7 @@ public class ExportDDLAction extends AbstractAction {
 				});
 			buttonPanel.add(saveButton);
 											
-			final JButton cancelButton = new JButton("Cancel");
+			final JButton cancelButton = new JButton("Close");
 			cancelButton.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
 						d.setVisible(false);

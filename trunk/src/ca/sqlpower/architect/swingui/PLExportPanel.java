@@ -22,6 +22,11 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 
 	private static final Logger logger = Logger.getLogger(PLExportPanel.class);
 
+	/**
+	 * This is the PLExport whose properties this panel edits.
+	 */
+	protected PLExport plexp;
+
 	protected Vector connections;
 	protected Vector plodbc;
 
@@ -35,7 +40,7 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 	protected JTextField plOutputTableOwner;
 
 	// Right-hand side fields
-	protected JComboBox plODBCSourceBox;
+	protected JComboBox plOdbcTargetRepositoryBox;
 	protected JTextField plUserName;
 	protected JPasswordField plPassword;
 	protected JCheckBox runPLEngine;
@@ -60,19 +65,19 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 			} else {
 				JOptionPane.showMessageDialog
 					(this, "Warning: You have not set the PL.INI file location."
-					 +"\nThe PL Connection box will be empty.");
+					 +"\nThe list of PL Connections will be empty.");
 			}
 		} catch (FileNotFoundException ie) {
 			JOptionPane.showMessageDialog
 				(this, "PL database config file not found in specified path:\n"
-				 +plIniPath+"\nThe PL Connection box will be empty.");
+				 +plIniPath+"\nThe list of PL Connections will be empty.");
 		} catch (IOException ie){
 			JOptionPane.showMessageDialog(this, "Error reading PL.ini file "+plIniPath
-										  +"\nThe PL Connection box will be empty.");
+										  +"\nThe list of PL Connections will be empty.");
 		}    
 
 		connections = new Vector();
-		connections.add(ASUtils.lvb("(Select PL Connection)", null));
+		connections.add(ASUtils.lvb("(Select Architect Connection)", null));
 		Iterator it = af.getUserSettings().getConnections().iterator();
 		while (it.hasNext()) {
 			DBConnectionSpec spec = (DBConnectionSpec) it.next();
@@ -88,15 +93,11 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 			plodbc.add(ASUtils.lvb(plcon.getLogical(), plcon));
 		}
 
-		plODBCSourceBox = new JComboBox(plodbc);
-		plODBCSourceBox.addActionListener(new ODBCSourceListener());
+		plOdbcTargetRepositoryBox = new JComboBox(plodbc);
+		plOdbcTargetRepositoryBox.addActionListener(new OdbcTargetRepositoryListener());
 
 		runPLEngine = new JCheckBox();
 		runPLEngine.setEnabled(false);
-
-		plFolderName = new JTextField(PLUtils.toPLIdentifier(projName)+"_Folder");
-
-		plJobId      = new JTextField(PLUtils.toPLIdentifier(projName)+"_Job");
 
 		JPanel jdbcPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         jdbcPanel.add(connectionsBox);
@@ -104,8 +105,8 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 
 		JComponent[] jdbcFields = new JComponent[] {jdbcPanel,
 													plRepOwner = new JTextField(),
-													plFolderName,
-													plJobId,
+													plFolderName = new JTextField(),
+													plJobId = new JTextField(),
 													plJobDescription = new JTextField(),
 													plJobComment = new JTextField(),
 													plOutputTableOwner = new JTextField()};
@@ -129,7 +130,7 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 
 		TextPanel jdbcForm = new TextPanel(jdbcFields, jdbcLabels, jdbcMnemonics, jdbcWidths, jdbcTips);
 
-		JComponent[] engineFields = new JComponent[] {plODBCSourceBox,
+		JComponent[] engineFields = new JComponent[] {plOdbcTargetRepositoryBox,
 													  plUserName = new JTextField(),
 													  plPassword = new JPasswordField(),
 													  runPLEngine};
@@ -151,9 +152,34 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		add(engineForm);
 	}
 
-	public class ODBCSourceListener  implements ActionListener {
+	/**
+	 * Sets a new PLExport object for this panel to edit.  All field
+	 * values will be updated to reflect the status of the given
+	 * PLExport object.
+	 */
+	public void setPLExport(PLExport plexp) {
+		this.plexp = plexp;
+		connectionsBox.setSelectedItem(plexp.getPlDBCS());
+		plRepOwner.setText(plexp.getPlUsername());
+		plFolderName.setText(plexp.getFolderName());
+		plJobId.setText(plexp.getJobId());
+		plJobDescription.setText(plexp.getJobDescription());
+		plJobComment.setText(plexp.getJobComment());
+		plOutputTableOwner.setText(plexp.getOutputTableOwner());
+	}
+	
+	/**
+	 * Returns the PLExport object that this panel is editting.  Call
+	 * applyChanges() to update it to the current values displayed on
+	 * the panel.
+	 */
+	public PLExport getPLExport() {
+		return plexp;
+	}
+
+	public class OdbcTargetRepositoryListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
-			ASUtils.LabelValueBean lvb = (ASUtils.LabelValueBean) plODBCSourceBox.getSelectedItem();
+			ASUtils.LabelValueBean lvb = (ASUtils.LabelValueBean) plOdbcTargetRepositoryBox.getSelectedItem();
 			if (lvb.getValue() == null) {
 			    runPLEngine.setSelected(false);
 				runPLEngine.setEnabled(false);
@@ -163,7 +189,7 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 				PLConnectionSpec pldbcon = (PLConnectionSpec) lvb.getValue();
 				plRepOwner.setText(pldbcon.getPlsOwner());
 				plUserName.setText(pldbcon.getUid());
-				plPassword.setText(PLUtils.decryptPlIniPassword(9, pldbcon.getPwd()));
+				plPassword.setText(pldbcon.getPwd());
 			}
 		}
 	}
@@ -214,9 +240,36 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 	// -------------------- ARCHITECT PANEL INTERFACE -----------------------
 
 	/**
-	 * Does nothing right now.
+	 * Converts the fields that contain PL Identifiers into the
+	 * correct format (using PLUtils.toPLIdentifier) and then sets all
+	 * the properties of plexp to their values in this panel's input
+	 * fields.
 	 */
 	public void applyChanges() {
+		plJobId.setText(PLUtils.toPLIdentifier(plJobId.getText()));
+		plexp.setJobId(plJobId.getText());
+
+		plFolderName.setText(PLUtils.toPLIdentifier(plFolderName.getText()));
+		plexp.setFolderName(plFolderName.getText());
+
+		plexp.setJobDescription(plJobDescription.getText());
+
+		plexp.setJobComment(plJobComment.getText());
+
+		ASUtils.LabelValueBean item = (ASUtils.LabelValueBean) connectionsBox.getSelectedItem();
+		if (item == null) plexp.setPlDBCS(null); 
+		else plexp.setPlDBCS((DBConnectionSpec) item.getValue());
+
+		plOutputTableOwner.setText(PLUtils.toPLIdentifier(plOutputTableOwner.getText()));
+		plexp.setOutputTableOwner(plOutputTableOwner.getText());
+
+		plUserName.setText(PLUtils.toPLIdentifier(plUserName.getText()));
+		plexp.setPlUsername(plUserName.getText());
+
+		// this approach prevents the deprecation warning, but is
+		// doing exactly what the deprecation of getText() was meant
+		// to prevent!
+		plexp.setPlPassword(new String(plPassword.getPassword()));
 	}
 
 	/**
@@ -227,72 +280,16 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 
 	// ---------------- accessors and mutators ----------------
 
-	/**
-	 * Returns the selected DBConnectionSpec from the combo box, or
-	 * null if the "choose a connection" item is selected.
-	 */
-	public DBConnectionSpec getTargetDBCS() {
-		ASUtils.LabelValueBean item = (ASUtils.LabelValueBean) connectionsBox.getSelectedItem();
-		if (item == null) return null;
-		else return (DBConnectionSpec) item.getValue();
+	public PLConnectionSpec getPLConnectionSpec() {
+		ASUtils.LabelValueBean lvb = (ASUtils.LabelValueBean) plOdbcTargetRepositoryBox.getSelectedItem();
+		return (PLConnectionSpec) lvb.getValue();
 	}
 
-	/**
-	 * Returns the PLConnectionSpec object representing the currently-selected
-	 * PL.INI database entry.
-	 */
-	public PLConnectionSpec getSelectedPlDatabase() {
-		return (PLConnectionSpec) ((ASUtils.LabelValueBean) plODBCSourceBox.getSelectedItem()).getValue();
-	}
-
-	/**
-	 * returns values typed in panel
-	 */
-	public String getPlODBCSourceName() {
-		PLConnectionSpec conn = getSelectedPlDatabase();
-		if (conn != null) {
-			return conn.getLogical();
-		} else {
-			return null;
-		}
-	}
-	
 	public String getPlRepOwner(){
 		return PLUtils.toPLIdentifier(plRepOwner.getText());
 	}	 
 	
-	public String getPlFolderName(){
-		return PLUtils.toPLIdentifier(plFolderName.getText());
-	}
-	
-	public String getPlJobId(){
-		return PLUtils.toPLIdentifier(plJobId.getText());
-	}
-	
-	public String getPlJobDescription(){
-		return plJobDescription.getText();
-	}
-	
-	public String getPlJobComment(){
-		return plJobComment.getText();
-	}
-	
-	public String getPlOutputTableOwner(){
-		return PLUtils.toPLIdentifier(plOutputTableOwner.getText());
-	}
-	
 	public boolean isSelectedRunPLEngine(){
 		return runPLEngine.isSelected();
-	}
-	
-	public String getPlUserName() {
-		return PLUtils.toPLIdentifier(plUserName.getText());
-	}
-
-	public String getPlPassword() {
-		// this approach prevents the deprecation warning, but is
-		// doing exactly what the deprecation of getText() was meant
-		// to prevent!
-		return new String(plPassword.getPassword());
 	}
 }
