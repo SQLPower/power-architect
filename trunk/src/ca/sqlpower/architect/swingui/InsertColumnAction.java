@@ -26,21 +26,21 @@ public class InsertColumnAction extends AbstractAction {
 			TablePane tp = (TablePane) invoker;
 			int idx = tp.getSelectedColumnIndex();
 			try {
-				if (idx < 0) idx = tp.getModel().getChildCount();
+				if (idx < 0) idx = tp.getModel().getColumnsFolder().getChildCount();
 			} catch (ArchitectException e) {
 				idx = 0;
 			}
-			tp.getModel().addChild(idx, new SQLColumn(tp.getModel(),
-													  "new column",
-													  Types.INTEGER,
-													  "Integer",
-													  10,
-													  0,
-													  DatabaseMetaData.columnNullable,
-													  null,
-													  null,
-													  null,
-													  false));
+			tp.getModel().addColumn(idx, new SQLColumn(tp.getModel(),
+													   "new column",
+													   Types.INTEGER,
+													   "Integer",
+													   10,
+													   0,
+													   DatabaseMetaData.columnNullable,
+													   null,
+													   null,
+													   null,
+													   false));
 		} else {
 			JOptionPane.showMessageDialog((JComponent) invoker,
 										  "The selected item type is not recognised");

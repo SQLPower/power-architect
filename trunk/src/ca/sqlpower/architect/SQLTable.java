@@ -193,12 +193,32 @@ public class SQLTable extends SQLObject {
 		}
 	}
 
+	/**
+	 * Convenience method for getImportedKeys.addChild(r).
+	 */
 	public void addImportedKey(SQLRelationship r) {
-		importedKeys.add(r);
+		importedKeysFolder.addChild(r);
 	}
 
+	/**
+	 * Convenience method for getImportedKeys.removeChild(r).
+	 */
+	public void removeImportedKey(SQLRelationship r) {
+		importedKeysFolder.removeChild(r);
+	}
+
+	/**
+	 * Convenience method for getExportedKeys.addChild(r).
+	 */
 	public void addExportedKey(SQLRelationship r) {
-		exportedKeys.add(r);
+		exportedKeysFolder.addChild(r);
+	}
+
+	/**
+	 * Convenience method for getExportedKeys.removeChild(r).
+	 */
+	public void removeExportedKey(SQLRelationship r) {
+		exportedKeysFolder.removeChild(r);
 	}
 
 	public static SQLTable getDerivedInstance(SQLTable source, SQLDatabase parent)
@@ -291,6 +311,10 @@ public class SQLTable extends SQLObject {
 	public void addColumn(int index, SQLColumn col) {
 		columnsFolder.addChild(index, col);
 	}
+
+	public void removeColumn(int index) {
+		columnsFolder.removeChild(index);
+	}
 	
 	public String toString() {
 		return getShortDisplayName();
@@ -340,7 +364,14 @@ public class SQLTable extends SQLObject {
 		Iterator it = importedKeys.iterator();
 		while (it.hasNext()) {
 			SQLRelationship r = (SQLRelationship) it.next();
-			// FIXME: have to actually remove relationships
+			r.getPkTable().removeExportedKey(r);
+			logger.debug(r);
+		}
+
+		it = exportedKeys.iterator();
+		while (it.hasNext()) {
+			SQLRelationship r = (SQLRelationship) it.next();
+			r.getFkTable().removeImportedKey(r);
 			logger.debug(r);
 		}
 	}
@@ -499,6 +530,7 @@ public class SQLTable extends SQLObject {
 	 * @return the value of columns
 	 */
 	public synchronized List getColumns() throws ArchitectException {
+		populate();
 		return columnsFolder.getChildren();
 	}
 

@@ -65,7 +65,11 @@ public class PlayPen extends JPanel
 		if (db == null) throw new NullPointerException("db must be non-null");
 		this.db = db;
 		relationships = new LinkedList();
-		db.addSQLObjectListener(this);
+		try {
+			ArchitectUtils.listenToHierarchy(this, db);
+		} catch (ArchitectException ex) {
+			logger.error("Couldn't listen to database", ex);
+		}
 		setLayout(new PlayPenLayout(this));
 		setName("Play Pen");
 		setMinimumSize(new Dimension(200,200));
@@ -266,15 +270,25 @@ public class PlayPen extends JPanel
 	 */
 	public void dbChildrenInserted(SQLObjectEvent e) {
 		logger.debug("SQLObject children got inserted: "+e);
+		boolean fireEvent = false;
 		SQLObject o = e.getSQLSource();
 		SQLObject[] c = e.getChildren();
 		for (int i = 0; i < c.length; i++) {
-			if (c[i] instanceof SQLTable) {
-				c[i].addSQLObjectListener(this);
+			try {
+				ArchitectUtils.listenToHierarchy(this, c[i]);
+			} catch (ArchitectException ex) {
+				logger.error("Couldn't listen to added object", ex);
+			}
+			if (c[i] instanceof SQLTable
+				|| c[i] instanceof SQLRelationship) {
+				fireEvent = true;
 			}
 		}
-		firePropertyChange("model.children", null, null);
-		revalidate();
+		
+		if (fireEvent) {
+			firePropertyChange("model.children", null, null);
+			revalidate();
+		}
 	}
 
 	/**
@@ -285,21 +299,41 @@ public class PlayPen extends JPanel
 	 */
 	public void dbChildrenRemoved(SQLObjectEvent e) {
 		logger.debug("SQLObject children got removed: "+e);
+		boolean fireEvent = false;
 		SQLObject o = e.getSQLSource();
 		SQLObject[] c = e.getChildren();
 		for (int i = 0; i < c.length; i++) {
+			try {
+				ArchitectUtils.unlistenToHierarchy(this, c[i]);
+			} catch (ArchitectException ex) {
+				logger.error("Couldn't unlisten to removed object", ex);
+			}
+
 			if (c[i] instanceof SQLTable) {
-				c[i].removeSQLObjectListener(this);
 				for (int j = 0; j < getComponentCount(); j++) {
 					TablePane tp = (TablePane) getComponent(j);
+					if (selectedChild == tp) selectedChild = null;
 					if (tp.getModel() == c[i]) {
 						remove(j);
+						fireEvent = true;
+					}
+				}
+			} else if (c[i] instanceof SQLRelationship) {
+				ListIterator it = relationships.listIterator();
+				while (it.hasNext()) {
+					Relationship r = (Relationship) it.next();
+					if (r.getModel() == c[i]) {
+						it.remove();
+						fireEvent = true;
 					}
 				}
 			}
 		}
-		firePropertyChange("model.children", null, null);
-		repaint();
+
+		if (fireEvent) {
+			firePropertyChange("model.children", null, null);
+			repaint();
+		}
 	}
 
 	/**
