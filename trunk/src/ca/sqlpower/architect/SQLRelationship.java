@@ -242,7 +242,21 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		this.pkName = argPkName;
 	}
 
+	public SQLTable getPkTable() {
+		return pkTable;
+	}
 
+	public void setPkTable(SQLTable pkt) {
+		pkTable = pkt;
+	}
+
+	public SQLTable getFkTable() {
+		return fkTable;
+	}
+
+	public void setFkTable(SQLTable fkt) {
+		fkTable = fkt;
+	}
 
 	// -------------------------- COLUMN MAPPING ------------------------
 

@@ -15,7 +15,7 @@ public class EditColumnAction extends AbstractAction implements ActionListener {
 	 */
 	protected PlayPen pp;
 
-	protected JFrame editFrame;
+	protected JDialog editDialog;
 	protected JButton okButton;
 	protected JButton cancelButton;
 	protected ActionListener okCancelListener;
@@ -27,17 +27,17 @@ public class EditColumnAction extends AbstractAction implements ActionListener {
 	}
 
 	public void actionPerformed(ActionEvent evt) {
-		Selectable invoker = pp.getSelectedChild();
+		Selectable invoker = pp.getSelection();
 		if (invoker instanceof TablePane) {
 			TablePane tp = (TablePane) invoker;
 			try {
 				int idx = tp.getSelectedColumnIndex();
-				if (editFrame != null) {
+				if (editDialog != null) {
 					columnEditPanel.setModel(tp.getModel());
 					columnEditPanel.selectColumn(idx);
-					editFrame.setTitle("Edit columns of "+tp.getModel().getName());
-					editFrame.setVisible(true);
-					editFrame.requestFocus();
+					editDialog.setTitle("Edit columns of "+tp.getModel().getName());
+					editDialog.setVisible(true);
+					editDialog.requestFocus();
 				} else {
 					JPanel panel = new JPanel();
 					panel.setLayout(new BorderLayout(12,12));
@@ -57,11 +57,12 @@ public class EditColumnAction extends AbstractAction implements ActionListener {
 					buttonPanel.add(cancelButton);
 					panel.add(buttonPanel, BorderLayout.SOUTH);
 					
-					editFrame = new JFrame("Edit columns of "+tp.getModel().getName());
+					editDialog = new JDialog(ArchitectFrame.getMainInstance(),
+											 "Edit columns of "+tp.getModel().getName());
 					panel.setOpaque(true);
-					editFrame.setContentPane(panel);
-					editFrame.pack();
-					editFrame.setVisible(true);
+					editDialog.setContentPane(panel);
+					editDialog.pack();
+					editDialog.setVisible(true);
 				}
 			} catch (ArchitectException e) {
 				JOptionPane.showMessageDialog(tp, "Error finding the selected column");
@@ -90,13 +91,13 @@ public class EditColumnAction extends AbstractAction implements ActionListener {
 	}
 
 	/**
-	 * Permanently closes the edit frame.
+	 * Permanently closes the edit dialog.
 	 */
 	protected void cleanup() {
-		if (editFrame != null) {
-			editFrame.setVisible(false);
-			editFrame.dispose();
-			editFrame = null;
+		if (editDialog != null) {
+			editDialog.setVisible(false);
+			editDialog.dispose();
+			editDialog = null;
 		}
 	}
 }

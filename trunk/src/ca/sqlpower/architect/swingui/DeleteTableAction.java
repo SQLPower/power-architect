@@ -20,7 +20,7 @@ public class DeleteTableAction extends AbstractAction {
 	}
 
 	public void actionPerformed(ActionEvent evt) {
-		Selectable invoker = pp.getSelectedChild();
+		Selectable invoker = pp.getSelection();
 		if (invoker instanceof TablePane) {
 			TablePane tp = (TablePane) invoker;
 			pp.db.removeChild(tp.getModel());

@@ -7,6 +7,7 @@ import java.awt.dnd.*;
 import javax.swing.*;
 import javax.swing.event.*;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Iterator;
@@ -285,9 +286,9 @@ public class TablePane
 			selectNone();
 		}
 		boolean old = selected;
-		this.selected = v;
+		selected = v;
 		if (v != old) {
-			firePropertyChange("selected", old, selected);
+			fireSelectionEvent(this);
 			repaint();
 		}
 	}
@@ -336,6 +337,27 @@ public class TablePane
 		return COLUMN_INDEX_NONE;
 	}
 
+	// --------------------- SELECTION EVENT SUPPORT ---------------------
+
+	protected LinkedList selectionListeners = new LinkedList();
+
+	public void addSelectionListener(SelectionListener l) {
+		selectionListeners.add(l);
+	}
+
+	public void removeSelectionListener(SelectionListener l) {
+		selectionListeners.remove(l);
+	}
+	
+	protected void fireSelectionEvent(Selectable source) {
+		SelectionEvent e = new SelectionEvent(source);
+		logger.debug("Notifying "+selectionListeners.size()+" listeners of selection change");
+		Iterator it = selectionListeners.iterator();
+		while (it.hasNext()) {
+			((SelectionListener) it.next()).itemSelected(e);
+		}
+	}
+
 	// ------------------ utility methods ---------------------
 
 	/**
@@ -347,6 +369,9 @@ public class TablePane
 	public int pointToColumnIndex(Point p) throws ArchitectException {
 		return ((TablePaneUI) ui).pointToColumnIndex(p);
 	}
+
+
+	// ------------------------ DROP TARGET LISTENER ------------------------
 
 	/**
 	 * Tracks incoming objects and adds successfully dropped objects
