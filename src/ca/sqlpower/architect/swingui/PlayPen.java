@@ -382,6 +382,33 @@ public class PlayPen extends JPanel
 		logger.debug("Final state looks like "+c);
 	}
 
+	/**
+	 * Returns 0 because this PlayPen contains no Swing components
+	 * directly.
+	 *
+	 * @deprecated Calling this method from Architect code is almost
+	 * certainly a mistake, but it needs to exist for Swing to
+	 * function correctly.  You probably want to use
+	 * getPPComponentCount instead.
+	 */
+	public int getComponentCount() {
+		return super.getComponentCount();
+	}
+
+	/**
+	 * Throws IndexOutOfBoundsException becuase the PlayPen contains
+	 * no Swing components directly.
+	 *
+	 * @deprecated Calling this method from Architect code is almost
+	 * certainly a mistake, but it needs to exist for Swing to
+	 * function correctly.  You probably want to use {@link
+	 * #findTablePane}, {@link #getRelationships}, or {@link
+	 * #getTablePanes} instead.
+	 */
+	public Component getComponent(int i) {
+		return super.getComponent(i);
+	}
+
 	// ------------------- Right-click popup menu for playpen -----------------------
 	protected void setupPlayPenPopup() {
 		ArchitectFrame af = ArchitectFrame.getMainInstance();
@@ -453,8 +480,8 @@ public class PlayPen extends JPanel
 	 * null if no such TablePane is in the play pen.
 	 */
 	public TablePane findTablePane(SQLTable t) {
-		for (int i = 0; i < getComponentCount(); i++) {
-			Component c = getComponent(i);
+		for (int i = 0; i < contentPane.getComponentCount(); i++) {
+			Component c = contentPane.getComponent(i);
 			if (c instanceof TablePane 
 				&& ((TablePane) c).getModel() == t) {
 				return (TablePane) c;
@@ -475,6 +502,27 @@ public class PlayPen extends JPanel
 			}
 		}
 		return relationships;
+	}
+
+	/**
+	 * Returns a list of the TablePane components in this playpen.
+	 */
+	public List getTablePanes() {
+		LinkedList tablePanes = new LinkedList();
+		for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
+			if (contentPane.getComponent(i) instanceof TablePane) {
+				tablePanes.add(contentPane.getComponent(i));
+			}
+		}
+		return tablePanes;
+	}
+
+	/**
+	 * Returns the number of components in this PlayPen's
+	 * PlayPenContentPane.
+	 */
+	public int getPPComponentCount() {
+		return contentPane.getComponentCount();
 	}
 
 	/**
