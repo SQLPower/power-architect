@@ -25,6 +25,10 @@ public class ArchitectFrame extends JFrame {
 	 */
 	protected static ArchitectFrame mainInstance;
 
+	public static final double ZOOM_STEP = 0.2;
+
+	//protected Magnifier playpenMag;
+
 	protected SwingUIProject project = null;
 	protected ConfigFile configFile = null;
 	protected UserSettings prefs = null;
@@ -39,6 +43,9 @@ public class ArchitectFrame extends JFrame {
 	protected Action openProjectAction;
 	protected Action saveProjectAction;
 	protected Action saveProjectAsAction;
+// 	protected Action zoomInAction;
+// 	protected Action zoomOutAction;
+// 	protected Action zoomNormalAction;
 	protected DeleteSelectedAction deleteSelectedAction;
 	protected EditColumnAction editColumnAction;
 	protected InsertColumnAction insertColumnAction;
@@ -101,6 +108,8 @@ public class ArchitectFrame extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					setProject(new SwingUIProject("New Project"));
+					logger.debug("Glass pane is "+getGlassPane());
+					getGlassPane().setVisible(true);
 				} catch (Exception ex) {
 					JOptionPane.showMessageDialog(ArchitectFrame.this,
 												  "Can't create new project: "+ex.getMessage());
@@ -155,17 +164,52 @@ public class ArchitectFrame extends JFrame {
 					}
 				};
 		saveProjectAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Save");
-
+		
 		saveProjectAsAction
 			= new AbstractAction("Save Project As...",
 								 ASUtils.createJLFIcon("general/SaveAs",
 													   "Save Project As...",
 													   sprefs.getInt(sprefs.ICON_SIZE, 24))) {
-				public void actionPerformed(ActionEvent e) {
-					saveOrSaveAs(true);
-				}
-		};
+					public void actionPerformed(ActionEvent e) {
+						saveOrSaveAs(true);
+					}
+				};
 		saveProjectAsAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Save As");
+		
+		/*  ------------ no zoom stuff for now ---------------
+		zoomInAction
+			= new AbstractAction("Zoom in",
+								 ASUtils.createJLFIcon("general/ZoomIn",
+													   "Zoom In",
+													   sprefs.getInt(sprefs.ICON_SIZE, 24))) {
+					public void actionPerformed(ActionEvent e) {
+						playpenMag.setZoom(playpenMag.getZoom() + ZOOM_STEP);
+					}
+				};
+		zoomInAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Zoom In");
+
+		zoomOutAction
+			= new AbstractAction("Zoom out",
+								 ASUtils.createJLFIcon("general/ZoomOut",
+													   "Zoom Out",
+													   sprefs.getInt(sprefs.ICON_SIZE, 24))) {
+					public void actionPerformed(ActionEvent e) {
+						playpenMag.setZoom(playpenMag.getZoom() - ZOOM_STEP);
+					}
+				};
+		zoomOutAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Zoom Out");
+
+		zoomNormalAction
+			= new AbstractAction("Reset Zoom",
+								 ASUtils.createJLFIcon("general/Zoom",
+													   "Reset Zoom",
+													   sprefs.getInt(sprefs.ICON_SIZE, 24))) {
+					public void actionPerformed(ActionEvent e) {
+						playpenMag.setZoom(1.0);
+					}
+				};
+		zoomNormalAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Reset Zoom");
+		*/
 
 		exportDDLAction = new ExportDDLAction();
 		deleteSelectedAction = new DeleteSelectedAction();
@@ -195,6 +239,10 @@ public class ArchitectFrame extends JFrame {
 		toolBar.add(openProjectAction);
 		toolBar.add(saveProjectAction);
 		toolBar.addSeparator();
+// 		toolBar.add(zoomInAction);
+// 		toolBar.add(zoomOutAction);
+// 		toolBar.add(zoomNormalAction);
+		toolBar.addSeparator();
 		toolBar.add(deleteSelectedAction);
 		toolBar.addSeparator();
 		toolBar.add(createTableAction);
@@ -210,7 +258,7 @@ public class ArchitectFrame extends JFrame {
 		cp.add(toolBar, BorderLayout.EAST);
 
 		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-		getContentPane().add(splitPane, BorderLayout.CENTER);
+		cp.add(splitPane, BorderLayout.CENTER);
 		logger.debug("Added splitpane to content pane");
 		splitPane.setDividerLocation
 			(sprefs.getInt(SwingUserSettings.DIVIDER_LOCATION,
@@ -224,6 +272,9 @@ public class ArchitectFrame extends JFrame {
 		setBounds(bounds);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setProject(new SwingUIProject("New Project"));
+// 		MagnifierAwareGlassPane gp = new MagnifierAwareGlassPane();
+// 		gp.setFrame(this);
+// 		setGlassPane(gp);
 	}
 
 	public void setProject(SwingUIProject p) throws ArchitectException {
@@ -236,6 +287,7 @@ public class ArchitectFrame extends JFrame {
 		setupActions();
 
 		splitPane.setLeftComponent(new JScrollPane(dbTree));
+		//splitPane.setRightComponent(new JScrollPane(playpenMag = new Magnifier(playpen, 1.0)));
 		splitPane.setRightComponent(new JScrollPane(playpen));
 	}
 
