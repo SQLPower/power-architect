@@ -18,38 +18,32 @@ public class IERelationshipUI extends BasicRelationshipUI {
 	 * language.
 	 */
 	protected void paintTerminations(Graphics2D g2, Point parent, Point child, int orientation) {
-		switch(orientation) {
-		case LEFT_FACES_RIGHT:
+		if ( (orientation & PARENT_FACES_LEFT) != 0) {
 			g2.drawLine(parent.x - 10, parent.y - 5, parent.x - 10, parent.y + 5);
+		} else if ( (orientation & PARENT_FACES_RIGHT) != 0) {
+			g2.drawLine(parent.x + 10, parent.y - 5, parent.x + 10, parent.y + 5);
+		} else if ( (orientation & PARENT_FACES_TOP) != 0) {
+			g2.drawLine(parent.x - 5, parent.y - 10, parent.x + 5, parent.y - 10);
+		} else if ( (orientation & PARENT_FACES_BOTTOM) != 0) {
+			g2.drawLine(parent.x - 5, parent.y + 10, parent.x + 5, parent.y + 10);
+		}
 
+		if ( (orientation & CHILD_FACES_RIGHT) != 0) {
 			g2.drawLine(child.x + 10, child.y, child.x, child.y + 5);
 			g2.drawLine(child.x + 10, child.y, child.x, child.y - 5);
 			g2.drawOval(child.x + 10, child.y - 3, 6, 6);
-			break;
-			
-		case RIGHT_FACES_LEFT:
-			g2.drawLine(parent.x + 10, parent.y - 5, parent.x + 10, parent.y + 5);
-
+		} else if ( (orientation & CHILD_FACES_LEFT) != 0) {
 			g2.drawLine(child.x - 10, child.y, child.x, child.y + 5);
 			g2.drawLine(child.x - 10, child.y, child.x, child.y - 5);
 			g2.drawOval(child.x - 16, child.y - 3, 6, 6);
-			break;
-
-		case TOP_FACES_BOTTOM:
-			g2.drawLine(parent.x - 5, parent.y - 10, parent.x + 5, parent.y - 10);
-
-			g2.drawLine(child.x - 5, child.y, child.x, child.y + 10);
-			g2.drawLine(child.x + 5, child.y, child.x, child.y + 10);
-			g2.drawOval(child.x - 3, child.y + 10, 6, 6);
-			break;
-
-		case BOTTOM_FACES_TOP:
-			g2.drawLine(parent.x - 5, parent.y + 10, parent.x + 5, parent.y + 10);
-
+		} else if ( (orientation & CHILD_FACES_TOP) != 0) {
 			g2.drawLine(child.x - 5, child.y, child.x, child.y - 10);
 			g2.drawLine(child.x + 5, child.y, child.x, child.y - 10);
 			g2.drawOval(child.x - 3, child.y - 16, 6, 6);
-			break;
+		} else if ( (orientation & CHILD_FACES_BOTTOM) != 0) {
+			g2.drawLine(child.x - 5, child.y, child.x, child.y + 10);
+			g2.drawLine(child.x + 5, child.y, child.x, child.y + 10);
+			g2.drawOval(child.x - 3, child.y + 10, 6, 6);
 		}			
 	}
 
