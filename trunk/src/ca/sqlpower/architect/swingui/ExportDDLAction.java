@@ -122,11 +122,15 @@ public class ExportDDLAction extends AbstractAction {
 							return;
 						}
 
+						int stmtsTried = 0;
+						int stmtsCompleted = 0;
 						Iterator it = statements.iterator();
 						while (it.hasNext()) {
 							String sql = (String) it.next();
 							try {
+								stmtsTried++;
 								stmt.executeUpdate(sql);
+								stmtsCompleted++;
 							} catch (SQLException ex) {
 								int decision = JOptionPane.showConfirmDialog
 									(d, "SQL statement failed: "+ex.getMessage()
@@ -143,6 +147,9 @@ public class ExportDDLAction extends AbstractAction {
 						} catch (SQLException ex) {
 							logger.error("SQLException while closing statement", ex);
 						}
+
+						JOptionPane.showMessageDialog(d, "Successfully executed "+stmtsCompleted
+													  +" out of "+stmtsTried+" statements.");
 					}
 				});
 			buttonPanel.add(executeButton);
