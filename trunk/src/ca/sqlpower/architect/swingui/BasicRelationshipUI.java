@@ -19,10 +19,14 @@ public class BasicRelationshipUI extends RelationshipUI
 	protected Relationship relationship;
 
 	public static final int NO_FACING_EDGES = 0;
-	public static final int LEFT_FACES_RIGHT = 1;
-	public static final int RIGHT_FACES_LEFT = 2;
-	public static final int TOP_FACES_BOTTOM = 4;
-	public static final int BOTTOM_FACES_TOP = 8;
+	public static final int PARENT_FACES_RIGHT = 1;
+	public static final int PARENT_FACES_LEFT = 2;
+	public static final int PARENT_FACES_BOTTOM = 4;
+	public static final int PARENT_FACES_TOP = 8;
+	public static final int CHILD_FACES_RIGHT = 16;
+	public static final int CHILD_FACES_LEFT = 32;
+	public static final int CHILD_FACES_BOTTOM = 64;
+	public static final int CHILD_FACES_TOP = 128;
 
 	public static ComponentUI createUI(JComponent c) {
 		logger.debug("Creating new BasicRelationshipUI for "+c);
@@ -57,26 +61,27 @@ public class BasicRelationshipUI extends RelationshipUI
 							  fktloc.y + r.getFkTable().getLocation().y);
 
 		int orientation = getFacingEdges(relationship.getPkTable(), relationship.getFkTable());
-		switch (orientation) {
-		case LEFT_FACES_RIGHT:
-		case RIGHT_FACES_LEFT:
+		if ( (orientation & (PARENT_FACES_LEFT | PARENT_FACES_RIGHT)) != 0
+			 && (orientation & (CHILD_FACES_LEFT | CHILD_FACES_RIGHT)) != 0) {
 			int midx = (Math.abs(end.x - start.x) / 2) + Math.min(start.x, end.x);
 			g2.drawLine(start.x, start.y, midx, start.y);
 			g2.drawLine(midx, start.y, midx, end.y);
 			g2.drawLine(midx, end.y, end.x, end.y);
-			break;
-
-		case TOP_FACES_BOTTOM:
-		case BOTTOM_FACES_TOP:
+		} else if ( (orientation & (PARENT_FACES_TOP | PARENT_FACES_BOTTOM)) != 0
+					&& (orientation & (CHILD_FACES_TOP | CHILD_FACES_BOTTOM)) != 0) {
 			int midy = (Math.abs(end.y - start.y) / 2) + Math.min(start.y, end.y);
 			g2.drawLine(start.x, start.y, start.x, midy);
 			g2.drawLine(start.x, midy, end.x, midy);
 			g2.drawLine(end.x, midy, end.x, end.y);
-			break;
-			
-		case NO_FACING_EDGES:
+		} else if ( (orientation & (PARENT_FACES_LEFT | PARENT_FACES_RIGHT)) != 0) {
+			g2.drawLine(start.x, start.y, end.x, start.y);
+			g2.drawLine(end.x, start.y, end.x, end.y);
+		} else if ( (orientation & (PARENT_FACES_TOP | PARENT_FACES_BOTTOM)) != 0) {
+			g2.drawLine(start.x, start.y, start.x, end.y);
+			g2.drawLine(start.x, end.y, end.x, end.y);
+		} else {
+			// unknown case: draw straight line.
 			g2.drawLine(start.x, start.y, end.x, end.y);
-			break;
 		}
 
 		logger.debug("Drew line from "+start+" to "+end);
@@ -99,29 +104,29 @@ public class BasicRelationshipUI extends RelationshipUI
 									 Point tp1point, Point tp2point) {
 		Rectangle tp1b = tp1.getBounds();
 		Rectangle tp2b = tp2.getBounds();
-		switch(getFacingEdges(tp1, tp2)) {
-		case LEFT_FACES_RIGHT:
-			tp1point.move(0, tp1b.height/2);
-			tp2point.move(tp2b.width, tp2b.height/2);
-			break;
-
-		case RIGHT_FACES_LEFT:
-			tp1point.move(tp1b.width, tp1b.height/2);
-			tp2point.move(0, tp2b.height/2);
-			break;
-
-		case TOP_FACES_BOTTOM:
+		int orientation = getFacingEdges(tp1, tp2);
+		if ( (orientation & PARENT_FACES_TOP) != 0) {
 			tp1point.move(tp1b.width/2, 0);
-			tp2point.move(tp2b.width/2, tp2b.height);
-			break;
-
-		case BOTTOM_FACES_TOP:
+		} else if ( (orientation & PARENT_FACES_RIGHT) != 0) {
+			tp1point.move(tp1b.width, tp1b.height/2);
+		} else if ( (orientation & PARENT_FACES_BOTTOM) != 0) {
 			tp1point.move(tp1b.width/2, tp1b.height);
-			tp2point.move(tp2b.width/2, 0);
-			break;
+		} else if ( (orientation & PARENT_FACES_LEFT) != 0) {
+			tp1point.move(0, tp1b.height/2);
+		} else {
+			logger.error("Unrecognised parent orientation");
+		}
 
-		default:
-			throw new RuntimeException("Unrecognised answer from getFacingEdges");
+		if ( (orientation & CHILD_FACES_TOP) != 0) {
+			tp2point.move(tp2b.width/2, 0);
+		} else if ( (orientation & CHILD_FACES_RIGHT) != 0) {
+			tp2point.move(tp2b.width, tp2b.height/2);
+		} else if ( (orientation & CHILD_FACES_BOTTOM) != 0) {
+			tp2point.move(tp2b.width/2, tp2b.height);
+		} else if ( (orientation & CHILD_FACES_LEFT) != 0) {
+			tp2point.move(0, tp2b.height/2);
+		} else {
+			logger.error("Unrecognised child orientation");
 		}
 	}
 
@@ -163,13 +168,26 @@ public class BasicRelationshipUI extends RelationshipUI
 		int cl = getChildTerminationLength();
 
 		if (parentb.x-pl >= childb.x+childb.width+cl) {
-			return LEFT_FACES_RIGHT;
+			return PARENT_FACES_LEFT | CHILD_FACES_RIGHT;
 		} else if (parentb.x+parentb.width+pl <= childb.x-cl) {
-			return RIGHT_FACES_LEFT;
+			return PARENT_FACES_RIGHT | CHILD_FACES_LEFT;
 		} else if (parentb.y-pl >= childb.y+childb.height+cl) {
-			return TOP_FACES_BOTTOM;
+			return PARENT_FACES_TOP | CHILD_FACES_BOTTOM;
 		} else if (parentb.y+parentb.height+pl <= childb.y-cl) {
-			return BOTTOM_FACES_TOP;
+			return PARENT_FACES_BOTTOM | CHILD_FACES_TOP;
+		} else if (parentb.y >= childb.y+(childb.height/2)) {
+			if (parentb.x+(parentb.width/2) < childb.x) {
+				return PARENT_FACES_TOP | CHILD_FACES_LEFT;
+			} else {
+				return PARENT_FACES_TOP | CHILD_FACES_RIGHT;
+			}
+		} else if (parentb.y+parentb.height <= childb.y+(childb.height/2)) {
+			if (parentb.x+(parentb.width/2) < childb.x) {
+				return PARENT_FACES_BOTTOM | CHILD_FACES_LEFT;
+			} else {
+				return PARENT_FACES_BOTTOM | CHILD_FACES_RIGHT;
+			}
+			// xxx: two more conditions!
 		} else {
 			return NO_FACING_EDGES;
 		}
