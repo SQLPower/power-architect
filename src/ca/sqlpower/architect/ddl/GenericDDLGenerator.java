@@ -25,14 +25,20 @@ public class GenericDDLGenerator {
 	protected File file;
 
 	/**
-	 * This is where the generated DDL gets accumulated.
+	 * This is where each DDL statement gets accumulated while it is
+	 * being generated.
 	 */
-	protected StringBuffer ddl;
+	private StringBuffer ddl;
+
+	/**
+	 * Complete DDL statements are accumulated in this list.
+	 */
+	private List ddlStatements;
 
 	/**
 	 * This is initialized to the System line.separator property.
 	 */
-	protected static final String eol = System.getProperty("line.separator");
+	protected static final String EOL = System.getProperty("line.separator");
 
 	/**
 	 * A mapping from JDBC type code (Integer values) to
@@ -51,6 +57,27 @@ public class GenericDDLGenerator {
 	}
 
 	public StringBuffer generateDDL(SQLDatabase source) throws SQLException, ArchitectException {
+		List statements = generateDDLStatements(source);
+
+		ddl = new StringBuffer(4000);
+		writeHeader();
+		writeCreateDB(source);
+		writeDDLTransactionBegin();
+
+		Iterator it = statements.iterator();
+		while (it.hasNext()) {
+			ddl.append(it.next());
+			writeStatementTerminator();
+		}
+		
+		writeDDLTransactionEnd();
+		return ddl;
+	}
+
+	public List generateDDLStatements(SQLDatabase source) throws SQLException, ArchitectException {
+		ddlStatements = new ArrayList();
+		ddl = new StringBuffer(500);
+
 		if (allowConnection) {
 			con = source.getConnection();
 		} else {
@@ -58,11 +85,7 @@ public class GenericDDLGenerator {
 		}
 		
 		createTypeMap();
-		
-		ddl = new StringBuffer(3000);
-		writeHeader();
-		writeCreateDB(source);
-		writeDDLTransactionBegin();
+
 		Iterator it = source.getChildren().iterator();
 		while (it.hasNext()) {
 			SQLTable t = (SQLTable) it.next();
@@ -74,8 +97,17 @@ public class GenericDDLGenerator {
 			SQLTable t = (SQLTable) it.next();
 			writeExportedRelationships(t);
 		}
-		writeDDLTransactionEnd();
-		return ddl;
+
+		return ddlStatements;
+	}
+
+	/**
+	 * Stores all the ddl since the last call to endStatement as a SQL
+	 * statement. You have to call this at the end of each statement.
+	 */
+	public final void endStatement() {
+		ddlStatements.add(ddl.toString());
+		ddl = new StringBuffer(500);
 	}
 
 	public void writeHeader() {
@@ -145,13 +177,13 @@ public class GenericDDLGenerator {
 				print(" NOT NULL");
 			}
 
-			// XXX: default values?
+			// XXX: default values handled only in ETL?
 
 			firstCol = false;
 		}
 		println("");
 		print(")");
-		writeStatementTerminator();
+		endStatement();
 		println("");
 	}
 	
@@ -177,7 +209,7 @@ public class GenericDDLGenerator {
 		}
 		if (!firstCol) {
 			print(")");
-			writeStatementTerminator();
+			endStatement();
 			println("");
 		}
 	}
@@ -214,7 +246,7 @@ public class GenericDDLGenerator {
 			print(" (");
 			print(pkCols.toString());
 			print(")");
-			writeStatementTerminator();
+			endStatement();
 			println("");
 		}
 	}
@@ -239,7 +271,7 @@ public class GenericDDLGenerator {
 	}
 
 	protected void println(String text) {
-		ddl.append(text).append(eol);
+		ddl.append(text).append(EOL);
 	}
 
 	protected void print(String text) {
