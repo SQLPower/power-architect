@@ -16,4 +16,14 @@ public abstract class RelationshipUI extends ComponentUI implements java.io.Seri
 
 	public abstract boolean isOverPkDecoration(Point p);
 	public abstract boolean isOverFkDecoration(Point p);
+
+	protected int snapRadius = 4;
+	
+	public int getSnapRadius() {
+		return snapRadius;
+	}
+
+	public void setSnapRadius(int v) {
+		snapRadius = v;
+	}
 }
