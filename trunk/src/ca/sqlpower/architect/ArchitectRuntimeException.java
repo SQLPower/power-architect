@@ -4,27 +4,45 @@ package ca.sqlpower.architect;
  * The ArchitectRuntimeException is designed to wrap an
  * ArchitectException in cases where a method which is not allowed to
  * throw checked exceptions must propogate an ArchitectException.
+ *
+ * <p>This exception takes on the message and cause of the
+ * ArchitectException that it wraps, so it will rarely be necessary to
+ * "unwrap" an ArchitectException from an ArchitectRuntimeException.
+ * If you do need that (for instance, when re-throwing as a checked
+ * exception), use the asArchitectException method.
  */
 public class ArchitectRuntimeException extends RuntimeException {
-	protected ArchitectException cause;
+	protected ArchitectException wrapped;
 
-	public ArchitectRuntimeException(ArchitectException cause) {
-		this.cause = cause;
+	/**
+	 * Creates an unchecked exception wrapper for the given
+	 * ArchitectException.
+	 */
+	public ArchitectRuntimeException(ArchitectException wrapme) {
+		this.wrapped = wrapme;
 	}
 
 	/**
-	 * Returns the cause of this exception, which will always be an
-	 * ArchitectException (or subtype thereof).
+	 * Returns the cause of the wrapped ArchitectException.  The
+	 * return value will be null if the wrapped exception has no
+	 * cause.
 	 */
 	public Throwable getCause() {
-		return cause;
+		return wrapped.getCause();
 	}
 
+	/**
+	 * Returns the message of the wrapped ArchitectException.
+	 */
 	public String getMessage() {
-		if (((ArchitectException) cause).getCause() != null) {
-			return ((ArchitectException) cause).getCause().getMessage();
-		} else {
-			return cause.getMessage();
-		}
+		return wrapped.getMessage();
+	}
+	
+	/**
+	 * Returns the actual ArchitectException that this exception
+	 * wraps.  It shouldn't normally be nexessary to use this method.
+	 */
+	public ArchitectException asArchitectException() {
+		return wrapped;
 	}
 }
