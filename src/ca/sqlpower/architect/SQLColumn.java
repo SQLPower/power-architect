@@ -244,6 +244,14 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	
 	// ------------------------- accessors and mutators --------------------------
 
+	public SQLColumn getSourceColumn() {
+		return sourceColumn;
+	}
+
+	public void setSourceColumn(SQLColumn col) {
+		sourceColumn = col;
+	}
+
 	/**
 	 * Gets the value of name
 	 *
