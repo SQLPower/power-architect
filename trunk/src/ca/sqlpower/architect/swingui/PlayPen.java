@@ -58,9 +58,10 @@ public class PlayPen extends JPanel
 	 */
 	protected JPopupMenu tablePanePopup;
 
+	protected EditColumnAction editColumnAction;
 	protected InsertColumnAction insertColumnAction;
 	protected DeleteColumnAction deleteColumnAction;
-	protected EditColumnAction editColumnAction;
+	protected EditTableAction editTableAction;
 	protected DeleteTableAction deleteTableAction;
 
 	protected JPopupMenu playPenPopup;
@@ -112,10 +113,7 @@ public class PlayPen extends JPanel
 	protected void setupTablePanePopup() {
 		tablePanePopup = new JPopupMenu();
 
-		JMenuItem mi = new JMenuItem();
-		insertColumnAction = new InsertColumnAction(this);
-		mi.setAction(insertColumnAction);
-		tablePanePopup.add(mi);
+		JMenuItem mi;
 
 		mi = new JMenuItem();
 		editColumnAction = new EditColumnAction(this);
@@ -123,14 +121,28 @@ public class PlayPen extends JPanel
 		tablePanePopup.add(mi);
 
 		mi = new JMenuItem();
+		insertColumnAction = new InsertColumnAction(this);
+		mi.setAction(insertColumnAction);
+		tablePanePopup.add(mi);
+
+		mi = new JMenuItem();
 		deleteColumnAction = new DeleteColumnAction(this);
 		mi.setAction(deleteColumnAction);
 		tablePanePopup.add(mi);
 
+		tablePanePopup.addSeparator();
+
+		mi = new JMenuItem();
+		editTableAction = new EditTableAction(this);
+		mi.setAction(editTableAction);
+		tablePanePopup.add(mi);
+		
 		mi = new JMenuItem();
 		deleteTableAction = new DeleteTableAction(this);
 		mi.setAction(deleteTableAction);
 		tablePanePopup.add(mi);
+
+		tablePanePopup.addSeparator();
 
 		mi = new JMenuItem("Create Relationship");
 		tablePanePopup.add(mi);
