@@ -8,11 +8,13 @@ import java.awt.event.*;
 
 import java.util.List;
 import java.util.ArrayList;
+import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.*;
 import ca.sqlpower.sql.DBConnectionSpec;
 
 public class DBTree extends JTree implements DragSourceListener {
+	private static Logger logger = Logger.getLogger(DBTree.class);
 
 	protected DragSource ds;
 	protected JPopupMenu popup;
@@ -30,23 +32,23 @@ public class DBTree extends JTree implements DragSourceListener {
 
 	// ---------- methods of DragSourceListener -----------
 	public void dragEnter(DragSourceDragEvent dsde) {
-		//System.out.println("DBTree: got dragEnter event");
+		logger.debug("DBTree: got dragEnter event");
 	}
 
 	public void dragOver(DragSourceDragEvent dsde) {
-		//System.out.println("DBTree: got dragOver event");
+		logger.debug("DBTree: got dragOver event");
 	}
 	
 	public void dropActionChanged(DragSourceDragEvent dsde) {
-		//System.out.println("DBTree: got dropActionChanged event");
+		logger.debug("DBTree: got dropActionChanged event");
 	}
 
 	public void dragExit(DragSourceEvent dse) {
-		//System.out.println("DBTree: got dragExit event");
+		logger.debug("DBTree: got dragExit event");
 	}
 	
 	public void dragDropEnd(DragSourceDropEvent dsde) {
-		//System.out.println("DBTree: got dragDropEnd event");
+		logger.debug("DBTree: got dragDropEnd event");
 	}
 
 	/**
@@ -56,7 +58,7 @@ public class DBTree extends JTree implements DragSourceListener {
 	 */
  	public static class DBTreeDragGestureListener implements DragGestureListener {
 		public void dragGestureRecognized(DragGestureEvent dge) {
-			System.out.println("Drag gesture event: "+dge);
+			logger.info("Drag gesture event: "+dge);
 
 			// we only start drags on left-click drags
 			InputEvent ie = dge.getTriggerEvent();
@@ -72,13 +74,13 @@ public class DBTree extends JTree implements DragSourceListener {
 				return;
 			} else if (p.length == 1) {
 				// export single node
-				System.out.println("DBTree: exporting single node");
+				logger.info("DBTree: exporting single node");
 				SQLObject data = (SQLObject) p[0].getLastPathComponent();
 				dge.getDragSource().startDrag
 					(dge, DragSource.DefaultCopyNoDrop, new SQLObjectTransferable(data), t);
 			} else {
 				// export list of nodes
-				System.out.println("DBTree: exporting list of nodes");
+				logger.info("DBTree: exporting list of nodes");
 				SQLObject[] nodes = new SQLObject[p.length];
 				for (int i = 0; i < p.length; i++) {
 					nodes[i] = (SQLObject) p[i].getLastPathComponent();

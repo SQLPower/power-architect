@@ -1,8 +1,11 @@
 package ca.sqlpower.architect;
 
 import java.util.*;
+import org.apache.log4j.Logger;
 
 public abstract class SQLObject implements java.io.Serializable {
+
+	private static Logger logger = Logger.getLogger(SQLObject.class);
 
 	/**
 	 * The children of this SQLObject (if not applicable, set to
@@ -117,7 +120,7 @@ public abstract class SQLObject implements java.io.Serializable {
 	}
 
 	protected void fireDbChildrenInserted(int[] newIndices, List newChildren) {
-		System.out.println(getClass().getName()+": firing dbChildrenInserted event");
+		logger.debug(getClass().getName()+": firing dbChildrenInserted event");
 		SQLObjectEvent e = new SQLObjectEvent
 			(this,
 			 newIndices,
@@ -128,7 +131,7 @@ public abstract class SQLObject implements java.io.Serializable {
 			count ++;
 			((SQLObjectListener) it.next()).dbChildrenInserted(e);
 		}
-		System.out.println(getClass().getName()+": notified "+count+" listeners");
+		logger.debug(getClass().getName()+": notified "+count+" listeners");
 	}
 
 	protected void fireDbChildInserted(int newIndex, SQLObject newChild) {
