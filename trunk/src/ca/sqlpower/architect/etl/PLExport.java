@@ -3,19 +3,128 @@ package ca.sqlpower.architect.etl;
 import java.sql.*;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.HashSet;
 import ca.sqlpower.sql.*;
+import ca.sqlpower.security.*;
 import ca.sqlpower.architect.*;
 
 public class PLExport { 
 	public static final String PL_GENERATOR_VERSION = "$Revision$";
 
 	protected DefaultParameters defParam;
+	protected String folderName = "Architect Jobs";
 	protected String jobId;
 	protected String jobDescription;
 	protected String jobComment;
 	protected DBConnectionSpec plDBCS;
 	protected String outputTableOwner;
+	protected String plUsername;
+	protected String plPassword;
+	protected PLSecurityManager sm;
+
+	/**
+	 * Creates a folder if one with the name folderName does not exist
+	 * already.
+	 */
+	public void maybeInsertFolder(Connection con) throws SQLException {
+		Statement stmt = null;
+		ResultSet rs = null;
+		try {
+			stmt = con.createStatement();
+			rs = stmt.executeQuery("SELECT 1 FROM pl_folder WHERE folder_name="
+								   +SQL.quote(folderName));
+			if (!rs.next()) {
+				StringBuffer sql = new StringBuffer("INSERT INTO PL_FOLDER (");
+				sql.append("folder_name,folder_desc,folder_status,last_backup_no)");
+				sql.append(" VALUES (");
+				
+				sql.append(SQL.quote(folderName));  // folder_name
+				sql.append(",").append(SQL.quote("This Folder id for jobs and transactions created by the Power*Architect"));  // folder_desc
+				sql.append(",").append(SQL.quote(null));  // folder_status
+				sql.append(",").append(SQL.quote(null));  // last_backup_no
+				sql.append(")");
+				stmt.executeUpdate(sql.toString());
+			}
+		} finally {
+			if (rs != null) rs.close();
+			if (stmt != null) stmt.close();
+		}
+	}
+	
+	/**
+	 * Inserts an entry in the folderName folder of the named object
+	 * of the given type.
+	 */
+	public void insertFolderDetail(Connection con, String objectType, String objectName)
+		throws SQLException {
+		StringBuffer sql = new StringBuffer("INSERT INTO PL_FOLDER_DETAIL (");
+		sql.append("folder_name,object_type,object_name)");
+		sql.append(" VALUES (");
+
+		sql.append(SQL.quote(folderName));  // folder_name
+		sql.append(",").append(SQL.quote(objectType));  // object_type
+		sql.append(",").append(SQL.quote(objectName));  // object_name
+		sql.append(")");
+		Statement s = con.createStatement();
+		try {
+			s.executeUpdate(sql.toString());
+		} finally {
+			if (s != null) {
+				s.close();
+			}
+		}
+	}
+
+	/**
+	 * Deletes the PL job with the name set in this.jobId.  Cascades
+	 * the delete to all child tables of job, as well as all
+	 * transactions in the job.
+	 *
+	 */
+	public void deleteJobCascade(Connection con) throws SQLException, PLSecurityException {
+		Statement stmt = con.createStatement();
+		ResultSet rs = null;
+		try {
+			LinkedList jobTransactions = new LinkedList();
+			StringBuffer sql = new StringBuffer();
+			sql.append("SELECT DISTINCT object_name FROM job_detail");
+			sql.append(" WHERE object_type = 'TRANSACTION'");
+			sql.append(" AND job_id = ").append(SQL.quote(jobId));
+			rs = stmt.executeQuery(sql.toString());
+			while (rs.next()) {
+				jobTransactions.add(rs.getString(1));
+			}
+			rs.close();
+			
+			Iterator it = jobTransactions.iterator();
+			while (it.hasNext()) {
+				String transId = (String) it.next();
+				PLTrans trans = new PLTrans(transId);
+				PLSecurityManager.deleteDatabaseObject(con, sm, trans);
+				stmt.executeUpdate("DELETE FROM folder_detail WHERE object_type='TRANSACTION'"+
+								   " AND object_name="+SQL.quote(transId));
+				stmt.executeUpdate("DELETE FROM trans_col_map WHERE trans_id="+SQL.quote(transId));
+				stmt.executeUpdate("DELETE FROM trans_table_file_format WHERE trans_id="+SQL.quote(transId));
+				stmt.executeUpdate("DELETE FROM trans_table_except_handle WHERE trans_id="+SQL.quote(transId));
+				stmt.executeUpdate("DELETE FROM trans_table_pkg WHERE trans_id="+SQL.quote(transId));
+				stmt.executeUpdate("DELETE FROM trans_table_file WHERE trans_id="+SQL.quote(transId));
+				stmt.executeUpdate("DELETE FROM trans_pkg WHERE trans_id="+SQL.quote(transId));
+				stmt.executeUpdate("DELETE FROM trans_except_handle WHERE trans_id="+SQL.quote(transId));
+				stmt.executeUpdate("DELETE FROM trans WHERE trans_id="+SQL.quote(transId));
+			}
+
+			PLJob job = new PLJob(jobId);
+			PLSecurityManager.deleteDatabaseObject(con, sm, job);
+			stmt.executeUpdate("DELETE FROM folder_detail WHERE object_type='JOB'"+
+							   " AND object_name="+SQL.quote(jobId));
+			stmt.executeUpdate("DELETE FROM job_detail WHERE job_id="+SQL.quote(jobId));
+			stmt.executeUpdate("DELETE FROM pl_job WHERE job_id="+SQL.quote(jobId));
+		} finally {
+			if (rs != null) rs.close();
+			if (stmt != null) stmt.close();
+		}
+	}
 
 	/**
 	 * Inserts a job into the PL_JOB table.  The job name is specified by {@link #jobId}.
@@ -23,11 +132,11 @@ public class PLExport {
 	 * @param con A connection to the PL database
 	 */
 	public void insertJob(Connection con) throws SQLException {
-
-		StringBuffer sql= new StringBuffer("INSERT INTO PL_JOB (");
+		
+		StringBuffer sql = new StringBuffer("INSERT INTO PL_JOB (");
 		sql.append("JOB_ID, JOB_DESC, JOB_FREQ_DESC, PROCESS_CNT, SHOW_PROGRESS_FREQ, PROCESS_SEQ_CODE, MAX_RETRY_COUNT, WRITE_DB_ERRORS_IND, ROLLBACK_SEGMENT_NAME, LOG_FILE_NAME, ERR_FILE_NAME, UNIX_LOG_FILE_NAME, UNIX_ERR_FILE_NAME, APPEND_TO_LOG_IND, APPEND_TO_ERR_IND, DEBUG_MODE_IND, COMMIT_FREQ, JOB_COMMENT, CREATE_DATE, LAST_update_DATE, LAST_update_USER, BATCH_SCRIPT_FILE_NAME, JOB_SCRIPT_FILE_NAME, UNIX_BATCH_SCRIPT_FILE_NAME, UNIX_JOB_SCRIPT_FILE_NAME, JOB_STATUS, LAST_BACKUP_NO, LAST_RUN_DATE, SKIP_PACKAGES_IND, SEND_EMAIL_IND, LAST_update_OS_USER, STATS_IND, checked_out_ind, checked_out_date, checked_out_user, checked_out_os_user");
 		sql.append(") VALUES (");
-		sql.append(",").append(SQL.quote(jobId));  // JOB_ID
+		sql.append(SQL.quote(jobId));  // JOB_ID
 		sql.append(",").append(SQL.quote(jobDescription));  // JOB_DESC
 		sql.append(",").append(SQL.quote(null));  // JOB_FREQ_DESC
 		sql.append(",").append(SQL.quote(null));  // PROCESS_CNT
@@ -64,11 +173,11 @@ public class PLExport {
 		sql.append(",").append(SQL.quote(null));  // checked_out_user
 		sql.append(",").append(SQL.quote(null));  // checked_out_os_user
 		sql.append(")");
-		Statement s =con.createStatement();
+		Statement s = con.createStatement();
 		try {
 			s.executeUpdate(sql.toString());
 		} finally {
-			if( s != null) {
+			if (s != null) {
 				s.close();
 			}
 		}
@@ -85,7 +194,7 @@ public class PLExport {
 		StringBuffer sql= new StringBuffer("INSERT INTO JOB_DETAIL (");
 		sql.append("JOB_ID, JOB_PROCESS_SEQ_NO, OBJECT_TYPE, OBJECT_NAME, JOB_DETAIL_COMMENT, LAST_update_DATE, LAST_update_USER, FAILURE_ABORT_IND, WARNING_ABORT_IND, PKG_PARAM, ACTIVE_IND, LAST_update_OS_USER )");
 		sql.append(" VALUES (");
-		sql.append(",").append(SQL.quote(jobId));  // JOB_ID
+		sql.append(SQL.quote(jobId));  // JOB_ID
 		sql.append(",").append(seqNo);  // JOB_PROCESS_SEQ_NO
 		sql.append(",").append(SQL.quote(objectType));  // OBJECT_TYPE
 		sql.append(",").append(SQL.quote(objectName));  // OBJECT_NAME
@@ -98,11 +207,11 @@ public class PLExport {
 		sql.append(",").append(SQL.quote("Y"));  // ACTIVE_IND
 		sql.append(",").append(SQL.quote(System.getProperty("user.name")));  // LAST_update_OS_USER
 		sql.append(")");
-		Statement s =con.createStatement();
+		Statement s = con.createStatement();
 		try {
 			s.executeUpdate(sql.toString());
 		} finally {
-			if( s != null) {
+			if (s != null) {
 				s.close();
 			}
 		}
@@ -117,7 +226,7 @@ public class PLExport {
 	 * @param t The SQLTable that describes the DB table this
 	 * transaction will populate.
 	 */
-	public void insertTrans(Connection con, String transId, SQLTable t) throws ArchitectException, SQLException {
+	public void insertTrans(Connection con, String transId, String remarks) throws ArchitectException, SQLException {
 		StringBuffer sql = new StringBuffer();
 		sql.append(" INSERT INTO TRANS (");
 		sql.append("TRANS_ID, TRANS_DESC, TRANS_COMMENT, ACTION_TYPE, MAX_RETRY_COUNT, PROCESS_SEQ_CODE, LAST_update_DATE, LAST_update_USER, DEBUG_MODE_IND, COMMIT_FREQ, PROCESS_ADD_IND, PROCESS_UPD_IND, PROCESS_DEL_IND, WRITE_DB_ERRORS_IND, ROLLBACK_SEGMENT_NAME, ERR_FILE_NAME, LOG_FILE_NAME, BAD_FILE_NAME, SHOW_PROGRESS_FREQ, SKIP_CNT, PROCESS_CNT, SOURCE_DATE_FORMAT, CREATE_DATE, UNIX_LOG_FILE_NAME, UNIX_ERR_FILE_NAME, UNIX_BAD_FILE_NAME, REMOTE_CONNECTION_STRING, APPEND_TO_LOG_IND, APPEND_TO_ERR_IND, APPEND_TO_BAD_IND, REC_DELIMITER, TRANS_STATUS, LAST_BACKUP_NO, LAST_RUN_DATE, SKIP_PACKAGES_IND, SEND_EMAIL_IND, PROMPT_COLMAP_INDEXES_IND, TRANSACTION_TYPE, DELTA_SORT_IND, LAST_update_OS_USER, STATS_IND, ODBC_IND, checked_out_ind, checked_out_date, checked_out_user, checked_out_os_user )");
@@ -125,23 +234,23 @@ public class PLExport {
 		sql.append( "VALUES (");
 		sql.append(SQL.quote(transId));
 		sql.append(",").append(SQL.quote("Generated by Power*Architect "+PL_GENERATOR_VERSION));
-		sql.append(",").append(SQL.quote(t.getRemarks()));
-		sql.append(",").append(SQL.quote("UPDATE")); // XXX ask Gill
+		sql.append(",").append(SQL.quote(remarks));
+		sql.append(",").append(SQL.quote(null));
 		sql.append(",").append(SQL.quote(null));
 		sql.append(",").append(SQL.quote(null));
 		sql.append(",").append(SQL.escapeDate(con, new java.util.Date()));
 		sql.append(",").append(SQL.quote(con.getMetaData().getUserName()));
 		sql.append(",").append(SQL.quote("N"));
-		sql.append(",").append("100");
-		sql.append(",").append(SQL.quote("Y")); 	// XX ask Gill
-		sql.append(",").append(SQL.quote("Y"));		// XX ask Gill
-		sql.append(",").append(SQL.quote("N"));		// XX ask Gill
+		sql.append(",").append(defParam.get("commit_freq"));
+		sql.append(",").append(SQL.quote(null));
+		sql.append(",").append(SQL.quote(null));
+		sql.append(",").append(SQL.quote(null));
 		sql.append(",").append(SQL.quote(null));
 		sql.append(",").append(SQL.quote(null));
 		sql.append(",").append(SQL.quote(fixWindowsPath(defParam.get("default_err_file_path"))+transId+".err"));
 		sql.append(",").append(SQL.quote(fixWindowsPath(defParam.get("default_log_file_path"))+transId+".log"));
 		sql.append(",").append(SQL.quote(fixWindowsPath(defParam.get("default_bad_file_path"))+transId+".bad"));
-		sql.append(",").append("100");
+		sql.append(",").append(defParam.get("show_progress_freq"));
 		sql.append(",").append("0");
 		sql.append(",").append("0");
 		sql.append(",").append(SQL.quote(null));
@@ -149,56 +258,34 @@ public class PLExport {
 		sql.append(",").append(SQL.quote(fixUnixPath(defParam.get("default_unix_log_file_path"))+transId+".log"));
 		sql.append(",").append(SQL.quote(fixUnixPath(defParam.get("default_unix_err_file_path"))+transId+".err"));
 		sql.append(",").append(SQL.quote(fixUnixPath(defParam.get("default_unix_bad_file_path"))+transId+".bad"));
-		sql.append(",").append(SQL.quote(null));
-		sql.append(",").append(SQL.quote("N"));
-		sql.append(",").append(SQL.quote("N"));
-		sql.append(",").append(SQL.quote("Y"));
-		sql.append(",").append(SQL.quote(null));
-		sql.append(",").append(SQL.quote(null));
-		sql.append(",").append(SQL.quote(null));
-		sql.append(",").append(SQL.quote(null));
-		sql.append(",").append(SQL.quote("N"));
-		sql.append(",").append(SQL.quote("N"));
-		sql.append(",").append(SQL.quote(null));
-		sql.append(",").append(SQL.quote("POWER_LOADER"));
-		sql.append(",").append(SQL.quote("Y"));
-		sql.append(",").append(SQL.quote(System.getProperty("user.name")));
-		sql.append(",").append(SQL.quote("N"));
-		sql.append(",").append(SQL.quote("Y"));
-		sql.append(",").append(SQL.quote(null));
-		sql.append(",").append(SQL.quote(null));
-		sql.append(",").append(SQL.quote(null));
-		sql.append(",").append(SQL.quote(null));
+		sql.append(",").append(SQL.quote(null)); //REMOTE_CONNECTION_STRING
+		sql.append(",").append(SQL.quote(defParam.get("append_to_log_ind"))); // APPEND_TO_LOG_IND
+		sql.append(",").append(SQL.quote(defParam.get("append_to_err_ind"))); // APPEND_TO_ERR_IND
+		sql.append(",").append(SQL.quote(defParam.get("append_to_bad_ind"))); // APPEND_TO_BAD_IND
+		sql.append(",").append(SQL.quote(null)); // REC_DELIMITER
+		sql.append(",").append(SQL.quote(null)); // TRANS_STATUS
+		sql.append(",").append(SQL.quote(null)); // LAST_BACKUP_NO
+		sql.append(",").append(SQL.quote(null)); // LAST_RUN_DATE
+		sql.append(",").append(SQL.quote("N")); // SKIP_PACKAGES_IND
+		sql.append(",").append(SQL.quote("N")); // SEND_EMAIL_IND
+		sql.append(",").append(SQL.quote(null)); // PROMPT_COLMAP_INDEXES_IND
+		sql.append(",").append(SQL.quote("POWER_LOADER")); // TRANSACTION_TYPE
+		sql.append(",").append(SQL.quote("Y")); // DELTA_SORT_IND
+		sql.append(",").append(SQL.quote(System.getProperty("user.name"))); // LAST_update_OS_USER
+		sql.append(",").append(SQL.quote("N")); // STATS_IND
+		sql.append(",").append(SQL.quote("Y")); // ODBC_IND
+		sql.append(",").append(SQL.quote(null)); // checked_out_ind
+		sql.append(",").append(SQL.quote(null)); // checked_out_date
+		sql.append(",").append(SQL.quote(null)); // checked_out_user
+		sql.append(",").append(SQL.quote(null)); // checked_out_os_user
 		sql.append(")");
-		Statement s =con.createStatement();
+		Statement s = con.createStatement();
 		try {
 			s.executeUpdate(sql.toString());
 		} finally {
-			if( s != null) {
+			if (s != null) {
 				s.close();
 			}
-		}
-
-		// Generate a TRANS_TABLE_FILE record for the output table and each input table
-		String outputTableFileId = t.getName();
-		insertTransTableFile(con, transId, outputTableFileId, t, true, 10);
-
-		int tableSeqNo = 2;
-		int mapSeqNo = 1;
-		HashMap inputTableMap = new HashMap();
-		Iterator outputCols = t.getColumns().iterator();
-		while (outputCols.hasNext()) {
-			SQLColumn outputCol = (SQLColumn) outputCols.next();
-			SQLColumn inputCol = outputCol.getSourceColumn();
-			if (inputCol == null) continue;
-			if (inputTableMap.get(inputCol.getParent()) != null) {
-				String inputTableId = inputCol.getParent().getName(); // XXX: we should avoid duplicates!
-				inputTableMap.put(inputCol.getParent(), inputTableId);
-				insertTransTableFile(con, transId, inputTableId, inputCol.getParentTable(), false, tableSeqNo*10);
-				tableSeqNo++;
-			}
-			insertTransColMap(con, transId, outputTableFileId, outputCol, inputTableMap, mapSeqNo);
-			mapSeqNo++;
 		}
 	}
 
@@ -266,7 +353,7 @@ public class PLExport {
 		sql.append(",").append(SQL.escapeDate(con, new java.util.Date()));  // LAST_update_DATE
 		sql.append(",").append(SQL.quote(con.getMetaData().getUserName()));  // LAST_update_USER
 		sql.append(",").append(SQL.quote("Generated by Power*Architect "+PL_GENERATOR_VERSION));  // TRANS_TABLE_FILE_COMMENT
-		sql.append(",").append(SQL.quote(null));  // DB_CONNECT_NAME
+		sql.append(",").append(SQL.quote(null));  // DB_CONNECT_NAME FIXME: important!
 		sql.append(",").append(SQL.quote(null));  // UNIX_FILE_ACCESS_PATH
 		sql.append(",").append(SQL.quote(null));  // REC_DELIMITER
 		sql.append(",").append(SQL.quote(null));  // SELECT_CLAUSE
@@ -284,16 +371,40 @@ public class PLExport {
 		sql.append(",").append(SQL.quote(null));  // DELETE_IND
 		sql.append(",").append(SQL.quote(null));  // FROM_CLAUSE_DB
 		sql.append(")");
-		Statement s =con.createStatement();
+		Statement s = con.createStatement();
 		try {
 			s.executeUpdate(sql.toString());
 		} finally {
-			if( s != null) {
+			if (s != null) {
 				s.close();
 			}
 		}
 	}
 	
+	/**
+	 * Inserts mapping records (by calling insertTransColMap) for all
+	 * mandatory columns of outputTable, as well as all columns of
+	 * outputTable whose source table is inputTable.
+	 */
+	public void insertMappings(Connection con,
+							   String transId,
+							   String outputTableId,
+							   SQLTable outputTable,
+							   String inputTableId,
+							   SQLTable inputTable) throws SQLException, ArchitectException {
+		int seqNo = 1;
+		Iterator outCols = outputTable.getColumns().iterator();
+		while (outCols.hasNext()) {
+			SQLColumn outCol = (SQLColumn) outCols.next();
+			SQLColumn sourceCol = outCol.getSourceColumn();
+			if ( (outCol.getNullable() == DatabaseMetaData.columnNoNulls)  // also covers PK
+				 || (sourceCol != null && sourceCol.getParentTable() == inputTable) ) {
+				insertTransColMap(con, transId, outputTableId, outCol, inputTableId, seqNo);
+				seqNo++;
+			}
+		}
+	}
+
 	/**
 	 * Inserts a column mapping record for outputColumn into the
 	 * TRANS_COL_MAP table.
@@ -305,30 +416,32 @@ public class PLExport {
 	 * @param inputTableMap A map with SQLTable objects as keys and
 	 * Strings with the corresponding TRANS_TABLE_FILE_ID for that
 	 * input table.
-	 * @param seqNo The sequence number of this mapping in the transaction.
+	 * @param seqNo The sequence number of the output table in trans_table_file
 	 */
 	public void insertTransColMap(Connection con,
 								  String transId,
-								  String transTableFileId,
+								  String outputTableId,
 								  SQLColumn outputColumn,
-								  Map inputTableMap,
+								  String inputTableId,
 								  int seqNo) throws SQLException {
 		SQLColumn inputColumn = outputColumn.getSourceColumn();
-		if (inputColumn == null) {
-			// no mapping specified by user
-			return;
+		String inputColumnName;
+		if (inputColumn != null) {
+			inputColumnName = inputColumn.getName();
+		} else {
+			inputColumnName = null;
 		}
 		StringBuffer sql= new StringBuffer("INSERT INTO TRANS_COL_MAP (");
-		sql.append("TRANS_ID, INPUT_TABLE_FILE_ID, INPUT_TRANS_COL_NAME, OUTPUT_TABLE_FILE_ID, OUTPUT_TRANS_COL_NAME, VALID_ACTION_TYPE, NATURAL_ID_IND, REAL_MEM_TRANS_IND, DEFAULT_VALUE, INPUT_TRANS_VALUE, OUTPUT_TRANS_VALUE, TRANS_TABLE_NAME, SEQ_NAME, GRP_FUNC_STRING, TRANS_COL_MAP_COMMENT, PROCESS_SEQ_NO, LAST_update_DATE, LAST_update_USER, PROC_SEQ_NO, OUTPUT_PROC_SEQ_NO, TRANSLATION_VALUE, ACTIVE_IND, PL_SEQ_IND, PL_SEQ_INCREMENT, LAST_update_OS_USER, TRANSFORMATION_CRITERIA, PL_SEQ_update_TABLE_IND, SEQ_TABLE_IND, SEQ_WHERE_CLAUSE)");
+		sql.append("TRANS_ID, INPUT_TABLE_FILE_ID, INPUT_TRANS_COL_NAME, OUTPUT_TABLE_FILE_ID, OUTPUT_TRANS_COL_NAME, VALID_ACTION_TYPE, NATURAL_ID_IND, REAL_MEM_TRANS_IND, DEFAULT_VALUE, INPUT_TRANS_VALUE, OUTPUT_TRANS_VALUE, TRANS_TABLE_NAME, SEQ_NAME, GRP_FUNC_STRING, TRANS_COL_MAP_COMMENT, PROCESS_SEQ_NO, LAST_update_DATE, LAST_update_USER, OUTPUT_PROC_SEQ_NO, TRANSLATION_VALUE, ACTIVE_IND, PL_SEQ_IND, PL_SEQ_INCREMENT, LAST_update_OS_USER, TRANSFORMATION_CRITERIA, PL_SEQ_update_TABLE_IND, SEQ_TABLE_IND, SEQ_WHERE_CLAUSE)");
 		sql.append(" VALUES (");
 
-		sql.append(",").append(SQL.quote(transId));  // TRANS_ID
-		sql.append(",").append(SQL.quote((String) inputTableMap.get(inputColumn.getParent()))); //INPUT_TABLE_FILE_ID
-		sql.append(",").append(SQL.quote(inputColumn.getName()));  // INPUT_TRANS_COL_NAME
-		sql.append(",").append(SQL.quote(transTableFileId));  // OUTPUT_TABLE_FILE_ID
+		sql.append(SQL.quote(transId));  // TRANS_ID
+		sql.append(",").append(SQL.quote(inputTableId)); //INPUT_TABLE_FILE_ID
+		sql.append(",").append(SQL.quote(inputColumnName));  // INPUT_TRANS_COL_NAME
+		sql.append(",").append(SQL.quote(outputTableId));  // OUTPUT_TABLE_FILE_ID
 		sql.append(",").append(SQL.quote(outputColumn.getName()));  // OUTPUT_TRANS_COL_NAME
-		sql.append(",").append(SQL.quote("AU"));  // VALID_ACTION_TYPE
-		sql.append(",").append(SQL.quote("N"));  // NATURAL_ID_IND XXX: ask gill
+		sql.append(",").append(SQL.quote(outputColumn.getPrimaryKeySeq() != null ? "A" : "AU"));  // VALID_ACTION_TYPE
+		sql.append(",").append(SQL.quote(outputColumn.getPrimaryKeySeq() != null ? "Y" : "N"));  // NATURAL_ID_IND
 		sql.append(",").append(SQL.quote(null));  // REAL_MEM_TRANS_IND
 		sql.append(",").append(SQL.quote(outputColumn.getDefaultValue()));  // DEFAULT_VALUE
 		sql.append(",").append(SQL.quote(null));  // INPUT_TRANS_VALUE
@@ -337,25 +450,24 @@ public class PLExport {
 		sql.append(",").append(SQL.quote(null));  // SEQ_NAME
 		sql.append(",").append(SQL.quote(null));  // GRP_FUNC_STRING
 		sql.append(",").append(SQL.quote("Generated by Power*Architect "+PL_GENERATOR_VERSION));  // TRANS_COL_MAP_COMMENT
-		sql.append(",").append(seqNo);  // PROCESS_SEQ_NO  XXX: ask gill
+		sql.append(",").append(SQL.quote(null));  // PROCESS_SEQ_NO
 		sql.append(",").append(SQL.escapeDate(con, new java.util.Date()));  // LAST_update_DATE
 		sql.append(",").append(SQL.quote(con.getMetaData().getUserName()));  // LAST_update_USER
-		sql.append(",").append(SQL.quote(null));  // PROC_SEQ_NO  XXX: ask gill
-		sql.append(",").append(SQL.quote(null));  // OUTPUT_PROC_SEQ_NO  XXX: ask gill
+		sql.append(",").append(seqNo);  // OUTPUT_PROC_SEQ_NO  from trans_table_file.seq_no?
 		sql.append(",").append(SQL.quote(null));  // TRANSLATION_VALUE
 		sql.append(",").append(SQL.quote("Y"));  // ACTIVE_IND
-		sql.append(",").append(SQL.quote("N"));  // PL_SEQ_IND
+		sql.append(",").append(SQL.quote(null));  // PL_SEQ_IND
 		sql.append(",").append(SQL.quote(null));  // PL_SEQ_INCREMENT
 		sql.append(",").append(SQL.quote(System.getProperty("user.name")));  // LAST_update_OS_USER
 		sql.append(",").append(SQL.quote(null));  // TRANSFORMATION_CRITERIA
 		sql.append(",").append(SQL.quote(null));  // PL_SEQ_update_TABLE_IND
 		sql.append(",").append(SQL.quote(null));  // SEQ_TABLE_IND
 		sql.append(",").append(SQL.quote(null));  // SEQ_WHERE_CLAUSE
-		Statement s =con.createStatement();
+		Statement s = con.createStatement();
 		try {
 			s.executeUpdate(sql.toString());
 		} finally {
-			if( s != null) {
+			if (s != null) {
 				s.close();
 			}
 		}
@@ -404,13 +516,13 @@ public class PLExport {
 			}
 		} else if (DBConnection.isDB2(con)) {
 			if(actionType.equals("A")) {
-				errorCode = -1;
+				errorCode = -803;
 				resultActionType="CHANGE_TO_UPD";
 			} else if(actionType.equals("U")) {
-				errorCode = 1403;
+				errorCode = 100;
 				resultActionType="CHANGE_TO_ADD";
 			} else if(actionType.equals("D")) {
-				errorCode = 1403;
+				errorCode = 100;
 				resultActionType="SKIP";
 			} else {
 				throw new IllegalArgumentException("Invalid Action type " + actionType); 
@@ -434,11 +546,11 @@ public class PLExport {
 		sql.append(",").append(SQL.quote("Y"));     // ACTIVE_IND
 		sql.append(",").append(SQL.quote(System.getProperty("user.name"))); // LAST_update_OS_USER
 		sql.append(")");
-		Statement s =con.createStatement();
+		Statement s = con.createStatement();
 		try {
 			s.executeUpdate(sql.toString());
 		} finally {
-			if( s != null) {
+			if (s != null) {
 				s.close();
 			}
 		}
@@ -459,19 +571,44 @@ public class PLExport {
 			} catch (PLSchemaException p) {
 				throw new ArchitectException("couldn't load default parameters",p);
 			}
+
+			sm = new PLSecurityManager(con, plUsername, plPassword);
+
+			maybeInsertFolder(con);
+			deleteJobCascade(con);
 			insertJob(con);
 			Iterator tables = db.getChildren().iterator();
-			int i=1;
+			int outputTableNum = 1;
 			while(tables.hasNext()) {
-				SQLTable t = (SQLTable) tables.next();
-				String transName="LOAD_"+t.getName();
+				SQLTable outputTable = (SQLTable) tables.next();
+				HashSet inputTables = new HashSet();
+				
+				Iterator cols = outputTable.getColumns().iterator();
+				while (cols.hasNext()) {
+					SQLColumn outputCol = (SQLColumn) cols.next();
+					SQLColumn inputCol = outputCol.getSourceColumn();
+					int transNum = 1;
 
-				insertTrans(con, transName, t);
-				insertTransExceptHandler(con, "A",  transName);
-				insertTransExceptHandler(con, "U",  transName);
-				insertTransExceptHandler(con, "D",  transName);
-				insertJobDetail(con, i*10,"TRANSACTION",transName);
-				i++;
+					// looking for unique input tables of outputTable
+					if (inputCol != null && inputTables.contains(inputCol.getParentTable())) {
+						SQLTable inputTable = inputCol.getParentTable();
+						inputTables.add(inputTable);
+						String transName = "LOAD_"+outputTable.getName()+"_"+transNum;
+						insertTrans(con, transName, outputTable.getRemarks());
+						insertTransExceptHandler(con, "A", transName);
+						insertTransExceptHandler(con, "U", transName);
+						insertTransExceptHandler(con, "D", transName);
+						insertJobDetail(con, outputTableNum*10, "TRANSACTION", transName);
+
+						String outputTableId = outputTable.getName()+"_OUT_"+outputTableNum;
+						String inputTableId = inputTable.getName()+"_IN_"+transNum;
+						insertTransTableFile(con, transName, outputTableId, outputTable, true, transNum);
+						insertTransTableFile(con, transName, inputTableId, inputTable, false, transNum);
+						insertMappings(con, transName, outputTableId, outputTable, inputTableId, inputTable);
+						transNum++;
+					}
+				}
+				outputTableNum++;
 			}
 		} finally {
 			if (con != null) con.close();
@@ -520,6 +657,40 @@ public class PLExport {
 			return true;
 		} else {
 			return false;
+		}
+	}
+
+	public static class PLJob implements DatabaseObject {
+
+		public String jobId;
+
+		public PLJob(String jobId) {
+			this.jobId = jobId;
+		}
+
+		public String getObjectType() {
+			return "JOB";
+		}
+
+		public String getObjectName() {
+			return jobId;
+		}
+	}
+
+	public static class PLTrans implements DatabaseObject {
+
+		public String transId;
+
+		public PLTrans(String transId) {
+			this.transId = transId;
+		}
+
+		public String getObjectType() {
+			return "TRANSACTION";
+		}
+
+		public String getObjectName() {
+			return transId;
 		}
 	}
 }
