@@ -80,6 +80,9 @@ public class ConfigFile {
 		d.push(this);
 		d.addObjectCreate("architect-settings", UserSettings.class);
 
+		// jdbc drivers
+		d.addCallMethod("architect-settings/jdbc-jar-files/jar", "addDriverJarPath", 0);
+
 		// db connections
 		d.addObjectCreate("architect-settings/db-connections/dbcs", DBConnectionSpec.class);
 		d.addSetProperties
@@ -120,7 +123,8 @@ public class ConfigFile {
 
 	// -------------------- WRITING THE FILE --------------------------
 
-	public void write(UserSettings us) throws ArchitectException {
+	public void write(ArchitectSession session) throws ArchitectException {
+		UserSettings us = session.getUserSettings();
 		try {
 			out = new PrintWriter(new FileWriter(file));
 			indent = 0;
@@ -130,6 +134,7 @@ public class ConfigFile {
 			indent++;
 
 			// generate XML directly from settings
+			writeDriverJarPaths(session.getDriverJarList());
 			writeDbConnections(us.getConnections());
 			writeSwingSettings(us.getSwingSettings());
 			writeETLUserSettings(us.getETLUserSettings());
@@ -145,6 +150,17 @@ public class ConfigFile {
 			}
 			out = null;
 		}
+	}
+
+	protected void writeDriverJarPaths(List driverJarList) throws IOException {
+		println("<jdbc-jar-files>");
+		indent++;
+		Iterator it = driverJarList.iterator();
+		while (it.hasNext()) {
+			println("<jar>"+it.next()+"</jar>");
+		}
+		indent--;
+		println("</jdbc-jar-files>");
 	}
 
 	protected void writeDbConnections(List dbConnections) throws IOException {

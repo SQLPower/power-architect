@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
+import java.sql.Driver;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -76,11 +77,28 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 				throw new ArchitectException("You didn't specify the JDBC username.");
 			}
 
-			Class.forName(connectionSpec.getDriverClass());
+ 			ArchitectSession session = ArchitectSession.getInstance();
+ 			if (session == null) {
+ 				throw new ArchitectException
+ 					("Can't connect to database because ArchitectSession.getInstance()"
+ 					 +" returned null");
+ 			}
+			if (logger.isDebugEnabled()) {
+//				DriverManager.setLogStream(System.err);
+				ClassLoader cl = this.getClass().getClassLoader();
+				StringBuffer loaders = new StringBuffer();
+				loaders.append("Local Classloader chain: ");
+				while (cl != null) {
+					loaders.append(cl).append(", ");
+					cl = cl.getParent();
+				}
+				logger.debug(loaders);
+			}
+			Class.forName(connectionSpec.getDriverClass(), true, session.getJDBCClassLoader());
 			logger.info("Driver Class "+connectionSpec.getDriverClass()+" loaded without exception");
-			connection = DriverManager.getConnection(connectionSpec.getUrl(),
-													 connectionSpec.getUser(),
-													 connectionSpec.getPass());
+			connection = session.getJDBCClassLoader().getConnection(connectionSpec.getUrl(),
+																	connectionSpec.getUser(),
+																	connectionSpec.getPass());
 			dbConnections.put(connectionSpec, connection);
 		} catch (ClassNotFoundException e) {
 			logger.warn("Driver Class not found", e);

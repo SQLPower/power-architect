@@ -21,9 +21,9 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 	private static final Logger logger = Logger.getLogger(JDBCDriverPanel.class);
 
 	/**
-	 * The settings we're editting
+	 * The current session (whose JDBC driver search path we're editting).
 	 */
-	protected UserSettings us;
+	protected ArchitectSession session;
 
 	/**
 	 * This view shows the driver JAR files and the JDBC drivers they
@@ -45,8 +45,8 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 	protected JButton addButton;
 	protected JButton delButton;
 
-	public JDBCDriverPanel(UserSettings us) {
-		this.us = us;
+	public JDBCDriverPanel(ArchitectSession session) {
+		this.session = session;
 		setup();
 		revertToUserSettings();
 	}
@@ -58,7 +58,7 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 		dtm = new DefaultTreeModel(new DefaultMutableTreeNode("The Root"));
 		driverTree = new JTree(dtm);
 		driverTree.setRootVisible(false);
-		add(driverTree, BorderLayout.CENTER);
+		add(new JScrollPane(driverTree), BorderLayout.CENTER);
 		
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
 		buttonPanel.add(addButton = new JButton(new AddAction()));
@@ -69,7 +69,7 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 	protected void revertToUserSettings() {
 		dtm.setRoot(new DefaultMutableTreeNode());
 		
-		Iterator it = us.getDriverJarList().iterator();
+		Iterator it = session.getDriverJarList().iterator();
 		while (it.hasNext()) {
 			String path = (String) it.next();
 			addJarFile(new File(path));
@@ -103,14 +103,14 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 	/**
 	 * Copies the pathnames to all the JAR files in the tree into a
 	 * list and then passes that list to
-	 * UserSettings.setDriverJarList().
+	 * ArchitectSession.setDriverJarList().
 	 */
 	public void applyChanges() {
 		ArrayList drivers = new ArrayList(dtm.getChildCount(dtm.getRoot()));
 		for (int i = 0, n = dtm.getChildCount(dtm.getRoot()); i < n; i++) {
-			drivers.add(dtm.getChild(dtm.getRoot(), i));
+			drivers.add(((DefaultMutableTreeNode) dtm.getChild(dtm.getRoot(), i)).getUserObject());
 		}
-		us.setDriverJarList(drivers);
+		session.setDriverJarList(drivers);
 	}
 
 	/**
@@ -153,6 +153,7 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 	protected class JDBCScanClassLoader extends ClassLoader {
 
 		JarFile jf;
+		List drivers;
 
 		/**
 		 * Creates a class loader that uses this class's class loader
@@ -169,22 +170,13 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 		 * file.
 		 */
 		public List scanForDrivers() {
-			List drivers = new LinkedList();
-			byte[] buf = new byte[0];
+			drivers = new LinkedList();
 			for (Enumeration entries = jf.entries(); entries.hasMoreElements(); ) {
 				ZipEntry ent = (ZipEntry) entries.nextElement();
 				if (ent.getName().endsWith(".class")) {
 					try {
-						if (ent.getSize() > buf.length) {
-							buf = new byte[(int) ent.getSize()];
-						}
 						InputStream is = jf.getInputStream(ent);
-						int len = is.read(buf);
-						Class clazz = defineClass(null, buf, 0, len);
-						if (java.sql.Driver.class.isAssignableFrom(clazz)) {
-							System.out.println("Found jdbc driver "+clazz.getName());
-							drivers.add(clazz.getName());
-						}
+						readAndCheckClass(is, (int) ent.getSize(), null);
 					} catch (IOException ex) {
 						logger.warn("I/O Error reading JAR entry \""+ent.getName()+"\"",ex);
 						JOptionPane.showMessageDialog(JDBCDriverPanel.this,
@@ -197,31 +189,49 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 					}
 				}
 			}
+			//jf.close();
 			return drivers;
 		}
 
 		/**
 		 * Searches this ClassLoader's jar file for the given class.
-		 * Throws ClassNotFoundException if the class can't be
+		 *
+		 * @throws ClassNotFoundException if the class can't be
 		 * located.
 		 */
 		protected Class findClass(String name)
 			throws ClassNotFoundException {
 			System.out.println("Looking for class "+name);
-			name = name.replace('.', '/');
-			name += ".class";
 			try {
-				ZipEntry ent = jf.getEntry(name);
+				ZipEntry ent = jf.getEntry(name.replace('.', '/')+".class");
 				if (ent == null) {
 					throw new ClassNotFoundException("No class file "+name+" is in my jar file");
 				}
-				byte[] buf = new byte[(int) ent.getSize()];
 				InputStream is = jf.getInputStream(ent);
-				int len = is.read(buf);
-				return defineClass(name, buf, 0, len);
+				return readAndCheckClass(is, (int) ent.getSize(), name);
 			} catch (IOException ex) {
 				throw new ClassNotFoundException("IO Exception reading class from jar file", ex);
 			}
 		}
+
+		private Class readAndCheckClass(InputStream is, int size, String expectedName)
+			throws IOException, ClassFormatError {
+			byte[] buf = new byte[size];
+			int start = 0, n;
+			while ( (n = is.read(buf, start, size-start)) > 0) {
+				start += n;
+			}
+			if ( (start + n) != size ) {
+				logger.warn("Only read "+(start+n)+" bytes of class "
+							+expectedName+" from JAR file; exptected "+size);
+			}
+			Class clazz = defineClass(expectedName, buf, 0, start + n);
+			if (java.sql.Driver.class.isAssignableFrom(clazz)) {
+				System.out.println("Found jdbc driver "+clazz.getName());
+				drivers.add(clazz.getName());
+			}
+			return clazz;
+		}
+
 	}
 }

@@ -23,8 +23,7 @@ public class PreferencesAction extends AbstractAction {
 	}
 
 	public void actionPerformed(ActionEvent evt) {
-		final JDialog d = new JDialog(ArchitectFrame.getMainInstance(),
-									  "User Preferences");
+		final JDialog d = new JDialog(af, "User Preferences");
 		
 		JPanel cp = new JPanel(new BorderLayout(12,12));
 		JTabbedPane tp = new JTabbedPane();
@@ -34,7 +33,7 @@ public class PreferencesAction extends AbstractAction {
 		final PreferencesPanel prefPanel = new PreferencesPanel(af.getUserSettings());
 		tp.add("General", prefPanel);
 
-		final JDBCDriverPanel jdbcPanel = new JDBCDriverPanel(af.getUserSettings());
+		final JDBCDriverPanel jdbcPanel = new JDBCDriverPanel(af.getArchitectSession());
 		tp.add("JDBC Drivers", jdbcPanel);
 
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));

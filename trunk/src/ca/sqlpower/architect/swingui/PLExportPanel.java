@@ -51,7 +51,7 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		newConnButton= new JButton("New");
 		newConnButton.addActionListener(new NewConnectionListener());
 
-		List connectionHistory = af.prefs.getConnections();
+		List connectionHistory = af.getUserSettings().getConnections();
 
 		String plIniPath = af.getUserSettings().getETLUserSettings().getPlDotIniPath();
 		List plOdbcCon = new ArrayList();
