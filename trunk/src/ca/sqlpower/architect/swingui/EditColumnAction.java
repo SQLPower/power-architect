@@ -56,7 +56,6 @@ public class EditColumnAction extends AbstractAction implements ActionListener {
 					buttonPanel.add(okButton);
 					cancelButton = new JButton("Cancel");
 					cancelButton.addActionListener(okCancelListener);
-					cancelButton.setEnabled(false); //XXX: need to implement cancel
 					buttonPanel.add(cancelButton);
 					panel.add(buttonPanel, BorderLayout.SOUTH);
 					
