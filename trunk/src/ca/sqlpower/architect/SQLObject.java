@@ -61,6 +61,7 @@ public abstract class SQLObject implements java.io.Serializable {
 	 * within this SQLObject.
 	 */
 	public List getChildren() throws ArchitectException {
+		if (!allowsChildren()) return null;
 		populate();
 		return Collections.unmodifiableList(children);
 	}
@@ -110,7 +111,7 @@ public abstract class SQLObject implements java.io.Serializable {
 	// ------------------- sql object event support -------------------
 	private transient List sqlObjectListeners = new LinkedList();
 
-	private List getSqlObjectListeners() {
+3	public List getSQLObjectListeners() {
 		if (sqlObjectListeners == null) {
 			sqlObjectListeners = new LinkedList();
 		}
@@ -118,11 +119,11 @@ public abstract class SQLObject implements java.io.Serializable {
 	}
 
 	public void addSQLObjectListener(SQLObjectListener l) {
-		getSqlObjectListeners().add(l);
+		getSQLObjectListeners().add(l);
 	}
 
 	public void removeSQLObjectListener(SQLObjectListener l) {
-		getSqlObjectListeners().remove(l);
+		getSQLObjectListeners().remove(l);
 	}
 
 	protected void fireDbChildrenInserted(int[] newIndices, List newChildren) {
@@ -131,7 +132,7 @@ public abstract class SQLObject implements java.io.Serializable {
 			(this,
 			 newIndices,
 			 (SQLObject[]) newChildren.toArray(new SQLObject[newChildren.size()]));
-		Iterator it = getSqlObjectListeners().iterator();
+		Iterator it = getSQLObjectListeners().iterator();
 		int count = 0;
 		while (it.hasNext()) {
 			count ++;
@@ -153,7 +154,7 @@ public abstract class SQLObject implements java.io.Serializable {
 			(this,
 			 oldIndices,
 			 (SQLObject[]) oldChildren.toArray(new SQLObject[oldChildren.size()]));
-		Iterator it = getSqlObjectListeners().iterator();
+		Iterator it = getSQLObjectListeners().iterator();
 		while (it.hasNext()) {
 			((SQLObjectListener) it.next()).dbChildrenRemoved(e);
 		}
@@ -169,7 +170,7 @@ public abstract class SQLObject implements java.io.Serializable {
 
 	protected void fireDbObjectChanged(String propertyName) {
 		SQLObjectEvent e = new SQLObjectEvent(this, propertyName);
-		Iterator it = getSqlObjectListeners().iterator();
+		Iterator it = getSQLObjectListeners().iterator();
 		while (it.hasNext()) {
 			((SQLObjectListener) it.next()).dbObjectChanged(e);
 		}
@@ -178,7 +179,7 @@ public abstract class SQLObject implements java.io.Serializable {
 
 	protected void fireDbStructureChanged(String propertyName) {
 		SQLObjectEvent e = new SQLObjectEvent(this, propertyName);
-		Iterator it = getSqlObjectListeners().iterator();
+		Iterator it = getSQLObjectListeners().iterator();
 		while (it.hasNext()) {
 			((SQLObjectListener) it.next()).dbStructureChanged(e);
 		}
