@@ -91,6 +91,18 @@ public class PlayPen extends JPanel
 	 */
 	protected PlayPenContentPane contentPane;
 
+	/**
+	 * This action brings the selected TablePane or Relationship to
+	 * the front/top of the component stack.
+	 */
+	protected Action bringToFrontAction;
+
+	/**
+	 * This action sends the selected TablePane or Relationship to
+	 * the back/bottom of the component stack.
+	 */
+	protected Action sendToBackAction;
+
 	public PlayPen() {
 		zoom = 1.0;
 		setBackground(java.awt.Color.white);
@@ -103,6 +115,8 @@ public class PlayPen extends JPanel
 		setName("Play Pen");
 		setMinimumSize(new Dimension(1,1));
 		dt = new DropTarget(this, new PlayPenDropListener());
+		bringToFrontAction = new BringToFrontAction(this);
+		sendToBackAction = new SendToBackAction(this);
 		setupTablePanePopup();
 		setupPlayPenPopup();
 		setupKeyboardActions();
@@ -161,6 +175,14 @@ public class PlayPen extends JPanel
 
 		mi = new JMenuItem();
 		mi.setAction(af.editTableAction);
+		tablePanePopup.add(mi);
+
+		mi = new JMenuItem();
+		mi.setAction(bringToFrontAction);
+		tablePanePopup.add(mi);
+
+		mi = new JMenuItem();
+		mi.setAction(sendToBackAction);
 		tablePanePopup.add(mi);
 		
 		tablePanePopup.addSeparator();
@@ -400,10 +422,10 @@ public class PlayPen extends JPanel
 	 */
 	protected void addImpl(Component c, Object constraints, int index) {
 		if (c instanceof Relationship) {
-			contentPane.add(c);
+			contentPane.add(c, 0);
 		} else if (c instanceof TablePane) {
 			if (constraints instanceof Point) {
-				contentPane.add(c);
+				contentPane.add(c, 0);
 				c.setLocation((Point) constraints);
 			} else {
 				throw new IllegalArgumentException("Constraints must be a Point");
@@ -1207,7 +1229,7 @@ public class PlayPen extends JPanel
 					repaint(zoomRect(new Rectangle(dirtyRegion)));
 				}
 			} else if (!retargetToContentPane(evt)) {
-				((PlayPen) evt.getSource()).selectNone();
+				//((PlayPen) evt.getSource()).selectNone();
 				maybeShowPopup(evt);
 			}
 		}
@@ -1262,7 +1284,7 @@ public class PlayPen extends JPanel
 		public boolean maybeShowPopup(MouseEvent evt) {
 			PlayPen pp = (PlayPen) evt.getSource();
 			if (evt.isPopupTrigger()) {
-				pp.selectNone();
+				//pp.selectNone();
 				pp.playPenPopup.show(pp, evt.getX(), evt.getY());
 				return true;
 			} else {
@@ -1316,6 +1338,49 @@ public class PlayPen extends JPanel
 			pp.removeMouseMotionListener(this);
 			pp.removeMouseListener(this);
 			pp.revalidate();
+		}
+	}
+
+	// -------------- Bring to Front / Send To Back ------------------
+	public static class BringToFrontAction extends AbstractAction {
+
+		protected PlayPen pp;
+
+		public BringToFrontAction(PlayPen pp) {
+			super("Bring to Front");
+			this.pp = pp;
+		}
+
+		public void actionPerformed(ActionEvent e) {
+			List items = pp.getSelectedItems();
+			Iterator it = items.iterator();
+			while (it.hasNext()) {
+				PlayPenComponent c = (PlayPenComponent) it.next();
+				pp.contentPane.remove(c);
+				pp.contentPane.add(c, 0);
+			}
+			pp.repaint();
+		}
+	}
+
+	public static class SendToBackAction extends AbstractAction {
+
+		protected PlayPen pp;
+
+		public SendToBackAction(PlayPen pp) {
+			super("Send to Back");
+			this.pp = pp;
+		}
+
+		public void actionPerformed(ActionEvent e) {
+			List items = pp.getSelectedItems();
+			Iterator it = items.iterator();
+			while (it.hasNext()) {
+				PlayPenComponent c = (PlayPenComponent) it.next();
+				pp.contentPane.remove(c);
+				pp.contentPane.add(c, pp.contentPane.getComponentCount());
+			}
+			pp.repaint();
 		}
 	}
 }
