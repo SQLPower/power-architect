@@ -11,7 +11,7 @@ import java.sql.DatabaseMetaData;
 import org.apache.log4j.Logger;
 
 public class ColumnEditPanel extends JPanel
-	implements ListSelectionListener, ListDataListener, ActionListener, ChangeListener, ArchitectPanel {
+	implements ListSelectionListener, ListDataListener, ActionListener, ChangeListener, ArchitectPanel, DocumentListener {
 
 	private static final Logger logger = Logger.getLogger(ColumnEditPanel.class);
 
@@ -122,6 +122,7 @@ public class ColumnEditPanel extends JPanel
 		centerPanel.add(new JLabel("Name"));
 		centerPanel.add(colName = new JTextField());
 		colName.addActionListener(this);
+		colName.getDocument().addDocumentListener(this);
 
 		centerPanel.add(new JLabel("Type"));
 		centerPanel.add(colType = createColTypeEditor());
@@ -297,6 +298,7 @@ public class ColumnEditPanel extends JPanel
 			changingColumns = false;
 		}
 		updateComponents();
+		colName.requestFocus();
 	}
 
 	/**
@@ -432,5 +434,46 @@ public class ColumnEditPanel extends JPanel
 	 */
 	public void discardChanges() {
 		cleanup();
+	}
+
+	// -------------------- Document Listener ----------------
+
+	/**
+	 * Updates the column name immediately.
+	 */
+	public void insertUpdate(DocumentEvent e) {
+		try {
+			SQLColumn col = model.getColumn(columns.getSelectedIndex());
+			col.setColumnName(colName.getText());
+		} catch (ArchitectException ex) {
+			logger.error("Couldn't update column name", ex);
+			JOptionPane.showMessageDialog(this, "Can't update column name: "+ex.getMessage());
+		}
+	}
+		
+	/**
+	 * Updates the column name immediately.
+	 */
+	public void removeUpdate(DocumentEvent e) {
+		try {
+			SQLColumn col = model.getColumn(columns.getSelectedIndex());
+			col.setColumnName(colName.getText());
+		} catch (ArchitectException ex) {
+			logger.error("Couldn't update column name", ex);
+			JOptionPane.showMessageDialog(this, "Can't update column name: "+ex.getMessage());
+		}
+	}
+
+	/**
+	 * Updates the column name immediately.
+	 */
+	public void changedUpdate(DocumentEvent e) {
+		try {
+			SQLColumn col = model.getColumn(columns.getSelectedIndex());
+			col.setColumnName(colName.getText());
+		} catch (ArchitectException ex) {
+			logger.error("Couldn't update column name", ex);
+			JOptionPane.showMessageDialog(this, "Can't update column name: "+ex.getMessage());
+		}
 	}
 }
