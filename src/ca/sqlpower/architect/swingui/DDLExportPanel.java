@@ -28,6 +28,7 @@ public class DDLExportPanel extends JPanel implements ArchitectPanel {
 		dbTypeList.add(ASUtils.lvb("Generic JDBC", GenericDDLGenerator.class));
 		dbTypeList.add(ASUtils.lvb("DB2", DB2DDLGenerator.class));
 		dbTypeList.add(ASUtils.lvb("Oracle 8i/9i", OracleDDLGenerator.class));
+		dbTypeList.add(ASUtils.lvb("PostgreSQL", PostgresDDLGenerator.class));
 		dbTypeList.add(ASUtils.lvb("SQLServer 2000", SQLServerDDLGenerator.class));
 		add(new JLabel("Generate DDL for Database Type:"));
 		add(dbType = new JComboBox(dbTypeList));
@@ -37,11 +38,13 @@ public class DDLExportPanel extends JPanel implements ArchitectPanel {
 			dbType.setSelectedIndex(1);
 		} else if (ddlg.getClass() == OracleDDLGenerator.class) {
 			dbType.setSelectedIndex(2);
-		} else if (ddlg.getClass() == SQLServerDDLGenerator.class) {
+		} else if (ddlg.getClass() == PostgresDDLGenerator.class) {
 			dbType.setSelectedIndex(3);
+		} else if (ddlg.getClass() == SQLServerDDLGenerator.class) {
+			dbType.setSelectedIndex(4);
 		} else {
 			logger.error("Unknown DDL generator class "+ddlg.getClass());
-			dbType.addItem(ASUtils.lvb("Unknwon Generator", ddlg.getClass()));
+			dbType.addItem(ASUtils.lvb("Unknown Generator", ddlg.getClass()));
 		}
 	}
 
