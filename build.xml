@@ -59,6 +59,13 @@
 		</java>
 	</target>
 
+	<target name="testui_pg" depends="compile">
+		<java fork="true" classname="ca.sqlpower.architect.test.TestUI" classpathref="test.classpath">
+			<arg value="${databases.xml}"/>
+			<arg value="arthur_postgres_pl"/>
+		</java>
+	</target>
+
 	<target name="testui_ora" depends="compile">
 		<java fork="true" classname="ca.sqlpower.architect.test.TestUI" classpathref="test.classpath">
 			<arg value="${databases.xml}"/>
