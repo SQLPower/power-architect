@@ -29,6 +29,10 @@ public class BasicRelationshipUI extends RelationshipUI
 	protected Color selectedColor = new Color(204, 204, 255);
 	protected Color unselectedColor = Color.black;
 
+	protected BasicStroke nonIdStroke = new BasicStroke(1.0f);
+
+	protected BasicStroke idStroke = new BasicStroke(1.0f);
+
 	/**
 	 * Points within radius pixels of this relationship's visible path
 	 * are considered to be contained within this component.
@@ -123,10 +127,19 @@ public class BasicRelationshipUI extends RelationshipUI
 			} else {
 				g2.setColor(unselectedColor);
 			}
+
+			Stroke oldStroke = g2.getStroke();
+			
+			if (relationship.getModel().isIdentifying()) {
+				g2.setStroke(getIdentifyingStroke());
+			} else {
+				g2.setStroke(getNonIdentifyingStroke());
+			}
+
 			g2.draw(path);
-			
 			logger.debug("Drew path "+path);
-			
+
+			g2.setStroke(oldStroke);
 			paintTerminations(g2, start, end, orientation);
 		} finally {
 			g2.translate(c.getX(), c.getY()); // playpen coordinate space
@@ -264,6 +277,14 @@ public class BasicRelationshipUI extends RelationshipUI
 	 */
 	public int getTerminationWidth() {
 		return 5;
+	}
+
+	public Stroke getIdentifyingStroke() {
+		return idStroke;
+	}
+
+	public Stroke getNonIdentifyingStroke() {
+		return nonIdStroke;
 	}
 
 	public void updateBounds() {

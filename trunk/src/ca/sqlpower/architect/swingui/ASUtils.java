@@ -3,6 +3,8 @@ package ca.sqlpower.architect.swingui;
 import java.util.*;
 import java.io.File;
 import javax.swing.filechooser.FileFilter;
+import javax.swing.*;
+import org.apache.log4j.Logger;
 
 /**
  * ASUtils is a container class for static utility methods used
@@ -10,6 +12,7 @@ import javax.swing.filechooser.FileFilter;
  * "ArchitectSwingUtils" which is too long to use frequently.
  */
 public class ASUtils {
+	private static final Logger logger = Logger.getLogger(ASUtils.class);
 
 	/**
 	 * Short-form convenience method for
@@ -103,4 +106,27 @@ public class ASUtils {
 			return ext;
 		}
 	}
+
+	/**
+	 * Returns an ImageIcon, or null if the path was invalid.  Copied
+	 * from the Swing Tutorial.
+	 *
+	 * @param name The icon category and name from the JLF graphics
+	 * repository, such as "general/Help".  See jlfgr_1.0.jar for details.
+	 * @param size Either 16 or 24.
+	 */
+	public static ImageIcon createJLFIcon(String name,
+										  String description,
+										  int size) {
+		String realPath = "/toolbarButtonGraphics/"+name+size+".gif";
+		System.out.println("Loading resource "+realPath);
+		java.net.URL imgURL = ASUtils.class.getResource(realPath);
+		if (imgURL != null) {
+			return new ImageIcon(imgURL, description);
+		} else {
+			System.out.println("Couldn't find file: " + realPath);
+			return null;
+		}
+	}
+	
 }

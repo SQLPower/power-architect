@@ -83,6 +83,9 @@ public class Relationship extends JComponent implements Selectable, ComponentLis
 		mi = new JMenuItem(af.editRelationshipAction);
 		popup.add(mi);
 
+		mi = new JMenuItem(af.deleteRelationshipAction);
+		popup.add(mi);
+
 		addMouseListener(new PopupListener());
 	}
 
@@ -267,8 +270,14 @@ public class Relationship extends JComponent implements Selectable, ComponentLis
 	}
 
 	public void dbObjectChanged(SQLObjectEvent e) {
-		if (e.getPropertyName() != null && e.getPropertyName().equals("name")) {
-			setToolTipText(model.getName());
+		if (e.getPropertyName() != null) {
+			if (e.getPropertyName().equals("name")) {
+				setToolTipText(model.getName());
+			} else if (e.getPropertyName().equals("identifying")
+					   || e.getPropertyName().equals("pkCardinality")
+					   || e.getPropertyName().equals("fkCardinality")) {
+				repaint();
+			}
 		}
 	}
 

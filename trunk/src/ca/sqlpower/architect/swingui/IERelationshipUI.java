@@ -14,6 +14,10 @@ public class IERelationshipUI extends BasicRelationshipUI {
         return new IERelationshipUI();
     }
 
+	protected BasicStroke nonIdStroke = new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[] {15.0f, 4.0f}, 0.0f);
+
+	protected BasicStroke idStroke = new BasicStroke(1.0f);
+
 	/**
 	 * Paints relationship line terminations based on the IE diagram
 	 * language.
@@ -104,5 +108,13 @@ public class IERelationshipUI extends BasicRelationshipUI {
 
 	public int getTerminationWidth() {
 		return 10;
+	}
+
+	public Stroke getIdentifyingStroke() {
+		return idStroke;
+	}
+
+	public Stroke getNonIdentifyingStroke() {
+		return nonIdStroke;
 	}
 }

@@ -28,6 +28,7 @@ public class RelationshipEditPanel extends JPanel
 	protected JRadioButton pkTypeZeroToMany;
 	protected JRadioButton pkTypeOneToMany;
 	protected JRadioButton pkTypeZeroOne;
+	protected JRadioButton pkTypeOne;
 
 	protected JLabel fkTableName;
 	protected ButtonGroup fkTypeGroup;
@@ -65,6 +66,9 @@ public class RelationshipEditPanel extends JPanel
 		pkPanel.add(new JLabel(""));
 		pkPanel.add(pkTypeZeroOne = new JRadioButton("Zero or One"));
 		pkTypeGroup.add(pkTypeZeroOne);
+		pkPanel.add(new JLabel(""));
+		pkPanel.add(pkTypeOne = new JRadioButton("Exactly One"));
+		pkTypeGroup.add(pkTypeOne);
 		add(pkPanel, BorderLayout.WEST);
 
 		JPanel fkPanel = new JPanel(new FormLayout());
@@ -102,6 +106,8 @@ public class RelationshipEditPanel extends JPanel
 			pkTypeZeroOne.setSelected(true);
 		} else if (pkc == (SQLRelationship.ONE | SQLRelationship.MANY)){
 			pkTypeOneToMany.setSelected(true);
+		} else if (pkc == SQLRelationship.ONE) {
+			pkTypeOne.setSelected(true);
 		}
 		int fkc = r.getFkCardinality();
 		if (fkc == (SQLRelationship.ZERO | SQLRelationship.ONE | SQLRelationship.MANY)){
@@ -133,6 +139,8 @@ public class RelationshipEditPanel extends JPanel
 			relationship.setPkCardinality(SQLRelationship.ZERO | SQLRelationship.ONE | SQLRelationship.MANY);
 		} else if (pkTypeOneToMany.isSelected()) {
 			relationship.setPkCardinality(SQLRelationship.ONE | SQLRelationship.MANY);
+		} else if (pkTypeOne.isSelected()) {
+			relationship.setPkCardinality(SQLRelationship.ONE);
 		}
 
 		if (fkTypeZeroOne.isSelected()) {
