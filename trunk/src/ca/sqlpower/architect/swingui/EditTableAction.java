@@ -111,6 +111,7 @@ public class EditTableAction extends AbstractAction {
 			d.getContentPane().add(buttonPanel, BorderLayout.SOUTH);
 			d.getContentPane().add(tabbedPane, BorderLayout.CENTER);
 			d.pack();
+			d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
 			d.setVisible(true);
 			
 		} else {

@@ -66,6 +66,7 @@ public class EditRelationshipAction extends AbstractAction {
 			
 			d.setContentPane(cp);
 			d.pack();
+			d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
 			d.setVisible(true);
 			
 		} else {

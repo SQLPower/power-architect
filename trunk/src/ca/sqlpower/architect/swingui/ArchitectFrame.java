@@ -378,17 +378,6 @@ public class ArchitectFrame extends JFrame {
 	 * an acceptable way to launch the Architect application.
 	 */
 	public static void main(String args[]) throws ArchitectException {
-// 		try {
-// 			ArchitectSession session = ArchitectSession.getInstance();
-// 			mainInstance = (ArchitectFrame) Class.forName("ca.sqlpower.architect.swingui.ArchitectFrame", true, session.getJDBCClassLoader()).newInstance();
-// 			mainInstance.init();
-// 		} catch (IllegalAccessException ex) {
-// 			logger.error("Couldn't create ArchitectFrame class", ex);
-// 		} catch (InstantiationException ex) {
-// 			logger.error("Couldn't create ArchitectFrame class", ex);
-// 		} catch (ClassNotFoundException ex) {
-// 			logger.error("Couldn't create ArchitectFrame class", ex);
-// 		}
 		ArchitectUtils.configureLog4j();
 
 		new ArchitectFrame();

@@ -111,6 +111,7 @@ public class DBTree extends JTree implements DragSourceListener {
 		cp.add(southPanel, BorderLayout.SOUTH);
 		cp.add(dbcsPanel, BorderLayout.CENTER);
 		propDialog.pack();
+		propDialog.setLocationRelativeTo(ArchitectFrame.getMainInstance());
 	}
 
 

@@ -228,5 +228,4 @@ public class ASUtils {
 									  "Error Report",
 									  JOptionPane.ERROR_MESSAGE);
 	}
-
 }

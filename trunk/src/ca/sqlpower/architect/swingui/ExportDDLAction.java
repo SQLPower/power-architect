@@ -68,6 +68,7 @@ public class ExportDDLAction extends AbstractAction {
 		
 		d.setContentPane(cp);
 		d.pack();
+		d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
 		d.setVisible(true);
 	}
 
@@ -196,6 +197,7 @@ public class ExportDDLAction extends AbstractAction {
 
 			d.setContentPane(cp);
 			d.pack();
+			d.setLocationRelativeTo(parent);
 			d.setVisible(true);
 		} catch (Exception e) {
 			logger.error("Couldn't Generate DDL", e);

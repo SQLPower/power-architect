@@ -98,6 +98,7 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 									"Print Preview");
 		previewDialog.setContentPane(previewPanel = new PrintPreviewPanel(this));
 		previewDialog.pack();
+		previewDialog.setLocationRelativeTo(this);
 		previewDialog.setVisible(true);
 	}
 
