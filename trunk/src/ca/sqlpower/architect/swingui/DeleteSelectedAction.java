@@ -79,11 +79,9 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 				name = ((Relationship) item).getModel().getName();
 			}
 			putValue(SHORT_DESCRIPTION, "Delete "+name);
-			putValue(NAME, "Delete "+name);
 		} else {
 			setEnabled(false);
 			putValue(SHORT_DESCRIPTION, "Delete Selected");
-			putValue(NAME, "Delete Selected");
 		}
 	}
 }

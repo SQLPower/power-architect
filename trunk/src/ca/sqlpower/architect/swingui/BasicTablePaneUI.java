@@ -23,6 +23,11 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 	protected Color selectedColor = new Color(204, 204, 255);
 	protected Color unselectedColor = new Color(240, 240, 240);
 
+	/**
+	 * Doesn't return a preferredSize with width less than this.
+	 */
+	protected int minimumWidth = 100;
+
 	public static ComponentUI createUI(JComponent c) {
         return new BasicTablePaneUI();
     }
@@ -42,6 +47,20 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 		try {
 			Graphics2D g2 = (Graphics2D) g;
 
+			if (logger.isDebugEnabled()) {
+				Rectangle clip = g2.getClipBounds();
+				if (clip != null) {
+					g2.setColor(Color.red);
+					clip.width--;
+					clip.height--;
+					g2.draw(clip);
+					g2.setColor(tp.getForeground());
+					logger.debug("Clipping region: "+g2.getClip());
+				} else {
+					logger.debug("Null clipping region");
+				}
+			}
+
 			//  We don't want to paint inside the insets or borders.
 			Insets insets = c.getInsets();
 			g.translate(insets.left, insets.top);
@@ -49,6 +68,14 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			int height = c.getHeight() - insets.top - insets.bottom;
 
 			Font font = c.getFont();
+			if (font == null) {
+				logger.error("paint(): Null font in TablePane "+c);
+				logger.error("paint(): TablePane's parent is "+c.getParent());
+				if (c.getParent() != null) {
+					logger.error("paint(): parent font is "+c.getParent().getFont());
+				}
+				return;
+			}
 			FontMetrics metrics = c.getFontMetrics(font);
 			int fontHeight = metrics.getHeight();
 			int ascent = metrics.getAscent();
@@ -91,7 +118,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 				SQLColumn col = (SQLColumn) colNameIt.next();
 				if (col.getPrimaryKeySeq() == null && stillNeedPKLine) {
 					stillNeedPKLine = false;
-					g2.drawLine(boxLineThickness, y+maxDescent, boxLineThickness+hwidth, y+maxDescent);
+					g2.drawLine(0, y+maxDescent, width-1, y+maxDescent);
 				}
 				g2.drawString(col.getShortDisplayName(),
 							  boxLineThickness+tp.getMargin().left,
@@ -117,23 +144,27 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 		}
 	}
 
-	public void computeSize(TablePane c) {
+	public Dimension getPreferredSize(JComponent jc) {
+		TablePane c = (TablePane) jc;
+		SQLTable table = c.getModel();
+		if (table == null) return null;
+
 		int height = 0;
 		int width = 0;
 		try {
 			Insets insets = c.getInsets();
-			SQLTable table = c.getModel();
-			int cols = table.getColumns().size();
+			java.util.List columnList = table.getColumns();
+			int cols = columnList.size();
 			Font font = c.getFont();
 			if (font == null) {
-				logger.error("Null font in TablePane "+c);
-				logger.error("TablePane's parent is "+c.getParent());
-				return;
+				logger.error("getPreferredSize(): Null font in TablePane "+c);
+				logger.error("getPreferredSize(): TablePane's parent is "+c.getParent());
+				return null;
 			}
 			FontMetrics metrics = c.getFontMetrics(font);
 			int fontHeight = metrics.getHeight();
 			height = insets.top + fontHeight + gap + c.getMargin().top + cols*fontHeight + boxLineThickness*2 + c.getMargin().bottom + insets.bottom;
-			width = c.getMinimumSize().width;
+			width = minimumWidth;
 
 			Iterator columnIt = table.getColumns().iterator();
 			while (columnIt.hasNext()) {
@@ -141,13 +172,12 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			}
 			width += insets.left + c.getMargin().left + boxLineThickness*2 + c.getMargin().right + insets.right;
 		} catch (ArchitectException e) {
-			logger.warn("BasicTablePaneUI.computeSize failed due to", e);
+			logger.warn("BasicTablePaneUI.getPreferredSize failed due to", e);
 			width = 100;
 			height = 100;
 		}
 
-		c.setPreferredSize(new Dimension(width, height));
-		c.setSize(width, height); // XXX: maybe this should go elsewhere (not sure where)
+		return new Dimension(width, height);
 	}
 
 	/**
@@ -177,9 +207,9 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 	}
 
 	/**
-	 * Recomputes the component's size if the given property change
-	 * makes this necessary (any visible changes will make
-	 * recompuation necessary).
+	 * Tells the component to revalidate (also causes a repaint) if
+	 * the given property change makes this necessary (any properties
+	 * rendered visibly repainting necessary).
 	 */
 	public void propertyChange(PropertyChangeEvent e) {
 		logger.debug("BasicTablePaneUI notices change of "+e.getPropertyName()
@@ -192,6 +222,6 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			tablePane.setName(tablePane.getModel().getTableName());
 			return;
 		}
-		computeSize((TablePane) e.getSource());
+		tablePane.revalidate();
 	}
 }

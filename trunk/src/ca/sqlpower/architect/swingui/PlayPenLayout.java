@@ -6,18 +6,14 @@ import javax.swing.*;
 import org.apache.log4j.Logger;
 
 /**
- * Manages the layout of the PlayPen.
+ * Manages the layout of the PlayPen content pane.
+ *
+ * @see PlayPenContentPane
  */
 public class PlayPenLayout implements LayoutManager2 {
 	private static final Logger logger = Logger.getLogger(PlayPenLayout.class);
 
-	/**
-	 * This is the PlayPen that we are managing the layout for.
-	 */
-	PlayPen parent;
-	
-	public PlayPenLayout(PlayPen parent) {
-		this.parent = parent;
+	public PlayPenLayout() {
 	}
 	
 	/**
@@ -33,6 +29,7 @@ public class PlayPenLayout implements LayoutManager2 {
 	 */
 	public void addLayoutComponent(Component comp,
 								   Object position) {
+		comp.setSize(comp.getPreferredSize());
 	}
 	
 	/**
