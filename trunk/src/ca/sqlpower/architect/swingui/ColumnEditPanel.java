@@ -112,14 +112,14 @@ public class ColumnEditPanel extends JPanel
 	 */
 	public void setModel(SQLTable newModel) {
 		if (model != null) {
-			model.removeSQLObjectListener(tableListModel);
+			model.getColumnsFolder().removeSQLObjectListener(tableListModel);
 		}
 		model = newModel;
 		tableListModel = new SQLTableListModel(model);
-		model.addSQLObjectListener(tableListModel);
+		model.getColumnsFolder().addSQLObjectListener(tableListModel);
 		try {
-			for (int i = 0; i < model.getChildCount(); i++) {
-				model.getChild(i).addSQLObjectListener(tableListModel);
+			for (int i = 0; i < model.getColumnsFolder().getChildCount(); i++) {
+				model.getColumnsFolder().getChild(i).addSQLObjectListener(tableListModel);
 			}
 		} catch (ArchitectException e) {
 			logger.error("Caught exception adding treemodel to column listener list");
@@ -317,13 +317,13 @@ public class ColumnEditPanel extends JPanel
 	 */
 	protected void cleanup() {
 		try {
-			for (int i = 0; i < model.getChildCount(); i++) {
-				model.getChild(i).removeSQLObjectListener(tableListModel);
+			for (int i = 0; i < model.getColumnsFolder().getChildCount(); i++) {
+				model.getColumnsFolder().getChild(i).removeSQLObjectListener(tableListModel);
 			}
 		} catch (ArchitectException e) {
 			logger.error("Caught exception removing treemodel from column listener list");
 		}
-		model.removeSQLObjectListener(tableListModel);
+		model.getColumnsFolder().removeSQLObjectListener(tableListModel);
 	}
 
 	// ------------------ ARCHITECT PANEL INTERFACE ---------------------

@@ -27,7 +27,7 @@ public class SQLTableListModel implements ListModel, SQLObjectListener {
 	 */
 	public int getSize() {
 		try {
-			return table.getChildCount();
+			return table.getColumnsFolder().getChildCount();
 		} catch (ArchitectException ex) {
 			throw new RuntimeException("Couldn't get child count", ex);
 		}
@@ -38,7 +38,7 @@ public class SQLTableListModel implements ListModel, SQLObjectListener {
 	 */
 	public Object getElementAt(int index) {
 		try {
-			return table.getChildren().get(index);
+			return table.getColumnsFolder().getChild(index);
 		} catch (ArchitectException ex) {
 			throw new RuntimeException("Couldn't get child "+index, ex);
 		}
@@ -98,7 +98,7 @@ public class SQLTableListModel implements ListModel, SQLObjectListener {
 	}
 
 	public void dbObjectChanged(SQLObjectEvent e) {
-		if (e.getSource() == table) {
+		if (e.getSource() == table.getColumnsFolder()) {
 			int[] changedIndices = e.getChangedIndices();
 			for (int i = 0; i < changedIndices.length; i++) {
 				// XXX: should group contiguous regions into one event!
