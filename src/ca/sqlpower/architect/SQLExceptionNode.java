@@ -18,7 +18,7 @@ public class SQLExceptionNode extends SQLObject {
 	
 	/**
 	 * If you wanna show the exception to the user later on, get it
-	 * here!  But don't kid yourself: users don't read error messages.
+	 * here.  But don't kid yourself: users don't read error messages.
 	 */
 	public Throwable getException() {
 		return exception;

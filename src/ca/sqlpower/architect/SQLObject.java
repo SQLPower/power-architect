@@ -133,7 +133,7 @@ public abstract class SQLObject implements java.io.Serializable {
 	}
 
 	/**
-	 * This method is implemented in terms of {@link removedChild(int)}.
+	 * This method is implemented in terms of {@link #removeChild(int)}.
 	 */
 	public boolean removeChild(SQLObject child) {
 		int childIdx = children.indexOf(child);

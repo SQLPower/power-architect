@@ -1,9 +1,9 @@
 package ca.sqlpower.architect;
 
 /**
- * Our own version of the javax.swing.tree.TreeModelListener.
+ * Our own version of the javax.swing.event.TreeModelListener.
  *
- * @see javax.swing.tree.TreeModelListener
+ * @see javax.swing.event.TreeModelListener
  */
 public interface SQLObjectListener {
 	public void dbChildrenInserted(SQLObjectEvent e);
