@@ -115,6 +115,7 @@ public class GenericDDLGenerator {
 
 			firstCol = false;
 		}
+		out.println();
 		out.println(")");
 	}
 	
@@ -125,14 +126,14 @@ public class GenericDDLGenerator {
 			SQLColumn col = (SQLColumn) it.next();
 			if (col.getPrimaryKeySeq() == null) break;
 			if (firstCol) {
+				out.println("");
 				out.println("ALTER TABLE "+t.getName()
-							+" ADD CONSTRAINT "+t.getPrimaryKeyName()
-							+" PRIMARY KEY (");
+						  +" ADD CONSTRAINT "+t.getPrimaryKeyName());
+				out.print("PRIMARY KEY (");
 				firstCol = false;
 			} else {
-				out.println(",");
+				out.print(", ");
 			}
-			out.print("               ");
 			out.print(col.getName());
 		}
 		out.println(")");
@@ -142,9 +143,10 @@ public class GenericDDLGenerator {
 		Iterator it = t.getExportedKeys().iterator();
 		while (it.hasNext()) {
 			SQLRelationship rel = (SQLRelationship) it.next();
+			out.println("");
 			out.println("ALTER TABLE "+rel.getFkTable().getName()
-						+" ADD CONSTRAINT "+rel.getName()
-						+" FORIEGN KEY (");
+						+" ADD CONSTRAINT "+rel.getName());
+			out.print("FORIEGN KEY (");
 			StringBuffer pkCols = new StringBuffer();
 			StringBuffer fkCols = new StringBuffer();
 			boolean firstCol = true;
@@ -161,7 +163,7 @@ public class GenericDDLGenerator {
 			}
 			out.print(fkCols.toString());
 			out.println(")");
-			out.println("REFERENCES "+rel.getPkTable().getName()+" (");
+			out.print("REFERENCES "+rel.getPkTable().getName()+" (");
 			out.print(pkCols.toString());
 			out.println(")");
 		}
