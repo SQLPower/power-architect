@@ -14,9 +14,8 @@ public class DeleteTableAction extends AbstractAction {
 	 */
 	protected PlayPen pp;
 	
-	public DeleteTableAction(PlayPen pp) {
+	public DeleteTableAction() {
 		super("Delete Table");
-		this.pp = pp;
 	}
 
 	public void actionPerformed(ActionEvent evt) {
@@ -28,5 +27,9 @@ public class DeleteTableAction extends AbstractAction {
 			JOptionPane.showMessageDialog((JComponent) invoker,
 										  "The selected item type is not recognised");
 		}
+	}
+
+	public void setPlayPen(PlayPen pp) {
+		this.pp = pp;
 	}
 }

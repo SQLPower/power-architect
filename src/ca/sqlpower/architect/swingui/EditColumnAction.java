@@ -21,9 +21,8 @@ public class EditColumnAction extends AbstractAction implements ActionListener {
 	protected ActionListener okCancelListener;
 	protected ColumnEditPanel columnEditPanel;
 
-	public EditColumnAction(PlayPen pp) {
+	public EditColumnAction() {
 		super("Edit Column");
-		this.pp = pp;
 	}
 
 	public void actionPerformed(ActionEvent evt) {
@@ -100,4 +99,9 @@ public class EditColumnAction extends AbstractAction implements ActionListener {
 			editDialog = null;
 		}
 	}
+
+	public void setPlayPen(PlayPen pp) {
+		this.pp = pp;
+	}
+
 }

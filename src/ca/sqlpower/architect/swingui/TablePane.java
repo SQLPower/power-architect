@@ -307,8 +307,6 @@ public class TablePane
 
 	public void selectNone() {
 		PlayPen pp = (PlayPen) getParent();
-		pp.deleteColumnAction.setEnabled(false);
-		pp.editColumnAction.setEnabled(false);
 		for (int i = 0; i < columnSelection.size(); i++) {
 			columnSelection.set(i, Boolean.FALSE);
 		}
@@ -325,8 +323,6 @@ public class TablePane
 		}
 		columnSelection.set(i, Boolean.TRUE);
 		PlayPen pp = (PlayPen) getParent();
-		pp.deleteColumnAction.setEnabled(true);
-		pp.editColumnAction.setEnabled(true);
 	}
 
 	public boolean isColumnSelected(int i) {
