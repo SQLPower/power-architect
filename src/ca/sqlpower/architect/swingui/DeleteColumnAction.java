@@ -25,7 +25,7 @@ public class DeleteColumnAction extends AbstractAction {
 			TablePane tp = (TablePane) invoker;
 			int idx;
 			while ( (idx = tp.getSelectedColumnIndex()) >= 0) {
-				tp.getModel().removeChild(idx);
+				tp.getModel().removeColumn(idx);
 			}
 		} else {
 			JOptionPane.showMessageDialog((JComponent) invoker,

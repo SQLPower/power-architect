@@ -47,6 +47,10 @@ public class Relationship extends JComponent {
         return RelationshipUI.UI_CLASS_ID;
     }
 
+	public SQLRelationship getModel() {
+		return model;
+	}
+
 	public TablePane getPkTable() {
 		return pkTable;
 	}
