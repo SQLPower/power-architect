@@ -45,6 +45,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	public static synchronized SQLDatabase getPlayPenInstance() {
 		if (playPenInstance == null) {
 			playPenInstance = new SQLDatabase();
+			playPenInstance.children = new ArrayList();
 			playPenInstance.populated = true;
 		}
 		return playPenInstance;
