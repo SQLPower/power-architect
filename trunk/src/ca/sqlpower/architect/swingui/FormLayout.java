@@ -65,13 +65,23 @@ public class FormLayout implements LayoutManager {
 							 lrh.height + i.top + i.bottom + (vgap*(rows-1)));
 	}
 
+	/**
+	 * Lays out the container as a 2-column form.  Labels go in the
+	 * left column and input fields go in the right column.
+	 *
+	 * <p>The left column will always be as wide as its widest
+	 * component (so that the labels always fit), and the right column
+	 * will be as wide as leftover space permits.  Leftover space is
+	 * defined as the parent container's width minus its left and
+	 * right insets, this layout's hgap, and the left column width.
+	 */
 	public void layoutContainer(Container parent) {
 		LeftRightHeight lrh = calcSizes(parent);
 		Dimension size = parent.getSize();
 		Insets ins = parent.getInsets();
 		
 		int lColWidth = Math.min(size.width, lrh.left);
-		int rColWidth = size.width - lColWidth - ins.left - ins.right;
+		int rColWidth = size.width - ins.left - lColWidth - hgap - ins.right;
 		int height = Math.min(size.height, lrh.height);
 
 		Dimension d;
@@ -86,7 +96,11 @@ public class FormLayout implements LayoutManager {
 				lHeight = d.height;
 			} else {
 				// right-hand column
-				c.setBounds(lColWidth + ins.left + hgap, y, rColWidth, d.height);
+				int width = c.getPreferredSize().width;
+				if (c instanceof JTextField) {
+					width = rColWidth; // full width of this column
+				}
+				c.setBounds(lColWidth + ins.left + hgap, y, width, d.height);
 				y += Math.max(d.height, lHeight) + vgap;
 			}
 		}		
