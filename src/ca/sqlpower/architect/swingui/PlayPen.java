@@ -2,6 +2,7 @@ package ca.sqlpower.architect.swingui;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.*;
 import java.awt.datatransfer.*;
 import java.awt.dnd.*;
 import java.io.IOException;
@@ -16,7 +17,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.*;
 
-public class PlayPen extends JPanel implements java.io.Serializable {
+public class PlayPen extends JPanel implements java.io.Serializable, SQLObjectListener {
 
 	private static Logger logger = Logger.getLogger(PlayPen.class);
 
@@ -30,10 +31,6 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 	 * This database is the container of all the SQLObjects in this
 	 * playpen.  Items added via the addTable, addSchema, ... methods
 	 * will be added into this database.
-	 *
-	 * <p>Note: the playpen does not currently listen for changes to
-	 * the database (addition and removal of tables), but it probably
-	 * will in the future.
 	 */
 	protected SQLDatabase db;
 	
@@ -44,16 +41,62 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 	 */
 	protected HashMap tableNames;
 
+	/**
+	 * This is the shared popup menu that applies to right-clicks on
+	 * any TablePane in the PlayPen.
+	 */
+	protected JPopupMenu tablePanePopup;
+
 	public PlayPen(SQLDatabase db) {
 		super();
 		if (db == null) throw new NullPointerException("db must be non-null");
 		this.db = db;
+		db.addSQLObjectListener(this);
 		setLayout(new PlayPenLayout(this));
 		setName("Play Pen");
 		setMinimumSize(new Dimension(200,200));
+		setBackground(java.awt.Color.white);
 		setOpaque(true);
 		dt = new DropTarget(this, new PlayPenDropListener());
 		tableNames = new HashMap();
+		setupTablePanePopup();
+	}
+
+	/**
+	 * This routine is called by the constructor.  It adds all the
+	 * necessary items and action listeners to the TablePane popup
+	 * menu.
+	 */
+	protected void setupTablePanePopup() {
+		tablePanePopup = new JPopupMenu();
+		JMenuItem mi = new JMenuItem("Insert Column");
+		//mi.setAction(new InsertColumnAction());
+		tablePanePopup.add(mi);
+
+		mi = new JMenuItem("Edit Column");
+		tablePanePopup.add(mi);
+
+		mi = new JMenuItem();
+		mi.setAction(new DeleteColumnAction(this));
+		tablePanePopup.add(mi);
+
+		mi = new JMenuItem();
+		mi.setAction(new DeleteTableAction(this));
+		tablePanePopup.add(mi);
+
+		mi = new JMenuItem("Create Relationship");
+		tablePanePopup.add(mi);
+
+		tablePanePopup.addSeparator();
+		
+		mi = new JMenuItem("Show listeners");
+		mi.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent evt) {
+					TablePane tp = (TablePane) getSelectedChild();
+					JOptionPane.showMessageDialog(tp, new JScrollPane(new JList(new java.util.Vector(tp.getModel().getSQLObjectListeners()))));
+				}
+			});
+		tablePanePopup.add(mi);
 	}
 
 	public static class PlayPenLayout implements LayoutManager2 {
@@ -414,6 +457,81 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 			logger.info("AddSchemaTask done");
 		}
 	}
+
+	// -------------------- SQLOBJECT EVENT SUPPORT ---------------------
+
+	/**
+	 * Listens for property changes in the model (tables
+	 * added).  If this change affects the appearance of
+	 * this widget, we will notify all change listeners (the UI
+	 * delegate) with a ChangeEvent.
+	 */
+	public void dbChildrenInserted(SQLObjectEvent e) {
+		firePropertyChange("model.children", null, null);
+		revalidate();
+	}
+
+	/**
+	 * Listens for property changes in the model (columns
+	 * removed).  If this change affects the appearance of
+	 * this widget, we will notify all change listeners (the UI
+	 * delegate) with a ChangeEvent.
+	 */
+	public void dbChildrenRemoved(SQLObjectEvent e) {
+		firePropertyChange("model.children", null, null);
+		revalidate();
+	}
+
+	/**
+	 * Listens for property changes in the model (columns
+	 * properties modified).  If this change affects the appearance of
+	 * this widget, we will notify all change listeners (the UI
+	 * delegate) with a ChangeEvent.
+	 */
+	public void dbObjectChanged(SQLObjectEvent e) {
+		firePropertyChange("model."+e.getPropertyName(), null, null);
+		revalidate();
+	}
+
+	/**
+	 * Listens for property changes in the model (significant
+	 * structure change).  If this change affects the appearance of
+	 * this widget, we will notify all change listeners (the UI
+	 * delegate) with a ChangeEvent.
+	 */
+	public void dbStructureChanged(SQLObjectEvent e) {
+		firePropertyChange("model.children", null, null);
+		revalidate();
+	}
+
+	// --------------- SELECTION METHODS ----------------
+
+	/**
+	 * Deselects all selectable items in the PlayPen.
+	 */
+	public void selectNone() {
+		for (int i = 0, n = getComponentCount(); i < n; i++) {
+			if (getComponent(i) instanceof Selectable) {
+				Selectable s = (Selectable) getComponent(i);
+				s.setSelected(false);
+			}
+		}
+	}
+
+	/**
+	 * Returns the first selected child in the PlayPen.
+	 */
+	public Selectable getSelectedChild() {
+		for (int i = 0, n = getComponentCount(); i < n; i++) {
+			if (getComponent(i) instanceof Selectable) {
+				Selectable s = (Selectable) getComponent(i);
+				if (s.isSelected()) return s;
+			}
+		}
+		return null;
+	}
+
+	// ------------------------------------- INNER CLASSES ----------------------------
 
 	/**
 	 * Tracks incoming objects and adds successfully dropped objects
