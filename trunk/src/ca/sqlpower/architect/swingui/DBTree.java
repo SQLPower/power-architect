@@ -187,8 +187,7 @@ public class DBTree extends JTree implements DragSourceListener {
 				message = "Check application log for details";
 			}
 
-			JOptionPane.showMessageDialog(this, "Couldn't expand node:\n"+message,
-										  "Error", JOptionPane.ERROR_MESSAGE);
+			ASUtils.showExceptionDialog("Couldn't expand node:\n"+message, ex);
 		} finally {
 			ArchitectFrame.getMainInstance().setCursor(null);
 		}

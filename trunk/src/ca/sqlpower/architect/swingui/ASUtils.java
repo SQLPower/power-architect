@@ -2,7 +2,11 @@ package ca.sqlpower.architect.swingui;
 
 import java.util.*;
 import java.io.File;
+import java.io.StringWriter;
+import java.io.PrintWriter;
 import java.awt.Point;
+import java.awt.Dimension;
+import java.awt.BorderLayout;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.*;
 import org.apache.log4j.Logger;
@@ -206,4 +210,23 @@ public class ASUtils {
 		focusDebuggerStopping = false;
 		focusDebuggerThread.start();
 	}
+
+	/**
+	 * Displays a dialog box with the given message and exception,
+	 * allowing the user to examine the stack trace.  The dialog's
+	 * parent component will be the ArchitectFrame's main instance.
+	 */
+	public static void showExceptionDialog(String message, Throwable exception) {
+		StringWriter traceWriter = new StringWriter();
+		exception.printStackTrace(new PrintWriter(traceWriter));
+		JPanel messageComponent = new JPanel(new BorderLayout());
+		messageComponent.add(new JLabel(message), BorderLayout.NORTH);
+		messageComponent.add(new JScrollPane(new JTextArea(traceWriter.toString())), BorderLayout.CENTER);
+		messageComponent.setPreferredSize(new Dimension(400, 300));
+		JOptionPane.showMessageDialog(ArchitectFrame.getMainInstance(),
+									  messageComponent,
+									  "Error Report",
+									  JOptionPane.ERROR_MESSAGE);
+	}
+
 }

@@ -389,6 +389,8 @@ public class ArchitectFrame extends JFrame {
 // 		} catch (ClassNotFoundException ex) {
 // 			logger.error("Couldn't create ArchitectFrame class", ex);
 // 		}
+		ArchitectUtils.configureLog4j();
+
 		new ArchitectFrame();
 		
 		SwingUtilities.invokeLater(new Runnable() {

@@ -2,6 +2,7 @@ package ca.sqlpower.architect;
 
 import java.util.Iterator;
 import org.apache.log4j.Logger;
+import java.net.URL;
 
 public class ArchitectUtils {
 
@@ -12,6 +13,20 @@ public class ArchitectUtils {
 	 * need to instantiate it.
 	 */
 	private ArchitectUtils() {}
+
+	/**
+	 * Sets up the log4j logging framework.
+	 */
+	public static void configureLog4j() {
+		String configName = "log4j.properties";
+		URL config = ArchitectUtils.class.getClassLoader().getResource(configName);
+		if (config == null) {
+			System.err.println("Warning: Couldn't find log4j config resource '"+configName+"'");
+		} else {
+			org.apache.log4j.PropertyConfigurator.configure(config);
+			logger.info("Log4J configured successfully");
+		}
+	}
 
 	/**
 	 * Adds listener to source's listener list and all of source's
