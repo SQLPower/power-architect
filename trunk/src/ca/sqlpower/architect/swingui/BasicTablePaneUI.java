@@ -12,7 +12,7 @@ import java.util.Iterator;
 
 import ca.sqlpower.architect.*;
 
-public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListener {
+public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListener, java.io.Serializable {
 	private TablePane tablePane;
 
 	final int boxLineThickness = 1;

@@ -2,7 +2,7 @@ package ca.sqlpower.architect;
 
 import java.util.*;
 
-public abstract class SQLObject {
+public abstract class SQLObject implements java.io.Serializable {
 
 	/**
 	 * The children of this SQLObject (if not applicable, set to
@@ -99,14 +99,21 @@ public abstract class SQLObject {
 	}
 
 	// ------------------- sql object event support -------------------
-	private List sqlObjectListeners = new LinkedList();
-	
+	private transient List sqlObjectListeners = new LinkedList();
+
+	private List getSqlObjectListeners() {
+		if (sqlObjectListeners == null) {
+			sqlObjectListeners = new LinkedList();
+		}
+		return sqlObjectListeners;
+	}
+
 	public void addSQLObjectListener(SQLObjectListener l) {
-		sqlObjectListeners.add(l);
+		getSqlObjectListeners().add(l);
 	}
 
 	public void removeSQLObjectListener(SQLObjectListener l) {
-		sqlObjectListeners.remove(l);
+		getSqlObjectListeners().remove(l);
 	}
 
 	protected void fireDbChildrenInserted(int[] newIndices, List newChildren) {
@@ -115,7 +122,7 @@ public abstract class SQLObject {
 			(this,
 			 newIndices,
 			 (SQLObject[]) newChildren.toArray(new SQLObject[newChildren.size()]));
-		Iterator it = sqlObjectListeners.iterator();
+		Iterator it = getSqlObjectListeners().iterator();
 		int count = 0;
 		while (it.hasNext()) {
 			count ++;
@@ -137,7 +144,7 @@ public abstract class SQLObject {
 			(this,
 			 oldIndices,
 			 (SQLObject[]) oldChildren.toArray(new SQLObject[oldChildren.size()]));
-		Iterator it = sqlObjectListeners.iterator();
+		Iterator it = getSqlObjectListeners().iterator();
 		while (it.hasNext()) {
 			((SQLObjectListener) it.next()).dbChildrenRemoved(e);
 		}
@@ -153,7 +160,7 @@ public abstract class SQLObject {
 
 	protected void fireDbObjectChanged(String propertyName) {
 		SQLObjectEvent e = new SQLObjectEvent(this, propertyName);
-		Iterator it = sqlObjectListeners.iterator();
+		Iterator it = getSqlObjectListeners().iterator();
 		while (it.hasNext()) {
 			((SQLObjectListener) it.next()).dbObjectChanged(e);
 		}

@@ -2,7 +2,7 @@ package ca.sqlpower.architect;
 
 import java.util.EventObject;
 
-public class SQLObjectEvent extends EventObject {
+public class SQLObjectEvent extends EventObject implements java.io.Serializable {
 	
 	protected int[] changedIndices;
 	protected SQLObject[] children;

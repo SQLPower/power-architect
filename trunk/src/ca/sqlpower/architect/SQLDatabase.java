@@ -3,6 +3,7 @@ package ca.sqlpower.architect;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.HashMap;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -12,10 +13,16 @@ import java.sql.Statement;
 
 import ca.sqlpower.sql.DBConnectionSpec;
 
-public class SQLDatabase extends SQLObject {
+public class SQLDatabase extends SQLObject implements java.io.Serializable {
+
+	/**
+	 * Caches connections across serialization attempts.  See {@link
+	 * #connect()}.
+	 */
+	private static transient HashMap dbConnections = new HashMap();
 
 	protected DBConnectionSpec connectionSpec;
-	protected Connection connection;
+	protected transient Connection connection;
 	protected boolean populated = false;
 
 	public SQLDatabase(DBConnectionSpec connectionSpec) {
@@ -29,12 +36,15 @@ public class SQLDatabase extends SQLObject {
 
 	public synchronized void connect() throws ArchitectException {
 		if (connection != null) return;
+		connection = (Connection) dbConnections.get(connectionSpec);
+		if (connection != null) return;
 		try {
 			Class.forName(connectionSpec.getDriverClass());
 			System.out.println("Driver Class "+connectionSpec.getDriverClass()+" loaded without exception");
 			connection = DriverManager.getConnection(connectionSpec.getUrl(),
 													 connectionSpec.getUser(),
 													 connectionSpec.getPass());
+			dbConnections.put(connectionSpec, connection);
 		} catch (ClassNotFoundException e) {
 			System.out.println("Driver Class not found");
 			throw new ArchitectException("dbconnect.noDriver", e);

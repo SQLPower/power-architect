@@ -7,7 +7,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.DatabaseMetaData;
 
-public class SQLColumn extends SQLObject {
+public class SQLColumn extends SQLObject implements java.io.Serializable {
 
 	protected SQLTable parent;
 	protected String columnName;

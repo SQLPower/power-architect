@@ -13,7 +13,7 @@ import java.awt.*;
  *  <li>real-time preview of what the printout will look like, whether or not it spans pages
  * </ul>
  */
-public class PrintDialogFrame extends JFrame {
+public class PrintDialogFrame extends JFrame implements java.io.Serializable {
 
 	public PrintDialogFrame() {
 		super("Print");

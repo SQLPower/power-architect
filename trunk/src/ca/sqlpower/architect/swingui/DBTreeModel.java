@@ -8,7 +8,7 @@ import java.util.Iterator;
 
 import ca.sqlpower.architect.*;
 
-public class DBTreeModel implements TreeModel, SQLObjectListener {
+public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serializable {
 
 	protected SQLObject root;
 	protected boolean debugMode;
