@@ -468,6 +468,13 @@ public class PlayPen extends JPanel
 		return super.getComponent(i);
 	}
 
+	/**
+	 * Delegates to the content pane.  XXX: doesn't actually cause tooltips to appear.
+	 */
+	public String getToolTipText(MouseEvent e) {
+		return contentPane.getToolTipText(e);
+	}
+
 	// ------------------- Right-click popup menu for playpen -----------------------
 	protected void setupPlayPenPopup() {
 		ArchitectFrame af = ArchitectFrame.getMainInstance();

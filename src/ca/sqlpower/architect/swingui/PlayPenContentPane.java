@@ -38,6 +38,30 @@ public class PlayPenContentPane extends JComponent {
 		return true;
 	}
 
+	/**
+	 * Looks for tooltip text in the component under the pointer,
+	 * respecting the current zoom level.
+	 *
+	 * <p>  XXX: doesn't actually cause tooltips to appear.
+	 */
+	public String getToolTipText(MouseEvent e) {
+		String text = null;
+		Point ep = e.getPoint(); // event's point in playpen in screen coords
+		Point sp = owner.unzoomPoint(new Point(ep));
+		Component c = getComponentAt(sp);
+		if (c != null && c != this && c instanceof JComponent) {
+			Object oldSource = e.getSource();
+			e.setSource(c);
+			e.translatePoint(-1 * e.getX() + sp.x - c.getX(),
+							 -1 * e.getY() + sp.y - c.getY());
+			text = ((JComponent) c).getToolTipText(e);
+ 			e.setSource(oldSource);
+ 			e.translatePoint(-1 * e.getX() + ep.x,
+ 							 -1 * e.getY() + ep.y);
+		}
+		return text;
+	}
+
 	public boolean delegateEvent(MouseEvent e) {
 		if (logger.isDebugEnabled()) logger.debug(e.paramString());
 		Point ep = e.getPoint(); // event's point in playpen in screen coords
