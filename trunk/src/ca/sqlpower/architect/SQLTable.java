@@ -666,6 +666,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		}
 
 		public void populate() throws ArchitectException {
+			if (populated) return;
 			try {
 				if (type == COLUMNS) {
 					parent.populateColumns();
