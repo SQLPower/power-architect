@@ -17,6 +17,10 @@ public class SQLCatalog extends SQLObject {
 	protected SQLObject parent;
 	protected String catalogName;
 
+	public SQLCatalog() {
+		this(null, null);
+	}
+
 	public SQLCatalog(SQLDatabase parent, String name) {
 		this.parent = parent;
 		this.catalogName = name;
@@ -147,24 +151,6 @@ public class SQLCatalog extends SQLObject {
 	 */
 	public void setCatalogName(String argCatalogName) {
 		this.catalogName = argCatalogName;
-	}
-
-	/**
-	 * Gets the value of children
-	 *
-	 * @return the value of children
-	 */
-	public List getChildren()  {
-		return Collections.unmodifiableList(children);
-	}
-
-	/**
-	 * Sets the value of children
-	 *
-	 * @param argChildren Value to assign to this.children
-	 */
-	protected void setChildren(List argChildren) {
-		this.children = argChildren;
 	}
 
 	/**

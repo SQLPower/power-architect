@@ -60,25 +60,36 @@ public class PlayPen extends JPanel
 	protected EditColumnAction editColumnAction;
 	protected DeleteTableAction deleteTableAction;
 
-	public PlayPen(SQLDatabase db) {
-		super();
-		if (db == null) throw new NullPointerException("db must be non-null");
-		this.db = db;
-		relationships = new LinkedList();
-		try {
-			ArchitectUtils.listenToHierarchy(this, db);
-		} catch (ArchitectException ex) {
-			logger.error("Couldn't listen to database", ex);
-		}
+	public PlayPen() {
 		setLayout(new PlayPenLayout(this));
 		setName("Play Pen");
 		setMinimumSize(new Dimension(200,200));
 		setBackground(java.awt.Color.white);
 		setOpaque(false);   // XXX: it really is opaque, but we can't have super.paintComponent() painting over top of our relationship lines
 		dt = new DropTarget(this, new PlayPenDropListener());
-		tableNames = new HashMap();
 		addContainerListener(this);
 		setupTablePanePopup();
+	}
+
+	public PlayPen(SQLDatabase db) {
+		this();
+		setDatabase(db);
+	}
+
+	public SQLDatabase getDatabase() {
+		return db;
+	}
+
+	public void setDatabase(SQLDatabase newdb) {
+		if (newdb == null) throw new NullPointerException("db must be non-null");
+		this.db = newdb;
+		relationships = new LinkedList();
+		try {
+			ArchitectUtils.listenToHierarchy(this, db);
+		} catch (ArchitectException ex) {
+			logger.error("Couldn't listen to database", ex);
+		}
+		tableNames = new HashMap();
 	}
 
 	/**
@@ -258,7 +269,6 @@ public class PlayPen extends JPanel
 			logger.info("AddSchemaTask done");
 		}
 	}
-
 
 	// -------------------- SQLOBJECT EVENT SUPPORT ---------------------
 
@@ -772,7 +782,7 @@ public class PlayPen extends JPanel
 			} else {
 				try {
 					Object someData = t.getTransferData(importFlavor);
-					logger.debug("MyJTreeTransferHandler.importData: got object of type "+someData.getClass().getName());
+					logger.debug("MyJTreeTransferHandler.importData: got object of type "+someData.getClass().getName()+" @"+someData.hashCode());
 					if (someData instanceof SQLTable) {
 						dtde.acceptDrop(DnDConstants.ACTION_COPY);
 						c.addTable((SQLTable) someData, dtde.getLocation());
@@ -861,6 +871,7 @@ public class PlayPen extends JPanel
 		 * list, or null if no acceptable flavours are present.
 		 */
 		public DataFlavor bestImportFlavor(JComponent c, DataFlavor[] flavors) {
+			DataFlavor best = null;
 			logger.debug("PlayPenTransferHandler: can I import "+Arrays.asList(flavors));
  			for (int i = 0; i < flavors.length; i++) {
 				String cls = flavors[i].getDefaultRepresentationClassAsString();
@@ -878,11 +889,12 @@ public class PlayPen extends JPanel
  				if (flavors[i].equals(SQLObjectTransferable.flavor)
 					|| flavors[i].equals(SQLObjectListTransferable.flavor)) {
 					logger.debug("YES");
- 					return flavors[i];
+					best = flavors[i];
+				} else {
+					logger.debug("NO!");
 				}
  			}
-			logger.debug("NO!");
- 			return null;
+ 			return best;
 		}
 
 		/**

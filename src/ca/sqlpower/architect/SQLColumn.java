@@ -53,10 +53,8 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 
 	// *** REMEMBER *** update the getDerivedInstance method if you add new properties!
 
-	/**
-	 * Only for use by static factory methods.
-	 */
-	private SQLColumn() {
+	public SQLColumn() {
+		logger.debug("NEW COLUMN (noargs) @"+hashCode());
 	}
 
 	/**
@@ -89,6 +87,11 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 					 String defaultValue,
 					 Integer primaryKeySeq,
 					 boolean isAutoIncrement) {
+		if (parentTable != null) {
+			logger.debug("NEW COLUMN "+colName+"@"+hashCode()+" parent "+parentTable.getName()+"@"+parentTable.hashCode());
+		} else {
+			logger.debug("NEW COLUMN "+colName+"@"+hashCode()+" (null parent)");
+		}
 		this.parent = parentTable.getColumnsFolder();
 		this.columnName = colName;
 		this.type = dataType;
@@ -289,6 +292,15 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	public void setType(int argType) {
 		this.type = argType;
 		fireDbObjectChanged("type");
+	}
+
+	public String getSourceDBTypeName() {
+		return sourceDBTypeName;
+	}
+
+	public void setSourceDBTypeName(String n) {
+		sourceDBTypeName = n;
+		fireDbObjectChanged("sourceDBTypeName");
 	}
 
 	/**

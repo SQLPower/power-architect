@@ -251,11 +251,15 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	}
 
 	public String getName() {
-		return connectionSpec.getDisplayName();
+		if (connectionSpec != null) {
+			return connectionSpec.getDisplayName();
+		} else {
+			return "PlayPen Database";
+		}
 	}
 
 	public String getShortDisplayName() {
-		return connectionSpec.getDisplayName();
+		return getName();
 	}
 	
 	public boolean allowsChildren() {
@@ -364,10 +368,6 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	}
 
 	public String toString() {
-		if (connectionSpec != null) {
-			return connectionSpec.getDisplayName();
-		} else {
-			return "PlayPen Database";
-		}
+		return getName();
 	}
 }

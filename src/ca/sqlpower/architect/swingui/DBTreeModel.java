@@ -91,7 +91,7 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	 * The backing class for an invisible root node that contains
 	 * SQLDatabase objects.
 	 */
-	protected class DBTreeRoot extends SQLObject {
+	public static class DBTreeRoot extends SQLObject {
 		public DBTreeRoot() {
 			children = new LinkedList();
 		}

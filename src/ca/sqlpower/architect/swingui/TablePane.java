@@ -70,9 +70,8 @@ public class TablePane
 
 	private SQLTable model;
 
-	public TablePane(SQLTable m) {
+	public TablePane() {
 		setOpaque(true);
-		setModel(m);
 		setMinimumSize(new Dimension(100,200));
 		setPreferredSize(new Dimension(100,200));
 		dt = new DropTarget(this, new TablePaneDropListener());
@@ -83,6 +82,11 @@ public class TablePane
 		setInsertionPoint(COLUMN_INDEX_NONE);
 		addMouseListener(new PopupListener());
 		updateUI();
+	}
+
+	public TablePane(SQLTable m) {
+		this();
+		setModel(m);
 	}
 
 	public void setUI(TablePaneUI ui) {super.setUI(ui);}
