@@ -93,15 +93,6 @@ public class TestUI extends JFrame {
 			});
 		box2.add(printButton);
 
-		JButton dbcsButton = new JButton("Database Connections...");
-		dbcsButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					dbcsDialog = DBCSPanel.createFrame(dbcs);
-					dbcsDialog.setVisible(true);
-				}
-			});
-		box2.add(dbcsButton);
-
 		return controlsFrame;
 	}
 
