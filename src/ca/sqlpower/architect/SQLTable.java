@@ -452,13 +452,15 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * imported or exported key.
 	 */
 	public void removeColumn(SQLColumn col) throws LockedColumnException {
-		List keys = keysOfColumn(col);
-		if (keys.isEmpty()) {
-			columnsFolder.removeChild(col);
-			normalizePrimaryKey();
-		} else {
-			throw new LockedColumnException("This column can't be removed because it belongs to the "+keys.get(0)+" relationship");
-		}
+// 		List keys = keysOfColumn(col);
+// 		if (keys.isEmpty()) {
+// 			columnsFolder.removeChild(col);
+// 			normalizePrimaryKey();
+// 		} else {
+// 			throw new LockedColumnException("This column can't be removed because it belongs to the "+keys.get(0)+" relationship");
+// 		}
+		columnsFolder.removeChild(col);
+		normalizePrimaryKey();
 	}
 
 	/**
@@ -471,14 +473,19 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * @param newIdx the index that the column will have when this
 	 * method returns.
 	 */
-	public void changeColumnIndex(int oldIdx, int newIdx) {
-		SQLColumn col = (SQLColumn) columnsFolder.children.remove(oldIdx);
-		columnsFolder.children.add(newIdx, col);
-		if (newIdx == 0
-			|| ((SQLColumn) columnsFolder.children.get(newIdx-1)).primaryKeySeq != null) {
-			col.primaryKeySeq = new Integer(1); // will get sane value when normalized
-		}
-		normalizePrimaryKey();
+	public void changeColumnIndex(int oldIdx, int newIdx) throws ArchitectException {
+		// this old way didn't cause any events
+// 		SQLColumn col = (SQLColumn) columnsFolder.children.remove(oldIdx);
+// 		columnsFolder.children.add(newIdx, col);
+// 		if (newIdx == 0
+// 			|| ((SQLColumn) columnsFolder.children.get(newIdx-1)).primaryKeySeq != null) {
+// 			col.primaryKeySeq = new Integer(1); // will get sane value when normalized
+// 		}
+// 		normalizePrimaryKey();
+
+		SQLColumn col = (SQLColumn) columnsFolder.getChild(oldIdx);
+		removeColumn(oldIdx);
+		addColumn(newIdx, col);
 	}
 
 	/**
