@@ -2,18 +2,29 @@ package ca.sqlpower.architect.swingui;
 
 import javax.swing.*;
 import javax.swing.event.*;
+import javax.swing.plaf.basic.BasicComboBoxRenderer;
+import javax.swing.plaf.metal.MetalComboBoxEditor;
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.event.*;
 import java.util.*;
+
+import org.apache.log4j.Logger;
 
 import ca.sqlpower.sql.DBConnectionSpec;
 
 public class DBCSPanel extends JPanel implements ArchitectPanel {
 
+	private static final Logger logger = Logger.getLogger(DBCSPanel.class);
+
 	protected DBConnectionSpec dbcs;
 	protected TextPanel form;
+	protected boolean itemChanging;
 
-	protected JTextField dbNameField;
+	protected List dbcsHistory;
+	protected Vector dbNameHistory;
+	protected JComboBox dbNameField;
+	protected String dbNameTemp;
 	protected JComboBox dbDriverField;
 	protected JTextField dbUrlField;
 	protected JTextField dbUserField;
@@ -21,16 +32,8 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
 
 	private Map jdbcDrivers;
 
-	public DBCSPanel(DBConnectionSpec dbcs) {
-		setupContents();
-		setDbcs(dbcs);
-	}
-
 	public DBCSPanel() {
 		setupContents();
-		DBConnectionSpec dbcs = new DBConnectionSpec();
-		dbcs.setName("New connection");
-		setDbcs(dbcs);
 	}
 
 	/**
@@ -38,9 +41,36 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
 	 */
 	protected void setupContents() {
 		setLayout(new BorderLayout());
+		dbDriverField = new JComboBox(getDriverClasses());
+		dbDriverField.insertItemAt("", 0);
+		dbcsHistory = new ArrayList(ArchitectFrame.getMainInstance().getUserSettings().getConnections());
+		Iterator it = dbcsHistory.iterator();
+		dbNameHistory = new Vector(dbcsHistory.size());
+		while (it.hasNext()) {
+			DBConnectionSpec spec = (DBConnectionSpec) it.next();
+			logger.debug("Adding "+spec+" to history list");
+			dbNameHistory.add(spec.getDisplayName());
+		}
+		dbNameField = new JComboBox(dbNameHistory);
+		dbNameField.setEditable(true);
+		dbNameField.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					int i = dbNameField.getSelectedIndex();
+					if (!itemChanging && i >= 0) {
+						logger.debug("Changing to index "+i+" of "+dbcsHistory);
+						applyChanges();
+						setDbcs((DBConnectionSpec) dbcsHistory.get(i));
+					} else if (i == -1) {
+						String newName = (String) dbNameField.getEditor().getItem();
+						i = dbcsHistory.indexOf(dbcs);
+						dbNameHistory.set(i, newName);
+						logger.debug("Set name at index "+i+" to "+newName);
+					}
+				}
+			});
 
-		JComponent[] fields = new JComponent[] {dbNameField = new JTextField(),
-												dbDriverField = new JComboBox(getDriverClasses()),
+		JComponent[] fields = new JComponent[] {dbNameField,
+												dbDriverField,
 												dbUrlField = new JTextField(),
 												dbUserField = new JTextField(),
 												dbPassField = new JPasswordField()};
@@ -101,8 +131,11 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
 	 * and save the connection spec yourself.
 	 */
 	public void applyChanges() {
-		dbcs.setName(dbNameField.getText());
-		dbcs.setDisplayName(dbNameField.getText());
+		int oldIndex = dbcsHistory.indexOf(dbcs);
+		String name = (String) dbNameField.getItemAt(oldIndex);
+		logger.debug("Changing name of DBCS at index "+oldIndex+" to "+name);
+		dbcs.setName(name);
+		dbcs.setDisplayName(name);
 		dbcs.setDriverClass(dbDriverField.getSelectedItem().toString());
 		dbcs.setUrl(dbUrlField.getText());
 		dbcs.setUser(dbUserField.getText());
@@ -123,17 +156,30 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
 	 * when the applyChanges() method is called.
 	 */
 	public void setDbcs(DBConnectionSpec dbcs) {
-		dbNameField.setText(dbcs.getDisplayName());
-		if (dbcs.getDriverClass() != null) {
-			dbDriverField.insertItemAt(dbcs.getDriverClass(), 0);
-		} else {
-			dbDriverField.insertItemAt("", 0);
+		try {
+			itemChanging = true;
+			int index = dbcsHistory.indexOf(dbcs);
+			if (index < 0) {
+				logger.debug("Adding NEW dbcs to history list: "+dbcs);
+				dbcsHistory.add(dbcs);
+				dbNameField.addItem(dbcs.getDisplayName());
+				index = dbcsHistory.size() - 1;
+			}
+			dbNameField.setSelectedIndex(index);
+			dbDriverField.removeItemAt(0);
+			if (dbcs.getDriverClass() != null) {
+				dbDriverField.insertItemAt(dbcs.getDriverClass(), 0);
+			} else {
+				dbDriverField.insertItemAt("", 0);
+			}
+			dbDriverField.setSelectedIndex(0);
+			dbUrlField.setText(dbcs.getUrl());
+			dbUserField.setText(dbcs.getUser());
+			dbPassField.setText(dbcs.getPass());
+			this.dbcs = dbcs;
+		} finally {
+			itemChanging = false;
 		}
-		dbDriverField.setSelectedIndex(0);
-		dbUrlField.setText(dbcs.getUrl());
-		dbUserField.setText(dbcs.getUser());
-		dbPassField.setText(dbcs.getPass());
-		this.dbcs = dbcs;
 	}
 
 	/**
