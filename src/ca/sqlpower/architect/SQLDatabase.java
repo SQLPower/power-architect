@@ -60,6 +60,22 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 			if (connection != null && !connection.isClosed()) return;
 			connection = (Connection) dbConnections.get(connectionSpec);
 			if (connection != null && !connection.isClosed()) return;
+
+			if (connectionSpec.getDriverClass() == null
+				|| connectionSpec.getDriverClass().trim().length() == 0) {
+				throw new ArchitectException("You didn't specify the JDBC Driver class.");
+			}
+
+			if (connectionSpec.getUrl() == null
+				|| connectionSpec.getUrl().trim().length() == 0) {
+				throw new ArchitectException("You didn't specify the JDBC URL.");
+			}
+
+			if (connectionSpec.getUser() == null
+				|| connectionSpec.getUser().trim().length() == 0) {
+				throw new ArchitectException("You didn't specify the JDBC username.");
+			}
+
 			Class.forName(connectionSpec.getDriverClass());
 			logger.info("Driver Class "+connectionSpec.getDriverClass()+" loaded without exception");
 			connection = DriverManager.getConnection(connectionSpec.getUrl(),
@@ -67,10 +83,11 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 													 connectionSpec.getPass());
 			dbConnections.put(connectionSpec, connection);
 		} catch (ClassNotFoundException e) {
-			logger.warn("Driver Class not found");
-			throw new ArchitectException("dbconnect.noDriver", e);
+			logger.warn("Driver Class not found", e);
+			throw new ArchitectException("JDBC Driver \""+connectionSpec.getDriverClass()
+										 +"\" not found.", e);
 		} catch (SQLException e) {
-			throw new ArchitectException("dbconnect.connectionFailed", e);
+			throw new ArchitectException("Couldn't connect to database:\n"+e.getMessage(), e);
 		}
 	}
 
