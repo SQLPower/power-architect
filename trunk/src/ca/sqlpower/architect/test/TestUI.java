@@ -6,6 +6,7 @@ import javax.swing.border.*;
 import java.awt.event.*;
 import java.awt.*;
 import java.sql.Types;
+import java.util.*;
 
 import ca.sqlpower.sql.DBConnectionSpec;
 import ca.sqlpower.sql.DBCSSource;
@@ -36,7 +37,9 @@ public class TestUI extends JFrame {
 
 		playpen = new PlayPen();
 
-		dbTree = new DBTree(db);
+		ArrayList dblist = new ArrayList(1);
+		dblist.add(db);
+		dbTree = new DBTree(dblist);
 		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
 											  new JScrollPane(dbTree),
 											  new JScrollPane(playpen));
