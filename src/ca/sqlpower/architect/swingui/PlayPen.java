@@ -1,6 +1,7 @@
 package ca.sqlpower.architect.swingui;
 
 import javax.swing.*;
+import javax.swing.event.*;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.*;
@@ -31,7 +32,7 @@ public class PlayPen extends JPanel
 
 	/**
 	 * This database is the container of all the SQLObjects in this
-	 * playpen.  Items added via the addTable, addSchema, ... methods
+	 * playpen.  Items added via the importTableCopy, addSchema, ... methods
 	 * will be added into this database.
 	 */
 	protected SQLDatabase db;
@@ -154,6 +155,10 @@ public class PlayPen extends JPanel
 		mi.setAction(chooseDBCSAction);
 		playPenPopup.add(mi);
 
+		mi = new JMenuItem();
+		mi.setAction(createTableAction = new CreateTableAction(this));
+		playPenPopup.add(mi);
+
 		if (logger.isDebugEnabled()) {
 			tablePanePopup.addSeparator();
 			mi = new JMenuItem("Show Relationships");
@@ -166,6 +171,8 @@ public class PlayPen extends JPanel
 		}
 		addMouseListener(new PopupListener());
 	}
+
+	public Action createTableAction;
 
 	public Action chooseDBCSAction = new AbstractAction("Database Output Selection") {
 			public void actionPerformed(ActionEvent e) {
@@ -242,7 +249,7 @@ public class PlayPen extends JPanel
 	}
 
 	/**
-	 * Works under limited circumstances. Use {@link #addTable} instead.
+	 * Works under limited circumstances. Use {@link #importTableCopy} instead.
 	 */
 	public void add(Component c, Object constraints) {
 		if (c instanceof Relationship) {
@@ -276,7 +283,7 @@ public class PlayPen extends JPanel
 	 * @see SQLTable#inherit
 	 * @see PlayPenLayout#addComponent(Component,Object)
 	 */
-	public synchronized void addTable(SQLTable source, Point preferredLocation) throws ArchitectException {
+	public synchronized void importTableCopy(SQLTable source, Point preferredLocation) throws ArchitectException {
 		SQLTable newTable = SQLTable.getDerivedInstance(source, db); // adds newTable to db
 		String key = source.getTableName().toLowerCase();
 		Integer suffix = (Integer) tableNames.get(key);
@@ -295,21 +302,11 @@ public class PlayPen extends JPanel
 	}
 
 	/**
-	 * Calls {@link #addTable} for each table contained in the given schema.
+	 * Calls {@link #importTableCopy} for each table contained in the given schema.
 	 */
 	public synchronized void addSchema(SQLSchema source, Point preferredLocation) throws ArchitectException {
 		AddSchemaTask t = new AddSchemaTask(source, preferredLocation);
 		new Thread(t, "Schema-Adder").start();
-	}
-
-	/**
-	 * Adds the given component to this playpen as a ghost.  A ghost
-	 * is a transient object that helps the user visualise drag
-	 * events.
-	 */
-	public synchronized void addGhost(JComponent ghost, Point location) {
-		super.add(ghost, null);
-		ghost.setLocation(location);
 	}
 
 	private class AddSchemaTask implements Runnable {
@@ -336,7 +333,7 @@ public class PlayPen extends JPanel
 				while (it.hasNext()) {
 					SQLTable sourceTable = (SQLTable) it.next();
 					pm.setNote(sourceTable.getTableName());
-					addTable(sourceTable, preferredLocation);
+					importTableCopy(sourceTable, preferredLocation);
 					pm.setProgress(i++);
 				}
 			} catch (ArchitectException e) {
@@ -346,6 +343,28 @@ public class PlayPen extends JPanel
 			}
 			logger.info("AddSchemaTask done");
 		}
+	}
+
+	/**
+	 * Adds the given component to this playpen as a ghost.  A ghost
+	 * is a transient object that helps the user visualise drag
+	 * events.
+	 */
+	public synchronized void addGhost(JComponent ghost, Point location) {
+		super.add(ghost, null);
+		ghost.setLocation(location);
+	}
+
+	/**
+	 * Adds the given table pane to the playpen, and adds its model to
+	 * the database.  The new table will follow the mouse until the
+	 * user clicks.
+	 */
+	public void addFloating(TablePane tp) {
+		db.addChild(tp.getModel());
+		tp.setVisible(false);
+		add(tp, new Point(0,0));
+		new FloatingTableListener(this, tp);
 	}
 
 	// -------------------- SQLOBJECT EVENT SUPPORT ---------------------
@@ -871,7 +890,7 @@ public class PlayPen extends JPanel
 						
 						if (someData instanceof SQLTable) {
 							dtde.acceptDrop(DnDConstants.ACTION_COPY);
-							c.addTable((SQLTable) someData, dtde.getLocation());
+							c.importTableCopy((SQLTable) someData, dtde.getLocation());
 							dtde.dropComplete(true);
 							return;
 						} else if (someData instanceof SQLSchema) {
@@ -892,7 +911,7 @@ public class PlayPen extends JPanel
 							} else {
 								while (cit.hasNext()) {
 									SQLTable sourceTable = (SQLTable) cit.next();
-									c.addTable(sourceTable, dtde.getLocation());
+									c.importTableCopy(sourceTable, dtde.getLocation());
 								}
 							}
 							dtde.dropComplete(true);
@@ -913,7 +932,7 @@ public class PlayPen extends JPanel
 							SQLObject[] objects = (SQLObject[]) someData;
 							for (int i = 0; i < objects.length; i++) {
 								if (objects[i] instanceof SQLTable) {
-									c.addTable((SQLTable) objects[i], dtde.getLocation());
+									c.importTableCopy((SQLTable) objects[i], dtde.getLocation());
 								} else if (objects[i] instanceof SQLSchema) {
 									c.addSchema((SQLSchema) objects[i], dtde.getLocation());
 								} else {
@@ -1012,6 +1031,49 @@ public class PlayPen extends JPanel
 				pp.selectNone();
 				pp.playPenPopup.show(pp, evt.getX(), evt.getY());
 			}
+		}
+	}
+	
+	/**
+	 * Listens to mouse motion and moves the given component so it
+	 * follows the mouse.  When the user clicks, it stops moving the
+	 * component, and unregisters itself as a listener.
+	 */
+	public static class FloatingTableListener extends MouseInputAdapter {
+		PlayPen pp;
+		TablePane tp;
+
+		public FloatingTableListener(PlayPen pp, TablePane tp) {
+			this.pp = pp;
+			this.tp = tp;
+			tp.addMouseMotionListener(this);  // motion down and right
+			pp.addMouseMotionListener(this);  // movement past the top-left edge of tp
+			tp.addMouseListener(this); // the click that ends this operation
+		}
+
+		public void mouseMoved(MouseEvent e) {
+			mouseDragged(e);
+		}
+
+		public void mouseDragged(MouseEvent e) {
+			tp.setVisible(true);
+			if (e.getSource() == tp) {
+				e = SwingUtilities.convertMouseEvent(tp, e, pp);
+			}
+			tp.setLocation(e.getPoint());
+		}
+
+		/**
+		 * Anchors the tablepane and disposes this listener instance.
+		 */
+		public void mouseReleased(MouseEvent e) {
+			cleanup();
+		}
+
+		protected void cleanup() {
+			tp.removeMouseMotionListener(this);
+			pp.removeMouseMotionListener(this);
+			tp.removeMouseListener(this);
 		}
 	}
 }

@@ -63,9 +63,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		this.objectType = objectType;
 
 		this.children = new ArrayList();
-		addChild(columnsFolder = new Folder("Columns"));
-		addChild(exportedKeysFolder = new Folder("Exported Keys"));
-		addChild(importedKeysFolder = new Folder("Imported Keys"));
+		initFolders();
 
 		importedKeysFolder.addSQLObjectListener(this);
 	}
@@ -87,6 +85,18 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		columnsPopulated = true;
 		relationshipsPopulated = true;
 		children = new ArrayList();
+	}
+
+	/**
+	 * If you create a table from scratch using the no-args
+	 * constructor, you should call this to create the standard set of
+	 * Folder objects under this table.  The regular constructor does
+	 * it automatically.
+	 */
+	public void initFolders() {
+		addChild(new Folder("Columns"));
+		addChild(new Folder("Exported Keys"));
+		addChild(new Folder("Imported Keys"));
 	}
 
 	protected static void addTablesToDatabase(SQLDatabase addTo) 
