@@ -108,6 +108,7 @@ public class ArchitectFrame extends JFrame {
 				}
 			}
 		};
+		newProjectAction.putValue(AbstractAction.SHORT_DESCRIPTION, "New");
 
 		openProjectAction
 			= new AbstractAction("Open Project...",
@@ -142,6 +143,7 @@ public class ArchitectFrame extends JFrame {
 						}
 					}
 				};
+		openProjectAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Open");
 		
 		saveProjectAction 
 			= new AbstractAction("Save Project",
@@ -152,6 +154,8 @@ public class ArchitectFrame extends JFrame {
 						saveOrSaveAs(false);
 					}
 				};
+		saveProjectAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Save");
+
 		saveProjectAsAction
 			= new AbstractAction("Save Project As...",
 								 ASUtils.createJLFIcon("general/SaveAs",
@@ -161,6 +165,8 @@ public class ArchitectFrame extends JFrame {
 					saveOrSaveAs(true);
 				}
 		};
+		saveProjectAsAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Save As");
+
 		exportDDLAction = new ExportDDLAction();
 		deleteSelectedAction = new DeleteSelectedAction();
 		createIdentifyingRelationshipAction = new CreateRelationshipAction(true);
@@ -173,6 +179,7 @@ public class ArchitectFrame extends JFrame {
 
 		menuBar = new JMenuBar();
 		JMenu fileMenu = new JMenu("File");
+		fileMenu.setMnemonic('f');
 		fileMenu.add(new JMenuItem(newProjectAction));
 		fileMenu.add(new JMenuItem(openProjectAction));
 		fileMenu.add(new JMenuItem(saveProjectAction));
@@ -183,7 +190,7 @@ public class ArchitectFrame extends JFrame {
 		menuBar.add(fileMenu);
 		setJMenuBar(menuBar);
 
-		toolBar = new JToolBar();
+		toolBar = new JToolBar(JToolBar.VERTICAL);
 		toolBar.add(newProjectAction);
 		toolBar.add(openProjectAction);
 		toolBar.add(saveProjectAction);
@@ -198,7 +205,9 @@ public class ArchitectFrame extends JFrame {
 		toolBar.add(createNonIdentifyingRelationshipAction);
 		toolBar.add(createIdentifyingRelationshipAction);
 		toolBar.add(editRelationshipAction);
-		cp.add(toolBar, BorderLayout.NORTH);
+		toolBar.addSeparator();
+		toolBar.add(exportDDLAction);
+		cp.add(toolBar, BorderLayout.EAST);
 
 		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 		getContentPane().add(splitPane, BorderLayout.CENTER);
