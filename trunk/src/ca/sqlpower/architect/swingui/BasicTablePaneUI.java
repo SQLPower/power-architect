@@ -178,9 +178,10 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 		logger.debug("BasicTablePaneUI notices change of "+e.getPropertyName()
 					 +" from "+e.getOldValue()+" to "+e.getNewValue()+" on "+e.getSource());
 		if (e.getPropertyName().equals("UI")) return;
-		if (e.getPropertyName().equals("preferredSize")) return;
-		if (e.getPropertyName().equals("insertionPoint")) return;
-		if (e.getPropertyName().equals("model.tableName")) {
+		else if (e.getPropertyName().equals("preferredSize")) return;
+		else if (e.getPropertyName().equals("insertionPoint")) return;
+		else if (e.getPropertyName().equals("model.tableName")) {
+			// this just helps with debugging -- it's not visual
 			tablePane.setName(tablePane.getModel().getTableName());
 			return;
 		}
