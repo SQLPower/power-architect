@@ -425,10 +425,13 @@ public class TablePane extends JComponent implements SQLObjectListener, java.io.
 			ghost = null;  // XXX: not necessary since this TPM object will die soon
 			tp.removeMouseListener(this);
 			tp.removeMouseMotionListener(this);
-			tp.setLocation(p.x - dragStart.x + evt.getX(), p.y - dragStart.y + evt.getY());
+			PlayPen playPen = (PlayPen) tp.getParent();
+			playPen.remove(tp);
+			Point location = new Point(p.x - dragStart.x + evt.getX(),
+									   p.y - dragStart.y + evt.getY());
 			tp.setVisible(true);
-			logger.debug("after removeghost: "+Arrays.asList(tp.getParent().getComponents()));
-			((JComponent) tp.getParent()).repaint();
+			playPen.add(tp, location);
+			playPen.repaint();
 		}
 	}
 
