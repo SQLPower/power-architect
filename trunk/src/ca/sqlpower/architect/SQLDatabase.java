@@ -2,8 +2,10 @@ package ca.sqlpower.architect;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Iterator;
 import java.util.HashMap;
+import java.util.Collections;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -313,12 +315,40 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	// ----------------- accessors and mutators -------------------
 	
 	/**
-	 * Gets the value of tables
+	 * Recursively searches this database for SQLTable descendants,
+	 * compiles a list of those that were found, and returns that
+	 * list.
+	 *
+	 * <p>WARNING: Calling this method will populate the entire
+	 * database!  Think carefully about using it on lazy-loading
+	 * source databases (it is safe to use on the playpen database).
 	 *
 	 * @return the value of tables
 	 */
 	public List getTables() throws ArchitectException {
-		return getChildren();
+		return getTableDescendants(this);
+	}
+
+	/**
+	 * This is the recursive subroutine used by {@link #getTables}.
+	 */
+	private static List getTableDescendants(SQLObject o) throws ArchitectException {
+
+		// this seemingly redundant short-circuit is required because
+		// we don't want o.getChildren() to be null
+		if (!o.allowsChildren()) return Collections.EMPTY_LIST;
+
+		LinkedList tables = new LinkedList();
+		Iterator it = o.getChildren().iterator();
+		while (it.hasNext()) {
+			SQLObject c = (SQLObject) it.next();
+			if (c instanceof SQLTable) {
+				tables.add(c);
+			} else {
+				tables.addAll(getTableDescendants(c));
+			}
+		}
+		return tables;
 	}
 
 	/**

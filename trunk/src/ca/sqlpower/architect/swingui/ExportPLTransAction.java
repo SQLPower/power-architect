@@ -1,9 +1,11 @@
 package ca.sqlpower.architect.swingui;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
 import java.awt.event.*;
 import java.io.*;
 import java.sql.*;
+import java.util.*;
 import javax.swing.*;
 import ca.sqlpower.architect.ddl.*;
 import ca.sqlpower.architect.etl.*;
@@ -86,9 +88,21 @@ public class ExportPLTransAction extends AbstractAction {
 						return;
 					}
 					try {
+						List targetDBWarnings = listMissingTargetTables();
+						if (!targetDBWarnings.isEmpty()) {
+							JList warnings = new JList(targetDBWarnings.toArray());
+							JPanel cp = new JPanel(new BorderLayout());
+							cp.add(new JLabel("<html>The target database schema is not identical to your Architect schema.<br><br>Here are the differences:</html>"), BorderLayout.NORTH);
+							cp.add(new JScrollPane(warnings), BorderLayout.CENTER);
+							cp.add(new JLabel("Do you want to continue anyway?"), BorderLayout.SOUTH);
+							int choice = JOptionPane.showConfirmDialog(playpen, cp, "Target Database Structure Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+							if (choice == JOptionPane.NO_OPTION) return;
+						}
+
 						plexp.export(playpen.getDatabase());
+
 						if (plPanel.isSelectedRunPLEngine()) {
-							logger.debug("run PL LOADER Engine");
+							logger.debug("Running PL Engine");
 							File plIni = new File(architectFrame.getUserSettings().getETLUserSettings().getPlDotIniPath());
 							File plDir = plIni.getParentFile();
 							File engineExe = new File(plDir, plPanel.getPLConnectionSpec().getEngineExeutableName());
@@ -162,9 +176,65 @@ public class ExportPLTransAction extends AbstractAction {
 	 * Checks for missing tables in the target database.  Returns a
 	 * list of table names that need to be created.
 	 */
-	public java.util.List listMissingTargetTables() {
+	public List listMissingTargetTables() throws SQLException, ArchitectException {
+		List missingTables = new LinkedList();
+		Iterator targetTableIt = playpen.getDatabase().getTables().iterator();
+		while (targetTableIt.hasNext()) {
+			SQLTable t = (SQLTable) targetTableIt.next();
+			String tableStatus = checkTargetTable(t);
+			if (tableStatus != null) {
+				missingTables.add(tableStatus);
+			}
+		}
+		return missingTables;
+	}
 
-		logger.error("listMissingTargetTables is not implemented");
-		return java.util.Collections.EMPTY_LIST;
+	/**
+	 * Checks for the existence of the given table in the actual
+	 * target database, and also compares its columns to those of the
+	 * actual table (if the table exists in the target database).
+	 *
+	 * @return A short message describing the differences between the
+	 * given table <code>t</code> and its counterpart in the physical
+	 * target database.  If the actual target table is identical to
+	 * <code>t</code>, returns <code>null</code>.
+	 */
+	protected String checkTargetTable(SQLTable t) throws SQLException, ArchitectException {
+		GenericDDLGenerator ddlg = architectFrame.getProject().getDDLGenerator();
+		String tableName = ddlg.toIdentifier(t.getName());
+		List ourColumns = new ArrayList();
+		Iterator it = t.getColumns().iterator();
+		while (it.hasNext()) {
+			SQLColumn c = (SQLColumn) it.next();
+			ourColumns.add(ddlg.toIdentifier(c.getName()).toLowerCase());
+		}
+
+		List actualColumns = new ArrayList();
+		Connection con = t.getParentDatabase().getConnection();
+		DatabaseMetaData dbmd = con.getMetaData();
+		ResultSet rs = null;
+		try {
+			logger.debug("Fetching columns of "+plexp.getOutputTableOwner()+"."+tableName);
+			rs = dbmd.getColumns(null, plexp.getOutputTableOwner(), tableName, null);
+			while (rs.next()) {
+				actualColumns.add(rs.getString(4).toLowerCase()); // column name
+			}
+		} finally {
+			if (rs != null) rs.close();
+		}
+		
+		if (logger.isDebugEnabled()) {
+			logger.debug("   ourColumns = "+ourColumns);
+			logger.debug("actualColumns = "+actualColumns);
+		}
+		if (actualColumns.isEmpty()) {
+			return "Target table \""+tableName+"\" does not exist";
+		} else {
+			if (actualColumns.containsAll(ourColumns)) {
+				return null;
+			} else {
+				return "Target table \""+tableName+"\" exists but is missing columns";
+			}
+		}
 	}
 }
