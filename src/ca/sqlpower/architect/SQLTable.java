@@ -170,6 +170,7 @@ public class SQLTable extends SQLObject {
 		t.tableName = source.tableName;
 		t.remarks = source.remarks;
 		t.inherit(source);
+		parent.addChild(t);
 		return t;
 	}
 
