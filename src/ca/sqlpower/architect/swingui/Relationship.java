@@ -105,7 +105,7 @@ public class Relationship extends JComponent implements Selectable, ComponentLis
 		mi = new JMenuItem(af.editRelationshipAction);
 		popup.add(mi);
 
-		mi = new JMenuItem(af.deleteRelationshipAction);
+		mi = new JMenuItem(af.deleteSelectedAction);
 		popup.add(mi);
 
 		addMouseListener(new PopupListener());

@@ -110,18 +110,16 @@ public class PlayPen extends JPanel
 		mi.setAction(af.insertColumnAction);
 		tablePanePopup.add(mi);
 
-		mi = new JMenuItem();
-		mi.setAction(af.deleteColumnAction);
-		tablePanePopup.add(mi);
-
 		tablePanePopup.addSeparator();
 
 		mi = new JMenuItem();
 		mi.setAction(af.editTableAction);
 		tablePanePopup.add(mi);
 		
+		tablePanePopup.addSeparator();
+
 		mi = new JMenuItem();
-		mi.setAction(af.deleteTableAction);
+		mi.setAction(af.deleteSelectedAction);
 		tablePanePopup.add(mi);
 
 		if (logger.isDebugEnabled()) {
@@ -131,6 +129,15 @@ public class PlayPen extends JPanel
 					public void actionPerformed(ActionEvent evt) {
 						TablePane tp = (TablePane) getSelection();
 						JOptionPane.showMessageDialog(tp, new JScrollPane(new JList(new java.util.Vector(tp.getModel().getSQLObjectListeners()))));
+					}
+				});
+			tablePanePopup.add(mi);
+
+			mi = new JMenuItem("Show Selection List");
+			mi.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent evt) {
+						TablePane tp = (TablePane) getSelection();
+						JOptionPane.showMessageDialog(tp, new JScrollPane(new JList(new java.util.Vector(tp.columnSelection))));
 					}
 				});
 			tablePanePopup.add(mi);
@@ -151,7 +158,7 @@ public class PlayPen extends JPanel
 		playPenPopup.add(mi);
 
 		if (logger.isDebugEnabled()) {
-			tablePanePopup.addSeparator();
+			playPenPopup.addSeparator();
 			mi = new JMenuItem("Show Relationships");
 			mi.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent evt) {
@@ -522,8 +529,10 @@ public class PlayPen extends JPanel
 		if (e.getSelectedItem().isSelected()) {
 			logger.debug("Child "+e.getSelectedItem()+" is now selected");
 			selectedChild = e.getSelectedItem();
-			fireSelectionEvent(e.getSelectedItem());
+		} else {
+			selectedChild = null;
 		}
+		fireSelectionEvent(e.getSelectedItem());
 	}
 
 	// --------------------- SELECTION EVENT SUPPORT ---------------------
@@ -986,6 +995,7 @@ public class PlayPen extends JPanel
 		}
 
 		public void mouseReleased(MouseEvent evt) {
+			((PlayPen) evt.getSource()).selectNone();
 			maybeShowPopup(evt);
 		}
 
