@@ -53,15 +53,15 @@ public class DBTree extends JTree implements DragSourceListener {
 			DBTree t = (DBTree) dge.getComponent();
   			TreePath[] p = t.getSelectionPaths();
 
-			if (p.length == 1) {
+			if (p ==  null || p.length == 0) {
+				// nothing to export
+				return;
+			} else if (p.length == 1) {
 				// export single node
 				System.out.println("DBTree: exporting single node");
 				SQLObject data = (SQLObject) p[0].getLastPathComponent();
 				dge.getDragSource().startDrag
 					(dge, DragSource.DefaultCopyNoDrop, new SQLObjectTransferable(data), t);
-			} else if (p.length == 0) {
-				// nothing to export
-				return;
 			} else {
 				// export list of nodes
 				System.out.println("DBTree: exporting list of nodes");
