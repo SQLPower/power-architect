@@ -2,6 +2,9 @@ package ca.sqlpower.architect.swingui;
 
 import javax.swing.*;
 import javax.swing.tree.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.Container;
 import java.awt.datatransfer.*;
 import java.awt.dnd.*;
 import java.awt.event.*;
@@ -18,6 +21,8 @@ public class DBTree extends JTree implements DragSourceListener {
 
 	protected DragSource ds;
 	protected JPopupMenu popup;
+	protected JDialog propDialog;
+	protected DBCSPanel dbcsPanel;
 
 	public DBTree(List initialDatabases) throws ArchitectException {
 		super(new DBTreeModel(initialDatabases));
@@ -27,8 +32,45 @@ public class DBTree extends JTree implements DragSourceListener {
 		DragGestureRecognizer dgr = ds.createDefaultDragGestureRecognizer
 			(this, DnDConstants.ACTION_COPY, new DBTreeDragGestureListener());
 
+		setupPropDialog();
 		popup = setupPopupMenu();
 		addMouseListener(new PopupListener());
+	}
+
+	/**
+	 * Sets up the DBCS dialog window and its DBCSPanel instance.  You
+	 * only need to call this once, and the constructor does that.
+	 */
+	protected void setupPropDialog() {
+		propDialog = new JDialog(ArchitectFrame.getMainInstance(),
+								 "Database Connection Properties");
+		final JButton okButton = new JButton("Ok");
+		final JButton cancelButton = new JButton("Cancel");
+		
+		final JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		dbcsPanel = new DBCSPanel(new DBConnectionSpec());
+		
+		okButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					dbcsPanel.applyChanges();
+					propDialog.dispose();
+				}
+			});
+		southPanel.add(okButton);
+		
+		cancelButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					dbcsPanel.discardChanges();
+					propDialog.dispose();
+				}
+			});
+		southPanel.add(cancelButton);
+		
+		Container cp = propDialog.getContentPane();
+		cp.setLayout(new BorderLayout());
+		cp.add(southPanel, BorderLayout.SOUTH);
+		cp.add(dbcsPanel, BorderLayout.CENTER);
+		propDialog.pack();
 	}
 
 	// ---------- methods of DragSourceListener -----------
@@ -107,8 +149,10 @@ public class DBTree extends JTree implements DragSourceListener {
 					dbcs.setDisplayName("New Connection");
 					SQLDatabase db = new SQLDatabase(dbcs);
 					((DBTreeModel.DBTreeRoot) getModel().getRoot()).addChild(db);
-					JFrame propWindow = DBCSPanel.createFrame(dbcs);
-					propWindow.setVisible(true);
+					ArchitectFrame.getMainInstance().getUserSettings().getConnections().add(dbcs);
+					dbcsPanel.setDbcs(dbcs);
+					propDialog.setVisible(true);
+					propDialog.requestFocus();
 				}
 			});
 		newMenu.add(popupNewDatabase);  // index 0
@@ -170,8 +214,9 @@ public class DBTree extends JTree implements DragSourceListener {
 			}
 			SQLObject so = (SQLObject) p.getLastPathComponent();
 			if (so instanceof SQLDatabase) {
-				JFrame propWindow = DBCSPanel.createFrame(((SQLDatabase) so).getConnectionSpec());
-				propWindow.setVisible(true);
+				dbcsPanel.setDbcs(((SQLDatabase) so).getConnectionSpec());
+				propDialog.setVisible(true);
+				propDialog.requestFocus();
 			} else if (so instanceof SQLCatalog) {
 			} else if (so instanceof SQLSchema) {
 			} else if (so instanceof SQLTable) {

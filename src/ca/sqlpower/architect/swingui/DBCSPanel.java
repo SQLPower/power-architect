@@ -3,14 +3,12 @@ package ca.sqlpower.architect.swingui;
 import javax.swing.*;
 import javax.swing.event.*;
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-import java.awt.Container;
 import java.awt.event.*;
 import java.util.*;
 
 import ca.sqlpower.sql.DBConnectionSpec;
 
-public class DBCSPanel extends JPanel {
+public class DBCSPanel extends JPanel implements ArchitectPanel {
 
 	protected DBConnectionSpec dbcs;
 	protected TextPanel form;
@@ -95,23 +93,25 @@ public class DBCSPanel extends JPanel {
 						"jdbc:db2:<hostname>");
 	}
 
+	// -------------------- ARCHITECT PANEL INTERFACE -----------------------
+
 	/**
 	 * Copies the properties displayed in the various fields back into
 	 * the current DBConnectionSpec.  You still need to call getDbcs()
 	 * and save the connection spec yourself.
 	 */
-	public void apply() {
+	public void applyChanges() {
 		dbcs.setDisplayName(dbNameField.getText());
 		dbcs.setDriverClass(dbDriverField.getSelectedItem().toString());
 		dbcs.setUrl(dbUrlField.getText());
 		dbcs.setUser(dbUserField.getText());
-		dbcs.setPass(dbPassField.getText());
+		dbcs.setPass(new String(dbPassField.getPassword())); // completely defeats the purpose for JPasswordField.getText() being deprecated, but we're saving passwords to the config file so it hardly matters.
 	}
 
 	/**
 	 * Does nothing right now.
 	 */
-	public void cancel() {
+	public void discardChanges() {
 	}
 
 	// ---------------- accessors and mutators ----------------
@@ -119,7 +119,7 @@ public class DBCSPanel extends JPanel {
 	/**
 	 * Sets this DBCSPanel's fields to match those of the given dbcs,
 	 * and stores a reference to the given dbcs so it can be updated
-	 * when the apply() method is called.
+	 * when the applyChanges() method is called.
 	 */
 	public void setDbcs(DBConnectionSpec dbcs) {
 		dbNameField.setText(dbcs.getDisplayName());
@@ -141,58 +141,5 @@ public class DBCSPanel extends JPanel {
 	 */
 	public DBConnectionSpec getDbcs() {
 		return dbcs;
-	}
-
-	/**
-	 * Convenience method for generating a frame with a DBCSPanel in
-	 * it.  The frame includes working new, ok, cancel, and apply
-	 * buttons.
-	 *
-	 * @param dbcs The DBConnectionSpec to associate with this
-	 * DBCSPanel.  If the user presses "Apply" or "Ok" then dbcs will
-	 * be updated with the new values.  <code>null</code> is not
-	 * allowed.
-	 */
-	public static JFrame createFrame(DBConnectionSpec dbcs) {
-		if (dbcs == null) {
-			throw new NullPointerException("You need to specify a DBConnectionSpec");
-		}
-		final JFrame frame = new JFrame();
-		final JButton okButton = new JButton("Ok");
-		final JButton cancelButton = new JButton("Cancel");
-		final JButton applyButton = new JButton("Apply");
-
-		final JPanel southPanel = new JPanel(new FlowLayout());
-		final DBCSPanel dbcsPanel = new DBCSPanel(dbcs);
-
-		okButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					dbcsPanel.apply();
-					frame.dispose();
-				}
-			});
-		southPanel.add(okButton);
-
-		cancelButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					dbcsPanel.cancel();
-					frame.dispose();
-				}
-			});
-		southPanel.add(cancelButton);
-
-		applyButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					dbcsPanel.apply();
-				}
-			});
-		southPanel.add(applyButton);
-
-		Container cp = frame.getContentPane();
-		cp.setLayout(new BorderLayout());
-		cp.add(southPanel, BorderLayout.SOUTH);
-		cp.add(dbcsPanel, BorderLayout.CENTER);
-		frame.pack();
-		return frame;
 	}
 }
