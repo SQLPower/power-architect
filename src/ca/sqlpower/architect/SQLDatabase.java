@@ -110,7 +110,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 		Iterator childit = children.iterator();
 		while (childit.hasNext()) {
 			SQLCatalog child = (SQLCatalog) childit.next();
-			if (child.getName().equals(catalogName)) {
+			if (child.getName().equalsIgnoreCase(catalogName)) {
 				return child;
 			}
 		}
@@ -148,7 +148,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 					return schema;
 				}
 			} else if (child instanceof SQLSchema) {
-				if (child.getName().equals(schemaName)) {
+				if (child.getName().equalsIgnoreCase(schemaName)) {
 					return (SQLSchema) child;
 				}
 			} else {

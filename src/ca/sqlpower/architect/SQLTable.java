@@ -210,7 +210,7 @@ public class SQLTable extends SQLObject {
 		Iterator it = children.iterator();
 		while (it.hasNext()) {
 			SQLColumn col = (SQLColumn) it.next();
-			if (col.getColumnName().equals(colName)) {
+			if (col.getColumnName().equalsIgnoreCase(colName)) {
 				logger.debug("FOUND");
 				return col;
 			}
