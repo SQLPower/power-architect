@@ -152,21 +152,33 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 		selectionListeners.remove(l);
 	}
 	
-	protected void fireSelectionEvent(Selectable source) {
-		SelectionEvent e = new SelectionEvent(source);
-		logger.debug("Notifying "+selectionListeners.size()+" listeners of selection change");
+	protected void fireSelectionEvent(SelectionEvent e) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("Notifying "+selectionListeners.size()
+						 +" listeners of selection change");
+		}
 		Iterator it = selectionListeners.iterator();
-		while (it.hasNext()) {
-			((SelectionListener) it.next()).itemSelected(e);
+		if (e.getType() == SelectionEvent.SELECTION_EVENT) {
+			while (it.hasNext()) {
+				((SelectionListener) it.next()).itemSelected(e);
+			}
+		} else if (e.getType() == SelectionEvent.DESELECTION_EVENT) {
+			while (it.hasNext()) {
+				((SelectionListener) it.next()).itemDeselected(e);
+			}
+		} else {
+			throw new IllegalStateException("Unknown selection event type "+e.getType());
 		}
 	}
 
 	protected boolean selected;
 
 	public void setSelected(boolean isSelected) {
-		selected = isSelected;
-		fireSelectionEvent(this);
-		repaint();
+		if (selected != isSelected) {
+			selected = isSelected;
+			fireSelectionEvent(new SelectionEvent(this, selected ? SelectionEvent.SELECTION_EVENT : SelectionEvent.DESELECTION_EVENT));
+			repaint();
+		}
 	}
 
 	public boolean isSelected() {
@@ -281,11 +293,13 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 			evt.getComponent().requestFocus();
 			maybeShowPopup(evt);
 
-			if ((evt.getModifiers() & MouseEvent.BUTTON1_MASK) != 0) {
+			if ((evt.getModifiersEx() & MouseEvent.BUTTON1_DOWN_MASK) != 0) {
 				// selection
 				Relationship r = (Relationship) evt.getComponent();
 				PlayPen pp = (PlayPen) r.getPlayPen();
-				pp.selectNone();
+				if ( (evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0) {
+					pp.selectNone();
+				}
 				r.setSelected(true);
 
 				// moving pk/fk decoration

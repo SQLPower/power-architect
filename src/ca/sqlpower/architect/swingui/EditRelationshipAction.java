@@ -1,7 +1,9 @@
 package ca.sqlpower.architect.swingui;
 
-import java.awt.*;
 import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.util.List;
 import javax.swing.*;
 import javax.swing.event.*;
 import ca.sqlpower.architect.*;
@@ -24,9 +26,13 @@ public class EditRelationshipAction extends AbstractAction {
 	}
 
 	public void actionPerformed(ActionEvent evt) {
-		Selectable invoker = pp.getSelection();
-		if (invoker instanceof Relationship) {
-			Relationship r = (Relationship) invoker;
+		List selection = pp.getSelectedItems();
+		if (selection.size() < 1) {
+			JOptionPane.showMessageDialog(pp, "Select a relationship (by clicking on it) and try again.");
+		} else if (selection.size() > 1) {
+			JOptionPane.showMessageDialog(pp, "You have selected multiple items, but you can only edit one at a time.");
+		} else if (selection.get(0) instanceof Relationship) {
+			Relationship r = (Relationship) selection.get(0);
 			
 			final JDialog d = new JDialog(ArchitectFrame.getMainInstance(),
 										  "Relationship Properties");
@@ -63,8 +69,7 @@ public class EditRelationshipAction extends AbstractAction {
 			d.setVisible(true);
 			
 		} else {
-			JOptionPane.showMessageDialog((JComponent) invoker,
-										  "The selected item type is not recognised");
+			JOptionPane.showMessageDialog(pp, "The selected item type is not recognised");
 		}
 	}
 

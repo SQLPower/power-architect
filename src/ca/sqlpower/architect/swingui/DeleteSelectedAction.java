@@ -1,5 +1,7 @@
 package ca.sqlpower.architect.swingui;
 
+import java.util.List;
+import java.util.Iterator;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.event.*;
@@ -25,29 +27,44 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 	}
 
 	public void actionPerformed(ActionEvent evt) {
-		Selectable invoker = pp.getSelection();
-		if (invoker instanceof TablePane) {
-			TablePane tp = (TablePane) invoker;
-			int colidx;
-			if ( (colidx = tp.getSelectedColumnIndex()) >= 0) {
-				// a column in the selected table
-				try {
-					tp.getModel().removeColumn(colidx);
-				} catch (LockedColumnException ex) {
-					JOptionPane.showMessageDialog((JComponent) invoker, ex.getMessage());
-				}
-			} else {
-				// the whole table
-				pp.db.removeChild(tp.getModel());
+		List items = pp.getSelectedItems();
+		if (items.size() > 1) {
+			int decision = JOptionPane.showConfirmDialog(pp,
+														 "Are you sure you want to delete the "
+														 +items.size()+" selected items?",
+														 "Multiple Delete",
+														 JOptionPane.YES_NO_OPTION);
+			if (decision == JOptionPane.NO_OPTION) {
+				return;
 			}
-		} else if (invoker instanceof Relationship) {
-			Relationship r = (Relationship) invoker;
-			SQLRelationship sr = r.getModel();
-			sr.getPkTable().removeExportedKey(sr);
-			sr.getFkTable().removeImportedKey(sr);
-		} else {
-			JOptionPane.showMessageDialog((JComponent) invoker,
-										  "The selected item type is not recognised");
+		}
+
+		Iterator it = items.iterator();
+		while (it.hasNext()) {
+			Selectable item = (Selectable) it.next();
+			if (item instanceof TablePane) {
+				TablePane tp = (TablePane) item;
+				int colidx;
+				if ( (colidx = tp.getSelectedColumnIndex()) >= 0) {
+					// a column in the selected table
+					try {
+						tp.getModel().removeColumn(colidx);
+					} catch (LockedColumnException ex) {
+						JOptionPane.showMessageDialog((JComponent) item, ex.getMessage());
+					}
+				} else {
+					// the whole table
+					pp.db.removeChild(tp.getModel());
+				}
+			} else if (item instanceof Relationship) {
+				Relationship r = (Relationship) item;
+				SQLRelationship sr = r.getModel();
+				sr.getPkTable().removeExportedKey(sr);
+				sr.getFkTable().removeImportedKey(sr);
+			} else {
+				JOptionPane.showMessageDialog((JComponent) item,
+											  "The selected item type is not recognised");
+			}
 		}
 	}
 	
@@ -60,8 +77,24 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 	}
 	
 	public void itemSelected(SelectionEvent e) {
-		Selectable item = e.getSelectedItem();
-		if (item.isSelected()) {
+		changeToopTip(pp.getSelectedItems());
+	}
+
+	public void itemDeselected(SelectionEvent e) {
+		changeToopTip(pp.getSelectedItems());
+	}
+
+	/**
+	 * Updates the tooltip and enabledness of this action based on how
+	 * many items are in the selection list.  If there is only one
+	 * selected item, tries to put its name in the tooltip too!
+	 */
+	protected void changeToopTip(List selectedItems) {
+		if (selectedItems.size() == 0) {
+			setEnabled(false);
+			putValue(SHORT_DESCRIPTION, "Delete Selected");
+		} else if (selectedItems.size() == 1) {
+			Selectable item = (Selectable) selectedItems.get(0);
 			setEnabled(true);
 			String name = "Selected";
 			if (item instanceof TablePane) {
@@ -80,8 +113,8 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 			}
 			putValue(SHORT_DESCRIPTION, "Delete "+name);
 		} else {
-			setEnabled(false);
-			putValue(SHORT_DESCRIPTION, "Delete Selected");
+			setEnabled(true);
+			putValue(SHORT_DESCRIPTION, "Delete "+selectedItems.size()+" items");
 		}
 	}
 }

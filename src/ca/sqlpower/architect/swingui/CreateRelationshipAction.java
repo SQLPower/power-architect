@@ -78,7 +78,7 @@ public class CreateRelationshipAction extends AbstractAction
 		// ignore events unless active
 		if (!active) return;
 
-		Selectable s = e.getSelectedItem();
+		Selectable s = e.getSelectableSource();
 
 		// don't care when tables (or anything else) are deselected
 		if (!s.isSelected()) return;
@@ -95,7 +95,12 @@ public class CreateRelationshipAction extends AbstractAction
 				active = false;
 			}
 		} else {
-			logger.debug("The user clicked on a non-table component: "+s);
+			if (logger.isDebugEnabled())
+				logger.debug("The user clicked on a non-table component: "+s);
 		}
+	}
+
+	public void itemDeselected(SelectionEvent e) {
+		// don't particularly care
 	}
 }

@@ -3,9 +3,11 @@ package ca.sqlpower.architect.swingui;
 import java.awt.Component;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
-import javax.swing.AbstractAction;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
+import java.util.List;
+import java.util.Iterator;
+import javax.swing.AbstractAction;
 
 public class ZoomAction extends AbstractAction implements PropertyChangeListener {
 
@@ -26,10 +28,19 @@ public class ZoomAction extends AbstractAction implements PropertyChangeListener
 		
 	public void actionPerformed(ActionEvent e) {
 		playpen.setZoom(playpen.getZoom() + zoomStep);
-		if (playpen.getSelection() != null) {
-			Rectangle r = ((Component) playpen.getSelection()).getBounds();
-			playpen.zoomRect(r);
-			playpen.scrollRectToVisible(r);
+		Rectangle scrollTo = null;
+		Iterator it = playpen.getSelectedItems().iterator();
+		while (it.hasNext()) {
+			Rectangle bounds = ((Component) it.next()).getBounds();
+			if (scrollTo == null) {
+				scrollTo = new Rectangle(bounds);
+			} else {
+				scrollTo.add(bounds);
+			}
+		}
+		if (scrollTo != null && !scrollTo.isEmpty()) {
+			playpen.zoomRect(scrollTo);
+			playpen.scrollRectToVisible(scrollTo);
 		}
 	}
 

@@ -324,14 +324,13 @@ public class TablePane
 	/**
 	 * See {@link #selected}.
 	 */
-	public void setSelected(boolean v) {
-		if (v == false) {
+	public void setSelected(boolean isSelected) {
+		if (isSelected == false) {
 			selectNone();
 		}
-		boolean old = selected;
-		selected = v;
-		if (v != old) {
-			fireSelectionEvent(this);
+		if (selected != isSelected) {
+			selected = isSelected;
+			fireSelectionEvent(new SelectionEvent(this, selected ? SelectionEvent.SELECTION_EVENT : SelectionEvent.DESELECTION_EVENT));
 			repaint();
 		}
 	}
@@ -343,7 +342,6 @@ public class TablePane
 	// --------------------- column selection support --------------------
 
 	public void selectNone() {
-		PlayPen pp = getPlayPen();
 		for (int i = 0; i < columnSelection.size(); i++) {
 			columnSelection.set(i, Boolean.FALSE);
 		}
@@ -397,12 +395,22 @@ public class TablePane
 		selectionListeners.remove(l);
 	}
 	
-	protected void fireSelectionEvent(Selectable source) {
-		SelectionEvent e = new SelectionEvent(source);
-		logger.debug("Notifying "+selectionListeners.size()+" listeners of selection change");
+	protected void fireSelectionEvent(SelectionEvent e) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("Notifying "+selectionListeners.size()
+						 +" listeners of selection change");
+		}
 		Iterator it = selectionListeners.iterator();
-		while (it.hasNext()) {
-			((SelectionListener) it.next()).itemSelected(e);
+		if (e.getType() == SelectionEvent.SELECTION_EVENT) {
+			while (it.hasNext()) {
+				((SelectionListener) it.next()).itemSelected(e);
+			}
+		} else if (e.getType() == SelectionEvent.DESELECTION_EVENT) {
+			while (it.hasNext()) {
+				((SelectionListener) it.next()).itemDeselected(e);
+			}
+		} else {
+			throw new IllegalStateException("Unknown selection event type "+e.getType());
 		}
 	}
 
@@ -709,7 +717,7 @@ public class TablePane
 	public void mousePressed(MouseEvent evt) {
 		evt.getComponent().requestFocus();
 
-		if ((evt.getModifiers() & MouseEvent.BUTTON1_MASK) != 0) {
+		if ((evt.getModifiersEx() & MouseEvent.BUTTON1_DOWN_MASK) != 0) {
 
 			try {
 				
@@ -717,7 +725,9 @@ public class TablePane
 				TablePane tp = (TablePane) evt.getComponent();
 				PlayPen pp = (PlayPen) tp.getPlayPen();
 				int clickCol = tp.pointToColumnIndex(evt.getPoint());
-				pp.selectNone();
+				if ( (evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0) {
+					pp.selectNone();
+				}
 				tp.setSelected(true);
 				tp.selectNone();
 				if (clickCol < tp.model.getColumns().size()) {

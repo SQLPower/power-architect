@@ -11,6 +11,7 @@ import java.awt.geom.AffineTransform;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.ListIterator;
@@ -22,7 +23,7 @@ import ca.sqlpower.architect.*;
 import ca.sqlpower.sql.DBConnectionSpec;
 
 public class PlayPen extends JPanel
-	implements java.io.Serializable, SQLObjectListener, SelectionListener, ContainerListener, MouseListener, MouseMotionListener {
+	implements java.io.Serializable, SQLObjectListener, SelectionListener, ContainerListener {
 
 	private static Logger logger = Logger.getLogger(PlayPen.class);
 
@@ -62,6 +63,25 @@ public class PlayPen extends JPanel
 	protected JPopupMenu playPenPopup;
 
 	/**
+	 * This object receives all mouse and mouse motion events in the
+	 * PlayPen.  It tries to dispatch them to the ppcomponents, and
+	 * also handles playpen-specific behaviour like rubber band
+	 * selection and popup menu triggering.
+	 */
+	protected PPMouseListener ppMouseListener;
+
+	/**
+	 * The RubberBand allows the user to select multiple ppcomponents
+	 * by click-and-drag across a region.
+	 */
+	protected Rectangle rubberBand;
+
+	/**
+	 * This is the colour that the rubber band will be painted with.
+	 */
+	protected Color rubberBandColor = Color.black;
+
+	/**
 	 * The visual magnification factor for this playpen.
 	 */
 	protected double zoom;
@@ -86,8 +106,9 @@ public class PlayPen extends JPanel
 		setupTablePanePopup();
 		setupPlayPenPopup();
 		setupKeyboardActions();
-		addMouseListener(this);
-		addMouseMotionListener(this);
+		ppMouseListener = new PPMouseListener();
+		addMouseListener(ppMouseListener);
+		addMouseMotionListener(ppMouseListener);
 	}
 
 	public PlayPen(SQLDatabase db) {
@@ -153,8 +174,13 @@ public class PlayPen extends JPanel
 			mi = new JMenuItem("Show listeners");
 			mi.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent evt) {
-						TablePane tp = (TablePane) getSelection();
-						JOptionPane.showMessageDialog(tp, new JScrollPane(new JList(new java.util.Vector(tp.getModel().getSQLObjectListeners()))));
+						List selection = getSelectedItems();
+						if (selection.size() == 1) {
+							TablePane tp = (TablePane) selection.get(0);
+							JOptionPane.showMessageDialog(tp, new JScrollPane(new JList(new java.util.Vector(tp.getModel().getSQLObjectListeners()))));
+						} else {
+							JOptionPane.showMessageDialog(PlayPen.this, "You can only show listeners on one item at a time");
+						}
 					}
 				});
 			tablePanePopup.add(mi);
@@ -162,8 +188,13 @@ public class PlayPen extends JPanel
 			mi = new JMenuItem("Show Selection List");
 			mi.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent evt) {
-						TablePane tp = (TablePane) getSelection();
-						JOptionPane.showMessageDialog(tp, new JScrollPane(new JList(new java.util.Vector(tp.columnSelection))));
+						List selection = getSelectedItems();
+						if (selection.size() == 1) {
+							TablePane tp = (TablePane) selection.get(0);
+							JOptionPane.showMessageDialog(tp, new JScrollPane(new JList(new java.util.Vector(tp.columnSelection))));
+						} else {
+							JOptionPane.showMessageDialog(PlayPen.this, "You can only show selected columns on one item at a time");
+						}
 					}
 				});
 			tablePanePopup.add(mi);
@@ -338,15 +369,23 @@ public class PlayPen extends JPanel
 		// counting down so visual z-order matches click detection z-order
 		for (int i = contentPane.getComponentCount() - 1; i >= 0; i--) {
 			Component c = contentPane.getComponent(i);
-			logger.debug("painting "+c);
 			c.getBounds(bounds);
 			if (c.isVisible() && g2.hitClip(bounds.x, bounds.y, bounds.width, bounds.height)) {
 				if (logger.isDebugEnabled()) logger.debug("Painting visible component "+c);
 				g2.translate(c.getLocation().x, c.getLocation().y);
 				c.paint(g2);
 				g2.setTransform(zoomedOrigin);
+			} else {
+				if (logger.isDebugEnabled()) logger.debug("SKIPPING "+c);
 			}
 		}
+
+		if (rubberBand != null && !rubberBand.isEmpty()) {
+			if (logger.isDebugEnabled()) logger.debug("painting rubber band "+rubberBand);
+			g2.setColor(rubberBandColor);
+			g2.drawRect(rubberBand.x, rubberBand.y, rubberBand.width-1, rubberBand.height-1);
+		}
+
 		g2.setTransform(backup);
 	}
 
@@ -434,7 +473,7 @@ public class PlayPen extends JPanel
 		}
 	}
 
-	public Action chooseDBCSAction = new AbstractAction("Database Output Selection") {
+	public Action chooseDBCSAction = new AbstractAction("Target Database Properties") {
 			public void actionPerformed(ActionEvent e) {
 				final JDialog d = new JDialog(ArchitectFrame.getMainInstance(),
 											  "Target Database Connection");
@@ -663,7 +702,6 @@ public class PlayPen extends JPanel
 				for (int j = 0; j < contentPane.getComponentCount(); j++) {
 					if (contentPane.getComponent(j) instanceof TablePane) {
 						TablePane tp = (TablePane) contentPane.getComponent(j);
-						if (selectedChild == tp) selectedChild = null;
 						if (tp.getModel() == c[i]) {
 							contentPane.remove(j);
 							fireEvent = true;
@@ -674,7 +712,6 @@ public class PlayPen extends JPanel
 				for (int j = 0; j < contentPane.getComponentCount(); j++) {
 					if (contentPane.getComponent(j) instanceof Relationship) {
 						Relationship r = (Relationship) contentPane.getComponent(j);
-						if (selectedChild == r) selectedChild = null;
 						if (r.getModel() == c[i]) {
 							contentPane.remove(j);
 							fireEvent = true;
@@ -718,42 +755,35 @@ public class PlayPen extends JPanel
 
 	// --------------- SELECTION METHODS ----------------
 
-	protected Selectable selectedChild; // XXX: should be List so multiselection is possible!
-
 	/**
-	 * Deselects all selectable items in the PlayPen. XXX: only single selection for now!
+	 * Deselects all selectable items in the PlayPen.
 	 */
 	public void selectNone() {
-// 		for (int i = 0, n = getComponentCount(); i < n; i++) {
-// 			if (getComponent(i) instanceof Selectable) {
-// 				Selectable s = (Selectable) getComponent(i);
-// 				s.setSelected(false);
-// 			}
-// 		}
-		if (selectedChild != null) {
-			selectedChild.setSelected(false);
-			selectedChild = null;
-		}
+ 		for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
+ 			if (contentPane.getComponent(i) instanceof Selectable) {
+ 				Selectable s = (Selectable) contentPane.getComponent(i);
+ 				s.setSelected(false);
+ 			}
+ 		}
 	}
 
 	/**
-	 * Returns the first selected child in the PlayPen. XXX: only single selection for now!
+	 * Returns a read-only view of the set of selected children in the PlayPen.
 	 */
-	public Selectable getSelection() {
-// 		for (int i = 0, n = getComponentCount(); i < n; i++) {
-// 			if (getComponent(i) instanceof Selectable) {
-// 				Selectable s = (Selectable) getComponent(i);
-// 				if (s.isSelected()) return s;
-// 			}
-// 		}
-		return selectedChild;
-	}
-
-	public void setSelection(Selectable s) {
-		selectNone();
-		s.setSelected(true);
-		selectedChild = s;
-		fireSelectionEvent(s);
+	public List getSelectedItems() {
+		// It would be possible to speed this up by maintaining a
+		// cache of which children are selected, but the need would
+		// have to be demonstrated first.
+		ArrayList selected = new ArrayList();
+ 		for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
+ 			if (contentPane.getComponent(i) instanceof Selectable) {
+				Selectable s = (Selectable) contentPane.getComponent(i);
+				if (s.isSelected()) {
+					selected.add(s);
+				}
+			}
+		}			
+		return Collections.unmodifiableList(selected);
 	}
 
 	// --------------------------- CONTAINER LISTENER -------------------------
@@ -782,17 +812,19 @@ public class PlayPen extends JPanel
 	// ---------------------- SELECTION LISTENER ------------------------
 	
 	/**
-	 * Saves a reference to the selected child, then fires e to all
-	 * PlayPen selection listeners.
+	 * Forwards the selection event <code>e</code> to all PlayPen
+	 * selection listeners.
 	 */
 	public void itemSelected(SelectionEvent e) {
-		if (e.getSelectedItem().isSelected()) {
-			logger.debug("Child "+e.getSelectedItem()+" is now selected");
-			selectedChild = e.getSelectedItem();
-		} else {
-			selectedChild = null;
-		}
-		fireSelectionEvent(e.getSelectedItem());
+		fireSelectionEvent(e);
+	}
+
+	/**
+	 * Forwards the selection event <code>e</code> to all PlayPen
+	 * selection listeners.
+	 */
+	public void itemDeselected(SelectionEvent e) {
+		fireSelectionEvent(e);
 	}
 
 	// --------------------- SELECTION EVENT SUPPORT ---------------------
@@ -807,11 +839,18 @@ public class PlayPen extends JPanel
 		selectionListeners.remove(l);
 	}
 	
-	protected void fireSelectionEvent(Selectable source) {
-		SelectionEvent e = new SelectionEvent(source);
+	protected void fireSelectionEvent(SelectionEvent e) {
 		Iterator it = selectionListeners.iterator();
-		while (it.hasNext()) {
-			((SelectionListener) it.next()).itemSelected(e);
+		if (e.getType() == SelectionEvent.SELECTION_EVENT) {
+			while (it.hasNext()) {
+				((SelectionListener) it.next()).itemSelected(e);
+			}
+		} else if (e.getType() == SelectionEvent.DESELECTION_EVENT) {
+			while (it.hasNext()) {
+				((SelectionListener) it.next()).itemDeselected(e);
+			}
+		} else {
+			throw new IllegalStateException("Unknown selection event type "+e.getType());
 		}
 	}
 
@@ -1001,63 +1040,117 @@ public class PlayPen extends JPanel
 		} 
 	}
 
-	// ------------------- MOUSE LISTENER INTERFACE ------------------
-
-	public void mouseEntered(MouseEvent evt) {
-		retargetToContentPane(evt);
-	}
-
-	public void mouseExited(MouseEvent evt) {
-		retargetToContentPane(evt);
-	}
-
-	public void mouseClicked(MouseEvent evt) {
-		if (!retargetToContentPane(evt)) {
-			maybeShowPopup(evt);
-		}
-	}
-	
-	public void mousePressed(MouseEvent evt) {
-		if (!retargetToContentPane(evt)) {
-			maybeShowPopup(evt);
-		}
-	}
-	
-	public void mouseReleased(MouseEvent evt) {
-		if (!retargetToContentPane(evt)) {
-			((PlayPen) evt.getSource()).selectNone();
-			maybeShowPopup(evt);
-		}
-	}
-	
-	// ---------------- MOUSE MOTION LISTENER INTERFACE -----------------
-	public void mouseDragged(MouseEvent evt) {
-		retargetToContentPane(evt);
-	}
-
-	public void mouseMoved(MouseEvent evt) {
-		retargetToContentPane(evt);
-	}
-
 	/**
-	 * Handles retargetting of mouse events.
+	 * The PPMouseListener class receives all mouse and mouse motion
+	 * events in the PlayPen.  It tries to dispatch them to the
+	 * ppcomponents, and also handles playpen-specific behaviour like
+	 * rubber band selection and popup menu triggering.
 	 */
-	public boolean retargetToContentPane(MouseEvent evt) {
-		PlayPen pp = (PlayPen) evt.getSource();
-		return pp.contentPane.delegateEvent(evt);
-	}
+	protected class PPMouseListener implements MouseListener, MouseMotionListener {
 
-	/**
-	 * Shows the playpen popup menu if appropriate.
-	 */
-	public boolean maybeShowPopup(MouseEvent evt) {
-		PlayPen pp = (PlayPen) evt.getSource();
-		if (evt.isPopupTrigger()) {
-			pp.selectNone();
-			pp.playPenPopup.show(pp, evt.getX(), evt.getY());
-			return true;
-		} else {
-			return false;
+		/**
+		 * This state is required by the mouseMoved method for
+		 * resizing the rubber band in response to user input.
+		 */
+		protected Point rubberBandOrigin;
+
+		// ------------------- MOUSE LISTENER INTERFACE ------------------
+		
+		public void mouseEntered(MouseEvent evt) {
+			retargetToContentPane(evt);
+		}
+		
+		public void mouseExited(MouseEvent evt) {
+			retargetToContentPane(evt);
+		}
+		
+		public void mouseClicked(MouseEvent evt) {
+			if (!retargetToContentPane(evt)) {
+				maybeShowPopup(evt);
+			}
+		}
+		
+		public void mousePressed(MouseEvent evt) {
+			if (!retargetToContentPane(evt)) {
+				maybeShowPopup(evt);
+				if ((evt.getModifiersEx() & InputEvent.BUTTON1_DOWN_MASK) != 0) {
+					selectNone();
+					rubberBandOrigin = unzoomPoint(new Point(evt.getPoint()));
+					rubberBand = new Rectangle(rubberBandOrigin.x, rubberBandOrigin.y, 0, 0);
+				}
+			}
+		}
+		
+		public void mouseReleased(MouseEvent evt) {
+			if (rubberBand != null) {
+				if (evt.getButton() == MouseEvent.BUTTON1) {
+					Rectangle dirtyRegion = rubberBand;
+					rubberBandOrigin = null;
+					rubberBand = null;
+					repaint(zoomRect(new Rectangle(dirtyRegion)));
+				}
+			} else if (!retargetToContentPane(evt)) {
+				((PlayPen) evt.getSource()).selectNone();
+				maybeShowPopup(evt);
+			}
+		}
+		
+		// ---------------- MOUSEMOTION LISTENER INTERFACE -----------------
+		public void mouseDragged(MouseEvent evt) {
+			mouseMoved(evt);
+		}
+		
+		public void mouseMoved(MouseEvent evt) {
+			if (rubberBand != null) {
+				// repaint old region in case of shrinkage
+				Rectangle dirtyRegion = zoomRect(new Rectangle(rubberBand));
+
+				Point p = unzoomPoint(new Point(evt.getPoint()));
+				rubberBand.setBounds(rubberBandOrigin.x, rubberBandOrigin.y, 0, 0);
+				rubberBand.add(p);
+
+				// update selected items
+				Rectangle temp = new Rectangle();  // avoids multiple allocations in getBounds
+				for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
+					Component c = contentPane.getComponent(i);
+					if (c instanceof Selectable) {
+						((Selectable) c).setSelected(rubberBand.intersects(c.getBounds(temp)));
+					}
+				}
+
+				// Add the new rubberband to the dirty region and grow
+				// it in case the line is thick due to extreme zoom
+				dirtyRegion.add(zoomRect(new Rectangle(rubberBand)));
+				dirtyRegion.x -= 3;
+				dirtyRegion.y -= 3;
+				dirtyRegion.width += 6;
+				dirtyRegion.height += 6;
+				repaint(dirtyRegion);
+			} else {
+				retargetToContentPane(evt);
+			}
+		}
+		
+		/**
+		 * Handles retargetting of mouse events.
+		 */
+		public boolean retargetToContentPane(MouseEvent evt) {
+			PlayPen pp = (PlayPen) evt.getSource();
+			return pp.contentPane.delegateEvent(evt);
+		}
+		
+		/**
+		 * Shows the playpen popup menu if appropriate.
+		 */
+		public boolean maybeShowPopup(MouseEvent evt) {
+			PlayPen pp = (PlayPen) evt.getSource();
+			if (evt.isPopupTrigger()) {
+				pp.selectNone();
+				pp.playPenPopup.show(pp, evt.getX(), evt.getY());
+				return true;
+			} else {
+				return false;
+			}
 		}
 	}
 
