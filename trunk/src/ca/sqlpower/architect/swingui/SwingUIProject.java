@@ -1,6 +1,7 @@
 package ca.sqlpower.architect.swingui;
 
 import ca.sqlpower.architect.*;
+import ca.sqlpower.architect.ddl.*;
 import ca.sqlpower.sql.DBConnectionSpec;
 
 import java.awt.Point;
@@ -22,7 +23,7 @@ public class SwingUIProject {
 	protected DBTree sourceDatabases;
 	protected PlayPen playPen;
 	protected File file;
-
+	protected GenericDDLGenerator ddlGenerator;
 
 	// ------------------ load and save support -------------------
 
@@ -71,6 +72,7 @@ public class SwingUIProject {
 		List initialDBList = new ArrayList();
 		initialDBList.add(playPen.getDatabase());
 		this.sourceDatabases = new DBTree(initialDBList);
+		ddlGenerator = new GenericDDLGenerator();
 	}
 
 	// ------------- READING THE PROJECT FILE ---------------
@@ -107,14 +109,14 @@ public class SwingUIProject {
 
 		// source DB connection specs
 		DBCSFactory dbcsFactory = new DBCSFactory();
-		d.addFactoryCreate("architect-project/source-connection-specs/dbcs", dbcsFactory);
+		d.addFactoryCreate("architect-project/project-connection-specs/dbcs", dbcsFactory);
 		d.addSetProperties
-			("architect-project/source-connection-specs/dbcs",
+			("architect-project/project-connection-specs/dbcs",
 			 new String[] {"connection-name", "driver-class", "jdbc-url", "user-name",
 						   "user-pass", "sequence-number", "single-login"},
 			 new String[] {"displayName", "driverClass", "url", "user",
 						   "pass", "seqNo", "singleLogin"});
-		d.addCallMethod("architect-project/source-connection-specs/dbcs", "setName", 0);
+		d.addCallMethod("architect-project/project-connection-specs/dbcs", "setName", 0);
 		// these instances get picked out of the dbcsIdMap by the SQLDatabase factory
 
 		// source database hierarchy
@@ -361,7 +363,7 @@ public class SwingUIProject {
 			println("<architect-project version=\"0.1\">");
 			indent++;
 			println("<project-name>"+name+"</project-name>");
-			saveSourceDBCS();
+			saveDBCS();
 			saveSourceDatabases();
 			saveTargetDatabase();
 			savePlayPen();
@@ -387,41 +389,39 @@ public class SwingUIProject {
 		return count;
 	}
 
-	protected void saveSourceDBCS() throws IOException, ArchitectException {
-		println("<source-connection-specs>");
+	protected void saveDBCS() throws IOException, ArchitectException {
+		println("<project-connection-specs>");
 		indent++;
 		int dbcsNum = 0;
 		SQLObject dbTreeRoot = (SQLObject) sourceDatabases.getModel().getRoot();
 		Iterator it = dbTreeRoot.getChildren().iterator();
 		while (it.hasNext()) {
 			SQLObject o = (SQLObject) it.next();
-			if (o != playPen.getDatabase()) {
-				DBConnectionSpec dbcs = ((SQLDatabase) o).getConnectionSpec();
-				if (dbcs != null) {
-					String id = (String) dbcsIdMap.get(dbcs);
-					if (id == null) {
-						id = "DBCS"+dbcsNum;
-						dbcsIdMap.put(dbcs, id);
-					}
-					print("<dbcs");
-					niprint(" id=\""+id+"\"");
-					niprint(" connection-name=\""+dbcs.getName()+"\"");
-					niprint(" driver-class=\""+dbcs.getDriverClass()+"\"");
-					niprint(" jdbc-url=\""+dbcs.getUrl()+"\"");
-					niprint(" user-name=\""+dbcs.getUser()+"\"");
-					niprint(" user-pass=\""+dbcs.getPass()+"\"");
-					niprint(" sequence-number=\""+dbcs.getSeqNo()+"\"");
-					niprint(" single-login=\""+dbcs.isSingleLogin()+"\"");
-					niprint(">");
-					niprint(dbcs.getDisplayName());
-					niprintln("</dbcs>");
-					dbcsNum++;
+			DBConnectionSpec dbcs = ((SQLDatabase) o).getConnectionSpec();
+			if (dbcs != null) {
+				String id = (String) dbcsIdMap.get(dbcs);
+				if (id == null) {
+					id = "DBCS"+dbcsNum;
+					dbcsIdMap.put(dbcs, id);
 				}
+				print("<dbcs");
+				niprint(" id=\""+id+"\"");
+				niprint(" connection-name=\""+dbcs.getName()+"\"");
+				niprint(" driver-class=\""+dbcs.getDriverClass()+"\"");
+				niprint(" jdbc-url=\""+dbcs.getUrl()+"\"");
+				niprint(" user-name=\""+dbcs.getUser()+"\"");
+				niprint(" user-pass=\""+dbcs.getPass()+"\"");
+				niprint(" sequence-number=\""+dbcs.getSeqNo()+"\"");
+				niprint(" single-login=\""+dbcs.isSingleLogin()+"\"");
+				niprint(">");
+				niprint(dbcs.getDisplayName());
+				niprintln("</dbcs>");
+				dbcsNum++;
 			}
-					dbcsNum++;
+			dbcsNum++;
 		}
 		indent--;
-		println("</source-connection-specs>");
+		println("</project-connection-specs>");
 	}
 
 	/**
@@ -473,9 +473,9 @@ public class SwingUIProject {
 	}
 
 	protected void saveTargetDatabase() throws IOException, ArchitectException {
-		println("<target-database>");
-		indent++;
 		SQLDatabase db = (SQLDatabase) playPen.getDatabase();
+		println("<target-database dbcs-ref=\""+dbcsIdMap.get(db.getConnectionSpec())+"\">");
+		indent++;
 		Iterator it = db.getChildren().iterator();
 		while (it.hasNext()) {
 			saveSQLObject((SQLObject) it.next());
@@ -588,8 +588,7 @@ public class SwingUIProject {
 			propNames.put("updateRule", new Integer(((SQLRelationship) o).getUpdateRule()));
 			propNames.put("deleteRule", new Integer(((SQLRelationship) o).getDeleteRule()));
 			propNames.put("deferrability", new Integer(((SQLRelationship) o).getDeferrability()));
-			propNames.put("fkName", ((SQLRelationship) o).getFkName());
-			propNames.put("pkName", ((SQLRelationship) o).getPkName());
+			propNames.put("name", ((SQLRelationship) o).getName());
 		} else if (o instanceof SQLRelationship.ColumnMapping) {
 			id = "CMP"+objectIdMap.size();
 			type = "column-mapping";
@@ -731,6 +730,14 @@ public class SwingUIProject {
 	 */
 	public void setPlayPen(PlayPen argPlayPen) {
 		this.playPen = argPlayPen;
+	}
+
+	public GenericDDLGenerator getDDLGenerator() {
+		return ddlGenerator;
+	}
+
+	public void setDDLGenerator(GenericDDLGenerator generator) {
+		ddlGenerator = generator;
 	}
 
 	// ------------------- utility methods -------------------

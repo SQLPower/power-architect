@@ -14,7 +14,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import org.apache.log4j.Logger;
 
-public class SQLTable extends SQLObject {
+public class SQLTable extends SQLObject implements SQLObjectListener {
 
 	private static Logger logger = Logger.getLogger(SQLTable.class);
 
@@ -66,6 +66,8 @@ public class SQLTable extends SQLObject {
 		addChild(columnsFolder = new Folder("Columns"));
 		addChild(exportedKeysFolder = new Folder("Exported Keys"));
 		addChild(importedKeysFolder = new Folder("Imported Keys"));
+
+		importedKeysFolder.addSQLObjectListener(this);
 	}
 	
 	/**
@@ -370,7 +372,7 @@ public class SQLTable extends SQLObject {
 	public void addColumn(int pos, SQLColumn col) {
 		boolean addToPK;
 		int pkSize = pkSize();
-		if (pos < pkSize) {
+		if (pos <= pkSize) {
 			addToPK = true;
 			normalizePrimaryKey();
 			for (int i = pos; i < pkSize; i++) {
@@ -402,6 +404,7 @@ public class SQLTable extends SQLObject {
 				exportedKeysFolder = (Folder) child;
 			} else if (children.size() == 2) {
 				importedKeysFolder = (Folder) child;
+				importedKeysFolder.addSQLObjectListener(this);
 			} else {
 				throw new UnsupportedOperationException("Can't add a 4th folder to SQLTable");
 			}
@@ -413,6 +416,11 @@ public class SQLTable extends SQLObject {
 
 	public void removeColumn(int index) {
 		columnsFolder.removeChild(index);
+		normalizePrimaryKey();
+	}
+
+	public void removeColumn(SQLColumn col) {
+		columnsFolder.removeChild(col);
 		normalizePrimaryKey();
 	}
 
@@ -548,6 +556,42 @@ public class SQLTable extends SQLObject {
 			return name;
 		}
 
+	}
+	
+	// -------------------- SQL Object Listener Support ----------------------
+	public void dbChildrenInserted(SQLObjectEvent e) {
+		// XXX: when we implement shared FK columns, we should either insert a new column or increase an existing column's FK link count when a new imported SQLRelationship is added to this table.
+		// XXX: at that time, we can remove the FK insertion code from the swingui.Relationship constructor
+	}
+
+	/**
+	 * Removes unreferenced FK columns from this table when FK
+	 * relationships are removed from this table.
+	 */
+	public void dbChildrenRemoved(SQLObjectEvent e) {
+		logger.debug("got dbChildrenRemoved event from "+e.getSource());
+		if (e.getSource() == importedKeysFolder) {
+			try {
+				SQLObject[] removedChildren = e.getChildren();
+				for (int i = 0; i < removedChildren.length; i++) {
+					SQLRelationship rel = (SQLRelationship) removedChildren[i];
+					Iterator mappings = rel.getChildren().iterator();
+					while (mappings.hasNext()) {
+						SQLRelationship.ColumnMapping cmap = (SQLRelationship.ColumnMapping) mappings.next();
+						// XXX: when we can make multiple relationships share an FK column, we should check for other FKs using this column before dropping it
+						removeColumn(cmap.getFkColumn());
+					}
+				}
+			} catch (ArchitectException ex) {
+				logger.error("Couldn't remove orphaned FK column", ex);
+			}
+		}
+	}
+
+	public void dbObjectChanged(SQLObjectEvent e) {
+	}
+
+	public void dbStructureChanged(SQLObjectEvent e) {
 	}
 
 	// ------------------ Accessors and mutators below this line ------------------------

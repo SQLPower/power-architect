@@ -37,8 +37,13 @@ public class CreateRelationshipAction extends AbstractAction
 	}
 
 	protected void doCreateRelationship() {
-		Relationship r = new Relationship(pp, pkTable, fkTable);
-		pp.addRelationship(r);
+		try {
+			Relationship r = new Relationship(pp, pkTable, fkTable);
+			pp.addRelationship(r);
+		} catch (ArchitectException ex) {
+			logger.error("Couldn't create relationship", ex);
+			JOptionPane.showMessageDialog(pp, "Couldn't create relationship: "+ex.getMessage());
+		}
 	}
 	
 	public void setPlayPen(PlayPen playpen) {

@@ -3,6 +3,7 @@ package ca.sqlpower.architect.swingui;
 import javax.swing.*;
 import ca.sqlpower.architect.*;
 import org.apache.log4j.Logger;
+import java.util.*;
 
 public class Relationship extends JComponent {
 	private static final Logger logger = Logger.getLogger(Relationship.class);
@@ -27,18 +28,27 @@ public class Relationship extends JComponent {
 		logger.debug("Created new Relationship component with pkTable="+pkTable+"; fkTable="+fkTable);
 	}
 
-	public Relationship(PlayPen pp, TablePane pkTable, TablePane fkTable) {
+	public Relationship(PlayPen pp, TablePane pkTable, TablePane fkTable) throws ArchitectException {
 		model = new SQLRelationship();
+		model.setName(pkTable.getModel().getName()+"_"+fkTable.getModel().getName()+"_fk"); // XXX: need to ensure uniqueness!
 		model.setPkTable(pkTable.getModel());
 		model.setFkTable(fkTable.getModel());
 		this.pkTable = pkTable;
 		this.fkTable = fkTable;
 		pkTable.getModel().addExportedKey(model);
 		fkTable.getModel().addImportedKey(model);
+
+		Iterator pkCols = pkTable.getModel().getColumns().iterator();
+		while (pkCols.hasNext()) {
+			SQLColumn pkCol = (SQLColumn) pkCols.next();
+			if (pkCol.getPrimaryKeySeq() == null) break;
+			SQLColumn fkCol = (SQLColumn) pkCol.clone();
+			fkTable.getModel().addColumn(fkTable.getModel().pkSize(), fkCol); // adds to the primary key of fktable
+			model.addMapping(pkCol, fkCol);
+		}
 		updateUI();
 		setVisible(true);
 		setBounds(1,1,1,1);
-		// FIXME: map columns?
 	}
 	
 	public void setUI(RelationshipUI ui) {super.setUI(ui);}

@@ -144,9 +144,11 @@ public class TablePane
 	 * delegate) with a ChangeEvent.
 	 */
 	public void dbChildrenRemoved(SQLObjectEvent e) {
-		int ci[] = e.getChangedIndices();
-		for (int i = 0; i < ci.length; i++) {
-			columnSelection.remove(ci[i]);
+		if (e.getSource() == this.model) {
+			int ci[] = e.getChangedIndices();
+			for (int i = 0; i < ci.length; i++) {
+				columnSelection.remove(ci[i]);
+			}
 		}
 		try {
 			ArchitectUtils.unlistenToHierarchy(this, e.getChildren());
@@ -328,7 +330,12 @@ public class TablePane
 	}
 
 	public boolean isColumnSelected(int i) {
-		return ((Boolean) columnSelection.get(i)).booleanValue();
+		try {
+			return ((Boolean) columnSelection.get(i)).booleanValue();
+		} catch (IndexOutOfBoundsException ex) {
+			logger.error("Couldn't determine selected status of col "+i+" on table "+model.getName());
+			return false;
+		}
 	}
 
 	/**
