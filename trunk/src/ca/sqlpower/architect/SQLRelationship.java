@@ -216,16 +216,62 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		}
 
 		public void dbObjectChanged(SQLObjectEvent e) {
+			// a column changed.. should update FK type/size/precision and maybe name
+			if (e.getSource() instanceof SQLColumn) {
+				ColumnMapping m = getMappingByPkCol((SQLColumn) e.getSource());
+				String prop = e.getPropertyName();
+				if (prop == null
+					|| prop.equals("parent")
+					|| prop.equals("primaryKeySeq")
+					|| prop.equals("remarks")) {
+					// don't care
+				} else if (prop.equals("sourceColumn")) {
+					m.getFkColumn().setSourceColumn(m.getPkColumn().getSourceColumn());
+				} else if (prop.equals("columnName")) {
+					m.getFkColumn().setColumnName(m.getPkColumn().getColumnName());
+				} else if (prop.equals("type")) {
+					m.getFkColumn().setType(m.getPkColumn().getType());
+				} else if (prop.equals("sourceDBTypeName")) {
+					m.getFkColumn().setSourceDBTypeName(m.getPkColumn().getSourceDBTypeName());
+				} else if (prop.equals("scale")) {
+					m.getFkColumn().setScale(m.getPkColumn().getScale());
+				} else if (prop.equals("precision")) {
+					m.getFkColumn().setPrecision(m.getPkColumn().getPrecision());
+				} else if (prop.equals("nullable")) {
+					m.getFkColumn().setNullable(m.getPkColumn().getNullable());
+				} else if (prop.equals("defaultValue")) {
+					m.getFkColumn().setDefaultValue(m.getPkColumn().getDefaultValue());
+				} else if (prop.equals("autoIncrement")) {
+					m.getFkColumn().setAutoIncrement(m.getPkColumn().isAutoIncrement());
+				} else {
+					logger.warn("Warning: unknown column property "+prop
+								+" changed while monitoring pkTable");
+				}
+			}
 		}
 
 		public void dbStructureChanged(SQLObjectEvent e) {
+			// wow!  let's re-scan the whole table
+			try {
+				Iterator it = pkTable.getColumns().iterator();
+				while (it.hasNext()) {
+					SQLColumn col = (SQLColumn) it.next();
+					if (col.getPrimaryKeySeq() != null) {
+						ensureInMapping(col);
+					} else {
+						ensureNotInMapping(col);
+					}
+				}
+			} catch (ArchitectException ex) {
+				logger.warn("Coulnd't re-scan table as a result of dbStructureChanged", ex);
+			}
 		}
 
 		protected void ensureInMapping(SQLColumn pkcol) throws ArchitectException {
 			if (!containsPkColumn(pkcol)) {
 				SQLColumn fkcol = fkTable.getColumnByName(pkcol.getName());
 				if (fkcol == null) {
-					fkcol = SQLColumn.getDerivedInstance(pkcol, fkTable);
+					fkcol = (SQLColumn) pkcol.clone();
 					fkTable.addColumn(fkcol);
 					if (identifying) {
 						fkcol.setPrimaryKeySeq(new Integer(fkTable.pkSize()));
@@ -412,13 +458,33 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	}
 
 	/**
-	 * Sets the value of identifying
+	 * Sets the value of identifying, and moves the FK columns into or
+	 * out of the FK Table's primary key as appropriate.
 	 *
 	 * @param argIdentifying Value to assign to this.identifying
 	 */
-	public void setIdentifying(boolean argIdentifying) {
-		this.identifying = argIdentifying;
-		fireDbObjectChanged("identifying");
+	public void setIdentifying(boolean argIdentifying) throws ArchitectException {
+		if (identifying != argIdentifying) {
+			identifying = argIdentifying;
+			fireDbObjectChanged("identifying");
+			if (identifying) {
+				Iterator mappings = getChildren().iterator();
+				while (mappings.hasNext()) {
+					ColumnMapping m = (ColumnMapping) mappings.next();
+					if (m.getFkColumn().getPrimaryKeySeq() == null) {
+						m.getFkColumn().setPrimaryKeySeq(new Integer(fkTable.pkSize()));
+					}
+				}
+			} else {
+				Iterator mappings = getChildren().iterator();
+				while (mappings.hasNext()) {
+					ColumnMapping m = (ColumnMapping) mappings.next();
+					if (m.getFkColumn().getPrimaryKeySeq() != null) {
+						m.getFkColumn().setPrimaryKeySeq(null);
+					}
+				}
+			}
+		}
 	}
 
 
