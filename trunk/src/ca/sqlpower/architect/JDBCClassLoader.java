@@ -144,7 +144,7 @@ public class JDBCClassLoader extends ClassLoader {
 		} catch (InvocationTargetException ex) {
 			logger.warn("Couldn't create connection", ex);
 			SQLException sex = new SQLException("Couldn't create connection");
-			sex.initCause(ex.getTargetException());
+			sex.initCause(ex);
 			throw sex;
 		} catch (InstantiationException ex) {
 			logger.warn("Couldn't create connection", ex);
