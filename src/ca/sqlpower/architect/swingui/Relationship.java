@@ -77,7 +77,10 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 			SQLColumn pkCol = (SQLColumn) pkCols.next();
 			if (pkCol.getPrimaryKeySeq() == null) break;
 			SQLColumn fkCol = (SQLColumn) pkCol.clone();
-			fkTable.getModel().addColumn(fkTable.getModel().pkSize(), fkCol); // adds to the primary key of fktable
+			fkTable.getModel().addColumn(fkCol);
+			if (identifying) {
+				fkCol.setPrimaryKeySeq(new Integer(fkTable.getModel().pkSize()));
+			}
 			model.addMapping(pkCol, fkCol);
 		}
 

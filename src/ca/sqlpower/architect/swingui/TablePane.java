@@ -182,7 +182,7 @@ public class TablePane
 		try {
 			ArchitectUtils.unlistenToHierarchy(this, e.getChildren());
 			if (columnSelection.size() != this.model.getColumns().size()) {
-				logger.error("Selection list and children are out of sync: selection="+columnSelection+"; children="+model.getChildren());
+				logger.error("Selection list and children are out of sync: selection="+columnSelection+"; children="+this.model.getColumns());
 			}
 		} catch (ArchitectException ex) {
 			logger.error("Couldn't remove children", ex);
