@@ -15,8 +15,9 @@ import java.sql.ResultSet;
 public class SQLTable extends SQLObject {
 
 	protected SQLDatabase parentDatabase;
-	protected String catalogName;
-	protected String schemaName;
+	protected SQLObject parent;
+	protected SQLCatalog catalog;
+	protected SQLSchema schema;
 	protected String tableName;
 	protected String remarks;
 	protected String objectType;
@@ -29,10 +30,11 @@ public class SQLTable extends SQLObject {
 	protected boolean columnsPopulated;
 	protected String primaryKeyName;
 
-	public SQLTable(SQLDatabase parent, String catalog, String schema, String name, String remarks, String objectType) {
-		this.parentDatabase = parent;
-		this.catalogName = catalog;
-		this.schemaName = schema;
+	public SQLTable(SQLDatabase parentDb, SQLObject parent, SQLCatalog catalog, SQLSchema schema, String name, String remarks, String objectType) {
+		this.parentDatabase = parentDb;
+		this.parent = parent;
+		this.catalog = catalog;
+		this.schema = schema;
 		this.tableName = name;
 		this.remarks = remarks;
 		this.columnsPopulated = false;
@@ -41,18 +43,31 @@ public class SQLTable extends SQLObject {
 		this.children = new ArrayList();
 	}
 
-	protected static void addTablesToDatabase(SQLDatabase addTo) 
+	protected static void addTablesToSchema(SQLSchema addTo) 
 		throws SQLException, ArchitectException {
 		synchronized (addTo) {
-			Connection con = addTo.getConnection();
+			SQLDatabase db = null;
+			SQLCatalog cat = null;
+			if (addTo.getParent() instanceof SQLCatalog) {
+				cat = (SQLCatalog) addTo.getParent();
+				db = cat.getParentDatabase();
+			} else {
+				// cat remains null
+				db = (SQLDatabase) addTo.getParent();
+			}
+			Connection con = db.getConnection();
 			DatabaseMetaData dbmd = con.getMetaData();
 			ResultSet mdTables = null;
 			try {
-				mdTables = dbmd.getTables(null, null, "%", new String[] {"SYSTEM TABLE", "TABLE", "VIEW"});
+				mdTables = dbmd.getTables(cat == null ? null : cat.getCatalogName(),
+										  addTo.getSchemaName(),
+										  "%",
+										  new String[] {"SYSTEM TABLE", "TABLE", "VIEW"});
 				while (mdTables.next()) {
-					addTo.children.add(new SQLTable(addTo,
-													mdTables.getString(1),
-													mdTables.getString(2),
+					addTo.children.add(new SQLTable(db,
+													addTo,
+													cat,
+													addTo,
 													mdTables.getString(3),
 													mdTables.getString(5),
 													mdTables.getString(4)
@@ -72,7 +87,10 @@ public class SQLTable extends SQLObject {
 		if (columnsPopulated) return;
 		int oldSize = children.size();
 		try {
-			SQLColumn.addColumnsToTable(this, catalogName, schemaName, tableName);
+			SQLColumn.addColumnsToTable(this,
+										catalog == null ? null : catalog.getCatalogName(),
+										schema == null ? null : schema.getSchemaName(),
+										tableName);
 			columnsPopulated = true;
 		} catch (SQLException e) {
 			throw new ArchitectException("table.populate", e);
@@ -84,7 +102,7 @@ public class SQLTable extends SQLObject {
 				for (int i = 0, n = newSize - oldSize; i < n; i++) {
 					changedIndices[i] = oldSize + i;
 				}
-				fireDbChildrenInserted(changedIndices, children.subList(oldSize, newSize));			
+				fireDbChildrenInserted(changedIndices, children.subList(oldSize, newSize));
 			}
 		}
 	}
@@ -113,21 +131,16 @@ public class SQLTable extends SQLObject {
 
 	// ---------------------- SQLObject support ------------------------
 
-	/**
-	 * SQLDatabase objects don't have parents.
-	 *
-	 * @return <code>null</code>
-	 */
 	public SQLObject getParent() {
-		return parentDatabase;
+		return parent;
 	}
 
 	/**
 	 * The table's name.
 	 */
 	public String getShortDisplayName() {
-		if (schemaName != null) {
-			return schemaName+"."+tableName+" ("+objectType+")";
+		if (schema != null) {
+			return schema.getSchemaName()+"."+tableName+" ("+objectType+")";
 		} else {
 			return tableName+" ("+objectType+")";
 		}
@@ -172,40 +185,20 @@ public class SQLTable extends SQLObject {
 		this.parentDatabase = argParentDatabase;
 	}
 
-	/**
-	 * Gets the value of catalogName
-	 *
-	 * @return the value of catalogName
-	 */
-	public String getCatalogName()  {
-		return this.catalogName;
+	public SQLCatalog getCatalog()  {
+		return this.catalog;
 	}
 
-	/**
-	 * Sets the value of catalogName
-	 *
-	 * @param argCatalogName Value to assign to this.catalogName
-	 */
-	public void setCatalogName(String argCatalogName) {
-		this.catalogName = argCatalogName;
+	protected void setCatalog(SQLCatalog argCatalog) {
+		this.catalog = argCatalog;
 	}
 
-	/**
-	 * Gets the value of schemaName
-	 *
-	 * @return the value of schemaName
-	 */
-	public String getSchemaName()  {
-		return this.schemaName;
+	public SQLSchema getSchema()  {
+		return this.schema;
 	}
 
-	/**
-	 * Sets the value of schemaName
-	 *
-	 * @param argSchemaName Value to assign to this.schemaName
-	 */
-	public void setSchemaName(String argSchemaName) {
-		this.schemaName = argSchemaName;
+	protected void setSchema(SQLSchema argSchema) {
+		this.schema = argSchema;
 	}
 
 	/**

@@ -57,7 +57,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable {
 		if (populated) return;
 		int oldSize = children.size();
 		try {
-			SQLTable.addTablesToDatabase(this);
+			SQLSchema.addSchemasToDatabase(this);
 		} catch (SQLException e) {
 			throw new ArchitectException("database.populate.fail", e);
 		} finally {
@@ -68,7 +68,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable {
 				for (int i = 0, n = newSize - oldSize; i < n; i++) {
 					changedIndices[i] = oldSize + i;
 				}
-				fireDbChildrenInserted(changedIndices, children.subList(oldSize, newSize));			
+				fireDbChildrenInserted(changedIndices, children.subList(oldSize, newSize));
 			}
 		}
 	}
@@ -82,12 +82,24 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable {
 	 */
 	public SQLTable getTableByName(String tableName) throws ArchitectException {
 		if (!populated) populate();
-		SQLTable table = null;
-		Iterator tables = children.iterator();
-		while (tables.hasNext()) {
-			table = (SQLTable) tables.next();
-			if (table.getTableName().equalsIgnoreCase(tableName)) {
-				return table;
+		Iterator childit = children.iterator();
+		while (childit.hasNext()) {
+			SQLObject child = (SQLObject) childit.next();
+			if (child instanceof SQLTable) {
+				SQLTable table = (SQLTable) child;
+				if (table.getTableName().equalsIgnoreCase(tableName)) {
+					return table;
+				}
+			} else if (child instanceof SQLCatalog) {
+				SQLTable table = ((SQLCatalog) child).getTableByName(tableName);
+				if (table != null) {
+					return table;
+				}
+			} else if (child instanceof SQLSchema) {
+				SQLTable table = ((SQLSchema) child).getTableByName(tableName);
+				if (table != null) {
+					return table;
+				}
 			}
 		}
 		return null;
@@ -130,10 +142,6 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable {
 	public List getTables() throws ArchitectException {
 		return getChildren();
 	}
-
-// 	public void setTables(List argTables) {
-// 		setChildren(argTables);
-// 	}
 
 	/**
 	 * Gets the value of connectionSpec
