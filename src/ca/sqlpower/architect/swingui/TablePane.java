@@ -122,6 +122,7 @@ public class TablePane extends JComponent implements SQLObjectListener, java.io.
             model = m;
 		}
 		model.addSQLObjectListener(this);
+		setName("TablePanel: "+model.getShortDisplayName());
 
         firePropertyChange("model", old, model);
 	}
