@@ -39,39 +39,17 @@ public class EditTableAction extends AbstractAction {
 			final JDialog d = new JDialog(ArchitectFrame.getMainInstance(),
 										  "Table Properties");
 										  
-			// first tabbed Pane							  
-			JPanel cp = new JPanel(new BorderLayout(12,12));
-			cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
+			// first tabbed Pane (table tab)
+			JPanel tt = new JPanel(new BorderLayout(12,12));
+			tt.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
 			final TableEditPanel editPanel = new TableEditPanel(tp.getModel());
-			cp.add(editPanel, BorderLayout.CENTER);
+			tt.add(editPanel, BorderLayout.CENTER);
+			tabbedPane.addTab("TableProperties",tt);
 			
-			JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-			
-			JButton okButton = new JButton("Ok");
-			okButton.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent evt) {
-						editPanel.applyChanges();
-						d.setVisible(false);
-					}
-				});
-			buttonPanel.add(okButton);
-			
-			JButton cancelButton = new JButton("Cancel");
-			cancelButton.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent evt) {
-						editPanel.discardChanges();
-						d.setVisible(false);
-					}
-				});
-			buttonPanel.add(cancelButton);
-			
-			cp.add(buttonPanel, BorderLayout.SOUTH);
-			tabbedPane.addTab("TableProperties",cp);
-			
-			// second tabbed Pane
-			JPanel mcp = new JPanel(new BorderLayout(12,12));
-			mcp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
-			//
+			// second tabbed Pane (mapping tab)
+			JPanel mt = new JPanel(new BorderLayout(12,12));
+			mt.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
+
 			String[] columnNames = {"SourceDB",
                                     "Source Table",
                                     "Source Column",
@@ -93,7 +71,6 @@ public class EditTableAction extends AbstractAction {
 						SQLObject sParent = sCol.getParentTable();
 						while (sParent != null) {
 							sTableName.append(sParent.getName());
-							
 						}
 					}
 				}
@@ -104,33 +81,35 @@ public class EditTableAction extends AbstractAction {
 			
 			JTable mapTable = new JTable();
 			JScrollPane scrollpMap = new JScrollPane(mapTable);
-            mcp.add(scrollpMap,BorderLayout.NORTH);
-			JPanel buttonMapPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-			
-			JButton okMapButton = new JButton("Ok");
-			okMapButton.addActionListener(new ActionListener() {
+            mt.add(scrollpMap, BorderLayout.CENTER);
+			tabbedPane.addTab("Column Mappings",mt);
+
+
+			// ok/cancel buttons
+			JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		
+			JButton okButton = new JButton("Ok");
+			okButton.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent evt) {
-						//editPanel.applyChanges();
-						//d.setVisible(false);
+						editPanel.applyChanges();
+						// XXX: also apply changes on mapping tab
+						d.setVisible(false);
 					}
 				});
-			buttonMapPanel.add(okMapButton);
+			buttonPanel.add(okButton);
 			
-			JButton cancelMapButton = new JButton("Cancel");
-			cancelMapButton.addActionListener(new ActionListener() {
+			JButton cancelButton = new JButton("Cancel");
+			cancelButton.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent evt) {
-						//editPanel.discardChanges();
-						//d.setVisible(false);
+						editPanel.discardChanges();
+						// XXX: also discard changes on mapping tab
+						d.setVisible(false);
 					}
 				});
-			buttonMapPanel.add(cancelMapButton);
-			mcp.add(buttonMapPanel, BorderLayout.SOUTH);
-			tabbedPane.addTab("Column Mappings",mcp);
+			buttonPanel.add(cancelButton);
 			
-			
-			
-			
-			d.setContentPane(tabbedPane);
+			d.getContentPane().add(buttonPanel, BorderLayout.SOUTH);
+			d.getContentPane().add(tabbedPane, BorderLayout.CENTER);
 			d.pack();
 			d.setVisible(true);
 			
