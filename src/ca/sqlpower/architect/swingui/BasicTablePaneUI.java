@@ -51,6 +51,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			FontMetrics metrics = c.getFontMetrics(font);
 			int fontHeight = metrics.getHeight();
 			int ascent = metrics.getAscent();
+			int maxDescent = metrics.getMaxDescent();
 			int y = 0;
 			
 			// hilight title if table is selected
@@ -73,14 +74,11 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 						width-boxLineThickness, height-(fontHeight+gap+boxLineThickness));
 			y += gap + boxLineThickness + tp.getMargin().top;
 
-			// print primary key
-			
-			// draw line
-			
-			// print rest of columns
+			// print columns
 			Iterator colNameIt = tablePane.getModel().getColumns().iterator();
 			int i = 0;
 			int hwidth = width-tp.getMargin().right-tp.getMargin().left-boxLineThickness*2;
+			boolean stillNeedPKLine = true;
 			while (colNameIt.hasNext()) {
 				if (tp.isColumnSelected(i)) {
 					logger.debug("Column "+i+" is selected");
@@ -89,7 +87,12 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 								hwidth, fontHeight);
 					g2.setColor(tp.getForeground());
 				}
-				g2.drawString(((SQLColumn) colNameIt.next()).getShortDisplayName(),
+				SQLColumn col = (SQLColumn) colNameIt.next();
+				if (col.getPrimaryKeySeq() == null && stillNeedPKLine) {
+					stillNeedPKLine = false;
+					g2.drawLine(boxLineThickness, y+maxDescent, boxLineThickness+hwidth, y+maxDescent);
+				}
+				g2.drawString(col.getShortDisplayName(),
 							  boxLineThickness+tp.getMargin().left,
 							  y += fontHeight);
 				i++;

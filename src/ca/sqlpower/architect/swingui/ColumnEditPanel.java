@@ -11,7 +11,7 @@ import java.sql.DatabaseMetaData;
 import org.apache.log4j.Logger;
 
 public class ColumnEditPanel extends JPanel
-	implements ListSelectionListener, ActionListener, ChangeListener, ArchitectPanel {
+	implements ListSelectionListener, ListDataListener, ActionListener, ChangeListener, ArchitectPanel {
 
 	private static final Logger logger = Logger.getLogger(ColumnEditPanel.class);
 
@@ -111,12 +111,26 @@ public class ColumnEditPanel extends JPanel
 	 * You should call selectColumn with a nonnegative index after calling setModel.
 	 */
 	public void setModel(SQLTable newModel) {
+		// detach old model
 		if (model != null) {
 			model.getColumnsFolder().removeSQLObjectListener(tableListModel);
+			try {
+				for (int i = 0; i < model.getColumnsFolder().getChildCount(); i++) {
+					model.getColumnsFolder().getChild(i).removeSQLObjectListener(tableListModel);
+				}
+			} catch (ArchitectException e) {
+				logger.error("Caught exception removing treemodel from column listener list");
+			}
 		}
+		if (tableListModel != null) {
+			tableListModel.removeListDataListener(this);
+		}
+
+		// create and attach new model
 		model = newModel;
 		tableListModel = new SQLTableListModel(model);
 		model.getColumnsFolder().addSQLObjectListener(tableListModel);
+		tableListModel.addListDataListener(this);
 		try {
 			for (int i = 0; i < model.getColumnsFolder().getChildCount(); i++) {
 				model.getColumnsFolder().getChild(i).addSQLObjectListener(tableListModel);
@@ -156,6 +170,31 @@ public class ColumnEditPanel extends JPanel
 		}
 	}
 
+	// ------------------------ LIST DATA LISTENER -----------------------
+	public void contentsChanged(ListDataEvent e) {
+	}
+
+	public void intervalAdded(ListDataEvent e) {
+	}
+
+	public void intervalRemoved(ListDataEvent e) {
+		try {
+			if (model.getColumns().size() == 0) {
+				Component c = getParent();
+				while ( ! (c instanceof Window)) {
+					c = c.getParent();
+				}
+				c.setVisible(false);
+			} else {
+				editColumn(0);
+			}
+		} catch (ArchitectException ex) {
+			JOptionPane.showMessageDialog(this, "Can't edit the selected column");
+			logger.error("Can't edit the selected column", ex);
+		}
+	}
+
+
 	public void selectColumn(int index) {
 		columns.setSelectedIndex(index);
 	}
@@ -176,15 +215,15 @@ public class ColumnEditPanel extends JPanel
 				sourceDB.setText("None Specified");
 				sourceTableCol.setText("None Specified");
 			} else {
-				StringBuffer sb = new StringBuffer();
-				SQLObject so = col.getSourceColumn().getParent().getParent();
+				StringBuffer sourceDBSchema = new StringBuffer();
+				SQLObject so = col.getSourceColumn().getParentTable().getParent();
 				while (so != null) {
-					sb.insert(0, so.getName());
-					sb.insert(0, ".");
+					sourceDBSchema.insert(0, so.getName());
+					sourceDBSchema.insert(0, ".");
 					so = so.getParent();
 				}
-				sourceDB.setText(sb.toString().substring(1));
-				sourceTableCol.setText(col.getSourceColumn().getParent().getName()
+				sourceDB.setText(sourceDBSchema.toString().substring(1));
+				sourceTableCol.setText(col.getSourceColumn().getParentTable().getName()
 									   +"."+col.getSourceColumn().getName());
 			}
 			colName.setText(col.getName());
@@ -241,7 +280,7 @@ public class ColumnEditPanel extends JPanel
 
 		// default value is free unless column is autoinc or the only column in PK
 		if (colAutoInc.isSelected() 
-			|| (colInPK.isSelected() && pkSize(model) == 1) ) {
+			|| (colInPK.isSelected() && model.pkSize() == 1) ) {
 
 			colDefaultValue.setEnabled(false);
 			colDefaultValue.setText(null);
@@ -287,30 +326,18 @@ public class ColumnEditPanel extends JPanel
 							: DatabaseMetaData.columnNoNulls);
 			col.setRemarks(colRemarks.getText());
 			col.setDefaultValue(colDefaultValue.getText());
-			col.setPrimaryKeySeq(colInPK.isSelected() ? new Integer(pkSize(model)) : null);
+			col.setPrimaryKeySeq(colInPK.isSelected() ? new Integer(model.pkSize()) : null);
 			col.setAutoIncrement(colAutoInc.isSelected());
+
+			// update selected index in case the column moved (add/remove PK)
+			int index = model.getColumns().indexOf(col);
+			selectColumn(index);
 		} catch (ArchitectException ex) {
 			JOptionPane.showMessageDialog(this, "Couldn't update column information");
 			logger.error("Couldn't update model!", ex);
 		}
 	}
 	
-	protected int pkSize(SQLTable t) {
-		int size = 0;
-		try {
-			Iterator it = t.getChildren().iterator();
-			while (it.hasNext()) {
-				Object o = it.next();
-				if (o instanceof SQLColumn && ((SQLColumn) o).getPrimaryKeySeq() != null) {
-					size++;
-				}
-			}
-		} catch (ArchitectException e) {
-			logger.error("Got exception calculating pk size", e);
-		}
-		return size;
-	}
-
 	/**
 	 * Make sure to call this when this component goes away: it
 	 * removes this component from listener lists!

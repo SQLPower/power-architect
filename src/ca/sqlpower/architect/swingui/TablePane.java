@@ -443,7 +443,7 @@ public class TablePane
 					} else if (someData instanceof SQLColumn) {
 						dtde.acceptDrop(DnDConstants.ACTION_COPY);
 						SQLColumn column = (SQLColumn) someData;
-						c.getModel().addColumn(insertionPoint, column);
+						c.getModel().inherit(insertionPoint, column);
 						logger.debug("Added "+column.getColumnName()+" to table");
 						dtde.dropComplete(true);
 						return;
