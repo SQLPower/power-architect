@@ -673,7 +673,31 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 					parent.populateColumns();
 					parent.populateRelationships();
 				} else if (type == EXPORTED_KEYS) {
-					// XXX: not implemented yet
+					ResultSet rs = null;
+					try {
+						DatabaseMetaData dbmd = parent.getParentDatabase().getConnection().getMetaData();
+						rs = dbmd.getExportedKeys(parent.getCatalogName(), parent.getSchemaName(), parent.getName());
+						while (rs.next()) {
+							if (rs.getInt(9) != 1) {
+								// just another column mapping in a relationship we've already handled
+								continue;
+							}
+							String cat = rs.getString(5);
+							String sch = rs.getString(6);
+							String tab = rs.getString(7);
+							SQLTable fkTable = parent.getParentDatabase().getTableByName(cat, sch, tab);
+							fkTable.populateColumns();
+							fkTable.populateRelationships();
+						}
+					} catch (SQLException ex) {
+						throw new ArchitectException("Couldn't locate related tables", ex);
+					} finally {
+						try {
+							if (rs != null) rs.close();
+						} catch (SQLException ex) {
+							logger.warn("Couldn't close resultset", ex);
+						}
+					}
 				} else {
 					throw new IllegalArgumentException("Unknown folder type: "+type);
 				}
