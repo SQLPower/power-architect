@@ -26,6 +26,12 @@ public abstract class SQLObject implements java.io.Serializable {
 	public abstract SQLObject getParent();
 
 	/**
+	 * Parents call this on their children to update parent pointers
+	 * during addChild and removeChild requests.
+	 */
+	protected abstract void setParent(SQLObject parent);
+
+	/**
 	 * Causes this SQLObject to load its children (if any exist).
 	 * This method will be called lots of times, so track whether or
 	 * not you need to do anything and return right away whenever
@@ -81,6 +87,7 @@ public abstract class SQLObject implements java.io.Serializable {
 	 */
 	public void addChild(int index, SQLObject newChild) {
 		children.add(index, newChild);
+		newChild.setParent(this);
 		fireDbChildInserted(index, newChild);
 	}
 
@@ -90,6 +97,7 @@ public abstract class SQLObject implements java.io.Serializable {
 	 */
 	public void addChild(SQLObject newChild) {
 		children.add(newChild);
+		newChild.setParent(this);
 		fireDbChildInserted(children.size() - 1, newChild);
 	}
 	
@@ -97,6 +105,7 @@ public abstract class SQLObject implements java.io.Serializable {
 		SQLObject removedChild = (SQLObject) children.remove(index);
 		if (removedChild != null) {
 			removedChild.removeDependencies();
+			removedChild.setParent(null);
 			fireDbChildRemoved(index, removedChild);
 		}
 		return removedChild;
