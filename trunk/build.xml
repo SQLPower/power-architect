@@ -7,8 +7,6 @@
 	<property name="src" value="."/>
 	<property name="build" value="build"/>
 	<property name="build.compiler" value="modern"/>
-	<property name="sqlpower.jar" value="lib/sqlpower.jar"/>
-
 	<property name="deploy.jar" value="architect.jar"/>
 
 	<target name="init">
@@ -17,7 +15,7 @@
 	</target>
 
 	<target name="compile" depends="init">
-		<javac srcdir="${src}" destdir="${build}" classpath="${sqlpower.jar}" debug="true"/>
+		<javac srcdir="${src}" destdir="${build}" classpathref="compile.classpath" debug="true" deprecation="true"/>
 	</target>
 
 	<target name="jar" depends="compile">
@@ -36,6 +34,12 @@
 	<target name="clean">
 		<delete dir="${build}"/>
 	</target>
+
+	<path id="compile.classpath">
+		<fileset dir="lib">
+			<include name="*.jar"/>
+		</fileset>
+	</path>
 
 	<path id="test.classpath">
 		<fileset dir="lib">
@@ -61,6 +65,7 @@
 
 	<target name="testui_pg" depends="compile">
 		<java fork="true" classname="ca.sqlpower.architect.test.TestUI" classpathref="test.classpath">
+			<jvmarg value="-Dlog4j.configuration=file:log4j.properties"/>
 			<arg value="${databases.xml}"/>
 			<arg value="arthur_postgres_pl"/>
 		</java>
@@ -68,6 +73,7 @@
 
 	<target name="testui_ora" depends="compile">
 		<java fork="true" classname="ca.sqlpower.architect.test.TestUI" classpathref="test.classpath">
+			<jvmarg value="-Dlog4j.configuration=file:log4j.properties"/>
 			<arg value="${databases.xml}"/>
 			<arg value="arthur_test_dash_demo"/>
 		</java>
@@ -75,6 +81,7 @@
 
 	<target name="testui_ss" depends="compile">
 		<java fork="true" classname="ca.sqlpower.architect.test.TestUI" classpathref="test.classpath">
+			<jvmarg value="-Dlog4j.configuration=file:log4j.properties"/>
 			<arg value="${databases.xml}"/>
 			<arg value="1"/>
 		</java>
