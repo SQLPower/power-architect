@@ -359,7 +359,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	 * playpen instance).
 	 */
 	public Connection getConnection() throws ArchitectException {
-		if (connectionSpec != null) {
+		if (connectionSpec != null && connection == null) {
 			connect();
 		}
 		return this.connection;
