@@ -1,17 +1,17 @@
 package ca.sqlpower.architect;
 
 import java.util.List;
+import java.util.LinkedList;
+import java.util.Collections;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.ResultSet;
+import java.sql.DatabaseMetaData;
+import org.apache.log4j.Logger;
 
 public class SQLRelationship extends SQLObject implements java.io.Serializable {
-	
-	/**
-	 * A List of ColumnMapping objects that describe the relationship
-	 * between the imported table (pkTable) and the importing table
-	 * (fkTable).
-	 *
-	 * @see java.sql.DatabaseMetaData#getImportedKeys
-	 */
-	protected List mappings;
+
+	private static Logger logger = Logger.getLogger(SQLRelationship.class);
 
 	protected SQLTable pkTable;
 	protected SQLTable fkTable;
@@ -23,57 +23,100 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	protected String fkName;
 	protected String pkName;
 
-	protected class ColumnMapping {
-		protected SQLColumn pkColumn;
-		protected SQLColumn fkColumn;
-
-		
-		/**
-		 * Gets the value of pkColumn
-		 *
-		 * @return the value of pkColumn
-		 */
-		public SQLColumn getPkColumn()  {
-			return this.pkColumn;
-		}
-
-		/**
-		 * Sets the value of pkColumn
-		 *
-		 * @param argPkColumn Value to assign to this.pkColumn
-		 */
-		public void setPkColumn(SQLColumn argPkColumn) {
-			this.pkColumn = argPkColumn;
-		}
-
-		/**
-		 * Gets the value of fkColumn
-		 *
-		 * @return the value of fkColumn
-		 */
-		public SQLColumn getFkColumn()  {
-			return this.fkColumn;
-		}
-
-		/**
-		 * Sets the value of fkColumn
-		 *
-		 * @param argFkColumn Value to assign to this.fkColumn
-		 */
-		public void setFkColumn(SQLColumn argFkColumn) {
-			this.fkColumn = argFkColumn;
-		}
-
+	public SQLRelationship() {
+		children = new LinkedList();
 	}
 
+	/**
+	 * Fetches all imported keys for the given table.  (Imported keys
+	 * are the PK columns of other tables that are referenced by the
+	 * given table).
+	 *
+	 * <p>Mainly for use by SQLTable's populate method.  Does not cause
+	 * SQLObjectEvents (to avoid infinite recursion), so you have to
+	 * generate them yourself at a safe time.
+	 *
+	 * <p>Note that table's database must be fully populated before
+	 * you call this method; it requires that all referenced tables
+	 * are represented by in-memory SQLTable objects.
+	 *
+	 * @throws ArchitectException if a database error occurs or if the
+	 * given table's parent database is not marked as populated.
+	 */
+	static void addRelationshipsToTable(SQLTable table) throws ArchitectException {
+		SQLDatabase db = table.getParentDatabase();
+		if (!db.isPopulated()) {
+			throw new ArchitectException("relationship.unpopulatedTargetDatabase");
+		}
+		Connection con = db.getConnection();
+		ResultSet rs = null;
+		try {
+			DatabaseMetaData dbmd = con.getMetaData();
+			SQLRelationship r = null;
+			int currentKeySeq;
+			rs = dbmd.getImportedKeys(table.getCatalogName(),
+									  table.getSchemaName(),
+									  table.getTableName());
+			while (rs.next()) {
+				currentKeySeq = rs.getInt(9);
+				if (currentKeySeq == 1) {
+					r = new SQLRelationship();
+					table.children.add(r);
+					logger.debug("Added relationship to "+table.getName());
+				}
+				ColumnMapping m = r.new ColumnMapping();
+				r.children.add(m);
+				r.pkTable = db.getTableByName(rs.getString(1),  // catalog
+											  rs.getString(2),  // schema
+											  rs.getString(3)); // table
+				logger.debug("Looking for pk column '"+rs.getString(4)+"' in table '"+r.pkTable+"'");
+				m.pkColumn = r.pkTable.getColumnByName(rs.getString(4));
+				if (m.pkColumn == null) {
+					throw new ArchitectException("relationship.populate.nullPkColumn");
+				}
+				r.fkTable = db.getTableByName(rs.getString(5),  // catalog
+											  rs.getString(6),  // schema
+											  rs.getString(7)); // table
+				if (r.fkTable != table) {
+					throw new IllegalStateException("fkTable did not match requested table");
+				}
+				m.fkColumn = r.fkTable.getColumnByName(rs.getString(8));
+				if (m.fkColumn == null) {
+					throw new ArchitectException("relationship.populate.nullFkColumn");
+				}
+				// column 9 (currentKeySeq) handled above
+				r.updateRule = rs.getInt(10);
+				r.deleteRule = rs.getInt(11);
+				r.fkName = rs.getString(12);
+				r.pkName = rs.getString(13);
+				r.deferrability = rs.getInt(14);
+			}
+		} catch (SQLException e) {
+			throw new ArchitectException("relationship.populate", e);
+		} finally {
+			try {
+				if (rs != null) rs.close();
+			} catch (SQLException e) {
+				logger.warn("Couldn't close resultset", e);
+			}
+		}
+	}
 
-	// ---------------------- SQLObject support ------------------------
+	public String toString() {
+		return getShortDisplayName();
+	}
+
+	// ---------------------- SQLRelationship SQLObject support ------------------------
 
 	/**
 	 * Returns the table that holds the primary keys (the imported table).
 	 */
 	public SQLObject getParent() {
 		return pkTable;
+	}
+
+	public String getName() {
+		return fkName;
 	}
 
 	/**
@@ -84,50 +127,31 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	}
 	
 	/**
-	 * Relationships do not contain other SQLObjects.
+	 * Relationships have ColumnMapping children.
 	 *
-	 * @return false
+	 * @return true
 	 */
 	public boolean allowsChildren() {
-		return false;
+		return true;
 	}
 
 	/**
-	 * Populates the PK and FK information from the database.
+	 * This class is not a lazy-loading class.  This call does nothing.
 	 */
 	public void populate() throws ArchitectException {
-		// XXX: must implement
+		return;
 	}
 
 	/**
-	 * Returns true iff populate doesn't need to be called.
+	 * Returns true.
 	 */
 	public boolean isPopulated() {
-		// XXX: must implement
 		return true;
 	}
 	
 	
-	/**
-	 * Gets the value of mappings
-	 *
-	 * @return the value of mappings
-	 */
-	public List getMappings()  {
-		return this.mappings;
-	}
-
 	// ----------------- accessors and mutators -------------------
 	
-	/**
-	 * Sets the value of mappings
-	 *
-	 * @param argMappings Value to assign to this.mappings
-	 */
-	public void setMappings(List argMappings) {
-		this.mappings = argMappings;
-	}
-
 	/**
 	 * Gets the value of updateRule
 	 *
@@ -218,4 +242,104 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		this.pkName = argPkName;
 	}
 
+
+
+	// -------------------------- COLUMN MAPPING ------------------------
+
+	protected class ColumnMapping extends SQLObject {
+		protected SQLColumn pkColumn;
+		protected SQLColumn fkColumn;
+
+		public ColumnMapping() {
+			children = Collections.EMPTY_LIST;
+		}
+		
+		/**
+		 * Gets the value of pkColumn
+		 *
+		 * @return the value of pkColumn
+		 */
+		public SQLColumn getPkColumn()  {
+			return this.pkColumn;
+		}
+
+		/**
+		 * Sets the value of pkColumn
+		 *
+		 * @param argPkColumn Value to assign to this.pkColumn
+		 */
+		public void setPkColumn(SQLColumn argPkColumn) {
+			this.pkColumn = argPkColumn;
+		}
+
+		/**
+		 * Gets the value of fkColumn
+		 *
+		 * @return the value of fkColumn
+		 */
+		public SQLColumn getFkColumn()  {
+			return this.fkColumn;
+		}
+
+		/**
+		 * Sets the value of fkColumn
+		 *
+		 * @param argFkColumn Value to assign to this.fkColumn
+		 */
+		public void setFkColumn(SQLColumn argFkColumn) {
+			this.fkColumn = argFkColumn;
+		}
+
+		public String toString() {
+			return getShortDisplayName();
+		}
+
+		// ---------------------- ColumnMapping SQLObject support ------------------------
+		
+		/**
+		 * Returns the table that holds the primary keys (the imported table).
+		 */
+		public SQLObject getParent() {
+			return SQLRelationship.this;
+		}
+		
+		/**
+		 * Returns the parent relationship's fk name.
+		 */
+		public String getName() {
+			return SQLRelationship.this.fkName;
+		}
+		
+		/**
+		 * Returns the table and column name of the pkColumn.
+		 */
+		public String getShortDisplayName() {
+			return fkColumn.getColumnName()+" - "+
+				pkColumn.getParent().getName()+"."+pkColumn.getColumnName();
+		}
+		
+		/**
+		 * Mappings do not contain other SQLObjects.
+		 *
+		 * @return false
+		 */
+		public boolean allowsChildren() {
+			return false;
+		}
+		
+		/**
+		 * This class is not a lazy-loading class.  This call does nothing.
+		 */
+		public void populate() throws ArchitectException {
+			return;
+		}
+		
+		/**
+		 * Returns true.
+		 */
+		public boolean isPopulated() {
+			return true;
+		}
+	
+	}
 }

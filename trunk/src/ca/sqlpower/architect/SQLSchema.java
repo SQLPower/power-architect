@@ -47,6 +47,10 @@ public class SQLSchema extends SQLObject {
 		return parent;
 	}
 
+	public String getName() {
+		return getSchemaName();
+	}
+
 	public String getShortDisplayName() {
 		return schemaName;
 	}

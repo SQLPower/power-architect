@@ -132,7 +132,12 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 		return c;
 	}
 
-	public static void addColumnsToTable(SQLTable addTo,
+	/**
+	 * Mainly for use by SQLTable's populate method.  Does not cause
+	 * SQLObjectEvents to avoid infinite recursion, so you have to
+	 * generate them yourself at a safe time.
+	 */
+	static void addColumnsToTable(SQLTable addTo,
 										 String catalog,
 										 String schema,
 										 String tableName) 
@@ -158,7 +163,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 											  );
 				logger.debug("Adding column "+col.getColumnName());
 				
-				if (addTo.getColumnByName(col.getColumnName()) != null) {
+				if (addTo.getColumnByName(col.getColumnName(), false) != null) {
 					throw new DuplicateColumnException(addTo, col.getColumnName());
 				}
 				addTo.children.add(col); // don't use addTo.addColumn() (avoids multiple SQLObjectEvents)
@@ -169,7 +174,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 
 			rs = dbmd.getPrimaryKeys(catalog, schema, tableName);
 			while (rs.next()) {
-				SQLColumn col = addTo.getColumnByName(rs.getString(4));
+				SQLColumn col = addTo.getColumnByName(rs.getString(4), false);
 				col.setPrimaryKeySeq(new Integer(rs.getInt(5)));
 				addTo.setPrimaryKeyName(rs.getString(6));
 			}
@@ -215,6 +220,10 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	public void populate() throws ArchitectException {
 		// SQLColumn doesn't have children, so populate does nothing!
 		return;
+	}
+
+	public String getName() {
+		return getColumnName();
 	}
 
 	public boolean isPopulated() {

@@ -43,6 +43,25 @@ public class SQLCatalog extends SQLObject {
 	}
 
 	/**
+	 *
+	 * @return The schema in this catalog with the given name, or null
+	 * if no such schema exists.
+	 */
+	protected SQLSchema getSchemaByName(String schemaName) throws ArchitectException {
+		if (!isSchemaContainer()) {
+			return null;
+		}
+		Iterator childit = children.iterator();
+		while (childit.hasNext()) {
+			SQLSchema schema = (SQLSchema) childit.next();
+			if (schema.getName().equals(schemaName)) {
+				return schema;
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * Determines whether this catalog object is a container for schemas or for tables.
 	 *
 	 * @return true (the default) if there are no children; false if
@@ -73,6 +92,10 @@ public class SQLCatalog extends SQLObject {
 
 	public SQLObject getParent() {
 		return parent;
+	}
+
+	public String getName() {
+		return getCatalogName();
 	}
 
 	public String getShortDisplayName() {
