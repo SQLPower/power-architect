@@ -167,13 +167,15 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 		}
 	}
 
+	/**
+	 * Returns the path from the conceptual, hidden root node (of type
+	 * DBTreeRoot) to the given node.
+	 */
 	public SQLObject[] getPathToNode(SQLObject node) {
 		LinkedList path = new LinkedList();
-		if (! (node instanceof DBTreeRoot)) {
-			while (node != null) {
-				path.add(0, node);
-				node = node.getParent();
-			}
+		while (node != null && node != root) {
+			path.add(0, node);
+			node = node.getParent();
 		}
 		path.add(0, root);
 		return (SQLObject[]) path.toArray(new SQLObject[path.size()]);
