@@ -102,7 +102,9 @@ public abstract class SQLObject implements java.io.Serializable {
 	}
 
 	/**
-	 * Adds the given SQLObject to this SQLObject at index. Causes a DBChildrenInserted event.
+	 * Adds the given SQLObject to this SQLObject at index. Causes a
+	 * DBChildrenInserted event.  If you want to override the
+	 * behaviour of addChild, override this method.
 	 */
 	public void addChild(int index, SQLObject newChild) {
 		children.add(index, newChild);
@@ -112,12 +114,12 @@ public abstract class SQLObject implements java.io.Serializable {
 
 	/**
 	 * Adds the given SQLObject to this SQLObject at the end of the
-	 * child list. Causes a DBChildrenInserted event.
+	 * child list by calling {@link #addChild(int,SQLObject)}. Causes
+	 * a DBChildrenInserted event.  If you want to override the
+	 * behaviour of addChild, do not override this method.
 	 */
 	public void addChild(SQLObject newChild) {
-		children.add(newChild);
-		newChild.setParent(this);
-		fireDbChildInserted(children.size() - 1, newChild);
+		addChild(children.size(), newChild);
 	}
 	
 	public SQLObject removeChild(int index) {
@@ -164,7 +166,8 @@ public abstract class SQLObject implements java.io.Serializable {
 
 	public void addSQLObjectListener(SQLObjectListener l) {
 		if (getSQLObjectListeners().contains(l)) {
-			logger.warn("Adding duplicate listener "+l+" to SQLObject "+this);
+			logger.warn("NOT Adding duplicate listener "+l+" to SQLObject "+this);
+			return;
 		}
 		getSQLObjectListeners().add(l);
 	}

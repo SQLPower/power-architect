@@ -178,8 +178,17 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	/**
 	 * Returns the path from the conceptual, hidden root node (of type
 	 * DBTreeRoot) to the given node.
+	 * 
+	 * <p>NOTE: This method doesn't work for SQLRelationship objects,
+	 * because they have two parents! Use getPkPathToRelationship and
+	 * getFkPathToRelationship instead.
+	 *
+	 * @throws IllegalArgumentException if <code>node</code> is of class SQLRelationship.
 	 */
 	public SQLObject[] getPathToNode(SQLObject node) {
+		if (node instanceof SQLRelationship) {
+			throw new IllegalArgumentException("This method does not work for SQLRelationship. Use getPkPathToRelationship() and getFkPathToRelationship() instead.");
+		}
 		LinkedList path = new LinkedList();
 		while (node != null && node != root) {
 			path.add(0, node);
@@ -189,11 +198,34 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 		return (SQLObject[]) path.toArray(new SQLObject[path.size()]);
 	}
 
+	public SQLObject[] getPkPathToRelationship(SQLRelationship rel) {
+		SQLObject[] pathToPkTable = getPathToNode(rel.getPkTable());
+		SQLObject[] path = new SQLObject[pathToPkTable.length + 1];
+		System.arraycopy(pathToPkTable, 0, path, 0, pathToPkTable.length);
+		path[path.length - 1] = rel;
+		return path;
+	}
+
+	public SQLObject[] getFkPathToRelationship(SQLRelationship rel) {
+		SQLObject[] pathToFkTable = getPathToNode(rel.getFkTable());
+		SQLObject[] path = new SQLObject[pathToFkTable.length + 1];
+		System.arraycopy(pathToFkTable, 0, path, 0, pathToFkTable.length);
+		path[path.length - 1] = rel;
+		return path;
+	}
+
 	// --------------------- SQLObject listener support -----------------------
 	public void dbChildrenInserted(SQLObjectEvent e) {
 		if (logger.isDebugEnabled()) {
-			logger.debug("dbChildrenInserted SQLObjectEvent: "+e
-						 +"; tree path="+Arrays.asList(getPathToNode(e.getSQLSource())));
+			if (e.getSQLSource() instanceof SQLRelationship) {
+				SQLRelationship r = (SQLRelationship) e.getSQLSource();
+				logger.debug("dbChildrenInserted SQLObjectEvent: "+e
+							 +"; pk path="+Arrays.asList(getPkPathToRelationship(r))
+							 +"; fk path="+Arrays.asList(getFkPathToRelationship(r)));
+			} else {
+				logger.debug("dbChildrenInserted SQLObjectEvent: "+e
+							 +"; tree path="+Arrays.asList(getPathToNode(e.getSQLSource())));
+			}
 		}
 		try {
 			SQLObject[] newEventSources = e.getChildren();
@@ -203,11 +235,30 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 		} catch (ArchitectException ex) {
 			logger.error("Error listening to added object", ex);
 		}
-		TreeModelEvent tme = new TreeModelEvent(this,
-												getPathToNode(e.getSQLSource()),
-												e.getChangedIndices(),
-												e.getChildren());
-		fireTreeNodesInserted(tme);
+
+		// relationships have two parents (pktable and fktable) so we need to fire two TMEs
+		if (e.getSQLSource() instanceof SQLRelationship) {
+			TreeModelEvent tme = new TreeModelEvent
+				(this,
+				 getPkPathToRelationship((SQLRelationship) e.getSQLSource()),
+				 e.getChangedIndices(),
+				 e.getChildren());
+			fireTreeNodesInserted(tme);
+
+			tme = new TreeModelEvent
+				(this,
+				 getFkPathToRelationship((SQLRelationship) e.getSQLSource()),
+				 e.getChangedIndices(),
+				 e.getChildren());
+			fireTreeNodesInserted(tme);
+		} else {
+			TreeModelEvent tme = new TreeModelEvent
+				(this,
+				 getPathToNode(e.getSQLSource()),
+				 e.getChangedIndices(),
+				 e.getChildren());
+			fireTreeNodesInserted(tme);
+		}
 	}
 
 	public void dbChildrenRemoved(SQLObjectEvent e) {
@@ -220,17 +271,41 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 		} catch (ArchitectException ex) {
 			logger.error("Error unlistening to removed object", ex);
 		}
-		TreeModelEvent tme = new TreeModelEvent(this,
-												getPathToNode(e.getSQLSource()),
-												e.getChangedIndices(),
-												e.getChildren());
-		fireTreeNodesRemoved(tme);
+
+		if (e.getSQLSource() instanceof SQLRelationship) {
+			TreeModelEvent tme = new TreeModelEvent
+				(this,
+				 getPkPathToRelationship((SQLRelationship) e.getSQLSource()),
+				 e.getChangedIndices(),
+				 e.getChildren());
+			fireTreeNodesRemoved(tme);
+
+			tme = new TreeModelEvent
+				(this,
+				 getFkPathToRelationship((SQLRelationship) e.getSQLSource()),
+				 e.getChangedIndices(),
+				 e.getChildren());
+			fireTreeNodesRemoved(tme);
+		} else {
+			TreeModelEvent tme = new TreeModelEvent
+				(this,
+				 getPathToNode(e.getSQLSource()),
+				 e.getChangedIndices(),
+				 e.getChildren());
+			fireTreeNodesRemoved(tme);
+		}
 	}
 	
 	public void dbObjectChanged(SQLObjectEvent e) {
 		if (logger.isDebugEnabled()) logger.debug("dbObjectChanged SQLObjectEvent: "+e);
 		SQLObject source = e.getSQLSource();
-		fireTreeNodesChanged(new TreeModelEvent(this, getPathToNode(source)));
+		if (source instanceof SQLRelationship) {
+			SQLRelationship r = (SQLRelationship) source;
+			fireTreeNodesChanged(new TreeModelEvent(this, getPkPathToRelationship(r)));
+			fireTreeNodesChanged(new TreeModelEvent(this, getFkPathToRelationship(r)));
+		} else {
+			fireTreeNodesChanged(new TreeModelEvent(this, getPathToNode(source)));
+		}
 	}
 
 	public void dbStructureChanged(SQLObjectEvent e) {
