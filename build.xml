@@ -7,6 +7,7 @@
 	<property name="src" value="."/>
 	<property name="build" value="build"/>
 	<property name="build.compiler" value="modern"/>
+    <property name="deploy.dir" value="dist"/>
 	<property name="deploy.jar" value="architect.jar"/>
 
 	<target name="init">
@@ -16,6 +17,8 @@
 
 	<target name="compile" depends="init,copyicons">
 		<javac srcdir="${src}" destdir="${build}" classpathref="compile.classpath" debug="true" deprecation="true"/>
+		<move file="${build}/ca/sqlpower/architect/altclassloader/DriverManagerDiplomat.class"
+		      tofile="${build}/ca/sqlpower/architect/altclassloader/DriverManagerDiplomat.altclass" />
 	</target>
 
 	<target name="copyicons" depends="init">
@@ -60,9 +63,11 @@
 		<fileset dir="lib">
 			<include name="*.jar"/>
 		</fileset>
+<!-- Superceded by JDBCClassLoader and JDBCDriverPanel
 		<fileset dir="${jdbcdrivers.jar}">
 			<include name="*.jar"/>
 		</fileset>
+-->
 		<pathelement location="build"/>
 <!-- 1.3 only (xml parser)
 		<fileset dir="/usr/local/jars">

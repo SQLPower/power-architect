@@ -35,7 +35,7 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
 		setLayout(new BorderLayout());
 		ArchitectFrame af = ArchitectFrame.getMainInstance();
 
-		List connectionHistory = af.prefs.getConnections();
+		List connectionHistory = af.getUserSettings().getConnections();
 		history = new Vector();
 		history.add(ASUtils.lvb("(New Connection)", null));
 		Iterator it = connectionHistory.iterator();

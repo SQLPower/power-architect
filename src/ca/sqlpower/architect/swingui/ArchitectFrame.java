@@ -29,9 +29,9 @@ public class ArchitectFrame extends JFrame {
 
 	public static final double ZOOM_STEP = 0.2;
 
+	protected ArchitectSession architectSession = null;
 	protected SwingUIProject project = null;
 	protected ConfigFile configFile = null;
-	protected UserSettings prefs = null;
 	protected SwingUserSettings sprefs = null;
 	protected JToolBar projectBar = null;
 	protected JToolBar ppBar = null;
@@ -83,11 +83,15 @@ public class ArchitectFrame extends JFrame {
 
 	public ArchitectFrame() throws ArchitectException {
 		mainInstance = this;
+		architectSession = ArchitectSession.getInstance();
+		init();
+	}
 
+	protected void init() throws ArchitectException {
 		try {
 			ConfigFile cf = ConfigFile.getDefaultInstance();
-			prefs = cf.read();
-			sprefs = prefs.getSwingSettings();
+			architectSession.setUserSettings(cf.read());
+			sprefs = architectSession.getUserSettings().getSwingSettings();
 		} catch (IOException e) {
 			throw new ArchitectException("prefs.read", e);
 		}
@@ -317,8 +321,15 @@ public class ArchitectFrame extends JFrame {
 		return mainInstance;
 	}
 	
+	/**
+	 * Convenience method for getArchitectSession().getUserSettings().
+	 */
 	public UserSettings getUserSettings() {
-		return prefs;
+		return architectSession.getUserSettings();
+	}
+
+	public ArchitectSession getArchitectSession() {
+		return architectSession;
 	}
 
 	class ArchitectFrameWindowListener extends WindowAdapter {
@@ -336,7 +347,7 @@ public class ArchitectFrame extends JFrame {
 		sprefs.setInt(SwingUserSettings.MAIN_FRAME_WIDTH, getWidth());
 		sprefs.setInt(SwingUserSettings.MAIN_FRAME_HEIGHT, getHeight());
 		
-		configFile.write(prefs);
+		configFile.write(getArchitectSession());
 	}
 
 	/**
@@ -357,6 +368,17 @@ public class ArchitectFrame extends JFrame {
 	 * an acceptable way to launch the Architect application.
 	 */
 	public static void main(String args[]) throws ArchitectException {
+// 		try {
+// 			ArchitectSession session = ArchitectSession.getInstance();
+// 			mainInstance = (ArchitectFrame) Class.forName("ca.sqlpower.architect.swingui.ArchitectFrame", true, session.getJDBCClassLoader()).newInstance();
+// 			mainInstance.init();
+// 		} catch (IllegalAccessException ex) {
+// 			logger.error("Couldn't create ArchitectFrame class", ex);
+// 		} catch (InstantiationException ex) {
+// 			logger.error("Couldn't create ArchitectFrame class", ex);
+// 		} catch (ClassNotFoundException ex) {
+// 			logger.error("Couldn't create ArchitectFrame class", ex);
+// 		}
 		new ArchitectFrame();
 		
 		SwingUtilities.invokeLater(new Runnable() {

@@ -16,12 +16,6 @@ public class UserSettings {
 	protected List dbConnections;
 
 	/**
-	 * A List of pathnames (in platform-dependant notation) to JAR
-	 * files that the user's JDBC drivers come from.
-	 */
-	protected List driverJarList;
-
-	/**
 	 * GUI-related settings.  This technically shouldn't be here
 	 * (model is referencing view stuff) but it didn't seem right to
 	 * make the settings file primarily swing-specific with a
@@ -41,7 +35,6 @@ public class UserSettings {
 		dbConnections = new LinkedList();
 		swingSettings = new SwingUserSettings();
 		etlUserSettings = new ETLUserSettings();
-		driverJarList = new LinkedList();
 	}
 	
 	public void addConnection(DBConnectionSpec dbcs) {
@@ -68,11 +61,10 @@ public class UserSettings {
 		etlUserSettings = v;
 	}
 
-	public List getDriverJarList() {
-		return driverJarList;
-	}
-
-	public void setDriverJarList(List v) {
-		driverJarList = v;
+	/**
+	 * Convenience method that calls ArchitectSession.getInstance().addDriverJarPath(path).
+	 */
+	public void addDriverJarPath(String path) {
+		ArchitectSession.getInstance().addDriverJarPath(path);
 	}
 }
