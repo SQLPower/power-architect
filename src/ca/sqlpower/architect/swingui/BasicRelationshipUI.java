@@ -5,6 +5,7 @@ import java.beans.PropertyChangeEvent;
 import javax.swing.*;
 import javax.swing.plaf.ComponentUI;
 import java.awt.*;
+import java.awt.geom.*;
 import org.apache.log4j.Logger;
 
 /**
@@ -18,6 +19,17 @@ public class BasicRelationshipUI extends RelationshipUI
 
 	protected Relationship relationship;
 
+	protected int orientation;
+
+
+	/**
+	 * Points within radius pixels of this relationship's visible path
+	 * are considered to be contained within this component.
+	 *
+	 * @see #contains
+	 */
+	protected int radius = 4;
+
 	public static final int NO_FACING_EDGES = 0;
 	public static final int PARENT_FACES_RIGHT = 1;
 	public static final int PARENT_FACES_LEFT = 2;
@@ -27,6 +39,8 @@ public class BasicRelationshipUI extends RelationshipUI
 	public static final int CHILD_FACES_LEFT = 32;
 	public static final int CHILD_FACES_BOTTOM = 64;
 	public static final int CHILD_FACES_TOP = 128;
+
+	// ------------------------ ComponentUI methods ------------------------
 
 	public static ComponentUI createUI(JComponent c) {
 		logger.debug("Creating new BasicRelationshipUI for "+c);
@@ -52,42 +66,73 @@ public class BasicRelationshipUI extends RelationshipUI
 		logger.debug("BasicRelationshipUI is painting");
 		Relationship r = (Relationship) c;
 		Graphics2D g2 = (Graphics2D) g;
+		g2.translate(c.getX() * -1, c.getY() * -1); // playpen coordinate space
 
-		Point pktloc = r.getPkConnectionPoint();
-		Point start = new Point(pktloc.x + r.getPkTable().getLocation().x,
-								pktloc.y + r.getPkTable().getLocation().y);
- 		Point fktloc = r.getFkConnectionPoint();
-		Point end = new Point(fktloc.x + r.getFkTable().getLocation().x,
-							  fktloc.y + r.getFkTable().getLocation().y);
-
-		int orientation = getFacingEdges(relationship.getPkTable(), relationship.getFkTable());
-		if ( (orientation & (PARENT_FACES_LEFT | PARENT_FACES_RIGHT)) != 0
-			 && (orientation & (CHILD_FACES_LEFT | CHILD_FACES_RIGHT)) != 0) {
-			int midx = (Math.abs(end.x - start.x) / 2) + Math.min(start.x, end.x);
-			g2.drawLine(start.x, start.y, midx, start.y);
-			g2.drawLine(midx, start.y, midx, end.y);
-			g2.drawLine(midx, end.y, end.x, end.y);
-		} else if ( (orientation & (PARENT_FACES_TOP | PARENT_FACES_BOTTOM)) != 0
-					&& (orientation & (CHILD_FACES_TOP | CHILD_FACES_BOTTOM)) != 0) {
-			int midy = (Math.abs(end.y - start.y) / 2) + Math.min(start.y, end.y);
-			g2.drawLine(start.x, start.y, start.x, midy);
-			g2.drawLine(start.x, midy, end.x, midy);
-			g2.drawLine(end.x, midy, end.x, end.y);
-		} else if ( (orientation & (PARENT_FACES_LEFT | PARENT_FACES_RIGHT)) != 0) {
-			g2.drawLine(start.x, start.y, end.x, start.y);
-			g2.drawLine(end.x, start.y, end.x, end.y);
-		} else if ( (orientation & (PARENT_FACES_TOP | PARENT_FACES_BOTTOM)) != 0) {
-			g2.drawLine(start.x, start.y, start.x, end.y);
-			g2.drawLine(start.x, end.y, end.x, end.y);
-		} else {
-			// unknown case: draw straight line.
-			g2.drawLine(start.x, start.y, end.x, end.y);
+		try {
+			Point pktloc = r.getPkConnectionPoint();
+			Point start = new Point(pktloc.x + r.getPkTable().getLocation().x,
+									pktloc.y + r.getPkTable().getLocation().y);
+			Point fktloc = r.getFkConnectionPoint();
+			Point end = new Point(fktloc.x + r.getFkTable().getLocation().x,
+								  fktloc.y + r.getFkTable().getLocation().y);
+			
+			// XXX: could optimise by checking if PK or FK tables have moved
+			GeneralPath path = relationship.path;
+			if (path == null) {
+				path = relationship.path = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 5);
+			} else {
+				path.reset();
+			}
+			orientation = getFacingEdges(relationship.getPkTable(), relationship.getFkTable());
+			if ( (orientation & (PARENT_FACES_LEFT | PARENT_FACES_RIGHT)) != 0
+				 && (orientation & (CHILD_FACES_LEFT | CHILD_FACES_RIGHT)) != 0) {
+				int midx = (Math.abs(end.x - start.x) / 2) + Math.min(start.x, end.x);
+				path.moveTo(start.x, start.y);
+				path.lineTo(midx, start.y);
+				path.lineTo(midx, end.y);
+				path.lineTo(end.x, end.y);
+			} else if ( (orientation & (PARENT_FACES_TOP | PARENT_FACES_BOTTOM)) != 0
+						&& (orientation & (CHILD_FACES_TOP | CHILD_FACES_BOTTOM)) != 0) {
+				int midy = (Math.abs(end.y - start.y) / 2) + Math.min(start.y, end.y);
+				path.moveTo(start.x, start.y);
+				path.lineTo(start.x, midy);
+				path.lineTo(end.x, midy);
+				path.lineTo(end.x, end.y);
+			} else if ( (orientation & (PARENT_FACES_LEFT | PARENT_FACES_RIGHT)) != 0) {
+				path.moveTo(start.x, start.y);
+				path.lineTo(end.x, start.y);
+				path.lineTo(end.x, end.y);
+			} else if ( (orientation & (PARENT_FACES_TOP | PARENT_FACES_BOTTOM)) != 0) {
+				path.moveTo(start.x, start.y);
+				path.lineTo(start.x, end.y);
+				path.lineTo(end.x, end.y);
+			} else {
+				// unknown case: draw straight line.
+				path.moveTo(start.x, start.y);
+				path.lineTo(end.x, end.y);
+			}
+			
+			g2.draw(path);
+			
+			logger.debug("Drew path "+path);
+			
+			paintTerminations(g2, start, end, orientation);
+		} finally {
+			g2.translate(c.getX(), c.getY()); // playpen coordinate space
 		}
-
-		logger.debug("Drew line from "+start+" to "+end);
-
-		paintTerminations(g2, start, end, orientation);
 	}
+
+	public boolean contains(JComponent c, int x, int y) {
+		if (relationship.path == null) {
+			return false;
+		} else {
+			Point loc = relationship.getLocation();
+			return relationship.path.intersects(x - radius + loc.x, y - radius + loc.y,
+												radius*2,           radius*2);
+		}
+	}
+
+	// ------------------ Custom methods ---------------------
 	
 	/**
 	 * Paints red dots.  Subclasses will implement real notation.
@@ -104,7 +149,7 @@ public class BasicRelationshipUI extends RelationshipUI
 									 Point tp1point, Point tp2point) {
 		Rectangle tp1b = tp1.getBounds();
 		Rectangle tp2b = tp2.getBounds();
-		int orientation = getFacingEdges(tp1, tp2);
+		orientation = getFacingEdges(tp1, tp2);
 		if ( (orientation & PARENT_FACES_TOP) != 0) {
 			tp1point.move(tp1b.width/2, 0);
 		} else if ( (orientation & PARENT_FACES_RIGHT) != 0) {
@@ -164,16 +209,15 @@ public class BasicRelationshipUI extends RelationshipUI
 	protected int getFacingEdges(TablePane parent, TablePane child) {
 		Rectangle parentb = parent.getBounds();
 		Rectangle childb = child.getBounds();
-		int pl = getParentTerminationLength();
-		int cl = getChildTerminationLength();
+		int tl = getTerminationLength();
 
-		if (parentb.x-pl >= childb.x+childb.width+cl) {
+		if (parentb.x-tl >= childb.x+childb.width+tl) {
 			return PARENT_FACES_LEFT | CHILD_FACES_RIGHT;
-		} else if (parentb.x+parentb.width+pl <= childb.x-cl) {
+		} else if (parentb.x+parentb.width+tl <= childb.x-tl) {
 			return PARENT_FACES_RIGHT | CHILD_FACES_LEFT;
-		} else if (parentb.y-pl >= childb.y+childb.height+cl) {
+		} else if (parentb.y-tl >= childb.y+childb.height+tl) {
 			return PARENT_FACES_TOP | CHILD_FACES_BOTTOM;
-		} else if (parentb.y+parentb.height+pl <= childb.y-cl) {
+		} else if (parentb.y+parentb.height+tl <= childb.y-tl) {
 			return PARENT_FACES_BOTTOM | CHILD_FACES_TOP;
 		} else if (parentb.y >= childb.y+(childb.height/2)) {
 			if (parentb.x+(parentb.width/2) < childb.x) {
@@ -193,13 +237,83 @@ public class BasicRelationshipUI extends RelationshipUI
 		}
 	}
 
-	public int getParentTerminationLength() {
+	/**
+	 * The distance that the termination extends perpendicularly away
+	 * from the table's edge.  If the parent and child terminations
+	 * are different sizes, this returns the maximum of the two.
+	 */
+	public int getTerminationLength() {
 		return 5;
 	}
 
-	public int getChildTerminationLength() {
+	/**
+	 * The distance that the termination extends parallel to the
+	 * table's edge.  If the parent and child terminations are
+	 * different sizes, this returns the maximum of the two.
+	 */
+	public int getTerminationWidth() {
 		return 5;
 	}
+
+	public void updateBounds() {
+		TablePane pkTable = relationship.pkTable;
+		TablePane fkTable = relationship.fkTable;
+		bestConnectionPoints(pkTable, fkTable,
+							 relationship.pkConnectionPoint,  // in pktable-space
+							 relationship.fkConnectionPoint); // in fktable-space
+		Point pkLimits = new Point(relationship.pkConnectionPoint);
+		pkLimits.translate(pkTable.getX(), pkTable.getY());
+		Point fkLimits = new Point(relationship.fkConnectionPoint);
+		fkLimits.translate(fkTable.getX(), fkTable.getY());
+
+		logger.debug("Absolute connection points: pk="+pkLimits+"; fk="+fkLimits);
+
+		// make room for parent decorations
+		if ( (orientation & (PARENT_FACES_RIGHT | PARENT_FACES_LEFT)) != 0) {
+			if (pkLimits.y >= fkLimits.y) {
+				pkLimits.y += getTerminationWidth();
+			} else {
+				pkLimits.y -= getTerminationWidth();
+			}
+		} else {
+			if (pkLimits.x >= fkLimits.x) {
+				pkLimits.x += getTerminationWidth();
+			} else {
+				pkLimits.x -= getTerminationWidth();
+			}
+		}
+
+		// make room for child decorations
+		if ( (orientation & (CHILD_FACES_RIGHT | CHILD_FACES_LEFT)) != 0) {
+			if (fkLimits.y <= relationship.pkConnectionPoint.y + pkTable.getY()) {
+				fkLimits.y -= getTerminationWidth();
+			} else {
+				fkLimits.y += getTerminationWidth();
+			}
+		} else {
+			if (fkLimits.x <= relationship.pkConnectionPoint.x + pkTable.getX()) {
+				fkLimits.x -= getTerminationWidth();
+			} else {
+				fkLimits.x += getTerminationWidth();
+			}
+		}
+
+		logger.debug("Limits: pk="+pkLimits+"; fk="+fkLimits);
+
+		Point topLeft = new Point(Math.min(pkLimits.x,
+										   fkLimits.x),
+								  Math.min(pkLimits.y,
+										   fkLimits.y));
+		Point bottomRight = new Point(Math.max(pkLimits.x,
+											   fkLimits.x),
+									  Math.max(pkLimits.y,
+											   fkLimits.y));
+		Rectangle bounds = new Rectangle(topLeft.x, topLeft.y,
+										 bottomRight.x - topLeft.x, bottomRight.y - topLeft.y);
+		logger.debug("Updating bounds to "+bounds+" (topleft="+topLeft+"; bottomRight="+bottomRight+")");
+		relationship.setBounds(bounds);
+	}
+
 	// --------------- PropertyChangeListener ----------------------
 	public void propertyChange(PropertyChangeEvent e) {
 		logger.debug("BasicRelationshipUI notices change of "+e.getPropertyName()

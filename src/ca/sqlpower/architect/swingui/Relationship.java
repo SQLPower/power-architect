@@ -2,11 +2,13 @@ package ca.sqlpower.architect.swingui;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.*;
+import java.awt.geom.*;
 import ca.sqlpower.architect.*;
 import org.apache.log4j.Logger;
 import java.util.*;
 
-public class Relationship extends JComponent {
+public class Relationship extends JComponent implements Selectable, ComponentListener {
 	private static final Logger logger = Logger.getLogger(Relationship.class);
 
 	protected RelationshipUI ui;
@@ -27,6 +29,12 @@ public class Relationship extends JComponent {
 	 */
 	protected Point fkConnectionPoint;
 
+	/**
+	 * This is the path that the relationship line follows.  It is
+	 * initialised and managed by the RelationshipUI delegate.
+	 */
+	protected GeneralPath path;
+
 	static {
 		UIManager.put(RelationshipUI.UI_CLASS_ID, "ca.sqlpower.architect.swingui.IERelationshipUI");
 	}
@@ -37,13 +45,16 @@ public class Relationship extends JComponent {
 
 	public Relationship(PlayPen pp, TablePane pkTable, TablePane fkTable) throws ArchitectException {
 		updateUI();
+		setOpaque(false);
+		setBackground(Color.green);
 		model = new SQLRelationship();
 		model.setName(pkTable.getModel().getName()+"_"+fkTable.getModel().getName()+"_fk"); // XXX: need to ensure uniqueness!
 		model.setPkTable(pkTable.getModel());
 		model.setFkTable(fkTable.getModel());
 
-		this.pkTable = pkTable;
-		this.fkTable = fkTable;
+		setPkTable(pkTable);
+		setFkTable(fkTable);
+
 		pkTable.getModel().addExportedKey(model);
 		fkTable.getModel().addImportedKey(model);
 
@@ -58,10 +69,9 @@ public class Relationship extends JComponent {
 
 		pkConnectionPoint = new Point();
 		fkConnectionPoint = new Point();
-		recalcConnectionPoints();
+		updateBounds(); // also sets bounds
 
 		setVisible(true);
-		setBounds(1,1,1,1);
 	}
 
     public void updateUI() {
@@ -78,14 +88,41 @@ public class Relationship extends JComponent {
 		return new Point(b.x - a.x, b.y - a.y);
 	}
 
-	protected void recalcConnectionPoints() {
-		ui.bestConnectionPoints(pkTable, fkTable, pkConnectionPoint, fkConnectionPoint);
+	protected void updateBounds() {
+		ui.updateBounds();
 	}
 
 	// -------------------- JComponent overrides -------------------
-	public void paint(Graphics g) {
-		recalcConnectionPoints();
-		super.paint(g);
+
+	// --------------------- SELECTABLE SUPPORT ---------------------
+
+	protected LinkedList selectionListeners = new LinkedList();
+
+	public void addSelectionListener(SelectionListener l) {
+		selectionListeners.add(l);
+	}
+
+	public void removeSelectionListener(SelectionListener l) {
+		selectionListeners.remove(l);
+	}
+	
+	protected void fireSelectionEvent(Selectable source) {
+		SelectionEvent e = new SelectionEvent(source);
+		logger.debug("Notifying "+selectionListeners.size()+" listeners of selection change");
+		Iterator it = selectionListeners.iterator();
+		while (it.hasNext()) {
+			((SelectionListener) it.next()).itemSelected(e);
+		}
+	}
+
+	protected boolean selected;
+
+	public void setSelected(boolean isSelected) {
+		selected = isSelected;
+	}
+
+	public boolean isSelected() {
+		return selected;
 	}
 
 	// -------------------- ACCESSORS AND MUTATORS ---------------------
@@ -103,8 +140,26 @@ public class Relationship extends JComponent {
 		return model;
 	}
 
+	public void setPkTable(TablePane tp) {
+		if (pkTable != null) {
+			pkTable.removeComponentListener(this);
+		}
+		pkTable = tp;
+		pkTable.addComponentListener(this);
+		// XXX: update model?
+	}
+
 	public TablePane getPkTable() {
 		return pkTable;
+	}
+
+	public void setFkTable(TablePane tp) {
+		if (fkTable != null) {
+			fkTable.removeComponentListener(this);
+		}
+		fkTable = tp;
+		fkTable.addComponentListener(this);
+		// XXX: update model?
 	}
 
 	public TablePane getFkTable() {
@@ -117,5 +172,35 @@ public class Relationship extends JComponent {
 
 	public Point getFkConnectionPoint() {
 		return fkConnectionPoint;
+	}
+
+	// ---------------- Component Listener ----------------
+
+	/**
+	 * Recalculates the connection points if the event was generated
+	 * by pkTable or fkTable.
+	 */
+	public void componentMoved(ComponentEvent e) {
+		logger.debug("Component "+e.getComponent().getName()+" moved");
+		if (e.getComponent() == pkTable || e.getComponent() == fkTable) {
+			updateBounds();
+		}
+	}
+
+	/**
+	 * Recalculates the connection points if the event was generated
+	 * by pkTable or fkTable.
+	 */
+	public void componentResized(ComponentEvent e) {
+		logger.debug("Component "+e.getComponent().getName()+" changed size");
+		if (e.getComponent() == pkTable || e.getComponent() == fkTable) {
+			updateBounds();
+		}
+	}
+
+	public void componentShown(ComponentEvent e) {
+	}
+	
+	public void componentHidden(ComponentEvent e) {
 	}
 }

@@ -346,11 +346,16 @@ public class SwingUIProject {
 
 	protected class PPRelationshipFactory extends AbstractObjectCreationFactory {
 		public Object createObject(Attributes attributes) {
-			SQLRelationship rel =
-				(SQLRelationship) objectIdMap.get(attributes.getValue("relationship-ref"));
-			Relationship r = new Relationship(playPen, rel);
-			playPen.addRelationship(r);
-			return r;
+			try {
+				SQLRelationship rel =
+					(SQLRelationship) objectIdMap.get(attributes.getValue("relationship-ref"));
+				Relationship r = new Relationship(playPen, rel);
+				playPen.add(r);
+				return r;
+			} catch (ArchitectException e) {
+				logger.error("Couldn't create relationship component", e);
+				return null;
+			}
 		}
 	}
 

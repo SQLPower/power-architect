@@ -47,11 +47,11 @@ public class IERelationshipUI extends BasicRelationshipUI {
 		}			
 	}
 
-	public int getParentTerminationLength() {
+	public int getTerminationLength() {
 		return 20;
 	}
 
-	public int getChildTerminationLength() {
-		return 14;
+	public int getTerminationWidth() {
+		return 10;
 	}
 }
