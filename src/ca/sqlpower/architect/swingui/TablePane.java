@@ -22,8 +22,8 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.*;
 
 public class TablePane 
-	extends JComponent 
-	implements SQLObjectListener, java.io.Serializable, Selectable, DragSourceListener {
+	extends PlayPenComponent 
+	implements SQLObjectListener, java.io.Serializable, Selectable, DragSourceListener, MouseListener {
 
 	private static final Logger logger = Logger.getLogger(TablePane.class);
 
@@ -80,15 +80,13 @@ public class TablePane
 
 	public TablePane() {
 		setOpaque(true);
-		setMinimumSize(new Dimension(100,200));
-		setPreferredSize(new Dimension(100,200));
-		dt = new DropTarget(this, new TablePaneDropListener());
+		dt = new DropTarget(this, new TablePaneDropListener(this));
 
 		dgl = new TablePaneDragGestureListener();
 		ds = new DragSource();
 		dgr = getToolkit().createDragGestureRecognizer(MouseDragGestureRecognizer.class, ds, this, DnDConstants.ACTION_MOVE, dgl);
 		setInsertionPoint(COLUMN_INDEX_NONE);
-		addMouseListener(new PopupListener());
+		addMouseListener(this);
 		updateUI();
 	}
 
@@ -97,10 +95,14 @@ public class TablePane
 		setModel(m);
 	}
 
-	public void setUI(TablePaneUI ui) {super.setUI(ui);}
+
+	// ---------------------- JComponent Overrides ----------------------
+	// see also PlayPenComponent
+
+	public void setUI(TablePaneUI ui) { super.setUI(ui); }
 
     public void updateUI() {
-		setUI((TablePaneUI)UIManager.getUI(this));
+		setUI((TablePaneUI) UIManager.getUI(this));
 		invalidate();
     }
 
@@ -108,11 +110,26 @@ public class TablePane
         return TablePaneUI.UI_CLASS_ID;
     }
 
+	public Point getLocationOnScreen() {
+		Point p = new Point();
+		PlayPen pp = getPlayPen();
+		getLocation(p);
+		pp.zoomPoint(p);
+		SwingUtilities.convertPointToScreen(p, pp);
+		return p;
+	}
+	
+	// ---------------------- utility methods ----------------------
+
 	/**
 	 * You must call this method when you are done with a TablePane
 	 * component.  It unregisters this instance (and its UI delegate)
 	 * on all event listener lists on which it was previously
 	 * registered.
+	 *
+	 * <p>FIXME: this should be done automatically when the SQLTable
+	 * model is removed, because the TablePane shouldn't have to be
+	 * destroyed separately of the model.
 	 */
 	public void destroy() {
 		try {
@@ -121,6 +138,7 @@ public class TablePane
 			logger.error("Caught exception while unlistening to all children", e);
 		}
 	}
+	
 
 	// -------------------- sqlobject event support ---------------------
 
@@ -251,7 +269,7 @@ public class TablePane
 		} catch (ArchitectException e) {
 			logger.error("Caught exception while listening to new model", e);
 		}
-		setName("TablePanel: "+model.getShortDisplayName());
+		setName("TablePane: "+model.getShortDisplayName());
 
         firePropertyChange("model", old, model);
 	}
@@ -318,10 +336,14 @@ public class TablePane
 		}
 	}
 
+	public DropTarget getDropTarget() {
+		return dt;
+	}
+
 	// --------------------- column selection support --------------------
 
 	public void selectNone() {
-		PlayPen pp = (PlayPen) getParent();
+		PlayPen pp = getPlayPen();
 		for (int i = 0; i < columnSelection.size(); i++) {
 			columnSelection.set(i, Boolean.FALSE);
 		}
@@ -337,7 +359,7 @@ public class TablePane
 			return;
 		}
 		columnSelection.set(i, Boolean.TRUE);
-		PlayPen pp = (PlayPen) getParent();
+		PlayPen pp = getPlayPen();
 	}
 
 	public boolean isColumnSelected(int i) {
@@ -404,27 +426,40 @@ public class TablePane
 	 * at the current mouse position.
 	 */
 	public static class TablePaneDropListener implements DropTargetListener {
+		
+		protected TablePane tp;
+
+		public TablePaneDropListener(TablePane tp) {
+			this.tp = tp;
+		}
 
 		/**
 		 * Called while a drag operation is ongoing, when the mouse
 		 * pointer enters the operable part of the drop site for the
 		 * DropTarget registered with this listener.
+		 *
+		 * <p>NOTE: This method is expected to be called from the
+		 * PlayPen's dragOver method (not directly by Swing), and as
+		 * such the DropTargetContext (and the mouse co-ordinates)
+		 * will be of the PlayPen.
 		 */
 		public void dragEnter(DropTargetDragEvent dtde) {
 			if (logger.isDebugEnabled()) {
-				TablePane tp = (TablePane) dtde.getDropTargetContext().getComponent();
 				logger.debug("DragEnter event on "+tp.getName());
 			}
-			dragOver(dtde);
 		}
 		
 		/**
 		 * Called while a drag operation is ongoing, when the mouse
 		 * pointer has exited the operable part of the drop site for the
 		 * DropTarget registered with this listener.
+		 *
+		 * <p>NOTE: This method is expected to be called from the
+		 * PlayPen's dragOver method (not directly by Swing), and as
+		 * such the DropTargetContext (and the mouse co-ordinates)
+		 * will be of the PlayPen.
 		 */
 		public void dragExit(DropTargetEvent dte) {
-			TablePane tp = (TablePane) dte.getDropTargetContext().getComponent();
 			if (logger.isDebugEnabled()) {
 				logger.debug("DragExit event on "+tp.getName());
 			}
@@ -435,9 +470,13 @@ public class TablePane
 		 * Called when a drag operation is ongoing, while the mouse
 		 * pointer is still over the operable part of the drop site for
 		 * the DropTarget registered with this listener.
+		 *
+		 * <p>NOTE: This method is expected to be called from the
+		 * PlayPen's dragOver method (not directly by Swing), and as
+		 * such the DropTargetContext (and the mouse co-ordinates)
+		 * will be of the PlayPen.
 		 */
 		public void dragOver(DropTargetDragEvent dtde) {
-			TablePane tp = (TablePane) dtde.getDropTargetContext().getComponent();
 			if (logger.isDebugEnabled()) {
 				logger.debug("DragOver event on "+tp.getName()+": "+dtde);
 				logger.debug("Drop Action = "+dtde.getDropAction());
@@ -445,7 +484,10 @@ public class TablePane
 			}
 			dtde.acceptDrag(DnDConstants.ACTION_COPY_OR_MOVE & dtde.getDropAction());
 			try {
-				int idx = tp.pointToColumnIndex(dtde.getLocation());
+				Point loc = tp.getPlayPen().unzoomPoint(new Point(dtde.getLocation()));
+				loc.x -= tp.getX();
+				loc.y -= tp.getY();
+				int idx = tp.pointToColumnIndex(loc);
 				if (idx < 0) idx = 0;
 				tp.setInsertionPoint(idx);
 			} catch (ArchitectException e) {
@@ -457,9 +499,17 @@ public class TablePane
 		 * Called when the drag operation has terminated with a drop on
 		 * the operable part of the drop site for the DropTarget
 		 * registered with this listener.
+		 *
+		 * <p>NOTE: This method is expected to be called from the
+		 * PlayPen's dragOver method (not directly by Swing), and as
+		 * such the DropTargetContext (and the mouse co-ordinates)
+		 * will be of the PlayPen.
 		 */
 		public void drop(DropTargetDropEvent dtde) {
-			TablePane tp = (TablePane) dtde.getDropTargetContext().getComponent();
+			Point loc = tp.getPlayPen().unzoomPoint(new Point(dtde.getLocation()));
+			loc.x -= tp.getX();
+			loc.y -= tp.getY();
+
 			logger.debug("Drop target drop event on "+tp.getName()+": "+dtde);
 			Transferable t = dtde.getTransferable();
 			DataFlavor importFlavor = bestImportFlavor(tp, t.getTransferDataFlavors());
@@ -469,7 +519,7 @@ public class TablePane
 			} else {
 				try {
 					DBTree dbtree = ArchitectFrame.getMainInstance().dbTree;  // XXX: bad
-					int insertionPoint = tp.pointToColumnIndex(dtde.getLocation());
+					int insertionPoint = tp.pointToColumnIndex(loc);
 					if (insertionPoint < 0) insertionPoint = 0;
 					ArrayList paths = (ArrayList) t.getTransferData(importFlavor);
 					logger.debug("Importing items from tree: "+paths);
@@ -578,23 +628,34 @@ public class TablePane
 			TablePane tp = (TablePane) dge.getComponent();
 			int colIndex = COLUMN_INDEX_NONE;
 
+			// XXX: this should not be necessary, but the recognizer
+			// seems to see these points in PlayPen-space rather than
+			// TablePane space!
+			Point dragOrigin = tp.getPlayPen().unzoomPoint(new Point(dge.getDragOrigin()));
+			dragOrigin.x -= tp.getX();
+			dragOrigin.y -= tp.getY();
+
 			// ignore drag events that aren't from the left mouse button
 			if (dge.getTriggerEvent() instanceof MouseEvent
 			   && (dge.getTriggerEvent().getModifiers() & InputEvent.BUTTON1_MASK) == 0)
 				return;
 			
 			try {
-				colIndex = tp.pointToColumnIndex(dge.getDragOrigin());
+				colIndex = tp.pointToColumnIndex(dragOrigin);
 			} catch (ArchitectException e) {
 				logger.error("Got exception while translating drag point", e);
 			}
-			logger.debug("Recognized drag gesture! col="+colIndex);
-			if (colIndex == COLUMN_INDEX_TITLE) {
-				new PlayPen.FloatingTableListener((PlayPen) tp.getParent(), tp, dge.getDragOrigin());
-			} else if (colIndex >= 0) {
-				// export column as DnD event
-				logger.debug("Exporting column with DnD");
-				try {
+			logger.debug("Recognized drag gesture on "+tp.getName()+"! origin="+dragOrigin
+						 +"; col="+colIndex);
+
+			try {
+				if (colIndex == COLUMN_INDEX_TITLE) {
+					// we don't use this because it often misses drags
+					// that start near the edge of the titlebar
+					logger.debug("Discarding drag on titlebar (handled by mousePressed())");
+				} else if (colIndex >= 0 && colIndex < tp.model.getColumns().size()) {
+					// export column as DnD event
+					if (logger.isDebugEnabled()) logger.debug("Exporting column "+colIndex+" with DnD");
 					tp.draggingColumn = tp.model.getColumn(colIndex);
 					DBTree tree = ArchitectFrame.getMainInstance().dbTree;
 					int[] path = tree.getDnDPathToNode(tp.draggingColumn);
@@ -615,78 +676,96 @@ public class TablePane
 						 null, //DragSource.DefaultCopyNoDrop, 
 						 new DnDTreePathTransferable(paths),
 						 tp);
-				} catch (ArchitectException ex) {
-					logger.error("Couldn't drag column", ex);
-					JOptionPane.showMessageDialog(tp, "Can't drag column: "+ex.getMessage());
 				}
+			} catch (ArchitectException ex) {
+				logger.error("Couldn't drag column", ex);
+				JOptionPane.showMessageDialog(tp, "Can't drag column: "+ex.getMessage());
 			}
 		}
 	}
 
-	public static class PopupListener extends MouseAdapter {
+	// ---------------------- MOUSE LISTENER ----------------------
 
-		/**
-		 * Double-click support.
-		 */
-		public void mouseClicked(MouseEvent evt) {
-			if (evt.getClickCount() == 2) {
-				TablePane tp = (TablePane) evt.getSource();
-				if (tp.isSelected()) {
-					ArchitectFrame af = ArchitectFrame.getMainInstance();
-					int selectedColIndex = tp.getSelectedColumnIndex();
-					if (selectedColIndex == COLUMN_INDEX_NONE) {
-						af.editTableAction.actionPerformed
-							(new ActionEvent(tp, ActionEvent.ACTION_PERFORMED, "DoubleClick"));
-					} else if (selectedColIndex >= 0) {
-						af.editColumnAction.actionPerformed
-							(new ActionEvent(tp, ActionEvent.ACTION_PERFORMED, "DoubleClick"));
-					}
+	/**
+	 * Double-click support.
+	 */
+	public void mouseClicked(MouseEvent evt) {
+		if (evt.getClickCount() == 2) {
+			TablePane tp = (TablePane) evt.getSource();
+			if (tp.isSelected()) {
+				ArchitectFrame af = ArchitectFrame.getMainInstance();
+				int selectedColIndex = tp.getSelectedColumnIndex();
+				if (selectedColIndex == COLUMN_INDEX_NONE) {
+					af.editTableAction.actionPerformed
+						(new ActionEvent(tp, ActionEvent.ACTION_PERFORMED, "DoubleClick"));
+				} else if (selectedColIndex >= 0) {
+					af.editColumnAction.actionPerformed
+						(new ActionEvent(tp, ActionEvent.ACTION_PERFORMED, "DoubleClick"));
 				}
 			}
 		}
+	}
+	
+	public void mousePressed(MouseEvent evt) {
+		evt.getComponent().requestFocus();
 
-		public void mousePressed(MouseEvent evt) {
-			evt.getComponent().requestFocus();
+		if ((evt.getModifiers() & MouseEvent.BUTTON1_MASK) != 0) {
 
-			// table/column selection
-			if ((evt.getModifiers() & MouseEvent.BUTTON1_MASK) != 0) {
+			try {
+				
+				// table/column selection
 				TablePane tp = (TablePane) evt.getComponent();
-				PlayPen pp = (PlayPen) tp.getParent();
-				try {
-					pp.selectNone();
-					tp.setSelected(true);
-					tp.selectNone();
-					tp.selectColumn(tp.pointToColumnIndex(evt.getPoint()));
-				} catch (ArchitectException e) {
-					logger.error("Exception converting point to column", e);
-				}
-			}
-
-			maybeShowPopup(evt);
-		}
-
-		public void mouseReleased(MouseEvent evt) {
-			maybeShowPopup(evt);
-		}
-
-		public void maybeShowPopup(MouseEvent evt) {
-			if (evt.isPopupTrigger() && !evt.isConsumed()) {
-				TablePane tp = (TablePane) evt.getComponent();
-				PlayPen pp = (PlayPen) tp.getParent();
+				PlayPen pp = (PlayPen) tp.getPlayPen();
+				int clickCol = tp.pointToColumnIndex(evt.getPoint());
 				pp.selectNone();
 				tp.setSelected(true);
-				try {
-					tp.selectNone();
-					int idx = tp.pointToColumnIndex(evt.getPoint());
-					if (idx >= 0) {
-						tp.selectColumn(idx);
-					}
-				} catch (ArchitectException e) {
-					logger.error("Exception converting point to column", e);
-					return;
+				tp.selectNone();
+				if (clickCol < tp.model.getColumns().size()) {
+					tp.selectColumn(clickCol);
 				}
-				pp.tablePanePopup.show(tp, evt.getX(), evt.getY());
+				
+				// dragging
+				if (clickCol == COLUMN_INDEX_TITLE) {
+					Point handle = getPlayPen().zoomPoint(new Point(evt.getPoint()));
+					new PlayPen.FloatingTableListener(getPlayPen(), this, handle);
+				}
+				
+			} catch (ArchitectException e) {
+				logger.error("Exception converting point to column", e);
 			}
+		}
+
+		
+		maybeShowPopup(evt);
+	}
+	
+	public void mouseReleased(MouseEvent evt) {
+		maybeShowPopup(evt);
+	}
+
+	public void mouseEntered(MouseEvent evt) {
+	}
+
+	public void mouseExited(MouseEvent evt) {
+	}
+	
+	public void maybeShowPopup(MouseEvent evt) {
+		if (evt.isPopupTrigger() && !evt.isConsumed()) {
+			TablePane tp = (TablePane) evt.getComponent();
+			PlayPen pp = tp.getPlayPen();
+			pp.selectNone();
+			tp.setSelected(true);
+			try {
+				tp.selectNone();
+				int idx = tp.pointToColumnIndex(evt.getPoint());
+				if (idx >= 0) {
+					tp.selectColumn(idx);
+				}
+			} catch (ArchitectException e) {
+				logger.error("Exception converting point to column", e);
+				return;
+			}
+			tp.showPopup(pp.tablePanePopup, evt.getPoint());
 		}
 	}
 	

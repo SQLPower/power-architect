@@ -8,7 +8,7 @@ import ca.sqlpower.architect.*;
 import org.apache.log4j.Logger;
 import java.util.*;
 
-public class Relationship extends JComponent implements Selectable, ComponentListener, SQLObjectListener {
+public class Relationship extends PlayPenComponent implements Selectable, ComponentListener, MouseListener, SQLObjectListener {
 	private static final Logger logger = Logger.getLogger(Relationship.class);
 
 	protected RelationshipUI ui;
@@ -95,6 +95,7 @@ public class Relationship extends JComponent implements Selectable, ComponentLis
 		updateBounds(); // also sets bounds
 		createPopup();
 		setVisible(true);
+		addMouseListener(this);
 	}
 
 	protected void createPopup() {
@@ -108,8 +109,6 @@ public class Relationship extends JComponent implements Selectable, ComponentLis
 
 		mi = new JMenuItem(af.deleteSelectedAction);
 		popup.add(mi);
-
-		addMouseListener(new PopupListener());
 	}
 
     public void updateUI() {
@@ -244,44 +243,50 @@ public class Relationship extends JComponent implements Selectable, ComponentLis
 	public void componentHidden(ComponentEvent e) {
 	}
 
-	// --------------- mouse listener --------------------
-	public static class PopupListener extends MouseAdapter {
+	// ------------------ MOUSE LISTENER --------------------
 
-		/**
-		 * Double-click support.
-		 */
-		public void mouseClicked(MouseEvent evt) {
-			if (evt.getClickCount() == 2) {
-				ArchitectFrame.getMainInstance().editRelationshipAction.actionPerformed
-					(new ActionEvent(evt.getSource(), ActionEvent.ACTION_PERFORMED, "DoubleClick"));
-			}
+	/**
+	 * Double-click support.
+	 */
+	public void mouseClicked(MouseEvent evt) {
+		if (evt.getClickCount() == 2) {
+			ArchitectFrame.getMainInstance().editRelationshipAction.actionPerformed
+				(new ActionEvent(evt.getSource(),
+								 ActionEvent.ACTION_PERFORMED,
+								 "DoubleClick"));
 		}
-
-		public void mousePressed(MouseEvent evt) {
-			evt.getComponent().requestFocus();
-			maybeShowPopup(evt);
+	}
+	
+	public void mousePressed(MouseEvent evt) {
+		evt.getComponent().requestFocus();
+		maybeShowPopup(evt);
+	}
+	
+	public void mouseReleased(MouseEvent evt) {
+		maybeShowPopup(evt);
+		
+		// selection
+		if ((evt.getModifiers() & MouseEvent.BUTTON1_MASK) != 0) {
+			Relationship r = (Relationship) evt.getComponent();
+			PlayPen pp = (PlayPen) r.getPlayPen();
+			pp.selectNone();
+			r.setSelected(true);
 		}
+	}
 
-		public void mouseReleased(MouseEvent evt) {
-			maybeShowPopup(evt);
+	public void mouseEntered(MouseEvent evt) {
+	}
 
-			// selection
-			if ((evt.getModifiers() & MouseEvent.BUTTON1_MASK) != 0) {
-				Relationship r = (Relationship) evt.getComponent();
-				PlayPen pp = (PlayPen) r.getParent();
-				pp.selectNone();
-				r.setSelected(true);
-			}
-		}
-
-		public void maybeShowPopup(MouseEvent evt) {
-			if (evt.isPopupTrigger() && !evt.isConsumed()) {
-				Relationship r = (Relationship) evt.getComponent();
-				PlayPen pp = (PlayPen) r.getParent();
-				pp.selectNone();
-				r.setSelected(true);
-				r.popup.show(r, evt.getX(), evt.getY());
-			}
+	public void mouseExited(MouseEvent evt) {
+	}
+	
+	public void maybeShowPopup(MouseEvent evt) {
+		if (evt.isPopupTrigger() && !evt.isConsumed()) {
+			Relationship r = (Relationship) evt.getComponent();
+			PlayPen pp = (PlayPen) r.getPlayPen();
+			pp.selectNone();
+			r.setSelected(true);
+			r.showPopup(r.popup, evt.getPoint());
 		}
 	}
 
