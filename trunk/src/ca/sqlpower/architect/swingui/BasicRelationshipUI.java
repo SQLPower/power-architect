@@ -21,6 +21,8 @@ public class BasicRelationshipUI extends RelationshipUI
 
 	protected int orientation;
 
+	protected Rectangle computedBounds;
+
 	/**
 	 * This is the path that the relationship line follows.
 	 */
@@ -28,9 +30,7 @@ public class BasicRelationshipUI extends RelationshipUI
 
 	protected Color selectedColor = new Color(204, 204, 255);
 	protected Color unselectedColor = Color.black;
-
 	protected BasicStroke nonIdStroke = new BasicStroke(1.0f);
-
 	protected BasicStroke idStroke = new BasicStroke(1.0f);
 
 	/**
@@ -77,7 +77,15 @@ public class BasicRelationshipUI extends RelationshipUI
 		logger.debug("BasicRelationshipUI is painting");
 		Relationship r = (Relationship) c;
 		Graphics2D g2 = (Graphics2D) g;
+
 		g2.translate(c.getX() * -1, c.getY() * -1); // playpen coordinate space
+
+		if (logger.isDebugEnabled()) {
+			g2.setColor(c.getBackground());
+			Rectangle bounds = c.getBounds();
+			g2.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
+			g2.setColor(c.getForeground());
+		}
 
 		try {
 			Point pktloc = r.getPkConnectionPoint();
@@ -93,7 +101,7 @@ public class BasicRelationshipUI extends RelationshipUI
 			} else {
 				path.reset();
 			}
-			orientation = getFacingEdges(relationship.getPkTable(), relationship.getFkTable());
+
 			if ( (orientation & (PARENT_FACES_LEFT | PARENT_FACES_RIGHT)) != 0
 				 && (orientation & (CHILD_FACES_LEFT | CHILD_FACES_RIGHT)) != 0) {
 				int midx = (Math.abs(end.x - start.x) / 2) + Math.min(start.x, end.x);
@@ -287,18 +295,39 @@ public class BasicRelationshipUI extends RelationshipUI
 		return nonIdStroke;
 	}
 
-	public void updateBounds() {
+	/**
+	 * Figures out if the current orientation is legal, given the
+	 * current pkTable and fkTable positions.
+	 *
+	 * <p>XXX: answers false sometimes when true would be more
+	 * correct.  A more sophisticated implementation is warranted when
+	 * time allows.
+	 */
+	public boolean isOrientationLegal() {
+		return orientation == getFacingEdges(relationship.pkTable, relationship.fkTable);
+	}
+
+	protected void computeBounds() {
+		// XXX: should check for valid cached bounds before recomputing!
+
 		TablePane pkTable = relationship.pkTable;
 		TablePane fkTable = relationship.fkTable;
-		bestConnectionPoints(pkTable, fkTable,
-							 relationship.pkConnectionPoint,  // in pktable-space
-							 relationship.fkConnectionPoint); // in fktable-space
+
+		if (!isOrientationLegal()) {
+			// bestConnectionPoints also updates orientation as a side effect
+			bestConnectionPoints(pkTable, fkTable,
+								 relationship.pkConnectionPoint,  // in pktable-space
+								 relationship.fkConnectionPoint); // in fktable-space
+		}
+
 		Point pkLimits = new Point(relationship.pkConnectionPoint);
 		pkLimits.translate(pkTable.getX(), pkTable.getY());
 		Point fkLimits = new Point(relationship.fkConnectionPoint);
 		fkLimits.translate(fkTable.getX(), fkTable.getY());
 
-		logger.debug("Absolute connection points: pk="+pkLimits+"; fk="+fkLimits);
+		if (logger.isDebugEnabled()) {
+			logger.debug("Absolute connection points: pk="+pkLimits+"; fk="+fkLimits);
+		}
 
 		// make room for parent decorations
 		if ( (orientation & (PARENT_FACES_RIGHT | PARENT_FACES_LEFT)) != 0) {
@@ -330,7 +359,7 @@ public class BasicRelationshipUI extends RelationshipUI
 			}
 		}
 
-		logger.debug("Limits: pk="+pkLimits+"; fk="+fkLimits);
+		if (logger.isDebugEnabled()) logger.debug("Limits: pk="+pkLimits+"; fk="+fkLimits);
 
 		Point topLeft = new Point(Math.min(pkLimits.x,
 										   fkLimits.x),
@@ -340,11 +369,55 @@ public class BasicRelationshipUI extends RelationshipUI
 											   fkLimits.x),
 									  Math.max(pkLimits.y,
 											   fkLimits.y));
-		Rectangle bounds = new Rectangle(topLeft.x, topLeft.y,
-										 bottomRight.x - topLeft.x, bottomRight.y - topLeft.y);
-		logger.debug("Updating bounds to "+bounds+" (topleft="+topLeft+"; bottomRight="+bottomRight+")");
-		relationship.setBounds(bounds);
+		computedBounds = new Rectangle(topLeft.x, topLeft.y,
+									   bottomRight.x - topLeft.x, bottomRight.y - topLeft.y);
+		if (logger.isDebugEnabled()) {
+			logger.debug("Updating bounds to "+computedBounds
+						 +" (topleft="+topLeft+"; bottomRight="+bottomRight+")");
+		}
 	}
+
+	public Dimension getPreferredSize(JComponent c) {
+		computeBounds();
+		if (logger.isDebugEnabled()) {
+			logger.debug("[31mComputed size is ["+computedBounds.width+","+computedBounds.height+"][0m");
+		}
+		return new Dimension(computedBounds.width, computedBounds.height);
+	}
+
+	public Point getPreferredLocation() {
+		computeBounds();
+		if (logger.isDebugEnabled()) {
+			logger.debug("[31mComputed locn is ["+computedBounds.x+","+computedBounds.y+"][0m");
+		}
+		return new Point(computedBounds.x, computedBounds.y);
+	}
+
+	/**
+	 * Determines if the given point (in this Relationship's
+	 * co-ordinates) is in the region defined as the primary key
+	 * decoration.  This is useful for determining the behaviour of
+	 * clicks and drags.
+	 */
+	public boolean isOverPkDecoration(Point p) {
+		Point pkDec = new Point
+		 (relationship.pkConnectionPoint.x + relationship.pkTable.getX() - relationship.getX(),
+		  relationship.pkConnectionPoint.y + relationship.pkTable.getY() - relationship.getY());
+		if (logger.isDebugEnabled()) logger.debug("p="+p+"; pkDec = "+pkDec);
+		return ASUtils.distance(p, pkDec) < Math.max(getTerminationWidth(), getTerminationLength());
+	}
+
+	/**
+	 * Determines if the given point (in this Relationship's
+	 * co-ordinates) is in the region defined as the primary key
+	 * decoration.  This is useful for determining the behaviour of
+	 * clicks and drags.
+	 */
+	public boolean isOverFkDecoration(Point p) {
+		Point fkDec = new Point
+		 (relationship.fkConnectionPoint.x + relationship.fkTable.getX() - relationship.getX(),
+		  relationship.fkConnectionPoint.y + relationship.fkTable.getY() - relationship.getY());
+		return ASUtils.distance(p, fkDec) < Math.max(getTerminationWidth(), getTerminationLength());	}
 
 	// --------------- PropertyChangeListener ----------------------
 	public void propertyChange(PropertyChangeEvent e) {

@@ -2,6 +2,7 @@ package ca.sqlpower.architect.swingui;
 
 import java.util.*;
 import java.io.File;
+import java.awt.Point;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.*;
 import org.apache.log4j.Logger;
@@ -14,6 +15,8 @@ import org.apache.log4j.Logger;
 public class ASUtils {
 	private static final Logger logger = Logger.getLogger(ASUtils.class);
 
+	private ASUtils() {}
+
 	/**
 	 * Short-form convenience method for
 	 * <code>new ArchitectSwingUtils.LabelValueBean(label,value)</code>.
@@ -22,6 +25,14 @@ public class ASUtils {
 		return new LabelValueBean(label, value);
 	}
 
+	/**
+	 * Returns the length of the shortest line from p1 to p2.
+	 */
+	public static double distance(Point p1, Point p2) {
+		double dx = p1.x - p2.x;
+		double dy = p1.y - p2.y;
+		return Math.sqrt(dx*dx + dy*dy);
+	}
 
 	/**
 	 * Useful for combo boxes where you want the user to see the label

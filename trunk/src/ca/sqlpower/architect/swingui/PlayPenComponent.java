@@ -45,6 +45,7 @@ public abstract class PlayPenComponent extends JComponent {
 	 */
 	public void revalidate() {
 		setSize(getPreferredSize());
+		setLocation(getPreferredLocation());
 		PlayPen pp = getPlayPen();
 		if (pp == null) {
 			logger.debug("getPlayPen() returned null.  Not generating repaint request.");
@@ -75,7 +76,20 @@ public abstract class PlayPenComponent extends JComponent {
 						  (int) Math.ceil((double) r.width * zoom),
 						  (int) Math.ceil((double) r.height * zoom));
 		}
+		if (logger.isDebugEnabled()) {
+			logger.debug("[36mUpdating bounds on "+getName()
+						 +" to ["+x+","+y+","+width+","+height+"][0m");
+		}
 		super.setBounds(x, y, width, height);
+	}
+
+	/**
+	 * The revalidate() call uses this to determine the component's
+	 * correct location.  This implementation just returns the current
+	 * location.  Override it if you need to be moved during validation.
+	 */
+	public Point getPreferredLocation() {
+		return getLocation();
 	}
 
 	/**
