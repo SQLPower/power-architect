@@ -277,7 +277,12 @@ public class ArchitectFrame extends JFrame {
 	 * Points all the actions to the correct PlayPen and DBTree
 	 * instances.  This method is called by setProject.
 	 */
-	protected void setupActions() {
+
+	 public SwingUIProject getProject(){
+		 return this.project;
+	 }
+	 
+	 protected void setupActions() {
 		printAction.setPlayPen(playpen);
 		deleteSelectedAction.setPlayPen(playpen);
 		editColumnAction.setPlayPen(playpen);

@@ -72,6 +72,36 @@ public class EditTableAction extends AbstractAction {
 			JPanel mcp = new JPanel(new BorderLayout(12,12));
 			mcp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
 			//
+			String[] columnNames = {"SourceDB",
+                                    "Source Table",
+                                    "Source Column",
+                                    "Source Column Type",
+                                    "Target Column",
+									"Target Column Type"};
+			SQLTable tTable = (SQLTable)tp.getModel();
+			
+			try {
+				int colnum = tTable.getColumnsFolder().getChildCount();
+				for (int i=0;i<=(colnum-1);i++) {
+					SQLColumn tCol = (SQLColumn) tTable.getColumn(i);
+					String tColName = tCol.getName();
+					SQLColumn sCol= tCol.getSourceColumn();
+					String sColName = new String();
+					StringBuffer sTableName = new StringBuffer();
+					if(sCol != null){
+						sColName = sCol.getName();
+						SQLObject sParent = sCol.getParentTable();
+						while (sParent != null) {
+							sTableName.append(sParent.getName());
+							
+						}
+					}
+				}
+			} catch (ArchitectException ae){
+				logger.debug( "Column problems"+ae);
+			}	
+			
+			
 			JTable mapTable = new JTable();
 			JScrollPane scrollpMap = new JScrollPane(mapTable);
             mcp.add(scrollpMap,BorderLayout.NORTH);

@@ -9,6 +9,7 @@ import java.awt.FlowLayout;
 import java.awt.Component;
 import java.awt.event.*;
 import java.util.*;
+import java.io.*;
 
 import org.apache.log4j.Logger;
 
@@ -21,8 +22,9 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 	protected DBConnectionSpec dbcs;
 	protected TextPanel form;
 	protected Vector history;
+	protected Vector plodbc;
 	protected JComboBox historyBox;
-	protected JTextField plODBCSourceName;
+	protected JComboBox plODBCSourceName;
 	protected JTextField plRepOwner;
 	protected JTextField plFolderName;
 	protected JTextField plJobId;
@@ -30,17 +32,20 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 	protected JTextField plJobComment;
 	protected JTextField plOutputTableOwner;
 	protected JCheckBox  runPLEngine;
+	protected String     projName;
 	private Map jdbcDrivers;
 	private JButton newConnButton;
 	
 	public PLExportPanel() {
 		setLayout(new BorderLayout());
 		ArchitectFrame af = ArchitectFrame.getMainInstance();
-
+		SwingUIProject project = af.getProject();
+		projName = new String(project.getName());
 		newConnButton= new JButton("New");
 		newConnButton.addActionListener(new NewConnectionListener());
 
 		List connectionHistory = af.prefs.getConnections();
+		List plOdbcCon = getPLDBConnection("C:\\workarea\\pltest_april\\");
 		history = new Vector();
 		history.add(ASUtils.lvb("(Select PL Connection)", null));
 		Iterator it = connectionHistory.iterator();
@@ -50,11 +55,19 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		}
 		historyBox = new JComboBox(history);
 		historyBox.addActionListener(new HistoryBoxListener());
-		plODBCSourceName = new JTextField();
-		plODBCSourceName.addFocusListener(new ODBCSourceFocusListener());
+		plodbc = new Vector();
+		plodbc.add(ASUtils.lvb("(Select PL ODBC Connection)", null));
+		Iterator itO = plOdbcCon.iterator();
+		while (itO.hasNext()) {
+			PLdbConn plcon = (PLdbConn) itO.next();
+			plodbc.add(ASUtils.lvb(plcon.getLogical(), plcon));
+		}
+		plODBCSourceName = new JComboBox(plodbc);
+		plODBCSourceName.addActionListener(new ODBCSourceListener());
 		runPLEngine = new JCheckBox();
 		runPLEngine.setEnabled(false);
-		
+		plFolderName = new JTextField(projName+"_Folder");
+		plJobId      = new JTextField(projName+"_Job");
 		JPanel connectPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         connectPanel.add(historyBox);
 		connectPanel.add(newConnButton);
@@ -62,8 +75,8 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		JComponent[] fields = new JComponent[] {connectPanel,
 												plODBCSourceName,
 												plRepOwner = new JTextField(),
-												plFolderName = new JTextField(),
-												plJobId = new JTextField(),
+												plFolderName,
+												plJobId,
 												plJobDescription = new JTextField(),
 												plJobComment = new JTextField(),
 												plOutputTableOwner = new JTextField(),
@@ -75,7 +88,7 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 										"Job Id",
 										"Job Description",
 										"Job Comment",
-										"Output Table Owner",
+										"Target Schema Owner",
 										"Run Engine"};
 
 		char[] mnemonics = new char[] {'p', 's', 'r', 'f', 'i', 'd', 'c', 'o','e'};
@@ -102,24 +115,22 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		}
 	}
 
-	public class ODBCSourceFocusListener  implements FocusListener {
-		public ODBCSourceFocusListener(){
-			//I'm interested in lost focus 
-		}
-	    public void focusGained(FocusEvent e) {
-			// nothing
-		}
-
-		public void focusLost(FocusEvent e) {
-			if( ((plODBCSourceName.getText()).equals(null)) || ((plODBCSourceName.getText()).length() == 0 )){
-				runPLEngine.setSelected(false);
+	public class ODBCSourceListener  implements ActionListener {
+		public void actionPerformed(ActionEvent e) {
+			ASUtils.LabelValueBean lvb = (ASUtils.LabelValueBean) plODBCSourceName.getSelectedItem();
+			if (lvb.getValue() == null) {
+			    runPLEngine.setSelected(false);
 				runPLEngine.setEnabled(false);
-			} else {
+				plRepOwner.setText(null);
+   		    } else {
 				runPLEngine.setEnabled(true);
+				PLdbConn pldbcon = (PLdbConn) lvb.getValue();	
+				plRepOwner.setText(pldbcon.getPlsOwner());
+				
 			}
 		}
-
 	}
+
 	
 	public class NewConnectionListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
@@ -137,7 +148,7 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 						public void actionPerformed(ActionEvent evt) {
 							dbcs = new DBConnectionSpec();
 							dbcsPanel.applyChanges(dbcs);
-							history.add(ASUtils.lvb(dbcs.getDisplayName(), dbcs));
+							historyBox.addItem(ASUtils.lvb(dbcs.getDisplayName(), dbcs));
 							d.setVisible(false);
 							
 						}
@@ -177,6 +188,83 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		return 0;
 	}
 
+	public List getPLDBConnection(String plPath){
+		List odbc = new ArrayList();
+		PLdbConn plconn =  new PLdbConn();
+		String fileIni = plPath+"pl.ini";
+		File inputFile = new File(fileIni);
+		try {
+			FileReader in = new FileReader(inputFile);
+			StringBuffer line = new StringBuffer();
+			String label[] = new String[]{"Logical=",
+										  "Type=",
+										  "PL Schema Owner=",
+										  "TNS Name=",
+										  "Database Name="};
+			String       type = "";
+			String       plOwner;
+			String       dbName;
+			int c;
+			int jj = 0;
+			while ((c = in.read()) != -1) {
+				if ( c != 13){
+					line.append((char)c);
+				} else {
+					c = in.read();
+					int k;
+					if ((k = line.indexOf(label[jj])) >= 0){
+					  if (label[jj].equals("Logical=")) {
+						  	plconn =  new PLdbConn();
+							plconn.setLogical(line.substring(k+8));
+							//odbc.add(line.substring(k+8));
+							System.out.println(line.substring(k+8));
+							jj++;
+					  } else {
+						  if (label[jj].equals("Type=")){
+						  	plconn.setDbType(line.substring(k+5));
+							type = line.substring(k+5);
+							System.out.println(line.substring(k+5));
+							jj++;
+						  } else {
+							  if (label[jj].equals("PL Schema Owner=")){
+						         plconn.setPlsOwner(line.substring(k+16));
+								 plOwner = line.substring(k+16);
+							     System.out.println(line.substring(k+16));
+							   	 if ((type.toUpperCase()).equals("ORACLE")){
+								    jj++;
+							     } else {
+								    jj = jj+2;
+							     }
+							  } else {
+								 if (label[jj].equals("TNS Name=") || label[jj].equals("Database Name=")){
+								     if (label[jj].equals("TNS Name=")){
+										dbName =  line.substring(k+9);
+									 } else {
+									    dbName =  line.substring(k+14);
+									 }	
+									 plconn.setDbName(dbName);
+									 odbc.add(plconn);
+							         System.out.println(line.substring(k+9));
+							         jj = 0;
+							     }
+							  }	 
+					      }
+					   }
+					} else {
+					  // System.out.println("*"+line);
+					}
+					  //odbc.add(line.substring(k+8));
+					  //System.out.println(line.substring(k+8));
+					  line.setLength(0);
+				}  
+            }
+        in.close();
+    } catch (IOException ie){
+		System.out.println( "File PL.ini not found in specified path");
+    }    
+    return odbc;
+}
+
 	// -------------------- ARCHITECT PANEL INTERFACE -----------------------
 
 	/**
@@ -200,7 +288,13 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 	 * returns values typed in panel
 	 */
 	 public String getPlODBCSourceName(){
-		 return plODBCSourceName.getText();
+		 ASUtils.LabelValueBean lvb = (ASUtils.LabelValueBean) plODBCSourceName.getSelectedItem();
+		 if (lvb.getValue() != null) {
+			 PLdbConn	odbcSource = (PLdbConn) lvb.getValue();
+			 return  odbcSource.getLogical();
+		 } else {
+			  return null;
+		 }	  
 	 }	 
 	 
 	 public String getPlRepOwner(){
