@@ -24,6 +24,9 @@ public class SwingUserSettings {
 	public static final String MAIN_FRAME_HEIGHT
 		= "ca.sqlpower.architect.swing.SwingUserSettings.MAIN_FRAME_HEIGHT";
 
+	public static final String ICON_SIZE
+		= "ca.sqlpower.architect.swing.SwingUserSettings.ICON_SIZE";
+
 	protected Map settings;
 
 	public SwingUserSettings() {

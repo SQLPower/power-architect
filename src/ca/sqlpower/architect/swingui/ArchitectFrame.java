@@ -35,50 +35,10 @@ public class ArchitectFrame extends JFrame {
 	protected PlayPen playpen = null;
 	protected DBTree dbTree = null;
 	
-	protected Action newProjectAction = new AbstractAction("New Project") {
-			public void actionPerformed(ActionEvent e) {
-				try {
-					setProject(new SwingUIProject("New Project"));
-				} catch (Exception ex) {
-					JOptionPane.showMessageDialog(ArchitectFrame.this,
-												  "Can't create new project: "+ex.getMessage());
-					logger.error("Got exception while creating new project", ex);
-				}
-			}
-		};
-
-	protected Action openProjectAction = new AbstractAction("Open Project...") {
-			public void actionPerformed(ActionEvent e) {
-				JFileChooser chooser = new JFileChooser();
-				chooser.addChoosableFileFilter(ASUtils.architectFileFilter);
-				int returnVal = chooser.showOpenDialog(ArchitectFrame.this);
-				if (returnVal == JFileChooser.APPROVE_OPTION) {
-					try {
-						SwingUIProject project = new SwingUIProject("Loading...");
-						project.setFile(chooser.getSelectedFile());
-						project.load();
-						setProject(project);
-					} catch (Exception ex) {
-						JOptionPane.showMessageDialog(ArchitectFrame.this,
-													  "Can't open project: "+ex.getMessage());
-						logger.error("Got exception while opening project", ex);
-					}
-				}
-			}
-		};
-
-	protected Action saveProjectAction = new AbstractAction("Save Project") {
-			public void actionPerformed(ActionEvent e) {
-				saveOrSaveAs(false);
-			}
-		};
-
-	protected Action saveProjectAsAction = new AbstractAction("Save Project As...") {
-			public void actionPerformed(ActionEvent e) {
-				saveOrSaveAs(true);
-			}
-		};
-
+	protected Action newProjectAction;
+	protected Action openProjectAction;
+	protected Action saveProjectAction;
+	protected Action saveProjectAsAction;
 	protected EditColumnAction editColumnAction;
 	protected InsertColumnAction insertColumnAction;
 	protected DeleteColumnAction deleteColumnAction;
@@ -87,6 +47,7 @@ public class ArchitectFrame extends JFrame {
 	protected CreateTableAction createTableAction;
 	protected CreateRelationshipAction createRelationshipAction;
 	protected EditRelationshipAction editRelationshipAction;
+	protected DeleteRelationshipAction deleteRelationshipAction;
 	protected Action exportDDLAction;
 
 	protected Action exitAction = new AbstractAction("Exit") {
@@ -131,9 +92,68 @@ public class ArchitectFrame extends JFrame {
 		cp.setLayout(new BorderLayout());
 
 		// Create actions
+		newProjectAction
+			 = new AbstractAction("New Project",
+								 ASUtils.createJLFIcon("general/New",
+													   "New Project",
+													   sprefs.getInt(sprefs.ICON_SIZE, 24))) {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					setProject(new SwingUIProject("New Project"));
+				} catch (Exception ex) {
+					JOptionPane.showMessageDialog(ArchitectFrame.this,
+												  "Can't create new project: "+ex.getMessage());
+					logger.error("Got exception while creating new project", ex);
+				}
+			}
+		};
+
+		openProjectAction
+			= new AbstractAction("Open Project...",
+								 ASUtils.createJLFIcon("general/Open",
+													   "Open Project",
+													   sprefs.getInt(sprefs.ICON_SIZE, 24))) {
+					public void actionPerformed(ActionEvent e) {
+						JFileChooser chooser = new JFileChooser();
+						chooser.addChoosableFileFilter(ASUtils.architectFileFilter);
+						int returnVal = chooser.showOpenDialog(ArchitectFrame.this);
+						if (returnVal == JFileChooser.APPROVE_OPTION) {
+							try {
+								SwingUIProject project = new SwingUIProject("Loading...");
+								project.setFile(chooser.getSelectedFile());
+								project.load();
+								setProject(project);
+							} catch (Exception ex) {
+								JOptionPane.showMessageDialog(ArchitectFrame.this,
+															  "Can't open project: "+ex.getMessage());
+								logger.error("Got exception while opening project", ex);
+							}
+						}
+					}
+				};
+		
+		saveProjectAction 
+			= new AbstractAction("Save Project",
+								 ASUtils.createJLFIcon("general/Save",
+													   "Save Project",
+													   sprefs.getInt(sprefs.ICON_SIZE, 24))) {
+					public void actionPerformed(ActionEvent e) {
+						saveOrSaveAs(false);
+					}
+				};
+		saveProjectAsAction
+			= new AbstractAction("Save Project As...",
+								 ASUtils.createJLFIcon("general/SaveAs",
+													   "Save Project As...",
+													   sprefs.getInt(sprefs.ICON_SIZE, 24))) {
+				public void actionPerformed(ActionEvent e) {
+					saveOrSaveAs(true);
+				}
+		};
 		exportDDLAction = new ExportDDLAction();
 		createRelationshipAction = new CreateRelationshipAction();
 		editRelationshipAction = new EditRelationshipAction();
+		deleteRelationshipAction = new DeleteRelationshipAction();
 		createTableAction = new CreateTableAction();
 		editColumnAction = new EditColumnAction();
 		insertColumnAction = new InsertColumnAction();
@@ -154,16 +174,18 @@ public class ArchitectFrame extends JFrame {
 		setJMenuBar(menuBar);
 
 		toolBar = new JToolBar();
-		toolBar.add(new JButton(newProjectAction));
-		toolBar.add(new JButton(openProjectAction));
-		toolBar.add(new JButton(saveProjectAction));
-		toolBar.add(new JButton(createTableAction));
-		toolBar.add(new JButton(deleteTableAction));
-		toolBar.add(new JButton(editColumnAction));
-		toolBar.add(new JButton(insertColumnAction));
-		toolBar.add(new JButton(deleteColumnAction));
-		toolBar.add(new JButton(createRelationshipAction));
-		toolBar.add(new JButton(editRelationshipAction));
+		toolBar.add(newProjectAction);
+		toolBar.add(openProjectAction);
+		toolBar.add(saveProjectAction);
+		toolBar.addSeparator();
+		toolBar.add(createTableAction);
+		toolBar.add(deleteTableAction);
+		toolBar.add(editColumnAction);
+		toolBar.add(insertColumnAction);
+		toolBar.add(deleteColumnAction);
+		toolBar.add(createRelationshipAction);
+		toolBar.add(editRelationshipAction);
+		toolBar.add(deleteRelationshipAction);
 		cp.add(toolBar, BorderLayout.NORTH);
 
 		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
@@ -209,6 +231,7 @@ public class ArchitectFrame extends JFrame {
 		createTableAction.setPlayPen(playpen);
 		createRelationshipAction.setPlayPen(playpen);
 		editRelationshipAction.setPlayPen(playpen);
+		deleteRelationshipAction.setPlayPen(playpen);
 	}
 
 	public static ArchitectFrame getMainInstance() {

@@ -123,21 +123,17 @@ public class PlayPen extends JPanel
 		mi.setAction(af.deleteTableAction);
 		tablePanePopup.add(mi);
 
-		tablePanePopup.addSeparator();
-
-		mi = new JMenuItem("Create Relationship");
-		tablePanePopup.add(mi);
-
-		tablePanePopup.addSeparator();
-		
-		mi = new JMenuItem("Show listeners");
-		mi.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
-					TablePane tp = (TablePane) getSelection();
-					JOptionPane.showMessageDialog(tp, new JScrollPane(new JList(new java.util.Vector(tp.getModel().getSQLObjectListeners()))));
-				}
-			});
-		tablePanePopup.add(mi);
+		if (logger.isDebugEnabled()) {
+			tablePanePopup.addSeparator();
+			mi = new JMenuItem("Show listeners");
+			mi.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent evt) {
+						TablePane tp = (TablePane) getSelection();
+						JOptionPane.showMessageDialog(tp, new JScrollPane(new JList(new java.util.Vector(tp.getModel().getSQLObjectListeners()))));
+					}
+				});
+			tablePanePopup.add(mi);
+		}
 	}
 
 	// ------------------- Right-click popup menu for playpen -----------------------
@@ -398,20 +394,24 @@ public class PlayPen extends JPanel
 
 			if (c[i] instanceof SQLTable) {
 				for (int j = 0; j < getComponentCount(); j++) {
-					TablePane tp = (TablePane) getComponent(j);
-					if (selectedChild == tp) selectedChild = null;
-					if (tp.getModel() == c[i]) {
-						remove(j);
-						fireEvent = true;
+					if (getComponent(j) instanceof TablePane) {
+						TablePane tp = (TablePane) getComponent(j);
+						if (selectedChild == tp) selectedChild = null;
+						if (tp.getModel() == c[i]) {
+							remove(j);
+							fireEvent = true;
+						}
 					}
 				}
 			} else if (c[i] instanceof SQLRelationship) {
 				for (int j = 0, n = getComponentCount(); j < n; j++) {
-					Relationship r = (Relationship) getComponent(j);
-					if (selectedChild == r) selectedChild = null;
-					if (r.getModel() == c[i]) {
-						remove(j);
-						fireEvent = true;
+					if (getComponent(j) instanceof Relationship) {
+						Relationship r = (Relationship) getComponent(j);
+						if (selectedChild == r) selectedChild = null;
+						if (r.getModel() == c[i]) {
+							remove(j);
+							fireEvent = true;
+						}
 					}
 				}
 			}
@@ -518,8 +518,11 @@ public class PlayPen extends JPanel
 	 * PlayPen selection listeners.
 	 */
 	public void itemSelected(SelectionEvent e) {
-		selectedChild = e.getSelectedItem();
-		fireSelectionEvent(e.getSelectedItem());
+		if (e.getSelectedItem().isSelected()) {
+			logger.debug("Child "+e.getSelectedItem()+" is now selected");
+			selectedChild = e.getSelectedItem();
+			fireSelectionEvent(e.getSelectedItem());
+		}
 	}
 
 	// --------------------- SELECTION EVENT SUPPORT ---------------------

@@ -464,6 +464,7 @@ public class TablePane
 					int insertionPoint = tp.pointToColumnIndex(dtde.getLocation());
 					if (insertionPoint < 0) insertionPoint = 0;
 					ArrayList paths = (ArrayList) t.getTransferData(importFlavor);
+					logger.debug("Importing items from tree: "+paths);
 					Iterator pathIt = paths.iterator();
 					while (pathIt.hasNext()) {
 						Object someData = dbtree.getNodeForDnDPath((int[]) pathIt.next());
@@ -478,7 +479,6 @@ public class TablePane
 								tp.getModel().inherit(insertionPoint, table);
 								dtde.dropComplete(true);
 							}
-							return;
 						} else if (someData instanceof SQLColumn) {
 							SQLColumn col = (SQLColumn) someData;
 							if (col.getParentTable().getParentDatabase()
@@ -503,7 +503,6 @@ public class TablePane
 								logger.debug("Inherited "+col.getColumnName()+" to table");
 								dtde.dropComplete(true);
 							}
-							return;
 						} else {
 							dtde.rejectDrop();
 						}

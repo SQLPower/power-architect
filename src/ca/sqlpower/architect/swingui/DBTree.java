@@ -24,6 +24,12 @@ public class DBTree extends JTree implements DragSourceListener {
 	protected JDialog propDialog;
 	protected DBCSPanel dbcsPanel;
 
+	/**
+	 * This is the database whose DBCS is currently being editted in
+	 * the DBCS Panel.
+	 */
+	protected SQLDatabase edittingDB;
+
 	public DBTree() {
 		setRootVisible(false);
 		setShowsRootHandles(true);
@@ -71,6 +77,7 @@ public class DBTree extends JTree implements DragSourceListener {
 		okButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					dbcsPanel.applyChanges();
+					edittingDB.setConnectionSpec(dbcsPanel.getDbcs());
 					propDialog.dispose();
 				}
 			});
@@ -195,7 +202,7 @@ public class DBTree extends JTree implements DragSourceListener {
 					dbcs.setDisplayName("New Connection");
 					SQLDatabase db = new SQLDatabase(dbcs);
 					((DBTreeModel.DBTreeRoot) getModel().getRoot()).addChild(db);
-					ArchitectFrame.getMainInstance().getUserSettings().getConnections().add(dbcs);
+					edittingDB = db;
 					logger.debug("Setting new DBCS on panel: "+dbcs);
 					dbcsPanel.setDbcs(dbcs);
 					propDialog.setVisible(true);

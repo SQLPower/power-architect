@@ -41,6 +41,7 @@ public class CreateRelationshipAction extends AbstractAction
 		try {
 			Relationship r = new Relationship(pp, pkTable, fkTable);
 			pp.add(r);
+			r.repaint();  // XXX: shouldn't be necessary, but it is.
 		} catch (ArchitectException ex) {
 			logger.error("Couldn't create relationship", ex);
 			JOptionPane.showMessageDialog(pp, "Couldn't create relationship: "+ex.getMessage());
