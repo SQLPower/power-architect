@@ -8,7 +8,7 @@ import java.sql.ResultSet;
 import java.sql.DatabaseMetaData;
 import org.apache.log4j.Logger;
 
-public class SQLColumn extends SQLObject implements java.io.Serializable {
+public class SQLColumn extends SQLObject implements java.io.Serializable, Cloneable {
 
 	private static Logger logger = Logger.getLogger(SQLColumn.class);
 
@@ -495,6 +495,15 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 			} else {
 				return c1.primaryKeySeq.intValue() - c2.primaryKeySeq.intValue();
 			}
+		}
+	}
+
+	public Object clone() {
+		try {
+			return super.clone();
+		} catch (CloneNotSupportedException e) {
+			logger.error("Clone not supported !?!?");
+			return null;
 		}
 	}
 }

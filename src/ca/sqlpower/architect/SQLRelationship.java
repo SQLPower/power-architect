@@ -23,8 +23,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	protected int deleteRule;
 	protected int deferrability;
 
-	protected String fkName;
-	protected String pkName;
+	protected String name;
 
 	public SQLRelationship() {
 		children = new LinkedList();
@@ -92,8 +91,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 				// column 9 (currentKeySeq) handled above
 				r.updateRule = rs.getInt(10);
 				r.deleteRule = rs.getInt(11);
-				r.fkName = rs.getString(12);
-				r.pkName = rs.getString(13);
+				r.name = rs.getString(12);
 				r.deferrability = rs.getInt(14);
 			}
 
@@ -118,6 +116,17 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		}
 	}
 
+	/**
+	 * Convenience method for adding a SQLRelationship.ColumnMapping
+	 * child to this relationship.
+	 */
+	public void addMapping(SQLColumn pkColumn, SQLColumn fkColumn) {
+		ColumnMapping cmap = new ColumnMapping();
+		cmap.setPkColumn(pkColumn);
+		cmap.setFkColumn(fkColumn);
+		addChild(cmap);
+	}
+
 	public String toString() {
 		return getShortDisplayName();
 	}
@@ -135,15 +144,11 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		parent = newParent;
 	}
 
-	public String getName() {
-		return fkName;
-	}
-
 	/**
 	 * Returns the foreign key name.
 	 */
 	public String getShortDisplayName() {
-		return fkName;
+		return name;
 	}
 	
 	/**
@@ -226,40 +231,12 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		this.deferrability = argDeferrability;
 	}
 
-	/**
-	 * Gets the value of fkName
-	 *
-	 * @return the value of fkName
-	 */
-	public String getFkName()  {
-		return this.fkName;
+	public String getName()  {
+		return this.name;
 	}
 
-	/**
-	 * Sets the value of fkName
-	 *
-	 * @param argFkName Value to assign to this.fkName
-	 */
-	public void setFkName(String argFkName) {
-		this.fkName = argFkName;
-	}
-
-	/**
-	 * Gets the value of pkName
-	 *
-	 * @return the value of pkName
-	 */
-	public String getPkName()  {
-		return this.pkName;
-	}
-
-	/**
-	 * Sets the value of pkName
-	 *
-	 * @param argPkName Value to assign to this.pkName
-	 */
-	public void setPkName(String argPkName) {
-		this.pkName = argPkName;
+	public void setName(String argName) {
+		this.name = argName;
 	}
 
 	public SQLTable getPkTable() {
@@ -342,13 +319,10 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 			parent = (SQLRelationship) newParent;
 		}
 		
-		/**
-		 * Returns the parent relationship's fk name.
-		 */
 		public String getName() {
-			return parent.fkName;
+			return "Column Mapping";
 		}
-		
+
 		/**
 		 * Returns the table and column name of the pkColumn.
 		 */

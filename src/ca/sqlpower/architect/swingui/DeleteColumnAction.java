@@ -24,7 +24,7 @@ public class DeleteColumnAction extends AbstractAction {
 		if (invoker instanceof TablePane) {
 			TablePane tp = (TablePane) invoker;
 			int idx;
-			while ( (idx = tp.getSelectedColumnIndex()) >= 0) {
+			if ( (idx = tp.getSelectedColumnIndex()) >= 0) {  // this was a while() loop, not sure why
 				tp.getModel().removeColumn(idx);
 			}
 		} else {

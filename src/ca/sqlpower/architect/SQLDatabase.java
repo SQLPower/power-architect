@@ -28,6 +28,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	protected DBConnectionSpec connectionSpec;
 	protected transient Connection connection;
 	protected boolean populated = false;
+	protected boolean ignoreReset = false;
 
 	/**
 	 * Constructor for instances that connect to a real database by JDBC.
@@ -309,10 +310,22 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 		fireDbObjectChanged("connectionSpec");
 	}
 
+	public void setIgnoreReset(boolean v) {
+		ignoreReset = v;
+	}
+
+	public boolean getIgnoreReset() {
+		return ignoreReset;
+	}
+
 	/**
 	 * Removes all children, closes and discards the JDBC connection.
 	 */
 	protected void reset() {
+		if (ignoreReset) {
+			logger.debug("Ignoring Reset request");
+			return;
+		}
 		logger.debug("Resetting....");
 		// tear down old connection stuff
 		List old = children;

@@ -16,6 +16,7 @@ import java.util.HashMap;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.*;
+import ca.sqlpower.sql.DBConnectionSpec;
 
 public class PlayPen extends JPanel
 	implements java.io.Serializable, SQLObjectListener, SelectionListener, ContainerListener {
@@ -87,6 +88,12 @@ public class PlayPen extends JPanel
 	public void setDatabase(SQLDatabase newdb) {
 		if (newdb == null) throw new NullPointerException("db must be non-null");
 		this.db = newdb;
+		db.setIgnoreReset(true);
+		if (db.getConnectionSpec() == null) {
+			DBConnectionSpec dbcs = new DBConnectionSpec();
+			dbcs.setName("Target Database");
+			db.setConnectionSpec(dbcs);
+		}
 		relationships = new LinkedList();
 		try {
 			ArchitectUtils.listenToHierarchy(this, db);
@@ -139,21 +146,64 @@ public class PlayPen extends JPanel
 		tablePanePopup.add(mi);
 	}
 
+	// ------------------- Right-click popup menu for playpen -----------------------
 	protected void setupPlayPenPopup() {
 		playPenPopup = new JPopupMenu();
 
- 		JMenuItem mi = null; //new JMenuItem();
-// 		tablePanePopup.addSeparator();
-		
-		mi = new JMenuItem("Show Relationships");
-		mi.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
-					JOptionPane.showMessageDialog(PlayPen.this, new JScrollPane(new JList(new java.util.Vector(relationships))));
-				}
-			});
+ 		JMenuItem mi = new JMenuItem();
+		mi.setAction(chooseDBCSAction);
 		playPenPopup.add(mi);
+
+		if (logger.isDebugEnabled()) {
+			tablePanePopup.addSeparator();
+			mi = new JMenuItem("Show Relationships");
+			mi.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent evt) {
+						JOptionPane.showMessageDialog(PlayPen.this, new JScrollPane(new JList(new java.util.Vector(relationships))));
+					}
+				});
+			playPenPopup.add(mi);
+		}
 		addMouseListener(new PopupListener());
 	}
+
+	public Action chooseDBCSAction = new AbstractAction("Database Output Selection") {
+			public void actionPerformed(ActionEvent e) {
+				final JDialog d = new JDialog(ArchitectFrame.getMainInstance(),
+											  "Target Database Connection");
+				JPanel cp = new JPanel(new BorderLayout(12,12));
+				cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
+				final DBCSPanel dbcsPanel = new DBCSPanel();
+				dbcsPanel.setDbcs(db.getConnectionSpec());
+				cp.add(dbcsPanel, BorderLayout.CENTER);
+
+				JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+
+				JButton okButton = new JButton("Ok");
+				okButton.addActionListener(new ActionListener() {
+						public void actionPerformed(ActionEvent evt) {
+							dbcsPanel.applyChanges();
+							d.setVisible(false);
+						}
+					});
+				buttonPanel.add(okButton);
+
+				JButton cancelButton = new JButton("Cancel");
+				cancelButton.addActionListener(new ActionListener() {
+						public void actionPerformed(ActionEvent evt) {
+							dbcsPanel.discardChanges();
+							d.setVisible(false);
+						}
+					});
+				buttonPanel.add(cancelButton);
+
+				cp.add(buttonPanel, BorderLayout.SOUTH);
+
+				d.setContentPane(cp);
+				d.pack();
+				d.setVisible(true);
+			}
+		};
 
 	/**
 	 * Paints all the relationships using the passed-in graphics

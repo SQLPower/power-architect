@@ -1,6 +1,7 @@
 package ca.sqlpower.architect.swingui;
 
 import ca.sqlpower.architect.*;
+import ca.sqlpower.architect.ddl.*;
 
 import org.apache.log4j.Logger;
 
@@ -68,18 +69,20 @@ public class ArchitectFrame extends JFrame {
 	protected Action saveProjectAction = new AbstractAction("Save Project...") {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser chooser = new JFileChooser();
-				int returnVal = chooser.showOpenDialog(ArchitectFrame.this);
+				int returnVal = chooser.showSaveDialog(ArchitectFrame.this);
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
 					project.setFile(chooser.getSelectedFile());
 					project.setName(project.getFile().getName());
-					final ProgressMonitor pm = new ProgressMonitor(ArchitectFrame.this, "Saving Project", "", 0, 100);
+					final ProgressMonitor pm = new ProgressMonitor
+						(ArchitectFrame.this, "Saving Project", "", 0, 100);
 // 					new Thread() {
 // 						public void run() {
 							try {
 								project.save(pm);
 							} catch (Exception ex) {
-								JOptionPane.showMessageDialog(ArchitectFrame.this,
-															  "Can't save project: "+ex.getMessage());
+								JOptionPane.showMessageDialog
+									(ArchitectFrame.this,
+									 "Can't save project: "+ex.getMessage());
 								logger.error("Got exception while saving project", ex);
 							}
 // 						}
@@ -88,7 +91,14 @@ public class ArchitectFrame extends JFrame {
 			}
 		};
 
-	protected CreateRelationshipAction createRelationshipAction = new CreateRelationshipAction();
+	protected CreateRelationshipAction createRelationshipAction;
+	protected Action exportDDLAction;
+
+	protected Action exitAction = new AbstractAction("Exit") {
+			public void actionPerformed(ActionEvent e) {
+				System.exit(0);
+			}
+		};
 
 	/**
 	 * Updates the swing settings and then writes all settings to the
@@ -125,12 +135,18 @@ public class ArchitectFrame extends JFrame {
 		Container cp = getContentPane();
 		cp.setLayout(new BorderLayout());
 
+		// Create actions
+		exportDDLAction = new ExportDDLAction();
+		createRelationshipAction = new CreateRelationshipAction();
+
 		menuBar = new JMenuBar();
 		JMenu fileMenu = new JMenu("File");
 		fileMenu.add(new JMenuItem(newProjectAction));
 		fileMenu.add(new JMenuItem(openProjectAction));
 		fileMenu.add(new JMenuItem(saveProjectAction));
+		fileMenu.add(new JMenuItem(exportDDLAction));
 		fileMenu.add(new JMenuItem(saveSettingsAction));
+		fileMenu.add(new JMenuItem(exitAction));
 		menuBar.add(fileMenu);
 		setJMenuBar(menuBar);
 
