@@ -111,7 +111,7 @@ public abstract class SQLObject implements java.io.Serializable {
 	// ------------------- sql object event support -------------------
 	private transient List sqlObjectListeners = new LinkedList();
 
-3	public List getSQLObjectListeners() {
+	public List getSQLObjectListeners() {
 		if (sqlObjectListeners == null) {
 			sqlObjectListeners = new LinkedList();
 		}
