@@ -27,16 +27,23 @@ public class PreferencesAction extends AbstractAction {
 									  "User Preferences");
 		
 		JPanel cp = new JPanel(new BorderLayout(12,12));
+		JTabbedPane tp = new JTabbedPane();
+		cp.add(tp, BorderLayout.CENTER);
 		cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
+
 		final PreferencesPanel prefPanel = new PreferencesPanel(af.getUserSettings());
-		cp.add(prefPanel, BorderLayout.CENTER);
-		
+		tp.add("General", prefPanel);
+
+		final JDBCDriverPanel jdbcPanel = new JDBCDriverPanel(af.getUserSettings());
+		tp.add("JDBC Drivers", jdbcPanel);
+
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		
 		JButton okButton = new JButton("Ok");
 		okButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent evt) {
 					prefPanel.applyChanges();
+					jdbcPanel.applyChanges();
 					d.setVisible(false);
 				}
 			});
@@ -46,6 +53,7 @@ public class PreferencesAction extends AbstractAction {
 		cancelButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent evt) {
 					prefPanel.discardChanges();
+					jdbcPanel.discardChanges();
 					d.setVisible(false);
 				}
 			});
