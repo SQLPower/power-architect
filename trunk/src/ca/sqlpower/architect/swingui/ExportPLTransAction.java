@@ -48,8 +48,16 @@ public class ExportPLTransAction extends AbstractAction {
 		JButton okButton = new JButton("Ok");
 		okButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent evt) {
-					if (plPanel.historyBox.getSelectedIndex() == 0) {
+					if (plPanel.getTargetDBCS() == null) {
 						JOptionPane.showMessageDialog(plPanel, "You have to select a target database from the list.", "Error", JOptionPane.ERROR_MESSAGE);
+						return;
+					}
+					if (plPanel.getPlUserName().trim().length() == 0) {
+						JOptionPane.showMessageDialog(plPanel, "You have to specify the PowerLoader User Name.", "Error", JOptionPane.ERROR_MESSAGE);
+						return;
+					}
+					if (plPanel.getPlJobId().trim().length() == 0) {
+						JOptionPane.showMessageDialog(plPanel, "You have to specify the PowerLoader Job ID.", "Error", JOptionPane.ERROR_MESSAGE);
 						return;
 					}
 					try {
@@ -58,7 +66,7 @@ public class ExportPLTransAction extends AbstractAction {
 						plexp.setFolderName(plPanel.getPlFolderName());
 						plexp.setJobDescription(plPanel.getPlJobDescription());
 						plexp.setJobComment(plPanel.getPlJobComment());
-						plexp.setPlDBCS(plPanel.getDbcs()); 
+						plexp.setPlDBCS(plPanel.getTargetDBCS()); 
 						plexp.setOutputTableOwner(plPanel.getPlOutputTableOwner());
 						plexp.setPlUsername(plPanel.getPlUserName());
 						plexp.setPlPassword(plPanel.getPlPassword());
@@ -83,7 +91,7 @@ public class ExportPLTransAction extends AbstractAction {
 							wcomm.append(engineExe.getPath());
 							wcomm.append(" USER_PROMPT=N");
 							wcomm.append(" JOB=").append(plPanel.getPlJobId());
-							wcomm.append(" USER=").append((plPanel.getDbcs()).getUser()).append("/").append((plPanel.getDbcs()).getPass());
+							wcomm.append(" USER=").append((plPanel.getTargetDBCS()).getUser()).append("/").append((plPanel.getTargetDBCS()).getPass());
 							wcomm.append("@").append(plPanel.getSelectedPlDatabase().getTNSName());
 							wcomm.append(" DEBUG=N SEND_EMAIL=N SKIP_PACKAGES=N CALC_DETAIL_STATS=N COMMIT_FREQ=100 APPEND_TO_JOB_LOG_IND=N");
 							wcomm.append(" APPEND_TO_JOB_ERR_IND=N");
