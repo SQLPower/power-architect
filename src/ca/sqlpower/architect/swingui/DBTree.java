@@ -4,6 +4,7 @@ import javax.swing.*;
 import javax.swing.tree.*;
 import java.awt.datatransfer.*;
 import java.awt.dnd.*;
+import java.awt.event.*;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -13,12 +14,19 @@ import ca.sqlpower.architect.*;
 public class DBTree extends JTree implements DragSourceListener {
 
 	protected DragSource ds;
+	protected JPopupMenu popup;
 
 	public DBTree(SQLDatabase root) throws ArchitectException {
 		super(new DBTreeModel(root));
 		ds = new DragSource();
 		DragGestureRecognizer dgr = ds.createDefaultDragGestureRecognizer
 			(this, DnDConstants.ACTION_COPY, new DBTreeDragGestureListener());
+
+		popup = new JPopupMenu();
+		JMenuItem item = new JMenuItem("Properties");
+		item.addActionListener(new PopupPropertiesListener());
+		popup.add(item);
+		addMouseListener(new PopupListener());
 	}
 
 	// ---------- methods of DragSourceListener -----------
@@ -50,6 +58,13 @@ public class DBTree extends JTree implements DragSourceListener {
  	public static class DBTreeDragGestureListener implements DragGestureListener {
 		public void dragGestureRecognized(DragGestureEvent dge) {
 			System.out.println("Drag gesture event: "+dge);
+
+			// we only start drags on left-click drags
+			InputEvent ie = dge.getTriggerEvent();
+			if ( (ie.getModifiers() & InputEvent.BUTTON1_MASK) == 0) {
+				return;
+			}
+
 			DBTree t = (DBTree) dge.getComponent();
   			TreePath[] p = t.getSelectionPaths();
 
@@ -76,5 +91,55 @@ public class DBTree extends JTree implements DragSourceListener {
 					 t);
 			}
  		}
+	}
+
+	/**
+	 * A simple mouse listener that activates the DBTree's popup menu
+	 * when the user right-clicks (or some other platform-specific action).
+	 *
+	 * @author The Swing Tutorial (Sun Microsystems, Inc.)
+	 */
+	class PopupListener extends MouseAdapter {
+
+        public void mousePressed(MouseEvent e) {
+            maybeShowPopup(e);
+        }
+
+        public void mouseReleased(MouseEvent e) {
+            maybeShowPopup(e);
+        }
+
+        private void maybeShowPopup(MouseEvent e) {
+            if (e.isPopupTrigger()) {
+				TreePath p = getPathForLocation(e.getX(), e.getY());
+				if (p == null) return;
+				setSelectionPath(p);
+                popup.show(e.getComponent(),
+                           e.getX(), e.getY());
+            }
+        }
+    }
+
+	/**
+	 * The PopupPropertiesListener responds to the "Properties" item
+	 * in the popup menu.  It determines which item in the tree is
+	 * currently selected, then (creates and) shows its properties window.
+	 */
+	class PopupPropertiesListener implements ActionListener {
+		public void actionPerformed(ActionEvent e) {
+			TreePath p = getSelectionPath();
+			if (p == null) {
+				return;
+			}
+			SQLObject so = (SQLObject) p.getLastPathComponent();
+			if (so instanceof SQLDatabase) {
+				JFrame propWindow = DBCSPanel.createFrame(((SQLDatabase) so).getConnectionSpec());
+				propWindow.setVisible(true);
+			} else if (so instanceof SQLCatalog) {
+			} else if (so instanceof SQLSchema) {
+			} else if (so instanceof SQLTable) {
+			} else if (so instanceof SQLColumn) {
+			}
+		}
 	}
 }
