@@ -25,8 +25,10 @@ public class EditColumnAction extends AbstractAction {
 			TablePane tp = (TablePane) invoker;
 			try {
 				int idx = tp.getSelectedColumnIndex();
-				JOptionPane.showMessageDialog(tp, "This will edit the "
-											  +tp.getModel().getChild(idx)+" column");
+				JFrame editFrame = new JFrame("Edit columns of "+tp.getModel().getName());
+				editFrame.setContentPane(new ColumnEditPanel(tp.getModel().getColumn(idx)));
+				editFrame.pack();
+				editFrame.setVisible(true);
 			} catch (ArchitectException e) {
 				JOptionPane.showMessageDialog(tp, "Error finding the selected column");
 				logger.error("Error finding the selected column", e);
