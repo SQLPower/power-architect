@@ -442,12 +442,15 @@ public class ColumnEditPanel extends JPanel
 	// -------------------- Document Listener ----------------
 
 	/**
-	 * Updates the column name immediately.
+	 * Gets updates from column name JTextField and updates the
+	 * model's column name accordingly.
 	 */
 	public void insertUpdate(DocumentEvent e) {
 		try {
-			SQLColumn col = model.getColumn(columns.getSelectedIndex());
-			col.setColumnName(colName.getText());
+			if (columns.getSelectedIndex() >= 0) {
+				SQLColumn col = model.getColumn(columns.getSelectedIndex());
+				col.setColumnName(colName.getText());
+			}
 		} catch (ArchitectException ex) {
 			logger.error("Couldn't update column name", ex);
 			JOptionPane.showMessageDialog(this, "Can't update column name: "+ex.getMessage());
@@ -455,14 +458,14 @@ public class ColumnEditPanel extends JPanel
 	}
 		
 	/**
-	 * Ensures that something is selected in cases where the selected column is removed.
+	 * Gets updates from column name JTextField and updates the
+	 * model's column name accordingly.
 	 */
 	public void removeUpdate(DocumentEvent e) {
 		try {
-			int idx = columns.getSelectedIndex();
-			if (idx < 0 || idx >= model.getChildCount()) {
-			// the selected column must have been removed
-				columns.setSelectedIndex(0);
+			if (columns.getSelectedIndex() >= 0) {
+				SQLColumn col = model.getColumn(columns.getSelectedIndex());
+				col.setColumnName(colName.getText());
 			}
 		} catch (ArchitectException ex) {
 			logger.error("Couldn't update column name", ex);
@@ -471,12 +474,15 @@ public class ColumnEditPanel extends JPanel
 	}
 
 	/**
-	 * Updates the column name immediately.
+	 * Gets updates from column name JTextField and updates the
+	 * model's column name accordingly.
 	 */
 	public void changedUpdate(DocumentEvent e) {
 		try {
-			SQLColumn col = model.getColumn(columns.getSelectedIndex());
-			col.setColumnName(colName.getText());
+			if (columns.getSelectedIndex() >= 0) {
+				SQLColumn col = model.getColumn(columns.getSelectedIndex());
+				col.setColumnName(colName.getText());
+			}
 		} catch (ArchitectException ex) {
 			logger.error("Couldn't update column name", ex);
 			JOptionPane.showMessageDialog(this, "Can't update column name: "+ex.getMessage());
