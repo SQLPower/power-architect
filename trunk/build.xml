@@ -14,9 +14,18 @@
 		<mkdir dir="${build}"/>
 	</target>
 
-	<target name="compile" depends="init">
+	<target name="compile" depends="init,copyicons">
 		<javac srcdir="${src}" destdir="${build}" classpathref="compile.classpath" debug="true" deprecation="true"/>
 	</target>
+
+	<target name="copyicons" depends="init">
+		<mkdir dir="${build}/icons"/>
+        <copy todir="${build}/icons">
+			<fileset dir="icons">
+				<include name="*.gif"/>
+			</fileset>
+		</copy>
+    </target>
 
 	<target name="jar" depends="compile">
 		<jar jarfile="${build}/${deploy.jar}" basedir="${build}"

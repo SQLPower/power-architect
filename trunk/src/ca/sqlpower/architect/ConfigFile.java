@@ -56,10 +56,10 @@ public class ConfigFile {
 	// -------------------- READING THE FILE --------------------------
 
 	public UserSettings read() throws IOException {
-		InputStream in = new BufferedInputStream(new FileInputStream(file));
-
 		// use digester to read from file
+		userSettings = new UserSettings();
 		try {
+			InputStream in = new BufferedInputStream(new FileInputStream(file));
 			setupDigester().parse(in);
 		} catch (SAXException ex) {
 			logger.error("SAX Exception in config file parse!", ex);

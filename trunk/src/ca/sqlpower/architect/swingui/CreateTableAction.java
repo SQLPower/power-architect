@@ -16,7 +16,10 @@ public class CreateTableAction extends AbstractAction {
 	protected PlayPen pp;
 
 	public CreateTableAction() {
-		super("Create Table");
+		super("Create Table",
+			  ASUtils.createIcon("NewTable",
+								 "Create Table",
+								 ArchitectFrame.getMainInstance().sprefs.getInt(SwingUserSettings.ICON_SIZE, 24)));
 	}
 
 	public void actionPerformed(ActionEvent evt) {

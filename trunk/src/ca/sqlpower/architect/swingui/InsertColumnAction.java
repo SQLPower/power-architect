@@ -16,7 +16,10 @@ public class InsertColumnAction extends AbstractAction {
 	protected PlayPen pp;
 	
 	public InsertColumnAction() {
-		super("Insert Column");
+		super("Insert Column",
+			  ASUtils.createIcon("NewColumn",
+								 "Insert Column",
+								 ArchitectFrame.getMainInstance().sprefs.getInt(SwingUserSettings.ICON_SIZE, 24)));
 	}
 
 	public void actionPerformed(ActionEvent evt) {

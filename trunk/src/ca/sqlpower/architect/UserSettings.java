@@ -25,6 +25,7 @@ public class UserSettings {
 	public UserSettings() {
 		super();
 		dbConnections = new LinkedList();
+		swingSettings = new SwingUserSettings();
 	}
 	
 	public void addConnection(DBConnectionSpec dbcs) {
