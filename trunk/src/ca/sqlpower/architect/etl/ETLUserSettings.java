@@ -8,7 +8,7 @@ import java.util.Properties;
  * project-to-project.
  *
  * @see ca.sqlpower.architect.UserSettings
- * @see ca.sqlpower.architect.SwingUserSettings
+ * @see ca.sqlpower.architect.swingui.SwingUserSettings
  */
 public class ETLUserSettings {
 

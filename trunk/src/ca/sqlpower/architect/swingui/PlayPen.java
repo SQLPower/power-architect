@@ -642,7 +642,7 @@ public class PlayPen extends JPanel
 	 *
 	 * @return A reference to the newly-created TablePane.
 	 * @see SQLTable#inherit
-	 * @see PlayPenLayout#addComponent(Component,Object)
+	 * @see PlayPenLayout#addLayoutComponent(Component,Object)
 	 */
 	public synchronized TablePane importTableCopy(SQLTable source, Point preferredLocation) throws ArchitectException {
 		SQLTable newTable = SQLTable.getDerivedInstance(source, db); // adds newTable to db

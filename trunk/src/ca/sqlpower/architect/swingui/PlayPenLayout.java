@@ -81,7 +81,7 @@ public class PlayPenLayout implements LayoutManager2 {
 	}
 	
 	/**
-	 * Does nothing!  Components will stay put.
+	 * Does nothing.  Components will stay put.
 	 */
 	public void layoutContainer(Container parent) {
 		logger.debug("PlayPenLayout.layoutContainer");
