@@ -28,7 +28,6 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 	protected PLExport plexp;
 
 	protected Vector connections;
-	protected Vector plodbc;
 
 	// Left-hand side fields
 	protected JComboBox connectionsBox;
@@ -48,33 +47,19 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 	protected String projName;
 	private Map jdbcDrivers;
 	private JButton newConnButton;
+
+	// Timer for watching PL.INI
+	protected javax.swing.Timer timer;
+	protected String plDotIniPath;
 	
 	public PLExportPanel() {
 		setLayout(new GridLayout(1,2));
 		ArchitectFrame af = ArchitectFrame.getMainInstance();
+		plDotIniPath = af.getUserSettings().getETLUserSettings().getPlDotIniPath(); // is this bad?
 		SwingUIProject project = af.getProject();
 		projName = new String(project.getName());
 		newConnButton= new JButton("New");
 		newConnButton.addActionListener(new NewConnectionListener());
-
-		String plIniPath = af.getUserSettings().getETLUserSettings().getPlDotIniPath();
-		List plConnectionSpecs = new ArrayList();
-		try {
-			if (plIniPath != null) {
-				plConnectionSpecs = PLUtils.parsePlDotIni(plIniPath);
-			} else {
-				JOptionPane.showMessageDialog
-					(this, "Warning: You have not set the PL.INI file location."
-					 +"\nThe list of PL Connections will be empty.");
-			}
-		} catch (FileNotFoundException ie) {
-			JOptionPane.showMessageDialog
-				(this, "PL database config file not found in specified path:\n"
-				 +plIniPath+"\nThe list of PL Connections will be empty.");
-		} catch (IOException ie){
-			JOptionPane.showMessageDialog(this, "Error reading PL.ini file "+plIniPath
-										  +"\nThe list of PL Connections will be empty.");
-		}    
 
 		connections = new Vector();
 		connections.add(ASUtils.lvb("(Select Architect Connection)", null));
@@ -85,15 +70,8 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		}
 		connectionsBox = new JComboBox(connections);
 
-		plodbc = new Vector();
-		plodbc.add(ASUtils.lvb("(Select PL ODBC Connection)", null));
-		it = plConnectionSpecs.iterator();
-		while (it.hasNext()) {
-			PLConnectionSpec plcon = (PLConnectionSpec) it.next();
-			plodbc.add(ASUtils.lvb(plcon.getLogical(), plcon));
-		}
-
-		plOdbcTargetRepositoryBox = new JComboBox(plodbc);
+		// initialize the PL ODBC connections combobox
+		plOdbcTargetRepositoryBox = new JComboBox(new DefaultComboBoxModel(getPlOdbcTargets()));
 		plOdbcTargetRepositoryBox.addActionListener(new OdbcTargetRepositoryListener());
 
 		runPLEngine = new JCheckBox();
@@ -150,6 +128,21 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 
 		add(jdbcForm);
 		add(engineForm);
+
+		// new: add a swing timer to watch the PL.INI file and reload the database connections if
+        // it notices any changes...
+        timer = new javax.swing.Timer(1000, new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+				if (PLUtils.plDotIniHasChanged(plDotIniPath)) {
+					SwingUtilities.invokeLater(new Runnable() {
+						public void run() {
+							refreshPlOdbcTargets();			
+						}
+					});
+				}
+            }
+        });	
+		timer.start();
 	}
 
 	/**
@@ -179,11 +172,14 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 
 	public class OdbcTargetRepositoryListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
+			logger.debug("event was fired");
 			ASUtils.LabelValueBean lvb = (ASUtils.LabelValueBean) plOdbcTargetRepositoryBox.getSelectedItem();
 			if (lvb.getValue() == null) {
 			    runPLEngine.setSelected(false);
 				runPLEngine.setEnabled(false);
 				plRepOwner.setText(null);
+				plUserName.setText(null);
+				plPassword.setText(null);
    		    } else {
 				runPLEngine.setEnabled(true);
 				PLConnectionSpec pldbcon = (PLConnectionSpec) lvb.getValue();
@@ -292,4 +288,56 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 	public boolean isSelectedRunPLEngine(){
 		return runPLEngine.isSelected();
 	}
+
+	private Vector getPlOdbcTargets() {
+		Vector v = new Vector();
+		List plConnectionSpecs = new ArrayList();
+		try {
+			if (plDotIniPath != null) {
+				plConnectionSpecs = PLUtils.parsePlDotIni(plDotIniPath);
+			} else {
+				JOptionPane.showMessageDialog
+					(this, "Warning: You have not set the PL.INI file location."
+					 +"\nThe list of PL Connections will be empty.");
+			}
+		} catch (FileNotFoundException ie) {
+			JOptionPane.showMessageDialog
+				(this, "PL database config file not found in specified path:\n"
+				 +plDotIniPath+"\nThe list of PL Connections will be empty.");
+		} catch (IOException ie){
+			JOptionPane.showMessageDialog(this, "Error reading PL.ini file "+plDotIniPath
+										  +"\nThe list of PL Connections will be empty.");
+		}    
+		v.add(ASUtils.lvb("(Select PL ODBC Connection)", null));
+		Iterator it = plConnectionSpecs.iterator();
+		while (it.hasNext()) {
+			PLConnectionSpec plcon = (PLConnectionSpec) it.next();
+			v.add(ASUtils.lvb(plcon.getLogical(), plcon));
+		}
+		return v;		
+	}
+
+	private void refreshPlOdbcTargets() {
+		// reload the PL ODBC connections from PL.INI
+		String sObject = plOdbcTargetRepositoryBox.getModel().getSelectedItem().toString();
+		logger.debug("the selected object was: " + sObject);
+		DefaultComboBoxModel dcbm = new DefaultComboBoxModel(getPlOdbcTargets());					
+		plOdbcTargetRepositoryBox.setModel(dcbm);
+		boolean selectedExists = false;
+		for (int i = 0; i < dcbm.getSize(); i++) {
+			String s = (String) dcbm.getElementAt(i).toString();
+			if (s.equals(sObject)) {
+				plOdbcTargetRepositoryBox.setSelectedIndex(i);
+				selectedExists = true;
+			}
+			logger.debug("item + " + i + " is: " + dcbm.getElementAt(i));
+		}
+		if (selectedExists == false) {
+			logger.debug("connection is gone!  select another!");
+			plOdbcTargetRepositoryBox.setSelectedIndex(0);
+			
+			// pop up a window explaining what happened...
+		}
+	}		
+
 }
