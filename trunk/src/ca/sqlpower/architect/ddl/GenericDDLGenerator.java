@@ -47,10 +47,28 @@ public class GenericDDLGenerator {
 	protected Map typeMap;
 
 	/**
-	 * This connection will be live and non-null (set up by writeDDL)
-	 * if allowConnection is true.
+	 * This variable will be a live, non-null connection to the target
+	 * database (set up by writeDDL) if allowConnection is true.
 	 */
 	protected Connection con;
+
+	/**
+	 * As table and relationship creation statements are generated,
+	 * their SQL identifiers are stored in this map (key is name,
+	 * value is object having that name).  Warnings are created when
+	 * multiple objects in this top-level scope use the same name.
+	 */
+	protected Map topLevelNames;
+
+	/**
+	 * This list contains 0 or more {@link NameChangeWarning} objects.  It is
+	 * populated as statements are added to the
+	 * <code>ddlStatements</code> list.  If non-empty, this list of
+	 * warnings should be presented to the user before the generated
+	 * DDL is saved or executed (to give them a chance to fix the
+	 * warnings and try again).
+	 */
+	protected List warnings;
 
 	public GenericDDLGenerator() {
 		allowConnection = true;
@@ -75,8 +93,10 @@ public class GenericDDLGenerator {
 	}
 
 	public List generateDDLStatements(SQLDatabase source) throws SQLException, ArchitectException {
+		warnings = new ArrayList();
 		ddlStatements = new ArrayList();
 		ddl = new StringBuffer(500);
+		topLevelNames = new HashMap();  // for tracking dup table/relationship names
 
 		if (allowConnection) {
 			con = source.getConnection();
@@ -141,6 +161,21 @@ public class GenericDDLGenerator {
 	}
 
 	public void writeTable(SQLTable t) throws SQLException, ArchitectException {
+		Map colNameMap = new HashMap();  // for detecting duplicate column names
+
+		String origTableName = t.getName();
+		if (topLevelNames.get(t.getName()) != null) {
+			int i = 1;
+			String newName = origTableName+"_"+i;
+			while (topLevelNames.get(newName) != null) {
+				i++;
+				newName = origTableName+"_"+i;
+			}
+			t.setTableName(newName);
+			warnings.add(new NameChangeWarning(t, "Duplicate Table Name", origTableName));
+		}
+		topLevelNames.put(t.getName(), t);
+
 		print("\nCREATE TABLE ");
 		printIdentifier(t.getName());
 		println(" (");
@@ -148,11 +183,27 @@ public class GenericDDLGenerator {
 		Iterator it = t.getColumns().iterator();
 		while (it.hasNext()) {
 			SQLColumn c = (SQLColumn) it.next();
+			String origName = c.getName();
+			if (colNameMap.get(origName) != null) {
+				int i = 1;
+				String newName = origName+"_"+i;
+				while (colNameMap.get(newName) != null) {
+					i++;
+					newName = origName+"_"+i;
+				}
+				c.setColumnName(newName);
+				warnings.add(new NameChangeWarning(c, "Duplicate Col Name", origName));
+			}
+			colNameMap.put(c.getName(), c);
+
 			GenericTypeDescriptor td = (GenericTypeDescriptor) typeMap.get(new Integer(c.getType()));
 			if (td == null) {
-				throw new UnsupportedOperationException
-					("No type for "+c.getType()+" is available in the target database platform."
-					 +"\nPlease choose a different type.");
+				td = (GenericTypeDescriptor) typeMap.get(new Integer(Types.VARCHAR)); //better be non-null!
+				GenericTypeDescriptor oldType = new GenericTypeDescriptor
+					(c.getSourceDBTypeName(), c.getType(), c.getPrecision(),
+					 null, null, c.getNullable(), false, false);
+				oldType.determineScaleAndPrecision();
+				warnings.add(new TypeMapWarning(c, "Unknown Target Type", oldType, td));
 			}
 			if (!firstCol) println(",");
 			print("                ");
@@ -218,6 +269,20 @@ public class GenericDDLGenerator {
 		Iterator it = t.getExportedKeys().iterator();
 		while (it.hasNext()) {
 			SQLRelationship rel = (SQLRelationship) it.next();
+
+			String origRelName = rel.getName();
+			if (topLevelNames.get(rel.getName()) != null) {
+				int i = 1;
+				String newName = origRelName+"_"+i;
+				while (topLevelNames.get(newName) != null) {
+					i++;
+					newName = origRelName+"_"+i;
+				}
+				rel.setName(newName);
+				warnings.add(new NameChangeWarning(rel, "Duplicate FK Name", origRelName));
+			}
+			topLevelNames.put(rel.getName(), t);
+
 			println("");
 			print("ALTER TABLE ");
 			printIdentifier(rel.getFkTable().getName());
@@ -374,4 +439,10 @@ public class GenericDDLGenerator {
 		this.con = argCon;
 	}
 
+	/**
+	 * Returns {@link #warnings}.
+	 */
+	public List getWarnings() {
+		return warnings;
+	}
 }

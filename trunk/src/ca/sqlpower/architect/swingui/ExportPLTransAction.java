@@ -103,7 +103,7 @@ public class ExportPLTransAction extends AbstractAction {
 								JDialog d = new JDialog(architectFrame, "Power*Loader Engine");
 								d.setContentPane(new EngineExecPanel(proc));
 								d.pack();
-								d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
+								d.setLocationRelativeTo(plPanel);
 								d.setVisible(true);
 							} catch (IOException ie){
 								JOptionPane.showMessageDialog(playpen, "Unexpected Exception running Engine:\n"+ie);

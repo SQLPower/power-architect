@@ -103,6 +103,11 @@ public class PlayPen extends JPanel
 	 */
 	protected Action sendToBackAction;
 
+	/**
+	 * This dialog box is for editting the PlayPen's DB Connection spec.
+	 */
+	protected JDialog dbcsDialog;
+
 	public PlayPen() {
 		zoom = 1.0;
 		setBackground(java.awt.Color.white);
@@ -502,42 +507,53 @@ public class PlayPen extends JPanel
 
 	public Action chooseDBCSAction = new AbstractAction("Target Database Properties") {
 			public void actionPerformed(ActionEvent e) {
-				final JDialog d = new JDialog(ArchitectFrame.getMainInstance(),
-											  "Target Database Connection");
-				JPanel cp = new JPanel(new BorderLayout(12,12));
-				cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
-				final DBCSPanel dbcsPanel = new DBCSPanel();
-				dbcsPanel.setDbcs(db.getConnectionSpec());
-				cp.add(dbcsPanel, BorderLayout.CENTER);
-
-				JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-
-				JButton okButton = new JButton("Ok");
-				okButton.addActionListener(new ActionListener() {
-						public void actionPerformed(ActionEvent evt) {
-							dbcsPanel.applyChanges();
-							d.setVisible(false);
-						}
-					});
-				buttonPanel.add(okButton);
-
-				JButton cancelButton = new JButton("Cancel");
-				cancelButton.addActionListener(new ActionListener() {
-						public void actionPerformed(ActionEvent evt) {
-							dbcsPanel.discardChanges();
-							d.setVisible(false);
-						}
-					});
-				buttonPanel.add(cancelButton);
-
-				cp.add(buttonPanel, BorderLayout.SOUTH);
-
-				d.setContentPane(cp);
-				d.pack();
-				d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
-				d.setVisible(true);
+				showDbcsDialog();
 			}
 		};
+	
+	/**
+	 * Pops up a dialog box that lets the user inspect and change the
+	 * target db's connection spec.
+	 */
+	public void showDbcsDialog() {
+		if (dbcsDialog == null) {
+			final JDialog d = new JDialog(ArchitectFrame.getMainInstance(),
+										  "Target Database Connection");
+			JPanel cp = new JPanel(new BorderLayout(12,12));
+			cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
+			final DBCSPanel dbcsPanel = new DBCSPanel();
+			dbcsPanel.setDbcs(db.getConnectionSpec());
+			cp.add(dbcsPanel, BorderLayout.CENTER);
+			
+			JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+			
+			JButton okButton = new JButton("Ok");
+			okButton.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent evt) {
+						dbcsPanel.applyChanges();
+						d.setVisible(false);
+					}
+				});
+			buttonPanel.add(okButton);
+			
+			JButton cancelButton = new JButton("Cancel");
+			cancelButton.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent evt) {
+						dbcsPanel.discardChanges();
+						d.setVisible(false);
+					}
+				});
+			buttonPanel.add(cancelButton);
+			
+			cp.add(buttonPanel, BorderLayout.SOUTH);
+			
+			d.setContentPane(cp);
+			d.pack();
+			d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
+			dbcsDialog = d;
+		}
+		dbcsDialog.setVisible(true);
+	}
 
 	/**
 	 * Searches this PlayPen's children for a TablePane whose model is
