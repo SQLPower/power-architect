@@ -2,6 +2,7 @@ package ca.sqlpower.architect.swingui;
 
 import javax.swing.*;
 import javax.swing.tree.*;
+import java.awt.Component;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.datatransfer.*;
@@ -40,6 +41,7 @@ public class DBTree extends JTree implements DragSourceListener {
 		setupPropDialog();
 		popup = setupPopupMenu();
 		addMouseListener(new PopupListener());
+		setCellRenderer(new SQLObjectRenderer());
 	}
 
 	public DBTree(List initialDatabases) throws ArchitectException {
@@ -254,6 +256,55 @@ public class DBTree extends JTree implements DragSourceListener {
             }
         }
     }
+	
+	public static class SQLObjectRenderer extends DefaultTreeCellRenderer {
+		public static final ImageIcon dbIcon = ASUtils.createIcon("Database", "SQL Database", 16);
+		public static final ImageIcon cataIcon = ASUtils.createIcon("Catalog", "SQL Catalog", 16);
+		public static final ImageIcon schemaIcon = ASUtils.createIcon("Schema", "SQL Schema", 16);
+		public static final ImageIcon tableIcon = ASUtils.createIcon("Table", "SQL Table", 16);
+		public static final ImageIcon keyIcon = ASUtils.createIcon("ExportedKey", "Exported key", 16);
+		public static final ImageIcon ownerIcon = ASUtils.createIcon("Owner", "Owner", 16);
+		
+		public Component getTreeCellRendererComponent(JTree tree,
+													  Object value,
+													  boolean sel,
+													  boolean expanded,
+													  boolean leaf,
+													  int row,
+													  boolean hasFocus) {
+			setText(value.toString());
+			if (value instanceof SQLDatabase) {
+				setIcon(dbIcon);
+			} else if (value instanceof SQLCatalog) {
+				if (((SQLCatalog) value).getNativeTerm().equals("owner")) {
+					setIcon(ownerIcon);
+				} else if (((SQLCatalog) value).getNativeTerm().equals("database")) {
+					setIcon(dbIcon);
+				} else if (((SQLCatalog) value).getNativeTerm().equals("schema")) {
+					setIcon(schemaIcon);
+				} else {
+					setIcon(cataIcon);
+				}
+			} else if (value instanceof SQLSchema) {
+				if (((SQLSchema) value).getNativeTerm().equals("owner")) {
+					setIcon(ownerIcon);
+				} else {
+					setIcon(schemaIcon);
+				}
+			} else if (value instanceof SQLTable) {
+				setIcon(tableIcon);
+			} else if (value instanceof SQLRelationship) {
+				setIcon(keyIcon);
+			} else {
+				setIcon(null);
+			}
+
+			this.selected = sel;
+			this.hasFocus = hasFocus;
+
+			return this;
+		}
+	}
 
 	/**
 	 * The PopupPropertiesListener responds to the "Properties" item

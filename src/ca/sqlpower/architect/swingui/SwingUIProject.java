@@ -76,12 +76,10 @@ public class SwingUIProject {
 	}
 
 	// ------------- READING THE PROJECT FILE ---------------
-	public void load() throws IOException, ArchitectException {
-		InputStream in = new BufferedInputStream(new FileInputStream(file));
-
+	public void load(InputStream in) throws IOException, ArchitectException {
 		dbcsIdMap = new HashMap();
 		objectIdMap = new HashMap();
-
+		
 		// use digester to read from file
 		try {
 			setupDigester().parse(in);
@@ -542,12 +540,14 @@ public class SwingUIProject {
 		indent++;
 		int n = playPen.getComponentCount();
 		for (int i = 0; i < n; i++) {
-			TablePane tp = (TablePane) playPen.getComponent(i);
-			Point p = tp.getLocation();
-			println("<table-pane table-ref=\""+objectIdMap.get(tp.getModel())+"\""
-					+" x=\""+p.x+"\" y=\""+p.y+"\" />");
-			pm.setProgress(++progress);
-			pm.setNote(tp.getModel().getShortDisplayName());
+			if (playPen.getComponent(i) instanceof TablePane) {
+				TablePane tp = (TablePane) playPen.getComponent(i);
+				Point p = tp.getLocation();
+				println("<table-pane table-ref=\""+objectIdMap.get(tp.getModel())+"\""
+						+" x=\""+p.x+"\" y=\""+p.y+"\" />");
+				pm.setProgress(++progress);
+				pm.setNote(tp.getModel().getShortDisplayName());
+			}
 		}
 
 		Iterator it = playPen.getRelationships().iterator();

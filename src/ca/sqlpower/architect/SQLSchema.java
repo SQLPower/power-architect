@@ -15,7 +15,8 @@ import java.util.Collections;
 public class SQLSchema extends SQLObject {
 	protected SQLObject parent;
 	protected String schemaName;
-	
+	protected String nativeTerm;
+
 	public SQLSchema() {
 		this(null, null);
 	}
@@ -24,6 +25,7 @@ public class SQLSchema extends SQLObject {
 		this.parent = parent;
 		this.schemaName = name;
 		this.children = new LinkedList();
+		this.nativeTerm = "schema";
 	}
 
 	protected SQLTable getTableByName(String tableName) throws ArchitectException {
@@ -96,4 +98,25 @@ public class SQLSchema extends SQLObject {
 	public void setSchemaName(String argSchemaName) {
 		this.schemaName = argSchemaName;
 	}
+
+	
+	/**
+	 * Gets the value of nativeTerm
+	 *
+	 * @return the value of nativeTerm
+	 */
+	public String getNativeTerm()  {
+		return this.nativeTerm;
+	}
+
+	/**
+	 * Sets the value of nativeTerm to a lowercase version of argNativeTerm.
+	 *
+	 * @param argNativeTerm Value to assign to this.nativeTerm
+	 */
+	public void setNativeTerm(String argNativeTerm) {
+		if (argNativeTerm != null) argNativeTerm = argNativeTerm.toLowerCase();
+		this.nativeTerm = argNativeTerm;
+	}
+
 }

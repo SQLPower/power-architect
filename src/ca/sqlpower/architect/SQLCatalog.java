@@ -17,6 +17,12 @@ public class SQLCatalog extends SQLObject {
 	protected SQLObject parent;
 	protected String catalogName;
 
+	/**
+	 * The term used for catalogs in the native database system.  In
+	 * SQLServer2000, this is "database".
+	 */
+	protected String nativeTerm;
+
 	public SQLCatalog() {
 		this(null, null);
 	}
@@ -25,6 +31,7 @@ public class SQLCatalog extends SQLObject {
 		this.parent = parent;
 		this.catalogName = name;
 		this.children = new LinkedList();
+		this.nativeTerm = "catalog";
 	}
 
 	protected SQLTable getTableByName(String tableName) throws ArchitectException {
@@ -160,4 +167,22 @@ public class SQLCatalog extends SQLObject {
 		throw new UnsupportedOperationException("You can't do that");
 	}
 
+	/**
+	 * Gets the value of nativeTerm
+	 *
+	 * @return the value of nativeTerm
+	 */
+	public String getNativeTerm()  {
+		return this.nativeTerm;
+	}
+
+	/**
+	 * Sets the value of nativeTerm to a lowercase version of argNativeTerm.
+	 *
+	 * @param argNativeTerm Value to assign to this.nativeTerm
+	 */
+	public void setNativeTerm(String argNativeTerm) {
+		if (argNativeTerm != null) argNativeTerm = argNativeTerm.toLowerCase();
+		this.nativeTerm = argNativeTerm;
+	}
 }
