@@ -436,12 +436,21 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	}
 
 	/**
-	 * Calls removeColumn(SQLColumn).
+	 * Calls {@link #removeColumn(SQLColumn)} with the appropriate argument.
 	 */
 	public void removeColumn(int index) throws LockedColumnException {
 		removeColumn((SQLColumn) columnsFolder.children.get(index));
 	}
 
+	/**
+	 * Removes the given column if it is in this table.  If you want
+	 * to change a column's, index, use the {@link
+	 * #changeColumnIndex(int,int)} method because it does not throw
+	 * LockedColumnException.
+	 *
+	 * @throws LockedColumnException if the given column belongs to an
+	 * imported or exported key.
+	 */
 	public void removeColumn(SQLColumn col) throws LockedColumnException {
 		List keys = keysOfColumn(col);
 		if (keys.isEmpty()) {
@@ -453,17 +462,42 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	}
 
 	/**
+	 * Moves the column at index <code>oldIdx</code> to index
+	 * <code>newIdx</code>.  This may cause the moved column to become
+	 * part of the primary key (or to be removed from the primary
+	 * key).
+	 *
+	 * @param oldIdx the present index of the column.
+	 * @param newIdx the index that the column will have when this
+	 * method returns.
+	 */
+	public void changeColumnIndex(int oldIdx, int newIdx) {
+		SQLColumn col = (SQLColumn) columnsFolder.children.remove(oldIdx);
+		columnsFolder.children.add(newIdx, col);
+		if (newIdx == 0
+			|| ((SQLColumn) columnsFolder.children.get(newIdx-1)).primaryKeySeq != null) {
+			col.primaryKeySeq = new Integer(1); // will get sane value when normalized
+		}
+		normalizePrimaryKey();
+	}
+
+	/**
 	 * Sets the primaryKeySeq on each child column currently in the
 	 * primary key to its index in this table.
 	 */
 	public void normalizePrimaryKey() {
 		if (columnsFolder.children.isEmpty()) return;
+		boolean donePk = false;
 		int i = 0;
 		Iterator it = columnsFolder.children.iterator();
 		while (it.hasNext()) {
 			SQLColumn col = (SQLColumn) it.next();
-			if (col.getPrimaryKeySeq() == null) return;
-			col.primaryKeySeq = new Integer(i);
+			if (col.getPrimaryKeySeq() == null) donePk = true;
+			if (!donePk) {
+				col.primaryKeySeq = new Integer(i);
+			} else {
+				col.primaryKeySeq = null;
+			}
 			i++;
 		}
 	}
@@ -767,18 +801,6 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		return columnsFolder.getChildren();
 	}
 
-	// 	/**
-	// 	 * Sets the value of columns
-	// 	 *
-	// 	 * @param argColumns Value to assign to this.columns
-	// 	 */
-	// 	public synchronized void setColumns(List argColumns) {
-	// 		List old = columns;
-	// 		this.columns = argColumns;
-	// 		columnsPopulated = true;
-	// 		firePropertyChange("children", old, columns);
-	// 	}
-
 	/**
 	 * Gets the value of importedKeys
 	 *
@@ -796,16 +818,6 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	public List getExportedKeys() throws ArchitectException {
 		return this.exportedKeysFolder.getChildren();
 	}
-
-// 	/**
-// 	 * Sets the value of importedKeys
-// 	 *
-// 	 * @param argImportedKeys Value to assign to this.importedKeys
-// 	 */
-// 	public void setImportedKeys(List argImportedKeys) {
-// 		this.importedKeysFolder.children = argImportedKeys;
-// 		fireDbObjectChanged("importedKeys");
-// 	}
 
 	/**
 	 * Gets the value of columnsPopulated

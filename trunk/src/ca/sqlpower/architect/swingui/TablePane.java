@@ -547,23 +547,27 @@ public class TablePane
 							}
 						} else if (someData instanceof SQLColumn) {
 							SQLColumn col = (SQLColumn) someData;
-							if (col.getParentTable().getParentDatabase()
-								== tp.getModel().getParentDatabase()) {
+							if (col.getParentTable() == tp.getModel()) {
+								// moving column inside the same table
 								dtde.acceptDrop(DnDConstants.ACTION_MOVE);
-								int removedIndex = col.getParent().getChildren().indexOf(col);
-								if (tp.getModel() == col.getParentTable()) {
-									// moving column inside the same table
-									if (insertionPoint > removedIndex) {
-										insertionPoint--;
-									}
-								}
+								int oldIndex = col.getParent().getChildren().indexOf(col);
+ 								if (insertionPoint > oldIndex) {
+ 									insertionPoint--;
+ 								}
+								tp.getModel().changeColumnIndex(oldIndex, insertionPoint);
+								dtde.dropComplete(true);
+							} else if (col.getParentTable().getParentDatabase()
+								== tp.getModel().getParentDatabase()) {
+								// moving column within playpen
+								dtde.acceptDrop(DnDConstants.ACTION_MOVE);
 								col.getParentTable().removeColumn(col);
-								logger.debug("Adding column '"+col.getName()
+								logger.debug("Moving column '"+col.getName()
 											 +"' to table '"+tp.getModel().getName()
 											 +"' at position "+insertionPoint);
 								tp.getModel().addColumn(insertionPoint, col);
 								dtde.dropComplete(true);
 							} else {
+								// importing column from a source database
 								dtde.acceptDrop(DnDConstants.ACTION_COPY);
 								tp.getModel().inherit(insertionPoint, col);
 								logger.debug("Inherited "+col.getColumnName()+" to table");
