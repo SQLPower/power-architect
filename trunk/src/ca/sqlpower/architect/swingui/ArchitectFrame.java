@@ -42,8 +42,8 @@ public class ArchitectFrame extends JFrame {
 	protected Action saveProjectAction;
 	protected Action saveProjectAsAction;
 	protected PrintAction printAction;
- 	protected Action zoomInAction;
- 	protected Action zoomOutAction;
+ 	protected ZoomAction zoomInAction;
+ 	protected ZoomAction zoomOutAction;
  	protected Action zoomNormalAction;
 	protected DeleteSelectedAction deleteSelectedAction;
 	protected EditColumnAction editColumnAction;
@@ -176,28 +176,8 @@ public class ArchitectFrame extends JFrame {
 		saveProjectAsAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Save As");
 
 		printAction = new PrintAction();
-
-		zoomInAction
-			= new AbstractAction("Zoom in",
-								 ASUtils.createJLFIcon("general/ZoomIn",
-													   "Zoom In",
-													   sprefs.getInt(sprefs.ICON_SIZE, 24))) {
-					public void actionPerformed(ActionEvent e) {
-						playpen.setZoom(playpen.getZoom() + ZOOM_STEP);
-					}
-				};
-		zoomInAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Zoom In");
-
-		zoomOutAction
-			= new AbstractAction("Zoom out",
-								 ASUtils.createJLFIcon("general/ZoomOut",
-													   "Zoom Out",
-													   sprefs.getInt(sprefs.ICON_SIZE, 24))) {
-					public void actionPerformed(ActionEvent e) {
-						playpen.setZoom(playpen.getZoom() - ZOOM_STEP);
-					}
-				};
-		zoomOutAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Zoom Out");
+		zoomInAction = new ZoomAction(ZOOM_STEP);
+		zoomOutAction = new ZoomAction(ZOOM_STEP * -1.0);
 
 		zoomNormalAction
 			= new AbstractAction("Reset Zoom",
@@ -303,6 +283,8 @@ public class ArchitectFrame extends JFrame {
 		createIdentifyingRelationshipAction.setPlayPen(playpen);
 		createNonIdentifyingRelationshipAction.setPlayPen(playpen);
 		editRelationshipAction.setPlayPen(playpen);
+		zoomInAction.setPlayPen(playpen);
+		zoomOutAction.setPlayPen(playpen);
 	}
 
 	public static ArchitectFrame getMainInstance() {
