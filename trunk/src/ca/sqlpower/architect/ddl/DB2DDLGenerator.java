@@ -10,7 +10,7 @@ public class DB2DDLGenerator extends GenericDDLGenerator {
 	}
 
 	public void writeHeader() {
-		out.println("-- Created by SQLPower DB2 DDL Generator "+GENERATOR_VERSION+" --");
+		println("-- Created by SQLPower DB2 DDL Generator "+GENERATOR_VERSION+" --");
 	}
 
 	protected void createTypeMap() throws SQLException {

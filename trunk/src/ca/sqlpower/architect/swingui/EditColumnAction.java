@@ -22,10 +22,11 @@ public class EditColumnAction extends AbstractAction implements ActionListener {
 	protected ColumnEditPanel columnEditPanel;
 
 	public EditColumnAction() {
-		super("Edit Column Properties...",
+		super("Column Properties...",
 			  ASUtils.createIcon("ColumnProperties",
-								 "Edit Column Properties",
+								 "Column Properties",
 								 ArchitectFrame.getMainInstance().sprefs.getInt(SwingUserSettings.ICON_SIZE, 24)));
+		putValue(SHORT_DESCRIPTION, "Column Properties");
 	}
 
 	public void actionPerformed(ActionEvent evt) {

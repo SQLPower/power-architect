@@ -10,7 +10,7 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
 	}
 
 	public void writeHeader() {
-		out.println("-- Created by SQLPower SQLServer 2000 DDL Generator "+GENERATOR_VERSION+" --");
+		println("-- Created by SQLPower SQLServer 2000 DDL Generator "+GENERATOR_VERSION+" --");
 	}
 	
 	public void writeDDLTransactionBegin() {
@@ -20,7 +20,7 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
 	 * Prints "GO" on its own line.
 	 */
 	public void writeDDLTransactionEnd() {
-		out.println("GO");
+		println("GO");
 	}
 
 	/**

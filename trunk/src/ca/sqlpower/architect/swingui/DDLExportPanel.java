@@ -31,7 +31,11 @@ public class DDLExportPanel extends JPanel implements ArchitectPanel {
 		allowConnection.setSelected(ddlg.getAllowConnection());
 		add(new JLabel("Output File"));
 		JPanel p = new JPanel(new FlowLayout());
-		p.add(filename = new JTextField((ddlg.getFile() == null ? "" : ddlg.getFile().getPath()), 35));
+		File outFile = ddlg.getFile();
+		if (outFile == null) {
+			outFile = new File(System.getProperty("user.dir"), project.getName()+".ddl");
+		}
+		p.add(filename = new JTextField((outFile.getPath()), 35));
 		p.add(fileChooserButton = new JButton("..."));
 		fileChooserButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
@@ -82,7 +86,6 @@ public class DDLExportPanel extends JPanel implements ArchitectPanel {
 		}
 		ddlg.setAllowConnection(allowConnection.isSelected());
 		ddlg.setFile(new File(filename.getText()));
-		
 	}
 
 	public void discardChanges() {

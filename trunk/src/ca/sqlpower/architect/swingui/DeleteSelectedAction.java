@@ -19,6 +19,9 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 			  ASUtils.createJLFIcon("general/Delete",
 								 "Delete Selected",
 								 ArchitectFrame.getMainInstance().sprefs.getInt(SwingUserSettings.ICON_SIZE, 24)));
+		putValue(SHORT_DESCRIPTION, "Delete Selected");
+		putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0)); // XXX: how to attach to components?
+		setEnabled(false);
 	}
 
 	public void actionPerformed(ActionEvent evt) {
