@@ -185,6 +185,10 @@ public class SQLColumn extends SQLObject {
 	public boolean allowsChildren() {
 		return false;
 	}
+
+	public SQLObject getParent()  {
+		return this.parent;
+	}
 	
 	// ------------------------- accessors and mutators --------------------------
 
@@ -278,13 +282,8 @@ public class SQLColumn extends SQLObject {
 		return this.primaryKeySeq != null;
 	}
 
-	/**
-	 * Gets the value of parent
-	 *
-	 * @return the value of parent
-	 */
-	public SQLObject getParent()  {
-		return this.parent;
+	public SQLTable getParentTable() {
+		return parent;
 	}
 
 	/**
@@ -292,7 +291,7 @@ public class SQLColumn extends SQLObject {
 	 *
 	 * @param argParent Value to assign to this.parent
 	 */
-	public void setParent(SQLTable argParent) {
+	protected void setParent(SQLTable argParent) {
 		this.parent = argParent;
 	}
 
