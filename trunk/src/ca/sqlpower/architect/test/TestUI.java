@@ -35,7 +35,7 @@ public class TestUI extends JFrame {
 		dbcs = spec;
 		SQLDatabase db = new SQLDatabase(spec);
 
-		playpen = new PlayPen();
+		playpen = new PlayPen(SQLDatabase.getPlayPenInstance());
 
 		ArrayList dblist = new ArrayList(1);
 		dblist.add(db);
