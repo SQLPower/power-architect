@@ -117,7 +117,7 @@ public abstract class SQLObject implements java.io.Serializable {
 	}
 
 	protected void fireDbChildrenInserted(int[] newIndices, List newChildren) {
-		System.out.println("SQLObject: firing dbChildrenInserted event");
+		System.out.println(getClass().getName()+": firing dbChildrenInserted event");
 		SQLObjectEvent e = new SQLObjectEvent
 			(this,
 			 newIndices,
@@ -128,7 +128,7 @@ public abstract class SQLObject implements java.io.Serializable {
 			count ++;
 			((SQLObjectListener) it.next()).dbChildrenInserted(e);
 		}
-		System.out.println("SQLObject: notified "+count+" listeners");
+		System.out.println(getClass().getName()+": notified "+count+" listeners");
 	}
 
 	protected void fireDbChildInserted(int newIndex, SQLObject newChild) {
