@@ -166,4 +166,13 @@ public abstract class SQLObject implements java.io.Serializable {
 		}
 		
 	}
+
+	protected void fireDbStructureChanged(String propertyName) {
+		SQLObjectEvent e = new SQLObjectEvent(this, propertyName);
+		Iterator it = getSqlObjectListeners().iterator();
+		while (it.hasNext()) {
+			((SQLObjectListener) it.next()).dbStructureChanged(e);
+		}
+		
+	}
 }

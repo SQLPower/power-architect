@@ -114,29 +114,6 @@ public class DBCSPanel extends JPanel {
 	public void cancel() {
 	}
 
-	// --------------------- action -> change event proxy ---------------------
-	protected List changeListeners = new LinkedList();
-
-	public void actionPerformed(ActionEvent e) {
-		System.out.println("Firing change event "+e);
-		fireChange(new ChangeEvent(this));
-	}
-
-	public void addChangeListener(ChangeListener l) {
-		changeListeners.add(l);
-	}
-
-	public void removeChangeListener(ChangeListener l) {
-		changeListeners.remove(l);
-	}
-
-	public void fireChange(ChangeEvent e) {
-		Iterator it = changeListeners.iterator();
-		while (it.hasNext()) {
-			((ChangeListener) it.next()).stateChanged(e);
-		}
-	}
-
 	// ---------------- accessors and mutators ----------------
 
 	/**
@@ -146,7 +123,11 @@ public class DBCSPanel extends JPanel {
 	 */
 	public void setDbcs(DBConnectionSpec dbcs) {
 		dbNameField.setText(dbcs.getDisplayName());
-		dbDriverField.insertItemAt(dbcs.getDriverClass(), 0);
+		if (dbcs.getDriverClass() != null) {
+			dbDriverField.insertItemAt(dbcs.getDriverClass(), 0);
+		} else {
+			dbDriverField.insertItemAt("", 0);
+		}
 		dbDriverField.setSelectedIndex(0);
 		dbUrlField.setText(dbcs.getUrl());
 		dbUserField.setText(dbcs.getUser());
@@ -184,12 +165,6 @@ public class DBCSPanel extends JPanel {
 		final JPanel southPanel = new JPanel(new FlowLayout());
 		final DBCSPanel dbcsPanel = new DBCSPanel(dbcs);
 
-		dbcsPanel.addChangeListener(new ChangeListener() {
-				public void stateChanged(ChangeEvent e) {
-					cancelButton.setEnabled(true);
-				}
-			});
-
 		okButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					dbcsPanel.apply();
@@ -208,7 +183,6 @@ public class DBCSPanel extends JPanel {
 
 		applyButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					cancelButton.setEnabled(false);
 					dbcsPanel.apply();
 				}
 			});
