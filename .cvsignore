@@ -4,3 +4,4 @@ build
 *.bak
 *~
 TEST*
+architect.log*
