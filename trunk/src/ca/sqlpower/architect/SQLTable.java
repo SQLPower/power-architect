@@ -19,10 +19,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 
 	private static Logger logger = Logger.getLogger(SQLTable.class);
 
-	protected SQLDatabase parentDatabase;
 	protected SQLObject parent;
-	protected SQLCatalog catalog;
-	protected SQLSchema schema;
 	protected String tableName;
 	protected String remarks;
 	protected String objectType;
@@ -51,12 +48,9 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	protected boolean columnsPopulated;
 	protected boolean relationshipsPopulated;
 
-	public SQLTable(SQLDatabase parentDb, SQLObject parent, SQLCatalog catalog, SQLSchema schema, String name, String remarks, String objectType) {
+	public SQLTable(SQLObject parent, String name, String remarks, String objectType) {
 		logger.debug("NEW TABLE "+name+"@"+hashCode());
-		this.parentDatabase = parentDb;
 		this.parent = parent;
-		this.catalog = catalog;
-		this.schema = schema;
 		this.tableName = name;
 		this.remarks = remarks;
 		this.columnsPopulated = false;
@@ -75,7 +69,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * folders: "Columns" "Exported Keys" and "Imported Keys".
 	 */
 	public SQLTable(SQLDatabase parent) {
-		this(parent, parent, null, null, "", "", "TABLE");
+		this(parent, "", "", "TABLE");
 	}
 
 	/**
@@ -150,10 +144,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 						tableParent = schema;
 					}
 
-					tableParent.children.add(new SQLTable(addTo,
-														  tableParent,
-														  cat,
-														  schema,
+					tableParent.children.add(new SQLTable(tableParent,
 														  mdTables.getString(3),
 														  mdTables.getString(5),
 														  mdTables.getString(4)
@@ -518,6 +509,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * The table's name.
 	 */
 	public String getShortDisplayName() {
+		SQLSchema schema = getSchema();
 		if (schema != null) {
 			return schema.getSchemaName()+"."+tableName+" ("+objectType+")";
 		} else {
@@ -657,29 +649,26 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	// ------------------ Accessors and mutators below this line ------------------------
 
 	/**
-	 * Gets the value of parentDatabase
+	 * Walks up the SQLObject containment hierarchy and returns the
+	 * first SQLDatabase object encountered.  If this SQLTable has no
+	 * SQLDatabase ancestors, the return value is null.
 	 *
 	 * @return the value of parentDatabase
 	 */
 	public SQLDatabase getParentDatabase()  {
-		return this.parentDatabase;
-	}
-
-	/**
-	 * Sets the value of parentDatabase
-	 *
-	 * @param argParentDatabase Value to assign to this.parentDatabase
-	 */
-	public void setParentDatabase(SQLDatabase argParentDatabase) {
-		this.parentDatabase = argParentDatabase;
-		// XXX: fire event?
+		SQLObject o = this.parent;
+		while (o != null && ! (o instanceof SQLDatabase)) {
+			o = o.getParent();
+		}
+		return (SQLDatabase) o;
 	}
 
 	/**
 	 * @return An empty string if the catalog for this table is null;
-	 * otherwise, catalog.getCatalogName().
+	 * otherwise, getCatalog().getCatalogName().
 	 */
 	public String getCatalogName() {
+		SQLCatalog catalog = getCatalog();
 		if (catalog == null) {
 			return "";
 		} else {
@@ -688,12 +677,11 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	}
 
 	public SQLCatalog getCatalog()  {
-		return this.catalog;
-	}
-
-	protected void setCatalog(SQLCatalog argCatalog) {
-		this.catalog = argCatalog;
-		// XXX: fire event?
+		SQLObject o = this.parent;
+		while (o != null && ! (o instanceof SQLCatalog)) {
+			o = o.getParent();
+		}
+		return (SQLCatalog) o;
 	}
 
 	/**
@@ -701,6 +689,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * otherwise, schema.getSchemaName().
 	 */
 	public String getSchemaName() {
+		SQLSchema schema = getSchema();
 		if (schema == null) {
 			return "";
 		} else {
@@ -709,12 +698,11 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	}
 
 	public SQLSchema getSchema()  {
-		return this.schema;
-	}
-
-	protected void setSchema(SQLSchema argSchema) {
-		this.schema = argSchema;
-		// XXX: fire event?
+		SQLObject o = this.parent;
+		while (o != null && ! (o instanceof SQLSchema)) {
+			o = o.getParent();
+		}
+		return (SQLSchema) o;
 	}
 
 	public Folder getColumnsFolder() {
@@ -829,11 +817,15 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	}
 
 	/**
-	 * Sets the value of columnsPopulated
+	 * Allows an outsider to tell this SQLTable that its columns list
+	 * is already populated (true) or still needs to be populated from
+	 * the source database (false).  Users of the class should not
+	 * normally call this method, but the load method of
+	 * SwingUIProject needs to call this.
 	 *
 	 * @param argColumnsPopulated Value to assign to this.columnsPopulated
 	 */
-	protected void setColumnsPopulated(boolean argColumnsPopulated) {
+	public void setColumnsPopulated(boolean argColumnsPopulated) {
 		this.columnsPopulated = argColumnsPopulated;
 	}
 
@@ -847,11 +839,15 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	}
 
 	/**
-	 * Sets the value of relationshipsPopulated
+	 * Allows an outsider to tell this SQLTable that its relationships
+	 * list is already populated (true) or still needs to be populated
+	 * from the source database (false).  Users of the class should
+	 * not normally call this method, but the load method of
+	 * SwingUIProject needs to call this.
 	 *
 	 * @param argRelationshipsPopulated Value to assign to this.relationshipsPopulated
 	 */
-	protected void setRelationshipsPopulated(boolean argRelationshipsPopulated) {
+	public void setRelationshipsPopulated(boolean argRelationshipsPopulated) {
 		this.relationshipsPopulated = argRelationshipsPopulated;
 	}
 

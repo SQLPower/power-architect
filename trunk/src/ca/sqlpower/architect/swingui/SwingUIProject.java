@@ -24,6 +24,7 @@ public class SwingUIProject {
 	protected PlayPen playPen;
 	protected File file;
 	protected GenericDDLGenerator ddlGenerator;
+	protected boolean savingEntireSource;
 
 	// ------------------ load and save support -------------------
 
@@ -220,6 +221,12 @@ public class SwingUIProject {
 			if (dbcsid != null) {
 				db.setConnectionSpec((DBConnectionSpec) dbcsIdMap.get(dbcsid));
 			}
+
+			String populated = attributes.getValue("populated");
+			if (populated != null && populated.equals("false")) {
+				db.setPopulated(false);
+			}
+
 			return db;
 		}
 	}
@@ -236,6 +243,13 @@ public class SwingUIProject {
 				objectIdMap.put(id, tab);
 			} else {
 				logger.warn("No ID found in table element while loading project!");
+			}
+
+			String populated = attributes.getValue("populated");
+			if (populated != null && populated.equals("false")) {
+				tab.setColumnsPopulated(false);
+				tab.setRelationshipsPopulated(false);
+				tab.initFolders();
 			}
 
 			return tab;
@@ -416,9 +430,9 @@ public class SwingUIProject {
 			indent--;
 			println("</architect-project>");
 		} finally {
-			out.close();
+			if (out != null) out.close();
 			out = null;
-			pm.close();
+			if (pm != null) pm.close();
 			pm = null;
 		}
 	}
@@ -524,7 +538,9 @@ public class SwingUIProject {
 	 * The recursive subroutine of saveRelationships.
 	 */
 	protected void saveRelationshipsRecurse(SQLObject o) throws ArchitectException, IOException {
-		if (o instanceof SQLRelationship) {
+		if ( (!savingEntireSource) && (!o.isPopulated()) ) {
+			return;
+		} else if (o instanceof SQLRelationship) {
 			saveSQLObject(o);
 		} else if (o.allowsChildren()) {
 			Iterator it = o.getChildren().iterator();
@@ -594,8 +610,8 @@ public class SwingUIProject {
 			println("<reference ref-id=\""+id+"\" />");
 			return;
 		}
+
 		String type;
-		
 		Map propNames = new TreeMap();
 		
 		if (o instanceof SQLDatabase) {
@@ -666,6 +682,11 @@ public class SwingUIProject {
 		
 		//print("<"+type+" hashCode=\""+o.hashCode()+"\" id=\""+id+"\" ");
 		print("<"+type+" id=\""+id+"\" ");
+
+		if ( (!savingEntireSource) && (!o.isPopulated()) ) {
+			niprint("populated=\"false\" ");
+		}
+
 		Iterator props = propNames.keySet().iterator();
 		while (props.hasNext()) {
 			Object key = props.next();
@@ -674,7 +695,7 @@ public class SwingUIProject {
 				niprint(key+"=\""+value+"\" ");
 			}
 		}
-		if (o.allowsChildren()) {
+		if (o.allowsChildren() && (savingEntireSource || o.isPopulated()) ) {
 			niprintln(">");
 			Iterator children = o.getChildren().iterator();
 			indent++;
@@ -697,12 +718,12 @@ public class SwingUIProject {
 	// ----------------------- utility methods ------------------------
 
 	// OBSOLETE
-// 	protected void restoreTPPositions(PlayPen pp, Point[] points) {
-// 		int n = pp.getComponentCount();
-// 		for (int i = 0; i < n; i++) {
-// 			pp.getComponent(i).setLocation(points[i]);
-// 		}
-// 	}
+	// 	protected void restoreTPPositions(PlayPen pp, Point[] points) {
+	// 		int n = pp.getComponentCount();
+	// 		for (int i = 0; i < n; i++) {
+	// 			pp.getComponent(i).setLocation(points[i]);
+	// 		}
+	// 	}
 
 	// ------------------- accessors and mutators ---------------------
 	
@@ -802,6 +823,24 @@ public class SwingUIProject {
 
 	public void setDDLGenerator(GenericDDLGenerator generator) {
 		ddlGenerator = generator;
+	}
+
+	/**
+	 * See {@link #savingEntireSource}.
+	 *
+	 * @return the value of savingEntireSource
+	 */
+	public boolean isSavingEntireSource()  {
+		return this.savingEntireSource;
+	}
+
+	/**
+	 * See {@link #savingEntireSource}.
+	 *
+	 * @param argSavingEntireSource Value to assign to this.savingEntireSource
+	 */
+	public void setSavingEntireSource(boolean argSavingEntireSource) {
+		this.savingEntireSource = argSavingEntireSource;
 	}
 
 	// ------------------- utility methods -------------------

@@ -4,6 +4,7 @@ import ca.sqlpower.architect.*;
 import java.awt.BorderLayout;
 import java.awt.event.*;
 import javax.swing.*;
+import java.io.File;
 
 public class PreferencesPanel extends JPanel implements ArchitectPanel {
 
@@ -45,8 +46,20 @@ public class PreferencesPanel extends JPanel implements ArchitectPanel {
 	}
 
 	protected class ChooseIniFileAction extends AbstractAction {
+		public ChooseIniFileAction() {
+			super("Browse...");
+		}
+
 		public void actionPerformed(ActionEvent e) {
 			JFileChooser fc = new JFileChooser();
+
+			if (plIniName.getText() != null && plIniName.getText().length() > 0) {
+				File initialLocation = new File(plIniName.getText());
+				if (initialLocation.exists()) {
+					fc.setCurrentDirectory(initialLocation);
+				}
+			}
+			
 			fc.addChoosableFileFilter(ASUtils.INI_FILE_FILTER);
 			int returnVal = fc.showOpenDialog(PreferencesPanel.this);
 			if(returnVal == JFileChooser.APPROVE_OPTION) {

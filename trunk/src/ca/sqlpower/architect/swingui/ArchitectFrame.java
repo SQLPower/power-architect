@@ -45,6 +45,7 @@ public class ArchitectFrame extends JFrame {
 	protected Action saveProjectAction;
 	protected Action saveProjectAsAction;
 	protected PreferencesAction prefAction;
+	protected ProjectSettingsAction projectSettingsAction;
 	protected PrintAction printAction;
  	protected ZoomAction zoomInAction;
  	protected ZoomAction zoomOutAction;
@@ -167,6 +168,7 @@ public class ArchitectFrame extends JFrame {
 		saveProjectAsAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Save As");
 
 		prefAction = new PreferencesAction();
+		projectSettingsAction = new ProjectSettingsAction();
 		printAction = new PrintAction();
 		zoomInAction = new ZoomAction(ZOOM_STEP);
 		zoomOutAction = new ZoomAction(ZOOM_STEP * -1.0);
@@ -204,6 +206,7 @@ public class ArchitectFrame extends JFrame {
 		fileMenu.add(new JMenuItem(exportDDLAction));
                // fileMenu.add(new JMenuItem(exportPLTransAction));
 		fileMenu.add(new JMenuItem(prefAction));
+		fileMenu.add(new JMenuItem(projectSettingsAction));
 		fileMenu.add(new JMenuItem(saveSettingsAction));
 		fileMenu.add(new JMenuItem(exitAction));
 		menuBar.add(fileMenu);
@@ -307,6 +310,7 @@ public class ArchitectFrame extends JFrame {
 		zoomOutAction.setPlayPen(playpen);
 		
 		prefAction.setArchitectFrame(this);
+		projectSettingsAction.setArchitectFrame(this);
 	}
 
 	public static ArchitectFrame getMainInstance() {
