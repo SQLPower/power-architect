@@ -171,7 +171,6 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 			logger.debug("Printing page "+(pageIndex+1)+" of "+(pagesAcross*pagesDown)
 						 +" at ["+col+","+row+"]");
 
-			// XXX: needs zooming
 			g2.translate(leftMargin - col*width, topMargin - row*height);
 			g2.scale(zoom, zoom);
 			pp.print(g2);
