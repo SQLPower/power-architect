@@ -24,7 +24,13 @@ public class IERelationshipUI extends BasicRelationshipUI {
 	 */
 	protected void paintTerminations(Graphics2D g2, Point parent, Point child, int orientation) {
 		int pkc = relationship.getModel().getPkCardinality();
+		int length = getTerminationLength();
 		if ( (orientation & PARENT_FACES_LEFT) != 0) {
+			g2.drawLine(parent.x, parent.y, parent.x-length, parent.y);
+			if ( (pkc & SQLRelationship.MANY) != 0) {
+				g2.drawLine(parent.x - 10, parent.y, parent.x, parent.y + 5);
+				g2.drawLine(parent.x - 10, parent.y, parent.x, parent.y - 5);
+			}
 			if ( (pkc & SQLRelationship.ONE) != 0) {
 				g2.drawLine(parent.x - 10, parent.y - 5, parent.x - 10, parent.y + 5);
 			}
@@ -32,6 +38,11 @@ public class IERelationshipUI extends BasicRelationshipUI {
 				g2.drawOval(parent.x - 16, parent.y - 3, 6, 6);
 			}
 		} else if ( (orientation & PARENT_FACES_RIGHT) != 0) {
+			g2.drawLine(parent.x, parent.y, parent.x+length, parent.y);
+			if ( (pkc & SQLRelationship.MANY) != 0) {
+				g2.drawLine(parent.x + 10, parent.y, parent.x, parent.y + 5);
+				g2.drawLine(parent.x + 10, parent.y, parent.x, parent.y - 5);
+			}
 			if ( (pkc & SQLRelationship.ONE) != 0) {
 				g2.drawLine(parent.x + 10, parent.y - 5, parent.x + 10, parent.y + 5);
 			}
@@ -39,6 +50,11 @@ public class IERelationshipUI extends BasicRelationshipUI {
 				g2.drawOval(parent.x + 10, parent.y - 3, 6, 6);
 			}
 		} else if ( (orientation & PARENT_FACES_TOP) != 0) {
+			g2.drawLine(parent.x, parent.y, parent.x, parent.y-length);
+			if ( (pkc & SQLRelationship.MANY) != 0) {
+				g2.drawLine(parent.x - 5, parent.y, parent.x, parent.y - 10);
+				g2.drawLine(parent.x + 5, parent.y, parent.x, parent.y - 10);
+			}
 			if ( (pkc & SQLRelationship.ONE) != 0) {
 				g2.drawLine(parent.x - 5, parent.y - 10, parent.x + 5, parent.y - 10);
 			}
@@ -46,6 +62,11 @@ public class IERelationshipUI extends BasicRelationshipUI {
 				g2.drawOval(parent.x - 3, parent.y - 16, 6, 6);
 			}
 		} else if ( (orientation & PARENT_FACES_BOTTOM) != 0) {
+			g2.drawLine(parent.x, parent.y, parent.x, parent.y+length);
+			if ( (pkc & SQLRelationship.MANY) != 0) {
+				g2.drawLine(parent.x - 5, parent.y, parent.x, parent.y + 10);
+				g2.drawLine(parent.x + 5, parent.y, parent.x, parent.y + 10);
+			}
 			if ( (pkc & SQLRelationship.ONE) != 0) {
 				g2.drawLine(parent.x - 5, parent.y + 10, parent.x + 5, parent.y + 10);
 			}
@@ -55,18 +76,8 @@ public class IERelationshipUI extends BasicRelationshipUI {
 		}
 
 		int fkc = relationship.getModel().getFkCardinality();
-		if ( (orientation & CHILD_FACES_RIGHT) != 0) {
-			if ( (fkc & SQLRelationship.MANY) != 0) {
-				g2.drawLine(child.x + 10, child.y, child.x, child.y + 5);
-				g2.drawLine(child.x + 10, child.y, child.x, child.y - 5);
-			}
-			if ( (fkc & SQLRelationship.ONE) != 0) {
-				g2.drawLine(child.x + 10, child.y - 5, child.x + 10, child.y + 5);
-			}
-			if ( (fkc & SQLRelationship.ZERO) != 0) {
-				g2.drawOval(child.x + 10, child.y - 3, 6, 6);
-			}
-		} else if ( (orientation & CHILD_FACES_LEFT) != 0) {
+		if ( (orientation & CHILD_FACES_LEFT) != 0) {
+			g2.drawLine(child.x, child.y, child.x-length, child.y);
 			if ( (fkc & SQLRelationship.MANY) != 0) {
 				g2.drawLine(child.x - 10, child.y, child.x, child.y + 5);
 				g2.drawLine(child.x - 10, child.y, child.x, child.y - 5);
@@ -77,7 +88,20 @@ public class IERelationshipUI extends BasicRelationshipUI {
 			if ( (fkc & SQLRelationship.ZERO) != 0) {
 				g2.drawOval(child.x - 16, child.y - 3, 6, 6);
 			}
+		} else if ( (orientation & CHILD_FACES_RIGHT) != 0) {
+			g2.drawLine(child.x, child.y, child.x+length, child.y);
+			if ( (fkc & SQLRelationship.MANY) != 0) {
+				g2.drawLine(child.x + 10, child.y, child.x, child.y + 5);
+				g2.drawLine(child.x + 10, child.y, child.x, child.y - 5);
+			}
+			if ( (fkc & SQLRelationship.ONE) != 0) {
+				g2.drawLine(child.x + 10, child.y - 5, child.x + 10, child.y + 5);
+			}
+			if ( (fkc & SQLRelationship.ZERO) != 0) {
+				g2.drawOval(child.x + 10, child.y - 3, 6, 6);
+			}
 		} else if ( (orientation & CHILD_FACES_TOP) != 0) {
+			g2.drawLine(child.x, child.y, child.x, child.y-length);
 			if ( (fkc & SQLRelationship.MANY) != 0) {
 				g2.drawLine(child.x - 5, child.y, child.x, child.y - 10);
 				g2.drawLine(child.x + 5, child.y, child.x, child.y - 10);
@@ -89,6 +113,7 @@ public class IERelationshipUI extends BasicRelationshipUI {
 				g2.drawOval(child.x - 3, child.y - 16, 6, 6);
 			}
 		} else if ( (orientation & CHILD_FACES_BOTTOM) != 0) {
+			g2.drawLine(child.x, child.y, child.x, child.y+length);
 			if ( (fkc & SQLRelationship.MANY) != 0) {
 				g2.drawLine(child.x - 5, child.y, child.x, child.y + 10);
 				g2.drawLine(child.x + 5, child.y, child.x, child.y + 10);
