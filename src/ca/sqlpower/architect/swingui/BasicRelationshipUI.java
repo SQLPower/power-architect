@@ -207,35 +207,69 @@ public class BasicRelationshipUI extends RelationshipUI
 		}
 	}
 
+	/**
+	 * Returns the closest point to <code>p</code> which is along an
+	 * edge of tp.  If <code>tp</code> is the pkTable or the fkTable,
+	 * the point will be along that table's current facing edge
+	 * (according to the <code>orientation</code> setting of this ui
+	 * object).  Otherwise, it will be whichever edge is closest to
+	 * the pointer.
+	 */
 	public Point closestEdgePoint(TablePane tp, Point p) {
 		Dimension tpsize = tp.getSize();
+		Point ep; // this is the return value, set in one of the cases below
 
-		// clip point p to inside of tp
-		Point bcp = new Point(Math.max(0, Math.min(tpsize.width, p.x)),
-							  Math.max(0, Math.min(tpsize.height, p.y)));
-		
-		boolean adjustX = bcp.y != 0 && bcp.y != tpsize.height;
-		boolean adjustY = bcp.x != 0 && bcp.x != tpsize.width;
+		if (tp == relationship.getPkTable()) {
+			if ((orientation & PARENT_FACES_LEFT) != 0)
+				ep = new Point(0, Math.max(0, Math.min(tpsize.height, p.y)));
+			else if ((orientation & PARENT_FACES_RIGHT)  != 0)
+				ep = new Point(tpsize.width, Math.max(0, Math.min(tpsize.height, p.y)));
+			else if ((orientation & PARENT_FACES_TOP)  != 0)
+				ep = new Point(Math.max(0, Math.min(tpsize.width, p.x)), 0);
+			else if ((orientation & PARENT_FACES_BOTTOM)  != 0)
+				ep = new Point(Math.max(0, Math.min(tpsize.width, p.x)), tpsize.height);
+			else 
+				ep = new Point(p);
+		} else if (tp == relationship.getFkTable()) {
+			if ((orientation & CHILD_FACES_LEFT) != 0)
+				ep = new Point(0, Math.max(0, Math.min(tpsize.height, p.y)));
+			else if ((orientation & CHILD_FACES_RIGHT)  != 0)
+				ep = new Point(tpsize.width, Math.max(0, Math.min(tpsize.height, p.y)));
+			else if ((orientation & CHILD_FACES_TOP)  != 0)
+				ep = new Point(Math.max(0, Math.min(tpsize.width, p.x)), 0);
+			else if ((orientation & CHILD_FACES_BOTTOM)  != 0)
+				ep = new Point(Math.max(0, Math.min(tpsize.width, p.x)), tpsize.height);
+			else 
+				ep = new Point(p);
+		} else {
 
-		// push x-coordinate to left or right edge of tp, if y-coord is inside tp
-		if (adjustX) {
-			if (bcp.x < (tpsize.width/2)) {
-				bcp.x = 0;
-			} else {
-				bcp.x = tpsize.width;
+			// clip point p to inside of tp
+			ep = new Point(Math.max(0, Math.min(tpsize.width, p.x)),
+						   Math.max(0, Math.min(tpsize.height, p.y)));
+			
+			boolean adjustX = ep.y != 0 && ep.y != tpsize.height;
+			boolean adjustY = ep.x != 0 && ep.x != tpsize.width;
+			
+			// push x-coordinate to left or right edge of tp, if y-coord is inside tp
+			if (adjustX) {
+				if (ep.x < (tpsize.width/2)) {
+					ep.x = 0;
+				} else {
+					ep.x = tpsize.width;
+				}
+			}
+			
+			// push y-coordinate to top or bottom edge of tp, if x-coord is inside tp
+			if (adjustY) {
+				if (ep.y < (tpsize.height/2)) {
+					ep.y = 0;
+				} else {
+					ep.y = tpsize.height;
+				}
 			}
 		}
-		
-		// push y-coordinate to top or bottom edge of tp, if x-coord is inside tp
-		if (adjustY) {
-			if (bcp.y < (tpsize.height/2)) {
-				bcp.y = 0;
-			} else {
-				bcp.y = tpsize.height;
-			}
-		}
 
-		return bcp;
+		return ep;
 	}
 
 	protected int getFacingEdges(TablePane parent, TablePane child) {
