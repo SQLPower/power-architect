@@ -318,11 +318,11 @@ public class ArchitectFrame extends JFrame {
 				return;
 			} else {
 				File file = chooser.getSelectedFile();
-				if (!file.getPath().endsWith(".arc")) {
-					file = new File(file.getPath()+".arc");
+				if (!file.getPath().endsWith(".architect")) {
+					file = new File(file.getPath()+".architect");
 				}
 				project.setFile(file);
-				String projName = file.getName().substring(0, file.getName().length()-".arc".length());
+				String projName = file.getName().substring(0, file.getName().length()-".architect".length());
 				project.setName(projName);
 				setTitle(projName);
 			}
