@@ -9,10 +9,13 @@ import javax.swing.border.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Iterator;
+import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.*;
 
 public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListener, java.io.Serializable {
+	private static Logger logger = Logger.getLogger(BasicTablePaneUI.class);
+
 	private TablePane tablePane;
 
 	final int boxLineThickness = 1;
@@ -75,8 +78,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			
 			g.translate(-insets.left, -insets.top);
 		} catch (ArchitectException e) {
-			System.out.println("BasicTablePaneUI.paint failed due to");
-			e.printStackTrace();
+			logger.warn("BasicTablePaneUI.paint failed", e);
 		}
 	}
 
@@ -99,8 +101,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			}
 			width += insets.left + c.getMargin().left + boxLineThickness*2 + c.getMargin().right + insets.right;
 		} catch (ArchitectException e) {
-			System.out.println("BasicTablePaneUI.computeSize failed due to");
-			e.printStackTrace();
+			logger.warn("BasicTablePaneUI.computeSize failed due to", e);
 			width = 100;
 			height = 100;
 		}
@@ -115,10 +116,14 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 	 * recompuation necessary).
 	 */
 	public void propertyChange(PropertyChangeEvent e) {
-		System.out.println("[31mBasicTablePaneUI notices change of "+e.getPropertyName()
-						   +" from "+e.getOldValue()+" to "+e.getNewValue()+" on "+e.getSource()+"[0m");
+		logger.debug("BasicTablePaneUI notices change of "+e.getPropertyName()
+					 +" from "+e.getOldValue()+" to "+e.getNewValue()+" on "+e.getSource());
 		if (e.getPropertyName().equals("UI")) return;
 		if (e.getPropertyName().equals("preferredSize")) return;
+		if (e.getPropertyName().equals("model.tableName")) {
+			tablePane.setName(tablePane.getModel().getTableName());
+			return;
+		}
 		computeSize((TablePane) e.getSource());
 	}
 }
