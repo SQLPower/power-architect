@@ -80,6 +80,9 @@ public class ASUtils {
 	public static final FileFilter INI_FILE_FILTER =
 		new FileExtensionFilter(".INI Files", new String[] {"ini"});
 
+	public static final FileFilter JAR_ZIP_FILE_FILTER =
+		new FileExtensionFilter("JAR Files", new String[] {"jar", "zip"});
+
 	public static class FileExtensionFilter extends FileFilter {
 
 		protected HashSet extensions;
