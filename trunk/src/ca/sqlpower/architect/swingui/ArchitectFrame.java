@@ -27,8 +27,6 @@ public class ArchitectFrame extends JFrame {
 
 	public static final double ZOOM_STEP = 0.2;
 
-	//protected Magnifier playpenMag;
-
 	protected SwingUIProject project = null;
 	protected ConfigFile configFile = null;
 	protected UserSettings prefs = null;
@@ -44,9 +42,9 @@ public class ArchitectFrame extends JFrame {
 	protected Action saveProjectAction;
 	protected Action saveProjectAsAction;
 	protected PrintAction printAction;
-// 	protected Action zoomInAction;
-// 	protected Action zoomOutAction;
-// 	protected Action zoomNormalAction;
+ 	protected Action zoomInAction;
+ 	protected Action zoomOutAction;
+ 	protected Action zoomNormalAction;
 	protected DeleteSelectedAction deleteSelectedAction;
 	protected EditColumnAction editColumnAction;
 	protected InsertColumnAction insertColumnAction;
@@ -179,14 +177,13 @@ public class ArchitectFrame extends JFrame {
 
 		printAction = new PrintAction();
 
-		/*  ------------ no zoom stuff for now ---------------
 		zoomInAction
 			= new AbstractAction("Zoom in",
 								 ASUtils.createJLFIcon("general/ZoomIn",
 													   "Zoom In",
 													   sprefs.getInt(sprefs.ICON_SIZE, 24))) {
 					public void actionPerformed(ActionEvent e) {
-						playpenMag.setZoom(playpenMag.getZoom() + ZOOM_STEP);
+						playpen.setZoom(playpen.getZoom() + ZOOM_STEP);
 					}
 				};
 		zoomInAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Zoom In");
@@ -197,7 +194,7 @@ public class ArchitectFrame extends JFrame {
 													   "Zoom Out",
 													   sprefs.getInt(sprefs.ICON_SIZE, 24))) {
 					public void actionPerformed(ActionEvent e) {
-						playpenMag.setZoom(playpenMag.getZoom() - ZOOM_STEP);
+						playpen.setZoom(playpen.getZoom() - ZOOM_STEP);
 					}
 				};
 		zoomOutAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Zoom Out");
@@ -208,11 +205,10 @@ public class ArchitectFrame extends JFrame {
 													   "Reset Zoom",
 													   sprefs.getInt(sprefs.ICON_SIZE, 24))) {
 					public void actionPerformed(ActionEvent e) {
-						playpenMag.setZoom(1.0);
+						playpen.setZoom(1.0);
 					}
 				};
 		zoomNormalAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Reset Zoom");
-		*/
 
 		exportDDLAction = new ExportDDLAction();
 		deleteSelectedAction = new DeleteSelectedAction();
@@ -242,10 +238,10 @@ public class ArchitectFrame extends JFrame {
 		toolBar.add(newProjectAction);
 		toolBar.add(openProjectAction);
 		toolBar.add(saveProjectAction);
-//		toolBar.addSeparator();
-// 		toolBar.add(zoomInAction);
-// 		toolBar.add(zoomOutAction);
-// 		toolBar.add(zoomNormalAction);
+		toolBar.addSeparator();
+ 		toolBar.add(zoomInAction);
+ 		toolBar.add(zoomOutAction);
+ 		toolBar.add(zoomNormalAction);
 		toolBar.addSeparator();
 		toolBar.add(printAction);
 		toolBar.addSeparator();
@@ -278,9 +274,6 @@ public class ArchitectFrame extends JFrame {
 		setBounds(bounds);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setProject(new SwingUIProject("New Project"));
-// 		MagnifierAwareGlassPane gp = new MagnifierAwareGlassPane();
-// 		gp.setFrame(this);
-// 		setGlassPane(gp);
 	}
 
 	public void setProject(SwingUIProject p) throws ArchitectException {
@@ -293,7 +286,6 @@ public class ArchitectFrame extends JFrame {
 		setupActions();
 
 		splitPane.setLeftComponent(new JScrollPane(dbTree));
-		//splitPane.setRightComponent(new JScrollPane(playpenMag = new Magnifier(playpen, 1.0)));
 		splitPane.setRightComponent(new JScrollPane(playpen));
 	}
 
