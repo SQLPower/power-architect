@@ -4,11 +4,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
+import javax.swing.event.MouseInputAdapter;
 import ca.sqlpower.architect.*;
 import org.apache.log4j.Logger;
 import java.util.*;
 
-public class Relationship extends PlayPenComponent implements Selectable, ComponentListener, MouseListener, SQLObjectListener {
+public class Relationship extends PlayPenComponent implements Selectable, ComponentListener, SQLObjectListener {
 	private static final Logger logger = Logger.getLogger(Relationship.class);
 
 	protected RelationshipUI ui;
@@ -30,6 +31,8 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 	protected Point fkConnectionPoint;
 
 	protected JPopupMenu popup;
+
+	protected MouseListener mouseListener;
 
 	static {
 		UIManager.put(RelationshipUI.UI_CLASS_ID, "ca.sqlpower.architect.swingui.IERelationshipUI");
@@ -85,17 +88,23 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 	 * All constructors have to call this after setting pp, model, pkTable, and fkTable.
 	 */
 	protected void setup() {
+		pkConnectionPoint = new Point();
+		fkConnectionPoint = new Point();
 		updateUI();
-		setOpaque(false);
+		setOpaque(true);
 		setBackground(Color.green);
 		model.addSQLObjectListener(this);
 		setToolTipText(model.getName());
-		pkConnectionPoint = new Point();
-		fkConnectionPoint = new Point();
-		updateBounds(); // also sets bounds
+		
+		ui.bestConnectionPoints(pkTable, fkTable,
+								pkConnectionPoint,  // in pktable-space
+								fkConnectionPoint); // in fktable-space
+
 		createPopup();
 		setVisible(true);
-		addMouseListener(this);
+		mouseListener = new MouseListener();
+		addMouseListener(mouseListener);
+		addMouseMotionListener(mouseListener);
 	}
 
 	protected void createPopup() {
@@ -111,11 +120,6 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 		popup.add(mi);
 	}
 
-    public void updateUI() {
-		setUI((RelationshipUI)UIManager.getUI(this));
-		invalidate();
-    }
-
 	/**
 	 * Calculates the point at b - a.  This is useful if Points a and
 	 * b are in the same coordinate space and you want to know the
@@ -125,11 +129,16 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 		return new Point(b.x - a.x, b.y - a.y);
 	}
 
-	protected void updateBounds() {
-		ui.updateBounds();
+	public Point getPreferredLocation() {
+		return ui.getPreferredLocation();
 	}
 
-	// -------------------- JComponent overrides -------------------
+	// -------------------- JComponent overrides --------------------
+
+    public void updateUI() {
+		setUI((RelationshipUI)UIManager.getUI(this));
+		invalidate();
+    }
 
 	// --------------------- SELECTABLE SUPPORT ---------------------
 
@@ -167,8 +176,8 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 	// -------------------- ACCESSORS AND MUTATORS ---------------------
 
 	public void setUI(RelationshipUI ui) {
-		super.setUI(ui);
 		this.ui = ui;
+		super.setUI(ui);
 	}
 
     public String getUIClassID() {
@@ -213,6 +222,16 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 		return fkConnectionPoint;
 	}
 
+	public void setPkConnectionPoint(Point p) {
+		pkConnectionPoint = p;
+		revalidate();
+	}
+
+	public void setFkConnectionPoint(Point p) {
+		fkConnectionPoint = p;
+		revalidate();
+	}
+
 	// ---------------- Component Listener ----------------
 
 	/**
@@ -222,7 +241,7 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 	public void componentMoved(ComponentEvent e) {
 		logger.debug("Component "+e.getComponent().getName()+" moved");
 		if (e.getComponent() == pkTable || e.getComponent() == fkTable) {
-			updateBounds();
+			revalidate();
 		}
 	}
 
@@ -233,7 +252,7 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 	public void componentResized(ComponentEvent e) {
 		logger.debug("Component "+e.getComponent().getName()+" changed size");
 		if (e.getComponent() == pkTable || e.getComponent() == fkTable) {
-			updateBounds();
+			revalidate();
 		}
 	}
 
@@ -244,49 +263,137 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 	}
 
 	// ------------------ MOUSE LISTENER --------------------
+	protected class MouseListener extends MouseInputAdapter {
+
+		/**
+		 * Double-click support.
+		 */
+		public void mouseClicked(MouseEvent evt) {
+			if (evt.getClickCount() == 2) {
+				ArchitectFrame.getMainInstance().editRelationshipAction.actionPerformed
+					(new ActionEvent(evt.getSource(),
+									 ActionEvent.ACTION_PERFORMED,
+									 "DoubleClick"));
+			}
+		}
+		
+		public void mousePressed(MouseEvent evt) {
+			evt.getComponent().requestFocus();
+			maybeShowPopup(evt);
+
+			if ((evt.getModifiers() & MouseEvent.BUTTON1_MASK) != 0) {
+				// selection
+				Relationship r = (Relationship) evt.getComponent();
+				PlayPen pp = (PlayPen) r.getPlayPen();
+				pp.selectNone();
+				r.setSelected(true);
+
+				// moving pk/fk decoration
+				Point p = evt.getPoint();
+				boolean overPkDec = ui.isOverPkDecoration(p);
+				if (overPkDec || ui.isOverFkDecoration(p)) {
+					new RelationshipDecorationMover(r, overPkDec);
+				}
+			}
+		}
+		
+		public void mouseReleased(MouseEvent evt) {
+			maybeShowPopup(evt);
+		}
+
+		public void maybeShowPopup(MouseEvent evt) {
+			if (evt.isPopupTrigger() && !evt.isConsumed()) {
+				Relationship r = (Relationship) evt.getComponent();
+				PlayPen pp = (PlayPen) r.getPlayPen();
+				pp.selectNone();
+				r.setSelected(true);
+				r.showPopup(r.popup, evt.getPoint());
+			}
+		}
+	}
 
 	/**
-	 * Double-click support.
+	 * The RelationshipDecorationMover responds to mouse events on the
+	 * relationship by moving either the PK or FK connection point so
+	 * it is near the mouse's current position.  It ceases this
+	 * activity when a mouse button is released.
+	 *
+	 * <p>The normal way to create a RelationshipDecorationMover is like this:
+	 * <pre>
+	 *  new RelationshipDecorationMover(myRelationship, &lt;true|false&gt;);
+	 * </pre>
+	 * note that no reference to the object is saved; it will cleanly dispose 
+	 * itself when a mouse button is lifted and hence become eligible for garbage
+	 * collection.
 	 */
-	public void mouseClicked(MouseEvent evt) {
-		if (evt.getClickCount() == 2) {
-			ArchitectFrame.getMainInstance().editRelationshipAction.actionPerformed
-				(new ActionEvent(evt.getSource(),
-								 ActionEvent.ACTION_PERFORMED,
-								 "DoubleClick"));
-		}
-	}
-	
-	public void mousePressed(MouseEvent evt) {
-		evt.getComponent().requestFocus();
-		maybeShowPopup(evt);
-	}
-	
-	public void mouseReleased(MouseEvent evt) {
-		maybeShowPopup(evt);
-		
-		// selection
-		if ((evt.getModifiers() & MouseEvent.BUTTON1_MASK) != 0) {
-			Relationship r = (Relationship) evt.getComponent();
-			PlayPen pp = (PlayPen) r.getPlayPen();
-			pp.selectNone();
-			r.setSelected(true);
-		}
-	}
+	protected static class RelationshipDecorationMover extends MouseInputAdapter {
 
-	public void mouseEntered(MouseEvent evt) {
-	}
+		protected Relationship r;
+		protected boolean movingPk;
 
-	public void mouseExited(MouseEvent evt) {
-	}
-	
-	public void maybeShowPopup(MouseEvent evt) {
-		if (evt.isPopupTrigger() && !evt.isConsumed()) {
-			Relationship r = (Relationship) evt.getComponent();
-			PlayPen pp = (PlayPen) r.getPlayPen();
-			pp.selectNone();
-			r.setSelected(true);
-			r.showPopup(r.popup, evt.getPoint());
+		public RelationshipDecorationMover(Relationship r, boolean movePk) {
+			this.r = r;
+			this.movingPk = movePk;
+			r.getPlayPen().addMouseMotionListener(this);
+			r.getPlayPen().addMouseListener(this);
+			r.getPlayPen().setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+		}
+
+		/**
+		 * Moves either the PK or FK decoration (depending on the
+		 * {@link #movingPk} flag) so it is as close to the mouse
+		 * pointer as possible, while still being attached to an edge
+		 * of the parent (for PK) or child (for FK) table.
+		 */
+		public void mouseMoved(MouseEvent e) {
+			if (movingPk) {
+				r.setPkConnectionPoint(translatePoint(e.getPoint()));
+			} else {
+				r.setFkConnectionPoint(translatePoint(e.getPoint()));
+			}
+		}
+
+		/**
+		 * Forwards to {@link #mouseMoved}.
+		 */
+		public void mouseDragged(MouseEvent e) {
+			mouseMoved(e);
+		}
+
+		/**
+		 * Translates the given point from Relationship coordinates
+		 * into PKTable or FKTable coordinates, with the help of the
+		 * Relationship's UI delegate (which ensures the decoration
+		 * still lines up with the table's edge, and that it faces the
+		 * right way).  Whether the PK or FK table is the target
+		 * depends on the state of the {@link #movingPk} property.
+		 */
+		protected Point translatePoint(Point p) {
+			if (movingPk) {
+				p.x = p.x - r.getPkTable().getX();
+				p.y = p.y - r.getPkTable().getY();
+				p = r.ui.closestEdgePoint(r.getPkTable(), p);
+			} else {
+				p.x = p.x - r.getFkTable().getX();
+				p.y = p.y - r.getFkTable().getY();
+				p = r.ui.closestEdgePoint(r.getFkTable(), p);
+			}
+			return p;
+		}
+
+		/**
+		 * Cleans up this mover (it will no longer track mouse motion,
+		 * and will become eligible for garbage collection unless this
+		 * instance's creator saved a reference).
+		 */
+		public void mouseReleased(MouseEvent e) {
+			cleanup();
+		}
+
+		protected void cleanup() {
+			r.getPlayPen().removeMouseMotionListener(this);
+			r.getPlayPen().removeMouseListener(this);
+			r.getPlayPen().setCursor(null);
 		}
 	}
 
