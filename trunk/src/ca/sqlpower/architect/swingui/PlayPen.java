@@ -58,12 +58,6 @@ public class PlayPen extends JPanel
 	 */
 	protected JPopupMenu tablePanePopup;
 
-	protected EditColumnAction editColumnAction;
-	protected InsertColumnAction insertColumnAction;
-	protected DeleteColumnAction deleteColumnAction;
-	protected EditTableAction editTableAction;
-	protected DeleteTableAction deleteTableAction;
-
 	protected JPopupMenu playPenPopup;
 
 	public PlayPen() {
@@ -106,40 +100,36 @@ public class PlayPen extends JPanel
 	}
 
 	/**
-	 * This routine is called by the constructor.  It adds all the
-	 * necessary items and action listeners to the TablePane popup
-	 * menu.
+	 * This routine is called by the PlayPen constructor after it has
+	 * set up all the Action instances.  It adds all the necessary
+	 * items and action listeners to the TablePane popup menu.
 	 */
-	protected void setupTablePanePopup() {
+	void setupTablePanePopup() {
+		ArchitectFrame af = ArchitectFrame.getMainInstance();
 		tablePanePopup = new JPopupMenu();
 
 		JMenuItem mi;
 
 		mi = new JMenuItem();
-		editColumnAction = new EditColumnAction(this);
-		mi.setAction(editColumnAction);
+		mi.setAction(af.editColumnAction);
 		tablePanePopup.add(mi);
 
 		mi = new JMenuItem();
-		insertColumnAction = new InsertColumnAction(this);
-		mi.setAction(insertColumnAction);
+		mi.setAction(af.insertColumnAction);
 		tablePanePopup.add(mi);
 
 		mi = new JMenuItem();
-		deleteColumnAction = new DeleteColumnAction(this);
-		mi.setAction(deleteColumnAction);
+		mi.setAction(af.deleteColumnAction);
 		tablePanePopup.add(mi);
 
 		tablePanePopup.addSeparator();
 
 		mi = new JMenuItem();
-		editTableAction = new EditTableAction(this);
-		mi.setAction(editTableAction);
+		mi.setAction(af.editTableAction);
 		tablePanePopup.add(mi);
 		
 		mi = new JMenuItem();
-		deleteTableAction = new DeleteTableAction(this);
-		mi.setAction(deleteTableAction);
+		mi.setAction(af.deleteTableAction);
 		tablePanePopup.add(mi);
 
 		tablePanePopup.addSeparator();
@@ -161,6 +151,7 @@ public class PlayPen extends JPanel
 
 	// ------------------- Right-click popup menu for playpen -----------------------
 	protected void setupPlayPenPopup() {
+		ArchitectFrame af = ArchitectFrame.getMainInstance();
 		playPenPopup = new JPopupMenu();
 
  		JMenuItem mi = new JMenuItem();
@@ -168,7 +159,7 @@ public class PlayPen extends JPanel
 		playPenPopup.add(mi);
 
 		mi = new JMenuItem();
-		mi.setAction(createTableAction = new CreateTableAction(this));
+		mi.setAction(af.createTableAction);
 		playPenPopup.add(mi);
 
 		if (logger.isDebugEnabled()) {
@@ -183,8 +174,6 @@ public class PlayPen extends JPanel
 		}
 		addMouseListener(new PopupListener());
 	}
-
-	public Action createTableAction;
 
 	public Action chooseDBCSAction = new AbstractAction("Database Output Selection") {
 			public void actionPerformed(ActionEvent e) {

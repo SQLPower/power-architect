@@ -91,6 +91,13 @@ public class ArchitectFrame extends JFrame {
 			}
 		};
 
+
+	protected EditColumnAction editColumnAction;
+	protected InsertColumnAction insertColumnAction;
+	protected DeleteColumnAction deleteColumnAction;
+	protected EditTableAction editTableAction;
+	protected DeleteTableAction deleteTableAction;
+	protected CreateTableAction createTableAction;
 	protected CreateRelationshipAction createRelationshipAction;
 	protected Action exportDDLAction;
 
@@ -138,6 +145,12 @@ public class ArchitectFrame extends JFrame {
 		// Create actions
 		exportDDLAction = new ExportDDLAction();
 		createRelationshipAction = new CreateRelationshipAction();
+		createTableAction = new CreateTableAction();
+		editColumnAction = new EditColumnAction();
+		insertColumnAction = new InsertColumnAction();
+		deleteColumnAction = new DeleteColumnAction();
+		editTableAction = new EditTableAction();
+		deleteTableAction = new DeleteTableAction();
 
 		menuBar = new JMenuBar();
 		JMenu fileMenu = new JMenu("File");
@@ -151,7 +164,14 @@ public class ArchitectFrame extends JFrame {
 		setJMenuBar(menuBar);
 
 		toolBar = new JToolBar();
-		toolBar.add(new JButton(saveSettingsAction));
+		toolBar.add(new JButton(newProjectAction));
+		toolBar.add(new JButton(openProjectAction));
+		toolBar.add(new JButton(saveProjectAction));
+		toolBar.add(new JButton(createTableAction));
+		toolBar.add(new JButton(deleteTableAction));
+		toolBar.add(new JButton(editColumnAction));
+		toolBar.add(new JButton(insertColumnAction));
+		toolBar.add(new JButton(deleteColumnAction));
 		toolBar.add(new JButton(createRelationshipAction));
 		cp.add(toolBar, BorderLayout.NORTH);
 
@@ -169,7 +189,6 @@ public class ArchitectFrame extends JFrame {
 		bounds.height = sprefs.getInt(SwingUserSettings.MAIN_FRAME_HEIGHT, 440);
 		setBounds(bounds);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
 		setProject(new SwingUIProject("New Project"));
 	}
 
@@ -179,11 +198,25 @@ public class ArchitectFrame extends JFrame {
 		setTitle(project.getName()+" - Power*Architect");
 		playpen = project.getPlayPen();
 		dbTree = project.getSourceDatabases();
-		createRelationshipAction.setPlayPen(playpen);
 
-		//((SQLObject) dbTree.getModel().getRoot()).addChild(project.getTargetDatabase());
+		setupActions();
+
 		splitPane.setLeftComponent(new JScrollPane(dbTree));
 		splitPane.setRightComponent(new JScrollPane(playpen));
+	}
+
+	/**
+	 * Points all the actions to the correct PlayPen and DBTree
+	 * instances.  This method is called by setProject.
+	 */
+	protected void setupActions() {
+		editColumnAction.setPlayPen(playpen);
+		insertColumnAction.setPlayPen(playpen);
+		deleteColumnAction.setPlayPen(playpen);
+		editTableAction.setPlayPen(playpen);
+		deleteTableAction.setPlayPen(playpen);
+		createTableAction.setPlayPen(playpen);
+		createRelationshipAction.setPlayPen(playpen);
 	}
 
 	public static ArchitectFrame getMainInstance() {

@@ -15,9 +15,8 @@ public class CreateTableAction extends AbstractAction {
 	 */
 	protected PlayPen pp;
 
-	public CreateTableAction(PlayPen pp) {
+	public CreateTableAction() {
 		super("Create Table");
-		this.pp = pp;
 	}
 
 	public void actionPerformed(ActionEvent evt) {
@@ -26,5 +25,9 @@ public class CreateTableAction extends AbstractAction {
 		t.setTableName("New_Table");
 		TablePane tp = new TablePane(t);
 		pp.addFloating(tp);
+	}
+	
+	public void setPlayPen(PlayPen pp) {
+		this.pp = pp;
 	}
 }

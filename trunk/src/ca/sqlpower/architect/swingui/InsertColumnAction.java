@@ -15,9 +15,8 @@ public class InsertColumnAction extends AbstractAction {
 	 */
 	protected PlayPen pp;
 	
-	public InsertColumnAction(PlayPen pp) {
+	public InsertColumnAction() {
 		super("Insert Column");
-		this.pp = pp;
 	}
 
 	public void actionPerformed(ActionEvent evt) {
@@ -45,5 +44,9 @@ public class InsertColumnAction extends AbstractAction {
 			JOptionPane.showMessageDialog((JComponent) invoker,
 										  "The selected item type is not recognised");
 		}
+	}
+
+	public void setPlayPen(PlayPen pp) {
+		this.pp = pp;
 	}
 }

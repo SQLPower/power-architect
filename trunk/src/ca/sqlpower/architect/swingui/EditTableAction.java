@@ -15,9 +15,8 @@ public class EditTableAction extends AbstractAction {
 	 */
 	protected PlayPen pp;
 	
-	public EditTableAction(PlayPen pp) {
+	public EditTableAction() {
 		super("Edit Table");
-		this.pp = pp;
 	}
 
 	public void actionPerformed(ActionEvent evt) {
@@ -62,5 +61,9 @@ public class EditTableAction extends AbstractAction {
 			JOptionPane.showMessageDialog((JComponent) invoker,
 										  "The selected item type is not recognised");
 		}
+	}
+
+	public void setPlayPen(PlayPen pp) {
+		this.pp = pp;
 	}
 }
