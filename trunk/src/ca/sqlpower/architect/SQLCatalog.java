@@ -42,6 +42,29 @@ public class SQLCatalog extends SQLObject {
 		return null;
 	}
 
+	/**
+	 * Determines whether this catalog object is a container for schemas or for tables.
+	 *
+	 * @return true (the default) if there are no children; false if
+	 * the first child is not of type SQLSchema.
+	 */
+	public boolean isSchemaContainer() throws ArchitectException {
+		if (children == null) {
+			populate();
+			if (children == null) {
+				throw new ArchitectException("catalog.populate");
+			}
+		}
+
+		// catalog has been populated
+
+		if (children.size() == 0) {
+			return true;
+		} else {
+			return (children.get(0) instanceof SQLSchema);
+		}
+	}
+
 	public String toString() {
 		return getShortDisplayName();
 	}
