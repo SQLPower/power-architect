@@ -175,15 +175,14 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 				ZipEntry ent = (ZipEntry) entries.nextElement();
 				if (ent.getName().endsWith(".class")) {
 					try {
-						InputStream is = jf.getInputStream(ent);
-						readAndCheckClass(is, (int) ent.getSize(), null);
-					} catch (IOException ex) {
-						logger.warn("I/O Error reading JAR entry \""+ent.getName()+"\"",ex);
-						JOptionPane.showMessageDialog(JDBCDriverPanel.this,
-													  "I/O Error reading JAR entry \""
-													  +ent.getName()+"\"");
+						// drop the .class from the name
+						String [] s = ent.getName().split("\\.");
+						// look for the class using dots instead of slashes
+						findClass(s[0].replace('/','.'));
 					} catch (ClassFormatError ex) {
 						logger.warn("JAR entry "+ent.getName()+" ends in .class but is not a class", ex);
+					} catch (NoClassDefFoundError ex) {
+						logger.warn("JAR does not contain dependency: " + ent.getName());
 					} catch (Throwable ex) {
 						logger.warn("Unexpected exception while scanning JAR file "+jf.getName(), ex);
 					}
@@ -201,12 +200,18 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 		 */
 		protected Class findClass(String name)
 			throws ClassNotFoundException {
-			System.out.println("Looking for class "+name);
+			logger.debug("Looking for class "+name);
 			try {
 				ZipEntry ent = jf.getEntry(name.replace('.', '/')+".class");
 				if (ent == null) {
 					throw new ClassNotFoundException("No class file "+name+" is in my jar file");
 				}
+				// can we find out here if it was already loaded???
+				Class clazz = findLoadedClass(name);
+				if (clazz != null) {
+					return clazz;
+				}
+				// haven't seen this before, so go get it...
 				InputStream is = jf.getInputStream(ent);
 				return readAndCheckClass(is, (int) ent.getSize(), name);
 			} catch (IOException ex) {
@@ -227,7 +232,7 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 			}
 			Class clazz = defineClass(expectedName, buf, 0, start + n);
 			if (java.sql.Driver.class.isAssignableFrom(clazz)) {
-				System.out.println("Found jdbc driver "+clazz.getName());
+				logger.info("Found jdbc driver "+clazz.getName());
 				drivers.add(clazz.getName());
 			}
 			return clazz;
