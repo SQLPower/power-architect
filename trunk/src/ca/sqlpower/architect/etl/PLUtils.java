@@ -17,6 +17,12 @@ public class PLUtils {
 	 */
 	public static final int MAX_PLID_LENGTH = 80;
 
+
+	/**
+	 * Store the last time we loaded PL.INI from disk
+	 */
+	private static java.util.Date plLastReadTimestamp = new Date(0);
+
 	/** PLUtils is a non-instantiable class. */
 	private PLUtils() {}
 
@@ -30,6 +36,7 @@ public class PLUtils {
 		List plSpecs = new ArrayList();
 		PLConnectionSpec currentSpec = null;
 		File inputFile = new File(plDotIniPath);
+		plLastReadTimestamp = new Date(inputFile.lastModified());		
 		BufferedReader in = new BufferedReader(new FileReader(inputFile));
 		String line = null;
 
@@ -90,5 +97,16 @@ public class PLUtils {
 		}
 
 		return password.toString();
+	}
+
+	public static boolean plDotIniHasChanged(String plDotIniPath) {
+		File inputFile = new File(plDotIniPath);
+		boolean retVal = false;
+		logger.debug("last mod=" + new Date(inputFile.lastModified()) + ", currTimestamp=" + plLastReadTimestamp);
+		if (inputFile.lastModified() > plLastReadTimestamp.getTime()) {
+			retVal = true;
+		}
+		inputFile = null; // is this necessary?
+		return retVal;
 	}
 }
