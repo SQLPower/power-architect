@@ -167,4 +167,40 @@ public class ASUtils {
 		}
 	}
 	
+	private Thread focusDebuggerThread = null;
+	private boolean focusDebuggerStopping = true;
+	private Runnable showFocusOwnerTask = new Runnable() {
+			public void run() {
+				for (;;) {
+					if (focusDebuggerStopping) break;
+					System.out.println(java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner());
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException ex) {
+					}
+				}
+				focusDebuggerThread = null;
+			}
+		};
+
+	/**
+	 * Signals for the focus debugger thread(s) to terminate itself
+	 * (themselves).
+	 */
+	public void stopFocusDebugger() {
+		focusDebuggerStopping = true;
+	}
+
+	/**
+	 * Creates and starts a thread that prints the keyboard focus
+	 * owner to System.out once per second.  There is no check to stop
+	 * multiple such threads from running in parallel, but a single
+	 * call to stopFocusDebugger() should termainate all such threads
+	 * within 1 second.
+	 */
+	public void startFocusDebugger() {
+		focusDebuggerThread = new Thread(showFocusOwnerTask);
+		focusDebuggerStopping = false;
+		focusDebuggerThread.start();
+	}
 }
