@@ -184,7 +184,9 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 						public void actionPerformed(ActionEvent evt) {
 							dbcsPanel.applyChanges();
 							DBConnectionSpec dbcs = dbcsPanel.getDbcs();
-							connectionsBox.addItem(ASUtils.lvb(dbcs.getDisplayName(), dbcs));
+							ASUtils.LabelValueBean connLvb = ASUtils.lvb(dbcs.getDisplayName(), dbcs);
+							connectionsBox.addItem(connLvb);
+							connectionsBox.setSelectedItem(connLvb);
 							ArchitectFrame.getMainInstance().getUserSettings().getConnections().add(dbcs);
 							d.setVisible(false);
 						}
