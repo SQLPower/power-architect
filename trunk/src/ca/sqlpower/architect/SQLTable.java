@@ -1,6 +1,7 @@
 package ca.sqlpower.architect;
 
 import java.util.List;
+import java.util.LinkedList;
 import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -430,14 +431,21 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		super.addChild(index, child);
 	}
 
-	public void removeColumn(int index) {
-		columnsFolder.removeChild(index);
-		normalizePrimaryKey();
+	/**
+	 * Calls removeColumn(SQLColumn).
+	 */
+	public void removeColumn(int index) throws LockedColumnException {
+		removeColumn((SQLColumn) columnsFolder.children.get(index));
 	}
 
-	public void removeColumn(SQLColumn col) {
-		columnsFolder.removeChild(col);
-		normalizePrimaryKey();
+	public void removeColumn(SQLColumn col) throws LockedColumnException {
+		List keys = keysOfColumn(col);
+		if (keys.isEmpty()) {
+			columnsFolder.removeChild(col);
+			normalizePrimaryKey();
+		} else {
+			throw new LockedColumnException("This column can't be removed because it belongs to the "+keys.get(0)+" relationship");
+		}
 	}
 
 	/**
@@ -456,6 +464,25 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		}
 	}
 	
+	public List keysOfColumn(SQLColumn col) {
+		LinkedList keys = new LinkedList();
+		Iterator it = exportedKeysFolder.children.iterator();
+		while (it.hasNext()) {
+			SQLRelationship r = (SQLRelationship) it.next();
+			if (r.containsPkColumn(col)) {
+				keys.add(r);
+			}
+		}
+		it = importedKeysFolder.children.iterator();
+		while (it.hasNext()) {
+			SQLRelationship r = (SQLRelationship) it.next();
+			if (r.containsFkColumn(col)) {
+				keys.add(r);
+			}
+		}
+		return keys;
+	}
+
 	public String toString() {
 		return getShortDisplayName();
 	}

@@ -24,7 +24,11 @@ public class DeleteColumnAction extends AbstractAction {
 			TablePane tp = (TablePane) invoker;
 			int idx;
 			if ( (idx = tp.getSelectedColumnIndex()) >= 0) {  // this was a while() loop, not sure why
-				tp.getModel().removeColumn(idx);
+				try {
+					tp.getModel().removeColumn(idx);
+				} catch (LockedColumnException ex) {
+					JOptionPane.showMessageDialog((JComponent) invoker, ex.getMessage());
+				}
 			}
 		} else {
 			JOptionPane.showMessageDialog((JComponent) invoker,

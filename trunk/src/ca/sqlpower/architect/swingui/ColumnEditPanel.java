@@ -83,12 +83,16 @@ public class ColumnEditPanel extends JPanel
 						JOptionPane.showMessageDialog(ColumnEditPanel.this,
 													  "Please select a column, then click delete");
 					} else {
-						model.removeColumn(idx);
 						try {
+							model.removeColumn(idx);
 							int size = model.getColumns().size();
 							if (size > 0) {
 								columns.setSelectedIndex(Math.min(idx, size-1));
 							}
+						} catch (LockedColumnException ex) {
+							JOptionPane.showMessageDialog
+								(ColumnEditPanel.this,
+								 ex.getMessage());
 						} catch (ArchitectException ex) {
 							logger.error("Couldn't count number of columns", ex);
 							JOptionPane.showMessageDialog
