@@ -44,7 +44,10 @@ public class ArchitectFrame extends JFrame {
 	protected InsertColumnAction insertColumnAction;
 	protected EditTableAction editTableAction;
 	protected CreateTableAction createTableAction;
-	protected CreateRelationshipAction createRelationshipAction;
+	protected CreateRelationshipAction createIdentifyingRelationshipAction;
+
+	protected CreateRelationshipAction createNonIdentifyingRelationshipAction;
+
 	protected EditRelationshipAction editRelationshipAction;
 	protected Action exportDDLAction;
 
@@ -160,7 +163,8 @@ public class ArchitectFrame extends JFrame {
 		};
 		exportDDLAction = new ExportDDLAction();
 		deleteSelectedAction = new DeleteSelectedAction();
-		createRelationshipAction = new CreateRelationshipAction();
+		createIdentifyingRelationshipAction = new CreateRelationshipAction(true);
+		createNonIdentifyingRelationshipAction = new CreateRelationshipAction(false);
 		editRelationshipAction = new EditRelationshipAction();
 		createTableAction = new CreateTableAction();
 		editColumnAction = new EditColumnAction();
@@ -191,7 +195,8 @@ public class ArchitectFrame extends JFrame {
 		toolBar.add(insertColumnAction);
 		toolBar.add(editColumnAction);
 		toolBar.addSeparator();
-		toolBar.add(createRelationshipAction);
+		toolBar.add(createNonIdentifyingRelationshipAction);
+		toolBar.add(createIdentifyingRelationshipAction);
 		toolBar.add(editRelationshipAction);
 		cp.add(toolBar, BorderLayout.NORTH);
 
@@ -235,7 +240,8 @@ public class ArchitectFrame extends JFrame {
 		insertColumnAction.setPlayPen(playpen);
 		editTableAction.setPlayPen(playpen);
 		createTableAction.setPlayPen(playpen);
-		createRelationshipAction.setPlayPen(playpen);
+		createIdentifyingRelationshipAction.setPlayPen(playpen);
+		createNonIdentifyingRelationshipAction.setPlayPen(playpen);
 		editRelationshipAction.setPlayPen(playpen);
 	}
 

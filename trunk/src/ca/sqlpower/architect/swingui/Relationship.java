@@ -55,10 +55,11 @@ public class Relationship extends JComponent implements Selectable, ComponentLis
 	 * the pk and fk table models, and adds the primary key of pkTable
 	 * into the primary key of fkTable.
 	 */
-	public Relationship(PlayPen pp, TablePane pkTable, TablePane fkTable) 
+	public Relationship(PlayPen pp, TablePane pkTable, TablePane fkTable, boolean identifying) 
 		throws ArchitectException {
 		model = new SQLRelationship();
 		model.setName(pkTable.getModel().getName()+"_"+fkTable.getModel().getName()+"_fk"); // XXX: need to ensure uniqueness!
+		model.setIdentifying(identifying);
 		model.setPkTable(pkTable.getModel());
 		model.setFkTable(fkTable.getModel());
 
