@@ -35,27 +35,39 @@ public class Relationship extends JComponent implements Selectable, ComponentLis
 		UIManager.put(RelationshipUI.UI_CLASS_ID, "ca.sqlpower.architect.swingui.IERelationshipUI");
 	}
 
+	/**
+	 * This constructor simply creates a Relationship component for
+	 * the given SQLRelationship and adds it to the playpen.  It
+	 * doesn't maniuplate the model at all.
+	 */
 	public Relationship(PlayPen pp, SQLRelationship model) throws ArchitectException {
-		this (pp, pp.findTablePane(model.getPkTable()), pp.findTablePane(model.getFkTable()));
+		this.pp = pp;
+		this.model = model;
+		setPkTable(pp.findTablePane(model.getPkTable()));
+		setFkTable(pp.findTablePane(model.getFkTable()));
+
+		setup();
 	}
 
-	public Relationship(PlayPen pp, TablePane pkTable, TablePane fkTable) throws ArchitectException {
-		updateUI();
-		setOpaque(false);
-		setBackground(Color.green);
+	/**
+	 * This constructor makes a new Relationship component as well as
+	 * a SQLRelationship model object.  It adds the SQLRelationship to
+	 * the pk and fk table models, and adds the primary key of pkTable
+	 * into the primary key of fkTable.
+	 */
+	public Relationship(PlayPen pp, TablePane pkTable, TablePane fkTable) 
+		throws ArchitectException {
 		model = new SQLRelationship();
 		model.setName(pkTable.getModel().getName()+"_"+fkTable.getModel().getName()+"_fk"); // XXX: need to ensure uniqueness!
 		model.setPkTable(pkTable.getModel());
 		model.setFkTable(fkTable.getModel());
-		model.addSQLObjectListener(this);
-		setToolTipText(model.getName());
-		
+
 		setPkTable(pkTable);
 		setFkTable(fkTable);
 
 		pkTable.getModel().addExportedKey(model);
 		fkTable.getModel().addImportedKey(model);
-
+		
 		Iterator pkCols = pkTable.getModel().getColumns().iterator();
 		while (pkCols.hasNext()) {
 			SQLColumn pkCol = (SQLColumn) pkCols.next();
@@ -65,12 +77,22 @@ public class Relationship extends JComponent implements Selectable, ComponentLis
 			model.addMapping(pkCol, fkCol);
 		}
 
+		setup();
+	}
+
+	/**
+	 * All constructors have to call this after setting pp, model, pkTable, and fkTable.
+	 */
+	protected void setup() {
+		updateUI();
+		setOpaque(false);
+		setBackground(Color.green);
+		model.addSQLObjectListener(this);
+		setToolTipText(model.getName());
 		pkConnectionPoint = new Point();
 		fkConnectionPoint = new Point();
 		updateBounds(); // also sets bounds
-
 		createPopup();
-
 		setVisible(true);
 	}
 
