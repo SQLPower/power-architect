@@ -158,6 +158,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		t.relationshipsPopulated = true;
 		t.tableName = source.tableName;
 		t.remarks = source.remarks;
+		t.primaryKeyName = source.getName()+"_pk";
 		t.inherit(source);
 		parent.addChild(t);
 		return t;
