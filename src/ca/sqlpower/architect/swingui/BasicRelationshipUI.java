@@ -43,15 +43,55 @@ public class BasicRelationshipUI extends RelationshipUI
 		Relationship r = (Relationship) c;
 		Graphics2D g2 = (Graphics2D) g;
 
- 		Point start = r.getPkTable().getLocation();
-		start.x += r.getPkTable().getSize().width / 2;
-		start.y += r.getPkTable().getSize().height / 2;
- 		Point end = r.getFkTable().getLocation();
-		end.x += r.getFkTable().getSize().width / 2;
-		end.y += r.getFkTable().getSize().height / 2;
+		Point pktloc = r.getPkConnectionPoint();
+		Point start = new Point(pktloc.x + r.getPkTable().getLocation().x,
+								pktloc.y + r.getPkTable().getLocation().y);
+ 		Point fktloc = r.getFkConnectionPoint();
+		Point end = new Point(fktloc.x + r.getFkTable().getLocation().x,
+							  fktloc.y + r.getFkTable().getLocation().y);
  		g2.drawLine(start.x, start.y, end.x, end.y);
+
+		logger.debug("Drew line from "+start+" to "+end);
+
+		Color oldColor = g2.getColor();
+		g2.setColor(Color.red);
+		g2.fillOval(start.x - 2, start.y - 2, 4, 4);
+		g2.fillOval(end.x - 2, end.y - 2, 4, 4);
+		g2.setColor(oldColor);
 	}
 
+	public Point bestConnectionPoint(TablePane tp, Point p) {
+		Dimension tpsize = tp.getSize();
+
+		// clip point p to inside of tp
+		Point bcp = new Point(Math.max(0, Math.min(tpsize.width, p.x)),
+							  Math.max(0, Math.min(tpsize.height, p.y)));
+		
+		boolean adjustX = bcp.y != 0 && bcp.y != tpsize.height;
+		boolean adjustY = bcp.x != 0 && bcp.x != tpsize.width;
+
+		// push x-coordinate to left or right edge of tp, if y-coord is inside tp
+		if (adjustX) {
+			if (bcp.x < (tpsize.width/2)) {
+				bcp.x = 0;
+			} else {
+				bcp.x = tpsize.width;
+			}
+		}
+		
+		// push y-coordinate to top or bottom edge of tp, if x-coord is inside tp
+		if (adjustY) {
+			if (bcp.y < (tpsize.height/2)) {
+				bcp.y = 0;
+			} else {
+				bcp.y = tpsize.height;
+			}
+		}
+
+		return bcp;
+	}
+
+	// --------------- PropertyChangeListener ----------------------
 	public void propertyChange(PropertyChangeEvent e) {
 		logger.debug("BasicRelationshipUI notices change of "+e.getPropertyName()
 					 +" from "+e.getOldValue()+" to "+e.getNewValue()+" on "+e.getSource());

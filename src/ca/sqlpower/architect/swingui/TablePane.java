@@ -583,7 +583,7 @@ public class TablePane
 			}
 			logger.debug("Recognized drag gesture! col="+colIndex);
 			if (colIndex == COLUMN_INDEX_TITLE) {
-				TablePaneMover tpm = new TablePaneMover(tp, dge.getDragOrigin());
+				new PlayPen.FloatingTableListener((PlayPen) tp.getParent(), tp, dge.getDragOrigin());
 			} else if (colIndex >= 0) {
 				// export column as DnD event
 				logger.debug("Exporting column with DnD");
@@ -613,84 +613,6 @@ public class TablePane
 					JOptionPane.showMessageDialog(tp, "Can't drag column: "+ex.getMessage());
 				}
 			}
-		}
-	}
-
-	/**
-	 * The TablePaneMover class listens to mouse drag events and moves
-	 * a ghost image of the TablePane around on the playpen.  When the
-	 * mouse button is released, it moves the original TablePane,
-	 * destroys the ghost component, and unregisters itself as a mouse
-	 * listener.
-	 */
-	public static class TablePaneMover extends MouseInputAdapter {
-
-		/**
-		 * Used during move operations on the TablePane.  This ghost
-		 * is a clone of the TablePane that we will move around in
-		 * response to mouse drags.
-		 *
-		 * <p>XXX: It might be a better idea to change the ghost from
-		 * being an actual TablePane to being a special Ghost class
-		 * that is simply a picture of the original table pane.  It
-		 * would be much lower overhead to drag such an image around
-		 * the screen.  Also, there would be no worries about multiple
-		 * ghosts accidentally accumulating on listener lists.
-		 */
-		public JComponent ghost;
-
-		/**
-		 * This is the location inside the moving component where the
-		 * user grabbed it.
-		 */
-		public Point dragStart;
-
-		/**
-		 * Creates a ghost image of the given TablePane, hides the
-		 * original TablePane, and adds this object to the TablePane
-		 * as a mouse listener.
-		 */
-		public TablePaneMover(TablePane tp, Point dragStart) {
-			this.dragStart = dragStart;
-			tp.setVisible(false);
-			ghost = new TablePane(tp.getModel());
-			ghost.setFont(tp.getFont());  // XXX: this shouldn't be necessary (but it is!)
-			ghost.setBackground(tp.getBackground());
-			ghost.setName(tp.getName()+" GHOST");
-			((PlayPen) tp.getParent()).addGhost(ghost, tp.getLocation());
-			tp.addMouseListener(this);
-			tp.addMouseMotionListener(this);
-		}
-
-		/**
-		 * Updates the location of the ghost.
-		 */
-		public void mouseDragged(MouseEvent evt) {
-			TablePane tp = (TablePane) evt.getComponent();
-			Point p = tp.getLocation();
-			logger.debug("Moving. start="+p+"; evt location="+evt.getPoint());
-			ghost.setLocation(p.x - dragStart.x + evt.getX(), p.y - dragStart.y + evt.getY());
-		}
-		
-		/**
-		 * Destroys the ghost, moves the original TablePane, and makes
-		 * it visible again.
-		 */
-		public void mouseReleased(MouseEvent evt) {
-			TablePane tp = (TablePane) evt.getComponent();
-			Point p = tp.getLocation();
-			tp.getParent().remove(ghost);
-			((TablePane) ghost).destroy();
-			ghost = null;  // XXX: not necessary since this TPM object will die soon
-			tp.removeMouseListener(this);
-			tp.removeMouseMotionListener(this);
-			PlayPen playPen = (PlayPen) tp.getParent();
-			playPen.remove(tp);
-			Point location = new Point(p.x - dragStart.x + evt.getX(),
-									   p.y - dragStart.y + evt.getY());
-			tp.setVisible(true);
-			playPen.add(tp, location);
-			playPen.repaint();
 		}
 	}
 

@@ -366,7 +366,7 @@ public class PlayPen extends JPanel
 		db.addChild(tp.getModel());
 		tp.setVisible(false);
 		add(tp, new Point(0,0));
-		new FloatingTableListener(this, tp);
+		new FloatingTableListener(this, tp, new Point(tp.getSize().width/2,0));
 	}
 
 	// -------------------- SQLOBJECT EVENT SUPPORT ---------------------
@@ -1018,16 +1018,19 @@ public class PlayPen extends JPanel
 	
 	/**
 	 * Listens to mouse motion and moves the given component so it
-	 * follows the mouse.  When the user clicks, it stops moving the
-	 * component, and unregisters itself as a listener.
+	 * follows the mouse.  When the user lifts the mouse button, it
+	 * stops moving the component, and unregisters itself as a
+	 * listener.
 	 */
 	public static class FloatingTableListener extends MouseInputAdapter {
 		PlayPen pp;
 		TablePane tp;
+		Point handle;
 
-		public FloatingTableListener(PlayPen pp, TablePane tp) {
+		public FloatingTableListener(PlayPen pp, TablePane tp, Point handle) {
 			this.pp = pp;
 			this.tp = tp;
+			this.handle = handle;
 			tp.addMouseMotionListener(this);  // motion down and right
 			pp.addMouseMotionListener(this);  // movement past the top-left edge of tp
 			tp.addMouseListener(this); // the click that ends this operation
@@ -1042,7 +1045,9 @@ public class PlayPen extends JPanel
 			if (e.getSource() == tp) {
 				e = SwingUtilities.convertMouseEvent(tp, e, pp);
 			}
-			tp.setLocation(e.getPoint());
+			Point p = new Point(e.getPoint().x - handle.x, e.getPoint().y - handle.y);
+			tp.setLocation(p);
+			pp.repaint(); // this is required because the relationship lines are not known by swing
 		}
 
 		/**
