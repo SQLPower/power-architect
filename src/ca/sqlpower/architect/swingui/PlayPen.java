@@ -54,7 +54,19 @@ public class PlayPen extends JPanel
 
 	protected JPopupMenu playPenPopup;
 
+	/**
+	 * The visual magnification factor for this playpen.
+	 */
+	protected double zoom;
+
+	/**
+	 * The child components of this playpen.
+	 */
+	protected ArrayList ppChildren;
+
 	public PlayPen() {
+		zoom = 1.0;
+		ppChildren = new ArrayList();
 		setLayout(new PlayPenLayout(this));
 		setName("Play Pen");
 		setMinimumSize(new Dimension(1,1));
@@ -147,10 +159,96 @@ public class PlayPen extends JPanel
 
 	// --------------------- accessors and mutators ----------------------
 
+	public void setZoom(double newZoom) {
+		if (newZoom != zoom) {
+			double oldZoom = zoom;
+			zoom = newZoom;
+			firePropertyChange("zoom", oldZoom, newZoom);
+			repaint();
+		}
+	}
+
+	public double getZoom() {
+		return zoom;
+	}
+
 	// -------------------------- JComponent overrides ---------------------------
 
+	/**
+	 * Calculates the smallest rectangle that will completely
+	 * enclose the visible components.
+	 */
 	public Dimension getPreferredSize() {
-		return getLayout().preferredLayoutSize(this);
+		Rectangle cbounds = null;
+		//int minx = Integer.MAX_VALUE, miny = Integer.MAX_VALUE, maxx = 0, maxy = 0;
+		int minx = 0, miny = 0, maxx = 0, maxy = 0;
+		Iterator it = ppChildren.iterator();
+		while (it.hasNext()) {
+			Component c = (Component) it.next();
+			if (c.isVisible()) {
+				cbounds = c.getBounds(cbounds);
+				minx = Math.min(cbounds.x, minx);
+				miny = Math.min(cbounds.y, miny);
+				maxx = Math.max(cbounds.x + cbounds.width , maxx);
+				maxy = Math.max(cbounds.y + cbounds.height, maxy);
+			}
+		}
+		
+		Dimension min = getMinimumSize();
+		return new Dimension(Math.max(maxx - minx, min.width),
+							 Math.max(maxy - miny, min.height));
+	}
+
+	public void paintComponent(Graphics g) {
+		Graphics2D g2 = (Graphics2D) g;
+		AffineTransform backup = g2.getTransform();
+		g2.scale(zoom, zoom);
+		AffineTransform zoomedOrigin = g2.getTransform();
+		super.paintComponent(g2);
+		Iterator it = ppChildren.iterator();
+		while (it.hasNext()) {
+			Component c = (Component) it.next();
+			logger.debug("painting "+c);
+			if (c.isVisible()) {
+				g2.translate(c.getLocation().x, c.getLocation().y);
+				c.paint(g2);
+				g2.setTransform(zoomedOrigin);
+			}
+		}
+		g2.setTransform(backup);
+	}
+
+	/**
+	 * Adds the given component to this PlayPen.  Does NOT add it to
+	 * the Swing containment hierarchy. The playpen is a leaf in the
+	 * hierarchy as far as swing is concerned. Only accepts
+	 * Relationship and TablePane components.
+	 */
+	public void add(Component c, Object constraints) {
+		if (c instanceof Relationship) {
+			ppChildren.add(c);
+		} else if (c instanceof TablePane) {
+			if (constraints instanceof Point) {
+				ppChildren.add(c);
+				c.setLocation((Point) constraints);
+			} else {
+				throw new IllegalArgumentException("Constraints must be a Point");
+			}
+		} else {
+			throw new IllegalArgumentException("TablePane can't contain components of type "
+											   +c.getClass().getName());
+		}
+		c.setFont(getFont());
+		logger.debug("Set font to "+getFont());
+		c.setBackground(getBackground());
+		logger.debug("Set background to "+getBackground());
+		c.setForeground(getForeground());
+		logger.debug("Set foreground to "+getForeground());
+		Dimension size = c.getPreferredSize();
+		c.setSize(size);
+		logger.debug("Set size to "+size);
+		c.setVisible(true);
+		logger.debug("Final state looks like "+c);
 	}
 
 	// ------------------- Right-click popup menu for playpen -----------------------
@@ -236,25 +334,6 @@ public class PlayPen extends JPanel
 	}
 
 	/**
-	 * Adds the given component to this tablepane.  Only accepts
-	 * Relationship and TablePane components.
-	 */
-	public void add(Component c, Object constraints) {
-		if (c instanceof Relationship) {
-			super.add(c);
-		} else if (c instanceof TablePane) {
-			if (constraints instanceof Point) {
-				super.add(c, constraints);
-			} else {
-				throw new IllegalArgumentException("Constraints must be a Point");
-			}
-		} else {
-			throw new IllegalArgumentException("TablePane can't contain components of type "
-											   +c.getClass().getName());
-		}
-	}
-
-	/**
 	 * Returns a list of the Relationship gui components in this
 	 * playpen.
 	 */
@@ -290,7 +369,7 @@ public class PlayPen extends JPanel
 		TablePane tp = new TablePane(newTable);
 		
 		logger.info("adding table "+newTable);
-		super.add(tp, preferredLocation);
+		add(tp, preferredLocation);
 		tp.revalidate();
 	}
 
@@ -336,16 +415,6 @@ public class PlayPen extends JPanel
 			}
 			logger.info("AddSchemaTask done");
 		}
-	}
-
-	/**
-	 * Adds the given component to this playpen as a ghost.  A ghost
-	 * is a transient object that helps the user visualise drag
-	 * events.
-	 */
-	public synchronized void addGhost(JComponent ghost, Point location) {
-		super.add(ghost, null);
-		ghost.setLocation(location);
 	}
 
 	/**
@@ -507,6 +576,8 @@ public class PlayPen extends JPanel
 	}
 
 	// --------------------------- CONTAINER LISTENER -------------------------
+
+	// FIXME: this doesn't work anymore because children aren't swing children
 
 	/**
 	 * Unregisters this PlayPen as a SelectionListener if the
@@ -764,9 +835,8 @@ public class PlayPen extends JPanel
 			this.pp = pp;
 			this.tp = tp;
 			this.handle = handle;
-			tp.addMouseMotionListener(this);  // motion down and right
-			pp.addMouseMotionListener(this);  // movement past the top-left edge of tp
-			tp.addMouseListener(this); // the click that ends this operation
+			pp.addMouseMotionListener(this);
+			pp.addMouseListener(this); // the click that ends this operation
 			pp.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
 		}
 
@@ -776,12 +846,9 @@ public class PlayPen extends JPanel
 
 		public void mouseDragged(MouseEvent e) {
 			tp.setVisible(true);
-			if (e.getSource() == tp) {
-				e = SwingUtilities.convertMouseEvent(tp, e, pp);
-			}
 			Point p = new Point(e.getPoint().x - handle.x, e.getPoint().y - handle.y);
 			tp.setLocation(p);
-			//pp.repaint(); // this is required because the relationship lines are not known by swing
+			pp.repaint(); // FIXME: should use a contentPane approach. it would automatically want to redraw
 		}
 
 		/**
@@ -793,9 +860,8 @@ public class PlayPen extends JPanel
 
 		protected void cleanup() {
 			pp.setCursor(null);
-			tp.removeMouseMotionListener(this);
 			pp.removeMouseMotionListener(this);
-			tp.removeMouseListener(this);
+			pp.removeMouseListener(this);
 			pp.revalidate();
 		}
 	}
