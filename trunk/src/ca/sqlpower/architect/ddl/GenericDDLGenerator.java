@@ -218,7 +218,7 @@ public class GenericDDLGenerator {
 				print(")");
 			}
 
-			if (c.isNullable()) {
+			if (c.isDefinitelyNullable()) {
 				if (! td.isNullable()) {
 					throw new UnsupportedOperationException
 						("The data type "+td.getName()+" is not nullable on the target database platform.");

@@ -41,11 +41,11 @@ public class TestSQLColumn extends SQLTestCase {
 		// check for PK vs non PK attributes
 		assertTrue("year should have been flagged as PK", yearCol.isPrimaryKey());
 		assertEquals("year nullability incorrect", yearCol.getNullable(), DatabaseMetaData.columnNoNulls);
-		assertFalse("year isNullable incorrect", yearCol.isNullable());
+		assertFalse("year isDefinitelyNullable incorrect", yearCol.isDefinitelyNullable());
 
 		assertFalse("strikeouts should have been flagged as PK", strikeoutsCol.isPrimaryKey());
 		assertEquals("strikeouts nullability incorrect", strikeoutsCol.getNullable(), DatabaseMetaData.columnNullable);
-		assertTrue("strikeouts isNullable incorrect", strikeoutsCol.isNullable());
+		assertTrue("strikeouts isDefinitelyNullable incorrect", strikeoutsCol.isDefinitelyNullable());
 
 		// check column name comparator
 		Comparator nameComp = new SQLColumn.ColumnNameComparator();

@@ -376,7 +376,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	 *
 	 * @return true iff this.nullable == DatabaseMetaData.columnNullable.
 	 */
-	public boolean isNullable()  {
+	public boolean isDefinitelyNullable()  {
 		return this.nullable == DatabaseMetaData.columnNullable;
 	}
 
