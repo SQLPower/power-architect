@@ -18,6 +18,8 @@ public class TableEditPanel extends JPanel implements ArchitectPanel {
 		add(pkName = new JTextField("", 30));
 		add(new JLabel("Remarks"));
 		add(new JScrollPane(remarks = new JTextArea(4, 30)));
+		remarks.setLineWrap(true);
+		remarks.setWrapStyleWord(true);
 		editTable(t);
 	}
 
@@ -30,8 +32,8 @@ public class TableEditPanel extends JPanel implements ArchitectPanel {
 
 	// --------------------- ArchitectPanel interface ------------------
 	public void applyChanges() {
-		table.setTableName(name.getText());
 		table.setPrimaryKeyName(pkName.getText());
+		table.setTableName(name.getText());
 		table.setRemarks(remarks.getText());
 	}
 

@@ -45,6 +45,15 @@ public class SQLType {
 		return name;
 	}
 
+	public static String getTypeName(int typecode) {
+		SQLType type = getType(typecode);
+		if (type == null) {
+			return "Unknown Type "+typecode;
+		} else {
+			return type.getName();
+		}
+	}
+
 	/**
 	 * Returns a reference to the shared instance of SQLType that *has
 	 * the requested type code.  If <code>typecode</code> is not a

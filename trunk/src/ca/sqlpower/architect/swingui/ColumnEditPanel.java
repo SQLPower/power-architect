@@ -37,16 +37,71 @@ public class ColumnEditPanel extends JPanel
 	protected JCheckBox colInPK;
 	protected JCheckBox colAutoInc;
 
+	protected JButton addColumnButton;
+	protected JButton deleteColumnButton;
+
 	public ColumnEditPanel(SQLTable table, int idx) throws ArchitectException {
+		super(new BorderLayout(12,12));
+		
+		JPanel westPanel = new JPanel(new BorderLayout());
 		columns = new JList();
 		columns.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		columns.addListSelectionListener(this);
+		westPanel.add(new JScrollPane(columns), BorderLayout.CENTER);
 
 		setModel(table);
 
-		setLayout(new BorderLayout(12,12));
-		add(new JScrollPane(columns), BorderLayout.WEST);
+		JPanel addDelPanel = new JPanel(new FlowLayout());
+		addDelPanel.add(addColumnButton = new JButton("Add"));
+		addColumnButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					int idx = columns.getSelectedIndex();
+					if (idx < 0) {
+						try {
+							idx = model.getColumns().size();
+						} catch (ArchitectException ex) {
+							logger.error("Couldn't count number of columns", ex);
+							JOptionPane.showMessageDialog
+								(ColumnEditPanel.this,
+								 "Couldn't count number of columns: "+ex.getMessage());
+							idx = 0;
+						}
+					} else {
+						idx++; // add after selected column
+					}
+					SQLColumn col = new SQLColumn();
+					col.setColumnName("new column");
+					model.addColumn(idx, col);
+					columns.setSelectedIndex(idx);
+				}
+			});
+		addDelPanel.add(deleteColumnButton = new JButton("Del"));
+		deleteColumnButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					int idx = columns.getSelectedIndex();
+					if (idx < 0) {
+						JOptionPane.showMessageDialog(ColumnEditPanel.this,
+													  "Please select a column, then click delete");
+					} else {
+						model.removeColumn(idx);
+						try {
+							int size = model.getColumns().size();
+							if (size > 0) {
+								columns.setSelectedIndex(Math.min(idx, size-1));
+							}
+						} catch (ArchitectException ex) {
+							logger.error("Couldn't count number of columns", ex);
+							JOptionPane.showMessageDialog
+								(ColumnEditPanel.this,
+								 "Couldn't count number of columns: "+ex.getMessage());
+						}
+					}
+				}
+			});
+		westPanel.add(addDelPanel, BorderLayout.SOUTH);
 
+		add(westPanel, BorderLayout.WEST);
+		
 		JPanel centerBox = new JPanel();
 		centerBox.setLayout(new BoxLayout(centerBox, BoxLayout.Y_AXIS));
 		centerBox.add(Box.createVerticalGlue());
@@ -356,10 +411,11 @@ public class ColumnEditPanel extends JPanel
 	// ------------------ ARCHITECT PANEL INTERFACE ---------------------
 	
 	/**
-	 * Does nothing because this version of ColumnEditPanel works
-	 * directly on the live data.
+	 * Calls updateModel since the user may have clicked "ok" before
+	 * hitting enter on a text field.
 	 */
 	public void applyChanges() {
+		updateModel();
 		cleanup();
 	}
 
