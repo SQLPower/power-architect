@@ -129,28 +129,18 @@ public class DBTree extends JTree implements DragSourceListener {
 			}
 
 			DBTree t = (DBTree) dge.getComponent();
-  			TreePath[] p = t.getSelectionPaths();
+  			int[] p = t.getSelectionRows();
 
 			if (p ==  null || p.length == 0) {
 				// nothing to export
 				return;
-			} else if (p.length == 1) {
-				// export single node
-				SQLObject data = (SQLObject) p[0].getLastPathComponent();
-				logger.info("DBTree: exporting single node "+data.getName()+"@"+data.hashCode());
-				dge.getDragSource().startDrag
-					(dge, DragSource.DefaultCopyNoDrop, new SQLObjectTransferable(data), t);
 			} else {
-				// export list of nodes
-				logger.info("DBTree: exporting list of nodes");
-				SQLObject[] nodes = new SQLObject[p.length];
-				for (int i = 0; i < p.length; i++) {
-					nodes[i] = (SQLObject) p[i].getLastPathComponent();
-				}
+				// export list of tree paths
+				logger.info("DBTree: exporting list of tree paths");
 				dge.getDragSource().startDrag
 					(dge, 
 					 DragSource.DefaultCopyNoDrop, 
-					 new SQLObjectListTransferable(nodes), 
+					 new SelectedTreeRowsTransferable(p), 
 					 t);
 			}
  		}
