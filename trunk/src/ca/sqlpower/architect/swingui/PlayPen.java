@@ -11,10 +11,14 @@ import java.util.List;
 import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.Iterator;
+import java.util.HashMap;
+import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.*;
 
 public class PlayPen extends JPanel implements java.io.Serializable {
+
+	private static Logger logger = Logger.getLogger(PlayPen.class);
 
 	/**
 	 * Links this PlayPen with an instance of PlayPenDropListener so
@@ -22,13 +26,34 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 	 */
 	protected DropTarget dt;
 
-	public PlayPen() {
+	/**
+	 * This database is the container of all the SQLObjects in this
+	 * playpen.  Items added via the addTable, addSchema, ... methods
+	 * will be added into this database.
+	 *
+	 * <p>Note: the playpen does not currently listen for changes to
+	 * the database (addition and removal of tables), but it probably
+	 * will in the future.
+	 */
+	protected SQLDatabase db;
+	
+	/**
+	 * Maps table names (Strings) to Integers.  Useful for making up
+	 * new table names if two tables of the same name are added to
+	 * this playpen.
+	 */
+	protected HashMap tableNames;
+
+	public PlayPen(SQLDatabase db) {
 		super();
+		if (db == null) throw new NullPointerException("db must be non-null");
+		this.db = db;
 		setLayout(new PlayPenLayout(this));
 		setName("Play Pen");
 		setMinimumSize(new Dimension(200,200));
 		setOpaque(true);
 		dt = new DropTarget(this, new PlayPenDropListener());
+		tableNames = new HashMap();
 	}
 
 	public static class PlayPenLayout implements LayoutManager2 {
@@ -65,6 +90,7 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 			comp.setSize(comp.getPreferredSize());
 			int nh = comp.getHeight();
 			int nw = comp.getWidth();
+			logger.debug("new comp x="+pos.x+"; y="+pos.y+"; w="+nw+"; h="+nh);
 
 			RangeList rl = new RangeList();
 			Rectangle cbounds = null;
@@ -76,16 +102,21 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 							 || (pos.y + nh < cbounds.y)
                            )
                        ) {
+						logger.debug("blocking "+c.getName());
 						rl.blockOut(cbounds.x, cbounds.width);
+					} else {
+						logger.debug("IGNORING "+c.getName());
 					}
 				}
 			}
 			
+			logger.debug("final range list: "+rl);
+			logger.debug("rightGap = max("+rl.findGapToRight(pos.x, nw)+","+pos.x+")");
+
 			int rightGap = Math.max(rl.findGapToRight(pos.x, nw), pos.x);
-			//int leftGap = Math.min(rl.findGapToLeft(pos.x, nw), pos.x);
 			int leftGap = rl.findGapToLeft(pos.x, nw);
 
-			System.out.println("pos.x = "+pos.x+"; rightGap = "+rightGap+"; leftGap = "+leftGap);
+			logger.debug("pos.x = "+pos.x+"; rightGap = "+rightGap+"; leftGap = "+leftGap);
 			if (rightGap - pos.x <= pos.x - leftGap) {
 				pos.x = rightGap;
 			} else {
@@ -105,27 +136,29 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 		 * the components were translated.
 		 */
 		protected void translateAllComponents(int xdist, int ydist) {
-			Rectangle visibleArea = parent.getVisibleRect();
-
-			Point p = new Point();
-			for (int i = 0, n = parent.getComponentCount(); i < n; i++) {
-				JComponent c = (JComponent) parent.getComponent(i);
-				p = c.getLocation(p);
-				p.x += xdist;
-				p.y += ydist;
-				c.setLocation(p);
+			synchronized (parent) {
+				Rectangle visibleArea = parent.getVisibleRect();
+				
+				Point p = new Point();
+				for (int i = 0, n = parent.getComponentCount(); i < n; i++) {
+					JComponent c = (JComponent) parent.getComponent(i);
+					p = c.getLocation(p);
+					p.x += xdist;
+					p.y += ydist;
+					c.setLocation(p);
+				}
+				
+				visibleArea.x += xdist;
+				visibleArea.y += ydist;
+				parent.scrollRectToVisible(visibleArea);
 			}
-
-			visibleArea.x += xdist;
-			visibleArea.y += ydist;
-			parent.scrollRectToVisible(visibleArea);
 		}
 
 		/**
 		 * Does nothing.
 		 */
 		public void removeLayoutComponent(Component comp) {
-			System.out.println("PlayPenLayout.removeLayoutComponent");
+			logger.debug("PlayPenLayout.removeLayoutComponent");
 		}
 
 		/**
@@ -185,7 +218,7 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 		 * Does nothing!  Components will stay put.
 		 */
 		public void layoutContainer(Container parent) {
-			System.out.println("PlayPenLayout.layoutContainer");
+			logger.debug("PlayPenLayout.layoutContainer");
 		}
 
 		protected static class RangeList {
@@ -201,7 +234,7 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 
 			public void blockOut(int start, int length) {
 				Block block = new Block(start, length);
-				System.out.println("blockOut "+block+": before "+blocks);
+				//logger.debug("blockOut "+block+": before "+blocks);
 				ListIterator it = blocks.listIterator();
 				while (it.hasNext()) {
 					Block nextBlock = (Block) it.next();
@@ -211,27 +244,30 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 						break;
 					}
 				}
-				System.out.println("blockOut "+block+": after  "+blocks);
+				//logger.debug("blockOut "+block+": after  "+blocks);
 			}
 
 			public int findGapToRight(int start, int length) {
+				int origStart = start;
 				Iterator it = blocks.iterator();
 				while (it.hasNext()) {
 					Block block = (Block) it.next();
 
 					if ( (start + length) < block.start ) {
 						// current gap fits at right-hand side.. done!
+						if (start < origStart) {
+							throw new IllegalStateException("Start < origStart!");
+						}
 						return start;
 					} else {
-						start = block.start + block.length;
+						// increase start past this block if applicable
+						start = Math.max(block.start + block.length, start);
 					}
 
 				}
 				return start;
 			}
 
-			//   cc                 XX
-			//     --- --------      --  -----  --    ------                   s
 			public int findGapToLeft(int start, int length) {
 				int closestLeftGap = Integer.MIN_VALUE;
 				int prevBlockEnd = Integer.MIN_VALUE;
@@ -241,7 +277,6 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 					if ( (prevBlockEnd < block.start - length)
 						 && (block.start - length <= start) ) {
 						closestLeftGap = block.start - length;
-						System.out.println("Updating leftGap = "+closestLeftGap);
 					}
 					if ( block.start > start ) {
 						// we have reached a block to the right of start
@@ -251,13 +286,16 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 				}
 
 				// if we're still at one of the sentinel values, return the mouse location
- 				if (//closestLeftGap == Integer.MAX_VALUE-length ||
- 					closestLeftGap == Integer.MIN_VALUE) {
+ 				if (closestLeftGap == Integer.MIN_VALUE) {
  					return start;
  				} else {
 					// otherwise, the answer is correct
 					return closestLeftGap;
 				}
+			}
+			
+			public String toString() {
+				return blocks.toString();
 			}
 
 			protected static class Block {
@@ -274,6 +312,88 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 		}
 	}
 	
+	/**
+	 * Works under limited circumstances. Use {@link #addTable} instead.
+	 */
+	public void add(Component c, Object constraints) {
+		if (c instanceof TablePane) {
+			throw new IllegalArgumentException("You should use addTable.  See javadoc.");
+		} else if (constraints instanceof Point) {
+			super.add(c, constraints);
+		} else {
+			throw new IllegalArgumentException("You should use addTable.  See javadoc.");
+		}
+	}
+
+	/**
+	 * Adds a copy of the given source table to this playpen, using
+	 * preferredLocation as the layout constraint.  Tries to avoid
+	 * adding two tables with identical names.
+	 *
+	 * @see SQLTable#inherit
+	 * @see PlayPenLayout#addComponent(Component,Object)
+	 */
+	public synchronized void addTable(SQLTable source, Point preferredLocation) throws ArchitectException {
+		SQLTable newTable = SQLTable.getDerivedInstance(source, db);
+		Integer suffix = (Integer) tableNames.get(source.getTableName());
+		if (suffix == null) {
+			tableNames.put(source.getTableName(), new Integer(0));
+		} else {
+			int newSuffix = suffix.intValue()+1;
+			tableNames.put(source.getTableName(), new Integer(newSuffix));
+			newTable.setTableName(source.getTableName()+"_"+newSuffix);
+		}
+		TablePane tp = new TablePane(newTable);
+		
+		logger.info("adding table "+newTable);
+		super.add(tp, preferredLocation);
+		tp.revalidate();
+	}
+
+	/**
+	 * Calls {@link #addTable} for each table contained in the given schema.
+	 */
+	public synchronized void addSchema(SQLSchema source, Point preferredLocation) throws ArchitectException {
+		AddSchemaTask t = new AddSchemaTask(source, preferredLocation);
+		new Thread(t, "Schema-Adder").start();
+	}
+
+	private class AddSchemaTask implements Runnable {
+		SQLSchema source;
+		Point preferredLocation;
+
+		public AddSchemaTask(SQLSchema source, Point preferredLocation) {
+			this.source = source;
+			this.preferredLocation = preferredLocation;
+		}
+
+		public void run() {
+			logger.info("AddSchemaTask starting on thread "+Thread.currentThread().getName());
+			ProgressMonitor pm = null;
+			try {
+				pm = new ProgressMonitor
+					(PlayPen.this,
+					 "Copying schema "+source.getShortDisplayName(),
+					 "...",
+					 0,
+					 source.getChildCount());
+				int i = 0;
+				Iterator it = source.getChildren().iterator();
+				while (it.hasNext()) {
+					SQLTable sourceTable = (SQLTable) it.next();
+					pm.setNote(sourceTable.getTableName());
+					addTable(sourceTable, preferredLocation);
+					pm.setProgress(i++);
+				}
+			} catch (ArchitectException e) {
+				e.printStackTrace();
+			} finally {
+				if (pm != null) pm.close();
+			}
+			logger.info("AddSchemaTask done");
+		}
+	}
+
 	/**
 	 * Tracks incoming objects and adds successfully dropped objects
 	 * at the current mouse position.
@@ -303,7 +423,7 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 		 * the DropTarget registered with this listener.
 		 */
 		public void dragOver(DropTargetDragEvent dtde) {
-			System.out.println("PlayPenDropTarget.dragOver()");
+			//logger.debug("PlayPenDropTarget.dragOver()");
 			dtde.acceptDrag(DnDConstants.ACTION_COPY);
 		}
 		
@@ -314,21 +434,40 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 		 */
 		public void drop(DropTargetDropEvent dtde) {
 			Transferable t = dtde.getTransferable();
-			JComponent c = (JComponent) dtde.getDropTargetContext().getComponent();
+			PlayPen c = (PlayPen) dtde.getDropTargetContext().getComponent();
 			DataFlavor importFlavor = bestImportFlavor(c, t.getTransferDataFlavors());
 			if (importFlavor == null) {
 				dtde.rejectDrop();
 			} else {
 				try {
 					Object someData = t.getTransferData(importFlavor);
-					System.out.println("MyJTreeTransferHandler.importData: got object of type "+someData.getClass().getName());
+					logger.debug("MyJTreeTransferHandler.importData: got object of type "+someData.getClass().getName());
 					if (someData instanceof SQLTable) {
 						dtde.acceptDrop(DnDConstants.ACTION_COPY);
-						SQLTable table = (SQLTable) someData;
-						TablePane tp = new TablePane(table);
-						c.add(tp, dtde.getLocation());
-
-						tp.revalidate();
+						c.addTable((SQLTable) someData, dtde.getLocation());
+						dtde.dropComplete(true);
+						return;
+					} else if (someData instanceof SQLSchema) {
+						dtde.acceptDrop(DnDConstants.ACTION_COPY);
+						SQLSchema sourceSchema = (SQLSchema) someData;
+						c.addSchema(sourceSchema, dtde.getLocation());
+						dtde.dropComplete(true);
+						return;
+					} else if (someData instanceof SQLCatalog) {
+						dtde.acceptDrop(DnDConstants.ACTION_COPY);
+						SQLCatalog sourceCatalog = (SQLCatalog) someData;
+						Iterator cit = sourceCatalog.getChildren().iterator();
+						if (sourceCatalog.isSchemaContainer()) {
+							while (cit.hasNext()) {
+								SQLSchema sourceSchema = (SQLSchema) cit.next();
+								c.addSchema(sourceSchema, dtde.getLocation());
+							}
+						} else {
+							while (cit.hasNext()) {
+								SQLTable sourceTable = (SQLTable) cit.next();
+								c.addTable(sourceTable, dtde.getLocation());
+							}
+						}
 						dtde.dropComplete(true);
 						return;
 					} else if (someData instanceof SQLColumn) {
@@ -337,11 +476,12 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 						JLabel colName = new JLabel(column.getColumnName());
 						colName.setSize(colName.getPreferredSize());
 						c.add(colName, dtde.getLocation());
-						System.out.println("Added "+column.getColumnName()+" to playpen (temporary, only for testing)");
+						logger.debug("Added "+column.getColumnName()+" to playpen (temporary, only for testing)");
 						colName.revalidate();
 						dtde.dropComplete(true);
 						return;
 					} else if (someData instanceof SQLObject[]) {
+						// needs work (should use addSchema())
 						dtde.acceptDrop(DnDConstants.ACTION_COPY);
 						SQLObject[] objects = (SQLObject[]) someData;
 						for (int i = 0; i < objects.length; i++) {
@@ -365,6 +505,9 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 				} catch (InvalidDnDOperationException ex) {
 					ex.printStackTrace();
 					dtde.rejectDrop();
+				} catch (ArchitectException ex) {
+					ex.printStackTrace();
+					dtde.rejectDrop();
 				}
 			}
 		}
@@ -384,27 +527,27 @@ public class PlayPen extends JPanel implements java.io.Serializable {
 		 * list, or null if no acceptable flavours are present.
 		 */
 		public DataFlavor bestImportFlavor(JComponent c, DataFlavor[] flavors) {
-			System.out.println("PlayPenTransferHandler: can I import "+Arrays.asList(flavors));
+			logger.debug("PlayPenTransferHandler: can I import "+Arrays.asList(flavors));
  			for (int i = 0; i < flavors.length; i++) {
 				String cls = flavors[i].getDefaultRepresentationClassAsString();
-				System.out.println("representation class = "+cls);
-				System.out.println("mime type = "+flavors[i].getMimeType());
-				System.out.println("type = "+flavors[i].getPrimaryType());
-				System.out.println("subtype = "+flavors[i].getSubType());
-				System.out.println("class = "+flavors[i].getParameter("class"));
-				System.out.println("isSerializedObject = "+flavors[i].isFlavorSerializedObjectType());
-				System.out.println("isInputStream = "+flavors[i].isRepresentationClassInputStream());
-				System.out.println("isRemoteObject = "+flavors[i].isFlavorRemoteObjectType());
-				System.out.println("isLocalObject = "+flavors[i].getMimeType().equals(DataFlavor.javaJVMLocalObjectMimeType));
+				logger.debug("representation class = "+cls);
+				logger.debug("mime type = "+flavors[i].getMimeType());
+				logger.debug("type = "+flavors[i].getPrimaryType());
+				logger.debug("subtype = "+flavors[i].getSubType());
+				logger.debug("class = "+flavors[i].getParameter("class"));
+				logger.debug("isSerializedObject = "+flavors[i].isFlavorSerializedObjectType());
+				logger.debug("isInputStream = "+flavors[i].isRepresentationClassInputStream());
+				logger.debug("isRemoteObject = "+flavors[i].isFlavorRemoteObjectType());
+				logger.debug("isLocalObject = "+flavors[i].getMimeType().equals(DataFlavor.javaJVMLocalObjectMimeType));
 
 
  				if (flavors[i].equals(SQLObjectTransferable.flavor)
 					|| flavors[i].equals(SQLObjectListTransferable.flavor)) {
-					System.out.println("YES");
+					logger.debug("YES");
  					return flavors[i];
 				}
  			}
-			System.out.println("NO!");
+			logger.debug("NO!");
  			return null;
 		}
 
