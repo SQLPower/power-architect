@@ -36,6 +36,7 @@ public class EditColumnAction extends AbstractAction implements ActionListener {
 					columnEditPanel.setModel(tp.getModel());
 					columnEditPanel.selectColumn(idx);
 					editFrame.setTitle("Edit columns of "+tp.getModel().getName());
+					editFrame.setVisible(true);
 					editFrame.requestFocus();
 				} else {
 					JPanel panel = new JPanel();
@@ -52,6 +53,7 @@ public class EditColumnAction extends AbstractAction implements ActionListener {
 					buttonPanel.add(okButton);
 					cancelButton = new JButton("Cancel");
 					cancelButton.addActionListener(okCancelListener);
+					cancelButton.setEnabled(false); //XXX: need to implement cancel
 					buttonPanel.add(cancelButton);
 					panel.add(buttonPanel, BorderLayout.SOUTH);
 					

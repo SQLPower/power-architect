@@ -11,13 +11,19 @@ import java.sql.DatabaseMetaData;
 import org.apache.log4j.Logger;
 
 public class ColumnEditPanel extends JPanel
-	implements ListSelectionListener, ActionListener, ArchitectPanel {
+	implements ListSelectionListener, ActionListener, ChangeListener, ArchitectPanel {
 
 	private static final Logger logger = Logger.getLogger(ColumnEditPanel.class);
 
 	protected JList columns;
 	protected SQLTable model;
 	protected SQLTableListModel tableListModel;
+
+	/**
+	 * This is set to true while we change columns so that events can be ignored.
+	 */
+	protected boolean changingColumns;
+
 
 	protected JLabel sourceDB;
 	protected JLabel sourceTableCol;
@@ -47,29 +53,45 @@ public class ColumnEditPanel extends JPanel
 		JPanel centerPanel = new JPanel();
 		centerPanel.setLayout(new FormLayout(5, 5));
 		centerPanel.setBorder(BorderFactory.createTitledBorder("Column Properties"));
+
 		centerPanel.add(new JLabel("Source Database"));
 		centerPanel.add(sourceDB = new JLabel());
+
 		centerPanel.add(new JLabel("Source Table.Column"));
 		centerPanel.add(sourceTableCol = new JLabel());
+
 		centerPanel.add(new JLabel("Name"));
 		centerPanel.add(colName = new JTextField());
+		colName.addActionListener(this);
+
 		centerPanel.add(new JLabel("Type"));
 		centerPanel.add(colType = createColTypeEditor());
+		colType.addActionListener(this);
+
 		centerPanel.add(new JLabel("Scale"));
 		centerPanel.add(colScale = createScaleEditor());
+		colScale.addChangeListener(this);
+
 		centerPanel.add(new JLabel("Precision"));
 		centerPanel.add(colPrec = createPrecisionEditor());
+		colPrec.addChangeListener(this);
+
 		centerPanel.add(new JLabel("In Primary Key"));
 		centerPanel.add(colInPK = new JCheckBox());
 		colInPK.addActionListener(this);
+
 		centerPanel.add(new JLabel("Allows Nulls"));
 		centerPanel.add(colNullable = new JCheckBox());
 		colNullable.addActionListener(this);
+
 		centerPanel.add(new JLabel("Auto Increment"));
 		centerPanel.add(colAutoInc = new JCheckBox());
 		colAutoInc.addActionListener(this);
+
 		centerPanel.add(new JLabel("Remarks"));
 		centerPanel.add(colRemarks = new JTextField());
+		colRemarks.addActionListener(this);
+
 		centerPanel.add(new JLabel("Default Value"));
 		centerPanel.add(colDefaultValue = new JTextField());
 		colDefaultValue.addActionListener(this);
@@ -95,6 +117,13 @@ public class ColumnEditPanel extends JPanel
 		model = newModel;
 		tableListModel = new SQLTableListModel(model);
 		model.addSQLObjectListener(tableListModel);
+		try {
+			for (int i = 0; i < model.getChildCount(); i++) {
+				model.getChild(i).addSQLObjectListener(tableListModel);
+			}
+		} catch (ArchitectException e) {
+			logger.error("Caught exception adding treemodel to column listener list");
+		}
 		columns.setModel(tableListModel);
 	}
 
@@ -139,49 +168,56 @@ public class ColumnEditPanel extends JPanel
 		if (index < 0) {
 			return;
 		}
-		SQLColumn col = model.getColumn(index);
-		if (col.getSourceColumn() == null) {
-			sourceDB.setText("None Specified");
-			sourceTableCol.setText("None Specified");
-		} else {
-			StringBuffer sb = new StringBuffer();
-			SQLObject so = col.getSourceColumn().getParent().getParent();
-			while (so != null) {
-				sb.insert(0, so.getName());
-				sb.insert(0, ".");
-				so = so.getParent();
+		
+		try {
+			changingColumns = true;
+			SQLColumn col = model.getColumn(index);
+			if (col.getSourceColumn() == null) {
+				sourceDB.setText("None Specified");
+				sourceTableCol.setText("None Specified");
+			} else {
+				StringBuffer sb = new StringBuffer();
+				SQLObject so = col.getSourceColumn().getParent().getParent();
+				while (so != null) {
+					sb.insert(0, so.getName());
+					sb.insert(0, ".");
+					so = so.getParent();
+				}
+				sourceDB.setText(sb.toString().substring(1));
+				sourceTableCol.setText(col.getSourceColumn().getParent().getName()
+									   +"."+col.getSourceColumn().getName());
 			}
-			sourceDB.setText(sb.toString().substring(1));
-			sourceTableCol.setText(col.getSourceColumn().getParent().getName()
-								   +"."+col.getSourceColumn().getName());
+			colName.setText(col.getName());
+			colType.setSelectedItem(SQLType.getType(col.getType()));
+			colScale.setValue(new Integer(col.getScale()));
+			colPrec.setValue(new Integer(col.getPrecision()));
+			colNullable.setSelected(col.getNullable() == DatabaseMetaData.columnNullable);
+			colRemarks.setText(col.getRemarks());
+			colDefaultValue.setText(col.getDefaultValue());
+			colInPK.setSelected(col.getPrimaryKeySeq() != null);
+		} finally {
+			changingColumns = false;
 		}
-		colName.setText(col.getName());
-		colType.setSelectedItem(SQLType.getType(col.getType()));
-		colScale.setValue(new Integer(col.getScale()));
-		colPrec.setValue(new Integer(col.getPrecision()));
-		colNullable.setSelected(col.getNullable() == DatabaseMetaData.columnNullable);
-		colRemarks.setText(col.getRemarks());
-		colDefaultValue.setText(col.getDefaultValue());
-		colInPK.setSelected(col.getPrimaryKeySeq() != null);
-
 		updateComponents();
+	}
+
+	/**
+	 * Implementation of ActionListener.
+	 */
+	public void actionPerformed(ActionEvent e) {
+		if (changingColumns) return;
+		logger.debug("action event "+e);
+		updateComponents();
+		updateModel();
 	}
 
 	/**
 	 * Implementation of ChangeListener.
 	 */
-	public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == colInPK) {
-			updateComponents();
-		} else if (e.getSource() == colAutoInc) {
-			updateComponents();
-		} else if (e.getSource() == colNullable) {
-			updateComponents();
-		} else if (e.getSource() == colDefaultValue) {
-			updateComponents();
-		} else {
-			logger.warn("Got an unexpected action event: "+e);
-		}
+	public void stateChanged(ChangeEvent e) {
+		if (changingColumns) return;
+		logger.debug("State change event "+e);
+		updateModel();
 	}
 	
 	/**
@@ -234,6 +270,31 @@ public class ColumnEditPanel extends JPanel
 		}
 	}
 	
+	/**
+	 * Sets the properties of the current column in the model to match
+	 * those on screen.
+	 */
+	protected void updateModel() {
+		logger.debug("Updating model");
+		try {
+			SQLColumn col = model.getColumn(columns.getSelectedIndex());
+			col.setColumnName(colName.getText());
+			col.setType(((SQLType) colType.getSelectedItem()).type);
+			col.setScale(((Integer) colScale.getValue()).intValue());
+			col.setPrecision(((Integer) colPrec.getValue()).intValue());
+			col.setNullable(colNullable.isSelected()
+							? DatabaseMetaData.columnNullable
+							: DatabaseMetaData.columnNoNulls);
+			col.setRemarks(colRemarks.getText());
+			col.setDefaultValue(colDefaultValue.getText());
+			col.setPrimaryKeySeq(colInPK.isSelected() ? new Integer(pkSize(model)) : null);
+			col.setAutoIncrement(colAutoInc.isSelected());
+		} catch (ArchitectException ex) {
+			JOptionPane.showMessageDialog(this, "Couldn't update column information");
+			logger.error("Couldn't update model!", ex);
+		}
+	}
+	
 	protected int pkSize(SQLTable t) {
 		int size = 0;
 		try {
@@ -255,6 +316,13 @@ public class ColumnEditPanel extends JPanel
 	 * removes this component from listener lists!
 	 */
 	protected void cleanup() {
+		try {
+			for (int i = 0; i < model.getChildCount(); i++) {
+				model.getChild(i).removeSQLObjectListener(tableListModel);
+			}
+		} catch (ArchitectException e) {
+			logger.error("Caught exception removing treemodel from column listener list");
+		}
 		model.removeSQLObjectListener(tableListModel);
 	}
 
@@ -265,6 +333,7 @@ public class ColumnEditPanel extends JPanel
 	 * directly on the live data.
 	 */
 	public void applyChanges() {
+		cleanup();
 	}
 
 	/**
@@ -275,5 +344,6 @@ public class ColumnEditPanel extends JPanel
 	 * the model.
 	 */
 	public void discardChanges() {
+		cleanup();
 	}
 }
