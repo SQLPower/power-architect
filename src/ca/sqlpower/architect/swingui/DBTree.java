@@ -23,8 +23,10 @@ public class DBTree extends JTree implements DragSourceListener {
 
 	protected DragSource ds;
 	protected JPopupMenu popup;
+	protected JMenu popupDBCSMenu;
 	protected JDialog propDialog;
 	protected DBCSPanel dbcsPanel;
+	protected NewDBCSAction newDBCSAction;
 
 	/**
 	 * This is the database whose DBCS is currently being editted in
@@ -32,6 +34,13 @@ public class DBTree extends JTree implements DragSourceListener {
 	 */
 	protected SQLDatabase edittingDB;
 
+	/**
+	 * This is set to true when the DBCSPanel is editting a new
+	 * connection spec.  The dialog's "ok" and "cancel" button
+	 * handlers need to do different things for new and existing
+	 * specs.
+	 */
+	protected boolean panelHoldsNewDBCS;
 
 	// ----------- CONSTRUCTORS ------------
 
@@ -42,6 +51,7 @@ public class DBTree extends JTree implements DragSourceListener {
 		DragGestureRecognizer dgr = ds.createDefaultDragGestureRecognizer
 			(this, DnDConstants.ACTION_COPY, new DBTreeDragGestureListener());
 
+		newDBCSAction = new NewDBCSAction();
 		setupPropDialog();
 		popup = setupPopupMenu();
 		addMouseListener(new PopupListener());
@@ -70,6 +80,18 @@ public class DBTree extends JTree implements DragSourceListener {
 				public void actionPerformed(ActionEvent e) {
 					dbcsPanel.applyChanges();
 					edittingDB.setConnectionSpec(dbcsPanel.getDbcs());
+					if (panelHoldsNewDBCS) {
+						ArchitectFrame.getMainInstance().getUserSettings()
+							.getConnections().add(dbcsPanel.getDbcs());
+						SQLObject root = (SQLObject) getModel().getRoot();
+						try {
+							root.addChild(root.getChildCount(), edittingDB);
+						} catch (ArchitectException ex) {
+							logger.warn("Couldn't add new database to tree", ex);
+							JOptionPane.showMessageDialog(DBTree.this, "Couldn't add new connection:\n"+ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+						}
+					}
+					panelHoldsNewDBCS = false;
 					propDialog.dispose();
 				}
 			});
@@ -167,8 +189,9 @@ public class DBTree extends JTree implements DragSourceListener {
 
 			JOptionPane.showMessageDialog(this, "Couldn't expand node:\n"+message,
 										  "Error", JOptionPane.ERROR_MESSAGE);
+		} finally {
+			ArchitectFrame.getMainInstance().setCursor(null);
 		}
-		ArchitectFrame.getMainInstance().setCursor(null);
 	}
 
 	// ---------- methods of DragSourceListener -----------
@@ -197,27 +220,11 @@ public class DBTree extends JTree implements DragSourceListener {
 	protected JPopupMenu setupPopupMenu() {
 		JPopupMenu newMenu = new JPopupMenu();
 		
-		JMenuItem popupNewDatabase = new JMenuItem("New Database Connection...");
-		popupNewDatabase.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					DBConnectionSpec dbcs = new DBConnectionSpec();
-					dbcs.setName("New Connection");
-					dbcs.setDisplayName("New Connection");
-					SQLDatabase db = new SQLDatabase(dbcs);
-					((DBTreeModel.DBTreeRoot) getModel().getRoot()).addChild(db);
-					edittingDB = db;
-					logger.debug("Setting new DBCS on panel: "+dbcs);
-					dbcsPanel.setDbcs(dbcs);
-					propDialog.setVisible(true);
-					propDialog.requestFocus();
-				}
-			});
-		newMenu.add(popupNewDatabase);  // index 0
+		newMenu.add(popupDBCSMenu = new JMenu("Add Connection"));
 
 		newMenu.addSeparator();         // index 1
 
-		JMenuItem popupProperties = new JMenuItem("Properties");
-		popupProperties.addActionListener(new PopupPropertiesListener());
+		JMenuItem popupProperties = new JMenuItem(new DBCSPropertiesAction());
 		newMenu.add(popupProperties);   // index 2
 
 		return newMenu;
@@ -241,6 +248,7 @@ public class DBTree extends JTree implements DragSourceListener {
 
         private void maybeShowPopup(MouseEvent e) {
             if (e.isPopupTrigger()) {
+				refreshDBCSMenu();
 				TreePath p = getPathForLocation(e.getX(), e.getY());
 				if (p == null) {
 					popup.getComponent(0).setVisible(true);
@@ -260,11 +268,76 @@ public class DBTree extends JTree implements DragSourceListener {
     }
 	
 	/**
-	 * The PopupPropertiesListener responds to the "Properties" item
-	 * in the popup menu.  It determines which item in the tree is
-	 * currently selected, then (creates and) shows its properties window.
+	 * Refreshes the submenu which contains the DBCS history list.
 	 */
-	class PopupPropertiesListener implements ActionListener {
+	protected void refreshDBCSMenu() {
+		popupDBCSMenu.removeAll();
+		popupDBCSMenu.add(new JMenuItem(newDBCSAction));
+		popupDBCSMenu.addSeparator();
+		Iterator it = ArchitectFrame.getMainInstance().getUserSettings().getConnections().iterator();
+		while(it.hasNext()) {
+			DBConnectionSpec dbcs = (DBConnectionSpec) it.next();
+			popupDBCSMenu.add(new JMenuItem(new AddDBCSAction(dbcs)));
+		}
+	}
+
+	/**
+	 * When invoked, this action adds the DBCS that was given in the
+	 * constructor to the DBTree's model.  There is normally one
+	 * AddDBCSAction associated with each item in the "Add Connection"
+	 * menu.
+	 */
+	protected class AddDBCSAction extends AbstractAction {
+		protected DBConnectionSpec dbcs;
+
+		public AddDBCSAction(DBConnectionSpec dbcs) {
+			super(dbcs.getName());
+			this.dbcs = dbcs;
+		}
+
+		public void actionPerformed(ActionEvent e) {
+			SQLObject root = (SQLObject) getModel().getRoot();
+			try {
+				root.addChild(root.getChildCount(), new SQLDatabase(dbcs));
+			} catch (ArchitectException ex) {
+				logger.warn("Couldn't add new database to tree", ex);
+				JOptionPane.showMessageDialog(DBTree.this, "Couldn't add new connection:\n"+ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+			}
+		}
+	}
+
+	/**
+	 * When invoked, this action creates a new DBCS, sets the
+	 * panelHoldsNewDBCS flag, and pops up the propDialog to edit the
+	 * new DBCS.
+	 */
+	protected class NewDBCSAction extends AbstractAction {
+
+		public NewDBCSAction() {
+			super("New Connection...");
+		}
+
+		public void actionPerformed(ActionEvent e) {
+			DBConnectionSpec dbcs = new DBConnectionSpec();
+			edittingDB = new SQLDatabase(dbcs);
+			panelHoldsNewDBCS = true;
+			dbcsPanel.setDbcs(dbcs);
+			propDialog.setVisible(true);
+			propDialog.requestFocus();
+		}
+	}
+
+	/**
+	 * The DBCSPropertiesAction responds to the "Properties" item in
+	 * the popup menu.  It determines which item in the tree is
+	 * currently selected, then (creates and) shows its properties
+	 * window.
+	 */
+	class DBCSPropertiesAction extends AbstractAction {
+		public DBCSPropertiesAction() {
+			super("Connection Properties...");
+		}
+
 		public void actionPerformed(ActionEvent e) {
 			TreePath p = getSelectionPath();
 			if (p == null) {

@@ -455,12 +455,15 @@ public class ColumnEditPanel extends JPanel
 	}
 		
 	/**
-	 * Updates the column name immediately.
+	 * Ensures that something is selected in cases where the selected column is removed.
 	 */
 	public void removeUpdate(DocumentEvent e) {
 		try {
-			SQLColumn col = model.getColumn(columns.getSelectedIndex());
-			col.setColumnName(colName.getText());
+			int idx = columns.getSelectedIndex();
+			if (idx < 0 || idx >= model.getChildCount()) {
+			// the selected column must have been removed
+				columns.setSelectedIndex(0);
+			}
 		} catch (ArchitectException ex) {
 			logger.error("Couldn't update column name", ex);
 			JOptionPane.showMessageDialog(this, "Can't update column name: "+ex.getMessage());
