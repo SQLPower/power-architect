@@ -1,0 +1,94 @@
+<project name="architect" default="deploy" basedir=".">
+
+	<!-- $Id$ -->
+
+	<property file="user.properties" />
+
+	<property name="src" value="."/>
+	<property name="build" value="build"/>
+	<property name="build.compiler" value="modern"/>
+	<property name="sqlpower.jar" value="lib/sqlpower.jar"/>
+
+	<property name="deploy.jar" value="architect.jar"/>
+
+	<target name="init">
+		<tstamp/>
+		<mkdir dir="${build}"/>
+	</target>
+
+	<target name="compile" depends="init">
+		<javac srcdir="${src}" destdir="${build}" classpath="${sqlpower.jar}" debug="true"/>
+	</target>
+
+	<target name="jar" depends="compile">
+		<jar jarfile="${build}/${deploy.jar}" basedir="${build}"
+			includes="META-INF/*,ca/**">
+		</jar>
+	</target>
+
+	<target name="deploy" depends="jar">
+		<copy file="${build}/${deploy.jar}" todir="${deploy.dir}"/>
+		<copy todir="${deploy.dir}/lib">
+			<fileset dir="lib"/>
+		</copy>
+	</target>
+
+	<target name="clean">
+		<delete dir="${build}"/>
+	</target>
+
+	<path id="test.classpath">
+		<fileset dir="lib">
+			<include name="*.jar"/>
+		</fileset>
+		<fileset dir="${jdbcdrivers.jar}">
+			<include name="*.jar"/>
+		</fileset>
+		<pathelement location="build"/>
+		<fileset dir="/usr/local/jars">
+			<include name="xerces.jar"/>
+		</fileset>
+	</path>
+
+	<target name="testdb" depends="compile">
+		<java fork="true" classname="ca.sqlpower.architect.test.TestDB" classpathref="test.classpath">
+			<arg value="${databases.xml}"/>
+			<arg value="1"/>
+		</java>
+	</target>
+
+	<target name="testui_ora" depends="compile">
+		<java fork="true" classname="ca.sqlpower.architect.test.TestUI" classpathref="test.classpath">
+			<arg value="${databases.xml}"/>
+			<arg value="arthur_test_dash_demo"/>
+		</java>
+	</target>
+
+	<target name="testui_ss" depends="compile">
+		<java fork="true" classname="ca.sqlpower.architect.test.TestUI" classpathref="test.classpath">
+			<arg value="${databases.xml}"/>
+			<arg value="1"/>
+		</java>
+	</target>
+
+	<target name="docs" depends="compile">
+		<mkdir dir="${build}/docs/api"/>
+		<javadoc sourcepath="${src}" destdir="${build}/docs/api"
+			packagenames="com.darwinsys.*"
+			maxmemory="32m" 
+			windowtitle="ca.sqlpower.architect.* Power*Architect"
+			Version="true" Author="true" Use="true"
+			Overview="html/overview.html"
+			classpathref="test.classpath"
+			>
+			<packageset dir="${src}" defaultexcludes="yes">
+				<include name="ca/sqlpower/**" />
+				<exclude name="regress/**"/>
+			</packageset>
+			<bottom><![CDATA[<i>Copyright &#169; 2003 SQL Power Group Inc. <a href="http://www.sqlpower.ca/">www.sqlpower.ca</a>]]></bottom>
+		</javadoc>
+		<copy file="html/index.html" todir="${build}/docs"/>
+
+	</target>
+
+</project>
