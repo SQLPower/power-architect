@@ -163,6 +163,9 @@ public abstract class SQLObject implements java.io.Serializable {
 	}
 
 	public void addSQLObjectListener(SQLObjectListener l) {
+		if (getSQLObjectListeners().contains(l)) {
+			logger.warn("Adding duplicate listener "+l+" to SQLObject "+this);
+		}
 		getSQLObjectListeners().add(l);
 	}
 
