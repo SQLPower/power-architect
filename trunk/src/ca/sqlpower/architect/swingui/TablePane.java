@@ -151,16 +151,23 @@ public class TablePane
 	 * delegate) with a ChangeEvent.
 	 */
 	public void dbChildrenRemoved(SQLObjectEvent e) {
-		if (e.getSource() == this.model) {
+		if (e.getSource() == this.model.getColumnsFolder()) {
 			int ci[] = e.getChangedIndices();
 			for (int i = 0; i < ci.length; i++) {
 				columnSelection.remove(ci[i]);
 			}
+			if (columnSelection.size() > 0) {
+				columnSelection.set(Math.min(ci[0], columnSelection.size()-1), Boolean.TRUE);
+			}
 		}
 		try {
 			ArchitectUtils.unlistenToHierarchy(this, e.getChildren());
+			if (columnSelection.size() != this.model.getColumns().size()) {
+				logger.error("Selection list and children are out of sync: selection="+columnSelection+"; children="+model.getChildren());
+			}
 		} catch (ArchitectException ex) {
-			logger.error("Caught exception while unlistening to removed children", ex);
+			logger.error("Couldn't remove children", ex);
+			JOptionPane.showMessageDialog(this, "Couldn't delete column: "+ex.getMessage());
 		}
 		firePropertyChange("model.children", null, null);
 		revalidate();

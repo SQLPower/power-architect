@@ -39,15 +39,13 @@ public class ArchitectFrame extends JFrame {
 	protected Action openProjectAction;
 	protected Action saveProjectAction;
 	protected Action saveProjectAsAction;
+	protected DeleteSelectedAction deleteSelectedAction;
 	protected EditColumnAction editColumnAction;
 	protected InsertColumnAction insertColumnAction;
-	protected DeleteColumnAction deleteColumnAction;
 	protected EditTableAction editTableAction;
-	protected DeleteTableAction deleteTableAction;
 	protected CreateTableAction createTableAction;
 	protected CreateRelationshipAction createRelationshipAction;
 	protected EditRelationshipAction editRelationshipAction;
-	protected DeleteRelationshipAction deleteRelationshipAction;
 	protected Action exportDDLAction;
 
 	protected Action exitAction = new AbstractAction("Exit") {
@@ -151,15 +149,13 @@ public class ArchitectFrame extends JFrame {
 				}
 		};
 		exportDDLAction = new ExportDDLAction();
+		deleteSelectedAction = new DeleteSelectedAction();
 		createRelationshipAction = new CreateRelationshipAction();
 		editRelationshipAction = new EditRelationshipAction();
-		deleteRelationshipAction = new DeleteRelationshipAction();
 		createTableAction = new CreateTableAction();
 		editColumnAction = new EditColumnAction();
 		insertColumnAction = new InsertColumnAction();
-		deleteColumnAction = new DeleteColumnAction();
 		editTableAction = new EditTableAction();
-		deleteTableAction = new DeleteTableAction();
 
 		menuBar = new JMenuBar();
 		JMenu fileMenu = new JMenu("File");
@@ -178,14 +174,15 @@ public class ArchitectFrame extends JFrame {
 		toolBar.add(openProjectAction);
 		toolBar.add(saveProjectAction);
 		toolBar.addSeparator();
+		toolBar.add(deleteSelectedAction);
+		toolBar.addSeparator();
 		toolBar.add(createTableAction);
-		toolBar.add(deleteTableAction);
-		toolBar.add(editColumnAction);
+		toolBar.addSeparator();
 		toolBar.add(insertColumnAction);
-		toolBar.add(deleteColumnAction);
+		toolBar.add(editColumnAction);
+		toolBar.addSeparator();
 		toolBar.add(createRelationshipAction);
 		toolBar.add(editRelationshipAction);
-		toolBar.add(deleteRelationshipAction);
 		cp.add(toolBar, BorderLayout.NORTH);
 
 		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
@@ -223,15 +220,13 @@ public class ArchitectFrame extends JFrame {
 	 * instances.  This method is called by setProject.
 	 */
 	protected void setupActions() {
+		deleteSelectedAction.setPlayPen(playpen);
 		editColumnAction.setPlayPen(playpen);
 		insertColumnAction.setPlayPen(playpen);
-		deleteColumnAction.setPlayPen(playpen);
 		editTableAction.setPlayPen(playpen);
-		deleteTableAction.setPlayPen(playpen);
 		createTableAction.setPlayPen(playpen);
 		createRelationshipAction.setPlayPen(playpen);
 		editRelationshipAction.setPlayPen(playpen);
-		deleteRelationshipAction.setPlayPen(playpen);
 	}
 
 	public static ArchitectFrame getMainInstance() {
