@@ -67,7 +67,8 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 					r = new SQLRelationship();
 					newKeys.add(r);
 				}
-				ColumnMapping m = r.new ColumnMapping();
+				ColumnMapping m = new ColumnMapping();
+				m.parent = r;
 				r.children.add(m);
 				r.pkTable = db.getTableByName(rs.getString(1),  // catalog
 											  rs.getString(2),  // schema
@@ -118,10 +119,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	}
 
 	public String toString() {
-		return "[SQLRelationship: "+getShortDisplayName()
-			+", pkTable="+pkTable.getName()
-			+", fkTable="+fkTable.getName()
-			+"]";
+		return getShortDisplayName();
 	}
 
 	// ---------------------- SQLRelationship SQLObject support ------------------------
@@ -279,10 +277,11 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	public void setFkTable(SQLTable fkt) {
 		fkTable = fkt;
 	}
-
+	
 	// -------------------------- COLUMN MAPPING ------------------------
 
-	public class ColumnMapping extends SQLObject {
+	public static class ColumnMapping extends SQLObject {
+		protected SQLRelationship parent;
 		protected SQLColumn pkColumn;
 		protected SQLColumn fkColumn;
 
@@ -336,28 +335,30 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		 * Returns the table that holds the primary keys (the imported table).
 		 */
 		public SQLObject getParent() {
-			return SQLRelationship.this;
+			return (SQLRelationship) parent;
 		}
 
 		protected void setParent(SQLObject newParent) {
-			if (newParent != SQLRelationship.this) {
-				throw new IllegalArgumentException("This ColumnMapping object can only be the child of its containing SQLRelationship instance");
-			}
+			parent = (SQLRelationship) newParent;
 		}
 		
 		/**
 		 * Returns the parent relationship's fk name.
 		 */
 		public String getName() {
-			return SQLRelationship.this.fkName;
+			return parent.fkName;
 		}
 		
 		/**
 		 * Returns the table and column name of the pkColumn.
 		 */
 		public String getShortDisplayName() {
+			String pkTableName = null;
+			if (pkColumn.getParentTable() != null) {
+				pkTableName = pkColumn.getParentTable().getName();
+			}
 			return fkColumn.getColumnName()+" - "+
-				pkColumn.getParentTable().getName()+"."+pkColumn.getColumnName();
+				pkTableName+"."+pkColumn.getColumnName();
 		}
 		
 		/**

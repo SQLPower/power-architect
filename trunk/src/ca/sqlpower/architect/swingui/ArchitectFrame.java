@@ -160,7 +160,7 @@ public class ArchitectFrame extends JFrame {
 	public void setProject(SwingUIProject p) throws ArchitectException {
 		this.project = p;
 		logger.debug("Setting project to "+project);
-		setTitle("Power*Architect: "+project.getName());
+		setTitle(project.getName()+" - Power*Architect");
 		playpen = project.getPlayPen();
 		dbTree = project.getSourceDatabases();
 		createRelationshipAction.setPlayPen(playpen);

@@ -169,7 +169,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 				if (addTo.getColumnByName(col.getColumnName(), false) != null) {
 					throw new DuplicateColumnException(addTo, col.getColumnName());
 				}
-				addTo.columns.add(col); // don't use addTo.columnFolder.addColumn() (avoids multiple SQLObjectEvents)
+				addTo.columnsFolder.children.add(col); // don't use addTo.columnsFolder.addColumn() (avoids multiple SQLObjectEvents)
 
 				// XXX: need to find out if column is auto-increment
 			}
@@ -451,8 +451,10 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 		}
 		if (this.primaryKeySeq != null && this.primaryKeySeq.equals(argPrimaryKeySeq)) return;
 		this.primaryKeySeq = argPrimaryKeySeq;
-		Collections.sort(getParentTable().columns, new SortByPKSeq());
-		getParentTable().normalizePrimaryKey();
+		if (parent != null) {
+			Collections.sort(getParentTable().columnsFolder.children, new SortByPKSeq());
+			getParentTable().normalizePrimaryKey();
+		}
 		fireDbObjectChanged("primaryKeySeq");
 	}
 

@@ -31,7 +31,6 @@ public class SQLTable extends SQLObject {
 	 * A List of SQLColumn objects which make up all the columns of
 	 * this table.
 	 */
-	protected List columns;
 	protected Folder columnsFolder;
 
 	/**
@@ -39,7 +38,6 @@ public class SQLTable extends SQLObject {
 	 * table exports.  This SQLTable is the "pkTable" in its exported
 	 * keys.
 	 */
-	protected List exportedKeys;
 	protected Folder exportedKeysFolder;
 
 	/**
@@ -47,7 +45,6 @@ public class SQLTable extends SQLObject {
 	 * table imports.  This SQLTable is the "fkTable" in its imported
 	 * keys.
 	 */
-	protected List importedKeys;
 	protected Folder importedKeysFolder;
 
 	protected boolean columnsPopulated;
@@ -65,27 +62,29 @@ public class SQLTable extends SQLObject {
 		this.relationshipsPopulated = false;
 		this.objectType = objectType;
 
-		this.columns = new ArrayList();
-		this.importedKeys = new ArrayList();
-		this.exportedKeys = new ArrayList();
 		this.children = new ArrayList();
-		children.add(columnsFolder = new Folder("Columns", this, columns));
-		children.add(exportedKeysFolder = new Folder("Exported Keys", this, exportedKeys));
-		children.add(importedKeysFolder = new Folder("Imported Keys", this, importedKeys));
+		addChild(columnsFolder = new Folder("Columns"));
+		addChild(exportedKeysFolder = new Folder("Exported Keys"));
+		addChild(importedKeysFolder = new Folder("Imported Keys"));
 	}
 	
 	/**
 	 * Creates a new SQLTable with parent as its parent and a null
-	 * schema and catalog.
+	 * schema and catalog.  The table will contain the three default
+	 * folders: "Columns" "Exported Keys" and "Imported Keys".
 	 */
 	public SQLTable(SQLDatabase parent) {
 		this(parent, parent, null, null, "", "", "TABLE");
 	}
 
+	/**
+	 * Creates a new SQLTable with no children, no parent, and all
+	 * properties set to their defaults.
+	 */
 	public SQLTable() {
-		this(null);
 		columnsPopulated = true;
 		relationshipsPopulated = true;
+		children = new ArrayList();
 	}
 
 	protected static void addTablesToDatabase(SQLDatabase addTo) 
@@ -164,7 +163,7 @@ public class SQLTable extends SQLObject {
 	
 	protected synchronized void populateColumns() throws ArchitectException {
 		if (columnsPopulated) return;
-		if (columns.size() > 0) throw new IllegalStateException("Can't populate table because it already contains columns");
+		if (columnsFolder.children.size() > 0) throw new IllegalStateException("Can't populate table because it already contains columns");
 		try {
 			SQLColumn.addColumnsToTable(this,
 										getCatalogName(),
@@ -175,14 +174,14 @@ public class SQLTable extends SQLObject {
 			throw new ArchitectException("table.populate", e);
 		} finally {
 			columnsPopulated = true;
-			Collections.sort(columns, new SQLColumn.SortByPKSeq());
+			Collections.sort(columnsFolder.children, new SQLColumn.SortByPKSeq());
 			normalizePrimaryKey();
-			int newSize = columns.size();
+			int newSize = columnsFolder.children.size();
 			int[] changedIndices = new int[newSize];
 			for (int i = 0; i < newSize; i++) {
 				changedIndices[i] = i;
 			}
-			columnsFolder.fireDbChildrenInserted(changedIndices, columns);
+			columnsFolder.fireDbChildrenInserted(changedIndices, columnsFolder.children);
 		}
 	}
 	
@@ -194,13 +193,13 @@ public class SQLTable extends SQLObject {
 	public synchronized void populateRelationships() throws ArchitectException {
 		if (!columnsPopulated) throw new IllegalStateException("Table must be populated before relationships are added");
 		if (relationshipsPopulated) return;
-		int oldSize = importedKeys.size();
+		int oldSize = importedKeysFolder.children.size();
 		try {
 			SQLRelationship.addRelationshipsToTable(this);
 			relationshipsPopulated = true;
 		} finally {
 			relationshipsPopulated = true;
-			int newSize = importedKeys.size();
+			int newSize = importedKeysFolder.children.size();
 			if (newSize > oldSize) {
 				int[] changedIndices = new int[newSize - oldSize];
 				for (int i = 0, n = newSize - oldSize; i < n; i++) {
@@ -245,7 +244,7 @@ public class SQLTable extends SQLObject {
 	 */
 	public int pkSize() {
 		int size = 0;
-		Iterator it = columns.iterator();
+		Iterator it = columnsFolder.children.iterator();
 		while (it.hasNext()) {
 			SQLColumn c = (SQLColumn) it.next();
 			if (c.getPrimaryKeySeq() != null) {
@@ -262,7 +261,7 @@ public class SQLTable extends SQLObject {
 	 * this table's column list.
 	 */
 	public void inherit(SQLTable source) throws ArchitectException {
-		inherit(columns.size(), source);
+		inherit(columnsFolder.children.size(), source);
 	}
 
 	/**
@@ -281,13 +280,13 @@ public class SQLTable extends SQLObject {
 
 		boolean addToPK;
 		int pkSize = pkSize();
-		int sourceSize = source.columns.size();
-		int originalSize = columns.size();
+		int sourceSize = source.columnsFolder.children.size();
+		int originalSize = columnsFolder.children.size();
 		if (originalSize == 0 || pos < pkSize) {
 			addToPK = true;
 			normalizePrimaryKey();
 			for (int i = pos; i < pkSize; i++) {
-				((SQLColumn) columns.get(i)).primaryKeySeq = new Integer(i + sourceSize);
+				((SQLColumn) columnsFolder.children.get(i)).primaryKeySeq = new Integer(i + sourceSize);
 			}
 		} else {
 			addToPK = false;
@@ -316,7 +315,7 @@ public class SQLTable extends SQLObject {
 			addToPK = true;
 			normalizePrimaryKey();
 			for (int i = pos; i < pkSize; i++) {
-				((SQLColumn) columns.get(i)).primaryKeySeq = new Integer(i + 1);
+				((SQLColumn) columnsFolder.children.get(i)).primaryKeySeq = new Integer(i + 1);
 			}
 		} else {
 			addToPK = false;
@@ -352,7 +351,7 @@ public class SQLTable extends SQLObject {
 	public SQLColumn getColumnByName(String colName, boolean populate) throws ArchitectException {
 		if (populate && !columnsPopulated) populate();
 		logger.debug("Looking for column "+colName+" in "+children);
-		Iterator it = columns.iterator();
+		Iterator it = columnsFolder.children.iterator();
 		while (it.hasNext()) {
 			SQLColumn col = (SQLColumn) it.next();
 			if (col.getColumnName().equalsIgnoreCase(colName)) {
@@ -365,7 +364,7 @@ public class SQLTable extends SQLObject {
 	}
 
 	public void addColumn(SQLColumn col) {
-		addChild(columns.size(), col);
+		addChild(columnsFolder.children.size(), col);
 	}
 
 	public void addColumn(int pos, SQLColumn col) {
@@ -375,7 +374,7 @@ public class SQLTable extends SQLObject {
 			addToPK = true;
 			normalizePrimaryKey();
 			for (int i = pos; i < pkSize; i++) {
-				((SQLColumn) columns.get(i)).primaryKeySeq = new Integer(i + 1);
+				((SQLColumn) columnsFolder.children.get(i)).primaryKeySeq = new Integer(i + 1);
 			}
 		} else {
 			addToPK = false;
@@ -389,6 +388,28 @@ public class SQLTable extends SQLObject {
 		}
 		columnsFolder.addChild(pos, col);
 	}
+	
+	/**
+	 * Connects up the columnsFolder, exportedKeysFolder, and
+	 * importedKeysFolder pointers to the children at indices 0, 1,
+	 * and 2 respectively.
+	 */
+	public void addChild(SQLObject child) {
+		if (child instanceof Folder) {
+			if (children.size() == 0) {
+				columnsFolder = (Folder) child;
+			} else if (children.size() == 1) {
+				exportedKeysFolder = (Folder) child;
+			} else if (children.size() == 2) {
+				importedKeysFolder = (Folder) child;
+			} else {
+				throw new UnsupportedOperationException("Can't add a 4th folder to SQLTable");
+			}
+		} else {
+			throw new UnsupportedOperationException("You can only add Folders to SQLTable");
+		}
+		super.addChild(child);
+	}
 
 	public void removeColumn(int index) {
 		columnsFolder.removeChild(index);
@@ -400,9 +421,9 @@ public class SQLTable extends SQLObject {
 	 * primary key to its index in this table.
 	 */
 	public void normalizePrimaryKey() {
-		if (columns.isEmpty()) return;
+		if (columnsFolder.children.isEmpty()) return;
 		int i = 0;
-		Iterator it = columns.iterator();
+		Iterator it = columnsFolder.children.iterator();
 		while (it.hasNext()) {
 			SQLColumn col = (SQLColumn) it.next();
 			if (col.getPrimaryKeySeq() == null) return;
@@ -460,14 +481,14 @@ public class SQLTable extends SQLObject {
 	}
 
 	public void removeDependencies() {
-		Iterator it = importedKeys.iterator();
+		Iterator it = importedKeysFolder.children.iterator();
 		while (it.hasNext()) {
 			SQLRelationship r = (SQLRelationship) it.next();
 			r.getPkTable().removeExportedKey(r);
 			logger.debug(r);
 		}
 
-		it = exportedKeys.iterator();
+		it = exportedKeysFolder.children.iterator();
 		while (it.hasNext()) {
 			SQLRelationship r = (SQLRelationship) it.next();
 			r.getFkTable().removeImportedKey(r);
@@ -483,10 +504,13 @@ public class SQLTable extends SQLObject {
 		protected String name;
 		protected SQLObject parent;
 
-		public Folder(String name, SQLObject parent, List children) {
+		public Folder() {
+			children = new ArrayList();
+		}
+
+		public Folder(String name) {
+			this();
 			this.name = name;
-			this.parent = parent;
-			this.children = children;
 		}
 
 		public String getName() {
@@ -658,8 +682,8 @@ public class SQLTable extends SQLObject {
 	 *
 	 * @return the value of importedKeys
 	 */
-	public List getImportedKeys()  {
-		return this.importedKeys;
+	public List getImportedKeys() throws ArchitectException {
+		return this.importedKeysFolder.getChildren();
 	}
 
 	/**
@@ -667,19 +691,19 @@ public class SQLTable extends SQLObject {
 	 *
 	 * @return the value of exportedKeys
 	 */
-	public List getExportedKeys()  {
-		return this.exportedKeys;
+	public List getExportedKeys() throws ArchitectException {
+		return this.exportedKeysFolder.getChildren();
 	}
 
-	/**
-	 * Sets the value of importedKeys
-	 *
-	 * @param argImportedKeys Value to assign to this.importedKeys
-	 */
-	public void setImportedKeys(List argImportedKeys) {
-		this.importedKeys = argImportedKeys;
-		fireDbObjectChanged("importedKeys");
-	}
+// 	/**
+// 	 * Sets the value of importedKeys
+// 	 *
+// 	 * @param argImportedKeys Value to assign to this.importedKeys
+// 	 */
+// 	public void setImportedKeys(List argImportedKeys) {
+// 		this.importedKeysFolder.children = argImportedKeys;
+// 		fireDbObjectChanged("importedKeys");
+// 	}
 
 	/**
 	 * Gets the value of columnsPopulated
