@@ -123,6 +123,8 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 						cat = (SQLCatalog) catalogs.get(catName);
 						if (cat == null) {
 							cat = new SQLCatalog(addTo, catName);
+							cat.setNativeTerm(dbmd.getCatalogTerm());
+							logger.debug("Set catalog term to "+cat.getNativeTerm());
 							addTo.children.add(cat);
 							catalogs.put(catName, cat);
 						}
@@ -141,6 +143,8 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 								schema = new SQLSchema(cat, schName);
 								cat.children.add(schema);
 							}
+							schema.setNativeTerm(dbmd.getSchemaTerm());
+							logger.debug("Set schema term to "+schema.getNativeTerm());
 							schemas.put(catName+"."+schName, schema);
 						}
 						tableParent = schema;
@@ -219,8 +223,15 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 				for (int i = 0, n = newSize - oldSize; i < n; i++) {
 					changedIndices[i] = oldSize + i;
 				}
-				importedKeysFolder.fireDbChildrenInserted(changedIndices,
-														  children.subList(oldSize, newSize));
+				try {
+					importedKeysFolder.fireDbChildrenInserted
+						(changedIndices,
+						 importedKeysFolder.children.subList(oldSize, newSize));
+				} catch (IndexOutOfBoundsException ex) {
+					logger.error("Index out of bounds while adding imported keys to table "
+								 +getName()+" where oldSize="+oldSize+"; newSize="+newSize
+								 +"; imported keys="+importedKeysFolder.children);
+				}
 			}
 		}
 	}

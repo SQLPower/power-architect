@@ -314,7 +314,7 @@ public class PlayPen extends JPanel
 					 source.getChildCount());
 				int i = 0;
 				Iterator it = source.getChildren().iterator();
-				while (it.hasNext()) {
+				while (it.hasNext() && !pm.isCanceled()) {
 					SQLTable sourceTable = (SQLTable) it.next();
 					pm.setNote(sourceTable.getTableName());
 					importTableCopy(sourceTable, preferredLocation);

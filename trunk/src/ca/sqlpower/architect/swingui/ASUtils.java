@@ -61,7 +61,7 @@ public class ASUtils {
 	}
 
 	public static FileFilter architectFileFilter =
-		new FileExtensionFilter("Architect Project Files", new String[] {"architect"});
+		new FileExtensionFilter("Architect Project Files", new String[] {"arc"});
 
 	public static FileFilter sqlFileFilter =
 		new FileExtensionFilter("SQL Script Files", new String[] {"ddl", "sql"});

@@ -10,7 +10,7 @@ import java.awt.Rectangle;
 import java.awt.Container;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Iterator;
@@ -116,16 +116,26 @@ public class ArchitectFrame extends JFrame {
 						chooser.addChoosableFileFilter(ASUtils.architectFileFilter);
 						int returnVal = chooser.showOpenDialog(ArchitectFrame.this);
 						if (returnVal == JFileChooser.APPROVE_OPTION) {
-							try {
-								SwingUIProject project = new SwingUIProject("Loading...");
-								project.setFile(chooser.getSelectedFile());
-								project.load();
-								setProject(project);
-							} catch (Exception ex) {
-								JOptionPane.showMessageDialog(ArchitectFrame.this,
-															  "Can't open project: "+ex.getMessage());
-								logger.error("Got exception while opening project", ex);
-							}
+							final File file = chooser.getSelectedFile();							new Thread() {
+								public void run() {
+									try {
+										SwingUIProject project = new SwingUIProject("Loading...");
+										project.setFile(file);
+										InputStream in = new BufferedInputStream
+											(new ProgressMonitorInputStream
+											 (ArchitectFrame.this,
+											  "Reading " + file.getName(),
+											  new FileInputStream(file)));
+										project.load(in);
+										setProject(project);
+									} catch (Exception ex) {
+										JOptionPane.showMessageDialog
+											(ArchitectFrame.this,
+											 "Can't open project: "+ex.getMessage());
+										logger.error("Got exception while opening project", ex);
+									}
+								}
+							}.start();
 						}
 					}
 				};
@@ -259,9 +269,14 @@ public class ArchitectFrame extends JFrame {
 			if (response != JFileChooser.APPROVE_OPTION) {
 				return;
 			} else {
-				project.setFile(chooser.getSelectedFile());
-				project.setName(project.getFile().getName());
-				setTitle(project.getFile().getName());
+				File file = chooser.getSelectedFile();
+				if (!file.getPath().endsWith(".arc")) {
+					file = new File(file.getPath()+".arc");
+				}
+				project.setFile(file);
+				String projName = file.getName().substring(0, file.getName().length()-".arc".length());
+				project.setName(projName);
+				setTitle(projName);
 			}
 		}
 		final ProgressMonitor pm = new ProgressMonitor
