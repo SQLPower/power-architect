@@ -67,32 +67,17 @@ public class ArchitectFrame extends JFrame {
 			}
 		};
 
-	protected Action saveProjectAction = new AbstractAction("Save Project...") {
+	protected Action saveProjectAction = new AbstractAction("Save Project") {
 			public void actionPerformed(ActionEvent e) {
-				JFileChooser chooser = new JFileChooser();
-				chooser.addChoosableFileFilter(ASUtils.architectFileFilter);
-				int returnVal = chooser.showSaveDialog(ArchitectFrame.this);
-				if (returnVal == JFileChooser.APPROVE_OPTION) {
-					project.setFile(chooser.getSelectedFile());
-					project.setName(project.getFile().getName());
-					final ProgressMonitor pm = new ProgressMonitor
-						(ArchitectFrame.this, "Saving Project", "", 0, 100);
-// 					new Thread() {
-// 						public void run() {
-							try {
-								project.save(pm);
-							} catch (Exception ex) {
-								JOptionPane.showMessageDialog
-									(ArchitectFrame.this,
-									 "Can't save project: "+ex.getMessage());
-								logger.error("Got exception while saving project", ex);
-							}
-// 						}
-// 					}.start();
-				}
+				saveOrSaveAs(false);
 			}
 		};
 
+	protected Action saveProjectAsAction = new AbstractAction("Save Project As...") {
+			public void actionPerformed(ActionEvent e) {
+				saveOrSaveAs(true);
+			}
+		};
 
 	protected EditColumnAction editColumnAction;
 	protected InsertColumnAction insertColumnAction;
@@ -159,6 +144,7 @@ public class ArchitectFrame extends JFrame {
 		fileMenu.add(new JMenuItem(newProjectAction));
 		fileMenu.add(new JMenuItem(openProjectAction));
 		fileMenu.add(new JMenuItem(saveProjectAction));
+		fileMenu.add(new JMenuItem(saveProjectAsAction));
 		fileMenu.add(new JMenuItem(exportDDLAction));
 		fileMenu.add(new JMenuItem(saveSettingsAction));
 		fileMenu.add(new JMenuItem(exitAction));
@@ -242,5 +228,33 @@ public class ArchitectFrame extends JFrame {
 				}
 			});
 	}
-	
+
+	public void saveOrSaveAs(boolean showChooser) {
+		if (project.getFile() == null || showChooser) {
+			JFileChooser chooser = new JFileChooser(project.getFile());
+			chooser.addChoosableFileFilter(ASUtils.architectFileFilter);
+			int response = chooser.showSaveDialog(ArchitectFrame.this);
+			if (response != JFileChooser.APPROVE_OPTION) {
+				return;
+			} else {
+				project.setFile(chooser.getSelectedFile());
+				project.setName(project.getFile().getName());
+				setTitle(project.getFile().getName());
+			}
+		}
+		final ProgressMonitor pm = new ProgressMonitor
+			(ArchitectFrame.this, "Saving Project", "", 0, 100);
+		new Thread() {
+			public void run() {
+				try {
+					project.save(pm);
+				} catch (Exception ex) {
+					JOptionPane.showMessageDialog
+						(ArchitectFrame.this,
+						 "Can't save project: "+ex.getMessage());
+					logger.error("Got exception while saving project", ex);
+				}
+			}
+		}.start();
+	}
 }

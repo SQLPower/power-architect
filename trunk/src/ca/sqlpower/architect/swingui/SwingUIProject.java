@@ -353,8 +353,10 @@ public class SwingUIProject {
 		indent = 0;
 		this.pm = pm;
 		pm.setMinimum(0);
-		pm.setMaximum(countSourceTables(0, (SQLObject) sourceDatabases.getModel().getRoot())
-					  + playPen.getComponentCount() * 2);
+		int pmMax = countSourceTables((SQLObject) sourceDatabases.getModel().getRoot())
+			+ playPen.getComponentCount() * 2;
+		logger.debug("Setting progress monitor maximum to "+pmMax);
+		pm.setMaximum(pmMax);
 		progress = 0;
 		pm.setProgress(progress);
 		pm.setMillisToDecideToPopup(500);
@@ -377,16 +379,19 @@ public class SwingUIProject {
 		}
 	}
 
-	protected int countSourceTables(int count, SQLObject o) throws ArchitectException {
+	protected int countSourceTables(SQLObject o) throws ArchitectException {
 		if (o instanceof SQLTable) {
-			return count + 1;
+			return 1;
+		} else if (o == playPen.getDatabase()) {
+			return 0;
 		} else {
+			int myCount = 0;
 			Iterator it = o.getChildren().iterator();
 			while (it.hasNext()) {
-				count += countSourceTables(count, (SQLObject) it.next());
+				myCount += countSourceTables((SQLObject) it.next());
 			}
+			return myCount;
 		}
-		return count;
 	}
 
 	protected void saveDBCS() throws IOException, ArchitectException {
@@ -562,12 +567,6 @@ public class SwingUIProject {
 			type = "column";
 			SQLColumn sourceCol = ((SQLColumn) o).getSourceColumn();
 			if (sourceCol != null) {
-				logger.debug("column "+o+" source is "+sourceCol+" (hash "+sourceCol.hashCode()
-							 +"; id "+objectIdMap.get(sourceCol)
-							 +", parent "+sourceCol.getParent()+" hash "+sourceCol.getParent().hashCode()
-							 +", parent "+sourceCol.getParent().getParent()+" hash "+sourceCol.getParent().getParent().hashCode()
-							 +", parent "+sourceCol.getParent().getParent().getParent()+" hash "+sourceCol.getParent().getParent().getParent().hashCode()
-							 +")");
 				propNames.put("source-column-ref", objectIdMap.get(sourceCol));
 			}
 			propNames.put("columnName", ((SQLColumn) o).getColumnName());
