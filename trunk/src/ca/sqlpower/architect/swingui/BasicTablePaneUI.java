@@ -75,7 +75,17 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 							  y += fontHeight);
 			}
 
-			
+			// paint insertion point
+			int ip = tablePane.getInsertionPoint();
+			if (ip != TablePane.COLUMN_INDEX_NONE) {
+				y = gap + boxLineThickness + tp.getMargin().top + ((ip+1) * fontHeight);
+				g2.drawLine(5, y, width - 6, y);
+				g2.drawLine(2, y-3, 5, y);
+				g2.drawLine(2, y+3, 5, y);
+				g2.drawLine(width - 3, y-3, width - 6, y);
+				g2.drawLine(width - 3, y+3, width - 6, y);
+			}
+
 			g.translate(-insets.left, -insets.top);
 		} catch (ArchitectException e) {
 			logger.warn("BasicTablePaneUI.paint failed", e);
@@ -148,6 +158,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 					 +" from "+e.getOldValue()+" to "+e.getNewValue()+" on "+e.getSource());
 		if (e.getPropertyName().equals("UI")) return;
 		if (e.getPropertyName().equals("preferredSize")) return;
+		if (e.getPropertyName().equals("insertionPoint")) return;
 		if (e.getPropertyName().equals("model.tableName")) {
 			tablePane.setName(tablePane.getModel().getTableName());
 			return;
