@@ -302,8 +302,16 @@ public class TablePane
 			columnSelection.set(i, Boolean.FALSE);
 		}
 	}
-
+	
+	/**
+	 * @param i The column to select.  If less than 0, {@link
+	 * #selectNone()} is called rather than selecting a column.
+	 */
 	public void selectColumn(int i) {
+		if (i < 0) {
+			selectNone();
+			return;
+		}
 		columnSelection.set(i, Boolean.TRUE);
 		PlayPen pp = (PlayPen) getParent();
 		pp.deleteColumnAction.setEnabled(true);

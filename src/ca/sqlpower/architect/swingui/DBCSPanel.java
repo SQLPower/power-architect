@@ -101,6 +101,7 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
 	 * and save the connection spec yourself.
 	 */
 	public void applyChanges() {
+		dbcs.setName(dbNameField.getText());
 		dbcs.setDisplayName(dbNameField.getText());
 		dbcs.setDriverClass(dbDriverField.getSelectedItem().toString());
 		dbcs.setUrl(dbUrlField.getText());

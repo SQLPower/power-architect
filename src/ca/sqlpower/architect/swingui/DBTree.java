@@ -4,7 +4,6 @@ import javax.swing.*;
 import javax.swing.tree.*;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
-import java.awt.Container;
 import java.awt.datatransfer.*;
 import java.awt.dnd.*;
 import java.awt.event.*;
@@ -66,8 +65,9 @@ public class DBTree extends JTree implements DragSourceListener {
 			});
 		southPanel.add(cancelButton);
 		
-		Container cp = propDialog.getContentPane();
-		cp.setLayout(new BorderLayout());
+		JComponent cp = (JComponent) propDialog.getContentPane();
+		cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
+		cp.setLayout(new BorderLayout(12,12));
 		cp.add(southPanel, BorderLayout.SOUTH);
 		cp.add(dbcsPanel, BorderLayout.CENTER);
 		propDialog.pack();
