@@ -250,6 +250,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 
 	public void setSourceColumn(SQLColumn col) {
 		sourceColumn = col;
+		fireDbObjectChanged("sourceColumn");
 	}
 
 	/**
@@ -268,6 +269,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	 */
 	public void setColumnName(String argName) {
 		this.columnName = argName;
+		fireDbObjectChanged("columnName");
 	}
 
 	/**
@@ -286,6 +288,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	 */
 	public void setType(int argType) {
 		this.type = argType;
+		fireDbObjectChanged("type");
 	}
 
 	/**
@@ -303,7 +306,9 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	 * @param argScale Value to assign to this.scale
 	 */
 	public void setScale(int argScale) {
+		logger.debug("scale changed from "+scale+" to "+argScale);
 		this.scale = argScale;
+		fireDbObjectChanged("scale");
 	}
 
 	/**
@@ -322,6 +327,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	 */
 	public void setPrecision(int argPrecision) {
 		this.precision = argPrecision;
+		fireDbObjectChanged("precision");
 	}
 
 	/**
@@ -353,6 +359,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	 */
 	protected void setParent(SQLTable argParent) {
 		this.parent = argParent;
+		fireDbObjectChanged("parent");
 	}
 
 	public int getNullable() {
@@ -366,6 +373,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	 */
 	public void setNullable(int argNullable) {
 		this.nullable = argNullable;
+		fireDbObjectChanged("nullable");
 	}
 
 	/**
@@ -384,6 +392,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	 */
 	public void setRemarks(String argRemarks) {
 		this.remarks = argRemarks;
+		fireDbObjectChanged("remarks");
 	}
 
 	/**
@@ -402,6 +411,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	 */
 	public void setDefaultValue(String argDefaultValue) {
 		this.defaultValue = argDefaultValue;
+		fireDbObjectChanged("defaultValue");
 	}
 
 	/**
@@ -420,6 +430,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	 */
 	public void setPrimaryKeySeq(Integer argPrimaryKeySeq) {
 		this.primaryKeySeq = argPrimaryKeySeq;
+		fireDbObjectChanged("primaryKeySeq");
 	}
 
 	/**
@@ -438,6 +449,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	 */
 	public void setAutoIncrement(boolean argAutoIncrement) {
 		this.autoIncrement = argAutoIncrement;
+		fireDbObjectChanged("autoIncrement");
 	}
 
 }
