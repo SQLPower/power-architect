@@ -39,6 +39,7 @@ public class TestUI extends JFrame {
 
 		ArrayList dblist = new ArrayList(1);
 		dblist.add(db);
+		dblist.add(SQLDatabase.getPlayPenInstance());
 		dbTree = new DBTree(dblist);
 		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
 											  new JScrollPane(dbTree),
