@@ -127,6 +127,28 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		}
 	}
 
+	public boolean containsPkColumn(SQLColumn col) {
+		Iterator it = children.iterator();
+		while (it.hasNext()) {
+			ColumnMapping m = (ColumnMapping) it.next();
+			if (m.pkColumn == col) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean containsFkColumn(SQLColumn col) {
+		Iterator it = children.iterator();
+		while (it.hasNext()) {
+			ColumnMapping m = (ColumnMapping) it.next();
+			if (m.fkColumn == col) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * Convenience method for adding a SQLRelationship.ColumnMapping
 	 * child to this relationship.
