@@ -18,6 +18,12 @@ public class BasicRelationshipUI extends RelationshipUI
 
 	protected Relationship relationship;
 
+	public static final int NO_FACING_EDGES = 0;
+	public static final int LEFT_FACES_RIGHT = 1;
+	public static final int RIGHT_FACES_LEFT = 2;
+	public static final int TOP_FACES_BOTTOM = 4;
+	public static final int BOTTOM_FACES_TOP = 8;
+
 	public static ComponentUI createUI(JComponent c) {
 		logger.debug("Creating new BasicRelationshipUI for "+c);
         return new BasicRelationshipUI();
@@ -49,10 +55,39 @@ public class BasicRelationshipUI extends RelationshipUI
  		Point fktloc = r.getFkConnectionPoint();
 		Point end = new Point(fktloc.x + r.getFkTable().getLocation().x,
 							  fktloc.y + r.getFkTable().getLocation().y);
- 		g2.drawLine(start.x, start.y, end.x, end.y);
+
+		int orientation = getFacingEdges(relationship.getPkTable(), relationship.getFkTable());
+		switch (orientation) {
+		case LEFT_FACES_RIGHT:
+		case RIGHT_FACES_LEFT:
+			int midx = (Math.abs(end.x - start.x) / 2) + Math.min(start.x, end.x);
+			g2.drawLine(start.x, start.y, midx, start.y);
+			g2.drawLine(midx, start.y, midx, end.y);
+			g2.drawLine(midx, end.y, end.x, end.y);
+			break;
+
+		case TOP_FACES_BOTTOM:
+		case BOTTOM_FACES_TOP:
+			int midy = (Math.abs(end.y - start.y) / 2) + Math.min(start.y, end.y);
+			g2.drawLine(start.x, start.y, start.x, midy);
+			g2.drawLine(start.x, midy, end.x, midy);
+			g2.drawLine(end.x, midy, end.x, end.y);
+			break;
+			
+		case NO_FACING_EDGES:
+			g2.drawLine(start.x, start.y, end.x, end.y);
+			break;
+		}
 
 		logger.debug("Drew line from "+start+" to "+end);
 
+		paintTerminations(g2, start, end, orientation);
+	}
+	
+	/**
+	 * Paints red dots.  Subclasses will implement real notation.
+	 */
+	protected void paintTerminations(Graphics2D g2, Point start, Point end, int orientation) {
 		Color oldColor = g2.getColor();
 		g2.setColor(Color.red);
 		g2.fillOval(start.x - 2, start.y - 2, 4, 4);
@@ -60,7 +95,37 @@ public class BasicRelationshipUI extends RelationshipUI
 		g2.setColor(oldColor);
 	}
 
-	public Point bestConnectionPoint(TablePane tp, Point p) {
+	public void bestConnectionPoints(TablePane tp1, TablePane tp2,
+									 Point tp1point, Point tp2point) {
+		Rectangle tp1b = tp1.getBounds();
+		Rectangle tp2b = tp2.getBounds();
+		switch(getFacingEdges(tp1, tp2)) {
+		case LEFT_FACES_RIGHT:
+			tp1point.move(0, tp1b.height/2);
+			tp2point.move(tp2b.width, tp2b.height/2);
+			break;
+
+		case RIGHT_FACES_LEFT:
+			tp1point.move(tp1b.width, tp1b.height/2);
+			tp2point.move(0, tp2b.height/2);
+			break;
+
+		case TOP_FACES_BOTTOM:
+			tp1point.move(tp1b.width/2, 0);
+			tp2point.move(tp2b.width/2, tp2b.height);
+			break;
+
+		case BOTTOM_FACES_TOP:
+			tp1point.move(tp1b.width/2, tp1b.height);
+			tp2point.move(tp2b.width/2, 0);
+			break;
+
+		default:
+			throw new RuntimeException("Unrecognised answer from getFacingEdges");
+		}
+	}
+
+	public Point closestEdgePoint(TablePane tp, Point p) {
 		Dimension tpsize = tp.getSize();
 
 		// clip point p to inside of tp
@@ -91,6 +156,32 @@ public class BasicRelationshipUI extends RelationshipUI
 		return bcp;
 	}
 
+	protected int getFacingEdges(TablePane parent, TablePane child) {
+		Rectangle parentb = parent.getBounds();
+		Rectangle childb = child.getBounds();
+		int pl = getParentTerminationLength();
+		int cl = getChildTerminationLength();
+
+		if (parentb.x-pl >= childb.x+childb.width+cl) {
+			return LEFT_FACES_RIGHT;
+		} else if (parentb.x+parentb.width+pl <= childb.x-cl) {
+			return RIGHT_FACES_LEFT;
+		} else if (parentb.y-pl >= childb.y+childb.height+cl) {
+			return TOP_FACES_BOTTOM;
+		} else if (parentb.y+parentb.height+pl <= childb.y-cl) {
+			return BOTTOM_FACES_TOP;
+		} else {
+			return NO_FACING_EDGES;
+		}
+	}
+
+	public int getParentTerminationLength() {
+		return 5;
+	}
+
+	public int getChildTerminationLength() {
+		return 5;
+	}
 	// --------------- PropertyChangeListener ----------------------
 	public void propertyChange(PropertyChangeEvent e) {
 		logger.debug("BasicRelationshipUI notices change of "+e.getPropertyName()

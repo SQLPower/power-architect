@@ -21,6 +21,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 	final int boxLineThickness = 1;
 	final int gap = 1;
 	protected Color selectedColor = new Color(204, 204, 255);
+	protected Color unselectedColor = new Color(240, 240, 240);
 
 	public static ComponentUI createUI(JComponent c) {
         return new BasicTablePaneUI();
@@ -58,7 +59,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			if (tp.selected == true) {
 				g2.setColor(selectedColor);
 			} else {
-				g2.setColor(c.getBackground());
+				g2.setColor(unselectedColor);
 			}
 			g2.fillRect(0, 0, c.getWidth(), fontHeight);
 			g2.setColor(c.getForeground());
