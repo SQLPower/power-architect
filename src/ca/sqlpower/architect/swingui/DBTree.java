@@ -5,6 +5,9 @@ import javax.swing.tree.*;
 import java.awt.datatransfer.*;
 import java.awt.dnd.*;
 
+import java.util.List;
+import java.util.ArrayList;
+
 import ca.sqlpower.architect.*;
 
 public class DBTree extends JTree implements DragSourceListener {
@@ -48,10 +51,30 @@ public class DBTree extends JTree implements DragSourceListener {
 		public void dragGestureRecognized(DragGestureEvent dge) {
 			System.out.println("Drag gesture event: "+dge);
 			DBTree t = (DBTree) dge.getComponent();
-  			TreePath p = t.getSelectionPath();
-  			SQLObject data = (SQLObject) p.getLastPathComponent();
-  			dge.getDragSource().startDrag
-				(dge, DragSource.DefaultCopyDrop, new SQLObjectTransferable(data), t);
+  			TreePath[] p = t.getSelectionPaths();
+
+			if (p.length == 1) {
+				// export single node
+				System.out.println("DBTree: exporting single node");
+				SQLObject data = (SQLObject) p[0].getLastPathComponent();
+				dge.getDragSource().startDrag
+					(dge, DragSource.DefaultCopyNoDrop, new SQLObjectTransferable(data), t);
+			} else if (p.length == 0) {
+				// nothing to export
+				return;
+			} else {
+				// export list of nodes
+				System.out.println("DBTree: exporting list of nodes");
+				SQLObject[] nodes = new SQLObject[p.length];
+				for (int i = 0; i < p.length; i++) {
+					nodes[i] = (SQLObject) p[i].getLastPathComponent();
+				}
+				dge.getDragSource().startDrag
+					(dge, 
+					 DragSource.DefaultCopyNoDrop, 
+					 new SQLObjectListTransferable(nodes), 
+					 t);
+			}
  		}
 	}
 }
