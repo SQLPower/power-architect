@@ -57,7 +57,7 @@ public class PlayPen extends JPanel
 	public PlayPen() {
 		setLayout(new PlayPenLayout(this));
 		setName("Play Pen");
-		setMinimumSize(new Dimension(200,200));
+		setMinimumSize(new Dimension(1,1));
 		setBackground(java.awt.Color.white);
 		dt = new DropTarget(this, new PlayPenDropListener());
 		addContainerListener(this);
