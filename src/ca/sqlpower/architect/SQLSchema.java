@@ -47,6 +47,10 @@ public class SQLSchema extends SQLObject {
 		return parent;
 	}
 
+	protected void setParent(SQLObject newParent) {
+		parent = newParent;
+	}
+
 	public String getName() {
 		return getSchemaName();
 	}
@@ -70,14 +74,6 @@ public class SQLSchema extends SQLObject {
 	}
 
 	// ----------------- accessors and mutators -------------------
-
-
-	/**
-	 * Don't use.
-	 */
-	protected void setParent(SQLObject argParent) {
-		throw new UnsupportedOperationException("You can't do that");
-	}
 
 	/**
 	 * Gets the value of schemaName

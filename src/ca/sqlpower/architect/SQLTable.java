@@ -142,9 +142,22 @@ public class SQLTable extends SQLObject {
 		}
 	}
 
+	public static SQLTable getDerivedInstance(SQLTable source, SQLDatabase parent)
+		throws ArchitectException {
+		source.populate();
+		SQLTable t = new SQLTable(parent);
+		t.columnsPopulated = true;
+		t.relationshipsPopulated = true;
+		t.tableName = source.tableName;
+		t.remarks = source.remarks;
+		t.inherit(source);
+		parent.addChild(t);
+		return t;
+	}
+	
 	protected synchronized void populateColumns() throws ArchitectException {
 		if (columnsPopulated) return;
-		int oldSize = columns.size();
+		if (columns.size() > 0) throw new IllegalStateException("Can't populate table because it already contains columns");
 		try {
 			SQLColumn.addColumnsToTable(this,
 										getCatalogName(),
@@ -155,15 +168,14 @@ public class SQLTable extends SQLObject {
 			throw new ArchitectException("table.populate", e);
 		} finally {
 			columnsPopulated = true;
+			Collections.sort(columns, new SQLColumn.SortByPKSeq());
+			normalizePrimaryKey();
 			int newSize = columns.size();
-			if (newSize > oldSize) {
-				int[] changedIndices = new int[newSize - oldSize];
-				for (int i = 0, n = newSize - oldSize; i < n; i++) {
-					changedIndices[i] = oldSize + i;
-				}
-				columnsFolder.fireDbChildrenInserted(changedIndices,
-													 columns.subList(oldSize, newSize));
+			int[] changedIndices = new int[newSize];
+			for (int i = 0; i < newSize; i++) {
+				changedIndices[i] = i;
 			}
+			columnsFolder.fireDbChildrenInserted(changedIndices, columns);
 		}
 	}
 	
@@ -221,17 +233,21 @@ public class SQLTable extends SQLObject {
 		exportedKeysFolder.removeChild(r);
 	}
 
-	public static SQLTable getDerivedInstance(SQLTable source, SQLDatabase parent)
-		throws ArchitectException {
-		source.populate();
-		SQLTable t = new SQLTable(parent);
-		t.columnsPopulated = true;
-		t.relationshipsPopulated = true;
-		t.tableName = source.tableName;
-		t.remarks = source.remarks;
-		t.inherit(source);
-		parent.addChild(t);
-		return t;
+	/**
+	 * Counts the number of columns in the primary key of this table.
+	 */
+	public int pkSize() {
+		int size = 0;
+		Iterator it = columns.iterator();
+		while (it.hasNext()) {
+			SQLColumn c = (SQLColumn) it.next();
+			if (c.getPrimaryKeySeq() != null) {
+				size++;
+			} else {
+				break;
+				}
+		}
+		return size;
 	}
 
 	/**
@@ -239,36 +255,73 @@ public class SQLTable extends SQLObject {
 	 * this table's column list.
 	 */
 	public void inherit(SQLTable source) throws ArchitectException {
-		SQLColumn c;
-		Iterator it = source.getColumns().iterator();
-		while (it.hasNext()) {
-			SQLObject child = (SQLObject) it.next();
-			if (child instanceof SQLColumn) {
-				c = SQLColumn.getDerivedInstance((SQLColumn) child, this);
-				columnsFolder.addChild(c);
-			} else {
-				logger.warn("inherit doesn't support child of type "+child.getClass().getName());
-			}
-		}
+		inherit(columns.size(), source);
 	}
 
 	/**
 	 * Inserts all the columns of the given source table into this
 	 * table at position <code>pos</code>.
+	 *
+	 * <p>If this table currently has no columns, then the source's
+	 * primary key will remain intact (and this table will become an
+	 * identical copy of source).  If not, and if the insertion
+	 * position <= this.pkSize(), then all source columns will be
+	 * added to this table's primary key.  Otherwise, no source
+	 * columns will be added to this table's primary key.
 	 */
 	public void inherit(int pos, SQLTable source) throws ArchitectException {
 		SQLColumn c;
+
+		boolean addToPK;
+		int pkSize = pkSize();
+		int sourceSize = source.columns.size();
+		int originalSize = columns.size();
+		if (originalSize == 0 || pos < pkSize) {
+			addToPK = true;
+			normalizePrimaryKey();
+			for (int i = pos; i < pkSize; i++) {
+				((SQLColumn) columns.get(i)).primaryKeySeq = new Integer(i + sourceSize);
+			}
+		} else {
+			addToPK = false;
+		}
+
 		Iterator it = source.getColumns().iterator();
 		while (it.hasNext()) {
-			SQLObject child = (SQLObject) it.next();
-			if (child instanceof SQLColumn) {
-				c = SQLColumn.getDerivedInstance((SQLColumn) child, this);
-				columnsFolder.addChild(pos, c);
-				pos += 1;
-			} else {
-				logger.warn("inherit doesn't support child of type "+child.getClass().getName());
+			SQLColumn child = (SQLColumn) it.next();
+			c = SQLColumn.getDerivedInstance(child, this);
+			if (originalSize > 0) {
+				if (addToPK) {
+					c.primaryKeySeq = new Integer(pos);
+				} else {
+					c.primaryKeySeq = null;
+				}
 			}
+			columnsFolder.addChild(pos, c);
+			pos += 1;
 		}
+	}
+
+	public void inherit(int pos, SQLColumn sourceCol) {
+		boolean addToPK;
+		int pkSize = pkSize();
+		if (pos < pkSize) {
+			addToPK = true;
+			normalizePrimaryKey();
+			for (int i = pos; i < pkSize; i++) {
+				((SQLColumn) columns.get(i)).primaryKeySeq = new Integer(i + 1);
+			}
+		} else {
+			addToPK = false;
+		}
+
+		SQLColumn c = SQLColumn.getDerivedInstance(sourceCol, this);
+		if (addToPK) {
+			c.primaryKeySeq = new Integer(pos);
+		} else {
+			c.primaryKeySeq = null;
+		}
+		columnsFolder.addChild(pos, c);
 	}
 
 	public SQLColumn getColumn(int idx) throws ArchitectException {
@@ -305,15 +358,50 @@ public class SQLTable extends SQLObject {
 	}
 
 	public void addColumn(SQLColumn col) {
-		columnsFolder.addChild(col);
+		addChild(columns.size(), col);
 	}
 
-	public void addColumn(int index, SQLColumn col) {
-		columnsFolder.addChild(index, col);
+	public void addColumn(int pos, SQLColumn col) {
+		boolean addToPK;
+		int pkSize = pkSize();
+		if (pos < pkSize) {
+			addToPK = true;
+			normalizePrimaryKey();
+			for (int i = pos; i < pkSize; i++) {
+				((SQLColumn) columns.get(i)).primaryKeySeq = new Integer(i + 1);
+			}
+		} else {
+			addToPK = false;
+		}
+
+		col.setParent(null);
+		if (addToPK) {
+			col.primaryKeySeq = new Integer(pos);
+		} else {
+			col.primaryKeySeq = null;
+		}
+		columnsFolder.addChild(pos, col);
 	}
 
 	public void removeColumn(int index) {
 		columnsFolder.removeChild(index);
+		normalizePrimaryKey();
+	}
+
+	/**
+	 * Sets the primaryKeySeq on each child column currently in the
+	 * primary key to its index in this table.
+	 */
+	public void normalizePrimaryKey() {
+		if (columns.isEmpty()) return;
+		int i = 0;
+		Iterator it = columns.iterator();
+		while (it.hasNext()) {
+			SQLColumn col = (SQLColumn) it.next();
+			if (col.getPrimaryKeySeq() == null) return;
+			col.primaryKeySeq = new Integer(i);
+			i++;
+		}
 	}
 	
 	public String toString() {
@@ -324,6 +412,10 @@ public class SQLTable extends SQLObject {
 
 	public SQLObject getParent() {
 		return parent;
+	}
+
+	protected void setParent(SQLObject newParent) {
+		parent = newParent;
 	}
 
 	public String getName() {
@@ -396,6 +488,10 @@ public class SQLTable extends SQLObject {
 
 		public SQLObject getParent() {
 			return parent;
+		}
+
+		protected void setParent(SQLObject newParent) {
+			parent = newParent;
 		}
 
 		public void populate() {

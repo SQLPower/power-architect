@@ -14,6 +14,8 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 
 	private static Logger logger = Logger.getLogger(SQLRelationship.class);
 
+	protected SQLObject parent;
+
 	protected SQLTable pkTable;
 	protected SQLTable fkTable;
 
@@ -128,7 +130,11 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	 * Returns the table that holds the primary keys (the imported table).
 	 */
 	public SQLObject getParent() {
-		return pkTable;
+		return parent;
+	}
+
+	protected void setParent(SQLObject newParent) {
+		parent = newParent;
 	}
 
 	public String getName() {
@@ -332,6 +338,12 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		public SQLObject getParent() {
 			return SQLRelationship.this;
 		}
+
+		protected void setParent(SQLObject newParent) {
+			if (newParent != SQLRelationship.this) {
+				throw new IllegalArgumentException("This ColumnMapping object can only be the child of its containing SQLRelationship instance");
+			}
+		}
 		
 		/**
 		 * Returns the parent relationship's fk name.
@@ -345,7 +357,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		 */
 		public String getShortDisplayName() {
 			return fkColumn.getColumnName()+" - "+
-				pkColumn.getParent().getName()+"."+pkColumn.getColumnName();
+				pkColumn.getParentTable().getName()+"."+pkColumn.getColumnName();
 		}
 		
 		/**

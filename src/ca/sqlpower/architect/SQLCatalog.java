@@ -14,7 +14,7 @@ import java.util.Collections;
  * {@link SQLTable#addTablesToDatabase}.
  */
 public class SQLCatalog extends SQLObject {
-	protected SQLDatabase parent;
+	protected SQLObject parent;
 	protected String catalogName;
 
 	public SQLCatalog(SQLDatabase parent, String name) {
@@ -94,6 +94,10 @@ public class SQLCatalog extends SQLObject {
 		return parent;
 	}
 
+	protected void setParent(SQLObject newParent) {
+		parent = newParent;
+	}
+
 	public String getName() {
 		return getCatalogName();
 	}
@@ -124,7 +128,7 @@ public class SQLCatalog extends SQLObject {
 	}
 
 	public SQLDatabase getParentDatabase() {
-		return parent;
+		return (SQLDatabase) parent;
 	}
 
 	/**

@@ -252,6 +252,10 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 		return null;
 	}
 
+	protected void setParent(SQLObject newParent) {
+		// no parent
+	}
+
 	public String getName() {
 		return connectionSpec.getDisplayName();
 	}

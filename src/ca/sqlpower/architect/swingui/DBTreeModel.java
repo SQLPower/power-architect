@@ -100,6 +100,10 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 			return null;
 		}
 
+		protected void setParent(SQLObject newParent) {
+			// no parent
+		}
+
 		public String getName() {
 			return getShortDisplayName();
 		}

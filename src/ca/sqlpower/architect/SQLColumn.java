@@ -175,7 +175,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 			rs = dbmd.getPrimaryKeys(catalog, schema, tableName);
 			while (rs.next()) {
 				SQLColumn col = addTo.getColumnByName(rs.getString(4), false);
-				col.setPrimaryKeySeq(new Integer(rs.getInt(5)));
+				col.primaryKeySeq = new Integer(rs.getInt(5));
 				addTo.setPrimaryKeyName(rs.getString(6));
 			}
 			rs.close();
@@ -241,7 +241,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	public SQLObject getParent()  {
 		return this.parent;
 	}
-	
+
 	// ------------------------- accessors and mutators --------------------------
 
 	public SQLColumn getSourceColumn() {
@@ -375,8 +375,10 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	 * @param argNullable Value to assign to this.nullable
 	 */
 	public void setNullable(int argNullable) {
-		this.nullable = argNullable;
-		fireDbObjectChanged("nullable");
+		if (this.nullable != argNullable) {
+			this.nullable = argNullable;
+			fireDbObjectChanged("nullable");
+		}
 	}
 
 	/**
@@ -432,7 +434,13 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	 * @param argPrimaryKeySeq Value to assign to this.primaryKeySeq
 	 */
 	public void setPrimaryKeySeq(Integer argPrimaryKeySeq) {
+		if (argPrimaryKeySeq != null) {
+			setNullable(DatabaseMetaData.columnNoNulls);
+		}
+		if (this.primaryKeySeq != null && this.primaryKeySeq.equals(argPrimaryKeySeq)) return;
 		this.primaryKeySeq = argPrimaryKeySeq;
+		Collections.sort(getParentTable().columns, new SortByPKSeq());
+		getParentTable().normalizePrimaryKey();
 		fireDbObjectChanged("primaryKeySeq");
 	}
 
@@ -455,4 +463,24 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 		fireDbObjectChanged("autoIncrement");
 	}
 
+	/**
+	 * This comparator helps you sort a list of columns so that the
+	 * primary key columns come first in their correct order, and all
+	 * the other columns come after.
+	 */
+	public static class SortByPKSeq implements Comparator {
+		public int compare(Object o1, Object o2) {
+			SQLColumn c1 = (SQLColumn) o1;
+			SQLColumn c2 = (SQLColumn) o2;
+			if (c1.primaryKeySeq == null && c2.primaryKeySeq == null) {
+				return 0;
+			} else if (c1.primaryKeySeq == null && c2.primaryKeySeq != null) {
+				return 1;
+			} else if (c1.primaryKeySeq != null && c2.primaryKeySeq == null) {
+				return -1;
+			} else {
+				return c1.primaryKeySeq.intValue() - c2.primaryKeySeq.intValue();
+			}
+		}
+	}
 }
