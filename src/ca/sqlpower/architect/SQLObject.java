@@ -95,17 +95,33 @@ public abstract class SQLObject implements java.io.Serializable {
 	
 	public SQLObject removeChild(int index) {
 		SQLObject removedChild = (SQLObject) children.remove(index);
-		if (removedChild != null) fireDbChildRemoved(index, removedChild);
+		if (removedChild != null) {
+			removedChild.removeDependencies();
+			fireDbChildRemoved(index, removedChild);
+		}
 		return removedChild;
 	}
 
+	/**
+	 * This method is implemented in terms of {@link removedChild(int)}.
+	 */
 	public boolean removeChild(SQLObject child) {
 		int childIdx = children.indexOf(child);
 		if (childIdx >= 0) {
-			children.remove(childIdx);
-			fireDbChildRemoved(childIdx, child);
+			removeChild(childIdx);
 		}
 		return childIdx >= 0;
+	}
+
+	/**
+	 * Override this method if your SQLObject has cross-dependant
+	 * children (such as relationships between tables) that have to be
+	 * specifically removed when your object is removed from its
+	 * parent.  It is not necessary to remove direct children (like
+	 * columns of tables), but it is necessary to remove cross-linking
+	 * children as mentioned above.
+	 */
+	public void removeDependencies() {
 	}
 
 	// ------------------- sql object event support -------------------

@@ -28,6 +28,8 @@ public class Relationship extends JComponent {
 		model.setFkTable(fkTable.getModel());
 		this.pkTable = pkTable;
 		this.fkTable = fkTable;
+		pkTable.getModel().addExportedKey(model);
+		fkTable.getModel().addImportedKey(model);
 		updateUI();
 		setVisible(true);
 		setBounds(10,10,100,100);

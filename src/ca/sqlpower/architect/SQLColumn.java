@@ -20,7 +20,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	 */
 	protected SQLColumn sourceColumn;
 
-	protected SQLTable parent;
+	protected SQLObject parent;
 	protected String columnName;
 
 	/**
@@ -89,7 +89,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 					 String defaultValue,
 					 Integer primaryKeySeq,
 					 boolean isAutoIncrement) {
-		this.parent = parentTable;
+		this.parent = parentTable.getColumnsFolder();
 		this.columnName = colName;
 		this.type = dataType;
 		this.sourceDBTypeName = nativeType;
@@ -110,15 +110,15 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 
 	/**
 	 * Makes a near clone of the given source column.  The new column
-	 * you get back will have a parent pointer of addTo, but will not
-	 * be attached as a child (you will normally do that right after
-	 * calling this).  It will refer to source as its sourceColumn
-	 * property, and otherwise be identical to source.
+	 * you get back will have a parent pointer of addTo.columnsFolder,
+	 * but will not be attached as a child (you will normally do that
+	 * right after calling this).  It will refer to source as its
+	 * sourceColumn property, and otherwise be identical to source.
 	 */
 	public static SQLColumn getDerivedInstance(SQLColumn source, SQLTable addTo) {
 		SQLColumn c = new SQLColumn();
 		c.sourceColumn = source;
-		c.parent = addTo;
+		c.parent = addTo.getColumnsFolder();
 		c.columnName = source.columnName;
 		c.type = source.type;
 		c.sourceDBTypeName = source.sourceDBTypeName;
@@ -166,7 +166,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 				if (addTo.getColumnByName(col.getColumnName(), false) != null) {
 					throw new DuplicateColumnException(addTo, col.getColumnName());
 				}
-				addTo.children.add(col); // don't use addTo.addColumn() (avoids multiple SQLObjectEvents)
+				addTo.columns.add(col); // don't use addTo.columnFolder.addColumn() (avoids multiple SQLObjectEvents)
 
 				// XXX: need to find out if column is auto-increment
 			}
@@ -348,8 +348,11 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 		return this.primaryKeySeq != null;
 	}
 
+	/**
+	 * Returns the parent SQLTable object, which is actually a grandparent.
+	 */
 	public SQLTable getParentTable() {
-		return parent;
+		return (SQLTable) parent.getParent();
 	}
 
 	/**
@@ -357,7 +360,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	 *
 	 * @param argParent Value to assign to this.parent
 	 */
-	protected void setParent(SQLTable argParent) {
+	protected void setParent(SQLObject argParent) {
 		this.parent = argParent;
 		fireDbObjectChanged("parent");
 	}

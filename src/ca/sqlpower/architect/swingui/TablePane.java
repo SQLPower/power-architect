@@ -170,12 +170,15 @@ public class TablePane
 	 * delegate) with a ChangeEvent.
 	 */
 	public void dbStructureChanged(SQLObjectEvent e) {
-		columnSelection = new ArrayList(e.getChildren().length);
-		for (int i = 0; i < e.getChildren().length; i++) {
-			columnSelection.add(Boolean.FALSE);
+		if (e.getSource() == model.getColumnsFolder()) {
+			int numCols = e.getChildren().length;
+			columnSelection = new ArrayList(numCols);
+			for (int i = 0; i < numCols; i++) {
+				columnSelection.add(Boolean.FALSE);
+			}
+			firePropertyChange("model.children", null, null);
+			revalidate();
 		}
-		firePropertyChange("model.children", null, null);
-		revalidate();
 	}
 
 	// ----------------------- accessors and mutators --------------------------
@@ -213,8 +216,8 @@ public class TablePane
 		}
 
 		try {
-			columnSelection = new ArrayList(m.getChildren().size());
-			for (int i = 0; i < m.getChildren().size(); i++) {
+			columnSelection = new ArrayList(m.getColumns().size());
+			for (int i = 0; i < m.getColumns().size(); i++) {
 				columnSelection.add(Boolean.FALSE);
 			}
 		} catch (ArchitectException e) {
