@@ -54,11 +54,16 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 		return connection != null;
 	}
 
+	/**
+	 * Connects to the database if necessary.  It is safe to call this
+	 * method many times; it returns quickly if nothing needs to be
+	 * done.
+	 */
 	public synchronized void connect() throws ArchitectException {
-		if (connection != null) return;
-		connection = (Connection) dbConnections.get(connectionSpec);
-		if (connection != null) return;
 		try {
+			if (connection != null && !connection.isClosed()) return;
+			connection = (Connection) dbConnections.get(connectionSpec);
+			if (connection != null && !connection.isClosed()) return;
 			Class.forName(connectionSpec.getDriverClass());
 			logger.info("Driver Class "+connectionSpec.getDriverClass()+" loaded without exception");
 			connection = DriverManager.getConnection(connectionSpec.getUrl(),
@@ -353,7 +358,9 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	 * playpen instance).
 	 */
 	public Connection getConnection() throws ArchitectException {
-		if (connection == null && connectionSpec != null) connect();
+		if (connectionSpec != null) {
+			connect();
+		}
 		return this.connection;
 	}
 
