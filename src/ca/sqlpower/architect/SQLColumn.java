@@ -393,7 +393,8 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	 * Returns the parent SQLTable object, which is actually a grandparent.
 	 */
 	public SQLTable getParentTable() {
-		return (SQLTable) parent.getParent();
+		if (parent == null) return null;
+		else return (SQLTable) parent.getParent();
 	}
 
 	/**
