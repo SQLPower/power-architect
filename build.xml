@@ -28,7 +28,7 @@
     </target>
 
 	<target name="jar" depends="compile">
-		<jar jarfile="${build}/${deploy.jar}" basedir="${build}"
+		<jar jarfile="${build}/${deploy.jar}" basedir="${build}" manifest="manifest"
 			includes="META-INF/*,ca/**">
 		</jar>
 	</target>
