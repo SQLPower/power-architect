@@ -131,7 +131,11 @@ public class RelationshipEditPanel extends JPanel
 	 */
 	public void applyChanges() {
 		relationship.setName(relationshipName.getText());
-		relationship.setIdentifying(identifyingButton.isSelected());
+		try {
+			relationship.setIdentifying(identifyingButton.isSelected());
+		} catch (ArchitectException ex) {
+			logger.warn("Call to setIdentifying failed. Continuing with other properties.", ex);
+		}
 
 		if (pkTypeZeroOne.isSelected()) {
 			relationship.setPkCardinality(SQLRelationship.ZERO | SQLRelationship.ONE);
