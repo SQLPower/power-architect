@@ -29,8 +29,6 @@ public class TestUI extends JFrame {
 	public TestUI(SQLDatabase db) throws ArchitectException {
 		super("UI Test Frame");
 
-		table = (SQLTable) db.getTables().get(0);
-
 		playpen = new PlayPen();
 
 		dbTree = new DBTree(db);
@@ -38,11 +36,14 @@ public class TestUI extends JFrame {
 											  new JScrollPane(dbTree),
 											  new JScrollPane(playpen));
 		setContentPane(splitPane);
-		
+		pack();
+		splitPane.setDividerLocation(dbTree.getPreferredSize().width);
+
 		JFrame controlsFrame = createControlsFrame();
 		controlsFrame.pack();
 		controlsFrame.setVisible(true);
 		controlsFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
 	}
 
 	protected JFrame createControlsFrame() throws ArchitectException {
@@ -60,8 +61,11 @@ public class TestUI extends JFrame {
 		JTextField addColField = new JTextField();
 		addColField.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent evt) {
-					table.addColumn(new SQLColumn(table, ((JTextField) evt.getSource()).getText(),
-												  Types.VARCHAR, 10, 0));
+					if (table != null) {
+						table.addColumn(new SQLColumn(table,
+													  ((JTextField) evt.getSource()).getText(),
+													  Types.VARCHAR, 10, 0));
+					}
 				}
 			});
 		box2.add(Box.createGlue());
