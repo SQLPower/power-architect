@@ -11,108 +11,35 @@ import ca.sqlpower.architect.*;
 
 public class PlayPen extends JPanel {
 
-	protected PlayPenDropTargetListener dropTargetListener = new PlayPenDropTargetListener();
-
+	/**
+	 * Links this PlayPen with an instance of PlayPenDropListener so
+	 * users can drop stuff on the playpen.
+	 */
+	protected DropTarget dt;
+	
 	public PlayPen() {
-		//super((LayoutManager) null);
-		//super(new FlowLayout());
 		super(new PlayPenLayout());
 		setName("Play Pen");
-		setTransferHandler(new PlayPenTransferHandler());
 		setMinimumSize(new Dimension(200,200));
 		setOpaque(true);
 		setBackground(Color.green);
-		//getUI().getDropTarget().addDropTargetListener(dropTargetListener); XXX: impossible
+		dt = new DropTarget(this, new PlayPenDropListener());
 	}
 	
-	public static class PlayPenTransferHandler extends TransferHandler {
-
-		protected Transferable createTransferable(JComponent c) {
-			// TODO: outbound transfers
-			return null;
-		}
-    
-		public int getSourceActions(JComponent c) {
-			// TODO: outbound transfers (COPY)
-			return NONE;
-		}
-
-		public boolean importData(JComponent c, Transferable t) {
-			DataFlavor importFlavor = bestImportFlavor(c, t.getTransferDataFlavors());
-			if (importFlavor != null) {
-				try {
-					Object someData = t.getTransferData(importFlavor);
-					System.out.println("MyJTreeTransferHandler.importData: got object of type "+someData.getClass().getName());
-					if (someData instanceof SQLTable) {
-						SQLTable table = (SQLTable) someData;
-						TablePane tp = new TablePane(table);
-						c.add(tp);
-						tp.setLocation(((PlayPen) c).dropTargetListener.currentLocation);
-						System.out.println("Added "+table+" to playpen at "+tp.getLocation());
-						tp.revalidate();
-						return true;
-					} else if (someData instanceof SQLColumn) {
-						SQLColumn column = (SQLColumn) someData;
-						JLabel colName = new JLabel(column.getColumnName());
-						c.add(colName);
-						colName.setLocation(30,30);
-						colName.setSize(colName.getPreferredSize());
-						System.out.println("Added "+column.getColumnName()+" to playpen (temporary, only for testing)");
-						colName.revalidate();
-						return true;
-					}
-				} catch (UnsupportedFlavorException ufe) {
-					ufe.printStackTrace();
-				} catch (IOException ioe) {
-					ioe.printStackTrace();
-				} catch (Exception ex) {
-					ex.printStackTrace();
-				}
-			}
-			return false;
-		}
-        
-		public DataFlavor bestImportFlavor(JComponent c, DataFlavor[] flavors) {
-			System.out.println("PlayPenTransferHandler: can I import "+Arrays.asList(flavors));
- 			for (int i = 0; i < flavors.length; i++) {
-				String cls = flavors[i].getDefaultRepresentationClassAsString();
-				System.out.println("representation class = "+cls);
-				System.out.println("mime type = "+flavors[i].getMimeType());
-				System.out.println("type = "+flavors[i].getPrimaryType());
-				System.out.println("subtype = "+flavors[i].getSubType());
-				System.out.println("class = "+flavors[i].getParameter("class"));
-				System.out.println("isSerializedObject = "+flavors[i].isFlavorSerializedObjectType());
-				System.out.println("isInputStream = "+flavors[i].isRepresentationClassInputStream());
-				System.out.println("isRemoteObject = "+flavors[i].isFlavorRemoteObjectType());
-				System.out.println("isLocalObject = "+flavors[i].getMimeType().equals(DataFlavor.javaJVMLocalObjectMimeType));
-
-
- 				if (flavors[i].equals(SQLObjectTransferable.flavor)) {
-					System.out.println("YES");
- 					return flavors[i];
-				}
- 			}
-			System.out.println("NO!");
- 			return null;
-		}
-		
-		public boolean canImport(JComponent c, DataFlavor[] flavors) {
-			return bestImportFlavor(c, flavors) != null;
-		} 
-	}
-
 	public static class PlayPenLayout implements LayoutManager {
 
 		/**
 		 * Does nothing.
 		 */
 		public void addLayoutComponent(String name, Component comp) {
+			System.out.println("PlayPenLayout.addLayoutComponent");
 		}
 
 		/**
 		 * Does nothing.
 		 */
 		public void removeLayoutComponent(Component comp) {
+			System.out.println("PlayPenLayout.removeLayoutComponent");
 		}
 
 		/**
@@ -120,6 +47,7 @@ public class PlayPen extends JPanel {
 		 * enclose the visible components inside parent.
 		 */
 		public Dimension preferredLayoutSize(Container parent) {
+			System.out.println("PlayPenLayout.preferredLayoutSize");
 			Rectangle cbounds = null;
 			//int minx = Integer.MAX_VALUE, miny = Integer.MAX_VALUE, maxx = 0, maxy = 0;
 			int minx = 0, miny = 0, maxx = 0, maxy = 0;
@@ -140,6 +68,7 @@ public class PlayPen extends JPanel {
 		 * Identical to {@link #preferredLayoutSize(Container)}.
 		 */
 		public Dimension minimumLayoutSize(Container parent) {
+			System.out.println("PlayPenLayout.minimumLayoutSize");
 			return preferredLayoutSize(parent);
 		}
 
@@ -147,20 +76,17 @@ public class PlayPen extends JPanel {
 		 * Does nothing!  Components will stay put.
 		 */
 		public void layoutContainer(Container parent) {
-			
+			System.out.println("PlayPenLayout.layoutContainer");
 		}
 	}
 	
 	/**
-	 * Does nothing except track the current insertion point during
-	 * dragOver notifications.  Note that this class cannot co-operate
-	 * with a TransferHandler.  We will need to refactor the transfer
-	 * handler into this listener and do away with the TransferHandler
-	 * API completely.
+	 * Tracks incoming objects and adds successfully dropped objects
+	 * at the current mouse position.
 	 */
-	public static class PlayPenDropTargetListener implements DropTargetListener {
+	public static class PlayPenDropListener implements DropTargetListener {
 		public Point currentLocation = new Point(0,0);
-
+		
 		/**
 		 * Called while a drag operation is ongoing, when the mouse
 		 * pointer enters the operable part of the drop site for the
@@ -192,6 +118,48 @@ public class PlayPen extends JPanel {
 		 * registered with this listener.
 		 */
 		public void drop(DropTargetDropEvent dtde) {
+			Transferable t = dtde.getTransferable();
+			JComponent c = (JComponent) dtde.getDropTargetContext().getComponent();
+			DataFlavor importFlavor = bestImportFlavor(c, t.getTransferDataFlavors());
+			if (importFlavor == null) {
+				dtde.rejectDrop();
+			} else {
+				try {
+					Object someData = t.getTransferData(importFlavor);
+					System.out.println("MyJTreeTransferHandler.importData: got object of type "+someData.getClass().getName());
+					if (someData instanceof SQLTable) {
+						SQLTable table = (SQLTable) someData;
+						TablePane tp = new TablePane(table);
+						c.add(tp, null);
+						tp.setLocation(currentLocation);
+						System.out.println("Added "+table+" to playpen at "+tp.getLocation());
+						tp.revalidate();
+						System.out.println("revalidated tablepane");
+						dtde.dropComplete(true);
+						System.out.println("signalled drop complete");
+						return;
+					} else if (someData instanceof SQLColumn) {
+						SQLColumn column = (SQLColumn) someData;
+						JLabel colName = new JLabel(column.getColumnName());
+						c.add(colName);
+						colName.setLocation(30,30);
+						colName.setSize(colName.getPreferredSize());
+						System.out.println("Added "+column.getColumnName()+" to playpen (temporary, only for testing)");
+						colName.revalidate();
+						dtde.dropComplete(true);
+						return;
+					}
+				} catch (UnsupportedFlavorException ufe) {
+					ufe.printStackTrace();
+					dtde.rejectDrop();
+				} catch (IOException ioe) {
+					ioe.printStackTrace();
+					dtde.rejectDrop();
+				} catch (InvalidDnDOperationException ex) {
+					ex.printStackTrace();
+					dtde.rejectDrop();
+				}
+			}
 		}
 		
 		/**
@@ -199,5 +167,46 @@ public class PlayPen extends JPanel {
 		 */
 		public void dropActionChanged(DropTargetDragEvent dtde) {
 		}
+
+		/**
+		 * Chooses the best import flavour from the flavors array for
+		 * importing into c.  The current implementation actually just
+		 * chooses the first acceptable flavour.
+		 *
+		 * @return The first acceptable DataFlavor in the flavors
+		 * list, or null if no acceptable flavours are present.
+		 */
+		public DataFlavor bestImportFlavor(JComponent c, DataFlavor[] flavors) {
+			System.out.println("PlayPenTransferHandler: can I import "+Arrays.asList(flavors));
+ 			for (int i = 0; i < flavors.length; i++) {
+				String cls = flavors[i].getDefaultRepresentationClassAsString();
+				System.out.println("representation class = "+cls);
+				System.out.println("mime type = "+flavors[i].getMimeType());
+				System.out.println("type = "+flavors[i].getPrimaryType());
+				System.out.println("subtype = "+flavors[i].getSubType());
+				System.out.println("class = "+flavors[i].getParameter("class"));
+				System.out.println("isSerializedObject = "+flavors[i].isFlavorSerializedObjectType());
+				System.out.println("isInputStream = "+flavors[i].isRepresentationClassInputStream());
+				System.out.println("isRemoteObject = "+flavors[i].isFlavorRemoteObjectType());
+				System.out.println("isLocalObject = "+flavors[i].getMimeType().equals(DataFlavor.javaJVMLocalObjectMimeType));
+
+
+ 				if (flavors[i].equals(SQLObjectTransferable.flavor)) {
+					System.out.println("YES");
+ 					return flavors[i];
+				}
+ 			}
+			System.out.println("NO!");
+ 			return null;
+		}
+
+		/**
+		 * This is set up this way because this DropTargetListener was
+		 * derived from a TransferHandler.  It works, so no sense in
+		 * changing it.
+		 */
+		public boolean canImport(JComponent c, DataFlavor[] flavors) {
+			return bestImportFlavor(c, flavors) != null;
+		} 
 	}
 }
