@@ -634,7 +634,35 @@ public class TablePane
 
 	public static class PopupListener extends MouseAdapter {
 
+		/**
+		 * Double-click support.
+		 */
 		public void mouseClicked(MouseEvent evt) {
+			if (evt.getClickCount() == 2) {
+				TablePane tp = (TablePane) evt.getSource();
+				if (tp.isSelected()) {
+					ArchitectFrame af = ArchitectFrame.getMainInstance();
+					int selectedColIndex = tp.getSelectedColumnIndex();
+					if (selectedColIndex == COLUMN_INDEX_NONE) {
+						af.editTableAction.actionPerformed
+							(new ActionEvent(tp, ActionEvent.ACTION_PERFORMED, "DoubleClick"));
+					} else if (selectedColIndex >= 0) {
+						af.editColumnAction.actionPerformed
+							(new ActionEvent(tp, ActionEvent.ACTION_PERFORMED, "DoubleClick"));
+					}
+				}
+			}
+		}
+
+		public void mousePressed(MouseEvent evt) {
+			evt.getComponent().requestFocus();
+			maybeShowPopup(evt);
+		}
+
+		public void mouseReleased(MouseEvent evt) {
+			maybeShowPopup(evt);
+
+			// table/column selection
 			if ((evt.getModifiers() & MouseEvent.BUTTON1_MASK) != 0) {
 				TablePane tp = (TablePane) evt.getComponent();
 				PlayPen pp = (PlayPen) tp.getParent();
@@ -647,15 +675,6 @@ public class TablePane
 					logger.error("Exception converting point to column", e);
 				}
 			}
-		}
-
-		public void mousePressed(MouseEvent evt) {
-			evt.getComponent().requestFocus();
-			maybeShowPopup(evt);
-		}
-
-		public void mouseReleased(MouseEvent evt) {
-			maybeShowPopup(evt);
 		}
 
 		public void maybeShowPopup(MouseEvent evt) {
