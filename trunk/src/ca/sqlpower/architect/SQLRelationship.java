@@ -34,10 +34,13 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 
 	protected String name;
 
+	protected FKColumnManager fkColumnManager;
+
 	public SQLRelationship() {
 		children = new LinkedList();
 		pkCardinality = ONE;
 		fkCardinality = ZERO | ONE | MANY;
+		fkColumnManager = new FKColumnManager();
 	}
 
 	/**
@@ -49,9 +52,10 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	 * SQLObjectEvents (to avoid infinite recursion), so you have to
 	 * generate them yourself at a safe time.
 	 *
-	 * <p>Note that table's database must be fully populated before
-	 * you call this method; it requires that all referenced tables
-	 * are represented by in-memory SQLTable objects.
+	 * <p>Note that <code>table</code>'s database must be fully
+	 * populated before you call this method; it requires that all
+	 * referenced tables are represented by in-memory SQLTable
+	 * objects.
 	 *
 	 * @throws ArchitectException if a database error occurs or if the
 	 * given table's parent database is not marked as populated.
@@ -110,6 +114,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 			Iterator it = newKeys.iterator();
 			while (it.hasNext()) {
 				r = (SQLRelationship) it.next();
+				r.pkTable.columnsFolder.addSQLObjectListener(r.fkColumnManager);
 				r.pkTable.addExportedKey(r);
 				logger.debug("Added exported key to "+r.pkTable.getName());
 				r.fkTable.addImportedKey(r);
@@ -127,26 +132,34 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		}
 	}
 
-	public boolean containsPkColumn(SQLColumn col) {
+	public ColumnMapping getMappingByPkCol(SQLColumn pkcol) {
 		Iterator it = children.iterator();
 		while (it.hasNext()) {
 			ColumnMapping m = (ColumnMapping) it.next();
-			if (m.pkColumn == col) {
-				return true;
+			if (m.pkColumn == pkcol) {
+				return m;
 			}
 		}
-		return false;
+		return null;
+	}
+
+	public boolean containsPkColumn(SQLColumn col) {
+		return getMappingByPkCol(col) != null;
+	}
+
+	public ColumnMapping getMappingByFkCol(SQLColumn fkcol) {
+		Iterator it = children.iterator();
+		while (it.hasNext()) {
+			ColumnMapping m = (ColumnMapping) it.next();
+			if (m.fkColumn == fkcol) {
+				return m;
+			}
+		}
+		return null;
 	}
 
 	public boolean containsFkColumn(SQLColumn col) {
-		Iterator it = children.iterator();
-		while (it.hasNext()) {
-			ColumnMapping m = (ColumnMapping) it.next();
-			if (m.fkColumn == col) {
-				return true;
-			}
-		}
-		return false;
+		return getMappingByFkCol(col) != null;
 	}
 
 	/**
@@ -162,6 +175,81 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 
 	public String toString() {
 		return getShortDisplayName();
+	}
+
+	// ------------------ SQLObject Listener ---------------------
+
+	/**
+	 * Listens for new or removed PK columns in the exporting table,
+	 * and updates the list of column mappings as well as the set of
+	 * columns that are being pushed onto the FK table.
+	 */
+	protected class FKColumnManager implements SQLObjectListener {
+		public void dbChildrenInserted(SQLObjectEvent e) {
+			logger.debug("dbChildrenInserted event! children="+e.getChildren());
+			SQLObject[] cols = e.getChildren();
+			for (int i = 0; i < cols.length; i++) {
+				SQLColumn col = (SQLColumn) cols[i];
+				try {
+					if (col.getPrimaryKeySeq() != null) {
+						ensureInMapping(col);
+					} else {
+						ensureNotInMapping(col);
+					}
+				} catch (ArchitectException ex) {
+					logger.warn("Couldn't add/remove mapped FK columns", ex);
+				}
+			}
+		}
+
+		public void dbChildrenRemoved(SQLObjectEvent e) {
+			logger.debug("dbChildrenRemoved event! children="+e.getChildren());
+			SQLObject[] cols = e.getChildren();
+			for (int i = 0; i < cols.length; i++) {
+				SQLColumn col = (SQLColumn) cols[i];
+				try {
+					ensureNotInMapping(col);
+				} catch (ArchitectException ex) {
+					logger.warn("Couldn't remove mapped FK columns", ex);
+				}
+			}
+		}
+
+		public void dbObjectChanged(SQLObjectEvent e) {
+		}
+
+		public void dbStructureChanged(SQLObjectEvent e) {
+		}
+
+		protected void ensureInMapping(SQLColumn pkcol) throws ArchitectException {
+			if (!containsPkColumn(pkcol)) {
+				SQLColumn fkcol = fkTable.getColumnByName(pkcol.getName());
+				if (fkcol == null) {
+					fkcol = SQLColumn.getDerivedInstance(pkcol, fkTable);
+					fkTable.addColumn(fkcol);
+					if (identifying) {
+						fkcol.setPrimaryKeySeq(new Integer(fkTable.pkSize()));
+					}
+				}
+				addMapping(pkcol, fkcol);
+			}
+		}
+
+		/**
+		 * Ensures there is no mapping for pkcol in this relationship.
+		 * If there was, it is removed along with the column that may
+		 * have been pushed into the relationship's fkTable.
+		 */
+		protected void ensureNotInMapping(SQLColumn pkcol) throws ArchitectException {
+			if (containsPkColumn(pkcol)) {
+				ColumnMapping m = getMappingByPkCol(pkcol);
+				List fkTies = fkTable.keysOfColumn(m.getFkColumn());
+				if (fkTies == null || fkTies.size() <= 1) {
+					fkTable.removeColumn(m.getFkColumn());
+				}
+				removeChild(m);
+			}
+		}
 	}
 
 	// ---------------------- SQLRelationship SQLObject support ------------------------
@@ -339,7 +427,11 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	}
 
 	public void setPkTable(SQLTable pkt) {
+		if (pkTable != null) {
+			pkTable.columnsFolder.removeSQLObjectListener(fkColumnManager);
+		}
 		pkTable = pkt;
+		pkTable.columnsFolder.addSQLObjectListener(fkColumnManager);
 		// XXX: fire event?
 	}
 
