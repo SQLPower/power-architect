@@ -25,30 +25,36 @@ public class TestSQLDatabase extends SQLTestCase {
 		dbcsList = new XMLFileDBCSSource(dbXmlFileName).getDBCSList();
 	}
 
-	/**
-	 * This one runs all the functional tests that depend on a valid connection.
-	 */
 	public void testGoodConnect() throws ArchitectException {
 		assertFalse("db shouldn't have been connected yet", db.isConnected());
 		Connection con = db.getConnection();
 		assertNotNull("db gave back a null connection", con);
 		assertTrue("db should have said it is connected", db.isConnected());
+	}
 
-		// test population
+	public void testPopulate() throws ArchitectException {
+		db.getConnection(); // causes db to actually connect
 		assertFalse("even though connected, should not be populated yet", db.isPopulated());
 		db.populate();
 		assertTrue("should be populated now", db.isPopulated());
 
 		db.populate(); // it must be allowed to call populate multiple times
+	}
 
-		// test getting tables by name
+	public void testGetTableByName() throws ArchitectException {
 		SQLTable battingTable, allStarTable, awardTable;
 		assertNotNull(battingTable = db.getTableByName("batting"));
 		assertNotNull(allStarTable = db.getTableByName("all_star"));
 		assertNotNull(awardTable = db.getTableByName("award"));
 		assertNull("should get null for nonexistant table", db.getTableByName("no_such_table"));
+	}
 
-		// test reconnecting and auto-connection and auto-population
+	public void testReconnect() throws ArchitectException {
+		SQLTable battingTable;
+		// cause db to actually connect
+		assertNotNull(battingTable = db.getTableByName("batting"));
+
+		// cause disconnection
 		db.setConnectionSpec(db.getConnectionSpec());
 		assertFalse("db shouldn't be connected anymore", db.isConnected());
 		assertFalse("db shouldn't be populated anymore", db.isPopulated());
@@ -56,8 +62,8 @@ public class TestSQLDatabase extends SQLTestCase {
 		assertNotNull(battingTable = db.getTableByName("batting"));
 
 		assertTrue("db should be repopulated", db.isPopulated());
-		assertNotNull("db should be reconnected", db.getConnection());
 		assertTrue("db should be reconnected", db.isConnected());
+		assertNotNull("db should be reconnected", db.getConnection());
 	}
 
 	public void testMissingDriverConnect() {
