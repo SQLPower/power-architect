@@ -395,6 +395,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 
 		col.setParent(null);
 		if (addToPK) {
+			col.nullable = DatabaseMetaData.columnNoNulls;
 			col.primaryKeySeq = new Integer(pos);
 		} else {
 			col.primaryKeySeq = null;
@@ -682,13 +683,23 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	}
 
 	/**
-	 * Sets the value of tableName
+	 * Sets the table name, and also modifies the primary key name if
+	 * it was previously null or set to the default of
+	 * "oldTableName_pk".
 	 *
-	 * @param argTableName Value to assign to this.tableName
+	 * @param argTableName The new table name.  NULL is not allowed.
 	 */
 	public void setTableName(String argTableName) {
-		this.tableName = argTableName;
-		fireDbObjectChanged("tableName");
+		String oldTableName = tableName;
+		if ( ! argTableName.equals(tableName) ) {
+			this.tableName = argTableName;
+			fireDbObjectChanged("tableName");
+		}
+		if (primaryKeyName == null
+			|| primaryKeyName.equals("")
+			|| primaryKeyName.equals(oldTableName+"_pk")) {
+			setPrimaryKeyName(tableName+"_pk");
+		}
 	}
 
 	/**

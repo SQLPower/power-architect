@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.DatabaseMetaData;
+import java.sql.Types;
 import org.apache.log4j.Logger;
 
 public class SQLColumn extends SQLObject implements java.io.Serializable, Cloneable {
@@ -55,6 +56,11 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 
 	public SQLColumn() {
 		logger.debug("NEW COLUMN (noargs) @"+hashCode());
+		columnName = "new column";
+		type = Types.INTEGER;
+		scale = 10;
+		nullable = DatabaseMetaData.columnNoNulls;
+		autoIncrement = false;
 	}
 
 	/**
@@ -234,7 +240,13 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	}
 
 	public String getShortDisplayName() {
-		return columnName+": "+sourceDBTypeName+"("+scale+")";
+		if (sourceDBTypeName != null) {
+			return columnName+": "+sourceDBTypeName+"("+scale+")";
+		} else {
+			return columnName+": "
+				+ca.sqlpower.architect.swingui.SQLType.getTypeName(type) // XXX: replace with TypeDescriptor
+				+"("+scale+")";
+		}
 	}
 
 	public boolean allowsChildren() {
@@ -290,8 +302,11 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	 * @param argType Value to assign to this.type
 	 */
 	public void setType(int argType) {
-		this.type = argType;
-		fireDbObjectChanged("type");
+		if (type != argType) {
+			setSourceDBTypeName(null);
+			this.type = argType;
+			fireDbObjectChanged("type");
+		}
 	}
 
 	public String getSourceDBTypeName() {

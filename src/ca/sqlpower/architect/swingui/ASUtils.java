@@ -1,5 +1,9 @@
 package ca.sqlpower.architect.swingui;
 
+import java.util.*;
+import java.io.File;
+import javax.swing.filechooser.FileFilter;
+
 /**
  * ASUtils is a container class for static utility methods used
  * throughout the Swing user interface.  "ASUtils" is short for
@@ -53,4 +57,50 @@ public class ASUtils {
 		}
 	}
 
+	public static FileFilter architectFileFilter =
+		new FileExtensionFilter("Architect Project Files", new String[] {"architect"});
+
+	public static FileFilter sqlFileFilter =
+		new FileExtensionFilter("SQL Script Files", new String[] {"ddl", "sql"});
+
+	public static class FileExtensionFilter extends FileFilter {
+
+		protected HashSet extensions;
+		protected String name;
+
+		/**
+		 * Creates a new filter which only accepts directories and
+		 * files whose names end with a dot "." followed by one of the
+		 * given strings.
+		 *
+		 * @param name The name of this filter to show to the user
+		 * @param extensions an array of lowercase filename extensions.
+		 */
+		public FileExtensionFilter(String name, String[] extensions) {
+			this.name = name;
+			this.extensions = new HashSet(Arrays.asList(extensions));
+		}
+
+		public boolean accept(File f) {
+			return f.isDirectory() || extensions.contains(getExtension(f));
+		}
+
+		public String getDescription() {
+			return name;
+		}
+
+		/*
+		 * Get the extension of a file.
+		 */  
+		public static String getExtension(File f) {
+			String ext = "";
+			String s = f.getName();
+			int i = s.lastIndexOf('.');
+			
+			if (i > 0 &&  i < s.length() - 1) {
+				ext = s.substring(i+1).toLowerCase();
+			}
+			return ext;
+		}
+	}
 }

@@ -29,17 +29,7 @@ public class InsertColumnAction extends AbstractAction {
 			} catch (ArchitectException e) {
 				idx = 0;
 			}
-			tp.getModel().addColumn(idx, new SQLColumn(tp.getModel(),
-													   "new column",
-													   Types.INTEGER,
-													   "Integer",
-													   10,
-													   0,
-													   DatabaseMetaData.columnNullable,
-													   null,
-													   null,
-													   null,
-													   false));
+			tp.getModel().addColumn(idx, new SQLColumn());
 		} else {
 			JOptionPane.showMessageDialog((JComponent) invoker,
 										  "The selected item type is not recognised");

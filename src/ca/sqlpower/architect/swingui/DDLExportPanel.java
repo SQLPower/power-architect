@@ -36,6 +36,7 @@ public class DDLExportPanel extends JPanel implements ArchitectPanel {
 		fileChooserButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					JFileChooser fc = new JFileChooser();
+					fc.addChoosableFileFilter(ASUtils.sqlFileFilter);
 					fc.setSelectedFile(new File(filename.getText()));
 					int rv = fc.showDialog(DDLExportPanel.this, "Ok");
 					if (rv == JFileChooser.APPROVE_OPTION) {

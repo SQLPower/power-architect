@@ -50,6 +50,7 @@ public class ArchitectFrame extends JFrame {
 	protected Action openProjectAction = new AbstractAction("Open Project...") {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser chooser = new JFileChooser();
+				chooser.addChoosableFileFilter(ASUtils.architectFileFilter);
 				int returnVal = chooser.showOpenDialog(ArchitectFrame.this);
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
 					try {
@@ -69,6 +70,7 @@ public class ArchitectFrame extends JFrame {
 	protected Action saveProjectAction = new AbstractAction("Save Project...") {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser chooser = new JFileChooser();
+				chooser.addChoosableFileFilter(ASUtils.architectFileFilter);
 				int returnVal = chooser.showSaveDialog(ArchitectFrame.this);
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
 					project.setFile(chooser.getSelectedFile());
