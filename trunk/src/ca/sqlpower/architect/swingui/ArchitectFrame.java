@@ -15,6 +15,11 @@ public class ArchitectFrame extends JFrame {
 
 	private static Logger logger = Logger.getLogger(ArchitectFrame.class);
 
+	/**
+	 * The ArchitectFrame is a singleton; this is the main instance.
+	 */
+	protected static ArchitectFrame mainInstance;
+
 	protected ConfigFile configFile = null;
 	protected UserSettings prefs = null;
 	protected SwingUserSettings sprefs = null;
@@ -86,13 +91,21 @@ public class ArchitectFrame extends JFrame {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 
+	public static ArchitectFrame getMainInstance() {
+		return mainInstance;
+	}
+	
+	public UserSettings getUserSettings() {
+		return prefs;
+	}
+
 	/**
 	 * Creates an ArchitectFrame and sets is visible.  This method is
 	 * an acceptable way to launch the Architect application.
 	 */
 	public static void main(String args[]) throws Exception {
-		ArchitectFrame frame = new ArchitectFrame();
-		frame.setVisible(true);
+		mainInstance = new ArchitectFrame();
+		mainInstance.setVisible(true);
 	}
 	
 }
