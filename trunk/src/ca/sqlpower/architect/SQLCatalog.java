@@ -10,7 +10,8 @@ import java.util.Collections;
 /**
  * A SQLCatalog is a container for other SQLObjects.  If it is in the
  * containment hierarchy for a given RDBMS, it will be directly under
- * SQLDatabase.
+ * SQLDatabase. SQLCatalogs normally get created and populated by
+ * {@link SQLTable#addTablesToDatabase}.
  */
 public class SQLCatalog extends SQLObject {
 	protected SQLDatabase parent;

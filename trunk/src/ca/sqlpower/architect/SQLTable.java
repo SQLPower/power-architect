@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.beans.PropertyChangeSupport;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
@@ -43,35 +44,60 @@ public class SQLTable extends SQLObject {
 		this.children = new ArrayList();
 	}
 
-	protected static void addTablesToSchema(SQLSchema addTo) 
+	protected static void addTablesToDatabase(SQLDatabase addTo) 
 		throws SQLException, ArchitectException {
+		HashMap catalogs = new HashMap();
+		HashMap schemas = new HashMap();
 		synchronized (addTo) {
-			SQLDatabase db = null;
-			SQLCatalog cat = null;
-			if (addTo.getParent() instanceof SQLCatalog) {
-				cat = (SQLCatalog) addTo.getParent();
-				db = cat.getParentDatabase();
-			} else {
-				// cat remains null
-				db = (SQLDatabase) addTo.getParent();
-			}
-			Connection con = db.getConnection();
+			Connection con = addTo.getConnection();
 			DatabaseMetaData dbmd = con.getMetaData();
 			ResultSet mdTables = null;
 			try {
-				mdTables = dbmd.getTables(cat == null ? null : cat.getCatalogName(),
-										  addTo.getSchemaName(),
+				mdTables = dbmd.getTables(null,
+										  null,
 										  "%",
 										  new String[] {"SYSTEM TABLE", "TABLE", "VIEW"});
 				while (mdTables.next()) {
-					addTo.children.add(new SQLTable(db,
-													addTo,
-													cat,
-													addTo,
-													mdTables.getString(3),
-													mdTables.getString(5),
-													mdTables.getString(4)
-													));
+					SQLObject tableParent = addTo;
+
+					String catName = mdTables.getString(1);
+					SQLCatalog cat = null;
+
+					if (catName != null) {
+						cat = (SQLCatalog) catalogs.get(catName);
+						if (cat == null) {
+							cat = new SQLCatalog(addTo, catName);
+							addTo.children.add(cat);
+							catalogs.put(catName, cat);
+						}
+						tableParent = cat;
+					}
+
+					String schName = mdTables.getString(2);
+					SQLSchema schema = null;
+					if (schName != null) {
+						schema = (SQLSchema) schemas.get(catName+"."+schName);
+						if (schema == null) {
+							if (cat == null) {
+								schema = new SQLSchema(addTo, schName);
+								addTo.children.add(schema);
+							} else {
+								schema = new SQLSchema(cat, schName);
+								cat.children.add(schema);
+							}
+							schemas.put(catName+"."+schName, schema);
+						}
+						tableParent = schema;
+					}
+
+					tableParent.children.add(new SQLTable(addTo,
+														  tableParent,
+														  cat,
+														  schema,
+														  mdTables.getString(3),
+														  mdTables.getString(5),
+														  mdTables.getString(4)
+														  ));
 				}
 			} finally {
 				if (mdTables != null) mdTables.close();

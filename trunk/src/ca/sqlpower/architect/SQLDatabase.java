@@ -53,11 +53,16 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable {
 		}
 	}
 
+	/**
+	 * This hands off all the real work to {@link SQLTable#addTablesToDatabase},
+	 * which will add either SQLCatalog or SQLSchema or SQLTable objects 
+	 * to this table's children list.
+	 */
 	protected synchronized void populateTables() throws ArchitectException {
 		if (populated) return;
 		int oldSize = children.size();
 		try {
-			SQLSchema.addSchemasToDatabase(this);
+			SQLTable.addTablesToDatabase(this);
 		} catch (SQLException e) {
 			throw new ArchitectException("database.populate.fail", e);
 		} finally {
