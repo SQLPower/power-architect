@@ -29,7 +29,7 @@ public class ArchitectFrame extends JFrame {
 	protected JToolBar toolBar = null;
 	protected JMenuBar menuBar = null;
 	protected JSplitPane splitPane = null;
-	protected JPanel playpen = null;
+	protected PlayPen playpen = null;
 	protected JTree dbTree = null;
 	
 	/**
@@ -67,10 +67,6 @@ public class ArchitectFrame extends JFrame {
 		Container cp = getContentPane();
 		cp.setLayout(new BorderLayout());
 
-		toolBar = new JToolBar();
-		toolBar.add(new JButton(saveSettingsAction));
-		cp.add(toolBar, BorderLayout.NORTH);
-
 		menuBar = new JMenuBar();
 		JMenu fileMenu = new JMenu("File");
 		fileMenu.add(new JMenuItem(saveSettingsAction));
@@ -92,6 +88,13 @@ public class ArchitectFrame extends JFrame {
 		splitPane.setDividerLocation
 			(sprefs.getInt(SwingUserSettings.DIVIDER_LOCATION,
 						   dbTree.getPreferredSize().width));
+
+		toolBar = new JToolBar();
+		toolBar.add(new JButton(saveSettingsAction));
+		toolBar.add(new JButton(new CreateRelationshipAction(playpen)));
+		cp.add(toolBar, BorderLayout.NORTH);
+
+
 		Rectangle bounds = new Rectangle();
 		bounds.x = sprefs.getInt(SwingUserSettings.MAIN_FRAME_X, 40);
 		bounds.y = sprefs.getInt(SwingUserSettings.MAIN_FRAME_Y, 40);

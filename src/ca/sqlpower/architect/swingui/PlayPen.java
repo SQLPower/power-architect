@@ -6,7 +6,6 @@ import java.awt.event.*;
 import java.awt.datatransfer.*;
 import java.awt.dnd.*;
 import java.io.IOException;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.LinkedList;
@@ -17,7 +16,8 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.*;
 
-public class PlayPen extends JPanel implements java.io.Serializable, SQLObjectListener {
+public class PlayPen extends JPanel
+	implements java.io.Serializable, SQLObjectListener, SelectionListener, ContainerListener {
 
 	private static Logger logger = Logger.getLogger(PlayPen.class);
 
@@ -40,6 +40,14 @@ public class PlayPen extends JPanel implements java.io.Serializable, SQLObjectLi
 	 * this playpen.
 	 */
 	protected HashMap tableNames;
+	
+	/**
+	 * This is the list of relationships in the play pen.  They are
+	 * kind of like children, but we hide them from Swing because
+	 * they're funny. (They have to be painted in the PlayPen's
+	 * coordinate space, not their own!).
+	 */
+	protected LinkedList relationships;
 
 	/**
 	 * This is the shared popup menu that applies to right-clicks on
@@ -56,14 +64,16 @@ public class PlayPen extends JPanel implements java.io.Serializable, SQLObjectLi
 		super();
 		if (db == null) throw new NullPointerException("db must be non-null");
 		this.db = db;
+		relationships = new LinkedList();
 		db.addSQLObjectListener(this);
 		setLayout(new PlayPenLayout(this));
 		setName("Play Pen");
 		setMinimumSize(new Dimension(200,200));
 		setBackground(java.awt.Color.white);
-		setOpaque(true);
+		setOpaque(false);   // XXX: it really is opaque, but we can't have super.paintComponent() painting over top of our relationship lines
 		dt = new DropTarget(this, new PlayPenDropListener());
 		tableNames = new HashMap();
+		addContainerListener(this);
 		setupTablePanePopup();
 	}
 
@@ -103,12 +113,315 @@ public class PlayPen extends JPanel implements java.io.Serializable, SQLObjectLi
 		mi = new JMenuItem("Show listeners");
 		mi.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent evt) {
-					TablePane tp = (TablePane) getSelectedChild();
+					TablePane tp = (TablePane) getSelection();
 					JOptionPane.showMessageDialog(tp, new JScrollPane(new JList(new java.util.Vector(tp.getModel().getSQLObjectListeners()))));
 				}
 			});
 		tablePanePopup.add(mi);
 	}
+
+	/**
+	 * Paints all the relationships using the passed-in graphics
+	 * object directly, then calls super.paint(g) which will paint all
+	 * the child components.
+	 */
+	protected void paintComponent(Graphics g) {
+		Dimension size = getSize();
+		g.setColor(getBackground());
+		g.fillRect(0, 0, size.width, size.height);
+		g.setColor(getForeground());
+		Iterator it = relationships.iterator();
+		while (it.hasNext()) {
+			Relationship r = (Relationship) it.next();
+			r.paint(g);
+		}
+		super.paintComponent(g);
+	}
+
+	/**
+	 * Searches this PlayPen's children for a TablePane whose model is
+	 * t.
+	 *
+	 * @return A reference to the TablePane that has t as a model, or
+	 * null if no such TablePane is in the play pen.
+	 */
+	public TablePane findTablePane(SQLTable t) {
+		for (int i = 0; i < getComponentCount(); i++) {
+			Component c = getComponent(i);
+			if (c instanceof TablePane 
+				&& ((TablePane) c).getModel() == t) {
+				return (TablePane) c;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Works under limited circumstances. Use {@link #addTable} instead.
+	 */
+	public void add(Component c, Object constraints) {
+		if (c instanceof Relationship) {
+			throw new IllegalArgumentException("Use addRelationship instead");
+		}
+		if (constraints instanceof Point) {
+			super.add(c, constraints);
+		} else {
+			throw new IllegalArgumentException("Constraints must be a Point");
+		}
+	}
+
+	public void addRelationship(Relationship r) {
+		relationships.add(r);
+		repaint();
+	}
+
+	/**
+	 * Adds a copy of the given source table to this playpen, using
+	 * preferredLocation as the layout constraint.  Tries to avoid
+	 * adding two tables with identical names.
+	 *
+	 * @see SQLTable#inherit
+	 * @see PlayPenLayout#addComponent(Component,Object)
+	 */
+	public synchronized void addTable(SQLTable source, Point preferredLocation) throws ArchitectException {
+		SQLTable newTable = SQLTable.getDerivedInstance(source, db); // adds newTable to db
+		String key = source.getTableName().toLowerCase();
+		Integer suffix = (Integer) tableNames.get(key);
+		if (suffix == null) {
+			tableNames.put(key, new Integer(0));
+		} else {
+			int newSuffix = suffix.intValue()+1;
+			tableNames.put(key, new Integer(newSuffix));
+			newTable.setTableName(source.getTableName()+"_"+newSuffix);
+		}
+		TablePane tp = new TablePane(newTable);
+		
+		logger.info("adding table "+newTable);
+		super.add(tp, preferredLocation);
+		tp.revalidate();
+	}
+
+	/**
+	 * Calls {@link #addTable} for each table contained in the given schema.
+	 */
+	public synchronized void addSchema(SQLSchema source, Point preferredLocation) throws ArchitectException {
+		AddSchemaTask t = new AddSchemaTask(source, preferredLocation);
+		new Thread(t, "Schema-Adder").start();
+	}
+
+	/**
+	 * Adds the given component to this playpen as a ghost.  A ghost
+	 * is a transient object that helps the user visualise drag
+	 * events.
+	 */
+	public synchronized void addGhost(JComponent ghost, Point location) {
+		super.add(ghost, null);
+		ghost.setLocation(location);
+	}
+
+	private class AddSchemaTask implements Runnable {
+		SQLSchema source;
+		Point preferredLocation;
+
+		public AddSchemaTask(SQLSchema source, Point preferredLocation) {
+			this.source = source;
+			this.preferredLocation = preferredLocation;
+		}
+
+		public void run() {
+			logger.info("AddSchemaTask starting on thread "+Thread.currentThread().getName());
+			ProgressMonitor pm = null;
+			try {
+				pm = new ProgressMonitor
+					(PlayPen.this,
+					 "Copying schema "+source.getShortDisplayName(),
+					 "...",
+					 0,
+					 source.getChildCount());
+				int i = 0;
+				Iterator it = source.getChildren().iterator();
+				while (it.hasNext()) {
+					SQLTable sourceTable = (SQLTable) it.next();
+					pm.setNote(sourceTable.getTableName());
+					addTable(sourceTable, preferredLocation);
+					pm.setProgress(i++);
+				}
+			} catch (ArchitectException e) {
+				e.printStackTrace();
+			} finally {
+				if (pm != null) pm.close();
+			}
+			logger.info("AddSchemaTask done");
+		}
+	}
+
+
+	// -------------------- SQLOBJECT EVENT SUPPORT ---------------------
+
+	/**
+	 * Listens for property changes in the model (tables
+	 * added).  If this change affects the appearance of
+	 * this widget, we will notify all change listeners (the UI
+	 * delegate) with a ChangeEvent.
+	 */
+	public void dbChildrenInserted(SQLObjectEvent e) {
+		logger.debug("SQLObject children got inserted: "+e);
+		SQLObject o = e.getSQLSource();
+		SQLObject[] c = e.getChildren();
+		for (int i = 0; i < c.length; i++) {
+			if (c[i] instanceof SQLTable) {
+				c[i].addSQLObjectListener(this);
+			}
+		}
+		firePropertyChange("model.children", null, null);
+		revalidate();
+	}
+
+	/**
+	 * Listens for property changes in the model (columns
+	 * removed).  If this change affects the appearance of
+	 * this widget, we will notify all change listeners (the UI
+	 * delegate) with a ChangeEvent.
+	 */
+	public void dbChildrenRemoved(SQLObjectEvent e) {
+		logger.debug("SQLObject children got removed: "+e);
+		SQLObject o = e.getSQLSource();
+		SQLObject[] c = e.getChildren();
+		for (int i = 0; i < c.length; i++) {
+			if (c[i] instanceof SQLTable) {
+				c[i].removeSQLObjectListener(this);
+				for (int j = 0; j < getComponentCount(); j++) {
+					TablePane tp = (TablePane) getComponent(j);
+					if (tp.getModel() == c[i]) {
+						remove(j);
+					}
+				}
+			}
+		}
+		firePropertyChange("model.children", null, null);
+		repaint();
+	}
+
+	/**
+	 * Listens for property changes in the model (table
+	 * properties modified).  If this change affects the appearance of
+	 * this widget, we will notify all change listeners (the UI
+	 * delegate) with a ChangeEvent.
+	 */
+	public void dbObjectChanged(SQLObjectEvent e) {
+		firePropertyChange("model."+e.getPropertyName(), null, null);
+		revalidate();
+	}
+
+	/**
+	 * Listens for property changes in the model (significant
+	 * structure change).  If this change affects the appearance of
+	 * this widget, we will notify all change listeners (the UI
+	 * delegate) with a ChangeEvent.
+	 *
+	 * <p>NOTE: This is not currently implemented.
+	 */
+	public void dbStructureChanged(SQLObjectEvent e) {
+		throw new UnsupportedOperationException
+			("FIXME: we have to make sure we're listening to the right objects now!");
+		//firePropertyChange("model.children", null, null);
+		//revalidate();
+	}
+
+	// --------------- SELECTION METHODS ----------------
+
+	protected Selectable selectedChild; // XXX: should be List so multiselection is possible!
+
+	/**
+	 * Deselects all selectable items in the PlayPen. XXX: only single selection for now!
+	 */
+	public void selectNone() {
+// 		for (int i = 0, n = getComponentCount(); i < n; i++) {
+// 			if (getComponent(i) instanceof Selectable) {
+// 				Selectable s = (Selectable) getComponent(i);
+// 				s.setSelected(false);
+// 			}
+// 		}
+		if (selectedChild != null) {
+			selectedChild.setSelected(false);
+			selectedChild = null;
+		}
+	}
+
+	/**
+	 * Returns the first selected child in the PlayPen. XXX: only single selection for now!
+	 */
+	public Selectable getSelection() {
+// 		for (int i = 0, n = getComponentCount(); i < n; i++) {
+// 			if (getComponent(i) instanceof Selectable) {
+// 				Selectable s = (Selectable) getComponent(i);
+// 				if (s.isSelected()) return s;
+// 			}
+// 		}
+		return selectedChild;
+	}
+
+	public void setSelection(Selectable s) {
+		selectNone();
+		s.setSelected(true);
+		selectedChild = s;
+		fireSelectionEvent(s);
+	}
+
+	// --------------------------- CONTAINER LISTENER -------------------------
+
+	/**
+	 * Unregisters this TablePane as a SelectionListener if the
+	 * removed component is Selectable.
+	 */
+	public void componentRemoved(ContainerEvent e) {
+		if (e.getChild() instanceof Selectable) {
+			((Selectable) e.getChild()).removeSelectionListener(this);
+		}
+	}
+
+	/**
+	 * Registers this TablePane as a SelectionListener if the added
+	 * component is Selectable.
+	 */
+	public void componentAdded(ContainerEvent e) {
+		if (e.getChild() instanceof Selectable) {
+			((Selectable) e.getChild()).addSelectionListener(this);
+		}
+	}
+
+	// ---------------------- SELECTION LISTENER ------------------------
+	
+	/**
+	 * Saves a reference to the selected child, then fires e to all
+	 * PlayPen selection listeners.
+	 */
+	public void itemSelected(SelectionEvent e) {
+		selectedChild = e.getSelectedItem();
+		fireSelectionEvent(e.getSelectedItem());
+	}
+
+	// --------------------- SELECTION EVENT SUPPORT ---------------------
+
+	protected LinkedList selectionListeners = new LinkedList();
+
+	public void addSelectionListener(SelectionListener l) {
+		selectionListeners.add(l);
+	}
+
+	public void removeSelectionListener(SelectionListener l) {
+		selectionListeners.remove(l);
+	}
+	
+	protected void fireSelectionEvent(Selectable source) {
+		SelectionEvent e = new SelectionEvent(source);
+		Iterator it = selectionListeners.iterator();
+		while (it.hasNext()) {
+			((SelectionListener) it.next()).itemSelected(e);
+		}
+	}
+
+	// ------------------------------------- INNER CLASSES ----------------------------
 
 	public static class PlayPenLayout implements LayoutManager2 {
 
@@ -377,198 +690,6 @@ public class PlayPen extends JPanel implements java.io.Serializable, SQLObjectLi
 			}
 		}
 	}
-	
-	/**
-	 * Works under limited circumstances. Use {@link #addTable} instead.
-	 */
-	public void add(Component c, Object constraints) {
-		if (constraints instanceof Point) {
-			super.add(c, constraints);
-		} else {
-			throw new IllegalArgumentException("Constraints must be a Point");
-		}
-	}
-
-	/**
-	 * Adds a copy of the given source table to this playpen, using
-	 * preferredLocation as the layout constraint.  Tries to avoid
-	 * adding two tables with identical names.
-	 *
-	 * @see SQLTable#inherit
-	 * @see PlayPenLayout#addComponent(Component,Object)
-	 */
-	public synchronized void addTable(SQLTable source, Point preferredLocation) throws ArchitectException {
-		SQLTable newTable = SQLTable.getDerivedInstance(source, db); // adds newTable to db
-		String key = source.getTableName().toLowerCase();
-		Integer suffix = (Integer) tableNames.get(key);
-		if (suffix == null) {
-			tableNames.put(key, new Integer(0));
-		} else {
-			int newSuffix = suffix.intValue()+1;
-			tableNames.put(key, new Integer(newSuffix));
-			newTable.setTableName(source.getTableName()+"_"+newSuffix);
-		}
-		TablePane tp = new TablePane(newTable);
-		
-		logger.info("adding table "+newTable);
-		super.add(tp, preferredLocation);
-		tp.revalidate();
-	}
-
-	/**
-	 * Calls {@link #addTable} for each table contained in the given schema.
-	 */
-	public synchronized void addSchema(SQLSchema source, Point preferredLocation) throws ArchitectException {
-		AddSchemaTask t = new AddSchemaTask(source, preferredLocation);
-		new Thread(t, "Schema-Adder").start();
-	}
-
-	/**
-	 * Adds the given component to this playpen as a ghost.  A ghost
-	 * is a transient object that helps the user visualise drag
-	 * events.
-	 */
-	public synchronized void addGhost(JComponent ghost, Point location) {
-		super.add(ghost, null);
-		ghost.setLocation(location);
-	}
-
-	private class AddSchemaTask implements Runnable {
-		SQLSchema source;
-		Point preferredLocation;
-
-		public AddSchemaTask(SQLSchema source, Point preferredLocation) {
-			this.source = source;
-			this.preferredLocation = preferredLocation;
-		}
-
-		public void run() {
-			logger.info("AddSchemaTask starting on thread "+Thread.currentThread().getName());
-			ProgressMonitor pm = null;
-			try {
-				pm = new ProgressMonitor
-					(PlayPen.this,
-					 "Copying schema "+source.getShortDisplayName(),
-					 "...",
-					 0,
-					 source.getChildCount());
-				int i = 0;
-				Iterator it = source.getChildren().iterator();
-				while (it.hasNext()) {
-					SQLTable sourceTable = (SQLTable) it.next();
-					pm.setNote(sourceTable.getTableName());
-					addTable(sourceTable, preferredLocation);
-					pm.setProgress(i++);
-				}
-			} catch (ArchitectException e) {
-				e.printStackTrace();
-			} finally {
-				if (pm != null) pm.close();
-			}
-			logger.info("AddSchemaTask done");
-		}
-	}
-
-	// -------------------- SQLOBJECT EVENT SUPPORT ---------------------
-
-	/**
-	 * Listens for property changes in the model (tables
-	 * added).  If this change affects the appearance of
-	 * this widget, we will notify all change listeners (the UI
-	 * delegate) with a ChangeEvent.
-	 */
-	public void dbChildrenInserted(SQLObjectEvent e) {
-		logger.debug("SQLObject children got inserted: "+e);
-		SQLObject o = e.getSQLSource();
-		SQLObject[] c = e.getChildren();
-		for (int i = 0; i < c.length; i++) {
-			if (c[i] instanceof SQLTable) {
-				c[i].addSQLObjectListener(this);
-			}
-		}
-		firePropertyChange("model.children", null, null);
-		revalidate();
-	}
-
-	/**
-	 * Listens for property changes in the model (columns
-	 * removed).  If this change affects the appearance of
-	 * this widget, we will notify all change listeners (the UI
-	 * delegate) with a ChangeEvent.
-	 */
-	public void dbChildrenRemoved(SQLObjectEvent e) {
-		logger.debug("SQLObject children got removed: "+e);
-		SQLObject o = e.getSQLSource();
-		SQLObject[] c = e.getChildren();
-		for (int i = 0; i < c.length; i++) {
-			if (c[i] instanceof SQLTable) {
-				c[i].removeSQLObjectListener(this);
-				for (int j = 0; j < getComponentCount(); j++) {
-					TablePane tp = (TablePane) getComponent(j);
-					if (tp.getModel() == c[i]) {
-						remove(j);
-					}
-				}
-			}
-		}
-		firePropertyChange("model.children", null, null);
-		repaint();
-	}
-
-	/**
-	 * Listens for property changes in the model (table
-	 * properties modified).  If this change affects the appearance of
-	 * this widget, we will notify all change listeners (the UI
-	 * delegate) with a ChangeEvent.
-	 */
-	public void dbObjectChanged(SQLObjectEvent e) {
-		firePropertyChange("model."+e.getPropertyName(), null, null);
-		revalidate();
-	}
-
-	/**
-	 * Listens for property changes in the model (significant
-	 * structure change).  If this change affects the appearance of
-	 * this widget, we will notify all change listeners (the UI
-	 * delegate) with a ChangeEvent.
-	 *
-	 * <p>NOTE: This is not currently implemented.
-	 */
-	public void dbStructureChanged(SQLObjectEvent e) {
-		throw new UnsupportedOperationException
-			("FIXME: we have to make sure we're listening to the right objects now!");
-		//firePropertyChange("model.children", null, null);
-		//revalidate();
-	}
-
-	// --------------- SELECTION METHODS ----------------
-
-	/**
-	 * Deselects all selectable items in the PlayPen.
-	 */
-	public void selectNone() {
-		for (int i = 0, n = getComponentCount(); i < n; i++) {
-			if (getComponent(i) instanceof Selectable) {
-				Selectable s = (Selectable) getComponent(i);
-				s.setSelected(false);
-			}
-		}
-	}
-
-	/**
-	 * Returns the first selected child in the PlayPen.
-	 */
-	public Selectable getSelectedChild() {
-		for (int i = 0, n = getComponentCount(); i < n; i++) {
-			if (getComponent(i) instanceof Selectable) {
-				Selectable s = (Selectable) getComponent(i);
-				if (s.isSelected()) return s;
-			}
-		}
-		return null;
-	}
-
-	// ------------------------------------- INNER CLASSES ----------------------------
 
 	/**
 	 * Tracks incoming objects and adds successfully dropped objects
