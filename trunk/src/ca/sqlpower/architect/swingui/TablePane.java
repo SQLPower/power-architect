@@ -102,7 +102,11 @@ public class TablePane
 	 * registered.
 	 */
 	public void destroy() {
-		model.removeSQLObjectListener(this);
+		try {
+			ArchitectUtils.unlistenToHierarchy(this, model);
+		} catch (ArchitectException e) {
+			logger.error("Caught exception while unlistening to all children", e);
+		}
 	}
 
 	// -------------------- sqlobject event support ---------------------
@@ -117,6 +121,11 @@ public class TablePane
 		int ci[] = e.getChangedIndices();
 		for (int i = 0; i < ci.length; i++) {
 			columnSelection.add(ci[i], Boolean.FALSE);
+		}
+		try {
+			ArchitectUtils.listenToHierarchy(this, e.getChildren());
+		} catch (ArchitectException ex) {
+			logger.error("Caught exception while listening to added children", ex);
 		}
 		firePropertyChange("model.children", null, null);
 		revalidate();
@@ -133,6 +142,11 @@ public class TablePane
 		for (int i = 0; i < ci.length; i++) {
 			columnSelection.remove(ci[i]);
 		}
+		try {
+			ArchitectUtils.unlistenToHierarchy(this, e.getChildren());
+		} catch (ArchitectException ex) {
+			logger.error("Caught exception while unlistening to removed children", ex);
+		}
 		firePropertyChange("model.children", null, null);
 		revalidate();
 	}
@@ -145,7 +159,7 @@ public class TablePane
 	 */
 	public void dbObjectChanged(SQLObjectEvent e) {
 		firePropertyChange("model."+e.getPropertyName(), null, null);
-		revalidate();
+		repaint();
 	}
 
 	/**
@@ -184,7 +198,11 @@ public class TablePane
 	public void setModel(SQLTable m) {
 		SQLTable old = model;
         if (old != null) {
-			old.removeSQLObjectListener(this);
+			try {
+				ArchitectUtils.listenToHierarchy(this, old);
+			} catch (ArchitectException e) {
+				logger.error("Caught exception while unlistening to old model", e);
+			}
 		}
 
         if (m == null) {
@@ -202,7 +220,11 @@ public class TablePane
 			logger.error("Error getting children on new model", e);
 		}
 
-		model.addSQLObjectListener(this);
+		try {
+			ArchitectUtils.listenToHierarchy(this, model);
+		} catch (ArchitectException e) {
+			logger.error("Caught exception while listening to new model", e);
+		}
 		setName("TablePanel: "+model.getShortDisplayName());
 
         firePropertyChange("model", old, model);

@@ -5,8 +5,11 @@ import javax.swing.event.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import ca.sqlpower.architect.*;
+import org.apache.log4j.Logger;
 
 public class SQLTableListModel implements ListModel, SQLObjectListener {
+
+	private static final Logger logger = Logger.getLogger(SQLTableListModel.class);
 
 	protected SQLTable table;
 	protected ArrayList listeners;
@@ -95,10 +98,25 @@ public class SQLTableListModel implements ListModel, SQLObjectListener {
 	}
 
 	public void dbObjectChanged(SQLObjectEvent e) {
-		int[] changedIndices = e.getChangedIndices();
-		for (int i = 0; i < changedIndices.length; i++) {
-			// XXX: should group contiguous regions into one event!
-			fireContentsChanged(changedIndices[i], changedIndices[i]);
+		if (e.getSource() == table) {
+			int[] changedIndices = e.getChangedIndices();
+			for (int i = 0; i < changedIndices.length; i++) {
+				// XXX: should group contiguous regions into one event!
+				logger.debug("Firing contentsChanged event for index "+i);
+				fireContentsChanged(changedIndices[i], changedIndices[i]);
+			}
+		} else if (e.getSource() instanceof SQLColumn) {
+			// make sure this column was actually in the table
+			try {
+				int index = table.getColumns().indexOf(e.getSource());
+				if (index >= 0) {
+					fireContentsChanged(index, index);
+				}
+			} catch (ArchitectException ex) {
+				logger.error("Exception in dbObjectChanged",ex);
+			}
+		} else {
+			logger.warn("Unexpected SQLObjectEvent: "+e);
 		}
 	}
 

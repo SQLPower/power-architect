@@ -40,7 +40,7 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 			}
 		}
 		this.treeModelListeners = new LinkedList();
-		listenToSQLObjectAndChildren(root);
+		ArchitectUtils.listenToHierarchy(this, root);
 	}
 
 	public Object getRoot() {
@@ -183,7 +183,7 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 		try {
 			SQLObject[] newEventSources = e.getChildren();
 			for (int i = 0; i < newEventSources.length; i++) {
-				listenToSQLObjectAndChildren(newEventSources[i]);
+				ArchitectUtils.listenToHierarchy(this, newEventSources[i]);
 			}
 		} catch (ArchitectException ex) {
 			logger.error("Error listening to added object", ex);
@@ -200,7 +200,7 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 		try {
 			SQLObject[] oldEventSources = e.getChildren();
 			for (int i = 0; i < oldEventSources.length; i++) {
-				unlistenToSQLObjectAndChildren(oldEventSources[i]);
+				ArchitectUtils.unlistenToHierarchy(this, oldEventSources[i]);
 			}
 		} catch (ArchitectException ex) {
 			logger.error("Error unlistening to removed object", ex);
@@ -215,37 +215,10 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	public void dbObjectChanged(SQLObjectEvent e) {
 		logger.debug("dbObjectChanged SQLObjectEvent: "+e);
 		SQLObject source = e.getSQLSource();
-		if (e.getPropertyName().equals("shortDisplayName")) {
-			fireTreeNodesChanged(new TreeModelEvent(this, getPathToNode(source)));
-		} else {
-			logger.info("Ignoring dbObjectChanged "+e.getSQLSource().getName()+"."+e.getPropertyName());
-		}
+		fireTreeNodesChanged(new TreeModelEvent(this, getPathToNode(source)));
 	}
 
 	public void dbStructureChanged(SQLObjectEvent e) {
 		throw new UnsupportedOperationException("not yet");
-	}
-
-	protected void listenToSQLObjectAndChildren(SQLObject o) throws ArchitectException {
-		logger.debug("Listening to new SQL Object "+o);
-		o.addSQLObjectListener(this);
-		if (o.isPopulated() && o.allowsChildren()) {
-			Iterator it = o.getChildren().iterator();
-			while (it.hasNext()) {
-				listenToSQLObjectAndChildren((SQLObject) it.next());
-			}
-		}
-	}
-
-	protected void unlistenToSQLObjectAndChildren(SQLObject o) throws ArchitectException {
-		logger.debug("Unlistening to SQL Object "+o);
-		o.removeSQLObjectListener(this);
-		if (o.isPopulated() && o.allowsChildren()) {
-			Iterator it = o.getChildren().iterator();
-			while (it.hasNext()) {
-				SQLObject ob = (SQLObject) it.next();
-				unlistenToSQLObjectAndChildren(ob);
-			}
-		}
 	}
 }
