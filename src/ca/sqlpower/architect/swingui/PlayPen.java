@@ -80,6 +80,7 @@ public class PlayPen extends JPanel
 		if (db.getConnectionSpec() == null) {
 			DBConnectionSpec dbcs = new DBConnectionSpec();
 			dbcs.setName("Target Database");
+			dbcs.setDisplayName("Target Database");
 			db.setConnectionSpec(dbcs);
 		}
 		try {
@@ -404,7 +405,7 @@ public class PlayPen extends JPanel
 					}
 				}
 			} else if (c[i] instanceof SQLRelationship) {
-				for (int j = 0, n = getComponentCount(); j < n; j++) {
+				for (int j = 0; j < getComponentCount(); j++) {
 					if (getComponent(j) instanceof Relationship) {
 						Relationship r = (Relationship) getComponent(j);
 						if (selectedChild == r) selectedChild = null;

@@ -12,7 +12,10 @@ public class ExportDDLAction extends AbstractAction {
 	protected ArchitectFrame architectFrame;
 
 	public ExportDDLAction() {
-		super("Export DDL...");
+		super("Forward Engineer...",
+			  ASUtils.createIcon("ForwardEngineer",
+								 "Forward Engineer",
+								 ArchitectFrame.getMainInstance().sprefs.getInt(SwingUserSettings.ICON_SIZE, 24)));
 		architectFrame = ArchitectFrame.getMainInstance();
 	}
 
