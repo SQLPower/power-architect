@@ -25,7 +25,7 @@ public class CreateTableAction extends AbstractAction {
 
 	public void actionPerformed(ActionEvent evt) {
 		SQLTable t = new SQLTable();
-		t.initFolders();
+		t.initFolders(true);
 		t.setTableName("New_Table");
 		TablePane tp = new TablePane(t);
 		pp.addFloating(tp);

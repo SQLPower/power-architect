@@ -45,21 +45,19 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 */
 	protected Folder importedKeysFolder;
 
-	protected boolean columnsPopulated;
-	protected boolean relationshipsPopulated;
-
 	public SQLTable(SQLObject parent, String name, String remarks, String objectType) {
 		logger.debug("NEW TABLE "+name+"@"+hashCode());
 		this.parent = parent;
 		this.tableName = name;
 		this.remarks = remarks;
-		this.columnsPopulated = false;
-		this.relationshipsPopulated = false;
 		this.objectType = objectType;
 
 		this.children = new ArrayList();
-		initFolders();
+		initFolders(false);
 
+		/* we listen to the importedKeysFolder because this is how we
+		 * know to remove FK columns when their owning relationship is
+		 * removed. */
 		importedKeysFolder.addSQLObjectListener(this);
 	}
 	
@@ -77,8 +75,8 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * properties set to their defaults.
 	 */
 	public SQLTable() {
-		columnsPopulated = true;
-		relationshipsPopulated = true;
+		//columnsPopulated = true;
+		//relationshipsPopulated = true;
 		children = new ArrayList();
 	}
 
@@ -87,11 +85,15 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * constructor, you should call this to create the standard set of
 	 * Folder objects under this table.  The regular constructor does
 	 * it automatically.
+	 *
+	 * @param populated The initial value to give the folders'
+	 * populated status.  When loading from a file, this should be true;
+	 * if lazy loading from a database, it should be false.
 	 */
-	public void initFolders() {
-		addChild(new Folder("Columns"));
-		addChild(new Folder("Exported Keys"));
-		addChild(new Folder("Imported Keys"));
+	public void initFolders(boolean populated) {
+		addChild(new Folder(Folder.COLUMNS, populated));
+		addChild(new Folder(Folder.EXPORTED_KEYS, populated));
+		addChild(new Folder(Folder.IMPORTED_KEYS, populated));
 	}
 
 	protected static void addTablesToDatabase(SQLDatabase addTo) 
@@ -160,8 +162,9 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		throws ArchitectException {
 		source.populate();
 		SQLTable t = new SQLTable(parent);
-		t.columnsPopulated = true;
-		t.relationshipsPopulated = true;
+		t.columnsFolder.populated = true;
+		t.importedKeysFolder.populated = true;
+		t.exportedKeysFolder.populated = true;
 		t.tableName = source.tableName;
 		t.remarks = source.remarks;
 		t.primaryKeyName = source.getName()+"_pk";
@@ -171,18 +174,17 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	}
 	
 	protected synchronized void populateColumns() throws ArchitectException {
-		if (columnsPopulated) return;
+		if (columnsFolder.isPopulated()) return;
 		if (columnsFolder.children.size() > 0) throw new IllegalStateException("Can't populate table because it already contains columns");
 		try {
 			SQLColumn.addColumnsToTable(this,
 										getCatalogName(),
 										getSchemaName(),
 										tableName);
-			columnsPopulated = true;
 		} catch (SQLException e) {
-			throw new ArchitectException("table.populate", e);
+			throw new ArchitectException("Failed to populate columns of table "+getName(), e);
 		} finally {
-			columnsPopulated = true;
+			columnsFolder.populated = true;
 			Collections.sort(columnsFolder.children, new SQLColumn.SortByPKSeq());
 			normalizePrimaryKey();
 			int newSize = columnsFolder.children.size();
@@ -200,14 +202,13 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * relationships for the exporting tables.
 	 */
 	public synchronized void populateRelationships() throws ArchitectException {
-		if (!columnsPopulated) throw new IllegalStateException("Table must be populated before relationships are added");
-		if (relationshipsPopulated) return;
+		if (!columnsFolder.isPopulated()) throw new IllegalStateException("Table must be populated before relationships are added");
+		if (importedKeysFolder.isPopulated()) return;
 		int oldSize = importedKeysFolder.children.size();
 		try {
 			SQLRelationship.addRelationshipsToTable(this);
-			relationshipsPopulated = true;
 		} finally {
-			relationshipsPopulated = true;
+			importedKeysFolder.populated = true;
 			int newSize = importedKeysFolder.children.size();
 			if (newSize > oldSize) {
 				int[] changedIndices = new int[newSize - oldSize];
@@ -365,7 +366,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * list.
 	 */
 	public SQLColumn getColumnByName(String colName, boolean populate) throws ArchitectException {
-		if (populate && !columnsPopulated) populate();
+		if (populate && !columnsFolder.isPopulated()) populate();
 		logger.debug("Looking for column "+colName+" in "+children);
 		Iterator it = columnsFolder.children.iterator();
 		while (it.hasNext()) {
@@ -425,6 +426,10 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 				exportedKeysFolder = (Folder) child;
 			} else if (children.size() == 2) {
 				importedKeysFolder = (Folder) child;
+
+				/* we listen to the importedKeysFolder because this is how we
+				 * know to remove FK columns when their owning relationship is
+				 * removed. */
 				importedKeysFolder.addSQLObjectListener(this);
 			} else {
 				throw new UnsupportedOperationException("Can't add a 4th folder to SQLTable");
@@ -571,7 +576,15 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	}
 	
 	public boolean isPopulated() {
-		return columnsPopulated && relationshipsPopulated;
+		if (columnsFolder == null
+			|| importedKeysFolder == null
+			|| exportedKeysFolder == null) {
+			return false;
+		} else {
+			return columnsFolder.isPopulated()
+				&& importedKeysFolder.isPopulated()
+				&& exportedKeysFolder.isPopulated();
+		}
 	}
 
 	/**
@@ -602,16 +615,28 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * folders (columns and relationships).
 	 */
 	public static class Folder extends SQLObject {
+		protected boolean populated;
+		protected int type;
 		protected String name;
-		protected SQLObject parent;
+		protected SQLTable parent;
 
-		public Folder() {
-			children = new ArrayList();
-		}
+		public static final int COLUMNS = 1;
+		public static final int IMPORTED_KEYS = 2;
+		public static final int EXPORTED_KEYS = 3;
 
-		public Folder(String name) {
-			this();
-			this.name = name;
+		public Folder(int type, boolean populated) {
+			this.populated = populated;
+			this.type = type;
+			this.children = new ArrayList();
+			if (type == COLUMNS) {
+				name = "Columns";
+			} else if (type == IMPORTED_KEYS) {
+				name = "Imported Keys";
+			} else if (type == EXPORTED_KEYS) {
+				name = "Exported Keys";
+			} else {
+				throw new IllegalArgumentException("Unknown folder type: "+type);
+			}
 		}
 
 		public String getName() {
@@ -626,15 +651,33 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 			return parent;
 		}
 
-		protected void setParent(SQLObject newParent) {
-			parent = newParent;
+		/**
+		 * Sets the parent reference in this folder.
+		 * 
+		 * @throws ClassCastException if newParent is not an instance of SQLTable.
+		 */
+		protected void setParent(SQLObject newParentTable) {
+			parent = (SQLTable) newParentTable;
 		}
 
-		public void populate() {
+		public void populate() throws ArchitectException {
+			try {
+				if (type == COLUMNS) {
+					parent.populateColumns();
+				} else if (type == IMPORTED_KEYS) {
+					parent.populateRelationships();
+				} else if (type == EXPORTED_KEYS) {
+					// XXX: not implemented yet
+				} else {
+					throw new IllegalArgumentException("Unknown folder type: "+type);
+				}
+			} finally {
+				populated = true;
+			}
 		}
 
 		public boolean isPopulated() {
-			return true;
+			return populated;
 		}
 
 		public String getShortDisplayName() {
@@ -649,6 +692,14 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 			return name;
 		}
 
+		/**
+		 * Returns the type code of this folder.
+		 *
+		 * @return One of COLUMNS, IMPORTED_KEYS, or EXPORTED_KEYS.
+		 */
+		public int getType() {
+			return type;
+		}
 	}
 	
 	// -------------------- SQL Object Listener Support ----------------------
@@ -832,7 +883,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * @return the value of columnsPopulated
 	 */
 	public boolean isColumnsPopulated()  {
-		return this.columnsPopulated;
+		return columnsFolder.isPopulated();
 	}
 
 	/**
@@ -843,10 +894,10 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * SwingUIProject needs to call this.
 	 *
 	 * @param argColumnsPopulated Value to assign to this.columnsPopulated
-	 */
 	public void setColumnsPopulated(boolean argColumnsPopulated) {
 		this.columnsPopulated = argColumnsPopulated;
 	}
+	 */
 
 	/**
 	 * Gets the value of relationshipsPopulated
@@ -854,7 +905,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * @return the value of relationshipsPopulated
 	 */
 	public boolean isRelationshipsPopulated()  {
-		return this.relationshipsPopulated;
+		return importedKeysFolder.isPopulated() && exportedKeysFolder.isPopulated();
 	}
 
 	/**
@@ -865,10 +916,10 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * SwingUIProject needs to call this.
 	 *
 	 * @param argRelationshipsPopulated Value to assign to this.relationshipsPopulated
-	 */
 	public void setRelationshipsPopulated(boolean argRelationshipsPopulated) {
 		this.relationshipsPopulated = argRelationshipsPopulated;
 	}
+	 */
 
 	/**
 	 * Gets the value of primaryKeyName

@@ -140,7 +140,8 @@ public class SwingUIProject {
 		d.addSetProperties("*/table");
 		d.addSetNext("*/table", "addChild");
 
-		d.addObjectCreate("*/folder", SQLTable.Folder.class);
+		SQLFolderFactory folderFactory = new SQLFolderFactory();
+		d.addFactoryCreate("*/folder", folderFactory);
 		d.addSetProperties("*/folder");
 		d.addSetNext("*/folder", "addChild");
 
@@ -247,12 +248,36 @@ public class SwingUIProject {
 
 			String populated = attributes.getValue("populated");
 			if (populated != null && populated.equals("false")) {
-				tab.setColumnsPopulated(false);
-				tab.setRelationshipsPopulated(false);
-				tab.initFolders();
+				tab.initFolders(false);
 			}
 
 			return tab;
+		}
+	}
+
+	/** 
+	 * Creates a SQLFolder instance which is marked as populated.
+	 */
+	protected class SQLFolderFactory extends AbstractObjectCreationFactory {
+		public Object createObject(Attributes attributes) {
+			int type = -1;
+			String typeStr = attributes.getValue("type");
+			if (typeStr == null) {
+				// backward compatibility: derive type from name
+				String name = attributes.getValue("name");
+				if (name.equals("Columns")) type = SQLTable.Folder.COLUMNS;
+				else if (name.equals("Imported Keys")) type = SQLTable.Folder.IMPORTED_KEYS;
+				else if (name.equals("Exported Keys")) type = SQLTable.Folder.EXPORTED_KEYS;
+				else throw new IllegalStateException("Could not determine folder type from name");
+			} else {
+				try {
+					type = Integer.parseInt(typeStr);
+				} catch (NumberFormatException ex) {
+					throw new IllegalStateException("Could not parse folder type id \""
+													+typeStr+"\"");
+				}
+			}
+			return new SQLTable.Folder(type, true);
 		}
 	}
 
@@ -639,6 +664,7 @@ public class SwingUIProject {
 			id = "FOL"+objectIdMap.size();
 			type = "folder";
 			propNames.put("name", ((SQLTable.Folder) o).getName());
+			propNames.put("type", new Integer(((SQLTable.Folder) o).getType()));
 		} else if (o instanceof SQLColumn) {
 			id = "COL"+objectIdMap.size();
 			type = "column";
