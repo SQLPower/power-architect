@@ -23,23 +23,23 @@ public class DBTree extends JTree implements DragSourceListener {
 
 	// ---------- methods of DragSourceListener -----------
 	public void dragEnter(DragSourceDragEvent dsde) {
-		System.out.println("DBTree: got dragEnter event");
+		//System.out.println("DBTree: got dragEnter event");
 	}
 
 	public void dragOver(DragSourceDragEvent dsde) {
-		System.out.println("DBTree: got dragOver event");
+		//System.out.println("DBTree: got dragOver event");
 	}
 	
 	public void dropActionChanged(DragSourceDragEvent dsde) {
-		System.out.println("DBTree: got dropActionChanged event");
+		//System.out.println("DBTree: got dropActionChanged event");
 	}
 
 	public void dragExit(DragSourceEvent dse) {
-		System.out.println("DBTree: got dragExit event");
+		//System.out.println("DBTree: got dragExit event");
 	}
 	
 	public void dragDropEnd(DragSourceDropEvent dsde) {
-		System.out.println("DBTree: got dragDropEnd event");
+		//System.out.println("DBTree: got dragDropEnd event");
 	}
 
 	/**
