@@ -698,7 +698,8 @@ public class TablePane
 	 * Double-click support.
 	 */
 	public void mouseClicked(MouseEvent evt) {
-		if (evt.getClickCount() == 2) {
+		if ((evt.getModifiers() & MouseEvent.BUTTON1_MASK) != 0
+			&& evt.getClickCount() == 2) {
 			TablePane tp = (TablePane) evt.getSource();
 			if (tp.isSelected()) {
 				ArchitectFrame af = ArchitectFrame.getMainInstance();
