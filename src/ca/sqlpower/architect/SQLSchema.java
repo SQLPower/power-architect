@@ -37,6 +37,10 @@ public class SQLSchema extends SQLObject {
 		return getShortDisplayName();
 	}
 
+	public boolean isParentTypeDatabase() {
+		return (parent instanceof SQLDatabase);
+	}
+
 	// ---------------------- SQLObject support ------------------------
 
 	public SQLObject getParent() {
