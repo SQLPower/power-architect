@@ -115,14 +115,38 @@ public class ExportPLTransAction extends AbstractAction {
 							commandLine.append(" DEBUG=N SEND_EMAIL=N SKIP_PACKAGES=N CALC_DETAIL_STATS=N COMMIT_FREQ=100 APPEND_TO_JOB_LOG_IND=N");
 							commandLine.append(" APPEND_TO_JOB_ERR_IND=N");
 							commandLine.append(" SHOW_PROGRESS=100" );
+							commandLine.append(" SHOW_PROGRESS=10" );
 							logger.debug(commandLine.toString());
 							try {
-								Process proc = Runtime.getRuntime().exec(commandLine.toString());
-								JDialog d = new JDialog(architectFrame, "Power*Loader Engine");
-								d.setContentPane(new EngineExecPanel(commandLine.toString(), proc));
+								final Process proc = Runtime.getRuntime().exec(commandLine.toString());
+								final JDialog d = new JDialog(architectFrame, "Power*Loader Engine");
+								
+								EngineExecPanel eep = new EngineExecPanel(commandLine.toString(), proc);
+								d.setContentPane(eep);
+
+								
+								JButton abortButton = new JButton(eep.getAbortAction());
+								JButton closeButton = new JButton("Close");
+								closeButton.addActionListener(new ActionListener() {
+										public void actionPerformed(ActionEvent evt) {
+											d.setVisible(false);
+										}
+									});
+
+								JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+								buttonPanel.add(abortButton);
+								buttonPanel.add(closeButton);
+								eep.add(buttonPanel, BorderLayout.SOUTH);
+								
+								
+								
 								d.pack();
 								d.setLocationRelativeTo(plPanel);
 								d.setVisible(true);
+	
+	
+	
+	
 							} catch (IOException ie){
 								JOptionPane.showMessageDialog(playpen, "Unexpected Exception running Engine:\n"+ie);
 								logger.error(ie);
