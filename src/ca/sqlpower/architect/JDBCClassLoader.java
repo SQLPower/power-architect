@@ -13,6 +13,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 import java.sql.Connection;
+import java.security.*;
 
 public class JDBCClassLoader extends ClassLoader {
 	private static final Logger logger = Logger.getLogger(JDBCClassLoader.class);
@@ -39,6 +40,21 @@ public class JDBCClassLoader extends ClassLoader {
 	protected JDBCClassLoader(ArchitectSession session) {
 		super(session.getClass().getClassLoader());
 		this.session = session;
+
+		// classes loaded with this classloader need their own security policy,
+		// because in WebStart, the allPermissions tag applies only to the
+		// webstart classloader.
+		// I found this code in a comment on the big ranch java saloon. It works!
+		Policy.setPolicy( new Policy() {
+				public PermissionCollection
+					getPermissions(CodeSource codesource) {
+					Permissions perms = new Permissions();
+					perms.add(new AllPermission());
+					return(perms);
+				}
+				public void refresh(){
+				}
+			});
 	}
 	
 	/**
