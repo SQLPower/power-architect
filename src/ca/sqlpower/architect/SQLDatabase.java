@@ -98,16 +98,121 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 		}
 	}
 
+	public SQLCatalog getCatalogByName(String catalogName) throws ArchitectException {
+		if (!populated) populate();
+		if (children == null || children.size() == 0) {
+			return null;
+		}
+		if (! (children.get(0) instanceof SQLCatalog) ) {
+			// this database doesn't contain catalogs!
+			return null;
+		}
+		Iterator childit = children.iterator();
+		while (childit.hasNext()) {
+			SQLCatalog child = (SQLCatalog) childit.next();
+			if (child.getName().equals(catalogName)) {
+				return child;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Searches for the named schema as a direct child of this
+	 * database, or as a child of any catalog of this database.
+	 *
+	 * <p>Note: there may be more than one schema with the given name,
+	 * if your RDBMS supports catalogs.  In that case, use {@link
+	 * SQLCatalog#getSchemaByName} or write another version of this
+	 * method that return an array of SQLSchema.
+	 *
+	 * @return the first SQLSchema whose name matches the given schema
+	 * name.
+	 */
+	public SQLSchema getSchemaByName(String schemaName) throws ArchitectException {
+		if (!populated) populate();
+		if (children == null || children.size() == 0) {
+			return null;
+		}
+		if (! (children.get(0) instanceof SQLSchema || children.get(0) instanceof SQLCatalog) ) {
+			// this database doesn't contain schemas or catalogs!
+			return null;
+		}
+		Iterator childit = children.iterator();
+		while (childit.hasNext()) {
+			SQLObject child = (SQLObject) childit.next();
+			if (child instanceof SQLCatalog) {
+				// children are tables or schemas
+				SQLSchema schema = ((SQLCatalog) child).getSchemaByName(schemaName);
+				if (schema != null) {
+					return schema;
+				}
+			} else if (child instanceof SQLSchema) {
+				if (child.getName().equals(schemaName)) {
+					return (SQLSchema) child;
+				}
+			} else {
+				throw new IllegalStateException("Database contains a mix of schemas or catalogs with other objects");
+			}
+		}
+		return null;
+	}
+
 	/**
 	 * Searches this database's list of tables for one with the given
 	 * name, ignoring case because SQL isn't (usually) case sensitive.
 	 *
+	 * @param catalogName The name of the catalog to search, or null
+	 * if you want to search all catalogs.
+	 * @param schemaName The name of the schema to search (in this
+	 * database or in the given catalog) or null to search all
+	 * schemas.
+	 * @param tableName The name of the table to look for (null is not
+	 * allowed).
 	 * @return the first SQLTable with the given name, or null if no
 	 * such table exists.
 	 */
 	public SQLTable getTableByName(String tableName) throws ArchitectException {
+		return getTableByName(null, null, tableName);
+	}
+
+	public SQLTable getTableByName(String catalogName, String schemaName, String tableName)
+		throws ArchitectException {
+
 		if (!populated) populate();
-		Iterator childit = children.iterator();
+
+		if (tableName == null) {
+			throw new NullPointerException("Table Name must be specified");
+		}
+		
+		// we will recursively search a target (database, catalog, or schema)
+		SQLObject target = this;
+		
+		if (catalogName != null) {
+			target = getCatalogByName(catalogName);
+		}
+
+		// no such catalog?
+		if (target == null) {
+			return null;
+		}
+
+		if (schemaName != null) {
+			if (target instanceof SQLDatabase) {
+				target = ((SQLDatabase) target).getSchemaByName(schemaName);
+			} else if (target instanceof SQLCatalog) {
+				target = ((SQLCatalog) target).getSchemaByName(schemaName);
+			} else {
+				throw new IllegalStateException("Oops, somebody forgot to update this!");
+			}
+		}
+
+		// no such schema or catalog.schema?
+		if (target == null) {
+			return null;
+		}
+
+		Iterator childit = target.children.iterator();
 		while (childit.hasNext()) {
 			SQLObject child = (SQLObject) childit.next();
 			if (child instanceof SQLTable) {
@@ -139,6 +244,10 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	 */
 	public SQLObject getParent() {
 		return null;
+	}
+
+	public String getName() {
+		return connectionSpec.getDisplayName();
 	}
 
 	public String getShortDisplayName() {

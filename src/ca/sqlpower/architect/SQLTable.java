@@ -12,8 +12,11 @@ import java.sql.SQLException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
+import org.apache.log4j.Logger;
 
 public class SQLTable extends SQLObject {
+
+	private static Logger logger = Logger.getLogger(SQLTable.class);
 
 	protected SQLDatabase parentDatabase;
 	protected SQLObject parent;
@@ -29,6 +32,7 @@ public class SQLTable extends SQLObject {
 	 */
 	protected List importedKeys;
 	protected boolean columnsPopulated;
+	protected boolean relationshipsPopulated;
 	protected String primaryKeyName;
 
 	public SQLTable(SQLDatabase parentDb, SQLObject parent, SQLCatalog catalog, SQLSchema schema, String name, String remarks, String objectType) {
@@ -39,6 +43,7 @@ public class SQLTable extends SQLObject {
 		this.tableName = name;
 		this.remarks = remarks;
 		this.columnsPopulated = false;
+		this.relationshipsPopulated = false;
 		this.objectType = objectType;
 
 		this.children = new ArrayList();
@@ -113,17 +118,13 @@ public class SQLTable extends SQLObject {
 		}
 	}
 
-	/**
-	 * Calls to this method should be synchronized, and should check
-	 * that columnsPopulated == false.
-	 */
 	protected synchronized void populateColumns() throws ArchitectException {
 		if (columnsPopulated) return;
 		int oldSize = children.size();
 		try {
 			SQLColumn.addColumnsToTable(this,
-										catalog == null ? null : catalog.getCatalogName(),
-										schema == null ? null : schema.getSchemaName(),
+										getCatalogName(),
+										getSchemaName(),
 										tableName);
 			columnsPopulated = true;
 		} catch (SQLException e) {
@@ -141,10 +142,31 @@ public class SQLTable extends SQLObject {
 		}
 	}
 
+	public synchronized void populateRelationships() throws ArchitectException {
+		if (!columnsPopulated) throw new IllegalStateException("Table must be populated before relationships are added");
+		if (relationshipsPopulated) return;
+		int oldSize = children.size();
+		try {
+			SQLRelationship.addRelationshipsToTable(this);
+			relationshipsPopulated = true;
+		} finally {
+			relationshipsPopulated = true;
+			int newSize = children.size();
+			if (newSize > oldSize) {
+				int[] changedIndices = new int[newSize - oldSize];
+				for (int i = 0, n = newSize - oldSize; i < n; i++) {
+					changedIndices[i] = oldSize + i;
+				}
+				fireDbChildrenInserted(changedIndices, children.subList(oldSize, newSize));
+			}
+		}
+	}
+
 	public static SQLTable getDerivedInstance(SQLTable source, SQLDatabase parent)
 		throws ArchitectException {
 		SQLTable t = new SQLTable(parent);
 		t.columnsPopulated = true;
+		t.relationshipsPopulated = true;
 		t.tableName = source.tableName;
 		t.remarks = source.remarks;
 		t.inherit(source);
@@ -158,22 +180,42 @@ public class SQLTable extends SQLObject {
 		SQLColumn c;
 		Iterator it = source.getChildren().iterator();
 		while (it.hasNext()) {
-			c = SQLColumn.getDerivedInstance((SQLColumn) it.next(), this);
-			addChild(c);
+			SQLObject child = (SQLObject) it.next();
+			if (child instanceof SQLColumn) {
+				c = SQLColumn.getDerivedInstance((SQLColumn) child, this);
+				addChild(c);
+			} else {
+				logger.warn("inherit doesn't support child of type "+child.getClass().getName());
+			}
 		}
 	}
 
 	/**
-	 * XXX: This could be speeded up with a hashset if needed.
+	 * Populates this table then searches for the named column.
 	 */
-	public SQLColumn getColumnByName(String colName) {
+	public SQLColumn getColumnByName(String colName) throws ArchitectException {
+		return getColumnByName(colName, true);
+	}
+	
+	/**
+	 * Searches for the named table.
+	 *
+	 * @param populate If true, this table will retrieve its column
+	 * list from the database; otherwise it just searches the current
+	 * list.
+	 */
+	public SQLColumn getColumnByName(String colName, boolean populate) throws ArchitectException {
+		if (populate && !columnsPopulated) populate();
+		logger.debug("Looking for column "+colName+" in "+children);
 		Iterator it = children.iterator();
 		while (it.hasNext()) {
 			SQLColumn col = (SQLColumn) it.next();
 			if (col.getColumnName().equals(colName)) {
+				logger.debug("FOUND");
 				return col;
 			}
 		}
+		logger.debug("NOT FOUND");
 		return null;
 	}
 
@@ -189,6 +231,10 @@ public class SQLTable extends SQLObject {
 
 	public SQLObject getParent() {
 		return parent;
+	}
+
+	public String getName() {
+		return tableName;
 	}
 
 	/**
@@ -207,10 +253,11 @@ public class SQLTable extends SQLObject {
 	 */
 	public void populate() throws ArchitectException {
 		populateColumns();
+		populateRelationships();
 	}
 	
 	public boolean isPopulated() {
-		return columnsPopulated;
+		return columnsPopulated && relationshipsPopulated;
 	}
 
 	/**
@@ -242,6 +289,18 @@ public class SQLTable extends SQLObject {
 		// XXX: fire event?
 	}
 
+	/**
+	 * @return An empty string if the catalog for this table is null;
+	 * otherwise, catalog.getCatalogName().
+	 */
+	public String getCatalogName() {
+		if (catalog == null) {
+			return "";
+		} else {
+			return catalog.getCatalogName();
+		}
+	}
+
 	public SQLCatalog getCatalog()  {
 		return this.catalog;
 	}
@@ -249,6 +308,18 @@ public class SQLTable extends SQLObject {
 	protected void setCatalog(SQLCatalog argCatalog) {
 		this.catalog = argCatalog;
 		// XXX: fire event?
+	}
+
+	/**
+	 * @return An empty string if the schema for this table is null;
+	 * otherwise, schema.getSchemaName().
+	 */
+	public String getSchemaName() {
+		if (schema == null) {
+			return "";
+		} else {
+			return schema.getSchemaName();
+		}
 	}
 
 	public SQLSchema getSchema()  {
@@ -354,6 +425,24 @@ public class SQLTable extends SQLObject {
 	 */
 	protected void setColumnsPopulated(boolean argColumnsPopulated) {
 		this.columnsPopulated = argColumnsPopulated;
+	}
+
+	/**
+	 * Gets the value of relationshipsPopulated
+	 *
+	 * @return the value of relationshipsPopulated
+	 */
+	public boolean isRelationshipsPopulated()  {
+		return this.relationshipsPopulated;
+	}
+
+	/**
+	 * Sets the value of relationshipsPopulated
+	 *
+	 * @param argRelationshipsPopulated Value to assign to this.relationshipsPopulated
+	 */
+	protected void setRelationshipsPopulated(boolean argRelationshipsPopulated) {
+		this.relationshipsPopulated = argRelationshipsPopulated;
 	}
 
 	/**

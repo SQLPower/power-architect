@@ -14,6 +14,12 @@ public abstract class SQLObject implements java.io.Serializable {
 	protected List children;
 
 	/**
+	 * This is the name of the object.  For tables, it returns the
+	 * table name; for catalogs, the catalog name, and so on.
+	 */
+	public abstract String getName();
+
+	/**
 	 * Returns the parent of this SQLObject or <code>null</code> if it
 	 * is a root object such as SQLDatabase.
 	 */

@@ -100,6 +100,10 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 			return null;
 		}
 
+		public String getName() {
+			return getShortDisplayName();
+		}
+
 		public String getShortDisplayName() {
 			return "Database Connections";
 		}
@@ -208,7 +212,7 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 		if (e.getPropertyName().equals("shortDisplayName")) {
 			fireTreeNodesChanged(new TreeModelEvent(this, getPathToNode(source)));
 		} else {
-			throw new UnsupportedOperationException("not yet");
+			logger.info("Ignoring dbObjectChanged "+e.getSQLSource().getName()+"."+e.getPropertyName());
 		}
 	}
 
