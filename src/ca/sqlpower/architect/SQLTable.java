@@ -43,6 +43,14 @@ public class SQLTable extends SQLObject {
 
 		this.children = new ArrayList();
 	}
+	
+	/**
+	 * Creates a new SQLTable with parent as its parent and a null
+	 * schema and catalog.
+	 */
+	public SQLTable(SQLDatabase parent) {
+		this(parent, parent, null, null, "", "", "TABLE");
+	}
 
 	protected static void addTablesToDatabase(SQLDatabase addTo) 
 		throws SQLException, ArchitectException {
@@ -133,6 +141,28 @@ public class SQLTable extends SQLObject {
 		}
 	}
 
+	public static SQLTable getDerivedInstance(SQLTable source, SQLDatabase parent)
+		throws ArchitectException {
+		SQLTable t = new SQLTable(parent);
+		t.columnsPopulated = true;
+		t.tableName = source.tableName;
+		t.remarks = source.remarks;
+		t.inherit(source);
+		return t;
+	}
+
+	/**
+	 * Adds all the columns of the given source table to this table.
+	 */
+	public void inherit(SQLTable source) throws ArchitectException {
+		SQLColumn c;
+		Iterator it = source.getChildren().iterator();
+		while (it.hasNext()) {
+			c = SQLColumn.getDerivedInstance((SQLColumn) it.next(), this);
+			addChild(c);
+		}
+	}
+
 	/**
 	 * XXX: This could be speeded up with a hashset if needed.
 	 */
@@ -209,6 +239,7 @@ public class SQLTable extends SQLObject {
 	 */
 	public void setParentDatabase(SQLDatabase argParentDatabase) {
 		this.parentDatabase = argParentDatabase;
+		// XXX: fire event?
 	}
 
 	public SQLCatalog getCatalog()  {
@@ -217,6 +248,7 @@ public class SQLTable extends SQLObject {
 
 	protected void setCatalog(SQLCatalog argCatalog) {
 		this.catalog = argCatalog;
+		// XXX: fire event?
 	}
 
 	public SQLSchema getSchema()  {
@@ -225,6 +257,7 @@ public class SQLTable extends SQLObject {
 
 	protected void setSchema(SQLSchema argSchema) {
 		this.schema = argSchema;
+		// XXX: fire event?
 	}
 
 	/**
@@ -243,6 +276,7 @@ public class SQLTable extends SQLObject {
 	 */
 	public void setTableName(String argTableName) {
 		this.tableName = argTableName;
+		fireDbObjectChanged("tableName");
 	}
 
 	/**
@@ -261,6 +295,7 @@ public class SQLTable extends SQLObject {
 	 */
 	public void setRemarks(String argRemarks) {
 		this.remarks = argRemarks;
+		fireDbObjectChanged("remarks");
 	}
 
 	/**
@@ -300,6 +335,7 @@ public class SQLTable extends SQLObject {
 	 */
 	public void setImportedKeys(List argImportedKeys) {
 		this.importedKeys = argImportedKeys;
+		fireDbObjectChanged("importedKeys");
 	}
 
 	/**
@@ -336,6 +372,7 @@ public class SQLTable extends SQLObject {
 	 */
 	public void setPrimaryKeyName(String argPrimaryKeyName) {
 		this.primaryKeyName = argPrimaryKeyName;
+		fireDbObjectChanged("primaryKeyName");
 	}
 	
 	
@@ -355,6 +392,7 @@ public class SQLTable extends SQLObject {
 	 */
 	public void setObjectType(String argObjectType) {
 		this.objectType = argObjectType;
+		fireDbObjectChanged("objectType");
 	}
 
 }
