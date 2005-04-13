@@ -145,7 +145,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 						}
 						tableParent = schema;
 					}
-
+														  
 					tableParent.children.add(new SQLTable(tableParent,
 														  mdTables.getString(3),
 														  mdTables.getString(5),

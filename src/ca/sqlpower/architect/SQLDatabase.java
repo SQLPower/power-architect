@@ -30,8 +30,9 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 
 	protected DBConnectionSpec connectionSpec;
 	protected transient Connection connection;
-	protected boolean populated = false;
+
 	protected boolean ignoreReset = false;
+
 
 	/**
 	 * Constructor for instances that connect to a real database by JDBC.
@@ -111,16 +112,34 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 		}
 	}
 
-	/**
-	 * This hands off all the real work to {@link SQLTable#addTablesToDatabase},
-	 * which will add either SQLCatalog or SQLSchema or SQLTable objects 
-	 * to this table's children list.
-	 */
-	protected synchronized void populateTables() throws ArchitectException {
+	public void populate() throws ArchitectException {
 		if (populated) return;
 		int oldSize = children.size();
+		
+		Connection con = null;
+		ResultSet rs = null;
 		try {
-			SQLTable.addTablesToDatabase(this);
+			con = getConnection();
+			DatabaseMetaData dbmd = con.getMetaData();
+			rs = dbmd.getCatalogs();
+		
+			while (rs.next()) {
+				String catName = rs.getString(1);
+				SQLCatalog cat = null;
+				if (catName != null) {
+					cat = new SQLCatalog(this, catName);
+					cat.setNativeTerm(dbmd.getCatalogTerm());
+					logger.debug("Set catalog term to "+cat.getNativeTerm());
+					children.add(cat);
+				}
+			}
+
+			if ( children.size() == oldSize ) {
+				rs = dbmd.getSchemas();
+				while (rs.next()) {
+					children.add(new SQLSchema(this, rs.getString(1)));
+				}
+			}
 		} catch (SQLException e) {
 			throw new ArchitectException("database.populate.fail", e);
 		} finally {
@@ -133,8 +152,14 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 				}
 				fireDbChildrenInserted(changedIndices, children.subList(oldSize, newSize));
 			}
+			try {
+				if ( rs != null )	rs.close();
+			} catch (SQLException e2) {
+				throw new ArchitectException("database.rs.close.fail", e2);
+			}
 		}
 	}
+	
 
 	public SQLCatalog getCatalogByName(String catalogName) throws ArchitectException {
 		if (!populated) populate();
@@ -304,13 +329,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 		return true;
 	}
 
-	public void populate() throws ArchitectException {
-		populateTables();
-	}
-
-	public boolean isPopulated() {
-		return populated;
-	}
+	
 
 	// ----------------- accessors and mutators -------------------
 	
@@ -351,6 +370,10 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 		return tables;
 	}
 
+
+	
+	
+	
 	/**
 	 * Gets the value of connectionSpec
 	 *
@@ -462,4 +485,50 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	public String toString() {
 		return getName();
 	}
+	
+	private PopulateProgressMonitor progressMonitor;
+	public synchronized PopulateProgressMonitor getProgressMonitor() throws ArchitectException {
+		if (progressMonitor == null) {
+			progressMonitor = new PopulateProgressMonitor();
+		}
+		return progressMonitor;
+	}
+	
+	// -------------- Small class for monitoring populate progress -----------------
+	
+	public class PopulateProgressMonitor {
+		
+		private Integer jobSize;
+		
+		protected PopulateProgressMonitor() throws ArchitectException {
+		}
+		
+		/**
+		 * Returns the number of children this database will have when
+		 * it is populated.  If the database connection has not been made
+		 * yet, it returns null.  Otherwise it counts schemas, catalogs,
+		 * or tables (depending on DBMS type).
+		 */
+		public Integer getJobSize() throws ArchitectException {
+			if (connection == null) {
+				return null;
+			} else if (jobSize == null) {
+				jobSize = new Integer(getChildCount());  // this will probably do network io
+			}
+			return jobSize;
+		}
+		
+		public int getProgress() {
+			if (children == null) {
+				return 0;
+			} else {
+				return children.size();
+			}
+		}
+		
+		public boolean isFinished() {
+			return isPopulated();
+		}
+	}
+	
 }

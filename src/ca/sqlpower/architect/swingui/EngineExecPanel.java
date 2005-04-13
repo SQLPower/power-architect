@@ -9,15 +9,22 @@ import java.io.*;
 public class EngineExecPanel extends JPanel {
 	
 	protected Process proc;
+	protected JScrollPane jsp;
 	protected JTextArea output;
+	protected JScrollBar jsb;
 	protected Thread iss;
 	protected Thread ess;
 	private Font font;
-	boolean autoMoveInd;
+	boolean scrollBarLock;
 	
 	protected Action abortAction;
+	protected Action scrollBarLockAction;
 
 
+	public Action getScrollBarLockAction() {
+		return scrollBarLockAction;
+	}
+	
 	public Action getAbortAction() {
 		return abortAction;
 	}
@@ -25,7 +32,7 @@ public class EngineExecPanel extends JPanel {
 	public EngineExecPanel(String header, Process pr) {
 		super(new BorderLayout());
 		proc = pr;
-		autoMoveInd = true;
+		scrollBarLock = false;
 
 		abortAction = new AbstractAction("Abort") {
 			public void actionPerformed(ActionEvent e) {
@@ -38,13 +45,25 @@ public class EngineExecPanel extends JPanel {
 		};
 		abortAction.setEnabled(true);
 		
+		scrollBarLockAction = new AbstractAction("Scroll Lock") {
+			public void actionPerformed(ActionEvent e) {
+				JCheckBox cb = (JCheckBox)e.getSource();
+				scrollBarLock = cb.isSelected();
+			}
+		};
+
 		font = new Font("Courier New", Font.PLAIN, 12 );
 
 		output = new JTextArea(25, 120);
 		output.append(header);
 		output.append("\n\n");
 		output.setFont(font);
-		add(new JScrollPane(output), BorderLayout.CENTER);
+		
+		jsp = new JScrollPane(output);
+		jsb = jsp.getVerticalScrollBar();
+
+ 
+		add(jsp, BorderLayout.CENTER);
 
 		InputStream pis = new BufferedInputStream(proc.getInputStream());
 		InputStream pes = new BufferedInputStream(proc.getErrorStream());
@@ -104,7 +123,8 @@ public class EngineExecPanel extends JPanel {
 					msg.append(String.valueOf((char) ch));
 					if ( ch == '\n' ) {
 						output.append(msg.toString());
-						output.setCaretPosition(output.getText().length());
+						if ( !scrollBarLock && ( jsb == null || !jsb.getValueIsAdjusting()) )
+							output.setCaretPosition(output.getText().length());
 						msg.delete(0,msg.length());
 					}
 				}

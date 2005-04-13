@@ -6,7 +6,8 @@ import org.apache.log4j.Logger;
 public abstract class SQLObject implements java.io.Serializable {
 
 	private static Logger logger = Logger.getLogger(SQLObject.class);
-
+	protected boolean populated = false;
+	
 	/**
 	 * The children of this SQLObject (if not applicable, set to
 	 * Collections.EMPTY_LIST in your constructor).
@@ -39,10 +40,7 @@ public abstract class SQLObject implements java.io.Serializable {
 	 */
 	protected abstract void populate() throws ArchitectException;
 
-	/**
-	 * Must return false if and only if <code>populate()</code> still needs to be called.
-	 */
-	public abstract boolean isPopulated();
+	
 
 	/**
 	 * Returns a short string that should be displayed to the user for
@@ -50,6 +48,14 @@ public abstract class SQLObject implements java.io.Serializable {
 	 */
 	public abstract String getShortDisplayName();
 
+	/**
+	 * Returns populated.
+	 */
+	public boolean isPopulated() {
+		return populated;
+	}
+	
+	
 	/**
 	 * Returns true if and only if this object can have child
 	 * SQLObjects.  Your implementation of this method <b>must not</b>
@@ -66,6 +72,8 @@ public abstract class SQLObject implements java.io.Serializable {
 	 * SQLRelationship, SQLColumn, etc.) which are directly contained
 	 * within this SQLObject.
 	 */
+	 
+	
 	public List getChildren() throws ArchitectException {
 		if (!allowsChildren()) return null;
 		populate();

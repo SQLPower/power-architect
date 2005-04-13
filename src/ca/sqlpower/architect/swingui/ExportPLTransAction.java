@@ -132,10 +132,13 @@ public class ExportPLTransAction extends AbstractAction {
 											d.setVisible(false);
 										}
 									});
+								JCheckBox scrollLockCheckBox = new JCheckBox(eep.getScrollBarLockAction());
+
 
 								JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
 								buttonPanel.add(abortButton);
 								buttonPanel.add(closeButton);
+								buttonPanel.add(scrollLockCheckBox);
 								eep.add(buttonPanel, BorderLayout.SOUTH);
 								
 								

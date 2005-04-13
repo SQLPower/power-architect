@@ -2,10 +2,14 @@ package ca.sqlpower.architect;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSetMetaData;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.Iterator;
 import java.util.Collections;
+import org.apache.log4j.Logger;
 
 /**
  * A SQLCatalog is a container for other SQLObjects.  If it is in the
@@ -14,8 +18,10 @@ import java.util.Collections;
  * {@link SQLTable#addTablesToDatabase}.
  */
 public class SQLCatalog extends SQLObject {
+	private static Logger logger = Logger.getLogger(SQLCatalog.class);
 	protected SQLObject parent;
 	protected String catalogName;
+	protected boolean populated = false;
 
 	/**
 	 * The term used for catalogs in the native database system.  In
@@ -122,11 +128,68 @@ public class SQLCatalog extends SQLObject {
 	}
 
 	public void populate() throws ArchitectException {
+		if (populated) return;
+		
+		int oldSize = children.size();
+		synchronized (parent) {
+			
+			ResultSet rs = null;
+			try {
+			
+				Connection con = ((SQLDatabase)parent).getConnection();
+				DatabaseMetaData dbmd = con.getMetaData();	
+
+				con.setCatalog(catalogName);
+				
+				rs = dbmd.getSchemas();
+				
+				while (rs.next()) {
+					String schName = rs.getString(1);
+					SQLSchema schema = null;
+
+					if (schName != null) {
+						schema = new SQLSchema(this, schName);
+						children.add(schema);
+						schema.setNativeTerm(dbmd.getSchemaTerm());
+						logger.debug("Set schema term to "+schema.getNativeTerm());
+					}
+				}
+				
+				
+				if ( oldSize == children.size() ) {
+					rs = dbmd.getTables(catalogName,
+										null,
+										"%",
+										new String[] {"TABLE", "VIEW"});
+
+					while (rs.next()) {
+						children.add(new SQLTable(this,
+												  rs.getString(3),
+												  rs.getString(5),
+												  rs.getString(4) ));
+					}
+				}
+			} catch (SQLException e) {
+				throw new ArchitectException("catalog.populate.fail", e);
+			} finally {
+				populated = true;
+				int newSize = children.size();
+				if (newSize > oldSize) {
+					int[] changedIndices = new int[newSize - oldSize];
+					for (int i = 0, n = newSize - oldSize; i < n; i++) {
+						changedIndices[i] = oldSize + i;
+					}
+					fireDbChildrenInserted(changedIndices, children.subList(oldSize, newSize));
+				}
+				try {
+					if ( rs != null )	rs.close();
+				} catch (SQLException e2) {
+					throw new ArchitectException("catalog.rs.close.fail", e2);
+				}
+			}
+		}
 	}
 
-	public boolean isPopulated() {
-		return true;
-	}
 
 	// ----------------- accessors and mutators -------------------
 
