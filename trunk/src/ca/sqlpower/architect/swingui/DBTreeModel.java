@@ -246,12 +246,15 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 		
 		final SQLExceptionNode excNode = new SQLExceptionNode(ex, message);
 		excNode.setParent((SQLObject) parent);
-		// add it later so the call to getChildCount() doesn't cause tree model events!
-// 		SwingUtilities.invokeLater(new Runnable() {
-// 				public void run() {
-					parent.addChild(excNode);
-// 				}
-// 			});
+
+		/* This is likely to fail, but it should convince the parent that it is populated */
+		try {
+			parent.getChildCount();
+		} catch (ArchitectException e) {
+			logger.error("Couldn't populate parent node of exception");
+		}
+
+		parent.addChild(excNode);
 		return excNode;
 	}
 

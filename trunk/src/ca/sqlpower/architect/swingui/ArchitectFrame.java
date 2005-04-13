@@ -60,6 +60,7 @@ public class ArchitectFrame extends JFrame {
 	protected CreateRelationshipAction createNonIdentifyingRelationshipAction;
 	protected EditRelationshipAction editRelationshipAction;
 	protected Action exportDDLAction;
+	protected Action compareDMAction;
 	protected ExportPLTransAction exportPLTransAction;
 	protected ArchitectFrameWindowListener afWindowListener;
 	protected Action exitAction = new AbstractAction("Exit") {
@@ -192,6 +193,8 @@ public class ArchitectFrame extends JFrame {
 		zoomNormalAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Reset Zoom");
 
 		exportDDLAction = new ExportDDLAction();
+		compareDMAction = new CompareDMAction();
+
 		exportPLTransAction = new ExportPLTransAction();
 		deleteSelectedAction = new DeleteSelectedAction();
 		createIdentifyingRelationshipAction = new CreateRelationshipAction(true);
@@ -211,6 +214,7 @@ public class ArchitectFrame extends JFrame {
 		fileMenu.add(new JMenuItem(saveProjectAsAction));
 		fileMenu.add(new JMenuItem(printAction));
 		fileMenu.add(new JMenuItem(exportDDLAction));
+		fileMenu.add(new JMenuItem(compareDMAction));
                // fileMenu.add(new JMenuItem(exportPLTransAction));
 		fileMenu.add(new JMenuItem(prefAction));
 		fileMenu.add(new JMenuItem(projectSettingsAction));
@@ -246,6 +250,8 @@ public class ArchitectFrame extends JFrame {
 		projectBar.add(printAction);
 		projectBar.addSeparator();
 		projectBar.add(exportDDLAction);
+		projectBar.add(compareDMAction);
+
 
  		ppBar.add(zoomInAction);
  		ppBar.add(zoomOutAction);
