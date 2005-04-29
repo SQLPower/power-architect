@@ -228,6 +228,7 @@ public class ExportPLTransAction extends AbstractAction {
 	 */
 	protected String checkTargetTable(SQLTable t) throws SQLException, ArchitectException {
 		GenericDDLGenerator ddlg = architectFrame.getProject().getDDLGenerator();
+		logger.debug("DDLG class is: " + ddlg.getClass().getName());
 		String tableName = ddlg.toIdentifier(t.getName());
 		List ourColumns = new ArrayList();
 		Iterator it = t.getColumns().iterator();

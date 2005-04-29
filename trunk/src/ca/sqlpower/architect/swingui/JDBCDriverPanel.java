@@ -42,13 +42,25 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 	 */
 	JFileChooser fileChooser;
 
+	/**
+	 * progress bar stuff
+	 */
+    protected JProgressBar progressBar;
+	protected javax.swing.Timer timer;
+	protected boolean doneLoadingJDBC;
+	protected JLabel progressLabel;
+
 	protected JButton addButton;
 	protected JButton delButton;
 
 	public JDBCDriverPanel(ArchitectSession session) {
 		this.session = session;
 		setup();
-		revertToUserSettings();
+		try {
+			revertToUserSettings();
+		} catch (ArchitectException e) {
+			logger.error("revertToUserSettings failed.", e);
+		}			
 	}
 
 	public void setup() {
@@ -64,40 +76,24 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 		buttonPanel.add(addButton = new JButton(new AddAction()));
 		buttonPanel.add(delButton = new JButton(new DelAction()));
 		add(buttonPanel, BorderLayout.SOUTH);
+
+		JPanel progressPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+		progressBar = new JProgressBar();
+		progressBar.setStringPainted(true); //get space for the string
+		progressBar.setVisible(false);		
+		progressPanel.add(progressBar);
+		progressLabel = new JLabel("Scanning for JDBC Drivers...");
+		progressLabel.setVisible(false);
+		progressPanel.add(progressLabel);
+		add(progressPanel, BorderLayout.NORTH);
 	}
 
-	protected void revertToUserSettings() {
-		dtm.setRoot(new DefaultMutableTreeNode());
-		
-		Iterator it = session.getDriverJarList().iterator();
-		while (it.hasNext()) {
-			String path = (String) it.next();
-			addJarFile(new File(path));
-		}
-	}
-
-	public void addJarFile(File file) {
-		DefaultMutableTreeNode root = (DefaultMutableTreeNode) dtm.getRoot();
-		try {
-			JarFile jf = new JarFile(file);
-			JDBCScanClassLoader cl = new JDBCScanClassLoader(jf);
-			List driverClasses = cl.scanForDrivers();
-			System.out.println("Found drivers: "+driverClasses);
-			DefaultMutableTreeNode node = new DefaultMutableTreeNode(file.getPath());
-			dtm.insertNodeInto(node, root, root.getChildCount());
-			Iterator it = driverClasses.iterator();
-			while (it.hasNext()) {
-				DefaultMutableTreeNode child = new DefaultMutableTreeNode(it.next());
-				dtm.insertNodeInto(child, node, node.getChildCount());
-			}
-			TreePath path = new TreePath(node.getPath());
-			driverTree.expandPath(path);
-			driverTree.scrollPathToVisible(path);
-		} catch (IOException ex) {
-			logger.warn("I/O Error reading JAR file",ex);
-			JOptionPane.showMessageDialog(this, "Could not read JAR file \""
-										  +file.getPath()+"\"\n"+ex.getMessage());
-		}
+	protected void revertToUserSettings() throws ArchitectException {
+		dtm.setRoot(new DefaultMutableTreeNode());		
+		LoadJDBCDriversWorker worker = new LoadJDBCDriversWorker(session.getDriverJarList());
+	    ProgressWatcher watcher = new ProgressWatcher(progressBar,worker,progressLabel);
+		new javax.swing.Timer(50, watcher).start();
+		new Thread(worker).start();
 	}
 
 	/**
@@ -124,12 +120,20 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 			super("Add...");
 		}
 
-		public void actionPerformed(ActionEvent e) {
-			
-			fileChooser.addChoosableFileFilter(ASUtils.JAR_ZIP_FILE_FILTER);
-			int returnVal = fileChooser.showOpenDialog(JDBCDriverPanel.this);
-			if(returnVal == JFileChooser.APPROVE_OPTION) {
-				addJarFile(fileChooser.getSelectedFile());
+		public void actionPerformed(ActionEvent e) {			
+			try {
+				fileChooser.addChoosableFileFilter(ASUtils.JAR_ZIP_FILE_FILTER);
+				int returnVal = fileChooser.showOpenDialog(JDBCDriverPanel.this);
+				if(returnVal == JFileChooser.APPROVE_OPTION) {
+					List list = new ArrayList();
+					list.add(fileChooser.getSelectedFile().getAbsolutePath());
+				    LoadJDBCDriversWorker worker = new LoadJDBCDriversWorker(list);
+                    ProgressWatcher watcher = new ProgressWatcher(progressBar,worker,progressLabel);
+					new javax.swing.Timer(50, watcher).start();
+					new Thread(worker).start();
+				}
+			} catch (ArchitectException ex) {
+				logger.error("AddAction.actionPerformed() problem.", ex);
 			}
 		}
 	}
@@ -147,6 +151,86 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 		}
 	}
 
+	protected class LoadJDBCDriversWorker implements Monitorable  {
+		public boolean finished = false;		
+		private List driverJarList = null;
+		
+
+		private int jarCount = 0; // which member of the JAR file list are we currently processing
+		private JarFile jf = null;
+		private JDBCScanClassLoader cl = null;		
+
+		public LoadJDBCDriversWorker (List driverJarList) throws ArchitectException {
+			this.driverJarList = driverJarList;	
+		}
+
+		public int getJobSize() throws ArchitectException {			
+			return driverJarList.size() * 1000;
+		}
+		
+		public int getProgress() throws ArchitectException {
+			double fraction = 0.0;
+			if (cl != null) {
+				fraction = cl.getFraction();
+			}
+		    int progress = (jarCount - 1) * 1000 + (int) (fraction * 1000.0);
+			logger.debug("******************* progress is: " + progress + " of " + getJobSize());
+			return progress;
+		}
+		
+		public boolean isFinished() throws ArchitectException {
+			return finished;
+		}
+		
+		public void run() {	        
+			try {
+				Iterator it = driverJarList.iterator();
+				while (it.hasNext()) {
+					// initialize counters
+					jarCount++;
+					logger.debug("**************** processin file #" + jarCount + " of " + driverJarList.size());
+					String path = (String) it.next();
+					addJarFile(new File(path));
+				}
+				finished = true;
+			} catch ( Exception exp ) {
+				logger.error("something went wrong in LoadJDBCDriversWorker thread!",exp);
+			} finally {
+				finished = true;
+			}
+		}
+
+		public void addJarFile(File file) {
+			DefaultMutableTreeNode root = (DefaultMutableTreeNode) dtm.getRoot();
+			try {
+				jf = new JarFile(file);
+				cl = new JDBCScanClassLoader(jf);
+				List driverClasses = cl.scanForDrivers();
+				System.out.println("Found drivers: "+driverClasses);
+				DefaultMutableTreeNode node = new DefaultMutableTreeNode(file.getPath());
+				dtm.insertNodeInto(node, root, root.getChildCount());
+				Iterator it = driverClasses.iterator();
+				while (it.hasNext()) {
+					DefaultMutableTreeNode child = new DefaultMutableTreeNode(it.next());
+					dtm.insertNodeInto(child, node, node.getChildCount());
+				}
+				TreePath path = new TreePath(node.getPath());
+				driverTree.expandPath(path);
+				driverTree.scrollPathToVisible(path);
+			} catch (IOException ex) {
+				logger.warn("I/O Error reading JAR file",ex);
+				final Exception fex = ex;
+				final File ffile = file;
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						JOptionPane.showMessageDialog(JDBCDriverPanel.this, "Could not read JAR file \""
+													  +ffile.getPath()+"\"\n"+fex.getMessage());
+					}
+				});				
+			}
+		}
+	}
+
 	/**
 	 * Scans a jar file for instances of java.sql.Driver.
 	 */
@@ -154,6 +238,8 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 
 		JarFile jf;
 		List drivers;
+		int count = 0;
+		
 
 		/**
 		 * Creates a class loader that uses this class's class loader
@@ -164,6 +250,14 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 			this.jf = jf;
 		}
 
+		public synchronized double getFraction() {
+			double retval = 0.0;
+			if (jf != null) {
+				retval = (double)count/(double)jf.size();
+			}
+			return retval;
+		}
+
 		/**
 		 * Returns a list of Strings naming the subclasses of
 		 * java.sql.Driver which exist in this class loader's jar
@@ -171,7 +265,9 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 		 */
 		public List scanForDrivers() {
 			drivers = new LinkedList();
+			logger.debug("********* " + jf.getName() + " has " + jf.size() + " files.");
 			for (Enumeration entries = jf.entries(); entries.hasMoreElements(); ) {
+				count++;
 				ZipEntry ent = (ZipEntry) entries.nextElement();
 				if (ent.getName().endsWith(".class")) {
 					try {

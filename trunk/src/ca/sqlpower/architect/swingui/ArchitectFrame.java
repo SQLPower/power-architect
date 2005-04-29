@@ -215,7 +215,6 @@ public class ArchitectFrame extends JFrame {
 		fileMenu.add(new JMenuItem(printAction));
 		fileMenu.add(new JMenuItem(exportDDLAction));
 		fileMenu.add(new JMenuItem(compareDMAction));
-               // fileMenu.add(new JMenuItem(exportPLTransAction));
 		fileMenu.add(new JMenuItem(prefAction));
 		fileMenu.add(new JMenuItem(projectSettingsAction));
 		fileMenu.add(new JMenuItem(saveSettingsAction));

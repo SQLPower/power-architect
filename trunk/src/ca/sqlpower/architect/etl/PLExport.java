@@ -594,8 +594,8 @@ public class PLExport {
 		} catch (PLSchemaException p) {
 			throw new ArchitectException("couldn't load default parameters", p);
 		}
-		
-		sm = new PLSecurityManager(con, plUsername, plPassword);
+		// don't need to verify passwords in client apps (as opposed to webapps)
+		sm = new PLSecurityManager(con, plUsername, plPassword, false);
 		maybeInsertFolder(con);
 		deleteJobCascade(con);
 		insertJob(con);
