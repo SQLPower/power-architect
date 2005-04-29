@@ -179,6 +179,8 @@ public class SwingUIProject {
 		DDLGeneratorFactory ddlgFactory = new DDLGeneratorFactory();
 		d.addFactoryCreate("architect-project/ddl-generator", ddlgFactory);
 		d.addSetProperties("architect-project/ddl-generator");
+
+
 		FileFactory fileFactory = new FileFactory();
 		d.addFactoryCreate("*/file", fileFactory);
 		d.addSetNext("*/file", "setFile");

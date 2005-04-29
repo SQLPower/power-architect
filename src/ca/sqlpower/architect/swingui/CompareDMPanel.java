@@ -193,7 +193,7 @@ public class CompareDMPanel extends JPanel {
 		targetLikeSourceButton.setActionCommand("target like source");
 		targetLikeSourceButton.setSelected(false);
 
-		JRadioButton justCompareButton = new JRadioButton("Cpmpare source and target" );
+		JRadioButton justCompareButton = new JRadioButton("Compare source and target" );
 		justCompareButton.setActionCommand("compare");
 		justCompareButton.setSelected(true);
 

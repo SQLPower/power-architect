@@ -7,6 +7,7 @@ import java.io.*;
 import java.sql.Connection;
 import java.sql.Statement;
 import java.sql.SQLException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Iterator;
 import javax.swing.*;
@@ -67,6 +68,8 @@ public class ExportDDLAction extends AbstractAction {
 				}
 			});
 		buttonPanel.add(cancelButton);
+
+
 		
 		cp.add(buttonPanel, BorderLayout.SOUTH);
 		
@@ -97,73 +100,23 @@ public class ExportDDLAction extends AbstractAction {
 
 			JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
+			JPanel progressPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+			final JProgressBar progressBar = new JProgressBar();
+			progressBar.setStringPainted(true); 
+			progressBar.setVisible(false);		
+			progressPanel.add(progressBar);
+			final JLabel progressLabel = new JLabel("Excecuting Statements...");
+			progressLabel.setVisible(false);
+			progressPanel.add(progressLabel);
+			buttonPanel.add(progressPanel);
+
 			final JButton executeButton = new JButton("Execute");
 			executeButton.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
-						SQLDatabase target = architectFrame.playpen.getDatabase();
-						Connection con;
-						Statement stmt;
-						try {
-							con = target.getConnection();
-						} catch (ArchitectException ex) {
-							JOptionPane.showMessageDialog
-								(d, "Couldn't connect to target database: "+ex.getMessage()
-								 +"\nPlease check the connection settings and try again.");
-							architectFrame.getMainInstance().playpen.showDbcsDialog();
-							return;
-						} catch (Exception ex) {
-							JOptionPane.showMessageDialog
-								(d, "You have to specify a target database connection"
-								 +"\nbefore executing this script.");
-							logger.error("Unexpected exception in DDL generation", ex);
-							architectFrame.getMainInstance().playpen.showDbcsDialog();
-							return;
-						}
-
-						List statements;
-						try {
-							stmt = con.createStatement();
-							statements = ddlg.generateDDLStatements(target);
-						} catch (SQLException ex) {
-							JOptionPane.showMessageDialog
-								(d, "Couldn't generate DDL statements: "+ex.getMessage()
-								 +"\nThe problem was reported by the target database.");
-							return;
-						} catch (ArchitectException ex) {
-							JOptionPane.showMessageDialog
-								(d, "Couldn't generate DDL statements: "+ex.getMessage()
-								 +"\nThe problem was detected internally to the Architect.");
-							return;
-						}
-
-						int stmtsTried = 0;
-						int stmtsCompleted = 0;
-						Iterator it = statements.iterator();
-						while (it.hasNext()) {
-							String sql = (String) it.next();
-							try {
-								stmtsTried++;
-								stmt.executeUpdate(sql);
-								stmtsCompleted++;
-							} catch (SQLException ex) {
-								int decision = JOptionPane.showConfirmDialog
-									(d, "SQL statement failed: "+ex.getMessage()
-									 +"\nThe statement was:\n"+sql+"\nDo you want to continue?",
-									 "SQL Failure", JOptionPane.YES_NO_OPTION);
-								if (decision == JOptionPane.NO_OPTION) {
-									return;
-								}
-							}
-						}
-
-						try {
-							stmt.close();
-						} catch (SQLException ex) {
-							logger.error("SQLException while closing statement", ex);
-						}
-
-						JOptionPane.showMessageDialog(d, "Successfully executed "+stmtsCompleted
-													  +" out of "+stmtsTried+" statements.");
+					    ExecuteDDLWorker worker = new ExecuteDDLWorker(d,ddlg);
+    	                ProgressWatcher watcher = new ProgressWatcher(progressBar,worker,progressLabel);
+						new javax.swing.Timer(50, watcher).start();
+						new Thread(worker).start();								
 					}
 				});
 			buttonPanel.add(executeButton);
@@ -216,6 +169,170 @@ public class ExportDDLAction extends AbstractAction {
 			logger.error("Couldn't Generate DDL", e);
 			JOptionPane.showMessageDialog(parent, "Couldn't Generate DDL:\n"+e.getMessage());
 		}
+	}
+
+	protected class ExecuteDDLWorker implements Monitorable {		
+		JDialog dialog;
+		List statements;
+		int stmtsTried = 0;
+		int stmtsCompleted = 0;
+		boolean finished = false;
+		boolean cancelled = false;
+		GenericDDLGenerator ddlg;
+		
+		
+		public ExecuteDDLWorker (JDialog dialog, GenericDDLGenerator ddlg) {
+			this.dialog = dialog;
+			this.ddlg = ddlg;
+		}		
+
+		public int getJobSize() throws ArchitectException {			
+			if (statements != null) {
+				return statements.size();
+			} else {
+				return 1000; // avoid divide by zero showing up in UI
+			}
+		}
+		
+		public int getProgress() throws ArchitectException {
+			return stmtsTried;			
+		}
+		
+		public boolean isFinished() throws ArchitectException {
+			return finished;
+		}
+
+		public void cancelJob() {
+			cancelled = true;
+		}
+
+		public boolean isCancelled() {
+			return cancelled;
+		}
+
+		public void run() {	        
+
+			finished = false;
+			stmtsTried = 0;
+			stmtsCompleted = 0;
+			SQLDatabase target = architectFrame.playpen.getDatabase();
+			Connection con;
+			Statement stmt;
+
+			try {
+				con = target.getConnection();
+			} catch (ArchitectException ex) {
+				final Exception fex = ex;
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						JOptionPane.showMessageDialog
+							(dialog, "Couldn't connect to target database: "+fex.getMessage()
+							 +"\nPlease check the connection settings and try again.");
+						architectFrame.getMainInstance().playpen.showDbcsDialog();
+					}
+				});								
+				finished = true;
+				return;
+			} catch (Exception ex) {
+				logger.error("Unexpected exception in DDL generation", ex);
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						JOptionPane.showMessageDialog
+							(dialog, "You have to specify a target database connection"
+							 +"\nbefore executing this script.");
+						architectFrame.getMainInstance().playpen.showDbcsDialog();
+					}
+				});								
+				finished = true;
+				return;
+			}
+            
+			try {
+				stmt = con.createStatement();
+				statements = ddlg.generateDDLStatements(target);
+			} catch (SQLException ex) {
+				final Exception fex = ex;
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						JOptionPane.showMessageDialog
+							(dialog, "Couldn't generate DDL statements: "+fex.getMessage()
+							 +"\nThe problem was reported by the target database.");
+					}
+				});								
+				finished = true;
+				return;
+			} catch (ArchitectException ex) {
+				final Exception fex = ex;
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						JOptionPane.showMessageDialog
+							(dialog, "Couldn't generate DDL statements: "+fex.getMessage()
+							 +"\nThe problem was detected internally to the Architect.");
+					}
+				});								
+				finished = true;
+				return;
+			}
+            
+			Iterator it = statements.iterator();
+			while (it.hasNext() && !finished) {
+				String sql = (String) it.next();
+				try {
+					stmtsTried++;
+					stmt.executeUpdate(sql);
+					stmtsCompleted++;
+				} catch (SQLException ex) {
+					final Exception fex = ex;
+					final String fsql = sql;
+					try {
+						SwingUtilities.invokeAndWait(new Runnable() {						
+							// FIXME: this is definitely not going to work.  Need to figure out a way to 
+                    	    // stop the worker thread from running until the result of this Dialog has returned...
+							public void run() {
+								int decision = JOptionPane.showConfirmDialog
+									(dialog, "SQL statement failed: "+fex.getMessage()
+									 +"\nThe statement was:\n"+fsql+"\nDo you want to continue?",
+									 "SQL Failure", JOptionPane.YES_NO_OPTION);
+								if (decision == JOptionPane.NO_OPTION) {
+									cancelJob();
+								}
+							}
+						});
+					} catch (InterruptedException ex2) {
+					} catch (InvocationTargetException ex2) {
+						final Exception fex2 = ex2;
+						SwingUtilities.invokeLater(new Runnable() {
+							public void run() {
+							JOptionPane.showMessageDialog
+								(dialog, "worker thread died: "+fex2.getMessage());
+							}
+						});
+					}
+								
+					if (isCancelled()) {
+						finished = true;
+						// don't return, we might as well display how many statements ended up being processed...
+					}
+				}
+			}
+            
+			try {
+				stmt.close();
+			} catch (SQLException ex) {
+				logger.error("SQLException while closing statement", ex);
+			}
+
+            
+			// show them what they've won!	
+			SwingUtilities.invokeLater(new Runnable() {
+				public void run() {
+					JOptionPane.showMessageDialog(dialog, "Successfully executed "+stmtsCompleted
+												  +" out of "+stmtsTried+" statements.");
+				}
+			});						
+           	
+			finished = true;
+		}			
 	}
 
 	public static class DDLWarningTableModel extends AbstractTableModel {

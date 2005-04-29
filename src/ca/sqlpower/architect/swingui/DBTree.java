@@ -56,6 +56,11 @@ public class DBTree extends JTree implements DragSourceListener {
 		popup = setupPopupMenu();
 		addMouseListener(new PopupListener());
 		setCellRenderer(new SQLObjectRenderer());
+		/*
+		// make multiselect DND work properly
+		BasicTreeUI btui = (BasicTreeUI) this.getUI();
+		*/
+
 	}
 
 	public DBTree(List initialDatabases) throws ArchitectException {
@@ -263,6 +268,8 @@ public class DBTree extends JTree implements DragSourceListener {
             }
         }
     }
+
+
 	
 	/**
 	 * Refreshes the submenu which contains the DBCS history list.
@@ -443,4 +450,27 @@ public class DBTree extends JTree implements DragSourceListener {
 			return this;
 		}
 	}
+	/*
+	public class DNDMouseHandler extends BasicTreeUI.MouseHandler {
+		private int x1, y1;
+		public void mousePressed(MouseEvent e) {
+			x1 = e.getX();
+			y1 = e.getY();
+			int[] rows = tree.getSelectionRows();
+			if (rows != null) {
+				for (int i = 0; i < rows.length; i++) {
+					Rectangle rect3 = tree.getRowBounds(rows);
+					if (rect3.contains(x1, y1)) {
+						e.consume();
+						break;
+					}
+				}
+			}
+			super.mousePressed(e);
+		}
+
+		protected MouseListener createMouseListener() {
+			return new MouseHandler();
+		}
+	}*/
 }
