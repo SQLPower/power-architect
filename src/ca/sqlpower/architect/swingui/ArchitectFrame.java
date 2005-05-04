@@ -122,7 +122,8 @@ public class ArchitectFrame extends JFrame {
 						chooser.addChoosableFileFilter(ASUtils.ARCHITECT_FILE_FILTER);
 						int returnVal = chooser.showOpenDialog(ArchitectFrame.this);
 						if (returnVal == JFileChooser.APPROVE_OPTION) {
-							final File file = chooser.getSelectedFile();							new Thread() {
+							final File file = chooser.getSelectedFile();							
+                            new Thread() {
 								public void run() {
 									try {
 										SwingUIProject project = new SwingUIProject("Loading...");
@@ -292,11 +293,11 @@ public class ArchitectFrame extends JFrame {
 		setTitle(project.getName()+" - Power*Architect");
 		playpen = project.getPlayPen();
 		dbTree = project.getSourceDatabases();
-
+		//
 		setupActions();
-
+		//
 		splitPane.setLeftComponent(new JScrollPane(dbTree));
-		splitPane.setRightComponent(new JScrollPane(playpen));
+		splitPane.setRightComponent(new JScrollPane(playpen));		
 	}
 	
 	public SwingUIProject getProject(){

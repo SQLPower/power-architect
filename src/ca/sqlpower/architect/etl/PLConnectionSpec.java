@@ -52,7 +52,7 @@ public class PLConnectionSpec {
 		}
 	}
 
-	public String getEngineExeutableName() throws UnknownDatabaseTypeException {
+	public String getEngineExecutableName() throws UnknownDatabaseTypeException {
 		String type = getDbType();
 		if (type == null) {
 			throw new UnknownDatabaseTypeException("<unspecified>");

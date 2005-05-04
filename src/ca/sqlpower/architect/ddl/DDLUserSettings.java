@@ -1,24 +1,20 @@
-package ca.sqlpower.architect.etl;
+package ca.sqlpower.architect.ddl;
 
 import java.util.Properties;
 
 /**
- * The ETLUserSettings class stores project-independent ETL settings
- * that may differ from client machine to client machine, but not
- * project-to-project.
+ * The DDLUserSettings class stores project-independent DDL settings.
  *
  * @see ca.sqlpower.architect.UserSettings
+ * @see ca.sqlpower.architect.etl.ETLUserSettings
  * @see ca.sqlpower.architect.swingui.SwingUserSettings
  */
-public class ETLUserSettings {
+public class DDLUserSettings {
 
-	// ------ PROPERTY LIST KEYS ------
-	
-	private static final String PROP_PL_INI_PATH
-		= "ca.sqlpower.architect.etl.ETLUserSettings.PROP_PL_INI_PATH";
+	// ------ PROPERTY LIST KEYS ------	
 
-	private static final String PROP_ETL_LOG_PATH
-		= "ca.sqlpower.architect.etl.ETLUserSettings.PROP_ETL_LOG_PATH";
+	private static final String PROP_DDL_LOG_PATH
+		= "ca.sqlpower.architect.etl.DDLUserSettings.PROP_DDL_LOG_PATH";
 
 	
 	// ------ INSTANCE VARIABLES ------
@@ -41,12 +37,12 @@ public class ETLUserSettings {
 	 * Creates a user settings instance initialised to the default
 	 * values.
 	 */
-	public ETLUserSettings() {
+	public DDLUserSettings() {
 		props = new Properties();
 	}
 
-	public static ETLUserSettings createFromPropList(Properties props) {
-		ETLUserSettings settings = new ETLUserSettings();
+	public static DDLUserSettings createFromPropList(Properties props) {
+		DDLUserSettings settings = new DDLUserSettings();
 		settings.props.putAll(props);
 		return settings;
 	}
@@ -79,26 +75,17 @@ public class ETLUserSettings {
 
 	// ------- ACCESSORS and MUTATORS -------
 
-	public String getPlDotIniPath() {
-		return props.getProperty(PROP_PL_INI_PATH);
-	}
-
-	public void setPlDotIniPath(String v) {
-		props.setProperty(PROP_PL_INI_PATH, v);
-	}
-	
-	// send back a default if nothing has been set yet
-	public String getETLLogPath() {
-		if (props.getProperty(PROP_ETL_LOG_PATH) != null) {
-			return props.getProperty(PROP_ETL_LOG_PATH);
+	public String getDDLLogPath() {
+		if (props.getProperty(PROP_DDL_LOG_PATH) != null) {
+			return props.getProperty(PROP_DDL_LOG_PATH);
 		} else {
-			// default to user.home + "etl.log"			
-			return System.getProperty("user.home") + System.getProperty("file.separator") + "etl.log";
-		}
+			// default to user.home + "ddl.log"			
+			return System.getProperty("user.home") + System.getProperty("file.separator") + "ddl.log";
+		}			
 	}
 
-	public void setETLLogPath(String v) {
-		props.setProperty(PROP_ETL_LOG_PATH, v);
+	public void setDDLLogPath(String v) {
+		props.setProperty(PROP_DDL_LOG_PATH, v);
 	}
 
 }

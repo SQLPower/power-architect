@@ -90,8 +90,10 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 
 	protected void revertToUserSettings() throws ArchitectException {
 		dtm.setRoot(new DefaultMutableTreeNode());		
-		LoadJDBCDriversWorker worker = new LoadJDBCDriversWorker(session.getDriverJarList());
-	    ProgressWatcher watcher = new ProgressWatcher(progressBar,worker,progressLabel);
+		LoadJDBCDrivers ljd = new LoadJDBCDrivers(session.getDriverJarList());
+		LoadJDBCDriversWorker worker = new LoadJDBCDriversWorker(ljd);
+		ljd.prepareToStart();
+        ProgressWatcher watcher = new ProgressWatcher(progressBar,ljd,progressLabel);
 		new javax.swing.Timer(50, watcher).start();
 		new Thread(worker).start();
 	}
@@ -127,8 +129,10 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 				if(returnVal == JFileChooser.APPROVE_OPTION) {
 					List list = new ArrayList();
 					list.add(fileChooser.getSelectedFile().getAbsolutePath());
-				    LoadJDBCDriversWorker worker = new LoadJDBCDriversWorker(list);
-                    ProgressWatcher watcher = new ProgressWatcher(progressBar,worker,progressLabel);
+					LoadJDBCDrivers ljd = new LoadJDBCDrivers(list);
+				    LoadJDBCDriversWorker worker = new LoadJDBCDriversWorker(ljd);
+					ljd.prepareToStart();
+                    ProgressWatcher watcher = new ProgressWatcher(progressBar,ljd,progressLabel);
 					new javax.swing.Timer(50, watcher).start();
 					new Thread(worker).start();
 				}
@@ -150,8 +154,19 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 			}
 		}
 	}
+		
+	protected class LoadJDBCDriversWorker implements Runnable {
+		LoadJDBCDrivers ljd;
+		LoadJDBCDriversWorker (LoadJDBCDrivers ljd) {
+			this.ljd = ljd;	
+		}
+		public void run() {
+			ljd.execute();
+		}
+	}
 
-	protected class LoadJDBCDriversWorker implements Monitorable  {
+	protected class LoadJDBCDrivers implements Monitorable  {
+
 		public boolean finished = false;		
 		private List driverJarList = null;
 		
@@ -160,7 +175,7 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 		private JarFile jf = null;
 		private JDBCScanClassLoader cl = null;		
 
-		public LoadJDBCDriversWorker (List driverJarList) throws ArchitectException {
+		public LoadJDBCDrivers (List driverJarList) throws ArchitectException {
 			this.driverJarList = driverJarList;	
 		}
 
@@ -181,8 +196,12 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 		public boolean isFinished() throws ArchitectException {
 			return finished;
 		}
+
+		public void prepareToStart() {
+			finished = false;
+		}
 		
-		public void run() {	        
+		public void execute() {	        
 			try {
 				Iterator it = driverJarList.iterator();
 				while (it.hasNext()) {
@@ -194,7 +213,7 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 				}
 				finished = true;
 			} catch ( Exception exp ) {
-				logger.error("something went wrong in LoadJDBCDriversWorker thread!",exp);
+				logger.error("something went wrong in LoadJDBCDrivers worker thread!",exp);
 			} finally {
 				finished = true;
 			}

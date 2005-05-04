@@ -113,10 +113,20 @@ public class ExportDDLAction extends AbstractAction {
 			final JButton executeButton = new JButton("Execute");
 			executeButton.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
+						/* old style -- the worker thread is Monitorable
 					    ExecuteDDLWorker worker = new ExecuteDDLWorker(d,ddlg);
     	                ProgressWatcher watcher = new ProgressWatcher(progressBar,worker,progressLabel);
 						new javax.swing.Timer(50, watcher).start();
 						new Thread(worker).start();								
+						*/
+
+						// new style; the worker and the monitorable objects are seperated from each other
+						ExecuteDDL eDDL = new ExecuteDDL(d,ddlg);
+						ExecuteDDLWorker worker = new ExecuteDDLWorker(eDDL);
+						eDDL.prepareToStart();
+						ProgressWatcher watcher = new ProgressWatcher(progressBar,eDDL,progressLabel);
+						new javax.swing.Timer(50, watcher).start();
+						new Thread(worker).start();
 					}
 				});
 			buttonPanel.add(executeButton);
@@ -171,17 +181,29 @@ public class ExportDDLAction extends AbstractAction {
 		}
 	}
 
-	protected class ExecuteDDLWorker implements Monitorable {		
+
+	protected class ExecuteDDLWorker implements Runnable {		
+		ExecuteDDL executeDDL;
+		ExecuteDDLWorker(ExecuteDDL executeDDL) {
+			this.executeDDL = executeDDL;
+		}		
+		public void run() {
+			executeDDL.execute();			
+		}
+	}
+
+
+	protected class ExecuteDDL implements Monitorable {		
+		
 		JDialog dialog;
 		List statements;
 		int stmtsTried = 0;
 		int stmtsCompleted = 0;
 		boolean finished = false;
 		boolean cancelled = false;
-		GenericDDLGenerator ddlg;
+		GenericDDLGenerator ddlg;		
 		
-		
-		public ExecuteDDLWorker (JDialog dialog, GenericDDLGenerator ddlg) {
+		public ExecuteDDL (JDialog dialog, GenericDDLGenerator ddlg) {
 			this.dialog = dialog;
 			this.ddlg = ddlg;
 		}		
@@ -210,8 +232,12 @@ public class ExportDDLAction extends AbstractAction {
 			return cancelled;
 		}
 
-		public void run() {	        
+		public void prepareToStart() {
+			finished = false;
+			cancelled = false;
+		}
 
+		public void execute() {	        
 			finished = false;
 			stmtsTried = 0;
 			stmtsCompleted = 0;

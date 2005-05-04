@@ -5,6 +5,7 @@ import java.util.LinkedList;
 
 import ca.sqlpower.architect.swingui.SwingUserSettings;  // slight breech of MVC
 import ca.sqlpower.architect.etl.ETLUserSettings;
+import ca.sqlpower.architect.ddl.DDLUserSettings;
 import ca.sqlpower.sql.DBConnectionSpec;
 
 public class UserSettings {
@@ -29,12 +30,19 @@ public class UserSettings {
 	 * functionality.
 	 */
 	protected ETLUserSettings etlUserSettings;
+
+	/**
+	 * DDL-related settings.  
+	 */
+	protected DDLUserSettings ddlUserSettings;
+
 	
 	public UserSettings() {
 		super();
 		dbConnections = new LinkedList();
 		swingSettings = new SwingUserSettings();
 		etlUserSettings = new ETLUserSettings();
+		ddlUserSettings = new DDLUserSettings();
 	}
 	
 	public void addConnection(DBConnectionSpec dbcs) {
@@ -60,6 +68,15 @@ public class UserSettings {
 	public void setETLUserSettings(ETLUserSettings v) {
 		etlUserSettings = v;
 	}
+
+	public DDLUserSettings getDDLUserSettings() {
+		return ddlUserSettings;
+	}
+
+	public void setDDLUserSettings(DDLUserSettings v) {
+		ddlUserSettings = v;
+	}
+
 
 	/**
 	 * Convenience method that calls ArchitectSession.getInstance().addDriverJarPath(path).

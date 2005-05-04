@@ -87,6 +87,9 @@ public class ASUtils {
 	public static final FileFilter JAR_ZIP_FILE_FILTER =
 		new FileExtensionFilter("JAR Files", new String[] {"jar", "zip"});
 
+	public static final FileFilter LOG_FILE_FILTER =
+		new FileExtensionFilter("Log Files", new String[] {"log"});
+
 	public static class FileExtensionFilter extends FileFilter {
 
 		protected HashSet extensions;

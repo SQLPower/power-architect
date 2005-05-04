@@ -9,6 +9,7 @@ import org.xml.sax.SAXException;
 import ca.sqlpower.sql.DBConnectionSpec;
 import ca.sqlpower.architect.swingui.SwingUserSettings; // bad design
 import ca.sqlpower.architect.etl.ETLUserSettings;
+import ca.sqlpower.architect.ddl.DDLUserSettings;
 
 import org.apache.log4j.Logger;
 import org.apache.commons.digester.*;
@@ -112,6 +113,15 @@ public class ConfigFile {
 		d.addSetNext("architect-settings/etl-user-settings", "setETLUserSettings",
 					 "ca.sqlpower.architect.etl.ETLUserSettings");
 
+		// ETL settings
+		d.addObjectCreate("architect-settings/ddl-user-settings", DDLUserSettings.class);
+		d.addCallMethod("architect-settings/ddl-user-settings/setting", "putProperty", 2);
+		d.addCallParam("architect-settings/ddl-user-settings/setting", 0, "name");
+		d.addCallParam("architect-settings/ddl-user-settings/setting", 1, "value");
+		d.addSetNext("architect-settings/ddl-user-settings", "setDDLUserSettings",
+					 "ca.sqlpower.architect.ddl.DDLUserSettings");
+
+
 		d.addSetNext("architect-settings", "setUserSettings",
 					 "ca.sqlpower.architect.UserSettings");
 		return d;
@@ -138,6 +148,7 @@ public class ConfigFile {
 			writeDbConnections(us.getConnections());
 			writeSwingSettings(us.getSwingSettings());
 			writeETLUserSettings(us.getETLUserSettings());
+			writeDDLUserSettings(us.getDDLUserSettings());
 
 			indent--;
 			println("</architect-settings>");
@@ -217,6 +228,23 @@ public class ConfigFile {
 		indent--;
 		println("</etl-user-settings>");
 	}
+
+	protected void writeDDLUserSettings(DDLUserSettings ddlprefs) {
+		println("<ddl-user-settings>");
+		indent++;
+
+		Properties props = ddlprefs.toPropList();
+		Iterator it = props.keySet().iterator();
+		while (it.hasNext()) {
+			String prefName = (String) it.next();
+			println("<setting name=\""+escape(prefName)
+					+"\" value=\""+escape(props.getProperty(prefName))+"\" />");
+		}
+		
+		indent--;
+		println("</ddl-user-settings>");
+	}
+
 
 	/**
 	 * Prints to the output writer {@link #out} indentation spaces

@@ -7,33 +7,33 @@ import org.apache.log4j.Logger;
 
 public class ProgressWatcher implements ActionListener {
 	private JProgressBar bar = null;
-	private Monitorable worker = null;
+	private Monitorable monitorable = null;
 	private JLabel label = null;
 
 	private static final Logger logger = Logger.getLogger(ProgressWatcher.class);
 
-	public ProgressWatcher (JProgressBar bar, Monitorable worker) {
-		this (bar,worker,null);
+	public ProgressWatcher (JProgressBar bar, Monitorable monitorable) {
+		this (bar,monitorable,null);
 	}
 
-	public ProgressWatcher (JProgressBar bar, Monitorable worker, JLabel label) {
+	public ProgressWatcher (JProgressBar bar, Monitorable monitorable, JLabel label) {
 		this.bar = bar;
-		this.worker = worker;
+		this.monitorable = monitorable;
 		this.label = label;
 	}
 
 	public void actionPerformed(ActionEvent evt) {
 		// update the progress bar
 		try {
-			int max = worker.getJobSize();
+			int max = monitorable.getJobSize();
 			if (label != null) {
 				label.setVisible(true);
 			}
 			bar.setVisible(true);
 			bar.setMaximum(max);
-			bar.setValue(worker.getProgress());
+			bar.setValue(monitorable.getProgress());
 			bar.setIndeterminate(false);
-			if ( worker.isFinished() ) {
+			if ( monitorable.isFinished() ) {
 				if (label != null) {
 					label.setVisible(false);
 				}
