@@ -1,35 +1,20 @@
 package ca.sqlpower.architect.swingui;
 
 import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.plaf.basic.BasicComboBoxRenderer;
-import javax.swing.plaf.metal.MetalComboBoxEditor;
 import javax.swing.text.*;
-import javax.swing.Timer;
-
-
 import java.awt.GridLayout;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
-import java.awt.Component;
 import java.awt.Font;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Insets;
 
-
 import java.awt.event.*;
 import java.util.*;
-import java.io.IOException;
-import java.io.FileNotFoundException;
-import java.net.*;
-
-
-
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.sql.DBConnectionSpec;
-import ca.sqlpower.architect.etl.*;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.*;
 import ca.sqlpower.architect.ddl.*;

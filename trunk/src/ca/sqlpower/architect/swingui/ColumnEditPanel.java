@@ -1,12 +1,10 @@
 package ca.sqlpower.architect.swingui;
 
 import javax.swing.*;
-import javax.swing.border.*;
 import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
 import ca.sqlpower.architect.*;
-import java.util.*;
 import java.sql.DatabaseMetaData;
 import org.apache.log4j.Logger;
 

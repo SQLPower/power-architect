@@ -1,8 +1,6 @@
 package ca.sqlpower.architect.swingui;
 
-import java.util.*;
 import java.awt.*;
-import javax.swing.*;
 import org.apache.log4j.Logger;
 
 /**

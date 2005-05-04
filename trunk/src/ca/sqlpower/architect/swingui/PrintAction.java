@@ -3,8 +3,6 @@ package ca.sqlpower.architect.swingui;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.event.*;
-import ca.sqlpower.architect.*;
 import org.apache.log4j.Logger;
 
 public class PrintAction extends AbstractAction {

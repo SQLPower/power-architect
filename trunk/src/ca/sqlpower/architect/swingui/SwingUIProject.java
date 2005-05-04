@@ -6,7 +6,6 @@ import ca.sqlpower.architect.etl.*;
 import ca.sqlpower.sql.DBConnectionSpec;
 
 import java.awt.Point;
-import java.beans.*;
 import java.io.*;
 import java.util.*;
 import javax.swing.ProgressMonitor;

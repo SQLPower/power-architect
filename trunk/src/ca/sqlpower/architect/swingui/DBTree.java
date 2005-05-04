@@ -6,7 +6,6 @@ import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
-import java.awt.datatransfer.*;
 import java.awt.dnd.*;
 import java.awt.event.*;
 

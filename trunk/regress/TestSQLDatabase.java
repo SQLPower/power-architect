@@ -1,6 +1,5 @@
 package regress;
 
-import junit.framework.*;
 import java.sql.*;
 import ca.sqlpower.sql.*;
 import java.util.*;

@@ -1,13 +1,9 @@
 package ca.sqlpower.architect.swingui;
 
 import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.plaf.basic.BasicComboBoxRenderer;
-import javax.swing.plaf.metal.MetalComboBoxEditor;
 import java.awt.GridLayout;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
-import java.awt.Component;
 import java.awt.event.*;
 import java.util.*;
 import java.io.IOException;

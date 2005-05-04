@@ -5,7 +5,7 @@ import ca.sqlpower.architect.SQLObject;
 import java.io.IOException;
 
 public class SQLObjectListTransferable implements Transferable, java.io.Serializable {
-	public static final DataFlavor flavor = new DataFlavor
+	public static final DataFlavor SQLOBJECT_ARRAY_FLAVOR = new DataFlavor
 		(SQLObject[].class, "List of database objects");
 	
 	protected SQLObject[] data;
@@ -15,16 +15,16 @@ public class SQLObjectListTransferable implements Transferable, java.io.Serializ
 	}
 	
 	public DataFlavor[] getTransferDataFlavors() {
-		return new DataFlavor[] { flavor };
+		return new DataFlavor[] { SQLOBJECT_ARRAY_FLAVOR };
 	}
 	
 	public boolean isDataFlavorSupported(DataFlavor flavor) {
-		return (flavor.equals(this.flavor));
+		return (flavor.equals(SQLOBJECT_ARRAY_FLAVOR));
 	}
 	
 	public Object getTransferData(DataFlavor flavor)
 		throws UnsupportedFlavorException, IOException {
-		if (flavor != this.flavor) {
+		if (flavor != SQLOBJECT_ARRAY_FLAVOR) {
 			throw new IllegalArgumentException("Unsupported flavor "+flavor);
 		}
 		return data;

@@ -1,10 +1,8 @@
 package ca.sqlpower.architect.swingui;
 
-import ca.sqlpower.architect.*;
-import java.awt.BorderLayout;
-import java.awt.event.*;
-import javax.swing.*;
-import java.io.File;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 public class ProjectSettingsPanel extends JPanel implements ArchitectPanel {
 

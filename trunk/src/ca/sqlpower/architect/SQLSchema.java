@@ -1,14 +1,11 @@
 package ca.sqlpower.architect;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-
-import java.util.List;
-import java.util.LinkedList;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Iterator;
-import java.util.Collections;
+import java.util.LinkedList;
 
 /**
  * A SQLSchema is a container for SQLTables.  If it is in the

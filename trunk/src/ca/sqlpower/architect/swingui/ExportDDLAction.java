@@ -228,7 +228,7 @@ public class ExportDDLAction extends AbstractAction {
 						JOptionPane.showMessageDialog
 							(dialog, "Couldn't connect to target database: "+fex.getMessage()
 							 +"\nPlease check the connection settings and try again.");
-						architectFrame.getMainInstance().playpen.showDbcsDialog();
+						ArchitectFrame.getMainInstance().playpen.showDbcsDialog();
 					}
 				});								
 				finished = true;
@@ -240,7 +240,7 @@ public class ExportDDLAction extends AbstractAction {
 						JOptionPane.showMessageDialog
 							(dialog, "You have to specify a target database connection"
 							 +"\nbefore executing this script.");
-						architectFrame.getMainInstance().playpen.showDbcsDialog();
+						ArchitectFrame.getMainInstance().playpen.showDbcsDialog();
 					}
 				});								
 				finished = true;

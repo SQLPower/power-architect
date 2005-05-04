@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Iterator;
 import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.event.*;
 import ca.sqlpower.architect.*;
 import org.apache.log4j.Logger;
 
