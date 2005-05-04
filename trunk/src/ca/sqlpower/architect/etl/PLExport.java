@@ -7,11 +7,17 @@ import java.util.HashSet;
 import ca.sqlpower.sql.*;
 import ca.sqlpower.security.*;
 import ca.sqlpower.architect.*;
+import ca.sqlpower.architect.swingui.Monitorable;
 import org.apache.log4j.Logger;
 
-public class PLExport { 
+public class PLExport implements Monitorable {
+
+
 	private static final Logger logger = Logger.getLogger(PLExport.class);
 
+	// now _this_ is a mouthful...
+	protected LogWriter logWriter = null;
+	
 	public static final String PL_GENERATOR_VERSION
 		= "PLExport $Revision$".replace('$',' ').trim();
 
@@ -27,7 +33,47 @@ public class PLExport {
 	protected PLSecurityManager sm;
 	PLJob job;
 	
+	protected boolean finished; // so the Timer thread knows when to kill itself
+	protected boolean cancelled; // FIXME: placeholder for when the user cancels halfway through a PL Export 			 
+	SQLDatabase currentDB; // if this is non-null, an export job is running
+	int tableCount = 0; // only has meaning when an export job is running	
+	
+	public int getJobSize() throws ArchitectException {			
+		if (currentDB != null) {
+			return currentDB.getChildren().size();
+		}
+		else {			
+			return 1000; // avoid divide by zero showing up in UI
+		}		
+	}
+	
+	public int getProgress() throws ArchitectException {
+		if (currentDB != null) {
+			return tableCount;
+		} else {
+			return 0;
+		}
+	}
+	
+	public boolean isFinished() throws ArchitectException {
+		return finished;
+	}
+
+	public boolean isCancelled() {
+		return cancelled;
+	}
+
+	public void cancelJob() {
+		finished = true;
+		cancelled = true;
+	}
+
+	public void prepareToStart() {
+		finished = false;
+		cancelled = false;
+	}
 		
+			
 	/**
 	 * Creates a folder if one with the name folderName does not exist
 	 * already.
@@ -49,6 +95,7 @@ public class PLExport {
 				sql.append(",").append(SQL.quote(null));  // folder_status
 				sql.append(",").append(SQL.quote(null));  // last_backup_no
 				sql.append(")");
+				logWriter.info("Insert into PL FOLDER, PK=" + folderName);
 				stmt.executeUpdate(sql.toString());
 			}
 		} finally {
@@ -71,6 +118,7 @@ public class PLExport {
 		sql.append(",").append(SQL.quote(objectType));  // object_type
 		sql.append(",").append(SQL.quote(objectName));  // object_name
 		sql.append(")");
+		logWriter.info("Insert into PL FOLDER_DETAIL, PK=" + folderName + "|" + objectType + "|" + objectName);
 		Statement s = con.createStatement();
 		try {
 			s.executeUpdate(sql.toString());
@@ -96,6 +144,7 @@ public class PLExport {
 			sql.append("SELECT DISTINCT object_name FROM job_detail");
 			sql.append(" WHERE object_type = 'TRANSACTION'");
 			sql.append(" AND job_id = ").append(SQL.quote(jobId));
+			logWriter.info("Starting cascade DELETE on job_id=" + jobId);				
 			rs = stmt.executeQuery(sql.toString());
 			while (rs.next()) {
 				jobTransactions.add(rs.getString(1));
@@ -106,6 +155,7 @@ public class PLExport {
 				String transId = (String) it.next();
 				PLTrans trans = new PLTrans(transId);
 				PLSecurityManager.deleteDatabaseObject(con, sm, trans);
+				logWriter.info("Cascade DELETE on trans_id=" + transId + "/" + jobId);				
 				stmt.executeUpdate("DELETE FROM pl_folder_detail WHERE object_type='TRANSACTION'"+
 								   " AND object_name="+SQL.quote(transId));
 				stmt.executeUpdate("DELETE FROM trans_col_map WHERE trans_id="+SQL.quote(transId));
@@ -178,6 +228,8 @@ public class PLExport {
 		sql.append(",").append(SQL.quote(null));  // checked_out_os_user
 		sql.append(")");
 		Statement s = con.createStatement();
+		logWriter.info("INSERT into PL_JOB, PK=" + jobId);
+		
 		try {
 			s.executeUpdate(sql.toString());
 		} finally {
@@ -212,6 +264,7 @@ public class PLExport {
 		sql.append(",").append(SQL.quote("Y"));  // ACTIVE_IND
 		sql.append(",").append(SQL.quote(System.getProperty("user.name")));  // LAST_update_OS_USER
 		sql.append(")");
+		logWriter.info("INSERT into JOB_DETAIL, PK=" + jobId + "|" + seqNo);
 		Statement s = con.createStatement();
 		try {
 			s.executeUpdate(sql.toString());
@@ -296,6 +349,7 @@ public class PLExport {
 		sql.append(",\n").append(SQL.quote(null)); // checked_out_user
 		sql.append(",\n").append(SQL.quote(null)); // checked_out_os_user
 		sql.append(")");
+		logWriter.info("INSERT into TRANS, PK=" + transId);
 		Statement s = con.createStatement();
 		try {
 			s.executeUpdate(sql.toString());
@@ -391,6 +445,7 @@ public class PLExport {
 		sql.append(",").append(SQL.quote(null));  // DELETE_IND
 		sql.append(",").append(SQL.quote(null));  // FROM_CLAUSE_DB
 		sql.append(")");
+		logWriter.info("INSERT into TRANS_TABLE_FILE, PK=" + transId + "|" + tableFileId);
 		Statement s = con.createStatement();
 		try {
 			s.executeUpdate(sql.toString());
@@ -487,6 +542,7 @@ public class PLExport {
 		sql.append(",").append(SQL.quote(null));  // SEQ_TABLE_IND
 		sql.append(",").append(SQL.quote(null));  // SEQ_WHERE_CLAUSE
 		sql.append(")");
+		logWriter.info("INSERT into TRANS_COL_MAP, PK=" + transId + "|" + outputTableId + "|" + outputColumn.getName());		
 		Statement s = con.createStatement();
 		try {
 			s.executeUpdate(sql.toString());
@@ -570,6 +626,7 @@ public class PLExport {
 		sql.append(",").append(SQL.quote("Y"));     // ACTIVE_IND
 		sql.append(",").append(SQL.quote(System.getProperty("user.name"))); // LAST_update_OS_USER
 		sql.append(")");
+		logWriter.info("INSERT into TRANS_EXCEPT_HANDLE, PK=" + transId + "|" + actionType + "|" + errorCode);		
 		Statement s = con.createStatement();
 		try {
 			s.executeUpdate(sql.toString());
@@ -582,56 +639,77 @@ public class PLExport {
 
 	/**
 	 * Does the actual insertion of the PL metadata records into the PL database.
+     * 
+     * TODO: Strictly speaking, this method should be synchronized (though currently, it's
+     * pretty hard to get two copies of it going at the same time)
 	 */
 	public void export(SQLDatabase db) throws SQLException, ArchitectException {
-		SQLDatabase target = new SQLDatabase(plDBCS); // we are exporting db into this
-		Connection con = null;
-
-		con = target.getConnection();
 		try {
-			defParam = new DefaultParameters(con);
-		} catch (PLSchemaException p) {
-			throw new ArchitectException("couldn't load default parameters", p);
-		}
-		// don't need to verify passwords in client apps (as opposed to webapps)
-		sm = new PLSecurityManager(con, plUsername, plPassword, false);
-		maybeInsertFolder(con);
-		deleteJobCascade(con);
-		insertJob(con);
-		insertFolderDetail(con, job.getObjectType(), job.getObjectName());
-		Iterator tables = db.getChildren().iterator();
-		
-		int outputTableNum = 1;
-		while (tables.hasNext()) {
-			SQLTable outputTable = (SQLTable) tables.next();
-			HashSet inputTables = new HashSet();
-			Iterator cols = outputTable.getColumns().iterator();
-			int transNum = 1;
-			while (cols.hasNext()) {
-				SQLColumn outputCol = (SQLColumn) cols.next();
-				SQLColumn inputCol = outputCol.getSourceColumn();
-				// looking for unique input tables of outputTable
-				if (inputCol != null && !inputTables.contains(inputCol.getParentTable())) {
-					SQLTable inputTable = inputCol.getParentTable();
-					inputTables.add(inputTable);
-					String transName = PLUtils.toPLIdentifier("LOAD_"+outputTable.getName()+"_"+transNum);
-					insertTrans(con, transName, outputTable.getRemarks());
-					insertFolderDetail(con, "TRANSACTION", transName);
-					insertTransExceptHandler(con, "A", transName);
-					insertTransExceptHandler(con, "U", transName);
-					insertTransExceptHandler(con, "D", transName);
-					insertJobDetail(con, outputTableNum*10, "TRANSACTION", transName);
-					
-					String outputTableId = PLUtils.toPLIdentifier(outputTable.getName()+"_OUT_"+outputTableNum);
-					String inputTableId = PLUtils.toPLIdentifier(inputTable.getName()+"_IN_"+transNum);
-					insertTransTableFile(con, transName, outputTableId, outputTable, true, transNum);
-					
-					insertTransTableFile(con, transName, inputTableId, inputTable, false, transNum);
-					insertMappings(con, transName, outputTableId, outputTable, inputTableId, inputTable);
-					transNum++;
-				}
-				outputTableNum++;
+			// first, set the logWriter
+			logWriter = new LogWriter(ArchitectSession.getInstance().getUserSettings().getETLUserSettings().getETLLogPath());			
+			
+			currentDB = db;
+			
+			SQLDatabase target = new SQLDatabase(plDBCS); // we are exporting db into this
+			Connection con = null;
+        	
+			con = target.getConnection();
+			try {
+				defParam = new DefaultParameters(con);
+			} catch (PLSchemaException p) {
+				throw new ArchitectException("couldn't load default parameters", p);
 			}
+			// don't need to verify passwords in client apps (as opposed to webapps)
+			sm = new PLSecurityManager(con, plUsername, plPassword, false);
+			logWriter.info("Starting creation of job <" + jobId + "> at " + new java.util.Date(System.currentTimeMillis()));
+			logWriter.info("Connected to database: " + plDBCS.toString());
+			maybeInsertFolder(con);			
+			deleteJobCascade(con);
+			insertJob(con);
+			insertFolderDetail(con, job.getObjectType(), job.getObjectName());
+			Iterator tables = db.getChildren().iterator();
+			
+			int outputTableNum = 1;
+			while (tables.hasNext()) {
+				tableCount++;
+				SQLTable outputTable = (SQLTable) tables.next();
+				HashSet inputTables = new HashSet();
+				Iterator cols = outputTable.getColumns().iterator();
+				int transNum = 1;
+				while (cols.hasNext()) {
+					SQLColumn outputCol = (SQLColumn) cols.next();
+					SQLColumn inputCol = outputCol.getSourceColumn();
+					// looking for unique input tables of outputTable
+					if (inputCol != null && !inputTables.contains(inputCol.getParentTable())) {
+						SQLTable inputTable = inputCol.getParentTable();
+						inputTables.add(inputTable);
+						String transName = PLUtils.toPLIdentifier("LOAD_"+outputTable.getName()+"_"+transNum);
+						insertTrans(con, transName, outputTable.getRemarks());
+						insertFolderDetail(con, "TRANSACTION", transName);
+						insertTransExceptHandler(con, "A", transName);
+						insertTransExceptHandler(con, "U", transName);
+						insertTransExceptHandler(con, "D", transName);
+						insertJobDetail(con, outputTableNum*10, "TRANSACTION", transName);
+						
+						String outputTableId = PLUtils.toPLIdentifier(outputTable.getName()+"_OUT_"+outputTableNum);
+						String inputTableId = PLUtils.toPLIdentifier(inputTable.getName()+"_IN_"+transNum);
+						insertTransTableFile(con, transName, outputTableId, outputTable, true, transNum);
+						
+						insertTransTableFile(con, transName, inputTableId, inputTable, false, transNum);
+						insertMappings(con, transName, outputTableId, outputTable, inputTableId, inputTable);
+						transNum++;
+					}
+					outputTableNum++;
+				}
+			}
+		}
+		finally {
+			finished = true;			
+			currentDB = null;
+			// close and flush the logWriter (and set the reference to null)
+			logWriter.flush();		
+			logWriter.close();
+			logWriter=null;
 		}
 	}
 

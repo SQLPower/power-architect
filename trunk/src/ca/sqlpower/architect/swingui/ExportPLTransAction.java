@@ -2,6 +2,7 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+import java.awt.GridLayout;
 import java.awt.event.*;
 import java.io.*;
 import java.sql.*;
@@ -24,6 +25,10 @@ public class ExportPLTransAction extends AbstractAction {
 
 	/** The dialog box that this action uses to configure plexp. */
 	protected JDialog d;
+
+	/** Progress Bar to tell the user PL Export is still running */
+	protected JProgressBar plCreateTxProgressBar;
+	protected JLabel plCreateTxLabel;
 
 	public ExportPLTransAction() {
 		super("PL Transaction Export...",
@@ -69,114 +74,62 @@ public class ExportPLTransAction extends AbstractAction {
 		plPanel.setPLExport(plexp);
 		plp.add(plPanel, BorderLayout.CENTER);
 		
+		// make an intermediate JPanel
+		JPanel bottomPanel = new JPanel(new GridLayout(1,2,25,0)); // 25 pixel hgap		
+
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		
 		JButton okButton = new JButton("Ok");
 		okButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
-					plPanel.applyChanges();
-					if (plexp.getPlDBCS() == null) {
-						JOptionPane.showMessageDialog(plPanel, "You have to select a target database from the list.", "Error", JOptionPane.ERROR_MESSAGE);
-						return;
-					}
-					if (plexp.getPlUsername().trim().length() == 0) {
-						JOptionPane.showMessageDialog(plPanel, "You have to specify the PowerLoader User Name.", "Error", JOptionPane.ERROR_MESSAGE);
-						return;
-					}
-					if (plexp.getJobId().trim().length() == 0) {
-						JOptionPane.showMessageDialog(plPanel, "You have to specify the PowerLoader Job ID.", "Error", JOptionPane.ERROR_MESSAGE);
-						return;
-					}
-					try {
-						List targetDBWarnings = listMissingTargetTables();
-						if (!targetDBWarnings.isEmpty()) {
-							JList warnings = new JList(targetDBWarnings.toArray());
-							JPanel cp = new JPanel(new BorderLayout());
-							cp.add(new JLabel("<html>The target database schema is not identical to your Architect schema.<br><br>Here are the differences:</html>"), BorderLayout.NORTH);
-							cp.add(new JScrollPane(warnings), BorderLayout.CENTER);
-							cp.add(new JLabel("Do you want to continue anyway?"), BorderLayout.SOUTH);
-							int choice = JOptionPane.showConfirmDialog(playpen, cp, "Target Database Structure Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-							if (choice == JOptionPane.NO_OPTION) return;
-						}
-
-						plexp.export(playpen.getDatabase());
-
-						if (plPanel.isSelectedRunPLEngine()) {
-							logger.debug("Running PL Engine");
-							File plIni = new File(architectFrame.getUserSettings().getETLUserSettings().getPlDotIniPath());
-							File plDir = plIni.getParentFile();
-							File engineExe = new File(plDir, plPanel.getPLConnectionSpec().getEngineExeutableName());
-							StringBuffer commandLine = new StringBuffer(1000);
-							commandLine.append(engineExe.getPath());
-							commandLine.append(" USER_PROMPT=N");
-							commandLine.append(" JOB=").append(plexp.getJobId());
-
-							commandLine.append(" USER=").append(plPanel.getPLConnectionSpec().getEngineConnectString());
-							commandLine.append(" DEBUG=N SEND_EMAIL=N SKIP_PACKAGES=N CALC_DETAIL_STATS=N COMMIT_FREQ=100 APPEND_TO_JOB_LOG_IND=N");
-							commandLine.append(" APPEND_TO_JOB_ERR_IND=N");
-							commandLine.append(" SHOW_PROGRESS=100" );
-							commandLine.append(" SHOW_PROGRESS=10" );
-							logger.debug(commandLine.toString());
-							try {
-								final Process proc = Runtime.getRuntime().exec(commandLine.toString());
-								final JDialog d = new JDialog(architectFrame, "Power*Loader Engine");
-								
-								EngineExecPanel eep = new EngineExecPanel(commandLine.toString(), proc);
-								d.setContentPane(eep);
-
-								
-								JButton abortButton = new JButton(eep.getAbortAction());
-								JButton closeButton = new JButton("Close");
-								closeButton.addActionListener(new ActionListener() {
-										public void actionPerformed(ActionEvent evt) {
-											d.setVisible(false);
-										}
-									});
-								JCheckBox scrollLockCheckBox = new JCheckBox(eep.getScrollBarLockAction());
-
-
-								JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-								buttonPanel.add(abortButton);
-								buttonPanel.add(closeButton);
-								buttonPanel.add(scrollLockCheckBox);
-								eep.add(buttonPanel, BorderLayout.SOUTH);
-								
-								
-								
-								d.pack();
-								d.setLocationRelativeTo(plPanel);
-								d.setVisible(true);
-	
-	
-	
-	
-							} catch (IOException ie){
-								JOptionPane.showMessageDialog(playpen, "Unexpected Exception running Engine:\n"+ie);
-								logger.error(ie);
-							}	
-						}
-					} catch (PLSecurityException ex) {
-						JOptionPane.showMessageDialog
-							(architectFrame,
-							 "Can't export Transaction: "+ex.getMessage());
-						logger.error("Got exception while exporting Trans", ex);
-					} catch (SQLException esql) {
-						JOptionPane.showMessageDialog
-							(architectFrame,
-							 "Can't export Transaction: "+esql.getMessage());
-						logger.error("Got exception while exporting Trans", esql);
-					} catch (ArchitectException arex){
-						JOptionPane.showMessageDialog
-							(architectFrame,
-							 "Can't export Transaction: "+arex.getMessage());
-						logger.error("Got exception while exporting Trans", arex);
-					} finally {
-						d.setVisible(false);
-					}
+			public void actionPerformed(ActionEvent evt) {
+				plPanel.applyChanges();
+				// make sure the user selected a target database    
+				if (plexp.getPlDBCS() == null) {
+					JOptionPane.showMessageDialog(plPanel, "You have to select a target database from the list.", "Error", JOptionPane.ERROR_MESSAGE);
+					return;
 				}
-			});
+				// make sure they provided a user name
+				if (plexp.getPlUsername().trim().length() == 0) {
+					JOptionPane.showMessageDialog(plPanel, "You have to specify the PowerLoader User Name.", "Error", JOptionPane.ERROR_MESSAGE);
+					return;
+				} // make sure user provided a PL Job Name
+				if (plexp.getJobId().trim().length() == 0) {
+					JOptionPane.showMessageDialog(plPanel, "You have to specify the PowerLoader Job ID.", "Error", JOptionPane.ERROR_MESSAGE);
+					return;
+				} 		
+				try {
+					List targetDBWarnings = listMissingTargetTables();
+					if (!targetDBWarnings.isEmpty()) {
+						// modal dialog (hold things up until the user says YES or NO)
+						JList warnings = new JList(targetDBWarnings.toArray());
+						JPanel cp = new JPanel(new BorderLayout());
+						cp.add(new JLabel("<html>The target database schema is not identical to your Architect schema.<br><br>Here are the differences:</html>"), BorderLayout.NORTH);
+						cp.add(new JScrollPane(warnings), BorderLayout.CENTER);
+						cp.add(new JLabel("Do you want to continue anyway?"), BorderLayout.SOUTH);
+						int choice = JOptionPane.showConfirmDialog(playpen, cp, "Target Database Structure Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+						if (choice == JOptionPane.NO_OPTION) {
+							return;
+						}
+					}
+				} catch (SQLException esql) {
+					JOptionPane.showMessageDialog (architectFrame,"Can't export Transaction: "+esql.getMessage());
+					logger.error("Got exception while exporting Trans", esql);
+				} catch (ArchitectException arex){
+					JOptionPane.showMessageDialog (architectFrame,"Can't export Transaction: "+arex.getMessage());
+					logger.error("Got exception while exporting Trans",arex);
+				}
+
+				// got this far, so it's ok to run the PL Export thread
+				ExportTxWorker worker = new ExportTxWorker(plexp,plPanel);
+				plexp.prepareToStart(); // sets finished to false
+	   	        ProgressWatcher watcher = new ProgressWatcher(plCreateTxProgressBar,plexp,plCreateTxLabel);
+				new javax.swing.Timer(50, watcher).start();
+				new Thread(worker).start();								
+			}
+		});
 		buttonPanel.add(okButton);
-		
+
+		//
 		JButton cancelButton = new JButton("Cancel");
 		cancelButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent evt) {
@@ -185,12 +138,132 @@ public class ExportPLTransAction extends AbstractAction {
 				}
 			});
 		buttonPanel.add(cancelButton);
-		
-		plp.add(buttonPanel, BorderLayout.SOUTH);
+
+		// stick in the progress bar here...
+		JPanel progressPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));		
+ 	    plCreateTxProgressBar = new JProgressBar();
+		plCreateTxProgressBar.setStringPainted(true); 
+		plCreateTxProgressBar.setVisible(false);		
+		progressPanel.add(plCreateTxProgressBar);		
+	    plCreateTxLabel = new JLabel ("Exporting PL Transactions...");
+		plCreateTxLabel.setVisible(false);
+		progressPanel.add(plCreateTxLabel);
+
+		bottomPanel.add(progressPanel); // left side, left justified
+		bottomPanel.add(buttonPanel); // right side, right justified
+
+		plp.add(bottomPanel, BorderLayout.SOUTH);
 		
 		d.setContentPane(plp);
 		d.pack();
 		d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
+	}
+
+	// turn this into an inline Runnable...
+	protected class ExportTxWorker implements Runnable {
+		PLExport plExport;
+		PLExportPanel plPanel;
+
+		public ExportTxWorker (PLExport plExport, PLExportPanel plPanel) {
+			this.plExport = plExport;
+			this.plPanel = plPanel;
+		}		
+
+		public void run() {
+			// now implements Monitorable, so we can ask it how it's doing
+			try {
+				plExport.export(playpen.getDatabase());
+				// if the user requested, try running the PL Job afterwards
+				if (plPanel.isSelectedRunPLEngine()) {
+					logger.debug("Running PL Engine");
+					File plIni = new File(architectFrame.getUserSettings().getETLUserSettings().getPlDotIniPath());
+					File plDir = plIni.getParentFile();
+					File engineExe = new File(plDir, plPanel.getPLConnectionSpec().getEngineExecutableName());
+					final StringBuffer commandLine = new StringBuffer(1000);
+					commandLine.append(engineExe.getPath());
+					commandLine.append(" USER_PROMPT=N");
+					commandLine.append(" JOB=").append(plexp.getJobId());            	
+					commandLine.append(" USER=").append(plPanel.getPLConnectionSpec().getEngineConnectString());
+					commandLine.append(" DEBUG=N SEND_EMAIL=N SKIP_PACKAGES=N CALC_DETAIL_STATS=N COMMIT_FREQ=100 APPEND_TO_JOB_LOG_IND=N");
+					commandLine.append(" APPEND_TO_JOB_ERR_IND=N");
+					commandLine.append(" SHOW_PROGRESS=100" );
+					commandLine.append(" SHOW_PROGRESS=10" );
+					logger.debug(commandLine.toString());
+					// worker thread must not talk to Swing directly...
+					SwingUtilities.invokeLater(new Runnable() {
+						public void run() {
+							try {
+								final Process proc = Runtime.getRuntime().exec(commandLine.toString());
+								final JDialog pld = new JDialog(architectFrame, "Power*Loader Engine");
+									
+								EngineExecPanel eep = new EngineExecPanel(commandLine.toString(), proc);
+								pld.setContentPane(eep);
+								
+								JButton abortButton = new JButton(eep.getAbortAction());
+								JButton closeButton = new JButton("Close");
+                           		
+								closeButton.addActionListener(new ActionListener() {
+										public void actionPerformed(ActionEvent evt) {
+											pld.setVisible(false);
+										}
+									});
+                           		
+								JCheckBox scrollLockCheckBox = new JCheckBox(eep.getScrollBarLockAction());
+            	       			
+								JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+								buttonPanel.add(abortButton);
+								buttonPanel.add(closeButton);
+								buttonPanel.add(scrollLockCheckBox);
+								eep.add(buttonPanel, BorderLayout.SOUTH);
+								
+								pld.pack();
+								pld.setLocationRelativeTo(plPanel);
+								pld.setVisible(true);
+							} catch (IOException ie){
+								JOptionPane.showMessageDialog(playpen, "Unexpected Exception running Engine:\n"+ie);
+								logger.error(ie);
+							}
+						}
+					});
+				}
+			} catch (PLSecurityException ex) {
+				final Exception fex = ex;
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						JOptionPane.showMessageDialog
+							(architectFrame,
+							 "Can't export Transaction: "+fex.getMessage());
+						logger.error("Got exception while exporting Trans", fex);	
+					}
+				});
+			} catch (SQLException esql) {
+				final Exception fesql = esql;
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						JOptionPane.showMessageDialog
+							(architectFrame,
+							 "Can't export Transaction: "+fesql.getMessage());
+						logger.error("Got exception while exporting Trans", fesql);
+					}
+				});
+			} catch (ArchitectException arex){
+				final Exception farex = arex;
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						JOptionPane.showMessageDialog
+							(architectFrame,
+							 "Can't export Transaction: "+farex.getMessage());
+						logger.error("Got exception while exporting Trans", farex);
+					}
+				});
+			} finally {
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						d.setVisible(false);
+					}
+				});
+			}
+		}
 	}
 
 	public void actionPerformed(ActionEvent e) {

@@ -21,7 +21,7 @@ import ca.sqlpower.architect.*;
 import ca.sqlpower.sql.DBConnectionSpec;
 
 public class PlayPen extends JPanel
-	implements java.io.Serializable, SQLObjectListener, SelectionListener, ContainerListener {
+	implements java.io.Serializable, SQLObjectListener, SelectionListener, ContainerListener, Scrollable {
 
 	private static Logger logger = Logger.getLogger(PlayPen.class);
 
@@ -361,11 +361,38 @@ public class PlayPen extends JPanel
 		}
 		
 		Dimension min = getMinimumSize();
-		return new Dimension((int) ((double) Math.max(maxx - minx, min.width) * zoom),
+
+		Dimension usedSpace = new Dimension((int) ((double) Math.max(maxx - minx, min.width) * zoom),
 							 (int) ((double) Math.max(maxy - miny, min.height) * zoom));
+
+		// but, make sure we return a preferred size that is at least as big as the Viewport
+		Dimension vpSize = getViewportSize();
+		if (vpSize != null) {
+			if (vpSize.width > usedSpace.width ||
+				vpSize.height > usedSpace.height) {
+				return vpSize;
+			}
+		}
+		// default 
+		return usedSpace;
 	}
+	
+	// get the size of the viewport that we are sitting in (return null if there isn't one);
+	public Dimension getViewportSize() {
+		Container c = SwingUtilities.getAncestorOfClass(JViewport.class, this);
+		if (c != null) {
+			JViewport jvp = (JViewport) c;
+			return jvp.getSize();
+		} else {
+			return null;
+		}
+	}
+	
+
 
 	public void paintComponent(Graphics g) {
+
+		logger.debug("start of paintComponent, width="+getWidth()+",height="+getHeight());
 		Graphics2D g2 = (Graphics2D) g;
 		g2.setColor(getBackground());
 		g2.fillRect(0, 0, getWidth(), getHeight());
@@ -410,6 +437,9 @@ public class PlayPen extends JPanel
 		}
 
 		g2.setTransform(backup);
+
+		logger.debug("end of paintComponent, width="+getWidth()+",height="+getHeight());
+
 	}
 
 	/**
@@ -1405,4 +1435,39 @@ public class PlayPen extends JPanel
 			pp.repaint();
 		}
 	}
+
+	// --- Scrollable Methods --- //
+
+	/*  Adding in scrollable magically disables the playpen.  Don't have the 
+        slightest idea as to where I might start looking for answers about this... */
+
+ 	public Dimension getPreferredScrollableViewportSize() {
+		// return getPreferredSize();
+		return new Dimension(800,600);
+	}
+
+    public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
+		if (orientation == SwingConstants.HORIZONTAL) {
+			return visibleRect.width;
+		} else { // SwingConstants.VERTICAL
+			return visibleRect.height;
+		}
+	}
+
+	public boolean getScrollableTracksViewportHeight() {
+		return false;
+	}
+
+    public boolean getScrollableTracksViewportWidth() {
+		return false;
+	}
+	
+    public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
+		if (orientation == SwingConstants.HORIZONTAL) {
+			return visibleRect.width/5;
+		} else { // SwingConstants.VERTICAL
+			return visibleRect.height/5;
+		}
+	}
+
 }
