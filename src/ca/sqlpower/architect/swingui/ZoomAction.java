@@ -5,7 +5,6 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
-import java.util.List;
 import java.util.Iterator;
 import javax.swing.AbstractAction;
 

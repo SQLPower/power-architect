@@ -5,18 +5,11 @@ import java.awt.event.*;
 import java.awt.datatransfer.*;
 import java.awt.dnd.*;
 import javax.swing.*;
-import javax.swing.tree.TreePath;
-import javax.swing.event.*;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Iterator;
 import java.util.ListIterator;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeEvent;
-import java.io.IOException;
-
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.*;
@@ -616,7 +609,7 @@ public class TablePane
 				logger.debug("isLocalObject = "+flavors[i].getMimeType().equals(DataFlavor.javaJVMLocalObjectMimeType));
 
 
- 				if (flavors[i].equals(DnDTreePathTransferable.flavor)) {
+ 				if (flavors[i].equals(DnDTreePathTransferable.TREEPATH_ARRAYLIST_FLAVOR)) {
 					logger.debug("YES");
  					return flavors[i];
 				}

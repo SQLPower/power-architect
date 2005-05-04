@@ -1,7 +1,6 @@
 package ca.sqlpower.architect.swingui;
 
 import javax.swing.plaf.ComponentUI;
-import ca.sqlpower.architect.ArchitectException;
 import java.awt.Point;
 
 public abstract class RelationshipUI extends ComponentUI implements java.io.Serializable {

@@ -3,7 +3,6 @@ package ca.sqlpower.architect.swingui;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.geom.*;
 import javax.swing.event.MouseInputAdapter;
 import ca.sqlpower.architect.*;
 import org.apache.log4j.Logger;

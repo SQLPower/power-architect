@@ -3,10 +3,7 @@ package ca.sqlpower.architect.swingui;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.*;
-import java.util.List;
 import javax.swing.*;
-import javax.swing.event.*;
-import ca.sqlpower.architect.*;
 import org.apache.log4j.Logger;
 
 public class PreferencesAction extends AbstractAction {

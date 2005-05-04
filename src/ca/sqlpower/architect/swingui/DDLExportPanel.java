@@ -1,10 +1,7 @@
 package ca.sqlpower.architect.swingui;
 
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
 import ca.sqlpower.architect.ddl.*;
-import java.io.File;
 import java.util.*;
 import org.apache.log4j.Logger;
 import ca.sqlpower.sql.DBConnectionSpec;

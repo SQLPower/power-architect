@@ -2,10 +2,8 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.event.*;
 import ca.sqlpower.architect.*;
 import org.apache.log4j.Logger;
-import java.sql.*;
 
 public class CreateTableAction extends AbstractAction {
 	private static final Logger logger = Logger.getLogger(CreateTableAction.class);

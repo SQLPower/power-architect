@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class DnDTreePathTransferable implements Transferable, java.io.Serializable {
-	public static final DataFlavor flavor = new DataFlavor
+	public static final DataFlavor TREEPATH_ARRAYLIST_FLAVOR = new DataFlavor
 		(ArrayList.class, "List of selected tree paths");
 	
 	protected ArrayList data;
@@ -15,16 +15,16 @@ public class DnDTreePathTransferable implements Transferable, java.io.Serializab
 	}
 	
 	public DataFlavor[] getTransferDataFlavors() {
-		return new DataFlavor[] { flavor };
+		return new DataFlavor[] { TREEPATH_ARRAYLIST_FLAVOR };
 	}
 	
 	public boolean isDataFlavorSupported(DataFlavor flavor) {
-		return (flavor.equals(this.flavor));
+		return (flavor.equals(TREEPATH_ARRAYLIST_FLAVOR));
 	}
 	
 	public Object getTransferData(DataFlavor flavor)
 		throws UnsupportedFlavorException, IOException {
-		if (flavor != this.flavor) {
+		if (flavor != TREEPATH_ARRAYLIST_FLAVOR) {
 			throw new IllegalArgumentException("Unsupported flavor "+flavor);
 		}
 		return data;

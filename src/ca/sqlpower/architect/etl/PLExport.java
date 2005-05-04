@@ -2,7 +2,6 @@ package ca.sqlpower.architect.etl;
 
 import java.sql.*;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.LinkedList;
 import java.util.HashSet;
 import ca.sqlpower.sql.*;

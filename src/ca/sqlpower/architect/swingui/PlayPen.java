@@ -2,7 +2,6 @@ package ca.sqlpower.architect.swingui;
 
 import javax.swing.*;
 import javax.swing.event.*;
-import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.datatransfer.*;
@@ -14,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.LinkedList;
-import java.util.ListIterator;
 import java.util.Iterator;
 import java.util.HashMap;
 import org.apache.log4j.Logger;
@@ -1182,7 +1180,7 @@ public class PlayPen extends JPanel
 				logger.debug("isLocalObject = "+flavors[i].getMimeType().equals(DataFlavor.javaJVMLocalObjectMimeType));
 
 
- 				if (flavors[i].equals(DnDTreePathTransferable.flavor)) {
+ 				if (flavors[i].equals(DnDTreePathTransferable.TREEPATH_ARRAYLIST_FLAVOR)) {
 					logger.debug("YES");
 					best = flavors[i];
 				} else {

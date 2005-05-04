@@ -1,8 +1,6 @@
 package ca.sqlpower.architect.swingui;
 
 import ca.sqlpower.architect.*;
-import ca.sqlpower.architect.ddl.*;
-import ca.sqlpower.architect.etl.*;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;
@@ -13,10 +11,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Iterator;
-import ca.sqlpower.sql.DBConnectionSpec;
 
 public class ArchitectFrame extends JFrame {
 
@@ -103,7 +97,7 @@ public class ArchitectFrame extends JFrame {
 
 		newProjectAction
 			 = new AbstractAction("New Project",
-					      ASUtils.createJLFIcon("general/New","New Project",sprefs.getInt(sprefs.ICON_SIZE, 24))) {
+					      ASUtils.createJLFIcon("general/New","New Project",sprefs.getInt(SwingUserSettings.ICON_SIZE, 24))) {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					setProject(new SwingUIProject("New Project"));
@@ -122,7 +116,7 @@ public class ArchitectFrame extends JFrame {
 			= new AbstractAction("Open Project...",
 								 ASUtils.createJLFIcon("general/Open",
 													   "Open Project",
-													   sprefs.getInt(sprefs.ICON_SIZE, 24))) {
+													   sprefs.getInt(SwingUserSettings.ICON_SIZE, 24))) {
 					public void actionPerformed(ActionEvent e) {
 						JFileChooser chooser = new JFileChooser();
 						chooser.addChoosableFileFilter(ASUtils.ARCHITECT_FILE_FILTER);
@@ -157,7 +151,7 @@ public class ArchitectFrame extends JFrame {
 			= new AbstractAction("Save Project",
 								 ASUtils.createJLFIcon("general/Save",
 													   "Save Project",
-													   sprefs.getInt(sprefs.ICON_SIZE, 24))) {
+													   sprefs.getInt(SwingUserSettings.ICON_SIZE, 24))) {
 					public void actionPerformed(ActionEvent e) {
 						saveOrSaveAs(false);
 					}
@@ -168,7 +162,7 @@ public class ArchitectFrame extends JFrame {
 			= new AbstractAction("Save Project As...",
 								 ASUtils.createJLFIcon("general/SaveAs",
 													   "Save Project As...",
-													   sprefs.getInt(sprefs.ICON_SIZE, 24))) {
+													   sprefs.getInt(SwingUserSettings.ICON_SIZE, 24))) {
 					public void actionPerformed(ActionEvent e) {
 						saveOrSaveAs(true);
 					}
@@ -185,7 +179,7 @@ public class ArchitectFrame extends JFrame {
 			= new AbstractAction("Reset Zoom",
 								 ASUtils.createJLFIcon("general/Zoom",
 													   "Reset Zoom",
-													   sprefs.getInt(sprefs.ICON_SIZE, 24))) {
+													   sprefs.getInt(SwingUserSettings.ICON_SIZE, 24))) {
 					public void actionPerformed(ActionEvent e) {
 						playpen.setZoom(1.0);
 					}

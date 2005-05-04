@@ -1,23 +1,16 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-import java.awt.event.*;
-import java.io.*;
-import java.sql.Connection;
-import java.sql.Statement;
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Iterator;
-import javax.swing.*;
-import javax.swing.table.AbstractTableModel;
-import ca.sqlpower.architect.*;
-import ca.sqlpower.architect.ddl.*;
+import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+
 import org.apache.log4j.Logger;
-
-import ca.sqlpower.sql.DBConnectionSpec;
 
 public class CompareDMAction extends AbstractAction {
 	private static final Logger logger = Logger.getLogger(CompareDMAction.class);

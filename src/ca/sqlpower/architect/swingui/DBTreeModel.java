@@ -1,6 +1,5 @@
 package ca.sqlpower.architect.swingui;
 
-import javax.swing.SwingUtilities;
 import javax.swing.tree.*;
 import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeModelEvent;
