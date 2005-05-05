@@ -38,4 +38,18 @@ public class DB2DDLGenerator extends GenericDDLGenerator {
 		typeMap.put(new Integer(Types.VARBINARY), new GenericTypeDescriptor("BLOB", Types.VARBINARY, 2147483647, null, null, DatabaseMetaData.columnNullable, true, false));
 		typeMap.put(new Integer(Types.VARCHAR), new GenericTypeDescriptor("VARCHAR", Types.VARCHAR, 32672, "'", "'", DatabaseMetaData.columnNullable, true, false));
 	}
+
+	/**
+	 * Returns the string "Database".
+	 */
+	public String getCatalogTerm() {
+		return "Database";
+	}
+
+	/**
+	 * Returns the string "Schema".
+	 */
+	public String getSchemaTerm() {
+		return "Schema";
+	}
 }

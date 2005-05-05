@@ -55,4 +55,18 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
 		typeMap.put(new Integer(Types.VARBINARY), new GenericTypeDescriptor("VARBINARY", Types.VARBINARY, 8000, null, null, DatabaseMetaData.columnNullable, true, false));
 		typeMap.put(new Integer(Types.VARCHAR), new GenericTypeDescriptor("VARCHAR", Types.VARCHAR, 8000, "'", "'", DatabaseMetaData.columnNullable, true, false));
 	}
+
+	/**
+	 * Returns the string "Database".
+	 */
+	public String getCatalogTerm() {
+		return "Database";
+	}
+
+	/**
+	 * Returns the string "Owner".
+	 */
+	public String getSchemaTerm() {
+		return "Owner";
+	}
 }

@@ -218,6 +218,10 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 		return null;
 	}
 
+	public SQLTable getTableByName(String tableName) throws ArchitectException {
+		return getTableByName(null, null, tableName);
+	}
+
 	/**
 	 * Searches this database's list of tables for one with the given
 	 * name, ignoring case because SQL isn't (usually) case sensitive.
@@ -232,10 +236,6 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	 * @return the first SQLTable with the given name, or null if no
 	 * such table exists.
 	 */
-	public SQLTable getTableByName(String tableName) throws ArchitectException {
-		return getTableByName(null, null, tableName);
-	}
-
 	public SQLTable getTableByName(String catalogName, String schemaName, String tableName)
 		throws ArchitectException {
 

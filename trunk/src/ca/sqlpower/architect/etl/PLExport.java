@@ -280,7 +280,7 @@ public class PLExport implements Monitorable {
 	 *
 	 * @param con A connection to the PL database
 	 * @param transId the name that the new transaction should have.
-	 * @param t The SQLTable that describes the DB table this
+	 * @param remarks The transaction comment/remarks.
 	 * transaction will populate.
 	 */
 	public void insertTrans(Connection con, String transId, String remarks) throws ArchitectException, SQLException {
@@ -368,7 +368,7 @@ public class PLExport implements Monitorable {
 	 * @param con The connection to the PL databse.
 	 * @param transId The name of the header transaction.
 	 * @param table The SQLTable that this record describes.
-	 * @param isOuput True if table is an output table (part of the
+	 * @param isOutput True if table is an output table (part of the
 	 * play pen); false if table is an input table (part of a source
 	 * DB).
 	 * @param seqNo The sequence number of this table in its parent
@@ -488,11 +488,7 @@ public class PLExport implements Monitorable {
 	 *
 	 * @param con The connection to the PL database.
 	 * @param transId The transaction name.
-	 * @param transTableFileId The transaction file id of the output table.
 	 * @param outputColumn The column to generate a mapping for.
-	 * @param inputTableMap A map with SQLTable objects as keys and
-	 * Strings with the corresponding TRANS_TABLE_FILE_ID for that
-	 * input table.
 	 * @param seqNo The sequence number of the output table in trans_table_file
 	 */
 	public void insertTransColMap(Connection con,
