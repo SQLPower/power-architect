@@ -31,7 +31,7 @@ public class GenericDDLGenerator {
 	private StringBuffer ddl;
 
 	/**
-	 * Complete DDL statements are accumulated in this list.
+	 * Complete DDL statements (of type DDLStatement) are accumulated in this list.
 	 */
 	private List ddlStatements;
 
@@ -70,6 +70,26 @@ public class GenericDDLGenerator {
 	 */
 	protected List warnings;
 
+	/**
+	 * The name of the catalog in the target database that the
+	 * generated DDL statements should create the objects in.  Not all
+	 * databases have catalogs; subclasses of GenericDDLGenerator which
+	 * target catalogless platforms should set this value to
+	 * <code>null</code> as well as override {@link #getCatalogTerm()}
+	 * to return <code>null</code>.
+	 */
+	protected String targetCatalog;
+
+	/**
+	 * The name of the schema in the target database that the
+	 * generated DDL statements should create the objects in.  Not all
+	 * databases have schemas; subclasses of GenericDDLGenerator which
+	 * target schemaless platforms should set this value to
+	 * <code>null</code> as well as override {@link #getSchemaTerm()}
+	 * to return <code>null</code>.
+	 */
+	protected String targetSchema;
+
 	public GenericDDLGenerator() {
 		allowConnection = true;
 	}
@@ -84,7 +104,8 @@ public class GenericDDLGenerator {
 
 		Iterator it = statements.iterator();
 		while (it.hasNext()) {
-			ddl.append(it.next());
+			DDLStatement ddlStmt = (DDLStatement) it.next();
+			ddl.append(ddlStmt.getSQLText());
 			writeStatementTerminator();
 		}
 		
@@ -124,9 +145,12 @@ public class GenericDDLGenerator {
 	/**
 	 * Stores all the ddl since the last call to endStatement as a SQL
 	 * statement. You have to call this at the end of each statement.
+	 *
+	 * @param type the type of statement
+	 * @param sqlObject the object to which the statement pertains
 	 */
-	public final void endStatement() {
-		ddlStatements.add(ddl.toString());
+	public final void endStatement(DDLStatement.StatementType type, SQLObject sqlObject) {
+		ddlStatements.add(new DDLStatement(sqlObject, type, ddl.toString()));
 		ddl = new StringBuffer(500);
 	}
 
@@ -177,7 +201,7 @@ public class GenericDDLGenerator {
 		topLevelNames.put(t.getName(), t);
 
 		print("\nCREATE TABLE ");
-		printIdentifier(t.getName());
+		printQualifiedIdentifier(t.getName());
 		println(" (");
 		boolean firstCol = true;
 		Iterator it = t.getColumns().iterator();
@@ -234,7 +258,7 @@ public class GenericDDLGenerator {
 		}
 		println("");
 		print(")");
-		endStatement();
+		endStatement(DDLStatement.StatementType.create, t);
 		println("");
 	}
 	
@@ -247,7 +271,7 @@ public class GenericDDLGenerator {
 			if (firstCol) {
 				println("");
 				print("ALTER TABLE ");
-				printIdentifier(t.getName());
+				printQualifiedIdentifier(t.getName());
 				print(" ADD CONSTRAINT ");
 				printIdentifier(t.getPrimaryKeyName());
 				println("");
@@ -260,7 +284,7 @@ public class GenericDDLGenerator {
 		}
 		if (!firstCol) {
 			print(")");
-			endStatement();
+			endStatement(DDLStatement.StatementType.addPk, t);
 			println("");
 		}
 	}
@@ -285,7 +309,7 @@ public class GenericDDLGenerator {
 
 			println("");
 			print("ALTER TABLE ");
-			printIdentifier(rel.getFkTable().getName());
+			printQualifiedIdentifier(rel.getFkTable().getName());
 			print(" ADD CONSTRAINT ");
 			printIdentifier(rel.getName());
 			println("");
@@ -307,11 +331,11 @@ public class GenericDDLGenerator {
 			print(fkCols.toString());
 			println(")");
 			print("REFERENCES ");
-			printIdentifier(rel.getPkTable().getName());
+			printQualifiedIdentifier(rel.getPkTable().getName());
 			print(" (");
 			print(pkCols.toString());
 			print(")");
-			endStatement();
+			endStatement(DDLStatement.StatementType.addFk, t);
 			println("");
 		}
 	}
@@ -341,6 +365,26 @@ public class GenericDDLGenerator {
 
 	protected void print(String text) {
 		ddl.append(text);
+	}
+
+	/**
+	 * Appends the qualified name (with targetCatalog and
+	 * targetSchema, if present) to <code>ddl</code>, the internal
+	 * StringBuffer that accumulates the results of DDL generation.
+	 *
+	 * <p>Names are qualified with
+	 * <code>catalog.schema.object_name</code> "dot" notation.  If
+	 * your generator subclass is for a database that doesn't use dot
+	 * notation, override this method and do it differently.
+	 */
+	protected void printQualifiedIdentifier(String text) {	
+		if (getTargetCatalog() != null && getTargetCatalog().length() > 0) {
+			ddl.append(getTargetCatalog()).append('.');
+		}
+		if (getTargetSchema() != null && getTargetSchema().length() > 0) {
+			ddl.append(getTargetSchema()).append('.');
+		}
+		appendIdentifier(ddl, text);
 	}
 
 	/**
@@ -452,5 +496,59 @@ public class GenericDDLGenerator {
 	 */
 	public List getWarnings() {
 		return warnings;
+	}
+
+	/**
+	 * See {@link #targetCatalog}.
+	 *
+	 * @return the value of targetCatalog
+	 */
+	public String getTargetCatalog()  {
+		return this.targetCatalog;
+	}
+
+	/**
+	 * See {@link #targetCatalog}.
+	 *
+	 * @param argTargetCatalog Value to assign to this.targetCatalog
+	 */
+	public void setTargetCatalog(String argTargetCatalog) {
+		this.targetCatalog = argTargetCatalog;
+	}
+
+	/**
+	 * See {@link #targetSchema}.
+	 *
+	 * @return the value of targetSchema
+	 */
+	public String getTargetSchema()  {
+		return this.targetSchema;
+	}
+
+	/**
+	 * See {@link #targetSchema}.
+	 *
+	 * @param argTargetSchema Value to assign to this.targetSchema
+	 */
+	public void setTargetSchema(String argTargetSchema) {
+		this.targetSchema = argTargetSchema;
+	}
+
+	/**
+	 * The name that the target database gives to the JDBC idea of
+	 * "catalog."  For Oracle, this would be null (no catalogs) and
+	 * for SQL Server it would be "Database".
+	 */
+	public String getCatalogTerm() {
+		return null;
+	}
+
+	/**
+	 * The name that the target database gives to the JDBC idea of
+	 * "schema."  For Oracle, this would be "Schema" and for SQL
+	 * Server it would be "Owner".
+	 */
+	public String getSchemaTerm() {
+		return null;
 	}
 }

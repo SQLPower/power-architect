@@ -45,4 +45,18 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
 	public String toIdentifier(String name) {
 		return name.replace(' ','_').toUpperCase();
 	}
+
+	/**
+	 * Returns null because Oracle doesn't have catalogs.
+	 */
+	public String getCatalogTerm() {
+		return null;
+	}
+
+	/**
+	 * Returns the string "Schema".
+	 */
+	public String getSchemaTerm() {
+		return "Schema";
+	}
 }

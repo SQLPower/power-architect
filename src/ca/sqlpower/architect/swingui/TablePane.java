@@ -230,7 +230,7 @@ public class TablePane
 	 * on the old model and installing it as a listener to the new
 	 * model.
 	 *
-	 * @param argModel Value to assign to this.model
+	 * @param m the new table model
 	 */
 	public void setModel(SQLTable m) {
 		SQLTable old = model;

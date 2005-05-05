@@ -417,6 +417,8 @@ public class SwingUIProject {
 			try {
 				GenericDDLGenerator ddlg = 
 					(GenericDDLGenerator) Class.forName(attributes.getValue("type")).newInstance();
+				ddlg.setTargetCatalog(attributes.getValue("target-catalog"));
+				ddlg.setTargetSchema(attributes.getValue("target-schema"));
 				return ddlg;
 			} catch (Exception e) {
 				logger.debug("Couldn't create DDL Generator instance. Returning generic instance.", e);
@@ -517,10 +519,16 @@ public class SwingUIProject {
 	}
 
 	protected void saveDDLGenerator() throws IOException {
-		println("<ddl-generator"
-				+" type=\""+ddlGenerator.getClass().getName()+"\""
-				+" allowConnection=\""+ddlGenerator.getAllowConnection()+"\""
-				+">");
+		print("<ddl-generator"
+			  +" type=\""+ddlGenerator.getClass().getName()+"\""
+			  +" allow-connection=\""+ddlGenerator.getAllowConnection()+"\"");
+		if (ddlGenerator.getTargetCatalog() != null) {
+			niprint(" target-catalog=\""+ddlGenerator.getTargetCatalog()+"\"");
+		}
+		if (ddlGenerator.getTargetSchema() != null) {
+			niprint(" target-schema=\""+ddlGenerator.getTargetSchema()+"\"");
+		}
+		niprint(">");
 		indent++;
 		if (ddlGenerator.getFile() != null) {
 			println("<file path=\""+ddlGenerator.getFile().getPath()+"\" />");

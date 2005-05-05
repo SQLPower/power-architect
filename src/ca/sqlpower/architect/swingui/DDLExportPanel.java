@@ -1,6 +1,7 @@
 package ca.sqlpower.architect.swingui;
 
 import javax.swing.*;
+import java.awt.event.*;
 import ca.sqlpower.architect.ddl.*;
 import java.util.*;
 import org.apache.log4j.Logger;
@@ -11,6 +12,12 @@ public class DDLExportPanel extends JPanel implements ArchitectPanel {
 
 	protected SwingUIProject project;
 	protected JComboBox dbType;
+	
+	protected JLabel catalogLabel;
+	protected JTextField catalogField;
+
+	protected JLabel schemaLabel;
+	protected JTextField schemaField;
 
 	public DDLExportPanel(SwingUIProject project) {
 		this.project = project;
@@ -43,6 +50,58 @@ public class DDLExportPanel extends JPanel implements ArchitectPanel {
 			logger.error("Unknown DDL generator class "+ddlg.getClass());
 			dbType.addItem(ASUtils.lvb("Unknown Generator", ddlg.getClass()));
 		}
+		dbType.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+						setUpCatalogAndSchemaFields();
+				}
+			});
+
+		add(catalogLabel = new JLabel("Target Catalog"));
+		add(catalogField = new JTextField(ddlg.getTargetCatalog()));
+		add(schemaLabel = new JLabel("Target Schema"));
+		add(schemaField = new JTextField(ddlg.getTargetSchema()));
+
+		setUpCatalogAndSchemaFields();
+	}
+
+	/**
+	 * This method sets up the labels and enabledness of the catalog
+	 * and schema text fields.  It should be called every time a new
+	 * database type is chosen, and when this panel is set up for the
+	 * first time.
+	 */
+	private void setUpCatalogAndSchemaFields() {
+		Class selectedGeneratorClass = null;
+		try {
+			selectedGeneratorClass = (Class) ((ASUtils.LabelValueBean) dbType.getSelectedItem()).getValue();
+			GenericDDLGenerator newGen = (GenericDDLGenerator) selectedGeneratorClass.newInstance();
+			if (newGen.getCatalogTerm() != null) {
+				catalogLabel.setText(newGen.getCatalogTerm());
+				catalogLabel.setEnabled(true);
+				catalogField.setEnabled(true);
+			} else {
+				catalogLabel.setText("(no catalog)");
+				catalogLabel.setEnabled(false);
+				catalogField.setEnabled(false);
+			}
+			
+			if (newGen.getSchemaTerm() != null) {
+				schemaLabel.setText(newGen.getSchemaTerm());
+				schemaLabel.setEnabled(true);
+				schemaField.setEnabled(true);
+			} else {
+				schemaLabel.setText("(no schema)");
+				schemaLabel.setEnabled(false);
+				schemaField.setEnabled(false);
+			}
+		} catch (Exception ex) {
+			String message = "Couldn't create a DDL generator of the selected type";
+			if (selectedGeneratorClass != null) {
+				message += (":\n"+selectedGeneratorClass.getName());
+			}
+			logger.error(message, ex);
+			JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
+		}
 	}
 
 	// ------------------------ Architect Panel Stuff -------------------------
@@ -65,10 +124,17 @@ public class DDLExportPanel extends JPanel implements ArchitectPanel {
 				|| dbcs.getDriverClass() == null
 				|| dbcs.getDriverClass().length() == 0) {
 				throw new IllegalStateException("You can't use the Generic JDBC Generator\n"
-												+"until you set up the target database type.");
+												+"until you set up the target database connection.");
 			}
 		} else {
 			ddlg.setAllowConnection(false);
+		}
+
+		if (catalogField.isEnabled()) {
+			ddlg.setTargetCatalog(catalogField.getText());
+		}
+		if (schemaField.isEnabled()) {
+			ddlg.setTargetSchema(schemaField.getText());
 		}
 	}
 

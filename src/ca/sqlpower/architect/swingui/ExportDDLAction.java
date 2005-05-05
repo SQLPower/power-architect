@@ -257,7 +257,7 @@ public class ExportDDLAction extends AbstractAction {
 						JOptionPane.showMessageDialog
 							(dialog, "Couldn't connect to target database: "+fex.getMessage()
 							 +"\nPlease check the connection settings and try again.");
-						ArchitectFrame.getMainInstance().playpen.showDbcsDialog();
+						architectFrame.getMainInstance().playpen.showDbcsDialog();
 					}
 				});								
 				finished = true;
@@ -269,7 +269,7 @@ public class ExportDDLAction extends AbstractAction {
 						JOptionPane.showMessageDialog
 							(dialog, "You have to specify a target database connection"
 							 +"\nbefore executing this script.");
-						ArchitectFrame.getMainInstance().playpen.showDbcsDialog();
+						architectFrame.getMainInstance().playpen.showDbcsDialog();
 					}
 				});								
 				finished = true;
@@ -309,16 +309,30 @@ public class ExportDDLAction extends AbstractAction {
 				logWriter.info("Database Target: " + target.getConnectionSpec());
 				Iterator it = statements.iterator();
 				while (it.hasNext() && !finished) {
-					String sql = (String) it.next();
+
+					DDLStatement ddlStmt = (DDLStatement) it.next();
+					
 					try {
+						List conflictingTargetObjects = DDLUtils.findConflicting(con, ddlStmt);
+						if (conflictingTargetObjects.size() > 0) {
+							int decision = JOptionPane.showConfirmDialog
+								(dialog, "The target database already contains object(s) with\n"
+								 +"the same name(s) as those you want to create:\n\n"
+								 +conflictingTargetObjects
+								 +"\nDo you want to drop the existing target objects?\n",
+								 "Conflicting Objects Found", JOptionPane.YES_NO_OPTION);
+							if (decision == JOptionPane.YES_OPTION) {
+								DDLUtils.dropConflicting(con, conflictingTargetObjects);
+							}
+						}
 						stmtsTried++;
-						logWriter.info("executing: " + sql);		
-						stmt.executeUpdate(sql);
+						logWriter.info("executing: " + ddlStmt.getSQLText());		
+						stmt.executeUpdate(ddlStmt.getSQLText());
 						stmtsCompleted++;
 					} catch (SQLException ex) {
 						final Exception fex = ex;
-						final String fsql = sql;
-						logWriter.info("failed: " + ex.getMessage());
+						final String fsql = ddlStmt.getSQLText();
+						logWriter.info("sql statement failed: " + ex.getMessage());
 						try {
 							SwingUtilities.invokeAndWait(new Runnable() {						
 								public void run() {
@@ -327,21 +341,23 @@ public class ExportDDLAction extends AbstractAction {
 										 +"\nThe statement was:\n"+fsql+"\nDo you want to continue?",
 										 "SQL Failure", JOptionPane.YES_NO_OPTION);
 									if (decision == JOptionPane.NO_OPTION) {
+										logWriter.info("Export cancelled by user.");
 										cancelJob();
 									}
 								}
 							});
 						} catch (InterruptedException ex2) {
+							logger.warn("DDL Worker was interrupted during InvokeAndWait", ex2);
 						} catch (InvocationTargetException ex2) {
 							final Exception fex2 = ex2;
 							SwingUtilities.invokeLater(new Runnable() {
-								public void run() {
-								JOptionPane.showMessageDialog
-									(dialog, "worker thread died: "+fex2.getMessage());
-								}
-							});
+									public void run() {
+										JOptionPane.showMessageDialog
+											(dialog, "Worker thread died: "+fex2.getMessage());
+									}
+								});
 						}
-									
+
 						if (isCancelled()) {
 							finished = true;
 							// don't return, we might as well display how many statements ended up being processed...
@@ -354,17 +370,19 @@ public class ExportDDLAction extends AbstractAction {
 			} catch (ArchitectException ex) {
 				final Exception fex = ex;
 				SwingUtilities.invokeLater(new Runnable() {
-					public void run() {
-						JOptionPane.showMessageDialog
-							(dialog, "A problem with the DDL log file prevented DDL generation from running:"+fex.getMessage());
-					}
-				});								
+						public void run() {
+							JOptionPane.showMessageDialog
+								(dialog, "A problem with the DDL log file prevented\n"
+								 +"DDL generation from running:\n\n"
+								 +fex.getMessage());
+						}
+					});
 				finished = true;
 			} finally {
 				// flush and close the LogWriter
-				logWriter.flush();		
+				logWriter.flush();
 				logWriter.close();
-				logWriter=null;			
+				logWriter=null;
 			}
             
 			try {
@@ -377,10 +395,13 @@ public class ExportDDLAction extends AbstractAction {
 			// show them what they've won!	
 			SwingUtilities.invokeLater(new Runnable() {
 				public void run() {
-					JOptionPane.showMessageDialog(dialog, "Successfully executed "+stmtsCompleted
-												  +" out of "+stmtsTried+" statements.");
+					String message =  "Successfully executed "+stmtsCompleted+" out of "+stmtsTried+" statements.";
+					if (stmtsCompleted == 0 && stmtsTried > 0) {
+						message += ("\nBetter luck next time!");
+					}
+					JOptionPane.showMessageDialog(dialog, message);
 				}
-			});						
+			});
            	
 			finished = true;
 		}			
