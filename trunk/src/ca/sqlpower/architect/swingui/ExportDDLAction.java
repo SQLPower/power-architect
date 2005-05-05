@@ -19,6 +19,9 @@ import org.apache.log4j.Logger;
 public class ExportDDLAction extends AbstractAction {
 	private static final Logger logger = Logger.getLogger(ExportDDLAction.class);
 
+	// to be created and destroyed when needed 
+	protected LogWriter logWriter = null;
+
 	protected ArchitectFrame architectFrame;
 
 	public ExportDDLAction() {
@@ -300,46 +303,68 @@ public class ExportDDLAction extends AbstractAction {
 				return;
 			}
             
-			Iterator it = statements.iterator();
-			while (it.hasNext() && !finished) {
-				String sql = (String) it.next();
-				try {
-					stmtsTried++;
-					stmt.executeUpdate(sql);
-					stmtsCompleted++;
-				} catch (SQLException ex) {
-					final Exception fex = ex;
-					final String fsql = sql;
+			try {			
+				logWriter = new LogWriter(ArchitectSession.getInstance().getUserSettings().getDDLUserSettings().getDDLLogPath());			
+				logWriter.info("Starting DDL Generation at " + new java.util.Date(System.currentTimeMillis()));
+				logWriter.info("Database Target: " + target.getConnectionSpec());
+				Iterator it = statements.iterator();
+				while (it.hasNext() && !finished) {
+					String sql = (String) it.next();
 					try {
-						SwingUtilities.invokeAndWait(new Runnable() {						
-							// FIXME: this is definitely not going to work.  Need to figure out a way to 
-                    	    // stop the worker thread from running until the result of this Dialog has returned...
-							public void run() {
-								int decision = JOptionPane.showConfirmDialog
-									(dialog, "SQL statement failed: "+fex.getMessage()
-									 +"\nThe statement was:\n"+fsql+"\nDo you want to continue?",
-									 "SQL Failure", JOptionPane.YES_NO_OPTION);
-								if (decision == JOptionPane.NO_OPTION) {
-									cancelJob();
+						stmtsTried++;
+						logWriter.info("executing: " + sql);		
+						stmt.executeUpdate(sql);
+						stmtsCompleted++;
+					} catch (SQLException ex) {
+						final Exception fex = ex;
+						final String fsql = sql;
+						logWriter.info("failed: " + ex.getMessage());
+						try {
+							SwingUtilities.invokeAndWait(new Runnable() {						
+								public void run() {
+									int decision = JOptionPane.showConfirmDialog
+										(dialog, "SQL statement failed: "+fex.getMessage()
+										 +"\nThe statement was:\n"+fsql+"\nDo you want to continue?",
+										 "SQL Failure", JOptionPane.YES_NO_OPTION);
+									if (decision == JOptionPane.NO_OPTION) {
+										cancelJob();
+									}
 								}
-							}
-						});
-					} catch (InterruptedException ex2) {
-					} catch (InvocationTargetException ex2) {
-						final Exception fex2 = ex2;
-						SwingUtilities.invokeLater(new Runnable() {
-							public void run() {
-							JOptionPane.showMessageDialog
-								(dialog, "worker thread died: "+fex2.getMessage());
-							}
-						});
-					}
-								
-					if (isCancelled()) {
-						finished = true;
-						// don't return, we might as well display how many statements ended up being processed...
-					}
+							});
+						} catch (InterruptedException ex2) {
+						} catch (InvocationTargetException ex2) {
+							final Exception fex2 = ex2;
+							SwingUtilities.invokeLater(new Runnable() {
+								public void run() {
+								JOptionPane.showMessageDialog
+									(dialog, "worker thread died: "+fex2.getMessage());
+								}
+							});
+						}
+									
+						if (isCancelled()) {
+							finished = true;
+							// don't return, we might as well display how many statements ended up being processed...
+						}
+					} 
 				}
+            	
+				logWriter.info("Successfully executed "+stmtsCompleted+" out of "+stmtsTried+" statements.");
+
+			} catch (ArchitectException ex) {
+				final Exception fex = ex;
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						JOptionPane.showMessageDialog
+							(dialog, "A problem with the DDL log file prevented DDL generation from running:"+fex.getMessage());
+					}
+				});								
+				finished = true;
+			} finally {
+				// flush and close the LogWriter
+				logWriter.flush();		
+				logWriter.close();
+				logWriter=null;			
 			}
             
 			try {
