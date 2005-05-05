@@ -15,7 +15,6 @@ public class PLExport implements Monitorable {
 
 	private static final Logger logger = Logger.getLogger(PLExport.class);
 
-	// now _this_ is a mouthful...
 	protected LogWriter logWriter = null;
 	
 	public static final String PL_GENERATOR_VERSION
