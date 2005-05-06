@@ -1,11 +1,10 @@
 package ca.sqlpower.architect.swingui;
 
-import java.util.List;
-import java.util.Iterator;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.event.*;
-import ca.sqlpower.architect.*;
+import java.awt.event.ActionEvent;
+
+import javax.swing.AbstractAction;
+import javax.swing.JOptionPane;
+
 import org.apache.log4j.Logger;
 
 public class AutoLayoutAction extends AbstractAction {
