@@ -258,7 +258,7 @@ public class GenericDDLGenerator {
 		}
 		println("");
 		print(")");
-		endStatement(DDLStatement.StatementType.create, t);
+		endStatement(DDLStatement.StatementType.CREATE, t);
 		println("");
 	}
 	
@@ -284,7 +284,7 @@ public class GenericDDLGenerator {
 		}
 		if (!firstCol) {
 			print(")");
-			endStatement(DDLStatement.StatementType.addPk, t);
+			endStatement(DDLStatement.StatementType.ADD_PK, t);
 			println("");
 		}
 	}
@@ -335,7 +335,7 @@ public class GenericDDLGenerator {
 			print(" (");
 			print(pkCols.toString());
 			print(")");
-			endStatement(DDLStatement.StatementType.addFk, t);
+			endStatement(DDLStatement.StatementType.ADD_FK, t);
 			println("");
 		}
 	}

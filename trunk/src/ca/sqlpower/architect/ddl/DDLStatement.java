@@ -1,7 +1,6 @@
 package ca.sqlpower.architect.ddl;
 
 import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.sql.DBConnectionSpec;
 
 /**
  * The DDLStatement class combines a high-level description of what a
@@ -10,7 +9,24 @@ import ca.sqlpower.sql.DBConnectionSpec;
  */
 public class DDLStatement {
 
-	public enum StatementType { create, drop, alter, addPk, addFk };
+	public static class StatementType {
+	
+		public static final StatementType CREATE = new StatementType("CREATE");
+		public static final StatementType DROP = new StatementType("DROP");
+		public static final StatementType ALTER = new StatementType("ALTER");
+		public static final StatementType ADD_PK = new StatementType("ADD_PK");
+		public static final StatementType ADD_FK = new StatementType("ADD_FK");
+
+		private String type;
+
+		private StatementType(String type) {
+			this.type = type;
+		}
+
+		public boolean equals(Object other) {
+			return this.type.equals(((StatementType) other).type);
+		}
+	}
 
 	private SQLObject object;
 	private StatementType type;
