@@ -150,7 +150,17 @@ public class GenericDDLGenerator {
 	 * @param sqlObject the object to which the statement pertains
 	 */
 	public final void endStatement(DDLStatement.StatementType type, SQLObject sqlObject) {
-		ddlStatements.add(new DDLStatement(sqlObject, type, ddl.toString()));
+		String cat = getTargetCatalog();
+		if (cat != null) {
+			cat = toIdentifier(cat);
+		}
+
+		String sch = getTargetSchema();
+		if (sch != null) {
+			sch = toIdentifier(sch);
+		}
+
+		ddlStatements.add(new DDLStatement(sqlObject, type, ddl.toString(), cat, sch));
 		ddl = new StringBuffer(500);
 	}
 
