@@ -28,14 +28,19 @@ public class DDLStatement {
 		}
 	}
 
+	private String targetCatalog;
+	private String targetSchema;
 	private SQLObject object;
 	private StatementType type;
 	private String sqlText;
 
-	public DDLStatement(SQLObject object, StatementType type, String sqlText) {
+	public DDLStatement(SQLObject object, StatementType type, String sqlText,
+			String targetCatalog, String targetSchema) {
 		this.object = object;
 		this.type = type;
 		this.sqlText = sqlText;
+		this.targetCatalog = targetCatalog;
+		this.targetSchema = targetSchema;
 	}
 
 	// ------------------------ Accessors and Mutators -------------------------
@@ -94,4 +99,16 @@ public class DDLStatement {
 		this.sqlText = v;
 	}
 
+	public String getTargetCatalog() {
+		return targetCatalog;
+	}
+	public void setTargetCatalog(String targetCatalog) {
+		this.targetCatalog = targetCatalog;
+	}
+	public String getTargetSchema() {
+		return targetSchema;
+	}
+	public void setTargetSchema(String targetSchema) {
+		this.targetSchema = targetSchema;
+	}
 }

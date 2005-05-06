@@ -34,10 +34,12 @@ public class DDLUtils {
 		if (clazz.equals(SQLTable.class)) {
 			SQLTable t = (SQLTable) so;
 			DatabaseMetaData dbmd = con.getMetaData();
+			String cat = ddlStmt.getTargetCatalog();
+			String sch = ddlStmt.getTargetSchema();
 			if (logger.isDebugEnabled()) {
-				logger.debug("Finding conflicts for TABLE '"+t.getCatalogName()+"'.'"+t.getSchemaName()+"'.'"+t.getName()+"'");
+				logger.debug("Finding conflicts for TABLE '"+cat+"'.'"+sch+"'.'"+t.getName()+"'");
 			}
-			ResultSet rs = dbmd.getTables(t.getCatalogName(), t.getSchemaName(), t.getName(), null);
+			ResultSet rs = dbmd.getTables(cat, sch, t.getName(), null);
 			while (rs.next()) {
 				StringBuffer qualName = new StringBuffer();
 				if (rs.getString("TABLE_CAT") != null) {
@@ -49,8 +51,8 @@ public class DDLUtils {
 				}
 				if (qualName.length() > 0) qualName.append(".");
 				qualName.append(rs.getString("TABLE_NAME"));
-				qualName.insert(0, rs.getString("TABLE_TYPE"));
-				conflicts.add(qualName);
+				qualName.insert(0, rs.getString("TABLE_TYPE")+" ");
+				conflicts.add(qualName.toString());
 			}
 		} else if (clazz.equals(SQLRelationship.class)) {
 			logger.error("Relationship conflicts are not supported yet!");
@@ -58,10 +60,12 @@ public class DDLUtils {
 			throw new IllegalArgumentException("Unknown subclass of SQLObject: "+clazz.getName());
 		}
 
+		if (logger.isDebugEnabled()) logger.debug("Found conflicts: "+conflicts);
+		
 		return conflicts;
 	}
 
-	public static void dropConflicting(Connection con, List objectNames) throws SQLException {
+	public static void dropConflicting(Connection con, Collection objectNames) throws SQLException {
 		Iterator it = objectNames.iterator();
 		Statement stmt = null;
 		try {

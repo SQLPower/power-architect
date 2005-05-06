@@ -10,6 +10,9 @@ import java.sql.SQLException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Iterator;
+import java.util.Set;
+import java.util.TreeSet;
+
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import ca.sqlpower.architect.*;
@@ -235,13 +238,70 @@ public class ExportDDLAction extends AbstractAction {
 			return cancelled;
 		}
 
+		/**
+		 * Gets the list of DDL statements, looks for conflicting objects, and
+		 * optionally drops them (at the user's option). This method must be on the
+		 * AWT Event Dispatch thread.
+		 */
 		public void prepareToStart() {
 			finished = false;
 			cancelled = false;
+			Connection con = null;
+			SQLDatabase target = architectFrame.playpen.getDatabase();
+			
+			try {
+				con = target.getConnection();
+				statements = ddlg.generateDDLStatements(target);
+				
+				Set conflicts = new TreeSet();
+				Iterator it = statements.iterator();
+				while (it.hasNext()) {
+					DDLStatement stmt = (DDLStatement) it.next();
+					conflicts.addAll(DDLUtils.findConflicting(con, stmt));
+				}
+				
+				if (!conflicts.isEmpty()) {
+					String msg = "The following objects which you are trying"
+						+"\nto create in the target database already exist:"
+						+"\n\n"
+						+conflicts
+						+"\n\n"
+						+"Do you want the Architect to drop these objects before"
+						+"attempting to create the new ones?";
+					int choice = JOptionPane.showConfirmDialog(dialog, msg, "Conflicting Objects Found", JOptionPane.YES_NO_CANCEL_OPTION);
+					if (choice == JOptionPane.YES_OPTION) {
+						DDLUtils.dropConflicting(con, conflicts);
+					} else if (choice == JOptionPane.CANCEL_OPTION) {
+						cancelled = true;
+					}
+				}
+			} catch (ArchitectException ex) {
+				JOptionPane.showMessageDialog
+				(dialog, "Couldn't connect to target database: "+ex.getMessage()
+						+"\nPlease check the connection settings and try again.");
+				ArchitectFrame.getMainInstance().playpen.showDbcsDialog();
+				finished = true;
+				return;
+			} catch (Exception ex) {
+				logger.error("Unexpected exception setting up DDL generation", ex);
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						JOptionPane.showMessageDialog
+							(dialog, "You have to specify a target database connection"
+							 +"\nbefore executing this script.");
+						ArchitectFrame.getMainInstance().playpen.showDbcsDialog();
+					}
+				});								
+				finished = true;
+				return;
+			}
 		}
 
-		public void execute() {	        
-			finished = false;
+		/**
+		 * This method runs on a separate worker thread.
+		 */
+		public void execute() {
+			if (cancelled || finished) return;
 			stmtsTried = 0;
 			stmtsCompleted = 0;
 			SQLDatabase target = architectFrame.playpen.getDatabase();
@@ -278,7 +338,6 @@ public class ExportDDLAction extends AbstractAction {
             
 			try {
 				stmt = con.createStatement();
-				statements = ddlg.generateDDLStatements(target);
 			} catch (SQLException ex) {
 				final Exception fex = ex;
 				SwingUtilities.invokeLater(new Runnable() {
@@ -290,41 +349,18 @@ public class ExportDDLAction extends AbstractAction {
 				});								
 				finished = true;
 				return;
-			} catch (ArchitectException ex) {
-				final Exception fex = ex;
-				SwingUtilities.invokeLater(new Runnable() {
-					public void run() {
-						JOptionPane.showMessageDialog
-							(dialog, "Couldn't generate DDL statements: "+fex.getMessage()
-							 +"\nThe problem was detected internally to the Architect.");
-					}
-				});								
-				finished = true;
-				return;
 			}
-            
+			
 			try {			
 				logWriter = new LogWriter(ArchitectSession.getInstance().getUserSettings().getDDLUserSettings().getDDLLogPath());			
 				logWriter.info("Starting DDL Generation at " + new java.util.Date(System.currentTimeMillis()));
 				logWriter.info("Database Target: " + target.getConnectionSpec());
+				
+
 				Iterator it = statements.iterator();
 				while (it.hasNext() && !finished) {
-
 					DDLStatement ddlStmt = (DDLStatement) it.next();
-					
 					try {
-						List conflictingTargetObjects = DDLUtils.findConflicting(con, ddlStmt);
-						if (conflictingTargetObjects.size() > 0) {
-							int decision = JOptionPane.showConfirmDialog
-								(dialog, "The target database already contains object(s) with\n"
-								 +"the same name(s) as those you want to create:\n\n"
-								 +conflictingTargetObjects
-								 +"\nDo you want to drop the existing target objects?\n",
-								 "Conflicting Objects Found", JOptionPane.YES_NO_OPTION);
-							if (decision == JOptionPane.YES_OPTION) {
-								DDLUtils.dropConflicting(con, conflictingTargetObjects);
-							}
-						}
 						stmtsTried++;
 						logWriter.info("executing: " + ddlStmt.getSQLText());		
 						stmt.executeUpdate(ddlStmt.getSQLText());
@@ -337,9 +373,9 @@ public class ExportDDLAction extends AbstractAction {
 							SwingUtilities.invokeAndWait(new Runnable() {						
 								public void run() {
 									int decision = JOptionPane.showConfirmDialog
-										(dialog, "SQL statement failed: "+fex.getMessage()
-										 +"\nThe statement was:\n"+fsql+"\nDo you want to continue?",
-										 "SQL Failure", JOptionPane.YES_NO_OPTION);
+									(dialog, "SQL statement failed: "+fex.getMessage()
+											+"\nThe statement was:\n"+fsql+"\nDo you want to continue?",
+											"SQL Failure", JOptionPane.YES_NO_OPTION);
 									if (decision == JOptionPane.NO_OPTION) {
 										logWriter.info("Export cancelled by user.");
 										cancelJob();
@@ -351,32 +387,32 @@ public class ExportDDLAction extends AbstractAction {
 						} catch (InvocationTargetException ex2) {
 							final Exception fex2 = ex2;
 							SwingUtilities.invokeLater(new Runnable() {
-									public void run() {
-										JOptionPane.showMessageDialog
-											(dialog, "Worker thread died: "+fex2.getMessage());
-									}
-								});
+								public void run() {
+									JOptionPane.showMessageDialog
+									(dialog, "Worker thread died: "+fex2.getMessage());
+								}
+							});
 						}
-
+						
 						if (isCancelled()) {
 							finished = true;
 							// don't return, we might as well display how many statements ended up being processed...
 						}
 					} 
 				}
-            	
+				
 				logWriter.info("Successfully executed "+stmtsCompleted+" out of "+stmtsTried+" statements.");
-
+				
 			} catch (ArchitectException ex) {
 				final Exception fex = ex;
 				SwingUtilities.invokeLater(new Runnable() {
-						public void run() {
-							JOptionPane.showMessageDialog
-								(dialog, "A problem with the DDL log file prevented\n"
-								 +"DDL generation from running:\n\n"
-								 +fex.getMessage());
-						}
-					});
+					public void run() {
+						JOptionPane.showMessageDialog
+						(dialog, "A problem with the DDL log file prevented\n"
+								+"DDL generation from running:\n\n"
+								+fex.getMessage());
+					}
+				});
 				finished = true;
 			} finally {
 				// flush and close the LogWriter
@@ -384,14 +420,14 @@ public class ExportDDLAction extends AbstractAction {
 				logWriter.close();
 				logWriter=null;
 			}
-            
+			
 			try {
 				stmt.close();
 			} catch (SQLException ex) {
 				logger.error("SQLException while closing statement", ex);
 			}
-
-            
+			
+			
 			// show them what they've won!	
 			SwingUtilities.invokeLater(new Runnable() {
 				public void run() {
@@ -402,9 +438,9 @@ public class ExportDDLAction extends AbstractAction {
 					JOptionPane.showMessageDialog(dialog, message);
 				}
 			});
-           	
+			
 			finished = true;
-		}			
+		}
 	}
 
 	public static class DDLWarningTableModel extends AbstractTableModel {
