@@ -976,6 +976,23 @@ public class PlayPen extends JPanel
 		return Collections.unmodifiableList(selected);
 	}
 
+	/**
+	 * Returns a read-only view of the set of selected table in the PlayPen.
+	 */
+	public List getSelectedTables() {
+		ArrayList selected = new ArrayList();
+ 		for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
+ 			if (contentPane.getComponent(i) instanceof TablePane) {
+				TablePane tp = (TablePane) contentPane.getComponent(i);
+				if (tp.isSelected()) {
+					selected.add(tp);
+				}
+			}
+		}			
+		return Collections.unmodifiableList(selected);
+	}
+
+
 	// --------------------------- CONTAINER LISTENER -------------------------
 
 	/**
@@ -1262,6 +1279,12 @@ public class PlayPen extends JPanel
 		
 		public void mousePressed(MouseEvent evt) {
 			requestFocus();
+
+			// FIXME: DND is currently busted.  Nneed to do something in here to figure out 
+            // if we're clicking on something that was already selected!  
+
+
+
 			if (!retargetToContentPane(evt)) {
 				maybeShowPopup(evt);
 				if ((evt.getModifiersEx() & InputEvent.BUTTON1_DOWN_MASK) != 0) {

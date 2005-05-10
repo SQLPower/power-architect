@@ -695,18 +695,35 @@ public class TablePane
 	 * Double-click support.
 	 */
 	public void mouseClicked(MouseEvent evt) {
-		if ((evt.getModifiers() & MouseEvent.BUTTON1_MASK) != 0
-			&& evt.getClickCount() == 2) {
+		if ((evt.getModifiers() & MouseEvent.BUTTON1_MASK) != 0) {
 			TablePane tp = (TablePane) evt.getSource();
-			if (tp.isSelected()) {
-				ArchitectFrame af = ArchitectFrame.getMainInstance();
-				int selectedColIndex = tp.getSelectedColumnIndex();
-				if (selectedColIndex == COLUMN_INDEX_NONE) {
-					af.editTableAction.actionPerformed
-						(new ActionEvent(tp, ActionEvent.ACTION_PERFORMED, "DoubleClick"));
-				} else if (selectedColIndex >= 0) {
-					af.editColumnAction.actionPerformed
-						(new ActionEvent(tp, ActionEvent.ACTION_PERFORMED, "DoubleClick"));
+			if (evt.getClickCount() == 2) { // double click
+				if (tp.isSelected()) {
+					ArchitectFrame af = ArchitectFrame.getMainInstance();
+					int selectedColIndex = tp.getSelectedColumnIndex();
+					if (selectedColIndex == COLUMN_INDEX_NONE) {
+						af.editTableAction.actionPerformed
+							(new ActionEvent(tp, ActionEvent.ACTION_PERFORMED, "DoubleClick"));
+					} else if (selectedColIndex >= 0) {
+						af.editColumnAction.actionPerformed
+							(new ActionEvent(tp, ActionEvent.ACTION_PERFORMED, "DoubleClick"));
+					}
+				}
+			} else { // single click 
+				try { 
+					// potentially need to clear all selections and reselect a single tablepane
+					PlayPen pp = (PlayPen) tp.getPlayPen();
+					int clickCol = tp.pointToColumnIndex(evt.getPoint());
+					if ( (evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0) {
+						pp.selectNone();
+					}
+					tp.setSelected(true);
+					tp.selectNone();
+					if (clickCol < tp.model.getColumns().size()) {
+						tp.selectColumn(clickCol);
+					}
+				} catch (ArchitectException e) {
+					logger.error("Exception converting point to column", e);
 				}
 			}
 		}
@@ -714,36 +731,46 @@ public class TablePane
 	
 	public void mousePressed(MouseEvent evt) {
 		evt.getComponent().requestFocus();
-
 		if ((evt.getModifiersEx() & MouseEvent.BUTTON1_DOWN_MASK) != 0) {
-
+			TablePane tp = (TablePane) evt.getSource();
+			// dragging
 			try {
-				
-				// table/column selection
-				TablePane tp = (TablePane) evt.getComponent();
 				PlayPen pp = (PlayPen) tp.getPlayPen();
-				int clickCol = tp.pointToColumnIndex(evt.getPoint());
-				if ( (evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0) {
-					pp.selectNone();
-				}
+				int clickCol = tp.pointToColumnIndex(evt.getPoint());		
+				// user might have clicked on a different column, so we need to select
+                // this here (even though the single click event handler will select
+                // it again...
 				tp.setSelected(true);
 				tp.selectNone();
 				if (clickCol < tp.model.getColumns().size()) {
 					tp.selectColumn(clickCol);
 				}
-				
-				// dragging
+				// handle drag
 				if (clickCol == COLUMN_INDEX_TITLE) {
-					Point handle = getPlayPen().zoomPoint(new Point(evt.getPoint()));
-					new PlayPen.FloatingTableListener(getPlayPen(), this, handle);
-				}
-				
+					Iterator it = getPlayPen().getSelectedTables().iterator();
+					logger.debug("event point: " + evt.getPoint());
+					logger.debug("zoomed event point: " + getPlayPen().zoomPoint(evt.getPoint()));
+					while (it.hasNext()) {
+						// figure out what the h e double hockey sticks is happening... 						
+						TablePane t3 = (TablePane)it.next();
+						logger.debug("(" + t3.getModel().getTableName() + ") zoomed selected table point: " + t3.getLocationOnScreen());
+						logger.debug("(" + t3.getModel().getTableName() + ") unzoomed selected table point: " + getPlayPen().unzoomPoint(t3.getLocationOnScreen()));
+						/* the floating table listener expects zoomed handles which are relative to
+                           the location of the table column which was clicked on.  */
+						Point clickedColumn = tp.getLocationOnScreen();
+						Point otherTable = t3.getLocationOnScreen();
+						Point handle = getPlayPen().zoomPoint(new Point(evt.getPoint()));
+						logger.debug("(" + t3.getModel().getTableName() + ") translation x=" 
+                                      + (otherTable.getX() - clickedColumn.getX()) + ",y=" 
+                                      + (otherTable.getY() - clickedColumn.getY()));
+						handle.translate((int)(clickedColumn.getX() - otherTable.getX()), (int) (clickedColumn.getY() - otherTable.getY())); 																	
+						new PlayPen.FloatingTableListener(getPlayPen(), t3, handle);
+					}
+				}				
 			} catch (ArchitectException e) {
 				logger.error("Exception converting point to column", e);
 			}
-		}
-
-		
+		}		
 		maybeShowPopup(evt);
 	}
 	

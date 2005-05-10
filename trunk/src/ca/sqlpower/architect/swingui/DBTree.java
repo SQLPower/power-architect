@@ -44,6 +44,7 @@ public class DBTree extends JTree implements DragSourceListener {
 	// ----------- CONSTRUCTORS ------------
 
 	public DBTree() {
+		setUI(new MultiDragTreeUI());
 		setRootVisible(false);
 		setShowsRootHandles(true);
 		ds = new DragSource();
@@ -54,12 +55,7 @@ public class DBTree extends JTree implements DragSourceListener {
 		setupPropDialog();
 		popup = setupPopupMenu();
 		addMouseListener(new PopupListener());
-		setCellRenderer(new SQLObjectRenderer());
-		/*
-		// make multiselect DND work properly
-		BasicTreeUI btui = (BasicTreeUI) this.getUI();
-		*/
-
+		setCellRenderer(new SQLObjectRenderer());				
 	}
 
 	public DBTree(List initialDatabases) throws ArchitectException {
@@ -136,6 +132,24 @@ public class DBTree extends JTree implements DragSourceListener {
 	}
 
 	/**
+     * Before adding a new connection to the SwingUIProject, check to see
+     * if it exists.
+	 */
+	public boolean dbcsAlreadyExists(DBConnectionSpec spec) throws ArchitectException {
+		SQLObject so = (SQLObject) getModel().getRoot();		
+		// the children of the root, if they exists, are always SQLDatabase objects
+		Iterator it = so.getChildren().iterator();
+		boolean found = false;
+		while (it.hasNext() && found == false) {
+			DBConnectionSpec dbcs = ((SQLDatabase) it.next()).getConnectionSpec();
+			if (spec.equals(dbcs)) {
+				found = true;
+			}
+		}
+		return found;		
+	}
+
+	/**
 	 * Creates an integer array which holds the child indices of each
 	 * node starting from the root which lead to node "node."
 	 *
@@ -203,19 +217,19 @@ public class DBTree extends JTree implements DragSourceListener {
 		logger.debug("DBTree: got dragDropEnd event");
 	}
 
+		
+
 	// ----------------- popup menu stuff ----------------
 
 	protected JPopupMenu setupPopupMenu() {
 		JPopupMenu newMenu = new JPopupMenu();
 		
-		newMenu.add(popupDBCSMenu = new JMenu("Add Connection"));
-
-		newMenu.addSeparator();         // index 1
+		newMenu.add(popupDBCSMenu = new JMenu("Add Connection")); // index 0
 
 		JMenuItem popupProperties = new JMenuItem(new DBCSPropertiesAction());
-		newMenu.add(popupProperties);   // index 2
+		newMenu.add(popupProperties);   // index 1
 
-		if (logger.isDebugEnabled()) {
+		if (logger.isDebugEnabled()) { // index 2
 			newMenu.addSeparator();
 			JMenuItem showListeners = new JMenuItem("Show Listeners");
 			showListeners.addActionListener(new ActionListener() {
@@ -249,17 +263,17 @@ public class DBTree extends JTree implements DragSourceListener {
 
         private void maybeShowPopup(MouseEvent e) {
             if (e.isPopupTrigger()) {
-				refreshDBCSMenu();
-				TreePath p = getPathForLocation(e.getX(), e.getY());
+				TreePath p = getPathForLocation(e.getX(), e.getY());								
+				refreshDBCSMenu(isTargetDatabaseNode(p));
 				if (p == null) {
-					popup.getComponent(0).setVisible(true);
-					popup.getComponent(1).setVisible(false);
-					popup.getComponent(2).setVisible(false);
+					logger.debug("not over anything, so give NEW option");
+					popup.getComponent(0).setVisible(true); // add new
+					popup.getComponent(1).setVisible(false); // show listeners
 				} else {
+					logger.debug("we are over something, so give properties option.");
 					//SQLObject so = (SQLObject) p.getLastPathComponent();
-					popup.getComponent(0).setVisible(true);
-					popup.getComponent(1).setVisible(true);
-					popup.getComponent(2).setVisible(true);
+					popup.getComponent(0).setVisible(isTargetDatabaseNode(p)); // add new
+					popup.getComponent(1).setVisible(true); // connection properties
 				}
 				setSelectionPath(p);
                 popup.show(e.getComponent(),
@@ -267,20 +281,42 @@ public class DBTree extends JTree implements DragSourceListener {
             }
         }
     }
-
-
+	
+	// check to see if the SQLDatabase reference from the DBTree is the same as the one
+    // held by the PlayPen.  If it is, we are looking at the Target Database
+	protected boolean isTargetDatabaseNode(TreePath tp) {
+		if (tp == null) {
+			return false;
+		}
+		
+		Object [] oo = tp.getPath();
+		if (ArchitectFrame.getMainInstance().getProject().getPlayPen().getDatabase() == oo [oo.length - 1]) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 	
 	/**
 	 * Refreshes the submenu which contains the DBCS history list.
 	 */
-	protected void refreshDBCSMenu() {
-		popupDBCSMenu.removeAll();
-		popupDBCSMenu.add(new JMenuItem(newDBCSAction));
-		popupDBCSMenu.addSeparator();
+	protected void refreshDBCSMenu(boolean suppressNew) {
+		logger.debug("refreshDBCSMenu is being called.");
+		popupDBCSMenu.removeAll();		
+		if (!suppressNew) {
+			popupDBCSMenu.add(new JMenuItem(newDBCSAction));		
+			popupDBCSMenu.addSeparator();
+		}
 		Iterator it = ArchitectFrame.getMainInstance().getUserSettings().getConnections().iterator();
 		while(it.hasNext()) {
 			DBConnectionSpec dbcs = (DBConnectionSpec) it.next();
-			popupDBCSMenu.add(new JMenuItem(new AddDBCSAction(dbcs)));
+			if (!suppressNew) {
+				popupDBCSMenu.setText("Add Connection");
+				popupDBCSMenu.add(new JMenuItem(new AddDBCSAction(dbcs)));
+			} else {				
+				popupDBCSMenu.setText("Set Target Database");
+				popupDBCSMenu.add(new JMenuItem(new setTargetDBCSAction(dbcs)));
+			}
 		}
 	}
 
@@ -301,7 +337,13 @@ public class DBTree extends JTree implements DragSourceListener {
 		public void actionPerformed(ActionEvent e) {
 			SQLObject root = (SQLObject) getModel().getRoot();
 			try {
-				root.addChild(root.getChildCount(), new SQLDatabase(dbcs));
+				// check to see if we've already seen this one
+				if (dbcsAlreadyExists(dbcs)) {
+					logger.warn("database already exists in this project.");
+					JOptionPane.showMessageDialog(DBTree.this, "Can't add connection, connection already exists in this project.", "Warning", JOptionPane.WARNING_MESSAGE);
+				} else {					
+					root.addChild(root.getChildCount(), new SQLDatabase(dbcs));
+				}
 			} catch (ArchitectException ex) {
 				logger.warn("Couldn't add new database to tree", ex);
 				JOptionPane.showMessageDialog(DBTree.this, "Couldn't add new connection:\n"+ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -359,6 +401,38 @@ public class DBTree extends JTree implements DragSourceListener {
 			} else if (so instanceof SQLTable) {
 			} else if (so instanceof SQLColumn) {
 			}
+		}
+	}
+
+
+	/**
+	 * copy the DBCS info from the selected DBCS into the DBCS
+     * of Target Database
+	 */
+	protected class setTargetDBCSAction extends AbstractAction {
+		protected DBConnectionSpec dbcs;
+
+		public setTargetDBCSAction(DBConnectionSpec dbcs) {
+			super(dbcs.getName());
+			this.dbcs = dbcs;
+		}
+
+		public void actionPerformed(ActionEvent e) {	
+			// make a new connection spec
+			panelHoldsNewDBCS = false; // we are editing the Target Database dbcs, which has already been created
+			edittingDB = ArchitectFrame.getMainInstance().getProject().getPlayPen().getDatabase();
+			// copy over the values from the selected DB.
+			DBConnectionSpec tSpec = edittingDB.getConnectionSpec();
+        	tSpec.setSingleLogin(dbcs.isSingleLogin());
+			// don't copy the sequence number, or it will prevent the Target Database and whatever it
+            // was cloned from from co-existing in the same project
+        	tSpec.setDriverClass(dbcs.getDriverClass());
+        	tSpec.setUrl(dbcs.getUrl());
+        	tSpec.setUser(dbcs.getUser());
+        	tSpec.setPass(dbcs.getPass());
+			dbcsPanel.setDbcs(tSpec);
+			propDialog.setVisible(true);
+			propDialog.requestFocus();
 		}
 	}
 
@@ -449,27 +523,4 @@ public class DBTree extends JTree implements DragSourceListener {
 			return this;
 		}
 	}
-	/*
-	public class DNDMouseHandler extends BasicTreeUI.MouseHandler {
-		private int x1, y1;
-		public void mousePressed(MouseEvent e) {
-			x1 = e.getX();
-			y1 = e.getY();
-			int[] rows = tree.getSelectionRows();
-			if (rows != null) {
-				for (int i = 0; i < rows.length; i++) {
-					Rectangle rect3 = tree.getRowBounds(rows);
-					if (rect3.contains(x1, y1)) {
-						e.consume();
-						break;
-					}
-				}
-			}
-			super.mousePressed(e);
-		}
-
-		protected MouseListener createMouseListener() {
-			return new MouseHandler();
-		}
-	}*/
 }
