@@ -38,5 +38,6 @@ public class TableEditPanel extends JPanel implements ArchitectPanel {
 	}
 
 	public void discardChanges() {
+        // FIXME: this should roll back the changes to the model
 	}
 }

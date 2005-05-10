@@ -331,9 +331,7 @@ public class CompareDMPanel extends JPanel {
 
 				while (it.hasNext()) {
 					SQLObject object = (SQLObject) it.next();
-					if ( object instanceof SQLTable ) {
-					}
-					else if ( object instanceof SQLSchema ) {
+					if ( object instanceof SQLSchema ) {
 						schema.add(object.getShortDisplayName());
 					}
 				}

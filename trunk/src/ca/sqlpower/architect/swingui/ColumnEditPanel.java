@@ -233,9 +233,11 @@ public class ColumnEditPanel extends JPanel
 
 	// ------------------------ LIST DATA LISTENER -----------------------
 	public void contentsChanged(ListDataEvent e) {
+        // we don't care
 	}
 
 	public void intervalAdded(ListDataEvent e) {
+        // we don't care
 	}
 
 	public void intervalRemoved(ListDataEvent e) {

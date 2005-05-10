@@ -260,9 +260,11 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 	}
 
 	public void componentShown(ComponentEvent e) {
+        revalidate();
 	}
 	
 	public void componentHidden(ComponentEvent e) {
+        // no action required
 	}
 
 	// ------------------ MOUSE LISTENER --------------------
@@ -407,9 +409,11 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 
 	// ------------------ sqlobject listener ----------------
 	public void dbChildrenInserted(SQLObjectEvent e) {
+        // doesn't matter
 	}
 
 	public void dbChildrenRemoved(SQLObjectEvent e) {
+        // FIXME: should check if the table is too short to meet the connection point
 	}
 
 	public void dbObjectChanged(SQLObjectEvent e) {
@@ -425,5 +429,6 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 	}
 
 	public void dbStructureChanged(SQLObjectEvent e) {
+        // not sure if this ever happens!
 	}
 }

@@ -19,7 +19,9 @@ import org.apache.log4j.Logger;
 public class ASUtils {
 	private static final Logger logger = Logger.getLogger(ASUtils.class);
 
-	private ASUtils() {}
+	private ASUtils() {
+        // this constructor never gets called 
+    }
 
 	/**
 	 * Short-form convenience method for
@@ -187,6 +189,7 @@ public class ASUtils {
 					try {
 						Thread.sleep(1000);
 					} catch (InterruptedException ex) {
+                        logger.warn("Interrupted in sleep");
 					}
 				}
 				focusDebuggerThread = null;

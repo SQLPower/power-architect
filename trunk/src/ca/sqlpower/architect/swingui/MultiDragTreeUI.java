@@ -3,7 +3,6 @@ package ca.sqlpower.architect.swingui;
 import javax.swing.plaf.basic.BasicTreeUI;
 import java.awt.*;
 import java.awt.event.*;
-import javax.swing.*;
 
 import org.apache.log4j.Logger;
 

@@ -53,6 +53,7 @@ public class JDBCClassLoader extends ClassLoader {
 					return(perms);
 				}
 				public void refresh(){
+                    // no need to refresh
 				}
 			});
 	}

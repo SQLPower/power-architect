@@ -139,5 +139,6 @@ public class DDLExportPanel extends JPanel implements ArchitectPanel {
 	}
 
 	public void discardChanges() {
+        // nothing to discard
 	}
 }

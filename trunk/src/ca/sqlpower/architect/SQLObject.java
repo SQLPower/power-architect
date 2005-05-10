@@ -160,6 +160,7 @@ public abstract class SQLObject implements java.io.Serializable {
 	 * children as mentioned above.
 	 */
 	public void removeDependencies() {
+        // in the general case, there is nothing to do
 	}
 
 	// ------------------- sql object event support -------------------

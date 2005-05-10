@@ -497,9 +497,6 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 		
 		private Integer jobSize;
 		
-		protected PopulateProgressMonitor() throws ArchitectException {
-		}
-		
 		/**
 		 * Returns the number of children this database will have when
 		 * it is populated.  If the database connection has not been made

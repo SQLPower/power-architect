@@ -6,14 +6,12 @@ import java.util.*;
 public class SQLServerDDLGenerator extends GenericDDLGenerator {
 	public static final String GENERATOR_VERSION = "$Revision$";
 
-	public SQLServerDDLGenerator() {
-	}
-
 	public void writeHeader() {
 		println("-- Created by SQLPower SQLServer 2000 DDL Generator "+GENERATOR_VERSION+" --");
 	}
 	
 	public void writeDDLTransactionBegin() {
+        // nothing needs to be done for beginning a transaction
 	}
 
 	/**
@@ -28,6 +26,7 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
 	 * terminators.
 	 */
 	public void writeStatementTerminator() {
+        // override to suppress
 	}
 
 	protected void createTypeMap() throws SQLException {

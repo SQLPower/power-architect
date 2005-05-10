@@ -18,9 +18,11 @@ public class FormLayout implements LayoutManager {
 	}
 
 	public void addLayoutComponent(String name, Component comp) {
+        // we don't keep component state
 	}
 
 	public void removeLayoutComponent(Component comp) {
+        // we don't keep component state
 	}
 
 	private LeftRightHeight calcSizes(Container parent) {

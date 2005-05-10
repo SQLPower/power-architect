@@ -6,9 +6,6 @@ import java.util.*;
 public class DB2DDLGenerator extends GenericDDLGenerator {
 	public static final String GENERATOR_VERSION = "$Revision$";
 
-	public DB2DDLGenerator() {
-	}
-
 	public void writeHeader() {
 		println("-- Created by SQLPower DB2 DDL Generator "+GENERATOR_VERSION+" --");
 	}

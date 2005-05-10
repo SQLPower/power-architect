@@ -115,16 +115,8 @@ public class RelationshipEditPanel extends JPanel
 		}
 	}
 
-	protected void cleanup() {
-		
-	}
-
 	// ------------------ ARCHITECT PANEL INTERFACE ---------------------
 	
-	/**
-	 * Does nothing because this version of ColumnEditPanel works
-	 * directly on the live data.
-	 */
 	public void applyChanges() {
 		relationship.setName(relationshipName.getText());
 		try {
@@ -150,17 +142,9 @@ public class RelationshipEditPanel extends JPanel
 		} else if (fkTypeOneToMany.isSelected()) {
 			relationship.setFkCardinality(SQLRelationship.ONE | SQLRelationship.MANY);
 		}
-		cleanup();
 	}
 
-	/**
-	 * Does nothing because this version of ColumnEditPanel works
-	 * directly on the live data.
-	 *
-	 * <p>XXX: in architect version 2, this will undo the changes to
-	 * the model.
-	 */
 	public void discardChanges() {
-		cleanup();
+	    // nothing to discard
 	}
 }

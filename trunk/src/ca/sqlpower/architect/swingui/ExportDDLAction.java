@@ -10,9 +10,6 @@ import java.sql.SQLException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Iterator;
-import java.util.Set;
-import java.util.TreeSet;
-
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import ca.sqlpower.architect.*;
@@ -119,22 +116,18 @@ public class ExportDDLAction extends AbstractAction {
 			final JButton executeButton = new JButton("Execute");
 			executeButton.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
-						/* old style -- the worker thread is Monitorable
-					    ExecuteDDLWorker worker = new ExecuteDDLWorker(d,ddlg);
-    	                ProgressWatcher watcher = new ProgressWatcher(progressBar,worker,progressLabel);
-						new javax.swing.Timer(50, watcher).start();
-						new Thread(worker).start();								
-						*/
-
-						// new style; the worker and the monitorable objects are seperated from each other
-						ExecuteDDL eDDL = new ExecuteDDL(d,ddlg);
-						ExecuteDDLWorker worker = new ExecuteDDLWorker(eDDL);
+					    // create a worker and watch it execute it on a separate thread
+					    final ExecuteDDL eDDL = new ExecuteDDL(d,ddlg);
 						eDDL.prepareToStart();
 						ProgressWatcher watcher = new ProgressWatcher(progressBar,eDDL,progressLabel);
 						new javax.swing.Timer(50, watcher).start();
-						new Thread(worker).start();
+						new Thread(new Runnable() {
+						    public void run() {
+						        eDDL.execute();
+						    }
+						}).start();
 					}
-				});
+			});
 			buttonPanel.add(executeButton);
 
 			final JButton saveButton = new JButton("Save");
@@ -188,17 +181,6 @@ public class ExportDDLAction extends AbstractAction {
 	}
 
 
-	protected class ExecuteDDLWorker implements Runnable {		
-		ExecuteDDL executeDDL;
-		ExecuteDDLWorker(ExecuteDDL executeDDL) {
-			this.executeDDL = executeDDL;
-		}		
-		public void run() {
-			executeDDL.execute();			
-		}
-	}
-
-
 	protected class ExecuteDDL implements Monitorable {		
 		
 		JDialog dialog;
@@ -232,6 +214,7 @@ public class ExportDDLAction extends AbstractAction {
 
 		public void cancelJob() {
 			cancelled = true;
+            finished = true;
 		}
 
 		public boolean isCancelled() {
@@ -253,26 +236,44 @@ public class ExportDDLAction extends AbstractAction {
 				con = target.getConnection();
 				statements = ddlg.generateDDLStatements(target);
 				
-				Set conflicts = new TreeSet();
-				Iterator it = statements.iterator();
-				while (it.hasNext()) {
-					DDLStatement stmt = (DDLStatement) it.next();
-					conflicts.addAll(DDLUtils.findConflicting(con, stmt));
-				}
-				
-				if (!conflicts.isEmpty()) {
-					String msg = "The following objects which you are trying"
-						+"\nto create in the target database already exist:"
-						+"\n\n"
-						+conflicts
-						+"\n\n"
-						+"Do you want the Architect to drop these objects before"
-						+"attempting to create the new ones?";
-					int choice = JOptionPane.showConfirmDialog(dialog, msg, "Conflicting Objects Found", JOptionPane.YES_NO_CANCEL_OPTION);
+				ConflictResolver cr = new ConflictResolver(con, statements);
+
+                //XXX: should monitor progress
+                cr.findConflicting();
+                
+				if (!cr.isEmpty()) {
+					StringBuffer msg = new StringBuffer();
+					msg.append("The following objects in the target database");
+					msg.append("\nconflict with those you wish to create:");
+					msg.append("\n");
+					msg.append(cr.toConflictTree());
+                    msg.append("\n");
+					msg.append("Do you want the Architect to drop these objects");
+					msg.append("\nbefore attempting to create the new ones?");
+                    msg.append("\n");
+					int choice = JOptionPane.showConfirmDialog(
+							dialog,
+							msg,
+							"Conflicting Objects Found",
+							JOptionPane.YES_NO_CANCEL_OPTION);
 					if (choice == JOptionPane.YES_OPTION) {
-						DDLUtils.dropConflicting(con, conflicts);
+                        try {
+                            cr.dropConflicting();
+                        } catch (SQLException e) {
+                            logger.error("Encountered exception while dropping conflicting objects.", e);
+                            JOptionPane.showMessageDialog
+                            (dialog, "Encountered a database error while dropping conflicting objects:"
+                                    +"\n\n"
+                                    +e.getMessage()
+                                    +"\n"
+                                    +"The statement was:"
+                                    +"\n\n"
+                                    +cr.getLastSQLStatement()
+                                    +"\n\n"
+                                    +"Please drop this object manually, then execute again.\n");
+                        }
 					} else if (choice == JOptionPane.CANCEL_OPTION) {
-						cancelled = true;
+						cancelJob();
 					}
 				}
 			} catch (ArchitectException ex) {
