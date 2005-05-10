@@ -71,6 +71,7 @@ public class SwingUIProject {
 	public SwingUIProject(String name) throws ArchitectException {
 		this.name = name;
 		this.playPen = new PlayPen(new SQLDatabase());
+		this.playPen.getDatabase().getConnectionSpec().setSeqNo(9999);
 		List initialDBList = new ArrayList();
 		initialDBList.add(playPen.getDatabase());
 		this.sourceDatabases = new DBTree(initialDBList);
