@@ -26,6 +26,10 @@ public class DDLStatement {
 		public boolean equals(Object other) {
 			return this.type.equals(((StatementType) other).type);
 		}
+        
+        public String toString() {
+            return type;
+        }
 	}
 
 	private String targetCatalog;
@@ -111,4 +115,8 @@ public class DDLStatement {
 	public void setTargetSchema(String targetSchema) {
 		this.targetSchema = targetSchema;
 	}
+    
+    public String toString() {
+        return getType()+" "+DDLUtils.toQualifiedName(getTargetCatalog(), getTargetSchema(), object.getName());
+    }
 }

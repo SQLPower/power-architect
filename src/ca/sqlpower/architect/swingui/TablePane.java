@@ -584,6 +584,7 @@ public class TablePane
 		 * Called if the user has modified the current drop gesture.
 		 */
 		public void dropActionChanged(DropTargetDragEvent dtde) {
+            // we don't care
 		}
 
 		/**
@@ -779,9 +780,11 @@ public class TablePane
 	}
 
 	public void mouseEntered(MouseEvent evt) {
+        // we don't do anything about this at the moment
 	}
 
 	public void mouseExited(MouseEvent evt) {
+        // we don't do anything about this at the moment
 	}
 	
 	public void maybeShowPopup(MouseEvent evt) {
@@ -811,15 +814,19 @@ public class TablePane
 	
 	// --------------------- Drag Source Listener ------------------------
 	public void dragEnter(DragSourceDragEvent dsde) {
+        // don't care
 	}
 
 	public void dragOver(DragSourceDragEvent dsde) {
+        // don't care
 	}
 
 	public void dropActionChanged(DragSourceDragEvent dsde) {
+        // don't care
 	}
 		
 	public void dragExit(DragSourceEvent dse) {
+        // don't care
 	}
 
 	public void dragDropEnd(DragSourceDropEvent dsde) {

@@ -269,6 +269,7 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 	 * Does nothing right now.
 	 */
 	public void discardChanges() {
+        // nothing to discard
 	}
 
 	// ---------------- accessors and mutators ----------------

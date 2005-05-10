@@ -12,7 +12,9 @@ public class ArchitectUtils {
 	 * This class is just a container for utility routines; you do not
 	 * need to instantiate it.
 	 */
-	private ArchitectUtils() {}
+	private ArchitectUtils() {
+        // never gets called
+	}
 
 	/**
 	 * Sets up the log4j logging framework.
@@ -85,4 +87,16 @@ public class ArchitectUtils {
 			unlistenToHierarchy(listener, sources[i]);
 		}
 	}
+    
+    /**
+     * Does a generic object comparison where one or both of the objects could
+     * be null.  If both objects are null, they are considered equal; if only 
+     * one is null, they are not equal; otherwise they are compared using 
+     * <code>o1.equals(o2)</code>.
+     */
+    public static boolean areEqual(Object o1, Object o2) {
+        if (o1 == o2) return true;
+        else if (o1 == null || o2 == null) return false;
+        else return o1.equals(o2);
+    }
 }

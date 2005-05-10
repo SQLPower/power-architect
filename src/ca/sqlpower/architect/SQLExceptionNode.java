@@ -44,6 +44,7 @@ public class SQLExceptionNode extends SQLObject {
 	}
 
 	public void populate() {
+        // nothing to populate
 	}
 
 	public void addChild(int index, SQLObject child) {

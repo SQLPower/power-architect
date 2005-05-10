@@ -115,6 +115,7 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 	 * Does nothing.
 	 */
 	public void discardChanges() {
+        // nothing to discard
 	}
 
 	protected class AddAction extends AbstractAction {

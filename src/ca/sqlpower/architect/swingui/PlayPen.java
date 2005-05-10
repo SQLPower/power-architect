@@ -1094,6 +1094,7 @@ public class PlayPen extends JPanel
 		 * DropTarget registered with this listener.
 		 */
 		public void dragExit(DropTargetEvent dte) {
+            // nothing needs to be put back
 		}
 		
 		/**
@@ -1201,6 +1202,7 @@ public class PlayPen extends JPanel
 		 * Called if the user has modified the current drop gesture.
 		 */
 		public void dropActionChanged(DropTargetDragEvent dtde) {
+            // we don't care
 		}
 
 		/**

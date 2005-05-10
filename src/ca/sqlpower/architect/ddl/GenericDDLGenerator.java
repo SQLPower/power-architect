@@ -181,6 +181,7 @@ public class GenericDDLGenerator {
 	 * DDL, override this method and print the appropriate statement.
 	 */
 	public void writeDDLTransactionBegin() {
+        // not supported in generic case
 	}
 
 	/**
@@ -188,6 +189,7 @@ public class GenericDDLGenerator {
 	 * DDL, override this method and print the appropriate statement.
 	 */
 	public void writeDDLTransactionEnd() {
+        // not supported in generic case
 	}
 
 	public void writeCreateDB(SQLDatabase db) {

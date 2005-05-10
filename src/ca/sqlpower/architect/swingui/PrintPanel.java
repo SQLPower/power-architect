@@ -197,6 +197,7 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 	}
 	
 	public void discardChanges() {
+        // nothing to discard
 	}
 
 	// --- print preview panel ---

@@ -24,7 +24,9 @@ public class PLUtils {
 	private static java.util.Date plLastReadTimestamp = new Date(0);
 
 	/** PLUtils is a non-instantiable class. */
-	private PLUtils() {}
+	private PLUtils() {
+        // this method doesn't get called
+    }
 
 	/**
 	 * Creates a list of PLConnectionSpec objects from the database

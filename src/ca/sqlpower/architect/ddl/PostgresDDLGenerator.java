@@ -6,9 +6,6 @@ import java.util.*;
 public class PostgresDDLGenerator extends GenericDDLGenerator {
 	public static final String GENERATOR_VERSION = "$Revision$";
 
-	public PostgresDDLGenerator() {
-	}
-
 	public void writeHeader() {
 		println("-- Created by SQLPower PostgreSQL DDL Generator "+GENERATOR_VERSION+" --");
 	}

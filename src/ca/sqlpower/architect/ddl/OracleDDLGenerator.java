@@ -6,9 +6,6 @@ import java.util.*;
 public class OracleDDLGenerator extends GenericDDLGenerator {
 	public static final String GENERATOR_VERSION = "$Revision$";
 
-	public OracleDDLGenerator() {
-	}
-
 	public void writeHeader() {
 		println("-- Created by SQLPower Oracle 8i/9i DDL Generator "+GENERATOR_VERSION+" --");
 	}

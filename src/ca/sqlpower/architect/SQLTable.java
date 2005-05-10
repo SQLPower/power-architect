@@ -767,9 +767,11 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	}
 
 	public void dbObjectChanged(SQLObjectEvent e) {
+        // we don't care
 	}
 
 	public void dbStructureChanged(SQLObjectEvent e) {
+        // we don't care
 	}
 
 	// ------------------ Accessors and mutators below this line ------------------------

@@ -11,9 +11,6 @@ import org.apache.log4j.Logger;
 public class PlayPenLayout implements LayoutManager2 {
 	private static final Logger logger = Logger.getLogger(PlayPenLayout.class);
 
-	public PlayPenLayout() {
-	}
-	
 	/**
 	 * Does nothing.  Use the Object-style constraints, not String.
 	 *
@@ -28,11 +25,6 @@ public class PlayPenLayout implements LayoutManager2 {
 	public void addLayoutComponent(Component comp,
 								   Object position) {
 		comp.setSize(comp.getPreferredSize());
-	}
-	
-	/**
-	 */
-	protected void translateAllComponents(int xdist, int ydist, boolean scrollToCompensate) {
 	}
 	
 	/**
