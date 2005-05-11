@@ -80,15 +80,25 @@ public class DBTree extends JTree implements DragSourceListener {
 				public void actionPerformed(ActionEvent e) {
 					dbcsPanel.applyChanges();
 					edittingDB.setConnectionSpec(dbcsPanel.getDbcs());
-					if (panelHoldsNewDBCS) {
-						ArchitectFrame.getMainInstance().getUserSettings()
-							.getConnections().add(dbcsPanel.getDbcs());
-						SQLObject root = (SQLObject) getModel().getRoot();
-						try {
-							root.addChild(root.getChildCount(), edittingDB);
-						} catch (ArchitectException ex) {
-							logger.warn("Couldn't add new database to tree", ex);
-							JOptionPane.showMessageDialog(DBTree.this, "Couldn't add new connection:\n"+ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+					if (panelHoldsNewDBCS) { // don't allow new duplicate connections to be added
+						DBConnectionSpec dup = getDuplicateDbcs(edittingDB.getConnectionSpec());							
+						if (dup == null) { // did not find one, go ahead and add it to User Settings
+							ArchitectFrame.getMainInstance().getUserSettings()
+								.getConnections().add(dbcsPanel.getDbcs());
+							SQLObject root = (SQLObject) getModel().getRoot();
+							try {
+								root.addChild(root.getChildCount(), edittingDB);
+							} catch (ArchitectException ex) {
+								logger.warn("Couldn't add new database to tree", ex);
+								JOptionPane.showMessageDialog(DBTree.this, "Couldn't add new connection:\n"+ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+							}
+						} else {
+							logger.warn("The connection you tried to create already exists under the name: " + dup.getDisplayName());
+							JOptionPane.showMessageDialog(DBTree.this, 
+                             "The connection you tried to create already exists under the name: " 
+                             + dup.getDisplayName(), 
+                             "Error", JOptionPane.ERROR_MESSAGE);
+							return; // don't dispose() of the dialog just yet...
 						}
 					}
 					panelHoldsNewDBCS = false;
@@ -148,6 +158,26 @@ public class DBTree extends JTree implements DragSourceListener {
 		}
 		return found;		
 	}
+
+	/**
+     * Pass in a spec, and look for a duplicate in the list of DBCS objects in 
+     * User Settings.  If we find one, return a handle to it.  If we don't find
+     * one, return null.
+	 */
+	public DBConnectionSpec getDuplicateDbcs(DBConnectionSpec spec) {
+		DBConnectionSpec dup = null;
+		boolean found = false;
+		Iterator it = ArchitectFrame.getMainInstance().getUserSettings().getConnections().iterator();		
+		while (it.hasNext() && found == false) {
+			DBConnectionSpec dbcs = (DBConnectionSpec) it.next();
+			if (spec.equals(dbcs)) {
+				dup = dbcs;
+				found = true;
+			}
+		}
+		return dup;
+	}
+
 
 	/**
 	 * Creates an integer array which holds the child indices of each

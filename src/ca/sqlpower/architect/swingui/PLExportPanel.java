@@ -58,14 +58,9 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		newConnButton= new JButton("New");
 		newConnButton.addActionListener(new NewConnectionListener());
 
-		connections = new Vector();
-		connections.add(ASUtils.lvb("(Select Architect Connection)", null));
-		Iterator it = af.getUserSettings().getConnections().iterator();
-		while (it.hasNext()) {
-			DBConnectionSpec spec = (DBConnectionSpec) it.next();
-			connections.add(ASUtils.lvb(spec.getDisplayName(), spec));
-		}
-		connectionsBox = new JComboBox(connections);
+		// initialize the JDBC connections combobox
+		connectionsBox = new JComboBox();
+		refreshJdbcConnections();
 
 		// initialize the PL ODBC connections combobox
 		plOdbcTargetRepositoryBox = new JComboBox(new DefaultComboBoxModel(getPlOdbcTargets()));
@@ -341,4 +336,15 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		}
 	}		
 
+	public void refreshJdbcConnections () {
+		connections = new Vector();
+		connections.add(ASUtils.lvb("(Select Architect Connection)", null));
+		Iterator it = ArchitectFrame.getMainInstance().getUserSettings().getConnections().iterator();
+		while (it.hasNext()) {
+			DBConnectionSpec spec = (DBConnectionSpec) it.next();
+			connections.add(ASUtils.lvb(spec.getDisplayName(), spec));
+			logger.debug("adding connection: " + spec.getDisplayName());
+		}
+		connectionsBox.setModel(new DefaultComboBoxModel(connections));
+	}
 }
