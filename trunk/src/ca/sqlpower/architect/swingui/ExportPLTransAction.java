@@ -53,7 +53,14 @@ public class ExportPLTransAction extends AbstractAction {
 	 * @throws NullPointerException if <code>plexp</code> is null.
 	 */
 	public synchronized void setupDialog() {
-		if (d != null) return;
+
+		logger.debug("running setupDialog()");
+
+		if (d != null) {
+			refreshJdbcConnections();
+			return;
+		}
+
 		d = new JDialog(ArchitectFrame.getMainInstance(),
 						"Export ETL Transactions to PL Repository");
 
@@ -336,6 +343,25 @@ public class ExportPLTransAction extends AbstractAction {
 			} else {
 				return "Target table \""+tableName+"\" exists but is missing columns";
 			}
+		}
+	}
+
+	private void refreshJdbcConnections() {
+		// refresh the JDBC connections
+		PLExportPanel plep = null;
+		boolean found = false;
+		int ii = 0;
+		java.awt.Component [] panels = d.getContentPane().getComponents();
+		while (!found && ii < panels.length) {
+			if (panels [ii] instanceof PLExportPanel) {
+				logger.debug("content pane class:" + panels[ii].getClass().getName());
+				plep = (PLExportPanel) panels [ii];
+				found = true;
+			}
+		}
+		if (plep != null) {
+			logger.debug("refreshing PL Export JDBC connection list");
+			plep.refreshJdbcConnections();
 		}
 	}
 }

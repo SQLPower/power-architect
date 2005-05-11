@@ -13,7 +13,7 @@ public class MultiDragTreeUI extends BasicTreeUI {
 		private int x1, y1;
 		
 		public void mousePressed(MouseEvent e) {
-			logger.error("mousePressed was called");
+			logger.debug("mousePressed was called");
 			x1 = e.getX();
 			y1 = e.getY();
 			int[] rows = tree.getSelectionRows();
@@ -22,7 +22,7 @@ public class MultiDragTreeUI extends BasicTreeUI {
 				for (int i = 0; i < rows.length; i++) {
 					Rectangle rect3 = tree.getRowBounds(rows[i]);
 					if (rect3.contains(x1, y1)) {
-						logger.error("consuming click event from already selected node...");
+						logger.debug("consuming click event from already selected node...");
 						e.consume();
 						break;
 					}
@@ -34,13 +34,13 @@ public class MultiDragTreeUI extends BasicTreeUI {
 	
 	/** 
      *	
-     * Unlike in the example below, actually needs to be _outside_ the 
+     * Unlike in the example below, this actually needs to be _outside_ the 
      * override of MouseHandler because all events in TreeUI are handled by a generic 
      * Handler that implements all the Listener interfaces a JTree is interested in...
      * 
      * http://forum.java.sun.com/thread.jspa?threadID=376761&messageID=1964088
 	 *
-     * MultiSelect DND probably used to work properly in JDK 1.4...
+     * MultiSelect DND probably used to work properly in previous versions of the JDK...
      * 
      */
 	protected MouseListener createMouseListener() {
