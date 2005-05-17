@@ -37,9 +37,11 @@ public class CreateRelationshipAction extends AbstractAction
 		}
 		this.identifying = identifying;
 		setEnabled(false);
+		logger.debug("(constructor) hashcode is: " + super.hashCode());
 	}
 
 	public void actionPerformed(ActionEvent evt) {
+		logger.debug("the hashcode is: " + super.hashCode());
 		pkTable = null;
 		fkTable = null;
 		logger.debug("Starting to create relationship!");
@@ -74,26 +76,40 @@ public class CreateRelationshipAction extends AbstractAction
 	// -------------------- SELECTION EVENTS --------------------
 	
 	public void itemSelected(SelectionEvent e) {
+		// what address am I?
+		logger.debug("00000000000 object hash code: " + super.hashCode());
+
+	
 		// ignore events unless active
-		if (!active) return;
+		logger.debug("11111111ITEM SELECTED: " + e);
+
+		if (!active) {
+			logger.debug("222222222 not active.");
+			return;
+		}
 
 		Selectable s = e.getSelectableSource();
 
 		// don't care when tables (or anything else) are deselected
-		if (!s.isSelected()) return;
+		if (!s.isSelected()) {
+			logger.debug("333333333 not selected.");			
+			return;
+		}
 
 		if (s instanceof TablePane) {
+			logger.debug("4444444444444 instance of TablePane.");						
 			if (pkTable == null) {
 				pkTable = (TablePane) s;
-				logger.debug("Creating relationship: PK Table is "+pkTable);
+				logger.debug("555555555555 Creating relationship: PK Table is "+pkTable);
 			} else {
 				fkTable = (TablePane) s;
-				logger.debug("Creating relationship: FK Table is "+fkTable);
+				logger.debug("66666666666666 Creating relationship: FK Table is "+fkTable);
 				doCreateRelationship();
 				pp.setCursor(null);
 				active = false;
 			}
 		} else {
+			logger.debug("777777777777 not instance of TablePane.");						
 			if (logger.isDebugEnabled())
 				logger.debug("The user clicked on a non-table component: "+s);
 		}

@@ -1462,10 +1462,6 @@ public class PlayPen extends JPanel
 	}
 
 	// --- Scrollable Methods --- //
-
-	/*  Adding in scrollable magically disables the playpen.  Don't have the 
-        slightest idea as to where I might start looking for answers about this... */
-
  	public Dimension getPreferredScrollableViewportSize() {
 		// return getPreferredSize();
 		return new Dimension(800,600);
