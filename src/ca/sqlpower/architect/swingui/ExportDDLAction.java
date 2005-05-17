@@ -373,10 +373,16 @@ public class ExportDDLAction extends AbstractAction {
 						try {
 							SwingUtilities.invokeAndWait(new Runnable() {						
 								public void run() {
+									JTextArea jta = new JTextArea(fsql,25,40);
+									jta.setEditable(false);
+									JScrollPane jsp = new JScrollPane(jta);
+									JLabel errorLabel = new JLabel("<html>This SQL statement failed: "+fex.getMessage()
+											+"<p>Do you want to continue?</html>");
+									JPanel jp = new JPanel(new BorderLayout());
+									jp.add(jsp,BorderLayout.CENTER);
+									jp.add(errorLabel,BorderLayout.SOUTH);
 									int decision = JOptionPane.showConfirmDialog
-									(dialog, "SQL statement failed: "+fex.getMessage()
-											+"\nThe statement was:\n"+fsql+"\nDo you want to continue?",
-											"SQL Failure", JOptionPane.YES_NO_OPTION);
+									(dialog, jp, "SQL Failure", JOptionPane.YES_NO_OPTION);
 									if (decision == JOptionPane.NO_OPTION) {
 										logWriter.info("Export cancelled by user.");
 										cancelJob();
@@ -426,8 +432,7 @@ public class ExportDDLAction extends AbstractAction {
 				stmt.close();
 			} catch (SQLException ex) {
 				logger.error("SQLException while closing statement", ex);
-			}
-			
+			}			
 			
 			// show them what they've won!	
 			SwingUtilities.invokeLater(new Runnable() {
@@ -456,16 +461,20 @@ public class ExportDDLAction extends AbstractAction {
 		}
 
 		public int getColumnCount() {
-			return 3;
+			return 5;
 		}
 
 		public String getColumnName(int columnIndex) {
 			switch(columnIndex) {
 			case 0:
-				return "Warning Type";
+				return "Parent";
 			case 1:
-				return "Old Value";
+				return "Name";
 			case 2:
+				return "Warning Type";
+			case 3:
+				return "Old Value";
+			case 4:
 				return "New Value";
 			default:
 				throw new IndexOutOfBoundsException("Requested column name "+columnIndex+" of "+getColumnCount());
@@ -476,10 +485,14 @@ public class ExportDDLAction extends AbstractAction {
 			DDLWarning w = (DDLWarning) warnings.get(row);
 			switch(column) {
 			case 0:
-				return w.getReason();
+				return w.getSubject().getParent().getParent(); // don't know how reliable this will be...
 			case 1:
-				return w.getOldValue();
+				return w.getSubject().getName();
 			case 2:
+				return w.getReason();
+			case 3:
+				return w.getOldValue();
+			case 4:
 				return w.getNewValue();
 			default:
 				throw new IndexOutOfBoundsException("Requested column "+column+" of "+getColumnCount());

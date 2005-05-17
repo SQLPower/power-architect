@@ -16,7 +16,7 @@ import ca.sqlpower.architect.*;
 
 public class TablePane 
 	extends PlayPenComponent 
-	implements SQLObjectListener, java.io.Serializable, Selectable, DragSourceListener, MouseListener {
+	implements SQLObjectListener, java.io.Serializable, Selectable, DragSourceListener, MouseListener, MouseMotionListener {
 
 	private static final Logger logger = Logger.getLogger(TablePane.class);
 
@@ -64,6 +64,13 @@ public class TablePane
 	 * dragged.  At all other times, it should be null.
 	 */
 	protected SQLColumn draggingColumn;
+
+	/** 
+     * used by mouseReleased to figure out if a DND operation just took place in the
+     * playpen, so it can make a good choice about leaving a group of things selected
+     * or deselecting everything except the TablePane that was clicked on.
+     */
+	protected static boolean draggingTablePanes = false;
 
 	static {
 		UIManager.put(TablePaneUI.UI_CLASS_ID, "ca.sqlpower.architect.swingui.BasicTablePaneUI");
@@ -659,6 +666,7 @@ public class TablePane
 					// we don't use this because it often misses drags
 					// that start near the edge of the titlebar
 					logger.debug("Discarding drag on titlebar (handled by mousePressed())");
+					draggingTablePanes = true;
 				} else if (colIndex >= 0 && colIndex < tp.model.getColumns().size()) {
 					// export column as DnD event
 					if (logger.isDebugEnabled()) logger.debug("Exporting column "+colIndex+" with DnD");
@@ -710,34 +718,26 @@ public class TablePane
 							(new ActionEvent(tp, ActionEvent.ACTION_PERFORMED, "DoubleClick"));
 					}
 				}
-			} else { // single click 
-				try { 
-					// potentially need to clear all selections and reselect a single tablepane
-					PlayPen pp = (PlayPen) tp.getPlayPen();
-					int clickCol = tp.pointToColumnIndex(evt.getPoint());
-					if ( (evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0) {
-						pp.selectNone();
-					}
-					tp.setSelected(true);
-					tp.selectNone();
-					if (clickCol < tp.model.getColumns().size()) {
-						tp.selectColumn(clickCol);
-					}
-				} catch (ArchitectException e) {
-					logger.error("Exception converting point to column", e);
-				}
 			}
 		}
 	}
 	
 	public void mousePressed(MouseEvent evt) {
 		evt.getComponent().requestFocus();
+		// make sure it was a left click?
 		if ((evt.getModifiersEx() & MouseEvent.BUTTON1_DOWN_MASK) != 0) {
 			TablePane tp = (TablePane) evt.getSource();
 			// dragging
 			try {
 				PlayPen pp = (PlayPen) tp.getPlayPen();
 				int clickCol = tp.pointToColumnIndex(evt.getPoint());		
+
+				// maybe deselect everything else
+				if (!tp.isSelected()) {
+					if ( (evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0) {
+						deSelectEverythingElse(evt);
+					}
+				}
 				// user might have clicked on a different column, so we need to select
                 // this here (even though the single click event handler will select
                 // it again...
@@ -746,13 +746,14 @@ public class TablePane
 				if (clickCol < tp.model.getColumns().size()) {
 					tp.selectColumn(clickCol);
 				}
+
 				// handle drag
 				if (clickCol == COLUMN_INDEX_TITLE) {
 					Iterator it = getPlayPen().getSelectedTables().iterator();
 					logger.debug("event point: " + evt.getPoint());
 					logger.debug("zoomed event point: " + getPlayPen().zoomPoint(evt.getPoint()));
 					while (it.hasNext()) {
-						// figure out what the h e double hockey sticks is happening... 						
+						// create FloatingTableListener for each selected item
 						TablePane t3 = (TablePane)it.next();
 						logger.debug("(" + t3.getModel().getTableName() + ") zoomed selected table point: " + t3.getLocationOnScreen());
 						logger.debug("(" + t3.getModel().getTableName() + ") unzoomed selected table point: " + getPlayPen().unzoomPoint(t3.getLocationOnScreen()));
@@ -775,8 +776,55 @@ public class TablePane
 		maybeShowPopup(evt);
 	}
 	
+	/*
+     * FIXME: this doesn't quite work, but maybe it doesn't matter?  Non-drag   
+     * selection of an already selected item should de-select everything else.  However,
+     * the current workaround is to just click off the selected items to deselect 
+     * everything and then click on the desired single item.
+     */ 
 	public void mouseReleased(MouseEvent evt) {
+		TablePane tp = (TablePane) evt.getSource();
+		try {
+			PlayPen pp = (PlayPen) tp.getPlayPen();
+			int releaseLocation = tp.pointToColumnIndex(evt.getPoint());		
+			// can't just do pp.selectNone() here and re-select the current item because that will
+            // trigger a second selection event which we don't want.  So, iterate through and de-select
+            // things manually instead...but only if we weren't shift clicking :)
+			if (releaseLocation == COLUMN_INDEX_TITLE) {
+				// don't deselect everything if we just finished DND operation
+				if (draggingTablePanes) {
+					draggingTablePanes = false;
+				} else {					
+					if ( (evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0) {
+						deSelectEverythingElse(evt);
+					}
+				}
+			}				
+		} catch (ArchitectException e) {
+			logger.error("Exception converting point to column", e);
+		}
 		maybeShowPopup(evt);
+	}
+
+	/*  
+     * deselect everything _but_ the selected item.  this method exists
+     * to stop multiple selection events from propagating into the 
+     * CreateRelationshipAction listeners.
+     */
+	private void deSelectEverythingElse (MouseEvent evt) {
+		TablePane tp = (TablePane) evt.getSource();
+		Iterator it = getPlayPen().getSelectedTables().iterator();
+		while (it.hasNext()) {
+			TablePane t3 = (TablePane)it.next();
+			logger.debug("(" + tp.getModel().getTableName() + ") zoomed selected table point: " + tp.getLocationOnScreen());
+			logger.debug("(" + t3.getModel().getTableName() + ") zoomed iterator table point: " + t3.getLocationOnScreen());
+			if (!tp.getLocationOnScreen().equals(t3.getLocationOnScreen())) { // equals operation might not work so good here
+				// unselect
+				logger.debug("found matching table!");
+				t3.setSelected(false);
+				t3.selectNone();
+			}
+		}
 	}
 
 	public void mouseEntered(MouseEvent evt) {
@@ -810,6 +858,21 @@ public class TablePane
 			}
 			tp.showPopup(pp.tablePanePopup, evt.getPoint());
 		}
+	}
+
+	public void mouseDragged(MouseEvent evt) {
+		// move the drag initiation code here from mouseMoved, but make sure 
+        // we do it only once
+		/*
+		if (!draggingTablePanes) {
+			// create the FloatingTableListeners and such
+			draggingTablePanes = true;
+		}
+		*/
+	}
+	
+	public void mouseMoved(MouseEvent evt) {
+		// don't care
 	}
 	
 	// --------------------- Drag Source Listener ------------------------
