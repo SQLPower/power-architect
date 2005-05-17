@@ -224,6 +224,7 @@ public class ConflictResolver {
                     c.addTableDependants();
                     conflicts.add(c);
                 }
+                rs.close();
             } else if (clazz.equals(SQLRelationship.class)) {
                 logger.error("Relationship conflicts are not supported yet!");
             } else {
