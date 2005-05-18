@@ -50,4 +50,42 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
 		if (name == null) return null;
         else return name.replace(' ','_').toLowerCase();
 	}
+	
+	/**
+     * Generates a command for dropping a foreign key on oracle.
+     * The statement looks like <code>ALTER TABLE $fktable DROP CONSTRAINT $fkname</code>.
+     */
+    public String makeDropForeignKeySQL(String fkCatalog, String fkSchema, String fkTable, String fkName) {
+        return "ALTER TABLE "
+            +DDLUtils.toQualifiedName(fkCatalog, fkSchema, fkTable)
+            +" DROP CONSTRAINT "
+            +fkName;
+    }
+    
+	/**
+	 * Returns null, even though Postgres calls this "Database."  The reason is,
+	 * you can't refer to objects in a different database than the default
+	 * database for your current connection.  Also, the Postgres DatabaseMetaData
+	 * always shows nulls for the catalog/database name of tables.
+	 */
+	public String getCatalogTerm() {
+		return null;
+	}
+	
+	/**
+	 * Returns "Schema".
+	 */
+	public String getSchemaTerm() {
+		return "Schema";
+	}
+	
+	/**
+	 * Returns the previously-set target schema name, or "public" if there is no
+	 * current setting. Public is the Postgres default when no schema is
+	 * specified.
+	 */
+	public String getTargetSchema() {
+		if (targetSchema != null) return targetSchema;
+		else return "public";
+	}
 }

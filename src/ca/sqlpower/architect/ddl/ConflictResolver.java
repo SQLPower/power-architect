@@ -105,7 +105,6 @@ public class ConflictResolver {
                 c.setSqlDropStatement(
                         ddlg.makeDropForeignKeySQL(c.getCatalog(), c.getSchema(),
                                                    rs.getString("FKTABLE_NAME"), c.getName()));
-                // FIXME: this SQL is oracle-specific.  we need to ask the DDL Generator for the correct platform-specific syntax
                 dependants.add(c);
             }
         }
