@@ -427,9 +427,13 @@ public class DBTree extends JTree implements DragSourceListener {
 				propDialog.setVisible(true);
 				propDialog.requestFocus();
 			} else if (so instanceof SQLCatalog) {
+                // XXX: no action yet
 			} else if (so instanceof SQLSchema) {
+                // XXX: no action yet
 			} else if (so instanceof SQLTable) {
+                // XXX: no action yet
 			} else if (so instanceof SQLColumn) {
+                // XXX: no action yet
 			}
 		}
 	}
@@ -449,6 +453,7 @@ public class DBTree extends JTree implements DragSourceListener {
 
 		public void actionPerformed(ActionEvent e) {	
 			// make a new connection spec
+            logger.debug("Performing setTargetDBCSAction...");
 			panelHoldsNewDBCS = false; // we are editing the Target Database dbcs, which has already been created
 			edittingDB = ArchitectFrame.getMainInstance().getProject().getPlayPen().getDatabase();
 			// copy over the values from the selected DB.

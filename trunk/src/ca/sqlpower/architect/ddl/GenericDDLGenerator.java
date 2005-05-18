@@ -5,7 +5,7 @@ import java.sql.*;
 import java.util.*;
 import java.io.File;
 
-public class GenericDDLGenerator {
+public class GenericDDLGenerator implements DDLGenerator {
 
 	public static final String GENERATOR_VERSION = "$Revision$";
 
@@ -150,17 +150,7 @@ public class GenericDDLGenerator {
 	 * @param sqlObject the object to which the statement pertains
 	 */
 	public final void endStatement(DDLStatement.StatementType type, SQLObject sqlObject) {
-		String cat = getTargetCatalog();
-		if (cat != null) {
-			cat = toIdentifier(cat);
-		}
-
-		String sch = getTargetSchema();
-		if (sch != null) {
-			sch = toIdentifier(sch);
-		}
-
-		ddlStatements.add(new DDLStatement(sqlObject, type, ddl.toString(), cat, sch));
+		ddlStatements.add(new DDLStatement(sqlObject, type, ddl.toString(), getTargetCatalog(), getTargetSchema()));
 		ddl = new StringBuffer(500);
 	}
 
@@ -426,7 +416,8 @@ public class GenericDDLGenerator {
 	 * quote and leave everything alone, or whatever.
 	 */
 	public String toIdentifier(String name) {
-		return name.replace(' ', '_');
+        if (name == null) return null;
+		else return name.replace(' ', '_');
 	}
 
 	// ---------------------- accessors and mutators ----------------------
@@ -563,4 +554,22 @@ public class GenericDDLGenerator {
 	public String getSchemaTerm() {
 		return null;
 	}
+
+    /**
+     * Generates a standard <code>DROP TABLE $tablename</code> command.  Should work on most platforms. 
+     */
+    public String makeDropTableSQL(String catalog, String schema, String table) {
+        return "DROP TABLE "+DDLUtils.toQualifiedName(catalog, schema, table);
+    }
+
+    /**
+     * Generates a command for dropping a foreign key which works on some platforms.
+     * The statement looks like <code>ALTER TABLE $fktable DROP FOREIGN KEY $fkname</code>.
+     */
+    public String makeDropForeignKeySQL(String fkCatalog, String fkSchema, String fkTable, String fkName) {
+        return "ALTER TABLE "
+            +DDLUtils.toQualifiedName(fkCatalog, fkSchema, fkTable)
+            +" DROP FOREIGN KEY "
+            +fkName;
+    }
 }
