@@ -236,7 +236,7 @@ public class ExportDDLAction extends AbstractAction {
 				con = target.getConnection();
 				statements = ddlg.generateDDLStatements(target);
 				
-				ConflictResolver cr = new ConflictResolver(con, statements);
+				ConflictResolver cr = new ConflictResolver(con, ddlg, statements);
 
                 //XXX: should monitor progress
                 cr.findConflicting();

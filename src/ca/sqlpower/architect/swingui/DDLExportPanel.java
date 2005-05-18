@@ -11,7 +11,10 @@ public class DDLExportPanel extends JPanel implements ArchitectPanel {
 	private static final Logger logger = Logger.getLogger(DDLExportPanel.class);
 
 	protected SwingUIProject project;
-	protected JComboBox dbType;
+
+    protected JLabel targetDBName;
+    
+    protected JComboBox dbType;
 	
 	protected JLabel catalogLabel;
 	protected JTextField catalogField;
@@ -28,6 +31,12 @@ public class DDLExportPanel extends JPanel implements ArchitectPanel {
 	protected void setup() {
 		GenericDDLGenerator ddlg = project.getDDLGenerator();
 		setLayout(new FormLayout());
+        add(new JLabel("Create in:"));
+        
+        DBConnectionSpec dbcs = project.getTargetDatabase().getConnectionSpec();
+        add(targetDBName = new JLabel(dbcs == null 
+                                        ? "(target connection not set up)" 
+                                        : dbcs.getDisplayName()));
 		Vector dbTypeList = new Vector();
 		dbTypeList.add(ASUtils.lvb("Generic JDBC", GenericDDLGenerator.class));
 		dbTypeList.add(ASUtils.lvb("DB2", DB2DDLGenerator.class));

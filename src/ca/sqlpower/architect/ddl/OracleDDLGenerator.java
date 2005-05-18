@@ -40,7 +40,8 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
 	 * Replaces space with underscore and converts to uppercase.
 	 */
 	public String toIdentifier(String name) {
-		return name.replace(' ','_').toUpperCase();
+        if (name == null) return null;
+		else return name.replace(' ','_').toUpperCase();
 	}
 
 	/**
@@ -56,4 +57,15 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
 	public String getSchemaTerm() {
 		return "Schema";
 	}
+
+    /**
+     * Generates a command for dropping a foreign key on oracle.
+     * The statement looks like <code>ALTER TABLE $fktable DROP CONSTRAINT $fkname</code>.
+     */
+    public String makeDropForeignKeySQL(String fkCatalog, String fkSchema, String fkTable, String fkName) {
+        return "ALTER TABLE "
+            +DDLUtils.toQualifiedName(fkCatalog, fkSchema, fkTable)
+            +" DROP CONSTRAINT "
+            +fkName;
+    }
 }

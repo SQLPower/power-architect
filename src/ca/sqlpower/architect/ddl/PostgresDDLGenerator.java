@@ -47,6 +47,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
 	 * Replaces space with underscore and converts to uppercase.
 	 */
 	public String toIdentifier(String name) {
-		return name.replace(' ','_').toLowerCase();
+		if (name == null) return null;
+        else return name.replace(' ','_').toLowerCase();
 	}
 }

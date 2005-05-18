@@ -91,19 +91,20 @@ public class ConflictResolver {
          * @throws SQLException
          */
         private void addDependantsFromKeys(ResultSet rs) throws SQLException {
+            Conflict prev = null;
             while (rs.next()) {
-                // FIXME: because of how this resultset works, we need to avoid adding multiple conflicts for the same key!
                 Conflict c = new Conflict("FOREIGN KEY",
                         rs.getString("FKTABLE_CAT"),
                         rs.getString("FKTABLE_SCHEM"),
                         rs.getString("FK_NAME"));
-                c.setSqlDropStatement("ALTER TABLE "
-                        +DDLUtils.toQualifiedName(
-                                c.getCatalog(),
-                                c.getSchema(),
-                                rs.getString("FKTABLE_NAME"))
-                                +" DROP CONSTRAINT "
-                                +c.getName());
+
+                // multi-column keys get multiple rows in this result set.  We need to skip 'em.
+                if (c.equals(prev)) continue;
+                prev = c;
+                
+                c.setSqlDropStatement(
+                        ddlg.makeDropForeignKeySQL(c.getCatalog(), c.getSchema(),
+                                                   rs.getString("FKTABLE_NAME"), c.getName()));
                 // FIXME: this SQL is oracle-specific.  we need to ask the DDL Generator for the correct platform-specific syntax
                 dependants.add(c);
             }
@@ -170,6 +171,7 @@ public class ConflictResolver {
     private List ddlStatements;
     private List conflicts;
     private String lastSQLStatement;
+    private DDLGenerator ddlg;
     
     /**
      * Creates a new ConflictResolver.  You should call findConflicting() after you get
@@ -178,8 +180,9 @@ public class ConflictResolver {
      * @param con
      * @param ddlStatements
      */
-    public ConflictResolver(Connection con, List ddlStatements) throws SQLException {
+    public ConflictResolver(Connection con, DDLGenerator ddlg, List ddlStatements) throws SQLException {
         this.con = con;
+        this.ddlg = ddlg;
         this.ddlStatements = ddlStatements;
         this.dbmd = con.getMetaData();
     }
@@ -212,14 +215,18 @@ public class ConflictResolver {
                     logger.debug("Finding conflicts for TABLE '" + cat + "'.'"
                             + sch + "'.'" + t.getName() + "'");
                 }
-                ResultSet rs = dbmd.getTables(cat, sch, t.getName(), null);
+                ResultSet rs = dbmd.getTables(
+                        ddlg.toIdentifier(cat),
+                        ddlg.toIdentifier(sch),
+                        ddlg.toIdentifier(t.getName()),
+                        null);
                 while (rs.next()) {
                     Conflict c = new Conflict(
                             rs.getString("TABLE_TYPE"),
                             rs.getString("TABLE_CAT"),
                             rs.getString("TABLE_SCHEM"),
                             rs.getString("TABLE_NAME"));
-                    c.setSqlDropStatement("DROP TABLE "+c.getQualifiedName());
+                    c.setSqlDropStatement(ddlg.makeDropTableSQL(c.getCatalog(), c.getSchema(), c.getName()));
                     List dependants = new ArrayList();
                     c.addTableDependants();
                     conflicts.add(c);
