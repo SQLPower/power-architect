@@ -92,7 +92,6 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 		dtm.setRoot(new DefaultMutableTreeNode());		
 		LoadJDBCDrivers ljd = new LoadJDBCDrivers(session.getDriverJarList());
 		LoadJDBCDriversWorker worker = new LoadJDBCDriversWorker(ljd);
-		ljd.prepareToStart();
         ProgressWatcher watcher = new ProgressWatcher(progressBar,ljd,progressLabel);
 		new javax.swing.Timer(50, watcher).start();
 		new Thread(worker).start();
@@ -132,9 +131,7 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 					list.add(fileChooser.getSelectedFile().getAbsolutePath());
 					LoadJDBCDrivers ljd = new LoadJDBCDrivers(list);
 				    LoadJDBCDriversWorker worker = new LoadJDBCDriversWorker(ljd);
-					ljd.prepareToStart();
-                    ProgressWatcher watcher = new ProgressWatcher(progressBar,ljd,progressLabel);
-					new javax.swing.Timer(50, watcher).start();
+					new ProgressWatcher(progressBar,ljd,progressLabel);
 					new Thread(worker).start();
 				}
 			} catch (ArchitectException ex) {
@@ -177,11 +174,12 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 		private JDBCScanClassLoader cl = null;		
 
 		public LoadJDBCDrivers (List driverJarList) throws ArchitectException {
-			this.driverJarList = driverJarList;	
+			this.driverJarList = driverJarList;
+			finished = false;
 		}
 
-		public int getJobSize() throws ArchitectException {			
-			return driverJarList.size() * 1000;
+		public Integer getJobSize() throws ArchitectException {			
+			return new Integer(driverJarList.size() * 1000);
 		}
 		
 		public int getProgress() throws ArchitectException {
@@ -190,16 +188,12 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 				fraction = cl.getFraction();
 			}
 		    int progress = (jarCount - 1) * 1000 + (int) (fraction * 1000.0);
-			logger.debug("******************* progress is: " + progress + " of " + getJobSize());
+			if (logger.isDebugEnabled()) logger.debug("******************* progress is: " + progress + " of " + getJobSize());
 			return progress;
 		}
 		
 		public boolean isFinished() throws ArchitectException {
 			return finished;
-		}
-
-		public void prepareToStart() {
-			finished = false;
 		}
 		
 		public void execute() {	        
