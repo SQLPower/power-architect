@@ -18,10 +18,12 @@ import java.util.Set;
 
 import org.apache.log4j.*;
 
+import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.swingui.Monitorable;
 
 /**
  * A ConflictResolver performs "seek" and "destroy" operations on objects in
@@ -36,7 +38,7 @@ import ca.sqlpower.architect.SQLTable;
  * 
  * @author fuerth
  */
-public class ConflictResolver {
+public class ConflictResolver implements Monitorable {
     private static final Logger logger = Logger.getLogger(ConflictResolver.class);
 
     /**
@@ -153,7 +155,7 @@ public class ConflictResolver {
         }
         
         /**
-         * A mediocre hash function for combining the same fields compared in the equals method.
+         * A mediocre hash function for combining the same fields that the equals compares.
          */
         public int hashCode() {
             int hash = 1;
@@ -171,7 +173,13 @@ public class ConflictResolver {
     private List conflicts;
     private String lastSQLStatement;
     private DDLGenerator ddlg;
-    
+    private int monitorableProgress;
+	private boolean doingFindConflicting;
+    private boolean findConflictingFinished;
+	private boolean doingDropConflicting;
+	private boolean dropConflictingStarted;
+	private boolean dropConflictingFinished;
+	
     /**
      * Creates a new ConflictResolver.  You should call findConflicting() after you get
      * this new object.
@@ -186,6 +194,10 @@ public class ConflictResolver {
         this.dbmd = con.getMetaData();
     }
 
+    public void aboutToCallDropConflicting() {
+    		dropConflictingStarted = true;
+    }
+    
     /**
      * Searches for objects in the database pointed to by con that would
      * conflict with the execution of any of the given DDL statements.
@@ -194,54 +206,62 @@ public class ConflictResolver {
      *         will succeed.
      */
     public void findConflicting() throws SQLException {
-        conflicts = new ArrayList();
-        
-        if (logger.isDebugEnabled()) {
-            logger.debug("About to find conflicting objects for DDL Script: "+ddlStatements);
-        }
-
-        Iterator it = ddlStatements.iterator();
-        while (it.hasNext()) {
-            DDLStatement ddlStmt = (DDLStatement) it.next();
-            if (ddlStmt.getType() != DDLStatement.StatementType.CREATE) continue;
-            SQLObject so = ddlStmt.getObject();
-            Class clazz = so.getClass();
-            if (clazz.equals(SQLTable.class)) {
-                SQLTable t = (SQLTable) so;
-                String cat = ddlStmt.getTargetCatalog();
-                String sch = ddlStmt.getTargetSchema();
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Finding conflicts for TABLE '" + cat + "'.'"
-                            + sch + "'.'" + t.getName() + "'");
-                }
-                ResultSet rs = dbmd.getTables(
-                        ddlg.toIdentifier(cat),
-                        ddlg.toIdentifier(sch),
-                        ddlg.toIdentifier(t.getName()),
-                        null);
-                while (rs.next()) {
-                    Conflict c = new Conflict(
-                            rs.getString("TABLE_TYPE"),
-                            rs.getString("TABLE_CAT"),
-                            rs.getString("TABLE_SCHEM"),
-                            rs.getString("TABLE_NAME"));
-                    c.setSqlDropStatement(ddlg.makeDropTableSQL(c.getCatalog(), c.getSchema(), c.getName()));
-                    List dependants = new ArrayList();
-                    c.addTableDependants();
-                    conflicts.add(c);
-                }
-                rs.close();
-            } else if (clazz.equals(SQLRelationship.class)) {
-                logger.error("Relationship conflicts are not supported yet!");
-            } else {
-                throw new IllegalArgumentException(
-                        "Unknown subclass of SQLObject: " + clazz.getName());
-            }
-        }
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("Found conflicts: " + conflicts);
-        }
+    		doingFindConflicting = true;
+    		try {
+    			conflicts = new ArrayList();
+    			monitorableProgress = 0;
+    			
+    			if (logger.isDebugEnabled()) {
+    				logger.debug("About to find conflicting objects for DDL Script: "+ddlStatements);
+    			}
+    			
+    			Iterator it = ddlStatements.iterator();
+    			while (it.hasNext()) {
+    				DDLStatement ddlStmt = (DDLStatement) it.next();
+    				monitorableProgress += 1;
+    				if (ddlStmt.getType() != DDLStatement.StatementType.CREATE) continue;
+    				SQLObject so = ddlStmt.getObject();
+    				Class clazz = so.getClass();
+    				if (clazz.equals(SQLTable.class)) {
+    					SQLTable t = (SQLTable) so;
+    					String cat = ddlStmt.getTargetCatalog();
+    					String sch = ddlStmt.getTargetSchema();
+    					if (logger.isDebugEnabled()) {
+    						logger.debug("Finding conflicts for TABLE '" + cat + "'.'"
+    								+ sch + "'.'" + t.getName() + "'");
+    					}
+    					ResultSet rs = dbmd.getTables(
+    							ddlg.toIdentifier(cat),
+								ddlg.toIdentifier(sch),
+								ddlg.toIdentifier(t.getName()),
+								null);
+    					while (rs.next()) {
+    						Conflict c = new Conflict(
+    								rs.getString("TABLE_TYPE"),
+									rs.getString("TABLE_CAT"),
+									rs.getString("TABLE_SCHEM"),
+									rs.getString("TABLE_NAME"));
+    						c.setSqlDropStatement(ddlg.makeDropTableSQL(c.getCatalog(), c.getSchema(), c.getName()));
+    						List dependants = new ArrayList();
+    						c.addTableDependants();
+    						conflicts.add(c);
+    					}
+    					rs.close();
+    				} else if (clazz.equals(SQLRelationship.class)) {
+    					logger.error("Relationship conflicts are not supported yet!");
+    				} else {
+    					throw new IllegalArgumentException(
+    							"Unknown subclass of SQLObject: " + clazz.getName());
+    				}
+    			}
+    			
+    			if (logger.isDebugEnabled()) {
+    				logger.debug("Found conflicts: " + conflicts);
+    			}
+    		} finally {    			
+    			findConflictingFinished = true;
+    			doingFindConflicting = false;
+    		}
     }
 
     /**
@@ -250,21 +270,24 @@ public class ConflictResolver {
      * @throws SQLException
      */
     public void dropConflicting() throws SQLException {
-        if (conflicts == null) {
-            throw new IllegalStateException("You have to call findConflicting() before dropConflicting()");
-        }
-        Iterator it = conflicts.iterator();
-        Statement stmt = null;
-        try {
-            stmt = con.createStatement();
-            Set alreadyDropped = new HashSet();
-            while (it.hasNext()) {
-                Conflict c = (Conflict) it.next();
-                dropConflict(c, stmt, alreadyDropped);
-            }
-        } finally {
-            if (stmt != null) stmt.close();
-        }
+    		if (conflicts == null) {
+    			throw new IllegalStateException("You have to call findConflicting() before dropConflicting()");
+    		}
+    		dropConflictingStarted = true;
+    		Iterator it = conflicts.iterator();
+    		Statement stmt = null;
+    		try {
+    			stmt = con.createStatement();
+    			Set alreadyDropped = new HashSet();
+    			while (it.hasNext()) {
+    				Conflict c = (Conflict) it.next();
+    				monitorableProgress++;
+    				dropConflict(c, stmt, alreadyDropped);
+    			}
+    		} finally {
+    			dropConflictingFinished = true;
+    			if (stmt != null) stmt.close();
+    		}
     }
     
     /**
@@ -340,4 +363,37 @@ public class ConflictResolver {
     public String getLastSQLStatement() {
         return lastSQLStatement;
     }
+
+    // ========== Monitorable interface ===========
+ 
+	/* (non-Javadoc)
+	 * @see ca.sqlpower.architect.swingui.Monitorable#getProgress()
+	 */
+	public int getProgress() throws ArchitectException {
+		return monitorableProgress;
+	}
+
+	/* (non-Javadoc)
+	 * @see ca.sqlpower.architect.swingui.Monitorable#getJobSize()
+	 */
+	public Integer getJobSize() throws ArchitectException {
+		if (doingFindConflicting) {
+			if (ddlStatements == null) return null;
+			else return new Integer(ddlStatements.size());
+		} else if (doingDropConflicting) {
+			if (conflicts == null) return null;
+			else return new Integer(conflicts.size());
+		} else {
+			return null;
+		}
+	}
+
+	/* (non-Javadoc)
+	 * @see ca.sqlpower.architect.swingui.Monitorable#isFinished()
+	 */
+	public boolean isFinished() throws ArchitectException {
+		if (doingDropConflicting || doingFindConflicting) return false;
+		else if (dropConflictingStarted) return dropConflictingFinished;
+		else return findConflictingFinished;
+	}
 }

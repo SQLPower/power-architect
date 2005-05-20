@@ -37,12 +37,11 @@ public class PLExport implements Monitorable {
 	SQLDatabase currentDB; // if this is non-null, an export job is running
 	int tableCount = 0; // only has meaning when an export job is running	
 	
-	public int getJobSize() throws ArchitectException {			
+	public Integer getJobSize() throws ArchitectException {			
 		if (currentDB != null) {
-			return currentDB.getChildren().size();
-		}
-		else {			
-			return 1000; // avoid divide by zero showing up in UI
+			return new Integer(currentDB.getChildren().size());
+		} else {			
+			return null;
 		}		
 	}
 	
@@ -66,12 +65,6 @@ public class PLExport implements Monitorable {
 		finished = true;
 		cancelled = true;
 	}
-
-	public void prepareToStart() {
-		finished = false;
-		cancelled = false;
-	}
-		
 			
 	/**
 	 * Creates a folder if one with the name folderName does not exist
@@ -639,6 +632,7 @@ public class PLExport implements Monitorable {
      * pretty hard to get two copies of it going at the same time)
 	 */
 	public void export(SQLDatabase db) throws SQLException, ArchitectException {
+		finished = false;
 		try {
 			// first, set the logWriter
 			logWriter = new LogWriter(ArchitectSession.getInstance().getUserSettings().getETLUserSettings().getETLLogPath());			
@@ -697,8 +691,7 @@ public class PLExport implements Monitorable {
 					outputTableNum++;
 				}
 			}
-		}
-		finally {
+		} finally {
 			finished = true;			
 			currentDB = null;
 			// close and flush the logWriter (and set the reference to null)

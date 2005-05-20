@@ -128,15 +128,12 @@ public class ExportPLTransAction extends AbstractAction {
 
 				// got this far, so it's ok to run the PL Export thread
 				ExportTxWorker worker = new ExportTxWorker(plexp,plPanel);
-				plexp.prepareToStart(); // sets finished to false
-	   	        ProgressWatcher watcher = new ProgressWatcher(plCreateTxProgressBar,plexp,plCreateTxLabel);
-				new javax.swing.Timer(50, watcher).start();
-				new Thread(worker).start();								
+				new ProgressWatcher(plCreateTxProgressBar, plexp, plCreateTxLabel);
+				new Thread(worker).start();
 			}
 		});
 		buttonPanel.add(okButton);
 
-		//
 		JButton cancelButton = new JButton("Cancel");
 		cancelButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent evt) {
