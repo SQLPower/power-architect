@@ -4,10 +4,13 @@ import ca.sqlpower.architect.*;
 import java.sql.*;
 import java.util.*;
 import java.io.File;
+import org.apache.log4j.Logger;
 
 public class GenericDDLGenerator implements DDLGenerator {
 
 	public static final String GENERATOR_VERSION = "$Revision$";
+
+	private static final Logger logger = Logger.getLogger(GenericDDLGenerator.class);
 
 	/**
 	 * This property says whether or not the user will allow us to
@@ -188,40 +191,17 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 	public void writeTable(SQLTable t) throws SQLException, ArchitectException {
 		Map colNameMap = new HashMap();  // for detecting duplicate column names
-
-		String origTableName = t.getName();
-		if (topLevelNames.get(t.getName()) != null) {
-			int i = 1;
-			String newName = origTableName+"_"+i;
-			while (topLevelNames.get(newName) != null) {
-				i++;
-				newName = origTableName+"_"+i;
-			}
-			t.setTableName(newName);
-			warnings.add(new NameChangeWarning(t, "Duplicate Table Name", origTableName));
-		}
-		topLevelNames.put(t.getName(), t);
-
+		// generate a new physical name if necessary
+		getPhysicalName(topLevelNames,t); // also adds generated physical name to the map
 		print("\nCREATE TABLE ");
-		printQualifiedIdentifier(t.getName());
+		printQualified(t.getPhysicalName());
 		println(" (");
 		boolean firstCol = true;
 		Iterator it = t.getColumns().iterator();
 		while (it.hasNext()) {
 			SQLColumn c = (SQLColumn) it.next();
-			String origName = c.getName();
-			if (colNameMap.get(origName) != null) {
-				int i = 1;
-				String newName = origName+"_"+i;
-				while (colNameMap.get(newName) != null) {
-					i++;
-					newName = origName+"_"+i;
-				}
-				c.setColumnName(newName);
-				warnings.add(new NameChangeWarning(c, "Duplicate Col Name", origName));
-			}
-			colNameMap.put(c.getName(), c);
-
+			// generate a new physical name if necessary
+			getPhysicalName(colNameMap,c); // also adds generated physical name to the map
 			GenericTypeDescriptor td = (GenericTypeDescriptor) typeMap.get(new Integer(c.getType()));
 			if (td == null) {
 				td = (GenericTypeDescriptor) typeMap.get(new Integer(Types.VARCHAR)); //better be non-null!
@@ -233,7 +213,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 			}
 			if (!firstCol) println(",");
 			print("                ");
-			printIdentifier(c.getName());
+			print(c.getPhysicalName());
 			print(" ");
 			print(td.getName());
 			if (td.getHasScale()) {
@@ -271,18 +251,21 @@ public class GenericDDLGenerator implements DDLGenerator {
 			SQLColumn col = (SQLColumn) it.next();
 			if (col.getPrimaryKeySeq() == null) break;
 			if (firstCol) {
+				// generate a unique primary key name
+                getPhysicalPrimaryKeyName(topLevelNames,t);
+				//
 				println("");
 				print("ALTER TABLE ");
-				printQualifiedIdentifier(t.getName());
+				printQualified(t.getPhysicalName());
 				print(" ADD CONSTRAINT ");
-				printIdentifier(t.getPrimaryKeyName());
+				print(t.getPhysicalPrimaryKeyName());
 				println("");
 				print("PRIMARY KEY (");
 				firstCol = false;
 			} else {
 				print(", ");
 			}
-			printIdentifier(col.getName());
+			print(col.getPhysicalName());
 		}
 		if (!firstCol) {
 			print(")");
@@ -295,25 +278,15 @@ public class GenericDDLGenerator implements DDLGenerator {
 		Iterator it = t.getExportedKeys().iterator();
 		while (it.hasNext()) {
 			SQLRelationship rel = (SQLRelationship) it.next();
-
-			String origRelName = rel.getName();
-			if (topLevelNames.get(rel.getName()) != null) {
-				int i = 1;
-				String newName = origRelName+"_"+i;
-				while (topLevelNames.get(newName) != null) {
-					i++;
-					newName = origRelName+"_"+i;
-				}
-				rel.setName(newName);
-				warnings.add(new NameChangeWarning(rel, "Duplicate FK Name", origRelName));
-			}
-			topLevelNames.put(rel.getName(), t);
-
+			// geneate a physical name for this relationship
+			getPhysicalName(topLevelNames,rel); 
+			//
 			println("");
 			print("ALTER TABLE ");
-			printQualifiedIdentifier(rel.getFkTable().getName());
+			// this works because all the tables have had their physical names generated already...
+			printQualified(rel.getFkTable().getPhysicalName());
 			print(" ADD CONSTRAINT ");
-			printIdentifier(rel.getName());
+			print(rel.getPhysicalName());
 			println("");
 			print("FOREIGN KEY (");
 			StringBuffer pkCols = new StringBuffer();
@@ -326,14 +299,15 @@ public class GenericDDLGenerator implements DDLGenerator {
 					pkCols.append(", ");
 					fkCols.append(", ");
 				}
-				appendIdentifier(pkCols, cmap.getPkColumn().getName());
-				appendIdentifier(fkCols, cmap.getFkColumn().getName());
+				// 
+				append(pkCols, cmap.getPkColumn().getPhysicalName());
+				append(fkCols, cmap.getFkColumn().getPhysicalName());
 				firstCol = false;
 			}
 			print(fkCols.toString());
 			println(")");
 			print("REFERENCES ");
-			printQualifiedIdentifier(rel.getPkTable().getName());
+			printQualified(rel.getPkTable().getPhysicalName());
 			print(" (");
 			print(pkCols.toString());
 			print(")");
@@ -379,6 +353,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	 * your generator subclass is for a database that doesn't use dot
 	 * notation, override this method and do it differently.
 	 */
+	// NOT NEEDED ANYMORE?
 	protected void printQualifiedIdentifier(String text) {	
 		if (getTargetCatalog() != null && getTargetCatalog().length() > 0) {
 			ddl.append(getTargetCatalog()).append('.');
@@ -389,6 +364,16 @@ public class GenericDDLGenerator implements DDLGenerator {
 		appendIdentifier(ddl, text);
 	}
 
+	protected void printQualified(String text) {	
+		if (getTargetCatalog() != null && getTargetCatalog().length() > 0) {
+			ddl.append(getTargetCatalog()).append('.');
+		}
+		if (getTargetSchema() != null && getTargetSchema().length() > 0) {
+			ddl.append(getTargetSchema()).append('.');
+		}
+		print(text);
+	}
+
 	/**
 	 * Calls {@link #appendIdentifier} on <code>ddl</code>, the
 	 * internal StringBuffer that accumulates the results of DDL
@@ -396,6 +381,8 @@ public class GenericDDLGenerator implements DDLGenerator {
 	 * method, because changes to appendIdentifier will always affect
 	 * this method's behaviour.
 	 */
+
+	// NOT NEEDED ANYMORE?
 	protected final void printIdentifier(String text) {
 		appendIdentifier(ddl, text);
 	}
@@ -404,8 +391,12 @@ public class GenericDDLGenerator implements DDLGenerator {
 	 * Converts <code>text</code> to a SQL identifier by calling
 	 * {@link #toIdentifier} and appends the result to <code>sb</code>
 	 */
+	// NOT NEEDED ANYMORE?
 	protected void appendIdentifier(StringBuffer sb, String text) {
 		sb.append(toIdentifier(text));		
+	}
+	protected void append(StringBuffer sb, String text) {
+		sb.append(text);
 	}
 
 	/**
@@ -415,10 +406,16 @@ public class GenericDDLGenerator implements DDLGenerator {
 	 * non-alphanumeric characters alone. Subclasses might choose to
 	 * quote and leave everything alone, or whatever.
 	 */
+	public String toIdentifier(String logicalName, String physicalName) {
+        if (logicalName == null) return null;
+		else return logicalName.replace(' ', '_');
+	}
+
 	public String toIdentifier(String name) {
         if (name == null) return null;
 		else return name.replace(' ', '_');
 	}
+
 
 	// ---------------------- accessors and mutators ----------------------
 	
@@ -553,6 +550,60 @@ public class GenericDDLGenerator implements DDLGenerator {
 	 */
 	public String getSchemaTerm() {
 		return null;
+	}
+
+	/**
+     * Generate, set, and return a valid identifier for this SQLObject.
+     */
+	public String getPhysicalName(Map dupCheck, SQLObject so) {				
+		boolean done = false;
+		boolean firstTime = true;
+		// loop until we manage to generate a unique physical name
+		logger.debug("transform identifier source: " + so.getName());
+		while (!done) {
+			String temp = null;
+			if (firstTime) {
+				// naming is deterministic, so unconditionally regenerate
+				firstTime = false;
+				temp = toIdentifier(so.getName(),null); 
+			} else {
+				temp = toIdentifier(so.getName(),so.getPhysicalName());
+			}
+			logger.debug("transform identifier result: " + temp);
+			so.setPhysicalName(temp);
+			if (dupCheck.get(so.getPhysicalName()) == null) {
+				done = true; // we managed to generate something unique
+				dupCheck.put(so.getPhysicalName(),so);
+			}
+		}				
+		return so.getPhysicalName();
+	}
+
+	/**
+     * Generate, set, and return a physicalPrimaryKeyName. 
+     */
+	public String getPhysicalPrimaryKeyName(Map dupCheck, SQLTable t) {		
+		boolean done = false;
+		boolean firstTime = true;
+		// loop until we manage to generate a valid physical primary key name
+		while (!done) {
+			logger.debug("getting phsysical primary key name, logical="+t.getPrimaryKeyName()+",physical="+t.getPhysicalPrimaryKeyName());
+			String temp = null;
+			if (firstTime) {
+				// naming is deterministic, so unconditionally regenerate
+				firstTime = false;
+				temp = toIdentifier(t.getPrimaryKeyName(),null);
+			} else {
+				temp = toIdentifier(t.getPrimaryKeyName(),t.getPhysicalPrimaryKeyName()); 
+			}
+			logger.debug("transform key identifier result: " + temp);
+			t.setPhysicalPrimaryKeyName(temp);
+			if (dupCheck.get(t.getPhysicalPrimaryKeyName()) == null) {
+				done = true; // we managed to generate something valid and unique
+				dupCheck.put(t.getPhysicalPrimaryKeyName(),t);
+			}
+		}				
+		return t.getPhysicalPrimaryKeyName();
 	}
 
     /**

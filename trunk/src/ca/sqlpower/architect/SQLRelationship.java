@@ -30,6 +30,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	protected boolean identifying;
 
 	protected String name;
+	protected String physicalName;
 
 	protected FKColumnManager fkColumnManager;
 
@@ -421,6 +422,16 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	public void setName(String argName) {
 		this.name = argName;
 		fireDbObjectChanged("name");
+	}
+
+
+	public String getPhysicalName()  {
+		return this.physicalName;
+	}
+
+	public void setPhysicalName(String argName) {
+		this.physicalName = argName;
+		fireDbObjectChanged("physicalName");
 	}
 
 	/**

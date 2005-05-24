@@ -23,6 +23,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 
 	protected SQLObject parent;
 	protected String columnName;
+	protected String physicalColumnName;
 
 	/**
 	 * Must be a type defined in java.sql.Types.  Move to enum in 1.5
@@ -100,6 +101,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 		}
 		this.parent = parentTable.getColumnsFolder();
 		this.columnName = colName;
+		this.physicalColumnName = null; // always starts off life as null
 		this.type = dataType;
 		this.sourceDBTypeName = nativeType;
 		this.scale = scale;
@@ -129,6 +131,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 		c.sourceColumn = source;
 		c.parent = addTo.getColumnsFolder();
 		c.columnName = source.columnName;
+		c.physicalColumnName = source.physicalColumnName;
 		c.type = source.type;
 		c.sourceDBTypeName = source.sourceDBTypeName;
 		c.scale = source.scale;
@@ -249,6 +252,19 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 		return getColumnName();
 	}
 
+	public String getPhysicalName() {
+		return getPhysicalColumnName();
+	}		
+
+	public void setName(String name) {
+		setColumnName(name);
+	}
+
+	public void setPhysicalName(String physicalName) {
+		setPhysicalColumnName(physicalName);
+	}
+
+
 	public boolean isPopulated() {
 		return true;
 	}
@@ -292,6 +308,15 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	}
 
 	/**
+	 * Gets the value of name
+	 *
+	 * @return the value of name
+	 */
+	public String getPhysicalColumnName()  {
+		return this.physicalColumnName;
+	}
+
+	/**
 	 * Sets the value of name
 	 *
 	 * @param argName Value to assign to this.name
@@ -300,6 +325,17 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 		this.columnName = argName;
 		fireDbObjectChanged("columnName");
 	}
+
+	/**
+	 * Sets the value of the physical name
+	 *
+	 * @param argName Value to assign to this.name
+	 */
+	public void setPhysicalColumnName(String argName) {
+		this.physicalColumnName = argName;
+		fireDbObjectChanged("physicalColumnName");
+	}
+
 
 	/**
 	 * Gets the value of type

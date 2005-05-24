@@ -21,6 +21,22 @@ public abstract class SQLObject implements java.io.Serializable {
 	public abstract String getName();
 
 	/**
+	 * when the logical name is an illegal identifier in the target
+     * database, generate a legal name store it here.  Some 
+     * SQLObject classes do not need to implement this, so the method
+     * is declared concrete, and passes through to getName() by
+     * default.  SQLObject subclasses that use this idea should
+     * override this class to return the physicalName and then 
+     * pass through to the getName method if one is not found.
+	 */
+	public String getPhysicalName() {
+		return null; // subclasses should override this
+	}
+	public void setPhysicalName(String physicalName) {
+		// do nothing, subclasses should implement this
+	}
+
+	/**
 	 * Returns the parent of this SQLObject or <code>null</code> if it
 	 * is a root object such as SQLDatabase.
 	 */
@@ -251,4 +267,5 @@ public abstract class SQLObject implements java.io.Serializable {
 		}
 		
 	}
+
 }

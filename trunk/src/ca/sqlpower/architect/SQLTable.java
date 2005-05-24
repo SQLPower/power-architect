@@ -19,9 +19,11 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 
 	protected SQLObject parent;
 	protected String tableName;
+	protected String physicalTableName;
 	protected String remarks;
 	protected String objectType;
 	protected String primaryKeyName;
+	protected String physicalPrimaryKeyName;
 	
 	/**
 	 * A List of SQLColumn objects which make up all the columns of
@@ -165,8 +167,16 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		t.importedKeysFolder.populated = true;
 		t.exportedKeysFolder.populated = true;
 		t.tableName = source.tableName;
+		t.physicalTableName = source.physicalTableName;
 		t.remarks = source.remarks;
+		// why are these not direct copies???
+		/*
 		t.primaryKeyName = source.getName()+"_pk";
+		t.physicalPrimaryKeyName = source.getPhysicalName()+"_pk";
+		*/
+		t.primaryKeyName = source.getPrimaryKeyName();
+		t.physicalPrimaryKeyName = source.getPrimaryKeyName();
+		//
 		t.inherit(source);
 		parent.addChild(t);
 		return t;
@@ -552,6 +562,9 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	public String getName() {
 		return tableName;
 	}
+	public String getPhysicalName() {
+		return getPhysicalTableName();
+	}
 
 	/**
 	 * The table's name.
@@ -846,6 +859,18 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		return this.tableName;
 	}
 
+	public String getPhysicalTableName() {
+		return this.physicalTableName;
+	}
+
+	public void setName(String name) {
+		setTableName(name);
+	}
+
+	public void setPhysicalName(String physicalName) {
+		setPhysicalTableName(physicalName);
+	}
+
 	/**
 	 * Sets the table name, and also modifies the primary key name if
 	 * it was previously null or set to the default of
@@ -864,6 +889,21 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 			|| primaryKeyName.equals(oldTableName+"_pk")) {
 			setPrimaryKeyName(tableName+"_pk");
 		}
+	}
+
+	/**
+	 * Physical name shadows the logical name.
+     * 
+	 * @param argTableName The new table name.  NULL is not allowed.
+	 */
+	public void setPhysicalTableName(String argName) {
+		String oldPhysicalTableName = physicalTableName;
+		if ( ! argName.equals(physicalTableName) ) {
+			this.physicalTableName = argName;
+			fireDbObjectChanged("physicalTableName");
+		}
+		// don't need to generate physical PK name, it will be created later 
+        // the GenericDDLGenerator class...
 	}
 
 	/**
@@ -975,6 +1015,26 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		this.primaryKeyName = argPrimaryKeyName;
 		fireDbObjectChanged("primaryKeyName");
 	}
+
+	/**
+	 * Gets the value of physicalPrimaryKeyName
+	 *
+	 * @return the value of physicalPrimaryKeyName
+	 */
+	public String getPhysicalPrimaryKeyName()  {
+		return this.physicalPrimaryKeyName;
+	}
+
+	/**
+	 * Sets the value of physicalPrimaryKeyName
+	 *
+	 * @param argPhysicalPrimaryKeyName Value to assign to this.physicalPrimaryKeyName
+	 */
+	public void setPhysicalPrimaryKeyName(String argPhysicalPrimaryKeyName) {
+		this.physicalPrimaryKeyName = argPhysicalPrimaryKeyName;
+		fireDbObjectChanged("physicalPrimaryKeyName");
+	}
+
 	
 	
 	/**

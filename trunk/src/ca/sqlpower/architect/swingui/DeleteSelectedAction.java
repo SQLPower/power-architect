@@ -48,6 +48,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 					// a column in the selected table
 					try {
 						tp.getModel().removeColumn(colidx);
+						// FIXME: loop inside here to support multiple column deletion?
 					} catch (LockedColumnException ex) {
 						JOptionPane.showMessageDialog((JComponent) item, ex.getMessage());
 					}

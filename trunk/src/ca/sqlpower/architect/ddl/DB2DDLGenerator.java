@@ -3,6 +3,11 @@ package ca.sqlpower.architect.ddl;
 import java.sql.*;
 import java.util.*;
 
+// TODO: override to_identifier routine to ensure identifier names are legal 
+// and unique for DB2.  See the Oracle, SQL Server, and Postgres DDL generators
+// for hints on how it should be written.  Development of this stuff has been 
+// deferred until we have an architect customer who wants to use it with DB2.
+
 public class DB2DDLGenerator extends GenericDDLGenerator {
 	public static final String GENERATOR_VERSION = "$Revision$";
 
