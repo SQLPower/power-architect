@@ -16,7 +16,7 @@ import ca.sqlpower.architect.*;
 
 public class TablePane 
 	extends PlayPenComponent 
-	implements SQLObjectListener, java.io.Serializable, Selectable, DragSourceListener, MouseListener, MouseMotionListener {
+	implements SQLObjectListener, java.io.Serializable, Selectable, DragSourceListener, MouseListener {
 
 	private static final Logger logger = Logger.getLogger(TablePane.class);
 
@@ -84,7 +84,11 @@ public class TablePane
 
 		dgl = new TablePaneDragGestureListener();
 		ds = new DragSource();
-		dgr = getToolkit().createDragGestureRecognizer(MouseDragGestureRecognizer.class, ds, this, DnDConstants.ACTION_MOVE, dgl);
+		// dgr = getToolkit().createDragGestureRecognizer(MouseDragGestureRecognizer.class, ds, this, DnDConstants.ACTION_MOVE, dgl);
+		dgr = ds.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_MOVE, dgl);
+
+		logger.info("motion threshold is: " + getToolkit().getDesktopProperty("DnD.gestureMotionThreshold"));		
+
 		setInsertionPoint(COLUMN_INDEX_NONE);
 		addMouseListener(this);
 		updateUI();
@@ -357,7 +361,7 @@ public class TablePane
 			return;
 		}
 		columnSelection.set(i, Boolean.TRUE);
-		PlayPen pp = getPlayPen();
+		repaint();
 	}
 
 	public boolean isColumnSelected(int i) {
@@ -558,8 +562,12 @@ public class TablePane
 								dtde.dropComplete(true);
 							} else if (col.getParentTable().getParentDatabase()
 								== tp.getModel().getParentDatabase()) {
-								// moving column within playpen
+								// moving column within playpen  
 								dtde.acceptDrop(DnDConstants.ACTION_MOVE);
+								// FIXME: change this to loop and support multiple column moves in the playpen?
+                                // this might be very confusing for the user, so I'm not sure if we should support 
+                                // this action.  It might be a better idea to forbid DnD if we detect that more 
+                                // than one column is selected.
 								col.getParentTable().removeColumn(col);
 								logger.debug("Moving column '"+col.getName()
 											 +"' to table '"+tp.getModel().getName()
@@ -662,6 +670,7 @@ public class TablePane
 						 +"; col="+colIndex);
 
 			try {
+				logger.debug("DGL: colIndex="+colIndex+",columnsSize="+tp.model.getColumns().size());
 				if (colIndex == COLUMN_INDEX_TITLE) {
 					// we don't use this because it often misses drags
 					// that start near the edge of the titlebar
@@ -669,7 +678,9 @@ public class TablePane
 					draggingTablePanes = true;
 				} else if (colIndex >= 0 && colIndex < tp.model.getColumns().size()) {
 					// export column as DnD event
-					if (logger.isDebugEnabled()) logger.debug("Exporting column "+colIndex+" with DnD");
+					if (logger.isDebugEnabled()) { 
+						logger.debug("Exporting column "+colIndex+" with DnD");
+					}
 					tp.draggingColumn = tp.model.getColumn(colIndex);
 					DBTree tree = ArchitectFrame.getMainInstance().dbTree;
 					int[] path = tree.getDnDPathToNode(tp.draggingColumn);
@@ -732,17 +743,20 @@ public class TablePane
 				PlayPen pp = (PlayPen) tp.getPlayPen();
 				int clickCol = tp.pointToColumnIndex(evt.getPoint());		
 
-				// maybe deselect everything else
-				if (!tp.isSelected()) {
-					if ( (evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0) {
-						deSelectEverythingElse(evt);
-					}
+				logger.debug("MP: clickCol="+clickCol+",columnsSize="+tp.model.getColumns().size());
+
+				if ( (evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0) {
+     				// 1. unconditionally de-select everything if this table is unselected					
+					// 2. if the table was selected, de-select everything if the click was not on the 
+                    //    column header of the table
+					if (!tp.isSelected() || (clickCol > COLUMN_INDEX_TITLE && clickCol < tp.model.getColumns().size()) ) {
+						pp.selectNone();
+					}						
 				}
-				// user might have clicked on a different column, so we need to select
-                // this here (even though the single click event handler will select
-                // it again...
+
+				// re-select the table pane (fire new selection event when appropriate)
 				tp.setSelected(true);
-				tp.selectNone();
+				tp.selectNone();  // single column selection model for now
 				if (clickCol < tp.model.getColumns().size()) {
 					tp.selectColumn(clickCol);
 				}
@@ -847,7 +861,7 @@ public class TablePane
 			}
 
 			try {
-				tp.selectNone();
+				tp.selectNone(); // single column selection model for now
 				int idx = tp.pointToColumnIndex(evt.getPoint());
 				if (idx >= 0) {
 					tp.selectColumn(idx);
@@ -858,21 +872,6 @@ public class TablePane
 			}
 			tp.showPopup(pp.tablePanePopup, evt.getPoint());
 		}
-	}
-
-	public void mouseDragged(MouseEvent evt) {
-		// move the drag initiation code here from mouseMoved, but make sure 
-        // we do it only once
-		/*
-		if (!draggingTablePanes) {
-			// create the FloatingTableListeners and such
-			draggingTablePanes = true;
-		}
-		*/
-	}
-	
-	public void mouseMoved(MouseEvent evt) {
-		// don't care
 	}
 	
 	// --------------------- Drag Source Listener ------------------------

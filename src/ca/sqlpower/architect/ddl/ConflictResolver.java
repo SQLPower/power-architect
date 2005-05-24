@@ -206,62 +206,62 @@ public class ConflictResolver implements Monitorable {
      *         will succeed.
      */
     public void findConflicting() throws SQLException {
-    		doingFindConflicting = true;
-    		try {
-    			conflicts = new ArrayList();
-    			monitorableProgress = 0;
-    			
-    			if (logger.isDebugEnabled()) {
-    				logger.debug("About to find conflicting objects for DDL Script: "+ddlStatements);
-    			}
-    			
-    			Iterator it = ddlStatements.iterator();
-    			while (it.hasNext()) {
-    				DDLStatement ddlStmt = (DDLStatement) it.next();
-    				monitorableProgress += 1;
-    				if (ddlStmt.getType() != DDLStatement.StatementType.CREATE) continue;
-    				SQLObject so = ddlStmt.getObject();
-    				Class clazz = so.getClass();
-    				if (clazz.equals(SQLTable.class)) {
-    					SQLTable t = (SQLTable) so;
-    					String cat = ddlStmt.getTargetCatalog();
-    					String sch = ddlStmt.getTargetSchema();
-    					if (logger.isDebugEnabled()) {
-    						logger.debug("Finding conflicts for TABLE '" + cat + "'.'"
-    								+ sch + "'.'" + t.getName() + "'");
-    					}
-    					ResultSet rs = dbmd.getTables(
-    							ddlg.toIdentifier(cat),
-								ddlg.toIdentifier(sch),
-								ddlg.toIdentifier(t.getName()),
-								null);
-    					while (rs.next()) {
-    						Conflict c = new Conflict(
-    								rs.getString("TABLE_TYPE"),
-									rs.getString("TABLE_CAT"),
-									rs.getString("TABLE_SCHEM"),
-									rs.getString("TABLE_NAME"));
-    						c.setSqlDropStatement(ddlg.makeDropTableSQL(c.getCatalog(), c.getSchema(), c.getName()));
-    						List dependants = new ArrayList();
-    						c.addTableDependants();
-    						conflicts.add(c);
-    					}
-    					rs.close();
-    				} else if (clazz.equals(SQLRelationship.class)) {
-    					logger.error("Relationship conflicts are not supported yet!");
-    				} else {
-    					throw new IllegalArgumentException(
-    							"Unknown subclass of SQLObject: " + clazz.getName());
-    				}
-    			}
-    			
-    			if (logger.isDebugEnabled()) {
-    				logger.debug("Found conflicts: " + conflicts);
-    			}
-    		} finally {    			
-    			findConflictingFinished = true;
-    			doingFindConflicting = false;
-    		}
+   		doingFindConflicting = true;
+   		try {
+   			conflicts = new ArrayList();
+   			monitorableProgress = 0;
+   			
+   			if (logger.isDebugEnabled()) {
+   				logger.debug("About to find conflicting objects for DDL Script: "+ddlStatements);
+   			}
+   			
+   			Iterator it = ddlStatements.iterator();
+   			while (it.hasNext()) {
+   				DDLStatement ddlStmt = (DDLStatement) it.next();
+   				monitorableProgress += 1;
+   				if (ddlStmt.getType() != DDLStatement.StatementType.CREATE) continue;
+   				SQLObject so = ddlStmt.getObject();
+   				Class clazz = so.getClass();
+   				if (clazz.equals(SQLTable.class)) {
+   					SQLTable t = (SQLTable) so;
+   					String cat = ddlStmt.getTargetCatalog();
+   					String sch = ddlStmt.getTargetSchema();
+   					if (logger.isDebugEnabled()) {
+   						logger.debug("Finding conflicts for TABLE '" + cat + "'.'"
+   								+ sch + "'.'" + t.getName() + "'");
+   					}
+   					ResultSet rs = dbmd.getTables(
+   							ddlg.toIdentifier(cat),
+							ddlg.toIdentifier(sch),
+							ddlg.toIdentifier(t.getName()),
+							null);
+   					while (rs.next()) {
+   						Conflict c = new Conflict(
+   								rs.getString("TABLE_TYPE"),
+								rs.getString("TABLE_CAT"),
+								rs.getString("TABLE_SCHEM"),
+								rs.getString("TABLE_NAME"));
+   						c.setSqlDropStatement(ddlg.makeDropTableSQL(c.getCatalog(), c.getSchema(), c.getName()));
+   						List dependants = new ArrayList();
+   						c.addTableDependants();
+   						conflicts.add(c);
+   					}
+   					rs.close();
+   				} else if (clazz.equals(SQLRelationship.class)) {
+   					logger.error("Relationship conflicts are not supported yet!");
+   				} else {
+   					throw new IllegalArgumentException(
+   							"Unknown subclass of SQLObject: " + clazz.getName());
+   				}
+   			}
+   			
+   			if (logger.isDebugEnabled()) {
+   				logger.debug("Found conflicts: " + conflicts);
+   			}
+   		} finally {    			
+   			findConflictingFinished = true;
+   			doingFindConflicting = false;
+   		}
     }
 
     /**

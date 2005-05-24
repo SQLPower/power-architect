@@ -84,6 +84,7 @@ public class ArchitectFrame extends JFrame {
 	}
 
 	protected void init() throws ArchitectException {
+
 		try {
 			ConfigFile cf = ConfigFile.getDefaultInstance();
 			architectSession.setUserSettings(cf.read());
@@ -384,6 +385,11 @@ public class ArchitectFrame extends JFrame {
 		
 		SwingUtilities.invokeLater(new Runnable() {
 				public void run() {
+					// this doesn't appear to have any effect on the motion threshold 
+                    // in the Playpen, but it does seem to work on the DBTree...
+					logger.debug("current motion threshold is: " + System.getProperty("awt.dnd.drag.threshold"));
+					System.setProperty("awt.dnd.drag.threshold","50");
+					logger.debug("new motion threshold is: " + System.getProperty("awt.dnd.drag.threshold"));
 					mainInstance.setVisible(true);
 				}
 			});
