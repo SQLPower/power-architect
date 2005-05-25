@@ -292,7 +292,10 @@ public class ExportDDLAction extends AbstractAction {
 				Object[] messages = new Object[3];
 				messages[0] = "The following objects in the target database"
 							 +"\nconflict with those you wish to create:";
-				messages[1] = new JLabel(cr.toConflictTree());  //FIXME: needs to be in a scrollpane, but there seems to be a serious issue when this is done.
+				JTextArea conflictsPane = new JTextArea(cr.toConflictTree());
+				conflictsPane.setRows(15);
+				conflictsPane.setEditable(false);
+				messages[1] = new JScrollPane(conflictsPane);
 				messages[2] = "Do you want the Architect to drop these objects"
 							 +"\nbefore attempting to create the new ones?";
 				int choice = JOptionPane.showConfirmDialog(

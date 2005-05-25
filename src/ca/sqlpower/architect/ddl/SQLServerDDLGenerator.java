@@ -3,7 +3,6 @@ package ca.sqlpower.architect.ddl;
 import java.sql.*;
 import java.util.*;
 import org.apache.log4j.Logger;
-import java.util.regex.*;
 import java.io.*;
 
 
@@ -14,7 +13,7 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
 	private static ArrayList reservedWords;
 	
 	static {
-		reservedWords = new ArrayList();		
+		reservedWords = new ArrayList();
 		BufferedReader br = null;
 		try {
 			br = new BufferedReader (new FileReader("sqlserver_reserved_words.txt"));		
@@ -113,43 +112,39 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
 	}
 
 	/**
-	 * Turn a logical identifier into a legal identifier (physical name) for this database.  
-     * Also, upcase the identifier for consistency.  
+	 * Turns a logical identifier into a legal identifier (physical name) for SQL Server.
      * 
-     * Uses a deterministic method to generate tie-breaking numbers when there is a namespace 
+     * <p>Uses a deterministic method to generate tie-breaking numbers when there is a namespace 
      * conflict.  If you pass null as the physical name, it will use just the logical name when 
      * trying to come up with tie-breaking hashes for identifier names.  If the first attempt
      * at generating a unique name fails, subsequent calls should pass each new illegal     
      * identifier which will be used with the logical name to generate a another hash.
      * 
-     * SQL Server 7.0 Rules:
+     * <p>SQL Server 7.0 Rules:
+     * <ul>
+     *  <li> no spaces
+     *  <li> 128 character limit
+     *  <li> can only be comprised of letters, numbers, underscores
+     *  <li> can't be an sql server reserved word
+     *  <li> can also use "@$#_" 
+     * </ul>
      * 
-     * - no spaces
-     * - 128 character limit
-     * - can only be comprised of letters, numbers, underscores
-     * - can't be an sql server reserved word
-     * - can also use "@$#_" 
-     *
-     * XXX: the illegal character replacement routine does not play well with regex chars like ^ and |
+     * <p>XXX: the illegal character replacement routine does not play well with regex chars like ^ and |
 	 */
 	public String toIdentifier(String logicalName, String physicalName) {
 		// replace spaces with underscores
 		if (logicalName == null) return null;
 		logger.debug("getting physical name for: " + logicalName);
-		String ident = logicalName.replace(' ','_').toUpperCase();
+		String ident = logicalName.replace(' ','_');
 		logger.debug("after replace of spaces: " + ident);
 		// see if it's a reserved word, and add something alpha to front if it is...
 		if (isReservedWord(ident)) {
 			ident = "X" + ident;
 			logger.debug("identifier was reserved word, appending X: " + ident);
 		}
+
 		// replace anything that is not a letter, character, or underscore with an underscore...
-		String tempString = ident;
-		Pattern p2 = Pattern.compile("[^a-xA-Z0-9_@$#]");
-		Matcher m2 = p2.matcher(ident);
-		while (m2.find()) {
-			tempString = tempString.replace(m2.group(),"_");						
-		}
+		ident = ident.replaceAll("[^a-zA-Z0-9_@$#]", "_");
 
 		// first time through
 		if (physicalName == null) {
