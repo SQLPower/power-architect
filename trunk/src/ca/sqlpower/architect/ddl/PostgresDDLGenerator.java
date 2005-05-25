@@ -88,62 +88,60 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
 	
 
 	/**
-	 * Turn a logical identifier into a legal identifier (physical name) for this database.  
-     * Also, upcase the identifier for consistency.  
+	 * Turns a logical identifier into a legal identifier (physical name) for PostgreSQL.  
+     * Also, downcases the identifier for consistency.  
      * 
-     * Uses a deterministic method to generate tie-breaking numbers when there is a namespace 
+     * <p>Uses a deterministic method to generate tie-breaking numbers when there is a namespace 
      * conflict.  If you pass null as the physical name, it will use just the logical name when 
      * trying to come up with tie-breaking hashes for identifier names.  If the first attempt
      * at generating a unique name fails, subsequent calls should pass each new illegal     
      * identifier which will be used with the logical name to generate a another hash.
      * 
-     * Postgres 8.0 rules:
+     * <p>Postgres 8.0 rules:
+     * <ul>
+     *  <li> no spaces
+     *  <li> 63 character limit
+     *  <li> identifiers must begin with a letter (one is added if needed)
+     *  <li> can't be a postgres reserved word 
+     *  <li> can only be comprised of letters, numbers, underscores, and $ 
+     * </ul>
      * 
-     * - no spaces
-     * - 63 character limit
-     * - identifiers must begin with a letter (one is added if needed)
-     * - can't be a postgres reserved word 
-     * - can only be comprised of letters, numbers, underscores, and $ 
-     *
-     * XXX: substring replacement routine does not play well with regex chars like ^ and | 
+     * <p>XXX: substring replacement routine does not play well with regex chars like ^ and | 
 	 */
 	public String toIdentifier(String logicalName, String physicalName) {
 		// replace spaces with underscores
 		if (logicalName == null) return null;
-		logger.debug("getting physical name for: " + logicalName);
-		String ident = logicalName.replace(' ','_').toUpperCase();
-		logger.debug("after replace of spaces: " + ident);
+		if (logger.isDebugEnabled()) logger.debug("getting physical name for: " + logicalName);
+		String ident = logicalName.replace(' ','_').toLowerCase();
+		if (logger.isDebugEnabled()) logger.debug("after replace of spaces: " + ident);
 		// make sure first character is alpha
  		Pattern p = Pattern.compile("^[^a-zA-Z]+");
  		Matcher m = p.matcher(ident);
 		if (m.find()) {
 			// just add something alpha to the front for now
 			ident = "X" + ident;
-			logger.debug("identifiers must start with letter, appending X: " + ident);
+			if (logger.isDebugEnabled()) logger.debug("identifiers must start with letter; prepending X: " + ident);
 		}
 		// see if it's a reserved word, and add something alpha to front if it is...
 		if (isReservedWord(ident)) {
 			ident = "X" + ident;
-			logger.debug("identifier was reserved word, appending X: " + ident);
+			if (logger.isDebugEnabled()) logger.debug("identifier was reserved word, prepending X: " + ident);
 		}
+
 		// replace anything that is not a letter, character, or underscore with an underscore...
-		String tempString = ident;
-		Pattern p2 = Pattern.compile("[^a-xA-Z0-9_$]");
-		Matcher m2 = p2.matcher(ident);
-		while (m2.find()) {
-			tempString = tempString.replace(m2.group(),"_");						
-		}
+		ident = ident.replaceAll("[^a-zA-Z0-9_$]", "_");
+
 		// first time through
 		if (physicalName == null) {
 			// length is ok
-            if (ident.length() < 129) {
+            if (ident.length() <= 63) {
 				return ident;
 			} else {
 				// length is too big
-				logger.debug("truncating identifier: " + ident);
-				String base = ident.substring(0,125);
+				if (logger.isDebugEnabled()) logger.debug("truncating identifier: " + ident);
+				String base = ident.substring(0, 60);
 				int tiebreaker = ((ident.hashCode() % 1000) + 1000) % 1000;
-				logger.debug("new identifier: " + base + tiebreaker);
+				if (logger.isDebugEnabled()) logger.debug("new identifier: " + base + tiebreaker);
 				return (base + tiebreaker);
 			}						
 		} else {
@@ -152,13 +150,13 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
             // to size if it's too big, and then generate 
             // a hash tiebreaker using the ident and the 
             // passed value physicalName
-			logger.debug("physical identifier is not unique, regenerating: " + physicalName);
+			if (logger.isDebugEnabled()) logger.debug("physical identifier is not unique, regenerating: " + physicalName);
 			String base = ident;
-			if (ident.length() > 125) {
-				base = ident.substring(0,125);
+			if (ident.length() > 63) {
+				base = ident.substring(0, 60);
 			}
 			int tiebreaker = (((ident + physicalName).hashCode() % 1000) + 1000) % 1000;
-			logger.debug("regenerated identifier is: " + (base + tiebreaker));
+			if (logger.isDebugEnabled()) logger.debug("regenerated identifier is: " + (base + tiebreaker));
 			return (base + tiebreaker);
 		}
 	}	

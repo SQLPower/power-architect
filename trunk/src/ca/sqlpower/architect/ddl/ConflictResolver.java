@@ -273,6 +273,7 @@ public class ConflictResolver implements Monitorable {
     		if (conflicts == null) {
     			throw new IllegalStateException("You have to call findConflicting() before dropConflicting()");
     		}
+    		monitorableProgress = 0;
     		dropConflictingStarted = true;
     		Iterator it = conflicts.iterator();
     		Statement stmt = null;
