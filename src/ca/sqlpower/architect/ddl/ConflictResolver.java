@@ -228,12 +228,12 @@ public class ConflictResolver implements Monitorable {
    					String sch = ddlStmt.getTargetSchema();
    					if (logger.isDebugEnabled()) {
    						logger.debug("Finding conflicts for TABLE '" + cat + "'.'"
-   								+ sch + "'.'" + t.getName() + "'");
+   								+ sch + "'.'" + t.getPhysicalName() + "'");
    					}
    					ResultSet rs = dbmd.getTables(
    							ddlg.toIdentifier(cat),
 							ddlg.toIdentifier(sch),
-							ddlg.toIdentifier(t.getName()),
+							ddlg.toIdentifier(t.getPhysicalName()),
 							null);
    					while (rs.next()) {
    						Conflict c = new Conflict(
