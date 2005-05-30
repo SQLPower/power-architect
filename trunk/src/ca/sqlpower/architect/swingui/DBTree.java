@@ -53,7 +53,6 @@ public class DBTree extends JTree implements DragSourceListener {
 
 		newDBCSAction = new NewDBCSAction();
 		setupPropDialog();
-		popup = setupPopupMenu();
 		addMouseListener(new PopupListener());
 		setCellRenderer(new SQLObjectRenderer());				
 	}
@@ -251,30 +250,6 @@ public class DBTree extends JTree implements DragSourceListener {
 
 	// ----------------- popup menu stuff ----------------
 
-	protected JPopupMenu setupPopupMenu() {
-		JPopupMenu newMenu = new JPopupMenu();
-		
-		newMenu.add(popupDBCSMenu = new JMenu("Add Connection")); // index 0
-
-		JMenuItem popupProperties = new JMenuItem(new DBCSPropertiesAction());
-		newMenu.add(popupProperties);   // index 1
-
-		if (logger.isDebugEnabled()) { // index 2
-			newMenu.addSeparator();
-			JMenuItem showListeners = new JMenuItem("Show Listeners");
-			showListeners.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						SQLObject so = (SQLObject) getLastSelectedPathComponent();
-						if (so != null) {
-							JOptionPane.showMessageDialog(DBTree.this, new JScrollPane(new JList(new java.util.Vector(so.getSQLObjectListeners()))));
-						}
-					}
-				});
-			newMenu.add(showListeners);
-		}
-		return newMenu;
-	}
-
 	/**
 	 * A simple mouse listener that activates the DBTree's popup menu
 	 * when the user right-clicks (or some other platform-specific action).
@@ -294,59 +269,95 @@ public class DBTree extends JTree implements DragSourceListener {
         private void maybeShowPopup(MouseEvent e) {
             if (e.isPopupTrigger()) {
 				TreePath p = getPathForLocation(e.getX(), e.getY());								
-				refreshDBCSMenu(isTargetDatabaseNode(p));
-				if (p == null) {
-					logger.debug("not over anything, so give NEW option");
-					popup.getComponent(0).setVisible(true); // add new
-					popup.getComponent(1).setVisible(false); // show listeners
-				} else {
-					logger.debug("we are over something, so give properties option.");
-					//SQLObject so = (SQLObject) p.getLastPathComponent();
-					popup.getComponent(0).setVisible(isTargetDatabaseNode(p)); // add new
-					popup.getComponent(1).setVisible(true); // connection properties
-				}
+				popup = refreshMenu(p);
 				setSelectionPath(p);
                 popup.show(e.getComponent(),
                            e.getX(), e.getY());
             }
         }
     }
-	
-	// check to see if the SQLDatabase reference from the DBTree is the same as the one
-    // held by the PlayPen.  If it is, we are looking at the Target Database
+		
+	/**
+	 * Create a context sensitive menu for managing Database Connections. There
+     * are several modes of operations:
+     * 
+     * 1. click on target database.  the user can modify the properties manually,
+     * or select a target from the ones defined in user settings.  If there is 
+     * nothing defined, then that option is disabled.
+     * 
+     * 2. click on an DBCS reference in the DBTree.  Bring up the dialog that 
+     * allows the user to modify this connection.
+     * 
+     * 3. click on the background of the DBTree.  Allow the user to select DBCS
+     * from a list, or create a new DBCS from scratch (which will be added to the  
+     * User Settings list of DBCS objects).
+	 *
+	 */
+	protected JPopupMenu refreshMenu(TreePath p) {
+		logger.debug("refreshMenu is being called.");
+		JPopupMenu newMenu = new JPopupMenu();				
+		if (isTargetDatabaseNode(p)) {
+			// two menu items: "Set Target Database" and "Connection Properties
+			newMenu.add(popupDBCSMenu = new JMenu("Set Target Database"));
+			if (ArchitectFrame.getMainInstance().getUserSettings().getConnections().size() == 0) {
+				// disable if there's no connections in user settings yet (annoying, but less confusing)
+				popupDBCSMenu.setEnabled(false);
+			} else {
+				// populate		
+				Iterator it = ArchitectFrame.getMainInstance().getUserSettings().getConnections().iterator();
+				while(it.hasNext()) {
+					DBConnectionSpec dbcs = (DBConnectionSpec) it.next();
+					popupDBCSMenu.add(new JMenuItem(new setTargetDBCSAction(dbcs)));
+				}
+			}
+			JMenuItem popupProperties = new JMenuItem(new DBCSPropertiesAction());
+			newMenu.add(popupProperties);   
+		} else if (p != null) { // clicked on DBCS item in DBTree
+			JMenuItem popupProperties = new JMenuItem(new DBCSPropertiesAction());
+			newMenu.add(popupProperties);   								
+		} else { // p == null, background click
+			newMenu.add(popupDBCSMenu = new JMenu("Add Connection")); 
+			popupDBCSMenu.add(new JMenuItem(newDBCSAction));		
+			popupDBCSMenu.addSeparator();
+			// populate		
+			Iterator it = ArchitectFrame.getMainInstance().getUserSettings().getConnections().iterator();
+			while(it.hasNext()) {
+				DBConnectionSpec dbcs = (DBConnectionSpec) it.next();
+				popupDBCSMenu.add(new JMenuItem(new AddDBCSAction(dbcs)));
+			}
+		}
+
+		// add in Show Listeners if debug is enabled
+		if (logger.isDebugEnabled()) { 
+			newMenu.addSeparator();
+			JMenuItem showListeners = new JMenuItem("Show Listeners");
+			showListeners.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						SQLObject so = (SQLObject) getLastSelectedPathComponent();
+						if (so != null) {
+							JOptionPane.showMessageDialog(DBTree.this, new JScrollPane(new JList(new java.util.Vector(so.getSQLObjectListeners()))));
+						}
+					}
+				});
+			newMenu.add(showListeners);
+		}
+		return newMenu;
+	}
+
+	/**
+     * Check to see if the SQLDatabase reference from the the DBTree is the 
+     * same as the one held by the PlayPen.  If it is, we are looking at the
+     * Target Database.
+     */
 	protected boolean isTargetDatabaseNode(TreePath tp) {
 		if (tp == null) {
 			return false;
-		}
-		
+		}		
 		Object [] oo = tp.getPath();
 		if (ArchitectFrame.getMainInstance().getProject().getPlayPen().getDatabase() == oo [oo.length - 1]) {
 			return true;
 		} else {
 			return false;
-		}
-	}
-	
-	/**
-	 * Refreshes the submenu which contains the DBCS history list.
-	 */
-	protected void refreshDBCSMenu(boolean suppressNew) {
-		logger.debug("refreshDBCSMenu is being called.");
-		popupDBCSMenu.removeAll();		
-		if (!suppressNew) {
-			popupDBCSMenu.add(new JMenuItem(newDBCSAction));		
-			popupDBCSMenu.addSeparator();
-		}
-		Iterator it = ArchitectFrame.getMainInstance().getUserSettings().getConnections().iterator();
-		while(it.hasNext()) {
-			DBConnectionSpec dbcs = (DBConnectionSpec) it.next();
-			if (!suppressNew) {
-				popupDBCSMenu.setText("Add Connection");
-				popupDBCSMenu.add(new JMenuItem(new AddDBCSAction(dbcs)));
-			} else {				
-				popupDBCSMenu.setText("Set Target Database");
-				popupDBCSMenu.add(new JMenuItem(new setTargetDBCSAction(dbcs)));
-			}
 		}
 	}
 
