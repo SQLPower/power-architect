@@ -21,7 +21,7 @@ public class ArchitectFrame extends JFrame {
 	 */
 	protected static ArchitectFrame mainInstance;
 
-	public static final double ZOOM_STEP = 0.2;
+	public static final double ZOOM_STEP = 0.25;
 
 	protected ArchitectSession architectSession = null;
 	protected SwingUIProject project = null;

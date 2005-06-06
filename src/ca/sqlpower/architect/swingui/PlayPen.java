@@ -21,8 +21,7 @@ import ca.sqlpower.architect.*;
 import ca.sqlpower.sql.DBConnectionSpec;
 
 public class PlayPen extends JPanel
-	// implements java.io.Serializable, SQLObjectListener, SelectionListener, ContainerListener, Scrollable {
-	implements java.io.Serializable, SQLObjectListener, SelectionListener, ContainerListener {
+	implements java.io.Serializable, SQLObjectListener, SelectionListener, ContainerListener, Scrollable {
 
 	private static Logger logger = Logger.getLogger(PlayPen.class);
 
@@ -356,7 +355,14 @@ public class PlayPen extends JPanel
 
 	/**
 	 * Calculates the smallest rectangle that will completely
-	 * enclose the visible components.
+	 * enclose the visible components.  
+     *
+     * This is then compared to the viewport size, one dimension
+     * at a time.  To ensure the whole playpen is "live", always
+     * choose the larger number in each Dimension.
+     * 
+     * There is also a lower bound on how small the playpen can get.  The
+     * layout manager returns a preferred size of (100,100) when asked.
 	 */
 	public Dimension getPreferredSize() {
 		Rectangle cbounds = null;
@@ -366,34 +372,37 @@ public class PlayPen extends JPanel
 			Component c = contentPane.getComponent(i);
 			if (c.isVisible()) {
 				cbounds = c.getBounds(cbounds);
-				logger.debug("bounds: " + cbounds);
 				minx = Math.min(cbounds.x, minx);
 				miny = Math.min(cbounds.y, miny);
 				maxx = Math.max(cbounds.x + cbounds.width , maxx);
 				maxy = Math.max(cbounds.y + cbounds.height, maxy);
-				logger.debug("min:("+minx+","+miny+"),max:("+maxx+","+maxy+")");
 			} 
 		}
 		
-		Dimension min = getMinimumSize();
 		Dimension userDim = new Dimension(maxx-minx,maxy-miny);
-		logger.debug("userDim is: " + userDim);
-		Dimension usedSpace = new Dimension((int) ((double) Math.max(maxx - minx, min.width) * zoom),
-							 (int) ((double) Math.max(maxy - miny, min.height) * zoom));
-		logger.debug("zoom="+zoom+",usedSpace size is viewport size: " + usedSpace);
-
-		// but, make sure we return a preferred size that is at least as big as the Viewport
+		Dimension usedSpace = new Dimension((int) ((double) Math.max(maxx - minx, getMinimumSize().width) * zoom),
+							 (int) ((double) Math.max(maxy - miny, getMinimumSize().height) * zoom));
 		Dimension vpSize = getViewportSize();
-		if (vpSize != null) {
-			if (vpSize.width > usedSpace.width &&
-				vpSize.height > usedSpace.height) {
-				logger.debug("preferered size is viewport?: " + vpSize);
-				return vpSize;
-			}
+		Dimension ppSize = null;
+
+		// viewport seems to never come back as null, but protect anyways...
+        if (vpSize != null) {
+			ppSize = new Dimension(Math.max(usedSpace.width, vpSize.width),
+                                   Math.max(usedSpace.height, vpSize.height));
 		}
-		// default 
-		logger.debug("preferred size is usedSpace?: " + usedSpace);
-		return usedSpace;
+
+		// diagnostic information:
+		logger.debug("minsize is: " + getMinimumSize());
+		logger.debug("unzoomed userDim is: " + userDim);
+		logger.debug("zoom="+zoom+",usedSpace size is " + usedSpace);
+
+		if (ppSize != null) { 
+			logger.debug("preferred size is ppSize (viewport size was null): " + ppSize);
+			return ppSize;
+		} else {
+			logger.debug("preferred size is usedSpace: " + usedSpace);
+			return usedSpace;
+		}
 	}
 	
 	// get the size of the viewport that we are sitting in (return null if there isn't one);
@@ -1488,7 +1497,6 @@ public class PlayPen extends JPanel
 		}
 	}
 
-/*
 	// --- Scrollable Methods --- //
  	public Dimension getPreferredScrollableViewportSize() {
 		// return getPreferredSize();
@@ -1518,7 +1526,4 @@ public class PlayPen extends JPanel
 			return visibleRect.height/5;
 		}
 	}
-
-*/
-
 }
