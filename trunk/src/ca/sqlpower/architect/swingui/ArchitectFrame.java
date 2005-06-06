@@ -45,14 +45,17 @@ public class ArchitectFrame extends JFrame {
  	protected ZoomAction zoomInAction;
  	protected ZoomAction zoomOutAction;
  	protected Action zoomNormalAction;
-	protected DeleteSelectedAction deleteSelectedAction;
+	
+	// playpen edit actions
 	protected EditColumnAction editColumnAction;
 	protected InsertColumnAction insertColumnAction;
 	protected EditTableAction editTableAction;
+	protected DeleteSelectedAction deleteSelectedAction;
 	protected CreateTableAction createTableAction;
 	protected CreateRelationshipAction createIdentifyingRelationshipAction;
 	protected CreateRelationshipAction createNonIdentifyingRelationshipAction;
 	protected EditRelationshipAction editRelationshipAction;
+
 	protected Action exportDDLAction;
 	protected Action compareDMAction;
 	protected ExportPLTransAction exportPLTransAction;
@@ -310,6 +313,7 @@ public class ArchitectFrame extends JFrame {
 	 * instances.  This method is called by setProject.
 	 */
 	protected void setupActions() {
+		// playpen actions
 		aboutAction.setPlayPen(playpen);
 		printAction.setPlayPen(playpen);
 		deleteSelectedAction.setPlayPen(playpen);
@@ -323,7 +327,13 @@ public class ArchitectFrame extends JFrame {
 		exportPLTransAction.setPlayPen(playpen);
 		zoomInAction.setPlayPen(playpen);
 		zoomOutAction.setPlayPen(playpen);
-
+		// dbtree actions
+		editColumnAction.setDBTree(dbTree);
+		insertColumnAction.setDBTree(dbTree);
+		editRelationshipAction.setDBTree(dbTree);
+		deleteSelectedAction.setDBTree(dbTree);
+		editTableAction.setDBTree(dbTree);
+		//
 		prefAction.setArchitectFrame(this);
 		projectSettingsAction.setArchitectFrame(this);
 	}

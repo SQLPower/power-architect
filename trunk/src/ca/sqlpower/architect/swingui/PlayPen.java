@@ -14,14 +14,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.Iterator;
-import java.util.HashMap;
+import java.util.HashSet;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.*;
 import ca.sqlpower.sql.DBConnectionSpec;
 
 public class PlayPen extends JPanel
-	implements java.io.Serializable, SQLObjectListener, SelectionListener, ContainerListener, Scrollable {
+	// implements java.io.Serializable, SQLObjectListener, SelectionListener, ContainerListener, Scrollable {
+	implements java.io.Serializable, SQLObjectListener, SelectionListener, ContainerListener {
 
 	private static Logger logger = Logger.getLogger(PlayPen.class);
 
@@ -50,7 +51,7 @@ public class PlayPen extends JPanel
 	 * new table names if two tables of the same name are added to
 	 * this playpen.
 	 */
-	protected HashMap tableNames;
+	protected HashSet tableNames;
 	
 	/**
 	 * This is the shared popup menu that applies to right-clicks on
@@ -152,13 +153,17 @@ public class PlayPen extends JPanel
 		} catch (ArchitectException ex) {
 			logger.error("Couldn't listen to database", ex);
 		}
-		tableNames = new HashMap();
+		tableNames = new HashSet();
 	}
 
 	/**
 	 * This routine is called by the PlayPen constructor after it has
 	 * set up all the Action instances.  It adds all the necessary
 	 * items and action listeners to the TablePane popup menu.
+     * 
+     * Note: if an action is shared with the DBTree, make sure you 
+     * set the action command in its parent menu item so that the
+     * action can figure out what the source of the Action was.
 	 */
 	void setupTablePanePopup() {
 		ArchitectFrame af = ArchitectFrame.getMainInstance();
@@ -168,35 +173,42 @@ public class PlayPen extends JPanel
 
 		mi = new JMenuItem();
 		mi.setAction(af.editColumnAction);
+		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		tablePanePopup.add(mi);
 
 		mi = new JMenuItem();
 		mi.setAction(af.insertColumnAction);
+		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		tablePanePopup.add(mi);
 
 		tablePanePopup.addSeparator();
 
 		mi = new JMenuItem();
 		mi.setAction(af.editTableAction);
+		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		tablePanePopup.add(mi);
 
 		mi = new JMenuItem();
 		mi.setAction(bringToFrontAction);
+		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		tablePanePopup.add(mi);
 
 		mi = new JMenuItem();
 		mi.setAction(sendToBackAction);
+		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		tablePanePopup.add(mi);
 		
 		tablePanePopup.addSeparator();
 
 		mi = new JMenuItem();
 		mi.setAction(af.deleteSelectedAction);
+		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		tablePanePopup.add(mi);
 
 		if (logger.isDebugEnabled()) {
 			tablePanePopup.addSeparator();
 			mi = new JMenuItem("Show listeners");
+			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 			mi.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent evt) {
 						List selection = getSelectedItems();
@@ -211,6 +223,7 @@ public class PlayPen extends JPanel
 			tablePanePopup.add(mi);
 
 			mi = new JMenuItem("Show Selection List");
+			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 			mi.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent evt) {
 						List selection = getSelectedItems();
@@ -353,27 +366,33 @@ public class PlayPen extends JPanel
 			Component c = contentPane.getComponent(i);
 			if (c.isVisible()) {
 				cbounds = c.getBounds(cbounds);
+				logger.debug("bounds: " + cbounds);
 				minx = Math.min(cbounds.x, minx);
 				miny = Math.min(cbounds.y, miny);
 				maxx = Math.max(cbounds.x + cbounds.width , maxx);
 				maxy = Math.max(cbounds.y + cbounds.height, maxy);
-			}
+				logger.debug("min:("+minx+","+miny+"),max:("+maxx+","+maxy+")");
+			} 
 		}
 		
 		Dimension min = getMinimumSize();
-
+		Dimension userDim = new Dimension(maxx-minx,maxy-miny);
+		logger.debug("userDim is: " + userDim);
 		Dimension usedSpace = new Dimension((int) ((double) Math.max(maxx - minx, min.width) * zoom),
 							 (int) ((double) Math.max(maxy - miny, min.height) * zoom));
+		logger.debug("zoom="+zoom+",usedSpace size is viewport size: " + usedSpace);
 
 		// but, make sure we return a preferred size that is at least as big as the Viewport
 		Dimension vpSize = getViewportSize();
 		if (vpSize != null) {
-			if (vpSize.width > usedSpace.width ||
+			if (vpSize.width > usedSpace.width &&
 				vpSize.height > usedSpace.height) {
+				logger.debug("preferered size is viewport?: " + vpSize);
 				return vpSize;
 			}
 		}
 		// default 
+		logger.debug("preferred size is usedSpace?: " + usedSpace);
 		return usedSpace;
 	}
 	
@@ -382,8 +401,10 @@ public class PlayPen extends JPanel
 		Container c = SwingUtilities.getAncestorOfClass(JViewport.class, this);
 		if (c != null) {
 			JViewport jvp = (JViewport) c;
+			logger.debug("viewport size is: " + jvp.getSize());
 			return jvp.getSize();
 		} else {
+			logger.debug("viewport size is NULL");
 			return null;
 		}
 	}
@@ -541,45 +562,45 @@ public class PlayPen extends JPanel
 	
 	/**
 	 * Pops up a dialog box that lets the user inspect and change the
-	 * target db's connection spec.
+	 * target db's connection spec.  Create from scratch every time
+     * just in case the user changed the Target Database from the DBTree.
 	 */
 	public void showDbcsDialog() {
-		if (dbcsDialog == null) {
-			final JDialog d = new JDialog(ArchitectFrame.getMainInstance(),
-										  "Target Database Connection");
-			JPanel cp = new JPanel(new BorderLayout(12,12));
-			cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
-			final DBCSPanel dbcsPanel = new DBCSPanel();
-			dbcsPanel.setDbcs(db.getConnectionSpec());
-			cp.add(dbcsPanel, BorderLayout.CENTER);
-			
-			JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-			
-			JButton okButton = new JButton("Ok");
-			okButton.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent evt) {
-						dbcsPanel.applyChanges();
-						d.setVisible(false);
-					}
-				});
-			buttonPanel.add(okButton);
-			
-			JButton cancelButton = new JButton("Cancel");
-			cancelButton.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent evt) {
-						dbcsPanel.discardChanges();
-						d.setVisible(false);
-					}
-				});
-			buttonPanel.add(cancelButton);
-			
-			cp.add(buttonPanel, BorderLayout.SOUTH);
-			
-			d.setContentPane(cp);
-			d.pack();
-			d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
-			dbcsDialog = d;
-		}
+		final JDialog d = new JDialog(ArchitectFrame.getMainInstance(),
+									  "Target Database Connection");
+		JPanel cp = new JPanel(new BorderLayout(12,12));
+		cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
+		final DBCSPanel dbcsPanel = new DBCSPanel();
+		dbcsPanel.setDbcs(db.getConnectionSpec());
+		cp.add(dbcsPanel, BorderLayout.CENTER);
+		
+		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		
+		JButton okButton = new JButton("Ok");
+		okButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent evt) {
+					dbcsPanel.applyChanges();
+					d.setVisible(false);
+				}
+			});
+		buttonPanel.add(okButton);
+		
+		JButton cancelButton = new JButton("Cancel");
+		cancelButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent evt) {
+					dbcsPanel.discardChanges();
+					d.setVisible(false);
+				}
+			});
+		buttonPanel.add(cancelButton);
+		
+		cp.add(buttonPanel, BorderLayout.SOUTH);
+		
+		d.setContentPane(cp);
+		d.pack();
+		d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
+		dbcsDialog = d;
+		//
 		dbcsDialog.setVisible(true);
 	}
 
@@ -675,14 +696,20 @@ public class PlayPen extends JPanel
 	public synchronized TablePane importTableCopy(SQLTable source, Point preferredLocation) throws ArchitectException {
 		SQLTable newTable = SQLTable.getDerivedInstance(source, db); // adds newTable to db
 		String key = source.getTableName().toLowerCase();
-		Integer suffix = (Integer) tableNames.get(key);
-		if (suffix == null) {
-			tableNames.put(key, new Integer(0));
-		} else {
-			int newSuffix = suffix.intValue()+1;
-			tableNames.put(key, new Integer(newSuffix));
+		
+		// ensure tablename is unique
+		logger.debug("before add: " + Arrays.toString(tableNames.toArray()));
+		if (!tableNames.add(key)) {
+			boolean done = false;			
+			int newSuffix = 0;
+			while (!done) {
+				newSuffix++;
+				done = tableNames.add(key+"_"+newSuffix);
+			}
 			newTable.setTableName(source.getTableName()+"_"+newSuffix);
 		}
+		logger.debug("after add: " + Arrays.toString(tableNames.toArray()));
+
 		TablePane tp = new TablePane(newTable);
 		
 		logger.info("adding table "+newTable);
@@ -1461,6 +1488,7 @@ public class PlayPen extends JPanel
 		}
 	}
 
+/*
 	// --- Scrollable Methods --- //
  	public Dimension getPreferredScrollableViewportSize() {
 		// return getPreferredSize();
@@ -1490,5 +1518,7 @@ public class PlayPen extends JPanel
 			return visibleRect.height/5;
 		}
 	}
+
+*/
 
 }

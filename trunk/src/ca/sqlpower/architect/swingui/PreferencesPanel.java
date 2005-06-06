@@ -6,6 +6,10 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import java.io.File;
+import java.awt.print.PrinterJob;
+import javax.print.PrintService;
+import java.util.Iterator;
+import java.util.Arrays;
 
 public class PreferencesPanel extends JPanel implements ArchitectPanel {
 
@@ -22,6 +26,8 @@ public class PreferencesPanel extends JPanel implements ArchitectPanel {
 
 	protected JTextField ddlLogFileName;
 	protected JButton ddlLogFileButton;
+
+	protected JComboBox printerBox;
 
 	public PreferencesPanel(UserSettings us) {
 		this.us = us;
@@ -55,6 +61,7 @@ public class PreferencesPanel extends JPanel implements ArchitectPanel {
 		ddlLogFilePanel.add(ddlLogFileButton = new JButton(), BorderLayout.EAST);
 		ddlLogFileButton.setAction(new ChooseFileAction(ddlLogFileName,ASUtils.LOG_FILE_FILTER,"Browse..."));
 		add(ddlLogFilePanel);
+				
 	}
 
 	protected void revertToUserSettings() {
@@ -72,6 +79,7 @@ public class PreferencesPanel extends JPanel implements ArchitectPanel {
 	public void discardChanges() {
 		revertToUserSettings();
 	}
+				
 
 	// generic action for browse buttons
 	protected class ChooseFileAction extends AbstractAction {		

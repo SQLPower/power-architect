@@ -113,13 +113,22 @@ public class ConfigFile {
 		d.addSetNext("architect-settings/etl-user-settings", "setETLUserSettings",
 					 "ca.sqlpower.architect.etl.ETLUserSettings");
 
-		// ETL settings
+		// DDL settings
 		d.addObjectCreate("architect-settings/ddl-user-settings", DDLUserSettings.class);
 		d.addCallMethod("architect-settings/ddl-user-settings/setting", "putProperty", 2);
 		d.addCallParam("architect-settings/ddl-user-settings/setting", 0, "name");
 		d.addCallParam("architect-settings/ddl-user-settings/setting", 1, "value");
 		d.addSetNext("architect-settings/ddl-user-settings", "setDDLUserSettings",
 					 "ca.sqlpower.architect.ddl.DDLUserSettings");
+
+		// Print settings
+		d.addObjectCreate("architect-settings/print-user-settings", PrintUserSettings.class);
+		d.addCallMethod("architect-settings/print-user-settings/setting", "putProperty", 2);
+		d.addCallParam("architect-settings/print-user-settings/setting", 0, "name");
+		d.addCallParam("architect-settings/print-user-settings/setting", 1, "value");
+		d.addSetNext("architect-settings/print-user-settings", "setPrintUserSettings",
+					 "ca.sqlpower.architect.PrintUserSettings");
+
 
 
 		d.addSetNext("architect-settings", "setUserSettings",
@@ -149,6 +158,7 @@ public class ConfigFile {
 			writeSwingSettings(us.getSwingSettings());
 			writeETLUserSettings(us.getETLUserSettings());
 			writeDDLUserSettings(us.getDDLUserSettings());
+			writePrintUserSettings(us.getPrintUserSettings());
 
 			indent--;
 			println("</architect-settings>");
@@ -243,6 +253,23 @@ public class ConfigFile {
 		
 		indent--;
 		println("</ddl-user-settings>");
+	}
+
+
+	protected void writePrintUserSettings(PrintUserSettings printPrefs) {
+		println("<print-user-settings>");
+		indent++;
+
+		Properties props = printPrefs.toPropList();
+		Iterator it = props.keySet().iterator();
+		while (it.hasNext()) {
+			String prefName = (String) it.next();
+			println("<setting name=\""+escape(prefName)
+					+"\" value=\""+escape(props.getProperty(prefName))+"\" />");
+		}
+		
+		indent--;
+		println("</print-user-settings>");
 	}
 
 

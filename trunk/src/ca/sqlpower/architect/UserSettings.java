@@ -17,6 +17,11 @@ public class UserSettings {
 	protected List dbConnections;
 
 	/**
+	 * For now, this just holds the preferred printer.  
+	 */
+	protected PrintUserSettings printUserSettings;
+
+	/**
 	 * GUI-related settings.  This technically shouldn't be here
 	 * (model is referencing view stuff) but it didn't seem right to
 	 * make the settings file primarily swing-specific with a
@@ -40,6 +45,7 @@ public class UserSettings {
 	public UserSettings() {
 		super();
 		dbConnections = new LinkedList();
+		printUserSettings = new PrintUserSettings();
 		swingSettings = new SwingUserSettings();
 		etlUserSettings = new ETLUserSettings();
 		ddlUserSettings = new DDLUserSettings();
@@ -51,6 +57,14 @@ public class UserSettings {
 
 	public List getConnections() {
 		return dbConnections;
+	}
+
+	public void setPrintUserSettings (PrintUserSettings printUserSettings) {
+		this.printUserSettings = printUserSettings;
+	}
+
+	public PrintUserSettings getPrintUserSettings () {
+		return this.printUserSettings;
 	}
 
 	public SwingUserSettings getSwingSettings() {

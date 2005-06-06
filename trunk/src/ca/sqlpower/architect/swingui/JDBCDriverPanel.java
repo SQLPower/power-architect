@@ -93,7 +93,6 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 		LoadJDBCDrivers ljd = new LoadJDBCDrivers(session.getDriverJarList());
 		LoadJDBCDriversWorker worker = new LoadJDBCDriversWorker(ljd);
         ProgressWatcher watcher = new ProgressWatcher(progressBar,ljd,progressLabel);
-		new javax.swing.Timer(50, watcher).start();
 		new Thread(worker).start();
 	}
 
@@ -175,6 +174,7 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 
 		public LoadJDBCDrivers (List driverJarList) throws ArchitectException {
 			this.driverJarList = driverJarList;
+			logger.debug("in constructor, setting finished to false...");
 			finished = false;
 		}
 
@@ -207,10 +207,12 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 					addJarFile(new File(path));
 				}
 				finished = true;
+				logger.debug("done loading (normal operation), setting finished to true.");
 			} catch ( Exception exp ) {
 				logger.error("something went wrong in LoadJDBCDrivers worker thread!",exp);
 			} finally {
 				finished = true;
+				logger.debug("done loading (error condition), setting finished to true.");
 			}
 		}
 

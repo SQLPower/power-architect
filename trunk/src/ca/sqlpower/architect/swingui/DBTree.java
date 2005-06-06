@@ -27,6 +27,7 @@ public class DBTree extends JTree implements DragSourceListener {
 	protected DBCSPanel dbcsPanel;
 	protected NewDBCSAction newDBCSAction;
 
+
 	/**
 	 * This is the database whose DBCS is currently being editted in
 	 * the DBCS Panel.
@@ -269,8 +270,15 @@ public class DBTree extends JTree implements DragSourceListener {
         private void maybeShowPopup(MouseEvent e) {
             if (e.isPopupTrigger()) {
 				TreePath p = getPathForLocation(e.getX(), e.getY());								
+				logger.debug("TreePath is: " + p);
+				if (p != null) {
+					logger.debug("selected node object type is: " + p.getLastPathComponent().getClass().getName());
+				}
 				popup = refreshMenu(p);
-				setSelectionPath(p);
+				// allow multi-select if we're dealing with Target Database children
+				if (!isTargetDatabaseChild(p)) {
+					setSelectionPath(p);
+				}
                 popup.show(e.getComponent(),
                            e.getX(), e.getY());
             }
@@ -292,6 +300,9 @@ public class DBTree extends JTree implements DragSourceListener {
      * from a list, or create a new DBCS from scratch (which will be added to the  
      * User Settings list of DBCS objects).
 	 *
+     * 
+     * FIXME: add in column, table, exported key, imported keys menus; you can figure
+     * out where the click came from by checking the TreePath.
 	 */
 	protected JPopupMenu refreshMenu(TreePath p) {
 		logger.debug("refreshMenu is being called.");
@@ -311,7 +322,67 @@ public class DBTree extends JTree implements DragSourceListener {
 				}
 			}
 			JMenuItem popupProperties = new JMenuItem(new DBCSPropertiesAction());
-			newMenu.add(popupProperties);   
+			newMenu.add(popupProperties);  
+		} else if (isTargetDatabaseChild(p)) {			
+			ArchitectFrame af = ArchitectFrame.getMainInstance();
+			JMenuItem mi;
+	
+			mi = new JMenuItem();
+			mi.setAction(af.editColumnAction);
+			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
+			newMenu.add(mi);
+			if(p.getLastPathComponent().getClass() == ca.sqlpower.architect.SQLColumn.class) {
+				mi.setEnabled(true);
+			} else {
+				mi.setEnabled(false);
+			}
+					
+			mi = new JMenuItem();
+			mi.setAction(af.insertColumnAction);
+			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
+			newMenu.add(mi);
+			if(p.getLastPathComponent().getClass() == ca.sqlpower.architect.SQLTable.class ||
+			   p.getLastPathComponent().getClass() == ca.sqlpower.architect.SQLColumn.class) {
+				mi.setEnabled(true);
+			} else {
+				mi.setEnabled(false);
+			}
+
+	
+			newMenu.addSeparator();
+	
+			mi = new JMenuItem();
+			mi.setAction(af.editTableAction);
+			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
+			newMenu.add(mi);
+			if(p.getLastPathComponent().getClass() == ca.sqlpower.architect.SQLTable.class ||
+			   p.getLastPathComponent().getClass() == ca.sqlpower.architect.SQLColumn.class) {
+				mi.setEnabled(true);
+			} else {
+				mi.setEnabled(false);
+			}
+	
+			mi = new JMenuItem();
+			mi.setAction(af.editRelationshipAction);
+			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
+			newMenu.add(mi);
+			if(p.getLastPathComponent().getClass() == ca.sqlpower.architect.SQLRelationship.class) {
+				mi.setEnabled(true);
+			} else {
+				mi.setEnabled(false);
+			}
+	
+			mi = new JMenuItem();
+			mi.setAction(af.deleteSelectedAction);
+			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
+			newMenu.add(mi);
+			if(p.getLastPathComponent().getClass() == ca.sqlpower.architect.SQLTable.class || 
+               p.getLastPathComponent().getClass() == ca.sqlpower.architect.SQLColumn.class || 
+               p.getLastPathComponent().getClass() == ca.sqlpower.architect.SQLRelationship.class) {
+				mi.setEnabled(true);
+			} else {
+				mi.setEnabled(false);	
+			}
 		} else if (p != null) { // clicked on DBCS item in DBTree
 			JMenuItem popupProperties = new JMenuItem(new DBCSPropertiesAction());
 			newMenu.add(popupProperties);   								
@@ -359,6 +430,28 @@ public class DBTree extends JTree implements DragSourceListener {
 		} else {
 			return false;
 		}
+	}
+
+	/**
+     * Check to see if the SQLDatabase reference from the the DBTree is the 
+     * same as the one held by the PlayPen.  If it is, we are looking at the
+     * Target Database.
+     */
+	protected boolean isTargetDatabaseChild(TreePath tp) {
+		if (tp == null) {
+			return false;
+		}		
+		Object [] oo = tp.getPath();
+		boolean found = false;
+	 	int idx = 0;
+		while (!found && idx < oo.length) {
+			if (ArchitectFrame.getMainInstance().getProject().getPlayPen().getDatabase() == oo [idx]) {
+				// parent is the TargetDatabase
+				found = true;
+			}
+			idx++;
+		}
+		return found;
 	}
 
 	/**
@@ -476,6 +569,8 @@ public class DBTree extends JTree implements DragSourceListener {
         	tSpec.setUrl(dbcs.getUrl());
         	tSpec.setUser(dbcs.getUser());
         	tSpec.setPass(dbcs.getPass());
+			// for some reason, the above property change events are not being received properly by 
+            // parent SQLDatabase objects
 			dbcsPanel.setDbcs(tSpec);
 			propDialog.setVisible(true);
 			propDialog.requestFocus();
