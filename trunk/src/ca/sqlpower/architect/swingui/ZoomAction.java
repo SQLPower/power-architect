@@ -30,7 +30,10 @@ public class ZoomAction extends AbstractAction implements PropertyChangeListener
 		
 	public void actionPerformed(ActionEvent e) {
 		logger.debug("oldZoom="+playpen.getZoom()+",zoomStep="+zoomStep);
-		playpen.setZoom(playpen.getZoom() + zoomStep);
+		// 	zoom by a factor of sqrt(2) instead of linear so we can go below 0.1
+
+		// playpen.setZoom(playpen.getZoom() + zoomStep); 
+		playpen.setZoom(playpen.getZoom() * Math.pow(2,zoomStep));
 		logger.debug("newZoom="+playpen.getZoom());
 		Rectangle scrollTo = null;
 		Iterator it = playpen.getSelectedItems().iterator();
@@ -59,12 +62,6 @@ public class ZoomAction extends AbstractAction implements PropertyChangeListener
 	}
 
 	public void propertyChange(PropertyChangeEvent e) {
-		if ("zoom".equals(e.getPropertyName())) {
-			if (playpen.getZoom() + zoomStep < 0.1) {
-				setEnabled(false);
-			} else {
-				setEnabled(true);
-			}
-		}
+		// this used to enable/disable zooming out when the zoom factor got lower than 0.1
 	}
 }
