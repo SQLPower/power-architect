@@ -458,6 +458,14 @@ public class ExportDDLAction extends AbstractAction {
 			stmtsTried = 0;
 			stmtsCompleted = 0;
 			SQLDatabase target = architectFrame.playpen.getDatabase();
+			// FIXME: for some reason, the SQLTable object is not receiving property
+            // change events when something in the underlying DBCS changes; it doesn't
+            // seem to matter if it changes on the DBTree or Playpen side.
+
+			logger.debug("the Target Database is: " + target.getConnectionSpec());
+
+			
+
 			Connection con;
 			Statement stmt;
 
@@ -490,6 +498,7 @@ public class ExportDDLAction extends AbstractAction {
 			}
             
 			try {
+				logger.debug("the connection thinks it is: " + con.getMetaData().getURL());
 				stmt = con.createStatement();
 			} catch (SQLException ex) {
 				final Exception fex = ex;

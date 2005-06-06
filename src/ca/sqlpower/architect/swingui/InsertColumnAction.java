@@ -2,7 +2,9 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.event.*;
 import java.util.List;
+import java.util.Iterator;
 import javax.swing.*;
+import javax.swing.tree.TreePath;
 import ca.sqlpower.architect.*;
 import org.apache.log4j.Logger;
 
@@ -13,6 +15,12 @@ public class InsertColumnAction extends AbstractAction {
 	 * The PlayPen instance that owns this Action.
 	 */
 	protected PlayPen pp;
+
+	/**
+	 * The DBTree instance that is associated with this Action.
+	 */
+	protected DBTree dbt; 
+
 	
 	public InsertColumnAction() {
 		super("New Column",
@@ -23,26 +31,71 @@ public class InsertColumnAction extends AbstractAction {
 	}
 
 	public void actionPerformed(ActionEvent evt) {
-		List selection = pp.getSelectedItems();
-		if (selection.size() < 1) {
-			JOptionPane.showMessageDialog(pp, "Select a table (by clicking on it) and try again.");
-		} else if (selection.size() > 1) {
-			JOptionPane.showMessageDialog(pp, "You have selected multiple items, but you can only edit one at a time.");
-		} else if (selection.get(0) instanceof TablePane) {
-			TablePane tp = (TablePane) selection.get(0);
-			int idx = tp.getSelectedColumnIndex();
-			try {
-				if (idx < 0) idx = tp.getModel().getColumnsFolder().getChildCount();
-			} catch (ArchitectException e) {
-				idx = 0;
+		if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN)) {
+			List selection = pp.getSelectedItems();
+			if (selection.size() < 1) {
+				JOptionPane.showMessageDialog(pp, "Select a table (by clicking on it) and try again.");
+			} else if (selection.size() > 1) {
+				JOptionPane.showMessageDialog(pp, "You have selected multiple items, but you can only edit one at a time.");
+			} else if (selection.get(0) instanceof TablePane) {
+				TablePane tp = (TablePane) selection.get(0);
+				int idx = tp.getSelectedColumnIndex();
+				try {
+					if (idx < 0) idx = tp.getModel().getColumnsFolder().getChildCount();
+				} catch (ArchitectException e) {
+					idx = 0;
+				}
+				tp.getModel().addColumn(idx, new SQLColumn());
+			} else {
+				JOptionPane.showMessageDialog(pp, "The selected item type is not recognised");
 			}
-			tp.getModel().addColumn(idx, new SQLColumn());
+		} else if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE)) {
+			TreePath [] selections = dbt.getSelectionPaths();
+			logger.debug("selections length is: " + selections.length);
+			if (selections.length != 1) {
+				JOptionPane.showMessageDialog(dbt, "To indicate where you would like to insert a column, please select a single item.");
+			} else {
+				TreePath tp = selections[0];
+				SQLObject so = (SQLObject) tp.getLastPathComponent();
+				SQLTable st = null;
+				int idx = 0;
+				if (so instanceof SQLTable) {
+					logger.debug("user clicked on table, so we shall try to add a column to the end of the table.");
+					try {
+						st = (SQLTable) so;
+						idx = st.getColumnsFolder().getChildCount();
+					} catch (ArchitectException ex) {
+						idx = 0;
+					}
+					logger.debug("SQLTable click -- idx set to: " + idx);						
+				} else if (so instanceof SQLColumn) {
+					// iterate through the column list to figure out what position we are in...
+					logger.debug("trying to determine insertion index for table.");
+					SQLColumn sc = (SQLColumn) so;
+					st = sc.getParentTable();
+					idx = st.getColumnIndex(sc);
+					if (idx == -1)  {
+						// not found
+						logger.debug("did not find column, inserting at start of table.");
+						idx = 0;
+					}
+				} else {
+					idx = 0;
+				}
+				st.addColumn(idx, new SQLColumn());
+			}
 		} else {
-			JOptionPane.showMessageDialog(pp, "The selected item type is not recognised");
-		}
+	  		// unknown action command source, do nothing
+		}	
 	}
 
 	public void setPlayPen(PlayPen pp) {
 		this.pp = pp;
 	}
+
+	public void setDBTree(DBTree newDBT) {
+		this.dbt = newDBT;
+		// do I need to add a selection listener here?
+	}
+
 }

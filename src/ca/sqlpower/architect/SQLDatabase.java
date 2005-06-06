@@ -419,21 +419,28 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	 */
 	protected void reset() {
 		if (ignoreReset) {
-			logger.debug("Ignoring Reset request");
-			return;
-		}
-		logger.debug("Resetting....");
-		// tear down old connection stuff
-		List old = children;
-		if (old != null && old.size() > 0) {
-			int[] oldIndices = new int[old.size()];
-			for (int i = 0, n = old.size(); i < n; i++) {
-				oldIndices[i] = i;
+			// preserve the objects that are in the Target system when
+            // the connection spec changes
+			logger.debug("Ignoring Reset request for: " + getConnectionSpec());
+			populated = true;
+		} else {
+			// discard everything and reload (this is generally for source systems)
+			logger.debug("Resetting: " + getConnectionSpec());
+			// tear down old connection stuff
+			List old = children;
+			if (old != null && old.size() > 0) {
+				int[] oldIndices = new int[old.size()];
+				for (int i = 0, n = old.size(); i < n; i++) {
+					oldIndices[i] = i;
+				}
+				fireDbChildrenRemoved(oldIndices, old);
+				
 			}
-			fireDbChildrenRemoved(oldIndices, old);
-			
+			children = new ArrayList();
+			populated = false;
 		}
-		children = new ArrayList();
+		
+		// reset connection in either case
 		if (connection != null) {
 			try {
 				connection.close();
@@ -442,7 +449,6 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 			}
 		}
 		connection = null;
-		populated = false;
 	}
 
 	/**

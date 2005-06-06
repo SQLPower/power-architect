@@ -27,6 +27,7 @@ public class ProgressWatcher implements ActionListener {
 
 	public void actionPerformed(ActionEvent evt) {
 		// update the progress bar
+		logger.debug("updating progress bar...");
 		try {
 			Integer jobSize = monitorable.getJobSize();
 			if (jobSize == null) {
@@ -44,13 +45,17 @@ public class ProgressWatcher implements ActionListener {
 		} catch (ArchitectException e) {
 			logger.error("Couldn't update progress bar (Monitorable threw an exception)", e);
 		} finally {
-			try {
+			logger.debug("all done, terminating timer thread...");
+			try {				
+				logger.debug("monitorable.isFinished():" + monitorable.isFinished());
 				if (monitorable.isFinished()) {
 					if (label != null) {
 						label.setVisible(false);
 					}
 					bar.setVisible(false);
+					logger.debug("trying to stop timer thread...");
 					timer.stop();
+					logger.debug("did the timer thread stop???");
 				}
 			} catch (ArchitectException e1) {
 				logger.error("Couldn't tell if Monitorable was finished (it threw an exception)", e1);

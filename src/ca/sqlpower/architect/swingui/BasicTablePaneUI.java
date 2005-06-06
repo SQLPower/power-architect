@@ -162,10 +162,12 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			int fontHeight = metrics.getHeight();
 			height = insets.top + fontHeight + gap + c.getMargin().top + cols*fontHeight + boxLineThickness*2 + c.getMargin().bottom + insets.bottom;
 			width = minimumWidth;
-
+			logger.debug("starting width is: " + width);
 			Iterator columnIt = table.getColumns().iterator();
 			while (columnIt.hasNext()) {
-				width = Math.max(width, metrics.stringWidth(columnIt.next().toString()));
+				String theColumn = columnIt.next().toString();
+				width = Math.max(width, metrics.stringWidth(theColumn));
+				logger.debug("new width is: " + width);
 			}
 			width += insets.left + c.getMargin().left + boxLineThickness*2 + c.getMargin().right + insets.right;
 		} catch (ArchitectException e) {

@@ -99,4 +99,5 @@ public class ArchitectUtils {
         else if (o1 == null || o2 == null) return false;
         else return o1.equals(o2);
     }
+
 }

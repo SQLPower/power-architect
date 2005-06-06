@@ -11,6 +11,9 @@ import java.awt.print.*;
 import javax.print.*;
 import javax.print.attribute.*;
 import org.apache.log4j.Logger;
+import ca.sqlpower.architect.UserSettings;
+import java.util.Iterator;
+import java.util.Arrays;
 
 /**
  * The PrintDialogFrame lets the user specify multi-page printouts by
@@ -60,6 +63,7 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 		JPanel formPanel = new JPanel(new FormLayout());
 		formPanel.add(new JLabel("Printer"));
 		formPanel.add(printerBox = new JComboBox(PrinterJob.lookupPrintServices()));
+		printerBox.setSelectedItem(getPreferredPrinter());				
 
 		formPanel.add(new JLabel("Page Format"));
 		formPanel.add(pageFormatLabel = new JLabel(pageFormat.toString()));
@@ -77,6 +81,26 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 		setZoom(1.0);
 		zoomSlider.addChangeListener(this);
 		add(formPanel);
+	}
+
+	/**
+	 * Called to determine what this user last printed from.
+	 */
+	PrintService getPreferredPrinter() {
+		String defaultPrinterName = ArchitectFrame.getMainInstance().getUserSettings().getPrintUserSettings().getDefaultPrinterName();
+		PrintService psRetVal = null;
+		Iterator it = Arrays.asList( PrinterJob.lookupPrintServices() ).iterator();
+		while (it.hasNext() && psRetVal == null) {
+			PrintService ps = (PrintService) it.next();
+			if (ps.getName().equals(defaultPrinterName)) {
+				psRetVal = ps;
+			}
+		}
+		// if there's no match, give the default printer...
+		if (psRetVal == null) {
+			psRetVal = PrinterJob.getPrinterJob().getPrintService();
+		}
+		return psRetVal;
 	}
 
 	public void setPageFormat(PageFormat pf) {
@@ -186,6 +210,10 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 	// --- architect panel ----
 	public void applyChanges() {
 		try {
+			// set current printer as default
+			if (printerBox.getItemCount() > 0 && printerBox.getSelectedItem() instanceof PrintService) {
+				ArchitectFrame.getMainInstance().getUserSettings().getPrintUserSettings().setDefaultPrinterName( ((PrintService)printerBox.getSelectedItem()).getName() );
+			} 		
 			validateLayout();
 			job.setPrintService((PrintService) printerBox.getSelectedItem());
 			job.setPageable(this);

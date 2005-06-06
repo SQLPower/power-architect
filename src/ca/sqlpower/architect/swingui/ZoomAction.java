@@ -7,8 +7,11 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
 import java.util.Iterator;
 import javax.swing.AbstractAction;
+import org.apache.log4j.Logger;
+
 
 public class ZoomAction extends AbstractAction implements PropertyChangeListener {
+	private static final Logger logger = Logger.getLogger(ZoomAction.class);
 
 	protected PlayPen playpen;
 	protected double zoomStep;
@@ -26,14 +29,18 @@ public class ZoomAction extends AbstractAction implements PropertyChangeListener
 	}
 		
 	public void actionPerformed(ActionEvent e) {
+		logger.debug("oldZoom="+playpen.getZoom()+",zoomStep="+zoomStep);
 		playpen.setZoom(playpen.getZoom() + zoomStep);
+		logger.debug("newZoom="+playpen.getZoom());
 		Rectangle scrollTo = null;
 		Iterator it = playpen.getSelectedItems().iterator();
 		while (it.hasNext()) {
 			Rectangle bounds = ((Component) it.next()).getBounds();
+			logger.debug("new rectangle, bounds: " + bounds);
 			if (scrollTo == null) {
 				scrollTo = new Rectangle(bounds);
 			} else {
+				logger.debug("added rectangles, new bounds: " + scrollTo); 
 				scrollTo.add(bounds);
 			}
 		}

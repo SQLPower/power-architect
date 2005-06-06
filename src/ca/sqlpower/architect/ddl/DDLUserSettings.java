@@ -14,7 +14,7 @@ public class DDLUserSettings {
 	// ------ PROPERTY LIST KEYS ------	
 
 	private static final String PROP_DDL_LOG_PATH
-		= "ca.sqlpower.architect.etl.DDLUserSettings.PROP_DDL_LOG_PATH";
+		= "ca.sqlpower.architect.ddl.DDLUserSettings.PROP_DDL_LOG_PATH";
 
 	
 	// ------ INSTANCE VARIABLES ------
@@ -52,7 +52,7 @@ public class DDLUserSettings {
 	/**
 	 * Creates a Properties list and stores all settings to it in a
 	 * string representation.  This method is only intended for the
-	 * UserSettings class to serialize an instance of ETLUserSettings
+	 * UserSettings class to serialize an instance of DDLUserSettings
 	 * without having to know all the properties and how to convert
 	 * them.  For normal getting/setting of properties, use the
 	 * getXXX/setXXX methods.

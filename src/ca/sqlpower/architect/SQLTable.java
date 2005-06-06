@@ -396,6 +396,20 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		return null;
 	}
 
+	public int getColumnIndex(SQLColumn col) {
+		logger.debug("Looking for column index of: " + col);
+		Iterator it = columnsFolder.children.iterator();
+		int colIdx = 0;
+		while (it.hasNext()) {
+			if (it.next() == col) {
+				return colIdx;
+			}
+			colIdx++;
+		}
+		logger.debug("NOT FOUND");
+		return -1;
+	}
+
 	public void addColumn(SQLColumn col) {
 		addColumn(columnsFolder.children.size(), col);
 	}
