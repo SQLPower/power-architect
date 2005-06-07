@@ -5,8 +5,11 @@ import java.awt.FlowLayout;
 import java.awt.event.*;
 import java.util.List;
 import javax.swing.*;
-import ca.sqlpower.architect.*;
 import org.apache.log4j.Logger;
+
+import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLTable;
+
 import javax.swing.tree.TreePath;
 
 

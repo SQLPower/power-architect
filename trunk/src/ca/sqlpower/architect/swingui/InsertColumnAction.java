@@ -2,7 +2,6 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.event.*;
 import java.util.List;
-import java.util.Iterator;
 import javax.swing.*;
 import javax.swing.tree.TreePath;
 import ca.sqlpower.architect.*;

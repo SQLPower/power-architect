@@ -63,10 +63,14 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 					} else {
 						// the whole table
 						pp.db.removeChild(tp.getModel());
-						logger.debug("removing element from tableNames set: " + tp.getModel().getTableName());
-						logger.debug("before delete: " + Arrays.toString(pp.tableNames.toArray()));
+						if (logger.isDebugEnabled()) {
+							logger.debug("removing element from tableNames set: " + tp.getModel().getTableName());
+							logger.debug("before delete: " + pp.tableNames.toArray());
+						}
 						pp.tableNames.remove(tp.getModel().getTableName().toLowerCase());
-						logger.debug("after delete: " + Arrays.toString(pp.tableNames.toArray()));
+						if (logger.isDebugEnabled()) {
+							logger.debug("after delete: " + pp.tableNames.toArray());
+						}
 					}
 				} else if (item instanceof Relationship) {
 					Relationship r = (Relationship) item;

@@ -143,7 +143,8 @@ public class DBTree extends JTree implements DragSourceListener {
 
 	/**
      * Before adding a new connection to the SwingUIProject, check to see
-     * if it exists.
+     * if it exists as a connection in the project (which means they're in this
+     * tree's model).
 	 */
 	public boolean dbcsAlreadyExists(DBConnectionSpec spec) throws ArchitectException {
 		SQLObject so = (SQLObject) getModel().getRoot();		
@@ -293,22 +294,23 @@ public class DBTree extends JTree implements DragSourceListener {
     }
 		
 	/**
-	 * Create a context sensitive menu for managing Database Connections. There
+	 * Creates a context sensitive menu for managing Database Connections. There
      * are several modes of operations:
      * 
-     * 1. click on target database.  the user can modify the properties manually,
+     * <ol>
+     *  <li>click on target database.  the user can modify the properties manually,
      * or select a target from the ones defined in user settings.  If there is 
      * nothing defined, then that option is disabled.
      * 
-     * 2. click on an DBCS reference in the DBTree.  Bring up the dialog that 
+     *  <li>click on an DBCS reference in the DBTree.  Bring up the dialog that 
      * allows the user to modify this connection.
      * 
-     * 3. click on the background of the DBTree.  Allow the user to select DBCS
+     *  <li>click on the background of the DBTree.  Allow the user to select DBCS
      * from a list, or create a new DBCS from scratch (which will be added to the  
      * User Settings list of DBCS objects).
-	 *
+	 * </ol>
      * 
-     * FIXME: add in column, table, exported key, imported keys menus; you can figure
+     * <p>FIXME: add in column, table, exported key, imported keys menus; you can figure
      * out where the click came from by checking the TreePath.
 	 */
 	protected JPopupMenu refreshMenu(TreePath p) {
@@ -391,8 +393,11 @@ public class DBTree extends JTree implements DragSourceListener {
 				mi.setEnabled(false);	
 			}
 		} else if (p != null) { // clicked on DBCS item in DBTree
+			if (p.getLastPathComponent() instanceof SQLDatabase) {
+				newMenu.add(new JMenuItem(new RemoveDBCSAction()));
+			}
 			JMenuItem popupProperties = new JMenuItem(new DBCSPropertiesAction());
-			newMenu.add(popupProperties);   								
+			newMenu.add(popupProperties);
 		} else { // p == null, background click
 			newMenu.add(popupDBCSMenu = new JMenu("Add Connection")); 
 			popupDBCSMenu.add(new JMenuItem(newDBCSAction));		
@@ -423,42 +428,35 @@ public class DBTree extends JTree implements DragSourceListener {
 	}
 
 	/**
-     * Check to see if the SQLDatabase reference from the the DBTree is the 
+     * Checks to see if the SQLDatabase reference from the the DBTree is the 
      * same as the one held by the PlayPen.  If it is, we are looking at the
      * Target Database.
      */
 	protected boolean isTargetDatabaseNode(TreePath tp) {
 		if (tp == null) {
 			return false;
-		}		
-		Object [] oo = tp.getPath();
-		if (ArchitectFrame.getMainInstance().getProject().getPlayPen().getDatabase() == oo [oo.length - 1]) {
-			return true;
 		} else {
-			return false;
+			return ArchitectFrame.getMainInstance().getProject().getPlayPen().getDatabase() == tp.getLastPathComponent();
 		}
 	}
 
 	/**
-     * Check to see if the SQLDatabase reference from the the DBTree is the 
-     * same as the one held by the PlayPen.  If it is, we are looking at the
-     * Target Database.
+     * Checks to see if the given tree path contains the playpen SQLDatabase.
+     * 
+     * @return True if <code>tp</code> contains the playpen (target) database.
+     *   Note that this is not stritcly limited to children of the target
+     * database: it will return true if <code>tp</code> ends at the target
+     * database node itself.
      */
 	protected boolean isTargetDatabaseChild(TreePath tp) {
 		if (tp == null) {
 			return false;
 		}		
-		Object [] oo = tp.getPath();
-		boolean found = false;
-	 	int idx = 0;
-		while (!found && idx < oo.length) {
-			if (ArchitectFrame.getMainInstance().getProject().getPlayPen().getDatabase() == oo [idx]) {
-				// parent is the TargetDatabase
-				found = true;
-			}
-			idx++;
-		}
-		return found;
+
+		Object[] oo = tp.getPath();
+		for (int i = 0; i < oo.length; i++)
+			if (ArchitectFrame.getMainInstance().getProject().getPlayPen().getDatabase() == oo[i]) return true;
+		return false;
 	}
 
 	/**
@@ -514,12 +512,63 @@ public class DBTree extends JTree implements DragSourceListener {
 	}
 
 	/**
+	 * The RemoveDBCSAction removes the currently-selected database connection from the project.
+	 */
+	protected class RemoveDBCSAction extends AbstractAction {
+		
+		public RemoveDBCSAction() {
+			super("Remove Connection");
+		}
+		
+		public void actionPerformed(ActionEvent arg0) {
+			TreePath tp = getSelectionPath();
+			if (tp == null) {
+				JOptionPane.showMessageDialog(DBTree.this, "No items were selected.", "Can't remove", JOptionPane.WARNING_MESSAGE);
+				return;
+			}
+			if (! (tp.getLastPathComponent() instanceof SQLDatabase) ) {
+				JOptionPane.showMessageDialog(DBTree.this, "The selection was not a database", "Can't remove", JOptionPane.WARNING_MESSAGE);
+				return;
+			}
+			if (isTargetDatabaseNode(tp)) {
+				JOptionPane.showMessageDialog(DBTree.this, "You can't remove the target database", "Can't remove", JOptionPane.WARNING_MESSAGE);
+				return;
+			}
+
+			try {
+			    SQLDatabase selection = (SQLDatabase) tp.getLastPathComponent();
+			    SQLObject root = (SQLObject) getModel().getRoot();
+			    List dependants = ArchitectUtils.findColumnsSourcedFromDatabase(ArchitectFrame.getMainInstance().getProject().getTargetDatabase(), selection);
+			    if (dependants.size() > 0) {
+			        JOptionPane.showMessageDialog(DBTree.this,
+			                new Object[] {"The following columns depend on objects in this database:",
+			                				new JScrollPane(new JList(dependants.toArray())),
+			                				"You can't remove this connection unless you remove these",
+			                				"dependencies."},
+			                "Can't delete",
+			                JOptionPane.INFORMATION_MESSAGE);
+			    } else if (root.removeChild(selection)) {
+			        selection.disconnect();
+			    } else {
+			        JOptionPane.showMessageDialog(DBTree.this, "Deletion of this database connection failed for an unknown reason.", "Couldn't remove", JOptionPane.ERROR_MESSAGE);
+			    }
+			} catch (ArchitectException ex) {
+				logger.error("Couldn't locate dependant columns", ex);
+				JOptionPane.showMessageDialog(DBTree.this, 
+						"Couldn't search for dependant columns:\n"+ex.getMessage()
+						+"\n\nDatabase connection not removed.",
+						"Couldn't remove", JOptionPane.ERROR_MESSAGE);
+			}
+		}
+	}
+	
+	/**
 	 * The DBCSPropertiesAction responds to the "Properties" item in
 	 * the popup menu.  It determines which item in the tree is
 	 * currently selected, then (creates and) shows its properties
 	 * window.
 	 */
-	class DBCSPropertiesAction extends AbstractAction {
+	protected class DBCSPropertiesAction extends AbstractAction {
 		public DBCSPropertiesAction() {
 			super("Connection Properties...");
 		}
@@ -548,7 +597,6 @@ public class DBTree extends JTree implements DragSourceListener {
 			}
 		}
 	}
-
 
 	/**
 	 * copy the DBCS info from the selected DBCS into the DBCS

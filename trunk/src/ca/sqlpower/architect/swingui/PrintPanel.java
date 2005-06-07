@@ -11,7 +11,6 @@ import java.awt.print.*;
 import javax.print.*;
 import javax.print.attribute.*;
 import org.apache.log4j.Logger;
-import ca.sqlpower.architect.UserSettings;
 import java.util.Iterator;
 import java.util.Arrays;
 

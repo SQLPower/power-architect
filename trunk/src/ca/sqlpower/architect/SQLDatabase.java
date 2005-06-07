@@ -530,5 +530,31 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 			return isPopulated();
 		}
 	}
+
+	/**
+	 * Closes all connections and other resources that were allocated
+	 * by the connect() method.  Logs, but does not propogate, SQL exceptions.
+	 */
+	public void disconnect() {
+//		Iterator it = dbConnections.entrySet().iterator();
+//		while (it.hasNext()) {
+//			Map.Entry ent = (Map.Entry) it.next();
+//			Connection c = (Connection) ent.getValue();
+//			try {
+//				if (c != null && !c.isClosed()) c.close();
+//			} catch (SQLException ex) {
+//				logger.error("Error disconnecting a dbConnections connection in disconnect()");
+//			} finally {
+//				it.remove();
+//			}
+//		}
+		try {
+			if (connection != null && !connection.isClosed()) connection.close();
+		} catch (SQLException ex) {
+			logger.error("Error disconnecting main connection in disconnect()");
+		} finally {
+			connection = null;
+		}
+	}
 	
 }

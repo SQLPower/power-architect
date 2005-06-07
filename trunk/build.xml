@@ -41,7 +41,7 @@
     <!-- Creates a WebStart distribution under the webstart/ directory -->
 	<target name="dist" depends="compile">
         <mkdir dir="webstart/lib"/>
-		<jar destfile="webstart/lib/architect.jar" basedir="${build}" excludes="regress/**">
+		<jar destfile="webstart/lib/architect.jar" basedir="${build}" excludes="regress/**" manifest="manifest">
 		</jar>
         <copy todir="webstart/lib">
             <fileset dir="lib"/>
