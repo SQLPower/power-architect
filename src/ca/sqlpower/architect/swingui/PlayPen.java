@@ -356,13 +356,13 @@ public class PlayPen extends JPanel
 	/**
 	 * Calculates the smallest rectangle that will completely
 	 * enclose the visible components.  
-     *
-     * This is then compared to the viewport size, one dimension
-     * at a time.  To ensure the whole playpen is "live", always
-     * choose the larger number in each Dimension.
-     * 
-     * There is also a lower bound on how small the playpen can get.  The
-     * layout manager returns a preferred size of (100,100) when asked.
+	 *
+	 * This is then compared to the viewport size, one dimension
+	 * at a time.  To ensure the whole playpen is "live", always
+	 * choose the larger number in each Dimension.
+	 * 
+	 * There is also a lower bound on how small the playpen can get.  The
+	 * layout manager returns a preferred size of (100,100) when asked.
 	 */
 	public Dimension getPreferredSize() {
 		Rectangle cbounds = null;
@@ -381,21 +381,22 @@ public class PlayPen extends JPanel
 		
 		Dimension userDim = new Dimension(maxx-minx,maxy-miny);
 		Dimension usedSpace = new Dimension((int) ((double) Math.max(maxx - minx, getMinimumSize().width) * zoom),
-							 (int) ((double) Math.max(maxy - miny, getMinimumSize().height) * zoom));
+				(int) ((double) Math.max(maxy - miny, getMinimumSize().height) * zoom));
 		Dimension vpSize = getViewportSize();
 		Dimension ppSize = null;
-
+		
 		// viewport seems to never come back as null, but protect anyways...
-        if (vpSize != null) {
+		if (vpSize != null) {
 			ppSize = new Dimension(Math.max(usedSpace.width, vpSize.width),
-                                   Math.max(usedSpace.height, vpSize.height));
+					Math.max(usedSpace.height, vpSize.height));
 		}
-
-		// diagnostic information:
-		logger.debug("minsize is: " + getMinimumSize());
-		logger.debug("unzoomed userDim is: " + userDim);
-		logger.debug("zoom="+zoom+",usedSpace size is " + usedSpace);
-
+		
+		if (logger.isDebugEnabled()) {
+			logger.debug("minsize is: " + getMinimumSize());
+			logger.debug("unzoomed userDim is: " + userDim);
+			logger.debug("zoom="+zoom+",usedSpace size is " + usedSpace);
+		}
+		
 		if (ppSize != null) { 
 			logger.debug("preferred size is ppSize (viewport size was null): " + ppSize);
 			return ppSize;
@@ -707,7 +708,7 @@ public class PlayPen extends JPanel
 		String key = source.getTableName().toLowerCase();
 		
 		// ensure tablename is unique
-		logger.debug("before add: " + Arrays.toString(tableNames.toArray()));
+		if (logger.isDebugEnabled()) logger.debug("before add: " + tableNames);
 		if (!tableNames.add(key)) {
 			boolean done = false;			
 			int newSuffix = 0;
@@ -717,7 +718,7 @@ public class PlayPen extends JPanel
 			}
 			newTable.setTableName(source.getTableName()+"_"+newSuffix);
 		}
-		logger.debug("after add: " + Arrays.toString(tableNames.toArray()));
+		if (logger.isDebugEnabled()) logger.debug("after add: " + tableNames);
 
 		TablePane tp = new TablePane(newTable);
 		

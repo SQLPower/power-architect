@@ -6,10 +6,6 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import java.io.File;
-import java.awt.print.PrinterJob;
-import javax.print.PrintService;
-import java.util.Iterator;
-import java.util.Arrays;
 
 public class PreferencesPanel extends JPanel implements ArchitectPanel {
 
