@@ -7,6 +7,8 @@ import java.util.List;
 import javax.swing.*;
 import ca.sqlpower.architect.*;
 import org.apache.log4j.Logger;
+import javax.swing.tree.TreePath;
+
 
 public class EditTableAction extends AbstractAction {
 	private static final Logger logger = Logger.getLogger(EditTableAction.class);
@@ -39,60 +41,72 @@ public class EditTableAction extends AbstractAction {
 				JOptionPane.showMessageDialog(pp, "You have selected multiple items, but you can only edit one at a time.");
 			} else if (selection.get(0) instanceof TablePane) {
 				TablePane tp = (TablePane) selection.get(0);
-				
-				JTabbedPane tabbedPane = new JTabbedPane();
-        	
-				final JDialog d = new JDialog(ArchitectFrame.getMainInstance(),
-											  "Table Properties");
-											  
-				// first tabbed Pane (table tab)
-				JPanel tt = new JPanel(new BorderLayout(12,12));
-				tt.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
-				final TableEditPanel editPanel = new TableEditPanel(tp.getModel());
-				tt.add(editPanel, BorderLayout.CENTER);
-				tabbedPane.addTab("TableProperties",tt);
-				
-        	
-				// ok/cancel buttons
-				JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-			
-				JButton okButton = new JButton("Ok");
-				okButton.addActionListener(new ActionListener() {
-						public void actionPerformed(ActionEvent evt) {
-							editPanel.applyChanges();
-							// XXX: also apply changes on mapping tab
-							d.setVisible(false);
-						}
-					});
-				buttonPanel.add(okButton);
-				
-				JButton cancelButton = new JButton("Cancel");
-				cancelButton.addActionListener(new ActionListener() {
-						public void actionPerformed(ActionEvent evt) {
-							editPanel.discardChanges();
-							// XXX: also discard changes on mapping tab
-							d.setVisible(false);
-						}
-					});
-				buttonPanel.add(cancelButton);
-				
-				d.getContentPane().add(buttonPanel, BorderLayout.SOUTH);
-				d.getContentPane().add(tabbedPane, BorderLayout.CENTER);
-				d.pack();
-				d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
-				d.setVisible(true);
-				
+				makeDialog(tp.getModel());				
 			} else {
 				JOptionPane.showMessageDialog(pp, "The selected item type is not recognised");
 			}
 
 		} else if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE)) {
-
+			TreePath [] selections = dbt.getSelectionPaths();
+			logger.debug("selections length is: " + selections.length);
+			if (selections.length != 1) {
+				JOptionPane.showMessageDialog(dbt, "To indicate which table you like edit, please select a single table header.");
+			} else {
+				TreePath tp = selections[0];
+				SQLObject so = (SQLObject) tp.getLastPathComponent();
+				SQLTable st = null;
+				int idx = 0;
+				if (so instanceof SQLTable) {
+					logger.debug("user clicked on table, so we shall try to edit the table properties.");
+					st = (SQLTable) so;
+					makeDialog(st);	
+				} else {
+					JOptionPane.showMessageDialog(dbt, "To indicate which table you like edit, please select a single table header.");
+				}
+			}
 		} else {
 	  		// unknown action command source, do nothing
 		}	
 
 
+	}
+
+	private void makeDialog (SQLTable table) {
+		final JDialog d = new JDialog(ArchitectFrame.getMainInstance(),
+									  "Table Properties");
+		JPanel tt = new JPanel(new BorderLayout(12,12));
+		tt.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
+		final TableEditPanel editPanel = new TableEditPanel(table);
+		tt.add(editPanel, BorderLayout.CENTER);
+      	
+		// ok/cancel buttons
+		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+	
+		JButton okButton = new JButton("Ok");
+		okButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent evt) {
+					editPanel.applyChanges();
+					// XXX: also apply changes on mapping tab
+					d.setVisible(false);
+				}
+			});
+		buttonPanel.add(okButton);
+		
+		JButton cancelButton = new JButton("Cancel");
+		cancelButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent evt) {
+					editPanel.discardChanges();
+					// XXX: also discard changes on mapping tab
+					d.setVisible(false);
+				}
+			});
+		buttonPanel.add(cancelButton);
+		
+		d.getContentPane().add(buttonPanel, BorderLayout.SOUTH);
+		d.getContentPane().add(tt, BorderLayout.CENTER);
+		d.pack();
+		d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
+		d.setVisible(true);
 	}
 
 	public void setPlayPen(PlayPen pp) {

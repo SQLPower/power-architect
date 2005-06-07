@@ -250,21 +250,27 @@ public class ArchitectFrame extends JFrame {
 		projectBar.add(exportDDLAction);
 		projectBar.add(compareDMAction);
 
-
+		JButton tempButton = null; // shared actions need to report where they are coming from
  		ppBar.add(zoomInAction);
  		ppBar.add(zoomOutAction);
  		ppBar.add(zoomNormalAction);
 		ppBar.addSeparator();
-		ppBar.add(deleteSelectedAction);
+		tempButton = ppBar.add(deleteSelectedAction);
+		tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		ppBar.addSeparator();
-		ppBar.add(createTableAction);
+		tempButton = ppBar.add(createTableAction);
+		tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		ppBar.addSeparator();
-		ppBar.add(insertColumnAction);
-		ppBar.add(editColumnAction);
+		tempButton = ppBar.add(insertColumnAction);
+		tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+		tempButton = ppBar.add(editColumnAction);
+		tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		ppBar.addSeparator();
 		ppBar.add(createNonIdentifyingRelationshipAction);
 		ppBar.add(createIdentifyingRelationshipAction);
-		ppBar.add(editRelationshipAction);
+		tempButton = ppBar.add(editRelationshipAction);
+		tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+		
 
 		Container projectBarPane = getContentPane();
 		projectBarPane.setLayout(new BorderLayout());

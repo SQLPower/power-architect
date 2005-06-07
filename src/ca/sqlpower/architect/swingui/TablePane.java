@@ -756,7 +756,13 @@ public class TablePane
 
 				// re-select the table pane (fire new selection event when appropriate)
 				tp.setSelected(true);
-				tp.selectNone();  // single column selection model for now
+
+				// de-select columns if shift and ctrl were not pressed				
+				if ( (evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0) {								
+					tp.selectNone();
+				}
+
+				// select current column unconditionally
 				if (clickCol < tp.model.getColumns().size()) {
 					tp.selectColumn(clickCol);
 				}
@@ -861,7 +867,7 @@ public class TablePane
 			}
 
 			try {
-				tp.selectNone(); // single column selection model for now
+				// tp.selectNone(); // single column selection model for now
 				int idx = tp.pointToColumnIndex(evt.getPoint());
 				if (idx >= 0) {
 					tp.selectColumn(idx);

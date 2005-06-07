@@ -275,8 +275,15 @@ public class DBTree extends JTree implements DragSourceListener {
 					logger.debug("selected node object type is: " + p.getLastPathComponent().getClass().getName());
 				}
 				popup = refreshMenu(p);
-				// allow multi-select if we're dealing with Target Database children
-				if (!isTargetDatabaseChild(p)) {
+
+				// if the item is not already selected, select it (and deselect everything else)
+                // if the item is already selected, don't touch the selection model				
+				if (isTargetDatabaseChild(p)) {
+					if (!isPathSelected(p)) {
+						setSelectionPath(p);
+				    }	
+				} else {
+					// multi-select for menus is not supported outside the Target Database
 					setSelectionPath(p);
 				}
                 popup.show(e.getComponent(),

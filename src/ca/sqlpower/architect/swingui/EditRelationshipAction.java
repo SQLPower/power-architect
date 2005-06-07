@@ -42,7 +42,7 @@ public class EditRelationshipAction extends AbstractAction {
 				Relationship r = (Relationship) selection.get(0);
 				makeDialog(r.getModel());
 			} else {
-				JOptionPane.showMessageDialog(pp, "The selected item type is not recognised");
+				JOptionPane.showMessageDialog(pp, "Please select the relationship you would like to edit.");
 			}
 		} else if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE)) {
 			TreePath [] selections = dbt.getSelectionPaths();

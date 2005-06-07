@@ -48,14 +48,18 @@ public class EditColumnAction extends AbstractAction implements ActionListener {
 				TablePane tp = (TablePane) selection.get(0);
 				try {
 					int idx = tp.getSelectedColumnIndex();
-					makeDialog(tp.getModel(),idx);
+					if (idx < 0) { // header must have been selected
+						JOptionPane.showMessageDialog(tp, "Please select the column you would like to edit.");						
+					} else {				
+						makeDialog(tp.getModel(),idx);
+					}
 				} catch (ArchitectException e) {
 					JOptionPane.showMessageDialog(tp, "Error finding the selected column");
 					logger.error("Error finding the selected column", e);
 					cleanup();
 				}
 			} else {
-				JOptionPane.showMessageDialog(pp, "The selected item type is not recognised");
+				JOptionPane.showMessageDialog(pp, "Please select the column you would like to edit.");
 				cleanup();
 			}
 		} else if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE)) {
@@ -71,10 +75,10 @@ public class EditColumnAction extends AbstractAction implements ActionListener {
 					SQLTable st = sc.getParentTable();
 					try {
 						int idx = st.getColumnIndex(sc);
-						if (idx > 0) {
-							makeDialog(st,idx);
-						} else {
+						if (idx < 0) {
 							JOptionPane.showMessageDialog(dbt, "Error finding the selected column");
+						} else {
+							makeDialog(st,idx);
 						}							
 					} catch (ArchitectException ex) {
 						JOptionPane.showMessageDialog(dbt, "Error finding the selected column");
