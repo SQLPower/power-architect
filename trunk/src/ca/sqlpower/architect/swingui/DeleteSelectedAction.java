@@ -81,7 +81,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 		} else if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE)) {
 			TreePath [] selections = dbt.getSelectionPaths();
 			if (selections.length > 1) {
-				int decision = JOptionPane.showConfirmDialog(pp,
+				int decision = JOptionPane.showConfirmDialog(dbt,
 															 "Are you sure you want to delete the "
 															 +selections.length+" selected items?",
 															 "Multiple Delete",
