@@ -876,6 +876,7 @@ public class TablePane
 				logger.error("Exception converting point to column", e);
 				return;
 			}
+			logger.debug("about to show playpen tablepane popup...");
 			tp.showPopup(pp.tablePanePopup, evt.getPoint());
 		}
 	}

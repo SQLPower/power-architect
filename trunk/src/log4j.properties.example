@@ -1,5 +1,3 @@
-# Custom log4j.properties for Jack...
-
 log4j.rootLogger=INFO, R, C
 
 #log4j.logger.ca.sqlpower.security.PLUser=debug

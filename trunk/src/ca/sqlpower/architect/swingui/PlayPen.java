@@ -1319,7 +1319,7 @@ public class PlayPen extends JPanel
 		public void mousePressed(MouseEvent evt) {
 			requestFocus();
 
-			// FIXME: DND is currently busted.  Nneed to do something in here to figure out 
+			// FIXME: DND is currently busted.  Need to do something in here to figure out 
             // if we're clicking on something that was already selected!  
 
 

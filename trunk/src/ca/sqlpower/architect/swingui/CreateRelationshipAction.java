@@ -47,6 +47,8 @@ public class CreateRelationshipAction extends AbstractAction
 		logger.debug("Starting to create relationship!");
 		active = true;
 		pp.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+		// gets over the "can't select a selected item"
+		pp.selectNone();
 	}
 
 	protected void doCreateRelationship() {

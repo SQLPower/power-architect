@@ -89,7 +89,7 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 		setToolTipText(model.getName());
 		
 		// requires pkTable and fkTable to be initialized
-		//ui.bestConnectionPoints();
+		//ui.bestConnectionPoints(); // breaks when loading a new project?
 
 		createPopup();
 		setVisible(true);
@@ -105,9 +105,11 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 		JMenuItem mi;
 
 		mi = new JMenuItem(af.editRelationshipAction);
+		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		popup.add(mi);
 
 		mi = new JMenuItem(af.deleteSelectedAction);
+		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		popup.add(mi);
 	}
 
@@ -254,8 +256,11 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 	 */
 	public void componentResized(ComponentEvent e) {
 		logger.debug("Component "+e.getComponent().getName()+" changed size");
-		if (e.getComponent() == pkTable || e.getComponent() == fkTable) {
-			revalidate();
+		if (e.getComponent() == pkTable) {
+			setPkConnectionPoint(ui.closestEdgePoint(true, getPkConnectionPoint())); // true == PK
+		}
+		if (e.getComponent() == fkTable) {
+			setFkConnectionPoint(ui.closestEdgePoint(false, getFkConnectionPoint())); // false == FK
 		}
 	}
 
@@ -406,6 +411,7 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 			r.getPlayPen().setCursor(null);
 		}
 	}
+
 
 	// ------------------ sqlobject listener ----------------
 	public void dbChildrenInserted(SQLObjectEvent e) {
