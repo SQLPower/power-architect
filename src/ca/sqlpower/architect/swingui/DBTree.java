@@ -550,6 +550,7 @@ public class DBTree extends JTree implements DragSourceListener {
 			    } else if (root.removeChild(selection)) {
 			        selection.disconnect();
 			    } else {
+			        logger.error("root.removeChild(selection) returned false!");
 			        JOptionPane.showMessageDialog(DBTree.this, "Deletion of this database connection failed for an unknown reason.", "Couldn't remove", JOptionPane.ERROR_MESSAGE);
 			    }
 			} catch (ArchitectException ex) {
