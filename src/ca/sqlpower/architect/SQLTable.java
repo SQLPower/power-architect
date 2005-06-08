@@ -483,15 +483,15 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * imported or exported key.
 	 */
 	public void removeColumn(SQLColumn col) throws LockedColumnException {
-// 		List keys = keysOfColumn(col);
-// 		if (keys.isEmpty()) {
-// 			columnsFolder.removeChild(col);
-// 			normalizePrimaryKey();
-// 		} else {
-// 			throw new LockedColumnException("This column can't be removed because it belongs to the "+keys.get(0)+" relationship");
-// 		}
-		columnsFolder.removeChild(col);
-		normalizePrimaryKey();
+		// NOTE: the LockedColumnException check was not being used, and there was 
+        // no comment about why it had been commmented out...
+ 		List keys = keysOfColumn(col);
+ 		if (keys.isEmpty()) {
+ 			columnsFolder.removeChild(col);
+ 			normalizePrimaryKey();
+ 		} else {
+ 			throw new LockedColumnException("This column can't be removed because it belongs to the "+keys.get(0)+" relationship");
+ 		}
 	}
 
 	/**

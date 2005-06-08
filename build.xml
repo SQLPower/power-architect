@@ -33,9 +33,14 @@
 		</copy>
     </target>
 
-    <!-- copies the log4j config file into the build dir -->
+    <!-- Deploy the log4j.properties.example file to log4j.properties -->
+
 	<target name="copylog4jprops" depends="init">
-        <copy file="log4j.properties" todir="${build}"/>
+	    <!-- copies the template log4j config file into the build dir -->
+	    <copy tofile="${build}/log4j.properties"
+    	        file="log4j.properties.example"/>
+	    <!-- copies customized log4j config file into the build dir -->
+	    <copy file="log4j.properties" todir="${build}" overwrite="true" />
     </target>
 
     <!-- Creates a WebStart distribution under the webstart/ directory -->

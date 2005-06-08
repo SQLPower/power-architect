@@ -3,6 +3,7 @@ package ca.sqlpower.architect.swingui;
 import java.util.List;
 import java.util.Iterator;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.tree.TreePath;
@@ -29,12 +30,17 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 								 ArchitectFrame.getMainInstance().sprefs.getInt(SwingUserSettings.ICON_SIZE, 24)));
 		putValue(SHORT_DESCRIPTION, "Delete Selected");
 		putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0)); // XXX: how to attach to components?
+		putValue(ACTION_COMMAND_KEY, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		setEnabled(false);
 	}
 
 	public void actionPerformed(ActionEvent evt) {
+		logger.debug("delete action detected!");
+		logger.debug("ACTION COMMAND: " + evt.getActionCommand());
 
 		if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN)) {
+
+			logger.debug("delete action came from playpen");
 			List items = pp.getSelectedItems();
 			if (items.size() > 1) {
 				int decision = JOptionPane.showConfirmDialog(pp,
@@ -49,16 +55,50 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 			Iterator it = items.iterator();
 			while (it.hasNext()) {
 				Selectable item = (Selectable) it.next();
+				logger.debug("next item for delete is: " + item.getClass().getName());
 				if (item instanceof TablePane) {
 					TablePane tp = (TablePane) item;
-					int colidx;
-					if ( (colidx = tp.getSelectedColumnIndex()) >= 0) {
-						// a column in the selected table
+					if (tp.getSelectedColumnIndex() >= 0) {
+						
+						/*  OLD CODE: only deleted one column at a time...
 						try {
-							tp.getModel().removeColumn(colidx);
-							// FIXME: loop inside here to support multiple column deletion?
+							tp.getModel().removeColumn(tp.getSelectedColumnIndex()); // FIXME: loop inside here to support multiple column deletion?							 
 						} catch (LockedColumnException ex) {
 							JOptionPane.showMessageDialog((JComponent) item, ex.getMessage());
+						}
+						*/
+
+						// challenge: deleting multiple columns when some of them might be locked!  It's a moving target...
+						//
+						// approach: it would be nice to get a list of SQLColumn objects and use them in the remove
+                        // calls instead of indices (which are a moving target)
+						ArrayList selectedColumns = new ArrayList();
+						try {
+							for (int i=0; i < tp.getModel().getColumns().size(); i++) {
+								if (tp.isColumnSelected(i)) {
+									selectedColumns.add(tp.getModel().getColumn(i));
+								}
+							}
+						} catch (ArchitectException ae) {
+							JOptionPane.showMessageDialog(tp, ae.getMessage());
+							return;
+						}							
+						Iterator it2 = selectedColumns.iterator();
+						while (it2.hasNext()) {
+							SQLColumn sc = (SQLColumn) it2.next();
+							try {
+								tp.getModel().removeColumn(sc);
+							} catch (LockedColumnException ex) {
+								int decision = JOptionPane.showConfirmDialog(pp,
+															 "Could not delete the column " + sc.getName()  
+                                                             + " because it is part of a relationship key.  Continue"
+                                                             + " deleting of other selected columns?",
+															 "Column is Locked",
+															 JOptionPane.YES_NO_OPTION);
+								if (decision == JOptionPane.NO_OPTION) {
+									return;
+								}
+							}
 						}
 					} else {
 						// the whole table
@@ -74,6 +114,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 					}
 				} else if (item instanceof Relationship) {
 					Relationship r = (Relationship) item;
+					logger.debug("trying to delete relationship " + r);
 					SQLRelationship sr = r.getModel();
 					sr.getPkTable().removeExportedKey(sr);
 					sr.getFkTable().removeImportedKey(sr);
@@ -83,6 +124,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 				}
 			}
 		} else if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE)) {
+			logger.debug("delete action came from dbtree");
 			TreePath [] selections = dbt.getSelectionPaths();
 			if (selections.length > 1) {
 				int decision = JOptionPane.showConfirmDialog(dbt,
@@ -103,12 +145,20 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 					pp.db.removeChild(st);
 					pp.tableNames.remove(st.getTableName().toLowerCase());
 				} else if (so instanceof SQLColumn) {
+					SQLColumn sc = (SQLColumn)so;
+					SQLTable st = sc.getParentTable();
 					try {
-						SQLColumn sc = (SQLColumn)so;
-						SQLTable st = sc.getParentTable();
 						st.removeColumn(sc); 
 					} catch (LockedColumnException ex) {
-						JOptionPane.showMessageDialog(dbt, ex.getMessage());
+						int decision = JOptionPane.showConfirmDialog(dbt,
+													 "Could not delete the column " + sc.getName() 
+                                                           + " because it is part of a relationship key.  Continue"
+                                                           + " deleting of other selected items?",
+													 "Column is Locked",
+													 JOptionPane.YES_NO_OPTION);
+						if (decision == JOptionPane.NO_OPTION) {
+							return;
+						}
 					}
 				} else if (so instanceof SQLRelationship) {
 					SQLRelationship sr = (SQLRelationship) so;
@@ -120,6 +170,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 				}
 			}
 		} else {
+			logger.debug("delete action came from unknown source, so we do nothing.");
 	  		// unknown action command source, do nothing
 		}	
 	}
