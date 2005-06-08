@@ -26,6 +26,10 @@ public class SQLExceptionNode extends SQLObject {
 	
 
 	// ------------- SQLObject Methods -------------
+	
+	/**
+	 * Returns the message.
+	 */
 	public String getName() {
 		return message;
 	}
@@ -65,5 +69,13 @@ public class SQLExceptionNode extends SQLObject {
 	
 	public String toString() {
 		return getShortDisplayName();
+	}
+
+	public String getMessage() {
+	    return message;
+	}
+	
+	public void setMessage(String v) {
+	    this.message = v;
 	}
 }

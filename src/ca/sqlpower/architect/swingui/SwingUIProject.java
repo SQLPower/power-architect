@@ -163,6 +163,11 @@ public class SwingUIProject {
 		d.addSetProperties("*/column-mapping");
 		d.addSetNext("*/column-mapping", "addChild");
 
+		SQLExceptionFactory exceptionFactory = new SQLExceptionFactory();
+		d.addFactoryCreate("*/sql-exception", exceptionFactory);
+		d.addSetProperties("*/sql-exception");
+		d.addSetNext("*/sql-exception", "addChild");
+
 		// target database hierarchy
 		d.addFactoryCreate("architect-project/target-database", dbFactory);
 		d.addSetProperties("architect-project/target-database");
@@ -308,6 +313,27 @@ public class SwingUIProject {
 			}
 
 			return col;
+		}
+	}
+
+	/**
+	 * Creates a SQLException instance and adds it to the
+	 * objectIdMap.
+	 */
+	protected class SQLExceptionFactory extends AbstractObjectCreationFactory {
+		public Object createObject(Attributes attributes) {
+			SQLExceptionNode exc = new SQLExceptionNode(null, null);
+
+			String id = attributes.getValue("id");
+			if (id != null) {
+				objectIdMap.put(id, exc);
+			} else {
+				logger.warn("No ID found in exception element while loading project!");
+			}
+
+			exc.setMessage(attributes.getValue("message"));
+
+			return exc;
 		}
 	}
 
@@ -474,6 +500,8 @@ public class SwingUIProject {
 			return 1;
 		} else if (o == playPen.getDatabase()) {
 			return 0;
+		} else if ( (!o.allowsChildren()) || !(o.isPopulated()) || o.getChildren() == null) {
+		    return 0;
 		} else {
 			int myCount = 0;
 			Iterator it = o.getChildren().iterator();
@@ -712,6 +740,10 @@ public class SwingUIProject {
 			type = "column-mapping";
 			propNames.put("pk-column-ref", objectIdMap.get(((SQLRelationship.ColumnMapping) o).getPkColumn()));
 			propNames.put("fk-column-ref", objectIdMap.get(((SQLRelationship.ColumnMapping) o).getFkColumn()));
+		} else if (o instanceof SQLExceptionNode) {
+		    id = "EXC"+objectIdMap.size();
+		    type = "sql-exception";
+		    propNames.put("message", ((SQLExceptionNode) o).getMessage());
 		} else {
 			throw new UnsupportedOperationException("Woops, the SQLObject type "
 													+o.getClass().getName()+" is not supported!");
@@ -719,10 +751,16 @@ public class SwingUIProject {
 	
 		objectIdMap.put(o, id);
 		
-		//print("<"+type+" hashCode=\""+o.hashCode()+"\" id=\""+id+"\" ");
+		boolean skipChildren = false;
+		
+		//print("<"+type+" hashCode=\""+o.hashCode()+"\" id=\""+id+"\" ");  // use this for debugging duplicate object problems
 		print("<"+type+" id=\""+id+"\" ");
 
-		if ( (!savingEntireSource) && (!o.isPopulated()) ) {
+		if (o.allowsChildren() && o.isPopulated() && o.getChildCount() == 1 && o.getChild(0) instanceof SQLExceptionNode) {
+		    // if the only child is an exception node, just save the parent as non-populated
+		    niprint("populated=\"false\" ");
+		    skipChildren = true;
+		} else if ( (!savingEntireSource) && (!o.isPopulated()) ) {
 			niprint("populated=\"false\" ");
 		}
 
@@ -734,7 +772,7 @@ public class SwingUIProject {
 				niprint(key+"=\""+value+"\" ");
 			}
 		}
-		if (o.allowsChildren() && (savingEntireSource || o.isPopulated()) ) {
+		if ( (!skipChildren) && o.allowsChildren() && (savingEntireSource || o.isPopulated()) ) {
 			niprintln(">");
 			Iterator children = o.getChildren().iterator();
 			indent++;
