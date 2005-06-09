@@ -723,10 +723,10 @@ public class TablePane
 					int selectedColIndex = tp.getSelectedColumnIndex();
 					if (selectedColIndex == COLUMN_INDEX_NONE) {
 						af.editTableAction.actionPerformed
-							(new ActionEvent(tp, ActionEvent.ACTION_PERFORMED, "DoubleClick"));
+							(new ActionEvent(tp, ActionEvent.ACTION_PERFORMED, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
 					} else if (selectedColIndex >= 0) {
 						af.editColumnAction.actionPerformed
-							(new ActionEvent(tp, ActionEvent.ACTION_PERFORMED, "DoubleClick"));
+							(new ActionEvent(tp, ActionEvent.ACTION_PERFORMED, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
 					}
 				}
 			}
