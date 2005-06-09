@@ -579,22 +579,22 @@ public class DBTree extends JTree implements DragSourceListener {
 			if (p == null) {
 				return;
 			}
-			SQLObject so = (SQLObject) p.getLastPathComponent();
-			if (so instanceof SQLDatabase) {
-				DBConnectionSpec dbcs = ((SQLDatabase) so).getConnectionSpec();
+			Object [] pathArray = p.getPath();			
+			int ii = 0;
+			SQLDatabase sd = null;
+			while (ii < pathArray.length && sd == null) {
+				if (pathArray[ii] instanceof SQLDatabase) {
+					sd = (SQLDatabase) pathArray[ii]; 				
+				}
+				ii++;
+			}
+			if (sd != null) {
+				DBConnectionSpec dbcs = sd.getConnectionSpec();
 				logger.debug("Setting existing DBCS on panel: "+dbcs);
-				edittingDB = (SQLDatabase) so;
+				edittingDB = sd;
 				dbcsPanel.setDbcs(dbcs);
 				propDialog.setVisible(true);
 				propDialog.requestFocus();
-			} else if (so instanceof SQLCatalog) {
-                // XXX: no action yet
-			} else if (so instanceof SQLSchema) {
-                // XXX: no action yet
-			} else if (so instanceof SQLTable) {
-                // XXX: no action yet
-			} else if (so instanceof SQLColumn) {
-                // XXX: no action yet
 			}
 		}
 	}

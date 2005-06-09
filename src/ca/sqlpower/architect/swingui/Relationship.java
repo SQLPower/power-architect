@@ -283,7 +283,7 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 				ArchitectFrame.getMainInstance().editRelationshipAction.actionPerformed
 					(new ActionEvent(evt.getSource(),
 									 ActionEvent.ACTION_PERFORMED,
-									 "DoubleClick"));
+									 ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
 			}
 		}
 		
