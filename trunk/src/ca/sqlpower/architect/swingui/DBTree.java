@@ -480,8 +480,13 @@ public class DBTree extends JTree implements DragSourceListener {
 				if (dbcsAlreadyExists(dbcs)) {
 					logger.warn("database already exists in this project.");
 					JOptionPane.showMessageDialog(DBTree.this, "Can't add connection, connection already exists in this project.", "Warning", JOptionPane.WARNING_MESSAGE);
-				} else {					
-					root.addChild(root.getChildCount(), new SQLDatabase(dbcs));
+				} else {				
+					SQLDatabase newDB = new SQLDatabase(dbcs);		
+					root.addChild(root.getChildCount(), newDB);
+					// start a thread to poke the new SQLDatabase object...
+					logger.debug("start poking database " + newDB.getName());
+					Thread thread = new PokeDBThread(newDB);
+					thread.start();
 				}
 			} catch (ArchitectException ex) {
 				logger.warn("Couldn't add new database to tree", ex);
@@ -489,7 +494,7 @@ public class DBTree extends JTree implements DragSourceListener {
 			}
 		}
 	}
-
+	
 	/**
 	 * When invoked, this action creates a new DBCS, sets the
 	 * panelHoldsNewDBCS flag, and pops up the propDialog to edit the
@@ -504,6 +509,9 @@ public class DBTree extends JTree implements DragSourceListener {
 		public void actionPerformed(ActionEvent e) {
 			DBConnectionSpec dbcs = new DBConnectionSpec();
 			edittingDB = new SQLDatabase(dbcs);
+			// start a thread to poke the new SQLDatabase object
+			Thread thread = new PokeDBThread(edittingDB);
+			thread.start();						
 			panelHoldsNewDBCS = true;
 			dbcsPanel.setDbcs(dbcs);
 			propDialog.setVisible(true);
@@ -511,6 +519,22 @@ public class DBTree extends JTree implements DragSourceListener {
 		}
 	}
 
+	protected class PokeDBThread extends Thread {
+		SQLDatabase sd;
+		PokeDBThread (SQLDatabase sd) {
+			super();
+			this.sd = sd;			
+		}
+		public void run() {
+			try {
+				ArchitectUtils.pokeDatabase(sd);
+			} catch (ArchitectException ex) {
+				logger.error("problem poking database " + sd.getName(),ex);
+			}
+			logger.debug("finished poking database " + sd.getName());
+		}
+	}
+	
 	/**
 	 * The RemoveDBCSAction removes the currently-selected database connection from the project.
 	 */

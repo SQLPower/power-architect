@@ -134,4 +134,25 @@ public class ArchitectUtils {
 		}
 		return matches;
 	}
+	
+	/**
+	 * Recursively poke the SQLDatabase until we find at least one leaf node
+	 * (SQLColumn). 
+	 * 
+	 * @param source the source object (usually the database) 
+	 */
+	public static boolean pokeDatabase(SQLObject source) throws ArchitectException {
+		logger.debug("my class is " + source.getClass().getName() + ", my name is + " + source.getName());
+		if (source.allowsChildren()) {
+			int j = 0;	
+			boolean done = false;
+			while (!done && j < source.getChildCount()) {				
+				done = pokeDatabase(source.getChild(j));
+				j++;
+			}
+			return done;
+		} else {
+			return true; // found a leaf node
+		}
+	}
 }

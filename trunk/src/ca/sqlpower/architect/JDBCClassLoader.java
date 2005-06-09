@@ -65,7 +65,7 @@ public class JDBCClassLoader extends ClassLoader {
 	 */
 	protected Class findClass(String name)
 		throws ClassNotFoundException {
-		System.out.println("Looking for class "+name);
+		logger.debug("Looking for class "+name);
 
 		Iterator it = session.getDriverJarList().iterator();
 		while (it.hasNext()) {
