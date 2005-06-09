@@ -98,6 +98,16 @@ public class SwingUserSettings {
 		settings.put(propName, value);
 	}
 
+	/**
+	 * Adds a new setting or updates the value of an existing setting.  This
+	 * method is meant to be used by the ConfigFile read method: The set&lt;Type&gt;
+	 * methods are an easier interface to the same thing.
+	 * 
+	 * @param propName The name of the property to add or update.
+	 * @param propClassName The class name of the property's value. Currently,
+	 * "java.lang.Integer" and "java.lang.Boolean" are supported.
+	 * @param propValue A string representation of the property's value.
+	 */
 	public void putSetting(String propName, String propClassName, String propValue) {
 		Object prop = null;
 		if (propClassName.equals("java.lang.Integer")) {
