@@ -4,6 +4,7 @@ import javax.swing.*;
 import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.font.FontRenderContext;
 import java.awt.datatransfer.*;
 import java.awt.dnd.*;
 import java.awt.geom.AffineTransform;
@@ -739,7 +740,7 @@ public class PlayPen extends JPanel
 		}
 		if (logger.isDebugEnabled()) logger.debug("after add: " + tableNames);
 
-		TablePane tp = new TablePane(newTable);
+		TablePane tp = new TablePane(newTable, getFontRenderContext());
 		
 		logger.info("adding table "+newTable);
 		add(tp, preferredLocation);
@@ -1546,4 +1547,15 @@ public class PlayPen extends JPanel
 			return visibleRect.height/5;
 		}
 	}
+
+    /**
+     * @return The font render context at the current zoom setting.
+     */
+    public FontRenderContext getFontRenderContext() {
+        Graphics2D g2 = (Graphics2D) getGraphics();
+        g2.scale(zoom, zoom);
+        FontRenderContext frc = g2.getFontRenderContext();
+        if (logger.isDebugEnabled()) logger.debug("Returning frc="+frc);
+        return frc;
+    }
 }

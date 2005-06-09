@@ -1,6 +1,8 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.*;
+import java.awt.font.FontRenderContext;
+
 import javax.swing.*;
 import javax.swing.plaf.*;
 import java.beans.PropertyChangeEvent;
@@ -43,6 +45,8 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 		TablePane tp = (TablePane) c;
 		try {
 			Graphics2D g2 = (Graphics2D) g;
+			
+			tp.setRecentFontRenderContext(g2.getFontRenderContext());
 
 			if (logger.isDebugEnabled()) {
 				Rectangle clip = g2.getClipBounds();
@@ -153,9 +157,10 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			java.util.List columnList = table.getColumns();
 			int cols = columnList.size();
 			Font font = c.getFont();
-			if (font == null) {
-				logger.error("getPreferredSize(): Null font in TablePane "+c);
-				logger.error("getPreferredSize(): TablePane's parent is "+c.getParent());
+			FontRenderContext frc = c.getRecentFontRenderContext();
+			if (font == null || frc == null) {
+				logger.error("getPreferredSize(): TablePane is missing font or fontRenderContext.");
+				logger.error("getPreferredSize(): component="+c.getName()+"; font="+font+"; frc="+frc);
 				return null;
 			}
 			FontMetrics metrics = c.getFontMetrics(font);
@@ -166,7 +171,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			Iterator columnIt = table.getColumns().iterator();
 			while (columnIt.hasNext()) {
 				String theColumn = columnIt.next().toString();
-				width = Math.max(width, metrics.stringWidth(theColumn));
+				width = Math.max(width, (int) font.getStringBounds(theColumn, frc).getWidth());
 				logger.debug("new width is: " + width);
 			}
 			width += insets.left + c.getMargin().left + boxLineThickness*2 + c.getMargin().right + insets.right;

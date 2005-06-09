@@ -50,8 +50,7 @@ public class InsertColumnAction extends AbstractAction {
 			}
 		} else if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE)) {
 			TreePath [] selections = dbt.getSelectionPaths();
-			logger.debug("selections length is: " + selections.length);
-			if (selections.length != 1) {
+			if (selections == null || selections.length != 1) {
 				JOptionPane.showMessageDialog(dbt, "To indicate where you would like to insert a column, please select a single item.");
 			} else {
 				TreePath tp = selections[0];
