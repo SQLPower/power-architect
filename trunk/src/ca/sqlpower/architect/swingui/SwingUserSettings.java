@@ -27,6 +27,9 @@ public class SwingUserSettings {
 	public static final String ICON_SIZE
 		= "ca.sqlpower.architect.swing.SwingUserSettings.ICON_SIZE";
 
+    public static final String PLAYPEN_RENDER_ANTIALIASED
+    		= "ca.sqlpower.architect.swing.SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED";
+
 	protected Map settings;
 
 	public SwingUserSettings() {
@@ -65,6 +68,32 @@ public class SwingUserSettings {
 		settings.put(propName, new Integer(value));
 	}
 
+	/**
+	 * Gets the named property from the settings map.  If the value in
+	 * the map is a Boolean, the value is obtained by calling
+	 * <code>booleanValue()</code> on it.  If it is a String, it is
+	 * converted with <code>Boolean.parseBoolean()</code>. Otherwise, the
+	 * default value is returned and a warning is logged using
+	 * <code>logger</code>.  If there is no such value in the map,
+	 * the default is returned without logging a warning.
+	 */
+	public boolean getBoolean(String propName, boolean defaultValue) {
+		Object result = settings.get(propName);
+		if (result == null) {
+			return defaultValue;
+		} else if (result instanceof Boolean) {
+			return ((Boolean) result).booleanValue();
+		} else if (result instanceof String) {
+		    return Boolean.valueOf((String) result).booleanValue();
+		}			
+		logger.warn("Using default value for boolean property '"+propName+"' because of unknown data type for existing value");
+		return defaultValue;
+	}
+
+	public void setBoolean(String propName, boolean value) {
+		settings.put(propName, new Boolean(value));
+	}
+
 	public void setObject(String propName, Object value) {
 		settings.put(propName, value);
 	}
@@ -78,6 +107,8 @@ public class SwingUserSettings {
 				logger.warn("Invalid integer setting "+propName+"="+propValue);
 				return;
 			}
+		} else if (propClassName.equals("java.lang.Boolean")) {
+		    prop = new Boolean(propValue);
 		} else {
 			logger.warn("Unknown property class "+propClassName);
 			return;

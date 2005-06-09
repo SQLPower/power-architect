@@ -70,7 +70,7 @@ public class SwingUIProject {
 	 */
 	public SwingUIProject(String name) throws ArchitectException {
 		this.name = name;
-		this.playPen = new PlayPen(new SQLDatabase());
+		setPlayPen(new PlayPen(new SQLDatabase()));
 		this.playPen.getDatabase().getConnectionSpec().setSeqNo(9999);
 		List initialDBList = new ArrayList();
 		initialDBList.add(playPen.getDatabase());
@@ -883,6 +883,10 @@ public class SwingUIProject {
 	 */
 	public void setPlayPen(PlayPen argPlayPen) {
 		this.playPen = argPlayPen;
+		SwingUserSettings sprefs = ArchitectFrame.getMainInstance().sprefs;
+		if (sprefs != null) {
+		    playPen.setRenderingAntialiased(sprefs.getBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
+		}
 	}
 
 	public GenericDDLGenerator getDDLGenerator() {

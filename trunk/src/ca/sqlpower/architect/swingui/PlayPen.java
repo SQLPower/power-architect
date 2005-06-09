@@ -106,6 +106,11 @@ public class PlayPen extends JPanel
 	 */
 	protected JDialog dbcsDialog;
 
+	/**
+	 * A RenderingHints value of VALUE_ANTIALIAS_ON, VALUE_ANTIALIAS_OFF, or VALUE_ANTIALIAS_DEFAULT.
+	 */
+    private Object antialiasSetting = RenderingHints.VALUE_ANTIALIAS_DEFAULT;
+
 	public PlayPen() {
 		zoom = 1.0;
 		setBackground(java.awt.Color.white);
@@ -350,6 +355,19 @@ public class PlayPen extends JPanel
 	public double getZoom() {
 		return zoom;
 	}
+	
+	public void setRenderingAntialiased(boolean v) {
+	    if (v) {
+	        antialiasSetting = RenderingHints.VALUE_ANTIALIAS_ON;
+	    } else {
+	        antialiasSetting = RenderingHints.VALUE_ANTIALIAS_OFF;
+	    }
+	    repaint();
+	}
+	
+	public boolean isRenderingAntialiased() {
+	    return antialiasSetting == RenderingHints.VALUE_ANTIALIAS_ON;
+	}
 
 	// -------------------------- JComponent overrides ---------------------------
 
@@ -427,7 +445,7 @@ public class PlayPen extends JPanel
 		Graphics2D g2 = (Graphics2D) g;
 		g2.setColor(getBackground());
 		g2.fillRect(0, 0, getWidth(), getHeight());
-		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, antialiasSetting);
 
 		if (logger.isDebugEnabled()) {
 			Rectangle clip = g2.getClipBounds();
