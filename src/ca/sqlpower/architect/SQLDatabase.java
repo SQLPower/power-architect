@@ -15,6 +15,7 @@ import java.beans.PropertyChangeEvent;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.sql.DBConnectionSpec;
+import ca.sqlpower.architect.jdbc.ConnectionFacade;
 
 public class SQLDatabase extends SQLObject implements java.io.Serializable, PropertyChangeListener {
 	private static Logger logger = Logger.getLogger(SQLDatabase.class);
@@ -96,9 +97,10 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 			}
 			Class.forName(connectionSpec.getDriverClass(), true, session.getJDBCClassLoader());
 			logger.info("Driver Class "+connectionSpec.getDriverClass()+" loaded without exception");
-			connection = session.getJDBCClassLoader().getConnection(connectionSpec.getUrl(),
-																	connectionSpec.getUser(),
-																	connectionSpec.getPass());
+			connection = ConnectionFacade.createFacade(session.getJDBCClassLoader().getConnection(connectionSpec.getUrl(),
+														 	      					connectionSpec.getUser(),
+																					connectionSpec.getPass()));
+			logger.debug("Connection class is: " + connection.getClass().getName());
 			dbConnections.put(connectionSpec, connection);
 		} catch (ClassNotFoundException e) {
 			logger.warn("Driver Class not found", e);
@@ -118,6 +120,9 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 		try {
 			con = getConnection();
 			DatabaseMetaData dbmd = con.getMetaData();
+
+			logger.debug("MetaData class is: " + dbmd.getClass().getName());
+
 			rs = dbmd.getCatalogs();
 		
 			while (rs.next()) {
