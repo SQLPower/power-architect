@@ -2,6 +2,7 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.font.FontRenderContext;
 import java.awt.datatransfer.*;
 import java.awt.dnd.*;
 import javax.swing.*;
@@ -78,7 +79,7 @@ public class TablePane
 
 	private SQLTable model;
 
-	public TablePane() {
+	private TablePane() {
 		setOpaque(true);
 		dt = new DropTarget(this, new TablePaneDropListener(this));
 
@@ -94,9 +95,10 @@ public class TablePane
 		updateUI();
 	}
 
-	public TablePane(SQLTable m) {
+	public TablePane(SQLTable m, FontRenderContext initialFontRenderContext) {
 		this();
 		setModel(m);
+		setRecentFontRenderContext(initialFontRenderContext);
 	}
 
 
@@ -390,6 +392,8 @@ public class TablePane
 	// --------------------- SELECTION EVENT SUPPORT ---------------------
 
 	protected LinkedList selectionListeners = new LinkedList();
+
+    private FontRenderContext recentFontRenderContext;
 
 	public void addSelectionListener(SelectionListener l) {
 		selectionListeners.add(l);
@@ -906,4 +910,23 @@ public class TablePane
 		}
 		draggingColumn = null;
 	}
+
+    /**
+     * Returns a FontRenderContext object that was created by a Graphics2D that drew
+     * this component.  This needs to be cached because this component is orphaned from
+     * the real swing of things by the PlayPenContentPane, so the getGraphics() method
+     * always returns null.  (Quelle bummer).
+     * 
+     * @return The most recent font render context given to setRecentFontRenderContext.
+     */
+    public FontRenderContext getRecentFontRenderContext() {
+        return recentFontRenderContext;
+    }
+
+    /**
+     * @param fontRenderContext A font render context that is being used to render this component.
+     */
+    public void setRecentFontRenderContext(FontRenderContext fontRenderContext) {
+        recentFontRenderContext = fontRenderContext;
+    }
 }
