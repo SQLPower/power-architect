@@ -14,6 +14,8 @@ import java.sql.SQLWarning;
 import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.Map;
+import org.apache.log4j.Logger;
+
 
 /**
  * The ConnectionFacade wraps a JDBC Connection object and delegates all operations to it.
@@ -24,6 +26,7 @@ import java.util.Map;
  * @version $Id$
  */
 public class ConnectionFacade implements Connection {
+	private static Logger logger = Logger.getLogger(ConnectionFacade.class);
 
     /**
      * The object to which all JDBC operations are delegated. 
@@ -46,8 +49,10 @@ public class ConnectionFacade implements Connection {
      * 
      * @param delegate The object to which all JDBC operations will be delegated.
      */
-    public static ConnectionFacade createFacade(Connection delegate) {
-        if (delegate.getClass().getName().equals("org.postgresql.Driver")) {
+    public static ConnectionFacade createFacade(Connection delegate) throws SQLException {
+		logger.debug("static createFacade, driver class is: " + delegate.getClass().getName());
+		logger.debug("static createFacade, driver name is: " + delegate.getMetaData().getDriverName());
+        if (delegate.getMetaData().getDriverName().equals("PostgreSQL Native Driver")) {
             return new PostgresConnectionFacade(delegate);
         } else {
             return new ConnectionFacade(delegate);
