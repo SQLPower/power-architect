@@ -423,6 +423,16 @@ public class ArchitectFrame extends JFrame {
 				if (!file.getPath().endsWith(".architect")) {
 					file = new File(file.getPath()+".architect");
 				}
+				if (file.exists()) {
+				    response = JOptionPane.showConfirmDialog(
+				            ArchitectFrame.this,
+				            "The file\n\n"+file.getPath()+"\n\nalready exists. Do you want to overwrite it?",
+				            "File Exists", JOptionPane.YES_NO_OPTION);
+				    if (response == JOptionPane.NO_OPTION) {
+				        saveOrSaveAs(true);
+				        return;
+				    }
+				}
 				project.setFile(file);
 				String projName = file.getName().substring(0, file.getName().length()-".architect".length());
 				project.setName(projName);
