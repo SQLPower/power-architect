@@ -358,6 +358,15 @@ public class ArchitectFrame extends JFrame {
 	public ArchitectSession getArchitectSession() {
 		return architectSession;
 	}
+	
+	/**
+	 * Determine if either create relationship action is currently active.
+	 */
+	public boolean createRelationshipIsActive () {
+		if (createIdentifyingRelationshipAction.active) return true;
+		if (createNonIdentifyingRelationshipAction.active) return true;
+		return false;			
+	}
 
 	class ArchitectFrameWindowListener extends WindowAdapter {
 		public void windowClosing(WindowEvent e) {

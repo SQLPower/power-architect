@@ -40,45 +40,6 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 	}
 
 	/**
-	 * This constructor makes a new Relationship component as well as
-	 * a SQLRelationship model object.  It adds the SQLRelationship to
-	 * the pk and fk table models, and adds the primary key of pkTable
-	 * into the primary key of fkTable.
-	 */
-	public Relationship(PlayPen pp, TablePane pkTable, TablePane fkTable, boolean identifying) 
-		throws ArchitectException {
-		model = new SQLRelationship();
-		model.setName(pkTable.getModel().getName()+"_"+fkTable.getModel().getName()+"_fk"); // XXX: need to ensure uniqueness!
-		model.setIdentifying(identifying);
-		model.setPkTable(pkTable.getModel());
-		model.setFkTable(fkTable.getModel());
-
-		setPkTable(pkTable);
-		setFkTable(fkTable);
-
-		pkTable.getModel().addExportedKey(model);
-		fkTable.getModel().addImportedKey(model);
-		
-		// iterate over a copy of pktable's column list to avoid comodification
-		// when creating a self-referencing table
-		java.util.List pkColListCopy = new ArrayList(pkTable.getModel().getColumns().size());
-		pkColListCopy.addAll(pkTable.getModel().getColumns());
-		Iterator pkCols = pkColListCopy.iterator();
-		while (pkCols.hasNext()) {
-			SQLColumn pkCol = (SQLColumn) pkCols.next();
-			if (pkCol.getPrimaryKeySeq() == null) break;
-			SQLColumn fkCol = (SQLColumn) pkCol.clone();
-			fkTable.getModel().addColumn(fkCol);
-			if (identifying) {
-				fkCol.setPrimaryKeySeq(new Integer(fkTable.getModel().pkSize()));
-			}
-			model.addMapping(pkCol, fkCol);
-		}
-
-		setup();
-	}
-
-	/**
 	 * All constructors have to call this after setting pp, model, pkTable, and fkTable.
 	 */
 	protected void setup() {
