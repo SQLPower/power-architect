@@ -2,8 +2,13 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.event.*;
 import javax.swing.*;
+
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+
 import ca.sqlpower.architect.*;
+
 import org.apache.log4j.Logger;
 
 public class CreateRelationshipAction extends AbstractAction
@@ -53,13 +58,84 @@ public class CreateRelationshipAction extends AbstractAction
 
 	protected void doCreateRelationship() {
 		try {
-			Relationship r = new Relationship(pp, pkTable, fkTable, identifying);
+			SQLRelationship model = new SQLRelationship();
+			// XXX: need to ensure uniqueness of setName(), but 
+			// to_identifier should take care of this...			
+			model.setName(pkTable.getModel().getName()+"_"+fkTable.getModel().getName()+"_fk"); 
+			model.setIdentifying(identifying);
+			model.setPkTable(pkTable.getModel());
+			model.setFkTable(fkTable.getModel());
+
+			pkTable.getModel().addExportedKey(model);
+			fkTable.getModel().addImportedKey(model);
+			
+			// iterate over a copy of pktable's column list to avoid comodification
+			// when creating a self-referencing table
+			java.util.List pkColListCopy = new ArrayList(pkTable.getModel().getColumns().size());
+			pkColListCopy.addAll(pkTable.getModel().getColumns());
+			Iterator pkCols = pkColListCopy.iterator();
+			while (pkCols.hasNext()) {
+				SQLColumn pkCol = (SQLColumn) pkCols.next();
+				if (pkCol.getPrimaryKeySeq() == null) break;
+				SQLColumn fkCol = (SQLColumn) pkCol.clone();
+				// check to see if the FK table already has this column 
+				SQLColumn match = fkTable.getModel().getColumnByName(pkCol.getName());
+				if (match != null) {
+					// there is already a column of this name
+					if (match.getType() == pkCol.getType() &&
+					    match.getPrecision() == pkCol.getPrecision() &&
+						match.getScale() == pkCol.getScale()) {
+						// column is an exact match, so we don't have to recreate it
+						fkCol = match;
+					} else {
+						// ask the user if they would like to rename the column 
+						// or cancel the creation of the relationship						
+						int decision = JOptionPane.showConfirmDialog(pp,
+								 "The primary key column " + pkCol.getName() + " already exists " +
+								 " in the child table.  Continue using new name " +
+								 pkCol.getName() + "_1 ?",
+								 "Column Name Conflict",
+								 JOptionPane.YES_NO_OPTION);
+						if (decision == JOptionPane.YES_OPTION) {
+							// XXX: need to ensure uniqueness of setName(), 
+							// but to_identifier in DDLGenerator should take 
+							// care of this
+							fkCol.setName(generateUniqueColumnName(pkCol,fkTable.getModel())); 
+						} else {
+							model = null;
+							return; // abort the creation of this relationship
+						}										
+						fkTable.getModel().addColumn(fkCol);
+					}
+				} else {
+					// no match, so we need to import this column from PK table
+					fkTable.getModel().addColumn(fkCol);
+				}
+				
+				if (identifying && fkCol.getPrimaryKeySeq() == null) {
+					// add column to primary key (but only if it's not already there!!!
+					fkCol.setPrimaryKeySeq(new Integer(fkTable.getModel().pkSize()));
+				}
+				
+				model.addMapping(pkCol, fkCol);
+				
+				
+			}
+			
+			Relationship r = new Relationship(pp, model);
 			pp.add(r);
 			r.repaint();  // XXX: shouldn't be necessary, but it is.
 		} catch (ArchitectException ex) {
 			logger.error("Couldn't create relationship", ex);
 			JOptionPane.showMessageDialog(pp, "Couldn't create relationship: "+ex.getMessage());
 		}
+	}
+	
+	/*
+	 *  Ideally, loop through until you get a unique column name...
+	 */
+	private String generateUniqueColumnName(SQLColumn column, SQLTable table) {		
+		return column.getName() + "_1";  // XXX: fix this to be better
 	}
 	
 	public void setPlayPen(PlayPen playpen) {
@@ -106,7 +182,7 @@ public class CreateRelationshipAction extends AbstractAction
 			} else {
 				fkTable = (TablePane) s;
 				logger.debug("66666666666666 Creating relationship: FK Table is "+fkTable);
-				doCreateRelationship();
+				doCreateRelationship();  // this might fail, but still set things back to "normal"
 				pp.setCursor(null);
 				active = false;
 			}

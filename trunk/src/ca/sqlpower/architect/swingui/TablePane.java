@@ -445,7 +445,6 @@ public class TablePane
 		return ((TablePaneUI) ui).pointToColumnIndex(p);
 	}
 
-
 	// ------------------------ DROP TARGET LISTENER ------------------------
 
 	/**
@@ -782,8 +781,8 @@ public class TablePane
 					tp.selectColumn(clickCol);
 				}
 
-				// handle drag
-				if (clickCol == COLUMN_INDEX_TITLE) {
+				// handle drag (but not if createRelationshipAction is active!)				
+				if (clickCol == COLUMN_INDEX_TITLE && !ArchitectFrame.getMainInstance().createRelationshipIsActive()) {
 					Iterator it = getPlayPen().getSelectedTables().iterator();
 					logger.debug("event point: " + evt.getPoint());
 					logger.debug("zoomed event point: " + getPlayPen().zoomPoint(evt.getPoint()));
@@ -812,10 +811,7 @@ public class TablePane
 	}
 	
 	/*
-     * FIXME: this doesn't quite work, but maybe it doesn't matter?  Non-drag   
-     * selection of an already selected item should de-select everything else.  However,
-     * the current workaround is to just click off the selected items to deselect 
-     * everything and then click on the desired single item.
+	 * 
      */ 
 	public void mouseReleased(MouseEvent evt) {
 		TablePane tp = (TablePane) evt.getSource();
