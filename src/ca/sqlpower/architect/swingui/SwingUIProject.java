@@ -5,7 +5,12 @@ import ca.sqlpower.architect.ddl.*;
 import ca.sqlpower.architect.etl.*;
 import ca.sqlpower.sql.DBConnectionSpec;
 
+import java.awt.Container;
 import java.awt.Point;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.ContainerEvent;
+import java.awt.event.ContainerListener;
 import java.io.*;
 import java.util.*;
 import javax.swing.ProgressMonitor;
@@ -29,6 +34,11 @@ public class SwingUIProject {
 
 	// ------------------ load and save support -------------------
 
+	/**
+	 * Tracks whether or not this project has been modified since last saved.
+	 */
+	protected boolean modified;
+	
 	/**
 	 * Should be set to NULL unless we are currently saving the
 	 * project, at which time it's writing to the project file.
@@ -64,6 +74,8 @@ public class SwingUIProject {
 	 * The last value we sent to the progress monitor.
 	 */
 	protected int progress = 0;
+
+    private ProjectModificationWatcher projectModificationWatcher;
 
 	/**
 	 * Sets up a new project with the given name.
@@ -487,6 +499,7 @@ public class SwingUIProject {
 			savePlayPen();
 			indent--;
 			println("</architect-project>");
+			setModified(false);
 		} finally {
 			if (out != null) out.close();
 			out = null;
@@ -887,6 +900,7 @@ public class SwingUIProject {
 		if (sprefs != null) {
 		    playPen.setRenderingAntialiased(sprefs.getBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
 		}
+		projectModificationWatcher = new ProjectModificationWatcher(playPen);
 	}
 
 	public GenericDDLGenerator getDDLGenerator() {
@@ -962,4 +976,115 @@ public class SwingUIProject {
 		}
 		out.println(text);
 	}
+	
+    /**
+     * The ProjectModificationWatcher watches a PlayPen's components and
+     * business model for changes.  When it detects any, it marks the
+     * project dirty.
+     * 
+     * <p>Note: when we implement proper undo/redo support, this class should
+     * be replaced with a hook into that system.
+     */
+    private class ProjectModificationWatcher implements SQLObjectListener,
+            ComponentListener, ContainerListener {
+
+        /**
+         * Sets up a new modification watcher on the given playpen. 
+         */
+        public ProjectModificationWatcher(PlayPen pp) {
+            try {
+                ArchitectUtils.listenToHierarchy(this, pp.getDatabase());
+            } catch (ArchitectException e) {
+                logger.error("Can't listen to business model for changes", e);
+            }
+            PlayPenContentPane ppcp = pp.contentPane;
+            for (int i = 0; i < ppcp.getComponentCount(); i++) {
+                ppcp.getComponent(i).addComponentListener(this);
+                if (ppcp.getComponent(i) instanceof Container) {
+                    ((Container) ppcp.getComponent(i)).addContainerListener(this);
+                }
+            }
+        }
+
+        /** Marks project dirty, and starts listening to new kids. */
+        public void dbChildrenInserted(SQLObjectEvent e) {
+            setModified(true);
+            SQLObject[] newKids = e.getChildren();
+            for (int i = 0; i < newKids.length; i++) {
+                try {
+                    ArchitectUtils.listenToHierarchy(this, newKids[i]);
+                } catch (ArchitectException e1) {
+                    logger.error("Couldn't listen to SQLObject hierarchy rooted at "+newKids[i], e1);
+                }
+            }
+        }
+
+        /** Marks project dirty, and stops listening to removed kids. */
+        public void dbChildrenRemoved(SQLObjectEvent e) {
+            setModified(true);
+            SQLObject[] oldKids = e.getChildren();
+            for (int i = 0; i < oldKids.length; i++) {
+                oldKids[i].removeSQLObjectListener(this);
+            }
+        }
+
+        /** Marks project dirty. */
+        public void dbObjectChanged(SQLObjectEvent e) {
+            setModified(true);
+        }
+
+        /** Marks project dirty and listens to new hierarchy. */
+        public void dbStructureChanged(SQLObjectEvent e) {
+            try {
+                ArchitectUtils.listenToHierarchy(this, e.getSQLSource());
+            } catch (ArchitectException e1) {
+                logger.error("dbStructureChanged listener: Failed to listen to new project hierarchy", e1);
+            }
+        }
+
+        public void componentResized(ComponentEvent e) {
+            setModified(true);
+        }
+
+        public void componentMoved(ComponentEvent e) {
+            setModified(true);
+        }
+
+        public void componentShown(ComponentEvent e) {
+            // nothing to do
+        }
+
+        public void componentHidden(ComponentEvent e) {
+            // nothing to do
+        }
+
+        public void componentAdded(ContainerEvent e) {
+            e.getChild().addComponentListener(this);
+            if (e.getChild() instanceof Container) {
+                ((Container) e.getChild()).addContainerListener(this);
+            }
+        }
+        
+        public void componentRemoved(ContainerEvent e) {
+            e.getChild().removeComponentListener(this);
+            if (e.getChild() instanceof Container) {
+                ((Container) e.getChild()).removeContainerListener(this);
+            }
+        }
+    }
+    
+    /**
+     * See {@link #modified}.
+     */
+    public boolean isModified() {
+        return modified;
+    }
+    
+    /**
+     * See {@link #modified}.
+     */
+    public void setModified(boolean modified) {
+        if (logger.isDebugEnabled()) logger.debug("Project modified: "+modified);
+        this.modified = modified;
+    }
 }

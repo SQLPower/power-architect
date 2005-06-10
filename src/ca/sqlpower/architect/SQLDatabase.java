@@ -259,6 +259,8 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 
 		// no such catalog?
 		if (target == null) {
+		    if (logger.isDebugEnabled())
+		        logger.debug("getTableByName("+catalogName+","+schemaName+","+tableName+"): no such catalog!");
 			return null;
 		}
 
@@ -274,6 +276,8 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 
 		// no such schema or catalog.schema?
 		if (target == null) {
+		    if (logger.isDebugEnabled())
+		        logger.debug("getTableByName("+catalogName+","+schemaName+","+tableName+"): no such schema!");
 			return null;
 		}
 
@@ -297,6 +301,9 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 				}
 			}
 		}
+
+		if (logger.isDebugEnabled())
+	        logger.debug("getTableByName("+catalogName+","+schemaName+","+tableName+"): catalog and schema ok; no such table!");
 		return null;
 	}
 
