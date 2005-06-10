@@ -934,6 +934,7 @@ public class TablePane
             if (evt.getSource() == parentPP) {
                 if ("zoom".equals(evt.getPropertyName())) {
                     setCurrentFontRenderContext(parentPP.getFontRenderContext());
+                    revalidate();
                 }
             }
         }
