@@ -86,6 +86,13 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 				r.pkTable = db.getTableByName(rs.getString(1),  // catalog
 											  rs.getString(2),  // schema
 											  rs.getString(3)); // table
+				if (r.pkTable == null) {
+				    logger.error("addImportedRelationshipsToTable: Couldn't find exporting table "
+				            +rs.getString(1)+"."+rs.getString(2)+"."+rs.getString(3)
+				            +" in target database!");
+				    continue;
+				}
+
 				logger.debug("Looking for pk column '"+rs.getString(4)+"' in table '"+r.pkTable+"'");
 				m.pkColumn = r.pkTable.getColumnByName(rs.getString(4));
 				if (m.pkColumn == null) {

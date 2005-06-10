@@ -155,12 +155,11 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			java.util.List columnList = table.getColumns();
 			int cols = columnList.size();
 			Font font = c.getFont();
-			FontRenderContext frc = c.getCurrentFontRederContext();
-			if (font == null || frc == null) {
-				logger.error("getPreferredSize(): TablePane is missing font or fontRenderContext.");
-				logger.error("getPreferredSize(): component="+c.getName()+"; font="+font+"; frc="+frc);
+			if (font == null) {
+				logger.error("getPreferredSize(): TablePane is missing font.");
 				return null;
 			}
+			FontRenderContext frc = c.getCurrentFontRederContext();
 			FontMetrics metrics = c.getFontMetrics(font);
 			int fontHeight = metrics.getHeight();
 			height = insets.top + fontHeight + gap + c.getMargin().top + cols*fontHeight + boxLineThickness*2 + c.getMargin().bottom + insets.bottom;
@@ -169,7 +168,11 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			Iterator columnIt = table.getColumns().iterator();
 			while (columnIt.hasNext()) {
 				String theColumn = columnIt.next().toString();
-				width = Math.max(width, (int) font.getStringBounds(theColumn, frc).getWidth());
+				if (frc == null) {
+				    width = Math.max(width, metrics.stringWidth(theColumn));
+				} else {
+				    width = Math.max(width, (int) font.getStringBounds(theColumn, frc).getWidth());
+				}
 				logger.debug("new width is: " + width);
 			}
 			width += insets.left + c.getMargin().left + boxLineThickness*2 + c.getMargin().right + insets.right;
