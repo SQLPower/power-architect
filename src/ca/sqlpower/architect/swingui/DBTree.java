@@ -711,6 +711,7 @@ public class DBTree extends JTree implements DragSourceListener {
 													  boolean leaf,
 													  int row,
 													  boolean hasFocus) {
+		    SQLObject so = (SQLObject) value;
 			setText(value.toString());
 			if (value instanceof SQLDatabase) {
 				setIcon(dbIcon);
@@ -732,6 +733,11 @@ public class DBTree extends JTree implements DragSourceListener {
 				}
 			} else if (value instanceof SQLTable) {
 				setIcon(tableIcon);
+				if (((SQLTable) value).getObjectType() != null) {
+				    setText(((SQLTable) value).getName()+" ("+((SQLTable) value).getObjectType()+")");
+				} else {
+				    setText(((SQLTable) value).getName());
+				}
 			} else if (value instanceof SQLRelationship) {
 				setIcon(keyIcon);
 			} else {

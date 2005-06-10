@@ -1052,7 +1052,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	
 	
 	/**
-	 * Gets the value of objectType
+	 * Gets the type of table this object represents (TABLE or VIEW).
 	 *
 	 * @return the value of objectType
 	 */
@@ -1061,7 +1061,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	}
 
 	/**
-	 * Sets the value of objectType
+	 * Sets the type of table this object represents (TABLE or VIEW).
 	 *
 	 * @param argObjectType Value to assign to this.objectType
 	 */
