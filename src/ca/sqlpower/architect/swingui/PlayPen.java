@@ -1553,8 +1553,12 @@ public class PlayPen extends JPanel
      */
     public FontRenderContext getFontRenderContext() {
         Graphics2D g2 = (Graphics2D) getGraphics();
-        g2.scale(zoom, zoom);
-        FontRenderContext frc = g2.getFontRenderContext();
+        FontRenderContext frc = null;
+        if (g2 != null) {
+            g2.scale(zoom, zoom);
+            frc = g2.getFontRenderContext();
+            g2.dispose();
+        }
         if (logger.isDebugEnabled()) logger.debug("Returning frc="+frc);
         return frc;
     }
