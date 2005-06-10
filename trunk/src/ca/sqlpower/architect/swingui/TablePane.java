@@ -5,6 +5,9 @@ import java.awt.event.*;
 import java.awt.font.FontRenderContext;
 import java.awt.datatransfer.*;
 import java.awt.dnd.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
 import javax.swing.*;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -20,6 +23,11 @@ public class TablePane
 	implements SQLObjectListener, java.io.Serializable, Selectable, DragSourceListener, MouseListener {
 
 	private static final Logger logger = Logger.getLogger(TablePane.class);
+
+    /**
+     * The playpen this component lives in.
+     */
+    private PlayPen parentPP;
 
 	protected DragGestureListener dgl;
 	protected DragGestureRecognizer dgr;
@@ -79,26 +87,29 @@ public class TablePane
 
 	private SQLTable model;
 
-	private TablePane() {
+    private PropertyChangeListener propertyChangeListener;
+
+	public TablePane(SQLTable m, PlayPen parentPP) {
+	    this.parentPP = parentPP;
+		setModel(m);
+
 		setOpaque(true);
 		dt = new DropTarget(this, new TablePaneDropListener(this));
 
 		dgl = new TablePaneDragGestureListener();
 		ds = new DragSource();
-		// dgr = getToolkit().createDragGestureRecognizer(MouseDragGestureRecognizer.class, ds, this, DnDConstants.ACTION_MOVE, dgl);
 		dgr = ds.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_MOVE, dgl);
-
 		logger.info("motion threshold is: " + getToolkit().getDesktopProperty("DnD.gestureMotionThreshold"));		
 
 		setInsertionPoint(COLUMN_INDEX_NONE);
-		addMouseListener(this);
-		updateUI();
-	}
 
-	public TablePane(SQLTable m, FontRenderContext initialFontRenderContext) {
-		this();
-		setModel(m);
-		setRecentFontRenderContext(initialFontRenderContext);
+		addMouseListener(this);
+
+		setCurrentFontRenderContext(parentPP.getFontRenderContext());
+		propertyChangeListener = new TPPropertyChangeListener();
+		parentPP.addPropertyChangeListener(propertyChangeListener);
+
+		updateUI();
 	}
 
 
@@ -393,7 +404,7 @@ public class TablePane
 
 	protected LinkedList selectionListeners = new LinkedList();
 
-    private FontRenderContext recentFontRenderContext;
+    private FontRenderContext currentFontRederContext;
 
 	public void addSelectionListener(SelectionListener l) {
 		selectionListeners.add(l);
@@ -910,6 +921,24 @@ public class TablePane
 		}
 		draggingColumn = null;
 	}
+	
+	// -------------------- Property Change Listener ------------------
+
+    /**
+     * The TPPropertyChangeListener listens for property changes on related
+     * components, and updates TablePane state as necessary.
+     */
+    private class TPPropertyChangeListener implements PropertyChangeListener {
+
+        public void propertyChange(PropertyChangeEvent evt) {
+            if (evt.getSource() == parentPP) {
+                if ("zoom".equals(evt.getPropertyName())) {
+                    setCurrentFontRenderContext(parentPP.getFontRenderContext());
+                }
+            }
+        }
+
+    }
 
     /**
      * Returns a FontRenderContext object that was created by a Graphics2D that drew
@@ -919,14 +948,14 @@ public class TablePane
      * 
      * @return The most recent font render context given to setRecentFontRenderContext.
      */
-    public FontRenderContext getRecentFontRenderContext() {
-        return recentFontRenderContext;
+    public FontRenderContext getCurrentFontRederContext() {
+        return currentFontRederContext;
     }
 
     /**
      * @param fontRenderContext A font render context that is being used to render this component.
      */
-    public void setRecentFontRenderContext(FontRenderContext fontRenderContext) {
-        recentFontRenderContext = fontRenderContext;
+    public void setCurrentFontRenderContext(FontRenderContext fontRenderContext) {
+        currentFontRederContext = fontRenderContext;
     }
 }
