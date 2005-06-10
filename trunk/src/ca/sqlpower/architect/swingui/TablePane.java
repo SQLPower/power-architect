@@ -942,9 +942,9 @@ public class TablePane
     }
 
     /**
-     * Returns a FontRenderContext object that was created by a Graphics2D that drew
-     * this component.  This needs to be cached because this component is orphaned from
-     * the real swing of things by the PlayPenContentPane, so the getGraphics() method
+     * Returns a FontRenderContext object that was created by the parent playpen.  This 
+     * needs to be cached because this component is orphaned from
+     * the real swing of things by the PlayPenContentPane, so its own getGraphics() method
      * always returns null.  (Quelle bummer).
      * 
      * @return The most recent font render context given to setRecentFontRenderContext.
