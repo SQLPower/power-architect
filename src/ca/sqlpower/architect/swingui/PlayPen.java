@@ -740,7 +740,7 @@ public class PlayPen extends JPanel
 		}
 		if (logger.isDebugEnabled()) logger.debug("after add: " + tableNames);
 
-		TablePane tp = new TablePane(newTable, getFontRenderContext());
+		TablePane tp = new TablePane(newTable, this);
 		
 		logger.info("adding table "+newTable);
 		add(tp, preferredLocation);

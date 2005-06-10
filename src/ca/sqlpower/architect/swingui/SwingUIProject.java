@@ -406,7 +406,7 @@ public class SwingUIProject {
 			int x = Integer.parseInt(attributes.getValue("x"));
 			int y = Integer.parseInt(attributes.getValue("y"));
 			SQLTable tab = (SQLTable) objectIdMap.get(attributes.getValue("table-ref"));
-			TablePane tp = new TablePane(tab, playPen.getFontRenderContext());
+			TablePane tp = new TablePane(tab, playPen);
 			playPen.add(tp, new Point(x, y));
 			return tp;
 		}

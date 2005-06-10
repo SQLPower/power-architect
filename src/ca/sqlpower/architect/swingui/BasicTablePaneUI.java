@@ -46,8 +46,6 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 		try {
 			Graphics2D g2 = (Graphics2D) g;
 			
-			tp.setRecentFontRenderContext(g2.getFontRenderContext());
-
 			if (logger.isDebugEnabled()) {
 				Rectangle clip = g2.getClipBounds();
 				if (clip != null) {
@@ -157,7 +155,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			java.util.List columnList = table.getColumns();
 			int cols = columnList.size();
 			Font font = c.getFont();
-			FontRenderContext frc = c.getRecentFontRenderContext();
+			FontRenderContext frc = c.getCurrentFontRederContext();
 			if (font == null || frc == null) {
 				logger.error("getPreferredSize(): TablePane is missing font or fontRenderContext.");
 				logger.error("getPreferredSize(): component="+c.getName()+"; font="+font+"; frc="+frc);
