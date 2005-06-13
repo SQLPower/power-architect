@@ -361,6 +361,14 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	public boolean isPopulated() {
 		return true;
 	}
+	/*
+	 * Make sure, among other things, that the PK Listener is removed.
+	 */
+	public void removeDependencies() {
+		if (pkTable != null) {
+			pkTable.columnsFolder.removeSQLObjectListener(fkColumnManager);
+		}		
+	}
 	
 	
 	// ----------------- accessors and mutators -------------------
