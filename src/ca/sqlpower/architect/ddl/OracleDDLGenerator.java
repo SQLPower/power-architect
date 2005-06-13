@@ -4,52 +4,134 @@ import java.sql.*;
 import java.util.*;
 import java.util.regex.*;
 import org.apache.log4j.Logger;             
-import java.io.*;
 
 public class OracleDDLGenerator extends GenericDDLGenerator {
 	public static final String GENERATOR_VERSION = "$Revision$";
 
 	private static final Logger logger = Logger.getLogger(OracleDDLGenerator.class);
 
-	private static ArrayList reservedWords;
+	private static HashSet reservedWords;
 	
 	static {
-		reservedWords = new ArrayList();		
-		BufferedReader br = null;
-		try {
-			br = new BufferedReader (new FileReader("oracle_reserved_words.txt"));		
-			while (br.ready()) {
-				String s = br.readLine();
-				if (s != null && s.length() > 0) {
-					reservedWords.add(s);
-				}
-			}
-		} catch (IOException ie) {
-			logger.error("problem parsing reserved words file", ie);
-		} finally { 
-   			try {
-				if (br != null) {
-					br.close();
-				}
-			} catch (IOException ie2) {
-				logger.error("problem closing reserved words file");
-			}
-		}
+		reservedWords = new HashSet();
+		reservedWords.add("ACCESS");
+		reservedWords.add("ADD");
+		reservedWords.add("ALL");
+		reservedWords.add("ALTER");
+		reservedWords.add("AND");
+		reservedWords.add("ANY");
+		reservedWords.add("ARRAYLEN");
+		reservedWords.add("AS");
+		reservedWords.add("ASC");
+		reservedWords.add("AUDIT");
+		reservedWords.add("BETWEEN");
+		reservedWords.add("BY");
+		reservedWords.add("CHAR");
+		reservedWords.add("CHECK");
+		reservedWords.add("CLUSTER");
+		reservedWords.add("COLUMN");
+		reservedWords.add("COMMENT");
+		reservedWords.add("COMPRESS");
+		reservedWords.add("CONNECT");
+		reservedWords.add("CREATE");
+		reservedWords.add("CURRENT");
+		reservedWords.add("DATE");
+		reservedWords.add("DECIMAL");
+		reservedWords.add("DEFAULT");
+		reservedWords.add("DELETE");
+		reservedWords.add("DESC");
+		reservedWords.add("DISTINCT");
+		reservedWords.add("DROP");
+		reservedWords.add("ELSE");
+		reservedWords.add("EXCLUSIVE");
+		reservedWords.add("EXISTS");
+		reservedWords.add("FILE");
+		reservedWords.add("FLOAT");
+		reservedWords.add("FOR");
+		reservedWords.add("FROM");
+		reservedWords.add("GRANT");
+		reservedWords.add("GROUP");
+		reservedWords.add("HAVING");
+		reservedWords.add("IDENTIFIED");
+		reservedWords.add("IMMEDIATE");
+		reservedWords.add("IN");
+		reservedWords.add("INCREMENT");
+		reservedWords.add("INDEX");
+		reservedWords.add("INITIAL");
+		reservedWords.add("INSERT");
+		reservedWords.add("INTEGER");
+		reservedWords.add("INTERSECT");
+		reservedWords.add("INTO");
+		reservedWords.add("IS");
+		reservedWords.add("LEVEL");
+		reservedWords.add("LIKE");
+		reservedWords.add("LOCK");
+		reservedWords.add("LONG");
+		reservedWords.add("MAXEXTENTS");
+		reservedWords.add("MINUS");
+		reservedWords.add("MODE");
+		reservedWords.add("MODIFY");
+		reservedWords.add("NOAUDIT");
+		reservedWords.add("NOCOMPRESS");
+		reservedWords.add("NOT");
+		reservedWords.add("NOTFOUND");
+		reservedWords.add("NOWAIT");
+		reservedWords.add("NULL");
+		reservedWords.add("NUMBER");
+		reservedWords.add("OF");
+		reservedWords.add("OFFLINE");
+		reservedWords.add("ON");
+		reservedWords.add("ONLINE");
+		reservedWords.add("OPTION");
+		reservedWords.add("OR");
+		reservedWords.add("ORDER");
+		reservedWords.add("PCTFREE");
+		reservedWords.add("PRIOR");
+		reservedWords.add("PRIVILEGES");
+		reservedWords.add("PUBLIC");
+		reservedWords.add("RAW");
+		reservedWords.add("RENAME");
+		reservedWords.add("RESOURCE");
+		reservedWords.add("REVOKE");
+		reservedWords.add("ROW");
+		reservedWords.add("ROWID");
+		reservedWords.add("ROWLABEL");
+		reservedWords.add("ROWNUM");
+		reservedWords.add("ROWS");
+		reservedWords.add("START");
+		reservedWords.add("SELECT");
+		reservedWords.add("SESSION");
+		reservedWords.add("SET");
+		reservedWords.add("SHARE");
+		reservedWords.add("SIZE");
+		reservedWords.add("SMALLINT");
+		reservedWords.add("SQLBUF");
+		reservedWords.add("SUCCESSFUL");
+		reservedWords.add("SYNONYM");
+		reservedWords.add("SYSDATE");
+		reservedWords.add("TABLE");
+		reservedWords.add("THEN");
+		reservedWords.add("TO");
+		reservedWords.add("TRIGGER");
+		reservedWords.add("UID");
+		reservedWords.add("UNION");
+		reservedWords.add("UNIQUE");
+		reservedWords.add("UPDATE");
+		reservedWords.add("USER");
+		reservedWords.add("VALIDATE");
+		reservedWords.add("VALUES");
+		reservedWords.add("VARCHAR");
+		reservedWords.add("VARCHAR2");
+		reservedWords.add("VIEW");
+		reservedWords.add("WHENEVER");
+		reservedWords.add("WHERE");
+		reservedWords.add("WITH");		
 	}
 
 	private static boolean isReservedWord(String word) {
-		boolean found = false;
-		Iterator it = reservedWords.iterator();
-		while (!found && it.hasNext()) {
-			String s = (String) it.next();
-			if (word.toUpperCase().equals(s.toUpperCase())) {
-				found = true;
-			}
-		}
-		return found;
+		return reservedWords.contains(word.toUpperCase());
 	}
 		
-
 	public void writeHeader() {
 		println("-- Created by SQLPower Oracle 8i/9i DDL Generator "+GENERATOR_VERSION+" --");
 	}
