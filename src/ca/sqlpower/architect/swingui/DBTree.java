@@ -479,7 +479,10 @@ public class DBTree extends JTree implements DragSourceListener {
 				// check to see if we've already seen this one
 				if (dbcsAlreadyExists(dbcs)) {
 					logger.warn("database already exists in this project.");
-					JOptionPane.showMessageDialog(DBTree.this, "Can't add connection, connection already exists in this project.", "Warning", JOptionPane.WARNING_MESSAGE);
+					JOptionPane.showMessageDialog(DBTree.this, "Can't add connection " 
+							                                   + dbcs.getDisplayName() 
+															   + ".  It already exists in the current project.", 
+												  "Warning", JOptionPane.WARNING_MESSAGE);
 				} else {				
 					SQLDatabase newDB = new SQLDatabase(dbcs);		
 					root.addChild(root.getChildCount(), newDB);
