@@ -473,20 +473,31 @@ public class SwingUIProject {
 	}
 
 	// ------------- WRITING THE PROJECT FILE ---------------
+	
+	/**
+	 * Saves this project by writing an XML description of it to disk.  The
+	 * location of the file is determined by this project's <code>file</code> property.
+	 * 
+	 * @param pm An optional progress monitor which will be initialised then updated 
+	 * periodically during the save operation.  If you use a progress monitor, don't
+	 * invoke this method on the AWT event dispatch thread!
+	 */
 	public void save(ProgressMonitor pm) throws IOException, ArchitectException {
 		out = new PrintWriter(new BufferedWriter(new FileWriter(file)));
 		objectIdMap = new HashMap();
 		dbcsIdMap = new HashMap();
 		indent = 0;
-		this.pm = pm;
-		pm.setMinimum(0);
-		int pmMax = countSourceTables((SQLObject) sourceDatabases.getModel().getRoot())
-			+ playPen.getPPComponentCount() * 2;
-		logger.debug("Setting progress monitor maximum to "+pmMax);
-		pm.setMaximum(pmMax);
 		progress = 0;
-		pm.setProgress(progress);
-		pm.setMillisToDecideToPopup(500);
+		this.pm = pm;
+		if (pm != null) {
+		    pm.setMinimum(0);
+		    int pmMax = countSourceTables((SQLObject) sourceDatabases.getModel().getRoot())
+		    				+ playPen.getPPComponentCount() * 2;
+		    logger.debug("Setting progress monitor maximum to "+pmMax);
+		    pm.setMaximum(pmMax);
+		    pm.setProgress(progress);
+		    pm.setMillisToDecideToPopup(500);
+		}
 		try {
 			println("<?xml version=\"1.0\"?>");
 			println("<architect-project version=\"0.1\">");
@@ -651,8 +662,10 @@ public class SwingUIProject {
 			Point p = tp.getLocation();
 			println("<table-pane table-ref=\""+objectIdMap.get(tp.getModel())+"\""
 					+" x=\""+p.x+"\" y=\""+p.y+"\" />");
-			pm.setProgress(++progress);
-			pm.setNote(tp.getModel().getShortDisplayName());
+			if (pm != null) {
+			    pm.setProgress(++progress);
+			    pm.setNote(tp.getModel().getShortDisplayName());
+			}
 		}
 
 		it = playPen.getRelationships().iterator();
@@ -712,8 +725,10 @@ public class SwingUIProject {
 			propNames.put("remarks", ((SQLTable) o).getRemarks());
 			propNames.put("objectType", ((SQLTable) o).getObjectType());
 			propNames.put("primaryKeyName", ((SQLTable) o).getPrimaryKeyName());
-			pm.setProgress(++progress);
-			pm.setNote(o.getShortDisplayName());
+			if (pm != null) {
+			    pm.setProgress(++progress);
+			    pm.setNote(o.getShortDisplayName());
+			}
 		} else if (o instanceof SQLTable.Folder) {
 			id = "FOL"+objectIdMap.size();
 			type = "folder";
@@ -998,6 +1013,8 @@ public class SwingUIProject {
                 logger.error("Can't listen to business model for changes", e);
             }
             PlayPenContentPane ppcp = pp.contentPane;
+            ppcp.addComponentListener(this);
+            ppcp.addContainerListener(this);
             for (int i = 0; i < ppcp.getComponentCount(); i++) {
                 ppcp.getComponent(i).addComponentListener(this);
                 if (ppcp.getComponent(i) instanceof Container) {

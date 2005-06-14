@@ -61,30 +61,57 @@ public class ArchitectFrame extends JFrame {
 	protected ExportPLTransAction exportPLTransAction;
 	protected ArchitectFrameWindowListener afWindowListener;
 	protected Action exitAction = new AbstractAction("Exit") {
-			public void actionPerformed(ActionEvent e) {
-				exit();
-			}
-		};
-
+	    public void actionPerformed(ActionEvent e) {
+	        exit();
+	    }
+	};
+	
 	/**
 	 * Updates the swing settings and then writes all settings to the
 	 * config file whenever actionPerformed is invoked.
 	 */
 	protected Action saveSettingsAction = new AbstractAction("Save Settings") {
-			public void actionPerformed(ActionEvent e) {
-				try {
-					saveSettings();
-				} catch (ArchitectException ex) {
-					logger.error("Couldn't save settings", ex);
-				}
-			}
-		};
-
+	    public void actionPerformed(ActionEvent e) {
+	        try {
+	            saveSettings();
+	        } catch (ArchitectException ex) {
+	            logger.error("Couldn't save settings", ex);
+	        }
+	    }
+	};
+	
+	/**
+	 * Tracks whether or not the most recent "save project" operation was successful.
+	 */
+	private boolean lastSaveOpSuccessful;
+	
 	public ArchitectFrame() throws ArchitectException {
-		mainInstance = this;
-		architectSession = ArchitectSession.getInstance();
-		init();
+	    mainInstance = this;
+	    architectSession = ArchitectSession.getInstance();
+	    init();
 	}
+	
+	/**
+	 * Checks if the project is modified, and if so presents the user with the option to save
+	 * the existing project.  This is useful to use in actions that are about to get rid of
+	 * the currently open project.
+	 * 
+	 * @return True if the project can be closed; false if the project should remain open.
+	 */
+    protected boolean promptForUnsavedModifications() {
+        if (project.isModified()) {
+            int response = JOptionPane.showOptionDialog(ArchitectFrame.this, "Your project has unsaved changes", "Unsaved Changes", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, new Object[] {"Don't Save", "Cancel", "Save"}, "Save");
+            if (response == 0) {
+                return true;
+            } else if (response == JOptionPane.CLOSED_OPTION || response == 1) {
+                return false;
+            } else {
+                return saveOrSaveAs(false, false);
+            }
+        } else {
+            return true;
+        }
+    }
 
 	protected void init() throws ArchitectException {
 
@@ -103,15 +130,17 @@ public class ArchitectFrame extends JFrame {
 			 = new AbstractAction("New Project",
 					      ASUtils.createJLFIcon("general/New","New Project",sprefs.getInt(SwingUserSettings.ICON_SIZE, 24))) {
 			public void actionPerformed(ActionEvent e) {
-				try {
-					setProject(new SwingUIProject("New Project"));
-					logger.debug("Glass pane is "+getGlassPane());
-					getGlassPane().setVisible(true);
-				} catch (Exception ex) {
-					JOptionPane.showMessageDialog(ArchitectFrame.this,
-												  "Can't create new project: "+ex.getMessage());
-					logger.error("Got exception while creating new project", ex);
-				}
+			    if (promptForUnsavedModifications()) {
+			        try {
+			            setProject(new SwingUIProject("New Project"));
+			            logger.debug("Glass pane is "+getGlassPane());
+			            getGlassPane().setVisible(true);
+			        } catch (Exception ex) {
+			            JOptionPane.showMessageDialog(ArchitectFrame.this,
+			                    "Can't create new project: "+ex.getMessage());
+			            logger.error("Got exception while creating new project", ex);
+			        }
+			    }
 			}
 		};
 		newProjectAction.putValue(AbstractAction.SHORT_DESCRIPTION, "New");
@@ -122,32 +151,34 @@ public class ArchitectFrame extends JFrame {
 													   "Open Project",
 													   sprefs.getInt(SwingUserSettings.ICON_SIZE, 24))) {
 					public void actionPerformed(ActionEvent e) {
-						JFileChooser chooser = new JFileChooser();
-						chooser.addChoosableFileFilter(ASUtils.ARCHITECT_FILE_FILTER);
-						int returnVal = chooser.showOpenDialog(ArchitectFrame.this);
-						if (returnVal == JFileChooser.APPROVE_OPTION) {
-							final File file = chooser.getSelectedFile();							
-                            new Thread() {
-								public void run() {
-									try {
-										SwingUIProject project = new SwingUIProject("Loading...");
-										project.setFile(file);
-										InputStream in = new BufferedInputStream
-											(new ProgressMonitorInputStream
-											 (ArchitectFrame.this,
-											  "Reading " + file.getName(),
-											  new FileInputStream(file)));
-										project.load(in);
-										setProject(project);
-									} catch (Exception ex) {
-										JOptionPane.showMessageDialog
-											(ArchitectFrame.this,
-											 "Can't open project: "+ex.getMessage());
-										logger.error("Got exception while opening project", ex);
-									}
-								}
-							}.start();
-						}
+					    if (promptForUnsavedModifications()) {
+					        JFileChooser chooser = new JFileChooser();
+					        chooser.addChoosableFileFilter(ASUtils.ARCHITECT_FILE_FILTER);
+					        int returnVal = chooser.showOpenDialog(ArchitectFrame.this);
+					        if (returnVal == JFileChooser.APPROVE_OPTION) {
+					            final File file = chooser.getSelectedFile();							
+					            new Thread() {
+					                public void run() {
+					                    try {
+					                        SwingUIProject project = new SwingUIProject("Loading...");
+					                        project.setFile(file);
+					                        InputStream in = new BufferedInputStream
+					                        (new ProgressMonitorInputStream
+					                                (ArchitectFrame.this,
+					                                        "Reading " + file.getName(),
+					                                        new FileInputStream(file)));
+					                        project.load(in);
+					                        setProject(project);
+					                    } catch (Exception ex) {
+					                        JOptionPane.showMessageDialog
+					                        (ArchitectFrame.this,
+					                                "Can't open project: "+ex.getMessage());
+					                        logger.error("Got exception while opening project", ex);
+					                    }
+					                }
+					            }.start();
+					        }
+					    }
 					}
 				};
 		openProjectAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Open");
@@ -158,7 +189,7 @@ public class ArchitectFrame extends JFrame {
 													   "Save Project",
 													   sprefs.getInt(SwingUserSettings.ICON_SIZE, 24))) {
 					public void actionPerformed(ActionEvent e) {
-						saveOrSaveAs(false);
+						saveOrSaveAs(false, true);
 					}
 				};
 		saveProjectAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Save");
@@ -169,7 +200,7 @@ public class ArchitectFrame extends JFrame {
 													   "Save Project As...",
 													   sprefs.getInt(SwingUserSettings.ICON_SIZE, 24))) {
 					public void actionPerformed(ActionEvent e) {
-						saveOrSaveAs(true);
+						saveOrSaveAs(true, true);
 					}
 				};
 		saveProjectAsAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Save As");
@@ -391,12 +422,14 @@ public class ArchitectFrame extends JFrame {
 	 * JVM.
 	 */
 	public void exit() {
-		try {
-			saveSettings();
-		} catch (ArchitectException e) {
-			logger.error("Couldn't save settings: "+e);
-		}
-		System.exit(0);
+	    if (promptForUnsavedModifications()) {
+	        try {
+	            saveSettings();
+	        } catch (ArchitectException e) {
+	            logger.error("Couldn't save settings: "+e);
+	        }
+	        System.exit(0);
+	    }
 	}
 
 	/**
@@ -420,13 +453,27 @@ public class ArchitectFrame extends JFrame {
 			});
 	}
 
-	public void saveOrSaveAs(boolean showChooser) {
+	/**
+	 * Saves the project, showing a file chooser when appropriate.
+	 * 
+	 * @param showChooser If true, a chooser will always be shown; otherwise a
+	 * chooser will only be shown if the project has no file associated with it
+	 * (this is usually because it has never been saved before).
+	 * @param separateThread If true, the (possibly lengthy) save operation
+	 * will be executed in a separate thread and this method will return immediately.
+	 * Otherwise, the save operation will proceed on the current thread.
+	 * @return True if the project was saved successfully; false otherwise.  If saving
+	 * on a separate thread, a result of <code>true</code> is just an optimistic guess,
+	 * and there is no way to discover if the save operation has eventually succeeded or
+	 * failed.
+	 */
+	public boolean saveOrSaveAs(boolean showChooser, boolean separateThread) {
 		if (project.getFile() == null || showChooser) {
 			JFileChooser chooser = new JFileChooser(project.getFile());
 			chooser.addChoosableFileFilter(ASUtils.ARCHITECT_FILE_FILTER);
 			int response = chooser.showSaveDialog(ArchitectFrame.this);
 			if (response != JFileChooser.APPROVE_OPTION) {
-				return;
+				return false;
 			} else {
 				File file = chooser.getSelectedFile();
 				if (!file.getPath().endsWith(".architect")) {
@@ -438,8 +485,7 @@ public class ArchitectFrame extends JFrame {
 				            "The file\n\n"+file.getPath()+"\n\nalready exists. Do you want to overwrite it?",
 				            "File Exists", JOptionPane.YES_NO_OPTION);
 				    if (response == JOptionPane.NO_OPTION) {
-				        saveOrSaveAs(true);
-				        return;
+				        return saveOrSaveAs(true, separateThread);
 				    }
 				}
 				project.setFile(file);
@@ -448,19 +494,30 @@ public class ArchitectFrame extends JFrame {
 				setTitle(projName);
 			}
 		}
+		final boolean finalSeparateThread = separateThread;
 		final ProgressMonitor pm = new ProgressMonitor
 			(ArchitectFrame.this, "Saving Project", "", 0, 100);
-		new Thread() {
+		Runnable saveTask = new Runnable() {
 			public void run() {
 				try {
-					project.save(pm);
+					lastSaveOpSuccessful = false;
+					project.save(finalSeparateThread ? pm : null);
+					lastSaveOpSuccessful = true;
 				} catch (Exception ex) {
+					lastSaveOpSuccessful = false;
 					JOptionPane.showMessageDialog
 						(ArchitectFrame.this,
 						 "Can't save project: "+ex.getMessage());
 					logger.error("Got exception while saving project", ex);
 				}
 			}
-		}.start();
+		};
+		if (separateThread) {
+		    new Thread(saveTask).start();
+		    return true; // this is an optimistic lie
+		} else {
+		    saveTask.run();
+		    return lastSaveOpSuccessful;
+		}
 	}
 }
