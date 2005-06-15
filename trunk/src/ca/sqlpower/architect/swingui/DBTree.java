@@ -512,9 +512,6 @@ public class DBTree extends JTree implements DragSourceListener {
 		public void actionPerformed(ActionEvent e) {
 			DBConnectionSpec dbcs = new DBConnectionSpec();
 			edittingDB = new SQLDatabase(dbcs);
-			// start a thread to poke the new SQLDatabase object
-			Thread thread = new PokeDBThread(edittingDB);
-			thread.start();						
 			panelHoldsNewDBCS = true;
 			dbcsPanel.setDbcs(dbcs);
 			propDialog.setVisible(true);

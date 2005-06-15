@@ -111,7 +111,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 		}
 	}
 
-	public void populate() throws ArchitectException {
+	public synchronized void populate() throws ArchitectException {
 		if (populated) return;
 		int oldSize = children.size();
 		

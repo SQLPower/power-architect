@@ -18,7 +18,6 @@ public class SQLCatalog extends SQLObject {
 	private static Logger logger = Logger.getLogger(SQLCatalog.class);
 	protected SQLObject parent;
 	protected String catalogName;
-	protected boolean populated = false;
 
 	/**
 	 * The term used for catalogs in the native database system.  In
