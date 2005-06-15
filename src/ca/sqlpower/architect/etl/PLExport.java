@@ -698,12 +698,12 @@ public class PLExport implements Monitorable {
 				throw new ArchitectException("couldn't load default parameters", p);
 			}
 			// don't need to verify passwords in client apps (as opposed to webapps)
+
 			try {
 				sm = new PLSecurityManager(con, plUsername, plPassword, false);
 			} catch (PLSecurityException se) {
 				throw new ArchitectException("Could not find login for: " + plUsername, se);
 			}
-
 			logWriter.info("Starting creation of job <" + jobId + "> at " + new java.util.Date(System.currentTimeMillis()));
 			logWriter.info("Connected to database: " + plDBCS.toString());
 			maybeInsertFolder(con);			
