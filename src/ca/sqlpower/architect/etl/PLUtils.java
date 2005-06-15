@@ -52,6 +52,7 @@ public class PLUtils {
 					String key = line.substring(0, equalsIdx);
 					String value = line.substring(equalsIdx+1, line.length());
 					currentSpec.setProperty(key, value);
+					logger.debug("key="+key+",val="+value);
 				} else {
 					logger.debug("pl.ini entry lacks = sign: "+line);
 				}
@@ -86,7 +87,7 @@ public class PLUtils {
 		StringBuffer password = new StringBuffer(encryptedPassword.length());
 		
 		for (int i = 0, n = encryptedPassword.length(); i < n; i++) {
-			logger.debug("input char = "+(int)encryptedPassword.charAt(i));
+			logger.debug("input char = "+encryptedPassword.charAt(i)+"(" + (int)encryptedPassword.charAt(i) + ")" );
 			int temp = ((encryptedPassword.charAt(i) & 0x00ff) ^ (10 - number));
 
 			if (i % 2 == 1) {
@@ -94,7 +95,7 @@ public class PLUtils {
 			} else {
 				temp -= number;
 			}
-			
+			logger.debug("output char = " + (char) temp + "(" + temp + ")");
 			password.append((char) temp);
 		}
 
@@ -104,7 +105,7 @@ public class PLUtils {
 	public static boolean plDotIniHasChanged(String plDotIniPath) {
 		File inputFile = new File(plDotIniPath);
 		boolean retVal = false;
-		logger.debug("last mod=" + new Date(inputFile.lastModified()) + ", currTimestamp=" + plLastReadTimestamp);
+		// logger.debug("last mod=" + new Date(inputFile.lastModified()) + ", currTimestamp=" + plLastReadTimestamp);
 		if (inputFile.lastModified() > plLastReadTimestamp.getTime()) {
 			retVal = true;
 		}
