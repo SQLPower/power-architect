@@ -88,6 +88,7 @@ public class PLExport implements Monitorable {
 				sql.append(",").append(SQL.quote(null));  // last_backup_no
 				sql.append(")");
 				logWriter.info("Insert into PL FOLDER, PK=" + folderName);
+				logger.debug("MAYBE INSERT SQL: " + sql.toString());
 				stmt.executeUpdate(sql.toString());
 			}
 		} finally {
@@ -113,6 +114,7 @@ public class PLExport implements Monitorable {
 		logWriter.info("Insert into PL FOLDER_DETAIL, PK=" + folderName + "|" + objectType + "|" + objectName);
 		Statement s = con.createStatement();
 		try {
+			logger.debug("INSERT FOLDER DETAIL SQL: " + sql.toString());
 			s.executeUpdate(sql.toString());
 		} finally {
 			if (s != null) {
@@ -127,7 +129,7 @@ public class PLExport implements Monitorable {
 	 * transactions in the job.
 	 *
 	 */
-	public void deleteJobCascade(Connection con) throws SQLException, PLSecurityException {
+	public void deleteJobCascade(Connection con) throws SQLException, PLSecurityException, ArchitectException {
 		Statement stmt = con.createStatement();
 		ResultSet rs = null;
 		try {
@@ -137,27 +139,40 @@ public class PLExport implements Monitorable {
 			sql.append(" WHERE object_type = 'TRANSACTION'");
 			sql.append(" AND job_id = ").append(SQL.quote(jobId));
 			logWriter.info("Starting cascade DELETE on job_id=" + jobId);				
+			logger.debug("READING JOB DETAIL RECORDS: " + sql.toString());
 			rs = stmt.executeQuery(sql.toString());
 			while (rs.next()) {
 				jobTransactions.add(rs.getString(1));
 			}
 			rs.close();
+			logger.debug("found job transactions count: " + jobTransactions.size());
 			Iterator it = jobTransactions.iterator();
 			while (it.hasNext()) {
 				String transId = (String) it.next();
 				PLTrans trans = new PLTrans(transId);
+				logger.debug("deleting associated security objects for: " + transId);
 				PLSecurityManager.deleteDatabaseObject(con, sm, trans);
 				logWriter.info("Cascade DELETE on trans_id=" + transId + "/" + jobId);				
-				stmt.executeUpdate("DELETE FROM pl_folder_detail WHERE object_type='TRANSACTION'"+
+				int deleteCount = 0;
+				deleteCount = stmt.executeUpdate("DELETE FROM pl_folder_detail WHERE object_type='TRANSACTION'"+
 								   " AND object_name="+SQL.quote(transId));
-				stmt.executeUpdate("DELETE FROM trans_col_map WHERE trans_id="+SQL.quote(transId));
-				stmt.executeUpdate("DELETE FROM trans_table_file_format WHERE trans_id="+SQL.quote(transId));
-				stmt.executeUpdate("DELETE FROM trans_table_except_handle WHERE trans_id="+SQL.quote(transId));
-				stmt.executeUpdate("DELETE FROM trans_table_pkg WHERE trans_id="+SQL.quote(transId));
-				stmt.executeUpdate("DELETE FROM trans_table_file WHERE trans_id="+SQL.quote(transId));
-				stmt.executeUpdate("DELETE FROM trans_pkg WHERE trans_id="+SQL.quote(transId));
-				stmt.executeUpdate("DELETE FROM trans_except_handle WHERE trans_id="+SQL.quote(transId));
-				stmt.executeUpdate("DELETE FROM trans WHERE trans_id="+SQL.quote(transId));
+				logger.debug("delete pl_folder_detail count: " + deleteCount);
+				deleteCount = stmt.executeUpdate("DELETE FROM trans_col_map WHERE trans_id="+SQL.quote(transId));
+				logger.debug("delete trans_col_map for " + transId + ": " + deleteCount);
+				deleteCount = stmt.executeUpdate("DELETE FROM trans_table_file_format WHERE trans_id="+SQL.quote(transId));
+				logger.debug("delete trans_table_file_format count for " + transId + ": " + deleteCount);
+				deleteCount = stmt.executeUpdate("DELETE FROM trans_table_except_handle WHERE trans_id="+SQL.quote(transId));
+				logger.debug("delete trans_table_except count for " + transId + ": " + deleteCount);
+				deleteCount = stmt.executeUpdate("DELETE FROM trans_table_pkg WHERE trans_id="+SQL.quote(transId));
+				logger.debug("delete trans_table_pkg count for " + transId + ": " + deleteCount);
+				deleteCount = stmt.executeUpdate("DELETE FROM trans_table_file WHERE trans_id="+SQL.quote(transId));
+				logger.debug("delete trans_table_file count for " + transId + ": " + deleteCount);
+				deleteCount = stmt.executeUpdate("DELETE FROM trans_pkg WHERE trans_id="+SQL.quote(transId));
+				logger.debug("delete trans_pkg count for " + transId + ": " + deleteCount);
+				deleteCount = stmt.executeUpdate("DELETE FROM trans_except_handle WHERE trans_id="+SQL.quote(transId));
+				logger.debug("delete trans_except_handle count for " + transId + ": " + deleteCount);
+				deleteCount = stmt.executeUpdate("DELETE FROM trans WHERE trans_id="+SQL.quote(transId));
+				logger.debug("delete trans count for " + transId + ": " + deleteCount);
 			}
 
 			job = new PLJob(jobId);
@@ -166,6 +181,14 @@ public class PLExport implements Monitorable {
 							   " AND object_name="+SQL.quote(jobId));
 			stmt.executeUpdate("DELETE FROM job_detail WHERE job_id="+SQL.quote(jobId));
 			stmt.executeUpdate("DELETE FROM pl_job WHERE job_id="+SQL.quote(jobId)); 
+		} catch (SQLException se) {
+			throw se;
+		} catch (PLSecurityException plse) {
+			throw plse;		
+		} catch (Exception ex) {
+			// what happened???
+			ex.printStackTrace();
+			throw new ArchitectException("something bad happened in deleteJobCascade",ex);
 		} finally {
 			if (rs != null) rs.close();
 			if (stmt != null) stmt.close();
@@ -191,8 +214,10 @@ public class PLExport implements Monitorable {
 		sql.append(",").append(SQL.quote(null));  // MAX_RETRY_COUNT
 		sql.append(",").append(SQL.quote(null));  // WRITE_DB_ERRORS_IND
 		sql.append(",").append(SQL.quote(null));  // ROLLBACK_SEGMENT_NAME
-		sql.append(",").append(SQL.quote(fixWindowsPath(defParam.get("default_log_file_path"))+jobId+".log"));  // LOG_FILE_NAME
-		sql.append(",").append(SQL.quote(fixWindowsPath(defParam.get("default_err_file_path"))+jobId+".err"));  // ERR_FILE_NAME
+		logger.debug("default log path is: " + defParam.get("default_log_file_path"));
+		logger.debug("default err path is: " + defParam.get("default_err_file_path"));
+		sql.append(",").append(SQL.quote(escapeString(con,fixWindowsPath(defParam.get("default_log_file_path")))+jobId+".log"));  // LOG_FILE_NAME
+		sql.append(",").append(SQL.quote(escapeString(con,fixWindowsPath(defParam.get("default_err_file_path")))+jobId+".err"));  // ERR_FILE_NAME
 		sql.append(",").append(SQL.quote(fixUnixPath(defParam.get("default_log_file_path"))+jobId+".log"));  // UNIX_LOG_FILE_NAME
 		sql.append(",").append(SQL.quote(fixUnixPath(defParam.get("default_err_file_path"))+jobId+".err"));  // UNIX_ERR_FILE_NAME
 		sql.append(",").append(SQL.quote("N"));  // APPEND_TO_LOG_IND
@@ -223,6 +248,7 @@ public class PLExport implements Monitorable {
 		logWriter.info("INSERT into PL_JOB, PK=" + jobId);
 		
 		try {
+			logger.debug("INSERT PL_JOB: " + sql.toString());
 			s.executeUpdate(sql.toString());
 		} finally {
 			if (s != null) {
@@ -259,6 +285,7 @@ public class PLExport implements Monitorable {
 		logWriter.info("INSERT into JOB_DETAIL, PK=" + jobId + "|" + seqNo);
 		Statement s = con.createStatement();
 		try {
+			logger.debug("INSERT JOB_DETAIL: " + sql.toString());
 			s.executeUpdate(sql.toString());
 		} finally {
 			if (s != null) {
@@ -307,15 +334,18 @@ public class PLExport implements Monitorable {
 		sql.append(",\n").append(SQL.quote(null)); //PROCESS_DEL_IND
 		sql.append(",\n").append(SQL.quote(null)); //WRITE_DB_ERRORS_IND
 		sql.append(",\n").append(SQL.quote(null)); //ROLLBACK_SEGMENT_NAME
-		sql.append(",\n").append(SQL.quote(fixWindowsPath(defParam.get("default_err_file_path"))+transId+".err"));
-		sql.append(",\n").append(SQL.quote(fixWindowsPath(defParam.get("default_log_file_path"))+transId+".log"));
-		sql.append(",\n").append(SQL.quote(fixWindowsPath(defParam.get("default_bad_file_path"))+transId+".bad"));
+		logger.debug("err_file_path: " + defParam.get("default_err_file_path"));
+		logger.debug("log_file_path: " + defParam.get("default_log_file_path"));
+		logger.debug("bad_file_path: " + defParam.get("default_bad_file_path"));
+		sql.append(",\n").append(SQL.quote(escapeString(con,fixWindowsPath(defParam.get("default_err_file_path")))+transId+".err"));
+		sql.append(",\n").append(SQL.quote(escapeString(con,fixWindowsPath(defParam.get("default_log_file_path")))+transId+".log"));
+		sql.append(",\n").append(SQL.quote(escapeString(con,fixWindowsPath(defParam.get("default_bad_file_path")))+transId+".bad"));
 		sql.append(",\n").append(defParam.get("show_progress_freq")); //SHOW_PROGRESS_FREQ
 		sql.append(",\n").append("0");// SKIP_CNT
 		sql.append(",\n").append("0");// PROCESS_CNT
 		// SOURCE_DATE_FORMAT: col was missing in arthur-test-pl,
 		// and we were setting it to null here, so I took it out of the statement. -JF
-		sql.append(",\n").append(SQL.escapeDate(con, new java.util.Date())); //CREATE_DATE
+		sql.append(",\n").append(SQL.escapeDate(con, new java.util.Date())); //CREATE_DATE		
 		sql.append(",\n").append(SQL.quote(fixUnixPath(defParam.get("default_unix_log_file_path"))+transId+".log"));
 		sql.append(",\n").append(SQL.quote(fixUnixPath(defParam.get("default_unix_err_file_path"))+transId+".err"));
 		sql.append(",\n").append(SQL.quote(fixUnixPath(defParam.get("default_unix_bad_file_path"))+transId+".bad"));
@@ -343,7 +373,8 @@ public class PLExport implements Monitorable {
 		sql.append(")");
 		logWriter.info("INSERT into TRANS, PK=" + transId);
 		Statement s = con.createStatement();
-		try {
+		try {			
+			logger.debug("INSERT TRANS: " + sql.toString());
 			s.executeUpdate(sql.toString());
 		} catch (SQLException ex) {
 			logger.error("This statement caused an exception: "+sql);
@@ -395,6 +426,8 @@ public class PLExport implements Monitorable {
 			type = "SQL SERVER";
 		} else if (isDB2(dbcs)) {
 			type = "DB2";
+		} else if (isPostgres(dbcs)) {
+			type = "POSTGRES";
 		} else {
 			throw new IllegalArgumentException("Unsupported target database type");
 		}
@@ -440,6 +473,7 @@ public class PLExport implements Monitorable {
 		logWriter.info("INSERT into TRANS_TABLE_FILE, PK=" + transId + "|" + tableFileId);
 		Statement s = con.createStatement();
 		try {
+			logger.debug("INSERT TRANS_TABLE_FILE: " + sql.toString());
 			s.executeUpdate(sql.toString());
 		} finally {
 			if (s != null) {
@@ -533,6 +567,7 @@ public class PLExport implements Monitorable {
 		logWriter.info("INSERT into TRANS_COL_MAP, PK=" + transId + "|" + outputTableId + "|" + outputColumn.getName());		
 		Statement s = con.createStatement();
 		try {
+			logger.debug("INSERT TRANS_COL_MAP: " + sql.toString());
 			s.executeUpdate(sql.toString());
 		} finally {
 			if (s != null) {
@@ -553,44 +588,57 @@ public class PLExport implements Monitorable {
 	 */
 	public void insertTransExceptHandler(Connection con, String actionType,  String transId) throws SQLException {
 
-		int errorCode = 0;
+		String errorCode = "";
 		String resultActionType;
 
 		if (DBConnection.isOracle(con)) {
 			if(actionType.equals("A")) {
-				errorCode = -1;
+				errorCode = "-1";
 				resultActionType="CHANGE_TO_UPD";
 			} else if(actionType.equals("U")) {
-				errorCode = 1403;
+				errorCode = "1403";
 				resultActionType="CHANGE_TO_ADD";
 			} else if(actionType.equals("D")) {
-				errorCode = 1403;
+				errorCode = "1403";
 				resultActionType="SKIP";
 			} else {
 				throw new IllegalArgumentException("Invalid Action type " + actionType); 
 			}
 		} else if (DBConnection.isSQLServer(con)) {
 			if(actionType.equals("A")) {
-				errorCode = -2627;
+				errorCode = "-2627";
 				resultActionType="CHANGE_TO_UPD";
 			} else if(actionType.equals("U")) {
-				errorCode = 100;
+				errorCode = "100";
 				resultActionType="CHANGE_TO_ADD";
 			} else if(actionType.equals("D")) {
-				errorCode = 100;
+				errorCode = "100";
 				resultActionType="SKIP";
 			} else {
 				throw new IllegalArgumentException("Invalid Action type " + actionType); 
 			}
 		} else if (DBConnection.isDB2(con)) {
 			if(actionType.equals("A")) {
-				errorCode = -803;
+				errorCode = "-803";
 				resultActionType="CHANGE_TO_UPD";
 			} else if(actionType.equals("U")) {
-				errorCode = 100;
+				errorCode = "100";
 				resultActionType="CHANGE_TO_ADD";
 			} else if(actionType.equals("D")) {
-				errorCode = 100;
+				errorCode = "100";
+				resultActionType="SKIP";
+			} else {
+				throw new IllegalArgumentException("Invalid Action type " + actionType); 
+			}
+		} else if (DBConnection.isPostgres(con)) {
+			if(actionType.equals("A")) {
+				errorCode = "23505";
+				resultActionType="CHANGE_TO_UPD";
+			} else if(actionType.equals("U")) {
+				errorCode = "100";
+				resultActionType="CHANGE_TO_ADD";
+			} else if(actionType.equals("D")) {
+				errorCode = "100";
 				resultActionType="SKIP";
 			} else {
 				throw new IllegalArgumentException("Invalid Action type " + actionType); 
@@ -603,7 +651,7 @@ public class PLExport implements Monitorable {
 	    sql.append(" VALUES (");
 		sql.append(SQL.quote(transId));	// TRANS_ID
 		sql.append(",").append(SQL.quote(actionType));	// INPUT_ACTION_TYPE
-		sql.append(",").append(errorCode);	// DBMS_ERROR_CODE
+		sql.append(",").append(SQL.quote(errorCode));	// DBMS_ERROR_CODE
 		sql.append(",").append(SQL.quote(resultActionType));	// RESULT_ACTION_TYPE
 		sql.append(",").append(SQL.quote("Generated by Power*Architect "+PL_GENERATOR_VERSION));	//EXCEPT_HANDLE_COMMENT
 		sql.append(",").append(SQL.escapeDate(con, new java.util.Date()));  // LAST_update_DATE
@@ -617,6 +665,7 @@ public class PLExport implements Monitorable {
 		logWriter.info("INSERT into TRANS_EXCEPT_HANDLE, PK=" + transId + "|" + actionType + "|" + errorCode);		
 		Statement s = con.createStatement();
 		try {
+			logger.debug("INSERT TRANS_EXCEPT_HANDLE: " + sql.toString());
 			s.executeUpdate(sql.toString());
 		} finally {
 			if (s != null) {
@@ -649,7 +698,12 @@ public class PLExport implements Monitorable {
 				throw new ArchitectException("couldn't load default parameters", p);
 			}
 			// don't need to verify passwords in client apps (as opposed to webapps)
-			sm = new PLSecurityManager(con, plUsername, plPassword, false);
+			try {
+				sm = new PLSecurityManager(con, plUsername, plPassword, false);
+			} catch (PLSecurityException se) {
+				throw new ArchitectException("Could not find login for: " + plUsername, se);
+			}
+
 			logWriter.info("Starting creation of job <" + jobId + "> at " + new java.util.Date(System.currentTimeMillis()));
 			logWriter.info("Connected to database: " + plDBCS.toString());
 			maybeInsertFolder(con);			
@@ -679,9 +733,12 @@ public class PLExport implements Monitorable {
 						insertTransExceptHandler(con, "U", transName);
 						insertTransExceptHandler(con, "D", transName);
 						insertJobDetail(con, outputTableNum*10, "TRANSACTION", transName);
-						
+						logger.debug("outputTableNum: " + outputTableNum);
+						logger.debug("transNum: " + transNum);
 						String outputTableId = PLUtils.toPLIdentifier(outputTable.getName()+"_OUT_"+outputTableNum);
 						String inputTableId = PLUtils.toPLIdentifier(inputTable.getName()+"_IN_"+transNum);
+						logger.debug("outputTableId: " + outputTableId);
+						logger.debug("inputTableId: " + inputTableId);
 						insertTransTableFile(con, transName, outputTableId, outputTable, true, transNum);
 						
 						insertTransTableFile(con, transName, inputTableId, inputTable, false, transNum);
@@ -705,10 +762,12 @@ public class PLExport implements Monitorable {
 	// --------------------------- UTILITY METHODS ------------------------
 	protected String fixWindowsPath(String path) {
 		if (path == null) {
-			path="";
-		} else if ( ! path.endsWith("\\")){
+			return "";
+		}		
+		if ( ! path.endsWith("\\")){
 			path +="\\";
-		}
+		}		
+
 		return path;
 	}
 
@@ -719,6 +778,25 @@ public class PLExport implements Monitorable {
 			path +="/";
 		}
 		return path;
+	}
+
+	/*
+	 * Do any platform dependent escaping of Strings here.  For example,
+	 * Postgres backslashes need to be doubled or Postgres will mangle them.
+	 *
+	 * FIXME: this needs to be pushed into the more generic SQL utility class
+	 * in ca.sqlpower.sql.  All Strings must be washed through it.  And then 
+	 * the entire application suite needs to be regression tested. 
+	 * 
+	 */
+	protected String escapeString(Connection con, String string) {
+		String retString = null;
+		if (DBConnection.isPostgres(con)) {
+			// compilation halves the number of slashes, and then regex
+			// halves them once again.  Confusing eh?  4==1...
+			retString = string.replaceAll("\\\\","\\\\\\\\");
+		}
+		return retString;
 	}
 
 	protected boolean isOracle(DBConnectionSpec dbcs) {
@@ -739,6 +817,14 @@ public class PLExport implements Monitorable {
 
 	protected boolean isDB2(DBConnectionSpec dbcs) {
 		if(dbcs.getDriverClass().toLowerCase().indexOf("db2") >= 0) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	protected boolean isPostgres(DBConnectionSpec dbcs) {
+		if(dbcs.getDriverClass().toLowerCase().indexOf("postgres") >= 0) {
 			return true;
 		} else {
 			return false;
@@ -822,7 +908,8 @@ public class PLExport implements Monitorable {
 	}
 
 	public void setOutputTableOwner(String outputTableOwner){
-		this.outputTableOwner = PLUtils.toPLIdentifier(outputTableOwner);
+		// this.outputTableOwner = PLUtils.toPLIdentifier(outputTableOwner);
+		this.outputTableOwner = outputTableOwner;
 	}
 
 	public String getOutputTableOwner() {
@@ -830,7 +917,8 @@ public class PLExport implements Monitorable {
 	}
 
 	public void setPlUsername(String plUsername){
-		this.plUsername = PLUtils.toPLIdentifier(plUsername);
+		// this.plUsername = PLUtils.toPLIdentifier(plUsername);
+		this.plUsername = plUsername;
 	}
 
 	public String getPlUsername() {

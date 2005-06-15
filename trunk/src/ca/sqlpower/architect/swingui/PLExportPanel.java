@@ -248,10 +248,9 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		if (item == null) plexp.setPlDBCS(null); 
 		else plexp.setPlDBCS((DBConnectionSpec) item.getValue());
 
-		plOutputTableOwner.setText(PLUtils.toPLIdentifier(plOutputTableOwner.getText()));
+		// Don't mangle the owner and username fields -- some databases like Postgres are case sensitive
 		plexp.setOutputTableOwner(plOutputTableOwner.getText());
 
-		plUserName.setText(PLUtils.toPLIdentifier(plUserName.getText()));
 		plexp.setPlUsername(plUserName.getText());
 
 		// this approach prevents the deprecation warning, but is
