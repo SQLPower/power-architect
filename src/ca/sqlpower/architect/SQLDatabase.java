@@ -407,17 +407,6 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 		fireDbObjectChanged("connectionSpec");
 	}
 
-	/**
-	 * Lets outside users modify the internal flag that says whether
-	 * or not the list of child objects has already been loaded from
-	 * the source database.  Users of this class should not normally
-	 * call this method, but it needs to be public for the
-	 * SwingUIProject load implementation.
-	 */
-	public void setPopulated(boolean v) {
-		populated = v;
-	}
-
 	public void setIgnoreReset(boolean v) {
 		ignoreReset = v;
 	}
