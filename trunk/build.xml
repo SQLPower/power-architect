@@ -46,7 +46,7 @@
     <!-- Creates a WebStart distribution under the webstart/ directory -->
 	<target name="dist" depends="compile">
         <mkdir dir="webstart/lib"/>
-		<jar destfile="webstart/lib/architect.jar" basedir="${build}" excludes="regress/**" manifest="manifest">
+		<jar destfile="webstart/lib/architect.jar" basedir="${build}" includes="ca/** icons/** log4j.properties" manifest="manifest">
 		</jar>
         <copy todir="webstart/lib">
             <fileset dir="lib"/>
@@ -58,9 +58,10 @@
 
     
     <target name="deploy" depends="dist">
-        <mkdir dir="/usr/local/apache/htdocs/architect"/>
-        <copy todir="/usr/local/apache/htdocs/architect">
-            <fileset dir="webstart"/>
+        <mkdir dir="${deploy.dir}"/>
+        <copy file="webstart/lib/architect.jar" todir="${deploy.dir}"/>
+        	<copy todir="${deploy.dir}">
+            <fileset dir="webstart/lib" excludes="architect.jar"/>
         </copy>
 	</target>
 
