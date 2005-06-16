@@ -645,7 +645,6 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * folders (columns and relationships).
 	 */
 	public static class Folder extends SQLObject {
-		protected boolean populated;
 		protected int type;
 		protected String name;
 		protected SQLTable parent;
@@ -735,10 +734,6 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		public void addChild(int index, SQLObject child) {
 			logger.debug("[31mAdding child "+child.getName()+" to folder "+getName()+"[0m");
 			super.addChild(index, child);
-		}
-
-		public boolean isPopulated() {
-			return populated;
 		}
 
 		public String getShortDisplayName() {

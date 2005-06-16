@@ -220,13 +220,6 @@ public class SQLCatalog extends SQLObject {
 	}
 
 	/**
-	 * Don't use.
-	 */
-	private void setPopulated(boolean argPopulated) {
-		throw new UnsupportedOperationException("You can't do that");
-	}
-
-	/**
 	 * Gets the value of nativeTerm
 	 *
 	 * @return the value of nativeTerm

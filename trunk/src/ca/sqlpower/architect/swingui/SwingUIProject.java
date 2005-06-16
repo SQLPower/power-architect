@@ -714,10 +714,12 @@ public class SwingUIProject {
 			id = "CAT"+objectIdMap.size();
 			type = "catalog";
 			propNames.put("catalogName", ((SQLCatalog) o).getCatalogName());
+			propNames.put("nativeTerm", ((SQLCatalog) o).getNativeTerm());
 		} else if (o instanceof SQLSchema) {
 			id = "SCH"+objectIdMap.size();
 			type = "schema";
 			propNames.put("schemaName", ((SQLSchema) o).getSchemaName());
+			propNames.put("nativeTerm", ((SQLSchema) o).getNativeTerm());
 		} else if (o instanceof SQLTable) {
 			id = "TAB"+objectIdMap.size();
 			type = "table";
@@ -790,6 +792,8 @@ public class SwingUIProject {
 		    skipChildren = true;
 		} else if ( (!savingEntireSource) && (!o.isPopulated()) ) {
 			niprint("populated=\"false\" ");
+		} else {
+		    niprint("populated=\"true\" ");
 		}
 
 		Iterator props = propNames.keySet().iterator();

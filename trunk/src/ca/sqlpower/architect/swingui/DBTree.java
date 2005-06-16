@@ -2,6 +2,8 @@ package ca.sqlpower.architect.swingui;
 
 import javax.swing.*;
 import javax.swing.tree.*;
+
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.BorderLayout;
@@ -746,6 +748,13 @@ public class DBTree extends JTree implements DragSourceListener {
 			this.selected = sel;
 			this.hasFocus = hasFocus;
 
+			if (value instanceof SQLObject) {
+			    if (((SQLObject) value).isPopulated()) {
+			        setForeground(Color.black);
+			    } else {
+			        setForeground(Color.lightGray);
+			    }
+			}
 			return this;
 		}
 	}

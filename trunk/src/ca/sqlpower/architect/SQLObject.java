@@ -65,13 +65,24 @@ public abstract class SQLObject implements java.io.Serializable {
 	public abstract String getShortDisplayName();
 
 	/**
-	 * Returns populated.
+	 * Tells if this object has already been filled with children, or
+	 * if that operation is still pending.
 	 */
 	public boolean isPopulated() {
 		return populated;
 	}
 	
-	
+	/**
+	 * Lets outside users modify the internal flag that says whether
+	 * or not the list of child objects has already been loaded from
+	 * the source database.  Users of this SQLObject hierarchies should
+	 * not normally call this method, but it needs to be public for the
+	 * SwingUIProject load implementation.
+	 */
+	public void setPopulated(boolean v) {
+		populated = v;
+	}
+
 	/**
 	 * Returns true if and only if this object can have child
 	 * SQLObjects.  Your implementation of this method <b>must not</b>
