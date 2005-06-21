@@ -795,8 +795,10 @@ public class PLExport implements Monitorable {
 			// compilation halves the number of slashes, and then regex
 			// halves them once again.  Confusing eh?  4==1...
 			retString = string.replaceAll("\\\\","\\\\\\\\");
+		} else {
+			retString = string;
 		}
-		return retString;
+		return retString;			
 	}
 
 	protected boolean isOracle(DBConnectionSpec dbcs) {
