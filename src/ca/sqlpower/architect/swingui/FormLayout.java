@@ -99,13 +99,13 @@ public class FormLayout implements LayoutManager {
 			} else {
 				// right-hand column
 				int width = c.getPreferredSize().width;
-				if (c instanceof JTextField) {
+				if (c instanceof JTextField || c instanceof JPanel) {
 					width = rColWidth; // full width of this column
 				}
 				c.setBounds(lColWidth + ins.left + hgap, y, width, d.height);
 				y += Math.max(d.height, lHeight) + vgap;
 			}
-		}		
+		}
 	}
 
 	/**
