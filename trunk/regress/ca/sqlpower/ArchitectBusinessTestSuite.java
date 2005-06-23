@@ -2,6 +2,10 @@ package regress;
 
 import junit.framework.*;
 
-public class ArchitectBusinessTestSuite extends TestSuite {
-	//TODO: add individual tests here and reference this suite from build.xml
+public class ArchitectBusinessTestSuite extends TestCase {
+    public static Test suite() {
+        TestSuite suite = new TestSuite();
+        suite.addTestSuite(SaveLoadTest.class);
+        return suite;
+    }
 }
