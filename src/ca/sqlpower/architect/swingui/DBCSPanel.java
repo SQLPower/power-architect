@@ -213,6 +213,11 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
         if (updatingUrlFromFields) return;
         try {
             updatingFieldsFromUrl = true;
+
+            for (int i = 0; i < platformSpecificOptions.getComponentCount(); i++) {
+                platformSpecificOptions.getComponent(i).setEnabled(true);
+            }
+            
             String template = getTemplateForDriver(dbDriverField.getSelectedItem().toString());
             logger.debug("Updating based on template "+template);
             if (template == null) return;
@@ -226,8 +231,9 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
                     ((JTextField) platformSpecificOptions.getComponent(2*g-1)).setText(m.group(g));
                 }
             } else {
-                platformSpecificOptions.setEnabled(false);
-                // TODO: hide or remove the fields, put up a message saying you're on your own, and have a reset button to make things better
+                for (int i = 0; i < platformSpecificOptions.getComponentCount(); i++) {
+                    platformSpecificOptions.getComponent(i).setEnabled(false);
+                }
             }
         } finally {
             updatingFieldsFromUrl = false;
