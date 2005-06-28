@@ -33,7 +33,7 @@ public class PLExport implements Monitorable {
 	protected PLSecurityManager sm;
 
 	// save this stuff in project file
-	protected DBConnectionSpec repositoryDBCS;
+	protected ArchitectDataSource repositoryDBCS;
 	protected String repositoryPLLogicalName;	
 	protected String targetPLLogicalName; // compare this with Target Database from project model	
 	protected Map sourcePLDatabaseMap; // key=DBCS, value=PL Logical Name
@@ -393,12 +393,12 @@ public class PLExport implements Monitorable {
 
 		String type;
 		String dbConnectName;
-		DBConnectionSpec dbcs;
+		ArchitectDataSource dbcs;
 		
 		if (isOutput) {
 			dbcs = repositoryDBCS;
 		} else {
-			dbcs = table.getParentDatabase().getConnectionSpec();
+			dbcs = table.getParentDatabase().getDataSource();
 		}
 		
 		if (isOutput) {
@@ -797,7 +797,7 @@ public class PLExport implements Monitorable {
 		return retString;			
 	}
 
-	protected boolean isOracle(DBConnectionSpec dbcs) {
+	protected boolean isOracle(ArchitectDataSource dbcs) {
 		if(dbcs.getDriverClass().toLowerCase().indexOf("oracledriver") >= 0) {
 			return true;
 		} else {
@@ -805,7 +805,7 @@ public class PLExport implements Monitorable {
 		}
 	}
 
-	protected boolean isSQLServer(DBConnectionSpec dbcs) {
+	protected boolean isSQLServer(ArchitectDataSource dbcs) {
 		if(dbcs.getDriverClass().toLowerCase().indexOf("sqlserver") >= 0) {
 			return true;
 		} else {
@@ -813,7 +813,7 @@ public class PLExport implements Monitorable {
 		}
 	}
 
-	protected boolean isDB2(DBConnectionSpec dbcs) {
+	protected boolean isDB2(ArchitectDataSource dbcs) {
 		if(dbcs.getDriverClass().toLowerCase().indexOf("db2") >= 0) {
 			return true;
 		} else {
@@ -821,7 +821,7 @@ public class PLExport implements Monitorable {
 		}
 	}
 
-	protected boolean isPostgres(DBConnectionSpec dbcs) {
+	protected boolean isPostgres(ArchitectDataSource dbcs) {
 		if(dbcs.getDriverClass().toLowerCase().indexOf("postgres") >= 0) {
 			return true;
 		} else {
@@ -897,11 +897,11 @@ public class PLExport implements Monitorable {
 		return jobComment;
 	}
 
-	public void setRepositoryDBCS(DBConnectionSpec dbcs){
+	public void setRepositoryDBCS(ArchitectDataSource dbcs){
 		this.repositoryDBCS = dbcs;
 	}
 
-	public DBConnectionSpec getRepositoryDBCS() {
+	public ArchitectDataSource getRepositoryDBCS() {
 		return repositoryDBCS;
 	}
 	

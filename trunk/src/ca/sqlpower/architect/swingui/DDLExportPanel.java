@@ -5,7 +5,7 @@ import java.awt.event.*;
 import ca.sqlpower.architect.ddl.*;
 import java.util.*;
 import org.apache.log4j.Logger;
-import ca.sqlpower.sql.DBConnectionSpec;
+import ca.sqlpower.architect.ArchitectDataSource;
 
 public class DDLExportPanel extends JPanel implements ArchitectPanel {
 	private static final Logger logger = Logger.getLogger(DDLExportPanel.class);
@@ -33,7 +33,7 @@ public class DDLExportPanel extends JPanel implements ArchitectPanel {
 		setLayout(new FormLayout());
         add(new JLabel("Create in:"));
         
-        DBConnectionSpec dbcs = project.getTargetDatabase().getConnectionSpec();
+        ArchitectDataSource dbcs = project.getTargetDatabase().getDataSource();
         add(targetDBName = new JLabel(dbcs == null 
                                         ? "(target connection not set up)" 
                                         : dbcs.getDisplayName()));
@@ -128,7 +128,7 @@ public class DDLExportPanel extends JPanel implements ArchitectPanel {
 		}
 		if (selectedGeneratorClass == GenericDDLGenerator.class) {
 			ddlg.setAllowConnection(true);
-			DBConnectionSpec dbcs = project.getTargetDatabase().getConnectionSpec();
+			ArchitectDataSource dbcs = project.getTargetDatabase().getDataSource();
 			if (dbcs == null
 				|| dbcs.getDriverClass() == null
 				|| dbcs.getDriverClass().length() == 0) {

@@ -14,7 +14,7 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.sql.DBConnectionSpec;
+import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.jdbc.ConnectionFacade;
 
 public class SQLDatabase extends SQLObject implements java.io.Serializable, PropertyChangeListener {
@@ -26,7 +26,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	 */
 	private static transient HashMap dbConnections = new HashMap();
 
-	protected DBConnectionSpec connectionSpec;
+	protected ArchitectDataSource dataSource;
 	protected transient Connection connection;
 
 	protected boolean ignoreReset = false;
@@ -35,8 +35,8 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	/**
 	 * Constructor for instances that connect to a real database by JDBC.
 	 */
-	public SQLDatabase(DBConnectionSpec connectionSpec) {
-		setConnectionSpec(connectionSpec);
+	public SQLDatabase(ArchitectDataSource dataSource) {
+		setDataSource(dataSource);
 		children = new ArrayList();
 	}
 	
@@ -60,21 +60,21 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	public synchronized void connect() throws ArchitectException {
 		try {
 			if (connection != null && !connection.isClosed()) return;
-			connection = (Connection) dbConnections.get(connectionSpec);
+			connection = (Connection) dbConnections.get(dataSource);
 			if (connection != null && !connection.isClosed()) return;
 
-			if (connectionSpec.getDriverClass() == null
-				|| connectionSpec.getDriverClass().trim().length() == 0) {
+			if (dataSource.getDriverClass() == null
+				|| dataSource.getDriverClass().trim().length() == 0) {
 				throw new ArchitectException("You didn't specify the JDBC Driver class.");
 			}
 
-			if (connectionSpec.getUrl() == null
-				|| connectionSpec.getUrl().trim().length() == 0) {
+			if (dataSource.getUrl() == null
+				|| dataSource.getUrl().trim().length() == 0) {
 				throw new ArchitectException("You didn't specify the JDBC URL.");
 			}
 
-			if (connectionSpec.getUser() == null
-				|| connectionSpec.getUser().trim().length() == 0) {
+			if (dataSource.getUser() == null
+				|| dataSource.getUser().trim().length() == 0) {
 				throw new ArchitectException("You didn't specify the JDBC username.");
 			}
 
@@ -95,16 +95,16 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 				}
 				logger.debug(loaders);
 			}
-			Class.forName(connectionSpec.getDriverClass(), true, session.getJDBCClassLoader());
-			logger.info("Driver Class "+connectionSpec.getDriverClass()+" loaded without exception");
-			connection = ConnectionFacade.createFacade(session.getJDBCClassLoader().getConnection(connectionSpec.getUrl(),
-														 	      					connectionSpec.getUser(),
-																					connectionSpec.getPass()));
+			Class.forName(dataSource.getDriverClass(), true, session.getJDBCClassLoader());
+			logger.info("Driver Class "+dataSource.getDriverClass()+" loaded without exception");
+			connection = ConnectionFacade.createFacade(session.getJDBCClassLoader().getConnection(dataSource.getUrl(),
+														 	      					dataSource.getUser(),
+																					dataSource.getPass()));
 			logger.debug("Connection class is: " + connection.getClass().getName());
-			dbConnections.put(connectionSpec, connection);
+			dbConnections.put(dataSource, connection);
 		} catch (ClassNotFoundException e) {
 			logger.warn("Driver Class not found", e);
-			throw new ArchitectException("JDBC Driver \""+connectionSpec.getDriverClass()
+			throw new ArchitectException("JDBC Driver \""+dataSource.getDriverClass()
 										 +"\" not found.", e);
 		} catch (SQLException e) {
 			throw new ArchitectException("Couldn't connect to database:\n"+e.getMessage(), e);
@@ -323,8 +323,8 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	}
 
 	public String getName() {
-		if (connectionSpec != null) {
-			return connectionSpec.getDisplayName();
+		if (dataSource != null) {
+			return dataSource.getDisplayName();
 		} else {
 			return "PlayPen Database";
 		}
@@ -384,27 +384,27 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	
 	
 	/**
-	 * Gets the value of connectionSpec
+	 * Gets the value of dataSource
 	 *
-	 * @return the value of connectionSpec
+	 * @return the value of dataSource
 	 */
-	public DBConnectionSpec getConnectionSpec()  {
-		return this.connectionSpec;
+	public ArchitectDataSource getDataSource()  {
+		return this.dataSource;
 	}
 
 	/**
-	 * Sets the value of connectionSpec
+	 * Sets the value of dataSource
 	 *
-	 * @param argConnectionSpec Value to assign to this.connectionSpec
+	 * @param argDataSource Value to assign to this.dataSource
 	 */
-	public void setConnectionSpec(DBConnectionSpec argConnectionSpec) {
-		if (connectionSpec != null) {
-			connectionSpec.removePropertyChangeListener(this);
+	public void setDataSource(ArchitectDataSource argDataSource) {
+		if (dataSource != null) {
+			dataSource.removePropertyChangeListener(this);
 			reset();
 		}
-		connectionSpec = argConnectionSpec;
-		connectionSpec.addPropertyChangeListener(this);
-		fireDbObjectChanged("connectionSpec");
+		dataSource = argDataSource;
+		dataSource.addPropertyChangeListener(this);
+		fireDbObjectChanged("dataSource");
 	}
 
 	public void setIgnoreReset(boolean v) {
@@ -422,11 +422,11 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 		if (ignoreReset) {
 			// preserve the objects that are in the Target system when
             // the connection spec changes
-			logger.debug("Ignoring Reset request for: " + getConnectionSpec());
+			logger.debug("Ignoring Reset request for: " + getDataSource());
 			populated = true;
 		} else {
 			// discard everything and reload (this is generally for source systems)
-			logger.debug("Resetting: " + getConnectionSpec());
+			logger.debug("Resetting: " + getDataSource());
 			// tear down old connection stuff
 			List old = children;
 			if (old != null && old.size() > 0) {
@@ -476,11 +476,11 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	 * Calls connect() if necessary.
 	 *
 	 * @return an open connection if this database has a valid
-	 * connectionSpec; null if this is a dummy database (such as the
+	 * dataSource; null if this is a dummy database (such as the
 	 * playpen instance).
 	 */
 	public Connection getConnection() throws ArchitectException {
-		if (connectionSpec != null && connection == null) {
+		if (dataSource != null && connection == null) {
 			connect();
 		}
 		return this.connection;

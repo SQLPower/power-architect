@@ -14,7 +14,7 @@ import java.awt.event.*;
 import java.util.*;
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.sql.DBConnectionSpec;
+import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.*;
 import ca.sqlpower.architect.ddl.*;
@@ -102,7 +102,7 @@ public class CompareDMPanel extends JPanel {
 		sourceConnections.add(ASUtils.lvb("(Select Architect Connection)", null));
 		Iterator it = af.getUserSettings().getConnections().iterator();
 		while (it.hasNext()) {
-			DBConnectionSpec spec = (DBConnectionSpec) it.next();
+			ArchitectDataSource spec = (ArchitectDataSource) it.next();
 			sourceConnections.add(ASUtils.lvb(spec.getDisplayName(), spec));
 		}
 		sourceConnectionsBox = new JComboBox(sourceConnections);
@@ -136,7 +136,7 @@ public class CompareDMPanel extends JPanel {
 		targetConnections.add(ASUtils.lvb("(Select Architect Connection)", null));
 		it = af.getUserSettings().getConnections().iterator();
 		while (it.hasNext()) {
-			DBConnectionSpec spec = (DBConnectionSpec) it.next();
+			ArchitectDataSource spec = (ArchitectDataSource) it.next();
 			targetConnections.add(ASUtils.lvb(spec.getDisplayName(), spec));
 		}
 		targetConnectionsBox = new JComboBox(targetConnections);
@@ -247,7 +247,7 @@ public class CompareDMPanel extends JPanel {
 	   		    }
 	   		    else {
 					try {
-						SchemaLister sl = new SchemaLister(new SQLDatabase((DBConnectionSpec)lvb.getValue()),true);
+						SchemaLister sl = new SchemaLister(new SQLDatabase((ArchitectDataSource)lvb.getValue()),true);
 						SchemaListerProgressWatcher taskPerformer = new SchemaListerProgressWatcher(sourceProgressBar,sl);
 						new javax.swing.Timer(100, taskPerformer).start();
 						new Thread(sl).start();
@@ -264,7 +264,7 @@ public class CompareDMPanel extends JPanel {
 	   		    }
 	   		     else {
 					try {
-						SchemaLister sl = new SchemaLister(new SQLDatabase((DBConnectionSpec)lvb.getValue()),false);
+						SchemaLister sl = new SchemaLister(new SQLDatabase((ArchitectDataSource)lvb.getValue()),false);
 						SchemaListerProgressWatcher taskPerformer = new SchemaListerProgressWatcher(targetProgressBar,sl);
 						new javax.swing.Timer(100, taskPerformer).start();
 						new Thread(sl).start();
@@ -534,7 +534,7 @@ public class CompareDMPanel extends JPanel {
 							
 							output.insertString(output.getLength(),
 											"<<<TABLE NOT FOUND IN " + 
-											targetDatabase.getConnectionSpec().getDisplayName() +
+											targetDatabase.getDataSource().getDisplayName() +
 											"." + targetSchemaBox.getSelectedItem() + ">>>" + newline,
 											 attrsMsg );
 

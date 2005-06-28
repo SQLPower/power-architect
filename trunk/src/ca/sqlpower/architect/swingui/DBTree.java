@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.*;
-import ca.sqlpower.sql.DBConnectionSpec;
+import ca.sqlpower.architect.ArchitectDataSource;
 
 public class DBTree extends JTree implements DragSourceListener {
 	private static Logger logger = Logger.getLogger(DBTree.class);
@@ -81,9 +81,9 @@ public class DBTree extends JTree implements DragSourceListener {
 		okButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					dbcsPanel.applyChanges();
-					edittingDB.setConnectionSpec(dbcsPanel.getDbcs());
+					edittingDB.setDataSource(dbcsPanel.getDbcs());
 					if (panelHoldsNewDBCS) { // don't allow new duplicate connections to be added
-						DBConnectionSpec dup = getDuplicateDbcs(edittingDB.getConnectionSpec());							
+						ArchitectDataSource dup = getDuplicateDbcs(edittingDB.getDataSource());							
 						if (dup == null) { // did not find one, go ahead and add it to User Settings
 							ArchitectFrame.getMainInstance().getUserSettings()
 								.getConnections().add(dbcsPanel.getDbcs());
@@ -148,13 +148,13 @@ public class DBTree extends JTree implements DragSourceListener {
      * if it exists as a connection in the project (which means they're in this
      * tree's model).
 	 */
-	public boolean dbcsAlreadyExists(DBConnectionSpec spec) throws ArchitectException {
+	public boolean dbcsAlreadyExists(ArchitectDataSource spec) throws ArchitectException {
 		SQLObject so = (SQLObject) getModel().getRoot();		
 		// the children of the root, if they exists, are always SQLDatabase objects
 		Iterator it = so.getChildren().iterator();
 		boolean found = false;
 		while (it.hasNext() && found == false) {
-			DBConnectionSpec dbcs = ((SQLDatabase) it.next()).getConnectionSpec();
+			ArchitectDataSource dbcs = ((SQLDatabase) it.next()).getDataSource();
 			if (spec.equals(dbcs)) {
 				found = true;
 			}
@@ -167,12 +167,12 @@ public class DBTree extends JTree implements DragSourceListener {
      * User Settings.  If we find one, return a handle to it.  If we don't find
      * one, return null.
 	 */
-	public DBConnectionSpec getDuplicateDbcs(DBConnectionSpec spec) {
-		DBConnectionSpec dup = null;
+	public ArchitectDataSource getDuplicateDbcs(ArchitectDataSource spec) {
+		ArchitectDataSource dup = null;
 		boolean found = false;
 		Iterator it = ArchitectFrame.getMainInstance().getUserSettings().getConnections().iterator();		
 		while (it.hasNext() && found == false) {
-			DBConnectionSpec dbcs = (DBConnectionSpec) it.next();
+			ArchitectDataSource dbcs = (ArchitectDataSource) it.next();
 			if (spec.equals(dbcs)) {
 				dup = dbcs;
 				found = true;
@@ -328,7 +328,7 @@ public class DBTree extends JTree implements DragSourceListener {
 				// populate		
 				Iterator it = ArchitectFrame.getMainInstance().getUserSettings().getConnections().iterator();
 				while(it.hasNext()) {
-					DBConnectionSpec dbcs = (DBConnectionSpec) it.next();
+					ArchitectDataSource dbcs = (ArchitectDataSource) it.next();
 					popupDBCSMenu.add(new JMenuItem(new setTargetDBCSAction(dbcs)));
 				}
 			}
@@ -407,7 +407,7 @@ public class DBTree extends JTree implements DragSourceListener {
 			// populate		
 			Iterator it = ArchitectFrame.getMainInstance().getUserSettings().getConnections().iterator();
 			while(it.hasNext()) {
-				DBConnectionSpec dbcs = (DBConnectionSpec) it.next();
+				ArchitectDataSource dbcs = (ArchitectDataSource) it.next();
 				popupDBCSMenu.add(new JMenuItem(new AddDBCSAction(dbcs)));
 			}
 		}
@@ -468,9 +468,9 @@ public class DBTree extends JTree implements DragSourceListener {
 	 * menu.
 	 */
 	protected class AddDBCSAction extends AbstractAction {
-		protected DBConnectionSpec dbcs;
+		protected ArchitectDataSource dbcs;
 
-		public AddDBCSAction(DBConnectionSpec dbcs) {
+		public AddDBCSAction(ArchitectDataSource dbcs) {
 			super(dbcs.getName());
 			this.dbcs = dbcs;
 		}
@@ -512,7 +512,7 @@ public class DBTree extends JTree implements DragSourceListener {
 		}
 
 		public void actionPerformed(ActionEvent e) {
-			DBConnectionSpec dbcs = new DBConnectionSpec();
+			ArchitectDataSource dbcs = new ArchitectDataSource();
 			edittingDB = new SQLDatabase(dbcs);
 			panelHoldsNewDBCS = true;
 			dbcsPanel.setDbcs(dbcs);
@@ -615,7 +615,7 @@ public class DBTree extends JTree implements DragSourceListener {
 				ii++;
 			}
 			if (sd != null) {
-				DBConnectionSpec dbcs = sd.getConnectionSpec();
+				ArchitectDataSource dbcs = sd.getDataSource();
 				logger.debug("Setting existing DBCS on panel: "+dbcs);
 				edittingDB = sd;
 				dbcsPanel.setDbcs(dbcs);
@@ -630,9 +630,9 @@ public class DBTree extends JTree implements DragSourceListener {
      * of Target Database
 	 */
 	protected class setTargetDBCSAction extends AbstractAction {
-		protected DBConnectionSpec dbcs;
+		protected ArchitectDataSource dbcs;
 
-		public setTargetDBCSAction(DBConnectionSpec dbcs) {
+		public setTargetDBCSAction(ArchitectDataSource dbcs) {
 			super(dbcs.getName());
 			this.dbcs = dbcs;
 		}
@@ -643,8 +643,7 @@ public class DBTree extends JTree implements DragSourceListener {
 			panelHoldsNewDBCS = false; // we are editing the Target Database dbcs, which has already been created
 			edittingDB = ArchitectFrame.getMainInstance().getProject().getPlayPen().getDatabase();
 			// copy over the values from the selected DB.
-			DBConnectionSpec tSpec = edittingDB.getConnectionSpec();
-        	tSpec.setSingleLogin(dbcs.isSingleLogin());
+			ArchitectDataSource tSpec = edittingDB.getDataSource();
 			// don't copy the sequence number, or it will prevent the Target Database and whatever it
             // was cloned from from co-existing in the same project
         	tSpec.setDriverClass(dbcs.getDriverClass());
