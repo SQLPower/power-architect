@@ -33,6 +33,7 @@ public class ArchitectDataSource {
 	// public static final String DBCS_USER = "user"; // use PL version
 	// public static final String DBCS_PASS = "pass"; // use PL version
 	
+	public static final String PL_LOGICAL = "Logical";
 	public static final String PL_TYPE = "Type";
 	public static final String PL_DSN = "DSN";
 	public static final String PL_SCHEMA_OWNER = "PL Schema Owner";
