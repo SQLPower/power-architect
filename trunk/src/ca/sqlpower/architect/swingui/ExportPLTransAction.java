@@ -100,11 +100,7 @@ public class ExportPLTransAction extends AbstractAction {
 					JOptionPane.showMessageDialog(plPanel, "You have to select a target database from the list.", "Error", JOptionPane.ERROR_MESSAGE);
 					return;
 				}
-				// make sure they provided a user name
-				if (plexp.getPlUsername().trim().length() == 0) {
-					JOptionPane.showMessageDialog(plPanel, "You have to specify the PowerLoader User Name.", "Error", JOptionPane.ERROR_MESSAGE);
-					return;
-				} // make sure user provided a PL Job Name
+				// make sure user provided a PL Job Name
 				if (plexp.getJobId().trim().length() == 0) {
 					JOptionPane.showMessageDialog(plPanel, "You have to specify the PowerLoader Job ID.", "Error", JOptionPane.ERROR_MESSAGE);
 					return;
@@ -112,8 +108,7 @@ public class ExportPLTransAction extends AbstractAction {
 				if (checkForDuplicateJobId(plexp.getJobId()) == true) {
 					JOptionPane.showMessageDialog(plPanel, "That JOB ID is taken, please provide another.", "Error", JOptionPane.ERROR_MESSAGE);
 					return;
-				}
-			
+				}			
 				try {
 					List targetDBWarnings = listMissingTargetTables();
 					if (!targetDBWarnings.isEmpty()) {
@@ -398,7 +393,6 @@ public class ExportPLTransAction extends AbstractAction {
 	}	
 	
 	private void refreshConnections() {
-		// refresh the JDBC connections
 		PLExportPanel plep = null;
 		boolean found = false;
 		int ii = 0;
@@ -414,7 +408,8 @@ public class ExportPLTransAction extends AbstractAction {
 		// call the refresh method
 		if (plep != null) { 
 			logger.debug("refreshing PL Export JDBC connection list");
-			plep.refreshConnections();
+			plep.refreshTargetConnections();
+			plep.refreshRepositoryConnections();
 		}
 	}
 }

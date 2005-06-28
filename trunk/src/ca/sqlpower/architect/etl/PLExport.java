@@ -27,8 +27,6 @@ public class PLExport implements Monitorable {
 	protected String jobId;
 	protected String jobDescription;
 	protected String jobComment;
-	protected String plUsername;
-	protected String plPassword;
 	protected boolean runPLEngine;
 	protected PLSecurityManager sm;
 
@@ -36,6 +34,7 @@ public class PLExport implements Monitorable {
 	protected ArchitectDataSource targetDataSource; //
 	
 	protected String targetSchema; // save this to properties file?
+	protected String repositorySchema; //
 			
 	protected boolean finished; // so the Timer thread knows when to kill itself
 	protected boolean cancelled; // FIXME: placeholder for when the user cancels halfway through a PL Export 			 
@@ -691,9 +690,13 @@ public class PLExport implements Monitorable {
 			
 			try {
 				// don't need to verify passwords in client apps (as opposed to webapps)
-				sm = new PLSecurityManager(con, plUsername, plPassword, false);
+				sm = new PLSecurityManager(con, 
+						                   repositoryDataSource.get(ArchitectDataSource.PL_UID),
+										   repositoryDataSource.get(ArchitectDataSource.PL_PWD),
+						                   false);
 			} catch (PLSecurityException se) {
-				throw new ArchitectException("Could not find login for: " + plUsername, se);
+				throw new ArchitectException("Could not find login for: " 
+						                 + repositoryDataSource.get(ArchitectDataSource.PL_UID), se);
 			}
 			logWriter.info("Starting creation of job <" + jobId + "> at " + new java.util.Date(System.currentTimeMillis()));
 			logWriter.info("Connected to database: " + repositoryDataSource.toString());
@@ -907,23 +910,6 @@ public class PLExport implements Monitorable {
 	
 	public String getTargetSchema() {
 		return targetSchema;
-	}
-	
-	public void setPlUsername(String plUsername){
-		// this.plUsername = PLUtils.toPLIdentifier(plUsername);
-		this.plUsername = plUsername;
-	}
-
-	public String getPlUsername() {
-		return plUsername;
-	}
-
-	public void setPlPassword(String plPassword){
-		this.plPassword = plPassword;
-	}
-	
-	public String getPlPassword() {
-		return plPassword;
 	}
 	
 	public boolean getRunPLEngine() {
