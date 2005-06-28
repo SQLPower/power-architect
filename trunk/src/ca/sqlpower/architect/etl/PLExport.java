@@ -2,8 +2,10 @@ package ca.sqlpower.architect.etl;
 
 import java.sql.*;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import ca.sqlpower.sql.*;
 import ca.sqlpower.security.*;
 import ca.sqlpower.architect.*;
@@ -25,13 +27,18 @@ public class PLExport implements Monitorable {
 	protected String jobId;
 	protected String jobDescription;
 	protected String jobComment;
-	protected DBConnectionSpec plDBCS;
-	protected String outputTableOwner;
 	protected String plUsername;
 	protected String plPassword;
+	protected boolean runPLEngine;
 	protected PLSecurityManager sm;
-	PLJob job;
-	
+
+	// save this stuff in project file
+	protected DBConnectionSpec repositoryDBCS;
+	protected String repositoryPLLogicalName;	
+	protected String targetPLLogicalName; // compare this with Target Database from project model	
+	protected Map sourcePLDatabaseMap; // key=DBCS, value=PL Logical Name
+	protected String targetSchema;
+			
 	protected boolean finished; // so the Timer thread knows when to kill itself
 	protected boolean cancelled; // FIXME: placeholder for when the user cancels halfway through a PL Export 			 
 	SQLDatabase currentDB; // if this is non-null, an export job is running
@@ -124,76 +131,48 @@ public class PLExport implements Monitorable {
 	}
 
 	/**
-	 * Deletes the PL job with the name set in this.jobId.  Cascades
-	 * the delete to all child tables of job, as well as all
-	 * transactions in the job.
+	 * Detects collisions in the trans_id and job_ib namespaces and generates
+	 * the index of the next unique identifier.  The insert trans logic uses
+	 * the index of the identifier, so return it instead of the unique string.
 	 *
+	 * @param con A connection to the PL database
 	 */
-	public void deleteJobCascade(Connection con) throws SQLException, PLSecurityException, ArchitectException {
-		Statement stmt = con.createStatement();
+	public int generateUniqueTransIdx(Connection con, String transId) throws SQLException {
+		StringBuffer sql = new StringBuffer ("SELECT TRANS_ID FROM TRANS WHERE TRANS_ID LIKE ");
+		sql.append(SQL.quote(transId+"%"));
+		Statement s = con.createStatement();
 		ResultSet rs = null;
+		Set set = new HashSet();
 		try {
-			LinkedList jobTransactions = new LinkedList();
-			StringBuffer sql = new StringBuffer();
-			sql.append("SELECT DISTINCT object_name FROM job_detail");
-			sql.append(" WHERE object_type = 'TRANSACTION'");
-			sql.append(" AND job_id = ").append(SQL.quote(jobId));
-			logWriter.info("Starting cascade DELETE on job_id=" + jobId);				
-			logger.debug("READING JOB DETAIL RECORDS: " + sql.toString());
-			rs = stmt.executeQuery(sql.toString());
+			logger.debug("DETECT TRANS_ID COLLISION: " + sql.toString());
+			rs = s.executeQuery(sql.toString());
 			while (rs.next()) {
-				jobTransactions.add(rs.getString(1));
+				set.add(rs.getString(1));
 			}
-			rs.close();
-			logger.debug("found job transactions count: " + jobTransactions.size());
-			Iterator it = jobTransactions.iterator();
-			while (it.hasNext()) {
-				String transId = (String) it.next();
-				PLTrans trans = new PLTrans(transId);
-				logger.debug("deleting associated security objects for: " + transId);
-				PLSecurityManager.deleteDatabaseObject(con, sm, trans);
-				logWriter.info("Cascade DELETE on trans_id=" + transId + "/" + jobId);				
-				int deleteCount = 0;
-				deleteCount = stmt.executeUpdate("DELETE FROM pl_folder_detail WHERE object_type='TRANSACTION'"+
-								   " AND object_name="+SQL.quote(transId));
-				logger.debug("delete pl_folder_detail count: " + deleteCount);
-				deleteCount = stmt.executeUpdate("DELETE FROM trans_col_map WHERE trans_id="+SQL.quote(transId));
-				logger.debug("delete trans_col_map for " + transId + ": " + deleteCount);
-				deleteCount = stmt.executeUpdate("DELETE FROM trans_table_file_format WHERE trans_id="+SQL.quote(transId));
-				logger.debug("delete trans_table_file_format count for " + transId + ": " + deleteCount);
-				deleteCount = stmt.executeUpdate("DELETE FROM trans_table_except_handle WHERE trans_id="+SQL.quote(transId));
-				logger.debug("delete trans_table_except count for " + transId + ": " + deleteCount);
-				deleteCount = stmt.executeUpdate("DELETE FROM trans_table_pkg WHERE trans_id="+SQL.quote(transId));
-				logger.debug("delete trans_table_pkg count for " + transId + ": " + deleteCount);
-				deleteCount = stmt.executeUpdate("DELETE FROM trans_table_file WHERE trans_id="+SQL.quote(transId));
-				logger.debug("delete trans_table_file count for " + transId + ": " + deleteCount);
-				deleteCount = stmt.executeUpdate("DELETE FROM trans_pkg WHERE trans_id="+SQL.quote(transId));
-				logger.debug("delete trans_pkg count for " + transId + ": " + deleteCount);
-				deleteCount = stmt.executeUpdate("DELETE FROM trans_except_handle WHERE trans_id="+SQL.quote(transId));
-				logger.debug("delete trans_except_handle count for " + transId + ": " + deleteCount);
-				deleteCount = stmt.executeUpdate("DELETE FROM trans WHERE trans_id="+SQL.quote(transId));
-				logger.debug("delete trans count for " + transId + ": " + deleteCount);
-			}
-
-			job = new PLJob(jobId);
-			PLSecurityManager.deleteDatabaseObject(con, sm, job);
-			stmt.executeUpdate("DELETE FROM pl_folder_detail WHERE object_type='JOB'"+
-							   " AND object_name="+SQL.quote(jobId));
-			stmt.executeUpdate("DELETE FROM job_detail WHERE job_id="+SQL.quote(jobId));
-			stmt.executeUpdate("DELETE FROM pl_job WHERE job_id="+SQL.quote(jobId)); 
-		} catch (SQLException se) {
-			throw se;
-		} catch (PLSecurityException plse) {
-			throw plse;		
-		} catch (Exception ex) {
-			// what happened???
-			ex.printStackTrace();
-			throw new ArchitectException("something bad happened in deleteJobCascade",ex);
 		} finally {
-			if (rs != null) rs.close();
-			if (stmt != null) stmt.close();
+			if (rs != null) {
+				rs.close();				
+			}
+			if (s != null) {
+				s.close();
+			}
 		}
+		boolean foundUnique = false;
+		int i = 0;
+		while (!foundUnique) {
+			i++;
+			foundUnique = !set.contains(transId + "_" + i);
+			if (!foundUnique) {
+				logger.debug("detected collision for trans id: " + transId + "_" + i);
+			} else {
+				logger.debug("next unique trans id is: " + transId + "_" + i);
+			}
+		}
+		return i;
 	}
+
+
+
 
 	/**
 	 * Inserts a job into the PL_JOB table.  The job name is specified by {@link #jobId}.
@@ -256,7 +235,7 @@ public class PLExport implements Monitorable {
 			}
 		}
 		
-	}		
+	}			
 
 	/**
 	 * Inserts a job entry into the JOB_DETAIL table.  The job name is
@@ -413,11 +392,19 @@ public class PLExport implements Monitorable {
 		sql.append(",").append(SQL.quote("TABLE"));  // TABLE_FILE_IND
 
 		String type;
+		String dbConnectName;
 		DBConnectionSpec dbcs;
+		
 		if (isOutput) {
-			dbcs = plDBCS;
+			dbcs = repositoryDBCS;
 		} else {
 			dbcs = table.getParentDatabase().getConnectionSpec();
+		}
+		
+		if (isOutput) {
+			dbConnectName = targetPLLogicalName;
+		} else {
+			dbConnectName = (String) sourcePLDatabaseMap.get(dbcs);
 		}
 
 		if (isOracle(dbcs)) {
@@ -439,7 +426,7 @@ public class PLExport implements Monitorable {
 		sql.append(",").append(SQL.quote(null));  // FILE_CHAR_SET
 		sql.append(",").append(SQL.quote(null));  // TEXT_DELIMITER
 		sql.append(",").append(SQL.quote(null));  // TEXT_QUALIFIER
-		sql.append(",").append(SQL.quote(isOutput ? outputTableOwner : table.getParent().toString()));  // OWNER
+		sql.append(",").append(SQL.quote(isOutput ? targetSchema : table.getParent().toString()));  // OWNER
 		sql.append(",").append(SQL.quote(table.getName()));  // TABLE_FILE_NAME
 		sql.append(",").append(SQL.quote(null));  // TABLE_FILE_ACCESS_PATH
 		sql.append(",").append(SQL.quote(null));  // MAX_ADD_COUNT
@@ -452,7 +439,7 @@ public class PLExport implements Monitorable {
 		sql.append(",").append(SQL.escapeDate(con, new java.util.Date()));  // LAST_update_DATE
 		sql.append(",").append(SQL.quote(con.getMetaData().getUserName()));  // LAST_update_USER
 		sql.append(",").append(SQL.quote("Generated by Power*Architect "+PL_GENERATOR_VERSION));  // TRANS_TABLE_FILE_COMMENT
-		sql.append(",").append(SQL.quote(null));  // DB_CONNECT_NAME FIXME: important!
+		sql.append(",").append(SQL.quote(dbConnectName)); // DB_CONNECT_NAME FIXME: important!
 		sql.append(",").append(SQL.quote(null));  // UNIX_FILE_ACCESS_PATH
 		sql.append(",").append(SQL.quote(null));  // REC_DELIMITER
 		sql.append(",").append(SQL.quote(null));  // SELECT_CLAUSE
@@ -590,8 +577,10 @@ public class PLExport implements Monitorable {
 
 		String errorCode = "";
 		String resultActionType;
+		String databaseType = "";
 
 		if (DBConnection.isOracle(con)) {
+			databaseType = "ORACLE";
 			if(actionType.equals("A")) {
 				errorCode = "-1";
 				resultActionType="CHANGE_TO_UPD";
@@ -605,6 +594,7 @@ public class PLExport implements Monitorable {
 				throw new IllegalArgumentException("Invalid Action type " + actionType); 
 			}
 		} else if (DBConnection.isSQLServer(con)) {
+			databaseType = "SQL SERVER";
 			if(actionType.equals("A")) {
 				errorCode = "-2627";
 				resultActionType="CHANGE_TO_UPD";
@@ -618,6 +608,7 @@ public class PLExport implements Monitorable {
 				throw new IllegalArgumentException("Invalid Action type " + actionType); 
 			}
 		} else if (DBConnection.isDB2(con)) {
+			databaseType = "DB2";
 			if(actionType.equals("A")) {
 				errorCode = "-803";
 				resultActionType="CHANGE_TO_UPD";
@@ -631,6 +622,7 @@ public class PLExport implements Monitorable {
 				throw new IllegalArgumentException("Invalid Action type " + actionType); 
 			}
 		} else if (DBConnection.isPostgres(con)) {
+			databaseType = "POSTGRES";
 			if(actionType.equals("A")) {
 				errorCode = "23505";
 				resultActionType="CHANGE_TO_UPD";
@@ -647,7 +639,7 @@ public class PLExport implements Monitorable {
 			throw new IllegalArgumentException("Unsupported Target Database type");
 		}
 		StringBuffer sql= new StringBuffer("INSERT INTO TRANS_EXCEPT_HANDLE (");
-		sql.append("TRANS_ID,INPUT_ACTION_TYPE,DBMS_ERROR_CODE,RESULT_ACTION_TYPE,EXCEPT_HANDLE_COMMENT,LAST_update_DATE,LAST_update_USER,PKG_NAME,PKG_PARAM,PROC_FUNC_IND,ACTIVE_IND,LAST_update_OS_USER)");
+		sql.append("TRANS_ID,INPUT_ACTION_TYPE,DBMS_ERROR_CODE,RESULT_ACTION_TYPE,EXCEPT_HANDLE_COMMENT,LAST_update_DATE,LAST_update_USER,PKG_NAME,PKG_PARAM,PROC_FUNC_IND,ACTIVE_IND,LAST_update_OS_USER,DATABASE_TYPE)");
 	    sql.append(" VALUES (");
 		sql.append(SQL.quote(transId));	// TRANS_ID
 		sql.append(",").append(SQL.quote(actionType));	// INPUT_ACTION_TYPE
@@ -661,6 +653,7 @@ public class PLExport implements Monitorable {
 		sql.append(",").append(SQL.quote(null));    // PROC_FUNC_IND
 		sql.append(",").append(SQL.quote("Y"));     // ACTIVE_IND
 		sql.append(",").append(SQL.quote(System.getProperty("user.name"))); // LAST_update_OS_USER
+		sql.append(",").append(SQL.quote(databaseType)); // DATABASE_TYPE
 		sql.append(")");
 		logWriter.info("INSERT into TRANS_EXCEPT_HANDLE, PK=" + transId + "|" + actionType + "|" + errorCode);		
 		Statement s = con.createStatement();
@@ -677,6 +670,8 @@ public class PLExport implements Monitorable {
 	/**
 	 * Does the actual insertion of the PL metadata records into the PL database.
      * 
+     * @return
+     * 
      * TODO: Strictly speaking, this method should be synchronized (though currently, it's
      * pretty hard to get two copies of it going at the same time)
 	 */
@@ -688,7 +683,7 @@ public class PLExport implements Monitorable {
 			
 			currentDB = db;
 			
-			SQLDatabase target = new SQLDatabase(plDBCS); // we are exporting db into this
+			SQLDatabase target = new SQLDatabase(repositoryDBCS); // we are exporting db into this
 			Connection con = null;
         	
 			con = target.getConnection();
@@ -705,9 +700,11 @@ public class PLExport implements Monitorable {
 				throw new ArchitectException("Could not find login for: " + plUsername, se);
 			}
 			logWriter.info("Starting creation of job <" + jobId + "> at " + new java.util.Date(System.currentTimeMillis()));
-			logWriter.info("Connected to database: " + plDBCS.toString());
+			logWriter.info("Connected to database: " + repositoryDBCS.toString());
 			maybeInsertFolder(con);			
-			deleteJobCascade(con);
+
+			PLJob job = new PLJob(jobId);
+			
 			insertJob(con);
 			insertFolderDetail(con, job.getObjectType(), job.getObjectName());
 			Iterator tables = db.getChildren().iterator();
@@ -718,7 +715,6 @@ public class PLExport implements Monitorable {
 				SQLTable outputTable = (SQLTable) tables.next();
 				HashSet inputTables = new HashSet();
 				Iterator cols = outputTable.getColumns().iterator();
-				int transNum = 1;
 				while (cols.hasNext()) {
 					SQLColumn outputCol = (SQLColumn) cols.next();
 					SQLColumn inputCol = outputCol.getSourceColumn();
@@ -726,7 +722,9 @@ public class PLExport implements Monitorable {
 					if (inputCol != null && !inputTables.contains(inputCol.getParentTable())) {
 						SQLTable inputTable = inputCol.getParentTable();
 						inputTables.add(inputTable);
-						String transName = PLUtils.toPLIdentifier("LOAD_"+outputTable.getName()+"_"+transNum);
+						String baseTransName = PLUtils.toPLIdentifier("LOAD_"+outputTable.getName());
+						int transNum = generateUniqueTransIdx(con,baseTransName);
+						String transName = baseTransName + "_" + transNum;
 						insertTrans(con, transName, outputTable.getRemarks());
 						insertFolderDetail(con, "TRANSACTION", transName);
 						insertTransExceptHandler(con, "A", transName);
@@ -734,16 +732,14 @@ public class PLExport implements Monitorable {
 						insertTransExceptHandler(con, "D", transName);
 						insertJobDetail(con, outputTableNum*10, "TRANSACTION", transName);
 						logger.debug("outputTableNum: " + outputTableNum);
-						logger.debug("transNum: " + transNum);
+						logger.debug("transName: " + transName);
 						String outputTableId = PLUtils.toPLIdentifier(outputTable.getName()+"_OUT_"+outputTableNum);
 						String inputTableId = PLUtils.toPLIdentifier(inputTable.getName()+"_IN_"+transNum);
 						logger.debug("outputTableId: " + outputTableId);
 						logger.debug("inputTableId: " + inputTableId);
-						insertTransTableFile(con, transName, outputTableId, outputTable, true, transNum);
-						
+						insertTransTableFile(con, transName, outputTableId, outputTable, true, transNum);						
 						insertTransTableFile(con, transName, inputTableId, inputTable, false, transNum);
 						insertMappings(con, transName, outputTableId, outputTable, inputTableId, inputTable);
-						transNum++;
 					}
 					outputTableNum++;
 				}
@@ -901,23 +897,46 @@ public class PLExport implements Monitorable {
 		return jobComment;
 	}
 
-	public void setPlDBCS(DBConnectionSpec dbcs){
-		this.plDBCS = dbcs;
+	public void setRepositoryDBCS(DBConnectionSpec dbcs){
+		this.repositoryDBCS = dbcs;
 	}
 
-	public DBConnectionSpec getPlDBCS() {
-		return plDBCS;
+	public DBConnectionSpec getRepositoryDBCS() {
+		return repositoryDBCS;
 	}
-
-	public void setOutputTableOwner(String outputTableOwner){
-		// this.outputTableOwner = PLUtils.toPLIdentifier(outputTableOwner);
-		this.outputTableOwner = outputTableOwner;
+	
+	public void setRepositoryPLLogicalName(String name) {
+		repositoryPLLogicalName = name;
 	}
-
-	public String getOutputTableOwner() {
-		return outputTableOwner;
+	
+	public String getRepositoryPLLogicalName() {
+		return repositoryPLLogicalName;
 	}
-
+	
+	public void setTargetPLLogicalName(String name) {
+		targetPLLogicalName = name;
+	}
+	
+	public String getTargetPLLogicalName() {
+		return targetPLLogicalName;
+	}
+	
+	public void setSourcePLDatabaseMap (Map map) {
+		sourcePLDatabaseMap = map;
+	}
+	
+	public Map getSourcePLDatabaseMap() {
+		return sourcePLDatabaseMap;
+	}
+	
+	public void setTargetSchema(String schema) {
+		targetSchema = schema;
+	}
+	
+	public String getTargetSchema() {
+		return targetSchema;
+	}
+	
 	public void setPlUsername(String plUsername){
 		// this.plUsername = PLUtils.toPLIdentifier(plUsername);
 		this.plUsername = plUsername;
@@ -933,6 +952,14 @@ public class PLExport implements Monitorable {
 	
 	public String getPlPassword() {
 		return plPassword;
+	}
+	
+	public boolean getRunPLEngine() {
+		return runPLEngine;
+	}
+	
+	public void setRunPLEngine(boolean runEngine) {
+		runPLEngine = runEngine;
 	}
 	
 	public void setPlSecurityManager(PLSecurityManager sm) {

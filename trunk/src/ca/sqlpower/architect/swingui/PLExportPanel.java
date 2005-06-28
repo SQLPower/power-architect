@@ -144,13 +144,13 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 	 */
 	public void setPLExport(PLExport plexp) {
 		this.plexp = plexp;
-		connectionsBox.setSelectedItem(plexp.getPlDBCS());
+		connectionsBox.setSelectedItem(plexp.getRepositoryDBCS());
 		plRepOwner.setText(plexp.getPlUsername());
 		plFolderName.setText(plexp.getFolderName());
 		plJobId.setText(plexp.getJobId());
 		plJobDescription.setText(plexp.getJobDescription());
 		plJobComment.setText(plexp.getJobComment());
-		plOutputTableOwner.setText(plexp.getOutputTableOwner());
+		plOutputTableOwner.setText(plexp.getTargetSchema());
 	}
 	
 	/**
@@ -245,11 +245,11 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		plexp.setJobComment(plJobComment.getText());
 
 		ASUtils.LabelValueBean item = (ASUtils.LabelValueBean) connectionsBox.getSelectedItem();
-		if (item == null) plexp.setPlDBCS(null); 
-		else plexp.setPlDBCS((DBConnectionSpec) item.getValue());
+		if (item == null) plexp.setRepositoryDBCS(null); 
+		else plexp.setRepositoryDBCS((DBConnectionSpec) item.getValue());
 
 		// Don't mangle the owner and username fields -- some databases like Postgres are case sensitive
-		plexp.setOutputTableOwner(plOutputTableOwner.getText());
+		plexp.setTargetSchema(plOutputTableOwner.getText());
 
 		plexp.setPlUsername(plUserName.getText());
 
