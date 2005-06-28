@@ -163,8 +163,8 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 	public class RepositoryListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			logger.debug("event was fired");
-			ASUtils.LabelValueBean lvb = (ASUtils.LabelValueBean) connectionsBox.getSelectedItem();
-			if (lvb.getValue() == null) {
+			ArchitectDataSource dataSource = (ArchitectDataSource) connectionsBox.getSelectedItem();
+			if (dataSource == null) {
 			    runPLEngine.setSelected(false);
 				runPLEngine.setEnabled(false);
 				plRepOwner.setText(null);
@@ -172,10 +172,9 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 				plPassword.setText(null);
    		    } else {
 				runPLEngine.setEnabled(true);
-				PLConnectionSpec pldbcon = (PLConnectionSpec) lvb.getValue();
-				plRepOwner.setText(pldbcon.getPlsOwner());
-				plUserName.setText(pldbcon.getUid());
-				plPassword.setText(pldbcon.getPwd());
+				plRepOwner.setText(dataSource.get(ArchitectDataSource.PL_SCHEMA_OWNER));
+				plUserName.setText(dataSource.get(ArchitectDataSource.PL_UID));
+				plPassword.setText(dataSource.get(ArchitectDataSource.PL_PWD));
 			}
 		}
 	}
