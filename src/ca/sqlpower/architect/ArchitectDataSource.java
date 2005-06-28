@@ -20,12 +20,14 @@ public class ArchitectDataSource {
 	
 	protected Map properties;
 
-	protected String name;
-	protected String displayName;
-	protected String driverClass;
-	protected String url;
-	protected String user;
-	protected String pass;
+	// retain specific getters and setters so we have some compatibility
+	// with DBConnectionSpec, which this class is replacing in the architect.
+	protected String DBCS_NAME = "name";
+	protected String DBCS_DISPLAY_NAME = "displayName";
+	protected String DBCS_DRIVER_CLASS = "driverClass";
+	protected String DBCS_URL = "url";
+	protected String DBCS_USER = "user";
+	protected String DBCS_PASS = "pass";
 
 	protected transient PropertyChangeSupport pcs;
 	protected PropertyChangeSupport getPcs() {
@@ -37,15 +39,22 @@ public class ArchitectDataSource {
 		properties = new HashMap();
 	}
 
-	public Object put(String key, String value) {
-		return value;
+	public String put(String key, String value) {		
+		String oldValue = get(key);
+		properties.put(key,value);
+		getPcs().firePropertyChange(key,oldValue,value);
+		return oldValue;
+	}
+	
+	public String get(String key) {
+		return (String) properties.get(key);
 	}
 	
 	/**
 	 * Prints some info from this DBCS.  For use in debugging.
 	 */
 	public String toString() {
-		return "ArchitectDataSource: "+name+", "+displayName+", "+driverClass+", "+url;
+		return "ArchitectDataSource: "+get(DBCS_NAME)+", "+get(DBCS_DISPLAY_NAME)+", "+get(DBCS_DRIVER_CLASS)+", "+get(DBCS_URL);
 	}
 
 	// --------------------- property change ---------------------------
@@ -65,7 +74,7 @@ public class ArchitectDataSource {
 	 * @return the value of name
 	 */
 	public String getName() {
-		return this.name;
+		return get(DBCS_NAME);
 	}
 
 	/**
@@ -74,9 +83,7 @@ public class ArchitectDataSource {
 	 * @param argName Value to assign to this.name
 	 */
 	public void setName(String argName){
-		String oldValue = name;
-		this.name = argName;
-		getPcs().firePropertyChange("name", oldValue, name);
+		put(DBCS_NAME,argName);
 	}
 
 	/**
@@ -85,7 +92,7 @@ public class ArchitectDataSource {
 	 * @return the value of displayName
 	 */
 	public String getDisplayName() {
-		return this.displayName;
+		return get(DBCS_DISPLAY_NAME);
 	}
 
 	/**
@@ -94,9 +101,7 @@ public class ArchitectDataSource {
 	 * @param argDisplayName Value to assign to this.displayName
 	 */
 	public void setDisplayName(String argDisplayName){
-		String oldValue = displayName;
-		this.displayName = argDisplayName;
-		getPcs().firePropertyChange("displayName", oldValue, displayName);
+		put(DBCS_DISPLAY_NAME,argDisplayName);
 	}
 
 	/**
@@ -105,7 +110,7 @@ public class ArchitectDataSource {
 	 * @return the value of url
 	 */
 	public String getUrl() {
-		return this.url;
+		return get(DBCS_URL);
 	}
 
 	/**
@@ -114,9 +119,7 @@ public class ArchitectDataSource {
 	 * @param argUrl Value to assign to this.url
 	 */
 	public void setUrl(String argUrl) {
-		String oldValue = url;
-		this.url = argUrl;
-		getPcs().firePropertyChange("url", oldValue, url);
+		put(DBCS_URL,argUrl);
 	}
 
 	/**
@@ -125,7 +128,7 @@ public class ArchitectDataSource {
 	 * @return the value of driverClass
 	 */
 	public String getDriverClass() {
-		return this.driverClass;
+		return get(DBCS_DRIVER_CLASS);
 	}
 
 	/**
@@ -134,9 +137,7 @@ public class ArchitectDataSource {
 	 * @param argDriverClass Value to assign to this.driverClass
 	 */
 	public void setDriverClass(String argDriverClass){
-		String oldValue = driverClass;
-		this.driverClass = argDriverClass;
-		getPcs().firePropertyChange("driverClass", oldValue, driverClass);
+		put(DBCS_DRIVER_CLASS,argDriverClass);
 	}
 
 	/**
@@ -145,7 +146,7 @@ public class ArchitectDataSource {
 	 * @return the value of user
 	 */
 	public String getUser() {
-		return this.user;
+		return get(DBCS_USER);
 	}
 
 	/**
@@ -154,9 +155,7 @@ public class ArchitectDataSource {
 	 * @param argUser Value to assign to this.user
 	 */
 	public void setUser(String argUser){
-		String oldValue = user;
-		this.user = argUser;
-		getPcs().firePropertyChange("user", oldValue, user);
+		put(DBCS_USER,argUser);
 	}
 
 	/**
@@ -165,7 +164,7 @@ public class ArchitectDataSource {
 	 * @return the value of pass
 	 */
 	public String getPass() {
-		return this.pass;
+		return get(DBCS_PASS);
 	}
 
 	/**
@@ -174,8 +173,6 @@ public class ArchitectDataSource {
 	 * @param argPass Value to assign to this.pass
 	 */
 	public void setPass(String argPass){
-		String oldValue = pass;
-		this.pass = argPass;
-		getPcs().firePropertyChange("pass", oldValue, pass);
+		put(DBCS_PASS,argPass);
 	}
 }
