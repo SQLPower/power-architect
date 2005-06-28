@@ -58,8 +58,11 @@ public class ExportPLTransAction extends AbstractAction {
 
 		logger.debug("running setupDialog()");
 
+		// always refresh Target Database (it might have changed)
+		plexp.setTargetDataSource(ArchitectFrame.getMainInstance().getProject().getTargetDatabase().getDataSource());
+		
 		if (d != null) {
-			refreshJdbcConnections();
+			refreshConnections();
 			return;
 		}
 
@@ -93,7 +96,7 @@ public class ExportPLTransAction extends AbstractAction {
 			public void actionPerformed(ActionEvent evt) {
 				plPanel.applyChanges();
 				// make sure the user selected a target database    
-				if (plexp.getRepositoryDBCS() == null) {
+				if (plexp.getRepositoryDataSource() == null) {
 					JOptionPane.showMessageDialog(plPanel, "You have to select a target database from the list.", "Error", JOptionPane.ERROR_MESSAGE);
 					return;
 				}
@@ -189,12 +192,12 @@ public class ExportPLTransAction extends AbstractAction {
 					logger.debug("Running PL Engine");
 					File plIni = new File(architectFrame.getUserSettings().getETLUserSettings().getPlDotIniPath());
 					File plDir = plIni.getParentFile();
-					File engineExe = new File(plDir, plPanel.getPLConnectionSpec().getEngineExecutableName());
+					File engineExe = new File(plDir, PLUtils.getEngineExecutableName(plexp.getRepositoryDataSource()));
 					final StringBuffer commandLine = new StringBuffer(1000);
 					commandLine.append(engineExe.getPath());
 					commandLine.append(" USER_PROMPT=N");
 					commandLine.append(" JOB=").append(plexp.getJobId());            	
-					commandLine.append(" USER=").append(plPanel.getPLConnectionSpec().getEngineConnectString());
+					commandLine.append(" USER=").append(PLUtils.getEngineConnectString(plexp.getRepositoryDataSource()));
 					commandLine.append(" DEBUG=N SEND_EMAIL=N SKIP_PACKAGES=N CALC_DETAIL_STATS=N COMMIT_FREQ=100 APPEND_TO_JOB_LOG_IND=N");
 					commandLine.append(" APPEND_TO_JOB_ERR_IND=N");
 					commandLine.append(" SHOW_PROGRESS=100" );
@@ -353,7 +356,7 @@ public class ExportPLTransAction extends AbstractAction {
 	public static boolean checkForDuplicateJobId(String jobId) {
 		PLExport plExport = ArchitectFrame.getMainInstance().getProject().getPLExport();		
 		
-		SQLDatabase target = new SQLDatabase(plExport.getRepositoryDBCS());
+		SQLDatabase target = new SQLDatabase(plExport.getRepositoryDataSource());
 		Connection con = null;
 		Statement s = null;
 		ResultSet rs = null;
@@ -394,12 +397,13 @@ public class ExportPLTransAction extends AbstractAction {
 		}
 	}	
 	
-	private void refreshJdbcConnections() {
+	private void refreshConnections() {
 		// refresh the JDBC connections
 		PLExportPanel plep = null;
 		boolean found = false;
 		int ii = 0;
 		java.awt.Component [] panels = d.getContentPane().getComponents();
+		// figure out which panel is the PLExportPanel
 		while (!found && ii < panels.length) {
 			if (panels [ii] instanceof PLExportPanel) {
 				logger.debug("content pane class:" + panels[ii].getClass().getName());
@@ -407,9 +411,10 @@ public class ExportPLTransAction extends AbstractAction {
 				found = true;
 			}
 		}
-		if (plep != null) {
+		// call the refresh method
+		if (plep != null) { 
 			logger.debug("refreshing PL Export JDBC connection list");
-			plep.refreshJdbcConnections();
+			plep.refreshConnections();
 		}
 	}
 }

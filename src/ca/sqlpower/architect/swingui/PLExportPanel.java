@@ -1,13 +1,15 @@
 package ca.sqlpower.architect.swingui;
 
 import javax.swing.*;
+
+import java.awt.Component;
 import java.awt.GridLayout;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.*;
 import java.util.*;
-import java.io.IOException;
-import java.io.FileNotFoundException;
+
+
 
 import org.apache.log4j.Logger;
 
@@ -35,7 +37,6 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 	protected JTextField plOutputTableOwner;
 
 	// Right-hand side fields
-	protected JComboBox plOdbcTargetRepositoryBox;
 	protected JTextField plUserName;
 	protected JPasswordField plPassword;
 	protected JCheckBox runPLEngine;
@@ -60,11 +61,11 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 
 		// initialize the JDBC connections combobox
 		connectionsBox = new JComboBox();
-		refreshJdbcConnections();
-
-		// initialize the PL ODBC connections combobox
-		plOdbcTargetRepositoryBox = new JComboBox(new DefaultComboBoxModel(getPlOdbcTargets()));
-		plOdbcTargetRepositoryBox.addActionListener(new OdbcTargetRepositoryListener());
+		connectionsBox.setRenderer(new ConnectionsCellRenderer());
+		refreshConnections();
+		
+		// listen for changes and update user, password, etc.
+		connectionsBox.addActionListener(new RepositoryListener());
 
 		runPLEngine = new JCheckBox();
 		runPLEngine.setEnabled(false);
@@ -100,20 +101,17 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 
 		TextPanel jdbcForm = new TextPanel(jdbcFields, jdbcLabels, jdbcMnemonics, jdbcWidths, jdbcTips);
 
-		JComponent[] engineFields = new JComponent[] {plOdbcTargetRepositoryBox,
-													  plUserName = new JTextField(),
+		JComponent[] engineFields = new JComponent[] {plUserName = new JTextField(),
 													  plPassword = new JPasswordField(),
 													  runPLEngine};
 
-		String[] engineLabels = new String[] {"PL.INI Logical Database Name",
-											  "PL User Name",
+		String[] engineLabels = new String[] {"PL User Name",
 											  "PL Password",
 											  "Run Engine"};
 
-		char[] engineMnemonics = new char[] {'l', 'u', 'p', 'e'};
-		int[] engineWidths = new int[] {18, 18, 18, 10};
-		String[] engineTips = new String[] {"ODBC Source Name connection for PL",
-											"PowerLoader User Name",
+		char[] engineMnemonics = new char[] {'u', 'p', 'e'};
+		int[] engineWidths = new int[] {18, 18, 10};
+		String[] engineTips = new String[] {"PowerLoader User Name",
 											"PowerLoader Password",
 											"Run PL Engine immediately?"};
 		TextPanel engineForm = new TextPanel(engineFields, engineLabels, engineMnemonics, engineWidths, engineTips);
@@ -128,7 +126,7 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 				if (PLUtils.plDotIniHasChanged(plDotIniPath)) {
 					SwingUtilities.invokeLater(new Runnable() {
 						public void run() {
-							refreshPlOdbcTargets();			
+							refreshConnections();			
 						}
 					});
 				}
@@ -144,7 +142,7 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 	 */
 	public void setPLExport(PLExport plexp) {
 		this.plexp = plexp;
-		connectionsBox.setSelectedItem(plexp.getRepositoryDBCS());
+		connectionsBox.setSelectedItem(plexp.getRepositoryDataSource());
 		plRepOwner.setText(plexp.getPlUsername());
 		plFolderName.setText(plexp.getFolderName());
 		plJobId.setText(plexp.getJobId());
@@ -162,10 +160,10 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		return plexp;
 	}
 
-	public class OdbcTargetRepositoryListener implements ActionListener {
+	public class RepositoryListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			logger.debug("event was fired");
-			ASUtils.LabelValueBean lvb = (ASUtils.LabelValueBean) plOdbcTargetRepositoryBox.getSelectedItem();
+			ASUtils.LabelValueBean lvb = (ASUtils.LabelValueBean) connectionsBox.getSelectedItem();
 			if (lvb.getValue() == null) {
 			    runPLEngine.setSelected(false);
 				runPLEngine.setEnabled(false);
@@ -245,8 +243,8 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		plexp.setJobComment(plJobComment.getText());
 
 		ASUtils.LabelValueBean item = (ASUtils.LabelValueBean) connectionsBox.getSelectedItem();
-		if (item == null) plexp.setRepositoryDBCS(null); 
-		else plexp.setRepositoryDBCS((ArchitectDataSource) item.getValue());
+		if (item == null) plexp.setRepositoryDataSource(null); 
+		else plexp.setRepositoryDataSource((ArchitectDataSource) item.getValue());
 
 		// Don't mangle the owner and username fields -- some databases like Postgres are case sensitive
 		plexp.setTargetSchema(plOutputTableOwner.getText());
@@ -268,11 +266,6 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 
 	// ---------------- accessors and mutators ----------------
 
-	public PLConnectionSpec getPLConnectionSpec() {
-		ASUtils.LabelValueBean lvb = (ASUtils.LabelValueBean) plOdbcTargetRepositoryBox.getSelectedItem();
-		return (PLConnectionSpec) lvb.getValue();
-	}
-
 	public String getPlRepOwner(){
 		return PLUtils.toPLIdentifier(plRepOwner.getText());
 	}	 
@@ -281,69 +274,37 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		return runPLEngine.isSelected();
 	}
 
-	private Vector getPlOdbcTargets() {
-		Vector v = new Vector();
-		List plConnectionSpecs = new ArrayList();
-		try {
-			if (plDotIniPath != null) {
-				plConnectionSpecs = PLUtils.parsePlDotIni(plDotIniPath);
-			} else {
-				JOptionPane.showMessageDialog
-					(this, "Warning: You have not set the PL.INI file location."
-					 +"\nThe list of PL Connections will be empty.");
-			}
-		} catch (FileNotFoundException ie) {
-			JOptionPane.showMessageDialog
-				(this, "PL database config file not found in specified path:\n"
-				 +plDotIniPath+"\nThe list of PL Connections will be empty.");
-		} catch (IOException ie){
-			JOptionPane.showMessageDialog(this, "Error reading PL.ini file "+plDotIniPath
-										  +"\nThe list of PL Connections will be empty.");
-		}    
-		v.add(ASUtils.lvb("(Select PL ODBC Connection)", null));
-		Iterator it = plConnectionSpecs.iterator();
-		while (it.hasNext()) {
-			PLConnectionSpec plcon = (PLConnectionSpec) it.next();
-			v.add(ASUtils.lvb(plcon.getLogical(), plcon));
-		}
-		return v;		
-	}
-
-	private void refreshPlOdbcTargets() {
-		// reload the PL ODBC connections from PL.INI
-		String sObject = plOdbcTargetRepositoryBox.getModel().getSelectedItem().toString();
-		logger.debug("the selected object was: " + sObject);
-		DefaultComboBoxModel dcbm = new DefaultComboBoxModel(getPlOdbcTargets());					
-		plOdbcTargetRepositoryBox.setModel(dcbm);
-		boolean selectedExists = false;
-		for (int i = 0; i < dcbm.getSize(); i++) {
-			String s = (String) dcbm.getElementAt(i).toString();
-			if (s.equals(sObject)) {
-				plOdbcTargetRepositoryBox.setSelectedIndex(i);
-				selectedExists = true;
-			}
-			logger.debug("item + " + i + " is: " + dcbm.getElementAt(i));
-		}
-		if (selectedExists == false) {
-			logger.debug("connection is gone!  select another!");
-			plOdbcTargetRepositoryBox.setSelectedIndex(0);
-			// pop up a window explaining what happened...
-			JOptionPane.showMessageDialog(ArchitectFrame.getMainInstance(),
-    			"The PL ODBC connection you selected has been removed by another process.  Please select another.",
-    			"Power*Architect",
-    			JOptionPane.WARNING_MESSAGE);			
-		}
-	}		
-
-	public void refreshJdbcConnections () {
+	public void refreshConnections () { // XXX: this needs to remember if something was selected
 		connections = new Vector();
 		connections.add(ASUtils.lvb("(Select Architect Connection)", null));
 		Iterator it = ArchitectFrame.getMainInstance().getUserSettings().getConnections().iterator();
 		while (it.hasNext()) {
-			ArchitectDataSource spec = (ArchitectDataSource) it.next();
-			connections.add(ASUtils.lvb(spec.getDisplayName(), spec));
-			logger.debug("adding connection: " + spec.getDisplayName());
+			connections.add(it.next());
 		}
+		Object selectedConnection = connectionsBox.getSelectedItem();
 		connectionsBox.setModel(new DefaultComboBoxModel(connections));
+		if (selectedConnection != null) {
+			connectionsBox.setSelectedItem(selectedConnection);
+		}
 	}
+
+	class ConnectionsCellRenderer extends JLabel implements ListCellRenderer {
+	    public ConnectionsCellRenderer() {
+	        setOpaque(true);
+	    }
+	    public Component getListCellRendererComponent(
+	        JList list,
+	        Object value,
+	        int index,
+	        boolean isSelected,
+	        boolean cellHasFocus)
+	    {
+	    	ArchitectDataSource dataSource = (ArchitectDataSource) value;
+	    	setText(dataSource.get(ArchitectDataSource.PL_LOGICAL));
+	        return this;
+	    }
+	}	
+	
 }
+
+

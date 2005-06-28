@@ -4,6 +4,8 @@ import java.io.*;
 import java.util.*;
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ArchitectDataSource;
+
 /**
  * PLUtils is a collection of utility methods for interfacing with the Power*Loader.
  */
@@ -11,6 +13,12 @@ public class PLUtils {
 
 	private static final Logger logger = Logger.getLogger(PLUtils.class);
 
+	public static final String CONNECTION_TYPE_ORACLE = "ORACLE";
+	public static final String CONNECTION_TYPE_SQLSERVER = "SQL SERVER";
+	public static final String CONNECTION_TYPE_POSTGRES = "POSTGRES";
+	public static final String CONNECTION_TYPE_ACCESS = "ACCESS";
+	public static final String CONNECTION_TYPE_DB2 = "DB2";
+	
 	/**
 	 * Maximum length (in characters) of a PL identifier (transaction
 	 * name, job name, etc).
@@ -112,4 +120,50 @@ public class PLUtils {
 		inputFile = null; // is this necessary?
 		return retVal;
 	}
+	
+	public static String getEngineExecutableName(ArchitectDataSource dataSource) throws UnknownDatabaseTypeException {
+		String type = dataSource.get(ArchitectDataSource.PL_TYPE);
+		if (type == null) {
+			throw new UnknownDatabaseTypeException("<unspecified>");
+		} else if (type.equalsIgnoreCase(CONNECTION_TYPE_SQLSERVER)
+				   || type.equalsIgnoreCase(CONNECTION_TYPE_ACCESS)
+				   || type.equalsIgnoreCase(CONNECTION_TYPE_DB2)
+                   || type.equalsIgnoreCase(CONNECTION_TYPE_POSTGRES)) {
+			return "PowerLoader_odbc.exe";
+		} else if (type.equalsIgnoreCase(CONNECTION_TYPE_ORACLE)) {
+			return "PowerLoader_oracle.exe";
+		} else {
+			throw new UnknownDatabaseTypeException(type);
+		}
+	}
+
+	/**
+	 * Returns the correct argument for USER= when running the PL engine.
+	 *
+	 * Use the same rules as engine executable name to decide what 
+	 * kind of connection string to return.
+	 */
+	public static String getEngineConnectString(ArchitectDataSource dataSource) throws UnknownDatabaseTypeException {
+		logger.debug("get engine connect String PWD: " + dataSource.get(ArchitectDataSource.PL_PWD));
+		String type = dataSource.get(ArchitectDataSource.PL_TYPE);
+		if (type == null) {
+			throw new UnknownDatabaseTypeException("<unspecified>");
+		}
+		if (type.equalsIgnoreCase(CONNECTION_TYPE_SQLSERVER) 
+		    || type.equalsIgnoreCase(CONNECTION_TYPE_ACCESS)
+		    || type.equalsIgnoreCase(CONNECTION_TYPE_DB2)
+		    || type.equalsIgnoreCase(CONNECTION_TYPE_POSTGRES)) {
+			return dataSource.get(ArchitectDataSource.PL_UID)+"/"
+				      +dataSource.get(ArchitectDataSource.PL_PWD)+"@"
+					  +dataSource.get(ArchitectDataSource.PL_LOGICAL);
+		} else if (type.equalsIgnoreCase(CONNECTION_TYPE_ORACLE)) {
+				return dataSource.get(ArchitectDataSource.PL_UID)+"/"
+				      +dataSource.get(ArchitectDataSource.PL_PWD)+"@"
+					  +dataSource.get(ArchitectDataSource.PL_TNS);
+		} else {
+			throw new UnknownDatabaseTypeException(type);
+		}
+	}
+	
+	
 }
