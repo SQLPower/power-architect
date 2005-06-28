@@ -12,6 +12,8 @@ import ca.sqlpower.architect.ddl.*;
 import ca.sqlpower.architect.etl.*;
 import ca.sqlpower.architect.*;
 import ca.sqlpower.security.PLSecurityException;
+import ca.sqlpower.sql.SQL;
+
 import org.apache.log4j.Logger;
 
 public class ExportPLTransAction extends AbstractAction {
@@ -91,7 +93,7 @@ public class ExportPLTransAction extends AbstractAction {
 			public void actionPerformed(ActionEvent evt) {
 				plPanel.applyChanges();
 				// make sure the user selected a target database    
-				if (plexp.getPlDBCS() == null) {
+				if (plexp.getRepositoryDBCS() == null) {
 					JOptionPane.showMessageDialog(plPanel, "You have to select a target database from the list.", "Error", JOptionPane.ERROR_MESSAGE);
 					return;
 				}
@@ -104,6 +106,11 @@ public class ExportPLTransAction extends AbstractAction {
 					JOptionPane.showMessageDialog(plPanel, "You have to specify the PowerLoader Job ID.", "Error", JOptionPane.ERROR_MESSAGE);
 					return;
 				} 		
+				if (checkForDuplicateJobId(plexp.getJobId()) == true) {
+					JOptionPane.showMessageDialog(plPanel, "That JOB ID is taken, please provide another.", "Error", JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+			
 				try {
 					List targetDBWarnings = listMissingTargetTables();
 					if (!targetDBWarnings.isEmpty()) {
@@ -319,8 +326,8 @@ public class ExportPLTransAction extends AbstractAction {
 		DatabaseMetaData dbmd = con.getMetaData();
 		ResultSet rs = null;
 		try {
-			logger.debug("Fetching columns of "+plexp.getOutputTableOwner()+"."+tableName);
-			rs = dbmd.getColumns(null, plexp.getOutputTableOwner(), tableName, null);
+			logger.debug("Fetching columns of "+plexp.getTargetSchema()+"."+tableName);
+			rs = dbmd.getColumns(null, plexp.getTargetSchema(), tableName, null);
 			while (rs.next()) {
 				actualColumns.add(rs.getString(4).toLowerCase()); // column name
 			}
@@ -343,6 +350,50 @@ public class ExportPLTransAction extends AbstractAction {
 		}
 	}
 
+	public static boolean checkForDuplicateJobId(String jobId) {
+		PLExport plExport = ArchitectFrame.getMainInstance().getProject().getPLExport();		
+		
+		SQLDatabase target = new SQLDatabase(plExport.getRepositoryDBCS());
+		Connection con = null;
+		Statement s = null;
+		ResultSet rs = null;
+		int count = 0;
+		try {
+			con = target.getConnection();
+			s = con.createStatement();
+			rs = s.executeQuery("SELECT COUNT(*) FROM pl_job WHERE job_id = " + SQL.quote(jobId.toUpperCase()));
+			if (rs.next()) {
+				count = rs.getInt(1);
+			}			
+		} catch (SQLException se) {
+			logger.error("problem checking for duplicate job id.",se);
+			count = -1;
+		} catch (ArchitectException ex) {
+			logger.error("problem checking for duplicate job id.",ex);
+			count = -1;			
+		} finally {
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (SQLException se) {
+					logger.error("problem closing result set.",se);					
+				}
+			}
+			if (s != null) {
+				try {
+					s.close();
+				} catch (SQLException se) {
+					logger.error("problem closing statement.",se);					
+				}
+			}
+		}
+		if (count == 0) {
+			return false;
+		} else {
+			return true;
+		}
+	}	
+	
 	private void refreshJdbcConnections() {
 		// refresh the JDBC connections
 		PLExportPanel plep = null;
