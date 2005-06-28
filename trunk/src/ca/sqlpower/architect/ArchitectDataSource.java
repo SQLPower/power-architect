@@ -20,14 +20,28 @@ public class ArchitectDataSource {
 	
 	protected Map properties;
 
-	// retain specific getters and setters so we have some compatibility
-	// with ArchitectDataSource, which this class is replacing in the architect.
-	protected String DBCS_NAME = "name";
-	protected String DBCS_DISPLAY_NAME = "displayName";
-	protected String DBCS_DRIVER_CLASS = "driverClass";
-	protected String DBCS_URL = "url";
-	protected String DBCS_USER = "user";
-	protected String DBCS_PASS = "pass";
+	/*
+	 * constants used as keys to get into the properties
+	 * map.  the shared heritage of this class explains why
+	 * some constants use the prefix DBCS_ while others use
+	 * the prefix PL_.
+	 */
+	public static final String DBCS_NAME = "name";
+	public static final String DBCS_DISPLAY_NAME = "displayName";
+	public static final String DBCS_DRIVER_CLASS = "driverClass";
+	public static final String DBCS_URL = "url";
+	// public static final String DBCS_USER = "user"; // use PL version
+	// public static final String DBCS_PASS = "pass"; // use PL version
+	
+	public static final String PL_TYPE = "Type";
+	public static final String PL_DSN = "DSN";
+	public static final String PL_SCHEMA_OWNER = "PL Schema Owner";
+	public static final String PL_UID = "UID";
+	public static final String PL_PWD = "PWD";
+	public static final String PL_TNS = "TNS";
+	public static final String PL_DATABASE_NAME = "Database Name";
+	public static final String PL_IP = "IP";
+	public static final String PL_PORT = "PORT";
 
 	protected transient PropertyChangeSupport pcs;
 	protected PropertyChangeSupport getPcs() {
@@ -48,6 +62,10 @@ public class ArchitectDataSource {
 	
 	public String get(String key) {
 		return (String) properties.get(key);
+	}
+	
+	public Map getPropertiesMap() {
+		return properties;
 	}
 	
 	/**
@@ -146,7 +164,7 @@ public class ArchitectDataSource {
 	 * @return the value of user
 	 */
 	public String getUser() {
-		return get(DBCS_USER);
+		return get(PL_UID);
 	}
 
 	/**
@@ -155,7 +173,7 @@ public class ArchitectDataSource {
 	 * @param argUser Value to assign to this.user
 	 */
 	public void setUser(String argUser){
-		put(DBCS_USER,argUser);
+		put(PL_UID,argUser);
 	}
 
 	/**
@@ -164,7 +182,7 @@ public class ArchitectDataSource {
 	 * @return the value of pass
 	 */
 	public String getPass() {
-		return get(DBCS_PASS);
+		return get(PL_PWD);
 	}
 
 	/**
@@ -173,6 +191,6 @@ public class ArchitectDataSource {
 	 * @param argPass Value to assign to this.pass
 	 */
 	public void setPass(String argPass){
-		put(DBCS_PASS,argPass);
+		put(PL_PWD,argPass);
 	}
 }
