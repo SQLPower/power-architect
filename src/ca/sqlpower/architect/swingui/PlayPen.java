@@ -19,7 +19,7 @@ import java.util.HashSet;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.*;
-import ca.sqlpower.sql.DBConnectionSpec;
+import ca.sqlpower.architect.ArchitectDataSource;
 
 public class PlayPen extends JPanel
 	implements java.io.Serializable, SQLObjectListener, SelectionListener, ContainerListener, Scrollable {
@@ -147,11 +147,11 @@ public class PlayPen extends JPanel
 		if (newdb == null) throw new NullPointerException("db must be non-null");
 		this.db = newdb;
 		db.setIgnoreReset(true);
-		if (db.getConnectionSpec() == null) {
-			DBConnectionSpec dbcs = new DBConnectionSpec();
+		if (db.getDataSource() == null) {
+			ArchitectDataSource dbcs = new ArchitectDataSource();
 			dbcs.setName("Target Database");
 			dbcs.setDisplayName("Target Database");
-			db.setConnectionSpec(dbcs);
+			db.setDataSource(dbcs);
 		}
 		try {
 			ArchitectUtils.listenToHierarchy(this, db);
@@ -601,7 +601,7 @@ public class PlayPen extends JPanel
 		JPanel cp = new JPanel(new BorderLayout(12,12));
 		cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
 		final DBCSPanel dbcsPanel = new DBCSPanel();
-		dbcsPanel.setDbcs(db.getConnectionSpec());
+		dbcsPanel.setDbcs(db.getDataSource());
 		cp.add(dbcsPanel, BorderLayout.CENTER);
 		
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));

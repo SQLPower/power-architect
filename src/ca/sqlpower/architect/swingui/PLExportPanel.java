@@ -11,7 +11,7 @@ import java.io.FileNotFoundException;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.sql.DBConnectionSpec;
+import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.etl.*;
 
 public class PLExportPanel extends JPanel implements ArchitectPanel {
@@ -190,7 +190,7 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 				JPanel plr = new JPanel(new BorderLayout(12,12));
 				plr.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
 				final DBCSPanel dbcsPanel = new DBCSPanel();
-				dbcsPanel.setDbcs(new DBConnectionSpec());
+				dbcsPanel.setDbcs(new ArchitectDataSource());
 				plr.add(dbcsPanel, BorderLayout.CENTER);
 
 				JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -199,7 +199,7 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 				okButton.addActionListener(new ActionListener() {
 						public void actionPerformed(ActionEvent evt) {
 							dbcsPanel.applyChanges();
-							DBConnectionSpec dbcs = dbcsPanel.getDbcs();
+							ArchitectDataSource dbcs = dbcsPanel.getDbcs();
 							ASUtils.LabelValueBean connLvb = ASUtils.lvb(dbcs.getDisplayName(), dbcs);
 							connectionsBox.addItem(connLvb);
 							connectionsBox.setSelectedItem(connLvb);
@@ -246,7 +246,7 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 
 		ASUtils.LabelValueBean item = (ASUtils.LabelValueBean) connectionsBox.getSelectedItem();
 		if (item == null) plexp.setRepositoryDBCS(null); 
-		else plexp.setRepositoryDBCS((DBConnectionSpec) item.getValue());
+		else plexp.setRepositoryDBCS((ArchitectDataSource) item.getValue());
 
 		// Don't mangle the owner and username fields -- some databases like Postgres are case sensitive
 		plexp.setTargetSchema(plOutputTableOwner.getText());
@@ -340,7 +340,7 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		connections.add(ASUtils.lvb("(Select Architect Connection)", null));
 		Iterator it = ArchitectFrame.getMainInstance().getUserSettings().getConnections().iterator();
 		while (it.hasNext()) {
-			DBConnectionSpec spec = (DBConnectionSpec) it.next();
+			ArchitectDataSource spec = (ArchitectDataSource) it.next();
 			connections.add(ASUtils.lvb(spec.getDisplayName(), spec));
 			logger.debug("adding connection: " + spec.getDisplayName());
 		}

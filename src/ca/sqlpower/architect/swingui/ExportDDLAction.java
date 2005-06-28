@@ -462,7 +462,7 @@ public class ExportDDLAction extends AbstractAction {
             // change events when something in the underlying DBCS changes; it doesn't
             // seem to matter if it changes on the DBTree or Playpen side.
 
-			logger.debug("the Target Database is: " + target.getConnectionSpec());
+			logger.debug("the Target Database is: " + target.getDataSource());
 
 			
 
@@ -516,7 +516,7 @@ public class ExportDDLAction extends AbstractAction {
 			try {			
 				logWriter = new LogWriter(ArchitectSession.getInstance().getUserSettings().getDDLUserSettings().getDDLLogPath());			
 				logWriter.info("Starting DDL Generation at " + new java.util.Date(System.currentTimeMillis()));
-				logWriter.info("Database Target: " + target.getConnectionSpec());
+				logWriter.info("Database Target: " + target.getDataSource());
 				
 
 				Iterator it = statements.iterator();

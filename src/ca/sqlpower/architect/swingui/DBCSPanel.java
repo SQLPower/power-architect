@@ -16,13 +16,13 @@ import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.sql.DBConnectionSpec;
+import ca.sqlpower.architect.ArchitectDataSource;
 
 public class DBCSPanel extends JPanel implements ArchitectPanel {
 
 	private static final Logger logger = Logger.getLogger(DBCSPanel.class);
 
-	protected DBConnectionSpec dbcs;
+	protected ArchitectDataSource dbcs;
 	protected TextPanel form;
 
 	protected JTextField dbNameField;
@@ -260,7 +260,7 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
 
 	/**
 	 * Copies the properties displayed in the various fields back into
-	 * the current DBConnectionSpec.  You still need to call getDbcs()
+	 * the current ArchitectDataSource.  You still need to call getDbcs()
 	 * and save the connection spec yourself.
 	 */
 	public void applyChanges() {
@@ -285,7 +285,7 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
 	 * and stores a reference to the given dbcs so it can be updated
 	 * when the applyChanges() method is called.
 	 */
-	public void setDbcs(DBConnectionSpec dbcs) {
+	public void setDbcs(ArchitectDataSource dbcs) {
 		dbNameField.setText(dbcs.getName());
 		dbDriverField.removeItemAt(0);
 		if (dbcs.getDriverClass() != null) {
@@ -301,10 +301,10 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
 	}
 
 	/**
-	 * Returns a reference to the current DBConnectionSpec (that is,
+	 * Returns a reference to the current ArchitectDataSource (that is,
 	 * the one that will be updated when apply() is called).
 	 */
-	public DBConnectionSpec getDbcs() {
+	public ArchitectDataSource getDbcs() {
 		return dbcs;
 	}
 

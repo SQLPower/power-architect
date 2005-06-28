@@ -37,6 +37,6 @@ public abstract class SQLTestCase extends TestCase {
 		DBCSSource source = new XMLFileDBCSSource(dbXmlFileName);
 		DBConnectionSpec spec = DBConnectionSpec.searchListForName(source.getDBCSList(),
 																   dbNameToUse);
-		db = new SQLDatabase(spec);
+		// db = new SQLDatabase(spec);
 	}
 }

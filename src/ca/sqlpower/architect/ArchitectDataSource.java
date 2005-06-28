@@ -21,7 +21,7 @@ public class ArchitectDataSource {
 	protected Map properties;
 
 	// retain specific getters and setters so we have some compatibility
-	// with DBConnectionSpec, which this class is replacing in the architect.
+	// with ArchitectDataSource, which this class is replacing in the architect.
 	protected String DBCS_NAME = "name";
 	protected String DBCS_DISPLAY_NAME = "displayName";
 	protected String DBCS_DRIVER_CLASS = "driverClass";

@@ -54,7 +54,7 @@ public class TestSQLDatabase extends SQLTestCase {
 		assertNotNull(battingTable = db.getTableByName("batting"));
 
 		// cause disconnection
-		db.setConnectionSpec(db.getConnectionSpec());
+		db.setDataSource(db.getDataSource());
 		assertFalse("db shouldn't be connected anymore", db.isConnected());
 		assertFalse("db shouldn't be populated anymore", db.isPopulated());
 
@@ -70,7 +70,8 @@ public class TestSQLDatabase extends SQLTestCase {
 																   dbNameToUse);
 
 		spec.setDriverClass("ca.sqlpower.xxx.does.not.exist");
-		SQLDatabase mydb = new SQLDatabase(spec);
+		SQLDatabase mydb = null;
+		// SQLDatabase mydb = new SQLDatabase(spec);
 		Connection con = null;
 		ArchitectException exc = null;
 		try {
@@ -89,7 +90,8 @@ public class TestSQLDatabase extends SQLTestCase {
 																   dbNameToUse);
 
 		spec.setUrl("jdbc:bad:moo");
-		SQLDatabase mydb = new SQLDatabase(spec);
+		SQLDatabase mydb = null;
+		// SQLDatabase mydb = new SQLDatabase(spec);
 		Connection con = null;
 		ArchitectException exc = null;
 		try {
@@ -108,7 +110,8 @@ public class TestSQLDatabase extends SQLTestCase {
 																   dbNameToUse);
 
 		spec.setPass("incorrect_password");
-		SQLDatabase mydb = new SQLDatabase(spec);
+		SQLDatabase mydb = null;
+		// mydb = new SQLDatabase(spec);
 		Connection con = null;
 		ArchitectException exc = null;
 		try {

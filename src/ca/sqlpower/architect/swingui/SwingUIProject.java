@@ -3,7 +3,7 @@ package ca.sqlpower.architect.swingui;
 import ca.sqlpower.architect.*;
 import ca.sqlpower.architect.ddl.*;
 import ca.sqlpower.architect.etl.*;
-import ca.sqlpower.sql.DBConnectionSpec;
+import ca.sqlpower.architect.ArchitectDataSource;
 
 import java.awt.Container;
 import java.awt.Point;
@@ -83,7 +83,6 @@ public class SwingUIProject {
 	public SwingUIProject(String name) throws ArchitectException {
 		this.name = name;
 		setPlayPen(new PlayPen(new SQLDatabase()));
-		this.playPen.getDatabase().getConnectionSpec().setSeqNo(9999);
 		List initialDBList = new ArrayList();
 		initialDBList.add(playPen.getDatabase());
 		this.sourceDatabases = new DBTree(initialDBList);
@@ -208,12 +207,12 @@ public class SwingUIProject {
 	}
 	
 	/**
-	 * Creates a DBConnectionSpec object and puts a mapping from its
+	 * Creates a ArchitectDataSource object and puts a mapping from its
 	 * id (in the attributes) to the new instance into the dbcsIdMap.
 	 */
 	protected class DBCSFactory extends AbstractObjectCreationFactory {
 		public Object createObject(Attributes attributes) {
-			DBConnectionSpec dbcs = new DBConnectionSpec();
+			ArchitectDataSource dbcs = new ArchitectDataSource();
 			String id = attributes.getValue("id");
 			if (id != null) {
 				dbcsIdMap.put(id, dbcs);
@@ -242,7 +241,7 @@ public class SwingUIProject {
 
 			String dbcsid = attributes.getValue("dbcs-ref");
 			if (dbcsid != null) {
-				db.setConnectionSpec((DBConnectionSpec) dbcsIdMap.get(dbcsid));
+				db.setDataSource((ArchitectDataSource) dbcsIdMap.get(dbcsid));
 			}
 
 			String populated = attributes.getValue("populated");
@@ -544,7 +543,7 @@ public class SwingUIProject {
 		Iterator it = dbTreeRoot.getChildren().iterator();
 		while (it.hasNext()) {
 			SQLObject o = (SQLObject) it.next();
-			DBConnectionSpec dbcs = ((SQLDatabase) o).getConnectionSpec();
+			ArchitectDataSource dbcs = ((SQLDatabase) o).getDataSource();
 			if (dbcs != null) {
 				String id = (String) dbcsIdMap.get(dbcs);
 				if (id == null) {
@@ -558,8 +557,6 @@ public class SwingUIProject {
 				niprint(" jdbc-url=\""+dbcs.getUrl()+"\"");
 				niprint(" user-name=\""+dbcs.getUser()+"\"");
 				niprint(" user-pass=\""+dbcs.getPass()+"\"");
-				niprint(" sequence-number=\""+dbcs.getSeqNo()+"\"");
-				niprint(" single-login=\""+dbcs.isSingleLogin()+"\"");
 				niprint(">");
 				niprint(dbcs.getDisplayName());
 				niprintln("</dbcs>");
@@ -642,7 +639,7 @@ public class SwingUIProject {
 
 	protected void saveTargetDatabase() throws IOException, ArchitectException {
 		SQLDatabase db = (SQLDatabase) playPen.getDatabase();
-		println("<target-database dbcs-ref=\""+dbcsIdMap.get(db.getConnectionSpec())+"\">");
+		println("<target-database dbcs-ref=\""+dbcsIdMap.get(db.getDataSource())+"\">");
 		indent++;
 		Iterator it = db.getChildren().iterator();
 		while (it.hasNext()) {
@@ -709,7 +706,7 @@ public class SwingUIProject {
 		if (o instanceof SQLDatabase) {
 			id = "DB"+objectIdMap.size();
 			type = "database";
-			propNames.put("dbcs-ref", dbcsIdMap.get(((SQLDatabase) o).getConnectionSpec()));
+			propNames.put("dbcs-ref", dbcsIdMap.get(((SQLDatabase) o).getDataSource()));
 		} else if (o instanceof SQLCatalog) {
 			id = "CAT"+objectIdMap.size();
 			type = "catalog";

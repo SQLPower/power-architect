@@ -6,7 +6,7 @@ import java.util.Iterator;
 import java.util.Properties;
 import org.xml.sax.SAXException;
 
-import ca.sqlpower.sql.DBConnectionSpec;
+import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.swingui.SwingUserSettings; // bad design
 import ca.sqlpower.architect.etl.ETLUserSettings;
 import ca.sqlpower.architect.ddl.DDLUserSettings;
@@ -85,7 +85,7 @@ public class ConfigFile {
 		d.addCallMethod("architect-settings/jdbc-jar-files/jar", "addDriverJarPath", 0);
 
 		// db connections
-		d.addObjectCreate("architect-settings/db-connections/dbcs", DBConnectionSpec.class);
+		d.addObjectCreate("architect-settings/db-connections/dbcs", ArchitectDataSource.class);
 		d.addSetProperties
 			("architect-settings/db-connections/dbcs",
 			 new String[] {"connection-name", "driver-class", "jdbc-url", "user-name",
@@ -94,7 +94,7 @@ public class ConfigFile {
 						   "pass", "seqNo", "singleLogin"});
 		d.addCallMethod("architect-settings/db-connections/dbcs", "setName", 0); // argument is element body text
 		d.addSetNext("architect-settings/db-connections/dbcs", "addConnection",
-					 "ca.sqlpower.sql.DBConnectionSpec");
+					 "ca.sqlpower.sql.ArchitectDataSource");
 
 		// gui settings
 		d.addObjectCreate("architect-settings/swing-gui-settings", SwingUserSettings.class);
@@ -189,15 +189,13 @@ public class ConfigFile {
 		indent++;
 		Iterator it = dbConnections.iterator();
 		while (it.hasNext()) {
-			DBConnectionSpec dbcs = (DBConnectionSpec) it.next();
+			ArchitectDataSource dbcs = (ArchitectDataSource) it.next();
 			print("<dbcs");
 			niprint(" connection-name=\""+escape(dbcs.getName())+"\"");
 			niprint(" driver-class=\""+escape(dbcs.getDriverClass())+"\"");
 			niprint(" jdbc-url=\""+escape(dbcs.getUrl())+"\"");
 			niprint(" user-name=\""+escape(dbcs.getUser())+"\"");
 			niprint(" user-pass=\""+escape(dbcs.getPass())+"\"");
-			niprint(" sequence-number=\""+dbcs.getSeqNo()+"\"");
-			niprint(" single-login=\""+dbcs.isSingleLogin()+"\"");
 			niprint(">");
 			niprint(escape(dbcs.getDisplayName()));
 			niprintln("</dbcs>");
