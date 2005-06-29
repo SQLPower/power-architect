@@ -84,17 +84,8 @@ public class ConfigFile {
 		// jdbc drivers
 		d.addCallMethod("architect-settings/jdbc-jar-files/jar", "addDriverJarPath", 0);
 
-		// db connections
-		d.addObjectCreate("architect-settings/db-connections/dbcs", ArchitectDataSource.class);
-		d.addSetProperties
-			("architect-settings/db-connections/dbcs",
-			 new String[] {"connection-name", "driver-class", "jdbc-url", "user-name",
-						   "user-pass", "sequence-number", "single-login"},
-			 new String[] {"displayName", "driverClass", "url", "user",
-						   "pass", "seqNo", "singleLogin"});
-		d.addCallMethod("architect-settings/db-connections/dbcs", "setName", 0); // argument is element body text
-		d.addSetNext("architect-settings/db-connections/dbcs", "addConnection",
-					 "ca.sqlpower.sql.ArchitectDataSource");
+		// pl.ini path
+		d.addCallMethod("architect-settings/pl-dot-ini-path", "setPlDotIniPath", 0);
 
 		// gui settings
 		d.addObjectCreate("architect-settings/swing-gui-settings", SwingUserSettings.class);
@@ -154,7 +145,7 @@ public class ConfigFile {
 
 			// generate XML directly from settings
 			writeDriverJarPaths(session.getDriverJarList());
-			writeDbConnections(us.getConnections());
+			println("<pl-dot-ini-path>"+us.getPlDotIniPath()+"</pl-dot-ini-path>");
 			writeSwingSettings(us.getSwingSettings());
 			writeETLUserSettings(us.getETLUserSettings());
 			writeDDLUserSettings(us.getDDLUserSettings());

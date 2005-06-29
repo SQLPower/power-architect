@@ -86,7 +86,7 @@ public class DBTree extends JTree implements DragSourceListener {
 						ArchitectDataSource dup = getDuplicateDbcs(edittingDB.getDataSource());							
 						if (dup == null) { // did not find one, go ahead and add it to User Settings
 							ArchitectFrame.getMainInstance().getUserSettings()
-								.getConnections().add(dbcsPanel.getDbcs());
+								.getPlDotIni().addDataSource(dbcsPanel.getDbcs());
 							SQLObject root = (SQLObject) getModel().getRoot();
 							try {
 								root.addChild(root.getChildCount(), edittingDB);

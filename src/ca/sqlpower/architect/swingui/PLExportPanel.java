@@ -18,7 +18,48 @@ import ca.sqlpower.architect.etl.*;
 
 public class PLExportPanel extends JPanel implements ArchitectPanel {
 
-	private static final Logger logger = Logger.getLogger(PLExportPanel.class);
+    /**
+     * The EditRepositoryListener reacts to presses of the editRepository button.
+     */
+    public class EditRepositoryListener implements ActionListener {
+
+        public void actionPerformed(ActionEvent e) {
+            // TODO Auto-generated method stub
+        }
+    }
+
+    /**
+     * The NewRepositoryListener reacts to presses of the EditRepository button.
+     */
+    public class NewRepositoryListener implements ActionListener {
+
+        public void actionPerformed(ActionEvent e) {
+            // TODO Auto-generated method stub
+        }
+    }
+
+    /**
+     * The EditTargetListener reacts to presses of the editTarget button.
+     */
+    public class EditTargetListener implements ActionListener {
+
+        public void actionPerformed(ActionEvent e) {
+            // TODO Auto-generated method stub
+        }
+    }
+
+    /**
+     * The TargetListener reacts to presses of the target button.
+     */
+    public class TargetListener implements ActionListener {
+
+        public void actionPerformed(ActionEvent e) {
+            // TODO Auto-generated method stub
+
+        }
+    }
+
+    private static final Logger logger = Logger.getLogger(PLExportPanel.class);
 
 	/**
 	 * This is the PLExport whose properties this panel edits.
@@ -206,7 +247,7 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 							ArchitectDataSource dbcs = dbcsPanel.getDbcs();
 							targetConnectionsBox.addItem(dbcs);
 							targetConnectionsBox.setSelectedItem(dbcs);
-							ArchitectFrame.getMainInstance().getUserSettings().getConnections().add(dbcs);
+							ArchitectFrame.getMainInstance().getUserSettings().getPlDotIni().addDataSource(dbcs);
 							d.setVisible(false);
 						}
 					});
