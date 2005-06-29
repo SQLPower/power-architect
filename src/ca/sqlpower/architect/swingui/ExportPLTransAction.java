@@ -96,8 +96,12 @@ public class ExportPLTransAction extends AbstractAction {
 			public void actionPerformed(ActionEvent evt) {
 				plPanel.applyChanges();
 				// make sure the user selected a target database    
+				if (plexp.getTargetDataSource() == null) {
+					JOptionPane.showMessageDialog(plPanel, "You have to select a Target database from the list.", "Error", JOptionPane.ERROR_MESSAGE);
+					return;
+				}
 				if (plexp.getRepositoryDataSource() == null) {
-					JOptionPane.showMessageDialog(plPanel, "You have to select a target database from the list.", "Error", JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(plPanel, "You have to select a Repository database from the list.", "Error", JOptionPane.ERROR_MESSAGE);
 					return;
 				}
 				// make sure user provided a PL Job Name
