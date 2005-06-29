@@ -1,21 +1,28 @@
 package ca.sqlpower.architect;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
-import java.util.LinkedList;
+
+import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.SwingUserSettings;  // slight breech of MVC
 import ca.sqlpower.architect.etl.ETLUserSettings;
 import ca.sqlpower.architect.ddl.DDLUserSettings;
-import ca.sqlpower.sql.DBConnectionSpec;
 
 public class UserSettings {
+    private static final Logger logger = Logger.getLogger(ConfigFile.class);
 
-	/**
-	 * A List of DBConnectionSpec objects.  The goal is to remember
-	 * all databases the current user has ever connected to.
-	 */
-	protected List dbConnections;
-
+    /**
+     * The parsed list of connections.
+     */
+    protected PlDotIni plDotIni;
+    
+    /**
+     * The location of the PL.INI file.
+     */
+    protected String plDotIniPath;
+    
 	/**
 	 * For now, this just holds the preferred printer.  
 	 */
@@ -44,21 +51,12 @@ public class UserSettings {
 	
 	public UserSettings() {
 		super();
-		dbConnections = new LinkedList();
 		printUserSettings = new PrintUserSettings();
 		swingSettings = new SwingUserSettings();
 		etlUserSettings = new ETLUserSettings();
 		ddlUserSettings = new DDLUserSettings();
 	}
 	
-	public void addConnection(DBConnectionSpec dbcs) {
-		dbConnections.add(dbcs);
-	}
-
-	public List getConnections() {
-		return dbConnections;
-	}
-
 	public void setPrintUserSettings (PrintUserSettings printUserSettings) {
 		this.printUserSettings = printUserSettings;
 	}
@@ -91,11 +89,47 @@ public class UserSettings {
 		ddlUserSettings = v;
 	}
 
-
 	/**
 	 * Convenience method that calls ArchitectSession.getInstance().addDriverJarPath(path).
 	 */
 	public void addDriverJarPath(String path) {
 		ArchitectSession.getInstance().addDriverJarPath(path);
 	}
+	
+    /**
+     * Tries to read the plDotIni if it hasn't been done already.  If it can't be read,
+     * returns null and leaves the plDotIni property as null as well. See {@link #plDotIni}.
+     */
+    public PlDotIni getPlDotIni() {
+        String path = getPlDotIniPath();
+        if (path == null) return null;
+        
+        if (plDotIni == null) {
+            plDotIni = new PlDotIni();
+            try {
+                plDotIni.read(new File(path));
+            } catch (IOException e) {
+                logger.error("Failed to read pl.ini at \""+getPlDotIniPath()+"\"", e);
+                plDotIni = null;
+            }
+        }
+        return plDotIni;
+    }
+    /**
+     * See {@link #plDotIniPath}.
+     */
+    public String getPlDotIniPath() {
+        return plDotIniPath;
+    }
+    /**
+     * Sets the plDotIniPath property, and nulls out the current plDotIni.  See {@link #plDotIniPath}.
+     */
+    public void setPlDotIniPath(String plDotIniPath) {
+        this.plDotIniPath = plDotIniPath;
+        this.plDotIni = null;
+    }
+    
+    public List getConnections() {
+        return getPlDotIni().getConnections();
+    }
 }

@@ -48,11 +48,6 @@ public class PLConnectionSpec {
 	}		
 
 	public String getPwd()  {
-		if (props.getProperty("PWD") == null) {
-			return null;
-		} else {
-			return PLUtils.decryptPlIniPassword(9, props.getProperty("PWD"));
-		}
+	    return props.getProperty("PWD");
 	}
-
 }

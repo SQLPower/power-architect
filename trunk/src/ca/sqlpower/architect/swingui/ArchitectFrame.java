@@ -114,15 +114,61 @@ public class ArchitectFrame extends JFrame {
     }
 
 	protected void init() throws ArchitectException {
-
+	    UserSettings us;
+	    
 		try {
 			ConfigFile cf = ConfigFile.getDefaultInstance();
-			architectSession.setUserSettings(cf.read());
+			us = cf.read();
+			architectSession.setUserSettings(us);
 			sprefs = architectSession.getUserSettings().getSwingSettings();
 		} catch (IOException e) {
 			throw new ArchitectException("prefs.read", e);
 		}
 
+		while (us.getPlDotIni() == null) {
+		    String message;
+		    String[] options = new String[] {"Browse", "Create"};
+		    if (us.getPlDotIniPath() == null) {
+		        message = "location is not set";
+		    } else if (new File(us.getPlDotIniPath()).isFile()) {
+		        message = "file \n\n\""+us.getPlDotIniPath()+"\"\n\n could not be read";
+		    } else {
+		        message = "file \n\n\""+us.getPlDotIniPath()+"\"\n\n does not exist";
+		    }
+		    int choice = JOptionPane.showOptionDialog(null,
+		            "The Architect keeps its list of database connections" +
+		            "\nin a file called PL.INI.  Your PL.INI "+message+"." +
+		            "\n\nYou can browse for an existing PL.INI file on your system" +
+		            "\nor allow the Architect to create a new one in your home directory." +
+		            "\n\nHint: If you are a Power*Loader Suite user, you should browse for" +
+		            "\nan existing PL.INI in your Power*Loader installation directory.",
+		            "Missing PL.INI", 0, JOptionPane.INFORMATION_MESSAGE, null, options, null);
+		    File newPlIniFile;
+		    if (choice == 0) {
+		        JFileChooser fc = new JFileChooser();
+		        fc.setFileFilter(ASUtils.INI_FILE_FILTER);
+		        fc.setDialogTitle("Locate your PL.INI file");
+		        int fcChoice = fc.showOpenDialog(null);
+		        if (fcChoice == JFileChooser.APPROVE_OPTION) {
+		            newPlIniFile = fc.getSelectedFile();
+		        } else {
+		            newPlIniFile = null;
+		        }
+		    } else {
+		        newPlIniFile = new File(System.getProperty("user.home"), "pl.ini");
+		    }
+		    
+		    if (newPlIniFile != null) try {
+		        newPlIniFile.createNewFile();
+		        us.setPlDotIniPath(newPlIniFile.getPath());
+		    } catch (IOException e1) {
+		        logger.error("Caught IO exception while creating empty PL.INI at \""
+		                +newPlIniFile.getPath()+"\"", e1);
+		        JOptionPane.showMessageDialog(null, "Failed to create file \""+newPlIniFile.getPath()+"\":\n"+e1.getMessage(), 
+		                "Error", JOptionPane.ERROR_MESSAGE);
+		    }
+		}
+		
 		// Create actions
 		aboutAction = new AboutAction();
 
@@ -415,6 +461,13 @@ public class ArchitectFrame extends JFrame {
 		sprefs.setInt(SwingUserSettings.MAIN_FRAME_HEIGHT, getHeight());
 		
 		configFile.write(getArchitectSession());
+		
+		UserSettings us = getUserSettings();
+		try {
+            us.getPlDotIni().write(new File(us.getPlDotIniPath()));
+        } catch (IOException e) {
+            logger.error("Couldn't save PL.INI file!", e);
+        }
 	}
 
 	/**

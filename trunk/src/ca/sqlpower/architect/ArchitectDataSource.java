@@ -1,21 +1,22 @@
 /*
  * Created on Jun 28, 2005
  *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Style - Code Templates
+ * This code belongs to SQL Power.
  */
 package ca.sqlpower.architect;
 
 /**
+ * The ArchitectDataSource represents a connection that the Power Loader or
+ * the Architect can connect to.  It holds all the information required for
+ * making JDBC, ODBC, or native Oracle connections (depending on what type
+ * of database the connection is for). 
+ * 
+ * @see ca.sqlpower.architect.PlDotIni
  * @author jack
- *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Style - Code Templates
  */
 
 import java.util.*;
 import java.beans.*;
-
 public class ArchitectDataSource {
 	
 	protected Map properties;
@@ -26,12 +27,8 @@ public class ArchitectDataSource {
 	 * some constants use the prefix DBCS_ while others use
 	 * the prefix PL_.
 	 */
-	public static final String DBCS_NAME = "name";
-	public static final String DBCS_DISPLAY_NAME = "displayName";
-	public static final String DBCS_DRIVER_CLASS = "driverClass";
-	public static final String DBCS_URL = "url";
-	// public static final String DBCS_USER = "user"; // use PL version
-	// public static final String DBCS_PASS = "pass"; // use PL version
+	public static final String DBCS_DRIVER_CLASS = "JDBC Driver Class";
+	public static final String DBCS_URL = "JDBC URL";
 	
 	public static final String PL_LOGICAL = "Logical";
 	public static final String PL_TYPE = "Type";
@@ -73,7 +70,7 @@ public class ArchitectDataSource {
 	 * Prints some info from this DBCS.  For use in debugging.
 	 */
 	public String toString() {
-		return "ArchitectDataSource: "+get(DBCS_NAME)+", "+get(DBCS_DISPLAY_NAME)+", "+get(DBCS_DRIVER_CLASS)+", "+get(DBCS_URL);
+		return "ArchitectDataSource: "+getDisplayName()+", "+getDriverClass()+", "+getUrl();
 	}
 
 	// --------------------- property change ---------------------------
@@ -93,7 +90,7 @@ public class ArchitectDataSource {
 	 * @return the value of name
 	 */
 	public String getName() {
-		return get(DBCS_NAME);
+		return get(PL_LOGICAL);
 	}
 
 	/**
@@ -102,7 +99,7 @@ public class ArchitectDataSource {
 	 * @param argName Value to assign to this.name
 	 */
 	public void setName(String argName){
-		put(DBCS_NAME,argName);
+		put(PL_LOGICAL, argName);
 	}
 
 	/**
@@ -111,7 +108,7 @@ public class ArchitectDataSource {
 	 * @return the value of displayName
 	 */
 	public String getDisplayName() {
-		return get(DBCS_DISPLAY_NAME);
+		return get(PL_LOGICAL);
 	}
 
 	/**
@@ -120,7 +117,7 @@ public class ArchitectDataSource {
 	 * @param argDisplayName Value to assign to this.displayName
 	 */
 	public void setDisplayName(String argDisplayName){
-		put(DBCS_DISPLAY_NAME,argDisplayName);
+		put(PL_LOGICAL, argDisplayName);
 	}
 
 	/**
@@ -138,7 +135,7 @@ public class ArchitectDataSource {
 	 * @param argUrl Value to assign to this.url
 	 */
 	public void setUrl(String argUrl) {
-		put(DBCS_URL,argUrl);
+		put(DBCS_URL, argUrl);
 	}
 
 	/**
@@ -156,7 +153,7 @@ public class ArchitectDataSource {
 	 * @param argDriverClass Value to assign to this.driverClass
 	 */
 	public void setDriverClass(String argDriverClass){
-		put(DBCS_DRIVER_CLASS,argDriverClass);
+		put(DBCS_DRIVER_CLASS, argDriverClass);
 	}
 
 	/**
@@ -174,7 +171,7 @@ public class ArchitectDataSource {
 	 * @param argUser Value to assign to this.user
 	 */
 	public void setUser(String argUser){
-		put(PL_UID,argUser);
+		put(PL_UID, argUser);
 	}
 
 	/**
@@ -192,6 +189,6 @@ public class ArchitectDataSource {
 	 * @param argPass Value to assign to this.pass
 	 */
 	public void setPass(String argPass){
-		put(PL_PWD,argPass);
+		put(PL_PWD, argPass);
 	}
 }
