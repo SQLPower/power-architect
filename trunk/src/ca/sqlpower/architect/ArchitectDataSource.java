@@ -36,7 +36,7 @@ public class ArchitectDataSource {
 	public static final String PL_SCHEMA_OWNER = "PL Schema Owner";
 	public static final String PL_UID = "UID";
 	public static final String PL_PWD = "PWD";
-	public static final String PL_TNS = "TNS";
+	public static final String PL_TNS = "TNS Name";
 	public static final String PL_DATABASE_NAME = "Database Name";
 	public static final String PL_IP = "IP";
 	public static final String PL_PORT = "PORT";
