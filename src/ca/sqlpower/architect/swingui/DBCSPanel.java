@@ -32,7 +32,12 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
 	protected JTextField dbUrlField;
 	protected JTextField dbUserField;
 	protected JPasswordField dbPassField;
+	protected JTextField plSchemaField;
+	protected JComboBox plDbTypeField;
+	protected JTextField odbcDSNField;
 
+	private String[] plDbTypes = new String[] {"ORACLE", "DB2", "SQL SERVER", "POSTGRES"}; // XXX: double check these
+	
 	private Map jdbcDrivers;
 
 	private JDBCURLUpdater urlUpdater = new JDBCURLUpdater();
@@ -58,22 +63,31 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
 												platformSpecificOptions,
 												dbUrlField = new JTextField(),
 												dbUserField = new JTextField(),
-												dbPassField = new JPasswordField()};
+												dbPassField = new JPasswordField(),
+												plSchemaField = new JTextField(),
+												plDbTypeField = new JComboBox(plDbTypes),
+												odbcDSNField = new JTextField()};
 		String[] labels = new String[] {"Connection Name",
 										"JDBC Driver",
 										"Connect Options",
 										"JDBC URL",
 										"Username",
-										"Password"};
+										"Password",
+										"PL Schema Owner",
+										"Database Type",
+										"ODBC Data Source Name"};
 
-		char[] mnemonics = new char[] {'n', 'd', 'o', 'u', 'r', 'p'};
-		int[] widths = new int[] {30, 30, 40, 20, 20};
+		char[] mnemonics = new char[] {'n', 'd', 'o', 'u', 'r', 'p', 's', 't', 'b'};
+		int[] widths = new int[] {40, 40, 40, 40, 40, 40, 40, 40, 40};
 		String[] tips = new String[] {"Your nickname for this database",
 									  "The class name of the JDBC Driver",
 									  "Connection parameters specific to this driver",
 									  "Vendor-specific JDBC URL",
 									  "Username for this database",
-									  "Password for this database"};
+									  "Password for this database",
+									  "Qualifier to put before references to PL system tables",
+									  "The Power*Loader type code for this database",
+									  "The ODBC data source name for this database"};
 		
 		// update url field when user picks new driver
 		dbDriverField.addActionListener(new ActionListener() {
@@ -271,6 +285,9 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
 		dbcs.setUrl(dbUrlField.getText());
 		dbcs.setUser(dbUserField.getText());
 		dbcs.setPass(new String(dbPassField.getPassword())); // completely defeats the purpose for JPasswordField.getText() being deprecated, but we're saving passwords to the config file so it hardly matters.
+		dbcs.setPlSchema(plSchemaField.getText());
+		dbcs.setPlDbType((String) plDbTypeField.getSelectedItem());
+		dbcs.setOdbcDsn(odbcDSNField.getText());
 	}
 
 	/**
@@ -297,6 +314,9 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
 		dbUrlField.setText(dbcs.getUrl());
 		dbUserField.setText(dbcs.getUser());
 		dbPassField.setText(dbcs.getPass());
+		plSchemaField.setText(dbcs.getPlSchema());
+		plDbTypeField.setSelectedItem(dbcs.getPlDbType());
+		odbcDSNField.setText(dbcs.getOdbcDsn());
 		this.dbcs = dbcs;
 	}
 

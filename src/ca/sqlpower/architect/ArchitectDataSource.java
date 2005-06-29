@@ -191,4 +191,28 @@ public class ArchitectDataSource {
 	public void setPass(String argPass){
 		put(PL_PWD, argPass);
 	}
+	
+	public String getPlSchema() {
+        return (String) properties.get(PL_SCHEMA_OWNER);
+    }
+
+    public void setPlSchema(String schema) {
+        put(PL_SCHEMA_OWNER, schema);
+    }
+
+	public String getPlDbType() {
+        return (String) properties.get(PL_TYPE);
+    }
+
+	public void setPlDbType(String type) {
+        put(PL_TYPE, type);
+    }
+
+	public String getOdbcDsn() {
+        return (String) properties.get(PL_DSN);
+    }
+
+    public void setOdbcDsn(String dsn) {
+        put(PL_DSN, dsn);
+    }
 }
