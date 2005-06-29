@@ -4,6 +4,7 @@ import ca.sqlpower.architect.*;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;
+
 import java.awt.Rectangle;
 import java.awt.Container;
 import java.awt.BorderLayout;
@@ -33,7 +34,9 @@ public class ArchitectFrame extends JFrame {
 	protected JSplitPane splitPane = null;
 	protected PlayPen playpen = null;
 	protected DBTree dbTree = null;
-	
+
+    private JMenu connectionsMenu;
+
 	protected AboutAction aboutAction;
 	protected Action newProjectAction;
 	protected Action openProjectAction;
@@ -297,6 +300,10 @@ public class ArchitectFrame extends JFrame {
 		fileMenu.add(new JMenuItem(exitAction));
 		menuBar.add(fileMenu);
 
+		// the connections menu is set up when a new project is created (because it depends on the current DBTree)
+		connectionsMenu = new JMenu("Connections");
+		menuBar.add(connectionsMenu);
+
 		JMenu etlMenu = new JMenu("ETL");
 		etlMenu.setMnemonic('e');
 		JMenu etlSubmenuOne = new JMenu("Power*Loader");
@@ -380,9 +387,11 @@ public class ArchitectFrame extends JFrame {
 		setTitle(project.getName()+" - Power*Architect");
 		playpen = project.getPlayPen();
 		dbTree = project.getSourceDatabases();
-		//
+
 		setupActions();
-		//
+
+		setupConnectionsMenu();
+		
 		splitPane.setLeftComponent(new JScrollPane(dbTree));
 		splitPane.setRightComponent(new JScrollPane(playpen));		
 	}
@@ -391,6 +400,17 @@ public class ArchitectFrame extends JFrame {
 		return this.project;
 	}
 	
+	/**
+	 * Sets up the items in the Connections menu to operate on the current dbtree.
+	 */
+	protected void setupConnectionsMenu() {
+	    connectionsMenu.removeAll();
+	    dbTree.refreshMenu(null);
+	    connectionsMenu.add(dbTree.connectionsMenu);
+	    connectionsMenu.add(new JMenuItem(dbTree.dbcsPropertiesAction));
+	    connectionsMenu.add(new JMenuItem(dbTree.removeDBCSAction));
+	}
+
 	/**
 	 * Points all the actions to the correct PlayPen and DBTree
 	 * instances.  This method is called by setProject.

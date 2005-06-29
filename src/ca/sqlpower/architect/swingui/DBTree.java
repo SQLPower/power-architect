@@ -24,11 +24,12 @@ public class DBTree extends JTree implements DragSourceListener {
 
 	protected DragSource ds;
 	protected JPopupMenu popup;
-	protected JMenu popupDBCSMenu;
+	protected JMenu connectionsMenu;
 	protected JDialog propDialog;
 	protected DBCSPanel dbcsPanel;
 	protected NewDBCSAction newDBCSAction;
-
+	protected DBCSPropertiesAction dbcsPropertiesAction;
+	protected RemoveDBCSAction removeDBCSAction;
 
 	/**
 	 * This is the database whose DBCS is currently being editted in
@@ -55,6 +56,8 @@ public class DBTree extends JTree implements DragSourceListener {
 			(this, DnDConstants.ACTION_COPY, new DBTreeDragGestureListener());
 
 		newDBCSAction = new NewDBCSAction();
+		dbcsPropertiesAction = new DBCSPropertiesAction();
+		removeDBCSAction = new RemoveDBCSAction();
 		setupPropDialog();
 		addMouseListener(new PopupListener());
 		setCellRenderer(new SQLObjectRenderer());				
@@ -320,19 +323,19 @@ public class DBTree extends JTree implements DragSourceListener {
 		JPopupMenu newMenu = new JPopupMenu();				
 		if (isTargetDatabaseNode(p)) {
 			// two menu items: "Set Target Database" and "Connection Properties
-			newMenu.add(popupDBCSMenu = new JMenu("Set Target Database"));
+			newMenu.add(connectionsMenu = new JMenu("Set Target Database"));
 			if (ArchitectFrame.getMainInstance().getUserSettings().getConnections().size() == 0) {
 				// disable if there's no connections in user settings yet (annoying, but less confusing)
-				popupDBCSMenu.setEnabled(false);
+				connectionsMenu.setEnabled(false);
 			} else {
 				// populate		
 				Iterator it = ArchitectFrame.getMainInstance().getUserSettings().getConnections().iterator();
 				while(it.hasNext()) {
 					ArchitectDataSource dbcs = (ArchitectDataSource) it.next();
-					popupDBCSMenu.add(new JMenuItem(new setTargetDBCSAction(dbcs)));
+					connectionsMenu.add(new JMenuItem(new setTargetDBCSAction(dbcs)));
 				}
 			}
-			JMenuItem popupProperties = new JMenuItem(new DBCSPropertiesAction());
+			JMenuItem popupProperties = new JMenuItem(dbcsPropertiesAction);
 			newMenu.add(popupProperties);  
 		} else if (isTargetDatabaseChild(p)) {			
 			ArchitectFrame af = ArchitectFrame.getMainInstance();
@@ -396,19 +399,19 @@ public class DBTree extends JTree implements DragSourceListener {
 			}
 		} else if (p != null) { // clicked on DBCS item in DBTree
 			if (p.getLastPathComponent() instanceof SQLDatabase) {
-				newMenu.add(new JMenuItem(new RemoveDBCSAction()));
+				newMenu.add(new JMenuItem(removeDBCSAction));
 			}
-			JMenuItem popupProperties = new JMenuItem(new DBCSPropertiesAction());
+			JMenuItem popupProperties = new JMenuItem(dbcsPropertiesAction);
 			newMenu.add(popupProperties);
 		} else { // p == null, background click
-			newMenu.add(popupDBCSMenu = new JMenu("Add Connection")); 
-			popupDBCSMenu.add(new JMenuItem(newDBCSAction));		
-			popupDBCSMenu.addSeparator();
+			newMenu.add(connectionsMenu = new JMenu("Add Connection")); 
+			connectionsMenu.add(new JMenuItem(newDBCSAction));		
+			connectionsMenu.addSeparator();
 			// populate		
 			Iterator it = ArchitectFrame.getMainInstance().getUserSettings().getConnections().iterator();
 			while(it.hasNext()) {
 				ArchitectDataSource dbcs = (ArchitectDataSource) it.next();
-				popupDBCSMenu.add(new JMenuItem(new AddDBCSAction(dbcs)));
+				connectionsMenu.add(new JMenuItem(new AddDBCSAction(dbcs)));
 			}
 		}
 
