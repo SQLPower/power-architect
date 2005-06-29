@@ -65,24 +65,24 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 
 			if (dataSource.getDriverClass() == null
 				|| dataSource.getDriverClass().trim().length() == 0) {
-				throw new ArchitectException("You didn't specify the JDBC Driver class.");
+				throw new ArchitectException("Connection \""+dataSource.getName()+"\" has no JDBC Driver class specified.");
 			}
 
 			if (dataSource.getUrl() == null
 				|| dataSource.getUrl().trim().length() == 0) {
-				throw new ArchitectException("You didn't specify the JDBC URL.");
+				throw new ArchitectException("Connection \""+dataSource.getName()+"\" has no JDBC URL.");
 			}
 
 			if (dataSource.getUser() == null
 				|| dataSource.getUser().trim().length() == 0) {
-				throw new ArchitectException("You didn't specify the JDBC username.");
+				throw new ArchitectException("Connection \""+dataSource.getName()+"\" has no JDBC username.");
 			}
 
  			ArchitectSession session = ArchitectSession.getInstance();
  			if (session == null) {
  				throw new ArchitectException
- 					("Can't connect to database because ArchitectSession.getInstance()"
- 					 +" returned null");
+ 					("Can't connect to database \""+dataSource.getName()+
+ 					        "\" because ArchitectSession.getInstance() returned null");
  			}
 			if (logger.isDebugEnabled()) {
 //				DriverManager.setLogStream(System.err);
