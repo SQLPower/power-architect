@@ -2,8 +2,6 @@ package ca.sqlpower.architect.swingui;
 
 import javax.swing.*;
 
-import java.awt.Component;
-
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.*;
@@ -29,33 +27,12 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
     }
 
     /**
-     * The NewRepositoryListener reacts to presses of the EditRepository button.
-     */
-    public class NewRepositoryListener implements ActionListener {
-
-        public void actionPerformed(ActionEvent e) {
-            // TODO Auto-generated method stub
-        }
-    }
-
-    /**
      * The EditTargetListener reacts to presses of the editTarget button.
      */
     public class EditTargetListener implements ActionListener {
 
         public void actionPerformed(ActionEvent e) {
             // TODO Auto-generated method stub
-        }
-    }
-
-    /**
-     * The TargetListener reacts to presses of the target button.
-     */
-    public class TargetListener implements ActionListener {
-
-        public void actionPerformed(ActionEvent e) {
-            // TODO Auto-generated method stub
-
         }
     }
 
@@ -76,9 +53,9 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 	protected JTextField plJobComment;
 
 	private JButton newTargetButton;
-	private JButton editTargetButton;
+	// private JButton editTargetButton;
 	private JButton newRepositoryButton;
-	private JButton editRepositoryButton;
+	// private JButton editRepositoryButton;
 	private JCheckBox runPLEngine;
 
 	// Watch PL.INI for changes
@@ -93,21 +70,23 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		targetConnectionsBox = new JComboBox();
 		targetConnectionsBox.setRenderer(new ConnectionsCellRenderer());
 		refreshTargetConnections();
-		repositoryConnectionsBox.addActionListener(new TargetListener());
+		targetConnectionsBox.addActionListener(new TargetListener());
 		newTargetButton= new JButton("New");
 		newTargetButton.addActionListener(new NewTargetListener());
-		newTargetButton= new JButton("Properties");
-		newTargetButton.addActionListener(new EditTargetListener());
+		// editTargetButton= new JButton("Properties");
+		// editTargetButton.addActionListener(new EditTargetListener());
+		targetSchema = new JTextField();
 
 		// 
 		repositoryConnectionsBox = new JComboBox();
 		repositoryConnectionsBox.setRenderer(new ConnectionsCellRenderer());
 		refreshRepositoryConnections();
 		repositoryConnectionsBox.addActionListener(new RepositoryListener());
-		newTargetButton= new JButton("New");
-		newTargetButton.addActionListener(new NewRepositoryListener());
-		newTargetButton= new JButton("Properties");
-		newTargetButton.addActionListener(new EditRepositoryListener());
+		newRepositoryButton= new JButton("New");
+		newRepositoryButton.addActionListener(new NewRepositoryListener());
+		// editRepositoryButton= new JButton("Properties");
+		// editRepositoryButton.addActionListener(new EditRepositoryListener());
+		repositorySchema = new JTextField();
 
 		//
 		plFolderName = new JTextField();
@@ -120,12 +99,12 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		JPanel targetPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         targetPanel.add(targetConnectionsBox);
 		targetPanel.add(newTargetButton);
-		targetPanel.add(editTargetButton);
+		// targetPanel.add(editTargetButton);
 
 		JPanel repositoryPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        repositoryPanel.add(targetConnectionsBox);
+        repositoryPanel.add(repositoryConnectionsBox);
 		repositoryPanel.add(newRepositoryButton);
-		repositoryPanel.add(editRepositoryButton);
+		// repositoryPanel.add(editRepositoryButton);		
 
 		
 		JComponent[] fields = new JComponent[] {targetPanel,
@@ -169,6 +148,7 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 
 		add(mainForm);
 
+		/* This is messing things up, so take it out for now
 		// new: add a swing timer to watch the PL.INI file and reload the database connections if
         // it notices any changes...
         timer = new javax.swing.Timer(1000, new ActionListener() {
@@ -184,7 +164,9 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
             }
         });	
 		timer.start();
+		*/
 	}
+	
 
 	/**
 	 * Sets a new PLExport object for this panel to edit.  All field
@@ -194,7 +176,7 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 	public void setPLExport(PLExport plexp) {
 		this.plexp = plexp;
 		targetConnectionsBox.setSelectedItem(plexp.getTargetDataSource());
-		targetSchema.setText(plexp.getTargetSchema());
+		// targetSchema.setText(plexp.getTargetSchema());
 		repositoryConnectionsBox.setSelectedItem(plexp.getRepositoryDataSource());
 		// repositorySchema.setText(plexp.getRepositorySchema());
 		plFolderName.setText(plexp.getFolderName());
@@ -226,12 +208,26 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 			}
 		}
 	}
-
+	
+    /**
+     * The TargetListener reacts to presses of the target button.
+     */
+    public class TargetListener implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+			logger.debug("event was fired");
+			ArchitectDataSource dataSource = (ArchitectDataSource) targetConnectionsBox.getSelectedItem();
+			if (dataSource == null) {
+				repositorySchema.setText(null);
+   		    } else {
+				targetSchema.setText(dataSource.get(ArchitectDataSource.PL_SCHEMA_OWNER));
+			}
+        }
+    }	
 	
 	public class NewTargetListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			final JDialog d = new JDialog(ArchitectFrame.getMainInstance(),
-										  "New PL Repository Connection");
+										  "New Target Connection");
 				JPanel plr = new JPanel(new BorderLayout(12,12));
 				plr.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
 				final DBCSPanel dbcsPanel = new DBCSPanel();
@@ -252,7 +248,6 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 						}
 					});
 				buttonPanel.add(okButton);
-
 				JButton cancelButton = new JButton("Cancel");
 				cancelButton.addActionListener(new ActionListener() {
 						public void actionPerformed(ActionEvent evt) {
@@ -268,6 +263,51 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 				d.setVisible(true);
 			}
 	}
+	
+    /**
+     * The NewRepositoryListener reacts to presses of the EditRepository button.
+     */
+    public class NewRepositoryListener implements ActionListener {
+
+        public void actionPerformed(ActionEvent e) {
+			final JDialog d = new JDialog(ArchitectFrame.getMainInstance(),
+			  "New Repository Connection");
+			JPanel plr = new JPanel(new BorderLayout(12,12));
+			plr.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
+			final DBCSPanel dbcsPanel = new DBCSPanel();
+			dbcsPanel.setDbcs(new ArchitectDataSource());
+			plr.add(dbcsPanel, BorderLayout.CENTER);
+
+			JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+
+			JButton okButton = new JButton("Ok");
+			okButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent evt) {
+					dbcsPanel.applyChanges();
+					ArchitectDataSource dbcs = dbcsPanel.getDbcs();
+					repositoryConnectionsBox.addItem(dbcs);
+					repositoryConnectionsBox.setSelectedItem(dbcs);
+					ArchitectFrame.getMainInstance().getUserSettings().getPlDotIni().addDataSource(dbcs);
+					d.setVisible(false);
+				}
+			});
+			buttonPanel.add(okButton);
+			JButton cancelButton = new JButton("Cancel");
+			cancelButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent evt) {
+					dbcsPanel.discardChanges();
+					d.setVisible(false);
+				}
+			});
+			buttonPanel.add(cancelButton);
+			plr.add(buttonPanel, BorderLayout.SOUTH);
+			d.setContentPane(plr);
+			d.pack();
+			d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
+			d.setVisible(true);
+        }
+    }
+	
 	
 	// -------------------- ARCHITECT PANEL INTERFACE -----------------------
 
@@ -332,25 +372,10 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		if (selectedConnection != null) {
 			targetConnectionsBox.setSelectedItem(selectedConnection);
 		}
-	}	
-	
-	class ConnectionsCellRenderer extends JLabel implements ListCellRenderer {
-	    public ConnectionsCellRenderer() {
-	        setOpaque(true);
-	    }
-	    public Component getListCellRendererComponent(
-	        JList list,
-	        Object value,
-	        int index,
-	        boolean isSelected,
-	        boolean cellHasFocus)
-	    {
-	    	ArchitectDataSource dataSource = (ArchitectDataSource) value;
-	    	setText(dataSource.get(ArchitectDataSource.PL_LOGICAL));
-	        return this;
-	    }
-	}	
-	
+	}		
 }
+
+
+
 
 
