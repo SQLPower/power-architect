@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.Properties;
 import org.xml.sax.SAXException;
 
-import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.swingui.SwingUserSettings; // bad design
 import ca.sqlpower.architect.etl.ETLUserSettings;
 import ca.sqlpower.architect.ddl.DDLUserSettings;
@@ -175,26 +174,6 @@ public class ConfigFile {
 		println("</jdbc-jar-files>");
 	}
 
-	protected void writeDbConnections(List dbConnections) throws IOException {
-		println("<db-connections>");
-		indent++;
-		Iterator it = dbConnections.iterator();
-		while (it.hasNext()) {
-			ArchitectDataSource dbcs = (ArchitectDataSource) it.next();
-			print("<dbcs");
-			niprint(" connection-name=\""+escape(dbcs.getName())+"\"");
-			niprint(" driver-class=\""+escape(dbcs.getDriverClass())+"\"");
-			niprint(" jdbc-url=\""+escape(dbcs.getUrl())+"\"");
-			niprint(" user-name=\""+escape(dbcs.getUser())+"\"");
-			niprint(" user-pass=\""+escape(dbcs.getPass())+"\"");
-			niprint(">");
-			niprint(escape(dbcs.getDisplayName()));
-			niprintln("</dbcs>");
-		}
-		indent--;
-		println("</db-connections>");
-	}
-
 	protected void writeSwingSettings(SwingUserSettings sprefs) {
 		println("<swing-gui-settings>");
 		indent++;
@@ -203,9 +182,9 @@ public class ConfigFile {
 		while (it.hasNext()) {
 			String prefName = (String) it.next();
 			Object pref = sprefs.getObject(prefName, "");
-			println("<setting name=\""+escape(prefName)
-					+"\" class=\""+escape(pref.getClass().getName())
-					+"\" value=\""+escape(pref.toString())+"\" />");
+			println("<setting name=\""+ArchitectUtils.escapeXML(prefName)
+					+"\" class=\""+ArchitectUtils.escapeXML(pref.getClass().getName())
+					+"\" value=\""+ArchitectUtils.escapeXML(pref.toString())+"\" />");
 		}
 		
 		indent--;
@@ -220,8 +199,8 @@ public class ConfigFile {
 		Iterator it = props.keySet().iterator();
 		while (it.hasNext()) {
 			String prefName = (String) it.next();
-			println("<setting name=\""+escape(prefName)
-					+"\" value=\""+escape(props.getProperty(prefName))+"\" />");
+			println("<setting name=\""+ArchitectUtils.escapeXML(prefName)
+					+"\" value=\""+ArchitectUtils.escapeXML(props.getProperty(prefName))+"\" />");
 		}
 		
 		indent--;
@@ -236,8 +215,8 @@ public class ConfigFile {
 		Iterator it = props.keySet().iterator();
 		while (it.hasNext()) {
 			String prefName = (String) it.next();
-			println("<setting name=\""+escape(prefName)
-					+"\" value=\""+escape(props.getProperty(prefName))+"\" />");
+			println("<setting name=\""+ArchitectUtils.escapeXML(prefName)
+					+"\" value=\""+ArchitectUtils.escapeXML(props.getProperty(prefName))+"\" />");
 		}
 		
 		indent--;
@@ -253,8 +232,8 @@ public class ConfigFile {
 		Iterator it = props.keySet().iterator();
 		while (it.hasNext()) {
 			String prefName = (String) it.next();
-			println("<setting name=\""+escape(prefName)
-					+"\" value=\""+escape(props.getProperty(prefName))+"\" />");
+			println("<setting name=\""+ArchitectUtils.escapeXML(prefName)
+					+"\" value=\""+ArchitectUtils.escapeXML(props.getProperty(prefName))+"\" />");
 		}
 		
 		indent--;
@@ -287,37 +266,6 @@ public class ConfigFile {
 	 */
 	protected void niprintln(String text) {
 		out.println(text);
-	}
-
-	/**
-	 * Replaces double quotes, ampersands, and less-than signs with
-	 * their character reference equivalents.  This makes the returned
-	 * string be safe for use as an XML attribute value enclosed in
-	 * double quotes.
-	 */
-	protected String escape(String src) {
-		StringBuffer sb = new StringBuffer(src.length()+10);  //XXX: arbitrary amount of extra space
-		char ch;
-		for (int i = 0, n = src.length(); i < n; i++) {
-			switch (ch = src.charAt(i)) {
-			case '"':
-				sb.append("&#x22;");
-				break;
-				
-			case '&':
-				sb.append("&#x26;");
-				break;
-				
-			case '<':
-				sb.append("&#x3C;");
-				break;
-				
-			default:
-				sb.append(ch);
-				break;
-			}
-		}
-		return sb.toString();
 	}
 
 	/**

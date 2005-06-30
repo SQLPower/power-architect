@@ -155,4 +155,35 @@ public class ArchitectUtils {
 			return true; // found a leaf node
 		}
 	}
+	
+	/**
+	 * Replaces double quotes, ampersands, and less-than signs with
+	 * their character reference equivalents.  This makes the returned
+	 * string be safe for use as an XML attribute value enclosed in
+	 * double quotes.
+	 */
+	public static String escapeXML(String src) {
+		StringBuffer sb = new StringBuffer(src.length()+10);  // arbitrary amount of extra space
+		char ch;
+		for (int i = 0, n = src.length(); i < n; i++) {
+			switch (ch = src.charAt(i)) {
+			case '"':
+				sb.append("&#x22;");
+				break;
+				
+			case '&':
+				sb.append("&#x26;");
+				break;
+				
+			case '<':
+				sb.append("&#x3C;");
+				break;
+				
+			default:
+				sb.append(ch);
+				break;
+			}
+		}
+		return sb.toString();
+	}
 }
