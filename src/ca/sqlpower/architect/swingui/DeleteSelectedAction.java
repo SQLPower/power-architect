@@ -33,7 +33,19 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 		putValue(ACTION_COMMAND_KEY, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		setEnabled(false);
 	}
-
+	
+	
+	/*
+	 * This action takes care of handling Delete requests from the DBTree and Playpen.
+	 * 
+	 * Delete Policy (Playpen):
+	 * - if more than 1 item is selected in the playpen, it does not try to delete individual columns
+	 * - if only a single item is selected, it will attempt to delete columns (if that item was Table)
+	 * 
+	 * Delete Policy (DBTree): 
+	 * 
+	 * 
+	 */
 	public void actionPerformed(ActionEvent evt) {
 		logger.debug("delete action detected!");
 		logger.debug("ACTION COMMAND: " + evt.getActionCommand());
@@ -41,76 +53,81 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 		if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN)) {
 
 			logger.debug("delete action came from playpen");
-			List items = pp.getSelectedItems();
+			List items = pp.getSelectedItems();			
+
+			if (items.size() < 1) {
+				JOptionPane.showMessageDialog(pp, "No items to delete!");
+			}				
+
 			if (items.size() > 1) {
+				// count how many relationships and tables there are
+				int tCount = pp.getSelectedTables().size();
+				int rCount = pp.getSelectedRelationShips().size();
+				
 				int decision = JOptionPane.showConfirmDialog(pp,
-															 "Are you sure you want to delete the "
-															 +items.size()+" selected items?",
+															 "Are you sure you want to delete these "
+															 +tCount+" tables and "+rCount+" relationships?",
 															 "Multiple Delete",
 															 JOptionPane.YES_NO_OPTION);
 				if (decision == JOptionPane.NO_OPTION) {
 					return;
 				}
-			}        	
+			} else { // single selection, so we might be deleting columns
+				boolean deletingColumns = false;
+				Selectable item = (Selectable) items.get(0);
+				if (item instanceof TablePane) {
+					// make a list of columns to delete
+					TablePane tp = (TablePane) item;
+					ArrayList selectedColumns = new ArrayList();
+					try {
+						for (int i=0; i < tp.getModel().getColumns().size(); i++) {
+							if (tp.isColumnSelected(i)) {
+								deletingColumns = true; // don't fall through into Table/Relationship delete logic
+								selectedColumns.add(tp.getModel().getColumn(i));
+							}
+						}
+					} catch (ArchitectException ae) {
+						JOptionPane.showMessageDialog(tp, ae.getMessage());
+						return;
+					}							
+					// now, delete the columns
+					Iterator it2 = selectedColumns.iterator();
+					while (it2.hasNext()) {
+						SQLColumn sc = (SQLColumn) it2.next();
+						try {
+							tp.getModel().removeColumn(sc);
+						} catch (LockedColumnException ex) {
+							int decision = JOptionPane.showConfirmDialog(pp,
+									"Could not delete the column " + sc.getName()  
+									+ " because it is part of a relationship key.  Continue"
+									+ " deleting of other selected columns?",
+									"Column is Locked",
+									JOptionPane.YES_NO_OPTION);
+							if (decision == JOptionPane.NO_OPTION) {
+								return;
+							}
+						}						
+					}
+				}
+				if (deletingColumns) { // we tried to delete 1 or more columns, so don't try to delete the table
+					return;
+				}
+			}
+			// items.size() > 0, user has OK'ed the delete
 			Iterator it = items.iterator();
 			while (it.hasNext()) {
 				Selectable item = (Selectable) it.next();
 				logger.debug("next item for delete is: " + item.getClass().getName());
 				if (item instanceof TablePane) {
 					TablePane tp = (TablePane) item;
-					if (tp.getSelectedColumnIndex() >= 0) {
-						
-						/*  OLD CODE: only deleted one column at a time...
-						try {
-							tp.getModel().removeColumn(tp.getSelectedColumnIndex()); // FIXME: loop inside here to support multiple column deletion?							 
-						} catch (LockedColumnException ex) {
-							JOptionPane.showMessageDialog((JComponent) item, ex.getMessage());
-						}
-						*/
-
-						// challenge: deleting multiple columns when some of them might be locked!  It's a moving target...
-						//
-						// approach: it would be nice to get a list of SQLColumn objects and use them in the remove
-                        // calls instead of indices (which are a moving target)
-						ArrayList selectedColumns = new ArrayList();
-						try {
-							for (int i=0; i < tp.getModel().getColumns().size(); i++) {
-								if (tp.isColumnSelected(i)) {
-									selectedColumns.add(tp.getModel().getColumn(i));
-								}
-							}
-						} catch (ArchitectException ae) {
-							JOptionPane.showMessageDialog(tp, ae.getMessage());
-							return;
-						}							
-						Iterator it2 = selectedColumns.iterator();
-						while (it2.hasNext()) {
-							SQLColumn sc = (SQLColumn) it2.next();
-							try {
-								tp.getModel().removeColumn(sc);
-							} catch (LockedColumnException ex) {
-								int decision = JOptionPane.showConfirmDialog(pp,
-															 "Could not delete the column " + sc.getName()  
-                                                             + " because it is part of a relationship key.  Continue"
-                                                             + " deleting of other selected columns?",
-															 "Column is Locked",
-															 JOptionPane.YES_NO_OPTION);
-								if (decision == JOptionPane.NO_OPTION) {
-									return;
-								}
-							}
-						}
-					} else {
-						// the whole table
-						pp.db.removeChild(tp.getModel());
-						if (logger.isDebugEnabled()) {
-							logger.debug("removing element from tableNames set: " + tp.getModel().getTableName());
-							logger.debug("before delete: " + pp.tableNames.toArray());
-						}
-						pp.tableNames.remove(tp.getModel().getTableName().toLowerCase());
-						if (logger.isDebugEnabled()) {
-							logger.debug("after delete: " + pp.tableNames.toArray());
-						}
+					pp.db.removeChild(tp.getModel());
+					if (logger.isDebugEnabled()) {
+						logger.debug("removing element from tableNames set: " + tp.getModel().getTableName());
+						logger.debug("before delete: " + pp.tableNames.toArray());
+					}
+					pp.tableNames.remove(tp.getModel().getTableName().toLowerCase());
+					if (logger.isDebugEnabled()) {
+						logger.debug("after delete: " + pp.tableNames.toArray());
 					}
 				} else if (item instanceof Relationship) {
 					Relationship r = (Relationship) item;
