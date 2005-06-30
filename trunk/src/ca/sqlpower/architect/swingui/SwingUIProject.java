@@ -120,7 +120,7 @@ public class SwingUIProject {
 		// project name
 		d.addCallMethod("architect-project/project-name", "setName", 0); // argument is element body text
 
-		// source DB connection specs
+		// source DB connection specs (deprecated in favour of project-data-sources)
 		DBCSFactory dbcsFactory = new DBCSFactory();
 		d.addFactoryCreate("architect-project/project-connection-specs/dbcs", dbcsFactory);
 		d.addSetProperties
@@ -132,6 +132,13 @@ public class SwingUIProject {
 		d.addCallMethod("architect-project/project-connection-specs/dbcs", "setName", 0);
 		// these instances get picked out of the dbcsIdMap by the SQLDatabase factory
 
+		// project data sources (replaces project connection specs)
+		d.addFactoryCreate("architect-project/project-data-sources/data-source", dbcsFactory);
+		d.addCallMethod("architect-project/project-data-sources/data-source/property", "put", 2);
+		d.addCallParam("architect-project/project-data-sources/data-source/property", 0, "key");
+		d.addCallParam("architect-project/project-data-sources/data-source/property", 1, "value");
+		//d.addSetNext("architect-project/project-data-sources/data-source", );
+		
 		// source database hierarchy
 		d.addObjectCreate("architect-project/source-databases", LinkedList.class);
 		d.addSetNext("architect-project/source-databases", "setSourceDatabaseList");
@@ -502,7 +509,7 @@ public class SwingUIProject {
 			println("<architect-project version=\"0.1\">");
 			indent++;
 			println("<project-name>"+name+"</project-name>");
-			saveDBCS();
+			saveDataSources();
 			saveSourceDatabases();
 			saveTargetDatabase();
 			saveDDLGenerator();
@@ -535,37 +542,36 @@ public class SwingUIProject {
 		}
 	}
 
-	protected void saveDBCS() throws IOException, ArchitectException {
-		println("<project-connection-specs>");
+	protected void saveDataSources() throws IOException, ArchitectException {
+		println("<project-data-sources>");
 		indent++;
-		int dbcsNum = 0;
+		int dsNum = 0;
 		SQLObject dbTreeRoot = (SQLObject) sourceDatabases.getModel().getRoot();
 		Iterator it = dbTreeRoot.getChildren().iterator();
 		while (it.hasNext()) {
 			SQLObject o = (SQLObject) it.next();
-			ArchitectDataSource dbcs = ((SQLDatabase) o).getDataSource();
-			if (dbcs != null) {
-				String id = (String) dbcsIdMap.get(dbcs);
+			ArchitectDataSource ds = ((SQLDatabase) o).getDataSource();
+			if (ds != null) {
+				String id = (String) dbcsIdMap.get(ds);
 				if (id == null) {
-					id = "DBCS"+dbcsNum;
-					dbcsIdMap.put(dbcs, id);
+					id = "DS"+dsNum;
+					dbcsIdMap.put(ds, id);
 				}
-				print("<dbcs");
-				niprint(" id=\""+id+"\"");
-				niprint(" connection-name=\""+dbcs.getName()+"\"");
-				niprint(" driver-class=\""+dbcs.getDriverClass()+"\"");
-				niprint(" jdbc-url=\""+dbcs.getUrl()+"\"");
-				niprint(" user-name=\""+dbcs.getUser()+"\"");
-				niprint(" user-pass=\""+dbcs.getPass()+"\"");
-				niprint(">");
-				niprint(dbcs.getDisplayName());
-				niprintln("</dbcs>");
-				dbcsNum++;
+				println("<data-source id=\""+id+"\">");
+				indent++;
+				Iterator pit = ds.getPropertiesMap().entrySet().iterator();
+				while (pit.hasNext()) {
+				    Map.Entry ent = (Map.Entry) pit.next();
+				    println("<property key="+quote((String) ent.getKey())+" value="+quote((String) ent.getValue())+" />");
+				}
+				indent--;
+				println("</data-source>");
+				dsNum++;
 			}
-			dbcsNum++;
+			dsNum++;
 		}
 		indent--;
-		println("</project-connection-specs>");
+		println("</project-data-sources>");
 	}
 
 	protected void saveDDLGenerator() throws IOException {
@@ -821,7 +827,9 @@ public class SwingUIProject {
 		}
 	}
 
-
+	private String quote(String str) {
+	    return "\""+ArchitectUtils.escapeXML(str)+"\"";
+	}
 	// ------------------- accessors and mutators ---------------------
 	
 	/**
