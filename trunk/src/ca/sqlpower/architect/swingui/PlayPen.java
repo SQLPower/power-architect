@@ -1050,6 +1050,23 @@ public class PlayPen extends JPanel
 	}
 
 
+	/**
+	 * Returns a read-only view of the set of selected relationships in the PlayPen.
+	 */
+	public List getSelectedRelationShips() {
+		ArrayList selected = new ArrayList();
+ 		for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
+ 			if (contentPane.getComponent(i) instanceof Relationship) {
+ 				Relationship r = (Relationship) contentPane.getComponent(i);
+ 				if (r.isSelected()) {
+					selected.add(r);
+				}
+			}
+		}			
+		return Collections.unmodifiableList(selected);
+	}
+
+	
 	// --------------------------- CONTAINER LISTENER -------------------------
 
 	/**
