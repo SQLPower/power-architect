@@ -226,21 +226,34 @@ public class PlDotIni {
 	        String sectionHeading = "["+name+"]\r\n";
 	        out.write(sectionHeading.getBytes());
 	    }
+
+	    // output LOGICAL first (if it exists)
+	    String s = null;
+	    if ((s = (String) properties.get("Logical")) != null) {
+	        out.write("Logical".getBytes());
+            out.write("=".getBytes());
+            out.write(s.getBytes());
+	        out.write("\r\n".getBytes());
+	    }
+
+	    // now get everything else, and ignore the LOGICAL property
 	    Iterator it = properties.entrySet().iterator();
 	    while (it.hasNext()) {
 	        Map.Entry ent = (Map.Entry) it.next();
-	        out.write(((String) ent.getKey()).getBytes());
-	        if (ent.getValue() != null) {
-	            byte[] val;
-	            if (ent.getKey().equals("PWD")) {
-	                val = encryptPassword(9, ((String) ent.getValue()));
-	            } else {
-	                val = ((String) ent.getValue()).getBytes();
-	            }
-	            out.write("=".getBytes());
-	            out.write(val);
+	        if (!ent.getKey().equals("Logical")) {
+	        	out.write(((String) ent.getKey()).getBytes());
+	        	if (ent.getValue() != null) {
+	        		byte[] val;
+	        		if (ent.getKey().equals("PWD")) {
+	        			val = encryptPassword(9, ((String) ent.getValue()));
+	        		} else {
+	        			val = ((String) ent.getValue()).getBytes();
+	        		}
+	        		out.write("=".getBytes());
+	        		out.write(val);
+	        	}
+	        	out.write("\r\n".getBytes());
 	        }
-	        out.write("\r\n".getBytes());
 	    }
 	}
 
