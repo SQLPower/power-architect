@@ -675,6 +675,12 @@ public class TablePane
 			   && (dge.getTriggerEvent().getModifiers() & InputEvent.BUTTON1_MASK) == 0)
 				return;
 			
+			// ignore drag events if we're in the middle of a createRelationship
+			if (ArchitectFrame.getMainInstance().createRelationshipIsActive()) {
+				logger.debug("CreateRelationship() is active, short circuiting DnD.");
+				return;
+			}
+			
 			try {
 				colIndex = tp.pointToColumnIndex(dragOrigin);
 			} catch (ArchitectException e) {
@@ -781,7 +787,10 @@ public class TablePane
 					tp.selectColumn(clickCol);
 				}
 
-				// handle drag (but not if createRelationshipAction is active!)				
+				// handle drag (but not if createRelationshipAction is active!)	
+				logger.debug("(mouse pressed) click col is: " + clickCol + ", column index title is: " + COLUMN_INDEX_TITLE);
+				logger.debug("(mouse pressed) create relationship is active: " + ArchitectFrame.getMainInstance().createRelationshipIsActive());
+				
 				if (clickCol == COLUMN_INDEX_TITLE && !ArchitectFrame.getMainInstance().createRelationshipIsActive()) {
 					Iterator it = getPlayPen().getSelectedTables().iterator();
 					logger.debug("event point: " + evt.getPoint());
