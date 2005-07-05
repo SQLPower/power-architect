@@ -49,7 +49,7 @@ public class CreateRelationshipAction extends AbstractAction
 		logger.debug("the hashcode is: " + super.hashCode());
 		pkTable = null;
 		fkTable = null;
-		logger.debug("Starting to create relationship!");
+		logger.debug("Starting to create relationship, setting active to TRUE!");
 		active = true;
 		pp.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 		// gets over the "can't select a selected item"
@@ -164,6 +164,8 @@ public class CreateRelationshipAction extends AbstractAction
 		if (!active) {
 			logger.debug("222222222 not active.");
 			return;
+		} else {
+			logger.debug("222222222 ACTIVE!!!.");			
 		}
 
 		Selectable s = e.getSelectableSource();
@@ -184,6 +186,7 @@ public class CreateRelationshipAction extends AbstractAction
 				logger.debug("66666666666666 Creating relationship: FK Table is "+fkTable);
 				doCreateRelationship();  // this might fail, but still set things back to "normal"
 				pp.setCursor(null);
+				logger.debug("66666666666666 setting active to FALSE!");
 				active = false;
 			}
 		} else {
