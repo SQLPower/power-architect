@@ -14,6 +14,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -277,7 +278,7 @@ public class PlDotIni {
 	}
 
     /**
-     * @return a List of all the data sources in this pl.ini.
+     * @return a sorted List of all the data sources in this pl.ini.
      */
     public List getConnections() {
         List connections = new ArrayList();
@@ -287,7 +288,8 @@ public class PlDotIni {
 	        if (next instanceof ArchitectDataSource) {
 	            connections.add(next);
 	        }
-	    }
+	    }	    
+        Collections.sort(connections);
         return connections;
     }
     
