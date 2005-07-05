@@ -17,7 +17,9 @@ package ca.sqlpower.architect;
 
 import java.util.*;
 import java.beans.*;
-public class ArchitectDataSource {
+
+import ca.sqlpower.util.SQLPowerUtils;
+public class ArchitectDataSource implements Comparable {
 	
 	protected Map properties;
 
@@ -72,6 +74,26 @@ public class ArchitectDataSource {
 	public String toString() {
 		return "ArchitectDataSource: "+getDisplayName()+", "+getDriverClass()+", "+getUrl();
 	}
+	
+	public int compareTo(Object o) {
+		if (o == null) {
+			throw new NullPointerException("tried to compare data source to null");
+		}
+		ArchitectDataSource a2 = (ArchitectDataSource) o; // throws ClassCastException
+		
+		// protect against null in getName() 
+		if (SQLPowerUtils.areEqual(getName(),a2.getName())) {
+			return 0;
+		}
+		if (getName().compareToIgnoreCase(a2.getName()) == 0) {
+			return 0; // ignore case
+		}
+		if (getName().compareToIgnoreCase(a2.getName()) > 0) {
+			return 1;
+		} else {
+			return -1;			
+		}
+	}	
 
 	// --------------------- property change ---------------------------
 	public void addPropertyChangeListener(PropertyChangeListener l) {
