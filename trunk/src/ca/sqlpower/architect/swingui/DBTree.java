@@ -14,6 +14,8 @@ import java.awt.event.*;
 import java.util.List;
 import java.util.Iterator;
 import java.util.ArrayList;
+
+
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.*;
@@ -328,12 +330,38 @@ public class DBTree extends JTree implements DragSourceListener {
 				// disable if there's no connections in user settings yet (annoying, but less confusing)
 				connectionsMenu.setEnabled(false);
 			} else {
-				// populate		
+				// populate
 				Iterator it = ArchitectFrame.getMainInstance().getUserSettings().getConnections().iterator();
 				while(it.hasNext()) {
 					ArchitectDataSource dbcs = (ArchitectDataSource) it.next();
 					connectionsMenu.add(new JMenuItem(new setTargetDBCSAction(dbcs)));
 				}
+				
+				/* this doesn't work, but it's what I want to do... 
+				final ScrollablePopupMenu smenu = new ScrollablePopupMenu(new Vector(ArchitectFrame.getMainInstance().getUserSettings().getConnections()));
+				smenu.addActionListener( new ActionListener() {
+					public void actionPerformed (ActionEvent evt) {
+						ArchitectDataSource dbcs = (ArchitectDataSource) smenu.getSelectedItem();
+			            logger.debug("Performing setTargetDBCSAction...");
+						panelHoldsNewDBCS = false; // we are editing the Target Database dbcs, which has already been created
+						edittingDB = ArchitectFrame.getMainInstance().getProject().getPlayPen().getDatabase();
+						// copy over the values from the selected DB.
+						ArchitectDataSource tSpec = edittingDB.getDataSource();
+						// don't copy the sequence number, or it will prevent the Target Database and whatever it
+			            // was cloned from from co-existing in the same project
+			        	tSpec.setDriverClass(dbcs.getDriverClass());
+			        	tSpec.setUrl(dbcs.getUrl());
+			        	tSpec.setUser(dbcs.getUser());
+			        	tSpec.setPass(dbcs.getPass());
+						// for some reason, the above property change events are not being received properly by 
+			            // parent SQLDatabase objects
+						dbcsPanel.setDbcs(tSpec);
+						propDialog.setVisible(true);
+						propDialog.requestFocus();					
+					}
+				});
+				connectionsMenu.add(smenu);
+				*/
 			}
 			JMenuItem popupProperties = new JMenuItem(dbcsPropertiesAction);
 			newMenu.add(popupProperties);  
