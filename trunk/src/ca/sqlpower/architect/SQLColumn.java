@@ -55,6 +55,23 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 
 	// *** REMEMBER *** update the getDerivedInstance method if you add new properties!
 
+	
+	/**
+	 * referenceCount is meant to keep track of how many containers (i.e. 
+	 * folders and relationships) have a reference to a column.  A new 
+	 * SQLColumn always starts off life with a reference count of 1. (it
+	 * is set in the constructors).
+	 * 
+	 * When creating a new relationship which reuses a column, the 
+	 * call addReference() on the column to increment the referenceCount.
+	 * 
+	 * When removing a relationship, call removeReference() on the column to
+	 * decrement the referenceCount.  If the referenceCount falls to zero, it 
+	 * removes itself from the containing table (because it imported by 
+	 * the creation of a relationship.    
+	 */
+	protected int referenceCount;
+	
 	public SQLColumn() {
 		logger.debug("NEW COLUMN (noargs) @"+hashCode());
 		columnName = "new column";
@@ -62,6 +79,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 		scale = 10;
 		nullable = DatabaseMetaData.columnNoNulls;
 		autoIncrement = false;
+		referenceCount = 1;
 	}
 
 	/**
@@ -113,18 +131,22 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 		this.autoIncrement = isAutoIncrement;
 
 		this.children = Collections.EMPTY_LIST;
+		
+		this.referenceCount = 1;
 	}
 
 	public SQLColumn(SQLTable parent, String colName, int type, int scale, int precision) {
 		this(parent, colName, type, null, scale, precision, DatabaseMetaData.columnNullable, null, null, null, false);
 	}
-
+	
 	/**
 	 * Makes a near clone of the given source column.  The new column
 	 * you get back will have a parent pointer of addTo.columnsFolder,
 	 * but will not be attached as a child (you will normally do that
 	 * right after calling this).  It will refer to source as its
 	 * sourceColumn property, and otherwise be identical to source.
+	 * 
+	 * 
 	 */
 	public static SQLColumn getDerivedInstance(SQLColumn source, SQLTable addTo) {
 		SQLColumn c = new SQLColumn();
@@ -141,6 +163,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 		c.defaultValue = source.defaultValue;
 		c.primaryKeySeq = source.primaryKeySeq;
 		c.autoIncrement = source.autoIncrement;
+		c.referenceCount = source.referenceCount; 
 		return c;
 	}
 
@@ -285,7 +308,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 
 	public SQLObject getParent()  {
 		return this.parent;
-	}
+	}	
 
 	// ------------------------- accessors and mutators --------------------------
 
@@ -571,5 +594,31 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 			logger.error("Clone not supported !?!?");
 			return null;
 		}
+	}
+	
+	public void addReference() {
+		logger.debug("(inc) old reference count: " + referenceCount);
+		referenceCount++;
+		logger.debug("incremented reference count to: " + referenceCount);
+	}
+	public void removeReference() {
+		logger.debug("(dec) old reference count: " + referenceCount);
+		referenceCount--;
+		logger.debug("decremented reference count to: " + referenceCount);
+		if (referenceCount == 0) {
+			// delete from the parent (columnsFolder) 
+			logger.debug("reference count is 0, deleting column from parent.");
+			getParent().removeChild(this);
+		}
+	}
+
+
+	
+	
+	/**
+	 * @return Returns the referenceCount.
+	 */
+	public int getReferenceCount() {
+		return referenceCount;
 	}
 }
