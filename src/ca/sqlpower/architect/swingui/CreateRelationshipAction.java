@@ -86,7 +86,8 @@ public class CreateRelationshipAction extends AbstractAction
 					    match.getPrecision() == pkCol.getPrecision() &&
 						match.getScale() == pkCol.getScale()) {
 						// column is an exact match, so we don't have to recreate it
-						fkCol = match;
+						fkCol = match; 
+						fkCol.addReference(); // reference counting, stops column from being removed if relationship is removed					
 					} else {
 						// ask the user if they would like to rename the column 
 						// or cancel the creation of the relationship						

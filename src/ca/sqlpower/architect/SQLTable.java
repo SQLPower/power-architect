@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+
 import org.apache.log4j.Logger;
 
 public class SQLTable extends SQLObject implements SQLObjectListener {
@@ -44,7 +45,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * keys.
 	 */
 	protected Folder importedKeysFolder;
-
+	
 	public SQLTable(SQLObject parent, String name, String remarks, String objectType) {
 		logger.debug("NEW TABLE "+name+"@"+hashCode());
 		this.parent = parent;
@@ -452,7 +453,6 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 				exportedKeysFolder = (Folder) child;
 			} else if (children.size() == 2) {
 				importedKeysFolder = (Folder) child;
-
 				/* we listen to the importedKeysFolder because this is how we
 				 * know to remove FK columns when their owning relationship is
 				 * removed. */
@@ -778,8 +778,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 					Iterator mappings = rel.getChildren().iterator();
 					while (mappings.hasNext()) {
 						SQLRelationship.ColumnMapping cmap = (SQLRelationship.ColumnMapping) mappings.next();
-						// XXX: when we can make multiple relationships share an FK column, we should check for other FKs using this column before dropping it
-						removeColumn(cmap.getFkColumn());
+						cmap.getFkColumn().removeReference(); // might delete column							
 					}
 				}
 			} catch (ArchitectException ex) {
