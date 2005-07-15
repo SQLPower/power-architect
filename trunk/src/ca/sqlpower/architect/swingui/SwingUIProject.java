@@ -224,7 +224,7 @@ public class SwingUIProject {
 			if (id != null) {
 				dbcsIdMap.put(id, dbcs);
 			} else {
-				logger.warn("No ID found in dbcs element while loading project!");
+				logger.info("No ID found in dbcs element while loading project! (this is normal for playpen db, but bad for other data sources!");
 			}
 			return dbcs;
 		}

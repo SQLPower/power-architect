@@ -318,6 +318,7 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 	 * fields.
 	 */
 	public void applyChanges() {
+	    logger.debug("Applying changes to the PLExport object");
 		plexp.setTargetDataSource((ArchitectDataSource)targetConnectionsBox.getSelectedItem());
 		plexp.setRepositoryDataSource((ArchitectDataSource)repositoryConnectionsBox.getSelectedItem());
 		// XXX: probably need to grab the schemas here
