@@ -483,8 +483,49 @@ public class BasicRelationshipUI extends RelationshipUI
 		Point pkDec = new Point
 		 (pkConnectionPoint.x + relationship.pkTable.getX() - relationship.getX(),
 		  pkConnectionPoint.y + relationship.pkTable.getY() - relationship.getY());
-		if (logger.isDebugEnabled()) logger.debug("p="+p+"; pkDec = "+pkDec);
-		return ASUtils.distance(p, pkDec) < Math.max(getTerminationWidth(), getTerminationLength());
+		if (logger.isDebugEnabled()) logger.debug(
+		        "p="+p+"; pkDec = "+pkDec+"; width="+relationship.getWidth()+
+		        "; height="+relationship.getHeight()+"; orientation="+orientation);
+		if ( (orientation & (PARENT_FACES_BOTTOM | PARENT_FACES_TOP)) != 0) {
+		    if (p.x < pkDec.x + 5 && p.x > pkDec.x - 5) {
+		        if ( (orientation & PARENT_FACES_BOTTOM) != 0) {
+		            if ( (orientation & (CHILD_FACES_LEFT | CHILD_FACES_RIGHT)) != 0) {
+		                return p.y >= pkDec.y && p.y < relationship.getHeight();
+		            } else {
+		                return p.y >= pkDec.y && p.y < pkDec.y + (relationship.getHeight() / 2);
+		            }
+		        } else {
+		            if ( (orientation & (CHILD_FACES_LEFT | CHILD_FACES_RIGHT)) != 0) {
+		                return p.y <= pkDec.y && p.y > pkDec.y - relationship.getHeight();
+		            } else {
+		                return p.y <= pkDec.y && p.y > pkDec.y - (relationship.getHeight() / 2);
+		            }
+		        }
+		    } else {
+		        return false;
+		    }
+		} else if ( (orientation & PARENT_FACES_LEFT | PARENT_FACES_RIGHT) != 0) {
+		    if (p.y < pkDec.y + 5 && p.y > pkDec.y - 5) {
+		        if ( (orientation & PARENT_FACES_LEFT) != 0) {
+		            if ( (orientation & (CHILD_FACES_TOP | CHILD_FACES_BOTTOM)) != 0) {
+		                return p.x <= pkDec.x && p.x >= pkDec.x - relationship.getWidth();
+		            } else {
+		                return p.x <= pkDec.x && p.x >= pkDec.x - (relationship.getWidth() / 2);
+		            }
+		        } else {
+		            if ( (orientation & (CHILD_FACES_TOP | CHILD_FACES_BOTTOM)) != 0) {
+		                return p.x >= pkDec.x && p.x <= pkDec.x + relationship.getWidth();
+		            } else {
+		                return p.x >= pkDec.x && p.x <= pkDec.x + (relationship.getWidth() / 2);
+		            }
+		        }
+		    } else {
+		        return false;
+		    }
+		} else {
+		    // orientation unknown!
+		    return ASUtils.distance(p, pkDec) < Math.max(getTerminationWidth(), getTerminationLength());
+		}
 	}
 
 	/**
@@ -497,7 +538,47 @@ public class BasicRelationshipUI extends RelationshipUI
 		Point fkDec = new Point
 		 (fkConnectionPoint.x + relationship.fkTable.getX() - relationship.getX(),
 		  fkConnectionPoint.y + relationship.fkTable.getY() - relationship.getY());
-		return ASUtils.distance(p, fkDec) < Math.max(getTerminationWidth(), getTerminationLength());	}
+		if ( (orientation & (CHILD_FACES_BOTTOM | CHILD_FACES_TOP)) != 0) {
+		    if (p.x < fkDec.x + 5 && p.x > fkDec.x - 5) {
+		        if ( (orientation & CHILD_FACES_BOTTOM) != 0) {
+		            if ( (orientation & (PARENT_FACES_LEFT | PARENT_FACES_RIGHT)) != 0) {
+		                return p.y >= fkDec.y && p.y < fkDec.y + relationship.getHeight();
+		            } else {
+		                return p.y >= fkDec.y && p.y < fkDec.y + (relationship.getHeight() / 2);
+		            }
+		        } else {
+		            if ( (orientation & (PARENT_FACES_LEFT | PARENT_FACES_RIGHT)) != 0) {
+		                return p.y <= fkDec.y && p.y > fkDec.y - relationship.getHeight();
+		            } else {
+		                return p.y <= fkDec.y && p.y > fkDec.y - (relationship.getHeight() / 2);
+		            }
+		        }
+		    } else {
+		        return false;
+		    }
+		} else if ( (orientation & CHILD_FACES_LEFT | CHILD_FACES_RIGHT) != 0) {
+		    if (p.y < fkDec.y + 5 && p.y > fkDec.y - 5) {
+		        if ( (orientation & CHILD_FACES_LEFT) != 0) {
+		            if ( (orientation & (PARENT_FACES_TOP | PARENT_FACES_BOTTOM)) != 0) {
+		                return p.x <= fkDec.x && p.x >= fkDec.x - relationship.getWidth();
+		            } else {
+		                return p.x <= fkDec.x && p.x >= fkDec.x - (relationship.getWidth() / 2);
+		            }
+		        } else {
+		            if ( (orientation & (PARENT_FACES_TOP | PARENT_FACES_BOTTOM)) != 0) {
+		                return p.x >= fkDec.x && p.x <= fkDec.x + relationship.getWidth();
+		            } else {
+		                return p.x >= fkDec.x && p.x <= fkDec.x + (relationship.getWidth() / 2);
+		            }
+		        } 
+		    } else {
+		        return false;
+		    }
+		} else {
+		    // orientation unknown!
+			return ASUtils.distance(p, fkDec) < Math.max(getTerminationWidth(), getTerminationLength());
+		}
+	}
 
 	// --------------- PropertyChangeListener ----------------------
 	public void propertyChange(PropertyChangeEvent e) {
