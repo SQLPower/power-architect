@@ -108,11 +108,24 @@ public class ExportPLTransAction extends AbstractAction {
 				if (plexp.getJobId().trim().length() == 0) {
 					JOptionPane.showMessageDialog(plPanel, "You have to specify the PowerLoader Job ID.", "Error", JOptionPane.ERROR_MESSAGE);
 					return;
-				} 		
-				if (checkForDuplicateJobId(plexp.getJobId()) == true) {
-					JOptionPane.showMessageDialog(plPanel, "That JOB ID is taken, please provide another.", "Error", JOptionPane.ERROR_MESSAGE);
-					return;
-				}			
+				}
+				
+				String dupIdMessage = null;
+				try {
+				    if (checkForDuplicateJobId(plexp.getJobId()) == true) {
+				        dupIdMessage = "There is already a job called \""+
+				        		plexp.getJobId()+"\".\n"+"Please choose a different job id.";
+				    }
+				} catch (SQLException ex) {
+				    dupIdMessage = "There was a database error when checking for\n"+"duplicate job id:\n\n"+ex.getMessage();
+				} catch (ArchitectException ex) {
+				    dupIdMessage = "There was an application error when checking for\n"+"duplicate job id:\n\n"+ex.getMessage();
+				}
+				if (dupIdMessage != null) {
+				    JOptionPane.showMessageDialog(plPanel, dupIdMessage, "Error", JOptionPane.ERROR_MESSAGE);
+				    return;
+				}
+				
 				try {
 					List targetDBWarnings = listMissingTargetTables();
 					if (!targetDBWarnings.isEmpty()) {
@@ -352,7 +365,7 @@ public class ExportPLTransAction extends AbstractAction {
 		}
 	}
 
-	public static boolean checkForDuplicateJobId(String jobId) {
+	public static boolean checkForDuplicateJobId(String jobId) throws SQLException, ArchitectException {
 		PLExport plExport = ArchitectFrame.getMainInstance().getProject().getPLExport();		
 		
 		SQLDatabase target = new SQLDatabase(plExport.getRepositoryDataSource());
@@ -366,13 +379,7 @@ public class ExportPLTransAction extends AbstractAction {
 			rs = s.executeQuery("SELECT COUNT(*) FROM pl_job WHERE job_id = " + SQL.quote(jobId.toUpperCase()));
 			if (rs.next()) {
 				count = rs.getInt(1);
-			}			
-		} catch (SQLException se) {
-			logger.error("problem checking for duplicate job id.",se);
-			count = -1;
-		} catch (ArchitectException ex) {
-			logger.error("problem checking for duplicate job id.",ex);
-			count = -1;			
+			}
 		} finally {
 			if (rs != null) {
 				try {

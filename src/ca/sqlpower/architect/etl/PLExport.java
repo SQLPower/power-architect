@@ -3,6 +3,7 @@ package ca.sqlpower.architect.etl;
 import java.sql.*;
 import java.util.Iterator;
 import java.util.HashSet;
+import java.util.List;
 
 import java.util.Set;
 
@@ -39,7 +40,7 @@ public class PLExport implements Monitorable {
 	protected boolean finished; // so the Timer thread knows when to kill itself
 	protected boolean cancelled; // FIXME: placeholder for when the user cancels halfway through a PL Export 			 
 	SQLDatabase currentDB; // if this is non-null, an export job is running
-	int tableCount = 0; // only has meaning when an export job is running	
+	int tableCount = 0; // only has meaning when an export job is running
 	
 	public Integer getJobSize() throws ArchitectException {			
 		if (currentDB != null) {
@@ -135,7 +136,7 @@ public class PLExport implements Monitorable {
 	 * @param con A connection to the PL database
 	 */
 	public int generateUniqueTransIdx(Connection con, String transId) throws SQLException {
-		StringBuffer sql = new StringBuffer ("SELECT TRANS_ID FROM TRANS WHERE TRANS_ID LIKE ");
+		StringBuffer sql = new StringBuffer("SELECT TRANS_ID FROM TRANS WHERE TRANS_ID LIKE ");
 		sql.append(SQL.quote(transId+"%"));
 		Statement s = con.createStatement();
 		ResultSet rs = null;
@@ -688,15 +689,29 @@ public class PLExport implements Monitorable {
 			SQLDatabase target = new SQLDatabase(targetDataSource);
 			Connection tCon = target.getConnection();
 			
-			try {
-				// don't need to verify passwords in client apps (as opposed to webapps)
-				sm = new PLSecurityManager(con, 
-						                   repositoryDataSource.get(ArchitectDataSource.PL_UID),
-										   repositoryDataSource.get(ArchitectDataSource.PL_PWD),
-						                   false);
-			} catch (PLSecurityException se) {
-				throw new ArchitectException("Could not find login for: " 
-						                 + repositoryDataSource.get(ArchitectDataSource.PL_UID), se);
+			sm = null;
+			for (int tryNum = 0; tryNum < 3 && sm == null; tryNum++) {
+			    String username;
+			    if (tryNum == 1) {
+			        username = repositoryDataSource.get(ArchitectDataSource.PL_UID).toUpperCase();
+			    } else if (tryNum == 2) {
+			        username = repositoryDataSource.get(ArchitectDataSource.PL_UID).toLowerCase();
+			    } else {
+			        username = repositoryDataSource.get(ArchitectDataSource.PL_UID);
+			    }
+			    try {
+			        // don't need to verify passwords in client apps (as opposed to webapps)
+			        sm = new PLSecurityManager(con, 
+			                username,
+			                repositoryDataSource.get(ArchitectDataSource.PL_PWD),
+			                false);
+			    } catch (PLSecurityException se) {
+			        logger.debug("Couldn't find pl user "+username, se);
+			    }
+			}
+			if (sm == null) {
+		        throw new ArchitectException("Could not find login for: " 
+		                + repositoryDataSource.get(ArchitectDataSource.PL_UID));
 			}
 			logWriter.info("Starting creation of job <" + jobId + "> at " + new java.util.Date(System.currentTimeMillis()));
 			logWriter.info("Connected to database: " + repositoryDataSource.toString());
@@ -706,12 +721,26 @@ public class PLExport implements Monitorable {
 			
 			insertJob(con);
 			insertFolderDetail(con, job.getObjectType(), job.getObjectName());
-			Iterator tables = db.getChildren().iterator();
+			
+			// This will order the target tables so that the parent tables are loaded 
+			// before their children
+			DepthFirstSearch targetDFS = new DepthFirstSearch(db);
+			List tables = targetDFS.getFinishOrder();
+			
+			if (logger.isDebugEnabled()) {
+			    StringBuffer tableOrder = new StringBuffer();
+			    Iterator dit = tables.iterator();
+			    while (dit.hasNext()) {
+			        tableOrder.append(((SQLTable) dit.next()).getName()).append(", ");
+			    }
+			    logger.debug("Safe load order for job is: "+tableOrder);
+			}
 			
 			int outputTableNum = 1;
-			while (tables.hasNext()) {
+			Iterator targetTableIt = tables.iterator();
+			while (targetTableIt.hasNext()) {
 				tableCount++;
-				SQLTable outputTable = (SQLTable) tables.next();
+				SQLTable outputTable = (SQLTable) targetTableIt.next();
 				HashSet inputTables = new HashSet();
 				Iterator cols = outputTable.getColumns().iterator();
 				while (cols.hasNext()) {
@@ -863,7 +892,7 @@ public class PLExport implements Monitorable {
 	}
 	
 	// ----------------------- accessors and mutators --------------------------
-	/** set parameters methods **/
+
 	public void setJobId(String jobId){
 		this.jobId = PLUtils.toPLIdentifier(jobId);
 	}

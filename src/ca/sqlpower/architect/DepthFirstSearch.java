@@ -1,0 +1,224 @@
+/*
+ * Created on Jul 12, 2005
+ *
+ * This code belongs to SQL Power Group Inc.
+ */
+package ca.sqlpower.architect;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * The DepthFirstSearch class performs a depth-first search on a
+ * SQLDatabase, treating it as a graph where the SQLTable objects
+ * are the vertices and SQLRelationships are the edges that connect
+ * them.
+ *
+ * @author fuerth
+ * @version $Id$
+ */
+public class DepthFirstSearch {
+    
+    /**
+     * Maps individual SQLTable objects (the vertices of our graph)
+     * to their associated VertexInfo instances.  VertexInfo objects
+     * store information about the DFS execution which will be of interest
+     * to users of the class. 
+     */
+    private Map vertexInfo;
+    
+    /**
+     * Tracks the current visit time.  This variable is only useful
+     * during the execution of the search.
+     */
+    private int visitTime;
+    
+    /**
+     * Keeps track of the order the DFS finished with each of the vertices
+     * in the graph.  The last vertex finished is at the head of the list.
+     * This list constitutes a topological sort of the graph.
+     */
+    private LinkedList finishOrder;
+
+    /**
+     * The VertexInfo class contains visit information related to the DFS
+     * algorithm's discovery of a vertex in the graph.  It is capable of
+     * classifying a vertex as "white," "grey," and "black" depending on
+     * when it was started and finished by the DFS.
+     */
+    private class VertexInfo {
+        
+        /**
+         * A serial number assigned to this vertex when it is first discovered
+         * by the DFS.
+         */
+        private int discoveryTime;
+        
+        /**
+         * A serial number assigned to this vertex when the DFS leaves it.
+         */
+        private int finishTime;
+        
+        /**
+         * The vertex that the DFS was at when it discovered this vertex.
+         * In SQLTable terms, the predecessor is a pkTable which exports its
+         * key to this table.
+         */
+        private SQLTable predecessor;
+        
+        /**
+         * Returns true iff this vertex has not been started (discovered) yet.
+         */
+        public boolean isWhite() {
+            return (discoveryTime == 0 && finishTime == 0);
+        }
+        
+        /**
+         * Returns true iff this vertex has been started but not
+         * finished.
+         */
+        public boolean isGrey() {
+            return (discoveryTime != 0 && finishTime == 0);
+        }
+
+        /**
+         * Returns true iff this vertex has been started and finished.
+         */
+        public boolean isBlack() {
+            return finishTime != 0;
+        }
+        
+        /**
+         * See {@link #discoveryTime}.
+         */
+        public int getDiscoveryTime() {
+            return discoveryTime;
+        }
+        /**
+         * See {@link #discoveryTime}.
+         */
+        public void setDiscoveryTime(int discoveryTime) {
+            this.discoveryTime = discoveryTime;
+        }
+        /**
+         * See {@link #finishTime}.
+         */
+        public int getFinishTime() {
+            return finishTime;
+        }
+        /**
+         * See {@link #finishTime}.
+         */
+        public void setFinishTime(int finishTime) {
+            this.finishTime = finishTime;
+        }
+        /**
+         * See {@link #predecessor}.
+         */
+        public SQLTable getPredecessor() {
+            return predecessor;
+        }
+        /**
+         * See {@link #predecessor}.
+         */
+        public void setPredecessor(SQLTable predecessor) {
+            this.predecessor = predecessor;
+        }
+    }
+    
+    public DepthFirstSearch(SQLDatabase db) throws ArchitectException {
+        List tables = new ArrayList();
+        extractTables(db, tables);
+        performSearch(tables);
+    }
+
+    /**
+     * Performs a depth-first search on the given list of SQLTable objects,
+     * which are taken to be connected by their exported keys.
+     * 
+     * <p>This is an implementation of the DFS algorithm in section 23.3 of 
+     * "Introduction to Algorithms" by Cormen et al (ISBN 0-07-013143-0).
+     * 
+     * @param tables
+     * @throws ArchitectException
+     */
+    private void performSearch(List tables) throws ArchitectException {
+        vertexInfo = new HashMap();
+        finishOrder = new LinkedList();
+        Iterator it = tables.iterator();
+        while (it.hasNext()) {
+            SQLTable u = (SQLTable) it.next();
+            vertexInfo.put(u, new VertexInfo());
+        }
+        visitTime = 0;
+        it = tables.iterator();
+        while (it.hasNext()) {
+            SQLTable u = (SQLTable) it.next();
+            VertexInfo vi = (VertexInfo) vertexInfo.get(u);
+            if (vi.isWhite()) visit(u);
+        }
+    }
+
+    /**
+     * The recursive subroutine of performSearch.  Explores the connected
+     * subgraph at u, colouring nodes as they are encountered. 
+     * 
+     * <p>This is an implementation of the DFS-VISIT routine in section
+     * 23.3 of "Introduction to Algorithms" by Cormen et al (ISBN 
+     * 0-07-013143-0).
+     *
+     * @param u
+     * @throws ArchitectException
+     */
+    private void visit(SQLTable u) throws ArchitectException {
+        VertexInfo vi = (VertexInfo) vertexInfo.get(u);
+        vi.setDiscoveryTime(++visitTime);
+        Iterator it = u.getExportedKeys().iterator();
+        while (it.hasNext()) {
+            SQLRelationship r = (SQLRelationship) it.next();
+            SQLTable v = r.getFkTable();
+            VertexInfo vi2 = (VertexInfo) vertexInfo.get(v);
+            if (vi2.isWhite()) {
+                vi2.setPredecessor(u);
+                visit(v);
+            }
+        }
+        vi.setFinishTime(++visitTime);
+        finishOrder.addFirst(u);
+    }
+
+    /**
+     * Pulls out all SQLTable objects which exist under the start object
+     * and adds them to the given list.
+     * 
+     * @param db The database to extract the tables from
+     * @return A flat List consisting of all the SQLTable objects in db.
+     * @throws ArchitectException
+     */
+    private List extractTables(SQLObject start, List addTo) throws ArchitectException {
+        if (start.allowsChildren()) {
+            Iterator it = start.getChildren().iterator();
+            while (it.hasNext()) {
+                SQLObject so = (SQLObject) it.next();
+                if (so instanceof SQLTable) addTo.add(so);
+                else extractTables(so, addTo);
+            }
+        }
+        return addTo;
+    }
+    
+    
+    /**
+     * Gives back the order in which the vertices of these graphs were finished (coloured black) by the DFS.
+     * This list will be a topological sort of the graph.
+     * 
+     * <p>See {@link #finishOrder}.
+     */
+    public LinkedList getFinishOrder() {
+        return finishOrder;
+    }
+}
