@@ -730,6 +730,7 @@ public class DBTree extends JTree implements DragSourceListener {
 
 	public static class SQLObjectRenderer extends DefaultTreeCellRenderer {
 		public static final ImageIcon dbIcon = ASUtils.createIcon("Database", "SQL Database", 16);
+		public static final ImageIcon targetIcon = ASUtils.createIcon("TargetDatabaseArrow", "SQL Database", 16);
 		public static final ImageIcon cataIcon = ASUtils.createIcon("Catalog", "SQL Catalog", 16);
 		public static final ImageIcon schemaIcon = ASUtils.createIcon("Schema", "SQL Schema", 16);
 		public static final ImageIcon tableIcon = ASUtils.createIcon("Table", "SQL Table", 16);
@@ -745,7 +746,13 @@ public class DBTree extends JTree implements DragSourceListener {
 													  boolean hasFocus) {
 			setText(value.toString());
 			if (value instanceof SQLDatabase) {
-				setIcon(dbIcon);
+				logger.debug("project: " + ArchitectFrame.getMainInstance().getProject());
+				if (ArchitectFrame.getMainInstance().getProject() == null || // getProject() is null when program is starting
+			        ArchitectFrame.getMainInstance().getProject().getTargetDatabase() == value) {
+					setIcon(targetIcon);
+				} else {
+					setIcon(dbIcon);
+				}
 			} else if (value instanceof SQLCatalog) {
 				if (((SQLCatalog) value).getNativeTerm().equals("owner")) {
 					setIcon(ownerIcon);
