@@ -344,7 +344,7 @@ public class ColumnEditPanel extends JPanel
 
 		// default value is free unless column is autoinc or the only column in PK
 		if (colAutoInc.isSelected() 
-			|| (colInPK.isSelected() && model.pkSize() == 1) ) {
+			|| (colInPK.isSelected() && model.getPkSize() == 1) ) {
 
 			colDefaultValue.setEnabled(false);
 			colDefaultValue.setText(null);
@@ -390,7 +390,7 @@ public class ColumnEditPanel extends JPanel
 							: DatabaseMetaData.columnNoNulls);
 			col.setRemarks(colRemarks.getText());
 			col.setDefaultValue(colDefaultValue.getText());
-			col.setPrimaryKeySeq(colInPK.isSelected() ? new Integer(model.pkSize()) : null);
+			col.setPrimaryKeySeq(colInPK.isSelected() ? new Integer(model.getPkSize()) : null);
 			col.setAutoIncrement(colAutoInc.isSelected());
 
 			// update selected index in case the column moved (add/remove PK)

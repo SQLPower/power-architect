@@ -115,7 +115,7 @@ public class CreateRelationshipAction extends AbstractAction
 				
 				if (identifying && fkCol.getPrimaryKeySeq() == null) {
 					// add column to primary key (but only if it's not already there!!!
-					fkCol.setPrimaryKeySeq(new Integer(fkTable.getModel().pkSize()));
+					fkCol.setPrimaryKeySeq(new Integer(fkTable.getModel().getPkSize()));
 				}
 				
 				model.addMapping(pkCol, fkCol);

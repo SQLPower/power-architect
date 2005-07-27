@@ -34,14 +34,25 @@ public class TablePane
 	protected DragSource ds;
 
 	/**
-	 * A constant indicating the title label on a TablePane.
+	 * A special column index that represents the titlebar area.
 	 */
 	public static final int COLUMN_INDEX_TITLE = -1;
 
 	/**
-	 * A constant indicating no column or title.
+	 * A special column index that means "no location."
 	 */
 	public static final int COLUMN_INDEX_NONE = -2;
+	
+	/**
+	 * A special column index that represents the gap between the last PK column and the PK line.
+	 */
+    public static final int COLUMN_INDEX_END_OF_PK = -3;
+
+    /**
+     * A special column index that represents the gap between the PK line and the first non-PK column.
+     */
+    public static final int COLUMN_INDEX_START_OF_NON_PK = -4;
+
 
 	/**
 	 * This is the column index at which to the insertion point is
@@ -514,7 +525,6 @@ public class TablePane
 				loc.x -= tp.getX();
 				loc.y -= tp.getY();
 				int idx = tp.pointToColumnIndex(loc);
-				if (idx < 0) idx = 0;
 				tp.setInsertionPoint(idx);
 			} catch (ArchitectException e) {
 				logger.error("Got exception translating drag location", e);
@@ -546,7 +556,19 @@ public class TablePane
 				try {
 					DBTree dbtree = ArchitectFrame.getMainInstance().dbTree;  // XXX: bad
 					int insertionPoint = tp.pointToColumnIndex(loc);
-					if (insertionPoint < 0) insertionPoint = 0;
+					boolean newColumnsInPk = false;
+					if (insertionPoint == COLUMN_INDEX_END_OF_PK) {
+					    insertionPoint = tp.getModel().getPkSize();
+					    newColumnsInPk = true;
+					} else if (insertionPoint == COLUMN_INDEX_START_OF_NON_PK) {
+					    insertionPoint = tp.getModel().getPkSize();
+					    newColumnsInPk = false;
+					} else if (insertionPoint < 0) {
+					    insertionPoint = tp.getModel().getColumns().size();
+					    newColumnsInPk = false;
+					} else if (insertionPoint < tp.getModel().getPkSize()) {
+					    newColumnsInPk = true;
+					}
 					ArrayList paths = (ArrayList) t.getTransferData(importFlavor);
 					logger.debug("Importing items from tree: "+paths);
 					Iterator pathIt = paths.iterator();
@@ -587,11 +609,16 @@ public class TablePane
 											 +"' to table '"+tp.getModel().getName()
 											 +"' at position "+insertionPoint);
 								tp.getModel().addColumn(insertionPoint, col);
+								if (newColumnsInPk) {
+								    col.setPrimaryKeySeq(new Integer(1));
+								} else {
+								    col.setPrimaryKeySeq(null);
+								}
 								dtde.dropComplete(true);
 							} else {
 								// importing column from a source database
 								dtde.acceptDrop(DnDConstants.ACTION_COPY);
-								tp.getModel().inherit(insertionPoint, col);
+								tp.getModel().inherit(insertionPoint, col, newColumnsInPk);
 								logger.debug("Inherited "+col.getColumnName()+" to table");
 								dtde.dropComplete(true);
 							}
@@ -599,12 +626,14 @@ public class TablePane
 							dtde.rejectDrop();
 						}
 					}
-				} catch(Exception ex) {
-					JOptionPane.showMessageDialog(tp, "Drop failed: "+ex.getMessage());
+				} catch (Exception ex) {
+				    // Trying to show this dialog sometimes hangs the app in OS X
+					//JOptionPane.showMessageDialog(tp, "Drop failed: "+ex.getMessage());
 					logger.error("Error processing drop operation", ex);
 					dtde.rejectDrop();
 				} finally {
 					tp.setInsertionPoint(COLUMN_INDEX_NONE);
+					tp.getModel().normalizePrimaryKey();
 				}
 			}
 		}
