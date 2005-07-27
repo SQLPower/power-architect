@@ -280,7 +280,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 					fkcol = (SQLColumn) pkcol.clone();
 					fkTable.addColumn(fkcol);
 					if (identifying) {
-						fkcol.setPrimaryKeySeq(new Integer(fkTable.pkSize()));
+						fkcol.setPrimaryKeySeq(new Integer(fkTable.getPkSize()));
 					}
 				}
 				addMapping(pkcol, fkcol);
@@ -511,7 +511,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 				while (mappings.hasNext()) {
 					ColumnMapping m = (ColumnMapping) mappings.next();
 					if (m.getFkColumn().getPrimaryKeySeq() == null) {
-						m.getFkColumn().setPrimaryKeySeq(new Integer(fkTable.pkSize()));
+						m.getFkColumn().setPrimaryKeySeq(new Integer(fkTable.getPkSize()));
 					}
 				}
 			} else {

@@ -276,7 +276,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	/**
 	 * Counts the number of columns in the primary key of this table.
 	 */
-	public int pkSize() {
+	public int getPkSize() {
 		int size = 0;
 		Iterator it = columnsFolder.children.iterator();
 		while (it.hasNext()) {
@@ -313,7 +313,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		SQLColumn c;
 
 		boolean addToPK;
-		int pkSize = pkSize();
+		int pkSize = getPkSize();
 		int sourceSize = source.columnsFolder.children.size();
 		int originalSize = columnsFolder.children.size();
 		if (originalSize == 0 || pos < pkSize) {
@@ -342,22 +342,13 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		}
 	}
 
-	public void inherit(int pos, SQLColumn sourceCol) {
-		boolean addToPK;
-		int pkSize = pkSize();
-		if (pos < pkSize) {
-			addToPK = true;
-			normalizePrimaryKey();
-			for (int i = pos; i < pkSize; i++) {
-				((SQLColumn) columnsFolder.children.get(i)).primaryKeySeq = new Integer(i + 1);
-			}
-		} else {
-			addToPK = false;
-		}
-
+	public void inherit(int pos, SQLColumn sourceCol, boolean addToPK) throws ArchitectException {
+	    if (addToPK && pos > 0 && !getColumn(pos - 1).isPrimaryKey()) {
+	        throw new IllegalArgumentException("Can't inherit new PK column below a non-PK column! Insert pos="+pos+"; addToPk="+addToPK);
+	    }
 		SQLColumn c = SQLColumn.getDerivedInstance(sourceCol, this);
 		if (addToPK) {
-			c.primaryKeySeq = new Integer(pos);
+			c.primaryKeySeq = new Integer(1);
 		} else {
 			c.primaryKeySeq = null;
 		}
@@ -417,7 +408,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 
 	public void addColumn(int pos, SQLColumn col) {
 		boolean addToPK = false;
-		int pkSize = pkSize();
+		int pkSize = getPkSize();
 		try {
 			if (getColumns().size() > 0 && pos <= pkSize) {
 				addToPK = true;
