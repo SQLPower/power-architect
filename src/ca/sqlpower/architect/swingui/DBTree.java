@@ -681,6 +681,9 @@ public class DBTree extends JTree implements DragSourceListener {
         	tSpec.setUrl(dbcs.getUrl());
         	tSpec.setUser(dbcs.getUser());
         	tSpec.setPass(dbcs.getPass());
+            tSpec.setPlSchema(dbcs.getPlSchema());
+			tSpec.setPlDbType(dbcs.getPlDbType());
+			tSpec.setOdbcDsn(dbcs.getOdbcDsn());
 			// for some reason, the above property change events are not being received properly by 
             // parent SQLDatabase objects
 			dbcsPanel.setDbcs(tSpec);
