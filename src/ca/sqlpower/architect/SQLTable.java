@@ -496,18 +496,17 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * method returns.
 	 */
 	public void changeColumnIndex(int oldIdx, int newIdx) throws ArchitectException {
-		// this old way didn't cause any events
-// 		SQLColumn col = (SQLColumn) columnsFolder.children.remove(oldIdx);
-// 		columnsFolder.children.add(newIdx, col);
-// 		if (newIdx == 0
-// 			|| ((SQLColumn) columnsFolder.children.get(newIdx-1)).primaryKeySeq != null) {
-// 			col.primaryKeySeq = new Integer(1); // will get sane value when normalized
-// 		}
-// 		normalizePrimaryKey();
-
-		SQLColumn col = (SQLColumn) columnsFolder.getChild(oldIdx);
-		removeColumn(oldIdx);
-		addColumn(newIdx, col);
+		// remove and add the column directly, then manually fire the event.
+	    // This is necessary because the relationships prevent deletion of locked keys.
+ 		SQLColumn col = (SQLColumn) columnsFolder.children.remove(oldIdx);
+ 		columnsFolder.fireDbChildRemoved(oldIdx, col);
+ 		columnsFolder.children.add(newIdx, col);
+ 		if (newIdx == 0
+ 			|| ((SQLColumn) columnsFolder.children.get(newIdx-1)).primaryKeySeq != null) {
+ 			col.primaryKeySeq = new Integer(1); // will get sane value when normalized
+ 		}
+ 		normalizePrimaryKey();
+ 		columnsFolder.fireDbChildInserted(newIdx, col);
 	}
 
 	/**
