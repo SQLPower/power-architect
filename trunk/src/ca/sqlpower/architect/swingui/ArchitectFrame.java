@@ -332,6 +332,7 @@ public class ArchitectFrame extends JFrame {
 		projectBar.add(printAction);
 		projectBar.addSeparator();
 		projectBar.add(exportDDLAction);
+		projectBar.addSeparator();
 		projectBar.add(compareDMAction);
 
 		JButton tempButton = null; // shared actions need to report where they are coming from
