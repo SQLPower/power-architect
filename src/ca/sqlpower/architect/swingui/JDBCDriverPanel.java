@@ -101,12 +101,13 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 	 * list and then passes that list to
 	 * ArchitectSession.setDriverJarList().
 	 */
-	public void applyChanges() {
+	public boolean applyChanges() {
 		ArrayList drivers = new ArrayList(dtm.getChildCount(dtm.getRoot()));
 		for (int i = 0, n = dtm.getChildCount(dtm.getRoot()); i < n; i++) {
 			drivers.add(((DefaultMutableTreeNode) dtm.getChild(dtm.getRoot(), i)).getUserObject());
 		}
 		session.setDriverJarList(drivers);
+		return true;
 	}
 
 	/**

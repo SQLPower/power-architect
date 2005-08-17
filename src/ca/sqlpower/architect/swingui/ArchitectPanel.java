@@ -22,7 +22,7 @@ public interface ArchitectPanel {
 	 * An OK button in the panel's containing frame should invoke this
 	 * method.
 	 */
-	public void applyChanges();
+	public boolean applyChanges();
 
 	/**
 	 * A cancel button in the panel's containing frame should invoke

@@ -117,7 +117,7 @@ public class RelationshipEditPanel extends JPanel
 
 	// ------------------ ARCHITECT PANEL INTERFACE ---------------------
 	
-	public void applyChanges() {
+	public boolean applyChanges() {
 		relationship.setName(relationshipName.getText());
 		try {
 			relationship.setIdentifying(identifyingButton.isSelected());
@@ -142,6 +142,7 @@ public class RelationshipEditPanel extends JPanel
 		} else if (fkTypeOneToMany.isSelected()) {
 			relationship.setFkCardinality(SQLRelationship.ONE | SQLRelationship.MANY);
 		}
+		return true;
 	}
 
 	public void discardChanges() {

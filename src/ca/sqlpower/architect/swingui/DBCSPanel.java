@@ -277,7 +277,7 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
 	 * the current ArchitectDataSource.  You still need to call getDbcs()
 	 * and save the connection spec yourself.
 	 */
-	public void applyChanges() {
+	public boolean applyChanges() {
 		String name = dbNameField.getText();
 		dbcs.setName(name);
 		dbcs.setDisplayName(name);
@@ -288,6 +288,7 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
 		dbcs.setPlSchema(plSchemaField.getText());
 		dbcs.setPlDbType((String) plDbTypeField.getSelectedItem());
 		dbcs.setOdbcDsn(odbcDSNField.getText());
+		return true;
 	}
 
 	/**

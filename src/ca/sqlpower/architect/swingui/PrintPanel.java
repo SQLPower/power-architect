@@ -207,7 +207,7 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 
 
 	// --- architect panel ----
-	public void applyChanges() {
+	public boolean applyChanges() {
 		try {
 			// set current printer as default
 			if (printerBox.getItemCount() > 0 && printerBox.getSelectedItem() instanceof PrintService) {
@@ -221,6 +221,7 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 			logger.error("Printing failure", ex);
 			JOptionPane.showMessageDialog(this, "Printing failed: "+ex.getMessage());
 		}
+		return true;
 	}
 	
 	public void discardChanges() {

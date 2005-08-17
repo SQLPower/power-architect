@@ -29,8 +29,9 @@ public class ProjectSettingsPanel extends JPanel implements ArchitectPanel {
 		saveEntireSource.setSelected(proj.isSavingEntireSource());
 	}
 
-	public void applyChanges() {
+	public boolean applyChanges() {
 		proj.setSavingEntireSource(saveEntireSource.isSelected());
+		return true;
 	}
 
 	public void discardChanges() {
