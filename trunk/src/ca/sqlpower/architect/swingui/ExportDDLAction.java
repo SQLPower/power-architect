@@ -47,17 +47,15 @@ public class ExportDDLAction extends AbstractAction {
 		okButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent evt) {
 					try {
-						ddlPanel.applyChanges();
-						showPreview(architectFrame.project.getDDLGenerator(), d);
+						if (ddlPanel.applyChanges()) {
+							showPreview(architectFrame.project.getDDLGenerator(), d);
+						}
 					} catch (Exception ex) {
 						JOptionPane.showMessageDialog
 							(architectFrame,
 							 "Can't export DDL: "+ex.getMessage());
 						logger.error("Got exception while exporting DDL", ex);
 
-						// XXX: this won't always be the appropriate reaction.
-						// should have a separate exception for "connection problems"
-						ArchitectFrame.getMainInstance().playpen.showDbcsDialog();
 					}
 				}
 			});

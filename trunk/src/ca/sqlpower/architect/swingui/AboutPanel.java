@@ -20,7 +20,8 @@ public class AboutPanel extends JPanel implements ArchitectPanel {
 		add(content);
 	}
 
-	public void applyChanges() {
+	public boolean applyChanges() {
+		return true;
         // nothing to apply
 	}
 

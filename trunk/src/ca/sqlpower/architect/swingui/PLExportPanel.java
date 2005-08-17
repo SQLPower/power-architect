@@ -317,7 +317,7 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 	 * the properties of plexp to their values in this panel's input
 	 * fields.
 	 */
-	public void applyChanges() {
+	public boolean applyChanges() {
 	    logger.debug("Applying changes to the PLExport object");
 		plexp.setTargetDataSource((ArchitectDataSource)targetConnectionsBox.getSelectedItem());
 		plexp.setRepositoryDataSource((ArchitectDataSource)repositoryConnectionsBox.getSelectedItem());
@@ -334,6 +334,8 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 
 		// Don't mangle the owner and username fields -- some databases like Postgres are case sensitive
 		plexp.setTargetSchema(targetSchema.getText());
+		
+		return true;
 	}
 
 	/**

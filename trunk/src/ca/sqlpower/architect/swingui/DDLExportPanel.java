@@ -1,11 +1,13 @@
 package ca.sqlpower.architect.swingui;
 
 import javax.swing.*;
+
 import java.awt.event.*;
 import ca.sqlpower.architect.ddl.*;
 import java.util.*;
 import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectDataSource;
+
 
 public class DDLExportPanel extends JPanel implements ArchitectPanel {
 	private static final Logger logger = Logger.getLogger(DDLExportPanel.class);
@@ -91,6 +93,7 @@ public class DDLExportPanel extends JPanel implements ArchitectPanel {
 			} else {
 				catalogLabel.setText("(no catalog)");
 				catalogLabel.setEnabled(false);
+				catalogField.setText(null);
 				catalogField.setEnabled(false);
 			}
 			
@@ -101,6 +104,7 @@ public class DDLExportPanel extends JPanel implements ArchitectPanel {
 			} else {
 				schemaLabel.setText("(no schema)");
 				schemaLabel.setEnabled(false);
+				schemaField.setText(null);
 				schemaField.setEnabled(false);
 			}
 		} catch (Exception ex) {
@@ -114,7 +118,7 @@ public class DDLExportPanel extends JPanel implements ArchitectPanel {
 	}
 
 	// ------------------------ Architect Panel Stuff -------------------------
-	public void applyChanges() {
+	public boolean applyChanges() {
 		GenericDDLGenerator ddlg = project.getDDLGenerator();
 		Class selectedGeneratorClass = (Class) ((ASUtils.LabelValueBean) dbType.getSelectedItem()).getValue();
 		if (ddlg.getClass() != selectedGeneratorClass) {
@@ -132,19 +136,41 @@ public class DDLExportPanel extends JPanel implements ArchitectPanel {
 			if (dbcs == null
 				|| dbcs.getDriverClass() == null
 				|| dbcs.getDriverClass().length() == 0) {
-				throw new IllegalStateException("You can't use the Generic JDBC Generator\n"
-												+"until you set up the target database connection.");
+
+				JOptionPane.showMessageDialog
+				(this,"You can't use the Generic JDBC Generator\n"
+						+"until you set up the target database connection.");
+								
+				ArchitectFrame.getMainInstance().playpen.showDbcsDialog();
+				
+				return false;
 			}
 		} else {
 			ddlg.setAllowConnection(false);
 		}
 
 		if (catalogField.isEnabled()) {
-			ddlg.setTargetCatalog(catalogField.getText());
+			if (catalogField.getText() == null || catalogField.getText().trim().length() == 0) {
+				JOptionPane.showMessageDialog
+				(this,"Please provide a valid database catalog.");
+				return false;
+			} else {	
+				ddlg.setTargetCatalog(catalogField.getText());
+			}
 		}
+		
 		if (schemaField.isEnabled()) {
-			ddlg.setTargetSchema(schemaField.getText());
+			if (schemaField.getText() == null || schemaField.getText().trim().length() == 0) {
+				JOptionPane.showMessageDialog
+				(this,"Please provide a valid schema name.");
+				return false;
+			} else {	
+				ddlg.setTargetSchema(schemaField.getText());
+			}
 		}
+			
+		return true;
+		
 	}
 
 	public void discardChanges() {

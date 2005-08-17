@@ -31,10 +31,11 @@ public class TableEditPanel extends JPanel implements ArchitectPanel {
 	}
 
 	// --------------------- ArchitectPanel interface ------------------
-	public void applyChanges() {
+	public boolean applyChanges() {
 		table.setPrimaryKeyName(pkName.getText());
 		table.setTableName(name.getText());
 		table.setRemarks(remarks.getText());
+		return true;
 	}
 
 	public void discardChanges() {

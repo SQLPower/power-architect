@@ -423,9 +423,10 @@ public class ColumnEditPanel extends JPanel
 	 * Calls updateModel since the user may have clicked "ok" before
 	 * hitting enter on a text field.
 	 */
-	public void applyChanges() {
+	public boolean applyChanges() {
 		updateModel();
 		cleanup();
+		return true;
 	}
 
 	/**

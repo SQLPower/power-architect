@@ -82,12 +82,13 @@ public class PreferencesPanel extends JPanel implements ArchitectPanel {
 		}
 	}
 
-	public void applyChanges() {
+	public boolean applyChanges() {
 		us.getETLUserSettings().setPlDotIniPath(plIniName.getText());
 		us.getETLUserSettings().setETLLogPath(etlLogFileName.getText());
 		us.getDDLUserSettings().setDDLLogPath(ddlLogFileName.getText());
 		us.getSwingSettings().setBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, playPenAntialiasOn.isSelected());
 		ArchitectFrame.getMainInstance().getProject().getPlayPen().setRenderingAntialiased(playPenAntialiasOn.isSelected());
+		return true;
 	}
 
 	public void discardChanges() {
