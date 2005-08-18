@@ -127,11 +127,14 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			int i = 0;
 			int hwidth = width-tp.getMargin().right-tp.getMargin().left-boxLineThickness*2;
 			boolean stillNeedPKLine = true;
+			Color currentColor = null;
 			while (colNameIt.hasNext()) {
 				SQLColumn col = (SQLColumn) colNameIt.next();
 				if (col.getPrimaryKeySeq() == null && stillNeedPKLine) {
 					stillNeedPKLine = false;
 					y += pkGap;
+					currentColor = null;
+					g2.setColor(tp.getForeground());
 					g2.drawLine(0, y+maxDescent-(pkGap/2), width-1, y+maxDescent-(pkGap/2));
 				}
 				if (tp.isColumnSelected(i)) {
@@ -141,12 +144,20 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 								hwidth, fontHeight);
 					g2.setColor(tp.getForeground());
 				}
+				if (tp.getColumnHighlight(i) != currentColor) {
+				    currentColor = tp.getColumnHighlight(i);
+				    g2.setColor(currentColor == null ? tp.getForeground() : currentColor);
+				}
 				g2.drawString(col.getShortDisplayName(),
 							  boxLineThickness+tp.getMargin().left,
 							  y += fontHeight);
 				i++;
 			}
 
+			if (currentColor != null) {
+			    g2.setColor(tp.getForeground());
+			}
+			
 			if (stillNeedPKLine) {
 			    stillNeedPKLine = false;
 			    y += pkGap;
