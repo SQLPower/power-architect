@@ -960,6 +960,7 @@ public class PlayPen extends JPanel
 					if (contentPane.getComponent(j) instanceof Relationship) {
 						Relationship r = (Relationship) contentPane.getComponent(j);
 						if (r.getModel() == c[i]) {
+						    r.setSelected(false);
 							contentPane.remove(j);
 							fireEvent = true;
 						}

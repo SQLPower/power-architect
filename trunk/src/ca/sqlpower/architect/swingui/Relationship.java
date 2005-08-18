@@ -5,6 +5,8 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.event.MouseInputAdapter;
 import ca.sqlpower.architect.*;
+import ca.sqlpower.architect.SQLRelationship.ColumnMapping;
+
 import org.apache.log4j.Logger;
 import java.util.*;
 
@@ -20,6 +22,13 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 	protected JPopupMenu popup;
 
 	protected MouseListener mouseListener;
+
+	protected boolean selected;
+
+	/**
+	 * The colour to highlight related columns with when this relationship is selected.
+	 */
+    private Color columnHighlightColour = Color.red;
 
 	static {
 		UIManager.put(RelationshipUI.UI_CLASS_ID, "ca.sqlpower.architect.swingui.IERelationshipUI");
@@ -125,10 +134,20 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 		}
 	}
 
-	protected boolean selected;
-
 	public void setSelected(boolean isSelected) {
 		if (selected != isSelected) {
+		    try {
+		        Iterator it = getModel().getChildren().iterator();
+		        while (it.hasNext()) {
+		            SQLRelationship.ColumnMapping m = (ColumnMapping) it.next();
+		            int pkColIdx = pkTable.getModel().getColumnIndex(m.getPkColumn());
+		            int fkColIdx = fkTable.getModel().getColumnIndex(m.getFkColumn());
+		            pkTable.setColumnHighlight(pkColIdx, isSelected ? columnHighlightColour : null);
+		            fkTable.setColumnHighlight(fkColIdx, isSelected ? columnHighlightColour : null);
+		        }
+		    } catch (ArchitectException e) {
+		        logger.error("Couldn't modify highlights for columns in the mapping", e);
+		    }
 			selected = isSelected;
 			fireSelectionEvent(new SelectionEvent(this, selected ? SelectionEvent.SELECTION_EVENT : SelectionEvent.DESELECTION_EVENT));
 			repaint();

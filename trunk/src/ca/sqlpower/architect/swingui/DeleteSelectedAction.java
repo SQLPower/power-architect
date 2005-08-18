@@ -120,6 +120,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 				logger.debug("next item for delete is: " + item.getClass().getName());
 				if (item instanceof TablePane) {
 					TablePane tp = (TablePane) item;
+					tp.setSelected(false);
 					pp.db.removeChild(tp.getModel());
 					if (logger.isDebugEnabled()) {
 						logger.debug("removing element from tableNames set: " + tp.getModel().getTableName());
@@ -132,6 +133,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 				} else if (item instanceof Relationship) {
 					Relationship r = (Relationship) item;
 					logger.debug("trying to delete relationship " + r);
+					r.setSelected(false);
 					SQLRelationship sr = r.getModel();
 					sr.getPkTable().removeExportedKey(sr);
 					sr.getFkTable().removeImportedKey(sr);
@@ -181,7 +183,6 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 					SQLRelationship sr = (SQLRelationship) so;
 					sr.getPkTable().removeExportedKey(sr);
 					sr.getFkTable().removeImportedKey(sr);
-					// FIXME: do we need to do some removeDependencies() stuff here?
 				} else {
 					JOptionPane.showMessageDialog(dbt, "The selected SQLObject type is not recognised: " + so.getClass().getName());
 				}

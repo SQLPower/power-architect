@@ -76,7 +76,15 @@ public class TablePane
 
 	protected DropTarget dt;
 
+	/**
+	 * Tracks which columns in this table are currently selected.
+	 */
 	protected ArrayList columnSelection;
+	
+	/**
+	 * Tracks current highlight colours of the columns in this table.
+	 */
+	protected ArrayList columnHighlight;
 
 	/**
 	 * During a drag operation where a column is being dragged from
@@ -180,6 +188,7 @@ public class TablePane
 		int ci[] = e.getChangedIndices();
 		for (int i = 0; i < ci.length; i++) {
 			columnSelection.add(ci[i], Boolean.FALSE);
+			columnHighlight.add(ci[i], null);
 		}
 		try {
 			ArchitectUtils.listenToHierarchy(this, e.getChildren());
@@ -200,7 +209,8 @@ public class TablePane
 		if (e.getSource() == this.model.getColumnsFolder()) {
 			int ci[] = e.getChangedIndices();
 			for (int i = 0; i < ci.length; i++) {
-				columnSelection.remove(ci[i]);
+			    columnSelection.remove(ci[i]);
+			    columnHighlight.remove(ci[i]);
 			}
 			if (columnSelection.size() > 0) {
 				selectNone();
@@ -210,7 +220,18 @@ public class TablePane
 		try {
 			ArchitectUtils.unlistenToHierarchy(this, e.getChildren());
 			if (columnSelection.size() != this.model.getColumns().size()) {
-				logger.error("Selection list and children are out of sync: selection="+columnSelection+"; children="+this.model.getColumns());
+				logger.error("Repairing out-of-sync selection list: selection="+columnSelection+"; children="+this.model.getColumns());
+				columnSelection = new ArrayList();
+				for (int j = 0; j < model.getColumns().size(); j++) {
+				    columnSelection.add(Boolean.FALSE);
+				}
+			}
+			if (columnHighlight.size() != this.model.getColumns().size()) {
+				logger.error("Repairing out-of-sync highlight list: highlights="+columnHighlight+"; children="+this.model.getColumns());
+				columnHighlight = new ArrayList();
+				for (int j = 0; j < model.getColumns().size(); j++) {
+				    columnHighlight.add(null);
+				}
 			}
 		} catch (ArchitectException ex) {
 			logger.error("Couldn't remove children", ex);
@@ -243,6 +264,10 @@ public class TablePane
 			columnSelection = new ArrayList(numCols);
 			for (int i = 0; i < numCols; i++) {
 				columnSelection.add(Boolean.FALSE);
+			}
+			columnHighlight = new ArrayList(numCols);
+			for (int i = 0; i < numCols; i++) {
+				columnHighlight.add(null);
 			}
 			firePropertyChange("model.children", null, null);
 			revalidate();
@@ -287,6 +312,10 @@ public class TablePane
 			columnSelection = new ArrayList(m.getColumns().size());
 			for (int i = 0; i < m.getColumns().size(); i++) {
 				columnSelection.add(Boolean.FALSE);
+			}
+			columnHighlight = new ArrayList(m.getColumns().size());
+			for (int i = 0; i < m.getColumns().size(); i++) {
+				columnHighlight.add(null);
 			}
 		} catch (ArchitectException e) {
 			logger.error("Error getting children on new model", e);
@@ -877,16 +906,18 @@ public class TablePane
 
 	/*  
      * deselect everything _but_ the selected item.  this method exists
-     * to stop multiple selection events from propagating into the 
+     * to stop multiple selection events from propogating into the 
      * CreateRelationshipAction listeners.
      */
 	private void deSelectEverythingElse (MouseEvent evt) {
 		TablePane tp = (TablePane) evt.getSource();
 		Iterator it = getPlayPen().getSelectedTables().iterator();
 		while (it.hasNext()) {
-			TablePane t3 = (TablePane)it.next();
-			logger.debug("(" + tp.getModel().getTableName() + ") zoomed selected table point: " + tp.getLocationOnScreen());
-			logger.debug("(" + t3.getModel().getTableName() + ") zoomed iterator table point: " + t3.getLocationOnScreen());
+			TablePane t3 = (TablePane) it.next();
+			if (logger.isDebugEnabled()) {
+			    logger.debug("(" + tp.getModel().getTableName() + ") zoomed selected table point: " + tp.getLocationOnScreen());
+			    logger.debug("(" + t3.getModel().getTableName() + ") zoomed iterator table point: " + t3.getLocationOnScreen());
+			}
 			if (!tp.getLocationOnScreen().equals(t3.getLocationOnScreen())) { // equals operation might not work so good here
 				// unselect
 				logger.debug("found matching table!");
@@ -992,5 +1023,29 @@ public class TablePane
      */
     public void setCurrentFontRenderContext(FontRenderContext fontRenderContext) {
         currentFontRederContext = fontRenderContext;
+    }
+    
+    /**
+     * Changes the foreground colour of a column.  This is useful when outside forces
+     * want to colour in a column.
+     * 
+     * @param i The column index to recolour
+     * @param c The new colour to show the column in.  null means use this TablePane's current
+     * foreground colour.
+     */
+    public void setColumnHighlight(int i, Color c) {
+        columnHighlight.set(i, c);
+        repaint(); // XXX: should constrain repaint region to column i
+    }
+    
+    /**
+     * Returns the current highlight colour for a particular column.
+     * 
+     * @param i The index of the column in question
+     * @return The current highlight colour for the column at index i in this table.
+     *   null indicates the current tablepane foreground colour will be used.
+     */
+    public Color getColumnHighlight(int i) {
+        return (Color) columnHighlight.get(i);
     }
 }
