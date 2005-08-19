@@ -8,6 +8,7 @@ import java.io.*;
 import java.sql.*;
 import java.util.*;
 import javax.swing.*;
+
 import ca.sqlpower.architect.ddl.*;
 import ca.sqlpower.architect.etl.*;
 import ca.sqlpower.architect.*;
@@ -109,6 +110,19 @@ public class ExportPLTransAction extends AbstractAction {
 					JOptionPane.showMessageDialog(plPanel, "You have to specify the PowerLoader Job ID.", "Error", JOptionPane.ERROR_MESSAGE);
 					return;
 				}
+
+				// make sure we have an engine!
+				if (plexp.getRunPLEngine()) {
+					String plEngineSpec = architectFrame.getUserSettings().getETLUserSettings().getPowerLoaderEnginePath(); 
+					if (plEngineSpec == null || plEngineSpec.length() == 0) {
+						// not set yet, so redirect the user to User Settings dialog
+						JOptionPane.showMessageDialog
+						(plPanel,"Please specify the location of the PL Engine (powerloader_odbc.exe).");						
+						//
+						ArchitectFrame.getMainInstance().prefAction.showPreferencesDialog();
+						return;
+					}
+				}
 				
 				String dupIdMessage = null;
 				try {
@@ -200,10 +214,10 @@ public class ExportPLTransAction extends AbstractAction {
 			try {
 				plExport.export(playpen.getDatabase());
 				// if the user requested, try running the PL Job afterwards
-				if (plPanel.isSelectedRunPLEngine()) {
+				if (plExport.getRunPLEngine()) {
 					logger.debug("Running PL Engine");
-					File plIni = new File(architectFrame.getUserSettings().getETLUserSettings().getPlDotIniPath());
-					File plDir = plIni.getParentFile();
+					File plEngine = new File(architectFrame.getUserSettings().getETLUserSettings().getPowerLoaderEnginePath());					
+					File plDir = plEngine.getParentFile();
 					File engineExe = new File(plDir, PLUtils.getEngineExecutableName(plexp.getRepositoryDataSource()));
 					final StringBuffer commandLine = new StringBuffer(1000);
 					commandLine.append(engineExe.getPath());
@@ -247,7 +261,7 @@ public class ExportPLTransAction extends AbstractAction {
 								pld.setVisible(true);
 							} catch (IOException ie){
 								JOptionPane.showMessageDialog(playpen, "Unexpected Exception running Engine:\n"+ie);
-								logger.error(ie);
+								logger.error("IOException while trying to run engine.",ie);
 							}
 						}
 					});

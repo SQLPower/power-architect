@@ -20,6 +20,10 @@ public class PreferencesAction extends AbstractAction {
 	}
 
 	public void actionPerformed(ActionEvent evt) {
+		showPreferencesDialog();
+	}
+
+	public void showPreferencesDialog() {
 		final JDialog d = new JDialog(af, "User Preferences");
 		
 		JPanel cp = new JPanel(new BorderLayout(12,12));
@@ -59,9 +63,9 @@ public class PreferencesAction extends AbstractAction {
 		d.setContentPane(cp);
 		d.pack();
 		d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
-		d.setVisible(true);
+		d.setVisible(true);		
 	}
-
+	
 	public void setArchitectFrame(ArchitectFrame af) {
 		this.af = af;
 	}

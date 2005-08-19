@@ -14,9 +14,9 @@ public class ETLUserSettings {
 
 	// ------ PROPERTY LIST KEYS ------
 	
-	private static final String PROP_PL_INI_PATH
-		= "ca.sqlpower.architect.etl.ETLUserSettings.PROP_PL_INI_PATH";
-
+	private static final String PROP_PL_ENGINE_PATH
+	= "ca.sqlpower.architect.etl.ETLUserSettings.PROP_PL_ENGINE_PATH";
+	
 	private static final String PROP_ETL_LOG_PATH
 		= "ca.sqlpower.architect.etl.ETLUserSettings.PROP_ETL_LOG_PATH";
 
@@ -79,13 +79,15 @@ public class ETLUserSettings {
 
 	// ------- ACCESSORS and MUTATORS -------
 
-	public String getPlDotIniPath() {
-		return props.getProperty(PROP_PL_INI_PATH);
+
+	public String getPowerLoaderEnginePath() {
+		return props.getProperty(PROP_PL_ENGINE_PATH);
 	}
 
-	public void setPlDotIniPath(String v) {
-		props.setProperty(PROP_PL_INI_PATH, v);
+	public void setPowerLoaderEnginePath(String v) {
+		props.setProperty(PROP_PL_ENGINE_PATH, v);
 	}
+	
 	
 	// send back a default if nothing has been set yet
 	public String getETLLogPath() {

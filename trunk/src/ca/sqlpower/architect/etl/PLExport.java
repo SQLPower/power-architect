@@ -1,6 +1,7 @@
 package ca.sqlpower.architect.etl;
 
 import java.sql.*;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.HashSet;
 import java.util.List;
@@ -480,8 +481,8 @@ public class PLExport implements Monitorable {
 			SQLColumn sourceCol = outCol.getSourceColumn();
 			if (sourceCol != null) { 
 				if ( (sourceCol.getParentTable() == inputTable) && 
-				 ((outCol.getNullable() == DatabaseMetaData.columnNoNulls)  // also covers PK
-				   || (sourceCol != null ) )) { 
+				 ((outCol.getNullable() == DatabaseMetaData.columnNoNulls) || (sourceCol != null ) )) { 					
+					 //	also covers PK					
 					 insertTransColMap(con, transId, outputTableId, outCol, inputTableId, seqNo);
 				     seqNo++;
 			    }
@@ -735,6 +736,10 @@ public class PLExport implements Monitorable {
 			    }
 			    logger.debug("Safe load order for job is: "+tableOrder);
 			}
+
+/*			Left in for posterity so we can refer to how things used to be.  See below
+ *          for the brave new world, in which we process columns 1 at a time, and 
+ *          enforce a strict 1-to-1 mapping between transactions and inputs.
 			
 			int outputTableNum = 1;
 			Iterator targetTableIt = tables.iterator();
@@ -772,6 +777,74 @@ public class PLExport implements Monitorable {
 					outputTableNum++;
 				}
 			}
+			
+			*/
+
+			int outputTableNum = 1;
+			Hashtable inputTables = new Hashtable();
+			
+			Iterator targetTableIt = tables.iterator();
+			while (targetTableIt.hasNext()) {
+				tableCount++;
+				SQLTable outputTable = (SQLTable) targetTableIt.next();
+				// reset loop variables for each output table
+				boolean createdOutputTableMetaData = false;
+				int transNum = 0;
+				int seqNum = 1; // borrowed from insertColumnMappings, not sure if this is significant...
+				String transName = null;
+				String outputTableId = null;
+				String inputTableId = null;
+				//
+				Iterator cols = outputTable.getColumns().iterator();
+				while (cols.hasNext()) {
+					SQLColumn outputCol = (SQLColumn) cols.next();
+					SQLColumn inputCol = outputCol.getSourceColumn();					
+					if (inputCol != null && !inputTables.keySet().contains(inputCol.getParentTable())) {
+						// create transaction and input table meta data here if we need to
+						SQLTable inputTable = inputCol.getParentTable();
+						String baseTransName = PLUtils.toPLIdentifier("LOAD_"+outputTable.getName());
+						transNum = generateUniqueTransIdx(con,baseTransName);
+						transName = baseTransName + "_" + transNum;
+						logger.debug("transName: " + transName);
+						insertTrans(con, transName, outputTable.getRemarks());
+						insertFolderDetail(con, "TRANSACTION", transName);
+						insertTransExceptHandler(con, "A", transName, tCon); // error handling is w.r.t. target database
+						insertTransExceptHandler(con, "U", transName, tCon); // error handling is w.r.t. target database
+						insertTransExceptHandler(con, "D", transName, tCon); // error handling is w.r.t. target database
+						insertJobDetail(con, outputTableNum*10, "TRANSACTION", transName);
+						inputTableId = PLUtils.toPLIdentifier(inputTable.getName()+"_IN_"+transNum);
+						logger.debug("inputTableId: " + inputTableId);
+						insertTransTableFile(con, transName, inputTableId, inputTable, false, transNum);
+						inputTables.put(inputTable, new PLTransaction(transName,inputTableId,transNum));
+					} else {
+						// restore input/transaction variables
+						PLTransaction plt = (PLTransaction) inputTables.get(inputCol.getParentTable());
+						transName = plt.getName();
+						inputTableId = plt.getInputTableId();
+						transNum = plt.getTransNum();
+					}
+					
+					if (!createdOutputTableMetaData) {
+						// create output table meta data once
+						logger.debug("outputTableNum: " + outputTableNum);
+						outputTableId = PLUtils.toPLIdentifier(outputTable.getName()+"_OUT_"+outputTableNum);
+						logger.debug("outputTableId: " + outputTableId);
+						insertTransTableFile(con, transName, outputTableId, outputTable, true, transNum);						
+						createdOutputTableMetaData = true;
+					}			
+					
+					// finally, insert the mapping for this column
+					if (inputCol != null)  { 					
+						// note: output proc seq num appears to be meaningless based on what the Power Loader
+						// does after you view generated transaction in the VB Front end.
+						insertTransColMap(con, transName, outputTableId, outputCol, inputTableId, seqNum*10);
+					}
+					seqNum++;
+				}
+				outputTableNum++; // moved out of inner loop
+			}
+		
+		
 		} finally {
 			finished = true;			
 			currentDB = null;
@@ -782,6 +855,43 @@ public class PLExport implements Monitorable {
 		}
 	}
 
+	class PLTransaction {
+		
+		public PLTransaction (String name, String inputTableId, int transNum) {
+			this.name = name;
+			this.inputTableId = inputTableId;
+			this.transNum = transNum;
+		}
+		
+		private String name;
+		private String inputTableId;
+		private int transNum;
+		
+		public String getInputTableId() {
+			return inputTableId;
+		}
+
+		public void setInputTableId(String inputTableId) {
+			this.inputTableId = inputTableId;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		public int getTransNum() {
+			return transNum;
+		}
+
+		public void setTransNum(int transNum) {
+			this.transNum = transNum;
+		}
+		
+	}
 
 	// --------------------------- UTILITY METHODS ------------------------
 	protected String fixWindowsPath(String path) {
