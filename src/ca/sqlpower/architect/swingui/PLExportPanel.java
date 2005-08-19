@@ -64,8 +64,7 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 	
 	public PLExportPanel() {
 		ArchitectFrame af = ArchitectFrame.getMainInstance();
-		plDotIniPath = af.getUserSettings().getETLUserSettings().getPlDotIniPath(); // is this bad?
-		SwingUIProject project = af.getProject();
+		plDotIniPath = af.getUserSettings().getPlDotIniPath(); // is this bad?
 		
 		targetConnectionsBox = new JComboBox();
 		targetConnectionsBox.setRenderer(new ConnectionsCellRenderer());
@@ -329,8 +328,7 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		plexp.setFolderName(plFolderName.getText());
 		plexp.setJobDescription(plJobDescription.getText());
 		plexp.setJobComment(plJobComment.getText());	
-		
-		// XXX: maybe set the run engine field here as well?
+		plexp.setRunPLEngine(runPLEngine.isSelected());
 
 		// Don't mangle the owner and username fields -- some databases like Postgres are case sensitive
 		plexp.setTargetSchema(targetSchema.getText());
