@@ -168,8 +168,12 @@ public class SwingUIProject {
 
 		SQLColumnFactory columnFactory = new SQLColumnFactory();
 		d.addFactoryCreate("*/column", columnFactory);
-		d.addSetProperties("*/column");
-		d.addSetNext("*/column", "addChild");
+		d.addSetProperties("*/column");		
+		// this needs to be manually set last to prevent generic types 
+		// from overwriting database specific types
+		d.addCallMethod("*/column","setSourceDBTypeName",1);
+		d.addCallParam("*/column",0,"sourceDBTypeName");
+		d.addSetNext("*/column", "addChild");		
 		
 		SQLRelationshipFactory relationshipFactory = new SQLRelationshipFactory();
 		d.addFactoryCreate("*/relationship", relationshipFactory);
@@ -329,7 +333,7 @@ public class SwingUIProject {
 			if (sourceId != null) {
 				col.setSourceColumn((SQLColumn) objectIdMap.get(sourceId));
 			}
-
+			
 			return col;
 		}
 	}
@@ -493,7 +497,7 @@ public class SwingUIProject {
 	public void save(ProgressMonitor pm) throws IOException, ArchitectException {
 		// write to temp file and then rename (this preserves old project file
 		// when there's problems) 
-		if (!file.canWrite()) {
+		if (file.exists() && !file.canWrite()) {
 			// write problems with architect file will muck up the save process
 			throw new ArchitectException("problem saving project -- " 
 					                    + "cannot write to architect file: "
