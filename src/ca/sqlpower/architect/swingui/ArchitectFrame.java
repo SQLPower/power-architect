@@ -12,6 +12,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.*;
+import java.util.Iterator;
+import java.util.List;
 
 public class ArchitectFrame extends JFrame {
 
@@ -181,6 +183,7 @@ public class ArchitectFrame extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 			    if (promptForUnsavedModifications()) {
 			        try {
+			        	closeProject(getProject());
 			            setProject(new SwingUIProject("New Project"));
 			            logger.debug("Glass pane is "+getGlassPane());
 			            getGlassPane().setVisible(true);
@@ -205,25 +208,35 @@ public class ArchitectFrame extends JFrame {
 					        chooser.addChoosableFileFilter(ASUtils.ARCHITECT_FILE_FILTER);
 					        int returnVal = chooser.showOpenDialog(ArchitectFrame.this);
 					        if (returnVal == JFileChooser.APPROVE_OPTION) {
-					            final File file = chooser.getSelectedFile();							
+					            final File file = chooser.getSelectedFile();	
 					            new Thread() {
 					                public void run() {
+							            InputStream in = null;
 					                    try {
+					                    	closeProject(getProject());
 					                        SwingUIProject project = new SwingUIProject("Loading...");
 					                        project.setFile(file);
-					                        InputStream in = new BufferedInputStream
+					                        in = new BufferedInputStream
 					                        (new ProgressMonitorInputStream
 					                                (ArchitectFrame.this,
 					                                        "Reading " + file.getName(),
 					                                        new FileInputStream(file)));
 					                        project.load(in);
-					                        setProject(project);
+					                        setProject(project);					                        
 					                    } catch (Exception ex) {
 					                        JOptionPane.showMessageDialog
 					                        (ArchitectFrame.this,
 					                                "Can't open project: "+ex.getMessage());
 					                        logger.error("Got exception while opening project", ex);
-					                    }
+					                    } finally {
+					                    	try {
+					                    		if (in != null) {
+					                    			in.close();					                    		
+					                    		}
+					                    	} catch (IOException ie) {
+					                    		logger.error("got exception while closing project file", ie);	
+					                    	}
+					                    }					                 
 					                }
 					            }.start();
 					        }
@@ -498,6 +511,7 @@ public class ArchitectFrame extends JFrame {
 	public void exit() {
 	    if (promptForUnsavedModifications()) {
 	        try {
+	        	closeProject(getProject());
 	            saveSettings();
 	        } catch (ArchitectException e) {
 	            logger.error("Couldn't save settings: "+e);
@@ -592,6 +606,18 @@ public class ArchitectFrame extends JFrame {
 		} else {
 		    saveTask.run();
 		    return lastSaveOpSuccessful;
+		}
+	}
+	/*
+	 * Close database connections and files.
+	 */
+	protected void closeProject(SwingUIProject project) {
+		// close connections
+		Iterator it = project.getSourceDatabases().getDatabaseList().iterator();;
+		while (it.hasNext()) {
+			SQLDatabase db = (SQLDatabase) it.next();
+			logger.debug ("closing connection: " + db.getName());
+			db.disconnect();
 		}
 	}
 }
