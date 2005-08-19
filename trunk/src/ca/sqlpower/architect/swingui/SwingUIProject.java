@@ -487,13 +487,27 @@ public class SwingUIProject {
 	 * @param pm An optional progress monitor which will be initialised then updated 
 	 * periodically during the save operation.  If you use a progress monitor, don't
 	 * invoke this method on the AWT event dispatch thread!
+	 * 
+	 * NEW: write the project out to a temp file and then rename it. 
 	 */
 	public void save(ProgressMonitor pm) throws IOException, ArchitectException {
-		out = new PrintWriter(new BufferedWriter(new FileWriter(file)));
+		// write to temp file and then rename (this preserves old project file
+		// when there's problems) 
+		if (!file.canWrite()) {
+			// write problems with architect file will muck up the save process
+			throw new ArchitectException("problem saving project -- " 
+					                    + "cannot write to architect file: "
+										+ file.getAbsolutePath()); 
+		}
+		
+		File tempFile = new File (file.getParent(),"tmp___" + file.getName());
+		File backupFile = new File (file.getParent(), file.getName()+"~");
+		out = new PrintWriter(new BufferedWriter(new FileWriter(tempFile)));
 		objectIdMap = new HashMap();
 		dbcsIdMap = new HashMap();
 		indent = 0;
 		progress = 0;
+		boolean saveOk = false; // use this to determine if save process worked
 		this.pm = pm;
 		if (pm != null) {
 		    pm.setMinimum(0);
@@ -517,12 +531,21 @@ public class SwingUIProject {
 			indent--;
 			println("</architect-project>");
 			setModified(false);
+			saveOk = true;
 		} finally {
 			if (out != null) out.close();
 			out = null;
 			if (pm != null) pm.close();
 			pm = null;
 		}
+		
+		// do the rename dance
+		if (saveOk) {
+			backupFile.delete();
+			file.renameTo(backupFile);
+			tempFile.renameTo(file);
+			file = tempFile;			
+		}		
 	}
 
 	protected int countSourceTables(SQLObject o) throws ArchitectException {
