@@ -1,6 +1,7 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.*;
@@ -183,11 +184,15 @@ public class ExportPLTransAction extends AbstractAction {
 		JPanel progressPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));		
  	    plCreateTxProgressBar = new JProgressBar();
 		plCreateTxProgressBar.setStringPainted(true); 
-		plCreateTxProgressBar.setVisible(false);		
 		progressPanel.add(plCreateTxProgressBar);		
 	    plCreateTxLabel = new JLabel ("Exporting PL Transactions...");
-		plCreateTxLabel.setVisible(false);
 		progressPanel.add(plCreateTxLabel);
+		
+		// figure out how much space this needs before setting 
+		// child components to be invisible
+		progressPanel.setPreferredSize(progressPanel.getPreferredSize());  
+		plCreateTxProgressBar.setVisible(false);		
+		plCreateTxLabel.setVisible(false);		
 
 		bottomPanel.add(progressPanel); // left side, left justified
 		bottomPanel.add(buttonPanel); // right side, right justified
@@ -195,7 +200,19 @@ public class ExportPLTransAction extends AbstractAction {
 		plp.add(bottomPanel, BorderLayout.SOUTH);
 		
 		d.setContentPane(plp);
+		
+		// experiment with preferred size crap:
+		logger.debug("progressBar preferred size: " + plCreateTxProgressBar.getPreferredSize());
+		logger.debug("progressPanel preferred size: " + progressPanel.getPreferredSize());
+		logger.debug("bottomPanel preferred size: " + bottomPanel.getPreferredSize());
+		logger.debug("plp preferred size: " + plp.getPreferredSize());
+		logger.debug("d preferred size: " + d.getPreferredSize());
 		d.pack();
+		logger.debug("progressBar preferred size: " + plCreateTxProgressBar.getPreferredSize());
+		logger.debug("progressPanel preferred size: " + progressPanel.getPreferredSize());
+		logger.debug("bottomPanel preferred size: " + bottomPanel.getPreferredSize());
+		logger.debug("plp preferred size: " + plp.getPreferredSize());
+		logger.debug("d preferred size: " + d.getPreferredSize());
 		d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
 	}
 

@@ -504,8 +504,9 @@ public class SwingUIProject {
 										+ file.getAbsolutePath()); 
 		}
 		
-		File tempFile = new File (file.getParent(),"tmp___" + file.getName());
-		File backupFile = new File (file.getParent(), file.getName()+"~");
+		File backupFile = new File (file.getParent(), file.getName()+"~");		
+		File tempFile = new File (file.getParent(),"tmp___" + file.getName());			
+		
 		out = new PrintWriter(new BufferedWriter(new FileWriter(tempFile)));
 		objectIdMap = new HashMap();
 		dbcsIdMap = new HashMap();
@@ -520,7 +521,7 @@ public class SwingUIProject {
 		    logger.debug("Setting progress monitor maximum to "+pmMax);
 		    pm.setMaximum(pmMax);
 		    pm.setProgress(progress);
-		    pm.setMillisToDecideToPopup(500);
+		    pm.setMillisToDecideToPopup(0);
 		}
 		try {
 			println("<?xml version=\"1.0\"?>");
@@ -545,10 +546,13 @@ public class SwingUIProject {
 		
 		// do the rename dance
 		if (saveOk) {
-			backupFile.delete();
-			file.renameTo(backupFile);
-			tempFile.renameTo(file);
-			file = tempFile;			
+			boolean fstatus = false;
+			fstatus = backupFile.delete();			
+			logger.debug("deleting backup~ file: " + fstatus);
+			fstatus = file.renameTo(backupFile);
+			logger.debug("renaming current file to backupFile: " + fstatus);
+			fstatus = tempFile.renameTo(file);
+			logger.debug("renaming tempFile to current file: " + fstatus);
 		}		
 	}
 
