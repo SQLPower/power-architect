@@ -55,7 +55,6 @@ public class FormLayout implements LayoutManager {
 
 	public Dimension preferredLayoutSize(Container parent) {
 		Dimension minimum = minimumLayoutSize(parent);
-		//minimum.width += 150;
 		return minimum;
 	}
 
@@ -63,8 +62,13 @@ public class FormLayout implements LayoutManager {
 		LeftRightHeight lrh = calcSizes(parent);
 		Insets i = parent.getInsets();
 		int rows = parent.getComponentCount() / 2;
+		/*
 		return new Dimension(lrh.left + lrh.right + i.left + i.right + hgap,
 							 lrh.height + i.top + i.bottom + (vgap*(rows-1)));
+				 */
+
+		return new Dimension(lrh.left + lrh.right + i.left + i.right + hgap,
+							lrh.height + i.top + i.bottom + (vgap*(rows)));
 	}
 
 	/**

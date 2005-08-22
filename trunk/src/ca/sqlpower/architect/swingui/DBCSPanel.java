@@ -114,6 +114,9 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
 		
 		form = new TextPanel(fields, labels, mnemonics, widths, tips);
 		add(form, BorderLayout.CENTER);
+
+		// this is a hack...don't know if it will work on Mac or Unix.
+		// setPreferredSize(new Dimension(600,270));
 	}
 
 	/** Returns all of the driver class names this dialog knows about. */
