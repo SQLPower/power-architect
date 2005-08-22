@@ -680,6 +680,24 @@ public class PlayPen extends JPanel
 	}
 
 	/**
+	 * Searches this PlayPen's children for a Relationship whose model is
+	 * r.
+	 *
+	 * @return A reference to the Relationsip that has r as a model, or
+	 * null if no such Relationship is in the play pen.
+	 */
+	public Relationship findRelationship(SQLRelationship r) {
+		for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
+			Component c = contentPane.getComponent(i);
+			if (c instanceof Relationship
+				&& ((Relationship) c).getModel() == r) {
+				return (Relationship) c;
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * Returns a list of the Relationship gui components in this
 	 * playpen.
 	 */
@@ -1579,5 +1597,35 @@ public class PlayPen extends JPanel
         }
         if (logger.isDebugEnabled()) logger.debug("Returning frc="+frc);
         return frc;
+    }
+
+    /**
+     * Selects the playpen component that represents the given SQLObject,
+     * and scrolls the viewport to ensure the component is visible on-screen.
+     * If the given SQL Object isn't in the playpen, this method has no effect.
+     * 
+     * @param selection Either a SQLTable or SQLRelationship object. 
+     */
+    public void selectAndShow(SQLObject selection) {
+        if (selection instanceof SQLTable) {
+            TablePane tp = findTablePane((SQLTable) selection);
+            if (tp != null) {
+                selectNone();
+                tp.setSelected(true);
+                Rectangle scrollTo = tp.getBounds();
+                zoomRect(scrollTo);
+                scrollRectToVisible(scrollTo);
+            }
+        } else if (selection instanceof SQLRelationship) {
+            Relationship r = findRelationship((SQLRelationship) selection);
+            if (r != null) {
+                selectNone();
+                r.setSelected(true);
+                Rectangle scrollTo = r.getBounds();
+                zoomRect(scrollTo);
+                scrollRectToVisible(scrollTo);
+            }
+        }
+
     }
 }

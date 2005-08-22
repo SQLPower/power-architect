@@ -13,7 +13,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.*;
 import java.util.Iterator;
-import java.util.List;
 
 public class ArchitectFrame extends JFrame {
 

@@ -32,6 +32,7 @@ public class DBTree extends JTree implements DragSourceListener {
 	protected NewDBCSAction newDBCSAction;
 	protected DBCSPropertiesAction dbcsPropertiesAction;
 	protected RemoveDBCSAction removeDBCSAction;
+	protected ShowInPlayPenAction showInPlayPenAction;
 
 	/**
 	 * This is the database whose DBCS is currently being editted in
@@ -60,6 +61,7 @@ public class DBTree extends JTree implements DragSourceListener {
 		newDBCSAction = new NewDBCSAction();
 		dbcsPropertiesAction = new DBCSPropertiesAction();
 		removeDBCSAction = new RemoveDBCSAction();
+		showInPlayPenAction = new ShowInPlayPenAction();
 		setupPropDialog();
 		addMouseListener(new PopupListener());
 		setCellRenderer(new SQLObjectRenderer());				
@@ -392,6 +394,10 @@ public class DBTree extends JTree implements DragSourceListener {
 
 	
 			newMenu.addSeparator();
+			
+			mi = new JMenuItem();
+			mi.setAction(showInPlayPenAction);
+			newMenu.add(mi);
 	
 			mi = new JMenuItem();
 			mi.setAction(af.editTableAction);
@@ -653,6 +659,28 @@ public class DBTree extends JTree implements DragSourceListener {
 				propDialog.setVisible(true);
 				propDialog.requestFocus();
 			}
+		}
+	}
+
+	/**
+	 * The DBCSPropertiesAction responds to the "Properties" item in
+	 * the popup menu.  It determines which item in the tree is
+	 * currently selected, then (creates and) shows its properties
+	 * window.
+	 */
+	protected class ShowInPlayPenAction extends AbstractAction {
+		public ShowInPlayPenAction() {
+			super("Show in Play Pen");
+		}
+
+		public void actionPerformed(ActionEvent e) {
+			TreePath p = getSelectionPath();
+			if (p == null) {
+				return;
+			}
+			PlayPen pp = ArchitectFrame.getMainInstance().playpen;
+			SQLObject selection = (SQLObject) p.getLastPathComponent();
+			pp.selectAndShow(selection);
 		}
 	}
 
