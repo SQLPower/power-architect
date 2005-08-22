@@ -4,7 +4,6 @@ import javax.swing.*;
 import javax.swing.event.*;
 import java.beans.*;
 import java.awt.*;
-import java.awt.image.*;
 import java.awt.geom.*;
 import java.awt.event.*;
 import java.awt.print.*;
@@ -262,8 +261,7 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 			double printoutHeight = settings.pagesDown * iH;
 
 			// create a bitmapped image of the scaled playpen
-			BufferedImage playpenSnapshot = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
-			Graphics2D g2 = (Graphics2D) playpenSnapshot.getGraphics();
+			Graphics2D g2 = (Graphics2D) g;
 			g2.setColor(settings.getBackground());
 			g2.fill(new Rectangle(0, 0, getWidth(), getHeight()));
 			double previewZoomX = (double) getWidth() / printoutWidth;
@@ -272,7 +270,7 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 
 			int scaledWidth = (int) (getWidth()/zoom);
 			int scaledHeight = (int) (getHeight()/zoom);
-			logger.debug("After scaling, playpenSnapshot will seem to be size ("+scaledWidth+","+scaledHeight+")");
+			logger.debug("After scaling, preview will seem to be size ("+scaledWidth+","+scaledHeight+")");
 
 			// print the page background at the panel's zoom setting, centered in available space
 			g2.scale(zoom, zoom);
@@ -288,10 +286,11 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 								RenderingHints.VALUE_INTERPOLATION_BICUBIC);
 			logger.debug("Printout size = ("+printoutWidth+","+printoutHeight
 						 +"); playpen size = "+settings.pp.getPreferredSize());
-			settings.pp.paint(g2);
+			SwingUtilities.paintComponent(g2, settings.pp, new JPanel(), 0, 0, (int) (printoutWidth/settings.zoom), (int) (printoutHeight/settings.zoom));
 
 			// and draw the lines where the page boundaries fall, at our own zoom scale
 			g2.setTransform(backup);
+			g2.setColor(getForeground());
 			for (int i = 0; i <= settings.pagesAcross; i++) {
 				g2.drawLine((int) (i * iW), 0, (int) (i * iW), (int) printoutHeight);
 				logger.debug("Drew page separator at x="+(i*iW));
@@ -301,14 +300,6 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 				g2.drawLine(0, (int) (i * iH), (int) printoutWidth, (int) (i * iH));
 				logger.debug("Drew page separator at y="+(i*iH));
 			}
-			g2.dispose();
-
-			// now render the image into this component
-			g2 = (Graphics2D) g;
-			g2.drawImage(playpenSnapshot,
-						 0, 0, getWidth(), getHeight(),
-						 0, 0, getWidth(), getHeight(),
-						 null);
 		}
 
 		// ----- property change listener -----
