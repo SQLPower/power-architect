@@ -286,8 +286,10 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 								RenderingHints.VALUE_INTERPOLATION_BICUBIC);
 			logger.debug("Printout size = ("+printoutWidth+","+printoutHeight
 						 +"); playpen size = "+settings.pp.getPreferredSize());
-			settings.pp.paint(g2);
-
+			//settings.pp.paint(g2);  This is slow in win32 and x11
+			SwingUtilities.paintComponent(g2, settings.pp, new Container(), 0, 0, (int) (printoutWidth/settings.zoom), (int) (printoutHeight/settings.zoom));
+			ArchitectFrame.getMainInstance().splitPane.setRightComponent(settings.pp);
+			
 			// and draw the lines where the page boundaries fall, at our own zoom scale
 			g2.setTransform(backup);
 			g2.setColor(getForeground());
