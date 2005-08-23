@@ -197,6 +197,14 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 			return finished;
 		}
 		
+		public void setCancelled (boolean cancelled) {
+			// job not cancellable, do nothing
+		}
+		
+		public String getMessage () {
+			return null; // no messages returned from this job
+		}
+		
 		public void execute() {	        
 			try {
 				Iterator it = driverJarList.iterator();

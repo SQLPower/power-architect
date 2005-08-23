@@ -38,7 +38,24 @@ public class SwingUIProject {
 	 * Tracks whether or not this project has been modified since last saved.
 	 */
 	protected boolean modified;
+
+	/**
+	 * Don't let application exit while saving.
+	 */
+	protected boolean saveInProgress; 
 	
+	/**
+	 * @return Returns the saveInProgress.
+	 */
+	public boolean isSaveInProgress() {
+		return saveInProgress;
+	}
+	/**
+	 * @param saveInProgress The saveInProgress to set.
+	 */
+	public void setSaveInProgress(boolean saveInProgress) {
+		this.saveInProgress = saveInProgress;
+	}
 	/**
 	 * Should be set to NULL unless we are currently saving the
 	 * project, at which time it's writing to the project file.
@@ -515,10 +532,14 @@ public class SwingUIProject {
 		boolean saveOk = false; // use this to determine if save process worked
 		this.pm = pm;
 		if (pm != null) {
+			int pmMax = 0;
 		    pm.setMinimum(0);
-		    int pmMax = countSourceTables((SQLObject) sourceDatabases.getModel().getRoot())
-		    				+ playPen.getPPComponentCount() * 2;
-		    logger.debug("Setting progress monitor maximum to "+pmMax);
+		    if (savingEntireSource) {
+			    pmMax = ArchitectUtils.countTablesSnapshot((SQLObject) sourceDatabases.getModel().getRoot());
+		    } else {
+    	        pmMax = ArchitectUtils.countTables((SQLObject) sourceDatabases.getModel().getRoot());
+			}
+		    logger.error("Setting progress monitor maximum to "+pmMax);
 		    pm.setMaximum(pmMax);
 		    pm.setProgress(progress);
 		    pm.setMillisToDecideToPopup(0);

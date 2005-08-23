@@ -397,4 +397,14 @@ public class ConflictResolver implements Monitorable {
 		else if (dropConflictingStarted) return dropConflictingFinished;
 		else return findConflictingFinished;
 	}
+	
+	public void setCancelled(boolean cancelled) {
+		
+	}
+	
+	public String getMessage () {
+		return null;
+	}
 }
+
+	

@@ -91,6 +91,8 @@ public class ArchitectFrame extends JFrame {
 	
 	public ArchitectFrame() throws ArchitectException {
 	    mainInstance = this;
+	    // close handled by window listener
+	    setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 	    architectSession = ArchitectSession.getInstance();
 	    init();
 	}
@@ -507,7 +509,14 @@ public class ArchitectFrame extends JFrame {
 	 * Calling this method quits the application and terminates the
 	 * JVM.
 	 */
-	public void exit() {
+	public void exit() {		
+		if (getProject().isSaveInProgress()) {
+			// project save is in progress, don't allow exit			
+	        JOptionPane.showMessageDialog(this, "Project is saving, cannot exit the Power Architect.  Please wait for the save to finish, and then try again.", 
+	                "Warning", JOptionPane.WARNING_MESSAGE);	
+	        return;
+		}
+		
 	    if (promptForUnsavedModifications()) {
 	        try {
 	        	closeProject(getProject());
@@ -584,18 +593,22 @@ public class ArchitectFrame extends JFrame {
 		final boolean finalSeparateThread = separateThread;
 		final ProgressMonitor pm = new ProgressMonitor
 			(ArchitectFrame.this, "Saving Project", "", 0, 100);
+		
 		Runnable saveTask = new Runnable() {
 			public void run() {
 				try {
 					lastSaveOpSuccessful = false;
+					project.setSaveInProgress(true);
 					project.save(finalSeparateThread ? pm : null);
-					lastSaveOpSuccessful = true;
+					lastSaveOpSuccessful = true;					
 				} catch (Exception ex) {
 					lastSaveOpSuccessful = false;
 					JOptionPane.showMessageDialog
 						(ArchitectFrame.this,
 						 "Can't save project: "+ex.getMessage());
 					logger.error("Got exception while saving project", ex);
+				} finally {
+					project.setSaveInProgress(false);
 				}
 			}
 		};
