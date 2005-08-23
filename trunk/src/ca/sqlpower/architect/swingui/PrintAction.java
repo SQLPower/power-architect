@@ -55,7 +55,6 @@ public class PrintAction extends AbstractAction {
 		d.pack();
 		d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
 		d.setVisible(true);
-		printPanel.showPreviewDialog();
 	}
 	
 	public void setPlayPen(PlayPen pp) {

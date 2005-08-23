@@ -2,9 +2,9 @@ package ca.sqlpower.architect.swingui;
 
 import javax.swing.*;
 import javax.swing.event.*;
+
 import java.beans.*;
 import java.awt.*;
-import java.awt.geom.*;
 import java.awt.event.*;
 import java.awt.print.*;
 import javax.print.*;
@@ -52,8 +52,11 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 	public PrintPanel(PlayPen pp) {
 		super();
 		setOpaque(true);
-		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+		setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 		this.pp = pp;
+		
+		add(new PrintPreviewPanel());
+		
 		job = PrinterJob.getPrinterJob();
 		jobAttributes = new HashPrintRequestAttributeSet();
 		pageFormat = job.defaultPage();
@@ -109,19 +112,6 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 			pageFormatLabel.setText(pageFormat.toString());
 			firePropertyChange("pageFormat", oldPF, pageFormat);
 		}
-	}
-
-	/**
-	 * Call this if you want a preview dialog.  It will only work if
-	 * this PrintPanel is visible and has a Window ancestor.
-	 */
-	public void showPreviewDialog() {
-		previewDialog = new JDialog((JDialog) SwingUtilities.getWindowAncestor(this),
-									"Print Preview");
-		previewDialog.setContentPane(previewPanel = new PrintPreviewPanel(this));
-		previewDialog.pack();
-		previewDialog.setLocationRelativeTo(this);
-		previewDialog.setVisible(true);
 	}
 
 	/**
@@ -229,78 +219,82 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 
 	// --- print preview panel ---
 
-	public static class PrintPreviewPanel extends JPanel implements PropertyChangeListener {
-		PrintPanel settings;
+	public class PrintPreviewPanel extends JPanel implements PropertyChangeListener {
 
-		public PrintPreviewPanel(PrintPanel settings) {
-			this.settings = settings;
+		public PrintPreviewPanel() {
 			setDoubleBuffered(false);
-			settings.addPropertyChangeListener(this);
+			PrintPanel.this.addPropertyChangeListener(this);
+			PreviewZoomAdjuster adjuster = new PreviewZoomAdjuster(); 
+			addMouseMotionListener(adjuster);
+			addMouseListener(adjuster);
 		}
 
 		/**
 		 * Not affected by user's zoom setting.
 		 */
 		public Dimension getPreferredSize() {
-			settings.validateLayout();
-			double iW = settings.pageFormat.getImageableWidth();
-			double iH = settings.pageFormat.getImageableHeight();
-			double printoutWidth = settings.pagesAcross * iW;
-			double printoutHeight = settings.pagesDown * iH;
+			validateLayout();
+			double iW = pageFormat.getImageableWidth();
+			double iH = pageFormat.getImageableHeight();
+			double printoutWidth = pagesAcross * iW;
+			double printoutHeight = pagesDown * iH;
 
 			double preferredScale = 500.0/printoutWidth;
 			return new Dimension((int) (printoutWidth * preferredScale),
 								 (int) (printoutHeight * preferredScale));
 		}
 
+		/*
+		 * Calculates the scaling factor we need in order to show the whole print preview in the
+		 * available space.
+		 */
+		private double calculateZoom() {
+			Dimension ppSize = pp.getPreferredSize();
+			double previewZoomX = (double) getWidth() / ppSize.width;
+			double previewZoomY = (double) getHeight() / ppSize.height;
+			return Math.min(previewZoomX, previewZoomY);
+		}
+		
 		public void paintComponent(Graphics g) {
-			settings.validateLayout();
-			double iW = settings.pageFormat.getImageableWidth();
-			double iH = settings.pageFormat.getImageableHeight();
-			double printoutWidth = settings.pagesAcross * iW;
-			double printoutHeight = settings.pagesDown * iH;
+			validateLayout();
 
-			// create a bitmapped image of the scaled playpen
 			Graphics2D g2 = (Graphics2D) g;
-			g2.setColor(settings.getBackground());
+			g2.setColor(pp.getBackground());
 			g2.fill(new Rectangle(0, 0, getWidth(), getHeight()));
-			double previewZoomX = (double) getWidth() / printoutWidth;
-			double previewZoomY = (double) getHeight() / printoutHeight;
-			double zoom = Math.min(previewZoomX, previewZoomY);
-
+			double zoom = calculateZoom();
+			
 			int scaledWidth = (int) (getWidth()/zoom);
 			int scaledHeight = (int) (getHeight()/zoom);
-			logger.debug("After scaling, preview will seem to be size ("+scaledWidth+","+scaledHeight+")");
 
-			// print the page background at the panel's zoom setting, centered in available space
+			if (logger.isDebugEnabled()) {
+			    Dimension ppSize = pp.getPreferredSize();
+			    logger.debug("PlayPen preferred size = "+ppSize.width+"x"+ppSize.height);
+			    logger.debug("After scaling, preview panel coordinate space is "+scaledWidth+"x"+scaledHeight);
+			}
+			
+			// now draw the playpen
 			g2.scale(zoom, zoom);
-			g2.translate((scaledWidth - printoutWidth) / 2,
-						 (scaledHeight - printoutHeight) / 2);
-			AffineTransform backup = g2.getTransform();
-			g2.setColor(settings.pp.getBackground());
-			g2.fill(new Rectangle(0, 0, (int) printoutWidth, (int) printoutHeight));
 
-			// now print the playpen at the user's zoom setting, compounded with ours.
-			g2.scale(settings.zoom, settings.zoom);
 			g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
 								RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-			logger.debug("Printout size = ("+printoutWidth+","+printoutHeight
-						 +"); playpen size = "+settings.pp.getPreferredSize());
 			//settings.pp.paint(g2);  This is slow in win32 and x11
-			SwingUtilities.paintComponent(g2, settings.pp, new Container(), 0, 0, (int) (printoutWidth/settings.zoom), (int) (printoutHeight/settings.zoom));
-			ArchitectFrame.getMainInstance().splitPane.setRightComponent(settings.pp);
+			SwingUtilities.paintComponent(g2, pp, new Container(), 0, 0, scaledWidth, scaledHeight);
+			ArchitectFrame.getMainInstance().splitPane.setRightComponent(pp);
 			
-			// and draw the lines where the page boundaries fall, at our own zoom scale
-			g2.setTransform(backup);
-			g2.setColor(getForeground());
-			for (int i = 0; i <= settings.pagesAcross; i++) {
-				g2.drawLine((int) (i * iW), 0, (int) (i * iW), (int) printoutHeight);
-				logger.debug("Drew page separator at x="+(i*iW));
+			// and draw the lines where the page boundaries fall
+			double iW = pageFormat.getImageableWidth();
+			double iH = pageFormat.getImageableHeight();
+
+			g2.scale(1/PrintPanel.this.zoom, 1/PrintPanel.this.zoom);
+			g2.setColor(pp.getForeground());
+			for (int i = 0; i <= pagesAcross; i++) {
+				g2.drawLine((int) (i * iW), 0, (int) (i * iW), (int) (scaledHeight*PrintPanel.this.zoom));
+				if (logger.isDebugEnabled()) logger.debug("Drew page separator at x="+(i*iW));
 			}
 
-			for (int i = 0; i <= settings.pagesDown; i++) {
-				g2.drawLine(0, (int) (i * iH), (int) printoutWidth, (int) (i * iH));
-				logger.debug("Drew page separator at y="+(i*iH));
+			for (int i = 0; i <= pagesDown; i++) {
+				g2.drawLine(0, (int) (i * iH), (int) (scaledWidth*PrintPanel.this.zoom), (int) (i * iH));
+				if (logger.isDebugEnabled()) logger.debug("Drew page separator at y="+(i*iH));
 			}
 		}
 
@@ -313,5 +307,30 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 				repaint();
 			}
 		}
+		
+	    /**
+	     * The PreviewZoomAdjuster watches for mouse drags over the 
+	     * preview and adjusts the zoom slider accordingly.
+	     */
+	    public class PreviewZoomAdjuster extends MouseInputAdapter {
+            public void mouseDragged(MouseEvent e) {
+                setCursor(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
+                Point p = new Point(e.getPoint());
+                double zoom = calculateZoom();
+                p.x = (int) (p.x / zoom);
+                p.y = (int) (p.y / zoom);
+                
+                zoomSlider.setValue((int) ( (pageFormat.getImageableWidth()/p.x) * 100));
+            }
+            
+            public void mousePressed(MouseEvent e) {
+                mouseDragged(e);
+            }
+            
+            public void mouseReleased(MouseEvent e) {
+                setCursor(null);
+            }
+	    }
+
 	}
 }
