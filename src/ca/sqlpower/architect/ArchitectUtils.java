@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+
 import java.net.URL;
 
 public class ArchitectUtils {
@@ -155,6 +156,63 @@ public class ArchitectUtils {
 			return true; // found a leaf node
 		}
 	}
+
+	/**
+	 * Recursively count tables in the project, including ones that have not been
+	 * expanded in the DBTree.
+	 * 
+	 * @param source the source object (usually the database) 
+	 */
+	public static int countTablesSnapshot(SQLObject so) throws ArchitectException {
+		if (so instanceof SQLTable) {
+			return 1;
+		} else {			
+			int count = 0;
+			Iterator it = so.getChildren().iterator();
+			while (it.hasNext()) {
+				count += countTablesSnapshot((SQLObject) it.next());
+			}
+		    return count;
+		}
+	}
+	
+	/**
+	 * Chop long strings down to size for display purposes
+	 * 
+	 * @param s the input string
+	 * @return the truncated string
+	 */
+	public static String truncateString (String s) {
+		if (s == null || s.length() < 28) {
+			return s;
+		} else {
+			return s.substring(27) + "...";
+		}		
+	}
+	
+	/**
+	 * Recursively count tables in the project, but only consider tables that
+	 * have been expanded.
+	 * 
+	 * This might be undercounting a little bit because I think this suppresses
+	 * the Target Database (playpen) entries.
+	 * 
+	 * @param source the source object (usually the database) 
+	 */
+	public static int countTables(SQLObject so) throws ArchitectException {
+		if (so instanceof SQLTable) {
+			return 1;
+		} else if ( (!so.allowsChildren()) || !(so.isPopulated()) || so.getChildren() == null) {
+		    return 0;
+		} else {
+			int myCount = 0;
+			Iterator it = so.getChildren().iterator();
+			while (it.hasNext()) {
+				myCount += countTables((SQLObject) it.next());
+			}
+			return myCount;
+		}
+	}	
 	
 	/**
 	 * Replaces double quotes, ampersands, and less-than signs with

@@ -436,6 +436,10 @@ public class ExportDDLAction extends AbstractAction {
 		public boolean isFinished() throws ArchitectException {
 			return finished;
 		}
+		
+		public String getMessage() {
+			return null;
+		}
 
 		public void cancelJob() {
 			cancelled = true;
@@ -444,6 +448,10 @@ public class ExportDDLAction extends AbstractAction {
 
 		public boolean isCancelled() {
 			return cancelled;
+		}
+		
+		public void setCancelled(boolean cancelled) {
+			this.cancelled = cancelled;
 		}
 
 		/**

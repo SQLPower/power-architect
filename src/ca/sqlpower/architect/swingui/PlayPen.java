@@ -21,6 +21,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.*;
 import ca.sqlpower.architect.ArchitectDataSource;
 
+
 public class PlayPen extends JPanel
 	implements java.io.Serializable, SQLObjectListener, SelectionListener, ContainerListener, Scrollable {
 
@@ -111,7 +112,7 @@ public class PlayPen extends JPanel
 	 * A RenderingHints value of VALUE_ANTIALIAS_ON, VALUE_ANTIALIAS_OFF, or VALUE_ANTIALIAS_DEFAULT.
 	 */
     private Object antialiasSetting = RenderingHints.VALUE_ANTIALIAS_DEFAULT;
-
+        
 	public PlayPen() {
 		zoom = 1.0;
 		setBackground(java.awt.Color.white);
@@ -860,11 +861,13 @@ public class PlayPen extends JPanel
 	/**
 	 * Calls {@link #importTableCopy} for each table contained in the given schema.
 	 */
+
+	/*
 	public synchronized void addSchema(SQLSchema source, Point preferredLocation) throws ArchitectException {
 		AddSchemaTask t = new AddSchemaTask(source, preferredLocation);
 		new Thread(t, "Schema-Adder").start();
 	}
-
+	
 	private class AddSchemaTask implements Runnable {
 		SQLSchema source;
 		Point preferredLocation;
@@ -888,7 +891,7 @@ public class PlayPen extends JPanel
 				Iterator it = source.getChildren().iterator();
 				while (it.hasNext() && !pm.isCanceled()) {
 					SQLTable sourceTable = (SQLTable) it.next();
-					pm.setNote(sourceTable.getTableName());
+					pm.setNote(ArchitectUtils.truncateString(sourceTable.getTableName()));
 					TablePane tp = importTableCopy(sourceTable, preferredLocation);
 					preferredLocation.x += tp.getPreferredSize().width + 5;
 					pm.setProgress(i++);
@@ -899,6 +902,150 @@ public class PlayPen extends JPanel
 				if (pm != null) pm.close();
 			}
 			logger.info("AddSchemaTask done");
+		}
+	}
+	*/
+	
+	
+	/**
+	 * Calls {@link #importTableCopy} for each table contained in the given schema.
+	 */
+	public synchronized void addObjects(List list, Point preferredLocation) throws ArchitectException {
+		AddObjectsTask t = new AddObjectsTask(list, preferredLocation);
+		ProgressMonitor pm
+		 = new ProgressMonitor(null,
+		                      "Copying objects from DBTree",
+		                      "...",
+		                      0,
+			                  100);			
+		new ProgressWatcher(pm, t);
+		new Thread(t, "Objects-Adder").start();
+	}
+	
+	private class AddObjectsTask implements Runnable, Monitorable {
+		List paths;
+		Point preferredLocation;
+		
+		boolean finished = false;
+		boolean cancelled = false;
+		String message = null;
+		int progress = 0;
+		Integer jobSize = null;
+		
+		public AddObjectsTask(List paths, Point preferredLocation) {
+			this.paths = paths;
+			this.preferredLocation = preferredLocation;
+			finished = false;
+		}
+		
+		public int getProgress() {
+			return progress;
+		}
+		
+		public Integer getJobSize() {
+			return jobSize;
+		}
+		
+		public boolean isFinished() {
+			return finished;
+		}
+				
+		public String getMessage() {
+			return message;
+		}
+
+		/**
+		 * @param cancelled The cancelled to set.
+		 */
+		public void setCancelled(boolean cancelled) {
+			this.cancelled = cancelled;
+		}
+		
+		public boolean isCancelled() {
+			return this.cancelled;			
+		}
+	
+		public void run () {
+			logger.info("AddObjectsTask starting on thread "+Thread.currentThread().getName());
+
+			try {
+								
+				int pmMax = 0;				
+				Iterator pathIt = paths.iterator();
+				DBTree dbtree = ArchitectFrame.getMainInstance().dbTree; // XXX: this is bad
+
+				// first pass: figure out how much work we need to do...
+				while (pathIt.hasNext()) {
+					Object someData = dbtree.getNodeForDnDPath((int[]) pathIt.next());
+					if (someData instanceof SQLObject) {
+						pmMax += ArchitectUtils.countTablesSnapshot((SQLObject)someData);						
+					}
+				}				
+				logger.error("the pmMax is: " + pmMax);
+				jobSize = new Integer(pmMax);
+				
+				int i = 0;
+				// reset iterator
+				pathIt = paths.iterator();
+
+				while (pathIt.hasNext() && !isCancelled()) {
+					Object someData = dbtree.getNodeForDnDPath((int[]) pathIt.next());					
+					if (someData instanceof SQLTable) {
+						TablePane tp = importTableCopy((SQLTable) someData, preferredLocation);
+						message = ArchitectUtils.truncateString(((SQLTable)someData).getTableName());
+						preferredLocation.x += tp.getPreferredSize().width + 5;
+						progress++;
+					} else if (someData instanceof SQLSchema) {
+						SQLSchema sourceSchema = (SQLSchema) someData;						
+						Iterator it = sourceSchema.getChildren().iterator();
+						while (it.hasNext() && !isCancelled()) {
+							SQLTable sourceTable = (SQLTable) it.next();
+							message = ArchitectUtils.truncateString(sourceTable.getTableName());
+							TablePane tp = importTableCopy(sourceTable, preferredLocation);
+							preferredLocation.x += tp.getPreferredSize().width + 5;
+							progress++;
+						}
+					} else if (someData instanceof SQLCatalog) {
+						SQLCatalog sourceCatalog = (SQLCatalog) someData;
+						Iterator cit = sourceCatalog.getChildren().iterator();
+						if (sourceCatalog.isSchemaContainer()) {
+							while (cit.hasNext() && !isCancelled()) {
+								SQLSchema sourceSchema = (SQLSchema) cit.next();						
+								Iterator it = sourceSchema.getChildren().iterator();
+								while (it.hasNext() && !isCancelled()) {
+									SQLTable sourceTable = (SQLTable) it.next();									
+									message = ArchitectUtils.truncateString(sourceTable.getTableName());
+									TablePane tp = importTableCopy(sourceTable, preferredLocation);
+									preferredLocation.x += tp.getPreferredSize().width + 5;
+									progress++;
+								}
+							}
+						} else {
+							while (cit.hasNext() && !isCancelled()) {
+								SQLTable sourceTable = (SQLTable) cit.next();
+								message = ArchitectUtils.truncateString(sourceTable.getTableName());
+								TablePane tp = importTableCopy(sourceTable, preferredLocation);
+								preferredLocation.x += tp.getPreferredSize().width + 5;
+								progress++;
+							}
+						}
+					} else if (someData instanceof SQLColumn) {
+						SQLColumn column = (SQLColumn) someData;
+						JLabel colName = new JLabel(column.getColumnName());
+						colName.setSize(colName.getPreferredSize());
+						add(colName, preferredLocation);
+						logger.debug("Added "+column.getColumnName()+" to playpen (temporary, only for testing)");
+						colName.revalidate();
+					} else {
+						logger.error("Unknown object dropped in PlayPen: "+someData);
+					}				
+				}				
+			} catch (ArchitectException e) {
+				e.printStackTrace();
+			} finally {
+				finished = true;
+			}
+			logger.info("AddObjectsTask done");
 		}
 	}
 
@@ -1234,46 +1381,9 @@ public class PlayPen extends JPanel
 			} else {
 				try {
 					dtde.acceptDrop(DnDConstants.ACTION_COPY);
-					DBTree dbtree = ArchitectFrame.getMainInstance().dbTree; // XXX: this is bad
 					ArrayList paths = (ArrayList) t.getTransferData(importFlavor);
-					Iterator pathIt = paths.iterator();
-					Point dropLoc = c.unzoomPoint(new Point(dtde.getLocation()));
-					while (pathIt.hasNext()) {
-						Object someData = dbtree.getNodeForDnDPath((int[]) pathIt.next());
-						
-						if (someData instanceof SQLTable) {
-							TablePane tp = c.importTableCopy((SQLTable) someData, dropLoc);
-							dropLoc.x += tp.getPreferredSize().width + 5;
-						} else if (someData instanceof SQLSchema) {
-							SQLSchema sourceSchema = (SQLSchema) someData;
-							c.addSchema(sourceSchema, dropLoc);
-						} else if (someData instanceof SQLCatalog) {
-							SQLCatalog sourceCatalog = (SQLCatalog) someData;
-							Iterator cit = sourceCatalog.getChildren().iterator();
-							if (sourceCatalog.isSchemaContainer()) {
-								while (cit.hasNext()) {
-									SQLSchema sourceSchema = (SQLSchema) cit.next();
-									c.addSchema(sourceSchema, dropLoc);
-								}
-							} else {
-								while (cit.hasNext()) {
-									SQLTable sourceTable = (SQLTable) cit.next();
-									TablePane tp = c.importTableCopy(sourceTable, dropLoc);
-									dropLoc.x += tp.getPreferredSize().width + 5;
-								}
-							}
-						} else if (someData instanceof SQLColumn) {
-							SQLColumn column = (SQLColumn) someData;
-							JLabel colName = new JLabel(column.getColumnName());
-							colName.setSize(colName.getPreferredSize());
-							c.add(colName, dropLoc);
-							logger.debug("Added "+column.getColumnName()+" to playpen (temporary, only for testing)");
-							colName.revalidate();
-						} else {
-							logger.error("Unknown object dropped in PlayPen: "+someData);
-							dtde.rejectDrop();
-						}
-					}
+					Point dropLoc = c.unzoomPoint(new Point(dtde.getLocation()));									
+					c.addObjects(paths, dropLoc);					
 					dtde.dropComplete(true);
 				} catch (UnsupportedFlavorException ufe) {
 					logger.error(ufe);
@@ -1290,6 +1400,8 @@ public class PlayPen extends JPanel
 				}
 			}
 		}
+		
+		
 		
 		/**
 		 * Called if the user has modified the current drop gesture.

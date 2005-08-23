@@ -37,5 +37,20 @@ public interface Monitorable {
 	 * @throws ArchitectException
 	 */
 	public boolean isFinished() throws ArchitectException;
+	
+	/**
+	 * call this to get a message to stick in the dynamic portion of your ProgressMonitor
+	 * 
+	 * @return
+	 */
+	public String getMessage();
+	
+	/**
+	 * Lets the ProgressWatcher send a signal to a Monitorable 
+	 * telling it to cancel itself.
+	 * 
+	 * @param cancelled
+	 */
+	public void setCancelled(boolean cancelled);
 
 }

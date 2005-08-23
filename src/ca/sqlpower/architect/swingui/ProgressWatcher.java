@@ -7,6 +7,7 @@ import org.apache.log4j.Logger;
 
 public class ProgressWatcher implements ActionListener {
 	private JProgressBar bar = null;
+	private ProgressMonitor pm = null;
 	private Monitorable monitorable = null;
 	private JLabel label = null;
 	private Timer timer;
@@ -24,35 +25,59 @@ public class ProgressWatcher implements ActionListener {
 		timer = new Timer(50, this);
 		timer.start();
 	}
+	
+	public ProgressWatcher (ProgressMonitor pm, Monitorable monitorable) {
+		this.pm = pm;
+		this.monitorable = monitorable;
+		timer = new Timer(50, this);
+		timer.start();
+	}
 
 	public void actionPerformed(ActionEvent evt) {
 		// update the progress bar
 		logger.debug("updating progress bar...");
 		try {
 			Integer jobSize = monitorable.getJobSize();
-			if (jobSize == null) {
-				bar.setIndeterminate(true);
-			} else {
-				bar.setIndeterminate(false);
-				bar.setMaximum(jobSize.intValue());
+			if (bar != null) {
+				if (jobSize == null) {
+					bar.setIndeterminate(true);
+				} else {
+					bar.setIndeterminate(false);
+					bar.setMaximum(jobSize.intValue());
+				}
+				bar.setVisible(true);
+				bar.setValue(monitorable.getProgress());
+				bar.setIndeterminate(false);		
 			}
+			
 			if (label != null) {
 				label.setVisible(true);
 			}
-			bar.setVisible(true);
-			bar.setValue(monitorable.getProgress());
-			bar.setIndeterminate(false);
+
+			if (pm != null) { // using ProgressMonitor
+				if (jobSize != null) {
+					pm.setMaximum(jobSize.intValue());					
+				}
+				pm.setProgress(monitorable.getProgress());
+				logger.debug("progress: " + monitorable.getProgress());
+				pm.setNote(monitorable.getMessage());
+			}
 		} catch (ArchitectException e) {
 			logger.error("Couldn't update progress bar (Monitorable threw an exception)", e);
 		} finally {
-			logger.debug("all done, terminating timer thread...");
 			try {				
 				logger.debug("monitorable.isFinished():" + monitorable.isFinished());
 				if (monitorable.isFinished()) {
 					if (label != null) {
 						label.setVisible(false);
 					}
-					bar.setVisible(false);
+					if (bar != null) {
+						bar.setVisible(false);
+					}
+					if (pm != null) {
+						logger.debug("pm done, max was: " + pm.getMaximum());
+						// pm.close();
+					}
 					logger.debug("trying to stop timer thread...");
 					timer.stop();
 					logger.debug("did the timer thread stop???");

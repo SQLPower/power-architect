@@ -559,18 +559,18 @@ public class DBTree extends JTree implements DragSourceListener {
 	}
 
 	protected class PokeDBThread extends Thread {
-		SQLDatabase sd;
-		PokeDBThread (SQLDatabase sd) {
+		SQLObject so;
+		PokeDBThread (SQLObject so) {
 			super();
-			this.sd = sd;			
+			this.so = so;			
 		}
 		public void run() {
 			try {
-				ArchitectUtils.pokeDatabase(sd);
+				ArchitectUtils.pokeDatabase(so);
 			} catch (ArchitectException ex) {
-				logger.error("problem poking database " + sd.getName(),ex);
+				logger.error("problem poking database " + so.getName(),ex);
 			}
-			logger.debug("finished poking database " + sd.getName());
+			logger.debug("finished poking database " + so.getName());
 		}
 	}
 	
