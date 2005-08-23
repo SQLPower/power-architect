@@ -286,7 +286,7 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 								RenderingHints.VALUE_INTERPOLATION_BICUBIC);
 			logger.debug("Printout size = ("+printoutWidth+","+printoutHeight
 						 +"); playpen size = "+settings.pp.getPreferredSize());
-			SwingUtilities.paintComponent(g2, settings.pp, new JPanel(), 0, 0, (int) (printoutWidth/settings.zoom), (int) (printoutHeight/settings.zoom));
+			settings.pp.paint(g2);
 
 			// and draw the lines where the page boundaries fall, at our own zoom scale
 			g2.setTransform(backup);
