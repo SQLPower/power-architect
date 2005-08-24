@@ -97,7 +97,7 @@ public class BasicRelationshipUI extends RelationshipUI
 			
 			// XXX: could optimise by checking if PK or FK tables have moved
 			if (path == null) {
-				path = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 5);
+				path = new GeneralPath(GeneralPath.WIND_NON_ZERO, 5);
 			} else {
 				path.reset();
 			}
@@ -117,6 +117,10 @@ public class BasicRelationshipUI extends RelationshipUI
 				path.lineTo(midx, start.y);
 				path.lineTo(midx, end.y);
 				path.lineTo(end.x, end.y);
+
+				// now retrace our steps so the shape doesn't autoclose with a straight line from finish to start
+				path.lineTo(midx, end.y);
+				path.lineTo(midx, start.y);
 			} else if ( (orientation & (PARENT_FACES_TOP | PARENT_FACES_BOTTOM)) != 0
 						&& (orientation & (CHILD_FACES_TOP | CHILD_FACES_BOTTOM)) != 0) {
 				int midy = (Math.abs(end.y - start.y) / 2) + Math.min(start.y, end.y);
@@ -124,14 +128,24 @@ public class BasicRelationshipUI extends RelationshipUI
 				path.lineTo(start.x, midy);
 				path.lineTo(end.x, midy);
 				path.lineTo(end.x, end.y);
+
+				// now retrace our steps so the shape doesn't autoclose with a straight line from finish to start
+				path.lineTo(end.x, midy);
+				path.lineTo(start.x, midy);
 			} else if ( (orientation & (PARENT_FACES_LEFT | PARENT_FACES_RIGHT)) != 0) {
 				path.moveTo(start.x, start.y);
 				path.lineTo(end.x, start.y);
 				path.lineTo(end.x, end.y);
+
+				// now retrace our steps so the shape doesn't autoclose with a straight line from finish to start
+				path.lineTo(end.x, start.y);
 			} else if ( (orientation & (PARENT_FACES_TOP | PARENT_FACES_BOTTOM)) != 0) {
 				path.moveTo(start.x, start.y);
 				path.lineTo(start.x, end.y);
 				path.lineTo(end.x, end.y);
+
+				// now retrace our steps so the shape doesn't autoclose with a straight line from finish to start
+				path.lineTo(start.x, end.y);
 			} else {
 				// unknown case: draw straight line.
 				path.moveTo(start.x, start.y);
@@ -153,7 +167,7 @@ public class BasicRelationshipUI extends RelationshipUI
 			}
 
 			g2.draw(path);
-			logger.debug("Drew path "+path);
+			if (logger.isDebugEnabled()) logger.debug("Drew path "+path);
 
 			g2.setStroke(oldStroke);
 			paintTerminations(g2, start, end, orientation);
