@@ -24,9 +24,18 @@ public class BasicRelationshipUI extends RelationshipUI
 	protected Rectangle computedBounds;
 
 	/**
-	 * This is the path that the relationship line follows.
+	 * This is the path that the relationship line follows.  Don't 
+	 * use it for contains() and intersects() becuase
+	 * it is closed by a diagonal line from start to finish.
+	 * 
+	 * @see containmentPath
 	 */
 	protected GeneralPath path;
+	
+	/**
+	 * This is a closed path for use with contains() and intersects().
+	 */
+	protected GeneralPath containmentPath;
 
 	protected Color selectedColor = new Color(204, 204, 255);
 	protected Color unselectedColor = Color.black;
@@ -96,60 +105,69 @@ public class BasicRelationshipUI extends RelationshipUI
 								  fktloc.y + r.getFkTable().getLocation().y);
 			
 			// XXX: could optimise by checking if PK or FK tables have moved
-			if (path == null) {
-				path = new GeneralPath(GeneralPath.WIND_NON_ZERO, 5);
-			} else {
-				path.reset();
-			}
+			containmentPath = new GeneralPath(GeneralPath.WIND_NON_ZERO, 10);
 
 			if (relationship.getPkTable() == relationship.getFkTable()) {
 				// special case hack for self-referencing table
 				// assume orientation is PARENT_FACES_BOTTOM | CHILD_FACES_LEFT
-				path.moveTo(start.x, start.y);
-				path.lineTo(start.x, start.y + getTerminationLength() * 2);
-				path.lineTo(end.x - getTerminationLength() * 2, start.y + getTerminationLength() * 2);
-				path.lineTo(end.x - getTerminationLength() * 2, end.y);
-				path.lineTo(end.x, end.y);
+				containmentPath.moveTo(start.x, start.y);
+				containmentPath.lineTo(start.x, start.y + getTerminationLength() * 2);
+				containmentPath.lineTo(end.x - getTerminationLength() * 2, start.y + getTerminationLength() * 2);
+				containmentPath.lineTo(end.x - getTerminationLength() * 2, end.y);
+				containmentPath.lineTo(end.x, end.y);
+				path = new GeneralPath(containmentPath);
+				
+				containmentPath.lineTo(end.x - getTerminationLength() * 2, end.y);
+				containmentPath.lineTo(end.x - getTerminationLength() * 2, start.y + getTerminationLength() * 2);
+				containmentPath.lineTo(start.x, start.y + getTerminationLength() * 2);
 			} else if ( (orientation & (PARENT_FACES_LEFT | PARENT_FACES_RIGHT)) != 0
 				 && (orientation & (CHILD_FACES_LEFT | CHILD_FACES_RIGHT)) != 0) {
 				int midx = (Math.abs(end.x - start.x) / 2) + Math.min(start.x, end.x);
-				path.moveTo(start.x, start.y);
-				path.lineTo(midx, start.y);
-				path.lineTo(midx, end.y);
-				path.lineTo(end.x, end.y);
+				containmentPath.moveTo(start.x, start.y);
+				containmentPath.lineTo(midx, start.y);
+				containmentPath.lineTo(midx, end.y);
+				containmentPath.lineTo(end.x, end.y);
+				path = new GeneralPath(containmentPath);
 
-				// now retrace our steps so the shape doesn't autoclose with a straight line from finish to start
-				path.lineTo(midx, end.y);
-				path.lineTo(midx, start.y);
+				containmentPath.lineTo(midx, end.y);
+				containmentPath.lineTo(midx, start.y);
+				containmentPath.moveTo(start.x, start.y);
 			} else if ( (orientation & (PARENT_FACES_TOP | PARENT_FACES_BOTTOM)) != 0
 						&& (orientation & (CHILD_FACES_TOP | CHILD_FACES_BOTTOM)) != 0) {
 				int midy = (Math.abs(end.y - start.y) / 2) + Math.min(start.y, end.y);
-				path.moveTo(start.x, start.y);
-				path.lineTo(start.x, midy);
-				path.lineTo(end.x, midy);
-				path.lineTo(end.x, end.y);
+				containmentPath.moveTo(start.x, start.y);
+				containmentPath.lineTo(start.x, midy);
+				containmentPath.lineTo(end.x, midy);
+				containmentPath.lineTo(end.x, end.y);
+				path = new GeneralPath(containmentPath);
 
 				// now retrace our steps so the shape doesn't autoclose with a straight line from finish to start
-				path.lineTo(end.x, midy);
-				path.lineTo(start.x, midy);
+				containmentPath.lineTo(end.x, midy);
+				containmentPath.lineTo(start.x, midy);
+				containmentPath.moveTo(start.x, start.y);
 			} else if ( (orientation & (PARENT_FACES_LEFT | PARENT_FACES_RIGHT)) != 0) {
-				path.moveTo(start.x, start.y);
-				path.lineTo(end.x, start.y);
-				path.lineTo(end.x, end.y);
+				containmentPath.moveTo(start.x, start.y);
+				containmentPath.lineTo(end.x, start.y);
+				containmentPath.lineTo(end.x, end.y);
+				path = new GeneralPath(containmentPath);
 
 				// now retrace our steps so the shape doesn't autoclose with a straight line from finish to start
-				path.lineTo(end.x, start.y);
+				containmentPath.lineTo(end.x, start.y);
+				containmentPath.moveTo(start.x, start.y);
 			} else if ( (orientation & (PARENT_FACES_TOP | PARENT_FACES_BOTTOM)) != 0) {
-				path.moveTo(start.x, start.y);
-				path.lineTo(start.x, end.y);
-				path.lineTo(end.x, end.y);
+				containmentPath.moveTo(start.x, start.y);
+				containmentPath.lineTo(start.x, end.y);
+				containmentPath.lineTo(end.x, end.y);
+				path = new GeneralPath(containmentPath);
 
 				// now retrace our steps so the shape doesn't autoclose with a straight line from finish to start
-				path.lineTo(start.x, end.y);
+				containmentPath.lineTo(start.x, end.y);
+				containmentPath.moveTo(start.x, start.y);
 			} else {
 				// unknown case: draw straight line.
-				path.moveTo(start.x, start.y);
-				path.lineTo(end.x, end.y);
+				containmentPath.moveTo(start.x, start.y);
+				containmentPath.lineTo(end.x, end.y);
+				path = new GeneralPath(containmentPath);
 			}
 			
 			if (r.isSelected()) {
@@ -177,12 +195,12 @@ public class BasicRelationshipUI extends RelationshipUI
 	}
 
 	public boolean contains(JComponent c, int x, int y) {
-		if (path == null) {
+		if (containmentPath == null) {
 			return false;
 		} else {
 			Point loc = relationship.getLocation();
-			return path.intersects(x - radius + loc.x, y - radius + loc.y,
-								   radius*2,           radius*2);
+			return containmentPath.intersects(x - radius + loc.x, y - radius + loc.y,
+			        							radius*2,           radius*2);
 		}
 	}
 
@@ -601,6 +619,6 @@ public class BasicRelationshipUI extends RelationshipUI
 	}
 
     public boolean intersects(Rectangle region) {
-        return path.intersects(region.x, region.y, region.width, region.height);
+        return containmentPath.intersects(region.x, region.y, region.width, region.height);
     }
 }
