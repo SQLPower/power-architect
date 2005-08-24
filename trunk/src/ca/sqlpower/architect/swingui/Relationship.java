@@ -417,4 +417,14 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 	public void dbStructureChanged(SQLObjectEvent e) {
         // not sure if this ever happens!
 	}
+
+    /**
+     * Determines if the given rectangle is visibly touching this component.
+     * 
+     * @param region The region to test.
+     * @return Whether or not this Relationship visibly intersects the given region
+     */
+    public boolean intersects(Rectangle region) {
+        return ui.intersects(region);
+    }
 }

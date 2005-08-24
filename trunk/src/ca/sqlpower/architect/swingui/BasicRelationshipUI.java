@@ -599,4 +599,8 @@ public class BasicRelationshipUI extends RelationshipUI
 		logger.debug("BasicRelationshipUI notices change of "+e.getPropertyName()
 					 +" from "+e.getOldValue()+" to "+e.getNewValue()+" on "+e.getSource());
 	}
+
+    public boolean intersects(Rectangle region) {
+        return path.intersects(region.x, region.y, region.width, region.height);
+    }
 }

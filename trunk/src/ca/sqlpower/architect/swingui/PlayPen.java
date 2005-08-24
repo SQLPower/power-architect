@@ -485,6 +485,10 @@ public class PlayPen extends JPanel
 		if (rubberBand != null && !rubberBand.isEmpty()) {
 			if (logger.isDebugEnabled()) logger.debug("painting rubber band "+rubberBand);
 			g2.setColor(rubberBandColor);
+			Composite backupComp = g2.getComposite();
+			g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
+			g2.fillRect(rubberBand.x, rubberBand.y, rubberBand.width-1, rubberBand.height-1);
+			g2.setComposite(backupComp);
 			g2.drawRect(rubberBand.x, rubberBand.y, rubberBand.width-1, rubberBand.height-1);
 		}
 
@@ -1505,10 +1509,15 @@ public class PlayPen extends JPanel
 		public void mouseReleased(MouseEvent evt) {
 			if (rubberBand != null) {
 				if (evt.getButton() == MouseEvent.BUTTON1) {
-					Rectangle dirtyRegion = rubberBand;
+					Rectangle dirtyRegion = new Rectangle(rubberBand);
+					
+					// grow dirty region by 10% because when it's an exact match, poop gets left behind
+					dirtyRegion.width += (int) (dirtyRegion.width * 0.1);
+					dirtyRegion.height += (int) (dirtyRegion.height * 0.1);
+
 					rubberBandOrigin = null;
 					rubberBand = null;
-					repaint(zoomRect(new Rectangle(dirtyRegion)));
+					repaint(zoomRect(dirtyRegion));
 				}
 			} else if (!retargetToContentPane(evt)) {
 				//((PlayPen) evt.getSource()).selectNone();
@@ -1534,7 +1543,10 @@ public class PlayPen extends JPanel
 				Rectangle temp = new Rectangle();  // avoids multiple allocations in getBounds
 				for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
 					Component c = contentPane.getComponent(i);
-					if (c instanceof Selectable) {
+					if (c instanceof Relationship) {
+					    // relationship is non-rectangular so we can't use getBounds for intersection testing
+					    ((Relationship) c).setSelected(((Relationship) c).intersects(rubberBand));
+					} else if (c instanceof Selectable) {
 						((Selectable) c).setSelected(rubberBand.intersects(c.getBounds(temp)));
 					}
 				}
