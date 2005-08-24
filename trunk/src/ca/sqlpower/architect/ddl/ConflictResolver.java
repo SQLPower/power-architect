@@ -398,8 +398,11 @@ public class ConflictResolver implements Monitorable {
 		else return findConflictingFinished;
 	}
 	
+	/**
+	 * Not implemented.  Throws a RuntimeException when called.
+	 */
 	public void setCancelled(boolean cancelled) {
-		
+		throw new RuntimeException("The Conflict Resolver can't be cancelled");
 	}
 	
 	public String getMessage () {

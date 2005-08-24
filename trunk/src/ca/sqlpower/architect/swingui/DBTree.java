@@ -375,7 +375,7 @@ public class DBTree extends JTree implements DragSourceListener {
 			mi.setAction(af.editColumnAction);
 			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
 			newMenu.add(mi);
-			if(p.getLastPathComponent().getClass() == ca.sqlpower.architect.SQLColumn.class) {
+			if (p.getLastPathComponent() instanceof SQLColumn) {
 				mi.setEnabled(true);
 			} else {
 				mi.setEnabled(false);
@@ -385,14 +385,12 @@ public class DBTree extends JTree implements DragSourceListener {
 			mi.setAction(af.insertColumnAction);
 			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
 			newMenu.add(mi);
-			if(p.getLastPathComponent().getClass() == ca.sqlpower.architect.SQLTable.class ||
-			   p.getLastPathComponent().getClass() == ca.sqlpower.architect.SQLColumn.class) {
+			if (p.getLastPathComponent() instanceof SQLTable || p.getLastPathComponent() instanceof SQLColumn) {
 				mi.setEnabled(true);
 			} else {
 				mi.setEnabled(false);
 			}
 
-	
 			newMenu.addSeparator();
 			
 			mi = new JMenuItem();
@@ -403,8 +401,7 @@ public class DBTree extends JTree implements DragSourceListener {
 			mi.setAction(af.editTableAction);
 			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
 			newMenu.add(mi);
-			if(p.getLastPathComponent().getClass() == ca.sqlpower.architect.SQLTable.class ||
-			   p.getLastPathComponent().getClass() == ca.sqlpower.architect.SQLColumn.class) {
+			if (p.getLastPathComponent() instanceof SQLTable || p.getLastPathComponent() instanceof SQLColumn) {
 				mi.setEnabled(true);
 			} else {
 				mi.setEnabled(false);
@@ -414,7 +411,7 @@ public class DBTree extends JTree implements DragSourceListener {
 			mi.setAction(af.editRelationshipAction);
 			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
 			newMenu.add(mi);
-			if(p.getLastPathComponent().getClass() == ca.sqlpower.architect.SQLRelationship.class) {
+			if (p.getLastPathComponent() instanceof SQLRelationship) {
 				mi.setEnabled(true);
 			} else {
 				mi.setEnabled(false);
@@ -424,10 +421,10 @@ public class DBTree extends JTree implements DragSourceListener {
 			mi.setAction(af.deleteSelectedAction);
 			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
 			newMenu.add(mi);
-			if(p.getLastPathComponent().getClass() == ca.sqlpower.architect.SQLTable.class || 
-               p.getLastPathComponent().getClass() == ca.sqlpower.architect.SQLColumn.class || 
-               p.getLastPathComponent().getClass() == ca.sqlpower.architect.SQLRelationship.class) {
-				mi.setEnabled(true);
+			if (p.getLastPathComponent() instanceof SQLTable || 
+			        p.getLastPathComponent() instanceof SQLColumn || 
+			        p.getLastPathComponent() instanceof SQLRelationship) {
+			    mi.setEnabled(true);
 			} else {
 				mi.setEnabled(false);	
 			}
@@ -449,6 +446,37 @@ public class DBTree extends JTree implements DragSourceListener {
 			}
 		}
 
+		// Show exception details (SQLException node can appear anywhere in the hierarchy)
+		if (p != null && p.getLastPathComponent() instanceof SQLExceptionNode) {
+            final SQLExceptionNode node = (SQLExceptionNode) p.getLastPathComponent();
+            newMenu.add(new JMenuItem(new AbstractAction("Show Exception Details") {
+                public void actionPerformed(ActionEvent e) {
+                    ASUtils.showExceptionDialog("Exception Node Report", node.getException());        
+                }
+            }));
+
+            // If the sole child is an exception node, we offer the user a way to re-try the operation
+            try {
+                final SQLObject parent = node.getParent();
+                if (parent.getChildCount() == 1) {
+                    newMenu.add(new JMenuItem(new AbstractAction("Retry") {
+                        public void actionPerformed(ActionEvent e) {
+                            parent.removeChild(0);
+                            parent.setPopulated(false);
+                            try {
+                                parent.getChildren(); // forces populate
+                            } catch (ArchitectException ex) {
+                                parent.addChild(new SQLExceptionNode(ex, "New exception during retry"));
+                                ASUtils.showExceptionDialog("Exception occurred during retry", ex);
+                            }
+                        }
+                    }));
+                }
+            } catch (ArchitectException ex) {
+                logger.error("Couldn't count siblings of SQLExceptionNode", ex);
+            }
+		}
+		
 		// add in Show Listeners if debug is enabled
 		if (logger.isDebugEnabled()) { 
 			newMenu.addSeparator();
