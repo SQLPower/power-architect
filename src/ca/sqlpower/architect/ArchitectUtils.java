@@ -143,11 +143,19 @@ public class ArchitectUtils {
 	 * @param source the source object (usually the database) 
 	 */
 	public static boolean pokeDatabase(SQLObject source) throws ArchitectException {
-		logger.debug("my class is " + source.getClass().getName() + ", my name is + " + source.getName());
+		if (logger.isDebugEnabled()) logger.debug("HELLO my class is " + source.getClass().getName() + ", my name is + " + source.getName());
 		if (source.allowsChildren()) {
-			int j = 0;	
+			int j = 0;
 			boolean done = false;
-			while (!done && j < source.getChildCount()) {				
+			int childCount;
+			try {
+			    childCount = source.getChildCount();
+			} catch (ArchitectException e) {
+			    // FIXME: this behaviour should be an optional part of SQLObject's populate() method, not something client code has to do
+			    source.addChild(new SQLExceptionNode(e, "Error during initial database probe"));
+			    childCount = 1;
+			}
+			while (!done && j < childCount) {
 				done = pokeDatabase(source.getChild(j));
 				j++;
 			}
