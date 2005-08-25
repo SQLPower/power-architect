@@ -76,7 +76,7 @@ public class ProgressWatcher implements ActionListener {
 					}
 					if (pm != null) {
 						logger.debug("pm done, max was: " + pm.getMaximum());
-						// pm.close();
+						pm.close();
 					}
 					logger.debug("trying to stop timer thread...");
 					timer.stop();
