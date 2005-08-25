@@ -619,6 +619,7 @@ public class BasicRelationshipUI extends RelationshipUI
 	}
 
     public boolean intersects(Rectangle region) {
-        return containmentPath.intersects(region.x, region.y, region.width, region.height);
+        if (containmentPath == null) return false;
+        else return containmentPath.intersects(region.x, region.y, region.width, region.height);
     }
 }
