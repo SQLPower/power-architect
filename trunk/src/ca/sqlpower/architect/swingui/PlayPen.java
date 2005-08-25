@@ -772,7 +772,9 @@ public class PlayPen extends JPanel
 		// create exported relationships if the importing tables exist in pp
 		Iterator sourceKeys = source.getExportedKeys().iterator();
 		while (sourceKeys.hasNext()) {
-			SQLRelationship r = (SQLRelationship) sourceKeys.next();
+		    Object next = sourceKeys.next();
+		    if ( !(next instanceof SQLRelationship) ) continue;  // there could be SQLExceptionNodes here
+			SQLRelationship r = (SQLRelationship) next;
 			if (logger.isInfoEnabled()) {
 				logger.info("Looking for fk table "+r.getFkTable().getName()+" in playpen");
 			}
