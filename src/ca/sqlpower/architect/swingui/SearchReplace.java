@@ -32,7 +32,6 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -41,8 +40,6 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 
 import org.apache.log4j.Logger;
-
-import sun.security.krb5.internal.crypto.bn;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
