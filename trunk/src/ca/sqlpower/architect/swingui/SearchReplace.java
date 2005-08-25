@@ -101,8 +101,12 @@ public class SearchReplace {
         public Object getValueAt(int rowIndex, int columnIndex) {
             SQLObject obj = (SQLObject) results.get(rowIndex);
             if (columnIndex == 0) {
-                String className = obj.getClass().getName();
-                return className.substring(className.lastIndexOf('.') + 4);  // the +4 is to skip over ".SQL"
+                if (obj instanceof SQLColumn) {
+                    return "Column of "+((SQLColumn) obj).getParentTable().getName();
+                } else {
+                    String className = obj.getClass().getName();
+                    return className.substring(className.lastIndexOf('.') + 4);  // the +4 is to skip over ".SQL"
+                }
             } else if (columnIndex == 1) {
                 return obj.getName();
             } else {
@@ -362,7 +366,7 @@ public class SearchReplace {
 
     private List recursiveSearch(SQLObject obj, Pattern searchPattern, List appendTo) throws ArchitectException {
         if (logger.isDebugEnabled()) logger.debug("Matching \""+obj.getName()+"\" against /"+searchPattern.pattern()+"/");
-        if (searchPattern.matcher(obj.getName()).matches()) {
+        if (searchPattern.matcher(obj.getName()).matches() && searchTypeMatches(obj)) {
             appendTo.add(obj);
         }
         List children = obj.getChildren();
@@ -374,5 +378,18 @@ public class SearchReplace {
             }
         }
         return appendTo;
+    }
+
+    /**
+     * Determines if the given object is of a type that the user has asked us to look for.
+     * @param obj
+     * @return
+     */
+    private boolean searchTypeMatches(SQLObject obj) {
+        if (allSearch.isSelected() && !(obj instanceof SQLTable.Folder)) return true;
+        if (tableSearch.isSelected() && obj instanceof SQLTable) return true;
+        if (columnSearch.isSelected() && obj instanceof SQLColumn) return true;
+        if (relationshipSearch.isSelected() && obj instanceof SQLRelationship) return true;
+        return false;
     }
 }
