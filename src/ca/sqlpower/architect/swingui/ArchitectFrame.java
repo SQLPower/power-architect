@@ -59,6 +59,7 @@ public class ArchitectFrame extends JFrame {
 	protected CreateRelationshipAction createIdentifyingRelationshipAction;
 	protected CreateRelationshipAction createNonIdentifyingRelationshipAction;
 	protected EditRelationshipAction editRelationshipAction;
+	protected SearchReplaceAction searchReplaceAction;
 
 	protected Action exportDDLAction;
 	protected Action compareDMAction;
@@ -297,7 +298,8 @@ public class ArchitectFrame extends JFrame {
 		editColumnAction = new EditColumnAction();
 		insertColumnAction = new InsertColumnAction();
 		editTableAction = new EditTableAction();
-
+		searchReplaceAction = new SearchReplaceAction();
+		
 		menuBar = new JMenuBar();
 		JMenu fileMenu = new JMenu("File");
 		fileMenu.setMnemonic('f');
@@ -314,12 +316,18 @@ public class ArchitectFrame extends JFrame {
 		fileMenu.add(new JMenuItem(exitAction));
 		menuBar.add(fileMenu);
 
+		JMenu editMenu = new JMenu("Edit");
+		editMenu.setMnemonic('e');
+		editMenu.add(new JMenuItem(searchReplaceAction));
+		menuBar.add(editMenu);
+		
 		// the connections menu is set up when a new project is created (because it depends on the current DBTree)
 		connectionsMenu = new JMenu("Connections");
+		connectionsMenu.setMnemonic('c');
 		menuBar.add(connectionsMenu);
 
 		JMenu etlMenu = new JMenu("ETL");
-		etlMenu.setMnemonic('e');
+		etlMenu.setMnemonic('l');
 		JMenu etlSubmenuOne = new JMenu("Power*Loader");
 		JMenu etlSubmenuTwo = new JMenu("Informatica");
 		etlSubmenuOne.add(new JMenuItem(exportPLTransAction));
@@ -438,6 +446,7 @@ public class ArchitectFrame extends JFrame {
 		editColumnAction.setPlayPen(playpen);
 		insertColumnAction.setPlayPen(playpen);
 		editTableAction.setPlayPen(playpen);
+		searchReplaceAction.setPlayPen(playpen);
 		createTableAction.setPlayPen(playpen);
 		createIdentifyingRelationshipAction.setPlayPen(playpen);
 		createNonIdentifyingRelationshipAction.setPlayPen(playpen);
@@ -451,6 +460,7 @@ public class ArchitectFrame extends JFrame {
 		editRelationshipAction.setDBTree(dbTree);
 		deleteSelectedAction.setDBTree(dbTree);
 		editTableAction.setDBTree(dbTree);
+		searchReplaceAction.setDBTree(dbTree);
 		//
 		prefAction.setArchitectFrame(this);
 		projectSettingsAction.setArchitectFrame(this);
