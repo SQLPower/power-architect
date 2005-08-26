@@ -275,6 +275,7 @@ public class ConflictResolver implements Monitorable {
     		}
     		monitorableProgress = 0;
     		dropConflictingStarted = true;
+    		doingDropConflicting = true;
     		Iterator it = conflicts.iterator();
     		Statement stmt = null;
     		try {
@@ -287,6 +288,7 @@ public class ConflictResolver implements Monitorable {
     			}
     		} finally {
     			dropConflictingFinished = true;
+    			doingDropConflicting = false;
     			if (stmt != null) stmt.close();
     		}
     }
@@ -407,6 +409,12 @@ public class ConflictResolver implements Monitorable {
 	
 	public String getMessage () {
 		return null;
+	}
+	/**
+	 * @return Returns the hasStarted.
+	 */
+	public boolean hasStarted() {
+		return (doingDropConflicting || doingFindConflicting);
 	}
 }
 

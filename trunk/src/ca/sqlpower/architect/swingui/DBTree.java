@@ -89,6 +89,7 @@ public class DBTree extends JTree implements DragSourceListener {
 				public void actionPerformed(ActionEvent e) {
 					dbcsPanel.applyChanges();
 					edittingDB.setDataSource(dbcsPanel.getDbcs());
+					// does not get called when setting Target
 					if (panelHoldsNewDBCS) { // don't allow new duplicate connections to be added
 						ArchitectDataSource dup = getDuplicateDbcs(edittingDB.getDataSource());							
 						if (dup == null) { // did not find one, go ahead and add it to User Settings
@@ -747,6 +748,7 @@ public class DBTree extends JTree implements DragSourceListener {
 			propDialog.requestFocus();
 		}
 	}
+	
 
 
 	// --------------- INNER CLASSES -----------------

@@ -98,7 +98,6 @@ public class ExportDDLAction extends AbstractAction {
 			cp.add(new JScrollPane(ddlArea), BorderLayout.CENTER);
 
 			JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-
 			JPanel progressPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 			final JProgressBar progressBar = new JProgressBar();
 			progressBar.setStringPainted(true); 
@@ -112,29 +111,7 @@ public class ExportDDLAction extends AbstractAction {
 			final JButton executeButton = new JButton("Execute");
 			executeButton.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
-					    // create a chain of worker processes then start the first one
-						try {
-							SQLDatabase targetDB = ArchitectFrame.getMainInstance().playpen.getDatabase();
-							List statements = ddlg.generateDDLStatements(targetDB);
-							
-							// Create the processes in the order they will be run
-							ConflictFinderProcess cfp = new ConflictFinderProcess(
-									d, targetDB, ddlg, statements, progressBar, progressLabel);
-							ConflictResolverProcess crp = new ConflictResolverProcess(d, cfp, progressBar, progressLabel);
-							DDLExecutor eDDL = new DDLExecutor(d, statements, progressBar, progressLabel);
-							
-							// Link the processes to establish the ordering
-							cfp.setNextProcess(crp);
-							crp.setNextProcess(eDDL);
-							
-							new Thread(cfp).start();
-						} catch (Exception ex) {
-							JOptionPane.showMessageDialog(d, 
-									"Couldn't start forward engineering:\n\n"
-									+ex.getClass().getName()+"\n"
-									+ex.getMessage()+"\n",
-									"Error", JOptionPane.ERROR_MESSAGE);				
-						}
+						executeProcess(ddlg, progressBar, progressLabel, d);
 					}
 			});
 			buttonPanel.add(executeButton);
@@ -188,6 +165,37 @@ public class ExportDDLAction extends AbstractAction {
 			JOptionPane.showMessageDialog(parent, "Couldn't Generate DDL:\n"+e.getMessage());
 		}
 	}
+	
+	public void executeProcess(GenericDDLGenerator ddlg, 
+			                   JProgressBar progressBar,
+							   JLabel progressLabel,
+							   JDialog parentDialog) {
+	    // create a chain of worker processes then start the first one
+		JDialog d = parentDialog;
+		try {
+			SQLDatabase targetDB = ArchitectFrame.getMainInstance().playpen.getDatabase();
+			List statements = ddlg.generateDDLStatements(targetDB);
+			logger.debug("generated statements are: " + statements);
+			
+			// Create the processes in the order they will be run
+			ConflictFinderProcess cfp = new ConflictFinderProcess(
+					d, targetDB, ddlg, statements, progressBar, progressLabel);
+			ConflictResolverProcess crp = new ConflictResolverProcess(d, cfp, progressBar, progressLabel);
+			DDLExecutor eDDL = new DDLExecutor(d, statements, progressBar, progressLabel) ;
+			
+			// Link the processes to establish the ordering
+			cfp.setNextProcess(crp);
+			crp.setNextProcess(eDDL);
+			
+			new Thread(cfp).start();
+		} catch (Exception ex) {
+			JOptionPane.showMessageDialog(d, 
+					"Couldn't start forward engineering:\n\n"
+					+ex.getClass().getName()+"\n"
+					+ex.getMessage()+"\n",
+					"Error", JOptionPane.ERROR_MESSAGE);				
+		}	
+	}
 
 	/**
 	 * The ConflictFinderProcess uses a ConflictResolver (which it monitors with a progress bar)
@@ -196,7 +204,7 @@ public class ExportDDLAction extends AbstractAction {
 	 * 
 	 * @author fuerth
 	 */
-	private class ConflictFinderProcess implements Runnable {
+	protected class ConflictFinderProcess implements Runnable {
 
 		JDialog parentDialog;
 		SQLDatabase target;
@@ -333,7 +341,7 @@ public class ExportDDLAction extends AbstractAction {
 	 * @author fuerth
 	 * @version $Id$
 	 */
-	private class ConflictResolverProcess implements Runnable {
+	protected class ConflictResolverProcess implements Runnable {
 
 		private JDialog parentDialog;
 		private ConflictFinderProcess conflictFinder;
@@ -403,22 +411,26 @@ public class ExportDDLAction extends AbstractAction {
 		}
 	}
 	
-	private class DDLExecutor implements Monitorable, Runnable {		
+	protected class DDLExecutor implements Monitorable, Runnable {		
 		
 		JDialog dialog;
 		List statements;
-		JProgressBar progressBar;
+		JProgressBar progressBar;		
 		JLabel label;
+		Runnable nextProcess;
+		
 		int stmtsTried = 0;
 		int stmtsCompleted = 0;
 		boolean finished = false;
 		boolean cancelled = false;
-		
+		boolean hasStarted = false;
+		boolean allIsWell = true; // TODO: consolidate error messages into a single block?
+				
 		public DDLExecutor (JDialog dialog, List statements, JProgressBar progressBar, JLabel label) {
 			this.dialog = dialog;
 			this.statements = statements;
 			this.progressBar = progressBar;
-			this.label = label;
+			this.label = label;			
 		}		
 
 		public Integer getJobSize() throws ArchitectException {			
@@ -458,9 +470,10 @@ public class ExportDDLAction extends AbstractAction {
 		 * This method runs on a separate worker thread.
 		 */
 		public void run() {
+			hasStarted = true;
 			if (cancelled || finished) return;
 			label.setText("Creating objects in target database...");
-			new ProgressWatcher(progressBar, this, label);
+			ProgressWatcher pw = new ProgressWatcher(progressBar, this, label);
 			stmtsTried = 0;
 			stmtsCompleted = 0;
 			SQLDatabase target = architectFrame.playpen.getDatabase();
@@ -470,14 +483,13 @@ public class ExportDDLAction extends AbstractAction {
 
 			logger.debug("the Target Database is: " + target.getDataSource());
 
-			
-
 			Connection con;
 			Statement stmt;
 
 			try {
 				con = target.getConnection();
 			} catch (ArchitectException ex) {
+				allIsWell = false;
 				final Exception fex = ex;
 				SwingUtilities.invokeLater(new Runnable() {
 					public void run() {
@@ -490,6 +502,7 @@ public class ExportDDLAction extends AbstractAction {
 				finished = true;
 				return;
 			} catch (Exception ex) {
+				allIsWell = false;
 				logger.error("Unexpected exception in DDL generation", ex);
 				SwingUtilities.invokeLater(new Runnable() {
 					public void run() {
@@ -507,6 +520,7 @@ public class ExportDDLAction extends AbstractAction {
 				logger.debug("the connection thinks it is: " + con.getMetaData().getURL());
 				stmt = con.createStatement();
 			} catch (SQLException ex) {
+				allIsWell = false;
 				final Exception fex = ex;
 				SwingUtilities.invokeLater(new Runnable() {
 					public void run() {
@@ -523,6 +537,7 @@ public class ExportDDLAction extends AbstractAction {
 				logWriter = new LogWriter(ArchitectSession.getInstance().getUserSettings().getDDLUserSettings().getDDLLogPath());			
 				logWriter.info("Starting DDL Generation at " + new java.util.Date(System.currentTimeMillis()));
 				logWriter.info("Database Target: " + target.getDataSource());
+				logWriter.info("Playpen Dump: " + target.getDataSource());
 				
 
 				Iterator it = statements.iterator();
@@ -534,6 +549,7 @@ public class ExportDDLAction extends AbstractAction {
 						stmt.executeUpdate(ddlStmt.getSQLText());
 						stmtsCompleted++;
 					} catch (SQLException ex) {
+						allIsWell = false;						
 						final Exception fex = ex;
 						final String fsql = ddlStmt.getSQLText();
 						logWriter.info("sql statement failed: " + ex.getMessage());
@@ -557,8 +573,10 @@ public class ExportDDLAction extends AbstractAction {
 								}
 							});
 						} catch (InterruptedException ex2) {
+							allIsWell = false;
 							logger.warn("DDL Worker was interrupted during InvokeAndWait", ex2);
 						} catch (InvocationTargetException ex2) {
+							allIsWell = false;							
 							final Exception fex2 = ex2;
 							SwingUtilities.invokeLater(new Runnable() {
 								public void run() {
@@ -578,6 +596,7 @@ public class ExportDDLAction extends AbstractAction {
 				logWriter.info("Successfully executed "+stmtsCompleted+" out of "+stmtsTried+" statements.");
 				
 			} catch (ArchitectException ex) {
+				allIsWell = false;				
 				final Exception fex = ex;
 				SwingUtilities.invokeLater(new Runnable() {
 					public void run() {
@@ -613,6 +632,46 @@ public class ExportDDLAction extends AbstractAction {
 			});
 			
 			finished = true;
+			
+			SwingUtilities.invokeLater(new Runnable() {public void run(){runFinished();}});
+		}
+		
+		/**
+		 * Displays error messages or invokes the next process in the chain on a new
+		 * thread. The run method asks swing to invoke this method on the event dispatch
+		 * thread after it's done.
+		 */
+		public void runFinished() {
+			if (allIsWell) {
+				if (nextProcess != null) {
+					new Thread(nextProcess).start();
+				}
+			}
+		}
+
+		/**
+		 * @return Returns the nextProcess.
+		 */
+		public Runnable getNextProcess() {
+			return nextProcess;
+		}
+		/**
+		 * @param nextProcess The nextProcess to set.
+		 */
+		public void setNextProcess(Runnable nextProcess) {
+			this.nextProcess = nextProcess;
+		}
+		/**
+		 * @return Returns the hasStarted.
+		 */
+		public boolean hasStarted() {
+			return hasStarted;
+		}
+		/**
+		 * @param hasStarted The hasStarted to set.
+		 */
+		public void setHasStarted(boolean hasStarted) {
+			this.hasStarted = hasStarted;
 		}
 	}
 

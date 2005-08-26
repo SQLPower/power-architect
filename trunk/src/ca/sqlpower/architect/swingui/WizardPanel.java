@@ -8,13 +8,6 @@ import javax.swing.JComponent;
  * @author jack
  */
 public interface WizardPanel extends ArchitectPanel {
-
-	/**
-	 * The NEXT or DONE button in a Wizard Panel's parent container 
-	 * should invoke this method.  
-	 */
-	public boolean validate();
-
 	/**
 	 * returns this panel to the parent container which is managing this wizard
 	 * 
@@ -29,11 +22,5 @@ public interface WizardPanel extends ArchitectPanel {
 	 * @return
 	 */
 	public String getTitle();
-	
-	/**
-	 * Should be invoked in the Panel constructor to get data from 
-	 * the model into the view.
-	 */
-	public void loadForm();
-	
+		
 }

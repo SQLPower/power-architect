@@ -27,6 +27,8 @@ public interface Monitorable {
 	 */
 	public Integer getJobSize() throws ArchitectException;
 
+	public boolean hasStarted() throws ArchitectException;
+	
 	/**
 	 * Tells interested parties that the task being performed by this object is finished.
 	 * Normally, getJobSize() and getProgress will return equal integers at this point,

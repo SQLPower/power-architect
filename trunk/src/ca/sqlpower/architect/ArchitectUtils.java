@@ -1,10 +1,17 @@
 package ca.sqlpower.architect;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
+
+import ca.sqlpower.architect.ddl.DB2DDLGenerator;
+import ca.sqlpower.architect.ddl.OracleDDLGenerator;
+import ca.sqlpower.architect.ddl.PostgresDDLGenerator;
+import ca.sqlpower.architect.ddl.SQLServerDDLGenerator;
 
 import java.net.URL;
 
@@ -183,6 +190,26 @@ public class ArchitectUtils {
 		    return count;
 		}
 	}
+
+	/**
+	 * Keep in mind that if you go after anything lower than 
+	 * SQLTable, you will invoke a potentially expensive 
+	 * populate() method multiple times.
+	 * 
+	 * @param source the source object (usually the database) 
+	 */
+	public static List findDescendentsByClass(SQLObject so, java.lang.Class clazz, List list) throws ArchitectException {
+		if (clazz.isAssignableFrom(so.getClass())) {
+			list.add(so);
+		} else {			
+			Iterator it = so.getChildren().iterator();
+			while (it.hasNext()) {
+				findDescendentsByClass((SQLObject) it.next(), clazz, list);
+			}
+		}
+		return list;
+	}
+
 	
 	/**
 	 * Chop long strings down to size for display purposes
@@ -221,6 +248,41 @@ public class ArchitectUtils {
 			return myCount;
 		}
 	}	
+	/**
+	 * 
+	 * XXX: look thise up from somewhere (i.e. don't hard code them)
+	 * 
+	 */
+	public static Map getDriverTemplateMap () {
+		Map drivers = new HashMap();
+		drivers.put("oracle.jdbc.driver.OracleDriver",
+					"jdbc:oracle:thin:@<Hostname>:<Port:1521>:<Instance>");
+		drivers.put("com.microsoft.jdbc.sqlserver.SQLServerDriver",
+					"jdbc:microsoft:sqlserver://<Hostname>:<Port:1433>;SelectMethod=cursor");
+		drivers.put("org.postgresql.Driver",
+					"jdbc:postgresql://<Hostname>:<Port:5432>/<Database>");
+		drivers.put("ibm.sql.DB2Driver",
+					"jdbc:db2:<Hostname>");
+		return drivers;
+	}
+	
+	/**
+	 * 
+	 * XXX: look thise up from somewhere (i.e. don't hard code them)
+	 * 
+	 */
+	public static Map getDriverDDLGeneratorMap () {
+		Map drivers = new HashMap();
+		drivers.put("oracle.jdbc.driver.OracleDriver",
+				OracleDDLGenerator.class);
+		drivers.put("com.microsoft.jdbc.sqlserver.SQLServerDriver",
+				SQLServerDDLGenerator.class);
+		drivers.put("org.postgresql.Driver",
+				PostgresDDLGenerator.class);
+		drivers.put("ibm.sql.DB2Driver",
+				DB2DDLGenerator.class);
+		return drivers;		
+	}
 	
 	/**
 	 * Replaces double quotes, ampersands, and less-than signs with

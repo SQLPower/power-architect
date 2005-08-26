@@ -19,15 +19,18 @@ import java.awt.*;
 public class TextPanel extends JPanel {
 
 	protected JComponent[] fields;
+	protected JComponent[] labels;
 	
 	// Create a form with the specified labels, tooltips, and sizes.
-	public TextPanel(JComponent[] fields, String[] labels, char[] mnemonics,
+	public TextPanel(JComponent[] aFields, String[] aLabels, char[] mnemonics,
 					 int[] widths, String[] tips) {
 		super(new FormLayout(8, 8));
-		this.fields = new JComponent[fields.length];
-		System.arraycopy(fields, 0, this.fields, 0, fields.length);
+
+		fields = new JComponent[aFields.length];
+		System.arraycopy(aFields, 0, fields, 0, aFields.length);
+		labels = new JComponent[aLabels.length];
 		
-		for (int i = 0; i < labels.length; i += 1) {
+		for (int i = 0; i < aLabels.length; i += 1) {
 			if (i < tips.length) {
 				fields[i].setToolTipText(tips[i]);
 			}
@@ -36,9 +39,13 @@ public class TextPanel extends JPanel {
 				((JTextField) fields[i]).setColumns(widths[i]);
 			}
 			
-			JLabel lab = new JLabel(labels[i], JLabel.RIGHT);
+			JLabel lab = new JLabel(aLabels[i], JLabel.RIGHT);
 			lab.setLabelFor(fields[i]);
-			if (i < mnemonics.length) lab.setDisplayedMnemonic(mnemonics[i]);
+			if (i < mnemonics.length) {
+				lab.setDisplayedMnemonic(mnemonics[i]);
+			}
+			
+			labels[i] = lab;
 			
 			add(lab);
 			//JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -50,6 +57,10 @@ public class TextPanel extends JPanel {
 	
 	public JComponent getField(int i) {
 		return fields[i];
+	}
+	
+	public JComponent getLabel(int i) {
+		return labels[i];
 	}
 	
 	/**

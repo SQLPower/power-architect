@@ -916,32 +916,42 @@ public class PlayPen extends JPanel
 	/**
 	 * Calls {@link #importTableCopy} for each table contained in the given schema.
 	 */
-	public synchronized void addObjects(List list, Point preferredLocation) throws ArchitectException {
-		AddObjectsTask t = new AddObjectsTask(list, preferredLocation);
+	public synchronized void addObjects(List list, Point preferredLocation, Runnable nextProcess) throws ArchitectException {
 		ProgressMonitor pm
 		 = new ProgressMonitor(null,
 		                      "Copying objects from DBTree",
 		                      "...",
 		                      0,
 			                  100);			
-		new ProgressWatcher(pm, t);
-		new Thread(t, "Objects-Adder").start();
+		AddObjectsTask t = new AddObjectsTask(list, 
+				preferredLocation, pm, null);
+		t.setNextProcess(nextProcess);
+		new Thread(t, "Objects-Adder").start();		
 	}
 	
-	private class AddObjectsTask implements Runnable, Monitorable {
-		List paths;
+	protected class AddObjectsTask implements Runnable, Monitorable {
+		List sqlObjects;
 		Point preferredLocation;
+		Runnable nextProcess;
+		JDialog parentDialog;
 		
+		boolean hasStarted = false;
 		boolean finished = false;
 		boolean cancelled = false;
 		String message = null;
 		int progress = 0;
 		Integer jobSize = null;
+		private String errorMessage = null;
 		
-		public AddObjectsTask(List paths, Point preferredLocation) {
-			this.paths = paths;
+		public AddObjectsTask(List sqlObjects, 
+				Point preferredLocation, 
+				ProgressMonitor pm, 
+				JDialog parentDialog) {
+			this.sqlObjects = sqlObjects;
 			this.preferredLocation = preferredLocation;
+			this.parentDialog = parentDialog;
 			finished = false;
+			new ProgressWatcher(pm, this);
 		}
 		
 		public int getProgress() {
@@ -972,30 +982,27 @@ public class PlayPen extends JPanel
 		}
 	
 		public void run () {
+			hasStarted = true;
 			logger.info("AddObjectsTask starting on thread "+Thread.currentThread().getName());
 
 			try {
 								
 				int pmMax = 0;				
-				Iterator pathIt = paths.iterator();
-				DBTree dbtree = ArchitectFrame.getMainInstance().dbTree; // XXX: this is bad
+				Iterator soIt = sqlObjects.iterator();
 
 				// first pass: figure out how much work we need to do...
-				while (pathIt.hasNext()) {
-					Object someData = dbtree.getNodeForDnDPath((int[]) pathIt.next());
-					if (someData instanceof SQLObject) {
-						pmMax += ArchitectUtils.countTablesSnapshot((SQLObject)someData);						
-					}
+				while (soIt.hasNext()) {
+					pmMax += ArchitectUtils.countTablesSnapshot((SQLObject)soIt.next());						
 				}				
-				logger.error("the pmMax is: " + pmMax);
 				jobSize = new Integer(pmMax);
 				
 				int i = 0;
-				// reset iterator
-				pathIt = paths.iterator();
 
-				while (pathIt.hasNext() && !isCancelled()) {
-					Object someData = dbtree.getNodeForDnDPath((int[]) pathIt.next());					
+				// reset iterator
+				soIt = sqlObjects.iterator();
+
+				while (soIt.hasNext() && !isCancelled()) {
+					Object someData = soIt.next();					
 					if (someData instanceof SQLTable) {
 						TablePane tp = importTableCopy((SQLTable) someData, preferredLocation);
 						message = ArchitectUtils.truncateString(((SQLTable)someData).getTableName());
@@ -1050,8 +1057,48 @@ public class PlayPen extends JPanel
 				e.printStackTrace();
 			} finally {
 				finished = true;
+				hasStarted = false;
 			}
 			logger.info("AddObjectsTask done");
+			
+			SwingUtilities.invokeLater(new Runnable() {public void run(){runFinished();}});
+			
+		}
+
+		/**
+		 * Displays error messages or invokes the next process in the chain on a new
+		 * thread. The run method asks swing to invoke this method on the event dispatch
+		 * thread after it's done.
+		 */
+		public void runFinished() {
+			if (errorMessage != null) {
+				Component c = ArchitectFrame.getMainInstance();
+				if (parentDialog != null) {
+					c = parentDialog;
+				}
+				JOptionPane.showMessageDialog(c, errorMessage, "Error Dropping Tables into Playpen", JOptionPane.ERROR_MESSAGE);
+				nextProcess = null;
+			}
+			if (nextProcess != null) {
+				new Thread(nextProcess).start();
+			}
+		}
+		
+		/**
+		 * @return Returns the nextProcess.
+		 */
+		public Runnable getNextProcess() {
+			return nextProcess;
+		}
+		/**
+		 * @param nextProcess The nextProcess to set.
+		 */
+		public void setNextProcess(Runnable nextProcess) {
+			this.nextProcess = nextProcess;
+		}
+		
+		public boolean hasStarted () {
+			return hasStarted;
 		}
 	}
 
@@ -1387,9 +1434,22 @@ public class PlayPen extends JPanel
 			} else {
 				try {
 					dtde.acceptDrop(DnDConstants.ACTION_COPY);
-					ArrayList paths = (ArrayList) t.getTransferData(importFlavor);
 					Point dropLoc = c.unzoomPoint(new Point(dtde.getLocation()));									
-					c.addObjects(paths, dropLoc);					
+					ArrayList paths = (ArrayList) t.getTransferData(importFlavor);
+					// turn into a Collection of SQLObjects to make this more generic
+					Iterator it = paths.iterator();
+					DBTree dbtree = ArchitectFrame.getMainInstance().dbTree;
+					List sqlObjects = new ArrayList();
+					while(it.hasNext()) {
+						Object oo = dbtree.getNodeForDnDPath((int[])it.next());
+						if (oo instanceof SQLObject) {
+							sqlObjects.add(oo);
+						} else {
+							logger.error("Unknown object dropped in PlayPen: "+oo);						
+						}
+					}
+					// null: no next task is chained off this
+					c.addObjects(sqlObjects, dropLoc, null);					
 					dtde.dropComplete(true);
 				} catch (UnsupportedFlavorException ufe) {
 					logger.error(ufe);

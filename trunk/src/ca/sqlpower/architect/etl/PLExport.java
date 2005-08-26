@@ -36,8 +36,16 @@ public class PLExport implements Monitorable {
 	protected ArchitectDataSource targetDataSource; //
 	
 	protected String targetSchema; // save this to properties file?
+	protected String targetCatalog;
 	protected String repositorySchema; //
-			
+	
+	protected boolean hasStarted;
+	/**
+	 * @return Returns the hasStarted.
+	 */
+	public boolean hasStarted() {
+		return hasStarted;
+	}
 	protected boolean finished; // so the Timer thread knows when to kill itself
 	protected boolean cancelled; // FIXME: placeholder for when the user cancels halfway through a PL Export 			 
 	SQLDatabase currentDB; // if this is non-null, an export job is running
@@ -677,14 +685,15 @@ public class PLExport implements Monitorable {
      * TODO: Strictly speaking, this method should be synchronized (though currently, it's
      * pretty hard to get two copies of it going at the same time)
 	 */
-	public void export(SQLDatabase db) throws SQLException, ArchitectException {
+	public void export(SQLDatabase playpenDB) throws SQLException, ArchitectException {
 		finished = false;
-		try {
+		hasStarted = true;
+		try {			
+			currentDB = playpenDB;
+			
 			// first, set the logWriter
 			logWriter = new LogWriter(ArchitectSession.getInstance().getUserSettings().getETLUserSettings().getETLLogPath());			
-			
-			currentDB = db;
-			
+						
 			SQLDatabase repository = new SQLDatabase(repositoryDataSource); // we are exporting db into this
 			Connection con = null;
         	
@@ -733,7 +742,7 @@ public class PLExport implements Monitorable {
 			
 			// This will order the target tables so that the parent tables are loaded 
 			// before their children
-			DepthFirstSearch targetDFS = new DepthFirstSearch(db);
+			DepthFirstSearch targetDFS = new DepthFirstSearch(playpenDB);
 			List tables = targetDFS.getFinishOrder();
 			
 			if (logger.isDebugEnabled()) {
@@ -854,6 +863,7 @@ public class PLExport implements Monitorable {
 		
 		
 		} finally {
+			hasStarted = false;
 			finished = true;			
 			currentDB = null;
 			// close and flush the logWriter (and set the reference to null)
@@ -1085,5 +1095,17 @@ public class PLExport implements Monitorable {
 	 */
 	public void setTargetDataSource(ArchitectDataSource targetDataSource) {
 		this.targetDataSource = targetDataSource;
+	}
+	/**
+	 * @return Returns the targetCatalog.
+	 */
+	public String getTargetCatalog() {
+		return targetCatalog;
+	}
+	/**
+	 * @param targetCatalog The targetCatalog to set.
+	 */
+	public void setTargetCatalog(String targetCatalog) {
+		this.targetCatalog = targetCatalog;
 	}
 }

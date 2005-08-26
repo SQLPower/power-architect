@@ -6,6 +6,8 @@
  */
 package ca.sqlpower.architect.swingui;
 
+import javax.swing.JDialog;
+
 /**
  * @author jack
  *
@@ -20,4 +22,6 @@ public interface ArchitectWizard {
 	public WizardPanel getCurrent();	
 	public boolean isOnLastPanel(); 	
 	public boolean isOnFirstPanel();
+	public String getTitle();
+	public void execute(JDialog d);
 }
