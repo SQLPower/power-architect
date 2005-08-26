@@ -64,6 +64,7 @@ public class ArchitectFrame extends JFrame {
 	protected Action exportDDLAction;
 	protected Action compareDMAction;
 	protected ExportPLTransAction exportPLTransAction;
+	protected QuickStartAction quickStartAction;
 	protected ArchitectFrameWindowListener afWindowListener;
 	protected Action exitAction = new AbstractAction("Exit") {
 	    public void actionPerformed(ActionEvent e) {
@@ -290,6 +291,7 @@ public class ArchitectFrame extends JFrame {
 		compareDMAction = new CompareDMAction();
 
 		exportPLTransAction = new ExportPLTransAction();
+		quickStartAction = new QuickStartAction();
 		deleteSelectedAction = new DeleteSelectedAction();
 		createIdentifyingRelationshipAction = new CreateRelationshipAction(true);
 		createNonIdentifyingRelationshipAction = new CreateRelationshipAction(false);
@@ -333,6 +335,7 @@ public class ArchitectFrame extends JFrame {
 		etlSubmenuOne.add(new JMenuItem(exportPLTransAction));
 		etlSubmenuOne.add(new JMenuItem("PL Transaction File Export"));
 		etlSubmenuOne.add(new JMenuItem("Run Power*Loader"));
+		etlSubmenuOne.add(new JMenuItem(quickStartAction));
 		etlMenu.add(etlSubmenuOne);
 		etlMenu.add(etlSubmenuTwo);
 		menuBar.add(etlMenu);

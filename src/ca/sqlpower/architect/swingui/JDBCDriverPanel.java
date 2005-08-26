@@ -165,6 +165,7 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 
 	protected class LoadJDBCDrivers implements Monitorable  {
 
+		public boolean hasStarted = false;
 		public boolean finished = false;		
 		private List driverJarList = null;
 		
@@ -201,11 +202,16 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 			// job not cancellable, do nothing
 		}
 		
+		public boolean hasStarted() throws ArchitectException {
+			return hasStarted;
+		}
+		
 		public String getMessage () {
 			return null; // no messages returned from this job
 		}
 		
 		public void execute() {	        
+			hasStarted = true;
 			try {
 				Iterator it = driverJarList.iterator();
 				while (it.hasNext()) {
@@ -221,6 +227,7 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 				logger.error("something went wrong in LoadJDBCDrivers worker thread!",exp);
 			} finally {
 				finished = true;
+				hasStarted = false;
 				logger.debug("done loading (error condition), setting finished to true.");
 			}
 		}

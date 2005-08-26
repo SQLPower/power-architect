@@ -5,6 +5,10 @@ import javax.swing.*;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.*;
 
 
@@ -12,7 +16,12 @@ import java.util.*;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectDataSource;
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.*;
+import ca.sqlpower.sql.SQL;
 
 public class PLExportPanel extends JPanel implements ArchitectPanel {
 
@@ -45,6 +54,7 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 
 	protected JComboBox targetConnectionsBox;
 	protected JTextField targetSchema;
+	protected JTextField targetCatalog;
 	protected JComboBox repositoryConnectionsBox;
 	protected JTextField repositorySchema;
 	protected JTextField plFolderName;
@@ -62,9 +72,13 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 	protected javax.swing.Timer timer;
 	protected String plDotIniPath;
 	
+	protected Map ddlGeneratorMap;
+	protected TextPanel mainForm;
+	
 	public PLExportPanel() {
 		ArchitectFrame af = ArchitectFrame.getMainInstance();
 		plDotIniPath = af.getUserSettings().getPlDotIniPath(); // is this bad?
+		ddlGeneratorMap = ArchitectUtils.getDriverDDLGeneratorMap();
 		
 		targetConnectionsBox = new JComboBox();
 		targetConnectionsBox.setRenderer(new ConnectionsCellRenderer());
@@ -72,8 +86,7 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		targetConnectionsBox.addActionListener(new TargetListener());
 		newTargetButton= new JButton("New");
 		newTargetButton.addActionListener(new NewTargetListener());
-		// editTargetButton= new JButton("Properties");
-		// editTargetButton.addActionListener(new EditTargetListener());
+		targetCatalog = new JTextField();
 		targetSchema = new JTextField();
 
 		// 
@@ -83,8 +96,6 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		repositoryConnectionsBox.addActionListener(new RepositoryListener());
 		newRepositoryButton= new JButton("New");
 		newRepositoryButton.addActionListener(new NewRepositoryListener());
-		// editRepositoryButton= new JButton("Properties");
-		// editRepositoryButton.addActionListener(new EditRepositoryListener());
 		repositorySchema = new JTextField();
 
 		//
@@ -98,15 +109,13 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		JPanel targetPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         targetPanel.add(targetConnectionsBox);
 		targetPanel.add(newTargetButton);
-		// targetPanel.add(editTargetButton);
 
 		JPanel repositoryPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         repositoryPanel.add(repositoryConnectionsBox);
 		repositoryPanel.add(newRepositoryButton);
-		// repositoryPanel.add(editRepositoryButton);		
-
 		
 		JComponent[] fields = new JComponent[] {targetPanel,
+													targetCatalog,		
 													targetSchema,
 													new JLabel("<html>&nbsp;</html>"),													
 													repositoryPanel,
@@ -118,6 +127,7 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 													plJobComment,
 													runPLEngine };
 		String[] labels = new String[] {"Target Connection",
+											"Target Catalog",
 											"Target Schema",
 											"<html>&nbsp;</html>",
 											"Repository Connection",
@@ -129,9 +139,10 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 											"PL Job Comment",
 											"<html>&nbsp;</html>"}; // run PL engine?
 
-		char[] mnemonics = new char[] {'t', 's', 'z', 'r', 'p', 'y', 'f', 'j','d','c','e'};
-		int[] widths = new int[] {18, 18, 18, 18, 18, 18, 18, 18,18,18,10};
+		char[] mnemonics = new char[] {'t', 'o', 's', 'z', 'r', 'p', 'y', 'f', 'j','d','c','e'};
+		int[] widths = new int[] {18, 18, 18, 18, 18, 18, 18, 18, 18,18,18,10};
 		String[] tips = new String[] {"Target Database Connection",
+										  "Target Database Catalog",
 					              		  "Target Database Schema/Owner",
 										  "",
 					              		  "Repository Database Connection",
@@ -143,9 +154,10 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 										  "Comment about the Job",
 										  "Run Power Loader Engine?"};
 
-		TextPanel mainForm = new TextPanel(fields, labels, mnemonics, widths, tips);
-
+		mainForm = new TextPanel(fields, labels, mnemonics, widths, tips);
+		
 		add(mainForm);
+		
 
 		/* This is messing things up, so take it out for now
 		// new: add a swing timer to watch the PL.INI file and reload the database connections if
@@ -174,10 +186,9 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 	 */
 	public void setPLExport(PLExport plexp) {
 		this.plexp = plexp;
+		targetSchema.setText(plexp.getTargetSchema());
 		targetConnectionsBox.setSelectedItem(plexp.getTargetDataSource());
-		// targetSchema.setText(plexp.getTargetSchema());
 		repositoryConnectionsBox.setSelectedItem(plexp.getRepositoryDataSource());
-		// repositorySchema.setText(plexp.getRepositorySchema());
 		plFolderName.setText(plexp.getFolderName());
 		plJobId.setText(plexp.getJobId());
 		plJobDescription.setText(plexp.getJobDescription());
@@ -219,6 +230,64 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 				repositorySchema.setText(null);
    		    } else {
 				targetSchema.setText(dataSource.get(ArchitectDataSource.PL_SCHEMA_OWNER));
+			}
+			
+			// XXX: need to make labels an associative array so we're not
+			// referring to an indexed property that could change its
+			// index in the future:
+			ArchitectDataSource ds = (ArchitectDataSource) targetConnectionsBox.getSelectedItem();
+			
+			JLabel catalogLabel = (JLabel) mainForm.getLabel(1);
+			JTextField catalogField = (JTextField) mainForm.getField(1);
+			JLabel schemaLabel = (JLabel) mainForm.getLabel(2);
+			JTextField schemaField = (JTextField) mainForm.getField(2);
+			
+			boolean allIsWell = false;
+			try {				
+				if (ds != null) {
+					Class selectedGeneratorClass = (Class) ddlGeneratorMap.get(ds.getDriverClass());
+					if (selectedGeneratorClass != null) {
+						GenericDDLGenerator newGen = (GenericDDLGenerator) selectedGeneratorClass.newInstance();
+						if (newGen != null) {
+							allIsWell = true;
+							if (newGen.getCatalogTerm() != null) {
+								catalogLabel.setText(newGen.getCatalogTerm());
+								catalogLabel.setEnabled(true);
+								catalogField.setEnabled(true);
+							} else {
+								catalogLabel.setText("(no catalog)");
+								catalogLabel.setEnabled(false);
+								catalogField.setText(null);
+								catalogField.setEnabled(false);
+							}
+							if (newGen.getSchemaTerm() != null) {
+								schemaLabel.setText(newGen.getSchemaTerm());
+								schemaLabel.setEnabled(true);
+								schemaField.setEnabled(true);
+							} else {
+								schemaLabel.setText("(no schema)");
+								schemaLabel.setEnabled(false);
+								schemaField.setText(null);
+								schemaField.setEnabled(false);
+							}						
+						}
+					}
+				}
+			} catch (Exception ex) {				
+				logger.error("Exception thrown when enabling/disabling target schema and catalog fields.", ex);
+				allIsWell = false;
+			}
+			
+			if (!allIsWell) {
+				// disable the fields 
+				catalogLabel.setText("(no catalog)");
+				catalogLabel.setEnabled(false);
+				catalogField.setText(null);
+				catalogField.setEnabled(false);
+				schemaLabel.setText("(no schema)");
+				schemaLabel.setEnabled(false);
+				schemaField.setText(null);
+				schemaField.setEnabled(false);				
 			}
         }
     }	
@@ -320,7 +389,10 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 	    logger.debug("Applying changes to the PLExport object");
 		plexp.setTargetDataSource((ArchitectDataSource)targetConnectionsBox.getSelectedItem());
 		plexp.setRepositoryDataSource((ArchitectDataSource)repositoryConnectionsBox.getSelectedItem());
-		// XXX: probably need to grab the schemas here
+		// Don't mangle the owner and username fields -- some databases like Postgres are case sensitive
+		plexp.setTargetSchema(targetSchema.getText());
+		// repository schema does not need to be set here, it is set in the 
+		// the Architect Data Source!
 		
 		plJobId.setText(PLUtils.toPLIdentifier(plJobId.getText()));
 		plexp.setJobId(plJobId.getText());
@@ -329,9 +401,50 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		plexp.setJobDescription(plJobDescription.getText());
 		plexp.setJobComment(plJobComment.getText());	
 		plexp.setRunPLEngine(runPLEngine.isSelected());
+		
+		// make sure the user selected a target database    
+		if (plexp.getTargetDataSource() == null) {
+			JOptionPane.showMessageDialog(this, "You have to select a Target database from the list.", "Error", JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
+		if (plexp.getRepositoryDataSource() == null) {
+			JOptionPane.showMessageDialog(this, "You have to select a Repository database from the list.", "Error", JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
+		// make sure user provided a PL Job Name
+		if (plexp.getJobId().trim().length() == 0) {
+			JOptionPane.showMessageDialog(this, "You have to specify the PowerLoader Job ID.", "Error", JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
 
-		// Don't mangle the owner and username fields -- some databases like Postgres are case sensitive
-		plexp.setTargetSchema(targetSchema.getText());
+		// make sure we have an engine!
+		if (plexp.getRunPLEngine()) {
+			String plEngineSpec = ArchitectFrame.getMainInstance().getUserSettings().getETLUserSettings().getPowerLoaderEnginePath(); 
+			if (plEngineSpec == null || plEngineSpec.length() == 0) {
+				// not set yet, so redirect the user to User Settings dialog
+				JOptionPane.showMessageDialog
+				(this,"Please specify the location of the PL Engine (powerloader_odbc.exe).");						
+				//
+				ArchitectFrame.getMainInstance().prefAction.showPreferencesDialog();
+				return false;
+			}
+		}
+		
+		String dupIdMessage = null;
+		try {
+		    if (checkForDuplicateJobId(plexp) == true) {
+		        dupIdMessage = "There is already a job called \""+
+		        		plexp.getJobId()+"\".\n"+"Please choose a different job id.";
+		    }
+		} catch (SQLException ex) {
+		    dupIdMessage = "There was a database error when checking for\n"+"duplicate job id:\n\n"+ex.getMessage();
+		} catch (ArchitectException ex) {
+		    dupIdMessage = "There was an application error when checking for\n"+"duplicate job id:\n\n"+ex.getMessage();
+		}
+		if (dupIdMessage != null) {
+		    JOptionPane.showMessageDialog(this, dupIdMessage, "Error", JOptionPane.ERROR_MESSAGE);
+		    return false;
+		}
 		
 		return true;
 	}
@@ -374,6 +487,45 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 			targetConnectionsBox.setSelectedItem(selectedConnection);
 		}
 	}		
+	
+
+
+	public static boolean checkForDuplicateJobId(PLExport plExport) throws SQLException, ArchitectException {		
+		SQLDatabase target = new SQLDatabase(plExport.getRepositoryDataSource());
+		Connection con = null;
+		Statement s = null;
+		ResultSet rs = null;
+		int count = 0;
+		try {
+			con = target.getConnection();
+			s = con.createStatement();
+			rs = s.executeQuery("SELECT COUNT(*) FROM pl_job WHERE job_id = " + SQL.quote(plExport.getJobId().toUpperCase()));
+			if (rs.next()) {
+				count = rs.getInt(1);
+			}
+		} finally {
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (SQLException se) {
+					logger.error("problem closing result set.",se);					
+				}
+			}
+			if (s != null) {
+				try {
+					s.close();
+				} catch (SQLException se) {
+					logger.error("problem closing statement.",se);					
+				}
+			}
+		}
+		if (count == 0) {
+			return false;
+		} else {
+			return true;
+		}
+	}	
+	
 }
 
 

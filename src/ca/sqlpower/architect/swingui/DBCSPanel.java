@@ -17,6 +17,7 @@ import java.util.regex.Pattern;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectDataSource;
+import ca.sqlpower.architect.ArchitectUtils;
 
 public class DBCSPanel extends JPanel implements ArchitectPanel {
 
@@ -114,9 +115,6 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
 		
 		form = new TextPanel(fields, labels, mnemonics, widths, tips);
 		add(form, BorderLayout.CENTER);
-
-		// this is a hack...don't know if it will work on Mac or Unix.
-		// setPreferredSize(new Dimension(600,270));
 	}
 
 	/** Returns all of the driver class names this dialog knows about. */
@@ -181,17 +179,11 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
 	    }
 	}
 
+	/**
+	 * 
+	 */
 	private void setupDriverMap() {
-		Map drivers = new HashMap();
-		drivers.put("oracle.jdbc.driver.OracleDriver",
-					"jdbc:oracle:thin:@<Hostname>:<Port:1521>:<Instance>");
-		drivers.put("com.microsoft.jdbc.sqlserver.SQLServerDriver",
-					"jdbc:microsoft:sqlserver://<Hostname>:<Port:1433>;SelectMethod=cursor");
-		drivers.put("org.postgresql.Driver",
-					"jdbc:postgresql://<Hostname>:<Port:5432>/<Database>");
-		drivers.put("ibm.sql.DB2Driver",
-					"jdbc:db2:<Hostname>");
-		jdbcDrivers = drivers;
+		jdbcDrivers = ArchitectUtils.getDriverTemplateMap();
 	}
 
 	/**

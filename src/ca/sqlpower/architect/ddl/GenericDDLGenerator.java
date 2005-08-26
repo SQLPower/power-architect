@@ -153,6 +153,9 @@ public class GenericDDLGenerator implements DDLGenerator {
 	 * @param sqlObject the object to which the statement pertains
 	 */
 	public final void endStatement(DDLStatement.StatementType type, SQLObject sqlObject) {
+		if (logger.isInfoEnabled()) {
+			logger.info("endStatement: " + ddl.toString());
+		}
 		ddlStatements.add(new DDLStatement(sqlObject, type, ddl.toString(), getTargetCatalog(), getTargetSchema()));
 		ddl = new StringBuffer(500);
 	}
