@@ -219,10 +219,10 @@ public class GenericDDLGenerator implements DDLGenerator {
 			print(c.getPhysicalName());
 			print(" ");
 			print(td.getName());
-			if (td.getHasScale()) {
-				print("("+c.getScale());
-				if (td.getHasPrecision()) {
-					print(","+c.getPrecision());
+			if (td.getHasPrecision()) {
+				print("("+c.getPrecision());
+				if (td.getHasScale()) {
+					print(","+c.getScale());
 				}
 				print(")");
 			}
