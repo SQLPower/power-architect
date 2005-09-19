@@ -14,8 +14,8 @@ public class GenericTypeDescriptor {
 	protected String literalPrefix;
 	protected String literalSuffix;
 	protected int nullable;
-	protected boolean hasScale;
 	protected boolean hasPrecision;
+	protected boolean hasScale;
 
 	/**
 	 * Creates a new GenericTypeDescriptor with properties filled in
@@ -33,15 +33,15 @@ public class GenericTypeDescriptor {
 		determineScaleAndPrecision();
 	}
 
-	public GenericTypeDescriptor(String name, int dataType, long precision, String literalPrefix, String literalSuffix, int nullable, boolean hasScale, boolean hasPrecision) {
+	public GenericTypeDescriptor(String name, int dataType, long precision, String literalPrefix, String literalSuffix, int nullable, boolean hasPrecision, boolean hasScale) {
 		this.name = name;
 		this.dataType = dataType;
 		this.precision = precision;
 		this.literalPrefix = literalPrefix;
 		this.literalSuffix = literalSuffix;
 		this.nullable = nullable;
-		this.hasScale = hasScale;
 		this.hasPrecision = hasPrecision;
+		this.hasScale = hasScale;
 	}
 
 	/**
@@ -81,8 +81,8 @@ public class GenericTypeDescriptor {
 		case Types.TINYINT:
 		case Types.VARBINARY:
 		case Types.VARCHAR:
-			hasScale = true;
-			hasPrecision = false;
+			hasPrecision = true;
+			hasScale = false;
 			break;
 
 		case Types.DECIMAL:
@@ -90,8 +90,8 @@ public class GenericTypeDescriptor {
 		case Types.FLOAT:
 		case Types.NUMERIC:
 		case Types.REAL:
-			hasScale = true;
 			hasPrecision = true;
+			hasScale = true;
 			break;
 		}
 	}

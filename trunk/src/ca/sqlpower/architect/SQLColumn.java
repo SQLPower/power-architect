@@ -37,8 +37,20 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	 */
 	protected String sourceDBTypeName;
 
-	protected int scale;
-	protected int precision;
+	/*
+	 * These were mixed up originally...
+	 * 
+	 * Some random ideas:
+	 * 
+	 * 1. hasPrecision and hasScale might be useful here.  They are currently part of 
+	 * the GenericTypeDescriptor.  Unfortunately, it is not consulted when the screen
+	 * tries to paint itself...
+	 * 
+	 * 2. nativePrecision and nativeScale might be useful to keep just in case users want
+	 * to forward engineer into the same target database as the source.
+	 */
+	protected int precision; // the length of the field in digits or characters
+	protected int scale; // the placement of a decimal point, counting from the far right
 	
 	/**
 	 * This column's nullability type.  One of:
@@ -75,8 +87,9 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	public SQLColumn() {
 		logger.debug("NEW COLUMN (noargs) @"+hashCode());
 		columnName = "new column";
-		type = Types.INTEGER;
-		scale = 10;
+		type = Types.INTEGER;		
+		// scale = 10;
+		precision = 10;
 		nullable = DatabaseMetaData.columnNoNulls;
 		autoIncrement = false;
 		referenceCount = 1;
@@ -105,8 +118,8 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 					 String colName,
 					 int dataType,
 					 String nativeType,
-					 int scale,
 					 int precision,
+					 int scale,
 					 int nullable,
 					 String remarks,
 					 String defaultValue,
@@ -135,8 +148,8 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 		this.referenceCount = 1;
 	}
 
-	public SQLColumn(SQLTable parent, String colName, int type, int scale, int precision) {
-		this(parent, colName, type, null, scale, precision, DatabaseMetaData.columnNullable, null, null, null, false);
+	public SQLColumn(SQLTable parent, String colName, int type, int precision, int scale) {
+		this(parent, colName, type, null, precision, scale, DatabaseMetaData.columnNullable, null, null, null, false);
 	}
 	
 	/**
@@ -156,8 +169,8 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 		c.physicalColumnName = source.physicalColumnName;
 		c.type = source.type;
 		c.sourceDBTypeName = source.sourceDBTypeName;
-		c.scale = source.scale;
 		c.precision = source.precision;
+		c.scale = source.scale;
 		c.nullable = source.nullable;
 		c.remarks = source.remarks;
 		c.defaultValue = source.defaultValue;
@@ -188,8 +201,8 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 											  rs.getString(4),  // col name
 											  rs.getInt(5), // data type (from java.sql.Types)
 											  rs.getString(6), // native type name
-											  rs.getInt(7), // column size
-											  rs.getInt(9), // decimal size
+											  rs.getInt(7), // column size (precision)
+											  rs.getInt(9), // decimal size (scale)
 											  rs.getInt(11), // nullable
 											  rs.getString(12), // remarks
 											  rs.getString(13), // default value
@@ -294,11 +307,17 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 
 	public String getShortDisplayName() {
 		if (sourceDBTypeName != null) {
-			return columnName+": "+sourceDBTypeName+"("+scale+")";
+			if (precision > 0 && scale > 0) {
+				return columnName+": "+sourceDBTypeName+"("+precision+","+scale+")";
+			} else if (precision > 0) {
+				return columnName+": "+sourceDBTypeName+"("+precision+")"; // XXX: should we display stuff like (18,0) for decimals?
+			} else {
+				return columnName+": "+sourceDBTypeName; 				
+			}			
 		} else {
 			return columnName+": "
 				+ca.sqlpower.architect.swingui.SQLType.getTypeName(type) // XXX: replace with TypeDescriptor
-				+"("+scale+")";
+				+"("+precision+")";
 		}
 	}
 

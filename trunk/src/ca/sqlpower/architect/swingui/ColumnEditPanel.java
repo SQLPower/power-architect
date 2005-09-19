@@ -129,13 +129,13 @@ public class ColumnEditPanel extends JPanel
 		centerPanel.add(colType = createColTypeEditor());
 		colType.addActionListener(this);
 
-		centerPanel.add(new JLabel("Scale"));
-		centerPanel.add(colScale = createScaleEditor());
-		colScale.addChangeListener(this);
-
 		centerPanel.add(new JLabel("Precision"));
 		centerPanel.add(colPrec = createPrecisionEditor());
 		colPrec.addChangeListener(this);
+
+		centerPanel.add(new JLabel("Scale"));
+		centerPanel.add(colScale = createScaleEditor());
+		colScale.addChangeListener(this);
 
 		centerPanel.add(new JLabel("In Primary Key"));
 		centerPanel.add(colInPK = new JCheckBox());
