@@ -1,6 +1,8 @@
 package ca.sqlpower.architect.swingui;
 
 import ca.sqlpower.architect.*;
+import ca.sqlpower.architect.ddl.TypeMap;
+
 import org.apache.log4j.Logger;
 
 import javax.swing.*;
@@ -123,6 +125,12 @@ public class ArchitectFrame extends JFrame {
 
 	protected void init() throws ArchitectException {
 	    UserSettings us;
+	    
+	    // must be done right away, because a static
+	    // initializer in this class effects BeanUtils 
+	    // behaviour which the XML Digester relies 
+	    // upon heavily
+	    TypeMap.getInstance();
 	    
 		try {
 			ConfigFile cf = ConfigFile.getDefaultInstance();
