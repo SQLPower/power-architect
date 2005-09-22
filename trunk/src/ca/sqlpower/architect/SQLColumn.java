@@ -9,6 +9,8 @@ import java.sql.DatabaseMetaData;
 import java.sql.Types;
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ddl.TypeMap;
+
 public class SQLColumn extends SQLObject implements java.io.Serializable, Cloneable {
 
 	private static Logger logger = Logger.getLogger(SQLColumn.class);
@@ -162,6 +164,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	 * 
 	 */
 	public static SQLColumn getDerivedInstance(SQLColumn source, SQLTable addTo) {
+		logger.debug("derived instance SQLColumn constructor invocation.");
 		SQLColumn c = new SQLColumn();
 		c.sourceColumn = source;
 		c.parent = addTo.getColumnsFolder();
@@ -197,6 +200,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 			logger.debug("SQLColumn.addColumnsToTable: catalog="+catalog+"; schema="+schema+"; tableName="+tableName);
 			rs = dbmd.getColumns(catalog, schema, tableName, "%");
 			while (rs.next()) {
+				logger.debug("addColumnsToTable SQLColumn constructor invocation.");				
 				SQLColumn col = new SQLColumn(addTo,
 											  rs.getString(4),  // col name
 											  rs.getInt(5), // data type (from java.sql.Types)
@@ -228,6 +232,12 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 				if (addTo.getColumnByName(col.getColumnName(), false) != null) {
 					throw new DuplicateColumnException(addTo, col.getColumnName());
 				}
+				
+				// do any database specific transformations required for this column
+				if(TypeMap.getInstance().applyRules(col)) {
+					logger.debug("Applied mapppings to column: " + col);
+				}
+				
 				addTo.columnsFolder.children.add(col); // don't use addTo.columnsFolder.addColumn() (avoids multiple SQLObjectEvents)
 
 				// XXX: need to find out if column is auto-increment
