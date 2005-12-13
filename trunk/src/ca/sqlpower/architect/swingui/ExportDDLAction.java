@@ -711,7 +711,11 @@ public class ExportDDLAction extends AbstractAction {
 			DDLWarning w = (DDLWarning) warnings.get(row);
 			switch(column) {
 			case 0:
-				return w.getSubject().getParent().getParent(); // don't know how reliable this will be...
+			    if (w.getSubject().getParent() == null) {
+			        return "(No Parent)";
+			    } else {
+			        return w.getSubject().getParent().getParent();
+			    }
 			case 1:
 				return w.getSubject().getName();
 			case 2:
@@ -722,6 +726,22 @@ public class ExportDDLAction extends AbstractAction {
 				return w.getNewValue();
 			default:
 				throw new IndexOutOfBoundsException("Requested column "+column+" of "+getColumnCount());
+			}
+		}
+		
+		public Class getColumnClass(int columnIndex) {
+		    return String.class;
+		}
+		
+		public boolean isCellEditable(int rowIndex, int columnIndex) {
+			DDLWarning w = (DDLWarning) warnings.get(rowIndex);
+		    return w instanceof NameChangeWarning && columnIndex == 4;
+		}
+		
+		public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+			DDLWarning w = (DDLWarning) warnings.get(rowIndex);
+			if (columnIndex == 4) {
+			    w.setNewValue(aValue);
 			}
 		}
 	}

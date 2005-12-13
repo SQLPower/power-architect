@@ -561,6 +561,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	public String getPhysicalName(Map dupCheck, SQLObject so) {				
 		boolean done = false;
 		boolean firstTime = true;
+		String oldName = so.getName();
 		// loop until we manage to generate a unique physical name
 		logger.debug("transform identifier source: " + so.getName());
 		while (!done) {
@@ -576,7 +577,8 @@ public class GenericDDLGenerator implements DDLGenerator {
 			so.setPhysicalName(temp);
 			if (dupCheck.get(so.getPhysicalName()) == null) {
 				done = true; // we managed to generate something unique
-				dupCheck.put(so.getPhysicalName(),so);
+				warnings.add(new NameChangeWarning(so, "Duplicate Name Found", oldName)); //TODO make sure these appear in the warnings table, and make sure they're editable
+				dupCheck.put(so.getPhysicalName(), so);
 			}
 		}				
 		return so.getPhysicalName();

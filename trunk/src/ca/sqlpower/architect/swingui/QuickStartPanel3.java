@@ -53,6 +53,7 @@ public class QuickStartPanel3 implements WizardPanel {
 	 * @see ca.sqlpower.architect.swingui.ArchitectPanel#discardChanges()
 	 */
 	public void discardChanges() {
+	    // nothing to throw away
 	}
 	
 	public String getTitle() {

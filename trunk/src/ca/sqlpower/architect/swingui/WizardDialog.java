@@ -68,9 +68,9 @@ public class WizardDialog extends JDialog {
 		
 	}
 	
-	private void setupDialog() {		
-		setPreferredSize (new Dimension(600,400));
+	private void setupDialog() {
 		top = new JPanel(new BorderLayout());
+		top.setPreferredSize(new Dimension(600,400));
 		customPanel = new JPanel(new GridLayout(1,1));
 		top.add(customPanel,BorderLayout.CENTER);
 				
@@ -130,7 +130,6 @@ public class WizardDialog extends JDialog {
 		// set dialog to point to first panel
 		setWizardPanel(getWizard().getCurrent());
 		refreshButtons();
-
 	}
 	
 	public void setWizardPanel(WizardPanel panel) {
