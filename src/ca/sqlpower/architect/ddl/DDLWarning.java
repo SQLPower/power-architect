@@ -35,4 +35,9 @@ public interface DDLWarning {
 	 * the DDL script.
 	 */
 	public Object getNewValue();
+
+	/**
+	 * Modifies the value set by the DDL Generator to something else.
+	 */
+	public void setNewValue(Object newValue);
 }

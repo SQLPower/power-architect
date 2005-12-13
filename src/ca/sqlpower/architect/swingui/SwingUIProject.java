@@ -614,7 +614,9 @@ public class SwingUIProject {
 				Iterator pit = ds.getPropertiesMap().entrySet().iterator();
 				while (pit.hasNext()) {
 				    Map.Entry ent = (Map.Entry) pit.next();
-				    println("<property key="+quote((String) ent.getKey())+" value="+quote((String) ent.getValue())+" />");
+				    if (ent.getValue() != null) {
+				        println("<property key="+quote((String) ent.getKey())+" value="+quote((String) ent.getValue())+" />");
+				    }
 				}
 				indent--;
 				println("</data-source>");

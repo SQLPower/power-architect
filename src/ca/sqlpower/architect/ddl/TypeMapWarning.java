@@ -50,4 +50,9 @@ public class TypeMapWarning implements DDLWarning {
 	public Object getNewValue() {
 		return newType;
 	}
+
+    public void setNewValue(Object newValue) {
+        newType = (GenericTypeDescriptor) newValue;
+        subject.setType(newType.getDataType());
+    }
 }
