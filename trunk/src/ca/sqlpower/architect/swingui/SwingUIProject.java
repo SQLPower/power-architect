@@ -14,6 +14,7 @@ import java.awt.event.ContainerListener;
 import java.io.*;
 import java.util.*;
 import javax.swing.ProgressMonitor;
+import javax.swing.ToolTipManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -101,7 +102,9 @@ public class SwingUIProject {
 	 */
 	public SwingUIProject(String name) throws ArchitectException {
 		this.name = name;
-		setPlayPen(new PlayPen(new SQLDatabase()));
+		PlayPen pp = new PlayPen(new SQLDatabase());
+		ToolTipManager.sharedInstance().registerComponent(pp);
+		setPlayPen(pp);
 		List initialDBList = new ArrayList();
 		initialDBList.add(playPen.getDatabase());
 		this.sourceDatabases = new DBTree(initialDBList);

@@ -129,7 +129,6 @@ public class PlayPen extends JPanel
 		zoom = 1.0;
 		setBackground(java.awt.Color.white);
 		contentPane = new PlayPenContentPane(this);
-		// XXX: is this kind of thing still required? contentPane.addContainerListener(this);
 		setLayout(null);
 		setName("Play Pen");
 		setMinimumSize(new Dimension(1,1));
@@ -146,8 +145,7 @@ public class PlayPen extends JPanel
 		dgl = new TablePaneDragGestureListener();
 		ds = new DragSource();
 		dgr = ds.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_MOVE, dgl);
-		logger.info("DragGestureRecognizer motion threshold: " + getToolkit().getDesktopProperty("DnD.gestureMotionThreshold"));		
-		
+		logger.info("DragGestureRecognizer motion threshold: " + getToolkit().getDesktopProperty("DnD.gestureMotionThreshold"));
 	}
 
 	public PlayPen(SQLDatabase db) {
@@ -582,7 +580,11 @@ public class PlayPen extends JPanel
 	}
 
 	/**
-	 * Delegates to the content pane.  XXX: doesn't actually cause tooltips to appear.
+	 * Delegates to the content pane.
+	 * 
+	 * <p>Important Note: If you want tooltips to be active on this PlayPen instance,
+	 * you have to call <tt>ToolTipManager.sharedInstance().registerComponent(pp)</tt> on this
+	 * instance (where <tt>pp</tt> is whatever your reference to this playpen is called).
 	 */
 	public String getToolTipText(MouseEvent e) {
 		return contentPane.getToolTipText(e);
@@ -1932,7 +1934,7 @@ public class PlayPen extends JPanel
 		public void mouseDragged(MouseEvent e) {
 			Point p = new Point(e.getPoint().x - handle.x, e.getPoint().y - handle.y);
 			pp.setChildPosition(tp, p);
-			pp.repaint(); // FIXME: should use a contentPane approach. it would automatically want to redraw
+			pp.repaint(); // FIXME: this shouldn't need to redraw the whole playpen!
 		}
 
 		/**
