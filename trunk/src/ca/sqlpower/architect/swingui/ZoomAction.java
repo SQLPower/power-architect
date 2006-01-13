@@ -1,12 +1,13 @@
 package ca.sqlpower.architect.swingui;
 
-import java.awt.Component;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
-import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.Iterator;
+
 import javax.swing.AbstractAction;
+
 import org.apache.log4j.Logger;
 
 
@@ -38,7 +39,7 @@ public class ZoomAction extends AbstractAction implements PropertyChangeListener
 		Rectangle scrollTo = null;
 		Iterator it = playpen.getSelectedItems().iterator();
 		while (it.hasNext()) {
-			Rectangle bounds = ((Component) it.next()).getBounds();
+			Rectangle bounds = ((PlayPenComponent) it.next()).getBounds();
 			logger.debug("new rectangle, bounds: " + bounds);
 			if (scrollTo == null) {
 				scrollTo = new Rectangle(bounds);

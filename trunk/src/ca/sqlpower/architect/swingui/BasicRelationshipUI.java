@@ -1,11 +1,17 @@
 package ca.sqlpower.architect.swingui;
 
-import java.beans.PropertyChangeListener;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Stroke;
+import java.awt.geom.GeneralPath;
 import java.beans.PropertyChangeEvent;
-import javax.swing.*;
-import javax.swing.plaf.ComponentUI;
-import java.awt.*;
-import java.awt.geom.*;
+import java.beans.PropertyChangeListener;
+
 import org.apache.log4j.Logger;
 
 /**
@@ -62,27 +68,30 @@ public class BasicRelationshipUI extends RelationshipUI
 
 	// ------------------------ ComponentUI methods ------------------------
 
-	public static ComponentUI createUI(JComponent c) {
+	public static PlayPenComponentUI createUI(PlayPenComponent c) {
 		logger.debug("Creating new BasicRelationshipUI for "+c);
         return new BasicRelationshipUI();
     }
 
-    public void installUI(JComponent c) {
+    public void installUI(PlayPenComponent c) {
 		logger.debug("Installing BasicRelationshipUI on "+c);
 		relationship = (Relationship) c;
 		relationship.addPropertyChangeListener(this);
     }
 
-    public void uninstallUI(JComponent c) {
+    public void uninstallUI(PlayPenComponent c) {
 		relationship = (Relationship) c;
 		relationship.removePropertyChangeListener(this);
     }
 	
+    public void paint(Graphics2D g2) {
+		paint(g2,relationship);
+	}
 	/**
 	 * @param g The graphics to paint on.  It should be in the
 	 * coordinate space of the containing playpen.
 	 */
-    public void paint(Graphics g, JComponent c) {
+    public void paint(Graphics g, PlayPenComponent c) {
 		logger.debug("BasicRelationshipUI is painting");
 		Relationship r = (Relationship) c;
 		Graphics2D g2 = (Graphics2D) g;
@@ -93,6 +102,7 @@ public class BasicRelationshipUI extends RelationshipUI
 			g2.setColor(c.getBackground());
 			Rectangle bounds = c.getBounds();
 			g2.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
+			logger.debug("Relationship bounds " + bounds);
 			g2.setColor(c.getForeground());
 		}
 
@@ -194,14 +204,22 @@ public class BasicRelationshipUI extends RelationshipUI
 		}
 	}
 
-	public boolean contains(JComponent c, int x, int y) {
+    public boolean contains(Point p) {
+    		return contains(relationship, p.x, p.y);
+    }
+    
+	public boolean contains(PlayPenComponent c, int x, int y) {
+		logger.debug("Contains, Looking for " + x + "," + y + " My bounds are: " + relationship.getBounds());
 		if (containmentPath == null) {
 			return false;
 		} else {
-			Point loc = relationship.getLocation();
-			return containmentPath.intersects(x - radius + loc.x, y - radius + loc.y,
-			        							radius*2,           radius*2);
+			return containmentPath.intersects(x - radius, y - radius, radius*2, radius*2);
 		}
+	}
+	
+	public boolean intersects(Rectangle region) {
+		if (containmentPath == null) return false;
+		else return containmentPath.intersects(region.x, region.y, region.width, region.height);
 	}
 
 	// ------------------ Custom methods ---------------------
@@ -429,67 +447,72 @@ public class BasicRelationshipUI extends RelationshipUI
 										  pkConnectionPoint.y + radius + getTerminationLength() * 2);
 			computedBounds = new Rectangle(topLeft.x + pkTable.getX(), topLeft.y + pkTable.getY(),
 										  bottomRight.x - topLeft.x, bottomRight.y - topLeft.y);
-			return;
-		}
-		
-		Point pkLimits = new Point(pkConnectionPoint);
-		pkLimits.translate(pkTable.getX(), pkTable.getY());
-		Point fkLimits = new Point(fkConnectionPoint);
-		fkLimits.translate(fkTable.getX(), fkTable.getY());
-
-		if (logger.isDebugEnabled()) {
-			logger.debug("Absolute connection points: pk="+pkLimits+"; fk="+fkLimits);
-		}
-
-		// make room for parent decorations
-		if ( (orientation & (PARENT_FACES_RIGHT | PARENT_FACES_LEFT)) != 0) {
-			if (pkLimits.y >= fkLimits.y) {
-				pkLimits.y += getTerminationWidth();
-			} else {
-				pkLimits.y -= getTerminationWidth();
-			}
 		} else {
-			if (pkLimits.x >= fkLimits.x) {
-				pkLimits.x += getTerminationWidth();
+			
+			Point pkLimits = new Point(pkConnectionPoint);
+			pkLimits.translate(pkTable.getX(), pkTable.getY());
+			Point fkLimits = new Point(fkConnectionPoint);
+			fkLimits.translate(fkTable.getX(), fkTable.getY());
+			
+			if (logger.isDebugEnabled()) {
+				logger.debug("Absolute connection points: pk="+pkLimits+"; fk="+fkLimits);
+			}
+			
+			// make room for parent decorations
+			if ( (orientation & (PARENT_FACES_RIGHT | PARENT_FACES_LEFT)) != 0) {
+				if (pkLimits.y >= fkLimits.y) {
+					pkLimits.y += getTerminationWidth();
+				} else {
+					pkLimits.y -= getTerminationWidth();
+				}
 			} else {
-				pkLimits.x -= getTerminationWidth();
+				if (pkLimits.x >= fkLimits.x) {
+					pkLimits.x += getTerminationWidth();
+				} else {
+					pkLimits.x -= getTerminationWidth();
+				}
+			}
+			
+			// make room for child decorations
+			if ( (orientation & (CHILD_FACES_RIGHT | CHILD_FACES_LEFT)) != 0) {
+				if (fkLimits.y <= pkConnectionPoint.y + pkTable.getY()) {
+					fkLimits.y -= getTerminationWidth();
+				} else {
+					fkLimits.y += getTerminationWidth();
+				}
+			} else {
+				if (fkLimits.x <= pkConnectionPoint.x + pkTable.getX()) {
+					fkLimits.x -= getTerminationWidth();
+				} else {
+					fkLimits.x += getTerminationWidth();
+				}
+			}
+			
+			if (logger.isDebugEnabled()) logger.debug("Limits: pk="+pkLimits+"; fk="+fkLimits);
+			
+			Point topLeft = new Point(Math.min(pkLimits.x,
+					fkLimits.x),
+					Math.min(pkLimits.y,
+							fkLimits.y));
+			Point bottomRight = new Point(Math.max(pkLimits.x,
+					fkLimits.x),
+					Math.max(pkLimits.y,
+							fkLimits.y));
+			computedBounds = new Rectangle(topLeft.x, topLeft.y,
+					bottomRight.x - topLeft.x, bottomRight.y - topLeft.y);
+			if (logger.isDebugEnabled()) {
+				logger.debug("Updating bounds to "+computedBounds
+						+" (topleft="+topLeft+"; bottomRight="+bottomRight+")");
 			}
 		}
-
-		// make room for child decorations
-		if ( (orientation & (CHILD_FACES_RIGHT | CHILD_FACES_LEFT)) != 0) {
-			if (fkLimits.y <= pkConnectionPoint.y + pkTable.getY()) {
-				fkLimits.y -= getTerminationWidth();
-			} else {
-				fkLimits.y += getTerminationWidth();
-			}
-		} else {
-			if (fkLimits.x <= pkConnectionPoint.x + pkTable.getX()) {
-				fkLimits.x -= getTerminationWidth();
-			} else {
-				fkLimits.x += getTerminationWidth();
-			}
-		}
-
-		if (logger.isDebugEnabled()) logger.debug("Limits: pk="+pkLimits+"; fk="+fkLimits);
-
-		Point topLeft = new Point(Math.min(pkLimits.x,
-										   fkLimits.x),
-								  Math.min(pkLimits.y,
-										   fkLimits.y));
-		Point bottomRight = new Point(Math.max(pkLimits.x,
-											   fkLimits.x),
-									  Math.max(pkLimits.y,
-											   fkLimits.y));
-		computedBounds = new Rectangle(topLeft.x, topLeft.y,
-									   bottomRight.x - topLeft.x, bottomRight.y - topLeft.y);
-		if (logger.isDebugEnabled()) {
-			logger.debug("Updating bounds to "+computedBounds
-						 +" (topleft="+topLeft+"; bottomRight="+bottomRight+")");
-		}
+		relationship.setBounds(computedBounds.x, computedBounds.y, computedBounds.width, computedBounds.height);
+	}
+	
+	public Dimension getPreferredSize() {
+		return getPreferredSize(relationship);
 	}
 
-	public Dimension getPreferredSize(JComponent c) {
+	public Dimension getPreferredSize(PlayPenComponent c) {
 		computeBounds();
 		if (logger.isDebugEnabled()) {
 			logger.debug("[31mComputed size is ["+computedBounds.width+","+computedBounds.height+"][0m");
@@ -618,8 +641,6 @@ public class BasicRelationshipUI extends RelationshipUI
 					 +" from "+e.getOldValue()+" to "+e.getNewValue()+" on "+e.getSource());
 	}
 
-    public boolean intersects(Rectangle region) {
-        if (containmentPath == null) return false;
-        else return containmentPath.intersects(region.x, region.y, region.width, region.height);
-    }
+ 
+
 }

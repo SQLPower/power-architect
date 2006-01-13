@@ -1,20 +1,28 @@
 package ca.sqlpower.architect.swingui;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 import org.apache.log4j.Logger;
 
-public class PlayPenContentPane extends JComponent {
+public class PlayPenContentPane {
 	private static final Logger logger = Logger.getLogger(PlayPenContentPane.class);
 	protected PlayPen owner;
-	
-	public PlayPenContentPane(PlayPen owner) {
-		setName("PlayPen content pane");
-		setLayout(new PlayPenLayout());
-		this.owner = owner;
-	}
+	private List children = new ArrayList();
+	private List playPenComponentListeners = new ArrayList();
+	private PlayPenComponentEventPassthrough playPenComponentEventPassthrough;
 
+
+	public PlayPenContentPane(PlayPen owner) {
+		this.owner = owner;
+		playPenComponentEventPassthrough = new PlayPenComponentEventPassthrough();
+	}
+	
+	
 	/**
 	 * Returns the PlayPen that this content pane belongs to.
 	 */
@@ -48,13 +56,13 @@ public class PlayPenContentPane extends JComponent {
 		String text = null;
 		Point ep = e.getPoint(); // event's point in playpen in screen coords
 		Point sp = owner.unzoomPoint(new Point(ep));
-		Component c = getComponentAt(sp);
-		if (c != null && c != this && c instanceof JComponent) {
+		PlayPenComponent c = getComponentAt(sp);
+		if (c != null) {
 			Object oldSource = e.getSource();
 			e.setSource(c);
 			e.translatePoint(-1 * e.getX() + sp.x - c.getX(),
 							 -1 * e.getY() + sp.y - c.getY());
-			text = ((JComponent) c).getToolTipText(e);
+			text = c.getToolTipText();
  			e.setSource(oldSource);
  			e.translatePoint(-1 * e.getX() + ep.x,
  							 -1 * e.getY() + ep.y);
@@ -62,38 +70,80 @@ public class PlayPenContentPane extends JComponent {
 		return text;
 	}
 
-	public boolean delegateEvent(MouseEvent e) {
-		if (logger.isDebugEnabled()) logger.debug(e.paramString());
-		Point ep = e.getPoint(); // event's point in playpen in screen coords
-		Point sp = owner.unzoomPoint(new Point(ep));
-		Component c = getComponentAt(sp);
-		if (c != null && c != this) {
-//          sp.translate(c.getX() * -1, c.getY() * -1);
-// 			c.dispatchEvent(new MouseEvent(c,
-// 										   e.getID(),
-// 										   e.getWhen(),
-// 										   e.getModifiers(),
-// 										   sp.x,
-// 										   sp.y,
-// 										   e.getClickCount(),
-// 										   e.isPopupTrigger()));
-			logger.debug("Changing source from [31m"+e.getSource()+" to [32m"+c+" [33m point "+e.getPoint()+"[0m");
-			Object oldSource = e.getSource();
-			e.setSource(c);
-			e.translatePoint(-1 * e.getX() + sp.x - c.getX(),
-							 -1 * e.getY() + sp.y - c.getY());
-			logger.debug("new point is [34m"+e.getPoint()+"[0m");
-
-			c.dispatchEvent(e);
-
- 			e.setSource(oldSource);
- 			e.translatePoint(-1 * e.getX() + ep.x,
- 							 -1 * e.getY() + ep.y);
-			return true;
-		} else {
-			return false;
+	public PlayPenComponent getComponentAt(Point p) {
+		Iterator it = children.iterator();
+		while (it.hasNext()) {
+			PlayPenComponent ppc = (PlayPenComponent) it.next();
+			if (ppc.contains(p)) {
+				return ppc;
+			}
 		}
+		return null;
+	}
+
+
+	public int getComponentCount() {
+		return children.size();
+	}
+
+	public PlayPenComponent getComponent(int i) {
+		return (PlayPenComponent) children.get(i);
+	}
+
+	public void add(PlayPenComponent c, int i) {
+		children.add(i,c);
+		c.addPlayPenComponentListener(playPenComponentEventPassthrough);
+		c.addSelectionListener(getOwner());
+		c.revalidate();
+	}
+
+	public void remove(int j) {
+		PlayPenComponent c = (PlayPenComponent) children.get(j);
+		Rectangle r = c.getBounds();
+		c.removePlayPenComponentListener(playPenComponentEventPassthrough);
+		c.removeSelectionListener(getOwner());
+		children.remove(j);
+		getOwner().repaint(r);
+	}
+	
+	public void remove(PlayPenComponent c) {
+		int j = children.indexOf(c);
+		if ( j >= 0 ) remove(j);
 	}
 
 	
+	// ----------------- PlayPenComponentListener Passthrough stuff ---------------------------
+	public void addPlayPenComponentListener(PlayPenComponentListener l) {
+		playPenComponentListeners.add(l);
+	}
+	
+	public void removePlayPenComponentListener(PlayPenComponentListener l) {
+		playPenComponentListeners.remove(l);
+	}
+	
+	private void refirePlayPenComponentMoved(PlayPenComponentEvent e) {
+		Iterator it = playPenComponentListeners.iterator();
+		while (it.hasNext()) {
+			((PlayPenComponentListener) it.next()).componentMoved(e);
+		}
+	}
+
+	private void refirePlayPenComponentResized(PlayPenComponentEvent e) {
+		Iterator it = playPenComponentListeners.iterator();
+		while (it.hasNext()) {
+			((PlayPenComponentListener) it.next()).componentResized(e);
+		}
+	}
+	
+	private class PlayPenComponentEventPassthrough implements PlayPenComponentListener {
+
+		public void componentMoved(PlayPenComponentEvent e) {
+			refirePlayPenComponentMoved(e);
+		}
+
+		public void componentResized(PlayPenComponentEvent e) {
+			refirePlayPenComponentResized(e);
+		}
+		
+	}
 }

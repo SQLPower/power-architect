@@ -14,6 +14,8 @@ import java.awt.event.ContainerListener;
 import java.io.*;
 import java.util.*;
 import javax.swing.ProgressMonitor;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import org.apache.commons.digester.*;
 import org.apache.log4j.Logger;
@@ -446,7 +448,7 @@ public class SwingUIProject {
 			int y = Integer.parseInt(attributes.getValue("y"));
 			SQLTable tab = (SQLTable) objectIdMap.get(attributes.getValue("table-ref"));
 			TablePane tp = new TablePane(tab, playPen);
-			playPen.add(tp, new Point(x, y));
+			playPen.addTablePane(tp, new Point(x, y));
 			return tp;
 		}
 	}
@@ -458,7 +460,7 @@ public class SwingUIProject {
 				SQLRelationship rel =
 					(SQLRelationship) objectIdMap.get(attributes.getValue("relationship-ref"));
 				r = new Relationship(playPen, rel);
-				playPen.add(r);
+				playPen.addRelationship(r);
 
 				int pkx = Integer.parseInt(attributes.getValue("pk-x"));
 				int pky = Integer.parseInt(attributes.getValue("pk-y"));
@@ -1064,8 +1066,7 @@ public class SwingUIProject {
      * <p>Note: when we implement proper undo/redo support, this class should
      * be replaced with a hook into that system.
      */
-    private class ProjectModificationWatcher implements SQLObjectListener,
-            ComponentListener, ContainerListener {
+    private class ProjectModificationWatcher implements SQLObjectListener, PlayPenComponentListener {
 
         /**
          * Sets up a new modification watcher on the given playpen. 
@@ -1077,14 +1078,7 @@ public class SwingUIProject {
                 logger.error("Can't listen to business model for changes", e);
             }
             PlayPenContentPane ppcp = pp.contentPane;
-            ppcp.addComponentListener(this);
-            ppcp.addContainerListener(this);
-            for (int i = 0; i < ppcp.getComponentCount(); i++) {
-                ppcp.getComponent(i).addComponentListener(this);
-                if (ppcp.getComponent(i) instanceof Container) {
-                    ((Container) ppcp.getComponent(i)).addContainerListener(this);
-                }
-            }
+            ppcp.addPlayPenComponentListener(this);
         }
 
         /** Marks project dirty, and starts listening to new kids. */
@@ -1123,35 +1117,14 @@ public class SwingUIProject {
             }
         }
 
-        public void componentResized(ComponentEvent e) {
-            setModified(true);
-        }
+		public void componentMoved(PlayPenComponentEvent e) {
+			setModified(true);
+		}
 
-        public void componentMoved(ComponentEvent e) {
-            setModified(true);
-        }
+		public void componentResized(PlayPenComponentEvent e) {
+			setModified(true);
+		}
 
-        public void componentShown(ComponentEvent e) {
-            // nothing to do
-        }
-
-        public void componentHidden(ComponentEvent e) {
-            // nothing to do
-        }
-
-        public void componentAdded(ContainerEvent e) {
-            e.getChild().addComponentListener(this);
-            if (e.getChild() instanceof Container) {
-                ((Container) e.getChild()).addContainerListener(this);
-            }
-        }
-        
-        public void componentRemoved(ContainerEvent e) {
-            e.getChild().removeComponentListener(this);
-            if (e.getChild() instanceof Container) {
-                ((Container) e.getChild()).removeContainerListener(this);
-            }
-        }
     }
     
     /**

@@ -49,12 +49,12 @@ public class EditColumnAction extends AbstractAction implements ActionListener {
 				try {
 					int idx = tp.getSelectedColumnIndex();
 					if (idx < 0) { // header must have been selected
-						JOptionPane.showMessageDialog(tp, "Please select the column you would like to edit.");						
+						JOptionPane.showMessageDialog(pp, "Please select the column you would like to edit.");						
 					} else {				
 						makeDialog(tp.getModel(),idx);
 					}
 				} catch (ArchitectException e) {
-					JOptionPane.showMessageDialog(tp, "Error finding the selected column");
+					JOptionPane.showMessageDialog(pp, "Error finding the selected column");
 					logger.error("Error finding the selected column", e);
 					cleanup();
 				}

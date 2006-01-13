@@ -1,16 +1,66 @@
 package ca.sqlpower.architect.swingui;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
+import java.awt.Insets;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.font.FontRenderContext;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.swing.JPopupMenu;
+
 import org.apache.log4j.Logger;
 
 /**
- * PlayPenComponent is a JComponent that can live in the playpen's
+ * PlayPenComponent is the base class for a component that can live in the playpen's
  * content pane.
  */
-public abstract class PlayPenComponent extends JComponent {
+public abstract class PlayPenComponent implements Selectable {
 
 	private static final Logger logger = Logger.getLogger(PlayPenComponent.class);
+
+	private PlayPenContentPane parent;
+	private Rectangle bounds = new Rectangle();
+	private Color backgroundColor;
+	private Insets insets = new Insets(0,0,0,0);
+	private String name;
+	private Color foregroundColor;
+	private String toolTipText;
+	
+	private boolean opaque;
+	
+	private PlayPenComponentUI ui;
+
+	private List propertyChangeListeners = new ArrayList();
+
+	private List playPenComponentListeners = new ArrayList();
+	
+	protected PlayPenComponent(PlayPenContentPane parent) {
+		this.parent = parent;
+	}
+
+	public PlayPen getPlayPen() {
+		if (parent == null) return null;
+		return parent.getOwner();
+	}
+
+	
+	public PlayPenComponentUI getUI() {
+		return ui;
+	}
+
+	public void setUI(PlayPenComponentUI ui) {
+		this.ui = ui;
+		revalidate();
+	}
 
 	/**
 	 * Shows the given popup menu on the PlayPen that owns this table
@@ -25,14 +75,8 @@ public abstract class PlayPenComponent extends JComponent {
 		p.translate(getX(), getY());
 		getPlayPen().zoomPoint(p);
 		menu.show(getPlayPen(), p.x, p.y);
-
 	}
-
-	public PlayPen getPlayPen() {
-		if (getParent() == null) return null;
-		return ((PlayPenContentPane) getParent()).getOwner();
-	}
-
+	
 	/**
 	 * Translates this request into a call to
 	 * PlayPen.repaint(Rectangle).  That will eventually cause a call
@@ -44,15 +88,17 @@ public abstract class PlayPenComponent extends JComponent {
 	 * <p>FIXME: should we check if this is the event dispatch thread?
 	 */
 	public void revalidate() {
-		setSize(getPreferredSize());
-		setLocation(getPreferredLocation());
 		PlayPen pp = getPlayPen();
 		if (pp == null) {
 			logger.debug("getPlayPen() returned null.  Not generating repaint request.");
 			return;
 		}
-		Rectangle r = new Rectangle();
-		getBounds(r);
+		Rectangle r = new Rectangle(bounds);
+		PlayPenComponentUI ui = getUI();
+		if (ui != null) {
+			Dimension ps = ui.getPreferredSize();
+			if (ps != null) setSize(ps);
+		}
 		pp.zoomRect(r);
 		if (logger.isDebugEnabled()) logger.debug("Scheduling repaint at "+r);
 		pp.repaint(r);
@@ -80,9 +126,33 @@ public abstract class PlayPenComponent extends JComponent {
 			logger.debug("[36mUpdating bounds on "+getName()
 						 +" to ["+x+","+y+","+width+","+height+"][0m");
 		}
-		super.setBounds(x, y, width, height);
+		bounds.setBounds(x,y,width,height);
+		repaint();
 	}
 
+	/**
+	 * Returns a copy of this component's bounding rectangle.
+	 */
+	public Rectangle getBounds() {
+		return getBounds(null);
+	}
+
+	/**
+	 * Sets the given rectangle to be identical to this component's bounding box.
+	 * 
+	 * @param r An existing rectangle.  If null, this method creates a new rectangle for you.
+	 * @return r if r was not null; a new rectangle otherwise.
+	 */
+	public Rectangle getBounds(Rectangle r) {
+		if (r == null) r = new Rectangle();
+		r.setBounds(bounds);
+		return r;
+	}
+
+	public Dimension getSize() {
+		return new Dimension(bounds.width, bounds.height);
+	}
+	
 	/**
 	 * The revalidate() call uses this to determine the component's
 	 * correct location.  This implementation just returns the current
@@ -92,6 +162,33 @@ public abstract class PlayPenComponent extends JComponent {
 		return getLocation();
 	}
 
+	public Point getLocation() {
+		return getLocation(null);
+	}
+	
+	/**
+	 * Copies this component's location into the given point object.
+	 * 
+	 * @param p A point that this method will modify.  If you pass in null, this method will
+	 * create a new point for you.
+	 * @return p if p was not null; a new point otherwise.
+	 */
+	public Point getLocation(Point p) {
+		if (p == null) p = new Point();
+		p.x = bounds.x;
+		p.y = bounds.y;
+		return p;
+	}
+
+	public void setLocation(Point point) {
+		setLocation(point.x,point.y);
+	}
+	
+	public void setLocation(int i, int j) {
+		bounds.x = i;
+		bounds.y = j;
+		firePlayPenComponentMoved();
+	}
 	/**
 	 * Forwards to {@link #repaint(Rectangle)}.
 	 */
@@ -104,6 +201,83 @@ public abstract class PlayPenComponent extends JComponent {
 	 */
 	public void repaint(Rectangle r) {
 		repaint(0, r.x, r.y, r.width, r.height);
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public void addPropertyChangeListener(PropertyChangeListener l) {
+		propertyChangeListeners.add(l);
+	}
+	
+	public void removePropertyChangeListener(PropertyChangeListener l) {
+		propertyChangeListeners.remove(l);
+	}
+	
+	protected void firePropertyChange(String propName, Object oldValue, Object newValue) {
+		PropertyChangeEvent e = new PropertyChangeEvent(this, propName, oldValue, newValue);
+		Iterator it = propertyChangeListeners.iterator();
+		while (it.hasNext()) {
+			((PropertyChangeListener) it.next()).propertyChange(e);
+		}
+	}
+	
+	protected void firePropertyChange(String propName, int oldValue, int newValue) {
+		firePropertyChange(propName, new Integer(oldValue), new Integer(newValue));
+	}
+	
+	public void addPlayPenComponentListener(PlayPenComponentListener l) {
+		playPenComponentListeners.add(l);
+	}
+	
+	public void removePlayPenComponentListener(PlayPenComponentListener l) {
+		playPenComponentListeners.remove(l);
+	}
+	
+	protected void firePlayPenComponentMoved() {
+		PlayPenComponentEvent e = new PlayPenComponentEvent(this);
+		Iterator it = playPenComponentListeners.iterator();
+		while (it.hasNext()) {
+			((PlayPenComponentListener) it.next()).componentMoved(e);
+		}
+	}
+	
+	protected void firePlayPenComponentResized() {
+		PlayPenComponentEvent e = new PlayPenComponentEvent(this);
+		Iterator it = playPenComponentListeners.iterator();
+		while (it.hasNext()) {
+			((PlayPenComponentListener) it.next()).componentResized(e);
+		}
+	}
+
+	
+	public int getX() {
+		return bounds.x;
+	}
+	
+	public int getY() {
+		return bounds.y;
+	}
+	
+	public int getWidth() {
+		return bounds.width;
+	}
+	
+	public int getHeight() {
+		return bounds.height;
+	}
+	
+	public Insets getInsets() {
+		return new Insets(insets.top, insets.left, insets.bottom, insets.right);
+	}
+
+	public void setInsets(Insets insets) {
+		this.insets = new Insets(insets.top, insets.left, insets.bottom, insets.right);
 	}
 
 	/**
@@ -123,4 +297,83 @@ public abstract class PlayPenComponent extends JComponent {
  					  (int) Math.ceil((double) width * zoom),
  					  (int) Math.ceil((double) height * zoom));
 	}
+	
+	public boolean isOpaque() {
+		return opaque;
+	}
+
+	public void setOpaque(boolean opaque) {
+		this.opaque = opaque;
+		revalidate();
+	}
+
+	public Color getBackground() {
+		if (backgroundColor == null) {
+			return getPlayPen().getBackground();
+		}
+		return backgroundColor;
+	}
+	
+	public void setBackground(Color c) {
+		backgroundColor = c;
+		revalidate();
+	}
+
+	public Color getForeground() {
+		if (foregroundColor == null) {
+			return getPlayPen().getForeground();
+		}
+		return foregroundColor;
+	}
+	
+	public void setForeground(Color c) {
+		foregroundColor = c;
+		revalidate();
+	}
+	
+	public String getToolTipText() {
+		return toolTipText;
+	}
+
+	public void setToolTipText(String toolTipText) {
+		if (toolTipText == null && this.toolTipText == null) return;
+		if (toolTipText != null && toolTipText.equals(toolTipText)) return;
+		this.toolTipText = toolTipText;
+	}
+
+	public Font getFont() {
+		return getPlayPen().getFont();
+	}
+
+	public FontMetrics getFontMetrics(Font f) {
+		return getPlayPen().getFontMetrics(f);
+	}
+	
+	public FontRenderContext getFontRenderContext() {
+		return getPlayPen().getFontRenderContext();
+	}
+	
+	public boolean contains(Point p) {
+		return getUI().contains(p);
+	}
+
+	public void paint(Graphics2D g2) {
+		getUI().paint(g2);
+		
+	}
+
+	public Dimension getPreferredSize() {
+		return getUI().getPreferredSize();
+	}
+
+	public void setSize(Dimension size) {
+		bounds.height = size.height;
+		bounds.width = size.width;
+		firePlayPenComponentResized();
+		
+	}
+
+
+
+	
 }

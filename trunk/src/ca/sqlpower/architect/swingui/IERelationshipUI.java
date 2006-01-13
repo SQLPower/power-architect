@@ -9,7 +9,7 @@ import ca.sqlpower.architect.*;
 public class IERelationshipUI extends BasicRelationshipUI {
 	private static Logger logger = Logger.getLogger(IERelationshipUI.class);
 
-	public static ComponentUI createUI(JComponent c) {
+	public static PlayPenComponentUI createUI(JComponent c) {
 		logger.debug("Creating new IERelationshipUI for "+c);
         return new IERelationshipUI();
     }

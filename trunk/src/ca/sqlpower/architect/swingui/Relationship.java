@@ -10,20 +10,19 @@ import ca.sqlpower.architect.SQLRelationship.ColumnMapping;
 import org.apache.log4j.Logger;
 import java.util.*;
 
-public class Relationship extends PlayPenComponent implements Selectable, ComponentListener, SQLObjectListener {
+public class Relationship extends PlayPenComponent implements Selectable, SQLObjectListener {
 	private static final Logger logger = Logger.getLogger(Relationship.class);
 
 	protected RelationshipUI ui;
-	protected PlayPen pp;
 	protected SQLRelationship model;
 	protected TablePane pkTable;
 	protected TablePane fkTable;
 
 	protected JPopupMenu popup;
 
-	protected MouseListener mouseListener;
-
 	protected boolean selected;
+	
+	private PlayPenComponentListener ppcListener = new PlayPenComponentListener();
 
 	/**
 	 * The colour to highlight related columns with when this relationship is selected.
@@ -39,11 +38,11 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 	 * the given SQLRelationship and adds it to the playpen.  It
 	 * doesn't maniuplate the model at all.
 	 */
-	public Relationship(PlayPen pp, SQLRelationship model) throws ArchitectException {
-		this.pp = pp;
+	public Relationship(PlayPen parentPP, SQLRelationship model) throws ArchitectException {
+		super(parentPP.getPlayPenContentPane());
 		this.model = model;
-		setPkTable(pp.findTablePane(model.getPkTable()));
-		setFkTable(pp.findTablePane(model.getFkTable()));
+		setPkTable(getPlayPen().findTablePane(model.getPkTable()));
+		setFkTable(getPlayPen().findTablePane(model.getFkTable()));
 
 		setup();
 	}
@@ -62,10 +61,6 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 		//ui.bestConnectionPoints(); // breaks when loading a new project?
 
 		createPopup();
-		setVisible(true);
-		mouseListener = new MouseListener();
-		addMouseListener(mouseListener);
-		addMouseMotionListener(mouseListener);
 	}
 
 	protected void createPopup() {
@@ -96,11 +91,13 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 		return ui.getPreferredLocation();
 	}
 
-	// -------------------- JComponent overrides --------------------
+	// -------------------- PlayPenComponent overrides --------------------
 
     public void updateUI() {
-		setUI((RelationshipUI)UIManager.getUI(this));
-		invalidate();
+    		RelationshipUI ui = (RelationshipUI) BasicRelationshipUI.createUI(this);
+    		ui.installUI(this);
+		setUI(ui);
+		revalidate();
     }
 
 	// --------------------- SELECTABLE SUPPORT ---------------------
@@ -175,10 +172,10 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 
 	public void setPkTable(TablePane tp) {
 		if (pkTable != null) {
-			pkTable.removeComponentListener(this);
+			pkTable.removePlayPenComponentListener(ppcListener);
 		}
 		pkTable = tp;
-		pkTable.addComponentListener(this);
+		pkTable.addPlayPenComponentListener(ppcListener);
 		// XXX: update model?
 	}
 
@@ -188,10 +185,10 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 
 	public void setFkTable(TablePane tp) {
 		if (fkTable != null) {
-			fkTable.removeComponentListener(this);
+			fkTable.removePlayPenComponentListener(ppcListener);
 		}
 		fkTable = tp;
-		fkTable.addComponentListener(this);
+		fkTable.addPlayPenComponentListener(ppcListener);
 		// XXX: update model?
 	}
 
@@ -218,91 +215,33 @@ public class Relationship extends PlayPenComponent implements Selectable, Compon
 	}
 
 	// ---------------- Component Listener ----------------
+	private class PlayPenComponentListener implements ca.sqlpower.architect.swingui.PlayPenComponentListener {
 
-	/**
-	 * Recalculates the connection points if the event was generated
-	 * by pkTable or fkTable.
-	 */
-	public void componentMoved(ComponentEvent e) {
-		logger.debug("Component "+e.getComponent().getName()+" moved");
-		if (e.getComponent() == pkTable || e.getComponent() == fkTable) {
-			revalidate();
+		/* (non-Javadoc)
+		 * @see ca.sqlpower.architect.swingui.PlayPenComponentListener#componentMoved(ca.sqlpower.architect.swingui.PlayPenComponentEvent)
+		 */
+		public void componentMoved(PlayPenComponentEvent e) {
+			logger.debug("Component "+e.getPPComponent().getName()+" moved");
+			if (e.getPPComponent() == pkTable || e.getPPComponent() == fkTable) {
+				revalidate();
+			}
 		}
-	}
-
-	/**
-	 * Recalculates the connection points if the event was generated
-	 * by pkTable or fkTable.
-	 */
-	public void componentResized(ComponentEvent e) {
-		logger.debug("Component "+e.getComponent().getName()+" changed size");
-		if (e.getComponent() == pkTable) {
-			setPkConnectionPoint(ui.closestEdgePoint(true, getPkConnectionPoint())); // true == PK
+		
+		/* (non-Javadoc)
+		 * @see ca.sqlpower.architect.swingui.PlayPenComponentListener#componentResized(ca.sqlpower.architect.swingui.PlayPenComponentEvent)
+		 */
+		public void componentResized(PlayPenComponentEvent e) {
+			logger.debug("Component "+e.getPPComponent().getName()+" changed size");
+			if (e.getPPComponent() == pkTable) {
+				setPkConnectionPoint(ui.closestEdgePoint(true, getPkConnectionPoint())); // true == PK
+			}
+			if (e.getPPComponent() == fkTable) {
+				setFkConnectionPoint(ui.closestEdgePoint(false, getFkConnectionPoint())); // false == FK
+			}
 		}
-		if (e.getComponent() == fkTable) {
-			setFkConnectionPoint(ui.closestEdgePoint(false, getFkConnectionPoint())); // false == FK
-		}
-	}
-
-	public void componentShown(ComponentEvent e) {
-        revalidate();
 	}
 	
-	public void componentHidden(ComponentEvent e) {
-        // no action required
-	}
 
-	// ------------------ MOUSE LISTENER --------------------
-	protected class MouseListener extends MouseInputAdapter {
-
-		/**
-		 * Double-click support.
-		 */
-		public void mouseClicked(MouseEvent evt) {
-			if (evt.getClickCount() == 2) {
-				ArchitectFrame.getMainInstance().editRelationshipAction.actionPerformed
-					(new ActionEvent(evt.getSource(),
-									 ActionEvent.ACTION_PERFORMED,
-									 ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
-			}
-		}
-		
-		public void mousePressed(MouseEvent evt) {
-			evt.getComponent().requestFocus();
-			maybeShowPopup(evt);
-
-			if ((evt.getModifiersEx() & MouseEvent.BUTTON1_DOWN_MASK) != 0) {
-				// selection
-				Relationship r = (Relationship) evt.getComponent();
-				PlayPen pp = (PlayPen) r.getPlayPen();
-				if ( (evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0) {
-					pp.selectNone();
-				}
-				r.setSelected(true);
-
-				// moving pk/fk decoration
-				Point p = evt.getPoint();
-				boolean overPkDec = ui.isOverPkDecoration(p);
-				if (overPkDec || ui.isOverFkDecoration(p)) {
-					new RelationshipDecorationMover(r, overPkDec);
-				}
-			}
-		}
-		
-		public void mouseReleased(MouseEvent evt) {
-			maybeShowPopup(evt);
-		}
-
-		public void maybeShowPopup(MouseEvent evt) {
-			if (evt.isPopupTrigger() && !evt.isConsumed()) {
-				Relationship r = (Relationship) evt.getComponent();
-				PlayPen pp = (PlayPen) r.getPlayPen();
-				pp.selectNone();
-				r.setSelected(true);
-				r.showPopup(r.popup, evt.getPoint());
-			}
-		}
-	}
 
 	/**
 	 * The RelationshipDecorationMover responds to mouse events on the
