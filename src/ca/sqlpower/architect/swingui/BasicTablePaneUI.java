@@ -1,14 +1,26 @@
 package ca.sqlpower.architect.swingui;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Insets;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.font.FontRenderContext;
-
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.*;
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLTable;
 
 public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListener, java.io.Serializable {
 	private static Logger logger = Logger.getLogger(BasicTablePaneUI.class);
@@ -227,7 +239,9 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			height = insets.top + fontHeight + gap + c.getMargin().top + pkGap + cols*fontHeight + boxLineThickness*2 + c.getMargin().bottom + insets.bottom;
 			width = minimumWidth;
 			logger.debug("starting width is: " + width);
-			Iterator columnIt = table.getColumns().iterator();
+			List itemsToCheck = new ArrayList(table.getColumns());
+			itemsToCheck.add(table.getName());   // this works as long as the title uses the same font as the columns
+			Iterator columnIt = itemsToCheck.iterator();
 			while (columnIt.hasNext()) {
 				String theColumn = columnIt.next().toString();
 				if (frc == null) {
