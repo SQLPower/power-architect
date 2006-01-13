@@ -3,8 +3,6 @@ package ca.sqlpower.architect.swingui;
 import java.awt.*;
 import java.awt.font.FontRenderContext;
 
-import javax.swing.*;
-import javax.swing.plaf.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Iterator;
@@ -50,21 +48,25 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 	 */
 	protected int minimumWidth = 100;
 
-	public static ComponentUI createUI(JComponent c) {
+	public static PlayPenComponentUI createUI(PlayPenComponent c) {
         return new BasicTablePaneUI();
     }
 
-    public void installUI(JComponent c) {
+    public void installUI(PlayPenComponent c) {
 		tablePane = (TablePane) c;
 		tablePane.addPropertyChangeListener(this);
     }
 
-    public void uninstallUI(JComponent c) {
+    public void uninstallUI(PlayPenComponent c) {
 		tablePane = (TablePane) c;
 		tablePane.removePropertyChangeListener(this);
     }
 
-    public void paint(Graphics g, JComponent c) {
+    public void paint(Graphics2D g) {
+    		paint(g,tablePane);
+    }
+    
+    public void paint(Graphics g, PlayPenComponent c) {
 		TablePane tp = (TablePane) c;
 		try {
 			Graphics2D g2 = (Graphics2D) g;
@@ -195,8 +197,12 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 		}
 	}
 
-	public Dimension getPreferredSize(JComponent jc) {
-		TablePane c = (TablePane) jc;
+	public Dimension getPreferredSize() {
+		return getPreferredSize(tablePane);
+	}
+	
+	public Dimension getPreferredSize(PlayPenComponent ppc) {
+		TablePane c = (TablePane) ppc;
 		SQLTable table = c.getModel();
 		if (table == null) return null;
 
@@ -211,7 +217,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 				logger.error("getPreferredSize(): TablePane is missing font.");
 				return null;
 			}
-			FontRenderContext frc = c.getCurrentFontRederContext();
+			FontRenderContext frc = c.getFontRenderContext();
 			FontMetrics metrics = c.getFontMetrics(font);
 			int fontHeight = metrics.getHeight();
 			height = insets.top + fontHeight + gap + c.getMargin().top + pkGap + cols*fontHeight + boxLineThickness*2 + c.getMargin().bottom + insets.bottom;
@@ -242,11 +248,9 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 	 * This implementation depends on the implementation of paint().
 	 */
 	public int pointToColumnIndex(Point p) throws ArchitectException {
-		Insets insets = tablePane.getInsets();
 		Font font = tablePane.getFont();
 		FontMetrics metrics = tablePane.getFontMetrics(font);
 		int fontHeight = metrics.getHeight();
-		int ascent = metrics.getAscent();
 
 		int numPkCols = tablePane.getModel().getPkSize();
 		int numCols = tablePane.getModel().getColumns().size();
@@ -295,4 +299,10 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 		}
 		tablePane.revalidate();
 	}
+
+	public boolean contains(Point p) {
+		return tablePane.getBounds().contains(p);
+	}
+
+
 }

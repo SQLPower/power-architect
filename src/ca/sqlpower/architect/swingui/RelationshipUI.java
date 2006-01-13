@@ -1,10 +1,9 @@
 package ca.sqlpower.architect.swingui;
 
-import javax.swing.plaf.ComponentUI;
 import java.awt.Point;
 import java.awt.Rectangle;
 
-public abstract class RelationshipUI extends ComponentUI implements java.io.Serializable {
+public abstract class RelationshipUI implements PlayPenComponentUI, java.io.Serializable {
 	public static final String UI_CLASS_ID = "RelationshipUI";
 
 	public RelationshipUI() {
@@ -74,4 +73,9 @@ public abstract class RelationshipUI extends ComponentUI implements java.io.Seri
      * @return Whether or not this Relationship visibly intersects the given region
      */
 	public abstract boolean intersects(Rectangle region);
+	
+	/**
+	 * Determines if the given point touches the visible part of this relationship.
+	 */
+	public abstract boolean contains(Point p);
 }

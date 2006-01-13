@@ -87,7 +87,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 							}
 						}
 					} catch (ArchitectException ae) {
-						JOptionPane.showMessageDialog(tp, ae.getMessage());
+						JOptionPane.showMessageDialog(pp, ae.getMessage());
 						return;
 					}							
 					// now, delete the columns

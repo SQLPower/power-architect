@@ -124,7 +124,7 @@ public class CreateRelationshipAction extends AbstractAction
 			}
 			
 			Relationship r = new Relationship(pp, model);
-			pp.add(r);
+			pp.addRelationship(r);
 			r.repaint();  // XXX: shouldn't be necessary, but it is.
 		} catch (ArchitectException ex) {
 			logger.error("Couldn't create relationship", ex);
