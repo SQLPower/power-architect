@@ -261,9 +261,67 @@ public class PlayPen extends JPanel
 	void setupKeyboardActions() {
 		ArchitectFrame af = ArchitectFrame.getMainInstance();
 
-		getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), KEY_DELETE_SELECTED);
+		InputMap inputMap = getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+		
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), KEY_DELETE_SELECTED);
 		getActionMap().put(KEY_DELETE_SELECTED, af.deleteSelectedAction);
 		if (af.deleteSelectedAction == null) logger.warn("af.deleteSelectedAction is null!");
+		
+		final Object KEY_SELECT_UPWARD = "ca.sqlpower.architect.PlayPen.KEY_SELECT_UPWARD";
+		final Object KEY_SELECT_DOWNWARD = "ca.sqlpower.architect.PlayPen.KEY_SELECT_DOWNWARD";
+		final Object KEY_EDIT_SELECTION = "ca.sqlpower.architect.PlayPen.KEY_EDIT_SELECTION";
+		
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), KEY_SELECT_UPWARD);
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), KEY_SELECT_DOWNWARD);
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), KEY_EDIT_SELECTION);
+		
+		getActionMap().put(KEY_SELECT_UPWARD, new AbstractAction() {
+			public void actionPerformed(ActionEvent e) {
+				List items = getSelectedItems();
+				if (items.size() == 1) {
+					PlayPenComponent item = (PlayPenComponent) items.get(0);
+					if (item instanceof TablePane) {
+						TablePane tp = (TablePane) item;
+						int oldIndex = tp.getSelectedColumnIndex();						
+						if (oldIndex > 0) {
+							tp.selectNone();
+							tp.selectColumn(oldIndex - 1);
+						}
+					}
+				}
+			}
+		});
+		
+		getActionMap().put(KEY_SELECT_DOWNWARD, new AbstractAction() {
+			public void actionPerformed(ActionEvent e) {
+				List items = getSelectedItems();
+				if (items.size() == 1) {
+					PlayPenComponent item = (PlayPenComponent) items.get(0);
+					if (item instanceof TablePane) {
+						TablePane tp = (TablePane) item;
+						int oldIndex = tp.getSelectedColumnIndex();
+						
+						try {
+							if (oldIndex < tp.getModel().getColumns().size() - 1) {
+								tp.selectNone();
+								tp.selectColumn(oldIndex + 1);
+							}
+						} catch (ArchitectException e1) {
+							logger.error("Could not get columns of "+ tp.getName(), e1);
+						}
+					}
+				}
+			}
+		});
+		
+		getActionMap().put(KEY_EDIT_SELECTION, new AbstractAction(){			
+			public void actionPerformed(ActionEvent e) {
+				ActionEvent ev = new ActionEvent(e.getSource(), e.getID(), 
+								ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN, 
+								e.getWhen(), e.getModifiers());
+				ArchitectFrame.mainInstance.editColumnAction.actionPerformed(ev);				
+			}
+		});
 	}
 
 	// --------------------- Utility methods -----------------------

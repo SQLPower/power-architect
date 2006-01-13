@@ -375,6 +375,7 @@ public class TablePane
 		for (int i = 0; i < columnSelection.size(); i++) {
 			columnSelection.set(i, Boolean.FALSE);
 		}
+		repaint();
 	}
 	
 	/**
