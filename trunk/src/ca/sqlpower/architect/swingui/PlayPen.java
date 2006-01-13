@@ -8,6 +8,7 @@ import java.awt.font.FontRenderContext;
 import java.awt.datatransfer.*;
 import java.awt.dnd.*;
 import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.ArrayList;
@@ -1579,11 +1580,17 @@ public class PlayPen extends JPanel
 						ArrayList paths = new ArrayList(1);
 						paths.add(path);
 						logger.info("DBTree: exporting 1-item list of DnD-type tree path");
-						dge.getDragSource().startDrag
-							(dge, 
-							 null, //DragSource.DefaultCopyNoDrop, 
-							 new DnDTreePathTransferable(paths),
-							 tp);
+						JLabel label = new JLabel(tp.getModel().getName()+"."+tp.draggingColumn.getName());
+						Dimension labelSize = label.getPreferredSize();
+						label.setSize(labelSize);  // because a LayoutManager would normally do this
+						BufferedImage dragImage = new BufferedImage(labelSize.width, labelSize.height,
+																  BufferedImage.TYPE_4BYTE_ABGR);
+						Graphics2D imageGraphics = dragImage.createGraphics();
+						// XXX: it would be nice to make this transparent, but initial attempts using AlphaComposite failed (on OS X)
+						label.paint(imageGraphics);
+						imageGraphics.dispose();
+						dge.getDragSource().startDrag(dge, null, dragImage, new Point(0, 0),
+													new DnDTreePathTransferable(paths), tp);
 					}
 				} catch (ArchitectException ex) {
 					logger.error("Couldn't drag column", ex);
