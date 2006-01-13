@@ -95,8 +95,6 @@ public class SwingUIProject {
 	 */
 	protected int progress = 0;
 
-    private ProjectModificationWatcher projectModificationWatcher;
-
 	/**
 	 * Sets up a new project with the given name.
 	 */
@@ -984,7 +982,7 @@ public class SwingUIProject {
 		if (sprefs != null) {
 		    playPen.setRenderingAntialiased(sprefs.getBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
 		}
-		projectModificationWatcher = new ProjectModificationWatcher(playPen);
+		new ProjectModificationWatcher(playPen);
 	}
 
 	public GenericDDLGenerator getDDLGenerator() {
