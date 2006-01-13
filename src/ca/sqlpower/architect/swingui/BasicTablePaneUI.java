@@ -104,7 +104,11 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			int maxDescent = metrics.getMaxDescent();
 			int y = 0;
 			
-			// hilight title if table is selected
+			g2.setColor(c.getBackground());
+			g2.fillRect(0, 0, width, height);
+			// no need to reset to foreground: next operation always changes the colour
+			
+			// highlight title if table is selected
 			if (tp.selected == true) {
 				g2.setColor(selectedColor);
 			} else {
