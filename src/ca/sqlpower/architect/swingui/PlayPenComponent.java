@@ -337,8 +337,9 @@ public abstract class PlayPenComponent implements Selectable {
 
 	public void setToolTipText(String toolTipText) {
 		if (toolTipText == null && this.toolTipText == null) return;
-		if (toolTipText != null && toolTipText.equals(toolTipText)) return;
+		if (toolTipText != null && toolTipText.equals(this.toolTipText)) return;
 		this.toolTipText = toolTipText;
+		logger.debug("ToolTipText changed to "+toolTipText);
 	}
 
 	public Font getFont() {
