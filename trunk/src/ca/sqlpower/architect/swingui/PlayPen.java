@@ -1812,7 +1812,7 @@ public class PlayPen extends JPanel
 			} else {
 				if ((evt.getModifiersEx() & InputEvent.BUTTON1_DOWN_MASK) != 0) {
 					selectNone();
-					rubberBandOrigin = unzoomPoint(new Point(p));
+					rubberBandOrigin = new Point(p);
 					rubberBand = new Rectangle(rubberBandOrigin.x, rubberBandOrigin.y, 0, 0);
 				}
 			}
@@ -1822,15 +1822,13 @@ public class PlayPen extends JPanel
 			
 			if (rubberBand != null) {
 				if (evt.getButton() == MouseEvent.BUTTON1) {
-					Rectangle dirtyRegion = new Rectangle(rubberBand);
-					
-					// grow dirty region by 10% because when it's an exact match, poop gets left behind
-					dirtyRegion.width += (int) (dirtyRegion.width * 0.1);
-					dirtyRegion.height += (int) (dirtyRegion.height * 0.1);
+					Rectangle dirtyRegion = rubberBand;
 
 					rubberBandOrigin = null;
 					rubberBand = null;
-					repaint(zoomRect(dirtyRegion));
+					
+					zoomRect(dirtyRegion);
+					repaintRubberBandRegion(dirtyRegion);
 					return;
 				}
 			}
@@ -1898,12 +1896,24 @@ public class PlayPen extends JPanel
 				// Add the new rubberband to the dirty region and grow
 				// it in case the line is thick due to extreme zoom
 				dirtyRegion.add(zoomRect(new Rectangle(rubberBand)));
-				dirtyRegion.x -= 3;
-				dirtyRegion.y -= 3;
-				dirtyRegion.width += 6;
-				dirtyRegion.height += 6;
-				repaint(dirtyRegion);
+				repaintRubberBandRegion(dirtyRegion);
 			}
+		}
+		
+		/**
+		 * Asks the PlayPen to repaint the given region, which is in screen coordinates (not
+		 * logical playpen coordinates).
+		 * 
+		 * @param region The region to repaint.  If this comes from a user input event, you have
+		 * to run the argument through the {@link #zoomRect(Rectangle)} method.
+		 */
+		private void repaintRubberBandRegion(Rectangle region) {
+			Rectangle dirtyRegion = new Rectangle(region);
+			dirtyRegion.x -= 3;
+			dirtyRegion.y -= 3;
+			dirtyRegion.width += 6;
+			dirtyRegion.height += 6;
+			repaint(dirtyRegion);
 		}
 		
 		/**
