@@ -15,6 +15,9 @@ import ca.sqlpower.architect.ddl.SQLServerDDLGenerator;
 
 import java.net.URL;
 
+/**
+ * Collection of static utility methods for Architect.
+ */
 public class ArchitectUtils {
 	
 	private static final Logger logger = Logger.getLogger(ArchitectUtils.class);
