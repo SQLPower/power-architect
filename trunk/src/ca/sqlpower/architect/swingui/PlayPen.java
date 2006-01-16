@@ -50,7 +50,7 @@ public class PlayPen extends JPanel
 	
 	/**
 	 * Maps table names (Strings) to Integers.  Useful for making up
-	 * new table names if two tables of the same name are added to
+	 * new table names if two tables of the same name are added todrag
 	 * this playpen.
 	 */
 	protected HashSet tableNames;
@@ -1581,10 +1581,8 @@ public class PlayPen extends JPanel
 	
 	public class TablePaneDragGestureListener implements DragGestureListener {
 		public void dragGestureRecognized(DragGestureEvent dge) {
-			
-			
-			Point p = ((MouseEvent) dge.getTriggerEvent()).getPoint();
-			PlayPenComponent c = contentPane.getComponentAt(p);
+			PlayPenComponent c = contentPane.getComponentAt(
+					unzoomPoint(((MouseEvent) dge.getTriggerEvent()).getPoint()));
 			
 			if ( c instanceof TablePane ) {
 				TablePane tp = (TablePane) c;
