@@ -268,6 +268,24 @@ public class ArchitectUtils {
 					"jdbc:db2:<Hostname>");
 		return drivers;
 	}
+	/**
+	 * 
+	 * XXX: look thise up from somewhere (i.e. don't hard code them)
+	 * 
+	 */
+	public static Map getDriverTyprMap () {
+		HashMap driverSystems = new HashMap();
+		
+		driverSystems.put("oracle.jdbc.driver.OracleDriver",
+					"ORACLE");
+		driverSystems.put("com.microsoft.jdbc.sqlserver.SQLServerDriver",
+					"SQL SERVER");
+		driverSystems.put("org.postgresql.Driver",
+					"POSTGRES");
+		driverSystems.put("ibm.sql.DB2Driver",
+					"DB2");
+		return driverSystems;
+	}
 	
 	/**
 	 * 
