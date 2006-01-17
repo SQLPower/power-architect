@@ -410,7 +410,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		boolean addToPK = false;
 		int pkSize = getPkSize();
 		try {
-			if (getColumns().size() > 0 && pos <= pkSize) {
+			if (getColumns().size() > 0 && pos < pkSize) {
 				addToPK = true;
 				normalizePrimaryKey();
 				for (int i = pos; i < pkSize; i++) {
