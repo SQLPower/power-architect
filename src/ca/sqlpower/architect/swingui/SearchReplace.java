@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -239,99 +240,106 @@ public class SearchReplace {
     }
     
     public void showResults(JDialog parent, final PlayPen pp) throws ArchitectException {
-        final List results = doSearch(pp.getDatabase());
-        final JDialog d = new JDialog(parent, "Search Results");
-        final JTable t = new JTable(new SearchResultsTableModel(results));
-        
-        final JButton renameButton = new JButton("Rename Selected...");
-        renameButton.setEnabled(false);
-        renameButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                String newName = JOptionPane.showInputDialog(d, "Enter the new name");
-                TableModel m = t.getModel();
-                int selectedRows[] = t.getSelectedRows();
-                for (int i = 0; i < selectedRows.length; i++) {
-                    // update using the table model because we want the results page to be notified of changes
-                    m.setValueAt(newName, selectedRows[i], 1);
-                }
-            }
-        });
-        
-        final JButton gotoButton = new JButton("Show in Playpen");
-        gotoButton.setEnabled(false);
-        gotoButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                int row = t.getSelectedRow();
-                if (row >= 0) {
-                    SQLObject searchObj = (SQLObject) results.get(row);
-                    SQLTable searchTable = null;
-                    SQLColumn searchColumn = null;
-                    SQLRelationship searchRelationship = null;
-                    if (searchObj instanceof SQLColumn) {
-                        searchColumn = (SQLColumn) searchObj;
-                        searchTable = searchColumn.getParentTable();
-                    } else if (searchObj instanceof SQLTable) {
-                        searchTable = (SQLTable) searchObj;
-                    } else if (searchObj instanceof SQLRelationship) {
-                        searchRelationship = (SQLRelationship) searchObj;
-                    } else {
-                        JOptionPane.showMessageDialog(null, "Sorry, the selected search result is of an unknown type!");
-                        return;
-                    }
-                    
-                    if (searchTable != null) {
-                        TablePane tp = pp.findTablePane(searchTable);
-                        if (tp != null) {
-                            pp.selectNone();
-                            tp.setSelected(true);
-                            pp.scrollRectToVisible(tp.getBounds());
-                            
-                            if (searchColumn != null) {
-                                tp.selectColumn(searchTable.getColumnIndex(searchColumn));
-                            }
-                        }
-                    } else if (searchRelationship != null) {
-                        Relationship r = pp.findRelationship(searchRelationship);
-                        if (r != null) {
-                            pp.selectNone();
-                            r.setSelected(true);
-                            pp.scrollRectToVisible(r.getBounds());
-                        }
-                    }
-                }
-            }
-        });
-
-        JButton closeButton = new JButton("Close");
-        closeButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                d.setVisible(false);
-                d.dispose();
-            }
-        });
-        
-        ListSelectionListener buttonActivator = new ListSelectionListener() {
-            public void valueChanged(ListSelectionEvent e) {
-                renameButton.setEnabled(t.getSelectedRowCount() > 0);
-                gotoButton.setEnabled(t.getSelectedRowCount() == 1);
-            }
-        };
-        t.getSelectionModel().addListSelectionListener(buttonActivator);
-
-        JComponent cp = (JComponent) d.getContentPane();
-        cp.setLayout(new BorderLayout());
-        cp.add(new JScrollPane(t), BorderLayout.CENTER);
-        
-        Box buttonBox = new Box(BoxLayout.Y_AXIS);
-        buttonBox.add(renameButton);
-        buttonBox.add(gotoButton);
-        buttonBox.add(Box.createVerticalGlue());
-        buttonBox.add(closeButton);
-        cp.add(buttonBox, BorderLayout.EAST);
-        
-        d.pack();
-        d.setLocationRelativeTo(parent);
-        d.setVisible(true);
+    	try {
+	        final List results = doSearch(pp.getDatabase());
+	        final JDialog d = new JDialog(parent, "Search Results");
+	        final JTable t = new JTable(new SearchResultsTableModel(results));
+	        
+	        final JButton renameButton = new JButton("Rename Selected...");
+	        renameButton.setEnabled(false);
+	        renameButton.addActionListener(new ActionListener() {
+	            public void actionPerformed(ActionEvent e) {
+	                String newName = JOptionPane.showInputDialog(d, "Enter the new name");
+	                TableModel m = t.getModel();
+	                int selectedRows[] = t.getSelectedRows();
+	                for (int i = 0; i < selectedRows.length; i++) {
+	                    // update using the table model because we want the results page to be notified of changes
+	                    m.setValueAt(newName, selectedRows[i], 1);
+	                }
+	            }
+	        });
+	        
+	        final JButton gotoButton = new JButton("Show in Playpen");
+	        gotoButton.setEnabled(false);
+	        gotoButton.addActionListener(new ActionListener() {
+	            public void actionPerformed(ActionEvent e) {
+	                int row = t.getSelectedRow();
+	                if (row >= 0) {
+	                    SQLObject searchObj = (SQLObject) results.get(row);
+	                    SQLTable searchTable = null;
+	                    SQLColumn searchColumn = null;
+	                    SQLRelationship searchRelationship = null;
+	                    if (searchObj instanceof SQLColumn) {
+	                        searchColumn = (SQLColumn) searchObj;
+	                        searchTable = searchColumn.getParentTable();
+	                    } else if (searchObj instanceof SQLTable) {
+	                        searchTable = (SQLTable) searchObj;
+	                    } else if (searchObj instanceof SQLRelationship) {
+	                        searchRelationship = (SQLRelationship) searchObj;
+	                    } else {
+	                        JOptionPane.showMessageDialog(null, "Sorry, the selected search result is of an unknown type!");
+	                        return;
+	                    }
+	                    
+	                    if (searchTable != null) {
+	                        TablePane tp = pp.findTablePane(searchTable);
+	                        if (tp != null) {
+	                            pp.selectNone();
+	                            tp.setSelected(true);
+	                            pp.scrollRectToVisible(tp.getBounds());
+	                            
+	                            if (searchColumn != null) {
+	                                tp.selectColumn(searchTable.getColumnIndex(searchColumn));
+	                            }
+	                        }
+	                    } else if (searchRelationship != null) {
+	                        Relationship r = pp.findRelationship(searchRelationship);
+	                        if (r != null) {
+	                            pp.selectNone();
+	                            r.setSelected(true);
+	                            pp.scrollRectToVisible(r.getBounds());
+	                        }
+	                    }
+	                }
+	            }
+	        });
+	
+	        JButton closeButton = new JButton("Close");
+	        closeButton.addActionListener(new ActionListener() {
+	            public void actionPerformed(ActionEvent e) {
+	                d.setVisible(false);
+	                d.dispose();
+	            }
+	        });
+	        
+	        ListSelectionListener buttonActivator = new ListSelectionListener() {
+	            public void valueChanged(ListSelectionEvent e) {
+	                renameButton.setEnabled(t.getSelectedRowCount() > 0);
+	                gotoButton.setEnabled(t.getSelectedRowCount() == 1);
+	            }
+	        };
+	        t.getSelectionModel().addListSelectionListener(buttonActivator);
+	
+	        JComponent cp = (JComponent) d.getContentPane();
+	        cp.setLayout(new BorderLayout());
+	        cp.add(new JScrollPane(t), BorderLayout.CENTER);
+	        
+	        Box buttonBox = new Box(BoxLayout.Y_AXIS);
+	        buttonBox.add(renameButton);
+	        buttonBox.add(gotoButton);
+	        buttonBox.add(Box.createVerticalGlue());
+	        buttonBox.add(closeButton);
+	        cp.add(buttonBox, BorderLayout.EAST);
+	        
+	        d.pack();
+	        d.setLocationRelativeTo(parent);
+	        d.setVisible(true);
+    	 }
+        catch(PatternSyntaxException e){
+        	
+        	JOptionPane.showMessageDialog(null,e.getDescription(),"Regular Expression Error",
+        			JOptionPane.INFORMATION_MESSAGE);
+        }
     }
     
     public List doSearch(SQLObject start) throws ArchitectException {
@@ -360,7 +368,8 @@ public class SearchReplace {
         if (caseInsensitive.isSelected()) {
             patternFlags |= (Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
         }
-        Pattern searchPattern = Pattern.compile(pat, patternFlags);
+      
+        Pattern searchPattern = Pattern.compile(pat, patternFlags);  
         return recursiveSearch(start, searchPattern, results);
     }
 
