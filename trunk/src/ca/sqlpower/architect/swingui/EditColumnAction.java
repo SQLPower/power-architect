@@ -98,7 +98,7 @@ public class EditColumnAction extends AbstractAction implements ActionListener {
 		if (editDialog != null) {
 			columnEditPanel.setModel(st);
 			columnEditPanel.selectColumn(colIdx);
-			editDialog.setTitle("Edit columns of "+st.getName());
+			editDialog.setTitle("Column Properties of "+st.getName());
 			editDialog.setVisible(true);
 			editDialog.requestFocus();
 		} else {
@@ -120,7 +120,7 @@ public class EditColumnAction extends AbstractAction implements ActionListener {
 			panel.add(buttonPanel, BorderLayout.SOUTH);
 			
 			editDialog = new JDialog(ArchitectFrame.getMainInstance(),
-									 "Edit columns of "+st.getName());
+									 "Column Properties of "+st.getName());
 			panel.setOpaque(true);
 			editDialog.setContentPane(panel);
 			editDialog.pack();
