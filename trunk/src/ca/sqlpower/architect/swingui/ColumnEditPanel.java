@@ -249,7 +249,7 @@ public class ColumnEditPanel extends JPanel
 				}
 				c.setVisible(false);
 			} else {
-				editColumn(0);
+				editColumn(columns.getSelectedIndex());
 			}
 		} catch (ArchitectException ex) {
 			JOptionPane.showMessageDialog(this, "Can't edit the selected column");
@@ -263,7 +263,7 @@ public class ColumnEditPanel extends JPanel
 	}
 
 	/**
-	 * Causes the edit panel to edit the properties of the column at
+	 * Causes the edit panel to update the properties of the column at
 	 * <code>index</code> in the table's child list.
 	 */
 	protected void editColumn(int index) throws ArchitectException {
@@ -273,6 +273,10 @@ public class ColumnEditPanel extends JPanel
 		
 		try {
 			changingColumns = true;
+			
+			// syncronize the selected column with the source of the data
+			// for the edit column properties fields
+			columns.setSelectedIndex(index);
 			SQLColumn col = model.getColumn(index);
 			if (col.getSourceColumn() == null) {
 				sourceDB.setText("None Specified");
