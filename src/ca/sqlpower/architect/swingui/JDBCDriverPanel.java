@@ -125,14 +125,18 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 		public void actionPerformed(ActionEvent e) {			
 			try {
 				fileChooser.addChoosableFileFilter(ASUtils.JAR_ZIP_FILE_FILTER);
+				fileChooser.setMultiSelectionEnabled(true);
 				int returnVal = fileChooser.showOpenDialog(JDBCDriverPanel.this);
 				if(returnVal == JFileChooser.APPROVE_OPTION) {
+					File[] files = fileChooser.getSelectedFiles();
 					List list = new ArrayList();
-					list.add(fileChooser.getSelectedFile().getAbsolutePath());
+					for(int ii=0; ii < files.length;ii++) {					
+						list.add(files[ii].getAbsolutePath());
+					}
 					LoadJDBCDrivers ljd = new LoadJDBCDrivers(list);
 				    LoadJDBCDriversWorker worker = new LoadJDBCDriversWorker(ljd);
-					new ProgressWatcher(progressBar,ljd,progressLabel);
-					new Thread(worker).start();
+				    new ProgressWatcher(progressBar,ljd,progressLabel);
+				    new Thread(worker).start();
 				}
 			} catch (ArchitectException ex) {
 				logger.error("AddAction.actionPerformed() problem.", ex);
