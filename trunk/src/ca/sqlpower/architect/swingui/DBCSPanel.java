@@ -36,10 +36,9 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
 	protected JTextField plSchemaField;
 	protected JComboBox plDbTypeField;
 	protected JTextField odbcDSNField;
-
-	private String[] plDbTypes = new String[] {"ORACLE", "DB2", "SQL SERVER", "POSTGRES"}; // XXX: double check these
 	
 	private Map jdbcDrivers;
+	private Map jdbcSystems;
 
 	private JDBCURLUpdater urlUpdater = new JDBCURLUpdater();
 	
@@ -66,7 +65,7 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
 												dbUserField = new JTextField(),
 												dbPassField = new JPasswordField(),
 												plSchemaField = new JTextField(),
-												plDbTypeField = new JComboBox(plDbTypes),
+												plDbTypeField = new JComboBox(getDriverTypes()),
 												odbcDSNField = new JTextField()};
 		String[] labels = new String[] {"Connection Name",
 										"JDBC Driver",
@@ -90,11 +89,19 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
 									  "The Power*Loader type code for this database",
 									  "The ODBC data source name for this database"};
 		
-		// update url field when user picks new driver
+		// update url and type field when user picks new driver
 		dbDriverField.addActionListener(new ActionListener() {
 		    public void actionPerformed(ActionEvent e) {
+		    	String driverField;		    	
+		    	String typeField;
+		    	HashMap driverToType = (HashMap)ArchitectUtils.getDriverTyprMap();
 		        createFieldsFromTemplate();
 		        updateUrlFromFields();
+		        
+		        driverField = (String) dbDriverField.getSelectedItem();
+		        typeField =(String) driverToType.get(driverField);
+		        plDbTypeField.setSelectedItem(typeField);
+			    
 		    }
 		});
 		
@@ -123,6 +130,14 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
 			setupDriverMap();
 		}
 		return (String[]) jdbcDrivers.keySet().toArray(new String[0]);
+	}
+	
+	/** Returns all of the driver system names this dialog knows about. */
+	protected String[] getDriverTypes() {
+		if (jdbcSystems == null) {
+			setupDriverSystemMap();
+		}
+		return (String[]) jdbcSystems.values().toArray(new String[0]);
 	}
 	
 	/** Returns the JDBC URL template associated with the named driver. */
@@ -188,6 +203,13 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
 	 */
 	private void setupDriverMap() {
 		jdbcDrivers = ArchitectUtils.getDriverTemplateMap();
+	}
+	
+	/**
+	 * 
+	 */
+	private void setupDriverSystemMap() {
+		jdbcSystems = ArchitectUtils.getDriverTyprMap();
 	}
 
 	/**
