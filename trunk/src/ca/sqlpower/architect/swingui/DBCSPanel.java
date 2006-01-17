@@ -172,11 +172,15 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
 	            platformSpecificOptions.add(field);
 	            field.getDocument().addDocumentListener(urlUpdater);
 	        }
-	        platformSpecificOptions.revalidate();
-	        platformSpecificOptions.repaint();
+	        
+	        
 	    } else {
 	        platformSpecificOptions.add(new JLabel("Unknown driver class.  Fill in URL manually."));
+	       
 	    }
+	    
+	    platformSpecificOptions.revalidate();
+	    platformSpecificOptions.repaint();
 	}
 
 	/**
