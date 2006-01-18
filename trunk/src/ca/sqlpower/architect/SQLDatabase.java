@@ -6,8 +6,10 @@ import java.util.LinkedList;
 import java.util.Iterator;
 import java.util.HashMap;
 import java.util.Collections;
+import java.util.Properties;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.Driver;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.beans.PropertyChangeListener;
@@ -95,11 +97,13 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 				}
 				logger.debug(loaders);
 			}
-			Class.forName(dataSource.getDriverClass(), true, session.getJDBCClassLoader());
+			Driver driver = (Driver) Class.forName(dataSource.getDriverClass(), true, session.getJDBCClassLoader()).newInstance();
 			logger.info("Driver Class "+dataSource.getDriverClass()+" loaded without exception");
-			connection = ConnectionFacade.createFacade(session.getJDBCClassLoader().getConnection(dataSource.getUrl(),
-														 	      					dataSource.getUser(),
-																					dataSource.getPass()));
+			Properties connectionProps = new Properties();
+			connectionProps.setProperty("user", dataSource.getUser());
+			connectionProps.setProperty("password", dataSource.getPass());
+			Connection realConnection = driver.connect(dataSource.getUrl(), connectionProps);
+			connection = ConnectionFacade.createFacade(realConnection);
 			logger.debug("Connection class is: " + connection.getClass().getName());
 			dbConnections.put(dataSource, connection);
 		} catch (ClassNotFoundException e) {
@@ -108,6 +112,12 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 										 +"\" not found.", e);
 		} catch (SQLException e) {
 			throw new ArchitectException("Couldn't connect to database:\n"+e.getMessage(), e);
+		} catch (InstantiationException e) {
+			throw new ArchitectException("Couldn't connect to database because an instance of the\n" +
+					"JDBC driver would not be created."+e.getMessage(), e);
+		} catch (IllegalAccessException e) {
+			throw new ArchitectException("Couldn't connect to database because the\n" +
+					"JDBC driver has no public constructor (this is bad)."+e.getMessage(), e);
 		}
 	}
 

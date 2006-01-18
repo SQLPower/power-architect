@@ -17,8 +17,6 @@
 		<javac srcdir="${src}" destdir="${build}" classpathref="compile.classpath" debug="true" deprecation="true">
           <!-- <compilerarg compiler="jikes" value="+Pno-naming-convention"/> -->
         </javac>
-		<move file="${build}/ca/sqlpower/architect/altclassloader/DriverManagerDiplomat.class"
-		      tofile="${build}/ca/sqlpower/architect/altclassloader/DriverManagerDiplomat.altclass" />
 	</target>
 
 
