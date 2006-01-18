@@ -99,10 +99,18 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 			}
 			Driver driver = (Driver) Class.forName(dataSource.getDriverClass(), true, session.getJDBCClassLoader()).newInstance();
 			logger.info("Driver Class "+dataSource.getDriverClass()+" loaded without exception");
+			if (!driver.acceptsURL(dataSource.getUrl())) {
+				throw new ArchitectException("Couldn't connect to database:\n"
+						+"JDBC Driver "+dataSource.getDriverClass()+"\n"
+						+"does not accept the URL "+dataSource.getUrl());
+			}
 			Properties connectionProps = new Properties();
 			connectionProps.setProperty("user", dataSource.getUser());
 			connectionProps.setProperty("password", dataSource.getPass());
 			Connection realConnection = driver.connect(dataSource.getUrl(), connectionProps);
+			if (realConnection == null) {
+				throw new ArchitectException("Couldn't connect to database: JDBC Driver returned a null connection!");
+			}
 			connection = ConnectionFacade.createFacade(realConnection);
 			logger.debug("Connection class is: " + connection.getClass().getName());
 			dbConnections.put(dataSource, connection);
