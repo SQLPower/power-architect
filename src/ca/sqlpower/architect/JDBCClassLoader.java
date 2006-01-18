@@ -19,13 +19,6 @@ public class JDBCClassLoader extends ClassLoader {
 	private static final Logger logger = Logger.getLogger(JDBCClassLoader.class);
 
 	/**
-	 * This is the DriverManagerDiplomat class which was created by
-	 * this classloader.  It is required by the getConnection method
-	 * for getting around funny DriverManager limitations.
-	 */
-	private static Class diplomat;
-
-	/**
 	 * The ArchitectSession object that this ClassLoader gets its
 	 * search path from.
 	 */
@@ -126,58 +119,5 @@ public class JDBCClassLoader extends ClassLoader {
 			}
 		}
 		return null;
-	}
-
-	/**
-	 * This is a special method for getting a connection from a driver
-	 * that may have been loaded by this classloader.  The regular
-	 * java.sql.DriverManager doesn't allow connections if the
-	 * caller's classloader can't find the driver class.
-	 */
-	public synchronized Connection getConnection(String url, String user, String password)
-		throws SQLException {
-		try {
-			if (diplomat == null) {
-				InputStream is = getResourceAsStream("ca/sqlpower/architect/altclassloader/DriverManagerDiplomat.altclass");
-				byte[] buf = new byte[4000]; // XXX: I just assume this will be enough!
-				int start = 0, n = 0;
-				while ( (n = is.read(buf, start, buf.length-start)) > 0) {
-					start += n;
-				}
-				
-				diplomat = defineClass("ca.sqlpower.architect.altclassloader.DriverManagerDiplomat", buf, 0, start);
-			}
-			Object dmdInstance = diplomat.newInstance();
-			Method getConnection = diplomat.getDeclaredMethod
-				("getConnection", new Class[] { String.class, String.class, String.class } );
-			Connection con = (Connection) getConnection.invoke
-				(dmdInstance, new Object[] {url, user, password});
-			return con;
-		} catch (IllegalAccessException ex) {
-			logger.warn("Couldn't access DriverManagerDiplomat via reflection", ex);
-			SQLException sex = new SQLException("Couldn't create connection");
-			sex.initCause(ex);
-			throw sex;
-		} catch (InvocationTargetException ex) {
-			logger.warn("Couldn't create connection", ex);
-			SQLException sex = new SQLException("Couldn't create connection");
-			sex.initCause(ex);
-			throw sex;
-		} catch (InstantiationException ex) {
-			logger.warn("Couldn't create connection", ex);
-			SQLException sex = new SQLException("Couldn't create connection");
-			sex.initCause(ex);
-			throw sex;
-		} catch (NoSuchMethodException ex) {
-			logger.warn("Couldn't create connection", ex);
-			SQLException sex = new SQLException("Couldn't create connection");
-			sex.initCause(ex);
-			throw sex;
-		} catch (IOException ex) {
-			logger.warn("Couldn't create connection", ex);
-			SQLException sex = new SQLException("Couldn't create connection");
-			sex.initCause(ex);
-			throw sex;
-		}
 	}
 }

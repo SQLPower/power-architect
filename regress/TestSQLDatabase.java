@@ -15,15 +15,6 @@ public class TestSQLDatabase extends SQLTestCase {
 		super(name);
 	}
 
-	protected void setUp() throws Exception {
-		super.setUp();
-
-		String dbXmlFileName = System.getProperty("architect.databaseListFile");
-		dbNameToUse = System.getProperty("architect.databaseListFile.nameToUse");
-
-		dbcsList = new XMLFileDBCSSource(dbXmlFileName).getDBCSList();
-	}
-
 	public void testGoodConnect() throws ArchitectException {
 		assertFalse("db shouldn't have been connected yet", db.isConnected());
 		Connection con = db.getConnection();

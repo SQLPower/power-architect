@@ -1,5 +1,7 @@
 package regress;
 
+import java.io.File;
+
 import junit.framework.*;
 import ca.sqlpower.sql.*;
 
@@ -24,19 +26,21 @@ public abstract class SQLTestCase extends TestCase {
 	}
 	
 	/**
-	 * Sets up the instance variable <code>db</code>. Uses the system
-	 * properties <tt>architect.databaseListFile</tt> and
-	 * <tt>architect.databaseListFile.nameToUse</tt> for the location
-	 * of the databases.xml file and the database id within that file
-	 * to use.
+	 * Sets up the instance variable <code>db</code>. Uses a PL.INI
+	 * file located in the current working directory, called "pl.regression.ini"
+	 * and creates a connection to the database called "regression_test".
+	 * 
+	 * <p>FIXME: Need to parameterise this so that we can test each supported
+	 * database platform!
 	 */
 	protected void setUp() throws Exception {
-		String dbXmlFileName = System.getProperty("architect.databaseListFile");
-		String dbNameToUse = System.getProperty("architect.databaseListFile.nameToUse");
-
-		DBCSSource source = new XMLFileDBCSSource(dbXmlFileName);
-		DBConnectionSpec spec = DBConnectionSpec.searchListForName(source.getDBCSList(),
-																   dbNameToUse);
-		// db = new SQLDatabase(spec);
+		PlDotIni plini = new PlDotIni();
+		plini.read(new File("pl.regression.ini"));
+		db = new SQLDatabase(plini.getDataSource("regression_test"));
+	}
+	
+	protected void tearDown() throws Exception {
+		db.disconnect();
+		db = null;
 	}
 }

@@ -107,11 +107,14 @@ public class PlDotIni {
 
 		while ((lineBytes = readLine(in)) != null) {
 		    String line = new String(lineBytes);
+		    logger.debug("Read in new line: "+line);
 			if (line.startsWith("[Databases_")) {
+				logger.debug("It's a new database connection spec!");
 				currentDS =  new ArchitectDataSource();
 				fileSections.add(currentDS);
 				mode = MODE_READ_DS;
 			} else if (line.startsWith("[")) {
+				logger.debug("It's a new generic section!");
 			    currentSection = new Section(line.substring(1, line.length()-1));
 			    fileSections.add(currentSection);
 			    mode = MODE_READ_GENERIC;
@@ -150,6 +153,9 @@ public class PlDotIni {
 	 * If a line is longer than some arbitrary maximum (currently 10000 bytes), it will
 	 * be split into pieces not larger than that size and returned as separate lines.
 	 * In this case, an error will be logged to the class's logger.
+	 * 
+	 * <p>Note: We think that we require CRLF line ends because the encrypted password
+	 * could contain a bare CR or LF, which we don't want to interpret as an end-of-line.
 	 * 
      * @param in The input stream to read.
      * @return All of the bytes read except the terminating CRLF.  If there are no more
@@ -271,6 +277,7 @@ public class PlDotIni {
 	        Object next = it.next();
 	        if (next instanceof ArchitectDataSource) {
 	            ArchitectDataSource ds = (ArchitectDataSource) next;
+	            logger.debug("Checking if data source "+ds+" is PL Logical connection "+name);
 	            if (ds.getName().equals(name)) return ds;
 	        }
 	    }
