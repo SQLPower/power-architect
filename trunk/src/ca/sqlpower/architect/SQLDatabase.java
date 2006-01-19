@@ -189,7 +189,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	
 
 	public SQLCatalog getCatalogByName(String catalogName) throws ArchitectException {
-		if (!populated) populate();
+		populate();
 		if (children == null || children.size() == 0) {
 			return null;
 		}
@@ -220,7 +220,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	 * name.
 	 */
 	public SQLSchema getSchemaByName(String schemaName) throws ArchitectException {
-		if (!populated) populate();
+		populate();
 		if (children == null || children.size() == 0) {
 			return null;
 		}
@@ -269,7 +269,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	public SQLTable getTableByName(String catalogName, String schemaName, String tableName)
 		throws ArchitectException {
 
-		if (!populated) populate();
+		populate();
 
 		if (tableName == null) {
 			throw new NullPointerException("Table Name must be specified");
@@ -490,9 +490,9 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 			 || (e.getOldValue() != null && e.getNewValue() == null)
 			 || (e.getOldValue() != null && e.getNewValue() != null 
 				 && !e.getOldValue().equals(e.getNewValue())) ) {
-			if (pn.equals("url") || pn.equals("driverClass") || pn.equals("user")) {
+			if ("url".equals(pn) || "driverClass".equals(pn) || "user".equals(pn)) {
 				reset();
-			} else if (pn.equals("displayName")) {
+			} else if ("displayName".equals(pn)) {
 				fireDbObjectChanged("shortDisplayName");
 			}
 		}
