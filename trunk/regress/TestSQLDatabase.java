@@ -12,6 +12,37 @@ public class TestSQLDatabase extends SQLTestCase {
 		super(name);
 	}
 
+	protected void setUp() throws Exception {
+		super.setUp();
+		SQLDatabase mydb = new SQLDatabase(db.getDataSource());
+		Connection con = mydb.getConnection();
+		
+		
+		/*
+		 * Setting up a clean db for each of the tests
+		 */
+		Statement stmt = con.createStatement();
+		try {
+			stmt.executeUpdate("DROP TABLE REGRESSION_TEST1");
+			stmt.executeUpdate("DROP TABLE REGRESSION_TEST2");
+		}
+		catch (SQLException sqle ){
+			System.out.println("+++ TestSQLDatabase exception should be for dropping a non-existant table");
+			sqle.printStackTrace();
+		}
+		
+		stmt.executeUpdate("CREATE TABLE REGRESSION_TEST1 (t1_c1 numeric(10))");
+		stmt.executeUpdate("CREATE TABLE REGRESSION_TEST2 (t2_c1 char(10))");
+		stmt.close();
+		mydb.disconnect();
+		
+	}
+	
+	protected void tearDown() throws Exception {
+		
+		super.tearDown();
+	}
+	
 	public void testGoodConnect() throws ArchitectException {
 		assertFalse("db shouldn't have been connected yet", db.isConnected());
 		Connection con = db.getConnection();
@@ -29,24 +60,42 @@ public class TestSQLDatabase extends SQLTestCase {
 	}
 
 	public void testGetTableByName() throws ArchitectException {
-		SQLTable battingTable, allStarTable, awardTable;
-		assertNotNull(battingTable = db.getTableByName("batting"));
-		assertNotNull(allStarTable = db.getTableByName("all_star"));
-		assertNotNull(awardTable = db.getTableByName("award"));
+		SQLTable table1, table2;
+		assertNotNull(table1 = db.getTableByName("REGRESSION_TEST1"));
+		assertNotNull(table2 = db.getTableByName("REGRESSION_TEST2"));
 		assertNull("should get null for nonexistant table", db.getTableByName("no_such_table"));
+	}
+	
+	public void testIgnoreReset() throws ArchitectException
+	{
+		
+		// Cause db to connect
+		db.getChild(0);
+		
+		db.setIgnoreReset(true);
+		assertTrue(db.getIgnoreReset());
+		
+		db.setDataSource(db.getDataSource());
+		assertTrue(db.isPopulated());
+		
+		db.setIgnoreReset(false);
+		assertFalse(db.getIgnoreReset());
+		db.setDataSource(db.getDataSource());
+		assertFalse(db.isPopulated());
+		
 	}
 
 	public void testReconnect() throws ArchitectException {
-		SQLTable battingTable;
+		
 		// cause db to actually connect
-		assertNotNull(battingTable = db.getTableByName("batting"));
+		assertNotNull(db.getChild(0));
 
 		// cause disconnection
 		db.setDataSource(db.getDataSource());
 		assertFalse("db shouldn't be connected anymore", db.isConnected());
 		assertFalse("db shouldn't be populated anymore", db.isPopulated());
 
-		assertNotNull(battingTable = db.getTableByName("batting"));
+		assertNotNull(db.getChild(1));
 
 		assertTrue("db should be repopulated", db.isPopulated());
 		assertTrue("db should be reconnected", db.isConnected());
@@ -109,4 +158,18 @@ public class TestSQLDatabase extends SQLTestCase {
 		//assertEquals("error message should have been dbconnect.connectionFailed", "dbconnect.connectionFailed", exc.getMessage());
 		assertNull("connection should be null", con);
 	}
+	
+	public void testUnpopulatedDB(){
+		assertFalse(db.isPopulated());
+	}
+
+	public void testAutoPopulate() throws Exception {
+		assertFalse(db.isPopulated());		
+		SQLObject child = db.getChild(0);
+		assertTrue(db.isPopulated());
+		assertFalse(child.isPopulated());
+	}
+	
+	
+	
 }
