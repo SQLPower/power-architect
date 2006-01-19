@@ -29,6 +29,8 @@ public class SQLSchema extends SQLObject {
 	}
 
 	public SQLTable getTableByName(String tableName) throws ArchitectException {
+		populate();
+		
 		Iterator childit = children.iterator();
 		while (childit.hasNext()) {
 			SQLTable child = (SQLTable) childit.next();
