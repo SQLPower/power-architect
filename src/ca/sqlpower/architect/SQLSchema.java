@@ -7,12 +7,15 @@ import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import org.apache.log4j.Logger;
+
 /**
  * A SQLSchema is a container for SQLTables.  If it is in the
  * containment hierarchy for a given RDBMS, it will be directly above
  * SQLTables.  Its parent could be either a SQLDatabase or a SQLCatalog.
  */
 public class SQLSchema extends SQLObject {
+	private static final Logger logger = Logger.getLogger(SQLSchema.class);
 	protected SQLObject parent;
 	protected String schemaName;
 	protected String nativeTerm;
@@ -34,6 +37,7 @@ public class SQLSchema extends SQLObject {
 		Iterator childit = children.iterator();
 		while (childit.hasNext()) {
 			SQLTable child = (SQLTable) childit.next();
+			logger.debug("getTableByName: is child '"+child.getTableName()+"' equal to '"+tableName+"'?");		
 			if (child.getTableName().equalsIgnoreCase(tableName)) {
 				return child;
 			}

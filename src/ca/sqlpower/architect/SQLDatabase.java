@@ -309,6 +309,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 		Iterator childit = target.children.iterator();
 		while (childit.hasNext()) {
 			SQLObject child = (SQLObject) childit.next();
+			
 			if (child instanceof SQLTable) {
 				SQLTable table = (SQLTable) child;
 				if (table.getTableName().equalsIgnoreCase(tableName)) {

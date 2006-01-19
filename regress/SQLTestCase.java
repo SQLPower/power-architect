@@ -6,6 +6,7 @@ import junit.framework.*;
 import ca.sqlpower.sql.*;
 
 import ca.sqlpower.architect.*;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 
 /**
  * SQLTestCase is an abstract base class for test cases that require a
@@ -21,8 +22,11 @@ public abstract class SQLTestCase extends TestCase {
 	 */
 	SQLDatabase db;
 
-	public SQLTestCase(String name) {
+	public SQLTestCase(String name) throws Exception {
 		super(name);
+		new ArchitectFrame();  // creates an ArchitectFrame, which loads settings
+		//FIXME: a better approach would be to have an initialsation method
+		// in the business model, which does not depend on the init routine in ArchitectFrame.
 	}
 	
 	/**
