@@ -1,6 +1,7 @@
 package regress;
 
 import regress.ca.sqlpower.architect.ArchitectExceptionTest;
+import regress.ca.sqlpower.architect.JDBCClassLoaderTest;
 import regress.ca.sqlpower.architect.TestSQLColumn;
 import regress.ca.sqlpower.architect.TestSQLDatabase;
 import regress.ca.sqlpower.architect.swingui.SaveLoadTest;
@@ -15,6 +16,7 @@ public class ArchitectBusinessTestSuite extends TestCase {
 		suite.addTestSuite(ArchitectExceptionTest.class);
 		suite.addTestSuite(SaveLoadTest.class);
 		suite.addTestSuite(TestSQLColumn.class);
+		suite.addTestSuite(JDBCClassLoaderTest.class);
 		//$JUnit-END$
 		return suite;
 	}
