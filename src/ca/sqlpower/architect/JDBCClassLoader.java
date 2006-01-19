@@ -56,7 +56,8 @@ public class JDBCClassLoader extends ClassLoader {
 	 * named class.  Throws ClassNotFoundException if the class can't
 	 * be located.
 	 */
-	protected Class findClass(String name)
+	@Override
+	public Class findClass(String name)
 		throws ClassNotFoundException {
 		logger.debug("Looking for class "+name);
 
@@ -98,6 +99,7 @@ public class JDBCClassLoader extends ClassLoader {
 	 * Attempts to locate the named file in the same JAR files that
 	 * classes are loaded from.
 	 */
+	@Override
 	protected URL findResource(String name) {
 		logger.debug("Looking for resource "+name);
 		Iterator it = session.getDriverJarList().iterator();
