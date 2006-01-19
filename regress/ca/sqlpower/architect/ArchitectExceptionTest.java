@@ -1,4 +1,4 @@
-package regress;
+package regress.ca.sqlpower.architect;
 
 import junit.framework.*;
 import ca.sqlpower.architect.*;
