@@ -8,7 +8,7 @@ import ca.sqlpower.architect.*;
 
 public class TestSQLDatabase extends SQLTestCase {
 
-	public TestSQLDatabase(String name) {
+	public TestSQLDatabase(String name) throws Exception {
 		super(name);
 	}
 
