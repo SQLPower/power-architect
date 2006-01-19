@@ -3,7 +3,7 @@
  *
  * This code belongs to SQL Power Group Inc.
  */
-package regress;
+package regress.ca.sqlpower.architect.swingui;
 
 import java.sql.DatabaseMetaData;
 import java.sql.Types;

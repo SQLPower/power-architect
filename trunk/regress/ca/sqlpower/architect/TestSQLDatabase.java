@@ -1,4 +1,4 @@
-package regress;
+package regress.ca.sqlpower.architect;
 
 import java.beans.PropertyChangeEvent;
 import java.sql.Connection;
