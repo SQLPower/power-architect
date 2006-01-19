@@ -31,6 +31,10 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	protected ArchitectDataSource dataSource;
 	protected transient Connection connection;
 
+	/**
+	 * Stops removal of children and the closure of connection when properties change
+	 * Used to stop the playpen from getting wiped when connection properties change
+	 */
 	protected boolean ignoreReset = false;
 
 
@@ -437,7 +441,8 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	}
 
 	/**
-	 * Removes all children, closes and discards the JDBC connection.
+	 * Removes all children, closes and discards the JDBC connection.  
+	 * Unless {@link #ignoreReset} is true
 	 */
 	protected void reset() {
 		if (ignoreReset) {
