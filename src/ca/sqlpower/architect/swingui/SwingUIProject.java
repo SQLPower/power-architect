@@ -1,27 +1,44 @@
 package ca.sqlpower.architect.swingui;
 
-import ca.sqlpower.architect.*;
-import ca.sqlpower.architect.ddl.*;
-import ca.sqlpower.architect.etl.*;
-import ca.sqlpower.architect.ArchitectDataSource;
-
-import java.awt.Container;
 import java.awt.Point;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
-import java.awt.event.ContainerEvent;
-import java.awt.event.ContainerListener;
-import java.io.*;
-import java.util.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
 import javax.swing.ProgressMonitor;
 import javax.swing.ToolTipManager;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
-import org.apache.commons.digester.*;
+import org.apache.commons.digester.AbstractObjectCreationFactory;
+import org.apache.commons.digester.Digester;
 import org.apache.log4j.Logger;
-import org.xml.sax.SAXException;
 import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+
+import ca.sqlpower.architect.ArchitectDataSource;
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.SQLCatalog;
+import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLExceptionNode;
+import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLObjectEvent;
+import ca.sqlpower.architect.SQLObjectListener;
+import ca.sqlpower.architect.SQLRelationship;
+import ca.sqlpower.architect.SQLSchema;
+import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.ddl.GenericDDLGenerator;
+import ca.sqlpower.architect.etl.PLExport;
 
 public class SwingUIProject {
 	private static final Logger logger = Logger.getLogger(SwingUIProject.class);
@@ -505,14 +522,12 @@ public class SwingUIProject {
 	// ------------- WRITING THE PROJECT FILE ---------------
 	
 	/**
-	 * Saves this project by writing an XML description of it to disk.  The
-	 * location of the file is determined by this project's <code>file</code> property.
+	 * Saves this project by writing an XML description of it to a temp file, then renaming.
+	 * The location of the file is determined by this project's <code>file</code> property.
 	 * 
 	 * @param pm An optional progress monitor which will be initialised then updated 
 	 * periodically during the save operation.  If you use a progress monitor, don't
 	 * invoke this method on the AWT event dispatch thread!
-	 * 
-	 * NEW: write the project out to a temp file and then rename it. 
 	 */
 	public void save(ProgressMonitor pm) throws IOException, ArchitectException {
 		// write to temp file and then rename (this preserves old project file
@@ -525,9 +540,21 @@ public class SwingUIProject {
 		}
 		
 		File backupFile = new File (file.getParent(), file.getName()+"~");		
-		File tempFile = new File (file.getParent(),"tmp___" + file.getName());			
 		
-		out = new PrintWriter(new BufferedWriter(new FileWriter(tempFile)));
+		// Several places we would check dir perms, but MS-Windows stupidly doesn't let use the
+		// "directory write" attribute for directory writing (but instead overloads
+		// it to mean 'this is a special directory'.
+		
+		File tempFile = null;
+		tempFile = new File (file.getParent(),"tmp___" + file.getName());			
+		
+		try {
+			// If creating this temp file fails, feed the user back a more explanatory message
+			out = new PrintWriter(new BufferedWriter(new FileWriter(tempFile)));
+		} catch (IOException e) {
+			throw new ArchitectException("Unable to create output file for save operation, data NOT saved.\n" + e, e);
+		}
+		
 		objectIdMap = new HashMap();
 		dbcsIdMap = new HashMap();
 		indent = 0;
@@ -547,6 +574,7 @@ public class SwingUIProject {
 		    pm.setProgress(progress);
 		    pm.setMillisToDecideToPopup(0);
 		}
+		
 		try {
 			println("<?xml version=\"1.0\"?>");
 			println("<architect-project version=\"0.1\">");
@@ -568,15 +596,32 @@ public class SwingUIProject {
 			pm = null;
 		}
 		
-		// do the rename dance
+		// Do the rename dance.
+		// This is a REALLY bad place for failure (especially if we've made the user wait several hours to save
+		// a large project), so we MUST check failures from renameto (both places!)
 		if (saveOk) {
 			boolean fstatus = false;
 			fstatus = backupFile.delete();			
 			logger.debug("deleting backup~ file: " + fstatus);
-			fstatus = file.renameTo(backupFile);
-			logger.debug("renaming current file to backupFile: " + fstatus);
+			
+			// If this is a brand new project, the old file does not yet exist, no point trying to rename it.
+			// But if it already existed, renaming current to backup must succeed, or we give up.
+			if (file.exists()) {
+				fstatus = file.renameTo(backupFile);
+				logger.debug("rename current file to backupFile: " + fstatus);
+				if (!fstatus) {
+					throw new ArchitectException((
+							"Could not rename current file to backup\nProject saved in " + 
+							tempFile + ": " + file + " still contains old project"));
+				}
+			}
 			fstatus = tempFile.renameTo(file);
-			logger.debug("renaming tempFile to current file: " + fstatus);
+			if (!fstatus) {
+				throw new ArchitectException((
+						"Could not rename temp file to current\nProject saved in " + 
+						tempFile + ": " + file + " still contains old project"));
+			}
+			logger.debug("rename tempFile to current file: " + fstatus);
 		}		
 	}
 
