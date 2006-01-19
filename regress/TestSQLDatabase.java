@@ -1,10 +1,15 @@
 package regress;
 
-import java.sql.*;
-import ca.sqlpower.sql.*;
-import java.util.*;
+import java.beans.PropertyChangeEvent;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 
-import ca.sqlpower.architect.*;
+import ca.sqlpower.architect.ArchitectDataSource;
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLTable;
 
 public class TestSQLDatabase extends SQLTestCase {
 
@@ -154,10 +159,23 @@ public class TestSQLDatabase extends SQLTestCase {
 			exc = e;
 		}
 		assertNotNull("should have got an ArchitectException", exc);
-//		 XXX: this test should be re-enabled when the product has I18N implemented.
-		//assertEquals("error message should have been dbconnect.connectionFailed", "dbconnect.connectionFailed", exc.getMessage());
+		// XXX: this test should be re-enabled when the product has I18N implemented.
+		// assertEquals("error message should have been dbconnect.connectionFailed", "dbconnect.connectionFailed", exc.getMessage());
 		assertNull("connection should be null", con);
 	}
+	
+	public void testPropertyChange() throws Exception
+	{
+		try {
+			PropertyChangeEvent e = new PropertyChangeEvent(null, null,"1", "2");		
+			fail("Property change event didn't reject null source;" + e);
+		} catch (IllegalArgumentException ile) {
+			System.out.println("Caught expected exception.");
+		}
+		PropertyChangeEvent e = new PropertyChangeEvent(this, null,"1", "2");		
+		db.propertyChange(e);
+	}
+	
 	
 	public void testUnpopulatedDB(){
 		assertFalse(db.isPopulated());
