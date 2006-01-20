@@ -6,22 +6,115 @@
 package ca.sqlpower.architect;
 
 /**
- * The ArchitectDataSource represents a connection that the Power Loader or
+ * The ArchitectDataSource represents a database that the Power Loader or
  * the Architect can connect to.  It holds all the information required for
  * making JDBC, ODBC, or native Oracle connections (depending on what type
  * of database the connection is for). 
  * 
  * @see ca.sqlpower.architect.PlDotIni
- * @author jack
+ * @author jack, jonathan
  */
 
-import java.util.*;
-import java.beans.*;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 
-import ca.sqlpower.util.SQLPowerUtils;
-public class ArchitectDataSource implements Comparable {
+public class ArchitectDataSource {
 	
-	protected Map properties;
+	/**
+	 * Compares this data source to the given data source by comparing
+	 * the respecitive fields in the following order:
+	 * <ol>
+	 *  <li>name
+	 *  <li>url
+	 *  <li>driver class
+	 *  <li>user
+	 *  <li>password
+	 * </ol>
+	 * 
+	 * <p>Note: the ArchitectDataSource doesn't implement Comparable itself
+	 * because it would be difficult and unnecessary to do a complete comparison
+	 * which is consistent with equals and hashCode.
+	 */
+	public static class DefaultComparator implements Comparator<ArchitectDataSource> {
+		
+		/**
+		 * Performs the comparison described in the class comment.
+		 * 
+		 * @param o the ArchitectDataSource object to compare with.
+		 * @return &lt;0 if this data source comes before o; 0 if they
+		 *  are equal; &gt;0 otherwise.
+		 * @throws NullPointerException if o==null
+		 * @throws ClassCastException if o is not an instance of ArchitectDataSource
+		 */
+		public int compare(ArchitectDataSource ds1, ArchitectDataSource ds2) {
+			if (ds1 == ds2) return 0;
+			int tmp;
+			String v1, v2;
+			
+			v1 = ds1.getName();
+			v2 = ds2.getName();
+			if (v1 == null && v2 != null) return -1;
+			else if (v1 != null && v2 == null) return 1;
+			else if (v1 != null && v2 != null) {
+				tmp = v1.compareTo(v2);
+			} else {
+				tmp = 0;
+			}
+			if (tmp != 0) return tmp;
+			
+			v1 = ds1.getUrl();
+			v2 = ds2.getUrl();
+			if (v1 == null && v2 != null) return -1;
+			else if (v1 != null && v2 == null) return 1;
+			else if (v1 != null && v2 != null) {
+				tmp = v1.compareTo(v2);
+			} else {
+				tmp = 0;
+			}
+			if (tmp != 0) return tmp;
+			
+			v1 = ds1.getDriverClass();
+			v2 = ds2.getDriverClass();
+			if (v1 == null && v2 != null) return -1;
+			else if (v1 != null && v2 == null) return 1;
+			else if (v1 != null && v2 != null) {
+				tmp = v1.compareTo(v2);
+			} else {
+				tmp = 0;
+			}
+			if (tmp != 0) return tmp;
+			
+			v1 = ds1.getUser();
+			v2 = ds2.getUser();
+			if (v1 == null && v2 != null) return -1;
+			else if (v1 != null && v2 == null) return 1;
+			else if (v1 != null && v2 != null) {
+				tmp = v1.compareTo(v2);
+			} else {
+				tmp = 0;
+			}
+			if (tmp != 0) return tmp;
+			
+			v1 = ds1.getPass();
+			v2 = ds2.getPass();
+			if (v1 == null && v2 != null) return -1;
+			else if (v1 != null && v2 == null) return 1;
+			else if (v1 != null && v2 != null) {
+				tmp = v1.compareTo(v2);
+			} else {
+				tmp = 0;
+			}
+			if (tmp != 0) return tmp;
+			
+			return 0;
+		}
+	}
+
+	private Map<String,String> properties;
 
 	/*
 	 * constants used as keys to get into the properties
@@ -43,14 +136,23 @@ public class ArchitectDataSource implements Comparable {
 	public static final String PL_IP = "IP";
 	public static final String PL_PORT = "PORT";
 
-	protected transient PropertyChangeSupport pcs;
-	protected PropertyChangeSupport getPcs() {
+	/**
+	 * This field is transient; don't access it directly becuase it
+	 * will disappear when this instance is serialized.
+	 */
+	private transient PropertyChangeSupport pcs;
+	
+	/**
+	 * Returns this DataSource's property change support, creating
+	 * a new one if necessary.
+	 */
+	private PropertyChangeSupport getPcs() {
 		if (pcs == null) pcs = new PropertyChangeSupport(this);
 		return pcs;
 	}
 
 	public ArchitectDataSource() {
-		properties = new HashMap();
+		properties = new HashMap<String,String>();
 	}
 
 	public String put(String key, String value) {		
@@ -61,40 +163,41 @@ public class ArchitectDataSource implements Comparable {
 	}
 	
 	public String get(String key) {
-		return (String) properties.get(key);
-	}
-	
-	public Map getPropertiesMap() {
-		return properties;
+		return properties.get(key);
 	}
 	
 	/**
-	 * Prints some info from this DBCS.  For use in debugging.
+	 * Returns a read-only view of this data source's properties.
+	 */
+	public Map<String,String> getPropertiesMap() {
+		return Collections.unmodifiableMap(properties);
+	}
+	
+	/**
+	 * Prints some info from this data source.  For use in debugging.
 	 */
 	public String toString() {
 		return "ArchitectDataSource: "+getDisplayName()+", "+getDriverClass()+", "+getUrl();
 	}
 	
-	public int compareTo(Object o) {
-		if (o == null) {
-			throw new NullPointerException("tried to compare data source to null");
-		}
-		ArchitectDataSource a2 = (ArchitectDataSource) o; // throws ClassCastException
-		
-		// protect against null in getName() 
-		if (SQLPowerUtils.areEqual(getName(),a2.getName())) {
-			return 0;
-		}
-		if (getName().compareToIgnoreCase(a2.getName()) == 0) {
-			return 0; // ignore case
-		}
-		if (getName().compareToIgnoreCase(a2.getName()) > 0) {
-			return 1;
-		} else {
-			return -1;			
-		}
-	}	
-
+	/**
+	 * Compares all properties of this data source to those of the other.
+	 * If there are any differences, returns false.  Otherwise, returns true.
+	 */
+	@Override
+	public boolean equals(Object o) {
+		ArchitectDataSource other = (ArchitectDataSource) o;
+		return this.properties.equals(other.properties);
+	}
+	
+	/**
+	 * Returns a hash that depends on all property values.
+	 */
+	@Override
+	public int hashCode() {
+		return properties.hashCode();
+	}
+	
 	// --------------------- property change ---------------------------
 	public void addPropertyChangeListener(PropertyChangeListener l) {
 		getPcs().addPropertyChangeListener(l);
@@ -215,7 +318,7 @@ public class ArchitectDataSource implements Comparable {
 	}
 	
 	public String getPlSchema() {
-        return (String) properties.get(PL_SCHEMA_OWNER);
+        return properties.get(PL_SCHEMA_OWNER);
     }
 
     public void setPlSchema(String schema) {
@@ -223,7 +326,7 @@ public class ArchitectDataSource implements Comparable {
     }
 
 	public String getPlDbType() {
-        return (String) properties.get(PL_TYPE);
+        return properties.get(PL_TYPE);
     }
 
 	public void setPlDbType(String type) {
@@ -231,7 +334,7 @@ public class ArchitectDataSource implements Comparable {
     }
 
 	public String getOdbcDsn() {
-        return (String) properties.get(PL_DSN);
+        return properties.get(PL_DSN);
     }
 
     public void setOdbcDsn(String dsn) {
