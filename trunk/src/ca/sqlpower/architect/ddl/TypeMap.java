@@ -230,7 +230,7 @@ public class TypeMap {
 		List mappingRules = null; 
 		List applicableRules = new ArrayList();
 		if (database != null) {
-			mappingRules = getRulesForNativeType(database.getDataSource().getPlDbType(),col.getSourceDBTypeName(),false);
+			mappingRules = getRulesForNativeType(database.getDataSource().getPlDbType(),col.getSourceDataTypeName(),false);
 		}
 		if (mappingRules.size() > 0) {
 			Iterator it = mappingRules.iterator();

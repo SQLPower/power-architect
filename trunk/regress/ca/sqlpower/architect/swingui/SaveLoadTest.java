@@ -25,18 +25,10 @@ import junit.framework.TestCase;
 public class SaveLoadTest extends TestCase {
 
     private SwingUIProject project;
-
-    static {
-        try {
-            // This creates the singleton ArchitectFrame.mainInstance that much of the code is addicted to... :(
-            new ArchitectFrame();
-        } catch (ArchitectException e) {
-            e.printStackTrace();
-        }
-    }
     
     public SaveLoadTest(String testName) {
         super(testName);
+        ArchitectFrame.getMainInstance();
     }
 
     /*

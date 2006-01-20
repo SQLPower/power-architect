@@ -12,16 +12,16 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
 
 public class TestSQLDatabase extends SQLTestCase {
-
+	
 	public TestSQLDatabase(String name) throws Exception {
 		super(name);
 	}
 
 	protected void setUp() throws Exception {
 		super.setUp();
+		
 		SQLDatabase mydb = new SQLDatabase(db.getDataSource());
 		Connection con = mydb.getConnection();
-		
 		
 		/*
 		 * Setting up a clean db for each of the tests
@@ -40,12 +40,6 @@ public class TestSQLDatabase extends SQLTestCase {
 		stmt.executeUpdate("CREATE TABLE REGRESSION_TEST2 (t2_c1 char(10))");
 		stmt.close();
 		mydb.disconnect();
-		
-	}
-	
-	protected void tearDown() throws Exception {
-		
-		super.tearDown();
 	}
 	
 	public void testGoodConnect() throws ArchitectException {

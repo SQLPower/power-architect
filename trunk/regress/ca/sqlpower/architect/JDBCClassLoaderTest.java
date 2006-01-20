@@ -15,7 +15,7 @@ public class JDBCClassLoaderTest extends TestCase {
 	public void testJDBCClassLoader() throws Exception {
 				
 		// Side effect is to load my prefs; needed to avoid having to manually add jar to session.
-		new ArchitectFrame();
+		ArchitectFrame.getMainInstance();
 		
 		ArchitectSession sess = ArchitectSession.getInstance();
 		
