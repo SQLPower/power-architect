@@ -288,15 +288,15 @@ public class PlDotIni {
      * @return a sorted List of all the data sources in this pl.ini.
      */
     public List getConnections() {
-        List connections = new ArrayList();
+        List<ArchitectDataSource> connections = new ArrayList<ArchitectDataSource>();
 	    Iterator it = fileSections.iterator();
 	    while (it.hasNext()) {
 	        Object next = it.next();
 	        if (next instanceof ArchitectDataSource) {
-	            connections.add(next);
+	            connections.add((ArchitectDataSource) next);
 	        }
-	    }	    
-        Collections.sort(connections);
+	    }
+        Collections.sort(connections, new ArchitectDataSource.DefaultComparator());
         return connections;
     }
     
