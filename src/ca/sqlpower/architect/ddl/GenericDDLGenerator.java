@@ -209,7 +209,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 			if (td == null) {
 				td = (GenericTypeDescriptor) typeMap.get(new Integer(Types.VARCHAR)); //better be non-null!
 				GenericTypeDescriptor oldType = new GenericTypeDescriptor
-					(c.getSourceDBTypeName(), c.getType(), c.getPrecision(),
+					(c.getSourceDataTypeName(), c.getType(), c.getPrecision(),
 					 null, null, c.getNullable(), false, false);
 				oldType.determineScaleAndPrecision();
 				warnings.add(new TypeMapWarning(c, "Unknown Target Type", oldType, td));

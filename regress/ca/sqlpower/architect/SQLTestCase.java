@@ -24,7 +24,7 @@ public abstract class SQLTestCase extends TestCase {
 
 	public SQLTestCase(String name) throws Exception {
 		super(name);
-		new ArchitectFrame();  // creates an ArchitectFrame, which loads settings
+		ArchitectFrame.getMainInstance();  // creates an ArchitectFrame, which loads settings
 		//FIXME: a better approach would be to have an initialsation method
 		// in the business model, which does not depend on the init routine in ArchitectFrame.
 	}

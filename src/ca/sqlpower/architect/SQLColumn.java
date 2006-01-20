@@ -37,7 +37,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	 * This is the native name for the column's type in its source
 	 * database.  See {@link #type} for system-independant type.
 	 */
-	protected String sourceDBTypeName;
+	private String sourceDataTypeName;
 
 	/*
 	 * These were mixed up originally...
@@ -95,6 +95,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 		nullable = DatabaseMetaData.columnNoNulls;
 		autoIncrement = false;
 		referenceCount = 1;
+		children = Collections.EMPTY_LIST;
 	}
 
 	/**
@@ -136,7 +137,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 		this.columnName = colName;
 		this.physicalColumnName = null; // always starts off life as null
 		this.type = dataType;
-		this.sourceDBTypeName = nativeType;
+		this.sourceDataTypeName = nativeType;
 		this.scale = scale;
 		this.precision = precision;
 		this.nullable = nullable;
@@ -171,7 +172,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 		c.columnName = source.columnName;
 		c.physicalColumnName = source.physicalColumnName;
 		c.type = source.type;
-		c.sourceDBTypeName = source.sourceDBTypeName;
+		c.sourceDataTypeName = source.sourceDataTypeName;
 		c.precision = source.precision;
 		c.scale = source.scale;
 		c.nullable = source.nullable;
@@ -316,13 +317,13 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	}
 
 	public String getShortDisplayName() {
-		if (sourceDBTypeName != null) {
+		if (sourceDataTypeName != null) {
 			if (precision > 0 && scale > 0) {
-				return columnName+": "+sourceDBTypeName+"("+precision+","+scale+")";
+				return columnName+": "+sourceDataTypeName+"("+precision+","+scale+")";
 			} else if (precision > 0) {
-				return columnName+": "+sourceDBTypeName+"("+precision+")"; // XXX: should we display stuff like (18,0) for decimals?
+				return columnName+": "+sourceDataTypeName+"("+precision+")"; // XXX: should we display stuff like (18,0) for decimals?
 			} else {
-				return columnName+": "+sourceDBTypeName; 				
+				return columnName+": "+sourceDataTypeName; 				
 			}			
 		} else {
 			return columnName+": "
@@ -405,19 +406,19 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	 */
 	public void setType(int argType) {
 		if (type != argType) {
-			setSourceDBTypeName(null);
+			setSourceDataTypeName(null);
 			this.type = argType;
 			fireDbObjectChanged("type");
 		}
 	}
 
-	public String getSourceDBTypeName() {
-		return sourceDBTypeName;
+	public String getSourceDataTypeName() {
+		return sourceDataTypeName;
 	}
 
-	public void setSourceDBTypeName(String n) {
-		sourceDBTypeName = n;
-		fireDbObjectChanged("sourceDBTypeName");
+	public void setSourceDataTypeName(String n) {
+		sourceDataTypeName = n;
+		fireDbObjectChanged("sourceDataTypeName");
 	}
 
 	/**

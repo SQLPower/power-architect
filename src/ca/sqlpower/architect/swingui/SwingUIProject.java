@@ -208,9 +208,15 @@ public class SwingUIProject {
 		d.addSetProperties("*/column");		
 		// this needs to be manually set last to prevent generic types 
 		// from overwriting database specific types
-		d.addCallMethod("*/column","setSourceDBTypeName",1);
+		
+		// Old name (it has been updated to sourceDataTypeName)
+		d.addCallMethod("*/column","setSourceDataTypeName",1);
 		d.addCallParam("*/column",0,"sourceDBTypeName");
-		d.addSetNext("*/column", "addChild");		
+
+		// new name
+		d.addCallMethod("*/column","setSourceDataTypeName",1);
+		d.addCallParam("*/column",0,"sourceDataTypeName");
+		d.addSetNext("*/column", "addChild");
 		
 		SQLRelationshipFactory relationshipFactory = new SQLRelationshipFactory();
 		d.addFactoryCreate("*/relationship", relationshipFactory);
@@ -850,7 +856,7 @@ public class SwingUIProject {
 			}
 			propNames.put("columnName", ((SQLColumn) o).getColumnName());
 			propNames.put("type", new Integer(((SQLColumn) o).getType()));
-			propNames.put("sourceDBTypeName", ((SQLColumn) o).getSourceDBTypeName());
+			propNames.put("sourceDataTypeName", ((SQLColumn) o).getSourceDataTypeName());
 			propNames.put("scale", new Integer(((SQLColumn) o).getScale()));
 			propNames.put("precision", new Integer(((SQLColumn) o).getPrecision()));
 			propNames.put("nullable", new Integer(((SQLColumn) o).getNullable()));

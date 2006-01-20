@@ -89,12 +89,21 @@ public class ArchitectFrame extends JFrame {
 	};
 	
 	/**
-	 * Tracks whether or not the most recent "save project" operation was successful.
+	 * Tracks whether or not the most recent "save project" operation was
+	 * successful.
 	 */
 	private boolean lastSaveOpSuccessful;
 	
-	public ArchitectFrame() throws ArchitectException {
-	    mainInstance = this;
+	/**
+	 * You can't create an architect frame using this constructor.  You have to
+	 * call {@link #getMainInstance()}.
+	 * 
+	 * @throws ArchitectException
+	 */
+	private ArchitectFrame() throws ArchitectException {
+		synchronized (ArchitectFrame.class) {
+			mainInstance = this;
+		}
 	    // close handled by window listener
 	    setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 	    architectSession = ArchitectSession.getInstance();
@@ -477,7 +486,14 @@ public class ArchitectFrame extends JFrame {
 		projectSettingsAction.setArchitectFrame(this);
 	}
 
-	public static ArchitectFrame getMainInstance() {
+	public static synchronized ArchitectFrame getMainInstance() {
+		if (mainInstance == null) {
+			try {
+				new ArchitectFrame();
+			} catch (ArchitectException e) {
+				throw new RuntimeException("Couldn't create ArchitectFrame instance!");
+			}
+		}
 		return mainInstance;
 	}
 	
@@ -556,7 +572,7 @@ public class ArchitectFrame extends JFrame {
 	public static void main(String args[]) throws ArchitectException {
 		ArchitectUtils.configureLog4j();
 
-		new ArchitectFrame();
+		getMainInstance();
 		
 		SwingUtilities.invokeLater(new Runnable() {
 				public void run() {
@@ -565,7 +581,7 @@ public class ArchitectFrame extends JFrame {
 					logger.debug("current motion threshold is: " + System.getProperty("awt.dnd.drag.threshold"));
 					System.setProperty("awt.dnd.drag.threshold","50");
 					logger.debug("new motion threshold is: " + System.getProperty("awt.dnd.drag.threshold"));
-					mainInstance.setVisible(true);
+					getMainInstance().setVisible(true);
 				}
 			});
 	}
