@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.Iterator;
 import java.util.HashMap;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Properties;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -26,7 +27,8 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	 * Caches connections across serialization attempts.  See {@link
 	 * #connect()}.
 	 */
-	private static transient HashMap dbConnections = new HashMap();
+	private static Map<ArchitectDataSource,Connection> dbConnections =
+		new HashMap<ArchitectDataSource,Connection>();
 
 	protected ArchitectDataSource dataSource;
 	protected transient Connection connection;
@@ -66,7 +68,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	public synchronized void connect() throws ArchitectException {
 		try {
 			if (connection != null && !connection.isClosed()) return;
-			connection = (Connection) dbConnections.get(dataSource);
+			connection = dbConnections.get(dataSource);
 			if (connection != null && !connection.isClosed()) return;
 
 			if (dataSource.getDriverClass() == null
@@ -564,18 +566,6 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	 * by the connect() method.  Logs, but does not propogate, SQL exceptions.
 	 */
 	public void disconnect() {
-//		Iterator it = dbConnections.entrySet().iterator();
-//		while (it.hasNext()) {
-//			Map.Entry ent = (Map.Entry) it.next();
-//			Connection c = (Connection) ent.getValue();
-//			try {
-//				if (c != null && !c.isClosed()) c.close();
-//			} catch (SQLException ex) {
-//				logger.error("Error disconnecting a dbConnections connection in disconnect()");
-//			} finally {
-//				it.remove();
-//			}
-//		}
 		try {
 			if (connection != null && !connection.isClosed()) connection.close();
 		} catch (SQLException ex) {
