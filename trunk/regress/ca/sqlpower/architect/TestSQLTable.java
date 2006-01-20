@@ -133,6 +133,51 @@ public class TestSQLTable extends SQLTestCase {
 			table1.addColumn(1,newColumn);
 			assertEquals("Column inserted into wrong position or did not insert",newColumn,table1.getColumn(1));
 			
+		}
+		
+		public void testRemoveColumnOutBounds() throws ArchitectException
+		{
+			SQLTable table1;
+			SQLColumn col1;
+			SQLColumn col2;
+			 
+			table1 = db.getTableByName("REGRESSION_TEST1");
+			Exception exc = null;
+			try {
+				table1.removeColumn(16);
+			} catch (IndexOutOfBoundsException e) {
+				System.out.println("Method throws proper error");
+				exc=e;
+			}
+			
+			assertNotNull("Should have thrown an exception",exc);
+		}
+		
+		public void testRemoveColumn() throws ArchitectException
+		{
+			SQLTable table1;
+			SQLColumn col1;
+			SQLColumn col2;
+			 
+			table1 = db.getTableByName("REGRESSION_TEST1");
+			col1 = table1.getColumn(0);
+			col2 = table1.getColumn(1);
+
+			assertEquals("We removed a column when we shouldn't have",table1.getColumns().size(),2);
+			table1.removeColumn(col1);
+			assertEquals("Either 0 or 2+ columns were removed",table1.getColumns().size(),1);
+			assertEquals("The wrong column was removed",col2,table1.getColumn(0));
+			table1.removeColumn(0);
+			assertEquals("Last Column failed to be removed",table1.getColumns().size(),0);
+			Exception exc = null;
+			try {
+				table1.removeColumn(0);
+			} catch (IndexOutOfBoundsException e) {
+				System.out.println("Method throws proper error");
+				exc = e;
+			}
+			assertNotNull("Should have thrown an exception",exc);
+			
 			
 		}
 		
