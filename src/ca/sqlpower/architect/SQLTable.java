@@ -81,6 +81,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		children = new ArrayList();
 	}
 
+		
 	/**
 	 * If you create a table from scratch using the no-args
 	 * constructor, you should call this to create the standard set of
@@ -183,7 +184,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		return t;
 	}
 	
-	protected synchronized void populateColumns() throws ArchitectException {
+	private synchronized void populateColumns() throws ArchitectException {
 		if (columnsFolder.isPopulated()) return;
 		if (columnsFolder.children.size() > 0) throw new IllegalStateException("Can't populate table because it already contains columns");
 		try {
@@ -211,7 +212,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * side effect of populating the exported key side of the
 	 * relationships for the exporting tables.
 	 */
-	public synchronized void populateRelationships() throws ArchitectException {
+	private synchronized void populateRelationships() throws ArchitectException {
 		if (!columnsFolder.isPopulated()) throw new IllegalStateException("Table must be populated before relationships are added");
 		if (importedKeysFolder.isPopulated()) return;
 		int oldSize = importedKeysFolder.children.size();
@@ -311,11 +312,15 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 */
 	public void inherit(int pos, SQLTable source) throws ArchitectException {
 		SQLColumn c;
+		if (source == this)
+		{
+			throw new ArchitectException("Cannot inherit from self");
+		}
 
 		boolean addToPK;
 		int pkSize = getPkSize();
-		int sourceSize = source.columnsFolder.children.size();
-		int originalSize = columnsFolder.children.size();
+		int sourceSize = source.getColumns().size();
+		int originalSize = getColumns().size();
 		if (originalSize == 0 || pos < pkSize) {
 			addToPK = true;
 			normalizePrimaryKey();
@@ -374,8 +379,12 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * list.
 	 */
 	public SQLColumn getColumnByName(String colName, boolean populate) throws ArchitectException {
-		if (populate && !columnsFolder.isPopulated()) populateColumns();
+		if (populate) populateColumns();
 		logger.debug("Looking for column "+colName+" in "+children);
+		/* if columnsFolder.children.iterator(); gets changed to getColumns().iterator() 
+		 * we get infinite recursion between populateColumns, getColumns, 
+		 * getColumnsByName and addColumnsToTable
+		 */
 		Iterator it = columnsFolder.children.iterator();
 		while (it.hasNext()) {
 			SQLColumn col = (SQLColumn) it.next();
@@ -390,16 +399,26 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 
 	public int getColumnIndex(SQLColumn col) {
 		logger.debug("Looking for column index of: " + col);
-		Iterator it = columnsFolder.children.iterator();
-		int colIdx = 0;
-		while (it.hasNext()) {
-			if (it.next() == col) {
-				return colIdx;
+		
+		Iterator it;
+		try {
+			it = getColumns().iterator();
+		
+			int colIdx = 0;
+			while (it.hasNext()) {
+				if (it.next() == col) {
+					return colIdx;
+				}
+				colIdx++;
 			}
-			colIdx++;
+		} catch (ArchitectException e)
+		{
+			logger.warn("Unexpected ArchitectException in getColumnIndex on " +col.toString());
 		}
+		
 		logger.debug("NOT FOUND");
 		return -1;
+		
 	}
 
 	public void addColumn(SQLColumn col) {
@@ -407,6 +426,12 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	}
 
 	public void addColumn(int pos, SQLColumn col) {
+		
+		// Prevent the same column from being added to the same table twice
+		if (this.getColumnIndex(col) != -1)
+		{
+			col =(SQLColumn) col.clone();
+		}
 		boolean addToPK = false;
 		int pkSize = getPkSize();
 		try {
@@ -414,7 +439,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 				addToPK = true;
 				normalizePrimaryKey();
 				for (int i = pos; i < pkSize; i++) {
-					((SQLColumn) columnsFolder.children.get(i)).primaryKeySeq = new Integer(i + 1);
+					((SQLColumn) getColumns().get(i)).primaryKeySeq = new Integer(i + 1);
 				}
 			}
 		} catch (ArchitectException e) {
@@ -476,13 +501,19 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	public void removeColumn(SQLColumn col) throws LockedColumnException {
 		// NOTE: the LockedColumnException check was not being used, and there was 
         // no comment about why it had been commmented out...
- 		List keys = keysOfColumn(col);
- 		if (keys.isEmpty()) {
- 			columnsFolder.removeChild(col);
- 			normalizePrimaryKey();
- 		} else {
- 			throw new LockedColumnException("This column can't be removed because it belongs to the "+keys.get(0)+" relationship");
- 		}
+ 		List keys;
+		try {
+			keys = keysOfColumn(col);
+		
+	 		if (keys.isEmpty()) {
+	 			columnsFolder.removeChild(col);
+	 			normalizePrimaryKey();
+	 		} else {
+	 			throw new LockedColumnException("This column can't be removed because it belongs to the "+keys.get(0)+" relationship");
+	 		}
+		} catch (ArchitectException e) {
+			logger.warn("failed to access the keys of the column");
+		}
 	}
 
 	/**
@@ -500,9 +531,9 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	    // This is necessary because the relationships prevent deletion of locked keys.
  		SQLColumn col = (SQLColumn) columnsFolder.children.remove(oldIdx);
  		columnsFolder.fireDbChildRemoved(oldIdx, col);
- 		columnsFolder.children.add(newIdx, col);
+ 		getColumns().add(newIdx, col);
  		if (newIdx == 0
- 			|| ((SQLColumn) columnsFolder.children.get(newIdx-1)).primaryKeySeq != null) {
+ 			|| ((SQLColumn) getColumns().get(newIdx-1)).primaryKeySeq != null) {
  			col.primaryKeySeq = new Integer(1); // will get sane value when normalized
  		}
  		normalizePrimaryKey();
@@ -514,32 +545,37 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * primary key to its index in this table.
 	 */
 	public void normalizePrimaryKey() {
-		if (columnsFolder.children.isEmpty()) return;
-		boolean donePk = false;
-		int i = 0;
-		Iterator it = columnsFolder.children.iterator();
-		while (it.hasNext()) {
-			SQLColumn col = (SQLColumn) it.next();
-			if (col.getPrimaryKeySeq() == null) donePk = true;
-			if (!donePk) {
-				col.primaryKeySeq = new Integer(i);
-			} else {
-				col.primaryKeySeq = null;
+		try {
+			if (getColumns().isEmpty()) return;
+		
+			boolean donePk = false;
+			int i = 0;
+			Iterator it = getColumns().iterator();
+			while (it.hasNext()) {
+				SQLColumn col = (SQLColumn) it.next();
+				if (col.getPrimaryKeySeq() == null) donePk = true;
+				if (!donePk) {
+					col.primaryKeySeq = new Integer(i);
+				} else {
+					col.primaryKeySeq = null;
+				}
+				i++;
 			}
-			i++;
+		} catch (ArchitectException e) {
+			logger.warn("Unexpected ArchitectException in normalizePrimaryKey "+e);
 		}
 	}
 	
-	public List keysOfColumn(SQLColumn col) {
+	public List keysOfColumn(SQLColumn col) throws ArchitectException {
 		LinkedList keys = new LinkedList();
-		Iterator it = exportedKeysFolder.children.iterator();
+		Iterator it = getExportedKeys().iterator();
 		while (it.hasNext()) {
 			SQLRelationship r = (SQLRelationship) it.next();
 			if (r.containsPkColumn(col)) {
 				keys.add(r);
 			}
 		}
-		it = importedKeysFolder.children.iterator();
+		it = getExportedKeys().iterator();
 		while (it.hasNext()) {
 			SQLRelationship r = (SQLRelationship) it.next();
 			if (r.containsFkColumn(col)) {
