@@ -7,10 +7,13 @@ import java.util.TreeMap;
 
 import org.apache.commons.beanutils.BeanUtils;
 
+import regress.ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
+
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.SQLTable.Folder;
 
 public class TestSQLTable extends SQLTestCase {
 	
@@ -202,6 +205,65 @@ public class TestSQLTable extends SQLTestCase {
 			assertEquals("2nd key out of order", table1.getColumn(1),col2);
 			assertEquals("Too many or too few primary keys",table1.getPkSize(),2);
 			
+		}
+
+
+		/*
+		 * Test method for 'ca.sqlpower.architect.SQLObject.fireDbChildrenInserted(int[], List)'
+		 */
+		public void testFireDbChildrenInserted() throws Exception {
+
+			SQLTable table1 = db.getTableByName("REGRESSION_TEST1"); 
+			SQLColumn c1 = table1.getColumn(0);
+			Folder folder = table1.getColumnsFolder();
+
+			TestSQLObjectListener test1 = new TestSQLObjectListener();
+			folder.addSQLObjectListener(test1);
+			TestSQLObjectListener test2 = new TestSQLObjectListener();
+			folder.addSQLObjectListener(test2);
+
+			assertEquals(test1.getInsertedCount(),0);
+			assertEquals(test1.getRemovedCount(),0);
+			assertEquals(test1.getChangedCount(),0);
+			assertEquals(test1.getStructureChangedCount(),0);
+			
+			assertEquals(test2.getInsertedCount(),0);
+			assertEquals(test2.getRemovedCount(),0);
+			assertEquals(test2.getChangedCount(),0);
+			assertEquals(test2.getStructureChangedCount(),0);
+			
+			SQLColumn tmpCol = new SQLColumn();
+			table1.addColumn(tmpCol);
+			table1.changeColumnIndex(table1.getColumnIndex(c1),2);
+			
+			assertEquals(test1.getInsertedCount(),2);
+			assertEquals(test1.getRemovedCount(),1);
+			assertEquals(test1.getChangedCount(),0);
+			assertEquals(test1.getStructureChangedCount(),0);
+			
+			assertEquals(test2.getInsertedCount(),2);
+			assertEquals(test2.getRemovedCount(),1);
+			assertEquals(test2.getChangedCount(),0);
+			assertEquals(test2.getStructureChangedCount(),0);
+			
+			folder.removeSQLObjectListener(test1);
+			table1.changeColumnIndex(table1.getColumnIndex(c1),1);
+			
+			assertEquals(test1.getInsertedCount(),2);
+			assertEquals(test1.getRemovedCount(),1);
+			assertEquals(test1.getChangedCount(),0);
+			assertEquals(test1.getStructureChangedCount(),0);
+			
+			assertEquals(test2.getInsertedCount(),3);
+			assertEquals(test2.getRemovedCount(),2);
+			assertEquals(test2.getChangedCount(),0);
+			assertEquals(test2.getStructureChangedCount(),0);
+			
+			table1.removeColumn(tmpCol);
+			assertEquals(test2.getInsertedCount(),3);
+			assertEquals(test2.getRemovedCount(),3);
+			assertEquals(test2.getChangedCount(),0);
+			assertEquals(test2.getStructureChangedCount(),0);
 		}
 
 }

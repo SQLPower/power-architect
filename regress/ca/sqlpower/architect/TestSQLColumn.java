@@ -7,6 +7,7 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.Comparator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.beanutils.BeanUtils;
@@ -14,7 +15,11 @@ import org.apache.commons.beanutils.BeanUtils;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLObjectEvent;
+import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.SQLTable.Folder;
 
 public class TestSQLColumn extends SQLTestCase {
 
@@ -641,134 +646,285 @@ public class TestSQLColumn extends SQLTestCase {
 	/*
 	 * Test method for 'ca.sqlpower.architect.SQLObject.getChild(int)'
 	 */
-	public void testGetChild() {
-
+	public void testGetChild() throws Exception {
+		SQLColumn tmpCol = new SQLColumn();
+		try {
+			tmpCol.getChild(0);
+			tmpCol.getChild(1);
+		} catch (IndexOutOfBoundsException e1) {
+			// it's normal
+		}
+				
+		SQLColumn cowCol = table3pk.getColumn(0);
+		try {
+			cowCol.getChild(0);
+			cowCol.getChild(1);
+		} catch (IndexOutOfBoundsException e1) {
+			// it's normal
+		}
 	}
 
 	/*
 	 * Test method for 'ca.sqlpower.architect.SQLObject.getChildCount()'
 	 */
-	public void testGetChildCount() {
+	public void testGetChildCount() throws Exception {
+		SQLColumn tmpCol = new SQLColumn();
+		int count = tmpCol.getChildCount();
+		assertEquals(count,0);
 
+		SQLColumn cowCol = table3pk.getColumn(0);
+		count = cowCol.getChildCount();
+		assertEquals(count,0);
 	}
 
 	/*
 	 * Test method for 'ca.sqlpower.architect.SQLObject.addChild(int, SQLObject)'
 	 */
-	public void testAddChildIntSQLObject() {
+	public void testAddChildIntSQLObject() throws Exception {
+		SQLColumn tmpCol = new SQLColumn();
+		try {
+			tmpCol.addChild(0,table1pk);
+			fail();
+			tmpCol.addChild(2,table3pk);
+			fail();
+			
+		} catch ( UnsupportedOperationException e ) {
+		}
 
+
+		SQLColumn cowCol = table3pk.getColumn(0);
+		try {
+			cowCol.addChild(0,table1pk);
+			fail();
+			cowCol.addChild(2,table3pk);
+			fail();
+		} catch ( UnsupportedOperationException e ) {
+		}
+		
 	}
 
 	/*
 	 * Test method for 'ca.sqlpower.architect.SQLObject.addChild(SQLObject)'
 	 */
-	public void testAddChildSQLObject() {
+	public void testAddChildSQLObject() throws Exception {
+		SQLColumn tmpCol = new SQLColumn();
+		try {
+			tmpCol.addChild(table1pk);
+			fail();
+			tmpCol.addChild(table3pk);
+			fail();
+		} catch ( UnsupportedOperationException e ) {
+		}
 
+
+		SQLColumn cowCol = table3pk.getColumn(0);
+		try {
+			cowCol.addChild(table1pk);
+			fail();
+			cowCol.addChild(table3pk);
+			fail();
+		} catch ( UnsupportedOperationException e ) {
+		}
 	}
 
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLObject.removeChild(int)'
-	 */
-	public void testRemoveChildInt() {
+	public static class TestSQLObjectListener implements SQLObjectListener {
 
-	}
+		private int insertedCount;
+		private int removedCount;
+		private int changedCount;
+		private int structureChangedCount;
+		private String lastEventName;
 
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLObject.removeChild(SQLObject)'
-	 */
-	public void testRemoveChildSQLObject() {
+		public TestSQLObjectListener() {
+			insertedCount = 0;
+			removedCount = 0;
+			changedCount = 0;
+			structureChangedCount = 0;
+			lastEventName = null;
+		}
+		public void dbChildrenInserted(SQLObjectEvent e) {
+			insertedCount++;
+		}
 
-	}
+		public void dbChildrenRemoved(SQLObjectEvent e) {
+			removedCount++;
+		}
 
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLObject.removeDependencies()'
-	 */
-	public void testRemoveDependencies() {
+		public void dbObjectChanged(SQLObjectEvent e) {
+			changedCount++;
+			lastEventName = e.getPropertyName();
+		}
 
+		public void dbStructureChanged(SQLObjectEvent e) {
+			structureChangedCount++;
+			
+		}
+
+		public int getInsertedCount() {
+			return insertedCount;
+		}
+
+		public int getRemovedCount() {
+			return removedCount;
+		}
+		public int getChangedCount() {
+			return changedCount;
+		}
+		public int getStructureChangedCount() {
+			return structureChangedCount;
+		}
+		public String getLastEventName() {
+			return lastEventName;
+		}
+		
 	}
 
 	/*
 	 * Test method for 'ca.sqlpower.architect.SQLObject.getSQLObjectListeners()'
 	 */
-	public void testGetSQLObjectListeners() {
-
+	public void testGetSQLObjectListeners() throws Exception {
+		SQLColumn tmpCol = new SQLColumn();
+		SQLColumn cowCol = table3pk.getColumn(0);
+		
+		LinkedList ll = (LinkedList) tmpCol.getSQLObjectListeners();
+		assertEquals(0,ll.size());
+		TestSQLObjectListener test1 = new TestSQLObjectListener();
+		tmpCol.addSQLObjectListener(test1);
+		assertEquals(1,ll.size());
+		TestSQLObjectListener test2 = new TestSQLObjectListener();
+		tmpCol.addSQLObjectListener(test2);
+		assertEquals(2,ll.size());
+		
+		assertEquals(test1.getInsertedCount(),0);
+		assertEquals(test1.getRemovedCount(),0);
+		assertEquals(test1.getChangedCount(),0);
+		assertEquals(test1.getStructureChangedCount(),0);
+		
+		assertEquals(test2.getInsertedCount(),0);
+		assertEquals(test2.getRemovedCount(),0);
+		assertEquals(test2.getChangedCount(),0);
+		assertEquals(test2.getStructureChangedCount(),0);
+		
+		tmpCol.setName("xxx");
+		assertEquals(test1.getInsertedCount(),0);
+		assertEquals(test1.getRemovedCount(),0);
+		assertEquals(test1.getChangedCount(),1);
+		assertEquals(test1.getStructureChangedCount(),0);
+		
+		assertEquals(test2.getInsertedCount(),0);
+		assertEquals(test2.getRemovedCount(),0);
+		assertEquals(test2.getChangedCount(),1);
+		assertEquals(test2.getStructureChangedCount(),0);
+		
+		tmpCol.setName("xxx");
+		
+		assertEquals(test1.getInsertedCount(),0);
+		assertEquals(test1.getRemovedCount(),0);
+		assertEquals(test1.getChangedCount(),2);
+		assertEquals(test1.getStructureChangedCount(),0);
+		
+		assertEquals(test2.getInsertedCount(),0);
+		assertEquals(test2.getRemovedCount(),0);
+		assertEquals(test2.getChangedCount(),2);
+		assertEquals(test2.getStructureChangedCount(),0);
+		
+		tmpCol.removeSQLObjectListener(test1);
+		assertEquals(1,ll.size());
+		
+		assertEquals(test1.getInsertedCount(),0);
+		assertEquals(test1.getRemovedCount(),0);
+		assertEquals(test1.getChangedCount(),2);
+		assertEquals(test1.getStructureChangedCount(),0);
+		
+		assertEquals(test2.getInsertedCount(),0);
+		assertEquals(test2.getRemovedCount(),0);
+		assertEquals(test2.getChangedCount(),2);
+		assertEquals(test2.getStructureChangedCount(),0);
+		
+		tmpCol.setName("xxx");
+		
+		assertEquals(test1.getInsertedCount(),0);
+		assertEquals(test1.getRemovedCount(),0);
+		assertEquals(test1.getChangedCount(),2);
+		assertEquals(test1.getStructureChangedCount(),0);
+		
+		assertEquals(test2.getInsertedCount(),0);
+		assertEquals(test2.getRemovedCount(),0);
+		assertEquals(test2.getChangedCount(),3);
+		assertEquals(test2.getStructureChangedCount(),0);
+		
+		assertEquals(test2.getLastEventName(), "columnName");
+		
+		
+		ll = (LinkedList) cowCol.getSQLObjectListeners();
+		assertEquals(0,ll.size());
+		test1 = new TestSQLObjectListener();
+		cowCol.addSQLObjectListener(test1);
+		assertEquals(1,ll.size());
+		test2 = new TestSQLObjectListener();
+		cowCol.addSQLObjectListener(test2);
+		assertEquals(2,ll.size());
+		
+		assertEquals(test1.getInsertedCount(),0);
+		assertEquals(test1.getRemovedCount(),0);
+		assertEquals(test1.getChangedCount(),0);
+		assertEquals(test1.getStructureChangedCount(),0);
+		
+		assertEquals(test2.getInsertedCount(),0);
+		assertEquals(test2.getRemovedCount(),0);
+		assertEquals(test2.getChangedCount(),0);
+		assertEquals(test2.getStructureChangedCount(),0);
+		
+		cowCol.setName("xxx");
+		assertEquals(test1.getInsertedCount(),0);
+		assertEquals(test1.getRemovedCount(),0);
+		assertEquals(test1.getChangedCount(),1);
+		assertEquals(test1.getStructureChangedCount(),0);
+		
+		assertEquals(test2.getInsertedCount(),0);
+		assertEquals(test2.getRemovedCount(),0);
+		assertEquals(test2.getChangedCount(),1);
+		assertEquals(test2.getStructureChangedCount(),0);
+		
+		cowCol.setName("xxx");
+		
+		assertEquals(test1.getInsertedCount(),0);
+		assertEquals(test1.getRemovedCount(),0);
+		assertEquals(test1.getChangedCount(),2);
+		assertEquals(test1.getStructureChangedCount(),0);
+		
+		assertEquals(test2.getInsertedCount(),0);
+		assertEquals(test2.getRemovedCount(),0);
+		assertEquals(test2.getChangedCount(),2);
+		assertEquals(test2.getStructureChangedCount(),0);
+		
+		cowCol.removeSQLObjectListener(test1);
+		assertEquals(1,ll.size());
+		
+		assertEquals(test1.getInsertedCount(),0);
+		assertEquals(test1.getRemovedCount(),0);
+		assertEquals(test1.getChangedCount(),2);
+		assertEquals(test1.getStructureChangedCount(),0);
+		
+		assertEquals(test2.getInsertedCount(),0);
+		assertEquals(test2.getRemovedCount(),0);
+		assertEquals(test2.getChangedCount(),2);
+		assertEquals(test2.getStructureChangedCount(),0);
+		
+		cowCol.setName("xxx");
+		
+		assertEquals(test1.getInsertedCount(),0);
+		assertEquals(test1.getRemovedCount(),0);
+		assertEquals(test1.getChangedCount(),2);
+		assertEquals(test1.getStructureChangedCount(),0);
+		
+		assertEquals(test2.getInsertedCount(),0);
+		assertEquals(test2.getRemovedCount(),0);
+		assertEquals(test2.getChangedCount(),3);
+		assertEquals(test2.getStructureChangedCount(),0);
+		
+		assertEquals(test2.getLastEventName(), "columnName");
 	}
 
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLObject.addSQLObjectListener(SQLObjectListener)'
-	 */
-	public void testAddSQLObjectListener() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLObject.removeSQLObjectListener(SQLObjectListener)'
-	 */
-	public void testRemoveSQLObjectListener() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLObject.fireDbChildrenInserted(int[], List)'
-	 */
-	public void testFireDbChildrenInserted() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLObject.fireDbChildInserted(int, SQLObject)'
-	 */
-	public void testFireDbChildInserted() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLObject.fireDbChildrenRemoved(int[], List)'
-	 */
-	public void testFireDbChildrenRemoved() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLObject.fireDbChildRemoved(int, SQLObject)'
-	 */
-	public void testFireDbChildRemoved() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLObject.fireDbObjectChanged(String)'
-	 */
-	public void testFireDbObjectChanged() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLObject.fireDbStructureChanged(String)'
-	 */
-	public void testFireDbStructureChanged() {
-
-	}
-
-	/*
-	 * Test method for 'java.lang.Object.hashCode()'
-	 */
-	public void testHashCode() {
-
-	}
-
-	/*
-	 * Test method for 'java.lang.Object.equals(Object)'
-	 */
-	public void testEquals() {
-
-	}
-
-	/*
-	 * Test method for 'java.lang.Object.toString()'
-	 */
-	public void testToString1() {
-
-	}
 
 }
