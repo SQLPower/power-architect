@@ -24,6 +24,7 @@ public class JDBCClassLoaderTest extends TestCase {
 		System.out.println("If this throws a ClassNotFoundException, update your Architect Preferences to include the PostGreSQL driver jar");
 		Class clazz = cl.findClass(PGSQL_DRIVER);
 		
-		System.out.printf("Loaded JDBC class %s%n", clazz);
+		// If we get here, this test has passed.
+		assertNotNull("Loaded JDBC class %s%n", clazz);
 	}
 }
