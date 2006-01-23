@@ -74,6 +74,11 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	/**
 	 * Creates a new SQLTable with no children, no parent, and all
 	 * properties set to their defaults.
+	 * 
+	 * <p>This is mainly for code that needs to reconstruct a SQLTable
+	 * from outside configuration info, such as the SwingUIProject.load() method.
+	 * If you want to make SQLTable objects from scratch, consider using one
+	 * of the other constructors, which initialise the state more thoroughly.
 	 */
 	public SQLTable() {
 		//columnsPopulated = true;
