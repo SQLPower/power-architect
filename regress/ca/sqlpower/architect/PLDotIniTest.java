@@ -12,6 +12,7 @@ import ca.sqlpower.architect.PlDotIni;
 
 public class PLDotIniTest extends TestCase {
 
+	private static final String FUN_DATASOURCE_NAME = "broomhilda";
 	private PlDotIni target;
 
 	@Override
@@ -36,16 +37,13 @@ public class PLDotIniTest extends TestCase {
 	private File makeTempFile() throws IOException, FileNotFoundException {
 		File tmp = File.createTempFile("pl.ini", null);
 		
-		
-			
-		
 		// The PLDotIni class ONLY reads files with ye anciente MS-DOS line endings...
 		PrintWriter out = new PrintWriter(tmp);
 		out.print("[random_crap]" + PlDotIni.DOS_CR_LF);
 		out.print("foo=bar" + PlDotIni.DOS_CR_LF);
 		out.print("fred=george" + PlDotIni.DOS_CR_LF);
 		out.print("[Databases_1]" + PlDotIni.DOS_CR_LF);
-		out.print("Logical=broomhilda" + PlDotIni.DOS_CR_LF);
+		out.print("Logical=" + FUN_DATASOURCE_NAME + PlDotIni.DOS_CR_LF);
 		out.print("Type=POSTGRES" + PlDotIni.DOS_CR_LF);
 		out.print("JDBC Driver Class=org.postgresql.Driver" + PlDotIni.DOS_CR_LF);
 		out.print("PWD=" + PlDotIni.DOS_CR_LF);
@@ -76,7 +74,7 @@ public class PLDotIniTest extends TestCase {
 	public void testGetDataSource() throws IOException {
 		File tmp = makeTempFile();
 		target.read(tmp);
-		ArchitectDataSource ds = target.getDataSource("broomhilda");
+		ArchitectDataSource ds = target.getDataSource(FUN_DATASOURCE_NAME);
 		assertNotNull(ds);
 		tmp.deleteOnExit();
 	}
@@ -89,7 +87,7 @@ public class PLDotIniTest extends TestCase {
 		target.read(tmp);
 		List l = target.getConnections();
 		assertEquals(1, l.size());
-		assertEquals(target.getDataSource("broomhilda"), l.get(0));
+		assertEquals(target.getDataSource(FUN_DATASOURCE_NAME), l.get(0));
 		tmp.deleteOnExit();
 	}
 }
