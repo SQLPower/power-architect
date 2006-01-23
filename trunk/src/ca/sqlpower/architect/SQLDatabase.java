@@ -166,7 +166,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 			if ( children.size() == oldSize ) {
 				rs = dbmd.getSchemas();
 				while (rs.next()) {
-					children.add(new SQLSchema(this, rs.getString(1)));
+					children.add(new SQLSchema(this, rs.getString(1),false));
 				}
 			}
 		} catch (SQLException e) {

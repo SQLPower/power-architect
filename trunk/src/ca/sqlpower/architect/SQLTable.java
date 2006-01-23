@@ -135,10 +135,10 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 						schema = (SQLSchema) schemas.get(catName+"."+schName);
 						if (schema == null) {
 							if (cat == null) {
-								schema = new SQLSchema(addTo, schName);
+								schema = new SQLSchema(addTo, schName, false);
 								addTo.children.add(schema);
 							} else {
-								schema = new SQLSchema(cat, schName);
+								schema = new SQLSchema(cat, schName, false);
 								cat.children.add(schema);
 							}
 							schema.setNativeTerm(dbmd.getSchemaTerm());
@@ -531,7 +531,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	    // This is necessary because the relationships prevent deletion of locked keys.
  		SQLColumn col = (SQLColumn) columnsFolder.children.remove(oldIdx);
  		columnsFolder.fireDbChildRemoved(oldIdx, col);
- 		getColumns().add(newIdx, col);
+ 		columnsFolder.children.add(newIdx, col);
  		if (newIdx == 0
  			|| ((SQLColumn) getColumns().get(newIdx-1)).primaryKeySeq != null) {
  			col.primaryKeySeq = new Integer(1); // will get sane value when normalized

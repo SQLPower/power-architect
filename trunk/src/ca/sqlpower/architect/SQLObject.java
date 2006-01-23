@@ -99,8 +99,6 @@ public abstract class SQLObject implements java.io.Serializable {
 	 * SQLRelationship, SQLColumn, etc.) which are directly contained
 	 * within this SQLObject.
 	 */
-	 
-	
 	public List getChildren() throws ArchitectException {
 		if (!allowsChildren()) //return null;
 			return children;

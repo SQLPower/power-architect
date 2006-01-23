@@ -20,15 +20,16 @@ public class SQLSchema extends SQLObject {
 	protected String schemaName;
 	protected String nativeTerm;
 
-	public SQLSchema() {
-		this(null, null);
+	public SQLSchema( boolean populated) {
+		this(null, null, populated);
 	}
 
-	public SQLSchema(SQLObject parent, String name) {
+	public SQLSchema(SQLObject parent, String name, boolean populated) {
 		this.parent = parent;
 		this.schemaName = name;
 		this.children = new LinkedList();
 		this.nativeTerm = "schema";
+		this.populated = populated;
 	}
 
 	public SQLTable getTableByName(String tableName) throws ArchitectException {
@@ -75,6 +76,13 @@ public class SQLSchema extends SQLObject {
 		return true;
 	}
 
+	/**
+	 * Populates this schema from the source database, if there
+	 * is one.  Schemas that have no parent should not need to be
+	 * autopopulated, because this makes no sense.
+	 * 
+	 * @throws NullPointerException if this schema has no parent database.
+	 */
 	public void populate() throws ArchitectException {
 		if (populated) return;
 		

@@ -144,7 +144,7 @@ public class SQLCatalog extends SQLObject {
 					SQLSchema schema = null;
 
 					if (schName != null) {
-						schema = new SQLSchema(this, schName);
+						schema = new SQLSchema(this, schName, false);
 						children.add(schema);
 						schema.setNativeTerm(dbmd.getSchemaTerm());
 						logger.debug("Set schema term to "+schema.getNativeTerm());
