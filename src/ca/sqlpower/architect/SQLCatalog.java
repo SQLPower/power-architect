@@ -189,14 +189,6 @@ public class SQLCatalog extends SQLObject {
 
 	// ----------------- accessors and mutators -------------------
 
-	
-	/**
-	 * Don't use.
-	 */
-	private void setParent(SQLDatabase argParent) {
-		throw new UnsupportedOperationException("You can't set the parent on a catalog");
-	}
-
 	public SQLDatabase getParentDatabase() {
 		return (SQLDatabase) parent;
 	}
