@@ -25,13 +25,17 @@ import org.apache.log4j.Logger;
 
 /**
  * The PlDotIni class represents the contents of a PL.INI file.
+ * <p>
+ * <b>Warning:</b> this file only reads (and therefore writes) files with MS-DOS line endings.
  *
  * @author fuerth
  * @version $Id$
  */
 public class PlDotIni {
     
-    /**
+    public static final String DOS_CR_LF = "\r\n";
+
+	/**
      * The Section class represents a named section in the PL.INI file.
      */
     private static class Section {
@@ -230,7 +234,7 @@ public class PlDotIni {
 	 */
 	public void writeSection(OutputStream out, String name, Map properties) throws IOException {
 	    if (name != null) {
-	        String sectionHeading = "["+name+"]\r\n";
+	        String sectionHeading = "["+name+"]" + DOS_CR_LF;
 	        out.write(sectionHeading.getBytes());
 	    }
 
@@ -240,7 +244,7 @@ public class PlDotIni {
 	        out.write("Logical".getBytes());
             out.write("=".getBytes());
             out.write(s.getBytes());
-	        out.write("\r\n".getBytes());
+	        out.write(DOS_CR_LF.getBytes());
 	    }
 
 	    // now get everything else, and ignore the LOGICAL property
@@ -259,7 +263,7 @@ public class PlDotIni {
 	        		out.write("=".getBytes());
 	        		out.write(val);
 	        	}
-	        	out.write("\r\n".getBytes());
+	        	out.write(DOS_CR_LF.getBytes());
 	        }
 	    }
 	}
