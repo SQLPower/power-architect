@@ -22,7 +22,7 @@ public class PLDotIniTest extends TestCase {
 	 * Test method for 'ca.sqlpower.architect.PlDotIni.read(File)'
 	 */
 	public void testRead() throws IOException {
-		File tmp = makeTempFile(true);
+		File tmp = makeTempFile();
 
 		target.read(tmp);
 		System.out.println("PLDotIniTest::testRead(): Getting here counts as success");
@@ -33,11 +33,11 @@ public class PLDotIniTest extends TestCase {
 	 * @throws IOException
 	 * @throws FileNotFoundException
 	 */
-	private File makeTempFile(boolean delete) throws IOException, FileNotFoundException {
+	private File makeTempFile() throws IOException, FileNotFoundException {
 		File tmp = File.createTempFile("pl.ini", null);
 		
-		if (delete)
-			tmp.deleteOnExit();
+		
+			
 		
 		// The PLDotIni class ONLY reads files with ye anciente MS-DOS line endings...
 		PrintWriter out = new PrintWriter(tmp);
@@ -61,32 +61,35 @@ public class PLDotIniTest extends TestCase {
 	 * Test method for 'ca.sqlpower.architect.PlDotIni.write(OutputStream)'
 	 */
 	public void testWriteOutputStream() throws IOException {
-		File tmp1 = makeTempFile(false);
+		File tmp1 = makeTempFile();
 		target.read(tmp1);
 		File tmp2 = File.createTempFile("pl.out", null);
 		target.write(tmp2);
 		assertEquals(tmp1.length(), tmp2.length());
+		tmp1.deleteOnExit();
+		tmp2.deleteOnExit();
 	}
 
 	/*
 	 * Test method for 'ca.sqlpower.architect.PlDotIni.getDataSource(String)'
 	 */
 	public void testGetDataSource() throws IOException {
-		File tmp = makeTempFile(true);
+		File tmp = makeTempFile();
 		target.read(tmp);
 		ArchitectDataSource ds = target.getDataSource("broomhilda");
 		assertNotNull(ds);
+		tmp.deleteOnExit();
 	}
 
 	/*
 	 * Test method for 'ca.sqlpower.architect.PlDotIni.getConnections()'
 	 */
 	public void testGetConnections() throws IOException {
-		File tmp = makeTempFile(true);
+		File tmp = makeTempFile();
 		target.read(tmp);
 		List l = target.getConnections();
 		assertEquals(1, l.size());
 		assertEquals(target.getDataSource("broomhilda"), l.get(0));
+		tmp.deleteOnExit();
 	}
-
 }
