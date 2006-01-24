@@ -30,61 +30,71 @@ public class InsertColumnAction extends AbstractAction {
 	}
 
 	public void actionPerformed(ActionEvent evt) {
-		if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN)) {
-			List selection = pp.getSelectedItems();
-			if (selection.size() < 1) {
-				JOptionPane.showMessageDialog(pp, "Select a table (by clicking on it) and try again.");
-			} else if (selection.size() > 1) {
-				JOptionPane.showMessageDialog(pp, "You have selected multiple items, but you can only edit one at a time.");
-			} else if (selection.get(0) instanceof TablePane) {
-				TablePane tp = (TablePane) selection.get(0);
-				int idx = tp.getSelectedColumnIndex();
-				try {
-					if (idx < 0) idx = tp.getModel().getColumnsFolder().getChildCount();
-				} catch (ArchitectException e) {
-					idx = 0;
-				}
-				tp.getModel().addColumn(idx, new SQLColumn());
-			} else {
-				JOptionPane.showMessageDialog(pp, "The selected item type is not recognised");
-			}
-		} else if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE)) {
-			TreePath [] selections = dbt.getSelectionPaths();
-			if (selections == null || selections.length != 1) {
-				JOptionPane.showMessageDialog(dbt, "To indicate where you would like to insert a column, please select a single item.");
-			} else {
-				TreePath tp = selections[0];
-				SQLObject so = (SQLObject) tp.getLastPathComponent();
-				SQLTable st = null;
-				int idx = 0;
-				if (so instanceof SQLTable) {
-					logger.debug("user clicked on table, so we shall try to add a column to the end of the table.");
+		try {
+			if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN)) {
+				List selection = pp.getSelectedItems();
+				if (selection.size() < 1) {
+					JOptionPane.showMessageDialog(pp, "Select a table (by clicking on it) and try again.");
+				} else if (selection.size() > 1) {
+					JOptionPane.showMessageDialog(pp, "You have selected multiple items, but you can only edit one at a time.");
+				} else if (selection.get(0) instanceof TablePane) {
+					TablePane tp = (TablePane) selection.get(0);
+					int idx = tp.getSelectedColumnIndex();
 					try {
-						st = (SQLTable) so;
-						idx = st.getColumnsFolder().getChildCount();
-					} catch (ArchitectException ex) {
+						if (idx < 0) idx = tp.getModel().getColumnsFolder().getChildCount();
+					} catch (ArchitectException e) {
 						idx = 0;
 					}
-					logger.debug("SQLTable click -- idx set to: " + idx);						
-				} else if (so instanceof SQLColumn) {
-					// iterate through the column list to figure out what position we are in...
-					logger.debug("trying to determine insertion index for table.");
-					SQLColumn sc = (SQLColumn) so;
-					st = sc.getParentTable();
-					idx = st.getColumnIndex(sc);
-					if (idx == -1)  {
-						// not found
-						logger.debug("did not find column, inserting at start of table.");
-						idx = 0;
-					}
+					tp.getModel().addColumn(idx, new SQLColumn());
 				} else {
-					idx = 0;
+					JOptionPane.showMessageDialog(pp, "The selected item type is not recognised");
 				}
-				st.addColumn(idx, new SQLColumn());
+			} else if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE)) {
+				TreePath [] selections = dbt.getSelectionPaths();
+				if (selections == null || selections.length != 1) {
+					JOptionPane.showMessageDialog(dbt, "To indicate where you would like to insert a column, please select a single item.");
+				} else {
+					TreePath tp = selections[0];
+					SQLObject so = (SQLObject) tp.getLastPathComponent();
+					SQLTable st = null;
+					int idx = 0;
+					if (so instanceof SQLTable) {
+						logger.debug("user clicked on table, so we shall try to add a column to the end of the table.");
+						try {
+							st = (SQLTable) so;
+							idx = st.getColumnsFolder().getChildCount();
+						} catch (ArchitectException ex) {
+							idx = 0;
+						}
+						logger.debug("SQLTable click -- idx set to: " + idx);						
+					} else if (so instanceof SQLColumn) {
+						// iterate through the column list to figure out what position we are in...
+						logger.debug("trying to determine insertion index for table.");
+						SQLColumn sc = (SQLColumn) so;
+						st = sc.getParentTable();
+						idx = st.getColumnIndex(sc);
+						if (idx == -1)  {
+							// not found
+							logger.debug("did not find column, inserting at start of table.");
+							idx = 0;
+						}
+					} else {
+						idx = 0;
+					}
+					st.addColumn(idx, new SQLColumn());
+				}
+			} else {
+				JOptionPane.showMessageDialog(
+						null, "InsertColumnAction: Unknown Action Command \"" + 
+						evt.getActionCommand() + "\"",
+						"Internal Architect Error", JOptionPane.ERROR_MESSAGE);
 			}
-		} else {
-	  		// unknown action command source, do nothing
-		}	
+		} catch (ArchitectException ex) {
+			JOptionPane.showMessageDialog(
+					null, "Column could not be inserted:\n" +	ex.getMessage() +
+					 "\n\nThere is more detail in the application log.",
+					"Architect Error", JOptionPane.ERROR_MESSAGE);
+		}
 	}
 
 	public void setPlayPen(PlayPen pp) {

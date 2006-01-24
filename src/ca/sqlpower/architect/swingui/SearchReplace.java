@@ -289,7 +289,16 @@ public class SearchReplace {
 	                            pp.scrollRectToVisible(tp.getBounds());
 	                            
 	                            if (searchColumn != null) {
+	                            	try {
 	                                tp.selectColumn(searchTable.getColumnIndex(searchColumn));
+	                            	} catch (ArchitectException ex) {
+	                            		logger.error("Failed to select column becuase getColumnIndex" +
+	                            				" threw the following exception:", ex);
+	                            		JOptionPane.showMessageDialog(
+	                            				null, "Sorry, couldn't select the column you asked for." +
+	                            						"\n\nMore information is available in the " +
+	                            						"application log.");
+	                            	}
 	                            }
 	                        }
 	                    } else if (searchRelationship != null) {

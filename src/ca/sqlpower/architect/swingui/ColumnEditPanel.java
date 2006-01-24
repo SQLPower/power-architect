@@ -69,8 +69,16 @@ public class ColumnEditPanel extends JPanel
 					}
 					SQLColumn col = new SQLColumn();
 					col.setColumnName("new column");
-					model.addColumn(idx, col);
-					columns.setSelectedIndex(idx);
+					
+					try {
+						model.addColumn(idx, col);
+						columns.setSelectedIndex(idx);
+					} catch (ArchitectException ex) {
+						logger.error("Couldn't add column "+col+" to table "+model.getName(), ex);
+						JOptionPane.showMessageDialog
+						(ColumnEditPanel.this,
+						 "Couldn't add column to table: "+ex.getMessage());
+					}
 				}
 			});
 		addDelPanel.add(deleteColumnButton = new JButton("Del"));

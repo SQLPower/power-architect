@@ -162,7 +162,8 @@ public class SQLCatalog extends SQLObject {
 						children.add(new SQLTable(this,
 												  rs.getString(3),
 												  rs.getString(5),
-												  rs.getString(4) ));
+												  rs.getString(4),
+												  false));
 					}
 				}
 			} catch (SQLException e) {
