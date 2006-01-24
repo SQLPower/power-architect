@@ -17,9 +17,11 @@ package ca.sqlpower.architect;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ArchitectDataSource {
@@ -155,11 +157,31 @@ public class ArchitectDataSource {
 		properties = new HashMap<String,String>();
 	}
 
-	public String put(String key, String value) {		
+	/**
+	 * The method that actually modifies the property map.
+	 * 
+	 * @param key The key to use in the map (this will be a PL.INI property name)
+	 * @param value The value that corresponds with the key
+	 * @param propertyName The name of the Java Beans property that changed.  This will
+	 * be the property name in the resulting PropertyChangeEvent.
+	 * @return The old value of the property.
+	 */
+	private String putImpl(String key, String value, String propertyName) {
 		String oldValue = get(key);
-		properties.put(key,value);
-		getPcs().firePropertyChange(key,oldValue,value);
+		properties.put(key, value);
+		getPcs().firePropertyChange(propertyName, oldValue, value);
 		return oldValue;
+	}
+	
+	/**
+	 * Adds the given key to the map.
+	 * 
+	 * @param key The key to use.
+	 * @param value The value to associate with key.
+	 * @return The old value of the property.
+	 */
+	public String put(String key, String value) {
+		return putImpl(key, value, key);
 	}
 	
 	public String get(String key) {
@@ -199,12 +221,28 @@ public class ArchitectDataSource {
 	}
 	
 	// --------------------- property change ---------------------------
+	
+	/**
+	 * Registers the given object as a listener to property changes on this
+	 * ArchitectDataSource. 
+	 */
 	public void addPropertyChangeListener(PropertyChangeListener l) {
 		getPcs().addPropertyChangeListener(l);
 	}
 
+	/**
+	 * Removes the given object from the listener list, if it was on that list.
+	 * Does nothing if l is not a property change listener of this data source.
+	 */
 	public void removePropertyChangeListener(PropertyChangeListener l) {
 		getPcs().removePropertyChangeListener(l);
+	}
+
+	/**
+	 * Returns an unmodifiable view of the list of property change listeners.
+	 */
+	public List getPropertyChangeListeners() {
+		return Collections.unmodifiableList(Arrays.asList(pcs.getPropertyChangeListeners()));
 	}
 
 	// ------------------- accessors and mutators ------------------------
@@ -224,7 +262,7 @@ public class ArchitectDataSource {
 	 * @param argName Value to assign to this.name
 	 */
 	public void setName(String argName){
-		put(PL_LOGICAL, argName);
+		putImpl(PL_LOGICAL, argName, "name");
 	}
 
 	/**
@@ -242,7 +280,7 @@ public class ArchitectDataSource {
 	 * @param argDisplayName Value to assign to this.displayName
 	 */
 	public void setDisplayName(String argDisplayName){
-		put(PL_LOGICAL, argDisplayName);
+		putImpl(PL_LOGICAL, argDisplayName, "displayName");
 	}
 
 	/**
@@ -260,7 +298,7 @@ public class ArchitectDataSource {
 	 * @param argUrl Value to assign to this.url
 	 */
 	public void setUrl(String argUrl) {
-		put(DBCS_URL, argUrl);
+		putImpl(DBCS_URL, argUrl, "url");
 	}
 
 	/**
@@ -278,7 +316,7 @@ public class ArchitectDataSource {
 	 * @param argDriverClass Value to assign to this.driverClass
 	 */
 	public void setDriverClass(String argDriverClass){
-		put(DBCS_DRIVER_CLASS, argDriverClass);
+		putImpl(DBCS_DRIVER_CLASS, argDriverClass, "driverClass");
 	}
 
 	/**
@@ -295,8 +333,8 @@ public class ArchitectDataSource {
 	 *
 	 * @param argUser Value to assign to this.user
 	 */
-	public void setUser(String argUser){
-		put(PL_UID, argUser);
+	public void setUser(String argUser) {
+		putImpl(PL_UID, argUser, "user");
 	}
 
 	/**
@@ -314,7 +352,7 @@ public class ArchitectDataSource {
 	 * @param argPass Value to assign to this.pass
 	 */
 	public void setPass(String argPass){
-		put(PL_PWD, argPass);
+		putImpl(PL_PWD, argPass, "pass");
 	}
 	
 	public String getPlSchema() {
@@ -322,7 +360,7 @@ public class ArchitectDataSource {
     }
 
     public void setPlSchema(String schema) {
-        put(PL_SCHEMA_OWNER, schema);
+        putImpl(PL_SCHEMA_OWNER, schema, "plSchema");
     }
 
 	public String getPlDbType() {
@@ -330,7 +368,7 @@ public class ArchitectDataSource {
     }
 
 	public void setPlDbType(String type) {
-        put(PL_TYPE, type);
+        putImpl(PL_TYPE, type, "plDbType");
     }
 
 	public String getOdbcDsn() {
@@ -338,6 +376,6 @@ public class ArchitectDataSource {
     }
 
     public void setOdbcDsn(String dsn) {
-        put(PL_DSN, dsn);
+        putImpl(PL_DSN, dsn, "odbcDsn");
     }
 }

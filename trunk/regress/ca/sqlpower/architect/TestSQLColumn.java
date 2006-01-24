@@ -7,30 +7,114 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.Comparator;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
+
+import junit.extensions.TestSetup;
+import junit.framework.Test;
+import junit.framework.TestSuite;
 
 import org.apache.commons.beanutils.BeanUtils;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.SQLTable.Folder;
 
 public class TestSQLColumn extends SQLTestCase {
 
-	SQLTable table1pk;
-	SQLTable table0pk;
-	SQLTable table3pk;
-
-	public TestSQLColumn(String name) throws Exception {
-		super(name);
+	/**
+	 * Creates a wrapper around the normal test suite which runs the
+	 * OneTimeSetup and OneTimeTearDown procedures.
+	 */
+	public static Test suite() {
+		TestSuite suite = new TestSuite();
+		suite.addTestSuite(TestSQLColumn.class);
+		TestSetup wrapper = new TestSetup(suite) {
+			protected void setUp() throws Exception {
+				oneTimeSetUp();
+			}
+			protected void tearDown() throws Exception {
+				oneTimeTearDown();
+			}
+		};
+		return wrapper;
 	}
 
+	/**
+	 * One-time initialization code.  The special {@link #suite()} method arranges for
+	 * this method to be called one time before the individual tests are run.
+	 * @throws Exception 
+	 */
+	public static void oneTimeSetUp() throws Exception {
+		System.out.println("TestSQLColumn.oneTimeSetUp()");
+		
+		SQLDatabase mydb = new SQLDatabase(getDataSource());
+		Connection con = mydb.getConnection();
+		Statement stmt = con.createStatement();
+		
+		dropTableNoFail(con, "SQL_COLUMN_TEST_1PK");
+		dropTableNoFail(con, "SQL_COLUMN_TEST_3PK");
+		dropTableNoFail(con, "SQL_COLUMN_TEST_0PK");
+		
+		stmt.executeUpdate("CREATE TABLE SQL_COLUMN_TEST_1PK (\n" +
+				" cow numeric(11) CONSTRAINT test1pk PRIMARY KEY,\n" +
+				" moo varchar(10),\n" +
+				" foo char(10))");
+		
+		stmt.executeUpdate("CREATE TABLE SQL_COLUMN_TEST_3PK (\n" +
+				" cow numeric(11) NOT NULL,\n" +
+				" moo varchar(10) NOT NULL,\n" +
+				" foo char(10) NOT NULL,\n" +
+				" CONSTRAINT test3pk PRIMARY KEY (cow, moo, foo))");
+		
+		stmt.executeUpdate("CREATE TABLE SQL_COLUMN_TEST_0PK (\n" +
+				" cow numeric(11),\n" +
+				" moo varchar(10),\n" +
+				" foo char(10))");
+		
+		stmt.close();
+		//mydb.disconnect();  FIXME: this should be uncommented when bug 1005 is fixed
+	}
+
+	/**
+	 * One-time cleanup code.  The special {@link #suite()} method arranges for
+	 * this method to be called one time before the individual tests are run.
+	 */
+	public static void oneTimeTearDown() {
+		System.out.println("TestSQLColumn.oneTimeTearDown()");
+	}
+
+	
+	// ============ Instance Variables =============
+
+	/**
+	 * A table with one primary key column.  Gets set up in setUp().
+	 */
+	private SQLTable table1pk;
+
+	/**
+	 * A table with no primary key.  Gets set up in setUp().
+	 */
+	private SQLTable table0pk;
+	
+	/**
+	 * A table with three primary key columns.  Gets set up in setUp().
+	 */
+	private SQLTable table3pk;
+
+	
+	// ============= SetUp/TearDown and Utility Methods =============
+	
+	@Override
+	protected void setUp() throws Exception {
+		super.setUp();
+		table1pk = db.getTableByName("SQL_COLUMN_TEST_1PK");
+		table0pk = db.getTableByName("SQL_COLUMN_TEST_0PK");
+		table3pk = db.getTableByName("SQL_COLUMN_TEST_3PK");
+	}
+	
 	/**
 	 * Tries to drop the named table, but doesn't throw an exception if the
 	 * DROP TABLE command fails.
@@ -39,7 +123,7 @@ public class TestSQLColumn extends SQLTestCase {
 	 * @param tableName The table to nix.
 	 * @throws SQLException if the created Statement object's close() method fails.
 	 */
-	void dropTableNoFail(Connection con, String tableName) throws SQLException {
+	private static void dropTableNoFail(Connection con, String tableName) throws SQLException {
 		Statement stmt = null;
 		try {
 			stmt = con.createStatement();
@@ -51,41 +135,17 @@ public class TestSQLColumn extends SQLTestCase {
 			if (stmt != null) stmt.close();
 		}
 	}
+
 	
-	protected void setUp() throws Exception {
-		super.setUp();
-		
-		SQLDatabase mydb = new SQLDatabase(db.getDataSource());
-		Connection con = mydb.getConnection();
-		Statement stmt = con.createStatement();
-		
-		dropTableNoFail(con, "SQL_COLUMN_TEST_1PK");
-		dropTableNoFail(con, "SQL_COLUMN_TEST_3PK");
-		dropTableNoFail(con, "SQL_COLUMN_TEST_0PK");
-		
-		stmt.executeUpdate("CREATE TABLE SQL_COLUMN_TEST_1PK (\n" +
-				" cow numeric(11) CONSTRAINT test1pk PRIMARY KEY,\n" +
-				" moo varchar(10),\n" +
-		" foo char(10))");
-		
-		stmt.executeUpdate("CREATE TABLE SQL_COLUMN_TEST_3PK (\n" +
-				" cow numeric(11) NOT NULL,\n" +
-				" moo varchar(10) NOT NULL,\n" +
-				" foo char(10) NOT NULL,\n" +
-		" CONSTRAINT test3pk PRIMARY KEY (cow, moo, foo))");
-		
-		stmt.executeUpdate("CREATE TABLE SQL_COLUMN_TEST_0PK (\n" +
-				" cow numeric(11),\n" +
-				" moo varchar(10),\n" +
-		" foo char(10))");
-		table1pk = db.getTableByName("SQL_COLUMN_TEST_1PK");
-		table0pk = db.getTableByName("SQL_COLUMN_TEST_0PK");
-		table3pk = db.getTableByName("SQL_COLUMN_TEST_3PK");
-		
-		stmt.close();
-		//mydb.disconnect();  FIXME: this should be uncommented when bug 1005 is fixed
+	// ================= Constructor ====================
+	
+	public TestSQLColumn(String name) throws Exception {
+		super(name);
 	}
-		
+
+	
+	// =============== The tests! ================
+	
 	public void testPopulateTable() throws ArchitectException {
 		
 		assertEquals("Table should have 3 folders as children",
