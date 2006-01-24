@@ -1,6 +1,7 @@
 package regress.ca.sqlpower.architect;
 
 import java.io.File;
+import java.io.IOException;
 
 import junit.framework.*;
 import ca.sqlpower.sql.*;
@@ -24,23 +25,31 @@ public abstract class SQLTestCase extends TestCase {
 
 	public SQLTestCase(String name) throws Exception {
 		super(name);
-		ArchitectFrame.getMainInstance();  // creates an ArchitectFrame, which loads settings
-		//FIXME: a better approach would be to have an initialsation method
-		// in the business model, which does not depend on the init routine in ArchitectFrame.
 	}
 	
 	/**
-	 * Sets up the instance variable <code>db</code>. Uses a PL.INI
-	 * file located in the current working directory, called "pl.regression.ini"
-	 * and creates a connection to the database called "regression_test".
+	 * Looks up and returns an ArchitectDataSource that represents the testing
+	 * database. Uses a PL.INI file located in the current working directory, 
+	 * called "pl.regression.ini" and creates a connection to the database called
+	 * "regression_test".
 	 * 
 	 * <p>FIXME: Need to parameterise this so that we can test each supported
 	 * database platform!
 	 */
-	protected void setUp() throws Exception {
+	static ArchitectDataSource getDataSource() throws IOException {
+		ArchitectFrame.getMainInstance();  // creates an ArchitectFrame, which loads settings
+		//FIXME: a better approach would be to have an initialsation method
+		// in the business model, which does not depend on the init routine in ArchitectFrame.
 		PlDotIni plini = new PlDotIni();
 		plini.read(new File("pl.regression.ini"));
-		db = new SQLDatabase(plini.getDataSource("regression_test"));
+		return plini.getDataSource("regression_test");
+	}
+	
+	/**
+	 * Sets up the instance variable <code>db</code> using the getDatabase() method.
+	 */
+	protected void setUp() throws Exception {
+		db = new SQLDatabase(getDataSource());
 	}
 	
 	protected void tearDown() throws Exception {
