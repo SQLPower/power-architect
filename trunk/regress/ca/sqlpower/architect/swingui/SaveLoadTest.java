@@ -8,13 +8,13 @@ package regress.ca.sqlpower.architect.swingui;
 import java.sql.DatabaseMetaData;
 import java.sql.Types;
 
+import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.SwingUIProject;
-import junit.framework.TestCase;
 
 /**
  * The SaveLoadTest tests saving and loading a project.
@@ -50,11 +50,11 @@ public class SaveLoadTest extends TestCase {
         // TODO: implement test
     }
 
-    public void testSave() {
+    public void testSave() throws ArchitectException {
         SQLDatabase ppdb = project.getTargetDatabase();
-        SQLTable t1 = new SQLTable(ppdb, "Table 1", "Table 1 Remarks", "TABLE");
+        SQLTable t1 = new SQLTable(ppdb, "Table 1", "Table 1 Remarks", "TABLE", true);
         t1.addColumn(0, new SQLColumn(t1, "t1c0", Types.DECIMAL, "c1 native type", 10, 20, DatabaseMetaData.columnNoNulls, "t1c1 remarks", null, null, false));
-        SQLTable t2 = new SQLTable(ppdb, "Table 2", "Table 2 Remarks", "TABLE");
+        SQLTable t2 = new SQLTable(ppdb, "Table 2", "Table 2 Remarks", "TABLE", true);
         ppdb.addChild(t1);
         ppdb.addChild(t2);
     }

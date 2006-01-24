@@ -131,7 +131,8 @@ public class SQLSchema extends SQLObject {
 					children.add(new SQLTable(this,
 											  rs.getString(3),
 											  rs.getString(5),
-											  rs.getString(4) ));
+											  rs.getString(4),
+											  false));
 				}
 			} catch (SQLException e) {
 				throw new ArchitectException("schema.populate.fail", e);

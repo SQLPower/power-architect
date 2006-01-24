@@ -176,23 +176,23 @@ public class TestSQLSchema extends SQLTestCase {
 		assertEquals(0,s1.getChildren().size());
 		assertEquals(cnt,s1.getChildCount());
 		
-		s1.addChild(new SQLTable(s1,"","","TABLE"));
+		s1.addChild(new SQLTable(s1,"","","TABLE", true));
 		assertEquals(++cnt,s1.getChildren().size());
 		assertEquals(cnt,s1.getChildCount());
 		
-		s1.addChild(new SQLTable(s1,"","","TABLE"));
+		s1.addChild(new SQLTable(s1,"","","TABLE", true));
 		assertEquals(++cnt,s1.getChildren().size());
 		assertEquals(cnt,s1.getChildCount());
 		
-		s1.addChild(new SQLTable(s1,"","","TABLE"));
+		s1.addChild(new SQLTable(s1,"","","TABLE", true));
 		assertEquals(++cnt,s1.getChildren().size());
 		assertEquals(cnt,s1.getChildCount());
 		
-		s1.addChild(new SQLTable(s1,"","","TABLE"));
+		s1.addChild(new SQLTable(s1,"","","TABLE", true));
 		assertEquals(++cnt,s1.getChildren().size());
 		assertEquals(cnt,s1.getChildCount());
 		
-		s1.addChild(new SQLTable(s1,"","","TABLE"));
+		s1.addChild(new SQLTable(s1,"","","TABLE", true));
 		assertEquals(++cnt,s1.getChildren().size());
 		assertEquals(cnt,s1.getChildCount());
 		
@@ -217,7 +217,7 @@ public class TestSQLSchema extends SQLTestCase {
 		SQLSchema s1 = new SQLSchema(true);
 		ArrayList tableList = new ArrayList();
 		for ( int i=0; i<5; i++ ) {
-			tableList.add(new SQLTable(s1,"","","TABLE"));
+			tableList.add(new SQLTable(s1,"","","TABLE", true));
 		}
 		s1.setChildren(tableList);
 		assertEquals(5,s1.getChildren().size());
@@ -231,7 +231,7 @@ public class TestSQLSchema extends SQLTestCase {
 		SQLSchema s1 = new SQLSchema(true);
 		ArrayList tableList = new ArrayList();
 		for ( int i=0; i<5; i++ ) {
-			tableList.add(new SQLTable(s1,"","","TABLE"));
+			tableList.add(new SQLTable(s1,"","","TABLE", true));
 		}
 		s1.setChildren(tableList);
 		assertEquals(5,s1.getChildren().size());
@@ -249,11 +249,11 @@ public class TestSQLSchema extends SQLTestCase {
 	public void testAddChildIntSQLObject() throws Exception {
 		SQLSchema s1 = new SQLSchema(true);
 		for ( int i=0; i<5; i++ ) {
-			s1.addChild(i,new SQLTable(s1,"","","TABLE"));
+			s1.addChild(i,new SQLTable(s1,"","","TABLE", true));
 			assertEquals(i+1,s1.getChildren().size());
 			assertEquals(i+1,s1.getChildCount());
 		}
-		SQLTable t = new SQLTable(s1,"xxx","","TABLE");
+		SQLTable t = new SQLTable(s1,"xxx","","TABLE", true);
 		s1.addChild(0,t);
 		assertEquals(6,s1.getChildren().size());
 		assertEquals(6,s1.getChildCount());
@@ -277,12 +277,12 @@ public class TestSQLSchema extends SQLTestCase {
 	public void testAddChildSQLObject() throws Exception {
 		SQLSchema s1 = new SQLSchema(true);
 		for ( int i=0; i<5; i++ ) {
-			s1.addChild(new SQLTable(s1,"","","TABLE"));
+			s1.addChild(new SQLTable(s1,"","","TABLE", true));
 			assertEquals(i+1,s1.getChildren().size());
 			assertEquals(i+1,s1.getChildCount());
 		}
 		
-		SQLTable t = new SQLTable(s1,"xxx","","TABLE");
+		SQLTable t = new SQLTable(s1,"xxx","","TABLE", true);
 		s1.addChild(t);
 		
 		for ( int i=5; i>0; i-- ) {
@@ -311,7 +311,7 @@ public class TestSQLSchema extends SQLTestCase {
 		assertEquals(s1.getSQLObjectListeners().get(1),test2);
 		
 		for ( int i=0; i<5; i++ ) {
-			s1.addChild(new SQLTable(s1,"","","TABLE"));
+			s1.addChild(new SQLTable(s1,"","","TABLE", true));
 		}
 		
 		assertEquals(test1.getInsertedCount(),5);

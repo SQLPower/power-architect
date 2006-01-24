@@ -114,6 +114,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 				r.deleteRule = rs.getInt(11);
 				r.name = rs.getString(12);
 				r.deferrability = rs.getInt(14);
+				// FIXME: need to determine if the column is identifying or non-identifying!
 			}
 
 			// now that all the new SQLRelationship objects are set up, add them to their tables
@@ -444,9 +445,16 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		return this.physicalName;
 	}
 
+	/**
+	 * Changes the physical name of this relationship.  Fires a dbObjectChanged event if
+	 * the new name differs from the old one.
+	 */
 	public void setPhysicalName(String argName) {
-		this.physicalName = argName;
-		fireDbObjectChanged("physicalName");
+		boolean changed = (argName == null ? physicalName != null : !argName.equals(physicalName));
+		if (changed) {
+			this.physicalName = argName;
+			fireDbObjectChanged("physicalName");
+		}
 	}
 
 	/**

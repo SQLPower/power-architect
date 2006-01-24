@@ -43,10 +43,14 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * A List of SQLRelationship objects describing keys that this
 	 * table imports.  This SQLTable is the "fkTable" in its imported
 	 * keys.
+	 * 
+	 * @param startPopulated The initial setting of this table's folders' <tt>populated</tt> flags.
+	 * If this is set to false, the table will attempt to lazy-load the child folders.  Otherwise,
+	 * this table will not try to load its children from a database connection.
 	 */
 	protected Folder importedKeysFolder;
 	
-	public SQLTable(SQLObject parent, String name, String remarks, String objectType) {
+	public SQLTable(SQLObject parent, String name, String remarks, String objectType, boolean startPopulated) {
 		logger.debug("NEW TABLE "+name+"@"+hashCode());
 		this.parent = parent;
 		this.tableName = name;
@@ -54,7 +58,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		this.objectType = objectType;
 
 		this.children = new ArrayList();
-		initFolders(false);
+		initFolders(startPopulated);
 
 		/* we listen to the importedKeysFolder because this is how we
 		 * know to remove FK columns when their owning relationship is
@@ -67,8 +71,8 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * schema and catalog.  The table will contain the three default
 	 * folders: "Columns" "Exported Keys" and "Imported Keys".
 	 */
-	public SQLTable(SQLDatabase parent) {
-		this(parent, "", "", "TABLE");
+	public SQLTable(SQLDatabase parent, boolean startPopulated) {
+		this(parent, "", "", "TABLE", startPopulated);
 	}
 
 	/**
@@ -156,8 +160,8 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 					tableParent.children.add(new SQLTable(tableParent,
 														  mdTables.getString(3),
 														  mdTables.getString(5),
-														  mdTables.getString(4)
-														  ));
+														  mdTables.getString(4),
+														  false));
 				}
 			} finally {
 				if (mdTables != null) mdTables.close();
@@ -169,10 +173,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		throws ArchitectException {
 		source.populateColumns();
 		source.populateRelationships();
-		SQLTable t = new SQLTable(parent);
-		t.columnsFolder.populated = true;
-		t.importedKeysFolder.populated = true;
-		t.exportedKeysFolder.populated = true;
+		SQLTable t = new SQLTable(parent, true);
 		t.tableName = source.tableName;
 		t.physicalTableName = source.physicalTableName;
 		t.remarks = source.remarks;
@@ -402,53 +403,42 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		return null;
 	}
 
-	public int getColumnIndex(SQLColumn col) {
+	public int getColumnIndex(SQLColumn col) throws ArchitectException {
 		logger.debug("Looking for column index of: " + col);
 		
-		Iterator it;
-		try {
-			it = getColumns().iterator();
+		Iterator it = getColumns().iterator();
 		
-			int colIdx = 0;
-			while (it.hasNext()) {
-				if (it.next() == col) {
-					return colIdx;
-				}
-				colIdx++;
+		int colIdx = 0;
+		while (it.hasNext()) {
+			if (it.next() == col) {
+				return colIdx;
 			}
-		} catch (ArchitectException e)
-		{
-			logger.warn("Unexpected ArchitectException in getColumnIndex on " +col.toString());
+			colIdx++;
 		}
-		
+
 		logger.debug("NOT FOUND");
 		return -1;
-		
 	}
 
-	public void addColumn(SQLColumn col) {
+	public void addColumn(SQLColumn col) throws ArchitectException {
 		addColumn(columnsFolder.children.size(), col);
 	}
 
-	public void addColumn(int pos, SQLColumn col) {
+	public void addColumn(int pos, SQLColumn col) throws ArchitectException {
 		
 		// Prevent the same column from being added to the same table twice
-		if (this.getColumnIndex(col) != -1)
+		if (getColumnIndex(col) != -1)
 		{
 			col =(SQLColumn) col.clone();
 		}
 		boolean addToPK = false;
 		int pkSize = getPkSize();
-		try {
-			if (getColumns().size() > 0 && pos < pkSize) {
-				addToPK = true;
-				normalizePrimaryKey();
-				for (int i = pos; i < pkSize; i++) {
-					((SQLColumn) getColumns().get(i)).primaryKeySeq = new Integer(i + 1);
-				}
+		if (getColumns().size() > 0 && pos < pkSize) {
+			addToPK = true;
+			normalizePrimaryKey();
+			for (int i = pos; i < pkSize; i++) {
+				((SQLColumn) getColumns().get(i)).primaryKeySeq = new Integer(i + 1);
 			}
-		} catch (ArchitectException e) {
-			logger.warn("Unexpected ArchitectException in addColumn", e);
 		}
 
 		col.setParent(null);

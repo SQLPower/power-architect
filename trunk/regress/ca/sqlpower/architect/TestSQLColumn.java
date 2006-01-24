@@ -230,7 +230,7 @@ public class TestSQLColumn extends SQLTestCase {
 	/*
 	 * Test method for 'ca.sqlpower.architect.SQLColumn.getParent()'
 	 */
-	public void testGetParent() {
+	public void testGetParent() throws ArchitectException {
 		SQLColumn tmpCol = new SQLColumn();
 		assertEquals(tmpCol.getParent(),null);
 		table0pk.addColumn(tmpCol);
