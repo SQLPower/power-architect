@@ -7,7 +7,7 @@
 	<classpathentry kind="lib" path="lib/commons-digester.jar"/>
 	<classpathentry kind="lib" path="lib/commons-logging.jar"/>
 	<classpathentry kind="lib" path="lib/jlfgr-1_0.jar"/>
-	<classpathentry kind="lib" path="lib/junit.jar"/>
+	<classpathentry sourcepath="libsrc/junit_3.8.1.jar" kind="lib" path="lib/junit.jar"/>
 	<classpathentry kind="lib" path="lib/log4j.jar"/>
 	<classpathentry sourcepath="/web-development/classes" kind="lib" path="lib/sqlpower.jar"/>
 	<classpathentry kind="output" path="build"/>
