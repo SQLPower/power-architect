@@ -22,26 +22,7 @@ public class TestSQLSchema extends SQLTestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		
-		SQLDatabase mydb = new SQLDatabase(db.getDataSource());
-		Connection con = mydb.getConnection();
-		
-		/*
-		 * Setting up a clean db for each of the tests
-		 */
-		Statement stmt = con.createStatement();
-		try {
-			stmt.executeUpdate("DROP TABLE REGRESSION_TEST1");
-			stmt.executeUpdate("DROP TABLE REGRESSION_TEST2");
-		}
-		catch (SQLException sqle ){
-			System.out.println("+++ TestSQLDatabase exception should be for dropping a non-existant table");
-			sqle.printStackTrace();
-		}
-		
-		stmt.executeUpdate("CREATE TABLE REGRESSION_TEST1 (t1_c1 numeric(10))");
-		stmt.executeUpdate("CREATE TABLE REGRESSION_TEST2 (t2_c1 char(10))");
-		stmt.close();
-		mydb.disconnect();
+
 	}
 	
 	/*
