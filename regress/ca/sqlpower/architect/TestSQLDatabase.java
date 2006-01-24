@@ -63,7 +63,13 @@ public class TestSQLDatabase extends SQLTestCase {
 		assertNotNull(table1 = db.getTableByName("REGRESSION_TEST1"));
 		assertNotNull(table2 = db.getTableByName("REGRESSION_TEST2"));
 		assertNull("should get null for nonexistant table", db.getTableByName("no_such_table"));
+		//XXX: test table under catalog and schema
 	}
+	
+	public void testGetSchemaByName() {
+		//XXX:
+	}
+	
 	
 	public void testIgnoreReset() throws ArchitectException
 	{
