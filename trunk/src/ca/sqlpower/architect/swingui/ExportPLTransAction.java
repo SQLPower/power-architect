@@ -246,6 +246,7 @@ public class ExportPLTransAction extends AbstractAction {
 			}
 		} finally {
 			if (rs != null) rs.close();
+			dbmd = null;
 		}
 		
 		if (logger.isDebugEnabled()) {

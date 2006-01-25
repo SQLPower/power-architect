@@ -53,7 +53,8 @@ public abstract class SQLTestCase extends TestCase {
 	}
 	
 	protected void tearDown() throws Exception {
-		db.disconnect();
+		// we don't disconnect: this slows down the test because it 
+		// requires setUp() to reconnect rather than using a cached connection!
 		db = null;
 	}
 }

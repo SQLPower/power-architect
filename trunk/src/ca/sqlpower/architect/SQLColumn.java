@@ -244,6 +244,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 				// XXX: need to find out if column is auto-increment
 			}
 			rs.close();
+			rs = null;
 
 			rs = dbmd.getPrimaryKeys(catalog, schema, tableName);
 			while (rs.next()) {

@@ -336,6 +336,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 			GenericTypeDescriptor td = new GenericTypeDescriptor(rs);
 			typeMap.put(new Integer(td.getDataType()), td);
 		}
+		rs.close();
 	}
 
 	protected void println(String text) {

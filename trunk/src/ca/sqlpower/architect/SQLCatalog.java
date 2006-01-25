@@ -138,7 +138,6 @@ public class SQLCatalog extends SQLObject {
 				con.setCatalog(catalogName);
 				
 				rs = dbmd.getSchemas();
-				
 				while (rs.next()) {
 					String schName = rs.getString(1);
 					SQLSchema schema = null;
@@ -150,7 +149,8 @@ public class SQLCatalog extends SQLObject {
 						logger.debug("Set schema term to "+schema.getNativeTerm());
 					}
 				}
-				
+				rs.close();
+				rs = null;
 				
 				if ( oldSize == children.size() ) {
 					rs = dbmd.getTables(catalogName,
@@ -165,7 +165,10 @@ public class SQLCatalog extends SQLObject {
 												  rs.getString(4),
 												  false));
 					}
+					rs.close();
+					rs = null;
 				}
+				
 			} catch (SQLException e) {
 				throw new ArchitectException("catalog.populate.fail", e);
 			} finally {

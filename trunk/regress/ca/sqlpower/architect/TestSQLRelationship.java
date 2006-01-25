@@ -131,14 +131,14 @@ public class TestSQLRelationship extends SQLTestCase {
 			try {
 				stmt.executeUpdate("DROP TABLE relationship_test_child");
 			} catch (SQLException ex) {
-				System.out.println("Ignoring SQL Exception; assume object to be dropped didn't exist.");
+				System.out.println("Ignoring SQL Exception; assume relationship_test_child didn't exist.");
 				System.out.println(ex.getMessage());
 			}
 
 			try {
 				stmt.executeUpdate("DROP TABLE relationship_test_parent");
 			} catch (SQLException ex) {
-				System.out.println("Ignoring SQL Exception; assume object to be dropped didn't exist.");
+				System.out.println("Ignoring SQL Exception; assume relationship_test_parent didn't exist.");
 				System.out.println(ex.getMessage());
 			}
 
