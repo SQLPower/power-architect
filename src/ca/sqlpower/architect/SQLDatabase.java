@@ -145,10 +145,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 			con = getConnection();
 			DatabaseMetaData dbmd = con.getMetaData();
 
-			logger.debug("MetaData class is: " + dbmd.getClass().getName());
-
 			rs = dbmd.getCatalogs();
-		
 			while (rs.next()) {
 				String catName = rs.getString(1);
 				SQLCatalog cat = null;
@@ -159,6 +156,8 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 					children.add(cat);
 				}
 			}
+			rs.close();
+			rs = null;
 
 			// if we tried to get Catalogs, and there were none, then I guess
 			// we should look for Schemas instead (i.e. this database has no
@@ -168,6 +167,8 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 				while (rs.next()) {
 					children.add(new SQLSchema(this, rs.getString(1),false));
 				}
+				rs.close();
+				rs = null;
 			}
 		} catch (SQLException e) {
 			throw new ArchitectException("database.populate.fail", e);

@@ -51,31 +51,36 @@ public class TestSQLColumn extends SQLTestCase {
 		System.out.println("TestSQLColumn.oneTimeSetUp()");
 		
 		SQLDatabase mydb = new SQLDatabase(getDataSource());
-		Connection con = mydb.getConnection();
-		Statement stmt = con.createStatement();
+		Connection con = null;
+		Statement stmt = null;
 		
-		dropTableNoFail(con, "SQL_COLUMN_TEST_1PK");
-		dropTableNoFail(con, "SQL_COLUMN_TEST_3PK");
-		dropTableNoFail(con, "SQL_COLUMN_TEST_0PK");
-		
-		stmt.executeUpdate("CREATE TABLE SQL_COLUMN_TEST_1PK (\n" +
-				" cow numeric(11) CONSTRAINT test1pk PRIMARY KEY,\n" +
-				" moo varchar(10),\n" +
-				" foo char(10))");
-		
-		stmt.executeUpdate("CREATE TABLE SQL_COLUMN_TEST_3PK (\n" +
-				" cow numeric(11) NOT NULL,\n" +
-				" moo varchar(10) NOT NULL,\n" +
-				" foo char(10) NOT NULL,\n" +
-				" CONSTRAINT test3pk PRIMARY KEY (cow, moo, foo))");
-		
-		stmt.executeUpdate("CREATE TABLE SQL_COLUMN_TEST_0PK (\n" +
-				" cow numeric(11),\n" +
-				" moo varchar(10),\n" +
-				" foo char(10))");
-		
-		stmt.close();
-		//mydb.disconnect();  FIXME: this should be uncommented when bug 1005 is fixed
+		try {
+			con = mydb.getConnection();
+			stmt = con.createStatement();
+			
+			dropTableNoFail(con, "SQL_COLUMN_TEST_1PK");
+			dropTableNoFail(con, "SQL_COLUMN_TEST_3PK");
+			dropTableNoFail(con, "SQL_COLUMN_TEST_0PK");
+			
+			stmt.executeUpdate("CREATE TABLE SQL_COLUMN_TEST_1PK (\n" +
+					" cow numeric(11) CONSTRAINT test1pk PRIMARY KEY,\n" +
+					" moo varchar(10),\n" +
+					" foo char(10))");
+			
+			stmt.executeUpdate("CREATE TABLE SQL_COLUMN_TEST_3PK (\n" +
+					" cow numeric(11) NOT NULL,\n" +
+					" moo varchar(10) NOT NULL,\n" +
+					" foo char(10) NOT NULL,\n" +
+					" CONSTRAINT test3pk PRIMARY KEY (cow, moo, foo))");
+			
+			stmt.executeUpdate("CREATE TABLE SQL_COLUMN_TEST_0PK (\n" +
+					" cow numeric(11),\n" +
+					" moo varchar(10),\n" +
+					" foo char(10))");
+		} finally {		
+			if (stmt != null) stmt.close();
+			//mydb.disconnect();  FIXME: this should be uncommented when bug 1005 is fixed
+		}
 	}
 
 	/**
@@ -129,7 +134,7 @@ public class TestSQLColumn extends SQLTestCase {
 			stmt = con.createStatement();
 			stmt.executeUpdate("DROP TABLE "+tableName);
 		} catch (SQLException e) {
-			System.out.println("Ignoring SQLException.  Assuming it means the table we tried to drop didn't exist.");
+			System.out.println("Ignoring SQLException.  Assume "+tableName+" didn't exist.");
 			e.printStackTrace();
 		} finally {
 			if (stmt != null) stmt.close();

@@ -5,6 +5,10 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import junit.extensions.TestSetup;
+import junit.framework.Test;
+import junit.framework.TestSuite;
+
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLDatabase;
@@ -13,33 +17,73 @@ import ca.sqlpower.architect.SQLTable;
 
 public class TestSQLDatabase extends SQLTestCase {
 	
+	/**
+	 * Creates a wrapper around the normal test suite which runs the
+	 * OneTimeSetup and OneTimeTearDown procedures.
+	 */
+	public static Test suite() {
+		TestSuite suite = new TestSuite();
+		suite.addTestSuite(TestSQLDatabase.class);
+		TestSetup wrapper = new TestSetup(suite) {
+			protected void setUp() throws Exception {
+				oneTimeSetUp();
+			}
+			protected void tearDown() throws Exception {
+				oneTimeTearDown();
+			}
+		};
+		return wrapper;
+	}
+
+	/**
+	 * One-time initialization code.  The special {@link #suite()} method arranges for
+	 * this method to be called one time before the individual tests are run.
+	 * @throws Exception 
+	 */
+	public static void oneTimeSetUp() throws Exception {
+		System.out.println("TestSQLDatabase.oneTimeSetUp()");
+		SQLDatabase mydb = new SQLDatabase(getDataSource());
+		Connection con = mydb.getConnection();
+		Statement stmt = null;
+
+		try {
+			stmt = con.createStatement();
+			
+			/*
+			 * Setting up a clean db for each of the tests
+			 */
+			try {
+				stmt.executeUpdate("DROP TABLE REGRESSION_TEST1");
+				stmt.executeUpdate("DROP TABLE REGRESSION_TEST2");
+			}
+			catch (SQLException sqle ){
+				System.out.println("+++ TestSQLDatabase exception should be for dropping a non-existant table");
+				sqle.printStackTrace();
+			}
+			
+			stmt.executeUpdate("CREATE TABLE REGRESSION_TEST1 (t1_c1 numeric(10))");
+			stmt.executeUpdate("CREATE TABLE REGRESSION_TEST2 (t2_c1 char(10))");
+			
+		} finally {
+			if (stmt != null) stmt.close();
+			mydb.disconnect();
+		}
+	}
+
+	/**
+	 * One-time cleanup code.  The special {@link #suite()} method arranges for
+	 * this method to be called one time before the individual tests are run.
+	 */
+	public static void oneTimeTearDown() {
+		System.out.println("TestSQLDatabase.oneTimeTearDown()");
+	}
+
 	public TestSQLDatabase(String name) throws Exception {
 		super(name);
 	}
 
 	protected void setUp() throws Exception {
 		super.setUp();
-		
-		SQLDatabase mydb = new SQLDatabase(db.getDataSource());
-		Connection con = mydb.getConnection();
-		
-		/*
-		 * Setting up a clean db for each of the tests
-		 */
-		Statement stmt = con.createStatement();
-		try {
-			stmt.executeUpdate("DROP TABLE REGRESSION_TEST1");
-			stmt.executeUpdate("DROP TABLE REGRESSION_TEST2");
-		}
-		catch (SQLException sqle ){
-			System.out.println("+++ TestSQLDatabase exception should be for dropping a non-existant table");
-			sqle.printStackTrace();
-		}
-		
-		stmt.executeUpdate("CREATE TABLE REGRESSION_TEST1 (t1_c1 numeric(10))");
-		stmt.executeUpdate("CREATE TABLE REGRESSION_TEST2 (t2_c1 char(10))");
-		stmt.close();
-		mydb.disconnect();
 	}
 	
 	public void testGoodConnect() throws ArchitectException {

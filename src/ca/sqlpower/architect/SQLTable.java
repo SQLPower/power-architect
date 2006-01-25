@@ -114,16 +114,16 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		synchronized (addTo) {
 			Connection con = addTo.getConnection();
 			DatabaseMetaData dbmd = con.getMetaData();
-			ResultSet mdTables = null;
+			ResultSet rs = null;
 			try {
-				mdTables = dbmd.getTables(null,
-										  null,
-										  "%",
-										  new String[] {"TABLE", "VIEW"});
-				while (mdTables.next()) {
+				rs = dbmd.getTables(null,
+								   null,
+								   "%",
+								   new String[] {"TABLE", "VIEW"});
+				while (rs.next()) {
 					SQLObject tableParent = addTo;
 
-					String catName = mdTables.getString(1);
+					String catName = rs.getString(1);
 					SQLCatalog cat = null;
 
 					if (catName != null) {
@@ -138,7 +138,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 						tableParent = cat;
 					}
 
-					String schName = mdTables.getString(2);
+					String schName = rs.getString(2);
 					SQLSchema schema = null;
 					if (schName != null) {
 						schema = (SQLSchema) schemas.get(catName+"."+schName);
@@ -158,13 +158,13 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 					}
 														  
 					tableParent.children.add(new SQLTable(tableParent,
-														  mdTables.getString(3),
-														  mdTables.getString(5),
-														  mdTables.getString(4),
+														  rs.getString(3),
+														  rs.getString(5),
+														  rs.getString(4),
 														  false));
 				}
 			} finally {
-				if (mdTables != null) mdTables.close();
+				if (rs != null) rs.close();
 			}
 		}
 	}

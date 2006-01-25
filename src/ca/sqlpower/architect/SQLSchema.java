@@ -119,15 +119,14 @@ public class SQLSchema extends SQLObject {
 										schemaName,
 										"%",
 										new String[] {"TABLE", "VIEW"});
-				}
-				else if ( tmp instanceof SQLCatalog ) {
+				} else if ( tmp instanceof SQLCatalog ) {
 					rs = dbmd.getTables(tmp.getName(),
 										schemaName,
 										"%",
 										new String[] {"TABLE", "VIEW"});
 				}
 				
-				while ( rs!=null && rs.next()) {
+				while (rs != null && rs.next()) {
 					children.add(new SQLTable(this,
 											  rs.getString(3),
 											  rs.getString(5),
@@ -147,7 +146,7 @@ public class SQLSchema extends SQLObject {
 					fireDbChildrenInserted(changedIndices, children.subList(oldSize, newSize));
 				}
 				try {
-					if ( rs != null )	rs.close();
+					if ( rs != null ) rs.close();
 				} catch (SQLException e2) {
 					throw new ArchitectException("schema.rs.close.fail", e2);
 				}

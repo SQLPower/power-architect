@@ -5,6 +5,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.TreeMap;
 
+import junit.extensions.TestSetup;
+import junit.framework.Test;
+import junit.framework.TestSuite;
+
 import org.apache.commons.beanutils.BeanUtils;
 
 import regress.ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
@@ -16,254 +20,285 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLTable.Folder;
 
 public class TestSQLTable extends SQLTestCase {
-	
-		public TestSQLTable(String name) throws Exception
-		{
-			super(name);
-		}
+
+	/**
+	 * Creates a wrapper around the normal test suite which runs the
+	 * OneTimeSetup and OneTimeTearDown procedures.
+	 */
+	public static Test suite() {
+		TestSuite suite = new TestSuite();
+		suite.addTestSuite(TestSQLTable.class);
+		TestSetup wrapper = new TestSetup(suite) {
+			protected void setUp() throws Exception {
+				oneTimeSetUp();
+			}
+			protected void tearDown() throws Exception {
+				oneTimeTearDown();
+			}
+		};
+		return wrapper;
+	}
+
+	/**
+	 * One-time initialization code.  The special {@link #suite()} method arranges for
+	 * this method to be called one time before the individual tests are run.
+	 * @throws Exception 
+	 */
+	public static void oneTimeSetUp() throws Exception {
+		System.out.println("TestSQLTable.oneTimeSetUp()");
+		SQLDatabase mydb = new SQLDatabase(getDataSource());
+		Connection con = mydb.getConnection();
+		Statement stmt = null;
 		
-		protected void setUp() throws Exception {
-			super.setUp();
-			SQLDatabase mydb = new SQLDatabase(db.getDataSource());
-			Connection con = mydb.getConnection();
-			
-			
-			/*
-			 * Setting up a clean db for each of the tests
-			 */
-			Statement stmt = con.createStatement();
+		/*
+		 * Setting up a clean db for each of the tests
+		 */
+		try {
+			stmt = con.createStatement();
 			try {
 				stmt.executeUpdate("DROP TABLE REGRESSION_TEST1");
 				stmt.executeUpdate("DROP TABLE REGRESSION_TEST2");
-			}
-			catch (SQLException sqle ){
+			} catch (SQLException sqle) {
 				System.out.println("+++ TestSQLDatabase exception should be for dropping a non-existant table");
 				sqle.printStackTrace();
 			}
 			
 			stmt.executeUpdate("CREATE TABLE REGRESSION_TEST1 (t1_c1 numeric(10), t1_c2 numeric(5))");
 			stmt.executeUpdate("CREATE TABLE REGRESSION_TEST2 (t2_c1 char(10))");
-			
-			stmt.close();
+		} finally {
+			if (stmt != null) stmt.close();
 			mydb.disconnect();
-			
 		}
-		
-		public void testGetDerivedInstance() throws Exception
-		{
-			SQLTable derivedTable;
-			SQLTable table1;
-			assertNotNull(table1 = db.getTableByName("REGRESSION_TEST1"));			
-			derivedTable = SQLTable.getDerivedInstance(table1,table1.getParentDatabase());
-		
-			TreeMap derivedPropertyMap = new TreeMap( BeanUtils.describe(derivedTable));
-			TreeMap table1PropertyMap = new TreeMap(BeanUtils.describe(table1));
-			
-			derivedPropertyMap.remove("parent");
-			derivedPropertyMap.remove("schemaName");
-			derivedPropertyMap.remove("schema");
-			derivedPropertyMap.remove("shortDisplayName");
-			table1PropertyMap.remove("parent");
-			table1PropertyMap.remove("schemaName");
-			table1PropertyMap.remove("schema");
-			table1PropertyMap.remove("shortDisplayName");	
-			assertEquals("Derived table not properly copied", derivedPropertyMap.toString(),table1PropertyMap.toString());
-			
-		}
-		
-		public void testInherit() throws ArchitectException
-		{
-			SQLTable table1;
-			SQLTable table2;
-			table1 = db.getTableByName("REGRESSION_TEST1");
-			table2 = db.getTableByName("REGRESSION_TEST2");
-		
-			table2.inherit(table1);
-			assertEquals("The wrong 1st column was inherited",table2.getColumn(0).toString(),table1.getColumn(0).toString());
-			assertEquals("The wrong 2nd column was inherited",table2.getColumn(1).toString(),table1.getColumn(1).toString());
-			assertEquals("The wrong number of columns were inherited",table2.getColumns().size(), 3);
-			try {
-				table2.inherit(table2);
-			}
-			catch (ArchitectException ae)
-			{
-				if ("Cannot inherit from self".equals(ae.getMessage()))
-				{
-					System.out.println("Expected Behaviour is to not be able to inherit from self");
-					
-				}
-				else
-				{
-					throw ae;
-				}
-			}
-		}
-		
-		public void testGetColumnByName() throws ArchitectException
-		{
-			SQLTable table1;
-			SQLColumn col1;
-			SQLColumn col2;
-			table1 = db.getTableByName("REGRESSION_TEST1");
-			col2 = table1.getColumnByName("t1_c2");
-			assertNotNull(col2);
-			assertEquals("The wrong colomn us returned",col2, table1.getColumn(1));
-			
-			col1= table1.getColumnByName("t1_c1");
-			assertNotNull(col1);
-			assertEquals("The wrong colomn us returned",col1, table1.getColumn(0));
-			
-			assertNull(col1 = table1.getColumnByName("This_is_a_non_existant_column"));
-			assertNull("Invalid column name", col1 = table1.getColumnByName("$#  #$%#%"));
-		}
-		
-		public void testAddColumn() throws ArchitectException
-		{
-			SQLTable table1;
-			SQLColumn col1;
-			SQLColumn col2;
-			SQLColumn newColumn = db.getTableByName("REGRESSION_TEST2").getColumn(0);
-			String newName = "This is a new name changed for testAddColumn";
-			table1 = db.getTableByName("REGRESSION_TEST1");
-			col1 = table1.getColumnByName("t1_c2");
-			table1.addColumn(2,col1);
-			col2 = table1.getColumn(2);
-			
-			if (col2 != null)
-				col2.setName(newName);
-			assertFalse("Multiple columns where modified",newName.equals(table1.getColumn(1).getName()));
-		
-			table1.addColumn(1,newColumn);
-			assertEquals("Column inserted into wrong position or did not insert",newColumn,table1.getColumn(1));
-			
-		}
-		
-		public void testRemoveColumnOutBounds() throws ArchitectException
-		{
-			SQLTable table1;
-			SQLColumn col1;
-			SQLColumn col2;
-			 
-			table1 = db.getTableByName("REGRESSION_TEST1");
-			Exception exc = null;
-			try {
-				table1.removeColumn(16);
-			} catch (IndexOutOfBoundsException e) {
-				System.out.println("Method throws proper error");
-				exc=e;
-			}
-			
-			assertNotNull("Should have thrown an exception",exc);
-		}
-		
-		public void testRemoveColumn() throws ArchitectException
-		{
-			SQLTable table1;
-			SQLColumn col1;
-			SQLColumn col2;
-			 
-			table1 = db.getTableByName("REGRESSION_TEST1");
-			col1 = table1.getColumn(0);
-			col2 = table1.getColumn(1);
+	}
+	
+	/**
+	 * One-time cleanup code.  The special {@link #suite()} method arranges for
+	 * this method to be called one time before the individual tests are run.
+	 */
+	public static void oneTimeTearDown() {
+		System.out.println("TestSQLTable.oneTimeTearDown()");
+	}
+	
+	public TestSQLTable(String name) throws Exception {
+		super(name);
+	}
 
-			assertEquals("We removed a column when we shouldn't have",table1.getColumns().size(),2);
-			table1.removeColumn(col1);
-			assertEquals("Either 0 or 2+ columns were removed",table1.getColumns().size(),1);
-			assertEquals("The wrong column was removed",col2,table1.getColumn(0));
+	protected void setUp() throws Exception {
+		super.setUp();
+	}
+
+	public void testGetDerivedInstance() throws Exception {
+		SQLTable derivedTable;
+		SQLTable table1;
+		assertNotNull(table1 = db.getTableByName("REGRESSION_TEST1"));
+		derivedTable = SQLTable.getDerivedInstance(table1, table1.getParentDatabase());
+
+		TreeMap derivedPropertyMap = new TreeMap(BeanUtils.describe(derivedTable));
+		TreeMap table1PropertyMap = new TreeMap(BeanUtils.describe(table1));
+
+		derivedPropertyMap.remove("parent");
+		derivedPropertyMap.remove("schemaName");
+		derivedPropertyMap.remove("schema");
+		derivedPropertyMap.remove("shortDisplayName");
+		table1PropertyMap.remove("parent");
+		table1PropertyMap.remove("schemaName");
+		table1PropertyMap.remove("schema");
+		table1PropertyMap.remove("shortDisplayName");
+		assertEquals("Derived table not properly copied",
+				derivedPropertyMap.toString(),
+				table1PropertyMap.toString());
+
+	}
+
+	public void testInherit() throws ArchitectException {
+		SQLTable table1;
+		SQLTable table2;
+		table1 = db.getTableByName("REGRESSION_TEST1");
+		table2 = db.getTableByName("REGRESSION_TEST2");
+
+		// the tables need to load properly
+		assertEquals(2, table1.getColumns().size());
+		assertEquals(1, table2.getColumns().size());
+		
+		table2.inherit(table1);
+		assertEquals("The wrong 1st column was inherited",
+				table1.getColumn(0).toString(), table2.getColumn(1).toString());
+		assertEquals("The wrong 2nd column was inherited",
+				table1.getColumn(1).toString(), table2.getColumn(2).toString());
+		assertEquals("The wrong number of columns were inherited",
+				table2.getColumns().size(), 3);
+		try {
+			table2.inherit(table2);
+		} catch (ArchitectException ae) {
+			if ("Cannot inherit from self".equals(ae.getMessage())) {
+				System.out.println("Expected Behaviour is to not be able to inherit from self");
+			} else {
+				throw ae;
+			}
+		}
+	}
+
+	public void testGetColumnByName() throws ArchitectException {
+		SQLTable table1;
+		SQLColumn col1;
+		SQLColumn col2;
+		table1 = db.getTableByName("REGRESSION_TEST1");
+		col2 = table1.getColumnByName("t1_c2");
+		assertNotNull(col2);
+		assertEquals("The wrong colomn us returned", col2, table1.getColumn(1));
+
+		col1 = table1.getColumnByName("t1_c1");
+		assertNotNull(col1);
+		assertEquals("The wrong colomn us returned", col1, table1.getColumn(0));
+
+		assertNull(col1 = table1.getColumnByName("This_is_a_non_existant_column"));
+		assertNull("Invalid column name", col1 = table1.getColumnByName("$#  #$%#%"));
+	}
+
+	public void testAddColumn() throws ArchitectException {
+		SQLTable table1;
+		SQLColumn col1;
+		SQLColumn col2;
+		SQLColumn newColumn = db.getTableByName("REGRESSION_TEST2").getColumn(0);
+		String newName = "This is a new name changed for testAddColumn";
+		table1 = db.getTableByName("REGRESSION_TEST1");
+		col1 = table1.getColumnByName("t1_c2");
+		table1.addColumn(2, col1);
+		col2 = table1.getColumn(2);
+
+		if (col2 != null)
+			col2.setName(newName);
+		assertFalse("Multiple columns where modified",
+				newName.equals(table1.getColumn(1).getName()));
+
+		table1.addColumn(1, newColumn);
+		assertEquals("Column inserted into wrong position or did not insert",
+				newColumn, table1.getColumn(1));
+
+	}
+
+	public void testRemoveColumnOutBounds() throws ArchitectException {
+		SQLTable table1;
+
+		table1 = db.getTableByName("REGRESSION_TEST1");
+		Exception exc = null;
+		try {
+			table1.removeColumn(16);
+		} catch (IndexOutOfBoundsException e) {
+			System.out.println("Method throws proper error");
+			exc = e;
+		}
+
+		assertNotNull("Should have thrown an exception", exc);
+	}
+
+	public void testRemoveColumn() throws ArchitectException {
+		SQLTable table1;
+		SQLColumn col1;
+		SQLColumn col2;
+
+		table1 = db.getTableByName("REGRESSION_TEST1");
+		col1 = table1.getColumn(0);
+		col2 = table1.getColumn(1);
+
+		assertEquals("We removed a column when we shouldn't have",
+				table1.getColumns().size(), 2);
+		table1.removeColumn(col1);
+		assertEquals("Either 0 or 2+ columns were removed",
+				table1.getColumns().size(), 1);
+		assertEquals("The wrong column was removed", col2, table1.getColumn(0));
+		table1.removeColumn(0);
+		assertEquals("Last Column failed to be removed",
+				table1.getColumns().size(), 0);
+		Exception exc = null;
+		try {
 			table1.removeColumn(0);
-			assertEquals("Last Column failed to be removed",table1.getColumns().size(),0);
-			Exception exc = null;
-			try {
-				table1.removeColumn(0);
-			} catch (IndexOutOfBoundsException e) {
-				System.out.println("Method throws proper error");
-				exc = e;
-			}
-			assertNotNull("Should have thrown an exception",exc);
-			
-			
+		} catch (IndexOutOfBoundsException e) {
+			System.out.println("Method throws proper error");
+			exc = e;
 		}
-		
-		public void testNormalizePrimaryKey() throws ArchitectException
-		{
-			SQLTable table1;
-			SQLColumn col2;
-			SQLColumn col1 = db.getTableByName("REGRESSION_TEST2").getColumn(0);
-			col1.setPrimaryKeySeq(new Integer(5));
-			table1 = db.getTableByName("REGRESSION_TEST1");
-			col2=(SQLColumn) col1.clone();
-			col2.setPrimaryKeySeq(new Integer(16));
-			table1.addColumn(2,col1);
-			table1.addColumn(3,col2);
-			table1.normalizePrimaryKey();
-			assertEquals("Wrong number of primary keys",table1.getPkSize(),0);
-			
-			col1.setPrimaryKeySeq(new Integer(5));
-			col2.setPrimaryKeySeq(new Integer(16));
-			
-			assertEquals("Invalid key order",table1.getColumn(0),col1);
-			assertEquals("2nd key out of order", table1.getColumn(1),col2);
-			assertEquals("Too many or too few primary keys",table1.getPkSize(),2);
-			
-		}
+		assertNotNull("Should have thrown an exception", exc);
 
+	}
 
-		/*
-		 * Test method for 'ca.sqlpower.architect.SQLObject.fireDbChildrenInserted(int[], List)'
-		 */
-		public void testFireDbChildrenInserted() throws Exception {
+	public void testNormalizePrimaryKey() throws ArchitectException {
+		SQLTable table1;
+		SQLColumn col2;
+		SQLColumn col1 = db.getTableByName("REGRESSION_TEST2").getColumn(0);
+		col1.setPrimaryKeySeq(new Integer(5));
+		table1 = db.getTableByName("REGRESSION_TEST1");
+		col2 = (SQLColumn) col1.clone();
+		col2.setPrimaryKeySeq(new Integer(16));
+		table1.addColumn(2, col1);
+		table1.addColumn(3, col2);
+		table1.normalizePrimaryKey();
+		assertEquals("Wrong number of primary keys", table1.getPkSize(), 0);
 
-			SQLTable table1 = db.getTableByName("REGRESSION_TEST1"); 
-			SQLColumn c1 = table1.getColumn(0);
-			Folder folder = table1.getColumnsFolder();
+		col1.setPrimaryKeySeq(new Integer(5));
+		col2.setPrimaryKeySeq(new Integer(16));
 
-			TestSQLObjectListener test1 = new TestSQLObjectListener();
-			folder.addSQLObjectListener(test1);
-			TestSQLObjectListener test2 = new TestSQLObjectListener();
-			folder.addSQLObjectListener(test2);
+		assertEquals("Invalid key order", table1.getColumn(0), col1);
+		assertEquals("2nd key out of order", table1.getColumn(1), col2);
+		assertEquals("Too many or too few primary keys", table1.getPkSize(), 2);
 
-			assertEquals(test1.getInsertedCount(),0);
-			assertEquals(test1.getRemovedCount(),0);
-			assertEquals(test1.getChangedCount(),0);
-			assertEquals(test1.getStructureChangedCount(),0);
-			
-			assertEquals(test2.getInsertedCount(),0);
-			assertEquals(test2.getRemovedCount(),0);
-			assertEquals(test2.getChangedCount(),0);
-			assertEquals(test2.getStructureChangedCount(),0);
-			
-			SQLColumn tmpCol = new SQLColumn();
-			table1.addColumn(tmpCol);
-			table1.changeColumnIndex(table1.getColumnIndex(c1),2);
-			
-			assertEquals(test1.getInsertedCount(),2);
-			assertEquals(test1.getRemovedCount(),1);
-			assertEquals(test1.getChangedCount(),0);
-			assertEquals(test1.getStructureChangedCount(),0);
-			
-			assertEquals(test2.getInsertedCount(),2);
-			assertEquals(test2.getRemovedCount(),1);
-			assertEquals(test2.getChangedCount(),0);
-			assertEquals(test2.getStructureChangedCount(),0);
-			
-			folder.removeSQLObjectListener(test1);
-			table1.changeColumnIndex(table1.getColumnIndex(c1),1);
-			
-			assertEquals(test1.getInsertedCount(),2);
-			assertEquals(test1.getRemovedCount(),1);
-			assertEquals(test1.getChangedCount(),0);
-			assertEquals(test1.getStructureChangedCount(),0);
-			
-			assertEquals(test2.getInsertedCount(),3);
-			assertEquals(test2.getRemovedCount(),2);
-			assertEquals(test2.getChangedCount(),0);
-			assertEquals(test2.getStructureChangedCount(),0);
-			
-			table1.removeColumn(tmpCol);
-			assertEquals(test2.getInsertedCount(),3);
-			assertEquals(test2.getRemovedCount(),3);
-			assertEquals(test2.getChangedCount(),0);
-			assertEquals(test2.getStructureChangedCount(),0);
-		}
+	}
+
+	/*
+	 * Test method for 'ca.sqlpower.architect.SQLObject.fireDbChildrenInserted(int[], List)'
+	 */
+	public void testFireDbChildrenInserted() throws Exception {
+
+		SQLTable table1 = db.getTableByName("REGRESSION_TEST1");
+		SQLColumn c1 = table1.getColumn(0);
+		Folder folder = table1.getColumnsFolder();
+
+		TestSQLObjectListener test1 = new TestSQLObjectListener();
+		folder.addSQLObjectListener(test1);
+		TestSQLObjectListener test2 = new TestSQLObjectListener();
+		folder.addSQLObjectListener(test2);
+
+		assertEquals(test1.getInsertedCount(), 0);
+		assertEquals(test1.getRemovedCount(), 0);
+		assertEquals(test1.getChangedCount(), 0);
+		assertEquals(test1.getStructureChangedCount(), 0);
+
+		assertEquals(test2.getInsertedCount(), 0);
+		assertEquals(test2.getRemovedCount(), 0);
+		assertEquals(test2.getChangedCount(), 0);
+		assertEquals(test2.getStructureChangedCount(), 0);
+
+		SQLColumn tmpCol = new SQLColumn();
+		table1.addColumn(tmpCol);
+		table1.changeColumnIndex(table1.getColumnIndex(c1), 2);
+
+		assertEquals(test1.getInsertedCount(), 2);
+		assertEquals(test1.getRemovedCount(), 1);
+		assertEquals(test1.getChangedCount(), 0);
+		assertEquals(test1.getStructureChangedCount(), 0);
+
+		assertEquals(test2.getInsertedCount(), 2);
+		assertEquals(test2.getRemovedCount(), 1);
+		assertEquals(test2.getChangedCount(), 0);
+		assertEquals(test2.getStructureChangedCount(), 0);
+
+		folder.removeSQLObjectListener(test1);
+		table1.changeColumnIndex(table1.getColumnIndex(c1), 1);
+
+		assertEquals(test1.getInsertedCount(), 2);
+		assertEquals(test1.getRemovedCount(), 1);
+		assertEquals(test1.getChangedCount(), 0);
+		assertEquals(test1.getStructureChangedCount(), 0);
+
+		assertEquals(test2.getInsertedCount(), 3);
+		assertEquals(test2.getRemovedCount(), 2);
+		assertEquals(test2.getChangedCount(), 0);
+		assertEquals(test2.getStructureChangedCount(), 0);
+
+		table1.removeColumn(tmpCol);
+		assertEquals(test2.getInsertedCount(), 3);
+		assertEquals(test2.getRemovedCount(), 3);
+		assertEquals(test2.getChangedCount(), 0);
+		assertEquals(test2.getStructureChangedCount(), 0);
+	}
 
 }
