@@ -1191,7 +1191,13 @@ public class PlayPen extends JPanel
 	 * user clicks.
 	 */
 	public void addFloating(TablePane tp) {
-		db.addChild(tp.getModel());
+		try {
+			db.addChild(tp.getModel());
+		} catch (ArchitectException e) {
+			logger.error("Couldn't add table \""+tp.getModel()+"\" to play pen:", e);
+			JOptionPane.showMessageDialog(null, "Failed to add table:\n"+e.getMessage());
+			return;
+		}
 		addImpl(tp, new Point(0,0),getPPComponentCount());
 		new FloatingTableListener(this, tp, zoomPoint(new Point(tp.getSize().width/2,0)));
 	}

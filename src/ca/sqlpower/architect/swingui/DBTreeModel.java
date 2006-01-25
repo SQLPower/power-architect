@@ -1,5 +1,6 @@
 package ca.sqlpower.architect.swingui;
 
+import javax.swing.JOptionPane;
 import javax.swing.tree.*;
 import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeModelEvent;
@@ -253,7 +254,12 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 			logger.error("Couldn't populate parent node of exception");
 		}
 
-		parent.addChild(excNode);
+		try {
+			parent.addChild(excNode);
+		} catch (ArchitectException e) {
+			logger.error("Couldn't add SQLExceptionNode \""+excNode.getName()+"\" to tree model:", e);
+			JOptionPane.showMessageDialog(null, "Failed to add SQLExceptionNode:\n"+e.getMessage());
+		}
 		return excNode;
 	}
 

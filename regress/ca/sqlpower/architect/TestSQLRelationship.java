@@ -103,7 +103,7 @@ public class TestSQLRelationship extends SQLTestCase {
 	/*
 	 * Test method for 'ca.sqlpower.architect.SQLRelationship.setParent(SQLObject)'
 	 */
-	public void testSetInvalidParent() {
+	public void testSetInvalidParent() throws ArchitectException {
 		assertEquals(rel2.getPkTable(), parentTable);
 		assertEquals(rel2.getFkTable(), childTable2);
 		try {
@@ -112,7 +112,6 @@ public class TestSQLRelationship extends SQLTestCase {
 		} catch (IllegalArgumentException e) {
 			assertTrue(true);
 		}
-
 		// ensure the attempted change didn't stick
 		assertEquals(rel2.getPkTable(), parentTable);
 		assertEquals(rel2.getFkTable(), childTable2);

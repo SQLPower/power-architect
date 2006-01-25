@@ -65,7 +65,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	 * method many times; it returns quickly if nothing needs to be
 	 * done.
 	 */
-	public synchronized void connect() throws ArchitectException {
+	private synchronized void connect() throws ArchitectException {
 		try {
 			if (connection != null && !connection.isClosed()) return;
 			connection = dbConnections.get(dataSource);
@@ -191,6 +191,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	}
 	
 
+
 	public SQLCatalog getCatalogByName(String catalogName) throws ArchitectException {
 		populate();
 		if (children == null || children.size() == 0) {
@@ -241,7 +242,10 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 					return schema;
 				}
 			} else if (child instanceof SQLSchema) {
-				if (child.getName().equalsIgnoreCase(schemaName)) {
+				boolean match = (child.getName() == null ?
+								 schemaName == null :
+								 child.getName().equalsIgnoreCase(schemaName)); 
+				if (match) {
 					return (SQLSchema) child;
 				}
 			} else {
@@ -449,6 +453,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	 * Unless {@link #ignoreReset} is true
 	 */
 	protected void reset() {
+		
 		if (ignoreReset) {
 			// preserve the objects that are in the Target system when
             // the connection spec changes
@@ -456,7 +461,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 			populated = true;
 		} else {
 			// discard everything and reload (this is generally for source systems)
-			logger.debug("Resetting: " + getDataSource());
+			logger.debug("Resetting: " + getDataSource() );
 			// tear down old connection stuff
 			List old = children;
 			if (old != null && old.size() > 0) {
@@ -575,5 +580,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 			connection = null;
 		}
 	}
+	
+	
 	
 }
