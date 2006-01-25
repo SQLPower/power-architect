@@ -90,7 +90,7 @@ public class StatementFacade implements Statement {
 	}
 
 	public Connection getConnection() throws SQLException {
-		return stmt.getConnection();
+		return con;
 	}
 
 	public int getFetchDirection() throws SQLException {
