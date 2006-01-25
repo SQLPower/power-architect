@@ -50,7 +50,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 */
 	protected Folder importedKeysFolder;
 	
-	public SQLTable(SQLObject parent, String name, String remarks, String objectType, boolean startPopulated) {
+	public SQLTable(SQLObject parent, String name, String remarks, String objectType, boolean startPopulated) throws ArchitectException {
 		logger.debug("NEW TABLE "+name+"@"+hashCode());
 		this.parent = parent;
 		this.tableName = name;
@@ -70,8 +70,9 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * Creates a new SQLTable with parent as its parent and a null
 	 * schema and catalog.  The table will contain the three default
 	 * folders: "Columns" "Exported Keys" and "Imported Keys".
+	 * @throws ArchitectException 
 	 */
-	public SQLTable(SQLDatabase parent, boolean startPopulated) {
+	public SQLTable(SQLDatabase parent, boolean startPopulated) throws ArchitectException {
 		this(parent, "", "", "TABLE", startPopulated);
 	}
 
@@ -100,8 +101,9 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * @param populated The initial value to give the folders'
 	 * populated status.  When loading from a file, this should be true;
 	 * if lazy loading from a database, it should be false.
+	 * @throws ArchitectException 
 	 */
-	public void initFolders(boolean populated) {
+	public void initFolders(boolean populated) throws ArchitectException {
 		addChild(new Folder(Folder.COLUMNS, populated));
 		addChild(new Folder(Folder.EXPORTED_KEYS, populated));
 		addChild(new Folder(Folder.IMPORTED_KEYS, populated));
@@ -254,8 +256,9 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 
 	/**
 	 * Convenience method for getImportedKeys.addChild(r).
+	 * @throws ArchitectException 
 	 */
-	public void addImportedKey(SQLRelationship r) {
+	public void addImportedKey(SQLRelationship r) throws ArchitectException {
 		importedKeysFolder.addChild(r);
 	}
 
@@ -268,8 +271,9 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 
 	/**
 	 * Convenience method for getExportedKeys.addChild(r).
+	 * @throws ArchitectException 
 	 */
-	public void addExportedKey(SQLRelationship r) {
+	public void addExportedKey(SQLRelationship r) throws ArchitectException {
 		exportedKeysFolder.addChild(r);
 	}
 
@@ -455,8 +459,9 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * Connects up the columnsFolder, exportedKeysFolder, and
 	 * importedKeysFolder pointers to the children at indices 0, 1,
 	 * and 2 respectively.
+	 * @throws ArchitectException 
 	 */
-	public void addChild(int index, SQLObject child) {
+	public void addChild(int index, SQLObject child) throws ArchitectException {
 		if (child instanceof Folder) {
 			if (children.size() == 0) {
 				columnsFolder = (Folder) child;
@@ -752,7 +757,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 			}
 		}
 
-		public void addChild(int index, SQLObject child) {
+		public void addChild(int index, SQLObject child) throws ArchitectException {
 			logger.debug("[31mAdding child "+child.getName()+" to folder "+getName()+"[0m");
 			super.addChild(index, child);
 		}

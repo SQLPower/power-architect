@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import javax.swing.JOptionPane;
 import javax.swing.ProgressMonitor;
 import javax.swing.ToolTipManager;
 
@@ -323,7 +324,12 @@ public class SwingUIProject {
 
 			String populated = attributes.getValue("populated");
 			if (populated != null && populated.equals("false")) {
-				tab.initFolders(false);
+				try {
+					tab.initFolders(false);
+				} catch (ArchitectException e) {
+					logger.error("Couldn't add folder to table \""+tab.getName()+"\"", e);
+					JOptionPane.showMessageDialog(null, "Failed to add folder to table:\n"+e.getMessage());
+				}
 			}
 
 			return tab;
@@ -422,14 +428,24 @@ public class SwingUIProject {
 			if (fkTableId != null) {
 				SQLTable fkTable = (SQLTable) objectIdMap.get(fkTableId);
 				rel.setFkTable(fkTable);
-				fkTable.addImportedKey(rel);
+				try {
+					fkTable.addImportedKey(rel);
+				} catch (ArchitectException e) {
+					logger.error("Couldn't add keys to table \""+fkTable.getName()+"\"", e);
+					JOptionPane.showMessageDialog(null, "Failed to add f-keys to table:\n"+e.getMessage());
+				}
 			}
 
 			String pkTableId = attributes.getValue("pk-table-ref");
 			if (pkTableId != null) {
 				SQLTable pkTable = (SQLTable) objectIdMap.get(pkTableId);
 				rel.setPkTable(pkTable);
-				pkTable.addExportedKey(rel);
+				try {
+					pkTable.addExportedKey(rel);
+				} catch (ArchitectException e) {
+					logger.error("Couldn't add pk to table \""+pkTable.getName()+"\"", e);
+					JOptionPane.showMessageDialog(null, "Failed to add pk to table:\n"+e.getMessage());
+				}
 			}
 
 			return rel;

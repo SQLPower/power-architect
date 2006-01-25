@@ -2,7 +2,9 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.event.*;
 import javax.swing.*;
+
 import ca.sqlpower.architect.*;
+
 import org.apache.log4j.Logger;
 
 public class CreateTableAction extends AbstractAction {
@@ -23,7 +25,12 @@ public class CreateTableAction extends AbstractAction {
 
 	public void actionPerformed(ActionEvent evt) {
 		SQLTable t = new SQLTable();
-		t.initFolders(true);
+		try {
+			t.initFolders(true);
+		} catch (ArchitectException e) {
+			logger.error("Couldn't add folder to table \""+t.getName()+"\"", e);
+			JOptionPane.showMessageDialog(null, "Failed to add folder to table:\n"+e.getMessage());
+		}
 		t.setTableName("New_Table");
 		TablePane tp = new TablePane(t, pp);
 		pp.addFloating(tp);

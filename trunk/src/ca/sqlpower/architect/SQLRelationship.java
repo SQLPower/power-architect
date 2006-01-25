@@ -172,8 +172,9 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	/**
 	 * Convenience method for adding a SQLRelationship.ColumnMapping
 	 * child to this relationship.
+	 * @throws ArchitectException 
 	 */
-	public void addMapping(SQLColumn pkColumn, SQLColumn fkColumn) {
+	public void addMapping(SQLColumn pkColumn, SQLColumn fkColumn) throws ArchitectException {
 		ColumnMapping cmap = new ColumnMapping();
 		cmap.setPkColumn(pkColumn);
 		cmap.setFkColumn(fkColumn);

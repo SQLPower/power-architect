@@ -139,8 +139,15 @@ public abstract class SQLObject implements java.io.Serializable {
 	 * Adds the given SQLObject to this SQLObject at index. Causes a
 	 * DBChildrenInserted event.  If you want to override the
 	 * behaviour of addChild, override this method.
+	 * @throws ArchitectException 
+	 * @throws ArchitectException 
 	 */
-	public void addChild(int index, SQLObject newChild) {
+	public void addChild(int index, SQLObject newChild) throws ArchitectException {
+
+		if ( children.size() > 0 && 
+				children.get(0).getClass() != newChild.getClass() ) 
+			throw new ArchitectException("You Can't mix SQL Object Types!");
+
 		children.add(index, newChild);
 		newChild.setParent(this);
 		fireDbChildInserted(index, newChild);
@@ -151,8 +158,11 @@ public abstract class SQLObject implements java.io.Serializable {
 	 * child list by calling {@link #addChild(int,SQLObject)}. Causes
 	 * a DBChildrenInserted event.  If you want to override the
 	 * behaviour of addChild, do not override this method.
+	 * @throws ArchitectException 
+	 * @throws ArchitectException 
+	 * @throws Exception 
 	 */
-	public void addChild(SQLObject newChild) {
+	public void addChild(SQLObject newChild) throws ArchitectException {
 		addChild(children.size(), newChild);
 	}
 	
@@ -278,6 +288,50 @@ public abstract class SQLObject implements java.io.Serializable {
 			((SQLObjectListener) it.next()).dbStructureChanged(e);
 		}
 		
+	}
+
+	/**
+	 * Determines whether this SQL object is a container for schemas
+	 *
+	 * @return true (the default) if there are no children; false if
+	 * the first child is not of type SQLSchema.
+	 */
+	public boolean isSchemaContainer() throws ArchitectException {
+		if (children == null) {
+			populate();
+			if (children == null) {
+				throw new ArchitectException("populate");
+			}
+		}
+	
+		// catalog has been populated
+	
+		if (children.size() == 0) {
+			return true;
+		} else {
+			return (children.get(0) instanceof SQLSchema);
+		}
+	}
+	
+	/**
+	 * Determines whether this SQL object is a container for catalog
+	 *
+	 * @return true (the default) if there are no children; false if
+	 * the first child is not of type SQLSchema.
+	 */
+	public boolean isCatalogContainer() throws ArchitectException {
+		if (children == null) {
+			populate();
+			if (children == null) {
+				throw new ArchitectException("populate");
+			}
+		}
+	
+		if (children.size() == 0) {
+			return true;
+		} else {
+			return (children.get(0) instanceof SQLCatalog);
+		}
 	}
 
 }

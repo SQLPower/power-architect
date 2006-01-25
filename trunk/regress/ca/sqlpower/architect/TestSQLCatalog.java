@@ -299,7 +299,7 @@ public class TestSQLCatalog extends SQLTestCase {
 	/*
 	 * Test method for 'ca.sqlpower.architect.SQLObject.getSQLObjectListeners()'
 	 */
-	public void testGetSQLObjectListeners() {
+	public void testGetSQLObjectListeners() throws ArchitectException {
 		TestSQLObjectListener test1 = new TestSQLObjectListener();
 		TestSQLObjectListener test2 = new TestSQLObjectListener();
 		SQLCatalog c1 = new SQLCatalog();

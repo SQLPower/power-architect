@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.*;
-import ca.sqlpower.architect.ArchitectDataSource;
 
 public class DBTree extends JTree implements DragSourceListener {
 	private static Logger logger = Logger.getLogger(DBTree.class);
@@ -467,7 +466,12 @@ public class DBTree extends JTree implements DragSourceListener {
                             try {
                                 parent.getChildren(); // forces populate
                             } catch (ArchitectException ex) {
-                                parent.addChild(new SQLExceptionNode(ex, "New exception during retry"));
+                                try {
+									parent.addChild(new SQLExceptionNode(ex, "New exception during retry"));
+								} catch (ArchitectException e1) {
+									logger.error("Couldn't add SQLExceptionNode to menu:", e1);
+									JOptionPane.showMessageDialog(null, "Failed to add SQLExceptionNode:\n"+e1.getMessage());
+								}
                                 ASUtils.showExceptionDialog("Exception occurred during retry", ex);
                             }
                         }

@@ -1,12 +1,17 @@
 package ca.sqlpower.architect.swingui;
 
 import java.util.*;
+
+import javax.swing.JOptionPane;
 import javax.swing.tree.*;
+
+import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.ArchitectException;
 
 public class DBTreeNode implements MutableTreeNode {
+	private static final Logger logger = Logger.getLogger(DBTreeNode.class);
 	
 	protected static Map userObjectToTreeNodeMap = new HashMap();
 
@@ -166,7 +171,12 @@ public class DBTreeNode implements MutableTreeNode {
 
 	public void insert(MutableTreeNode child, int index) {
 		if (child instanceof DBTreeNode) {
-			userObject.addChild(index, ((DBTreeNode) child).getSQLObject());
+			try {
+				userObject.addChild(index, ((DBTreeNode) child).getSQLObject());
+			} catch (ArchitectException e) {
+				logger.error("Couldn't add \""+child.toString()+"\" to tree:", e);
+				JOptionPane.showMessageDialog(null, "Failed to add child:\n"+e.getMessage());
+			}
 			child.setParent(this);
 		} else {
 			throw new IllegalArgumentException("You can't add a non-DBTreeNode to a DBTreeNode");
