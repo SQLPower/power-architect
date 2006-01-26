@@ -1,15 +1,18 @@
 package ca.sqlpower.architect.swingui;
 
-import java.awt.*;
-import javax.swing.*;
-import javax.swing.plaf.ComponentUI;
+import java.awt.BasicStroke;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Stroke;
+
 import org.apache.log4j.Logger;
-import ca.sqlpower.architect.*;
+
+import ca.sqlpower.architect.SQLRelationship;
 
 public class IERelationshipUI extends BasicRelationshipUI {
 	private static Logger logger = Logger.getLogger(IERelationshipUI.class);
 
-	public static PlayPenComponentUI createUI(JComponent c) {
+	public static PlayPenComponentUI createUI(PlayPenComponent c) {
 		logger.debug("Creating new IERelationshipUI for "+c);
         return new IERelationshipUI();
     }
