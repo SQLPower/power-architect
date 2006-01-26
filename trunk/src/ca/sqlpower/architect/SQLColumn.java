@@ -25,7 +25,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 
 	protected SQLObject parent;
 	protected String columnName;
-	protected String physicalColumnName;
+	
 
 	/**
 	 * Must be a type defined in java.sql.Types.  Move to enum in 1.5
@@ -135,7 +135,6 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 		}
 		this.parent = parentTable.getColumnsFolder();
 		this.columnName = colName;
-		this.physicalColumnName = null; // always starts off life as null
 		this.type = dataType;
 		this.sourceDataTypeName = nativeType;
 		this.scale = scale;
@@ -170,9 +169,9 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 		c.sourceColumn = source;
 		c.parent = addTo.getColumnsFolder();
 		c.columnName = source.columnName;
-		c.physicalColumnName = source.physicalColumnName;
 		c.type = source.type;
 		c.sourceDataTypeName = source.sourceDataTypeName;
+		c.setPhysicalName(source.getPhysicalName());
 		c.precision = source.precision;
 		c.scale = source.scale;
 		c.nullable = source.nullable;
@@ -298,20 +297,11 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 
 	public String getName() {
 		return getColumnName();
-	}
-
-	public String getPhysicalName() {
-		return getPhysicalColumnName();
 	}		
 
 	public void setName(String name) {
 		setColumnName(name);
 	}
-
-	public void setPhysicalName(String physicalName) {
-		setPhysicalColumnName(physicalName);
-	}
-
 
 	public boolean isPopulated() {
 		return true;
@@ -361,14 +351,6 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 		return this.columnName;
 	}
 
-	/**
-	 * Gets the value of name
-	 *
-	 * @return the value of name
-	 */
-	public String getPhysicalColumnName()  {
-		return this.physicalColumnName;
-	}
 
 	/**
 	 * Sets the value of name
@@ -380,15 +362,6 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 		fireDbObjectChanged("columnName");
 	}
 
-	/**
-	 * Sets the value of the physical name
-	 *
-	 * @param argName Value to assign to this.name
-	 */
-	public void setPhysicalColumnName(String argName) {
-		this.physicalColumnName = argName;
-		fireDbObjectChanged("physicalColumnName");
-	}
 
 
 	/**

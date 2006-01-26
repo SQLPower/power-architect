@@ -21,14 +21,7 @@ public class SQLObjectTest extends TestCase {
 			children = new ArrayList();
 		}
 		SQLObject parent = null;
-		@Override
-		public void setPhysicalName(String name) {
-			throw new RuntimeException("test abstract stub");
-		}
-		@Override
-		public String getPhysicalName() {
-			throw new RuntimeException("test abstract stub");
-		}
+
 		@Override
 		public String getName() {
 			throw new RuntimeException("test abstract stub");

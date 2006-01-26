@@ -20,7 +20,6 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 
 	protected SQLObject parent;
 	protected String tableName;
-	protected String physicalTableName;
 	protected String remarks;
 	protected String objectType;
 	protected String primaryKeyName;
@@ -70,7 +69,6 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * Creates a new SQLTable with parent as its parent and a null
 	 * schema and catalog.  The table will contain the three default
 	 * folders: "Columns" "Exported Keys" and "Imported Keys".
-	 * @throws ArchitectException 
 	 */
 	public SQLTable(SQLDatabase parent, boolean startPopulated) throws ArchitectException {
 		this(parent, "", "", "TABLE", startPopulated);
@@ -101,7 +99,6 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * @param populated The initial value to give the folders'
 	 * populated status.  When loading from a file, this should be true;
 	 * if lazy loading from a database, it should be false.
-	 * @throws ArchitectException 
 	 */
 	public void initFolders(boolean populated) throws ArchitectException {
 		addChild(new Folder(Folder.COLUMNS, populated));
@@ -171,22 +168,26 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		}
 	}
 
+	/**
+	 * Creates a new SQLTable under the given parent database.  The new table will have
+	 * all the same properties as the given source table.
+	 * 
+	 * @param source The table to copy
+	 * @param parent The database to insert the new table into
+	 * @return The new table
+	 * @throws ArchitectException if there are populate problems on source or parent
+	 */
 	public static SQLTable getDerivedInstance(SQLTable source, SQLDatabase parent)
 		throws ArchitectException {
 		source.populateColumns();
 		source.populateRelationships();
 		SQLTable t = new SQLTable(parent, true);
 		t.tableName = source.tableName;
-		t.physicalTableName = source.physicalTableName;
 		t.remarks = source.remarks;
-		// why are these not direct copies???
-		/*
-		t.primaryKeyName = source.getName()+"_pk";
-		t.physicalPrimaryKeyName = source.getPhysicalName()+"_pk";
-		*/
+		t.setPhysicalName(source.getPhysicalName());
 		t.primaryKeyName = source.getPrimaryKeyName();
 		t.physicalPrimaryKeyName = source.getPrimaryKeyName();
-		//
+
 		t.inherit(source);
 		parent.addChild(t);
 		return t;
@@ -256,7 +257,6 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 
 	/**
 	 * Convenience method for getImportedKeys.addChild(r).
-	 * @throws ArchitectException 
 	 */
 	public void addImportedKey(SQLRelationship r) throws ArchitectException {
 		importedKeysFolder.addChild(r);
@@ -271,7 +271,6 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 
 	/**
 	 * Convenience method for getExportedKeys.addChild(r).
-	 * @throws ArchitectException 
 	 */
 	public void addExportedKey(SQLRelationship r) throws ArchitectException {
 		exportedKeysFolder.addChild(r);
@@ -459,7 +458,6 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * Connects up the columnsFolder, exportedKeysFolder, and
 	 * importedKeysFolder pointers to the children at indices 0, 1,
 	 * and 2 respectively.
-	 * @throws ArchitectException 
 	 */
 	public void addChild(int index, SQLObject child) throws ArchitectException {
 		if (child instanceof Folder) {
@@ -602,9 +600,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	public String getName() {
 		return tableName;
 	}
-	public String getPhysicalName() {
-		return getPhysicalTableName();
-	}
+	
 
 	/**
 	 * The table's name.
@@ -893,17 +889,12 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		return this.tableName;
 	}
 
-	public String getPhysicalTableName() {
-		return this.physicalTableName;
-	}
+	
 
 	public void setName(String name) {
 		setTableName(name);
 	}
 
-	public void setPhysicalName(String physicalName) {
-		setPhysicalTableName(physicalName);
-	}
 
 	/**
 	 * Sets the table name, and also modifies the primary key name if
@@ -923,21 +914,6 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 			|| primaryKeyName.equals(oldTableName+"_pk")) {
 			setPrimaryKeyName(tableName+"_pk");
 		}
-	}
-
-	/**
-	 * Physical name shadows the logical name.
-     * 
-	 * @param argTableName The new table name.  NULL is not allowed.
-	 */
-	public void setPhysicalTableName(String argName) {
-		String oldPhysicalTableName = physicalTableName;
-		if ( ! argName.equals(physicalTableName) ) {
-			this.physicalTableName = argName;
-			fireDbObjectChanged("physicalTableName");
-		}
-		// don't need to generate physical PK name, it will be created later 
-        // the GenericDDLGenerator class...
 	}
 
 	/**

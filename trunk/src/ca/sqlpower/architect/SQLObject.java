@@ -8,6 +8,8 @@ public abstract class SQLObject implements java.io.Serializable {
 	private static Logger logger = Logger.getLogger(SQLObject.class);
 	protected boolean populated = false;
 	
+	private String physicalName;
+	
 	/**
 	 * The children of this SQLObject (if not applicable, set to
 	 * Collections.EMPTY_LIST in your constructor).
@@ -28,12 +30,23 @@ public abstract class SQLObject implements java.io.Serializable {
      * default.  SQLObject subclasses that use this idea should
      * override this class to return the physicalName and then 
      * pass through to the getName method if one is not found.
+     * 
+     * <p>there is no good reason why this is final, but there is no good
+     * reason to override it at this time. </p>
 	 */
-	public String getPhysicalName() {
-		return null; // subclasses should override this
+	public final String getPhysicalName() {
+		if (physicalName != null)
+		{
+			return physicalName;
+		}
+		return getName(); 
 	}
-	public void setPhysicalName(String physicalName) {
-		// do nothing, subclasses should implement this
+	public final void setPhysicalName(String argName) {
+		boolean changed = (argName == null ? physicalName != null : !argName.equals(physicalName));
+		if (changed) {
+			this.physicalName = argName;
+			fireDbObjectChanged("physicalName");
+		}
 	}
 
 	/**

@@ -442,22 +442,6 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	}
 
 
-	public String getPhysicalName()  {
-		return this.physicalName;
-	}
-
-	/**
-	 * Changes the physical name of this relationship.  Fires a dbObjectChanged event if
-	 * the new name differs from the old one.
-	 */
-	public void setPhysicalName(String argName) {
-		boolean changed = (argName == null ? physicalName != null : !argName.equals(physicalName));
-		if (changed) {
-			this.physicalName = argName;
-			fireDbObjectChanged("physicalName");
-		}
-	}
-
 	/**
 	 * Gets the value of pkCardinality
 	 *

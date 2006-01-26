@@ -48,6 +48,7 @@ public class SwingUIProject {
 	protected String name;
 	protected DBTree sourceDatabases;
 	protected PlayPen playPen;
+	protected UndoManager undoManager;
 	protected File file;
 	protected GenericDDLGenerator ddlGenerator;
 	protected boolean savingEntireSource;
