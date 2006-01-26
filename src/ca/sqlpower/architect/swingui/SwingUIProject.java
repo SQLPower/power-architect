@@ -191,7 +191,8 @@ public class SwingUIProject {
 		d.addSetProperties("architect-project/source-databases/database/catalog");
 		d.addSetNext("architect-project/source-databases/database/catalog", "addChild");
 
-		d.addObjectCreate("*/schema", SQLSchema.class);
+		SQLSchemaFactory schemaFactory = new SQLSchemaFactory();
+		d.addFactoryCreate("*/schema", schemaFactory);
 		d.addSetProperties("*/schema");
 		d.addSetNext("*/schema", "addChild");
 
@@ -309,6 +310,27 @@ public class SwingUIProject {
 		}
 	}
 
+	/**
+	 * Creates a SQLSchema instance and adds it to the objectIdMap.
+	 */
+	protected class SQLSchemaFactory extends AbstractObjectCreationFactory {
+		public Object createObject(Attributes attributes) {
+			boolean startPopulated;
+			String populated = attributes.getValue("populated");
+			startPopulated = (populated != null && populated.equals("true"));
+
+			SQLSchema schema = new SQLSchema(startPopulated);
+			String id = attributes.getValue("id");
+			if (id != null) {
+				objectIdMap.put(id, schema);
+			} else {
+				logger.warn("No ID found in database element while loading project!");
+			}
+
+			return schema;
+		}
+	}
+	
 	/**
 	 * Creates a SQLTable instance and adds it to the objectIdMap.
 	 */
