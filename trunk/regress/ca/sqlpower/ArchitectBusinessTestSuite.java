@@ -9,6 +9,8 @@ import regress.ca.sqlpower.architect.LogWriterTest;
 import regress.ca.sqlpower.architect.PLDotIniTest;
 import regress.ca.sqlpower.architect.SQLObjectTest;
 import regress.ca.sqlpower.architect.TestArchitectDataSource;
+import regress.ca.sqlpower.architect.TestFolder;
+import regress.ca.sqlpower.architect.TestSQLCatalog;
 import regress.ca.sqlpower.architect.TestSQLColumn;
 import regress.ca.sqlpower.architect.TestSQLDatabase;
 import regress.ca.sqlpower.architect.TestSQLRelationship;
@@ -25,6 +27,8 @@ public class ArchitectBusinessTestSuite extends TestCase {
 		//$JUnit-BEGIN$
 		suite.addTestSuite(SQLObjectTest.class);
 		suite.addTest(TestSQLDatabase.suite());
+		suite.addTestSuite(TestSQLCatalog.class);
+		suite.addTestSuite(TestFolder.class);
 		suite.addTest(TestSQLTable.suite());
 		suite.addTest(TestSQLColumn.suite());
 		suite.addTestSuite(TestSQLRelationship.class);

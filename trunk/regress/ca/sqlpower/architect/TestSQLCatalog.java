@@ -112,7 +112,7 @@ public class TestSQLCatalog extends SQLTestCase {
 		SQLCatalog c1 = new SQLCatalog();
 		assertNull(c1.getPhysicalName());
 		c1.setPhysicalName("aaa");
-		assertNull(c1.getPhysicalName());
+		assertEquals(c1.getPhysicalName(),"aaa");
 	}
 
 	/*
@@ -151,47 +151,84 @@ public class TestSQLCatalog extends SQLTestCase {
 	 */
 	public void testGetChildren() throws Exception {
 		SQLCatalog c1 = new SQLCatalog();
+		SQLCatalog c2 = new SQLCatalog();
 		c1.setPopulated(true);
+		c2.setPopulated(true);
 		assertNotNull(c1.getChildren());
 		assertEquals(c1.getChildren().size(),0);
 		assertEquals(c1.getChildCount(),0);
 		
 		
 		String name[] = { "name1", "name2", "name3", "name4","name5", "name6" };
-		
-		ArrayList children = new ArrayList();
-		
+		ArrayList tableList = new ArrayList();
+		ArrayList schemaList = new ArrayList();
+
 		int i;
-		for ( i=0; i<4; i++ ) {
+		for ( i=0; i<6; i++ ) {
 			SQLTable t = new SQLTable(c1, name[i], "", "TABLE", true);
-			children.add(t);
-		}
-		for (; i<6; i++ ) {
 			SQLSchema s = new SQLSchema(c1, name[i], true);
-			children.add(s);
+			tableList.add(t);
+			schemaList.add(i,s);
+			
 		}
-		c1.setChildren(children);
+		
+		c1.setChildren(tableList);
+		c2.setChildren(schemaList);
 		assertNotNull(c1.getChildren());
 		assertEquals(c1.getChildren().size(),6);
 		assertEquals(c1.getChildCount(),6);
 		
+		assertNotNull(c2.getChildren());
+		assertEquals(c2.getChildren().size(),6);
+		assertEquals(c2.getChildCount(),6);
+		
 		Iterator it = c1.getChildren().iterator();
+		Iterator it2 = c2.getChildren().iterator();
 		
 		i = 0;
-		while ( it.hasNext() ) {
+		while ( it.hasNext() && it2.hasNext() ) {
 			SQLObject o = (SQLObject) it.next();
+			SQLObject o2 = (SQLObject) it2.next();
 			assertEquals(o.getName(),name[i]);
+			assertEquals(c1.getChild(i).getName(),name[i]);
+			assertEquals(c2.getChild(i).getName(),name[i]);
+			
+			assertTrue(o instanceof SQLTable);
+			assertTrue(o2 instanceof SQLSchema);
 			i++;
 		}
 		
-		for ( i=0; i<6; i++ ) {
-			assertEquals(c1.getChild(i).getName(),name[i]);
-			if ( i < 4 ) {
-				assertTrue(c1.getChild(i) instanceof SQLTable);
-			}
-			else {
-				assertTrue(c1.getChild(i) instanceof SQLSchema);
-			}
+		c1.addChild(2,new SQLTable());
+		assertEquals(c1.getChildren().size(),7);
+		assertEquals(c1.getChildCount(),7);
+		assertTrue(c1.getChild(2) instanceof SQLTable);
+		
+		c1.addChild(new SQLTable());
+		assertEquals(c1.getChildren().size(),8);
+		assertEquals(c1.getChildCount(),8);
+		assertTrue(c1.getChild(c1.getChildren().size()-1) instanceof SQLTable);
+		
+		
+		c2.addChild(2,new SQLSchema(true));
+		assertEquals(c2.getChildren().size(),7);
+		assertEquals(c2.getChildCount(),7);
+		assertTrue(c2.getChild(2) instanceof SQLSchema);
+		
+		c2.addChild(new SQLSchema(true));
+		assertEquals(c2.getChildren().size(),8);
+		assertEquals(c2.getChildCount(),8);
+		assertTrue(c2.getChild(c1.getChildren().size()-1) instanceof SQLSchema);
+		
+		try {
+			c1.addChild(new SQLSchema(true));
+		} catch ( ArchitectException e) {
+			System.out.println("Caught expected exception.");
+		}
+		
+		try {
+			c2.addChild(new SQLTable());
+		} catch ( ArchitectException e) {
+			System.out.println("Caught expected exception.");
 		}
 
 	}
@@ -199,9 +236,11 @@ public class TestSQLCatalog extends SQLTestCase {
 	/*
 	 * Test method for 'ca.sqlpower.architect.SQLObject.addChild(int, SQLObject)'
 	 */
-	public void testAddChildIntSQLObject() throws Exception {
+	public void testAddChild() throws Exception {
 		SQLCatalog c1 = new SQLCatalog();
+		SQLCatalog c2 = new SQLCatalog();
 		c1.setPopulated(true);
+		c2.setPopulated(true);
 		assertNotNull(c1.getChildren());
 		assertEquals(c1.getChildren().size(),0);
 		assertEquals(c1.getChildCount(),0);
@@ -210,54 +249,76 @@ public class TestSQLCatalog extends SQLTestCase {
 		String name[] = { "name1", "name2", "name3", "name4","name5", "name6" };
 
 		int i;
-		for ( i=0; i<4; i++ ) {
+		for ( i=0; i<6; i++ ) {
 			SQLTable t = new SQLTable(c1, name[i], "", "TABLE", true);
-			c1.addChild(i,t);
-		}
-		for (; i<6; i++ ) {
 			SQLSchema s = new SQLSchema(c1, name[i], true);
-			c1.addChild(i,s);
+			c1.addChild(i,t);
+			c2.addChild(i,s);
+			
 		}
-
 		assertNotNull(c1.getChildren());
 		assertEquals(c1.getChildren().size(),6);
 		assertEquals(c1.getChildCount(),6);
 		
+		assertNotNull(c2.getChildren());
+		assertEquals(c2.getChildren().size(),6);
+		assertEquals(c2.getChildCount(),6);
+		
 		Iterator it = c1.getChildren().iterator();
+		Iterator it2 = c2.getChildren().iterator();
 		
 		i = 0;
-		while ( it.hasNext() ) {
+		while ( it.hasNext() && it2.hasNext() ) {
 			SQLObject o = (SQLObject) it.next();
+			SQLObject o2 = (SQLObject) it2.next();
 			assertEquals(o.getName(),name[i]);
+			assertEquals(c1.getChild(i).getName(),name[i]);
+			assertEquals(c2.getChild(i).getName(),name[i]);
+			
+			assertTrue(o instanceof SQLTable);
+			assertTrue(o2 instanceof SQLSchema);
 			i++;
 		}
 		
-		for ( i=0; i<6; i++ ) {
-			assertEquals(c1.getChild(i).getName(),name[i]);
-			if ( i < 4 ) {
-				assertTrue(c1.getChild(i) instanceof SQLTable);
-			}
-			else {
-				assertTrue(c1.getChild(i) instanceof SQLSchema);
-			}
-		}
-		
-		c1.addChild(2,new SQLSchema(true));
+		c1.addChild(2,new SQLTable());
 		assertEquals(c1.getChildren().size(),7);
 		assertEquals(c1.getChildCount(),7);
-		assertTrue(c1.getChild(2) instanceof SQLSchema);
+		assertTrue(c1.getChild(2) instanceof SQLTable);
 		
 		c1.addChild(new SQLTable());
 		assertEquals(c1.getChildren().size(),8);
 		assertEquals(c1.getChildCount(),8);
 		assertTrue(c1.getChild(c1.getChildren().size()-1) instanceof SQLTable);
+		
+		
+		c2.addChild(2,new SQLSchema(true));
+		assertEquals(c2.getChildren().size(),7);
+		assertEquals(c2.getChildCount(),7);
+		assertTrue(c2.getChild(2) instanceof SQLSchema);
+		
+		c2.addChild(new SQLSchema(true));
+		assertEquals(c2.getChildren().size(),8);
+		assertEquals(c2.getChildCount(),8);
+		assertTrue(c2.getChild(c1.getChildren().size()-1) instanceof SQLSchema);
+		
+		try {
+			c1.addChild(new SQLSchema(true));
+		} catch ( ArchitectException e) {
+			System.out.println("Caught expected exception.");
+		}
+		
+		try {
+			c2.addChild(new SQLTable());
+		} catch ( ArchitectException e) {
+			System.out.println("Caught expected exception.");
+		}
 	}
 
 
 	/*
 	 * Test method for 'ca.sqlpower.architect.SQLObject.removeChild(int)'
 	 */
-	public void testRemoveChildInt() throws Exception {
+	public void testRemoveChild() throws Exception {
 		SQLCatalog c1 = new SQLCatalog();
 		
 		c1.setPopulated(true);
