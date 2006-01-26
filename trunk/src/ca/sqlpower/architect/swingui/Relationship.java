@@ -29,10 +29,6 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 	 */
     private Color columnHighlightColour = Color.red;
 
-	static {
-		UIManager.put(RelationshipUI.UI_CLASS_ID, "ca.sqlpower.architect.swingui.IERelationshipUI");
-	}
-
 	/**
 	 * This constructor simply creates a Relationship component for
 	 * the given SQLRelationship and adds it to the playpen.  It
@@ -94,7 +90,7 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 	// -------------------- PlayPenComponent overrides --------------------
 
     public void updateUI() {
-    		RelationshipUI ui = (RelationshipUI) BasicRelationshipUI.createUI(this);
+    		RelationshipUI ui = (RelationshipUI) IERelationshipUI.createUI(this);
     		ui.installUI(this);
 		setUI(ui);
 		revalidate();
