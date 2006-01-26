@@ -98,13 +98,13 @@ public class TestSQLDatabase extends SQLTestCase {
 	 */
 	public void testGetName() {
 		SQLDatabase db1 = new SQLDatabase();
-		assertEquals(db1.getName(),"PlayPen Database");
-		assertEquals(db1.getShortDisplayName(),"PlayPen Database");
-		assertNull(db1.getPhysicalName());
+		assertEquals("PlayPen Database", db1.getName());
+		assertEquals("PlayPen Database", db1.getShortDisplayName());
+		assertEquals(db1.getName(), db1.getPhysicalName());
 		
-		assertEquals(db.getName(),db.getDataSource().getDisplayName());
-		assertEquals(db.getShortDisplayName(),db.getDataSource().getDisplayName());
-		assertNull(db.getPhysicalName());
+		assertEquals(db.getName(), db.getDataSource().getDisplayName());
+		assertEquals(db.getDataSource().getDisplayName(), db.getShortDisplayName());
+		assertEquals(db.getName(), db.getPhysicalName());
 	}
 	
 	/*

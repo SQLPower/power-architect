@@ -1,25 +1,90 @@
 package ca.sqlpower.architect.swingui;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.AlphaComposite;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Composite;
+import java.awt.Container;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DragGestureEvent;
+import java.awt.dnd.DragGestureListener;
+import java.awt.dnd.DragGestureRecognizer;
+import java.awt.dnd.DragSource;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.dnd.DropTargetListener;
+import java.awt.dnd.InvalidDnDOperationException;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.font.FontRenderContext;
-import java.awt.datatransfer.*;
-import java.awt.dnd.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
-import java.util.LinkedList;
-import java.util.Iterator;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.InputMap;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JViewport;
+import javax.swing.KeyStroke;
+import javax.swing.ProgressMonitor;
+import javax.swing.Scrollable;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.event.MouseInputAdapter;
+import javax.swing.undo.UndoableEditSupport;
+
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.*;
+import ca.sqlpower.architect.ArchitectDataSource;
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.SQLCatalog;
+import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLObjectEvent;
+import ca.sqlpower.architect.SQLObjectListener;
+import ca.sqlpower.architect.SQLObjectUndoableEventAdapter;
+import ca.sqlpower.architect.SQLRelationship;
+import ca.sqlpower.architect.SQLSchema;
+import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.Relationship.RelationshipDecorationMover;
 
 
@@ -116,6 +181,7 @@ public class PlayPen extends JPanel
      */
 	protected boolean draggingTablePanes = false;
 
+
 	/**
 	 * A RenderingHints value of VALUE_ANTIALIAS_ON, VALUE_ANTIALIAS_OFF, or VALUE_ANTIALIAS_DEFAULT.
 	 */
@@ -126,6 +192,7 @@ public class PlayPen extends JPanel
 	private DragSource ds;
 	
 	public PlayPen() {
+		
 		zoom = 1.0;
 		setBackground(java.awt.Color.white);
 		contentPane = new PlayPenContentPane(this);
@@ -1205,6 +1272,27 @@ public class PlayPen extends JPanel
 	// -------------------- SQLOBJECT EVENT SUPPORT ---------------------
 
 	/**
+	 * Adds all the listeners that should be listining to events from
+	 * the sqlobject hieracrchy.  At this time only the play pen both
+	 * needs to listen.
+	 */
+	private void addHierarcyListeners(SQLObject sqlObject) throws ArchitectException
+	{
+		ArchitectUtils.listenToHierarchy(this, sqlObject);	
+			
+	}
+	
+	/**
+	 * Removes all the listeners that should be listining to events from
+	 * the sqlobject hieracrchy.  At this time only the play pen 
+	 * needs to be removed
+	 */
+	private void removeHierarcyListeners(SQLObject sqlObject) throws ArchitectException
+	{
+		ArchitectUtils.unlistenToHierarchy(this,sqlObject);	
+	}
+	
+	/**
 	 * Listens for property changes in the model (tables
 	 * added).  If this change affects the appearance of
 	 * this widget, we will notify all change listeners (the UI
@@ -1216,7 +1304,7 @@ public class PlayPen extends JPanel
 		SQLObject[] c = e.getChildren();
 		for (int i = 0; i < c.length; i++) {
 			try {
-				ArchitectUtils.listenToHierarchy(this, c[i]);
+				addHierarcyListeners(c[i]);
 			} catch (ArchitectException ex) {
 				logger.error("Couldn't listen to added object", ex);
 			}
@@ -1244,7 +1332,7 @@ public class PlayPen extends JPanel
 		SQLObject[] c = e.getChildren();
 		for (int i = 0; i < c.length; i++) {
 			try {
-				ArchitectUtils.unlistenToHierarchy(this, c[i]);
+				removeHierarcyListeners(c[i]);
 			} catch (ArchitectException ex) {
 				logger.error("Couldn't unlisten to removed object", ex);
 			}
@@ -2145,4 +2233,5 @@ public class PlayPen extends JPanel
 	public PlayPenContentPane getPlayPenContentPane() {
 		return contentPane;
 	}
+
 }

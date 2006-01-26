@@ -37,6 +37,10 @@ public class ArchitectFrame extends JFrame {
 	protected JSplitPane splitPane = null;
 	protected PlayPen playpen = null;
 	protected DBTree dbTree = null;
+	
+	// XXX refactor init so it is recalled for every new project
+	// so UndoManager can sit in the project.
+	protected UndoManager undoManager = null;
 
     private JMenu connectionsMenu;
 
@@ -194,6 +198,8 @@ public class ArchitectFrame extends JFrame {
 		    }
 		}
 		
+		undoManager = new UndoManager();
+		
 		// Create actions
 		aboutAction = new AboutAction();
 
@@ -337,6 +343,9 @@ public class ArchitectFrame extends JFrame {
 
 		JMenu editMenu = new JMenu("Edit");
 		editMenu.setMnemonic('e');
+		editMenu.add(new JMenuItem(undoManager.getUndo()));
+		editMenu.add(new JMenuItem(undoManager.getRedo()));
+		editMenu.addSeparator();
 		editMenu.add(new JMenuItem(searchReplaceAction));
 		menuBar.add(editMenu);
 		
@@ -372,6 +381,9 @@ public class ArchitectFrame extends JFrame {
 		projectBar.add(saveProjectAction);
 		projectBar.addSeparator();
 		projectBar.add(printAction);
+		projectBar.addSeparator();
+		projectBar.add(undoManager.getUndo());
+		projectBar.add(undoManager.getRedo());
 		projectBar.addSeparator();
 		projectBar.add(exportDDLAction);
 		projectBar.addSeparator();
@@ -430,7 +442,7 @@ public class ArchitectFrame extends JFrame {
 		setTitle(project.getName()+" - Power*Architect");
 		playpen = project.getPlayPen();
 		dbTree = project.getSourceDatabases();
-
+		
 		setupActions();
 
 		setupConnectionsMenu();
@@ -457,8 +469,9 @@ public class ArchitectFrame extends JFrame {
 	/**
 	 * Points all the actions to the correct PlayPen and DBTree
 	 * instances.  This method is called by setProject.
+	 * @throws ArchitectException if the undo manager can't get the playpen's children on the listener list
 	 */
-	protected void setupActions() {
+	protected void setupActions() throws ArchitectException {
 		// playpen actions
 		aboutAction.setPlayPen(playpen);
 		printAction.setPlayPen(playpen);
@@ -481,6 +494,9 @@ public class ArchitectFrame extends JFrame {
 		deleteSelectedAction.setDBTree(dbTree);
 		editTableAction.setDBTree(dbTree);
 		searchReplaceAction.setDBTree(dbTree);
+		// undomanager
+		undoManager.setPlayPen(playpen);
+		
 		//
 		prefAction.setArchitectFrame(this);
 		projectSettingsAction.setArchitectFrame(this);
