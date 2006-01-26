@@ -170,12 +170,13 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 
 	/**
 	 * Creates a new SQLTable under the given parent database.  The new table will have
-	 * all the same properties as the given source table.
+	 * all the same properties as the given source table.  
 	 * 
 	 * @param source The table to copy
 	 * @param parent The database to insert the new table into
 	 * @return The new table
 	 * @throws ArchitectException if there are populate problems on source or parent
+	 * Or if the parent has children of type other than SQLTable.
 	 */
 	public static SQLTable getDerivedInstance(SQLTable source, SQLDatabase parent)
 		throws ArchitectException {

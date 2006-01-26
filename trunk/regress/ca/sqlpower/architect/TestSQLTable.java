@@ -90,19 +90,24 @@ public class TestSQLTable extends SQLTestCase {
 	public void testGetDerivedInstance() throws Exception {
 		SQLTable derivedTable;
 		SQLTable table1;
+		// Check to make sure it can be added to a playpen like database
+		SQLDatabase pp = new SQLDatabase();
+		pp.setIgnoreReset(true);
 		assertNotNull(table1 = db.getTableByName("REGRESSION_TEST1"));
-		derivedTable = SQLTable.getDerivedInstance(table1, table1.getParentDatabase());
+		derivedTable = SQLTable.getDerivedInstance(table1, pp);
 
 		TreeMap derivedPropertyMap = new TreeMap(BeanUtils.describe(derivedTable));
 		TreeMap table1PropertyMap = new TreeMap(BeanUtils.describe(table1));
 
 		derivedPropertyMap.remove("parent");
+		derivedPropertyMap.remove("parentDatabase");
 		derivedPropertyMap.remove("schemaName");
 		derivedPropertyMap.remove("schema");
 		derivedPropertyMap.remove("shortDisplayName");
 		table1PropertyMap.remove("parent");
 		table1PropertyMap.remove("schemaName");
 		table1PropertyMap.remove("schema");
+		table1PropertyMap.remove("parentDatabase");
 		table1PropertyMap.remove("shortDisplayName");
 		assertEquals("Derived table not properly copied",
 				derivedPropertyMap.toString(),
