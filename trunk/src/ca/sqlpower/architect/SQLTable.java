@@ -667,7 +667,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * The Folder class is a SQLObject that holds a SQLTable's child
 	 * folders (columns and relationships).
 	 */
-	public static class Folder extends SQLObject {
+	public static class Folder<T extends SQLObject> extends SQLObject {
 		protected int type;
 		protected String name;
 		protected SQLTable parent;
@@ -679,7 +679,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		public Folder(int type, boolean populated) {
 			this.populated = populated;
 			this.type = type;
-			this.children = new ArrayList();
+			this.children = new ArrayList<T>();
 			if (type == COLUMNS) {
 				name = "Columns";
 			} else if (type == IMPORTED_KEYS) {
@@ -951,7 +951,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 *
 	 * @return the value of importedKeys
 	 */
-	public List getImportedKeys() throws ArchitectException {
+	public List<SQLRelationship> getImportedKeys() throws ArchitectException {
 		return this.importedKeysFolder.getChildren();
 	}
 
@@ -960,7 +960,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 *
 	 * @return the value of exportedKeys
 	 */
-	public List getExportedKeys() throws ArchitectException {
+	public List<SQLRelationship> getExportedKeys() throws ArchitectException {
 		return this.exportedKeysFolder.getChildren();
 	}
 

@@ -2,6 +2,7 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Shape;
 
 public abstract class RelationshipUI implements PlayPenComponentUI, java.io.Serializable {
 	public static final String UI_CLASS_ID = "RelationshipUI";
@@ -78,4 +79,18 @@ public abstract class RelationshipUI implements PlayPenComponentUI, java.io.Seri
 	 * Determines if the given point touches the visible part of this relationship.
 	 */
 	public abstract boolean contains(Point p);
+	
+	/**
+	 * Returns true iff this relationship's visible line intersects any part
+	 * of the given shape.
+	 * 
+	 * @param s The shape to test for intersection with.
+	 * @return Whether or not this relationship intersects <tt>s</tt>.
+	 */
+	public abstract boolean intersectsShape(Shape s);
+
+	/**
+	 * Returns the visible shape of this relationship's line.
+	 */
+	public abstract Shape getShape();
 }

@@ -113,6 +113,7 @@ public abstract class PlayPenComponent implements Selectable {
 	 * zooming implementation, the PlayPen is not our parent.
 	 */
 	public void setBounds(int x, int y, int width, int height) {
+		Rectangle oldBounds = getBounds(); 
 		PlayPen owner = getPlayPen();
 		if (owner != null) {
 			Rectangle r = getBounds();
@@ -127,6 +128,15 @@ public abstract class PlayPenComponent implements Selectable {
 						 +" to ["+x+","+y+","+width+","+height+"][0m");
 		}
 		bounds.setBounds(x,y,width,height);
+		
+		if (oldBounds.x != x || oldBounds.y != y) {
+			firePlayPenComponentMoved();
+		}
+		
+		if (oldBounds.width != width || oldBounds.height != height) {
+			firePlayPenComponentResized();
+		}
+
 		repaint();
 	}
 
@@ -185,9 +195,11 @@ public abstract class PlayPenComponent implements Selectable {
 	}
 	
 	public void setLocation(int i, int j) {
-		bounds.x = i;
-		bounds.y = j;
-		firePlayPenComponentMoved();
+		if (bounds.x != i || bounds.y != j) {
+			bounds.x = i;
+			bounds.y = j;
+			firePlayPenComponentMoved();
+		}
 	}
 	/**
 	 * Forwards to {@link #repaint(Rectangle)}.

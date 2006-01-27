@@ -7,8 +7,11 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.GeneralPath;
+import java.awt.geom.Line2D;
+import java.awt.geom.PathIterator;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -641,6 +644,118 @@ public class BasicRelationshipUI extends RelationshipUI
 					 +" from "+e.getOldValue()+" to "+e.getNewValue()+" on "+e.getSource());
 	}
 
- 
+	@Override
+	public boolean intersectsShape(Shape s) {
+		Rectangle myBounds = path.getBounds();
+		Rectangle otherBounds = s.getBounds();
+		
+		// adjust bounds so that they have at least 1px width and height
+		if (myBounds.width == 0) myBounds.width = 1;
+		if (myBounds.height == 0) myBounds.height = 1;
+		if (otherBounds.width == 0) otherBounds.width = 1;
+		if (otherBounds.height == 0) otherBounds.height = 1;
+		
+		if (logger.isDebugEnabled()) {
+			logger.debug("intersectsShape: my rectangle = "+myBounds);
+			logger.debug("              other rectangle = "+otherBounds);
+			logger.debug("intersectsShape: rectangles overlap? "+myBounds.intersects(otherBounds));
+		}
+		
+		// premature optimization: if my path's box does not intersect s, the lines can't cross
+		if (!myBounds.intersects(otherBounds)) return false;
+		
+		if (logger.isDebugEnabled()) {
+			logger.debug("   myPI = "+pathIteratorToString(path.getPathIterator(null)));
+			logger.debug("otherPI = "+pathIteratorToString(s.getPathIterator(null)));
+		}
+		
+		PathIterator myPI = path.getPathIterator(null);
+		Line2D.Float myLine = new Line2D.Float();
+		float[] myCoords = new float[6];
+		while (!myPI.isDone()) {
+			int mySegType = myPI.currentSegment(myCoords);
+			if (mySegType == PathIterator.SEG_LINETO) {
+				myLine.x1 = myLine.x2;
+				myLine.y1 = myLine.y2;
+				
+				myLine.x2 = myCoords[0];
+				myLine.y2 = myCoords[1];
+			} else if (mySegType == PathIterator.SEG_MOVETO) {
+				myLine.x1 = myCoords[0];
+				myLine.y1 = myCoords[1];
+				
+				myLine.x2 = myCoords[0];
+				myLine.y2 = myCoords[1];
+			} else {
+				throw new IllegalStateException(
+						"Unsupported my PathIterator type "+mySegType+
+						". Current myLine is "+lineToString(myLine));
+			}
+			myPI.next();
+			
+			// if this line has no length, no need to check for intersection
+			if (myLine.x1 == myLine.x2 && myLine.y1 == myLine.y2) continue;
+			
+			PathIterator otherPI = s.getPathIterator(null);
+			Line2D.Float otherLine = new Line2D.Float();
+			float[] otherCoords = new float[6];
+			while (!otherPI.isDone()) {
+				int otherSegType = otherPI.currentSegment(otherCoords);
+				if (otherSegType == PathIterator.SEG_LINETO) {
+					otherLine.x1 = otherLine.x2;
+					otherLine.y1 = otherLine.y2;
+					
+					otherLine.x2 = otherCoords[0];
+					otherLine.y2 = otherCoords[1];
+				} else if (otherSegType == PathIterator.SEG_MOVETO) {
+					otherLine.x1 = otherCoords[0];
+					otherLine.y1 = otherCoords[1];
+					
+					otherLine.x2 = otherCoords[0];
+					otherLine.y2 = otherCoords[1];
+				} else {
+					throw new IllegalStateException(
+							"Unsupported other PathIterator type "+otherSegType+
+							". Current otherLine is "+lineToString(otherLine));
+				}
+				otherPI.next();
+				
+				// if this line has no length, no need to check for intersection
+				if (otherLine.x1 == otherLine.x2 && otherLine.y1 == otherLine.y2) continue;
 
+				boolean crosses = myLine.intersectsLine(otherLine);
+				logger.debug(myLine+" crosses "+otherLine+"? "+crosses);
+				if (crosses) return true;
+			}
+		}
+		return false;
+	}
+
+	private String pathIteratorToString(PathIterator pathIterator) {
+		StringBuffer sb = new StringBuffer();
+		float[] coords = new float[6];
+		while (!pathIterator.isDone()) {
+			int type = pathIterator.currentSegment(coords);
+			sb.append("Type: "+type+"; coords: ");
+			for (int i = 0; i < coords.length; i++) {
+				sb.append(coords[i]).append(',');
+			}
+			sb.append('\n');
+			pathIterator.next();
+		}
+		return sb.toString();
+	}
+
+	private String lineToString(Line2D.Float l) {
+		return "[("+l.x1+","+l.y1+") - ("+l.x2+","+l.y2+")]";
+	}
+
+	/**
+	 * Returns the actual path that this relationship ui draws.  It will get reset from time
+	 * to time as this relationship (or its connected tables) gets moved by the user.
+	 */
+	@Override
+	public Shape getShape() {
+		return path;
+	}
 }

@@ -155,15 +155,17 @@ public class TablePane
 
 	/**
 	 * Listens for property changes in the model (columns
-	 * added).  If this change affects the appearance of
+	 * or relationships added).  If this change affects the appearance of
 	 * this widget, we will notify all change listeners (the UI
 	 * delegate) with a PropertyChangeEvent.
 	 */
 	public void dbChildrenInserted(SQLObjectEvent e) {
-		int ci[] = e.getChangedIndices();
-		for (int i = 0; i < ci.length; i++) {
-			columnSelection.add(ci[i], Boolean.FALSE);
-			columnHighlight.add(ci[i], null);
+		if (e.getSource() == getModel().getColumnsFolder()) {
+			int ci[] = e.getChangedIndices();
+			for (int i = 0; i < ci.length; i++) {
+				columnSelection.add(ci[i], Boolean.FALSE);
+				columnHighlight.add(ci[i], null);
+			}
 		}
 		try {
 			ArchitectUtils.listenToHierarchy(this, e.getChildren());
