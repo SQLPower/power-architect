@@ -51,6 +51,7 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 				"Undo",
 				ArchitectFrame.getMainInstance().sprefs.getInt(SwingUserSettings.ICON_SIZE, 24)));
 		undo.putValue(Action.SHORT_DESCRIPTION, "Undo");
+		undo.putValue(Action.NAME,"Undo");
 		undo.setEnabled(false);
 		
 		Action redo = new AbstractAction() {
@@ -64,6 +65,7 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 				"Redo",
 				ArchitectFrame.getMainInstance().sprefs.getInt(SwingUserSettings.ICON_SIZE, 24)));
 		redo.putValue(Action.SHORT_DESCRIPTION, "Redo");
+		redo.putValue(Action.NAME,"Redo");
 		init(undo, redo);
 	}
 	/**
@@ -168,9 +170,11 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 	public void setPlayPen(PlayPen playPen) throws ArchitectException {
 		if (this.playPen != playPen)
 		{
+			SQLObjectUndoableEventAdapter undoAdapter =new SQLObjectUndoableEventAdapter(this);
 			this.playPen = playPen;
 			this.discardAllEdits();
-			ArchitectUtils.listenToHierarchy(new SQLObjectUndoableEventAdapter(this),playPen.getDatabase());
+			ArchitectUtils.listenToHierarchy(undoAdapter,playPen.getDatabase());
+			playPen.addUndoEventListener(undoAdapter);
 		}
 		
 		

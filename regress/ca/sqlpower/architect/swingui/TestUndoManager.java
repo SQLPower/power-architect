@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.undo.AbstractUndoableEdit;
+import javax.swing.undo.CompoundEdit;
 import javax.swing.undo.UndoableEdit;
 
 import junit.framework.TestCase;
@@ -58,5 +59,23 @@ public class TestUndoManager extends TestCase {
 		assertTrue(redo.isEnabled());
 		assertFalse(undo.isEnabled());
 
+	}
+	
+	public void testCompoundEdits()
+	{
+		UndoableEdit stubEdit1 = new AbstractUndoableEdit(); 
+		UndoableEdit stubEdit2 = new AbstractUndoableEdit(); 
+		UndoableEdit stubEdit3 = new AbstractUndoableEdit(); 
+		CompoundEdit ce = new CompoundEdit();
+		ce.addEdit(stubEdit1);
+		ce.addEdit(stubEdit2);
+		ce.addEdit(stubEdit3);
+		ce.end();
+		undoManager.addEdit(ce);
+		undo = undoManager.getUndo();
+		assertTrue(undoManager.canUndo());
+		assertNotNull(undo);
+		assertTrue(undo.isEnabled());
+		
 	}
 }

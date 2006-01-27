@@ -46,6 +46,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -68,7 +70,6 @@ import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.MouseInputAdapter;
-import javax.swing.undo.UndoableEditSupport;
 
 import org.apache.log4j.Logger;
 
@@ -81,11 +82,13 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
-import ca.sqlpower.architect.SQLObjectUndoableEventAdapter;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.Relationship.RelationshipDecorationMover;
+import ca.sqlpower.architect.undo.UndoCompoundEvent;
+import ca.sqlpower.architect.undo.UndoCompoundEventListener;
+import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 
 
 public class PlayPen extends JPanel
@@ -186,6 +189,17 @@ public class PlayPen extends JPanel
 	 * A RenderingHints value of VALUE_ANTIALIAS_ON, VALUE_ANTIALIAS_OFF, or VALUE_ANTIALIAS_DEFAULT.
 	 */
     private Object antialiasSetting = RenderingHints.VALUE_ANTIALIAS_DEFAULT;
+
+	/**
+	 * A graveyard for components that used to be associated with model
+	 * components that are no longer in the model.  If the model components
+	 * come back from the dead (thanks the the UndoManager), then the
+	 * corresponding PlayPenComonent can be revived from this map.
+	 * 
+	 * Allows the garbage collecter to clean up any components not in the undo manager
+	 * 
+	 */
+    private Map<SQLObject,PlayPenComponent> removedComponents = new WeakHashMap<SQLObject, PlayPenComponent>();
 
 	private TablePaneDragGestureListener dgl;
 	private DragGestureRecognizer dgr;
@@ -1273,7 +1287,7 @@ public class PlayPen extends JPanel
 
 	/**
 	 * Adds all the listeners that should be listining to events from
-	 * the sqlobject hieracrchy.  At this time only the play pen both
+	 * the sqlobject hieracrchy.  At this time only the play pen 
 	 * needs to listen.
 	 */
 	private void addHierarcyListeners(SQLObject sqlObject) throws ArchitectException
@@ -1311,6 +1325,11 @@ public class PlayPen extends JPanel
 			if (c[i] instanceof SQLTable
 				|| c[i] instanceof SQLRelationship) {
 				fireEvent = true;
+				
+				PlayPenComponent ppc = removedComponents.get(c[i]);
+				if (ppc != null) {
+					contentPane.add(ppc, contentPane.getComponentCount());
+				}
 			}
 		}
 		
@@ -1328,7 +1347,7 @@ public class PlayPen extends JPanel
 	 */
 	public void dbChildrenRemoved(SQLObjectEvent e) {
 		logger.debug("SQLObject children got removed: "+e);
-		boolean fireEvent = false;
+		boolean foundRemovedComponent = false;
 		SQLObject[] c = e.getChildren();
 		for (int i = 0; i < c.length; i++) {
 			try {
@@ -1342,8 +1361,9 @@ public class PlayPen extends JPanel
 					if (contentPane.getComponent(j) instanceof TablePane) {
 						TablePane tp = (TablePane) contentPane.getComponent(j);
 						if (tp.getModel() == c[i]) {
+							removedComponents.put(tp.getModel(), contentPane.getComponent(j));
 							contentPane.remove(j);
-							fireEvent = true;
+							foundRemovedComponent = true;
 						}
 					}
 				}
@@ -1353,15 +1373,16 @@ public class PlayPen extends JPanel
 						Relationship r = (Relationship) contentPane.getComponent(j);
 						if (r.getModel() == c[i]) {
 						    r.setSelected(false);
+							removedComponents.put(r.getModel(), contentPane.getComponent(j));
 							contentPane.remove(j);
-							fireEvent = true;
+							foundRemovedComponent = true;
 						}
 					}
 				}
 			}
 		}
 
-		if (fireEvent) {
+		if (foundRemovedComponent) {
 			firePropertyChange("model.children", null, null);
 			repaint();
 		}
@@ -1504,6 +1525,42 @@ public class PlayPen extends JPanel
 		}
 	}
 
+	// Undo event support --------------------------------------
+	
+	protected LinkedList undoEventListeners = new LinkedList();
+
+	public void addUndoEventListener(UndoCompoundEventListener l) {
+		undoEventListeners.add(l);
+	}
+
+	public void removeSelectionListener(UndoCompoundEventListener l) {
+		undoEventListeners.remove(l);
+	}
+	
+	protected void fireUndoCompoundEvent(UndoCompoundEvent e) {
+		Iterator it = undoEventListeners.iterator();
+		
+		if (e.getType() == UndoCompoundEvent.EventTypes.DRAG_AND_DROP_START) {
+			while (it.hasNext()) {
+				((UndoCompoundEventListener) it.next()).dragAndDropStart(e);
+			}
+		} else if (e.getType() == UndoCompoundEvent.EventTypes.DRAG_AND_DROP_END) {
+			while (it.hasNext()) {
+				((UndoCompoundEventListener) it.next()).dragAndDropEnd(e);
+			}
+		} else if (e.getType() == UndoCompoundEvent.EventTypes.MULTI_SELECT_START) {
+			while (it.hasNext()) {
+				((UndoCompoundEventListener) it.next()).multiSelectStart(e);
+			}
+		}else if (e.getType() == UndoCompoundEvent.EventTypes.MULTI_SELECT_END) {
+			while (it.hasNext()) {
+				((UndoCompoundEventListener) it.next()).multiSelectEnd(e);
+			}
+		} else {
+			throw new IllegalStateException("Unknown Undo event type "+e.getType());
+		}
+		
+	}
 	// ------------------------------------- INNER CLASSES ----------------------------
 
 	/**
@@ -1585,6 +1642,8 @@ public class PlayPen extends JPanel
 				dtde.rejectDrop();
 			} else {
 				try {
+					
+					
 					dtde.acceptDrop(DnDConstants.ACTION_COPY);
 					Point dropLoc = c.unzoomPoint(new Point(dtde.getLocation()));									
 					ArrayList paths = (ArrayList) t.getTransferData(importFlavor);

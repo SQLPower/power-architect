@@ -10,17 +10,20 @@ import ca.sqlpower.architect.SQLObjectEvent;
 public abstract class SQLObjectChildren extends AbstractUndoableEdit {
 
 	protected SQLObjectEvent e;
-	
+	protected String toolTip;
 	
 	public SQLObjectChildren() {
 		super();
 		// TODO Auto-generated constructor stub
 	}
 	
-	public void addEdit(SQLObjectEvent event){
+	public void createEditFromEvent(SQLObjectEvent event){
+		
 		e = event;
+		createToolTip();
+		
 	}
-	
+	public abstract void createToolTip();
 	
 	public void removeChildren(){
 		int changed[] =e.getChangedIndices();
@@ -55,5 +58,10 @@ public abstract class SQLObjectChildren extends AbstractUndoableEdit {
 		return true;
 	}
 	
+	@Override
+	public String getPresentationName() {
+		
+		return toolTip;
+	}
 	
 }

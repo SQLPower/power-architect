@@ -57,5 +57,6 @@ public class TestSQLObjectChildrenInsert extends TestCase {
 		assertEquals("The Third table is in the wrong position",table4,db.getChild(2));
 		
 	}
+	
 
 }

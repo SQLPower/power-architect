@@ -17,6 +17,8 @@ import java.util.ListIterator;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.*;
+import ca.sqlpower.architect.undo.UndoCompoundEvent;
+import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 
 public class TablePane 
 	extends PlayPenComponent 
@@ -267,19 +269,21 @@ public class TablePane
 	 */
 	public void setModel(SQLTable m) {
 		SQLTable old = model;
-        if (old != null) {
+		
+		if (m == null) {
+			throw new IllegalArgumentException("model may not be null");
+		} else {
+			model = m;
+		}
+
+		if (old != null) {
 			try {
-				ArchitectUtils.listenToHierarchy(this, old);
+				ArchitectUtils.unlistenToHierarchy(this, old);
 			} catch (ArchitectException e) {
 				logger.error("Caught exception while unlistening to old model", e);
 			}
 		}
 
-        if (m == null) {
-			throw new IllegalArgumentException("model may not be null");
-		} else {
-            model = m;
-		}
 
 		try {
 			columnSelection = new ArrayList(m.getColumns().size());
@@ -573,9 +577,23 @@ public class TablePane
 					}
 					ArrayList paths = (ArrayList) t.getTransferData(importFlavor);
 					logger.debug("Importing items from tree: "+paths);
-					Iterator pathIt = paths.iterator();
-					while (pathIt.hasNext()) {
-						Object someData = dbtree.getNodeForDnDPath((int[]) pathIt.next());
+//					Used to put the undo event adapter into a drag and drop state
+					ArchitectFrame.getMainInstance().playpen.fireUndoCompoundEvent(
+							new UndoCompoundEvent(
+							this,EventTypes.DRAG_AND_DROP_START, "Starting drag and drop"));
+					
+					Iterator removeIt = paths.iterator();
+					
+					// Create a list so we don't have a comodification error
+					ArrayList removeList = new ArrayList();
+					while (removeIt.hasNext())
+					{
+						removeList.add(dbtree.getNodeForDnDPath((int[]) removeIt.next()));
+					}
+		
+					for(int ii = removeList.size()-1; ii > -1; ii--)
+					{
+						Object someData = removeList.get(ii);
 						logger.debug("drop: got object of type "+someData.getClass().getName());
 						if (someData instanceof SQLTable) {
 							SQLTable table = (SQLTable) someData;
@@ -602,15 +620,13 @@ public class TablePane
 								== tp.getModel().getParentDatabase()) {
 								// moving column within playpen  
 								dtde.acceptDrop(DnDConstants.ACTION_MOVE);
-								// FIXME: change this to loop and support multiple column moves in the playpen?
-                                // this might be very confusing for the user, so I'm not sure if we should support 
-                                // this action.  It might be a better idea to forbid DnD if we detect that more 
-                                // than one column is selected.
+								
 								col.getParentTable().removeColumn(col);
 								logger.debug("Moving column '"+col.getName()
 											 +"' to table '"+tp.getModel().getName()
 											 +"' at position "+insertionPoint);
 								tp.getModel().addColumn(insertionPoint, col);
+								
 								if (newColumnsInPk) {
 								    col.setPrimaryKeySeq(new Integer(1));
 								} else {
@@ -628,6 +644,7 @@ public class TablePane
 							dtde.rejectDrop();
 						}
 					}
+
 				} catch (Exception ex) {
 				    // Trying to show this dialog sometimes hangs the app in OS X
 					//JOptionPane.showMessageDialog(tp, "Drop failed: "+ex.getMessage());
@@ -636,6 +653,11 @@ public class TablePane
 				} finally {
 					tp.setInsertionPoint(COLUMN_INDEX_NONE);
 					tp.getModel().normalizePrimaryKey();
+//					 Used to put the undo event adapter into a
+					// regular state
+					ArchitectFrame.getMainInstance().playpen.fireUndoCompoundEvent(
+							new UndoCompoundEvent(
+							this,EventTypes.DRAG_AND_DROP_END, "End drag and drop"));
 				}
 			}
 		}
