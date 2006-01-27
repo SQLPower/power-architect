@@ -8,6 +8,9 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.tree.TreePath;
 import ca.sqlpower.architect.*;
+import ca.sqlpower.architect.undo.UndoCompoundEvent;
+import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
+
 import org.apache.log4j.Logger;
 
 public class DeleteSelectedAction extends AbstractAction implements SelectionListener {
@@ -89,7 +92,10 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 					} catch (ArchitectException ae) {
 						JOptionPane.showMessageDialog(pp, ae.getMessage());
 						return;
-					}							
+					}	
+				
+					pp.fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.MULTI_SELECT_START,"Starting multi-select"));
+					
 					// now, delete the columns
 					Iterator it2 = selectedColumns.iterator();
 					while (it2.hasNext()) {
@@ -108,11 +114,19 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 							}
 						}						
 					}
+					
+					pp.fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.MULTI_SELECT_END,"Ending multi-select"));
+					
 				}
 				if (deletingColumns) { // we tried to delete 1 or more columns, so don't try to delete the table
 					return;
 				}
 			}
+			
+			
+			pp.fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.MULTI_SELECT_START,"Starting multi-select"));
+			
+			
 			// items.size() > 0, user has OK'ed the delete
 			Iterator it = items.iterator();
 			while (it.hasNext()) {
@@ -142,6 +156,9 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 												  "The selected item type is not recognised");
 				}
 			}
+			
+			pp.fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.MULTI_SELECT_END,"Ending multi-select"));
+			
 		} else if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE)) {
 			logger.debug("delete action came from dbtree");
 			TreePath [] selections = dbt.getSelectionPaths();
@@ -154,7 +171,10 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 				if (decision == JOptionPane.NO_OPTION) {
 					return;
 				}
-			}									
+			}	
+			
+			pp.fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.MULTI_SELECT_START,"Starting multi-select"));
+			
 			Iterator it = Arrays.asList(selections).iterator();
 			while (it.hasNext()) {
 				TreePath tp = (TreePath) it.next();
@@ -187,6 +207,9 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 					JOptionPane.showMessageDialog(dbt, "The selected SQLObject type is not recognised: " + so.getClass().getName());
 				}
 			}
+			
+			pp.fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.MULTI_SELECT_END,"Ending multi-select"));
+			
 		} else {
 			logger.debug("delete action came from unknown source, so we do nothing.");
 	  		// unknown action command source, do nothing

@@ -685,4 +685,8 @@ public class ArchitectFrame extends JFrame {
 			db.disconnect();
 		}
 	}
+	
+	public UndoManager getUndoManager() {
+		return undoManager;
+	}
 }

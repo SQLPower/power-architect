@@ -6,6 +6,9 @@ import javax.swing.undo.CannotUndoException;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLRelationship;
+import ca.sqlpower.architect.SQLTable;
 
 public class SQLObjectRemoveChildren extends SQLObjectChildren {
 	private static final Logger logger = Logger.getLogger(SQLObjectRemoveChildren.class);
@@ -24,9 +27,28 @@ public class SQLObjectRemoveChildren extends SQLObjectChildren {
 	public void redo() throws CannotRedoException {
 		removeChildren();
 	}
+	
 	@Override
-	public String getPresentationName() {
+	public void createToolTip() {
+		if (e.getChildren() != null)
+		{
+			if (e.getChildren()[0] instanceof SQLTable)
+			{
+				toolTip = "Remove table";
+			}
+			if (e.getChildren()[0] instanceof SQLColumn)
+			{
+				toolTip = "Remove column";
+			}
+			if (e.getChildren()[0] instanceof SQLRelationship)
+			{
+				toolTip = "Remove relation";
+			}
+			if (e.getChildren().length>1)
+			{
+				toolTip = toolTip+"s";
+			}
+		}
 		
-		return "Remove Children From "+e.getSQLSource().getName();
 	}
 }
