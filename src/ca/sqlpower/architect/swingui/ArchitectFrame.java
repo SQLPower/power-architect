@@ -27,6 +27,12 @@ public class ArchitectFrame extends JFrame {
 
 	public static final double ZOOM_STEP = 0.25;
 
+	/**
+	 * Tracks whether or not the most recent "save project" operation was
+	 * successful.
+	 */
+	private boolean lastSaveOpSuccessful;
+
 	protected ArchitectSession architectSession = null;
 	protected SwingUIProject project = null;
 	protected ConfigFile configFile = null;
@@ -55,7 +61,8 @@ public class ArchitectFrame extends JFrame {
  	protected ZoomAction zoomInAction;
  	protected ZoomAction zoomOutAction;
  	protected Action zoomNormalAction;
-	
+	private AutoLayoutAction autoLayoutAction;
+
 	// playpen edit actions
 	protected EditColumnAction editColumnAction;
 	protected InsertColumnAction insertColumnAction;
@@ -91,13 +98,7 @@ public class ArchitectFrame extends JFrame {
 	        }
 	    }
 	};
-	
-	/**
-	 * Tracks whether or not the most recent "save project" operation was
-	 * successful.
-	 */
-	private boolean lastSaveOpSuccessful;
-	
+		
 	/**
 	 * You can't create an architect frame using this constructor.  You have to
 	 * call {@link #getMainInstance()}.
@@ -309,7 +310,8 @@ public class ArchitectFrame extends JFrame {
 					}
 				};
 		zoomNormalAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Reset Zoom");
-
+		autoLayoutAction = new AutoLayoutAction();
+		
 		exportDDLAction = new ExportDDLAction();
 		compareDMAction = new CompareDMAction();
 
@@ -388,7 +390,9 @@ public class ArchitectFrame extends JFrame {
 		projectBar.add(exportDDLAction);
 		projectBar.addSeparator();
 		projectBar.add(compareDMAction);
-
+		projectBar.addSeparator();
+		projectBar.add(autoLayoutAction);
+		
 		JButton tempButton = null; // shared actions need to report where they are coming from
  		ppBar.add(zoomInAction);
  		ppBar.add(zoomOutAction);
@@ -487,6 +491,8 @@ public class ArchitectFrame extends JFrame {
 		exportPLTransAction.setPlayPen(playpen);
 		zoomInAction.setPlayPen(playpen);
 		zoomOutAction.setPlayPen(playpen);
+		autoLayoutAction.setPlayPen(playpen);
+		
 		// dbtree actions
 		editColumnAction.setDBTree(dbTree);
 		insertColumnAction.setDBTree(dbTree);
@@ -684,6 +690,18 @@ public class ArchitectFrame extends JFrame {
 			logger.debug ("closing connection: " + db.getName());
 			db.disconnect();
 		}
+	}
+
+	public AutoLayoutAction getAutoLayoutAction() {
+		return autoLayoutAction;
+	}
+	
+	public JToolBar getProjectToolBar() {
+		return projectBar;
+	}
+
+	public JToolBar getPlayPenToolBar() {
+		return ppBar;
 	}
 	
 	public UndoManager getUndoManager() {

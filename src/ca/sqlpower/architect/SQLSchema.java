@@ -20,7 +20,7 @@ public class SQLSchema extends SQLObject {
 	protected String schemaName;
 	protected String nativeTerm;
 
-	public SQLSchema( boolean populated) {
+	public SQLSchema(boolean populated) {
 		this(null, null, populated);
 	}
 
