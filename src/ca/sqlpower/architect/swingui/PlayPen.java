@@ -871,11 +871,11 @@ public class PlayPen extends JPanel
 	 * Returns a list of the Relationship gui components in this
 	 * playpen.
 	 */
-	public List getRelationships() {
-		LinkedList relationships = new LinkedList();
+	public List<Relationship> getRelationships() {
+		LinkedList<Relationship> relationships = new LinkedList<Relationship>();
 		for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
 			if (contentPane.getComponent(i) instanceof Relationship) {
-				relationships.add(contentPane.getComponent(i));
+				relationships.add((Relationship) contentPane.getComponent(i));
 			}
 		}
 		return relationships;
@@ -884,11 +884,11 @@ public class PlayPen extends JPanel
 	/**
 	 * Returns a list of the TablePane components in this playpen.
 	 */
-	public List getTablePanes() {
-		LinkedList tablePanes = new LinkedList();
+	public List<TablePane> getTablePanes() {
+		LinkedList<TablePane> tablePanes = new LinkedList<TablePane>();
 		for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
 			if (contentPane.getComponent(i) instanceof TablePane) {
-				tablePanes.add(contentPane.getComponent(i));
+				tablePanes.add((TablePane) contentPane.getComponent(i));
 			}
 		}
 		return tablePanes;
