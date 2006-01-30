@@ -1,11 +1,14 @@
 package regress.ca.sqlpower.architect;
 
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.SQLData;
 import java.util.ArrayList;
 import java.util.Iterator;
 
 import regress.ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
 
+import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLDatabase;
@@ -134,13 +137,20 @@ public class TestSQLCatalog extends SQLTestCase {
 		} catch ( NullPointerException e ) {
 			// it's ok
 		}
-		
-		
-		SQLCatalog c2 = new SQLCatalog(new SQLDatabase(db.getDataSource()),"x");
-		c2.setPopulated(false);
-		c2.populate();
-		assertTrue(c2.isPopulated());
-		
+	}
+	
+	public void testIsPopulateWithCatalogs() throws Exception {		
+		ArchitectDataSource dataSource = db.getDataSource();
+		Connection conn = db.getConnection();
+		DatabaseMetaData meta = conn.getMetaData();
+		String ct = meta.getCatalogTerm();
+		if (null == ct || ct.length() == 0) { // unless this platform has catalogs.
+			return;
+		}
+		SQLCatalog c2 = new SQLCatalog(new SQLDatabase(dataSource),"x");		
+		c2.setPopulated(false);			
+		c2.populate();			
+		assertTrue(c2.isPopulated());			
 		c2.setPopulated(true);
 		c2.populate();
 		assertTrue(c2.isPopulated());
