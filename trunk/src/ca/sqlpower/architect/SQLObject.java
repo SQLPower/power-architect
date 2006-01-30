@@ -42,10 +42,11 @@ public abstract class SQLObject implements java.io.Serializable {
 		return getName(); 
 	}
 	public final void setPhysicalName(String argName) {
+		String oldPhysicalName = this.getPhysicalName();
 		boolean changed = (argName == null ? physicalName != null : !argName.equals(physicalName));
 		if (changed) {
 			this.physicalName = argName;
-			fireDbObjectChanged("physicalName");
+			fireDbObjectChanged("physicalName",oldPhysicalName,argName);
 		}
 	}
 
@@ -278,9 +279,14 @@ public abstract class SQLObject implements java.io.Serializable {
 		fireDbChildrenRemoved(oldIndexArray, oldChildList);
 	}
 
-	protected void fireDbObjectChanged(String propertyName) {
-		SQLObjectEvent e = new SQLObjectEvent(this, propertyName);
-
+	protected void fireDbObjectChanged(String propertyName, Object oldValue, Object newValue) {
+		SQLObjectEvent e = new SQLObjectEvent(this, propertyName, oldValue,newValue);
+		boolean same = oldValue == null ? oldValue == newValue : oldValue.equals(newValue);
+		if (same) {
+			logger.debug("Object changed event aborted, the old value of "
+					+propertyName+" equals the new value");
+			return;
+		}
 		if (logger.isDebugEnabled()) {
 			logger.debug("Sending dbObjectChanged event "+e+" to "
 						 +getSQLObjectListeners().size()+" listeners: "

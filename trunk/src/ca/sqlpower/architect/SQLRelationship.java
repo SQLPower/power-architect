@@ -390,8 +390,9 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	 * @param argUpdateRule Value to assign to this.updateRule
 	 */
 	public void setUpdateRule(int argUpdateRule) {
+		int oldUpdateRule = this.updateRule;
 		this.updateRule = argUpdateRule;
-		fireDbObjectChanged("updateRule");
+		fireDbObjectChanged("updateRule",oldUpdateRule,argUpdateRule);
 	}
 
 	/**
@@ -409,8 +410,9 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	 * @param argDeleteRule Value to assign to this.deleteRule
 	 */
 	public void setDeleteRule(int argDeleteRule) {
+		int oldDeleteRule = this.deleteRule;
 		this.deleteRule = argDeleteRule;
-		fireDbObjectChanged("deleteRule");
+		fireDbObjectChanged("deleteRule",oldDeleteRule,argDeleteRule);
 	}
 
 	/**
@@ -428,8 +430,9 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	 * @param argDeferrability Value to assign to this.deferrability
 	 */
 	public void setDeferrability(int argDeferrability) {
+		int oldDefferability = this.deferrability;
 		this.deferrability = argDeferrability;
-		fireDbObjectChanged("deferrability");
+		fireDbObjectChanged("deferrability",oldDefferability,argDeferrability);
 	}
 
 	public String getName()  {
@@ -437,8 +440,9 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	}
 
 	public void setName(String argName) {
+		String oldName = this.name;
 		this.name = argName;
-		fireDbObjectChanged("name");
+		fireDbObjectChanged("name",oldName,argName);
 	}
 
 
@@ -457,8 +461,9 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	 * @param argPkCardinality Value to assign to this.pkCardinality
 	 */
 	public void setPkCardinality(int argPkCardinality) {
+		int oldPkCardinality = this.pkCardinality;
 		this.pkCardinality = argPkCardinality;
-		fireDbObjectChanged("pkCardinality");
+		fireDbObjectChanged("pkCardinality",oldPkCardinality,argPkCardinality);
 	}
 
 	/**
@@ -476,8 +481,9 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	 * @param argFkCardinality Value to assign to this.fkCardinality
 	 */
 	public void setFkCardinality(int argFkCardinality) {
+		int oldFkCardinality = this.fkCardinality;
 		this.fkCardinality = argFkCardinality;
-		fireDbObjectChanged("fkCardinality");
+		fireDbObjectChanged("fkCardinality",oldFkCardinality,argFkCardinality);
 	}
 
 	/**
@@ -496,9 +502,10 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	 * @param argIdentifying Value to assign to this.identifying
 	 */
 	public void setIdentifying(boolean argIdentifying) throws ArchitectException {
+		boolean oldIdentifying = this.identifying;
 		if (identifying != argIdentifying) {
 			identifying = argIdentifying;
-			fireDbObjectChanged("identifying");
+			fireDbObjectChanged("identifying",oldIdentifying,argIdentifying);
 			if (identifying) {
 				Iterator mappings = getChildren().iterator();
 				while (mappings.hasNext()) {

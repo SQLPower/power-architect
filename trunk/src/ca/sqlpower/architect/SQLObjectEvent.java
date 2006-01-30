@@ -7,6 +7,10 @@ public class SQLObjectEvent extends EventObject implements java.io.Serializable 
 	protected int[] changedIndices;
 	protected SQLObject[] children;
 	protected String propertyName;
+	protected Object oldValue;
+	protected Object newValue;
+
+
 
 	/**
 	 * Use this constructor for DBChildrenInserted and
@@ -33,13 +37,30 @@ public class SQLObjectEvent extends EventObject implements java.io.Serializable 
 	 * @param source The SQLObject that changed
 	 * @param propertyName The name of the property on source that changed.
 	 */
+	public SQLObjectEvent(SQLObject source, String propertyName, Object oldValue, Object newValue) {
+		super(source);
+		this.propertyName = propertyName;
+		this.changedIndices = null;
+		this.children = null;
+		this.oldValue = oldValue;
+		this.newValue= newValue;
+		
+	}
+
+	/**
+	 * Use this constructor for DBObjectChanged type events.
+	 * <code>changedIndices</code> and <code>children</code> will be null.
+	 *
+	 * @param source The SQLObject that changed
+	 * @param propertyName The name of the property on source that changed.
+	 */
 	public SQLObjectEvent(SQLObject source, String propertyName) {
 		super(source);
 		this.propertyName = propertyName;
 		this.changedIndices = null;
 		this.children = null;
 	}
-
+	
 	public SQLObject getSQLSource() {
 		return (SQLObject) source;
 	}
@@ -98,6 +119,22 @@ public class SQLObjectEvent extends EventObject implements java.io.Serializable 
 	 */
 	public void setPropertyName(String argPropertyName) {
 		this.propertyName = argPropertyName;
+	}
+
+	public Object getNewValue() {
+		return newValue;
+	}
+
+	public void setNewValue(Object newValue) {
+		this.newValue = newValue;
+	}
+
+	public Object getOldValue() {
+		return oldValue;
+	}
+
+	public void setOldValue(Object oldValue) {
+		this.oldValue = oldValue;
 	}
 
 }

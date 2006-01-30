@@ -885,12 +885,12 @@ public class TestSQLColumn extends SQLTestCase {
 		
 		assertEquals(test1.getInsertedCount(),0);
 		assertEquals(test1.getRemovedCount(),0);
-		assertEquals(test1.getChangedCount(),2);
+		assertEquals(test1.getChangedCount(),1);
 		assertEquals(test1.getStructureChangedCount(),0);
 		
 		assertEquals(test2.getInsertedCount(),0);
 		assertEquals(test2.getRemovedCount(),0);
-		assertEquals(test2.getChangedCount(),2);
+		assertEquals(test2.getChangedCount(),1);
 		assertEquals(test2.getStructureChangedCount(),0);
 		
 		tmpCol.removeSQLObjectListener(test1);
@@ -898,25 +898,25 @@ public class TestSQLColumn extends SQLTestCase {
 		
 		assertEquals(test1.getInsertedCount(),0);
 		assertEquals(test1.getRemovedCount(),0);
-		assertEquals(test1.getChangedCount(),2);
+		assertEquals(test1.getChangedCount(),1);
 		assertEquals(test1.getStructureChangedCount(),0);
 		
 		assertEquals(test2.getInsertedCount(),0);
 		assertEquals(test2.getRemovedCount(),0);
-		assertEquals(test2.getChangedCount(),2);
+		assertEquals(test2.getChangedCount(),1);
 		assertEquals(test2.getStructureChangedCount(),0);
 		
-		tmpCol.setName("xxx");
+		tmpCol.setName("xxxx");
 		
 		assertEquals(test1.getInsertedCount(),0);
 		assertEquals(test1.getRemovedCount(),0);
-		assertEquals(test1.getChangedCount(),2);
+		assertEquals(test1.getChangedCount(),1);
 		assertEquals(test1.getStructureChangedCount(),0);
 		
-		assertEquals(test2.getInsertedCount(),0);
-		assertEquals(test2.getRemovedCount(),0);
-		assertEquals(test2.getChangedCount(),3);
-		assertEquals(test2.getStructureChangedCount(),0);
+		assertEquals(0,test2.getInsertedCount());
+		assertEquals(0,test2.getRemovedCount());
+		assertEquals(2,test2.getChangedCount());
+		assertEquals(0,test2.getStructureChangedCount());
 		
 		assertEquals(test2.getLastEventName(), "columnName");
 		
@@ -951,7 +951,7 @@ public class TestSQLColumn extends SQLTestCase {
 		assertEquals(test2.getChangedCount(),1);
 		assertEquals(test2.getStructureChangedCount(),0);
 		
-		cowCol.setName("xxx");
+		cowCol.setName("xxxx");
 		
 		assertEquals(test1.getInsertedCount(),0);
 		assertEquals(test1.getRemovedCount(),0);

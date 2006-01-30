@@ -49,8 +49,9 @@ public class SQLObjectTest extends TestCase {
 		}
 		
 		// manually call fireDbObjecChanged, so it can be tested.
-		public void fakeObjectChanged(String string) {
-			fireDbObjectChanged(string);
+		public void fakeObjectChanged(String string,Object oldValue, Object newValue) {
+			
+			fireDbObjectChanged(string,oldValue,newValue);
 		}
 		
 		// manually call fireDbStructureChanged, so it can be tested.
@@ -209,8 +210,12 @@ public class SQLObjectTest extends TestCase {
 		assertTrue(tt.isChildInserted());
 		
 		tt.setObjectChanged(false);
-		((SQLObjectImpl)target).fakeObjectChanged("fred");
+		((SQLObjectImpl)target).fakeObjectChanged("fred","old value","new value");
 		assertTrue(tt.isObjectChanged());
+		
+		tt.setObjectChanged(false);
+		((SQLObjectImpl)target).fakeObjectChanged("fred","old value","old value");
+		assertFalse(tt.isObjectChanged());
 		
 		tt.setStructureChanged(false);
 		((SQLObjectImpl)target).fakeStructureChanged("george");
