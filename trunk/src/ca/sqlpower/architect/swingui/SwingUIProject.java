@@ -671,7 +671,7 @@ public class SwingUIProject {
 			println(out, "<?xml version=\"1.0\"?>");
 			println(out, "<architect-project version=\"0.1\">");
 			indent++;
-			println(out, "<project-name>"+name+"</project-name>");
+			println(out, "<project-name>"+ArchitectUtils.escapeXML(name)+"</project-name>");
 			saveDataSources(out);
 			saveSourceDatabases(out);
 			saveTargetDatabase(out);
@@ -687,6 +687,8 @@ public class SwingUIProject {
 		}
 		return saveOk;
 	}
+	
+	
 
 	protected int countSourceTables(SQLObject o) throws ArchitectException {
 		if (o instanceof SQLTable) {
@@ -720,7 +722,7 @@ public class SwingUIProject {
 					id = "DS"+dsNum;
 					dbcsIdMap.put(ds, id);
 				}
-				println(out, "<data-source id=\""+id+"\">");
+				println(out, "<data-source id=\""+ArchitectUtils.escapeXML(id)+"\">");
 				indent++;
 				Iterator pit = ds.getPropertiesMap().entrySet().iterator();
 				while (pit.hasNext()) {
@@ -1252,4 +1254,5 @@ public class SwingUIProject {
         if (logger.isDebugEnabled()) logger.debug("Project modified: "+modified);
         this.modified = modified;
     }
+    
 }

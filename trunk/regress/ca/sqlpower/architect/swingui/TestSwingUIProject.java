@@ -130,7 +130,7 @@ public class TestSwingUIProject extends TestCase {
 		PrintWriter out = new PrintWriter(tmp);
 		assertNotNull(out);
 		
-		// project.setName("FOO<BAR");	// XXX
+		project.setName("FOO<BAR");		// Implicitly testing sanitizeXML method here!
 		
 		project.save(out);
 		

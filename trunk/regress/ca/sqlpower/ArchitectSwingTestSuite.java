@@ -15,7 +15,7 @@ public class ArchitectSwingTestSuite extends TestCase {
 
 	public static Test suite() {
 		TestSuite suite = new TestSuite("Test for Architect's Swing GUI");
-		//$JUnit-BEGIN$
+		//$JUnit-BEGIN$		
 		suite.addTestSuite(SaveLoadTest.class);			// could be merged into TestSwingUIProject
 		suite.addTestSuite(TestSwingUIProject.class);
 		suite.addTestSuite(TestArchitectFrame.class);
