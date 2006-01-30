@@ -25,6 +25,9 @@ public class SQLSchema extends SQLObject {
 	}
 
 	public SQLSchema(SQLObject parent, String name, boolean populated) {
+		if (parent != null && !(parent instanceof SQLCatalog || parent instanceof SQLDatabase)) {
+			throw new IllegalArgumentException("Parent to SQLSchema must be SQLCatalog or SQLDatabase");
+		}
 		this.parent = parent;
 		this.schemaName = name;
 		this.children = new LinkedList();
