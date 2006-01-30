@@ -19,7 +19,7 @@ public class TestSwingUIProject extends TestCase {
 	
 	private SwingUIProject project;
 	
-	private final boolean deleteOnExit = false;
+	private final boolean deleteOnExit = true;
 	
 	/*
 	 * Test method for 'ca.sqlpower.architect.swingui.SwingUIProject.SwingUIProject(String)'
@@ -52,8 +52,9 @@ public class TestSwingUIProject extends TestCase {
         "  </table>" +
         "  <table id='TAB6' populated='true' primaryKeyName='id' remarks='' tableName='Orders' >" +
         "   <folder id='FOL7' populated='true' name='Columns' type='1' >" +
-        "    <column id='COL8' populated='true' autoIncrement='false' columnName='id' defaultValue='' nullable='0' precision='10' primaryKeySeq='0' referenceCount='1' remarks='' scale='0' type='4' />" +
-        "    <column id='COL9' populated='true' autoIncrement='false' columnName='customer_id' defaultValue='' nullable='0' precision='10' referenceCount='1' remarks='' scale='0' type='4' />" +
+        "    <column id='COL8' populated='true' autoIncrement='false' columnName='i&amp;d' defaultValue='' " +
+        "    remarks=\"This isn't a problem\" nullable='0' precision='10' primaryKeySeq='0' referenceCount='1' scale='0' type='4' />" +
+        "    <column id='COL9' populated='true' autoIncrement='false' columnName='customer&lt;id' defaultValue='' nullable='0' precision='10' referenceCount='1' remarks='' scale='0' type='4' />" +
         "   </folder>" +
         "   <folder id='FOL10' populated='true' name='Exported Keys' type='3' >" +
         "   </folder>" +
