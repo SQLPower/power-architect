@@ -3,10 +3,10 @@ package regress.ca.sqlpower.architect;
 import java.io.File;
 import java.io.IOException;
 
-import junit.framework.*;
-import ca.sqlpower.sql.*;
-
-import ca.sqlpower.architect.*;
+import junit.framework.TestCase;
+import ca.sqlpower.architect.ArchitectDataSource;
+import ca.sqlpower.architect.PlDotIni;
+import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 
 /**
