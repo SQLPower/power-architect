@@ -746,15 +746,15 @@ public class SwingUIProject {
 			  +" type=\""+ddlGenerator.getClass().getName()+"\""
 			  +" allow-connection=\""+ddlGenerator.getAllowConnection()+"\"");
 		if (ddlGenerator.getTargetCatalog() != null) {
-			niprint(out, " target-catalog=\""+ddlGenerator.getTargetCatalog()+"\"");
+			niprint(out, " target-catalog=\""+ArchitectUtils.escapeXML(ddlGenerator.getTargetCatalog())+"\"");
 		}
 		if (ddlGenerator.getTargetSchema() != null) {
-			niprint(out, " target-schema=\""+ddlGenerator.getTargetSchema()+"\"");
+			niprint(out, " target-schema=\""+ArchitectUtils.escapeXML(ddlGenerator.getTargetSchema())+"\"");
 		}
 		niprint(out, ">");
 		indent++;
 		if (ddlGenerator.getFile() != null) {
-			println(out, "<file path=\""+ddlGenerator.getFile().getPath()+"\" />");
+			println(out, "<file path=\""+ArchitectUtils.escapeXML(ddlGenerator.getFile().getPath())+"\" />");
 		}
 		indent--;
 		println(out, "</ddl-generator>");
@@ -813,7 +813,7 @@ public class SwingUIProject {
 
 	protected void saveTargetDatabase(PrintWriter out) throws IOException, ArchitectException {
 		SQLDatabase db = (SQLDatabase) playPen.getDatabase();
-		println(out, "<target-database dbcs-ref=\""+dbcsIdMap.get(db.getDataSource())+"\">");
+		println(out, "<target-database dbcs-ref="+ quote(dbcsIdMap.get(db.getDataSource()).toString())+ ">");
 		indent++;
 		Iterator it = db.getChildren().iterator();
 		while (it.hasNext()) {
@@ -831,7 +831,7 @@ public class SwingUIProject {
 		while (it.hasNext()) {
 			TablePane tp = (TablePane) it.next();
 			Point p = tp.getLocation();
-			println(out, "<table-pane table-ref=\""+objectIdMap.get(tp.getModel())+"\""
+			println(out, "<table-pane table-ref="+quote(objectIdMap.get(tp.getModel()).toString())+""
 					+" x=\""+p.x+"\" y=\""+p.y+"\" />");
 			if (pm != null) {
 			    pm.setProgress(++progress);
@@ -842,7 +842,7 @@ public class SwingUIProject {
 		it = playPen.getRelationships().iterator();
 		while (it.hasNext()) {
 			Relationship r = (Relationship) it.next();
-			println(out, "<table-link relationship-ref=\""+objectIdMap.get(r.getModel())+"\""
+			println(out, "<table-link relationship-ref="+quote(objectIdMap.get(r.getModel()).toString())
 					+" pk-x=\""+r.getPkConnectionPoint().x+"\""
 					+" pk-y=\""+r.getPkConnectionPoint().y+"\""
 					+" fk-x=\""+r.getFkConnectionPoint().x+"\""
@@ -870,12 +870,12 @@ public class SwingUIProject {
 	protected void saveSQLObject(PrintWriter out, SQLObject o) throws IOException, ArchitectException {
 		String id = (String) objectIdMap.get(o);
 		if (id != null) {
-			println(out, "<reference ref-id=\""+id+"\" />");
+			println(out, "<reference ref-id=\""+ArchitectUtils.escapeXML(id)+"\" />");
 			return;
 		}
 
 		String type;
-		Map propNames = new TreeMap();
+		Map<String,Object> propNames = new TreeMap<String,Object>();
 		
 		if (o instanceof SQLDatabase) {
 			id = "DB"+objectIdMap.size();
@@ -947,7 +947,7 @@ public class SwingUIProject {
 		    type = "sql-exception";
 		    propNames.put("message", ((SQLExceptionNode) o).getMessage());
 		} else {
-			throw new UnsupportedOperationException("Woops, the SQLObject type "
+			throw new UnsupportedOperationException("Whoops, the SQLObject type "
 													+o.getClass().getName()+" is not supported!");
 		}
 	
@@ -956,7 +956,7 @@ public class SwingUIProject {
 		boolean skipChildren = false;
 		
 		//print("<"+type+" hashCode=\""+o.hashCode()+"\" id=\""+id+"\" ");  // use this for debugging duplicate object problems
-		print(out, "<"+type+" id=\""+id+"\" ");
+		print(out, "<"+type+" id="+quote(id)+" ");
 
 		if (o.allowsChildren() && o.isPopulated() && o.getChildCount() == 1 && o.getChild(0) instanceof SQLExceptionNode) {
 		    // if the only child is an exception node, just save the parent as non-populated
@@ -973,7 +973,7 @@ public class SwingUIProject {
 			Object key = props.next();
 			Object value = propNames.get(key);
 			if (value != null) {
-				niprint(out, key+"=\""+value+"\" ");
+				niprint(out, key+"="+quote(value.toString())+" ");
 			}
 		}
 		if ( (!skipChildren) && o.allowsChildren() && (savingEntireSource || o.isPopulated()) ) {
