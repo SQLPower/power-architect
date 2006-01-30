@@ -2,6 +2,7 @@ package ca.sqlpower.architect.swingui;
 
 import ca.sqlpower.architect.*;
 import ca.sqlpower.architect.ddl.TypeMap;
+import ca.sqlpower.architect.undo.UndoManager;
 
 import org.apache.log4j.Logger;
 
@@ -706,5 +707,9 @@ public class ArchitectFrame extends JFrame {
 	
 	public UndoManager getUndoManager() {
 		return undoManager;
+	}
+	
+	public SwingUserSettings getSwingUserSettings() {
+		return sprefs;	
 	}
 }

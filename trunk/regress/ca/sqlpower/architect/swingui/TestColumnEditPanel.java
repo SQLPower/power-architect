@@ -110,6 +110,8 @@ public class TestColumnEditPanel extends TestCase {
 		panel.getColPrec().setValue(new Integer(1234));
 		panel.getColType().setSelectedIndex(5);
 		panel.getColScale().setValue(new Integer(5432));
+		
+		
 		panel.getColInPK().getModel().setSelected(true);
 		panel.getColAutoInc().getModel().setSelected(true);			
 		panel.getColNullable().getModel().setSelected(true);

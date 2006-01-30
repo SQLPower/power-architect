@@ -3,10 +3,10 @@ package regress.ca.sqlpower.architect;
 import junit.framework.TestCase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
-import ca.sqlpower.architect.SQLObjectUndoableEventAdapter;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.SQLObjectUndoableEventAdapter.UndoState;
-import ca.sqlpower.architect.swingui.UndoManager;
+import ca.sqlpower.architect.undo.SQLObjectUndoableEventAdapter;
+import ca.sqlpower.architect.undo.UndoManager;
+import ca.sqlpower.architect.undo.SQLObjectUndoableEventAdapter.UndoState;
 
 public class TestSQLObjectUndoableEventAdapter extends TestCase {
 	SQLObjectUndoableEventAdapter eAdapter;

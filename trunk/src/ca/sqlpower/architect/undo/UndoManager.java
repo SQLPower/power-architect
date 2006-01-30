@@ -1,7 +1,7 @@
 /**
  * 
  */
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.undo;
 
 import java.awt.event.ActionEvent;
 
@@ -11,9 +11,14 @@ import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoableEdit;
 
+import org.apache.log4j.Logger;
+
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectUtils;
-import ca.sqlpower.architect.SQLObjectUndoableEventAdapter;
+import ca.sqlpower.architect.swingui.ASUtils;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.SwingUserSettings;
 
 /**
  * @author Matt
@@ -21,6 +26,7 @@ import ca.sqlpower.architect.SQLObjectUndoableEventAdapter;
  */
 public class UndoManager extends javax.swing.undo.UndoManager {
 
+	private static final Logger logger = Logger.getLogger(UndoManager.class);
 	/* The undo and redo buttons which get their text and image updated by the
 	 * undo manager
 	 */ 
@@ -49,7 +55,7 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 	
 		undo.putValue(Action.SMALL_ICON, ASUtils.createJLFIcon("general/Undo",
 				"Undo",
-				ArchitectFrame.getMainInstance().sprefs.getInt(SwingUserSettings.ICON_SIZE, 24)));
+				ArchitectFrame.getMainInstance().getSwingUserSettings().getInt(SwingUserSettings.ICON_SIZE, 24)));
 		undo.putValue(Action.SHORT_DESCRIPTION, "Undo");
 		undo.putValue(Action.NAME,"Undo");
 		undo.setEnabled(false);
@@ -63,7 +69,7 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 		redo.setEnabled(false);
 		redo.putValue(Action.SMALL_ICON, ASUtils.createJLFIcon("general/Redo",
 				"Redo",
-				ArchitectFrame.getMainInstance().sprefs.getInt(SwingUserSettings.ICON_SIZE, 24)));
+				ArchitectFrame.getMainInstance().getSwingUserSettings().getInt(SwingUserSettings.ICON_SIZE, 24)));
 		redo.putValue(Action.SHORT_DESCRIPTION, "Redo");
 		redo.putValue(Action.NAME,"Redo");
 		init(undo, redo);
@@ -80,9 +86,9 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 	}
 	
 	public synchronized boolean addEdit(UndoableEdit anEdit) {
-		if( !isUndoing() && !isRedoing()){
-			
 		
+		if( !(isUndoing() || isRedoing())){
+			logger.debug("Added new undoableEdit to undo manager "+anEdit);
 			boolean success = super.addEdit(anEdit);
 			refreshUndoRedo();
 			return success; 
@@ -142,6 +148,22 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 	
 	
 	/* Public getters and setters appear after this point */
+
+	public int getUndoableEditCount(){
+		if (editToBeUndone() == null) return 0;
+		int count;
+		// edits is a 0 based vector
+		count = this.edits.indexOf(this.editToBeUndone())+1;
+		return count;
+	}
+	
+	public int getRedoableEditCount(){
+		if (editToBeRedone() == null) return 0;
+		int count;
+		count = edits.size() -this.edits.indexOf(this.editToBeRedone());
+		return count;
+	}
+	
 	
 	public Action getRedo() {
 		return redo;
