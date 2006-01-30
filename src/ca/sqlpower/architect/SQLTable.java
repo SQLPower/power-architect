@@ -20,7 +20,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 
 	protected SQLObject parent;
 	protected String tableName;
-	protected String remarks;
+	protected String remarks="";
 	protected String objectType;
 	protected String primaryKeyName;
 	protected String physicalPrimaryKeyName;

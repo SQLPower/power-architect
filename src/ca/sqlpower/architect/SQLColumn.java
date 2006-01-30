@@ -24,7 +24,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	protected SQLColumn sourceColumn;
 
 	protected SQLObject parent;
-	protected String columnName;
+	protected String columnName="";
 	
 
 	/**
@@ -62,7 +62,8 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	 * </ul>
 	 */
 	protected int nullable;
-	protected String remarks;
+	// set to empty string so that we don't generate spurious undos
+	protected String remarks ="";
 	protected String defaultValue;
 	protected Integer primaryKeySeq;
 	protected boolean autoIncrement;
@@ -208,7 +209,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 											  rs.getInt(7), // column size (precision)
 											  rs.getInt(9), // decimal size (scale)
 											  rs.getInt(11), // nullable
-											  rs.getString(12), // remarks
+											  rs.getString(12) == null ? "" : rs.getString(12), // remarks
 											  rs.getString(13), // default value
 											  null, // primaryKeySeq
 											  false // isAutoIncrement

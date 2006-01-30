@@ -1,14 +1,16 @@
-package ca.sqlpower.architect;
+package ca.sqlpower.architect.undo;
 
 import javax.swing.undo.CompoundEdit;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.swingui.UndoManager;
-import ca.sqlpower.architect.undo.SQLObjectInsertChildren;
-import ca.sqlpower.architect.undo.SQLObjectRemoveChildren;
-import ca.sqlpower.architect.undo.UndoCompoundEvent;
-import ca.sqlpower.architect.undo.UndoCompoundEventListener;
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLObjectEvent;
+import ca.sqlpower.architect.SQLObjectListener;
+import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.SQLTable.Folder;
 
 /**
  * Converts received SQLObjectEvents into UndoableEdits and adds them to an UndoManager. 
@@ -30,6 +32,9 @@ public class SQLObjectUndoableEventAdapter  implements UndoCompoundEventListener
 		ce = null;
 	}
 
+	/**
+	 *  Process a start drag and drop state change
+	 */
 	public void dragAndDropStart(UndoCompoundEvent e) 
 	{
 		if (state != UndoState.REGULAR ) 
@@ -49,6 +54,9 @@ public class SQLObjectUndoableEventAdapter  implements UndoCompoundEventListener
 		ce = new CompoundEdit();
 		
 	}
+	/**
+	 * Process an end drag and drop state change
+	 */
 	public void dragAndDropEnd(UndoCompoundEvent e){
 		
 		if (state != UndoState.DRAG_AND_DROP ){
@@ -71,6 +79,9 @@ public class SQLObjectUndoableEventAdapter  implements UndoCompoundEventListener
 		state = UndoState.REGULAR;
 	}
 	
+	/**
+	 * Process a multi select start state change
+	 */
 	public void multiSelectStart(UndoCompoundEvent e){
 		if(state != UndoState.DRAG_AND_DROP && state != UndoState.REGULAR){
 			if(ce!= null) {
@@ -94,6 +105,9 @@ public class SQLObjectUndoableEventAdapter  implements UndoCompoundEventListener
 		}
 	}
 	
+	/**
+	 * process a multi select end state change
+	 */
 	public void multiSelectEnd(UndoCompoundEvent e){
 		if(state != UndoState.MULTI_SELECT && state != UndoState.MULTI_DRAG_AND_DROP){
 			if(ce!= null) {
@@ -176,7 +190,23 @@ public class SQLObjectUndoableEventAdapter  implements UndoCompoundEventListener
 	}
 
 	public void dbObjectChanged(SQLObjectEvent e) {
-		
+		if (e.getSource() instanceof SQLDatabase &&
+				e.getPropertyName().equals("shortDisplayName")){
+			// this is not undoable at this time.
+			
+		}
+		else
+		{
+			ArchitectPropertyChangeUndoableEdit undoEvent = new ArchitectPropertyChangeUndoableEdit(e);
+			if (state == UndoState.REGULAR)
+			{
+				undoManager.addEdit(undoEvent);
+			}
+			else
+			{
+				ce.addEdit(undoEvent);
+			}
+		}
 		
 	}
 

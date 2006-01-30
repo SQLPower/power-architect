@@ -8,6 +8,7 @@ public abstract class SQLObject implements java.io.Serializable {
 	private static Logger logger = Logger.getLogger(SQLObject.class);
 	protected boolean populated = false;
 	
+
 	private String physicalName;
 	
 	/**
@@ -281,7 +282,7 @@ public abstract class SQLObject implements java.io.Serializable {
 
 	protected void fireDbObjectChanged(String propertyName, Object oldValue, Object newValue) {
 		SQLObjectEvent e = new SQLObjectEvent(this, propertyName, oldValue,newValue);
-		boolean same = oldValue == null ? oldValue == newValue : oldValue.equals(newValue);
+		boolean same = (oldValue == null ? oldValue == newValue : oldValue.equals(newValue));
 		if (same) {
 			logger.debug("Object changed event aborted, the old value of "
 					+propertyName+" equals the new value");

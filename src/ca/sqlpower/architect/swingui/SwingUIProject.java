@@ -40,6 +40,7 @@ import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.PLExport;
+import ca.sqlpower.architect.undo.UndoManager;
 
 /** Used to load and store Projects.
  * XXX Consider rewriting using JAXB instead of Digester - after tests are in place.

@@ -349,7 +349,7 @@ public class TestSQLColumn extends SQLTestCase {
 		assertEquals(mooCol.getPrecision(),10);
 		assertEquals(mooCol.getType(),Types.VARCHAR);
 		assertEquals(mooCol.getSourceDataTypeName(),"VARCHAR2");
-		assertEquals(mooCol.getRemarks(),null);
+		assertEquals(mooCol.getRemarks(),"");
 		assertEquals(mooCol.getDefaultValue(),null);
 		assertEquals(mooCol.isPrimaryKey(),true);
 		assertEquals(mooCol.isDefinitelyNullable(),false);
@@ -547,11 +547,11 @@ public class TestSQLColumn extends SQLTestCase {
 	 */
 	public void testGetRemarks() throws Exception {
 		SQLColumn tmpCol = new SQLColumn();
-		assertEquals(null,tmpCol.getRemarks());
+		assertEquals("",tmpCol.getRemarks());
 		tmpCol.setRemarks("xxx");
 		assertEquals("xxx",tmpCol.getRemarks());
 		SQLColumn cowCol = table1pk.getColumn(0);
-		assertEquals(null,cowCol.getRemarks());
+		assertEquals("",cowCol.getRemarks());
 		cowCol.setRemarks("yyy");
 		assertEquals("yyy",cowCol.getRemarks());
 	}

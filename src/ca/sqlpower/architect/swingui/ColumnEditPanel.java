@@ -290,7 +290,10 @@ public class ColumnEditPanel extends JPanel
 							? DatabaseMetaData.columnNullable
 							: DatabaseMetaData.columnNoNulls);
 			col.setRemarks(colRemarks.getText());
-			col.setDefaultValue(colDefaultValue.getText());
+			if (!(col.getDefaultValue() == null && colDefaultValue.getText().equals("")))
+			{
+				col.setDefaultValue(colDefaultValue.getText());
+			}
 			// Autoincrement has to go before the primary key or 
 			// this column will never allow nulls
 			col.setAutoIncrement(colAutoInc.isSelected());

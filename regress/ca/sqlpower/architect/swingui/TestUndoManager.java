@@ -12,8 +12,8 @@ import junit.framework.TestCase;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.UndoManager;
 import ca.sqlpower.architect.undo.SQLObjectInsertChildren;
+import ca.sqlpower.architect.undo.UndoManager;
 
 public class TestUndoManager extends TestCase {
 
