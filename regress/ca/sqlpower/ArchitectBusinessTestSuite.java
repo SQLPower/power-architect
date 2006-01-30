@@ -4,6 +4,7 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import regress.ca.sqlpower.architect.ArchitectExceptionTest;
+import regress.ca.sqlpower.architect.ArchitectUtilsTest;
 import regress.ca.sqlpower.architect.JDBCClassLoaderTest;
 import regress.ca.sqlpower.architect.LogWriterTest;
 import regress.ca.sqlpower.architect.PLDotIniTest;
@@ -18,7 +19,6 @@ import regress.ca.sqlpower.architect.TestSQLTable;
 import regress.ca.sqlpower.architect.ddl.TestDDLUtils;
 import regress.ca.sqlpower.architect.swingui.SaveLoadTest;
 import regress.ca.sqlpower.architect.swingui.TestUndoManager;
-import regress.ca.sqlpower.architect.swingui.TestColumnEditPanel;
 import regress.ca.sqlpower.architect.undo.TestSQLObjectChildrenInsert;
 
 public class ArchitectBusinessTestSuite extends TestCase {
@@ -26,6 +26,7 @@ public class ArchitectBusinessTestSuite extends TestCase {
 	public static Test suite() {
 		TestSuite suite = new TestSuite("Test for regress");
 		//$JUnit-BEGIN$
+		suite.addTestSuite(ArchitectUtilsTest.class);
 		suite.addTestSuite(SQLObjectTest.class);
 		suite.addTest(TestSQLDatabase.suite());
 		suite.addTestSuite(TestSQLCatalog.class);
