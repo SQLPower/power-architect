@@ -41,6 +41,9 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.PLExport;
 
+/** Used to load and store Projects.
+ * XXX Consider rewriting using JAXB instead of Digester - after tests are in place.
+ */
 public class SwingUIProject {
 	private static final Logger logger = Logger.getLogger(SwingUIProject.class);
 
@@ -620,26 +623,11 @@ public class SwingUIProject {
 		    pm.setMillisToDecideToPopup(0);
 		}
 		
-		try {
-			println("<?xml version=\"1.0\"?>");
-			println("<architect-project version=\"0.1\">");
-			indent++;
-			println("<project-name>"+name+"</project-name>");
-			saveDataSources();
-			saveSourceDatabases();
-			saveTargetDatabase();
-			saveDDLGenerator();
-			savePlayPen();
-			indent--;
-			println("</architect-project>");
-			setModified(false);
-			saveOk = true;
-		} finally {
-			if (out != null) out.close();
-			out = null;
-			if (pm != null) pm.close();
-			pm = null;
-		}
+		saveOk = save(out);	// Does ALL the actual I/O
+		out = null;
+		if (pm != null) 
+			pm.close();
+		pm = null;
 		
 		// Do the rename dance.
 		// This is a REALLY bad place for failure (especially if we've made the user wait several hours to save
@@ -669,6 +657,35 @@ public class SwingUIProject {
 			logger.debug("rename tempFile to current file: " + fstatus);
 		}		
 	}
+	/**
+	 * Do just the writing part of save, given a PrintWriter
+	 * @param out - the file to write to
+	 * @return True iff the save completed OK
+	 * @throws IOException
+	 * @throws ArchitectException
+	 */
+	public boolean save(PrintWriter out) throws IOException, ArchitectException {
+		boolean saveOk;
+		try {
+			println(out, "<?xml version=\"1.0\"?>");
+			println(out, "<architect-project version=\"0.1\">");
+			indent++;
+			println(out, "<project-name>"+name+"</project-name>");
+			saveDataSources(out);
+			saveSourceDatabases(out);
+			saveTargetDatabase(out);
+			saveDDLGenerator(out);
+			savePlayPen(out);
+			indent--;
+			println(out, "</architect-project>");
+			setModified(false);
+			saveOk = true;
+		} finally {
+			if (out != null) out.close();
+			
+		}
+		return saveOk;
+	}
 
 	protected int countSourceTables(SQLObject o) throws ArchitectException {
 		if (o instanceof SQLTable) {
@@ -687,8 +704,8 @@ public class SwingUIProject {
 		}
 	}
 
-	protected void saveDataSources() throws IOException, ArchitectException {
-		println("<project-data-sources>");
+	protected void saveDataSources(PrintWriter out) throws IOException, ArchitectException {
+		println(out, "<project-data-sources>");
 		indent++;
 		int dsNum = 0;
 		SQLObject dbTreeRoot = (SQLObject) sourceDatabases.getModel().getRoot();
@@ -702,115 +719,116 @@ public class SwingUIProject {
 					id = "DS"+dsNum;
 					dbcsIdMap.put(ds, id);
 				}
-				println("<data-source id=\""+id+"\">");
+				println(out, "<data-source id=\""+id+"\">");
 				indent++;
 				Iterator pit = ds.getPropertiesMap().entrySet().iterator();
 				while (pit.hasNext()) {
 				    Map.Entry ent = (Map.Entry) pit.next();
 				    if (ent.getValue() != null) {
-				        println("<property key="+quote((String) ent.getKey())+" value="+quote((String) ent.getValue())+" />");
+				        println(out, "<property key="+quote((String) ent.getKey())+" value="+quote((String) ent.getValue())+" />");
 				    }
 				}
 				indent--;
-				println("</data-source>");
+				println(out, "</data-source>");
 				dsNum++;
 			}
 			dsNum++;
 		}
 		indent--;
-		println("</project-data-sources>");
+		println(out, "</project-data-sources>");
 	}
 
-	protected void saveDDLGenerator() throws IOException {
-		print("<ddl-generator"
+	protected void saveDDLGenerator(PrintWriter out) throws IOException {
+		print(out, "<ddl-generator"
 			  +" type=\""+ddlGenerator.getClass().getName()+"\""
 			  +" allow-connection=\""+ddlGenerator.getAllowConnection()+"\"");
 		if (ddlGenerator.getTargetCatalog() != null) {
-			niprint(" target-catalog=\""+ddlGenerator.getTargetCatalog()+"\"");
+			niprint(out, " target-catalog=\""+ddlGenerator.getTargetCatalog()+"\"");
 		}
 		if (ddlGenerator.getTargetSchema() != null) {
-			niprint(" target-schema=\""+ddlGenerator.getTargetSchema()+"\"");
+			niprint(out, " target-schema=\""+ddlGenerator.getTargetSchema()+"\"");
 		}
-		niprint(">");
+		niprint(out, ">");
 		indent++;
 		if (ddlGenerator.getFile() != null) {
-			println("<file path=\""+ddlGenerator.getFile().getPath()+"\" />");
+			println(out, "<file path=\""+ddlGenerator.getFile().getPath()+"\" />");
 		}
 		indent--;
-		println("</ddl-generator>");
+		println(out, "</ddl-generator>");
 	}
 
 	/**
 	 * Creates a &lt;source-databases&gt; element which contains zero
 	 * or more &lt;database&gt; elements.
+	 * @param out2 
 	 */
-	protected void saveSourceDatabases() throws IOException, ArchitectException {
-		println("<source-databases>");
+	protected void saveSourceDatabases(PrintWriter out) throws IOException, ArchitectException {
+		println(out, "<source-databases>");
 		indent++;
 		SQLObject dbTreeRoot = (SQLObject) sourceDatabases.getModel().getRoot();
 		Iterator it = dbTreeRoot.getChildren().iterator();
 		while (it.hasNext()) {
 			SQLObject o = (SQLObject) it.next();
 			if (o != playPen.getDatabase()) {
-				saveSQLObject(o);
+				saveSQLObject(out, o);
 			}
 		}
 		indent--;
-		println("</source-databases>");
+		println(out, "</source-databases>");
 	}
 	
 	/**
 	 * Recursively walks through the children of db, writing to the
 	 * output file all SQLRelationship objects encountered.
 	 */
-	protected void saveRelationships(SQLDatabase db) throws ArchitectException, IOException {
-		println("<relationships>");
+	protected void saveRelationships(PrintWriter out, SQLDatabase db) throws ArchitectException, IOException {
+		println(out, "<relationships>");
 		indent++;
 		Iterator it = db.getChildren().iterator();
 		while (it.hasNext()) {
-			saveRelationshipsRecurse((SQLObject) it.next());
+			saveRelationshipsRecurse(out, (SQLObject) it.next());
 		}
 		indent--;
-		println("</relationships>");
+		println(out, "</relationships>");
 	}
 
 	/**
 	 * The recursive subroutine of saveRelationships.
 	 */
-	protected void saveRelationshipsRecurse(SQLObject o) throws ArchitectException, IOException {
+	protected void saveRelationshipsRecurse(PrintWriter out, SQLObject o) throws ArchitectException, IOException {
 		if ( (!savingEntireSource) && (!o.isPopulated()) ) {
 			return;
 		} else if (o instanceof SQLRelationship) {
-			saveSQLObject(o);
+			saveSQLObject(out, o);
 		} else if (o.allowsChildren()) {
 			Iterator it = o.getChildren().iterator();
 			while (it.hasNext()) {
-				saveRelationshipsRecurse((SQLObject) it.next());
+				saveRelationshipsRecurse(out, (SQLObject) it.next());
 			}
 		}
 	}
 
-	protected void saveTargetDatabase() throws IOException, ArchitectException {
+	protected void saveTargetDatabase(PrintWriter out) throws IOException, ArchitectException {
 		SQLDatabase db = (SQLDatabase) playPen.getDatabase();
-		println("<target-database dbcs-ref=\""+dbcsIdMap.get(db.getDataSource())+"\">");
+		println(out, "<target-database dbcs-ref=\""+dbcsIdMap.get(db.getDataSource())+"\">");
 		indent++;
 		Iterator it = db.getChildren().iterator();
 		while (it.hasNext()) {
-			saveSQLObject((SQLObject) it.next());
+			saveSQLObject(out, (SQLObject) it.next());
 		}
-		saveRelationships(db);
+		saveRelationships(out, db);
 		indent--;
-		println("</target-database>");
+		println(out, "</target-database>");
 	}
 	
-	protected void savePlayPen() throws IOException, ArchitectException {
-		println("<play-pen>");
+	protected void savePlayPen(PrintWriter out) throws IOException, ArchitectException {
+		println(out, "<play-pen>");
 		indent++;
 		Iterator it = playPen.getTablePanes().iterator();
 		while (it.hasNext()) {
 			TablePane tp = (TablePane) it.next();
 			Point p = tp.getLocation();
-			println("<table-pane table-ref=\""+objectIdMap.get(tp.getModel())+"\""
+			println(out, "<table-pane table-ref=\""+objectIdMap.get(tp.getModel())+"\""
 					+" x=\""+p.x+"\" y=\""+p.y+"\" />");
 			if (pm != null) {
 			    pm.setProgress(++progress);
@@ -821,14 +839,14 @@ public class SwingUIProject {
 		it = playPen.getRelationships().iterator();
 		while (it.hasNext()) {
 			Relationship r = (Relationship) it.next();
-			println("<table-link relationship-ref=\""+objectIdMap.get(r.getModel())+"\""
+			println(out, "<table-link relationship-ref=\""+objectIdMap.get(r.getModel())+"\""
 					+" pk-x=\""+r.getPkConnectionPoint().x+"\""
 					+" pk-y=\""+r.getPkConnectionPoint().y+"\""
 					+" fk-x=\""+r.getFkConnectionPoint().x+"\""
 					+" fk-y=\""+r.getFkConnectionPoint().y+"\" />");
 		}
 		indent--;
-		println("</play-pen>");
+		println(out, "</play-pen>");
 	}
 
 	/**
@@ -846,10 +864,10 @@ public class SwingUIProject {
 	 * is responsible for deferencing the attribute and setting the
 	 * property manually.
 	 */
-	protected void saveSQLObject(SQLObject o) throws IOException, ArchitectException {
+	protected void saveSQLObject(PrintWriter out, SQLObject o) throws IOException, ArchitectException {
 		String id = (String) objectIdMap.get(o);
 		if (id != null) {
-			println("<reference ref-id=\""+id+"\" />");
+			println(out, "<reference ref-id=\""+id+"\" />");
 			return;
 		}
 
@@ -935,16 +953,16 @@ public class SwingUIProject {
 		boolean skipChildren = false;
 		
 		//print("<"+type+" hashCode=\""+o.hashCode()+"\" id=\""+id+"\" ");  // use this for debugging duplicate object problems
-		print("<"+type+" id=\""+id+"\" ");
+		print(out, "<"+type+" id=\""+id+"\" ");
 
 		if (o.allowsChildren() && o.isPopulated() && o.getChildCount() == 1 && o.getChild(0) instanceof SQLExceptionNode) {
 		    // if the only child is an exception node, just save the parent as non-populated
-		    niprint("populated=\"false\" ");
+		    niprint(out, "populated=\"false\" ");
 		    skipChildren = true;
 		} else if ( (!savingEntireSource) && (!o.isPopulated()) ) {
-			niprint("populated=\"false\" ");
+			niprint(out, "populated=\"false\" ");
 		} else {
-		    niprint("populated=\"true\" ");
+		    niprint(out, "populated=\"true\" ");
 		}
 
 		Iterator props = propNames.keySet().iterator();
@@ -952,26 +970,26 @@ public class SwingUIProject {
 			Object key = props.next();
 			Object value = propNames.get(key);
 			if (value != null) {
-				niprint(key+"=\""+value+"\" ");
+				niprint(out, key+"=\""+value+"\" ");
 			}
 		}
 		if ( (!skipChildren) && o.allowsChildren() && (savingEntireSource || o.isPopulated()) ) {
-			niprintln(">");
+			niprintln(out, ">");
 			Iterator children = o.getChildren().iterator();
 			indent++;
 			while (children.hasNext()) {
 				SQLObject child = (SQLObject) children.next();
 				if ( ! (child instanceof SQLRelationship)) {
-					saveSQLObject(child);
+					saveSQLObject(out, child);
 				}
 			}
 			if (o instanceof SQLDatabase) {
-				saveRelationships((SQLDatabase) o);
+				saveRelationships(out, (SQLDatabase) o);
 			}
 			indent--;
-			println("</"+type+">");
+			println(out, "</"+type+">");
 		} else {
-			niprintln("/>");
+			niprintln(out, "/>");
 		}
 	}
 
@@ -1113,8 +1131,9 @@ public class SwingUIProject {
 	/**
 	 * Prints to the output writer {@link #out} indentation spaces
 	 * (according to {@link #indent}) followed by the given text.
+	 * @param out 
 	 */
-	protected void print(String text) {
+	protected void print(PrintWriter out, String text) {
 		for (int i = 0; i < indent; i++) {
 			out.print(" ");
 		}
@@ -1125,7 +1144,7 @@ public class SwingUIProject {
 	 * Prints <code>text</code> to the output writer {@link #out} (no
 	 * indentation).
 	 */
-	protected void niprint(String text) {
+	protected void niprint(PrintWriter out, String text) {
 		out.print(text);
 	}
 
@@ -1133,7 +1152,7 @@ public class SwingUIProject {
 	 * Prints <code>text</code> followed by newline to the output
 	 * writer {@link #out} (no indentation).
 	 */
-	protected void niprintln(String text) {
+	protected void niprintln(PrintWriter out, String text) {
 		out.println(text);
 	}
 
@@ -1142,7 +1161,7 @@ public class SwingUIProject {
 	 * (according to {@link #indent}) followed by the given text
 	 * followed by a newline.
 	 */
-	protected void println(String text) {
+	protected void println(PrintWriter out, String text) {
 		for (int i = 0; i < indent; i++) {
 			out.print(" ");
 		}
