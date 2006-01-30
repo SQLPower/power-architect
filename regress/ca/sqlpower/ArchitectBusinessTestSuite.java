@@ -18,6 +18,7 @@ import regress.ca.sqlpower.architect.TestSQLTable;
 import regress.ca.sqlpower.architect.ddl.TestDDLUtils;
 import regress.ca.sqlpower.architect.swingui.SaveLoadTest;
 import regress.ca.sqlpower.architect.swingui.TestUndoManager;
+import regress.ca.sqlpower.architect.swingui.TestColumnEditPanel;
 import regress.ca.sqlpower.architect.undo.TestSQLObjectChildrenInsert;
 
 public class ArchitectBusinessTestSuite extends TestCase {

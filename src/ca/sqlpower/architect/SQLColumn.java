@@ -338,8 +338,9 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	}
 
 	public void setSourceColumn(SQLColumn col) {
+		SQLColumn oldCol = this.sourceColumn;
 		sourceColumn = col;
-		fireDbObjectChanged("sourceColumn");
+		fireDbObjectChanged("sourceColumn",oldCol,col);
 	}
 
 	/**
@@ -358,8 +359,9 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	 * @param argName Value to assign to this.name
 	 */
 	public void setColumnName(String argName) {
+		String oldColumnName = this.columnName;
 		this.columnName = argName;
-		fireDbObjectChanged("columnName");
+		fireDbObjectChanged("columnName", oldColumnName , argName);
 	}
 
 
@@ -379,10 +381,11 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	 * @param argType Value to assign to this.type
 	 */
 	public void setType(int argType) {
+		int oldType = type;
 		if (type != argType) {
 			setSourceDataTypeName(null);
 			this.type = argType;
-			fireDbObjectChanged("type");
+			fireDbObjectChanged("type",oldType,argType);
 		}
 	}
 
@@ -391,8 +394,9 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	}
 
 	public void setSourceDataTypeName(String n) {
+		String oldSourceDataTypeName =  sourceDataTypeName;
 		sourceDataTypeName = n;
-		fireDbObjectChanged("sourceDataTypeName");
+		fireDbObjectChanged("sourceDataTypeName",oldSourceDataTypeName,n);
 	}
 
 	/**
@@ -410,9 +414,10 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	 * @param argScale Value to assign to this.scale
 	 */
 	public void setScale(int argScale) {
+		int oldScale = this.scale;
 		logger.debug("scale changed from "+scale+" to "+argScale);
 		this.scale = argScale;
-		fireDbObjectChanged("scale");
+		fireDbObjectChanged("scale",oldScale,argScale);
 	}
 
 	/**
@@ -430,8 +435,9 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	 * @param argPrecision Value to assign to this.precision
 	 */
 	public void setPrecision(int argPrecision) {
+		int oldPrecision = this.precision;
 		this.precision = argPrecision;
-		fireDbObjectChanged("precision");
+		fireDbObjectChanged("precision",oldPrecision,argPrecision);
 	}
 
 	/**
@@ -466,8 +472,9 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	 * @param argParent Value to assign to this.parent
 	 */
 	protected void setParent(SQLObject argParent) {
+		SQLObject oldParent = this.parent;
 		this.parent = argParent;
-		fireDbObjectChanged("parent");
+		fireDbObjectChanged("parent",oldParent,argParent);
 	}
 
 	public int getNullable() {
@@ -480,9 +487,10 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	 * @param argNullable Value to assign to this.nullable
 	 */
 	public void setNullable(int argNullable) {
+		int oldNullable = this.nullable;
 		if (this.nullable != argNullable) {
 			this.nullable = argNullable;
-			fireDbObjectChanged("nullable");
+			fireDbObjectChanged("nullable",oldNullable,argNullable);
 		}
 	}
 
@@ -501,8 +509,9 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	 * @param argRemarks Value to assign to this.remarks
 	 */
 	public void setRemarks(String argRemarks) {
+		String oldRemarks = this.remarks;
 		this.remarks = argRemarks;
-		fireDbObjectChanged("remarks");
+		fireDbObjectChanged("remarks",oldRemarks,argRemarks);
 	}
 
 	/**
@@ -520,8 +529,9 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	 * @param argDefaultValue Value to assign to this.defaultValue
 	 */
 	public void setDefaultValue(String argDefaultValue) {
+		String oldDefaultValue = this.defaultValue;
 		this.defaultValue = argDefaultValue;
-		fireDbObjectChanged("defaultValue");
+		fireDbObjectChanged("defaultValue",oldDefaultValue,argDefaultValue);
 	}
 
 	/**
@@ -539,7 +549,8 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	 * @param argPrimaryKeySeq Value to assign to this.primaryKeySeq
 	 */
 	public void setPrimaryKeySeq(Integer argPrimaryKeySeq) {
-		if (argPrimaryKeySeq != null) {
+		Integer oldPrimaryKeySeq = primaryKeySeq;
+		if (argPrimaryKeySeq != null && !this.autoIncrement) {
 			setNullable(DatabaseMetaData.columnNoNulls);
 		}
 		if (this.primaryKeySeq != null && this.primaryKeySeq.equals(argPrimaryKeySeq)) return;
@@ -548,7 +559,8 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 			Collections.sort(getParentTable().columnsFolder.children, new SortByPKSeq());
 			getParentTable().normalizePrimaryKey();
 		}
-		fireDbObjectChanged("primaryKeySeq");
+		
+		fireDbObjectChanged("primaryKeySeq",oldPrimaryKeySeq,argPrimaryKeySeq);
 	}
 
 	/**
@@ -566,8 +578,9 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	 * @param argAutoIncrement Value to assign to this.autoIncrement
 	 */
 	public void setAutoIncrement(boolean argAutoIncrement) {
+		boolean oldAutoIncrement = this.autoIncrement;
 		this.autoIncrement = argAutoIncrement;
-		fireDbObjectChanged("autoIncrement");
+		fireDbObjectChanged("autoIncrement",oldAutoIncrement,argAutoIncrement);
 	}
 
 	/**

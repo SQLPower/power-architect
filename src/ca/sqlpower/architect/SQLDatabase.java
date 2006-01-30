@@ -431,13 +431,14 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	 * @param argDataSource Value to assign to this.dataSource
 	 */
 	public void setDataSource(ArchitectDataSource argDataSource) {
+		ArchitectDataSource oldDataSource = this.dataSource;
 		if (dataSource != null) {
 			dataSource.removePropertyChangeListener(this);
 			reset();
 		}
 		dataSource = argDataSource;
 		dataSource.addPropertyChangeListener(this);
-		fireDbObjectChanged("dataSource");
+		fireDbObjectChanged("dataSource",oldDataSource,argDataSource);
 	}
 
 	public void setIgnoreReset(boolean v) {
@@ -501,7 +502,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 			if ("url".equals(pn) || "driverClass".equals(pn) || "user".equals(pn)) {
 				reset();
 			} else if ("displayName".equals(pn)) {
-				fireDbObjectChanged("shortDisplayName");
+				fireDbObjectChanged("shortDisplayName",e.getOldValue(),e.getNewValue());
 			}
 		}
 	}

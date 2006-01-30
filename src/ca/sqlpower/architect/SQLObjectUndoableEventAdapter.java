@@ -177,10 +177,14 @@ public class SQLObjectUndoableEventAdapter  implements UndoCompoundEventListener
 
 	public void dbObjectChanged(SQLObjectEvent e) {
 		
+		
 	}
 
 	public void dbStructureChanged(SQLObjectEvent e) {
 		logger.error("Unexpected structure change event");
+		// too many changes clear undo
+		undoManager.discardAllEdits();
+		
 	}
 
 	public UndoState getState() {

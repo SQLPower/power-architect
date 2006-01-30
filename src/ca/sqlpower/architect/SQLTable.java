@@ -908,7 +908,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		String oldTableName = tableName;
 		if ( ! argTableName.equals(tableName) ) {
 			this.tableName = argTableName;
-			fireDbObjectChanged("tableName");
+			fireDbObjectChanged("tableName",oldTableName,argTableName);
 		}
 		if (primaryKeyName == null
 			|| primaryKeyName.equals("")
@@ -932,8 +932,9 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * @param argRemarks Value to assign to this.remarks
 	 */
 	public void setRemarks(String argRemarks) {
+		String oldRemarks =this.remarks;
 		this.remarks = argRemarks;
-		fireDbObjectChanged("remarks");
+		fireDbObjectChanged("remarks",oldRemarks,argRemarks);
 	}
 
 	/**
@@ -1023,8 +1024,9 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * @param argPrimaryKeyName Value to assign to this.primaryKeyName
 	 */
 	public void setPrimaryKeyName(String argPrimaryKeyName) {
+		String oldPrimaryKeyName = this.primaryKeyName;
 		this.primaryKeyName = argPrimaryKeyName;
-		fireDbObjectChanged("primaryKeyName");
+		fireDbObjectChanged("primaryKeyName",oldPrimaryKeyName,argPrimaryKeyName);
 	}
 
 	/**
@@ -1042,8 +1044,9 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * @param argPhysicalPrimaryKeyName Value to assign to this.physicalPrimaryKeyName
 	 */
 	public void setPhysicalPrimaryKeyName(String argPhysicalPrimaryKeyName) {
+		String oldPhysicalPrimaryKeyName = this.physicalPrimaryKeyName;
 		this.physicalPrimaryKeyName = argPhysicalPrimaryKeyName;
-		fireDbObjectChanged("physicalPrimaryKeyName");
+		fireDbObjectChanged("physicalPrimaryKeyName",oldPhysicalPrimaryKeyName,argPhysicalPrimaryKeyName);
 	}
 
 	
@@ -1063,8 +1066,9 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * @param argObjectType Value to assign to this.objectType
 	 */
 	public void setObjectType(String argObjectType) {
+		String oldObjectType = this.objectType;
 		this.objectType = argObjectType;
-		fireDbObjectChanged("objectType");
+		fireDbObjectChanged("objectType",oldObjectType, argObjectType);
 	}
 
 }

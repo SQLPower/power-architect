@@ -6,6 +6,7 @@ import junit.framework.TestSuite;
 import regress.ca.sqlpower.architect.swingui.SaveLoadTest;
 import regress.ca.sqlpower.architect.swingui.TestArchitectFrame;
 import regress.ca.sqlpower.architect.swingui.TestAutoLayoutAction;
+import regress.ca.sqlpower.architect.swingui.TestColumnEditPanel;
 import regress.ca.sqlpower.architect.swingui.TestPlayPen;
 import regress.ca.sqlpower.architect.swingui.TestUndoManager;
 
@@ -19,6 +20,7 @@ public class ArchitectSwingTestSuite extends TestCase {
 		suite.addTestSuite(TestAutoLayoutAction.class);
 		suite.addTestSuite(TestPlayPen.class);
 		suite.addTestSuite(TestUndoManager.class);
+		suite.addTestSuite(TestColumnEditPanel.class);
 		//$JUnit-END$
 		return suite;
 	}

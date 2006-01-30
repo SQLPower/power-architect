@@ -424,7 +424,7 @@ public class TestSQLDatabase extends SQLTestCase {
 		assertEquals(test1.getChangedCount(),1);
 		assertEquals(test1.getStructureChangedCount(),0);
 		
-		db1.setDataSource(db1.getDataSource());
+		db1.setDataSource(new ArchitectDataSource());
 		
 		assertEquals(test1.getInsertedCount(),1);
 		assertEquals(test1.getRemovedCount(),1);
