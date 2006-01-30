@@ -13,7 +13,6 @@ import ca.sqlpower.architect.swingui.SwingUIProject;
 
 /**
  * Test case, mainly for loading and saving via SwingUIProject.
- * XXX test saving a project with XML metachars in attributes (quotes, '<')...
  */
 public class TestSwingUIProject extends TestCase {
 	
