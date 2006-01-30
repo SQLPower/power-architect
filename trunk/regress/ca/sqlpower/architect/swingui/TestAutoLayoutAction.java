@@ -40,6 +40,7 @@ public class TestAutoLayoutAction extends TestCase {
 		super.setUp();
 		ArchitectFrame af = ArchitectFrame.getMainInstance();
 		action = af.getAutoLayoutAction();
+		action.setAnimationEnabled(false);
 	}
 	
 	public void testIcon() {
