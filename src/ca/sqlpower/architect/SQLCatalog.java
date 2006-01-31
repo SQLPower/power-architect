@@ -189,7 +189,9 @@ public class SQLCatalog extends SQLObject {
 	 * @param argCatalogName Value to assign to this.catalogName
 	 */
 	public void setCatalogName(String argCatalogName) {
+		String oldValue = catalogName;
 		this.catalogName = argCatalogName;
+		fireDbObjectChanged("catalogName", oldValue, catalogName);
 	}
 
 	/**
@@ -208,6 +210,8 @@ public class SQLCatalog extends SQLObject {
 	 */
 	public void setNativeTerm(String argNativeTerm) {
 		if (argNativeTerm != null) argNativeTerm = argNativeTerm.toLowerCase();
+		String oldValue = nativeTerm;
 		this.nativeTerm = argNativeTerm;
+		fireDbObjectChanged("nativeTerm", oldValue, nativeTerm);
 	}
 }

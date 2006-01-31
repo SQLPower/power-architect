@@ -1,4 +1,4 @@
-package regress.ca.sqlpower.architect.swingui;
+package regress.ca.sqlpower.architect.undo;
 
 import java.awt.event.ActionEvent;
 

@@ -18,6 +18,7 @@ import org.apache.commons.beanutils.BeanUtils;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLTable;
@@ -141,6 +142,14 @@ public class TestSQLColumn extends SQLTestCase {
 		}
 	}
 
+	/**
+	 * Returns one of the tables that setUp made.  Right now, it's
+	 * table1pk.
+	 */
+	@Override
+	protected SQLObject getSQLObjectUnderTest() {
+		return table1pk;
+	}
 	
 	// ================= Constructor ====================
 	
@@ -691,8 +700,6 @@ public class TestSQLColumn extends SQLTestCase {
 			/* it's normal */
 		}
 		assertEquals(tmpCol.getChildren().size(),0);
-		tmpCol.setChildren(new LinkedList());
-		assertEquals(tmpCol.getChildren().size(),0);
 		
 		SQLColumn cowCol = table3pk.getColumn(0);
 		assertEquals(cowCol.getChildren().isEmpty(),true);
@@ -704,8 +711,7 @@ public class TestSQLColumn extends SQLTestCase {
 			/* it's normal */
 		}
 		assertEquals(cowCol.getChildren().size(),0);
-		cowCol.setChildren(new LinkedList());
-		assertEquals(cowCol.getChildren().size(),0);
+		
 	}
 
 	/*

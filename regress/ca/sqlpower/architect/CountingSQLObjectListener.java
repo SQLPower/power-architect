@@ -30,6 +30,10 @@ public class CountingSQLObjectListener implements SQLObjectListener {
 	 */
 	private int structureChangedCount;
 	
+	/**
+	 * The last SQLObjectEvent that was received by this listener
+	 */
+	private SQLObjectEvent lastEvent;
 	
 	// ============= SQLObjectListener Implementation ==============
 	
@@ -37,6 +41,7 @@ public class CountingSQLObjectListener implements SQLObjectListener {
 	 * Increments the insertedCount.
 	 */
 	public void dbChildrenInserted(SQLObjectEvent e) {
+		lastEvent=e;
 		insertedCount++;
 	}
 	
@@ -44,6 +49,7 @@ public class CountingSQLObjectListener implements SQLObjectListener {
 	 * Increments the removedCount.
 	 */
 	public void dbChildrenRemoved(SQLObjectEvent e) {
+		lastEvent=e;
 		removedCount++;
 	}
 	
@@ -51,6 +57,7 @@ public class CountingSQLObjectListener implements SQLObjectListener {
 	 * Increments the changedCount.
 	 */
 	public void dbObjectChanged(SQLObjectEvent e) {
+		lastEvent=e;
 		changedCount++;
 	}
 	
@@ -58,6 +65,7 @@ public class CountingSQLObjectListener implements SQLObjectListener {
 	 * Increments the structureChangedCount.
 	 */
 	public void dbStructureChanged(SQLObjectEvent e) {
+		lastEvent=e;
 		structureChangedCount++;
 	}
 	
@@ -90,6 +98,13 @@ public class CountingSQLObjectListener implements SQLObjectListener {
 	 */
 	public int getStructureChangedCount() {
 		return structureChangedCount;
+	}
+
+	/**
+	 * See {@link #lastEvent}
+	 */
+	public SQLObjectEvent getLastEvent() {
+		return lastEvent;
 	}
 	
 }

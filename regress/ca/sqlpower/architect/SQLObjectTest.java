@@ -84,18 +84,12 @@ public class SQLObjectTest extends TestCase {
 	 * Note that setChildren copies elements, does not assign the list, and
 	 * getChildren returns an unmodifiable copy of the current list.
 	 */
-	public final void testAllChildHanlingMethods() throws ArchitectException {
-		target.setChildren(null);
+	public final void testAllChildHandlingMethods() throws ArchitectException {
 		assertEquals(0, target.getChildCount());
-		
-		List<SQLObject> list = new ArrayList<SQLObject>();		
-		allowsChildren = true;
-		SQLObject x = new SQLObjectImpl();
-		list.add(x);
-		target.setChildren(list);
 
+		SQLObject x = new SQLObjectImpl();
+		target.addChild(x);
 		assertEquals(1, target.getChildCount());
-		
 		assertEquals(x, target.getChild(0));
 		
 		SQLObject y = new SQLObjectImpl();
@@ -104,11 +98,6 @@ public class SQLObjectTest extends TestCase {
 		target.addChild(0, y);
 		assertEquals(y, target.getChild(0));
 		assertEquals(x, target.getChild(1));
-		
-		// Test getChildren. OK to modify "list" here because SQLObject has its own copy
-		list.add(0, y);
-		assertTrue(list != target.getChildren()); // prove the "because" clause above
-		assertEquals(list, target.getChildren()); // prove that the lists have the same content.
 		
 		target.removeChild(1);
 		List<SQLObject> list2 = new LinkedList<SQLObject>();
@@ -200,13 +189,6 @@ public class SQLObjectTest extends TestCase {
 		tt.setChildInserted(false);
 		final SQLObjectImpl objectImpl = new SQLObjectImpl();
 		target.addChild(objectImpl);
-		assertTrue(tt.isChildInserted());
-		
-		tt.setChildInserted(false);
-		final ArrayList<SQLObject> list = new ArrayList<SQLObject>();
-		list.add(new SQLObjectImpl());
-		target.setChildren(list);
-		assertTrue(tt.isChildRemoved());
 		assertTrue(tt.isChildInserted());
 		
 		tt.setObjectChanged(false);
