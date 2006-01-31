@@ -115,6 +115,16 @@ public class TestFolder extends SQLTestCase {
 		table3pk = db.getTableByName("SQL_COLUMN_TEST_3PK");
 	}
 
+	/**
+	 * Returns a random folder from a random test table.  Right now,
+	 * this is table1pk.columns folder.  Whatever.
+	 */
+	@Override
+	protected SQLObject getSQLObjectUnderTest() {
+		// TODO Auto-generated method stub
+		return table1pk.getColumnsFolder();
+	}
+	
 	/*
 	 * Test method for 'ca.sqlpower.architect.SQLTable.Folder.getName()'
 	 */
@@ -193,9 +203,6 @@ public class TestFolder extends SQLTestCase {
 		assertEquals(main1.getChild(1), c2);
 		main1.removeChild(0);
 		assertEquals(main1.getChild(0), c2);
-			
-		main1.setChildren(children);
-		assertEquals (main1.getChildCount(),3);
 	}
 
 

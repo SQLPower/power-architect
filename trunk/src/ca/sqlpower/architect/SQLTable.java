@@ -696,7 +696,9 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		}
 
 		public void setName(String n) {
+			String oldName = name;
 			name = n;
+			fireDbObjectChanged("name", oldName, name);
 		}
 
 		public SQLObject getParent() {

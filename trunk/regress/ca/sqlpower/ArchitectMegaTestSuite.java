@@ -17,9 +17,9 @@ import regress.ca.sqlpower.architect.TestSQLRelationship;
 import regress.ca.sqlpower.architect.TestSQLTable;
 import regress.ca.sqlpower.architect.ddl.TestDDLUtils;
 import regress.ca.sqlpower.architect.swingui.SaveLoadTest;
-import regress.ca.sqlpower.architect.swingui.TestUndoManager;
 import regress.ca.sqlpower.architect.swingui.TestColumnEditPanel;
 import regress.ca.sqlpower.architect.undo.TestSQLObjectChildrenInsert;
+import regress.ca.sqlpower.architect.undo.TestUndoManager;
 
 public class ArchitectMegaTestSuite extends TestCase {
 

@@ -1,12 +1,23 @@
 package regress.ca.sqlpower.architect;
 
+import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.beanutils.PropertyUtils;
 
 import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.PlDotIni;
+import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 
 /**
@@ -57,4 +68,75 @@ public abstract class SQLTestCase extends TestCase {
 		// requires setUp() to reconnect rather than using a cached connection!
 		db = null;
 	}
+	
+	protected abstract SQLObject getSQLObjectUnderTest();
+	
+	public void testAllSettersAreUndoable() 
+	throws IllegalArgumentException, IllegalAccessException, 
+	InvocationTargetException, NoSuchMethodException {
+		
+		SQLObject so = getSQLObjectUnderTest();
+		
+		Set<String>propertiesToIgnore = new HashSet<String>();
+		propertiesToIgnore.add("populated");
+		propertiesToIgnore.add("SQLObjectListeners");
+		propertiesToIgnore.add("children");
+		propertiesToIgnore.add("parent");
+		propertiesToIgnore.add("parentDatabase");
+		propertiesToIgnore.add("class");
+		propertiesToIgnore.add("childCount");
+		
+		
+		CountingSQLObjectListener listener = new CountingSQLObjectListener();
+		so.addSQLObjectListener(listener);
+		
+		List<PropertyDescriptor> settableProperties;
+		settableProperties = Arrays.asList(PropertyUtils.getPropertyDescriptors(SQLCatalog.class));
+		for (PropertyDescriptor property : settableProperties) {
+			Object oldVal;
+			if (propertiesToIgnore.contains(property.getName())) continue;
+			
+			try {
+				oldVal = PropertyUtils.getSimpleProperty(so, property.getName());
+			} catch (NoSuchMethodException e) {
+				System.out.println("Skipping non-settable property "+property.getName()+" on "+so.getClass().getName());
+				continue;
+			}
+			Object newVal;  // don't init here so compiler can warn if the following code doesn't always give it a value
+			if (property.getPropertyType() == Integer.TYPE ) {
+				newVal = ((Integer)oldVal)+1;
+			} else if (property.getPropertyType() == String.class) {
+				// make sure it's unique
+				newVal ="new " + oldVal;
+				
+			} else if (property.getPropertyType() == Boolean.TYPE){
+				newVal = new Boolean(! ((Boolean) oldVal).booleanValue());
+			} else {
+				throw new RuntimeException("This test case lacks a value for "+
+						property.getName()+
+						" (type "+property.getPropertyType().getName()+")");
+			}
+			
+			int oldChangeCount = listener.getChangedCount();
+			
+			try {
+				BeanUtils.copyProperty(so, property.getName(), newVal);
+				
+				// some setters fire multiple events (they change more than one property)
+				assertTrue("Event for set "+property.getName()+" on "+so.getClass().getName()+" didn't fire!",
+						listener.getChangedCount() > oldChangeCount);
+				if (listener.getChangedCount() == oldChangeCount + 1) {
+					assertEquals("Property name mismatch for "+property.getName(),
+							property.getName(),
+							listener.getLastEvent().getPropertyName());
+					assertEquals("New value for "+property.getName()+" was wrong",
+							newVal,
+							listener.getLastEvent().getNewValue());
+				}
+			} catch (InvocationTargetException e) {
+				System.out.println("(non-fatal) Failed to write property '"+property.getName()+" to type "+so.getClass().getName());
+			}
+		}
+	}
+
 }

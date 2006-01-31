@@ -8,7 +8,7 @@ import ca.sqlpower.architect.undo.ArchitectPropertyChangeUndoableEdit;
 import ca.sqlpower.architect.undo.SQLObjectUndoableEventAdapter;
 import ca.sqlpower.architect.undo.UndoManager;
 
-public class ArchitectPropertyChangeUndoableEditTest extends TestCase {
+public class TestArchitectPropertyChangeUndoableEdit extends TestCase {
 
 	private SQLObjectEvent testEvent;
 	private UndoManager undoManager;

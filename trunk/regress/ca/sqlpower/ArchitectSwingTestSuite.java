@@ -9,7 +9,7 @@ import regress.ca.sqlpower.architect.swingui.TestAutoLayoutAction;
 import regress.ca.sqlpower.architect.swingui.TestColumnEditPanel;
 import regress.ca.sqlpower.architect.swingui.TestPlayPen;
 import regress.ca.sqlpower.architect.swingui.TestSwingUIProject;
-import regress.ca.sqlpower.architect.swingui.TestUndoManager;
+import regress.ca.sqlpower.architect.undo.TestUndoManager;
 
 public class ArchitectSwingTestSuite extends TestCase {
 

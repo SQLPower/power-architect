@@ -16,6 +16,7 @@ import regress.ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLTable.Folder;
 
@@ -79,14 +80,26 @@ public class TestSQLTable extends SQLTestCase {
 		System.out.println("TestSQLTable.oneTimeTearDown()");
 	}
 	
+	private SQLTable table;
+	
 	public TestSQLTable(String name) throws Exception {
 		super(name);
 	}
 
 	protected void setUp() throws Exception {
 		super.setUp();
+		table = new SQLTable(null, true);
 	}
 
+	@Override
+	protected SQLObject getSQLObjectUnderTest() {
+		return table;
+	}
+	
+	public void testConstructor() {
+		// FIXME need to test both constructors!
+	}
+	
 	public void testGetDerivedInstance() throws Exception {
 		SQLTable derivedTable;
 		SQLTable table1;

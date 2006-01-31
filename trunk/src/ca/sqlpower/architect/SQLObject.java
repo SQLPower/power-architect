@@ -44,11 +44,8 @@ public abstract class SQLObject implements java.io.Serializable {
 	}
 	public final void setPhysicalName(String argName) {
 		String oldPhysicalName = this.getPhysicalName();
-		boolean changed = (argName == null ? physicalName != null : !argName.equals(physicalName));
-		if (changed) {
-			this.physicalName = argName;
-			fireDbObjectChanged("physicalName",oldPhysicalName,argName);
-		}
+		this.physicalName = argName;
+		fireDbObjectChanged("physicalName",oldPhysicalName,argName);
 	}
 
 	/**
@@ -121,25 +118,6 @@ public abstract class SQLObject implements java.io.Serializable {
 		return Collections.unmodifiableList(children);
 	}
 
-	/**
-	 * Replaces the children of this SQLObject with those in the given
-	 * list.
-	 *
-	 * <p>XXX: this is a very inefficient implementation!
-	 *
-	 * @param newChildren A List of SQLObject objects.
-	 */
-	public void setChildren(List newChildren) throws ArchitectException {
-		if (!allowsChildren()) return;
-		while (getChildCount() > 0) {
-			removeChild(0);
-		}
-		Iterator it = newChildren.iterator();
-		while (it.hasNext()) {
-			addChild((SQLObject) it.next());
-		}
-	}
-	
 	public SQLObject getChild(int index) throws ArchitectException {
 		populate();
 		return (SQLObject) children.get(index);
@@ -284,8 +262,8 @@ public abstract class SQLObject implements java.io.Serializable {
 		SQLObjectEvent e = new SQLObjectEvent(this, propertyName, oldValue,newValue);
 		boolean same = (oldValue == null ? oldValue == newValue : oldValue.equals(newValue));
 		if (same) {
-			logger.debug("Object changed event aborted, the old value of "
-					+propertyName+" equals the new value");
+			logger.debug("Object changed event aborted, the old value '"+oldValue+"' of "
+					+propertyName+" equals the new value '"+newValue+"'");
 			return;
 		}
 		if (logger.isDebugEnabled()) {

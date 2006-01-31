@@ -1,4 +1,4 @@
-package regress.ca.sqlpower.architect;
+package regress.ca.sqlpower.architect.undo;
 
 import junit.framework.TestCase;
 import ca.sqlpower.architect.SQLObject;

@@ -8,6 +8,7 @@ import java.sql.Types;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
@@ -56,6 +57,15 @@ public class TestSQLRelationship extends SQLTestCase {
 		rel2.setFkTable(childTable2);
 		parentTable.addExportedKey(rel2);
 		childTable2.addImportedKey(rel2);
+	}
+	
+	/**
+	 * Returns one of the relationships that setUp makes.
+	 * Right now, it's rel1.
+	 */
+	@Override
+	protected SQLObject getSQLObjectUnderTest() {
+		return rel1;
 	}
 	
 	/*

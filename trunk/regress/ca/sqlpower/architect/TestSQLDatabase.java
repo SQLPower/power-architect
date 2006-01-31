@@ -93,6 +93,11 @@ public class TestSQLDatabase extends SQLTestCase {
 		super.setUp();
 	}
 	
+	@Override
+	protected SQLObject getSQLObjectUnderTest() {
+		return db;
+	}
+	
 	/*
 	 * Test method for 'ca.sqlpower.architect.SQLDatabase.getName()'
 	 */
@@ -310,18 +315,7 @@ public class TestSQLDatabase extends SQLTestCase {
 		assertFalse (db1.isConnected());		
 	}
 	
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLObject.setChildren(List)'
-	 */
-	public void testSetChildren() throws ArchitectException {
-		SQLDatabase db1 = new SQLDatabase();
-		db1.setChildren(db.getChildren());
-		SQLObject o1 = (SQLObject) db.getChildren().get(0);
-		SQLObject o2 = (SQLObject) db.getChildren().get(1);
-		assertTrue (db1.getChildren().contains(o1));
-		assertTrue (db1.getChildren().contains(o2));
-	}
-
+	
 	/*
 	 * Test method for 'ca.sqlpower.architect.SQLObject.getChild(int)'
 	 */
