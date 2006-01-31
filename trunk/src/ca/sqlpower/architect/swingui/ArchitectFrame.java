@@ -145,7 +145,7 @@ public class ArchitectFrame extends JFrame {
 	    // initializer in this class effects BeanUtils 
 	    // behaviour which the XML Digester relies 
 	    // upon heavily
-	    TypeMap.getInstance();
+	    //TypeMap.getInstance();
 	    
 		try {
 			ConfigFile cf = ConfigFile.getDefaultInstance();
@@ -438,6 +438,7 @@ public class ArchitectFrame extends JFrame {
 		bounds.height = sprefs.getInt(SwingUserSettings.MAIN_FRAME_HEIGHT, 440);
 		setBounds(bounds);
 		addWindowListener(afWindowListener = new ArchitectFrameWindowListener());
+		
 		setProject(new SwingUIProject("New Project"));
 	}
 	
@@ -503,7 +504,6 @@ public class ArchitectFrame extends JFrame {
 		searchReplaceAction.setDBTree(dbTree);
 		// undomanager
 		undoManager.setPlayPen(playpen);
-		
 		//
 		prefAction.setArchitectFrame(this);
 		projectSettingsAction.setArchitectFrame(this);

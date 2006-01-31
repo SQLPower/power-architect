@@ -33,6 +33,7 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 	
 	private Action undo;
 	private Action redo;
+	private SQLObjectUndoableEventAdapter eventAdapter;
 	private PlayPen playPen;
 	private boolean undoing;
 	private boolean redoing;
@@ -192,14 +193,19 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 	public void setPlayPen(PlayPen playPen) throws ArchitectException {
 		if (this.playPen != playPen)
 		{
-			SQLObjectUndoableEventAdapter undoAdapter =new SQLObjectUndoableEventAdapter(this);
+			eventAdapter =new SQLObjectUndoableEventAdapter(this);
 			this.playPen = playPen;
 			this.discardAllEdits();
-			ArchitectUtils.listenToHierarchy(undoAdapter,playPen.getDatabase());
-			playPen.addUndoEventListener(undoAdapter);
+			ArchitectUtils.listenToHierarchy(eventAdapter,playPen.getDatabase());
+			ArchitectUtils.addUndoListenerToHierarchy(eventAdapter,playPen.getDatabase());
+			playPen.addUndoEventListener(eventAdapter);
 		}
 		
 		
+	}
+
+	public SQLObjectUndoableEventAdapter getEventAdapter() {
+		return eventAdapter;
 	}
 
 }

@@ -12,6 +12,7 @@ import ca.sqlpower.architect.ddl.DB2DDLGenerator;
 import ca.sqlpower.architect.ddl.OracleDDLGenerator;
 import ca.sqlpower.architect.ddl.PostgresDDLGenerator;
 import ca.sqlpower.architect.ddl.SQLServerDDLGenerator;
+import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 
 import java.net.URL;
 
@@ -62,6 +63,35 @@ public class ArchitectUtils {
 	}
 	
 	/**
+	 * Adds listener to source's listener list and all of source's
+	 * children's listener lists recursively.
+	 */
+	public static void addUndoListenerToHierarchy(UndoCompoundEventListener listener, SQLObject source)
+	throws ArchitectException {
+		logger.debug("Undo Listening to new SQL Object "+source);
+		source.addUndoEventListener(listener);
+		if (source.isPopulated() && source.allowsChildren()) {
+			Iterator it = source.getChildren().iterator();
+			while (it.hasNext()) {
+				addUndoListenerToHierarchy(listener, (SQLObject) it.next());
+			}
+		}
+		
+	}
+	
+	/**
+	 * Calls listenToHierarchy on each element in the sources array.
+	 * Does nothing if sources is null.
+	 */
+	public static void addUndoListenerToHierarchy(UndoCompoundEventListener listener, SQLObject[] sources)
+	throws ArchitectException {
+		if (sources == null) return;
+		for (int i = 0; i < sources.length; i++) {
+			addUndoListenerToHierarchy(listener, sources[i]);
+		}
+	}
+	
+	/**
 	 * Calls listenToHierarchy on each element in the sources array.
 	 * Does nothing if sources is null.
 	 */
@@ -70,6 +100,35 @@ public class ArchitectUtils {
 		if (sources == null) return;
 		for (int i = 0; i < sources.length; i++) {
 			listenToHierarchy(listener, sources[i]);
+		}
+	}
+	
+	/**
+	 * Removes listener from source's listener list and all of source's
+	 * children's listener lists recursively.
+	 */
+	public static void undoUnlistenToHierarchy(UndoCompoundEventListener listener, SQLObject source)
+	throws ArchitectException {
+		logger.debug("Unlistening to SQL Object "+source);
+		source.removeUndoEventListener(listener);
+		if (source.isPopulated() && source.allowsChildren()) {
+			Iterator it = source.getChildren().iterator();
+			while (it.hasNext()) {
+				SQLObject ob = (SQLObject) it.next();
+				undoUnlistenToHierarchy(listener, ob);
+			}
+		}
+	}
+	
+	/**
+	 * Calls unlistenToHierarchy on each element in the sources array.
+	 * Does nothing if sources is null.
+	 */
+	public static void undoUnlistenToHierarchy(UndoCompoundEventListener listener, SQLObject[] sources)
+	throws ArchitectException {
+		if (sources == null) return;
+		for (int i = 0; i < sources.length; i++) {
+			undoUnlistenToHierarchy(listener, sources[i]);
 		}
 	}
 	

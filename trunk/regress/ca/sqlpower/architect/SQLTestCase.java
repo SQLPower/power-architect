@@ -19,6 +19,8 @@ import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.undo.SQLObjectUndoableEventAdapter;
+import ca.sqlpower.architect.undo.UndoManager;
 
 /**
  * SQLTestCase is an abstract base class for test cases that require a
@@ -71,7 +73,7 @@ public abstract class SQLTestCase extends TestCase {
 	
 	protected abstract SQLObject getSQLObjectUnderTest();
 	
-	public void testAllSettersAreUndoable() 
+	public void testAllSettersGenerateEvents()
 	throws IllegalArgumentException, IllegalAccessException, 
 	InvocationTargetException, NoSuchMethodException {
 		
@@ -133,6 +135,70 @@ public abstract class SQLTestCase extends TestCase {
 							newVal,
 							listener.getLastEvent().getNewValue());
 				}
+			} catch (InvocationTargetException e) {
+				System.out.println("(non-fatal) Failed to write property '"+property.getName()+" to type "+so.getClass().getName());
+			}
+		}
+	}
+
+	
+	
+	public void testAllSettersAreUndoable() 
+	throws IllegalArgumentException, IllegalAccessException, 
+	InvocationTargetException, NoSuchMethodException {
+		
+		SQLObject so = getSQLObjectUnderTest();
+		
+		Set<String>propertiesToIgnore = new HashSet<String>();
+		propertiesToIgnore.add("populated");
+		propertiesToIgnore.add("SQLObjectListeners");
+		propertiesToIgnore.add("children");
+		propertiesToIgnore.add("parent");
+		propertiesToIgnore.add("parentDatabase");
+		propertiesToIgnore.add("class");
+		propertiesToIgnore.add("childCount");
+		
+		UndoManager undoManager= new UndoManager();
+		SQLObjectUndoableEventAdapter listener = new SQLObjectUndoableEventAdapter(undoManager);
+		so.addSQLObjectListener(listener);
+		so.addUndoEventListener(listener);
+		
+		List<PropertyDescriptor> settableProperties;
+		settableProperties = Arrays.asList(PropertyUtils.getPropertyDescriptors(SQLCatalog.class));
+		for (PropertyDescriptor property : settableProperties) {
+			Object oldVal;
+			if (propertiesToIgnore.contains(property.getName())) continue;
+			
+			try {
+				oldVal = PropertyUtils.getSimpleProperty(so, property.getName());
+			} catch (NoSuchMethodException e) {
+				System.out.println("Skipping non-settable property "+property.getName()+" on "+so.getClass().getName());
+				continue;
+			}
+			Object newVal;  // don't init here so compiler can warn if the following code doesn't always give it a value
+			if (property.getPropertyType() == Integer.TYPE ) {
+				newVal = ((Integer)oldVal)+1;
+			} else if (property.getPropertyType() == String.class) {
+				// make sure it's unique
+				newVal ="new " + oldVal;
+				
+			} else if (property.getPropertyType() == Boolean.TYPE){
+				newVal = new Boolean(! ((Boolean) oldVal).booleanValue());
+			} else {
+				throw new RuntimeException("This test case lacks a value for "+
+						property.getName()+
+						" (type "+property.getPropertyType().getName()+")");
+			}
+			
+			int oldChangeCount = undoManager.getUndoableEditCount();
+			
+			try {
+				BeanUtils.copyProperty(so, property.getName(), newVal);
+				
+				// some setters fire multiple events (they change more than one property)  but only register one as an undo
+				assertEquals("Event for set "+property.getName()+" on "+so.getClass().getName()+" added multiple undos!",
+						oldChangeCount+1,undoManager.getUndoableEditCount());
+				
 			} catch (InvocationTargetException e) {
 				System.out.println("(non-fatal) Failed to write property '"+property.getName()+" to type "+so.getClass().getName());
 			}

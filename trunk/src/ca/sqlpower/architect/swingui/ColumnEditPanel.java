@@ -5,7 +5,14 @@ import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
 import ca.sqlpower.architect.*;
+import ca.sqlpower.architect.undo.UndoCompoundEvent;
+import ca.sqlpower.architect.undo.UndoCompoundEventListener;
+import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
+
 import java.sql.DatabaseMetaData;
+import java.util.Iterator;
+import java.util.LinkedList;
+
 import org.apache.log4j.Logger;
 
 public class ColumnEditPanel extends JPanel
@@ -32,6 +39,7 @@ public class ColumnEditPanel extends JPanel
 	public ColumnEditPanel(SQLTable table, int idx) throws ArchitectException {
 		super(new BorderLayout(12,12));
 		index =idx;
+		addUndoEventListener(ArchitectFrame.getMainInstance().getUndoManager().getEventAdapter());
 		setModel(table);
 		JPanel centerBox = new JPanel();
 		centerBox.setLayout(new BoxLayout(centerBox, BoxLayout.Y_AXIS));
@@ -86,7 +94,6 @@ public class ColumnEditPanel extends JPanel
 		centerBox.add(centerPanel);
 		centerBox.add(Box.createVerticalGlue());
 		add(centerBox, BorderLayout.CENTER);
-		
 		editColumn(index);
 
 	}
@@ -95,6 +102,7 @@ public class ColumnEditPanel extends JPanel
 	 * You should call selectColumn with a nonnegative index after calling setModel.
 	 */
 	public void setModel(SQLTable newModel) {
+		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.PROPERTY_CHANGE_GROUP_START,"Starting new compound edit event in column edit panel"));
 		// detach old model
 		if (model != null) {
 			model.getColumnsFolder().removeSQLObjectListener(tableListModel);
@@ -321,6 +329,7 @@ public class ColumnEditPanel extends JPanel
 		} catch (ArchitectException e) {
 			logger.error("Caught exception removing treemodel from column listener list");
 		}
+		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.PROPERTY_CHANGE_GROUP_END,"Ending compound edit event in column edit panel"));
 		model.getColumnsFolder().removeSQLObjectListener(tableListModel);
 	}
 
@@ -347,6 +356,54 @@ public class ColumnEditPanel extends JPanel
 		cleanup();
 	}
 
+	/**
+	 * The list of SQLObject property change event listeners
+	 * used for undo
+	 */
+	protected LinkedList<UndoCompoundEventListener> undoEventListeners = new LinkedList<UndoCompoundEventListener>();
+
+	
+	public void addUndoEventListener(UndoCompoundEventListener l) {
+		undoEventListeners.add(l);
+	}
+
+	public void removeUndoEventListener(UndoCompoundEventListener l) {
+		undoEventListeners.remove(l);
+	}
+	
+	protected void fireUndoCompoundEvent(UndoCompoundEvent e) {
+		Iterator it = undoEventListeners.iterator();
+		
+		
+		if (e.getType() == UndoCompoundEvent.EventTypes.DRAG_AND_DROP_START) {
+			while (it.hasNext()) {
+				((UndoCompoundEventListener) it.next()).dragAndDropStart(e);
+			}
+		} else if (e.getType() == UndoCompoundEvent.EventTypes.DRAG_AND_DROP_END) {
+			while (it.hasNext()) {
+				((UndoCompoundEventListener) it.next()).dragAndDropEnd(e);
+			}
+		} else if (e.getType() == UndoCompoundEvent.EventTypes.MULTI_SELECT_START) {
+			while (it.hasNext()) {
+				((UndoCompoundEventListener) it.next()).multiSelectStart(e);
+			}
+		}else if (e.getType() == UndoCompoundEvent.EventTypes.MULTI_SELECT_END) {
+			while (it.hasNext()) {
+				((UndoCompoundEventListener) it.next()).multiSelectEnd(e);
+			}
+		}else if (e.getType() == UndoCompoundEvent.EventTypes.PROPERTY_CHANGE_GROUP_START) {
+			while (it.hasNext()) {
+				((UndoCompoundEventListener) it.next()).propertyGroupStart(e);
+			}
+		}else if (e.getType() == UndoCompoundEvent.EventTypes.PROPERTY_CHANGE_GROUP_END) {
+			while (it.hasNext()) {
+				((UndoCompoundEventListener) it.next()).propertyGroupEnd(e);
+			}
+		} else {
+			throw new IllegalStateException("Unknown Undo event type "+e.getType());
+		}
+		
+	}
 	
 	// THESE GETTERS ARE TO BE USED FOR TESTING ONLY
 	public JCheckBox getColAutoInc() {

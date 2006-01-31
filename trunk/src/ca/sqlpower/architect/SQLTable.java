@@ -14,6 +14,9 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.undo.UndoCompoundEvent;
+import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
+
 public class SQLTable extends SQLObject implements SQLObjectListener {
 
 	private static Logger logger = Logger.getLogger(SQLTable.class);
@@ -903,11 +906,12 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * Sets the table name, and also modifies the primary key name if
 	 * it was previously null or set to the default of
 	 * "oldTableName_pk".
-	 *
+	 * 
 	 * @param argTableName The new table name.  NULL is not allowed.
 	 */
 	public void setTableName(String argTableName) {
 		String oldTableName = tableName;
+		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.PROPERTY_CHANGE_GROUP_START,"Starting table name compound edit"));
 		if ( ! argTableName.equals(tableName) ) {
 			this.tableName = argTableName;
 			fireDbObjectChanged("tableName",oldTableName,argTableName);
@@ -917,6 +921,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 			|| primaryKeyName.equals(oldTableName+"_pk")) {
 			setPrimaryKeyName(tableName+"_pk");
 		}
+		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.PROPERTY_CHANGE_GROUP_END,"Ending table name compound edit"));
 	}
 
 	/**

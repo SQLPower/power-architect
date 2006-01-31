@@ -1,7 +1,11 @@
 package ca.sqlpower.architect;
 
 import java.util.*;
+
 import org.apache.log4j.Logger;
+
+import ca.sqlpower.architect.undo.UndoCompoundEvent;
+import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 
 public abstract class SQLObject implements java.io.Serializable {
 
@@ -330,6 +334,54 @@ public abstract class SQLObject implements java.io.Serializable {
 		} else {
 			return (children.get(0) instanceof SQLCatalog);
 		}
+	}
+	/**
+	 * The list of SQLObject property change event listeners
+	 * used for undo
+	 */
+	protected LinkedList<UndoCompoundEventListener> undoEventListeners = new LinkedList();
+
+	
+	public void addUndoEventListener(UndoCompoundEventListener l) {
+		undoEventListeners.add(l);
+	}
+
+	public void removeUndoEventListener(UndoCompoundEventListener l) {
+		undoEventListeners.remove(l);
+	}
+	
+	protected void fireUndoCompoundEvent(UndoCompoundEvent e) {
+		Iterator it = undoEventListeners.iterator();
+		
+		
+		if (e.getType() == UndoCompoundEvent.EventTypes.DRAG_AND_DROP_START) {
+			while (it.hasNext()) {
+				((UndoCompoundEventListener) it.next()).dragAndDropStart(e);
+			}
+		} else if (e.getType() == UndoCompoundEvent.EventTypes.DRAG_AND_DROP_END) {
+			while (it.hasNext()) {
+				((UndoCompoundEventListener) it.next()).dragAndDropEnd(e);
+			}
+		} else if (e.getType() == UndoCompoundEvent.EventTypes.MULTI_SELECT_START) {
+			while (it.hasNext()) {
+				((UndoCompoundEventListener) it.next()).multiSelectStart(e);
+			}
+		}else if (e.getType() == UndoCompoundEvent.EventTypes.MULTI_SELECT_END) {
+			while (it.hasNext()) {
+				((UndoCompoundEventListener) it.next()).multiSelectEnd(e);
+			}
+		}else if (e.getType() == UndoCompoundEvent.EventTypes.PROPERTY_CHANGE_GROUP_START) {
+			while (it.hasNext()) {
+				((UndoCompoundEventListener) it.next()).propertyGroupStart(e);
+			}
+		}else if (e.getType() == UndoCompoundEvent.EventTypes.PROPERTY_CHANGE_GROUP_END) {
+			while (it.hasNext()) {
+				((UndoCompoundEventListener) it.next()).propertyGroupEnd(e);
+			}
+		} else {
+			throw new IllegalStateException("Unknown Undo event type "+e.getType());
+		}
+		
 	}
 
 }

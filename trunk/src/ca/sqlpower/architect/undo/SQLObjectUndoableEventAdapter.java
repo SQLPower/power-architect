@@ -1,5 +1,8 @@
 package ca.sqlpower.architect.undo;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
 import javax.swing.undo.CompoundEdit;
 
 import org.apache.log4j.Logger;
@@ -17,19 +20,21 @@ import ca.sqlpower.architect.SQLTable.Folder;
  * @author Matt
  */
 public class SQLObjectUndoableEventAdapter  implements UndoCompoundEventListener,
-		SQLObjectListener {
+		SQLObjectListener, PropertyChangeListener {
 	private static final Logger logger = Logger.getLogger(SQLObjectUndoableEventAdapter.class);
 
 	private UndoManager undoManager;
 	
-	public enum UndoState {DRAG_AND_DROP,MULTI_SELECT,MULTI_DRAG_AND_DROP,REGULAR};
+	public enum UndoState {DRAG_AND_DROP,MULTI_SELECT,MULTI_DRAG_AND_DROP,REGULAR,PROPERTY_CHANGE_GROUP};
 	private UndoState state;
-	private CompoundEdit ce; 
+	private CompoundEdit ce;
+	private int propertyGroupCount;
 	
 	public SQLObjectUndoableEventAdapter(UndoManager UndoManager) {
 		undoManager = UndoManager;
 		state = UndoState.REGULAR;
 		ce = null;
+		propertyGroupCount =0;
 	}
 
 	/**
@@ -39,14 +44,8 @@ public class SQLObjectUndoableEventAdapter  implements UndoCompoundEventListener
 	{
 		if (state != UndoState.REGULAR ) 
 		{
-			if(ce!= null) {
-				// make sure the edit is no longer in progress
-				ce.end();
-				undoManager.addEdit(ce);
-				ce = null;
-				logger.debug("Adding compound edit to undo manager");
-			}
-			state = UndoState.REGULAR;
+			returnToHomeState();
+			
 		}
 		
 		logger.debug("Undo moving to drag and drop state");
@@ -60,23 +59,11 @@ public class SQLObjectUndoableEventAdapter  implements UndoCompoundEventListener
 	public void dragAndDropEnd(UndoCompoundEvent e){
 		
 		if (state != UndoState.DRAG_AND_DROP ){
-			if(ce!= null) {
-				// make sure the edit is no longer in progress
-				ce.end();
-				undoManager.addEdit(ce);
-				ce = null;
-				logger.debug("Adding compound edit to undo manager");
-			}
+			
 		}
-		if(ce!= null) {
-			// make sure the edit is no longer in progress
-			ce.end();
-			undoManager.addEdit(ce);
-			ce = null;
-			logger.debug("Adding compound edit to undo manager");
-		}
+		returnToHomeState();
 		logger.debug("Undo moving to regular state from DND");
-		state = UndoState.REGULAR;
+		
 	}
 	
 	/**
@@ -84,13 +71,7 @@ public class SQLObjectUndoableEventAdapter  implements UndoCompoundEventListener
 	 */
 	public void multiSelectStart(UndoCompoundEvent e){
 		if(state != UndoState.DRAG_AND_DROP && state != UndoState.REGULAR){
-			if(ce!= null) {
-				// make sure the edit is no longer in progress
-				ce.end();
-				undoManager.addEdit(ce);
-				ce = null;
-				logger.debug("Adding compound edit to undo manager");
-			}
+			returnToHomeState();
 		}
 		if (state == UndoState.DRAG_AND_DROP)
 		{
@@ -110,13 +91,7 @@ public class SQLObjectUndoableEventAdapter  implements UndoCompoundEventListener
 	 */
 	public void multiSelectEnd(UndoCompoundEvent e){
 		if(state != UndoState.MULTI_SELECT && state != UndoState.MULTI_DRAG_AND_DROP){
-			if(ce!= null) {
-				// make sure the edit is no longer in progress
-				ce.end();
-				undoManager.addEdit(ce);
-				ce = null;
-				logger.debug("Adding compound edit to undo manager");
-			}
+			returnToHomeState();
 		}
 		if (state == UndoState.MULTI_DRAG_AND_DROP)
 		{
@@ -125,18 +100,45 @@ public class SQLObjectUndoableEventAdapter  implements UndoCompoundEventListener
 		}
 		if (state == UndoState.MULTI_SELECT)
 		{
-			state = UndoState.REGULAR;
-			if(ce!= null) {
-				// make sure that the edit is no longer in progress
-				ce.end();
-				undoManager.addEdit(ce);
-				ce = null;
-				logger.debug("Adding compound edit to undo manager");
-			}
+			
+			returnToHomeState();
 			logger.debug("Undo moving to regular state");
 		}
 	}
-	
+	/**
+	 * 
+	 */
+	public void propertyGroupStart(UndoCompoundEvent e) {
+		if (state == UndoState.PROPERTY_CHANGE_GROUP)
+		{
+			propertyGroupCount++;
+		}
+		else if (state== UndoState.REGULAR ) {
+			if (propertyGroupCount != 0)
+			{
+				returnToHomeState();
+			}
+			propertyGroupCount++;
+			ce = new CompoundEdit();
+			state = UndoState.PROPERTY_CHANGE_GROUP;
+		}
+		
+	}
+	/**
+	 * 
+	 */
+
+	public void propertyGroupEnd(UndoCompoundEvent e) {
+		if (state == UndoState.PROPERTY_CHANGE_GROUP && propertyGroupCount >1)
+		{
+			propertyGroupCount--;
+		}
+		else
+		{
+			returnToHomeState();
+		}
+		
+	}
 	
 	public void dbChildrenInserted(SQLObjectEvent e) {
 		if (e.getSource() instanceof SQLDatabase ||
@@ -156,6 +158,7 @@ public class SQLObjectUndoableEventAdapter  implements UndoCompoundEventListener
 		}
 		try{
 		ArchitectUtils.listenToHierarchy(this,e.getChildren());
+		ArchitectUtils.addUndoListenerToHierarchy(this,e.getChildren());
 		}
 		catch(ArchitectException ex)
 		{
@@ -182,6 +185,7 @@ public class SQLObjectUndoableEventAdapter  implements UndoCompoundEventListener
 		}
 		try{
 			ArchitectUtils.unlistenToHierarchy(this,e.getChildren());
+			ArchitectUtils.undoUnlistenToHierarchy(this,e.getChildren());
 			}
 			catch(ArchitectException ex)
 			{
@@ -220,6 +224,29 @@ public class SQLObjectUndoableEventAdapter  implements UndoCompoundEventListener
 	public UndoState getState() {
 		return state;
 	}
+
+	
+	public void returnToHomeState()
+	{
+		if(ce!= null) {
+			// make sure the edit is no longer in progress
+			ce.end();
+			if (ce.canUndo())
+			{
+				undoManager.addEdit(ce);
+			}
+			ce = null;
+			logger.debug("Adding compound edit to undo manager");		
+		}
+		state = UndoState.REGULAR;
+		propertyGroupCount=0;
+	}
+
+	public void propertyChange(PropertyChangeEvent evt) {
+		logger.debug("Caught property change event: "+evt);
+		
+	}
+	
 	
 	
 

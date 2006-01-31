@@ -3,7 +3,14 @@ package ca.sqlpower.architect.swingui;
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
+import java.util.Iterator;
+import java.util.LinkedList;
+
 import ca.sqlpower.architect.*;
+import ca.sqlpower.architect.undo.UndoCompoundEvent;
+import ca.sqlpower.architect.undo.UndoCompoundEventListener;
+import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
+
 import org.apache.log4j.Logger;
 
 public class RelationshipEditPanel extends JPanel
@@ -34,6 +41,7 @@ public class RelationshipEditPanel extends JPanel
 
 	public RelationshipEditPanel() {
 		super(new BorderLayout());
+		addUndoEventListener(ArchitectFrame.getMainInstance().getUndoManager().getEventAdapter());
 		JPanel topPanel = new JPanel(new FormLayout());
 		topPanel.add(new JLabel("Relationship Name"));
 		topPanel.add(relationshipName = new JTextField());
@@ -82,6 +90,7 @@ public class RelationshipEditPanel extends JPanel
 		fkPanel.add(fkTypeZeroOne = new JRadioButton("Zero or One"));
 		fkTypeGroup.add(fkTypeZeroOne);
 		add(fkPanel, BorderLayout.EAST);		
+		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.PROPERTY_CHANGE_GROUP_START,"Starting new compound edit event in relationship edit panel"));
 	}
 
 
@@ -142,10 +151,62 @@ public class RelationshipEditPanel extends JPanel
 		} else if (fkTypeOneToMany.isSelected()) {
 			relationship.setFkCardinality(SQLRelationship.ONE | SQLRelationship.MANY);
 		}
+		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.PROPERTY_CHANGE_GROUP_END,"Ending new compound edit event in relationship edit panel"));
 		return true;
 	}
 
 	public void discardChanges() {
 	    // nothing to discard
+		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.PROPERTY_CHANGE_GROUP_END,"Ending new compound edit event in relationship edit panel"));
 	}
+	
+	/**
+	 * The list of SQLObject property change event listeners
+	 * used for undo
+	 */
+	protected LinkedList<UndoCompoundEventListener> undoEventListeners = new LinkedList<UndoCompoundEventListener>();
+
+	
+	public void addUndoEventListener(UndoCompoundEventListener l) {
+		undoEventListeners.add(l);
+	}
+
+	public void removeUndoEventListener(UndoCompoundEventListener l) {
+		undoEventListeners.remove(l);
+	}
+	
+	protected void fireUndoCompoundEvent(UndoCompoundEvent e) {
+		Iterator it = undoEventListeners.iterator();
+		
+		
+		if (e.getType() == UndoCompoundEvent.EventTypes.DRAG_AND_DROP_START) {
+			while (it.hasNext()) {
+				((UndoCompoundEventListener) it.next()).dragAndDropStart(e);
+			}
+		} else if (e.getType() == UndoCompoundEvent.EventTypes.DRAG_AND_DROP_END) {
+			while (it.hasNext()) {
+				((UndoCompoundEventListener) it.next()).dragAndDropEnd(e);
+			}
+		} else if (e.getType() == UndoCompoundEvent.EventTypes.MULTI_SELECT_START) {
+			while (it.hasNext()) {
+				((UndoCompoundEventListener) it.next()).multiSelectStart(e);
+			}
+		}else if (e.getType() == UndoCompoundEvent.EventTypes.MULTI_SELECT_END) {
+			while (it.hasNext()) {
+				((UndoCompoundEventListener) it.next()).multiSelectEnd(e);
+			}
+		}else if (e.getType() == UndoCompoundEvent.EventTypes.PROPERTY_CHANGE_GROUP_START) {
+			while (it.hasNext()) {
+				((UndoCompoundEventListener) it.next()).propertyGroupStart(e);
+			}
+		}else if (e.getType() == UndoCompoundEvent.EventTypes.PROPERTY_CHANGE_GROUP_END) {
+			while (it.hasNext()) {
+				((UndoCompoundEventListener) it.next()).propertyGroupEnd(e);
+			}
+		} else {
+			throw new IllegalStateException("Unknown Undo event type "+e.getType());
+		}
+		
+	}
+	
 }

@@ -235,9 +235,13 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 				}
 				
 				// do any database specific transformations required for this column
+				/* TODO This is not used to be replace with an XML format later
+				  
+				 
 				if(TypeMap.getInstance().applyRules(col)) {
 					logger.debug("Applied mapppings to column: " + col);
 				}
+				*/
 				
 				addTo.columnsFolder.children.add(col); // don't use addTo.columnsFolder.addColumn() (avoids multiple SQLObjectEvents)
 
