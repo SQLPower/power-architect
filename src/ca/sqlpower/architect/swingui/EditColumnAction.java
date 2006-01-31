@@ -3,10 +3,17 @@ package ca.sqlpower.architect.swingui;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.*;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.tree.TreePath;
 import ca.sqlpower.architect.*;
+import ca.sqlpower.architect.undo.SQLObjectUndoableEventAdapter;
+import ca.sqlpower.architect.undo.UndoCompoundEvent;
+import ca.sqlpower.architect.undo.UndoCompoundEventListener;
+import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
+
 import org.apache.log4j.Logger;
 
 public class EditColumnAction extends AbstractAction implements ActionListener {
@@ -127,6 +134,8 @@ public class EditColumnAction extends AbstractAction implements ActionListener {
 			editDialog.setLocationRelativeTo(ArchitectFrame.getMainInstance());
 			editDialog.setVisible(true);
 		}
+		
+		
 	}
 
 	class OkCancelListener implements ActionListener {
@@ -162,5 +171,7 @@ public class EditColumnAction extends AbstractAction implements ActionListener {
 		this.dbt = newDBT;
 		// do I need to add a selection listener here?
 	}
+	
+	
 
 }

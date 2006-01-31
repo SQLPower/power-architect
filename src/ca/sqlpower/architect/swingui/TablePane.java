@@ -101,6 +101,7 @@ public class TablePane
 		setOpaque(true);
 		setInsertionPoint(COLUMN_INDEX_NONE);
 
+		this.addPropertyChangeListener(ArchitectFrame.getMainInstance().getUndoManager().getEventAdapter() );
 		//dt = new DropTarget(parentPP, new TablePaneDropListener(this));
 		dtl = new TablePaneDropListener(this);
 		

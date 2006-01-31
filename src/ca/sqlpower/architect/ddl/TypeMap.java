@@ -91,7 +91,7 @@ public class TypeMap {
 	protected TypeMap() {
 		// make root node
 		databases = new TreeMap();
-
+		//XXX add header.
 		// look for 7 groups on non-whitespace seperated by whitespace
 		Pattern p = Pattern.compile("^([\\S]+)[\\s]+([\\S]+)[\\s]+([\\S]+)[\\s]+([\\S]+)[\\s]+([\\S]+)[\\s]+([\\S]+)[\\s]+([\\S]+)[\\s]*");
 				
