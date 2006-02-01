@@ -113,6 +113,20 @@ public class PlayPenContentPane {
 		playPenComponentListeners.remove(l);
 	}
 	
+	private void refirePlayPenComponentMoveStart(PlayPenComponentEvent e) {
+		Iterator it = playPenComponentListeners.iterator();
+		while (it.hasNext()) {
+			((PlayPenComponentListener) it.next()).componentMoveStart(e);
+		}
+	}
+
+	private void refirePlayPenComponentMoveEnd(PlayPenComponentEvent e) {
+		Iterator it = playPenComponentListeners.iterator();
+		while (it.hasNext()) {
+			((PlayPenComponentListener) it.next()).componentMoveEnd(e);
+		}
+	}
+	
 	private void refirePlayPenComponentMoved(PlayPenComponentEvent e) {
 		Iterator it = playPenComponentListeners.iterator();
 		while (it.hasNext()) {
@@ -135,6 +149,15 @@ public class PlayPenContentPane {
 
 		public void componentResized(PlayPenComponentEvent e) {
 			refirePlayPenComponentResized(e);
+		}
+
+		public void componentMoveStart(PlayPenComponentEvent e) {
+			refirePlayPenComponentMoveStart(e);
+			
+		}
+
+		public void componentMoveEnd(PlayPenComponentEvent e) {
+			refirePlayPenComponentMoveEnd(e);
 		}
 		
 	}

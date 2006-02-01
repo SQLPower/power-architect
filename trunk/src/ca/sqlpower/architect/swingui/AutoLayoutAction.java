@@ -79,18 +79,30 @@ public class AutoLayoutAction extends AbstractAction {
 	
 	private void doAnimation(final Map<TablePane, Point> origLocations,
 						    final Map<TablePane, Point> newLocations) {
+		for (Map.Entry<TablePane, Point> entry : newLocations.entrySet()) {
+			entry.getKey().setMoving(true);
+		}
 		if (!animationEnabled) {
 			for (Map.Entry<TablePane, Point> entry : newLocations.entrySet()) {
-				entry.getKey().setLocation(entry.getValue().x, entry.getValue().y);
+				entry.getKey().setMovePathPoint(entry.getValue().x, entry.getValue().y);
+			}
+			for (Map.Entry<TablePane, Point> entry : newLocations.entrySet()) {
+				entry.getKey().setMoving(false);
 			}
 		} else {
+		
 			final Timer timer = new Timer( (int) (1.0 / ((double) framesPerSecond) * 1000.0), null);
 			ActionListener animator = new ActionListener() {
 				int frame;
 				
 				public void actionPerformed(ActionEvent e) {
 					frame++;
-					if (frame >= numFramesInAnim) timer.stop();
+					if (frame >= numFramesInAnim){
+						timer.stop();
+						for (Map.Entry<TablePane, Point> entry : newLocations.entrySet()) {
+							entry.getKey().setMoving(false);
+						}
+					}
 					double progress = ((double) frame) / ((double) numFramesInAnim);
 					logger.debug(progress);
 					for (Map.Entry<TablePane, Point> entry : newLocations.entrySet()) {
@@ -101,7 +113,7 @@ public class AutoLayoutAction extends AbstractAction {
 						int x = (int) (oldLoc.x + (double) (newLoc.x - oldLoc.x) * progress);
 						int y = (int) (oldLoc.y + (double) (newLoc.y - oldLoc.y) * progress);
 						
-						tp.setLocation(x, y);
+						tp.setMovePathPoint(x, y);
 					}
 					pp.repaint();
 				}

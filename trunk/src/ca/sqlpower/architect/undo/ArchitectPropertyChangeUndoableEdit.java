@@ -83,7 +83,11 @@ public class ArchitectPropertyChangeUndoableEdit extends AbstractUndoableEdit {
 			for (PropertyDescriptor prop : Arrays.asList(props)) {
 				if (prop.getName().equals(event.getPropertyName())) {
 					Method writeMethod = prop.getWriteMethod();
-					writeMethod.invoke(event.getSource(), new Object[] {value});
+					if (writeMethod != null)
+					{
+						writeMethod.invoke(event.getSource(), new Object[] {value});
+						
+					}
 				}
 			}
 

@@ -86,6 +86,7 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.Relationship.RelationshipDecorationMover;
+import ca.sqlpower.architect.undo.SQLObjectUndoableEventAdapter;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
@@ -431,7 +432,7 @@ public class PlayPen extends JPanel
 	 * @param y the apparent visible Y co-ordinate
 	 */
 	protected void setChildPositionImpl(PlayPenComponent child, int x, int y) {
-		child.setLocation((int) ((double) x / zoom), (int) ((double) y / zoom));
+		child.setMovePathPoint((int) ((double) x / zoom), (int) ((double) y / zoom));
 	}
 	
 	/**
@@ -667,9 +668,10 @@ public class PlayPen extends JPanel
 		if (c instanceof Relationship) {
 			contentPane.add(c, 0);
 		} else if (c instanceof TablePane) {
-			if (constraints instanceof Point) {
+			if (constraints instanceof Point) {				
 				contentPane.add(c, 0);
 				c.setLocation((Point) constraints);
+				
 			} else {
 				throw new IllegalArgumentException("Constraints must be a Point");
 			}
@@ -2144,6 +2146,7 @@ public class PlayPen extends JPanel
 			pp.addMouseMotionListener(this);
 			pp.addMouseListener(this); // the click that ends this operation
 			pp.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+			tp.setMoving(true);
 		}
 
 		public void mouseMoved(MouseEvent e) {
@@ -2168,7 +2171,11 @@ public class PlayPen extends JPanel
 			pp.removeMouseMotionListener(this);
 			pp.removeMouseListener(this);
 			pp.revalidate();
+			tp.setMoving(false);
+			
 		}
+	
+		
 	}
 
 	// -------------- Bring to Front / Send To Back ------------------

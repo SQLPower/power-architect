@@ -34,6 +34,7 @@ public abstract class PlayPenComponent implements Selectable {
 	private String name;
 	private Color foregroundColor;
 	private String toolTipText;
+	private boolean moving=false;
 	
 	private boolean opaque;
 	
@@ -127,10 +128,11 @@ public abstract class PlayPenComponent implements Selectable {
 			logger.debug("[36mUpdating bounds on "+getName()
 						 +" to ["+x+","+y+","+width+","+height+"][0m");
 		}
+		Point oldPoint = new Point(bounds.x,bounds.y);
 		bounds.setBounds(x,y,width,height);
 		
 		if (oldBounds.x != x || oldBounds.y != y) {
-			firePlayPenComponentMoved();
+			firePlayPenComponentMoved(oldPoint, new Point(x,y));
 		}
 		
 		if (oldBounds.width != width || oldBounds.height != height) {
@@ -189,17 +191,61 @@ public abstract class PlayPenComponent implements Selectable {
 		p.y = bounds.y;
 		return p;
 	}
-
+	
+	/**
+	 * Set a new point along the movement path
+	 *
+	 */
+	public void setMovePathPoint(Point point)
+	{
+		setMovePathPoint(point.x,point.y);
+	}
+	/**
+	 * Set a new point along the movement path
+	 *
+	 */
+	public void setMovePathPoint(int x,int y)
+	{
+	
+		Point oldPoint = new Point(bounds.x,bounds.y);
+		PlayPen owner = getPlayPen();
+		if (owner != null) {
+			Rectangle r = getBounds();
+			double zoom = owner.getZoom();
+			owner.repaint((int) Math.floor((double) r.x * zoom),
+						  (int) Math.floor((double) r.y * zoom),
+						  (int) Math.ceil((double) r.width * zoom),
+						  (int) Math.ceil((double) r.height * zoom));
+		}
+		if (bounds.x != x || bounds.y != y) {
+			bounds.x = x;
+			bounds.y = y;
+			firePlayPenComponentMoved(oldPoint,new Point(x,y));
+		}
+	}
+	
+	/**
+	 * Perform a single move operation on one component.
+	 * If you need to do multiple moves or move multiple items at once
+	 * use @link{setMovePathPoint(Point)}
+	 * 
+	 * @param point
+	 */
+	
 	public void setLocation(Point point) {
 		setLocation(point.x,point.y);
 	}
+	/**
+	 * Perform a single move operation on one component.
+	 * If you need to do multiple moves or move multiple items at once
+	 * use @link{setMovePathPoint(int,int)}
+	 *
+	 */
+	public void setLocation(int x, int y) {
 	
-	public void setLocation(int i, int j) {
-		if (bounds.x != i || bounds.y != j) {
-			bounds.x = i;
-			bounds.y = j;
-			firePlayPenComponentMoved();
-		}
+		setMoving(true);
+		setMovePathPoint(x,y);
+		setMoving(false);
 	}
 	/**
 	 * Forwards to {@link #repaint(Rectangle)}.
@@ -251,8 +297,28 @@ public abstract class PlayPenComponent implements Selectable {
 		playPenComponentListeners.remove(l);
 	}
 	
-	protected void firePlayPenComponentMoved() {
-		PlayPenComponentEvent e = new PlayPenComponentEvent(this);
+
+	
+
+	protected void firePlayPenComponentMoveStart(Point oldPoint) {
+		PlayPenComponentEvent e = new PlayPenComponentEvent(this,oldPoint,null);
+		Iterator it = playPenComponentListeners.iterator();
+		while (it.hasNext()) {
+			((PlayPenComponentListener) it.next()).componentMoveStart(e);
+		}
+	}
+
+	protected void firePlayPenComponentMoveEnd(Point newPoint) {
+		PlayPenComponentEvent e = new PlayPenComponentEvent(this,null,newPoint);
+		Iterator it = playPenComponentListeners.iterator();
+		while (it.hasNext()) {
+			((PlayPenComponentListener) it.next()).componentMoveEnd(e);
+		}
+	}
+	
+	
+	protected void firePlayPenComponentMoved(Point oldPoint,Point newPoint) {
+		PlayPenComponentEvent e = new PlayPenComponentEvent(this,oldPoint,newPoint);
 		Iterator it = playPenComponentListeners.iterator();
 		while (it.hasNext()) {
 			((PlayPenComponentListener) it.next()).componentMoved(e);
@@ -387,6 +453,24 @@ public abstract class PlayPenComponent implements Selectable {
 	}
 
 
+	public boolean isMoving() {
+		return moving;
+	}
+
+	public void setMoving(boolean moving) {
+		if(moving && !this.moving){
+			firePlayPenComponentMoveStart(new Point(bounds.x,bounds.y));
+		}
+		else if (!moving && this.moving)
+		{
+			firePlayPenComponentMoveEnd(new Point(bounds.x,bounds.y));
+		}
+		else
+		{
+			logger.debug("Trying to change the moving state to the current state of moving="+moving);
+		}
+		this.moving = moving;
+	}
 
 	
 }

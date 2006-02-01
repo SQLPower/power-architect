@@ -235,6 +235,16 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 				setFkConnectionPoint(ui.closestEdgePoint(false, getFkConnectionPoint())); // false == FK
 			}
 		}
+
+		public void componentMoveStart(PlayPenComponentEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void componentMoveEnd(PlayPenComponentEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
 	}
 	
 
