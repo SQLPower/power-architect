@@ -671,6 +671,7 @@ public class PlayPen extends JPanel
 			if (constraints instanceof Point) {				
 				contentPane.add(c, 0);
 				c.setLocation((Point) constraints);
+				c.addPlayPenComponentListener(ArchitectFrame.getMainInstance().getUndoManager().getEventAdapter());
 				
 			} else {
 				throw new IllegalArgumentException("Constraints must be a Point");
@@ -1281,8 +1282,8 @@ public class PlayPen extends JPanel
 			JOptionPane.showMessageDialog(null, "Failed to add table:\n"+e.getMessage());
 			return;
 		}
-		addImpl(tp, new Point(0,0),getPPComponentCount());
-		new FloatingTableListener(this, tp, zoomPoint(new Point(tp.getSize().width/2,0)));
+		
+		new FloatingTableListener(this, tp, zoomPoint(new Point(tp.getSize().width/2,0)),true);
 	}
 
 	// -------------------- SQLOBJECT EVENT SUPPORT ---------------------
@@ -1956,7 +1957,7 @@ public class PlayPen extends JPanel
 		                                      + (otherTable.getX() - clickedColumn.getX()) + ",y=" 
 		                                      + (otherTable.getY() - clickedColumn.getY()));
 								handle.translate((int)(clickedColumn.getX() - otherTable.getX()), (int) (clickedColumn.getY() - otherTable.getY())); 																	
-								new PlayPen.FloatingTableListener(pp, t3, handle);
+								new PlayPen.FloatingTableListener(pp, t3, handle,false);
 							}
 						}				
 					} catch (ArchitectException e) {
@@ -2135,17 +2136,24 @@ public class PlayPen extends JPanel
 	 * listener.
 	 */
 	public static class FloatingTableListener extends MouseInputAdapter {
-		PlayPen pp;
-		TablePane tp;
-		Point handle;
-
-		public FloatingTableListener(PlayPen pp, TablePane tp, Point handle) {
+		private PlayPen pp;
+		private TablePane tp;
+		private Point handle;
+		private Point p;
+		private boolean addToPP;
+		public FloatingTableListener(PlayPen pp, TablePane tp, Point handle,boolean addToPP) {
 			this.pp = pp;
+			this.addToPP = addToPP;
+			p =new Point(0,0);
 			this.tp = tp;
 			this.handle = handle;
 			pp.addMouseMotionListener(this);
 			pp.addMouseListener(this); // the click that ends this operation
-			pp.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+			if (addToPP ){
+				pp.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+			} else { 
+				pp.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+			}
 			tp.setMoving(true);
 		}
 
@@ -2154,7 +2162,7 @@ public class PlayPen extends JPanel
 		}
 
 		public void mouseDragged(MouseEvent e) {
-			Point p = new Point(e.getPoint().x - handle.x, e.getPoint().y - handle.y);
+			p = new Point(e.getPoint().x - handle.x, e.getPoint().y - handle.y);
 			pp.setChildPosition(tp, p);
 			pp.repaint(); // FIXME: this shouldn't need to redraw the whole playpen!
 		}
@@ -2167,6 +2175,10 @@ public class PlayPen extends JPanel
 		}
 
 		protected void cleanup() {
+			if(addToPP)
+			{
+				pp.addImpl(tp,p,pp.getPPComponentCount());
+			}
 			pp.setCursor(null);
 			pp.removeMouseMotionListener(this);
 			pp.removeMouseListener(this);

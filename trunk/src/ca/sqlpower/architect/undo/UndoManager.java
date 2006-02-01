@@ -105,6 +105,8 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 	public synchronized void undo() throws CannotUndoException {
 		undoing = true;
 		super.undo();
+		
+			
 		refreshUndoRedo(undo,redo);
 		undoing = false;
 	}
@@ -116,6 +118,7 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 	public synchronized void redo() throws CannotRedoException {
 		redoing =true;
 		super.redo();
+		
 		refreshUndoRedo(undo,redo);
 		redoing =false;
 	}
