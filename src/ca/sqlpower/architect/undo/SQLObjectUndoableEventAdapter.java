@@ -1,7 +1,7 @@
 package ca.sqlpower.architect.undo;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import javax.swing.undo.CompoundEdit;
 
@@ -13,28 +13,34 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.SQLTable.Folder;
+import ca.sqlpower.architect.swingui.PlayPenComponent;
+import ca.sqlpower.architect.swingui.PlayPenComponentEvent;
+import ca.sqlpower.architect.swingui.PlayPenComponentListener;
 
 /**
  * Converts received SQLObjectEvents into UndoableEdits and adds them to an UndoManager. 
  * @author Matt
  */
 public class SQLObjectUndoableEventAdapter  implements UndoCompoundEventListener,
-		SQLObjectListener, PropertyChangeListener {
+		SQLObjectListener, PlayPenComponentListener {
 	private static final Logger logger = Logger.getLogger(SQLObjectUndoableEventAdapter.class);
 
 	private UndoManager undoManager;
-	
-	public enum UndoState {DRAG_AND_DROP,MULTI_SELECT,MULTI_DRAG_AND_DROP,REGULAR,PROPERTY_CHANGE_GROUP};
+	private PlayPenComponentEvent movementEvent;
+	public enum UndoState {DRAG_AND_DROP,MULTI_SELECT,MULTI_DRAG_AND_DROP,REGULAR,PROPERTY_CHANGE_GROUP,MOVING};
 	private UndoState state;
 	private CompoundEdit ce;
 	private int propertyGroupCount;
+	private int simulMoveCount;
+	private HashMap<Object,PlayPenComponentEvent> moveList;
 	
 	public SQLObjectUndoableEventAdapter(UndoManager UndoManager) {
 		undoManager = UndoManager;
 		state = UndoState.REGULAR;
 		ce = null;
 		propertyGroupCount =0;
+		simulMoveCount = 0;
+		moveList = new HashMap<Object,PlayPenComponentEvent>();
 	}
 
 	/**
@@ -105,6 +111,7 @@ public class SQLObjectUndoableEventAdapter  implements UndoCompoundEventListener
 			logger.debug("Undo moving to regular state");
 		}
 	}
+		
 	/**
 	 * 
 	 */
@@ -150,8 +157,7 @@ public class SQLObjectUndoableEventAdapter  implements UndoCompoundEventListener
 				undoEvent.createEditFromEvent(e);
 				undoManager.addEdit(undoEvent);
 			}
-			else
-			{
+			else {
 				undoEvent.createEditFromEvent(e);
 				ce.addEdit(undoEvent);
 			}
@@ -177,8 +183,7 @@ public class SQLObjectUndoableEventAdapter  implements UndoCompoundEventListener
 				undoEvent.createEditFromEvent(e);
 				undoManager.addEdit(undoEvent);
 			}
-			else
-			{
+			else {
 				undoEvent.createEditFromEvent(e);
 				ce.addEdit(undoEvent);
 			}
@@ -231,23 +236,97 @@ public class SQLObjectUndoableEventAdapter  implements UndoCompoundEventListener
 		if(ce!= null) {
 			// make sure the edit is no longer in progress
 			ce.end();
+			// add at least one movement for when ignoring events
+			if (movementEvent != null)
+			{
+				ce.addEdit(new TablePaneLocationEdit(movementEvent));
+				movementEvent = null;
+			}
 			if (ce.canUndo())
 			{
 				undoManager.addEdit(ce);
 			}
 			ce = null;
 			logger.debug("Adding compound edit to undo manager");		
+			
+		}
+		else
+		{
+			if (movementEvent != null)
+			{
+				undoManager.addEdit(new TablePaneLocationEdit(movementEvent));
+				movementEvent = null;
+			}
 		}
 		state = UndoState.REGULAR;
 		propertyGroupCount=0;
+		simulMoveCount =0;
+		logger.debug("Returning to regular state");
 	}
 
-	public void propertyChange(PropertyChangeEvent evt) {
-		logger.debug("Caught property change event: "+evt);
+	public void componentMoved(PlayPenComponentEvent e) {
+				
+	}
+
+	public void componentResized(PlayPenComponentEvent e) {
+		// TODO Auto-generated method stub
 		
 	}
-	
-	
-	
 
+	public void componentMoveStart(PlayPenComponentEvent e) {
+		logger.debug("Starting a move in "+state);
+		if (state == UndoState.MOVING) {
+			simulMoveCount++;
+			moveList.put(e.getSource(),e);
+		}
+		else 
+		{
+			if (simulMoveCount != 0)
+			{
+				returnToHomeState();
+			}			
+			moveList.put(e.getSource(),e);
+			simulMoveCount++;
+			state = UndoState.MOVING ;
+		}	
+		logger.debug("UndoAdapter Starting move "+ simulMoveCount);
+	}
+
+	public void componentMoveEnd(PlayPenComponentEvent e) {
+		logger.debug("UndoAdapter ending move "+ simulMoveCount);
+		if (state == UndoState.MOVING  && simulMoveCount >1)
+		{
+			simulMoveCount--;
+			
+			PlayPenComponentEvent oldEvent = moveList.get(e.getSource());
+			if (oldEvent != null)
+			{
+				oldEvent.setNewPoint(e.getNewPoint());
+			}
+			
+		}
+		else if(simulMoveCount ==1)
+		{	
+			PlayPenComponentEvent oldEvent = moveList.get(e.getSource());
+			if (oldEvent != null )
+			{
+				oldEvent.setNewPoint(e.getNewPoint());
+			}
+			if( !oldEvent.getOldPoint().equals( e.getNewPoint()))
+			{
+				TablePaneLocationEdit tableEdit = new TablePaneLocationEdit (moveList.values());		
+				if (ce != null)
+				{
+					ce.addEdit(tableEdit);
+				}
+				else 
+				{
+					undoManager.addEdit(tableEdit);
+				}
+			}
+			moveList.clear();		
+			returnToHomeState();
+		}	
+		
+	}
 }

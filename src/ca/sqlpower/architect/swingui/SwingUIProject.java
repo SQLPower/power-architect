@@ -1231,11 +1231,21 @@ public class SwingUIProject {
         }
 
 		public void componentMoved(PlayPenComponentEvent e) {
-			setModified(true);
+			
 		}
 
 		public void componentResized(PlayPenComponentEvent e) {
 			setModified(true);
+		}
+
+		public void componentMoveStart(PlayPenComponentEvent e) {
+			setModified(true);
+			
+		}
+
+		public void componentMoveEnd(PlayPenComponentEvent e) {
+			// TODO Auto-generated method stub
+			
 		}
 
     }

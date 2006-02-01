@@ -32,7 +32,8 @@ public class TestPlayPen extends TestCase {
 		
 		// this isn't the point of the test, but adding the tablepane has to work!
 		assertNotNull(pp.findTablePane(t));
-		
+		//Undo the add child and the move table pane
+		af.getUndoManager().undo();
 		af.getUndoManager().undo();
 		
 		assertNull(pp.findTablePane(t));
@@ -47,13 +48,13 @@ public class TestPlayPen extends TestCase {
 		
 		// this isn't the point of the test, but adding the tablepane has to work!
 		assertNotNull(pp.findTablePane(t));
-		
+		//undo the add child and the move table pane
 		af.getUndoManager().undo();
-		
+		af.getUndoManager().undo();
 		assertNull(pp.findTablePane(t));
-		
+		// redo the add table and the move
 		af.getUndoManager().redo();
-		
+		af.getUndoManager().redo();
 		tp = pp.findTablePane(t);
 		assertNotNull("Table pane didn't come back!", tp);
 		assertEquals("Table came back, but in wrong location",
