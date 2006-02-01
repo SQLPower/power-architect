@@ -158,6 +158,7 @@ public class SQLObjectUndoableEventAdapter  implements UndoCompoundEventListener
 				undoManager.addEdit(undoEvent);
 			}
 			else {
+				
 				undoEvent.createEditFromEvent(e);
 				ce.addEdit(undoEvent);
 			}
