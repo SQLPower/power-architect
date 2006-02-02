@@ -12,7 +12,7 @@ import java.util.Set;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 
-import junit.framework.TestCase;
+import regress.ArchitectTestCase;
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.PlDotIni;
 import ca.sqlpower.architect.SQLCatalog;
@@ -26,7 +26,7 @@ import ca.sqlpower.architect.undo.UndoManager;
  * SQLTestCase is an abstract base class for test cases that require a
  * database connection.
  */
-public abstract class SQLTestCase extends TestCase {
+public abstract class SQLTestCase extends ArchitectTestCase {
 
 	/**
 	 * This is the SQLDatabase object.  It will be set up according to
