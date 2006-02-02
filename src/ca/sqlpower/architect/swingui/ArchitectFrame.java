@@ -1,21 +1,44 @@
 package ca.sqlpower.architect.swingui;
 
-import ca.sqlpower.architect.*;
-import ca.sqlpower.architect.ddl.TypeMap;
-import ca.sqlpower.architect.undo.UndoManager;
-
-import org.apache.log4j.Logger;
-
-import javax.swing.*;
-
-import java.awt.Rectangle;
-import java.awt.Container;
 import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Iterator;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JToolBar;
+import javax.swing.ProgressMonitor;
+import javax.swing.ProgressMonitorInputStream;
+import javax.swing.SwingUtilities;
+
+import org.apache.log4j.Logger;
+
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectSession;
+import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.ConfigFile;
+import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.UserSettings;
+import ca.sqlpower.architect.undo.UndoManager;
 
 public class ArchitectFrame extends JFrame {
 
