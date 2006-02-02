@@ -7,9 +7,11 @@ import java.util.List;
 
 import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLExceptionNode;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
+import ca.sqlpower.architect.SQLTable;
 
 public class SQLObjectTest extends TestCase {
 
@@ -207,5 +209,25 @@ public class SQLObjectTest extends TestCase {
 		target.removeSQLObjectListener(t);
 		assertEquals(Collections.EMPTY_LIST, target.getSQLObjectListeners());
 
+	}
+	
+	public void testNoMixChildTypes() throws ArchitectException {
+		target.addChild(new SQLExceptionNode(null, "everything is ok. don't panic."));
+		try {
+			target.addChild(new SQLObjectImpl());
+			fail("Target didn't throw exception for mixing child types!");
+		} catch (ArchitectException e) {
+			// this is expected
+		}
+	}
+	
+	public void testAllowMixedChildrenThatAreSubclassesOfEachOther() throws ArchitectException {
+		SQLObject subImpl = new SQLObjectImpl() {};
+		target.addChild(new SQLObjectImpl());
+		target.addChild(subImpl);
+		
+		// now test the other direction
+		target.removeChild(0);
+		target.addChild(new SQLObjectImpl());
 	}
 }
