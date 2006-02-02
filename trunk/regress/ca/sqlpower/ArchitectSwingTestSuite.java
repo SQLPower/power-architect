@@ -3,7 +3,6 @@ package regress;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import regress.ca.sqlpower.architect.swingui.SaveLoadTest;
 import regress.ca.sqlpower.architect.swingui.TestArchitectFrame;
 import regress.ca.sqlpower.architect.swingui.TestAutoLayoutAction;
 import regress.ca.sqlpower.architect.swingui.TestColumnEditPanel;
@@ -17,7 +16,6 @@ public class ArchitectSwingTestSuite extends TestCase {
 	public static Test suite() {
 		TestSuite suite = new TestSuite("Test for Architect's Swing GUI");
 		//$JUnit-BEGIN$		
-		suite.addTestSuite(SaveLoadTest.class);			// could be merged into TestSwingUIProject
 		suite.addTestSuite(TestSwingUIProject.class);
 		suite.addTestSuite(TestArchitectFrame.class);
 		suite.addTestSuite(TestAutoLayoutAction.class);

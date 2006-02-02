@@ -17,7 +17,6 @@ import regress.ca.sqlpower.architect.TestSQLDatabase;
 import regress.ca.sqlpower.architect.TestSQLRelationship;
 import regress.ca.sqlpower.architect.TestSQLTable;
 import regress.ca.sqlpower.architect.ddl.TestDDLUtils;
-import regress.ca.sqlpower.architect.swingui.SaveLoadTest;
 import regress.ca.sqlpower.architect.undo.TestSQLObjectChildrenInsert;
 import regress.ca.sqlpower.architect.undo.TestUndoManager;
 
@@ -35,7 +34,6 @@ public class ArchitectBusinessTestSuite extends TestCase {
 		suite.addTest(TestSQLColumn.suite());
 		suite.addTestSuite(TestSQLRelationship.class);
 		suite.addTestSuite(ArchitectExceptionTest.class);
-		suite.addTestSuite(SaveLoadTest.class);
 		suite.addTestSuite(PLDotIniTest.class);
 		suite.addTestSuite(JDBCClassLoaderTest.class);
 		suite.addTestSuite(LogWriterTest.class);
