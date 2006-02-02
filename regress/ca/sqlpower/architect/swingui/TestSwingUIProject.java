@@ -4,17 +4,11 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.PrintWriter;
-import java.sql.DatabaseMetaData;
-import java.sql.Types;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.SwingUIProject;
 
 /**
@@ -95,29 +89,22 @@ public class TestSwingUIProject extends TestCase {
 	 * Test method for 'ca.sqlpower.architect.swingui.SwingUIProject.save(ProgressMonitor)'
 	 */
 	public void testSaveProgressMonitor() throws Exception {
-		// TODO
+		System.out.println("TestSwingUIProject.testSaveProgressMonitor()");
+		MockProgressMonitor mockProgressMonitor = new MockProgressMonitor(null, "Hello", "Hello again", 0, 100);
+		File file = File.createTempFile("test", "architect");
+		project.setFile(file);
+		project.save(mockProgressMonitor);
+		
+		SwingUIProject p2 = new SwingUIProject("test2");
+		p2.load(new FileInputStream(file));
+		File tmp2 = File.createTempFile("test2", ".architect");
+		if (deleteOnExit) {
+			tmp2.deleteOnExit();
+		}
+		p2.save(new PrintWriter(tmp2));
+		assertEquals(file.length(), tmp2.length());	// Quick test
 	}
 	
-    /** Test method for save() with a manually-constructed project.
-     * @throws ArchitectException
-     */
-    public void testSave() throws Exception {
-        SQLDatabase ppdb = project.getTargetDatabase();
-        SQLTable t1 = new SQLTable(ppdb, "Table 1", "Table 1 Remarks", "TABLE", true);
-        t1.addColumn(0, new SQLColumn(t1, "t1c0", Types.DECIMAL, "c1 native type", 10, 20, DatabaseMetaData.columnNoNulls, "t1c1 remarks", null, null, false));
-        SQLTable t2 = new SQLTable(ppdb, "Table 2", "Table 2 Remarks", "TABLE", true);
-        ppdb.addChild(t1);
-        ppdb.addChild(t2);
-        
-        File tmp = File.createTempFile("test", ".architect");
-		if (deleteOnExit) {
-			tmp.deleteOnExit();
-		}
-		PrintWriter out = new PrintWriter(tmp);
-		assertNotNull(out);
-		project.save(out);
-    }
-
 	/*
 	 * Test method for 'ca.sqlpower.architect.swingui.SwingUIProject.save(PrintWriter)'
 	 * Create two temp files, save our testData project to the first, load that
