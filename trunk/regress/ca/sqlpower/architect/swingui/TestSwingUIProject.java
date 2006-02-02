@@ -1,14 +1,33 @@
 package regress.ca.sqlpower.architect.swingui;
 
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.PrintWriter;
+import java.sql.Connection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.beanutils.PropertyUtils;
+
+import sun.awt.geom.AreaOp.IntOp;
+
 import junit.framework.TestCase;
+import ca.sqlpower.architect.ArchitectDataSource;
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.swingui.DBTree;
+import ca.sqlpower.architect.swingui.DBTreeModel;
 import ca.sqlpower.architect.swingui.SwingUIProject;
 
 /**
@@ -160,6 +179,107 @@ public class TestSwingUIProject extends TestCase {
 		System.out.println("Parsed OK");
 	}
 	
+	public void testSaveCoversAllProperties() throws Exception {
+		testLoad();
+		DBTree dbTree = project.getSourceDatabases();
+		DBTreeModel dbTreeModel = (DBTreeModel) dbTree.getModel();
+		
+		ArchitectDataSource fakeDataSource = new ArchitectDataSource();
+		SQLDatabase db = new SQLDatabase() {
+			@Override
+			public Connection getConnection() throws ArchitectException {
+				return null;
+			}
+		};
+		db.setDataSource(fakeDataSource);
+		db.setPopulated(true);
+		((SQLObject) dbTreeModel.getRoot()).addChild(db);
+		
+		Set<String> propertiesToIgnore = new HashSet<String>();
+		propertiesToIgnore.add("SQLObjectListeners");
+		propertiesToIgnore.add("children");
+		propertiesToIgnore.add("tables");
+		propertiesToIgnore.add("parent");
+		propertiesToIgnore.add("parentDatabase");
+		propertiesToIgnore.add("class");
+		propertiesToIgnore.add("childCount");
+		propertiesToIgnore.add("connection");
+		propertiesToIgnore.add("populated");
+		propertiesToIgnore.add("dataSource");  // we set this already!
+		propertiesToIgnore.add("ignoreReset");  // only used (and set) by playpen code
+		propertiesToIgnore.add("progressMonitor");
+		
+		Map<String,Object> oldDescription = new HashMap<String,Object>();
+		PropertyDescriptor props[] = PropertyUtils.getPropertyDescriptors(db);
+		for (int i = 0; i < props.length; i++) {
+			Object oldVal = null;
+			if (PropertyUtils.isReadable(db, props[i].getName()) &&
+					props[i].getReadMethod() != null &&
+					!propertiesToIgnore.contains(props[i].getName())) {
+				oldVal = PropertyUtils.getProperty(db, props[i].getName());
+			}
+			if (PropertyUtils.isWriteable(db, props[i].getName()) &&
+					props[i].getWriteMethod() != null &&
+					!propertiesToIgnore.contains(props[i].getName())) {
+				
+				// XXX: factor this (and the same thing in SQLTestCase) 
+				//      out into a changeValue() method in some util class.
+				
+				Object newVal;  // don't init here so compiler can warn if the following code doesn't always give it a value
+				if (props[i].getPropertyType() == Integer.TYPE) {
+					newVal = ((Integer)oldVal)+1;
+				} else if (props[i].getPropertyType() == String.class) {
+					// make sure it's unique
+					newVal ="new " + oldVal;
+				} else if (props[i].getPropertyType() == Boolean.TYPE){
+					newVal = new Boolean(! ((Boolean) oldVal).booleanValue());
+				} else {
+					throw new RuntimeException("This test case lacks a value for "+
+							props[i].getName()+
+							" (type "+props[i].getPropertyType().getName()+")");
+				}
+
+				PropertyUtils.setProperty(db, props[i].getName(), newVal);
+			}
+			
+			// read it back
+			if (PropertyUtils.isReadable(db, props[i].getName()) &&
+					props[i].getReadMethod() != null &&
+					!propertiesToIgnore.contains(props[i].getName())) {
+				oldDescription.put(props[i].getName(),
+						PropertyUtils.getProperty(db, props[i].getName()));
+			}
+		}
+		
+		
+		File tmp = File.createTempFile("test", ".architect");
+		if (deleteOnExit) {
+			tmp.deleteOnExit();
+		}
+		PrintWriter out = new PrintWriter(tmp);
+		assertNotNull(out);
+		project.save(out);
+		
+		SwingUIProject project2 = new SwingUIProject("new test project");
+		project2.load(new BufferedInputStream(new FileInputStream(tmp)));
+		
+		// grab the second database in the dbtree's model (the first is the play pen)
+		db = (SQLDatabase) project2.getSourceDatabases().getDatabaseList().get(1);
+		
+		Map<String,Object> newDescription = new HashMap<String,Object>();
+		props = PropertyUtils.getPropertyDescriptors(db);
+		for (int i = 0; i < props.length; i++) {
+			if (PropertyUtils.isReadable(db, props[i].getName()) &&
+					props[i].getReadMethod() != null &&
+					!propertiesToIgnore.contains(props[i].getName())) {
+				newDescription.put(props[i].getName(),
+						PropertyUtils.getProperty(db, props[i].getName()));
+			}
+		}
+		
+		assertEquals("loaded-in version of database doesn't match the original!",
+				oldDescription, newDescription);
+	}
 	public void testGetName() {
 		// TODO: implement test
 	}

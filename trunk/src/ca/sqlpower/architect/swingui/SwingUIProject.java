@@ -877,6 +877,10 @@ public class SwingUIProject {
 		String type;
 		Map<String,Object> propNames = new TreeMap<String,Object>();
 		
+		// properties of all SQLObject types
+		propNames.put("physicalName", o.getPhysicalName());
+		// FIXME: refactor so we can put in the getName() here too
+		
 		if (o instanceof SQLDatabase) {
 			id = "DB"+objectIdMap.size();
 			type = "database";
