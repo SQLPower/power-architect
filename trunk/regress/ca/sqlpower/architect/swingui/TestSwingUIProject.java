@@ -4,11 +4,17 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.PrintWriter;
+import java.sql.DatabaseMetaData;
+import java.sql.Types;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import junit.framework.TestCase;
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.SwingUIProject;
 
 /**
@@ -91,6 +97,26 @@ public class TestSwingUIProject extends TestCase {
 	public void testSaveProgressMonitor() throws Exception {
 		// TODO
 	}
+	
+    /** Test method for save() with a manually-constructed project.
+     * @throws ArchitectException
+     */
+    public void testSave() throws Exception {
+        SQLDatabase ppdb = project.getTargetDatabase();
+        SQLTable t1 = new SQLTable(ppdb, "Table 1", "Table 1 Remarks", "TABLE", true);
+        t1.addColumn(0, new SQLColumn(t1, "t1c0", Types.DECIMAL, "c1 native type", 10, 20, DatabaseMetaData.columnNoNulls, "t1c1 remarks", null, null, false));
+        SQLTable t2 = new SQLTable(ppdb, "Table 2", "Table 2 Remarks", "TABLE", true);
+        ppdb.addChild(t1);
+        ppdb.addChild(t2);
+        
+        File tmp = File.createTempFile("test", ".architect");
+		if (deleteOnExit) {
+			tmp.deleteOnExit();
+		}
+		PrintWriter out = new PrintWriter(tmp);
+		assertNotNull(out);
+		project.save(out);
+    }
 
 	/*
 	 * Test method for 'ca.sqlpower.architect.swingui.SwingUIProject.save(PrintWriter)'
@@ -145,5 +171,81 @@ public class TestSwingUIProject extends TestCase {
 		DocumentBuilder p = f.newDocumentBuilder();
 		p.parse(uri);
 		System.out.println("Parsed OK");
+	}
+	
+	public void testGetName() {
+		// TODO: implement test
+	}
+	
+	public void testSetName() {
+		// TODO: implement test
+	}
+	
+	public void testGetSourceDatabases() {
+		// TODO: implement test
+	}
+	
+	public void testSetSourceDatabases() {
+		// TODO: implement test
+	}
+	
+	public void testSetSourceDatabaseList() {
+		// TODO: implement test
+	}
+	
+	public void testGetTargetDatabase() {
+		// TODO: implement test
+	}
+	
+	public void testSetTargetDatabase() {
+		// TODO: implement test
+	}
+	
+	public void testGetFile() {
+		// TODO: implement test
+	}
+	
+	public void testSetFile() {
+		// TODO: implement test
+	}
+	
+	public void testGetPlayPen() {
+		// TODO: implement test
+	}
+	
+	public void testSetPlayPen() {
+		// TODO: implement test
+	}
+	
+	public void testGetDDLGenerator() {
+		// TODO: implement test
+	}
+	
+	public void testSetDDLGenerator() {
+		// TODO: implement test
+	}
+	
+	public void testIsSavingEntireSource() {
+		// TODO: implement test
+	}
+	
+	public void testSetSavingEntireSource() {
+		// TODO: implement test
+	}
+	
+	public void testGetPLExport() {
+		// TODO: implement test
+	}
+	
+	public void testSetPLExport() {
+		// TODO: implement test
+	}
+	
+	public void testIsModified() {
+		// TODO: implement test
+	}
+	
+	public void testSetModified() {
+		// TODO: implement test
 	}
 }
