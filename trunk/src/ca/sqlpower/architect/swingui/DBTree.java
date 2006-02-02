@@ -139,7 +139,10 @@ public class DBTree extends JTree implements DragSourceListener {
 	public void setDatabaseList(List databases) throws ArchitectException {
 		setModel(new DBTreeModel(databases));
 	}
-
+	
+	/**
+	 * Returns a list of all the databases in this DBTree's model.
+	 */
 	public List getDatabaseList() {
 		ArrayList databases = new ArrayList();
 		TreeModel m = getModel();
