@@ -8,6 +8,7 @@ import java.io.FileInputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
+import java.sql.Types;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -24,6 +25,7 @@ import org.apache.commons.beanutils.PropertyUtils;
 
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
@@ -38,7 +40,7 @@ public class TestSwingUIProject extends TestCase {
 	
 	private SwingUIProject project;
 	
-	private final boolean deleteOnExit = true;
+	private boolean deleteOnExit = true;
 	
 	/*
 	 * Test method for 'ca.sqlpower.architect.swingui.SwingUIProject.SwingUIProject(String)'
@@ -211,11 +213,20 @@ public class TestSwingUIProject extends TestCase {
 				Object newVal;  // don't init here so compiler can warn if the following code doesn't always give it a value
 				if (props[i].getPropertyType() == Integer.TYPE) {
 					newVal = ((Integer)oldVal)+1;
+				} else if (props[i].getPropertyType() == Integer.class) {
+					if (oldVal == null) {
+						newVal = new Integer(1);
+					} else {
+						newVal = new Integer((Integer)oldVal+1);
+					}
 				} else if (props[i].getPropertyType() == String.class) {
 					// make sure it's unique
 					newVal ="new " + oldVal;
 				} else if (props[i].getPropertyType() == Boolean.TYPE){
 					newVal = new Boolean(! ((Boolean) oldVal).booleanValue());
+				} else if (props[i].getPropertyType() == SQLColumn.class) {
+					newVal = new SQLColumn();
+					((SQLColumn) newVal).setName("testing!");
 				} else {
 					throw new RuntimeException("This test case lacks a value for "+
 							props[i].getName()+
@@ -357,20 +368,101 @@ public class TestSwingUIProject extends TestCase {
 		myAssertMapsEqual(oldDescription, newDescription);
 	}
 	
+	public void testSaveCoversAllColumnProperties() throws Exception {
+		final String tableName = "harry";
+		testLoad();
+		
+		SQLDatabase ppdb = project.getPlayPen().getDatabase();
+		SQLTable table = new SQLTable(ppdb, true);
+		table.setName(tableName);
+		SQLColumn target = new SQLColumn(table, "my cool test column", Types.INTEGER, 10, 10);
+		ppdb.addChild(table);
+		table.addColumn(target);
+		
+		Set<String> propertiesToIgnore = new HashSet<String>();
+		propertiesToIgnore.add("SQLObjectListeners");
+		propertiesToIgnore.add("children");
+		propertiesToIgnore.add("parent");
+		propertiesToIgnore.add("parentTable");
+		propertiesToIgnore.add("class");
+		propertiesToIgnore.add("childCount");
+		propertiesToIgnore.add("populated");
+
+		Map<String,Object> oldDescription =
+			setAllInterestingProperties(target, propertiesToIgnore);
+		
+		// need to set sourceColumn manually because it has to exist in the database.
+		{
+			// different variable scope
+			DBTree dbTree = project.getSourceDatabases();
+			DBTreeModel dbTreeModel = (DBTreeModel) dbTree.getModel();
+			
+			ArchitectDataSource fakeDataSource = new ArchitectDataSource();
+			SQLDatabase db = new SQLDatabase();
+			db.setDataSource(fakeDataSource);
+			db.setPopulated(true);
+			((SQLObject) dbTreeModel.getRoot()).addChild(db);
+			
+			SQLTable sourceTable = new SQLTable(db, true);
+			SQLColumn sourceColumn = new SQLColumn(sourceTable, "my cool source column", Types.INTEGER, 10, 10);
+			sourceTable.addColumn(sourceColumn);
+			db.addChild(sourceTable);
+
+			// make sure target has a source column that can be saved in the project
+			target.setSourceColumn(sourceColumn);
+			oldDescription.put("sourceColumn", sourceColumn);
+		}
+		
+		File tmp = File.createTempFile("test", ".architect");
+		if (deleteOnExit) {
+			tmp.deleteOnExit();
+		} else {
+			System.out.println("MY TEMP FILE: "+tmp.getAbsolutePath());
+		}
+		PrintWriter out = new PrintWriter(tmp);
+		assertNotNull(out);
+		project.save(out);
+		
+		SwingUIProject project2 = new SwingUIProject("new test project");
+		project2.load(new BufferedInputStream(new FileInputStream(tmp)));
+		
+		// grab the second database in the dbtree's model (the first is the play pen)
+		ppdb = (SQLDatabase) project2.getPlayPen().getDatabase();
+		
+		target = ((SQLTable) ppdb.getTableByName(tableName)).getColumn(0);
+		
+		Map<String, Object> newDescription =
+			getAllInterestingProperties(target, propertiesToIgnore);
+		
+		myAssertMapsEqual(oldDescription, newDescription);
+	}
+
 	public static void myAssertMapsEqual(Map<String,Object> expected,
 			Map<String,Object> actual) throws AssertionFailedError {
 		StringBuffer errors = new StringBuffer();
 		for (Map.Entry<String,Object> expectedEntry : expected.entrySet()) {
 			Object actualValue = actual.get(expectedEntry.getKey());
-			if (expectedEntry.getValue() == null) {
+			Object expectedValue = expectedEntry.getValue();
+			if (expectedValue == null) {
 				// skip this check (we don't save null-valued properties)
 			} else if (actualValue == null) {
 				errors.append("Expected entry '"+expectedEntry.getKey()+
 						"' missing in actual value map (expected value: '"
-						+expectedEntry.getValue()+"')\n");
-			} else if ( ! actualValue.equals(expectedEntry.getValue())) {
+						+expectedValue+"')\n");
+			} else if (expectedValue instanceof SQLObject) {
+				SQLObject eso = (SQLObject) expectedValue;
+				SQLObject aso = (SQLObject) actualValue;
+				boolean same = eso.getName() == null ?
+						aso.getName() == null :
+						eso.getName().equals(aso.getName());
+				if (!same) {
+					errors.append("Value of '"+expectedEntry.getKey()+
+							"' differs (expected SQLObject named: '"+expectedValue+
+							"'; actual name: '"+actualValue+"')\n");
+				}
+			} else if ( ! actualValue.equals(expectedValue)) {
 				errors.append("Value of '"+expectedEntry.getKey()+
-						"' differs (expected: '"+expectedEntry.getValue()+
+						"' differs (expected: '"+expectedValue+
 						"'; actual: '"+actualValue+"')\n");
 			}
 		}
