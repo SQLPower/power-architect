@@ -142,9 +142,11 @@ public abstract class SQLObject implements java.io.Serializable {
 	public void addChild(int index, SQLObject newChild) throws ArchitectException {
 
 		if ( children.size() > 0 && 
-				children.get(0).getClass() != newChild.getClass() ) 
+				! (children.get(0).getClass().isAssignableFrom(newChild.getClass())
+					|| newChild.getClass().isAssignableFrom(children.get(0).getClass()))) { 
 			throw new ArchitectException("You Can't mix SQL Object Types!");
-
+		}
+		
 		children.add(index, newChild);
 		newChild.setParent(this);
 		fireDbChildInserted(index, newChild);
