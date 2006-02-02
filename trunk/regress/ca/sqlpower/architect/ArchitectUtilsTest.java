@@ -9,7 +9,8 @@ public class ArchitectUtilsTest extends TestCase {
 	 * Test method for 'ca.sqlpower.architect.ArchitectUtils.listenToHierarchy(SQLObjectListener, SQLObject)'
 	 */
 	public void testListenToHierarchySQLObjectListenerSQLObject() {
-		System.err.println("Important test still to be written!!");
+		System.out.println(
+			"ArchitectUtilsTest.testListenToHierarchySQLObjectListenerSQLObject() Important test still to be written!!");
 	}
 
 	/*
