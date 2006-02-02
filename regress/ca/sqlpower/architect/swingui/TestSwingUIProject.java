@@ -1,12 +1,12 @@
 package regress.ca.sqlpower.architect.swingui;
 
-import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.PrintWriter;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,16 +16,17 @@ import java.util.Set;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import junit.framework.AssertionFailedError;
+import junit.framework.TestCase;
+
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 
-import sun.awt.geom.AreaOp.IntOp;
-
-import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.DBTreeModel;
 import ca.sqlpower.architect.swingui.SwingUIProject;
@@ -179,7 +180,79 @@ public class TestSwingUIProject extends TestCase {
 		System.out.println("Parsed OK");
 	}
 	
-	public void testSaveCoversAllProperties() throws Exception {
+	/**
+	 * Sets all the settable properties on the given target object
+	 * which are not in the given ignore set.
+	 * 
+	 * @param target The object to change the properties of
+	 * @param propertiesToIgnore The properties of target not to modify or read
+	 * @return A Map describing the new values of all the non-ignored, readable 
+	 * properties in target.
+	 */
+	private static Map<String,Object> setAllInterestingProperties(SQLObject target,
+			Set<String> propertiesToIgnore) throws Exception {
+		
+		Map<String,Object> description = new HashMap<String,Object>();
+		PropertyDescriptor props[] = PropertyUtils.getPropertyDescriptors(target);
+		for (int i = 0; i < props.length; i++) {
+			Object oldVal = null;
+			if (PropertyUtils.isReadable(target, props[i].getName()) &&
+					props[i].getReadMethod() != null &&
+					!propertiesToIgnore.contains(props[i].getName())) {
+				oldVal = PropertyUtils.getProperty(target, props[i].getName());
+			}
+			if (PropertyUtils.isWriteable(target, props[i].getName()) &&
+					props[i].getWriteMethod() != null &&
+					!propertiesToIgnore.contains(props[i].getName())) {
+				
+				// XXX: factor this (and the same thing in SQLTestCase) 
+				//      out into a changeValue() method in some util class.
+				
+				Object newVal;  // don't init here so compiler can warn if the following code doesn't always give it a value
+				if (props[i].getPropertyType() == Integer.TYPE) {
+					newVal = ((Integer)oldVal)+1;
+				} else if (props[i].getPropertyType() == String.class) {
+					// make sure it's unique
+					newVal ="new " + oldVal;
+				} else if (props[i].getPropertyType() == Boolean.TYPE){
+					newVal = new Boolean(! ((Boolean) oldVal).booleanValue());
+				} else {
+					throw new RuntimeException("This test case lacks a value for "+
+							props[i].getName()+
+							" (type "+props[i].getPropertyType().getName()+")");
+				}
+
+				PropertyUtils.setProperty(target, props[i].getName(), newVal);
+			}
+		}
+		
+		// read them all back at the end in case there were dependencies between properties
+		return getAllInterestingProperties(target, propertiesToIgnore);
+	}
+	
+	/**
+	 * Gets all the settable properties on the given target object
+	 * which are not in the given ignore set, and stuffs them into a Map.
+	 * 
+	 * @param target The object to change the properties of
+	 * @param propertiesToIgnore The properties of target not to modify or read
+	 * @return The aforementioned stuffed map
+	 */
+	private static Map<String, Object> getAllInterestingProperties(SQLObject target, Set<String> propertiesToIgnore) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+		Map<String,Object> newDescription = new HashMap<String,Object>();
+		PropertyDescriptor[] props = PropertyUtils.getPropertyDescriptors(target);
+		for (int i = 0; i < props.length; i++) {
+			if (PropertyUtils.isReadable(target, props[i].getName()) &&
+					props[i].getReadMethod() != null &&
+					!propertiesToIgnore.contains(props[i].getName())) {
+				newDescription.put(props[i].getName(),
+						PropertyUtils.getProperty(target, props[i].getName()));
+			}
+		}
+		return newDescription;
+	}
+	
+	public void testSaveCoversAllDatabaseProperties() throws Exception {
 		testLoad();
 		DBTree dbTree = project.getSourceDatabases();
 		DBTreeModel dbTreeModel = (DBTreeModel) dbTree.getModel();
@@ -209,47 +282,8 @@ public class TestSwingUIProject extends TestCase {
 		propertiesToIgnore.add("ignoreReset");  // only used (and set) by playpen code
 		propertiesToIgnore.add("progressMonitor");
 		
-		Map<String,Object> oldDescription = new HashMap<String,Object>();
-		PropertyDescriptor props[] = PropertyUtils.getPropertyDescriptors(db);
-		for (int i = 0; i < props.length; i++) {
-			Object oldVal = null;
-			if (PropertyUtils.isReadable(db, props[i].getName()) &&
-					props[i].getReadMethod() != null &&
-					!propertiesToIgnore.contains(props[i].getName())) {
-				oldVal = PropertyUtils.getProperty(db, props[i].getName());
-			}
-			if (PropertyUtils.isWriteable(db, props[i].getName()) &&
-					props[i].getWriteMethod() != null &&
-					!propertiesToIgnore.contains(props[i].getName())) {
-				
-				// XXX: factor this (and the same thing in SQLTestCase) 
-				//      out into a changeValue() method in some util class.
-				
-				Object newVal;  // don't init here so compiler can warn if the following code doesn't always give it a value
-				if (props[i].getPropertyType() == Integer.TYPE) {
-					newVal = ((Integer)oldVal)+1;
-				} else if (props[i].getPropertyType() == String.class) {
-					// make sure it's unique
-					newVal ="new " + oldVal;
-				} else if (props[i].getPropertyType() == Boolean.TYPE){
-					newVal = new Boolean(! ((Boolean) oldVal).booleanValue());
-				} else {
-					throw new RuntimeException("This test case lacks a value for "+
-							props[i].getName()+
-							" (type "+props[i].getPropertyType().getName()+")");
-				}
-
-				PropertyUtils.setProperty(db, props[i].getName(), newVal);
-			}
-			
-			// read it back
-			if (PropertyUtils.isReadable(db, props[i].getName()) &&
-					props[i].getReadMethod() != null &&
-					!propertiesToIgnore.contains(props[i].getName())) {
-				oldDescription.put(props[i].getName(),
-						PropertyUtils.getProperty(db, props[i].getName()));
-			}
-		}
+		Map<String,Object> oldDescription =
+			setAllInterestingProperties(db, propertiesToIgnore);
 		
 		
 		File tmp = File.createTempFile("test", ".architect");
@@ -266,20 +300,83 @@ public class TestSwingUIProject extends TestCase {
 		// grab the second database in the dbtree's model (the first is the play pen)
 		db = (SQLDatabase) project2.getSourceDatabases().getDatabaseList().get(1);
 		
-		Map<String,Object> newDescription = new HashMap<String,Object>();
-		props = PropertyUtils.getPropertyDescriptors(db);
-		for (int i = 0; i < props.length; i++) {
-			if (PropertyUtils.isReadable(db, props[i].getName()) &&
-					props[i].getReadMethod() != null &&
-					!propertiesToIgnore.contains(props[i].getName())) {
-				newDescription.put(props[i].getName(),
-						PropertyUtils.getProperty(db, props[i].getName()));
-			}
-		}
+		Map<String, Object> newDescription =
+			getAllInterestingProperties(db, propertiesToIgnore);
 		
 		assertEquals("loaded-in version of database doesn't match the original!",
 				oldDescription, newDescription);
 	}
+
+	public void testSaveCoversAllTableProperties() throws Exception {
+		testLoad();
+		DBTree dbTree = project.getSourceDatabases();
+		DBTreeModel dbTreeModel = (DBTreeModel) dbTree.getModel();
+		
+		ArchitectDataSource fakeDataSource = new ArchitectDataSource();
+		SQLDatabase db = new SQLDatabase();
+		db.setDataSource(fakeDataSource);
+		db.setPopulated(true);
+		((SQLObject) dbTreeModel.getRoot()).addChild(db);
+		
+		SQLTable target = new SQLTable(db, true);
+		db.addChild(target);
+		
+		Set<String> propertiesToIgnore = new HashSet<String>();
+		propertiesToIgnore.add("SQLObjectListeners");
+		propertiesToIgnore.add("children");
+		propertiesToIgnore.add("parent");
+		propertiesToIgnore.add("parentDatabase");
+		propertiesToIgnore.add("class");
+		propertiesToIgnore.add("childCount");
+		propertiesToIgnore.add("populated");
+		propertiesToIgnore.add("columnsFolder");
+
+		Map<String,Object> oldDescription =
+			setAllInterestingProperties(target, propertiesToIgnore);
+		
+		
+		File tmp = File.createTempFile("test", ".architect");
+		if (deleteOnExit) {
+			tmp.deleteOnExit();
+		}
+		PrintWriter out = new PrintWriter(tmp);
+		assertNotNull(out);
+		project.save(out);
+		
+		SwingUIProject project2 = new SwingUIProject("new test project");
+		project2.load(new BufferedInputStream(new FileInputStream(tmp)));
+		
+		// grab the second database in the dbtree's model (the first is the play pen)
+		db = (SQLDatabase) project2.getSourceDatabases().getDatabaseList().get(1);
+		
+		target = (SQLTable) db.getChild(0);
+		
+		Map<String, Object> newDescription =
+			getAllInterestingProperties(target, propertiesToIgnore);
+		
+		myAssertMapsEqual(oldDescription, newDescription);
+	}
+	
+	public static void myAssertMapsEqual(Map<String,Object> expected,
+			Map<String,Object> actual) throws AssertionFailedError {
+		StringBuffer errors = new StringBuffer();
+		for (Map.Entry<String,Object> expectedEntry : expected.entrySet()) {
+			Object actualValue = actual.get(expectedEntry.getKey());
+			if (expectedEntry.getValue() == null) {
+				// skip this check (we don't save null-valued properties)
+			} else if (actualValue == null) {
+				errors.append("Expected entry '"+expectedEntry.getKey()+
+						"' missing in actual value map (expected value: '"
+						+expectedEntry.getValue()+"')\n");
+			} else if ( ! actualValue.equals(expectedEntry.getValue())) {
+				errors.append("Value of '"+expectedEntry.getKey()+
+						"' differs (expected: '"+expectedEntry.getValue()+
+						"'; actual: '"+actualValue+"')\n");
+			}
+		}
+		assertFalse(errors.toString(), errors.length() > 0);
+	}
+
 	public void testGetName() {
 		// TODO: implement test
 	}

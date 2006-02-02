@@ -902,6 +902,7 @@ public class SwingUIProject {
 			propNames.put("remarks", ((SQLTable) o).getRemarks());
 			propNames.put("objectType", ((SQLTable) o).getObjectType());
 			propNames.put("primaryKeyName", ((SQLTable) o).getPrimaryKeyName());
+			propNames.put("physicalPrimaryKeyName", ((SQLTable) o).getPhysicalPrimaryKeyName());
 			if (pm != null) {
 			    pm.setProgress(++progress);
 			    pm.setNote(o.getShortDisplayName());
