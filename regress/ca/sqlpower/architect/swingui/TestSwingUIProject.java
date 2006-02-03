@@ -23,9 +23,11 @@ import org.apache.commons.beanutils.PropertyUtils;
 import regress.ArchitectTestCase;
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.DBTreeModel;
@@ -315,6 +317,104 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		assertEquals("loaded-in version of database doesn't match the original!",
 				oldDescription, newDescription);
 	}
+	
+	public void testSaveCoversAllCatalogProperties() throws Exception {
+		testLoad();
+		DBTree dbTree = project.getSourceDatabases();
+		DBTreeModel dbTreeModel = (DBTreeModel) dbTree.getModel();
+		
+		ArchitectDataSource fakeDataSource = new ArchitectDataSource();
+		SQLDatabase db = new SQLDatabase();
+		db.setDataSource(fakeDataSource);
+		db.setPopulated(true);
+		((SQLObject) dbTreeModel.getRoot()).addChild(db);
+		
+		SQLCatalog target = new SQLCatalog(db, "my test catalog");
+		db.addChild(target);
+		
+		Set<String> propertiesToIgnore = new HashSet<String>();
+		propertiesToIgnore.add("SQLObjectListeners");
+		propertiesToIgnore.add("children");
+		propertiesToIgnore.add("parent");
+		propertiesToIgnore.add("parentDatabase");
+		propertiesToIgnore.add("class");
+		propertiesToIgnore.add("childCount");
+		propertiesToIgnore.add("populated");
+
+		Map<String,Object> oldDescription =
+			setAllInterestingProperties(target, propertiesToIgnore);
+		
+		
+		File tmp = File.createTempFile("test", ".architect");
+		if (deleteOnExit) {
+			tmp.deleteOnExit();
+		}
+		PrintWriter out = new PrintWriter(tmp);
+		assertNotNull(out);
+		project.save(out);
+		
+		SwingUIProject project2 = new SwingUIProject("new test project");
+		project2.load(new BufferedInputStream(new FileInputStream(tmp)));
+		
+		// grab the second database in the dbtree's model (the first is the play pen)
+		db = (SQLDatabase) project2.getSourceDatabases().getDatabaseList().get(1);
+		
+		target = (SQLCatalog) db.getChild(0);
+		
+		Map<String, Object> newDescription =
+			getAllInterestingProperties(target, propertiesToIgnore);
+		
+		assertMapsEqual(oldDescription, newDescription);
+	}
+
+	public void testSaveCoversAllSchemaProperties() throws Exception {
+		testLoad();
+		DBTree dbTree = project.getSourceDatabases();
+		DBTreeModel dbTreeModel = (DBTreeModel) dbTree.getModel();
+		
+		ArchitectDataSource fakeDataSource = new ArchitectDataSource();
+		SQLDatabase db = new SQLDatabase();
+		db.setDataSource(fakeDataSource);
+		db.setPopulated(true);
+		((SQLObject) dbTreeModel.getRoot()).addChild(db);
+		
+		SQLSchema target = new SQLSchema(db, "my test schema", true);
+		db.addChild(target);
+		
+		Set<String> propertiesToIgnore = new HashSet<String>();
+		propertiesToIgnore.add("SQLObjectListeners");
+		propertiesToIgnore.add("children");
+		propertiesToIgnore.add("parent");
+		propertiesToIgnore.add("parentDatabase");
+		propertiesToIgnore.add("class");
+		propertiesToIgnore.add("childCount");
+		propertiesToIgnore.add("populated");
+
+		Map<String,Object> oldDescription =
+			setAllInterestingProperties(target, propertiesToIgnore);
+		
+		
+		File tmp = File.createTempFile("test", ".architect");
+		if (deleteOnExit) {
+			tmp.deleteOnExit();
+		}
+		PrintWriter out = new PrintWriter(tmp);
+		assertNotNull(out);
+		project.save(out);
+		
+		SwingUIProject project2 = new SwingUIProject("new test project");
+		project2.load(new BufferedInputStream(new FileInputStream(tmp)));
+		
+		// grab the second database in the dbtree's model (the first is the play pen)
+		db = (SQLDatabase) project2.getSourceDatabases().getDatabaseList().get(1);
+		
+		target = (SQLSchema) db.getChild(0);
+		
+		Map<String, Object> newDescription =
+			getAllInterestingProperties(target, propertiesToIgnore);
+		
+		assertMapsEqual(oldDescription, newDescription);
+	}
 
 	public void testSaveCoversAllTableProperties() throws Exception {
 		testLoad();
@@ -365,7 +465,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		
 		assertMapsEqual(oldDescription, newDescription);
 	}
-	
+
 	public void testSaveCoversAllColumnProperties() throws Exception {
 		final String tableName = "harry";
 		testLoad();
