@@ -1,65 +1,88 @@
 package ca.sqlpower.architect.swingui;
 
-import javax.swing.*;
-import javax.swing.text.*;
-import java.awt.GridLayout;
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-import java.awt.Font;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Vector;
 
-import java.awt.event.*;
-import java.util.*;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTextPane;
+import javax.swing.SwingUtilities;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultStyledDocument;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
+
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectDataSource;
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.*;
-import ca.sqlpower.architect.ddl.*;
+import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLSchema;
+import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.ddl.OracleDDLGenerator;
+
+import com.jgoodies.forms.builder.DefaultFormBuilder;
+import com.jgoodies.forms.debug.FormDebugPanel;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
 
 public class CompareDMPanel extends JPanel {
-
 	private static final Logger logger = Logger.getLogger(CompareDMPanel.class);
-	final String newline = "\n";
+	
+	private static final String newline = System.getProperty("line.separator");
 
-	protected Vector sourceConnections;
-	protected Vector targetConnections;
+	private Vector sourceConnections;
+	private Vector targetConnections;
 
 
 	// Left-hand side fields
-	protected JComboBox sourceConnectionsBox;
-	protected JComboBox sourceSchemaBox;
+	private JComboBox sourceConnectionsBox;
+	private JComboBox sourceCatalogsBox;
+	private JComboBox sourceSchemasBox;
+	private JButton newSourceConnButton;
 
 	// Right-hand side fields
-	protected JComboBox targetConnectionsBox;
-	protected JComboBox targetSchemaBox;
+	private JComboBox targetConnectionsBox;
+	private JComboBox targetCatalogsBox;
+	private JComboBox targetSchemasBox;
+	private JButton newTargetConnButton;
 
-	protected JProgressBar sourceProgressBar;
-	protected JProgressBar targetProgressBar;
+	private JProgressBar progressBar;
 	
-	JPanel buttonPanel;
-	JProgressBar compareProgressBar;
+	private JPanel buttonPanel;
 
-	protected String projName;
-	
-	SQLDatabase sourceDatabase;
-	SQLDatabase targetDatabase;
-	SQLSchema sourceSQLSchema;
-	SQLSchema targetSQLSchema;
+	private SQLDatabase sourceDatabase;
+	private SQLDatabase targetDatabase;
+	private SQLSchema sourceSQLSchema;
+	private SQLSchema targetSQLSchema;
 
-	JTextPane outputTextPane;
-	AbstractDocument outputDoc;
+	private JTextPane outputTextPane;
+	private AbstractDocument outputDoc;
 	
-	
-        
-        
-        
-	
-
-	protected StartCompareAction startCompareAction;
-
+	private StartCompareAction startCompareAction;
 
 	public Action getStartCompareAction() {
 		return startCompareAction;
@@ -70,34 +93,32 @@ public class CompareDMPanel extends JPanel {
 	}
 
 	public CompareDMPanel() {
-
+		buildUI();
+	}
+	
+	private void buildUI() {
 		ArchitectFrame af = ArchitectFrame.getMainInstance();
 		SwingUIProject project = af.getProject();
-		projName = new String(project.getName());
-		
-		
-		setLayout(new BorderLayout());
-
-
 
 		// layout source database option/combox target combox
-		JRadioButton usePlayPaneButton = new JRadioButton("Project ["+projName + "]" );
-		usePlayPaneButton.setActionCommand("Project");
-		usePlayPaneButton.setSelected(true);
+		JRadioButton usePlayPenButton = new JRadioButton();
+		usePlayPenButton.setActionCommand("Project");
+		usePlayPenButton.setSelected(true);
 
-		JRadioButton useSQLConnectionButton = new JRadioButton("");
+		JRadioButton useSQLConnectionButton = new JRadioButton();
 		useSQLConnectionButton.setActionCommand("SQL Connection");
 
 		//Group the radio buttons.
-		ButtonGroup group = new ButtonGroup();
-		group.add(usePlayPaneButton);
-		group.add(useSQLConnectionButton);
+		ButtonGroup sourceButtonGroup = new ButtonGroup();
+		sourceButtonGroup.add(usePlayPenButton);
+		sourceButtonGroup.add(useSQLConnectionButton);
 
 		//Register a listener for the radio buttons.
-		usePlayPaneButton.addActionListener(new SourceOptionListener());
+		usePlayPenButton.addActionListener(new SourceOptionListener());
 		useSQLConnectionButton.addActionListener(new SourceOptionListener());
 
 
+		// XXX: just dump the connections in and use a custom renderer instead
 		sourceConnections = new Vector();
 		sourceConnections.add(ASUtils.lvb("(Select Architect Connection)", null));
 		Iterator it = af.getUserSettings().getConnections().iterator();
@@ -109,29 +130,16 @@ public class CompareDMPanel extends JPanel {
 		sourceConnectionsBox.addActionListener(new ConnectionListener());
 		sourceConnectionsBox.setEnabled(false);
 
-		sourceSchemaBox = new JComboBox();
-		sourceSchemaBox.setEnabled(false);
-		sourceSchemaBox.setVisible(false);
-
-		sourceProgressBar = new JProgressBar();
-		sourceProgressBar.setVisible(false);
+		newSourceConnButton = new JButton("New...");
+		newSourceConnButton.setEnabled(false);
 		
-		JComponent[] sourceDMFields = new JComponent[] {usePlayPaneButton,useSQLConnectionButton,
-													sourceConnectionsBox, sourceSchemaBox, sourceProgressBar};
-		String[] sourceDMLabels = new String[] {"Project in Play Pane", "Sql Connection", "Connection Name", "Schema Owner", ""};
-		char[] sourceDMMnemonics = new char[] {'p', 's', 't', 'o', 'o'};
-		int[] sourceDMWidths = new int[] {18, 18, 18, 18, 18};
+		sourceCatalogsBox = new JComboBox();
+		sourceCatalogsBox.setEnabled(false);
 
-		String[] sourceDMTips = new String[] {"Select the Project in Play Pane", "Select a Sql Connection",
-										"Source Connection to compare with",
-										"Owner (Schema) for tables", "Loading Progress"};
+		sourceSchemasBox = new JComboBox();
+		sourceSchemasBox.setEnabled(false);
 
-
-
-		TextPanel sourceDMForm = new TextPanel(sourceDMFields, sourceDMLabels,
-												 sourceDMMnemonics, sourceDMWidths, sourceDMTips);
-
-
+		// XXX: just dump the connections in and use a custom renderer instead
 		targetConnections = new Vector();
 		targetConnections.add(ASUtils.lvb("(Select Architect Connection)", null));
 		it = af.getUserSettings().getConnections().iterator();
@@ -142,33 +150,14 @@ public class CompareDMPanel extends JPanel {
 		targetConnectionsBox = new JComboBox(targetConnections);
 		targetConnectionsBox.addActionListener(new ConnectionListener());
 
-		targetSchemaBox = new JComboBox();
-		targetSchemaBox.setEnabled(false);
+		newTargetConnButton = new JButton("New...");
 
-		targetProgressBar = new JProgressBar();
-		targetProgressBar.setVisible(false);
-		
-		JComponent[] targetDMFields = new JComponent[] {targetConnectionsBox, targetSchemaBox, targetProgressBar };
+		targetCatalogsBox = new JComboBox();
+		targetSchemasBox = new JComboBox();
 
-		String[] targetDMLabels = new String[] {"Target Database Name",
-											  "Schema", "" };
+		progressBar = new JProgressBar();
+		progressBar.setIndeterminate(true);
 
-		char[] targetDMMnemonics = new char[] {'a', 's', 's'};
-		int[] targetDMWidths = new int[] {18, 18, 18 };
-
-		String[] targetDMTips = new String[] {"Target Connection to compare with",
-										  "Owner (Schema)", "Loading Progress"};
-
-		TextPanel targetDMForm = new TextPanel(targetDMFields, targetDMLabels,
-												targetDMMnemonics, targetDMWidths, targetDMTips);
-
-		JPanel p1 = new JPanel(new GridLayout(1,2));
-		p1.add(sourceDMForm);
-		p1.add(targetDMForm);
-
-		add(p1, BorderLayout.NORTH);
-
-		
 		// layout compare methods check box and syntax combox
 		JRadioButton sourceLikeTargetButton = new JRadioButton("How to make source like target" );
 		sourceLikeTargetButton.setActionCommand("source like target");
@@ -190,49 +179,118 @@ public class CompareDMPanel extends JPanel {
 
 		JCheckBox sqlSyntax = new JCheckBox("SQL");
 		sqlSyntax.setSelected(false);
-
-		JPanel p2 = new JPanel(new FlowLayout());
-		p2.add(sourceLikeTargetButton);
-		p2.add(targetLikeSourceButton);
-		p2.add(justCompareButton);
-		p2.add(sqlSyntax);
 		
 		// outputDoc outputTextPane
-		Font font = new Font("Courier New", Font.PLAIN, 12 );
 
 		outputTextPane = new JTextPane();
         outputTextPane.setCaretPosition(0);
         outputTextPane.setMargin(new Insets(5,5,5,5));
-        
-        /*
-        StyledDocument styledDoc = outputTextPane.getStyledDocument();
-        if (styledDoc instanceof AbstractDocument) {
-            outputDoc = (AbstractDocument)styledDoc;
-        } else {
-            System.err.println("Text pane's document isn't an AbstractDocument!");
-            return;
-        }
-        */
-        
+
         JScrollPane scrollPane = new JScrollPane(outputTextPane);
         scrollPane.setPreferredSize(new Dimension(300, 300));
         
-
-  		add(p2, BorderLayout.CENTER);
-  		
-		add(scrollPane, BorderLayout.SOUTH);
-
-
 		startCompareAction = new StartCompareAction();
 		startCompareAction.setEnabled(false);
 		
 		buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		compareProgressBar = new JProgressBar();
-		compareProgressBar.setVisible(false);
-		compareProgressBar.setPreferredSize(new Dimension(400, 15));
-		buttonPanel.add(compareProgressBar);
+	
+		FormLayout formLayout = new FormLayout("20dlu, 2dlu, pref, 4dlu," +
+				"pref:grow, 2dlu, pref, 4dlu," +
+				"pref:grow, 4dlu, pref:grow",
+				"");
+		formLayout.setColumnGroups(new int[][] {{5,9,11}});
+		JPanel panel = logger.isDebugEnabled() ? new FormDebugPanel() : new JPanel();
+		DefaultFormBuilder builder = new DefaultFormBuilder(formLayout, panel);
+		builder.setDefaultDialogBorder();
 		
+		CellConstraints cc = new CellConstraints();
 		
+		builder.appendSeparator("Compare Source");
+		builder.nextLine();
+		builder.append(""); // takes up blank space
+		builder.append(usePlayPenButton);
+		builder.append("Project ["+project.getName()+"]");
+		builder.nextLine();
+		
+		builder.append(""); // takes up blank space
+		builder.append(useSQLConnectionButton);
+		builder.append("Physical Database");
+		builder.nextColumn(2);
+		builder.append("Catalog");
+		builder.append("Schema");
+		builder.appendRow(builder.getLineGapSpec());
+		builder.appendRow("pref");
+		builder.nextLine(2);
+		builder.nextColumn(4);
+		builder.append(sourceConnectionsBox);
+		builder.append(newSourceConnButton, sourceCatalogsBox, sourceSchemasBox);
+		
+		builder.appendSeparator("With Target");
+		builder.appendRow(builder.getLineGapSpec());
+		builder.appendRow("pref");
+		builder.nextLine(2);
+		builder.nextColumn(4);
+		builder.append("Physical Database");
+		builder.nextColumn(2);
+		builder.append("Catalog");
+		builder.append("Schema");
+		builder.appendRow(builder.getLineGapSpec());
+		builder.appendRow("pref");
+		builder.nextLine(2);
+		builder.nextColumn(4);
+		builder.append(targetConnectionsBox);
+		builder.append(newTargetConnButton, targetCatalogsBox, targetSchemasBox);
+		
+		builder.appendSeparator("Output Format");
+		builder.appendRow(builder.getLineGapSpec());
+		builder.appendRow("pref");
+		builder.nextLine(2);
+		builder.nextColumn(2);
+		builder.append(new JRadioButton());
+		
+		JPanel ddlTypePanel = new JPanel(new BorderLayout(3,3));
+		ddlTypePanel.add(new JLabel("SQL for"), BorderLayout.WEST);
+		ddlTypePanel.add(new JComboBox(), BorderLayout.CENTER);  // ddl generator type list
+		builder.append(ddlTypePanel);
+		
+		builder.appendRow(builder.getLineGapSpec());
+		builder.appendRow("pref");
+		builder.nextLine(2);
+		builder.nextColumn(2);
+		builder.append(new JRadioButton());
+		builder.append("English descriptions");
+		builder.nextLine();
+		
+		builder.appendSeparator("Comparison Sense");
+		builder.appendRow(builder.getLineGapSpec());
+		builder.appendRow("pref");
+		builder.nextLine(2);
+		builder.nextColumn(2);
+		builder.append(new JRadioButton());
+		builder.append("How to make Source like Target");
+		builder.appendRow(builder.getLineGapSpec());
+		builder.appendRow("pref");
+		builder.nextLine(2);
+		builder.nextColumn(2);
+		builder.append(new JRadioButton());
+		builder.append("How to make Target like Source");
+		builder.appendRow(builder.getLineGapSpec());
+		builder.appendRow("pref");
+		builder.nextLine(2);
+		builder.nextColumn(2);
+		builder.append(new JRadioButton());
+		builder.append("Show all differences");
+		builder.nextLine();
+		
+		builder.appendSeparator("Status");
+		builder.appendRow(builder.getLineGapSpec());
+		builder.appendRow("pref");
+		builder.nextLine(2);
+		builder.add(new JLabel("Twiddling my thumbs"), cc.xy(5, builder.getRow()));
+		builder.add(progressBar, cc.xyw(7, builder.getRow(), 5));
+		
+		setLayout(new BorderLayout());
+		add(builder.getPanel());
 	}
 
 	public class ConnectionListener implements ActionListener {
@@ -241,14 +299,14 @@ public class CompareDMPanel extends JPanel {
 			if (e.getSource() == sourceConnectionsBox) {
 				 lvb = (ASUtils.LabelValueBean) sourceConnectionsBox.getSelectedItem();
 
-				sourceSchemaBox.setEnabled(false);
+				sourceSchemasBox.setEnabled(false);
 				if (lvb.getValue() == null) {
-					sourceSchemaBox.setVisible(false);
+					sourceSchemasBox.setVisible(false);
 	   		    }
 	   		    else {
 					try {
 						SchemaLister sl = new SchemaLister(new SQLDatabase((ArchitectDataSource)lvb.getValue()),true);
-						SchemaListerProgressWatcher taskPerformer = new SchemaListerProgressWatcher(sourceProgressBar,sl);
+						SchemaListerProgressWatcher taskPerformer = new SchemaListerProgressWatcher(progressBar,sl);
 						new javax.swing.Timer(100, taskPerformer).start();
 						new Thread(sl).start();
 					} catch ( ArchitectException exp) {
@@ -258,14 +316,14 @@ public class CompareDMPanel extends JPanel {
 			}
 			else if (e.getSource() == targetConnectionsBox ) {
 				lvb = (ASUtils.LabelValueBean) targetConnectionsBox.getSelectedItem();
-				targetSchemaBox.setEnabled(false);
+				targetSchemasBox.setEnabled(false);
 				if (lvb.getValue() == null) {
-					targetSchemaBox.setVisible(false);
+					targetSchemasBox.setVisible(false);
 	   		    }
 	   		     else {
 					try {
 						SchemaLister sl = new SchemaLister(new SQLDatabase((ArchitectDataSource)lvb.getValue()),false);
-						SchemaListerProgressWatcher taskPerformer = new SchemaListerProgressWatcher(targetProgressBar,sl);
+						SchemaListerProgressWatcher taskPerformer = new SchemaListerProgressWatcher(progressBar,sl);
 						new javax.swing.Timer(100, taskPerformer).start();
 						new Thread(sl).start();
 					} catch ( ArchitectException exp) {
@@ -284,13 +342,16 @@ public class CompareDMPanel extends JPanel {
 	public class SourceOptionListener implements ActionListener {
 
 		public void actionPerformed(ActionEvent e) {
-			if ( e.getActionCommand().equals("Project") ) {
+			if (e.getActionCommand().equals("Project")) {
 				sourceConnectionsBox.setEnabled(false);
-				sourceSchemaBox.setEnabled(false);
-			}
-			else {
+				newSourceConnButton.setEnabled(false);
+				sourceCatalogsBox.setEnabled(false);
+				sourceSchemasBox.setEnabled(false);
+			} else {
 				sourceConnectionsBox.setEnabled(true);
-				sourceSchemaBox.setEnabled(true);
+				newSourceConnButton.setEnabled(true);
+				sourceCatalogsBox.setEnabled(true);
+				sourceSchemasBox.setEnabled(true);
 			}
 		}
 	}
@@ -343,24 +404,24 @@ public class CompareDMPanel extends JPanel {
 				public void run() {
 					
 					if ( sourceInd ) {
-						sourceSchemaBox.setEnabled(true);
-						sourceSchemaBox.setVisible(true);
-						sourceSchemaBox.removeAllItems();
+						sourceSchemasBox.setEnabled(true);
+						sourceSchemasBox.setVisible(true);
+						sourceSchemasBox.removeAllItems();
 					
 						Iterator it = schema.iterator();
 						while (it.hasNext()) {
-							sourceSchemaBox.addItem((String)it.next());
+							sourceSchemasBox.addItem((String)it.next());
 						}
 						sourceDatabase = db;
 					}
 					else {
-						targetSchemaBox.setEnabled(true);
-						targetSchemaBox.setVisible(true);
-						targetSchemaBox.removeAllItems();
+						targetSchemasBox.setEnabled(true);
+						targetSchemasBox.setVisible(true);
+						targetSchemasBox.removeAllItems();
 					
 						Iterator it = schema.iterator();
 						while (it.hasNext()) {
-							targetSchemaBox.addItem((String)it.next());
+							targetSchemasBox.addItem((String)it.next());
 						}
 						targetDatabase = db;
 					}
@@ -433,8 +494,8 @@ public class CompareDMPanel extends JPanel {
 				        
 
 				
-				sourceSQLSchema = sourceDatabase.getSchemaByName((String)sourceSchemaBox.getSelectedItem());
-				targetSQLSchema = targetDatabase.getSchemaByName((String)targetSchemaBox.getSelectedItem());
+				sourceSQLSchema = sourceDatabase.getSchemaByName((String)sourceSchemasBox.getSelectedItem());
+				targetSQLSchema = targetDatabase.getSchemaByName((String)targetSchemasBox.getSelectedItem());
 
 				CompareSchemaWorker worker = new CompareSchemaWorker(sourceSQLSchema,targetSQLSchema);
 				
@@ -449,7 +510,7 @@ public class CompareDMPanel extends JPanel {
 				outputDoc.insertString(outputDoc.getLength(),
 						"Please wait..." + worker.getJobSize() + newline, attrsMsg );
 													 				
-				CompareProgressWatcher watcher = new CompareProgressWatcher(compareProgressBar,worker);
+				CompareProgressWatcher watcher = new CompareProgressWatcher(progressBar,worker);
 				new javax.swing.Timer(100, watcher).start();
 				new Thread(worker).start();
 
@@ -492,7 +553,7 @@ public class CompareDMPanel extends JPanel {
 		}
 		
 		public void run() {
-
+			// FIXME: this should not be hardwired to oracle!
 			OracleDDLGenerator od = new OracleDDLGenerator();
 
 			final DefaultStyledDocument output = new DefaultStyledDocument();
@@ -535,7 +596,7 @@ public class CompareDMPanel extends JPanel {
 							output.insertString(output.getLength(),
 											"<<<TABLE NOT FOUND IN " + 
 											targetDatabase.getDataSource().getDisplayName() +
-											"." + targetSchemaBox.getSelectedItem() + ">>>" + newline,
+											"." + targetSchemasBox.getSelectedItem() + ">>>" + newline,
 											 attrsMsg );
 
 							output.insertString(output.getLength(),
@@ -652,5 +713,24 @@ public class CompareDMPanel extends JPanel {
 				logger.error("getProgress2 failt", e);
 			}
 		}
-	}  		
+	
+	}
+	
+	/**
+	 * Just for testing the form layout without running the whole Architect.
+	 * 
+	 * <p>The frame it makes is EXIT_ON_CLOSE, so you should never use this
+	 * in a real app.
+	 */
+	public static void main(String[] args) {
+		final JFrame f = new JFrame("Testing compare dm panel");
+		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				f.add(new CompareDMPanel());
+				f.pack();
+				f.setVisible(true);
+			};
+		});
+	}
 }
