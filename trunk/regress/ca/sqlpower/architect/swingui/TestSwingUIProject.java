@@ -535,76 +535,10 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		assertMapsEqual(oldDescription, newDescription);
 	}
 
-	public void testGetName() {
-		// TODO: implement test
-	}
-	
-	public void testSetName() {
-		// TODO: implement test
-	}
-	
-	public void testGetSourceDatabases() {
-		// TODO: implement test
-	}
-	
-	public void testSetSourceDatabases() {
-		// TODO: implement test
-	}
-	
-	public void testSetSourceDatabaseList() {
-		// TODO: implement test
-	}
-	
-	public void testGetTargetDatabase() {
-		// TODO: implement test
-	}
-	
-	public void testSetTargetDatabase() {
-		// TODO: implement test
-	}
-	
-	public void testGetFile() {
-		// TODO: implement test
-	}
-	
-	public void testSetFile() {
-		// TODO: implement test
-	}
-	
-	public void testGetPlayPen() {
-		// TODO: implement test
-	}
-	
-	public void testSetPlayPen() {
-		// TODO: implement test
-	}
-	
-	public void testGetDDLGenerator() {
-		// TODO: implement test
-	}
-	
-	public void testSetDDLGenerator() {
-		// TODO: implement test
-	}
-	
-	public void testIsSavingEntireSource() {
-		// TODO: implement test
-	}
-	
-	public void testSetSavingEntireSource() {
-		// TODO: implement test
-	}
-	
-	public void testGetPLExport() {
-		// TODO: implement test
-	}
-	
-	public void testSetPLExport() {
-		// TODO: implement test
-	}
-	
-	public void testIsModified() {
-		// TODO: implement test
+	public void testNotModifiedWhenFreshlyLoaded() throws Exception {
+		testLoad();
+		assertFalse("Freshly loaded project should not be marked dirty",
+				project.isModified());
 	}
 	
 	public void testSetModified() {
