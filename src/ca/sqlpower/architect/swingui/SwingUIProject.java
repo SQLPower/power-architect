@@ -153,6 +153,7 @@ public class SwingUIProject {
 		}
 
 		((SQLObject) sourceDatabases.getModel().getRoot()).addChild(0, playPen.getDatabase());
+		setModified(false);
 	}
 
 	protected Digester setupDigester() {
@@ -1245,12 +1246,10 @@ public class SwingUIProject {
 
 		public void componentMoveStart(PlayPenComponentEvent e) {
 			setModified(true);
-			
 		}
 
 		public void componentMoveEnd(PlayPenComponentEvent e) {
-			// TODO Auto-generated method stub
-			
+			setModified(true);
 		}
 
     }
