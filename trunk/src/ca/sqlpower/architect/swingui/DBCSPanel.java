@@ -23,22 +23,21 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
 
 	private static final Logger logger = Logger.getLogger(DBCSPanel.class);
 
-	protected ArchitectDataSource dbcs;
-	protected TextPanel form;
+	private ArchitectDataSource dbcs;
+	private TextPanel form;
 
-	protected JTextField dbNameField;
-	protected String dbNameTemp;
-	protected JComboBox dbDriverField;
-	protected JComponent platformSpecificOptions;
-	protected JTextField dbUrlField;
-	protected JTextField dbUserField;
-	protected JPasswordField dbPassField;
-	protected JTextField plSchemaField;
-	protected JComboBox plDbTypeField;
-	protected JTextField odbcDSNField;
+	private JTextField dbNameField;
+	private JComboBox dbDriverField;
+	private JComponent platformSpecificOptions;
+	private JTextField dbUrlField;
+	private JTextField dbUserField;
+	private JPasswordField dbPassField;
+	private JTextField plSchemaField;
+	private JComboBox plDbTypeField;
+	private JTextField odbcDSNField;
 	
-	private Map jdbcDrivers;
-	private Map jdbcSystems;
+	private Map<String,String> jdbcDrivers;
+	private Map<String,String> jdbcSystems;
 
 	private JDBCURLUpdater urlUpdater = new JDBCURLUpdater();
 	
@@ -47,7 +46,6 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
 	
 	public DBCSPanel() {
 		setLayout(new BorderLayout());
-		ArchitectFrame af = ArchitectFrame.getMainInstance();
 
 		dbDriverField = new JComboBox(getDriverClasses());
 		dbDriverField.insertItemAt("", 0);
@@ -94,7 +92,7 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
 		    public void actionPerformed(ActionEvent e) {
 		    	String driverField;		    	
 		    	String typeField;
-		    	HashMap driverToType = (HashMap)ArchitectUtils.getDriverTyprMap();
+		    	HashMap driverToType = (HashMap)ArchitectUtils.getDriverTypeMap();
 		        createFieldsFromTemplate();
 		        updateUrlFromFields();
 		        
@@ -125,23 +123,23 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
 	}
 
 	/** Returns all of the driver class names this dialog knows about. */
-	protected String[] getDriverClasses() {
+	private String[] getDriverClasses() {
 		if (jdbcDrivers == null) {
 			setupDriverMap();
 		}
-		return (String[]) jdbcDrivers.keySet().toArray(new String[0]);
+		return jdbcDrivers.keySet().toArray(new String[0]);
 	}
 	
 	/** Returns all of the driver system names this dialog knows about. */
-	protected String[] getDriverTypes() {
+	private String[] getDriverTypes() {
 		if (jdbcSystems == null) {
 			setupDriverSystemMap();
 		}
-		return (String[]) jdbcSystems.values().toArray(new String[0]);
+		return jdbcSystems.values().toArray(new String[0]);
 	}
 	
 	/** Returns the JDBC URL template associated with the named driver. */
-	protected String getTemplateForDriver(String driverClassName) {
+	private String getTemplateForDriver(String driverClassName) {
 		if (jdbcDrivers == null) {
 			setupDriverMap();
 		}
@@ -166,15 +164,13 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
 	    if (template != null) {
 	        Pattern varPattern = Pattern.compile("<(.*?)>");
 	        Matcher varMatcher = varPattern.matcher(template);
-	        List templateVars = new ArrayList();
+	        List<String> templateVars = new ArrayList<String>();
 	        while (varMatcher.find()) {
 	            templateVars.add(varMatcher.group(1));
 	        }
 	        logger.debug("Found variables: "+templateVars);
 	        	        
-	        Iterator it = templateVars.iterator();
-	        while (it.hasNext()) {
-	            String var = (String) it.next();
+	        for(String var : templateVars) {
 	            String def = "";
 	            if (var.indexOf(':') != -1) {
 	                int i = var.indexOf(':');
@@ -209,7 +205,7 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
 	 * 
 	 */
 	private void setupDriverSystemMap() {
-		jdbcSystems = ArchitectUtils.getDriverTyprMap();
+		jdbcSystems = ArchitectUtils.getDriverTypeMap();
 	}
 
 	/**
