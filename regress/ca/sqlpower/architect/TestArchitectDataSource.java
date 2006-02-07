@@ -119,6 +119,10 @@ public class TestArchitectDataSource extends TestCase {
 		ds1.put("cow", "moo");
 		assertFalse(ds1.equals(ds2));
 	}
+	
+	public void testEqualsNull() {
+		assertFalse("This is really to check null comparison is allowed", ds.equals(null));
+	}
 
 	/*
 	 * Test method for 'ca.sqlpower.architect.ArchitectDataSource.addPropertyChangeListener(PropertyChangeListener)'
