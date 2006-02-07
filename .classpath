@@ -12,5 +12,7 @@
 	<classpathentry kind="lib" path="lib/commons-beanutils-bean-collections.jar"/>
 	<classpathentry kind="lib" path="lib/commons-beanutils-core.jar"/>
 	<classpathentry sourcepath="libsrc/forms-1.0.6-src.zip" kind="lib" path="lib/forms-1.0.6.jar"/>
+	<classpathentry sourcepath="libsrc/jfcunit-2.08_src.jar" kind="lib" path="lib/jfcunit.jar"/>
+	<classpathentry kind="lib" path="lib/jakarta-regexp-1.2.jar"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>
