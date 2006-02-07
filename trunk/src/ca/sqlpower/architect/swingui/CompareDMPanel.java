@@ -2,6 +2,7 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Insets;
@@ -10,21 +11,24 @@ import java.awt.event.ActionListener;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Vector;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
+import javax.swing.ListCellRenderer;
 import javax.swing.SwingUtilities;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
@@ -54,18 +58,98 @@ public class CompareDMPanel extends JPanel {
 	
 	private static final String newline = System.getProperty("line.separator");
 
-	private Vector sourceConnections;
-	private Vector targetConnections;
+	public static final String DBCS_DIALOG_TITLE = "New Database Connection";
 
+	/**
+	 * Renders list cells which have a value that is an ArchitectDataSource.
+	 */
+	private ListCellRenderer dataSourceRenderer = new DefaultListCellRenderer() {
+		public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+			ArchitectDataSource ds = (ArchitectDataSource) value;
+			String label;
+			if (ds == null) {
+				label = "(Choose a Connection)";
+			} else {
+				label = ds.getName();
+			}
+			return super.getListCellRendererComponent(list, label, index, isSelected, cellHasFocus);
+		}
+	};
 
-	// Left-hand side fields
-	private JComboBox sourceConnectionsBox;
-	private JComboBox sourceCatalogsBox;
-	private JComboBox sourceSchemasBox;
-	private JButton newSourceConnButton;
+	private JDialog sourceNewConnectionDialog;
+	private JDialog targetNewConnectionDialog;
+	
+	private Action newConnectionAction = new AbstractAction() {
+		public void actionPerformed(ActionEvent e) {
+			final boolean isSource = (e.getSource() == sourceNewConnButton ? true : false);
+			if (isSource) {
+				if (getSourceNewConnectionDialog() != null) {
+					getSourceNewConnectionDialog().requestFocus();
+					return;
+				}
+			} else {
+				if (getTargetNewConnectionDialog() != null) {
+					getTargetNewConnectionDialog().requestFocus();
+					return;
+				}
+			}
+			final DBCSPanel dbcsPanel = new DBCSPanel();
+			dbcsPanel.setDbcs(new ArchitectDataSource());
+			JButton okButton = new JButton("Ok");
+			okButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					dbcsPanel.applyChanges();
+					ArchitectDataSource newDS = dbcsPanel.getDbcs();
+					if (isSource) {
+						sourceDatabaseDropdown.addItem(newDS);
+						sourceDatabaseDropdown.setSelectedItem(newDS);
+						getSourceNewConnectionDialog().dispose();
+						setSourceNewConnectionDialog(null);
+					} else {
+						targetDatabaseDropdown.addItem(newDS);
+						targetDatabaseDropdown.setSelectedItem(newDS);
+						getTargetNewConnectionDialog().dispose();
+						setTargetNewConnectionDialog(null);
+					}
+				}
+			});
+			JButton cancelButton = new JButton("Cancel");
+			cancelButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					dbcsPanel.discardChanges();
+					if (isSource) {
+						getSourceNewConnectionDialog().dispose();
+						setSourceNewConnectionDialog(null);
+					} else {
+						getTargetNewConnectionDialog().dispose();
+						setTargetNewConnectionDialog(null);
+					}
+				}
+			});
+			
+			JDialog d = ASUtils.createOkCancelDialog(
+					dbcsPanel,
+					SwingUtilities.getWindowAncestor(CompareDMPanel.this), 
+					DBCS_DIALOG_TITLE,
+					okButton, cancelButton);
+			
+			if (isSource) {
+				setSourceNewConnectionDialog(d);
+			} else {
+				setTargetNewConnectionDialog(d);
+			}
+			d.setVisible(true);
+		}
+	};
+	
+	// source database fields
+	private JComboBox sourceDatabaseDropdown;
+	private JComboBox sourceCalatalogDropdown;
+	private JComboBox sourceSchemaDropdown;
+	private JButton sourceNewConnButton;
 
-	// Right-hand side fields
-	private JComboBox targetConnectionsBox;
+	// target database fields
+	private JComboBox targetDatabaseDropdown;
 	private JComboBox targetCatalogsBox;
 	private JComboBox targetSchemasBox;
 	private JButton newTargetConnButton;
@@ -101,54 +185,55 @@ public class CompareDMPanel extends JPanel {
 		SwingUIProject project = af.getProject();
 
 		// layout source database option/combox target combox
-		JRadioButton usePlayPenButton = new JRadioButton();
-		usePlayPenButton.setActionCommand("Project");
-		usePlayPenButton.setSelected(true);
+		JRadioButton sourcePlayPenRadio = new JRadioButton();
+		sourcePlayPenRadio.setName("sourcePlayPenRadio");
+		sourcePlayPenRadio.setActionCommand("Project");
+		sourcePlayPenRadio.setSelected(true);
 
-		JRadioButton useSQLConnectionButton = new JRadioButton();
-		useSQLConnectionButton.setActionCommand("SQL Connection");
+		JRadioButton sourcePhysicalRadio = new JRadioButton();
+		sourcePhysicalRadio.setName("sourcePhysicalRadio");
+		sourcePhysicalRadio.setActionCommand("SQL Connection");
 
 		//Group the radio buttons.
 		ButtonGroup sourceButtonGroup = new ButtonGroup();
-		sourceButtonGroup.add(usePlayPenButton);
-		sourceButtonGroup.add(useSQLConnectionButton);
+		sourceButtonGroup.add(sourcePlayPenRadio);
+		sourceButtonGroup.add(sourcePhysicalRadio);
 
 		//Register a listener for the radio buttons.
-		usePlayPenButton.addActionListener(new SourceOptionListener());
-		useSQLConnectionButton.addActionListener(new SourceOptionListener());
+		sourcePlayPenRadio.addActionListener(new SourceOptionListener());
+		sourcePhysicalRadio.addActionListener(new SourceOptionListener());
 
-
-		// XXX: just dump the connections in and use a custom renderer instead
-		sourceConnections = new Vector();
-		sourceConnections.add(ASUtils.lvb("(Select Architect Connection)", null));
-		Iterator it = af.getUserSettings().getConnections().iterator();
-		while (it.hasNext()) {
-			ArchitectDataSource spec = (ArchitectDataSource) it.next();
-			sourceConnections.add(ASUtils.lvb(spec.getDisplayName(), spec));
+		sourceDatabaseDropdown = new JComboBox();
+		sourceDatabaseDropdown.addItem(null);   // the non-selection selection
+		for (ArchitectDataSource ds : af.getUserSettings().getConnections()) {
+			sourceDatabaseDropdown.addItem(ds);
 		}
-		sourceConnectionsBox = new JComboBox(sourceConnections);
-		sourceConnectionsBox.addActionListener(new ConnectionListener());
-		sourceConnectionsBox.setEnabled(false);
-
-		newSourceConnButton = new JButton("New...");
-		newSourceConnButton.setEnabled(false);
+		sourceDatabaseDropdown.setName("sourceDatabaseDropdown");
+		sourceDatabaseDropdown.addActionListener(new ConnectionListener());
+		sourceDatabaseDropdown.setEnabled(false);
+		sourceDatabaseDropdown.setRenderer(dataSourceRenderer);
 		
-		sourceCatalogsBox = new JComboBox();
-		sourceCatalogsBox.setEnabled(false);
+		sourceNewConnButton = new JButton("New...");
+		sourceNewConnButton.setName("sourceNewConnButton");
+		sourceNewConnButton.setEnabled(false);
+		sourceNewConnButton.addActionListener(newConnectionAction);
+		
+		sourceCalatalogDropdown = new JComboBox();
+		sourceCalatalogDropdown.setName("sourceCalatalogDropdown");
+		sourceCalatalogDropdown.setEnabled(false);
 
-		sourceSchemasBox = new JComboBox();
-		sourceSchemasBox.setEnabled(false);
+		sourceSchemaDropdown = new JComboBox();
+		sourceSchemaDropdown.setName("sourceSchemaDropdown");
+		sourceSchemaDropdown.setEnabled(false);
 
-		// XXX: just dump the connections in and use a custom renderer instead
-		targetConnections = new Vector();
-		targetConnections.add(ASUtils.lvb("(Select Architect Connection)", null));
-		it = af.getUserSettings().getConnections().iterator();
-		while (it.hasNext()) {
-			ArchitectDataSource spec = (ArchitectDataSource) it.next();
-			targetConnections.add(ASUtils.lvb(spec.getDisplayName(), spec));
+		targetDatabaseDropdown = new JComboBox();
+		targetDatabaseDropdown.addItem(null);   // the non-selection selection
+		for (ArchitectDataSource ds : af.getUserSettings().getConnections()) {
+			targetDatabaseDropdown.addItem(ds);
 		}
-		targetConnectionsBox = new JComboBox(targetConnections);
-		targetConnectionsBox.addActionListener(new ConnectionListener());
+		targetDatabaseDropdown.setName("targetDatabaseDropdown");
+		targetDatabaseDropdown.setRenderer(dataSourceRenderer);
+		targetDatabaseDropdown.addActionListener(new ConnectionListener());
 
 		newTargetConnButton = new JButton("New...");
 
@@ -208,12 +293,12 @@ public class CompareDMPanel extends JPanel {
 		builder.appendSeparator("Compare Source");
 		builder.nextLine();
 		builder.append(""); // takes up blank space
-		builder.append(usePlayPenButton);
+		builder.append(sourcePlayPenRadio);
 		builder.append("Project ["+project.getName()+"]");
 		builder.nextLine();
 		
 		builder.append(""); // takes up blank space
-		builder.append(useSQLConnectionButton);
+		builder.append(sourcePhysicalRadio);
 		builder.append("Physical Database");
 		builder.nextColumn(2);
 		builder.append("Catalog");
@@ -222,8 +307,8 @@ public class CompareDMPanel extends JPanel {
 		builder.appendRow("pref");
 		builder.nextLine(2);
 		builder.nextColumn(4);
-		builder.append(sourceConnectionsBox);
-		builder.append(newSourceConnButton, sourceCatalogsBox, sourceSchemasBox);
+		builder.append(sourceDatabaseDropdown);
+		builder.append(sourceNewConnButton, sourceCalatalogDropdown, sourceSchemaDropdown);
 		
 		builder.appendSeparator("With Target");
 		builder.appendRow(builder.getLineGapSpec());
@@ -238,7 +323,7 @@ public class CompareDMPanel extends JPanel {
 		builder.appendRow("pref");
 		builder.nextLine(2);
 		builder.nextColumn(4);
-		builder.append(targetConnectionsBox);
+		builder.append(targetDatabaseDropdown);
 		builder.append(newTargetConnButton, targetCatalogsBox, targetSchemasBox);
 		
 		builder.appendSeparator("Output Format");
@@ -295,17 +380,13 @@ public class CompareDMPanel extends JPanel {
 
 	public class ConnectionListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
-			ASUtils.LabelValueBean lvb;
-			if (e.getSource() == sourceConnectionsBox) {
-				 lvb = (ASUtils.LabelValueBean) sourceConnectionsBox.getSelectedItem();
+			if (e.getSource() == sourceDatabaseDropdown) {
+				ArchitectDataSource ds = (ArchitectDataSource) sourceDatabaseDropdown.getSelectedItem();
 
-				sourceSchemasBox.setEnabled(false);
-				if (lvb.getValue() == null) {
-					sourceSchemasBox.setVisible(false);
-	   		    }
-	   		    else {
+				sourceSchemaDropdown.setEnabled(false);
+				if (ds != null) {
 					try {
-						SchemaLister sl = new SchemaLister(new SQLDatabase((ArchitectDataSource)lvb.getValue()),true);
+						SchemaLister sl = new SchemaLister(new SQLDatabase(ds), true);
 						SchemaListerProgressWatcher taskPerformer = new SchemaListerProgressWatcher(progressBar,sl);
 						new javax.swing.Timer(100, taskPerformer).start();
 						new Thread(sl).start();
@@ -314,15 +395,13 @@ public class CompareDMPanel extends JPanel {
 					}
 				}
 			}
-			else if (e.getSource() == targetConnectionsBox ) {
-				lvb = (ASUtils.LabelValueBean) targetConnectionsBox.getSelectedItem();
+			else if (e.getSource() == targetDatabaseDropdown ) {
+				ArchitectDataSource ds = (ArchitectDataSource) targetDatabaseDropdown.getSelectedItem();
+				
 				targetSchemasBox.setEnabled(false);
-				if (lvb.getValue() == null) {
-					targetSchemasBox.setVisible(false);
-	   		    }
-	   		     else {
+				if (ds != null) {
 					try {
-						SchemaLister sl = new SchemaLister(new SQLDatabase((ArchitectDataSource)lvb.getValue()),false);
+						SchemaLister sl = new SchemaLister(new SQLDatabase(ds), false);
 						SchemaListerProgressWatcher taskPerformer = new SchemaListerProgressWatcher(progressBar,sl);
 						new javax.swing.Timer(100, taskPerformer).start();
 						new Thread(sl).start();
@@ -343,15 +422,15 @@ public class CompareDMPanel extends JPanel {
 
 		public void actionPerformed(ActionEvent e) {
 			if (e.getActionCommand().equals("Project")) {
-				sourceConnectionsBox.setEnabled(false);
-				newSourceConnButton.setEnabled(false);
-				sourceCatalogsBox.setEnabled(false);
-				sourceSchemasBox.setEnabled(false);
+				sourceDatabaseDropdown.setEnabled(false);
+				sourceNewConnButton.setEnabled(false);
+				sourceCalatalogDropdown.setEnabled(false);
+				sourceSchemaDropdown.setEnabled(false);
 			} else {
-				sourceConnectionsBox.setEnabled(true);
-				newSourceConnButton.setEnabled(true);
-				sourceCatalogsBox.setEnabled(true);
-				sourceSchemasBox.setEnabled(true);
+				sourceDatabaseDropdown.setEnabled(true);
+				sourceNewConnButton.setEnabled(true);
+				sourceCalatalogDropdown.setEnabled(true);
+				sourceSchemaDropdown.setEnabled(true);
 			}
 		}
 	}
@@ -404,13 +483,13 @@ public class CompareDMPanel extends JPanel {
 				public void run() {
 					
 					if ( sourceInd ) {
-						sourceSchemasBox.setEnabled(true);
-						sourceSchemasBox.setVisible(true);
-						sourceSchemasBox.removeAllItems();
+						sourceSchemaDropdown.setEnabled(true);
+						sourceSchemaDropdown.setVisible(true);
+						sourceSchemaDropdown.removeAllItems();
 					
 						Iterator it = schema.iterator();
 						while (it.hasNext()) {
-							sourceSchemasBox.addItem((String)it.next());
+							sourceSchemaDropdown.addItem((String)it.next());
 						}
 						sourceDatabase = db;
 					}
@@ -494,7 +573,7 @@ public class CompareDMPanel extends JPanel {
 				        
 
 				
-				sourceSQLSchema = sourceDatabase.getSchemaByName((String)sourceSchemasBox.getSelectedItem());
+				sourceSQLSchema = sourceDatabase.getSchemaByName((String)sourceSchemaDropdown.getSelectedItem());
 				targetSQLSchema = targetDatabase.getSchemaByName((String)targetSchemasBox.getSelectedItem());
 
 				CompareSchemaWorker worker = new CompareSchemaWorker(sourceSQLSchema,targetSQLSchema);
@@ -716,6 +795,22 @@ public class CompareDMPanel extends JPanel {
 	
 	}
 	
+	public synchronized JDialog getSourceNewConnectionDialog() {
+		return sourceNewConnectionDialog;
+	}
+	
+	private synchronized void setSourceNewConnectionDialog(JDialog d) {
+		sourceNewConnectionDialog = d;
+	}
+
+	public synchronized JDialog getTargetNewConnectionDialog() {
+		return targetNewConnectionDialog;
+	}
+
+	private synchronized void setTargetNewConnectionDialog(JDialog d) {
+		targetNewConnectionDialog = d;
+	}
+
 	/**
 	 * Just for testing the form layout without running the whole Architect.
 	 * 
