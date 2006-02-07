@@ -129,7 +129,7 @@ public class UserSettings {
         this.plDotIni = null;
     }
     
-    public List getConnections() {
+    public List<ArchitectDataSource> getConnections() {
         return getPlDotIni().getConnections();
     }
 }

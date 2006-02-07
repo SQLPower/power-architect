@@ -291,7 +291,7 @@ public class PlDotIni {
     /**
      * @return a sorted List of all the data sources in this pl.ini.
      */
-    public List getConnections() {
+    public List<ArchitectDataSource> getConnections() {
         List<ArchitectDataSource> connections = new ArrayList<ArchitectDataSource>();
 	    Iterator it = fileSections.iterator();
 	    while (it.hasNext()) {
