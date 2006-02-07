@@ -309,14 +309,15 @@ public class ArchitectUtils {
 			}
 			return myCount;
 		}
-	}	
+	}
+	
 	/**
 	 * 
 	 * XXX: look thise up from somewhere (i.e. don't hard code them)
 	 * 
 	 */
-	public static Map getDriverTemplateMap () {
-		Map drivers = new HashMap();
+	public static Map<String,String> getDriverTemplateMap() {
+		Map<String,String> drivers = new HashMap<String,String>();
 		drivers.put("oracle.jdbc.driver.OracleDriver",
 					"jdbc:oracle:thin:@<Hostname>:<Port:1521>:<Instance>");
 		drivers.put("com.microsoft.jdbc.sqlserver.SQLServerDriver",
@@ -327,22 +328,19 @@ public class ArchitectUtils {
 					"jdbc:db2:<Hostname>");
 		return drivers;
 	}
+	
 	/**
 	 * 
 	 * XXX: look thise up from somewhere (i.e. don't hard code them)
 	 * 
 	 */
-	public static Map getDriverTyprMap () {
-		HashMap driverSystems = new HashMap();
-		
-		driverSystems.put("oracle.jdbc.driver.OracleDriver",
-					"ORACLE");
-		driverSystems.put("com.microsoft.jdbc.sqlserver.SQLServerDriver",
-					"SQL SERVER");
-		driverSystems.put("org.postgresql.Driver",
-					"POSTGRES");
-		driverSystems.put("ibm.sql.DB2Driver",
-					"DB2");
+	public static Map<String,String> getDriverTypeMap() {
+		Map<String,String> driverSystems = new HashMap<String,String>();
+		driverSystems.put("oracle.jdbc.driver.OracleDriver", "ORACLE");
+		driverSystems.put("com.microsoft.jdbc.sqlserver.SQLServerDriver", "SQL SERVER");
+		driverSystems.put("org.postgresql.Driver", "POSTGRES");
+		driverSystems.put("ibm.sql.DB2Driver", "DB2");
+
 		return driverSystems;
 	}
 	
