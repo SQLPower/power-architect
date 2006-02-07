@@ -208,6 +208,7 @@ public class ArchitectDataSource {
 	 */
 	@Override
 	public boolean equals(Object o) {
+		if (o == null) return false;
 		ArchitectDataSource other = (ArchitectDataSource) o;
 		return this.properties.equals(other.properties);
 	}
