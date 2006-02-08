@@ -326,6 +326,8 @@ public class ArchitectUtils {
 					"jdbc:postgresql://<Hostname>:<Port:5432>/<Database>");
 		drivers.put("ibm.sql.DB2Driver",
 					"jdbc:db2:<Hostname>");
+		drivers.put("regress.ca.sqlpower.architect.MockJDBCDriver",
+					"jdbc:mock:catalogTerm=<Catalog Term:Catalog>&schemaTerm=<Schema Term:Schema>");
 		return drivers;
 	}
 	
@@ -340,7 +342,7 @@ public class ArchitectUtils {
 		driverSystems.put("com.microsoft.jdbc.sqlserver.SQLServerDriver", "SQL SERVER");
 		driverSystems.put("org.postgresql.Driver", "POSTGRES");
 		driverSystems.put("ibm.sql.DB2Driver", "DB2");
-
+		driverSystems.put("regress.ca.sqlpower.architect.MockJDBCDriver", "OTHER");
 		return driverSystems;
 	}
 	
