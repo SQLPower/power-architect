@@ -6,12 +6,17 @@ import java.awt.Point;
 import java.awt.Robot;
 import java.awt.event.InputEvent;
 
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 
 import junit.extensions.jfcunit.JFCTestCase;
 import junit.extensions.jfcunit.JFCTestHelper;
 import junit.extensions.jfcunit.TestHelper;
+import ca.sqlpower.architect.ArchitectDataSource;
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.swingui.CompareDMPanel;
 
 public class TestCompareDMPanel extends JFCTestCase {
@@ -19,8 +24,8 @@ public class TestCompareDMPanel extends JFCTestCase {
 	CompareDMPanel panel;
 	Robot robot;
 
-	Component sourcePhysicalRadio = null;
-	Component sourceDatabaseDropdown = null;
+	JCheckBox sourcePhysicalRadio = null;
+	JComboBox sourceDatabaseDropdown = null;
 	Component sourceNewConnButton = null;
 	Component sourceCalatalogDropdown = null;
 	Component sourceSchemaDropdown = null;
@@ -36,9 +41,9 @@ public class TestCompareDMPanel extends JFCTestCase {
 		Component comps[] = ((Container) panel.getComponent(0)).getComponents();
 		for (int i = 0; i < comps.length; i++) {
 			if ("sourcePhysicalRadio".equals(comps[i].getName())) {
-				sourcePhysicalRadio = comps[i];			
+				sourcePhysicalRadio = (JCheckBox) comps[i];			
 			} else if ("sourceDatabaseDropdown".equals(comps[i].getName())) {
-				sourceDatabaseDropdown = comps[i];			
+				sourceDatabaseDropdown = (JComboBox) comps[i];			
 			} else if ("sourceNewConnButton".equals(comps[i].getName())) {
 				sourceNewConnButton = comps[i];				
 			} else if ("sourceCalatalogDropdown".equals(comps[i].getName())) {
@@ -145,5 +150,19 @@ public class TestCompareDMPanel extends JFCTestCase {
 		assertTrue("Dialog isn't visible!", d.isVisible());
 
 		frame.dispose();
+	}
+	
+	public void testDisableSchemaWhenAppropriate() {
+		ArchitectDataSource ds = new ArchitectDataSource();
+		ds.setDisplayName("Schemaless Database");
+		ds.setDriverClass("regress.ca.sqlpower.architect.MockJDBCDriver");
+		ds.setUrl("jdbc:mock:catalogTerm=Catalog&catalogs=cat1,cat2,cat3");
+
+		sourcePhysicalRadio.setSelected(true);
+		sourceDatabaseDropdown.addItem(ds);
+		sourceDatabaseDropdown.setSelectedItem(ds);
+		
+		assertTrue(sourceCalatalogDropdown.isEnabled());
+		assertFalse(sourceSchemaDropdown.isEnabled());
 	}
 }
