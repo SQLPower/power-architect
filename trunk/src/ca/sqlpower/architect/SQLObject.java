@@ -337,11 +337,12 @@ public abstract class SQLObject implements java.io.Serializable {
 			return (children.get(0) instanceof SQLCatalog);
 		}
 	}
+	
 	/**
 	 * The list of SQLObject property change event listeners
 	 * used for undo
 	 */
-	protected LinkedList<UndoCompoundEventListener> undoEventListeners = new LinkedList();
+	protected LinkedList<UndoCompoundEventListener> undoEventListeners = new LinkedList<UndoCompoundEventListener>();
 
 	
 	public void addUndoEventListener(UndoCompoundEventListener l) {
