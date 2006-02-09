@@ -8,47 +8,53 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.JOptionPane;
 
+import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.layout.BasicTreeAutoLayout;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.AutoLayoutAction;
-import ca.sqlpower.architect.swingui.BasicRelationshipUI;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.RelationshipUI;
 import ca.sqlpower.architect.swingui.TablePane;
-import junit.framework.TestCase;
 
 public class TestAutoLayoutAction extends TestCase {
 	
-	private AutoLayoutAction action;
-	
+	private BasicTreeAutoLayout layout;
+	private AutoLayoutAction layoutAction;
 	/**
 	 * Shows the GUI on the screen.  Helpful when you want to see why a test is failing.
 	 * @param message The message to show in the JOptionPane
 	 */
 	private void showGUI(String message) {
 		ArchitectFrame.getMainInstance().setVisible(true);
-		action.getPlayPen().repaint();
+
 		JOptionPane.showMessageDialog(null, message != null ? message : "Cows often say moo");
 	}
 	
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		ArchitectFrame af = ArchitectFrame.getMainInstance();
-		action = af.getAutoLayoutAction();
-		action.setAnimationEnabled(false);
+		PlayPen pp = ArchitectFrame.getMainInstance().getProject().getPlayPen();
+		layoutAction = new AutoLayoutAction();
+		layout = new BasicTreeAutoLayout();
+		layout.setPlayPen(pp);
+		pp.repaint();
+		//action = af.getAutoLayoutAction();
+		layoutAction.setPlayPen(pp);
+		layoutAction.setLayout(layout);
+		layoutAction.setAnimationEnabled(false);
 	}
 	
 	public void testIcon() {
-		assertNotNull(action.getValue(AbstractAction.SMALL_ICON));
+		assertNotNull(layoutAction.getValue(AbstractAction.SMALL_ICON));
 	}
 	
 	public void testNoOverlaps() throws ArchitectException {
-		PlayPen pp = action.getPlayPen();
+		PlayPen pp = layoutAction.getPlayPen();
 		SQLDatabase ppdb = pp.getDatabase();
 		SQLTable t1 = new SQLTable(ppdb, "This is the name of the first table", "", "TABLE", true);
 		SQLTable t2 = new SQLTable(ppdb, "This table is way cooler than the first one", "", "TABLE", true);
@@ -62,14 +68,14 @@ public class TestAutoLayoutAction extends TestCase {
 		// they start off overlapping
 		assertTrue(tp1.getBounds().intersects(tp2.getBounds()));
 		
-		action.actionPerformed(new ActionEvent(this, 0, null));
+		layoutAction.actionPerformed(new ActionEvent(this, 0, null));
 		
 		// they end up separated
 		assertFalse(tp1.getBounds().intersects(tp2.getBounds()));
 	}
 	
 	public void testNoCrossingLinesEasy() throws ArchitectException {
-		PlayPen pp = action.getPlayPen();
+		PlayPen pp = layoutAction.getPlayPen();
 		SQLDatabase ppdb = pp.getDatabase();
 		
 		SQLTable tables[] = new SQLTable[4];
@@ -97,6 +103,7 @@ public class TestAutoLayoutAction extends TestCase {
 		tables[1].addExportedKey(sr2);
 		tables[3].addImportedKey(sr2);
 
+		pp.setVisible(true);
 		Relationship r1 = new Relationship(pp, sr1);
 		Relationship r2 = new Relationship(pp, sr2);
 		
@@ -123,7 +130,7 @@ public class TestAutoLayoutAction extends TestCase {
 			}
 		}
 		
-		action.actionPerformed(new ActionEvent(this, 0, null));
+		layoutAction.actionPerformed(new ActionEvent(this, 0, null));
 
 		// make the paths update
 		r1.paint((Graphics2D) pp.getGraphics());

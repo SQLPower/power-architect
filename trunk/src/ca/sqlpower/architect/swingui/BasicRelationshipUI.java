@@ -99,6 +99,15 @@ public class BasicRelationshipUI extends RelationshipUI
 		Relationship r = (Relationship) c;
 		Graphics2D g2 = (Graphics2D) g;
 
+		if (g2 == null)
+		{
+			throw new NullPointerException("Graphics g2 is null");
+		}
+		if (c == null)
+		{
+			throw new NullPointerException("Relationship c is null");
+		}
+			
 		g2.translate(c.getX() * -1, c.getY() * -1); // playpen coordinate space
 
 		if (logger.isDebugEnabled()) {
@@ -757,5 +766,11 @@ public class BasicRelationshipUI extends RelationshipUI
 	@Override
 	public Shape getShape() {
 		return path;
+	}
+
+	@Override
+	public int getShapeLength() {
+		Rectangle b=  path.getBounds();
+		return b.width+b.height;
 	}
 }

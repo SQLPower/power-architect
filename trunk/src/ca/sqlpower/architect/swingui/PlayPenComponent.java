@@ -217,6 +217,7 @@ public abstract class PlayPenComponent implements Selectable {
 						  (int) Math.ceil((double) r.width * zoom),
 						  (int) Math.ceil((double) r.height * zoom));
 		}
+		this.repaint();
 		if (bounds.x != x || bounds.y != y) {
 			bounds.x = x;
 			bounds.y = y;

@@ -160,6 +160,10 @@ public class SQLObjectUndoableEventAdapter  implements UndoCompoundEventListener
 			else {
 				
 				undoEvent.createEditFromEvent(e);
+				if (ce== null)
+				{
+					ce = new CompoundEdit();
+				}
 				ce.addEdit(undoEvent);
 			}
 		}
@@ -186,6 +190,10 @@ public class SQLObjectUndoableEventAdapter  implements UndoCompoundEventListener
 			}
 			else {
 				undoEvent.createEditFromEvent(e);
+				if (ce== null)
+				{
+					ce = new CompoundEdit();
+				}
 				ce.addEdit(undoEvent);
 			}
 		}
@@ -214,6 +222,10 @@ public class SQLObjectUndoableEventAdapter  implements UndoCompoundEventListener
 			}
 			else
 			{
+				if (ce== null)
+				{
+					ce = new CompoundEdit();
+				}
 				ce.addEdit(undoEvent);
 			}
 		}
@@ -290,7 +302,8 @@ public class SQLObjectUndoableEventAdapter  implements UndoCompoundEventListener
 			simulMoveCount++;
 			state = UndoState.MOVING ;
 		}	
-		logger.debug("UndoAdapter Starting move "+ simulMoveCount);
+		logger.debug("UndoAdapter Starting move "+ simulMoveCount + "::");
+		
 	}
 
 	public void componentMoveEnd(PlayPenComponentEvent e) {
