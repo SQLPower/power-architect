@@ -15,8 +15,6 @@ import junit.extensions.jfcunit.JFCTestCase;
 import junit.extensions.jfcunit.JFCTestHelper;
 import junit.extensions.jfcunit.TestHelper;
 import ca.sqlpower.architect.ArchitectDataSource;
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.swingui.CompareDMPanel;
 
 public class TestCompareDMPanel extends JFCTestCase {
