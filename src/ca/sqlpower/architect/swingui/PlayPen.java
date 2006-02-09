@@ -207,7 +207,6 @@ public class PlayPen extends JPanel
 	private DragSource ds;
 	
 	public PlayPen() {
-		
 		zoom = 1.0;
 		setBackground(java.awt.Color.white);
 		contentPane = new PlayPenContentPane(this);
@@ -251,6 +250,8 @@ public class PlayPen extends JPanel
 		}
 		try {
 			ArchitectUtils.listenToHierarchy(this, db);
+			ArchitectUtils.listenToHierarchy(ArchitectFrame.getMainInstance().getUndoManager().getEventAdapter(), db);
+			ArchitectUtils.addUndoListenerToHierarchy(ArchitectFrame.getMainInstance().getUndoManager().getEventAdapter(), db);
 		} catch (ArchitectException ex) {
 			logger.error("Couldn't listen to database", ex);
 		}
@@ -2162,6 +2163,7 @@ public class PlayPen extends JPanel
 		}
 
 		public void mouseDragged(MouseEvent e) {
+			pp.zoomPoint(e.getPoint());
 			p = new Point(e.getPoint().x - handle.x, e.getPoint().y - handle.y);
 			pp.setChildPosition(tp, p);
 			pp.repaint(); // FIXME: this shouldn't need to redraw the whole playpen!
@@ -2177,7 +2179,10 @@ public class PlayPen extends JPanel
 		protected void cleanup() {
 			if(addToPP)
 			{
+				pp.unzoomPoint(p);
+				logger.debug("Placing table at: "+p);
 				pp.addImpl(tp,p,pp.getPPComponentCount());
+				tp.repaint();
 			}
 			pp.setCursor(null);
 			pp.removeMouseMotionListener(this);

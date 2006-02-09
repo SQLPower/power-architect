@@ -93,4 +93,6 @@ public abstract class RelationshipUI implements PlayPenComponentUI, java.io.Seri
 	 * Returns the visible shape of this relationship's line.
 	 */
 	public abstract Shape getShape();
+	
+	public abstract int getShapeLength();
 }

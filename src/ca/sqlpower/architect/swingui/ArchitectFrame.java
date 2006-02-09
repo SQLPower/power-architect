@@ -1,7 +1,16 @@
 package ca.sqlpower.architect.swingui;
 
+
+import ca.sqlpower.architect.layout.ArchitectLayoutInterface;
+import ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout;
+
+import ca.sqlpower.architect.undo.UndoManager;
+
+import org.apache.log4j.Logger;
+
 import java.awt.BorderLayout;
 import java.awt.Container;
+
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
@@ -85,8 +94,10 @@ public class ArchitectFrame extends JFrame {
  	protected ZoomAction zoomInAction;
  	protected ZoomAction zoomOutAction;
  	protected Action zoomNormalAction;
+ 	
 	private AutoLayoutAction autoLayoutAction;
 
+	private ArchitectLayoutInterface autoLayout;
 	// playpen edit actions
 	protected EditColumnAction editColumnAction;
 	protected InsertColumnAction insertColumnAction;
@@ -335,7 +346,8 @@ public class ArchitectFrame extends JFrame {
 				};
 		zoomNormalAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Reset Zoom");
 		autoLayoutAction = new AutoLayoutAction();
-		
+		autoLayout = new FruchtermanReingoldForceLayout();
+		autoLayoutAction.setLayout(autoLayout);
 		exportDDLAction = new ExportDDLAction();
 		compareDMAction = new CompareDMAction();
 
