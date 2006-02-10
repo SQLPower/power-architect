@@ -10,7 +10,7 @@ public class DuplicateColumnException extends ArchitectException implements java
     String dupColName;
 
 	public DuplicateColumnException(SQLTable table, String dupColName) {
-		super(table.getTableName()+" already has a column named "+dupColName);
+		super(table.getName()+" already has a column named "+dupColName);
 			this.table = table;
 		this.dupColName = dupColName;
 	}

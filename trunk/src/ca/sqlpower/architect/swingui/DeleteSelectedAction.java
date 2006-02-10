@@ -137,10 +137,10 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 					tp.setSelected(false);
 					pp.db.removeChild(tp.getModel());
 					if (logger.isDebugEnabled()) {
-						logger.debug("removing element from tableNames set: " + tp.getModel().getTableName());
+						logger.debug("removing element from tableNames set: " + tp.getModel().getName());
 						logger.debug("before delete: " + pp.tableNames.toArray());
 					}
-					pp.tableNames.remove(tp.getModel().getTableName().toLowerCase());
+					pp.tableNames.remove(tp.getModel().getName().toLowerCase());
 					if (logger.isDebugEnabled()) {
 						logger.debug("after delete: " + pp.tableNames.toArray());
 					}
@@ -182,7 +182,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 				if (so instanceof SQLTable) {
 					SQLTable st = (SQLTable) so;
 					pp.db.removeChild(st);
-					pp.tableNames.remove(st.getTableName().toLowerCase());
+					pp.tableNames.remove(st.getName().toLowerCase());
 				} else if (so instanceof SQLColumn) {
 					SQLColumn sc = (SQLColumn)so;
 					SQLTable st = sc.getParentTable();

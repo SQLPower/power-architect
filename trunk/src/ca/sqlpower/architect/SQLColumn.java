@@ -24,7 +24,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	protected SQLColumn sourceColumn;
 
 	protected SQLObject parent;
-	protected String columnName="";
+	
 	
 
 	/**
@@ -89,7 +89,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	
 	public SQLColumn() {
 		logger.debug("NEW COLUMN (noargs) @"+hashCode());
-		columnName = "new column";
+		setName("new column");
 		type = Types.INTEGER;		
 		// scale = 10;
 		precision = 10;
@@ -135,7 +135,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 			logger.debug("NEW COLUMN "+colName+"@"+hashCode()+" (null parent)");
 		}
 		this.parent = parentTable.getColumnsFolder();
-		this.columnName = colName;
+		this.setName(colName);
 		this.type = dataType;
 		this.sourceDataTypeName = nativeType;
 		this.scale = scale;
@@ -169,7 +169,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 		SQLColumn c = new SQLColumn();
 		c.sourceColumn = source;
 		c.parent = addTo.getColumnsFolder();
-		c.columnName = source.columnName;
+		c.setName(source.getName());
 		c.type = source.type;
 		c.sourceDataTypeName = source.sourceDataTypeName;
 		c.setPhysicalName(source.getPhysicalName());
@@ -228,10 +228,10 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 					logger.warn("Table name not specified in metadata.  Continuing anyway...");
 				}
 
-				logger.debug("Adding column "+col.getColumnName());
+				logger.debug("Adding column "+col.getName());
 				
-				if (addTo.getColumnByName(col.getColumnName(), false) != null) {
-					throw new DuplicateColumnException(addTo, col.getColumnName());
+				if (addTo.getColumnByName(col.getName(), false) != null) {
+					throw new DuplicateColumnException(addTo, col.getName());
 				}
 				
 				// do any database specific transformations required for this column
@@ -285,7 +285,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 		 * See class description for behaviour of this method.
 		 */
 		public int compare(SQLColumn c1, SQLColumn c2) {
-			return c1.columnName.compareTo(c2.columnName);
+			return c1.getName().compareTo(c2.getName());
 		}
 	}
 
@@ -300,14 +300,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 		return;
 	}
 
-	public String getName() {
-		return getColumnName();
-	}		
-
-	public void setName(String name) {
-		setColumnName(name);
-	}
-
+	
 	public boolean isPopulated() {
 		return true;
 	}
@@ -315,14 +308,14 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	public String getShortDisplayName() {
 		if (sourceDataTypeName != null) {
 			if (precision > 0 && scale > 0) {
-				return columnName+": "+sourceDataTypeName+"("+precision+","+scale+")";
+				return getName()+": "+sourceDataTypeName+"("+precision+","+scale+")";
 			} else if (precision > 0) {
-				return columnName+": "+sourceDataTypeName+"("+precision+")"; // XXX: should we display stuff like (18,0) for decimals?
+				return  getName()+": "+sourceDataTypeName+"("+precision+")"; // XXX: should we display stuff like (18,0) for decimals?
 			} else {
-				return columnName+": "+sourceDataTypeName; 				
+				return  getName()+": "+sourceDataTypeName; 				
 			}			
 		} else {
-			return columnName+": "
+			return  getName()+": "
 				+ca.sqlpower.architect.swingui.SQLType.getTypeName(type) // XXX: replace with TypeDescriptor
 				+"("+precision+")";
 		}
@@ -347,28 +340,6 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 		sourceColumn = col;
 		fireDbObjectChanged("sourceColumn",oldCol,col);
 	}
-
-	/**
-	 * Gets the value of name
-	 *
-	 * @return the value of name
-	 */
-	public String getColumnName()  {
-		return this.columnName;
-	}
-
-
-	/**
-	 * Sets the value of name
-	 *
-	 * @param argName Value to assign to this.name
-	 */
-	public void setColumnName(String argName) {
-		String oldColumnName = this.columnName;
-		this.columnName = argName;
-		fireDbObjectChanged("columnName", oldColumnName , argName);
-	}
-
 
 
 	/**

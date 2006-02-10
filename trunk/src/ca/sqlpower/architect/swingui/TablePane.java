@@ -640,7 +640,7 @@ public class TablePane
 								// importing column from a source database
 								dtde.acceptDrop(DnDConstants.ACTION_COPY);
 								tp.getModel().inherit(insertionPoint, col, newColumnsInPk);
-								logger.debug("Inherited "+col.getColumnName()+" to table");
+								logger.debug("Inherited "+col.getName()+" to table");
 								dtde.dropComplete(true);
 							}
 						} else {
@@ -724,8 +724,8 @@ public class TablePane
 		while (it.hasNext()) {
 			TablePane t3 = (TablePane) it.next();
 			if (logger.isDebugEnabled()) {
-			    logger.debug("(" + getModel().getTableName() + ") zoomed selected table point: " + getLocationOnScreen());
-			    logger.debug("(" + t3.getModel().getTableName() + ") zoomed iterator table point: " + t3.getLocationOnScreen());
+			    logger.debug("(" + getModel().getName() + ") zoomed selected table point: " + getLocationOnScreen());
+			    logger.debug("(" + t3.getModel().getName() + ") zoomed iterator table point: " + t3.getLocationOnScreen());
 			}
 			if (!getLocationOnScreen().equals(t3.getLocationOnScreen())) { // equals operation might not work so good here
 				// unselect

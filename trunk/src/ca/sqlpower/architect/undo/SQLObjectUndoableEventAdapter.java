@@ -1,5 +1,7 @@
 package ca.sqlpower.architect.undo;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -22,7 +24,7 @@ import ca.sqlpower.architect.swingui.PlayPenComponentListener;
  * @author Matt
  */
 public class SQLObjectUndoableEventAdapter  implements UndoCompoundEventListener,
-		SQLObjectListener, PlayPenComponentListener {
+		SQLObjectListener, PropertyChangeListener, PlayPenComponentListener {
 	private static final Logger logger = Logger.getLogger(SQLObjectUndoableEventAdapter.class);
 
 	private UndoManager undoManager;
@@ -341,6 +343,11 @@ public class SQLObjectUndoableEventAdapter  implements UndoCompoundEventListener
 			moveList.clear();		
 			returnToHomeState();
 		}	
+		
+	}
+
+	public void propertyChange(PropertyChangeEvent evt) {
+		// TODO Auto-generated method stub
 		
 	}
 }

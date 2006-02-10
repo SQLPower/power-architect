@@ -22,7 +22,6 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	private static Logger logger = Logger.getLogger(SQLTable.class);
 
 	protected SQLObject parent;
-	protected String tableName;
 	protected String remarks="";
 	protected String objectType;
 	protected String primaryKeyName;
@@ -55,7 +54,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	public SQLTable(SQLObject parent, String name, String remarks, String objectType, boolean startPopulated) throws ArchitectException {
 		logger.debug("NEW TABLE "+name+"@"+hashCode());
 		this.parent = parent;
-		this.tableName = name;
+		setName(name);
 		this.remarks = remarks;
 		this.objectType = objectType;
 
@@ -186,12 +185,13 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		source.populateColumns();
 		source.populateRelationships();
 		SQLTable t = new SQLTable(parent, true);
-		t.tableName = source.tableName;
+		t.setName(source.getName());
 		t.remarks = source.remarks;
+		
 		t.setPhysicalName(source.getPhysicalName());
 		t.primaryKeyName = source.getPrimaryKeyName();
-		t.physicalPrimaryKeyName = source.getPrimaryKeyName();
-
+		t.physicalPrimaryKeyName = source.getPhysicalPrimaryKeyName();
+		
 		t.inherit(source);
 		parent.addChild(t);
 		return t;
@@ -204,7 +204,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 			SQLColumn.addColumnsToTable(this,
 										getCatalogName(),
 										getSchemaName(),
-										tableName);
+										 getName());
 		} catch (SQLException e) {
 			throw new ArchitectException("Failed to populate columns of table "+getName(), e);
 		} finally {
@@ -401,7 +401,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		Iterator it = columnsFolder.children.iterator();
 		while (it.hasNext()) {
 			SQLColumn col = (SQLColumn) it.next();
-			if (col.getColumnName().equalsIgnoreCase(colName)) {
+			if (col.getName().equalsIgnoreCase(colName)) {
 				logger.debug("FOUND");
 				return col;
 			}
@@ -601,10 +601,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		parent = newParent;
 	}
 
-	public String getName() {
-		return tableName;
-	}
-	
+
 
 	/**
 	 * The table's name.
@@ -612,12 +609,12 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	public String getShortDisplayName() {
 		SQLSchema schema = getSchema();
 		if (schema != null) {
-			return schema.getSchemaName()+"."+tableName+" ("+objectType+")";
+			return schema.getName()+"."+ getName()+" ("+objectType+")";
 		} else {
 			if (objectType != null) {
-				return tableName+" ("+objectType+")";
+				return  getName()+" ("+objectType+")";
 			} else {
-				return tableName;
+				return  getName();
 			}
 		}
 	}
@@ -849,7 +846,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		if (catalog == null) {
 			return "";
 		} else {
-			return catalog.getCatalogName();
+			return catalog.getName();
 		}
 	}
 
@@ -870,7 +867,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		if (schema == null) {
 			return "";
 		} else {
-			return schema.getSchemaName();
+			return schema.getName();
 		}
 	}
 
@@ -886,20 +883,11 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		return columnsFolder;
 	}
 
-	/**
-	 * Gets the value of tableName
-	 *
-	 * @return the value of tableName
-	 */
-	public String getTableName()  {
-		return this.tableName;
-	}
+
 
 	
 
-	public void setName(String name) {
-		setTableName(name);
-	}
+	
 
 
 	/**
@@ -907,19 +895,16 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * it was previously null or set to the default of
 	 * "oldTableName_pk".
 	 * 
-	 * @param argTableName The new table name.  NULL is not allowed.
+	 * @param argName The new table name.  NULL is not allowed.
 	 */
-	public void setTableName(String argTableName) {
-		String oldTableName = tableName;
+	public void setName(String argName) {
+		String oldName =  getName();
 		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.PROPERTY_CHANGE_GROUP_START,"Starting table name compound edit"));
-		if ( ! argTableName.equals(tableName) ) {
-			this.tableName = argTableName;
-			fireDbObjectChanged("tableName",oldTableName,argTableName);
-		}
+		super.setName(argName);
 		if (primaryKeyName == null
 			|| primaryKeyName.equals("")
-			|| primaryKeyName.equals(oldTableName+"_pk")) {
-			setPrimaryKeyName(tableName+"_pk");
+			|| primaryKeyName.equals(oldName+"_pk")) {
+			setPrimaryKeyName( getName()+"_pk");
 		}
 		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.PROPERTY_CHANGE_GROUP_END,"Ending table name compound edit"));
 	}

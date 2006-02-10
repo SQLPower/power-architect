@@ -29,7 +29,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	protected int fkCardinality;
 	protected boolean identifying;
 
-	protected String name;
+
 	protected String physicalName;
 
 	protected FKColumnManager fkColumnManager;
@@ -73,7 +73,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 			LinkedList newKeys = new LinkedList();
 			rs = dbmd.getImportedKeys(table.getCatalogName(),
 									  table.getSchemaName(),
-									  table.getTableName());
+									  table.getName());
 			while (rs.next()) {
 				currentKeySeq = rs.getInt(9);
 				if (currentKeySeq == 1) {
@@ -112,7 +112,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 				// column 9 (currentKeySeq) handled above
 				r.updateRule = rs.getInt(10);
 				r.deleteRule = rs.getInt(11);
-				r.name = rs.getString(12);
+				r.setName(rs.getString(12));
 				r.deferrability = rs.getInt(14);
 				// FIXME: need to determine if the column is identifying or non-identifying!
 			}
@@ -236,7 +236,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 				} else if (prop.equals("sourceColumn")) {
 					m.getFkColumn().setSourceColumn(m.getPkColumn().getSourceColumn());
 				} else if (prop.equals("columnName")) {
-					m.getFkColumn().setColumnName(m.getPkColumn().getColumnName());
+					m.getFkColumn().setName(m.getPkColumn().getName());
 				} else if (prop.equals("type")) {
 					m.getFkColumn().setType(m.getPkColumn().getType());
 				} else if (prop.equals("sourceDataTypeName")) {
@@ -338,7 +338,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	 * Returns the foreign key name.
 	 */
 	public String getShortDisplayName() {
-		return name;
+		return getName();
 	}
 	
 	/**
@@ -435,16 +435,6 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		fireDbObjectChanged("deferrability",oldDefferability,argDeferrability);
 	}
 
-	public String getName()  {
-		return this.name;
-	}
-
-	public void setName(String argName) {
-		String oldName = this.name;
-		this.name = argName;
-		fireDbObjectChanged("name",oldName,argName);
-	}
-
 
 	/**
 	 * Gets the value of pkCardinality
@@ -532,12 +522,13 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	}
 
 	public void setPkTable(SQLTable pkt) {
+		SQLTable oldPkt = pkTable;
 		if (pkTable != null) {
 			pkTable.columnsFolder.removeSQLObjectListener(fkColumnManager);
 		}
 		pkTable = pkt;
 		pkTable.columnsFolder.addSQLObjectListener(fkColumnManager);
-		// XXX: fire event?
+		fireDbObjectChanged("pkTable",oldPkt,pkt);
 	}
 
 	public SQLTable getFkTable() {
@@ -545,8 +536,9 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	}
 
 	public void setFkTable(SQLTable fkt) {
+		SQLTable oldFkt = fkTable;
 		fkTable = fkt;
-		// XXX: fire event?
+		fireDbObjectChanged("fkTable",oldFkt,fkt);
 	}
 	
 	// -------------------------- COLUMN MAPPING ------------------------
@@ -625,8 +617,8 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 			if (pkColumn.getParentTable() != null) {
 				pkTableName = pkColumn.getParentTable().getName();
 			}
-			return fkColumn.getColumnName()+" - "+
-				pkTableName+"."+pkColumn.getColumnName();
+			return fkColumn.getName()+" - "+
+				pkTableName+"."+pkColumn.getName();
 		}
 		
 		/**

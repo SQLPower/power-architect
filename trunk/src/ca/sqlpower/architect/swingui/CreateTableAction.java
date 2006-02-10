@@ -31,7 +31,7 @@ public class CreateTableAction extends AbstractAction {
 			logger.error("Couldn't add folder to table \""+t.getName()+"\"", e);
 			JOptionPane.showMessageDialog(null, "Failed to add folder to table:\n"+e.getMessage());
 		}
-		t.setTableName("New_Table");
+		t.setName("New_Table");
 		TablePane tp = new TablePane(t, pp);
 		pp.addFloating(tp);
 	}

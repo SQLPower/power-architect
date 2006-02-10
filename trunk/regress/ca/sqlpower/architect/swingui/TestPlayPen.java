@@ -24,11 +24,11 @@ public class TestPlayPen extends TestCase {
 		pp = af.getProject().getPlayPen();
 		pp.setDatabase(new SQLDatabase());
 		ppdb = pp.getDatabase();
+		
 	}
 	
 	public void testUndoAddTable() throws ArchitectException {
 		SQLTable t = new SQLTable(ppdb, "test_me", "", "TABLE", true);
-
 		
 		TablePane tp = new TablePane(t, pp);
 		ppdb.addChild(t);

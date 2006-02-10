@@ -213,7 +213,7 @@ public class TestSQLColumn extends SQLTestCase {
 		assertTrue(nameComp.compare(fooCol, cowCol) > 0);
 		assertTrue(nameComp.compare(cowCol, fooCol) < 0);
 		assertTrue(nameComp.compare(cowCol, cowCol) == 0);
-		cowCol.setColumnName(mooCol.getColumnName());
+		cowCol.setName(mooCol.getName());
 		assertTrue(nameComp.compare(cowCol, mooCol) == 0);
 	}
 	
@@ -924,7 +924,7 @@ public class TestSQLColumn extends SQLTestCase {
 		assertEquals(2,test2.getChangedCount());
 		assertEquals(0,test2.getStructureChangedCount());
 		
-		assertEquals(test2.getLastEventName(), "columnName");
+		assertEquals("name",test2.getLastEventName());
 		
 		
 		ll = (LinkedList) cowCol.getSQLObjectListeners();
@@ -994,7 +994,7 @@ public class TestSQLColumn extends SQLTestCase {
 		assertEquals(test2.getChangedCount(),3);
 		assertEquals(test2.getStructureChangedCount(),0);
 		
-		assertEquals(test2.getLastEventName(), "columnName");
+		assertEquals("name",test2.getLastEventName());
 	}
 
 

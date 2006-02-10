@@ -290,7 +290,7 @@ public class ColumnEditPanel extends JPanel
 		logger.debug("Updating model");
 		try {
 			SQLColumn col = model.getColumn(index);
-			col.setColumnName(colName.getText());
+			col.setName(colName.getText());
 			col.setType(((SQLType) colType.getSelectedItem()).type);
 			col.setScale(((Integer) colScale.getValue()).intValue());
 			col.setPrecision(((Integer) colPrec.getValue()).intValue());

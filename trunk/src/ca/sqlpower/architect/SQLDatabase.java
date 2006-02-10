@@ -319,7 +319,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 			
 			if (child instanceof SQLTable) {
 				SQLTable table = (SQLTable) child;
-				if (table.getTableName().equalsIgnoreCase(tableName)) {
+				if (table.getName().equalsIgnoreCase(tableName)) {
 					return table;
 				}
 			} else if (child instanceof SQLCatalog) {
@@ -355,12 +355,24 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 		// no parent
 	}
 
+	@Override
 	public String getName() {
 		if (dataSource != null) {
 			return dataSource.getDisplayName();
 		} else {
 			return "PlayPen Database";
 		}
+	}
+	/**
+	 * Sets the data source name if the data source is not null
+	 */
+	@Override
+	public void setName(String argName)
+	{
+		if (dataSource != null) {
+			dataSource.setName(argName);
+		}
+		
 	}
 
 	public String getShortDisplayName() {
@@ -442,7 +454,14 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	}
 
 	public void setIgnoreReset(boolean v) {
+		boolean oldIgnoreReset = ignoreReset;
 		ignoreReset = v;
+		
+		if (oldIgnoreReset != v)
+		{
+			fireDbObjectChanged("ignoreReset",oldIgnoreReset,v);
+		}
+
 	}
 
 	public boolean getIgnoreReset() {

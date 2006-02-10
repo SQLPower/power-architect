@@ -130,7 +130,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			g2.setColor(c.getForeground());
 
 			// print table name
-			g2.drawString(tablePane.getModel().getTableName(), 0, y += ascent);
+			g2.drawString(tablePane.getModel().getName(), 0, y += ascent);
 
 			// draw box around columns
 			if (fontHeight < 0) {
@@ -312,7 +312,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 		else if (e.getPropertyName().equals("insertionPoint")) return;
 		else if (e.getPropertyName().equals("model.tableName")) {
 			// helps with debugging to keep component names identical with model -- it's not visual
-			tablePane.setName(tablePane.getModel().getTableName());
+			tablePane.setName(tablePane.getModel().getName());
 			return;
 		}
 		tablePane.revalidate();

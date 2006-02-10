@@ -41,7 +41,7 @@ public class TableEditPanel extends JPanel implements ArchitectPanel {
 	// --------------------- ArchitectPanel interface ------------------
 	public boolean applyChanges() {
 		table.setPrimaryKeyName(pkName.getText());
-		table.setTableName(name.getText());
+		table.setName(name.getText());
 		table.setRemarks(remarks.getText());
 		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.PROPERTY_CHANGE_GROUP_END,"Ending new compound edit event in table edit panel"));
 		return true;

@@ -250,8 +250,17 @@ public class PlayPen extends JPanel
 		}
 		try {
 			ArchitectUtils.listenToHierarchy(this, db);
-			ArchitectUtils.listenToHierarchy(ArchitectFrame.getMainInstance().getUndoManager().getEventAdapter(), db);
-			ArchitectUtils.addUndoListenerToHierarchy(ArchitectFrame.getMainInstance().getUndoManager().getEventAdapter(), db);
+			SQLObjectUndoableEventAdapter ea = ArchitectFrame.getMainInstance().getUndoManager().getEventAdapter();
+			if (ea != null)
+			{
+				ArchitectUtils.listenToHierarchy(ea, db);
+				ArchitectUtils.undoUnlistenToHierarchy(ea, db);
+			}
+			else
+			{
+				logger.debug("The Event adapter is null");
+			}
+				
 		} catch (ArchitectException ex) {
 			logger.error("Couldn't listen to database", ex);
 		}
@@ -917,7 +926,7 @@ public class PlayPen extends JPanel
 	 */
 	public synchronized TablePane importTableCopy(SQLTable source, Point preferredLocation) throws ArchitectException {
 		SQLTable newTable = SQLTable.getDerivedInstance(source, db); // adds newTable to db
-		String key = source.getTableName().toLowerCase();
+		String key = source.getName().toLowerCase();
 		
 		// ensure tablename is unique
 		if (logger.isDebugEnabled()) logger.debug("before add: " + tableNames);
@@ -928,7 +937,7 @@ public class PlayPen extends JPanel
 				newSuffix++;
 				done = tableNames.add(key+"_"+newSuffix);
 			}
-			newTable.setTableName(source.getTableName()+"_"+newSuffix);
+			newTable.setName(source.getName()+"_"+newSuffix);
 		}
 		if (logger.isDebugEnabled()) logger.debug("after add: " + tableNames);
 
@@ -1173,7 +1182,7 @@ public class PlayPen extends JPanel
 					Object someData = soIt.next();					
 					if (someData instanceof SQLTable) {
 						TablePane tp = importTableCopy((SQLTable) someData, preferredLocation);
-						message = ArchitectUtils.truncateString(((SQLTable)someData).getTableName());
+						message = ArchitectUtils.truncateString(((SQLTable)someData).getName());
 						preferredLocation.x += tp.getPreferredSize().width + 5;
 						progress++;
 					} else if (someData instanceof SQLSchema) {
@@ -1181,7 +1190,7 @@ public class PlayPen extends JPanel
 						Iterator it = sourceSchema.getChildren().iterator();
 						while (it.hasNext() && !isCancelled()) {
 							SQLTable sourceTable = (SQLTable) it.next();
-							message = ArchitectUtils.truncateString(sourceTable.getTableName());
+							message = ArchitectUtils.truncateString(sourceTable.getName());
 							TablePane tp = importTableCopy(sourceTable, preferredLocation);
 							preferredLocation.x += tp.getPreferredSize().width + 5;
 							progress++;
@@ -1195,7 +1204,7 @@ public class PlayPen extends JPanel
 								Iterator it = sourceSchema.getChildren().iterator();
 								while (it.hasNext() && !isCancelled()) {
 									SQLTable sourceTable = (SQLTable) it.next();									
-									message = ArchitectUtils.truncateString(sourceTable.getTableName());
+									message = ArchitectUtils.truncateString(sourceTable.getName());
 									TablePane tp = importTableCopy(sourceTable, preferredLocation);
 									preferredLocation.x += tp.getPreferredSize().width + 5;
 									progress++;
@@ -1204,7 +1213,7 @@ public class PlayPen extends JPanel
 						} else {
 							while (cit.hasNext() && !isCancelled()) {
 								SQLTable sourceTable = (SQLTable) cit.next();
-								message = ArchitectUtils.truncateString(sourceTable.getTableName());
+								message = ArchitectUtils.truncateString(sourceTable.getName());
 								TablePane tp = importTableCopy(sourceTable, preferredLocation);
 								preferredLocation.x += tp.getPreferredSize().width + 5;
 								progress++;
@@ -1212,10 +1221,10 @@ public class PlayPen extends JPanel
 						}
 					} else if (someData instanceof SQLColumn) {
 						SQLColumn column = (SQLColumn) someData;
-						JLabel colName = new JLabel(column.getColumnName());
+						JLabel colName = new JLabel(column.getName());
 						colName.setSize(colName.getPreferredSize());
 						add(colName, preferredLocation);
-						logger.debug("Added "+column.getColumnName()+" to playpen (temporary, only for testing)");
+						logger.debug("Added "+column.getName()+" to playpen (temporary, only for testing)");
 						colName.revalidate();
 					} else {
 						logger.error("Unknown object dropped in PlayPen: "+someData);
@@ -1947,14 +1956,14 @@ public class PlayPen extends JPanel
 							while (it.hasNext()) {
 								// create FloatingTableListener for each selected item
 								TablePane t3 = (TablePane)it.next();
-								logger.debug("(" + t3.getModel().getTableName() + ") zoomed selected table point: " + t3.getLocationOnScreen());
-								logger.debug("(" + t3.getModel().getTableName() + ") unzoomed selected table point: " + pp.unzoomPoint(t3.getLocationOnScreen()));
+								logger.debug("(" + t3.getModel().getName() + ") zoomed selected table point: " + t3.getLocationOnScreen());
+								logger.debug("(" + t3.getModel().getName() + ") unzoomed selected table point: " + pp.unzoomPoint(t3.getLocationOnScreen()));
 								/* the floating table listener expects zoomed handles which are relative to
 		                           the location of the table column which was clicked on.  */
 								Point clickedColumn = tp.getLocationOnScreen();
 								Point otherTable = t3.getLocationOnScreen();
 								Point handle = pp.zoomPoint(new Point(p));
-								logger.debug("(" + t3.getModel().getTableName() + ") translation x=" 
+								logger.debug("(" + t3.getModel().getName() + ") translation x=" 
 		                                      + (otherTable.getX() - clickedColumn.getX()) + ",y=" 
 		                                      + (otherTable.getY() - clickedColumn.getY()));
 								handle.translate((int)(clickedColumn.getX() - otherTable.getX()), (int) (clickedColumn.getY() - otherTable.getY())); 																	

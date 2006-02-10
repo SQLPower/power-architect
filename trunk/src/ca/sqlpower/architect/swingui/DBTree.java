@@ -784,9 +784,15 @@ public class DBTree extends JTree implements DragSourceListener {
 				// export list of DnD-type tree paths
 				ArrayList paths = new ArrayList(p.length);
 				for (int i = 0; i < p.length; i++) {
-					paths.add(t.getDnDPathToNode((SQLObject) p[i].getLastPathComponent()));
+					// ignore any playpen tables
+					if (t.getDnDPathToNode((SQLObject) p[i].getLastPathComponent())[0]  !=0 )
+					{
+						paths.add(t.getDnDPathToNode((SQLObject) p[i].getLastPathComponent()));
+					}
 				}
 				logger.info("DBTree: exporting list of DnD-type tree paths");
+				
+				// TODO add undo event
 				dge.getDragSource().startDrag
 					(dge, 
 					 null, //DragSource.DefaultCopyNoDrop, 

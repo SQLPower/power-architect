@@ -691,7 +691,7 @@ public class CompareDMPanel extends JPanel {
 							while (it2.hasNext()) {
 								SQLObject column = (SQLObject) it2.next();
 								if ( column instanceof SQLColumn ) {
-									SQLColumn targetColumn = targetTable.getColumnByName( ((SQLColumn)column).getColumnName() );
+									SQLColumn targetColumn = targetTable.getColumnByName( ((SQLColumn)column).getName() );
 									if ( targetColumn == null ) {
 
 										output.insertString(output.getLength(),
