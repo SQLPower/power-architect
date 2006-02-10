@@ -4,10 +4,13 @@ import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.sql.Connection;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import javax.sql.DataSource;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtils;
@@ -18,6 +21,7 @@ import ca.sqlpower.architect.PlDotIni;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.undo.SQLObjectUndoableEventAdapter;
 import ca.sqlpower.architect.undo.UndoManager;
@@ -79,6 +83,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 		
 		SQLObject so = getSQLObjectUnderTest();
 		
+		
 		Set<String>propertiesToIgnore = new HashSet<String>();
 		propertiesToIgnore.add("populated");
 		propertiesToIgnore.add("SQLObjectListeners");
@@ -87,19 +92,34 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 		propertiesToIgnore.add("parentDatabase");
 		propertiesToIgnore.add("class");
 		propertiesToIgnore.add("childCount");
+		propertiesToIgnore.add("undoEventListeners");
+		propertiesToIgnore.add("connection");
 		
+		if(so instanceof SQLDatabase)
+		{
+			// should be handled in the Datasource
+			propertiesToIgnore.add("name");
+		}
 		
 		CountingSQLObjectListener listener = new CountingSQLObjectListener();
 		so.addSQLObjectListener(listener);
-		
+
 		List<PropertyDescriptor> settableProperties;
-		settableProperties = Arrays.asList(PropertyUtils.getPropertyDescriptors(SQLCatalog.class));
+		
+		settableProperties = Arrays.asList(PropertyUtils.getPropertyDescriptors(so.getClass()));
+		
 		for (PropertyDescriptor property : settableProperties) {
 			Object oldVal;
 			if (propertiesToIgnore.contains(property.getName())) continue;
 			
 			try {
 				oldVal = PropertyUtils.getSimpleProperty(so, property.getName());
+				// check for a setter
+				if (property.getWriteMethod() == null)
+				{
+					continue;
+				}
+				
 			} catch (NoSuchMethodException e) {
 				System.out.println("Skipping non-settable property "+property.getName()+" on "+so.getClass().getName());
 				continue;
@@ -113,10 +133,22 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 				
 			} else if (property.getPropertyType() == Boolean.TYPE){
 				newVal = new Boolean(! ((Boolean) oldVal).booleanValue());
+			} else if (property.getPropertyType() == SQLCatalog.class) {
+				newVal = new SQLCatalog(new SQLDatabase(),"This is a new catalog");
+			} else if (property.getPropertyType() == ArchitectDataSource.class) {
+				newVal = new ArchitectDataSource();
+				((ArchitectDataSource)newVal).setName("test");
+				((ArchitectDataSource)newVal).setDisplayName("test");
+				((ArchitectDataSource)newVal).setUser("a");
+				((ArchitectDataSource)newVal).setPass("b");
+				((ArchitectDataSource)newVal).setDriverClass(MockJDBCDriver.class.getName());
+				((ArchitectDataSource)newVal).setUrl("jdbc:mock:x=y");
+			} else if (property.getPropertyType() == SQLTable.class) {
+				newVal = new SQLTable();
 			} else {
 				throw new RuntimeException("This test case lacks a value for "+
 						property.getName()+
-						" (type "+property.getPropertyType().getName()+")");
+						" (type "+property.getPropertyType().getName()+") from "+so.getClass());
 			}
 			
 			int oldChangeCount = listener.getChangedCount();
@@ -128,7 +160,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 				assertTrue("Event for set "+property.getName()+" on "+so.getClass().getName()+" didn't fire!",
 						listener.getChangedCount() > oldChangeCount);
 				if (listener.getChangedCount() == oldChangeCount + 1) {
-					assertEquals("Property name mismatch for "+property.getName(),
+					assertEquals("Property name mismatch for "+property.getName()+ " in "+so.getClass(),
 							property.getName(),
 							listener.getLastEvent().getPropertyName());
 					assertEquals("New value for "+property.getName()+" was wrong",
@@ -157,20 +189,34 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 		propertiesToIgnore.add("parentDatabase");
 		propertiesToIgnore.add("class");
 		propertiesToIgnore.add("childCount");
-		
+		propertiesToIgnore.add("undoEventListeners");
+		propertiesToIgnore.add("connection");
+		if(so instanceof SQLDatabase)
+		{
+			// should be handled in the Datasource
+			propertiesToIgnore.add("name");
+		}
 		UndoManager undoManager= new UndoManager();
 		SQLObjectUndoableEventAdapter listener = new SQLObjectUndoableEventAdapter(undoManager);
 		so.addSQLObjectListener(listener);
 		so.addUndoEventListener(listener);
-		
 		List<PropertyDescriptor> settableProperties;
-		settableProperties = Arrays.asList(PropertyUtils.getPropertyDescriptors(SQLCatalog.class));
+		settableProperties = Arrays.asList(PropertyUtils.getPropertyDescriptors(so.getClass()));
+		if(so instanceof SQLDatabase)
+		{
+			// should be handled in the Datasource
+			settableProperties.remove("name");
+		}
 		for (PropertyDescriptor property : settableProperties) {
 			Object oldVal;
 			if (propertiesToIgnore.contains(property.getName())) continue;
 			
 			try {
 				oldVal = PropertyUtils.getSimpleProperty(so, property.getName());
+				if (property.getWriteMethod() == null)
+				{
+					continue;
+				}
 			} catch (NoSuchMethodException e) {
 				System.out.println("Skipping non-settable property "+property.getName()+" on "+so.getClass().getName());
 				continue;
@@ -184,10 +230,22 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 				
 			} else if (property.getPropertyType() == Boolean.TYPE){
 				newVal = new Boolean(! ((Boolean) oldVal).booleanValue());
+			} else if (property.getPropertyType() == SQLCatalog.class) {
+				newVal = new SQLCatalog(new SQLDatabase(),"This is a new catalog");
+			} else if (property.getPropertyType() == ArchitectDataSource.class) {
+				newVal = new ArchitectDataSource();
+				((ArchitectDataSource)newVal).setName("test");
+				((ArchitectDataSource)newVal).setDisplayName("test");
+				((ArchitectDataSource)newVal).setUser("a");
+				((ArchitectDataSource)newVal).setPass("b");
+				((ArchitectDataSource)newVal).setDriverClass(MockJDBCDriver.class.getName());
+				((ArchitectDataSource)newVal).setUrl("jdbc:mock:x=y");
+			} else if (property.getPropertyType() == SQLTable.class) {
+				newVal = new SQLTable();
 			} else {
 				throw new RuntimeException("This test case lacks a value for "+
 						property.getName()+
-						" (type "+property.getPropertyType().getName()+")");
+						" (type "+property.getPropertyType().getName()+") from "+so.getClass());
 			}
 			
 			int oldChangeCount = undoManager.getUndoableEditCount();

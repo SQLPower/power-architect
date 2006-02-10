@@ -889,17 +889,17 @@ public class SwingUIProject {
 		} else if (o instanceof SQLCatalog) {
 			id = "CAT"+objectIdMap.size();
 			type = "catalog";
-			propNames.put("catalogName", ((SQLCatalog) o).getCatalogName());
+			propNames.put("name", ((SQLCatalog) o).getName());
 			propNames.put("nativeTerm", ((SQLCatalog) o).getNativeTerm());
 		} else if (o instanceof SQLSchema) {
 			id = "SCH"+objectIdMap.size();
 			type = "schema";
-			propNames.put("schemaName", ((SQLSchema) o).getSchemaName());
+			propNames.put("name", ((SQLSchema) o).getName());
 			propNames.put("nativeTerm", ((SQLSchema) o).getNativeTerm());
 		} else if (o instanceof SQLTable) {
 			id = "TAB"+objectIdMap.size();
 			type = "table";
-			propNames.put("tableName", ((SQLTable) o).getTableName());
+			propNames.put("name", ((SQLTable) o).getName());
 			propNames.put("remarks", ((SQLTable) o).getRemarks());
 			propNames.put("objectType", ((SQLTable) o).getObjectType());
 			propNames.put("primaryKeyName", ((SQLTable) o).getPrimaryKeyName());
@@ -920,7 +920,7 @@ public class SwingUIProject {
 			if (sourceCol != null) {
 				propNames.put("source-column-ref", objectIdMap.get(sourceCol));
 			}
-			propNames.put("columnName", ((SQLColumn) o).getColumnName());
+			propNames.put("name", ((SQLColumn) o).getName());
 			propNames.put("type", new Integer(((SQLColumn) o).getType()));
 			propNames.put("sourceDataTypeName", ((SQLColumn) o).getSourceDataTypeName());
 			propNames.put("scale", new Integer(((SQLColumn) o).getScale()));

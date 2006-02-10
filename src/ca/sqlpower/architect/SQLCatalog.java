@@ -17,7 +17,7 @@ import org.apache.log4j.Logger;
 public class SQLCatalog extends SQLObject {
 	private static Logger logger = Logger.getLogger(SQLCatalog.class);
 	protected SQLObject parent;
-	protected String catalogName;
+	
 
 	/**
 	 * The term used for catalogs in the native database system.  In
@@ -31,7 +31,7 @@ public class SQLCatalog extends SQLObject {
 
 	public SQLCatalog(SQLDatabase parent, String name) {
 		this.parent = parent;
-		this.catalogName = name;
+		setName(name);
 		this.children = new LinkedList();
 		this.nativeTerm = "catalog";
 	}
@@ -42,7 +42,7 @@ public class SQLCatalog extends SQLObject {
 			SQLObject child = (SQLObject) childit.next();
 			if (child instanceof SQLTable) {
 				SQLTable table = (SQLTable) child;
-				if (table.getTableName().equalsIgnoreCase(tableName)) {
+				if (table.getName().equalsIgnoreCase(tableName)) {
 					return table;
 				}
 			} else if (child instanceof SQLSchema) {
@@ -88,12 +88,9 @@ public class SQLCatalog extends SQLObject {
 		parent = newParent;
 	}
 
-	public String getName() {
-		return getCatalogName();
-	}
-
+	
 	public String getShortDisplayName() {
-		return catalogName;
+		return getName();
 	}
 	
 	public boolean allowsChildren() {
@@ -112,7 +109,7 @@ public class SQLCatalog extends SQLObject {
 				Connection con = ((SQLDatabase)parent).getConnection();
 				DatabaseMetaData dbmd = con.getMetaData();	
 
-				con.setCatalog(catalogName);
+				con.setCatalog(getName());
 				
 				rs = dbmd.getSchemas();
 				while (rs.next()) {
@@ -130,7 +127,7 @@ public class SQLCatalog extends SQLObject {
 				rs = null;
 				
 				if ( oldSize == children.size() ) {
-					rs = dbmd.getTables(catalogName,
+					rs = dbmd.getTables(getName(),
 										null,
 										"%",
 										new String[] {"TABLE", "VIEW"});
@@ -174,25 +171,7 @@ public class SQLCatalog extends SQLObject {
 		return (SQLDatabase) parent;
 	}
 
-	/**
-	 * Gets the value of catalogName
-	 *
-	 * @return the value of catalogName
-	 */
-	public String getCatalogName()  {
-		return this.catalogName;
-	}
 
-	/**
-	 * Sets the value of catalogName
-	 *
-	 * @param argCatalogName Value to assign to this.catalogName
-	 */
-	public void setCatalogName(String argCatalogName) {
-		String oldValue = catalogName;
-		this.catalogName = argCatalogName;
-		fireDbObjectChanged("catalogName", oldValue, catalogName);
-	}
 
 	/**
 	 * Gets the value of nativeTerm

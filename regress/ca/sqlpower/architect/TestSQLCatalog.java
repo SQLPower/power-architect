@@ -44,19 +44,19 @@ public class TestSQLCatalog extends SQLTestCase {
 	public void testGetName() {
 		
 		assertNull(c.getName());
-		c.setCatalogName("xxx");
+		c.setName("xxx");
 		assertEquals(c.getName(),"xxx");
 		
-		c.setCatalogName("yyy");
+		c.setName("yyy");
 		assertEquals(c.getName(),"yyy");
-		assertEquals(c.getCatalogName(),"yyy");
+		assertEquals(c.getName(),"yyy");
 		assertEquals(c.getShortDisplayName(),"yyy");
 		assertEquals(c.toString(),"yyy");
 		
 		SQLDatabase mydb = new SQLDatabase(db.getDataSource());
 		c = new SQLCatalog(mydb,"aaa");
 		assertEquals(c.getName(),"aaa");
-		assertEquals(c.getCatalogName(),"aaa");
+		assertEquals(c.getName(),"aaa");
 		assertEquals(c.getShortDisplayName(),"aaa");
 		assertEquals(c.toString(),"aaa");
 		

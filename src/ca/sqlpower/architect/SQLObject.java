@@ -14,6 +14,7 @@ public abstract class SQLObject implements java.io.Serializable {
 	
 
 	private String physicalName;
+	private String name;
 	
 	/**
 	 * The children of this SQLObject (if not applicable, set to
@@ -25,7 +26,23 @@ public abstract class SQLObject implements java.io.Serializable {
 	 * This is the name of the object.  For tables, it returns the
 	 * table name; for catalogs, the catalog name, and so on.
 	 */
-	public abstract String getName();
+	public String getName()
+	{
+		return name;
+	}
+	
+	
+	/**
+	 * Sets the value of sql object name
+	 *
+	 * @param argName Value to assign to this.name
+	 */
+	public void setName(String argName) {
+		String oldValue = name;
+		this.name = argName;
+		fireDbObjectChanged("name", oldValue, name);
+	}
+	
 
 	/**
 	 * when the logical name is an illegal identifier in the target
@@ -346,6 +363,12 @@ public abstract class SQLObject implements java.io.Serializable {
 
 	
 	public void addUndoEventListener(UndoCompoundEventListener l) {
+		if (undoEventListeners.contains(l)) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("NOT Adding duplicate Undo listener "+l+" to SQLObject "+this);
+			}
+			return;
+		}
 		undoEventListeners.add(l);
 	}
 
@@ -385,6 +408,10 @@ public abstract class SQLObject implements java.io.Serializable {
 			throw new IllegalStateException("Unknown Undo event type "+e.getType());
 		}
 		
+	}
+
+	public LinkedList<UndoCompoundEventListener> getUndoEventListeners() {
+		return undoEventListeners;
 	}
 
 }

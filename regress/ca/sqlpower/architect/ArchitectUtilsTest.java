@@ -1,16 +1,70 @@
 package regress.ca.sqlpower.architect;
 
 import junit.framework.TestCase;
+import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLObjectListener;
+import ca.sqlpower.architect.undo.UndoCompoundEvent;
+import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 
 public class ArchitectUtilsTest extends TestCase {
 
+	SQLObject sqlo;
 	/*
 	 * Test method for 'ca.sqlpower.architect.ArchitectUtils.listenToHierarchy(SQLObjectListener, SQLObject)'
 	 */
-	public void testListenToHierarchySQLObjectListenerSQLObject() {
-		System.out.println(
-			"ArchitectUtilsTest.testListenToHierarchySQLObjectListenerSQLObject() Important test still to be written!!");
+	public void setUp()
+	{
+		sqlo = new SQLObject(){
+
+			@Override
+			public String getName() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public SQLObject getParent() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			protected void setParent(SQLObject parent) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			protected void populate() throws ArchitectException {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public String getShortDisplayName() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public boolean allowsChildren() {
+				// TODO Auto-generated method stub
+				return false;
+			}
+			
+		};
+	}
+	
+	public void testListenToHierarchySQLObjectListenerSQLObject() throws ArchitectException {
+
+		SQLObjectListener listener = new CountingSQLObjectListener();
+		ArchitectUtils.listenToHierarchy(listener,sqlo);
+		ArchitectUtils.listenToHierarchy(listener,sqlo);
+		assertEquals("There are the wrong number of listeners",1,sqlo.getSQLObjectListeners().size());
+		assertTrue("The wrong listener is listening",sqlo.getSQLObjectListeners().contains(listener));
+		
 	}
 
 	/*
@@ -18,15 +72,103 @@ public class ArchitectUtilsTest extends TestCase {
 	 */
 	public void testListenToHierarchySQLObjectListenerSQLObjectArray() {
 
+	
 	}
 
-	/*
-	 * Test method for 'ca.sqlpower.architect.ArchitectUtils.unlistenToHierarchy(SQLObjectListener, SQLObject)'
-	 */
-	public void testUnlistenToHierarchySQLObjectListenerSQLObject() {
+	public void testAddUndoListenerToHierarchy() throws ArchitectException{
 
+		UndoCompoundEventListener listener = new UndoCompoundEventListener(){
+
+			public void dragAndDropStart(UndoCompoundEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			public void dragAndDropEnd(UndoCompoundEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			public void multiSelectStart(UndoCompoundEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			public void multiSelectEnd(UndoCompoundEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			public void propertyGroupStart(UndoCompoundEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			public void propertyGroupEnd(UndoCompoundEvent e) {
+				// TODO Auto-generated method stub
+				
+			}};
+		ArchitectUtils.addUndoListenerToHierarchy(listener,sqlo);
+		ArchitectUtils.addUndoListenerToHierarchy(listener,sqlo);
+		assertEquals("There are the wrong number of listeners",1,sqlo.getUndoEventListeners().size());
+		assertTrue("The wrong listener is listening",sqlo.getUndoEventListeners().contains(listener));
+	}
+	
+
+	public void testUnlistenToHierarchySQLObjectListenerSQLObject() throws ArchitectException {
+
+		SQLObjectListener listener = new CountingSQLObjectListener();
+		ArchitectUtils.listenToHierarchy(listener,sqlo);
+		ArchitectUtils.listenToHierarchy(listener,sqlo);
+		assertEquals("There are the wrong number of listeners",1,sqlo.getSQLObjectListeners().size());
+		assertTrue("The wrong listener is listening",sqlo.getSQLObjectListeners().contains(listener));
+		ArchitectUtils.unlistenToHierarchy(listener,sqlo);
+		assertEquals("There are the wrong number of listeners",0,sqlo.getSQLObjectListeners().size());
 	}
 
+	public void testUndoUnlistenToHierarchy() throws ArchitectException
+	{
+
+		UndoCompoundEventListener listener = new UndoCompoundEventListener(){
+
+			public void dragAndDropStart(UndoCompoundEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			public void dragAndDropEnd(UndoCompoundEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			public void multiSelectStart(UndoCompoundEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			public void multiSelectEnd(UndoCompoundEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			public void propertyGroupStart(UndoCompoundEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			public void propertyGroupEnd(UndoCompoundEvent e) {
+				// TODO Auto-generated method stub
+				
+			}};
+		ArchitectUtils.addUndoListenerToHierarchy(listener,sqlo);
+		ArchitectUtils.addUndoListenerToHierarchy(listener,sqlo);
+		assertEquals("There are the wrong number of listeners",1,sqlo.getUndoEventListeners().size());
+		assertTrue("The wrong listener is listening",sqlo.getUndoEventListeners().contains(listener));
+
+		ArchitectUtils.undoUnlistenToHierarchy(listener,sqlo);
+		assertEquals("There are the wrong number of listeners",0,sqlo.getUndoEventListeners().size());
+	}
+	
 	/*
 	 * Test method for 'ca.sqlpower.architect.ArchitectUtils.unlistenToHierarchy(SQLObjectListener, SQLObject[])'
 	 */

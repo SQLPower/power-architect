@@ -61,21 +61,21 @@ public class TestSwingUIProject extends ArchitectTestCase {
         " <source-databases>" +
         " </source-databases>" +
         " <target-database dbcs-ref='DS0'>" +
-        "  <table id='TAB0' populated='true' primaryKeyName='id' remarks='' tableName='Customers' >" +
+        "  <table id='TAB0' populated='true' primaryKeyName='id' remarks='' name='Customers' >" +
         "   <folder id='FOL1' populated='true' name='Columns' type='1' >" +
-        "    <column id='COL2' populated='true' autoIncrement='false' columnName='id' defaultValue='' nullable='0' precision='10' primaryKeySeq='0' referenceCount='1' remarks='' scale='0' type='4' />" +
-        "    <column id='COL3' populated='true' autoIncrement='false' columnName='name' defaultValue='' nullable='0' precision='10' referenceCount='1' remarks='' scale='0' type='4' />" +
+        "    <column id='COL2' populated='true' autoIncrement='false' name='id' defaultValue='' nullable='0' precision='10' primaryKeySeq='0' referenceCount='1' remarks='' scale='0' type='4' />" +
+        "    <column id='COL3' populated='true' autoIncrement='false' name='name' defaultValue='' nullable='0' precision='10' referenceCount='1' remarks='' scale='0' type='4' />" +
         "   </folder>" +
         "   <folder id='FOL4' populated='true' name='Exported Keys' type='3' >" +
         "   </folder>" +
         "   <folder id='FOL5' populated='true' name='Imported Keys' type='2' >" +
         "   </folder>" +
         "  </table>" +
-        "  <table id='TAB6' populated='true' primaryKeyName='id' remarks='' tableName='Orders' >" +
+        "  <table id='TAB6' populated='true' primaryKeyName='id' remarks='' name='Orders' >" +
         "   <folder id='FOL7' populated='true' name='Columns' type='1' >" +
-        "    <column id='COL8' populated='true' autoIncrement='false' columnName='i&amp;d' defaultValue='' " +
+        "    <column id='COL8' populated='true' autoIncrement='false' name='i&amp;d' defaultValue='' " +
         "    remarks=\"This isn't a problem\" nullable='0' precision='10' primaryKeySeq='0' referenceCount='1' scale='0' type='4' />" +
-        "    <column id='COL9' populated='true' autoIncrement='false' columnName='customer&lt;id' defaultValue='' nullable='0' precision='10' referenceCount='1' remarks='' scale='0' type='4' />" +
+        "    <column id='COL9' populated='true' autoIncrement='false' name='customer&lt;id' defaultValue='' nullable='0' precision='10' referenceCount='1' remarks='' scale='0' type='4' />" +
         "   </folder>" +
         "   <folder id='FOL10' populated='true' name='Exported Keys' type='3' >" +
         "   </folder>" +
@@ -485,6 +485,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		propertiesToIgnore.add("class");
 		propertiesToIgnore.add("childCount");
 		propertiesToIgnore.add("populated");
+		propertiesToIgnore.add("undoEventListeners");
 
 		Map<String,Object> oldDescription =
 			setAllInterestingProperties(target, propertiesToIgnore);

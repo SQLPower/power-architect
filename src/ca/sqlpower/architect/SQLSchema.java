@@ -17,7 +17,6 @@ import org.apache.log4j.Logger;
 public class SQLSchema extends SQLObject {
 	private static final Logger logger = Logger.getLogger(SQLSchema.class);
 	protected SQLObject parent;
-	protected String schemaName;
 	protected String nativeTerm;
 
 	public SQLSchema(boolean populated) {
@@ -29,7 +28,7 @@ public class SQLSchema extends SQLObject {
 			throw new IllegalArgumentException("Parent to SQLSchema must be SQLCatalog or SQLDatabase");
 		}
 		this.parent = parent;
-		this.schemaName = name;
+		setName(name);
 		this.children = new LinkedList();
 		this.nativeTerm = "schema";
 		this.populated = populated;
@@ -41,8 +40,8 @@ public class SQLSchema extends SQLObject {
 		Iterator childit = children.iterator();
 		while (childit.hasNext()) {
 			SQLTable child = (SQLTable) childit.next();
-			logger.debug("getTableByName: is child '"+child.getTableName()+"' equal to '"+tableName+"'?");		
-			if (child.getTableName().equalsIgnoreCase(tableName)) {
+			logger.debug("getTableByName: is child '"+child.getName()+"' equal to '"+tableName+"'?");		
+			if (child.getName().equalsIgnoreCase(tableName)) {
 				return child;
 			}
 		}
@@ -67,12 +66,9 @@ public class SQLSchema extends SQLObject {
 		parent = newParent;
 	}
 
-	public String getName() {
-		return getSchemaName();
-	}
-
+	
 	public String getShortDisplayName() {
-		return schemaName;
+		return  getName();
 	}
 	
 	public boolean allowsChildren() {
@@ -119,12 +115,12 @@ public class SQLSchema extends SQLObject {
 				tmp = parent;
 				if ( tmp instanceof SQLDatabase ) {
 					rs = dbmd.getTables(null,
-										schemaName,
+							 getName(),
 										"%",
 										new String[] {"TABLE", "VIEW"});
 				} else if ( tmp instanceof SQLCatalog ) {
 					rs = dbmd.getTables(tmp.getName(),
-										schemaName,
+							 getName(),
 										"%",
 										new String[] {"TABLE", "VIEW"});
 				}
@@ -160,23 +156,8 @@ public class SQLSchema extends SQLObject {
 
 	// ----------------- accessors and mutators -------------------
 
-	/**
-	 * Gets the value of schemaName
-	 *
-	 * @return the value of schemaName
-	 */
-	public String getSchemaName()  {
-		return this.schemaName;
-	}
 
-	/**
-	 * Sets the value of schemaName
-	 *
-	 * @param argSchemaName Value to assign to this.schemaName
-	 */
-	public void setSchemaName(String argSchemaName) {
-		this.schemaName = argSchemaName;
-	}
+
 
 	
 	/**

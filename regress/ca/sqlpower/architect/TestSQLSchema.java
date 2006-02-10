@@ -140,12 +140,12 @@ public class TestSQLSchema extends SQLTestCase {
 	 */
 	public void testSetSchemaName() {
 		assertNull(s.getName());
-		s.setSchemaName("xx23");
-		assertEquals(s.getSchemaName(),"xx23");
+		s.setName("xx23");
+		assertEquals(s.getName(),"xx23");
 		
 		SQLSchema s2 = new SQLSchema(s,"xxx",true);
-		s2.setSchemaName("xx23");
-		assertEquals(s2.getSchemaName(),"xx23");
+		s2.setName("xx23");
+		assertEquals(s2.getName(),"xx23");
 	}
 
 	/*
