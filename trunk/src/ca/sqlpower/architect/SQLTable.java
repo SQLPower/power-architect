@@ -200,6 +200,9 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	private synchronized void populateColumns() throws ArchitectException {
 		if (columnsFolder.isPopulated()) return;
 		if (columnsFolder.children.size() > 0) throw new IllegalStateException("Can't populate table because it already contains columns");
+
+		logger.debug("SQLTable: column populate starting");
+
 		try {
 			SQLColumn.addColumnsToTable(this,
 										getCatalogName(),
@@ -218,6 +221,9 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 			}
 			columnsFolder.fireDbChildrenInserted(changedIndices, columnsFolder.children);
 		}
+		
+		logger.debug("SQLTable: column populate finished");
+
 	}
 	
 	/**
@@ -228,6 +234,9 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	private synchronized void populateRelationships() throws ArchitectException {
 		if (!columnsFolder.isPopulated()) throw new IllegalStateException("Table must be populated before relationships are added");
 		if (importedKeysFolder.isPopulated()) return;
+		
+		logger.debug("SQLTable: relationship populate starting");
+
 		int oldSize = importedKeysFolder.children.size();
 
 		/* this must come before
@@ -257,6 +266,9 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 				}
 			}
 		}
+		
+		logger.debug("SQLTable: relationship populate finished");
+
 	}
 
 	/**
@@ -623,21 +635,11 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * Just calls populateColumns and populateRelationships.
 	 */
 	public void populate() throws ArchitectException {
-// 		populateColumns();
-// 		populateRelationships();
+		logger.debug("SQLTable: populate is a no-op");
 	}
 	
 	public boolean isPopulated() {
 		return true;
-// 		if (columnsFolder == null
-// 			|| importedKeysFolder == null
-// 			|| exportedKeysFolder == null) {
-// 			return false;
-// 		} else {
-// 			return columnsFolder.isPopulated()
-// 				&& importedKeysFolder.isPopulated()
-// 				&& exportedKeysFolder.isPopulated();
-// 		}
 	}
 
 	/**
@@ -716,6 +718,9 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 
 		public void populate() throws ArchitectException {
 			if (populated) return;
+
+			logger.debug("SQLTable.Folder["+getName()+"]: populate starting");
+
 			try {
 				if (type == COLUMNS) {
 					parent.populateColumns();
@@ -754,6 +759,9 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 			} finally {
 				populated = true;
 			}
+			
+			logger.debug("SQLTable.Folder["+getName()+"]: populate finished");
+
 		}
 
 		public void addChild(int index, SQLObject child) throws ArchitectException {

@@ -354,7 +354,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	 * This class is not a lazy-loading class.  This call does nothing.
 	 */
 	public void populate() throws ArchitectException {
-		return;
+		logger.debug("SQLRelationship: populate is a no-op");
 	}
 
 	/**

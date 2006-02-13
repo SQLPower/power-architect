@@ -226,6 +226,7 @@ public abstract class SQLObject implements java.io.Serializable {
 	}
 
 	public void addSQLObjectListener(SQLObjectListener l) {
+		if (l == null) throw new NullPointerException("You can't add a null listener");
 		if (getSQLObjectListeners().contains(l)) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("NOT Adding duplicate listener "+l+" to SQLObject "+this);

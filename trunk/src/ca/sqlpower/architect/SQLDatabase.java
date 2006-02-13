@@ -139,6 +139,8 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 		if (populated) return;
 		int oldSize = children.size();
 		
+		logger.debug("SQLDatabase: populate starting");
+		
 		Connection con = null;
 		ResultSet rs = null;
 		try {
@@ -188,6 +190,8 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 				throw new ArchitectException("database.rs.close.fail", e2);
 			}
 		}
+		
+		logger.debug("SQLDatabase: populate finished");
 	}
 	
 

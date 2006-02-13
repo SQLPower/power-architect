@@ -296,8 +296,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	// ------------------------- SQLObject support -------------------------
 
 	public void populate() throws ArchitectException {
-		// SQLColumn doesn't have children, so populate does nothing!
-		return;
+		logger.debug("SQLColumn: populate is a no-op");
 	}
 
 	
