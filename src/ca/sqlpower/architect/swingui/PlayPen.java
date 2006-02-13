@@ -251,16 +251,12 @@ public class PlayPen extends JPanel
 		try {
 			ArchitectUtils.listenToHierarchy(this, db);
 			SQLObjectUndoableEventAdapter ea = ArchitectFrame.getMainInstance().getUndoManager().getEventAdapter();
-			if (ea != null)
-			{
+			if (ea != null) {
 				ArchitectUtils.listenToHierarchy(ea, db);
 				ArchitectUtils.undoUnlistenToHierarchy(ea, db);
+			} else {
+				logger.debug("Not attaching undo manager: The Event adapter is null");
 			}
-			else
-			{
-				logger.debug("The Event adapter is null");
-			}
-				
 		} catch (ArchitectException ex) {
 			logger.error("Couldn't listen to database", ex);
 		}
