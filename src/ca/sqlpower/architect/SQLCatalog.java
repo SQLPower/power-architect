@@ -99,7 +99,9 @@ public class SQLCatalog extends SQLObject {
 
 	public void populate() throws ArchitectException {
 		if (populated) return;
-		
+
+		logger.debug("SQLCatalog: populate starting");
+	
 		int oldSize = children.size();
 		synchronized (parent) {
 			
@@ -162,6 +164,9 @@ public class SQLCatalog extends SQLObject {
 				}
 			}
 		}
+		
+		logger.debug("SQLCatalog: populate finished");
+
 	}
 
 

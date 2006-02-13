@@ -85,6 +85,8 @@ public class SQLSchema extends SQLObject {
 	public void populate() throws ArchitectException {
 		if (populated) return;
 		
+		logger.debug("SQLSchema: populate starting");
+
 		int oldSize = children.size();
 		
 		SQLObject databaseParent;
@@ -151,6 +153,9 @@ public class SQLSchema extends SQLObject {
 				}
 			}
 		}
+		
+		logger.debug("SQLSchema: populate finished");
+
 	}
 
 
