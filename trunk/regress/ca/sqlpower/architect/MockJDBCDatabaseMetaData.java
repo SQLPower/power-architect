@@ -518,6 +518,8 @@ public class MockJDBCDatabaseMetaData implements DatabaseMetaData {
 			String tableNamePattern, String[] types) throws SQLException {
 		final String NO_CATALOG = "no_catalog";  // special string to indicate no catalogs are in the database
 		
+		// FIXME: this method should support restricting to connection's current catalog!
+		
 		MockJDBCResultSet rs = new MockJDBCResultSet(null, 10);
 		rs.setColumnName(1, "TABLE_CAT");
 		rs.setColumnName(2, "TABLE_SCHEM");
@@ -683,11 +685,15 @@ public class MockJDBCDatabaseMetaData implements DatabaseMetaData {
 		}
 	}
 
+	/**
+	 * Returns a sorted list of schemas in the current catalog, if there is one.
+	 * Otherwise returns a sorted list of schemas in all catalogs.
+	 */
 	public ResultSet getSchemas() throws SQLException {
 		String catalogList = connection.getProperties().getProperty("catalogs");
-		MockJDBCResultSet rs = new MockJDBCResultSet(null, 2);
-		rs.setColumnName(1, "TABLE_SCHEM");
-		rs.setColumnName(2, "TABLE_CATALOG");
+		
+		// mapping of schema name to catalog name.  treemap keeps it ordered by schema
+		Map<String,String> schemas = new TreeMap<String,String>();
 		
 		if (getSchemaTerm() == null) {
 			logger.debug("getSchemas: schemaTerm==null; returning empty result set");
@@ -696,23 +702,34 @@ public class MockJDBCDatabaseMetaData implements DatabaseMetaData {
 			logger.debug("getSchemas: catalogTerm==null; schemaList="+schemaList);
 			if (schemaList == null) throw new SQLException("Missing property: 'schemas'");
 			for (String schName : Arrays.asList(schemaList.split(","))) {
-				rs.addRow();
-				rs.updateObject(1, schName);
-				rs.updateObject(2, null);
-				if (logger.isDebugEnabled()) logger.debug("getSchemas: added '"+schName+"'");
+				schemas.put(schName, null);
+				if (logger.isDebugEnabled()) logger.debug("getSchemas: put '"+schName+"'");
 			}
 		} else {
 			logger.debug("getSchemas: database has catalogs and schemas!");
+			String restrictToCatalog = connection.getCatalog();
+
 			for (String catName : Arrays.asList(catalogList.split(","))) {
+				if (restrictToCatalog != null &&
+						!restrictToCatalog.equalsIgnoreCase(catName)) continue;
+				
 				String schemaList = connection.getProperties().getProperty("schemas."+catName);
 				if (schemaList == null) throw new SQLException("Missing property: 'schemas."+catName+"'");
 				for (String schName : Arrays.asList(schemaList.split(","))) {
-					rs.addRow();
-					rs.updateObject(1, schName);
-					rs.updateObject(2, catName);
-					if (logger.isDebugEnabled()) logger.debug("getSchemas: added '"+catName+"'.'"+schName+"'");
+					schemas.put(schName, catName);
+					if (logger.isDebugEnabled()) logger.debug("getSchemas: put '"+catName+"'.'"+schName+"'");
 				}
 			}
+		}
+
+		// now populate the result set, ordered by schema name
+		MockJDBCResultSet rs = new MockJDBCResultSet(null, 2);
+		rs.setColumnName(1, "TABLE_SCHEM");
+		rs.setColumnName(2, "TABLE_CATALOG");
+		for (Map.Entry<String,String> e : schemas.entrySet()) {
+			rs.addRow();
+			rs.updateObject(1, e.getKey());
+			rs.updateObject(2, e.getValue());
 		}
 		rs.beforeFirst();
 		return rs;
