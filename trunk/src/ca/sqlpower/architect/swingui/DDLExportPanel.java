@@ -1,12 +1,25 @@
 package ca.sqlpower.architect.swingui;
 
-import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Vector;
 
-import java.awt.event.*;
-import ca.sqlpower.architect.ddl.*;
-import java.util.*;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+
 import org.apache.log4j.Logger;
+
 import ca.sqlpower.architect.ArchitectDataSource;
+import ca.sqlpower.architect.ddl.DB2DDLGenerator;
+import ca.sqlpower.architect.ddl.DDLUtils;
+import ca.sqlpower.architect.ddl.GenericDDLGenerator;
+import ca.sqlpower.architect.ddl.OracleDDLGenerator;
+import ca.sqlpower.architect.ddl.PostgresDDLGenerator;
+import ca.sqlpower.architect.ddl.SQLServerDDLGenerator;
+import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
 
 
 public class DDLExportPanel extends JPanel implements ArchitectPanel {
@@ -39,28 +52,33 @@ public class DDLExportPanel extends JPanel implements ArchitectPanel {
         add(targetDBName = new JLabel(dbcs == null 
                                         ? "(target connection not set up)" 
                                         : dbcs.getDisplayName()));
-		Vector dbTypeList = new Vector();
-		dbTypeList.add(ASUtils.lvb("Generic JDBC", GenericDDLGenerator.class));
-		dbTypeList.add(ASUtils.lvb("DB2", DB2DDLGenerator.class));
-		dbTypeList.add(ASUtils.lvb("Oracle 8i/9i", OracleDDLGenerator.class));
-		dbTypeList.add(ASUtils.lvb("PostgreSQL", PostgresDDLGenerator.class));
-		dbTypeList.add(ASUtils.lvb("SQLServer 2000", SQLServerDDLGenerator.class));
+		
 		add(new JLabel("Generate DDL for Database Type:"));
-		add(dbType = new JComboBox(dbTypeList));
-		if (ddlg.getClass() == GenericDDLGenerator.class) {
-			dbType.setSelectedIndex(0);
-		} else if (ddlg.getClass() == DB2DDLGenerator.class) {
-			dbType.setSelectedIndex(1);
-		} else if (ddlg.getClass() == OracleDDLGenerator.class) {
-			dbType.setSelectedIndex(2);
-		} else if (ddlg.getClass() == PostgresDDLGenerator.class) {
-			dbType.setSelectedIndex(3);
-		} else if (ddlg.getClass() == SQLServerDDLGenerator.class) {
-			dbType.setSelectedIndex(4);
-		} else {
-			logger.error("Unknown DDL generator class "+ddlg.getClass());
-			dbType.addItem(ASUtils.lvb("Unknown Generator", ddlg.getClass()));
+		Vector<LabelValueBean> ddlTypes =DDLUtils.getDDLTypes();
+		add(dbType = new JComboBox(ddlTypes));
+		LabelValueBean unknownGenerator = ASUtils.lvb("Unknown Generator", ddlg.getClass());
+		dbType.addItem(unknownGenerator);
+		dbType.setSelectedItem(unknownGenerator);
+		for (LabelValueBean lvb : ddlTypes)
+		{
+		
+			System.out.println(ddlg.getClass() +" || "+ lvb.getValue());
+			if (ddlg.getClass() == lvb.getValue() && lvb != unknownGenerator)
+			{
+				dbType.setSelectedItem(lvb);
+				
+			}
+			
 		}
+		if (dbType.getSelectedItem() != unknownGenerator)
+		{
+			// remove the unknown generator if we have a known generator
+			dbType.removeItem(unknownGenerator);
+		}
+		
+		
+		
+		
 		dbType.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 						setUpCatalogAndSchemaFields();
