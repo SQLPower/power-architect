@@ -1,6 +1,11 @@
 package ca.sqlpower.architect.ddl;
 
-import org.apache.log4j.*;
+import java.util.Vector;
+
+import org.apache.log4j.Logger;
+
+import ca.sqlpower.architect.swingui.ASUtils;
+import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
 
 /**
  * DDLUtils is a collection of utilities related to creating and
@@ -41,5 +46,18 @@ public class DDLUtils {
         qualName.append(name);
         return qualName.toString();
     }
+    
+    public static Vector<LabelValueBean> getDDLTypes()
+    {
+    	
+    		Vector<LabelValueBean> dbTypeList = new Vector();
+		dbTypeList.add(ASUtils.lvb("Generic JDBC", GenericDDLGenerator.class));
+		dbTypeList.add(ASUtils.lvb("DB2", DB2DDLGenerator.class));
+		dbTypeList.add(ASUtils.lvb("Oracle 8i/9i", OracleDDLGenerator.class));
+		dbTypeList.add(ASUtils.lvb("PostgreSQL", PostgresDDLGenerator.class));
+		dbTypeList.add(ASUtils.lvb("SQLServer 2000", SQLServerDDLGenerator.class));
+		return dbTypeList;
+    }
+    
 
 }
