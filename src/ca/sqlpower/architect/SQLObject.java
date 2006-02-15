@@ -339,7 +339,7 @@ public abstract class SQLObject implements java.io.Serializable {
 	 * Determines whether this SQL object is a container for catalog
 	 *
 	 * @return true (the default) if there are no children; false if
-	 * the first child is not of type SQLSchema.
+	 * the first child is not of type SQLCatalog.
 	 */
 	public boolean isCatalogContainer() throws ArchitectException {
 		if (children == null) {
