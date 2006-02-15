@@ -80,6 +80,11 @@ public class SQLObjectTest extends TestCase {
 		target.setPopulated(true);
 		assertTrue(target.isPopulated());
 	}
+	
+	public final void testGetChildType()
+	{
+		
+	}
 
 	/*
 	 * Test method for 'ca.sqlpower.architect.SQLObject.setChildren(List)'
