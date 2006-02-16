@@ -613,4 +613,9 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	public int getReferenceCount() {
 		return referenceCount;
 	}
+
+	@Override
+	public Class<? extends SQLObject> getChildType() {
+		return null;
+	}
 }

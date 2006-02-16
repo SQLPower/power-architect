@@ -53,6 +53,11 @@ public class ArchitectUtilsTest extends TestCase {
 				// TODO Auto-generated method stub
 				return false;
 			}
+
+			@Override
+			public Class<? extends SQLObject> getChildType() {
+				return null;
+			}
 			
 		};
 	}

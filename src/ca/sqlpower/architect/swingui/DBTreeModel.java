@@ -132,6 +132,11 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 		public String toString() {
 			return getShortDisplayName();
 		}
+
+		@Override
+		public Class<? extends SQLObject> getChildType() {
+			return SQLDatabase.class;
+		}
 	}
 
 	// -------------- treeModel event source support -----------------

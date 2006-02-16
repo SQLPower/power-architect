@@ -387,7 +387,43 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 		return true;
 	}
 
+	/**
+	 * Determines whether this SQL object is a container for catalog
+	 *
+	 * @return true (the default) if there are no children; false if
+	 * the first child is not of type SQLCatlog.
+	 */
+	public boolean isCatalogContainer() throws ArchitectException {
+		if (getParent() != null){
+			populate();
+		}
+			
+		if (children.size() == 0) {
+			return true;
+		} else {
+			return (children.get(0) instanceof SQLCatalog);
+		}
+	}
 	
+	/**
+	 * Determines whether this SQL object is a container for schemas
+	 *
+	 * @return true (the default) if there are no children; false if
+	 * the first child is not of type SQLSchema.
+	 */
+	public boolean isSchemaContainer() throws ArchitectException {
+		if (getParent() != null){
+			populate();
+		}
+	
+		// catalog has been populated
+	
+		if (children.size() == 0) {
+			return true;
+		} else {
+			return (children.get(0) instanceof SQLSchema);
+		}
+	}
 
 	// ----------------- accessors and mutators -------------------
 	
@@ -602,6 +638,16 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 			logger.error("Error disconnecting main connection in disconnect()");
 		} finally {
 			connection = null;
+		}
+	}
+
+	@Override
+	public Class<? extends SQLObject> getChildType() {
+		if (children.size() == 0){
+			return null;
+		}
+		else{
+			return ((SQLObject)children.get(0)).getClass();
 		}
 	}
 	

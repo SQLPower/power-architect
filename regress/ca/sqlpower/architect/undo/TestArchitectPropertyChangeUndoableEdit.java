@@ -217,5 +217,10 @@ public class TestArchitectPropertyChangeUndoableEdit extends TestCase {
 			this.foo = foo;
 			fireDbObjectChanged("foo",oldFoo,foo);
 		}
+
+		@Override
+		public Class<? extends SQLObject> getChildType() {
+			return null;
+		}
 	}
 }

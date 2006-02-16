@@ -312,49 +312,10 @@ public abstract class SQLObject implements java.io.Serializable {
 		
 	}
 
-	/**
-	 * Determines whether this SQL object is a container for schemas
-	 *
-	 * @return true (the default) if there are no children; false if
-	 * the first child is not of type SQLSchema.
-	 */
-	public boolean isSchemaContainer() throws ArchitectException {
-		if (children == null) {
-			populate();
-			if (children == null) {
-				throw new ArchitectException("populate");
-			}
-		}
+
 	
-		// catalog has been populated
-	
-		if (children.size() == 0) {
-			return true;
-		} else {
-			return (children.get(0) instanceof SQLSchema);
-		}
-	}
-	
-	/**
-	 * Determines whether this SQL object is a container for catalog
-	 *
-	 * @return true (the default) if there are no children; false if
-	 * the first child is not of type SQLCatalog.
-	 */
-	public boolean isCatalogContainer() throws ArchitectException {
-		if (children == null) {
-			populate();
-			if (children == null) {
-				throw new ArchitectException("populate");
-			}
-		}
-	
-		if (children.size() == 0) {
-			return true;
-		} else {
-			return (children.get(0) instanceof SQLCatalog);
-		}
-	}
+	public abstract Class<? extends SQLObject> getChildType();
+ 	
 	
 	/**
 	 * The list of SQLObject property change event listeners

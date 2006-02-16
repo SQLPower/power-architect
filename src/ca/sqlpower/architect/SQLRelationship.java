@@ -643,6 +643,16 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		public boolean isPopulated() {
 			return true;
 		}
+
+		@Override
+		public Class<? extends SQLObject> getChildType() {		
+			return null;
+		}
 	
+	}
+
+	@Override
+	public Class<? extends SQLObject> getChildType() { 
+		return null;
 	}
 }
