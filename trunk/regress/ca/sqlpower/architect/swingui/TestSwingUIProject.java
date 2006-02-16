@@ -318,17 +318,30 @@ public class TestSwingUIProject extends ArchitectTestCase {
 				oldDescription, newDescription);
 	}
 	
+
 	public void testSaveCoversAllCatalogProperties() throws Exception {
+		
+		ArchitectDataSource ds = new ArchitectDataSource();
+		ds.setDisplayName("Schemaless Database");
+		ds.setDriverClass("regress.ca.sqlpower.architect.MockJDBCDriver");
+		ds.setUser("fake");
+		ds.setPass("fake");
+		//this creates a mock jdbc database with only catalogs
+		ds.setUrl("jdbc:mock:dbmd.catalogTerm=Catalog&catalogs=cat1,cat2,cat3");
+		
+		DBTree dbTree;
+		DBTreeModel dbTreeModel = null;
+		
 		testLoad();
-		DBTree dbTree = project.getSourceDatabases();
-		DBTreeModel dbTreeModel = (DBTreeModel) dbTree.getModel();
+		dbTree = project.getSourceDatabases();
+		dbTreeModel = (DBTreeModel) dbTree.getModel();
 		
-		ArchitectDataSource fakeDataSource = new ArchitectDataSource();
 		SQLDatabase db = new SQLDatabase();
-		db.setDataSource(fakeDataSource);
+		db.setDataSource(ds);
 		db.setPopulated(true);
-		((SQLObject) dbTreeModel.getRoot()).addChild(db);
 		
+		((SQLObject) dbTreeModel.getRoot()).addChild(db);
+	
 		SQLCatalog target = new SQLCatalog(db, "my test catalog");
 		db.addChild(target);
 		

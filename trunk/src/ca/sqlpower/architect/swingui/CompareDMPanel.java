@@ -179,22 +179,25 @@ public class CompareDMPanel extends JPanel {
 
 	public boolean isStartable()
 	{
-		
+
+		/**
+		 * selected index -1 means when there is nothing selected yet, 
+		 * 0 means the special item we added to the first place: 'choose a connection'
+		 * in both cases, it's not ready 
+		 * 
+		 */
 		if ( sourcePhysicalRadio.isSelected())
 		{
-			if (sourceDatabaseDropdown.getSelectedIndex() == 0)
+			if (sourceDatabaseDropdown.getSelectedIndex() <= 0)
 			{
 				return false;
 			}
 		}
-	
-		if (targetDatabaseDropdown.getSelectedIndex() == 0)
+		if (targetDatabaseDropdown.getSelectedIndex() <= 0)
 		{
 			return false;
 		}
 		return true;
-		
-		
 	}
 	
 	public Action getStartCompareAction() {
@@ -238,16 +241,16 @@ public class CompareDMPanel extends JPanel {
 			sourceDatabaseDropdown.addItem(ds);
 		}
 		
-		sourceCatalogDropdown = new JComboBox();
-		sourceCatalogDropdown.setName("sourceCatalogDropdown");
-		sourceCatalogDropdown.setEnabled(false);
-		
 		sourceSchemaDropdown = new JComboBox();
 		sourceSchemaDropdown.setName("sourceSchemaDropdown");
 		sourceSchemaDropdown.setEnabled(false);
 		
+		sourceCatalogDropdown = new JComboBox();
+		sourceCatalogDropdown.setName("sourceCatalogDropdown");
+		sourceCatalogDropdown.setEnabled(false);
+		
+		
 		sourceDatabaseDropdown.setName("sourceDatabaseDropdown");
-		sourceDatabaseDropdown.addActionListener(new CatalogPopulator(sourceSchemaDropdown,sourceCatalogDropdown));
 		sourceDatabaseDropdown.setEnabled(false);
 		sourceDatabaseDropdown.setRenderer(dataSourceRenderer);
 		
@@ -256,16 +259,19 @@ public class CompareDMPanel extends JPanel {
 		sourceNewConnButton.setEnabled(false);
 		sourceNewConnButton.addActionListener(newConnectionAction);
 		
-	
+
+		targetSchemaDropdown = new JComboBox();
+		targetSchemaDropdown.setName("targetSchemaDropdown");
+		targetSchemaDropdown.setEnabled(false);
+
 
 		targetCatalogDropdown = new JComboBox();
 		targetCatalogDropdown.setName("targetCatalogDropdown");
 		targetCatalogDropdown.setEnabled(false);
 		
-		targetSchemaDropdown = new JComboBox();
-		targetSchemaDropdown.setName("targetSchemaDropdown");
-		targetSchemaDropdown.setEnabled(false);
-
+	
+		
+		
 		targetDatabaseDropdown = new JComboBox();
 		targetDatabaseDropdown.addItem(null);   // the non-selection selection
 		for (ArchitectDataSource ds : af.getUserSettings().getConnections()) {
@@ -275,13 +281,21 @@ public class CompareDMPanel extends JPanel {
 		
 		targetDatabaseDropdown.setName("targetDatabaseDropdown");
 		targetDatabaseDropdown.setRenderer(dataSourceRenderer);
-		targetDatabaseDropdown.addActionListener(new CatalogPopulator(targetSchemaDropdown,targetCatalogDropdown));
+		
 
+		
+		sourceCatalogDropdown.addActionListener(new SchemaPopulator(sourceSchemaDropdown));
+		targetCatalogDropdown.addActionListener(new SchemaPopulator(targetSchemaDropdown));
+		sourceDatabaseDropdown.addActionListener(new CatalogPopulator(sourceSchemaDropdown,sourceCatalogDropdown));
+		targetDatabaseDropdown.addActionListener(new CatalogPopulator(targetSchemaDropdown,targetCatalogDropdown));
+		
+		
 		targetNewConnButton = new JButton("New...");
 		targetNewConnButton.setName("targetNewConnButton");
 		targetNewConnButton.setEnabled(true);
 		targetNewConnButton.addActionListener(newConnectionAction);
 
+		
 
 		progressBar = new JProgressBar();
 		progressBar.setIndeterminate(true);
@@ -527,7 +541,6 @@ public class CompareDMPanel extends JPanel {
 			if (ds != null)
 			{
 				db = new SQLDatabase(ds);
-	
 				try {
 					progressMonitor = db.getProgressMonitor();
 				} catch (ArchitectException e1) {
@@ -626,6 +639,8 @@ public class CompareDMPanel extends JPanel {
 				
 				ListerProgressBarUpdater progressBarUpdater = new ListerProgressBarUpdater(progressBar,this);
 				new javax.swing.Timer(100, progressBarUpdater).start();
+
+				db.populate();
 				if (db.isCatalogContainer())
 				{
 					
@@ -644,6 +659,74 @@ public class CompareDMPanel extends JPanel {
 		}
 	}
 
+	public class SchemaPopulator  extends Populator implements ActionListener{
+		
+		private JComboBox schemas;
+		private JComboBox catalogs;
+		private List<SQLObject> children = null;
+		
+		
+		public SchemaPopulator(JComboBox schemas)
+		{		
+			this.schemas = schemas;
+		}
+		
+	
+			
+		public void actionPerformed(ActionEvent e) {
+
+			catalogs = (JComboBox)e.getSource();
+			children = null;	
+			if (catalogs != null)
+			{
+				schemas.removeAllItems();
+				schemas.setEnabled(false);
+			}
+			Thread t = new Thread(this);
+			t.start();
+				
+			startCompareAction.setEnabled(false);
+		}
+		
+	
+
+
+		@Override
+		public void cleanup() {
+			schemas.removeAllItems();
+			schemas.setEnabled(false);
+			
+			if  (children!= null)
+			{
+				for (SQLObject item : children) {
+					schemas.addItem(item);
+					
+				}				
+				children = null;
+			}
+			// If it has an item set this enabled
+			if (schemas.getItemCount() > 0) {
+				schemas.setEnabled(true);
+			}
+			startCompareAction.setEnabled(isStartable());
+		}
+
+
+		@Override
+		public void doStuff() throws Exception {
+			try {
+				
+				ListerProgressBarUpdater progressBarUpdater = new ListerProgressBarUpdater(progressBar,this);
+				new javax.swing.Timer(100, progressBarUpdater).start();
+
+				children = ((SQLObject)catalogs.getSelectedItem()).getChildren();
+				
+			} catch (ArchitectException e) {
+				logger.debug("Unexpected architect exception in ConnectionListener",e);
+				
+			}
+		}
+	}
 
 
 	public class SourceOptionListener implements ActionListener {

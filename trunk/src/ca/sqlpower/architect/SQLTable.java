@@ -649,6 +649,10 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		return true;
 	}
 
+	public Class<? extends SQLObject> getChildType() {
+		return Folder.class;
+	}
+	
 	public void removeDependencies() {
 		Iterator it = importedKeysFolder.children.iterator();
 		while (it.hasNext()) {
@@ -788,6 +792,11 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		 */
 		public int getType() {
 			return type;
+		}
+
+		@Override
+		public Class<? extends SQLObject> getChildType() {
+			return SQLColumn.class;
 		}
 	}
 	

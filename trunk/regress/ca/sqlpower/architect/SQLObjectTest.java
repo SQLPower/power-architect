@@ -60,6 +60,10 @@ public class SQLObjectTest extends TestCase {
 		public void fakeStructureChanged(String string) {
 			fireDbStructureChanged(string);
 		}
+		@Override
+		public Class<? extends SQLObject> getChildType() {
+			return SQLObject.class;
+		}
 	};
 	
 	public void setUp() {

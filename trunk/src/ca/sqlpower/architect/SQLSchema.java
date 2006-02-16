@@ -184,4 +184,9 @@ public class SQLSchema extends SQLObject {
 		this.nativeTerm = argNativeTerm;
 	}
 
+	@Override
+	public Class<? extends SQLObject> getChildType() {
+		return SQLTable.class;
+	}
+
 }

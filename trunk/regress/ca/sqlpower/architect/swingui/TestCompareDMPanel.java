@@ -16,6 +16,9 @@ import junit.extensions.jfcunit.JFCTestCase;
 import junit.extensions.jfcunit.JFCTestHelper;
 import junit.extensions.jfcunit.TestHelper;
 import ca.sqlpower.architect.ArchitectDataSource;
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.swingui.CompareDMPanel;
 
 public class TestCompareDMPanel extends JFCTestCase {
@@ -35,6 +38,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 	Component targetCatalogDropdown = null;
 	Component targetSchemaDropdown = null;
 	Component targetPlayPenRadio = null;
+		
 
 	protected void setUp() throws Exception {
 		super.setUp();
@@ -89,6 +93,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 		assertNotNull("Missing component", sourcePlayPenRadio);
 	}
 
+	//This test case method will fail randomly but will theortically work
 	public void testEnableSourceDatabaseComponents() throws Exception {
 		JFrame frame = new JFrame();
 		frame.setContentPane(panel);
@@ -115,7 +120,8 @@ public class TestCompareDMPanel extends JFCTestCase {
 		
 		frame.dispose();
 	}
-	
+
+	//This test case method will fail randomly but will theortically work
 	public void testDisableSourceDatabaseComponents() {
 		JFrame frame = new JFrame();		
 		frame.setContentPane(panel);
@@ -157,6 +163,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 		frame.dispose();
 	}
 	
+	//This test case method will fail randomly but will theortically work
 	public void testNewSourceConnectionButton() throws Exception {
 		JFrame frame = new JFrame();		
 		frame.setContentPane(panel);
@@ -185,6 +192,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 		frame.dispose();
 	}
 	
+	//This test case method will fail randomly but will theortically work
 	public void testNewTargetConnectionButton() throws Exception {
 		JFrame frame = new JFrame();		
 		frame.setContentPane(panel);
@@ -214,6 +222,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 		ds.setDriverClass("regress.ca.sqlpower.architect.MockJDBCDriver");
 		ds.setUser("fake");
 		ds.setPass("fake");
+		//this creates a mock jdbc database with only catalogs
 		ds.setUrl("jdbc:mock:dbmd.catalogTerm=Catalog&catalogs=cat1,cat2,cat3");
 		sourcePhysicalRadio.setSelected(true);
 		
@@ -230,6 +239,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 		ds.setDriverClass("regress.ca.sqlpower.architect.MockJDBCDriver");
 		ds.setUser("fake");
 		ds.setPass("fake");
+		//this creates a mock jdbc database with catalogs and schemas
 		ds.setUrl("jdbc:mock:dbmd.catalogTerm=Catalog&dbmd.schemaTerm=Schema&catalogs=cow_catalog&schemas.cow_catalog=moo_schema,quack_schema&tables.cow_catalog.moo_schema=braaaap,pffft&tables.cow_catalog.quack_schema=duck,goose");
 		sourcePhysicalRadio.setSelected(true);
 		
@@ -247,12 +257,14 @@ public class TestCompareDMPanel extends JFCTestCase {
 		ds.setDriverClass("regress.ca.sqlpower.architect.MockJDBCDriver");
 		ds.setUser("fake");
 		ds.setPass("fake");
+		//this creates a mock jdbc database with schemas only
 		ds.setUrl("jdbc:mock:dbmd.schemaTerm=Schema&schemas=scheme1,scheme2,scheme3");
 
 		sourcePhysicalRadio.setSelected(true);
 		sourceDatabaseDropdown.addItem(ds);
 		sourceDatabaseDropdown.setSelectedItem(ds);
 		flushAWT();
+		
 		assertTrue(sourceSchemaDropdown.isEnabled());
 		assertFalse(sourceCatalogDropdown.isEnabled());
 	}
@@ -263,6 +275,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 		ds.setDriverClass("regress.ca.sqlpower.architect.MockJDBCDriver");
 		ds.setUser("fake");
 		ds.setPass("fake");
+		//this creates a mock jdbc database with schemas only
 		ds.setUrl("jdbc:mock:dbmd.catalogTerm=Catalog&catalogs=cat1,cat2,cat3");
 	
 		targetDatabaseDropdown.addItem(ds);
@@ -278,6 +291,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 		ds.setDriverClass("regress.ca.sqlpower.architect.MockJDBCDriver");
 		ds.setUser("fake");
 		ds.setPass("fake");
+		//this creates a mock jdbc database with schemas and catalogs
 		ds.setUrl("jdbc:mock:dbmd.catalogTerm=Catalog&dbmd.schemaTerm=Schema&catalogs=cow_catalog&schemas.cow_catalog=moo_schema,quack_schema&tables.cow_catalog.moo_schema=braaaap,pffft&tables.cow_catalog.quack_schema=duck,goose");
 
 		targetDatabaseDropdown.addItem(ds);
@@ -297,6 +311,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 		ds.setDriverClass("regress.ca.sqlpower.architect.MockJDBCDriver");
 		ds.setUser("fake");
 		ds.setPass("fake");
+		//this creates a mock jdbc database with only schemas
 		ds.setUrl("jdbc:mock:dbmd.schemaTerm=Schema&schemas=scheme1,scheme2,scheme3");
 
 		targetDatabaseDropdown.addItem(ds);
@@ -304,5 +319,40 @@ public class TestCompareDMPanel extends JFCTestCase {
 		flushAWT();
 		assertTrue(targetSchemaDropdown.isEnabled());
 		assertFalse(targetCatalogDropdown.isEnabled());
+	}
+	
+	public void testTargetSchemaUpdateByCatalogChange(){
+		ArchitectDataSource ds = new ArchitectDataSource();
+		ds.setDisplayName("DatabaseWithEverything");
+		ds.setDriverClass("regress.ca.sqlpower.architect.MockJDBCDriver");
+		ds.setUser("fake");
+		ds.setPass("fake");
+		//this creates a mock jdbc database with catalogs and schemas where the catalogs have different schema names from each other
+		ds.setUrl("jdbc:mock:dbmd.catalogTerm=Catalog&dbmd.schemaTerm=Schema&catalogs=farm,zoo,backyard&schemas.farm=birds,mammals&tables.farm.birds=chicken,turkey,hen&tables.farm.mammals=cow,horse,buffalo?&schemas.zoo=birds2,mammals2&tables.zoo.birds2=penguin,flamingo&tables.zoo.mammals2=elephant&schemas.backyard=mammals3&tables.backyard.mammals3=mouse,rat,cat,dog,raccoon");
+				
+		targetDatabaseDropdown.addItem(ds);
+		targetDatabaseDropdown.setSelectedItem(ds);
+		flushAWT();
+		assertTrue(targetCatalogDropdown.isEnabled());
+		assertTrue(targetSchemaDropdown.isEnabled());	
+		
+		flushAWT();
+		SQLObject temp = (SQLObject)(((JComboBox)(targetCatalogDropdown)).getSelectedItem());
+		
+		try {			
+			assertTrue("birds".equals(temp.getChild(0).getPhysicalName()));			
+		} catch (ArchitectException e) {
+			System.out.println ("We did not get a schema from the catalog!");
+		}								
+		
+		flushAWT();
+		((JComboBox)targetCatalogDropdown).setSelectedIndex(1);
+		temp =(SQLObject) ((JComboBox)targetCatalogDropdown).getSelectedItem();
+		
+		try {
+			assertTrue("birds2".equals(temp.getChild(0).getPhysicalName()));		
+		} catch (ArchitectException e) {
+			System.out.println ("We did not get a schema from the catalog!");
+		}								
 	}
 }

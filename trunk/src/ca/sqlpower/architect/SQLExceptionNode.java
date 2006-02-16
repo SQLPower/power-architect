@@ -78,4 +78,9 @@ public class SQLExceptionNode extends SQLObject {
 	public void setMessage(String v) {
 	    this.message = v;
 	}
+
+	@Override
+	public Class<? extends SQLObject> getChildType() {
+		return null;
+	}
 }

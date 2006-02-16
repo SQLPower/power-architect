@@ -198,4 +198,34 @@ public class SQLCatalog extends SQLObject {
 		this.nativeTerm = argNativeTerm;
 		fireDbObjectChanged("nativeTerm", oldValue, nativeTerm);
 	}
+
+	@Override
+	public Class<? extends SQLObject> getChildType() {
+		if (children.size() == 0){
+			return null;
+		}
+		else{
+			return ((SQLObject)children.get(0)).getClass();
+		}
+	}
+	
+	/**
+	 * Determines whether this SQL object is a container for schemas
+	 *
+	 * @return true (the default) if there are no children; false if
+	 * the first child is not of type SQLSchema.
+	 */
+	public boolean isSchemaContainer() throws ArchitectException {
+		if (getParent() != null){
+			populate();
+		}
+	
+		// catalog has been populated
+	
+		if (children.size() == 0) {
+			return true;
+		} else {
+			return (children.get(0) instanceof SQLSchema);
+		}
+	}
 }
