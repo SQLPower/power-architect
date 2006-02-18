@@ -8,13 +8,18 @@ import java.awt.FlowLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.swing.AbstractAction;
+import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultListCellRenderer;
@@ -24,6 +29,7 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
@@ -56,6 +62,7 @@ import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.debug.FormDebugPanel;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+import com.sun.org.apache.xpath.internal.axes.HasPositionalPredChecker;
 
 public class CompareDMPanel extends JPanel {
 	private static final Logger logger = Logger.getLogger(CompareDMPanel.class);
@@ -177,6 +184,13 @@ public class CompareDMPanel extends JPanel {
 	private JRadioButton sourcePhysicalRadio;
 	private StartCompareAction startCompareAction;
 
+	private ButtonGroup operationGroup;
+	JRadioButton sourceLikeTargetButton;
+	JRadioButton targetLikeSourceButton;
+	JRadioButton justCompareButton;
+	
+
+	
 	public boolean isStartable()
 	{
 
@@ -283,11 +297,12 @@ public class CompareDMPanel extends JPanel {
 		targetDatabaseDropdown.setRenderer(dataSourceRenderer);
 		
 
-		
-		sourceCatalogDropdown.addActionListener(new SchemaPopulator(sourceSchemaDropdown));
-		targetCatalogDropdown.addActionListener(new SchemaPopulator(targetSchemaDropdown));
-		sourceDatabaseDropdown.addActionListener(new CatalogPopulator(sourceSchemaDropdown,sourceCatalogDropdown));
-		targetDatabaseDropdown.addActionListener(new CatalogPopulator(targetSchemaDropdown,targetCatalogDropdown));
+		sourceSchemaDropdown.addActionListener(new SchemaChangeListener(sourceSchemaDropdown,true));
+		targetSchemaDropdown.addActionListener(new SchemaChangeListener(targetSchemaDropdown,false));
+		sourceCatalogDropdown.addActionListener(new SchemaPopulator(sourceSchemaDropdown,true));
+		targetCatalogDropdown.addActionListener(new SchemaPopulator(targetSchemaDropdown,false));
+		sourceDatabaseDropdown.addActionListener(new CatalogPopulator(sourceSchemaDropdown,sourceCatalogDropdown,true));
+		targetDatabaseDropdown.addActionListener(new CatalogPopulator(targetSchemaDropdown,targetCatalogDropdown,false));
 		
 		
 		targetNewConnButton = new JButton("New...");
@@ -302,30 +317,31 @@ public class CompareDMPanel extends JPanel {
 		progressBar.setVisible(false);
 
 		// layout compare methods check box and syntax combox
-		JRadioButton sourceLikeTargetButton = new JRadioButton();
+		sourceLikeTargetButton = new JRadioButton();
 		sourceLikeTargetButton.setName("sourceLikeTargetButton");
 		sourceLikeTargetButton.setActionCommand("source like target");
-		sourceLikeTargetButton.setSelected(false);
+		sourceLikeTargetButton.setSelected(true);
 
-		JRadioButton targetLikeSourceButton = new JRadioButton( );
+		targetLikeSourceButton = new JRadioButton( );
 		targetLikeSourceButton.setName("targetLikeSourceButton");
 		targetLikeSourceButton.setActionCommand("target like source");
 		targetLikeSourceButton.setSelected(false);
 
-		JRadioButton justCompareButton = new JRadioButton();
+		justCompareButton = new JRadioButton();
 		justCompareButton.setName("justCompareButton");
 		justCompareButton.setActionCommand("compare");
-		justCompareButton.setSelected(true);
+		justCompareButton.setSelected(false);
+		justCompareButton.setEnabled(false);
 
 		//Group the radio buttons.
-		ButtonGroup operationGroup = new ButtonGroup();
+		operationGroup = new ButtonGroup();
 		operationGroup.add(sourceLikeTargetButton);
 		operationGroup.add(targetLikeSourceButton);
 		operationGroup.add(justCompareButton);
 
 		sqlTypeDropdown = new JComboBox(DDLUtils.getDDLTypes());
 		sqlTypeDropdown.setName("sqlTypeDropDown");
-		OutputChoiceListener listener = new OutputChoiceListener(sqlTypeDropdown);
+		OutputChoiceListener listener = new OutputChoiceListener(sqlTypeDropdown,justCompareButton,targetLikeSourceButton);
 		JRadioButton sqlButton = new JRadioButton( );
 		sqlButton.setName("sqlButton");
 		sqlButton.setActionCommand("sqlButton");
@@ -460,20 +476,28 @@ public class CompareDMPanel extends JPanel {
 	public class OutputChoiceListener implements ActionListener {
 
 		JComboBox cb;
+		JRadioButton justCompareButton;
+		JRadioButton targetLikeSourceButton;		// default choice
 		
-		public OutputChoiceListener(JComboBox cb)
+		public OutputChoiceListener(JComboBox cb, JRadioButton justCompareButton, JRadioButton targetLikeSourceButton)
 		{
 			this.cb =cb;
+			this.justCompareButton = justCompareButton;
+			this.targetLikeSourceButton = targetLikeSourceButton;
 		}
 		
 		public void actionPerformed(ActionEvent e) {
 			if (e.getActionCommand().equals("sqlButton"))
 			{
 				cb.setEnabled(true);
+				if ( justCompareButton.isSelected() )
+					targetLikeSourceButton.setSelected(true);
+				justCompareButton.setEnabled( false);
 			}
 			else
 			{
 				cb.setEnabled(false);
+				justCompareButton.setEnabled(true);
 			}
 			
 		}
@@ -520,14 +544,14 @@ public class CompareDMPanel extends JPanel {
 		private SQLDatabase db;
 		private SQLObject schemaParent;
 		private List<SQLObject> children = null;
+		private boolean isSource;
 		
 			
-		public CatalogPopulator(JComboBox schemas, JComboBox catalogs)
+		public CatalogPopulator(JComboBox schemas, JComboBox catalogs, boolean isSource)
 		{
 			this.catalogs = catalogs;
 			this.schemas = schemas;
-		
-			
+			this.isSource = isSource;
 		}
 		
 	
@@ -541,6 +565,8 @@ public class CompareDMPanel extends JPanel {
 			if (ds != null)
 			{
 				db = new SQLDatabase(ds);
+				if ( isSource ) 		sourceDatabase = db;
+				else					targetDatabase = db;
 				try {
 					progressMonitor = db.getProgressMonitor();
 				} catch (ArchitectException e1) {
@@ -557,7 +583,15 @@ public class CompareDMPanel extends JPanel {
 			}
 			else
 			{
-			
+				if ( isSource ) {
+					sourceSQLCatalog = null;
+					sourceSQLSchema = null;
+				}
+				else {
+					targetSQLCatalog = null;
+					targetSQLSchema = null;
+				}
+				
 				catalogs.removeAllItems();
 				catalogs.setEnabled(false);
 			
@@ -572,10 +606,18 @@ public class CompareDMPanel extends JPanel {
 		@Override
 		public void cleanup() {
 
+			if ( isSource ) {
+				sourceSQLCatalog = null;
+			}
+			else {
+				targetSQLCatalog = null;
+			}
 			catalogs.removeAllItems();
 			catalogs.setEnabled(false);
+			
 			if  (children!= null)
 			{
+				
 				for (SQLObject item : children) {
 					catalogs.addItem(item);
 				}
@@ -584,6 +626,13 @@ public class CompareDMPanel extends JPanel {
 			// If it has an item set this enabled
 			if (catalogs.getItemCount() > 0) {
 				catalogs.setEnabled(true);
+
+				if ( isSource ) {
+					sourceSQLCatalog = (SQLCatalog) catalogs.getSelectedItem();
+				}
+				else {
+					targetSQLCatalog = (SQLCatalog) catalogs.getSelectedItem();
+				}
 				
 				if (schemaParent == null)
 				{
@@ -597,6 +646,14 @@ public class CompareDMPanel extends JPanel {
 					public void cleanup() {
 						schemas.removeAllItems();
 						schemas.setEnabled(false);
+						
+						if ( isSource ) {
+							sourceSQLSchema = null;
+						}
+						else {
+							targetSQLSchema = null;
+						}
+
 						if (schemaChildren != null)
 						{
 							for (SQLObject item : schemaChildren) {
@@ -605,6 +662,12 @@ public class CompareDMPanel extends JPanel {
 							
 							// If it has an item set this enabled
 							if (schemas.getItemCount() > 0) {
+								if ( isSource ) {
+									sourceSQLSchema = (SQLSchema) schemas.getSelectedItem();
+								}
+								else {
+									targetSQLSchema = (SQLSchema) schemas.getSelectedItem();
+								}
 								schemas.setEnabled(true);
 							}
 						}
@@ -643,11 +706,10 @@ public class CompareDMPanel extends JPanel {
 				db.populate();
 				if (db.isCatalogContainer())
 				{
-					
 					children = db.getChildren();
 					
 				}
-				else
+				else if ( db.isSchemaContainer() )
 				{
 					schemaParent = db;
 				}
@@ -664,11 +726,13 @@ public class CompareDMPanel extends JPanel {
 		private JComboBox schemas;
 		private JComboBox catalogs;
 		private List<SQLObject> children = null;
+		private boolean isSource;
 		
 		
-		public SchemaPopulator(JComboBox schemas)
+		public SchemaPopulator(JComboBox schemas, boolean isSource)
 		{		
 			this.schemas = schemas;
+			this.isSource = isSource;
 		}
 		
 	
@@ -676,9 +740,21 @@ public class CompareDMPanel extends JPanel {
 		public void actionPerformed(ActionEvent e) {
 
 			catalogs = (JComboBox)e.getSource();
-			children = null;	
+			if ( isSource ) {
+				sourceSQLCatalog = null;
+			}
+			else {
+				targetSQLSchema = null;
+			}
+			
 			if (catalogs != null)
 			{
+				if ( isSource ) {
+					sourceSQLCatalog = (SQLCatalog) catalogs.getSelectedItem();
+				}
+				else {
+					targetSQLCatalog = (SQLCatalog) catalogs.getSelectedItem();
+				}
 				schemas.removeAllItems();
 				schemas.setEnabled(false);
 			}
@@ -695,6 +771,12 @@ public class CompareDMPanel extends JPanel {
 		public void cleanup() {
 			schemas.removeAllItems();
 			schemas.setEnabled(false);
+			if ( isSource ) {
+				sourceSQLSchema = null;
+			}
+			else {
+				targetSQLSchema = null;
+			}
 			
 			if  (children!= null)
 			{
@@ -706,6 +788,12 @@ public class CompareDMPanel extends JPanel {
 			}
 			// If it has an item set this enabled
 			if (schemas.getItemCount() > 0) {
+				if ( isSource ) {
+					sourceSQLSchema = (SQLSchema) schemas.getSelectedItem();
+				}
+				else {
+					targetSQLSchema = (SQLSchema) schemas.getSelectedItem();
+				}
 				schemas.setEnabled(true);
 			}
 			startCompareAction.setEnabled(isStartable());
@@ -729,6 +817,27 @@ public class CompareDMPanel extends JPanel {
 	}
 
 
+	public class SchemaChangeListener implements ActionListener {
+
+		
+		private SQLSchema sch;
+		private JComboBox cb;
+		private boolean isSource;
+
+		public SchemaChangeListener(JComboBox cb, boolean isSource) {
+			this.isSource = isSource;
+			this.cb = cb;
+		}
+			
+		public void actionPerformed(ActionEvent e) {
+			if ( cb != null )
+				if ( isSource )
+					sourceSQLSchema = (SQLSchema) cb.getSelectedItem();
+				else
+					targetSQLSchema = (SQLSchema) cb.getSelectedItem();
+		}
+	}
+
 	public class SourceOptionListener implements ActionListener {
 
 		public void actionPerformed(ActionEvent e) {
@@ -745,7 +854,6 @@ public class CompareDMPanel extends JPanel {
 			}
 		}
 	}
-
 	
 
 	public interface Lister  {
@@ -809,119 +917,165 @@ public class CompareDMPanel extends JPanel {
 
 	public class StartCompareAction extends AbstractAction {
 		
+		private HashMap sourceTableList;
+		private HashMap targetTableList;
+		private HashMap diffList;
+		private final int A2B = 1;
+		private final int B2A = 2;
+		private final int ALL = 3;
+		
+		
+		
+		private int compareMode;
+		
 		public StartCompareAction() {
 			super("Start");
-		}
-
-		public void enableIfPossible() {
-			if ( sourceDatabase != null && targetDatabase != null ) {
-				setEnabled(true);
+			sourceTableList = new HashMap();
+			targetTableList = new HashMap();
+			diffList = new HashMap();
+			
+			if ( sourceLikeTargetButton.isSelected() ) {
+				compareMode = A2B;
+			} else if ( targetLikeSourceButton.isSelected() ) {
+				compareMode = B2A;
+			} else if ( justCompareButton.isSelected() ) {
+				compareMode = ALL;
 			}
 		}
 		
 		public void actionPerformed(ActionEvent e) {
 
+			startCompareAction.setEnabled(false);
+			
+		
 			try {
-				
-				startCompareAction.setEnabled(false);
-				
-				SimpleAttributeSet attrsMsg = new SimpleAttributeSet();
-		        StyleConstants.setFontFamily(attrsMsg, "Courier New");
-		        StyleConstants.setFontSize(attrsMsg, 12);
-		        StyleConstants.setForeground(attrsMsg, Color.orange);
-				        
 
-		        	sourceSQLCatalog = sourceDatabase.getCatalogByName((String)sourceCatalogDropdown.getSelectedItem());
-		        	targetSQLCatalog = targetDatabase.getCatalogByName((String)targetCatalogDropdown.getSelectedItem());
-				if (sourceSQLCatalog != null)
-				{
-					sourceSQLSchema =null;
-					for (Object o:sourceSQLCatalog.getChildren())
-					{
-						if (o instanceof SQLSchema)
-						{
-							if ( ((SQLSchema)(o)).getName().equals((String)sourceSchemaDropdown.getSelectedItem()))
-							{
-							
-								sourceSQLSchema = (SQLSchema)o;
-							}
-						}
+				SQLObject o = null;
+				if ( sourcePhysicalRadio.isSelected()) {
+					if ( sourceSQLSchema != null ) {
+						o = sourceSQLSchema;
 					}
-				}
-				else
-				{
-					sourceSQLSchema = sourceDatabase.getSchemaByName((String)sourceSchemaDropdown.getSelectedItem());
-				}
-				if (targetSQLCatalog != null){
-					targetSQLSchema = null;
-					for (Object o:targetSQLCatalog.getChildren())
-					{
-						if (o instanceof SQLSchema)
-						{
-							if ( ((SQLSchema)(o)).getName().equals((String)targetSchemaDropdown.getSelectedItem()))
-							{
-							
-								targetSQLSchema = (SQLSchema)o;
-							}
-						}
+					else if ( sourceSQLCatalog != null ) {
+						o = sourceSQLCatalog;
 					}
+					else if ( sourceDatabase != null ) {
+						o = sourceDatabase;
+					}
+					
+				}
+				else {
+					o = ArchitectFrame.getMainInstance().playpen.getDatabase();
+				}
+				
+				if ( o == null || o.getChildType() != SQLTable.class || o.getChildCount() == 0 ) {
+				} else { 
+					for ( SQLTable t : (List<SQLTable>) o.getChildren() )
+						sourceTableList.put(t.getName(),t);
+				}
+				
+				o = null;
+				if ( targetSQLSchema != null ) {
+					o = targetSQLSchema;
+				}
+				else if ( targetSQLCatalog != null ) {
+					o = targetSQLCatalog;
+				}
+				else if ( targetDatabase != null ) {
+					o = targetDatabase;
+				}
+				
+				if ( o == null || o.getChildType() != SQLTable.class || o.getChildCount() == 0 ) {
 				} else {
-					targetSQLSchema = targetDatabase.getSchemaByName((String)targetSchemaDropdown.getSelectedItem());
-
+					for ( SQLTable t : (List<SQLTable>) o.getChildren() )
+						targetTableList.put(t.getName(),t);
+				}
+								
+				LabelValueBean lvb = null;
+				GenericDDLGenerator ddlgen = null;
+				if ( sqlTypeDropdown.isEnabled() ) {
+					lvb = (LabelValueBean) sqlTypeDropdown.getSelectedItem();
+					ddlgen = (GenericDDLGenerator) (((Class)lvb.getValue())).newInstance();
 				}
 				
-				if (targetSQLSchema != null && sourceSQLSchema != null)
-				{
-					LabelValueBean lvb =(LabelValueBean) sqlTypeDropdown.getSelectedItem();
+				CompareSchemaWorker worker = new CompareSchemaWorker(sourceTableList,targetTableList,diffList);
 					
-					
-					CompareSchemaWorker worker = new CompareSchemaWorker(sourceSQLSchema,targetSQLSchema,(GenericDDLGenerator)(((Class )(lvb.getValue())).newInstance()));
-					
-					StyledDocument styledDoc = outputTextPane.getStyledDocument();
-					if (styledDoc instanceof AbstractDocument) {
-						outputDoc = (AbstractDocument)styledDoc;
-					} else {
-						System.err.println("Text pane's document isn't an AbstractDocument!");
-						return;
-					}
-					
-					outputDoc.insertString(outputDoc.getLength(),
-							"Please wait..." + worker.getJobSize() + newline, attrsMsg );
-					
-					CompareProgressWatcher watcher = new CompareProgressWatcher(progressBar,worker);
-					new javax.swing.Timer(100, watcher).start();
-					new Thread(worker).start();
+				CompareProgressWatcher watcher = new CompareProgressWatcher(progressBar,worker);
+				new javax.swing.Timer(100, watcher).start();
+				new Thread(worker).start();
+
+				
+				for ( mySSQLObject object : (Collection<mySSQLObject> )(diffList.values()) ) {
+					System.out.println("diff:"+object.getName()+" source?"+object.isFromSource()+"  type:"+object.getClass());
 				}
 
 			} catch ( ArchitectException exp) {
 				logger.error("SchemaListerProgressWatcher failt2", exp);
-			} catch (BadLocationException ble) {
-	            logger.error("Couldn't insert styled text.");
-	        } catch (InstantiationException ie) {
+			} catch (InstantiationException ie) {
 				logger.error("Someone put a non GenericDDLGenerator class into the lvb contained in the source pulldown menu",ie);
 			} catch (IllegalAccessException iae) {
 				logger.error("Cannot access the classes's constructor ",iae);
 			}
+			
+			CompareDMFrame cf = new CompareDMFrame( new DefaultStyledDocument(), sourceDatabase, targetDatabase.getName(), "SQL" );
+			cf.pack();
+			cf.setVisible(true);
+			
 		}
 	}
 	
 
-	
+	public class mySSQLObject {
+		private boolean isFromSource;
+		private String name;
+		private SQLObject object;
+		
+		public mySSQLObject (boolean source,String name, SQLObject obj) {
+			this.isFromSource = source;
+			this.name = name;
+			this.object = obj;
+		}
+		public boolean isFromSource() {
+			return isFromSource;
+		}
+		public void setFromSource(boolean isFromSource) {
+			this.isFromSource = isFromSource;
+		}
+		public String getName() {
+			return name;
+		}
+		public void setName(String name) {
+			this.name = name;
+		}
+		public SQLObject getObject() {
+			return object;
+		}
+		public void setObject(SQLObject object) {
+			this.object = object;
+		}
+		
+	}
 	public class CompareSchemaWorker implements Runnable {
 		
-		private SQLSchema source;
-		private SQLSchema target;
+		private HashMap sourceTableList;
+		private HashMap targetTableList;
+		private HashMap diffList;
 		int	jobSize;
 		int	progress;
 		boolean finished;
 		private GenericDDLGenerator ddlGenerator;
 		
-		public CompareSchemaWorker (SQLSchema source, SQLSchema target, GenericDDLGenerator gen ) throws ArchitectException {
-			this.source = source;
-			this.target = target;
-			jobSize = source.getChildren().size();
+		
+		//collection of sqltable<sqlobject> sqlcolumn<sqlobject> from<string>
+		
+		public CompareSchemaWorker (HashMap sourceTableList, HashMap targetTableList, HashMap diffList ) throws ArchitectException {
+			
+		
+			this.sourceTableList = sourceTableList;
+			this.targetTableList = targetTableList;
+			this.diffList = diffList;
+			
+			jobSize = targetTableList.size()+sourceTableList.size();
 			progress = 0;
-			ddlGenerator = gen;
 			finished = false;
 		}
 
@@ -939,132 +1093,49 @@ public class CompareDMPanel extends JPanel {
 		
 		public void run() {
 			
-			final DefaultStyledDocument output = new DefaultStyledDocument();
-            
-			
-			SimpleAttributeSet attrsSource = new SimpleAttributeSet();
-			SimpleAttributeSet attrsTarget = new SimpleAttributeSet();
-			SimpleAttributeSet attrsSame = new SimpleAttributeSet();
-			SimpleAttributeSet attrsMsg = new SimpleAttributeSet();
-
-	        StyleConstants.setFontFamily(attrsSource, "Courier New");
-	        StyleConstants.setFontSize(attrsSource, 12);
-	        StyleConstants.setForeground(attrsSource, Color.red);
-
-	        StyleConstants.setFontFamily(attrsTarget, "Courier New");
-	        StyleConstants.setFontSize(attrsTarget, 12);
-	        StyleConstants.setForeground(attrsTarget, Color.green);
-
-	        StyleConstants.setFontFamily(attrsSame, "Courier New");
-	        StyleConstants.setFontSize(attrsSame, 12);
-	        StyleConstants.setForeground(attrsSame, Color.black);
-	        
-	        StyleConstants.setFontFamily(attrsMsg, "Courier New");
-	        StyleConstants.setFontSize(attrsMsg, 12);
-	        StyleConstants.setForeground(attrsMsg, Color.orange);
-	        
 			try {
-
-				List sourceTablesList = source.getChildren();
-				List targetTablesList = target.getChildren();
 				
-				Iterator it = sourceTablesList.iterator();
-				while (it.hasNext()) {
-					SQLObject table = (SQLObject) it.next();
-					if ( table instanceof SQLTable ) {
+				for ( SQLTable sourceTable : (Collection<SQLTable> )(sourceTableList.values()) ) {
+					SQLTable targetTable = null;
+					if ( (targetTable = (SQLTable)targetTableList.get(sourceTable.getName())) != null ) {
 
-						SQLTable targetTable = targetSQLSchema.getTableByName( table.getName() );
-						if ( targetTable == null ) {
-							
-							output.insertString(output.getLength(),
-											"<<<TABLE NOT FOUND IN " + 
-											targetDatabase.getDataSource().getDisplayName() +
-											"." + targetSchemaDropdown.getSelectedItem() + ">>>" + newline,
-											 attrsMsg );
+						for ( SQLColumn col : (List<SQLColumn>)(sourceTable.getColumns()) ) {
+							SQLColumn col2 = targetTable.getColumnByName(col.getName(),false);
+							if ( col2 == null )
+								diffList.put("SOURCE", sourceTable);
+							else if ( col.getSourceDataTypeName() != col2.getSourceDataTypeName() ||
+									 col.getPrecision() != col2.getPrecision() ||
+									 col.getScale() != col2.getScale() ) {
 
-							output.insertString(output.getLength(),
-											table.toString() +
-											newline, attrsSource );
+									diffList.put(col.getName(),new mySSQLObject(true,col.getName(),col));
+									diffList.put(col2.getName(),new mySSQLObject(false,col2.getName(),col2));
+							}
 						}
-						else {
-
-							output.insertString(output.getLength(),
-											newline + table.toString() + newline, attrsSame );
-
-							Iterator it2 = (((SQLTable)table).getColumns()).iterator();
-							while (it2.hasNext()) {
-								SQLObject column = (SQLObject) it2.next();
-								if ( column instanceof SQLColumn ) {
-									SQLColumn targetColumn = targetTable.getColumnByName( ((SQLColumn)column).getName() );
-									if ( targetColumn == null ) {
-
-										output.insertString(output.getLength(),
-											" <<<NEW COLUMN>>>" + newline, attrsMsg );
-										output.insertString(output.getLength(),
-													"      " + ((SQLColumn)column).toString() + newline,
-													attrsSource );
-									}
-									else {
-										
-										
-													
-										if ( ((SQLColumn)column).getType() != targetColumn.getType() ) {
-
-											output.insertString(output.getLength(),
-												" <<<DIFFERENT DATA TYPE>>>" + newline, attrsMsg );
-											output.insertString(output.getLength(),
-													"      " + ((SQLColumn)column).getName(), attrsSame );
-
-											output.insertString(output.getLength(),
-												"    " +
-												ca.sqlpower.architect.swingui.SQLType.getTypeName(((SQLColumn)column).getType())
-												+"("+((SQLColumn)column).getScale()+")"
-												+ newline,
-												attrsSource );
-										}
-										else if ( ((SQLColumn)column).getScale() != targetColumn.getScale() ) {
-
-											output.insertString(output.getLength(),
-												" <<<DIFFERENT SCALE>>>" + newline, attrsMsg );
-											output.insertString(output.getLength(),
-													"      " + ((SQLColumn)column).getName() + "   " +
-													ca.sqlpower.architect.swingui.SQLType.getTypeName(((SQLColumn)column).getType()) ,
-													attrsSame );
-											output.insertString(output.getLength(),
-												"  ("+((SQLColumn)column).getScale()+")" + newline,
-												attrsSource );
-										}
-										else {
-											output.insertString(output.getLength(),
-												"  " +
-												ca.sqlpower.architect.swingui.SQLType.getTypeName(((SQLColumn)column).getType())
-												+"("+((SQLColumn)column).getScale()+")"
-												+ newline,
-												attrsSame );
-										} // compare column data type/scale
-									} // column
-								} // is column
-							} // while table children
-						} // table exist
-					} // is table
-					
+						
+						targetTableList.remove(sourceTable.getName());
+						progress++;
+					}
+					else {
+						diffList.put( sourceTable.getName(), new mySSQLObject(true,sourceTable.getName(),sourceTable));
+					}
 					progress++;
-				} // schema children, while loop
-			} catch ( ArchitectException exp ) {
-				System.err.println(exp.toString());
-			} catch (BadLocationException ble) {
-	            System.err.println("Couldn't insert styled text.");
-	        }
+				}
+
+				for ( SQLTable targetTable : (Collection<SQLTable> )(targetTableList.values()) ) {
+					diffList.put( targetTable.getName(), new mySSQLObject(false,targetTable.getName(),targetTable));
+					progress++;
+				}
+				
+			} catch (ArchitectException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 	        finally {
-	        	finished = true;
+	        		finished = true;
 	        }
-			
-			
-			
 			
 			SwingUtilities.invokeLater(new Runnable() {
 				public void run() {
-					outputTextPane.setDocument(output);
 				}
 			});
 		}
