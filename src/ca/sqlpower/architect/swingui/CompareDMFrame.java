@@ -83,6 +83,7 @@ public class CompareDMFrame extends JFrame{
 		JScrollPane sp = new JScrollPane();
 		sp.add(outputArea);
 		panel.add(sp,BorderLayout.CENTER);
+
 /*		builder.add (new JButton(copy));		
 		builder.add (new JButton(execute));
 		builder.add (new JButton(save));
