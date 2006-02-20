@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.sql.DataSource;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
@@ -48,6 +49,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.DeferredLoadable;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
@@ -234,7 +236,7 @@ public class CompareDMPanel extends JPanel {
 		sourcePlayPenRadio = new JRadioButton();
 		sourcePlayPenRadio.setName("sourcePlayPenRadio");
 		sourcePlayPenRadio.setActionCommand("Project");
-		sourcePlayPenRadio.setSelected(true);
+		
 
 		sourcePhysicalRadio = new JRadioButton();
 		sourcePhysicalRadio.setName("sourcePhysicalRadio");
@@ -244,6 +246,8 @@ public class CompareDMPanel extends JPanel {
 		ButtonGroup sourceButtonGroup = new ButtonGroup();
 		sourceButtonGroup.add(sourcePlayPenRadio);
 		sourceButtonGroup.add(sourcePhysicalRadio);
+		// Generate an action so we load the playpen DataSource
+		sourcePlayPenRadio.doClick();
 
 		//Register a listener for the radio buttons.
 		sourcePlayPenRadio.addActionListener(new SourceOptionListener());
@@ -842,11 +846,16 @@ public class CompareDMPanel extends JPanel {
 
 		public void actionPerformed(ActionEvent e) {
 			if (e.getActionCommand().equals("Project")) {
+				sourceDatabase = ArchitectFrame.getMainInstance().getProject().getPlayPen().getDatabase();
 				sourceDatabaseDropdown.setEnabled(false);
 				sourceNewConnButton.setEnabled(false);
 				sourceCatalogDropdown.setEnabled(false);
 				sourceSchemaDropdown.setEnabled(false);
 			} else {
+				if (sourceDatabaseDropdown.getSelectedIndex()>0)
+				{
+					sourceDatabase = new SQLDatabase((ArchitectDataSource) sourceDatabaseDropdown.getSelectedItem());
+				}
 				sourceDatabaseDropdown.setEnabled(true);
 				sourceNewConnButton.setEnabled(true);
 				sourceCatalogDropdown.setEnabled(false);
@@ -1005,7 +1014,7 @@ public class CompareDMPanel extends JPanel {
 
 				
 				for ( mySSQLObject object : (Collection<mySSQLObject> )(diffList.values()) ) {
-					System.out.println("diff:"+object.getName()+" source?"+object.isFromSource()+"  type:"+object.getClass());
+					System.out.println("diff:"+object.getObject().getName()+" source?"+object.isFromSource()+"  type:"+object.getClass());
 				}
 
 			} catch ( ArchitectException exp) {
@@ -1026,12 +1035,10 @@ public class CompareDMPanel extends JPanel {
 
 	public class mySSQLObject {
 		private boolean isFromSource;
-		private String name;
 		private SQLObject object;
 		
-		public mySSQLObject (boolean source,String name, SQLObject obj) {
+		public mySSQLObject (boolean source, SQLObject obj) {
 			this.isFromSource = source;
-			this.name = name;
 			this.object = obj;
 		}
 		public boolean isFromSource() {
@@ -1039,12 +1046,6 @@ public class CompareDMPanel extends JPanel {
 		}
 		public void setFromSource(boolean isFromSource) {
 			this.isFromSource = isFromSource;
-		}
-		public String getName() {
-			return name;
-		}
-		public void setName(String name) {
-			this.name = name;
 		}
 		public SQLObject getObject() {
 			return object;
@@ -1102,13 +1103,13 @@ public class CompareDMPanel extends JPanel {
 						for ( SQLColumn col : (List<SQLColumn>)(sourceTable.getColumns()) ) {
 							SQLColumn col2 = targetTable.getColumnByName(col.getName(),false);
 							if ( col2 == null )
-								diffList.put("SOURCE", sourceTable);
-							else if ( col.getSourceDataTypeName() != col2.getSourceDataTypeName() ||
+								diffList.put(col.getName(),new mySSQLObject(true,col));
+							else if ( col.getType() != col2.getType() ||
 									 col.getPrecision() != col2.getPrecision() ||
 									 col.getScale() != col2.getScale() ) {
 
-									diffList.put(col.getName(),new mySSQLObject(true,col.getName(),col));
-									diffList.put(col2.getName(),new mySSQLObject(false,col2.getName(),col2));
+									diffList.put(col.getName(),new mySSQLObject(true,col));
+									diffList.put(col2.getName(),new mySSQLObject(false,col2));
 							}
 						}
 						
@@ -1116,13 +1117,13 @@ public class CompareDMPanel extends JPanel {
 						progress++;
 					}
 					else {
-						diffList.put( sourceTable.getName(), new mySSQLObject(true,sourceTable.getName(),sourceTable));
+						diffList.put( sourceTable.getName(), new mySSQLObject(true,sourceTable));
 					}
 					progress++;
 				}
 
 				for ( SQLTable targetTable : (Collection<SQLTable> )(targetTableList.values()) ) {
-					diffList.put( targetTable.getName(), new mySSQLObject(false,targetTable.getName(),targetTable));
+					diffList.put( targetTable.getName(), new mySSQLObject(false,targetTable));
 					progress++;
 				}
 				
