@@ -185,6 +185,7 @@ public class CompareDMPanel extends JPanel {
 	private JRadioButton sourcePlayPenRadio;
 	private JRadioButton sourcePhysicalRadio;
 	private StartCompareAction startCompareAction;
+	private JRadioButton sqlButton; 
 
 	private ButtonGroup operationGroup;
 	JRadioButton sourceLikeTargetButton;
@@ -346,7 +347,7 @@ public class CompareDMPanel extends JPanel {
 		sqlTypeDropdown = new JComboBox(DDLUtils.getDDLTypes());
 		sqlTypeDropdown.setName("sqlTypeDropDown");
 		OutputChoiceListener listener = new OutputChoiceListener(sqlTypeDropdown,justCompareButton,targetLikeSourceButton);
-		JRadioButton sqlButton = new JRadioButton( );
+		sqlButton = new JRadioButton( );
 		sqlButton.setName("sqlButton");
 		sqlButton.setActionCommand("sqlButton");
 		sqlButton.setSelected(true);
@@ -1024,8 +1025,19 @@ public class CompareDMPanel extends JPanel {
 			} catch (IllegalAccessException iae) {
 				logger.error("Cannot access the classes's constructor ",iae);
 			}
+			// get the title string for the compareDMFrame
+			String compMethod = null;
+			if (sqlButton.isSelected())
+			{
+				compMethod = "SQL";
+			}
+			else
+			{
+				compMethod = "english";
+			}
+			String titleString = "Comparing " + " to " + " using "+compMethod;
 			
-			CompareDMFrame cf = new CompareDMFrame( new DefaultStyledDocument(), sourceDatabase, targetDatabase.getName(), "SQL" );
+			CompareDMFrame cf = new CompareDMFrame( new DefaultStyledDocument(), sourceDatabase,  titleString,titleString);
 			cf.pack();
 			cf.setVisible(true);
 			
