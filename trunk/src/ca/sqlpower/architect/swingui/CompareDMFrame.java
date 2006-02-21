@@ -1,24 +1,31 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Insets;
 import java.awt.Toolkit;
-import java.awt.Window;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
-import java.sql.SQLData;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.border.EmptyBorder;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
 
 import org.apache.log4j.Logger;
 
@@ -26,71 +33,114 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
+import com.jgoodies.forms.builder.DefaultFormBuilder;
+import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.debug.FormDebugPanel;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.RowSpec;
 
 public class CompareDMFrame extends JFrame{
 
 	private static Logger logger = Logger.getLogger(CompareDMFrame.class);
-	private AbstractDocument outputText;
-	private String sourceName;
-	private JPanel panel;
-	private SQLObject source;
-	private String targetName;
-	private String outputType;
-	private JLabel title;
 	private JTextArea outputArea;
-	private ButtonBarBuilder builder;	
+	private AbstractDocument outputText;
+	private String title;
+	private SQLDatabase target;
+	private static JComponent panel;
 			
-	public CompareDMFrame(AbstractDocument outputDocument, SQLObject source, 
-			String targetName, String outputType)
+	public CompareDMFrame(AbstractDocument outputText, String title, SQLDatabase target)
 	{
-		super();
-		
-		
-		this.outputText = outputDocument;
-		outputArea = new JTextArea("test");	
-		outputArea.setEditable(false);
-		this.source = source;
-		this.sourceName = source.getName();
-		this.targetName = targetName;
-		this.outputType = outputType;
-		mainFrame();
+		super();	
+		setTitle("Data Model comparison");
+		this.outputText = outputText;
+		this.title = title;
+		this.target = target;
+		panel = mainFrame();
 	}
 	
-	public void mainFrame() {
+	public JComponent mainFrame() {
 		
-		panel = new JPanel();
-		panel.setLayout (new BorderLayout());
-		builder = new ButtonBarBuilder();	
+		
+		FormLayout layout = new FormLayout(
+				"right:pref, 6dlu, min:grow, 4dlu, default", // columns
+				"pref, 3dlu, pref, 3dlu, 30dlu"); // rows
+		
+		PanelBuilder pb = new PanelBuilder(layout,new FormDebugPanel());
+		CellConstraints cc = new CellConstraints();
+		
+		pb.add(new JLabel(title), cc.xy(1, 1));
+		
+		outputArea = new JTextArea(10,40);
+		outputArea.setMargin(new Insets(6, 10, 4, 6));
+		outputArea.setDocument(outputText);
+		outputArea.setEditable(false);
+		
+		JScrollPane sp = new JScrollPane(outputArea);
+		
+		
+		
+/*		JTextArea textArea = new JTextArea(5, 20);
+        textArea.setEditable(false);
+        textArea.setMargin(new Insets(6, 10, 4, 6));
+        textArea.setText("The text field used in the example on the left\n" +
+        "has a narrow minimum width and a wider preferred width.\n\n" +
+        "If you move the split divider to the left and right\n" +
+        "you can see how 'Default' shrinks the field if space is scarce.\n\n" +
+        "If there's not enough space for the preferred width\n" + 
+        "the bottom field will be 'cut' on the right-hand side.");
+        JScrollPane scrollpane = new JScrollPane(textArea);
+        scrollpane.setBorder(new EmptyBorder(0, 0, 0, 0));*/
+        
+        
+        pb.add(sp, cc.xy(1, 3));
+
+		 
+	
 		Action copy = new CopyAction(outputText);
 		Action execute = new AbstractAction(){
-
 			public void actionPerformed(ActionEvent e) {
 				//TODO: Implement execute function
 			}			
 		};
-		Action save = new AbstractAction(){
 
+		Action save = new AbstractAction(){
 			public void actionPerformed(ActionEvent e) {
 				//TODO: Implement Save function
 			}			
 		};
 		CloseAction close = new CloseAction();
 		close.setFrame(this);
-								
-		title = new JLabel("Comparing " + sourceName + " to " +  
-				targetName + " using " + outputType );
-		panel.add(title, BorderLayout.NORTH);
-		JScrollPane sp = new JScrollPane();
-		sp.add(outputArea);
-		panel.add(sp,BorderLayout.CENTER);
+		
+		ButtonBarBuilder bbBuilder = new ButtonBarBuilder();
+		JButton copyButton = new JButton(copy);
+		copyButton.setLabel("Copy");
+		bbBuilder.addGridded(copyButton);
+		bbBuilder.addRelatedGap();
+		bbBuilder.addGlue();
+		
+		JButton executeButton = new JButton(execute);
+		executeButton.setLabel("Execute");
+		bbBuilder.addGridded(executeButton);
+		bbBuilder.addRelatedGap();
+		bbBuilder.addGlue();
+		if ( execute == null ) {
+			execute.setEnabled(false);
+		}
+		
+		JButton saveButton = new JButton(save);
+		saveButton.setLabel("Save");
+		bbBuilder.addGridded(saveButton);
+		bbBuilder.addRelatedGap();
+		bbBuilder.addGlue();
+		
+		JButton closeButton = new JButton(close);
+		closeButton.setLabel("Close");
+		bbBuilder.addGridded(closeButton);
 
-/*		builder.add (new JButton(copy));		
-		builder.add (new JButton(execute));
-		builder.add (new JButton(save));
-		builder.add (new JButton (close));*/	
-		panel.add(builder.getPanel(),BorderLayout.SOUTH);
-		add(panel);
-		pack();
+		pb.add(bbBuilder.getPanel(), cc.xy(1, 5));
+		return pb.getPanel();
+
 	}
 	
 	public class CopyAction extends AbstractAction{
@@ -124,18 +174,57 @@ public class CompareDMFrame extends JFrame{
 		}						
 	}
 	
+	final private static String newline="\n";
 	/**
 	 * Just for testing the form layout without running the whole Architect.
 	 * 
 	 * <p>The frame it makes is EXIT_ON_CLOSE, so you should never use this
 	 * in a real app.
+	 * @throws BadLocationException 
 	 */
-	public static void main(String[] args) {
-		final JFrame f = new JFrame("Testing compare dm panel");
+	public static void main(String[] args) throws BadLocationException {
+
+		try {
+            UIManager.setLookAndFeel("com.jgoodies.plaf.plastic.PlasticXPLookAndFeel");
+        } catch (Exception e) {
+            // Likely PlasticXP is not in the class path; ignore.
+        }
+        
+        SimpleAttributeSet attrsSource = new SimpleAttributeSet();
+		SimpleAttributeSet attrsTarget = new SimpleAttributeSet();
+		SimpleAttributeSet attrsSame = new SimpleAttributeSet();
+		SimpleAttributeSet attrsMsg = new SimpleAttributeSet();
+
+        StyleConstants.setFontFamily(attrsSource, "Courier New");
+        StyleConstants.setFontSize(attrsSource, 12);
+        StyleConstants.setForeground(attrsSource, Color.red);
+
+        StyleConstants.setFontFamily(attrsTarget, "Courier New");
+        StyleConstants.setFontSize(attrsTarget, 12);
+        StyleConstants.setForeground(attrsTarget, Color.green);
+
+        StyleConstants.setFontFamily(attrsSame, "Courier New");
+        StyleConstants.setFontSize(attrsSame, 12);
+        StyleConstants.setForeground(attrsSame, Color.black);
+        
+        StyleConstants.setFontFamily(attrsMsg, "Courier New");
+        StyleConstants.setFontSize(attrsMsg, 12);
+        StyleConstants.setForeground(attrsMsg, Color.orange);
+        
+        DefaultStyledDocument doc = new DefaultStyledDocument();
+        doc.insertString(doc.getLength(),"line 1 - normal line"+newline, attrsMsg);
+        doc.insertString(doc.getLength(),"line 2 - red line"+newline, attrsSource);
+        doc.insertString(doc.getLength(),"line 3 - green line"+newline, attrsTarget);
+        doc.insertString(doc.getLength(),"line 4 - black line"+newline, attrsSame);
+        doc.insertString(doc.getLength(),"line 5 - normal line"+newline, attrsMsg);
+        
+        final JFrame f = new CompareDMFrame(doc,"compare test A to test B in english",new SQLDatabase());
 		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		f.getContentPane().add(panel);
+        
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
-				f.add(new CompareDMFrame( new DefaultStyledDocument(), new SQLDatabase(), "target", "SQL" ).getPanel());
+	
 				f.pack();
 				f.setVisible(true);
 			};
@@ -143,7 +232,7 @@ public class CompareDMFrame extends JFrame{
 	}
 
 	public JPanel getPanel() {
-		return panel;
+		return (JPanel) panel;
 	}
 
 	public void setPanel(JPanel panel) {
