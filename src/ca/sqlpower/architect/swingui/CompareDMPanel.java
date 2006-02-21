@@ -1037,7 +1037,7 @@ public class CompareDMPanel extends JPanel {
 			}
 			String titleString = "Comparing " + " to " + " using "+compMethod;
 			
-			CompareDMFrame cf = new CompareDMFrame( new DefaultStyledDocument(), sourceDatabase,  titleString,titleString);
+			CompareDMFrame cf = new CompareDMFrame( new DefaultStyledDocument(), titleString, sourceDatabase);
 			cf.pack();
 			cf.setVisible(true);
 			
