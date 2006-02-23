@@ -1,26 +1,19 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.TreeSet;
 
-import javax.sql.DataSource;
 import javax.swing.AbstractAction;
-import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultListCellRenderer;
@@ -30,7 +23,6 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
@@ -39,19 +31,13 @@ import javax.swing.JTextPane;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingUtilities;
 import javax.swing.text.AbstractDocument;
-import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyledDocument;
 
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.DeferredLoadable;
 import ca.sqlpower.architect.SQLCatalog;
-import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLSchema;
@@ -64,7 +50,6 @@ import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.debug.FormDebugPanel;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-import com.sun.org.apache.xpath.internal.axes.HasPositionalPredChecker;
 
 public class CompareDMPanel extends JPanel {
 	private static final Logger logger = Logger.getLogger(CompareDMPanel.class);
@@ -927,9 +912,10 @@ public class CompareDMPanel extends JPanel {
 
 	public class StartCompareAction extends AbstractAction {
 		
-		private HashMap sourceTableList;
-		private HashMap targetTableList;
-		private HashMap diffList;
+		private TreeSet<SQLTable> sourceTableSet;
+		private TreeSet<SQLTable> targetTableSet;
+		private AbstractDocument leftDiff;
+		private AbstractDocument rightDiff;
 		private final int A2B = 1;
 		private final int B2A = 2;
 		private final int ALL = 3;
@@ -940,9 +926,53 @@ public class CompareDMPanel extends JPanel {
 		
 		public StartCompareAction() {
 			super("Start");
-			sourceTableList = new HashMap();
-			targetTableList = new HashMap();
-			diffList = new HashMap();
+			sourceTableSet = new TreeSet<SQLTable>(new Comparator<SQLTable>(){
+				public int compare(SQLTable t1, SQLTable t2)
+				{
+					if (t1 != null && t2 != null)
+					{
+						return t1.getName().compareTo(t2.getName());
+					}
+					else
+					{
+						// if t1 is null t2 is greater
+						if (t1 == null)
+						{
+							return -1;
+						}
+						else
+						{
+							// if t2 is null t1 is greater
+							return 1;
+						}
+					}
+				}
+			
+			});
+			targetTableSet = new TreeSet<SQLTable>(new Comparator<SQLTable>(){
+				public int compare(SQLTable t1, SQLTable t2)
+				{
+					if (t1 != null && t2 != null)
+					{
+						return t1.getName().compareTo(t2.getName());
+					}
+					else
+					{
+						// if t1 is null t2 is greater
+						if (t1 == null)
+						{
+							return -1;
+						}
+						else
+						{
+							// if t2 is null t1 is greater
+							return 1;
+						}
+					}
+				}
+			});
+			rightDiff = new DefaultStyledDocument();
+			leftDiff = new DefaultStyledDocument();
 			
 			if ( sourceLikeTargetButton.isSelected() ) {
 				compareMode = A2B;
@@ -980,7 +1010,7 @@ public class CompareDMPanel extends JPanel {
 				if ( o == null || o.getChildType() != SQLTable.class || o.getChildCount() == 0 ) {
 				} else { 
 					for ( SQLTable t : (List<SQLTable>) o.getChildren() )
-						sourceTableList.put(t.getName(),t);
+						sourceTableSet.add(t);
 				}
 				
 				o = null;
@@ -997,26 +1027,40 @@ public class CompareDMPanel extends JPanel {
 				if ( o == null || o.getChildType() != SQLTable.class || o.getChildCount() == 0 ) {
 				} else {
 					for ( SQLTable t : (List<SQLTable>) o.getChildren() )
-						targetTableList.put(t.getName(),t);
+						targetTableSet.add(t);
 				}
 								
 				LabelValueBean lvb = null;
-				GenericDDLGenerator ddlgen = null;
+				GenericDDLGenerator sourceDdlgen = null;
+				GenericDDLGenerator targetDdlgen = null;
+				
 				if ( sqlTypeDropdown.isEnabled() ) {
 					lvb = (LabelValueBean) sqlTypeDropdown.getSelectedItem();
-					ddlgen = (GenericDDLGenerator) (((Class)lvb.getValue())).newInstance();
+					sourceDdlgen = (GenericDDLGenerator) (((Class)lvb.getValue())).newInstance();
+				}
+				else
+				{
+					sourceDdlgen = new GenericDDLGenerator();
+				}
+				if ( targetDatabaseDropdown.isEnabled() ) {
+					lvb = (LabelValueBean) targetDatabaseDropdown.getSelectedItem();
+					targetDdlgen = (GenericDDLGenerator) (((Class)lvb.getValue())).newInstance();
+				}
+				else
+				{
+					targetDdlgen = new GenericDDLGenerator();
 				}
 				
-				CompareSchemaWorker worker = new CompareSchemaWorker(sourceTableList,targetTableList,diffList);
-					
+				CompareSchemaWorker worker = new CompareSchemaWorker(sourceTableSet,targetTableSet,leftDiff,rightDiff,sourceDdlgen,targetDdlgen, !sqlButton.isSelected());
+									
 				CompareProgressWatcher watcher = new CompareProgressWatcher(progressBar,worker);
 				new javax.swing.Timer(100, watcher).start();
 				new Thread(worker).start();
 
 				
-				for ( mySSQLObject object : (Collection<mySSQLObject> )(diffList.values()) ) {
-					System.out.println("diff:"+object.getObject().getName()+" source?"+object.isFromSource()+"  type:"+object.getClass());
-				}
+//				for ( mySSQLObject object : (Collection<mySSQLObject> )(diffList.values()) ) {
+//					System.out.println("diff:"+object.getObject().getName()+" source?"+object.isFromSource()+"  type:"+object.getClass());
+//				}
 
 			} catch ( ArchitectException exp) {
 				logger.error("SchemaListerProgressWatcher failt2", exp);
@@ -1067,94 +1111,6 @@ public class CompareDMPanel extends JPanel {
 		}
 		
 	}
-	public class CompareSchemaWorker implements Runnable {
-		
-		private HashMap sourceTableList;
-		private HashMap targetTableList;
-		private HashMap diffList;
-		int	jobSize;
-		int	progress;
-		boolean finished;
-		private GenericDDLGenerator ddlGenerator;
-		
-		
-		//collection of sqltable<sqlobject> sqlcolumn<sqlobject> from<string>
-		
-		public CompareSchemaWorker (HashMap sourceTableList, HashMap targetTableList, HashMap diffList ) throws ArchitectException {
-			
-		
-			this.sourceTableList = sourceTableList;
-			this.targetTableList = targetTableList;
-			this.diffList = diffList;
-			
-			jobSize = targetTableList.size()+sourceTableList.size();
-			progress = 0;
-			finished = false;
-		}
-
-		public int getJobSize() throws ArchitectException {
-			return jobSize;
-		}
-		
-		public int getProgress() {
-			return progress;
-		}
-		
-		public boolean isFinished() throws ArchitectException {
-			return finished;
-		}
-		
-		public void run() {
-			
-			try {
-				
-				for ( SQLTable sourceTable : (Collection<SQLTable> )(sourceTableList.values()) ) {
-					SQLTable targetTable = null;
-					if ( (targetTable = (SQLTable)targetTableList.get(sourceTable.getName())) != null ) {
-
-						for ( SQLColumn col : (List<SQLColumn>)(sourceTable.getColumns()) ) {
-							SQLColumn col2 = targetTable.getColumnByName(col.getName(),false);
-							if ( col2 == null )
-								diffList.put(col.getName(),new mySSQLObject(true,col));
-							else if ( col.getType() != col2.getType() ||
-									 col.getPrecision() != col2.getPrecision() ||
-									 col.getScale() != col2.getScale() ) {
-
-									diffList.put(col.getName(),new mySSQLObject(true,col));
-									diffList.put(col2.getName(),new mySSQLObject(false,col2));
-							}
-						}
-						
-						targetTableList.remove(sourceTable.getName());
-						progress++;
-					}
-					else {
-						diffList.put( sourceTable.getName(), new mySSQLObject(true,sourceTable));
-					}
-					progress++;
-				}
-
-				for ( SQLTable targetTable : (Collection<SQLTable> )(targetTableList.values()) ) {
-					diffList.put( targetTable.getName(), new mySSQLObject(false,targetTable));
-					progress++;
-				}
-				
-			} catch (ArchitectException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-	        finally {
-	        		finished = true;
-	        }
-			
-			SwingUtilities.invokeLater(new Runnable() {
-				public void run() {
-				}
-			});
-		}
-	}
-	
-	
 	public class CompareProgressWatcher implements ActionListener {
 		private JProgressBar bar;
 		private CompareSchemaWorker worker;
@@ -1165,19 +1121,15 @@ public class CompareDMPanel extends JPanel {
 		}
 
 		public void actionPerformed(ActionEvent evt) {
-			try {
-				int max = worker.getJobSize();
-				bar.setVisible(true);
-				bar.setMaximum(max);
-				bar.setValue(worker.getProgress());
-				bar.setIndeterminate(false);
-				if ( worker.isFinished() ) {
-					bar.setVisible(false);
-					((javax.swing.Timer)evt.getSource()).stop();
-					startCompareAction.setEnabled(true);
-				}
-			} catch ( ArchitectException e ) {
-				logger.error("getProgress2 failt", e);
+			int max = worker.getJobSize();
+			bar.setVisible(true);
+			bar.setMaximum(max);
+			bar.setValue(worker.getProgress());
+			bar.setIndeterminate(false);
+			if ( worker.isFinished() ) {
+				bar.setVisible(false);
+				((javax.swing.Timer)evt.getSource()).stop();
+				startCompareAction.setEnabled(true);
 			}
 		}
 	

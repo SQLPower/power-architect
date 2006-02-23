@@ -4,6 +4,7 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import regress.ca.sqlpower.architect.layout.TestFruchtermanReingoldForceLayout;
+import regress.ca.sqlpower.architect.swingui.CompareSchemaWorkerTest;
 import regress.ca.sqlpower.architect.swingui.TestArchitectFrame;
 import regress.ca.sqlpower.architect.swingui.TestAutoLayoutAction;
 import regress.ca.sqlpower.architect.swingui.TestColumnEditPanel;
@@ -27,6 +28,7 @@ public class ArchitectSwingTestSuite extends TestCase {
 		suite.addTestSuite(TestSQLObjectUndoableEventAdapter.class);
 		suite.addTestSuite(TestFruchtermanReingoldForceLayout.class);
 		suite.addTestSuite(TestCompareDMPanel.class);
+		suite.addTestSuite(CompareSchemaWorkerTest.class);
 		//$JUnit-END$
 		return suite;
 	}
