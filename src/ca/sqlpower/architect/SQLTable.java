@@ -951,7 +951,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 *
 	 * @return the value of columns
 	 */
-	public synchronized List getColumns() throws ArchitectException {
+	public synchronized List<SQLColumn> getColumns() throws ArchitectException {
 		populateColumns();
 		return columnsFolder.getChildren();
 	}

@@ -1,6 +1,5 @@
 package ca.sqlpower.architect.swingui;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Insets;
 import java.awt.Toolkit;
@@ -10,17 +9,15 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
+import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import javax.swing.border.EmptyBorder;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
@@ -30,24 +27,23 @@ import javax.swing.text.StyleConstants;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObject;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
-import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.debug.FormDebugPanel;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.RowSpec;
 
 public class CompareDMFrame extends JFrame{
 
 	private static Logger logger = Logger.getLogger(CompareDMFrame.class);
-	private JTextArea outputArea;
+	private JTextPane outputArea;
 	private AbstractDocument outputText;
+
 	private String title;
 	private SQLDatabase target;
 	private static JComponent panel;
+
 			
 	public CompareDMFrame(AbstractDocument outputText, String title, SQLDatabase target)
 	{
@@ -63,39 +59,23 @@ public class CompareDMFrame extends JFrame{
 		
 		
 		FormLayout layout = new FormLayout(
-				"right:pref, 6dlu, min:grow, 4dlu, default", // columns
+				"4dlu,pref:grow, 6dlu, min:grow, 4dlu, default", // columns
 				"pref, 3dlu, pref, 3dlu, 30dlu"); // rows
 		
 		PanelBuilder pb = new PanelBuilder(layout,new FormDebugPanel());
 		CellConstraints cc = new CellConstraints();
 		
-		pb.add(new JLabel(title), cc.xy(1, 1));
+		pb.add(new JLabel(title), cc.xy(2, 1));
 		
-		outputArea = new JTextArea(10,40);
+		outputArea = new JTextPane();
 		outputArea.setMargin(new Insets(6, 10, 4, 6));
 		outputArea.setDocument(outputText);
 		outputArea.setEditable(false);
 		
-		JScrollPane sp = new JScrollPane(outputArea);
-		
-		
-		
-/*		JTextArea textArea = new JTextArea(5, 20);
-        textArea.setEditable(false);
-        textArea.setMargin(new Insets(6, 10, 4, 6));
-        textArea.setText("The text field used in the example on the left\n" +
-        "has a narrow minimum width and a wider preferred width.\n\n" +
-        "If you move the split divider to the left and right\n" +
-        "you can see how 'Default' shrinks the field if space is scarce.\n\n" +
-        "If there's not enough space for the preferred width\n" + 
-        "the bottom field will be 'cut' on the right-hand side.");
-        JScrollPane scrollpane = new JScrollPane(textArea);
-        scrollpane.setBorder(new EmptyBorder(0, 0, 0, 0));*/
+		JScrollPane sp = new JScrollPane(outputArea);     
         
-        
-        pb.add(sp, cc.xy(1, 3));
+        pb.add(sp, cc.xy(2, 3));
 
-		 
 	
 		Action copy = new CopyAction(outputText);
 		Action execute = new AbstractAction(){
@@ -111,16 +91,17 @@ public class CompareDMFrame extends JFrame{
 		};
 		CloseAction close = new CloseAction();
 		close.setFrame(this);
+
 		
 		ButtonBarBuilder bbBuilder = new ButtonBarBuilder();
 		JButton copyButton = new JButton(copy);
-		copyButton.setLabel("Copy");
+		copyButton.setText("Copy");
 		bbBuilder.addGridded(copyButton);
 		bbBuilder.addRelatedGap();
 		bbBuilder.addGlue();
 		
 		JButton executeButton = new JButton(execute);
-		executeButton.setLabel("Execute");
+		executeButton.setText("Execute");
 		bbBuilder.addGridded(executeButton);
 		bbBuilder.addRelatedGap();
 		bbBuilder.addGlue();
@@ -129,17 +110,18 @@ public class CompareDMFrame extends JFrame{
 		}
 		
 		JButton saveButton = new JButton(save);
-		saveButton.setLabel("Save");
+		saveButton.setText("Save");
 		bbBuilder.addGridded(saveButton);
 		bbBuilder.addRelatedGap();
 		bbBuilder.addGlue();
 		
 		JButton closeButton = new JButton(close);
-		closeButton.setLabel("Close");
+		closeButton.setText("Close");
 		bbBuilder.addGridded(closeButton);
 
 		pb.add(bbBuilder.getPanel(), cc.xy(1, 5));
 		return pb.getPanel();
+
 
 	}
 	
