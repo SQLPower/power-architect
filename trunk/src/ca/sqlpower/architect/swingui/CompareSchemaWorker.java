@@ -40,8 +40,11 @@ public class CompareSchemaWorker implements Runnable {
 	private SimpleAttributeSet attrsAdd = null;
 
 	private SimpleAttributeSet attrsDefault = null;
+	
+	private SimpleAttributeSet attrsModify = null;
+	
 
-	private enum printType {MISSING,ADDED,SAME};
+	private enum printType {MISSING,ADDED,SAME, MODIFY};
 	int jobSize;
 
 	int progress;
@@ -50,39 +53,67 @@ public class CompareSchemaWorker implements Runnable {
 
 
 	private boolean english;
-	private GenericDDLGenerator sourceGen;
-	private GenericDDLGenerator targetGen;
+	private Map<Integer,GenericTypeDescriptor> sourceType;
+	private Map<Integer,GenericTypeDescriptor> targetType;
+
+	private GenericDDLGenerator sqlDdlgen;
+
+	private AbstractDocument sqlDiff;
 	// collection of sqltable<sqlobject> sqlcolumn<sqlobject> from<string>
 
+	/**
+	 * Use this constructor to compare the two tables in english
+	 */
 	public CompareSchemaWorker(TreeSet<SQLTable> sourceTableList,
 			TreeSet<SQLTable> targetTableList, AbstractDocument sourceDiff,
-			AbstractDocument targetDiff,GenericDDLGenerator leftGen, GenericDDLGenerator rightGen,
-			boolean inEnglish) {
+			AbstractDocument targetDiff,Map<Integer,GenericTypeDescriptor> leftType, Map<Integer,GenericTypeDescriptor> rightType) {
 		
-		this.sourceTableList = sourceTableList;
-		this.targetTableList = targetTableList;
+		this(sourceTableList,targetTableList,leftType,rightType);
 		this.sourceDiff = sourceDiff;
 		this.targetDiff = targetDiff;
-		this.targetGen = rightGen;
-		this.sourceGen = leftGen;
-		this.english = inEnglish;
+
+		this.english = true;
+		
+		
+
+	}
+
+	/**
+	 *  Use this constructor to generate a sql script
+	 */
+	public CompareSchemaWorker(TreeSet<SQLTable> sourceTableSet, TreeSet<SQLTable> targetTableSet, AbstractDocument sqlDiff, Map<Integer, GenericTypeDescriptor> typeMap, Map<Integer, GenericTypeDescriptor> typeMap2, GenericDDLGenerator sqlDdlgen) {
+		this(sourceTableSet,targetTableSet,typeMap,typeMap2);
+		this.sqlDiff = sqlDiff;
+		this.sqlDdlgen = sqlDdlgen;
+		this.english = false;
+	}
+
+	/**
+	 * The common constructor 
+	 */
+	private CompareSchemaWorker(TreeSet<SQLTable> sourceTableSet, TreeSet<SQLTable> targetTableSet,Map<Integer, GenericTypeDescriptor> typeMap, Map<Integer, GenericTypeDescriptor> typeMap2)
+	{
+		this.targetType = typeMap2;
+		this.sourceType = typeMap;
+		this.sourceTableList = sourceTableSet;
+		this.targetTableList = targetTableSet;
 		jobSize = targetTableList.size() + sourceTableList.size();
 		progress = 0;
 		finished = false;
 		attrsDelete = new SimpleAttributeSet();
 		attrsAdd = new SimpleAttributeSet();
 		attrsDefault = new SimpleAttributeSet();
+		attrsModify = new SimpleAttributeSet();
 
 		StyleConstants.setForeground(attrsDelete, Color.red);
 
 		StyleConstants.setForeground(attrsAdd, Color.green);
+		StyleConstants.setForeground(attrsModify, Color.yellow);
 
 		// StyleConstants.setFontFamily(attrsDefault, "Courier New");
 		// StyleConstants.setFontSize(attrsDefault, 12);
 		StyleConstants.setForeground(attrsDefault, Color.black);
-
 	}
-
 	public int getJobSize() {
 		return jobSize;
 	}
@@ -316,11 +347,11 @@ public class CompareSchemaWorker implements Runnable {
 				while (colComparator.compare(sourceColumn, targetColumn) < 0) {
 					if (targetDiff != null) {
 						targetDiff.insertString(targetDiff.getLength(),
-								printColumn (sourceColumn, printType.MISSING),attrsAdd);										
+								printColumn (printType.MISSING, sourceColumn, null, sourceType),attrsAdd);										
 					}
 					if (sourceDiff != null) {
 						sourceDiff.insertString(sourceDiff.getLength(),
-								printColumn (sourceColumn, printType.ADDED), attrsDelete);
+								printColumn (printType.ADDED, sourceColumn, null, sourceType), attrsDelete);
 					}
 					if (sourceColIter.hasNext()) {
 						sourceColumn = (SQLColumn) sourceColIter.next();
@@ -334,11 +365,11 @@ public class CompareSchemaWorker implements Runnable {
 				while (colComparator.compare(sourceColumn, targetColumn) > 0) {
 					if (targetDiff != null) {
 						targetDiff.insertString(targetDiff.getLength(),
-								printColumn (targetColumn, printType.ADDED), attrsDelete);
+								printColumn (printType.ADDED, targetColumn,null, targetType), attrsDelete);
 					}
 					if (sourceDiff != null) {
 						sourceDiff.insertString(sourceDiff.getLength(),
-								printColumn (targetColumn, printType.MISSING),attrsAdd);
+								printColumn (printType.MISSING, targetColumn,null, targetType),attrsAdd);
 
 					}
 					if (targetColIter.hasNext()) {
@@ -351,62 +382,82 @@ public class CompareSchemaWorker implements Runnable {
 
 				// Comparing Columns
 				while (colComparator.compare(sourceColumn, targetColumn) == 0) {
-					if (targetDiff != null) {
-						targetDiff.insertString(targetDiff.getLength(),
-								printColumn (targetColumn, printType.SAME), attrsDefault);
+					GenericTypeDescriptor td = targetType.get(targetColumn.getType());
+					
+					if (targetColumn.getType() != sourceColumn.getType() || 
+							(td.getHasPrecision() && targetColumn.getPrecision() != sourceColumn.getPrecision()) 
+							|| (td.getHasScale() && targetColumn.getScale() != sourceColumn.getScale()))
+					{
+					
+						if (targetDiff != null) {
+							targetDiff.insertString(targetDiff.getLength(),
+									printColumn (printType.MODIFY, targetColumn,sourceColumn, targetType), attrsModify);
+						}
+						if (sourceDiff != null) {
+							sourceDiff.insertString(sourceDiff.getLength(),
+									printColumn (printType.MODIFY, sourceColumn,targetColumn, sourceType), attrsModify);
+						}
 					}
-					if (sourceDiff != null) {
-						sourceDiff.insertString(sourceDiff.getLength(),
-								printColumn (targetColumn, printType.SAME), attrsDefault);
+					else {
+						if (targetDiff != null) {
+							targetDiff.insertString(targetDiff.getLength(),
+									printColumn (printType.SAME, targetColumn,null, targetType), attrsDefault);
+						}
+						if (sourceDiff != null) {
+							sourceDiff.insertString(sourceDiff.getLength(),
+									printColumn (printType.SAME, targetColumn,null, targetType), attrsDefault);
+						}
 					}
 					if (targetColIter.hasNext()) {
 						targetColumn = (SQLColumn) targetColIter.next();
 					} else {
 						targetColContinue = false;
-						break;
+						
 					}
 
 					if (sourceColIter.hasNext()) {
 						sourceColumn = (SQLColumn) sourceColIter.next();
-					}
-
-					else {
+					} else {
 						sourceColContinue = false;
+						
+					}
+					if(!sourceColContinue ||!targetColContinue)
+					{
 						break;
 					}
 				}
 			}
-				while (sourceColContinue) {
-					if (targetDiff != null) {
-						targetDiff.insertString(targetDiff.getLength(),
-								printColumn (sourceColumn, printType.MISSING), attrsAdd);
-					}
-					if (sourceDiff != null) {
-						sourceDiff.insertString(sourceDiff.getLength(),
-								printColumn (sourceColumn, printType.ADDED),attrsDelete);
-					}
-					if (sourceColIter.hasNext()) {
-						sourceColumn = (SQLColumn) sourceColIter.next();
-					} else {
-						sourceColContinue = false;
-					}
+			while (sourceColContinue) {
+				if (targetDiff != null) {
+					targetDiff.insertString(targetDiff.getLength(),
+							printColumn (printType.MISSING, sourceColumn, null, sourceType), attrsAdd);
 				}
-
-				while (targetColContinue) {
-					if (targetDiff != null) {
-						targetDiff.insertString(targetDiff.getLength(),
-								printColumn (targetColumn, printType.ADDED), attrsDelete);
-					}
-					if (sourceDiff != null) {
-						sourceDiff.insertString(sourceDiff.getLength(),
-								printColumn(targetColumn, printType.MISSING), attrsAdd);
-					}
-					if (targetColIter.hasNext()) {
-						targetColumn = (SQLColumn) targetColIter.next();
-					} else {
-						targetColContinue = false;
-					}
+				if (sourceDiff != null) {
+					sourceDiff.insertString(sourceDiff.getLength(),
+							printColumn (printType.ADDED, sourceColumn, null, sourceType),attrsDelete);
 				}
+				if (sourceColIter.hasNext()) {
+					sourceColumn = (SQLColumn) sourceColIter.next();
+				} else {
+					sourceColContinue = false;
+				}
+			}
+			
+			while (targetColContinue) {
+				if (targetDiff != null) {
+					targetDiff.insertString(targetDiff.getLength(),
+							printColumn (printType.ADDED, targetColumn,null, targetType), attrsDelete);
+				}
+				if (sourceDiff != null) {
+					sourceDiff.insertString(sourceDiff.getLength(),
+							printColumn(printType.MISSING, targetColumn,null, targetType), attrsAdd);
+				}
+				if (targetColIter.hasNext()) {
+					targetColumn = (SQLColumn) targetColIter.next();
+				} else {
+					targetColContinue = false;
+				}
+			}
 			
 		} catch (ArchitectException e) {
 			logger.debug("Architect exception in compareSchemaWorker", e);
@@ -436,10 +487,33 @@ public class CompareSchemaWorker implements Runnable {
 		return text.toString();
 	}
 
-	private String printColumn (SQLColumn column, printType type){
+	private String printColumn (printType type, SQLColumn originalColumn, SQLColumn modifyTo, Map<Integer, GenericTypeDescriptor> typeMap){
 		StringBuffer text = new StringBuffer() ;
-		
-		if (type == printType.MISSING){
+		GenericTypeDescriptor td = typeMap.get(originalColumn.getType());
+		if (type == printType.MODIFY  && td != null)
+		{
+			GenericTypeDescriptor modifyTd = typeMap.get(modifyTo.getType());
+			text.append("\tModify column "+originalColumn.getName() +" from type: "+td.getName());
+			if (td.getHasPrecision()){
+				text.append("("+ originalColumn.getPrecision() );		
+				if (td.getHasScale()){
+					text.append("," + originalColumn.getScale());
+				}
+				text.append(")");
+			}
+			text.append(" to type: "+modifyTd.getName());
+			if (modifyTd.getHasPrecision()){
+				text.append("("+ modifyTo.getPrecision() );		
+				if (modifyTd.getHasScale()){
+					text.append("," + modifyTo.getScale());
+				}
+				text.append(")");
+			}
+			text.append("\n");
+			
+			
+			
+		}else if (type == printType.MISSING){
 			text.append("\tMissing column: ");
 		}
 		
@@ -451,10 +525,23 @@ public class CompareSchemaWorker implements Runnable {
 			text.append("\tSame column: ");			
 		}
 		
-		text.append (column.getName() + "\n");
+		if (td!=null &&type != printType.MODIFY)
+		{
+			text.append (originalColumn.getName() + ": " + td.getName());
+			
+			
+			if (td.getHasPrecision()){
+				text.append("("+ originalColumn.getPrecision() );		
+				if (td.getHasScale()){
+					text.append("," + originalColumn.getScale());
+				}
+				text.append(")");
+			}
+			text.append("\n");
+		}
 		return text.toString();
-		
 	}
+	
 	public AbstractDocument getLeftDiff() {
 		return sourceDiff;
 	}
