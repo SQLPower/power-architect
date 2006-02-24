@@ -18,6 +18,7 @@ import java.beans.PropertyChangeEvent;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectDataSource;
+import ca.sqlpower.architect.ddl.GenericTypeDescriptor;
 import ca.sqlpower.architect.jdbc.ConnectionFacade;
 
 public class SQLDatabase extends SQLObject implements java.io.Serializable, PropertyChangeListener {
@@ -39,6 +40,10 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	 */
 	protected boolean ignoreReset = false;
 
+	/**
+	 * The valid types for this database
+	 */
+	private Map<Integer,GenericTypeDescriptor> typeMap = null;
 
 	/**
 	 * Constructor for instances that connect to a real database by JDBC.
@@ -58,6 +63,34 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 
 	public synchronized boolean isConnected() {
 		return connection != null;
+	}
+
+	
+	
+	public Map<Integer,GenericTypeDescriptor> getTypeMap() {
+		if (typeMap == null)
+		{
+			if (connection == null ) {
+				throw new UnsupportedOperationException("Can't create a type map without DatabaseMetaData");
+			}
+			try 
+			{
+			typeMap = new HashMap<Integer,GenericTypeDescriptor>();
+			DatabaseMetaData dbmd = connection.getMetaData();
+			ResultSet rs = dbmd.getTypeInfo();
+			while (rs.next()) {
+				GenericTypeDescriptor td = new GenericTypeDescriptor(rs);
+				typeMap.put(new Integer(td.getDataType()), td);
+			}
+			rs.close();
+			}
+			catch(SQLException e)
+			{
+				logger.debug("Unable to generate type map", e);
+			}
+		}
+
+		return typeMap;
 	}
 
 	/**

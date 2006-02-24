@@ -53,14 +53,17 @@ public class CompareDMFrame extends JFrame{
 		this.title = title;
 		this.target = target;
 		panel = mainFrame();
+		getContentPane().add(panel);
+		this.pack();
+		this.setVisible(true);
 	}
 	
 	public JComponent mainFrame() {
 		
 		
 		FormLayout layout = new FormLayout(
-				"4dlu,pref:grow, 6dlu, min:grow, 4dlu, default", // columns
-				"pref, 3dlu, pref, 3dlu, 30dlu"); // rows
+				"4dlu,fill:pref:grow, 6dlu, min:grow, 4dlu, default", // columns
+				"pref, 3dlu, fill:pref:grow, 3dlu, 30dlu"); // rows
 		
 		PanelBuilder pb = new PanelBuilder(layout,new FormDebugPanel());
 		CellConstraints cc = new CellConstraints();
@@ -119,7 +122,7 @@ public class CompareDMFrame extends JFrame{
 		closeButton.setText("Close");
 		bbBuilder.addGridded(closeButton);
 
-		pb.add(bbBuilder.getPanel(), cc.xy(1, 5));
+		pb.add(bbBuilder.getPanel(), cc.xy(2, 5));
 		return pb.getPanel();
 
 

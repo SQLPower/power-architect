@@ -916,6 +916,7 @@ public class CompareDMPanel extends JPanel {
 		private TreeSet<SQLTable> targetTableSet;
 		private AbstractDocument leftDiff;
 		private AbstractDocument rightDiff;
+		private AbstractDocument sqlDiff;
 		private final int A2B = 1;
 		private final int B2A = 2;
 		private final int ALL = 3;
@@ -986,12 +987,14 @@ public class CompareDMPanel extends JPanel {
 		public void actionPerformed(ActionEvent e) {
 
 			startCompareAction.setEnabled(false);
-			
+			CompareDMFrame cf =null;
 		
 			try {
 
+				
 				SQLObject o = null;
 				if ( sourcePhysicalRadio.isSelected()) {
+					
 					if ( sourceSQLSchema != null ) {
 						o = sourceSQLSchema;
 					}
@@ -1004,11 +1007,13 @@ public class CompareDMPanel extends JPanel {
 					
 				}
 				else {
-					o = ArchitectFrame.getMainInstance().playpen.getDatabase();
+					sourceDatabase = ArchitectFrame.getMainInstance().playpen.getDatabase();
+					o=sourceDatabase;
 				}
 				
-				if ( o == null || o.getChildType() != SQLTable.class || o.getChildCount() == 0 ) {
-				} else { 
+				
+				
+				if ( o != null || o.getChildType() == SQLTable.class ) {
 					for ( SQLTable t : (List<SQLTable>) o.getChildren() )
 						sourceTableSet.add(t);
 				}
@@ -1024,39 +1029,49 @@ public class CompareDMPanel extends JPanel {
 					o = targetDatabase;
 				}
 				
-				if ( o == null || o.getChildType() != SQLTable.class || o.getChildCount() == 0 ) {
-				} else {
+				if ( o != null || o.getChildType() == SQLTable.class ) {
 					for ( SQLTable t : (List<SQLTable>) o.getChildren() )
 						targetTableSet.add(t);
 				}
 								
 				LabelValueBean lvb = null;
-				GenericDDLGenerator sourceDdlgen = null;
-				GenericDDLGenerator targetDdlgen = null;
+				GenericDDLGenerator sqlDdlgen = null;
 				
 				if ( sqlTypeDropdown.isEnabled() ) {
 					lvb = (LabelValueBean) sqlTypeDropdown.getSelectedItem();
-					sourceDdlgen = (GenericDDLGenerator) (((Class)lvb.getValue())).newInstance();
+					sqlDdlgen = (GenericDDLGenerator) (((Class)lvb.getValue())).newInstance();
 				}
 				else
 				{
-					sourceDdlgen = new GenericDDLGenerator();
+					sqlDdlgen = new GenericDDLGenerator();
 				}
-				if ( targetDatabaseDropdown.isEnabled() ) {
-					lvb = (LabelValueBean) targetDatabaseDropdown.getSelectedItem();
-					targetDdlgen = (GenericDDLGenerator) (((Class)lvb.getValue())).newInstance();
+				CompareSchemaWorker worker = null;
+				if ( sqlButton.isSelected())
+				{
+					worker = new CompareSchemaWorker(sourceTableSet,targetTableSet,sqlDiff,sourceDatabase.getTypeMap(),targetDatabase.getTypeMap(),sqlDdlgen);
 				}
 				else
 				{
-					targetDdlgen = new GenericDDLGenerator();
+					worker = new CompareSchemaWorker(sourceTableSet,targetTableSet,leftDiff,rightDiff,sourceDatabase.getTypeMap(),targetDatabase.getTypeMap());
 				}
-				
-				CompareSchemaWorker worker = new CompareSchemaWorker(sourceTableSet,targetTableSet,leftDiff,rightDiff,sourceDdlgen,targetDdlgen, !sqlButton.isSelected());
 									
 				CompareProgressWatcher watcher = new CompareProgressWatcher(progressBar,worker);
+				
 				new javax.swing.Timer(100, watcher).start();
 				new Thread(worker).start();
-
+				// get the title string for the compareDMFrame
+				String compMethod = null;
+				if (sqlButton.isSelected())
+				{
+					compMethod = "SQL";
+				}
+				else
+				{
+					compMethod = "english";
+				}
+				String titleString = "Comparing " + " to " + " using "+compMethod;
+				cf = new CompareDMFrame(leftDiff, titleString, sourceDatabase);
+				//CompareDMFrame diffFrame = new CompareDMFrame(leftDiff,"Some title",sourceDatabase);
 				
 //				for ( mySSQLObject object : (Collection<mySSQLObject> )(diffList.values()) ) {
 //					System.out.println("diff:"+object.getObject().getName()+" source?"+object.isFromSource()+"  type:"+object.getClass());
@@ -1069,19 +1084,9 @@ public class CompareDMPanel extends JPanel {
 			} catch (IllegalAccessException iae) {
 				logger.error("Cannot access the classes's constructor ",iae);
 			}
-			// get the title string for the compareDMFrame
-			String compMethod = null;
-			if (sqlButton.isSelected())
-			{
-				compMethod = "SQL";
-			}
-			else
-			{
-				compMethod = "english";
-			}
-			String titleString = "Comparing " + " to " + " using "+compMethod;
+		
 			
-			CompareDMFrame cf = new CompareDMFrame( new DefaultStyledDocument(), titleString, sourceDatabase);
+			
 			cf.pack();
 			cf.setVisible(true);
 			

@@ -1,5 +1,7 @@
 package regress.ca.sqlpower.architect.swingui;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.TreeSet;
 
 import javax.swing.text.BadLocationException;
@@ -9,7 +11,7 @@ import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.ddl.GenericDDLGenerator;
+import ca.sqlpower.architect.ddl.GenericTypeDescriptor;
 import ca.sqlpower.architect.swingui.CompareSchemaWorker;
 import ca.sqlpower.architect.swingui.SQLObjectCompare;
 
@@ -27,6 +29,9 @@ public class CompareSchemaWorkerTest extends TestCase {
 	SQLTable l1;
 	SQLTable l2;
 	
+	private Map<Integer, GenericTypeDescriptor> typeMap;
+	private Map<Integer, GenericTypeDescriptor> typeMap1;
+	
 	
 	protected void setUp() throws Exception {
 		super.setUp();		
@@ -41,11 +46,14 @@ public class CompareSchemaWorkerTest extends TestCase {
 		l2 = new SQLTable(null,"b","actually l2",SQLTable.class.toString(),true);
 		lTableContainer.add(l1);
 		lTableContainer.add(l2);
+		typeMap = new HashMap<Integer, GenericTypeDescriptor> ();
+		typeMap.put(new Integer(0),new GenericTypeDescriptor("MockInteger",0,1,"prefix","suffix",0,false,false));
+		typeMap.put(new Integer(1),new GenericTypeDescriptor("Precision",1,1,"prefix","suffix",0,true,false));
 		
 		r = new DefaultStyledDocument();
 		l = new DefaultStyledDocument();
 		
-		csw = new CompareSchemaWorker(rTableContainer,lTableContainer, r,l,new GenericDDLGenerator(), new GenericDDLGenerator(), true);
+		csw = new CompareSchemaWorker(rTableContainer,lTableContainer, r,l,typeMap,typeMap);
 		csw.run();
 		
 	}
@@ -78,7 +86,7 @@ public class CompareSchemaWorkerTest extends TestCase {
 		TreeSet <SQLTable>rtree = new TreeSet(new SQLObjectCompare());
 		//Both source and target no tables
 		CompareSchemaWorker emptyWorker = new CompareSchemaWorker(ltree,rtree, lDoc,rDoc,
-					new GenericDDLGenerator(), new GenericDDLGenerator(), true);		
+					typeMap,typeMap);		
 		emptyWorker.run();				
 		assertEquals (0, rDoc.getLength());
 		assertEquals (0, lDoc.getLength());
@@ -87,7 +95,7 @@ public class CompareSchemaWorkerTest extends TestCase {
 		
 		//Source has no tables, target does
 		CompareSchemaWorker worker1 = new CompareSchemaWorker (ltree,rTableContainer, lDoc,rDoc, 
-					new GenericDDLGenerator(), new GenericDDLGenerator(), true);
+					typeMap,typeMap);
 		worker1.run();				
 		assertEquals ("Missing table: a\nMissing table: b\n",lDoc.getText(0, lDoc.getLength()));
 		assertEquals ("Extra table: a\nExtra table: b\n",rDoc.getText(0, rDoc.getLength()));
@@ -96,7 +104,7 @@ public class CompareSchemaWorkerTest extends TestCase {
 		DefaultStyledDocument rDoc2 = new DefaultStyledDocument();
 		DefaultStyledDocument lDoc2 = new DefaultStyledDocument();
 		CompareSchemaWorker worker2 = new CompareSchemaWorker (lTableContainer,rtree, lDoc2,rDoc2,
-					new GenericDDLGenerator(), new GenericDDLGenerator(), true);
+					typeMap,typeMap);
 		worker2.run();				
 		assertEquals ("Extra table: b\nExtra table: c\n",lDoc2.getText(0, lDoc2.getLength()));
 		assertEquals ("Missing table: b\nMissing table: c\n",rDoc2.getText(0, rDoc2.getLength()));
@@ -124,6 +132,7 @@ public class CompareSchemaWorkerTest extends TestCase {
 		SQLTable table2 = new SQLTable(null, "b", "actually r2",SQLTable.class.toString(),true); 
 		SQLColumn c3 = new SQLColumn(table2, "Column3", 0,2,3);
 		SQLColumn c4 = new SQLColumn(table2, "Column3a", 0,2,3);
+		SQLColumn c4a = new SQLColumn (table2, "Colum3b",0,2,3);
 		table2.addColumn(c3);
 		table2.addColumn(c4);
 		
@@ -141,21 +150,21 @@ public class CompareSchemaWorkerTest extends TestCase {
 		tree1.add(table1);		
 		
 		CompareSchemaWorker workerNoColAndCols = new CompareSchemaWorker(tree2, tree1, lDoc, rDoc, 
-				new GenericDDLGenerator(), new GenericDDLGenerator(), true);		
+				typeMap,typeMap);		
 		
 		workerNoColAndCols.run();
 
-		assertEquals ("Missing table: a\n\tMissing column: Column1\n\tMissing column: Column2\n", lDoc.getText(0,lDoc.getLength()));
-		assertEquals ("Extra table: a\n\tExtra column: Column1\n\tExtra column: Column2\n", rDoc.getText(0,rDoc.getLength()));
+		assertEquals ("Missing table: a\n\tMissing column: Column1: MockInteger\n\tMissing column: Column2: MockInteger\n", lDoc.getText(0,lDoc.getLength()));
+		assertEquals ("Extra table: a\n\tExtra column: Column1: MockInteger\n\tExtra column: Column2: MockInteger\n", rDoc.getText(0,rDoc.getLength()));
 		
 		DefaultStyledDocument rDocTest2 = new DefaultStyledDocument();
 		DefaultStyledDocument lDocTest2 = new DefaultStyledDocument();
 		
 		CompareSchemaWorker workerColAndNoCols = new CompareSchemaWorker (tree1, tree2, lDocTest2, rDocTest2, 
-				new GenericDDLGenerator(), new GenericDDLGenerator(), true);
+				typeMap,typeMap);
 		workerColAndNoCols.run();
-		assertEquals ("Missing table: a\n\tMissing column: Column1\n\tMissing column: Column2\n", rDocTest2.getText(0,rDocTest2.getLength()));
-		assertEquals ("Extra table: a\n\tExtra column: Column1\n\tExtra column: Column2\n", lDocTest2.getText(0,lDocTest2.getLength()));
+		assertEquals ("Missing table: a\n\tMissing column: Column1: MockInteger\n\tMissing column: Column2: MockInteger\n", rDocTest2.getText(0,rDocTest2.getLength()));
+		assertEquals ("Extra table: a\n\tExtra column: Column1: MockInteger\n\tExtra column: Column2: MockInteger\n", lDocTest2.getText(0,lDocTest2.getLength()));
 		
 		
 		tree1.add(table2);
@@ -165,17 +174,43 @@ public class CompareSchemaWorkerTest extends TestCase {
 		DefaultStyledDocument rDoc3 = new DefaultStyledDocument();
 		DefaultStyledDocument lDoc3 = new DefaultStyledDocument();
 		CompareSchemaWorker workerColAndCol = new CompareSchemaWorker (tree1, tree2, lDoc3, rDoc3, 
-				new GenericDDLGenerator(), new GenericDDLGenerator(), true);
+				typeMap,typeMap );
 		workerColAndCol.run();
-		assertEquals ("Extra table: a\n\tExtra column: Column1\n\tExtra column: Column2\nSame table: b\n\t" +
-				"Same column: Column3\n\tExtra column: Column3a\n\tMissing column: Column3b\nMissing table: " + 
-				"c\n\tMissing column: Column4\n", lDoc3.getText(0,lDoc3.getLength()));
-		assertEquals ("Missing table: a\n\tMissing column: Column1\n\tMissing column: Column2\nSame table: b\n\t" +
-				"Same column: Column3\n\tMissing column: Column3a\n\tExtra column: Column3b\nExtra table: " + 
-				"c\n\tExtra column: Column4\n", rDoc3.getText(0,rDoc3.getLength()));
+		assertEquals ("Extra table: a\n\tExtra column: Column1: MockInteger\n\tExtra column: Column2: MockInteger\nSame table: b\n\t" +
+				"Same column: Column3: MockInteger\n\tExtra column: Column3a: MockInteger\n\tMissing column: Column3b: MockInteger\nMissing table: " + 
+				"c\n\tMissing column: Column4: MockInteger\n", lDoc3.getText(0,lDoc3.getLength()));
+		assertEquals ("Missing table: a\n\tMissing column: Column1: MockInteger\n\tMissing column: Column2: MockInteger\nSame table: b\n\t" +
+				"Same column: Column3: MockInteger\n\tMissing column: Column3a: MockInteger\n\tExtra column: Column3b: MockInteger\nExtra table: " + 
+				"c\n\tExtra column: Column4: MockInteger\n", rDoc3.getText(0,rDoc3.getLength()));
 		
+		TreeSet <SQLTable> tree3 = new TreeSet<SQLTable>(new SQLObjectCompare());
+		TreeSet <SQLTable> tree4 = new TreeSet<SQLTable>(new SQLObjectCompare());
 		
+		DefaultStyledDocument rTest = new DefaultStyledDocument();
+		DefaultStyledDocument lTest = new DefaultStyledDocument();
 		
+		SQLTable t1 = new SQLTable(null, "x", "test x",SQLTable.class.toString(),true);
+		SQLColumn col = new SQLColumn (t1, "test",0,2,3);		
+		t1.addColumn(col);		
+		
+		SQLTable t2 = new SQLTable(null, "x", "test x",SQLTable.class.toString(),true);
+		SQLColumn col2 = new SQLColumn (t2, "test",1,3,3);		
+		t2.addColumn(col2);
+		
+		SQLTable t3 = new SQLTable (null, "z", "test x", SQLTable.class.toString(), true);
+		SQLColumn col3 = new SQLColumn (t3, "test 1", 0,2,3);
+		t3.addColumn(col3);
+		
+		tree3.add(t1);
+		tree4.add(t2);
+		tree4.add(t3);
+		
+		CompareSchemaWorker testDiffColProp = new CompareSchemaWorker(tree3, tree4, lTest, rTest, typeMap, typeMap);
+		testDiffColProp.run();
+		assertEquals ("Same table: x\n\tModify column test from type: MockInteger to type: Precision(3)\n" +
+				"Missing table: z\n\tMissing column: test 1: MockInteger\n", lTest.getText(0,lTest.getLength()));
+		assertEquals ("Same table: x\n\tModify column test from type: Precision(3) to type: MockInteger\n" +
+				"Extra table: z\n\tExtra column: test 1: MockInteger\n", rTest.getText(0,rTest.getLength()));
 		
 		
 		

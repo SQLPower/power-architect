@@ -207,7 +207,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 			getPhysicalName(colNameMap,c); // also adds generated physical name to the map
 			GenericTypeDescriptor td = (GenericTypeDescriptor) typeMap.get(new Integer(c.getType()));
 			if (td == null) {
-				td = (GenericTypeDescriptor) typeMap.get(new Integer(Types.VARCHAR)); //better be non-null!
+				td = (GenericTypeDescriptor) typeMap.get(getDefaultType()); //better be non-null!
 				GenericTypeDescriptor oldType = new GenericTypeDescriptor
 					(c.getSourceDataTypeName(), c.getType(), c.getPrecision(),
 					 null, null, c.getNullable(), false, false);
@@ -247,6 +247,14 @@ public class GenericDDLGenerator implements DDLGenerator {
 		println("");
 	}
 	
+	/**
+	 * Returns the default data type for this platform.  Normally, this can be VARCHAR,
+	 * but if your platform doesn't have a varchar, override this method.
+	 */
+	protected Object getDefaultType() {
+		return Types.VARCHAR;
+	}
+
 	protected void writePrimaryKey(SQLTable t) throws ArchitectException {
 		boolean firstCol = true;
 		Iterator it = t.getColumns().iterator();
