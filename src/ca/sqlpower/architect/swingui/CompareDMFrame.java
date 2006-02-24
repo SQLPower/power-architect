@@ -1,6 +1,7 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
@@ -33,23 +34,31 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.debug.FormDebugPanel;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.CellConstraints.Alignment;
 
 public class CompareDMFrame extends JFrame{
 
 	private static Logger logger = Logger.getLogger(CompareDMFrame.class);
-	private JTextPane outputArea;
-	private AbstractDocument outputText;
+	private JTextPane leftOutputArea;
+	private JTextPane rightOutputArea;
+	
+	private AbstractDocument sourceOutputText;
+	private AbstractDocument targetOutputText;
 
 	private String title;
 	private SQLDatabase target;
 	private static JComponent panel;
+	private String sourceName;
+	private String targetName;
 
 			
-	public CompareDMFrame(AbstractDocument outputText, String title, SQLDatabase target)
+	public CompareDMFrame(AbstractDocument sourceOutputText, AbstractDocument targetOutputText, 
+						String title, SQLDatabase target)
 	{
 		super();	
 		setTitle("Data Model comparison");
-		this.outputText = outputText;
+		this.sourceOutputText = sourceOutputText;
+		this.targetOutputText = targetOutputText;
 		this.title = title;
 		this.target = target;
 		panel = mainFrame();
@@ -63,24 +72,39 @@ public class CompareDMFrame extends JFrame{
 		
 		FormLayout layout = new FormLayout(
 				"4dlu,fill:pref:grow, 6dlu, min:grow, 4dlu, default", // columns
-				"pref, 3dlu, fill:pref:grow, 3dlu, 30dlu"); // rows
+				"pref, 6dlu, pref, 3dlu, fill:pref:grow, 3dlu, 20dlu,6dlu,20dlu"); // rows
 		
 		PanelBuilder pb = new PanelBuilder(layout,new FormDebugPanel());
+		pb.setDefaultDialogBorder();
 		CellConstraints cc = new CellConstraints();
+		Font titleFont = new Font("Arial", 1,16);
+		JLabel titleLabel = new JLabel(title);
+		titleLabel.setFont(titleFont);
+		pb.add(titleLabel, cc.xyw(2, 1, 3,"c,c"));
+		pb.add(new JLabel("Source name: SourceTest"), cc.xy(2,3));
+		pb.add(new JLabel("Target name: TargetTest"), cc.xy(4,3));
 		
-		pb.add(new JLabel(title), cc.xy(2, 1));
+		leftOutputArea = new JTextPane();
+		leftOutputArea.setMargin(new Insets(6, 10, 4, 6));
+		leftOutputArea.setDocument(sourceOutputText);
+		leftOutputArea.setEditable(false);
 		
-		outputArea = new JTextPane();
-		outputArea.setMargin(new Insets(6, 10, 4, 6));
-		outputArea.setDocument(outputText);
-		outputArea.setEditable(false);
 		
-		JScrollPane sp = new JScrollPane(outputArea);     
+		
+		JScrollPane sp = new JScrollPane(leftOutputArea);     
         
-        pb.add(sp, cc.xy(2, 3));
-
+        pb.add(sp, cc.xy(2, 5));
+        
+        rightOutputArea = new JTextPane();
+		rightOutputArea.setMargin(new Insets(6, 10, 4, 6));
+		rightOutputArea.setDocument(sourceOutputText);
+		rightOutputArea.setEditable(false);
+		
+		JScrollPane sp1 = new JScrollPane(rightOutputArea);
+		
+		pb.add(sp1, cc.xy (4,5));
 	
-		Action copy = new CopyAction(outputText);
+		Action sourceCopy = new sourceCopyAction(sourceOutputText);
 		Action execute = new AbstractAction(){
 			public void actionPerformed(ActionEvent e) {
 				//TODO: Implement execute function
@@ -95,43 +119,74 @@ public class CompareDMFrame extends JFrame{
 		CloseAction close = new CloseAction();
 		close.setFrame(this);
 
+		//Sets the Source Buttons
+		ButtonBarBuilder sourcebbBuilder = new ButtonBarBuilder();
+		JButton copySource = new JButton(sourceCopy);
+		copySource.setText("Copy");
+		sourcebbBuilder.addGridded (copySource);
+		sourcebbBuilder.addRelatedGap();
+		sourcebbBuilder.addGlue();
 		
-		ButtonBarBuilder bbBuilder = new ButtonBarBuilder();
-		JButton copyButton = new JButton(copy);
-		copyButton.setText("Copy");
-		bbBuilder.addGridded(copyButton);
-		bbBuilder.addRelatedGap();
-		bbBuilder.addGlue();
-		
-		JButton executeButton = new JButton(execute);
-		executeButton.setText("Execute");
-		bbBuilder.addGridded(executeButton);
-		bbBuilder.addRelatedGap();
-		bbBuilder.addGlue();
+		JButton sourceExecute = new JButton(execute);
+		sourceExecute.setText("Execute");
+		sourcebbBuilder.addGridded(sourceExecute);
+		sourcebbBuilder.addRelatedGap();
+		sourcebbBuilder.addGlue();
 		if ( execute == null ) {
 			execute.setEnabled(false);
 		}
+		JButton sourceSave = new JButton(save);
+		sourceSave.setText("Save");
+		sourcebbBuilder.addGridded(sourceSave);
+		sourcebbBuilder.addRelatedGap();
+		sourcebbBuilder.addGlue();		
+	
 		
-		JButton saveButton = new JButton(save);
-		saveButton.setText("Save");
-		bbBuilder.addGridded(saveButton);
-		bbBuilder.addRelatedGap();
-		bbBuilder.addGlue();
+		Action targetCopy = new targetCopyAction(targetOutputText);
+		Action targetexecute = new AbstractAction(){
+			public void actionPerformed(ActionEvent e) {
+				//TODO: Implement execute function
+			}			
+		};
+		//Sets the target Buttons
+		ButtonBarBuilder targetbbBuilder = new ButtonBarBuilder();
+		JButton copyTarget = new JButton(targetCopy);
+		copyTarget.setText("Copy");
+		targetbbBuilder.addGridded (copyTarget);
+		targetbbBuilder.addRelatedGap();
+		targetbbBuilder.addGlue();
 		
+		JButton targetExecute = new JButton(execute);
+		targetExecute.setText("Execute");
+		targetbbBuilder.addGridded(targetExecute);
+		targetbbBuilder.addRelatedGap();
+		targetbbBuilder.addGlue();
+		if ( execute == null ) {
+			execute.setEnabled(false);
+		}
+		JButton targetSave = new JButton(save);
+		targetSave.setText("Save");
+		targetbbBuilder.addGridded(targetSave);
+		targetbbBuilder.addRelatedGap();
+		targetbbBuilder.addGlue();
+		
+		ButtonBarBuilder closeBar = new ButtonBarBuilder(); 
 		JButton closeButton = new JButton(close);
 		closeButton.setText("Close");
-		bbBuilder.addGridded(closeButton);
+		closeBar.addGridded(closeButton);
 
-		pb.add(bbBuilder.getPanel(), cc.xy(2, 5));
+		pb.add(sourcebbBuilder.getPanel(), cc.xy(2, 7, "l,c"));
+		pb.add(targetbbBuilder.getPanel(), cc.xy(4, 7, "r,c"));
+		pb.add(closeBar.getPanel(), cc.xy(4,9, "r,c"));
 		return pb.getPanel();
 
 
 	}
 	
-	public class CopyAction extends AbstractAction{
+	public class sourceCopyAction extends AbstractAction{
 
 		AbstractDocument doc;
-		public CopyAction(AbstractDocument doc)
+		public sourceCopyAction(AbstractDocument doc)
 		{
 			this.doc = doc;
 		}
@@ -148,6 +203,26 @@ public class CompareDMFrame extends JFrame{
 		}			
 	}
 	
+	public class targetCopyAction extends AbstractAction{
+
+		AbstractDocument doc;
+		public targetCopyAction(AbstractDocument doc)
+		{
+			this.doc = doc;
+		}
+		
+		public void actionPerformed(ActionEvent e) {
+			
+			try {
+				StringSelection selection = new StringSelection(doc.getText(0,doc.getLength()));
+				Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection,selection);
+			} catch (BadLocationException e1) {
+				logger.debug("Unable to get the text for copying"+ e1);
+			}
+			
+		}			
+	}
+
 	public class CloseAction extends AbstractAction {	
 		JFrame localframe;
 		
@@ -196,14 +271,22 @@ public class CompareDMFrame extends JFrame{
         StyleConstants.setFontSize(attrsMsg, 12);
         StyleConstants.setForeground(attrsMsg, Color.orange);
         
-        DefaultStyledDocument doc = new DefaultStyledDocument();
-        doc.insertString(doc.getLength(),"line 1 - normal line"+newline, attrsMsg);
-        doc.insertString(doc.getLength(),"line 2 - red line"+newline, attrsSource);
-        doc.insertString(doc.getLength(),"line 3 - green line"+newline, attrsTarget);
-        doc.insertString(doc.getLength(),"line 4 - black line"+newline, attrsSame);
-        doc.insertString(doc.getLength(),"line 5 - normal line"+newline, attrsMsg);
+        DefaultStyledDocument sourceDoc = new DefaultStyledDocument();
+        sourceDoc.insertString(sourceDoc.getLength(),"line 1 - normal line"+newline, attrsMsg);
+        sourceDoc.insertString(sourceDoc.getLength(),"line 2 - red line"+newline, attrsSource);
+        sourceDoc.insertString(sourceDoc.getLength(),"line 3 - green line"+newline, attrsTarget);
+        sourceDoc.insertString(sourceDoc.getLength(),"line 4 - black line"+newline, attrsSame);
+        sourceDoc.insertString(sourceDoc.getLength(),"line 5 - normal line"+newline, attrsMsg);
         
-        final JFrame f = new CompareDMFrame(doc,"compare test A to test B in english",new SQLDatabase());
+        DefaultStyledDocument targetDoc = new DefaultStyledDocument();
+        targetDoc.insertString(targetDoc.getLength(),"line 1 - normal line"+newline, attrsMsg);
+        targetDoc.insertString(targetDoc.getLength(),"line 2 - red line"+newline, attrsSource);
+        targetDoc.insertString(targetDoc.getLength(),"line 3 - green line"+newline, attrsTarget);
+        targetDoc.insertString(targetDoc.getLength(),"line 4 - black line"+newline, attrsSame);
+        targetDoc.insertString(targetDoc.getLength(),"line 5 - normal line"+newline, attrsMsg);
+        
+        final JFrame f = new CompareDMFrame(sourceDoc, targetDoc,
+        		"compare test A to test B in english",new SQLDatabase());
 		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		f.getContentPane().add(panel);
         

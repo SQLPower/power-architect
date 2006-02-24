@@ -1070,7 +1070,7 @@ public class CompareDMPanel extends JPanel {
 					compMethod = "english";
 				}
 				String titleString = "Comparing " + " to " + " using "+compMethod;
-				cf = new CompareDMFrame(leftDiff, titleString, sourceDatabase);
+				cf = new CompareDMFrame(leftDiff,rightDiff, titleString, sourceDatabase);
 				//CompareDMFrame diffFrame = new CompareDMFrame(leftDiff,"Some title",sourceDatabase);
 				
 //				for ( mySSQLObject object : (Collection<mySSQLObject> )(diffList.values()) ) {
