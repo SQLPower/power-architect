@@ -19,7 +19,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ddl.GenericTypeDescriptor;
-import ca.sqlpower.architect.jdbc.ConnectionFacade;
+import ca.sqlpower.architect.jdbc.ConnectionDecorator;
 
 public class SQLDatabase extends SQLObject implements java.io.Serializable, PropertyChangeListener {
 	private static Logger logger = Logger.getLogger(SQLDatabase.class);
@@ -67,14 +67,13 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 
 	
 	
-	public Map<Integer,GenericTypeDescriptor> getTypeMap() {
+	public Map<Integer,GenericTypeDescriptor> getTypeMap() throws SQLException {
 		if (typeMap == null)
 		{
 			if (connection == null ) {
 				throw new UnsupportedOperationException("Can't create a type map without DatabaseMetaData");
 			}
-			try 
-			{
+			
 			typeMap = new HashMap<Integer,GenericTypeDescriptor>();
 			DatabaseMetaData dbmd = connection.getMetaData();
 			ResultSet rs = dbmd.getTypeInfo();
@@ -83,11 +82,6 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 				typeMap.put(new Integer(td.getDataType()), td);
 			}
 			rs.close();
-			}
-			catch(SQLException e)
-			{
-				logger.debug("Unable to generate type map", e);
-			}
 		}
 
 		return typeMap;
@@ -150,7 +144,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 			if (realConnection == null) {
 				throw new ArchitectException("Couldn't connect to database: JDBC Driver returned a null connection!");
 			}
-			connection = ConnectionFacade.createFacade(realConnection);
+			connection = ConnectionDecorator.createFacade(realConnection);
 			logger.debug("Connection class is: " + connection.getClass().getName());
 			dbConnections.put(dataSource, connection);
 		} catch (ClassNotFoundException e) {

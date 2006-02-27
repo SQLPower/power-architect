@@ -18,15 +18,15 @@ import org.apache.log4j.Logger;
 
 
 /**
- * The ConnectionFacade wraps a JDBC Connection object and delegates all operations to it.
+ * The ConnectionDecorator wraps a JDBC Connection object and delegates all operations to it.
  * Some calls are intercepted for some types of database connections when the delegate connection
  * is not fully conformant to the JDBC standard.
  *
  * @author fuerth
  * @version $Id$
  */
-public class ConnectionFacade implements Connection {
-	private static Logger logger = Logger.getLogger(ConnectionFacade.class);
+public class ConnectionDecorator implements Connection {
+	private static Logger logger = Logger.getLogger(ConnectionDecorator.class);
 	
 	private int openStatementCount;
 	
@@ -36,28 +36,30 @@ public class ConnectionFacade implements Connection {
 	private Connection connection;
 	
 	/**
-	 * Creates a new ConnectionFacade which delegates to the given connection.
-	 * Outside users can create a ConnectionFacade using the public {@link #createFacade(Connection)} method.
+	 * Creates a new ConnectionDecorator which delegates to the given connection.
+	 * Outside users can create a ConnectionDecorator using the public {@link #createFacade(Connection)} method.
 	 * 
 	 * @param delegate The object to which all JDBC operations will be delegated.
 	 */
-	protected ConnectionFacade(Connection delegate) {
+	protected ConnectionDecorator(Connection delegate) {
 		this.connection = delegate;
 	}
 	
 	/**
-	 * Creates a new ConnectionFacade (or appropriate subclass) which delegates to the given connection.
-	 * Outside users can create a ConnectionFacade using the public {@link #createFacade(Connection)} method.
+	 * Creates a new ConnectionDecorator (or appropriate subclass) which delegates to the given connection.
+	 * Outside users can create a ConnectionDecorator using the public {@link #createFacade(Connection)} method.
 	 * 
 	 * @param delegate The object to which all JDBC operations will be delegated.
 	 */
-	public static ConnectionFacade createFacade(Connection delegate) throws SQLException {
+	public static ConnectionDecorator createFacade(Connection delegate) throws SQLException {
 		logger.debug("static createFacade, driver class is: " + delegate.getClass().getName());
 		logger.debug("static createFacade, driver name is: " + delegate.getMetaData().getDriverName());
 		if (delegate.getMetaData().getDriverName().equals("PostgreSQL Native Driver")) {
-			return new PostgresConnectionFacade(delegate);
+			return new PostgresConnectionDecorator(delegate);
+		} else if (delegate.getMetaData().getDriverName().equals("Oracle JDBC driver")) {
+			return new OracleConnectionDecorator(delegate);
 		} else {
-			return new ConnectionFacade(delegate);
+			return new ConnectionDecorator(delegate);
 		}
 	}
     
@@ -71,7 +73,7 @@ public class ConnectionFacade implements Connection {
 	}
 	
 	/**
-	 * Increments the count of open statements.  This is normally done from the StatementFacade.
+	 * Increments the count of open statements.  This is normally done from the StatementDecorator.
 	 */
 	protected void incrementOpenStatements() {
 		openStatementCount++;
@@ -79,7 +81,7 @@ public class ConnectionFacade implements Connection {
 	}
 
 	/**
-	 * Decrements the count of open statements.  This is normally done from the StatementFacade.
+	 * Decrements the count of open statements.  This is normally done from the StatementDecorator.
 	 */
 	protected void decrementOpenStatements() {
 		openStatementCount--;
@@ -113,7 +115,7 @@ public class ConnectionFacade implements Connection {
 	 * @throws java.sql.SQLException
 	 */
 	public Statement createStatement() throws SQLException {
-		Statement stmt = new StatementFacade(this, connection.createStatement());
+		Statement stmt = new StatementDecorator(this, connection.createStatement());
 		return stmt;
 	}
 	
@@ -124,7 +126,7 @@ public class ConnectionFacade implements Connection {
 	 * @throws java.sql.SQLException
 	 */
 	public Statement createStatement(int resultSetType, int resultSetConcurrency) throws SQLException {
-		Statement stmt = new StatementFacade(
+		Statement stmt = new StatementDecorator(
 				this,
 				connection.createStatement(
 						resultSetType,
@@ -141,7 +143,7 @@ public class ConnectionFacade implements Connection {
 	 */
 	public Statement createStatement(int resultSetType, int resultSetConcurrency, int resultSetHoldability)
 	throws SQLException {
-		Statement stmt = new StatementFacade(
+		Statement stmt = new StatementDecorator(
 				this,
 				connection.createStatement(
 						resultSetType,

@@ -6,7 +6,7 @@ import java.sql.SQLException;
 import java.sql.SQLWarning;
 import java.sql.Statement;
 
-public class StatementFacade implements Statement {
+public class StatementDecorator implements Statement {
 
 	/**
 	 * The statement to which all Statement operations are delegated.
@@ -14,11 +14,11 @@ public class StatementFacade implements Statement {
 	private Statement stmt;
 	
 	/**
-	 * The ConnectionFacade associated with this statement.
+	 * The ConnectionDecorator associated with this statement.
 	 */
-	private ConnectionFacade con;
+	private ConnectionDecorator con;
 	
-	protected StatementFacade(ConnectionFacade connection, Statement statement) {
+	protected StatementDecorator(ConnectionDecorator connection, Statement statement) {
 		this.con = connection;
 		this.stmt = statement;
 		

@@ -10,24 +10,24 @@ import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 
 /**
- * The PostgresConnectionFacade makes sure that the special PostgresDatabaseMetaDataFacade
+ * The PostgresConnectionDecorator makes sure that the special PostgresDatabaseMetaDataDecorator
  * class wraps the database metadata returned by the PostgreSQL driver.
  *
  * @author fuerth
  * @version $Id$
  */
-public class PostgresConnectionFacade extends ConnectionFacade {
+public class PostgresConnectionDecorator extends ConnectionDecorator {
     
     /**
-     * Creates a new PostgresConnectionFacade.
+     * Creates a new PostgresConnectionDecorator.
      * 
      * @param delegate an instance of the PostgreSQL Connection object.
      */
-    public PostgresConnectionFacade(Connection delegate) {
+    public PostgresConnectionDecorator(Connection delegate) {
         super(delegate);
     }
     
     public DatabaseMetaData getMetaData() throws SQLException {
-        return new PostgresDatabaseMetaDataFacade(super.getMetaData());
+        return new PostgresDatabaseMetaDataDecorator(super.getMetaData());
     }
 }

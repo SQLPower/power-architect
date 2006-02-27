@@ -11,14 +11,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- * The DatabaseMetaDataFacade delegates all operations to a protected DatabaseMetaData instance.
+ * The DatabaseMetaDataDecorator delegates all operations to a protected DatabaseMetaData instance.
  * Subclasses can perform some operations differently if their underlying JDBC driver does not
  * conform to the JDBC specification.
  *
  * @author fuerth
  * @version $Id$
  */
-public class DatabaseMetaDataFacade implements DatabaseMetaData {
+public class DatabaseMetaDataDecorator implements DatabaseMetaData {
     
     /**
      * The instance that performs all JDBC operations.
@@ -26,11 +26,11 @@ public class DatabaseMetaDataFacade implements DatabaseMetaData {
     protected DatabaseMetaData databaseMetaData;
 
     /**
-     * Creates a DatabaseMetaDataFacade which delegates operations to the given delegate.
+     * Creates a DatabaseMetaDataDecorator which delegates operations to the given delegate.
      * 
      * @param delegate The instance that performs all JDBC operations.
      */
-    public DatabaseMetaDataFacade(DatabaseMetaData delegate) {
+    public DatabaseMetaDataDecorator(DatabaseMetaData delegate) {
         this.databaseMetaData = delegate;
     }
     
