@@ -11,17 +11,17 @@ import java.sql.Statement;
 import ca.sqlpower.sql.CachedRowSet;
 
 /**
- * The PostgresDatabaseMetaDataFacade suppresses the list of databases which the Postgres driver
+ * The PostgresDatabaseMetaDataDecorator suppresses the list of databases which the Postgres driver
  * reports existing, but does not allow access to.
  *
  * @version $Id$
  */
-public class PostgresDatabaseMetaDataFacade extends DatabaseMetaDataFacade {
+public class PostgresDatabaseMetaDataDecorator extends DatabaseMetaDataDecorator {
     
     /**
      * Creates a new facade for PostgreSQL's DatabaseMetaData.
      */
-    public PostgresDatabaseMetaDataFacade(DatabaseMetaData delegate) {
+    public PostgresDatabaseMetaDataDecorator(DatabaseMetaData delegate) {
         super(delegate);
     }
 	/**

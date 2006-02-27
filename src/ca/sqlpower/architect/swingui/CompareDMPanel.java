@@ -7,6 +7,7 @@ import java.awt.FlowLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -1083,6 +1084,8 @@ public class CompareDMPanel extends JPanel {
 				logger.error("Someone put a non GenericDDLGenerator class into the lvb contained in the source pulldown menu",ie);
 			} catch (IllegalAccessException iae) {
 				logger.error("Cannot access the classes's constructor ",iae);
+			} catch (SQLException sqle) {
+				logger.error("Database error ",sqle);
 			}
 		
 			
