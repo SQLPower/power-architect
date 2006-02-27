@@ -4,6 +4,7 @@ import java.util.*;
 import java.io.File;
 import java.io.StringWriter;
 import java.io.PrintWriter;
+import java.awt.Component;
 import java.awt.Dialog;
 import java.awt.Frame;
 import java.awt.Point;
@@ -234,14 +235,25 @@ public class ASUtils {
 	 * allowing the user to examine the stack trace.  The dialog's
 	 * parent component will be the ArchitectFrame's main instance.
 	 */
-	public static void showExceptionDialog(String message, Throwable exception) {
+	public static void showExceptionDialog(String message, Throwable throwable) {
+		showExceptionDialog(ArchitectFrame.getMainInstance(), message, throwable);
+	}
+	
+	/** Displays a dialog box with the given message and exception,
+	 * returning focus to the given component. Intended for use
+	 * on panels like the CompareDMPanel, so focus works better.
+	 * @param parent
+	 * @param message
+	 * @param throwable
+	 */
+	public static void showExceptionDialog(Component parent, String message, Throwable throwable) {
 		StringWriter traceWriter = new StringWriter();
-		exception.printStackTrace(new PrintWriter(traceWriter));
+		throwable.printStackTrace(new PrintWriter(traceWriter));
 		JPanel messageComponent = new JPanel(new BorderLayout());
 		messageComponent.add(new JLabel(message), BorderLayout.NORTH);
 		messageComponent.add(new JScrollPane(new JTextArea(traceWriter.toString())), BorderLayout.CENTER);
 		messageComponent.setPreferredSize(new Dimension(600, 400));
-		JOptionPane.showMessageDialog(ArchitectFrame.getMainInstance(),
+		JOptionPane.showMessageDialog(parent, 
 									  messageComponent,
 									  "Error Report",
 									  JOptionPane.ERROR_MESSAGE);
