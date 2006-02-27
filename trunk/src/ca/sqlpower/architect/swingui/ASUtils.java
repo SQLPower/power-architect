@@ -240,7 +240,7 @@ public class ASUtils {
 		JPanel messageComponent = new JPanel(new BorderLayout());
 		messageComponent.add(new JLabel(message), BorderLayout.NORTH);
 		messageComponent.add(new JScrollPane(new JTextArea(traceWriter.toString())), BorderLayout.CENTER);
-		messageComponent.setPreferredSize(new Dimension(400, 300));
+		messageComponent.setPreferredSize(new Dimension(600, 400));
 		JOptionPane.showMessageDialog(ArchitectFrame.getMainInstance(),
 									  messageComponent,
 									  "Error Report",
