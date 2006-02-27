@@ -50,6 +50,7 @@ public class CompareDMFrame extends JFrame{
 	private static JComponent panel;
 	private String sourceName;
 	private String targetName;
+	private boolean debugLayout;
 
 			
 	public CompareDMFrame(AbstractDocument sourceOutputText, AbstractDocument targetOutputText, 
@@ -67,14 +68,13 @@ public class CompareDMFrame extends JFrame{
 		this.setVisible(true);
 	}
 	
-	public JComponent mainFrame() {
-		
-		
+	public JComponent mainFrame() {		
 		FormLayout layout = new FormLayout(
-				"4dlu,fill:pref:grow, 6dlu, min:grow, 4dlu, default", // columns
+				"4dlu,fill:pref:grow, 6dlu, pref:grow, 4dlu, default", // columns
 				"pref, 6dlu, pref, 3dlu, fill:pref:grow, 3dlu, 20dlu,6dlu,20dlu"); // rows
 		
-		PanelBuilder pb = new PanelBuilder(layout,new FormDebugPanel());
+		JPanel p = debugLayout ? new FormDebugPanel(layout) : new JPanel(layout);
+		PanelBuilder pb = new PanelBuilder(layout,p);
 		pb.setDefaultDialogBorder();
 		CellConstraints cc = new CellConstraints();
 		Font titleFont = new Font("Arial", 1,16);
@@ -97,7 +97,7 @@ public class CompareDMFrame extends JFrame{
         
         rightOutputArea = new JTextPane();
 		rightOutputArea.setMargin(new Insets(6, 10, 4, 6));
-		rightOutputArea.setDocument(sourceOutputText);
+		rightOutputArea.setDocument(targetOutputText);
 		rightOutputArea.setEditable(false);
 		
 		JScrollPane sp1 = new JScrollPane(rightOutputArea);
@@ -272,7 +272,7 @@ public class CompareDMFrame extends JFrame{
         StyleConstants.setForeground(attrsMsg, Color.orange);
         
         DefaultStyledDocument sourceDoc = new DefaultStyledDocument();
-        sourceDoc.insertString(sourceDoc.getLength(),"line 1 - normal line"+newline, attrsMsg);
+        sourceDoc.insertString(sourceDoc.getLength(),"line 1 - normal line"+newline,attrsMsg);
         sourceDoc.insertString(sourceDoc.getLength(),"line 2 - red line"+newline, attrsSource);
         sourceDoc.insertString(sourceDoc.getLength(),"line 3 - green line"+newline, attrsTarget);
         sourceDoc.insertString(sourceDoc.getLength(),"line 4 - black line"+newline, attrsSame);

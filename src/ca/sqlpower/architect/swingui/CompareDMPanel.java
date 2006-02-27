@@ -8,6 +8,7 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.TreeSet;
@@ -18,14 +19,17 @@ import javax.swing.ButtonGroup;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
+import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingUtilities;
@@ -49,6 +53,7 @@ import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.debug.FormDebugPanel;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+import com.sun.org.apache.bcel.internal.classfile.SourceFile;
 
 public class CompareDMPanel extends JPanel {
 	private static final Logger logger = Logger.getLogger(CompareDMPanel.class);
@@ -73,6 +78,17 @@ public class CompareDMPanel extends JPanel {
 		}
 	};
 
+	
+	private Action loadFileAction = new AbstractAction(){
+
+		public void actionPerformed(ActionEvent arg0) {
+			sourceLoadRadio.setSelected(true);
+			JOptionPane.showMessageDialog(null, "Complete this");
+			//TODO
+			statusLabel.setText("Loaded OK");
+			
+		}
+	};
 	private JDialog sourceNewConnectionDialog;
 	private JDialog targetNewConnectionDialog;
 	
@@ -144,12 +160,16 @@ public class CompareDMPanel extends JPanel {
 	private JComboBox sourceCatalogDropdown;
 	private JComboBox sourceSchemaDropdown;
 	private JButton sourceNewConnButton;
+	private JButton sourceLoadFileButton;
+	private JTextField sourceLoadFilePath;
 
 	// target database fields
 	private JComboBox targetDatabaseDropdown;
 	private JComboBox targetCatalogDropdown;
 	private JComboBox targetSchemaDropdown;
 	private JButton targetNewConnButton;
+	private JButton targetLoadFileButton;
+	private JTextField targetLoadFilePath;
 
 	private JProgressBar progressBar;
 	
@@ -165,19 +185,26 @@ public class CompareDMPanel extends JPanel {
 	
 
 	private JTextPane outputTextPane;
-	private AbstractDocument outputDoc;
+
 	private JRadioButton sourcePlayPenRadio;
 	private JRadioButton sourcePhysicalRadio;
+	private JRadioButton sourceLoadRadio;
 	private StartCompareAction startCompareAction;
-	private JRadioButton sqlButton; 
+	private JRadioButton sqlButton;
+	
+	private JRadioButton targetPlayPenRadio;
+	private JRadioButton targetPhysicalRadio;
+	private JRadioButton targetLoadRadio;
 
-	private ButtonGroup operationGroup;
-	JRadioButton sourceLikeTargetButton;
-	JRadioButton targetLikeSourceButton;
-	JRadioButton justCompareButton;
+
+	private JLabel statusLabel;
 	
 
 	
+	/**
+	 * Return true if 
+	 * @return 
+	 */
 	public boolean isStartable()
 	{
 
@@ -226,17 +253,21 @@ public class CompareDMPanel extends JPanel {
 		sourcePhysicalRadio = new JRadioButton();
 		sourcePhysicalRadio.setName("sourcePhysicalRadio");
 		sourcePhysicalRadio.setActionCommand("SQL Connection");
+		
+		sourceLoadRadio = new JRadioButton();
+		sourceLoadRadio.setName("sourceLoadRadio");
+		sourceLoadRadio.setActionCommand("Load File");
 
 		//Group the radio buttons.
 		ButtonGroup sourceButtonGroup = new ButtonGroup();
 		sourceButtonGroup.add(sourcePlayPenRadio);
 		sourceButtonGroup.add(sourcePhysicalRadio);
+		sourceButtonGroup.add(sourceLoadRadio);
 		// Generate an action so we load the playpen DataSource
 		sourcePlayPenRadio.doClick();
 
 		//Register a listener for the radio buttons.
-		sourcePlayPenRadio.addActionListener(new SourceOptionListener());
-		sourcePhysicalRadio.addActionListener(new SourceOptionListener());
+		
 
 		sourceDatabaseDropdown = new JComboBox();
 		sourceDatabaseDropdown.addItem(null);   // the non-selection selection
@@ -262,7 +293,39 @@ public class CompareDMPanel extends JPanel {
 		sourceNewConnButton.setEnabled(false);
 		sourceNewConnButton.addActionListener(newConnectionAction);
 		
-
+		sourceLoadFilePath = new JTextField();
+		sourceLoadFilePath.setName("sourceLoadFilePath");
+		sourceLoadFilePath.setEnabled(false);
+		sourceLoadFileButton = new JButton("Load File...");
+		sourceLoadFileButton.setName("sourceLoadFileButton");
+		sourceLoadFileButton.setEnabled(false);
+		sourceLoadFileButton.addActionListener(loadFileAction);
+		
+		targetPlayPenRadio = new JRadioButton();
+		targetPlayPenRadio.setName("targetPlayPenRadio");
+		targetPlayPenRadio.setSelected(true);
+		targetPlayPenRadio.setActionCommand("Target Project");
+		
+		targetPhysicalRadio = new JRadioButton();
+		targetPhysicalRadio.setName("targetPhysicalRadio");
+		targetPhysicalRadio.setActionCommand("Target Physical");
+		
+		targetLoadFilePath = new JTextField();
+		targetLoadFileButton = new JButton("Load File..");
+		targetLoadFileButton.setName ("targetLoadFileButton");
+		targetLoadFileButton.setEnabled(false);
+		targetLoadFileButton.addActionListener(loadFileAction);		
+		
+		targetLoadRadio = new JRadioButton();
+		targetLoadRadio.setName ("targetLoadRadio");
+		targetLoadRadio.setActionCommand("Target Radio");
+		
+		ButtonGroup targetButtonGroup = new ButtonGroup();
+		targetButtonGroup.add(targetPlayPenRadio);
+		targetButtonGroup.add(targetPhysicalRadio);
+		targetButtonGroup.add(targetLoadRadio);
+		
+		
 		targetSchemaDropdown = new JComboBox();
 		targetSchemaDropdown.setName("targetSchemaDropdown");
 		targetSchemaDropdown.setEnabled(false);
@@ -283,6 +346,7 @@ public class CompareDMPanel extends JPanel {
 		
 		
 		targetDatabaseDropdown.setName("targetDatabaseDropdown");
+		targetDatabaseDropdown.setEnabled(false);
 		targetDatabaseDropdown.setRenderer(dataSourceRenderer);
 		
 
@@ -296,7 +360,7 @@ public class CompareDMPanel extends JPanel {
 		
 		targetNewConnButton = new JButton("New...");
 		targetNewConnButton.setName("targetNewConnButton");
-		targetNewConnButton.setEnabled(true);
+		targetNewConnButton.setEnabled(false);
 		targetNewConnButton.addActionListener(newConnectionAction);
 
 		
@@ -305,32 +369,11 @@ public class CompareDMPanel extends JPanel {
 		progressBar.setIndeterminate(true);
 		progressBar.setVisible(false);
 
-		// layout compare methods check box and syntax combox
-		sourceLikeTargetButton = new JRadioButton();
-		sourceLikeTargetButton.setName("sourceLikeTargetButton");
-		sourceLikeTargetButton.setActionCommand("source like target");
-		sourceLikeTargetButton.setSelected(true);
 
-		targetLikeSourceButton = new JRadioButton( );
-		targetLikeSourceButton.setName("targetLikeSourceButton");
-		targetLikeSourceButton.setActionCommand("target like source");
-		targetLikeSourceButton.setSelected(false);
-
-		justCompareButton = new JRadioButton();
-		justCompareButton.setName("justCompareButton");
-		justCompareButton.setActionCommand("compare");
-		justCompareButton.setSelected(false);
-		justCompareButton.setEnabled(false);
-
-		//Group the radio buttons.
-		operationGroup = new ButtonGroup();
-		operationGroup.add(sourceLikeTargetButton);
-		operationGroup.add(targetLikeSourceButton);
-		operationGroup.add(justCompareButton);
 
 		sqlTypeDropdown = new JComboBox(DDLUtils.getDDLTypes());
 		sqlTypeDropdown.setName("sqlTypeDropDown");
-		OutputChoiceListener listener = new OutputChoiceListener(sqlTypeDropdown,justCompareButton,targetLikeSourceButton);
+		OutputChoiceListener listener = new OutputChoiceListener(sqlTypeDropdown);
 		sqlButton = new JRadioButton( );
 		sqlButton.setName("sqlButton");
 		sqlButton.setActionCommand("sqlButton");
@@ -363,11 +406,48 @@ public class CompareDMPanel extends JPanel {
 		
 		buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 	
-		FormLayout formLayout = new FormLayout("20dlu, 2dlu, pref, 4dlu," +
-				"pref:grow, 2dlu, pref, 4dlu," +
-				"pref:grow, 4dlu, pref:grow",
+		List<JComponent> sourcePhysicalComp = new ArrayList<JComponent>();
+		sourcePhysicalComp.add(sourceDatabaseDropdown);
+		sourcePhysicalComp.add(sourceCatalogDropdown);
+		sourcePhysicalComp.add(sourceSchemaDropdown);
+		sourcePhysicalComp.add(sourceNewConnButton);
+		
+		List<JComponent> sourceLoadList = new ArrayList<JComponent>();
+		sourceLoadList.add(sourceLoadFilePath);
+		sourceLoadList.add(sourceLoadFileButton);
+		
+		
+		ActionListener sourceListener = new OptionGroupListener(sourcePlayPenRadio, null,
+				sourcePhysicalRadio, sourcePhysicalComp, 
+				sourceLoadRadio,sourceLoadList);
+		sourcePlayPenRadio.addActionListener(sourceListener);
+		sourcePhysicalRadio.addActionListener(sourceListener);
+		sourceLoadRadio.addActionListener(sourceListener);
+		
+		List<JComponent> targetPhysicalComp = new ArrayList<JComponent>();
+		targetPhysicalComp.add(targetDatabaseDropdown);
+		targetPhysicalComp.add(targetCatalogDropdown);
+		targetPhysicalComp.add(targetSchemaDropdown);
+		targetPhysicalComp.add(targetNewConnButton);
+		
+		List<JComponent> targetLoadList = new ArrayList<JComponent>();
+		targetLoadList.add(targetLoadFilePath);
+		targetLoadList.add(targetLoadFileButton);
+		
+		
+		ActionListener targetListener = new OptionGroupListener(targetPlayPenRadio, null,
+				targetPhysicalRadio, targetPhysicalComp, 
+				targetLoadRadio,targetLoadList);
+		targetPlayPenRadio.addActionListener(targetListener);
+		targetPhysicalRadio.addActionListener(targetListener);
+		targetLoadRadio.addActionListener(targetListener);
+		
+		FormLayout formLayout = new FormLayout(
+				"20dlu, 2dlu, pref, 4dlu," + 				//1-4
+				"pref:grow, 2dlu, pref:grow, 4dlu," +		//5-8
+				"pref:grow, 4dlu, pref",					//9-11
 				"");
-		formLayout.setColumnGroups(new int[][] {{5,9,11}});
+		formLayout.setColumnGroups(new int[][] {{5,7,9,}});
 		JPanel panel = logger.isDebugEnabled() ? new FormDebugPanel() : new JPanel();
 		DefaultFormBuilder builder = new DefaultFormBuilder(formLayout, panel);
 		builder.setDefaultDialogBorder();
@@ -378,13 +458,13 @@ public class CompareDMPanel extends JPanel {
 		builder.nextLine();
 		builder.append(""); // takes up blank space
 		builder.append(sourcePlayPenRadio);
-		builder.append("Project ["+project.getName()+"]");
+		builder.append("Current Project ["+project.getName()+"]");
 		builder.nextLine();
 		
 		builder.append(""); // takes up blank space
 		builder.append(sourcePhysicalRadio);
 		builder.append("Physical Database");
-		builder.nextColumn(2);
+		//builder.nextColumn(2);
 		builder.append("Catalog");
 		builder.append("Schema");
 		builder.appendRow(builder.getLineGapSpec());
@@ -392,23 +472,54 @@ public class CompareDMPanel extends JPanel {
 		builder.nextLine(2);
 		builder.nextColumn(4);
 		builder.append(sourceDatabaseDropdown);
-		builder.append(sourceNewConnButton, sourceCatalogDropdown, sourceSchemaDropdown);
+		builder.append(sourceCatalogDropdown, sourceSchemaDropdown, sourceNewConnButton);
+		builder.nextLine();
+		
+		builder.append("");		
+		builder.append (sourceLoadRadio);
+		builder.append("From File:");
+		builder.nextLine();
+		builder.append(""); // takes up blank space
+		builder.add(sourceLoadFilePath,cc.xyw(5,builder.getRow(),5));
+		builder.nextColumn(8);
+		builder.append (sourceLoadFileButton);
+		builder.nextLine();
+
 		
 		builder.appendSeparator("With Target");
 		builder.appendRow(builder.getLineGapSpec());
 		builder.appendRow("pref");
 		builder.nextLine(2);
-		builder.nextColumn(4);
+		builder.append("");
+		builder.append(targetPlayPenRadio);
+		builder.append ("Current Project[" + project.getName() + "]");
+		builder.nextLine();
+		
+		builder.append("");
+		builder.append(targetPhysicalRadio);
 		builder.append("Physical Database");
-		builder.nextColumn(2);
 		builder.append("Catalog");
 		builder.append("Schema");
+		builder.nextLine();
+		builder.append("");
+		builder.append("");
+		builder.append(targetDatabaseDropdown);
+		builder.append(targetCatalogDropdown, targetSchemaDropdown,targetNewConnButton);
+		builder.nextLine();
+		
+		builder.append("");
+		builder.append(targetLoadRadio);
+		builder.append("From File:");
+		builder.nextLine();
+		builder.append("");
+		builder.add(targetLoadFilePath, cc.xyw(5,builder.getRow(),5));
+		builder.nextColumn(8);
+		builder.append(targetLoadFileButton);
 		builder.appendRow(builder.getLineGapSpec());
 		builder.appendRow("pref");
 		builder.nextLine(2);
 		builder.nextColumn(4);
-		builder.append(targetDatabaseDropdown);
-		builder.append(targetNewConnButton, targetCatalogDropdown, targetSchemaDropdown);
+		
 		
 		builder.appendSeparator("Output Format");
 		builder.appendRow(builder.getLineGapSpec());
@@ -429,33 +540,13 @@ public class CompareDMPanel extends JPanel {
 		builder.append(englishButton);
 		builder.append("English descriptions");
 		builder.nextLine();
-		
-		builder.appendSeparator("Comparison Sense");
-		builder.appendRow(builder.getLineGapSpec());
-		builder.appendRow("pref");
-		builder.nextLine(2);
-		builder.nextColumn(2);
-		builder.append(sourceLikeTargetButton);
-		builder.append("How to make Source like Target");
-		builder.appendRow(builder.getLineGapSpec());
-		builder.appendRow("pref");
-		builder.nextLine(2);
-		builder.nextColumn(2);
-		builder.append(targetLikeSourceButton);
-		builder.append("How to make Target like Source");
-		builder.appendRow(builder.getLineGapSpec());
-		builder.appendRow("pref");
-		builder.nextLine(2);
-		builder.nextColumn(2);
-		builder.append(justCompareButton);
-		builder.append("Show all differences");
-		builder.nextLine();
-		
+				
 		builder.appendSeparator("Status");
 		builder.appendRow(builder.getLineGapSpec());
 		builder.appendRow("pref");
 		builder.nextLine(2);
-		builder.add(new JLabel(""), cc.xy(5, builder.getRow()));
+		statusLabel = new JLabel("");
+		builder.add(statusLabel, cc.xy(5, builder.getRow()));
 		builder.add(progressBar, cc.xyw(7, builder.getRow(), 5));
 		
 		setLayout(new BorderLayout());
@@ -465,28 +556,21 @@ public class CompareDMPanel extends JPanel {
 	public class OutputChoiceListener implements ActionListener {
 
 		JComboBox cb;
-		JRadioButton justCompareButton;
-		JRadioButton targetLikeSourceButton;		// default choice
+		// default choice
 		
-		public OutputChoiceListener(JComboBox cb, JRadioButton justCompareButton, JRadioButton targetLikeSourceButton)
+		public OutputChoiceListener(JComboBox cb)
 		{
 			this.cb =cb;
-			this.justCompareButton = justCompareButton;
-			this.targetLikeSourceButton = targetLikeSourceButton;
 		}
 		
 		public void actionPerformed(ActionEvent e) {
 			if (e.getActionCommand().equals("sqlButton"))
 			{
 				cb.setEnabled(true);
-				if ( justCompareButton.isSelected() )
-					targetLikeSourceButton.setSelected(true);
-				justCompareButton.setEnabled( false);
 			}
 			else
 			{
 				cb.setEnabled(false);
-				justCompareButton.setEnabled(true);
 			}
 			
 		}
@@ -827,24 +911,61 @@ public class CompareDMPanel extends JPanel {
 		}
 	}
 
-	public class SourceOptionListener implements ActionListener {
+	/*
+	 * This listener is used to enable/disable JComponents when one of the 
+	 * database choosing option is choosen (for both source and target selections
+	 */
+	
+	public class OptionGroupListener implements ActionListener {
 
+		private static final String ACTION_PROJECT = "Project";
+		private static final String ACTION_SQL_CONNECTION = "SQL Connection";
+		private static final String ACTION_LOAD_FILE = "Load File";
+
+		
+		private JRadioButton connection;
+		private JRadioButton physical;
+		private JRadioButton load;
+		private List<JComponent> loadComp;
+		private List<JComponent> physicalComp;
+		private List<JComponent> connComp;
+		
+		public OptionGroupListener(JRadioButton connection, List <JComponent> connComp,
+				JRadioButton physical, List <JComponent> physicalComp, 
+				JRadioButton load, List <JComponent> loadComp){
+			this.connection = connection;
+			this.physical = physical;
+			this.physicalComp = physicalComp;
+			this.load = load;
+			this.loadComp = loadComp;
+			this.connComp = connComp;
+		}
+		
 		public void actionPerformed(ActionEvent e) {
-			if (e.getActionCommand().equals("Project")) {
-				sourceDatabase = ArchitectFrame.getMainInstance().getProject().getPlayPen().getDatabase();
-				sourceDatabaseDropdown.setEnabled(false);
-				sourceNewConnButton.setEnabled(false);
-				sourceCatalogDropdown.setEnabled(false);
-				sourceSchemaDropdown.setEnabled(false);
-			} else {
-				if (sourceDatabaseDropdown.getSelectedIndex()>0)
-				{
-					sourceDatabase = new SQLDatabase((ArchitectDataSource) sourceDatabaseDropdown.getSelectedItem());
-				}
-				sourceDatabaseDropdown.setEnabled(true);
-				sourceNewConnButton.setEnabled(true);
-				sourceCatalogDropdown.setEnabled(false);
-				sourceSchemaDropdown.setEnabled(false);
+			if (e.getSource()== connection){
+				setComps(connComp, true);				
+				setComps(physicalComp, false);
+				setComps(loadComp, false);
+			}			
+			else if (e.getSource()==physical){
+				setComps(connComp, false);
+				setComps(physicalComp, true);
+				setComps(loadComp, false);
+			}			
+			else if (e.getSource()== load){
+				setComps(connComp, false);
+				setComps(physicalComp, false);				
+				setComps(loadComp, true);
+			}			
+			else{
+				throw new IllegalStateException("Unhandle Button");
+			}
+		}
+		
+		void setComps (List <JComponent> compList, boolean enable){
+			if (compList ==null) return;
+			for (JComponent j : compList){
+				j.setEnabled(enable);
 			}
 		}
 	}
@@ -973,14 +1094,6 @@ public class CompareDMPanel extends JPanel {
 			});
 			rightDiff = new DefaultStyledDocument();
 			leftDiff = new DefaultStyledDocument();
-			
-			if ( sourceLikeTargetButton.isSelected() ) {
-				compareMode = A2B;
-			} else if ( targetLikeSourceButton.isSelected() ) {
-				compareMode = B2A;
-			} else if ( justCompareButton.isSelected() ) {
-				compareMode = ALL;
-			}
 		}
 		
 		public void actionPerformed(ActionEvent e) {
