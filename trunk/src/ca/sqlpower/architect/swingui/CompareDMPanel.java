@@ -7,9 +7,13 @@ import java.awt.FlowLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.TreeSet;
 
@@ -21,10 +25,10 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
@@ -43,30 +47,546 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLUtils;
-import ca.sqlpower.architect.ddl.GenericDDLGenerator;
-import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
+import ca.sqlpower.architect.diff.SQLObjectComparator;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.debug.FormDebugPanel;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-import com.sun.org.apache.bcel.internal.classfile.SourceFile;
 
 public class CompareDMPanel extends JPanel {
-	private static final Logger logger = Logger.getLogger(CompareDMPanel.class);
 	
+	private static final Logger logger = Logger.getLogger(CompareDMPanel.class);
+
+	private static final String OUTPUT_ENGLISH = "OUTPUT_ENGLISH";
+	private static final String OUTPUT_SQL = "OUTPUT_SQL";
+	public static final String DBCS_DIALOG_TITLE = "New Database Connection";
+
 	private static final String newline = System.getProperty("line.separator");
 
-	public static final String DBCS_DIALOG_TITLE = "New Database Connection";
+	private JProgressBar progressBar;
+	private JPanel buttonPanel;
+	private JComboBox sqlTypeDropdown;
+	private JTextPane outputTextPane; // XXX: maybe unused?
+	private JRadioButton sqlButton;
+	private JRadioButton englishButton;
+	private JLabel statusLabel;
+
+	private StartCompareAction startCompareAction;
+
+	private SourceOrTargetStuff source = new SourceOrTargetStuff();
+	private SourceOrTargetStuff target = new SourceOrTargetStuff();
+
+	/**
+	 * Contains all of the properties and GUI components that relate to
+	 * the source or target system.  The idea is, the panel will have two
+	 * instances of this class: One for the "source" system, and the other
+	 * for the "target" system.
+	 * 
+	 * <p>Note: this class is only public because the test needs to refer to it. :(
+	 */
+	public class SourceOrTargetStuff {
+
+		/** All of the components related to the physical database portion of the GUI */
+		private List<JComponent> physicalComp;
+
+		private JComboBox databaseDropdown;
+		private JComboBox catalogDropdown;
+		private JComboBox schemaDropdown;
+		private JButton newConnButton;
+
+		/** All of the components related to the external file portion of the GUI */
+		private List<JComponent> loadComp;
+
+		private JButton loadFileButton;
+		private JTextField loadFilePath;
+
+		/** The group for the source/target type (playpen, file, or database) */
+		private ButtonGroup buttonGroup = new ButtonGroup();
+
+		private JRadioButton playPenRadio;
+		private JRadioButton physicalRadio;
+		private JRadioButton loadRadio;
+
+		private JDialog newConnectionDialog;
+
+		/**
+		 * The last database returned by getDatabase().  Never access this directly;
+		 * always use getDatabase().
+		 */
+		private SQLDatabase cachedDatabase;
+
+		private Action newConnectionAction = new AbstractAction("New...") {
+			public void actionPerformed(ActionEvent e) {
+				if (getNewConnectionDialog() != null) {
+					getNewConnectionDialog().requestFocus();
+					return;
+				}
+				final DBCSPanel dbcsPanel = new DBCSPanel();
+				dbcsPanel.setDbcs(new ArchitectDataSource());
+				JButton okButton = new JButton("Ok");
+				okButton.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						dbcsPanel.applyChanges();
+						ArchitectDataSource newDS = dbcsPanel.getDbcs();
+						databaseDropdown.addItem(newDS);
+						databaseDropdown.setSelectedItem(newDS);
+						getNewConnectionDialog().dispose();
+						setNewConnectionDialog(null);
+					}
+				});
+				JButton cancelButton = new JButton("Cancel");
+				cancelButton.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						dbcsPanel.discardChanges();
+						getNewConnectionDialog().dispose();
+						setNewConnectionDialog(null);
+					}
+				});
+
+				JDialog d = ASUtils.createOkCancelDialog(dbcsPanel,
+						SwingUtilities.getWindowAncestor(CompareDMPanel.this),
+						DBCS_DIALOG_TITLE, okButton, cancelButton);
+
+				setNewConnectionDialog(d);
+				d.setVisible(true);
+			}
+		};
+
+		private Action chooseFileAction = new AbstractAction("Choose...") {
+			public void actionPerformed(ActionEvent e) {
+				JFileChooser chooser = new JFileChooser();
+				chooser.addChoosableFileFilter(ASUtils.ARCHITECT_FILE_FILTER);
+				int returnVal = chooser.showOpenDialog(CompareDMPanel.this);
+				if (returnVal == JFileChooser.APPROVE_OPTION) {
+					final File file = chooser.getSelectedFile();
+					loadFilePath.setText(file.getPath());
+				}
+			}
+		};
+
+		/**
+		 * Finds all the children of a database and puts them in the GUI.
+		 */
+		public class CatalogPopulator extends Populator implements ActionListener {
+
+			private SQLDatabase db;
+
+			/**
+			 * Checks the datasource selected in the databaseDropdown,
+			 * and starts a worker thread to read its contents if it exists.
+			 * 
+			 * <p>Otherwise, clears out the catalog and schema dropdowns and does
+			 * not start a worker thread.
+			 */
+			public void actionPerformed(ActionEvent e) {
+				startCompareAction.setEnabled(false);
+				db = getDatabase();
+				if (db != null) {
+					
+					try {
+						progressMonitor = db.getProgressMonitor();
+					} catch (ArchitectException e1) {
+						logger.debug("Error getting progressMonitor", e1);
+					}
+					
+					// disable start button (listers will reenable it when finished)
+					if (((JComboBox) (e.getSource())).getSelectedIndex() == 0) {
+						startCompareAction.setEnabled(false);
+					}
+
+					new Thread(this).start();
+
+				} else {
+					catalogDropdown.removeAllItems();
+					catalogDropdown.setEnabled(false);
+
+					schemaDropdown.removeAllItems();
+					schemaDropdown.setEnabled(false);
+				}
+			}
+
+			/**
+			 * Populates the database <tt>db</tt> which got set up in actionPerformed().
+			 */
+			@Override
+			public void doStuff() throws Exception {
+
+				try {
+					ListerProgressBarUpdater progressBarUpdater =
+						new ListerProgressBarUpdater(progressBar, this);
+					new javax.swing.Timer(100, progressBarUpdater).start();
+
+					db.populate();
+
+				} catch (ArchitectException e) {
+					logger.debug(
+							"Unexpected architect exception in ConnectionListener",
+							e);
+				}
+			}
+			
+			/**
+			 * Does GUI cleanup work on the Swing EDT once the worker is done.
+			 * 
+			 * <p>This work involves:
+			 * <ul>
+			 *  <li>Check which child type the database has
+			 *  <li>Populate the catalog and schema boxes accordingly
+			 *  <li>Enable or disable the catalog and schema boxes accordingly
+			 * </ul>
+			 */
+			@Override
+			public void cleanup() throws ArchitectException {
+				setCleanupExceptionMessage("Could not populate catalog dropdown!");
+				
+				catalogDropdown.removeAllItems();
+				catalogDropdown.setEnabled(false);
+
+				// This is either a database, a catalog, or null depending on how db is structured
+				SQLObject schemaParent;
+
+				if (db.isCatalogContainer()) {
+					for (SQLObject item : (List<SQLObject>) db.getChildren()) {
+						catalogDropdown.addItem(item);
+					}
+					
+					// check if we need to do schemas
+					SQLCatalog cat = (SQLCatalog) catalogDropdown.getSelectedItem();
+					if (cat == null) {
+						// there are no catalogs (database is completely empty)
+						schemaParent = null;
+						catalogDropdown.setEnabled(false);
+					} else if (cat.isSchemaContainer()) {
+						// there are schemas in this catalog
+						schemaParent = cat;
+						catalogDropdown.setEnabled(true);
+					} else {
+						// there are catalogs, but they don't contain schemas
+						schemaParent = null;
+						catalogDropdown.setEnabled(true);
+					}
+
+				} else if (db.isSchemaContainer()) {
+					schemaParent = db;
+					catalogDropdown.setEnabled(false);
+				} else {
+					// database contains tables directly
+					schemaParent = null;
+					catalogDropdown.setEnabled(false);
+				}
+
+				schemaDropdown.removeAllItems();
+				schemaDropdown.setEnabled(false);
+
+				if (schemaParent == null) {
+					startCompareAction.setEnabled(isStartable());
+				} else {
+					// need a final reference to this so we can use it in the inner class
+					final SQLObject finalSchemaParent = schemaParent;
+					
+					new Thread(new Populator() {
+						
+						@Override
+						public void doStuff() throws Exception {
+							ListerProgressBarUpdater progressBarUpdater =
+								new ListerProgressBarUpdater(progressBar, this);
+							new javax.swing.Timer(100, progressBarUpdater).start();
+							// this populates the schema parent (populate is not visible here)
+							finalSchemaParent.getChildren();
+						}
+						
+						/**
+						 * Populates the schema dropdown box from the schema 
+						 * parent that doStuff() populated.  
+						 * @throws ArchitectException 
+						 */
+						@Override
+						public void cleanup() throws ArchitectException {
+							setCleanupExceptionMessage("Could not populate schema dropdown!");
+							
+							for (SQLObject item : (List<SQLObject>) finalSchemaParent.getChildren()) {
+								schemaDropdown.addItem(item);
+							}
+							
+							if (schemaDropdown.getItemCount() > 0) {
+								schemaDropdown.setEnabled(true);
+							}
+							
+							startCompareAction.setEnabled(isStartable());
+						}
+					}).start();
+				}
+			}
+		}
+
+		/**
+		 * Finds all the children of a catalog and puts them in the GUI.
+		 */
+		public class SchemaPopulator extends Populator implements ActionListener {
+
+			/**
+			 * Clears the schema dropdown, and starts a worker thread to
+			 * repopulate it (if possible).
+			 */
+			public void actionPerformed(ActionEvent e) {
+				logger.debug("SCHEMA POPULATOR IS ABOUT TO START...");
+				schemaDropdown.removeAllItems();
+				schemaDropdown.setEnabled(false);
+				
+				SQLCatalog catToPopulate = (SQLCatalog) catalogDropdown.getSelectedItem();
+				
+				if (catToPopulate != null) {
+					startCompareAction.setEnabled(false);
+					Thread t = new Thread(this);
+					t.start();
+				}
+			}
+
+			@Override
+			public void doStuff() throws ArchitectException {
+				logger.debug("SCHEMA POPULATOR IS STARTED...");
+				ListerProgressBarUpdater progressBarUpdater =
+					new ListerProgressBarUpdater(progressBar, this);
+				new javax.swing.Timer(100, progressBarUpdater).start();
+				
+				SQLCatalog catToPopulate = (SQLCatalog) catalogDropdown.getSelectedItem();
+				catToPopulate.getChildren();  // this might take a while
+			}
+
+			/**
+			 * Examines the newly-populated catalog and adds its schemas to the
+			 * GUI.  If the catalog doesn't contain schemas, cleanup just checks
+			 * if the comparison action is startable.
+			 * @throws ArchitectException 
+			 */
+			@Override
+			public void cleanup() throws ArchitectException {
+				logger.debug("SCHEMA POPULATOR IS ABOUT TO CLEAN UP...");
+
+				SQLCatalog populatedCat = (SQLCatalog) catalogDropdown.getSelectedItem();
+
+				if (populatedCat.isSchemaContainer()) {
+					for (SQLObject item : (List<SQLObject>) populatedCat.getChildren()) {
+						schemaDropdown.addItem(item);
+					}
+					
+					if (schemaDropdown.getItemCount() > 0) {
+						schemaDropdown.setEnabled(true);
+					}
+				}
+				startCompareAction.setEnabled(isStartable());
+			}
+
+		}
+		
+		public synchronized JDialog getNewConnectionDialog() {
+			return newConnectionDialog;
+		}
+
+		private synchronized void setNewConnectionDialog(JDialog d) {
+			newConnectionDialog = d;
+		}
+
+		/**
+		 * Creates the GUI components associated with this object, and appends
+		 * them to the given builder. 
+		 */
+		private void buildPartialUI(DefaultFormBuilder builder,
+				boolean defaultPlayPen) {
+
+			String prefix;
+			if (defaultPlayPen == true){
+				prefix = "source";
+			} else{
+				prefix = "target";
+			}
+			CellConstraints cc = new CellConstraints();
+
+			ArchitectFrame af = ArchitectFrame.getMainInstance();
+			SwingUIProject project = af.getProject();
+			
+			playPenRadio = new JRadioButton();
+			playPenRadio.setName (prefix + "PlayPenRadio");
+			physicalRadio = new JRadioButton();
+			physicalRadio.setName(prefix + "PhysicalRadio");
+			loadRadio = new JRadioButton();
+			loadRadio.setName(prefix + "LoadRadio");
+
+			buttonGroup.add(playPenRadio);
+			buttonGroup.add(physicalRadio);
+			buttonGroup.add(loadRadio);
+
+			schemaDropdown = new JComboBox();
+			schemaDropdown.setEnabled(false);
+			schemaDropdown.setName(prefix + "SchemaDropdown");
+
+			catalogDropdown = new JComboBox();
+			catalogDropdown.setEnabled(false);
+			catalogDropdown.setName(prefix + "CatalogDropdown");
+			
+			databaseDropdown = new JComboBox();
+			databaseDropdown.setName(prefix + "DatabaseDropdown");
+			databaseDropdown.addItem(null); // the non-selection selection
+			for (ArchitectDataSource ds : af.getUserSettings().getConnections()) {
+				databaseDropdown.addItem(ds);
+			}
+			databaseDropdown.setEnabled(false);
+			databaseDropdown.setRenderer(dataSourceRenderer);
+
+			newConnButton = new JButton();
+			newConnButton.setName(prefix +  "NewConnButton");
+			newConnButton.setAction(newConnectionAction);
+			newConnectionAction.setEnabled(false);
+			
+
+			loadFilePath = new JTextField();
+			loadFilePath.setName(prefix + "LoadFilePath");
+			loadFilePath.setEnabled(false);
+			loadFileButton = new JButton();
+			loadFileButton.setName(prefix + "LoadFileButton");
+			loadFileButton.setAction(chooseFileAction);
+			chooseFileAction.setEnabled(false);
+
+			catalogDropdown.addActionListener(new SchemaPopulator());
+			databaseDropdown.addActionListener(new CatalogPopulator());
+
+			physicalComp = new ArrayList<JComponent>();
+			physicalComp.add(databaseDropdown);
+			physicalComp.add(catalogDropdown);
+			physicalComp.add(schemaDropdown);
+			physicalComp.add(newConnButton);
+
+			loadComp = new ArrayList<JComponent>();
+			loadComp.add(loadFilePath);
+			loadComp.add(loadFileButton);
+
+			ActionListener listener = new OptionGroupListener(
+					playPenRadio, null, physicalRadio, physicalComp, loadRadio,
+					loadComp);
+			playPenRadio.addActionListener(listener);
+			physicalRadio.addActionListener(listener);
+			loadRadio.addActionListener(listener);
+
+			if (defaultPlayPen) {
+				playPenRadio.doClick();
+			} else {
+				physicalRadio.doClick();
+			}
+
+			// now give all our shiny new components to the builder
+			builder.append(playPenRadio);
+			builder.append("Current Project [" + project.getName() + "]");
+			builder.nextLine();
+
+			builder.append(""); // takes up blank space
+			builder.append(physicalRadio);
+			builder.append("Physical Database");
+			//builder.nextColumn(2);
+			builder.append("Catalog");
+			builder.append("Schema");
+			builder.appendRow(builder.getLineGapSpec());
+			builder.appendRow("pref");
+			builder.nextLine(2);
+			builder.nextColumn(4);
+			builder.append(databaseDropdown);
+			builder.append(catalogDropdown, schemaDropdown, newConnButton);
+			builder.nextLine();
+
+			builder.append("");
+			builder.append(loadRadio);
+			builder.append("From File:");
+			builder.nextLine();
+			builder.append(""); // takes up blank space
+			builder.add(loadFilePath, cc.xyw(5, builder.getRow(), 5));
+			builder.nextColumn(8);
+			builder.append(loadFileButton);
+			builder.nextLine();
+
+		}
+
+		/**
+		 * Figures out which SQLObject holds the tables we want to compare, and
+		 * returns it.
+		 * @throws ArchitectException 
+		 * @throws IOException 
+		 * @throws IOException 
+		 */
+		public SQLObject getObjectToCompare() throws ArchitectException,
+				IOException {
+			SQLObject o;
+			if (playPenRadio.isSelected()) {
+				o = ArchitectFrame.getMainInstance().playpen.getDatabase();
+			} else if (physicalRadio.isSelected()) {
+				if (schemaDropdown.getSelectedItem() != null) {
+					o = (SQLObject) schemaDropdown.getSelectedItem();
+				} else if (catalogDropdown.getSelectedItem() != null) {
+					o = (SQLObject) catalogDropdown.getSelectedItem();
+				} else if (databaseDropdown.getSelectedItem() != null) {
+					o = getDatabase();
+				} else {
+					throw new IllegalStateException(
+							"You elected to compare a physical database, "
+									+ "but have not selected a "
+									+ "schema, catalog, or database to compare.");
+				}
+
+			} else if (source.loadRadio.isSelected()) {
+				SwingUIProject project = new SwingUIProject("Source");
+				File f = new File(loadFilePath.getText());
+				project.load(new BufferedInputStream(new FileInputStream(f)));
+				o = project.getTargetDatabase();
+			} else {
+				throw new IllegalStateException(
+						"Do not which source to compare from");
+			}
+
+			return o;
+		}
+
+		/**
+		 * The public isStartable() method uses this to check source and target
+		 * readiness.
+		 * 
+		 * XXX: this is really similar to the getObjectToCompare() method,
+		 * except that it doesn't try to load the file (so it runs quicker)
+		 */
+		private boolean isThisPartStartable() {
+			if (playPenRadio.isSelected()) {
+				return true;
+			} else if (physicalRadio.isSelected()) {
+				return databaseDropdown.getSelectedItem() != null;
+			} else if (loadRadio.isSelected()) {
+				return new File(loadFilePath.getText()).canRead();
+			} else {
+				throw new IllegalStateException(
+						"None of the radio buttons are selected!");
+			}
+		}
+		
+		/**
+		 * Returns the currently selected database.  Only creates a new SQLDatabase
+		 * instance if necessary.
+		 */
+		public synchronized SQLDatabase getDatabase() {
+			ArchitectDataSource ds = (ArchitectDataSource) databaseDropdown.getSelectedItem();
+			if (ds == null) {
+				cachedDatabase = null;
+			} else if (cachedDatabase == null || !cachedDatabase.getDataSource().equals(ds)) {
+				cachedDatabase = new SQLDatabase(ds);
+			}
+			return cachedDatabase;
+		}
+	}
 
 	/**
 	 * Renders list cells which have a value that is an ArchitectDataSource.
 	 */
 	private ListCellRenderer dataSourceRenderer = new DefaultListCellRenderer() {
-		public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+		public Component getListCellRendererComponent(JList list, Object value,
+				int index, boolean isSelected, boolean cellHasFocus) {
 			ArchitectDataSource ds = (ArchitectDataSource) value;
 			String label;
 			if (ds == null) {
@@ -74,315 +594,51 @@ public class CompareDMPanel extends JPanel {
 			} else {
 				label = ds.getName();
 			}
-			return super.getListCellRendererComponent(list, label, index, isSelected, cellHasFocus);
+			return super.getListCellRendererComponent(list, label, index,
+					isSelected, cellHasFocus);
 		}
 	};
 
-	
-	private Action loadFileAction = new AbstractAction(){
-
-		public void actionPerformed(ActionEvent arg0) {
-			sourceLoadRadio.setSelected(true);
-			JOptionPane.showMessageDialog(null, "Complete this");
-			//TODO
-			statusLabel.setText("Loaded OK");
-			
-		}
-	};
-	private JDialog sourceNewConnectionDialog;
-	private JDialog targetNewConnectionDialog;
-	
-	private Action newConnectionAction = new AbstractAction() {
-		public void actionPerformed(ActionEvent e) {
-			final boolean isSource = (e.getSource() == sourceNewConnButton ? true : false);
-			if (isSource) {
-				if (getSourceNewConnectionDialog() != null) {
-					getSourceNewConnectionDialog().requestFocus();
-					return;
-				}
-			} else {
-				if (getTargetNewConnectionDialog() != null) {
-					getTargetNewConnectionDialog().requestFocus();
-					return;
-				}
-			}
-			final DBCSPanel dbcsPanel = new DBCSPanel();
-			dbcsPanel.setDbcs(new ArchitectDataSource());
-			JButton okButton = new JButton("Ok");
-			okButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					dbcsPanel.applyChanges();
-					ArchitectDataSource newDS = dbcsPanel.getDbcs();
-					if (isSource) {
-						sourceDatabaseDropdown.addItem(newDS);
-						sourceDatabaseDropdown.setSelectedItem(newDS);
-						getSourceNewConnectionDialog().dispose();
-						setSourceNewConnectionDialog(null);
-					} else {
-						targetDatabaseDropdown.addItem(newDS);
-						targetDatabaseDropdown.setSelectedItem(newDS);
-						getTargetNewConnectionDialog().dispose();
-						setTargetNewConnectionDialog(null);
-					}
-				}
-			});
-			JButton cancelButton = new JButton("Cancel");
-			cancelButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					dbcsPanel.discardChanges();
-					if (isSource) {
-						getSourceNewConnectionDialog().dispose();
-						setSourceNewConnectionDialog(null);
-					} else {
-						getTargetNewConnectionDialog().dispose();
-						setTargetNewConnectionDialog(null);
-					}
-				}
-			});
-			
-			JDialog d = ASUtils.createOkCancelDialog(
-					dbcsPanel,
-					SwingUtilities.getWindowAncestor(CompareDMPanel.this), 
-					DBCS_DIALOG_TITLE,
-					okButton, cancelButton);
-			
-			if (isSource) {
-				setSourceNewConnectionDialog(d);
-			} else {
-				setTargetNewConnectionDialog(d);
-			}
-			d.setVisible(true);
-		}
-	};
-	
-	// source database fields
-	private JComboBox sourceDatabaseDropdown;
-	private JComboBox sourceCatalogDropdown;
-	private JComboBox sourceSchemaDropdown;
-	private JButton sourceNewConnButton;
-	private JButton sourceLoadFileButton;
-	private JTextField sourceLoadFilePath;
-
-	// target database fields
-	private JComboBox targetDatabaseDropdown;
-	private JComboBox targetCatalogDropdown;
-	private JComboBox targetSchemaDropdown;
-	private JButton targetNewConnButton;
-	private JButton targetLoadFileButton;
-	private JTextField targetLoadFilePath;
-
-	private JProgressBar progressBar;
-	
-	private JPanel buttonPanel;
-
-	private SQLDatabase sourceDatabase;
-	private SQLDatabase targetDatabase;
-	private SQLSchema sourceSQLSchema;
-	private SQLSchema targetSQLSchema;
-	private SQLCatalog sourceSQLCatalog;
-	private SQLCatalog targetSQLCatalog;
-	private JComboBox sqlTypeDropdown;
-	
-
-	private JTextPane outputTextPane;
-
-	private JRadioButton sourcePlayPenRadio;
-	private JRadioButton sourcePhysicalRadio;
-	private JRadioButton sourceLoadRadio;
-	private StartCompareAction startCompareAction;
-	private JRadioButton sqlButton;
-	
-	private JRadioButton targetPlayPenRadio;
-	private JRadioButton targetPhysicalRadio;
-	private JRadioButton targetLoadRadio;
-
-
-	private JLabel statusLabel;
-	
-
-	
 	/**
-	 * Return true if 
-	 * @return 
+	 * Returns true iff the comparison process can start given the current state
+	 * of the GUI form.
 	 */
-	public boolean isStartable()
-	{
-
-		/**
-		 * selected index -1 means when there is nothing selected yet, 
-		 * 0 means the special item we added to the first place: 'choose a connection'
-		 * in both cases, it's not ready 
-		 * 
-		 */
-		if ( sourcePhysicalRadio.isSelected())
-		{
-			if (sourceDatabaseDropdown.getSelectedIndex() <= 0)
-			{
-				return false;
-			}
-		}
-		if (targetDatabaseDropdown.getSelectedIndex() <= 0)
-		{
-			return false;
-		}
-		return true;
+	public boolean isStartable() {
+		logger.debug("isStartable is checking...");
+		return source.isThisPartStartable() && target.isThisPartStartable();
 	}
-	
+
 	public Action getStartCompareAction() {
 		return startCompareAction;
 	}
 
-	public JPanel  getButtonPanel() {
+	public JPanel getButtonPanel() {
 		return buttonPanel;
 	}
 
 	public CompareDMPanel() {
 		buildUI();
 	}
-	
+
 	private void buildUI() {
-		ArchitectFrame af = ArchitectFrame.getMainInstance();
-		SwingUIProject project = af.getProject();
-
-		// layout source database option/combox target combox
-		sourcePlayPenRadio = new JRadioButton();
-		sourcePlayPenRadio.setName("sourcePlayPenRadio");
-		sourcePlayPenRadio.setActionCommand("Project");
-		
-
-		sourcePhysicalRadio = new JRadioButton();
-		sourcePhysicalRadio.setName("sourcePhysicalRadio");
-		sourcePhysicalRadio.setActionCommand("SQL Connection");
-		
-		sourceLoadRadio = new JRadioButton();
-		sourceLoadRadio.setName("sourceLoadRadio");
-		sourceLoadRadio.setActionCommand("Load File");
-
-		//Group the radio buttons.
-		ButtonGroup sourceButtonGroup = new ButtonGroup();
-		sourceButtonGroup.add(sourcePlayPenRadio);
-		sourceButtonGroup.add(sourcePhysicalRadio);
-		sourceButtonGroup.add(sourceLoadRadio);
-		// Generate an action so we load the playpen DataSource
-		sourcePlayPenRadio.doClick();
-
-		//Register a listener for the radio buttons.
-		
-
-		sourceDatabaseDropdown = new JComboBox();
-		sourceDatabaseDropdown.addItem(null);   // the non-selection selection
-		for (ArchitectDataSource ds : af.getUserSettings().getConnections()) {
-			sourceDatabaseDropdown.addItem(ds);
-		}
-		
-		sourceSchemaDropdown = new JComboBox();
-		sourceSchemaDropdown.setName("sourceSchemaDropdown");
-		sourceSchemaDropdown.setEnabled(false);
-		
-		sourceCatalogDropdown = new JComboBox();
-		sourceCatalogDropdown.setName("sourceCatalogDropdown");
-		sourceCatalogDropdown.setEnabled(false);
-		
-		
-		sourceDatabaseDropdown.setName("sourceDatabaseDropdown");
-		sourceDatabaseDropdown.setEnabled(false);
-		sourceDatabaseDropdown.setRenderer(dataSourceRenderer);
-		
-		sourceNewConnButton = new JButton("New...");
-		sourceNewConnButton.setName("sourceNewConnButton");
-		sourceNewConnButton.setEnabled(false);
-		sourceNewConnButton.addActionListener(newConnectionAction);
-		
-		sourceLoadFilePath = new JTextField();
-		sourceLoadFilePath.setName("sourceLoadFilePath");
-		sourceLoadFilePath.setEnabled(false);
-		sourceLoadFileButton = new JButton("Load File...");
-		sourceLoadFileButton.setName("sourceLoadFileButton");
-		sourceLoadFileButton.setEnabled(false);
-		sourceLoadFileButton.addActionListener(loadFileAction);
-		
-		targetPlayPenRadio = new JRadioButton();
-		targetPlayPenRadio.setName("targetPlayPenRadio");
-		targetPlayPenRadio.setSelected(true);
-		targetPlayPenRadio.setActionCommand("Target Project");
-		
-		targetPhysicalRadio = new JRadioButton();
-		targetPhysicalRadio.setName("targetPhysicalRadio");
-		targetPhysicalRadio.setActionCommand("Target Physical");
-		
-		targetLoadFilePath = new JTextField();
-		targetLoadFileButton = new JButton("Load File..");
-		targetLoadFileButton.setName ("targetLoadFileButton");
-		targetLoadFileButton.setEnabled(false);
-		targetLoadFileButton.addActionListener(loadFileAction);		
-		
-		targetLoadRadio = new JRadioButton();
-		targetLoadRadio.setName ("targetLoadRadio");
-		targetLoadRadio.setActionCommand("Target Radio");
-		
-		ButtonGroup targetButtonGroup = new ButtonGroup();
-		targetButtonGroup.add(targetPlayPenRadio);
-		targetButtonGroup.add(targetPhysicalRadio);
-		targetButtonGroup.add(targetLoadRadio);
-		
-		
-		targetSchemaDropdown = new JComboBox();
-		targetSchemaDropdown.setName("targetSchemaDropdown");
-		targetSchemaDropdown.setEnabled(false);
-
-
-		targetCatalogDropdown = new JComboBox();
-		targetCatalogDropdown.setName("targetCatalogDropdown");
-		targetCatalogDropdown.setEnabled(false);
-		
-	
-		
-		
-		targetDatabaseDropdown = new JComboBox();
-		targetDatabaseDropdown.addItem(null);   // the non-selection selection
-		for (ArchitectDataSource ds : af.getUserSettings().getConnections()) {
-			targetDatabaseDropdown.addItem(ds);
-		}
-		
-		
-		targetDatabaseDropdown.setName("targetDatabaseDropdown");
-		targetDatabaseDropdown.setEnabled(false);
-		targetDatabaseDropdown.setRenderer(dataSourceRenderer);
-		
-
-		sourceSchemaDropdown.addActionListener(new SchemaChangeListener(sourceSchemaDropdown,true));
-		targetSchemaDropdown.addActionListener(new SchemaChangeListener(targetSchemaDropdown,false));
-		sourceCatalogDropdown.addActionListener(new SchemaPopulator(sourceSchemaDropdown,true));
-		targetCatalogDropdown.addActionListener(new SchemaPopulator(targetSchemaDropdown,false));
-		sourceDatabaseDropdown.addActionListener(new CatalogPopulator(sourceSchemaDropdown,sourceCatalogDropdown,true));
-		targetDatabaseDropdown.addActionListener(new CatalogPopulator(targetSchemaDropdown,targetCatalogDropdown,false));
-		
-		
-		targetNewConnButton = new JButton("New...");
-		targetNewConnButton.setName("targetNewConnButton");
-		targetNewConnButton.setEnabled(false);
-		targetNewConnButton.addActionListener(newConnectionAction);
-
-		
 
 		progressBar = new JProgressBar();
 		progressBar.setIndeterminate(true);
 		progressBar.setVisible(false);
 
-
-
 		sqlTypeDropdown = new JComboBox(DDLUtils.getDDLTypes());
 		sqlTypeDropdown.setName("sqlTypeDropDown");
-		OutputChoiceListener listener = new OutputChoiceListener(sqlTypeDropdown);
-		sqlButton = new JRadioButton( );
-		sqlButton.setName("sqlButton");
-		sqlButton.setActionCommand("sqlButton");
+		OutputChoiceListener listener = new OutputChoiceListener(
+				sqlTypeDropdown);
+		sqlButton = new JRadioButton();
+		sqlButton.setName(OUTPUT_SQL);
+		sqlButton.setActionCommand(OUTPUT_SQL);
 		sqlButton.setSelected(true);
 		sqlButton.addActionListener(listener);
-		
-		JRadioButton englishButton = new JRadioButton();
+
+		englishButton = new JRadioButton();
 		englishButton.setName("englishButton");
-		englishButton.setActionCommand("english");
+		englishButton.setActionCommand(OUTPUT_ENGLISH);
 		englishButton.setSelected(false);
 		englishButton.addActionListener(listener);
 
@@ -390,149 +646,59 @@ public class CompareDMPanel extends JPanel {
 		ButtonGroup outputGroup = new ButtonGroup();
 		outputGroup.add(sqlButton);
 		outputGroup.add(englishButton);
-	
-		
+
 		// outputDoc outputTextPane
 
 		outputTextPane = new JTextPane();
-        outputTextPane.setCaretPosition(0);
-        outputTextPane.setMargin(new Insets(5,5,5,5));
+		outputTextPane.setCaretPosition(0);
+		outputTextPane.setMargin(new Insets(5, 5, 5, 5));
 
-        JScrollPane scrollPane = new JScrollPane(outputTextPane);
-        scrollPane.setPreferredSize(new Dimension(300, 300));
-        
+		JScrollPane scrollPane = new JScrollPane(outputTextPane);
+		scrollPane.setPreferredSize(new Dimension(300, 300));
+
 		startCompareAction = new StartCompareAction();
 		startCompareAction.setEnabled(false);
-		
+
 		buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-	
-		List<JComponent> sourcePhysicalComp = new ArrayList<JComponent>();
-		sourcePhysicalComp.add(sourceDatabaseDropdown);
-		sourcePhysicalComp.add(sourceCatalogDropdown);
-		sourcePhysicalComp.add(sourceSchemaDropdown);
-		sourcePhysicalComp.add(sourceNewConnButton);
-		
-		List<JComponent> sourceLoadList = new ArrayList<JComponent>();
-		sourceLoadList.add(sourceLoadFilePath);
-		sourceLoadList.add(sourceLoadFileButton);
-		
-		
-		ActionListener sourceListener = new OptionGroupListener(sourcePlayPenRadio, null,
-				sourcePhysicalRadio, sourcePhysicalComp, 
-				sourceLoadRadio,sourceLoadList);
-		sourcePlayPenRadio.addActionListener(sourceListener);
-		sourcePhysicalRadio.addActionListener(sourceListener);
-		sourceLoadRadio.addActionListener(sourceListener);
-		
-		List<JComponent> targetPhysicalComp = new ArrayList<JComponent>();
-		targetPhysicalComp.add(targetDatabaseDropdown);
-		targetPhysicalComp.add(targetCatalogDropdown);
-		targetPhysicalComp.add(targetSchemaDropdown);
-		targetPhysicalComp.add(targetNewConnButton);
-		
-		List<JComponent> targetLoadList = new ArrayList<JComponent>();
-		targetLoadList.add(targetLoadFilePath);
-		targetLoadList.add(targetLoadFileButton);
-		
-		
-		ActionListener targetListener = new OptionGroupListener(targetPlayPenRadio, null,
-				targetPhysicalRadio, targetPhysicalComp, 
-				targetLoadRadio,targetLoadList);
-		targetPlayPenRadio.addActionListener(targetListener);
-		targetPhysicalRadio.addActionListener(targetListener);
-		targetLoadRadio.addActionListener(targetListener);
-		
-		FormLayout formLayout = new FormLayout(
-				"20dlu, 2dlu, pref, 4dlu," + 				//1-4
-				"pref:grow, 2dlu, pref:grow, 4dlu," +		//5-8
-				"pref:grow, 4dlu, pref",					//9-11
+
+		FormLayout formLayout = new FormLayout("20dlu, 2dlu, pref, 4dlu," + //1-4
+				"pref:grow, 2dlu, pref:grow, 4dlu," + //5-8
+				"pref:grow, 4dlu, pref", //9-11
 				"");
-		formLayout.setColumnGroups(new int[][] {{5,7,9,}});
-		JPanel panel = logger.isDebugEnabled() ? new FormDebugPanel() : new JPanel();
+		formLayout.setColumnGroups(new int[][] { { 5, 7, 9, } });
+		JPanel panel = logger.isDebugEnabled() ? new FormDebugPanel()
+				: new JPanel();
 		DefaultFormBuilder builder = new DefaultFormBuilder(formLayout, panel);
 		builder.setDefaultDialogBorder();
-		
+
 		CellConstraints cc = new CellConstraints();
-		
+
 		builder.appendSeparator("Compare Source");
 		builder.nextLine();
 		builder.append(""); // takes up blank space
-		builder.append(sourcePlayPenRadio);
-		builder.append("Current Project ["+project.getName()+"]");
-		builder.nextLine();
-		
-		builder.append(""); // takes up blank space
-		builder.append(sourcePhysicalRadio);
-		builder.append("Physical Database");
-		//builder.nextColumn(2);
-		builder.append("Catalog");
-		builder.append("Schema");
-		builder.appendRow(builder.getLineGapSpec());
-		builder.appendRow("pref");
-		builder.nextLine(2);
-		builder.nextColumn(4);
-		builder.append(sourceDatabaseDropdown);
-		builder.append(sourceCatalogDropdown, sourceSchemaDropdown, sourceNewConnButton);
-		builder.nextLine();
-		
-		builder.append("");		
-		builder.append (sourceLoadRadio);
-		builder.append("From File:");
-		builder.nextLine();
-		builder.append(""); // takes up blank space
-		builder.add(sourceLoadFilePath,cc.xyw(5,builder.getRow(),5));
-		builder.nextColumn(8);
-		builder.append (sourceLoadFileButton);
-		builder.nextLine();
 
-		
+		source.buildPartialUI(builder, true);
+
 		builder.appendSeparator("With Target");
 		builder.appendRow(builder.getLineGapSpec());
 		builder.appendRow("pref");
 		builder.nextLine(2);
 		builder.append("");
-		builder.append(targetPlayPenRadio);
-		builder.append ("Current Project[" + project.getName() + "]");
-		builder.nextLine();
-		
-		builder.append("");
-		builder.append(targetPhysicalRadio);
-		builder.append("Physical Database");
-		builder.append("Catalog");
-		builder.append("Schema");
-		builder.nextLine();
-		builder.append("");
-		builder.append("");
-		builder.append(targetDatabaseDropdown);
-		builder.append(targetCatalogDropdown, targetSchemaDropdown,targetNewConnButton);
-		builder.nextLine();
-		
-		builder.append("");
-		builder.append(targetLoadRadio);
-		builder.append("From File:");
-		builder.nextLine();
-		builder.append("");
-		builder.add(targetLoadFilePath, cc.xyw(5,builder.getRow(),5));
-		builder.nextColumn(8);
-		builder.append(targetLoadFileButton);
-		builder.appendRow(builder.getLineGapSpec());
-		builder.appendRow("pref");
-		builder.nextLine(2);
-		builder.nextColumn(4);
-		
-		
+
+		target.buildPartialUI(builder, false);
+
 		builder.appendSeparator("Output Format");
 		builder.appendRow(builder.getLineGapSpec());
 		builder.appendRow("pref");
 		builder.nextLine(2);
 		builder.nextColumn(2);
 		builder.append(sqlButton);
-		
-		JPanel ddlTypePanel = new JPanel(new BorderLayout(3,3));
+
+		JPanel ddlTypePanel = new JPanel(new BorderLayout(3, 3));
 		ddlTypePanel.add(new JLabel("SQL for"), BorderLayout.WEST);
-		ddlTypePanel.add(sqlTypeDropdown, BorderLayout.CENTER);  // ddl generator type list
+		ddlTypePanel.add(sqlTypeDropdown, BorderLayout.CENTER); // ddl generator type list
 		builder.append(ddlTypePanel);
-		
+
 		builder.appendRow(builder.getLineGapSpec());
 		builder.appendRow("pref");
 		builder.nextLine(2);
@@ -540,7 +706,7 @@ public class CompareDMPanel extends JPanel {
 		builder.append(englishButton);
 		builder.append("English descriptions");
 		builder.nextLine();
-				
+
 		builder.appendSeparator("Status");
 		builder.appendRow(builder.getLineGapSpec());
 		builder.appendRow("pref");
@@ -548,391 +714,82 @@ public class CompareDMPanel extends JPanel {
 		statusLabel = new JLabel("");
 		builder.add(statusLabel, cc.xy(5, builder.getRow()));
 		builder.add(progressBar, cc.xyw(7, builder.getRow(), 5));
-		
+
 		setLayout(new BorderLayout());
 		add(builder.getPanel());
 	}
-	
-	public class OutputChoiceListener implements ActionListener {
+
+	/**
+	 * Handles disabling and enabling the "DDL Type" dropdown box.
+	 */
+	public static class OutputChoiceListener implements ActionListener {
 
 		JComboBox cb;
-		// default choice
-		
-		public OutputChoiceListener(JComboBox cb)
-		{
-			this.cb =cb;
+
+		public OutputChoiceListener(JComboBox cb) {
+			this.cb = cb;
 		}
-		
+
 		public void actionPerformed(ActionEvent e) {
-			if (e.getActionCommand().equals("sqlButton"))
-			{
+			if (e.getActionCommand().equals(OUTPUT_SQL)) {
 				cb.setEnabled(true);
-			}
-			else
-			{
+			} else {
 				cb.setEnabled(false);
 			}
-			
 		}
-		
-	}
-	
 
-	
-	public abstract class Populator extends ArchitectSwingWorker implements Lister {
-	
+	}
+
+	public abstract class Populator extends ArchitectSwingWorker implements
+			Lister {
+
 		protected SQLDatabase.PopulateProgressMonitor progressMonitor;
-		
+
 		public Integer getJobSize() throws ArchitectException {
-			if (progressMonitor != null)
-			{
+			if (progressMonitor != null) {
 				return progressMonitor.getJobSize();
 			}
 			return null;
 		}
-		
+
 		public int getProgress() throws ArchitectException {
-			if (progressMonitor != null)
-			{
+			if (progressMonitor != null) {
 				return progressMonitor.getProgress();
 			}
 			return 0;
 		}
-		
+
 		public boolean isFinished() throws ArchitectException {
-			if (progressMonitor != null)
-			{
-		
+			if (progressMonitor != null) {
 				return progressMonitor.isFinished();
 			}
 			return true;
 		}
 	}
-	
-	public class CatalogPopulator  extends Populator implements ActionListener{
-		
-		private JComboBox catalogs;
-		private JComboBox schemas;
-		private JComboBox databases;
-		private SQLDatabase db;
-		private SQLObject schemaParent;
-		private List<SQLObject> children = null;
-		private boolean isSource;
-		
-			
-		public CatalogPopulator(JComboBox schemas, JComboBox catalogs, boolean isSource)
-		{
-			this.catalogs = catalogs;
-			this.schemas = schemas;
-			this.isSource = isSource;
-		}
-		
-	
-			
-		public void actionPerformed(ActionEvent e) {
-			databases = (JComboBox)e.getSource();
-			ArchitectDataSource ds =(ArchitectDataSource) databases.getSelectedItem();
-			schemaParent = null;
-			children = null;
-			Thread t;
-			if (ds != null)
-			{
-				db = new SQLDatabase(ds);
-				if ( isSource ) 		sourceDatabase = db;
-				else					targetDatabase = db;
-				try {
-					progressMonitor = db.getProgressMonitor();
-				} catch (ArchitectException e1) {
-					logger.debug("Error getting progressMonitor",e1);
-				}
-				t = new Thread(this);
-				t.start();
-					
-				// wait for all listers to finish
-				if(((JComboBox)(e.getSource()) ).getSelectedIndex() == 0)
-				{
-					startCompareAction.setEnabled(false);
-				}
-			}
-			else
-			{
-				if ( isSource ) {
-					sourceSQLCatalog = null;
-					sourceSQLSchema = null;
-				}
-				else {
-					targetSQLCatalog = null;
-					targetSQLSchema = null;
-				}
-				
-				catalogs.removeAllItems();
-				catalogs.setEnabled(false);
-			
-				schemas.removeAllItems();
-				schemas.setEnabled(false);
-			}
-		}
-		
-	
-
-
-		@Override
-		public void cleanup() {
-
-			if ( isSource ) {
-				sourceSQLCatalog = null;
-			}
-			else {
-				targetSQLCatalog = null;
-			}
-			catalogs.removeAllItems();
-			catalogs.setEnabled(false);
-			
-			if  (children!= null)
-			{
-				
-				for (SQLObject item : children) {
-					catalogs.addItem(item);
-				}
-				children = null;
-			}
-			// If it has an item set this enabled
-			if (catalogs.getItemCount() > 0) {
-				catalogs.setEnabled(true);
-
-				if ( isSource ) {
-					sourceSQLCatalog = (SQLCatalog) catalogs.getSelectedItem();
-				}
-				else {
-					targetSQLCatalog = (SQLCatalog) catalogs.getSelectedItem();
-				}
-				
-				if (schemaParent == null)
-				{
-					schemaParent = (SQLObject) catalogs.getSelectedItem();
-				}
-			}
-			
-				new Thread(new Populator(){
-					List<SQLObject> schemaChildren;
-					@Override
-					public void cleanup() {
-						schemas.removeAllItems();
-						schemas.setEnabled(false);
-						
-						if ( isSource ) {
-							sourceSQLSchema = null;
-						}
-						else {
-							targetSQLSchema = null;
-						}
-
-						if (schemaChildren != null)
-						{
-							for (SQLObject item : schemaChildren) {
-								schemas.addItem(item);
-							}
-							
-							// If it has an item set this enabled
-							if (schemas.getItemCount() > 0) {
-								if ( isSource ) {
-									sourceSQLSchema = (SQLSchema) schemas.getSelectedItem();
-								}
-								else {
-									targetSQLSchema = (SQLSchema) schemas.getSelectedItem();
-								}
-								schemas.setEnabled(true);
-							}
-						}
-						
-						startCompareAction.setEnabled(isStartable());
-						
-					}
-					
-					@Override
-					public void doStuff() throws Exception {
-						
-						
-						ListerProgressBarUpdater progressBarUpdater = new ListerProgressBarUpdater(progressBar,this);
-						new javax.swing.Timer(100, progressBarUpdater).start();
-						if (schemaParent != null)
-						{
-							schemaChildren = schemaParent.getChildren();
-						}
-						
-					}
-					
-				}).start();
-			
-			
-		}
-
-
-		@Override
-		public void doStuff() throws Exception {
-
-			try {
-				
-				ListerProgressBarUpdater progressBarUpdater = new ListerProgressBarUpdater(progressBar,this);
-				new javax.swing.Timer(100, progressBarUpdater).start();
-
-				db.populate();
-				if (db.isCatalogContainer())
-				{
-					children = db.getChildren();
-					
-				}
-				else if ( db.isSchemaContainer() )
-				{
-					schemaParent = db;
-				}
-
-			} catch (ArchitectException e) {
-				logger.debug("Unexpected architect exception in ConnectionListener",e);
-				
-			}
-		}
-	}
-
-	public class SchemaPopulator  extends Populator implements ActionListener{
-		
-		private JComboBox schemas;
-		private JComboBox catalogs;
-		private List<SQLObject> children = null;
-		private boolean isSource;
-		
-		
-		public SchemaPopulator(JComboBox schemas, boolean isSource)
-		{		
-			this.schemas = schemas;
-			this.isSource = isSource;
-		}
-		
-	
-			
-		public void actionPerformed(ActionEvent e) {
-
-			catalogs = (JComboBox)e.getSource();
-			if ( isSource ) {
-				sourceSQLCatalog = null;
-			}
-			else {
-				targetSQLSchema = null;
-			}
-			
-			if (catalogs != null)
-			{
-				if ( isSource ) {
-					sourceSQLCatalog = (SQLCatalog) catalogs.getSelectedItem();
-				}
-				else {
-					targetSQLCatalog = (SQLCatalog) catalogs.getSelectedItem();
-				}
-				schemas.removeAllItems();
-				schemas.setEnabled(false);
-			}
-			Thread t = new Thread(this);
-			t.start();
-				
-			startCompareAction.setEnabled(false);
-		}
-		
-	
-
-
-		@Override
-		public void cleanup() {
-			schemas.removeAllItems();
-			schemas.setEnabled(false);
-			if ( isSource ) {
-				sourceSQLSchema = null;
-			}
-			else {
-				targetSQLSchema = null;
-			}
-			
-			if  (children!= null)
-			{
-				for (SQLObject item : children) {
-					schemas.addItem(item);
-					
-				}				
-				children = null;
-			}
-			// If it has an item set this enabled
-			if (schemas.getItemCount() > 0) {
-				if ( isSource ) {
-					sourceSQLSchema = (SQLSchema) schemas.getSelectedItem();
-				}
-				else {
-					targetSQLSchema = (SQLSchema) schemas.getSelectedItem();
-				}
-				schemas.setEnabled(true);
-			}
-			startCompareAction.setEnabled(isStartable());
-		}
-
-
-		@Override
-		public void doStuff() throws Exception {
-			try {
-				
-				ListerProgressBarUpdater progressBarUpdater = new ListerProgressBarUpdater(progressBar,this);
-				new javax.swing.Timer(100, progressBarUpdater).start();
-
-				children = ((SQLObject)catalogs.getSelectedItem()).getChildren();
-				
-			} catch (ArchitectException e) {
-				logger.debug("Unexpected architect exception in ConnectionListener",e);
-				
-			}
-		}
-	}
-
-
-	public class SchemaChangeListener implements ActionListener {
-
-		
-		private SQLSchema sch;
-		private JComboBox cb;
-		private boolean isSource;
-
-		public SchemaChangeListener(JComboBox cb, boolean isSource) {
-			this.isSource = isSource;
-			this.cb = cb;
-		}
-			
-		public void actionPerformed(ActionEvent e) {
-			if ( cb != null )
-				if ( isSource )
-					sourceSQLSchema = (SQLSchema) cb.getSelectedItem();
-				else
-					targetSQLSchema = (SQLSchema) cb.getSelectedItem();
-		}
-	}
 
 	/*
 	 * This listener is used to enable/disable JComponents when one of the 
-	 * database choosing option is choosen (for both source and target selections
+	 * database choosing options is choosen (for both source and target selections)
 	 */
-	
+
 	public class OptionGroupListener implements ActionListener {
 
 		private static final String ACTION_PROJECT = "Project";
 		private static final String ACTION_SQL_CONNECTION = "SQL Connection";
 		private static final String ACTION_LOAD_FILE = "Load File";
 
-		
 		private JRadioButton connection;
 		private JRadioButton physical;
 		private JRadioButton load;
+
 		private List<JComponent> loadComp;
 		private List<JComponent> physicalComp;
 		private List<JComponent> connComp;
-		
-		public OptionGroupListener(JRadioButton connection, List <JComponent> connComp,
-				JRadioButton physical, List <JComponent> physicalComp, 
-				JRadioButton load, List <JComponent> loadComp){
+
+		public OptionGroupListener(JRadioButton connection,
+				List<JComponent> connComp, JRadioButton physical,
+				List<JComponent> physicalComp, JRadioButton load,
+				List<JComponent> loadComp) {
 			this.connection = connection;
 			this.physical = physical;
 			this.physicalComp = physicalComp;
@@ -940,51 +797,43 @@ public class CompareDMPanel extends JPanel {
 			this.loadComp = loadComp;
 			this.connComp = connComp;
 		}
-		
+
 		public void actionPerformed(ActionEvent e) {
-			if (e.getSource()== connection){
-				setComps(connComp, true);				
+			if (e.getSource() == connection) {
+				setComps(connComp, true);
 				setComps(physicalComp, false);
 				setComps(loadComp, false);
-			}			
-			else if (e.getSource()==physical){
+			} else if (e.getSource() == physical) {
 				setComps(connComp, false);
 				setComps(physicalComp, true);
 				setComps(loadComp, false);
-			}			
-			else if (e.getSource()== load){
+			} else if (e.getSource() == load) {
 				setComps(connComp, false);
-				setComps(physicalComp, false);				
+				setComps(physicalComp, false);
 				setComps(loadComp, true);
-			}			
-			else{
+			} else {
 				throw new IllegalStateException("Unhandle Button");
 			}
 		}
-		
-		void setComps (List <JComponent> compList, boolean enable){
-			if (compList ==null) return;
-			for (JComponent j : compList){
+
+		void setComps(List<JComponent> compList, boolean enable) {
+			if (compList == null)
+				return;
+			for (JComponent j : compList) {
 				j.setEnabled(enable);
 			}
 		}
 	}
-	
 
-	public interface Lister  {
-		
-	
-		
+	public interface Lister {
+
 		public Integer getJobSize() throws ArchitectException;
-		
+
 		public int getProgress() throws ArchitectException;
-		
+
 		public boolean isFinished() throws ArchitectException;
-		
-	
+
 	}
-
-
 
 	/**
 	 * Intended to be called periodically by a Swing Timer thread.  Whenever the actionPerformed
@@ -993,9 +842,10 @@ public class CompareDMPanel extends JPanel {
 	 */
 	public class ListerProgressBarUpdater implements ActionListener {
 		private JProgressBar bar;
+
 		private Lister lister;
-		
-		public ListerProgressBarUpdater ( JProgressBar bar, Lister lister ) {
+
+		public ListerProgressBarUpdater(JProgressBar bar, Lister lister) {
 			this.bar = bar;
 			this.lister = lister;
 		}
@@ -1006,237 +856,163 @@ public class CompareDMPanel extends JPanel {
 		public void actionPerformed(ActionEvent evt) {
 
 			try {
-				Integer max = lister.getJobSize();   // could take noticable time to calculate job size
+				Integer max = lister.getJobSize(); // could take noticable time to calculate job size
 				bar.setVisible(true);
-				if ( max != null ) {
+				if (max != null) {
 					bar.setMaximum(max.intValue());
 					bar.setValue(lister.getProgress());
 					bar.setIndeterminate(false);
-				}
-				else {
+				} else {
 					bar.setIndeterminate(true);
 				}
-				
-				if ( lister.isFinished() ) {
+
+				if (lister.isFinished()) {
 					bar.setVisible(false);
-					((javax.swing.Timer)evt.getSource()).stop();
+					((javax.swing.Timer) evt.getSource()).stop();
 				}
-			} catch ( ArchitectException e ) {
+			} catch (ArchitectException e) {
 				logger.error("getProgress failt", e);
 			}
 		}
-	}  		
-
-
-
+	}
 
 	public class StartCompareAction extends AbstractAction {
-		
+
 		private TreeSet<SQLTable> sourceTableSet;
 		private TreeSet<SQLTable> targetTableSet;
+
 		private AbstractDocument leftDiff;
 		private AbstractDocument rightDiff;
 		private AbstractDocument sqlDiff;
-		private final int A2B = 1;
-		private final int B2A = 2;
-		private final int ALL = 3;
-		
-		
-		
+
 		private int compareMode;
-		
+
 		public StartCompareAction() {
 			super("Start");
-			sourceTableSet = new TreeSet<SQLTable>(new Comparator<SQLTable>(){
-				public int compare(SQLTable t1, SQLTable t2)
-				{
-					if (t1 != null && t2 != null)
-					{
-						return t1.getName().compareTo(t2.getName());
-					}
-					else
-					{
-						// if t1 is null t2 is greater
-						if (t1 == null)
-						{
-							return -1;
-						}
-						else
-						{
-							// if t2 is null t1 is greater
-							return 1;
-						}
-					}
-				}
-			
-			});
-			targetTableSet = new TreeSet<SQLTable>(new Comparator<SQLTable>(){
-				public int compare(SQLTable t1, SQLTable t2)
-				{
-					if (t1 != null && t2 != null)
-					{
-						return t1.getName().compareTo(t2.getName());
-					}
-					else
-					{
-						// if t1 is null t2 is greater
-						if (t1 == null)
-						{
-							return -1;
-						}
-						else
-						{
-							// if t2 is null t1 is greater
-							return 1;
-						}
-					}
-				}
-			});
+			sourceTableSet = new TreeSet<SQLTable>(new SQLObjectComparator());
+			targetTableSet = new TreeSet<SQLTable>(new SQLObjectComparator());
 			rightDiff = new DefaultStyledDocument();
 			leftDiff = new DefaultStyledDocument();
 		}
-		
+
 		public void actionPerformed(ActionEvent e) {
 
 			startCompareAction.setEnabled(false);
-			CompareDMFrame cf =null;
-		
+			CompareDMFrame cf = null;
+
 			try {
 
-				
-				SQLObject o = null;
-				if ( sourcePhysicalRadio.isSelected()) {
-					
-					if ( sourceSQLSchema != null ) {
-						o = sourceSQLSchema;
-					}
-					else if ( sourceSQLCatalog != null ) {
-						o = sourceSQLCatalog;
-					}
-					else if ( sourceDatabase != null ) {
-						o = sourceDatabase;
-					}
-					
+				SQLObject left = source.getObjectToCompare();
+				if (left.getChildType() == SQLTable.class) {
+					sourceTableSet.addAll(left.getChildren());
+				} else {
+					throw new IllegalStateException(
+							"The source you chose does not contain tables."
+									+ " (Child type is " + left.getChildType()
+									+ ")");
 				}
-				else {
-					sourceDatabase = ArchitectFrame.getMainInstance().playpen.getDatabase();
-					o=sourceDatabase;
+
+				SQLObject right = target.getObjectToCompare();
+				if (right.getChildType() == SQLTable.class) {
+					sourceTableSet.addAll(right.getChildren());
+				} else {
+					throw new IllegalStateException(
+							"The target you chose does not contain tables."
+									+ " (Child type is " + right.getChildType()
+									+ ")");
 				}
-				
-				
-				
-				if ( o != null || o.getChildType() == SQLTable.class ) {
-					for ( SQLTable t : (List<SQLTable>) o.getChildren() )
-						sourceTableSet.add(t);
+
+				// XXX: should do most or all of this work in a worker thread
+
+				CompareSchemaWorker worker;
+				if (sqlButton.isSelected()) {
+					throw new UnsupportedOperationException(
+							"We don't support DDL generation yet");
+					//					GenericDDLGenerator sqlDdlgen = null;
+					//					sqlDdlgen = (GenericDDLGenerator) (((Class) sqlDdlgen.getSelectedItem()))
+					//					.newInstance();
+					//					worker = new CompareSchemaWorker(sourceTableSet,
+					//							targetTableSet, sqlDiff, source.database
+					//									.getTypeMap(), target.database.getTypeMap(),
+					//							sqlDdlgen);
+				} else if (englishButton.isSelected()) {
+					worker = new CompareSchemaWorker(sourceTableSet,
+							targetTableSet, leftDiff, rightDiff,
+							source.getDatabase().getTypeMap(),
+							target.getDatabase().getTypeMap());
+				} else {
+					throw new IllegalStateException(
+							"Don't know what type of output to make");
 				}
-				
-				o = null;
-				if ( targetSQLSchema != null ) {
-					o = targetSQLSchema;
-				}
-				else if ( targetSQLCatalog != null ) {
-					o = targetSQLCatalog;
-				}
-				else if ( targetDatabase != null ) {
-					o = targetDatabase;
-				}
-				
-				if ( o != null || o.getChildType() == SQLTable.class ) {
-					for ( SQLTable t : (List<SQLTable>) o.getChildren() )
-						targetTableSet.add(t);
-				}
-								
-				LabelValueBean lvb = null;
-				GenericDDLGenerator sqlDdlgen = null;
-				
-				if ( sqlTypeDropdown.isEnabled() ) {
-					lvb = (LabelValueBean) sqlTypeDropdown.getSelectedItem();
-					sqlDdlgen = (GenericDDLGenerator) (((Class)lvb.getValue())).newInstance();
-				}
-				else
-				{
-					sqlDdlgen = new GenericDDLGenerator();
-				}
-				CompareSchemaWorker worker = null;
-				if ( sqlButton.isSelected())
-				{
-					worker = new CompareSchemaWorker(sourceTableSet,targetTableSet,sqlDiff,sourceDatabase.getTypeMap(),targetDatabase.getTypeMap(),sqlDdlgen);
-				}
-				else
-				{
-					worker = new CompareSchemaWorker(sourceTableSet,targetTableSet,leftDiff,rightDiff,sourceDatabase.getTypeMap(),targetDatabase.getTypeMap());
-				}
-									
-				CompareProgressWatcher watcher = new CompareProgressWatcher(progressBar,worker);
-				
+
+				CompareProgressWatcher watcher = new CompareProgressWatcher(
+						progressBar, worker);
+
 				new javax.swing.Timer(100, watcher).start();
 				new Thread(worker).start();
 				// get the title string for the compareDMFrame
 				String compMethod = null;
-				if (sqlButton.isSelected())
-				{
+				if (sqlButton.isSelected()) {
 					compMethod = "SQL";
+				} else {
+					compMethod = OUTPUT_ENGLISH;
 				}
-				else
-				{
-					compMethod = "english";
-				}
-				String titleString = "Comparing " + " to " + " using "+compMethod;
-				cf = new CompareDMFrame(leftDiff,rightDiff, titleString, sourceDatabase);
-				//CompareDMFrame diffFrame = new CompareDMFrame(leftDiff,"Some title",sourceDatabase);
-				
-//				for ( mySSQLObject object : (Collection<mySSQLObject> )(diffList.values()) ) {
-//					System.out.println("diff:"+object.getObject().getName()+" source?"+object.isFromSource()+"  type:"+object.getClass());
-//				}
+				String titleString = "Comparing " + " to " + " using "
+						+ compMethod;
+				cf = new CompareDMFrame(
+						leftDiff, rightDiff,
+						titleString, source.getDatabase());
+				// CompareDMFrame diffFrame = new CompareDMFrame(leftDiff,"Some
+				// title",sourceDatabase);
 
-			} catch ( ArchitectException exp) {
-				ASUtils.showExceptionDialog("SchemaListerProgressWatcher failt2", exp);
+				// for ( mySSQLObject object : (Collection<mySSQLObject>
+				// )(diffList.values()) ) {
+				// System.out.println("diff:"+object.getObject().getName()+"
+				// source?"+object.isFromSource()+" type:"+object.getClass());
+				// }
+
+			} catch (ArchitectException exp) {
+				ASUtils.showExceptionDialog(
+						"SchemaListerProgressWatcher failt2", exp);
 				logger.error("SchemaListerProgressWatcher failt2", exp);
-			} catch (InstantiationException ie) {
-				ASUtils.showExceptionDialog("Internal error: non GenericDDLGenerator class in lvb", ie);
-				logger.error("Someone put a non GenericDDLGenerator class into the lvb contained in the source pulldown menu",ie);
-			} catch (IllegalAccessException iae) {
-				ASUtils.showExceptionDialog("Cannot access the classes's constructor ", iae);
-				logger.error("Cannot access the classes's constructor ",iae);
+				//			} catch (InstantiationException ie) {
+				//				ASUtils.showExceptionDialog(
+				//						"Internal error: non GenericDDLGenerator class in lvb",
+				//						ie);
+				//				logger
+				//						.error(
+				//								"Someone put a non GenericDDLGenerator class into the lvb contained in the source pulldown menu",
+				//								ie);
+				//			} catch (IllegalAccessException iae) {
+				//				ASUtils.showExceptionDialog(
+				//						"Cannot access the classes's constructor ", iae);
+				//				logger.error("Cannot access the classes's constructor ", iae);
 			} catch (SQLException sqle) {
 				ASUtils.showExceptionDialog("Database error", sqle);
-				logger.error("Database error ",sqle);
+				logger.error("Database error ", sqle);
+			} catch (FileNotFoundException ex) {
+				ASUtils
+						.showExceptionDialog("Your file could not be found.",
+								ex);
+				logger.error("Your file could not be found.", ex);
+			} catch (IOException ex) {
+				ASUtils.showExceptionDialog("Could not read file", ex);
+				logger.error("Could not read file", ex);
 			}
-			
+
 			cf.pack();
 			cf.setVisible(true);
-			
-		}
-	}
-	
 
-	public class mySSQLObject {
-		private boolean isFromSource;
-		private SQLObject object;
-		
-		public mySSQLObject (boolean source, SQLObject obj) {
-			this.isFromSource = source;
-			this.object = obj;
 		}
-		public boolean isFromSource() {
-			return isFromSource;
-		}
-		public void setFromSource(boolean isFromSource) {
-			this.isFromSource = isFromSource;
-		}
-		public SQLObject getObject() {
-			return object;
-		}
-		public void setObject(SQLObject object) {
-			this.object = object;
-		}
-		
 	}
+
 	public class CompareProgressWatcher implements ActionListener {
 		private JProgressBar bar;
+
 		private CompareSchemaWorker worker;
-		
-		public CompareProgressWatcher ( JProgressBar bar, CompareSchemaWorker worker ) {
+
+		public CompareProgressWatcher(JProgressBar bar,
+				CompareSchemaWorker worker) {
 			this.bar = bar;
 			this.worker = worker;
 		}
@@ -1247,29 +1023,21 @@ public class CompareDMPanel extends JPanel {
 			bar.setMaximum(max);
 			bar.setValue(worker.getProgress());
 			bar.setIndeterminate(false);
-			if ( worker.isFinished() ) {
+			if (worker.isFinished()) {
 				bar.setVisible(false);
-				((javax.swing.Timer)evt.getSource()).stop();
-				startCompareAction.setEnabled(true);
+				((javax.swing.Timer) evt.getSource()).stop();
+				startCompareAction.setEnabled(isStartable());
 			}
 		}
-	
-	}
-	
-	public synchronized JDialog getSourceNewConnectionDialog() {
-		return sourceNewConnectionDialog;
-	}
-	
-	private synchronized void setSourceNewConnectionDialog(JDialog d) {
-		sourceNewConnectionDialog = d;
+
 	}
 
-	public synchronized JDialog getTargetNewConnectionDialog() {
-		return targetNewConnectionDialog;
+	public SourceOrTargetStuff getSourceStuff() {
+		return source;
 	}
 
-	private synchronized void setTargetNewConnectionDialog(JDialog d) {
-		targetNewConnectionDialog = d;
+	public SourceOrTargetStuff getTargetStuff() {
+		return target;
 	}
 
 	/**

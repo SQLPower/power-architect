@@ -6,18 +6,18 @@ import java.awt.Point;
 import java.awt.Robot;
 import java.awt.event.InputEvent;
 
-import javax.swing.JCheckBox;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JRadioButton;
+import javax.swing.JTextField;
 
 import junit.extensions.jfcunit.JFCTestCase;
 import junit.extensions.jfcunit.JFCTestHelper;
 import junit.extensions.jfcunit.TestHelper;
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.swingui.CompareDMPanel;
 
@@ -26,18 +26,26 @@ public class TestCompareDMPanel extends JFCTestCase {
 	CompareDMPanel panel;
 	Robot robot;
 
+	JRadioButton sourcePlayPenRadio = null;
 	JRadioButton sourcePhysicalRadio = null;
 	JComboBox sourceDatabaseDropdown = null;
-	Component sourceNewConnButton = null;
-	Component sourceCatalogDropdown = null;
-	Component sourceSchemaDropdown = null;
-	Component sourcePlayPenRadio = null;
+	JComboBox sourceCatalogDropdown = null;
+	JComboBox sourceSchemaDropdown = null;
+	JButton sourceNewConnButton = null;
+	JRadioButton sourceLoadRadio = null;
+	JTextField sourceLoadFilePath = null;
+	JButton sourceLoadFileButton = null;
+			
 
+	JRadioButton targetPlayPenRadio = null;
+	JRadioButton targetPhysicalRadio = null;
 	JComboBox targetDatabaseDropdown = null;
-	Component targetNewConnButton = null;
-	Component targetCatalogDropdown = null;
-	Component targetSchemaDropdown = null;
-	Component targetPlayPenRadio = null;
+	JComboBox targetCatalogDropdown = null;
+	JComboBox targetSchemaDropdown = null;
+	JButton targetNewConnButton = null;
+	JRadioButton targetLoadRadio = null;
+	JTextField targetLoadFilePath = null;
+	JButton targetLoadFileButton = null;
 		
 
 	protected void setUp() throws Exception {
@@ -49,29 +57,48 @@ public class TestCompareDMPanel extends JFCTestCase {
 		
 		Component comps[] = ((Container) panel.getComponent(0)).getComponents();
 		for (int i = 0; i < comps.length; i++) {
-			if ("sourcePhysicalRadio".equals(comps[i].getName())) {
+
+			if ("sourcePlayPenRadio".equals(comps[i].getName())) {
+				sourcePlayPenRadio = (JRadioButton) comps[i];				
+			} else if ("sourcePhysicalRadio".equals(comps[i].getName())) {
 				sourcePhysicalRadio = (JRadioButton) comps[i];			
 			} else if ("sourceDatabaseDropdown".equals(comps[i].getName())) {
 				sourceDatabaseDropdown = (JComboBox) comps[i];			
-			} else if ("sourceNewConnButton".equals(comps[i].getName())) {
-				sourceNewConnButton = comps[i];				
 			} else if ("sourceCatalogDropdown".equals(comps[i].getName())) {
-				sourceCatalogDropdown = comps[i];				
+				sourceCatalogDropdown = (JComboBox) comps[i];				
 			} else if ("sourceSchemaDropdown".equals(comps[i].getName())) {
-				sourceSchemaDropdown = comps[i];				
-			} else if ("sourcePlayPenRadio".equals(comps[i].getName())) {
-				sourcePlayPenRadio = comps[i];				
+				sourceSchemaDropdown = (JComboBox) comps[i];				
+			} else if ("sourceNewConnButton".equals(comps[i].getName())) {
+				sourceNewConnButton = (JButton) comps[i];				
+			} else if ("sourceLoadRadio".equals(comps[i].getName())){
+				sourceLoadRadio = (JRadioButton) comps[i];
+			} else if ("sourceLoadFilePath".equals(comps[i].getName())){
+				sourceLoadFilePath = (JTextField) comps[i];
+			} else if ("sourceLoadFileButton".equals (comps[i].getName())){
+				sourceLoadFileButton = (JButton) comps[i];
+			} 
+			//assigning the target variables
+			else if ("targetPlayPenRadio".equals(comps[i].getName())) {
+				targetPlayPenRadio = (JRadioButton) comps[i];				
+			} else if ("targetPhysicalRadio".equals(comps[i].getName())) {
+				targetPhysicalRadio = (JRadioButton) comps[i];			
 			} else if ("targetDatabaseDropdown".equals(comps[i].getName())) {
 				targetDatabaseDropdown = (JComboBox) comps[i];			
-			} else if ("targetNewConnButton".equals(comps[i].getName())) {
-				targetNewConnButton = comps[i];				
 			} else if ("targetCatalogDropdown".equals(comps[i].getName())) {
-				targetCatalogDropdown = comps[i];				
+				targetCatalogDropdown = (JComboBox) comps[i];				
 			} else if ("targetSchemaDropdown".equals(comps[i].getName())) {
-				targetSchemaDropdown = comps[i];				
-			} else if ("targetPlayPenRadio".equals(comps[i].getName())) {
-				targetPlayPenRadio = comps[i];				
-			}
+				targetSchemaDropdown = (JComboBox) comps[i];				
+			} else if ("targetNewConnButton".equals(comps[i].getName())) {
+				targetNewConnButton = (JButton) comps[i];				
+			} else if ("targetLoadRadio".equals(comps[i].getName())){
+				targetLoadRadio = (JRadioButton) comps[i];
+			} else if ("targetLoadFilePath".equals(comps[i].getName())){
+				targetLoadFilePath = (JTextField) comps[i];
+			} else if ("targetLoadFileButton".equals (comps[i].getName())){
+				targetLoadFileButton = (JButton) comps[i];
+			} 
+			
+			
 		}
 
 	}
@@ -84,13 +111,28 @@ public class TestCompareDMPanel extends JFCTestCase {
 	/**
 	 * Ensures all components got found in setUp();
 	 */
-	public void testInitComponents() {		
+	public void testInitComponents() {
+		
+		assertNotNull("Missing component", sourcePlayPenRadio);
 		assertNotNull("Missing component", sourcePhysicalRadio);
 		assertNotNull("Missing component", sourceDatabaseDropdown);
-		assertNotNull("Missing component", sourceNewConnButton);
 		assertNotNull("Missing component", sourceCatalogDropdown);
 		assertNotNull("Missing component", sourceSchemaDropdown);
-		assertNotNull("Missing component", sourcePlayPenRadio);
+		assertNotNull("Missing component", sourceNewConnButton);
+		assertNotNull("Missing component", sourceLoadRadio);
+		assertNotNull("Missing component", sourceLoadFilePath);
+		assertNotNull("Missing component", sourceLoadFileButton);
+		
+		
+		assertNotNull("Missing component", targetPlayPenRadio);
+		assertNotNull("Missing component", targetPhysicalRadio);
+		assertNotNull("Missing component", targetDatabaseDropdown);
+		assertNotNull("Missing component", targetCatalogDropdown);
+		assertNotNull("Missing component", targetSchemaDropdown);
+		assertNotNull("Missing component", targetNewConnButton);
+		assertNotNull("Missing component", targetLoadRadio);
+		assertNotNull("Missing component", targetLoadFilePath);
+		assertNotNull("Missing component", targetLoadFileButton);
 	}
 
 	//This test case method will fail randomly but will theortically work
@@ -185,7 +227,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 		// this (hopefully) forces a wait until the AWT event queue does everything necessary to create the new dialog window
 		flushAWT();
 		
-		JDialog d = panel.getSourceNewConnectionDialog();
+		JDialog d = panel.getSourceStuff().getNewConnectionDialog();
 		assertNotNull("New source connection button didn't create dialog", d);
 		assertTrue("Dialog isn't visible!", d.isVisible());
 
@@ -209,7 +251,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 		// this (hopefully) forces a wait until the AWT event queue does everything necessary to create the new dialog window
 		flushAWT();
 		
-		JDialog d = panel.getTargetNewConnectionDialog();
+		JDialog d = panel.getTargetStuff().getNewConnectionDialog();
 		assertNotNull("New target connection button didn't create dialog", d);
 		assertTrue("Dialog isn't visible!", d.isVisible());
 
@@ -223,7 +265,12 @@ public class TestCompareDMPanel extends JFCTestCase {
 		ds.setUser("fake");
 		ds.setPass("fake");
 		//this creates a mock jdbc database with only catalogs
-		ds.setUrl("jdbc:mock:dbmd.catalogTerm=Catalog&catalogs=cat1,cat2,cat3");
+		ds.setUrl("jdbc:mock:" +
+				"dbmd.catalogTerm=Catalog" +
+				"&catalogs=cat1,cat2,cat3" +
+				"&tables.cat1=tab1" +
+				"&tables.cat2=tab2" +
+				"&tables.cat3=tab3");
 		sourcePhysicalRadio.setSelected(true);
 		
 		sourceDatabaseDropdown.addItem(ds);
@@ -276,7 +323,12 @@ public class TestCompareDMPanel extends JFCTestCase {
 		ds.setUser("fake");
 		ds.setPass("fake");
 		//this creates a mock jdbc database with schemas only
-		ds.setUrl("jdbc:mock:dbmd.catalogTerm=Catalog&catalogs=cat1,cat2,cat3");
+		ds.setUrl("jdbc:mock:" +
+				"dbmd.catalogTerm=Catalog" +
+				"&catalogs=cat1,cat2,cat3" +
+				"&tables.cat1=tab1" +
+				"&tables.cat2=tab2" +
+				"&tables.cat3=tab3");
 	
 		targetDatabaseDropdown.addItem(ds);
 		targetDatabaseDropdown.setSelectedItem(ds);
