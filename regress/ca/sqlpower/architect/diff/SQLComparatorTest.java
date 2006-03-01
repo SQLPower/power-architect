@@ -4,6 +4,7 @@ import java.util.Comparator;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.diff.SQLObjectComparator;
 import junit.framework.TestCase;
 
@@ -58,5 +59,36 @@ public class SQLComparatorTest extends TestCase {
 	public void testForConsistentWithEquals() {
 		// assertEquals(comparator.compare((Object)e1, (Object)e2)==0),
 		// e1.equals((Object)e2)
+	}
+	
+	public void testForObjectCompareToNull(){
+		SQLTable t = new SQLTable();
+		t.setName("Testing");
+		assertEquals (1, comparator.compare(t, null));
+		assertEquals (-1, comparator.compare(null, t));		
+	}
+	
+	public void testForObjectCompareToObject(){
+		SQLTable t1 = new SQLTable();
+		SQLTable t2 = new SQLTable();
+		t1.setName("cow");
+		t2.setName("pigs");
+		assertTrue( comparator.compare(t1,t2) < 0);
+	
+		
+	}
+	
+	public void testWithNullName() {
+		SQLTable t1 = new SQLTable();
+		SQLTable t2 = new SQLTable();
+		assertEquals(0, comparator.compare(t1,t2));		
+	}
+	
+	public void testWithSameName(){
+		SQLTable t1 = new SQLTable();
+		SQLTable t2 = new SQLTable();
+		t1.setName("cow");
+		t2.setName("cow");
+		assertEquals( 0, comparator.compare(t1,t2));
 	}
 }
