@@ -1,6 +1,7 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -14,7 +15,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeSet;
 
 import javax.swing.AbstractAction;
@@ -37,8 +41,14 @@ import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingUtilities;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
 
 import org.apache.log4j.Logger;
 
@@ -49,6 +59,10 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLUtils;
+import ca.sqlpower.architect.diff.ArchitectDiffException;
+import ca.sqlpower.architect.diff.CompareSQL;
+import ca.sqlpower.architect.diff.DiffChunk;
+import ca.sqlpower.architect.diff.DiffType;
 import ca.sqlpower.architect.diff.SQLObjectComparator;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
@@ -445,6 +459,11 @@ public class CompareDMPanel extends JPanel {
 			loadFilePath = new JTextField();
 			loadFilePath.setName(prefix + "LoadFilePath");
 			loadFilePath.setEnabled(false);
+			loadFilePath.getDocument().addDocumentListener(new DocumentListener() {
+				public void insertUpdate(DocumentEvent e) { startCompareAction.setEnabled(isStartable()); }
+				public void removeUpdate(DocumentEvent e) { startCompareAction.setEnabled(isStartable()); }
+				public void changedUpdate(DocumentEvent e) { startCompareAction.setEnabled(isStartable()); }
+			});
 			loadFileButton = new JButton();
 			loadFileButton.setName(prefix + "LoadFileButton");
 			loadFileButton.setAction(chooseFileAction);
@@ -518,7 +537,7 @@ public class CompareDMPanel extends JPanel {
 				IOException {
 			SQLObject o;
 			if (playPenRadio.isSelected()) {
-				o = ArchitectFrame.getMainInstance().playpen.getDatabase();
+				o = ArchitectFrame.getMainInstance().playpen.getDatabase();				
 			} else if (physicalRadio.isSelected()) {
 				if (schemaDropdown.getSelectedItem() != null) {
 					o = (SQLObject) schemaDropdown.getSelectedItem();
@@ -533,7 +552,7 @@ public class CompareDMPanel extends JPanel {
 									+ "schema, catalog, or database to compare.");
 				}
 
-			} else if (source.loadRadio.isSelected()) {
+			} else if (loadRadio.isSelected()) {
 				SwingUIProject project = new SwingUIProject("Source");
 				File f = new File(loadFilePath.getText());
 				project.load(new BufferedInputStream(new FileInputStream(f)));
@@ -686,7 +705,18 @@ public class CompareDMPanel extends JPanel {
 		builder.append("");
 
 		target.buildPartialUI(builder, false);
+		
+		ActionListener radioButtonActionEnabler = new ActionListener() {
+			public void actionPerformed(ActionEvent e) { startCompareAction.setEnabled(isStartable());}
+		};
+		source.playPenRadio.addActionListener(radioButtonActionEnabler);
+		source.physicalRadio.addActionListener(radioButtonActionEnabler);
+		source.loadRadio.addActionListener(radioButtonActionEnabler);
 
+		target.playPenRadio.addActionListener(radioButtonActionEnabler);
+		target.physicalRadio.addActionListener(radioButtonActionEnabler);
+		target.loadRadio.addActionListener(radioButtonActionEnabler);
+		
 		builder.appendSeparator("Output Format");
 		builder.appendRow(builder.getLineGapSpec());
 		builder.appendRow("pref");
@@ -789,7 +819,7 @@ public class CompareDMPanel extends JPanel {
 		public OptionGroupListener(JRadioButton connection,
 				List<JComponent> connComp, JRadioButton physical,
 				List<JComponent> physicalComp, JRadioButton load,
-				List<JComponent> loadComp) {
+				List<JComponent> loadComp) {			
 			this.connection = connection;
 			this.physical = physical;
 			this.physicalComp = physicalComp;
@@ -802,7 +832,7 @@ public class CompareDMPanel extends JPanel {
 			if (e.getSource() == connection) {
 				setComps(connComp, true);
 				setComps(physicalComp, false);
-				setComps(loadComp, false);
+				setComps(loadComp, false);				
 			} else if (e.getSource() == physical) {
 				setComps(connComp, false);
 				setComps(physicalComp, true);
@@ -813,7 +843,7 @@ public class CompareDMPanel extends JPanel {
 				setComps(loadComp, true);
 			} else {
 				throw new IllegalStateException("Unhandle Button");
-			}
+			}		
 		}
 
 		void setComps(List<JComponent> compList, boolean enable) {
@@ -878,21 +908,11 @@ public class CompareDMPanel extends JPanel {
 
 	public class StartCompareAction extends AbstractAction {
 
-		private TreeSet<SQLTable> sourceTableSet;
-		private TreeSet<SQLTable> targetTableSet;
-
-		private AbstractDocument leftDiff;
-		private AbstractDocument rightDiff;
-		private AbstractDocument sqlDiff;
-
-		private int compareMode;
+		private Collection<SQLTable> sourceTables;
+		private Collection<SQLTable> targetTables;
 
 		public StartCompareAction() {
 			super("Start");
-			sourceTableSet = new TreeSet<SQLTable>(new SQLObjectComparator());
-			targetTableSet = new TreeSet<SQLTable>(new SQLObjectComparator());
-			rightDiff = new DefaultStyledDocument();
-			leftDiff = new DefaultStyledDocument();
 		}
 
 		public void actionPerformed(ActionEvent e) {
@@ -904,52 +924,74 @@ public class CompareDMPanel extends JPanel {
 
 				SQLObject left = source.getObjectToCompare();
 				if (left.getChildType() == SQLTable.class) {
-					sourceTableSet.addAll(left.getChildren());
-				} else {
-					throw new IllegalStateException(
+					sourceTables = left.getChildren();					
+				} else {					
+					sourceTables = new ArrayList();
+					/*throw new IllegalStateException(
 							"The source you chose does not contain tables."
 									+ " (Child type is " + left.getChildType()
-									+ ")");
+									+ ")");*/
 				}
 
 				SQLObject right = target.getObjectToCompare();
 				if (right.getChildType() == SQLTable.class) {
-					sourceTableSet.addAll(right.getChildren());
+					targetTables = right.getChildren();
 				} else {
-					throw new IllegalStateException(
+					targetTables = new ArrayList();
+					/*throw new IllegalStateException(
 							"The target you chose does not contain tables."
 									+ " (Child type is " + right.getChildType()
-									+ ")");
+									+ ")");*/
 				}
 
 				// XXX: should do most or all of this work in a worker thread
+				Map<DiffType, AttributeSet> styles = new HashMap<DiffType, AttributeSet>();
+				{
+					SimpleAttributeSet att = new SimpleAttributeSet();
+					StyleConstants.setForeground(att, Color.green);
+					styles.put(DiffType.LEFTONLY, att);
+					
+					att = new SimpleAttributeSet();
+					StyleConstants.setForeground(att, Color.red);
+					styles.put(DiffType.RIGHTONLY, att);
+					
+					att = new SimpleAttributeSet();
+					StyleConstants.setForeground(att, Color.black);
+					styles.put(DiffType.SAME, att);
 
-				CompareSchemaWorker worker;
+					att = new SimpleAttributeSet();
+					StyleConstants.setForeground(att, Color.orange);
+					styles.put(DiffType.MODIFIED, att);
+				}
+				CompareSQL sourceComp = new CompareSQL(sourceTables, targetTables);
+				List<DiffChunk<SQLObject>> diff = sourceComp.generateTableDiffs();
+				CompareSQL targetComp = new CompareSQL(targetTables, sourceTables);
+				List<DiffChunk<SQLObject>> diff1 = targetComp.generateTableDiffs();
+				DefaultStyledDocument sourceDoc = new DefaultStyledDocument();
+				DefaultStyledDocument targetDoc = new DefaultStyledDocument();
+
+				
 				if (sqlButton.isSelected()) {
 					throw new UnsupportedOperationException(
 							"We don't support DDL generation yet");
-					//					GenericDDLGenerator sqlDdlgen = null;
-					//					sqlDdlgen = (GenericDDLGenerator) (((Class) sqlDdlgen.getSelectedItem()))
-					//					.newInstance();
-					//					worker = new CompareSchemaWorker(sourceTableSet,
-					//							targetTableSet, sqlDiff, source.database
-					//									.getTypeMap(), target.database.getTypeMap(),
-					//							sqlDdlgen);
-				} else if (englishButton.isSelected()) {
-					worker = new CompareSchemaWorker(sourceTableSet,
-							targetTableSet, leftDiff, rightDiff,
-							source.getDatabase().getTypeMap(),
-							target.getDatabase().getTypeMap());
+				} else if (englishButton.isSelected()) {					
+					for (DiffChunk<SQLObject> chunk : diff) {
+						sourceDoc.insertString(
+								sourceDoc.getLength(),
+								chunk.getData().toString()+"\n",
+								styles.get(chunk.getType()));
+					}
+					for (DiffChunk<SQLObject> chunk1 : diff1) {
+						targetDoc.insertString(
+								targetDoc.getLength(),
+								chunk1.getData().toString()+"\n",
+								styles.get(chunk1.getType()));
+					}
 				} else {
 					throw new IllegalStateException(
 							"Don't know what type of output to make");
 				}
 
-				CompareProgressWatcher watcher = new CompareProgressWatcher(
-						progressBar, worker);
-
-				new javax.swing.Timer(100, watcher).start();
-				new Thread(worker).start();
 				// get the title string for the compareDMFrame
 				String compMethod = null;
 				if (sqlButton.isSelected()) {
@@ -957,39 +999,19 @@ public class CompareDMPanel extends JPanel {
 				} else {
 					compMethod = OUTPUT_ENGLISH;
 				}
-				String titleString = "Comparing " + " to " + " using "
-						+ compMethod;
+				String titleString = "Comparing " +left.getName() + " to " +
+					right.getName() + " using "	+ compMethod;
 				cf = new CompareDMFrame(
-						leftDiff, rightDiff,
-						titleString, source.getDatabase());
-				// CompareDMFrame diffFrame = new CompareDMFrame(leftDiff,"Some
-				// title",sourceDatabase);
-
-				// for ( mySSQLObject object : (Collection<mySSQLObject>
-				// )(diffList.values()) ) {
-				// System.out.println("diff:"+object.getObject().getName()+"
-				// source?"+object.isFromSource()+" type:"+object.getClass());
-				// }
-
+						sourceDoc, targetDoc,
+						titleString, source.getDatabase());			
+			} catch (ArchitectDiffException exp) {
+				ASUtils.showExceptionDialog(
+						"Either source or target has duplicate table names", exp);
+				logger.error("SchemaListerProgressWatcher failt2", exp);
 			} catch (ArchitectException exp) {
 				ASUtils.showExceptionDialog(
 						"SchemaListerProgressWatcher failt2", exp);
 				logger.error("SchemaListerProgressWatcher failt2", exp);
-				//			} catch (InstantiationException ie) {
-				//				ASUtils.showExceptionDialog(
-				//						"Internal error: non GenericDDLGenerator class in lvb",
-				//						ie);
-				//				logger
-				//						.error(
-				//								"Someone put a non GenericDDLGenerator class into the lvb contained in the source pulldown menu",
-				//								ie);
-				//			} catch (IllegalAccessException iae) {
-				//				ASUtils.showExceptionDialog(
-				//						"Cannot access the classes's constructor ", iae);
-				//				logger.error("Cannot access the classes's constructor ", iae);
-			} catch (SQLException sqle) {
-				ASUtils.showExceptionDialog("Database error", sqle);
-				logger.error("Database error ", sqle);
 			} catch (FileNotFoundException ex) {
 				ASUtils
 						.showExceptionDialog("Your file could not be found.",
@@ -998,38 +1020,15 @@ public class CompareDMPanel extends JPanel {
 			} catch (IOException ex) {
 				ASUtils.showExceptionDialog("Could not read file", ex);
 				logger.error("Could not read file", ex);
-			}
-
+			} catch (BadLocationException ex) {
+				ASUtils.showExceptionDialog("Could not create document for results", ex);
+				logger.error("Could not create document for results", ex);
+			} 
+			this.setEnabled(isStartable());
 			cf.pack();
 			cf.setVisible(true);
 
 		}
-	}
-
-	public class CompareProgressWatcher implements ActionListener {
-		private JProgressBar bar;
-
-		private CompareSchemaWorker worker;
-
-		public CompareProgressWatcher(JProgressBar bar,
-				CompareSchemaWorker worker) {
-			this.bar = bar;
-			this.worker = worker;
-		}
-
-		public void actionPerformed(ActionEvent evt) {
-			int max = worker.getJobSize();
-			bar.setVisible(true);
-			bar.setMaximum(max);
-			bar.setValue(worker.getProgress());
-			bar.setIndeterminate(false);
-			if (worker.isFinished()) {
-				bar.setVisible(false);
-				((javax.swing.Timer) evt.getSource()).stop();
-				startCompareAction.setEnabled(isStartable());
-			}
-		}
-
 	}
 
 	public SourceOrTargetStuff getSourceStuff() {
