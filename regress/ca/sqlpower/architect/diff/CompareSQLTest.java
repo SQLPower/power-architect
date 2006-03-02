@@ -1,6 +1,11 @@
 package regress.ca.sqlpower.architect.diff;
 
+import java.lang.reflect.Array;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 
@@ -10,10 +15,16 @@ import javax.swing.text.DefaultStyledDocument;
 import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.GenericTypeDescriptor;
+import ca.sqlpower.architect.diff.CompareSQL;
+import ca.sqlpower.architect.diff.DiffChunk;
+import ca.sqlpower.architect.diff.DiffType;
 import ca.sqlpower.architect.diff.SQLObjectComparator;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.CompareSchemaWorker;
+import ca.sqlpower.architect.swingui.PlayPen;
 
 public class CompareSQLTest extends TestCase {
 
@@ -23,37 +34,71 @@ public class CompareSQLTest extends TestCase {
 	DefaultStyledDocument l;
 			
 	TreeSet <SQLTable>  rTableContainer;
-	SQLTable r1;
-	SQLTable r2;
-	TreeSet <SQLTable> lTableContainer;
-	SQLTable l1;
-	SQLTable l2;
+	SQLTable table1;
+	SQLTable table1LookAlike;
+	SQLTable table2;
+	SQLTable table3;
+	SQLTable tableNoColumn1;
+	SQLTable tableNoColumn2;
+	SQLTable tableNoColumn3;
+	SQLTable table1NoColumn;
+	SQLColumn c1; 
+	SQLColumn c1Dupl;
+	SQLColumn c2;
+	SQLColumn c2LookAlike;
+	SQLColumn c3; 
+	SQLColumn c4;
+	SQLColumn c5;
+	SQLColumn c6;
+	List <SQLTable> listWithATable;
+	List <SQLTable> temp2;
+
 	
 	private Map<Integer, GenericTypeDescriptor> typeMap;
 	
 	protected void setUp() throws Exception {
-		super.setUp();		
-		rTableContainer = new TreeSet<SQLTable>(new SQLObjectComparator());
-		r1 = new SQLTable(null,"a","actually r1",SQLTable.class.toString(),true);
-		r2 = new SQLTable(null,"b","actually r2",SQLTable.class.toString(),true);	
-		rTableContainer.add(r1);
-		rTableContainer.add(r2);
+		//Just tables with Columns
+		tableNoColumn1 = new SQLTable(null,"table1" , "...",SQLTable.class.toString(), true);		
+		tableNoColumn2 = new SQLTable(null,"table2" , "...",SQLTable.class.toString(), true);
+		tableNoColumn3 = new SQLTable(null,"table3" , "...",SQLTable.class.toString(), true);
+		table1NoColumn = new SQLTable(null,"tableWithColumn1","it's lying!", 
+				SQLTable.class.toString(), true);
 		
-		lTableContainer = new TreeSet<SQLTable>(new SQLObjectComparator());
-		l1 = new SQLTable(null,"c","actually l1",SQLTable.class.toString(),true);
-		l2 = new SQLTable(null,"b","actually l2",SQLTable.class.toString(),true);
-		lTableContainer.add(l1);
-		lTableContainer.add(l2);
-		typeMap = new HashMap<Integer, GenericTypeDescriptor> ();
-		typeMap.put(new Integer(0),new GenericTypeDescriptor("MockInteger",0,1,"prefix","suffix",0,false,false));
-		typeMap.put(new Integer(1),new GenericTypeDescriptor("Precision",1,1,"prefix","suffix",0,true,false));
+		//Table with two columns
+		table1 = new SQLTable(null,"tableWithColumn1","actually r1",
+							SQLTable.class.toString(),true);
+		//The Column specs will need to be changed (scale, type, precision)		
+		c1 = new SQLColumn(table1, "Column1", 0,2,3);
+	    c2 = new SQLColumn(table1, "Column2", Types.INTEGER,5,0);
+		table1.addColumn(c1);
+		table1.addColumn(c2);
 		
-		r = new DefaultStyledDocument();
-		l = new DefaultStyledDocument();
+		//Similar to table 1 with minor changes
+		table1LookAlike = new SQLTable(null,"tableWithColumn1","actually r1lookAlike",
+									SQLTable.class.toString(),true);
+		c1Dupl = new SQLColumn(table1LookAlike, "Column1", 0,2,3);
+		c2LookAlike = new SQLColumn (table1LookAlike, "Column2", 1, 3,5);
+		table1LookAlike.addColumn(c1Dupl);
+		table1LookAlike.addColumn(c2LookAlike);
 		
-		csw = new CompareSchemaWorker(rTableContainer,lTableContainer, r,l,typeMap,typeMap);
-		csw.run();
+		//Table with two columns
+		table2 = new SQLTable(null, "tableWithColumn2", "actually r2",
+									SQLTable.class.toString(),true); 
+		c3 = new SQLColumn(table2, "Column3", 0,2,3);
+		c4 = new SQLColumn(table2, "Column3a", 0,2,3);
+		table2.addColumn(c3);
+		table2.addColumn(c4);
 		
+		table3 = new SQLTable(null, "tableWithColumn3", "actually r3",SQLTable.class.toString(),true); 
+		c5 = new SQLColumn(table3, "Column3a", 0,2,3);
+		c6= new SQLColumn(table3, "Column4", 0,2,3);
+		table3.addColumn(c5);
+		table3.addColumn(c6);
+		
+		
+		
+		listWithATable = new ArrayList();
+		listWithATable.add(tableNoColumn1);				
 	}
 
 	protected void tearDown() throws Exception {
@@ -61,156 +106,176 @@ public class CompareSQLTest extends TestCase {
 	}
 
 
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.swingui.CompareSchemaWorker.getJobSize()'
-	 */
-	public void testGetJobSize() {
-		assertEquals (4,csw.getJobSize());
-	}
-
 	/*
 	 * Test method for 'ca.sqlpower.architect.swingui.CompareSchemaWorker.getProgress()'
 	 */
 	public void testGetProgress() {
 
 	}
-	
-	public void testGenerateDiffWithNoColunmns() throws BadLocationException{
-		DefaultStyledDocument rDoc = new DefaultStyledDocument();
-		DefaultStyledDocument lDoc = new DefaultStyledDocument();
+
+	public void testEmptyPlayPenCompareSQL(){
 		
-		TreeSet <SQLTable>ltree = new TreeSet<SQLTable>(new SQLObjectComparator());
-		TreeSet <SQLTable>rtree = new TreeSet<SQLTable>(new SQLObjectComparator());
-		//Both source and target no tables
-		CompareSchemaWorker emptyWorker = new CompareSchemaWorker(ltree,rtree, lDoc,rDoc,
-					typeMap,typeMap);		
-		emptyWorker.run();				
-		assertEquals (0, rDoc.getLength());
-		assertEquals (0, lDoc.getLength());
-		
-		
-		
-		//Source has no tables, target does
-		CompareSchemaWorker worker1 = new CompareSchemaWorker (ltree,rTableContainer, lDoc,rDoc, 
-					typeMap,typeMap);
-		worker1.run();				
-		assertEquals ("Missing table: a\nMissing table: b\n",lDoc.getText(0, lDoc.getLength()));
-		assertEquals ("Extra table: a\nExtra table: b\n",rDoc.getText(0, rDoc.getLength()));
-				
-		//Source has tables, target does not
-		DefaultStyledDocument rDoc2 = new DefaultStyledDocument();
-		DefaultStyledDocument lDoc2 = new DefaultStyledDocument();
-		CompareSchemaWorker worker2 = new CompareSchemaWorker (lTableContainer,rtree, lDoc2,rDoc2,
-					typeMap,typeMap);
-		worker2.run();				
-		assertEquals ("Extra table: b\nExtra table: c\n",lDoc2.getText(0, lDoc2.getLength()));
-		assertEquals ("Missing table: b\nMissing table: c\n",rDoc2.getText(0, rDoc2.getLength()));
-		
-		//Both source and target have tables		
-		assertEquals ("Missing table: a\nSame table: b\nExtra table: c\n",l.getText(0, l.getLength()) );
-		assertEquals ("Extra table: a\nSame table: b\nMissing table: c\n",r.getText(0, r.getLength()) );
 	}
+	
+	public void testDiffListWithTablesOnly() throws ArchitectException{
+		//Testing diffchunk with nothing and nothing
+		List <SQLTable> list1 = new ArrayList();
+		
+		CompareSQL compare1 = new CompareSQL ((Collection<SQLTable>)list1,
+												(Collection<SQLTable>)list1);
+		List<DiffChunk<SQLObject>> nullChecker = compare1.generateTableDiffs();
+		assertEquals (0, nullChecker.size());
+		
+		
+		//Testing diff chunk with one table and nothing;
+		CompareSQL compareWorker = new CompareSQL((Collection<SQLTable>)listWithATable,
+													(Collection<SQLTable>)list1);
+		List<DiffChunk<SQLObject>> tableAndNull = compareWorker.generateTableDiffs();
+		assertEquals (1,tableAndNull.size());
+		assertEquals (DiffType.LEFTONLY, tableAndNull.get(0).getType());
+		assertEquals ("table1", tableAndNull.get(0).getData().getName());
+	
+		
+		//Testing diff chunk with two list that has the same properties
+		CompareSQL compareWorker1 = new CompareSQL((Collection<SQLTable>)listWithATable,
+													(Collection<SQLTable>)listWithATable);
+		List<DiffChunk<SQLObject>> exactlySameTable = compareWorker1.generateTableDiffs();
+		assertEquals (1,exactlySameTable.size());
+		assertEquals (DiffType.SAME, exactlySameTable.get(0).getType());
+		assertEquals ("table1", tableAndNull.get(0).getData().getName());
+		
 
-	public void testGenerateDiffWithColumns() throws ArchitectException, BadLocationException{
-		TreeSet<SQLTable> tree1 = new TreeSet<SQLTable>(new SQLObjectComparator());
-		TreeSet<SQLTable> tree2 = new TreeSet<SQLTable>(new SQLObjectComparator());
-		DefaultStyledDocument rDoc = new DefaultStyledDocument();
-		DefaultStyledDocument lDoc = new DefaultStyledDocument();
+		//Testing diff chunk with lists that have same and different tables		
+		listWithATable.add(tableNoColumn3);
+		list1.add(tableNoColumn1);
+		list1.add(tableNoColumn2);
+		
+		CompareSQL compareWorker2 = new CompareSQL((Collection<SQLTable>)listWithATable,
+				(Collection<SQLTable>)list1);
+		List<DiffChunk<SQLObject>> differentProp = compareWorker2.generateTableDiffs();
+		assertEquals (3,differentProp.size());
+		
+		assertEquals (DiffType.SAME, differentProp.get(0).getType());
+		assertEquals ("table1", differentProp.get(0).getData().getName());
+		
+		assertEquals (DiffType.RIGHTONLY, differentProp.get(1).getType());
+		assertEquals ("table2", differentProp.get(1).getData().getName());
+		
+		assertEquals (DiffType.LEFTONLY, differentProp.get(2).getType());			
+		assertEquals ("table3", differentProp.get(2).getData().getName());		
+	}
+	
+	
+	public void testDiffListWithTableHavingColumn() throws ArchitectException{
+		List <SQLTable >tableList1 = new ArrayList();
+		List <SQLTable >tableList2 = new ArrayList();
+		
+		//Testing table with column and nothing
+		tableList1.add(table1);
+		CompareSQL worker1 = new CompareSQL((Collection<SQLTable>)tableList1,
+				(Collection<SQLTable>)tableList2);
+		List<DiffChunk<SQLObject>> tableWithColumnAndNothing = worker1.generateTableDiffs();
+		assertEquals (3,tableWithColumnAndNothing.size());
+		
+		assertEquals (DiffType.LEFTONLY, tableWithColumnAndNothing.get(0).getType());
+		assertEquals (SQLTable.class, tableWithColumnAndNothing.get(0).getData().getClass());
+		assertEquals ("tableWithColumn1", tableWithColumnAndNothing.get(0).getData().getName());
+		
+		assertEquals (DiffType.LEFTONLY, tableWithColumnAndNothing.get(1).getType());
+		assertEquals (SQLColumn.class, tableWithColumnAndNothing.get(1).getData().getClass());
+		assertEquals ("Column1", tableWithColumnAndNothing.get(1).getData().getName());
+		
+		assertEquals (DiffType.LEFTONLY, tableWithColumnAndNothing.get(2).getType());
+		assertEquals (SQLColumn.class, tableWithColumnAndNothing.get(2).getData().getClass());
+		assertEquals ("Column2", tableWithColumnAndNothing.get(2).getData().getName());
 		
 		
 		
-		SQLTable table1 = new SQLTable(null,"a","actually r1",SQLTable.class.toString(),true);
-		//The Column specs will need to be changed (scale, type, precision)		
-		SQLColumn c1 = new SQLColumn(table1, "Column1", 0,2,3);
-		SQLColumn c2 = new SQLColumn(table1, "Column2", 0,2,3);
-		table1.addColumn(c1);
-		table1.addColumn(c2);
+		//Testing tables with the same column 
+		CompareSQL worker2 = new CompareSQL((Collection<SQLTable>)tableList1,
+				(Collection<SQLTable>)tableList1);
+		List<DiffChunk<SQLObject>> sameTablesWithColumns = worker2.generateTableDiffs();
+		assertEquals (3,sameTablesWithColumns.size());
 		
-		SQLTable table2 = new SQLTable(null, "b", "actually r2",SQLTable.class.toString(),true); 
-		SQLColumn c3 = new SQLColumn(table2, "Column3", 0,2,3);
-		SQLColumn c4 = new SQLColumn(table2, "Column3a", 0,2,3);
-		table2.addColumn(c3);
-		table2.addColumn(c4);
+		assertEquals (DiffType.SAME, sameTablesWithColumns.get(0).getType());
+		assertEquals (SQLTable.class, sameTablesWithColumns.get(0).getData().getClass());
+		assertEquals ("tableWithColumn1", sameTablesWithColumns.get(0).getData().getName());
 		
-		SQLTable table3 = new SQLTable(null, "b", "actually r2",SQLTable.class.toString(),true);
-		SQLColumn c5 = new SQLColumn (table3, "Column3",0,2,3);
-		SQLColumn c6 = new SQLColumn (table3, "Column3b", 0,2,3);
-		table3.addColumn(c5);
-		table3.addColumn(c6);
+		assertEquals (DiffType.SAME, sameTablesWithColumns.get(1).getType());
+		assertEquals (SQLColumn.class, sameTablesWithColumns.get(1).getData().getClass());
+		assertEquals ("Column1", sameTablesWithColumns.get(1).getData().getName());
 		
-		SQLTable table4 = new SQLTable(null, "c", "actually l3",SQLTable.class.toString(),true);
-		SQLColumn c7 = new SQLColumn (table4, "Column4",0,2,3);
-		table4.addColumn(c7);
+		assertEquals (DiffType.SAME, sameTablesWithColumns.get(2).getType());
+		assertEquals (SQLColumn.class, sameTablesWithColumns.get(2).getData().getClass());
+		assertEquals ("Column2", sameTablesWithColumns.get(2).getData().getName());
+		
+		
+		//Testing table with column against table with no column
+		List<SQLTable>tempList = new ArrayList();
+		tempList.add(table1NoColumn);
+		CompareSQL worker3 = new CompareSQL((Collection<SQLTable>)tempList,
+				(Collection<SQLTable>)tableList1);
+		List<DiffChunk<SQLObject>> diffTest = worker3.generateTableDiffs();
+		
+		assertEquals (3, diffTest.size());
+		assertEquals (DiffType.SAME, diffTest.get(0).getType());
+		assertEquals (SQLTable.class, diffTest.get(0).getData().getClass());
+		assertEquals ("tableWithColumn1", diffTest.get(0).getData().getName());
+		
+		assertEquals (DiffType.RIGHTONLY, diffTest.get(1).getType());
+		assertEquals (SQLColumn.class, diffTest.get(1).getData().getClass());
+		assertEquals ("Column1", diffTest.get(1).getData().getName());
+		
+		assertEquals (DiffType.RIGHTONLY, diffTest.get(2).getType());
+		assertEquals (SQLColumn.class, diffTest.get(2).getData().getClass());
+		assertEquals ("Column2", diffTest.get(2).getData().getName());
 
+		//Testing tables with all DiffTypes: SAME, LEFTONLY, RIGHTONLY, MODIFIED
+		tableList1.add(table2);
+		tableList2.add(table1LookAlike);
+		tableList2.add(table3);
 		
-		tree1.add(table1);		
+		CompareSQL worker4 = new CompareSQL((Collection<SQLTable>)tableList1,
+				(Collection<SQLTable>)tableList2);
+		List<DiffChunk<SQLObject>> manyProperties = worker4.generateTableDiffs();
+		assertEquals (9, manyProperties.size());
 		
-		CompareSchemaWorker workerNoColAndCols = new CompareSchemaWorker(tree2, tree1, lDoc, rDoc, 
-				typeMap,typeMap);		
+		assertEquals (DiffType.SAME, manyProperties.get(0).getType());
+		assertEquals (SQLTable.class, manyProperties.get(0).getData().getClass());
+		assertEquals ("tableWithColumn1", manyProperties.get(0).getData().getName());
 		
-		workerNoColAndCols.run();
+		assertEquals (DiffType.SAME, manyProperties.get(1).getType());
+		assertEquals (SQLColumn.class, manyProperties.get(1).getData().getClass());
+		assertEquals ("Column1", manyProperties.get(1).getData().getName());
+		
+		assertEquals (DiffType.MODIFIED, manyProperties.get(2).getType());
+		assertEquals (SQLColumn.class, manyProperties.get(2).getData().getClass());
+		assertEquals ("Column2", manyProperties.get(2).getData().getName());
+		
+		assertEquals (DiffType.LEFTONLY, manyProperties.get(3).getType());
+		assertEquals (SQLTable.class, manyProperties.get(3).getData().getClass());
+		assertEquals ("tableWithColumn2", manyProperties.get(3).getData().getName());
+		
+		assertEquals (DiffType.LEFTONLY, manyProperties.get(4).getType());
+		assertEquals (SQLColumn.class, manyProperties.get(4).getData().getClass());
+		assertEquals ("Column3", manyProperties.get(4).getData().getName());
+		
+		assertEquals (DiffType.LEFTONLY, manyProperties.get(5).getType());
+		assertEquals (SQLColumn.class, manyProperties.get(5).getData().getClass());
+		assertEquals ("Column3a", manyProperties.get(5).getData().getName());
+		
+		assertEquals (DiffType.RIGHTONLY, manyProperties.get(6).getType());
+		assertEquals (SQLTable.class, manyProperties.get(6).getData().getClass());
+		assertEquals ("tableWithColumn3", manyProperties.get(6).getData().getName());
+		
+		assertEquals (DiffType.RIGHTONLY, manyProperties.get(7).getType());
+		assertEquals (SQLColumn.class, manyProperties.get(7).getData().getClass());
+		assertEquals ("Column3a", manyProperties.get(7).getData().getName());
+		
+		assertEquals (DiffType.RIGHTONLY, manyProperties.get(8).getType());
+		assertEquals (SQLColumn.class, manyProperties.get(8).getData().getClass());
+		assertEquals ("Column4", manyProperties.get(8).getData().getName());
 
-		assertEquals ("Missing table: a\n\tMissing column: Column1: MockInteger\n\tMissing column: Column2: MockInteger\n", lDoc.getText(0,lDoc.getLength()));
-		assertEquals ("Extra table: a\n\tExtra column: Column1: MockInteger\n\tExtra column: Column2: MockInteger\n", rDoc.getText(0,rDoc.getLength()));
-		
-		DefaultStyledDocument rDocTest2 = new DefaultStyledDocument();
-		DefaultStyledDocument lDocTest2 = new DefaultStyledDocument();
-		
-		CompareSchemaWorker workerColAndNoCols = new CompareSchemaWorker (tree1, tree2, lDocTest2, rDocTest2, 
-				typeMap,typeMap);
-		workerColAndNoCols.run();
-		assertEquals ("Missing table: a\n\tMissing column: Column1: MockInteger\n\tMissing column: Column2: MockInteger\n", rDocTest2.getText(0,rDocTest2.getLength()));
-		assertEquals ("Extra table: a\n\tExtra column: Column1: MockInteger\n\tExtra column: Column2: MockInteger\n", lDocTest2.getText(0,lDocTest2.getLength()));
-		
-		
-		tree1.add(table2);
-		tree2.add(table3);
-		tree2.add(table4);
-		
-		DefaultStyledDocument rDoc3 = new DefaultStyledDocument();
-		DefaultStyledDocument lDoc3 = new DefaultStyledDocument();
-		CompareSchemaWorker workerColAndCol = new CompareSchemaWorker (tree1, tree2, lDoc3, rDoc3, 
-				typeMap,typeMap );
-		workerColAndCol.run();
-		assertEquals ("Extra table: a\n\tExtra column: Column1: MockInteger\n\tExtra column: Column2: MockInteger\nSame table: b\n\t" +
-				"Same column: Column3: MockInteger\n\tExtra column: Column3a: MockInteger\n\tMissing column: Column3b: MockInteger\nMissing table: " + 
-				"c\n\tMissing column: Column4: MockInteger\n", lDoc3.getText(0,lDoc3.getLength()));
-		assertEquals ("Missing table: a\n\tMissing column: Column1: MockInteger\n\tMissing column: Column2: MockInteger\nSame table: b\n\t" +
-				"Same column: Column3: MockInteger\n\tMissing column: Column3a: MockInteger\n\tExtra column: Column3b: MockInteger\nExtra table: " + 
-				"c\n\tExtra column: Column4: MockInteger\n", rDoc3.getText(0,rDoc3.getLength()));
-		
-		TreeSet <SQLTable> tree3 = new TreeSet<SQLTable>(new SQLObjectComparator());
-		TreeSet <SQLTable> tree4 = new TreeSet<SQLTable>(new SQLObjectComparator());
-		
-		DefaultStyledDocument rTest = new DefaultStyledDocument();
-		DefaultStyledDocument lTest = new DefaultStyledDocument();
-		
-		SQLTable t1 = new SQLTable(null, "x", "test x",SQLTable.class.toString(),true);
-		SQLColumn col = new SQLColumn (t1, "test",0,2,3);		
-		t1.addColumn(col);		
-		
-		SQLTable t2 = new SQLTable(null, "x", "test x",SQLTable.class.toString(),true);
-		SQLColumn col2 = new SQLColumn (t2, "test",1,3,3);		
-		t2.addColumn(col2);
-		
-		SQLTable t3 = new SQLTable (null, "z", "test x", SQLTable.class.toString(), true);
-		SQLColumn col3 = new SQLColumn (t3, "test 1", 0,2,3);
-		t3.addColumn(col3);
-		
-		tree3.add(t1);
-		tree4.add(t2);
-		tree4.add(t3);
-		
-		CompareSchemaWorker testDiffColProp = new CompareSchemaWorker(tree3, tree4, lTest, rTest, typeMap, typeMap);
-		testDiffColProp.run();
-		assertEquals ("Same table: x\n\tModify column test from type: MockInteger to type: Precision(3)\n" +
-				"Missing table: z\n\tMissing column: test 1: MockInteger\n", lTest.getText(0,lTest.getLength()));
-		assertEquals ("Same table: x\n\tModify column test from type: Precision(3) to type: MockInteger\n" +
-				"Extra table: z\n\tExtra column: test 1: MockInteger\n", rTest.getText(0,rTest.getLength()));
-		
-		
-		
 	}
 	/*
 	 * Test method for 'ca.sqlpower.architect.swingui.CompareSchemaWorker.isFinished()'
