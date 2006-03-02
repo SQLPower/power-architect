@@ -662,7 +662,7 @@ public class CompareDMPanel extends JPanel {
 		buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
 		FormLayout formLayout = new FormLayout("20dlu, 2dlu, pref, 4dlu," + //1-4
-				"pref:grow, 2dlu, pref:grow, 4dlu," + //5-8
+				"pref:grow, 4dlu, pref:grow, 4dlu," + //5-8
 				"pref:grow, 4dlu, pref", //9-11
 				"");
 		formLayout.setColumnGroups(new int[][] { { 5, 7, 9, } });
