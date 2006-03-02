@@ -13,6 +13,7 @@ import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.GenericTypeDescriptor;
+import ca.sqlpower.architect.swingui.SwingUIProject;
 
 public class CompareSQL {
 
@@ -37,6 +38,8 @@ public class CompareSQL {
 	/**
 	 * The common constructor 
 	 */
+
+		
 	public CompareSQL(TreeSet<SQLTable> sourceTableSet, TreeSet<SQLTable> targetTableSet)
 	{
 		this.sourceTableList = sourceTableSet;
@@ -102,7 +105,7 @@ public class CompareSQL {
 
 				// bring the target table up to the same level as the source
 				while (comparator.compare(sourceTable, targetTable) > 0) {
-					results.add(new DiffChunk<SQLObject>(sourceTable, DiffType.LEFTONLY));
+					results.add(new DiffChunk<SQLObject>(targetTable, DiffType.RIGHTONLY));
 					// now do the columns
 					generateColumnDiffs(null, targetTable);
 					if (targetIter.hasNext()) {
@@ -114,7 +117,7 @@ public class CompareSQL {
 				}
 
 				while (comparator.compare(sourceTable, targetTable) == 0) {
-					results.add(new DiffChunk<SQLObject>(sourceTable, DiffType.LEFTONLY));
+					results.add(new DiffChunk<SQLObject>(sourceTable, DiffType.SAME));
 
 					// now do the columns
 					generateColumnDiffs(sourceTable, targetTable);
@@ -150,7 +153,7 @@ public class CompareSQL {
 			//If any remaining tables in the targetList still exist, they are now being added
 			while (targetContinue) {
 
-				results.add(new DiffChunk<SQLObject>(sourceTable, DiffType.LEFTONLY));
+				results.add(new DiffChunk<SQLObject>(targetTable, DiffType.RIGHTONLY));
 				generateColumnDiffs(null, targetTable);
 				if (targetIter.hasNext()) {
 					targetTable = (SQLTable) targetIter.next();
@@ -228,7 +231,7 @@ public class CompareSQL {
 				}
 				// Comparing Columns
 				while (comparator.compare(sourceColumn, targetColumn) > 0) {
-					results.add(new DiffChunk<SQLObject>(sourceColumn, DiffType.LEFTONLY));
+					results.add(new DiffChunk<SQLObject>(targetColumn, DiffType.RIGHTONLY));
 					if (targetColIter.hasNext()) {
 						targetColumn = (SQLColumn) targetColIter.next();
 					} else {
@@ -246,10 +249,11 @@ public class CompareSQL {
 							|| (td.getHasScale() && targetColumn.getScale() != sourceColumn.getScale()))
 					{
 					
-						results.add(new DiffChunk<SQLObject>(sourceColumn, DiffType.LEFTONLY));
+						results.add(new DiffChunk<SQLObject>(sourceColumn, DiffType.MODIFIED));
+						results.add(new DiffChunk<SQLObject>(targetColumn, DiffType.MODIFIED));
 					}
 					else {
-						results.add(new DiffChunk<SQLObject>(sourceColumn, DiffType.LEFTONLY));
+						results.add(new DiffChunk<SQLObject>(sourceColumn, DiffType.SAME));
 					}
 					if (targetColIter.hasNext()) {
 						targetColumn = (SQLColumn) targetColIter.next();
@@ -280,7 +284,7 @@ public class CompareSQL {
 			}
 			
 			while (targetColContinue) {
-				results.add(new DiffChunk<SQLObject>(targetColumn, DiffType.LEFTONLY));
+				results.add(new DiffChunk<SQLObject>(targetColumn, DiffType.RIGHTONLY));
 				if (targetColIter.hasNext()) {
 					targetColumn = (SQLColumn) targetColIter.next();
 				} else {
