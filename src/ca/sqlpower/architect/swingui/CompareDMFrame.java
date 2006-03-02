@@ -69,11 +69,12 @@ public class CompareDMFrame extends JFrame{
 	}
 	
 	public JComponent mainFrame() {		
+		
 		FormLayout layout = new FormLayout(
-				"4dlu,fill:pref:grow, 6dlu, pref:grow, 4dlu, default", // columns
+				"4dlu,min:grow, 6dlu, fill:pref:grow, 4dlu, default", // columns
 				"pref, 6dlu, pref, 3dlu, fill:pref:grow, 3dlu, 20dlu,6dlu,20dlu"); // rows
 		
-		JPanel p = debugLayout ? new FormDebugPanel(layout) : new JPanel(layout);
+		JPanel p = logger.isDebugEnabled()  ? new FormDebugPanel(layout) : new JPanel(layout);
 		PanelBuilder pb = new PanelBuilder(layout,p);
 		pb.setDefaultDialogBorder();
 		CellConstraints cc = new CellConstraints();
@@ -90,15 +91,14 @@ public class CompareDMFrame extends JFrame{
 		leftOutputArea.setEditable(false);
 		
 		
-		
 		JScrollPane sp = new JScrollPane(leftOutputArea);     
         
         pb.add(sp, cc.xy(2, 5));
-        
         rightOutputArea = new JTextPane();
 		rightOutputArea.setMargin(new Insets(6, 10, 4, 6));
 		rightOutputArea.setDocument(targetOutputText);
 		rightOutputArea.setEditable(false);
+		
 		
 		JScrollPane sp1 = new JScrollPane(rightOutputArea);
 		
@@ -284,7 +284,7 @@ public class CompareDMFrame extends JFrame{
         targetDoc.insertString(targetDoc.getLength(),"line 3 - green line"+newline, attrsTarget);
         targetDoc.insertString(targetDoc.getLength(),"line 4 - black line"+newline, attrsSame);
         targetDoc.insertString(targetDoc.getLength(),"line 5 - normal line"+newline, attrsMsg);
-        
+        targetDoc.insertString(targetDoc.getLength(),"line 6 - this is a really really really reallly really long line so long that I do not quite know what's going on, ha!", attrsMsg);
         final JFrame f = new CompareDMFrame(sourceDoc, targetDoc,
         		"compare test A to test B in english",new SQLDatabase());
 		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
