@@ -173,6 +173,9 @@ public class TestCompareDMPanel extends JFCTestCase {
 		assertFalse(sourceNewConnButton.isEnabled());
 		assertFalse(sourceCatalogDropdown.isEnabled());
 		assertFalse(sourceSchemaDropdown.isEnabled());
+		assertFalse(sourceLoadRadio.isEnabled());
+		assertFalse(sourceLoadFilePath.isEnabled());
+		assertFalse(sourceLoadFileButton.isEnabled());
 
 		
 		flushAWT();
