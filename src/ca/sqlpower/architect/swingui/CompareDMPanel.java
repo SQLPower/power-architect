@@ -30,6 +30,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
@@ -72,8 +73,6 @@ public class CompareDMPanel extends JPanel {
 	private static final String OUTPUT_ENGLISH = "OUTPUT_ENGLISH";
 	private static final String OUTPUT_SQL = "OUTPUT_SQL";
 	public static final String DBCS_DIALOG_TITLE = "New Database Connection";
-
-	private static final String newline = System.getProperty("line.separator");
 
 	private JProgressBar progressBar;
 	private JPanel buttonPanel;
@@ -961,31 +960,37 @@ public class CompareDMPanel extends JPanel {
 					right.getName() + " using "	+ compMethod;
 				cf = new CompareDMFrame(
 						sourceDoc, targetDoc,
-						titleString, source.getDatabase());			
-			} catch (ArchitectDiffException exp) {
-				ASUtils.showExceptionDialog(
-						"Either source or target has duplicate table names", exp);
-				logger.error("SchemaListerProgressWatcher failt2", exp);
+						titleString, source.getDatabase());
+				
+				cf.pack();
+				cf.setVisible(true);
+
+			} catch (ArchitectDiffException ex) {
+				JOptionPane.showMessageDialog(
+						CompareDMPanel.this, 
+						"Could not perform the diff:\n"+ex.getMessage(), 
+						"Diff Error", 
+						JOptionPane.ERROR_MESSAGE);
+				logger.error("Couldn't do diff", ex);
 			} catch (ArchitectException exp) {
 				ASUtils.showExceptionDialog(
-						"SchemaListerProgressWatcher failt2", exp);
-				logger.error("SchemaListerProgressWatcher failt2", exp);
+						"StartCompareAction failed", exp);
+				logger.error("StartCompareAction failed", exp);
 			} catch (FileNotFoundException ex) {
-				ASUtils
-						.showExceptionDialog("Your file could not be found.",
-								ex);
-				logger.error("Your file could not be found.", ex);
+				ASUtils.showExceptionDialog("Your file could not be found.", ex);
+				logger.error("File could not be found.", ex);
 			} catch (IOException ex) {
 				ASUtils.showExceptionDialog("Could not read file", ex);
 				logger.error("Could not read file", ex);
 			} catch (BadLocationException ex) {
 				ASUtils.showExceptionDialog("Could not create document for results", ex);
 				logger.error("Could not create document for results", ex);
-			} 
-			this.setEnabled(isStartable());
-			cf.pack();
-			cf.setVisible(true);
-
+			} catch (Exception ex) {
+				ASUtils.showExceptionDialog("Unxepected Exception!", ex);
+				logger.error("Unxepected Exception!", ex);
+			} finally {
+				this.setEnabled(isStartable());
+			}
 		}
 	}
 
