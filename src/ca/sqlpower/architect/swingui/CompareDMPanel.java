@@ -13,13 +13,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeSet;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -27,7 +25,6 @@ import javax.swing.ButtonGroup;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -43,7 +40,6 @@ import javax.swing.ListCellRenderer;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
@@ -63,7 +59,6 @@ import ca.sqlpower.architect.diff.ArchitectDiffException;
 import ca.sqlpower.architect.diff.CompareSQL;
 import ca.sqlpower.architect.diff.DiffChunk;
 import ca.sqlpower.architect.diff.DiffType;
-import ca.sqlpower.architect.diff.SQLObjectComparator;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.debug.FormDebugPanel;
@@ -103,16 +98,10 @@ public class CompareDMPanel extends JPanel {
 	 */
 	public class SourceOrTargetStuff {
 
-		/** All of the components related to the physical database portion of the GUI */
-		private List<JComponent> physicalComp;
-
 		private JComboBox databaseDropdown;
 		private JComboBox catalogDropdown;
 		private JComboBox schemaDropdown;
 		private JButton newConnButton;
-
-		/** All of the components related to the external file portion of the GUI */
-		private List<JComponent> loadComp;
 
 		private JButton loadFileButton;
 		private JTextField loadFilePath;
@@ -472,19 +461,7 @@ public class CompareDMPanel extends JPanel {
 			catalogDropdown.addActionListener(new SchemaPopulator());
 			databaseDropdown.addActionListener(new CatalogPopulator());
 
-			physicalComp = new ArrayList<JComponent>();
-			physicalComp.add(databaseDropdown);
-			physicalComp.add(catalogDropdown);
-			physicalComp.add(schemaDropdown);
-			physicalComp.add(newConnButton);
-
-			loadComp = new ArrayList<JComponent>();
-			loadComp.add(loadFilePath);
-			loadComp.add(loadFileButton);
-
-			ActionListener listener = new OptionGroupListener(
-					playPenRadio, null, physicalRadio, physicalComp, loadRadio,
-					loadComp);
+			ActionListener listener = new OptionGroupListener();
 			playPenRadio.addActionListener(listener);
 			physicalRadio.addActionListener(listener);
 			loadRadio.addActionListener(listener);
@@ -597,6 +574,45 @@ public class CompareDMPanel extends JPanel {
 				cachedDatabase = new SQLDatabase(ds);
 			}
 			return cachedDatabase;
+		}
+		
+		/**
+		 * This listener is used to enable/disable JComponents when one of the 
+		 * database choosing options is choosen (for both source and target selections).
+		 */
+		public class OptionGroupListener implements ActionListener {
+
+			public void actionPerformed(ActionEvent e) {
+				enableDisablePhysicalComps();
+				
+				boolean enableLoadComps = e.getSource() == loadRadio;
+				loadFilePath.setEnabled(enableLoadComps);
+				loadFileButton.setEnabled(enableLoadComps);
+			}
+		}
+
+		/**
+		 * For the special case of enabling and disabling the Physical
+		 * database Dropdown Components.
+		 */
+		void enableDisablePhysicalComps() {
+			boolean enable = physicalRadio.isSelected();
+			
+			databaseDropdown.setEnabled(enable);
+			
+			if (enable && catalogDropdown.getItemCount() > 0){
+				catalogDropdown.setEnabled(true);
+			} else {
+				catalogDropdown.setEnabled(false);
+			}
+			
+			if (enable && schemaDropdown.getItemCount() > 0){
+				schemaDropdown.setEnabled(true);
+			} else {
+				schemaDropdown.setEnabled(false);
+			}
+			
+			newConnectionAction.setEnabled(enable);
 		}
 	}
 
@@ -794,64 +810,6 @@ public class CompareDMPanel extends JPanel {
 				return progressMonitor.isFinished();
 			}
 			return true;
-		}
-	}
-
-	/*
-	 * This listener is used to enable/disable JComponents when one of the 
-	 * database choosing options is choosen (for both source and target selections)
-	 */
-
-	public class OptionGroupListener implements ActionListener {
-
-		private static final String ACTION_PROJECT = "Project";
-		private static final String ACTION_SQL_CONNECTION = "SQL Connection";
-		private static final String ACTION_LOAD_FILE = "Load File";
-
-		private JRadioButton connection;
-		private JRadioButton physical;
-		private JRadioButton load;
-
-		private List<JComponent> loadComp;
-		private List<JComponent> physicalComp;
-		private List<JComponent> connComp;
-
-		public OptionGroupListener(JRadioButton connection,
-				List<JComponent> connComp, JRadioButton physical,
-				List<JComponent> physicalComp, JRadioButton load,
-				List<JComponent> loadComp) {			
-			this.connection = connection;
-			this.physical = physical;
-			this.physicalComp = physicalComp;
-			this.load = load;
-			this.loadComp = loadComp;
-			this.connComp = connComp;
-		}
-
-		public void actionPerformed(ActionEvent e) {
-			if (e.getSource() == connection) {
-				setComps(connComp, true);
-				setComps(physicalComp, false);
-				setComps(loadComp, false);				
-			} else if (e.getSource() == physical) {
-				setComps(connComp, false);
-				setComps(physicalComp, true);
-				setComps(loadComp, false);
-			} else if (e.getSource() == load) {
-				setComps(connComp, false);
-				setComps(physicalComp, false);
-				setComps(loadComp, true);
-			} else {
-				throw new IllegalStateException("Unhandle Button");
-			}		
-		}
-
-		void setComps(List<JComponent> compList, boolean enable) {
-			if (compList == null)
-				return;
-			for (JComponent j : compList) {
-				j.setEnabled(enable);
-			}
 		}
 	}
 
