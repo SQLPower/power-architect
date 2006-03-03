@@ -883,11 +883,7 @@ public class CompareDMPanel extends JPanel {
 				if (left.getChildType() == SQLTable.class) {
 					sourceTables = left.getChildren();					
 				} else {					
-					sourceTables = new ArrayList();
-					/*throw new IllegalStateException(
-							"The source you chose does not contain tables."
-									+ " (Child type is " + left.getChildType()
-									+ ")");*/
+					sourceTables = new ArrayList();					
 				}
 
 				SQLObject right = target.getObjectToCompare();
@@ -895,10 +891,6 @@ public class CompareDMPanel extends JPanel {
 					targetTables = right.getChildren();
 				} else {
 					targetTables = new ArrayList();
-					/*throw new IllegalStateException(
-							"The target you chose does not contain tables."
-									+ " (Child type is " + right.getChildType()
-									+ ")");*/
 				}
 
 				// XXX: should do most or all of this work in a worker thread
