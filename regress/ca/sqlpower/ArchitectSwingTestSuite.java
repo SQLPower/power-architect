@@ -28,7 +28,6 @@ public class ArchitectSwingTestSuite extends TestCase {
 		suite.addTestSuite(TestSQLObjectUndoableEventAdapter.class);
 		suite.addTestSuite(TestFruchtermanReingoldForceLayout.class);
 		suite.addTestSuite(TestCompareDMPanel.class);
-		suite.addTestSuite(CompareSchemaWorkerTest.class);
 		//$JUnit-END$
 		return suite;
 	}
