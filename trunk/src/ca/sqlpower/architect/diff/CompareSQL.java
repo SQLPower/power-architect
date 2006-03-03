@@ -95,11 +95,11 @@ public class CompareSQL implements Monitorable {
 		if (!sourceValid || !targetValid){
 			String error;
 			if (!sourceValid && !targetValid) {
-				error = "Your source and target have tables with duplicate names";
+				error = "Your source and target both have tables with duplicate names.";
 			} else if (!sourceValid){
-				error = "Your source has tables with the same name!";
+				error = "Your source has tables with the same name as each other.";
 			} else {
-				error = "Your target has tables with the same name!";
+				error = "Your target has tables with the same name as each other.";
 			}
 			throw new ArchitectDiffException(error);
 		}
