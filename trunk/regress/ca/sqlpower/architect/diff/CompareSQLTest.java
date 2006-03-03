@@ -12,10 +12,12 @@ import java.util.TreeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
 
+import junit.extensions.xml.elements.AssertNotEqualsTagHandler;
 import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.GenericTypeDescriptor;
 import ca.sqlpower.architect.diff.CompareSQL;
@@ -29,19 +31,13 @@ import ca.sqlpower.architect.swingui.PlayPen;
 public class CompareSQLTest extends TestCase {
 
 	
-	CompareSchemaWorker csw;
-	DefaultStyledDocument r;
-	DefaultStyledDocument l;
 			
-	TreeSet <SQLTable>  rTableContainer;
 	SQLTable table1;
-	SQLTable table1LookAlike;
 	SQLTable table2;
 	SQLTable table3;
 	SQLTable tableNoColumn1;
-	SQLTable tableNoColumn2;
-	SQLTable tableNoColumn3;
-	SQLTable table1NoColumn;
+
+
 	SQLColumn c1; 
 	SQLColumn c1Dupl;
 	SQLColumn c2;
@@ -51,7 +47,6 @@ public class CompareSQLTest extends TestCase {
 	SQLColumn c5;
 	SQLColumn c6;
 	List <SQLTable> listWithATable;
-	List <SQLTable> temp2;
 
 	
 	private Map<Integer, GenericTypeDescriptor> typeMap;
@@ -59,10 +54,8 @@ public class CompareSQLTest extends TestCase {
 	protected void setUp() throws Exception {
 		//Just tables with Columns
 		tableNoColumn1 = new SQLTable(null,"table1" , "...",SQLTable.class.toString(), true);		
-		tableNoColumn2 = new SQLTable(null,"table2" , "...",SQLTable.class.toString(), true);
-		tableNoColumn3 = new SQLTable(null,"table3" , "...",SQLTable.class.toString(), true);
-		table1NoColumn = new SQLTable(null,"tableWithColumn1","it's lying!", 
-				SQLTable.class.toString(), true);
+		
+		
 		
 		//Table with two columns
 		table1 = new SQLTable(null,"tableWithColumn1","actually r1",
@@ -72,14 +65,6 @@ public class CompareSQLTest extends TestCase {
 	    c2 = new SQLColumn(table1, "Column2", Types.INTEGER,5,0);
 		table1.addColumn(c1);
 		table1.addColumn(c2);
-		
-		//Similar to table 1 with minor changes
-		table1LookAlike = new SQLTable(null,"tableWithColumn1","actually r1lookAlike",
-									SQLTable.class.toString(),true);
-		c1Dupl = new SQLColumn(table1LookAlike, "Column1", 0,2,3);
-		c2LookAlike = new SQLColumn (table1LookAlike, "Column2", 1, 3,5);
-		table1LookAlike.addColumn(c1Dupl);
-		table1LookAlike.addColumn(c2LookAlike);
 		
 		//Table with two columns
 		table2 = new SQLTable(null, "tableWithColumn2", "actually r2",
@@ -145,7 +130,11 @@ public class CompareSQLTest extends TestCase {
 		assertEquals ("table1", tableAndNull.get(0).getData().getName());
 		
 
-		//Testing diff chunk with lists that have same and different tables		
+		
+		//Testing diff chunk with lists that have same and different tables
+		
+		SQLTable tableNoColumn2 = new SQLTable(null,"table2" , "...",SQLTable.class.toString(), true);
+		SQLTable tableNoColumn3 = new SQLTable(null,"table3" , "...",SQLTable.class.toString(), true);
 		listWithATable.add(tableNoColumn3);
 		list1.add(tableNoColumn1);
 		list1.add(tableNoColumn2);
@@ -172,7 +161,8 @@ public class CompareSQLTest extends TestCase {
 		
 		//Testing table with column and nothing
 		tableList1.add(table1);
-		CompareSQL worker1 = new CompareSQL((Collection<SQLTable>)tableList1,
+		CompareSQL worker1 = new CompareSQL(
+				(Collection<SQLTable>)tableList1,
 				(Collection<SQLTable>)tableList2);
 		List<DiffChunk<SQLObject>> tableWithColumnAndNothing = worker1.generateTableDiffs();
 		assertEquals (3,tableWithColumnAndNothing.size());
@@ -211,6 +201,8 @@ public class CompareSQLTest extends TestCase {
 		
 		
 		//Testing table with column against table with no column
+		SQLTable table1NoColumn = new SQLTable(null,"tableWithColumn1","it's lying!", 
+				SQLTable.class.toString(), true);
 		List<SQLTable>tempList = new ArrayList();
 		tempList.add(table1NoColumn);
 		CompareSQL worker3 = new CompareSQL((Collection<SQLTable>)tempList,
@@ -231,6 +223,15 @@ public class CompareSQLTest extends TestCase {
 		assertEquals ("Column2", diffTest.get(2).getData().getName());
 
 		//Testing tables with all DiffTypes: SAME, LEFTONLY, RIGHTONLY, MODIFIED
+
+		//Similar to table 1 with minor changes
+		SQLTable table1LookAlike = new SQLTable(null,"tableWithColumn1","actually r1lookAlike",
+									SQLTable.class.toString(),true);
+		c1Dupl = new SQLColumn(table1LookAlike, "Column1", 0,2,3);
+		c2LookAlike = new SQLColumn (table1LookAlike, "Column2", 1, 3,5);
+		table1LookAlike.addColumn(c1Dupl);
+		table1LookAlike.addColumn(c2LookAlike);
+		
 		tableList1.add(table2);
 		tableList2.add(table1LookAlike);
 		tableList2.add(table3);
@@ -277,6 +278,209 @@ public class CompareSQLTest extends TestCase {
 		assertEquals ("Column4", manyProperties.get(8).getData().getName());
 
 	}
+	
+	public void testTableWithRelationShip() throws ArchitectException{
+		SQLTable newTable1 = table1;
+		SQLTable newTable2 = table2;
+		SQLRelationship relation1 = new SQLRelationship();
+		relation1.addMapping(newTable1.getColumn(0), newTable2.getColumn(1));
+		relation1.setName("relation1");
+		
+		newTable1.addExportedKey(relation1);
+		newTable2.addImportedKey(relation1);
+
+		List<SQLTable> newList1 = new ArrayList<SQLTable>();
+		List<SQLTable> newList2 = new ArrayList<SQLTable>();
+		
+		newList1.add(newTable1);
+		newList1.add(newTable2);
+		
+		CompareSQL worker1 = new CompareSQL((Collection<SQLTable>)newList1,
+				(Collection<SQLTable>)newList2);
+		List<DiffChunk<SQLObject>> diffList = worker1.generateTableDiffs();
+		assertEquals (7, diffList.size());
+		assertEquals (DiffType.LEFTONLY, diffList.get(0).getType());
+		assertEquals (SQLTable.class, diffList.get(0).getData().getClass());
+		assertEquals ("tableWithColumn1", diffList.get(0).getData().getName());
+		
+		assertEquals (DiffType.LEFTONLY, diffList.get(1).getType());
+		assertEquals (SQLColumn.class, diffList.get(1).getData().getClass());
+		assertEquals ("Column1", diffList.get(1).getData().getName());
+		
+		assertEquals (DiffType.LEFTONLY, diffList.get(2).getType());
+		assertEquals (SQLColumn.class, diffList.get(2).getData().getClass());
+		assertEquals ("Column2", diffList.get(2).getData().getName());
+		
+		assertEquals (DiffType.LEFTONLY, diffList.get(3).getType());
+		assertEquals (SQLTable.class, diffList.get(3).getData().getClass());
+		assertEquals ("tableWithColumn2", diffList.get(3).getData().getName());
+		
+		assertEquals (DiffType.LEFTONLY, diffList.get(4).getType());
+		assertEquals (SQLColumn.class, diffList.get(4).getData().getClass());
+		assertEquals ("Column3", diffList.get(4).getData().getName());
+		
+		assertEquals (DiffType.LEFTONLY, diffList.get(5).getType());
+		assertEquals (SQLColumn.class, diffList.get(5).getData().getClass());
+		assertEquals ("Column3a", diffList.get(5).getData().getName());
+		
+		assertEquals (DiffType.LEFTONLY, diffList.get(6).getType());
+		assertEquals (SQLRelationship.class, diffList.get(6).getData().getClass());
+		assertEquals ("relation1", diffList.get(6).getData().getName());
+		
+	}
+	
+	public void testRelationshipsWithSameMappings() throws ArchitectException {
+
+		// Set up source (left hand side) envorinment
+		SQLTable newTable1L = makeTable(4);
+		SQLTable newTable2L = makeTable(6);
+		SQLRelationship relationL = new SQLRelationship();
+		relationL.addMapping(newTable1L.getColumn(0), newTable2L.getColumn(1));
+		relationL.setName("relation1");
+		
+		newTable1L.addExportedKey(relationL);
+		newTable2L.addImportedKey(relationL);
+		
+		List<SQLTable> tableListL = new ArrayList<SQLTable>();
+		tableListL.add(newTable1L);
+		tableListL.add(newTable2L);
+		
+		// Set up source (left hand side) envorinment
+		SQLTable newTable1R = makeTable(4);
+		SQLTable newTable2R = makeTable(6);
+		SQLRelationship relationR = new SQLRelationship();
+		relationR.addMapping(newTable1R.getColumn(0), newTable2R.getColumn(1));
+		relationR.setName("relation1");
+		
+		newTable1R.addExportedKey(relationR);
+		newTable2R.addImportedKey(relationR);
+		
+		List<SQLTable> tableListR = new ArrayList<SQLTable>();
+		tableListR.add(newTable1R);
+		tableListR.add(newTable2R);
+		
+		CompareSQL cs = new CompareSQL(tableListL, tableListR);
+		List<DiffChunk<SQLObject>> diffs = cs.generateTableDiffs();
+		
+		for (DiffChunk<SQLObject> chunk : diffs) {
+			assertEquals(
+					"Left side == Right side. Diff list should be all same",
+					DiffType.SAME, chunk.getType());
+		}
+	}
+	
+	public void testRelationshipsWithDifferentNames() throws ArchitectException {
+
+		// Set up source (left hand side) envorinment
+		SQLTable newTable1L = makeTable(4);
+		SQLTable newTable2L = makeTable(6);
+		SQLRelationship relationL = new SQLRelationship();
+		relationL.addMapping(newTable1L.getColumn(0), newTable2L.getColumn(1));
+		relationL.setName("relation1");
+		
+		newTable1L.addExportedKey(relationL);
+		newTable2L.addImportedKey(relationL);
+		
+		List<SQLTable> tableListL = new ArrayList<SQLTable>();
+		tableListL.add(newTable1L);
+		tableListL.add(newTable2L);
+		
+		// Set up source (left hand side) envorinment
+		SQLTable newTable1R = makeTable(4);
+		SQLTable newTable2R = makeTable(6);
+		SQLRelationship relationR = new SQLRelationship();
+		relationR.addMapping(newTable1R.getColumn(0), newTable2R.getColumn(1));
+		relationR.setName("not_relation1");
+		
+		newTable1R.addExportedKey(relationR);
+		newTable2R.addImportedKey(relationR);
+		
+		List<SQLTable> tableListR = new ArrayList<SQLTable>();
+		tableListR.add(newTable1R);
+		tableListR.add(newTable2R);
+		
+		CompareSQL cs = new CompareSQL(tableListL, tableListR);
+		List<DiffChunk<SQLObject>> diffs = cs.generateTableDiffs();
+		
+		for (DiffChunk<SQLObject> chunk : diffs) {
+			if (chunk.getData().getClass().equals(SQLRelationship.class)) {
+				assertNotSame("The relationships have different names",
+						DiffType.SAME, chunk.getType());
+			} else {
+				assertEquals(
+						"Diff list should be all same for non-relationship SQLObjects",
+						DiffType.SAME, chunk.getType());
+			}
+		}
+	}
+
+	public void testRelationshipsWithDifferentMappings() throws ArchitectException {
+
+		// Set up source (left hand side) envorinment
+		SQLTable newTable1L = makeTable(4);
+		SQLTable newTable2L = makeTable(6);
+		SQLRelationship relationL = new SQLRelationship();
+		relationL.addMapping(newTable1L.getColumn(0), newTable2L.getColumn(2));  // this is the difference
+		relationL.setName("relation1");
+		
+		newTable1L.addExportedKey(relationL);
+		newTable2L.addImportedKey(relationL);
+		
+		List<SQLTable> tableListL = new ArrayList<SQLTable>();
+		tableListL.add(newTable1L);
+		tableListL.add(newTable2L);
+		
+		// Set up source (left hand side) envorinment
+		SQLTable newTable1R = makeTable(4);
+		SQLTable newTable2R = makeTable(6);
+		SQLRelationship relationR = new SQLRelationship();
+		relationR.addMapping(newTable1R.getColumn(0), newTable2R.getColumn(1));
+		relationR.setName("relation1");
+		
+		newTable1R.addExportedKey(relationR);
+		newTable2R.addImportedKey(relationR);
+		
+		List<SQLTable> tableListR = new ArrayList<SQLTable>();
+		tableListR.add(newTable1R);
+		tableListR.add(newTable2R);
+		
+		CompareSQL cs = new CompareSQL(tableListL, tableListR);
+		List<DiffChunk<SQLObject>> diffs = cs.generateTableDiffs();
+		
+		boolean foundColMapDiff = false;
+		
+		for (DiffChunk<SQLObject> chunk : diffs) {
+			if (chunk.getData().getClass().equals(SQLRelationship.ColumnMapping.class)) {
+				foundColMapDiff = true;
+				assertNotSame("The mappings have different columns",
+						DiffType.SAME, chunk.getType());
+			} else {
+				assertEquals(
+						"Diff list should be all same for non-mapping SQLObjects",
+						DiffType.SAME, chunk.getType());
+			}
+		}
+		
+		assertTrue("No column mapping diffs found!", foundColMapDiff);
+	}
+
+	/**
+	 * Creates a table with the name <tt>table_<i>i</i></tt> (where <i>i</i> is the 
+	 * argument given to this function.  The new table will have i columns called
+	 * <tt>column_0</tt> .. <tt>column_<i>i-1</i></tt>.
+	 * 
+	 * @param i The number of columns to give the new table (and also the suffix on its name)
+	 * @return A new SQLTable instance.
+	 * @throws ArchitectException 
+	 */
+	private SQLTable makeTable(int i) throws ArchitectException {
+		SQLTable t = new SQLTable(null, "table_"+i, "remark on this", "TABLE", true);
+		for (int j = 0; j < i; j++) {
+			t.addColumn(new SQLColumn(t, "column_"+j, Types.INTEGER, 3, 0));
+		}
+		return t;
+	}
+
 	/*
 	 * Test method for 'ca.sqlpower.architect.swingui.CompareSchemaWorker.isFinished()'
 	 */

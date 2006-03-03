@@ -2,6 +2,7 @@ package ca.sqlpower.architect.diff;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -14,6 +15,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.GenericTypeDescriptor;
 import ca.sqlpower.architect.swingui.ASUtils;
@@ -33,13 +35,13 @@ public class CompareSQL implements Monitorable {
 	 * The source tables that this compare object will use when asked
 	 * to generate diffs.
 	 */
-	private TreeSet<SQLTable> sourceTableList;
+	private TreeSet<SQLTable> sourceTableSet;
 
 	/**
 	 * The target tables that this compare object will use when asked
 	 * to generate diffs.
 	 */
-	private TreeSet<SQLTable> targetTableList;
+	private TreeSet<SQLTable> targetTableSet;
 
 	/**
 	 * The amount of work that needs to be done (for the progress monitor).
@@ -79,17 +81,17 @@ public class CompareSQL implements Monitorable {
 		
 		boolean sourceValid = true;
 		boolean targetValid = true;
-		this.sourceTableList = new TreeSet<SQLTable>(comparator);
-		this.sourceTableList.addAll(sourceTables);
-		this.targetTableList = new TreeSet<SQLTable>(comparator);
-		this.targetTableList.addAll(targetTables);
+		this.sourceTableSet = new TreeSet<SQLTable>(comparator);
+		this.sourceTableSet.addAll(sourceTables);
+		this.targetTableSet = new TreeSet<SQLTable>(comparator);
+		this.targetTableSet.addAll(targetTables);
 		
 		
 		
-		if (sourceTableList.size() != sourceTables.size()){
+		if (sourceTableSet.size() != sourceTables.size()){
 			sourceValid = false;
 		}
-		if (targetTableList.size() != targetTables.size()){
+		if (targetTableSet.size() != targetTables.size()){
 			targetValid = false;
 		}
 		if (!sourceValid || !targetValid){
@@ -109,14 +111,14 @@ public class CompareSQL implements Monitorable {
 			
 		results = new ArrayList<DiffChunk<SQLObject>>();
 		setProgress(0);
-		setJobSize(targetTableList.size() + sourceTableList.size());
+		setJobSize(targetTableSet.size() + sourceTableSet.size());
 		setFinished(false);
 	}
 	
 	public List<DiffChunk<SQLObject>> generateTableDiffs() throws ArchitectException {
 		try {
-			Iterator sourceIter = sourceTableList.iterator();
-			Iterator targetIter = targetTableList.iterator();
+			Iterator sourceIter = sourceTableSet.iterator();
+			Iterator targetIter = targetTableSet.iterator();
 			SQLTable targetTable;
 			SQLTable sourceTable;
 			boolean sourceContinue;
@@ -221,6 +223,7 @@ public class CompareSQL implements Monitorable {
 				}
 			}
 
+			results.addAll(generateRelationshipDiffs(sourceTableSet, targetTableSet));
 
 		} finally {
 			setFinished(true);
@@ -228,6 +231,141 @@ public class CompareSQL implements Monitorable {
 		return results;
 	}
 	
+	private List<DiffChunk<SQLObject>> generateRelationshipDiffs(
+			Collection<SQLTable> sourceTables, Collection<SQLTable> targetTables) throws ArchitectException {
+		
+		//XXX: This is using an incorrect comparator, it only checks by relationship
+		//names and does not get into a deeper level of checking the mappings.
+		Set<SQLRelationship> sourceRels = new TreeSet<SQLRelationship>(comparator);
+		Set<SQLRelationship> targetRels = new TreeSet<SQLRelationship>(comparator);
+		
+		for (SQLTable t : sourceTables) {
+			sourceRels.addAll(t.getImportedKeys());
+		}
+		
+		for (SQLTable t : targetTables) {
+			targetRels.addAll(t.getImportedKeys());
+		}
+
+		logger.debug("Source relationships: "+sourceRels);
+		logger.debug("Target relationships: "+targetRels);
+
+		List<DiffChunk<SQLObject>> diffs = new ArrayList<DiffChunk<SQLObject>>();
+		
+		Iterator<SQLRelationship> sourceIter = sourceRels.iterator();
+		Iterator<SQLRelationship> targetIter = targetRels.iterator();
+		SQLRelationship targetRel;
+		SQLRelationship sourceRel;
+		boolean sourceContinue;
+		boolean targetContinue;
+
+		//Checks if both lists of tables contain any tables at all, if they do
+		//the iterator is initialized for the list
+		if (sourceIter.hasNext()) {
+
+			sourceContinue = true;
+			sourceRel = sourceIter.next();
+		} else {
+			sourceContinue = false;
+			sourceRel = null;
+		}
+
+		if (targetIter.hasNext()) {
+			targetContinue = true;
+			targetRel = targetIter.next();
+		} else {
+			targetContinue = false;
+			targetRel = null;
+		}
+		
+
+		// Will loop until one or both of the lists reaches its last table
+		while (sourceContinue && targetContinue) {
+			// bring the source table up to the same level as the target
+			while (comparator.compare(sourceRel, targetRel) < 0) {
+				diffs.add(new DiffChunk<SQLObject>(sourceRel, DiffType.LEFTONLY));
+				diffs.addAll(generateMappingDiffs(sourceRel, null));
+				if (sourceIter.hasNext()) {
+					sourceRel = sourceIter.next();
+				} else {
+					sourceContinue = false;
+					break;
+				}
+			}
+
+			// bring the target table up to the same level as the source
+			while (comparator.compare(sourceRel, targetRel) > 0) {
+				diffs.add(new DiffChunk<SQLObject>(targetRel, DiffType.RIGHTONLY));
+				// now do the mappings
+				diffs.addAll(generateMappingDiffs(null, targetRel));
+				if (targetIter.hasNext()) {
+					targetRel = targetIter.next();
+				} else {
+					targetContinue = false;
+					break;
+				}
+			}
+
+			while (comparator.compare(sourceRel, targetRel) == 0) {
+				diffs.add(new DiffChunk<SQLObject>(sourceRel, DiffType.SAME));
+
+				// now do the columns
+				diffs.addAll(generateMappingDiffs(sourceRel, targetRel));
+				if (!targetIter.hasNext() && !sourceIter.hasNext())
+				{
+					targetContinue = false;
+					sourceContinue = false;
+					break;
+				}
+				if (targetIter.hasNext()) {
+					targetRel = targetIter.next();
+				} else {
+					targetContinue = false;
+					break;
+				}
+
+				if (sourceIter.hasNext()) {
+					sourceRel = sourceIter.next();
+				}
+
+				else {
+					sourceContinue = false;
+					break;
+				}
+			}
+
+		}
+		// If any tables in the sourceList still exist, the changes are added
+		while (sourceContinue) {
+			diffs.add(new DiffChunk<SQLObject>(sourceRel, DiffType.LEFTONLY));
+			diffs.addAll(generateMappingDiffs(sourceRel, null));
+			if (sourceIter.hasNext()) {
+				sourceRel = sourceIter.next();
+			} else {
+				sourceContinue = false;
+			}
+		}
+		
+		//If any remaining tables in the targetList still exist, they are now being added
+		while (targetContinue) {			
+			diffs.add(new DiffChunk<SQLObject>(targetRel, DiffType.RIGHTONLY));
+			diffs.addAll(generateMappingDiffs(null, targetRel));
+			if (targetIter.hasNext()) {
+				targetRel = targetIter.next();
+			} else {
+				targetContinue = false;
+			}
+		}	
+		return diffs;
+	}
+
+	private List<DiffChunk<SQLObject>> generateMappingDiffs(
+			SQLRelationship sourceRel,
+			SQLRelationship targetRel) {
+		
+		return Collections.EMPTY_LIST;  // TODO: create a real diff list
+	}
+
 	/**
 	 * Creates a List of DiffChunks that describe the differences between the
 	 * columns of the given tables.
