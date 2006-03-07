@@ -338,6 +338,7 @@ public class CompareSQLTest extends TestCase {
 		relationL.addMapping(newTable1L.getColumn(0), newTable2L.getColumn(1));
 		relationL.setName("relation1");
 		
+		
 		newTable1L.addExportedKey(relationL);
 		newTable2L.addImportedKey(relationL);
 		
@@ -404,7 +405,9 @@ public class CompareSQLTest extends TestCase {
 		
 		for (DiffChunk<SQLObject> chunk : diffs) {
 			if (chunk.getData().getClass().equals(SQLRelationship.class)) {
-				assertNotSame("The relationships have different names",
+				//We now do not mind if the relationships have the same name
+				//We just consider the mappings
+				assertEquals("The relationships have different names",
 						DiffType.SAME, chunk.getType());
 			} else {
 				assertEquals(
@@ -419,9 +422,12 @@ public class CompareSQLTest extends TestCase {
 		// Set up source (left hand side) envorinment
 		SQLTable newTable1L = makeTable(4);
 		SQLTable newTable2L = makeTable(6);
-		SQLRelationship relationL = new SQLRelationship();
+		SQLRelationship relationL = new SQLRelationship();		
+		//This is done because the architect requires imported key to be in the primary key
+		newTable1L.getColumn(0).setPrimaryKeySeq(1); 
 		relationL.addMapping(newTable1L.getColumn(0), newTable2L.getColumn(2));  // this is the difference
 		relationL.setName("relation1");
+
 		
 		newTable1L.addExportedKey(relationL);
 		newTable2L.addImportedKey(relationL);
@@ -432,8 +438,9 @@ public class CompareSQLTest extends TestCase {
 		
 		// Set up source (left hand side) envorinment
 		SQLTable newTable1R = makeTable(4);
-		SQLTable newTable2R = makeTable(6);
+		SQLTable newTable2R = makeTable(6);		
 		SQLRelationship relationR = new SQLRelationship();
+		newTable1R.getColumn(0).setPrimaryKeySeq(1);
 		relationR.addMapping(newTable1R.getColumn(0), newTable2R.getColumn(1));
 		relationR.setName("relation1");
 		
@@ -450,7 +457,7 @@ public class CompareSQLTest extends TestCase {
 		boolean foundColMapDiff = false;
 		
 		for (DiffChunk<SQLObject> chunk : diffs) {
-			if (chunk.getData().getClass().equals(SQLRelationship.ColumnMapping.class)) {
+			if (chunk.getData().getClass().equals(SQLRelationship.class)) {
 				foundColMapDiff = true;
 				assertNotSame("The mappings have different columns",
 						DiffType.SAME, chunk.getType());
