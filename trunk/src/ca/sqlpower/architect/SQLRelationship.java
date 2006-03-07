@@ -17,6 +17,8 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	public static final int ZERO = 1;
 	public static final int ONE = 2;
 	public static final int MANY = 4;
+	public static final int PKCOLUMN = 4;
+	public static final int FKCOLUMN = 5;
 	
 	protected SQLTable pkTable;
 	protected SQLTable fkTable;
@@ -169,6 +171,25 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		return getMappingByFkCol(col) != null;
 	}
 
+	public List<ColumnMapping> getMapping() {
+		return children;
+	}
+	
+	public String printKeyColumns(int keyType) {
+		StringBuffer s = new StringBuffer();
+		int i = 0;
+		for ( ColumnMapping cm : (List<ColumnMapping>)children ) {
+			if ( i++ > 0 )
+				s.append(",");
+			if ( keyType == PKCOLUMN )
+				s.append(cm.getPkColumn().getName());
+			else
+				s.append(cm.getFkColumn().getName());
+		}
+		return s.toString();
+	}
+	
+	
 	/**
 	 * Convenience method for adding a SQLRelationship.ColumnMapping
 	 * child to this relationship.
@@ -178,6 +199,11 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		ColumnMapping cmap = new ColumnMapping();
 		cmap.setPkColumn(pkColumn);
 		cmap.setFkColumn(fkColumn);
+		
+		logger.debug("add column mapping: " +
+				pkColumn.getName() + " to " +
+				fkColumn.getName() );
+		
 		addChild(cmap);
 	}
 

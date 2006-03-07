@@ -147,19 +147,19 @@ public class CompareSQL implements Monitorable {
 			// Will loop until one or both the list reaches its last table
 			while (sourceContinue && targetContinue) {
 				// bring the source table up to the same level as the target
-				while (comparator.compare(sourceTable, targetTable) < 0) {
+				if (comparator.compare(sourceTable, targetTable) < 0) {
 					results.add(new DiffChunk<SQLObject>(sourceTable, DiffType.LEFTONLY));
 					results.addAll(generateColumnDiffs(sourceTable, null));
 					if (sourceIter.hasNext()) {
 						sourceTable = (SQLTable) sourceIter.next();
 					} else {
 						sourceContinue = false;
-						break;
+						
 					}
 				}
 
 				// bring the target table up to the same level as the source
-				while (comparator.compare(sourceTable, targetTable) > 0) {
+				if (comparator.compare(sourceTable, targetTable) > 0) {
 					results.add(new DiffChunk<SQLObject>(targetTable, DiffType.RIGHTONLY));
 					// now do the columns
 					results.addAll(generateColumnDiffs(null, targetTable));
@@ -167,11 +167,10 @@ public class CompareSQL implements Monitorable {
 						targetTable = (SQLTable) targetIter.next();
 					} else {
 						targetContinue = false;
-						break;
 					}
 				}
 
-				while (comparator.compare(sourceTable, targetTable) == 0) {
+				if (comparator.compare(sourceTable, targetTable) == 0) {
 					results.add(new DiffChunk<SQLObject>(sourceTable, DiffType.SAME));
 
 					// now do the columns
@@ -180,13 +179,11 @@ public class CompareSQL implements Monitorable {
 					{
 						targetContinue = false;
 						sourceContinue = false;
-						break;
 					}
 					if (targetIter.hasNext()) {
 						targetTable = (SQLTable) targetIter.next();
 					} else {
 						targetContinue = false;
-						break;
 					}
 
 					if (sourceIter.hasNext()) {
@@ -195,7 +192,6 @@ public class CompareSQL implements Monitorable {
 
 					else {
 						sourceContinue = false;
-						break;
 					}
 				}
 
@@ -233,20 +229,24 @@ public class CompareSQL implements Monitorable {
 	
 	private List<DiffChunk<SQLObject>> generateRelationshipDiffs(
 			Collection<SQLTable> sourceTables, Collection<SQLTable> targetTables) throws ArchitectException {
-		
+		SQLRelationshipComparator relComparator = new SQLRelationshipComparator();
 		//XXX: This is using an incorrect comparator, it only checks by relationship
 		//names and does not get into a deeper level of checking the mappings.
-		Set<SQLRelationship> sourceRels = new TreeSet<SQLRelationship>(comparator);
-		Set<SQLRelationship> targetRels = new TreeSet<SQLRelationship>(comparator);
+		Set<SQLRelationship> sourceRels = new TreeSet<SQLRelationship>(relComparator);
+		Set<SQLRelationship> targetRels = new TreeSet<SQLRelationship>(relComparator);
 		
-		for (SQLTable t : sourceTables) {
-			sourceRels.addAll(t.getImportedKeys());
-		}
+		for (SQLTable t : sourceTables) {		
+			if (t.getImportedKeys() != null){		
+				sourceRels.addAll(t.getImportedKeys());
+			}
+		}	
+				
+		for (SQLTable t : targetTables) {			
+			if (t.getImportedKeys() != null){			
+				targetRels.addAll(t.getImportedKeys());
+			}
+		}		
 		
-		for (SQLTable t : targetTables) {
-			targetRels.addAll(t.getImportedKeys());
-		}
-
 		logger.debug("Source relationships: "+sourceRels);
 		logger.debug("Target relationships: "+targetRels);
 
@@ -264,7 +264,7 @@ public class CompareSQL implements Monitorable {
 		if (sourceIter.hasNext()) {
 
 			sourceContinue = true;
-			sourceRel = sourceIter.next();
+			sourceRel = sourceIter.next();			
 		} else {
 			sourceContinue = false;
 			sourceRel = null;
@@ -272,7 +272,7 @@ public class CompareSQL implements Monitorable {
 
 		if (targetIter.hasNext()) {
 			targetContinue = true;
-			targetRel = targetIter.next();
+			targetRel = targetIter.next();			
 		} else {
 			targetContinue = false;
 			targetRel = null;
@@ -282,55 +282,47 @@ public class CompareSQL implements Monitorable {
 		// Will loop until one or both of the lists reaches its last table
 		while (sourceContinue && targetContinue) {
 			// bring the source table up to the same level as the target
-			while (comparator.compare(sourceRel, targetRel) < 0) {
-				diffs.add(new DiffChunk<SQLObject>(sourceRel, DiffType.LEFTONLY));
-				diffs.addAll(generateMappingDiffs(sourceRel, null));
+			if (relComparator.compare(sourceRel, targetRel) < 0) {
+				diffs.add(new DiffChunk<SQLObject>(sourceRel, DiffType.LEFTONLY));				
 				if (sourceIter.hasNext()) {
 					sourceRel = sourceIter.next();
 				} else {
 					sourceContinue = false;
-					break;
+					
 				}
 			}
 
 			// bring the target table up to the same level as the source
-			while (comparator.compare(sourceRel, targetRel) > 0) {
+			if (relComparator.compare(sourceRel, targetRel) > 0) {
 				diffs.add(new DiffChunk<SQLObject>(targetRel, DiffType.RIGHTONLY));
 				// now do the mappings
-				diffs.addAll(generateMappingDiffs(null, targetRel));
 				if (targetIter.hasNext()) {
 					targetRel = targetIter.next();
 				} else {
 					targetContinue = false;
-					break;
+					
 				}
 			}
 
-			while (comparator.compare(sourceRel, targetRel) == 0) {
+			if (relComparator.compare(sourceRel, targetRel) == 0) {
 				diffs.add(new DiffChunk<SQLObject>(sourceRel, DiffType.SAME));
 
 				// now do the columns
-				diffs.addAll(generateMappingDiffs(sourceRel, targetRel));
 				if (!targetIter.hasNext() && !sourceIter.hasNext())
 				{
 					targetContinue = false;
 					sourceContinue = false;
-					break;
 				}
 				if (targetIter.hasNext()) {
 					targetRel = targetIter.next();
 				} else {
-					targetContinue = false;
-					break;
+					targetContinue = false;					
 				}
 
 				if (sourceIter.hasNext()) {
 					sourceRel = sourceIter.next();
-				}
-
-				else {
+				} else {
 					sourceContinue = false;
-					break;
 				}
 			}
 
@@ -338,7 +330,6 @@ public class CompareSQL implements Monitorable {
 		// If any tables in the sourceList still exist, the changes are added
 		while (sourceContinue) {
 			diffs.add(new DiffChunk<SQLObject>(sourceRel, DiffType.LEFTONLY));
-			diffs.addAll(generateMappingDiffs(sourceRel, null));
 			if (sourceIter.hasNext()) {
 				sourceRel = sourceIter.next();
 			} else {
@@ -348,8 +339,7 @@ public class CompareSQL implements Monitorable {
 		
 		//If any remaining tables in the targetList still exist, they are now being added
 		while (targetContinue) {			
-			diffs.add(new DiffChunk<SQLObject>(targetRel, DiffType.RIGHTONLY));
-			diffs.addAll(generateMappingDiffs(null, targetRel));
+			diffs.add(new DiffChunk<SQLObject>(targetRel, DiffType.RIGHTONLY));			
 			if (targetIter.hasNext()) {
 				targetRel = targetIter.next();
 			} else {
@@ -359,12 +349,21 @@ public class CompareSQL implements Monitorable {
 		return diffs;
 	}
 
-	private List<DiffChunk<SQLObject>> generateMappingDiffs(
+/*	private List<DiffChunk<SQLObject>> generateMappingDiffs(
 			SQLRelationship sourceRel,
 			SQLRelationship targetRel) {
+			
+		List<DiffChunk<SQLObject>> diffs = new ArrayList<DiffChunk<SQLObject>>();
 		
-		return Collections.EMPTY_LIST;  // TODO: create a real diff list
-	}
+		if (sourceRel != null && targetRel != null){
+			diffs.add(new DiffChunk<SQLObject>(targetRel, DiffType.SAME));
+		}else if (sourceRel!= null){						
+			diffs.add(new DiffChunk<SQLObject>(sourceRel, DiffType.LEFTONLY));
+		}else if (targetRel!= null){
+			diffs.add(new DiffChunk<SQLObject>(targetRel, DiffType.RIGHTONLY));
+		}
+		return diffs;
+	}*/
 
 	/**
 	 * Creates a List of DiffChunks that describe the differences between the
@@ -429,31 +428,31 @@ public class CompareSQL implements Monitorable {
 		while (sourceColContinue && targetColContinue) {
 
 			// Comparing Columns
-			while (comparator.compare(sourceColumn, targetColumn) < 0) {
+			if (comparator.compare(sourceColumn, targetColumn) < 0) {
 				diffs.add(new DiffChunk<SQLObject>(sourceColumn,
 						DiffType.LEFTONLY));
 				if (sourceColIter.hasNext()) {
 					sourceColumn = sourceColIter.next();
 				} else {
 					sourceColContinue = false;
-					break;
+					
 				}
 
 			}
 			// Comparing Columns
-			while (comparator.compare(sourceColumn, targetColumn) > 0) {
+			if (comparator.compare(sourceColumn, targetColumn) > 0) {
 				diffs.add(new DiffChunk<SQLObject>(targetColumn,
 						DiffType.RIGHTONLY));
 				if (targetColIter.hasNext()) {
 					targetColumn = targetColIter.next();
 				} else {
 					targetColContinue = false;
-					break;
+					
 				}
 			}
 
 			// Comparing Columns
-			while (comparator.compare(sourceColumn, targetColumn) == 0) {
+			if (comparator.compare(sourceColumn, targetColumn) == 0) {
 				
 				if (targetColumn.getType() != sourceColumn.getType()
 					|| (targetColumn.getPrecision() != sourceColumn.getPrecision())
@@ -477,7 +476,7 @@ public class CompareSQL implements Monitorable {
 					sourceColContinue = false;
 				}
 				if (!sourceColContinue || !targetColContinue) {
-					break;
+					
 				}
 			}
 		}
