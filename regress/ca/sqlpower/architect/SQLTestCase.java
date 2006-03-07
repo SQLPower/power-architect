@@ -94,7 +94,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 		propertiesToIgnore.add("childCount");
 		propertiesToIgnore.add("undoEventListeners");
 		propertiesToIgnore.add("connection");
-		
+				
 		if(so instanceof SQLDatabase)
 		{
 			// should be handled in the Datasource
@@ -191,6 +191,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 		propertiesToIgnore.add("childCount");
 		propertiesToIgnore.add("undoEventListeners");
 		propertiesToIgnore.add("connection");
+
 		if(so instanceof SQLDatabase)
 		{
 			// should be handled in the Datasource
