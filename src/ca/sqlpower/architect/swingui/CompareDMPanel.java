@@ -13,8 +13,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +52,8 @@ import javax.swing.text.StyleConstants;
 
 import org.apache.log4j.Logger;
 
+import sun.misc.Sort;
+
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLCatalog;
@@ -57,11 +62,14 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.ddl.DDLGenerator;
+import ca.sqlpower.architect.ddl.DDLStatement;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.diff.ArchitectDiffException;
 import ca.sqlpower.architect.diff.CompareSQL;
 import ca.sqlpower.architect.diff.DiffChunk;
 import ca.sqlpower.architect.diff.DiffType;
+import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.debug.FormDebugPanel;
@@ -979,9 +987,39 @@ public class CompareDMPanel extends JPanel {
 				DefaultStyledDocument sourceDoc = new DefaultStyledDocument();
 				DefaultStyledDocument targetDoc = new DefaultStyledDocument();
 
+				System.out.println(diff.toString());
 				if (sqlButton.isSelected()) {
-					throw new UnsupportedOperationException(
-							"We don't support DDL generation yet");
+					DDLGenerator gen =(DDLGenerator)((Class)((LabelValueBean) sqlTypeDropdown.getSelectedItem()).getValue()).newInstance();
+					List<DiffChunk<SQLObject>> addRelationships = new ArrayList();
+					List<DiffChunk<SQLObject>> dropRelationships = new ArrayList();
+					List<DiffChunk<SQLObject>> nonRelationship = new ArrayList();
+					for(DiffChunk d : diff)
+					{
+						if ( d.getData() instanceof SQLRelationship)
+						{
+							if (d.getType() == DiffType.LEFTONLY)
+							{
+								dropRelationships.add(d);
+							}
+							else if (d.getType() == DiffType.RIGHTONLY)
+							{
+								addRelationships.add(d);
+							}
+						} else {
+							nonRelationship.add(d);
+						}
+							
+					}
+					
+					sqlScriptGenerator(styles, dropRelationships, targetDoc,gen);
+					
+					sqlScriptGenerator(styles, nonRelationship, targetDoc,gen);
+					
+					sqlScriptGenerator(styles, addRelationships, targetDoc,gen);
+					
+					
+					//throw new UnsupportedOperationException(
+							//"We don't support DDL generation yet");
 				} else if (englishButton.isSelected()) {
 					
 					int objectCount = 0;
@@ -1114,6 +1152,53 @@ public class CompareDMPanel extends JPanel {
 				logger.error("Unxepected Exception!", ex);
 			} finally {
 				this.setEnabled(isStartable());
+			}
+		}
+
+		private void sqlScriptGenerator(Map<DiffType, AttributeSet> styles, List<DiffChunk<SQLObject>> diff, DefaultStyledDocument targetDoc, DDLGenerator gen) throws ArchitectDiffException, SQLException, ArchitectException, BadLocationException, InstantiationException, IllegalAccessException {
+			gen = gen.getClass().newInstance();
+			for (DiffChunk<SQLObject> chunk : diff) {
+				if (chunk.getType() == DiffType.LEFTONLY)
+				{
+					if (chunk.getData() instanceof SQLTable)
+					{
+						SQLTable t = (SQLTable) chunk.getData();
+						gen.dropTable(t);
+					}else if (chunk.getData() instanceof SQLColumn){
+						SQLColumn c = (SQLColumn) chunk.getData();
+						gen.dropColumn(c,c.getParentTable());
+					} else if (chunk.getData() instanceof SQLRelationship){
+						SQLRelationship r = (SQLRelationship)chunk.getData();
+						gen.dropRelationship(r);
+					} else {
+						throw new IllegalStateException("DiffChunk is an unexpected type.");
+					}
+					
+				}
+				
+				if (chunk.getType() == DiffType.RIGHTONLY)
+				{
+					if (chunk.getData() instanceof SQLTable)
+					{
+						SQLTable t = (SQLTable) chunk.getData();
+						gen.writeTable(t);
+					}else if (chunk.getData() instanceof SQLColumn){
+						SQLColumn c = (SQLColumn) chunk.getData();
+						gen.addColumn(c,c.getParentTable());
+					}else if (chunk.getData() instanceof SQLRelationship){
+						SQLRelationship r = (SQLRelationship)chunk.getData();
+						gen.addRelationship(r);
+					}else {
+						throw new IllegalStateException("DiffChunk is an unexpected type.");
+					}
+					
+					//TODO add relationships and columns
+					
+				}
+			}
+			for ( DDLStatement statement: gen.getDdlStatements())
+			{
+				targetDoc.insertString(targetDoc.getLength(),statement.getSQLText()+";\n",styles.get(DiffType.SAME));
 			}
 		}
 	}

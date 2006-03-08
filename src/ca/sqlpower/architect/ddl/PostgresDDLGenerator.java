@@ -6,6 +6,11 @@ import org.apache.log4j.Logger;
 import java.util.regex.*;
 
 public class PostgresDDLGenerator extends GenericDDLGenerator {
+	public PostgresDDLGenerator() throws SQLException {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+
 	public static final String GENERATOR_VERSION = "$Revision$";
 	private static final Logger logger = Logger.getLogger(PostgresDDLGenerator.class);
 

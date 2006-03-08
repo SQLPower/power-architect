@@ -6,6 +6,11 @@ import java.util.regex.*;
 import org.apache.log4j.Logger;             
 
 public class OracleDDLGenerator extends GenericDDLGenerator {
+	public OracleDDLGenerator() throws SQLException {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+
 	public static final String GENERATOR_VERSION = "$Revision$";
 
 	private static final Logger logger = Logger.getLogger(OracleDDLGenerator.class);

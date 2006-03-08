@@ -1,6 +1,9 @@
 package ca.sqlpower.architect.ddl;
 
 import ca.sqlpower.architect.*;
+import ca.sqlpower.architect.SQLRelationship.ColumnMapping;
+import ca.sqlpower.architect.diff.ArchitectDiffException;
+
 import java.sql.*;
 import java.util.*;
 import java.io.File;
@@ -36,7 +39,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	/**
 	 * Complete DDL statements (of type DDLStatement) are accumulated in this list.
 	 */
-	private List ddlStatements;
+	private List<DDLStatement> ddlStatements;
 
 	/**
 	 * This is initialized to the System line.separator property.
@@ -93,8 +96,14 @@ public class GenericDDLGenerator implements DDLGenerator {
 	 */
 	protected String targetSchema;
 
-	public GenericDDLGenerator() {
+	public GenericDDLGenerator() throws SQLException {
 		allowConnection = true;
+		warnings = new ArrayList();
+		ddlStatements = new ArrayList();
+		ddl = new StringBuffer(500);
+		
+		topLevelNames = new HashMap();  // for tracking dup table/relationship names
+		createTypeMap();
 	}
 
 	public StringBuffer generateDDL(SQLDatabase source) throws SQLException, ArchitectException {
@@ -116,6 +125,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		return ddl;
 	}
 
+	
 	public List generateDDLStatements(SQLDatabase source) throws SQLException, ArchitectException {
 		warnings = new ArrayList();
 		ddlStatements = new ArrayList();
@@ -192,6 +202,135 @@ public class GenericDDLGenerator implements DDLGenerator {
 		println("-- Would Create Database "+db.getName()+" here. --");
 	}
 
+	public void dropRelationship(SQLRelationship r)
+	{
+		print("\n ALTER TABLE ");
+		printQualified(r.getFkTable().getPhysicalName());
+		print(" DROP FOREIGN KEY ");
+		print(r.getName());
+		endStatement(DDLStatement.StatementType.DROP, r);
+		println("");
+	}
+	
+	public void addRelationship(SQLRelationship r) throws ArchitectDiffException
+	{
+		
+		print("\n ALTER TABLE ");
+		printQualified(r.getFkTable().getPhysicalName());
+		print(" ADD FOREIGN KEY ");
+		print(r.getName());
+		print(" ( ");
+		Map<String, SQLColumn> colNameMap = new HashMap<String, SQLColumn> (); 
+		boolean firstColumn = true;
+		for (ColumnMapping cm :r.getMapping())
+		{
+			SQLColumn c = cm.getFkColumn();
+			// make sure this is unique
+			if (colNameMap.get(c.getName()) == null)
+			{
+				if(firstColumn)
+				{
+					firstColumn = false;
+					print(getPhysicalName(colNameMap,c));
+				}
+				else
+				{
+					print(", "+getPhysicalName(colNameMap,c));
+				}
+				colNameMap.put(c.getName(),c);
+			}
+		}
+		print(" ) REFERENCES ");
+		printQualified(r.getPkTable().getPhysicalName());
+		print(" ( ");
+		colNameMap = new HashMap<String, SQLColumn> ();
+		firstColumn = true;
+		for (ColumnMapping cm :r.getMapping())
+		{
+			SQLColumn c = cm.getPkColumn();
+			// make sure this is unique
+			if (colNameMap.get(c.getName()) == null)
+			{
+				if(firstColumn)
+				{
+					firstColumn = false;
+					print(getPhysicalName(colNameMap,c));
+				}
+				else
+				{
+					print(", "+getPhysicalName(colNameMap,c));
+				}
+				colNameMap.put(c.getName(),c);
+			}
+		}
+
+		print(" )");
+		endStatement(DDLStatement.StatementType.CREATE, r);
+		println("");
+	}
+	
+	public void addColumn(SQLColumn c, SQLTable t) throws ArchitectDiffException {
+		Map colNameMap = new HashMap();  
+		print("\n ALTER TABLE ");
+		printQualified(t.getPhysicalName());
+		print(" ADD COLUMN ");
+		print(columnDefinition(c,colNameMap));
+		endStatement(DDLStatement.StatementType.CREATE, c);
+		println("");
+	}
+	
+	public void dropColumn(SQLColumn c, SQLTable t) throws ArchitectDiffException {
+		Map colNameMap = new HashMap();  
+		print("\n ALTER TABLE ");
+		printQualified(t.getPhysicalName());
+		print(" DROP COLUMN ");
+		print(getPhysicalName(colNameMap,c));
+		endStatement(DDLStatement.StatementType.DROP, c);
+		println("");
+	}
+	public void dropTable(SQLTable t)
+	{
+		
+		print(makeDropTableSQL(t.getCatalogName(),t.getSchemaName(),t.getName()));
+		endStatement(DDLStatement.StatementType.DROP, t);
+		println("");
+	}
+	private String columnDefinition(SQLColumn c, Map colNameMap) throws ArchitectDiffException
+	{
+		StringBuffer def = new StringBuffer(); 
+		getPhysicalName(colNameMap,c); // also adds generated physical name to the map
+		GenericTypeDescriptor td = (GenericTypeDescriptor) typeMap.get(new Integer(c.getType()));
+		if (td == null) {
+			td = (GenericTypeDescriptor) typeMap.get(getDefaultType()); //better be non-null!
+			GenericTypeDescriptor oldType = new GenericTypeDescriptor
+				(c.getSourceDataTypeName(), c.getType(), c.getPrecision(),
+				 null, null, c.getNullable(), false, false);
+			oldType.determineScaleAndPrecision();
+			warnings.add(new TypeMapWarning(c, "Unknown Target Type", oldType, td));
+		}
+		
+		def.append(c.getPhysicalName());
+		def.append(" ");
+		def.append(td.getName());
+		if (td.getHasPrecision()) {
+			def.append("("+c.getPrecision());
+			if (td.getHasScale()) {
+				def.append(","+c.getScale());
+			}
+			def.append(")");
+		}
+
+		if (c.isDefinitelyNullable()) {
+			if (! td.isNullable()) {
+				throw new UnsupportedOperationException
+					("The data type "+td.getName()+" is not nullable on the target database platform.");
+			}
+			def.append(" NULL");
+		} else {
+			def.append(" NOT NULL");
+		}
+		return def.toString();
+	}
 	public void writeTable(SQLTable t) throws SQLException, ArchitectException {
 		Map colNameMap = new HashMap();  // for detecting duplicate column names
 		// generate a new physical name if necessary
@@ -204,39 +343,11 @@ public class GenericDDLGenerator implements DDLGenerator {
 		while (it.hasNext()) {
 			SQLColumn c = (SQLColumn) it.next();
 			// generate a new physical name if necessary
-			getPhysicalName(colNameMap,c); // also adds generated physical name to the map
-			GenericTypeDescriptor td = (GenericTypeDescriptor) typeMap.get(new Integer(c.getType()));
-			if (td == null) {
-				td = (GenericTypeDescriptor) typeMap.get(getDefaultType()); //better be non-null!
-				GenericTypeDescriptor oldType = new GenericTypeDescriptor
-					(c.getSourceDataTypeName(), c.getType(), c.getPrecision(),
-					 null, null, c.getNullable(), false, false);
-				oldType.determineScaleAndPrecision();
-				warnings.add(new TypeMapWarning(c, "Unknown Target Type", oldType, td));
-			}
+			
 			if (!firstCol) println(",");
 			print("                ");
-			print(c.getPhysicalName());
-			print(" ");
-			print(td.getName());
-			if (td.getHasPrecision()) {
-				print("("+c.getPrecision());
-				if (td.getHasScale()) {
-					print(","+c.getScale());
-				}
-				print(")");
-			}
 
-			if (c.isDefinitelyNullable()) {
-				if (! td.isNullable()) {
-					throw new UnsupportedOperationException
-						("The data type "+td.getName()+" is not nullable on the target database platform.");
-				}
-				print(" NULL");
-			} else {
-				print(" NOT NULL");
-			}
-
+			print(columnDefinition(c,colNameMap));
 			// XXX: default values handled only in ETL?
 
 			firstCol = false;
@@ -334,17 +445,41 @@ public class GenericDDLGenerator implements DDLGenerator {
 	 * static, pre-defined type map.
 	 */
 	protected void createTypeMap() throws SQLException {
-		if (con == null || !allowConnection) {
-			throw new UnsupportedOperationException("Can't create a type map without DatabaseMetaData");
-		}
 		typeMap = new HashMap();
-		DatabaseMetaData dbmd = con.getMetaData();
-		ResultSet rs = dbmd.getTypeInfo();
-		while (rs.next()) {
-			GenericTypeDescriptor td = new GenericTypeDescriptor(rs);
-			typeMap.put(new Integer(td.getDataType()), td);
+		if (con == null || !allowConnection) {
+			// Add generic type map
+			typeMap.put(new Integer(Types.BIGINT), new GenericTypeDescriptor("BIGINT", Types.BIGINT, 38, null, null, DatabaseMetaData.columnNullable, false, false));
+			typeMap.put(new Integer(Types.BINARY), new GenericTypeDescriptor("BINARY", Types.BINARY, 2000, "0x", null, DatabaseMetaData.columnNullable, true, false));
+			typeMap.put(new Integer(Types.BIT), new GenericTypeDescriptor("BIT", Types.BIT, 1, null, null, DatabaseMetaData.columnNullable, false, false));
+			typeMap.put(new Integer(Types.BLOB), new GenericTypeDescriptor("BLOB", Types.BLOB, 2147483647, "0x", null, DatabaseMetaData.columnNullable, true, false));
+			typeMap.put(new Integer(Types.CHAR), new GenericTypeDescriptor("CHAR", Types.CHAR, 8000, "'", "'", DatabaseMetaData.columnNullable, true, false));
+			typeMap.put(new Integer(Types.CLOB), new GenericTypeDescriptor("CLOB", Types.CLOB, 2147483647, "'", "'", DatabaseMetaData.columnNullable, true, false));
+			typeMap.put(new Integer(Types.DATE), new GenericTypeDescriptor("DATE", Types.DATE, 23, "'", "'", DatabaseMetaData.columnNullable, false, false));
+			typeMap.put(new Integer(Types.DECIMAL), new GenericTypeDescriptor("DECIMAL", Types.DECIMAL, 38, null, null, DatabaseMetaData.columnNullable, true, true));
+			typeMap.put(new Integer(Types.DOUBLE), new GenericTypeDescriptor("DOUBLE", Types.DOUBLE, 38, null, null, DatabaseMetaData.columnNullable, false, false));
+			typeMap.put(new Integer(Types.FLOAT), new GenericTypeDescriptor("FLOAT", Types.FLOAT, 38, null, null, DatabaseMetaData.columnNullable, false, false));
+			typeMap.put(new Integer(Types.INTEGER), new GenericTypeDescriptor("INTEGER", Types.INTEGER, 10, null, null, DatabaseMetaData.columnNullable, false, false));
+			typeMap.put(new Integer(Types.LONGVARBINARY), new GenericTypeDescriptor("LONGVARBINARY", Types.LONGVARBINARY, 2147483647, "0x", null, DatabaseMetaData.columnNullable, true, false));
+			typeMap.put(new Integer(Types.LONGVARCHAR), new GenericTypeDescriptor("LONGVARCHAR", Types.LONGVARCHAR, 2147483647, "'", "'", DatabaseMetaData.columnNullable, true, false));
+			typeMap.put(new Integer(Types.NUMERIC), new GenericTypeDescriptor("NUMERIC", Types.NUMERIC, 38, null, null, DatabaseMetaData.columnNullable, true, true));
+			typeMap.put(new Integer(Types.REAL), new GenericTypeDescriptor("REAL", Types.REAL, 38, null, null, DatabaseMetaData.columnNullable, false, false));
+			typeMap.put(new Integer(Types.SMALLINT), new GenericTypeDescriptor("SMALLINT", Types.SMALLINT, 5, null, null, DatabaseMetaData.columnNullable, false, false));
+			typeMap.put(new Integer(Types.TIME), new GenericTypeDescriptor("TIME", Types.TIME, 23, "'", "'", DatabaseMetaData.columnNullable, false, false));
+			typeMap.put(new Integer(Types.TIMESTAMP), new GenericTypeDescriptor("TIMESTAMP", Types.TIMESTAMP, 23, "'", "'", DatabaseMetaData.columnNullable, false, false));
+			typeMap.put(new Integer(Types.TINYINT), new GenericTypeDescriptor("TINYINT", Types.TINYINT, 3, null, null, DatabaseMetaData.columnNullable, false, false));
+			typeMap.put(new Integer(Types.VARBINARY), new GenericTypeDescriptor("VARBINARY", Types.VARBINARY, 8000, null, null, DatabaseMetaData.columnNullable, true, false));
+			typeMap.put(new Integer(Types.VARCHAR), new GenericTypeDescriptor("VARCHAR", Types.VARCHAR, 8000, "'", "'", DatabaseMetaData.columnNullable, true, false));
 		}
-		rs.close();
+		else
+		{
+			DatabaseMetaData dbmd = con.getMetaData();
+			ResultSet rs = dbmd.getTypeInfo();
+			while (rs.next()) {
+				GenericTypeDescriptor td = new GenericTypeDescriptor(rs);
+				typeMap.put(new Integer(td.getDataType()), td);
+			}
+			rs.close();
+		}
 	}
 
 	protected void println(String text) {
@@ -566,30 +701,35 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 	/**
      * Generate, set, and return a valid identifier for this SQLObject.
+	 * @throws ArchitectException 
      */
-	public String getPhysicalName(Map dupCheck, SQLObject so) {				
-		boolean done = false;
+	public String getPhysicalName(Map dupCheck, SQLObject so) throws ArchitectDiffException {				
+		
 		boolean firstTime = true;
 		String oldName = so.getName();
 		// loop until we manage to generate a unique physical name
 		logger.debug("transform identifier source: " + so.getName());
-		while (!done) {
-			String temp = null;
-			if (firstTime) {
-				// naming is deterministic, so unconditionally regenerate
-				firstTime = false;
-				temp = toIdentifier(so.getName(),null); 
-			} else {
-				temp = toIdentifier(so.getName(),so.getPhysicalName());
-			}
-			logger.debug("transform identifier result: " + temp);
-			so.setPhysicalName(temp);
-			if (dupCheck.get(so.getPhysicalName()) == null) {
-				done = true; // we managed to generate something unique
-				warnings.add(new NameChangeWarning(so, "Duplicate Name Found", oldName)); //TODO make sure these appear in the warnings table, and make sure they're editable
-				dupCheck.put(so.getPhysicalName(), so);
-			}
-		}				
+		
+		String temp = null;
+		if (firstTime) {
+			// naming is deterministic, so unconditionally regenerate
+			firstTime = false;
+			temp = toIdentifier(so.getName(),null); 
+		} else {
+			temp = toIdentifier(so.getName(),so.getPhysicalName());
+		}
+		logger.debug("transform identifier result: " + temp);
+		so.setPhysicalName(temp);
+		if (dupCheck.get(so.getPhysicalName()) == null) {
+			
+			warnings.add(new NameChangeWarning(so, "Duplicate Name Found", oldName)); //TODO make sure these appear in the warnings table, and make sure they're editable
+			dupCheck.put(so.getPhysicalName(), so);
+		}
+		else
+		{
+			throw new ArchitectDiffException("Duplicate name \""+so.getPhysicalName()+"\" found in \""+so.toString()+"\" of type "+so.getClass().getName());
+		}
+						
 		return so.getPhysicalName();
 	}
 
@@ -637,4 +777,10 @@ public class GenericDDLGenerator implements DDLGenerator {
             +" DROP FOREIGN KEY "
             +fkName;
     }
+
+	public List<DDLStatement> getDdlStatements() {
+		return ddlStatements;
+	}
+
+	
 }

@@ -1,5 +1,6 @@
 package ca.sqlpower.architect.swingui;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Insets;
@@ -15,7 +16,6 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -34,7 +34,6 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.debug.FormDebugPanel;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.CellConstraints.Alignment;
 
 public class CompareDMFrame extends JFrame{
 
@@ -71,9 +70,10 @@ public class CompareDMFrame extends JFrame{
 	public JComponent mainFrame() {		
 		
 		FormLayout layout = new FormLayout(
-				"4dlu,min:grow, 6dlu, fill:pref:grow, 4dlu, default", // columns
-				"pref, 6dlu, pref, 3dlu, fill:pref:grow, 3dlu, 20dlu,6dlu,20dlu"); // rows
+				"4dlu,min:grow, 6dlu, min:grow, 4dlu, default", // columns
+				"pref, 6dlu, pref, 3dlu, fill:300dlu:grow, 3dlu, 20dlu,6dlu,20dlu"); // rows
 		
+		layout.setColumnGroups(new int [][] { {2,4}}); 
 		JPanel p = logger.isDebugEnabled()  ? new FormDebugPanel(layout) : new JPanel(layout);
 		PanelBuilder pb = new PanelBuilder(layout,p);
 		pb.setDefaultDialogBorder();
@@ -82,25 +82,28 @@ public class CompareDMFrame extends JFrame{
 		JLabel titleLabel = new JLabel(title);
 		titleLabel.setFont(titleFont);
 		pb.add(titleLabel, cc.xyw(2, 1, 3,"c,c"));
-		pb.add(new JLabel("Source name: SourceTest"), cc.xy(2,3));
-		pb.add(new JLabel("Target name: TargetTest"), cc.xy(4,3));
+		pb.add(new JLabel("Source"), cc.xy(2,3));
+		pb.add(new JLabel("Target"), cc.xy(4,3));
 		
 		leftOutputArea = new JTextPane();
 		leftOutputArea.setMargin(new Insets(6, 10, 4, 6));
 		leftOutputArea.setDocument(sourceOutputText);
 		leftOutputArea.setEditable(false);
+		leftOutputArea.setAutoscrolls(true);		
 		
-		
-		JScrollPane sp = new JScrollPane(leftOutputArea);     
+		JScrollPane sp = new JScrollPane(leftOutputArea); 
         
         pb.add(sp, cc.xy(2, 5));
         rightOutputArea = new JTextPane();
 		rightOutputArea.setMargin(new Insets(6, 10, 4, 6));
 		rightOutputArea.setDocument(targetOutputText);
 		rightOutputArea.setEditable(false);
+		//rightOutputArea.setAutoscrolls(true);
+		
 		
 		
 		JScrollPane sp1 = new JScrollPane(rightOutputArea);
+		
 		
 		pb.add(sp1, cc.xy (4,5));
 	

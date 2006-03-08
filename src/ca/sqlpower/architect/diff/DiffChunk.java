@@ -20,5 +20,11 @@ public class DiffChunk<T> {
 
 	public DiffType getType() {
 		return type;
+
+	}
+	@Override
+	public String toString() {
+		
+		return super.toString() + "(" +type+")["+data+"]";
 	}
 }
