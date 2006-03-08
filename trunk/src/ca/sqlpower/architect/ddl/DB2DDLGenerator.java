@@ -9,6 +9,11 @@ import java.util.*;
 // deferred until we have an architect customer who wants to use it with DB2.
 
 public class DB2DDLGenerator extends GenericDDLGenerator {
+	public DB2DDLGenerator() throws SQLException {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+
 	public static final String GENERATOR_VERSION = "$Revision$";
 
 	public void writeHeader() {

@@ -229,9 +229,7 @@ public class CompareSQL implements Monitorable {
 	
 	private List<DiffChunk<SQLObject>> generateRelationshipDiffs(
 			Collection<SQLTable> sourceTables, Collection<SQLTable> targetTables) throws ArchitectException {
-		SQLRelationshipComparator relComparator = new SQLRelationshipComparator();
-		//XXX: This is using an incorrect comparator, it only checks by relationship
-		//names and does not get into a deeper level of checking the mappings.
+		SQLRelationshipComparator relComparator = new SQLRelationshipComparator();		
 		Set<SQLRelationship> sourceRels = new TreeSet<SQLRelationship>(relComparator);
 		Set<SQLRelationship> targetRels = new TreeSet<SQLRelationship>(relComparator);
 		
@@ -245,7 +243,7 @@ public class CompareSQL implements Monitorable {
 			if (t.getImportedKeys() != null){			
 				targetRels.addAll(t.getImportedKeys());
 			}
-		}		
+		}
 		
 		logger.debug("Source relationships: "+sourceRels);
 		logger.debug("Target relationships: "+targetRels);

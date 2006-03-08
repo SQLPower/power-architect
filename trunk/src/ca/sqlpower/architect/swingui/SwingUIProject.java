@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -120,6 +121,7 @@ public class SwingUIProject {
 
 	/**
 	 * Sets up a new project with the given name.
+	 * @throws  
 	 */
 	public SwingUIProject(String name) throws ArchitectException {
 		this.name = name;
@@ -129,7 +131,12 @@ public class SwingUIProject {
 		List initialDBList = new ArrayList();
 		initialDBList.add(playPen.getDatabase());
 		this.sourceDatabases = new DBTree(initialDBList);
-		ddlGenerator = new GenericDDLGenerator();
+		try {
+			ddlGenerator = new GenericDDLGenerator();
+		} catch (SQLException e) {
+			
+			throw new ArchitectException("SQL Error in ddlGenerator",e);
+		}
 		plExport = new PLExport();
 	}
 
@@ -549,7 +556,7 @@ public class SwingUIProject {
 	}
 
 	protected class DDLGeneratorFactory extends AbstractObjectCreationFactory {
-		public Object createObject(Attributes attributes) {
+		public Object createObject(Attributes attributes) throws SQLException {
 			try {
 				GenericDDLGenerator ddlg = 
 					(GenericDDLGenerator) Class.forName(attributes.getValue("type")).newInstance();

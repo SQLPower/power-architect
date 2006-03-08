@@ -11,7 +11,11 @@ import java.util.List;
 import java.util.Map;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLRelationship;
+import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.diff.ArchitectDiffException;
 
 /**
  * The DDLGenerator interface is a generic API for turning a SQLObject
@@ -24,6 +28,23 @@ import ca.sqlpower.architect.SQLDatabase;
 public interface DDLGenerator {
     public abstract List generateDDLStatements(SQLDatabase source)
             throws SQLException, ArchitectException;
+    
+    public void dropColumn(SQLColumn c, SQLTable t) throws ArchitectDiffException;
+    public void addColumn(SQLColumn c, SQLTable t) throws ArchitectDiffException;
+    public void addRelationship(SQLRelationship r) throws ArchitectDiffException;
+    public void dropRelationship(SQLRelationship r);
+
+    /** 
+     * Writes out the sql statements for droping a table using SQLTable t's name.
+     * It then adds the statement to the DdlStatements list.
+     */
+    public void dropTable(SQLTable t);
+    /** 
+     * Writes out the sql statements for creating a table using SQLTable t as a 
+     * template.  It then adds the statement to the DdlStatements list.
+     */
+    public void writeTable(SQLTable t) throws SQLException, ArchitectException;
+    public List<DDLStatement> getDdlStatements();
 
     /**
      * Converts an arbitrary string (which may contain spaces, mixed case, 

@@ -6,6 +6,11 @@ import org.apache.log4j.Logger;
 
 
 public class SQLServerDDLGenerator extends GenericDDLGenerator {
+	public SQLServerDDLGenerator() throws SQLException {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+
 	public static final String GENERATOR_VERSION = "$Revision$";
 	private static final Logger logger = Logger.getLogger(SQLServerDDLGenerator.class);
 
