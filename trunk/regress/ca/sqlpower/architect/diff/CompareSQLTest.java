@@ -165,20 +165,11 @@ public class CompareSQLTest extends TestCase {
 				(Collection<SQLTable>)tableList1,
 				(Collection<SQLTable>)tableList2);
 		List<DiffChunk<SQLObject>> tableWithColumnAndNothing = worker1.generateTableDiffs();
-		assertEquals (3,tableWithColumnAndNothing.size());
+		assertEquals (1,tableWithColumnAndNothing.size());
 		
 		assertEquals (DiffType.LEFTONLY, tableWithColumnAndNothing.get(0).getType());
 		assertEquals (SQLTable.class, tableWithColumnAndNothing.get(0).getData().getClass());
 		assertEquals ("tableWithColumn1", tableWithColumnAndNothing.get(0).getData().getName());
-		
-		assertEquals (DiffType.LEFTONLY, tableWithColumnAndNothing.get(1).getType());
-		assertEquals (SQLColumn.class, tableWithColumnAndNothing.get(1).getData().getClass());
-		assertEquals ("Column1", tableWithColumnAndNothing.get(1).getData().getName());
-		
-		assertEquals (DiffType.LEFTONLY, tableWithColumnAndNothing.get(2).getType());
-		assertEquals (SQLColumn.class, tableWithColumnAndNothing.get(2).getData().getClass());
-		assertEquals ("Column2", tableWithColumnAndNothing.get(2).getData().getName());
-		
 		
 		
 		//Testing tables with the same column 
@@ -239,7 +230,8 @@ public class CompareSQLTest extends TestCase {
 		CompareSQL worker4 = new CompareSQL((Collection<SQLTable>)tableList1,
 				(Collection<SQLTable>)tableList2);
 		List<DiffChunk<SQLObject>> manyProperties = worker4.generateTableDiffs();
-		assertEquals (9, manyProperties.size());
+		System.out.println("-/|\\-"+manyProperties+"-/|\\-");
+		assertEquals (5, manyProperties.size());
 		
 		assertEquals (DiffType.SAME, manyProperties.get(0).getType());
 		assertEquals (SQLTable.class, manyProperties.get(0).getData().getClass());
@@ -257,25 +249,9 @@ public class CompareSQLTest extends TestCase {
 		assertEquals (SQLTable.class, manyProperties.get(3).getData().getClass());
 		assertEquals ("tableWithColumn2", manyProperties.get(3).getData().getName());
 		
-		assertEquals (DiffType.LEFTONLY, manyProperties.get(4).getType());
-		assertEquals (SQLColumn.class, manyProperties.get(4).getData().getClass());
-		assertEquals ("Column3", manyProperties.get(4).getData().getName());
-		
-		assertEquals (DiffType.LEFTONLY, manyProperties.get(5).getType());
-		assertEquals (SQLColumn.class, manyProperties.get(5).getData().getClass());
-		assertEquals ("Column3a", manyProperties.get(5).getData().getName());
-		
-		assertEquals (DiffType.RIGHTONLY, manyProperties.get(6).getType());
-		assertEquals (SQLTable.class, manyProperties.get(6).getData().getClass());
-		assertEquals ("tableWithColumn3", manyProperties.get(6).getData().getName());
-		
-		assertEquals (DiffType.RIGHTONLY, manyProperties.get(7).getType());
-		assertEquals (SQLColumn.class, manyProperties.get(7).getData().getClass());
-		assertEquals ("Column3a", manyProperties.get(7).getData().getName());
-		
-		assertEquals (DiffType.RIGHTONLY, manyProperties.get(8).getType());
-		assertEquals (SQLColumn.class, manyProperties.get(8).getData().getClass());
-		assertEquals ("Column4", manyProperties.get(8).getData().getName());
+		assertEquals (DiffType.RIGHTONLY, manyProperties.get(4).getType());
+		assertEquals (SQLTable.class, manyProperties.get(4).getData().getClass());
+		assertEquals ("tableWithColumn3", manyProperties.get(4).getData().getName());
 
 	}
 	
@@ -298,34 +274,18 @@ public class CompareSQLTest extends TestCase {
 		CompareSQL worker1 = new CompareSQL((Collection<SQLTable>)newList1,
 				(Collection<SQLTable>)newList2);
 		List<DiffChunk<SQLObject>> diffList = worker1.generateTableDiffs();
-		assertEquals (7, diffList.size());
+		assertEquals (3, diffList.size());
 		assertEquals (DiffType.LEFTONLY, diffList.get(0).getType());
 		assertEquals (SQLTable.class, diffList.get(0).getData().getClass());
 		assertEquals ("tableWithColumn1", diffList.get(0).getData().getName());
 		
 		assertEquals (DiffType.LEFTONLY, diffList.get(1).getType());
-		assertEquals (SQLColumn.class, diffList.get(1).getData().getClass());
-		assertEquals ("Column1", diffList.get(1).getData().getName());
+		assertEquals (SQLTable.class, diffList.get(1).getData().getClass());
+		assertEquals ("tableWithColumn2", diffList.get(1).getData().getName());
 		
 		assertEquals (DiffType.LEFTONLY, diffList.get(2).getType());
-		assertEquals (SQLColumn.class, diffList.get(2).getData().getClass());
-		assertEquals ("Column2", diffList.get(2).getData().getName());
-		
-		assertEquals (DiffType.LEFTONLY, diffList.get(3).getType());
-		assertEquals (SQLTable.class, diffList.get(3).getData().getClass());
-		assertEquals ("tableWithColumn2", diffList.get(3).getData().getName());
-		
-		assertEquals (DiffType.LEFTONLY, diffList.get(4).getType());
-		assertEquals (SQLColumn.class, diffList.get(4).getData().getClass());
-		assertEquals ("Column3", diffList.get(4).getData().getName());
-		
-		assertEquals (DiffType.LEFTONLY, diffList.get(5).getType());
-		assertEquals (SQLColumn.class, diffList.get(5).getData().getClass());
-		assertEquals ("Column3a", diffList.get(5).getData().getName());
-		
-		assertEquals (DiffType.LEFTONLY, diffList.get(6).getType());
-		assertEquals (SQLRelationship.class, diffList.get(6).getData().getClass());
-		assertEquals ("relation1", diffList.get(6).getData().getName());
+		assertEquals (SQLRelationship.class, diffList.get(2).getData().getClass());
+		assertEquals ("relation1", diffList.get(2).getData().getName());
 		
 	}
 	

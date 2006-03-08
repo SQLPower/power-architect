@@ -1048,7 +1048,24 @@ public class CompareDMPanel extends JPanel {
 							sourceDoc.insertString(sourceDoc.getLength(), "  "
 									+ chunk.getData().toString(), styles
 									.get(chunk.getType()));
-						} else {
+						} else if (chunk.getData() instanceof SQLTable && 
+								(chunk.getType() == DiffType.LEFTONLY) || chunk.getType() == DiffType.RIGHTONLY) {
+							if ( objectCount > 0  )
+								sourceDoc.insertString(sourceDoc.getLength(), "\n",
+										styles.get(chunk.getType()));
+							
+							sourceDoc.insertString(sourceDoc.getLength(), chunk
+									.getData().toString(), styles.get(chunk
+											.getType()));
+							for (SQLColumn c : ((SQLTable) chunk.getData()).getColumns()) {
+								sourceDoc.insertString(sourceDoc.getLength(), "\n",
+										styles.get(chunk.getType()));
+								sourceDoc.insertString(sourceDoc.getLength(), "  "
+										+ c.toString(), styles
+										.get(chunk.getType()));
+							}
+							
+						}else {
 							if ( objectCount > 0  )
 								sourceDoc.insertString(sourceDoc.getLength(), "\n",
 									styles.get(chunk.getType()));
@@ -1091,7 +1108,25 @@ public class CompareDMPanel extends JPanel {
 							targetDoc.insertString(targetDoc.getLength(), "  "
 									+ chunk1.getData().toString(), styles
 									.get(chunk1.getType()));
-						} else {
+						} else if (chunk1.getData() instanceof SQLTable && 
+								(chunk1.getType() == DiffType.LEFTONLY) || chunk1.getType() == DiffType.RIGHTONLY) {
+							if ( objectCount > 0  )
+								targetDoc.insertString(targetDoc.getLength(), "\n",
+									styles.get(chunk1.getType()));
+							
+							targetDoc.insertString(targetDoc.getLength(), chunk1
+									.getData().toString(), styles.get(chunk1
+									.getType()));
+							for (SQLColumn c : ((SQLTable) chunk1.getData()).getColumns()) {
+								targetDoc.insertString(targetDoc.getLength(), "\n",
+										styles.get(chunk1.getType()));
+								
+								targetDoc.insertString(targetDoc.getLength(), "  "
+										+ c.toString(), styles
+										.get(chunk1.getType()));
+							}
+							
+						}else {
 							if ( objectCount > 0  )
 								targetDoc.insertString(targetDoc.getLength(), "\n",
 									styles.get(chunk1.getType()));
@@ -1191,10 +1226,8 @@ public class CompareDMPanel extends JPanel {
 					}else {
 						throw new IllegalStateException("DiffChunk is an unexpected type.");
 					}
-					
-					//TODO add relationships and columns
-					
 				}
+				// TODO add Modify columns
 			}
 			for ( DDLStatement statement: gen.getDdlStatements())
 			{
