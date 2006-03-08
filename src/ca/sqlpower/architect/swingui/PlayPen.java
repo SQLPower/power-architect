@@ -226,7 +226,7 @@ public class PlayPen extends JPanel
 		dgl = new TablePaneDragGestureListener();
 		ds = new DragSource();
 		dgr = ds.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_MOVE, dgl);
-		logger.info("DragGestureRecognizer motion threshold: " + getToolkit().getDesktopProperty("DnD.gestureMotionThreshold"));
+		logger.debug("DragGestureRecognizer motion threshold: " + getToolkit().getDesktopProperty("DnD.gestureMotionThreshold"));
 	}
 
 	public PlayPen(SQLDatabase db) {

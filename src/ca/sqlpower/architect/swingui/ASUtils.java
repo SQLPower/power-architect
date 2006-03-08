@@ -159,12 +159,12 @@ public class ASUtils {
 										  String description,
 										  int size) {
 		String realPath = "/toolbarButtonGraphics/"+name+size+".gif";
-		System.out.println("Loading resource "+realPath);
+		logger.debug("Loading resource "+realPath);
 		java.net.URL imgURL = ASUtils.class.getResource(realPath);
 		if (imgURL != null) {
 			return new ImageIcon(imgURL, description);
 		} else {
-			System.out.println("Couldn't find file: " + realPath);
+			logger.debug("Couldn't find file: " + realPath);
 			return null;
 		}
 	}
@@ -182,12 +182,12 @@ public class ASUtils {
 									   String description,
 									   int size) {
 		String realPath = "/icons/"+name+size+".gif";
-		System.out.println("Loading resource "+realPath);
+		logger.debug("Loading resource "+realPath);
 		java.net.URL imgURL = ASUtils.class.getResource(realPath);
 		if (imgURL != null) {
 			return new ImageIcon(imgURL, description);
 		} else {
-			System.out.println("Couldn't find file: " + realPath);
+			logger.debug("Couldn't find file: " + realPath);
 			return null;
 		}
 	}

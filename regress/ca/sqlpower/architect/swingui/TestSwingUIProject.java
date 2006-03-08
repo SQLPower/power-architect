@@ -315,7 +315,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 			getAllInterestingProperties(db, propertiesToIgnore);
 		
 		assertEquals("loaded-in version of database doesn't match the original!",
-				oldDescription, newDescription);
+				oldDescription.toString(), newDescription.toString());
 	}
 	
 

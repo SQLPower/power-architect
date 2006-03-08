@@ -101,7 +101,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		warnings = new ArrayList();
 		ddlStatements = new ArrayList();
 		ddl = new StringBuffer(500);
-		
+		println("");
 		topLevelNames = new HashMap();  // for tracking dup table/relationship names
 		createTypeMap();
 	}
@@ -166,8 +166,10 @@ public class GenericDDLGenerator implements DDLGenerator {
 		if (logger.isInfoEnabled()) {
 			logger.info("endStatement: " + ddl.toString());
 		}
+		
 		ddlStatements.add(new DDLStatement(sqlObject, type, ddl.toString(), getTargetCatalog(), getTargetSchema()));
 		ddl = new StringBuffer(500);
+		println("");
 	}
 
 	public void writeHeader() {
@@ -204,12 +206,13 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 	public void dropRelationship(SQLRelationship r)
 	{
+		
 		print("\n ALTER TABLE ");
 		printQualified(r.getFkTable().getPhysicalName());
 		print(" DROP FOREIGN KEY ");
 		print(r.getName());
 		endStatement(DDLStatement.StatementType.DROP, r);
-		println("");
+		
 	}
 	
 	public void addRelationship(SQLRelationship r) throws ArchitectDiffException
@@ -266,7 +269,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 		print(" )");
 		endStatement(DDLStatement.StatementType.CREATE, r);
-		println("");
+		
 	}
 	
 	public void addColumn(SQLColumn c, SQLTable t) throws ArchitectDiffException {
@@ -276,7 +279,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		print(" ADD COLUMN ");
 		print(columnDefinition(c,colNameMap));
 		endStatement(DDLStatement.StatementType.CREATE, c);
-		println("");
+		
 	}
 	
 	public void dropColumn(SQLColumn c, SQLTable t) throws ArchitectDiffException {
@@ -286,14 +289,14 @@ public class GenericDDLGenerator implements DDLGenerator {
 		print(" DROP COLUMN ");
 		print(getPhysicalName(colNameMap,c));
 		endStatement(DDLStatement.StatementType.DROP, c);
-		println("");
+		
 	}
 	public void dropTable(SQLTable t)
 	{
 		
 		print(makeDropTableSQL(t.getCatalogName(),t.getSchemaName(),t.getName()));
 		endStatement(DDLStatement.StatementType.DROP, t);
-		println("");
+		
 	}
 	private String columnDefinition(SQLColumn c, Map colNameMap) throws ArchitectDiffException
 	{
@@ -355,7 +358,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		println("");
 		print(")");
 		endStatement(DDLStatement.StatementType.CREATE, t);
-		println("");
+		
 	}
 	
 	/**
@@ -392,7 +395,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		if (!firstCol) {
 			print(")");
 			endStatement(DDLStatement.StatementType.ADD_PK, t);
-			println("");
+			
 		}
 	}
 
@@ -434,7 +437,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 			print(pkCols.toString());
 			print(")");
 			endStatement(DDLStatement.StatementType.ADD_FK, t);
-			println("");
+			
 		}
 	}
 

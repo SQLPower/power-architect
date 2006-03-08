@@ -18,6 +18,7 @@ import java.beans.PropertyChangeEvent;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectDataSource;
+import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.ddl.GenericTypeDescriptor;
 import ca.sqlpower.architect.jdbc.ConnectionDecorator;
 
@@ -71,7 +72,8 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 		if (typeMap == null)
 		{
 			if (connection == null ) {
-				throw new UnsupportedOperationException("Can't create a type map without DatabaseMetaData");
+				typeMap=new GenericDDLGenerator().getTypeMap();
+				return typeMap;
 			}
 			
 			typeMap = new HashMap<Integer,GenericTypeDescriptor>();

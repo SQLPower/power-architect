@@ -149,7 +149,7 @@ public class CompareSQL implements Monitorable {
 				// bring the source table up to the same level as the target
 				if (comparator.compare(sourceTable, targetTable) < 0) {
 					results.add(new DiffChunk<SQLObject>(sourceTable, DiffType.LEFTONLY));
-					results.addAll(generateColumnDiffs(sourceTable, null));
+					//results.addAll(generateColumnDiffs(sourceTable, null));
 					if (sourceIter.hasNext()) {
 						sourceTable = (SQLTable) sourceIter.next();
 					} else {
@@ -161,8 +161,8 @@ public class CompareSQL implements Monitorable {
 				// bring the target table up to the same level as the source
 				if (comparator.compare(sourceTable, targetTable) > 0) {
 					results.add(new DiffChunk<SQLObject>(targetTable, DiffType.RIGHTONLY));
-					// now do the columns
-					results.addAll(generateColumnDiffs(null, targetTable));
+					// now don't do the columns it's already handled
+					//results.addAll(generateColumnDiffs(null, targetTable));
 					if (targetIter.hasNext()) {
 						targetTable = (SQLTable) targetIter.next();
 					} else {
@@ -199,7 +199,7 @@ public class CompareSQL implements Monitorable {
 			// If any tables in the sourceList still exist, the changes are added
 			while (sourceContinue) {
 				results.add(new DiffChunk<SQLObject>(sourceTable, DiffType.LEFTONLY));
-				results.addAll(generateColumnDiffs(sourceTable, null));
+				//results.addAll(generateColumnDiffs(sourceTable, null));
 				if (sourceIter.hasNext()) {
 					sourceTable = (SQLTable) sourceIter.next();
 				} else {
@@ -211,7 +211,7 @@ public class CompareSQL implements Monitorable {
 			while (targetContinue) {
 
 				results.add(new DiffChunk<SQLObject>(targetTable, DiffType.RIGHTONLY));
-				results.addAll(generateColumnDiffs(null, targetTable));
+				//results.addAll(generateColumnDiffs(null, targetTable));
 				if (targetIter.hasNext()) {
 					targetTable = (SQLTable) targetIter.next();
 				} else {
