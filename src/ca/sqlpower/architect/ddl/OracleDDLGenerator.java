@@ -5,6 +5,10 @@ import java.util.*;
 import java.util.regex.*;
 import org.apache.log4j.Logger;             
 
+import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.diff.ArchitectDiffException;
+
 public class OracleDDLGenerator extends GenericDDLGenerator {
 	public OracleDDLGenerator() throws SQLException {
 		super();
@@ -268,4 +272,16 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
             +" DROP CONSTRAINT "
             +fkName;
     }
+    
+    @Override
+    public void modifyColumn(SQLColumn c) throws ArchitectDiffException {
+		Map colNameMap = new HashMap(); 
+		SQLTable t = c.getParentTable();
+		print("\n ALTER TABLE ");
+		printQualified(t.getPhysicalName());
+		print(" MODIFY ");
+		print(columnDefinition(c,colNameMap));
+		endStatement(DDLStatement.StatementType.MODIFY, c);
+		
+	}
 }

@@ -209,7 +209,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		
 		print("\n ALTER TABLE ");
 		printQualified(r.getFkTable().getPhysicalName());
-		print(" DROP FOREIGN KEY ");
+		print(" DROP CONSTRAINT ");
 		print(r.getName());
 		endStatement(DDLStatement.StatementType.DROP, r);
 		
@@ -220,9 +220,9 @@ public class GenericDDLGenerator implements DDLGenerator {
 		
 		print("\n ALTER TABLE ");
 		printQualified(r.getFkTable().getPhysicalName());
-		print(" ADD FOREIGN KEY ");
+		print(" ADD CONSTRAINT ");
 		print(r.getName());
-		print(" ( ");
+		print(" FOREIGN KEY ( ");
 		Map<String, SQLColumn> colNameMap = new HashMap<String, SQLColumn> (); 
 		boolean firstColumn = true;
 		for (ColumnMapping cm :r.getMapping())
@@ -291,6 +291,18 @@ public class GenericDDLGenerator implements DDLGenerator {
 		endStatement(DDLStatement.StatementType.DROP, c);
 		
 	}
+	
+	public void modifyColumn(SQLColumn c) throws ArchitectDiffException {
+		Map colNameMap = new HashMap(); 
+		SQLTable t = c.getParentTable();
+		print("\n ALTER TABLE ");
+		printQualified(t.getPhysicalName());
+		print(" ALTER COLUMN ");
+		print(columnDefinition(c,colNameMap));
+		endStatement(DDLStatement.StatementType.MODIFY, c);
+		
+	}
+	
 	public void dropTable(SQLTable t)
 	{
 		
@@ -298,7 +310,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		endStatement(DDLStatement.StatementType.DROP, t);
 		
 	}
-	private String columnDefinition(SQLColumn c, Map colNameMap) throws ArchitectDiffException
+	protected String columnDefinition(SQLColumn c, Map colNameMap) throws ArchitectDiffException
 	{
 		StringBuffer def = new StringBuffer(); 
 		getPhysicalName(colNameMap,c); // also adds generated physical name to the map
@@ -360,6 +372,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		endStatement(DDLStatement.StatementType.CREATE, t);
 		
 	}
+	
 	
 	/**
 	 * Returns the default data type for this platform.  Normally, this can be VARCHAR,

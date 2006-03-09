@@ -31,6 +31,7 @@ public interface DDLGenerator {
     
     public void dropColumn(SQLColumn c, SQLTable t) throws ArchitectDiffException;
     public void addColumn(SQLColumn c, SQLTable t) throws ArchitectDiffException;
+    public void modifyColumn(SQLColumn c) throws ArchitectDiffException ;
     public void addRelationship(SQLRelationship r) throws ArchitectDiffException;
     public void dropRelationship(SQLRelationship r);
 

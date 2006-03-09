@@ -16,6 +16,7 @@ public class DDLStatement {
 		public static final StatementType ALTER = new StatementType("ALTER");
 		public static final StatementType ADD_PK = new StatementType("ADD_PK");
 		public static final StatementType ADD_FK = new StatementType("ADD_FK");
+		public static final StatementType MODIFY = new StatementType("MODIFY");
 
 		private String type;
 
