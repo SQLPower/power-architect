@@ -4,5 +4,6 @@ public enum DiffType {
 	LEFTONLY,
 	MODIFIED,
 	SAME,		// Some implementations may not use this.
-	RIGHTONLY;
+	RIGHTONLY,
+	KEY_CHANGED;	// primary key changed
 }

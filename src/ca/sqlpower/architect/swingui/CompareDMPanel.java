@@ -975,6 +975,10 @@ public class CompareDMPanel extends JPanel {
 					att = new SimpleAttributeSet();
 					StyleConstants.setForeground(att, Color.orange);
 					styles.put(DiffType.MODIFIED, att);
+					
+					att = new SimpleAttributeSet();
+					StyleConstants.setForeground(att, Color.blue);
+					styles.put(DiffType.KEY_CHANGED, att);
 				}
 				CompareSQL sourceComp = new CompareSQL(sourceTables,
 						targetTables);
@@ -1048,24 +1052,62 @@ public class CompareDMPanel extends JPanel {
 							sourceDoc.insertString(sourceDoc.getLength(), "  "
 									+ chunk.getData().toString(), styles
 									.get(chunk.getType()));
-						} else if (chunk.getData() instanceof SQLTable && 
-								(chunk.getType() == DiffType.LEFTONLY) || chunk.getType() == DiffType.RIGHTONLY) {
-							if ( objectCount > 0  )
-								sourceDoc.insertString(sourceDoc.getLength(), "\n",
-										styles.get(chunk.getType()));
+						} else if (chunk.getData() instanceof SQLTable ) {
 							
-							sourceDoc.insertString(sourceDoc.getLength(), chunk
-									.getData().toString(), styles.get(chunk
-											.getType()));
-							for (SQLColumn c : ((SQLTable) chunk.getData()).getColumns()) {
-								sourceDoc.insertString(sourceDoc.getLength(), "\n",
-										styles.get(chunk.getType()));
-								sourceDoc.insertString(sourceDoc.getLength(), "  "
-										+ c.toString(), styles
-										.get(chunk.getType()));
+							if (chunk.getType() == DiffType.LEFTONLY
+								|| chunk.getType() == DiffType.RIGHTONLY) {
+									
+								if ( objectCount > 0  )
+									sourceDoc.insertString(sourceDoc.getLength(), "\n",
+											styles.get(chunk.getType()));
+								
+								sourceDoc.insertString(sourceDoc.getLength(), chunk
+										.getData().toString(), styles.get(chunk
+												.getType()));
+								
+								for (SQLColumn c : ((SQLTable) chunk.getData()).getColumns()) {
+									sourceDoc.insertString(sourceDoc.getLength(), "\n",
+											styles.get(chunk.getType()));
+									sourceDoc.insertString(sourceDoc.getLength(), "  "
+											+ c.toString(), styles
+											.get(chunk.getType()));
+								}
 							}
-							
-						}else {
+							else if (chunk.getType() == DiffType.KEY_CHANGED ) {
+								SQLTable t = (SQLTable) chunk.getData();
+								int count = 0;
+								for (SQLColumn c : t.getColumns()) {
+									if ( c.isPrimaryKey() ) {
+										if ( count++ == 0 ) {
+											sourceDoc.insertString(sourceDoc.getLength(),
+													"\n  Primary Key " +
+													t.getPrimaryKeyName() +
+													" (" + c.getPhysicalName(),
+													styles.get(chunk.getType()));
+										}
+										else {
+											sourceDoc.insertString(sourceDoc.getLength(), ","
+													+ c.getPhysicalName(), 
+													styles.get(chunk.getType()));
+										}
+									}
+								}
+								if ( count > 0 ) {
+									sourceDoc.insertString(sourceDoc.getLength(),
+											")",styles.get(chunk.getType()));
+								}
+								else {
+									sourceDoc.insertString(
+											sourceDoc.getLength(),
+											"\n  Primary Key " +
+											t.getPrimaryKeyName() +
+											" Removed",
+											styles.get(chunk.getType()));
+								}
+								
+							}
+								
+						else {
 							if ( objectCount > 0  )
 								sourceDoc.insertString(sourceDoc.getLength(), "\n",
 									styles.get(chunk.getType()));
@@ -1074,6 +1116,7 @@ public class CompareDMPanel extends JPanel {
 									.getData().toString(), styles.get(chunk
 									.getType()));
 						}
+					}
 						sourceDoc.insertString(sourceDoc.getLength(), "\n",
 								styles.get(chunk.getType()));
 						
@@ -1108,33 +1151,74 @@ public class CompareDMPanel extends JPanel {
 							targetDoc.insertString(targetDoc.getLength(), "  "
 									+ chunk1.getData().toString(), styles
 									.get(chunk1.getType()));
-						} else if (chunk1.getData() instanceof SQLTable && 
-								(chunk1.getType() == DiffType.LEFTONLY) || chunk1.getType() == DiffType.RIGHTONLY) {
-							if ( objectCount > 0  )
-								targetDoc.insertString(targetDoc.getLength(), "\n",
-									styles.get(chunk1.getType()));
-							
-							targetDoc.insertString(targetDoc.getLength(), chunk1
-									.getData().toString(), styles.get(chunk1
-									.getType()));
-							for (SQLColumn c : ((SQLTable) chunk1.getData()).getColumns()) {
-								targetDoc.insertString(targetDoc.getLength(), "\n",
+						} else if (chunk1.getData() instanceof SQLTable) {
+							if (chunk1.getType() == DiffType.LEFTONLY
+									|| chunk1.getType() == DiffType.RIGHTONLY) {
+
+								if (objectCount > 0)
+									targetDoc.insertString(targetDoc
+											.getLength(), "\n", styles
+											.get(chunk1.getType()));
+
+								targetDoc.insertString(targetDoc.getLength(),
+										chunk1.getData().toString(), styles
+												.get(chunk1.getType()));
+
+								for (SQLColumn c : ((SQLTable) chunk1.getData())
+										.getColumns()) {
+									targetDoc.insertString(targetDoc
+											.getLength(), "\n", styles
+											.get(chunk1.getType()));
+									targetDoc.insertString(targetDoc
+											.getLength(), "  " + c.toString(),
+											styles.get(chunk1.getType()));
+								}
+							} else if (chunk1.getType() == DiffType.KEY_CHANGED) {
+								SQLTable t = (SQLTable) chunk1.getData();
+								int count = 0;
+								for (SQLColumn c : t.getColumns()) {
+									if (c.isPrimaryKey()) {
+										if (count++ == 0) {
+											targetDoc.insertString(
+												targetDoc.getLength(),
+												"\n  Primary Key " +
+												t.getPrimaryKeyName()+
+												" (" +
+												c.getPhysicalName(),
+												styles.get(chunk1.getType()));
+										} else {
+											targetDoc.insertString(
+												targetDoc.getLength(),
+												","	+ c.getPhysicalName(),
+												styles.get(chunk1.getType()));
+										}
+									}
+								}
+								if (count > 0) {
+									targetDoc.insertString(targetDoc
+											.getLength(), ")", styles
+											.get(chunk1.getType()));
+								}
+								else {
+									targetDoc.insertString(
+											targetDoc.getLength(),
+											"\n  Primary Key "+
+											t.getPrimaryKeyName()+
+											" Removed",
+											styles.get(chunk1.getType()));
+								}
+
+							}
+							else {
+								if ( objectCount > 0  )
+									targetDoc.insertString(targetDoc.getLength(), "\n",
 										styles.get(chunk1.getType()));
 								
-								targetDoc.insertString(targetDoc.getLength(), "  "
-										+ c.toString(), styles
-										.get(chunk1.getType()));
+								targetDoc.insertString(targetDoc.getLength(), chunk1
+										.getData().toString(), styles.get(chunk1
+										.getType()));
 							}
-							
-						}else {
-							if ( objectCount > 0  )
-								targetDoc.insertString(targetDoc.getLength(), "\n",
-									styles.get(chunk1.getType()));
-							
-							targetDoc.insertString(targetDoc.getLength(), chunk1
-									.getData().toString(), styles.get(chunk1
-									.getType()));
-						}
+						} 
 						targetDoc.insertString(targetDoc.getLength(), "\n",
 								styles.get(chunk1.getType()));
 						
@@ -1209,9 +1293,8 @@ public class CompareDMPanel extends JPanel {
 						throw new IllegalStateException("DiffChunk is an unexpected type.");
 					}
 					
-				}
-				
-				if (chunk.getType() == DiffType.RIGHTONLY)
+				} 
+				else if (chunk.getType() == DiffType.RIGHTONLY)
 				{
 					if (chunk.getData() instanceof SQLTable)
 					{
@@ -1226,6 +1309,19 @@ public class CompareDMPanel extends JPanel {
 					}else {
 						throw new IllegalStateException("DiffChunk is an unexpected type.");
 					}
+				} 
+				else if (chunk.getType() == DiffType.MODIFIED) 
+				{
+					if (chunk.getData() instanceof SQLColumn)
+					{
+						SQLColumn c = (SQLColumn) chunk.getData();
+						gen.modifyColumn(c);
+					} else {
+						throw new IllegalStateException("DiffChunk is an unexpected type.");
+					}
+				}
+				else {
+					
 				}
 				// TODO add Modify columns
 			}
