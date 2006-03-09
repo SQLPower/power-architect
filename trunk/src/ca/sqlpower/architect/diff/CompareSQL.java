@@ -385,6 +385,7 @@ public class CompareSQL implements Monitorable {
 		SQLColumn targetColumn;
 		boolean sourceColContinue;
 		boolean targetColContinue;
+		boolean keyChangeFlag = false;
 
 		sourceColumnList = new TreeSet<SQLColumn>(comparator);
 		targetColumnList = new TreeSet<SQLColumn>(comparator);
@@ -455,13 +456,20 @@ public class CompareSQL implements Monitorable {
 				if (targetColumn.getType() != sourceColumn.getType()
 					|| (targetColumn.getPrecision() != sourceColumn.getPrecision())
 					|| (targetColumn.getScale() != sourceColumn.getScale())
-					|| (targetColumn.getNullable() != sourceColumn.getNullable())
+					|| (targetColumn.getNullable() != sourceColumn.getNullable())					
+					|| (targetColumn.isPrimaryKey() != sourceColumn.isPrimaryKey())
 					) {
-
-					diffs.add(new DiffChunk<SQLObject>(targetColumn, DiffType.MODIFIED));
-				} else {
+					if ( targetColumn.isPrimaryKey() != sourceColumn.isPrimaryKey() ) {
+						keyChangeFlag = true;
+						diffs.add(new DiffChunk<SQLObject>(targetColumn, DiffType.KEY_CHANGED));
+					}
+					else
+						diffs.add(new DiffChunk<SQLObject>(targetColumn, DiffType.MODIFIED));
+				} 
+				else {
 					diffs.add(new DiffChunk<SQLObject>(sourceColumn, DiffType.SAME));
 				}
+	
 				if (targetColIter.hasNext()) {
 					targetColumn = targetColIter.next();
 				} else {
@@ -496,6 +504,8 @@ public class CompareSQL implements Monitorable {
 			}
 		}
 
+		if ( keyChangeFlag )
+			diffs.add(new DiffChunk<SQLObject>(targetTable, DiffType.KEY_CHANGED));
 		return diffs;
 	}
 	
