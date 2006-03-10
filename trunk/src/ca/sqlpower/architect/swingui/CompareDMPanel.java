@@ -937,7 +937,7 @@ public class CompareDMPanel extends JPanel {
 		}
 
 		public void actionPerformed(ActionEvent e) {
-
+			
 			startCompareAction.setEnabled(false);
 			CompareDMFrame cf = null;
 
@@ -980,6 +980,7 @@ public class CompareDMPanel extends JPanel {
 					StyleConstants.setForeground(att, Color.blue);
 					styles.put(DiffType.KEY_CHANGED, att);
 				}
+				//Generate a list of Diff Chunks for both source and target
 				CompareSQL sourceComp = new CompareSQL(sourceTables,
 						targetTables);
 				List<DiffChunk<SQLObject>> diff = sourceComp
@@ -1015,217 +1016,18 @@ public class CompareDMPanel extends JPanel {
 							
 					}
 					
-					sqlScriptGenerator(styles, dropRelationships, targetDoc,gen);
+					sqlScriptGenerator(styles, dropRelationships, sourceDoc,gen);
 					
-					sqlScriptGenerator(styles, nonRelationship, targetDoc,gen);
+					sqlScriptGenerator(styles, nonRelationship, sourceDoc,gen);
 					
-					sqlScriptGenerator(styles, addRelationships, targetDoc,gen);
+					sqlScriptGenerator(styles, addRelationships, sourceDoc,gen);
 					
 					
 					//throw new UnsupportedOperationException(
 							//"We don't support DDL generation yet");
-				} else if (englishButton.isSelected()) {
-					
-					int objectCount = 0;
-					for (DiffChunk<SQLObject> chunk : diff) {
-
-						if (chunk.getData() instanceof SQLRelationship) {
-							
-							if ( objectCount > 0  )
-								sourceDoc.insertString(sourceDoc.getLength(), "\n",
-										styles.get(chunk.getType()));
-							
-							SQLRelationship rel = (SQLRelationship) chunk
-									.getData();
-							sourceDoc.insertString(sourceDoc.getLength(), chunk
-									.getData().toString()
-									+ "\n  "
-									+ rel.getFkTable().getName()
-									+ "("
-									+ rel.printKeyColumns(rel.FKCOLUMN)
-									+ ")\n  refers to "
-									+ rel.getPkTable().getName()
-									+ "("
-									+ rel.printKeyColumns(rel.PKCOLUMN) + ")",
-									styles.get(chunk.getType()));
-						} else if (chunk.getData() instanceof SQLColumn) {
-							sourceDoc.insertString(sourceDoc.getLength(), "  "
-									+ chunk.getData().toString(), styles
-									.get(chunk.getType()));
-						} else if (chunk.getData() instanceof SQLTable ) {
-							
-							if (chunk.getType() == DiffType.LEFTONLY
-								|| chunk.getType() == DiffType.RIGHTONLY) {
-									
-								if ( objectCount > 0  )
-									sourceDoc.insertString(sourceDoc.getLength(), "\n",
-											styles.get(chunk.getType()));
-								
-								sourceDoc.insertString(sourceDoc.getLength(), chunk
-										.getData().toString(), styles.get(chunk
-												.getType()));
-								
-								for (SQLColumn c : ((SQLTable) chunk.getData()).getColumns()) {
-									sourceDoc.insertString(sourceDoc.getLength(), "\n",
-											styles.get(chunk.getType()));
-									sourceDoc.insertString(sourceDoc.getLength(), "  "
-											+ c.toString(), styles
-											.get(chunk.getType()));
-								}
-							}
-							else if (chunk.getType() == DiffType.KEY_CHANGED ) {
-								SQLTable t = (SQLTable) chunk.getData();
-								int count = 0;
-								for (SQLColumn c : t.getColumns()) {
-									if ( c.isPrimaryKey() ) {
-										if ( count++ == 0 ) {
-											sourceDoc.insertString(sourceDoc.getLength(),
-													"\n  Primary Key " +
-													t.getPrimaryKeyName() +
-													" (" + c.getPhysicalName(),
-													styles.get(chunk.getType()));
-										}
-										else {
-											sourceDoc.insertString(sourceDoc.getLength(), ","
-													+ c.getPhysicalName(), 
-													styles.get(chunk.getType()));
-										}
-									}
-								}
-								if ( count > 0 ) {
-									sourceDoc.insertString(sourceDoc.getLength(),
-											")",styles.get(chunk.getType()));
-								}
-								else {
-									sourceDoc.insertString(
-											sourceDoc.getLength(),
-											"\n  Primary Key " +
-											t.getPrimaryKeyName() +
-											" Removed",
-											styles.get(chunk.getType()));
-								}
-								
-							}
-								
-						else {
-							if ( objectCount > 0  )
-								sourceDoc.insertString(sourceDoc.getLength(), "\n",
-									styles.get(chunk.getType()));
-							
-							sourceDoc.insertString(sourceDoc.getLength(), chunk
-									.getData().toString(), styles.get(chunk
-									.getType()));
-						}
-					}
-						sourceDoc.insertString(sourceDoc.getLength(), "\n",
-								styles.get(chunk.getType()));
-						
-						objectCount++;
-						
-						
-					}
-					
-					objectCount = 0;
-					for (DiffChunk<SQLObject> chunk1 : diff1) {
-
-						if (chunk1.getData() instanceof SQLRelationship) {
-							
-							if ( objectCount > 0  )
-								targetDoc.insertString(targetDoc.getLength(), "\n",
-										styles.get(chunk1.getType()));
-							
-							SQLRelationship rel = (SQLRelationship) chunk1
-									.getData();
-							targetDoc.insertString(targetDoc.getLength(), chunk1
-									.getData().toString()
-									+ "\n  "
-									+ rel.getFkTable().getName()
-									+ "("
-									+ rel.printKeyColumns(rel.FKCOLUMN)
-									+ ")\n  refers to "
-									+ rel.getPkTable().getName()
-									+ "("
-									+ rel.printKeyColumns(rel.PKCOLUMN) + ")",
-									styles.get(chunk1.getType()));
-						} else if (chunk1.getData() instanceof SQLColumn) {
-							targetDoc.insertString(targetDoc.getLength(), "  "
-									+ chunk1.getData().toString(), styles
-									.get(chunk1.getType()));
-						} else if (chunk1.getData() instanceof SQLTable) {
-							if (chunk1.getType() == DiffType.LEFTONLY
-									|| chunk1.getType() == DiffType.RIGHTONLY) {
-
-								if (objectCount > 0)
-									targetDoc.insertString(targetDoc
-											.getLength(), "\n", styles
-											.get(chunk1.getType()));
-
-								targetDoc.insertString(targetDoc.getLength(),
-										chunk1.getData().toString(), styles
-												.get(chunk1.getType()));
-
-								for (SQLColumn c : ((SQLTable) chunk1.getData())
-										.getColumns()) {
-									targetDoc.insertString(targetDoc
-											.getLength(), "\n", styles
-											.get(chunk1.getType()));
-									targetDoc.insertString(targetDoc
-											.getLength(), "  " + c.toString(),
-											styles.get(chunk1.getType()));
-								}
-							} else if (chunk1.getType() == DiffType.KEY_CHANGED) {
-								SQLTable t = (SQLTable) chunk1.getData();
-								int count = 0;
-								for (SQLColumn c : t.getColumns()) {
-									if (c.isPrimaryKey()) {
-										if (count++ == 0) {
-											targetDoc.insertString(
-												targetDoc.getLength(),
-												"\n  Primary Key " +
-												t.getPrimaryKeyName()+
-												" (" +
-												c.getPhysicalName(),
-												styles.get(chunk1.getType()));
-										} else {
-											targetDoc.insertString(
-												targetDoc.getLength(),
-												","	+ c.getPhysicalName(),
-												styles.get(chunk1.getType()));
-										}
-									}
-								}
-								if (count > 0) {
-									targetDoc.insertString(targetDoc
-											.getLength(), ")", styles
-											.get(chunk1.getType()));
-								}
-								else {
-									targetDoc.insertString(
-											targetDoc.getLength(),
-											"\n  Primary Key "+
-											t.getPrimaryKeyName()+
-											" Removed",
-											styles.get(chunk1.getType()));
-								}
-
-							}
-							else {
-								if ( objectCount > 0  )
-									targetDoc.insertString(targetDoc.getLength(), "\n",
-										styles.get(chunk1.getType()));
-								
-								targetDoc.insertString(targetDoc.getLength(), chunk1
-										.getData().toString(), styles.get(chunk1
-										.getType()));
-							}
-						} 
-						targetDoc.insertString(targetDoc.getLength(), "\n",
-								styles.get(chunk1.getType()));
-						
-						objectCount++;
-						
-						
-					}
+				} else if (englishButton.isSelected()) {									
+					generateEnglishDescription(styles, diff, sourceDoc);
+					generateEnglishDescription(styles, diff1, targetDoc);					
 				} else {
 					throw new IllegalStateException(
 							"Don't know what type of output to make");
@@ -1241,7 +1043,7 @@ public class CompareDMPanel extends JPanel {
 				String titleString = "Comparing " + left.getName() + " to "
 						+ right.getName() + " using " + compMethod;
 				cf = new CompareDMFrame(sourceDoc, targetDoc, titleString,
-						source.getDatabase());
+						source.getDatabase(), sqlButton.isSelected());
 
 				cf.pack();
 				cf.setVisible(true);
@@ -1271,6 +1073,111 @@ public class CompareDMPanel extends JPanel {
 				logger.error("Unxepected Exception!", ex);
 			} finally {
 				this.setEnabled(isStartable());
+			}
+		}
+		
+		/**
+		 * This method generates english descriptions by taking in the diff list
+		 * and putting the appropiate statements in the document.  It will iterate
+		 * through the diff list and identify which type of DiffChunk it is and 
+		 * what kind of SQLType it is to produce the proper english description 
+		 * output
+		 * @throws BadLocationException
+		 * @throws ArchitectException
+		 */
+		private void generateEnglishDescription(
+				Map<DiffType, AttributeSet> styles,
+				List<DiffChunk<SQLObject>> diff, DefaultStyledDocument sourceDoc)
+				throws BadLocationException, ArchitectException {
+			
+			//To know where to put line spaces
+			int objectCount = 0;
+			
+			for (DiffChunk<SQLObject> chunk : diff) {
+				if (chunk.getData() instanceof SQLRelationship) {
+					if (objectCount > 0)
+						sourceDoc.insertString(sourceDoc.getLength(), "\n",
+								styles.get(chunk.getType()));
+
+					SQLRelationship rel = (SQLRelationship) chunk.getData();
+					sourceDoc.insertString(sourceDoc.getLength(), chunk
+							.getData().toString()
+							+ "\n  "
+							+ rel.getFkTable().getName()
+							+ "("
+							+ rel.printKeyColumns(rel.FKCOLUMN)
+							+ ")\n  refers to "
+							+ rel.getPkTable().getName()
+							+ "(" + rel.printKeyColumns(rel.PKCOLUMN) + ")",
+							styles.get(chunk.getType()));
+				} else if (chunk.getData() instanceof SQLColumn) {
+					sourceDoc.insertString(sourceDoc.getLength(), "  "
+							+ chunk.getData().toString(), styles.get(chunk
+							.getType()));
+				} else if (chunk.getData() instanceof SQLTable) {
+
+					if (chunk.getType() == DiffType.LEFTONLY
+							|| chunk.getType() == DiffType.RIGHTONLY) {
+
+						if (objectCount > 0)
+							sourceDoc.insertString(sourceDoc.getLength(), "\n",
+									styles.get(chunk.getType()));
+
+						sourceDoc.insertString(sourceDoc.getLength(), chunk
+								.getData().toString(), styles.get(chunk
+								.getType()));
+
+						for (SQLColumn c : ((SQLTable) chunk.getData())
+								.getColumns()) {
+							sourceDoc.insertString(sourceDoc.getLength(), "\n",
+									styles.get(chunk.getType()));
+							sourceDoc
+									.insertString(sourceDoc.getLength(), "  "
+											+ c.toString(), styles.get(chunk
+											.getType()));
+						}
+					} else if (chunk.getType() == DiffType.KEY_CHANGED) {
+						SQLTable t = (SQLTable) chunk.getData();
+						int count = 0;
+						for (SQLColumn c : t.getColumns()) {
+							if (c.isPrimaryKey()) {
+								if (count++ == 0) {
+									sourceDoc.insertString(sourceDoc
+											.getLength(), "\n  Primary Key "
+											+ t.getPrimaryKeyName() + " ("
+											+ c.getPhysicalName(), styles
+											.get(chunk.getType()));
+								} else {
+									sourceDoc.insertString(sourceDoc
+											.getLength(), ","
+											+ c.getPhysicalName(), styles
+											.get(chunk.getType()));
+								}
+							}
+						}
+						if (count > 0) {
+							sourceDoc.insertString(sourceDoc.getLength(), ")",
+									styles.get(chunk.getType()));
+						} else {
+							sourceDoc.insertString(sourceDoc.getLength(),
+									"\n  Primary Key " + t.getPrimaryKeyName()
+											+ " Removed", styles.get(chunk
+											.getType()));
+						}
+
+					} else {
+						if (objectCount > 0)
+							sourceDoc.insertString(sourceDoc.getLength(), "\n",
+									styles.get(chunk.getType()));
+
+						sourceDoc.insertString(sourceDoc.getLength(), chunk
+								.getData().toString(), styles.get(chunk
+								.getType()));
+					}
+				}
+				sourceDoc.insertString(sourceDoc.getLength(), "\n", styles
+						.get(chunk.getType()));
+				objectCount++;
 			}
 		}
 
@@ -1319,6 +1226,10 @@ public class CompareDMPanel extends JPanel {
 					} else {
 						throw new IllegalStateException("DiffChunk is an unexpected type.");
 					}
+				} 
+				else if (chunk.getType() == DiffType.KEY_CHANGED){
+					//TODO:addSQLScript statement for KEY_CHANGED
+					System.out.println("Program recognize KEY_CHANGED");
 				}
 				else {
 					

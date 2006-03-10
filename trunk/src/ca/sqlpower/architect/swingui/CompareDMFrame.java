@@ -7,11 +7,19 @@ import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Reader;
+import java.io.StringReader;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -50,17 +58,20 @@ public class CompareDMFrame extends JFrame{
 	private String sourceName;
 	private String targetName;
 	private boolean debugLayout;
+	private boolean isSQLScript;
 
 			
 	public CompareDMFrame(AbstractDocument sourceOutputText, AbstractDocument targetOutputText, 
-						String title, SQLDatabase target)
+						String title, SQLDatabase target, boolean isSQLScript)
 	{
 		super();	
+		
 		setTitle("Data Model comparison");
 		this.sourceOutputText = sourceOutputText;
 		this.targetOutputText = targetOutputText;
 		this.title = title;
 		this.target = target;
+		this.isSQLScript = isSQLScript;
 		panel = mainFrame();
 		getContentPane().add(panel);
 		this.pack();
@@ -69,44 +80,26 @@ public class CompareDMFrame extends JFrame{
 	
 	public JComponent mainFrame() {		
 		
-		FormLayout layout = new FormLayout(
+		FormLayout englisLayout = new FormLayout(
 				"4dlu,min:grow, 6dlu, min:grow, 4dlu, default", // columns
 				"pref, 6dlu, pref, 3dlu, fill:300dlu:grow, 3dlu, 20dlu,6dlu,20dlu"); // rows
 		
-		layout.setColumnGroups(new int [][] { {2,4}}); 
-		JPanel p = logger.isDebugEnabled()  ? new FormDebugPanel(layout) : new JPanel(layout);
-		PanelBuilder pb = new PanelBuilder(layout,p);
-		pb.setDefaultDialogBorder();
+		FormLayout sqlLayout = new FormLayout(
+				"4dlu, min:grow, 4dlu", //columns
+				"pref, 6dlu, fill:300dlu:grow,6dlu, 20dlu, 6dlu, 20dlu"); //rows		
+		
 		CellConstraints cc = new CellConstraints();
 		Font titleFont = new Font("Arial", 1,16);
 		JLabel titleLabel = new JLabel(title);
 		titleLabel.setFont(titleFont);
-		pb.add(titleLabel, cc.xyw(2, 1, 3,"c,c"));
-		pb.add(new JLabel("Source"), cc.xy(2,3));
-		pb.add(new JLabel("Target"), cc.xy(4,3));
 		
 		leftOutputArea = new JTextPane();
 		leftOutputArea.setMargin(new Insets(6, 10, 4, 6));
 		leftOutputArea.setDocument(sourceOutputText);
 		leftOutputArea.setEditable(false);
-		leftOutputArea.setAutoscrolls(true);		
+		leftOutputArea.setAutoscrolls(true);
+		JScrollPane sp = new JScrollPane(leftOutputArea);
 		
-		JScrollPane sp = new JScrollPane(leftOutputArea); 
-        
-        pb.add(sp, cc.xy(2, 5));
-        rightOutputArea = new JTextPane();
-		rightOutputArea.setMargin(new Insets(6, 10, 4, 6));
-		rightOutputArea.setDocument(targetOutputText);
-		rightOutputArea.setEditable(false);
-		//rightOutputArea.setAutoscrolls(true);
-		
-		
-		
-		JScrollPane sp1 = new JScrollPane(rightOutputArea);
-		
-		
-		pb.add(sp1, cc.xy (4,5));
-	
 		Action sourceCopy = new sourceCopyAction(sourceOutputText);
 		Action execute = new AbstractAction(){
 			public void actionPerformed(ActionEvent e) {
@@ -114,15 +107,32 @@ public class CompareDMFrame extends JFrame{
 			}			
 		};
 
-		Action save = new AbstractAction(){
+		Action sourceSave = new AbstractAction(){
 			public void actionPerformed(ActionEvent e) {
-				//TODO: Implement Save function
-			}			
+				JFileChooser saveChooser = new JFileChooser();				
+				int returnVal = saveChooser.showSaveDialog(CompareDMFrame.this);
+				if (returnVal == JFileChooser.APPROVE_OPTION) {
+					final File file = saveChooser.getSelectedFile();
+					try {
+						StringReader sr = new StringReader(sourceOutputText.getText(0,sourceOutputText.getLength()));
+						BufferedReader br = new BufferedReader(sr);
+						PrintWriter out = new PrintWriter(file);
+						String s;
+						while ( (s = br.readLine()) != null ) {
+							out.println(s);
+						}
+						out.close();
+					} catch (IOException e1) {
+						ASUtils.showExceptionDialog("Save file Error!", e1);
+					} catch (BadLocationException e1) {
+						ASUtils.showExceptionDialog("Open file Error!", e1);
+					}
+				}
+			}
 		};
 		CloseAction close = new CloseAction();
 		close.setFrame(this);
-
-		//Sets the Source Buttons
+		
 		ButtonBarBuilder sourcebbBuilder = new ButtonBarBuilder();
 		JButton copySource = new JButton(sourceCopy);
 		copySource.setText("Copy");
@@ -130,21 +140,50 @@ public class CompareDMFrame extends JFrame{
 		sourcebbBuilder.addRelatedGap();
 		sourcebbBuilder.addGlue();
 		
-		JButton sourceExecute = new JButton(execute);
-		sourceExecute.setText("Execute");
-		sourcebbBuilder.addGridded(sourceExecute);
-		sourcebbBuilder.addRelatedGap();
-		sourcebbBuilder.addGlue();
-		if ( execute == null ) {
-			execute.setEnabled(false);
+		if (isSQLScript){
+			JButton sourceExecute = new JButton(execute);
+			sourceExecute.setText("Execute");
+			sourcebbBuilder.addGridded(sourceExecute);		
+			sourcebbBuilder.addRelatedGap();
+			sourcebbBuilder.addGlue();
+			if ( execute == null ) {
+				execute.setEnabled(false);
+			}
 		}
-		JButton sourceSave = new JButton(save);
-		sourceSave.setText("Save");
-		sourcebbBuilder.addGridded(sourceSave);
+		JButton sourceSaveButton = new JButton(sourceSave);
+		sourceSaveButton.setText("Save");
+		sourcebbBuilder.addGridded(sourceSaveButton);
 		sourcebbBuilder.addRelatedGap();
 		sourcebbBuilder.addGlue();		
-	
+		ButtonBarBuilder closeBar = new ButtonBarBuilder(); 
+		JButton closeButton = new JButton(close);
+		closeButton.setText("Close");
+		closeBar.addGridded(closeButton);
+		PanelBuilder pb;
+
+
+
+		if (isSQLScript){
+			JPanel p = logger.isDebugEnabled()  ? new FormDebugPanel(sqlLayout) : new JPanel(sqlLayout);
+			pb = new PanelBuilder(sqlLayout, p);			
+			pb.setDefaultDialogBorder();	
+			pb.add(titleLabel, cc.xy(2, 1));			
+	        pb.add(sp, cc.xy(2, 3));
+	    	pb.add(sourcebbBuilder.getPanel(), cc.xy(2, 5, "c,c"));
+			pb.add(closeBar.getPanel(), cc.xy(2,7, "r,c"));
+			
+		}
+		else{
+		englisLayout.setColumnGroups(new int [][] { {2,4}}); 
+		JPanel p = logger.isDebugEnabled()  ? new FormDebugPanel(englisLayout) : new JPanel(englisLayout);
+		pb = new PanelBuilder(englisLayout,p);
+		pb.setDefaultDialogBorder();		
 		
+		rightOutputArea = new JTextPane();
+		rightOutputArea.setMargin(new Insets(6, 10, 4, 6));
+		rightOutputArea.setDocument(targetOutputText);
+		rightOutputArea.setEditable(false);
+		JScrollPane sp1 = new JScrollPane(rightOutputArea);
 		Action targetCopy = new targetCopyAction(targetOutputText);
 		Action targetexecute = new AbstractAction(){
 			public void actionPerformed(ActionEvent e) {
@@ -159,30 +198,66 @@ public class CompareDMFrame extends JFrame{
 		targetbbBuilder.addRelatedGap();
 		targetbbBuilder.addGlue();
 		
+		
 		JButton targetExecute = new JButton(execute);
 		targetExecute.setText("Execute");
 		targetbbBuilder.addGridded(targetExecute);
 		targetbbBuilder.addRelatedGap();
 		targetbbBuilder.addGlue();
+		
+		
+		Action targetSaveAction = new AbstractAction(){
+			public void actionPerformed(ActionEvent e) {
+				JFileChooser saveChooser = new JFileChooser();				
+				int returnVal = saveChooser.showSaveDialog(CompareDMFrame.this);								
+				if (returnVal == JFileChooser.APPROVE_OPTION) {
+					/*if (saveChooser.getSelectedFile().exists()){
+						System.out.println("This should pop up overwrite message");
+					}*/
+					final File file = saveChooser.getSelectedFile();					
+					try {
+						StringReader sr = new StringReader(targetOutputText.getText(0,targetOutputText.getLength()));
+						BufferedReader br = new BufferedReader(sr);
+						PrintWriter out = new PrintWriter(file);
+						String s;
+						while ( (s = br.readLine()) != null ) {
+							out.println(s);
+						}
+						out.close();
+					} catch (IOException e1) {
+						ASUtils.showExceptionDialog("Save file Error!", e1);
+					} catch (BadLocationException e1) {
+						ASUtils.showExceptionDialog("Open file Error!", e1);
+					}
+				}
+			}
+		};
+		
 		if ( execute == null ) {
 			execute.setEnabled(false);
 		}
-		JButton targetSave = new JButton(save);
+		JButton targetSave = new JButton(targetSaveAction);
 		targetSave.setText("Save");
 		targetbbBuilder.addGridded(targetSave);
 		targetbbBuilder.addRelatedGap();
 		targetbbBuilder.addGlue();
-		
-		ButtonBarBuilder closeBar = new ButtonBarBuilder(); 
-		JButton closeButton = new JButton(close);
-		closeButton.setText("Close");
-		closeBar.addGridded(closeButton);
 
-		pb.add(sourcebbBuilder.getPanel(), cc.xy(2, 7, "l,c"));
+		
+		pb.add(titleLabel, cc.xyw(2, 1, 3,"c,c"));
+		pb.add(new JLabel("Source"), cc.xy(2,3));
+		pb.add(new JLabel("Target"), cc.xy(4,3));
+        pb.add(sp, cc.xy(2, 5));
+    	pb.add(sp1, cc.xy (4,5));
+    	pb.add(sourcebbBuilder.getPanel(), cc.xy(2, 7, "l,c"));
 		pb.add(targetbbBuilder.getPanel(), cc.xy(4, 7, "r,c"));
 		pb.add(closeBar.getPanel(), cc.xy(4,9, "r,c"));
-		return pb.getPanel();
+		//rightOutputArea.setAutoscrolls(true);
+	
+		//Sets the Source Buttons
 
+	}
+
+		return pb.getPanel();
 
 	}
 	
@@ -289,7 +364,7 @@ public class CompareDMFrame extends JFrame{
         targetDoc.insertString(targetDoc.getLength(),"line 5 - normal line"+newline, attrsMsg);
         targetDoc.insertString(targetDoc.getLength(),"line 6 - this is a really really really reallly really long line so long that I do not quite know what's going on, ha!", attrsMsg);
         final JFrame f = new CompareDMFrame(sourceDoc, targetDoc,
-        		"compare test A to test B in english",new SQLDatabase());
+        		"compare test A to test B in english",new SQLDatabase(), true);
 		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		f.getContentPane().add(panel);
         
