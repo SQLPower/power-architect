@@ -430,6 +430,38 @@ public class CompareSQLTest extends TestCase {
 		
 		assertTrue("No column mapping diffs found!", foundColMapDiff);
 	}
+	
+	public void testKeyChanged() throws ArchitectException{			
+		List<SQLTable> list1 = new ArrayList<SQLTable>();
+		SQLTable t1 = makeTable(4);
+		list1.add(t1);
+		SQLColumn c = t1.getColumn(2); 
+		c.setPrimaryKeySeq(new Integer(0));
+
+		List<SQLTable> list2 = new ArrayList<SQLTable>();
+		SQLTable t2 = makeTable(4);
+		list2.add(t2);
+				
+		CompareSQL sqlComparator = new CompareSQL(list1, list2);
+		List<DiffChunk<SQLObject>> diffs = sqlComparator.generateTableDiffs();
+		
+		boolean first_table = true;
+		for (DiffChunk<SQLObject> dc : diffs){
+			
+			if ( dc.getData() instanceof SQLColumn && dc.getData().getName().equals(c.getName()))
+				assertEquals(DiffType.KEY_CHANGED, dc.getType() );
+			else if ( dc.getData() instanceof SQLColumn )
+				assertEquals(DiffType.SAME, dc.getType());
+			else if ( dc.getData() instanceof SQLTable ) {
+				if ( first_table ) 
+					assertEquals(DiffType.SAME, dc.getType());
+				else
+					assertEquals(DiffType.KEY_CHANGED, dc.getType());
+				first_table = false;
+			}
+		}
+	}
+	
 
 	/**
 	 * Creates a table with the name <tt>table_<i>i</i></tt> (where <i>i</i> is the 
