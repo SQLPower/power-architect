@@ -453,17 +453,15 @@ public class CompareSQL implements Monitorable {
 			// Comparing Columns
 			if (comparator.compare(sourceColumn, targetColumn) == 0) {
 				
+				if (targetColumn.isPrimaryKey() != sourceColumn.isPrimaryKey()){
+					keyChangeFlag = true;
+					//diffs.add(new DiffChunk<SQLObject>(targetColumn, DiffType.KEY_CHANGED));
+				}
 				if (targetColumn.getType() != sourceColumn.getType()
 					|| (targetColumn.getPrecision() != sourceColumn.getPrecision())
 					|| (targetColumn.getScale() != sourceColumn.getScale())
 					|| (targetColumn.getNullable() != sourceColumn.getNullable())					
-					|| (targetColumn.isPrimaryKey() != sourceColumn.isPrimaryKey())
-					) {
-					if ( targetColumn.isPrimaryKey() != sourceColumn.isPrimaryKey() ) {
-						keyChangeFlag = true;
-						diffs.add(new DiffChunk<SQLObject>(targetColumn, DiffType.KEY_CHANGED));
-					}
-					else
+					) {				
 						diffs.add(new DiffChunk<SQLObject>(targetColumn, DiffType.MODIFIED));
 				} 
 				else {
