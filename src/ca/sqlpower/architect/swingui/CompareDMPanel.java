@@ -1038,7 +1038,7 @@ public class CompareDMPanel extends JPanel {
 				if (sqlButton.isSelected()) {
 					compMethod = "SQL";
 				} else {
-					compMethod = OUTPUT_ENGLISH;
+					compMethod = "English";
 				}
 				String titleString = "Comparing " + left.getName() + " to "
 						+ right.getName() + " using " + compMethod;
@@ -1108,11 +1108,11 @@ public class CompareDMPanel extends JPanel {
 							+ rel.printKeyColumns(rel.FKCOLUMN)
 							+ ")\n  refers to "
 							+ rel.getPkTable().getName()
-							+ "(" + rel.printKeyColumns(rel.PKCOLUMN) + ")",
+							+ "(" + rel.printKeyColumns(rel.PKCOLUMN) + ")\n",
 							styles.get(chunk.getType()));
-				} else if (chunk.getData() instanceof SQLColumn) {
+				} else if (chunk.getData() instanceof SQLColumn && chunk.getType() != DiffType.KEY_CHANGED) {
 					sourceDoc.insertString(sourceDoc.getLength(), "  "
-							+ chunk.getData().toString(), styles.get(chunk
+							+ chunk.getData().toString()+"\n", styles.get(chunk
 							.getType()));
 				} else if (chunk.getData() instanceof SQLTable) {
 
@@ -1124,7 +1124,7 @@ public class CompareDMPanel extends JPanel {
 									styles.get(chunk.getType()));
 
 						sourceDoc.insertString(sourceDoc.getLength(), chunk
-								.getData().toString(), styles.get(chunk
+								.getData().toString()+"\n", styles.get(chunk
 								.getType()));
 
 						for (SQLColumn c : ((SQLTable) chunk.getData())
@@ -1133,7 +1133,7 @@ public class CompareDMPanel extends JPanel {
 									styles.get(chunk.getType()));
 							sourceDoc
 									.insertString(sourceDoc.getLength(), "  "
-											+ c.toString(), styles.get(chunk
+											+ c.toString()+"\n", styles.get(chunk
 											.getType()));
 						}
 					} else if (chunk.getType() == DiffType.KEY_CHANGED) {
@@ -1156,12 +1156,12 @@ public class CompareDMPanel extends JPanel {
 							}
 						}
 						if (count > 0) {
-							sourceDoc.insertString(sourceDoc.getLength(), ")",
+							sourceDoc.insertString(sourceDoc.getLength(), ")\n",
 									styles.get(chunk.getType()));
 						} else {
 							sourceDoc.insertString(sourceDoc.getLength(),
 									"\n  Primary Key " + t.getPrimaryKeyName()
-											+ " Removed", styles.get(chunk
+											+ " Removed\n", styles.get(chunk
 											.getType()));
 						}
 
@@ -1171,20 +1171,38 @@ public class CompareDMPanel extends JPanel {
 									styles.get(chunk.getType()));
 
 						sourceDoc.insertString(sourceDoc.getLength(), chunk
-								.getData().toString(), styles.get(chunk
+								.getData().toString()+"\n", styles.get(chunk
 								.getType()));
 					}
 				}
-				sourceDoc.insertString(sourceDoc.getLength(), "\n", styles
-						.get(chunk.getType()));
 				objectCount++;
 			}
 		}
-
+		
 		private void sqlScriptGenerator(Map<DiffType, AttributeSet> styles, List<DiffChunk<SQLObject>> diff, DefaultStyledDocument targetDoc, DDLGenerator gen) throws ArchitectDiffException, SQLException, ArchitectException, BadLocationException, InstantiationException, IllegalAccessException {
 			gen = gen.getClass().newInstance();
 			for (DiffChunk<SQLObject> chunk : diff) {
-				if (chunk.getType() == DiffType.LEFTONLY)
+				if (chunk.getType() == DiffType.KEY_CHANGED) {
+					if(chunk.getData() instanceof SQLTable)
+					{
+						SQLTable t = (SQLTable) chunk.getData();
+						boolean hasKey = false;
+						for (SQLColumn c : t.getColumns()) {
+							if (c.isPrimaryKey()) {
+								hasKey=true;
+								break;
+							}
+						}
+						if (hasKey) {
+							gen.addPrimaryKey(t,t.getPrimaryKeyName());
+						} else {
+							
+							gen.dropPrimaryKey(t,t.getPrimaryKeyName());
+							
+						}
+					}
+					
+				}else if (chunk.getType() == DiffType.LEFTONLY)
 				{
 					if (chunk.getData() instanceof SQLTable)
 					{
@@ -1196,6 +1214,7 @@ public class CompareDMPanel extends JPanel {
 					} else if (chunk.getData() instanceof SQLRelationship){
 						SQLRelationship r = (SQLRelationship)chunk.getData();
 						gen.dropRelationship(r);
+						
 					} else {
 						throw new IllegalStateException("DiffChunk is an unexpected type.");
 					}
