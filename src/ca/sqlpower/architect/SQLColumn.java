@@ -425,9 +425,9 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	}
 
 	/**
-	 * Gets the value of primaryKey
+	 * Is primaryKeySeq defined
 	 *
-	 * @return the value of primaryKey
+	 * @return whether or not primaryKeySeq is defined
 	 */
 	public boolean isPrimaryKey()  {
 		return this.primaryKeySeq != null;

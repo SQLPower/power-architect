@@ -165,4 +165,8 @@ public interface DDLGenerator {
      * Server it would be "Owner".
      */
     public abstract String getSchemaTerm();
+
+	public abstract void dropPrimaryKey(SQLTable t, String primaryKeyName);
+
+	public abstract void addPrimaryKey(SQLTable t, String primaryKeyName) throws ArchitectException;
 }

@@ -51,7 +51,7 @@ public class DDLUtils {
     {
     	
     		Vector<LabelValueBean> dbTypeList = new Vector();
-		dbTypeList.add(ASUtils.lvb("Generic JDBC", GenericDDLGenerator.class));
+		dbTypeList.add(ASUtils.lvb("SQL 92", GenericDDLGenerator.class));
 		dbTypeList.add(ASUtils.lvb("DB2", DB2DDLGenerator.class));
 		dbTypeList.add(ASUtils.lvb("Oracle 8i/9i", OracleDDLGenerator.class));
 		dbTypeList.add(ASUtils.lvb("PostgreSQL", PostgresDDLGenerator.class));

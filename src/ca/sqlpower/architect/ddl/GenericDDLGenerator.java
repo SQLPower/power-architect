@@ -798,5 +798,38 @@ public class GenericDDLGenerator implements DDLGenerator {
 		return ddlStatements;
 	}
 
+	public void dropPrimaryKey(SQLTable t, String primaryKeyName) {
+
+		print("ALTER TABLE " + DDLUtils.toQualifiedName(t.getCatalogName(),t.getSchemaName(),t.getName())
+			+ " DROP PRIMARY KEY " + primaryKeyName);
+		endStatement(DDLStatement.StatementType.DROP,t);
+		
+	}
+
+	public void addPrimaryKey(SQLTable t, String primaryKeyName) throws ArchitectException {
+		Map colNameMap = new HashMap();  
+		StringBuffer sqlStatement = new StringBuffer();
+		boolean first = true;
+		sqlStatement.append("ALTER TABLE "+ DDLUtils.toQualifiedName(t.getCatalogName(),t.getSchemaName(),t.getName())
+				+ " ADD PRIMARY KEY (");
+		for (SQLColumn c : t.getColumns()) {
+			if (c.isPrimaryKey()) {
+				if (!first) {
+					sqlStatement.append(",");
+				}else{
+					first =false;
+				}
+				
+				sqlStatement.append(getPhysicalName(colNameMap,c));
+			}
+		}
+		sqlStatement.append(")");
+		if (!first)
+		{
+			print(sqlStatement.toString());
+			endStatement(DDLStatement.StatementType.CREATE,t);
+		}
+	}
+
 	
 }

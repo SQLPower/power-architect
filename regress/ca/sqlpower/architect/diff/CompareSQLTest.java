@@ -445,21 +445,26 @@ public class CompareSQLTest extends TestCase {
 		CompareSQL sqlComparator = new CompareSQL(list1, list2);
 		List<DiffChunk<SQLObject>> diffs = sqlComparator.generateTableDiffs();
 		
+		
 		boolean first_table = true;
-		for (DiffChunk<SQLObject> dc : diffs){
-			
-			if ( dc.getData() instanceof SQLColumn && dc.getData().getName().equals(c.getName()))
-				assertEquals(DiffType.KEY_CHANGED, dc.getType() );
-			else if ( dc.getData() instanceof SQLColumn )
-				assertEquals(DiffType.SAME, dc.getType());
-			else if ( dc.getData() instanceof SQLTable ) {
-				if ( first_table ) 
-					assertEquals(DiffType.SAME, dc.getType());
-				else
-					assertEquals(DiffType.KEY_CHANGED, dc.getType());
+		
+		for (DiffChunk dc : diffs){			
+			if (dc.getData().getClass().equals(SQLTable.class)){
+				if(first_table){
+					assertEquals (DiffType.SAME ,dc.getType());
+				} else {
+					assertEquals (DiffType.KEY_CHANGED, dc.getType());
+				}
 				first_table = false;
 			}
-		}
+			else if (dc.getData().getClass().equals(SQLColumn.class)){
+				if (((SQLObject) dc.getData()).getName().equals(c.getName())){
+					assertEquals(DiffType.MODIFIED, dc.getType());
+				} else {
+					assertEquals (DiffType.SAME, dc.getType());
+				}
+			}
+		}		
 	}
 	
 
