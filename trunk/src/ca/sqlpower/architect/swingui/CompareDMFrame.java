@@ -9,6 +9,7 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -22,6 +23,7 @@ import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
@@ -36,6 +38,7 @@ import javax.swing.text.StyleConstants;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.swingui.ASUtils.FileExtensionFilter;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
 import com.jgoodies.forms.builder.PanelBuilder;
@@ -108,26 +111,8 @@ public class CompareDMFrame extends JFrame{
 		};
 
 		Action sourceSave = new AbstractAction(){
-			public void actionPerformed(ActionEvent e) {
-				JFileChooser saveChooser = new JFileChooser();				
-				int returnVal = saveChooser.showSaveDialog(CompareDMFrame.this);
-				if (returnVal == JFileChooser.APPROVE_OPTION) {
-					final File file = saveChooser.getSelectedFile();
-					try {
-						StringReader sr = new StringReader(sourceOutputText.getText(0,sourceOutputText.getLength()));
-						BufferedReader br = new BufferedReader(sr);
-						PrintWriter out = new PrintWriter(file);
-						String s;
-						while ( (s = br.readLine()) != null ) {
-							out.println(s);
-						}
-						out.close();
-					} catch (IOException e1) {
-						ASUtils.showExceptionDialog("Save file Error!", e1);
-					} catch (BadLocationException e1) {
-						ASUtils.showExceptionDialog("Open file Error!", e1);
-					}
-				}
+			public void actionPerformed(ActionEvent e) { 
+				saveDocument(sourceOutputText);
 			}
 		};
 		CloseAction close = new CloseAction();
@@ -196,40 +181,12 @@ public class CompareDMFrame extends JFrame{
 		copyTarget.setText("Copy");
 		targetbbBuilder.addGridded (copyTarget);
 		targetbbBuilder.addRelatedGap();
-		targetbbBuilder.addGlue();
-		
-		
-		JButton targetExecute = new JButton(execute);
-		targetExecute.setText("Execute");
-		targetbbBuilder.addGridded(targetExecute);
-		targetbbBuilder.addRelatedGap();
-		targetbbBuilder.addGlue();
+		targetbbBuilder.addGlue();					
 		
 		
 		Action targetSaveAction = new AbstractAction(){
-			public void actionPerformed(ActionEvent e) {
-				JFileChooser saveChooser = new JFileChooser();				
-				int returnVal = saveChooser.showSaveDialog(CompareDMFrame.this);								
-				if (returnVal == JFileChooser.APPROVE_OPTION) {
-					/*if (saveChooser.getSelectedFile().exists()){
-						System.out.println("This should pop up overwrite message");
-					}*/
-					final File file = saveChooser.getSelectedFile();					
-					try {
-						StringReader sr = new StringReader(targetOutputText.getText(0,targetOutputText.getLength()));
-						BufferedReader br = new BufferedReader(sr);
-						PrintWriter out = new PrintWriter(file);
-						String s;
-						while ( (s = br.readLine()) != null ) {
-							out.println(s);
-						}
-						out.close();
-					} catch (IOException e1) {
-						ASUtils.showExceptionDialog("Save file Error!", e1);
-					} catch (BadLocationException e1) {
-						ASUtils.showExceptionDialog("Open file Error!", e1);
-					}
-				}
+			public void actionPerformed(ActionEvent e) {			
+				saveDocument(targetOutputText);
 			}
 		};
 		
@@ -267,6 +224,7 @@ public class CompareDMFrame extends JFrame{
 		public sourceCopyAction(AbstractDocument doc)
 		{
 			this.doc = doc;
+			
 		}
 		
 		public void actionPerformed(ActionEvent e) {
@@ -312,70 +270,7 @@ public class CompareDMFrame extends JFrame{
 		}						
 	}
 	
-	final private static String newline="\n";
-	/**
-	 * Just for testing the form layout without running the whole Architect.
-	 * 
-	 * <p>The frame it makes is EXIT_ON_CLOSE, so you should never use this
-	 * in a real app.
-	 * @throws BadLocationException 
-	 */
-	public static void main(String[] args) throws BadLocationException {
-
-		try {
-            UIManager.setLookAndFeel("com.jgoodies.plaf.plastic.PlasticXPLookAndFeel");
-        } catch (Exception e) {
-            // Likely PlasticXP is not in the class path; ignore.
-        }
-        
-        SimpleAttributeSet attrsSource = new SimpleAttributeSet();
-		SimpleAttributeSet attrsTarget = new SimpleAttributeSet();
-		SimpleAttributeSet attrsSame = new SimpleAttributeSet();
-		SimpleAttributeSet attrsMsg = new SimpleAttributeSet();
-
-        StyleConstants.setFontFamily(attrsSource, "Courier New");
-        StyleConstants.setFontSize(attrsSource, 12);
-        StyleConstants.setForeground(attrsSource, Color.red);
-
-        StyleConstants.setFontFamily(attrsTarget, "Courier New");
-        StyleConstants.setFontSize(attrsTarget, 12);
-        StyleConstants.setForeground(attrsTarget, Color.green);
-
-        StyleConstants.setFontFamily(attrsSame, "Courier New");
-        StyleConstants.setFontSize(attrsSame, 12);
-        StyleConstants.setForeground(attrsSame, Color.black);
-        
-        StyleConstants.setFontFamily(attrsMsg, "Courier New");
-        StyleConstants.setFontSize(attrsMsg, 12);
-        StyleConstants.setForeground(attrsMsg, Color.orange);
-        
-        DefaultStyledDocument sourceDoc = new DefaultStyledDocument();
-        sourceDoc.insertString(sourceDoc.getLength(),"line 1 - normal line"+newline,attrsMsg);
-        sourceDoc.insertString(sourceDoc.getLength(),"line 2 - red line"+newline, attrsSource);
-        sourceDoc.insertString(sourceDoc.getLength(),"line 3 - green line"+newline, attrsTarget);
-        sourceDoc.insertString(sourceDoc.getLength(),"line 4 - black line"+newline, attrsSame);
-        sourceDoc.insertString(sourceDoc.getLength(),"line 5 - normal line"+newline, attrsMsg);
-        
-        DefaultStyledDocument targetDoc = new DefaultStyledDocument();
-        targetDoc.insertString(targetDoc.getLength(),"line 1 - normal line"+newline, attrsMsg);
-        targetDoc.insertString(targetDoc.getLength(),"line 2 - red line"+newline, attrsSource);
-        targetDoc.insertString(targetDoc.getLength(),"line 3 - green line"+newline, attrsTarget);
-        targetDoc.insertString(targetDoc.getLength(),"line 4 - black line"+newline, attrsSame);
-        targetDoc.insertString(targetDoc.getLength(),"line 5 - normal line"+newline, attrsMsg);
-        targetDoc.insertString(targetDoc.getLength(),"line 6 - this is a really really really reallly really long line so long that I do not quite know what's going on, ha!", attrsMsg);
-        final JFrame f = new CompareDMFrame(sourceDoc, targetDoc,
-        		"compare test A to test B in english",new SQLDatabase(), true);
-		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		f.getContentPane().add(panel);
-        
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
 	
-				f.pack();
-				f.setVisible(true);
-			};
-		});
-	}
 
 	public JPanel getPanel() {
 		return (JPanel) panel;
@@ -385,4 +280,58 @@ public class CompareDMFrame extends JFrame{
 		this.panel = panel;
 	}
 	
+	
+	protected void saveDocument ( AbstractDocument doc ) {
+		JFileChooser saveChooser = new JFileChooser();
+		FileExtensionFilter fef;
+		if (isSQLScript){
+			fef = (FileExtensionFilter) ASUtils.SQL_FILE_FILTER;								
+		} else{
+			fef=(FileExtensionFilter) ASUtils.TEXT_FILE_FILTER;
+		}
+			saveChooser.setFileFilter(fef);			
+		int returnVal = saveChooser.showSaveDialog(CompareDMFrame.this);
+		
+		while (true) {
+			if (returnVal == JFileChooser.CANCEL_OPTION)
+				break;
+			else if (returnVal == JFileChooser.APPROVE_OPTION) {
+				
+				File file = saveChooser.getSelectedFile();				
+				String fileName = file.getPath();
+				String fileExt = ASUtils.FileExtensionFilter.getExtension(file);
+				if ( fileExt.length() == 0 ) {
+					file = new File(fileName + "." + fef.getFilterExtension(new Integer(0)));
+				}
+				if ( file.exists() && 
+						( JOptionPane.showOptionDialog(CompareDMFrame.this, 
+							"Are your sure you want to overwrite this file?",
+							"Confirm Overwrite", JOptionPane.YES_NO_OPTION,
+							JOptionPane.QUESTION_MESSAGE,null,null,null) == JOptionPane.NO_OPTION ) )
+					{
+						returnVal = saveChooser.showSaveDialog(CompareDMFrame.this);
+					}
+				else {
+					writeDocument(doc,file);
+					break;
+				}
+			}
+		}
+	}
+	protected void writeDocument (AbstractDocument doc, File file) {
+		try {						
+			StringReader sr = new StringReader(doc.getText(0,sourceOutputText.getLength()));
+			BufferedReader br = new BufferedReader(sr);
+			PrintWriter out = new PrintWriter(file);
+			String s;
+			while ( (s = br.readLine()) != null ) {
+				out.println(s);
+			}
+			out.close();
+		} catch (IOException e1) {
+			ASUtils.showExceptionDialog("Save file Error!", e1);
+		} catch (BadLocationException e1) {
+			ASUtils.showExceptionDialog("Open file Error!", e1);
+		} 
+	}	
 }

@@ -90,8 +90,11 @@ public class ASUtils {
 	public static final FileFilter ARCHITECT_FILE_FILTER =
 		new FileExtensionFilter("Architect Project Files", new String[] {"arc", "architect"});
 
+	public static final FileFilter TEXT_FILE_FILTER =
+		new FileExtensionFilter("Text Files ", new String[] {"txt"});
+	
 	public static final FileFilter SQL_FILE_FILTER =
-		new FileExtensionFilter("SQL Script Files", new String[] {"ddl", "sql"});
+		new FileExtensionFilter("SQL Script Files", new String[] { "sql", "ddl"});
 
 	public static final FileFilter INI_FILE_FILTER =
 		new FileExtensionFilter(".INI Files", new String[] {"ini"});
@@ -143,6 +146,27 @@ public class ASUtils {
 				ext = s.substring(i+1).toLowerCase();
 			}
 			return ext;
+		}
+		
+		/*
+		 * Get the extension of a filter.
+		 */  
+		public String getFilterExtension(Integer index) {
+			List<String> l = new ArrayList(extensions);
+			int i;
+			
+			if ( index == null ||
+					index.intValue() < 0 ||
+					index.intValue() >= l.size() )
+				i = 0;
+			else
+				i = index.intValue();
+			
+			if ( l.size() > 0 )
+				return l.get(i);
+			return null;
+			
+				
 		}
 	}
 
