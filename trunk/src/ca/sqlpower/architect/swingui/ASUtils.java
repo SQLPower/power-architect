@@ -94,7 +94,7 @@ public class ASUtils {
 		new FileExtensionFilter("Text Files ", new String[] {"txt"});
 	
 	public static final FileFilter SQL_FILE_FILTER =
-		new FileExtensionFilter("SQL Script Files", new String[] { "sql", "ddl"});
+		new FileExtensionFilter("SQL Script Files", new String[] {"sql","ddl"});
 
 	public static final FileFilter INI_FILE_FILTER =
 		new FileExtensionFilter(".INI Files", new String[] {"ini"});
@@ -110,7 +110,7 @@ public class ASUtils {
 
 	public static class FileExtensionFilter extends FileFilter {
 
-		protected HashSet extensions;
+		protected LinkedHashSet extensions;
 		protected String name;
 
 		/**
@@ -123,9 +123,16 @@ public class ASUtils {
 		 */
 		public FileExtensionFilter(String name, String[] extensions) {
 			this.name = name;
-			this.extensions = new HashSet(Arrays.asList(extensions));
+			this.extensions = new LinkedHashSet(Arrays.asList(extensions));
 		}
 
+		public String toString() {
+			StringBuffer s = new StringBuffer();
+			s.append(name);
+			s.append(":");
+			s.append(extensions.toString());
+			return s.toString();
+		}
 		public boolean accept(File f) {
 			return f.isDirectory() || extensions.contains(getExtension(f));
 		}
