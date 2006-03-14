@@ -278,7 +278,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
 		Map colNameMap = new HashMap(); 
 		SQLTable t = c.getParentTable();
 		print("\n ALTER TABLE ");
-		printQualified(t.getPhysicalName());
+		print( DDLUtils.toQualifiedName(t.getCatalogName(),t.getSchemaName(),t.getPhysicalName()) );
 		print(" MODIFY ");
 		print(columnDefinition(c,colNameMap));
 		endStatement(DDLStatement.StatementType.MODIFY, c);
