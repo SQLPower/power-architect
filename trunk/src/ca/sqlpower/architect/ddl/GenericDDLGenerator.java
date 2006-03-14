@@ -209,7 +209,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		
 		print("\n ALTER TABLE ");
 		
-		print( DDLUtils.toQualifiedName(r.getFkTable().getCatalogName(),r.getFkTable().getSchemaName(),r.getFkTable().getPhysicalName()) );
+		print( toQualifiedName(r.getFkTable()) );
 		print(" DROP CONSTRAINT ");
 		print(r.getName());
 		endStatement(DDLStatement.StatementType.DROP, r);
@@ -220,7 +220,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	{
 		
 		print("\n ALTER TABLE ");
-		print( DDLUtils.toQualifiedName(r.getFkTable().getCatalogName(),r.getFkTable().getSchemaName(),r.getFkTable().getPhysicalName()) );
+		print( toQualifiedName(r.getFkTable()) );
 		print(" ADD CONSTRAINT ");
 		print(r.getName());
 		print(" FOREIGN KEY ( ");
@@ -245,7 +245,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 			}
 		}
 		print(" ) REFERENCES ");
-		print( DDLUtils.toQualifiedName(r.getPkTable().getCatalogName(),r.getPkTable().getSchemaName(),r.getPkTable().getPhysicalName()) );
+		print( toQualifiedName(r.getPkTable()) );
 		print(" ( ");
 		colNameMap = new HashMap<String, SQLColumn> ();
 		firstColumn = true;
@@ -276,7 +276,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	public void addColumn(SQLColumn c, SQLTable t) throws ArchitectDiffException {
 		Map colNameMap = new HashMap();  
 		print("\n ALTER TABLE ");
-		print( DDLUtils.toQualifiedName(t.getCatalogName(),t.getSchemaName(),t.getPhysicalName()) );
+		print( toQualifiedName(t) );
 		print(" ADD COLUMN ");
 		print(columnDefinition(c,colNameMap));
 		endStatement(DDLStatement.StatementType.CREATE, c);
@@ -286,7 +286,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	public void dropColumn(SQLColumn c, SQLTable t) throws ArchitectDiffException {
 		Map colNameMap = new HashMap();  
 		print("\n ALTER TABLE ");
-		print( DDLUtils.toQualifiedName(t.getCatalogName(),t.getSchemaName(),t.getPhysicalName()) );
+		print( toQualifiedName(t) );
 		print(" DROP COLUMN ");
 		print(getPhysicalName(colNameMap,c));
 		endStatement(DDLStatement.StatementType.DROP, c);
@@ -297,7 +297,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		Map colNameMap = new HashMap(); 
 		SQLTable t = c.getParentTable();
 		print("\n ALTER TABLE ");
-		print( DDLUtils.toQualifiedName(t.getCatalogName(),t.getSchemaName(),t.getPhysicalName()) );
+		print( toQualifiedName(t) );
 		print(" ALTER COLUMN ");
 		print(columnDefinition(c,colNameMap));
 		endStatement(DDLStatement.StatementType.MODIFY, c);
@@ -352,7 +352,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		// generate a new physical name if necessary
 		getPhysicalName(topLevelNames,t); // also adds generated physical name to the map
 		print("\nCREATE TABLE ");
-		print( DDLUtils.toQualifiedName(t.getCatalogName(),t.getSchemaName(),t.getPhysicalName()) );
+		print( toQualifiedName(t) );
 		println(" (");
 		boolean firstCol = true;
 		Iterator it = t.getColumns().iterator();
@@ -395,7 +395,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 				//
 				println("");
 				print("ALTER TABLE ");
-				print( DDLUtils.toQualifiedName(t.getCatalogName(),t.getSchemaName(),t.getPhysicalName()) );
+				print( toQualifiedName(t) );
 				print(" ADD CONSTRAINT ");
 				print(t.getPhysicalPrimaryKeyName());
 				println("");
@@ -423,7 +423,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 			println("");
 			print("ALTER TABLE ");
 			// this works because all the tables have had their physical names generated already...
-			print( DDLUtils.toQualifiedName(rel.getFkTable().getCatalogName(),rel.getFkTable().getSchemaName(),rel.getFkTable().getPhysicalName()) );
+			print( toQualifiedName(rel.getFkTable()) );
 			
 			print(" ADD CONSTRAINT ");
 			print(rel.getPhysicalName());
@@ -447,7 +447,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 			print(fkCols.toString());
 			println(")");
 			print("REFERENCES ");
-			print( DDLUtils.toQualifiedName(rel.getPkTable().getCatalogName(),rel.getPkTable().getSchemaName(),rel.getPkTable().getPhysicalName()) );
+			print( toQualifiedName(rel.getPkTable()) );
 			print(" (");
 			print(pkCols.toString());
 			print(")");
@@ -554,6 +554,28 @@ public class GenericDDLGenerator implements DDLGenerator {
 	}
 
 
+	public String toQualifiedName(SQLTable t) {
+		String catalog = getTargetCatalog();
+		if ( catalog == null )
+			catalog = t.getCatalogName();
+		String schema = getTargetSchema();
+		if ( schema == null )
+			schema = t.getSchemaName();
+		
+		return DDLUtils.toQualifiedName(catalog,schema,t.getPhysicalName());
+	}
+	
+	public String toQualifiedName(String catalog, String schema, String table) {
+		String catalog2 = getTargetCatalog();
+		if ( catalog2 == null )
+			catalog2 = catalog;
+		String schema2 = getTargetSchema();
+		if ( schema2 == null )
+			schema2 = schema;
+		
+		return DDLUtils.toQualifiedName(catalog2,schema2,table);
+	}
+	
 	// ---------------------- accessors and mutators ----------------------
 	
 	/**
@@ -754,7 +776,7 @@ public class GenericDDLGenerator implements DDLGenerator {
      * Generates a standard <code>DROP TABLE $tablename</code> command.  Should work on most platforms. 
      */
     public String makeDropTableSQL(String catalog, String schema, String table) {
-        return "DROP TABLE "+DDLUtils.toQualifiedName(catalog, schema, table);
+        return "DROP TABLE "+toQualifiedName(catalog, schema, table);
     }
 
     /**
@@ -763,7 +785,7 @@ public class GenericDDLGenerator implements DDLGenerator {
      */
     public String makeDropForeignKeySQL(String fkCatalog, String fkSchema, String fkTable, String fkName) {
         return "ALTER TABLE "
-            +DDLUtils.toQualifiedName(fkCatalog, fkSchema, fkTable)
+            +toQualifiedName(fkCatalog, fkSchema, fkTable)
             +" DROP FOREIGN KEY "
             +fkName;
     }
@@ -774,7 +796,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 	public void dropPrimaryKey(SQLTable t, String primaryKeyName) {
 
-		print("ALTER TABLE " + DDLUtils.toQualifiedName(t.getCatalogName(),t.getSchemaName(),t.getName())
+		print("ALTER TABLE " + toQualifiedName(t.getCatalogName(),t.getSchemaName(),t.getName())
 			+ " DROP PRIMARY KEY " + primaryKeyName);
 		endStatement(DDLStatement.StatementType.DROP,t);
 		
@@ -784,7 +806,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		Map colNameMap = new HashMap();  
 		StringBuffer sqlStatement = new StringBuffer();
 		boolean first = true;
-		sqlStatement.append("ALTER TABLE "+ DDLUtils.toQualifiedName(t.getCatalogName(),t.getSchemaName(),t.getName())
+		sqlStatement.append("ALTER TABLE "+ toQualifiedName(t.getCatalogName(),t.getSchemaName(),t.getName())
 				+ " ADD PRIMARY KEY (");
 		for (SQLColumn c : t.getColumns()) {
 			if (c.isPrimaryKey()) {
