@@ -16,8 +16,6 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,8 +50,6 @@ import javax.swing.text.StyleConstants;
 
 import org.apache.log4j.Logger;
 
-import sun.misc.Sort;
-
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLCatalog;
@@ -63,7 +59,6 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLGenerator;
-import ca.sqlpower.architect.ddl.DDLStatement;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.diff.ArchitectDiffException;
 import ca.sqlpower.architect.diff.CompareSQL;
@@ -939,7 +934,7 @@ public class CompareDMPanel extends JPanel {
 		public void actionPerformed(ActionEvent e) {
 			
 			startCompareAction.setEnabled(false);
-			CompareDMFrame cf = null;
+			
 
 			try {
 
@@ -993,13 +988,16 @@ public class CompareDMPanel extends JPanel {
 				DefaultStyledDocument targetDoc = new DefaultStyledDocument();
 
 				System.out.println(diff.toString());
+				DDLGenerator gen =(DDLGenerator)((Class)((LabelValueBean) sqlTypeDropdown.getSelectedItem()).getValue()).newInstance();
+				
 				if (sqlButton.isSelected()) {
-					DDLGenerator gen =(DDLGenerator)((Class)((LabelValueBean) sqlTypeDropdown.getSelectedItem()).getValue()).newInstance();
+					
 					List<DiffChunk<SQLObject>> addRelationships = new ArrayList();
 					List<DiffChunk<SQLObject>> dropRelationships = new ArrayList();
 					List<DiffChunk<SQLObject>> nonRelationship = new ArrayList();
 					for(DiffChunk d : diff)
 					{
+						System.out.println("xxx d:"+d.getData());
 						if ( d.getData() instanceof SQLRelationship)
 						{
 							if (d.getType() == DiffType.LEFTONLY)
@@ -1016,11 +1014,10 @@ public class CompareDMPanel extends JPanel {
 							
 					}
 					
-					sqlScriptGenerator(styles, dropRelationships, sourceDoc,gen);
 					
-					sqlScriptGenerator(styles, nonRelationship, sourceDoc,gen);
-					
-					sqlScriptGenerator(styles, addRelationships, sourceDoc,gen);
+					sqlScriptGenerator(styles, dropRelationships, gen);
+					sqlScriptGenerator(styles, nonRelationship, gen);
+					sqlScriptGenerator(styles, addRelationships, gen);
 					
 					
 					//throw new UnsupportedOperationException(
@@ -1034,19 +1031,33 @@ public class CompareDMPanel extends JPanel {
 				}
 
 				// get the title string for the compareDMFrame
-				String compMethod = null;
 				if (sqlButton.isSelected()) {
-					compMethod = "SQL";
-				} else {
-					compMethod = "English";
-				}
-				String titleString = "Comparing " + left.getName() + " to "
-						+ right.getName() + " using " + compMethod;
-				cf = new CompareDMFrame(sourceDoc, targetDoc, titleString,
-						source.getDatabase(), sqlButton.isSelected());
+					String titleString = "Comparing " + left.getName() + " to "
+					+ right.getName() + " using SQL";
 
-				cf.pack();
-				cf.setVisible(true);
+					SQLDatabase db = null;
+					if ( source.loadRadio.isSelected() )
+						db = null;
+					else if (source.playPenRadio.isSelected())
+						db = ArchitectFrame.getMainInstance().playpen.getDatabase();
+					else
+						db = source.getDatabase();
+
+					SQLScriptDialog ssd = new SQLScriptDialog(ArchitectFrame.getMainInstance(),
+							"Compare DM",titleString,false,gen.getDdlStatements(),
+							db == null?null:db.getDataSource(), false);
+				} else {
+					String titleString = "Comparing " + left.getName() + " to "
+					+ right.getName() + " using English";
+					
+					CompareDMFrame cf = 
+						new CompareDMFrame(sourceDoc, targetDoc, titleString);
+
+					cf.pack();
+					cf.setVisible(true);
+				}
+				
+				
 
 			} catch (ArchitectDiffException ex) {
 				JOptionPane.showMessageDialog(CompareDMPanel.this,
@@ -1179,8 +1190,14 @@ public class CompareDMPanel extends JPanel {
 			}
 		}
 		
-		private void sqlScriptGenerator(Map<DiffType, AttributeSet> styles, List<DiffChunk<SQLObject>> diff, DefaultStyledDocument targetDoc, DDLGenerator gen) throws ArchitectDiffException, SQLException, ArchitectException, BadLocationException, InstantiationException, IllegalAccessException {
-			gen = gen.getClass().newInstance();
+		private void sqlScriptGenerator(Map<DiffType, AttributeSet> styles,
+				List<DiffChunk<SQLObject>> diff,
+				DDLGenerator gen) 
+			throws ArchitectDiffException, SQLException,
+				ArchitectException, BadLocationException,
+				InstantiationException, IllegalAccessException {
+			
+			
 			for (DiffChunk<SQLObject> chunk : diff) {
 				if (chunk.getType() == DiffType.KEY_CHANGED) {
 					if(chunk.getData() instanceof SQLTable)
@@ -1254,10 +1271,6 @@ public class CompareDMPanel extends JPanel {
 					
 				}
 				// TODO add Modify columns
-			}
-			for ( DDLStatement statement: gen.getDdlStatements())
-			{
-				targetDoc.insertString(targetDoc.getLength(),statement.getSQLText()+";\n",styles.get(DiffType.SAME));
 			}
 		}
 	}
