@@ -208,7 +208,8 @@ public class GenericDDLGenerator implements DDLGenerator {
 	{
 		
 		print("\n ALTER TABLE ");
-		printQualified(r.getFkTable().getPhysicalName());
+		
+		print( DDLUtils.toQualifiedName(r.getFkTable().getCatalogName(),r.getFkTable().getSchemaName(),r.getFkTable().getPhysicalName()) );
 		print(" DROP CONSTRAINT ");
 		print(r.getName());
 		endStatement(DDLStatement.StatementType.DROP, r);
@@ -219,7 +220,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	{
 		
 		print("\n ALTER TABLE ");
-		printQualified(r.getFkTable().getPhysicalName());
+		print( DDLUtils.toQualifiedName(r.getFkTable().getCatalogName(),r.getFkTable().getSchemaName(),r.getFkTable().getPhysicalName()) );
 		print(" ADD CONSTRAINT ");
 		print(r.getName());
 		print(" FOREIGN KEY ( ");
@@ -244,7 +245,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 			}
 		}
 		print(" ) REFERENCES ");
-		printQualified(r.getPkTable().getPhysicalName());
+		print( DDLUtils.toQualifiedName(r.getPkTable().getCatalogName(),r.getPkTable().getSchemaName(),r.getPkTable().getPhysicalName()) );
 		print(" ( ");
 		colNameMap = new HashMap<String, SQLColumn> ();
 		firstColumn = true;
@@ -275,7 +276,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	public void addColumn(SQLColumn c, SQLTable t) throws ArchitectDiffException {
 		Map colNameMap = new HashMap();  
 		print("\n ALTER TABLE ");
-		printQualified(t.getPhysicalName());
+		print( DDLUtils.toQualifiedName(t.getCatalogName(),t.getSchemaName(),t.getPhysicalName()) );
 		print(" ADD COLUMN ");
 		print(columnDefinition(c,colNameMap));
 		endStatement(DDLStatement.StatementType.CREATE, c);
@@ -285,7 +286,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	public void dropColumn(SQLColumn c, SQLTable t) throws ArchitectDiffException {
 		Map colNameMap = new HashMap();  
 		print("\n ALTER TABLE ");
-		printQualified(t.getPhysicalName());
+		print( DDLUtils.toQualifiedName(t.getCatalogName(),t.getSchemaName(),t.getPhysicalName()) );
 		print(" DROP COLUMN ");
 		print(getPhysicalName(colNameMap,c));
 		endStatement(DDLStatement.StatementType.DROP, c);
@@ -296,7 +297,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		Map colNameMap = new HashMap(); 
 		SQLTable t = c.getParentTable();
 		print("\n ALTER TABLE ");
-		printQualified(t.getPhysicalName());
+		print( DDLUtils.toQualifiedName(t.getCatalogName(),t.getSchemaName(),t.getPhysicalName()) );
 		print(" ALTER COLUMN ");
 		print(columnDefinition(c,colNameMap));
 		endStatement(DDLStatement.StatementType.MODIFY, c);
@@ -351,7 +352,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		// generate a new physical name if necessary
 		getPhysicalName(topLevelNames,t); // also adds generated physical name to the map
 		print("\nCREATE TABLE ");
-		printQualified(t.getPhysicalName());
+		print( DDLUtils.toQualifiedName(t.getCatalogName(),t.getSchemaName(),t.getPhysicalName()) );
 		println(" (");
 		boolean firstCol = true;
 		Iterator it = t.getColumns().iterator();
@@ -394,7 +395,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 				//
 				println("");
 				print("ALTER TABLE ");
-				printQualified(t.getPhysicalName());
+				print( DDLUtils.toQualifiedName(t.getCatalogName(),t.getSchemaName(),t.getPhysicalName()) );
 				print(" ADD CONSTRAINT ");
 				print(t.getPhysicalPrimaryKeyName());
 				println("");
@@ -422,7 +423,8 @@ public class GenericDDLGenerator implements DDLGenerator {
 			println("");
 			print("ALTER TABLE ");
 			// this works because all the tables have had their physical names generated already...
-			printQualified(rel.getFkTable().getPhysicalName());
+			print( DDLUtils.toQualifiedName(rel.getFkTable().getCatalogName(),rel.getFkTable().getSchemaName(),rel.getFkTable().getPhysicalName()) );
+			
 			print(" ADD CONSTRAINT ");
 			print(rel.getPhysicalName());
 			println("");
@@ -445,7 +447,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 			print(fkCols.toString());
 			println(")");
 			print("REFERENCES ");
-			printQualified(rel.getPkTable().getPhysicalName());
+			print( DDLUtils.toQualifiedName(rel.getPkTable().getCatalogName(),rel.getPkTable().getSchemaName(),rel.getPkTable().getPhysicalName()) );
 			print(" (");
 			print(pkCols.toString());
 			print(")");
@@ -506,36 +508,8 @@ public class GenericDDLGenerator implements DDLGenerator {
 		ddl.append(text);
 	}
 
-	/**
-	 * Appends the qualified name (with targetCatalog and
-	 * targetSchema, if present) to <code>ddl</code>, the internal
-	 * StringBuffer that accumulates the results of DDL generation.
-	 *
-	 * <p>Names are qualified with
-	 * <code>catalog.schema.object_name</code> "dot" notation.  If
-	 * your generator subclass is for a database that doesn't use dot
-	 * notation, override this method and do it differently.
-	 */
-	// NOT NEEDED ANYMORE?
-	protected void printQualifiedIdentifier(String text) {	
-		if (getTargetCatalog() != null && getTargetCatalog().length() > 0) {
-			ddl.append(getTargetCatalog()).append('.');
-		}
-		if (getTargetSchema() != null && getTargetSchema().length() > 0) {
-			ddl.append(getTargetSchema()).append('.');
-		}
-		appendIdentifier(ddl, text);
-	}
 
-	protected void printQualified(String text) {	
-		if (getTargetCatalog() != null && getTargetCatalog().length() > 0) {
-			ddl.append(getTargetCatalog()).append('.');
-		}
-		if (getTargetSchema() != null && getTargetSchema().length() > 0) {
-			ddl.append(getTargetSchema()).append('.');
-		}
-		print(text);
-	}
+
 
 	/**
 	 * Calls {@link #appendIdentifier} on <code>ddl</code>, the
