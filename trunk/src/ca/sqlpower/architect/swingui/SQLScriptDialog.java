@@ -84,6 +84,8 @@ public class SQLScriptDialog extends JDialog {
 		System.out.println("The list size is :" + statements.size());
 		add(buildPanel());
 		pack();
+		setLocationRelativeTo(parent);
+		
 	}
 
 	public SQLScriptDialog(Dialog owner, String title, String header, boolean modal,
@@ -100,12 +102,13 @@ public class SQLScriptDialog extends JDialog {
 		System.out.println("The list size is :" + statements.size());
 		add(buildPanel());
 		pack();
+		setLocationRelativeTo(parent);
 	}
 
 	private JPanel buildPanel() {
 		FormLayout sqlLayout = new FormLayout(
 				"4dlu, min:grow, 4dlu", //columns
-				"pref, 6dlu, fill:300dlu:grow,6dlu, 20dlu, 6dlu, 20dlu"); //rows		
+				"pref, 6dlu, fill:300dlu:grow,6dlu, pref, 6dlu, pref"); //rows		
 		
 		CellConstraints cc = new CellConstraints();
 		
@@ -190,9 +193,9 @@ public class SQLScriptDialog extends JDialog {
 		pb.add(new JLabel(header), cc.xy(2, 1));			
         pb.add(sp, cc.xy(2, 3));
     	pb.add(barBuilder.getPanel(), cc.xy(2, 5, "c,c"));
-		
+		pb.add(progressBar, cc.xy(2, 7));
+
 		return pb.getPanel();
-		
 	}
 	
 	public MonitorableWorker getExecuteTask() {
@@ -287,32 +290,17 @@ public class SQLScriptDialog extends JDialog {
 				con = target.getConnection();
 			} catch (ArchitectException ex) {
 				allIsWell = false;
-				final Exception fex = ex;
-				SwingUtilities.invokeLater(new Runnable() {
-					public void run() {
-						JOptionPane.showMessageDialog
-						(SQLScriptDialog.this,
-								"Couldn't connect to target database: "+fex.getMessage()
-								+"\nPlease check the connection settings and try again.");
-						ArchitectFrame.getMainInstance().playpen.showDbcsDialog();
-					}
-				});								
 				finished = true;
-				return;
+				throw new RuntimeException(
+						"Couldn't connect to target database: "+ex.getMessage()
+						+"\nPlease check the connection settings and try again.",
+						ex);
 			} catch (Exception ex) {
 				allIsWell = false;
-				logger.error("Unexpected exception in DDL generation", ex);
-				SwingUtilities.invokeLater(new Runnable() {
-					public void run() {
-						JOptionPane.showMessageDialog
-						(SQLScriptDialog.this,
-								"You have to specify a target database connection"
-								+"\nbefore executing this script.");
-						ArchitectFrame.getMainInstance().playpen.showDbcsDialog();
-					}
-				});								
 				finished = true;
-				return;
+				logger.error("Unexpected exception in DDL generation", ex);
+				throw new RuntimeException("You have to specify a target database connection"
+				+"\nbefore executing this script.");				
 			}
 			
 			try {
@@ -320,17 +308,10 @@ public class SQLScriptDialog extends JDialog {
 				stmt = con.createStatement();
 			} catch (SQLException ex) {
 				allIsWell = false;
-				final Exception fex = ex;
-				SwingUtilities.invokeLater(new Runnable() {
-					public void run() {
-						JOptionPane.showMessageDialog
-						(SQLScriptDialog.this,
-								"Couldn't generate DDL statements: "+fex.getMessage()
-								+"\nThe problem was reported by the target database.");
-					}
-				});								
 				finished = true;
-				return;
+				throw new RuntimeException("Couldn't generate DDL statements: "
+						+ex.getMessage()+"\nThe problem was reported by " +
+								"the target database.");								
 			}
 			
 			LogWriter logWriter = null;
@@ -339,18 +320,10 @@ public class SQLScriptDialog extends JDialog {
 				logWriter = new LogWriter(ArchitectSession.getInstance().getUserSettings().getDDLUserSettings().getDDLLogPath());
 			} catch (ArchitectException ex) {
 				allIsWell = false;				
-				final Exception fex = ex;
-				SwingUtilities.invokeLater(new Runnable() {
-					public void run() {
-						JOptionPane.showMessageDialog
-						(SQLScriptDialog.this,
-								"A problem with the DDL log file prevented\n"
-								+"DDL generation from running:\n\n"
-								+fex.getMessage());
-					}
-				});
 				finished = true;
-				return; // FIXME: this won't allow the next process to get invoked
+				final Exception fex = ex;
+				throw new RuntimeException("A problem with the DDL log file " +
+					"prevented\n DDL generation from running:\n\n"+fex.getMessage());								
 			}
 			
 			try {
@@ -398,12 +371,8 @@ public class SQLScriptDialog extends JDialog {
 						} catch (InvocationTargetException ex2) {
 							allIsWell = false;							
 							final Exception fex2 = ex2;
-							SwingUtilities.invokeLater(new Runnable() {
-								public void run() {
-									JOptionPane.showMessageDialog
-									(SQLScriptDialog.this, "Worker thread died: "+fex2.getMessage());
-								}
-							});
+							throw new RuntimeException("Worker thread died: "
+									+fex2.getMessage());							
 						}
 						
 						if (isCancelled()) {
