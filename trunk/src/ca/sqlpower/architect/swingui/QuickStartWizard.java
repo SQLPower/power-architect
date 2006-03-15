@@ -24,9 +24,9 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.PLExport;
-import ca.sqlpower.architect.swingui.ExportDDLAction.ConflictFinderProcess;
-import ca.sqlpower.architect.swingui.ExportDDLAction.ConflictResolverProcess;
-import ca.sqlpower.architect.swingui.ExportDDLAction.DDLExecutor;
+//import ca.sqlpower.architect.swingui.ExportDDLAction.ConflictFinderProcess;
+//import ca.sqlpower.architect.swingui.ExportDDLAction.ConflictResolverProcess;
+//import ca.sqlpower.architect.swingui.ExportDDLAction.DDLExecutor;
 import ca.sqlpower.architect.swingui.ExportPLTransAction.ExportTxProcess;
 import ca.sqlpower.architect.swingui.PlayPen.AddObjectsTask;
 
@@ -135,22 +135,26 @@ public class QuickStartWizard implements ArchitectWizard {
 			List statements = new ArrayList();
 			GenerateStatementsTask gst = new GenerateStatementsTask(statements,ddlg,p.getDatabase(),d);
 
+			// FIXME: might need to pull the Conflict Find/Resolve out of 
+			//        ExportDDLAction, or better yet use the CompareDM stuff instead!
+			
 			// 2. find conflicts
-			ConflictFinderProcess cfp = eda.new ConflictFinderProcess(
-					d, new SQLDatabase(plExport.getTargetDataSource()), 
-					ddlg, statements, 
-					wizardDialog.getProgressBar(), 
-					wizardDialog.getProgressLabel());				
-
-			// 3. resolve conflicts
-			ConflictResolverProcess crp = eda.new ConflictResolverProcess(d, cfp, 
-					wizardDialog.getProgressBar(), 
-					wizardDialog.getProgressLabel());
+//			ConflictFinderProcess cfp = eda.new ConflictFinderProcess(
+//					d, new SQLDatabase(plExport.getTargetDataSource()), 
+//					ddlg, statements, 
+//					wizardDialog.getProgressBar(), 
+//					wizardDialog.getProgressLabel());				
+//
+//			// 3. resolve conflicts
+//			ConflictResolverProcess crp = eda.new ConflictResolverProcess(d, cfp, 
+//					wizardDialog.getProgressBar(), 
+//					wizardDialog.getProgressLabel());
 
 			// 4. execute DDL 
-			DDLExecutor eDDL = eda.new DDLExecutor(d, statements, 
+			SQLScriptDialog eDDL = null;
+				/*eda.new DDLExecutor(d, statements, 
 					wizardDialog.getProgressBar(), 
-					wizardDialog.getProgressLabel());
+					wizardDialog.getProgressLabel());*/
 			
 			// 5. export PL Transactions (and run PL Transactions (if requested)
 			// got this far, so it's ok to run the PL Export thread
@@ -159,11 +163,11 @@ public class QuickStartWizard implements ArchitectWizard {
 					wizardDialog.getProgressLabel());
 						
 			// chain together the transactions
-			aot.setNextProcess(gst);
-			gst.setNextProcess(cfp);
-			cfp.setNextProcess(crp);
-			crp.setNextProcess(eDDL);
-		    eDDL.setNextProcess(etp);
+//			aot.setNextProcess(gst);
+//			gst.setNextProcess(cfp);
+//			cfp.setNextProcess(crp);
+//			crp.setNextProcess(eDDL);
+		  //  eDDL.setNextProcess(etp);
 			
 			// finally, kick off the process
 			new Thread(aot, "Wizard-Objects-Adder").start();		
