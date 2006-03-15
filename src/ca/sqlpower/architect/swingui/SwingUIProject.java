@@ -58,6 +58,7 @@ public class SwingUIProject {
 	protected GenericDDLGenerator ddlGenerator;
 	protected boolean savingEntireSource;
 	protected PLExport plExport;
+	protected CompareDMSettings compareDMSettings;
 
 	// ------------------ load and save support -------------------
 
@@ -134,10 +135,10 @@ public class SwingUIProject {
 		try {
 			ddlGenerator = new GenericDDLGenerator();
 		} catch (SQLException e) {
-			
 			throw new ArchitectException("SQL Error in ddlGenerator",e);
 		}
 		plExport = new PLExport();
+		compareDMSettings = new CompareDMSettings();
 	}
 
 	// ------------- READING THE PROJECT FILE ---------------
@@ -265,7 +266,10 @@ public class SwingUIProject {
 		d.addFactoryCreate("architect-project/ddl-generator", ddlgFactory);
 		d.addSetProperties("architect-project/ddl-generator");
 
-
+		d.addObjectCreate("architect-project/compare-dm-settings", CompareDMSettings.class);
+		d.addSetProperties("architect-project/compare-dm-settings");
+		d.addSetNext("architect-project/compare-dm-settings", "setCompareDMSettings");
+		
 		FileFactory fileFactory = new FileFactory();
 		d.addFactoryCreate("*/file", fileFactory);
 		d.addSetNext("*/file", "setFile");
@@ -684,6 +688,7 @@ public class SwingUIProject {
 			saveSourceDatabases(out);
 			saveTargetDatabase(out);
 			saveDDLGenerator(out);
+			saveCompareDMSettings(out);
 			savePlayPen(out);
 			indent--;
 			println(out, "</architect-project>");
@@ -768,6 +773,11 @@ public class SwingUIProject {
 		println(out, "</ddl-generator>");
 	}
 
+	protected void saveCompareDMSettings(PrintWriter out) throws IOException {
+		print(out, "<compare-dm-settings");
+		println(out, "/>");
+	}
+	
 	/**
 	 * Creates a &lt;source-databases&gt; element which contains zero
 	 * or more &lt;database&gt; elements.
@@ -1117,6 +1127,13 @@ public class SwingUIProject {
 		ddlGenerator = generator;
 	}
 
+	public CompareDMSettings getCompareDMSettings() {
+		return compareDMSettings;
+	}
+	public void setCompareDMSettings(CompareDMSettings compareDMSettings) {
+		this.compareDMSettings = compareDMSettings;
+	}
+	
 	/**
 	 * See {@link #savingEntireSource}.
 	 *
