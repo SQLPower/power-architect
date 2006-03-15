@@ -103,10 +103,10 @@ public class ProgressWatcher implements ActionListener {
 				logger.debug("monitorable.isFinished():" + monitorable.isFinished());
 				if (monitorable.isFinished()) {
 					if (label != null) {
-						label.setVisible(false);
+						label.setText("");
 					}
 					if (bar != null) {
-						bar.setVisible(false);
+						bar.setValue(0);
 					}
 					if (pm != null) {
 						logger.debug("pm done, max was: " + pm.getMaximum());
