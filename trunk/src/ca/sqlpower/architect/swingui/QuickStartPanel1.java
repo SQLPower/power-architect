@@ -82,7 +82,7 @@ public class QuickStartPanel1 implements WizardPanel {
 			TreePath tp = (TreePath) it.next();
 			Object lastObj = tp.getLastPathComponent();
 			if (lastObj instanceof SQLTable) {
-				logger.error("adding table: " + ((SQLTable)lastObj).getName());
+				logger.debug("adding table: " + ((SQLTable)lastObj).getName());
 				list.add(lastObj);
 			}
 		}
