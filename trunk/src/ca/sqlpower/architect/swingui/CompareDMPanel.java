@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.sql.SQLData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -57,6 +58,7 @@ import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
+import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
@@ -65,6 +67,9 @@ import ca.sqlpower.architect.diff.CompareSQL;
 import ca.sqlpower.architect.diff.DiffChunk;
 import ca.sqlpower.architect.diff.DiffType;
 import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
+import ca.sqlpower.architect.swingui.CompareDMPanel.SourceOrTargetStuff.CatalogPopulator;
+import ca.sqlpower.architect.swingui.CompareDMSettings.RadioButtonSelection;
+import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.debug.FormDebugPanel;
@@ -100,6 +105,12 @@ public class CompareDMPanel extends JPanel {
 	private SourceOrTargetStuff source = new SourceOrTargetStuff();
 
 	private SourceOrTargetStuff target = new SourceOrTargetStuff();
+	
+	/**
+	 * The project this panel works with (it's used for saving and restoring
+	 * the settings).
+	 */
+	private SwingUIProject project;
 
 	/**
 	 * Contains all of the properties and GUI components that relate to the
@@ -134,6 +145,8 @@ public class CompareDMPanel extends JPanel {
 		private JRadioButton loadRadio;
 
 		private JDialog newConnectionDialog;
+		
+		
 
 		/**
 		 * The last database returned by getDatabase(). Never access this
@@ -280,7 +293,7 @@ public class CompareDMPanel extends JPanel {
 
 				if (db.isCatalogContainer()) {
 					for (SQLObject item : (List<SQLObject>) db.getChildren()) {
-						catalogDropdown.addItem(item);
+						catalogDropdown.addItem(item);						
 					}
 
 					// check if we need to do schemas
@@ -485,7 +498,8 @@ public class CompareDMPanel extends JPanel {
 
 			loadFilePath = new JTextField();
 			loadFilePath.setName(prefix + "LoadFilePath");
-			loadFilePath.setEnabled(false);
+			
+			loadFilePath.setEnabled(false);			
 			loadFilePath.getDocument().addDocumentListener(
 					new DocumentListener() {
 						public void insertUpdate(DocumentEvent e) {
@@ -518,7 +532,7 @@ public class CompareDMPanel extends JPanel {
 			} else {
 				physicalRadio.doClick();
 			}
-
+			
 			// now give all our shiny new components to the builder
 			builder.append(playPenRadio);
 			builder.append("Current Project [" + project.getName() + "]");
@@ -702,12 +716,13 @@ public class CompareDMPanel extends JPanel {
 		return buttonPanel;
 	}
 
-	public CompareDMPanel() {
+	public CompareDMPanel(SwingUIProject project) {
+		this.project = project;
 		buildUI();
 	}
-
+	
 	private void buildUI() {
-
+		
 		progressBar = new JProgressBar();
 		progressBar.setIndeterminate(true);
 		progressBar.setVisible(false);
@@ -720,7 +735,7 @@ public class CompareDMPanel extends JPanel {
 		sqlButton.setName(OUTPUT_SQL);
 		sqlButton.setActionCommand(OUTPUT_SQL);
 		sqlButton.setSelected(true);
-		sqlButton.addActionListener(listener);
+		sqlButton.addActionListener(listener);		
 
 		englishButton = new JRadioButton();
 		englishButton.setName("englishButton");
@@ -817,7 +832,16 @@ public class CompareDMPanel extends JPanel {
 
 		setLayout(new BorderLayout());
 		add(builder.getPanel());
+		
+		try {
+			restoreSettingsFromProject();
+		} catch (ArchitectException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 	}
+
+
 
 	/**
 	 * Handles disabling and enabling the "DDL Type" dropdown box.
@@ -935,6 +959,7 @@ public class CompareDMPanel extends JPanel {
 			
 			startCompareAction.setEnabled(false);
 			
+			copySettingsToProject();
 
 			try {
 
@@ -1046,6 +1071,7 @@ public class CompareDMPanel extends JPanel {
 					SQLScriptDialog ssd = new SQLScriptDialog(ArchitectFrame.getMainInstance(),
 							"Compare DM",titleString,false,gen.getDdlStatements(),
 							db == null?null:db.getDataSource(), false);
+					ssd.setVisible(true);
 				} else {
 					String titleString = "Comparing " + left.getName() + " to "
 					+ right.getName() + " using English";
@@ -1279,6 +1305,67 @@ public class CompareDMPanel extends JPanel {
 		return source;
 	}
 
+	public void copySettingsToProject() {
+	}
+	
+	private void restoreSettingsFromProject() throws ArchitectException {
+		
+		CompareDMSettings s = project.getCompareDMSettings();
+		restoreSourceOrTargetSettingsFromProject(source,s.getSourceSettings());
+		restoreSourceOrTargetSettingsFromProject(target,s.getTargetSettings());
+	}
+	
+	
+	private void restoreSourceOrTargetSettingsFromProject(SourceOrTargetStuff source,
+			SourceOrTargetSettings set) throws ArchitectException {
+		
+		
+		
+		RadioButtonSelection rbs = set.getButtonSelection();
+		if ( rbs == CompareDMSettings.RadioButtonSelection.PROJECT )
+			source.playPenRadio.setSelected(true);
+		else if ( rbs == CompareDMSettings.RadioButtonSelection.DATABASE )
+			source.physicalRadio.setSelected(true);
+		else if ( rbs == CompareDMSettings.RadioButtonSelection.FILE )
+			source.loadRadio.setSelected(true);
+				
+		List<ArchitectDataSource> lds = ArchitectFrame.getMainInstance().getUserSettings().getConnections();		
+		for (ArchitectDataSource ds : lds){
+			if (ds.getDisplayName().equals(set.getConnectName())){
+				source.databaseDropdown.setSelectedItem(ds);
+				SQLDatabase db = new SQLDatabase(ds);
+				if ( db.isCatalogContainer() &&
+					set.getCatalog() != null &&
+					set.getCatalog().length() > 0 ) {
+					SQLCatalog cat = db.getCatalogByName(set.getCatalog());
+					if ( cat != null ) {
+						source.catalogDropdown.setSelectedItem(cat);
+						if ( cat.isSchemaContainer() &&
+							set.getSchema() != null &&
+							set.getSchema().length() > 0 ) {
+							SQLSchema schema = cat.getSchemaByName(set.getSchema());
+							if ( schema != null )
+								source.schemaDropdown.setSelectedItem(schema);
+						}
+					}
+				}
+				else if ( db.isSchemaContainer() &&
+						set.getSchema() != null &&
+						set.getSchema().length() > 0 ) {
+						SQLSchema schema = db.getSchemaByName(set.getSchema());
+					if ( schema != null )
+						source.schemaDropdown.setSelectedItem(schema);
+				}
+				
+				break;
+			}
+		}		
+		
+		
+		
+		
+	}
+
 	public SourceOrTargetStuff getTargetStuff() {
 		return target;
 	}
@@ -1295,7 +1382,7 @@ public class CompareDMPanel extends JPanel {
 		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
-				f.add(new CompareDMPanel());
+				f.add(new CompareDMPanel(null)); // FIXME: won't work
 				f.pack();
 				f.setVisible(true);
 			};
