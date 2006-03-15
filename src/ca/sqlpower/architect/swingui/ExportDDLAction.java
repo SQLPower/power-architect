@@ -58,11 +58,19 @@ public class ExportDDLAction extends AbstractAction {
 								JOptionPane.showMessageDialog(d, new JScrollPane(warningTable), "Warnings in generated DDL", JOptionPane.WARNING_MESSAGE);
 							}
 							
-							new SQLScriptDialog(d, "Preview SQL Script", "", false,
+							SQLDatabase ppdb = ArchitectFrame.getMainInstance().playpen.getDatabase();
+							SQLScriptDialog ssd = 
+								new SQLScriptDialog(d, "Preview SQL Script", "", false,
 									ddlg.getDdlStatements(),
-									architectFrame.getMainInstance().playpen.getDatabase().getDataSource(),
+									ppdb.getDataSource(),
 									true);
-							//showPreview(architectFrame.project.getDDLGenerator(), d);
+							MonitorableWorker scriptWorker = ssd.getExecuteTask();
+							ConflictFinderProcess cfp = new ConflictFinderProcess(ssd, ppdb, ddlg, ddlg.getDdlStatements());
+							ConflictResolverProcess crp = new ConflictResolverProcess(ssd, cfp);
+							cfp.setNextProcess(crp);
+							crp.setNextProcess(scriptWorker);
+							ssd.setExecuteTask(cfp);
+							ssd.setVisible(true);
 						}
 					} catch (Exception ex) {
 						JOptionPane.showMessageDialog
@@ -92,18 +100,14 @@ public class ExportDDLAction extends AbstractAction {
 		d.setVisible(true);
 	}
 
-
-	
-
-
 	/**
-	 * The ConflictFinderProcess uses a ConflictResolver (which it monitors with a progress bar)
-	 * to locate objects in the target database which need to be removed before a set of DDL statements
-	 * can be executed in it.
+	 * The ConflictFinderProcess uses a ConflictResolver (which it monitors with
+	 * a progress bar) to locate objects in the target database which need to be
+	 * removed before a set of DDL statements can be executed in it.
 	 * 
 	 * @author fuerth
 	 */
-	protected class ConflictFinderProcess implements Runnable {
+	private class ConflictFinderProcess extends MonitorableWorker {
 
 		JDialog parentDialog;
 		SQLDatabase target;
@@ -140,36 +144,35 @@ public class ExportDDLAction extends AbstractAction {
 		 * @param parentDialog The JDialog we're doing this in.
 		 * @param target The target database (where to search for the conflicts).
 		 * @param ddlg The DDL Generator that we're using.
-		 * @param nextProcess The next process to launch if everything goes ok.
 		 * @throws ArchitectException If there is a problem connecting to the target database
 		 * @throws SQLException If the conflict resolver chokes
 		 */
 		public ConflictFinderProcess(JDialog parentDialog, SQLDatabase target,
-				DDLGenerator ddlg, List statements, JProgressBar progressBar,
-				JLabel label) throws ArchitectException, SQLException {
+				DDLGenerator ddlg, List statements)
+			throws ArchitectException, SQLException {
 			super();
 			this.parentDialog = parentDialog;
 			this.target = target;
 			this.ddlg = ddlg;
 			this.statements = statements;
 
-			label.setText("Searching for conflicts...");
 			Connection con = target.getConnection();
 			cr = new ConflictResolver(con, ddlg, statements);
-			new ProgressWatcher(progressBar, cr, label);
 		}
 		
 		/**
-		 * @return True if and only if the user has asked for the conflicts to be deleted.
+		 * @return True if and only if the user has asked for the conflicts to
+		 *         be deleted.
 		 */
 		public boolean doesUserWantToDropConflicts() {
 			return shouldDropConflicts;
 		}
 
 		/**
-		 * This should run on its own thread (not the AWT event dispatch thread).  It will take a while.
+		 * This should run on its own thread (not the AWT event dispatch
+		 * thread). It will take a while.
 		 */
-		public void run() {
+		public void doStuff() {
 			if (cancelled) return;
 			try {
 				cr.findConflicting();
@@ -180,14 +183,13 @@ public class ExportDDLAction extends AbstractAction {
 				logger.error("Unexpected exception setting up DDL generation", ex);
 				nextProcess = new Runnable() {public void run() {ArchitectFrame.getMainInstance().playpen.showDbcsDialog();}};
 			}
-			SwingUtilities.invokeLater(new Runnable() {public void run() { runFinished(); }});
 		}
 		
 		/**
 		 * When the run() method is done, it schedules this method to be invoked on the AWT event
 		 * dispatch thread.
 		 */
-		private void runFinished() {
+		public void cleanup() {
 			if (!SwingUtilities.isEventDispatchThread()) {
 				logger.error("runFinished is running on the wrong thread!");
 			}
@@ -230,6 +232,30 @@ public class ExportDDLAction extends AbstractAction {
 		public void setNextProcess(Runnable v) {
 			this.nextProcess = v;
 		}
+
+		public Integer getJobSize() throws ArchitectException {
+			return cr.getJobSize();
+		}
+
+		public String getMessage() {
+			return cr.getMessage();
+		}
+
+		public int getProgress() throws ArchitectException {
+			return cr.getProgress();
+		}
+
+		public boolean hasStarted() {
+			return cr.hasStarted();
+		}
+
+		public boolean isFinished() throws ArchitectException {
+			return cr.isFinished();
+		}
+
+		public void setCancelled(boolean cancelled) {
+			cr.setCancelled(cancelled);
+		}
 	}
 
 	/**
@@ -240,12 +266,10 @@ public class ExportDDLAction extends AbstractAction {
 	 * @author fuerth
 	 * @version $Id$
 	 */
-	protected class ConflictResolverProcess implements Runnable {
+	private class ConflictResolverProcess extends MonitorableWorker {
 
 		private JDialog parentDialog;
 		private ConflictFinderProcess conflictFinder;
-		private JProgressBar progressBar;
-		private JLabel progressLabel;
 
 		private ConflictResolver cr;
 		private String errorMessage;
@@ -258,19 +282,15 @@ public class ExportDDLAction extends AbstractAction {
 		 * @param progressBar The progress bar we show our progress in
 		 * @param progressLabel The label where we say what we're doing
 		 */
-		public ConflictResolverProcess(JDialog d, ConflictFinderProcess cfp, JProgressBar progressBar, JLabel progressLabel) {
+		public ConflictResolverProcess(JDialog d, ConflictFinderProcess cfp) {
 			this.parentDialog = d;
 			this.conflictFinder = cfp;
-			this.progressBar = progressBar;
-			this.progressLabel = progressLabel;
 		}
 
-		public void run() {
+		public void doStuff() {
 			if (conflictFinder.doesUserWantToDropConflicts()) {
-				progressLabel.setText("Deleting Conflicts...");
 				cr = conflictFinder.getConflictResolver();
 				cr.aboutToCallDropConflicting();
-				new ProgressWatcher(progressBar, cr, progressLabel);
 				try {
 					cr.dropConflicting();
 				} catch (SQLException ex) {
@@ -279,7 +299,6 @@ public class ExportDDLAction extends AbstractAction {
 					error = ex;
 				}
 			}
-			SwingUtilities.invokeLater(new Runnable() {public void run(){runFinished();}});
 		}
 		
 		/**
@@ -287,7 +306,7 @@ public class ExportDDLAction extends AbstractAction {
 		 * thread. The run method asks swing to invoke this method on the event dispatch
 		 * thread after it's done.
 		 */
-		public void runFinished() {
+		public void cleanup() {
 			if (errorMessage != null) {
 				JOptionPane.showMessageDialog(parentDialog, errorMessage, "Error Dropping Conflicts", JOptionPane.ERROR_MESSAGE);
 				nextProcess = null;
@@ -296,6 +315,7 @@ public class ExportDDLAction extends AbstractAction {
 				new Thread(nextProcess).start();
 			}
 		}
+		
 		/**
 		 * See {@link #nextProcess}.
 		 */
@@ -307,6 +327,30 @@ public class ExportDDLAction extends AbstractAction {
 		 */
 		public void setNextProcess(Runnable nextProcess) {
 			this.nextProcess = nextProcess;
+		}
+
+		public Integer getJobSize() throws ArchitectException {
+			return cr.getJobSize();
+		}
+
+		public String getMessage() {
+			return cr.getMessage();
+		}
+
+		public int getProgress() throws ArchitectException {
+			return cr.getProgress();
+		}
+
+		public boolean hasStarted() {
+			return cr.hasStarted();
+		}
+
+		public boolean isFinished() throws ArchitectException {
+			return cr.isFinished();
+		}
+
+		public void setCancelled(boolean cancelled) {
+			cr.setCancelled(cancelled);
 		}
 	}
 
