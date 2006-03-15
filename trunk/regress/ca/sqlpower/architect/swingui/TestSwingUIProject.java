@@ -29,6 +29,7 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.swingui.CompareDMSettings;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.DBTreeModel;
 import ca.sqlpower.architect.swingui.SwingUIProject;
@@ -557,5 +558,22 @@ public class TestSwingUIProject extends ArchitectTestCase {
 	
 	public void testSetModified() {
 		// TODO: implement test
+	}
+	
+	public void testSaveCoversCompareDMSettings() throws Exception {
+		testLoad();
+		CompareDMSettings cds = project.getCompareDMSettings();
+		
+		File tmp = File.createTempFile("test", ".architect");
+		if (deleteOnExit) {
+			tmp.deleteOnExit();
+		}
+		PrintWriter out = new PrintWriter(tmp);
+		assertNotNull(out);
+		project.save(out);
+		
+		SwingUIProject project2 = new SwingUIProject("new test project");
+		project2.load(new BufferedInputStream(new FileInputStream(tmp)));
+		
 	}
 }

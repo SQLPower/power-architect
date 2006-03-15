@@ -20,6 +20,7 @@ import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.swingui.CompareDMPanel;
+import ca.sqlpower.architect.swingui.SwingUIProject;
 
 public class TestCompareDMPanel extends JFCTestCase {
 
@@ -52,7 +53,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 		super.setUp();
 		
 		setHelper(new JFCTestHelper());
-		panel = new CompareDMPanel();
+		panel = new CompareDMPanel(new SwingUIProject("test"));
 		robot = new Robot();
 		
 		Component comps[] = ((Container) panel.getComponent(0)).getComponents();
