@@ -60,7 +60,7 @@ public class SQLCatalog extends SQLObject {
 	 * @return The schema in this catalog with the given name, or null
 	 * if no such schema exists.
 	 */
-	protected SQLSchema getSchemaByName(String schemaName) throws ArchitectException {
+	public SQLSchema getSchemaByName(String schemaName) throws ArchitectException {
 		if (!isSchemaContainer()) {
 			return null;
 		}
