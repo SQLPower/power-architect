@@ -51,23 +51,15 @@ import com.jgoodies.forms.debug.FormDebugPanel;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class SQLScriptDialog extends JDialog implements Monitorable, Runnable {
+public class SQLScriptDialog extends JDialog {
 
 	private static final Logger logger = Logger.getLogger(SQLScriptDialog.class);
 	
 	private List<DDLStatement> statements;
 	private JProgressBar progressBar = new JProgressBar();
 
-	private Runnable nextProcess;
-
 	private Component parent;
 	private String header;
-	private int stmtsTried = 0;
-	private int stmtsCompleted = 0;
-	private boolean finished = false;
-	private boolean cancelled = false;
-	private boolean hasStarted = false;
-	private boolean allIsWell = true; // TODO: consolidate error messages into a single block?
 	private JLabel statusLabel; // FIXME: rename to statusLabel
 	private ArchitectDataSource targetDataSource;
 	
@@ -76,7 +68,7 @@ public class SQLScriptDialog extends JDialog implements Monitorable, Runnable {
 
 	private boolean closeParent;
 
-	
+	private MonitorableWorker executeTask = new ExecuteSQLScriptWorker();
 	
 	public SQLScriptDialog(Frame owner, String title, String header, boolean modal,
 			List<DDLStatement> statements, ArchitectDataSource targetDataSource,
@@ -89,13 +81,9 @@ public class SQLScriptDialog extends JDialog implements Monitorable, Runnable {
 		this.statements = statements;
 		this.targetDataSource = targetDataSource;
 		this.closeParent = closeParent;
-		System.out.println ("The list size is :" + statements.size());
-		add (buildPanel());
+		System.out.println("The list size is :" + statements.size());
+		add(buildPanel());
 		pack();
-		setVisible(true);
-		
-		
-
 	}
 
 	public SQLScriptDialog(Dialog owner, String title, String header, boolean modal,
@@ -109,10 +97,9 @@ public class SQLScriptDialog extends JDialog implements Monitorable, Runnable {
 		this.statements = statements;
 		this.targetDataSource = targetDataSource;
 		this.closeParent = closeParent;
-		System.out.println ("The list size is :" + statements.size());
-		add (buildPanel());
+		System.out.println("The list size is :" + statements.size());
+		add(buildPanel());
 		pack();
-		setVisible(true);
 	}
 
 	private JPanel buildPanel() {
@@ -143,14 +130,12 @@ public class SQLScriptDialog extends JDialog implements Monitorable, Runnable {
 		sqlScriptArea.setAutoscrolls(true);
 		JScrollPane sp = new JScrollPane(sqlScriptArea);
 		
-		Action copy = new copyAction(sqlDoc);
+		Action copy = new CopyAction(sqlDoc);
 		Action execute = null;
 		if ( targetDataSource != null ) {
 			execute = new AbstractAction(){
 				public void actionPerformed(ActionEvent e) {
-					cancelled = false;
-					finished = false;
-					new Thread(SQLScriptDialog.this).start();
+					new Thread(executeTask).start();
 				}			
 			};
 		}
@@ -182,9 +167,8 @@ public class SQLScriptDialog extends JDialog implements Monitorable, Runnable {
 		barBuilder.addGridded(executeButton);		
 		barBuilder.addRelatedGap();
 		barBuilder.addGlue();
+
 		if ( execute == null ) {
-			
-			
 			executeButton.setEnabled(false);
 		}
 		
@@ -200,8 +184,6 @@ public class SQLScriptDialog extends JDialog implements Monitorable, Runnable {
 		
 		PanelBuilder pb;
 
-
-
 		JPanel panel = logger.isDebugEnabled() ? new FormDebugPanel(sqlLayout) : new JPanel(sqlLayout);
 		pb = new PanelBuilder(sqlLayout, panel);			
 		pb.setDefaultDialogBorder();	
@@ -213,11 +195,28 @@ public class SQLScriptDialog extends JDialog implements Monitorable, Runnable {
 		
 	}
 	
-	public class copyAction extends AbstractAction{
+	public MonitorableWorker getExecuteTask() {
+		return executeTask;
+	}
+	
+	/**
+	 * Changes the task that will be invoked by the "execute" button on this
+	 * dialog.  If you want your task to run before the normal script execution,
+	 * you should call {@link #getExecuteTask()} and chain that task onto the
+	 * one you specify here.
+	 * 
+	 * @param v The task to execute when the "execute" button is clicked.
+	 */
+	public void setExecuteTask(MonitorableWorker v) {
+		executeTask = v;
+	}
+	
+	// ============== Nested classes follow ================
+	
+	private class CopyAction extends AbstractAction {
 
 		AbstractDocument doc;
-		public copyAction(AbstractDocument doc)
-		{
+		public CopyAction(AbstractDocument doc) {
 			this.doc = doc;
 		}
 		
@@ -233,7 +232,6 @@ public class SQLScriptDialog extends JDialog implements Monitorable, Runnable {
 		}			
 	}
 	
-	
 	public class CloseAction extends AbstractAction {	
 
 		Component c;
@@ -248,250 +246,269 @@ public class SQLScriptDialog extends JDialog implements Monitorable, Runnable {
 		}						
 	}
 	
-	/**
-	 * This method runs on a separate worker thread.
-	 */
-	public void run() {
-		hasStarted = true;
-		if (cancelled || finished) return;
-		statusLabel.setText("Creating objects in target database...");
-		ProgressWatcher pw = new ProgressWatcher(progressBar, this, statusLabel);
-		stmtsTried = 0;
-		stmtsCompleted = 0;
-		SQLDatabase target = new SQLDatabase(targetDataSource);
+	private class ExecuteSQLScriptWorker extends MonitorableWorker {
 		
-		logger.debug("the Target Database is: " + target.getDataSource());
-		
-		Connection con;
-		Statement stmt;
-		
-		try {
-			con = target.getConnection();
-		} catch (ArchitectException ex) {
-			allIsWell = false;
-			final Exception fex = ex;
-			SwingUtilities.invokeLater(new Runnable() {
-				public void run() {
-					JOptionPane.showMessageDialog
-					(SQLScriptDialog.this,
-							"Couldn't connect to target database: "+fex.getMessage()
-							+"\nPlease check the connection settings and try again.");
-					ArchitectFrame.getMainInstance().playpen.showDbcsDialog();
-				}
-			});								
-			finished = true;
-			return;
-		} catch (Exception ex) {
-			allIsWell = false;
-			logger.error("Unexpected exception in DDL generation", ex);
-			SwingUtilities.invokeLater(new Runnable() {
-				public void run() {
-					JOptionPane.showMessageDialog
-					(SQLScriptDialog.this,
-							"You have to specify a target database connection"
-							+"\nbefore executing this script.");
-					ArchitectFrame.getMainInstance().playpen.showDbcsDialog();
-				}
-			});								
-			finished = true;
-			return;
-		}
-		
-		try {
-			logger.debug("the connection thinks it is: " + con.getMetaData().getURL());
-			stmt = con.createStatement();
-		} catch (SQLException ex) {
-			allIsWell = false;
-			final Exception fex = ex;
-			SwingUtilities.invokeLater(new Runnable() {
-				public void run() {
-					JOptionPane.showMessageDialog
-					(SQLScriptDialog.this,
-							"Couldn't generate DDL statements: "+fex.getMessage()
-							+"\nThe problem was reported by the target database.");
-				}
-			});								
-			finished = true;
-			return;
-		}
+		private Runnable nextProcess;
+		private int stmtsTried = 0;
+		private int stmtsCompleted = 0;
+		private boolean finished = false;
+		private boolean cancelled = false;
+		private boolean hasStarted = false;
+		private boolean allIsWell = true; // TODO: consolidate error messages into a single block?
 
-		LogWriter logWriter = null;
-		
-		try {
-			logWriter = new LogWriter(ArchitectSession.getInstance().getUserSettings().getDDLUserSettings().getDDLLogPath());
-		} catch (ArchitectException ex) {
-			allIsWell = false;				
-			final Exception fex = ex;
+
+		/**
+		 * This method runs on a separate worker thread.
+		 * 
+		 * <p>
+		 * FIXME: this displays a lot of error dialogs on its own, because it
+		 * used to not implement ArchitectSwingWorker.  The right way of doing
+		 * this is to throw an exception, and pick up and handle exceptions from
+		 * where we started the worker thread (using getDoStuffException())
+		 */
+		public void doStuff() {
+			cancelled = false;
+			finished = false;
+
+			hasStarted = true;
+			if (cancelled || finished) return;
+			statusLabel.setText("Creating objects in target database...");
+			ProgressWatcher pw = new ProgressWatcher(progressBar, this, statusLabel);
+			stmtsTried = 0;
+			stmtsCompleted = 0;
+			SQLDatabase target = new SQLDatabase(targetDataSource);
+			
+			logger.debug("the Target Database is: " + target.getDataSource());
+			
+			Connection con;
+			Statement stmt;
+			
+			try {
+				con = target.getConnection();
+			} catch (ArchitectException ex) {
+				allIsWell = false;
+				final Exception fex = ex;
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						JOptionPane.showMessageDialog
+						(SQLScriptDialog.this,
+								"Couldn't connect to target database: "+fex.getMessage()
+								+"\nPlease check the connection settings and try again.");
+						ArchitectFrame.getMainInstance().playpen.showDbcsDialog();
+					}
+				});								
+				finished = true;
+				return;
+			} catch (Exception ex) {
+				allIsWell = false;
+				logger.error("Unexpected exception in DDL generation", ex);
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						JOptionPane.showMessageDialog
+						(SQLScriptDialog.this,
+								"You have to specify a target database connection"
+								+"\nbefore executing this script.");
+						ArchitectFrame.getMainInstance().playpen.showDbcsDialog();
+					}
+				});								
+				finished = true;
+				return;
+			}
+			
+			try {
+				logger.debug("the connection thinks it is: " + con.getMetaData().getURL());
+				stmt = con.createStatement();
+			} catch (SQLException ex) {
+				allIsWell = false;
+				final Exception fex = ex;
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						JOptionPane.showMessageDialog
+						(SQLScriptDialog.this,
+								"Couldn't generate DDL statements: "+fex.getMessage()
+								+"\nThe problem was reported by the target database.");
+					}
+				});								
+				finished = true;
+				return;
+			}
+			
+			LogWriter logWriter = null;
+			
+			try {
+				logWriter = new LogWriter(ArchitectSession.getInstance().getUserSettings().getDDLUserSettings().getDDLLogPath());
+			} catch (ArchitectException ex) {
+				allIsWell = false;				
+				final Exception fex = ex;
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						JOptionPane.showMessageDialog
+						(SQLScriptDialog.this,
+								"A problem with the DDL log file prevented\n"
+								+"DDL generation from running:\n\n"
+								+fex.getMessage());
+					}
+				});
+				finished = true;
+				return; // FIXME: this won't allow the next process to get invoked
+			}
+			
+			try {
+				logWriter.info("Starting DDL Generation at " + new java.util.Date(System.currentTimeMillis()));
+				logWriter.info("Database Target: " + target.getDataSource());
+				logWriter.info("Playpen Dump: " + target.getDataSource());
+				
+				
+				Iterator it = statements.iterator();
+				while (it.hasNext() && !finished) {
+					DDLStatement ddlStmt = (DDLStatement) it.next();
+					try {
+						stmtsTried++;
+						logWriter.info("executing: " + ddlStmt.getSQLText());		
+						stmt.executeUpdate(ddlStmt.getSQLText());
+						stmtsCompleted++;
+					} catch (SQLException ex) {
+						allIsWell = false;						
+						final Exception fex = ex;
+						final String fsql = ddlStmt.getSQLText();
+						final LogWriter fLogWriter = logWriter; 
+						logWriter.info("sql statement failed: " + ex.getMessage());
+						try {
+							SwingUtilities.invokeAndWait(new Runnable() {						
+								public void run() {
+									JTextArea jta = new JTextArea(fsql,25,40);
+									jta.setEditable(false);
+									JScrollPane jsp = new JScrollPane(jta);
+									JLabel errorLabel = new JLabel("<html>This SQL statement failed: "+fex.getMessage()
+											+"<p>Do you want to continue?</html>");
+									JPanel jp = new JPanel(new BorderLayout());
+									jp.add(jsp,BorderLayout.CENTER);
+									jp.add(errorLabel,BorderLayout.SOUTH);
+									int decision = JOptionPane.showConfirmDialog
+									(SQLScriptDialog.this, jp, "SQL Failure", JOptionPane.YES_NO_OPTION);
+									if (decision == JOptionPane.NO_OPTION) {
+										fLogWriter.info("Export cancelled by user.");
+										cancelJob();
+									}
+								}
+							});
+						} catch (InterruptedException ex2) {
+							allIsWell = false;
+							logger.warn("DDL Worker was interrupted during InvokeAndWait", ex2);
+						} catch (InvocationTargetException ex2) {
+							allIsWell = false;							
+							final Exception fex2 = ex2;
+							SwingUtilities.invokeLater(new Runnable() {
+								public void run() {
+									JOptionPane.showMessageDialog
+									(SQLScriptDialog.this, "Worker thread died: "+fex2.getMessage());
+								}
+							});
+						}
+						
+						if (isCancelled()) {
+							finished = true;
+							// don't return, we might as well display how many statements ended up being processed...
+						}
+					} 
+				}
+				
+			} finally {
+				// flush and close the LogWriter
+				logWriter.info("Successfully executed "+stmtsCompleted+" out of "+stmtsTried+" statements.");
+				logWriter.flush();
+				logWriter.close();
+			}
+			
+			try {
+				stmt.close();
+			} catch (SQLException ex) {
+				logger.error("SQLException while closing statement", ex);
+			}			
+			
+			// show them what they've won!	
 			SwingUtilities.invokeLater(new Runnable() {
 				public void run() {
-					JOptionPane.showMessageDialog
-					(SQLScriptDialog.this,
-							"A problem with the DDL log file prevented\n"
-							+"DDL generation from running:\n\n"
-							+fex.getMessage());
+					String message =  "Successfully executed "+stmtsCompleted+" out of "+stmtsTried+" statements.";
+					if (stmtsCompleted == 0 && stmtsTried > 0) {
+						message += ("\nBetter luck next time!");
+					}
+					JOptionPane.showMessageDialog(SQLScriptDialog.this, message);
 				}
 			});
+			
 			finished = true;
-			return; // FIXME: this won't allow the next process to get invoked
+			
 		}
 		
-		try {
-			logWriter.info("Starting DDL Generation at " + new java.util.Date(System.currentTimeMillis()));
-			logWriter.info("Database Target: " + target.getDataSource());
-			logWriter.info("Playpen Dump: " + target.getDataSource());
-			
-			
-			Iterator it = statements.iterator();
-			while (it.hasNext() && !finished) {
-				DDLStatement ddlStmt = (DDLStatement) it.next();
-				try {
-					stmtsTried++;
-					logWriter.info("executing: " + ddlStmt.getSQLText());		
-					stmt.executeUpdate(ddlStmt.getSQLText());
-					stmtsCompleted++;
-				} catch (SQLException ex) {
-					allIsWell = false;						
-					final Exception fex = ex;
-					final String fsql = ddlStmt.getSQLText();
-					final LogWriter fLogWriter = logWriter; 
-					logWriter.info("sql statement failed: " + ex.getMessage());
-					try {
-						SwingUtilities.invokeAndWait(new Runnable() {						
-							public void run() {
-								JTextArea jta = new JTextArea(fsql,25,40);
-								jta.setEditable(false);
-								JScrollPane jsp = new JScrollPane(jta);
-								JLabel errorLabel = new JLabel("<html>This SQL statement failed: "+fex.getMessage()
-										+"<p>Do you want to continue?</html>");
-								JPanel jp = new JPanel(new BorderLayout());
-								jp.add(jsp,BorderLayout.CENTER);
-								jp.add(errorLabel,BorderLayout.SOUTH);
-								int decision = JOptionPane.showConfirmDialog
-								(SQLScriptDialog.this, jp, "SQL Failure", JOptionPane.YES_NO_OPTION);
-								if (decision == JOptionPane.NO_OPTION) {
-									fLogWriter.info("Export cancelled by user.");
-									cancelJob();
-								}
-							}
-						});
-					} catch (InterruptedException ex2) {
-						allIsWell = false;
-						logger.warn("DDL Worker was interrupted during InvokeAndWait", ex2);
-					} catch (InvocationTargetException ex2) {
-						allIsWell = false;							
-						final Exception fex2 = ex2;
-						SwingUtilities.invokeLater(new Runnable() {
-							public void run() {
-								JOptionPane.showMessageDialog
-								(SQLScriptDialog.this, "Worker thread died: "+fex2.getMessage());
-							}
-						});
-					}
-					
-					if (isCancelled()) {
-						finished = true;
-						// don't return, we might as well display how many statements ended up being processed...
-					}
-				} 
-			}
-			
-		} finally {
-			// flush and close the LogWriter
-			logWriter.info("Successfully executed "+stmtsCompleted+" out of "+stmtsTried+" statements.");
-			logWriter.flush();
-			logWriter.close();
-		}
-		
-		try {
-			stmt.close();
-		} catch (SQLException ex) {
-			logger.error("SQLException while closing statement", ex);
-		}			
-		
-		// show them what they've won!	
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				String message =  "Successfully executed "+stmtsCompleted+" out of "+stmtsTried+" statements.";
-				if (stmtsCompleted == 0 && stmtsTried > 0) {
-					message += ("\nBetter luck next time!");
+		/**
+		 * Displays error messages or invokes the next process in the chain on a new
+		 * thread. The run method asks swing to invoke this method on the event dispatch
+		 * thread after it's done.
+		 */
+		public void cleanup() {
+			if (allIsWell) {
+				if (nextProcess != null) {
+					new Thread(nextProcess).start();
 				}
-				JOptionPane.showMessageDialog(SQLScriptDialog.this, message);
-			}
-		});
-		
-		finished = true;
-		
-		SwingUtilities.invokeLater(new Runnable() {public void run(){runFinished();}});
-	}
-	
-	/**
-	 * Displays error messages or invokes the next process in the chain on a new
-	 * thread. The run method asks swing to invoke this method on the event dispatch
-	 * thread after it's done.
-	 */
-	public void runFinished() {
-		if (allIsWell) {
-			if (nextProcess != null) {
-				new Thread(nextProcess).start();
 			}
 		}
-	}
-	
-	/**
-	 * @return Returns the nextProcess.
-	 */
-	public Runnable getNextProcess() {
-		return nextProcess;
-	}
-	/**
-	 * @param nextProcess The nextProcess to set.
-	 */
-	public void setNextProcess(Runnable nextProcess) {
-		this.nextProcess = nextProcess;
-	}
-
-	
-	// ============= Monitorable Interface =============
-	
-	public Integer getJobSize() throws ArchitectException {			
-		if (statements != null) {
-			return new Integer(statements.size());
-		} else {
+		
+		/**
+		 * @return Returns the nextProcess.
+		 */
+		public Runnable getNextProcess() {
+			return nextProcess;
+		}
+		/**
+		 * @param nextProcess The nextProcess to set.
+		 */
+		public void setNextProcess(Runnable nextProcess) {
+			this.nextProcess = nextProcess;
+		}
+		
+		
+		// ============= Monitorable Interface =============
+		
+		public Integer getJobSize() throws ArchitectException {			
+			if (statements != null) {
+				return new Integer(statements.size());
+			} else {
+				return null;
+			}
+		}
+		
+		public int getProgress() throws ArchitectException {
+			return stmtsTried;			
+		}
+		
+		public boolean isFinished() throws ArchitectException {
+			return finished;
+		}
+		
+		public String getMessage() {
 			return null;
 		}
-	}
-	
-	public int getProgress() throws ArchitectException {
-		return stmtsTried;			
-	}
-	
-	public boolean isFinished() throws ArchitectException {
-		return finished;
-	}
-	
-	public String getMessage() {
-		return null;
-	}
-	
-	public void cancelJob() {
-		cancelled = true;
-		finished = true;
-	}
-	
-	public boolean isCancelled() {
-		return cancelled;
-	}
-	
-	public void setCancelled(boolean cancelled) {
-		this.cancelled = cancelled;
-	}
-	
-	public boolean hasStarted() {
-		return hasStarted;
-	}
-
-	public void setHasStarted(boolean hasStarted) {
-		this.hasStarted = hasStarted;
-	}
-	
+		
+		public void cancelJob() {
+			cancelled = true;
+			finished = true;
+		}
+		
+		public boolean isCancelled() {
+			return cancelled;
+		}
+		
+		public void setCancelled(boolean cancelled) {
+			this.cancelled = cancelled;
+		}
+		
+		public boolean hasStarted() {
+			return hasStarted;
+		}
+		
+		public void setHasStarted(boolean hasStarted) {
+			this.hasStarted = hasStarted;
+		}
+	}	
 }
