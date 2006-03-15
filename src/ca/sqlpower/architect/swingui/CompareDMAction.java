@@ -32,7 +32,7 @@ public class CompareDMAction extends AbstractAction {
 		JPanel cp = new JPanel(new BorderLayout(12,12));
 		cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
 		
-		final CompareDMPanel compareDMPanel = new CompareDMPanel();
+		final CompareDMPanel compareDMPanel = new CompareDMPanel(architectFrame.project);
 		cp.add(compareDMPanel, BorderLayout.CENTER);
 
 //		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
