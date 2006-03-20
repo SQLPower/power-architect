@@ -13,6 +13,9 @@ import java.awt.Frame;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Iterator;
+import java.util.Vector;
+
 import javax.swing.*;
 
 
@@ -104,9 +107,16 @@ public class WizardDialog extends JDialog {
 			public void actionPerformed(ActionEvent evt) {
 				WizardPanel wp = getWizard().getCurrent();
 				if (wp.applyChanges()) {
-					if (getWizard().isOnLastPanel()) {
-						getWizard().execute(d);
+					if (getWizard().isOnLastPanel()){
+						
+						setVisible(false);
 					} else {
+						if (getWizard().isOnExecutePanel()) {
+					
+							nextButton.setEnabled(false);
+							getWizard().execute(d);
+							nextButton.setEnabled(true);
+						}
 						setWizardPanel(getWizard().getNext());
 						refreshButtons();
 					}
@@ -137,25 +147,23 @@ public class WizardDialog extends JDialog {
 		customPanel.add(panel.getPanel());		
 		customPanel.revalidate();
 		customPanel.repaint();
-		/*
-		top.revalidate();
-		d.setSize(top.getPreferredSize());
-		*/
-
-		//
 		setTitle(panel.getTitle());
 	}
 		
 	private void refreshButtons() {
+		backButton.setVisible(true);
 		if (getWizard().isOnLastPanel()) {
-			nextButton.setText("Finish");
+			nextButton.setText("Close");
+			backButton.setVisible(false);
+			cancelButton.setVisible(false);
+		} else if ( getWizard().isOnExecutePanel() ) {
+			nextButton.setText("Execute");
 		} else { 
 			nextButton.setText("Next >");
 		}
+		
 		if (getWizard().isOnFirstPanel()) {
 			backButton.setVisible(false);
-		} else {
-			backButton.setVisible(true);
 		}
 	}
 
@@ -168,4 +176,23 @@ public class WizardDialog extends JDialog {
 	public ArchitectWizard getWizard() {
 		return wizard;
 	}
+	
+	public static void refreshTargetConnections (JComboBox targetConnectionsBox,
+									ListCellRenderer dataSourceRenderer) {
+		
+		
+		
+		Vector connections = new Vector();
+		connections.add(null);
+		Iterator it = ArchitectFrame.getMainInstance().getUserSettings().getConnections().iterator();
+		while (it.hasNext()) {
+			connections.add(it.next());
+		}
+		Object selectedConnection = targetConnectionsBox.getSelectedItem();
+		targetConnectionsBox.setModel(new DefaultComboBoxModel(connections));
+		if (selectedConnection != null) {
+			targetConnectionsBox.setSelectedItem(selectedConnection);
+		}
+		targetConnectionsBox.setRenderer(dataSourceRenderer);
+	}		
 }
