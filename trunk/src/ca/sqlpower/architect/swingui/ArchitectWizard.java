@@ -20,7 +20,8 @@ public interface ArchitectWizard {
 	public WizardPanel getNext();
 	public WizardPanel getPrevious();
 	public WizardPanel getCurrent();	
-	public boolean isOnLastPanel(); 	
+	public boolean isOnLastPanel();
+	public boolean isOnExecutePanel();
 	public boolean isOnFirstPanel();
 	public String getTitle();
 	public void execute(JDialog d);

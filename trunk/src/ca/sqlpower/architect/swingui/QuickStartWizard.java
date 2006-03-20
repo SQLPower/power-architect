@@ -7,7 +7,14 @@
  */
 package ca.sqlpower.architect.swingui;
 import java.awt.Point;
-import java.util.*;
+import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
@@ -24,9 +31,8 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.PLExport;
-//import ca.sqlpower.architect.swingui.ExportDDLAction.ConflictFinderProcess;
-//import ca.sqlpower.architect.swingui.ExportDDLAction.ConflictResolverProcess;
-//import ca.sqlpower.architect.swingui.ExportDDLAction.DDLExecutor;
+import ca.sqlpower.architect.swingui.ExportDDLAction.ConflictFinderProcess;
+import ca.sqlpower.architect.swingui.ExportDDLAction.ConflictResolverProcess;
 import ca.sqlpower.architect.swingui.ExportPLTransAction.ExportTxProcess;
 import ca.sqlpower.architect.swingui.PlayPen.AddObjectsTask;
 
@@ -70,6 +76,12 @@ public class QuickStartWizard implements ArchitectWizard {
 			panels.add(currentPanel);			
 		} else if (panels.indexOf(currentPanel) == 1) {
 			currentPanel = new QuickStartPanel3(this);			
+			panels.add(currentPanel);
+		}else if (panels.indexOf(currentPanel) == 2) {
+			currentPanel = new QuickStartPanel4(this);			
+			panels.add(currentPanel);			
+		}else if (panels.indexOf(currentPanel) == 3) {
+			currentPanel = new QuickStartPanel5(this);			
 			panels.add(currentPanel);			
 		} else {
 			// can't get here, so throw a runtime exception
@@ -92,11 +104,20 @@ public class QuickStartWizard implements ArchitectWizard {
 	}
 	
 	public boolean isOnLastPanel() {
-		if (panels.indexOf(currentPanel) == 2) {
+		if (panels.indexOf(currentPanel) == 4) {
 			return true;
 		} else {
 			return false;		
 		}
+	}
+	
+	public boolean isOnExecutePanel(){
+		if (panels.indexOf(currentPanel) == 3) {
+			return true;
+		} else {
+			return false;		
+		}
+		
 	}
 	
 	public boolean isOnFirstPanel() {
@@ -117,7 +138,13 @@ public class QuickStartWizard implements ArchitectWizard {
 			Class selectedGeneratorClass = (Class) ddlGeneratorMap.get(plExport.getTargetDataSource().getDriverClass());
 			GenericDDLGenerator ddlg = (GenericDDLGenerator) selectedGeneratorClass.newInstance();
 			WizardDialog wizardDialog = (WizardDialog) d;
+			
+		
+			ArchitectFrame.getMainInstance().getProject().setModified(false);
+			ArchitectFrame.getMainInstance().newProjectAction.actionPerformed(new ActionEvent(this,0,null));
 			PlayPen p = ArchitectFrame.getMainInstance().getProject().getPlayPen();
+
+			
 			ExportDDLAction eda = (ExportDDLAction) ArchitectFrame.getMainInstance().exportDDLAction;
 			ExportPLTransAction epta = (ExportPLTransAction) ArchitectFrame.getMainInstance().exportPLTransAction;
 									
@@ -135,16 +162,41 @@ public class QuickStartWizard implements ArchitectWizard {
 			List statements = new ArrayList();
 			GenerateStatementsTask gst = new GenerateStatementsTask(statements,ddlg,p.getDatabase(),d);
 
+			SQLScriptDialog ssd = 
+				new SQLScriptDialog(d, "Preview SQL Script",
+					"The Architect will create these tables:", false,
+					statements,
+					plExport.getTargetDataSource(),
+					false);
+			MonitorableWorker scriptWorker = ssd.getExecuteTask();
+			
+			ExportDDLAction ea = new ExportDDLAction();
+			
+			ConflictFinderProcess cfp = ea.new ConflictFinderProcess(d,
+					new SQLDatabase(plExport.getTargetDataSource()),
+					ddlg, statements);
+			ConflictResolverProcess crp = ea.new ConflictResolverProcess(d, cfp);
+			cfp.setNextProcess(crp);
+			crp.setNextProcess(scriptWorker);
+			ssd.setExecuteTask(cfp);
+
+			
+			
+			
+			
+			
+			
+			
 			// FIXME: might need to pull the Conflict Find/Resolve out of 
 			//        ExportDDLAction, or better yet use the CompareDM stuff instead!
 			
 			// 2. find conflicts
-//			ConflictFinderProcess cfp = eda.new ConflictFinderProcess(
-//					d, new SQLDatabase(plExport.getTargetDataSource()), 
-//					ddlg, statements, 
-//					wizardDialog.getProgressBar(), 
-//					wizardDialog.getProgressLabel());				
-//
+/*			ConflictFinderProcess cfp = eda.new ConflictFinderProcess(
+					d, new SQLDatabase(plExport.getTargetDataSource()), 
+					ddlg, statements, 
+					wizardDialog.getProgressBar(), 
+					wizardDialog.getProgressLabel());*/				
+
 //			// 3. resolve conflicts
 //			ConflictResolverProcess crp = eda.new ConflictResolverProcess(d, cfp, 
 //					wizardDialog.getProgressBar(), 
@@ -281,28 +333,7 @@ public class QuickStartWizard implements ArchitectWizard {
 			}
 		}
 	}
-					
-				
-		/* TODO:
-		 * 
-		 * 1. complete these utility methods
-		 * 2. create the third panel:
-		 *  
-		 * - JTable showing all of the source tables
-		 * - Target System Name/Schema (do we need to optionally ask for the Catalog?)
-		 * - Repository System Name/Schema 
-		 * - Run Engine
-		 * - other PL submission parameters
-		 * 
-		 * 3. invoke the other routines (I think they are more or less decoupled from 
-		 * their parent dialogs (though I think I do need to replicate/extract some logic 
-		 * from the containing dialogs.
-		 * 
-		 * 
-		 * 
-		 * 
-		 */
-		
+										
 	
 	public String getTitle() {
 		return title;
