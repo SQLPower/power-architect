@@ -37,8 +37,9 @@ public class PLExport implements Monitorable {
 	
 	protected String targetSchema; // save this to properties file?
 	protected String targetCatalog;
-	protected String repositorySchema; //
-	
+	protected String repositorySchema; 
+	protected String repositoryCatalog;
+		
 	protected boolean hasStarted;
 	/**
 	 * @return Returns the hasStarted.
@@ -1061,13 +1062,9 @@ public class PLExport implements Monitorable {
 		return repositoryDataSource;
 	}
 			
-	public void setTargetSchema(String schema) {
-		targetSchema = schema;
-	}
+
 	
-	public String getTargetSchema() {
-		return targetSchema;
-	}
+	
 	
 	public boolean getRunPLEngine() {
 		return runPLEngine;
@@ -1096,6 +1093,18 @@ public class PLExport implements Monitorable {
 	public void setTargetDataSource(ArchitectDataSource targetDataSource) {
 		this.targetDataSource = targetDataSource;
 	}
+	
+	public String getTargetSchema() {
+		return targetSchema;
+	}
+	public void setTargetSchema(String schema) {
+		targetSchema = schema;
+	}
+	public void setTargetSchema(SQLSchema schema) {
+		if ( schema != null )
+			targetSchema = schema.getName();
+	}
+	
 	/**
 	 * @return Returns the targetCatalog.
 	 */
@@ -1107,5 +1116,35 @@ public class PLExport implements Monitorable {
 	 */
 	public void setTargetCatalog(String targetCatalog) {
 		this.targetCatalog = targetCatalog;
+	}
+	
+	public void setTargetCatalog(SQLCatalog targetCatalog) {
+		if ( targetCatalog != null )
+			this.targetCatalog = targetCatalog.getName();
+	}
+
+	public String getRepositoryCatalog() {
+		return repositoryCatalog;
+	}
+
+	public void setRepositoryCatalog(SQLCatalog repositoryCatalog) {
+		if (repositoryCatalog != null)
+		this.repositoryCatalog = repositoryCatalog.getName();
+	}
+	
+	public void setRepositoryCatalog(String repositoryCatalog) {
+		this.repositoryCatalog = repositoryCatalog;
+	}
+
+	public String getRepositorySchema() {
+		return repositorySchema;
+	}
+
+	public void setRepositorySchema(SQLSchema repositorySchema) {
+		if (repositorySchema != null)
+		this.repositorySchema = repositorySchema.getName();
+	} 
+	public void setRepositorySchema(String repositorySchema) {
+		this.repositorySchema = repositorySchema;
 	}
 }
