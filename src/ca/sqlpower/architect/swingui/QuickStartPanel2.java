@@ -29,6 +29,10 @@ import javax.swing.ListCellRenderer;
 
 import org.apache.log4j.Logger;
 
+import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
+
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectUtils;
@@ -90,7 +94,7 @@ public class QuickStartPanel2 implements WizardPanel {
 								dataSourceRenderer );
 	
 		
-		JButton newTargetButton= new JButton("New");
+		JButton newTargetButton= new JButton(" New ");
 		newTargetButton.addActionListener(new NewDatabaseListener(
 							ArchitectFrame.getMainInstance(),
 							"New Target Database",
@@ -98,41 +102,24 @@ public class QuickStartPanel2 implements WizardPanel {
 		
 		targetCatalog.addActionListener(new CatalogComboBoxListener((JPanel)getPanel(), 
 					targetConnectionsBox, targetCatalog, targetSchema));		
-
-		JPanel targetPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        targetPanel.add(targetConnectionsBox);
-		targetPanel.add(newTargetButton);
 		
 		
+		FormLayout layout = new FormLayout("10dlu, 80dlu,10dlu, 5dlu,fill:100dlu:grow, 10dlu, 40dlu,30dlu", //Columns
+										"30dlu, 20dlu, 4dlu, 20dlu, 4dlu, 20dlu, 30dlu, 20dlu");
+		PanelBuilder pb = new PanelBuilder(layout);
+		CellConstraints cc = new CellConstraints();		
+		pb.add(new JLabel("Target Connection"), cc.xy(2,2,"r,c"));
+		pb.add(targetConnectionsBox, cc.xyw(4,2,2));
+		pb.add(newTargetButton, cc.xy(7,2));
+		pb.add(new JLabel("Target Catalog"), cc.xy(2,4, "r,c"));		
+		pb.add(targetCatalog, cc.xyw(4,4,2));
+		pb.add(new JLabel("Target Schema"), cc.xy(2,6, "r,c"));		
+		pb.add(targetSchema, cc.xyw(4,6,2));
+		pb.add(progressBar, cc.xyw(3,8,4));
 		progressBar.setVisible(false);
-		JComponent[] fields = new JComponent[] {new JLabel("<html>&nbsp;</html>"),
-												new JLabel("<html>&nbsp;</html>"),
-													targetPanel,
-													targetCatalog,		
-													targetSchema,
-													new JLabel("<html>&nbsp;</html>"),
-													new JLabel("<html>&nbsp;</html>"),
-													progressBar
-													};
-		String[] labels = new String[] {"", "",
-											"Target Connection",
-											"Target Catalog",
-											"Target Schema",
-											"","",""
-											}; 
-
-		char[] mnemonics = new char[] {'z','z','t', 'o', 's', 'z', 'z', 'z'};
-		int[] widths = new int[] {18,18, 18, 18, 18, 18, 18, 18 };
-		String[] tips = new String[] {"","","Target Database Connection",
-										  "Target Database Catalog",
-					              		  "Target Database Schema/Owner",
-										  "","",""
-										  };
-						
-		panel = new JPanel();
-		TextPanel mainForm = new TextPanel(fields, labels, mnemonics, widths, tips);
 		
-		panel.add(mainForm);
+		panel = new JPanel();
+		panel.add(pb.getPanel());
 		
 	}
 	
