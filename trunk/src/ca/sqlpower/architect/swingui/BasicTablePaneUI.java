@@ -243,7 +243,12 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			itemsToCheck.add(table.getName());   // this works as long as the title uses the same font as the columns
 			Iterator columnIt = itemsToCheck.iterator();
 			while (columnIt.hasNext()) {
-				String theColumn = columnIt.next().toString();
+				SQLColumn col = (SQLColumn) columnIt.next();
+				if (col == null) {
+					logger.error("Found null column in table '"+table.getName()+"'");
+					throw new NullPointerException("Found null column in table '"+table.getName()+"'");
+				}
+				String theColumn = col.toString();
 				if (frc == null) {
 				    width = Math.max(width, metrics.stringWidth(theColumn));
 				} else {
