@@ -24,6 +24,10 @@ import javax.swing.ListCellRenderer;
 
 import org.apache.log4j.Logger;
 
+import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
+
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLCatalog;
@@ -78,6 +82,14 @@ public class QuickStartPanel3 implements WizardPanel {
 	public QuickStartPanel3 (QuickStartWizard wizard) {
 		this.wizard = wizard;
 
+		FormLayout layout = new FormLayout("10dlu, 80dlu,10dlu, 5dlu,fill:100dlu:grow, 10dlu, 40dlu,30dlu", //Columns
+			"15dlu, 16dlu, 2dlu, 16dlu, 2dlu, 16dlu, 20dlu," + //the repository connection rows
+			"16dlu, 2dlu,16dlu,2dlu,16dlu,2dlu,16dlu,2dlu,16dlu,5dlu,16dlu, 2dlu" //the project description rows 
+				);
+		
+		PanelBuilder pb = new PanelBuilder(layout);
+		CellConstraints cc = new CellConstraints();
+		
 		panel = new JPanel();
 		repositoryConnectionsBox = new JComboBox();
 		repositoryCatalogComboBox = new JComboBox();
@@ -111,57 +123,33 @@ public class QuickStartPanel3 implements WizardPanel {
 							"New Repository Database",
 							repositoryConnectionsBox ));
 		
-		
-		
 		plFolderName = new JTextField();
 		plJobId = new JTextField();
 		plJobDescription = new JTextField();
 		plJobComment = new JTextField();
 		runPLEngine = new JCheckBox("Run PL Engine?");
-		runPLEngine.setEnabled(false);
+		runPLEngine.setEnabled(false);		
 		
-		JPanel repositoryPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        repositoryPanel.add(repositoryConnectionsBox);
-		repositoryPanel.add(newRepositoryButton);
-
-		JComponent[] fields = new JComponent[] {new JLabel("<html>&nbsp;</html>"),
-												repositoryPanel,
-												repositoryCatalogComboBox,
-												repositorySchemaComboBox,												
-												new JLabel("<html>&nbsp;</html>"),													
-												plFolderName,
-												plJobId,
-												plJobDescription,
-												plJobComment,
-												runPLEngine, 
-												progressBar};
-		String[] labels = new String[] {"<html>&nbsp;</html>",
-										"Repository Connection",
-										"Repository Catalog",
-										"Repository Schema",											
-										"<html>&nbsp;</html>",
-										"PL Folder Name",
-										"PL Job Id",
-										"PL Job Description",	
-										"PL Job Comment",
-										"<html>&nbsp;</html>",
-										"<html>&nbsp;</html>"}; // run PL engine?
-		char[] mnemonics = new char[] {'z', 'r','c', 'p', 'y', 'f', 'j','d','c','e','z'};
-		int[] widths = new int[] {18, 18, 18, 18, 18, 18, 18,18,18,10,18};
-		String[] tips = new String[] {"",
-					              	"Repository Database Connection",
-					              	"Repository Catalog/Owner",
-					              	"Repository Schema/Owner",
-					              	"",
-					              	"The folder name for transactions",
-					              	"The Job unique Id",
-					              	"The Job Description",
-					              	"Comment about the Job",
-									"Run Power Loader Engine?",
-									""};
 		
-		TextPanel mainPanel = new TextPanel(fields, labels, mnemonics, widths, tips);
-		panel.add(mainPanel);			
+		pb.add(new JLabel("Repository Connection"), cc.xy(2,2,"r,c"));
+		pb.add(repositoryConnectionsBox, cc.xyw(4,2,2));
+		pb.add(newRepositoryButton, cc.xy(7,2));
+		pb.add(new JLabel("Repository Catalog"), cc.xy(2,4, "r,c"));		
+		pb.add(repositoryCatalogComboBox, cc.xyw(4,4,2));
+		pb.add(new JLabel("Repository Schema"), cc.xy(2,6, "r,c"));		
+		pb.add(repositorySchemaComboBox, cc.xyw(4,6,2));
+		pb.add(new JLabel("PL FolderName"), cc.xy(2,8,"r,c"));
+		pb.add(plFolderName, cc.xyw(4,8,4));
+		pb.add(new JLabel("PL Job Id"), cc.xy(2,10,"r,c"));
+		pb.add(plJobId, cc.xyw(4,10,4));
+		pb.add(new JLabel("PL Job Description"), cc.xy(2,12,"r,c"));
+		pb.add(plJobDescription, cc.xyw(4,12,4));
+		pb.add(new JLabel("PL Job Comment"), cc.xy(2,14,"r,c"));
+		pb.add(plJobComment, cc.xyw(4,14,4));
+		pb.add(runPLEngine, cc.xyw(4,16,2));
+		pb.add(progressBar, cc.xyw(4,18,4));
+				
+		panel.add(pb.getPanel());			
 	}
 
 	/* (non-Javadoc)
