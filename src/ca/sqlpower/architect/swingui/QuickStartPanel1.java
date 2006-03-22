@@ -210,7 +210,7 @@ public class QuickStartPanel1 implements WizardPanel {
 	}
 
 	public String getTitle() {
-		return ("Architect Quick Start - Step 1 of 5- Select Source Tables");
+		return ("Architect Quick Start - Step 1 of 5 - Select Source Tables");
 	}
 	
 	public class MyTreeSelectionListener extends ArchitectSwingWorker implements
