@@ -38,6 +38,8 @@ import javax.swing.ListCellRenderer;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
@@ -70,6 +72,57 @@ import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
 public class CompareDMPanel extends JPanel {
+
+	/**
+	 * This listener helps with restoring the selected catalog and schema from the user
+	 * settings.
+	 */
+	private static class RestoreSettingsListener implements ListDataListener {
+
+		private JComboBox box;
+		private String selectItemName;
+
+		public RestoreSettingsListener(JComboBox box, String selectItemName) {
+			this.box = box;
+			this.selectItemName = selectItemName;
+		}
+
+		public void intervalAdded(ListDataEvent e) {
+			tryToSelectTheItem(e.getIndex0(), e.getIndex1());
+		}
+
+		public void intervalRemoved(ListDataEvent e) {
+			// don't care
+		}
+
+		public void contentsChanged(ListDataEvent e) {
+			tryToSelectTheItem(e.getIndex0(), e.getIndex1());
+		}
+
+		/**
+		 * Searches the combo box list data from index low to high (inclusive) and selects
+		 * the first item it finds whose name matches selectItemName.  If a match
+		 * if found and selected, this listener is also removed from the list data
+		 * listener list (because it's no longer needed).
+		 * 
+		 * @param low The index to start the search at
+		 * @param high One past the index to end the search at
+		 */
+		private void tryToSelectTheItem(int low, int high) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Looking for '"+selectItemName+"' from index "+low+" to "+high);
+			}
+			
+			for (int i = low; i <= high; i++) {
+				SQLObject o = (SQLObject) box.getItemAt(i);
+				if (o != null && o.getName().equals(selectItemName)) {
+					box.setSelectedIndex(i);
+					box.getModel().removeListDataListener(this);
+					return;
+				}
+			}
+		}
+	}
 
 	private static final Logger logger = Logger.getLogger(CompareDMPanel.class);
 
@@ -284,7 +337,9 @@ public class CompareDMPanel extends JPanel {
 
 				if (db.isCatalogContainer()) {
 					for (SQLObject item : (List<SQLObject>) db.getChildren()) {
-						catalogDropdown.addItem(item);						
+						// Note: if you change the way this works, also update the RestoreSettingsListener
+						catalogDropdown.addItem(item);
+						// did you read the note?
 					}
 
 					// check if we need to do schemas
@@ -1364,26 +1419,14 @@ System.out.println ("Selected schema index" + stuff.schemaDropdown.getSelectedIn
 		List<ArchitectDataSource> lds = ArchitectFrame.getMainInstance().getUserSettings().getConnections();		
 		for (ArchitectDataSource ds : lds){
 			if (ds.getDisplayName().equals(set.getConnectName())){
-				stuff.databaseDropdown.setSelectedItem(ds);				
-				//FIXME: Call the listener of the database dropdown manually
-				//		 so both catalog and schema dropdown would be updated
-				for ( int i=0; set.getCatalog() != null &&
-							set.getCatalog().length() > 0 &&
-							i<stuff.catalogDropdown.getItemCount(); i++ ) {
-					SQLObject o = (SQLObject)stuff.catalogDropdown.getItemAt(i);
-					if ( o.getName().equals(set.getCatalog())) {
-						stuff.catalogDropdown.setSelectedIndex(i);
-						for ( int j=0; set.getSchema() != null &&
-										set.getSchema().length() > 0 &&
-										j<stuff.schemaDropdown.getItemCount(); j++ ) {
-							SQLObject o2 = (SQLObject)stuff.schemaDropdown.getItemAt(j);
-							if ( o2.getName().equals(set.getSchema())) {
-								stuff.schemaDropdown.setSelectedIndex(j);
-								break;
-							}
-						}
-						break;
-					}
+				stuff.databaseDropdown.setSelectedItem(ds);
+				if (set.getCatalog() != null) {
+					stuff.catalogDropdown.getModel().addListDataListener(
+							new RestoreSettingsListener(stuff.catalogDropdown, set.getCatalog()));
+				}
+				if (set.getSchema() != null) {
+					stuff.schemaDropdown.getModel().addListDataListener(
+							new RestoreSettingsListener(stuff.schemaDropdown, set.getSchema()));
 				}
 				if ( stuff.catalogDropdown.getItemCount() == 0 &&
 					 stuff.schemaDropdown.getItemCount() > 0 &&
