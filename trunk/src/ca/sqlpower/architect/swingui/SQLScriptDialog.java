@@ -60,7 +60,7 @@ public class SQLScriptDialog extends JDialog {
 
 	private Component parent;
 	private String header;
-	private JLabel statusLabel; // FIXME: rename to statusLabel
+	private JLabel statusLabel; 
 	private ArchitectDataSource targetDataSource;
 	
 	private JTextPane sqlScriptArea;
@@ -134,8 +134,9 @@ public class SQLScriptDialog extends JDialog {
 		JScrollPane sp = new JScrollPane(sqlScriptArea);
 		
 		Action copy = new CopyAction(sqlDoc);
-		Action execute = null;
-		if ( targetDataSource != null ) {
+		Action execute = null;		
+		
+		if ( targetDataSource != null) {
 			execute = new AbstractAction(){
 				public void actionPerformed(ActionEvent e) {
 					new Thread(executeTask).start();
@@ -382,6 +383,12 @@ public class SQLScriptDialog extends JDialog {
 					} 
 				}
 				
+			} catch (Exception exc){
+				logWriter.info("Caught Unexpected Exception " + exc);
+				ASUtils.showExceptionDialog(
+						SQLScriptDialog.this,
+						"Couldn't finish running this SQL Script due to the following unexpected exception:",
+						exc);
 			} finally {
 				// flush and close the LogWriter
 				logWriter.info("Successfully executed "+stmtsCompleted+" out of "+stmtsTried+" statements.");
