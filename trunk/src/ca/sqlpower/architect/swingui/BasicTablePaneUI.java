@@ -239,16 +239,18 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			height = insets.top + fontHeight + gap + c.getMargin().top + pkGap + cols*fontHeight + boxLineThickness*2 + c.getMargin().bottom + insets.bottom;
 			width = minimumWidth;
 			logger.debug("starting width is: " + width);
-			List itemsToCheck = new ArrayList(table.getColumns());
-			itemsToCheck.add(table.getName());   // this works as long as the title uses the same font as the columns
-			Iterator columnIt = itemsToCheck.iterator();
-			while (columnIt.hasNext()) {
-				SQLColumn col = (SQLColumn) columnIt.next();
+			List<String> itemsToCheck = new ArrayList<String>();
+			for (SQLColumn col : table.getColumns()) {
 				if (col == null) {
 					logger.error("Found null column in table '"+table.getName()+"'");
 					throw new NullPointerException("Found null column in table '"+table.getName()+"'");
 				}
-				String theColumn = col.toString();
+				itemsToCheck.add(col.toString());
+			}
+			itemsToCheck.add(table.getName());   // this works as long as the title uses the same font as the columns
+			Iterator<String> columnIt = itemsToCheck.iterator();
+			while (columnIt.hasNext()) {
+				String theColumn = columnIt.next();
 				if (frc == null) {
 				    width = Math.max(width, metrics.stringWidth(theColumn));
 				} else {
