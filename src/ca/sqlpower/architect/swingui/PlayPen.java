@@ -1972,7 +1972,7 @@ public class PlayPen extends JPanel
 				}		
 				maybeShowPopup(evt);
 			} else {
-				if ((evt.getModifiersEx() & InputEvent.BUTTON1_DOWN_MASK) != 0) {
+				if ((evt.getModifiersEx() & InputEvent.BUTTON1_DOWN_MASK) != 0  && !evt.isPopupTrigger()) {
 					selectNone();
 					rubberBandOrigin = new Point(p);
 					rubberBand = new Rectangle(rubberBandOrigin.x, rubberBandOrigin.y, 0, 0);
