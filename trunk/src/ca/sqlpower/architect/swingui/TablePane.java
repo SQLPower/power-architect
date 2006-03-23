@@ -1,22 +1,41 @@
 package ca.sqlpower.architect.swingui;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.font.FontRenderContext;
-import java.awt.datatransfer.*;
-import java.awt.dnd.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-
-import javax.swing.*;
+import java.awt.Color;
+import java.awt.Insets;
+import java.awt.Point;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DragSourceDragEvent;
+import java.awt.dnd.DragSourceDropEvent;
+import java.awt.dnd.DragSourceEvent;
+import java.awt.dnd.DragSourceListener;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.dnd.DropTargetListener;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.ListIterator;
+
+import javax.swing.JComponent;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.*;
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLObjectEvent;
+import ca.sqlpower.architect.SQLObjectListener;
+import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 
@@ -464,6 +483,80 @@ public class TablePane
 		return ((TablePaneUI) getUI()).pointToColumnIndex(p);
 	}
 
+	/**
+	 * Inserts the list of SQLObjects into this table at the specified location.
+	 * 
+	 * @param items A list of SQLTable and/or SQLColumn objects.  Other types are not allowed. 
+	 * @param insertionPoint The position that the first item in the item list should go into.
+	 * This can be a nonnegative integer to specify a position in the column list, or one
+	 * of the constants COLUMN_INDEX_END_OF_PK or COLUMN_INDEX_START_OF_NON_PK to indicate a special position.
+	 * @return True if the insert worked; false otherwise
+	 * @throws ArchitectException If there are problems in the business model
+	 */
+	public boolean insertObjects(List<SQLObject> items, int insertionPoint) throws ArchitectException {
+		boolean newColumnsInPk = false;
+		if (insertionPoint == COLUMN_INDEX_END_OF_PK) {
+		    insertionPoint = getModel().getPkSize();
+		    newColumnsInPk = true;
+		} else if (insertionPoint == COLUMN_INDEX_START_OF_NON_PK) {
+		    insertionPoint = getModel().getPkSize();
+		    newColumnsInPk = false;
+		} else if (insertionPoint == COLUMN_INDEX_TITLE) {
+		    insertionPoint = 0;
+		    newColumnsInPk = true;
+		} else if (insertionPoint < 0) {
+		    insertionPoint = getModel().getColumns().size();
+		    newColumnsInPk = false;
+		} else if (insertionPoint < getModel().getPkSize()) {
+		    newColumnsInPk = true;
+		}
+
+		for (int i = items.size()-1; i >= 0; i--) {
+			SQLObject someData = items.get(i);
+			logger.debug("insertObjects: got item of type "+someData.getClass().getName());
+			if (someData instanceof SQLTable) {
+				SQLTable table = (SQLTable) someData;
+				if (table.getParentDatabase() == getModel().getParentDatabase()) {
+					// can't import table from target into target!!
+					return false;
+				} else {
+					getModel().inherit(insertionPoint, table);
+				}
+			} else if (someData instanceof SQLColumn) {
+				SQLColumn col = (SQLColumn) someData;
+				if (col.getParentTable() == getModel()) {
+					// moving column inside the same table
+					int oldIndex = col.getParentTable().getColumns().indexOf(col);
+					if (insertionPoint > oldIndex) {
+						insertionPoint--;
+					}
+					getModel().changeColumnIndex(oldIndex, insertionPoint, newColumnsInPk);
+				} else if (col.getParentTable().getParentDatabase() == getModel().getParentDatabase()) {
+					// moving column within playpen
+					col.getParentTable().removeColumn(col);
+					if (logger.isDebugEnabled()) {
+						logger.debug("Moving column '"+col.getName()
+								+"' to table '"+getModel().getName()
+								+"' at position "+insertionPoint);
+					}
+					getModel().addColumn(insertionPoint, col);
+					
+					if (newColumnsInPk) {
+					    col.setPrimaryKeySeq(new Integer(insertionPoint));
+					} else {
+					    col.setPrimaryKeySeq(null);
+					}
+				} else {
+					// importing column from a source database
+					getModel().inherit(insertionPoint, col, newColumnsInPk);
+					if (logger.isDebugEnabled()) logger.debug("Inherited "+col.getName()+" to table");
+				}
+			} else {
+				return false;
+			}
+		}
+		return true;
+	}
 	// ------------------------ DROP TARGET LISTENER ------------------------
 
 	/**
@@ -565,99 +658,38 @@ public class TablePane
 				try {
 					DBTree dbtree = ArchitectFrame.getMainInstance().dbTree;  // XXX: bad
 					int insertionPoint = tp.pointToColumnIndex(loc);
-					boolean newColumnsInPk = false;
-					if (insertionPoint == COLUMN_INDEX_END_OF_PK) {
-					    insertionPoint = tp.getModel().getPkSize();
-					    newColumnsInPk = true;
-					} else if (insertionPoint == COLUMN_INDEX_START_OF_NON_PK) {
-					    insertionPoint = tp.getModel().getPkSize();
-					    newColumnsInPk = false;
-					} else if (insertionPoint < 0) {
-					    insertionPoint = tp.getModel().getColumns().size();
-					    newColumnsInPk = false;
-					} else if (insertionPoint < tp.getModel().getPkSize()) {
-					    newColumnsInPk = true;
-					}
-					ArrayList paths = (ArrayList) t.getTransferData(importFlavor);
+
+					ArrayList<int[]> paths = (ArrayList<int[]>) t.getTransferData(importFlavor);
 					logger.debug("Importing items from tree: "+paths);
-//					Used to put the undo event adapter into a drag and drop state
+					
+					// put the undo event adapter into a drag and drop state
 					ArchitectFrame.getMainInstance().playpen.fireUndoCompoundEvent(
 							new UndoCompoundEvent(
 							this,EventTypes.DRAG_AND_DROP_START, "Starting drag and drop"));
 					
-					Iterator removeIt = paths.iterator();
-					
-					// Create a list so we don't have a comodification error
-					ArrayList removeList = new ArrayList();
-					while (removeIt.hasNext())
-					{
-						removeList.add(dbtree.getNodeForDnDPath((int[]) removeIt.next()));
-					}
-		
-					for(int ii = removeList.size()-1; ii > -1; ii--)
-					{
-						Object someData = removeList.get(ii);
-						logger.debug("drop: got object of type "+someData.getClass().getName());
-						if (someData instanceof SQLTable) {
-							SQLTable table = (SQLTable) someData;
-							if (table.getParentDatabase() == tp.getModel().getParentDatabase()) {
-								// can't import table from target into target!!
-								dtde.rejectDrop();
-							} else {
-								dtde.acceptDrop(DnDConstants.ACTION_COPY);
-								tp.getModel().inherit(insertionPoint, table);
-								dtde.dropComplete(true);
-							}
-						} else if (someData instanceof SQLColumn) {
-							SQLColumn col = (SQLColumn) someData;
-							if (col.getParentTable() == tp.getModel()) {
-								// moving column inside the same table
-								dtde.acceptDrop(DnDConstants.ACTION_MOVE);
-								int oldIndex = col.getParent().getChildren().indexOf(col);
- 								if (insertionPoint > oldIndex) {
- 									insertionPoint--;
- 								}
-								tp.getModel().changeColumnIndex(oldIndex, insertionPoint);
-								dtde.dropComplete(true);
-							} else if (col.getParentTable().getParentDatabase()
-								== tp.getModel().getParentDatabase()) {
-								// moving column within playpen  
-								dtde.acceptDrop(DnDConstants.ACTION_MOVE);
-								
-								col.getParentTable().removeColumn(col);
-								logger.debug("Moving column '"+col.getName()
-											 +"' to table '"+tp.getModel().getName()
-											 +"' at position "+insertionPoint);
-								tp.getModel().addColumn(insertionPoint, col);
-								
-								if (newColumnsInPk) {
-								    col.setPrimaryKeySeq(new Integer(1));
-								} else {
-								    col.setPrimaryKeySeq(null);
-								}
-								dtde.dropComplete(true);
-							} else {
-								// importing column from a source database
-								dtde.acceptDrop(DnDConstants.ACTION_COPY);
-								tp.getModel().inherit(insertionPoint, col, newColumnsInPk);
-								logger.debug("Inherited "+col.getName()+" to table");
-								dtde.dropComplete(true);
-							}
-						} else {
-							dtde.rejectDrop();
-						}
+					ArrayList<SQLObject> droppedItems = new ArrayList<SQLObject>();
+					for (int[] path : paths) {
+						droppedItems.add(dbtree.getNodeForDnDPath(path));
 					}
 
+					boolean success = tp.insertObjects(droppedItems, insertionPoint);
+					if (success) {
+						dtde.acceptDrop(DnDConstants.ACTION_COPY); // XXX: not always true
+					} else {
+						dtde.rejectDrop();
+					}
+					dtde.dropComplete(success);
 				} catch (Exception ex) {
 				    // Trying to show this dialog sometimes hangs the app in OS X
 					//JOptionPane.showMessageDialog(tp, "Drop failed: "+ex.getMessage());
 					logger.error("Error processing drop operation", ex);
 					dtde.rejectDrop();
+					dtde.dropComplete(false);
 				} finally {
 					tp.setInsertionPoint(COLUMN_INDEX_NONE);
 					tp.getModel().normalizePrimaryKey();
-//					 Used to put the undo event adapter into a
-					// regular state
+					
+					// put the undo event adapter into a regular state
 					ArchitectFrame.getMainInstance().playpen.fireUndoCompoundEvent(
 							new UndoCompoundEvent(
 							this,EventTypes.DRAG_AND_DROP_END, "End drag and drop"));
