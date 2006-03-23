@@ -31,7 +31,7 @@ public class TextPanel extends JPanel {
 		labels = new JComponent[aLabels.length];
 		
 		for (int i = 0; i < aLabels.length; i += 1) {
-			if (i < tips.length) {
+			if (i < tips.length) {				
 				fields[i].setToolTipText(tips[i]);
 			}
 

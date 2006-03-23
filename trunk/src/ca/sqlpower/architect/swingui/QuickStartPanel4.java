@@ -5,28 +5,41 @@
  * Window - Preferences - Java - Code Style - Code Templates
  */
 package ca.sqlpower.architect.swingui;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Font;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-import javax.swing.Box;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.ProgressMonitor;
 
 import org.apache.log4j.Logger;
+
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.ddl.DDLUtils;
+import ca.sqlpower.architect.ddl.GenericDDLGenerator;
+import ca.sqlpower.architect.etl.PLExport;
+import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
+import ca.sqlpower.architect.swingui.ExportDDLAction.ConflictFinderProcess;
+import ca.sqlpower.architect.swingui.ExportDDLAction.ConflictResolverProcess;
+import ca.sqlpower.architect.swingui.ExportPLTransAction.ExportTxProcess;
+import ca.sqlpower.architect.swingui.PlayPen.AddObjectsTask;
+import ca.sqlpower.architect.swingui.QuickStartWizard.GenerateStatementsTask;
 
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.ddl.DDLUtils;
-import ca.sqlpower.architect.etl.PLExport;
 
 /**
  * @author jack
@@ -36,7 +49,7 @@ import ca.sqlpower.architect.etl.PLExport;
  */
 public class QuickStartPanel4 implements WizardPanel {
 	
-	private String nextButtonName; 
+	private String nextButtonText; 
 	private static final Logger logger = Logger.getLogger(WizardPanel.class);
 
 	private QuickStartWizard wizard;
@@ -102,11 +115,111 @@ public class QuickStartPanel4 implements WizardPanel {
 	 * @see ca.sqlpower.architect.swingui.ArchitectPanel#applyChanges()
 	 */
 	public boolean applyChanges() {
+
+		wizard.addSourceDatabases(wizard.getSourceTables());
+		Map ddlGeneratorMap = ArchitectUtils.getDriverDDLGeneratorMap();
+		Class selectedGeneratorClass = (Class) ddlGeneratorMap.get(
+				wizard.getPlExport().getTargetDataSource().getDriverClass());
+		if (selectedGeneratorClass == null)
+		{
+			JOptionPane.showMessageDialog(getPanel(),
+					"Unable to create DDL Script for the target database.",
+					"Database Error", JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
+		GenericDDLGenerator ddlg;
+		try {
+			ddlg = (GenericDDLGenerator) selectedGeneratorClass.newInstance();
+			ddlg.setTargetCatalog(wizard.getPlExport().getTargetCatalog());
+			ddlg.setTargetSchema(wizard.getPlExport().getTargetSchema());
+		
+			ArchitectFrame.getMainInstance().getProject().setModified(false);
+			ArchitectFrame.getMainInstance().newProjectAction.actionPerformed(
+					new ActionEvent(this, 0, null));
+			PlayPen p = ArchitectFrame.getMainInstance().getProject().getPlayPen();
+			
+			p.getDatabase().setDataSource(wizard.getPlExport().getTargetDataSource());
+
+			
+			ExportDDLAction eda = 
+				(ExportDDLAction) ArchitectFrame.getMainInstance().exportDDLAction;
+			ExportPLTransAction epta = 
+				(ExportPLTransAction) ArchitectFrame.getMainInstance().exportPLTransAction;
+	
+			List statements = new ArrayList();
+			
+			
+			
+	
+			// 1. copy SQL Tables
+			ProgressMonitor pm = new ProgressMonitor(null,
+					"Copying objects from DBTree", "...", 0, 100);
+			AddObjectsTask aot = p.new AddObjectsTask(
+					wizard.getSourceTables(), new Point(50, 50),
+					pm, wizard.getParentDialog());
+	
+			// 1a. generate a list of statements
+			GenerateStatementsTask gst = 
+				new QuickStartWizard.GenerateStatementsTask(statements,
+					ddlg,
+					p.getDatabase(), 
+					wizard.getParentDialog());
+
+			// 2. get sql script worker 
+			SQLScriptDialog ssd = new SQLScriptDialog(wizard.getParentDialog(),
+					"Preview SQL Script",
+					"The Architect will create these tables:", false,
+					statements,
+					wizard.getPlExport().getTargetDataSource(), false);
+			MonitorableWorker scriptWorker = ssd.getExecuteTask();
+			ssd.setStatementResultList(wizard.getPlExport().getExportResultList());
+
+			
+			// 3. create conflict finder ans resolver
+			ConflictFinderProcess cfp;
+			cfp = eda.new ConflictFinderProcess(
+					wizard.getParentDialog(),
+					new SQLDatabase(wizard.getPlExport().getTargetDataSource()),
+					ddlg, statements);
+			
+			ConflictResolverProcess crp;
+			crp = eda.new ConflictResolverProcess(
+					wizard.getParentDialog(), cfp);
+			
+			// 5. export PL Transactions (and run PL Transactions (if requested)
+			// got this far, so it's ok to run the PL Export thread
+			ExportTxProcess etp = epta.new ExportTxProcess(
+				wizard.getPlExport(),
+				wizard.getParentDialog(),
+				((WizardDialog)wizard.getParentDialog()).getProgressBar(),
+				((WizardDialog)wizard.getParentDialog()).getProgressLabel());
+			
+			aot.setNextProcess(gst);
+			gst.setNextProcess(cfp);
+			cfp.setNextProcess(crp);
+			crp.setNextProcess(scriptWorker);
+			scriptWorker.setNextProcess(etp);
+			
+		
+			((WizardDialog)wizard.getParentDialog()).getNextButton().setEnabled(false);
+			new Thread(aot, "Wizard-Objects-Adder").start();
+			
+		} catch (InstantiationException e1) {
+			logger.error("problem running Quick Start Wizard", e1);
+		} catch (IllegalAccessException e1) {
+			logger.error("problem running Quick Start Wizard", e1);
+		} catch (ArchitectException e) {
+			logger.error("problem running Quick Start Wizard", e);
+		} catch (SQLException e) {
+			logger.error("problem running Quick Start Wizard", e);
+		}
 		
 		return true;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see ca.sqlpower.architect.swingui.ArchitectPanel#discardChanges()
 	 */
 	public void discardChanges() {

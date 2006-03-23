@@ -43,8 +43,8 @@ public class DDLExportPanel extends JPanel implements ArchitectPanel {
 		setVisible(true);
 	}
 
-	protected void setup() {
-		GenericDDLGenerator ddlg = project.getDDLGenerator();
+	protected void setup() {		
+		GenericDDLGenerator ddlg = project.getDDLGenerator();		
 		setLayout(new FormLayout());
         add(new JLabel("Create in:"));
         
@@ -62,7 +62,7 @@ public class DDLExportPanel extends JPanel implements ArchitectPanel {
 		for (LabelValueBean lvb : ddlTypes)
 		{
 		
-			System.out.println(ddlg.getClass() +" || "+ lvb.getValue());
+			
 			if (ddlg.getClass() == lvb.getValue() && lvb != unknownGenerator)
 			{
 				dbType.setSelectedItem(lvb);
@@ -89,7 +89,7 @@ public class DDLExportPanel extends JPanel implements ArchitectPanel {
 		add(catalogField = new JTextField(ddlg.getTargetCatalog()));
 		add(schemaLabel = new JLabel("Target Schema"));
 		add(schemaField = new JTextField(ddlg.getTargetSchema()));
-
+		
 		setUpCatalogAndSchemaFields();
 	}
 

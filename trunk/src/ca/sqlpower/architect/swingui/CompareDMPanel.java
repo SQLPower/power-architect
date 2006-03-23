@@ -346,17 +346,12 @@ public class CompareDMPanel extends JPanel {
 					// check if we need to do schemas
 					SQLCatalog cat = (SQLCatalog) catalogDropdown
 							.getSelectedItem();
+					schemaParent = null;
 					if (cat == null) {
 						// there are no catalogs (database is completely empty)
-						schemaParent = null;
 						catalogDropdown.setEnabled(false);
-					} else if (cat.isSchemaContainer()) {
-						// there are schemas in this catalog
-						schemaParent = cat;
-						catalogDropdown.setEnabled(true);
-					} else {
+					}  else {
 						// there are catalogs, but they don't contain schemas
-						schemaParent = null;
 						catalogDropdown.setEnabled(true);
 					}
 
@@ -928,59 +923,9 @@ public class CompareDMPanel extends JPanel {
 		}
 	}
 
-	public interface Lister {
 
-		public Integer getJobSize() throws ArchitectException;
 
-		public int getProgress() throws ArchitectException;
 
-		public boolean isFinished() throws ArchitectException;
-
-	}
-
-	/**
-	 * Intended to be called periodically by a Swing Timer thread. Whenever the
-	 * actionPerformed method is called, it polls the lister for its job size
-	 * and current progress, then updates the given progress bar with that
-	 * information.
-	 */
-	public class ListerProgressBarUpdater implements ActionListener {
-		private JProgressBar bar;
-
-		private Lister lister;
-
-		public ListerProgressBarUpdater(JProgressBar bar, Lister lister) {
-			this.bar = bar;
-			this.lister = lister;
-		}
-
-		/**
-		 * Must be invoked on the Event Dispatch Thread, most likely by a Swing
-		 * Timer.
-		 */
-		public void actionPerformed(ActionEvent evt) {
-
-			try {
-				Integer max = lister.getJobSize(); // could take noticable time
-													// to calculate job size
-				bar.setVisible(true);
-				if (max != null) {
-					bar.setMaximum(max.intValue());
-					bar.setValue(lister.getProgress());
-					bar.setIndeterminate(false);
-				} else {
-					bar.setIndeterminate(true);
-				}
-
-				if (lister.isFinished()) {
-					bar.setVisible(false);
-					((javax.swing.Timer) evt.getSource()).stop();
-				}
-			} catch (ArchitectException e) {
-				logger.error("getProgress failt", e);
-			}
-		}
-	}
 
 	public class StartCompareAction extends AbstractAction {
 
@@ -1344,14 +1289,12 @@ public class CompareDMPanel extends JPanel {
 		else
 			setting.setConnectName( null );
 		
-System.out.println ("Selected database index" + stuff.databaseDropdown.getSelectedIndex());
 		
 		if ( stuff.catalogDropdown.getItemCount() > 0 &&
 				 stuff.catalogDropdown.getSelectedIndex() >= 0 &&
 				 stuff.catalogDropdown.getSelectedItem() != null )			
 			setting.setCatalog( ((SQLObject)stuff.catalogDropdown.getSelectedItem()).getName() );
 		else setting.setCatalog(null);
-System.out.println ("Selected catalog index" + stuff.catalogDropdown.getSelectedIndex());
 		
 		if ( stuff.schemaDropdown.getItemCount() > 0 &&
 				 stuff.schemaDropdown.getSelectedIndex() >= 0 &&
@@ -1359,7 +1302,6 @@ System.out.println ("Selected catalog index" + stuff.catalogDropdown.getSelected
 			setting.setSchema( ((SQLObject)stuff.schemaDropdown.getSelectedItem()).getName() );
 		else
 			setting.setSchema(null);
-System.out.println ("Selected schema index" + stuff.schemaDropdown.getSelectedIndex());
 		
 		setting.setFilePath(stuff.loadFilePath.getText());
 		

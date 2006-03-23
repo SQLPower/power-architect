@@ -7,15 +7,10 @@
 package ca.sqlpower.architect.swingui;
 import java.awt.Component;
 import java.awt.FlowLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.ArrayList;
 
-import javax.sound.sampled.TargetDataLine;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -35,12 +30,14 @@ import com.jgoodies.forms.layout.FormLayout;
 
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.etl.PLExport;
+import ca.sqlpower.security.PLSecurityException;
+import ca.sqlpower.security.PLSecurityManager;
+import ca.sqlpower.sql.PLSchemaException;
+import ca.sqlpower.util.UnknownFreqCodeException;
 
 
 /**
@@ -66,16 +63,21 @@ public class QuickStartPanel2 implements WizardPanel {
 	private SQLCatalog catalog;
 	private SQLSchema schema;
 	DatabaseComboBoxListener dcl;
+
+
+	private JLabel label;
 	
 	
 	public QuickStartPanel2 (QuickStartWizard wizard) {
 		this.wizard = wizard;
-		wizard.setPlExport(new PLExport());	
+		wizard.setPlExport(new PLExport());				
 		
 		targetConnectionsBox = new JComboBox();
 		targetCatalog = new JComboBox();
 		targetSchema = new JComboBox();
-		progressBar = new JProgressBar();
+		progressBar = ((WizardDialog)wizard.getParentDialog()).getProgressBar();
+		label = ((WizardDialog)wizard.getParentDialog()).getProgressLabel();
+		label.setText("Loading Database.....");
 		
 		targetCatalog.setEnabled(false);
 		targetSchema.setEnabled(false);
@@ -86,7 +88,14 @@ public class QuickStartPanel2 implements WizardPanel {
 				targetCatalog,
 				targetSchema,
 				progressBar);
-				
+		ArrayList l1 = new ArrayList();
+		l1.add(label);
+		dcl.setVisableInvisableList(l1);
+		
+		ArrayList l2 = new ArrayList();
+		l2.add(((WizardDialog)wizard.getParentDialog()).getNextButton() );
+		l2.add(((WizardDialog)wizard.getParentDialog()).getBackButton() );
+		dcl.setDisableEnableList(l2);
 		
 		targetConnectionsBox.addActionListener(dcl);
 		
@@ -102,7 +111,7 @@ public class QuickStartPanel2 implements WizardPanel {
 		
 		targetCatalog.addActionListener(new CatalogComboBoxListener((JPanel)getPanel(), 
 					targetConnectionsBox, targetCatalog, targetSchema));		
-		
+
 		
 		FormLayout layout = new FormLayout("10dlu, 80dlu,10dlu, 5dlu,fill:100dlu:grow, 10dlu, 40dlu,30dlu", //Columns
 										"30dlu, 20dlu, 4dlu, 20dlu, 4dlu, 20dlu, 30dlu, 20dlu");
@@ -115,9 +124,8 @@ public class QuickStartPanel2 implements WizardPanel {
 		pb.add(targetCatalog, cc.xyw(4,4,2));
 		pb.add(new JLabel("Target Schema"), cc.xy(2,6, "r,c"));		
 		pb.add(targetSchema, cc.xyw(4,6,2));
-		pb.add(progressBar, cc.xyw(3,8,4));
-		progressBar.setVisible(false);
-		
+				
+
 		panel = new JPanel();
 		panel.add(pb.getPanel());
 		
@@ -140,12 +148,6 @@ public class QuickStartPanel2 implements WizardPanel {
 	
 	
 	
-	public JProgressBar getProgressBar() {
-		return progressBar;
-	}
-
-	
-	
 	public JComponent getPanel() {			
 		return (JComponent) panel;
 	}			
@@ -157,8 +159,28 @@ public class QuickStartPanel2 implements WizardPanel {
 		logger.debug("Applying target database changes to the PLExport object");
 		PLExport plexp = wizard.getPlExport();	
 		plexp.setTargetDataSource((ArchitectDataSource)targetConnectionsBox.getSelectedItem());
-		
 		database = dcl.getDatabase();
+		
+		
+		 try {
+			Connection con = database.getConnection();
+		 
+		    if (con == null) {
+		    	JOptionPane.showMessageDialog(getPanel(),
+						"Couldn't connect to target database.",
+						"Database Error", JOptionPane.ERROR_MESSAGE);
+				return false;
+			}
+		} catch (ArchitectException e) {
+			JOptionPane.showMessageDialog(getPanel(),
+					e.getMessage(),
+					"Database Error", JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
+
+		
+		
+		
 		catalog = (SQLCatalog) targetCatalog.getSelectedItem();
 		schema = (SQLSchema) targetSchema.getSelectedItem();
 		
@@ -187,8 +209,12 @@ public class QuickStartPanel2 implements WizardPanel {
 			return false;
 		}
 
+		plexp.setTargetDataSource(database.getDataSource());
 		plexp.setTargetCatalog( catalog );
 		plexp.setTargetSchema( schema );
+		
+		wizard.addTargetDatabase(database.getDataSource());
+		
 		return true;
 	}
 	

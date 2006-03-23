@@ -5,28 +5,39 @@
  * Window - Preferences - Java - Code Style - Code Templates
  */
 package ca.sqlpower.architect.swingui;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Font;
-import java.util.List;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 
-import javax.swing.Box;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
+
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.etl.PLExport;
+import ca.sqlpower.architect.etl.PLUtils;
+import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
+import ca.sqlpower.security.PLSecurityException;
 
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.ddl.DDLUtils;
-import ca.sqlpower.architect.etl.PLExport;
 
 /**
  * @author jack
@@ -39,12 +50,11 @@ public class QuickStartPanel5 implements WizardPanel {
 	private static final Logger logger = Logger.getLogger(WizardPanel.class);
 
 	private QuickStartWizard wizard;
-	
-	private JTextArea summaryOutput;
 	private JScrollPane sp;
-	
+
 	public QuickStartPanel5 (QuickStartWizard wizard) {
 		this.wizard = wizard;
+		wizard.getResultOutput().setText("Please wait....");
 	}	
 	private PanelBuilder pb;
 	
@@ -61,38 +71,23 @@ public class QuickStartPanel5 implements WizardPanel {
 			pb = new PanelBuilder(layout, panel);
 			pb.add(new JLabel ("Here is your summary, Click finish"), 
 					cc.xy(2,1));
-			summaryOutput = new JTextArea();
-			sp = new JScrollPane(summaryOutput);						
+			sp = new JScrollPane(wizard.getResultOutput());						
 			
 			
 			pb.add(sp, cc.xy(2,2));
 			pb.add(new JLabel(""), cc.xy(2,3));											
 		}
-		setTextArea();
 		
 		return pb.getPanel();		
 	}		
 	
 	
-	public void setTextArea(){
 
-		PLExport ple = wizard.getPlExport();
-		
-		StringBuffer text = new StringBuffer();
-		text.append("These tables will be created in database: "+
-				ple.getTargetDataSource().getName() +"\n");
-
-		text.append("\n");
-		text.append("Job "+ ple.getJobId()+" will be created in database: "+
-				ple.getRepositoryDataSource().getName() +"\n");
-		summaryOutput.setText(text.toString());
-		
-	}
 	/* (non-Javadoc)
 	 * @see ca.sqlpower.architect.swingui.ArchitectPanel#applyChanges()
 	 */
 	public boolean applyChanges() {
-		
+		wizard.getParentDialog().setVisible(false);
 		return true;
 	}
 
@@ -106,4 +101,7 @@ public class QuickStartPanel5 implements WizardPanel {
 	public String getTitle() {
 		return ("Architect Quick Start - Step 5 of 5 - Confirm Selections");
 	}
+	
+	
+	
 }

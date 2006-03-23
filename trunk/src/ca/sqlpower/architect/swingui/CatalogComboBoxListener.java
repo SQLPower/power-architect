@@ -15,6 +15,10 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLSchema;
 
+/*
+ * Updates schema field when there has been a change in the
+ * catalog dropdown.
+ */
 public class CatalogComboBoxListener implements ActionListener {
 	
 	private JPanel panel;

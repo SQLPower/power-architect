@@ -5,6 +5,8 @@ import java.awt.event.ActionListener;
 import java.util.List;
 
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -32,12 +34,16 @@ public class DatabaseComboBoxListener
 	private JProgressBar progressBar;
 	private JPanel panel;
 	
+	private List <JComponent> enableDisableList;
+	private List <JComponent> disableEnableList;
+	private List <JComponent> visableInvisableList;
+	private List <JComponent> invisableVisableList;
 	
 	public DatabaseComboBoxListener(JPanel panel,
 									JComboBox databaseComboBox,
 									JComboBox catalogComboBox,
 									JComboBox schemaComboBox,
-									JProgressBar progressBar ) {
+									JProgressBar progressBar) {
 		super();
 
 		this.panel = panel;
@@ -45,7 +51,6 @@ public class DatabaseComboBoxListener
 		this.catalogComboBox = catalogComboBox;
 		this.schemaComboBox = schemaComboBox;
 		this.progressBar = progressBar;
-		
 	}
 
 	public void actionPerformed(ActionEvent e) {
@@ -79,6 +84,11 @@ public class DatabaseComboBoxListener
 		try {
 			ListerProgressBarUpdater progressBarUpdater = 
 				new ListerProgressBarUpdater(progressBar, this);
+			progressBarUpdater.setDisableEnableList(disableEnableList);
+			progressBarUpdater.setEnableDisableList(enableDisableList);
+			progressBarUpdater.setInvisableVisableList(invisableVisableList);
+			progressBarUpdater.setVisableInvisableList(visableInvisableList);
+			
 			new javax.swing.Timer(100, progressBarUpdater).start();
 
 			database.populate();
@@ -116,7 +126,6 @@ public class DatabaseComboBoxListener
 					catalogComboBox.addItem(o);
 				}
 				catalogComboBox.setEnabled(true);
-				System.out.println ("Catalog enabled");
 			}
 
 			if (database.isSchemaContainer()) {
@@ -163,6 +172,38 @@ public class DatabaseComboBoxListener
 		return database;
 	}
 
+	/**
+	 * enable JComponents in the List when the process start
+	 * then disable them after the process is done.  
+	 */
+	public void setEnableDisableList(List<JComponent> enableDisableList) {
+		this.enableDisableList = enableDisableList;
+	}
+
+
+	/**
+	 * set JComponents in the List to visable when the process start
+	 * then set them back after the process is done.  
+	 */
+	public void setVisableInvisableList(List<JComponent> visableInvisableList) {
+		this.visableInvisableList = visableInvisableList;
+	}
+
+	/**
+	 * disable JComponents in the List when the process start
+	 * then enable them after the process is done.  
+	 */
+	public void setDisableEnableList(List<JComponent> disableEnableList) {
+		this.disableEnableList = disableEnableList;
+	}
+
+	/**
+	 * set JComponents in the List to invisable when the process start
+	 * then set them back after the process is done.  
+	 */
+	public void setInvisableVisableList(List<JComponent> invisableVisableList) {
+		this.invisableVisableList = invisableVisableList;
+	}
 
 }
 

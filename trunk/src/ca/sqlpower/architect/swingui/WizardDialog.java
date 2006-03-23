@@ -18,6 +18,10 @@ import java.util.Vector;
 
 import javax.swing.*;
 
+import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
+
 
 /**
  * @author jack
@@ -51,12 +55,13 @@ public class WizardDialog extends JDialog {
 	final JProgressBar progressBar;
 	final JLabel progressLabel;
 	
-	final JDialog d;
+	
 
 	public WizardDialog(Frame frame, ArchitectWizard wizard) {
 		super(frame);
-		d = this;
+	
 
+		
 		progressBar = new JProgressBar();
 		progressBar.setStringPainted(true);
 		progressBar.setPreferredSize(progressBar.getPreferredSize());
@@ -67,6 +72,7 @@ public class WizardDialog extends JDialog {
 		progressLabel.setVisible(false);
 
 		this.wizard = wizard;
+		wizard.setParentDialog(this);
 		setupDialog();
 		
 	}
@@ -107,29 +113,23 @@ public class WizardDialog extends JDialog {
 			public void actionPerformed(ActionEvent evt) {
 				WizardPanel wp = getWizard().getCurrent();
 				if (wp.applyChanges()) {
-					if (getWizard().isOnLastPanel()){
-						
-						setVisible(false);
-					} else {
-						if (getWizard().isOnExecutePanel()) {
-					
-							nextButton.setEnabled(false);
-							getWizard().execute(d);
-							nextButton.setEnabled(true);
-						}
+					if (!getWizard().isOnLastPanel())
 						setWizardPanel(getWizard().getNext());
-						refreshButtons();
-					}
+					refreshButtons();
 				}
 			}
 		});
 		bpRight.add(nextButton);
 	
+		JPanel progressPanel = new JPanel(new BorderLayout());
+		FormLayout layout = new FormLayout("pref,4dlu,fill:pref:grow", "20dlu:grow");						
+		CellConstraints cc = new CellConstraints();
+		PanelBuilder pb = new PanelBuilder(layout, progressPanel);
+		
+		pb.add(progressLabel,cc.xy(1,1));
+		pb.add(progressBar, cc.xy(3,1));
 	
-		JPanel progressPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-		progressPanel.add(progressBar);
-		progressPanel.add(progressLabel);
-
+	
 		// not sure what borderlayout will do here...
 		JPanel bottomPanel = new JPanel(new GridLayout(2,1));
 		bottomPanel.add(progressPanel);
@@ -194,5 +194,17 @@ public class WizardDialog extends JDialog {
 			targetConnectionsBox.setSelectedItem(selectedConnection);
 		}
 		targetConnectionsBox.setRenderer(dataSourceRenderer);
+	}
+	public JButton getBackButton() {
+		return backButton;
+	}
+	public void setBackButton(JButton backButton) {
+		this.backButton = backButton;
+	}
+	public JButton getNextButton() {
+		return nextButton;
+	}
+	public void setNextButton(JButton nextButton) {
+		this.nextButton = nextButton;
 	}		
 }

@@ -33,16 +33,15 @@ public class DDLUtils {
      */
     public static String toQualifiedName(String catalog, String schema, String name) {
         StringBuffer qualName = new StringBuffer();
-        if (catalog != null) {
+        if (catalog != null && catalog.length() > 0 ) {
             qualName.append(catalog);
-        }
-        if (schema != null) {
-            if (qualName.length() > 0)
-                qualName.append(".");
-            qualName.append(schema);
-        }
-        if (qualName.length() > 0)
             qualName.append(".");
+        }
+        if (schema != null && schema.length() > 0) {
+        	qualName.append(schema);
+        	qualName.append(".");
+        }
+        
         qualName.append(name);
         return qualName.toString();
     }

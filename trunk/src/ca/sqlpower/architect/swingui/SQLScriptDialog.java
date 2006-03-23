@@ -14,6 +14,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -44,6 +45,7 @@ import ca.sqlpower.architect.LogWriter;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.ddl.DDLStatement;
 import ca.sqlpower.architect.swingui.ASUtils.FileExtensionFilter;
+import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
 import com.jgoodies.forms.builder.PanelBuilder;
@@ -56,11 +58,14 @@ public class SQLScriptDialog extends JDialog {
 	private static final Logger logger = Logger.getLogger(SQLScriptDialog.class);
 	
 	private List<DDLStatement> statements;
+	private ArrayList <LabelValueBean> statementResultList;
 	private JProgressBar progressBar = new JProgressBar();
 
 	private Component parent;
 	private String header;
-	private JLabel statusLabel; 
+
+	private JLabel statusLabel;
+
 	private ArchitectDataSource targetDataSource;
 	
 	private JTextPane sqlScriptArea;
@@ -75,13 +80,14 @@ public class SQLScriptDialog extends JDialog {
 			boolean closeParent )
 			throws HeadlessException {
 		super(owner, title, modal);
+		statementResultList = new ArrayList();
 		statusLabel = new JLabel();
 		parent = owner;
 		this.header = header;
 		this.statements = statements;
 		this.targetDataSource = targetDataSource;
 		this.closeParent = closeParent;
-		System.out.println("The list size is :" + statements.size());
+		
 		add(buildPanel());
 		pack();
 		setLocationRelativeTo(parent);
@@ -93,6 +99,7 @@ public class SQLScriptDialog extends JDialog {
 			boolean closeParent )
 			throws HeadlessException {
 		super(owner, title, modal);
+		statementResultList = new ArrayList();
 		statusLabel = new JLabel();
 		parent = owner;
 		this.header = header;
@@ -252,7 +259,7 @@ public class SQLScriptDialog extends JDialog {
 	
 	private class ExecuteSQLScriptWorker extends MonitorableWorker {
 		
-		private Runnable nextProcess;
+		
 		private int stmtsTried = 0;
 		private int stmtsCompleted = 0;
 		private boolean finished = false;
@@ -271,11 +278,11 @@ public class SQLScriptDialog extends JDialog {
 		 * where we started the worker thread (using getDoStuffException())
 		 */
 		public void doStuff() {
-			cancelled = false;
+			
 			finished = false;
 
 			hasStarted = true;
-			if (cancelled || finished) return;
+			if (isCancelled() || finished) return;
 			statusLabel.setText("Creating objects in target database...");
 			ProgressWatcher pw = new ProgressWatcher(progressBar, this, statusLabel);
 			stmtsTried = 0;
@@ -283,7 +290,7 @@ public class SQLScriptDialog extends JDialog {
 			SQLDatabase target = new SQLDatabase(targetDataSource);
 			
 			logger.debug("the Target Database is: " + target.getDataSource());
-			
+
 			Connection con;
 			Statement stmt;
 			
@@ -331,22 +338,24 @@ public class SQLScriptDialog extends JDialog {
 				logWriter.info("Starting DDL Generation at " + new java.util.Date(System.currentTimeMillis()));
 				logWriter.info("Database Target: " + target.getDataSource());
 				logWriter.info("Playpen Dump: " + target.getDataSource());
-				
-				
+				statementResultList.add(new LabelValueBean("Target Table Creation Log" ,"\n"));
 				Iterator it = statements.iterator();
-				while (it.hasNext() && !finished) {
+				while (it.hasNext() && !finished && !isCancelled()) {
 					DDLStatement ddlStmt = (DDLStatement) it.next();
+					String status = "Unknown";
 					try {
 						stmtsTried++;
-						logWriter.info("executing: " + ddlStmt.getSQLText());		
+						logWriter.info("executing: " + ddlStmt.getSQLText());					
 						stmt.executeUpdate(ddlStmt.getSQLText());
 						stmtsCompleted++;
+						status = "OK";
 					} catch (SQLException ex) {
 						allIsWell = false;						
 						final Exception fex = ex;
 						final String fsql = ddlStmt.getSQLText();
 						final LogWriter fLogWriter = logWriter; 
 						logWriter.info("sql statement failed: " + ex.getMessage());
+						status = "SQL statement failed: " + ex.getMessage();
 						try {
 							SwingUtilities.invokeAndWait(new Runnable() {						
 								public void run() {
@@ -362,6 +371,9 @@ public class SQLScriptDialog extends JDialog {
 									(SQLScriptDialog.this, jp, "SQL Failure", JOptionPane.YES_NO_OPTION);
 									if (decision == JOptionPane.NO_OPTION) {
 										fLogWriter.info("Export cancelled by user.");
+										statementResultList.add(
+												new LabelValueBean("Wizard cancelled by user",
+														""));
 										cancelJob();
 									}
 								}
@@ -369,18 +381,27 @@ public class SQLScriptDialog extends JDialog {
 						} catch (InterruptedException ex2) {
 							allIsWell = false;
 							logger.warn("DDL Worker was interrupted during InvokeAndWait", ex2);
+							status = "DDL Worker was interrupted during InvokeAndWait";
 						} catch (InvocationTargetException ex2) {
 							allIsWell = false;							
 							final Exception fex2 = ex2;
+							status = "Worker thread died: "
+									+fex2.getMessage();
 							throw new RuntimeException("Worker thread died: "
 									+fex2.getMessage());							
-						}
+						} 
+
 						
 						if (isCancelled()) {
 							finished = true;
 							// don't return, we might as well display how many statements ended up being processed...
 						}
-					} 
+					}
+					finally {
+						statementResultList.add(new LabelValueBean(
+								ddlStmt.toString(),status));
+						
+					}
 				}
 				
 			} catch (Exception exc){
@@ -402,17 +423,6 @@ public class SQLScriptDialog extends JDialog {
 				logger.error("SQLException while closing statement", ex);
 			}			
 			
-			// show them what they've won!	
-			SwingUtilities.invokeLater(new Runnable() {
-				public void run() {
-					String message =  "Successfully executed "+stmtsCompleted+" out of "+stmtsTried+" statements.";
-					if (stmtsCompleted == 0 && stmtsTried > 0) {
-						message += ("\nBetter luck next time!");
-					}
-					JOptionPane.showMessageDialog(SQLScriptDialog.this, message);
-				}
-			});
-			
 			finished = true;
 			
 		}
@@ -423,26 +433,10 @@ public class SQLScriptDialog extends JDialog {
 		 * thread after it's done.
 		 */
 		public void cleanup() {
-			if (allIsWell) {
-				if (nextProcess != null) {
-					new Thread(nextProcess).start();
-				}
-			}
+
 		}
 		
-		/**
-		 * @return Returns the nextProcess.
-		 */
-		public Runnable getNextProcess() {
-			return nextProcess;
-		}
-		/**
-		 * @param nextProcess The nextProcess to set.
-		 */
-		public void setNextProcess(Runnable nextProcess) {
-			this.nextProcess = nextProcess;
-		}
-		
+	
 		
 		// ============= Monitorable Interface =============
 		
@@ -467,18 +461,11 @@ public class SQLScriptDialog extends JDialog {
 		}
 		
 		public void cancelJob() {
-			cancelled = true;
+			this.setCancelled(true);
 			finished = true;
 		}
 		
-		public boolean isCancelled() {
-			return cancelled;
-		}
-		
-		public void setCancelled(boolean cancelled) {
-			this.cancelled = cancelled;
-		}
-		
+			
 		public boolean hasStarted() {
 			return hasStarted;
 		}
@@ -486,5 +473,15 @@ public class SQLScriptDialog extends JDialog {
 		public void setHasStarted(boolean hasStarted) {
 			this.hasStarted = hasStarted;
 		}
+
+	
+	}
+
+	public ArrayList<LabelValueBean> getStatementResultList() {
+		return statementResultList;
+	}
+
+	public void setStatementResultList(ArrayList<LabelValueBean> statementResultList) {
+		this.statementResultList = statementResultList;
 	}	
 }

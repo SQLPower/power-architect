@@ -7,7 +7,13 @@
 package ca.sqlpower.architect.swingui;
 import java.awt.Component;
 import java.awt.FlowLayout;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
@@ -33,7 +39,12 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLSchema;
+import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.etl.PLExport;
+import ca.sqlpower.security.PLSecurityException;
+import ca.sqlpower.security.PLSecurityManager;
+import ca.sqlpower.sql.SQL;
+import ca.sqlpower.util.UnknownFreqCodeException;
 
 
 /**
@@ -78,6 +89,8 @@ public class QuickStartPanel3 implements WizardPanel {
 					isSelected, cellHasFocus);
 		}
 	};
+
+	private JLabel label;
 	
 	public QuickStartPanel3 (QuickStartWizard wizard) {
 		this.wizard = wizard;
@@ -94,18 +107,25 @@ public class QuickStartPanel3 implements WizardPanel {
 		repositoryConnectionsBox = new JComboBox();
 		repositoryCatalogComboBox = new JComboBox();
 		repositorySchemaComboBox = new JComboBox();
-		progressBar = new JProgressBar();
-		progressBar.setVisible(false);
-		
-		
+		progressBar = ((WizardDialog)wizard.getParentDialog()).getProgressBar();
+		label = ((WizardDialog)wizard.getParentDialog()).getProgressLabel();
+		label.setText("Loading Database.....");
 		
 		dcl = new DatabaseComboBoxListener(
 								(JPanel)getPanel(),
 								repositoryConnectionsBox,
 								repositoryCatalogComboBox,
 								repositorySchemaComboBox,
-								progressBar);
-				
+								progressBar );
+		
+		ArrayList l1 = new ArrayList();
+		l1.add(label);
+		dcl.setVisableInvisableList(l1);
+		
+		ArrayList l2 = new ArrayList();
+		l2.add(((WizardDialog)wizard.getParentDialog()).getNextButton() );
+		l2.add(((WizardDialog)wizard.getParentDialog()).getBackButton() );
+		dcl.setDisableEnableList(l2);
 		
 		repositoryConnectionsBox.addActionListener(dcl);
 		
@@ -129,8 +149,7 @@ public class QuickStartPanel3 implements WizardPanel {
 		plJobComment = new JTextField();
 		runPLEngine = new JCheckBox("Run PL Engine?");
 		runPLEngine.setEnabled(false);		
-		
-		
+				
 		pb.add(new JLabel("Repository Connection"), cc.xy(2,2,"r,c"));
 		pb.add(repositoryConnectionsBox, cc.xyw(4,2,2));
 		pb.add(newRepositoryButton, cc.xy(7,2));
@@ -147,7 +166,7 @@ public class QuickStartPanel3 implements WizardPanel {
 		pb.add(new JLabel("PL Job Comment"), cc.xy(2,14,"r,c"));
 		pb.add(plJobComment, cc.xyw(4,14,4));
 		pb.add(runPLEngine, cc.xyw(4,16,2));
-		pb.add(progressBar, cc.xyw(4,18,4));
+		
 				
 		panel.add(pb.getPanel());			
 	}
@@ -156,9 +175,8 @@ public class QuickStartPanel3 implements WizardPanel {
 	 * @see ca.sqlpower.architect.swingui.ArchitectPanel#applyChanges()
 	 */
 	public boolean applyChanges() {
-		logger.debug("Applying target database changes to the PLExport object");
+		logger.debug("Applying repository database changes to the PLExport object");
 		PLExport plexp = wizard.getPlExport();	
-		plexp.setTargetDataSource((ArchitectDataSource)repositoryConnectionsBox.getSelectedItem());
 		
 		SQLDatabase database = dcl.getDatabase();
 		SQLCatalog catalog = (SQLCatalog) repositoryCatalogComboBox.getSelectedItem();
@@ -167,19 +185,148 @@ public class QuickStartPanel3 implements WizardPanel {
 		if ( database == null || 
 			repositoryConnectionsBox.getSelectedItem() == null){
 			JOptionPane.showMessageDialog(getPanel(),
-					"No Database is selected, cannot continue.",
+					"No Repository Database is selected, cannot continue.",
 					"Database Error", JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
 		
+		 try {
+			Connection con = database.getConnection();
+			
+			 if (con == null) {
+		    	JOptionPane.showMessageDialog(getPanel(),
+						"Couldn't connect to repository database.",
+						"Repository Database Connection Error", JOptionPane.ERROR_MESSAGE);
+				return false;
+			}
+			 
+			PLSecurityManager sm = null;
+			sm = new PLSecurityManager(con, 
+		                database.getDataSource().get(ArchitectDataSource.PL_UID),
+		                database.getDataSource().get(ArchitectDataSource.PL_PWD),
+		                false);
+			 
+		    if (sm == null) {
+		    	JOptionPane.showMessageDialog(getPanel(),
+						"Couldn't login to repository database.",
+						"Repository Database Login Error", JOptionPane.ERROR_MESSAGE);
+				return false;
+			}
+		    
+		    StringBuffer sql = new StringBuffer("SELECT SCHEMA_VERSION FROM ");
+			sql.append( DDLUtils.toQualifiedName(catalog==null?null:catalog.getName(),
+											schema==null?null:schema.getName(),
+											"DEF_PARAM"));
+			Statement s = con.createStatement();
+			ResultSet rs = null;
+			Set set = new HashSet();
+			try {
+				logger.debug("TRY TO VERTIFY PL SCHEMA EXISTENT: " + sql.toString());
+				rs = s.executeQuery(sql.toString());
+				while (rs.next()) {
+					set.add(rs.getString(1));
+				}
+			} catch (SQLException e) {
+				JOptionPane.showMessageDialog(getPanel(),
+						"This repository database.catalog.schema ["+
+						database.getName()+
+						(catalog==null?"":"."+catalog.getName())+
+						(schema==null?"":"."+schema.getName())+
+						"] Does not contain Power Loader dictionary tables",
+						"Repository Database Error", JOptionPane.ERROR_MESSAGE);
+				return false;
+			} finally {
+				if (rs != null) {
+					rs.close();				
+				}
+				if (s != null) {
+					s.close();
+				}
+			}
+			
+			if ( set.size() == 0 ) {
+				JOptionPane.showMessageDialog(getPanel(),
+						"This Invalid Power Loader Schema",
+						"Repository Database Error", JOptionPane.ERROR_MESSAGE);
+				return false;
+			}
+			
+			
+			sql = new StringBuffer("SELECT JOB_ID FROM ");
+			sql.append( DDLUtils.toQualifiedName(catalog==null?null:catalog.getName(),
+											schema==null?null:schema.getName(),
+											"PL_JOB"));
+			sql.append(" WHERE JOB_ID=");
+			sql.append( SQL.quote(plJobId.getText().toUpperCase()));
+			s = con.createStatement();
+			rs = null;
+			set = new HashSet();
+			
+			try {
+				logger.debug("TRY TO CHECK DUPLICATE JOB_ID: " + sql.toString());
+				rs = s.executeQuery(sql.toString());
+				while (rs.next()) {
+					set.add(rs.getString(1));
+				}
+			} catch (SQLException e) {
+				JOptionPane.showMessageDialog(getPanel(),
+						"This repository database.catalog.schema ["+
+						database.getName()+
+						(catalog==null?"":"."+catalog.getName())+
+						(schema==null?"":"."+schema.getName())+
+						"] Does not contain Power Loader dictionary tables",
+						"Repository Database Error", JOptionPane.ERROR_MESSAGE);
+				return false;
+			} finally {
+				if (rs != null) {
+					rs.close();				
+				}
+				if (s != null) {
+					s.close();
+				}
+			}
+			
+			if ( set.size() != 0 ) {
+				JOptionPane.showMessageDialog(getPanel(),
+						"Duplicate Job Id " + plJobId.getText(),
+						"Metadata Error", JOptionPane.ERROR_MESSAGE);
+				return false;
+			}
+			
+			
+	    } catch (PLSecurityException se) {
+	    	JOptionPane.showMessageDialog(getPanel(),
+					"Couldn't connect to repository database, "+se.getMessage(),
+					"Repository Database Error", JOptionPane.ERROR_MESSAGE);
+			return false;
+	    } catch (UnknownFreqCodeException e) {
+	    	JOptionPane.showMessageDialog(getPanel(),
+					"Couldn't connect to repository database, Frequence Code Setup error:"+
+					e.getMessage(),
+					"Repository Database Error", JOptionPane.ERROR_MESSAGE);
+	    	return false;
+		} catch (SQLException e) {
+			JOptionPane.showMessageDialog(getPanel(),
+					"Couldn't connect to repository database, SQL ERROR:"+e.getMessage(),
+					"Repository Database Error", JOptionPane.ERROR_MESSAGE);
+			return false;
+		} catch (ArchitectException e) {
+			JOptionPane.showMessageDialog(getPanel(),
+					e.getMessage(),
+					"Repository Database Error", JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
+		
+		
+		
 		try {
-			if ( database.isCatalogContainer() && catalog == null )
+			if ( database.isCatalogContainer() && database.getChildCount() > 0 && catalog == null )
 				return false;
 			
-			if ( database.isSchemaContainer() && schema == null )
+			if ( database.isSchemaContainer() && database.getChildCount() > 0 && schema == null )
 				return false;
 			
-			if ( catalog != null && catalog.isSchemaContainer() && schema == null )
+			if ( catalog != null && catalog.getChildCount() > 0 && catalog.isSchemaContainer() && schema == null )
 				return false;
 			
 		} catch (ArchitectException e) {
@@ -195,6 +342,8 @@ public class QuickStartPanel3 implements WizardPanel {
 										"Error", JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
+		
+
 		plexp.setRepositoryDataSource((ArchitectDataSource) 
 										repositoryConnectionsBox.getSelectedItem());
 		plexp.setRepositoryCatalog( catalog );

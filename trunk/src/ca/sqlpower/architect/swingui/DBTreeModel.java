@@ -1,6 +1,7 @@
 package ca.sqlpower.architect.swingui;
 
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import javax.swing.tree.*;
 import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeModelEvent;
@@ -152,32 +153,79 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 
 	protected void fireTreeNodesInserted(TreeModelEvent e) {
 		if (logger.isDebugEnabled()) logger.debug("Firing treeNodesInserted event: "+e);
-		Iterator it = treeModelListeners.iterator();
-		while (it.hasNext()) {
-			((TreeModelListener) it.next()).treeNodesInserted(e);
+		final TreeModelEvent ev =e; 
+		Runnable notifier = new Runnable(){
+			public void run() {
+				Iterator it = treeModelListeners.iterator();
+				while (it.hasNext()) {
+					((TreeModelListener) it.next()).treeNodesInserted(ev);
+				}
+			}
+		};
+		if (SwingUtilities.isEventDispatchThread()) {
+			notifier.run();
+		}
+		else
+		{
+			SwingUtilities.invokeLater(notifier);
 		}
 	}
 	
 	protected void fireTreeNodesRemoved(TreeModelEvent e) {
 		if (logger.isDebugEnabled()) logger.debug("Firing treeNodesRemoved event "+e);
-		Iterator it = treeModelListeners.iterator();
-		while (it.hasNext()) {
-			((TreeModelListener) it.next()).treeNodesRemoved(e);
-			if (logger.isDebugEnabled()) logger.debug("Sent a copy");
+		final TreeModelEvent ev =e; 
+		Runnable notifier = new Runnable(){
+			public void run() {
+				Iterator it = treeModelListeners.iterator();
+				while (it.hasNext()) {
+					((TreeModelListener) it.next()).treeNodesRemoved(ev);
+				}
+			}
+		};
+		if (SwingUtilities.isEventDispatchThread()) {
+			notifier.run();
+		}
+		else
+		{
+			SwingUtilities.invokeLater(notifier);
 		}
 	}
 
 	protected void fireTreeNodesChanged(TreeModelEvent e) {
-		Iterator it = treeModelListeners.iterator();
-		while (it.hasNext()) {
-			((TreeModelListener) it.next()).treeNodesChanged(e);
+		final TreeModelEvent ev =e; 
+		Runnable notifier = new Runnable(){
+			public void run() {
+				Iterator it = treeModelListeners.iterator();
+				while (it.hasNext()) {
+					((TreeModelListener) it.next()).treeNodesChanged(ev);
+				}
+			}
+		};
+		if (SwingUtilities.isEventDispatchThread()) {
+			notifier.run();
+		}
+		else
+		{
+			SwingUtilities.invokeLater(notifier);
 		}
 	}
 
 	protected void fireTreeStructureChanged(TreeModelEvent e) {
-		Iterator it = treeModelListeners.iterator();
-		while (it.hasNext()) {
-			((TreeModelListener) it.next()).treeStructureChanged(e);
+		final TreeModelEvent ev =e; 
+		Runnable notifier = new Runnable(){
+			public void run() {
+				Iterator it = treeModelListeners.iterator();
+				while (it.hasNext()) {
+					((TreeModelListener) it.next()).treeStructureChanged(ev);
+				}
+			}
+		};
+		if (SwingUtilities.isEventDispatchThread()) {
+			notifier.run();
+		}
+		else
+		{
+			SwingUtilities.invokeLater(notifier);
 		}
 	}
 
