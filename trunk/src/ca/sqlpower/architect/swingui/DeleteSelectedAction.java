@@ -112,7 +112,11 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 							if (decision == JOptionPane.NO_OPTION) {
 								return;
 							}
-						}						
+						} catch (ArchitectException e) {
+							logger.error("Unexpected exception encountered when attempting to delete column '"+
+									sc+"' of table '"+sc.getParentTable()+"'");
+							ASUtils.showExceptionDialog(pp, "Encountered a Problem Deleting the column", e);
+						}
 					}
 					
 					pp.fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.MULTI_SELECT_END,"Ending multi-select"));
@@ -175,6 +179,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 			
 			pp.fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.MULTI_SELECT_START,"Starting multi-select"));
 			
+			// FIXME: parts of the following code look like they were cut'n'pasted from above... PURE EVIL!
 			Iterator it = Arrays.asList(selections).iterator();
 			while (it.hasNext()) {
 				TreePath tp = (TreePath) it.next();
@@ -198,6 +203,10 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 						if (decision == JOptionPane.NO_OPTION) {
 							return;
 						}
+					} catch (ArchitectException e) {
+						logger.error("Unexpected exception encountered when attempting to delete column '"+
+								sc+"' of table '"+sc.getParentTable()+"'");
+						ASUtils.showExceptionDialog(pp, "Encountered a Problem Deleting the column", e);
 					}
 				} else if (so instanceof SQLRelationship) {
 					SQLRelationship sr = (SQLRelationship) so;
@@ -213,7 +222,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 		} else {
 			logger.debug("delete action came from unknown source, so we do nothing.");
 	  		// unknown action command source, do nothing
-		}	
+		}
 	}
 	
 	public void setPlayPen(PlayPen newPP) {
