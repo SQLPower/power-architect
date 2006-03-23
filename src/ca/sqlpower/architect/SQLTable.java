@@ -498,8 +498,12 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 
 	/**
 	 * Calls {@link #removeColumn(SQLColumn)} with the appropriate argument.
+	 * 
+	 * @throws LockedColumnException If the column is "owned" by a relationship, and cannot
+	 * be safely removed.
+	 * @throws ArchitectException If something goes wrong accessing the table's foreign keys 
 	 */
-	public void removeColumn(int index) throws LockedColumnException {
+	public void removeColumn(int index) throws ArchitectException {
 		removeColumn((SQLColumn) columnsFolder.children.get(index));
 	}
 
@@ -508,25 +512,22 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * to change a column's, index, use the {@link
 	 * #changeColumnIndex(int,int)} method because it does not throw
 	 * LockedColumnException.
-	 *
-	 * @throws LockedColumnException if the given column belongs to an
-	 * imported or exported key.
+	 * 
+	 * @throws LockedColumnException If the column is "owned" by a relationship, and cannot
+	 * be safely removed.
+	 * @throws ArchitectException If something goes wrong accessing the table's foreign keys 
 	 */
-	public void removeColumn(SQLColumn col) throws LockedColumnException {
+	public void removeColumn(SQLColumn col) throws ArchitectException {
 		// NOTE: the LockedColumnException check was not being used, and there was 
         // no comment about why it had been commmented out...
- 		List keys;
-		try {
-			keys = keysOfColumn(col);
+
+		List keys = keysOfColumn(col);
 		
-	 		if (keys.isEmpty()) {
-	 			columnsFolder.removeChild(col);
-	 			normalizePrimaryKey();
-	 		} else {
-	 			throw new LockedColumnException("This column can't be removed because it belongs to the "+keys.get(0)+" relationship");
-	 		}
-		} catch (ArchitectException e) {
-			logger.warn("failed to access the keys of the column");
+		if (keys.isEmpty()) {
+			columnsFolder.removeChild(col);
+			normalizePrimaryKey();
+		} else {
+			throw new LockedColumnException("This column can't be removed because it belongs to the "+keys.get(0)+" relationship");
 		}
 	}
 
@@ -540,15 +541,16 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * @param newIdx the index that the column will have when this
 	 * method returns.
 	 */
-	public void changeColumnIndex(int oldIdx, int newIdx) throws ArchitectException {
+	public void changeColumnIndex(int oldIdx, int newIdx, boolean putInPK) throws ArchitectException {
 		// remove and add the column directly, then manually fire the event.
 	    // This is necessary because the relationships prevent deletion of locked keys.
  		SQLColumn col = (SQLColumn) columnsFolder.children.remove(oldIdx);
  		columnsFolder.fireDbChildRemoved(oldIdx, col);
  		columnsFolder.children.add(newIdx, col);
- 		if (newIdx == 0
- 			|| ((SQLColumn) getColumns().get(newIdx-1)).primaryKeySeq != null) {
+ 		if (putInPK) {
  			col.primaryKeySeq = new Integer(1); // will get sane value when normalized
+ 		} else {
+ 			col.primaryKeySeq = null;
  		}
  		normalizePrimaryKey();
  		columnsFolder.fireDbChildInserted(newIdx, col);
