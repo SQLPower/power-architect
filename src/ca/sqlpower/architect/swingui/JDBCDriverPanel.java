@@ -242,7 +242,7 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 				jf = new JarFile(file);
 				cl = new JDBCScanClassLoader(jf);
 				List driverClasses = cl.scanForDrivers();
-				System.out.println("Found drivers: "+driverClasses);
+				logger.info("Found drivers: "+driverClasses);
 				DefaultMutableTreeNode node = new DefaultMutableTreeNode(file.getPath());
 				dtm.insertNodeInto(node, root, root.getChildCount());
 				Iterator it = driverClasses.iterator();

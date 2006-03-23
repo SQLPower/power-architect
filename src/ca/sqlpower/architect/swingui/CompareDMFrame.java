@@ -115,12 +115,12 @@ public class CompareDMFrame extends JFrame{
 		
 		layout.setColumnGroups(new int [][] { {2,4}}); 
 		JPanel p = logger.isDebugEnabled()  ? new FormDebugPanel(layout) : new JPanel(layout);
-			pb = new PanelBuilder(layout, p);			
-			pb.setDefaultDialogBorder();	
-			pb.add(titleLabel, cc.xy(2, 1));			
-	        pb.add(sp, cc.xy(2, 3));
-	    	pb.add(sourcebbBuilder.getPanel(), cc.xy(2, 5, "c,c"));
-			pb.add(closeBar.getPanel(), cc.xy(2,7, "r,c"));
+		pb = new PanelBuilder(layout, p);			
+		pb.setDefaultDialogBorder();	
+		pb.add(titleLabel, cc.xy(2, 1));			
+        pb.add(sp, cc.xy(2, 3));
+    	pb.add(sourcebbBuilder.getPanel(), cc.xy(2, 5, "c,c"));
+		pb.add(closeBar.getPanel(), cc.xy(2,7, "r,c"));
 			
 		
 		

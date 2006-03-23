@@ -7,12 +7,26 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Component;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+
+import javax.swing.Box;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JProgressBar;
+import javax.swing.JScrollPane;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeExpansionListener;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.event.TreeWillExpandListener;
+import javax.swing.tree.ExpandVetoException;
+import javax.swing.tree.TreePath;
+
+import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLCatalog;
@@ -21,13 +35,6 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLDatabase.PopulateProgressMonitor;
-
-import javax.swing.*;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.TreePath;
-
-import org.apache.log4j.Logger;
 /**
  * @author jack
  *
@@ -47,6 +54,7 @@ public class QuickStartPanel1 implements WizardPanel {
 	private DBTree dbTree;
 	private JScrollPane scrollPane;
 	private JProgressBar progressBar;
+	private JLabel label;
 	
 	public JComponent getPanel() {
 		if (box == null) {
@@ -67,15 +75,16 @@ public class QuickStartPanel1 implements WizardPanel {
 				logger.error("problem loading database list",e);
 			}
 			
-			progressBar = new JProgressBar();
-			progressBar.setVisible(false);
+			progressBar = ((WizardDialog)wizard.getParentDialog()).getProgressBar();
+			label = ((WizardDialog)wizard.getParentDialog()).getProgressLabel();
+			label.setText("Loading Database.....");
 			
 			dbTree.addTreeSelectionListener(new MyTreeSelectionListener(progressBar));
+			dbTree.addTreeWillExpandListener(new MyTreeSelectionListener(progressBar));
+
 			// the list of tables for the selected source
 			JScrollPane scrollPane = new JScrollPane(dbTree);
 			box.add(scrollPane);
-			box.add(Box.createVerticalStrut(50));
-			box.add(progressBar);
 						
 			box.add(Box.createVerticalStrut(50));
 		}
@@ -112,7 +121,19 @@ public class QuickStartPanel1 implements WizardPanel {
 		wizard.setSourceTables(list);
 		return true;
 	}
-
+	
+	
+	/**
+	 * When a SQLObject is selected in the tree, this method is used
+	 * to retrieve all the SQLTable within that certain SQLObject (or
+	 * it could already be the SQLTables being selected) and 
+	 * stores it in the list being passed in as parameter
+	 * 
+	 * @param sqlObj  The SQLObject selected in the tree
+	 * @param list    The list in which all the retrieved SQLTable are stored
+	 * @return
+	 */
+	
 	private boolean getTables( SQLObject sqlObj, List <SQLTable> list) {
 		if ( sqlObj instanceof SQLSchema ) {
 			logger.debug("adding schema: " + ((SQLSchema)sqlObj).getName());
@@ -213,8 +234,10 @@ public class QuickStartPanel1 implements WizardPanel {
 		return ("Architect Quick Start - Step 1 of 5 - Select Source Tables");
 	}
 	
+	//***********Progress Monitor Components********
+	
 	public class MyTreeSelectionListener extends ArchitectSwingWorker implements
-			TreeSelectionListener, Lister {
+			TreeSelectionListener, TreeWillExpandListener, Lister {
 
 		private JProgressBar progressBar;
 		protected SQLDatabase.PopulateProgressMonitor progressMonitor;
@@ -235,15 +258,25 @@ public class QuickStartPanel1 implements WizardPanel {
 				progressBar.setVisible(false);
 		}
 
+		
 		@Override
 		public void doStuff() throws Exception {
 
 			try {
 				ListerProgressBarUpdater progressBarUpdater = 
 					new ListerProgressBarUpdater(progressBar, this);
+				
+				ArrayList l = new ArrayList();
+				l.add(((WizardDialog)wizard.getParentDialog()).getNextButton());
+				progressBarUpdater.setDisableEnableList(l);
+
+				ArrayList l2 = new ArrayList();
+				l2.add(label);
+				progressBarUpdater.setVisableInvisableList(l2);
+				
 				new javax.swing.Timer(100, progressBarUpdater).start();
 
-				for ( SQLDatabase database : databaseList ) {
+				for ( SQLDatabase database : databaseList ) {				
 					database.populate();
 				}
 
@@ -254,7 +287,6 @@ public class QuickStartPanel1 implements WizardPanel {
 		}
 
 		public void valueChanged(TreeSelectionEvent e) {
-
 			TreePath [] paths = dbTree.getSelectionPaths();
 			if (paths == null || paths.length == 0)
 				return;
@@ -308,6 +340,28 @@ public class QuickStartPanel1 implements WizardPanel {
 					return false;
 			}
 			return true;
+		}
+
+		public void treeWillExpand(TreeExpansionEvent event) throws ExpandVetoException {
+			TreePath path = event.getPath();
+			if (path == null )
+				return;
+		
+			SQLObject lastObj = (SQLObject)path.getLastPathComponent();
+			if (lastObj instanceof SQLDatabase) {
+				databaseList.add( (SQLDatabase)lastObj );
+				try {
+					progressMonitorList.add( ((SQLDatabase)lastObj).getProgressMonitor());				
+				} catch (ArchitectException e1) {
+					logger.debug("Error getting progressMonitor", e1);
+				}
+			}
+
+			new Thread(this).start();
+			
+		}
+
+		public void treeWillCollapse(TreeExpansionEvent event) throws ExpandVetoException {
 		}
 
 	}

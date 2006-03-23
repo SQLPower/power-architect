@@ -1,6 +1,7 @@
 package ca.sqlpower.architect.etl;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.HashSet;
@@ -11,7 +12,10 @@ import java.util.Set;
 import ca.sqlpower.sql.*;
 import ca.sqlpower.security.*;
 import ca.sqlpower.architect.*;
+import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.swingui.Monitorable;
+import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
+
 import org.apache.log4j.Logger;
 
 public class PLExport implements Monitorable {
@@ -41,6 +45,8 @@ public class PLExport implements Monitorable {
 	protected String repositoryCatalog;
 		
 	protected boolean hasStarted;
+	private ArrayList <LabelValueBean> exportResultList = new ArrayList();
+	
 	/**
 	 * @return Returns the hasStarted.
 	 */
@@ -94,15 +100,34 @@ public class PLExport implements Monitorable {
 	 * already.
 	 */
 	public void maybeInsertFolder(Connection con) throws SQLException {
+
+		
+		if ( folderName == null || folderName.length() == 0 ) {
+			exportResultList.add(
+					new LabelValueBean("Create Folder:"+folderName,
+							"Skipped, no parameter"));
+			return;
+		}
+		
+		String status = "Unknown";
 		Statement stmt = null;
 		ResultSet rs = null;
 		try {
 			stmt = con.createStatement();
-			rs = stmt.executeQuery("SELECT 1 FROM pl_folder WHERE folder_name="
-								   +SQL.quote(folderName));
-			if (!rs.next()) {
-				StringBuffer sql = new StringBuffer("INSERT INTO PL_FOLDER (");
-				sql.append("folder_name,folder_desc,folder_status,last_backup_no)");
+			String folder_table = DDLUtils.toQualifiedName(repositoryCatalog,
+												repositorySchema,
+												"pl_folder");
+			
+			rs = stmt.executeQuery("SELECT 1 FROM " +
+									folder_table +
+									" WHERE folder_name=" + 
+									SQL.quote(folderName));
+			
+			if ( !rs.next() ) {
+				status = "OK";
+				StringBuffer sql = new StringBuffer("INSERT INTO ");
+				sql.append(folder_table);
+				sql.append(" (folder_name,folder_desc,folder_status,last_backup_no)");
 				sql.append(" VALUES (");
 				
 				sql.append(SQL.quote(folderName));  // folder_name
@@ -110,13 +135,22 @@ public class PLExport implements Monitorable {
 				sql.append(",").append(SQL.quote(null));  // folder_status
 				sql.append(",").append(SQL.quote(null));  // last_backup_no
 				sql.append(")");
-				logWriter.info("Insert into PL FOLDER, PK=" + folderName);
+				logWriter.info("Insert into " + folder_table + ", PK=" + folderName);
 				logger.debug("MAYBE INSERT SQL: " + sql.toString());
 				stmt.executeUpdate(sql.toString());
 			}
+			else {
+				status = "Skipped, exist";
+			}
+		} catch( SQLException e ) {
+			status = "Error";
+			throw e;
 		} finally {
 			if (rs != null) rs.close();
 			if (stmt != null) stmt.close();
+			exportResultList.add(new LabelValueBean("Create Folder:"+folderName,
+													status));
+			
 		}
 	}
 	
@@ -126,8 +160,15 @@ public class PLExport implements Monitorable {
 	 */
 	public void insertFolderDetail(Connection con, String objectType, String objectName)
 		throws SQLException {
-		StringBuffer sql = new StringBuffer("INSERT INTO PL_FOLDER_DETAIL (");
-		sql.append("folder_name,object_type,object_name)");
+		
+		if ( folderName == null || folderName.length() == 0 )
+			return;
+		
+		StringBuffer sql = new StringBuffer("INSERT INTO ");
+		sql.append(DDLUtils.toQualifiedName(repositoryCatalog,
+											repositorySchema,
+											"PL_FOLDER_DETAIL" ));
+		sql.append(" (folder_name,object_type,object_name)");
 		sql.append(" VALUES (");
 
 		sql.append(SQL.quote(folderName));  // folder_name
@@ -154,7 +195,10 @@ public class PLExport implements Monitorable {
 	 * @param con A connection to the PL database
 	 */
 	public int generateUniqueTransIdx(Connection con, String transId) throws SQLException {
-		StringBuffer sql = new StringBuffer("SELECT TRANS_ID FROM TRANS WHERE TRANS_ID LIKE ");
+		
+		StringBuffer sql = new StringBuffer("SELECT TRANS_ID FROM ");
+		sql.append( DDLUtils.toQualifiedName(repositoryCatalog,repositorySchema,"TRANS"));
+		sql.append(" WHERE TRANS_ID LIKE ");
 		sql.append(SQL.quote(transId+"%"));
 		Statement s = con.createStatement();
 		ResultSet rs = null;
@@ -195,10 +239,16 @@ public class PLExport implements Monitorable {
 	 *
 	 * @param con A connection to the PL database
 	 */
-	public void insertJob(Connection con) throws SQLException {
+	private void insertJob(Connection con)
+							throws SQLException {
 		
-		StringBuffer sql = new StringBuffer("INSERT INTO PL_JOB (");
-		sql.append("JOB_ID, JOB_DESC, JOB_FREQ_DESC, PROCESS_CNT, SHOW_PROGRESS_FREQ, PROCESS_SEQ_CODE, MAX_RETRY_COUNT, WRITE_DB_ERRORS_IND, ROLLBACK_SEGMENT_NAME, LOG_FILE_NAME, ERR_FILE_NAME, UNIX_LOG_FILE_NAME, UNIX_ERR_FILE_NAME, APPEND_TO_LOG_IND, APPEND_TO_ERR_IND, DEBUG_MODE_IND, COMMIT_FREQ, JOB_COMMENT, CREATE_DATE, LAST_update_DATE, LAST_update_USER, BATCH_SCRIPT_FILE_NAME, JOB_SCRIPT_FILE_NAME, UNIX_BATCH_SCRIPT_FILE_NAME, UNIX_JOB_SCRIPT_FILE_NAME, JOB_STATUS, LAST_BACKUP_NO, LAST_RUN_DATE, SKIP_PACKAGES_IND, SEND_EMAIL_IND, LAST_update_OS_USER, STATS_IND, checked_out_ind, checked_out_date, checked_out_user, checked_out_os_user");
+		String status = "Unknown";
+		StringBuffer sql = new StringBuffer("INSERT INTO " );
+		sql.append(DDLUtils.toQualifiedName(repositoryCatalog,
+										repositorySchema,
+										"PL_JOB"));
+		
+		sql.append(" (JOB_ID, JOB_DESC, JOB_FREQ_DESC, PROCESS_CNT, SHOW_PROGRESS_FREQ, PROCESS_SEQ_CODE, MAX_RETRY_COUNT, WRITE_DB_ERRORS_IND, ROLLBACK_SEGMENT_NAME, LOG_FILE_NAME, ERR_FILE_NAME, UNIX_LOG_FILE_NAME, UNIX_ERR_FILE_NAME, APPEND_TO_LOG_IND, APPEND_TO_ERR_IND, DEBUG_MODE_IND, COMMIT_FREQ, JOB_COMMENT, CREATE_DATE, LAST_update_DATE, LAST_update_USER, BATCH_SCRIPT_FILE_NAME, JOB_SCRIPT_FILE_NAME, UNIX_BATCH_SCRIPT_FILE_NAME, UNIX_JOB_SCRIPT_FILE_NAME, JOB_STATUS, LAST_BACKUP_NO, LAST_RUN_DATE, SKIP_PACKAGES_IND, SEND_EMAIL_IND, LAST_update_OS_USER, STATS_IND, checked_out_ind, checked_out_date, checked_out_user, checked_out_os_user");
 		sql.append(") VALUES (");
 		sql.append(SQL.quote(jobId));  // JOB_ID
 		sql.append(",").append(SQL.quote(jobDescription));  // JOB_DESC
@@ -240,15 +290,20 @@ public class PLExport implements Monitorable {
 		sql.append(",").append(SQL.quote(null));  // checked_out_os_user
 		sql.append(")");
 		Statement s = con.createStatement();
-		logWriter.info("INSERT into PL_JOB, PK=" + jobId);
+		logWriter.info("INSERT into PL JOB, PK=" + jobId);
 		
 		try {
-			logger.debug("INSERT PL_JOB: " + sql.toString());
+			logger.debug("INSERT PL JOB: " + sql.toString());
 			s.executeUpdate(sql.toString());
+			status = "OK";
+		} catch ( SQLException e ) {
+			status = "Error";
+			throw e;
 		} finally {
 			if (s != null) {
 				s.close();
 			}
+			exportResultList.add(new LabelValueBean("Create Job "+jobId, status));
 		}
 		
 	}			
@@ -261,8 +316,12 @@ public class PLExport implements Monitorable {
 	 */
 	public void insertJobDetail(Connection con, int seqNo, String objectType, String objectName) throws SQLException {
 	
-		StringBuffer sql= new StringBuffer("INSERT INTO JOB_DETAIL (");
-		sql.append("JOB_ID, JOB_PROCESS_SEQ_NO, OBJECT_TYPE, OBJECT_NAME, JOB_DETAIL_COMMENT, LAST_update_DATE, LAST_update_USER, FAILURE_ABORT_IND, WARNING_ABORT_IND, PKG_PARAM, ACTIVE_IND, LAST_update_OS_USER )");
+		String status = "Unknown";
+		StringBuffer sql= new StringBuffer("INSERT INTO ");
+		sql.append(DDLUtils.toQualifiedName(repositoryCatalog,
+				repositorySchema,
+				"JOB_DETAIL" ));
+		sql.append(" (JOB_ID, JOB_PROCESS_SEQ_NO, OBJECT_TYPE, OBJECT_NAME, JOB_DETAIL_COMMENT, LAST_update_DATE, LAST_update_USER, FAILURE_ABORT_IND, WARNING_ABORT_IND, PKG_PARAM, ACTIVE_IND, LAST_update_OS_USER )");
 		sql.append(" VALUES (");
 		sql.append(SQL.quote(jobId));  // JOB_ID
 		sql.append(",").append(seqNo);  // JOB_PROCESS_SEQ_NO
@@ -277,15 +336,22 @@ public class PLExport implements Monitorable {
 		sql.append(",").append(SQL.quote("Y"));  // ACTIVE_IND
 		sql.append(",").append(SQL.quote(System.getProperty("user.name")));  // LAST_update_OS_USER
 		sql.append(")");
-		logWriter.info("INSERT into JOB_DETAIL, PK=" + jobId + "|" + seqNo);
+		logWriter.info("INSERT into JOB DETAIL, PK=" + jobId + "|" + seqNo);
 		Statement s = con.createStatement();
+
 		try {
-			logger.debug("INSERT JOB_DETAIL: " + sql.toString());
+			logger.debug("INSERT JOB DETAIL: " + sql.toString());
 			s.executeUpdate(sql.toString());
+			status = "OK";
+		} catch ( SQLException e ) {
+			status = "Error";
+			throw e;
 		} finally {
 			if (s != null) {
 				s.close();
 			}
+			exportResultList.add(new LabelValueBean(
+					"Create Job Step "+seqNo+objectName, status));
 		}
 	}
 
@@ -299,9 +365,14 @@ public class PLExport implements Monitorable {
 	 * transaction will populate.
 	 */
 	public void insertTrans(Connection con, String transId, String remarks) throws ArchitectException, SQLException {
+		String status = "Unknown";
 		StringBuffer sql = new StringBuffer();
-		sql.append(" INSERT INTO TRANS (\n");
-		sql.append(" TRANS_ID, TRANS_DESC, TRANS_COMMENT, ACTION_TYPE, MAX_RETRY_COUNT,\n");
+		sql.append(" INSERT INTO ");
+		sql.append( DDLUtils.toQualifiedName(repositoryCatalog,
+											repositorySchema,
+											"TRANS" ));
+		
+		sql.append(" (TRANS_ID, TRANS_DESC, TRANS_COMMENT, ACTION_TYPE, MAX_RETRY_COUNT,\n");
 		sql.append(" PROCESS_SEQ_CODE, LAST_update_DATE, LAST_update_USER, DEBUG_MODE_IND,\n");
 		sql.append(" COMMIT_FREQ, PROCESS_ADD_IND, PROCESS_UPD_IND, PROCESS_DEL_IND,\n");
 		sql.append(" WRITE_DB_ERRORS_IND, ROLLBACK_SEGMENT_NAME, ERR_FILE_NAME,\n");
@@ -371,13 +442,18 @@ public class PLExport implements Monitorable {
 		try {			
 			logger.debug("INSERT TRANS: " + sql.toString());
 			s.executeUpdate(sql.toString());
+			status = "OK";
+			
 		} catch (SQLException ex) {
 			logger.error("This statement caused an exception: "+sql);
+			status = "Error";
 			throw ex;
 		} finally {
 			if (s != null) {
 				s.close();
 			}
+			exportResultList.add(new LabelValueBean(
+					"Create Trans "+transId, status));
 		}
 	}
 
@@ -399,8 +475,12 @@ public class PLExport implements Monitorable {
 									 SQLTable table,
 									 boolean isOutput,
 									 int seqNo) throws SQLException {
-		StringBuffer sql= new StringBuffer("INSERT INTO TRANS_TABLE_FILE (");
-		sql.append("TRANS_ID, TABLE_FILE_ID, TABLE_FILE_IND, TABLE_FILE_TYPE, INPUT_OUTPUT_IND, SYSTEM_NAME, SERVER_NAME, FILE_CHAR_SET, TEXT_DELIMITER, TEXT_QUALIFIER, OWNER, TABLE_FILE_NAME, TABLE_FILE_ACCESS_PATH, MAX_ADD_COUNT, MAX_UPD_COUNT, MAX_DEL_COUNT, MAX_ERR_COUNT, FILTER_CRITERION, PROC_SEQ_NO, HEADER_REC_IND, LAST_UPDATE_DATE, LAST_UPDATE_USER, TRANS_TABLE_FILE_COMMENT, DB_CONNECT_NAME, UNIX_FILE_ACCESS_PATH, REC_DELIMITER, SELECT_CLAUSE, FROM_CLAUSE, WHERE_CLAUSE, ORDER_BY_CRITERION, TRUNCATE_IND, ACTION_TYPE, ANALYZE_IND, PRE_PROCESSED_FILE_NAME, UNIX_PRE_PROCESSED_FILE_NAME, PARENT_FILE_ID, CHILD_REQUIRED_IND, LAST_UPDATE_OS_USER, DELETE_IND, FROM_CLAUSE_DB)");
+		StringBuffer sql= new StringBuffer("INSERT INTO ");
+		sql.append(DDLUtils.toQualifiedName( repositoryCatalog,
+											repositorySchema,
+											"TRANS_TABLE_FILE"));
+		
+		sql.append(" (TRANS_ID, TABLE_FILE_ID, TABLE_FILE_IND, TABLE_FILE_TYPE, INPUT_OUTPUT_IND, SYSTEM_NAME, SERVER_NAME, FILE_CHAR_SET, TEXT_DELIMITER, TEXT_QUALIFIER, OWNER, TABLE_FILE_NAME, TABLE_FILE_ACCESS_PATH, MAX_ADD_COUNT, MAX_UPD_COUNT, MAX_DEL_COUNT, MAX_ERR_COUNT, FILTER_CRITERION, PROC_SEQ_NO, HEADER_REC_IND, LAST_UPDATE_DATE, LAST_UPDATE_USER, TRANS_TABLE_FILE_COMMENT, DB_CONNECT_NAME, UNIX_FILE_ACCESS_PATH, REC_DELIMITER, SELECT_CLAUSE, FROM_CLAUSE, WHERE_CLAUSE, ORDER_BY_CRITERION, TRUNCATE_IND, ACTION_TYPE, ANALYZE_IND, PRE_PROCESSED_FILE_NAME, UNIX_PRE_PROCESSED_FILE_NAME, PARENT_FILE_ID, CHILD_REQUIRED_IND, LAST_UPDATE_OS_USER, DELETE_IND, FROM_CLAUSE_DB)");
 
 		sql.append(" VALUES (");
 		sql.append(SQL.quote(transId));  // TRANS_ID
@@ -529,8 +609,11 @@ public class PLExport implements Monitorable {
 		} else {
 			inputColumnName = null;
 		}
-		StringBuffer sql= new StringBuffer("INSERT INTO TRANS_COL_MAP (");
-		sql.append("TRANS_ID, INPUT_TABLE_FILE_ID, INPUT_TRANS_COL_NAME, OUTPUT_TABLE_FILE_ID, OUTPUT_TRANS_COL_NAME, VALID_ACTION_TYPE, NATURAL_ID_IND, REAL_MEM_TRANS_IND, DEFAULT_VALUE, INPUT_TRANS_VALUE, OUTPUT_TRANS_VALUE, TRANS_TABLE_NAME, SEQ_NAME, GRP_FUNC_STRING, TRANS_COL_MAP_COMMENT, PROCESS_SEQ_NO, LAST_update_DATE, LAST_update_USER, OUTPUT_PROC_SEQ_NO, TRANSLATION_VALUE, ACTIVE_IND, PL_SEQ_IND, PL_SEQ_INCREMENT, LAST_update_OS_USER, TRANSFORMATION_CRITERIA, PL_SEQ_update_TABLE_IND, SEQ_TABLE_IND, SEQ_WHERE_CLAUSE)");
+		StringBuffer sql= new StringBuffer("INSERT INTO ");
+		sql.append(DDLUtils.toQualifiedName( repositoryCatalog,
+											repositorySchema,
+											"TRANS_COL_MAP"));
+		sql.append(" (TRANS_ID, INPUT_TABLE_FILE_ID, INPUT_TRANS_COL_NAME, OUTPUT_TABLE_FILE_ID, OUTPUT_TRANS_COL_NAME, VALID_ACTION_TYPE, NATURAL_ID_IND, REAL_MEM_TRANS_IND, DEFAULT_VALUE, INPUT_TRANS_VALUE, OUTPUT_TRANS_VALUE, TRANS_TABLE_NAME, SEQ_NAME, GRP_FUNC_STRING, TRANS_COL_MAP_COMMENT, PROCESS_SEQ_NO, LAST_update_DATE, LAST_update_USER, OUTPUT_PROC_SEQ_NO, TRANSLATION_VALUE, ACTIVE_IND, PL_SEQ_IND, PL_SEQ_INCREMENT, LAST_update_OS_USER, TRANSFORMATION_CRITERIA, PL_SEQ_update_TABLE_IND, SEQ_TABLE_IND, SEQ_WHERE_CLAUSE)");
 		sql.append(" VALUES (");
 
 		sql.append(SQL.quote(transId));  // TRANS_ID
@@ -649,8 +732,11 @@ public class PLExport implements Monitorable {
 		} else {
 			throw new IllegalArgumentException("Unsupported Target Database type");
 		}
-		StringBuffer sql= new StringBuffer("INSERT INTO TRANS_EXCEPT_HANDLE (");
-		sql.append("TRANS_ID,INPUT_ACTION_TYPE,DBMS_ERROR_CODE,RESULT_ACTION_TYPE,EXCEPT_HANDLE_COMMENT,LAST_update_DATE,LAST_update_USER,PKG_NAME,PKG_PARAM,PROC_FUNC_IND,ACTIVE_IND,LAST_update_OS_USER,DATABASE_TYPE)");
+		StringBuffer sql= new StringBuffer("INSERT INTO ");
+		sql.append( DDLUtils.toQualifiedName( repositoryCatalog,
+											repositorySchema,
+											"TRANS_EXCEPT_HANDLE"));
+		sql.append(" (TRANS_ID,INPUT_ACTION_TYPE,DBMS_ERROR_CODE,RESULT_ACTION_TYPE,EXCEPT_HANDLE_COMMENT,LAST_update_DATE,LAST_update_USER,PKG_NAME,PKG_PARAM,PROC_FUNC_IND,ACTIVE_IND,LAST_update_OS_USER,DATABASE_TYPE)");
 	    sql.append(" VALUES (");
 		sql.append(SQL.quote(transId));	// TRANS_ID
 		sql.append(",").append(SQL.quote(actionType));	// INPUT_ACTION_TYPE
@@ -707,7 +793,9 @@ public class PLExport implements Monitorable {
 
 			SQLDatabase target = new SQLDatabase(targetDataSource);
 			Connection tCon = target.getConnection();
-			
+			exportResultList.add(
+					new LabelValueBean("\n  Creating Power Loader Job",
+							"\n"));
 			sm = null;
 			for (int tryNum = 0; tryNum < 3 && sm == null; tryNum++) {
 			    String username;
@@ -743,9 +831,13 @@ public class PLExport implements Monitorable {
 			
 			// This will order the target tables so that the parent tables are loaded 
 			// before their children
+		
+		
 			DepthFirstSearch targetDFS = new DepthFirstSearch(playpenDB);
 			List tables = targetDFS.getFinishOrder();
 			
+		
+		
 			if (logger.isDebugEnabled()) {
 			    StringBuffer tableOrder = new StringBuffer();
 			    Iterator dit = tables.iterator();
@@ -1147,4 +1239,16 @@ public class PLExport implements Monitorable {
 	public void setRepositorySchema(String repositorySchema) {
 		this.repositorySchema = repositorySchema;
 	}
+
+	public ArrayList<LabelValueBean> getExportResultList() {
+		return exportResultList;
+	}
+
+	public void setExportResultList(ArrayList<LabelValueBean> exportResultList) {
+		this.exportResultList = exportResultList;
+	}
+
+
+
+
 }

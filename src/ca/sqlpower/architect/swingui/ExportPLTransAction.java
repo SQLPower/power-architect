@@ -264,27 +264,24 @@ public class ExportPLTransAction extends AbstractAction {
 		}
 	}
 	
-	protected class ExportTxProcess implements Runnable {		
+	protected class ExportTxProcess extends ArchitectSwingWorker {		
 		
 		PLExport plExport;
 		final JDialog d;
+		private Runnable nextProcess;
 
 		public ExportTxProcess (PLExport plExport, JDialog parentDialog,
 				JProgressBar progressBar, JLabel label) {
 			this.plExport = plExport;
 			d = parentDialog;
-			label.setText("Exporting Transaction Meta Data...");			
+			label.setText("Exporting Meta Data...");			
 			ProgressWatcher pw = new ProgressWatcher(progressBar, plExport, label);			
-			pw.addTaskTerminationListener(
-				new TaskTerminationListener() {
-					public void taskFinished(TaskTerminationEvent evt) {
-						d.setVisible(false);
-					}
-				}
-			);
+			
 		}		
 
-		public void run() {
+		public void doStuff() {
+			if (isCancelled())
+				return;
 			// now implements Monitorable, so we can ask it how it's doing
 			try {
 				plExport.export(playpen.getDatabase());
@@ -373,5 +370,19 @@ public class ExportPLTransAction extends AbstractAction {
 				});
 			} 
 		}
+
+		@Override
+		public void cleanup() throws Exception {
+			if (!(d instanceof WizardDialog))
+				d.setVisible(false);
+			else {
+				if (nextProcess != null)
+					new Thread(nextProcess).start();
+				WizardDialog wd = ((WizardDialog)d);
+				((QuickStartWizard)wd.getWizard()).UpdateTextArea();
+				
+			}
+		}
+
 	}	
 }

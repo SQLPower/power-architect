@@ -6,6 +6,9 @@ public abstract class ArchitectSwingWorker implements Runnable {
 
 	private Exception doStuffException;
 	
+	private ArchitectSwingWorker nextProcess;
+	private boolean cancelled; 
+	
 	/**
 	 * The message that will be displayed in a dialog box when
 	 * cleanup() throws an exception.
@@ -22,6 +25,11 @@ public abstract class ArchitectSwingWorker implements Runnable {
 			public void run() {
 				try {
 					cleanup();
+					
+					if (nextProcess != null) {
+						nextProcess.setCancelled(cancelled);
+						new Thread(nextProcess).start();
+					}
 				} catch (Exception e) {
 					ASUtils.showExceptionDialog(cleanupExceptionMessage, e);
 				}
@@ -50,6 +58,27 @@ public abstract class ArchitectSwingWorker implements Runnable {
 
 	public void setCleanupExceptionMessage(String cleanupExceptionMessage) {
 		this.cleanupExceptionMessage = cleanupExceptionMessage;
+	}
+
+	public boolean isCancelled() {
+		return cancelled;
+	}
+
+	/**
+	 * Cancel this and all following tasks
+	 * @param cancelled
+	 */
+	public void setCancelled(boolean cancelled) {
+		this.cancelled = cancelled;
+		
+	}
+
+	public ArchitectSwingWorker getNextProcess() {
+		return nextProcess;
+	}
+
+	public void setNextProcess(ArchitectSwingWorker nextProcess) {
+		this.nextProcess = nextProcess;
 	}
 	
 	

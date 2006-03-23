@@ -9,12 +9,14 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import ca.sqlpower.architect.ArchitectDataSource;
 
-
+/*
+ * When a new database connection has been established, this listener
+ * kicks in to add it to the dropdown list.
+ */
 
 public class NewDatabaseListener implements ActionListener {
 

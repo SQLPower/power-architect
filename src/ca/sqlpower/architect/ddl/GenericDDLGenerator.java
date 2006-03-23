@@ -142,6 +142,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 		Iterator it = source.getChildren().iterator();
 		while (it.hasNext()) {
+		
 			SQLTable t = (SQLTable) it.next();
 			writeTable(t);
 			writePrimaryKey(t);

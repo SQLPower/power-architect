@@ -83,7 +83,6 @@ public class DBTreeNode implements MutableTreeNode {
 	public int getChildCount() {
 		try {
 			int count = userObject.getChildren().size();
-			System.out.println("[33mChild count of "+userObject.getShortDisplayName()+" is "+count+"[0m");
 			return count;
 		} catch (ArchitectException e) {
 			e.printStackTrace();

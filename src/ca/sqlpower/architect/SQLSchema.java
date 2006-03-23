@@ -103,56 +103,57 @@ public class SQLSchema extends SQLObject {
 				else	tmp = databaseParent;
 			}
 		}
-	
 		
-		synchronized (databaseParent) {
-			
-			ResultSet rs = null;
-					
-			try {
-
+		
+		
+		
+		ResultSet rs = null;
+		
+		try {
+			synchronized (databaseParent) {
 				Connection con = ((SQLDatabase)databaseParent).getConnection();
 				DatabaseMetaData dbmd = con.getMetaData();
 				
 				tmp = parent;
 				if ( tmp instanceof SQLDatabase ) {
 					rs = dbmd.getTables(null,
-							 getName(),
-										"%",
-										new String[] {"TABLE", "VIEW"});
+							getName(),
+							"%",
+							new String[] {"TABLE", "VIEW"});
 				} else if ( tmp instanceof SQLCatalog ) {
 					rs = dbmd.getTables(tmp.getName(),
-							 getName(),
-										"%",
-										new String[] {"TABLE", "VIEW"});
+							getName(),
+							"%",
+							new String[] {"TABLE", "VIEW"});
 				}
 				
 				while (rs != null && rs.next()) {
 					children.add(new SQLTable(this,
-											  rs.getString(3),
-											  rs.getString(5),
-											  rs.getString(4),
-											  false));
-				}
-			} catch (SQLException e) {
-				throw new ArchitectException("schema.populate.fail", e);
-			} finally {
-				populated = true;
-				int newSize = children.size();
-				if (newSize > oldSize) {
-					int[] changedIndices = new int[newSize - oldSize];
-					for (int i = 0, n = newSize - oldSize; i < n; i++) {
-						changedIndices[i] = oldSize + i;
-					}
-					fireDbChildrenInserted(changedIndices, children.subList(oldSize, newSize));
-				}
-				try {
-					if ( rs != null ) rs.close();
-				} catch (SQLException e2) {
-					throw new ArchitectException("schema.rs.close.fail", e2);
+							rs.getString(3),
+							rs.getString(5),
+							rs.getString(4),
+							false));
 				}
 			}
+		} catch (SQLException e) {
+			throw new ArchitectException("schema.populate.fail", e);
+		} finally {
+			populated = true;
+			int newSize = children.size();
+			if (newSize > oldSize) {
+				int[] changedIndices = new int[newSize - oldSize];
+				for (int i = 0, n = newSize - oldSize; i < n; i++) {
+					changedIndices[i] = oldSize + i;
+				}
+				fireDbChildrenInserted(changedIndices, children.subList(oldSize, newSize));
+			}
+			try {
+				if ( rs != null ) rs.close();
+			} catch (SQLException e2) {
+				throw new ArchitectException("schema.rs.close.fail", e2);
+			}
 		}
+		
 		
 		logger.debug("SQLSchema: populate finished");
 

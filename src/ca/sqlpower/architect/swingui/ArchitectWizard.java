@@ -24,5 +24,6 @@ public interface ArchitectWizard {
 	public boolean isOnExecutePanel();
 	public boolean isOnFirstPanel();
 	public String getTitle();
-	public void execute(JDialog d);
+	public JDialog getParentDialog();
+	public void setParentDialog(JDialog parentDialog);
 }

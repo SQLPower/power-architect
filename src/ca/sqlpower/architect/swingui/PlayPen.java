@@ -1090,7 +1090,7 @@ public class PlayPen extends JPanel
 	/**
 	 * Calls {@link #importTableCopy} for each table contained in the given schema.
 	 */
-	public synchronized void addObjects(List list, Point preferredLocation, Runnable nextProcess) throws ArchitectException {
+	public synchronized void addObjects(List list, Point preferredLocation, ArchitectSwingWorker nextProcess) throws ArchitectException {
 		ProgressMonitor pm
 		 = new ProgressMonitor(null,
 		                      "Copying objects from DBTree",
@@ -1103,15 +1103,12 @@ public class PlayPen extends JPanel
 		new Thread(t, "Objects-Adder").start();		
 	}
 	
-	protected class AddObjectsTask implements Runnable, Monitorable {
+	protected class AddObjectsTask extends MonitorableWorker {
 		List sqlObjects;
-		Point preferredLocation;
-		Runnable nextProcess;
-		JDialog parentDialog;
-		
+		Point preferredLocation;	
+		JDialog parentDialog;	 
 		boolean hasStarted = false;
 		boolean finished = false;
-		boolean cancelled = false;
 		String message = null;
 		int progress = 0;
 		Integer jobSize = null;
@@ -1144,98 +1141,87 @@ public class PlayPen extends JPanel
 			return message;
 		}
 
-		/**
-		 * @param cancelled The cancelled to set.
-		 */
-		public void setCancelled(boolean cancelled) {
-			this.cancelled = cancelled;
-		}
-		
-		public boolean isCancelled() {
-			return this.cancelled;			
-		}
 	
-		public void run () {
-			hasStarted = true;
-			logger.info("AddObjectsTask starting on thread "+Thread.currentThread().getName());
-
-			try {
-								
-				int pmMax = 0;				
-				Iterator soIt = sqlObjects.iterator();
-
-				// first pass: figure out how much work we need to do...
-				while (soIt.hasNext()) {
-					pmMax += ArchitectUtils.countTablesSnapshot((SQLObject)soIt.next());						
-				}				
-				jobSize = new Integer(pmMax);
+		public void doStuff () {
+			if ( !isCancelled()){
+				hasStarted = true;
+				logger.info("AddObjectsTask starting on thread "+Thread.currentThread().getName());
 				
-
-				// reset iterator
-				soIt = sqlObjects.iterator();
-
-				while (soIt.hasNext() && !isCancelled()) {
-					Object someData = soIt.next();					
-					if (someData instanceof SQLTable) {
-						TablePane tp = importTableCopy((SQLTable) someData, preferredLocation);
-						message = ArchitectUtils.truncateString(((SQLTable)someData).getName());
-						preferredLocation.x += tp.getPreferredSize().width + 5;
-						progress++;
-					} else if (someData instanceof SQLSchema) {
-						SQLSchema sourceSchema = (SQLSchema) someData;						
-						Iterator it = sourceSchema.getChildren().iterator();
-						while (it.hasNext() && !isCancelled()) {
-							SQLTable sourceTable = (SQLTable) it.next();
-							message = ArchitectUtils.truncateString(sourceTable.getName());
-							TablePane tp = importTableCopy(sourceTable, preferredLocation);
+				try {
+					
+					int pmMax = 0;				
+					Iterator soIt = sqlObjects.iterator();
+					
+					// first pass: figure out how much work we need to do...
+					while (soIt.hasNext()) {
+						pmMax += ArchitectUtils.countTablesSnapshot((SQLObject)soIt.next());						
+					}				
+					jobSize = new Integer(pmMax);
+					
+					
+					// reset iterator
+					soIt = sqlObjects.iterator();
+					
+					while (soIt.hasNext() && !isCancelled()) {
+						Object someData = soIt.next();					
+						if (someData instanceof SQLTable) {
+							TablePane tp = importTableCopy((SQLTable) someData, preferredLocation);
+							message = ArchitectUtils.truncateString(((SQLTable)someData).getName());
 							preferredLocation.x += tp.getPreferredSize().width + 5;
 							progress++;
-						}
-					} else if (someData instanceof SQLCatalog) {
-						SQLCatalog sourceCatalog = (SQLCatalog) someData;
-						Iterator cit = sourceCatalog.getChildren().iterator();
-						if (sourceCatalog.isSchemaContainer()) {
-							while (cit.hasNext() && !isCancelled()) {
-								SQLSchema sourceSchema = (SQLSchema) cit.next();						
-								Iterator it = sourceSchema.getChildren().iterator();
-								while (it.hasNext() && !isCancelled()) {
-									SQLTable sourceTable = (SQLTable) it.next();									
+						} else if (someData instanceof SQLSchema) {
+							SQLSchema sourceSchema = (SQLSchema) someData;						
+							Iterator it = sourceSchema.getChildren().iterator();
+							while (it.hasNext() && !isCancelled()) {
+								SQLTable sourceTable = (SQLTable) it.next();
+								message = ArchitectUtils.truncateString(sourceTable.getName());
+								TablePane tp = importTableCopy(sourceTable, preferredLocation);
+								preferredLocation.x += tp.getPreferredSize().width + 5;
+								progress++;
+							}
+						} else if (someData instanceof SQLCatalog) {
+							SQLCatalog sourceCatalog = (SQLCatalog) someData;
+							Iterator cit = sourceCatalog.getChildren().iterator();
+							if (sourceCatalog.isSchemaContainer()) {
+								while (cit.hasNext() && !isCancelled()) {
+									SQLSchema sourceSchema = (SQLSchema) cit.next();						
+									Iterator it = sourceSchema.getChildren().iterator();
+									while (it.hasNext() && !isCancelled()) {
+										SQLTable sourceTable = (SQLTable) it.next();									
+										message = ArchitectUtils.truncateString(sourceTable.getName());
+										TablePane tp = importTableCopy(sourceTable, preferredLocation);
+										preferredLocation.x += tp.getPreferredSize().width + 5;
+										progress++;
+									}
+								}
+							} else {
+								while (cit.hasNext() && !isCancelled()) {
+									SQLTable sourceTable = (SQLTable) cit.next();
 									message = ArchitectUtils.truncateString(sourceTable.getName());
 									TablePane tp = importTableCopy(sourceTable, preferredLocation);
 									preferredLocation.x += tp.getPreferredSize().width + 5;
 									progress++;
 								}
 							}
+						} else if (someData instanceof SQLColumn) {
+							SQLColumn column = (SQLColumn) someData;
+							JLabel colName = new JLabel(column.getName());
+							colName.setSize(colName.getPreferredSize());
+							add(colName, preferredLocation);
+							logger.debug("Added "+column.getName()+" to playpen (temporary, only for testing)");
+							colName.revalidate();
 						} else {
-							while (cit.hasNext() && !isCancelled()) {
-								SQLTable sourceTable = (SQLTable) cit.next();
-								message = ArchitectUtils.truncateString(sourceTable.getName());
-								TablePane tp = importTableCopy(sourceTable, preferredLocation);
-								preferredLocation.x += tp.getPreferredSize().width + 5;
-								progress++;
-							}
-						}
-					} else if (someData instanceof SQLColumn) {
-						SQLColumn column = (SQLColumn) someData;
-						JLabel colName = new JLabel(column.getName());
-						colName.setSize(colName.getPreferredSize());
-						add(colName, preferredLocation);
-						logger.debug("Added "+column.getName()+" to playpen (temporary, only for testing)");
-						colName.revalidate();
-					} else {
-						logger.error("Unknown object dropped in PlayPen: "+someData);
+							logger.error("Unknown object dropped in PlayPen: "+someData);
+						}				
 					}				
-				}				
-			} catch (ArchitectException e) {
-				e.printStackTrace();
-			} finally {
-				finished = true;
-				hasStarted = false;
+				} catch (ArchitectException e) {
+					e.printStackTrace();
+				} finally {
+					finished = true;
+					hasStarted = false;
+				}
+				logger.info("AddObjectsTask done");
 			}
-			logger.info("AddObjectsTask done");
-			
-			SwingUtilities.invokeLater(new Runnable() {public void run(){runFinished();}});
-			
 		}
 
 		/**
@@ -1243,32 +1229,22 @@ public class PlayPen extends JPanel
 		 * thread. The run method asks swing to invoke this method on the event dispatch
 		 * thread after it's done.
 		 */
-		public void runFinished() {
+		public void cleanup() {
 			if (errorMessage != null) {
 				Component c = ArchitectFrame.getMainInstance();
 				if (parentDialog != null) {
 					c = parentDialog;
 				}
 				JOptionPane.showMessageDialog(c, errorMessage, "Error Dropping Tables into Playpen", JOptionPane.ERROR_MESSAGE);
-				nextProcess = null;
+				if (getNextProcess() != null) {
+					setCancelled(true);	
+				}
+			
 			}
-			if (nextProcess != null) {
-				new Thread(nextProcess).start();
-			}
+			
 		}
 		
-		/**
-		 * @return Returns the nextProcess.
-		 */
-		public Runnable getNextProcess() {
-			return nextProcess;
-		}
-		/**
-		 * @param nextProcess The nextProcess to set.
-		 */
-		public void setNextProcess(Runnable nextProcess) {
-			this.nextProcess = nextProcess;
-		}
+	
 		
 		public boolean hasStarted () {
 			return hasStarted;

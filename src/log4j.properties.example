@@ -41,6 +41,7 @@ log4j.rootLogger=INFO, R, C
 #log4j.logger.ca.sqlpower.architect.swingui.PreferencesPanel=debug
 #log4j.logger.ca.sqlpower.architect.swingui.PrintPanel=debug
 #log4j.logger.ca.sqlpower.architect.swingui.ProgressWatcher=debug
+log4j.logger.ca.sqlpower.architect.swingui.QuickStartPanel3=debug
 #log4j.logger.ca.sqlpower.architect.swingui.Relationship=debug
 #log4j.logger.ca.sqlpower.architect.swingui.SQLObjectTransferable=debug
 #log4j.logger.ca.sqlpower.architect.swingui.SQLTableListModel=debug

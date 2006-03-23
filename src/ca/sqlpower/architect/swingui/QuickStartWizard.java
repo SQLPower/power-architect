@@ -18,6 +18,7 @@ import java.util.Set;
 
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
+import javax.swing.JTextArea;
 import javax.swing.ProgressMonitor;
 import javax.swing.SwingUtilities;
 
@@ -31,6 +32,7 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.PLExport;
+import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
 import ca.sqlpower.architect.swingui.ExportDDLAction.ConflictFinderProcess;
 import ca.sqlpower.architect.swingui.ExportDDLAction.ConflictResolverProcess;
 import ca.sqlpower.architect.swingui.ExportPLTransAction.ExportTxProcess;
@@ -51,6 +53,9 @@ public class QuickStartWizard implements ArchitectWizard {
 	// quick start model
 	List sourceTables;
 	PLExport plExport;
+	private JTextArea resultOutput;
+	
+	private JDialog parentDialog;
 	
 	public QuickStartWizard () {
 		onLastPanel = false;
@@ -58,6 +63,8 @@ public class QuickStartWizard implements ArchitectWizard {
 		currentPanel = new QuickStartPanel1(this);
 		panels.add(currentPanel);
 		title = "Power Architect Quick Start Wizard";
+		resultOutput = new JTextArea();
+		resultOutput.setEditable(false);
 	}
 		
 	/*
@@ -111,6 +118,8 @@ public class QuickStartWizard implements ArchitectWizard {
 		}
 	}
 	
+	
+	//We need this method to know when the execute task will need to be called
 	public boolean isOnExecutePanel(){
 		if (panels.indexOf(currentPanel) == 3) {
 			return true;
@@ -128,113 +137,13 @@ public class QuickStartWizard implements ArchitectWizard {
 		}
 	}
 	
-	public void execute(JDialog d) {
-		try {
-			// short process, no need for seperate thread...
-			addTargetDatabase(plExport.getTargetDataSource());
-			addSourceDatabases(sourceTables);
-			
-			Map ddlGeneratorMap = ArchitectUtils.getDriverDDLGeneratorMap();			
-			Class selectedGeneratorClass = (Class) ddlGeneratorMap.get(plExport.getTargetDataSource().getDriverClass());
-			GenericDDLGenerator ddlg = (GenericDDLGenerator) selectedGeneratorClass.newInstance();
-			WizardDialog wizardDialog = (WizardDialog) d;
-			
-		
-			ArchitectFrame.getMainInstance().getProject().setModified(false);
-			ArchitectFrame.getMainInstance().newProjectAction.actionPerformed(new ActionEvent(this,0,null));
-			PlayPen p = ArchitectFrame.getMainInstance().getProject().getPlayPen();
-
-			
-			ExportDDLAction eda = (ExportDDLAction) ArchitectFrame.getMainInstance().exportDDLAction;
-			ExportPLTransAction epta = (ExportPLTransAction) ArchitectFrame.getMainInstance().exportPLTransAction;
-									
-			// 1. copy SQL Tables
-			ProgressMonitor pm
-			 = new ProgressMonitor(null,
-			                      "Copying objects from DBTree",
-			                      "...",
-			                      0,
-				                  100);			
-			AddObjectsTask aot = p.new AddObjectsTask(sourceTables, 
-					new Point(50,50),pm, d);
-			
-			// 1a. generate a list of statements
-			List statements = new ArrayList();
-			GenerateStatementsTask gst = new GenerateStatementsTask(statements,ddlg,p.getDatabase(),d);
-
-			SQLScriptDialog ssd = 
-				new SQLScriptDialog(d, "Preview SQL Script",
-					"The Architect will create these tables:", false,
-					statements,
-					plExport.getTargetDataSource(),
-					false);
-			MonitorableWorker scriptWorker = ssd.getExecuteTask();
-			
-			ExportDDLAction ea = new ExportDDLAction();
-			
-			ConflictFinderProcess cfp = ea.new ConflictFinderProcess(d,
-					new SQLDatabase(plExport.getTargetDataSource()),
-					ddlg, statements);
-			ConflictResolverProcess crp = ea.new ConflictResolverProcess(d, cfp);
-			cfp.setNextProcess(crp);
-			crp.setNextProcess(scriptWorker);
-			ssd.setExecuteTask(cfp);
-
-			
-			
-			
-			
-			
-			
-			
-			// FIXME: might need to pull the Conflict Find/Resolve out of 
-			//        ExportDDLAction, or better yet use the CompareDM stuff instead!
-			
-			// 2. find conflicts
-/*			ConflictFinderProcess cfp = eda.new ConflictFinderProcess(
-					d, new SQLDatabase(plExport.getTargetDataSource()), 
-					ddlg, statements, 
-					wizardDialog.getProgressBar(), 
-					wizardDialog.getProgressLabel());*/				
-
-//			// 3. resolve conflicts
-//			ConflictResolverProcess crp = eda.new ConflictResolverProcess(d, cfp, 
-//					wizardDialog.getProgressBar(), 
-//					wizardDialog.getProgressLabel());
-
-			// 4. execute DDL 
-			SQLScriptDialog eDDL = null;
-				/*eda.new DDLExecutor(d, statements, 
-					wizardDialog.getProgressBar(), 
-					wizardDialog.getProgressLabel());*/
-			
-			// 5. export PL Transactions (and run PL Transactions (if requested)
-			// got this far, so it's ok to run the PL Export thread
-			ExportTxProcess etp = epta.new ExportTxProcess(plExport,d,
-					wizardDialog.getProgressBar(),
-					wizardDialog.getProgressLabel());
-						
-			// chain together the transactions
-//			aot.setNextProcess(gst);
-//			gst.setNextProcess(cfp);
-//			cfp.setNextProcess(crp);
-//			crp.setNextProcess(eDDL);
-		  //  eDDL.setNextProcess(etp);
-			
-			// finally, kick off the process
-			new Thread(aot, "Wizard-Objects-Adder").start();		
-			
-		} catch (Exception ex) {
-			logger.error("problem running Quick Start Wizard",ex);
-		}
-	}
 	
-	private class GenerateStatementsTask implements Runnable {
+	
+	public static class GenerateStatementsTask extends ArchitectSwingWorker {
 		List statements;
 		GenericDDLGenerator ddlg;
 		SQLDatabase db;
 		JDialog parentDialog;
-		Runnable nextProcess;
 		String errorMessage = null;
 		
 		
@@ -248,20 +157,22 @@ public class QuickStartWizard implements ArchitectWizard {
 			this.parentDialog = parentDialog;
 		}
 		
-		public void run() {
-			try {
-				List list = ddlg.generateDDLStatements(db);
-				logger.debug("generated statements are: " + list);
-				// copy statements
-				Iterator it = list.iterator();
-				while (it.hasNext()) {
-					statements.add(it.next());
+		public void doStuff() {
+			if ( !isCancelled()) {
+				try {
+					List list = ddlg.generateDDLStatements(db);
+					logger.debug("generated statements are: " + list);
+					// copy statements
+					Iterator it = list.iterator();
+					while (it.hasNext()) {
+						statements.add(it.next());
+					}
+					
+				} catch (Exception ex) {
+					logger.error("Error while generating DDL", ex);
+					errorMessage = "Error while generating DDL:\n\n"+ex.getMessage();
 				}
-			} catch (Exception ex) {
-				logger.error("Error while generating DDL", ex);
-				errorMessage = "Error while generating DDL:\n\n"+ex.getMessage();
 			}
-			SwingUtilities.invokeLater(new Runnable() {public void run(){runFinished();}});
 		}
 		
 		/**
@@ -269,27 +180,13 @@ public class QuickStartWizard implements ArchitectWizard {
 		 * thread. The run method asks swing to invoke this method on the event dispatch
 		 * thread after it's done.
 		 */
-		public void runFinished() {
+		public void cleanup() {
 			if (errorMessage != null) {
 				JOptionPane.showMessageDialog(parentDialog, errorMessage, "Error while generating DDL", JOptionPane.ERROR_MESSAGE);
-				nextProcess = null;
-			}
-			if (nextProcess != null) {
-				new Thread(nextProcess).start();
+				setCancelled(true);
 			}
 		}
-		/**
-		 * @return Returns the nextProcess.
-		 */
-		public Runnable getNextProcess() {
-			return nextProcess;
-		}
-		/**
-		 * @param nextProcess The nextProcess to set.
-		 */
-		public void setNextProcess(Runnable nextProcess) {
-			this.nextProcess = nextProcess;
-		}
+		
 	}	
 
 	
@@ -298,7 +195,7 @@ public class QuickStartWizard implements ArchitectWizard {
 	 * and copy over the contents of the selected datasource. 
 	 *
 	 */
-	private void addTargetDatabase(ArchitectDataSource target) {
+	public void addTargetDatabase(ArchitectDataSource target) {
 		ArchitectDataSource tSpec = ArchitectFrame.getMainInstance().getProject().getPlayPen().getDatabase().getDataSource();
 		ArchitectDataSource dbcs = plExport.getTargetDataSource();
     	tSpec.setDriverClass(dbcs.getDriverClass());
@@ -314,7 +211,7 @@ public class QuickStartWizard implements ArchitectWizard {
 	 * databases.  Then add them to the DBTree.
 	 * 
 	 */
-	private void addSourceDatabases(List sourceTables) {
+	void addSourceDatabases(List sourceTables) {
 		Set s = new HashSet();
 		Iterator it = sourceTables.iterator();
 		while (it.hasNext()) {
@@ -372,4 +269,36 @@ public class QuickStartWizard implements ArchitectWizard {
 	public void setPlExport(PLExport plExport) {
 		this.plExport = plExport;
 	}
+
+	public JDialog getParentDialog() {
+		return parentDialog;
+	}
+
+	public void setParentDialog(JDialog parentDialog) {
+		this.parentDialog = parentDialog;
+	}
+
+	public JTextArea getResultOutput() {
+		return resultOutput;
+	}
+
+	public void setResultOutput(JTextArea resultOutput) {
+		this.resultOutput = resultOutput;
+	}
+	
+	public void UpdateTextArea () {
+		WizardDialog wd = (WizardDialog)getParentDialog();
+		
+		wd.getNextButton().setEnabled(true);
+		wd.getProgressBar().setVisible(false);
+		wd.getProgressLabel().setVisible(false);
+		StringBuffer text = new StringBuffer();
+		
+		for ( LabelValueBean lvb : plExport.getExportResultList() ) {
+			text.append("  "+ lvb.getLabel() + "\n\t"+ lvb.getValue() + "\n");
+		}
+		resultOutput.setText(text.toString());
+	}
+
+
 }

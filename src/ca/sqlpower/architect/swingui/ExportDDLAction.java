@@ -127,13 +127,7 @@ public class ExportDDLAction extends AbstractAction {
 		SQLDatabase target;
 		DDLGenerator ddlg;
 		List statements;
-		Runnable nextProcess;
-		
-		/**
-		 * If something goes wrong in the constructor, it will ensure the run() method
-		 * doesn't do anything by setting this flag to true.
-		 */
-		boolean cancelled = false;
+			
 		
 		/**
 		 * This Conflict Resolver is created and populated by the run() method.
@@ -187,15 +181,17 @@ public class ExportDDLAction extends AbstractAction {
 		 * thread). It will take a while.
 		 */
 		public void doStuff() {
-			if (cancelled) return;
+			
+			if (this.isCancelled()) return;
 			try {
 				cr.findConflicting();
+				
 			} catch (Exception ex) {
 				error = ex;
 				errorMessage = "You have to specify a target database connection"
 					+"\nbefore executing this script.";
 				logger.error("Unexpected exception setting up DDL generation", ex);
-				nextProcess = new Runnable() {public void run() {ArchitectFrame.getMainInstance().playpen.showDbcsDialog();}};
+
 			}
 		}
 		
@@ -230,22 +226,17 @@ public class ExportDDLAction extends AbstractAction {
 					shouldDropConflicts = false;
 				} else if (choice == JOptionPane.CANCEL_OPTION) {
 					shouldDropConflicts = false;
-					nextProcess = null;
+					this.setCancelled(true);
 				}
 			}
-			
-			if (nextProcess != null) {
-				new Thread(nextProcess).start();
-			}
+
 		}
 
 		public ConflictResolver getConflictResolver() {
 			return cr;
 		}
 		
-		public void setNextProcess(Runnable v) {
-			this.nextProcess = v;
-		}
+	
 
 		public Integer getJobSize() throws ArchitectException {
 			return cr.getJobSize();
@@ -267,9 +258,7 @@ public class ExportDDLAction extends AbstractAction {
 			return cr.isFinished();
 		}
 
-		public void setCancelled(boolean cancelled) {
-			cr.setCancelled(cancelled);
-		}
+
 	}
 
 	/**
@@ -288,7 +277,7 @@ public class ExportDDLAction extends AbstractAction {
 		private ConflictResolver cr;
 		private String errorMessage;
 		private SQLException error;
-		private Runnable nextProcess;
+		
 		
 		/**
 		 * @param d The dialog we anchor popup messages to
@@ -302,6 +291,8 @@ public class ExportDDLAction extends AbstractAction {
 		}
 
 		public void doStuff() {
+			if (isCancelled())
+				return;
 			if (conflictFinder.doesUserWantToDropConflicts()) {
 				cr = conflictFinder.getConflictResolver();
 				cr.aboutToCallDropConflicting();
@@ -323,26 +314,12 @@ public class ExportDDLAction extends AbstractAction {
 		public void cleanup() {
 			if (errorMessage != null) {
 				JOptionPane.showMessageDialog(parentDialog, errorMessage, "Error Dropping Conflicts", JOptionPane.ERROR_MESSAGE);
-				nextProcess = null;
+				setCancelled(true);
 			}
-			if (nextProcess != null) {
-				new Thread(nextProcess).start();
-			}
+			
 		}
 		
-		/**
-		 * See {@link #nextProcess}.
-		 */
-		public Runnable getNextProcess() {
-			return nextProcess;
-		}
-		/**
-		 * See {@link #nextProcess}.
-		 */
-		public void setNextProcess(Runnable nextProcess) {
-			this.nextProcess = nextProcess;
-		}
-
+	
 		public Integer getJobSize() throws ArchitectException {
 			return cr.getJobSize();
 		}
@@ -363,9 +340,7 @@ public class ExportDDLAction extends AbstractAction {
 			return cr.isFinished();
 		}
 
-		public void setCancelled(boolean cancelled) {
-			cr.setCancelled(cancelled);
-		}
+	
 	}
 
 	public static class DDLWarningTableModel extends AbstractTableModel {
