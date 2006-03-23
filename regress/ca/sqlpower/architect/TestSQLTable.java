@@ -3,6 +3,7 @@ package regress.ca.sqlpower.architect;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.TreeMap;
 
 import junit.extensions.TestSetup;
@@ -12,13 +13,13 @@ import junit.framework.TestSuite;
 import org.apache.commons.beanutils.BeanUtils;
 
 import regress.ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
-
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLTable.Folder;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 
 public class TestSQLTable extends SQLTestCase {
 
@@ -195,6 +196,37 @@ public class TestSQLTable extends SQLTestCase {
 
 	}
 
+	/** this tests for a real bug.. the column was showing up one index above the end of the pk  */
+	public void testAddColumnAtEndOfPK() throws ArchitectException {
+		SQLTable t = new SQLTable(ArchitectFrame.getMainInstance().getProject().getTargetDatabase(), true);
+		t.setName("Test Table");
+		SQLColumn pk1 = new SQLColumn(t, "PKColumn1", Types.INTEGER, 10, 0);
+		SQLColumn pk2 = new SQLColumn(t, "PKColumn2", Types.INTEGER, 10, 0);
+		SQLColumn pk3 = new SQLColumn(t, "PKColumn3", Types.INTEGER, 10, 0);
+		SQLColumn at1 = new SQLColumn(t, "AT1", Types.INTEGER, 10, 0);
+		SQLColumn at2 = new SQLColumn(t, "AT2", Types.INTEGER, 10, 0);
+		SQLColumn at3 = new SQLColumn(t, "AT3", Types.INTEGER, 10, 0);
+		
+		t.addColumn(0,pk1);
+		t.addColumn(1,pk2);
+		t.addColumn(2,pk3);
+		t.addColumn(3,at1);
+		t.addColumn(4,at2);
+		t.addColumn(5,at3);
+		
+		pk1.setPrimaryKeySeq(1);
+		pk2.setPrimaryKeySeq(2);
+		pk3.setPrimaryKeySeq(3);
+		
+		assertEquals(3, t.getPkSize());
+
+		SQLColumn newcol = new SQLColumn(t, "newcol", Types.INTEGER, 10, 0);
+		t.addColumn(3, newcol);
+		assertEquals("New column should be at requested position", 3, t.getColumnIndex(newcol));
+		newcol.setPrimaryKeySeq(3);
+		assertEquals("New column should still be at requested position", 3, t.getColumnIndex(newcol));
+	}
+
 	public void testRemoveColumnOutBounds() throws ArchitectException {
 		SQLTable table1;
 
@@ -287,7 +319,7 @@ public class TestSQLTable extends SQLTestCase {
 
 		SQLColumn tmpCol = new SQLColumn();
 		table1.addColumn(tmpCol);
-		table1.changeColumnIndex(table1.getColumnIndex(c1), 2);
+		table1.changeColumnIndex(table1.getColumnIndex(c1), 2, false);
 
 		assertEquals(test1.getInsertedCount(), 2);
 		assertEquals(test1.getRemovedCount(), 1);
@@ -300,7 +332,7 @@ public class TestSQLTable extends SQLTestCase {
 		assertEquals(test2.getStructureChangedCount(), 0);
 
 		folder.removeSQLObjectListener(test1);
-		table1.changeColumnIndex(table1.getColumnIndex(c1), 1);
+		table1.changeColumnIndex(table1.getColumnIndex(c1), 1, false);
 
 		assertEquals(test1.getInsertedCount(), 2);
 		assertEquals(test1.getRemovedCount(), 1);
