@@ -171,7 +171,7 @@ public class QuickStartPanel4 implements WizardPanel {
 			SQLScriptDialog ssd = new SQLScriptDialog(wizard.getParentDialog(),
 					"Preview SQL Script",
 					"The Architect will create these tables:", false,
-					statements,
+					ddlg,
 					wizard.getPlExport().getTargetDataSource(), false);
 			MonitorableWorker scriptWorker = ssd.getExecuteTask();
 			ssd.setStatementResultList(wizard.getPlExport().getExportResultList());
