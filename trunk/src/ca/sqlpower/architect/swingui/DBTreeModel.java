@@ -162,13 +162,9 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 				}
 			}
 		};
-		if (SwingUtilities.isEventDispatchThread()) {
+		// TODO FIXME XXX Replace this with an alternate method leads to nasty behavior.  There are 3 others too
 			notifier.run();
-		}
-		else
-		{
-			SwingUtilities.invokeLater(notifier);
-		}
+		
 	}
 	
 	protected void fireTreeNodesRemoved(TreeModelEvent e) {
@@ -182,13 +178,9 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 				}
 			}
 		};
-		if (SwingUtilities.isEventDispatchThread()) {
-			notifier.run();
-		}
-		else
-		{
-			SwingUtilities.invokeLater(notifier);
-		}
+//		 TODO FIXME XXX Replace this with an alternate method leads to nasty behavior.  There are 3 others too
+		notifier.run();
+		
 	}
 
 	protected void fireTreeNodesChanged(TreeModelEvent e) {
@@ -201,13 +193,10 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 				}
 			}
 		};
-		if (SwingUtilities.isEventDispatchThread()) {
-			notifier.run();
-		}
-		else
-		{
-			SwingUtilities.invokeLater(notifier);
-		}
+//		 TODO FIXME XXX Replace this with an alternate method leads to nasty behavior.  There are 3 others too
+		notifier.run();
+		
+		
 	}
 
 	protected void fireTreeStructureChanged(TreeModelEvent e) {
@@ -220,13 +209,9 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 				}
 			}
 		};
-		if (SwingUtilities.isEventDispatchThread()) {
+//		 TODO FIXME XXX Replace this with an alternate method leads to nasty behavior.  There are 3 others too
 			notifier.run();
-		}
-		else
-		{
-			SwingUtilities.invokeLater(notifier);
-		}
+		
 	}
 
 	/**
@@ -308,6 +293,9 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 		}
 
 		try {
+			for(int i=0; i< parent.getChildCount(); i++){
+				parent.removeChild(0);
+			}
 			parent.addChild(excNode);
 		} catch (ArchitectException e) {
 			logger.error("Couldn't add SQLExceptionNode \""+excNode.getName()+"\" to tree model:", e);
