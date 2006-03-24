@@ -40,7 +40,7 @@ import ca.sqlpower.architect.swingui.SwingUIProject;
 public class TestSwingUIProject extends ArchitectTestCase {
 	
 	private SwingUIProject project;
-	
+	private static final String ENCODING="UTF-8";
 	private boolean deleteOnExit = true;
 	
 	/*
@@ -128,7 +128,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		if (deleteOnExit) {
 			tmp2.deleteOnExit();
 		}
-		p2.save(new PrintWriter(tmp2));
+		p2.save(new PrintWriter(tmp2,ENCODING),ENCODING);
 		assertEquals(file.length(), tmp2.length());	// Quick test
 	}
 	
@@ -143,9 +143,9 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		if (deleteOnExit) {
 			tmp.deleteOnExit();
 		}
-		PrintWriter out = new PrintWriter(tmp);
+		PrintWriter out = new PrintWriter(tmp,ENCODING);
 		assertNotNull(out);
-		project.save(out);
+		project.save(out,ENCODING);
 		
 		SwingUIProject p2 = new SwingUIProject("test2");
 		p2.load(new FileInputStream(tmp));
@@ -153,7 +153,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		if (deleteOnExit) {
 			tmp2.deleteOnExit();
 		}
-		p2.save(new PrintWriter(tmp2));
+		p2.save(new PrintWriter(tmp2,ENCODING),ENCODING);
 		assertEquals(tmp.length(), tmp2.length());	// Quick test
 	}
 
@@ -167,12 +167,12 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		if (deleteOnExit) {
 			tmp.deleteOnExit();
 		}
-		PrintWriter out = new PrintWriter(tmp);
+		PrintWriter out = new PrintWriter(tmp,ENCODING);
 		assertNotNull(out);
 		
 		project.setName("FOO<BAR");		// Implicitly testing sanitizeXML method here!
 		
-		project.save(out);
+		project.save(out,ENCODING);
 		
 		System.err.println("Parsing " + tmp + "...");
 
@@ -199,7 +199,6 @@ public class TestSwingUIProject extends ArchitectTestCase {
 	private static Map<String,Object> setAllInterestingProperties(SQLObject target,
 			Set<String> propertiesToIgnore) throws Exception {
 		
-		Map<String,Object> description = new HashMap<String,Object>();
 		PropertyDescriptor props[] = PropertyUtils.getPropertyDescriptors(target);
 		for (int i = 0; i < props.length; i++) {
 			Object oldVal = null;
@@ -306,9 +305,9 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		if (deleteOnExit) {
 			tmp.deleteOnExit();
 		}
-		PrintWriter out = new PrintWriter(tmp);
+		PrintWriter out = new PrintWriter(tmp,ENCODING);
 		assertNotNull(out);
-		project.save(out);
+		project.save(out,ENCODING);
 		
 		SwingUIProject project2 = new SwingUIProject("new test project");
 		project2.load(new BufferedInputStream(new FileInputStream(tmp)));
@@ -367,9 +366,9 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		if (deleteOnExit) {
 			tmp.deleteOnExit();
 		}
-		PrintWriter out = new PrintWriter(tmp);
+		PrintWriter out = new PrintWriter(tmp,ENCODING);
 		assertNotNull(out);
-		project.save(out);
+		project.save(out,ENCODING);
 		
 		SwingUIProject project2 = new SwingUIProject("new test project");
 		project2.load(new BufferedInputStream(new FileInputStream(tmp)));
@@ -416,9 +415,9 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		if (deleteOnExit) {
 			tmp.deleteOnExit();
 		}
-		PrintWriter out = new PrintWriter(tmp);
+		PrintWriter out = new PrintWriter(tmp,ENCODING);
 		assertNotNull(out);
-		project.save(out);
+		project.save(out,ENCODING);
 		
 		SwingUIProject project2 = new SwingUIProject("new test project");
 		project2.load(new BufferedInputStream(new FileInputStream(tmp)));
@@ -466,9 +465,9 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		if (deleteOnExit) {
 			tmp.deleteOnExit();
 		}
-		PrintWriter out = new PrintWriter(tmp);
+		PrintWriter out = new PrintWriter(tmp,ENCODING);
 		assertNotNull(out);
-		project.save(out);
+		project.save(out,ENCODING);
 		
 		SwingUIProject project2 = new SwingUIProject("new test project");
 		project2.load(new BufferedInputStream(new FileInputStream(tmp)));
@@ -536,9 +535,9 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		} else {
 			System.out.println("MY TEMP FILE: "+tmp.getAbsolutePath());
 		}
-		PrintWriter out = new PrintWriter(tmp);
+		PrintWriter out = new PrintWriter(tmp,ENCODING);
 		assertNotNull(out);
-		project.save(out);
+		project.save(out,ENCODING);
 		
 		SwingUIProject project2 = new SwingUIProject("new test project");
 		project2.load(new BufferedInputStream(new FileInputStream(tmp)));
@@ -572,9 +571,9 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		if (deleteOnExit) {
 			tmp.deleteOnExit();
 		}
-		PrintWriter out = new PrintWriter(tmp);
+		PrintWriter out = new PrintWriter(tmp,ENCODING);
 		assertNotNull(out);
-		project.save(out);
+		project.save(out,ENCODING);
 		assertFalse (cds.getSaveFlag());		
 		assertEquals("SQLServer 2000", cds.getSqlScriptFormat());
 		assertEquals("ENGLISH", cds.getOutputFormatAsString());
