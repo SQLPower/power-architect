@@ -389,8 +389,6 @@ public class ArchitectFrame extends JFrame {
 		fileMenu.add(new JMenuItem(saveProjectAction));
 		fileMenu.add(new JMenuItem(saveProjectAsAction));
 		fileMenu.add(new JMenuItem(printAction));
-		fileMenu.add(new JMenuItem(exportDDLAction));
-		fileMenu.add(new JMenuItem(compareDMAction));
 		fileMenu.add(new JMenuItem(prefAction));
 		fileMenu.add(new JMenuItem(projectSettingsAction));
 		fileMenu.add(new JMenuItem(saveSettingsAction));
@@ -422,6 +420,13 @@ public class ArchitectFrame extends JFrame {
 		etlMenu.add(etlSubmenuTwo);
 		menuBar.add(etlMenu);
 
+		JMenu toolsMenu = new JMenu("Tools");
+		toolsMenu.setMnemonic('t');
+		toolsMenu.add(new JMenuItem(exportDDLAction));
+		toolsMenu.add(new JMenuItem(compareDMAction));
+		menuBar.add(toolsMenu);
+		
+		
 		JMenu helpMenu = new JMenu("Help");
 		helpMenu.setMnemonic('h');
 		helpMenu.add(new JMenuItem(aboutAction));
