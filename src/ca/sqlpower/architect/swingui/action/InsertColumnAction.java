@@ -1,10 +1,18 @@
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui.action;
 
 import java.awt.event.*;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.tree.TreePath;
 import ca.sqlpower.architect.*;
+import ca.sqlpower.architect.swingui.ASUtils;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
+import ca.sqlpower.architect.swingui.DBTree;
+import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.SwingUserSettings;
+import ca.sqlpower.architect.swingui.TablePane;
+
 import org.apache.log4j.Logger;
 
 public class InsertColumnAction extends AbstractAction {
@@ -25,7 +33,7 @@ public class InsertColumnAction extends AbstractAction {
 		super("New Column",
 			  ASUtils.createIcon("NewColumn",
 								 "New Column",
-								 ArchitectFrame.getMainInstance().sprefs.getInt(SwingUserSettings.ICON_SIZE, 24)));
+								 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
 		putValue(SHORT_DESCRIPTION, "New Column");
 	}
 

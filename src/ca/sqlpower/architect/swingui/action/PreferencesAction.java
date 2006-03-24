@@ -1,10 +1,14 @@
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui.action;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.*;
 import javax.swing.*;
 import org.apache.log4j.Logger;
+
+import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.JDBCDriverPanel;
+import ca.sqlpower.architect.swingui.PreferencesPanel;
 
 public class PreferencesAction extends AbstractAction {
 	private static final Logger logger = Logger.getLogger(EditTableAction.class);

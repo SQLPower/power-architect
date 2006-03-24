@@ -1,4 +1,4 @@
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui.event;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -17,6 +17,9 @@ import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.swingui.ArchitectSwingWorker;
+import ca.sqlpower.architect.swingui.Lister;
+import ca.sqlpower.architect.swingui.ListerProgressBarUpdater;
 
 public class DatabaseComboBoxListener 
 					extends ArchitectSwingWorker 

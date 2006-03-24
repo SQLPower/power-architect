@@ -1,4 +1,4 @@
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui.action;
 
 import java.awt.event.*;
 import javax.swing.*;
@@ -8,6 +8,15 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import ca.sqlpower.architect.*;
+import ca.sqlpower.architect.swingui.ASUtils;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.Relationship;
+import ca.sqlpower.architect.swingui.Selectable;
+import ca.sqlpower.architect.swingui.SwingUserSettings;
+import ca.sqlpower.architect.swingui.TablePane;
+import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.architect.swingui.event.SelectionListener;
 
 import org.apache.log4j.Logger;
 
@@ -34,7 +43,7 @@ public class CreateRelationshipAction extends AbstractAction
 			  ASUtils.createIcon
 			  (identifying ? "NewIdentifyingRelationship" : "NewNonIdentifyingRelationship",
 			   "New Relationship",
-			   ArchitectFrame.getMainInstance().sprefs.getInt(SwingUserSettings.ICON_SIZE, 24)));
+			   ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
 		if (identifying) {
 			putValue(SHORT_DESCRIPTION, "New Identifying Relationship");
 		} else {
@@ -199,5 +208,13 @@ public class CreateRelationshipAction extends AbstractAction
 
 	public void itemDeselected(SelectionEvent e) {
 		// don't particularly care
+	}
+
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
 	}
 }

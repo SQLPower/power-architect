@@ -194,4 +194,12 @@ public class DDLExportPanel extends JPanel implements ArchitectPanel {
 	public void discardChanges() {
         // nothing to discard
 	}
+
+	public JTextField getSchemaField() {
+		return schemaField;
+	}
+
+	public void setSchemaField(JTextField schemaField) {
+		this.schemaField = schemaField;
+	}
 }

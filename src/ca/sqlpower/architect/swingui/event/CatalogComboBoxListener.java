@@ -1,4 +1,4 @@
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui.event;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

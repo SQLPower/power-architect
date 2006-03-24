@@ -1,6 +1,9 @@
 package ca.sqlpower.architect.swingui;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.swingui.event.TaskTerminationEvent;
+import ca.sqlpower.architect.swingui.event.TaskTerminationListener;
+
 import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.Iterator;

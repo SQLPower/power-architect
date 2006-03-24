@@ -31,11 +31,13 @@ import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.PLExport;
 import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
-import ca.sqlpower.architect.swingui.ExportDDLAction.ConflictFinderProcess;
-import ca.sqlpower.architect.swingui.ExportDDLAction.ConflictResolverProcess;
-import ca.sqlpower.architect.swingui.ExportPLTransAction.ExportTxProcess;
 import ca.sqlpower.architect.swingui.PlayPen.AddObjectsTask;
 import ca.sqlpower.architect.swingui.QuickStartWizard.GenerateStatementsTask;
+import ca.sqlpower.architect.swingui.action.ExportDDLAction;
+import ca.sqlpower.architect.swingui.action.ExportPLTransAction;
+import ca.sqlpower.architect.swingui.action.ExportDDLAction.ConflictFinderProcess;
+import ca.sqlpower.architect.swingui.action.ExportDDLAction.ConflictResolverProcess;
+import ca.sqlpower.architect.swingui.action.ExportPLTransAction.ExportTxProcess;
 
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;

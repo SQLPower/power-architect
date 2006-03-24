@@ -1,10 +1,14 @@
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui.action;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.*;
 import javax.swing.*;
 import org.apache.log4j.Logger;
+
+import ca.sqlpower.architect.swingui.AboutPanel;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.PlayPen;
 
 public class AboutAction extends AbstractAction {
 	private static final Logger logger = Logger.getLogger(AboutAction.class);
@@ -18,7 +22,7 @@ public class AboutAction extends AbstractAction {
 		super("About...");
 // 			  ASUtils.createIcon("TableProperties",
 // 								 "Table Properties",
-// 								 ArchitectFrame.getMainInstance().sprefs.getInt(SwingUserSettings.ICON_SIZE, 24)));
+// 								 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
 		putValue(SHORT_DESCRIPTION, "About the Power*Architect");
 	}
 

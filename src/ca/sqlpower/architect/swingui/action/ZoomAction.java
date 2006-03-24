@@ -1,4 +1,4 @@
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui.action;
 
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
@@ -9,6 +9,12 @@ import java.util.Iterator;
 import javax.swing.AbstractAction;
 
 import org.apache.log4j.Logger;
+
+import ca.sqlpower.architect.swingui.ASUtils;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.PlayPenComponent;
+import ca.sqlpower.architect.swingui.SwingUserSettings;
 
 
 public class ZoomAction extends AbstractAction implements PropertyChangeListener {
@@ -24,7 +30,7 @@ public class ZoomAction extends AbstractAction implements PropertyChangeListener
 		super(amount > 0.0 ? "Zoom In" : "Zoom Out",
 			  ASUtils.createJLFIcon(amount > 0.0 ? "general/ZoomIn" : "general/ZoomOut",
 									amount > 0.0 ? "Zoom In" : "Zoom Out",
-									ArchitectFrame.getMainInstance().sprefs.getInt(SwingUserSettings.ICON_SIZE, 24)));
+									ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
 		putValue(AbstractAction.SHORT_DESCRIPTION, amount > 0.0 ? "Zoom In" : "Zoom Out");
 		this.zoomStep = amount;
 	}

@@ -1,4 +1,4 @@
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui.action;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -13,6 +13,16 @@ import javax.swing.*;
 
 import ca.sqlpower.architect.ddl.*;
 import ca.sqlpower.architect.etl.*;
+import ca.sqlpower.architect.swingui.ASUtils;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.ArchitectSwingWorker;
+import ca.sqlpower.architect.swingui.EngineExecPanel;
+import ca.sqlpower.architect.swingui.PLExportPanel;
+import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.ProgressWatcher;
+import ca.sqlpower.architect.swingui.QuickStartWizard;
+import ca.sqlpower.architect.swingui.SwingUserSettings;
+import ca.sqlpower.architect.swingui.WizardDialog;
 import ca.sqlpower.architect.*;
 import ca.sqlpower.security.PLSecurityException;
 
@@ -38,7 +48,7 @@ public class ExportPLTransAction extends AbstractAction {
 		super("PL Transaction Export...",
 			  ASUtils.createIcon("PLTransExport",
 								 "PL Transaction Export",
-								 ArchitectFrame.getMainInstance().sprefs.getInt(SwingUserSettings.ICON_SIZE, 24)));
+								 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
 		architectFrame = ArchitectFrame.getMainInstance();
 		putValue(SHORT_DESCRIPTION, "PL Transaction Export");
 	}
@@ -264,7 +274,7 @@ public class ExportPLTransAction extends AbstractAction {
 		}
 	}
 	
-	protected class ExportTxProcess extends ArchitectSwingWorker {		
+	public class ExportTxProcess extends ArchitectSwingWorker {		
 		
 		PLExport plExport;
 		final JDialog d;

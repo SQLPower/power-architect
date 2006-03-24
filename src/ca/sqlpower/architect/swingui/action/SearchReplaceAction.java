@@ -1,8 +1,15 @@
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui.action;
 
 import java.awt.event.*;
 import javax.swing.*;
 import org.apache.log4j.Logger;
+
+import ca.sqlpower.architect.swingui.ASUtils;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.DBTree;
+import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.SearchReplace;
+import ca.sqlpower.architect.swingui.SwingUserSettings;
 
 public class SearchReplaceAction extends AbstractAction {
     private static final Logger logger = Logger.getLogger(SearchReplaceAction.class);
@@ -21,7 +28,7 @@ public class SearchReplaceAction extends AbstractAction {
         super("Find/Replace...",
                 ASUtils.createJLFIcon("general/Find",
                         "Find/Replace",
-                        ArchitectFrame.getMainInstance().sprefs.getInt(SwingUserSettings.ICON_SIZE, 24)));
+                        ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
         putValue(SHORT_DESCRIPTION, "Find/Replace");
     }
     

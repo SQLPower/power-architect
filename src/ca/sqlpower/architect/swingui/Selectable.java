@@ -1,5 +1,7 @@
 package ca.sqlpower.architect.swingui;
 
+import ca.sqlpower.architect.swingui.event.SelectionListener;
+
 public interface Selectable {
 	public void setSelected(boolean v);
 	public boolean isSelected();

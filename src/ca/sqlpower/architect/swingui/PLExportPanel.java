@@ -30,6 +30,7 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.PLExport;
 import ca.sqlpower.architect.etl.PLUtils;
+import ca.sqlpower.architect.swingui.event.NewDatabaseListener;
 import ca.sqlpower.sql.SQL;
 
 public class PLExportPanel extends JPanel implements ArchitectPanel {

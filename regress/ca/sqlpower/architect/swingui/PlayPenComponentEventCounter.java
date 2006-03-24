@@ -1,7 +1,7 @@
 package regress.ca.sqlpower.architect.swingui;
 
-import ca.sqlpower.architect.swingui.PlayPenComponentEvent;
-import ca.sqlpower.architect.swingui.PlayPenComponentListener;
+import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
+import ca.sqlpower.architect.swingui.event.PlayPenComponentListener;
 
 public class PlayPenComponentEventCounter implements PlayPenComponentListener {
 	

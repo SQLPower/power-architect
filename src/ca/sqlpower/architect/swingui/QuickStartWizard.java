@@ -33,10 +33,10 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.PLExport;
 import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
-import ca.sqlpower.architect.swingui.ExportDDLAction.ConflictFinderProcess;
-import ca.sqlpower.architect.swingui.ExportDDLAction.ConflictResolverProcess;
-import ca.sqlpower.architect.swingui.ExportPLTransAction.ExportTxProcess;
 import ca.sqlpower.architect.swingui.PlayPen.AddObjectsTask;
+import ca.sqlpower.architect.swingui.action.ExportDDLAction.ConflictFinderProcess;
+import ca.sqlpower.architect.swingui.action.ExportDDLAction.ConflictResolverProcess;
+import ca.sqlpower.architect.swingui.action.ExportPLTransAction.ExportTxProcess;
 
 
 /**

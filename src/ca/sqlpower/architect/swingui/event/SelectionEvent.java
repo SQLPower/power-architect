@@ -1,6 +1,8 @@
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui.event;
 
 import java.util.EventObject;
+
+import ca.sqlpower.architect.swingui.Selectable;
 
 public class SelectionEvent extends EventObject {
 
