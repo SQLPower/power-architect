@@ -82,7 +82,7 @@ public class ExportDDLAction extends AbstractAction {
 							SQLDatabase ppdb = ArchitectFrame.getMainInstance().getProject().getPlayPen().getDatabase();
 							SQLScriptDialog ssd = 
 								new SQLScriptDialog(d, "Preview SQL Script", "", false,
-									ddlg.getDdlStatements(),
+									ddlg,
 									ppdb.getDataSource(),
 									true);
 							MonitorableWorker scriptWorker = ssd.getExecuteTask();

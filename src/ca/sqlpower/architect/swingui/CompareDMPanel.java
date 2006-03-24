@@ -1043,8 +1043,12 @@ public class CompareDMPanel extends JPanel {
 						db = source.getDatabase();
 
 					SQLScriptDialog ssd = new SQLScriptDialog(ArchitectFrame.getMainInstance(),
-							"Compare DM",titleString,false,gen.getDdlStatements(),
-							db == null?null:db.getDataSource(), false);
+												"Compare DM",
+												titleString,
+												false,
+												gen,
+												db == null?null:db.getDataSource(),
+														false);
 					ssd.setVisible(true);
 				} else {
 					String titleString = "Comparing " + left.getName() + " to "

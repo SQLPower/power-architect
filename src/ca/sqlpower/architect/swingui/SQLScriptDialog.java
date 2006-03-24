@@ -43,6 +43,7 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.LogWriter;
 import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLStatement;
 import ca.sqlpower.architect.swingui.ASUtils.FileExtensionFilter;
 import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
@@ -74,9 +75,11 @@ public class SQLScriptDialog extends JDialog {
 	private boolean closeParent;
 
 	private MonitorableWorker executeTask = new ExecuteSQLScriptWorker();
+
+	private DDLGenerator gen;
 	
 	public SQLScriptDialog(Frame owner, String title, String header, boolean modal,
-			List<DDLStatement> statements, ArchitectDataSource targetDataSource,
+			DDLGenerator gen, ArchitectDataSource targetDataSource,
 			boolean closeParent )
 			throws HeadlessException {
 		super(owner, title, modal);
@@ -84,9 +87,10 @@ public class SQLScriptDialog extends JDialog {
 		statusLabel = new JLabel();
 		parent = owner;
 		this.header = header;
-		this.statements = statements;
+		this.statements = gen.getDdlStatements();
 		this.targetDataSource = targetDataSource;
 		this.closeParent = closeParent;
+		this.gen = gen;
 		
 		add(buildPanel());
 		pack();
@@ -95,7 +99,7 @@ public class SQLScriptDialog extends JDialog {
 	}
 
 	public SQLScriptDialog(Dialog owner, String title, String header, boolean modal,
-			List<DDLStatement> statements, ArchitectDataSource targetDataSource,
+			DDLGenerator gen, ArchitectDataSource targetDataSource,
 			boolean closeParent )
 			throws HeadlessException {
 		super(owner, title, modal);
@@ -103,9 +107,10 @@ public class SQLScriptDialog extends JDialog {
 		statusLabel = new JLabel();
 		parent = owner;
 		this.header = header;
-		this.statements = statements;
+		this.statements = gen.getDdlStatements();
 		this.targetDataSource = targetDataSource;
 		this.closeParent = closeParent;
+		this.gen = gen;
 		System.out.println("The list size is :" + statements.size());
 		add(buildPanel());
 		pack();
@@ -115,7 +120,7 @@ public class SQLScriptDialog extends JDialog {
 	private JPanel buildPanel() {
 		FormLayout sqlLayout = new FormLayout(
 				"4dlu, min:grow, 4dlu", //columns
-				"pref, 6dlu, fill:300dlu:grow,6dlu, pref, 6dlu, pref"); //rows		
+				"pref, 4dlu, pref, 6dlu, fill:300dlu:grow,6dlu, pref, 6dlu, pref"); //rows		
 		
 		CellConstraints cc = new CellConstraints();
 		
@@ -143,7 +148,7 @@ public class SQLScriptDialog extends JDialog {
 		Action copy = new CopyAction(sqlDoc);
 		Action execute = null;		
 		
-		if ( targetDataSource != null) {
+		if ( targetDataSource != null ) {
 			execute = new AbstractAction(){
 				public void actionPerformed(ActionEvent e) {
 					new Thread(executeTask).start();
@@ -198,10 +203,13 @@ public class SQLScriptDialog extends JDialog {
 		JPanel panel = logger.isDebugEnabled() ? new FormDebugPanel(sqlLayout) : new JPanel(sqlLayout);
 		pb = new PanelBuilder(sqlLayout, panel);			
 		pb.setDefaultDialogBorder();	
-		pb.add(new JLabel(header), cc.xy(2, 1));			
-        pb.add(sp, cc.xy(2, 3));
-    	pb.add(barBuilder.getPanel(), cc.xy(2, 5, "c,c"));
-		pb.add(progressBar, cc.xy(2, 7));
+		pb.add(new JLabel(header), cc.xy(2, 1));
+		
+				
+		pb.add(new JLabel("Your Target Database is "+ targetDataSource.getName() ), cc.xy(2, 3));
+		pb.add(sp, cc.xy(2, 5));
+    		pb.add(barBuilder.getPanel(), cc.xy(2, 7, "c,c"));
+		pb.add(progressBar, cc.xy(2, 9));
 
 		return pb.getPanel();
 	}
@@ -283,11 +291,12 @@ public class SQLScriptDialog extends JDialog {
 
 			hasStarted = true;
 			if (isCancelled() || finished) return;
-			statusLabel.setText("Creating objects in target database...");
+
+			SQLDatabase target = new SQLDatabase(targetDataSource);
+			statusLabel.setText("Creating objects in target database " + target.getDataSource() );
 			ProgressWatcher pw = new ProgressWatcher(progressBar, this, statusLabel);
 			stmtsTried = 0;
 			stmtsCompleted = 0;
-			SQLDatabase target = new SQLDatabase(targetDataSource);
 			
 			logger.debug("the Target Database is: " + target.getDataSource());
 
