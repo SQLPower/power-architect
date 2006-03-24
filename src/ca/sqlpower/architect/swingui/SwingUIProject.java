@@ -644,10 +644,10 @@ public class SwingUIProject {
 		
 		File tempFile = null;
 		tempFile = new File (file.getParent(),"tmp___" + file.getName());			
-		
+		String encoding = "UTF-8";
 		try {
 			// If creating this temp file fails, feed the user back a more explanatory message
-			out = new PrintWriter(new BufferedWriter(new FileWriter(tempFile)));
+			out = new PrintWriter(tempFile,encoding);
 		} catch (IOException e) {
 			throw new ArchitectException("Unable to create output file for save operation, data NOT saved.\n" + e, e);
 		}
@@ -672,7 +672,7 @@ public class SwingUIProject {
 		    pm.setMillisToDecideToPopup(0);
 		}
 		
-		saveOk = save(out);	// Does ALL the actual I/O
+		saveOk = save(out,encoding);	// Does ALL the actual I/O
 		out = null;
 		if (pm != null) 
 			pm.close();
@@ -713,10 +713,11 @@ public class SwingUIProject {
 	 * @throws IOException
 	 * @throws ArchitectException
 	 */
-	public boolean save(PrintWriter out) throws IOException, ArchitectException {
+	public boolean save(PrintWriter out, String encoding) throws IOException, ArchitectException {
 		boolean saveOk;
 		try {
-			println(out, "<?xml version=\"1.0\"?>");
+			
+			println(out, "<?xml version=\"1.0\" encoding=\""+encoding+"\"?>");
 			println(out, "<architect-project version=\"0.1\">");
 			indent++;
 			println(out, "<project-name>"+ArchitectUtils.escapeXML(name)+"</project-name>");

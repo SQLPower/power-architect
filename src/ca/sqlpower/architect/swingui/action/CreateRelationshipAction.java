@@ -65,30 +65,31 @@ public class CreateRelationshipAction extends AbstractAction
 		pp.selectNone();
 	}
 
-	protected void doCreateRelationship() {
+	static public void doCreateRelationship(SQLTable pkTable,SQLTable fkTable,PlayPen pp, boolean identifying) {
 		try {
+			
 			SQLRelationship model = new SQLRelationship();
 			// XXX: need to ensure uniqueness of setName(), but 
 			// to_identifier should take care of this...			
-			model.setName(pkTable.getModel().getName()+"_"+fkTable.getModel().getName()+"_fk"); 
+			model.setName(pkTable.getName()+"_"+fkTable.getName()+"_fk"); 
 			model.setIdentifying(identifying);
-			model.setPkTable(pkTable.getModel());
-			model.setFkTable(fkTable.getModel());
+			model.setPkTable(pkTable);
+			model.setFkTable(fkTable);
 
-			pkTable.getModel().addExportedKey(model);
-			fkTable.getModel().addImportedKey(model);
+			pkTable.addExportedKey(model);
+			fkTable.addImportedKey(model);
 			
 			// iterate over a copy of pktable's column list to avoid comodification
 			// when creating a self-referencing table
-			java.util.List pkColListCopy = new ArrayList(pkTable.getModel().getColumns().size());
-			pkColListCopy.addAll(pkTable.getModel().getColumns());
+			java.util.List pkColListCopy = new ArrayList(pkTable.getColumns().size());
+			pkColListCopy.addAll(pkTable.getColumns());
 			Iterator pkCols = pkColListCopy.iterator();
 			while (pkCols.hasNext()) {
 				SQLColumn pkCol = (SQLColumn) pkCols.next();
 				if (pkCol.getPrimaryKeySeq() == null) break;
 				SQLColumn fkCol = (SQLColumn) pkCol.clone();
 				// check to see if the FK table already has this column 
-				SQLColumn match = fkTable.getModel().getColumnByName(pkCol.getName());
+				SQLColumn match = fkTable.getColumnByName(pkCol.getName());
 				if (match != null) {
 					// there is already a column of this name
 					if (match.getType() == pkCol.getType() &&
@@ -96,13 +97,16 @@ public class CreateRelationshipAction extends AbstractAction
 						match.getScale() == pkCol.getScale()) {
 						// column is an exact match, so we don't have to recreate it
 						fkCol = match; 
+						if (fkCol.getPrimaryKeySeq() == null && identifying) {
+							fkCol.setPrimaryKeySeq(new Integer(fkTable.getPkSize()));
+						}
 						fkCol.addReference(); // reference counting, stops column from being removed if relationship is removed					
 					} else {
 						// ask the user if they would like to rename the column 
 						// or cancel the creation of the relationship						
 						int decision = JOptionPane.showConfirmDialog(pp,
-								 "The primary key column " + pkCol.getName() + " already exists " +
-								 " in the child table.  Continue using new name " +
+								 "The primary key column " + pkCol.getName() + " already exists\n" +
+								 " in the child table, but has an incompatible type.  Continue using new name\n" +
 								 pkCol.getName() + "_1 ?",
 								 "Column Name Conflict",
 								 JOptionPane.YES_NO_OPTION);
@@ -110,21 +114,21 @@ public class CreateRelationshipAction extends AbstractAction
 							// XXX: need to ensure uniqueness of setName(), 
 							// but to_identifier in DDLGenerator should take 
 							// care of this
-							fkCol.setName(generateUniqueColumnName(pkCol,fkTable.getModel())); 
+							fkCol.setName(generateUniqueColumnName(pkCol,fkTable)); 
 						} else {
 							model = null;
 							return; // abort the creation of this relationship
 						}										
-						fkTable.getModel().addColumn(fkCol);
+						fkTable.addColumn(fkCol);
 					}
 				} else {
 					// no match, so we need to import this column from PK table
-					fkTable.getModel().addColumn(fkCol);
+					fkTable.addColumn(fkCol);
 				}
 				
 				if (identifying && fkCol.getPrimaryKeySeq() == null) {
 					// add column to primary key (but only if it's not already there!!!
-					fkCol.setPrimaryKeySeq(new Integer(fkTable.getModel().getPkSize()));
+					fkCol.setPrimaryKeySeq(new Integer(fkTable.getPkSize()));
 				}
 				
 				model.addMapping(pkCol, fkCol);
@@ -144,7 +148,7 @@ public class CreateRelationshipAction extends AbstractAction
 	/*
 	 *  Ideally, loop through until you get a unique column name...
 	 */
-	private String generateUniqueColumnName(SQLColumn column, SQLTable table) {		
+	private static String generateUniqueColumnName(SQLColumn column, SQLTable table) {		
 		return column.getName() + "_1";  // XXX: fix this to be better
 	}
 	
@@ -164,43 +168,26 @@ public class CreateRelationshipAction extends AbstractAction
 	// -------------------- SELECTION EVENTS --------------------
 	
 	public void itemSelected(SelectionEvent e) {
-		// what address am I?
-		logger.debug("00000000000 object hash code: " + super.hashCode());
-
 	
-		// ignore events unless active
-		logger.debug("11111111ITEM SELECTED: " + e);
-
-		if (!active) {
-			logger.debug("222222222 not active.");
-			return;
-		} else {
-			logger.debug("222222222 ACTIVE!!!.");			
-		}
+		if (!active) return;
 
 		Selectable s = e.getSelectableSource();
 
 		// don't care when tables (or anything else) are deselected
-		if (!s.isSelected()) {
-			logger.debug("333333333 not selected.");			
-			return;
-		}
+		if (!s.isSelected()) return;
 
 		if (s instanceof TablePane) {
-			logger.debug("4444444444444 instance of TablePane.");						
 			if (pkTable == null) {
 				pkTable = (TablePane) s;
-				logger.debug("555555555555 Creating relationship: PK Table is "+pkTable);
+				logger.debug("Creating relationship: PK Table is "+pkTable);
 			} else {
 				fkTable = (TablePane) s;
-				logger.debug("66666666666666 Creating relationship: FK Table is "+fkTable);
-				doCreateRelationship();  // this might fail, but still set things back to "normal"
+				logger.debug("Creating relationship: FK Table is "+fkTable);
+				doCreateRelationship(pkTable.getModel(),fkTable.getModel(),pp,identifying);  // this might fail, but still set things back to "normal"
 				pp.setCursor(null);
-				logger.debug("66666666666666 setting active to FALSE!");
 				active = false;
 			}
 		} else {
-			logger.debug("777777777777 not instance of TablePane.");						
 			if (logger.isDebugEnabled())
 				logger.debug("The user clicked on a non-table component: "+s);
 		}
