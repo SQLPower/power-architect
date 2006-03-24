@@ -14,9 +14,11 @@ import org.apache.commons.beanutils.BeanUtils;
 
 import regress.ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.LockedColumnException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLTable.Folder;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
@@ -350,5 +352,33 @@ public class TestSQLTable extends SQLTestCase {
 		assertEquals(test2.getChangedCount(), 0);
 		assertEquals(test2.getStructureChangedCount(), 0);
 	}
+	
+	public void testDeleteLockedColumn() throws ArchitectException {
+		ArchitectFrame af = ArchitectFrame.getMainInstance();
+		SQLTable parentTable = new SQLTable(af.getProject().getPlayPen().getDatabase(), "parent", null, "TABLE", true);
+		parentTable.addColumn(new SQLColumn(parentTable, "pkcol_1", Types.INTEGER, 10, 0));
+		parentTable.addColumn(new SQLColumn(parentTable, "pkcol_2", Types.INTEGER, 10, 0));
+		parentTable.addColumn(new SQLColumn(parentTable, "attribute_1", Types.INTEGER, 10, 0));
+		
+		SQLTable childTable1 = new SQLTable(af.getProject().getPlayPen().getDatabase(), "child_1", null, "TABLE", true);
+		childTable1.addColumn(new SQLColumn(childTable1, "child_pkcol_1", Types.INTEGER, 10, 0));
+		childTable1.addColumn(new SQLColumn(childTable1, "child_pkcol_2", Types.INTEGER, 10, 0));
+		childTable1.addColumn(new SQLColumn(childTable1, "child_attribute", Types.INTEGER, 10, 0));
 
+		SQLRelationship rel1 = new SQLRelationship();
+		rel1.setPkTable(parentTable);
+		rel1.setFkTable(childTable1);
+		rel1.addMapping(parentTable.getColumn(0), childTable1.getColumn(0));
+		rel1.addMapping(parentTable.getColumn(1), childTable1.getColumn(1));
+		parentTable.addExportedKey(rel1);
+		childTable1.addImportedKey(rel1);
+
+		try {
+			SQLColumn inheritedCol = childTable1.getColumnByName("child_pkcol_1");
+			childTable1.removeColumn(inheritedCol);
+			fail("Remove should have thrown LockedColumnException");
+		} catch (LockedColumnException ex) {
+			// good
+		}
+	}
 }

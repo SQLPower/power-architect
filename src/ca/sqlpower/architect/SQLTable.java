@@ -518,16 +518,23 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * @throws ArchitectException If something goes wrong accessing the table's foreign keys 
 	 */
 	public void removeColumn(SQLColumn col) throws ArchitectException {
-		// NOTE: the LockedColumnException check was not being used, and there was 
-        // no comment about why it had been commmented out...
-
-		List keys = keysOfColumn(col);
 		
-		if (keys.isEmpty()) {
+		// a column is only locked if it is an IMPORTed key--not if it is EXPORTed.
+		SQLRelationship lockingRelationship = null;
+		for (SQLRelationship r : getImportedKeys()) {
+			for (SQLRelationship.ColumnMapping cm : r.getMappings()) {
+				if (cm.getFkColumn() == col) {
+					lockingRelationship = r;
+					break;
+				}
+			}
+		}
+		
+		if (lockingRelationship == null) {
 			columnsFolder.removeChild(col);
 			normalizePrimaryKey();
 		} else {
-			throw new LockedColumnException("This column can't be removed because it belongs to the "+keys.get(0)+" relationship");
+			throw new LockedColumnException(lockingRelationship);
 		}
 	}
 
@@ -582,8 +589,8 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		}
 	}
 	
-	public List keysOfColumn(SQLColumn col) throws ArchitectException {
-		LinkedList keys = new LinkedList();
+	public List<SQLRelationship> keysOfColumn(SQLColumn col) throws ArchitectException {
+		LinkedList<SQLRelationship> keys = new LinkedList<SQLRelationship>();
 		Iterator it = getExportedKeys().iterator();
 		while (it.hasNext()) {
 			SQLRelationship r = (SQLRelationship) it.next();

@@ -305,8 +305,11 @@ public class ColumnEditPanel extends JPanel
 			// Autoincrement has to go before the primary key or 
 			// this column will never allow nulls
 			col.setAutoIncrement(colAutoInc.isSelected());
-			col.setPrimaryKeySeq(colInPK.isSelected() ? new Integer(model.getPkSize()) : null);
-
+			if (col.getPrimaryKeySeq() == null) {
+				col.setPrimaryKeySeq(colInPK.isSelected() ? new Integer(model.getPkSize()) : null);
+			} else {
+				col.setPrimaryKeySeq(colInPK.isSelected() ? new Integer(col.getPrimaryKeySeq()) : null);
+			}
 
 			// update selected index in case the column moved (add/remove PK)
 			int index = model.getColumns().indexOf(col);
