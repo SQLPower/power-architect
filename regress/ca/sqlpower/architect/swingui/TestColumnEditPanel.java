@@ -39,8 +39,6 @@ public class TestColumnEditPanel extends TestCase {
 		panel = new ColumnEditPanel(table,1);
 		
 		super.setUp();
-		
-	
 	}
  
 	protected void tearDown() throws Exception {
@@ -89,8 +87,6 @@ public class TestColumnEditPanel extends TestCase {
 		assertTrue(panel.getColNullable().getModel().isEnabled());
 		assertEquals("None Specified",panel.getSourceDB().getText());
 		assertEquals("None Specified",panel.getSourceTableCol().getText());
-
-		
 	}
 
 
@@ -149,6 +145,21 @@ public class TestColumnEditPanel extends TestCase {
 		assertFalse(col2.isDefinitelyNullable());
 		
 		
+	}
+	
+	/** Tests for real problem (columns in pk were getting moved to bottom of PK after editing) */
+	public void testPKColumnMoveRegression() throws ArchitectException{		
+		SQLColumn c1 = new SQLColumn(table,"PKColumn 1",1,2,3);
+		SQLColumn c2 = new SQLColumn(table,"PKColumn 2",1,2,3);
+		table.addColumn(c1);
+		table.addColumn(c2);
+		c1.setPrimaryKeySeq(0);
+		c2.setPrimaryKeySeq(1);
+		assertEquals (5, table.getColumns().size());
+		
+		ColumnEditPanel editPanel = new ColumnEditPanel(table,0);		
+		editPanel.applyChanges();
+		assertEquals (0, table.getColumnIndex(table.getColumnByName("PKColumn 1")));		
 	}
 
 }
