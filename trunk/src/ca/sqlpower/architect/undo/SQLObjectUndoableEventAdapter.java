@@ -29,7 +29,7 @@ public class SQLObjectUndoableEventAdapter  implements UndoCompoundEventListener
 
 	private UndoManager undoManager;
 	private PlayPenComponentEvent movementEvent;
-	public enum UndoState {DRAG_AND_DROP,MULTI_SELECT,MULTI_DRAG_AND_DROP,REGULAR,PROPERTY_CHANGE_GROUP,MOVING};
+	public enum UndoState {DRAG_AND_DROP,MULTI_SELECT,MULTI_DRAG_AND_DROP,REGULAR,PROPERTY_CHANGE_GROUP,MOVING,RELATIONSHIP};
 	private UndoState state;
 	private CompoundEdit ce;
 	private int propertyGroupCount;

@@ -1145,6 +1145,7 @@ public class PlayPen extends JPanel
 
 	
 		public void doStuff () {
+			ArchitectFrame.getMainInstance().getProject().getPlayPen().fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.MULTI_SELECT_START,"Starting multi-select"));
 			if ( !isCancelled()){
 				hasStarted = true;
 				logger.info("AddObjectsTask starting on thread "+Thread.currentThread().getName());
@@ -1215,12 +1216,13 @@ public class PlayPen extends JPanel
 						} else {
 							logger.error("Unknown object dropped in PlayPen: "+someData);
 						}				
-					}				
+					}
 				} catch (ArchitectException e) {
 					e.printStackTrace();
 				} finally {
 					finished = true;
 					hasStarted = false;
+					ArchitectFrame.getMainInstance().getProject().getPlayPen().fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.MULTI_SELECT_END,"Ending multi-select"));
 				}
 				logger.info("AddObjectsTask done");
 			}
@@ -1623,8 +1625,8 @@ public class PlayPen extends JPanel
 			}
 
 			Transferable t = dtde.getTransferable();
-			PlayPen c = (PlayPen) dtde.getDropTargetContext().getComponent();
-			DataFlavor importFlavor = bestImportFlavor(c, t.getTransferDataFlavors());
+			PlayPen playpen = (PlayPen) dtde.getDropTargetContext().getComponent();
+			DataFlavor importFlavor = bestImportFlavor(playpen, t.getTransferDataFlavors());
 			if (importFlavor == null) {
 				dtde.rejectDrop();
 			} else {
@@ -1632,7 +1634,7 @@ public class PlayPen extends JPanel
 					
 					
 					dtde.acceptDrop(DnDConstants.ACTION_COPY);
-					Point dropLoc = c.unzoomPoint(new Point(dtde.getLocation()));									
+					Point dropLoc = playpen.unzoomPoint(new Point(dtde.getLocation()));									
 					ArrayList paths = (ArrayList) t.getTransferData(importFlavor);
 					// turn into a Collection of SQLObjects to make this more generic
 					Iterator it = paths.iterator();
@@ -1647,8 +1649,9 @@ public class PlayPen extends JPanel
 						}
 					}
 					// null: no next task is chained off this
-					c.addObjects(sqlObjects, dropLoc, null);					
+					playpen.addObjects(sqlObjects, dropLoc, null);					
 					dtde.dropComplete(true);
+					
 				} catch (UnsupportedFlavorException ufe) {
 					logger.error(ufe);
 					dtde.rejectDrop();
