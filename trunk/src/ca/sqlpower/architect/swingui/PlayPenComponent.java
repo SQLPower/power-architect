@@ -19,6 +19,9 @@ import javax.swing.JPopupMenu;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
+import ca.sqlpower.architect.swingui.event.PlayPenComponentListener;
+
 /**
  * PlayPenComponent is the base class for a component that can live in the playpen's
  * content pane.
@@ -301,7 +304,7 @@ public abstract class PlayPenComponent implements Selectable {
 
 	
 
-	protected void firePlayPenComponentMoveStart(Point oldPoint) {
+	public void firePlayPenComponentMoveStart(Point oldPoint) {
 		PlayPenComponentEvent e = new PlayPenComponentEvent(this,oldPoint,null);
 		Iterator it = playPenComponentListeners.iterator();
 		while (it.hasNext()) {

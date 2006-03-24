@@ -1,4 +1,4 @@
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui.action;
 
 import java.util.List;
 import java.util.Iterator;
@@ -8,6 +8,17 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.tree.TreePath;
 import ca.sqlpower.architect.*;
+import ca.sqlpower.architect.swingui.ASUtils;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
+import ca.sqlpower.architect.swingui.DBTree;
+import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.Relationship;
+import ca.sqlpower.architect.swingui.Selectable;
+import ca.sqlpower.architect.swingui.SwingUserSettings;
+import ca.sqlpower.architect.swingui.TablePane;
+import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 
@@ -30,7 +41,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 		super("Delete Selected",
 			  ASUtils.createJLFIcon("general/Delete",
 								 "Delete Selected",
-								 ArchitectFrame.getMainInstance().sprefs.getInt(SwingUserSettings.ICON_SIZE, 24)));
+								 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
 		putValue(SHORT_DESCRIPTION, "Delete Selected");
 		putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0)); // XXX: how to attach to components?
 		putValue(ACTION_COMMAND_KEY, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
@@ -139,14 +150,14 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 				if (item instanceof TablePane) {
 					TablePane tp = (TablePane) item;
 					tp.setSelected(false);
-					pp.db.removeChild(tp.getModel());
+					pp.getDatabase().removeChild(tp.getModel());
 					if (logger.isDebugEnabled()) {
 						logger.debug("removing element from tableNames set: " + tp.getModel().getName());
-						logger.debug("before delete: " + pp.tableNames.toArray());
+						logger.debug("before delete: " + pp.getTablePanes().toArray());
 					}
-					pp.tableNames.remove(tp.getModel().getName().toLowerCase());
+					pp.getTablePanes().remove(tp.getModel().getName().toLowerCase());
 					if (logger.isDebugEnabled()) {
-						logger.debug("after delete: " + pp.tableNames.toArray());
+						logger.debug("after delete: " + pp.getTablePanes().toArray());
 					}
 				} else if (item instanceof Relationship) {
 					Relationship r = (Relationship) item;
@@ -186,8 +197,8 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 				SQLObject so = (SQLObject) tp.getLastPathComponent();
 				if (so instanceof SQLTable) {
 					SQLTable st = (SQLTable) so;
-					pp.db.removeChild(st);
-					pp.tableNames.remove(st.getName().toLowerCase());
+					pp.getDatabase().removeChild(st);
+					pp.getTablePanes().remove(st.getName().toLowerCase());
 				} else if (so instanceof SQLColumn) {
 					SQLColumn sc = (SQLColumn)so;
 					SQLTable st = sc.getParentTable();

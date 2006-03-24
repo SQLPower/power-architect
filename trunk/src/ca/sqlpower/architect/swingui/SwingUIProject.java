@@ -42,6 +42,8 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.PLExport;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
+import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
+import ca.sqlpower.architect.swingui.event.PlayPenComponentListener;
 import ca.sqlpower.architect.undo.UndoManager;
 
 /** Used to load and store Projects.
@@ -1178,7 +1180,7 @@ public class SwingUIProject {
 	 */
 	public void setPlayPen(PlayPen argPlayPen) {
 		this.playPen = argPlayPen;
-		SwingUserSettings sprefs = ArchitectFrame.getMainInstance().sprefs;
+		SwingUserSettings sprefs = ArchitectFrame.getMainInstance().getSprefs();
 		if (sprefs != null) {
 		    playPen.setRenderingAntialiased(sprefs.getBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
 		}

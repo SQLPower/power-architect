@@ -1,4 +1,4 @@
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui.action;
 
 import java.awt.event.*;
 import java.awt.BorderLayout;
@@ -7,6 +7,15 @@ import java.util.List;
 import javax.swing.*;
 import org.apache.log4j.Logger;
 import ca.sqlpower.architect.*;
+import ca.sqlpower.architect.swingui.ASUtils;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
+import ca.sqlpower.architect.swingui.DBTree;
+import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.Relationship;
+import ca.sqlpower.architect.swingui.RelationshipEditPanel;
+import ca.sqlpower.architect.swingui.SwingUserSettings;
+
 import javax.swing.tree.TreePath;
 
 public class EditRelationshipAction extends AbstractAction {
@@ -27,7 +36,7 @@ public class EditRelationshipAction extends AbstractAction {
 		super("Relationship Properties",
 			  ASUtils.createIcon("RelationshipProperties",
 								 "Relationship Properties",
-								 ArchitectFrame.getMainInstance().sprefs.getInt(SwingUserSettings.ICON_SIZE, 24)));
+								 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
 		putValue(SHORT_DESCRIPTION, "Relationship Properties");
 	}
 

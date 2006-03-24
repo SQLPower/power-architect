@@ -4,6 +4,24 @@ package ca.sqlpower.architect.swingui;
 import ca.sqlpower.architect.layout.ArchitectLayoutInterface;
 import ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout;
 
+import ca.sqlpower.architect.swingui.action.AboutAction;
+import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
+import ca.sqlpower.architect.swingui.action.CompareDMAction;
+import ca.sqlpower.architect.swingui.action.CreateRelationshipAction;
+import ca.sqlpower.architect.swingui.action.CreateTableAction;
+import ca.sqlpower.architect.swingui.action.DeleteSelectedAction;
+import ca.sqlpower.architect.swingui.action.EditColumnAction;
+import ca.sqlpower.architect.swingui.action.EditRelationshipAction;
+import ca.sqlpower.architect.swingui.action.EditTableAction;
+import ca.sqlpower.architect.swingui.action.ExportDDLAction;
+import ca.sqlpower.architect.swingui.action.ExportPLTransAction;
+import ca.sqlpower.architect.swingui.action.InsertColumnAction;
+import ca.sqlpower.architect.swingui.action.PreferencesAction;
+import ca.sqlpower.architect.swingui.action.PrintAction;
+import ca.sqlpower.architect.swingui.action.ProjectSettingsAction;
+import ca.sqlpower.architect.swingui.action.QuickStartAction;
+import ca.sqlpower.architect.swingui.action.SearchReplaceAction;
+import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.undo.UndoManager;
 
 import org.apache.log4j.Logger;
@@ -570,8 +588,8 @@ public class ArchitectFrame extends JFrame {
 	 * Determine if either create relationship action is currently active.
 	 */
 	public boolean createRelationshipIsActive () {
-		if (createIdentifyingRelationshipAction.active) return true;
-		if (createNonIdentifyingRelationshipAction.active) return true;
+		if (createIdentifyingRelationshipAction.isActive()) return true;
+		if (createNonIdentifyingRelationshipAction.isActive()) return true;
 		return false;			
 	}
 
@@ -746,5 +764,21 @@ public class ArchitectFrame extends JFrame {
 	
 	public SwingUserSettings getSwingUserSettings() {
 		return sprefs;	
+	}
+
+	public SwingUserSettings getSprefs() {
+		return sprefs;
+	}
+
+	public void setSprefs(SwingUserSettings sprefs) {
+		this.sprefs = sprefs;
+	}
+
+	public Action getNewProjectAction() {
+		return newProjectAction;
+	}
+
+	public void setNewProjectAction(Action newProjectAction) {
+		this.newProjectAction = newProjectAction;
 	}
 }

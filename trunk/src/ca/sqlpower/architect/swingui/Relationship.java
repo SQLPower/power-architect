@@ -6,6 +6,9 @@ import java.awt.event.*;
 import javax.swing.event.MouseInputAdapter;
 import ca.sqlpower.architect.*;
 import ca.sqlpower.architect.SQLRelationship.ColumnMapping;
+import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
+import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.architect.swingui.event.SelectionListener;
 
 import org.apache.log4j.Logger;
 import java.util.*;
@@ -211,7 +214,7 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 	}
 
 	// ---------------- Component Listener ----------------
-	private class PlayPenComponentListener implements ca.sqlpower.architect.swingui.PlayPenComponentListener {
+	private class PlayPenComponentListener implements ca.sqlpower.architect.swingui.event.PlayPenComponentListener {
 
 		/* (non-Javadoc)
 		 * @see ca.sqlpower.architect.swingui.PlayPenComponentListener#componentMoved(ca.sqlpower.architect.swingui.PlayPenComponentEvent)

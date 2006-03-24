@@ -1,6 +1,5 @@
 package ca.sqlpower.architect.swingui;
 
-import ca.sqlpower.architect.swingui.ExportPLTransAction.ExportTxProcess;
 
 /**
  * The MonitorableWorker is an ArchitectSwingWorker that also

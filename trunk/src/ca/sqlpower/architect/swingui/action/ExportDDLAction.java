@@ -1,4 +1,4 @@
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui.action;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -29,6 +29,13 @@ import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLWarning;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.ddl.NameChangeWarning;
+import ca.sqlpower.architect.swingui.ASUtils;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.DDLExportPanel;
+import ca.sqlpower.architect.swingui.MonitorableWorker;
+import ca.sqlpower.architect.swingui.SQLScriptDialog;
+import ca.sqlpower.architect.swingui.SwingUserSettings;
+import ca.sqlpower.architect.swingui.TableSorter;
 
 public class ExportDDLAction extends AbstractAction {
 	private static final Logger logger = Logger.getLogger(ExportDDLAction.class);
@@ -39,7 +46,7 @@ public class ExportDDLAction extends AbstractAction {
 		super("Forward Engineer...",
 			  ASUtils.createIcon("ForwardEngineer",
 								 "Forward Engineer",
-								 ArchitectFrame.getMainInstance().sprefs.getInt(SwingUserSettings.ICON_SIZE, 24)));
+								 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
 		architectFrame = ArchitectFrame.getMainInstance();
 		putValue(SHORT_DESCRIPTION, "Forward Engineer SQL Script");
 	}
@@ -49,7 +56,7 @@ public class ExportDDLAction extends AbstractAction {
 									  "Forward Engineer SQL Script");
 		JPanel cp = new JPanel(new BorderLayout(12,12));
 		cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
-		final DDLExportPanel ddlPanel = new DDLExportPanel(architectFrame.project);
+		final DDLExportPanel ddlPanel = new DDLExportPanel(architectFrame.getProject());
 		cp.add(ddlPanel, BorderLayout.CENTER);
 		
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -60,10 +67,10 @@ public class ExportDDLAction extends AbstractAction {
 					try {
 						if (ddlPanel.applyChanges()) {
 							
-							GenericDDLGenerator ddlg = architectFrame.project.getDDLGenerator();
-							ddlg.setTargetSchema(ddlPanel.schemaField.getText());
+							GenericDDLGenerator ddlg = architectFrame.getProject().getDDLGenerator();
+							ddlg.setTargetSchema(ddlPanel.getSchemaField().getText());
 							
-							StringBuffer ddl = ddlg.generateDDL(architectFrame.playpen.getDatabase());
+							StringBuffer ddl = ddlg.generateDDL(architectFrame.getProject().getPlayPen().getDatabase());
 							List warnings = ddlg.getWarnings();
 							if (warnings.size() > 0) {
 								TableSorter sorter = new TableSorter(new DDLWarningTableModel(warnings));
@@ -72,7 +79,7 @@ public class ExportDDLAction extends AbstractAction {
 								JOptionPane.showMessageDialog(d, new JScrollPane(warningTable), "Warnings in generated DDL", JOptionPane.WARNING_MESSAGE);
 							}
 							
-							SQLDatabase ppdb = ArchitectFrame.getMainInstance().playpen.getDatabase();
+							SQLDatabase ppdb = ArchitectFrame.getMainInstance().getProject().getPlayPen().getDatabase();
 							SQLScriptDialog ssd = 
 								new SQLScriptDialog(d, "Preview SQL Script", "", false,
 									ddlg.getDdlStatements(),

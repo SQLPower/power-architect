@@ -86,6 +86,8 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.Relationship.RelationshipDecorationMover;
+import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.architect.undo.SQLObjectUndoableEventAdapter;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
@@ -1522,7 +1524,7 @@ public class PlayPen extends JPanel
 		undoEventListeners.remove(l);
 	}
 	
-	protected void fireUndoCompoundEvent(UndoCompoundEvent e) {
+	public void fireUndoCompoundEvent(UndoCompoundEvent e) {
 		Iterator it = undoEventListeners.iterator();
 		
 		if (e.getType() == UndoCompoundEvent.EventTypes.DRAG_AND_DROP_START) {

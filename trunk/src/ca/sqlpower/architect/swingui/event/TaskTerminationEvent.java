@@ -4,7 +4,9 @@
  * TODO To change the template for this generated file go to
  * Window - Preferences - Java - Code Style - Code Templates
  */
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui.event;
+
+import ca.sqlpower.architect.swingui.ProgressWatcher;
 
 /**
  * @author jack

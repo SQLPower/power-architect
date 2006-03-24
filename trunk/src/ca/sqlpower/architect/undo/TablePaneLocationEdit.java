@@ -10,8 +10,8 @@ import javax.swing.undo.AbstractUndoableEdit;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 
-import ca.sqlpower.architect.swingui.PlayPenComponentEvent;
 import ca.sqlpower.architect.swingui.TablePane;
+import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
 
 public class TablePaneLocationEdit extends AbstractUndoableEdit {
 

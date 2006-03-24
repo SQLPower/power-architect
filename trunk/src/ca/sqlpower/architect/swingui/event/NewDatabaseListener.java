@@ -1,4 +1,4 @@
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui.event;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -12,6 +12,8 @@ import javax.swing.JDialog;
 import javax.swing.JPanel;
 
 import ca.sqlpower.architect.ArchitectDataSource;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.DBCSPanel;
 
 /*
  * When a new database connection has been established, this listener

@@ -1,4 +1,4 @@
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui.action;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
@@ -12,6 +12,11 @@ import javax.swing.JPanel;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.swingui.ASUtils;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.CompareDMPanel;
+import ca.sqlpower.architect.swingui.SwingUserSettings;
+
 public class CompareDMAction extends AbstractAction {
 	private static final Logger logger = Logger.getLogger(CompareDMAction.class);
 
@@ -21,7 +26,7 @@ public class CompareDMAction extends AbstractAction {
 		super("Compare DM...",
 				  ASUtils.createIcon("CompareDatabases",
 										"Compare DM",
-										ArchitectFrame.getMainInstance().sprefs.getInt(SwingUserSettings.ICON_SIZE, 24)));
+										ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
 		architectFrame = ArchitectFrame.getMainInstance();
 		putValue(SHORT_DESCRIPTION, "Compare Data Models");
 	}
@@ -32,7 +37,7 @@ public class CompareDMAction extends AbstractAction {
 		JPanel cp = new JPanel(new BorderLayout(12,12));
 		cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
 		
-		final CompareDMPanel compareDMPanel = new CompareDMPanel(architectFrame.project);
+		final CompareDMPanel compareDMPanel = new CompareDMPanel(architectFrame.getProject());
 		cp.add(compareDMPanel, BorderLayout.CENTER);
 
 //		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));

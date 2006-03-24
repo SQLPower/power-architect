@@ -1,4 +1,5 @@
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui.event;
+
 
 public interface PlayPenComponentListener {
 

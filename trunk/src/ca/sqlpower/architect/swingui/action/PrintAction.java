@@ -1,9 +1,15 @@
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui.action;
 
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import org.apache.log4j.Logger;
+
+import ca.sqlpower.architect.swingui.ASUtils;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.PrintPanel;
+import ca.sqlpower.architect.swingui.SwingUserSettings;
 
 public class PrintAction extends AbstractAction {
 	private static final Logger logger = Logger.getLogger(PrintAction.class);
@@ -17,7 +23,7 @@ public class PrintAction extends AbstractAction {
 		super("Print...",
 			  ASUtils.createJLFIcon("general/Print",
 									"Print",
-									ArchitectFrame.getMainInstance().sprefs.getInt(SwingUserSettings.ICON_SIZE, 24)));
+									ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
 		putValue(SHORT_DESCRIPTION, "Print");
 	}
 

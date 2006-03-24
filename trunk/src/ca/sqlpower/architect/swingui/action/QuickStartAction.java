@@ -1,8 +1,14 @@
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui.action;
 
 import java.awt.event.*;
 import javax.swing.*;
 import org.apache.log4j.Logger;
+
+import ca.sqlpower.architect.swingui.ASUtils;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.QuickStartWizard;
+import ca.sqlpower.architect.swingui.SwingUserSettings;
+import ca.sqlpower.architect.swingui.WizardDialog;
 
 public class QuickStartAction extends AbstractAction {
 	private static final Logger logger = Logger.getLogger(QuickStartAction.class);
@@ -13,12 +19,12 @@ public class QuickStartAction extends AbstractAction {
 		super("Quick Start Wizard...",
 			  ASUtils.createIcon("PLTransExport",
 								 "PL Export Wizard",
-								 ArchitectFrame.getMainInstance().sprefs.getInt(SwingUserSettings.ICON_SIZE, 24)));
+								 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
 		putValue(SHORT_DESCRIPTION, "Quick Start Wizard");
 	}
 
 	public void actionPerformed(ActionEvent e) {
-		ArchitectFrame.getMainInstance().newProjectAction.actionPerformed(new ActionEvent(this,0,null));
+		ArchitectFrame.getMainInstance().getNewProjectAction().actionPerformed(new ActionEvent(this,0,null));
 		// always start from scratch
 		d = new WizardDialog(ArchitectFrame.getMainInstance(),new QuickStartWizard());		
 		d.pack();

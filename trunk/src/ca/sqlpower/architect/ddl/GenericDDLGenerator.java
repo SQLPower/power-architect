@@ -225,6 +225,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		print(" FOREIGN KEY ( ");
 		Map<String, SQLColumn> colNameMap = new HashMap<String, SQLColumn> (); 
 		boolean firstColumn = true;
+
 		for (ColumnMapping cm : r.getMappings()) {
 			SQLColumn c = cm.getFkColumn();
 			// make sure this is unique
@@ -243,7 +244,9 @@ public class GenericDDLGenerator implements DDLGenerator {
 		print(" ( ");
 		colNameMap = new HashMap<String, SQLColumn>();
 		firstColumn = true;
+
 		for (ColumnMapping cm : r.getMappings()) {
+
 			SQLColumn c = cm.getPkColumn();
 			// make sure this is unique
 			if (colNameMap.get(c.getName()) == null) {

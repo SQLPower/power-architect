@@ -1,4 +1,4 @@
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui.action;
 
 import java.awt.event.ActionEvent;
 import java.util.List;
@@ -9,6 +9,13 @@ import javax.swing.Timer;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.layout.ArchitectLayoutInterface;
+import ca.sqlpower.architect.swingui.ASUtils;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.LayoutAnimator;
+import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.Relationship;
+import ca.sqlpower.architect.swingui.SwingUserSettings;
+import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 
@@ -30,7 +37,7 @@ public class AutoLayoutAction extends AbstractAction {
 		super("Auto Layout",
 				  ASUtils.createIcon("AutoLayout",
 									"Automatic Table Layout",
-									ArchitectFrame.getMainInstance().sprefs.getInt(SwingUserSettings.ICON_SIZE, 24)));
+									ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
 		putValue(SHORT_DESCRIPTION, "Automatic Layout");
 	}
 

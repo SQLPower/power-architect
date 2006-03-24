@@ -9,6 +9,9 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
+import ca.sqlpower.architect.swingui.event.PlayPenComponentListener;
+
 public class PlayPenContentPane {
 	private static final Logger logger = Logger.getLogger(PlayPenContentPane.class);
 	protected PlayPen owner;

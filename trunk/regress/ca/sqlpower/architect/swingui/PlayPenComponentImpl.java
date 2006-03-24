@@ -2,7 +2,7 @@ package regress.ca.sqlpower.architect.swingui;
 
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
-import ca.sqlpower.architect.swingui.SelectionListener;
+import ca.sqlpower.architect.swingui.event.SelectionListener;
 
 public class PlayPenComponentImpl extends PlayPenComponent {
 

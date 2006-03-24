@@ -1,7 +1,9 @@
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui.event;
 
 import java.awt.Point;
 import java.util.EventObject;
+
+import ca.sqlpower.architect.swingui.PlayPenComponent;
 
 public class PlayPenComponentEvent extends EventObject {
 	

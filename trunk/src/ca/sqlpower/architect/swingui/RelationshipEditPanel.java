@@ -94,7 +94,7 @@ public class RelationshipEditPanel extends JPanel
 	}
 
 
-	protected void setRelationship(SQLRelationship r) {
+	public void setRelationship(SQLRelationship r) {
 		this.relationship = r;
 		relationshipName.setText(r.getName());
 		pkTableName.setText(relationship.getPkTable().getName());
