@@ -104,9 +104,9 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 							tp.getModel().removeColumn(sc);
 						} catch (LockedColumnException ex) {
 							int decision = JOptionPane.showConfirmDialog(pp,
-									"Could not delete the column " + sc.getName()  
-									+ " because it is part of a relationship key.  Continue"
-									+ " deleting of other selected columns?",
+									"Could not delete the column " + sc.getName() + " because it is part of\n" +
+									"the relationship \""+ex.getLockingRelationship()+"\".\n\n" +
+									"Continue deleting remaining selected columns?",
 									"Column is Locked",
 									JOptionPane.YES_NO_OPTION);
 							if (decision == JOptionPane.NO_OPTION) {

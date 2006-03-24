@@ -171,14 +171,21 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		return getMappingByFkCol(col) != null;
 	}
 
-	public List<ColumnMapping> getMapping() {
-		return children;
+	
+	/**
+	 * Convenience method that casts children to List&lt;ColumnMapping&gt;.
+	 * 
+	 * <p>XXX: should be removed when SQLObject API gets generics 
+	 */
+	public List<ColumnMapping> getMappings() {
+		populate(); // doesn't do anything yet, but better safe than sorry
+		return Collections.unmodifiableList(children);
 	}
 	
 	public String printKeyColumns(int keyType) {
 		StringBuffer s = new StringBuffer();
 		int i = 0;
-		for ( ColumnMapping cm : (List<ColumnMapping>)children ) {
+		for (ColumnMapping cm : (List<ColumnMapping>) children) {
 			if ( i++ > 0 )
 				s.append(",");
 			if ( keyType == PKCOLUMN )
@@ -324,10 +331,10 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 			if (containsPkColumn(pkcol)) {
 				ColumnMapping m = getMappingByPkCol(pkcol);
 				List fkTies = fkTable.keysOfColumn(m.getFkColumn());
+				removeChild(m);
 				if (fkTies == null || fkTies.size() <= 1) {
 					fkTable.removeColumn(m.getFkColumn());
 				}
-				removeChild(m);
 			}
 		}
 	}
@@ -379,7 +386,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	/**
 	 * This class is not a lazy-loading class.  This call does nothing.
 	 */
-	public void populate() throws ArchitectException {
+	public void populate() {
 		logger.debug("SQLRelationship: populate is a no-op");
 	}
 

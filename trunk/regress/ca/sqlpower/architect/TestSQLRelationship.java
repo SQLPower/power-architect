@@ -7,7 +7,6 @@ import java.sql.Types;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
@@ -68,9 +67,6 @@ public class TestSQLRelationship extends SQLTestCase {
 		return rel1;
 	}
 	
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLRelationship.setPhysicalName(String)'
-	 */
 	public void testSetPhysicalName() {
 		CountingSQLObjectListener l = new CountingSQLObjectListener();
 		rel1.addSQLObjectListener(l);
@@ -110,9 +106,6 @@ public class TestSQLRelationship extends SQLTestCase {
 		assertEquals(0, l.getStructureChangedCount());
 	}
 
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLRelationship.setParent(SQLObject)'
-	 */
 	public void testSetInvalidParent() throws ArchitectException {
 		assertEquals(rel2.getPkTable(), parentTable);
 		assertEquals(rel2.getFkTable(), childTable2);
@@ -127,9 +120,6 @@ public class TestSQLRelationship extends SQLTestCase {
 		assertEquals(rel2.getFkTable(), childTable2);
 	}
 
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLRelationship.populate()'
-	 */
 	public void testReadFromDB() throws Exception {
 		Connection con = db.getConnection();
 		Statement stmt = null;
@@ -197,23 +187,10 @@ public class TestSQLRelationship extends SQLTestCase {
 		assertEquals(SQLRelationship.ONE, rel.getPkCardinality());
 	}
 
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLRelationship.allowsChildren()'
-	 */
 	public void testAllowsChildren() {
 		assertTrue(rel1.allowsChildren());
 	}
 
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLRelationship.removeDependencies()'
-	 */
-	public void testRemoveDependencies() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLRelationship.SQLRelationship()'
-	 */
 	public void testSQLRelationship() throws ArchitectException {
 		SQLRelationship rel = new SQLRelationship();
 		assertNotNull(rel.getChildren());
@@ -240,256 +217,11 @@ public class TestSQLRelationship extends SQLTestCase {
 		assertNull(m);
 	}
 
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLRelationship.containsPkColumn(SQLColumn)'
-	 */
-	public void testContainsPkColumn() {
-
+	/** This was a real regression */
+	public void testDeletePkColRemovesFkCol() throws ArchitectException {
+		SQLColumn pkcol = parentTable.getColumnByName("pkcol_1");
+		assertNotNull("Child col should exist to start", childTable1.getColumnByName("child_pkcol_1"));
+		parentTable.removeColumn(pkcol);
+		assertNull("Child col should have been removed", childTable1.getColumnByName("child_pkcol_1"));
 	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLRelationship.getMappingByFkCol(SQLColumn)'
-	 */
-	public void testGetMappingByFkCol() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLRelationship.containsFkColumn(SQLColumn)'
-	 */
-	public void testContainsFkColumn() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLRelationship.addMapping(SQLColumn, SQLColumn)'
-	 */
-	public void testAddMapping() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLRelationship.toString()'
-	 */
-	public void testToString() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLRelationship.getUpdateRule()'
-	 */
-	public void testGetUpdateRule() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLRelationship.setUpdateRule(int)'
-	 */
-	public void testSetUpdateRule() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLRelationship.getDeleteRule()'
-	 */
-	public void testGetDeleteRule() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLRelationship.setDeleteRule(int)'
-	 */
-	public void testSetDeleteRule() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLRelationship.getDeferrability()'
-	 */
-	public void testGetDeferrability() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLRelationship.setDeferrability(int)'
-	 */
-	public void testSetDeferrability() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLRelationship.setName(String)'
-	 */
-	public void testSetName() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLRelationship.getPkCardinality()'
-	 */
-	public void testGetPkCardinality() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLRelationship.setPkCardinality(int)'
-	 */
-	public void testSetPkCardinality() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLRelationship.getFkCardinality()'
-	 */
-	public void testGetFkCardinality() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLRelationship.setFkCardinality(int)'
-	 */
-	public void testSetFkCardinality() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLRelationship.isIdentifying()'
-	 */
-	public void testIsIdentifying() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLRelationship.setIdentifying(boolean)'
-	 */
-	public void testSetIdentifying() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLRelationship.getPkTable()'
-	 */
-	public void testGetPkTable() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLRelationship.setPkTable(SQLTable)'
-	 */
-	public void testSetPkTable() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLRelationship.getFkTable()'
-	 */
-	public void testGetFkTable() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLRelationship.setFkTable(SQLTable)'
-	 */
-	public void testSetFkTable() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLObject.setPopulated(boolean)'
-	 */
-	public void testSetPopulated() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLObject.getChildren()'
-	 */
-	public void testGetChildren() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLObject.setChildren(List)'
-	 */
-	public void testSetChildren() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLObject.getChild(int)'
-	 */
-	public void testGetChild() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLObject.getChildCount()'
-	 */
-	public void testGetChildCount() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLObject.addChild(int, SQLObject)'
-	 */
-	public void testAddChildIntSQLObject() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLObject.addChild(SQLObject)'
-	 */
-	public void testAddChildSQLObject() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLObject.removeChild(int)'
-	 */
-	public void testRemoveChildInt() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLObject.removeChild(SQLObject)'
-	 */
-	public void testRemoveChildSQLObject() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLObject.getSQLObjectListeners()'
-	 */
-	public void testGetSQLObjectListeners() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLObject.addSQLObjectListener(SQLObjectListener)'
-	 */
-	public void testAddSQLObjectListener() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLObject.removeSQLObjectListener(SQLObjectListener)'
-	 */
-	public void testRemoveSQLObjectListener() {
-
-	}
-
-	/*
-	 * Test method for 'java.lang.Object.hashCode()'
-	 */
-	public void testHashCode() {
-
-	}
-
-	/*
-	 * Test method for 'java.lang.Object.equals(Object)'
-	 */
-	public void testEquals() {
-
-	}
-
 }
