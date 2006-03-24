@@ -94,6 +94,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 		propertiesToIgnore.add("childCount");
 		propertiesToIgnore.add("undoEventListeners");
 		propertiesToIgnore.add("connection");
+		propertiesToIgnore.add("typeMap");
 				
 		if(so instanceof SQLDatabase)
 		{
@@ -175,6 +176,12 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 
 	
 	
+	/**
+	 * @throws IllegalArgumentException
+	 * @throws IllegalAccessException
+	 * @throws InvocationTargetException
+	 * @throws NoSuchMethodException
+	 */
 	public void testAllSettersAreUndoable() 
 	throws IllegalArgumentException, IllegalAccessException, 
 	InvocationTargetException, NoSuchMethodException {
@@ -191,6 +198,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 		propertiesToIgnore.add("childCount");
 		propertiesToIgnore.add("undoEventListeners");
 		propertiesToIgnore.add("connection");
+		propertiesToIgnore.add("typeMap");
 
 		if(so instanceof SQLDatabase)
 		{
