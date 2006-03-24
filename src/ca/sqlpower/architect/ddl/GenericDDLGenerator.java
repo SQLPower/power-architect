@@ -205,8 +205,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		println("-- Would Create Database "+db.getName()+" here. --");
 	}
 
-	public void dropRelationship(SQLRelationship r)
-	{
+	public void dropRelationship(SQLRelationship r) {
 		
 		print("\n ALTER TABLE ");
 		
@@ -214,11 +213,10 @@ public class GenericDDLGenerator implements DDLGenerator {
 		print(" DROP CONSTRAINT ");
 		print(r.getName());
 		endStatement(DDLStatement.StatementType.DROP, r);
-		
 	}
 	
-	public void addRelationship(SQLRelationship r) throws ArchitectDiffException
-	{
+	public void addRelationship(SQLRelationship r)
+			throws ArchitectDiffException {
 		
 		print("\n ALTER TABLE ");
 		print( toQualifiedName(r.getFkTable()) );
@@ -227,45 +225,35 @@ public class GenericDDLGenerator implements DDLGenerator {
 		print(" FOREIGN KEY ( ");
 		Map<String, SQLColumn> colNameMap = new HashMap<String, SQLColumn> (); 
 		boolean firstColumn = true;
-		for (ColumnMapping cm :r.getMapping())
-		{
+		for (ColumnMapping cm : r.getMappings()) {
 			SQLColumn c = cm.getFkColumn();
 			// make sure this is unique
-			if (colNameMap.get(c.getName()) == null)
-			{
-				if(firstColumn)
-				{
+			if (colNameMap.get(c.getName()) == null) {
+				if (firstColumn) {
 					firstColumn = false;
-					print(getPhysicalName(colNameMap,c));
+					print(getPhysicalName(colNameMap, c));
+				} else {
+					print(", " + getPhysicalName(colNameMap, c));
 				}
-				else
-				{
-					print(", "+getPhysicalName(colNameMap,c));
-				}
-				colNameMap.put(c.getName(),c);
+				colNameMap.put(c.getName(), c);
 			}
 		}
 		print(" ) REFERENCES ");
 		print( toQualifiedName(r.getPkTable()) );
 		print(" ( ");
-		colNameMap = new HashMap<String, SQLColumn> ();
+		colNameMap = new HashMap<String, SQLColumn>();
 		firstColumn = true;
-		for (ColumnMapping cm :r.getMapping())
-		{
+		for (ColumnMapping cm : r.getMappings()) {
 			SQLColumn c = cm.getPkColumn();
 			// make sure this is unique
-			if (colNameMap.get(c.getName()) == null)
-			{
-				if(firstColumn)
-				{
+			if (colNameMap.get(c.getName()) == null) {
+				if (firstColumn) {
 					firstColumn = false;
-					print(getPhysicalName(colNameMap,c));
+					print(getPhysicalName(colNameMap, c));
+				} else {
+					print(", " + getPhysicalName(colNameMap, c));
 				}
-				else
-				{
-					print(", "+getPhysicalName(colNameMap,c));
-				}
-				colNameMap.put(c.getName(),c);
+				colNameMap.put(c.getName(), c);
 			}
 		}
 
