@@ -177,25 +177,32 @@ public class TestSQLTable extends SQLTestCase {
 	}
 
 	public void testAddColumn() throws ArchitectException {
-		SQLTable table1;
-		SQLColumn col1;
-		SQLColumn col2;
-		SQLColumn newColumn = db.getTableByName("REGRESSION_TEST2").getColumn(0);
-		String newName = "This is a new name changed for testAddColumn";
-		table1 = db.getTableByName("REGRESSION_TEST1");
-		col1 = table1.getColumnByName("t1_c2");
-		table1.addColumn(2, col1);
-		col2 = table1.getColumn(2);
+		SQLTable table1 = db.getTableByName("REGRESSION_TEST1");
+		SQLColumn newColumn = new SQLColumn(table1, "my new column", Types.INTEGER, 10, 0);
+		table1.addColumn(2, newColumn);
+		SQLColumn addedCol = table1.getColumn(2);
+		assertSame("Column at index 2 isn't same object as we added", newColumn, addedCol);
+	}
 
-		if (col2 != null)
-			col2.setName(newName);
-		assertFalse("Multiple columns where modified",
-				newName.equals(table1.getColumn(1).getName()));
-
-		table1.addColumn(1, newColumn);
-		assertEquals("Column inserted into wrong position or did not insert",
-				newColumn, table1.getColumn(1));
-
+	public void testAddColumnReference() throws ArchitectException {
+		SQLTable table = db.getTableByName("REGRESSION_TEST1");
+		SQLColumn col = table.getColumn(0);
+		assertEquals("Existing column had refcount != 1", 1, col.getReferenceCount());
+		table.addColumn(col);
+		assertEquals("refcount didn't increase", 2, col.getReferenceCount());
+	}
+	
+	public void tesRemoveColumnByZeroRefs() throws ArchitectException {
+		SQLTable table = db.getTableByName("REGRESSION_TEST1");
+		SQLColumn col = table.getColumn(0);
+		table.addColumn(col);
+		table.addColumn(col);
+		col.removeReference();
+		assertTrue(table.getColumns().contains(col));
+		col.removeReference();
+		assertTrue(table.getColumns().contains(col));
+		col.removeReference();
+		assertFalse(table.getColumns().contains(col));
 	}
 
 	/** this tests for a real bug.. the column was showing up one index above the end of the pk  */

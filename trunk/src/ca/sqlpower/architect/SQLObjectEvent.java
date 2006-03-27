@@ -9,8 +9,17 @@ public class SQLObjectEvent extends EventObject implements java.io.Serializable 
 	protected String propertyName;
 	protected Object oldValue;
 	protected Object newValue;
+	private boolean secondary;
 
 
+
+	public boolean isSecondary() {
+		return secondary;
+	}
+
+	public void setSecondary(boolean secondary) {
+		this.secondary = secondary;
+	}
 
 	/**
 	 * Use this constructor for DBChildrenInserted and
@@ -23,11 +32,12 @@ public class SQLObjectEvent extends EventObject implements java.io.Serializable 
 	 * @param children The actual SQLObject instances that were added
 	 * or removed to/from source.
 	 */
-	public SQLObjectEvent(SQLObject source, int[] changedIndices, SQLObject[] children) {
+	public SQLObjectEvent(SQLObject source, int[] changedIndices, SQLObject[] children,boolean isSecondary) {
 		super(source);
 		this.changedIndices = changedIndices;
 		this.children = children;
 		this.propertyName = "children";
+		this.secondary = isSecondary;
 	}
 	
 	/**
@@ -37,13 +47,14 @@ public class SQLObjectEvent extends EventObject implements java.io.Serializable 
 	 * @param source The SQLObject that changed
 	 * @param propertyName The name of the property on source that changed.
 	 */
-	public SQLObjectEvent(SQLObject source, String propertyName, Object oldValue, Object newValue) {
+	public SQLObjectEvent(SQLObject source, String propertyName, Object oldValue, Object newValue,boolean isSecondary) {
 		super(source);
 		this.propertyName = propertyName;
 		this.changedIndices = null;
 		this.children = null;
 		this.oldValue = oldValue;
 		this.newValue= newValue;
+		this.secondary = isSecondary;
 		
 	}
 
@@ -54,11 +65,12 @@ public class SQLObjectEvent extends EventObject implements java.io.Serializable 
 	 * @param source The SQLObject that changed
 	 * @param propertyName The name of the property on source that changed.
 	 */
-	public SQLObjectEvent(SQLObject source, String propertyName) {
+	public SQLObjectEvent(SQLObject source, String propertyName,boolean isSecondary) {
 		super(source);
 		this.propertyName = propertyName;
 		this.changedIndices = null;
 		this.children = null;
+		this.secondary = isSecondary;
 	}
 	
 	public SQLObject getSQLSource() {

@@ -95,6 +95,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 		propertiesToIgnore.add("undoEventListeners");
 		propertiesToIgnore.add("connection");
 		propertiesToIgnore.add("typeMap");
+		propertiesToIgnore.add("secondaryChangeMode");
 				
 		if(so instanceof SQLDatabase)
 		{
@@ -199,6 +200,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 		propertiesToIgnore.add("undoEventListeners");
 		propertiesToIgnore.add("connection");
 		propertiesToIgnore.add("typeMap");
+		propertiesToIgnore.add("secondaryChangeMode");
 
 		if(so instanceof SQLDatabase)
 		{

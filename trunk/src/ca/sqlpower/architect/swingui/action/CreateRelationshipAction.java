@@ -17,6 +17,8 @@ import ca.sqlpower.architect.swingui.SwingUserSettings;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
+import ca.sqlpower.architect.undo.UndoCompoundEvent;
+import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 
 import org.apache.log4j.Logger;
 
@@ -67,7 +69,7 @@ public class CreateRelationshipAction extends AbstractAction
 
 	static public void doCreateRelationship(SQLTable pkTable,SQLTable fkTable,PlayPen pp, boolean identifying) {
 		try {
-			
+			pp.fireUndoCompoundEvent(new UndoCompoundEvent(pkTable,EventTypes.RELATIONSHIP_START,"Starting the creation of a relationship"));
 			SQLRelationship model = new SQLRelationship();
 			// XXX: need to ensure uniqueness of setName(), but 
 			// to_identifier should take care of this...			
@@ -75,9 +77,13 @@ public class CreateRelationshipAction extends AbstractAction
 			model.setIdentifying(identifying);
 			model.setPkTable(pkTable);
 			model.setFkTable(fkTable);
-
+			
+			fkTable.setSecondaryChangeMode(true);
+			
 			pkTable.addExportedKey(model);
 			fkTable.addImportedKey(model);
+			
+			boolean askAboutHijackTypeMismatch = false;
 			
 			// iterate over a copy of pktable's column list to avoid comodification
 			// when creating a self-referencing table
@@ -87,61 +93,67 @@ public class CreateRelationshipAction extends AbstractAction
 			while (pkCols.hasNext()) {
 				SQLColumn pkCol = (SQLColumn) pkCols.next();
 				if (pkCol.getPrimaryKeySeq() == null) break;
-				SQLColumn fkCol = (SQLColumn) pkCol.clone();
-				// check to see if the FK table already has this column 
+				
+				SQLColumn fkCol;
 				SQLColumn match = fkTable.getColumnByName(pkCol.getName());
 				if (match != null) {
-					// there is already a column of this name
+					// does the matching column have a compatible data type?
 					if (match.getType() == pkCol.getType() &&
 					    match.getPrecision() == pkCol.getPrecision() &&
 						match.getScale() == pkCol.getScale()) {
 						// column is an exact match, so we don't have to recreate it
 						fkCol = match; 
-						if (fkCol.getPrimaryKeySeq() == null && identifying) {
-							fkCol.setPrimaryKeySeq(new Integer(fkTable.getPkSize()));
-						}
-						fkCol.addReference(); // reference counting, stops column from being removed if relationship is removed					
 					} else {
-						// ask the user if they would like to rename the column 
-						// or cancel the creation of the relationship						
-						int decision = JOptionPane.showConfirmDialog(pp,
-								 "The primary key column " + pkCol.getName() + " already exists\n" +
-								 " in the child table, but has an incompatible type.  Continue using new name\n" +
-								 pkCol.getName() + "_1 ?",
-								 "Column Name Conflict",
-								 JOptionPane.YES_NO_OPTION);
-						if (decision == JOptionPane.YES_OPTION) {
-							// XXX: need to ensure uniqueness of setName(), 
-							// but to_identifier in DDLGenerator should take 
-							// care of this
-							fkCol.setName(generateUniqueColumnName(pkCol,fkTable)); 
-						} else {
-							model = null;
-							return; // abort the creation of this relationship
-						}										
-						fkTable.addColumn(fkCol);
+						fkCol = (SQLColumn) pkCol.clone();
+						askAboutHijackTypeMismatch = true;
 					}
 				} else {
 					// no match, so we need to import this column from PK table
+					fkCol = (SQLColumn) pkCol.clone();
+				}
+				
+				try {
+					fkCol.setSecondaryChangeMode(true);
+					
+					if (askAboutHijackTypeMismatch) {
+						String newColName = generateUniqueColumnName(pkCol,fkTable);
+						int decision = JOptionPane.showConfirmDialog(pp,
+								 "The primary key column " + pkCol.getName() + " already exists\n" +
+								 " in the child table, but has an incompatible type.  Continue using new name\n" +
+								 newColName + "?",
+								 "Column Name Conflict",
+								 JOptionPane.YES_NO_OPTION);
+						if (decision == JOptionPane.YES_OPTION) {
+							fkCol.setName(newColName); 
+						} else {
+							model = null;
+							return;
+						}
+					}
+					
 					fkTable.addColumn(fkCol);
+					
+					if (identifying && fkCol.getPrimaryKeySeq() == null) {
+						fkCol.setPrimaryKeySeq(new Integer(fkTable.getPkSize()));
+					}
+					
+					model.addMapping(pkCol, fkCol);
+				} finally {
+					fkCol.setSecondaryChangeMode(false);
 				}
-				
-				if (identifying && fkCol.getPrimaryKeySeq() == null) {
-					// add column to primary key (but only if it's not already there!!!
-					fkCol.setPrimaryKeySeq(new Integer(fkTable.getPkSize()));
-				}
-				
-				model.addMapping(pkCol, fkCol);
-				
 				
 			}
 			
 			Relationship r = new Relationship(pp, model);
 			pp.addRelationship(r);
-			r.repaint();  // XXX: shouldn't be necessary, but it is.
+			r.revalidate();
 		} catch (ArchitectException ex) {
+			
 			logger.error("Couldn't create relationship", ex);
 			JOptionPane.showMessageDialog(pp, "Couldn't create relationship: "+ex.getMessage());
+		} finally {
+			fkTable.setSecondaryChangeMode(false);
+			pp.fireUndoCompoundEvent(new UndoCompoundEvent(pkTable,EventTypes.RELATIONSHIP_END,"Ending the creation of a relationship"));
 		}
 	}
 	

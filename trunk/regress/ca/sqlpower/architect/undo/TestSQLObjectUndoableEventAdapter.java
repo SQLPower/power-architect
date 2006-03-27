@@ -12,7 +12,6 @@ import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.undo.SQLObjectUndoableEventAdapter;
 import ca.sqlpower.architect.undo.UndoManager;
-import ca.sqlpower.architect.undo.SQLObjectUndoableEventAdapter.UndoState;
 
 public class TestSQLObjectUndoableEventAdapter extends TestCase {
 	SQLObjectUndoableEventAdapter eAdapter;

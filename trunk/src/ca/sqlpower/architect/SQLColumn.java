@@ -589,12 +589,14 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	}
 	
 	public void addReference() {
-		logger.debug("(inc) old reference count: " + referenceCount);
 		referenceCount++;
 		logger.debug("incremented reference count to: " + referenceCount);
 	}
+	
 	public void removeReference() {
-		logger.debug("(dec) old reference count: " + referenceCount);
+		if (referenceCount == 0) {
+			throw new IllegalStateException("Reference count is already 0; can't remove any references!");
+		}
 		referenceCount--;
 		logger.debug("decremented reference count to: " + referenceCount);
 		if (referenceCount == 0) {

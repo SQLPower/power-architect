@@ -44,7 +44,6 @@ public class ArchitectBusinessTestSuite extends TestCase {
 		suite.addTestSuite(TestDDLUtils.class);
 		suite.addTestSuite(TestArchitectDataSource.class);
 		suite.addTestSuite(TestSQLObjectChildrenInsert.class);
-		suite.addTestSuite(TestUndoManager.class);
 		suite.addTestSuite(CompareSQLTest.class);
 		suite.addTestSuite(SQLComparatorTest.class);
 		suite.addTestSuite(SQLRelationshipComparatorTest.class);

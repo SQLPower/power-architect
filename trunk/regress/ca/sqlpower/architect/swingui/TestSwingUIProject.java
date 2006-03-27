@@ -293,6 +293,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		propertiesToIgnore.add("childCount");
 		propertiesToIgnore.add("connection");
 		propertiesToIgnore.add("populated");
+		propertiesToIgnore.add("secondaryChangeMode");
 		propertiesToIgnore.add("dataSource");  // we set this already!
 		propertiesToIgnore.add("ignoreReset");  // only used (and set) by playpen code
 		propertiesToIgnore.add("progressMonitor");
@@ -356,6 +357,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		propertiesToIgnore.add("parentDatabase");
 		propertiesToIgnore.add("class");
 		propertiesToIgnore.add("childCount");
+		propertiesToIgnore.add("secondaryChangeMode");
 		propertiesToIgnore.add("populated");
 
 		Map<String,Object> oldDescription =
@@ -406,6 +408,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		propertiesToIgnore.add("class");
 		propertiesToIgnore.add("childCount");
 		propertiesToIgnore.add("populated");
+		propertiesToIgnore.add("secondaryChangeMode");
 
 		Map<String,Object> oldDescription =
 			setAllInterestingProperties(target, propertiesToIgnore);
@@ -456,6 +459,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		propertiesToIgnore.add("childCount");
 		propertiesToIgnore.add("populated");
 		propertiesToIgnore.add("columnsFolder");
+		propertiesToIgnore.add("secondaryChangeMode");
 
 		Map<String,Object> oldDescription =
 			setAllInterestingProperties(target, propertiesToIgnore);
@@ -503,6 +507,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		propertiesToIgnore.add("childCount");
 		propertiesToIgnore.add("populated");
 		propertiesToIgnore.add("undoEventListeners");
+		propertiesToIgnore.add("secondaryChangeMode");
 
 		Map<String,Object> oldDescription =
 			setAllInterestingProperties(target, propertiesToIgnore);

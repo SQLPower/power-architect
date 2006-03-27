@@ -210,5 +210,7 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 	public SQLObjectUndoableEventAdapter getEventAdapter() {
 		return eventAdapter;
 	}
+	
+	
 
 }
