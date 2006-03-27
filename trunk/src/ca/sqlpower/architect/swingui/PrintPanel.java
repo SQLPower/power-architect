@@ -7,6 +7,7 @@ import java.beans.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.print.*;
+
 import javax.print.*;
 import javax.print.attribute.*;
 import org.apache.log4j.Logger;
@@ -66,7 +67,8 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 		printerBox.setSelectedItem(getPreferredPrinter());				
 
 		formPanel.add(new JLabel("Page Format"));
-		formPanel.add(pageFormatLabel = new JLabel(pageFormat.toString()));
+		String pf = paperToPrintable(pageFormat);
+		formPanel.add(pageFormatLabel = new JLabel(pf.toString()));
 		
 		formPanel.add(new JLabel("Change Page Format"));
 		formPanel.add(pageFormatButton = new JButton("Change Page Format"));
@@ -74,13 +76,33 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 				public void actionPerformed(ActionEvent e) {
 					setPageFormat(job.pageDialog(jobAttributes));
 				}
-			});
-
+		});
 		formPanel.add(zoomLabel = new JLabel("Scaling = 100%"));
 		formPanel.add(zoomSlider = new JSlider(JSlider.HORIZONTAL, 1, 300, 100));
 		setZoom(1.0);
 		zoomSlider.addChangeListener(this);
 		add(formPanel);
+	}
+
+	/**
+	 * Convert a PageFormat to a nice String; for some reason the Swing
+	 * Page Format dialog can use names but PageFormat cannot.
+	 * XXX find out how to get these from the dialog.
+	 */
+	public static String paperToPrintable(PageFormat pageFormat) {
+		StringBuffer pf = new StringBuffer();
+		Paper paper = pageFormat.getPaper();
+		pf.append(String.format("%.1f", paper.getWidth()/72));
+		pf.append('x');
+		pf.append(String.format("%.1f", paper.getHeight()/72));
+		pf.append('-');
+		switch(pageFormat.getOrientation()){
+		case PageFormat.PORTRAIT: pf.append("(portrait)"); break;
+		case PageFormat.LANDSCAPE: pf.append("(landscape)"); break;
+		case PageFormat.REVERSE_LANDSCAPE: pf.append("(rev. landscape)"); break;
+		default: pf.append("(?)");
+		}
+		return pf.toString();
 	}
 
 	/**
@@ -108,7 +130,7 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 		pageFormat = pf;
 		if (pf != oldPF) {
 			validateLayout();
-			pageFormatLabel.setText(pageFormat.toString());
+			pageFormatLabel.setText(paperToPrintable(pageFormat));
 			firePropertyChange("pageFormat", oldPF, pageFormat);
 		}
 	}
