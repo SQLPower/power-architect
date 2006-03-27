@@ -23,9 +23,13 @@ import com.jgoodies.forms.factories.ButtonBarFactory;
  * Test the ASUtils.createArchitectPanelDialog() method.
  */
 public class TestArchitectPanelBuilder {
-	static class Foo extends JPanel implements ArchitectPanel {
-		Foo() {
-			add(new JLabel("This is just a test"));
+	
+	/** For testing the ArchitectPanelBuilder with the default Actions
+	 */
+	static class TestPanel extends JPanel implements ArchitectPanel {
+		TestPanel() {
+			setLayout(new BorderLayout());
+			add(new JLabel("This is just a test"), BorderLayout.CENTER);
 		}
 
 		public boolean applyChanges() {
@@ -43,13 +47,13 @@ public class TestArchitectPanelBuilder {
 	};
 
 	public static void main(String[] args) {
-		Foo architectPanel = new Foo();
+		
 		JFrame frame = new JFrame("Test Main Program");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
-		final JDialog dlg = 
+		final JDialog dlgWithDefaultActions = 
 			ArchitectPanelBuilder.createArchitectPanelDialog(
-					architectPanel, frame, "Test", "OK Dudes");
+					new TestPanel(), frame, "Test", "OK Dudes");
 		
 		Action okAction = new AbstractAction() {
 			public void actionPerformed(ActionEvent e) {
@@ -65,25 +69,26 @@ public class TestArchitectPanelBuilder {
 		
 		final JDialog dlg2 = 
 			ArchitectPanelBuilder.createArchitectPanelDialog(
-					architectPanel, frame,
-					"Test with actions pass in",
-					"OK Dudes2",
+					new TestPanel(), frame,
+					"Test with actions passed in",
+					"OK Dudes",
 					okAction,
 					cancelAction);
 		
-		frame.add(new JLabel("This is the test program's main window"));
-		
-		
+		frame.add(
+			new JLabel("This is the test program's main window",
+			JLabel.CENTER),
+			BorderLayout.NORTH);	
 		
 		JButton test1Button = new JButton();
-		test1Button.setText("Test1");
+		test1Button.setText("Test Default Actions");
 		
 		JButton test2Button = new JButton();
-		test2Button.setText("Test2");
+		test2Button.setText("Test Caller-Provided Actions");
 		
 		test1Button.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				dlg.setVisible(true);
+				dlgWithDefaultActions.setVisible(true);
 			}
 		});
 		
@@ -102,12 +107,9 @@ public class TestArchitectPanelBuilder {
 				BorderLayout.SOUTH);
 		cp.setBorder(Borders.DIALOG_BORDER);
 		
-		frame.add(cp);
-		
+		frame.add(cp, BorderLayout.SOUTH);
 
-		
-		
-		frame.setSize(250, 250);
+		frame.pack();
 		frame.setVisible(true);
 	}
 }
