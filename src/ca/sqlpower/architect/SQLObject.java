@@ -23,6 +23,15 @@ public abstract class SQLObject implements java.io.Serializable {
 	protected List children;
 
 	/**
+	 * When this mode is true, the fireXXX methods will fire events in
+	 * a "secondary change" mode, which indicates that the changes are side
+	 * effects of another change.  These events should still cause UI repaints
+	 * and other non-permanent effects, but should not be part of an undo history
+	 * and should not cause the project to get marked "dirty."
+	 */
+	private boolean secondaryChangeMode = false;
+	
+	/**
 	 * This is the name of the object.  For tables, it returns the
 	 * table name; for catalogs, the catalog name, and so on.
 	 */
@@ -57,8 +66,7 @@ public abstract class SQLObject implements java.io.Serializable {
      * reason to override it at this time. </p>
 	 */
 	public final String getPhysicalName() {
-		if (physicalName != null)
-		{
+		if (physicalName != null) {
 			return physicalName;
 		}
 		return getName(); 
@@ -241,11 +249,16 @@ public abstract class SQLObject implements java.io.Serializable {
 	}
 
 	protected void fireDbChildrenInserted(int[] newIndices, List newChildren) {
-		logger.debug(getClass().getName()+": firing dbChildrenInserted event");
+		if (logger.isDebugEnabled()) {
+			logger.debug(getClass().getName()+" "+toString()+": " +
+					"firing dbChildrenInserted event " +
+					"(secondary = "+isSecondaryChangeMode()+")");
+		}
 		SQLObjectEvent e = new SQLObjectEvent
 			(this,
 			 newIndices,
-			 (SQLObject[]) newChildren.toArray(new SQLObject[newChildren.size()]));
+			 (SQLObject[]) newChildren.toArray(new SQLObject[newChildren.size()]),
+			 isSecondaryChangeMode());
 		Iterator it = getSQLObjectListeners().iterator();
 		int count = 0;
 		while (it.hasNext()) {
@@ -264,10 +277,16 @@ public abstract class SQLObject implements java.io.Serializable {
 	}
 
 	protected void fireDbChildrenRemoved(int[] oldIndices, List oldChildren) {
+		if (logger.isDebugEnabled()) {
+			logger.debug(getClass().getName()+" "+toString()+": " +
+					"firing dbChildrenRemoved event " +
+					"(secondary = "+isSecondaryChangeMode()+")");
+		}
 		SQLObjectEvent e = new SQLObjectEvent
 			(this,
 			 oldIndices,
-			 (SQLObject[]) oldChildren.toArray(new SQLObject[oldChildren.size()]));
+			 (SQLObject[]) oldChildren.toArray(new SQLObject[oldChildren.size()]),
+			 isSecondaryChangeMode());
 		Iterator it = getSQLObjectListeners().iterator();
 		while (it.hasNext()) {
 			((SQLObjectListener) it.next()).dbChildrenRemoved(e);
@@ -283,7 +302,12 @@ public abstract class SQLObject implements java.io.Serializable {
 	}
 
 	protected void fireDbObjectChanged(String propertyName, Object oldValue, Object newValue) {
-		SQLObjectEvent e = new SQLObjectEvent(this, propertyName, oldValue,newValue);
+		SQLObjectEvent e = new SQLObjectEvent(
+				this,
+				propertyName,
+				oldValue,
+				newValue,
+				isSecondaryChangeMode());
 		boolean same = (oldValue == null ? oldValue == newValue : oldValue.equals(newValue));
 		if (same) {
 			logger.debug("Object changed event aborted, the old value '"+oldValue+"' of "
@@ -291,31 +315,43 @@ public abstract class SQLObject implements java.io.Serializable {
 			return;
 		}
 		if (logger.isDebugEnabled()) {
-			logger.debug("Sending dbObjectChanged event "+e+" to "
-						 +getSQLObjectListeners().size()+" listeners: "
-						 +getSQLObjectListeners());
+			logger.debug(getClass().getName()+" "+toString()+": " +
+					"firing dbObjectChanged event " +
+					"(secondary = "+isSecondaryChangeMode()+")");
 		}
 
+		int count = 0;
 		Iterator it = getSQLObjectListeners().iterator();
 		while (it.hasNext()) {
+			count++;
 			((SQLObjectListener) it.next()).dbObjectChanged(e);
 		}
-		
+
+		if (logger.isDebugEnabled()) logger.debug("Notified "+count+" listeners.");
 	}
 
 	protected void fireDbStructureChanged(String propertyName) {
-		SQLObjectEvent e = new SQLObjectEvent(this, propertyName);
+		if (logger.isDebugEnabled()) {
+			logger.debug(getClass().getName()+" "+toString()+": " +
+					"firing dbStructureChanged event " +
+					"(secondary = "+isSecondaryChangeMode()+")");
+		}
+		SQLObjectEvent e = new SQLObjectEvent(
+				this,
+				propertyName,
+				isSecondaryChangeMode());
+
+		int count = 0;
 		Iterator it = getSQLObjectListeners().iterator();
 		while (it.hasNext()) {
+			count++;
 			((SQLObjectListener) it.next()).dbStructureChanged(e);
 		}
 		
+		if (logger.isDebugEnabled()) logger.debug("Notified "+count+" listeners.");
 	}
 
-
-	
 	public abstract Class<? extends SQLObject> getChildType();
- 	
 	
 	/**
 	 * The list of SQLObject property change event listeners
@@ -340,40 +376,30 @@ public abstract class SQLObject implements java.io.Serializable {
 	
 	protected void fireUndoCompoundEvent(UndoCompoundEvent e) {
 		Iterator it = undoEventListeners.iterator();
-		
-		
-		if (e.getType() == UndoCompoundEvent.EventTypes.DRAG_AND_DROP_START) {
+		if (e.getType().isStartEvent()) {
 			while (it.hasNext()) {
-				((UndoCompoundEventListener) it.next()).dragAndDropStart(e);
-			}
-		} else if (e.getType() == UndoCompoundEvent.EventTypes.DRAG_AND_DROP_END) {
-			while (it.hasNext()) {
-				((UndoCompoundEventListener) it.next()).dragAndDropEnd(e);
-			}
-		} else if (e.getType() == UndoCompoundEvent.EventTypes.MULTI_SELECT_START) {
-			while (it.hasNext()) {
-				((UndoCompoundEventListener) it.next()).multiSelectStart(e);
-			}
-		}else if (e.getType() == UndoCompoundEvent.EventTypes.MULTI_SELECT_END) {
-			while (it.hasNext()) {
-				((UndoCompoundEventListener) it.next()).multiSelectEnd(e);
-			}
-		}else if (e.getType() == UndoCompoundEvent.EventTypes.PROPERTY_CHANGE_GROUP_START) {
-			while (it.hasNext()) {
-				((UndoCompoundEventListener) it.next()).propertyGroupStart(e);
-			}
-		}else if (e.getType() == UndoCompoundEvent.EventTypes.PROPERTY_CHANGE_GROUP_END) {
-			while (it.hasNext()) {
-				((UndoCompoundEventListener) it.next()).propertyGroupEnd(e);
+				((UndoCompoundEventListener) it.next()).compoundEditStart(e);
 			}
 		} else {
-			throw new IllegalStateException("Unknown Undo event type "+e.getType());
-		}
+			while (it.hasNext()) {
+				((UndoCompoundEventListener) it.next()).compoundEditEnd(e);
+			}
+		} 
 		
 	}
 
 	public LinkedList<UndoCompoundEventListener> getUndoEventListeners() {
 		return undoEventListeners;
+	}
+
+
+	public boolean isSecondaryChangeMode() {
+		return secondaryChangeMode;
+	}
+
+
+	public void setSecondaryChangeMode(boolean secondaryChangeMode) {
+		this.secondaryChangeMode = secondaryChangeMode;
 	}
 
 }

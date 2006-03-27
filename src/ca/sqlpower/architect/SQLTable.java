@@ -440,15 +440,17 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	}
 
 	public void addColumn(SQLColumn col) throws ArchitectException {
-		addColumn(columnsFolder.children.size(), col);
+		addColumnImpl(columnsFolder.children.size(), col);
 	}
 
 	public void addColumn(int pos, SQLColumn col) throws ArchitectException {
-		
-		// Prevent the same column from being added to the same table twice
-		if (getColumnIndex(col) != -1)
-		{
-			col =(SQLColumn) col.clone();
+		addColumnImpl(pos, col);
+	}
+	
+	private void addColumnImpl(int pos, SQLColumn col) throws ArchitectException {
+		if (getColumnIndex(col) != -1) {
+			col.addReference();
+			return;
 		}
 		boolean addToPK = false;
 		int pkSize = getPkSize();
@@ -512,6 +514,12 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * to change a column's, index, use the {@link
 	 * #changeColumnIndex(int,int)} method because it does not throw
 	 * LockedColumnException.
+	 * 
+	 * <p>
+	 * FIXME: This should be implemented by decreasing the column's reference count.
+	 * (addColumn already does increase reference count when appropriate)
+	 * Then, everything that manipulates reference counts directly can just use regular
+	 * addColumn and removeColumn and magic will take care of the correct behaviour!
 	 * 
 	 * @throws LockedColumnException If the column is "owned" by a relationship, and cannot
 	 * be safely removed.
@@ -791,7 +799,11 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		}
 
 		public String toString() {
-			return name;
+			if (parent == null) {
+				return name+" folder (no parent)";
+			} else {
+				return name+" folder of "+parent.getName();
+			}
 		}
 
 		/**
@@ -806,6 +818,19 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		@Override
 		public Class<? extends SQLObject> getChildType() {
 			return SQLColumn.class;
+		}
+		
+		/**
+		 * Returns the table's secondary mode or false if there is no parent table
+		 * 
+		 */
+		@Override
+		public boolean isSecondaryChangeMode() {
+			if (parent != null) {
+				return parent.isSecondaryChangeMode();
+			} else {
+				return false;
+			}
 		}
 	}
 	

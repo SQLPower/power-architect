@@ -84,35 +84,17 @@ public class ArchitectUtilsTest extends TestCase {
 
 		UndoCompoundEventListener listener = new UndoCompoundEventListener(){
 
-			public void dragAndDropStart(UndoCompoundEvent e) {
+			public void compoundEditStart(UndoCompoundEvent e) {
 				// TODO Auto-generated method stub
 				
 			}
 
-			public void dragAndDropEnd(UndoCompoundEvent e) {
+			public void compoundEditEnd(UndoCompoundEvent e) {
 				// TODO Auto-generated method stub
 				
 			}
 
-			public void multiSelectStart(UndoCompoundEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-
-			public void multiSelectEnd(UndoCompoundEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-
-			public void propertyGroupStart(UndoCompoundEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-
-			public void propertyGroupEnd(UndoCompoundEvent e) {
-				// TODO Auto-generated method stub
-				
-			}};
+		};
 		ArchitectUtils.addUndoListenerToHierarchy(listener,sqlo);
 		ArchitectUtils.addUndoListenerToHierarchy(listener,sqlo);
 		assertEquals("There are the wrong number of listeners",1,sqlo.getUndoEventListeners().size());
@@ -136,35 +118,17 @@ public class ArchitectUtilsTest extends TestCase {
 
 		UndoCompoundEventListener listener = new UndoCompoundEventListener(){
 
-			public void dragAndDropStart(UndoCompoundEvent e) {
+			public void compoundEditStart(UndoCompoundEvent e) {
 				// TODO Auto-generated method stub
 				
 			}
 
-			public void dragAndDropEnd(UndoCompoundEvent e) {
+			public void compoundEditEnd(UndoCompoundEvent e) {
 				// TODO Auto-generated method stub
 				
 			}
 
-			public void multiSelectStart(UndoCompoundEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-
-			public void multiSelectEnd(UndoCompoundEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-
-			public void propertyGroupStart(UndoCompoundEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-
-			public void propertyGroupEnd(UndoCompoundEvent e) {
-				// TODO Auto-generated method stub
-				
-			}};
+		};
 		ArchitectUtils.addUndoListenerToHierarchy(listener,sqlo);
 		ArchitectUtils.addUndoListenerToHierarchy(listener,sqlo);
 		assertEquals("There are the wrong number of listeners",1,sqlo.getUndoEventListeners().size());

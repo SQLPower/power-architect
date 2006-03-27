@@ -71,35 +71,15 @@ public class TableEditPanel extends JPanel implements ArchitectPanel {
 	protected void fireUndoCompoundEvent(UndoCompoundEvent e) {
 		Iterator it = undoEventListeners.iterator();
 		
-		
-		if (e.getType() == UndoCompoundEvent.EventTypes.DRAG_AND_DROP_START) {
+		if (e.getType().isStartEvent()) {
 			while (it.hasNext()) {
-				((UndoCompoundEventListener) it.next()).dragAndDropStart(e);
-			}
-		} else if (e.getType() == UndoCompoundEvent.EventTypes.DRAG_AND_DROP_END) {
-			while (it.hasNext()) {
-				((UndoCompoundEventListener) it.next()).dragAndDropEnd(e);
-			}
-		} else if (e.getType() == UndoCompoundEvent.EventTypes.MULTI_SELECT_START) {
-			while (it.hasNext()) {
-				((UndoCompoundEventListener) it.next()).multiSelectStart(e);
-			}
-		}else if (e.getType() == UndoCompoundEvent.EventTypes.MULTI_SELECT_END) {
-			while (it.hasNext()) {
-				((UndoCompoundEventListener) it.next()).multiSelectEnd(e);
-			}
-		}else if (e.getType() == UndoCompoundEvent.EventTypes.PROPERTY_CHANGE_GROUP_START) {
-			while (it.hasNext()) {
-				((UndoCompoundEventListener) it.next()).propertyGroupStart(e);
-			}
-		}else if (e.getType() == UndoCompoundEvent.EventTypes.PROPERTY_CHANGE_GROUP_END) {
-			while (it.hasNext()) {
-				((UndoCompoundEventListener) it.next()).propertyGroupEnd(e);
+				((UndoCompoundEventListener) it.next()).compoundEditStart(e);
 			}
 		} else {
-			throw new IllegalStateException("Unknown Undo event type "+e.getType());
-		}
-		
+			while (it.hasNext()) {
+				((UndoCompoundEventListener) it.next()).compoundEditEnd(e);
+			}
+		} 
 	}
 
 	public JPanel getPanel() {

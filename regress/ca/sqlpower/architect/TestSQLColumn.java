@@ -266,9 +266,11 @@ public class TestSQLColumn extends SQLTestCase {
 		Map derivProps = BeanUtils.describe(derivCol);
 		
 		derivProps.remove("parentTable");
+		derivProps.remove("parent");
 		derivProps.remove("sourceColumn");
 		derivProps.remove("sourceDataTypeName");
 		origProps.remove("parentTable");
+		origProps.remove("parent");
 		origProps.remove("sourceColumn");
 		origProps.remove("sourceDataTypeName");
 		assertEquals("Derived instance properties differ from original",
