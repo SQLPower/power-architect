@@ -2,7 +2,6 @@ package ca.sqlpower.architect.undo;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import javax.swing.undo.CompoundEdit;
@@ -10,15 +9,12 @@ import javax.swing.undo.UndoableEdit;
 
 import org.apache.log4j.Logger;
 
-import com.sun.jdi.event.Event;
-
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentListener;
 
