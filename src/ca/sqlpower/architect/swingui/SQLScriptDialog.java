@@ -204,9 +204,10 @@ public class SQLScriptDialog extends JDialog {
 		pb = new PanelBuilder(sqlLayout, panel);			
 		pb.setDefaultDialogBorder();	
 		pb.add(new JLabel(header), cc.xy(2, 1));
-		
-				
-		pb.add(new JLabel("Your Target Database is "+ targetDataSource.getName() ), cc.xy(2, 3));
+						
+		if (targetDataSource != null) {
+			pb.add(new JLabel("Your Target Database is "+ targetDataSource.getName() ), cc.xy(2, 3));			
+		}
 		pb.add(sp, cc.xy(2, 5));
     		pb.add(barBuilder.getPanel(), cc.xy(2, 7, "c,c"));
 		pb.add(progressBar, cc.xy(2, 9));
