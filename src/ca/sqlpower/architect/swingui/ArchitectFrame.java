@@ -1,34 +1,7 @@
 package ca.sqlpower.architect.swingui;
 
-
-import ca.sqlpower.architect.layout.ArchitectLayoutInterface;
-import ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout;
-
-import ca.sqlpower.architect.swingui.action.AboutAction;
-import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
-import ca.sqlpower.architect.swingui.action.CompareDMAction;
-import ca.sqlpower.architect.swingui.action.CreateRelationshipAction;
-import ca.sqlpower.architect.swingui.action.CreateTableAction;
-import ca.sqlpower.architect.swingui.action.DeleteSelectedAction;
-import ca.sqlpower.architect.swingui.action.EditColumnAction;
-import ca.sqlpower.architect.swingui.action.EditRelationshipAction;
-import ca.sqlpower.architect.swingui.action.EditTableAction;
-import ca.sqlpower.architect.swingui.action.ExportDDLAction;
-import ca.sqlpower.architect.swingui.action.ExportPLTransAction;
-import ca.sqlpower.architect.swingui.action.InsertColumnAction;
-import ca.sqlpower.architect.swingui.action.PreferencesAction;
-import ca.sqlpower.architect.swingui.action.PrintAction;
-import ca.sqlpower.architect.swingui.action.ProjectSettingsAction;
-import ca.sqlpower.architect.swingui.action.QuickStartAction;
-import ca.sqlpower.architect.swingui.action.SearchReplaceAction;
-import ca.sqlpower.architect.swingui.action.ZoomAction;
-import ca.sqlpower.architect.undo.UndoManager;
-
-import org.apache.log4j.Logger;
-
 import java.awt.BorderLayout;
 import java.awt.Container;
-
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
@@ -65,6 +38,26 @@ import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.ConfigFile;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.UserSettings;
+import ca.sqlpower.architect.layout.ArchitectLayoutInterface;
+import ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout;
+import ca.sqlpower.architect.swingui.action.AboutAction;
+import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
+import ca.sqlpower.architect.swingui.action.CompareDMAction;
+import ca.sqlpower.architect.swingui.action.CreateRelationshipAction;
+import ca.sqlpower.architect.swingui.action.CreateTableAction;
+import ca.sqlpower.architect.swingui.action.DeleteSelectedAction;
+import ca.sqlpower.architect.swingui.action.EditColumnAction;
+import ca.sqlpower.architect.swingui.action.EditRelationshipAction;
+import ca.sqlpower.architect.swingui.action.EditTableAction;
+import ca.sqlpower.architect.swingui.action.ExportDDLAction;
+import ca.sqlpower.architect.swingui.action.ExportPLTransAction;
+import ca.sqlpower.architect.swingui.action.InsertColumnAction;
+import ca.sqlpower.architect.swingui.action.PreferencesAction;
+import ca.sqlpower.architect.swingui.action.PrintAction;
+import ca.sqlpower.architect.swingui.action.ProjectSettingsAction;
+import ca.sqlpower.architect.swingui.action.QuickStartAction;
+import ca.sqlpower.architect.swingui.action.SearchReplaceAction;
+import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.undo.UndoManager;
 
 public class ArchitectFrame extends JFrame {
