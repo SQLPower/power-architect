@@ -1,20 +1,35 @@
 package ca.sqlpower.architect.swingui;
 
-import java.util.*;
-import java.io.File;
-import java.io.StringWriter;
-import java.io.PrintWriter;
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dialog;
+import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Point;
-import java.awt.Dimension;
-import java.awt.BorderLayout;
 import java.awt.Window;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.List;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JWindow;
 import javax.swing.filechooser.FileFilter;
-import javax.swing.*;
 
 import org.apache.log4j.Logger;
 
