@@ -65,7 +65,7 @@ public class ArchitectPanelBuilder {
 		// XXX BUG for now this (<ESCAPE>) does NOT work
 		KeyStroke keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, Event.SHIFT_MASK);
 		// System.out.println("KEYSTROKE = " + keyStroke);
-		InputMap inputMap = d.getRootPane().getInputMap();
+		InputMap inputMap = d.getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 		inputMap.put(keyStroke, cancelAction);
 
 		JPanel cp = new JPanel(new BorderLayout());
