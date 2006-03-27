@@ -23,7 +23,31 @@ import com.jgoodies.forms.factories.ButtonBarFactory;
 
 public class ArchitectPanelBuilder {
 
-	public static JDialog createArchitectPanelDialog(final ArchitectPanel arch,
+	public static final String OK_BUTTON_LABEL = "OK";
+	public static final String CANCEL_BUTTON_LABEL = "Cancel";
+
+	/**
+	 * Build a JDialog around an object that implements ArchitectPanel, to
+	 * provide consistent behaviours such as Cancel button, <ESC> to close, and
+	 * so on.
+	 * 
+	 * @param arch
+	 *            The ArchitectPanel implementation
+	 * @param dialogParent
+	 *            A Window class to be the parent, or null
+	 * @param dialogTitle
+	 *            The display title.
+	 * @param actionButtonTitle 
+	 *            The title for the OK button
+	 * @return The build JDialog
+	 * @param okAction Action to be invoked when the OK/action button is
+	 * 	pressed; does NOT need to dismiss the dialog (we do that).
+	 * @param cancelAction Action to be invoked when the cancel button is
+	 * 	pressed; does NOT need to dismiss the dialog (we do that).
+	 * @return
+	 */
+	public static JDialog createArchitectPanelDialog(
+			final ArchitectPanel arch,
 			final Window dialogParent, final String dialogTitle,
 			final String actionButtonTitle, final Action okAction,
 			final Action cancelAction) {
@@ -56,7 +80,7 @@ public class ArchitectPanelBuilder {
 				d.dispose();
 			}
 		});
-		cancelButton.setText("Cancel");
+		cancelButton.setText(CANCEL_BUTTON_LABEL);
 		
 		// Handle if the user presses Enter in the dialog - do OK action
 		d.getRootPane().setDefaultButton(okButton);
@@ -92,10 +116,14 @@ public class ArchitectPanelBuilder {
 	 *            A Window class to be the parent, or null
 	 * @param dialogTitle
 	 *            The display title.
-	 * @return The build JDialog
+	 * @param actionButtonTitle 
+	 *            The title for the OK button
+	 * @return The built JDialog
 	 */
-	public static JDialog createArchitectPanelDialog(final ArchitectPanel arch,
-			final Window dialogParent, final String dialogTitle,
+	public static JDialog createArchitectPanelDialog(
+			final ArchitectPanel arch,
+			final Window dialogParent, 
+			final String dialogTitle,
 			final String actionButtonTitle) {
 
 		Action okAction = new AbstractAction() {
@@ -110,5 +138,25 @@ public class ArchitectPanelBuilder {
 		};
 		return createArchitectPanelDialog(arch, dialogParent, dialogTitle,
 				actionButtonTitle, okAction, cancelAction);
+	}
+	
+	/**
+	 * Build a JDialog around an object that implements ArchitectPanel, to
+	 * provide consistent behaviours such as Cancel button, <ESC> to close, and
+	 * so on, including a default "OK" button
+	 * @param arch
+	 *            The ArchitectPanel implementation
+	 * @param dialogParent
+	 *            A Window class to be the parent, or null
+	 * @param dialogTitle
+	 *            The display title.
+	 * @return The build JDialog
+	 */
+	public static JDialog createArchitectPanelDialog(
+			final ArchitectPanel arch,
+			final Window dialogParent, 
+			final String dialogTitle) {
+		
+		return createArchitectPanelDialog(arch, dialogParent, dialogTitle, OK_BUTTON_LABEL);
 	}
 }
