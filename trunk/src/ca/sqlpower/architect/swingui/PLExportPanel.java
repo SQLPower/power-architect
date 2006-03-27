@@ -457,7 +457,12 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		} else {
 			return true;
 		}
-	}	
+	}
+
+
+	public JPanel getPanel() {
+		return this;
+	}
 	
 }
 

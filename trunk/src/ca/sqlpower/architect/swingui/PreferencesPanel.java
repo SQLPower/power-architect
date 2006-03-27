@@ -132,4 +132,8 @@ public class PreferencesPanel extends JPanel implements ArchitectPanel {
 			}
 		}
 	}
+
+	public JPanel getPanel() {
+		return this;
+	}
 }

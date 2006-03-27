@@ -208,5 +208,9 @@ public class RelationshipEditPanel extends JPanel
 		}
 		
 	}
+
+	public JPanel getPanel() {
+		return this;
+	}
 	
 }

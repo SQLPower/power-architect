@@ -28,6 +28,8 @@ public class PreferencesAction extends AbstractAction {
 	}
 
 	public void showPreferencesDialog() {
+		// XXX Can't easily use ArchitectPanelBuilder since this
+		// contains a JTabbedPane which is not an ArchitectPanel.
 		final JDialog d = new JDialog(af, "User Preferences");
 		
 		JPanel cp = new JPanel(new BorderLayout(12,12));

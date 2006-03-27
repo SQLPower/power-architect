@@ -7,6 +7,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PrintPanel;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
@@ -28,36 +29,13 @@ public class PrintAction extends AbstractAction {
 	}
 
 	public void actionPerformed(ActionEvent evt) {
-		final JDialog d = new JDialog(ArchitectFrame.getMainInstance(),
-									  "Print");
-		JPanel cp = new JPanel(new BorderLayout(12,12));
-		cp.setBorder(BorderFactory.createMatteBorder(12,12,12,12, cp.getBackground()));
 		final PrintPanel printPanel = new PrintPanel(pp);
-		cp.add(printPanel, BorderLayout.CENTER);
 		
-		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		final JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
+				printPanel, 
+				ArchitectFrame.getMainInstance(),
+				"Print", "Print");
 		
-		JButton okButton = new JButton("Print");
-		okButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
-					printPanel.applyChanges();
-					d.setVisible(false);
-				}
-			});
-		buttonPanel.add(okButton);
-		
-		JButton cancelButton = new JButton("Cancel");
-		cancelButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
-					printPanel.discardChanges();
-					d.setVisible(false);
-				}
-			});
-		buttonPanel.add(cancelButton);
-		
-		cp.add(buttonPanel, BorderLayout.SOUTH);
-		
-		d.setContentPane(cp);
 		d.pack();
 		d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
 		d.setVisible(true);

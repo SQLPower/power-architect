@@ -27,6 +27,9 @@ public class AboutAction extends AbstractAction {
 	}
 
 	public void actionPerformed(ActionEvent evt) {
+		// This is one of the few JDIalogs that can not get replaced
+		// with a call to ArchitectPanelBuilder, because an About
+		// box must have only ONE button...
 		final JDialog d = new JDialog(ArchitectFrame.getMainInstance(),
 									  "About the Power*Architect");
 		JPanel cp = new JPanel(new BorderLayout(12,12));

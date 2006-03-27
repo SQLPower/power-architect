@@ -28,4 +28,8 @@ public class AboutPanel extends JPanel implements ArchitectPanel {
 	public void discardChanges() {
         // nothing to discard
 	}
+
+	public JPanel getPanel() {
+		return this;
+	}
 }

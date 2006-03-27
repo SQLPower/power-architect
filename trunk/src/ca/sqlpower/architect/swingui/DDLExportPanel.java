@@ -13,12 +13,8 @@ import javax.swing.JTextField;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectDataSource;
-import ca.sqlpower.architect.ddl.DB2DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
-import ca.sqlpower.architect.ddl.OracleDDLGenerator;
-import ca.sqlpower.architect.ddl.PostgresDDLGenerator;
-import ca.sqlpower.architect.ddl.SQLServerDDLGenerator;
 import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
 
 
@@ -201,5 +197,13 @@ public class DDLExportPanel extends JPanel implements ArchitectPanel {
 
 	public void setSchemaField(JTextField schemaField) {
 		this.schemaField = schemaField;
+	}
+
+	/* Return this component's JPanel, for use in 
+	 * ASUtils.build
+	 * @see ca.sqlpower.architect.swingui.ArchitectPanel#getPanel()
+	 */
+	public JPanel getPanel() {
+		return this;
 	}
 }

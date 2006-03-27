@@ -11,6 +11,7 @@ import javax.swing.tree.TreePath;
 import ca.sqlpower.architect.*;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.ColumnEditPanel;
 import ca.sqlpower.architect.swingui.DBTree;
@@ -123,41 +124,16 @@ public class EditColumnAction extends AbstractAction implements ActionListener {
 			columnEditPanel = new ColumnEditPanel(st, colIdx);
 			panel.add(columnEditPanel, BorderLayout.CENTER);
 			
-			JPanel buttonPanel = new JPanel();
-			buttonPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
-			okCancelListener = new OkCancelListener();
-			okButton = new JButton("Ok");
-			okButton.addActionListener(okCancelListener);
-			buttonPanel.add(okButton);
-			cancelButton = new JButton("Cancel");
-			cancelButton.addActionListener(okCancelListener);
-			buttonPanel.add(cancelButton);
-			panel.add(buttonPanel, BorderLayout.SOUTH);
-			
-			editDialog = new JDialog(ArchitectFrame.getMainInstance(),
-									 "Column Properties of "+st.getName());
+			editDialog = ArchitectPanelBuilder.createArchitectPanelDialog(
+					columnEditPanel,
+					ArchitectFrame.getMainInstance(),
+					 "Column Properties of "+st.getName(),
+					 "OK");
 			panel.setOpaque(true);
-			editDialog.setContentPane(panel);
 			editDialog.pack();
 			editDialog.setLocationRelativeTo(ArchitectFrame.getMainInstance());
 			editDialog.setVisible(true);
-		}
-		
-		
-	}
-
-	class OkCancelListener implements ActionListener {
-		public void actionPerformed(ActionEvent e) {
-			if (e.getSource() == okButton) {
-				columnEditPanel.applyChanges();
-				cleanup();
-			} else if (e.getSource() == cancelButton) {
-				columnEditPanel.discardChanges();
-				cleanup();
-			} else {
-				logger.error("Recieved action event from unknown source: "+e);
-			}
-		}
+		}		
 	}
 
 	/**

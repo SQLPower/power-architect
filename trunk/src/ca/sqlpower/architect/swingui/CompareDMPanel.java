@@ -207,29 +207,27 @@ public class CompareDMPanel extends JPanel {
 				}
 				final DBCSPanel dbcsPanel = new DBCSPanel();
 				dbcsPanel.setDbcs(new ArchitectDataSource());
-				JButton okButton = new JButton("Ok");
-				okButton.addActionListener(new ActionListener() {
+				
+				Action okAction = new AbstractAction() {
 					public void actionPerformed(ActionEvent e) {
 						dbcsPanel.applyChanges();
 						ArchitectDataSource newDS = dbcsPanel.getDbcs();
 						databaseDropdown.addItem(newDS);
 						databaseDropdown.setSelectedItem(newDS);
-						getNewConnectionDialog().dispose();
 						setNewConnectionDialog(null);
 					}
-				});
-				JButton cancelButton = new JButton("Cancel");
-				cancelButton.addActionListener(new ActionListener() {
+				};
+				Action cancelAction = new AbstractAction() {
 					public void actionPerformed(ActionEvent e) {
 						dbcsPanel.discardChanges();
-						getNewConnectionDialog().dispose();
 						setNewConnectionDialog(null);
 					}
-				});
+				};
 
-				JDialog d = ASUtils.createOkCancelDialog(dbcsPanel,
-						SwingUtilities.getWindowAncestor(CompareDMPanel.this),
-						DBCS_DIALOG_TITLE, okButton, cancelButton);
+				JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
+						dbcsPanel, SwingUtilities.getWindowAncestor(CompareDMPanel.this),
+						DBCS_DIALOG_TITLE, "Compare",
+						okAction, cancelAction);
 
 				setNewConnectionDialog(d);
 				d.setVisible(true);

@@ -159,6 +159,8 @@ public class SearchReplace {
     private JCheckBox caseInsensitive;
 
     public void showSearchDialog(final PlayPen pp) {
+    	// XXX need to convert to an ArchitectPanel before switching
+    	// this to use ArchitectPanelBuilder.
         final JDialog d = new JDialog((Frame) SwingUtilities.getAncestorOfClass(JFrame.class, pp), "Find");
 
         ButtonGroup matchType = new ButtonGroup();
@@ -242,6 +244,9 @@ public class SearchReplace {
     public void showResults(JDialog parent, final PlayPen pp) throws ArchitectException {
     	try {
 	        final List results = doSearch(pp.getDatabase());
+	        
+	        // XXX This JDialog has three buttons so we cannot use
+	        // ArchitectPanelBuilder to create it...
 	        final JDialog d = new JDialog(parent, "Search Results");
 	        final JTable t = new JTable(new SearchResultsTableModel(results));
 	        

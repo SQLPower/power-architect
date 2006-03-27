@@ -1,19 +1,39 @@
 package ca.sqlpower.architect.swingui;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.event.*;
-import ca.sqlpower.architect.*;
-import ca.sqlpower.architect.undo.UndoCompoundEvent;
-import ca.sqlpower.architect.undo.UndoCompoundEventListener;
-import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
-
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.sql.DatabaseMetaData;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JSpinner;
+import javax.swing.JTextField;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
+
 import org.apache.log4j.Logger;
+
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.undo.UndoCompoundEvent;
+import ca.sqlpower.architect.undo.UndoCompoundEventListener;
+import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 
 public class ColumnEditPanel extends JPanel
 	implements ListDataListener, ActionListener,ArchitectPanel {
@@ -357,6 +377,10 @@ public class ColumnEditPanel extends JPanel
 	 */
 	public void discardChanges() {
 		cleanup();
+	}
+	
+	public JPanel getPanel() {
+		return this;
 	}
 
 	/**

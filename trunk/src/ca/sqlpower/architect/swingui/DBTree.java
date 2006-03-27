@@ -76,59 +76,53 @@ public class DBTree extends JTree implements DragSourceListener {
 	 * only need to call this once, and the constructor does that.
 	 */
 	protected void setupPropDialog() {
-		propDialog = new JDialog(ArchitectFrame.getMainInstance(),
-								 "Database Connection Properties");
-		final JButton okButton = new JButton("Ok");
-		final JButton cancelButton = new JButton("Cancel");
-		
-		final JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		dbcsPanel = new DBCSPanel();
 		
-		okButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					dbcsPanel.applyChanges();
-					edittingDB.setDataSource(dbcsPanel.getDbcs());
-					// does not get called when setting Target
-					if (panelHoldsNewDBCS) { // don't allow new duplicate connections to be added
-						ArchitectDataSource dup = getDuplicateDbcs(edittingDB.getDataSource());							
-						if (dup == null) { // did not find one, go ahead and add it to User Settings
-							ArchitectFrame.getMainInstance().getUserSettings()
-								.getPlDotIni().addDataSource(dbcsPanel.getDbcs());
-							SQLObject root = (SQLObject) getModel().getRoot();
-							try {
-								root.addChild(root.getChildCount(), edittingDB);
-							} catch (ArchitectException ex) {
-								logger.warn("Couldn't add new database to tree", ex);
-								JOptionPane.showMessageDialog(DBTree.this, "Couldn't add new connection:\n"+ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-							}
-						} else {
-							logger.warn("The connection you tried to create already exists under the name: " + dup.getDisplayName());
-							JOptionPane.showMessageDialog(DBTree.this, 
-                             "The connection you tried to create already exists under the name: " 
-                             + dup.getDisplayName(), 
-                             "Error", JOptionPane.ERROR_MESSAGE);
-							return; // don't dispose() of the dialog just yet...
+		Action okAction = new AbstractAction() {
+			public void actionPerformed(ActionEvent e) {
+				dbcsPanel.applyChanges();
+				edittingDB.setDataSource(dbcsPanel.getDbcs());
+				// does not get called when setting Target
+				if (panelHoldsNewDBCS) { // don't allow new duplicate connections to be added
+					ArchitectDataSource dup = getDuplicateDbcs(edittingDB.getDataSource());							
+					if (dup == null) { // did not find one, go ahead and add it to User Settings
+						ArchitectFrame.getMainInstance().getUserSettings()
+						.getPlDotIni().addDataSource(dbcsPanel.getDbcs());
+						SQLObject root = (SQLObject) getModel().getRoot();
+						try {
+							root.addChild(root.getChildCount(), edittingDB);
+						} catch (ArchitectException ex) {
+							logger.warn("Couldn't add new database to tree", ex);
+							JOptionPane.showMessageDialog(DBTree.this, "Couldn't add new connection:\n"+ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 						}
+					} else {
+						logger.warn("The connection you tried to create already exists under the name: " + dup.getDisplayName());
+						JOptionPane.showMessageDialog(DBTree.this, 
+								"The connection you tried to create already exists under the name: " 
+								+ dup.getDisplayName(), 
+								"Error", JOptionPane.ERROR_MESSAGE);
+						return; // don't dispose() of the dialog just yet...
 					}
-					panelHoldsNewDBCS = false;
-					propDialog.dispose();
 				}
-			});
-		southPanel.add(okButton);
-		
-		cancelButton.addActionListener(new ActionListener() {
+				panelHoldsNewDBCS = false;
+				propDialog.dispose();
+				}
+			};
+		Action cancelAction = new AbstractAction() {
 				public void actionPerformed(ActionEvent e) {
 					dbcsPanel.discardChanges();
 					propDialog.dispose();
 				}
-			});
-		southPanel.add(cancelButton);
-		
-		JComponent cp = (JComponent) propDialog.getContentPane();
-		cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
-		cp.setLayout(new BorderLayout(12,12));
-		cp.add(southPanel, BorderLayout.SOUTH);
-		cp.add(dbcsPanel, BorderLayout.CENTER);
+			};
+			
+		propDialog = ArchitectPanelBuilder.createArchitectPanelDialog(
+			dbcsPanel,
+			ArchitectFrame.getMainInstance(),
+			"Database Connection Properties",
+			"OK",
+			okAction,
+			cancelAction);
+
 		propDialog.pack();
 		propDialog.setLocationRelativeTo(ArchitectFrame.getMainInstance());
 	}
