@@ -69,6 +69,9 @@ public class ExportPLTransAction extends AbstractAction {
 	public synchronized void setupDialog() {
 
 		logger.debug("running setupDialog()");
+		if (plexp == null) {
+			throw new NullPointerException("setupDialog: plexp was null");
+		}
 
 		// always refresh Target Database (it might have changed)
 		plexp.setTargetDataSource(ArchitectFrame.getMainInstance().getProject().getTargetDatabase().getDataSource());
@@ -78,6 +81,9 @@ public class ExportPLTransAction extends AbstractAction {
 			return;
 		}
 
+		// XXX Cannot use ArchitectPanelBuilder here yet because
+		// of the progressbar; need to make this part of "PLExport"??
+		
 		d = new JDialog(ArchitectFrame.getMainInstance(),
 						"Export ETL Transactions to PL Repository");
 
@@ -316,6 +322,9 @@ public class ExportPLTransAction extends AbstractAction {
 						public void run() {
 							try {
 								final Process proc = Runtime.getRuntime().exec(commandLine.toString());
+								// Could in theory make this use ArchitectPanelBuilder, by creating
+								// a JPanel subclass, but may not be worthwhile as it has both an
+								// Abort and a Close button...
 								final JDialog pld = new JDialog(architectFrame, "Power*Loader Engine");
 									
 								EngineExecPanel eep = new EngineExecPanel(commandLine.toString(), proc);

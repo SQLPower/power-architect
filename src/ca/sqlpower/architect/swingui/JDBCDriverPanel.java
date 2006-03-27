@@ -371,4 +371,8 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 		}
 
 	}
+
+	public JPanel getPanel() {
+		return this;
+	}
 }

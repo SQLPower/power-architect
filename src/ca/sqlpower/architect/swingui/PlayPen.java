@@ -1,14 +1,12 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.AlphaComposite;
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Composite;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -51,9 +49,7 @@ import java.util.WeakHashMap;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.BorderFactory;
 import javax.swing.InputMap;
-import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -777,41 +773,17 @@ public class PlayPen extends JPanel
      * just in case the user changed the Target Database from the DBTree.
 	 */
 	public void showDbcsDialog() {
-		final JDialog d = new JDialog(ArchitectFrame.getMainInstance(),
-									  "Target Database Connection");
-		JPanel cp = new JPanel(new BorderLayout(12,12));
-		cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
 		final DBCSPanel dbcsPanel = new DBCSPanel();
+		final JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
+			dbcsPanel,
+			ArchitectFrame.getMainInstance(),
+			"Target Database Connection");		
 		dbcsPanel.setDbcs(db.getDataSource());
-		cp.add(dbcsPanel, BorderLayout.CENTER);
 		
-		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		
-		JButton okButton = new JButton("Ok");
-		okButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
-					dbcsPanel.applyChanges();
-					d.setVisible(false);
-				}
-			});
-		buttonPanel.add(okButton);
-		
-		JButton cancelButton = new JButton("Cancel");
-		cancelButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
-					dbcsPanel.discardChanges();
-					d.setVisible(false);
-				}
-			});
-		buttonPanel.add(cancelButton);
-		
-		cp.add(buttonPanel, BorderLayout.SOUTH);
-		
-		d.setContentPane(cp);
 		d.pack();
 		d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
 		dbcsDialog = d;
-		//
+
 		dbcsDialog.setVisible(true);
 	}
 

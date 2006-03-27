@@ -38,4 +38,8 @@ public class ProjectSettingsPanel extends JPanel implements ArchitectPanel {
 		revertToProjectSettings();
 	}
 
+	public JPanel getPanel() {
+		return this;
+	}
+
 }

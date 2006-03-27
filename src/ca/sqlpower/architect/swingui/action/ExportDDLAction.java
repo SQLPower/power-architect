@@ -1,19 +1,14 @@
 package ca.sqlpower.architect.swingui.action;
 
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
 import javax.swing.AbstractAction;
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
+import javax.swing.Action;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
@@ -31,6 +26,7 @@ import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.ddl.NameChangeWarning;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.DDLExportPanel;
 import ca.sqlpower.architect.swingui.MonitorableWorker;
 import ca.sqlpower.architect.swingui.SQLScriptDialog;
@@ -50,19 +46,15 @@ public class ExportDDLAction extends AbstractAction {
 		architectFrame = ArchitectFrame.getMainInstance();
 		putValue(SHORT_DESCRIPTION, "Forward Engineer SQL Script");
 	}
+	
+	private JDialog d;
 
 	public void actionPerformed(ActionEvent e) {
-		final JDialog d = new JDialog(ArchitectFrame.getMainInstance(),
-									  "Forward Engineer SQL Script");
-		JPanel cp = new JPanel(new BorderLayout(12,12));
-		cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
+
 		final DDLExportPanel ddlPanel = new DDLExportPanel(architectFrame.getProject());
-		cp.add(ddlPanel, BorderLayout.CENTER);
 		
-		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		
-		JButton okButton = new JButton("Ok");
-		okButton.addActionListener(new ActionListener() {
+		Action okAction, cancelAction;
+		okAction = new AbstractAction() {
 				public void actionPerformed(ActionEvent evt) {
 					try {
 						if (ddlPanel.applyChanges()) {
@@ -70,6 +62,7 @@ public class ExportDDLAction extends AbstractAction {
 							GenericDDLGenerator ddlg = architectFrame.getProject().getDDLGenerator();
 							ddlg.setTargetSchema(ddlPanel.getSchemaField().getText());
 							
+							// XXX why is this generated but never used??
 							StringBuffer ddl = ddlg.generateDDL(architectFrame.getProject().getPlayPen().getDatabase());
 							List warnings = ddlg.getWarnings();
 							if (warnings.size() > 0) {
@@ -101,21 +94,22 @@ public class ExportDDLAction extends AbstractAction {
 
 					}
 				}
-			});
-		buttonPanel.add(okButton);
+			};
+			
+
 		
-		JButton cancelButton = new JButton("Close");
-		cancelButton.addActionListener(new ActionListener() {
+		cancelAction = new AbstractAction() {
 				public void actionPerformed(ActionEvent evt) {
 					ddlPanel.discardChanges();
 					d.setVisible(false);
 				}
-			});
-		buttonPanel.add(cancelButton);
+			};
+		d = ArchitectPanelBuilder.createArchitectPanelDialog(
+					ddlPanel,
+					ArchitectFrame.getMainInstance(),
+					"Forward Engineer SQL Script", "OK",
+					okAction, cancelAction);
 		
-		cp.add(buttonPanel, BorderLayout.SOUTH);
-		
-		d.setContentPane(cp);
 		d.pack();
 		d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
 		d.setVisible(true);

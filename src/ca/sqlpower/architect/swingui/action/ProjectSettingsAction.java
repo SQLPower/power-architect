@@ -1,12 +1,14 @@
 package ca.sqlpower.architect.swingui.action;
 
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-import java.awt.event.*;
-import javax.swing.*;
+import java.awt.event.ActionEvent;
+
+import javax.swing.AbstractAction;
+import javax.swing.JDialog;
+
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.ProjectSettingsPanel;
 
 public class ProjectSettingsAction extends AbstractAction {
@@ -23,36 +25,13 @@ public class ProjectSettingsAction extends AbstractAction {
 	}
 
 	public void actionPerformed(ActionEvent evt) {
-		final JDialog d = new JDialog(ArchitectFrame.getMainInstance(),
-									  "Project Settings");
-		
-		JPanel cp = new JPanel(new BorderLayout(12,12));
-		cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
 		final ProjectSettingsPanel settingsPanel = new ProjectSettingsPanel(af.getProject());
-		cp.add(settingsPanel, BorderLayout.CENTER);
-		
-		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		
-		JButton okButton = new JButton("Ok");
-		okButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
-					settingsPanel.applyChanges();
-					d.setVisible(false);
-				}
-			});
-		buttonPanel.add(okButton);
-		
-		JButton cancelButton = new JButton("Cancel");
-		cancelButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
-					settingsPanel.discardChanges();
-					d.setVisible(false);
-				}
-			});
-		buttonPanel.add(cancelButton);
-		
-		cp.add(buttonPanel, BorderLayout.SOUTH);
-		d.setContentPane(cp);
+
+		final JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
+				settingsPanel,
+				ArchitectFrame.getMainInstance(),
+				"Project Settings");		
+
 		d.pack();
 		d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
 		d.setVisible(true);

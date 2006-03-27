@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.*;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.PlayPen;
@@ -74,37 +75,13 @@ public class EditRelationshipAction extends AbstractAction {
 
 	private void makeDialog(SQLRelationship sqr) {
 		logger.debug ("making edit relationship dialog");
-		final JDialog d = new JDialog(ArchitectFrame.getMainInstance(),
-									  "Relationship Properties");
-		JPanel cp = new JPanel(new BorderLayout(12,12));
-		cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
 		final RelationshipEditPanel editPanel = new RelationshipEditPanel();
+		final JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
+				editPanel,
+				ArchitectFrame.getMainInstance(), 
+				"Relationship Properties", "OK");
 		editPanel.setRelationship(sqr);
-		cp.add(editPanel, BorderLayout.CENTER);
-		
-		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		
-		JButton okButton = new JButton("Ok");
-		okButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
-					editPanel.applyChanges();
-					d.setVisible(false);
-				}
-			});
-		buttonPanel.add(okButton);
-		
-		JButton cancelButton = new JButton("Cancel");
-		cancelButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
-					editPanel.discardChanges();
-					d.setVisible(false);
-				}
-			});
-		buttonPanel.add(cancelButton);
-		
-		cp.add(buttonPanel, BorderLayout.SOUTH);
-		
-		d.setContentPane(cp);
+				
 		d.pack();
 		d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
 		d.setVisible(true);

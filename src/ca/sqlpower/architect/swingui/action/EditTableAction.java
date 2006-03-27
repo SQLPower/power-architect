@@ -1,24 +1,27 @@
 package ca.sqlpower.architect.swingui.action;
 
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
 import java.util.List;
-import javax.swing.*;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
+import javax.swing.tree.TreePath;
+
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
 import ca.sqlpower.architect.swingui.TableEditPanel;
 import ca.sqlpower.architect.swingui.TablePane;
-
-import javax.swing.tree.TreePath;
 
 
 public class EditTableAction extends AbstractAction {
@@ -78,43 +81,33 @@ public class EditTableAction extends AbstractAction {
 		} else {
 	  		// unknown action command source, do nothing
 		}	
-
-
 	}
 
-	private void makeDialog (SQLTable table) {
-		final JDialog d = new JDialog(ArchitectFrame.getMainInstance(),
-									  "Table Properties");
-		JPanel tt = new JPanel(new BorderLayout(12,12));
-		tt.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
-		final TableEditPanel editPanel = new TableEditPanel(table);
-		tt.add(editPanel, BorderLayout.CENTER);
-      	
-		// ok/cancel buttons
-		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+	private JDialog d;
 	
-		JButton okButton = new JButton("Ok");
-		okButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
-					editPanel.applyChanges();
-					// XXX: also apply changes on mapping tab
-					d.setVisible(false);
-				}
-			});
-		buttonPanel.add(okButton);
-		
-		JButton cancelButton = new JButton("Cancel");
-		cancelButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
-					editPanel.discardChanges();
-					// XXX: also discard changes on mapping tab
-					d.setVisible(false);
-				}
-			});
-		buttonPanel.add(cancelButton);
-		
-		d.getContentPane().add(buttonPanel, BorderLayout.SOUTH);
-		d.getContentPane().add(tt, BorderLayout.CENTER);
+	private void makeDialog(SQLTable table) {
+		final TableEditPanel editPanel = new TableEditPanel(table);
+
+		Action okAction = new AbstractAction() {
+			public void actionPerformed(ActionEvent evt) {
+				editPanel.applyChanges();
+				// XXX: also apply changes on mapping tab
+				d.setVisible(false);
+			}
+		};
+
+		Action cancelAction = new AbstractAction() {
+			public void actionPerformed(ActionEvent evt) {
+				editPanel.discardChanges();
+				// XXX: also discard changes on mapping tab
+				d.setVisible(false);
+			}
+		};
+
+		final JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
+				editPanel, ArchitectFrame.getMainInstance(),
+				"Table Properties", "OK", okAction, cancelAction);
+
 		d.pack();
 		d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
 		d.setVisible(true);

@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 import javax.swing.*;
+
 import ca.sqlpower.architect.*;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
@@ -99,5 +100,9 @@ public class TableEditPanel extends JPanel implements ArchitectPanel {
 			throw new IllegalStateException("Unknown Undo event type "+e.getType());
 		}
 		
+	}
+
+	public JPanel getPanel() {
+		return this;
 	}
 }

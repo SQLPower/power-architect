@@ -41,7 +41,6 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 	protected JLabel zoomLabel;
 	protected JSlider zoomSlider;
 
-	protected JDialog previewDialog;
 	protected PrintPreviewPanel previewPanel;
 	
 	protected int pagesAcross;
@@ -216,6 +215,10 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 	public void discardChanges() {
         // nothing to discard
 	}
+	
+	public JPanel getPanel() {
+		return this;
+	}
 
 	// --- print preview panel ---
 
@@ -333,4 +336,6 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 	    }
 
 	}
+
+
 }
