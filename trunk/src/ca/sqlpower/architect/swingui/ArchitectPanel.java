@@ -1,5 +1,7 @@
 package ca.sqlpower.architect.swingui;
 
+import javax.swing.JComponent;
+
 /**
  * The ArchitectPanel interface defines the contract between a panel
  * of components that help the user edit the data model and its parent
@@ -29,4 +31,9 @@ public interface ArchitectPanel {
 	 * this method.
 	 */
 	public void discardChanges();
+	
+	/**
+	 * @return This ArchitectPanel's JPanel
+	 */
+	public JComponent getPanel();
 }
