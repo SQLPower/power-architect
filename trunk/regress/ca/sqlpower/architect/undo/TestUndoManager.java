@@ -2,6 +2,7 @@ package regress.ca.sqlpower.architect.undo;
 
 import java.awt.Point;
 import java.awt.event.ActionEvent;
+import java.sql.Types;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -57,8 +58,11 @@ public class TestUndoManager extends TestCase {
 		pkTable.addColumn(new SQLColumn());
 		pkTable.getColumn(0).setPrimaryKeySeq(1);
 		pkTable.getColumn(0).setName("pk1");
+		pkTable.getColumn(0).setType(Types.INTEGER);
 		pkTable.getColumn(1).setPrimaryKeySeq(1);
 		pkTable.getColumn(1).setName("pk2");
+		pkTable.getColumn(1).setType(Types.INTEGER);
+		
 	}
 		
 	public void testUndoManagerActionUpdates() throws ArchitectException
@@ -121,4 +125,21 @@ public class TestUndoManager extends TestCase {
 		assertNull("Missing exported key", pkTable.getColumnByName("pk2"));
 		
 	}
+
+	/** Makes sure that the side effects of changing a PK column's attributes are not a separate undo step */
+	public void testUndoRelationshipPkAttributeChange() throws ArchitectException {
+		CreateRelationshipAction.doCreateRelationship(pkTable, fkTable, pp, false);
+		SQLColumn pk1 = pkTable.getColumnByName("pk1");
+		assertEquals("pk1 was already the new type.. makes testing silly", pk1.getType(), Types.INTEGER);
+		pk1.setType(Types.BINARY);
+		SQLColumn fk1 = fkTable.getColumnByName("pk1");
+		assertNotNull("Pk1 was not propegated to fkTable",fk1);
+		assertEquals("fkTable not updated when the pktable was updated",Types.BINARY,fk1.getType());
+		undoManager.undo();
+		assertEquals("fk1 didn't go back to old type", Types.INTEGER, fk1.getType());
+		
+		// this is the point of the test
+		assertEquals("pk1 didn't go back to old type", Types.INTEGER, pk1.getType());
+	}
+
 }
