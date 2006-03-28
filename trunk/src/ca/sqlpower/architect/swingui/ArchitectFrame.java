@@ -5,7 +5,6 @@ import java.awt.Container;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -18,8 +17,6 @@ import java.util.Iterator;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.ActionMap;
-import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -36,13 +33,8 @@ import javax.swing.KeyStroke;
 import javax.swing.ProgressMonitor;
 import javax.swing.ProgressMonitorInputStream;
 import javax.swing.SwingUtilities;
-import javax.swing.text.Keymap;
-
-import junit.extensions.jfcunit.keyboard.KeyMapping;
 
 import org.apache.log4j.Logger;
-
-import sun.security.x509.KeyIdentifier;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
@@ -68,7 +60,9 @@ import ca.sqlpower.architect.swingui.action.PreferencesAction;
 import ca.sqlpower.architect.swingui.action.PrintAction;
 import ca.sqlpower.architect.swingui.action.ProjectSettingsAction;
 import ca.sqlpower.architect.swingui.action.QuickStartAction;
+import ca.sqlpower.architect.swingui.action.RedoAction;
 import ca.sqlpower.architect.swingui.action.SearchReplaceAction;
+import ca.sqlpower.architect.swingui.action.UndoAction;
 import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.undo.UndoManager;
 
@@ -100,10 +94,9 @@ public class ArchitectFrame extends JFrame {
 	protected PlayPen playpen = null;
 	protected DBTree dbTree = null;
 	
-	// XXX refactor init so it is recalled for every new project
-	// so UndoManager can sit in the project.
-	protected UndoManager undoManager = null;
-
+	private UndoAction undoAction;
+	private RedoAction redoAction;
+	
     private JMenu connectionsMenu;
 
 	protected AboutAction aboutAction;
@@ -156,7 +149,7 @@ public class ArchitectFrame extends JFrame {
 	        }
 	    }
 	};
-		
+
 	/**
 	 * You can't create an architect frame using this constructor.  You have to
 	 * call {@link #getMainInstance()}.
@@ -259,7 +252,7 @@ public class ArchitectFrame extends JFrame {
 		    }
 		}
 		
-		undoManager = new UndoManager();
+		
 		
 		// Create actions
 		aboutAction = new AboutAction();
@@ -382,6 +375,9 @@ public class ArchitectFrame extends JFrame {
 					}
 				};
 		zoomNormalAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Reset Zoom");
+		
+		undoAction = new UndoAction();
+		redoAction = new RedoAction();
 		autoLayoutAction = new AutoLayoutAction();
 		autoLayout = new FruchtermanReingoldForceLayout();
 		autoLayoutAction.setLayout(autoLayout);
@@ -418,15 +414,10 @@ public class ArchitectFrame extends JFrame {
 		fileMenu.add(new JMenuItem(exitAction));
 		menuBar.add(fileMenu);
 
-		undoManager.getUndo().putValue(AbstractAction.ACCELERATOR_KEY,
-				KeyStroke.getKeyStroke(KeyEvent.VK_Z, accelMask));
-		undoManager.getRedo().putValue(AbstractAction.ACCELERATOR_KEY,
-				KeyStroke.getKeyStroke(KeyEvent.VK_Y, accelMask));
-		
 		JMenu editMenu = new JMenu("Edit");
 		editMenu.setMnemonic('e');
-		editMenu.add(new JMenuItem(undoManager.getUndo()));
-		editMenu.add(new JMenuItem(undoManager.getRedo()));
+		editMenu.add(undoAction);
+		editMenu.add(redoAction);
 		editMenu.addSeparator();
 		editMenu.add(new JMenuItem(searchReplaceAction));
 		menuBar.add(editMenu);
@@ -469,8 +460,8 @@ public class ArchitectFrame extends JFrame {
 		projectBar.addSeparator();
 		projectBar.add(printAction);
 		projectBar.addSeparator();
-		projectBar.add(undoManager.getUndo());
-		projectBar.add(undoManager.getRedo());
+		projectBar.add(undoAction);
+		projectBar.add(redoAction);
 		projectBar.addSeparator();
 		projectBar.add(exportDDLAction);
 		projectBar.addSeparator();
@@ -524,10 +515,6 @@ public class ArchitectFrame extends JFrame {
 		addWindowListener(afWindowListener = new ArchitectFrameWindowListener());
 				
 		setProject(new SwingUIProject("New Project"));
-		
-		
-		
-		
 	}
 	
 	public void setProject(SwingUIProject p) throws ArchitectException {
@@ -583,6 +570,9 @@ public class ArchitectFrame extends JFrame {
 		zoomOutAction.setPlayPen(playpen);
 		autoLayoutAction.setPlayPen(playpen);
 		
+		undoAction.setManager(project.getUndoManager());
+		redoAction.setManager(project.getUndoManager());
+		
 		// dbtree actions
 		editColumnAction.setDBTree(dbTree);
 		insertColumnAction.setDBTree(dbTree);
@@ -590,8 +580,7 @@ public class ArchitectFrame extends JFrame {
 		deleteSelectedAction.setDBTree(dbTree);
 		editTableAction.setDBTree(dbTree);
 		searchReplaceAction.setDBTree(dbTree);
-		// undomanager
-		undoManager.setPlayPen(playpen);
+		
 		//
 		prefAction.setArchitectFrame(this);
 		projectSettingsAction.setArchitectFrame(this);	
@@ -794,7 +783,8 @@ public class ArchitectFrame extends JFrame {
 	}
 	
 	public UndoManager getUndoManager() {
-		return undoManager;
+		// XXX: Matt may have had other ideas; not sure what they were
+		return getProject().getUndoManager();
 	}
 	
 	public SwingUserSettings getSwingUserSettings() {

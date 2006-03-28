@@ -1,9 +1,7 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Point;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
@@ -56,7 +54,7 @@ public class SwingUIProject {
 	protected String name;
 	protected DBTree sourceDatabases;
 	protected PlayPen playPen;
-	protected UndoManager undoManager;
+	private UndoManager undoManager;
 	protected File file;
 	protected GenericDDLGenerator ddlGenerator;
 	protected boolean savingEntireSource;
@@ -129,7 +127,10 @@ public class SwingUIProject {
 	 */
 	public SwingUIProject(String name) throws ArchitectException {
 		this.name = name;
-		PlayPen pp = new PlayPen(new SQLDatabase());
+		
+		SQLDatabase ppdb = new SQLDatabase();
+		
+		PlayPen pp = new PlayPen(ppdb);
 		ToolTipManager.sharedInstance().registerComponent(pp);
 		setPlayPen(pp);
 		List initialDBList = new ArrayList();
@@ -142,9 +143,12 @@ public class SwingUIProject {
 		}
 		plExport = new PLExport();
 		compareDMSettings = new CompareDMSettings();
+		undoManager = new UndoManager(pp);
 	}
 
 	// ------------- READING THE PROJECT FILE ---------------
+	
+	// FIXME: this should static and return a new instance of SwingUIProject
 	public void load(InputStream in) throws IOException, ArchitectException {
 		dbcsIdMap = new HashMap();
 		objectIdMap = new HashMap();
@@ -167,6 +171,8 @@ public class SwingUIProject {
 		setModified(false);
 	}
 
+	
+	
 	protected Digester setupDigester() {
 		Digester d = new Digester();
 		d.setValidating(false);
@@ -255,7 +261,7 @@ public class SwingUIProject {
 		// target database hierarchy
 		d.addFactoryCreate("architect-project/target-database", dbFactory);
 		d.addSetProperties("architect-project/target-database");
-		d.addSetNext("architect-project/target-database", "setTargetDatabase");
+		d.addSetNext("architect-project/target-database", "addAllTablesFrom");
 
 		// the play pen
 		TablePaneFactory tablePaneFactory = new TablePaneFactory();
@@ -1141,13 +1147,6 @@ public class SwingUIProject {
 	}
 
 	/**
-	 * Sets the value of target database in the PlayPen.
-	 */
-	public void setTargetDatabase(SQLDatabase db)  {
-		playPen.setDatabase(db);
-	}
-
-	/**
 	 * Gets the value of file
 	 *
 	 * @return the value of file
@@ -1174,6 +1173,20 @@ public class SwingUIProject {
 		return this.playPen;
 	}
 
+	/**
+	 * Adds all the tables in the given database into the playpen database.  This is really only
+	 * for loading projects, so please think twice about using it for other stuff.
+	 * 
+	 * @param db The database to add tables from.  The database must contain tables directly. 
+	 * @throws ArchitectException If adding the tables of db fails
+	 */
+	public void addAllTablesFrom(SQLDatabase db) throws ArchitectException {
+		SQLDatabase ppdb = playPen.getDatabase();
+		for (SQLObject table : (List<SQLObject>) db.getChildren()) {
+			ppdb.addChild(table);
+		}
+	}
+	
 	/**
 	 * Sets the value of playPen
 	 *
@@ -1361,5 +1374,8 @@ public class SwingUIProject {
         if (logger.isDebugEnabled()) logger.debug("Project modified: "+modified);
         this.modified = modified;
     }
-    
+	public UndoManager getUndoManager() {
+		return undoManager;
+	}
+	    
 }

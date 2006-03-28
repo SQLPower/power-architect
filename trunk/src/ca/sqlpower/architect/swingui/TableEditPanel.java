@@ -19,7 +19,7 @@ public class TableEditPanel extends JPanel implements ArchitectPanel {
 
 	public TableEditPanel(SQLTable t) {
 		super(new FormLayout());
-		addUndoEventListener(ArchitectFrame.getMainInstance().getUndoManager().getEventAdapter());
+		addUndoEventListener(ArchitectFrame.getMainInstance().getProject().getUndoManager().getEventAdapter());
 		add(new JLabel("Table Name"));
 		add(name = new JTextField("", 30));
 		add(new JLabel("Primary Key Name"));

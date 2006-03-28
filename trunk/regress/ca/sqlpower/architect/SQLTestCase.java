@@ -4,26 +4,23 @@ import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.sql.Connection;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import javax.sql.DataSource;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 
 import regress.ArchitectTestCase;
 import ca.sqlpower.architect.ArchitectDataSource;
+import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.PlDotIni;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
-import ca.sqlpower.architect.undo.SQLObjectUndoableEventAdapter;
 import ca.sqlpower.architect.undo.UndoManager;
 
 /**
@@ -182,10 +179,11 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 	 * @throws IllegalAccessException
 	 * @throws InvocationTargetException
 	 * @throws NoSuchMethodException
+	 * @throws ArchitectException 
 	 */
 	public void testAllSettersAreUndoable() 
 	throws IllegalArgumentException, IllegalAccessException, 
-	InvocationTargetException, NoSuchMethodException {
+	InvocationTargetException, NoSuchMethodException, ArchitectException {
 		
 		SQLObject so = getSQLObjectUnderTest();
 		
@@ -207,10 +205,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 			// should be handled in the Datasource
 			propertiesToIgnore.add("name");
 		}
-		UndoManager undoManager= new UndoManager();
-		SQLObjectUndoableEventAdapter listener = new SQLObjectUndoableEventAdapter(undoManager);
-		so.addSQLObjectListener(listener);
-		so.addUndoEventListener(listener);
+		UndoManager undoManager= new UndoManager(so);
 		List<PropertyDescriptor> settableProperties;
 		settableProperties = Arrays.asList(PropertyUtils.getPropertyDescriptors(so.getClass()));
 		if(so instanceof SQLDatabase)

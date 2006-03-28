@@ -5,24 +5,17 @@ import java.awt.Point;
 import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.TablePane;
-import ca.sqlpower.architect.undo.SQLObjectUndoableEventAdapter;
 import ca.sqlpower.architect.undo.UndoManager;
 
 public class TestSQLObjectUndoableEventAdapter extends TestCase {
-	SQLObjectUndoableEventAdapter eAdapter;
-	UndoManager undoManager;
+	
 	
 	@Override
 	protected void setUp() throws Exception {
-		undoManager = new UndoManager();
-		eAdapter = new SQLObjectUndoableEventAdapter(undoManager);
 		super.setUp();
-	
 	}
 	/*
 	private void testStateSwap() {
@@ -34,12 +27,13 @@ public class TestSQLObjectUndoableEventAdapter extends TestCase {
 	
 	public void testMove() throws ArchitectException
 	{
-		PlayPen pp = new PlayPen();
-		SQLTable table = new SQLTable(new SQLDatabase(),true);
+		PlayPen pp = new PlayPen(new SQLDatabase());
+		SQLTable table = new SQLTable(pp.getDatabase(),true);
 		TablePane tp = new TablePane(table,pp);
+		pp.addTablePane(tp, new Point());
+		UndoManager undoManager = new UndoManager(pp);
 		Point location;
 		Point newLocation;
-		tp.addPlayPenComponentListener(eAdapter);
 		location = tp.getLocation();
 		assertTrue("Moved to the right location", location.equals(tp.getLocation() ));
 		newLocation = location.getLocation();
@@ -58,20 +52,20 @@ public class TestSQLObjectUndoableEventAdapter extends TestCase {
 	public void testMultiMove() throws ArchitectException 
 	{
 		SQLDatabase db = new SQLDatabase();
-		PlayPen pp = new PlayPen();
+		PlayPen pp = new PlayPen(db);
 		SQLTable table = new SQLTable(db,true);
 		TablePane tp = new TablePane(table,pp);
 		SQLTable table2 = new SQLTable(db,true);
 		TablePane tp2 = new TablePane(table2,pp);
 		Point location;
+		pp.addTablePane(tp,new Point());
 		Point newLocation;
-		tp.addPlayPenComponentListener(eAdapter);
 		location = tp.getLocation();
 		Point location2;
+		pp.addTablePane(tp2,new Point());
 		Point newLocation2;
-		tp2.addPlayPenComponentListener(eAdapter);
 		location2 = tp2.getLocation();
-		
+		UndoManager undoManager = new UndoManager(pp);
 		assertTrue("Moved to the right location", location2.equals(tp2.getLocation() ));
 		assertTrue("Moved to the right location", location.equals(tp.getLocation() ));
 		newLocation = location.getLocation();

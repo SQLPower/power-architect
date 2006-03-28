@@ -84,7 +84,6 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.Relationship.RelationshipDecorationMover;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
-import ca.sqlpower.architect.undo.SQLObjectUndoableEventAdapter;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
@@ -236,7 +235,7 @@ public class PlayPen extends JPanel
 		return db;
 	}
 
-	public void setDatabase(SQLDatabase newdb) {
+	private final void setDatabase(SQLDatabase newdb) {
 		if (newdb == null) throw new NullPointerException("db must be non-null");
 		this.db = newdb;
 		db.setIgnoreReset(true);
@@ -248,13 +247,7 @@ public class PlayPen extends JPanel
 		}
 		try {
 			ArchitectUtils.listenToHierarchy(this, db);
-			SQLObjectUndoableEventAdapter ea = ArchitectFrame.getMainInstance().getUndoManager().getEventAdapter();
-			if (ea != null) {
-				ArchitectUtils.listenToHierarchy(ea, db);
-				ArchitectUtils.undoUnlistenToHierarchy(ea, db);
-			} else {
-				logger.debug("Not attaching undo manager: The Event adapter is null");
-			}
+			
 		} catch (ArchitectException ex) {
 			logger.error("Couldn't listen to database", ex);
 		}
@@ -673,10 +666,8 @@ public class PlayPen extends JPanel
 			contentPane.add(c, 0);
 		} else if (c instanceof TablePane) {
 			if (constraints instanceof Point) {				
-				contentPane.add(c, 0);
 				c.setLocation((Point) constraints);
-				c.addPlayPenComponentListener(ArchitectFrame.getMainInstance().getUndoManager().getEventAdapter());
-				
+				contentPane.add(c, 0);
 			} else {
 				throw new IllegalArgumentException("Constraints must be a Point");
 			}
@@ -694,6 +685,12 @@ public class PlayPen extends JPanel
 		addImpl(r, null, getPPComponentCount());
 	}
 
+	/**
+	 * This method is primarily for loading project files. Use at your own risk!
+	 * 
+	 * @param tp
+	 * @param point
+	 */
 	public void addTablePane(TablePane tp, Point point) {
 		addImpl(tp, point, getPPComponentCount());
 	}
@@ -1233,14 +1230,6 @@ public class PlayPen extends JPanel
 	 * user clicks.
 	 */
 	public void addFloating(TablePane tp) {
-		try {
-			db.addChild(tp.getModel());
-		} catch (ArchitectException e) {
-			logger.error("Couldn't add table \""+tp.getModel()+"\" to play pen:", e);
-			JOptionPane.showMessageDialog(null, "Failed to add table:\n"+e.getMessage());
-			return;
-		}
-		
 		new FloatingTableListener(this, tp, zoomPoint(new Point(tp.getSize().width/2,0)),true);
 	}
 
@@ -2099,12 +2088,14 @@ public class PlayPen extends JPanel
 			this.handle = handle;
 			pp.addMouseMotionListener(this);
 			pp.addMouseListener(this); // the click that ends this operation
-			if (addToPP ){
+			if (addToPP) {
 				pp.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 			} else { 
 				pp.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+				//Set the table pane to moving if the undomanager is already listening
+				tp.setMoving(true);
 			}
-			tp.setMoving(true);
+			
 		}
 
 		public void mouseMoved(MouseEvent e) {
@@ -2131,14 +2122,20 @@ public class PlayPen extends JPanel
 				pp.unzoomPoint(p);
 				logger.debug("Placing table at: "+p);
 				pp.addImpl(tp,p,pp.getPPComponentCount());
-				tp.repaint();
+				try {
+					pp.db.addChild(tp.getModel());
+				} catch (ArchitectException e) {
+					logger.error("Couldn't add table \""+tp.getModel()+"\" to play pen:", e);
+					JOptionPane.showMessageDialog(null, "Failed to add table:\n"+e.getMessage());
+					return;
+				}
+			} else {
+				tp.setMoving(false);
 			}
 			pp.setCursor(null);
 			pp.removeMouseMotionListener(this);
 			pp.removeMouseListener(this);
 			pp.revalidate();
-			tp.setMoving(false);
-			
 		}
 	
 		
