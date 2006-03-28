@@ -3,7 +3,10 @@ package ca.sqlpower.architect.swingui;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.BufferedInputStream;
@@ -15,7 +18,10 @@ import java.util.Iterator;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.ActionMap;
+import javax.swing.InputMap;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -26,11 +32,17 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
 import javax.swing.ProgressMonitor;
 import javax.swing.ProgressMonitorInputStream;
 import javax.swing.SwingUtilities;
+import javax.swing.text.Keymap;
+
+import junit.extensions.jfcunit.keyboard.KeyMapping;
 
 import org.apache.log4j.Logger;
+
+import sun.security.x509.KeyIdentifier;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
@@ -105,7 +117,7 @@ public class ArchitectFrame extends JFrame {
  	protected ZoomAction zoomInAction;
  	protected ZoomAction zoomOutAction;
  	protected Action zoomNormalAction;
- 	
+ 	protected  JComponent contentPane;
 	private AutoLayoutAction autoLayoutAction;
 
 	private ArchitectLayoutInterface autoLayout;
@@ -184,13 +196,15 @@ public class ArchitectFrame extends JFrame {
     }
 
 	protected void init() throws ArchitectException {
+		int accelMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+
 	    UserSettings us;
-	    
 	    // must be done right away, because a static
 	    // initializer in this class effects BeanUtils 
 	    // behaviour which the XML Digester relies 
 	    // upon heavily
 	    //TypeMap.getInstance();
+	    contentPane = (JComponent)getContentPane();
 	    
 		try {
 			ConfigFile cf = ConfigFile.getDefaultInstance();
@@ -269,7 +283,9 @@ public class ArchitectFrame extends JFrame {
 			}
 		};
 		newProjectAction.putValue(AbstractAction.SHORT_DESCRIPTION, "New");
-
+		newProjectAction.putValue(AbstractAction.ACCELERATOR_KEY, 
+				KeyStroke.getKeyStroke(KeyEvent.VK_N, accelMask));
+		
 		openProjectAction
 			= new AbstractAction("Open Project...",
 								 ASUtils.createJLFIcon("general/Open",
@@ -317,6 +333,9 @@ public class ArchitectFrame extends JFrame {
 					}
 				};
 		openProjectAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Open");
+		openProjectAction.putValue(AbstractAction.ACCELERATOR_KEY,
+				KeyStroke.getKeyStroke(KeyEvent.VK_O, accelMask));
+		
 		
 		saveProjectAction 
 			= new AbstractAction("Save Project",
@@ -328,6 +347,8 @@ public class ArchitectFrame extends JFrame {
 					}
 				};
 		saveProjectAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Save");
+		saveProjectAction.putValue(AbstractAction.ACCELERATOR_KEY,
+				KeyStroke.getKeyStroke(KeyEvent.VK_S, accelMask));
 		
 		saveProjectAsAction
 			= new AbstractAction("Save Project As...",
@@ -342,7 +363,12 @@ public class ArchitectFrame extends JFrame {
 
 		prefAction = new PreferencesAction();
 		projectSettingsAction = new ProjectSettingsAction();
+		projectSettingsAction.putValue(AbstractAction.ACCELERATOR_KEY,
+				KeyStroke.getKeyStroke(KeyEvent.VK_COMMA, accelMask));
 		printAction = new PrintAction();
+		printAction.putValue(AbstractAction.ACCELERATOR_KEY,
+				KeyStroke.getKeyStroke(KeyEvent.VK_P, accelMask));
+		
 		zoomInAction = new ZoomAction(ZOOM_STEP);
 		zoomOutAction = new ZoomAction(ZOOM_STEP * -1.0);
 
@@ -373,10 +399,14 @@ public class ArchitectFrame extends JFrame {
 		insertColumnAction = new InsertColumnAction();
 		editTableAction = new EditTableAction();
 		searchReplaceAction = new SearchReplaceAction();
+		searchReplaceAction.putValue(AbstractAction.ACCELERATOR_KEY,
+				KeyStroke.getKeyStroke(KeyEvent.VK_F, accelMask));
 		
 		menuBar = new JMenuBar();
+		
+		//Settingup
 		JMenu fileMenu = new JMenu("File");
-		fileMenu.setMnemonic('f');
+		fileMenu.setMnemonic('f');		
 		fileMenu.add(new JMenuItem(newProjectAction));
 		fileMenu.add(new JMenuItem(openProjectAction));
 		fileMenu.add(new JMenuItem(saveProjectAction));
@@ -388,6 +418,11 @@ public class ArchitectFrame extends JFrame {
 		fileMenu.add(new JMenuItem(exitAction));
 		menuBar.add(fileMenu);
 
+		undoManager.getUndo().putValue(AbstractAction.ACCELERATOR_KEY,
+				KeyStroke.getKeyStroke(KeyEvent.VK_Z, accelMask));
+		undoManager.getRedo().putValue(AbstractAction.ACCELERATOR_KEY,
+				KeyStroke.getKeyStroke(KeyEvent.VK_Y, accelMask));
+		
 		JMenu editMenu = new JMenu("Edit");
 		editMenu.setMnemonic('e');
 		editMenu.add(new JMenuItem(undoManager.getUndo()));
@@ -403,14 +438,12 @@ public class ArchitectFrame extends JFrame {
 
 		JMenu etlMenu = new JMenu("ETL");
 		etlMenu.setMnemonic('l');
-		JMenu etlSubmenuOne = new JMenu("Power*Loader");
-		JMenu etlSubmenuTwo = new JMenu("Informatica");
+		JMenu etlSubmenuOne = new JMenu("Power*Loader");		
 		etlSubmenuOne.add(new JMenuItem(exportPLTransAction));
 		etlSubmenuOne.add(new JMenuItem("PL Transaction File Export"));
 		etlSubmenuOne.add(new JMenuItem("Run Power*Loader"));
 		etlSubmenuOne.add(new JMenuItem(quickStartAction));
-		etlMenu.add(etlSubmenuOne);
-		etlMenu.add(etlSubmenuTwo);
+		etlMenu.add(etlSubmenuOne);		
 		menuBar.add(etlMenu);
 
 		JMenu toolsMenu = new JMenu("Tools");
@@ -489,8 +522,12 @@ public class ArchitectFrame extends JFrame {
 		bounds.height = sprefs.getInt(SwingUserSettings.MAIN_FRAME_HEIGHT, 440);
 		setBounds(bounds);
 		addWindowListener(afWindowListener = new ArchitectFrameWindowListener());
-		
+				
 		setProject(new SwingUIProject("New Project"));
+		
+		
+		
+		
 	}
 	
 	public void setProject(SwingUIProject p) throws ArchitectException {
@@ -557,7 +594,7 @@ public class ArchitectFrame extends JFrame {
 		undoManager.setPlayPen(playpen);
 		//
 		prefAction.setArchitectFrame(this);
-		projectSettingsAction.setArchitectFrame(this);
+		projectSettingsAction.setArchitectFrame(this);	
 	}
 
 	public static synchronized ArchitectFrame getMainInstance() {
