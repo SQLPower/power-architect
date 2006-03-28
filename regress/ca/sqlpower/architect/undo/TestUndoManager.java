@@ -6,6 +6,8 @@ import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.undo.AbstractUndoableEdit;
 import javax.swing.undo.CompoundEdit;
 import javax.swing.undo.UndoableEdit;
@@ -14,85 +16,72 @@ import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.action.CreateRelationshipAction;
-import ca.sqlpower.architect.undo.SQLObjectInsertChildren;
-import ca.sqlpower.architect.undo.SQLObjectUndoableEventAdapter;
 import ca.sqlpower.architect.undo.UndoManager;
 
 public class TestUndoManager extends TestCase {
 
-	Action undo;
-	Action redo;
+	/**
+	 * Toy change listener that just counts how many changes it's seen.
+	 */
+	private static class CL implements ChangeListener {
+		int changeCount;
+		public void stateChanged(ChangeEvent e) {
+			changeCount++;
+		}
+		public int getChangeCount() {
+			return changeCount;
+		}
+	}
+
 	UndoManager undoManager;
 	PlayPen pp;
 	SQLTable fkTable;
 	SQLTable pkTable;
-	SQLObjectUndoableEventAdapter eAdapter;
 	protected void setUp() throws Exception {
 		super.setUp();
-		undoManager = new UndoManager();
-		eAdapter = new SQLObjectUndoableEventAdapter(undoManager);
+		
 		SQLDatabase db = new SQLDatabase();
-		db.addUndoEventListener(eAdapter);
-		pp = new PlayPen();
+		pp = new PlayPen(db);
 		fkTable = new SQLTable(db,true);
 		TablePane tp = new TablePane(fkTable,pp);
-		tp.addPlayPenComponentListener(eAdapter);
 		pp.addTablePane(tp,new Point(1,1));
 		 pkTable = new SQLTable(db,true);
 		TablePane tp2 = new TablePane(pkTable,pp);
-		tp2.addPlayPenComponentListener(eAdapter);
 		pp.addTablePane(tp2,new Point(1,1));
-		
+		undoManager = new UndoManager(pp);
 		pkTable.addColumn(new SQLColumn());
 		pkTable.addColumn(new SQLColumn());
 		pkTable.getColumn(0).setPrimaryKeySeq(1);
 		pkTable.getColumn(0).setName("pk1");
 		pkTable.getColumn(1).setPrimaryKeySeq(1);
 		pkTable.getColumn(1).setName("pk2");
-		undo = new AbstractAction(){	
-			public void actionPerformed(ActionEvent e){
-
-			}
-			
-		};
-		redo = new AbstractAction(){	
-			public void actionPerformed(ActionEvent e){
-
-			}
-		};
-		
-		
-		
 	}
-	
-	public void testUndoManagerActionUpdates()
+		
+	public void testUndoManagerActionUpdates() throws ArchitectException
 	{
-		undoManager = new UndoManager();
+		// TODO: add a change listener to the undo manager and make sure it fires events when it changes
+		
+		undoManager = new UndoManager(pp);
 				UndoableEdit stubEdit = new AbstractUndoableEdit() {
 			public String getPresentationName() { return "cows"; }
 		};
+	
+		CL cl = new CL();
+		undoManager.addChangeListener(cl);
 		
 		undoManager.addEdit(stubEdit);
 		assertEquals("cows", undoManager.getPresentationName());
 
-		undo = undoManager.getUndo();
-		assertNotNull(undo);
-		assertEquals("Undo cows",undo.getValue(Action.SHORT_DESCRIPTION));
-		assertTrue(undo.isEnabled());
-		redo = undoManager.getRedo();
-		assertNotNull(redo);
-		assertFalse(redo.isEnabled());
+		assertEquals("Change listener wasn't notified", 1, cl.getChangeCount());
+		assertTrue(undoManager.canUndo());
 		undoManager.undo();
-		assertEquals("Redo cows",redo.getValue(Action.SHORT_DESCRIPTION));
-		assertTrue(redo.isEnabled());
-		assertFalse(undo.isEnabled());
-
+		assertEquals("Change listener wasn't notified", 2, cl.getChangeCount());
+		assertTrue(undoManager.canRedo());
+		assertFalse(undoManager.canUndo());
 	}
 	
 	public void testCompoundEdits()
@@ -106,11 +95,7 @@ public class TestUndoManager extends TestCase {
 		ce.addEdit(stubEdit3);
 		ce.end();
 		undoManager.addEdit(ce);
-		undo = undoManager.getUndo();
 		assertTrue(undoManager.canUndo());
-		assertNotNull(undo);
-		assertTrue(undo.isEnabled());
-		
 	}
 	
 	public void testUndoCreateRelationship() throws ArchitectException {

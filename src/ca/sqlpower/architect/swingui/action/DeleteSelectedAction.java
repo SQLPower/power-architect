@@ -43,7 +43,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 								 "Delete Selected",
 								 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
 		putValue(SHORT_DESCRIPTION, "Delete Selected");
-		putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0)); // XXX: how to attach to components?
+		putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0));
 		putValue(ACTION_COMMAND_KEY, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		setEnabled(false);
 	}
@@ -246,7 +246,6 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 
 	public void setDBTree(DBTree newDBT) {
 		this.dbt = newDBT;
-		// do I need to add a selection listener here?
 	}
 	
 	public void itemSelected(SelectionEvent e) {
@@ -262,7 +261,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 	 * many items are in the selection list.  If there is only one
 	 * selected item, tries to put its name in the tooltip too!
 	 */
-	protected void changeToopTip(List selectedItems) {
+	private void changeToopTip(List selectedItems) {
 		if (selectedItems.size() == 0) {
 			setEnabled(false);
 			putValue(SHORT_DESCRIPTION, "Delete Selected");

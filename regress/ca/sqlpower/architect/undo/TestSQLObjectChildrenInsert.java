@@ -1,24 +1,20 @@
 package regress.ca.sqlpower.architect.undo;
 
-import javax.swing.undo.UndoableEditSupport;
-
 import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.undo.SQLObjectUndoableEventAdapter;
 import ca.sqlpower.architect.undo.UndoManager;
+
 
 public class TestSQLObjectChildrenInsert extends TestCase {
 	
-	UndoManager undoManager;
 	
-	SQLObjectUndoableEventAdapter undoEventListener;
+	
+	
 	
 	@Override
 	protected void setUp() throws Exception {
-		undoManager = new UndoManager();
-		undoEventListener = new SQLObjectUndoableEventAdapter(undoManager);
 		super.setUp();
 	}
 	
@@ -31,6 +27,7 @@ public class TestSQLObjectChildrenInsert extends TestCase {
 		
 		// setup a playpen like database
 		SQLDatabase db = new SQLDatabase();
+		UndoManager undoManager = new UndoManager(db);
 		db.setIgnoreReset(true);
 		SQLTable table1 = new SQLTable(db,"table1","remark1","TABLE",true);
 		SQLTable table2 = new SQLTable(db,"table2","remark2","TABLE",true);
@@ -40,7 +37,6 @@ public class TestSQLObjectChildrenInsert extends TestCase {
 		db.addChild(table2);
 		db.addChild(table3);
 		db.addChild(table4);
-		db.addSQLObjectListener(undoEventListener);
 		db.removeChild(2);
 		undoManager.undo();
 		assertEquals("There should be 4 children",4,db.getChildCount());

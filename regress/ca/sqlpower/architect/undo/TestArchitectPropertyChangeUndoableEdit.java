@@ -4,23 +4,21 @@ import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
-import ca.sqlpower.architect.undo.ArchitectPropertyChangeUndoableEdit;
-import ca.sqlpower.architect.undo.SQLObjectUndoableEventAdapter;
 import ca.sqlpower.architect.undo.UndoManager;
+
 
 public class TestArchitectPropertyChangeUndoableEdit extends TestCase {
 
 	private SQLObjectEvent testEvent;
 	private UndoManager undoManager;
-	private SQLObjectUndoableEventAdapter eventAdapter;
+	
 	private TestSQLObject testObject;
 	
 	protected void setUp() throws Exception {
 		super.setUp();
-		undoManager = new UndoManager();	
+		;	
 		testObject = new TestSQLObject();
-		eventAdapter = new SQLObjectUndoableEventAdapter(undoManager);
-		testObject.addSQLObjectListener(eventAdapter);
+		undoManager = new UndoManager(testObject);
 		
 	}
 
