@@ -254,12 +254,17 @@ public class SearchReplace {
 	        renameButton.setEnabled(false);
 	        renameButton.addActionListener(new ActionListener() {
 	            public void actionPerformed(ActionEvent e) {
-	                String newName = JOptionPane.showInputDialog(d, "Enter the new name");
+	            	String newName;
+	         	    newName = JOptionPane.showInputDialog(d, "Enter the new name");
 	                TableModel m = t.getModel();
+	                
 	                int selectedRows[] = t.getSelectedRows();
 	                for (int i = 0; i < selectedRows.length; i++) {
-	                    // update using the table model because we want the results page to be notified of changes
-	                    m.setValueAt(newName, selectedRows[i], 1);
+	                	//newName is null if the user press cancel
+	                	if (newName!=null){
+	                		// update using the table model because we want the results page to be notified of changes
+	                		m.setValueAt(newName, selectedRows[i], 1);
+	                	}
 	                }
 	            }
 	        });
@@ -415,4 +420,12 @@ public class SearchReplace {
         if (relationshipSearch.isSelected() && obj instanceof SQLRelationship) return true;
         return false;
     }
+
+	public String getSearchExpressionText() {
+		return searchExpression.getText();
+	}
+
+	public void setSearchExpression(String searchExpressionText) {
+		searchExpression.setText(searchExpressionText);
+	}
 }
