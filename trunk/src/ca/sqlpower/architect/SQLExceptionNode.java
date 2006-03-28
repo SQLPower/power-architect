@@ -51,7 +51,7 @@ public class SQLExceptionNode extends SQLObject {
         // nothing to populate
 	}
 
-	public void addChild(int index, SQLObject child) {
+	protected void addChildImpl(int index, SQLObject child) {
 		throw new UnsupportedOperationException("SQLExceptionNodes can't have children");
 	}
 

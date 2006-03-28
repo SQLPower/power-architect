@@ -158,6 +158,25 @@ public abstract class SQLObject implements java.io.Serializable {
 	}
 
 	/**
+	 * All other addChild() methods call this one.  If you want to override the addChild behaviour,
+	 * override this method only.
+	 * 
+	 * @param index The index that the new child will have
+	 * @param newChild The new child to add (must be same type as all other children)
+	 * @throws ArchitectException  If you try to add a child of a different type than the existing children.
+	 */
+	protected void addChildImpl(int index, SQLObject newChild) throws ArchitectException {
+		if ( children.size() > 0 && 
+				! (children.get(0).getClass().isAssignableFrom(newChild.getClass())
+					|| newChild.getClass().isAssignableFrom(children.get(0).getClass()))) {
+			throw new ArchitectException("You Can't mix SQL Object Types!");
+		}
+		children.add(index, newChild);
+		newChild.setParent(this);
+		fireDbChildInserted(index, newChild);
+	}
+	
+	/**
 	 * Adds the given SQLObject to this SQLObject at index. Causes a
 	 * DBChildrenInserted event.  If you want to override the
 	 * behaviour of addChild, override this method.
@@ -165,16 +184,7 @@ public abstract class SQLObject implements java.io.Serializable {
 	 * @throws ArchitectException 
 	 */
 	public void addChild(int index, SQLObject newChild) throws ArchitectException {
-
-		if ( children.size() > 0 && 
-				! (children.get(0).getClass().isAssignableFrom(newChild.getClass())
-					|| newChild.getClass().isAssignableFrom(children.get(0).getClass()))) { 
-			throw new ArchitectException("You Can't mix SQL Object Types!");
-		}
-		
-		children.add(index, newChild);
-		newChild.setParent(this);
-		fireDbChildInserted(index, newChild);
+		addChildImpl(index, newChild);
 	}
 
 	/**
@@ -187,7 +197,7 @@ public abstract class SQLObject implements java.io.Serializable {
 	 * @throws Exception 
 	 */
 	public void addChild(SQLObject newChild) throws ArchitectException {
-		addChild(children.size(), newChild);
+		addChildImpl(children.size(), newChild);
 	}
 	
 	public SQLObject removeChild(int index) {
