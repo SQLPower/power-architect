@@ -104,7 +104,7 @@ public class EditTableAction extends AbstractAction {
 			}
 		};
 
-		final JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
+		d = ArchitectPanelBuilder.createArchitectPanelDialog(
 				editPanel, ArchitectFrame.getMainInstance(),
 				"Table Properties", "OK", okAction, cancelAction);
 
