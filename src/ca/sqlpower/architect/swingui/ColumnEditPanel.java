@@ -58,7 +58,8 @@ public class ColumnEditPanel extends JPanel
 
 	public ColumnEditPanel(SQLTable table, int idx) throws ArchitectException {
 		super(new BorderLayout(12,12));
-		index =idx;
+		logger.debug("ColumnEditPanel called");
+		index =idx;		
 		addUndoEventListener(ArchitectFrame.getMainInstance().getUndoManager().getEventAdapter());
 		setModel(table);
 		JPanel centerBox = new JPanel();
@@ -114,8 +115,7 @@ public class ColumnEditPanel extends JPanel
 		centerBox.add(centerPanel);
 		centerBox.add(Box.createVerticalGlue());
 		add(centerBox, BorderLayout.CENTER);
-		editColumn(index);
-
+		editColumn(index);		
 	}
 
 	/**
@@ -193,19 +193,20 @@ public class ColumnEditPanel extends JPanel
 	}
 
 
-	public void selectColumn(int index) {
+	public void selectColumn(int index) throws ArchitectException {
 		this.index = index;
+		editColumn(index);
 	}
 
 	/**
 	 * Causes the edit panel to update the properties of the column at
 	 * <code>index</code> in the table's child list.
 	 */
-	protected void editColumn(int index) throws ArchitectException {
+	private void editColumn(int index) throws ArchitectException {
 		if (index < 0) {
 			return;
 		}
-	
+		logger.debug("Edit Column is being called");
 		// syncronize the selected column with the source of the data
 		// for the edit column properties fields
 		SQLColumn col = model.getColumn(index);

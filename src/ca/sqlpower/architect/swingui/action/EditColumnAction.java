@@ -117,8 +117,6 @@ public class EditColumnAction extends AbstractAction implements ActionListener {
 
 	private void makeDialog(SQLTable st, int colIdx) throws ArchitectException {
 		if (editDialog != null) {
-			//Gets the proper column properties
-			columnEditPanel.editColumn(colIdx);
 			columnEditPanel.setModel(st);
 			columnEditPanel.selectColumn(colIdx);
 			editDialog.setTitle("Column Properties of "+st.getName());
