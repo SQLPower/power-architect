@@ -477,7 +477,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 	 * importedKeysFolder pointers to the children at indices 0, 1,
 	 * and 2 respectively.
 	 */
-	public void addChild(int index, SQLObject child) throws ArchitectException {
+	protected void addChildImpl(int index, SQLObject child) throws ArchitectException {
 		if (child instanceof Folder) {
 			if (children.size() == 0) {
 				columnsFolder = (Folder) child;
@@ -495,7 +495,7 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 		} else {
 			throw new UnsupportedOperationException("You can only add Folders to SQLTable");
 		}
-		super.addChild(index, child);
+		super.addChildImpl(index, child);
 	}
 
 	/**
@@ -785,9 +785,9 @@ public class SQLTable extends SQLObject implements SQLObjectListener {
 
 		}
 
-		public void addChild(int index, SQLObject child) throws ArchitectException {
+		protected void addChildImpl(int index, SQLObject child) throws ArchitectException {
 			logger.debug("[31mAdding child "+child.getName()+" to folder "+getName()+"[0m");
-			super.addChild(index, child);
+			super.addChildImpl(index, child);
 		}
 
 		public String getShortDisplayName() {
