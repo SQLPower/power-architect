@@ -15,7 +15,9 @@ import ca.sqlpower.architect.ddl.*;
 import ca.sqlpower.architect.etl.*;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.ArchitectSwingWorker;
+import ca.sqlpower.architect.swingui.CommonCloseAction;
 import ca.sqlpower.architect.swingui.EngineExecPanel;
 import ca.sqlpower.architect.swingui.PLExportPanel;
 import ca.sqlpower.architect.swingui.PlayPen;
@@ -81,8 +83,8 @@ public class ExportPLTransAction extends AbstractAction {
 			return;
 		}
 
-		// XXX Cannot use ArchitectPanelBuilder here yet because
-		// of the progressbar; need to make this part of "PLExport"??
+		// Cannot use ArchitectPanelBuilder here yet because
+		// of the progressbar.
 		
 		d = new JDialog(ArchitectFrame.getMainInstance(),
 						"Export ETL Transactions to PL Repository");
@@ -95,7 +97,6 @@ public class ExportPLTransAction extends AbstractAction {
 		if (plexp.getJobId() == null || plexp.getJobId().trim().length() == 0) {
 			plexp.setJobId(PLUtils.toPLIdentifier(architectFrame.getProject().getName()+"_JOB"));
 		}
-
 		
 		JPanel plp = new JPanel(new BorderLayout(12,12));
 		plp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12)); 
@@ -149,13 +150,16 @@ public class ExportPLTransAction extends AbstractAction {
 		});
 		buttonPanel.add(okButton);
 
-		JButton cancelButton = new JButton("Cancel");
-		cancelButton.addActionListener(new ActionListener() {
+		Action cancelAction = new AbstractAction() {
 				public void actionPerformed(ActionEvent evt) {
 					plPanel.discardChanges();
 					d.setVisible(false);
 				}
-			});
+		};
+		cancelAction.putValue(Action.NAME, ArchitectPanelBuilder.CANCEL_BUTTON_LABEL);
+		ArchitectPanelBuilder.makeJDialogCancellable(d, cancelAction);
+		d.getRootPane().setDefaultButton(okButton);
+		JButton cancelButton = new JButton(cancelAction);
 		buttonPanel.add(cancelButton);
 
 		// stick in the progress bar here...
@@ -330,14 +334,10 @@ public class ExportPLTransAction extends AbstractAction {
 								EngineExecPanel eep = new EngineExecPanel(commandLine.toString(), proc);
 								pld.setContentPane(eep);
 								
+								Action closeAction = new CommonCloseAction(pld);
 								JButton abortButton = new JButton(eep.getAbortAction());
-								JButton closeButton = new JButton("Close");
+								JButton closeButton = new JButton(closeAction);
                            		
-								closeButton.addActionListener(new ActionListener() {
-										public void actionPerformed(ActionEvent evt) {
-											pld.setVisible(false);
-										}
-									});
                            		
 								JCheckBox scrollLockCheckBox = new JCheckBox(eep.getScrollBarLockAction());
             	       			
@@ -347,6 +347,12 @@ public class ExportPLTransAction extends AbstractAction {
 								buttonPanel.add(scrollLockCheckBox);
 								eep.add(buttonPanel, BorderLayout.SOUTH);
 								
+								// XXX what should "<Escape> do to a dialog that has
+								// both an Abort and a Close button??
+								// ArchitectPanelBuilder.makeJDialogCancellable(pld,
+								//		eep.getAbortAction(), closeAction);
+								
+								pld.getRootPane().setDefaultButton(closeButton);
 								pld.pack();
 								pld.setLocationRelativeTo(d);
 								pld.setVisible(true);

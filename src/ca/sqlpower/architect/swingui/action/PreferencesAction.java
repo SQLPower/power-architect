@@ -7,6 +7,7 @@ import javax.swing.*;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.JDBCDriverPanel;
 import ca.sqlpower.architect.swingui.PreferencesPanel;
 
@@ -45,7 +46,7 @@ public class PreferencesAction extends AbstractAction {
 
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		
-		JButton okButton = new JButton("Ok");
+		JButton okButton = new JButton(ArchitectPanelBuilder.OK_BUTTON_LABEL);
 		okButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent evt) {
 					prefPanel.applyChanges();
@@ -55,16 +56,19 @@ public class PreferencesAction extends AbstractAction {
 			});
 		buttonPanel.add(okButton);
 		
-		JButton cancelButton = new JButton("Cancel");
-		cancelButton.addActionListener(new ActionListener() {
+		Action cancelAction = new AbstractAction() {
 				public void actionPerformed(ActionEvent evt) {
 					prefPanel.discardChanges();
 					jdbcPanel.discardChanges();
 					d.setVisible(false);
 				}
-			});
+		};
+		cancelAction.putValue(Action.NAME, ArchitectPanelBuilder.CANCEL_BUTTON_LABEL);
+		JButton cancelButton = new JButton(cancelAction);
 		buttonPanel.add(cancelButton);
 		
+		ArchitectPanelBuilder.makeJDialogCancellable(d, cancelAction);
+		d.getRootPane().setDefaultButton(okButton);
 		cp.add(buttonPanel, BorderLayout.SOUTH);
 		d.setContentPane(cp);
 		d.pack();

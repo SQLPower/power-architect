@@ -1,24 +1,54 @@
 package ca.sqlpower.architect.swingui;
 
-import javax.swing.*;
-import javax.swing.tree.*;
-
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-import java.awt.dnd.*;
-import java.awt.event.*;
-
-import java.util.List;
-import java.util.Iterator;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DragGestureEvent;
+import java.awt.dnd.DragGestureListener;
+import java.awt.dnd.DragGestureRecognizer;
+import java.awt.dnd.DragSource;
+import java.awt.dnd.DragSourceDragEvent;
+import java.awt.dnd.DragSourceDropEvent;
+import java.awt.dnd.DragSourceEvent;
+import java.awt.dnd.DragSourceListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.ImageIcon;
+import javax.swing.JDialog;
+import javax.swing.JList;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JTree;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.TreeModel;
+import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.*;
+import ca.sqlpower.architect.ArchitectDataSource;
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.SQLCatalog;
+import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLExceptionNode;
+import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLRelationship;
+import ca.sqlpower.architect.SQLSchema;
+import ca.sqlpower.architect.SQLTable;
 
 public class DBTree extends JTree implements DragSourceListener {
 	private static Logger logger = Logger.getLogger(DBTree.class);
@@ -54,6 +84,7 @@ public class DBTree extends JTree implements DragSourceListener {
 		setRootVisible(false);
 		setShowsRootHandles(true);
 		ds = new DragSource();
+		// XXX Why is dgr not used?
 		DragGestureRecognizer dgr = ds.createDefaultDragGestureRecognizer
 			(this, DnDConstants.ACTION_COPY, new DBTreeDragGestureListener());
 
