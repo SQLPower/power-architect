@@ -18,7 +18,6 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DragGestureEvent;
 import java.awt.dnd.DragGestureListener;
-import java.awt.dnd.DragGestureRecognizer;
 import java.awt.dnd.DragSource;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDragEvent;
@@ -200,7 +199,6 @@ public class PlayPen extends JPanel
     private Map<SQLObject,PlayPenComponent> removedComponents = new WeakHashMap<SQLObject, PlayPenComponent>();
 
 	private TablePaneDragGestureListener dgl;
-	private DragGestureRecognizer dgr;
 	private DragSource ds;
 	
 	public PlayPen() {
@@ -222,7 +220,7 @@ public class PlayPen extends JPanel
 		
 		dgl = new TablePaneDragGestureListener();
 		ds = new DragSource();
-		dgr = ds.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_MOVE, dgl);
+		ds.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_MOVE, dgl);
 		logger.debug("DragGestureRecognizer motion threshold: " + getToolkit().getDesktopProperty("DnD.gestureMotionThreshold"));
 	}
 
@@ -1740,7 +1738,7 @@ public class PlayPen extends JPanel
 																  BufferedImage.TYPE_4BYTE_ABGR);
 						Graphics2D imageGraphics = dragImage.createGraphics();
 						// XXX: it would be nice to make this transparent, but initial attempts using AlphaComposite failed (on OS X)
-						label.paint(imageGraphics);
+						label.repaint();
 						imageGraphics.dispose();
 						dge.getDragSource().startDrag(dge, null, dragImage, new Point(0, 0),
 													new DnDTreePathTransferable(paths), tp);
