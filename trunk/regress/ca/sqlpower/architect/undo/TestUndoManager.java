@@ -48,9 +48,11 @@ public class TestUndoManager extends TestCase {
 		SQLDatabase db = new SQLDatabase();
 		pp = new PlayPen(db);
 		fkTable = new SQLTable(db,true);
+		fkTable.setName("child");
 		TablePane tp = new TablePane(fkTable,pp);
 		pp.addTablePane(tp,new Point(1,1));
-		 pkTable = new SQLTable(db,true);
+		pkTable = new SQLTable(db,true);
+		pkTable.setName("parent");
 		TablePane tp2 = new TablePane(pkTable,pp);
 		pp.addTablePane(tp2,new Point(1,1));
 		undoManager = new UndoManager(pp);

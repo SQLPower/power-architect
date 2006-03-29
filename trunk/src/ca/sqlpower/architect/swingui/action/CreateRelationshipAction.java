@@ -104,12 +104,12 @@ public class CreateRelationshipAction extends AbstractAction
 						// column is an exact match, so we don't have to recreate it
 						fkCol = match; 
 					} else {
-						fkCol = (SQLColumn) pkCol.clone();
+						fkCol = new SQLColumn(pkCol);
 						askAboutHijackTypeMismatch = true;
 					}
 				} else {
 					// no match, so we need to import this column from PK table
-					fkCol = (SQLColumn) pkCol.clone();
+					fkCol = new SQLColumn(pkCol);
 				}
 				
 				try {

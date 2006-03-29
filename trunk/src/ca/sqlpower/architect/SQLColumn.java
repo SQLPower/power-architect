@@ -11,11 +11,11 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ddl.TypeMap;
 
-public class SQLColumn extends SQLObject implements java.io.Serializable, Cloneable {
+public class SQLColumn extends SQLObject implements java.io.Serializable {
 
 	private static Logger logger = Logger.getLogger(SQLColumn.class);
 
-	// *** REMEMBER *** update the getDerivedInstance method if you add new properties!
+	// *** REMEMBER *** update the copyProperties method if you add new properties!
 
 	/**
 	 * Refers back to the real database-connected SQLColumn that this
@@ -24,8 +24,6 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	protected SQLColumn sourceColumn;
 
 	protected SQLObject parent;
-	
-	
 
 	/**
 	 * Must be a type defined in java.sql.Types.  Move to enum in 1.5
@@ -68,7 +66,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	protected Integer primaryKeySeq;
 	protected boolean autoIncrement;
 
-	// *** REMEMBER *** update the getDerivedInstance method if you add new properties!
+	// *** REMEMBER *** update the copyProperties method if you add new properties!
 
 	
 	/**
@@ -156,6 +154,16 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	}
 	
 	/**
+	 * Creates a reasonable facsimile of the given column.
+	 */
+	public SQLColumn(SQLColumn col) {
+		super();
+		children = Collections.EMPTY_LIST;
+		copyProperties(this, col);
+		referenceCount = 1;
+	}
+	
+	/**
 	 * Makes a near clone of the given source column.  The new column
 	 * you get back will have a parent pointer of addTo.columnsFolder,
 	 * but will not be attached as a child (you will normally do that
@@ -167,21 +175,33 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 	public static SQLColumn getDerivedInstance(SQLColumn source, SQLTable addTo) {
 		logger.debug("derived instance SQLColumn constructor invocation.");
 		SQLColumn c = new SQLColumn();
+		copyProperties(c, source);
 		c.sourceColumn = source;
 		c.parent = addTo.getColumnsFolder();
-		c.setName(source.getName());
-		c.type = source.type;
-		c.sourceDataTypeName = source.sourceDataTypeName;
-		c.setPhysicalName(source.getPhysicalName());
-		c.precision = source.precision;
-		c.scale = source.scale;
-		c.nullable = source.nullable;
-		c.remarks = source.remarks;
-		c.defaultValue = source.defaultValue;
-		c.primaryKeySeq = source.primaryKeySeq;
-		c.autoIncrement = source.autoIncrement;
-		c.referenceCount = source.referenceCount; 
+		c.referenceCount = source.referenceCount;
 		return c;
+	}
+
+	/**
+	 * Copies all the interesting properties of source into target.  This is a subroutine of
+	 * the copy constructor, and of getDerivedInstance, which is for importing tables from
+	 * source databases.
+	 * 
+	 * @param target The instance to copy properties into.
+	 * @param source The instance to copy properties from.
+	 */
+	private static final void copyProperties(SQLColumn target, SQLColumn source) {
+		target.setName(source.getName());
+		target.type = source.type;
+		target.sourceDataTypeName = source.sourceDataTypeName;
+		target.setPhysicalName(source.getPhysicalName());
+		target.precision = source.precision;
+		target.scale = source.scale;
+		target.nullable = source.nullable;
+		target.remarks = source.remarks;
+		target.defaultValue = source.defaultValue;
+		target.primaryKeySeq = source.primaryKeySeq;
+		target.autoIncrement = source.autoIncrement;
 	}
 
 	/**
@@ -576,15 +596,6 @@ public class SQLColumn extends SQLObject implements java.io.Serializable, Clonea
 			} else {
 				return c1.primaryKeySeq.intValue() - c2.primaryKeySeq.intValue();
 			}
-		}
-	}
-
-	public Object clone() {
-		try {
-			return super.clone();
-		} catch (CloneNotSupportedException e) {
-			logger.error("Clone not supported !?!?");
-			return null;
 		}
 	}
 	

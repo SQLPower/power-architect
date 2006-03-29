@@ -286,7 +286,7 @@ public class TestSQLTable extends SQLTestCase {
 		SQLColumn col1 = db.getTableByName("REGRESSION_TEST2").getColumn(0);
 		col1.setPrimaryKeySeq(new Integer(5));
 		table1 = db.getTableByName("REGRESSION_TEST1");
-		col2 = (SQLColumn) col1.clone();
+		col2 = new SQLColumn(col1);
 		col2.setPrimaryKeySeq(new Integer(16));
 		table1.addColumn(2, col1);
 		table1.addColumn(3, col2);

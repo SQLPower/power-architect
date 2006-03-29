@@ -27,6 +27,7 @@ public class TestSQLRelationship extends SQLTestCase {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
+		System.out.println("-------------Starting New Test "+getName()+" -------------");
 		ArchitectFrame af = ArchitectFrame.getMainInstance();
 		parentTable = new SQLTable(af.getProject().getPlayPen().getDatabase(), "parent", null, "TABLE", true);
 		parentTable.addColumn(new SQLColumn(parentTable, "pkcol_1", Types.INTEGER, 10, 0));
@@ -44,6 +45,7 @@ public class TestSQLRelationship extends SQLTestCase {
 		childTable2.addColumn(new SQLColumn(childTable2, "child2_attribute", Types.INTEGER, 10, 0));
 
 		rel1 = new SQLRelationship();
+		rel1.setIdentifying(true);
 		rel1.setPkTable(parentTable);
 		rel1.setFkTable(childTable1);
 		rel1.addMapping(parentTable.getColumn(0), childTable1.getColumn(0));
@@ -223,5 +225,36 @@ public class TestSQLRelationship extends SQLTestCase {
 		assertNotNull("Child col should exist to start", childTable1.getColumnByName("child_pkcol_1"));
 		parentTable.removeColumn(pkcol);
 		assertNull("Child col should have been removed", childTable1.getColumnByName("child_pkcol_1"));
+	}
+	
+	public void testHijackedColumnGoesToPK() throws ArchitectException {
+		SQLColumn pkcol = new SQLColumn(parentTable, "hijack", Types.INTEGER, 10, 0);
+		SQLColumn fkcol = new SQLColumn(childTable1, "hijack", Types.INTEGER, 10, 0);
+		SQLRelationship rel = parentTable.getExportedKeys().get(0);
+		childTable1.addColumn(0, fkcol);
+		parentTable.addColumn(0, pkcol);
+		pkcol.setPrimaryKeySeq(0);
+		
+		assertNotNull("parent column didn't to go PK", pkcol.getPrimaryKeySeq());
+		assertTrue("column didn't get hijacked", rel.containsFkColumn(fkcol));
+		
+		// this is the point of the test
+		assertNotNull("column didn't go to primary key", fkcol.getPrimaryKeySeq());
+	}
+	
+	public void testHijackedColumnGoesToPK2() throws ArchitectException {
+		SQLColumn pkcol = new SQLColumn(parentTable, "hijack", Types.INTEGER, 10, 0);
+		SQLColumn fkcol = new SQLColumn(childTable1, "hijack", Types.INTEGER, 10, 0);
+		SQLRelationship rel = parentTable.getExportedKeys().get(0);
+		childTable1.addColumn( fkcol);
+		parentTable.addColumn( pkcol);
+		assertNull("pkcol already in the primary key",pkcol.getPrimaryKeySeq());
+		pkcol.setPrimaryKeySeq(0);
+		
+		assertNotNull("parent column didn't to go PK", pkcol.getPrimaryKeySeq());
+		assertTrue("column didn't get hijacked", rel.containsFkColumn(fkcol));
+		
+		// this is the point of the test
+		assertNotNull("column didn't go to primary key", fkcol.getPrimaryKeySeq());
 	}
 }
