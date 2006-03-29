@@ -164,7 +164,6 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 					r.setSelected(false);
 					SQLRelationship sr = r.getModel();
 					sr.getPkTable().removeExportedKey(sr);
-					sr.getFkTable().removeImportedKey(sr);
 				} else {
 					JOptionPane.showMessageDialog((JComponent) item,
 												  "The selected item type is not recognised");
