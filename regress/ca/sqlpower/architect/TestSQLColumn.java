@@ -6,8 +6,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Set;
 
 import junit.extensions.TestSetup;
 import junit.framework.Test;
@@ -620,15 +622,22 @@ public class TestSQLColumn extends SQLTestCase {
 	}
 
 	/*
-	 * Test method for 'ca.sqlpower.architect.SQLColumn.clone()'
+	 * Test method for SQLColumn(SQLColumn)
 	 */
-	public void testClone() throws Exception {
+	public void testCopyConstructor() throws Exception {
 		SQLColumn cowCol = table1pk.getColumn(0);
-		SQLColumn tmpCol = (SQLColumn) cowCol.clone();
+		SQLColumn tmpCol = new SQLColumn(cowCol);
 		
-		Map origProps = BeanUtils.describe(cowCol);
-		Map derivProps = BeanUtils.describe(tmpCol);
+		Set<String> propsToIgnore = new HashSet<String>();
+		propsToIgnore.add("parentTable");
+		propsToIgnore.add("parent");
 		
+		Map<String,Object> origProps = (Map<String,Object>) BeanUtils.describe(cowCol);
+		Map<String,Object> derivProps = (Map<String,Object>) BeanUtils.describe(tmpCol);
+		
+		origProps.keySet().removeAll(propsToIgnore);
+		derivProps.keySet().removeAll(propsToIgnore);
+
 		assertEquals("clone column properties differ from original",
 				origProps.toString(), derivProps.toString());
 	}

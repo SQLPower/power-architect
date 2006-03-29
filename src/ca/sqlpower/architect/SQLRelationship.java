@@ -42,6 +42,11 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		fkCardinality = ZERO | ONE | MANY;
 		fkColumnManager = new FKColumnManager();
 	}
+	
+	public void attachRelationship(SQLTable pkTable, SQLTable fkTable) {
+		
+	}
+
 
 	/**
 	 * Fetches all imported keys for the given table.  (Imported keys
@@ -142,9 +147,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	}
 
 	public ColumnMapping getMappingByPkCol(SQLColumn pkcol) {
-		Iterator it = children.iterator();
-		while (it.hasNext()) {
-			ColumnMapping m = (ColumnMapping) it.next();
+		for (ColumnMapping m : (List<ColumnMapping>) children) {
 			if (m.pkColumn == pkcol) {
 				return m;
 			}
@@ -157,9 +160,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	}
 
 	public ColumnMapping getMappingByFkCol(SQLColumn fkcol) {
-		Iterator it = children.iterator();
-		while (it.hasNext()) {
-			ColumnMapping m = (ColumnMapping) it.next();
+		for (ColumnMapping m : (List<ColumnMapping>) children) {
 			if (m.fkColumn == fkcol) {
 				return m;
 			}
@@ -207,12 +208,24 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		cmap.setPkColumn(pkColumn);
 		cmap.setFkColumn(fkColumn);
 		
-		logger.debug("add column mapping: " +
+		logger.debug("add column mapping: "+pkColumn.getParentTable()+"." +
 				pkColumn.getName() + " to " +
-				fkColumn.getName() );
+				fkColumn.getParentTable()+"."+fkColumn.getName() );
 		
 		addChild(cmap);
 	}
+
+	/**
+	 * Makes sure the new child is hooked into the FK Column Manager.
+	 */
+	@Override
+	protected void addChildImpl(int index, SQLObject newChild) throws ArchitectException {
+		super.addChildImpl(index, newChild);
+		ColumnMapping cm = (ColumnMapping) newChild;
+		cm.getPkColumn().addSQLObjectListener(fkColumnManager);
+	}
+	
+	// TODO: remove from FK column manager when children are removed
 
 	public String toString() {
 		return getShortDisplayName();
@@ -237,6 +250,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 					} else {
 						ensureNotInMapping(col);
 					}
+					col.addSQLObjectListener(this);
 				} catch (ArchitectException ex) {
 					logger.warn("Couldn't add/remove mapped FK columns", ex);
 				}
@@ -257,13 +271,34 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		}
 
 		public void dbObjectChanged(SQLObjectEvent e) {
-			// a column changed.. should update FK type/size/precision and maybe name
+			logger.debug("PK Column changed! property="+e.getPropertyName()+" col="+e.getSource());
 			if (e.getSource() instanceof SQLColumn) {
-				ColumnMapping m = getMappingByPkCol((SQLColumn) e.getSource());
+				SQLColumn col = (SQLColumn) e.getSource();
 				String prop = e.getPropertyName();
+				
+				if (prop.equals("primaryKeySeq")) {
+					try {
+						if (col.getPrimaryKeySeq() != null) {
+							ensureInMapping(col);
+						} else {
+							ensureNotInMapping(col);
+						}
+					} catch (ArchitectException ae) {
+						throw new ArchitectRuntimeException(ae);
+					}
+					return;
+				}
+				
+				ColumnMapping m = getMappingByPkCol(col);
+				if (m == null) {
+					logger.debug("Ignoring change for column "+col+" parent "+col.getParentTable());
+					return;
+				}
+				if (m.getPkColumn() == null) throw new NullPointerException("Missing pk column in mapping");
+				if (m.getFkColumn() == null) throw new NullPointerException("Missing fk column in mapping");
+				
 				if (prop == null
 					|| prop.equals("parent")
-					|| prop.equals("primaryKeySeq")
 					|| prop.equals("remarks")) {
 					// don't care
 				} else if (prop.equals("sourceColumn")) {
@@ -309,14 +344,21 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		}
 
 		protected void ensureInMapping(SQLColumn pkcol) throws ArchitectException {
+			logger.debug("Adding "+pkcol.getParentTable()+"."+pkcol+" to mapping");
 			if (!containsPkColumn(pkcol)) {
 				SQLColumn fkcol = fkTable.getColumnByName(pkcol.getName());
-				if (fkcol == null) {
-					fkcol = (SQLColumn) pkcol.clone();
+				if (fkcol == null) fkcol = new SQLColumn(pkcol);
+				try {
+					fkTable.getColumnsFolder().setSecondaryChangeMode(true);
+					fkcol.setSecondaryChangeMode(true);
 					fkTable.addColumn(fkcol);
+					logger.debug("Is the relationship identifying? "+identifying);
 					if (identifying) {
 						fkcol.setPrimaryKeySeq(new Integer(fkTable.getPkSize()));
 					}
+				} finally {
+					fkTable.getColumnsFolder().setSecondaryChangeMode(false);
+					fkcol.setSecondaryChangeMode(false);
 				}
 				addMapping(pkcol, fkcol);
 			}
@@ -328,6 +370,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		 * have been pushed into the relationship's fkTable.
 		 */
 		protected void ensureNotInMapping(SQLColumn pkcol) throws ArchitectException {
+			logger.debug("Removing "+pkcol.getParentTable()+"."+pkcol+" from mapping");
 			if (containsPkColumn(pkcol)) {
 				ColumnMapping m = getMappingByPkCol(pkcol);
 				List fkTies = fkTable.keysOfColumn(m.getFkColumn());
