@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+import java.util.List;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
@@ -11,6 +12,8 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.action.CreateRelationshipAction;
+import ca.sqlpower.architect.undo.UndoManager;
 
 public class TestSQLRelationship extends SQLTestCase {
 
@@ -19,6 +22,7 @@ public class TestSQLRelationship extends SQLTestCase {
 	private SQLTable childTable2;
 	private SQLRelationship rel1;
 	private SQLRelationship rel2;
+	
 	
 	public TestSQLRelationship(String name) throws Exception {
 		super(name);
@@ -45,19 +49,24 @@ public class TestSQLRelationship extends SQLTestCase {
 		childTable2.addColumn(new SQLColumn(childTable2, "child2_attribute", Types.INTEGER, 10, 0));
 
 		rel1 = new SQLRelationship();
+		rel1.setName("parentTable_childTable1_pk");
 		rel1.setIdentifying(true);
 		rel1.setPkTable(parentTable);
 		rel1.setFkTable(childTable1);
-		rel1.addMapping(parentTable.getColumn(0), childTable1.getColumn(0));
-		rel1.addMapping(parentTable.getColumn(1), childTable1.getColumn(1));
+		childTable1.setSecondaryChangeMode(true);
 		parentTable.addExportedKey(rel1);
 		childTable1.addImportedKey(rel1);
-
+		rel1.addMapping(parentTable.getColumn(0), childTable1.getColumn(0));
+		rel1.addMapping(parentTable.getColumn(1), childTable1.getColumn(1));
+		childTable1.setSecondaryChangeMode(false);
+		
 		rel2 = new SQLRelationship();
 		rel2.setPkTable(parentTable);
 		rel2.setFkTable(childTable2);
 		parentTable.addExportedKey(rel2);
 		childTable2.addImportedKey(rel2);
+		
+		
 	}
 	
 	/**
@@ -97,7 +106,7 @@ public class TestSQLRelationship extends SQLTestCase {
 
 		rel1.setPhysicalName(null);
 		assertEquals(3, l.getChangedCount());
-		assertEquals("new name didn't go null", null, rel1.getPhysicalName());
+		assertEquals("new name didn't go back to logical name", rel1.getName(), rel1.getPhysicalName());
 
 		rel1.setPhysicalName(null);
 		assertEquals(3, l.getChangedCount());
@@ -227,6 +236,12 @@ public class TestSQLRelationship extends SQLTestCase {
 		assertNull("Child col should have been removed", childTable1.getColumnByName("child_pkcol_1"));
 	}
 	
+	/**
+	 * testing that a column gets hijacked and promoted to the primary key
+	 * when the corrisponding pk column is added into the primary key 
+	 * 
+	 * @throws ArchitectException
+	 */
 	public void testHijackedColumnGoesToPK() throws ArchitectException {
 		SQLColumn pkcol = new SQLColumn(parentTable, "hijack", Types.INTEGER, 10, 0);
 		SQLColumn fkcol = new SQLColumn(childTable1, "hijack", Types.INTEGER, 10, 0);
@@ -242,6 +257,13 @@ public class TestSQLRelationship extends SQLTestCase {
 		assertNotNull("column didn't go to primary key", fkcol.getPrimaryKeySeq());
 	}
 	
+	/**
+	 * testing that a column gets hijacked and promoted to the primary key
+	 * when the corrisponding pk column is moved into the primary key from further
+	 * down in its column list. 
+	 * 
+	 * @throws ArchitectException
+	 */
 	public void testHijackedColumnGoesToPK2() throws ArchitectException {
 		SQLColumn pkcol = new SQLColumn(parentTable, "hijack", Types.INTEGER, 10, 0);
 		SQLColumn fkcol = new SQLColumn(childTable1, "hijack", Types.INTEGER, 10, 0);
@@ -256,5 +278,29 @@ public class TestSQLRelationship extends SQLTestCase {
 		
 		// this is the point of the test
 		assertNotNull("column didn't go to primary key", fkcol.getPrimaryKeySeq());
+	}
+	
+	public void testFKColManagerRemovesImportedKey() throws ArchitectException {
+		assertTrue("Parent table should export rel1",parentTable.getExportedKeys().contains(rel1));
+		assertTrue("childTable1 should import rel1",childTable1.getImportedKeys().contains(rel1));
+		assertEquals("Child's imported count is whacked out", 1, childTable1.getImportedKeys().size());
+		
+		assertNotNull("Missing imported key", childTable1.getColumnByName("child_pkcol_1"));
+		assertNotNull("Missing imported key", childTable1.getColumnByName("child_pkcol_2"));
+		int oldChildColCount = childTable1.getColumns().size();
+		
+		parentTable.removeExportedKey(rel1);
+
+		assertFalse("Parent table should not export rel1 any more", parentTable.getExportedKeys().contains(rel1));
+		assertFalse("childTable1 should not import rel1 any more", childTable1.getImportedKeys().contains(rel1));
+				
+		// the following tests depend on FKColumnManager behaviour, not UndoManager
+		assertEquals("Relationship still attached to child", 0, childTable1.getImportedKeys().size());
+		assertNull("Orphaned imported key", childTable1.getColumnByName("child_pkcol_1"));
+		assertNull("Orphaned imported key", childTable1.getColumnByName("child_pkcol_2"));
+		assertEquals("Child column list should have shrunk by 2", oldChildColCount - 2, childTable1.getColumns().size());
+		assertNotNull("Missing exported key", parentTable.getColumnByName("pkcol_1"));
+		assertNotNull("Missing exported key", parentTable.getColumnByName("pkcol_2"));
+		
 	}
 }
