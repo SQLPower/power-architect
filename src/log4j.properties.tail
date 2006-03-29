@@ -1,0 +1,13 @@
+
+# Tail end of automatically-generated log4j config file; just set up Appenders.
+
+log4j.appender.R=org.apache.log4j.RollingFileAppender
+log4j.appender.R.File=architect.log
+log4j.appender.R.MaxFileSize=10000KB
+log4j.appender.R.MaxBackupIndex=1
+log4j.appender.R.layout=org.apache.log4j.PatternLayout
+log4j.appender.R.layout.ConversionPattern=%-4r [%t] %-5p %c %x - %m%n
+
+log4j.appender.C=org.apache.log4j.ConsoleAppender
+log4j.appender.C.layout=org.apache.log4j.PatternLayout
+log4j.appender.C.layout.ConversionPattern=%-4r [%t] %-5p %c %x - %m%n
