@@ -169,6 +169,8 @@ public class SwingUIProject {
 
 		((SQLObject) sourceDatabases.getModel().getRoot()).addChild(0, playPen.getDatabase());
 		setModified(false);
+		// TODO change this to load the undo history from a file
+		undoManager.discardAllEdits();
 	}
 
 	
@@ -497,8 +499,8 @@ public class SwingUIProject {
 			String pkTableId = attributes.getValue("pk-table-ref");
 			if (pkTableId != null) {
 				SQLTable pkTable = (SQLTable) objectIdMap.get(pkTableId);
-				rel.setPkTable(pkTable);
 				try {
+					rel.setPkTable(pkTable);
 					pkTable.addExportedKey(rel);
 				} catch (ArchitectException e) {
 					logger.error("Couldn't add pk to table \""+pkTable.getName()+"\"", e);
