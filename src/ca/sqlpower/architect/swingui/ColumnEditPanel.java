@@ -119,6 +119,9 @@ public class ColumnEditPanel extends JPanel
 	}
 
 	/**
+	 * XXX: some of the code could now be removed since we support only editting
+	 * one column at a time
+	 * 
 	 * You should call selectColumn with a nonnegative index after calling setModel.
 	 */
 	public void setModel(SQLTable newModel) {
