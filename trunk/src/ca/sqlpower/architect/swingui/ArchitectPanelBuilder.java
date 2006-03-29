@@ -42,7 +42,7 @@ public class ArchitectPanelBuilder {
 	 * @param okAction Action to be invoked when the OK/action button is
 	 * 	pressed; does NOT need to dismiss the dialog (we do that).
 	 * @param cancelAction Action to be invoked when the cancel button is
-	 * 	pressed; does NOT need to dismiss the dialog (we do that).
+	 * 	pressed; does NOT need to dismiss the dialog.
 	 * @return
 	 */
 	public static JDialog createArchitectPanelDialog(
@@ -65,25 +65,28 @@ public class ArchitectPanelBuilder {
 							+ dialogParent.getClass().getName() + ")");
 		}
 		JComponent panel = arch.getPanel();
-		JButton okButton = new JButton(okAction);
 		
+		// In all cases we have to close the dialog.
 		Action closeAction = new CommonCloseAction(d);
 		
+		JButton okButton = new JButton(okAction);
+		okButton.setText(actionButtonTitle);				
 		okButton.addActionListener(closeAction);
-		okButton.setText(actionButtonTitle);
-
+		
 		JButton cancelButton = new JButton(cancelAction);
-		cancelButton.addActionListener(closeAction);
 		cancelButton.setText(CANCEL_BUTTON_LABEL);
+		cancelButton.addActionListener(closeAction);
+		
 		// Handle if the user presses Enter in the dialog - do OK action
 		d.getRootPane().setDefaultButton(okButton);
 		
-		makeJDialogCancellable(d, cancelAction, closeAction);
-
+		makeJDialogCancellable(d, cancelAction);
+		
+		// Now build the GUI.
 		JPanel cp = new JPanel(new BorderLayout());
 		cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
 		cp.add(panel, BorderLayout.CENTER);
-
+		
 		cp.add(ButtonBarFactory.buildOKCancelBar(okButton, cancelButton),
 				BorderLayout.SOUTH);
 		cp.setBorder(Borders.DIALOG_BORDER);
@@ -99,37 +102,27 @@ public class ArchitectPanelBuilder {
 	}
 
 	/**
-	 * Arrange for a JDialog to close nicely. Called with two Actions,
-	 * one of which (the cancelAction) may be user-provided (and may
-	 * even be null) while the other (the closeAction) is likely to be
-	 * an instance of our CommonCloseAction.
-	 * Sadly the Swing ActionMap does not handle multiple entries,
-	 * so we have to branch out action handling to both Actions.
+	 * Arrange for a JDialog to close nicely. Called with an Action,
+	 * which will become the cancelAction of the dialog.
+	 * Note: we explicitly close the dialog from this code.
 	 * @param d
 	 * @param cancelAction
-	 * @param closeAction
 	 */
 	public static void makeJDialogCancellable(
 			final JDialog d, 
-			final Action cancelAction,
-			final Action closeAction) {
+			final Action cancelAction) {
 		
-		if (closeAction == null) {
-			throw new NullPointerException("closeAction may not be null");
-		}
 		JComponent c = (JComponent) d.getRootPane();
 				
 		InputMap inputMap = c.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 		ActionMap actionMap = c.getActionMap();
 		
 		inputMap.put(KeyStroke.getKeyStroke("ESCAPE"), "cancel");
-		actionMap.remove("cancel");
 		actionMap.put("cancel", new AbstractAction() {
 			public void actionPerformed(ActionEvent e) {
-				if (cancelAction != null) {
-					cancelAction.actionPerformed(e);
-				}
-				closeAction.actionPerformed(e);
+				cancelAction.actionPerformed(e);
+				d.setVisible(false);
+				d.dispose();
 			}			
 		});
 	}

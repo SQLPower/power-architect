@@ -53,7 +53,7 @@ public class AboutAction extends AbstractAction {
 			
 		cp.add(buttonPanel, BorderLayout.SOUTH);
 		ArchitectPanelBuilder.makeJDialogCancellable(
-				d, null, new CommonCloseAction(d));
+				d, new CommonCloseAction(d));
 		d.getRootPane().setDefaultButton(okButton);
 		d.setContentPane(cp);
 		d.pack();

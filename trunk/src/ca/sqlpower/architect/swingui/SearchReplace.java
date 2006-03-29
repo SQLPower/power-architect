@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -191,7 +193,7 @@ public class SearchReplace {
         searchExpression = new JTextField();
         
         JButton searchButton = new JButton("Search");
-        searchButton.setDefaultCapable(true);
+        // searchButton.setDefaultCapable(true);
         searchButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
@@ -202,13 +204,16 @@ public class SearchReplace {
             }
         });
 
-        JButton cancelButton = new JButton("Cancel");
-        cancelButton.addActionListener(new ActionListener() {
+        Action cancelAction = new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
                 d.setVisible(false);
                 d.dispose();
             }
-        });
+        };
+        cancelAction.putValue(Action.NAME, ArchitectPanelBuilder.CANCEL_BUTTON_LABEL);
+        JButton cancelButton = new JButton(cancelAction);
+        
+        ArchitectPanelBuilder.makeJDialogCancellable(d, cancelAction);
         
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.add(searchButton);
@@ -323,13 +328,9 @@ public class SearchReplace {
 	            }
 	        });
 	
-	        JButton closeButton = new JButton("Close");
-	        closeButton.addActionListener(new ActionListener() {
-	            public void actionPerformed(ActionEvent e) {
-	                d.setVisible(false);
-	                d.dispose();
-	            }
-	        });
+	        Action closeAction = new CommonCloseAction(d);
+	        JButton closeButton = new JButton(closeAction);
+	        ArchitectPanelBuilder.makeJDialogCancellable(d, closeAction);
 	        
 	        ListSelectionListener buttonActivator = new ListSelectionListener() {
 	            public void valueChanged(ListSelectionEvent e) {
