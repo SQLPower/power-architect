@@ -38,7 +38,7 @@ public class ArchitectUtils {
 		String configName = "log4j.properties";
 		URL config = ArchitectUtils.class.getClassLoader().getResource(configName);
 		if (config == null) {
-			// It is probably not a good idead to change this to use log4j logging...
+			// It is probably not a good idea to change this to use log4j logging...
 			System.err.println("Warning: Couldn't find log4j config resource '"+configName+"'");
 		} else {
 			org.apache.log4j.PropertyConfigurator.configure(config);
