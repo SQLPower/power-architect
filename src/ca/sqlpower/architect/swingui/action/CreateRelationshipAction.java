@@ -131,6 +131,7 @@ public class CreateRelationshipAction extends AbstractAction
 						}
 					}
 					
+					// This might bump up the reference count (which would be correct)
 					fkTable.addColumn(fkCol);
 					
 					if (identifying && fkCol.getPrimaryKeySeq() == null) {
@@ -160,8 +161,8 @@ public class CreateRelationshipAction extends AbstractAction
 	/*
 	 *  Ideally, loop through until you get a unique column name...
 	 */
-	private static String generateUniqueColumnName(SQLColumn column, SQLTable table) {		
-		return column.getName() + "_1";  // XXX: fix this to be better
+	private static String generateUniqueColumnName(SQLColumn column, SQLTable table) {
+		return column.getParentTable().getName() + "_" + column.getName();  // FIXME: still might not be unique
 	}
 	
 	public void setPlayPen(PlayPen playpen) {
