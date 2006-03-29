@@ -92,13 +92,12 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 				if (item instanceof TablePane) {
 					// make a list of columns to delete
 					TablePane tp = (TablePane) item;
-					ArrayList selectedColumns = new ArrayList();
+					List<SQLColumn> selectedColumns = null;
 					try {
-						for (int i=0; i < tp.getModel().getColumns().size(); i++) {
-							if (tp.isColumnSelected(i)) {
-								deletingColumns = true; // don't fall through into Table/Relationship delete logic
-								selectedColumns.add(tp.getModel().getColumn(i));
-							}
+						selectedColumns = tp.getSelectedColumns();
+						if (selectedColumns.size() > 0) {
+							// don't fall through into Table/Relationship delete logic							
+							deletingColumns = true;
 						}
 					} catch (ArchitectException ae) {
 						JOptionPane.showMessageDialog(pp, ae.getMessage());

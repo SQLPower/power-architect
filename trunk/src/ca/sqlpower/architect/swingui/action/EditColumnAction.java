@@ -1,7 +1,6 @@
 package ca.sqlpower.architect.swingui.action;
 
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
@@ -61,6 +60,7 @@ public class EditColumnAction extends AbstractAction implements ActionListener {
 	public void actionPerformed(ActionEvent evt) {
 		if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN)) {
 			List selection = pp.getSelectedItems();
+			logger.debug("selections length is: " + selection.size());			
 			if (selection.size() < 1) {
 				JOptionPane.showMessageDialog(pp, "Select a column (by clicking on it) and try again.");
 			} else if (selection.size() > 1) {
@@ -68,8 +68,16 @@ public class EditColumnAction extends AbstractAction implements ActionListener {
 			} else if (selection.get(0) instanceof TablePane) {
 				TablePane tp = (TablePane) selection.get(0);
 				try {
+					List<SQLColumn> selectedCols = tp.getSelectedColumns();
+					if (selectedCols.size() != 1) {
+						JOptionPane.showMessageDialog(pp, "Please select one and only one column");
+						logger.error("Please select one and only one column");
+						cleanup();
+						return;
+					}
 					int idx = tp.getSelectedColumnIndex();
 					if (idx < 0) { // header must have been selected
+						logger.error("CantHappen: idx < 0");
 						JOptionPane.showMessageDialog(pp, "Please select the column you would like to edit.");						
 					} else {				
 						makeDialog(tp.getModel(),idx);
@@ -118,10 +126,11 @@ public class EditColumnAction extends AbstractAction implements ActionListener {
 	private void makeDialog(SQLTable st, int colIdx) throws ArchitectException {
 		if (editDialog != null) {
 			columnEditPanel.setModel(st);
-			columnEditPanel.selectColumn(colIdx);
-			editDialog.setTitle("Column Properties of "+st.getName());
-			editDialog.setVisible(true);
-			editDialog.requestFocus();
+			columnEditPanel.selectColumn(colIdx);			
+			editDialog.setTitle("Column Properties of "+st.getName());			
+			editDialog.setVisible(true);			
+			//editDialog.requestFocus();
+			
 		} else {
 			JPanel panel = new JPanel();
 			panel.setLayout(new BorderLayout(12,12));

@@ -433,13 +433,27 @@ public class TablePane
 	 * COLUMN_INDEX_NONE if there are no selected columns.
 	 */
 	public int getSelectedColumnIndex() {
-		ListIterator it = columnSelection.listIterator();
+		ListIterator<Boolean> it = columnSelection.listIterator();
 		while (it.hasNext()) {
-			if (((Boolean) it.next()).booleanValue() == true) {
+			if ((it.next()) == true) {
 				return it.previousIndex();
 			}
 		}
 		return COLUMN_INDEX_NONE;
+	}
+	
+	/**
+	 * Returns the list of selected column(s).
+	 * @throws ArchitectException
+	 */
+	public List<SQLColumn> getSelectedColumns() throws ArchitectException {
+		List<SQLColumn> selectedColumns = new ArrayList<SQLColumn>();
+		for (int i=0; i < getModel().getColumns().size(); i++) {
+			if (isColumnSelected(i)) {
+				selectedColumns.add(getModel().getColumn(i));
+			}
+		}
+		return selectedColumns;
 	}
 
 	// --------------------- SELECTION EVENT SUPPORT ---------------------
