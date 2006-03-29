@@ -44,7 +44,7 @@ public class TestUndoManager extends TestCase {
 	SQLTable pkTable;
 	protected void setUp() throws Exception {
 		super.setUp();
-		
+		System.out.println("-----------------Start setup for "+getName()+"----------------");
 		SQLDatabase db = new SQLDatabase();
 		pp = new PlayPen(db);
 		fkTable = new SQLTable(db,true);
@@ -64,6 +64,8 @@ public class TestUndoManager extends TestCase {
 		pkTable.getColumn(1).setPrimaryKeySeq(1);
 		pkTable.getColumn(1).setName("pk2");
 		pkTable.getColumn(1).setType(Types.INTEGER);
+		db.addChild(pkTable);
+		System.out.println("-----------------End setup for "+getName()+"----------------");
 		
 	}
 		
@@ -109,22 +111,25 @@ public class TestUndoManager extends TestCase {
 		assertEquals("Oops started out with relationships", 0, fkTable.getImportedKeys().size());
 		CreateRelationshipAction.doCreateRelationship(pkTable, fkTable, pp, false);
 		assertEquals("Wrong number of relationships created", 1, pp.getRelationships().size());
-		assertEquals("Did the relationship create the columns in the fkTable", 2, fkTable.getColumns().size());
 		List<SQLColumn> columns = fkTable.getColumns();
+		assertEquals("Did the relationship create the columns in the fkTable", 2, columns.size());
 		assertNull("Is the first column a key column?", columns.get(0).getPrimaryKeySeq());
 		assertNull("Is the second column a key column?", columns.get(1).getPrimaryKeySeq());
 		assertEquals("Is the first column pk1?", "pk1", columns.get(0).getName());
 		assertEquals("Is the second column pk2?", "pk2", columns.get(1).getName());
+		
 		assertTrue("Not registering create action with the undo manager", undoManager.canUndo());
+		System.out.println(undoManager.toString());
 		undoManager.undo();
-		// If the Undo is working these columns should be gone
-		columns = fkTable.getColumns();
+		
 		assertEquals("Relationship still attached to parent", 0, pkTable.getExportedKeys().size());
+
+		// the following tests depend on FKColumnManager behaviour, not UndoManager
 		assertEquals("Relationship still attached to child", 0, fkTable.getImportedKeys().size());
 		assertNull("Orphaned imported key", fkTable.getColumnByName("pk1"));
 		assertNull("Orphaned imported key", fkTable.getColumnByName("pk2"));
-		assertNull("Missing exported key", pkTable.getColumnByName("pk1"));
-		assertNull("Missing exported key", pkTable.getColumnByName("pk2"));
+		assertNotNull("Missing exported key", pkTable.getColumnByName("pk1"));
+		assertNotNull("Missing exported key", pkTable.getColumnByName("pk2"));
 		
 	}
 
