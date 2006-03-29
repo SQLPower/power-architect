@@ -111,7 +111,7 @@ public class SQLScriptDialog extends JDialog {
 		this.targetDataSource = targetDataSource;
 		this.closeParent = closeParent;
 		this.gen = gen;
-		System.out.println("The list size is :" + statements.size());
+		logger.info("The list size is :" + statements.size());
 		add(buildPanel());
 		pack();
 		setLocationRelativeTo(parent);
@@ -159,7 +159,7 @@ public class SQLScriptDialog extends JDialog {
 		Action save = new AbstractAction(){
 			public void actionPerformed(ActionEvent e) {
 				
-				System.out.println( "SQL_FILE_FILTER:"+ ((FileExtensionFilter) ASUtils.SQL_FILE_FILTER).toString());
+				logger.info( "SQL_FILE_FILTER:"+ ((FileExtensionFilter) ASUtils.SQL_FILE_FILTER).toString());
 				
 				SaveDocument sd = new SaveDocument(parent,sqlDoc,
 						(FileExtensionFilter) ASUtils.SQL_FILE_FILTER );

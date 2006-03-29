@@ -137,7 +137,7 @@ public class DatabaseComboBoxListener
 					schemaComboBox.addItem(o);
 				}
 				schemaComboBox.setEnabled(true);
-				System.out.println ("Schema enabled");
+				logger.info("Schema enabled");
 			}
 
 		} catch (ArchitectException ex) {
