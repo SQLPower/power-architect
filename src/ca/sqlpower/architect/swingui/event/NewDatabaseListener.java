@@ -17,6 +17,7 @@ import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.DBCSPanel;
+import ca.sqlpower.architect.swingui.JDefaultButton;
 
 /*
  * When a new database connection has been established, this listener
@@ -50,7 +51,7 @@ public class NewDatabaseListener implements ActionListener {
 
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
-		JButton okButton = new JButton(ArchitectPanelBuilder.OK_BUTTON_LABEL);
+		JDefaultButton okButton = new JDefaultButton(ArchitectPanelBuilder.OK_BUTTON_LABEL);
 		okButton.addActionListener(new ActionListener() {
 		
 			public void actionPerformed(ActionEvent evt) {

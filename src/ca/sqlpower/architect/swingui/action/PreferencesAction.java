@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.JDBCDriverPanel;
+import ca.sqlpower.architect.swingui.JDefaultButton;
 import ca.sqlpower.architect.swingui.PreferencesPanel;
 
 public class PreferencesAction extends AbstractAction {
@@ -46,7 +47,7 @@ public class PreferencesAction extends AbstractAction {
 
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		
-		JButton okButton = new JButton(ArchitectPanelBuilder.OK_BUTTON_LABEL);
+		JDefaultButton okButton = new JDefaultButton(ArchitectPanelBuilder.OK_BUTTON_LABEL);
 		okButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent evt) {
 					prefPanel.applyChanges();

@@ -19,6 +19,7 @@ import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.ArchitectSwingWorker;
 import ca.sqlpower.architect.swingui.CommonCloseAction;
 import ca.sqlpower.architect.swingui.EngineExecPanel;
+import ca.sqlpower.architect.swingui.JDefaultButton;
 import ca.sqlpower.architect.swingui.PLExportPanel;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.ProgressWatcher;
@@ -336,7 +337,7 @@ public class ExportPLTransAction extends AbstractAction {
 								
 								Action closeAction = new CommonCloseAction(pld);
 								JButton abortButton = new JButton(eep.getAbortAction());
-								JButton closeButton = new JButton(closeAction);
+								JDefaultButton closeButton = new JDefaultButton(closeAction);
                            		
                            		
 								JCheckBox scrollLockCheckBox = new JCheckBox(eep.getScrollBarLockAction());

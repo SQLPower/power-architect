@@ -10,6 +10,7 @@ import ca.sqlpower.architect.swingui.AboutPanel;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.CommonCloseAction;
+import ca.sqlpower.architect.swingui.JDefaultButton;
 import ca.sqlpower.architect.swingui.PlayPen;
 
 public class AboutAction extends AbstractAction {
@@ -48,7 +49,7 @@ public class AboutAction extends AbstractAction {
 			}
 		};
 		okAction.putValue(Action.NAME, "OK");
-		JButton okButton = new JButton(okAction);
+		JDefaultButton okButton = new JDefaultButton(okAction);
 		buttonPanel.add(okButton);
 			
 		cp.add(buttonPanel, BorderLayout.SOUTH);

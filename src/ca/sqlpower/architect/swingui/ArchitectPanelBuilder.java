@@ -24,7 +24,7 @@ public class ArchitectPanelBuilder {
 
 	public static final String OK_BUTTON_LABEL = "OK";
 	public static final String CANCEL_BUTTON_LABEL = "Cancel";
-
+	
 	/**
 	 * Build a JDialog around an object that implements ArchitectPanel, to
 	 * provide consistent behaviours such as Cancel button, <ESC> to close, and
@@ -69,11 +69,11 @@ public class ArchitectPanelBuilder {
 		// In all cases we have to close the dialog.
 		Action closeAction = new CommonCloseAction(d);
 		
-		JButton okButton = new JButton(okAction);
+		JButton okButton = new JDefaultButton(okAction);
 		okButton.setText(actionButtonTitle);				
 		okButton.addActionListener(closeAction);
 		
-		JButton cancelButton = new JButton(cancelAction);
+		JButton cancelButton = new JDefaultButton(cancelAction);
 		cancelButton.setText(CANCEL_BUTTON_LABEL);
 		cancelButton.addActionListener(closeAction);
 		
