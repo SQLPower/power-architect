@@ -109,7 +109,8 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		// StringReader r = new StringReader(testData);
 		ByteArrayInputStream r = new ByteArrayInputStream(testData.getBytes());
 		project.load(r);
-		System.out.println("TestSwingUIProject.testLoad(): Project Loaded OK");
+		assertFalse("Project starts out with undo history",project.getUndoManager().canUndoOrRedo());
+		
 	}
 
 	/*
