@@ -80,7 +80,7 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 			}
 			compoundEditStackCount--;
 			if (compoundEditStackCount == 0)
-				returnToEditState();   // GOTO carolina || alabama
+				returnToEditState();   
 			if (logger.isDebugEnabled()) {
 				logger.debug("compoundGroupEnd: edit stack ="+compoundEditStackCount);
 			}
@@ -179,7 +179,7 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 			if(ce!= null) {
 				// make sure the edit is no longer in progress
 				ce.end();
-				// add at least one movement for when ignoring events
+				// add at least one movement when ignoring move events
 				if (movementEvent != null)
 				{
 					ce.addEdit(new TablePaneLocationEdit(movementEvent));
@@ -187,11 +187,13 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 				}
 				if (ce.canUndo())
 				{
+					logger.debug("Adding compound edit "+ ce +" to undo manager");
 					UndoManager.this.addEdit(ce);
+				} else {
+					logger.debug("Compound edit "+ ce +" is not undoable so we are not adding it");
 				}
-				ce = null;
-				logger.debug("Adding compound edit to undo manager");		
 				
+				ce = null;
 			}
 			else
 			{
@@ -262,7 +264,7 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 
 		public void compoundEditEnd(UndoCompoundEvent e) {
 			if (logger.isDebugEnabled()) {
-				logger.debug("compoundEditStart with event: "+e.toString());
+				logger.debug("compoundEditEnd with event: "+e.toString());
 			}
 			compoundGroupEnd();
 			
