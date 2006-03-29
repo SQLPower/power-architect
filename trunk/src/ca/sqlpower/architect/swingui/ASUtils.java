@@ -2,13 +2,8 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.Dialog;
 import java.awt.Dimension;
-import java.awt.Frame;
 import java.awt.Point;
-import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -17,24 +12,15 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.JWindow;
 import javax.swing.filechooser.FileFilter;
 
 import org.apache.log4j.Logger;
-
-import com.jgoodies.forms.factories.Borders;
-import com.jgoodies.forms.factories.ButtonBarFactory;
 
 /**
  * ASUtils is a container class for static utility methods used
@@ -125,7 +111,7 @@ public class ASUtils {
 
 	public static class FileExtensionFilter extends FileFilter {
 
-		protected LinkedHashSet extensions;
+		protected LinkedHashSet<String> extensions;
 		protected String name;
 
 		/**
@@ -138,7 +124,7 @@ public class ASUtils {
 		 */
 		public FileExtensionFilter(String name, String[] extensions) {
 			this.name = name;
-			this.extensions = new LinkedHashSet(Arrays.asList(extensions));
+			this.extensions = new LinkedHashSet<String>(Arrays.asList(extensions));
 		}
 
 		public String toString() {
@@ -174,7 +160,7 @@ public class ASUtils {
 		 * Get the extension of a filter.
 		 */  
 		public String getFilterExtension(Integer index) {
-			List<String> l = new ArrayList(extensions);
+			List<String> l = new ArrayList<String>(extensions);
 			int i;
 			
 			if ( index == null ||
@@ -305,39 +291,4 @@ public class ASUtils {
 									  JOptionPane.ERROR_MESSAGE);
 	}
 
-	/**
-	 * Creates and packs (but does not show) a dialog window with the given main content pane, title,
-	 * and ok and cancel buttons.
-	 * 
-	 * @param contentPanel The panel which forms the main body of the new dialog.
-	 * @param dialogParent The parent of the new dialog (must be either Frame or Dialog; plain Window
-	 * is not allowed).
-	 * @param dialogTitle The title of the new dialog.
-	 * @param okButton The button to use for the dialog's OK button.
-	 * @param cancelButton The button to use for the dialog's Cancel button.
-	 * @throws IllegalArgumentException if the dialogParent is not a Frame or Dialog (or subclass thereof).
-	 */
-	public static JDialog createOkCancelDialog(
-			JComponent contentPanel,
-			Window dialogParent,
-			String dialogTitle,
-			JButton okButton,
-			JButton cancelButton) {
-		JDialog d;
-		if (dialogParent instanceof Frame) {
-			d = new JDialog((Frame) dialogParent, dialogTitle);
-		} else if (dialogParent instanceof Dialog) {
-			d = new JDialog((Dialog) dialogParent, dialogTitle);
-		} else {
-			throw new IllegalArgumentException("The dialogParent you gave me is not a " +
-					"Frame or Dialog (it is a "+dialogParent.getClass().getName()+")");
-		}
-		JPanel cp = new JPanel(new BorderLayout());
-		cp.add(contentPanel, BorderLayout.CENTER);
-		cp.add(ButtonBarFactory.buildOKCancelBar(okButton, cancelButton), BorderLayout.SOUTH);
-		cp.setBorder(Borders.DIALOG_BORDER);
-		d.setContentPane(cp);
-		d.pack();
-		return d;
-	}
 }

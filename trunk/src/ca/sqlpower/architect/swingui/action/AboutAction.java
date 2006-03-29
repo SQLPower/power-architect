@@ -8,6 +8,8 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.AboutPanel;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
+import ca.sqlpower.architect.swingui.CommonCloseAction;
 import ca.sqlpower.architect.swingui.PlayPen;
 
 public class AboutAction extends AbstractAction {
@@ -39,17 +41,20 @@ public class AboutAction extends AbstractAction {
 			
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 			
-		JButton okButton = new JButton("Ok");
-		okButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
+		Action okAction = new AbstractAction() {
+			public void actionPerformed(ActionEvent evt) {
 					aboutPanel.applyChanges();
 					d.setVisible(false);
-				}
-			});
+			}
+		};
+		okAction.putValue(Action.NAME, "OK");
+		JButton okButton = new JButton(okAction);
 		buttonPanel.add(okButton);
 			
 		cp.add(buttonPanel, BorderLayout.SOUTH);
-		
+		ArchitectPanelBuilder.makeJDialogCancellable(
+				d, null, new CommonCloseAction(d));
+		d.getRootPane().setDefaultButton(okButton);
 		d.setContentPane(cp);
 		d.pack();
 		d.setLocationRelativeTo(ArchitectFrame.getMainInstance());

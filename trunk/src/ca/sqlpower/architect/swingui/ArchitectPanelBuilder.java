@@ -2,15 +2,14 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.BorderLayout;
 import java.awt.Dialog;
-import java.awt.Event;
 import java.awt.Frame;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.ActionMap;
+import javax.swing.BorderFactory;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -30,7 +29,7 @@ public class ArchitectPanelBuilder {
 	 * Build a JDialog around an object that implements ArchitectPanel, to
 	 * provide consistent behaviours such as Cancel button, <ESC> to close, and
 	 * so on.
-	 * 
+	 * XXX Worry about modal vs non-modal
 	 * @param arch
 	 *            The ArchitectPanel implementation
 	 * @param dialogParent
@@ -47,9 +46,11 @@ public class ArchitectPanelBuilder {
 	 * @return
 	 */
 	public static JDialog createArchitectPanelDialog(
-			final ArchitectPanel arch,
-			final Window dialogParent, final String dialogTitle,
-			final String actionButtonTitle, final Action okAction,
+			final ArchitectPanel arch,			
+			final Window dialogParent, 
+			final String dialogTitle,
+			final String actionButtonTitle, 
+			final Action okAction,
 			final Action cancelAction) {
 		
 		final JDialog d;
@@ -65,44 +66,72 @@ public class ArchitectPanelBuilder {
 		}
 		JComponent panel = arch.getPanel();
 		JButton okButton = new JButton(okAction);
-		okButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				d.setVisible(false);
-				d.dispose();
-			}
-		});
+		
+		Action closeAction = new CommonCloseAction(d);
+		
+		okButton.addActionListener(closeAction);
 		okButton.setText(actionButtonTitle);
 
 		JButton cancelButton = new JButton(cancelAction);
-		cancelButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				d.setVisible(false);
-				d.dispose();
-			}
-		});
+		cancelButton.addActionListener(closeAction);
 		cancelButton.setText(CANCEL_BUTTON_LABEL);
-		
 		// Handle if the user presses Enter in the dialog - do OK action
 		d.getRootPane().setDefaultButton(okButton);
 		
-		// Handle if the user presses <ESCAPE> in the dialog - do CANCEL action
-		// XXX BUG for now this (<ESCAPE>) does NOT work
-		KeyStroke keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, Event.SHIFT_MASK);
-		// System.out.println("KEYSTROKE = " + keyStroke);
-		InputMap inputMap = d.getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-		inputMap.put(keyStroke, cancelAction);
+		makeJDialogCancellable(d, cancelAction, closeAction);
 
 		JPanel cp = new JPanel(new BorderLayout());
+		cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
 		cp.add(panel, BorderLayout.CENTER);
 
 		cp.add(ButtonBarFactory.buildOKCancelBar(okButton, cancelButton),
 				BorderLayout.SOUTH);
 		cp.setBorder(Borders.DIALOG_BORDER);
-
-		d.add(cp);
-
+		
+		//d.add(cp);
+		d.setContentPane(cp);
+		
+		// XXX maybe pass yet another argument for this?
+		// d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
+		
 		d.pack();
 		return d;
+	}
+
+	/**
+	 * Arrange for a JDialog to close nicely. Called with two Actions,
+	 * one of which (the cancelAction) may be user-provided (and may
+	 * even be null) while the other (the closeAction) is likely to be
+	 * an instance of our CommonCloseAction.
+	 * Sadly the Swing ActionMap does not handle multiple entries,
+	 * so we have to branch out action handling to both Actions.
+	 * @param d
+	 * @param cancelAction
+	 * @param closeAction
+	 */
+	public static void makeJDialogCancellable(
+			final JDialog d, 
+			final Action cancelAction,
+			final Action closeAction) {
+		
+		if (closeAction == null) {
+			throw new NullPointerException("closeAction may not be null");
+		}
+		JComponent c = (JComponent) d.getRootPane();
+				
+		InputMap inputMap = c.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+		ActionMap actionMap = c.getActionMap();
+		
+		inputMap.put(KeyStroke.getKeyStroke("ESCAPE"), "cancel");
+		actionMap.remove("cancel");
+		actionMap.put("cancel", new AbstractAction() {
+			public void actionPerformed(ActionEvent e) {
+				if (cancelAction != null) {
+					cancelAction.actionPerformed(e);
+				}
+				closeAction.actionPerformed(e);
+			}			
+		});
 	}
 
 	/**
