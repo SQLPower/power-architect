@@ -5,6 +5,9 @@ package ca.sqlpower.architect.swingui;
 // from http://examples.oreilly.com/jswing2/code/ch19/TextForm.java
 
 import javax.swing.*;
+
+import org.apache.log4j.Logger;
+
 import java.awt.event.*;
 import java.awt.*;
 
@@ -17,6 +20,7 @@ import java.awt.*;
  * has local modifications.
  */
 public class TextPanel extends JPanel {
+	private static final Logger logger = Logger.getLogger(TextPanel.class);
 
 	protected JComponent[] fields;
 	protected JComponent[] labels;
@@ -79,7 +83,7 @@ public class TextPanel extends JPanel {
 		
 		submit.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					System.out.println(form.getField(0) + " " + form.getField(1) + ". " +
+					logger.info(form.getField(0) + " " + form.getField(1) + ". " +
 									   form.getField(2) + ", age " + form.getField(3));
 				}
 			});

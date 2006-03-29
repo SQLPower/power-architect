@@ -1,11 +1,15 @@
 package ca.sqlpower.architect.swingui;
 
 import javax.swing.*;
+
+import org.apache.log4j.Logger;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 
 public class EngineExecPanel extends JPanel {
+	private static final Logger logger = Logger.getLogger(EngineExecPanel.class);
 	
 	protected Process proc;
 	protected JScrollPane jsp;
@@ -101,7 +105,7 @@ public class EngineExecPanel extends JPanel {
 			iss.join();
 			ess.join();
 		} catch (InterruptedException ex) {
-			System.out.println("Interrupted while waiting for engine");
+			logger.error("Interrupted while waiting for engine", ex);
 		}
 		output.append("Execution halted");
 	}

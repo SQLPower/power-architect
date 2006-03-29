@@ -230,7 +230,7 @@ public class ASUtils {
 			public void run() {
 				for (;;) {
 					if (focusDebuggerStopping) break;
-					System.out.println(java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner());
+					logger.debug(java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner());
 					try {
 						Thread.sleep(1000);
 					} catch (InterruptedException ex) {
