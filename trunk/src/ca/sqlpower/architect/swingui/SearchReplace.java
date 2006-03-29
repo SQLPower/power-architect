@@ -192,7 +192,7 @@ public class SearchReplace {
         
         searchExpression = new JTextField();
         
-        JButton searchButton = new JButton("Search");
+        JDefaultButton searchButton = new JDefaultButton("Search");
         // searchButton.setDefaultCapable(true);
         searchButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {

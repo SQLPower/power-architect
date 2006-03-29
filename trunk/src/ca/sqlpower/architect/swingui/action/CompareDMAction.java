@@ -16,6 +16,7 @@ import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.CommonCloseAction;
 import ca.sqlpower.architect.swingui.CompareDMPanel;
+import ca.sqlpower.architect.swingui.JDefaultButton;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
 
 public class CompareDMAction extends AbstractAction {
@@ -49,7 +50,7 @@ public class CompareDMAction extends AbstractAction {
 //		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		JPanel buttonPanel = compareDMPanel.getButtonPanel();
 		
-		JButton okButton = new JButton(compareDMPanel.getStartCompareAction());
+		JDefaultButton okButton = new JDefaultButton(compareDMPanel.getStartCompareAction());
 		buttonPanel.add(okButton);
 		
 		JButton cancelButton = new JButton(new CommonCloseAction(d));	

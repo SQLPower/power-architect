@@ -43,10 +43,7 @@ public class EditColumnAction extends AbstractAction implements ActionListener {
 	protected DBTree dbt; 
 
 
-	protected JDialog editDialog;
-	protected JButton okButton;
-	protected JButton cancelButton;
-	protected ActionListener okCancelListener;
+	protected JDialog editDialog;			
 	protected ColumnEditPanel columnEditPanel;
 
 	public EditColumnAction() {
@@ -127,8 +124,8 @@ public class EditColumnAction extends AbstractAction implements ActionListener {
 		if (editDialog != null) {
 			columnEditPanel.setModel(st);
 			columnEditPanel.selectColumn(colIdx);			
-			editDialog.setTitle("Column Properties of "+st.getName());			
-			editDialog.setVisible(true);			
+			editDialog.setTitle("Column Properties of "+st.getName());
+			editDialog.setVisible(true);				
 			//editDialog.requestFocus();
 			
 		} else {
