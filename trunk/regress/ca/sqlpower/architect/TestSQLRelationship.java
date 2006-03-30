@@ -109,7 +109,7 @@ public class TestSQLRelationship extends SQLTestCase {
 		assertEquals("new name didn't go back to logical name", rel1.getName(), rel1.getPhysicalName());
 
 		rel1.setPhysicalName(null);
-		assertEquals(3, l.getChangedCount());
+		assertEquals(4, l.getChangedCount());
 
 		// double-check that none of the other event types got fired
 		assertEquals(0, l.getInsertedCount());

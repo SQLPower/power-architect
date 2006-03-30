@@ -93,6 +93,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 		precision = 10;
 		nullable = DatabaseMetaData.columnNoNulls;
 		autoIncrement = false;
+		logger.debug("SQLColumn() set ref count to 1");
 		referenceCount = 1;
 		children = Collections.EMPTY_LIST;
 	}
@@ -145,7 +146,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 		this.autoIncrement = isAutoIncrement;
 
 		this.children = Collections.EMPTY_LIST;
-		
+		logger.debug("SQLColumn(.....) set ref count to 1");
 		this.referenceCount = 1;
 	}
 
@@ -160,6 +161,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 		super();
 		children = Collections.EMPTY_LIST;
 		copyProperties(this, col);
+		logger.debug("SQLColumn(SQLColumn col ["+col+" "+col.hashCode()+"]) set ref count to 1");
 		referenceCount = 1;
 	}
 	
@@ -178,7 +180,8 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 		copyProperties(c, source);
 		c.sourceColumn = source;
 		c.parent = addTo.getColumnsFolder();
-		c.referenceCount = source.referenceCount;
+		logger.debug("getDerivedInstance set ref count to 1");
+		c.referenceCount = 1;
 		return c;
 	}
 
@@ -605,6 +608,13 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	}
 	
 	public void removeReference() {
+		if (logger.isDebugEnabled()) {
+			String parentName = "<no parent table>";
+			if (getParent() != null && getParentTable() != null) {
+				parentName = getParentTable().getName();
+			}
+			logger.debug("Trying to remove reference from "+parentName+"."+getName()+" "+hashCode());
+		}
 		if (referenceCount == 0) {
 			throw new IllegalStateException("Reference count is already 0; can't remove any references!");
 		}

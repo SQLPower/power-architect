@@ -120,6 +120,7 @@ public class TestUndoManager extends TestCase {
 		
 		assertTrue("Not registering create action with the undo manager", undoManager.canUndo());
 		System.out.println(undoManager.toString());
+		System.out.println("==UNDOING==");
 		undoManager.undo();
 		
 		assertEquals("Relationship still attached to parent", 0, pkTable.getExportedKeys().size());
@@ -133,6 +134,42 @@ public class TestUndoManager extends TestCase {
 		
 	}
 
+	public void testRedoCreateRelationship() throws ArchitectException {
+		testUndoCreateRelationship();
+		System.out.println("==REDOING==");
+		undoManager.redo();
+		
+		assertEquals("Wrong number of relationships created", 1, pp.getRelationships().size());
+		assertEquals("key didn't get re-added to pktable", 1, pkTable.getExportedKeys().size());
+		assertEquals("key didn't get re-added to fktable", 1, fkTable.getImportedKeys().size());
+		
+		List<SQLColumn> columns = fkTable.getColumns();
+		assertEquals("Wrong number of columns in the fkTable", 2, columns.size());
+		
+		assertEquals("Is the first column pk1?", "pk1", columns.get(0).getName());
+		assertNull("Is the first column a key column?", columns.get(0).getPrimaryKeySeq());
+		assertEquals("redo left incorrect reference count on pk1", 1, columns.get(0).getReferenceCount());
+		
+		assertEquals("Is the second column pk2?", "pk2", columns.get(1).getName());
+		assertNull("Is the second column a key column?", columns.get(1).getPrimaryKeySeq());
+		assertEquals("redo left incorrect reference count on pk2", 1, columns.get(1).getReferenceCount());
+	}
+
+	public void testUndoRedoCreateRelationship() throws ArchitectException {
+		testRedoCreateRelationship();
+		System.out.println("==UNDOING the redo==");
+		undoManager.undo();
+		
+		assertEquals("Relationship still attached to parent", 0, pkTable.getExportedKeys().size());
+
+		// the following tests depend on FKColumnManager behaviour, not UndoManager
+		assertEquals("Relationship still attached to child", 0, fkTable.getImportedKeys().size());
+		assertNull("Orphaned imported key", fkTable.getColumnByName("pk1"));
+		assertNull("Orphaned imported key", fkTable.getColumnByName("pk2"));
+		assertNotNull("Missing exported key", pkTable.getColumnByName("pk1"));
+		assertNotNull("Missing exported key", pkTable.getColumnByName("pk2"));
+	}
+	
 	/** Makes sure that the side effects of changing a PK column's attributes are not a separate undo step */
 	public void testUndoRelationshipPkAttributeChange() throws ArchitectException {
 		CreateRelationshipAction.doCreateRelationship(pkTable, fkTable, pp, false);
