@@ -334,6 +334,13 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 							logger.debug("Removing mapping "+ cm);
 							cm.getFkColumn().removeReference();
 						}
+						// the relationship is gone so its listener is no longer needed
+						e.getSQLSource().removeSQLObjectListener(this);
+						try {
+							ArchitectUtils.unlistenToHierarchy(this,((SQLTable)e.getSQLSource().getParent()).getColumnsFolder());
+						} catch (ArchitectException e1) {
+							throw new ArchitectRuntimeException(e1);
+						}
 					}
 				}
 			} else if (f.getType() == SQLTable.Folder.COLUMNS) {

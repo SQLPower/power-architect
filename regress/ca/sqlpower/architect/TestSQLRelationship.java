@@ -303,4 +303,16 @@ public class TestSQLRelationship extends SQLTestCase {
 		assertNotNull("Missing exported key", parentTable.getColumnByName("pkcol_2"));
 		
 	}
+	
+	public void testRemovedRelationshipsDontInterfere() throws ArchitectException {
+		testFKColManagerRemovesImportedKey();
+		
+		int oldChildColCount = childTable1.getColumns().size();
+		
+		SQLColumn pk3 = new SQLColumn(parentTable, "pk3", Types.VARCHAR, 10, 0);
+		parentTable.addColumn(pk3);
+		pk3.setPrimaryKeySeq(0);
+		
+		assertEquals("Child table got new col!?!", oldChildColCount, childTable1.getColumns().size());
+	}
 }

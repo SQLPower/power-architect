@@ -306,9 +306,9 @@ public abstract class SQLObject implements java.io.Serializable {
 			 (SQLObject[]) oldChildren.toArray(new SQLObject[oldChildren.size()]),
 			 isSecondaryChangeMode());
 		synchronized(sqlObjectListeners) {
-			Iterator it = sqlObjectListeners.iterator();
-			while (it.hasNext()) {
-				((SQLObjectListener) it.next()).dbChildrenRemoved(e);
+			SQLObjectListener[] listeners = sqlObjectListeners.toArray(new SQLObjectListener[0]);
+			for(int i = listeners.length-1;i>=0;i--) {
+				listeners[i].dbChildrenRemoved(e);
 			}
 		}
 	}
@@ -342,10 +342,10 @@ public abstract class SQLObject implements java.io.Serializable {
 
 		int count = 0;
 		synchronized(sqlObjectListeners) {
-			Iterator it = sqlObjectListeners.iterator();
-			while (it.hasNext()) {
+			SQLObjectListener[] listeners = sqlObjectListeners.toArray(new SQLObjectListener[0]);
+			for(int i = listeners.length-1;i>=0;i--) {
 				count++;
-				((SQLObjectListener) it.next()).dbObjectChanged(e);
+				listeners[i].dbObjectChanged(e);
 			}
 		}
 		if (logger.isDebugEnabled()) logger.debug("Notified "+count+" listeners.");
@@ -370,10 +370,10 @@ public abstract class SQLObject implements java.io.Serializable {
 
 		int count = 0;
 		synchronized(sqlObjectListeners) {
-			Iterator it = sqlObjectListeners.iterator();
-			while (it.hasNext()) {
+			SQLObjectListener[] listeners = sqlObjectListeners.toArray(new SQLObjectListener[0]);
+			for(int i = listeners.length-1;i>=0;i--) {
 				count++;
-				((SQLObjectListener) it.next()).dbStructureChanged(e);
+				listeners[i].dbStructureChanged(e);
 			}
 		}
 		if (logger.isDebugEnabled()) logger.debug("Notified "+count+" listeners.");
@@ -403,14 +403,14 @@ public abstract class SQLObject implements java.io.Serializable {
 	}
 	
 	protected void fireUndoCompoundEvent(UndoCompoundEvent e) {
-		Iterator it = undoEventListeners.iterator();
+		UndoCompoundEventListener[] listeners = sqlObjectListeners.toArray(new UndoCompoundEventListener[0]);
 		if (e.getType().isStartEvent()) {
-			while (it.hasNext()) {
-				((UndoCompoundEventListener) it.next()).compoundEditStart(e);
+			for(int i = listeners.length-1;i>=0;i--) {
+				listeners[i].compoundEditStart(e);
 			}
 		} else {
-			while (it.hasNext()) {
-				((UndoCompoundEventListener) it.next()).compoundEditEnd(e);
+			for(int i = listeners.length-1;i>=0;i--) {
+				listeners[i].compoundEditEnd(e);
 			}
 		} 
 		
