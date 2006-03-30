@@ -92,16 +92,12 @@ public class TestAutoLayoutAction extends TestCase {
 		pp.addTablePane(tablePanes[3], new Point(0, 100));
 		
 		SQLRelationship sr1 = new SQLRelationship();
-		sr1.setPkTable(tables[0]);
-		sr1.setFkTable(tables[2]);
-		tables[0].addExportedKey(sr1); // FIXME: should update Relationship component to do this for us!
-		tables[2].addImportedKey(sr1);
+		sr1.attachRelationship(tables[0],tables[2],false);
 
 		SQLRelationship sr2 = new SQLRelationship();
 		sr2.setPkTable(tables[1]);
 		sr2.setFkTable(tables[3]);
-		tables[1].addExportedKey(sr2);
-		tables[3].addImportedKey(sr2);
+		sr2.attachRelationship(tables[1],tables[3],false);
 
 		pp.setVisible(true);
 		Relationship r1 = new Relationship(pp, sr1);

@@ -928,10 +928,7 @@ public class PlayPen extends JPanel
 				SQLRelationship newRel = new SQLRelationship();
 				newRel.setName(r.getName());
 				newRel.setIdentifying(true);
-				newRel.setPkTable(newTable);
-				newTable.addExportedKey(newRel);
-				newRel.setFkTable(fkTable);
-				fkTable.addImportedKey(newRel);
+				newRel.attachRelationship(newTable,fkTable,false);
 				addImpl(new Relationship(this, newRel),null,getPPComponentCount());
 
 				Iterator mappings = r.getChildren().iterator();
@@ -959,6 +956,7 @@ public class PlayPen extends JPanel
 			}
 		}
 
+		
 		// create imported relationships if the exporting tables exist in pp
 		sourceKeys = source.getImportedKeys().iterator();
 		while (sourceKeys.hasNext()) {
@@ -973,10 +971,7 @@ public class PlayPen extends JPanel
 				SQLRelationship newRel = new SQLRelationship();
 				newRel.setName(r.getName());
 				newRel.setIdentifying(true);
-				newRel.setPkTable(pkTable);
-				pkTable.addExportedKey(newRel);
-				newRel.setFkTable(newTable);
-				newTable.addImportedKey(newRel);
+				newRel.attachRelationship(pkTable,newTable,false);
 				addImpl(new Relationship(this, newRel),null,getPPComponentCount());
 
 				Iterator mappings = r.getChildren().iterator();

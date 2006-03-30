@@ -373,12 +373,10 @@ public class TestSQLTable extends SQLTestCase {
 		childTable1.addColumn(new SQLColumn(childTable1, "child_attribute", Types.INTEGER, 10, 0));
 
 		SQLRelationship rel1 = new SQLRelationship();
-		rel1.setPkTable(parentTable);
-		rel1.setFkTable(childTable1);
+		rel1.attachRelationship(parentTable,childTable1,false);
 		rel1.addMapping(parentTable.getColumn(0), childTable1.getColumn(0));
 		rel1.addMapping(parentTable.getColumn(1), childTable1.getColumn(1));
-		parentTable.addExportedKey(rel1);
-		childTable1.addImportedKey(rel1);
+		
 
 		try {
 			SQLColumn inheritedCol = childTable1.getColumnByName("child_pkcol_1");

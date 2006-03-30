@@ -51,7 +51,7 @@ public abstract class SQLObjectChildren extends AbstractUndoableEdit {
 			    for(int jj = 0; jj < size ; jj++){
 					rel.removeChild(0);
 				}
-				rel.attachRelationship(rel.getPkTable(), rel.getFkTable());
+				rel.attachRelationship(rel.getPkTable(), rel.getFkTable(),true);
 			} else {
 				sqlObject.addChild(changed[ii], children[ii]);
 			}

@@ -614,6 +614,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 				parentName = getParentTable().getName();
 			}
 			logger.debug("Trying to remove reference from "+parentName+"."+getName()+" "+hashCode());
+			
 		}
 		if (referenceCount == 0) {
 			throw new IllegalStateException("Reference count is already 0; can't remove any references!");

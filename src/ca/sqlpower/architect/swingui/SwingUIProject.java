@@ -487,9 +487,10 @@ public class SwingUIProject {
 			String fkTableId = attributes.getValue("fk-table-ref");
 			if (fkTableId != null) {
 				SQLTable fkTable = (SQLTable) objectIdMap.get(fkTableId);
-				rel.setFkTable(fkTable);
 				try {
-					fkTable.addImportedKey(rel);
+					rel.setFkTable(fkTable);
+					// use a silly backdoor.  NOTE: THIS IS NOT SETTING A GOOD EXAMPLE FOR THE OTHER KIDS
+					fkTable.getImportedKeysFolder().addChild(rel);
 				} catch (ArchitectException e) {
 					logger.error("Couldn't add keys to table \""+fkTable.getName()+"\"", e);
 					JOptionPane.showMessageDialog(null, "Failed to add f-keys to table:\n"+e.getMessage());
@@ -501,7 +502,8 @@ public class SwingUIProject {
 				SQLTable pkTable = (SQLTable) objectIdMap.get(pkTableId);
 				try {
 					rel.setPkTable(pkTable);
-					pkTable.addExportedKey(rel);
+					// use a silly backdoor.  NOTE: THIS IS NOT SETTING A GOOD EXAMPLE FOR THE OTHER KIDS
+					pkTable.getExportedKeysFolder().addChild(rel);
 				} catch (ArchitectException e) {
 					logger.error("Couldn't add pk to table \""+pkTable.getName()+"\"", e);
 					JOptionPane.showMessageDialog(null, "Failed to add pk to table:\n"+e.getMessage());

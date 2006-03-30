@@ -25,7 +25,6 @@ public class TestSQLRelationship extends SQLTestCase {
 	private SQLRelationship rel2;
 	private SQLDatabase database;
 	
-	
 	public TestSQLRelationship(String name) throws Exception {
 		super(name);
 	}
@@ -40,36 +39,29 @@ public class TestSQLRelationship extends SQLTestCase {
 		parentTable.addColumn(new SQLColumn(parentTable, "pkcol_1", Types.INTEGER, 10, 0));
 		parentTable.addColumn(new SQLColumn(parentTable, "pkcol_2", Types.INTEGER, 10, 0));
 		parentTable.addColumn(new SQLColumn(parentTable, "attribute_1", Types.INTEGER, 10, 0));
-		
+		database.addChild(parentTable);
 		childTable1 = new SQLTable(database, "child_1", null, "TABLE", true);
 		childTable1.addColumn(new SQLColumn(childTable1, "child_pkcol_1", Types.INTEGER, 10, 0));
 		childTable1.addColumn(new SQLColumn(childTable1, "child_pkcol_2", Types.INTEGER, 10, 0));
 		childTable1.addColumn(new SQLColumn(childTable1, "child_attribute", Types.INTEGER, 10, 0));
-
+		database.addChild(childTable1);
+		
 		childTable2 = new SQLTable(database, "child_2", null, "TABLE", true);
 		childTable2.addColumn(new SQLColumn(childTable2, "child2_pkcol_1", Types.INTEGER, 10, 0));
 		childTable2.addColumn(new SQLColumn(childTable2, "child2_pkcol_2", Types.INTEGER, 10, 0));
 		childTable2.addColumn(new SQLColumn(childTable2, "child2_attribute", Types.INTEGER, 10, 0));
-
+		database.addChild(childTable2);
+		
 		rel1 = new SQLRelationship();
-		rel1.setName("parentTable_childTable1_pk");
 		rel1.setIdentifying(true);
-		rel1.setPkTable(parentTable);
-		rel1.setFkTable(childTable1);
-		childTable1.setSecondaryChangeMode(true);
-		parentTable.addExportedKey(rel1);
-		childTable1.addImportedKey(rel1);
+		rel1.attachRelationship(parentTable,childTable1,false);
+		rel1.setName("rel1");
 		rel1.addMapping(parentTable.getColumn(0), childTable1.getColumn(0));
 		rel1.addMapping(parentTable.getColumn(1), childTable1.getColumn(1));
-		childTable1.setSecondaryChangeMode(false);
-		
+	
 		rel2 = new SQLRelationship();
-		rel2.setPkTable(parentTable);
-		rel2.setFkTable(childTable2);
-		parentTable.addExportedKey(rel2);
-		childTable2.addImportedKey(rel2);
-		
-		
+		rel2.setName("rel2");
+		rel2.attachRelationship(parentTable,childTable2,true);
 	}
 	
 	/**
@@ -112,26 +104,12 @@ public class TestSQLRelationship extends SQLTestCase {
 		assertEquals("new name didn't go back to logical name", rel1.getName(), rel1.getPhysicalName());
 
 		rel1.setPhysicalName(null);
-		assertEquals(4, l.getChangedCount());
+		assertEquals(3, l.getChangedCount());
 
 		// double-check that none of the other event types got fired
 		assertEquals(0, l.getInsertedCount());
 		assertEquals(0, l.getRemovedCount());
 		assertEquals(0, l.getStructureChangedCount());
-	}
-
-	public void testSetInvalidParent() throws ArchitectException {
-		assertEquals(rel2.getPkTable(), parentTable);
-		assertEquals(rel2.getFkTable(), childTable2);
-		try {
-			childTable1.addImportedKey(rel2);
-			fail("rel2 should not have allowed itself to take childTable1 as a parent");
-		} catch (IllegalArgumentException e) {
-			assertTrue(true);
-		}
-		// ensure the attempted change didn't stick
-		assertEquals(rel2.getPkTable(), parentTable);
-		assertEquals(rel2.getFkTable(), childTable2);
 	}
 
 	public void testReadFromDB() throws Exception {
