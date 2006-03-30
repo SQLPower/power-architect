@@ -234,28 +234,33 @@ public abstract class SQLObject implements java.io.Serializable {
 	}
 
 	// ------------------- sql object event support -------------------
-	private transient List sqlObjectListeners = new LinkedList();
+	private final transient List<SQLObjectListener> sqlObjectListeners = 
+		new LinkedList<SQLObjectListener>();
 
-	public List getSQLObjectListeners() {
-		if (sqlObjectListeners == null) {
-			sqlObjectListeners = new LinkedList();
-		}
-		return sqlObjectListeners;
+	/*
+	 * @return An immutable copy of the list of SQLObject listeners
+	 */
+	public List<SQLObjectListener> getSQLObjectListeners() {
+			return sqlObjectListeners;
 	}
-
+	
 	public void addSQLObjectListener(SQLObjectListener l) {
 		if (l == null) throw new NullPointerException("You can't add a null listener");
-		if (getSQLObjectListeners().contains(l)) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("NOT Adding duplicate listener "+l+" to SQLObject "+this);
-			}
-			return;
+		synchronized(sqlObjectListeners) {
+			if (sqlObjectListeners.contains(l)) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("NOT Adding duplicate listener "+l+" to SQLObject "+this);
+				}
+				return;
+			}		
+			sqlObjectListeners.add(l);
 		}
-		getSQLObjectListeners().add(l);
 	}
 
 	public void removeSQLObjectListener(SQLObjectListener l) {
-		getSQLObjectListeners().remove(l);
+		synchronized(sqlObjectListeners) {
+			sqlObjectListeners.remove(l);
+		}
 	}
 
 	protected void fireDbChildrenInserted(int[] newIndices, List newChildren) {
@@ -269,13 +274,16 @@ public abstract class SQLObject implements java.io.Serializable {
 			 newIndices,
 			 (SQLObject[]) newChildren.toArray(new SQLObject[newChildren.size()]),
 			 isSecondaryChangeMode());
-		Iterator it = getSQLObjectListeners().iterator();
-		int count = 0;
-		while (it.hasNext()) {
-			count ++;
-			((SQLObjectListener) it.next()).dbChildrenInserted(e);
+		synchronized(sqlObjectListeners) {
+			Iterator<SQLObjectListener> it = sqlObjectListeners.iterator();
+			int count = 0;
+			while (it.hasNext()) {
+				count ++;
+				SQLObjectListener nextListener = it.next();
+				(nextListener).dbChildrenInserted(e);
+			}
+			logger.debug(getClass().getName()+": notified "+count+" listeners");
 		}
-		logger.debug(getClass().getName()+": notified "+count+" listeners");
 	}
 
 	protected void fireDbChildInserted(int newIndex, SQLObject newChild) {
@@ -297,9 +305,11 @@ public abstract class SQLObject implements java.io.Serializable {
 			 oldIndices,
 			 (SQLObject[]) oldChildren.toArray(new SQLObject[oldChildren.size()]),
 			 isSecondaryChangeMode());
-		Iterator it = getSQLObjectListeners().iterator();
-		while (it.hasNext()) {
-			((SQLObjectListener) it.next()).dbChildrenRemoved(e);
+		synchronized(sqlObjectListeners) {
+			Iterator it = sqlObjectListeners.iterator();
+			while (it.hasNext()) {
+				((SQLObjectListener) it.next()).dbChildrenRemoved(e);
+			}
 		}
 	}
 
@@ -331,16 +341,23 @@ public abstract class SQLObject implements java.io.Serializable {
 		}
 
 		int count = 0;
-		Iterator it = getSQLObjectListeners().iterator();
-		while (it.hasNext()) {
-			count++;
-			((SQLObjectListener) it.next()).dbObjectChanged(e);
+		synchronized(sqlObjectListeners) {
+			Iterator it = sqlObjectListeners.iterator();
+			while (it.hasNext()) {
+				count++;
+				((SQLObjectListener) it.next()).dbObjectChanged(e);
+			}
 		}
-
 		if (logger.isDebugEnabled()) logger.debug("Notified "+count+" listeners.");
 	}
 
-	protected void fireDbStructureChanged(String propertyName) {
+	/**
+	 * Notifies listeners that a major change has occurred at or under this node.
+	 *
+	 * <p>Note: This method is public because the PlayPen's Objects-Adder cleanup method
+	 * needs to generate these notifications.  That kind of code should be in this package instead.
+	 */
+	public void fireDbStructureChanged() {
 		if (logger.isDebugEnabled()) {
 			logger.debug(getClass().getName()+" "+toString()+": " +
 					"firing dbStructureChanged event " +
@@ -348,16 +365,17 @@ public abstract class SQLObject implements java.io.Serializable {
 		}
 		SQLObjectEvent e = new SQLObjectEvent(
 				this,
-				propertyName,
+				null,
 				isSecondaryChangeMode());
 
 		int count = 0;
-		Iterator it = getSQLObjectListeners().iterator();
-		while (it.hasNext()) {
-			count++;
-			((SQLObjectListener) it.next()).dbStructureChanged(e);
+		synchronized(sqlObjectListeners) {
+			Iterator it = sqlObjectListeners.iterator();
+			while (it.hasNext()) {
+				count++;
+				((SQLObjectListener) it.next()).dbStructureChanged(e);
+			}
 		}
-		
 		if (logger.isDebugEnabled()) logger.debug("Notified "+count+" listeners.");
 	}
 

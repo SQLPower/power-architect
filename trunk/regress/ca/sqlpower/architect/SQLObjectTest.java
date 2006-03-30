@@ -11,7 +11,6 @@ import ca.sqlpower.architect.SQLExceptionNode;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
-import ca.sqlpower.architect.SQLTable;
 
 public class SQLObjectTest extends TestCase {
 
@@ -57,8 +56,8 @@ public class SQLObjectTest extends TestCase {
 		}
 		
 		// manually call fireDbStructureChanged, so it can be tested.
-		public void fakeStructureChanged(String string) {
-			fireDbStructureChanged(string);
+		public void fakeStructureChanged() {
+			fireDbStructureChanged();
 		}
 		@Override
 		public Class<? extends SQLObject> getChildType() {
@@ -211,7 +210,7 @@ public class SQLObjectTest extends TestCase {
 		assertFalse(tt.isObjectChanged());
 		
 		tt.setStructureChanged(false);
-		((SQLObjectImpl)target).fakeStructureChanged("george");
+		((SQLObjectImpl)target).fakeStructureChanged();
 		assertTrue(tt.isStructureChanged());
 		
 		// MUST BE LAST!!
