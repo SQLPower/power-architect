@@ -6,7 +6,6 @@
  */
 package ca.sqlpower.architect.swingui;
 
-import java.awt.Component;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -16,10 +15,10 @@ import javax.swing.Box;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.event.TreeExpansionEvent;
-import javax.swing.event.TreeExpansionListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.event.TreeWillExpandListener;
@@ -35,6 +34,10 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLDatabase.PopulateProgressMonitor;
+
+import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
 /**
  * @author jack
  *
@@ -55,40 +58,42 @@ public class QuickStartPanel1 implements WizardPanel {
 	private JScrollPane scrollPane;
 	private JProgressBar progressBar;
 	private JLabel label;
+	private JPanel panel;
 	
 	public JComponent getPanel() {
-		if (box == null) {
-			box = Box.createVerticalBox();	    	    
-
-			// add some verbiage at the top
-			JLabel verbiage = new JLabel();
-			verbiage.setText("<html>Choose the source database and tables.");					
-			verbiage.setAlignmentX(Component.CENTER_ALIGNMENT);
-			box.add(verbiage);
-			box.add(Box.createVerticalStrut(50));
-
-			// static method retrieves database connections
-			List databases = QuickStartWizard.getDatabases();
-			try {
-				dbTree = new DBTree(databases);
-			} catch (ArchitectException e) {
-				logger.error("problem loading database list",e);
-			}
-			
-			progressBar = ((WizardDialog)wizard.getParentDialog()).getProgressBar();
-			label = ((WizardDialog)wizard.getParentDialog()).getProgressLabel();
-			label.setText("Loading Database.....");
-			
-			dbTree.addTreeSelectionListener(new MyTreeSelectionListener(progressBar));
-			dbTree.addTreeWillExpandListener(new MyTreeSelectionListener(progressBar));
-
-			// the list of tables for the selected source
-			JScrollPane scrollPane = new JScrollPane(dbTree);
-			box.add(scrollPane);
-						
-			box.add(Box.createVerticalStrut(50));
+		
+		// static method retrieves database connections
+		List databases = QuickStartWizard.getDatabases();
+		try {
+			dbTree = new DBTree(databases);
+		} catch (ArchitectException e) {
+			logger.error("problem loading database list",e);
 		}
-		return box;		
+		
+		progressBar = ((WizardDialog)wizard.getParentDialog()).getProgressBar();
+		label = ((WizardDialog)wizard.getParentDialog()).getProgressLabel();
+		label.setText("Loading Database.....");
+		
+		dbTree.addTreeSelectionListener(new MyTreeSelectionListener(progressBar));
+		dbTree.addTreeWillExpandListener(new MyTreeSelectionListener(progressBar));
+
+		// the list of tables for the selected source
+		JScrollPane scrollPane = new JScrollPane(dbTree);
+
+		FormLayout layout = new FormLayout (
+						"3dlu, 30dlu, 5dlu, fill:200dlu:grow, 3dlu",//columns
+						"10dlu, pref, 4dlu, fill:150dlu:grow, 4dlu, 20dlu"); //rows
+		
+		PanelBuilder pb = new PanelBuilder(layout);
+		CellConstraints cc = new CellConstraints();
+		pb.add(new JLabel("Choose source database and tables"), cc.xyw(2,2,2, "l,c"));
+		pb.add(scrollPane, cc.xyw(2,4,4));
+		pb.add(label, cc.xy(2,6));
+		pb.add(progressBar, cc.xy(4,6));
+		
+		panel = new JPanel();
+		panel.add(pb.getPanel());
+		return panel;		
 	}				
 			
 	/* (non-Javadoc)
