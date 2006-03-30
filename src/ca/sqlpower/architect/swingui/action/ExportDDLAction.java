@@ -183,7 +183,7 @@ public class ExportDDLAction extends AbstractAction {
 		 */
 		public void doStuff() {
 			
-			if (this.isCancelled()) return;
+			if (this.isCanceled()) return;
 			try {
 				cr.findConflicting();
 				
@@ -292,7 +292,7 @@ public class ExportDDLAction extends AbstractAction {
 		}
 
 		public void doStuff() {
-			if (isCancelled())
+			if (isCanceled())
 				return;
 			if (conflictFinder.doesUserWantToDropConflicts()) {
 				cr = conflictFinder.getConflictResolver();

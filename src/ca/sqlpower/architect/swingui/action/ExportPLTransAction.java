@@ -301,7 +301,7 @@ public class ExportPLTransAction extends AbstractAction {
 		}		
 
 		public void doStuff() {
-			if (isCancelled())
+			if (isCanceled())
 				return;
 			// now implements Monitorable, so we can ask it how it's doing
 			try {

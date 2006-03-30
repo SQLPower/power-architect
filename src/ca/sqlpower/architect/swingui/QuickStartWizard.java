@@ -158,7 +158,7 @@ public class QuickStartWizard implements ArchitectWizard {
 		}
 		
 		public void doStuff() {
-			if ( !isCancelled()) {
+			if ( !isCanceled()) {
 				try {
 					List list = ddlg.generateDDLStatements(db);
 					logger.debug("generated statements are: " + list);
