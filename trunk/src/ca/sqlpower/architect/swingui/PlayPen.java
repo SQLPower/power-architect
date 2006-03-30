@@ -1082,6 +1082,7 @@ public class PlayPen extends JPanel
 		private int progress = 0;
 		private Integer jobSize = null;
 		private String errorMessage = null;
+		private ProgressMonitor pm;
 		
 		public AddObjectsTask(List<SQLObject> sqlObjects, 
 				Point preferredLocation, 
@@ -1092,6 +1093,7 @@ public class PlayPen extends JPanel
 			this.parentDialog = parentDialog;
 			finished = false;
 			new ProgressWatcher(pm, this);
+			this.pm = pm;
 		}
 		
 		public int getProgress() {
@@ -1111,6 +1113,15 @@ public class PlayPen extends JPanel
 		}
 
 		/**
+		 * Combines the MonitorableWorker's canceled flag with the
+		 * ProgressMonitor's.
+		 */
+		@Override
+		public synchronized boolean isCanceled() {
+			return super.isCanceled() || pm.isCanceled();
+		}
+		
+		/**
 		 * Makes sure all the stuff we want to add is populated.
 		 */
 		public void doStuff () {
@@ -1122,7 +1133,7 @@ public class PlayPen extends JPanel
 				
 				Iterator<SQLObject> soIt = sqlObjects.iterator();
 				// first pass: figure out how much work we need to do...
-				while (soIt.hasNext() && !isCancelled()) {
+				while (soIt.hasNext() && !isCanceled()) {
 					pmMax += ArchitectUtils.countTablesSnapshot(soIt.next());						
 				}				
 				jobSize = new Integer(pmMax);
@@ -1143,7 +1154,7 @@ public class PlayPen extends JPanel
 		 */
 		private void ensurePopulated(List<SQLObject> soList) {
 			for (SQLObject so : soList) {
-				if (isCancelled()) break;
+				if (isCanceled()) break;
 				try {
 					if (so instanceof SQLTable) progress++;
 					ensurePopulated(so.getChildren());
@@ -1173,7 +1184,7 @@ public class PlayPen extends JPanel
 				// reset iterator
 				Iterator<SQLObject> soIt = sqlObjects.iterator();
 				
-				while (soIt.hasNext() && !isCancelled()) {
+				while (soIt.hasNext() && !isCanceled()) {
 					SQLObject someData = soIt.next();
 					someData.fireDbStructureChanged();
 					if (someData instanceof SQLTable) {
@@ -1184,7 +1195,7 @@ public class PlayPen extends JPanel
 					} else if (someData instanceof SQLSchema) {
 						SQLSchema sourceSchema = (SQLSchema) someData;						
 						Iterator it = sourceSchema.getChildren().iterator();
-						while (it.hasNext() && !isCancelled()) {
+						while (it.hasNext() && !isCanceled()) {
 							SQLTable sourceTable = (SQLTable) it.next();
 							message = ArchitectUtils.truncateString(sourceTable.getName());
 							TablePane tp = importTableCopy(sourceTable, preferredLocation);
@@ -1195,10 +1206,10 @@ public class PlayPen extends JPanel
 						SQLCatalog sourceCatalog = (SQLCatalog) someData;
 						Iterator cit = sourceCatalog.getChildren().iterator();
 						if (sourceCatalog.isSchemaContainer()) {
-							while (cit.hasNext() && !isCancelled()) {
+							while (cit.hasNext() && !isCanceled()) {
 								SQLSchema sourceSchema = (SQLSchema) cit.next();						
 								Iterator it = sourceSchema.getChildren().iterator();
-								while (it.hasNext() && !isCancelled()) {
+								while (it.hasNext() && !isCanceled()) {
 									SQLTable sourceTable = (SQLTable) it.next();									
 									message = ArchitectUtils.truncateString(sourceTable.getName());
 									TablePane tp = importTableCopy(sourceTable, preferredLocation);
@@ -1207,7 +1218,7 @@ public class PlayPen extends JPanel
 								}
 							}
 						} else {
-							while (cit.hasNext() && !isCancelled()) {
+							while (cit.hasNext() && !isCanceled()) {
 								SQLTable sourceTable = (SQLTable) cit.next();
 								message = ArchitectUtils.truncateString(sourceTable.getName());
 								TablePane tp = importTableCopy(sourceTable, preferredLocation);

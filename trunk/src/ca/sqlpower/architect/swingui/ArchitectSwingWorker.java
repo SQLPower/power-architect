@@ -60,7 +60,7 @@ public abstract class ArchitectSwingWorker implements Runnable {
 		this.cleanupExceptionMessage = cleanupExceptionMessage;
 	}
 
-	public boolean isCancelled() {
+	public synchronized boolean isCanceled() {
 		return cancelled;
 	}
 
@@ -68,9 +68,8 @@ public abstract class ArchitectSwingWorker implements Runnable {
 	 * Cancel this and all following tasks
 	 * @param cancelled
 	 */
-	public void setCancelled(boolean cancelled) {
+	public synchronized void setCancelled(boolean cancelled) {
 		this.cancelled = cancelled;
-		
 	}
 
 	public ArchitectSwingWorker getNextProcess() {
