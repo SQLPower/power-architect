@@ -2053,7 +2053,7 @@ public class PlayPen extends JPanel
 					PlayPen pp = (PlayPen) evt.getSource();
 					pp.selectNone();
 					r.setSelected(true);
-					r.showPopup(r.popup, evt.getPoint());
+					r.showPopup(r.popup, p);
 					return true;
 				}
 			} else if ( c instanceof TablePane ) {
