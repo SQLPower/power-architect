@@ -118,13 +118,6 @@ public class SQLObjectTest extends TestCase {
 		assertEquals(Collections.EMPTY_LIST, target.getChildren());
 	}
 
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLObject.removeDependencies()'
-	 */
-	public final void testRemoveDependencies() {
-		// At present the SQLObject version of this method does nothing, so there is no test here.
-	}
-
 	class TestListener implements SQLObjectListener {
 
 		boolean childInserted;
