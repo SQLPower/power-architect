@@ -8,6 +8,7 @@ import java.util.List;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
@@ -22,6 +23,7 @@ public class TestSQLRelationship extends SQLTestCase {
 	private SQLTable childTable2;
 	private SQLRelationship rel1;
 	private SQLRelationship rel2;
+	private SQLDatabase database;
 	
 	
 	public TestSQLRelationship(String name) throws Exception {
@@ -32,18 +34,19 @@ public class TestSQLRelationship extends SQLTestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		System.out.println("-------------Starting New Test "+getName()+" -------------");
-		ArchitectFrame af = ArchitectFrame.getMainInstance();
-		parentTable = new SQLTable(af.getProject().getPlayPen().getDatabase(), "parent", null, "TABLE", true);
+		
+		database = new SQLDatabase();
+		parentTable = new SQLTable(database, "parent", null, "TABLE", true);
 		parentTable.addColumn(new SQLColumn(parentTable, "pkcol_1", Types.INTEGER, 10, 0));
 		parentTable.addColumn(new SQLColumn(parentTable, "pkcol_2", Types.INTEGER, 10, 0));
 		parentTable.addColumn(new SQLColumn(parentTable, "attribute_1", Types.INTEGER, 10, 0));
 		
-		childTable1 = new SQLTable(af.getProject().getPlayPen().getDatabase(), "child_1", null, "TABLE", true);
+		childTable1 = new SQLTable(database, "child_1", null, "TABLE", true);
 		childTable1.addColumn(new SQLColumn(childTable1, "child_pkcol_1", Types.INTEGER, 10, 0));
 		childTable1.addColumn(new SQLColumn(childTable1, "child_pkcol_2", Types.INTEGER, 10, 0));
 		childTable1.addColumn(new SQLColumn(childTable1, "child_attribute", Types.INTEGER, 10, 0));
 
-		childTable2 = new SQLTable(af.getProject().getPlayPen().getDatabase(), "child_2", null, "TABLE", true);
+		childTable2 = new SQLTable(database, "child_2", null, "TABLE", true);
 		childTable2.addColumn(new SQLColumn(childTable2, "child2_pkcol_1", Types.INTEGER, 10, 0));
 		childTable2.addColumn(new SQLColumn(childTable2, "child2_pkcol_2", Types.INTEGER, 10, 0));
 		childTable2.addColumn(new SQLColumn(childTable2, "child2_attribute", Types.INTEGER, 10, 0));
@@ -301,7 +304,6 @@ public class TestSQLRelationship extends SQLTestCase {
 		assertEquals("Child column list should have shrunk by 2", oldChildColCount - 2, childTable1.getColumns().size());
 		assertNotNull("Missing exported key", parentTable.getColumnByName("pkcol_1"));
 		assertNotNull("Missing exported key", parentTable.getColumnByName("pkcol_2"));
-		
 	}
 	
 	public void testRemovedRelationshipsDontInterfere() throws ArchitectException {
@@ -315,4 +317,20 @@ public class TestSQLRelationship extends SQLTestCase {
 		
 		assertEquals("Child table got new col!?!", oldChildColCount, childTable1.getColumns().size());
 	}
+	
+	public void testRemoveChildTable() throws ArchitectException {
+		database.removeChild(childTable1);
+		assertNull("Child table not removed from the database",database.getTableByName(childTable1.getName()));
+		assertFalse("Parent still contains a reference to a deleted table", 
+				parentTable.getExportedKeys().contains(rel1));
+	}
+	
+	public void testRemoveParentTable() throws ArchitectException {
+		database.removeChild(parentTable);
+		assertNull("Child table not removed from the database",database.getTableByName(parentTable.getName()));
+		assertFalse("Parent still contains a reference to a deleted table", 
+				parentTable.getExportedKeys().contains(rel1));
+	}
+	
+	
 }

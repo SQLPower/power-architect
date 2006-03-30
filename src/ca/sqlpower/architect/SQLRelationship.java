@@ -37,13 +37,13 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 
 	protected String physicalName;
 
-	protected FKColumnManager fkColumnManager;
+	protected RelationshipManager fkColumnManager;
 
 	public SQLRelationship() {
 		children = new LinkedList();
 		pkCardinality = ONE;
 		fkCardinality = ZERO | ONE | MANY;
-		fkColumnManager = new FKColumnManager();
+		fkColumnManager = new RelationshipManager();
 	}
 	
 	/*
@@ -61,7 +61,8 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		
 		pkTable.addExportedKey(this);
 		fkTable.addImportedKey(this);
-		
+		pkTable.addSQLObjectListener(fkColumnManager);
+		fkTable.addSQLObjectListener(fkColumnManager);
 		// iterate over a copy of pktable's column list to avoid comodification
 		// when creating a self-referencing table
 		java.util.List<SQLColumn> pkColListCopy = new ArrayList<SQLColumn>(pkTable.getColumns().size());
@@ -296,23 +297,25 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	 * and updates the list of column mappings as well as the set of
 	 * columns that are being pushed onto the FK table.
 	 */
-	protected class FKColumnManager implements SQLObjectListener {
+	protected class RelationshipManager implements SQLObjectListener {
 		public void dbChildrenInserted(SQLObjectEvent e) {
 			logger.debug("dbChildrenInserted event! parent="+e.getSource()+"; children="+e.getChildren());
-			SQLTable.Folder f = (SQLTable.Folder) e.getSource();
-			if (f.getType() == SQLTable.Folder.COLUMNS) {
-				SQLObject[] cols = e.getChildren();
-				for (int i = 0; i < cols.length; i++) {
-					SQLColumn col = (SQLColumn) cols[i];
-					try {
-						if (col.getPrimaryKeySeq() != null) {
-							ensureInMapping(col);
-						} else {
-							ensureNotInMapping(col);
+			if (e.getSQLSource() instanceof SQLTable.Folder) {
+				SQLTable.Folder f = (SQLTable.Folder) e.getSource();
+				if (f.getType() == SQLTable.Folder.COLUMNS) {
+					SQLObject[] cols = e.getChildren();
+					for (int i = 0; i < cols.length; i++) {
+						SQLColumn col = (SQLColumn) cols[i];
+						try {
+							if (col.getPrimaryKeySeq() != null) {
+								ensureInMapping(col);
+							} else {
+								ensureNotInMapping(col);
+							}
+							col.addSQLObjectListener(this);
+						} catch (ArchitectException ex) {
+							logger.warn("Couldn't add/remove mapped FK columns", ex);
 						}
-						col.addSQLObjectListener(this);
-					} catch (ArchitectException ex) {
-						logger.warn("Couldn't add/remove mapped FK columns", ex);
 					}
 				}
 			}
@@ -320,48 +323,51 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 
 		public void dbChildrenRemoved(SQLObjectEvent e) {
 			logger.debug("dbChildrenRemoved event! parent="+e.getSource()+"; children="+e.getChildren());
-			SQLTable.Folder f = (SQLTable.Folder) e.getSource();
-			if (f.getType() == SQLTable.Folder.EXPORTED_KEYS) {
-				SQLObject[] removedRels = e.getChildren();
-				int size = removedRels.length;
-				for (int i = 0; i < size; i++) {
-					SQLRelationship r = (SQLRelationship) removedRels[i];
-					if (r == SQLRelationship.this) {
-						r.getFkTable().removeImportedKey(r);
-						logger.debug("Removing references for mappings: "+getMappings());
-						
-						for (ColumnMapping cm : r.getMappings()) {
-							logger.debug("Removing mapping "+ cm);
-							cm.getFkColumn().removeReference();
+			if (e.getSQLSource() instanceof SQLTable.Folder) {
+				SQLTable.Folder f = (SQLTable.Folder) e.getSource();
+				if (f.getType() == SQLTable.Folder.EXPORTED_KEYS) {
+					SQLObject[] removedRels = e.getChildren();
+					int size = removedRels.length;
+					for (int i = 0; i < size; i++) {
+						SQLRelationship r = (SQLRelationship) removedRels[i];
+						if (r == SQLRelationship.this) {
+							r.getFkTable().removeImportedKey(r);
+							logger.debug("Removing references for mappings: "+getMappings());
+							
+							for (ColumnMapping cm : r.getMappings()) {
+								logger.debug("Removing mapping "+ cm);
+								cm.getFkColumn().removeReference();
+							}
+							// the relationship is gone so its listener is no longer needed
+							e.getSQLSource().removeSQLObjectListener(this);
+							try {
+								ArchitectUtils.unlistenToHierarchy(this,((SQLTable)e.getSQLSource().getParent()).getColumnsFolder());
+							} catch (ArchitectException e1) {
+								throw new ArchitectRuntimeException(e1);
+							}
 						}
-						// the relationship is gone so its listener is no longer needed
-						e.getSQLSource().removeSQLObjectListener(this);
+					}
+				} else if (f.getType() == SQLTable.Folder.COLUMNS) {
+					SQLObject[] cols = e.getChildren();
+					for (int i = 0; i < cols.length; i++) {
+						SQLColumn col = (SQLColumn) cols[i];
+						col.removeSQLObjectListener(this);
 						try {
-							ArchitectUtils.unlistenToHierarchy(this,((SQLTable)e.getSQLSource().getParent()).getColumnsFolder());
-						} catch (ArchitectException e1) {
-							throw new ArchitectRuntimeException(e1);
+							ensureNotInMapping(col);
+						} catch (ArchitectException ex) {
+							logger.warn("Couldn't remove mapped FK columns", ex);
 						}
 					}
 				}
-			} else if (f.getType() == SQLTable.Folder.COLUMNS) {
-				SQLObject[] cols = e.getChildren();
-				for (int i = 0; i < cols.length; i++) {
-					SQLColumn col = (SQLColumn) cols[i];
-					col.removeSQLObjectListener(this);
-					try {
-						ensureNotInMapping(col);
-					} catch (ArchitectException ex) {
-						logger.warn("Couldn't remove mapped FK columns", ex);
-					}
-				}
-			}
+			} 
 		}
 
 		public void dbObjectChanged(SQLObjectEvent e) {
+			String prop = e.getPropertyName();
 			logger.debug("PK Column changed! property="+e.getPropertyName()+" source="+e.getSource());
 			if (e.getSource() instanceof SQLColumn) {
 				SQLColumn col = (SQLColumn) e.getSource();
-				String prop = e.getPropertyName();
+				
 				
 				if (prop.equals("primaryKeySeq")) {
 					try {
@@ -410,11 +416,20 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 					logger.warn("Warning: unknown column property "+prop
 								+" changed while monitoring pkTable");
 				}
+			} else if (e.getSource() == fkTable || e.getSource() == pkTable) {
+				if (prop.equals("parent"))
+				{
+					if(e.getNewValue() == null) {
+						pkTable.removeExportedKey(SQLRelationship.this);
+					}
+				}
 			}
 		}
 
 		public void dbStructureChanged(SQLObjectEvent e) {
+			logger.debug("Received a dbStructure changed event");
 			// wow!  let's re-scan the whole table
+			
 			try {
 				Iterator it = pkTable.getColumns().iterator();
 				while (it.hasNext()) {
@@ -428,6 +443,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 			} catch (ArchitectException ex) {
 				logger.warn("Coulnd't re-scan table as a result of dbStructureChanged", ex);
 			}
+			
 		}
 
 		protected void ensureInMapping(SQLColumn pkcol) throws ArchitectException {
@@ -527,19 +543,6 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		return true;
 	}
 
-	/*
-	 * XXX: not sure removeDependencies is even necessary anymore
-	 */
-	public void removeDependencies() {
-		logger.debug("Removing dependancies from "+this);
-//		if (pkTable != null) try {
-//			ArchitectUtils.unlistenToHierarchy(fkColumnManager, pkTable.columnsFolder);
-//			pkTable.exportedKeysFolder.removeSQLObjectListener(fkColumnManager);
-//		} catch (ArchitectException e) {
-//			throw new ArchitectRuntimeException(e);
-//		}
-	}
-	
 	
 	// ----------------- accessors and mutators -------------------
 	

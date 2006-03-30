@@ -203,7 +203,6 @@ public abstract class SQLObject implements java.io.Serializable {
 	public SQLObject removeChild(int index) {
 		SQLObject removedChild = (SQLObject) children.remove(index);
 		if (removedChild != null) {
-			removedChild.removeDependencies();
 			removedChild.setParent(null);
 			fireDbChildRemoved(index, removedChild);
 		}
@@ -221,18 +220,7 @@ public abstract class SQLObject implements java.io.Serializable {
 		return childIdx >= 0;
 	}
 
-	/**
-	 * Override this method if your SQLObject has cross-dependant
-	 * children (such as relationships between tables) that have to be
-	 * specifically removed when your object is removed from its
-	 * parent.  It is not necessary to remove direct children (like
-	 * columns of tables), but it is necessary to remove cross-linking
-	 * children as mentioned above.
-	 */
-	public void removeDependencies() {
-        // in the general case, there is nothing to do
-	}
-
+	
 	// ------------------- sql object event support -------------------
 	private final transient List<SQLObjectListener> sqlObjectListeners = 
 		new LinkedList<SQLObjectListener>();
@@ -403,7 +391,7 @@ public abstract class SQLObject implements java.io.Serializable {
 	}
 	
 	protected void fireUndoCompoundEvent(UndoCompoundEvent e) {
-		UndoCompoundEventListener[] listeners = sqlObjectListeners.toArray(new UndoCompoundEventListener[0]);
+		UndoCompoundEventListener[] listeners = undoEventListeners.toArray(new UndoCompoundEventListener[0]);
 		if (e.getType().isStartEvent()) {
 			for(int i = listeners.length-1;i>=0;i--) {
 				listeners[i].compoundEditStart(e);

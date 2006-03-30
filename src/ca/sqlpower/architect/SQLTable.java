@@ -662,22 +662,6 @@ public class SQLTable extends SQLObject {
 		return Folder.class;
 	}
 	
-	public void removeDependencies() {
-		Iterator it = importedKeysFolder.children.iterator();
-		while (it.hasNext()) {
-			SQLRelationship r = (SQLRelationship) it.next();
-			r.getPkTable().removeExportedKey(r);
-			logger.debug(r);
-		}
-
-		it = exportedKeysFolder.children.iterator();
-		while (it.hasNext()) {
-			SQLRelationship r = (SQLRelationship) it.next();
-			r.getFkTable().removeImportedKey(r);
-			logger.debug(r);
-		}
-	}
-
 	/**
 	 * The Folder class is a SQLObject that holds a SQLTable's child
 	 * folders (columns and relationships).
