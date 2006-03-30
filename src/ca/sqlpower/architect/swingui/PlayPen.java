@@ -205,7 +205,7 @@ public class PlayPen extends JPanel
 		zoom = 1.0;
 		setBackground(java.awt.Color.white);
 		contentPane = new PlayPenContentPane(this);
-		setLayout(null);
+		setLayout(new PlayPenLayout());
 		setName("Play Pen");
 		setMinimumSize(new Dimension(1,1));
 		dt = new DropTarget(this, new PlayPenDropListener());
@@ -1703,6 +1703,9 @@ public class PlayPen extends JPanel
 	
 	public class TablePaneDragGestureListener implements DragGestureListener {
 		public void dragGestureRecognized(DragGestureEvent dge) {
+			
+			if (draggingTablePanes) return;
+			
 			PlayPenComponent c = contentPane.getComponentAt(
 					unzoomPoint(((MouseEvent) dge.getTriggerEvent()).getPoint()));
 			
@@ -1738,8 +1741,9 @@ public class PlayPen extends JPanel
 					if (colIndex == TablePane.COLUMN_INDEX_TITLE) {
 						// we don't use this because it often misses drags
 						// that start near the edge of the titlebar
-						logger.debug("Discarding drag on titlebar (handled by mousePressed())");
-						draggingTablePanes = true;
+//						logger.debug("Discarding drag on titlebar (handled by mousePressed())");
+//						draggingTablePanes = true;
+						throw new UnsupportedOperationException("We don't use DnD for dragging table panes");
 					} else if (colIndex >= 0 && colIndex < tp.getModel().getColumns().size()) {
 						// export column as DnD event
 						if (logger.isDebugEnabled()) { 
@@ -1909,6 +1913,7 @@ public class PlayPen extends JPanel
 							Iterator it = pp.getSelectedTables().iterator();
 							logger.debug("event point: " + p);
 							logger.debug("zoomed event point: " + pp.zoomPoint(new Point(p)));
+							draggingTablePanes = true;
 							while (it.hasNext()) {
 								// create FloatingTableListener for each selected item
 								TablePane t3 = (TablePane)it.next();
@@ -1965,6 +1970,7 @@ public class PlayPen extends JPanel
 			} else if ( c instanceof TablePane ) {
 				TablePane tp = (TablePane) c;
 				try {
+					
 					int releaseLocation = tp.pointToColumnIndex(p);		
 					// can't just do pp.selectNone() here and re-select the current item because that will
 		            // trigger a second selection event which we don't want.  So, iterate through and de-select
