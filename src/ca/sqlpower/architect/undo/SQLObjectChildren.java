@@ -1,11 +1,14 @@
 package ca.sqlpower.architect.undo;
 
+import java.util.List;
+
 import javax.swing.undo.AbstractUndoableEdit;
-import javax.swing.undo.CannotUndoException;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
+import ca.sqlpower.architect.SQLRelationship;
+import ca.sqlpower.architect.SQLRelationship.ColumnMapping;
 
 public abstract class SQLObjectChildren extends AbstractUndoableEdit {
 
@@ -41,9 +44,17 @@ public abstract class SQLObjectChildren extends AbstractUndoableEdit {
 		SQLObject sqlObject= e.getSQLSource();
 		SQLObject children[] = e.getChildren();
 		
-		for (int ii = 0; ii < changed.length;ii++)
-		{
-			sqlObject.addChild(changed[ii],children[ii]);
+		for (int ii = 0; ii < changed.length; ii++) {
+			if (children[ii] instanceof SQLRelationship) {
+				SQLRelationship rel = (SQLRelationship) children[ii];
+				int size =rel.getChildren().size();
+			    for(int jj = 0; jj < size ; jj++){
+					rel.removeChild(0);
+				}
+				rel.attachRelationship(rel.getPkTable(), rel.getFkTable());
+			} else {
+				sqlObject.addChild(changed[ii], children[ii]);
+			}
 		}
 	}
 	

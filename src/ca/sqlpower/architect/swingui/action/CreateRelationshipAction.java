@@ -75,75 +75,8 @@ public class CreateRelationshipAction extends AbstractAction
 			// to_identifier should take care of this...			
 			model.setName(pkTable.getName()+"_"+fkTable.getName()+"_fk"); 
 			model.setIdentifying(identifying);
-			model.setPkTable(pkTable);
-			model.setFkTable(fkTable);
 			
-			fkTable.setSecondaryChangeMode(true);
-			
-			pkTable.addExportedKey(model);
-			fkTable.addImportedKey(model);
-			
-			boolean askAboutHijackTypeMismatch = false;
-			
-			// iterate over a copy of pktable's column list to avoid comodification
-			// when creating a self-referencing table
-			java.util.List pkColListCopy = new ArrayList(pkTable.getColumns().size());
-			pkColListCopy.addAll(pkTable.getColumns());
-			Iterator pkCols = pkColListCopy.iterator();
-			while (pkCols.hasNext()) {
-				SQLColumn pkCol = (SQLColumn) pkCols.next();
-				if (pkCol.getPrimaryKeySeq() == null) break;
-				
-				SQLColumn fkCol;
-				SQLColumn match = fkTable.getColumnByName(pkCol.getName());
-				if (match != null) {
-					// does the matching column have a compatible data type?
-					if (match.getType() == pkCol.getType() &&
-					    match.getPrecision() == pkCol.getPrecision() &&
-						match.getScale() == pkCol.getScale()) {
-						// column is an exact match, so we don't have to recreate it
-						fkCol = match; 
-					} else {
-						fkCol = new SQLColumn(pkCol);
-						askAboutHijackTypeMismatch = true;
-					}
-				} else {
-					// no match, so we need to import this column from PK table
-					fkCol = new SQLColumn(pkCol);
-				}
-				
-				try {
-					fkCol.setSecondaryChangeMode(true);
-					
-					if (askAboutHijackTypeMismatch) {
-						String newColName = generateUniqueColumnName(pkCol,fkTable);
-						int decision = JOptionPane.showConfirmDialog(pp,
-								 "The primary key column " + pkCol.getName() + " already exists\n" +
-								 " in the child table, but has an incompatible type.  Continue using new name\n" +
-								 newColName + "?",
-								 "Column Name Conflict",
-								 JOptionPane.YES_NO_OPTION);
-						if (decision == JOptionPane.YES_OPTION) {
-							fkCol.setName(newColName); 
-						} else {
-							model = null;
-							return;
-						}
-					}
-					
-					// This might bump up the reference count (which would be correct)
-					fkTable.addColumn(fkCol);
-					
-					if (identifying && fkCol.getPrimaryKeySeq() == null) {
-						fkCol.setPrimaryKeySeq(new Integer(fkTable.getPkSize()));
-					}
-					
-					model.addMapping(pkCol, fkCol);
-				} finally {
-					fkCol.setSecondaryChangeMode(false);
-				}
-				
-			}
+			model.attachRelationship(pkTable,fkTable);
 			
 			Relationship r = new Relationship(pp, model);
 			pp.addRelationship(r);
@@ -158,12 +91,7 @@ public class CreateRelationshipAction extends AbstractAction
 		}
 	}
 	
-	/*
-	 *  Ideally, loop through until you get a unique column name...
-	 */
-	private static String generateUniqueColumnName(SQLColumn column, SQLTable table) {
-		return column.getParentTable().getName() + "_" + column.getName();  // FIXME: still might not be unique
-	}
+	
 	
 	public void setPlayPen(PlayPen playpen) {
 		if (pp != null) {

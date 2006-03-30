@@ -1,5 +1,6 @@
 package ca.sqlpower.architect;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.Collections;
@@ -45,8 +46,62 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		fkColumnManager = new FKColumnManager();
 	}
 	
-	public void attachRelationship(SQLTable pkTable, SQLTable fkTable) {
+	/*
+	 *  Ideally, loop through until you get a unique column name...
+	 */
+	private static String generateUniqueColumnName(SQLColumn column, SQLTable table) {
+		return column.getParentTable().getName() + "_" + column.getName();  // FIXME: still might not be unique
+	}
+	
+	public void attachRelationship(SQLTable pkTable, SQLTable fkTable) throws ArchitectException {
+		this.setPkTable(pkTable);
+		this.setFkTable(fkTable);
 		
+		fkTable.setSecondaryChangeMode(true);
+		
+		pkTable.addExportedKey(this);
+		fkTable.addImportedKey(this);
+		
+		// iterate over a copy of pktable's column list to avoid comodification
+		// when creating a self-referencing table
+		java.util.List<SQLColumn> pkColListCopy = new ArrayList<SQLColumn>(pkTable.getColumns().size());
+		pkColListCopy.addAll(pkTable.getColumns());
+		for (SQLColumn pkCol : pkColListCopy) {
+			if (pkCol.getPrimaryKeySeq() == null) break;
+			
+			SQLColumn fkCol;
+			SQLColumn match = fkTable.getColumnByName(pkCol.getName());
+			if (match != null) {
+				// does the matching column have a compatible data type?
+				if (match.getType() == pkCol.getType() &&
+				    match.getPrecision() == pkCol.getPrecision() &&
+					match.getScale() == pkCol.getScale()) {
+					// column is an exact match, so we don't have to recreate it
+					fkCol = match; 
+				} else {
+					fkCol = new SQLColumn(pkCol);
+					fkCol.setName(generateUniqueColumnName(pkCol,fkTable));
+				}
+			} else {
+				// no match, so we need to import this column from PK table
+				fkCol = new SQLColumn(pkCol);
+			}
+			
+			try {
+				// This might bump up the reference count (which would be correct)
+				fkTable.addColumn(fkCol);
+				if (fkCol.getReferenceCount() <= 0) throw new IllegalStateException("Created a column with 0 references!");
+				
+				if (identifying && fkCol.getPrimaryKeySeq() == null) {
+					fkCol.setPrimaryKeySeq(new Integer(fkTable.getPkSize()));
+				}
+				
+				this.addMapping(pkCol, fkCol);
+			} finally {
+				fkCol.setSecondaryChangeMode(false);
+			}
+			
+		}
 	}
 
 
@@ -268,9 +323,18 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 			SQLTable.Folder f = (SQLTable.Folder) e.getSource();
 			if (f.getType() == SQLTable.Folder.EXPORTED_KEYS) {
 				SQLObject[] removedRels = e.getChildren();
-				for (int i = 0; i < removedRels.length; i++) {
+				int size = removedRels.length;
+				for (int i = 0; i < size; i++) {
 					SQLRelationship r = (SQLRelationship) removedRels[i];
-					r.getFkTable().removeImportedKey(r);
+					if (r == SQLRelationship.this) {
+						r.getFkTable().removeImportedKey(r);
+						logger.debug("Removing references for mappings: "+getMappings());
+						
+						for (ColumnMapping cm : r.getMappings()) {
+							logger.debug("Removing mapping "+ cm);
+							cm.getFkColumn().removeReference();
+						}
+					}
 				}
 			} else if (f.getType() == SQLTable.Folder.COLUMNS) {
 				SQLObject[] cols = e.getChildren();
