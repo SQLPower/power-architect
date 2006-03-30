@@ -53,7 +53,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		return column.getParentTable().getName() + "_" + column.getName();  // FIXME: still might not be unique
 	}
 	
-	public void attachRelationship(SQLTable pkTable, SQLTable fkTable) throws ArchitectException {
+	public void attachRelationship(SQLTable pkTable, SQLTable fkTable, boolean autoGenerateMapping) throws ArchitectException {
 		this.setPkTable(pkTable);
 		this.setFkTable(fkTable);
 		
@@ -61,47 +61,48 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		
 		pkTable.addExportedKey(this);
 		fkTable.addImportedKey(this);
-		pkTable.addSQLObjectListener(fkColumnManager);
-		fkTable.addSQLObjectListener(fkColumnManager);
-		// iterate over a copy of pktable's column list to avoid comodification
-		// when creating a self-referencing table
-		java.util.List<SQLColumn> pkColListCopy = new ArrayList<SQLColumn>(pkTable.getColumns().size());
-		pkColListCopy.addAll(pkTable.getColumns());
-		for (SQLColumn pkCol : pkColListCopy) {
-			if (pkCol.getPrimaryKeySeq() == null) break;
+		if (autoGenerateMapping) {
+			// iterate over a copy of pktable's column list to avoid comodification
+			// when creating a self-referencing table
+			java.util.List<SQLColumn> pkColListCopy = new ArrayList<SQLColumn>(pkTable.getColumns().size());
+			pkColListCopy.addAll(pkTable.getColumns());
 			
-			SQLColumn fkCol;
-			SQLColumn match = fkTable.getColumnByName(pkCol.getName());
-			if (match != null) {
-				// does the matching column have a compatible data type?
-				if (match.getType() == pkCol.getType() &&
-				    match.getPrecision() == pkCol.getPrecision() &&
-					match.getScale() == pkCol.getScale()) {
-					// column is an exact match, so we don't have to recreate it
-					fkCol = match; 
+			for (SQLColumn pkCol : pkColListCopy) {
+				if (pkCol.getPrimaryKeySeq() == null) break;
+				
+				SQLColumn fkCol;
+				SQLColumn match = fkTable.getColumnByName(pkCol.getName());
+				if (match != null) {
+					// does the matching column have a compatible data type?
+					if (match.getType() == pkCol.getType() &&
+							match.getPrecision() == pkCol.getPrecision() &&
+							match.getScale() == pkCol.getScale()) {
+						// column is an exact match, so we don't have to recreate it
+						fkCol = match; 
+					} else {
+						fkCol = new SQLColumn(pkCol);
+						fkCol.setName(generateUniqueColumnName(pkCol,fkTable));
+					}
 				} else {
+					// no match, so we need to import this column from PK table
 					fkCol = new SQLColumn(pkCol);
-					fkCol.setName(generateUniqueColumnName(pkCol,fkTable));
-				}
-			} else {
-				// no match, so we need to import this column from PK table
-				fkCol = new SQLColumn(pkCol);
-			}
-			
-			try {
-				// This might bump up the reference count (which would be correct)
-				fkTable.addColumn(fkCol);
-				if (fkCol.getReferenceCount() <= 0) throw new IllegalStateException("Created a column with 0 references!");
-				
-				if (identifying && fkCol.getPrimaryKeySeq() == null) {
-					fkCol.setPrimaryKeySeq(new Integer(fkTable.getPkSize()));
 				}
 				
-				this.addMapping(pkCol, fkCol);
-			} finally {
-				fkCol.setSecondaryChangeMode(false);
+				try {
+					// This might bump up the reference count (which would be correct)
+					fkTable.addColumn(fkCol);
+					if (fkCol.getReferenceCount() <= 0) throw new IllegalStateException("Created a column with 0 references!");
+					
+					if (identifying && fkCol.getPrimaryKeySeq() == null) {
+						fkCol.setPrimaryKeySeq(new Integer(fkTable.getPkSize()));
+					}
+					
+					this.addMapping(pkCol, fkCol);
+				} finally {
+					fkCol.setSecondaryChangeMode(false);
+				}
+				
 			}
-			
 		}
 	}
 
@@ -364,7 +365,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 
 		public void dbObjectChanged(SQLObjectEvent e) {
 			String prop = e.getPropertyName();
-			logger.debug("PK Column changed! property="+e.getPropertyName()+" source="+e.getSource());
+			logger.debug("Property changed! property="+e.getPropertyName()+" source="+e.getSource());
 			if (e.getSource() instanceof SQLColumn) {
 				SQLColumn col = (SQLColumn) e.getSource();
 				
@@ -697,8 +698,11 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		if (pkTable != null) {
 			ArchitectUtils.unlistenToHierarchy(fkColumnManager, pkTable.columnsFolder);
 			pkTable.exportedKeysFolder.removeSQLObjectListener(fkColumnManager);
+			pkTable.removeSQLObjectListener(fkColumnManager);
+			
 		}
 		pkTable = pkt;
+		pkTable.addSQLObjectListener(fkColumnManager);
 		ArchitectUtils.listenToHierarchy(fkColumnManager, pkTable.columnsFolder);
 		pkTable.exportedKeysFolder.addSQLObjectListener(fkColumnManager);
 		fireDbObjectChanged("pkTable",oldPkt,pkt);
@@ -708,9 +712,16 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		return fkTable;
 	}
 
-	public void setFkTable(SQLTable fkt) {
+	public void setFkTable(SQLTable fkt) throws ArchitectException {
 		SQLTable oldFkt = fkTable;
+		if (fkTable != null) {
+			ArchitectUtils.unlistenToHierarchy(fkColumnManager, fkTable.columnsFolder);
+			fkTable.exportedKeysFolder.removeSQLObjectListener(fkColumnManager);
+			fkTable.removeSQLObjectListener(fkColumnManager);
+			
+		}
 		fkTable = fkt;
+		fkTable.addSQLObjectListener(fkColumnManager);
 		fireDbObjectChanged("fkTable",oldFkt,fkt);
 	}
 	

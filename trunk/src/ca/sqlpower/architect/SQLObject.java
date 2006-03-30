@@ -15,6 +15,7 @@ public abstract class SQLObject implements java.io.Serializable {
 
 	private String physicalName;
 	private String name;
+	private SQLObject parent;
 	
 	/**
 	 * The children of this SQLObject (if not applicable, set to
@@ -72,7 +73,7 @@ public abstract class SQLObject implements java.io.Serializable {
 		return getName(); 
 	}
 	public final void setPhysicalName(String argName) {
-		String oldPhysicalName = this.getPhysicalName();
+		String oldPhysicalName = this.physicalName;
 		this.physicalName = argName;
 		fireDbObjectChanged("physicalName",oldPhysicalName,argName);
 	}

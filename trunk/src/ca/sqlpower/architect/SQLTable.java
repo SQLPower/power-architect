@@ -269,7 +269,7 @@ public class SQLTable extends SQLObject {
 	/**
 	 * Convenience method for getImportedKeys.addChild(r).
 	 */
-	public void addImportedKey(SQLRelationship r) throws ArchitectException {
+	void addImportedKey(SQLRelationship r) throws ArchitectException {
 		importedKeysFolder.addChild(r);
 	}
 
@@ -283,7 +283,7 @@ public class SQLTable extends SQLObject {
 	/**
 	 * Convenience method for getExportedKeys.addChild(r).
 	 */
-	public void addExportedKey(SQLRelationship r) throws ArchitectException {
+	void addExportedKey(SQLRelationship r) throws ArchitectException {
 		exportedKeysFolder.addChild(r);
 	}
 
@@ -618,8 +618,13 @@ public class SQLTable extends SQLObject {
 		return parent;
 	}
 
+	//TODO XXX Sql object should be doing this when we add generics
 	protected void setParent(SQLObject newParent) {
+		System.out.println("Setting "+getName()+"'s parent to "+ newParent);
+		if (parent == newParent) return;
+		SQLObject oldVal = parent;
 		parent = newParent;
+		fireDbObjectChanged("parent",oldVal,parent);
 	}
 
 
@@ -873,12 +878,13 @@ public class SQLTable extends SQLObject {
 		return columnsFolder;
 	}
 
+	public SQLObject getImportedKeysFolder() {
+		return importedKeysFolder;
+	}
 
-
-	
-
-	
-
+	public SQLObject getExportedKeysFolder() {
+		return exportedKeysFolder;
+	}
 
 	/**
 	 * Sets the table name, and also modifies the primary key name if

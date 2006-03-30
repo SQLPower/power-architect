@@ -259,11 +259,10 @@ public class CompareSQLTest extends TestCase {
 		SQLTable newTable1 = table1;
 		SQLTable newTable2 = table2;
 		SQLRelationship relation1 = new SQLRelationship();
+		relation1.attachRelationship(table1,table2,false);
 		relation1.addMapping(newTable1.getColumn(0), newTable2.getColumn(1));
 		relation1.setName("relation1");
 		
-		newTable1.addExportedKey(relation1);
-		newTable2.addImportedKey(relation1);
 
 		List<SQLTable> newList1 = new ArrayList<SQLTable>();
 		List<SQLTable> newList2 = new ArrayList<SQLTable>();
@@ -298,9 +297,7 @@ public class CompareSQLTest extends TestCase {
 		relationL.addMapping(newTable1L.getColumn(0), newTable2L.getColumn(1));
 		relationL.setName("relation1");
 		
-		
-		newTable1L.addExportedKey(relationL);
-		newTable2L.addImportedKey(relationL);
+		relationL.attachRelationship(newTable1L,newTable2L,false);
 		
 		List<SQLTable> tableListL = new ArrayList<SQLTable>();
 		tableListL.add(newTable1L);
@@ -312,9 +309,7 @@ public class CompareSQLTest extends TestCase {
 		SQLRelationship relationR = new SQLRelationship();
 		relationR.addMapping(newTable1R.getColumn(0), newTable2R.getColumn(1));
 		relationR.setName("relation1");
-		
-		newTable1R.addExportedKey(relationR);
-		newTable2R.addImportedKey(relationR);
+		relationR.attachRelationship(newTable1R,newTable2R,false);
 		
 		List<SQLTable> tableListR = new ArrayList<SQLTable>();
 		tableListR.add(newTable1R);
@@ -339,8 +334,7 @@ public class CompareSQLTest extends TestCase {
 		relationL.addMapping(newTable1L.getColumn(0), newTable2L.getColumn(1));
 		relationL.setName("relation1");
 		
-		newTable1L.addExportedKey(relationL);
-		newTable2L.addImportedKey(relationL);
+		relationL.attachRelationship(newTable1L,newTable2L,false);
 		
 		List<SQLTable> tableListL = new ArrayList<SQLTable>();
 		tableListL.add(newTable1L);
@@ -353,8 +347,7 @@ public class CompareSQLTest extends TestCase {
 		relationR.addMapping(newTable1R.getColumn(0), newTable2R.getColumn(1));
 		relationR.setName("not_relation1");
 		
-		newTable1R.addExportedKey(relationR);
-		newTable2R.addImportedKey(relationR);
+		relationR.attachRelationship(newTable1R,newTable2R,false);
 		
 		List<SQLTable> tableListR = new ArrayList<SQLTable>();
 		tableListR.add(newTable1R);
@@ -387,10 +380,7 @@ public class CompareSQLTest extends TestCase {
 		newTable1L.getColumn(0).setPrimaryKeySeq(1); 
 		relationL.addMapping(newTable1L.getColumn(0), newTable2L.getColumn(2));  // this is the difference
 		relationL.setName("relation1");
-
-		
-		newTable1L.addExportedKey(relationL);
-		newTable2L.addImportedKey(relationL);
+		relationL.attachRelationship(newTable1L,newTable2L,false);;
 		
 		List<SQLTable> tableListL = new ArrayList<SQLTable>();
 		tableListL.add(newTable1L);
@@ -404,8 +394,7 @@ public class CompareSQLTest extends TestCase {
 		relationR.addMapping(newTable1R.getColumn(0), newTable2R.getColumn(1));
 		relationR.setName("relation1");
 		
-		newTable1R.addExportedKey(relationR);
-		newTable2R.addImportedKey(relationR);
+		relationR.attachRelationship(newTable1R,newTable2R,false);
 		
 		List<SQLTable> tableListR = new ArrayList<SQLTable>();
 		tableListR.add(newTable1R);

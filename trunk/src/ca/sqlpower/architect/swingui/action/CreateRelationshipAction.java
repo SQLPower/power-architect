@@ -76,7 +76,7 @@ public class CreateRelationshipAction extends AbstractAction
 			model.setName(pkTable.getName()+"_"+fkTable.getName()+"_fk"); 
 			model.setIdentifying(identifying);
 			
-			model.attachRelationship(pkTable,fkTable);
+			model.attachRelationship(pkTable,fkTable,true);
 			
 			Relationship r = new Relationship(pp, model);
 			pp.addRelationship(r);
