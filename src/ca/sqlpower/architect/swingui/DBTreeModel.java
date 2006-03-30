@@ -306,6 +306,7 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 
 	// --------------------- SQLObject listener support -----------------------
 	public void dbChildrenInserted(SQLObjectEvent e) {
+		if (!SwingUtilities.isEventDispatchThread()) return;
 		if (logger.isDebugEnabled()) {
 			if (e.getSQLSource() instanceof SQLRelationship) {
 				SQLRelationship r = (SQLRelationship) e.getSQLSource();
@@ -352,6 +353,7 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	}
 
 	public void dbChildrenRemoved(SQLObjectEvent e) {
+		if (!SwingUtilities.isEventDispatchThread()) return;
 		if (logger.isDebugEnabled()) logger.debug("dbChildrenRemoved SQLObjectEvent: "+e);
 		try {
 			SQLObject[] oldEventSources = e.getChildren();
@@ -387,6 +389,7 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	}
 	
 	public void dbObjectChanged(SQLObjectEvent e) {
+		if (!SwingUtilities.isEventDispatchThread()) return;
 		if (logger.isDebugEnabled()) logger.debug("dbObjectChanged SQLObjectEvent: "+e);
 		SQLObject source = e.getSQLSource();
 		if (source instanceof SQLRelationship) {
@@ -399,6 +402,13 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	}
 
 	public void dbStructureChanged(SQLObjectEvent e) {
-		throw new UnsupportedOperationException("not yet");
+		if (!SwingUtilities.isEventDispatchThread()) return;
+		try {
+			ArchitectUtils.listenToHierarchy(this, e.getSQLSource());
+			TreeModelEvent tme = new TreeModelEvent(this, getPathToNode(e.getSQLSource()));
+			fireTreeStructureChanged(tme);
+		} catch (ArchitectException ex) {
+			logger.error("Couldn't listen to hierarchy rooted at "+e.getSQLSource(), ex);
+		}
 	}
 }

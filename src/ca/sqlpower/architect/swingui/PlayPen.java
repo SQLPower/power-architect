@@ -1073,17 +1073,17 @@ public class PlayPen extends JPanel
 	}
 	
 	protected class AddObjectsTask extends MonitorableWorker {
-		List sqlObjects;
-		Point preferredLocation;	
-		JDialog parentDialog;	 
-		boolean hasStarted = false;
-		boolean finished = false;
-		String message = null;
-		int progress = 0;
-		Integer jobSize = null;
+		private List<SQLObject> sqlObjects;
+		private Point preferredLocation;	
+		private JDialog parentDialog;	 
+		private boolean hasStarted = false;
+		private boolean finished = false;
+		private String message = null;
+		private int progress = 0;
+		private Integer jobSize = null;
 		private String errorMessage = null;
 		
-		public AddObjectsTask(List sqlObjects, 
+		public AddObjectsTask(List<SQLObject> sqlObjects, 
 				Point preferredLocation, 
 				ProgressMonitor pm, 
 				JDialog parentDialog) {
@@ -1110,91 +1110,49 @@ public class PlayPen extends JPanel
 			return message;
 		}
 
-	
+		/**
+		 * Makes sure all the stuff we want to add is populated.
+		 */
 		public void doStuff () {
-			ArchitectFrame.getMainInstance().getProject().getPlayPen().fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.MULTI_SELECT_START,"Starting multi-select"));
-			if ( !isCancelled()){
+			logger.info("AddObjectsTask starting on thread "+Thread.currentThread().getName());
+
+			try {
 				hasStarted = true;
-				logger.info("AddObjectsTask starting on thread "+Thread.currentThread().getName());
+				int pmMax = 0;
 				
-				try {
-					
-					int pmMax = 0;				
-					Iterator soIt = sqlObjects.iterator();
-					
-					// first pass: figure out how much work we need to do...
-					while (soIt.hasNext()) {
-						pmMax += ArchitectUtils.countTablesSnapshot((SQLObject)soIt.next());						
-					}				
-					jobSize = new Integer(pmMax);
-					
-					
-					// reset iterator
-					soIt = sqlObjects.iterator();
-					
-					while (soIt.hasNext() && !isCancelled()) {
-						Object someData = soIt.next();					
-						if (someData instanceof SQLTable) {
-							TablePane tp = importTableCopy((SQLTable) someData, preferredLocation);
-							message = ArchitectUtils.truncateString(((SQLTable)someData).getName());
-							preferredLocation.x += tp.getPreferredSize().width + 5;
-							progress++;
-						} else if (someData instanceof SQLSchema) {
-							SQLSchema sourceSchema = (SQLSchema) someData;						
-							Iterator it = sourceSchema.getChildren().iterator();
-							while (it.hasNext() && !isCancelled()) {
-								SQLTable sourceTable = (SQLTable) it.next();
-								message = ArchitectUtils.truncateString(sourceTable.getName());
-								TablePane tp = importTableCopy(sourceTable, preferredLocation);
-								preferredLocation.x += tp.getPreferredSize().width + 5;
-								progress++;
-							}
-						} else if (someData instanceof SQLCatalog) {
-							SQLCatalog sourceCatalog = (SQLCatalog) someData;
-							Iterator cit = sourceCatalog.getChildren().iterator();
-							if (sourceCatalog.isSchemaContainer()) {
-								while (cit.hasNext() && !isCancelled()) {
-									SQLSchema sourceSchema = (SQLSchema) cit.next();						
-									Iterator it = sourceSchema.getChildren().iterator();
-									while (it.hasNext() && !isCancelled()) {
-										SQLTable sourceTable = (SQLTable) it.next();									
-										message = ArchitectUtils.truncateString(sourceTable.getName());
-										TablePane tp = importTableCopy(sourceTable, preferredLocation);
-										preferredLocation.x += tp.getPreferredSize().width + 5;
-										progress++;
-									}
-								}
-							} else {
-								while (cit.hasNext() && !isCancelled()) {
-									SQLTable sourceTable = (SQLTable) cit.next();
-									message = ArchitectUtils.truncateString(sourceTable.getName());
-									TablePane tp = importTableCopy(sourceTable, preferredLocation);
-									preferredLocation.x += tp.getPreferredSize().width + 5;
-									progress++;
-								}
-							}
-						} else if (someData instanceof SQLColumn) {
-							SQLColumn column = (SQLColumn) someData;
-							JLabel colName = new JLabel(column.getName());
-							colName.setSize(colName.getPreferredSize());
-							add(colName, preferredLocation);
-							logger.debug("Added "+column.getName()+" to playpen (temporary, only for testing)");
-							colName.revalidate();
-						} else {
-							logger.error("Unknown object dropped in PlayPen: "+someData);
-						}				
-					}
-				} catch (ArchitectException e) {
-					e.printStackTrace();
-				} finally {
-					finished = true;
-					hasStarted = false;
-					ArchitectFrame.getMainInstance().getProject().getPlayPen().fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.MULTI_SELECT_END,"Ending multi-select"));
-				}
-				logger.info("AddObjectsTask done");
+				Iterator<SQLObject> soIt = sqlObjects.iterator();
+				// first pass: figure out how much work we need to do...
+				while (soIt.hasNext() && !isCancelled()) {
+					pmMax += ArchitectUtils.countTablesSnapshot(soIt.next());						
+				}				
+				jobSize = new Integer(pmMax);
+				
+				ensurePopulated(sqlObjects);
+			} catch (ArchitectException e) {
+				logger.error("Unexpected exception during populate", e);
+				errorMessage = "Unexpected exception during populate: " + e.getMessage();
 			}
+			logger.info("AddObjectsTask done");
 		}
 
+		/**
+		 * Ensures the given objects and all their descendants are populated from the database before returning, unless
+		 * this worker gets cancelled.
+		 * 
+		 * @param so
+		 */
+		private void ensurePopulated(List<SQLObject> soList) {
+			for (SQLObject so : soList) {
+				if (isCancelled()) break;
+				try {
+					if (so instanceof SQLTable) progress++;
+					ensurePopulated(so.getChildren());
+				} catch (ArchitectException e) {
+					logger.error("Couldn't get children of "+so, e);
+				}
+			}
+		}
+		
 		/**
 		 * Displays error messages or invokes the next process in the chain on a new
 		 * thread. The run method asks swing to invoke this method on the event dispatch
@@ -1202,20 +1160,80 @@ public class PlayPen extends JPanel
 		 */
 		public void cleanup() {
 			if (errorMessage != null) {
-				Component c = ArchitectFrame.getMainInstance();
-				if (parentDialog != null) {
-					c = parentDialog;
-				}
-				JOptionPane.showMessageDialog(c, errorMessage, "Error Dropping Tables into Playpen", JOptionPane.ERROR_MESSAGE);
+				JOptionPane.showMessageDialog(parentDialog, errorMessage, "Error Dropping Tables into Playpen", JOptionPane.ERROR_MESSAGE);
 				if (getNextProcess() != null) {
 					setCancelled(true);	
 				}
-			
 			}
-			
+
+			ArchitectFrame.getMainInstance().getProject().getPlayPen().fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.MULTI_SELECT_START,"Starting multi-select"));
+				
+			try {
+				
+				// reset iterator
+				Iterator<SQLObject> soIt = sqlObjects.iterator();
+				
+				while (soIt.hasNext() && !isCancelled()) {
+					SQLObject someData = soIt.next();
+					someData.fireDbStructureChanged();
+					if (someData instanceof SQLTable) {
+						TablePane tp = importTableCopy((SQLTable) someData, preferredLocation);
+						message = ArchitectUtils.truncateString(((SQLTable)someData).getName());
+						preferredLocation.x += tp.getPreferredSize().width + 5;
+						progress++;
+					} else if (someData instanceof SQLSchema) {
+						SQLSchema sourceSchema = (SQLSchema) someData;						
+						Iterator it = sourceSchema.getChildren().iterator();
+						while (it.hasNext() && !isCancelled()) {
+							SQLTable sourceTable = (SQLTable) it.next();
+							message = ArchitectUtils.truncateString(sourceTable.getName());
+							TablePane tp = importTableCopy(sourceTable, preferredLocation);
+							preferredLocation.x += tp.getPreferredSize().width + 5;
+							progress++;
+						}
+					} else if (someData instanceof SQLCatalog) {
+						SQLCatalog sourceCatalog = (SQLCatalog) someData;
+						Iterator cit = sourceCatalog.getChildren().iterator();
+						if (sourceCatalog.isSchemaContainer()) {
+							while (cit.hasNext() && !isCancelled()) {
+								SQLSchema sourceSchema = (SQLSchema) cit.next();						
+								Iterator it = sourceSchema.getChildren().iterator();
+								while (it.hasNext() && !isCancelled()) {
+									SQLTable sourceTable = (SQLTable) it.next();									
+									message = ArchitectUtils.truncateString(sourceTable.getName());
+									TablePane tp = importTableCopy(sourceTable, preferredLocation);
+									preferredLocation.x += tp.getPreferredSize().width + 5;
+									progress++;
+								}
+							}
+						} else {
+							while (cit.hasNext() && !isCancelled()) {
+								SQLTable sourceTable = (SQLTable) cit.next();
+								message = ArchitectUtils.truncateString(sourceTable.getName());
+								TablePane tp = importTableCopy(sourceTable, preferredLocation);
+								preferredLocation.x += tp.getPreferredSize().width + 5;
+								progress++;
+							}
+						}
+					} else if (someData instanceof SQLColumn) {
+						SQLColumn column = (SQLColumn) someData;
+						JLabel colName = new JLabel(column.getName());
+						colName.setSize(colName.getPreferredSize());
+						add(colName, preferredLocation);
+						logger.debug("Added "+column.getName()+" to playpen (temporary, only for testing)");
+						colName.revalidate();
+					} else {
+						logger.error("Unknown object dropped in PlayPen: "+someData);
+					}				
+				}
+			} catch (ArchitectException e) {
+				ASUtils.showExceptionDialog(parentDialog, "Unexpected Exception During Import", e);
+			} finally {
+				finished = true;
+				hasStarted = false;
+				ArchitectFrame.getMainInstance().getProject().getPlayPen().fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.MULTI_SELECT_END,"Ending multi-select"));
+			}
 		}
-		
-	
 		
 		public boolean hasStarted () {
 			return hasStarted;
