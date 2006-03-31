@@ -11,6 +11,7 @@ import java.awt.event.WindowEvent;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
@@ -41,6 +42,7 @@ import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.ConfigFile;
 import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.layout.ArchitectLayoutInterface;
 import ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout;
@@ -279,56 +281,7 @@ public class ArchitectFrame extends JFrame {
 		newProjectAction.putValue(AbstractAction.ACCELERATOR_KEY, 
 				KeyStroke.getKeyStroke(KeyEvent.VK_N, accelMask));
 		
-		openProjectAction
-			= new AbstractAction("Open Project...",
-								 ASUtils.createJLFIcon("general/Open",
-													   "Open Project",
-													   sprefs.getInt(SwingUserSettings.ICON_SIZE, 24))) {
-					public void actionPerformed(ActionEvent e) {
-					    if (promptForUnsavedModifications()) {
-					        JFileChooser chooser = new JFileChooser();
-					        chooser.addChoosableFileFilter(ASUtils.ARCHITECT_FILE_FILTER);
-					        int returnVal = chooser.showOpenDialog(ArchitectFrame.this);
-					        if (returnVal == JFileChooser.APPROVE_OPTION) {
-					            final File file = chooser.getSelectedFile();	
-					            new Thread() {
-					                public void run() {
-							            InputStream in = null;
-					                    try {
-					                    	closeProject(getProject());
-					                        SwingUIProject project = new SwingUIProject("Loading...");
-					                        project.setFile(file);
-					                        in = new BufferedInputStream
-					                        (new ProgressMonitorInputStream
-					                                (ArchitectFrame.this,
-					                                        "Reading " + file.getName(),
-					                                        new FileInputStream(file)));
-					                        project.load(in);
-					                        setProject(project);					                        
-					                    } catch (Exception ex) {
-					                        JOptionPane.showMessageDialog
-					                        (ArchitectFrame.this,
-					                                "Can't open project: "+ex.getMessage());
-					                        logger.error("Got exception while opening project", ex);
-					                    } finally {
-					                    	try {
-					                    		if (in != null) {
-					                    			in.close();					                    		
-					                    		}
-					                    	} catch (IOException ie) {
-					                    		logger.error("got exception while closing project file", ie);	
-					                    	}
-					                    }					                 
-					                }
-					            }.start();
-					        }
-					    }
-					}
-				};
-		openProjectAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Open");
-		openProjectAction.putValue(AbstractAction.ACCELERATOR_KEY,
-				KeyStroke.getKeyStroke(KeyEvent.VK_O, accelMask));
-		
+		openProjectAction = new OpenProjectAction();
 		
 		saveProjectAction 
 			= new AbstractAction("Save Project",
@@ -615,6 +568,77 @@ public class ArchitectFrame extends JFrame {
 		if (createIdentifyingRelationshipAction.isActive()) return true;
 		if (createNonIdentifyingRelationshipAction.isActive()) return true;
 		return false;			
+	}
+
+	private class OpenProjectAction extends AbstractAction {
+		private OpenProjectAction() {
+			super("Open Project...", ASUtils.createJLFIcon("general/Open",
+					   "Open Project",
+					   sprefs.getInt(SwingUserSettings.ICON_SIZE, 24)));
+			putValue(AbstractAction.SHORT_DESCRIPTION, "Open");
+			putValue(AbstractAction.ACCELERATOR_KEY,
+					KeyStroke.getKeyStroke(KeyEvent.VK_O,
+							Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+		}
+
+		public void actionPerformed(ActionEvent e) {
+		    if (promptForUnsavedModifications()) {
+		        JFileChooser chooser = new JFileChooser();
+		        chooser.addChoosableFileFilter(ASUtils.ARCHITECT_FILE_FILTER);
+		        int returnVal = chooser.showOpenDialog(ArchitectFrame.this);
+		        if (returnVal == JFileChooser.APPROVE_OPTION) {
+		        	File f = chooser.getSelectedFile();
+		        	LoadFileWorker worker;
+					try {
+						worker = new LoadFileWorker(f);
+						new Thread(worker).start();
+					} catch (FileNotFoundException e1) {
+						JOptionPane.showMessageDialog(
+								ArchitectFrame.this,
+								"File not found: "+f.getPath());
+					} catch (Exception e1) {
+						ASUtils.showExceptionDialog(
+								ArchitectFrame.this,
+								"Error loading file", e1);
+					}
+		        }
+		    }
+		}
+		
+		private class LoadFileWorker extends ArchitectSwingWorker {
+			InputStream in;
+			SwingUIProject project;
+			
+			public LoadFileWorker(File file) throws ArchitectException, FileNotFoundException {
+					closeProject(getProject());
+					project = new SwingUIProject("Loading...");
+					project.setFile(file);
+					in = new BufferedInputStream
+					(new ProgressMonitorInputStream
+							(ArchitectFrame.this,
+									"Reading " + file.getName(),
+									new FileInputStream(file)));
+			}
+			
+			@Override
+			public void doStuff() throws IOException, ArchitectException {
+				project.load(in);
+			}
+			
+			@Override
+			public void cleanup() throws ArchitectException {
+                setProject(project);
+                ((SQLObject) project.getSourceDatabases().getModel().getRoot()).fireDbStructureChanged();
+            	try {
+            		if (in != null) {
+            			in.close();					                    		
+            		}
+            	} catch (IOException ie) {
+            		logger.error("got exception while closing project file", ie);	
+            	}
+
+			}
+		}
 	}
 
 	class ArchitectFrameWindowListener extends WindowAdapter {
