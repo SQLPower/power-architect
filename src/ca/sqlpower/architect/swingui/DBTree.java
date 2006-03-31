@@ -122,6 +122,7 @@ public class DBTree extends JTree implements DragSourceListener {
 						SQLObject root = (SQLObject) getModel().getRoot();
 						try {
 							root.addChild(root.getChildCount(), edittingDB);
+							ArchitectFrame.getMainInstance().getProject().setModified(true);
 						} catch (ArchitectException ex) {
 							logger.warn("Couldn't add new database to tree", ex);
 							JOptionPane.showMessageDialog(DBTree.this, "Couldn't add new connection:\n"+ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -135,10 +136,14 @@ public class DBTree extends JTree implements DragSourceListener {
 						return; // don't dispose() of the dialog just yet...
 					}
 				}
+				else {
+					ArchitectFrame.getMainInstance().getProject().setModified(true);
+				}
 				panelHoldsNewDBCS = false;
 				propDialog.dispose();
 				}
 			};
+			
 		Action cancelAction = new AbstractAction() {
 				public void actionPerformed(ActionEvent e) {
 					dbcsPanel.discardChanges();
@@ -586,6 +591,7 @@ public class DBTree extends JTree implements DragSourceListener {
 				} else {				
 					SQLDatabase newDB = new SQLDatabase(dbcs);		
 					root.addChild(root.getChildCount(), newDB);
+					ArchitectFrame.getMainInstance().getProject().setModified(true);
 					// start a thread to poke the new SQLDatabase object...
 					logger.debug("start poking database " + newDB.getName());
 					Thread thread = new PokeDBThread(newDB);
