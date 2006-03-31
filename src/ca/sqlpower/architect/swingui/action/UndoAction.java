@@ -55,6 +55,7 @@ public class UndoAction extends AbstractAction {
 		if (this.manager != null) {
 			this.manager.addChangeListener(managerListener);
 		}
+		updateSettingsFromManager();
 	}
 
 	private void updateSettingsFromManager() {
