@@ -1,18 +1,41 @@
 package ca.sqlpower.architect.swingui;
 
-import javax.swing.*;
-import javax.swing.event.*;
-
-import java.beans.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.print.*;
-
-import javax.print.*;
-import javax.print.attribute.*;
-import org.apache.log4j.Logger;
-import java.util.Iterator;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.print.PageFormat;
+import java.awt.print.Pageable;
+import java.awt.print.Paper;
+import java.awt.print.Printable;
+import java.awt.print.PrinterException;
+import java.awt.print.PrinterJob;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.Arrays;
+import java.util.Iterator;
+
+import javax.print.PrintService;
+import javax.print.attribute.HashPrintRequestAttributeSet;
+import javax.print.attribute.PrintRequestAttributeSet;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JSlider;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.MouseInputAdapter;
+
+import org.apache.log4j.Logger;
 
 /**
  * The PrintDialogFrame lets the user specify multi-page printouts by
@@ -81,7 +104,7 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 		formPanel.add(zoomSlider = new JSlider(JSlider.HORIZONTAL, 1, 300, 100));
 		setZoom(1.0);
 		zoomSlider.addChangeListener(this);
-		add(formPanel);
+		add(formPanel);		
 	}
 
 	/**
@@ -127,11 +150,13 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 
 	public void setPageFormat(PageFormat pf) {
 		PageFormat oldPF = pageFormat;
-		pageFormat = pf;
-		if (pf != oldPF) {
-			validateLayout();
-			pageFormatLabel.setText(paperToPrintable(pageFormat));
-			firePropertyChange("pageFormat", oldPF, pageFormat);
+		if ( pf != null ) {
+			pageFormat = pf;
+			if (pf != oldPF) {
+				validateLayout();
+				pageFormatLabel.setText(paperToPrintable(pageFormat));
+				firePropertyChange("pageFormat", oldPF, pageFormat);
+			}
 		}
 	}
 
@@ -303,8 +328,12 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 			g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
 								RenderingHints.VALUE_INTERPOLATION_BICUBIC);
 			//settings.pp.paint(g2);  This is slow in win32 and x11
-			SwingUtilities.paintComponent(g2, pp, new Container(), 0, 0, scaledWidth, scaledHeight);
-			ArchitectFrame.getMainInstance().splitPane.setRightComponent(pp);
+			for (int i = 0; i < pp.getPlayPenContentPane().getComponentCount(); i++) {
+				PlayPenComponent ppc = pp.getPlayPenContentPane().getComponent(i);
+				g2.translate(ppc.getX(), ppc.getY());
+				ppc.paint(g2);
+				g2.translate(-ppc.getX(), -ppc.getY());
+			}
 			
 			// and draw the lines where the page boundaries fall
 			double iW = pageFormat.getImageableWidth();
@@ -320,7 +349,7 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 			for (int i = 0; i <= pagesDown; i++) {
 				g2.drawLine(0, (int) (i * iH), (int) (scaledWidth*PrintPanel.this.zoom), (int) (i * iH));
 				if (logger.isDebugEnabled()) logger.debug("Drew page separator at y="+(i*iH));
-			}
+			}			
 		}
 
 		// ----- property change listener -----

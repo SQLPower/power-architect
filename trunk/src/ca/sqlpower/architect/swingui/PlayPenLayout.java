@@ -37,7 +37,6 @@ public class PlayPenLayout implements LayoutManager {
 			if ( minY > tp.getY() )
 				minY = tp.getY();
 		}
-		
 		int newX, newY;
 		if ( minX < 0 )
 			newX = 0 - minX;
@@ -47,7 +46,7 @@ public class PlayPenLayout implements LayoutManager {
 			newY = 0 - minY;
 		else
 			newY = 0;
-		
+
 		if ( newX > 0 || newY > 0 ) {
 
 			it = pp.getTablePanes().iterator();
@@ -59,8 +58,6 @@ public class PlayPenLayout implements LayoutManager {
 			// and preferred sizes, so the original repaint region could be
 			// too small!
 			pp.repaint();
-		}
-		
+		}			
 	}
-
 }
