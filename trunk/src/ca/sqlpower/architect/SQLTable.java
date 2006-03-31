@@ -292,7 +292,6 @@ public class SQLTable extends SQLObject {
 	 */
 	public void removeExportedKey(SQLRelationship r) {
 		exportedKeysFolder.removeChild(r);
-		System.out.println(r);
 	}
 
 	/**
@@ -620,7 +619,7 @@ public class SQLTable extends SQLObject {
 
 	//TODO XXX Sql object should be doing this when we add generics
 	protected void setParent(SQLObject newParent) {
-		System.out.println("Setting "+getName()+"'s parent to "+ newParent);
+		logger.debug("Setting "+getName()+"'s parent to "+ newParent);
 		if (parent == newParent) return;
 		SQLObject oldVal = parent;
 		parent = newParent;
