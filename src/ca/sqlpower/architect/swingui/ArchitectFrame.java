@@ -267,8 +267,7 @@ public class ArchitectFrame extends JFrame {
 			        try {
 			        	closeProject(getProject());
 			            setProject(new SwingUIProject("New Project"));
-			            logger.debug("Glass pane is "+getGlassPane());
-			            getGlassPane().setVisible(true);
+			            logger.debug("Glass pane is "+getGlassPane());			            
 			        } catch (Exception ex) {
 			            JOptionPane.showMessageDialog(ArchitectFrame.this,
 			                    "Can't create new project: "+ex.getMessage());
