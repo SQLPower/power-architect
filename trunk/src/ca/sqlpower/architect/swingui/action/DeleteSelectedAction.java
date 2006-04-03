@@ -1,13 +1,25 @@
 package ca.sqlpower.architect.swingui.action;
 
-import java.util.List;
-import java.util.Iterator;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.util.Arrays;
-import java.util.ArrayList;
-import java.awt.event.*;
-import javax.swing.*;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.swing.AbstractAction;
+import javax.swing.JComponent;
+import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
 import javax.swing.tree.TreePath;
-import ca.sqlpower.architect.*;
+
+import org.apache.log4j.Logger;
+
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.LockedColumnException;
+import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLRelationship;
+import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
@@ -21,8 +33,6 @@ import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
-
-import org.apache.log4j.Logger;
 
 public class DeleteSelectedAction extends AbstractAction implements SelectionListener {
 	private static final Logger logger = Logger.getLogger(DeleteSelectedAction.class);
@@ -247,11 +257,11 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 	}
 	
 	public void itemSelected(SelectionEvent e) {
-		changeToopTip(pp.getSelectedItems());
+		changeToolTip(pp.getSelectedItems());
 	}
 
 	public void itemDeselected(SelectionEvent e) {
-		changeToopTip(pp.getSelectedItems());
+		changeToolTip(pp.getSelectedItems());
 	}
 
 	/**
@@ -259,7 +269,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 	 * many items are in the selection list.  If there is only one
 	 * selected item, tries to put its name in the tooltip too!
 	 */
-	private void changeToopTip(List selectedItems) {
+	private void changeToolTip(List selectedItems) {
 		if (selectedItems.size() == 0) {
 			setEnabled(false);
 			putValue(SHORT_DESCRIPTION, "Delete Selected");

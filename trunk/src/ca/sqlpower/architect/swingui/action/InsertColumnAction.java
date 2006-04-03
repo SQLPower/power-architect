@@ -10,12 +10,15 @@ import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.Selectable;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
 import ca.sqlpower.architect.swingui.TablePane;
+import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.architect.swingui.event.SelectionListener;
 
 import org.apache.log4j.Logger;
 
-public class InsertColumnAction extends AbstractAction {
+public class InsertColumnAction extends AbstractAction implements SelectionListener {
 	private static final Logger logger = Logger.getLogger(InsertColumnAction.class);
 
 	/**
@@ -35,6 +38,8 @@ public class InsertColumnAction extends AbstractAction {
 								 "New Column",
 								 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
 		putValue(SHORT_DESCRIPTION, "New Column");
+		putValue(ACTION_COMMAND_KEY, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+		setEnabled(false);
 	}
 
 	public void actionPerformed(ActionEvent evt) {
@@ -106,12 +111,40 @@ public class InsertColumnAction extends AbstractAction {
 	}
 
 	public void setPlayPen(PlayPen pp) {
+		
+		if (pp != null) {
+			pp.removeSelectionListener(this);
+		}
 		this.pp = pp;
+		this.pp.addSelectionListener(this);
+		
 	}
 
 	public void setDBTree(DBTree newDBT) {
 		this.dbt = newDBT;
 		// do I need to add a selection listener here?
+	}
+	
+	
+	public void changeToolTip(List selectedItems) {
+		if (selectedItems.size() == 0) {
+			setEnabled(false);
+			logger.debug("Disabling Insert Column Action");
+			putValue(SHORT_DESCRIPTION, "Insert Column");
+		} else {
+			Selectable item = (Selectable) selectedItems.get(0);
+			if (item instanceof TablePane)				
+				setEnabled(true);
+		}
+	}
+		
+	public void itemSelected(SelectionEvent e) {
+		changeToolTip(pp.getSelectedItems());
+		
+	}
+
+	public void itemDeselected(SelectionEvent e) {
+		changeToolTip(pp.getSelectedItems());
 	}
 
 }

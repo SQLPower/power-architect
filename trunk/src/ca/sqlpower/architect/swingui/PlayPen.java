@@ -1807,6 +1807,7 @@ public class PlayPen extends JPanel
 		}
 		
 		public void mouseClicked(MouseEvent evt) {
+			
 			Point p = evt.getPoint();
 			unzoomPoint(p);
 			PlayPenComponent c = contentPane.getComponentAt(p);
@@ -1842,12 +1843,15 @@ public class PlayPen extends JPanel
 		}
 		
 		public void mousePressed(MouseEvent evt) {
+			
 			requestFocus();
 			maybeShowPopup(evt);
 			Point p = evt.getPoint();
 			unzoomPoint(p);
 			PlayPenComponent c = contentPane.getComponentAt(p);
 			if (c != null) p.translate(-c.getX(), -c.getY());
+			
+
 			
 			if (c instanceof Relationship) {
 				
@@ -1877,28 +1881,34 @@ public class PlayPen extends JPanel
 						int clickCol = tp.pointToColumnIndex(p);		
 
 						logger.debug("MP: clickCol="+clickCol+",columnsSize="+tp.getModel().getColumns().size());
-
 						if ( (evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0) {
 		     				// 1. unconditionally de-select everything if this table is unselected					
 							// 2. if the table was selected, de-select everything if the click was not on the 
 		                    //    column header of the table
-							if (!tp.isSelected() || (clickCol > TablePane.COLUMN_INDEX_TITLE && clickCol < tp.getModel().getColumns().size()) ) {
-								pp.selectNone();
-							}						
+							
+							if (!tp.isSelected() ) 
+									pp.selectNone();
+							else if ( clickCol <= TablePane.COLUMN_INDEX_TITLE ||
+									clickCol >= tp.getModel().getColumns().size() ) {
+								tp.setSelected(false);
+							}
+						}
+
+						// de-select columns if shift and ctrl were not pressed				
+						if ( (evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0) {								
+							pp.selectNone();
+						}
+
+						// select current column unconditionally
+						if ( clickCol > TablePane.COLUMN_INDEX_TITLE &&
+							 clickCol < tp.getModel().getColumns().size()) {
+							tp.selectColumn(clickCol);
+							tp.fireSelectionEvent(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT));
+							tp.repaint();
 						}
 
 						// re-select the table pane (fire new selection event when appropriate)
 						tp.setSelected(true);
-
-						// de-select columns if shift and ctrl were not pressed				
-						if ( (evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0) {								
-							tp.selectNone();
-						}
-
-						// select current column unconditionally
-						if (clickCol < tp.getModel().getColumns().size()) {
-							tp.selectColumn(clickCol);
-						}
 
 						// handle drag (but not if createRelationshipAction is active!)	
 						logger.debug("(mouse pressed) click col is: " + clickCol + ", column index title is: " + TablePane.COLUMN_INDEX_TITLE);
@@ -1942,6 +1952,7 @@ public class PlayPen extends JPanel
 		
 		public void mouseReleased(MouseEvent evt) {
 			
+
 			if (rubberBand != null) {
 				if (evt.getButton() == MouseEvent.BUTTON1) {
 					Rectangle dirtyRegion = rubberBand;
@@ -1954,7 +1965,7 @@ public class PlayPen extends JPanel
 					return;
 				}
 			}
-			
+
 			Point p = evt.getPoint();
 			unzoomPoint(p);
 			PlayPenComponent c = contentPane.getComponentAt(p);
@@ -1966,7 +1977,8 @@ public class PlayPen extends JPanel
 				TablePane tp = (TablePane) c;
 				try {
 					
-					int releaseLocation = tp.pointToColumnIndex(p);		
+					int releaseLocation = tp.pointToColumnIndex(p);
+					
 					// can't just do pp.selectNone() here and re-select the current item because that will
 		            // trigger a second selection event which we don't want.  So, iterate through and de-select
 		            // things manually instead...but only if we weren't shift clicking :)
@@ -1996,6 +2008,7 @@ public class PlayPen extends JPanel
 		}
 		
 		public void mouseMoved(MouseEvent evt) {
+	
 			if (rubberBand != null) {
 				// repaint old region in case of shrinkage
 				Rectangle dirtyRegion = zoomRect(new Rectangle(rubberBand));
@@ -2043,6 +2056,7 @@ public class PlayPen extends JPanel
 		 * Shows the playpen popup menu if appropriate.
 		 */
 		public boolean maybeShowPopup(MouseEvent evt) {
+			
 			Point p = evt.getPoint();
 			unzoomPoint(p);
 			PlayPenComponent c = contentPane.getComponentAt(p);
@@ -2152,6 +2166,8 @@ public class PlayPen extends JPanel
 				pp.addImpl(tp,p,pp.getPPComponentCount());
 				try {
 					pp.db.addChild(tp.getModel());
+					pp.selectNone();
+					tp.setSelected(true);
 				} catch (ArchitectException e) {
 					logger.error("Couldn't add table \""+tp.getModel()+"\" to play pen:", e);
 					JOptionPane.showMessageDialog(null, "Failed to add table:\n"+e.getMessage());
