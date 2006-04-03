@@ -29,6 +29,7 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.CompareDMSettings;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.DBTreeModel;
@@ -110,9 +111,18 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		ByteArrayInputStream r = new ByteArrayInputStream(testData.getBytes());
 		project.load(r);
 		assertFalse("Project starts out with undo history",project.getUndoManager().canUndoOrRedo());
-		
-	}
 
+		DBTree tree = project.getSourceDatabases();
+		assertNotNull(tree);
+		assertEquals(tree.getComponentCount(), 1 );
+		
+		SQLDatabase target = project.getTargetDatabase(); 
+		assertNotNull(target);
+		
+		assertEquals(target.getName(), "Target Database");
+		assertEquals(target.getChildCount(), 2);		
+	}
+	
 	/*
 	 * Test method for 'ca.sqlpower.architect.swingui.SwingUIProject.save(ProgressMonitor)'
 	 */
