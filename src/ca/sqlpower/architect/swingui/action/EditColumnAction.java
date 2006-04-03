@@ -7,7 +7,6 @@ import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
-import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -26,10 +25,13 @@ import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.ColumnEditPanel;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.Selectable;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
 import ca.sqlpower.architect.swingui.TablePane;
+import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.architect.swingui.event.SelectionListener;
 
-public class EditColumnAction extends AbstractAction implements ActionListener {
+public class EditColumnAction extends AbstractAction implements SelectionListener {
 	private static final Logger logger = Logger.getLogger(EditColumnAction.class);
 
 	/**
@@ -52,6 +54,8 @@ public class EditColumnAction extends AbstractAction implements ActionListener {
 								 "Column Properties",
 								 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
 		putValue(SHORT_DESCRIPTION, "Column Properties");
+		putValue(ACTION_COMMAND_KEY, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+		setEnabled(false);
 	}
 
 	public void actionPerformed(ActionEvent evt) {
@@ -59,10 +63,12 @@ public class EditColumnAction extends AbstractAction implements ActionListener {
 			List selection = pp.getSelectedItems();
 			logger.debug("selections length is: " + selection.size());			
 			if (selection.size() < 1) {
+				setEnabled(false);
 				JOptionPane.showMessageDialog(pp, "Select a column (by clicking on it) and try again.");
 			} else if (selection.size() > 1) {
 				JOptionPane.showMessageDialog(pp, "You have selected multiple items, but you can only edit one at a time.");
 			} else if (selection.get(0) instanceof TablePane) {
+				setEnabled(true);
 				TablePane tp = (TablePane) selection.get(0);
 				try {
 					List<SQLColumn> selectedCols = tp.getSelectedColumns();
@@ -139,7 +145,14 @@ public class EditColumnAction extends AbstractAction implements ActionListener {
 					columnEditPanel,
 					ArchitectFrame.getMainInstance(),
 					 "Column Properties of "+st.getName(),
-					 "OK");
+					 "OK",
+					 new AbstractAction(){
+						public void actionPerformed(ActionEvent e) {
+							columnEditPanel.applyChanges();
+System.out.println("applied changes:"+columnEditPanel.getColName().getText());
+							EditColumnAction.this.putValue(SHORT_DESCRIPTION, "Editting "+columnEditPanel.getColName().getText() );
+						}
+					},null);
 			panel.setOpaque(true);
 			editDialog.pack();
 			editDialog.setLocationRelativeTo(ArchitectFrame.getMainInstance());
@@ -158,13 +171,57 @@ public class EditColumnAction extends AbstractAction implements ActionListener {
 		}
 	}
 
-	public void setPlayPen(PlayPen pp) {
-		this.pp = pp;
+	public void setPlayPen(PlayPen newPP) {
+		if (pp != null) {
+			pp.removeSelectionListener(this);
+		}
+		pp = newPP;
+		pp.addSelectionListener(this);
 	}
 
+	
 	public void setDBTree(DBTree newDBT) {
 		this.dbt = newDBT;
 		// do I need to add a selection listener here?
+	}
+	
+	public void changeToolTip(List selectedItems) {
+		if (selectedItems.size() == 0) {
+			setEnabled(false);
+			logger.debug("Disabling EditColumnAction");
+			putValue(SHORT_DESCRIPTION, "Edit Selected Column");
+		} else {
+			Selectable item = (Selectable) selectedItems.get(0);
+			String name = "Selected";
+			logger.debug("Selected Table");
+			if (item instanceof TablePane) {				
+				TablePane tp = (TablePane) item;
+				
+				if (tp.getSelectedColumnIndex() > TablePane.COLUMN_INDEX_TITLE ) {
+					try {						
+						logger.debug ("Enabling EditColumnAction");
+						setEnabled(true);
+						name = tp.getModel().getColumn(tp.getSelectedColumnIndex()).getName();
+					} catch (ArchitectException ex) {
+						logger.error("Couldn't get selected column name", ex);
+					}
+				} else {
+					name = tp.getModel().toString();
+					setEnabled(false);
+					logger.debug("Disabling EditColumnAction");
+				}
+			} 
+			putValue(SHORT_DESCRIPTION, "Editting "+name);
+		}
+	}
+		
+	public void itemSelected(SelectionEvent e) {
+		changeToolTip(pp.getSelectedItems());
+		
+	}
+
+	public void itemDeselected(SelectionEvent e) {
+		changeToolTip(pp.getSelectedItems());
 	}
 	
 	

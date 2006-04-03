@@ -15,11 +15,15 @@ import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.RelationshipEditPanel;
+import ca.sqlpower.architect.swingui.Selectable;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
+import ca.sqlpower.architect.swingui.TablePane;
+import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.architect.swingui.event.SelectionListener;
 
 import javax.swing.tree.TreePath;
 
-public class EditRelationshipAction extends AbstractAction {
+public class EditRelationshipAction extends AbstractAction implements SelectionListener {
 	private static final Logger logger = Logger.getLogger(EditRelationshipAction.class);
 
 	/**
@@ -39,6 +43,7 @@ public class EditRelationshipAction extends AbstractAction {
 								 "Relationship Properties",
 								 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
 		putValue(SHORT_DESCRIPTION, "Relationship Properties");
+		setEnabled(false);
 	}
 
 	public void actionPerformed(ActionEvent evt) {
@@ -88,7 +93,11 @@ public class EditRelationshipAction extends AbstractAction {
 	}
 
 	public void setPlayPen(PlayPen pp) {
+		if (pp != null) {
+			pp.removeSelectionListener(this);
+		}
 		this.pp = pp;
+		this.pp.addSelectionListener(this);
 	}
 
 	public void setDBTree(DBTree newDBT) {
@@ -96,4 +105,25 @@ public class EditRelationshipAction extends AbstractAction {
 		// do I need to add a selection listener here?
 	}
 
+	public void changeToolTip(List selectedItems) {
+		if (selectedItems.size() == 0) {
+			setEnabled(false);
+			logger.debug("Disabling edit relationship");
+			putValue(SHORT_DESCRIPTION, "Edit Relationship");
+		} else {
+			Selectable item = (Selectable) selectedItems.get(0);
+			if (item instanceof Relationship )				
+				setEnabled(true);
+		}
+	}
+		
+	public void itemSelected(SelectionEvent e) {
+		changeToolTip(pp.getSelectedItems());
+		
+	}
+
+	public void itemDeselected(SelectionEvent e) {
+		changeToolTip(pp.getSelectedItems());
+	}
+	
 }
