@@ -420,8 +420,13 @@ public class ArchitectFrame extends JFrame {
 		projectBar.add(compareDMAction);
 		projectBar.addSeparator();
 		projectBar.add(autoLayoutAction);
+		projectBar.setToolTipText("Project Toolbar");
+		projectBar.setName("Project Toolbar");
+		
 		
 		JButton tempButton = null; // shared actions need to report where they are coming from
+		ppBar.setToolTipText("PlayPen Toolbar");
+		ppBar.setName("PlayPen ToolBar");
  		ppBar.add(zoomInAction);
  		ppBar.add(zoomOutAction);
  		ppBar.add(zoomNormalAction);
