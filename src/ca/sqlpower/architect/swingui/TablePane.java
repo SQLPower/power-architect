@@ -207,6 +207,7 @@ public class TablePane
 	public void dbChildrenRemoved(SQLObjectEvent e) {
 		if (e.getSource() == this.model.getColumnsFolder()) {
 			int ci[] = e.getChangedIndices();
+			logger.debug("Columns removed. Syncing select/highlight lists. Removed indices="+Arrays.asList(ci));
 			for (int i = 0; i < ci.length; i++) {
 			    columnSelection.remove(ci[i]);
 			    columnHighlight.remove(ci[i]);
