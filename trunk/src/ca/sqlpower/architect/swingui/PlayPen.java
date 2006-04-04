@@ -58,6 +58,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JViewport;
 import javax.swing.KeyStroke;
 import javax.swing.ProgressMonitor;
@@ -753,6 +754,20 @@ public class PlayPen extends JPanel
 					}
 				});
 			playPenPopup.add(mi);
+			
+			mi = new JMenuItem("Show PlayPen Components");
+			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+			mi.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent evt) {
+						StringBuffer componentList = new StringBuffer();
+						for (int i = 0; i < contentPane.getComponentCount(); i++) {
+							PlayPenComponent c = contentPane.getComponent(i);
+							componentList.append(c).append("["+c.getModel()+"]\n");
+						}
+						JOptionPane.showMessageDialog(PlayPen.this, new JScrollPane(new JTextArea(componentList.toString())));
+					}
+				});
+			playPenPopup.add(mi);
 		}
 	}
 
@@ -1295,7 +1310,8 @@ public class PlayPen extends JPanel
 				logger.error("Couldn't listen to added object", ex);
 			}
 			if (c[i] instanceof SQLTable
-				|| c[i] instanceof SQLRelationship) {
+				|| (c[i] instanceof SQLRelationship 
+						&& (((SQLTable.Folder) e.getSource()).getType() == SQLTable.Folder.EXPORTED_KEYS))) {
 				fireEvent = true;
 				
 				PlayPenComponent ppc = removedComponents.get(c[i]);
