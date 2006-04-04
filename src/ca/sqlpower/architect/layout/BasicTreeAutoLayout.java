@@ -102,7 +102,8 @@ public class BasicTreeAutoLayout extends AbstractLayout {
 		this.animationEnabled = animationEnabled;
 	}
 
-	public void setup(List<TablePane> nodes, List<Relationship> edges) {
+	@Override
+	public void setup(List<TablePane> nodes, List<Relationship> edges,Rectangle frame) {
 		origLocations = new HashMap<TablePane,Point>();
 		
 			for (TablePane tp : nodes) {
@@ -166,6 +167,11 @@ public class BasicTreeAutoLayout extends AbstractLayout {
 			tp.setMovePathPoint(x, y);
 		}
 		pp.repaint();
+		
+	}
+
+	public void setup(List<TablePane> nodes, List<Relationship> edges, int frameX, int frameY, int frameHeight, int frameWidth) {
+		// TODO Auto-generated method stub
 		
 	}
 }
