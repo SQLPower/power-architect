@@ -534,6 +534,33 @@ public class PlayPen extends JPanel
 	 * layout manager returns a preferred size of (100,100) when asked.
 	 */
 	public Dimension getPreferredSize() {
+		
+		Dimension usedSpace = getUsedArea();
+		Dimension vpSize = getViewportSize();
+		Dimension ppSize = null;
+		
+		// viewport seems to never come back as null, but protect anyways...
+		if (vpSize != null) {
+			ppSize = new Dimension(Math.max(usedSpace.width, vpSize.width),
+					Math.max(usedSpace.height, vpSize.height));
+		}
+		
+		if (logger.isDebugEnabled()) {
+			logger.debug("minsize is: " + getMinimumSize());
+			logger.debug("unzoomed userDim is: " + unzoomPoint(new Point(usedSpace.width,usedSpace.height)));
+			logger.debug("zoom="+zoom+",usedSpace size is " + usedSpace);
+		}
+		
+		if (ppSize != null) { 
+			logger.debug("preferred size is ppSize (viewport size was null): " + ppSize);
+			return ppSize;
+		} else {
+			logger.debug("preferred size is usedSpace: " + usedSpace);
+			return usedSpace;
+		}
+	}
+	
+	public Dimension getUsedArea() {
 		Rectangle cbounds = null;
 		//int minx = Integer.MAX_VALUE, miny = Integer.MAX_VALUE, maxx = 0, maxy = 0;
 		int minx = 0, miny = 0, maxx = 0, maxy = 0;
@@ -546,31 +573,8 @@ public class PlayPen extends JPanel
 			maxy = Math.max(cbounds.y + cbounds.height, maxy);
 		}
 		
-		Dimension userDim = new Dimension(maxx-minx,maxy-miny);
-		Dimension usedSpace = new Dimension((int) ((double) Math.max(maxx - minx, getMinimumSize().width) * zoom),
+		return new Dimension((int) ((double) Math.max(maxx - minx, getMinimumSize().width) * zoom),
 				(int) ((double) Math.max(maxy - miny, getMinimumSize().height) * zoom));
-		Dimension vpSize = getViewportSize();
-		Dimension ppSize = null;
-		
-		// viewport seems to never come back as null, but protect anyways...
-		if (vpSize != null) {
-			ppSize = new Dimension(Math.max(usedSpace.width, vpSize.width),
-					Math.max(usedSpace.height, vpSize.height));
-		}
-		
-		if (logger.isDebugEnabled()) {
-			logger.debug("minsize is: " + getMinimumSize());
-			logger.debug("unzoomed userDim is: " + userDim);
-			logger.debug("zoom="+zoom+",usedSpace size is " + usedSpace);
-		}
-		
-		if (ppSize != null) { 
-			logger.debug("preferred size is ppSize (viewport size was null): " + ppSize);
-			return ppSize;
-		} else {
-			logger.debug("preferred size is usedSpace: " + usedSpace);
-			return usedSpace;
-		}
 	}
 	
 	// get the size of the viewport that we are sitting in (return null if there isn't one);

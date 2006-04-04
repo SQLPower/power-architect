@@ -3,7 +3,6 @@ package ca.sqlpower.architect.layout;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,22 +31,12 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 	 */
 	private double temp;
 
-	/**
-	 * PlayPen Width
-	 */
-	private int w;
-
-	/**
-	 * PlayPen Height
-	 */
-	private int h;
-
 	private PlayPen pp;
 	
 	/**
 	 * Spacing multiplier
 	 */
-	private double c = 2;
+	private static final double SPACING_MULTIPLIER = 2;
 	
 	/**
 	 *  The number of frames in a row that are considered stopped
@@ -63,10 +52,12 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 	/**
 	 * Used to be able to stop the algoithm prematurely
 	 */
-	private boolean overrideDone; 
+	private boolean overrideDone;
 
-	public void setup(List<TablePane> nodes, List<Relationship> edges) {
-	
+	public void setup(List<TablePane> nodes, List<Relationship> edges,Rectangle frame) {
+		
+		this.frame = frame;
+		
 		this.nodes = new ArrayList<TablePane>(nodes);
 		this.edges = new ArrayList<Relationship>(edges);
 
@@ -76,10 +67,7 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 		
 		stoppedFrames =0;
 		overrideDone = false;
-
-	
-		this.getNewArea(pp);
-		k = getEmptyRadius(pp);
+		k = getEmptyRadius();
 	}
 
 	/**
@@ -138,8 +126,6 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 								(int) Math.round(delta.y / magnitude(delta)
 										* repulsiveForce(magnitude(delta), k)));
 						}
-					
-
 					}
 
 				}
@@ -153,7 +139,13 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 				Point delta = new Point(v.getLocation().x - u.getLocation().x,
 						v.getLocation().y - u.getLocation().y);
 				Point vDisp = displacement.get(v);
+				if (vDisp == null) {
+					break;
+				}
 				Point uDisp = displacement.get(u);
+				if (uDisp == null) {
+					break;
+				}
 				if(uDisp.equals(vDisp))
 				{
 					
@@ -182,8 +174,8 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 						.round(disp.y / magnitude(disp)
 								* Math.min(magnitude(disp), getTemp())));
 				logger.debug("Unmodified move x:"+pos.x+", y:"+pos.y);
-				pos.x = Math.min(getW()-(int)Math.round(Math.random()*baseLineJitter), Math.max(0+(int)Math.round(Math.random()*baseLineJitter), pos.x));
-				pos.y = Math.min(getH()-(int)Math.round(Math.random()*baseLineJitter), Math.max(0+(int)Math.round(Math.random()*baseLineJitter), pos.y));
+				pos.x = Math.min(getRightBoundry()-(int)Math.round(Math.random()*baseLineJitter), Math.max(frame.x+(int)Math.round(Math.random()*baseLineJitter), pos.x));
+				pos.y = Math.min(getLowerBoundry()-(int)Math.round(Math.random()*baseLineJitter), Math.max(frame.y+(int)Math.round(Math.random()*baseLineJitter), pos.y));
 				logger.debug("Moving table "+v+" to position "+pos);
 				if (pos.distance(v.getLocation())>2)
 				{
@@ -207,8 +199,8 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 	 */
 	protected double attractiveForce(Point distance, double emptyRadius) {
 		double force;
-		force = Math.abs( 2*distance.x *distance.x) / emptyRadius;
-		force +=Math.abs(2*(distance.y * distance.y)/emptyRadius);
+		force = Math.abs( distance.x *distance.x) / Math.sqrt(emptyRadius);
+		force +=Math.abs((distance.y * distance.y)/ Math.sqrt(emptyRadius));
 
 		return force;
 	}
@@ -231,41 +223,17 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 	 * @param pp a playen
 	 * @return
 	 */
-	public double getEmptyRadius(PlayPen pp) {
-
-		if (pp != null) {
-			List<TablePane> tps;
+	public double getEmptyRadius() {
 			int radius =0;
-
-			tps = pp.getTablePanes();
-			for (TablePane tp : tps) {
+			for (TablePane tp : nodes) {
 				Rectangle b = tp.getBounds();
 				radius=Math.max(b.height,radius);
 				radius=Math.max(b.width,radius);
 			}
-
-			return radius*c;
-		}
-		return 1;
+			return radius*SPACING_MULTIPLIER;
 	}
 
-	private Dimension getNewArea(PlayPen pp) {
-		Dimension d = new Dimension();
-		int radius =0;
-		
-		List<TablePane> tps;
-		tps = pp.getTablePanes();
-		for (TablePane tp : tps) {
-			Rectangle b = tp.getBounds();
-			radius= Math.max(b.height,radius);
-			radius= Math.max(b.width,radius);
-		}
-		
-		d.setSize(c*radius*Math.sqrt(tps.size()),c*radius*Math.sqrt(tps.size()));
-		w = d.width;
-		h = d.height;
-		return d;
-	}
+	
 
 	public void done() {
 		overrideDone = true;
@@ -297,16 +265,28 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 	}
 
 	public int getH() {
-		return h;
+		return frame.height;
 	}
 
-	public int getW() {
-		return w;
+	public int getRightBoundry(){
+		return frame.x+frame.width;
+		
 	}
+	
+	public int getLowerBoundry(){
+		return frame.y+frame.height;
+	}
+	
+	public int getW() {
+		return frame.width;
+	}
+
 
 	public void setPlayPen(PlayPen pp) {
-		this.pp = pp;
-
+		// TODO Auto-generated method stub
+		
 	}
+
+	
 
 }

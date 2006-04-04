@@ -1,5 +1,7 @@
 package ca.sqlpower.architect.layout;
 
+import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.util.List;
 
 import ca.sqlpower.architect.swingui.PlayPen;
@@ -14,7 +16,9 @@ public interface ArchitectLayoutInterface {
 	 * @param nodes  The list of entities to be placed on  
 	 * @param preferedFrames The prefered number of animation frames, may be ignored by the layout algorithm
 	 */
-	public void setup(List<TablePane> nodes, List<Relationship> edges);
+	public void setup(List<TablePane> nodes, List<Relationship> edges, Rectangle frame);
+	
+	public Dimension getNewArea(List<TablePane> nodes);
 	
 	public void setProperty(String key, Object value);
 	
@@ -38,7 +42,5 @@ public interface ArchitectLayoutInterface {
 	 * 
 	 */
 	public void nextFrame();
-	
-	public void setPlayPen(PlayPen pp);
-	
+
 }

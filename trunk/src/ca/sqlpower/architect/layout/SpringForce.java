@@ -10,7 +10,11 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.TablePane;
-
+/**
+ * 
+ * This doesn't work!!!!111!!!
+ *
+ */
 public class SpringForce extends AbstractLayout {
 
 	private static Logger logger = Logger.getLogger(SpringForce.class);
@@ -325,6 +329,11 @@ public class SpringForce extends AbstractLayout {
 	}
 
 	public void setPlayPen(PlayPen pp) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void setup(List<TablePane> nodes, List<Relationship> edges, int frameX, int frameY, int frameHeight, int frameWidth) {
 		// TODO Auto-generated method stub
 		
 	}			

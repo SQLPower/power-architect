@@ -1,6 +1,9 @@
 package ca.sqlpower.architect.swingui.action;
 
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -46,15 +49,32 @@ public class AutoLayoutAction extends AbstractAction {
 		
 		if (layout != null)
 		{
-			layout.setPlayPen(pp);
-			List<TablePane> tablePanes = pp.getTablePanes();
+			
+			List<TablePane> tablePanes = pp.getSelectedTables();
+			Point layoutAreaOffset = new Point();
+			if (tablePanes.size() == 0) {
+				tablePanes = pp.getTablePanes();	
+			} else if (tablePanes.size() != pp.getTablePanes().size()){
+				List<TablePane> notLaidOut = new ArrayList<TablePane>(pp.getTablePanes());
+				notLaidOut.removeAll(tablePanes);
+				int maxWidth =0;
+				for (TablePane tp : notLaidOut){
+					int width = tp.getWidth()+tp.getX();
+					if (width > maxWidth) {
+						maxWidth = width;
+					}
+				}
+				layoutAreaOffset = new Point(maxWidth,0);
+			}
+				
 			for(TablePane tp:tablePanes){
 				tp.firePlayPenComponentMoveStart(tp.getLocation());
 			}
 			List<Relationship> relationships = pp.getRelationships();
 			logger.debug("About to do layout. tablePanes="+tablePanes);
 			logger.debug("About to do layout. relationships="+relationships);
-			layout.setup(tablePanes,relationships);
+			Rectangle layoutArea = new Rectangle(layoutAreaOffset,layout.getNewArea(tablePanes));
+			layout.setup(tablePanes,relationships,layoutArea);
 			doAnimation(layout, tablePanes);
 		}
 		

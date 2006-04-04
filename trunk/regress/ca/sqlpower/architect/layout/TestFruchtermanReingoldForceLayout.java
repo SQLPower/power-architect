@@ -1,6 +1,8 @@
 package regress.ca.sqlpower.architect.layout;
 
+import java.awt.Dimension;
 import java.awt.Point;
+import java.awt.Rectangle;
 
 import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
@@ -16,6 +18,7 @@ public class TestFruchtermanReingoldForceLayout extends TestCase {
 	private TablePane tp;
 	private SQLTable table1;
 	private SQLDatabase db;
+	private Rectangle frame;
 	private FruchtermanReingoldForceLayout layout;
 	
 	public void setUp() throws ArchitectException {
@@ -27,6 +30,8 @@ public class TestFruchtermanReingoldForceLayout extends TestCase {
 		pp.addTablePane(tp,new Point(10,10));
 		layout = new FruchtermanReingoldForceLayout();
 		layout.setPlayPen(pp);
+		frame = new Rectangle(new Point(),layout.getNewArea(pp.getTablePanes()));
+		
 	}
 	
 
@@ -44,12 +49,12 @@ public class TestFruchtermanReingoldForceLayout extends TestCase {
 	public void testIsDoneNoElem() {
 		PlayPen p = new PlayPen();
 		layout.setPlayPen(p);
-		layout.setup(p.getTablePanes(),p.getRelationships());
+		layout.setup(p.getTablePanes(),p.getRelationships(),frame);
 		assertTrue(layout.isDone());
 	}
 	
 	public void testIsDoneOneElem() {
-		layout.setup(pp.getTablePanes(),pp.getRelationships());
+		layout.setup(pp.getTablePanes(),pp.getRelationships(),frame);
 		assertTrue(layout.isDone());
 	}
 	
@@ -89,7 +94,7 @@ public class TestFruchtermanReingoldForceLayout extends TestCase {
 		SQLTable sqlTable2 = new SQLTable(db,true);
 		TablePane t2 =new TablePane(sqlTable2,pp);
 		pp.addTablePane(t2,new Point(23,243));
-		layout.setup(pp.getTablePanes(),pp.getRelationships());
+		layout.setup(pp.getTablePanes(),pp.getRelationships(),frame);
 		assertFalse(layout.isDone());
 		layout.done();
 		assertTrue(layout.isDone());
