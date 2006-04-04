@@ -485,29 +485,19 @@ public class SwingUIProject {
 			}
 
 			String fkTableId = attributes.getValue("fk-table-ref");
-			if (fkTableId != null) {
-				SQLTable fkTable = (SQLTable) objectIdMap.get(fkTableId);
-				try {
-					rel.setFkTable(fkTable);
-					// use a silly backdoor.  NOTE: THIS IS NOT SETTING A GOOD EXAMPLE FOR THE OTHER KIDS
-					fkTable.getImportedKeysFolder().addChild(rel);
-				} catch (ArchitectException e) {
-					logger.error("Couldn't add keys to table \""+fkTable.getName()+"\"", e);
-					JOptionPane.showMessageDialog(null, "Failed to add f-keys to table:\n"+e.getMessage());
-				}
-			}
-
 			String pkTableId = attributes.getValue("pk-table-ref");
-			if (pkTableId != null) {
+			
+			if (fkTableId != null && pkTableId != null) {
+				SQLTable fkTable = (SQLTable) objectIdMap.get(fkTableId);
 				SQLTable pkTable = (SQLTable) objectIdMap.get(pkTableId);
 				try {
-					rel.setPkTable(pkTable);
-					// use a silly backdoor.  NOTE: THIS IS NOT SETTING A GOOD EXAMPLE FOR THE OTHER KIDS
-					pkTable.getExportedKeysFolder().addChild(rel);
+					rel.attachRelationship(pkTable, fkTable, false);
 				} catch (ArchitectException e) {
-					logger.error("Couldn't add pk to table \""+pkTable.getName()+"\"", e);
-					JOptionPane.showMessageDialog(null, "Failed to add pk to table:\n"+e.getMessage());
+					logger.error("Couldn't attach relationship to pktable \""+pkTable.getName()+"\" and fktable \""+fkTable.getName()+"\"", e);
+					JOptionPane.showMessageDialog(null, "Failed to attach relationship to pktable \""+pkTable.getName()+"\" and fktable \""+fkTable.getName()+"\":\n"+e.getMessage());
 				}
+			} else {
+				JOptionPane.showMessageDialog(null, "Missing pktable or fktable references for relationship id \""+id+"\"");
 			}
 
 			return rel;
