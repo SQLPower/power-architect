@@ -519,22 +519,12 @@ public class SQLTable extends SQLObject {
 	public void removeColumn(SQLColumn col) throws ArchitectException {
 		
 		// a column is only locked if it is an IMPORTed key--not if it is EXPORTed.
-		SQLRelationship lockingRelationship = null;
 		for (SQLRelationship r : getImportedKeys()) {
-			for (SQLRelationship.ColumnMapping cm : r.getMappings()) {
-				if (cm.getFkColumn() == col) {
-					lockingRelationship = r;
-					break;
-				}
-			}
+			r.checkColumnLocked(col);
 		}
-		
-		if (lockingRelationship == null) {
-			columnsFolder.removeChild(col);
-			normalizePrimaryKey();
-		} else {
-			throw new LockedColumnException(lockingRelationship);
-		}
+
+		columnsFolder.removeChild(col);
+		normalizePrimaryKey();
 	}
 
 	/**
@@ -798,19 +788,6 @@ public class SQLTable extends SQLObject {
 		@Override
 		public Class<? extends SQLObject> getChildType() {
 			return SQLColumn.class;
-		}
-		
-		/**
-		 * Returns the table's secondary mode or false if there is no parent table
-		 * 
-		 */
-		@Override
-		public boolean isSecondaryChangeMode() {
-			if (parent != null) {
-				return parent.isSecondaryChangeMode();
-			} else {
-				return false;
-			}
 		}
 	}
 	

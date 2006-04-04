@@ -231,4 +231,26 @@ public class SQLObjectTest extends TestCase {
 		target.removeChild(0);
 		target.addChild(new SQLObjectImpl());
 	}
+	
+	public void testSecondaryChangeModeIsCounting() {
+		target.setSecondaryChangeMode(true);
+		target.setSecondaryChangeMode(true);
+		target.setSecondaryChangeMode(false);
+		assertTrue(target.isSecondaryChangeMode());
+		target.setSecondaryChangeMode(false);
+		assertFalse(target.isSecondaryChangeMode());
+	}
+	
+	public void testSecondaryChangeModeStopsAt0() {
+		target.setSecondaryChangeMode(true);
+		target.setSecondaryChangeMode(true);
+		target.setSecondaryChangeMode(false);
+		target.setSecondaryChangeMode(false);
+		try {
+			target.setSecondaryChangeMode(false);
+			fail("Expected exception while trying to go past 0 secondary change depth");
+		} catch (IllegalStateException e) {
+			// yay
+		}
+	}
 }

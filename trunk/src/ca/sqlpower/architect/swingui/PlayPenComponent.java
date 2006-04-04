@@ -476,5 +476,7 @@ public abstract class PlayPenComponent implements Selectable {
 		this.moving = moving;
 	}
 
+	public abstract Object getModel();
+
 	
 }
