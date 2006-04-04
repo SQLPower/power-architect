@@ -75,7 +75,7 @@ public class CreateRelationshipAction extends AbstractAction
 			// to_identifier should take care of this...			
 			model.setName(pkTable.getName()+"_"+fkTable.getName()+"_fk"); 
 			model.setIdentifying(identifying);
-			
+			fkTable.setSecondaryChangeMode(true);
 			model.attachRelationship(pkTable,fkTable,true);
 			
 			Relationship r = new Relationship(pp, model);

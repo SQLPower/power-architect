@@ -91,6 +91,7 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Adding new edit: "+undoEdit);
 			}
+			
 			// if we are not in a compound edit
 			if (compoundEditStackCount == 0)
 			{

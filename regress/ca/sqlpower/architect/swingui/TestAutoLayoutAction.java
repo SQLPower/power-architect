@@ -95,8 +95,6 @@ public class TestAutoLayoutAction extends TestCase {
 		sr1.attachRelationship(tables[0],tables[2],false);
 
 		SQLRelationship sr2 = new SQLRelationship();
-		sr2.setPkTable(tables[1]);
-		sr2.setFkTable(tables[3]);
 		sr2.attachRelationship(tables[1],tables[3],false);
 
 		pp.setVisible(true);

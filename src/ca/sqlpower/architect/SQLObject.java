@@ -24,13 +24,13 @@ public abstract class SQLObject implements java.io.Serializable {
 	protected List children;
 
 	/**
-	 * When this mode is true, the fireXXX methods will fire events in
+	 * When this counter is > 0, the fireXXX methods will fire events in
 	 * a "secondary change" mode, which indicates that the changes are side
 	 * effects of another change.  These events should still cause UI repaints
 	 * and other non-permanent effects, but should not be part of an undo history
 	 * and should not cause the project to get marked "dirty."
 	 */
-	private boolean secondaryChangeMode = false;
+	private int secondaryChangeDepth = 0;
 	
 	/**
 	 * This is the name of the object.  For tables, it returns the
@@ -410,13 +410,29 @@ public abstract class SQLObject implements java.io.Serializable {
 	}
 
 
-	public boolean isSecondaryChangeMode() {
-		return secondaryChangeMode;
+	public synchronized boolean isSecondaryChangeMode() {
+		return secondaryChangeDepth > 0;
 	}
 
-
-	public void setSecondaryChangeMode(boolean secondaryChangeMode) {
-		this.secondaryChangeMode = secondaryChangeMode;
+	/**
+	 * Increments or decrements the secondary change depth.  At any point in time, you
+	 * may only give <code>false</code> as the argument as many times as you have already called this
+	 * method with that argument <code>true</code>.
+	 * 
+	 * @param secondaryChangeMode True increments the depth of secondary changes; false decrements it.
+	 * @throws IllegalStateException if you try to decrement more times than incrementing
+	 */
+	public synchronized void setSecondaryChangeMode(boolean secondaryChangeMode) {
+		if (secondaryChangeMode) {
+			this.secondaryChangeDepth++;
+		} else {
+			if (this.secondaryChangeDepth <= 0) {
+				throw new IllegalStateException(
+						"Secondary change mode depth is already "
+						+this.secondaryChangeDepth);
+			}
+			this.secondaryChangeDepth--;
+		}
 	}
 
 }

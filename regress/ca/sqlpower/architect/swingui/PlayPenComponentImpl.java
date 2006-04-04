@@ -32,4 +32,10 @@ public class PlayPenComponentImpl extends PlayPenComponent {
 
 	}
 
+	@Override
+	public Object getModel() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

@@ -4,17 +4,19 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLObjectEvent;
+import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
-import ca.sqlpower.architect.swingui.action.CreateRelationshipAction;
-import ca.sqlpower.architect.undo.UndoManager;
 
 public class TestSQLRelationship extends SQLTestCase {
 
@@ -62,6 +64,16 @@ public class TestSQLRelationship extends SQLTestCase {
 		rel2 = new SQLRelationship();
 		rel2.setName("rel2");
 		rel2.attachRelationship(parentTable,childTable2,true);
+	}
+	
+	@Override
+	protected void tearDown() throws Exception {
+		assertFalse("Parent table was left in secondary mode!", parentTable.isSecondaryChangeMode());
+		assertFalse("Child table 1 was left in secondary mode!", childTable1.isSecondaryChangeMode());
+		assertFalse("Child table 2 was left in secondary mode!", childTable2.isSecondaryChangeMode());
+		assertFalse("Rel 1 was left in secondary mode!", rel1.isSecondaryChangeMode());
+		assertFalse("Rel 2 was left in secondary mode!", rel2.isSecondaryChangeMode());
+		super.tearDown();
 	}
 	
 	/**
@@ -310,5 +322,181 @@ public class TestSQLRelationship extends SQLTestCase {
 				parentTable.getExportedKeys().contains(rel1));
 	}
 	
+	public void testPKColNameChangeGoesToFKColWhenNamesWereSame() throws ArchitectException {
+		SQLColumn pkcol = new SQLColumn(parentTable, "old name", Types.VARCHAR, 10, 0);
+		parentTable.addColumn(pkcol);
+		pkcol.setPrimaryKeySeq(0);
+		
+		SQLColumn fkcol = childTable1.getColumnByName("old name");
+		
+		pkcol.setName("new name");
+		
+		assertEquals("fkcol's name didn't update", "new name", fkcol.getName());
+	}
+
+	public void testPKColNameChangeDoesntGoToFKColWhenNamesWereDifferent() throws ArchitectException {
+		SQLColumn pkcol = new SQLColumn(parentTable, "old name", Types.VARCHAR, 10, 0);
+		parentTable.addColumn(pkcol);
+		pkcol.setPrimaryKeySeq(0);
+		
+		SQLColumn fkcol = childTable1.getColumnByName("old name");
+		
+		fkcol.setName("custom fk col name");
+		pkcol.setName("new name");
+		
+		assertEquals("fkcol's name didn't update", "custom fk col name", fkcol.getName());
+	}
+
+	public void testPKColTypeChangeGoesToFKCol() throws ArchitectException {
+		SQLColumn pkcol = new SQLColumn(parentTable, "old name", Types.VARCHAR, 10, 0);
+		parentTable.addColumn(pkcol);
+		pkcol.setPrimaryKeySeq(0);
+		
+		SQLColumn fkcol = childTable1.getColumnByName("old name");
+		
+		pkcol.setType(Types.BINARY);
+		
+		assertEquals("fkcol's type didn't update", Types.BINARY, fkcol.getType());
+	}
+
+	public void testPKColPrecisionChangeGoesToFKCol() throws ArchitectException {
+		SQLColumn pkcol = new SQLColumn(parentTable, "old name", Types.VARCHAR, 10, 0);
+		parentTable.addColumn(pkcol);
+		pkcol.setPrimaryKeySeq(0);
+		
+		SQLColumn fkcol = childTable1.getColumnByName("old name");
+		
+		pkcol.setPrecision(20);
+		
+		assertEquals("fkcol's precision didn't update", 20, fkcol.getPrecision());
+	}
+
+	/** This is something the undo manager will attempt when you undo deleting a relationship */
+	public void testReconnectOldRelationshipWithCustomMapping() throws ArchitectException {
+		List<SQLColumn> origParentCols = new ArrayList<SQLColumn>(parentTable.getColumns()); 
+		List<SQLColumn> origChild1Cols = new ArrayList<SQLColumn>(childTable1.getColumns());
+		
+		parentTable.removeExportedKey(rel1);
+		rel1.attachRelationship(parentTable, childTable1, false);
+		
+		assertEquals("Exported key columns disappeared", origParentCols, parentTable.getColumns());
+		assertEquals("Imported key columns didn't get put back", origChild1Cols, childTable1.getColumns());
+		assertEquals("There are multiple copies of this relationship in the parent's export keys folder",2,parentTable.getExportedKeys().size());
+		assertEquals("There are multiple copies of this relationship in the child's import keys folder",1,childTable1.getImportedKeys().size());
+	}
 	
+	/** This is something the undo manager will attempt when you undo deleting a relationship */
+	public void testReconnectOldRelationshipWithAutoMapping() throws ArchitectException {
+		SQLTable myParent = new SQLTable(db, true);
+		SQLColumn col;
+		myParent.addColumn(col = new SQLColumn(myParent, "pkcol1", Types.VARCHAR, 10, 0));
+		col.setPrimaryKeySeq(0);
+		myParent.addColumn(col = new SQLColumn(myParent, "pkcol2", Types.VARCHAR, 10, 0));
+		col.setPrimaryKeySeq(0);
+		
+		SQLTable myChild = new SQLTable(db, true);
+		
+		SQLRelationship myRel = new SQLRelationship();
+		myRel.attachRelationship(myParent, myChild, true);
+		List<SQLColumn> origParentCols = new ArrayList<SQLColumn>(myParent.getColumns()); 
+		List<SQLColumn> origChildCols = new ArrayList<SQLColumn>(myChild.getColumns());
+
+		// the next two lines are what the business model sees from undo/redo
+		myParent.removeExportedKey(myRel);
+		myRel.attachRelationship(myParent, myChild, false);
+		
+		assertEquals("Exported key columns disappeared", origParentCols, myParent.getColumns());
+		assertEquals("Imported key columns didn't get put back", origChildCols, myChild.getColumns());
+		assertEquals("There are multiple copies of this relationship in the parent's export keys folder",1,myParent.getExportedKeys().size());
+		assertEquals("There are multiple copies of this relationship in the child's import keys folder",1,myChild.getImportedKeys().size());
+	}
+
+	
+	private class MySQLObjectListener implements SQLObjectListener {
+
+		private int primaryCount = 0;
+		private int secondaryCount = 0;
+		
+		public void dbChildrenInserted(SQLObjectEvent e) {
+			if (e.isSecondary()) {
+				secondaryCount++;
+			} else {
+				primaryCount++;
+				System.out.printf("Primary dbChildredInserted: parent=%s, children=%s\n", e.getSource(), Arrays.asList(e.getChildren()));
+			}
+		}
+
+		public void dbChildrenRemoved(SQLObjectEvent e) {
+			if (e.isSecondary()) {
+				secondaryCount++;
+			} else {
+				primaryCount++;
+				System.out.printf("Primary dbChildredRemoved: parent=%s, children=%s\n", e.getSource(), Arrays.asList(e.getChildren()));
+				new Exception().printStackTrace(System.out);
+			}
+		}
+
+		public void dbObjectChanged(SQLObjectEvent e) {
+			if (e.isSecondary()) {
+				secondaryCount++;
+			} else {
+				primaryCount++;
+				System.out.printf("Primary dbObjectChanged: source=%s, prop=%s, old=%s, new=%s\n",
+						e.getSource(), e.getPropertyName(), e.getOldValue(), e.getNewValue());
+			}
+		}
+
+		public void dbStructureChanged(SQLObjectEvent e) {
+			if (e.isSecondary()) {
+				secondaryCount++;
+			} else {
+				primaryCount++;
+				System.out.printf("Primary dbStructureChanged: parent=%s, children=%s\n", e.getSource(), e.getChildren());
+			}
+		}
+
+		public int getPrimaryCount() {
+			return primaryCount;
+		}
+
+		public int getSecondaryCount() {
+			return secondaryCount;
+		}
+	}
+	
+	public void testAutoDeleteFKIsSecondary() throws ArchitectException {
+		
+		
+		MySQLObjectListener myListener = new MySQLObjectListener();
+		ArchitectUtils.listenToHierarchy(myListener, childTable1);
+		
+		parentTable.removeExportedKey(rel1);
+		
+		assertEquals("Got primary events (this is bad)", 0, myListener.getPrimaryCount());
+		assertTrue("Didn't get any secondary events (this is bad)", myListener.getSecondaryCount() > 0);
+	}
+	
+	public void testAttachRelationshipIsSecondary() throws ArchitectException {
+		MySQLObjectListener myListener = new MySQLObjectListener();
+		parentTable.removeExportedKey(rel1);
+		
+		ArchitectUtils.listenToHierarchy(myListener, childTable1);
+		rel1.attachRelationship(parentTable,childTable1,false);
+		assertEquals("Got primary events (this is bad)", 0, myListener.getPrimaryCount());
+		assertTrue("Didn't get any secondary events (this is bad)", myListener.getSecondaryCount() > 0);
+		
+	}
+	
+	public void testMovingPKColOutOfPK() throws ArchitectException {
+		SQLColumn col = parentTable.getColumnByName("pkcol_1");
+		
+		col.setPrimaryKeySeq(null);
+		assertTrue("pkcol_1 dropped from the parent table", parentTable.getColumns().contains(col));
+	}
+	public void testMovingPKColOutOfPKByColIndex() throws ArchitectException {
+		SQLColumn col = parentTable.getColumnByName("pkcol_2");
+		int index = parentTable.getColumnIndex(col);
+		parentTable.changeColumnIndex(index,1,false);
+		assertTrue("pkcol_1 dropped from the parent table", parentTable.getColumns().contains(col));
+	}
 }
