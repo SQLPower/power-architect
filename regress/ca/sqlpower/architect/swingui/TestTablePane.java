@@ -9,7 +9,9 @@ import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.SQLTable.Folder;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.TablePane;
@@ -131,6 +133,48 @@ public class TestTablePane extends TestCase {
 		tableList.add(t2);
 		
 		assertFalse("Inserting a table from the playpen is not allowed", tp.insertObjects(tableList, 0));
+	}
+	
+	public void testListenerDoesntCleanUpEarly() throws ArchitectException {
+		class MySQLTable extends SQLTable {
+			class MyFolder extends SQLTable.Folder {
+				MyFolder() {
+					super(COLUMNS, true);
+				}
+				
+				public void removeLastChildNoEvent() {
+					children.remove(children.size() - 1);
+				}
+			}
+			public MySQLTable(String name) throws ArchitectException {
+				super(ArchitectFrame.getMainInstance().getProject().getTargetDatabase(), true);
+				setName(name);
+				children.set(0, new MyFolder());
+				columnsFolder = (Folder) children.get(0);
+			}
+			public void removeLastColumnNoEvent() {
+				((MyFolder) getColumnsFolder()).removeLastChildNoEvent();
+			}
+		}
+		
+		MySQLTable t = new MySQLTable("table");
+		SQLColumn c1 = new SQLColumn(t, "PK1", Types.BIT, 1, 0);
+		t.addColumn(0, c1);
+		
+		TablePane tp = new TablePane(t, pp);
+		
+		assertEquals(1, t.getColumns().size());
+		t.removeLastColumnNoEvent();
+		assertEquals(0, t.getColumns().size());
+		
+		// now table has selection list size 1, and model's column list is size 0
+		
+		// this event came from somewhere else.  it shouldn't affect the success of the next event
+		SQLColumn fakeSource = new SQLColumn();
+		tp.dbChildrenRemoved(new SQLObjectEvent(fakeSource, new int[] {6}, new SQLObject[] {fakeSource}, false));
+		
+		// this event notifies the table pane that we removed c1 earlier on.  It should not throw an exception
+		tp.dbChildrenRemoved(new SQLObjectEvent(t.getColumnsFolder(), new int[] {0}, new SQLObject[] {c1}, false));
 	}
 	
 }
