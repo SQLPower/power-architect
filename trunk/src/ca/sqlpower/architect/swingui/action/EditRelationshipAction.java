@@ -93,11 +93,13 @@ public class EditRelationshipAction extends AbstractAction implements SelectionL
 	}
 
 	public void setPlayPen(PlayPen pp) {
-		if (pp != null) {
-			pp.removeSelectionListener(this);
-		}
-		this.pp = pp;
-		this.pp.addSelectionListener(this);
+		if (this.pp != null) {
+			this.pp.removeSelectionListener(this);
+		} 
+		this.pp=pp;
+		pp.addSelectionListener(this);
+		
+		setupAction(pp.getSelectedItems());
 	}
 
 	public void setDBTree(DBTree newDBT) {
@@ -105,7 +107,7 @@ public class EditRelationshipAction extends AbstractAction implements SelectionL
 		// do I need to add a selection listener here?
 	}
 
-	public void changeToolTip(List selectedItems) {
+	public void setupAction(List selectedItems) {
 		if (selectedItems.size() == 0) {
 			setEnabled(false);
 			logger.debug("Disabling edit relationship");
@@ -118,12 +120,12 @@ public class EditRelationshipAction extends AbstractAction implements SelectionL
 	}
 		
 	public void itemSelected(SelectionEvent e) {
-		changeToolTip(pp.getSelectedItems());
+		setupAction(pp.getSelectedItems());
 		
 	}
 
 	public void itemDeselected(SelectionEvent e) {
-		changeToolTip(pp.getSelectedItems());
+		setupAction(pp.getSelectedItems());
 	}
 	
 }

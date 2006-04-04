@@ -23,6 +23,7 @@ import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.ColumnEditPanel;
+import ca.sqlpower.architect.swingui.CommonCloseAction;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.Selectable;
@@ -149,10 +150,9 @@ public class EditColumnAction extends AbstractAction implements SelectionListene
 					 new AbstractAction(){
 						public void actionPerformed(ActionEvent e) {
 							columnEditPanel.applyChanges();
-System.out.println("applied changes:"+columnEditPanel.getColName().getText());
 							EditColumnAction.this.putValue(SHORT_DESCRIPTION, "Editting "+columnEditPanel.getColName().getText() );
 						}
-					},null);
+					}, null);
 			panel.setOpaque(true);
 			editDialog.pack();
 			editDialog.setLocationRelativeTo(ArchitectFrame.getMainInstance());
@@ -174,9 +174,11 @@ System.out.println("applied changes:"+columnEditPanel.getColName().getText());
 	public void setPlayPen(PlayPen newPP) {
 		if (pp != null) {
 			pp.removeSelectionListener(this);
-		}
+		} 
 		pp = newPP;
 		pp.addSelectionListener(this);
+		
+		setupAction(pp.getSelectedItems());
 	}
 
 	
@@ -185,7 +187,7 @@ System.out.println("applied changes:"+columnEditPanel.getColName().getText());
 		// do I need to add a selection listener here?
 	}
 	
-	public void changeToolTip(List selectedItems) {
+	private void setupAction(List selectedItems) {
 		if (selectedItems.size() == 0) {
 			setEnabled(false);
 			logger.debug("Disabling EditColumnAction");
@@ -216,12 +218,12 @@ System.out.println("applied changes:"+columnEditPanel.getColName().getText());
 	}
 		
 	public void itemSelected(SelectionEvent e) {
-		changeToolTip(pp.getSelectedItems());
+		setupAction(pp.getSelectedItems());
 		
 	}
 
 	public void itemDeselected(SelectionEvent e) {
-		changeToolTip(pp.getSelectedItems());
+		setupAction(pp.getSelectedItems());
 	}
 	
 	

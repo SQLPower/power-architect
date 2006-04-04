@@ -15,6 +15,7 @@ import javax.swing.tree.TreePath;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.LockedColumnException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
@@ -244,12 +245,14 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 		}
 	}
 	
-	public void setPlayPen(PlayPen newPP) {
+	public void setPlayPen(PlayPen newPP) throws ArchitectException {
 		if (pp != null) {
 			pp.removeSelectionListener(this);
-		}
+		} 
 		pp = newPP;
 		pp.addSelectionListener(this);
+		
+		setupAction(pp.getSelectedItems());
 	}
 
 	public void setDBTree(DBTree newDBT) {
@@ -257,19 +260,28 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 	}
 	
 	public void itemSelected(SelectionEvent e) {
-		changeToolTip(pp.getSelectedItems());
+		try {
+			setupAction(pp.getSelectedItems());
+		} catch (ArchitectException e1) {
+			throw new ArchitectRuntimeException(e1);
+		}
 	}
 
 	public void itemDeselected(SelectionEvent e) {
-		changeToolTip(pp.getSelectedItems());
+		try {
+			setupAction(pp.getSelectedItems());
+		} catch (ArchitectException e1) {
+			throw new ArchitectRuntimeException(e1);
+		}
 	}
 
 	/**
 	 * Updates the tooltip and enabledness of this action based on how
 	 * many items are in the selection list.  If there is only one
 	 * selected item, tries to put its name in the tooltip too!
+	 * @throws ArchitectException 
 	 */
-	private void changeToolTip(List selectedItems) {
+	private void setupAction(List selectedItems) throws ArchitectException {
 		if (selectedItems.size() == 0) {
 			setEnabled(false);
 			putValue(SHORT_DESCRIPTION, "Delete Selected");
@@ -281,12 +293,17 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 				TablePane tp = (TablePane) item;
 				if (tp.getSelectedColumnIndex() >= 0) {
 					try {
-						name = tp.getModel().getColumn(tp.getSelectedColumnIndex()).getName();
+						List<SQLColumn> selectedColumns = tp.getSelectedColumns();
+						if (selectedColumns.size() > 1) {
+							name = selectedColumns.size()+" items";
+						} else {
+							name = tp.getModel().getColumn(tp.getSelectedColumnIndex()).getName();
+						}
 					} catch (ArchitectException ex) {
 						logger.error("Couldn't get selected column name", ex);
 					}
 				} else {
-					name = tp.getModel().toString();
+					name = tp.getModel().getName();
 				}
 			} else if (item instanceof Relationship) {
 				name = ((Relationship) item).getModel().getName();
@@ -294,7 +311,17 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 			putValue(SHORT_DESCRIPTION, "Delete "+name);
 		} else {
 			setEnabled(true);
-			putValue(SHORT_DESCRIPTION, "Delete "+selectedItems.size()+" items");
+			int numSelectedItems =0;
+			for (Object item : selectedItems) {
+				numSelectedItems++;
+				if (item instanceof TablePane) {
+					// Because the table pane is already counted we need to add one less 
+					// than the columns unless there are no columns selected.  Then
+					// We need to add 0
+					numSelectedItems += Math.max(((TablePane) item).getSelectedColumns().size()-1, 0);				
+				}
+			}
+			putValue(SHORT_DESCRIPTION, "Delete "+numSelectedItems+" items");
 		}
 	}
 }

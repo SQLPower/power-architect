@@ -29,7 +29,6 @@ public class TableEditPanel extends JPanel implements ArchitectPanel {
 		remarks.setLineWrap(true);
 		remarks.setWrapStyleWord(true);
 		editTable(t);
-		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.PROPERTY_CHANGE_GROUP_START,"Starting new compound edit event in table edit panel"));
 	}
 
 	public void editTable(SQLTable t) {
@@ -41,6 +40,7 @@ public class TableEditPanel extends JPanel implements ArchitectPanel {
 
 	// --------------------- ArchitectPanel interface ------------------
 	public boolean applyChanges() {
+		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.PROPERTY_CHANGE_GROUP_START,"Starting new compound edit event in table edit panel"));
 		table.setPrimaryKeyName(pkName.getText());
 		table.setName(name.getText());
 		table.setRemarks(remarks.getText());
@@ -49,8 +49,6 @@ public class TableEditPanel extends JPanel implements ArchitectPanel {
 	}
 
 	public void discardChanges() {
-
-		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.PROPERTY_CHANGE_GROUP_END,"Ending new compound edit event in table edit panel"));
 	}
 	
 	/**

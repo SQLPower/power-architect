@@ -111,13 +111,13 @@ public class InsertColumnAction extends AbstractAction implements SelectionListe
 	}
 
 	public void setPlayPen(PlayPen pp) {
-		
-		if (pp != null) {
-			pp.removeSelectionListener(this);
-		}
+		if (this.pp != null) {
+			this.pp.removeSelectionListener(this);
+		} 
 		this.pp = pp;
-		this.pp.addSelectionListener(this);
+		pp.addSelectionListener(this);
 		
+		setupAction(pp.getSelectedItems());
 	}
 
 	public void setDBTree(DBTree newDBT) {
@@ -126,7 +126,7 @@ public class InsertColumnAction extends AbstractAction implements SelectionListe
 	}
 	
 	
-	public void changeToolTip(List selectedItems) {
+	public void setupAction(List selectedItems) {
 		if (selectedItems.size() == 0) {
 			setEnabled(false);
 			logger.debug("Disabling Insert Column Action");
@@ -139,12 +139,12 @@ public class InsertColumnAction extends AbstractAction implements SelectionListe
 	}
 		
 	public void itemSelected(SelectionEvent e) {
-		changeToolTip(pp.getSelectedItems());
+		setupAction(pp.getSelectedItems());
 		
 	}
 
 	public void itemDeselected(SelectionEvent e) {
-		changeToolTip(pp.getSelectedItems());
+		setupAction(pp.getSelectedItems());
 	}
 
 }
