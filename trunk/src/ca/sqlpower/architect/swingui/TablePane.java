@@ -30,6 +30,7 @@ import javax.swing.UIManager;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
@@ -216,26 +217,18 @@ public class TablePane
 				selectNone();
 				columnSelection.set(Math.min(ci[0], columnSelection.size()-1), Boolean.TRUE);
 			}
-		}
-		try {
-			ArchitectUtils.unlistenToHierarchy(this, e.getChildren());
-			if (columnSelection.size() != this.model.getColumns().size()) {
-				logger.error("Repairing out-of-sync selection list: selection="+columnSelection+"; children="+this.model.getColumns());
-				columnSelection = new ArrayList();
-				for (int j = 0; j < model.getColumns().size(); j++) {
-				    columnSelection.add(Boolean.FALSE);
+			
+			// make sure everything is synced up
+			try {
+				if (columnSelection.size() != this.model.getColumns().size()) {
+					throw new IllegalStateException("out-of-sync selection list (event source="+e.getSource()+"): selection="+columnSelection+"; children="+this.model.getColumns());
 				}
-			}
-			if (columnHighlight.size() != this.model.getColumns().size()) {
-				logger.error("Repairing out-of-sync highlight list: highlights="+columnHighlight+"; children="+this.model.getColumns());
-				columnHighlight = new ArrayList();
-				for (int j = 0; j < model.getColumns().size(); j++) {
-				    columnHighlight.add(null);
+				if (columnHighlight.size() != this.model.getColumns().size()) {
+					throw new IllegalStateException("out-of-sync highlight list (event source="+e.getSource()+"): highlights="+columnHighlight+"; children="+this.model.getColumns());
 				}
+			} catch (ArchitectException ex) {
+				throw new ArchitectRuntimeException(ex);
 			}
-		} catch (ArchitectException ex) {
-			logger.error("Couldn't remove children", ex);
-			JOptionPane.showMessageDialog(getPlayPen(), "Couldn't delete column: "+ex.getMessage());
 		}
 		firePropertyChange("model.children", null, null);
 		revalidate();
