@@ -4,7 +4,6 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -15,8 +14,8 @@ import ca.sqlpower.architect.swingui.event.PlayPenComponentListener;
 public class PlayPenContentPane {
 	private static final Logger logger = Logger.getLogger(PlayPenContentPane.class);
 	protected PlayPen owner;
-	private List children = new ArrayList();
-	private List playPenComponentListeners = new ArrayList();
+	private List<PlayPenComponent> children = new ArrayList<PlayPenComponent>();
+	private List<PlayPenComponentListener> playPenComponentListeners = new ArrayList<PlayPenComponentListener>();
 	private PlayPenComponentEventPassthrough playPenComponentEventPassthrough;
 
 
@@ -66,9 +65,7 @@ public class PlayPenContentPane {
 	}
 
 	public PlayPenComponent getComponentAt(Point p) {
-		Iterator it = children.iterator();
-		while (it.hasNext()) {
-			PlayPenComponent ppc = (PlayPenComponent) it.next();
+		for (PlayPenComponent ppc : children) {
 			if (ppc.contains(p)) {
 				return ppc;
 			}
@@ -82,7 +79,7 @@ public class PlayPenContentPane {
 	}
 
 	public PlayPenComponent getComponent(int i) {
-		return (PlayPenComponent) children.get(i);
+		return children.get(i);
 	}
 
 	public void add(PlayPenComponent c, int i) {
@@ -93,7 +90,7 @@ public class PlayPenContentPane {
 	}
 
 	public void remove(int j) {
-		PlayPenComponent c = (PlayPenComponent) children.get(j);
+		PlayPenComponent c = children.get(j);
 		Rectangle r = c.getBounds();
 		c.removePlayPenComponentListener(playPenComponentEventPassthrough);
 		c.removeSelectionListener(getOwner());
@@ -117,30 +114,26 @@ public class PlayPenContentPane {
 	}
 	
 	private void refirePlayPenComponentMoveStart(PlayPenComponentEvent e) {
-		Iterator it = playPenComponentListeners.iterator();
-		while (it.hasNext()) {
-			((PlayPenComponentListener) it.next()).componentMoveStart(e);
+		for (PlayPenComponentListener l : playPenComponentListeners) {
+			l.componentMoveStart(e);
 		}
 	}
 
 	private void refirePlayPenComponentMoveEnd(PlayPenComponentEvent e) {
-		Iterator it = playPenComponentListeners.iterator();
-		while (it.hasNext()) {
-			((PlayPenComponentListener) it.next()).componentMoveEnd(e);
+		for (PlayPenComponentListener l : playPenComponentListeners) {
+			l.componentMoveEnd(e);
 		}
 	}
 	
 	private void refirePlayPenComponentMoved(PlayPenComponentEvent e) {
-		Iterator it = playPenComponentListeners.iterator();
-		while (it.hasNext()) {
-			((PlayPenComponentListener) it.next()).componentMoved(e);
+		for (PlayPenComponentListener l : playPenComponentListeners) {
+			l.componentMoved(e);
 		}
 	}
 
 	private void refirePlayPenComponentResized(PlayPenComponentEvent e) {
-		Iterator it = playPenComponentListeners.iterator();
-		while (it.hasNext()) {
-			((PlayPenComponentListener) it.next()).componentResized(e);
+		for (PlayPenComponentListener l : playPenComponentListeners) {
+			l.componentResized(e);
 		}
 	}
 	
@@ -156,7 +149,6 @@ public class PlayPenContentPane {
 
 		public void componentMoveStart(PlayPenComponentEvent e) {
 			refirePlayPenComponentMoveStart(e);
-			
 		}
 
 		public void componentMoveEnd(PlayPenComponentEvent e) {
