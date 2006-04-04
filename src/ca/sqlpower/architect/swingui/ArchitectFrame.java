@@ -531,7 +531,7 @@ public class ArchitectFrame extends JFrame {
 		redoAction.setManager(project.getUndoManager());
 		
 		// dbtree actions
-		editColumnAction.setDBTree(dbTree);
+		editColumnAction.setDBTree(dbTree);		
 		insertColumnAction.setDBTree(dbTree);
 		editRelationshipAction.setDBTree(dbTree);
 		deleteSelectedAction.setDBTree(dbTree);
@@ -540,7 +540,7 @@ public class ArchitectFrame extends JFrame {
 		
 		//
 		prefAction.setArchitectFrame(this);
-		projectSettingsAction.setArchitectFrame(this);	
+		projectSettingsAction.setArchitectFrame(this);			
 	}
 
 	public static synchronized ArchitectFrame getMainInstance() {
@@ -621,7 +621,7 @@ public class ArchitectFrame extends JFrame {
 					(new ProgressMonitorInputStream
 							(ArchitectFrame.this,
 									"Reading " + file.getName(),
-									new FileInputStream(file)));
+									new FileInputStream(file)));					
 			}
 			
 			@Override

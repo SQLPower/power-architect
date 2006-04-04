@@ -66,13 +66,17 @@ public class ArchitectPanelBuilder {
 		}
 		JComponent panel = arch.getPanel();
 		
-		// In all cases we have to close the dialog.
-		Action closeAction = new CommonCloseAction(d);
 		
 		JButton okButton = new JDefaultButton(okAction);
-		okButton.setText(actionButtonTitle);				
-		okButton.addActionListener(closeAction);
+		okButton.setText(actionButtonTitle);	
+		// In all cases we have to close the dialog.
+		Action closeAction = new CommonCloseAction(d);
+		if (cancelAction != null){
+			closeAction = cancelAction;
+		}
 		
+		okButton.addActionListener(closeAction);
+		makeJDialogCancellable(d, closeAction);			
 		JButton cancelButton = new JDefaultButton(cancelAction);
 		cancelButton.setText(CANCEL_BUTTON_LABEL);
 		cancelButton.addActionListener(closeAction);
@@ -80,7 +84,6 @@ public class ArchitectPanelBuilder {
 		// Handle if the user presses Enter in the dialog - do OK action
 		d.getRootPane().setDefaultButton(okButton);
 		
-		makeJDialogCancellable(d, cancelAction);
 		
 		// Now build the GUI.
 		JPanel cp = new JPanel(new BorderLayout());
