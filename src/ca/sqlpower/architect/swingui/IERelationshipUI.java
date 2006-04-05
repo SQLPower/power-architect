@@ -76,6 +76,10 @@ public class IERelationshipUI extends BasicRelationshipUI {
 			if ( (pkc & SQLRelationship.ZERO) != 0) {
 				g2.drawOval(parent.x - 3, parent.y + 10, 6, 6);
 			}
+		} else {
+			logger.error(String.format(
+					"Unknown orientation for parent (orientation=%08x)." +
+					"  Not painting termination.", orientation));
 		}
 
 		int fkc = relationship.getModel().getFkCardinality();
@@ -127,7 +131,11 @@ public class IERelationshipUI extends BasicRelationshipUI {
 			if ( (fkc & SQLRelationship.ZERO) != 0) {
 				g2.drawOval(child.x - 3, child.y + 10, 6, 6);
 			}
-		}			
+		} else {
+			logger.error(String.format(
+					"Unknown orientation for child (orientation=%08x)." +
+					"  Not painting termination.", orientation));
+		}
 	}
 
 	public int getTerminationLength() {
