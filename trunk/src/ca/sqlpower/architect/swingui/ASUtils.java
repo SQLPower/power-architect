@@ -4,6 +4,10 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
+import java.awt.Shape;
+import java.awt.geom.Line2D;
+import java.awt.geom.PathIterator;
+import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -19,6 +23,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.filechooser.FileFilter;
+
 
 import org.apache.log4j.Logger;
 
@@ -291,4 +296,107 @@ public class ASUtils {
 									  JOptionPane.ERROR_MESSAGE);
 	}
 
+	public static String lineToString(Line2D.Double l) {
+		return "[("+l.x1+","+l.y1+") - ("+l.x2+","+l.y2+")]";
+	}
+	
+	/**
+	 * 
+	 * 
+	 */
+	public static List <Point2D.Double> getIntersectPoints(Shape s1, Shape s2) {
+		List <Point2D.Double>list   = new ArrayList();
+		PathIterator myPI = s1.getPathIterator(null);
+		Line2D.Double myLine = new Line2D.Double();
+		float[] myCoords = new float[6];
+		while (!myPI.isDone()) {
+			int mySegType = myPI.currentSegment(myCoords);
+			if (mySegType == PathIterator.SEG_LINETO) {
+				myLine.x1 = myLine.x2;
+				myLine.y1 = myLine.y2;
+				
+				myLine.x2 = myCoords[0];
+				myLine.y2 = myCoords[1];
+			} else if (mySegType == PathIterator.SEG_MOVETO ||
+					mySegType == PathIterator.SEG_CLOSE ) {
+				myLine.x1 = myCoords[0];
+				myLine.y1 = myCoords[1];
+				
+				myLine.x2 = myCoords[0];
+				myLine.y2 = myCoords[1];
+			} else {
+				throw new IllegalStateException(
+						"Unsupported my PathIterator type "+mySegType+
+						". Current myLine is "+lineToString(myLine));
+			}
+			myPI.next();
+			
+			// if this line has no length, no need to check for intersection
+			if (myLine.x1 == myLine.x2 && myLine.y1 == myLine.y2) continue;
+			
+			PathIterator otherPI = s2.getPathIterator(null);
+			Line2D.Double otherLine = new Line2D.Double();
+			float[] otherCoords = new float[6];
+			while (!otherPI.isDone()) {
+				int otherSegType = otherPI.currentSegment(otherCoords);
+				if (otherSegType == PathIterator.SEG_LINETO) {
+					otherLine.x1 = otherLine.x2;
+					otherLine.y1 = otherLine.y2;
+					
+					otherLine.x2 = otherCoords[0];
+					otherLine.y2 = otherCoords[1];
+				} else if (otherSegType == PathIterator.SEG_MOVETO ||
+						otherSegType == PathIterator.SEG_CLOSE ) {
+					otherLine.x1 = otherCoords[0];
+					otherLine.y1 = otherCoords[1];
+					
+					otherLine.x2 = otherCoords[0];
+					otherLine.y2 = otherCoords[1];
+				} else {
+					throw new IllegalStateException(
+							"Unsupported other PathIterator type "+otherSegType+
+							". Current otherLine is "+lineToString(otherLine));
+				}
+				otherPI.next();
+				
+				// if this line has no length, no need to check for intersection
+				if (otherLine.x1 == otherLine.x2 && otherLine.y1 == otherLine.y2) continue;
+
+				Point2D.Double point = new Point2D.Double();
+				if ( ASUtils.getLineLineIntersection(myLine,otherLine,point) ) {
+					list.add(point);
+				}
+			}
+		}
+		return list;
+	}
+	/**
+	 * calculate the intersection point of 2 lines, 
+	 * copy from http://persistent.info/archives/2004/03/08/java_lineline_intersections
+	 * @param l1
+	 * @param l2
+	 * @param intersection
+	 * @return
+	 */
+	public static boolean getLineLineIntersection(Line2D.Double l1, Line2D.Double l2,
+			Point2D.Double intersection) {
+		
+		if (!l1.intersectsLine(l2))
+			return false;
+
+		double x1 = l1.getX1(), y1 = l1.getY1(), x2 = l1.getX2(), y2 = l1.getY2();
+		double x3 = l2.getX1(), y3 = l2.getY1(), x4 = l2.getX2(), y4 = l2.getY2();
+
+		intersection.x = det(det(x1, y1, x2, y2), x1 - x2, det(x3, y3, x4, y4), x3 - x4)
+				/ det(x1 - x2, y1 - y2, x3 - x4, y3 - y4);
+		intersection.y = det(det(x1, y1, x2, y2), y1 - y2, det(x3, y3, x4, y4), 	y3 - y4)
+				/ det(x1 - x2, y1 - y2, x3 - x4, y3 - y4);
+
+		return true;
+	}
+	
+
+	static double det(double a, double b, double c, double d) {
+		return a * d - b * c;
+	}
 }

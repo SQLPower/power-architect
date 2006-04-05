@@ -12,8 +12,10 @@ import java.awt.Stroke;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
 import java.awt.geom.PathIterator;
+import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 
@@ -259,36 +261,69 @@ public class BasicRelationshipUI extends RelationshipUI
 			orientation = PARENT_FACES_BOTTOM | CHILD_FACES_LEFT;
 			pkConnectionPoint.move(pktBounds.width/2, pktBounds.height);
 			fkConnectionPoint.move(0, fktBounds.height/2);
-			logger.debug("[[33mSelf-referencing table: set connection points pk="
-						 +pkConnectionPoint+"; fk="+fkConnectionPoint+"[0m");
+			logger.debug("Self-referencing table: set connection points pk="
+						 +pkConnectionPoint+"; fk="+fkConnectionPoint);
 		} else {
 			// distinct tables ("normal" case)
-			orientation = getFacingEdges(relationship.getPkTable(), relationship.getFkTable());
-			
-			if ( (orientation & PARENT_FACES_TOP) != 0) {
-				pkConnectionPoint.move(pktBounds.width/2, 0);
-			} else if ( (orientation & PARENT_FACES_RIGHT) != 0) {
-				pkConnectionPoint.move(pktBounds.width, pktBounds.height/2);
-			} else if ( (orientation & PARENT_FACES_BOTTOM) != 0) {
-				pkConnectionPoint.move(pktBounds.width/2, pktBounds.height);
-			} else if ( (orientation & PARENT_FACES_LEFT) != 0) {
-				pkConnectionPoint.move(0, pktBounds.height/2);
-			} else {
-				logger.error("Unrecognised parent orientation");
+			Line2D.Double pkToFkBorderLine = calcConnectionPoints(pktBounds, fktBounds);
+
+			orientation = getFacingEdges(pktBounds, fktBounds);
+
+			// make sure the connection points aren't too close to corners
+			if ( ((orientation & PARENT_FACES_BOTTOM) != 0) || ((orientation & PARENT_FACES_TOP) != 0) ) {
+				pkToFkBorderLine.x1 = Math.max(pktBounds.x + getTerminationWidth(), pkToFkBorderLine.x1);
+				pkToFkBorderLine.x1 = Math.min(pktBounds.x + pktBounds.width - getTerminationWidth(), pkToFkBorderLine.x1);
+			} else if ( ((orientation & PARENT_FACES_LEFT) != 0) || ((orientation & PARENT_FACES_RIGHT) != 0) ) {
+				pkToFkBorderLine.y1 = Math.max(pktBounds.y + getTerminationWidth(), pkToFkBorderLine.y1);
+				pkToFkBorderLine.y1 = Math.min(pktBounds.y + pktBounds.height - getTerminationWidth(), pkToFkBorderLine.y1);
 			}
-			
-			if ( (orientation & CHILD_FACES_TOP) != 0) {
-				fkConnectionPoint.move(fktBounds.width/2, 0);
-			} else if ( (orientation & CHILD_FACES_RIGHT) != 0) {
-				fkConnectionPoint.move(fktBounds.width, fktBounds.height/2);
-			} else if ( (orientation & CHILD_FACES_BOTTOM) != 0) {
-				fkConnectionPoint.move(fktBounds.width/2, fktBounds.height);
-			} else if ( (orientation & CHILD_FACES_LEFT) != 0) {
-				fkConnectionPoint.move(0, fktBounds.height/2);
-			} else {
-				logger.error("Unrecognised child orientation");
+
+			if ( ((orientation & CHILD_FACES_BOTTOM) != 0) || ((orientation & CHILD_FACES_TOP) != 0) ) {
+				pkToFkBorderLine.x2 = Math.max(fktBounds.x + getTerminationWidth(), pkToFkBorderLine.x2);
+				pkToFkBorderLine.x2 = Math.min(fktBounds.x + fktBounds.width - getTerminationWidth(), pkToFkBorderLine.x2);
+			} else if ( ((orientation & CHILD_FACES_LEFT) != 0) || ((orientation & CHILD_FACES_RIGHT) != 0) ) {
+				pkToFkBorderLine.y2 = Math.max(fktBounds.y + getTerminationWidth(), pkToFkBorderLine.y2);
+				pkToFkBorderLine.y2 = Math.min(fktBounds.y + fktBounds.height - getTerminationWidth(), pkToFkBorderLine.y2);
 			}
+
+			pkConnectionPoint.move(
+					(int) (pkToFkBorderLine.x1 - pktBounds.x),
+					(int) (pkToFkBorderLine.y1 - pktBounds.y));
+			
+			fkConnectionPoint.move(
+					(int) (pkToFkBorderLine.x2 - fktBounds.x),
+					(int) (pkToFkBorderLine.y2 - fktBounds.y));
 		}
+	}
+
+	private Line2D.Double calcConnectionPoints(Rectangle pktBounds, Rectangle fktBounds) {
+		Line2D.Double centreToCentreLine =
+			new Line2D.Double(pktBounds.getCenterX(),pktBounds.getCenterY(),
+							fktBounds.getCenterX(),fktBounds.getCenterY());
+		Line2D.Double retval = new Line2D.Double();
+		
+		List<Point2D.Double> pkTableIntersectPoints = ASUtils.getIntersectPoints(pktBounds,centreToCentreLine);
+		List<Point2D.Double> fkTableIntersectPoints = ASUtils.getIntersectPoints(fktBounds,centreToCentreLine);
+		
+		if (pkTableIntersectPoints.size() == 0) {
+			logger.debug("Could not calculate intersection of pk tablepane bound and center line between pk/fk tablepanes, returning the top left corner");
+			retval.x1 = pktBounds.x;
+			retval.y1 = pktBounds.y;
+		} else {
+			retval.x1 = pkTableIntersectPoints.get(0).x;
+			retval.y1 = pkTableIntersectPoints.get(0).y;
+		}
+
+		if (fkTableIntersectPoints.size() == 0) {
+			logger.debug("Could not calculate intersection of fk tablepane bound and center line between pk/fk tablepanes, returning the top left corner");
+			retval.x2 = fktBounds.x;
+			retval.y2 = fktBounds.y;
+		} else {
+			retval.x2 = fkTableIntersectPoints.get(0).x;
+			retval.y2 = fkTableIntersectPoints.get(0).y;
+		}
+		
+		return retval;
 	}
 
 	/**
@@ -361,35 +396,37 @@ public class BasicRelationshipUI extends RelationshipUI
 		modify.y += noModify.y;
 	}
 
-	protected int getFacingEdges(TablePane parent, TablePane child) {
-		Rectangle parentb = parent.getBounds();
-		Rectangle childb = child.getBounds();
-		int tl = getTerminationLength();
+	protected int getFacingEdges(Rectangle pktBounds, Rectangle fktBounds) {
+		Line2D.Double intersectionLine = calcConnectionPoints(pktBounds,fktBounds);
+		Point2D.Double pkIntersectPt = new Point2D.Double(intersectionLine.x1,intersectionLine.y1);
+		Point2D.Double fkIntersectPt = new Point2D.Double(intersectionLine.x2,intersectionLine.y2);
+		
+		return getFacingEdges(pktBounds,fktBounds, pkIntersectPt, fkIntersectPt);
+	}
 
-		if (parentb.x-tl >= childb.x+childb.width+tl) {
-			return PARENT_FACES_LEFT | CHILD_FACES_RIGHT;
-		} else if (parentb.x+parentb.width+tl <= childb.x-tl) {
-			return PARENT_FACES_RIGHT | CHILD_FACES_LEFT;
-		} else if (parentb.y-tl >= childb.y+childb.height+tl) {
-			return PARENT_FACES_TOP | CHILD_FACES_BOTTOM;
-		} else if (parentb.y+parentb.height+tl <= childb.y-tl) {
-			return PARENT_FACES_BOTTOM | CHILD_FACES_TOP;
-		} else if (parentb.y >= childb.y+(childb.height/2)) {
-			if (parentb.x+(parentb.width/2) < childb.x) {
-				return PARENT_FACES_TOP | CHILD_FACES_LEFT;
-			} else {
-				return PARENT_FACES_TOP | CHILD_FACES_RIGHT;
-			}
-		} else if (parentb.y+parentb.height <= childb.y+(childb.height/2)) {
-			if (parentb.x+(parentb.width/2) < childb.x) {
-				return PARENT_FACES_BOTTOM | CHILD_FACES_LEFT;
-			} else {
-				return PARENT_FACES_BOTTOM | CHILD_FACES_RIGHT;
-			}
-			// xxx: two more conditions!
-		} else {
-			return NO_FACING_EDGES;
-		}
+	protected int getFacingEdges(Rectangle pktBounds, Rectangle fktBounds,
+					Point2D.Double pkIntersectPt, Point2D.Double fkIntersectPt) {
+
+		int retval = 0;
+		if (pkIntersectPt.x == pktBounds.x) retval |= PARENT_FACES_LEFT;
+		else if (pkIntersectPt.y == pktBounds.y) retval |= PARENT_FACES_TOP;
+		else if (pkIntersectPt.x == pktBounds.x + pktBounds.width) retval |= PARENT_FACES_RIGHT;
+		else if (pkIntersectPt.y == pktBounds.y + pktBounds.height) retval |= PARENT_FACES_BOTTOM;
+		else logger.error(String.format(
+				"Unrecognised pktable orientation. pt=(%f,%f); bounds=(%d,%d %dx%d)",
+				pkIntersectPt.x, pkIntersectPt.y,
+				pktBounds.x, pktBounds.y, pktBounds.width, pktBounds.height));
+
+		if (fkIntersectPt.x == fktBounds.x) retval |= CHILD_FACES_LEFT;
+		else if (fkIntersectPt.y == fktBounds.y) retval |= CHILD_FACES_TOP;
+		else if (fkIntersectPt.x == fktBounds.x + fktBounds.width) retval |= CHILD_FACES_RIGHT;
+		else if (fkIntersectPt.y == fktBounds.y + fktBounds.height) retval |= CHILD_FACES_BOTTOM;
+		else logger.error(String.format(
+				"Unrecognised fktable orientation. pt=(%f,%f); bounds=(%d,%d %dx%d)",
+				fkIntersectPt.x, fkIntersectPt.y,
+				fktBounds.x, fktBounds.y, fktBounds.width, fktBounds.height));
+
+		return retval;
 	}
 
 	/**
@@ -431,7 +468,7 @@ public class BasicRelationshipUI extends RelationshipUI
 		if (relationship.getPkTable() == relationship.getFkTable()) {
 			answer = (orientation == (PARENT_FACES_BOTTOM | CHILD_FACES_LEFT));
 		} else {
-			answer = (orientation == getFacingEdges(relationship.pkTable, relationship.fkTable));
+			answer = (orientation == getFacingEdges(relationship.pkTable.getBounds(), relationship.fkTable.getBounds()));
 		}
 		if (answer == false) {
 			logger.debug("[31misOrientationLegal() returning false[0m");
@@ -678,68 +715,16 @@ public class BasicRelationshipUI extends RelationshipUI
 			logger.debug("otherPI = "+pathIteratorToString(s.getPathIterator(null)));
 		}
 		
-		PathIterator myPI = path.getPathIterator(null);
-		Line2D.Float myLine = new Line2D.Float();
-		float[] myCoords = new float[6];
-		while (!myPI.isDone()) {
-			int mySegType = myPI.currentSegment(myCoords);
-			if (mySegType == PathIterator.SEG_LINETO) {
-				myLine.x1 = myLine.x2;
-				myLine.y1 = myLine.y2;
-				
-				myLine.x2 = myCoords[0];
-				myLine.y2 = myCoords[1];
-			} else if (mySegType == PathIterator.SEG_MOVETO) {
-				myLine.x1 = myCoords[0];
-				myLine.y1 = myCoords[1];
-				
-				myLine.x2 = myCoords[0];
-				myLine.y2 = myCoords[1];
-			} else {
-				throw new IllegalStateException(
-						"Unsupported my PathIterator type "+mySegType+
-						". Current myLine is "+lineToString(myLine));
-			}
-			myPI.next();
-			
-			// if this line has no length, no need to check for intersection
-			if (myLine.x1 == myLine.x2 && myLine.y1 == myLine.y2) continue;
-			
-			PathIterator otherPI = s.getPathIterator(null);
-			Line2D.Float otherLine = new Line2D.Float();
-			float[] otherCoords = new float[6];
-			while (!otherPI.isDone()) {
-				int otherSegType = otherPI.currentSegment(otherCoords);
-				if (otherSegType == PathIterator.SEG_LINETO) {
-					otherLine.x1 = otherLine.x2;
-					otherLine.y1 = otherLine.y2;
-					
-					otherLine.x2 = otherCoords[0];
-					otherLine.y2 = otherCoords[1];
-				} else if (otherSegType == PathIterator.SEG_MOVETO) {
-					otherLine.x1 = otherCoords[0];
-					otherLine.y1 = otherCoords[1];
-					
-					otherLine.x2 = otherCoords[0];
-					otherLine.y2 = otherCoords[1];
-				} else {
-					throw new IllegalStateException(
-							"Unsupported other PathIterator type "+otherSegType+
-							". Current otherLine is "+lineToString(otherLine));
-				}
-				otherPI.next();
-				
-				// if this line has no length, no need to check for intersection
-				if (otherLine.x1 == otherLine.x2 && otherLine.y1 == otherLine.y2) continue;
-
-				boolean crosses = myLine.intersectsLine(otherLine);
-				logger.debug(myLine+" crosses "+otherLine+"? "+crosses);
-				if (crosses) return true;
-			}
-		}
+		List <Point2D.Double> list = getIntersectPoints(s);
+		if ( list.size() > 0 )
+			return true;
 		return false;
 	}
 
+	private List<Point2D.Double> getIntersectPoints(Shape s) {
+		return ASUtils.getIntersectPoints(this.getShape(),s);
+	}
+	
 	private String pathIteratorToString(PathIterator pathIterator) {
 		StringBuffer sb = new StringBuffer();
 		float[] coords = new float[6];
@@ -755,9 +740,7 @@ public class BasicRelationshipUI extends RelationshipUI
 		return sb.toString();
 	}
 
-	private String lineToString(Line2D.Float l) {
-		return "[("+l.x1+","+l.y1+") - ("+l.x2+","+l.y2+")]";
-	}
+	
 
 	/**
 	 * Returns the actual path that this relationship ui draws.  It will get reset from time
