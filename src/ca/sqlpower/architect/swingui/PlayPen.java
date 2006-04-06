@@ -103,6 +103,16 @@ public class PlayPen extends JPanel
 	public static final String KEY_DELETE_SELECTED
 		= "ca.sqlpower.architect.swingui.PlayPen.KEY_DELETE_SELECTED";
 
+	public enum mouseModeType {IDLE,
+						CREATING_TABLE,
+						CREATING_RELATIONSHIP,					
+						SELECT_TABLE,
+						SELECT_RELATIONSHIP,
+						SELECT_COLUMN,
+						MULTI_SELECT,
+						RUBBERBAND_MOVE};
+	private static mouseModeType mouseMode = mouseModeType.IDLE;
+	
 	/**
 	 * Links this PlayPen with an instance of PlayPenDropListener so
 	 * users can drop stuff on the playpen.
@@ -1461,8 +1471,8 @@ public class PlayPen extends JPanel
 	/**
 	 * Returns a read-only view of the set of selected table in the PlayPen.
 	 */
-	public List getSelectedTables() {
-		ArrayList selected = new ArrayList();
+	public List <TablePane> getSelectedTables() {
+		ArrayList <TablePane> selected = new ArrayList<TablePane>();
  		for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
  			if (contentPane.getComponent(i) instanceof TablePane) {
 				TablePane tp = (TablePane) contentPane.getComponent(i);
@@ -1478,8 +1488,8 @@ public class PlayPen extends JPanel
 	/**
 	 * Returns a read-only view of the set of selected relationships in the PlayPen.
 	 */
-	public List getSelectedRelationShips() {
-		ArrayList selected = new ArrayList();
+	public List <Relationship>getSelectedRelationShips() {
+		ArrayList<Relationship> selected = new ArrayList<Relationship>();
  		for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
  			if (contentPane.getComponent(i) instanceof Relationship) {
  				Relationship r = (Relationship) contentPane.getComponent(i);
@@ -1605,6 +1615,7 @@ public class PlayPen extends JPanel
 		 * the DropTarget registered with this listener.
 		 */
 		public void dragOver(DropTargetDragEvent dtde) {
+			
 			PlayPen pp = (PlayPen) dtde.getDropTargetContext().getComponent();
 			Point sp = pp.unzoomPoint(new Point(dtde.getLocation()));
 			PlayPenComponent ppc = pp.contentPane.getComponentAt(sp);
@@ -1738,7 +1749,12 @@ public class PlayPen extends JPanel
 	public class TablePaneDragGestureListener implements DragGestureListener {
 		public void dragGestureRecognized(DragGestureEvent dge) {
 			
-			if (draggingTablePanes) return;
+			if (draggingTablePanes) {
+				logger.debug(
+						"TablePaneDragGestureListener: ignoring drag event " +
+						"because draggingTablePanes is true");
+				return;
+			}
 			
 			PlayPenComponent c = contentPane.getComponentAt(
 					unzoomPoint(((MouseEvent) dge.getTriggerEvent()).getPoint()));
@@ -1797,7 +1813,7 @@ public class PlayPen extends JPanel
 						// export list of DnD-type tree paths
 						ArrayList paths = new ArrayList(1);
 						paths.add(path);
-						logger.info("DBTree: exporting 1-item list of DnD-type tree path");
+						logger.info("TablePaneDragGestureListener: exporting 1-item list of DnD-type tree path");
 						JLabel label = new JLabel(tp.getModel().getName()+"."+tp.draggingColumn.getName());
 						Dimension labelSize = label.getPreferredSize();
 						label.setSize(labelSize);  // because a LayoutManager would normally do this
@@ -1829,6 +1845,7 @@ public class PlayPen extends JPanel
 	 */
 	protected class PPMouseListener implements MouseListener, MouseMotionListener {
 
+		
 		/**
 		 * This state is required by the mouseMoved method for
 		 * resizing the rubber band in response to user input.
@@ -1846,7 +1863,6 @@ public class PlayPen extends JPanel
 		}
 		
 		public void mouseClicked(MouseEvent evt) {
-			
 			Point p = evt.getPoint();
 			unzoomPoint(p);
 			PlayPenComponent c = contentPane.getComponentAt(p);
@@ -1854,9 +1870,9 @@ public class PlayPen extends JPanel
 			if ( c instanceof Relationship) {
 				if (evt.getClickCount() == 2) {
 					ArchitectFrame.getMainInstance().editRelationshipAction.actionPerformed
-						(new ActionEvent(evt.getSource(),
-										 ActionEvent.ACTION_PERFORMED,
-										 ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
+					(new ActionEvent(evt.getSource(),
+							ActionEvent.ACTION_PERFORMED,
+							ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
 				}
 			} else if ( c instanceof TablePane ) {
 				TablePane tp = (TablePane) c;
@@ -1867,10 +1883,10 @@ public class PlayPen extends JPanel
 							int selectedColIndex = tp.getSelectedColumnIndex();
 							if (selectedColIndex == TablePane.COLUMN_INDEX_NONE) {
 								af.editTableAction.actionPerformed
-									(new ActionEvent(tp, ActionEvent.ACTION_PERFORMED, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
+								(new ActionEvent(tp, ActionEvent.ACTION_PERFORMED, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
 							} else if (selectedColIndex >= 0) {
 								af.editColumnAction.actionPerformed
-									(new ActionEvent(tp, ActionEvent.ACTION_PERFORMED, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
+								(new ActionEvent(tp, ActionEvent.ACTION_PERFORMED, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
 							}
 						}
 					}
@@ -1878,11 +1894,10 @@ public class PlayPen extends JPanel
 			} else {
 				maybeShowPopup(evt);
 			}
-			
 		}
+	
 		
 		public void mousePressed(MouseEvent evt) {
-			
 			requestFocus();
 			maybeShowPopup(evt);
 			Point p = evt.getPoint();
@@ -1890,98 +1905,109 @@ public class PlayPen extends JPanel
 			PlayPenComponent c = contentPane.getComponentAt(p);
 			if (c != null) p.translate(-c.getX(), -c.getY());
 			
-
-			
 			if (c instanceof Relationship) {
 				
-				if ((evt.getModifiersEx() & MouseEvent.BUTTON1_DOWN_MASK) != 0) {
-					// selection
-					Relationship r = (Relationship) c;
-					PlayPen pp = (PlayPen) r.getPlayPen();
-					if ( (evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0) {
-						pp.selectNone();
+				Relationship r = (Relationship) c;
+				PlayPen pp = (PlayPen) r.getPlayPen();
+				
+				if ( mouseMode == mouseModeType.CREATING_RELATIONSHIP ) {
+				}
+				else {
+					
+					if ( (evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) != 0) {
+						mouseMode = mouseModeType.MULTI_SELECT;
 					}
-					r.setSelected(true);
-	
-					// moving pk/fk decoration
-					boolean overPkDec = ((RelationshipUI) r.getUI()).isOverPkDecoration(p);
-					if (overPkDec || ((RelationshipUI) r.getUI()).isOverFkDecoration(p)) {
-						new RelationshipDecorationMover(r, overPkDec);
+					else {
+						mouseMode = mouseModeType.SELECT_RELATIONSHIP;
+						if ( !r.isSelected() ) {
+							pp.selectNone();
+						}
 					}
+				}
+				r.setSelected(true);
+
+				// moving pk/fk decoration
+				boolean overPkDec = ((RelationshipUI) r.getUI()).isOverPkDecoration(p);
+				if (overPkDec || ((RelationshipUI) r.getUI()).isOverFkDecoration(p)) {
+					new RelationshipDecorationMover(r, overPkDec);
 				}
 			} else if (c instanceof TablePane) {
 				evt.getComponent().requestFocus();
 				TablePane tp = (TablePane) c;
-				// make sure it was a left click?
-				if ((evt.getModifiersEx() & MouseEvent.BUTTON1_DOWN_MASK) != 0) {
-					// dragging
-					try {
-						PlayPen pp = (PlayPen) tp.getPlayPen();
-						int clickCol = tp.pointToColumnIndex(p);		
-
-						logger.debug("MP: clickCol="+clickCol+",columnsSize="+tp.getModel().getColumns().size());
+				PlayPen pp = (PlayPen) tp.getPlayPen();
+				try {
+					int clickCol = tp.pointToColumnIndex(p);
+					
+					if ( mouseMode == mouseModeType.CREATING_TABLE ) {
+					}
+					else {
 						if ( (evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0) {
-		     				// 1. unconditionally de-select everything if this table is unselected					
-							// 2. if the table was selected, de-select everything if the click was not on the 
-		                    //    column header of the table
-							
-							if (!tp.isSelected() ) 
-									pp.selectNone();
-							else if ( clickCol <= TablePane.COLUMN_INDEX_TITLE ||
-									clickCol >= tp.getModel().getColumns().size() ) {
-								tp.setSelected(false);
+							if ( !tp.isSelected() || mouseMode == mouseModeType.IDLE ) {
+								mouseMode = mouseModeType.SELECT_TABLE;
+								pp.selectNone();
 							}
 						}
-
-						// de-select columns if shift and ctrl were not pressed				
-						if ( (evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0) {								
-							pp.selectNone();
+						else {
+							mouseMode = mouseModeType.MULTI_SELECT;
 						}
-
-						// select current column unconditionally
+						
 						if ( clickCol > TablePane.COLUMN_INDEX_TITLE &&
 							 clickCol < tp.getModel().getColumns().size()) {
+
+							if ( (evt.getModifiersEx() & 
+									(InputEvent.SHIFT_DOWN_MASK | 
+									InputEvent.CTRL_DOWN_MASK)) == 0) {
+								
+								if ( !tp.isColumnSelected(clickCol) ){
+									tp.deSelectEverythingElse(evt);
+									tp.selectNone();
+								}
+								mouseMode = mouseModeType.SELECT_COLUMN;
+							} 
+							
 							tp.selectColumn(clickCol);
 							tp.fireSelectionEvent(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT));
 							tp.repaint();
 						}
-
-						// re-select the table pane (fire new selection event when appropriate)
-						tp.setSelected(true);
-
-						// handle drag (but not if createRelationshipAction is active!)	
-						logger.debug("(mouse pressed) click col is: " + clickCol + ", column index title is: " + TablePane.COLUMN_INDEX_TITLE);
-						logger.debug("(mouse pressed) create relationship is active: " + ArchitectFrame.getMainInstance().createRelationshipIsActive());
 						
-						if (clickCol == TablePane.COLUMN_INDEX_TITLE && !ArchitectFrame.getMainInstance().createRelationshipIsActive()) {
-							Iterator it = pp.getSelectedTables().iterator();
-							logger.debug("event point: " + p);
-							logger.debug("zoomed event point: " + pp.zoomPoint(new Point(p)));
-							draggingTablePanes = true;
-							while (it.hasNext()) {
-								// create FloatingTableListener for each selected item
-								TablePane t3 = (TablePane)it.next();
-								logger.debug("(" + t3.getModel().getName() + ") zoomed selected table point: " + t3.getLocationOnScreen());
-								logger.debug("(" + t3.getModel().getName() + ") unzoomed selected table point: " + pp.unzoomPoint(t3.getLocationOnScreen()));
-								/* the floating table listener expects zoomed handles which are relative to
-		                           the location of the table column which was clicked on.  */
-								Point clickedColumn = tp.getLocationOnScreen();
-								Point otherTable = t3.getLocationOnScreen();
-								Point handle = pp.zoomPoint(new Point(p));
-								logger.debug("(" + t3.getModel().getName() + ") translation x=" 
-		                                      + (otherTable.getX() - clickedColumn.getX()) + ",y=" 
-		                                      + (otherTable.getY() - clickedColumn.getY()));
-								handle.translate((int)(clickedColumn.getX() - otherTable.getX()), (int) (clickedColumn.getY() - otherTable.getY())); 																	
-								new PlayPen.FloatingTableListener(pp, t3, handle,false);
-							}
-						}				
-					} catch (ArchitectException e) {
-						logger.error("Exception converting point to column", e);
+						tp.setSelected(true);
+						
 					}
-				}		
-				maybeShowPopup(evt);
+					
+
+					
+					if (clickCol == TablePane.COLUMN_INDEX_TITLE && !ArchitectFrame.getMainInstance().createRelationshipIsActive()) {
+						Iterator it = pp.getSelectedTables().iterator();
+						logger.debug("event point: " + p);
+						logger.debug("zoomed event point: " + pp.zoomPoint(new Point(p)));
+						draggingTablePanes = true;
+						
+						while (it.hasNext()) {
+							// create FloatingTableListener for each selected item
+							TablePane t3 = (TablePane)it.next();
+							logger.debug("(" + t3.getModel().getName() + ") zoomed selected table point: " + t3.getLocationOnScreen());
+							logger.debug("(" + t3.getModel().getName() + ") unzoomed selected table point: " + pp.unzoomPoint(t3.getLocationOnScreen()));
+							/* the floating table listener expects zoomed handles which are relative to
+	                           the location of the table column which was clicked on.  */
+							Point clickedColumn = tp.getLocationOnScreen();
+							Point otherTable = t3.getLocationOnScreen();
+							Point handle = pp.zoomPoint(new Point(p));
+							logger.debug("(" + t3.getModel().getName() + ") translation x=" 
+	                                      + (otherTable.getX() - clickedColumn.getX()) + ",y=" 
+	                                      + (otherTable.getY() - clickedColumn.getY()));
+							handle.translate((int)(clickedColumn.getX() - otherTable.getX()), (int) (clickedColumn.getY() - otherTable.getY()));							
+							new PlayPen.FloatingTableListener(pp, t3, handle,false);
+						}
+					}	
+				} catch (ArchitectException e) {
+					logger.error("Exception converting point to column", e);
+				}
+				
+				
+				
 			} else {
 				if ((evt.getModifiersEx() & InputEvent.BUTTON1_DOWN_MASK) != 0  && !evt.isPopupTrigger()) {
+					mouseMode = mouseModeType.IDLE;
 					selectNone();
 					rubberBandOrigin = new Point(p);
 					rubberBand = new Rectangle(rubberBandOrigin.x, rubberBandOrigin.y, 0, 0);
@@ -1990,6 +2016,27 @@ public class PlayPen extends JPanel
 		}
 		
 		public void mouseReleased(MouseEvent evt) {
+			draggingTablePanes = false;
+			if (rubberBand != null) {
+				if (evt.getButton() == MouseEvent.BUTTON1) {
+					Rectangle dirtyRegion = rubberBand;
+					
+					rubberBandOrigin = null;
+					rubberBand = null;
+					
+					zoomRect(dirtyRegion);
+					repaintRubberBandRegion(dirtyRegion);
+					if ( getSelectedItems().size() > 0 )
+						mouseMode = mouseModeType.MULTI_SELECT;
+					else
+						mouseMode = mouseModeType.IDLE;
+				}
+			}
+			maybeShowPopup(evt);
+			
+		}
+
+		public void mouseReleased2(MouseEvent evt) {
 			
 
 			if (rubberBand != null) {
@@ -2056,6 +2103,7 @@ public class PlayPen extends JPanel
 				rubberBand.setBounds(rubberBandOrigin.x, rubberBandOrigin.y, 0, 0);
 				rubberBand.add(p);
 
+				mouseMode = mouseModeType.RUBBERBAND_MOVE;
 				// update selected items
 				Rectangle temp = new Rectangle();  // avoids multiple allocations in getBounds
 				for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
@@ -2108,7 +2156,6 @@ public class PlayPen extends JPanel
 				if (evt.isPopupTrigger() && !evt.isConsumed()) {
 					Relationship r = (Relationship) c;
 					PlayPen pp = (PlayPen) evt.getSource();
-					pp.selectNone();
 					r.setSelected(true);
 					r.showPopup(r.popup, p);
 					return true;
@@ -2117,12 +2164,6 @@ public class PlayPen extends JPanel
 				TablePane tp = (TablePane) c;
 				if (evt.isPopupTrigger() && !evt.isConsumed()) {
 					PlayPen pp = tp.getPlayPen();
-
-					// this allows the right-click menu to work on multiple tables simultaneously
-					if (!tp.isSelected()) {
-						pp.selectNone();
-						tp.setSelected(true);
-					}
 
 					try {
 						// tp.selectNone(); // single column selection model for now
@@ -2141,7 +2182,6 @@ public class PlayPen extends JPanel
 			} else {
 				PlayPen pp = (PlayPen) evt.getSource();
 				if (evt.isPopupTrigger()) {
-					//pp.selectNone();
 					pp.playPenPopup.show(pp, evt.getX(), evt.getY());
 					return true;
 				}
@@ -2164,6 +2204,7 @@ public class PlayPen extends JPanel
 		private Point handle;
 		private Point p;
 		private boolean addToPP;
+		
 		public FloatingTableListener(PlayPen pp, TablePane tp, Point handle,boolean addToPP) {
 			this.pp = pp;
 			this.addToPP = addToPP;
@@ -2210,6 +2251,7 @@ public class PlayPen extends JPanel
 					pp.db.addChild(tp.getModel());
 					pp.selectNone();
 					tp.setSelected(true);
+					mouseMode = mouseModeType.SELECT_TABLE;
 				} catch (ArchitectException e) {
 					logger.error("Couldn't add table \""+tp.getModel()+"\" to play pen:", e);
 					JOptionPane.showMessageDialog(null, "Failed to add table:\n"+e.getMessage());
@@ -2347,6 +2389,10 @@ public class PlayPen extends JPanel
 
 	public PlayPenContentPane getPlayPenContentPane() {
 		return contentPane;
+	}
+
+	public static void setMouseMode(mouseModeType mouseMode) {
+		PlayPen.mouseMode = mouseMode;
 	}
 
 }
