@@ -1419,6 +1419,19 @@ public class PlayPen extends JPanel
  			}
  		}
 	}
+	
+	/**
+	 * Selects all selectable items in the PlayPen.
+	 */
+	public void selectAll() {
+ 		for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
+ 			if (contentPane.getComponent(i) instanceof Selectable) {
+ 				Selectable s = (Selectable) contentPane.getComponent(i);
+ 				s.setSelected(true);
+ 			}
+ 		}
+	}
+	
 
 	/**
 	 * Returns a read-only view of the set of selected children in the PlayPen.
