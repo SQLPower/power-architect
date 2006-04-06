@@ -400,6 +400,7 @@ public class TablePane
 		repaint();
 	}
 	
+
 	/**
 	 * @param i The column to select.  If less than 0, {@link
 	 * #selectNone()} is called rather than selecting a column.
@@ -413,6 +414,11 @@ public class TablePane
 		repaint();
 	}
 
+	/**
+	 * return true if the column in tablepane is selected
+	 * @param i column index
+	 * @return true if the column in tablepane is selected
+	 */
 	public boolean isColumnSelected(int i) {
 		try {
 			return ((Boolean) columnSelection.get(i)).booleanValue();
@@ -775,6 +781,13 @@ public class TablePane
 				t3.setSelected(false);
 				t3.selectNone();
 			}
+		}
+		
+		// also de-select all the selected relationships
+		it = getPlayPen().getSelectedRelationShips().iterator();
+		while (it.hasNext()) {
+			Relationship r = (Relationship) it.next();
+			r.setSelected(false);
 		}
 	}
 
