@@ -357,8 +357,18 @@ public class DBTree extends JTree implements DragSourceListener {
 	 */
 	protected JPopupMenu refreshMenu(TreePath p) {
 		logger.debug("refreshMenu is being called.");
-		JPopupMenu newMenu = new JPopupMenu();				
+		JPopupMenu newMenu = new JPopupMenu();		
+		newMenu.add(connectionsMenu = new JMenu("Add Connection")); 
+		connectionsMenu.add(new JMenuItem(newDBCSAction));		
+		connectionsMenu.addSeparator();
+		// populate		
+		
+		for(ArchitectDataSource dbcs :ArchitectFrame.getMainInstance().getUserSettings().getConnections()) {
+			connectionsMenu.add(new JMenuItem(new AddDBCSAction(dbcs)));
+		}	
+		
 		if (isTargetDatabaseNode(p)) {
+			newMenu.addSeparator();
 			// two menu items: "Set Target Database" and "Connection Properties
 			newMenu.add(connectionsMenu = new JMenu("Set Target Database"));
 			if (ArchitectFrame.getMainInstance().getUserSettings().getConnections().size() == 0) {
@@ -372,35 +382,11 @@ public class DBTree extends JTree implements DragSourceListener {
 					connectionsMenu.add(new JMenuItem(new setTargetDBCSAction(dbcs)));
 				}
 				
-				/* this doesn't work, but it's what I want to do... 
-				final ScrollablePopupMenu smenu = new ScrollablePopupMenu(new Vector(ArchitectFrame.getMainInstance().getUserSettings().getConnections()));
-				smenu.addActionListener( new ActionListener() {
-					public void actionPerformed (ActionEvent evt) {
-						ArchitectDataSource dbcs = (ArchitectDataSource) smenu.getSelectedItem();
-			            logger.debug("Performing setTargetDBCSAction...");
-						panelHoldsNewDBCS = false; // we are editing the Target Database dbcs, which has already been created
-						edittingDB = ArchitectFrame.getMainInstance().getProject().getPlayPen().getDatabase();
-						// copy over the values from the selected DB.
-						ArchitectDataSource tSpec = edittingDB.getDataSource();
-						// don't copy the sequence number, or it will prevent the Target Database and whatever it
-			            // was cloned from from co-existing in the same project
-			        	tSpec.setDriverClass(dbcs.getDriverClass());
-			        	tSpec.setUrl(dbcs.getUrl());
-			        	tSpec.setUser(dbcs.getUser());
-			        	tSpec.setPass(dbcs.getPass());
-						// for some reason, the above property change events are not being received properly by 
-			            // parent SQLDatabase objects
-						dbcsPanel.setDbcs(tSpec);
-						propDialog.setVisible(true);
-						propDialog.requestFocus();					
-					}
-				});
-				connectionsMenu.add(smenu);
-				*/
 			}
 			JMenuItem popupProperties = new JMenuItem(dbcsPropertiesAction);
 			newMenu.add(popupProperties);  
-		} else if (isTargetDatabaseChild(p)) {			
+		} else if (isTargetDatabaseChild(p)) {	
+			newMenu.addSeparator();
 			ArchitectFrame af = ArchitectFrame.getMainInstance();
 			JMenuItem mi;
 	
@@ -462,25 +448,17 @@ public class DBTree extends JTree implements DragSourceListener {
 				mi.setEnabled(false);	
 			}
 		} else if (p != null) { // clicked on DBCS item in DBTree
+			newMenu.addSeparator();
 			if (p.getLastPathComponent() instanceof SQLDatabase) {
 				newMenu.add(new JMenuItem(removeDBCSAction));
 			}
 			JMenuItem popupProperties = new JMenuItem(dbcsPropertiesAction);
 			newMenu.add(popupProperties);
-		} else { // p == null, background click
-			newMenu.add(connectionsMenu = new JMenu("Add Connection")); 
-			connectionsMenu.add(new JMenuItem(newDBCSAction));		
-			connectionsMenu.addSeparator();
-			// populate		
-			Iterator it = ArchitectFrame.getMainInstance().getUserSettings().getConnections().iterator();
-			while(it.hasNext()) {
-				ArchitectDataSource dbcs = (ArchitectDataSource) it.next();
-				connectionsMenu.add(new JMenuItem(new AddDBCSAction(dbcs)));
-			}
 		}
 
 		// Show exception details (SQLException node can appear anywhere in the hierarchy)
 		if (p != null && p.getLastPathComponent() instanceof SQLExceptionNode) {
+			newMenu.addSeparator();
             final SQLExceptionNode node = (SQLExceptionNode) p.getLastPathComponent();
             newMenu.add(new JMenuItem(new AbstractAction("Show Exception Details") {
                 public void actionPerformed(ActionEvent e) {
