@@ -64,6 +64,7 @@ import ca.sqlpower.architect.swingui.action.ProjectSettingsAction;
 import ca.sqlpower.architect.swingui.action.QuickStartAction;
 import ca.sqlpower.architect.swingui.action.RedoAction;
 import ca.sqlpower.architect.swingui.action.SearchReplaceAction;
+import ca.sqlpower.architect.swingui.action.SelectAllAction;
 import ca.sqlpower.architect.swingui.action.UndoAction;
 import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.undo.UndoManager;
@@ -126,6 +127,7 @@ public class ArchitectFrame extends JFrame {
 	protected CreateRelationshipAction createNonIdentifyingRelationshipAction;
 	protected EditRelationshipAction editRelationshipAction;
 	protected SearchReplaceAction searchReplaceAction;
+	protected SelectAllAction selectAllAction;
 
 	protected Action exportDDLAction;
 	protected Action compareDMAction;
@@ -349,21 +351,24 @@ public class ArchitectFrame extends JFrame {
 		searchReplaceAction = new SearchReplaceAction();
 		searchReplaceAction.putValue(AbstractAction.ACCELERATOR_KEY,
 				KeyStroke.getKeyStroke(KeyEvent.VK_F, accelMask));
+		selectAllAction = new SelectAllAction();
+		selectAllAction.putValue(AbstractAction.ACCELERATOR_KEY,
+				KeyStroke.getKeyStroke(KeyEvent.VK_A, accelMask));
 		
 		menuBar = new JMenuBar();
 		
 		//Settingup
 		JMenu fileMenu = new JMenu("File");
 		fileMenu.setMnemonic('f');		
-		fileMenu.add(new JMenuItem(newProjectAction));
-		fileMenu.add(new JMenuItem(openProjectAction));
-		fileMenu.add(new JMenuItem(saveProjectAction));
-		fileMenu.add(new JMenuItem(saveProjectAsAction));
-		fileMenu.add(new JMenuItem(printAction));
-		fileMenu.add(new JMenuItem(prefAction));
-		fileMenu.add(new JMenuItem(projectSettingsAction));
-		fileMenu.add(new JMenuItem(saveSettingsAction));
-		fileMenu.add(new JMenuItem(exitAction));
+		fileMenu.add(newProjectAction);
+		fileMenu.add(openProjectAction);
+		fileMenu.add(saveProjectAction);
+		fileMenu.add(saveProjectAsAction);
+		fileMenu.add(printAction);
+		fileMenu.add(prefAction);
+		fileMenu.add(projectSettingsAction);
+		fileMenu.add(saveSettingsAction);
+		fileMenu.add(exitAction);
 		menuBar.add(fileMenu);
 
 		JMenu editMenu = new JMenu("Edit");
@@ -371,7 +376,9 @@ public class ArchitectFrame extends JFrame {
 		editMenu.add(undoAction);
 		editMenu.add(redoAction);
 		editMenu.addSeparator();
-		editMenu.add(new JMenuItem(searchReplaceAction));
+		editMenu.add(selectAllAction);
+		editMenu.addSeparator();
+		editMenu.add(searchReplaceAction);
 		menuBar.add(editMenu);
 		
 		// the connections menu is set up when a new project is created (because it depends on the current DBTree)
@@ -382,23 +389,23 @@ public class ArchitectFrame extends JFrame {
 		JMenu etlMenu = new JMenu("ETL");
 		etlMenu.setMnemonic('l');
 		JMenu etlSubmenuOne = new JMenu("Power*Loader");		
-		etlSubmenuOne.add(new JMenuItem(exportPLTransAction));
+		etlSubmenuOne.add(exportPLTransAction);
 		etlSubmenuOne.add(new JMenuItem("PL Transaction File Export"));
 		etlSubmenuOne.add(new JMenuItem("Run Power*Loader"));
-		etlSubmenuOne.add(new JMenuItem(quickStartAction));
+		etlSubmenuOne.add(quickStartAction);
 		etlMenu.add(etlSubmenuOne);		
 		menuBar.add(etlMenu);
 
 		JMenu toolsMenu = new JMenu("Tools");
 		toolsMenu.setMnemonic('t');
-		toolsMenu.add(new JMenuItem(exportDDLAction));
-		toolsMenu.add(new JMenuItem(compareDMAction));
+		toolsMenu.add(exportDDLAction);
+		toolsMenu.add(compareDMAction);
 		menuBar.add(toolsMenu);
 		
 		
 		JMenu helpMenu = new JMenu("Help");
 		helpMenu.setMnemonic('h');
-		helpMenu.add(new JMenuItem(aboutAction));
+		helpMenu.add(aboutAction);
 		menuBar.add(helpMenu);
 		
 		setJMenuBar(menuBar);
@@ -518,6 +525,7 @@ public class ArchitectFrame extends JFrame {
 		insertColumnAction.setPlayPen(playpen);
 		editTableAction.setPlayPen(playpen);
 		searchReplaceAction.setPlayPen(playpen);
+		selectAllAction.setPlayPen(playpen);
 		createTableAction.setPlayPen(playpen);
 		createIdentifyingRelationshipAction.setPlayPen(playpen);
 		createNonIdentifyingRelationshipAction.setPlayPen(playpen);
