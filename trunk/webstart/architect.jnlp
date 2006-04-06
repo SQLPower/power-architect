@@ -16,15 +16,20 @@
       <all-permissions/>
   </security>
   <resources>
-    <j2se version="1.4+"/>
-    <jar href="lib/architect.jar"/>
-    <jar href="lib/commons-beanutils.jar"/>
-    <jar href="lib/commons-collections-3.0.jar"/>
-    <jar href="lib/commons-digester.jar"/>
-    <jar href="lib/commons-logging.jar"/>
-    <jar href="lib/jlfgr-1_0.jar"/>
-    <jar href="lib/log4j.jar"/>
-    <jar href="lib/sqlpower.jar"/>
+    <j2se version="1.5+"/>
+      <jar href="lib/architect.jar"/>
+      <jar href="lib/commons-beanutils-bean-collections.jar"/>
+      <jar href="lib/commons-beanutils-core.jar"/>
+      <jar href="lib/commons-beanutils.jar"/>
+      <jar href="lib/commons-digester.jar"/>
+      <jar href="lib/commons-logging.jar"/>
+      <jar href="lib/forms-1.0.6.jar"/>
+      <jar href="lib/jakarta-regexp-1.2.jar"/>
+      <jar href="lib/jfcunit.jar"/>
+      <jar href="lib/jlfgr-1_0.jar"/>
+      <jar href="lib/junit.jar"/>
+      <jar href="lib/log4j.jar"/>
+      <jar href="lib/sqlpower.jar"/>
   </resources>
   <application-desc main-class="ca.sqlpower.architect.swingui.ArchitectFrame"/>
 </jnlp>

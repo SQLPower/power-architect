@@ -49,7 +49,7 @@
         <copy todir="webstart/lib">
             <fileset dir="lib"/>
         </copy>
-        <signjar alias="sqlpower" keystore="sqlpower.kdb" storepass="low_security" keypass="low_security">
+        <signjar alias="sqlpower" keystore="keystore" storepass="low_security" keypass="low_security">
             <fileset dir="webstart/lib"/>
         </signjar>
 	</target>
@@ -71,6 +71,7 @@
 
 	<target name="clean">
 		<delete dir="${build}"/>
+		<delete dir="webstart/lib"/>
 	</target>
 
 	<path id="compile.classpath">
