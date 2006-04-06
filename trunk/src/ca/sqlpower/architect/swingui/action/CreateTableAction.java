@@ -39,7 +39,7 @@ public class CreateTableAction extends AbstractAction {
 		t.setName("New_Table");
 		TablePane tp = new TablePane(t, pp);
 		pp.addFloating(tp);
-		pp.setMouseMode(PlayPen.mouseModeType.CREATING_TABLE);
+		pp.setMouseMode(PlayPen.MouseModeType.CREATING_TABLE);
 	}
 	
 	public void setPlayPen(PlayPen pp) {

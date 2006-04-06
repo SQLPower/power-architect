@@ -103,7 +103,7 @@ public class PlayPen extends JPanel
 	public static final String KEY_DELETE_SELECTED
 		= "ca.sqlpower.architect.swingui.PlayPen.KEY_DELETE_SELECTED";
 
-	public enum mouseModeType {IDLE,
+	public enum MouseModeType {IDLE,
 						CREATING_TABLE,
 						CREATING_RELATIONSHIP,					
 						SELECT_TABLE,
@@ -111,7 +111,7 @@ public class PlayPen extends JPanel
 						SELECT_COLUMN,
 						MULTI_SELECT,
 						RUBBERBAND_MOVE};
-	private static mouseModeType mouseMode = mouseModeType.IDLE;
+	private static MouseModeType mouseMode = MouseModeType.IDLE;
 	
 	/**
 	 * Links this PlayPen with an instance of PlayPenDropListener so
@@ -1436,6 +1436,9 @@ public class PlayPen extends JPanel
  				s.setSelected(false);
  			}
  		}
+ 		// for symmetry with selectAll, it would be tempting to change the
+ 		// state of the mouse listener here.  However, that would interfere
+ 		// with its operation (because it uses this method internally)
 	}
 	
 	/**
@@ -1448,6 +1451,7 @@ public class PlayPen extends JPanel
  				s.setSelected(true);
  			}
  		}
+ 		mouseMode = MouseModeType.MULTI_SELECT;
 	}
 	
 
@@ -1912,15 +1916,13 @@ public class PlayPen extends JPanel
 				Relationship r = (Relationship) c;
 				PlayPen pp = (PlayPen) r.getPlayPen();
 				
-				if ( mouseMode == mouseModeType.CREATING_RELATIONSHIP ) {
-				}
-				else {
+				if ( mouseMode == MouseModeType.CREATING_RELATIONSHIP ) {
+				} else {
 					
 					if ( (evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) != 0) {
-						mouseMode = mouseModeType.MULTI_SELECT;
-					}
-					else {
-						mouseMode = mouseModeType.SELECT_RELATIONSHIP;
+						mouseMode = MouseModeType.MULTI_SELECT;
+					} else {
+						mouseMode = MouseModeType.SELECT_RELATIONSHIP;
 						if ( !r.isSelected() ) {
 							pp.selectNone();
 						}
@@ -1940,17 +1942,17 @@ public class PlayPen extends JPanel
 				try {
 					int clickCol = tp.pointToColumnIndex(p);
 					
-					if ( mouseMode == mouseModeType.CREATING_TABLE ) {
+					if ( mouseMode == MouseModeType.CREATING_TABLE ) {
 					}
 					else {
 						if ( (evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0) {
-							if ( !tp.isSelected() || mouseMode == mouseModeType.IDLE ) {
-								mouseMode = mouseModeType.SELECT_TABLE;
+							if ( !tp.isSelected() || mouseMode == MouseModeType.IDLE ) {
+								mouseMode = MouseModeType.SELECT_TABLE;
 								pp.selectNone();
 							}
 						}
 						else {
-							mouseMode = mouseModeType.MULTI_SELECT;
+							mouseMode = MouseModeType.MULTI_SELECT;
 						}
 						
 						if ( clickCol > TablePane.COLUMN_INDEX_TITLE &&
@@ -1964,7 +1966,7 @@ public class PlayPen extends JPanel
 									tp.deSelectEverythingElse(evt);
 									tp.selectNone();
 								}
-								mouseMode = mouseModeType.SELECT_COLUMN;
+								mouseMode = MouseModeType.SELECT_COLUMN;
 							} 
 							
 							tp.selectColumn(clickCol);
@@ -2009,7 +2011,7 @@ public class PlayPen extends JPanel
 				
 			} else {
 				if ((evt.getModifiersEx() & InputEvent.BUTTON1_DOWN_MASK) != 0  && !evt.isPopupTrigger()) {
-					mouseMode = mouseModeType.IDLE;
+					mouseMode = MouseModeType.IDLE;
 					selectNone();
 					rubberBandOrigin = new Point(p);
 					rubberBand = new Rectangle(rubberBandOrigin.x, rubberBandOrigin.y, 0, 0);
@@ -2029,65 +2031,13 @@ public class PlayPen extends JPanel
 					zoomRect(dirtyRegion);
 					repaintRubberBandRegion(dirtyRegion);
 					if ( getSelectedItems().size() > 0 )
-						mouseMode = mouseModeType.MULTI_SELECT;
+						mouseMode = MouseModeType.MULTI_SELECT;
 					else
-						mouseMode = mouseModeType.IDLE;
+						mouseMode = MouseModeType.IDLE;
 				}
 			}
 			maybeShowPopup(evt);
 			
-		}
-
-		public void mouseReleased2(MouseEvent evt) {
-			
-
-			if (rubberBand != null) {
-				if (evt.getButton() == MouseEvent.BUTTON1) {
-					Rectangle dirtyRegion = rubberBand;
-
-					rubberBandOrigin = null;
-					rubberBand = null;
-					
-					zoomRect(dirtyRegion);
-					repaintRubberBandRegion(dirtyRegion);
-					return;
-				}
-			}
-
-			Point p = evt.getPoint();
-			unzoomPoint(p);
-			PlayPenComponent c = contentPane.getComponentAt(p);
-			if (c != null) p.translate(-c.getX(), -c.getY());
-			
-			if ( c instanceof Relationship) {
-				maybeShowPopup(evt);
-			} else if ( c instanceof TablePane ) {
-				TablePane tp = (TablePane) c;
-				try {
-					
-					int releaseLocation = tp.pointToColumnIndex(p);
-					
-					// can't just do pp.selectNone() here and re-select the current item because that will
-		            // trigger a second selection event which we don't want.  So, iterate through and de-select
-		            // things manually instead...but only if we weren't shift clicking :)
-					if (releaseLocation == TablePane.COLUMN_INDEX_TITLE) {
-						// don't deselect everything if we just finished DND operation
-						if (draggingTablePanes) {
-							draggingTablePanes = false;
-						} else {					
-							if ( (evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0) {
-								tp.deSelectEverythingElse(evt);
-							}
-						}
-					}				
-				} catch (ArchitectException e) {
-					logger.error("Exception converting point to column", e);
-				}
-				maybeShowPopup(evt);
-				
-			} else {
-				maybeShowPopup(evt);
-			}
 		}
 		
 		// ---------------- MOUSEMOTION LISTENER INTERFACE -----------------
@@ -2105,7 +2055,7 @@ public class PlayPen extends JPanel
 				rubberBand.setBounds(rubberBandOrigin.x, rubberBandOrigin.y, 0, 0);
 				rubberBand.add(p);
 
-				mouseMode = mouseModeType.RUBBERBAND_MOVE;
+				mouseMode = MouseModeType.RUBBERBAND_MOVE;
 				// update selected items
 				Rectangle temp = new Rectangle();  // avoids multiple allocations in getBounds
 				for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
@@ -2253,7 +2203,7 @@ public class PlayPen extends JPanel
 					pp.db.addChild(tp.getModel());
 					pp.selectNone();
 					tp.setSelected(true);
-					mouseMode = mouseModeType.SELECT_TABLE;
+					mouseMode = MouseModeType.SELECT_TABLE;
 				} catch (ArchitectException e) {
 					logger.error("Couldn't add table \""+tp.getModel()+"\" to play pen:", e);
 					JOptionPane.showMessageDialog(null, "Failed to add table:\n"+e.getMessage());
@@ -2393,7 +2343,7 @@ public class PlayPen extends JPanel
 		return contentPane;
 	}
 
-	public static void setMouseMode(mouseModeType mouseMode) {
+	public static void setMouseMode(MouseModeType mouseMode) {
 		PlayPen.mouseMode = mouseMode;
 	}
 
