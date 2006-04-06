@@ -24,7 +24,7 @@ public class SelectAllAction extends AbstractAction {
 	protected PlayPen pp;
 
 	public SelectAllAction() {
-		super("Select All...");
+		super("Select All");
 		putValue(SHORT_DESCRIPTION, "Select All");
 	}
 
