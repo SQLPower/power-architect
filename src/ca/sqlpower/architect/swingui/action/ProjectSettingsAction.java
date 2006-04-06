@@ -30,7 +30,8 @@ public class ProjectSettingsAction extends AbstractAction {
 		final JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
 				settingsPanel,
 				ArchitectFrame.getMainInstance(),
-				"Project Settings");		
+				"Project Settings",
+				ArchitectPanelBuilder.OK_BUTTON_LABEL );		
 
 		d.pack();
 		d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
