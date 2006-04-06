@@ -49,9 +49,10 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.swingui.action.SetDataSourceAction;
 
 public class DBTree extends JTree implements DragSourceListener {
-	private static Logger logger = Logger.getLogger(DBTree.class);
+	static Logger logger = Logger.getLogger(DBTree.class);
 
 	protected DragSource ds;
 	protected JPopupMenu popup;
@@ -363,7 +364,7 @@ public class DBTree extends JTree implements DragSourceListener {
 		connectionsMenu.addSeparator();
 		// populate		
 		
-		for(ArchitectDataSource dbcs :ArchitectFrame.getMainInstance().getUserSettings().getConnections()) {
+		for (ArchitectDataSource dbcs : ArchitectFrame.getMainInstance().getUserSettings().getConnections()) {
 			connectionsMenu.add(new JMenuItem(new AddDBCSAction(dbcs)));
 		}	
 		
@@ -375,11 +376,10 @@ public class DBTree extends JTree implements DragSourceListener {
 				// disable if there's no connections in user settings yet (annoying, but less confusing)
 				connectionsMenu.setEnabled(false);
 			} else {
+				SQLDatabase ppdb = ArchitectFrame.getMainInstance().getProject().getPlayPen().getDatabase();
 				// populate
-				Iterator it = ArchitectFrame.getMainInstance().getUserSettings().getConnections().iterator();
-				while(it.hasNext()) {
-					ArchitectDataSource dbcs = (ArchitectDataSource) it.next();
-					connectionsMenu.add(new JMenuItem(new setTargetDBCSAction(dbcs)));
+				for (ArchitectDataSource dbcs : ArchitectFrame.getMainInstance().getUserSettings().getConnections()) {
+					connectionsMenu.add(new JMenuItem(new SetDataSourceAction(ppdb, dbcs)));
 				}
 				
 			}
@@ -728,44 +728,6 @@ public class DBTree extends JTree implements DragSourceListener {
 			pp.selectAndShow(selection);
 		}
 	}
-
-	/**
-	 * copy the DBCS info from the selected DBCS into the DBCS
-     * of Target Database
-	 */
-	protected class setTargetDBCSAction extends AbstractAction {
-		protected ArchitectDataSource dbcs;
-
-		public setTargetDBCSAction(ArchitectDataSource dbcs) {
-			super(dbcs.getName());
-			this.dbcs = dbcs;
-		}
-
-		public void actionPerformed(ActionEvent e) {	
-			// make a new connection spec
-            logger.debug("Performing setTargetDBCSAction...");
-			panelHoldsNewDBCS = false; // we are editing the Target Database dbcs, which has already been created
-			edittingDB = ArchitectFrame.getMainInstance().getProject().getPlayPen().getDatabase();
-			// copy over the values from the selected DB.
-			ArchitectDataSource tSpec = edittingDB.getDataSource();
-			// don't copy the sequence number, or it will prevent the Target Database and whatever it
-            // was cloned from from co-existing in the same project
-        	tSpec.setDriverClass(dbcs.getDriverClass());
-        	tSpec.setUrl(dbcs.getUrl());
-        	tSpec.setUser(dbcs.getUser());
-        	tSpec.setPass(dbcs.getPass());
-            tSpec.setPlSchema(dbcs.getPlSchema());
-			tSpec.setPlDbType(dbcs.getPlDbType());
-			tSpec.setOdbcDsn(dbcs.getOdbcDsn());
-			// for some reason, the above property change events are not being received properly by 
-            // parent SQLDatabase objects
-			dbcsPanel.setDbcs(tSpec);
-			propDialog.setVisible(true);
-			propDialog.requestFocus();
-		}
-	}
-	
-
 
 	// --------------- INNER CLASSES -----------------
 	/**
