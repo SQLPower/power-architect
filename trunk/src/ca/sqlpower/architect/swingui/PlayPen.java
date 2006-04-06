@@ -807,8 +807,10 @@ public class PlayPen extends JPanel
 		final JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
 			dbcsPanel,
 			ArchitectFrame.getMainInstance(),
-			"Target Database Connection");		
-		dbcsPanel.setDbcs(db.getDataSource());
+			"Target Database Connection",
+			ArchitectPanelBuilder.OK_BUTTON_LABEL );		
+		dbcsPanel.setDbcs(db.getDataSource());		
+
 		
 		d.pack();
 		d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
@@ -2396,3 +2398,4 @@ public class PlayPen extends JPanel
 	}
 
 }
+

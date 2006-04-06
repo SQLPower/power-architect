@@ -76,10 +76,12 @@ public class ArchitectPanelBuilder {
 		}
 		
 		okButton.addActionListener(closeAction);
-		makeJDialogCancellable(d, closeAction);			
+		makeJDialogCancellable(d, closeAction);
+		okButton.addActionListener(new CommonCloseAction(d));		
 		JButton cancelButton = new JDefaultButton(cancelAction);
 		cancelButton.setText(CANCEL_BUTTON_LABEL);
 		cancelButton.addActionListener(closeAction);
+		cancelButton.addActionListener(new CommonCloseAction(d));
 		
 		// Handle if the user presses Enter in the dialog - do OK action
 		d.getRootPane().setDefaultButton(okButton);
@@ -165,23 +167,5 @@ public class ArchitectPanelBuilder {
 				actionButtonTitle, okAction, cancelAction);
 	}
 	
-	/**
-	 * Build a JDialog around an object that implements ArchitectPanel, to
-	 * provide consistent behaviours such as Cancel button, <ESC> to close, and
-	 * so on, including a default "OK" button
-	 * @param arch
-	 *            The ArchitectPanel implementation
-	 * @param dialogParent
-	 *            A Window class to be the parent, or null
-	 * @param dialogTitle
-	 *            The display title.
-	 * @return The build JDialog
-	 */
-	public static JDialog createArchitectPanelDialog(
-			final ArchitectPanel arch,
-			final Window dialogParent, 
-			final String dialogTitle) {
-		
-		return createArchitectPanelDialog(arch, dialogParent, dialogTitle, OK_BUTTON_LABEL);
-	}
+
 }
