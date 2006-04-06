@@ -53,6 +53,7 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -82,6 +83,7 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.Relationship.RelationshipDecorationMover;
+import ca.sqlpower.architect.swingui.action.SetDataSourceAction;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
@@ -212,8 +214,6 @@ public class PlayPen extends JPanel
 		dt = new DropTarget(this, new PlayPenDropListener());
 		bringToFrontAction = new BringToFrontAction(this);
 		sendToBackAction = new SendToBackAction(this);
-		setupTablePanePopup();
-		setupPlayPenPopup();
 		setupKeyboardActions();
 		ppMouseListener = new PPMouseListener();
 		addMouseListener(ppMouseListener);
@@ -744,7 +744,13 @@ public class PlayPen extends JPanel
  		JMenuItem mi = new JMenuItem();
 		mi.setAction(chooseDBCSAction);
 		playPenPopup.add(mi);
-
+		
+		JMenu connectionsMenu = new JMenu("Set Target Database");
+		for(ArchitectDataSource dbcs :ArchitectFrame.getMainInstance().getUserSettings().getConnections()) {
+			connectionsMenu.add(new JMenuItem(new SetDataSourceAction(db, dbcs)));
+		}
+		playPenPopup.add(connectionsMenu);
+		
 		mi = new JMenuItem();
 		mi.setAction(af.createTableAction);
 		playPenPopup.add(mi);
@@ -775,7 +781,7 @@ public class PlayPen extends JPanel
 		}
 	}
 
-	public Action chooseDBCSAction = new AbstractAction("Target Database Properties") {
+	public Action chooseDBCSAction = new AbstractAction("Target Database Properties...") {
 			public void actionPerformed(ActionEvent e) {
 				showDbcsDialog();
 			}
@@ -2090,6 +2096,9 @@ public class PlayPen extends JPanel
 		 */
 		public boolean maybeShowPopup(MouseEvent evt) {
 			
+			setupTablePanePopup();
+			setupPlayPenPopup();
+
 			Point p = evt.getPoint();
 			unzoomPoint(p);
 			PlayPenComponent c = contentPane.getComponentAt(p);
