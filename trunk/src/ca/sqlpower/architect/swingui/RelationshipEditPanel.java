@@ -90,7 +90,7 @@ public class RelationshipEditPanel extends JPanel
 		fkPanel.add(fkTypeZeroOne = new JRadioButton("Zero or One"));
 		fkTypeGroup.add(fkTypeZeroOne);
 		add(fkPanel, BorderLayout.EAST);		
-		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.PROPERTY_CHANGE_GROUP_START,"Starting new compound edit event in relationship edit panel"));
+		
 	}
 
 
@@ -127,6 +127,7 @@ public class RelationshipEditPanel extends JPanel
 	// ------------------ ARCHITECT PANEL INTERFACE ---------------------
 	
 	public boolean applyChanges() {
+		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.PROPERTY_CHANGE_GROUP_START,"Starting new compound edit event in relationship edit panel"));
 		relationship.setName(relationshipName.getText());
 		try {
 			relationship.setIdentifying(identifyingButton.isSelected());
@@ -156,8 +157,7 @@ public class RelationshipEditPanel extends JPanel
 	}
 
 	public void discardChanges() {
-	    // nothing to discard
-		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.PROPERTY_CHANGE_GROUP_END,"Ending new compound edit event in relationship edit panel"));
+	  
 	}
 	
 	/**
