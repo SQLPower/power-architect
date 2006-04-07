@@ -172,7 +172,6 @@ public class TablePane
 			logger.error("Caught exception while unlistening to all children", e);
 		}
 	}
-	
 
 	// -------------------- sqlobject event support ---------------------
 
@@ -196,7 +195,7 @@ public class TablePane
 			logger.error("Caught exception while listening to added children", ex);
 		}
 		firePropertyChange("model.children", null, null);
-		revalidate();
+		//revalidate();
 	}
 
 	/**
@@ -231,7 +230,7 @@ public class TablePane
 			}
 		}
 		firePropertyChange("model.children", null, null);
-		revalidate();
+		//revalidate();
 	}
 
 	/**
@@ -242,7 +241,7 @@ public class TablePane
 	 */
 	public void dbObjectChanged(SQLObjectEvent e) {
 		firePropertyChange("model."+e.getPropertyName(), null, null);
-		repaint();
+		//repaint();
 	}
 
 	/**
@@ -263,7 +262,7 @@ public class TablePane
 				columnHighlight.add(null);
 			}
 			firePropertyChange("model.children", null, null);
-			revalidate();
+			//revalidate();
 		}
 	}
 
