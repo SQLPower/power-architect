@@ -84,12 +84,8 @@ public abstract class PlayPenComponent implements Selectable {
 	/**
 	 * Translates this request into a call to
 	 * PlayPen.repaint(Rectangle).  That will eventually cause a call
-	 * to PlayPen.paint(). This override is required because the
-	 * PlayPen's contents are not part of the Swing containment
-	 * hierarchy, and the standard RepaintManager discards
-	 * revalidate() calls for invisible/unreachable components.
-	 *
-	 * <p>FIXME: should we check if this is the event dispatch thread?
+	 * to PlayPen.paint(). Painting a TablePane causes it to re-evaluate its
+	 * preferred size, which is what validation is really all about.
 	 */
 	public void revalidate() {
 		PlayPen pp = getPlayPen();
