@@ -11,6 +11,10 @@
     <description kind="short">A productivity tool for rapid development of Data Warehouse structures and ETL definitions.</description>
     <icon href="architect_icon.gif"/>
     <offline-allowed/>
+    <shortcut>
+    	   <desktop/>
+    	   <menu submenu="Power Loader Suite"/>
+    </shortcut>
   </information>
   <security>
       <all-permissions/>
