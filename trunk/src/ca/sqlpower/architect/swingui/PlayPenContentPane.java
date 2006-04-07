@@ -3,6 +3,8 @@ package ca.sqlpower.architect.swingui;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +24,7 @@ public class PlayPenContentPane {
 	public PlayPenContentPane(PlayPen owner) {
 		this.owner = owner;
 		playPenComponentEventPassthrough = new PlayPenComponentEventPassthrough();
+		owner.addPropertyChangeListener("zoom", new ZoomFixer());
 	}
 	
 	
@@ -103,6 +106,18 @@ public class PlayPenContentPane {
 		if ( j >= 0 ) remove(j);
 	}
 
+	/**
+	 * Fixes table pane sizes after the play pen's zoom changes (because
+	 * fonts render at different sizes in different zoom levels).
+	 */
+	private class ZoomFixer implements PropertyChangeListener {
+		public void propertyChange(PropertyChangeEvent evt) {
+			for (PlayPenComponent ppc : children) {
+				// only table panes will need validation because they have text
+				if (! (ppc instanceof Relationship)) ppc.revalidate();
+			}
+		}
+	}
 	
 	// ----------------- PlayPenComponentListener Passthrough stuff ---------------------------
 	public void addPlayPenComponentListener(PlayPenComponentListener l) {
