@@ -1049,55 +1049,6 @@ public class PlayPen extends JPanel
 
 		return tp;
 	}
-
-	/**
-	 * Calls {@link #importTableCopy} for each table contained in the given schema.
-	 */
-
-	/*
-	public synchronized void addSchema(SQLSchema source, Point preferredLocation) throws ArchitectException {
-		AddSchemaTask t = new AddSchemaTask(source, preferredLocation);
-		new Thread(t, "Schema-Adder").start();
-	}
-	
-	private class AddSchemaTask implements Runnable {
-		SQLSchema source;
-		Point preferredLocation;
-
-		public AddSchemaTask(SQLSchema source, Point preferredLocation) {
-			this.source = source;
-			this.preferredLocation = new Point(preferredLocation);
-		}
-
-		public void run() {
-			logger.info("AddSchemaTask starting on thread "+Thread.currentThread().getName());
-			ProgressMonitor pm = null;
-			try {
-				pm = new ProgressMonitor
-					(PlayPen.this,
-					 "Copying schema "+source.getShortDisplayName(),
-					 "...",
-					 0,
-					 source.getChildCount());
-				int i = 0;
-				Iterator it = source.getChildren().iterator();
-				while (it.hasNext() && !pm.isCanceled()) {
-					SQLTable sourceTable = (SQLTable) it.next();
-					pm.setNote(ArchitectUtils.truncateString(sourceTable.getTableName()));
-					TablePane tp = importTableCopy(sourceTable, preferredLocation);
-					preferredLocation.x += tp.getPreferredSize().width + 5;
-					pm.setProgress(i++);
-				}
-			} catch (ArchitectException e) {
-				e.printStackTrace();
-			} finally {
-				if (pm != null) pm.close();
-			}
-			logger.info("AddSchemaTask done");
-		}
-	}
-	*/
-	
 	
 	/**
 	 * Calls {@link #importTableCopy} for each table contained in the given schema.

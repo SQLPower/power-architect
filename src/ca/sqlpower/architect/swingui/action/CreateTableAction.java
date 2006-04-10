@@ -29,6 +29,7 @@ public class CreateTableAction extends AbstractAction {
 	}
 
 	public void actionPerformed(ActionEvent evt) {
+		pp.fireCancel();
 		SQLTable t = new SQLTable();
 		try {
 			t.initFolders(true);

@@ -58,7 +58,7 @@ public class CreateRelationshipAction extends AbstractAction
 	}
 
 	public void actionPerformed(ActionEvent evt) {
-		logger.debug("the hashcode is: " + super.hashCode());
+		pp.fireCancel();
 		pkTable = null;
 		fkTable = null;
 		logger.debug("Starting to create relationship, setting active to TRUE!");
