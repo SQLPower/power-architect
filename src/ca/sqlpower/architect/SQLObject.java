@@ -15,7 +15,6 @@ public abstract class SQLObject implements java.io.Serializable {
 
 	private String physicalName;
 	private String name;
-	private SQLObject parent;
 	
 	/**
 	 * The children of this SQLObject (if not applicable, set to
