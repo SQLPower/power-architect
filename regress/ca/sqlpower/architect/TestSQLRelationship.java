@@ -309,10 +309,22 @@ public class TestSQLRelationship extends SQLTestCase {
 	}
 	
 	public void testRemoveChildTable() throws ArchitectException {
+		
+		assertEquals(3,database.getChildCount());
+		assertEquals(2,parentTable.getExportedKeys().size());
+		
 		database.removeChild(childTable1);
+		assertEquals(2,database.getChildCount());
+		assertEquals(1,parentTable.getExportedKeys().size());
+		
 		assertNull("Child table not removed from the database",database.getTableByName(childTable1.getName()));
 		assertFalse("Parent still contains a reference to a deleted table", 
 				parentTable.getExportedKeys().contains(rel1));
+		
+		database.removeChild(childTable2);
+		assertEquals(1,database.getChildCount());
+		assertEquals(0,parentTable.getExportedKeys().size());
+		
 	}
 	
 	public void testRemoveParentTable() throws ArchitectException {
