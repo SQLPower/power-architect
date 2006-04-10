@@ -42,8 +42,7 @@ import ca.sqlpower.architect.SQLDatabase;
  * field, then the second one will win.
  * 
  * TODO: Eventually, these mapping rules should most likely be added to the 
- * User Settings part of the .architect-prefs file to allow users to 
- * add their own custom rules.  
+ * User Settings to allow users to add their own custom rules.  
  * 
  * XXX: Once users are allowed to make their own rules, there may be 
  * some concurrency issues with the singleton class (i.e. concurrent 
