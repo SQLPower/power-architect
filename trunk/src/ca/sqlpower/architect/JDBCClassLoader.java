@@ -1,19 +1,20 @@
 package ca.sqlpower.architect;
 
-import java.util.Iterator;
-import java.util.jar.JarFile;
-import java.util.zip.ZipEntry;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.net.URI;
+import java.net.URL;
+import java.security.AllPermission;
+import java.security.CodeSource;
+import java.security.PermissionCollection;
+import java.security.Permissions;
+import java.security.Policy;
+import java.util.Iterator;
+import java.util.jar.JarFile;
+import java.util.zip.ZipEntry;
+
 import org.apache.log4j.Logger;
-import java.lang.reflect.Method;
-import java.lang.reflect.InvocationTargetException;
-import java.sql.SQLException;
-import java.sql.Connection;
-import java.security.*;
 
 public class JDBCClassLoader extends ClassLoader {
 	private static final Logger logger = Logger.getLogger(JDBCClassLoader.class);
