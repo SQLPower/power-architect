@@ -1,15 +1,14 @@
 package ca.sqlpower.architect;
 
-import java.util.Comparator;
-import java.util.Collections;
-import java.sql.SQLException;
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Types;
-import org.apache.log4j.Logger;
+import java.util.Collections;
+import java.util.Comparator;
 
-import ca.sqlpower.architect.ddl.TypeMap;
+import org.apache.log4j.Logger;
 
 public class SQLColumn extends SQLObject implements java.io.Serializable {
 
