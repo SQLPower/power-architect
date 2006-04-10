@@ -271,6 +271,7 @@ public class ArchitectFrame extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 			    if (promptForUnsavedModifications()) {
 			        try {
+			        	prefs.putInt(SwingUserSettings.DIVIDER_LOCATION, splitPane.getDividerLocation());
 			        	closeProject(getProject());
 			            setProject(new SwingUIProject("New Project"));
 			            logger.debug("Glass pane is "+getGlassPane());			            
@@ -485,9 +486,8 @@ public class ArchitectFrame extends JFrame {
 		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 		cp.add(splitPane, BorderLayout.CENTER);
 		logger.debug("Added splitpane to content pane");
-		splitPane.setDividerLocation
-			(sprefs.getInt(SwingUserSettings.DIVIDER_LOCATION,
-						   150)); //dbTree.getPreferredSize().width));
+		
+		splitPane.setDividerLocation(prefs.getInt(SwingUserSettings.DIVIDER_LOCATION,150));
 
 		Rectangle bounds = new Rectangle();
 		bounds.x = prefs.getInt(SwingUserSettings.MAIN_FRAME_X, 40);
@@ -512,7 +512,9 @@ public class ArchitectFrame extends JFrame {
 		setupConnectionsMenu();
 		
 		splitPane.setLeftComponent(new JScrollPane(dbTree));
-		splitPane.setRightComponent(new JScrollPane(playpen));		
+		splitPane.setRightComponent(new JScrollPane(playpen));
+		
+		splitPane.setDividerLocation(prefs.getInt(SwingUserSettings.DIVIDER_LOCATION,150));
 	}
 	
 	public SwingUIProject getProject(){
@@ -616,6 +618,7 @@ public class ArchitectFrame extends JFrame {
 
 		public void actionPerformed(ActionEvent e) {
 		    if (promptForUnsavedModifications()) {
+		    	prefs.putInt(SwingUserSettings.DIVIDER_LOCATION, splitPane.getDividerLocation());
 		        JFileChooser chooser = new JFileChooser();
 		        chooser.addChoosableFileFilter(ASUtils.ARCHITECT_FILE_FILTER);
 		        int returnVal = chooser.showOpenDialog(ArchitectFrame.this);
