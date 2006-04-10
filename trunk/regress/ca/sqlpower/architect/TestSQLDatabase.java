@@ -2,18 +2,14 @@ package regress.ca.sqlpower.architect;
 
 import java.beans.PropertyChangeEvent;
 import java.sql.Connection;
-import java.sql.SQLData;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Iterator;
 import java.util.List;
-
-import regress.ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
 
 import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestSuite;
-
+import regress.ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLCatalog;
@@ -150,9 +146,9 @@ public class TestSQLDatabase extends SQLTestCase {
 	 * Test method for 'ca.sqlpower.architect.SQLDatabase.getTableByName(String)'
 	 */
 	public void testGetTableByName() throws ArchitectException {
-		SQLTable table1, table2;
+		SQLTable table1;
 		assertNotNull(table1 = db.getTableByName("REGRESSION_TEST1"));
-		assertNotNull(table2 = db.getTableByName("REGRESSION_TEST2"));
+		assertNotNull(db.getTableByName("REGRESSION_TEST2"));
 		assertNull("should get null for nonexistant table", db.getTableByName("no_such_table"));
 		
 		SQLTable table3 = new SQLTable(db, "xyz", "", "TABLE",true);
