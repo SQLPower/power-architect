@@ -13,8 +13,8 @@ public class DDLUserSettings {
 
 	// ------ PROPERTY LIST KEYS ------	
 
-	private static final String PROP_DDL_LOG_PATH
-		= "ca.sqlpower.architect.ddl.DDLUserSettings.PROP_DDL_LOG_PATH";
+	public static final String PROP_DDL_LOG_PATH
+		= "DDLUserSettings.PROP_DDL_LOG_PATH";
 
 	
 	// ------ INSTANCE VARIABLES ------

@@ -200,7 +200,7 @@ public class ArchitectFrame extends JFrame {
 	protected void init() throws ArchitectException {
 		int accelMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
-		prefs = PrefsUtils.getUserPrefsNode(this);
+		prefs = PrefsUtils.getUserPrefsNode(architectSession);
 	    UserSettings us;
 	    // must be done right away, because a static
 	    // initializer in this class effects BeanUtils 
@@ -211,7 +211,7 @@ public class ArchitectFrame extends JFrame {
 	    
 		try {
 			ConfigFile cf = ConfigFile.getDefaultInstance();
-			us = cf.read();
+			us = cf.read(getArchitectSession());
 			architectSession.setUserSettings(us);
 			sprefs = architectSession.getUserSettings().getSwingSettings();
 		} catch (IOException e) {

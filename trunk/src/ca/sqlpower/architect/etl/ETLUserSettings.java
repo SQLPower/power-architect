@@ -14,11 +14,11 @@ public class ETLUserSettings {
 
 	// ------ PROPERTY LIST KEYS ------
 	
-	private static final String PROP_PL_ENGINE_PATH
-	= "ca.sqlpower.architect.etl.ETLUserSettings.PROP_PL_ENGINE_PATH";
+	public static final String PROP_PL_ENGINE_PATH
+		= "ETLUserSettings.PROP_PL_ENGINE_PATH";
 	
-	private static final String PROP_ETL_LOG_PATH
-		= "ca.sqlpower.architect.etl.ETLUserSettings.PROP_ETL_LOG_PATH";
+	public static final String PROP_ETL_LOG_PATH
+		= "ETLUserSettings.PROP_ETL_LOG_PATH";
 
 	
 	// ------ INSTANCE VARIABLES ------

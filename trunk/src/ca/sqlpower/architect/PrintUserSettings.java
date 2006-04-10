@@ -14,8 +14,8 @@ public class PrintUserSettings {
 
 	// ------ PROPERTY LIST KEYS ------	
 
-	private static final String DEFAULT_PRINTER_NAME
-		= "ca.sqlpower.architect.DEFAULT_PRINTER_NAME";
+	public static final String DEFAULT_PRINTER_NAME
+		= "DEFAULT_PRINTER_NAME";
 
 	
 	// ------ INSTANCE VARIABLES ------
