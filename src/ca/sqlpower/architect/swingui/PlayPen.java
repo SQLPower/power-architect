@@ -83,6 +83,7 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.Relationship.RelationshipDecorationMover;
+import ca.sqlpower.architect.swingui.action.CancelAction;
 import ca.sqlpower.architect.swingui.action.SetDataSourceAction;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
@@ -93,6 +94,13 @@ import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 
 public class PlayPen extends JPanel
 	implements java.io.Serializable, SQLObjectListener, SelectionListener, Scrollable {
+
+	
+	public interface CancelableListener {
+		
+		public void cancel();
+
+	}
 
 	private static Logger logger = Logger.getLogger(PlayPen.class);
 
@@ -354,6 +362,9 @@ public class PlayPen extends JPanel
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), KEY_DELETE_SELECTED);
 		getActionMap().put(KEY_DELETE_SELECTED, af.deleteSelectedAction);
 		if (af.deleteSelectedAction == null) logger.warn("af.deleteSelectedAction is null!");
+		
+		getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "CANCEL");
+		getActionMap().put("CANCEL", new CancelAction(this));
 		
 		final Object KEY_SELECT_UPWARD = "ca.sqlpower.architect.PlayPen.KEY_SELECT_UPWARD";
 		final Object KEY_SELECT_DOWNWARD = "ca.sqlpower.architect.PlayPen.KEY_SELECT_DOWNWARD";
@@ -1552,6 +1563,22 @@ public class PlayPen extends JPanel
 		}
 	}
 
+	// Cancel Support
+	protected LinkedList<CancelableListener> cancelableListeners = new LinkedList<CancelableListener>();
+	
+	public void addCancelableListener(CancelableListener l) {
+		cancelableListeners.add(l);
+	}
+	
+	public void removeCancelableListener(CancelableListener l) {
+		cancelableListeners.remove(l);
+	}
+	
+	public void fireCancel(){
+		for(int i = cancelableListeners.size()-1; i>=0;i--) {
+			cancelableListeners.get(i).cancel();
+		}
+	}
 	// Undo event support --------------------------------------
 	
 	protected LinkedList undoEventListeners = new LinkedList();
@@ -1603,16 +1630,21 @@ public class PlayPen extends JPanel
 		 * DropTarget registered with this listener.
 		 */
 		public void dragEnter(DropTargetDragEvent dtde) {
+			logger.debug("Drag enter");
 			dragOver(dtde);
 		}
 		
 		/**
 		 * Called while a drag operation is ongoing, when the mouse
 		 * pointer has exited the operable part of the drop site for the
-		 * DropTarget registered with this listener.
+		 * DropTarget registered with this listener or escape has been pressed
 		 */
 		public void dragExit(DropTargetEvent dte) {
-            // nothing needs to be put back
+			logger.debug("Drag exit");
+            if (tpTarget != null) {
+            		tpTarget.getDropTargetListener().dragExit(dte);
+            }
+			
 		}
 		
 		/**
@@ -1704,6 +1736,7 @@ public class PlayPen extends JPanel
 		 * Called if the user has modified the current drop gesture.
 		 */
 		public void dropActionChanged(DropTargetDragEvent dtde) {
+			logger.debug("Drop Action Changed");
             // we don't care
 		}
 
@@ -2150,7 +2183,7 @@ public class PlayPen extends JPanel
 	 * stops moving the component, and unregisters itself as a
 	 * listener.
 	 */
-	public static class FloatingTableListener extends MouseInputAdapter {
+	public static class FloatingTableListener extends  MouseInputAdapter implements CancelableListener  {
 		private PlayPen pp;
 		private TablePane tp;
 		private Point handle;
@@ -2165,6 +2198,7 @@ public class PlayPen extends JPanel
 			this.handle = handle;
 			pp.addMouseMotionListener(this);
 			pp.addMouseListener(this); // the click that ends this operation
+			pp.addCancelableListener(this);
 			if (addToPP) {
 				pp.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 			} else { 
@@ -2193,6 +2227,11 @@ public class PlayPen extends JPanel
 			cleanup();
 		}
 
+		public void cancel()
+		{
+			removeFromListeners();
+		}
+		
 		protected void cleanup() {
 			if(addToPP)
 			{
@@ -2212,10 +2251,15 @@ public class PlayPen extends JPanel
 			} else {
 				tp.setMoving(false);
 			}
+			removeFromListeners();
+			pp.revalidate();
+		}
+		
+		private void removeFromListeners() {
 			pp.setCursor(null);
 			pp.removeMouseMotionListener(this);
 			pp.removeMouseListener(this);
-			pp.revalidate();
+			pp.removeCancelableListener(this);
 		}
 	
 		

@@ -15,6 +15,7 @@ import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.Selectable;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
 import ca.sqlpower.architect.swingui.TablePane;
+import ca.sqlpower.architect.swingui.PlayPen.CancelableListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
@@ -23,7 +24,7 @@ import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 import org.apache.log4j.Logger;
 
 public class CreateRelationshipAction extends AbstractAction
-	implements ActionListener, SelectionListener {
+	implements ActionListener, SelectionListener, CancelableListener {
 
 	private static final Logger logger = Logger.getLogger(CreateRelationshipAction.class);
 
@@ -96,10 +97,12 @@ public class CreateRelationshipAction extends AbstractAction
 	public void setPlayPen(PlayPen playpen) {
 		if (pp != null) {
 			pp.removeSelectionListener(this);
+			pp.removeCancelableListener(this);
 		}
 		pp = playpen;
 		if (pp != null) {
 			pp.addSelectionListener(this);
+			pp.addCancelableListener(this);
 			setEnabled(true);
 		} else {
 			setEnabled(false);
@@ -124,14 +127,23 @@ public class CreateRelationshipAction extends AbstractAction
 			} else {
 				fkTable = (TablePane) s;
 				logger.debug("Creating relationship: FK Table is "+fkTable);
-				doCreateRelationship(pkTable.getModel(),fkTable.getModel(),pp,identifying);  // this might fail, but still set things back to "normal"
-				pp.setCursor(null);
-				active = false;
+				try {
+					doCreateRelationship(pkTable.getModel(),fkTable.getModel(),pp,identifying);  // this might fail, but still set things back to "normal"
+				} finally {
+					resetAction();
+				}
 			}
 		} else {
 			if (logger.isDebugEnabled())
 				logger.debug("The user clicked on a non-table component: "+s);
 		}
+	}
+
+	private void resetAction() {
+		pkTable = null;
+		fkTable = null;
+		pp.setCursor(null);
+		active = false;
 	}
 
 	public void itemDeselected(SelectionEvent e) {
@@ -144,5 +156,9 @@ public class CreateRelationshipAction extends AbstractAction
 
 	public void setActive(boolean active) {
 		this.active = active;
+	}
+
+	public void cancel() {
+		resetAction();	
 	}
 }
