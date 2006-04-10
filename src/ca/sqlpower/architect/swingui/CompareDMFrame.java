@@ -1,6 +1,9 @@
 package ca.sqlpower.architect.swingui;
 
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
@@ -15,12 +18,15 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
+import javax.swing.UIDefaults;
+import javax.swing.UIManager;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.swingui.ASUtils.FileExtensionFilter;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
@@ -40,33 +46,46 @@ public class CompareDMFrame extends JFrame{
 
 	private String title;
 	private static JComponent panel;
-	
 
 			
 	public CompareDMFrame(AbstractDocument sourceOutputText, AbstractDocument targetOutputText, 
-						String title)
+						String leftDBName, String rightDBName)
 	{
 		super();	
 		
 		setTitle("Data Model comparison");
 		this.sourceOutputText = sourceOutputText;
 		this.targetOutputText = targetOutputText;
-		this.title = title;	
+		this.title = "Comparing " + leftDBName+ " to "
+		+ rightDBName + " using English";	
 		panel = mainFrame();
 		getContentPane().add(panel);
-		this.pack();
-		this.setVisible(true);
+		
+		SimpleAttributeSet att = new SimpleAttributeSet();
+		
+		StyleConstants.setForeground(att, Color.black);
+		StyleConstants.setFontSize(att,leftOutputArea.getFont().getSize() * 2);
+
+		try {
+			sourceOutputText.insertString(0,leftDBName + "\n\n",att);
+			targetOutputText.insertString(0,rightDBName + "\n\n",att);
+		} catch (BadLocationException e) {
+			e.printStackTrace();
+		}
+		
+	
 	}
 	
 	public JComponent mainFrame() {		
 		
 		FormLayout layout = new FormLayout(
-				"4dlu,min:grow, 6dlu, min:grow, 4dlu, default", // columns
-				"pref, 6dlu, pref, 3dlu, fill:300dlu:grow, 3dlu, 20dlu,6dlu,20dlu"); // rows
+				"4dlu,fill:min(150dlu;default):grow, 6dlu, fill:min(150dlu;default):grow, 4dlu", // columns
+				" min(300dlu;default), 6dlu,  min(300dlu;default), 3dlu, fill:min(300dlu;default):grow, 3dlu, 20dlu,6dlu,20dlu"); // rows
 		
 
 		CellConstraints cc = new CellConstraints();
-		Font titleFont = new Font("Arial", 1,16);
+		Font titleFont = new Font("Ariel",1,16);
+		
 		JLabel titleLabel = new JLabel(title);
 		titleLabel.setFont(titleFont);
 		
@@ -74,9 +93,9 @@ public class CompareDMFrame extends JFrame{
 		leftOutputArea.setMargin(new Insets(6, 10, 4, 6));
 		leftOutputArea.setDocument(sourceOutputText);
 		leftOutputArea.setEditable(false);
-		leftOutputArea.setAutoscrolls(true);
-		JScrollPane sp = new JScrollPane(leftOutputArea);
-		
+		JPanel comparePanel =  new JPanel(new GridLayout(1,2));
+		JScrollPane sp = new JScrollPane(comparePanel);
+		comparePanel.add(leftOutputArea);
 		Action sourceCopy = new sourceCopyAction(sourceOutputText);
 	
 		Action sourceSave = new AbstractAction(){
@@ -118,11 +137,9 @@ public class CompareDMFrame extends JFrame{
 		pb = new PanelBuilder(layout, p);			
 		pb.setDefaultDialogBorder();	
 		pb.add(titleLabel, cc.xy(2, 1));			
-        pb.add(sp, cc.xy(2, 3));
-    	pb.add(sourcebbBuilder.getPanel(), cc.xy(2, 5, "c,c"));
+		pb.add(sp, cc.xy(2, 3));
+		pb.add(sourcebbBuilder.getPanel(), cc.xy(2, 5, "c,c"));
 		pb.add(closeBar.getPanel(), cc.xy(2,7, "r,c"));
-			
-		
 		
 		pb = new PanelBuilder(layout,p);
 		pb.setDefaultDialogBorder();		
@@ -131,7 +148,7 @@ public class CompareDMFrame extends JFrame{
 		rightOutputArea.setMargin(new Insets(6, 10, 4, 6));
 		rightOutputArea.setDocument(targetOutputText);
 		rightOutputArea.setEditable(false);
-		JScrollPane sp1 = new JScrollPane(rightOutputArea);
+		comparePanel.add(rightOutputArea);
 		Action targetCopy = new targetCopyAction(targetOutputText);
 		//Sets the target Buttons
 		ButtonBarBuilder targetbbBuilder = new ButtonBarBuilder();
@@ -161,9 +178,8 @@ public class CompareDMFrame extends JFrame{
 		pb.add(titleLabel, cc.xyw(2, 1, 3,"c,c"));
 		pb.add(new JLabel("Source"), cc.xy(2,3));
 		pb.add(new JLabel("Target"), cc.xy(4,3));
-        pb.add(sp, cc.xy(2, 5));
-    	pb.add(sp1, cc.xy (4,5));
-    	pb.add(sourcebbBuilder.getPanel(), cc.xy(2, 7, "l,c"));
+		pb.add(sp, cc.xyw(2, 5,3));
+		pb.add(sourcebbBuilder.getPanel(), cc.xy(2, 7, "l,c"));
 		pb.add(targetbbBuilder.getPanel(), cc.xy(4, 7, "r,c"));
 		pb.add(closeBar.getPanel(), cc.xy(4,9, "r,c"));
 	
@@ -232,6 +248,19 @@ public class CompareDMFrame extends JFrame{
 		this.panel = panel;
 	}
 	
+	@Override
+	public void pack() {
+		super.pack();
+		Dimension d =Toolkit.getDefaultToolkit().getScreenSize();
+		logger.debug("Before change: Window width ="+getWidth() + " screen width ="+d.width);
+		if (getWidth() > d.width - getX()) {
+			setSize(d.width-getX(),getHeight());
+		}
+		logger.debug("Before change: Window height ="+getHeight() + " screen height ="+d.height);
+		if (getHeight() > d.height-getY()) {
+			setSize(getWidth(),d.height-getY());
+		}
+	}
 	
 	
 }

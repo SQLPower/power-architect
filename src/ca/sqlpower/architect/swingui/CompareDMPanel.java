@@ -774,13 +774,13 @@ public class CompareDMPanel extends JPanel {
 		sqlButton = new JRadioButton();
 		sqlButton.setName(OUTPUT_SQL);
 		sqlButton.setActionCommand(OUTPUT_SQL);
-		sqlButton.setSelected(true);
+		sqlButton.setSelected(false);
 		sqlButton.addActionListener(listener);		
 
 		englishButton = new JRadioButton();
 		englishButton.setName("englishButton");
 		englishButton.setActionCommand(OUTPUT_ENGLISH);
-		englishButton.setSelected(false);
+		englishButton.setSelected(true);
 		englishButton.addActionListener(listener);
 
 		// Group the radio buttons.
@@ -959,7 +959,7 @@ public class CompareDMPanel extends JPanel {
 
 				// XXX: should do most or all of this work in a worker thread
 				Map<DiffType, AttributeSet> styles = new HashMap<DiffType, AttributeSet>();
-				{
+				{		
 					SimpleAttributeSet att = new SimpleAttributeSet();
 					StyleConstants.setForeground(att, Color.red);
 					styles.put(DiffType.LEFTONLY, att);
@@ -1049,11 +1049,10 @@ public class CompareDMPanel extends JPanel {
 														false);
 					ssd.setVisible(true);
 				} else {
-					String titleString = "Comparing " + left.getName() + " to "
-					+ right.getName() + " using English";
+					
 					
 					CompareDMFrame cf = 
-						new CompareDMFrame(sourceDoc, targetDoc, titleString);
+						new CompareDMFrame(sourceDoc, targetDoc, left.getName(),right.getName());
 
 					cf.pack();
 					cf.setVisible(true);
