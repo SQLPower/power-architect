@@ -5,6 +5,7 @@ import java.awt.Container;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -15,6 +16,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
+import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -41,6 +43,7 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.ConfigFile;
+import ca.sqlpower.architect.PrefsUtils;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.UserSettings;
@@ -79,6 +82,8 @@ public class ArchitectFrame extends JFrame {
 	protected static ArchitectFrame mainInstance;
 
 	public static final double ZOOM_STEP = 0.25;
+	
+	protected Preferences prefs;
 
 	/**
 	 * Tracks whether or not the most recent "save project" operation was
@@ -195,6 +200,7 @@ public class ArchitectFrame extends JFrame {
 	protected void init() throws ArchitectException {
 		int accelMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
+		prefs = PrefsUtils.getUserPrefsNode(this);
 	    UserSettings us;
 	    // must be done right away, because a static
 	    // initializer in this class effects BeanUtils 
@@ -256,8 +262,6 @@ public class ArchitectFrame extends JFrame {
 		    }
 		}
 		
-		
-		
 		// Create actions
 		aboutAction = new AboutAction();
 
@@ -282,7 +286,20 @@ public class ArchitectFrame extends JFrame {
 		newProjectAction.putValue(AbstractAction.ACCELERATOR_KEY, 
 				KeyStroke.getKeyStroke(KeyEvent.VK_N, accelMask));
 		
-		openProjectAction = new OpenProjectAction();
+		final RecentMenu recent = new RecentMenu(this) {
+			@Override
+			public void loadFile(String fileName) throws IOException {
+				openFile(fileName);
+			}
+		};
+		 openProjectAction = new OpenProjectAction(recent);
+
+		 JMenuItem clearItem = new JMenuItem("Clear Recent Files");
+		 clearItem.addActionListener(new ActionListener() {
+			 public void actionPerformed(ActionEvent e) {
+				 recent.clear();
+			 }			
+		 });
 		
 		saveProjectAction 
 			= new AbstractAction("Save Project",
@@ -362,6 +379,8 @@ public class ArchitectFrame extends JFrame {
 		fileMenu.setMnemonic('f');		
 		fileMenu.add(newProjectAction);
 		fileMenu.add(openProjectAction);
+		fileMenu.add(recent);
+		fileMenu.add(clearItem);
 		fileMenu.add(saveProjectAction);
 		fileMenu.add(saveProjectAsAction);
 		fileMenu.add(printAction);
@@ -471,10 +490,10 @@ public class ArchitectFrame extends JFrame {
 						   150)); //dbTree.getPreferredSize().width));
 
 		Rectangle bounds = new Rectangle();
-		bounds.x = sprefs.getInt(SwingUserSettings.MAIN_FRAME_X, 40);
-		bounds.y = sprefs.getInt(SwingUserSettings.MAIN_FRAME_Y, 40);
-		bounds.width = sprefs.getInt(SwingUserSettings.MAIN_FRAME_WIDTH, 600);
-		bounds.height = sprefs.getInt(SwingUserSettings.MAIN_FRAME_HEIGHT, 440);
+		bounds.x = prefs.getInt(SwingUserSettings.MAIN_FRAME_X, 40);
+		bounds.y = prefs.getInt(SwingUserSettings.MAIN_FRAME_Y, 40);
+		bounds.width = prefs.getInt(SwingUserSettings.MAIN_FRAME_WIDTH, 600);
+		bounds.height = prefs.getInt(SwingUserSettings.MAIN_FRAME_HEIGHT, 440);
 		setBounds(bounds);
 		addWindowListener(afWindowListener = new ArchitectFrameWindowListener());
 				
@@ -583,10 +602,12 @@ public class ArchitectFrame extends JFrame {
 	}
 
 	private class OpenProjectAction extends AbstractAction {
-		private OpenProjectAction() {
+		RecentMenu recent;
+		private OpenProjectAction(RecentMenu recent) {
 			super("Open Project...", ASUtils.createJLFIcon("general/Open",
 					   "Open Project",
 					   sprefs.getInt(SwingUserSettings.ICON_SIZE, 24)));
+			this.recent = recent;
 			putValue(AbstractAction.SHORT_DESCRIPTION, "Open");
 			putValue(AbstractAction.ACCELERATOR_KEY,
 					KeyStroke.getKeyStroke(KeyEvent.VK_O,
@@ -603,6 +624,7 @@ public class ArchitectFrame extends JFrame {
 		        	LoadFileWorker worker;
 					try {
 						worker = new LoadFileWorker(f);
+						recent.putRecentFileName(f.getAbsolutePath());
 						new Thread(worker).start();
 					} catch (FileNotFoundException e1) {
 						JOptionPane.showMessageDialog(
@@ -662,11 +684,11 @@ public class ArchitectFrame extends JFrame {
 	public void saveSettings() throws ArchitectException {
 		if (configFile == null) configFile = ConfigFile.getDefaultInstance();
 
-		sprefs.setInt(SwingUserSettings.DIVIDER_LOCATION, splitPane.getDividerLocation());
-		sprefs.setInt(SwingUserSettings.MAIN_FRAME_X, getLocation().x);
-		sprefs.setInt(SwingUserSettings.MAIN_FRAME_Y, getLocation().y);
-		sprefs.setInt(SwingUserSettings.MAIN_FRAME_WIDTH, getWidth());
-		sprefs.setInt(SwingUserSettings.MAIN_FRAME_HEIGHT, getHeight());
+		prefs.putInt(SwingUserSettings.DIVIDER_LOCATION, splitPane.getDividerLocation());
+		prefs.putInt(SwingUserSettings.MAIN_FRAME_X, getLocation().x);
+		prefs.putInt(SwingUserSettings.MAIN_FRAME_Y, getLocation().y);
+		prefs.putInt(SwingUserSettings.MAIN_FRAME_WIDTH, getWidth());
+		prefs.putInt(SwingUserSettings.MAIN_FRAME_HEIGHT, getHeight());
 		
 		configFile.write(getArchitectSession());
 		
@@ -798,7 +820,7 @@ public class ArchitectFrame extends JFrame {
 	 */
 	protected void closeProject(SwingUIProject project) {
 		// close connections
-		Iterator it = project.getSourceDatabases().getDatabaseList().iterator();;
+		Iterator it = project.getSourceDatabases().getDatabaseList().iterator();
 		while (it.hasNext()) {
 			SQLDatabase db = (SQLDatabase) it.next();
 			logger.debug ("closing connection: " + db.getName());
@@ -841,5 +863,9 @@ public class ArchitectFrame extends JFrame {
 
 	public void setNewProjectAction(Action newProjectAction) {
 		this.newProjectAction = newProjectAction;
+	}
+
+	public Preferences getPrefs() {
+		return prefs;
 	}
 }
