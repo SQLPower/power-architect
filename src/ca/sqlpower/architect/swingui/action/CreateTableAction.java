@@ -26,6 +26,7 @@ public class CreateTableAction extends AbstractAction {
 								 "New Table",
 								 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
 		putValue(SHORT_DESCRIPTION, "New Table");
+		putValue(ACCELERATOR_KEY,KeyStroke.getKeyStroke(KeyEvent.VK_T,0));
 	}
 
 	public void actionPerformed(ActionEvent evt) {
@@ -38,6 +39,7 @@ public class CreateTableAction extends AbstractAction {
 			JOptionPane.showMessageDialog(null, "Failed to add folder to table:\n"+e.getMessage());
 		}
 		t.setName("New_Table");
+		
 		TablePane tp = new TablePane(t, pp);
 		pp.addFloating(tp);
 		pp.setMouseMode(PlayPen.MouseModeType.CREATING_TABLE);

@@ -1,6 +1,7 @@
 package ca.sqlpower.architect.swingui.action;
 
 import java.awt.event.*;
+
 import javax.swing.*;
 
 import java.awt.*;
@@ -49,8 +50,10 @@ public class CreateRelationshipAction extends AbstractAction
 			   ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
 		if (identifying) {
 			putValue(SHORT_DESCRIPTION, "New Identifying Relationship");
+			putValue(ACCELERATOR_KEY,KeyStroke.getKeyStroke(KeyEvent.VK_R,0));
 		} else {
 			putValue(SHORT_DESCRIPTION, "New Non-Identifying Relationship");
+			putValue(ACCELERATOR_KEY,KeyStroke.getKeyStroke(KeyEvent.VK_R,KeyEvent.SHIFT_MASK));
 		}
 		this.identifying = identifying;
 		setEnabled(false);
