@@ -366,7 +366,7 @@ public class QuickStartPanel3 implements WizardPanel {
 	}
 	
 	public String getTitle() {
-		return ("Architect Quick Start - Step 3 of 5 - Select PL Repository and Target");
+		return ("Architect Quick Start - Step 3 of 5 - Select PL Repository");
 	}
 	
 	public JComponent getPanel() {			
