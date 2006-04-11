@@ -233,7 +233,7 @@ public class QuickStartPanel2 implements WizardPanel {
 	}
 	
 	public String getTitle() {
-		return ("Architect Quick Start - Step 2 of 5 - Select PL Repository and Target");
+		return ("Architect Quick Start - Step 2 of 5 - Select Target");
 	}
 
 
