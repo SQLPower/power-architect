@@ -10,6 +10,7 @@ import regress.ca.sqlpower.architect.swingui.TestAutoLayoutAction;
 import regress.ca.sqlpower.architect.swingui.TestColumnEditPanel;
 import regress.ca.sqlpower.architect.swingui.TestCompareDMPanel;
 import regress.ca.sqlpower.architect.swingui.TestPlayPen;
+import regress.ca.sqlpower.architect.swingui.TestRelationship;
 import regress.ca.sqlpower.architect.swingui.TestSwingUIProject;
 import regress.ca.sqlpower.architect.swingui.TestTablePane;
 import regress.ca.sqlpower.architect.swingui.action.TestDeleteSelectedAction;
@@ -32,6 +33,7 @@ public class ArchitectSwingTestSuite extends TestCase {
 		suite.addTestSuite(TestCompareDMPanel.class);
 		suite.addTestSuite(TestTablePane.class);
 		suite.addTestSuite(TestDeleteSelectedAction.class);
+		suite.addTestSuite(TestRelationship.class);
 		//$JUnit-END$
 		return suite;
 	}

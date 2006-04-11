@@ -57,9 +57,7 @@ public class PlayPenContentPane {
 	 */
 	public String getToolTipText(MouseEvent e) {
 		String text = null;
-		Point ep = e.getPoint(); // event's point in playpen in screen coords
-		Point sp = owner.unzoomPoint(ep);
-		PlayPenComponent c = getComponentAt(sp);
+		PlayPenComponent c = getComponentAt(e.getPoint());
 		if (c != null) {
 			text = c.getToolTipText();
 		}

@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.ListIterator;
 
 import javax.swing.JComponent;
-import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
@@ -96,12 +95,12 @@ public class TablePane
 	/**
 	 * Tracks which columns in this table are currently selected.
 	 */
-	protected ArrayList columnSelection;
+	protected ArrayList<Boolean> columnSelection;
 	
 	/**
 	 * Tracks current highlight colours of the columns in this table.
 	 */
-	protected ArrayList columnHighlight;
+	protected ArrayList<Color> columnHighlight;
 
 	/**
 	 * During a drag operation where a column is being dragged from
@@ -117,7 +116,32 @@ public class TablePane
 
 	private SQLTable model;
 
-    public TablePane(SQLTable m, PlayPen parentPP) {	    
+	
+    public TablePane(TablePane tp, PlayPenContentPane parent) {
+		super(parent);
+		this.model = tp.model;
+		this.selectionListeners = new ArrayList<SelectionListener>();
+		this.dtl = new TablePaneDropListener(this);
+		this.margin = (Insets) tp.margin.clone();
+		this.columnSelection = new ArrayList<Boolean>(tp.columnSelection);
+		this.columnHighlight = new ArrayList<Color>(tp.columnHighlight);
+		try {
+			
+			PlayPenComponentUI newUi = tp.getUI().getClass().newInstance();
+			newUi.installUI(this);
+			setUI(newUi);
+		} catch (InstantiationException e) {
+			throw new RuntimeException("Woops, couldn't invoke no-args constructor of "+tp.getUI().getClass().getName());
+		} catch (IllegalAccessException e) {
+			throw new RuntimeException("Woops, couldn't access no-args constructor of "+tp.getUI().getClass().getName());
+		}
+		this.insertionPoint = tp.insertionPoint;
+		this.draggingColumn = tp.draggingColumn;
+		this.selected = false;
+	}
+
+
+	public TablePane(SQLTable m, PlayPen parentPP) {	    
     		super(parentPP.getPlayPenContentPane());
 		setModel(m);
 		setOpaque(true);
@@ -253,11 +277,11 @@ public class TablePane
 	public void dbStructureChanged(SQLObjectEvent e) {
 		if (e.getSource() == model.getColumnsFolder()) {
 			int numCols = e.getChildren().length;
-			columnSelection = new ArrayList(numCols);
+			columnSelection = new ArrayList<Boolean>(numCols);
 			for (int i = 0; i < numCols; i++) {
 				columnSelection.add(Boolean.FALSE);
 			}
-			columnHighlight = new ArrayList(numCols);
+			columnHighlight = new ArrayList<Color>(numCols);
 			for (int i = 0; i < numCols; i++) {
 				columnHighlight.add(null);
 			}
@@ -303,11 +327,11 @@ public class TablePane
 
 
 		try {
-			columnSelection = new ArrayList(m.getColumns().size());
+			columnSelection = new ArrayList<Boolean>(m.getColumns().size());
 			for (int i = 0; i < m.getColumns().size(); i++) {
 				columnSelection.add(Boolean.FALSE);
 			}
-			columnHighlight = new ArrayList(m.getColumns().size());
+			columnHighlight = new ArrayList<Color>(m.getColumns().size());
 			for (int i = 0; i < m.getColumns().size(); i++) {
 				columnHighlight.add(null);
 			}
@@ -457,7 +481,7 @@ public class TablePane
 
 	// --------------------- SELECTION EVENT SUPPORT ---------------------
 
-	protected LinkedList selectionListeners = new LinkedList();
+	protected List<SelectionListener> selectionListeners = new LinkedList<SelectionListener>();
 
 	public void addSelectionListener(SelectionListener l) {
 		selectionListeners.add(l);
@@ -472,14 +496,14 @@ public class TablePane
 			logger.debug("Notifying "+selectionListeners.size()
 						 +" listeners of selection change");
 		}
-		Iterator it = selectionListeners.iterator();
+		Iterator<SelectionListener> it = selectionListeners.iterator();
 		if (e.getType() == SelectionEvent.SELECTION_EVENT) {
 			while (it.hasNext()) {
-				((SelectionListener) it.next()).itemSelected(e);
+				it.next().itemSelected(e);
 			}
 		} else if (e.getType() == SelectionEvent.DESELECTION_EVENT) {
 			while (it.hasNext()) {
-				((SelectionListener) it.next()).itemDeselected(e);
+				it.next().itemDeselected(e);
 			}
 		} else {
 			throw new IllegalStateException("Unknown selection event type "+e.getType());

@@ -10,6 +10,8 @@ import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
 import java.awt.print.PageFormat;
 import java.awt.print.Pageable;
 import java.awt.print.Paper;
@@ -26,6 +28,7 @@ import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.PrintRequestAttributeSet;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -36,6 +39,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.MouseInputAdapter;
 
 import org.apache.log4j.Logger;
+import org.w3c.dom.css.Rect;
 
 /**
  * The PrintDialogFrame lets the user specify multi-page printouts by
@@ -64,7 +68,9 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 	protected JButton pageFormatButton;
 	protected JLabel zoomLabel;
 	protected JSlider zoomSlider;
-
+	protected JLabel pageCountLabel;
+	protected JCheckBox printPageNumbersBox;
+	
 	protected PrintPreviewPanel previewPanel;
 	
 	protected int pagesAcross;
@@ -76,13 +82,16 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 		super();
 		setOpaque(true);
 		setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-		this.pp = pp;
+		this.pp = new PlayPen(pp);
 		
 		add(new PrintPreviewPanel());
 		
 		job = PrinterJob.getPrinterJob();
 		jobAttributes = new HashPrintRequestAttributeSet();
-		pageFormat = job.defaultPage();
+		
+		pageFormat = new PageFormat();
+		pageFormat.setPaper(new Paper());
+		pageFormat.getPaper().setImageableArea(50, 50, pageFormat.getWidth()-(50*2), pageFormat.getHeight()-(50*2));
 
 		JPanel formPanel = new JPanel(new FormLayout());
 		formPanel.add(new JLabel("Printer"));
@@ -97,13 +106,20 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 		formPanel.add(pageFormatButton = new JButton("Change Page Format"));
 		pageFormatButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					setPageFormat(job.pageDialog(jobAttributes));
+					setPageFormat(job.pageDialog(pageFormat));
 				}
 		});
 		formPanel.add(zoomLabel = new JLabel("Scaling = 100%"));
 		formPanel.add(zoomSlider = new JSlider(JSlider.HORIZONTAL, 1, 300, 100));
+		
+		formPanel.add(new JLabel(""));
+		formPanel.add(printPageNumbersBox = new JCheckBox("Print Page Numbers in Top Margin"));
+		printPageNumbersBox.setSelected(true);
+		
 		setZoom(1.0);
 		zoomSlider.addChangeListener(this);
+		pageCountLabel = new JLabel("Page Count: "+getNumberOfPages());
+		formPanel.add(pageCountLabel);
 		add(formPanel);		
 	}
 
@@ -176,6 +192,7 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 		
 		pagesAcross = (int) Math.ceil(zoom * ppWidth / paperWidth);
 		pagesDown = (int) Math.ceil(zoom * ppHeight / paperHeight);
+		pageCountLabel.setText("Page Count: "+getNumberOfPages());
 	}
 
 	public void setZoom(double newZoom) {
@@ -216,6 +233,7 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 		throws PrinterException {
 		Graphics2D g2 = (Graphics2D) graphics;
 		if (pageIndex < pagesAcross*pagesDown) {
+			
 			double leftMargin = pageFormat.getImageableX();
 			double topMargin = pageFormat.getImageableY();
 			double width = pageFormat.getImageableWidth();
@@ -224,16 +242,22 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 			// which page we're printing in the big grid
 			int col = pageIndex % pagesAcross;
 			int row = pageIndex / pagesAcross;
-
-			g2.drawString("Page "+pageIndex+" of "+(pagesAcross*pagesDown),
-						  (float) (leftMargin+10.0), (float) (topMargin+10.0));
+			
 			logger.debug("Printing page "+(pageIndex+1)+" of "+(pagesAcross*pagesDown)
-						 +" at ["+col+","+row+"]");
+					+" at ["+col+","+row+"]");
 
+			AffineTransform backupXform = g2.getTransform();
 			g2.translate(leftMargin - col*width, topMargin - row*height);
 			g2.scale(zoom, zoom);
 			pp.print(g2);
-
+			
+			g2.setTransform(backupXform);
+			if (printPageNumbersBox.isSelected()) {
+				g2.drawString("Page "+(pageIndex+1)+" of "+(pagesAcross*pagesDown),
+						(float) (leftMargin+10.0), (float) (topMargin+10.0));
+			
+			}
+			
 			return PAGE_EXISTS;
 		} else {
 			return NO_SUCH_PAGE;
