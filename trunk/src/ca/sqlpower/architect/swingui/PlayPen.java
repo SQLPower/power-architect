@@ -9,9 +9,12 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.MouseInfo;
 import java.awt.Point;
+import java.awt.PointerInfo;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -396,6 +399,15 @@ public class PlayPen extends JPanel
 		
 		getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "CANCEL");
 		getActionMap().put("CANCEL", new CancelAction(this));
+		
+		getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.createTableAction.getValue(Action.ACCELERATOR_KEY), "NEW TABLE");
+		getActionMap().put("NEW TABLE", af.createTableAction);
+		
+		getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.createIdentifyingRelationshipAction.getValue(Action.ACCELERATOR_KEY), "NEW IDENTIFYING RELATION");
+		getActionMap().put("NEW IDENTIFYING RELATION", af.createIdentifyingRelationshipAction);
+		
+		getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.createNonIdentifyingRelationshipAction.getValue(Action.ACCELERATOR_KEY), "NEW NON IDENTIFYING RELATION");
+		getActionMap().put("NEW NON IDENTIFYING RELATION", af.createNonIdentifyingRelationshipAction);
 		
 		final Object KEY_SELECT_UPWARD = "ca.sqlpower.architect.PlayPen.KEY_SELECT_UPWARD";
 		final Object KEY_SELECT_DOWNWARD = "ca.sqlpower.architect.PlayPen.KEY_SELECT_DOWNWARD";
@@ -2183,7 +2195,13 @@ public class PlayPen extends JPanel
 		public FloatingTableListener(PlayPen pp, TablePane tp, Point handle,boolean addToPP) {
 			this.pp = pp;
 			this.addToPP = addToPP;
-			p =new Point(0,0);
+			PointerInfo pi = MouseInfo.getPointerInfo();
+			
+			Point startLocation = pi.getLocation();
+			SwingUtilities.convertPointFromScreen(startLocation,pp);
+			logger.debug("Adding floating table at:"+ startLocation);
+			p = pp.zoomPoint(startLocation);
+		
 			this.tp = tp;
 			this.handle = handle;
 			pp.addMouseMotionListener(this);
