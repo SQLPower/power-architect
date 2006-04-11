@@ -1,22 +1,33 @@
 package ca.sqlpower.architect.swingui;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 import javax.swing.event.MouseInputAdapter;
-import ca.sqlpower.architect.*;
+
+import org.apache.log4j.Logger;
+
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLObjectEvent;
+import ca.sqlpower.architect.SQLObjectListener;
+import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLRelationship.ColumnMapping;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 
-import org.apache.log4j.Logger;
-import java.util.*;
-
 public class Relationship extends PlayPenComponent implements Selectable, SQLObjectListener {
 	private static final Logger logger = Logger.getLogger(Relationship.class);
 
-	protected RelationshipUI ui;
 	protected SQLRelationship model;
 	protected TablePane pkTable;
 	protected TablePane fkTable;
@@ -26,11 +37,35 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 	protected boolean selected;
 	
 	private PlayPenComponentListener ppcListener = new PlayPenComponentListener();
+	private List<SelectionListener> selectionListeners = new LinkedList<SelectionListener>();
 
 	/**
 	 * The colour to highlight related columns with when this relationship is selected.
 	 */
     private Color columnHighlightColour = Color.red;
+ 
+    
+    
+	public Relationship(Relationship r, PlayPenContentPane contentPane, TablePane pkTable, TablePane fkTable) {
+		super(contentPane);
+		this.model = r.model;
+		this.pkTable = r.pkTable;
+		this.fkTable = r.fkTable;
+		this.popup =r.popup;
+		this.selected = false;
+		this.ppcListener = new PlayPenComponentListener();
+		this.columnHighlightColour = r.columnHighlightColour;
+		this.selectionListeners = new ArrayList<SelectionListener>();
+		try {
+			RelationshipUI ui = (RelationshipUI) r.getUI().getClass().newInstance();
+			ui.installUI(this);
+			setUI(ui);
+		} catch (InstantiationException e) {
+			throw new RuntimeException("Woops, couldn't invoke no-args constructor of "+r.getUI().getClass().getName());
+		} catch (IllegalAccessException e) {
+			throw new RuntimeException("Woops, couldn't access no-args constructor of "+r.getUI().getClass().getName());
+		}
+	}
 
 	/**
 	 * This constructor simply creates a Relationship component for
@@ -87,7 +122,7 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 	}
 
 	public Point getPreferredLocation() {
-		return ui.getPreferredLocation();
+		return ((RelationshipUI) getUI()).getPreferredLocation();
 	}
 
 	// -------------------- PlayPenComponent overrides --------------------
@@ -100,8 +135,6 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
     }
 
 	// --------------------- SELECTABLE SUPPORT ---------------------
-
-	protected LinkedList selectionListeners = new LinkedList();
 
 	public void addSelectionListener(SelectionListener l) {
 		selectionListeners.add(l);
@@ -156,11 +189,6 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 
 	// -------------------- ACCESSORS AND MUTATORS ---------------------
 
-	public void setUI(RelationshipUI ui) {
-		this.ui = ui;
-		super.setUI(ui);
-	}
-
     public String getUIClassID() {
         return RelationshipUI.UI_CLASS_ID;
     }
@@ -196,20 +224,20 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 	}
 
 	public Point getPkConnectionPoint() {
-		return ui.getPkConnectionPoint();
+		return ((RelationshipUI) getUI()).getPkConnectionPoint();
 	}
 
 	public Point getFkConnectionPoint() {
-		return ui.getFkConnectionPoint();
+		return ((RelationshipUI) getUI()).getFkConnectionPoint();
 	}
 
 	public void setPkConnectionPoint(Point p) {
-		ui.setPkConnectionPoint(p);
+		((RelationshipUI) getUI()).setPkConnectionPoint(p);
 		revalidate();
 	}
 
 	public void setFkConnectionPoint(Point p) {
-		ui.setFkConnectionPoint(p);
+		((RelationshipUI) getUI()).setFkConnectionPoint(p);
 		revalidate();
 	}
 
@@ -232,10 +260,10 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 		public void componentResized(PlayPenComponentEvent e) {
 			logger.debug("Component "+e.getPPComponent().getName()+" changed size");
 			if (e.getPPComponent() == pkTable) {
-				setPkConnectionPoint(ui.closestEdgePoint(true, getPkConnectionPoint())); // true == PK
+				setPkConnectionPoint(((RelationshipUI) getUI()).closestEdgePoint(true, getPkConnectionPoint())); // true == PK
 			}
 			if (e.getPPComponent() == fkTable) {
-				setFkConnectionPoint(ui.closestEdgePoint(false, getFkConnectionPoint())); // false == FK
+				setFkConnectionPoint(((RelationshipUI) getUI()).closestEdgePoint(false, getFkConnectionPoint())); // false == FK
 			}
 		}
 
@@ -315,11 +343,11 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 			if (movingPk) {
 				p.x = p.x - r.getPkTable().getX();
 				p.y = p.y - r.getPkTable().getY();
-				p = r.ui.closestEdgePoint(movingPk, p);
+				p = ((RelationshipUI) r.getUI()).closestEdgePoint(movingPk, p);
 			} else {
 				p.x = p.x - r.getFkTable().getX();
 				p.y = p.y - r.getFkTable().getY();
-				p = r.ui.closestEdgePoint(movingPk, p);
+				p = ((RelationshipUI) r.getUI()).closestEdgePoint(movingPk, p);
 			}
 			return p;
 		}
@@ -373,6 +401,6 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
      * @return Whether or not this Relationship visibly intersects the given region
      */
     public boolean intersects(Rectangle region) {
-        return ui.intersects(region);
+        return ((RelationshipUI) getUI()).intersects(region);
     }
 }

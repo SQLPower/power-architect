@@ -242,6 +242,37 @@ public class PlayPen extends JPanel
 		ds.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_MOVE, dgl);
 		logger.debug("DragGestureRecognizer motion threshold: " + getToolkit().getDesktopProperty("DnD.gestureMotionThreshold"));
 	}
+	
+	/**
+	 * Creates a new PlayPen with similar contents to the given PlayPen.  The new copy will have fresh
+	 * copies of all the contained PlayPenComponents, but will share the same model as the original
+	 * play pen.  This was originally intended for use by the print preview panel, but it may end
+	 * up useful for other things too.
+	 * 
+	 * @param pp The playpen to duplicate.
+	 */
+	public PlayPen(PlayPen pp) {
+		this();
+		
+		for (int i = 0; i < pp.getContentPane().getComponentCount(); i++) {
+			PlayPenComponent ppc = pp.getContentPane().getComponent(i);
+			if (ppc instanceof TablePane) {
+				TablePane tp = (TablePane) ppc;
+				addImpl(new TablePane(tp, contentPane), ppc.getPreferredLocation(), contentPane.getComponentCount());
+			}
+		}
+		
+		for (int i = 0; i < pp.getContentPane().getComponentCount(); i++) {
+			PlayPenComponent ppc = pp.getContentPane().getComponent(i);
+			if (ppc instanceof Relationship) {
+				Relationship rel = (Relationship) ppc;
+				TablePane pkTable = findTablePane(rel.getModel().getPkTable());
+				TablePane fkTable = findTablePane(rel.getModel().getFkTable());
+				addImpl(new Relationship(rel, contentPane, pkTable, fkTable), ppc.getPreferredLocation(), contentPane.getComponentCount());
+			}
+		}
+		setSize(getPreferredSize());
+	}
 
 	public PlayPen(SQLDatabase db) {
 		this();
@@ -541,6 +572,10 @@ public class PlayPen extends JPanel
 	    return antialiasSetting == RenderingHints.VALUE_ANTIALIAS_ON;
 	}
 
+	public PlayPenContentPane getContentPane() {
+		return contentPane;
+	}
+	
 	// -------------------------- JComponent overrides ---------------------------
 
 	/**
@@ -754,7 +789,11 @@ public class PlayPen extends JPanel
 	 * instance (where <tt>pp</tt> is whatever your reference to this playpen is called).
 	 */
 	public String getToolTipText(MouseEvent e) {
-		return contentPane.getToolTipText(e);
+		Point zp = unzoomPoint(e.getPoint());
+		MouseEvent zoomedEvent = 
+			new MouseEvent((Component) e.getSource(), e.getID(), e.getWhen(), e.getModifiers(),
+					zp.x, zp.y, e.getClickCount(), e.isPopupTrigger(), e.getButton());
+		return contentPane.getToolTipText(zoomedEvent);
 	}
 
 	// ------------------- Right-click popup menu for playpen -----------------------
