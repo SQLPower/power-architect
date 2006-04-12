@@ -65,6 +65,8 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	}
 	
 	public void attachRelationship(SQLTable pkTable, SQLTable fkTable, boolean autoGenerateMapping) throws ArchitectException {
+		if(pkTable == null) throw new NullPointerException("Null pkTable not allowed");
+		if(fkTable == null) throw new NullPointerException("Null fkTable not allowed");
 		
 		SQLTable oldPkt = this.pkTable;
 		SQLTable oldFkt = this.fkTable;
@@ -119,8 +121,11 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		
 			this.attachListeners();
 		} finally {
-			fkTable.getColumnsFolder().setSecondaryChangeMode(false);
-			fkTable.getImportedKeysFolder().setSecondaryChangeMode(false);
+			if ( fkTable != null ) {
+				fkTable.getColumnsFolder().setSecondaryChangeMode(false);
+				fkTable.getImportedKeysFolder().setSecondaryChangeMode(false);
+			}
+			
 		}
 	}
 
@@ -180,9 +185,16 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 			SQLRelationship r = null;
 			int currentKeySeq;
 			LinkedList newKeys = new LinkedList();
+			
+			logger.debug("scarch relationship for table:"+table.getCatalogName()+"."+
+					table.getSchemaName()+"."+
+					table.getName());
+			
 			rs = dbmd.getImportedKeys(table.getCatalogName(),
 									  table.getSchemaName(),
 									  table.getName());
+
+			
 			while (rs.next()) {
 				currentKeySeq = rs.getInt(9);
 				if (currentKeySeq == 1) {

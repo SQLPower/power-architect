@@ -37,6 +37,7 @@ public class SQLCatalog extends SQLObject {
 	}
 
 	protected SQLTable getTableByName(String tableName) throws ArchitectException {
+		populate();
 		Iterator childit = children.iterator();
 		while (childit.hasNext()) {
 			SQLObject child = (SQLObject) childit.next();
@@ -61,6 +62,7 @@ public class SQLCatalog extends SQLObject {
 	 * if no such schema exists.
 	 */
 	public SQLSchema getSchemaByName(String schemaName) throws ArchitectException {
+		populate();
 		if (!isSchemaContainer()) {
 			return null;
 		}

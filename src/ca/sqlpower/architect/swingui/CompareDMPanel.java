@@ -56,6 +56,7 @@ import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
+import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
@@ -192,7 +193,9 @@ public class CompareDMPanel extends JPanel {
 
 		private JDialog newConnectionDialog;
 		
-		
+		private JLabel catalogLabel;
+		private JLabel schemaLabel;
+
 
 		/**
 		 * The last database returned by getDatabase(). Never access this
@@ -328,6 +331,8 @@ public class CompareDMPanel extends JPanel {
 
 				catalogDropdown.removeAllItems();
 				catalogDropdown.setEnabled(false);
+				catalogLabel.setText("");
+				schemaLabel.setText("");
 
 				// This is either a database, a catalog, or null depending on
 				// how db is structured
@@ -343,6 +348,7 @@ public class CompareDMPanel extends JPanel {
 					// check if we need to do schemas
 					SQLCatalog cat = (SQLCatalog) catalogDropdown
 							.getSelectedItem();
+					catalogLabel.setText(cat.getNativeTerm());
 					schemaParent = null;
 					if (cat == null) {
 						// there are no catalogs (database is completely empty)
@@ -369,6 +375,9 @@ public class CompareDMPanel extends JPanel {
 				} else {
 					// need a final reference to this so we can use it in the
 					// inner class
+					// we only get here if the database is a schema container not 
+					// a catalog container.
+					
 					final SQLObject finalSchemaParent = schemaParent;
 
 					new Thread(new Populator() {
@@ -401,6 +410,7 @@ public class CompareDMPanel extends JPanel {
 
 							if (schemaDropdown.getItemCount() > 0) {
 								schemaDropdown.setEnabled(true);
+								schemaLabel.setText(((SQLSchema)(finalSchemaParent.getChild(0))).getNativeTerm());
 							}
 
 							startCompareAction.setEnabled(isStartable());
@@ -457,7 +467,7 @@ public class CompareDMPanel extends JPanel {
 			@Override
 			public void cleanup() throws ArchitectException {
 				logger.debug("SCHEMA POPULATOR IS ABOUT TO CLEAN UP...");
-
+				schemaLabel.setText("");
 				SQLCatalog populatedCat = (SQLCatalog) catalogDropdown
 						.getSelectedItem();
 
@@ -469,6 +479,7 @@ public class CompareDMPanel extends JPanel {
 
 					if (schemaDropdown.getItemCount() > 0) {
 						schemaDropdown.setEnabled(true);
+						schemaLabel.setText(((SQLSchema)(populatedCat.getChild(0))).getNativeTerm());
 					}
 				}
 				startCompareAction.setEnabled(isStartable());
@@ -581,8 +592,8 @@ public class CompareDMPanel extends JPanel {
 			builder.append(physicalRadio);
 			builder.append("Physical Database");
 			// builder.nextColumn(2);
-			builder.append("Catalog");
-			builder.append("Schema");
+			builder.append(catalogLabel = new JLabel("Catalog"));
+			builder.append(schemaLabel = new JLabel("Schema"));
 			builder.appendRow(builder.getLineGapSpec());
 			builder.appendRow("pref");
 			builder.nextLine(2);
