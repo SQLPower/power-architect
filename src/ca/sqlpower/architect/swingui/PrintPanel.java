@@ -11,7 +11,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Rectangle2D;
 import java.awt.print.PageFormat;
 import java.awt.print.Pageable;
 import java.awt.print.Paper;
@@ -39,7 +38,6 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.MouseInputAdapter;
 
 import org.apache.log4j.Logger;
-import org.w3c.dom.css.Rect;
 
 /**
  * The PrintDialogFrame lets the user specify multi-page printouts by

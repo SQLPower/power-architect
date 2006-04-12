@@ -14,7 +14,6 @@ import java.awt.Point;
 import java.awt.PointerInfo;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
-import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -121,7 +120,7 @@ public class PlayPen extends JPanel
 						SELECT_RELATIONSHIP,
 						SELECT_COLUMN,
 						MULTI_SELECT,
-						RUBBERBAND_MOVE};
+						RUBBERBAND_MOVE}
 	private static MouseModeType mouseMode = MouseModeType.IDLE;
 	
 	/**
