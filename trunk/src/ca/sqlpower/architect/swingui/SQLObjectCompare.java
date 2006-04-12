@@ -6,7 +6,6 @@ package ca.sqlpower.architect.swingui;
 import java.util.Comparator;
 
 import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLTable;
 
 public class SQLObjectCompare implements Comparator {
 	

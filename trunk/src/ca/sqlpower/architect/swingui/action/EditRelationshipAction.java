@@ -1,12 +1,17 @@
 package ca.sqlpower.architect.swingui.action;
 
-import java.awt.event.*;
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
 import java.util.List;
-import javax.swing.*;
+
+import javax.swing.AbstractAction;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
+import javax.swing.tree.TreePath;
+
 import org.apache.log4j.Logger;
-import ca.sqlpower.architect.*;
+
+import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
@@ -17,11 +22,8 @@ import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.RelationshipEditPanel;
 import ca.sqlpower.architect.swingui.Selectable;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
-import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
-
-import javax.swing.tree.TreePath;
 
 public class EditRelationshipAction extends AbstractAction implements SelectionListener {
 	private static final Logger logger = Logger.getLogger(EditRelationshipAction.class);

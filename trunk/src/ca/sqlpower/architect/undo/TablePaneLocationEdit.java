@@ -3,8 +3,6 @@ package ca.sqlpower.architect.undo;
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.ListIterator;
 
 import javax.swing.undo.AbstractUndoableEdit;
 import javax.swing.undo.CannotRedoException;

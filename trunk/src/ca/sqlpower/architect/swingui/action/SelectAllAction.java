@@ -3,16 +3,10 @@ package ca.sqlpower.architect.swingui.action;
 import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
-import javax.swing.JDialog;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.swingui.ASUtils;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
-import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.PlayPen;
-import ca.sqlpower.architect.swingui.PrintPanel;
-import ca.sqlpower.architect.swingui.SwingUserSettings;
 
 public class SelectAllAction extends AbstractAction {
 

@@ -10,7 +10,6 @@ import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.SwingUIProject;
 import ca.sqlpower.architect.swingui.TablePane;
-import ca.sqlpower.architect.undo.UndoManager;
 
 public class TestPlayPen extends TestCase {
 	ArchitectFrame af;

@@ -2,11 +2,11 @@ package regress.ca.sqlpower.architect.diff;
 
 import java.util.Comparator;
 
+import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.diff.SQLObjectComparator;
-import junit.framework.TestCase;
 
 public class SQLComparatorTest extends TestCase {
 	Comparator<SQLObject> comparator = new SQLObjectComparator();

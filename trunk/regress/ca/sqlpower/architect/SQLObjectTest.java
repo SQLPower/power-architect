@@ -63,7 +63,7 @@ public class SQLObjectTest extends TestCase {
 		public Class<? extends SQLObject> getChildType() {
 			return SQLObject.class;
 		}
-	};
+	}
 	
 	public void setUp() {
 		target = new SQLObjectImpl();

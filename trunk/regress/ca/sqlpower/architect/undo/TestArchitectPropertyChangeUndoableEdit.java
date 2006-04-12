@@ -3,20 +3,18 @@ package regress.ca.sqlpower.architect.undo;
 import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.undo.UndoManager;
 
 
 public class TestArchitectPropertyChangeUndoableEdit extends TestCase {
 
-	private SQLObjectEvent testEvent;
 	private UndoManager undoManager;
 	
 	private TestSQLObject testObject;
 	
 	protected void setUp() throws Exception {
 		super.setUp();
-		;	
+	
 		testObject = new TestSQLObject();
 		undoManager = new UndoManager(testObject);
 		

@@ -1,7 +1,7 @@
 package regress.ca.sqlpower.architect.swingui;
 
-import ca.sqlpower.architect.swingui.PlayPen;
 import junit.framework.TestCase;
+import ca.sqlpower.architect.swingui.PlayPen;
 
 public class TestPlayPenComponent extends TestCase {
 	

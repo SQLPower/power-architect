@@ -2,9 +2,9 @@ package regress;
 
 import java.util.Map;
 
-import ca.sqlpower.architect.SQLObject;
 import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
+import ca.sqlpower.architect.SQLObject;
 
 public class ArchitectTestCase extends TestCase {
 	
