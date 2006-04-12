@@ -76,8 +76,6 @@ public class SQLScriptDialog extends JDialog {
 
 	private MonitorableWorker executeTask = new ExecuteSQLScriptWorker();
 
-	private DDLGenerator gen;
-	
 	public SQLScriptDialog(Frame owner, String title, String header, boolean modal,
 			DDLGenerator gen, ArchitectDataSource targetDataSource,
 			boolean closeParent )
@@ -90,12 +88,9 @@ public class SQLScriptDialog extends JDialog {
 		this.statements = gen.getDdlStatements();
 		this.targetDataSource = targetDataSource;
 		this.closeParent = closeParent;
-		this.gen = gen;
-		
 		add(buildPanel());
 		pack();
-		setLocationRelativeTo(parent);
-		
+		setLocationRelativeTo(parent);		
 	}
 
 	public SQLScriptDialog(Dialog owner, String title, String header, boolean modal,
@@ -110,7 +105,6 @@ public class SQLScriptDialog extends JDialog {
 		this.statements = gen.getDdlStatements();
 		this.targetDataSource = targetDataSource;
 		this.closeParent = closeParent;
-		this.gen = gen;
 		logger.info("The list size is :" + statements.size());
 		add(buildPanel());
 		pack();
@@ -156,14 +150,13 @@ public class SQLScriptDialog extends JDialog {
 			};
 		}
 		
-		Action save = new AbstractAction(){
+		Action save = new AbstractAction() {
 			public void actionPerformed(ActionEvent e) {
 				
 				logger.info( "SQL_FILE_FILTER:"+ ((FileExtensionFilter) ASUtils.SQL_FILE_FILTER).toString());
 				
-				SaveDocument sd = new SaveDocument(parent,sqlDoc,
-						(FileExtensionFilter) ASUtils.SQL_FILE_FILTER );
-				
+				new SaveDocument(parent,sqlDoc,
+						(FileExtensionFilter) ASUtils.SQL_FILE_FILTER );				
 			}
 		};
 		CloseAction close = new CloseAction();
@@ -272,19 +265,10 @@ public class SQLScriptDialog extends JDialog {
 		private int stmtsTried = 0;
 		private int stmtsCompleted = 0;
 		private boolean finished = false;
-		private boolean cancelled = false;
 		private boolean hasStarted = false;
-		private boolean allIsWell = true; // TODO: consolidate error messages into a single block?
-
-
+		
 		/**
 		 * This method runs on a separate worker thread.
-		 * 
-		 * <p>
-		 * FIXME: this displays a lot of error dialogs on its own, because it
-		 * used to not implement ArchitectSwingWorker.  The right way of doing
-		 * this is to throw an exception, and pick up and handle exceptions from
-		 * where we started the worker thread (using getDoStuffException())
 		 */
 		public void doStuff() {
 			
@@ -295,7 +279,8 @@ public class SQLScriptDialog extends JDialog {
 
 			SQLDatabase target = new SQLDatabase(targetDataSource);
 			statusLabel.setText("Creating objects in target database " + target.getDataSource() );
-			ProgressWatcher pw = new ProgressWatcher(progressBar, this, statusLabel);
+			// XXX This is not being used but possibly should be??
+			//ProgressWatcher pw = new ProgressWatcher(progressBar, this, statusLabel);
 			stmtsTried = 0;
 			stmtsCompleted = 0;
 			
@@ -307,14 +292,12 @@ public class SQLScriptDialog extends JDialog {
 			try {
 				con = target.getConnection();
 			} catch (ArchitectException ex) {
-				allIsWell = false;
 				finished = true;
 				throw new RuntimeException(
 						"Couldn't connect to target database: "+ex.getMessage()
 						+"\nPlease check the connection settings and try again.",
 						ex);
 			} catch (Exception ex) {
-				allIsWell = false;
 				finished = true;
 				logger.error("Unexpected exception in DDL generation", ex);
 				throw new RuntimeException("You have to specify a target database connection"
@@ -325,7 +308,6 @@ public class SQLScriptDialog extends JDialog {
 				logger.debug("the connection thinks it is: " + con.getMetaData().getURL());
 				stmt = con.createStatement();
 			} catch (SQLException ex) {
-				allIsWell = false;
 				finished = true;
 				throw new RuntimeException("Couldn't generate DDL statements: "
 						+ex.getMessage()+"\nThe problem was reported by " +
@@ -337,7 +319,6 @@ public class SQLScriptDialog extends JDialog {
 			try {
 				logWriter = new LogWriter(ArchitectSession.getInstance().getUserSettings().getDDLUserSettings().getDDLLogPath());
 			} catch (ArchitectException ex) {
-				allIsWell = false;				
 				finished = true;
 				final Exception fex = ex;
 				throw new RuntimeException("A problem with the DDL log file " +
@@ -360,7 +341,6 @@ public class SQLScriptDialog extends JDialog {
 						stmtsCompleted++;
 						status = "OK";
 					} catch (SQLException ex) {
-						allIsWell = false;						
 						final Exception fex = ex;
 						final String fsql = ddlStmt.getSQLText();
 						final LogWriter fLogWriter = logWriter; 
@@ -389,11 +369,9 @@ public class SQLScriptDialog extends JDialog {
 								}
 							});
 						} catch (InterruptedException ex2) {
-							allIsWell = false;
 							logger.warn("DDL Worker was interrupted during InvokeAndWait", ex2);
 							status = "DDL Worker was interrupted during InvokeAndWait";
 						} catch (InvocationTargetException ex2) {
-							allIsWell = false;							
 							final Exception fex2 = ex2;
 							status = "Worker thread died: "
 									+fex2.getMessage();
@@ -421,17 +399,21 @@ public class SQLScriptDialog extends JDialog {
 						"Couldn't finish running this SQL Script due to the following unexpected exception:",
 						exc);
 			} finally {
+				final String resultsMessage = 
+					(stmtsCompleted == 0 ? "Did not execute any out of " : 
+						"Successfully executed " + stmtsCompleted + " out of ") +
+					stmtsTried + " statements.";
+				logWriter.info(resultsMessage);
+				JOptionPane.showMessageDialog(SQLScriptDialog.this, resultsMessage);
 				// flush and close the LogWriter
-				logWriter.info("Successfully executed "+stmtsCompleted+" out of "+stmtsTried+" statements.");
 				logWriter.flush();
 				logWriter.close();
+				try {
+					stmt.close();
+				} catch (SQLException ex) {
+					logger.error("SQLException while closing statement", ex);
+				}			
 			}
-			
-			try {
-				stmt.close();
-			} catch (SQLException ex) {
-				logger.error("SQLException while closing statement", ex);
-			}			
 			
 			finished = true;
 			
