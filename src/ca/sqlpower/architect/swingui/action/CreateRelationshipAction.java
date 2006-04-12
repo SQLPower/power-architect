@@ -1,14 +1,19 @@
 package ca.sqlpower.architect.swingui.action;
 
-import java.awt.event.*;
+import java.awt.Cursor;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
 
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.Iterator;
+import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.*;
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLRelationship;
+import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.PlayPen;
@@ -21,8 +26,6 @@ import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
-
-import org.apache.log4j.Logger;
 
 public class CreateRelationshipAction extends AbstractAction
 	implements ActionListener, SelectionListener, CancelableListener {

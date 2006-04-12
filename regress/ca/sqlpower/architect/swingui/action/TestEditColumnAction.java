@@ -3,18 +3,16 @@ package regress.ca.sqlpower.architect.swingui.action;
 import java.awt.Point;
 import java.sql.Types;
 
+import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.ColumnEditPanel;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.TablePane;
-import ca.sqlpower.architect.swingui.action.DeleteSelectedAction;
 import ca.sqlpower.architect.swingui.action.EditColumnAction;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
-import junit.framework.TestCase;
 
 public class TestEditColumnAction extends TestCase {
 

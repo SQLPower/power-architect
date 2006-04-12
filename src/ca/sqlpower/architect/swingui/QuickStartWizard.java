@@ -6,37 +6,27 @@
  * when it does a "back" or "next" command.
  */
 package ca.sqlpower.architect.swingui;
-import java.awt.Point;
-import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JTextArea;
-import javax.swing.ProgressMonitor;
-import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.PLExport;
 import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
-import ca.sqlpower.architect.swingui.PlayPen.AddObjectsTask;
-import ca.sqlpower.architect.swingui.action.ExportDDLAction.ConflictFinderProcess;
-import ca.sqlpower.architect.swingui.action.ExportDDLAction.ConflictResolverProcess;
-import ca.sqlpower.architect.swingui.action.ExportPLTransAction.ExportTxProcess;
 
 
 /**

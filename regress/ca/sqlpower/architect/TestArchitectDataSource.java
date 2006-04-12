@@ -1,11 +1,10 @@
 package regress.ca.sqlpower.architect;
 
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.Map;
 
-import ca.sqlpower.architect.ArchitectDataSource;
 import junit.framework.TestCase;
+import ca.sqlpower.architect.ArchitectDataSource;
 
 public class TestArchitectDataSource extends TestCase {
 

@@ -19,8 +19,6 @@ import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
 import ca.sqlpower.architect.swingui.TablePane;
-import ca.sqlpower.architect.undo.UndoCompoundEvent;
-import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 
 public class AutoLayoutAction extends AbstractAction {
 	private static final Logger logger = Logger.getLogger(AutoLayoutAction.class);

@@ -21,7 +21,7 @@ public class UndoCompoundEvent extends Event {
 		public boolean isEndEvent() {
 			return !isStartEvent();
 		}
-	};
+	}
 	
 	private EventTypes type;
 	

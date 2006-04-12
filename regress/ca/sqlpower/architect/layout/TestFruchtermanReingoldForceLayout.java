@@ -1,6 +1,5 @@
 package regress.ca.sqlpower.architect.layout;
 
-import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
 

@@ -1,12 +1,9 @@
 package regress.ca.sqlpower.architect.undo;
 
 import java.awt.Point;
-import java.awt.event.ActionEvent;
 import java.sql.Types;
 import java.util.List;
 
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.undo.AbstractUndoableEdit;

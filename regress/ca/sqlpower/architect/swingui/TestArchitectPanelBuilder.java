@@ -44,7 +44,7 @@ public class TestArchitectPanelBuilder {
 		public JComponent getPanel() {
 			return this;
 		}
-	};
+	}
 
 	public static void main(String[] args) {
 		

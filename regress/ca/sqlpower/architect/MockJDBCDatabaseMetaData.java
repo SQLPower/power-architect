@@ -13,8 +13,6 @@ import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ddl.GenericDDLGenerator;
-
 public class MockJDBCDatabaseMetaData implements DatabaseMetaData {
 
 	private static final Logger logger = Logger.getLogger(MockJDBCDatabaseMetaData.class);

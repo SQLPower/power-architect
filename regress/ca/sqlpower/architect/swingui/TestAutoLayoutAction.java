@@ -25,6 +25,7 @@ public class TestAutoLayoutAction extends TestCase {
 	
 	private BasicTreeAutoLayout layout;
 	private AutoLayoutAction layoutAction;
+	
 	/**
 	 * Shows the GUI on the screen.  Helpful when you want to see why a test is failing.
 	 * @param message The message to show in the JOptionPane

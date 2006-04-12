@@ -1,14 +1,8 @@
 package regress.ca.sqlpower.architect;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.LinkedList;
 
 import regress.ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
-
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLSchema;

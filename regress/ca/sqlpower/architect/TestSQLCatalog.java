@@ -1,16 +1,8 @@
 package regress.ca.sqlpower.architect;
 
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.commons.beanutils.PropertyUtils;
 
 import regress.ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
 import ca.sqlpower.architect.ArchitectDataSource;

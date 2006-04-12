@@ -1,14 +1,11 @@
 package ca.sqlpower.architect.undo;
 
-import java.util.List;
-
 import javax.swing.undo.AbstractUndoableEdit;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLRelationship.ColumnMapping;
 
 public abstract class SQLObjectChildren extends AbstractUndoableEdit {
 

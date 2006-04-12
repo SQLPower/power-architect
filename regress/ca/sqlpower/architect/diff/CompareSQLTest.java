@@ -1,18 +1,11 @@
 package regress.ca.sqlpower.architect.diff;
 
-import java.lang.reflect.Array;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeSet;
 
-import javax.swing.text.BadLocationException;
-import javax.swing.text.DefaultStyledDocument;
-
-import junit.extensions.xml.elements.AssertNotEqualsTagHandler;
 import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
@@ -23,10 +16,6 @@ import ca.sqlpower.architect.ddl.GenericTypeDescriptor;
 import ca.sqlpower.architect.diff.CompareSQL;
 import ca.sqlpower.architect.diff.DiffChunk;
 import ca.sqlpower.architect.diff.DiffType;
-import ca.sqlpower.architect.diff.SQLObjectComparator;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
-import ca.sqlpower.architect.swingui.CompareSchemaWorker;
-import ca.sqlpower.architect.swingui.PlayPen;
 
 public class CompareSQLTest extends TestCase {
 

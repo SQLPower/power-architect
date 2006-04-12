@@ -4,7 +4,6 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import regress.ca.sqlpower.architect.layout.TestFruchtermanReingoldForceLayout;
-import regress.ca.sqlpower.architect.swingui.CompareSchemaWorkerTest;
 import regress.ca.sqlpower.architect.swingui.TestArchitectFrame;
 import regress.ca.sqlpower.architect.swingui.TestAutoLayoutAction;
 import regress.ca.sqlpower.architect.swingui.TestColumnEditPanel;

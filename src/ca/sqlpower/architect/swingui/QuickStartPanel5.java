@@ -5,35 +5,12 @@
  * Window - Preferences - Java - Code Style - Code Templates
  */
 package ca.sqlpower.architect.swingui;
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
-
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.etl.PLExport;
-import ca.sqlpower.architect.etl.PLUtils;
-import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
-import ca.sqlpower.security.PLSecurityException;
 
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
