@@ -4,7 +4,6 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
@@ -12,7 +11,6 @@ import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.ddl.GenericTypeDescriptor;
 import ca.sqlpower.architect.diff.CompareSQL;
 import ca.sqlpower.architect.diff.DiffChunk;
 import ca.sqlpower.architect.diff.DiffType;
@@ -36,9 +34,6 @@ public class CompareSQLTest extends TestCase {
 	SQLColumn c5;
 	SQLColumn c6;
 	List <SQLTable> listWithATable;
-
-	
-	private Map<Integer, GenericTypeDescriptor> typeMap;
 	
 	protected void setUp() throws Exception {
 		//Just tables with Columns
