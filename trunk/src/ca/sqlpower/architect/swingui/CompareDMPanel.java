@@ -66,6 +66,7 @@ import ca.sqlpower.architect.diff.DiffType;
 import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
 import ca.sqlpower.architect.swingui.CompareDMSettings.RadioButtonSelection;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
+import ca.sqlpower.architect.swingui.JDBCDriverPanel.LoadJDBCDriversWorker;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.debug.FormDebugPanel;
@@ -298,17 +299,15 @@ public class CompareDMPanel extends JPanel {
 			public void doStuff() throws Exception {
 
 				try {
-					ListerProgressBarUpdater progressBarUpdater = new ListerProgressBarUpdater(
-							progressBar, this);
+					ListerProgressBarUpdater progressBarUpdater = 
+						new ListerProgressBarUpdater(progressBar, this);
 					new javax.swing.Timer(100, progressBarUpdater).start();
 
 					db.populate();
 
 				} catch (ArchitectException e) {
-					logger
-							.debug(
-									"Unexpected architect exception in ConnectionListener",
-									e);
+					logger.debug(
+						"Unexpected architect exception in ConnectionListener",	e);
 				}
 			}
 
@@ -376,8 +375,8 @@ public class CompareDMPanel extends JPanel {
 
 						@Override
 						public void doStuff() throws Exception {
-							ListerProgressBarUpdater progressBarUpdater = new ListerProgressBarUpdater(
-									progressBar, this);
+							ListerProgressBarUpdater progressBarUpdater = 
+								new ListerProgressBarUpdater(progressBar, this);
 							new javax.swing.Timer(100, progressBarUpdater)
 									.start();
 							// this populates the schema parent (populate is not
@@ -439,8 +438,8 @@ public class CompareDMPanel extends JPanel {
 			@Override
 			public void doStuff() throws ArchitectException {
 				logger.debug("SCHEMA POPULATOR IS STARTED...");
-				ListerProgressBarUpdater progressBarUpdater = new ListerProgressBarUpdater(
-						progressBar, this);
+				ListerProgressBarUpdater progressBarUpdater = 
+					new ListerProgressBarUpdater(progressBar, this);
 				new javax.swing.Timer(100, progressBarUpdater).start();
 
 				SQLCatalog catToPopulate = (SQLCatalog) catalogDropdown
@@ -769,13 +768,12 @@ public class CompareDMPanel extends JPanel {
 
 		sqlTypeDropdown = new JComboBox(DDLUtils.getDDLTypes());
 		sqlTypeDropdown.setName("sqlTypeDropDown");
-		OutputChoiceListener listener = new OutputChoiceListener(
-				sqlTypeDropdown);
+		OutputChoiceListener listener = new OutputChoiceListener(sqlTypeDropdown);
 		sqlButton = new JRadioButton();
 		sqlButton.setName(OUTPUT_SQL);
 		sqlButton.setActionCommand(OUTPUT_SQL);
 		sqlButton.setSelected(false);
-		sqlButton.addActionListener(listener);		
+		sqlButton.addActionListener(listener);
 
 		englishButton = new JRadioButton();
 		englishButton.setName("englishButton");
@@ -876,7 +874,7 @@ public class CompareDMPanel extends JPanel {
 	/**
 	 * Handles disabling and enabling the "DDL Type" dropdown box.
 	 */
-	public static class OutputChoiceListener implements ActionListener {
+	public class OutputChoiceListener implements ActionListener {
 
 		JComboBox cb;
 
@@ -890,6 +888,7 @@ public class CompareDMPanel extends JPanel {
 			} else {
 				cb.setEnabled(false);
 			}
+			startCompareAction.setEnabled(isStartable());
 		}
 
 	}
@@ -925,7 +924,7 @@ public class CompareDMPanel extends JPanel {
 
 
 
-	public class StartCompareAction extends AbstractAction {
+	public class StartCompareAction extends AbstractAction   {
 
 		private Collection<SQLTable> sourceTables;
 
@@ -936,156 +935,174 @@ public class CompareDMPanel extends JPanel {
 		}
 
 		public void actionPerformed(ActionEvent e) {
-			
 			startCompareAction.setEnabled(false);
 			
 			copySettingsToProject();
-
+			
+			// XXX: should do most or all of this work in a worker thread
+			
+			final CompareSQL sourceComp;
+			final CompareSQL targetComp;
+			final SQLObject left;
+			final SQLObject right;
 			try {
-
-				SQLObject left = source.getObjectToCompare();
+				left = source.getObjectToCompare();
 				if (left.getChildType() == SQLTable.class) {
 					sourceTables = left.getChildren();
 				} else {
 					sourceTables = new ArrayList();
 				}
-
-				SQLObject right = target.getObjectToCompare();
+				
+				right = target.getObjectToCompare();
 				if (right.getChildType() == SQLTable.class) {
 					targetTables = right.getChildren();
 				} else {
 					targetTables = new ArrayList();
 				}
 
-				// XXX: should do most or all of this work in a worker thread
-				Map<DiffType, AttributeSet> styles = new HashMap<DiffType, AttributeSet>();
-				{		
-					SimpleAttributeSet att = new SimpleAttributeSet();
-					StyleConstants.setForeground(att, Color.red);
-					styles.put(DiffType.LEFTONLY, att);
-
-					att = new SimpleAttributeSet();
-					StyleConstants.setForeground(att, Color.green.darker().darker());
-					styles.put(DiffType.RIGHTONLY, att);
-
-					att = new SimpleAttributeSet();
-					StyleConstants.setForeground(att, Color.black);
-					styles.put(DiffType.SAME, att);
-
-					att = new SimpleAttributeSet();
-					StyleConstants.setForeground(att, Color.orange);
-					styles.put(DiffType.MODIFIED, att);
-					
-					att = new SimpleAttributeSet();
-					StyleConstants.setForeground(att, Color.blue);
-					styles.put(DiffType.KEY_CHANGED, att);
-				}
-				//Generate a list of Diff Chunks for both source and target
-				CompareSQL sourceComp = new CompareSQL(sourceTables,
+				sourceComp = new CompareSQL(sourceTables,
 						targetTables);
-				List<DiffChunk<SQLObject>> diff = sourceComp
-						.generateTableDiffs();
-				CompareSQL targetComp = new CompareSQL(targetTables,
+				targetComp = new CompareSQL(targetTables,
 						sourceTables);
-				List<DiffChunk<SQLObject>> diff1 = targetComp
-						.generateTableDiffs();
-				DefaultStyledDocument sourceDoc = new DefaultStyledDocument();
-				DefaultStyledDocument targetDoc = new DefaultStyledDocument();
-				
-				DDLGenerator gen =(DDLGenerator)((Class)((LabelValueBean) sqlTypeDropdown.getSelectedItem()).getValue()).newInstance();
-				
-				if (sqlButton.isSelected()) {
-					
-					List<DiffChunk<SQLObject>> addRelationships = new ArrayList<DiffChunk<SQLObject>>();
-					List<DiffChunk<SQLObject>> dropRelationships = new ArrayList<DiffChunk<SQLObject>>();
-					List<DiffChunk<SQLObject>> nonRelationship = new ArrayList<DiffChunk<SQLObject>>	();
-					for (DiffChunk d : diff) {
-						if (d.getData() instanceof SQLRelationship) {
-							if (d.getType() == DiffType.LEFTONLY) {
-								dropRelationships.add(d);
-							} else if (d.getType() == DiffType.RIGHTONLY) {
-								addRelationships.add(d);
-							}
-						} else {
-							nonRelationship.add(d);
-						}
-					}
-					
-					
-					sqlScriptGenerator(styles, dropRelationships, gen);
-					sqlScriptGenerator(styles, nonRelationship, gen);
-					sqlScriptGenerator(styles, addRelationships, gen);
-					
-					
-					//throw new UnsupportedOperationException(
-							//"We don't support DDL generation yet");
-				} else if (englishButton.isSelected()) {									
-					generateEnglishDescription(styles, diff, sourceDoc);
-					generateEnglishDescription(styles, diff1, targetDoc);					
-				} else {
-					throw new IllegalStateException(
-							"Don't know what type of output to make");
-				}
-
-				// get the title string for the compareDMFrame
-				if (sqlButton.isSelected()) {
-					String titleString = "Comparing " + left.getName() + " to "
-					+ right.getName() + " using SQL";
-
-					SQLDatabase db = null;
-					if ( source.loadRadio.isSelected() )
-						db = null;
-					else if (source.playPenRadio.isSelected())
-						db = ArchitectFrame.getMainInstance().playpen.getDatabase();
-					else
-						db = source.getDatabase();
-
-					SQLScriptDialog ssd = new SQLScriptDialog(ArchitectFrame.getMainInstance(),
-												"Compare DM",
-												titleString,
-												false,
-												gen,
-												db == null?null:db.getDataSource(),
-														false);
-					ssd.setVisible(true);
-				} else {
-					
-					
-					CompareDMFrame cf = 
-						new CompareDMFrame(sourceDoc, targetDoc, left.getName(),right.getName());
-
-					cf.pack();
-					cf.setVisible(true);
-				}
-				
-				
-
-			} catch (ArchitectDiffException ex) {
-				JOptionPane.showMessageDialog(CompareDMPanel.this,
-						"Could not perform the diff:\n" + ex.getMessage(),
-						"Diff Error", JOptionPane.ERROR_MESSAGE);
-				logger.error("Couldn't do diff", ex);
-			} catch (ArchitectException exp) {
-				ASUtils.showExceptionDialog("StartCompareAction failed", exp);
-				logger.error("StartCompareAction failed", exp);
 			} catch (FileNotFoundException ex) {
 				ASUtils
-						.showExceptionDialog("Your file could not be found.",
-								ex);
+				.showExceptionDialog("Your file could not be found.",
+						ex);
 				logger.error("File could not be found.", ex);
+				return;
 			} catch (IOException ex) {
 				ASUtils.showExceptionDialog("Could not read file", ex);
 				logger.error("Could not read file", ex);
-			} catch (BadLocationException ex) {
-				ASUtils.showExceptionDialog(
-						"Could not create document for results", ex);
-				logger.error("Could not create document for results", ex);
-			} catch (Exception ex) {
-				ASUtils.showExceptionDialog("Unxepected Exception!", ex);
-				logger.error("Unxepected Exception!", ex);
-			} finally {
-				this.setEnabled(isStartable());
+				return;
+			} catch (ArchitectException ex) {
+				ASUtils.showExceptionDialog(CompareDMPanel.this, "Could not begin diff process", ex);
+				return;
 			}
+			
+			ArchitectSwingWorker compareWorker = new ArchitectSwingWorker() {
+								
+				private List<DiffChunk<SQLObject>> diff;
+				private List<DiffChunk<SQLObject>> diff1;
+				
+				public void doStuff() throws ArchitectException {
+					diff = sourceComp.generateTableDiffs();
+					diff1 = targetComp.generateTableDiffs();
+				}
+				
+				public void cleanup() {
+					logger.debug("cleanup starts");
+					try {
+						DefaultStyledDocument sourceDoc = new DefaultStyledDocument();
+						DefaultStyledDocument targetDoc = new DefaultStyledDocument();
+						
+						DDLGenerator gen =(DDLGenerator)((Class)((LabelValueBean) sqlTypeDropdown.getSelectedItem()).getValue()).newInstance();
+						
+						final Map<DiffType, AttributeSet> styles = new HashMap<DiffType, AttributeSet>();
+						{		
+							SimpleAttributeSet att = new SimpleAttributeSet();
+							StyleConstants.setForeground(att, Color.red);
+							styles.put(DiffType.LEFTONLY, att);
+							
+							att = new SimpleAttributeSet();
+							StyleConstants.setForeground(att, Color.green.darker().darker());
+							styles.put(DiffType.RIGHTONLY, att);
+							
+							att = new SimpleAttributeSet();
+							StyleConstants.setForeground(att, Color.black);
+							styles.put(DiffType.SAME, att);
+							
+							att = new SimpleAttributeSet();
+							StyleConstants.setForeground(att, Color.orange);
+							styles.put(DiffType.MODIFIED, att);
+							
+							att = new SimpleAttributeSet();
+							StyleConstants.setForeground(att, Color.blue);
+							styles.put(DiffType.KEY_CHANGED, att);
+						}
+
+						if (sqlButton.isSelected()) {
+							
+							List<DiffChunk<SQLObject>> addRelationships = new ArrayList<DiffChunk<SQLObject>>();
+							List<DiffChunk<SQLObject>> dropRelationships = new ArrayList<DiffChunk<SQLObject>>();
+							List<DiffChunk<SQLObject>> nonRelationship = new ArrayList<DiffChunk<SQLObject>>	();
+							for (DiffChunk d : diff) {
+								if (d.getData() instanceof SQLRelationship) {
+									if (d.getType() == DiffType.LEFTONLY) {
+										dropRelationships.add(d);
+									} else if (d.getType() == DiffType.RIGHTONLY) {
+										addRelationships.add(d);
+									}
+								} else {
+									nonRelationship.add(d);
+								}
+							}
+							
+							sqlScriptGenerator(styles, dropRelationships, gen);
+							sqlScriptGenerator(styles, nonRelationship, gen);
+							sqlScriptGenerator(styles, addRelationships, gen);
+							
+						} else if (englishButton.isSelected()) {
+							generateEnglishDescription(styles, diff, sourceDoc);
+							generateEnglishDescription(styles, diff1, targetDoc);					
+						} else {
+							throw new IllegalStateException(
+							"Don't know what type of output to make");
+						}
+						
+						// get the title string for the compareDMFrame
+						if (sqlButton.isSelected()) {
+							String titleString = "Comparing " + left.getName() + " to "
+							+ right.getName() + " using SQL";
+							
+							SQLDatabase db = null;
+							if ( source.loadRadio.isSelected() )
+								db = null;
+							else if (source.playPenRadio.isSelected())
+								db = ArchitectFrame.getMainInstance().playpen.getDatabase();
+							else
+								db = source.getDatabase();
+							
+							SQLScriptDialog ssd = new SQLScriptDialog(ArchitectFrame.getMainInstance(),
+									"Compare DM",
+									titleString,
+									false,
+									gen,
+									db == null?null:db.getDataSource(),
+											false);
+							ssd.setVisible(true);
+						} else {
+							
+							
+							CompareDMFrame cf = 
+								new CompareDMFrame(sourceDoc, targetDoc, left.getName(),right.getName());
+							
+							cf.pack();
+							cf.setVisible(true);
+						}
+					} catch (ArchitectDiffException ex) {
+						JOptionPane.showMessageDialog(CompareDMPanel.this,
+								"Could not perform the diff:\n" + ex.getMessage(),
+								"Diff Error", JOptionPane.ERROR_MESSAGE);
+						logger.error("Couldn't do diff", ex);
+					} catch (ArchitectException exp) {
+						ASUtils.showExceptionDialog("StartCompareAction failed", exp);
+						logger.error("StartCompareAction failed", exp);
+					} catch (BadLocationException ex) {
+						ASUtils.showExceptionDialog(
+								"Could not create document for results", ex);
+						logger.error("Could not create document for results", ex);
+					} catch (Exception ex) {
+						ASUtils.showExceptionDialog("Unxepected Exception!", ex);
+						logger.error("Unxepected Exception!", ex);
+					} finally {
+						startCompareAction.setEnabled(isStartable());
+					}
+					logger.debug("cleanup finished");
+				}
+			};
+			
+			new Thread(compareWorker).start();
+			ProgressWatcher pw = new ProgressWatcher(progressBar,sourceComp);
 		}
 		
 		/**
