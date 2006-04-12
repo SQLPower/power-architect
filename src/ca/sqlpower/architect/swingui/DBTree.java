@@ -6,7 +6,6 @@ import java.awt.Cursor;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DragGestureEvent;
 import java.awt.dnd.DragGestureListener;
-import java.awt.dnd.DragGestureRecognizer;
 import java.awt.dnd.DragSource;
 import java.awt.dnd.DragSourceDragEvent;
 import java.awt.dnd.DragSourceDropEvent;
@@ -84,9 +83,8 @@ public class DBTree extends JTree implements DragSourceListener {
 		setUI(new MultiDragTreeUI());
 		setRootVisible(false);
 		setShowsRootHandles(true);
-		ds = new DragSource();
-		// XXX Why is dgr not used?
-		DragGestureRecognizer dgr = ds.createDefaultDragGestureRecognizer
+		ds = new DragSource();		
+		ds.createDefaultDragGestureRecognizer
 			(this, DnDConstants.ACTION_COPY, new DBTreeDragGestureListener());
 
 		newDBCSAction = new NewDBCSAction();
@@ -129,10 +127,9 @@ public class DBTree extends JTree implements DragSourceListener {
 							JOptionPane.showMessageDialog(DBTree.this, "Couldn't add new connection:\n"+ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 						}
 					} else {
-						logger.warn("The connection you tried to create already exists under the name: " + dup.getDisplayName());
-						JOptionPane.showMessageDialog(DBTree.this, 
-								"The connection you tried to create already exists under the name: " 
-								+ dup.getDisplayName(), 
+						final String message = "The connection you tried to create already exists under the name: " + dup.getDisplayName();
+						logger.warn(message);
+						JOptionPane.showMessageDialog(DBTree.this, message,
 								"Error", JOptionPane.ERROR_MESSAGE);
 						return; // don't dispose() of the dialog just yet...
 					}
