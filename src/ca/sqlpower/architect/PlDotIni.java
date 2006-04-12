@@ -13,27 +13,33 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.log4j.Logger;
 
 /**
- * The PlDotIni class represents the contents of a PL.INI file.
+ * The PlDotIni class represents the contents of a PL.INI file; despit
+ * the name, this actually represents the master list of Data Source connections,
+ * and XXX should be renamed to DataSourceList.
  * <p>
  * <b>Warning:</b> this file only reads (and therefore writes) files with MS-DOS line endings.
- *
- * @author fuerth
  * @version $Id$
  */
 public class PlDotIni {
     
     public static final String DOS_CR_LF = "\r\n";
+    
+	/**
+	 * The list of Listeners to notify when a datasource is added or removed.
+	 */
+	List<DatabaseListChangeListener> listeners = new ArrayList<DatabaseListChangeListener>();
 
 	/**
      * The Section class represents a named section in the PL.INI file.
@@ -81,28 +87,64 @@ public class PlDotIni {
     private static final Logger logger = Logger.getLogger(PlDotIni.class);
     
     /**
-     * A list of Section and ArchitectDataSource objects, in the order they appear in the file.
+     * A list of Section and ArchitectDataSource objects, in the order they appear in the file;
+     * this List contains Mixed Content which is Very Bad so it cannot be converted to Java 5
+     * Generic Collection.
      */
-    private List fileSections;
+    private final List fileSections= new ArrayList();
     
     /**
      * The time we last read the PL.INI file.
      */
-    private Date fileTime;
+    private long fileTime;	
+    boolean shuttingDown = false;
+    /** Seconds to wait between checking the file */
+    int WAIT_TIME = 30;
+    
+    /**
+     * Thread to stat file periodically, reload if PL changed it.
+     * XXX This thread is not currently started!
+     */
+    Thread monitor = new Thread() {
+		public void run() {
+			while (!shuttingDown) {
+				try {
+					Thread.sleep(WAIT_TIME * 1000);
+					if (lastFileRead == null) {
+						continue;
+					}
+					long newFileTime = lastFileRead.lastModified();
+					if (newFileTime != fileTime) {
+						read(lastFileRead);
+						fileTime = newFileTime;
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	};
+    
+    File lastFileRead;
     
 	/**
-	 * Reads the PL.INI file at the given location into a new fileSections list.  Also updates the fileTime.
+	 * Reads the PL.INI file at the given location into a new fileSections list.
+	 * Also updates the fileTime.
 	 */
 	public void read(File location) throws IOException {
 	    final int MODE_READ_DS = 0;       // reading a data source section
 	    final int MODE_READ_GENERIC = 1;  // reading a generic named section
 	    int mode = MODE_READ_GENERIC;
 	    
-		fileSections = new ArrayList();
+	    if (!location.canRead()) {
+	    	throw new IllegalArgumentException("pl.ini file cannot be read: " + location.getAbsolutePath());
+	    }
+	    lastFileRead = location;
+		
 		ArchitectDataSource currentDS = null;
 		Section currentSection = new Section(null);  // this accounts for any properties before the first named section
 		fileSections.add(currentSection);
-		fileTime = new Date(location.lastModified());
+		fileTime =  location.lastModified();
 		
 		// Can't use Reader to read this file because the encrypted passwords contain non-ASCII characters
 		BufferedInputStream in = new BufferedInputStream(new FileInputStream(location));
@@ -115,7 +157,7 @@ public class PlDotIni {
 			if (line.startsWith("[Databases_")) {
 				logger.debug("It's a new database connection spec!");
 				currentDS =  new ArchitectDataSource();
-				fileSections.add(currentDS);
+				add(currentDS);
 				mode = MODE_READ_DS;
 			} else if (line.startsWith("[")) {
 				logger.debug("It's a new generic section!");
@@ -201,7 +243,7 @@ public class PlDotIni {
 	    OutputStream out = new BufferedOutputStream(new FileOutputStream(location));
 	    write(out);
 	    out.close();
-	    fileTime = new Date(location.lastModified());
+	    fileTime = location.lastModified();
 	}
 	
 	public void write(OutputStream out) throws IOException {
@@ -334,9 +376,7 @@ public class PlDotIni {
             temp = temp ^ (10 - key);
             cyphertext[i] = ((byte) temp);
         }
-        
-        String retval = cyphertext.toString();
-        
+               
         if (logger.isDebugEnabled()) {
             StringBuffer nums = new StringBuffer();
             for (int i = 0; i < cyphertext.length; i++) {
@@ -385,7 +425,91 @@ public class PlDotIni {
      * @param dbcs The new data source to add
      */
     public void addDataSource(ArchitectDataSource dbcs) {
-        fileSections.add(dbcs);
+    	String newName = dbcs.getDisplayName();
+    	for (Object o : fileSections) {
+    		if (o instanceof ArchitectDataSource) {
+				ArchitectDataSource oneDbcs = (ArchitectDataSource) o;
+				if (newName.equalsIgnoreCase(oneDbcs.getDisplayName())) {
+					throw new IllegalArgumentException(
+						"There is already a datasource with the name " + newName);
+				}
+			}
+    	}
+        add(dbcs);
     }
+    
+	/**
+     * Make sure an ArchitectDataSource is in the master list; either copy its properties
+     * to one with the same name found in the list, OR, add it to the list.
+     * @param dbcs
+     */
+    public void mergeDataSource(ArchitectDataSource dbcs) {
+    	String newName = dbcs.getDisplayName();
+    	for (Object o : fileSections) {
+    		if (o instanceof ArchitectDataSource) {
+				ArchitectDataSource oneDbcs = (ArchitectDataSource) o;
+				if (newName.equalsIgnoreCase(oneDbcs.getDisplayName())) {
+					try {
+						BeanUtils.copyProperties(oneDbcs, dbcs);
+						return;
+					} catch (IllegalAccessException e) {
+						throw new RuntimeException("Can't merge DBCS: " + e);
+					} catch (InvocationTargetException e) {
+						throw new RuntimeException("Can't merge DBCS: " + e);
+					}
+				}
+			}
+    	}
+        add(dbcs);
+    }
+    
+    public void removeDataSource(ArchitectDataSource dbcs) {
+    	int where = fileSections.indexOf(dbcs);
+    	if (where < 0) 
+    		throw new IllegalArgumentException("dbcs not in list");
+    	fileSections.remove(dbcs);
+    	fireRemoveEvent(where, dbcs);
+    }
+
+	/**
+	 * Common code for add and merge.
+	 * @param dbcs
+	 */
+	private void add(ArchitectDataSource dbcs) {
+		fileSections.add(dbcs);
+		fireAddEvent(dbcs);
+	}
+    
+    private void fireAddEvent(ArchitectDataSource dbcs) {
+		int index = fileSections.size()-1;	
+		DatabaseListChangeEvent e = new DatabaseListChangeEvent(this, index, dbcs);
+    	synchronized(listeners) {   		
+			for(DatabaseListChangeListener listener : listeners) {
+				listener.databaseAdded(e);
+			}
+		}
+	}
+       
+    private void fireRemoveEvent(int i, ArchitectDataSource dbcs) {
+    	DatabaseListChangeEvent e = new DatabaseListChangeEvent(this, i, dbcs);
+    	synchronized(listeners) {   		
+			for(DatabaseListChangeListener listener : listeners) {
+				listener.databaseRemoved(e);
+			}
+		}
+    }
+    
+    public void addListener(DatabaseListChangeListener list) {
+    	synchronized(listeners) {
+    		listeners.add(list);
+    	}
+    }
+    
+    public void removeListener(DatabaseListChangeListener list) {
+    	synchronized(listeners) {
+    		listeners.remove(list);
+    	}
+    }
+
 
 }
