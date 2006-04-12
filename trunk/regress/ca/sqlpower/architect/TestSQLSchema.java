@@ -207,7 +207,6 @@ public class TestSQLSchema extends SQLTestCase {
 	 * Test method for 'ca.sqlpower.architect.SQLObject.getChild(int)'
 	 */
 	public void testGetChild() throws Exception {
-		ArrayList tableList = new ArrayList();
 		for ( int i=0; i<5; i++ ) {
 			s.addChild(new SQLTable(s,"","","TABLE", true));
 		}
