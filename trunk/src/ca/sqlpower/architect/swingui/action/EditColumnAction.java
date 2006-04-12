@@ -2,7 +2,6 @@ package ca.sqlpower.architect.swingui.action;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -23,7 +22,6 @@ import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.ColumnEditPanel;
-import ca.sqlpower.architect.swingui.CommonCloseAction;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.Selectable;
