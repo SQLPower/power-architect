@@ -41,7 +41,7 @@ public class CompareSQL implements Monitorable {
 	/**
 	 * The amount of work that needs to be done (for the progress monitor).
 	 */
-	private int jobSize;
+	private Integer jobSize;
 
 	/**
 	 * The amount of work that has been done (for the progress monitor).
@@ -106,7 +106,7 @@ public class CompareSQL implements Monitorable {
 			
 		results = new ArrayList<DiffChunk<SQLObject>>();
 		setProgress(0);
-		setJobSize(targetTableSet.size() + sourceTableSet.size());
+		setJobSize(targetTableSet.size()*2 + sourceTableSet.size()*2);
 		setFinished(false);
 	}
 	
@@ -137,13 +137,13 @@ public class CompareSQL implements Monitorable {
 				targetContinue = false;
 				targetTable = null;
 			}
-			
 
 			// Will loop until one or both the list reaches its last table
 			while (sourceContinue && targetContinue) {
 				// bring the source table up to the same level as the target
 				if (comparator.compare(sourceTable, targetTable) < 0) {
 					results.add(new DiffChunk<SQLObject>(sourceTable, DiffType.LEFTONLY));
+					incProgress(1);
 					//results.addAll(generateColumnDiffs(sourceTable, null));
 					if (sourceIter.hasNext()) {
 						sourceTable = (SQLTable) sourceIter.next();
@@ -156,6 +156,7 @@ public class CompareSQL implements Monitorable {
 				// bring the target table up to the same level as the source
 				if (comparator.compare(sourceTable, targetTable) > 0) {
 					results.add(new DiffChunk<SQLObject>(targetTable, DiffType.RIGHTONLY));
+					incProgress(1);
 					// now don't do the columns it's already handled
 					//results.addAll(generateColumnDiffs(null, targetTable));
 					if (targetIter.hasNext()) {
@@ -167,7 +168,7 @@ public class CompareSQL implements Monitorable {
 
 				if (comparator.compare(sourceTable, targetTable) == 0) {
 					results.add(new DiffChunk<SQLObject>(sourceTable, DiffType.SAME));
-
+					incProgress(2);
 					// now do the columns
 					results.addAll(generateColumnDiffs(sourceTable, targetTable));
 					if (!targetIter.hasNext() && !sourceIter.hasNext())
@@ -194,6 +195,7 @@ public class CompareSQL implements Monitorable {
 			// If any tables in the sourceList still exist, the changes are added
 			while (sourceContinue) {
 				results.add(new DiffChunk<SQLObject>(sourceTable, DiffType.LEFTONLY));
+				incProgress(1);
 				//results.addAll(generateColumnDiffs(sourceTable, null));
 				if (sourceIter.hasNext()) {
 					sourceTable = (SQLTable) sourceIter.next();
@@ -206,6 +208,8 @@ public class CompareSQL implements Monitorable {
 			while (targetContinue) {
 
 				results.add(new DiffChunk<SQLObject>(targetTable, DiffType.RIGHTONLY));
+				incProgress(1);
+				
 				//results.addAll(generateColumnDiffs(null, targetTable));
 				if (targetIter.hasNext()) {
 					targetTable = (SQLTable) targetIter.next();
@@ -213,10 +217,9 @@ public class CompareSQL implements Monitorable {
 					targetContinue = false;
 				}
 			}
-
 			results.addAll(generateRelationshipDiffs(sourceTableSet, targetTableSet));
-
 		} finally {
+			setJobSize(null);
 			setFinished(true);
 		}
 		return results;
@@ -228,13 +231,15 @@ public class CompareSQL implements Monitorable {
 		Set<SQLRelationship> sourceRels = new TreeSet<SQLRelationship>(relComparator);
 		Set<SQLRelationship> targetRels = new TreeSet<SQLRelationship>(relComparator);
 		
-		for (SQLTable t : sourceTables) {		
+		for (SQLTable t : sourceTables) {
+			incProgress(1);
 			if (t.getImportedKeys() != null){		
 				sourceRels.addAll(t.getImportedKeys());
 			}
 		}	
 				
-		for (SQLTable t : targetTables) {			
+		for (SQLTable t : targetTables) {
+			incProgress(1);
 			if (t.getImportedKeys() != null){			
 				targetRels.addAll(t.getImportedKeys());
 			}
@@ -529,7 +534,7 @@ public class CompareSQL implements Monitorable {
 		cancelled = true;
 	}
 	
-	private synchronized void setJobSize(int jobSize) {
+	private synchronized void setJobSize(Integer jobSize) {
 		this.jobSize = jobSize;
 	}
 	
@@ -537,9 +542,11 @@ public class CompareSQL implements Monitorable {
 		this.progress = progress;
 	}
 
+	private synchronized void incProgress(int amount) {
+		this.progress += amount;
+	}
+	
 	public synchronized void setFinished(boolean finished) {
 		this.finished = finished;
 	}
-	
-
 }
