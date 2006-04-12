@@ -359,7 +359,7 @@ public class DBTree extends JTree implements DragSourceListener {
 	protected JPopupMenu refreshMenu(TreePath p) {
 		logger.debug("refreshMenu is being called.");
 		JPopupMenu newMenu = new JPopupMenu();		
-		newMenu.add(connectionsMenu = new JMenu("Add Connection")); 
+		newMenu.add(connectionsMenu = new JMenu("Add Source Connection")); 
 		connectionsMenu.add(new JMenuItem(newDBCSAction));		
 		connectionsMenu.addSeparator();
 		// populate		
@@ -545,7 +545,7 @@ public class DBTree extends JTree implements DragSourceListener {
 	/**
 	 * When invoked, this action adds the DBCS that was given in the
 	 * constructor to the DBTree's model.  There is normally one
-	 * AddDBCSAction associated with each item in the "Add Connection"
+	 * AddDBCSAction associated with each item in the "Set Connection"
 	 * menu.
 	 */
 	protected class AddDBCSAction extends AbstractAction {
@@ -562,7 +562,7 @@ public class DBTree extends JTree implements DragSourceListener {
 				// check to see if we've already seen this one
 				if (dbcsAlreadyExists(dbcs)) {
 					logger.warn("database already exists in this project.");
-					JOptionPane.showMessageDialog(DBTree.this, "Can't add connection " 
+					JOptionPane.showMessageDialog(DBTree.this, "Can't set connection " 
 							                                   + dbcs.getDisplayName() 
 															   + ".  It already exists in the current project.", 
 												  "Warning", JOptionPane.WARNING_MESSAGE);
