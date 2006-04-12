@@ -5,7 +5,6 @@ import java.awt.Rectangle;
 import java.util.HashMap;
 import java.util.List;
 
-import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.TablePane;
 
