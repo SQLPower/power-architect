@@ -369,7 +369,7 @@ public class CompareSQLTest extends TestCase {
 		newTable1L.getColumn(0).setPrimaryKeySeq(1); 
 		relationL.addMapping(newTable1L.getColumn(0), newTable2L.getColumn(2));  // this is the difference
 		relationL.setName("relation1");
-		relationL.attachRelationship(newTable1L,newTable2L,false);;
+		relationL.attachRelationship(newTable1L,newTable2L,false);
 		
 		List<SQLTable> tableListL = new ArrayList<SQLTable>();
 		tableListL.add(newTable1L);
