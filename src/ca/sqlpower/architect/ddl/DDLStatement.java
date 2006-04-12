@@ -27,6 +27,11 @@ public class DDLStatement {
 		public boolean equals(Object other) {
 			return this.type.equals(((StatementType) other).type);
 		}
+		
+		@Override
+		public int hashCode() {
+			return type.hashCode();
+		}
         
         public String toString() {
             return type;
