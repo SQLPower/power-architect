@@ -2,11 +2,9 @@ package ca.sqlpower.architect.diff;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -17,10 +15,7 @@ import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.ddl.GenericTypeDescriptor;
-import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.Monitorable;
-import ca.sqlpower.architect.swingui.SwingUIProject;
 
 public class CompareSQL implements Monitorable {
 

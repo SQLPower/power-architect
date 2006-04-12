@@ -1,6 +1,5 @@
 package ca.sqlpower.architect.layout;
 
-import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
@@ -31,8 +30,6 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 	 */
 	private double temp;
 
-	private PlayPen pp;
-	
 	/**
 	 * Spacing multiplier
 	 */
