@@ -46,6 +46,10 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	 */
 	private Map<Integer,GenericTypeDescriptor> typeMap = null;
 
+	private boolean shoresMixedCaseIdentifier;
+	private boolean shoresLowerCaseIdentifier;
+	private boolean shoresUpperCaseIdentifier;
+
 	/**
 	 * Constructor for instances that connect to a real database by JDBC.
 	 */
@@ -176,6 +180,10 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 			con = getConnection();
 			DatabaseMetaData dbmd = con.getMetaData();
 
+			setShoresMixedCaseIdentifier(dbmd.storesMixedCaseIdentifiers());
+			setShoresUpperCaseIdentifier(dbmd.storesMixedCaseIdentifiers());
+			setShoresLowerCaseIdentifier(dbmd.storesMixedCaseIdentifiers());
+			
 			rs = dbmd.getCatalogs();
 			while (rs.next()) {
 				String catName = rs.getString(1);
@@ -223,6 +231,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 		logger.debug("SQLDatabase: populate finished");
 	}
 	
+
 
 
 	public SQLCatalog getCatalogByName(String catalogName) throws ArchitectException {
@@ -309,7 +318,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	public SQLTable getTableByName(String catalogName, String schemaName, String tableName)
 		throws ArchitectException {
 
-		populate();
+		this.populate();
 
 		if (tableName == null) {
 			throw new NullPointerException("Table Name must be specified");
@@ -345,11 +354,10 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 		        logger.debug("getTableByName("+catalogName+","+schemaName+","+tableName+"): no such schema!");
 			return null;
 		}
-
+		target.populate();		
 		Iterator childit = target.children.iterator();
 		while (childit.hasNext()) {
 			SQLObject child = (SQLObject) childit.next();
-			
 			if (child instanceof SQLTable) {
 				SQLTable table = (SQLTable) child;
 				if (table.getName().equalsIgnoreCase(tableName)) {
@@ -615,6 +623,8 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	}
 	
 	private PopulateProgressMonitor progressMonitor;
+
+
 	public synchronized PopulateProgressMonitor getProgressMonitor() throws ArchitectException {
 		if (progressMonitor == null) {
 			progressMonitor = new PopulateProgressMonitor();
@@ -679,7 +689,32 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 			return ((SQLObject)children.get(0)).getClass();
 		}
 	}
-	
+
+	public boolean isShoresMixedCaseIdentifier() {
+		return shoresMixedCaseIdentifier;
+	}
+
+	public void setShoresMixedCaseIdentifier(boolean shoresMixedCaseIdentifier) {
+		this.shoresMixedCaseIdentifier = shoresMixedCaseIdentifier;
+	}
+
+
+	private void setShoresLowerCaseIdentifier(boolean b) {
+		shoresLowerCaseIdentifier = b;
+		
+	}
+
+	private void setShoresUpperCaseIdentifier(boolean b) {
+		shoresUpperCaseIdentifier = b;
+	}
+
+	public boolean isShoresLowerCaseIdentifier() {
+		return shoresLowerCaseIdentifier;
+	}
+
+	public boolean isShoresUpperCaseIdentifier() {
+		return shoresUpperCaseIdentifier;
+	}
 	
 	
 }
