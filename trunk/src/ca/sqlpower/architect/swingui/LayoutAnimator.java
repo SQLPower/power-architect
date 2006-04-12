@@ -7,8 +7,6 @@ import java.util.List;
 import javax.swing.Timer;
 
 import ca.sqlpower.architect.layout.ArchitectLayoutInterface;
-import ca.sqlpower.architect.undo.UndoCompoundEvent;
-import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 
 public class LayoutAnimator implements ActionListener {
 

@@ -6,7 +6,6 @@
  */
 package ca.sqlpower.architect.swingui;
 import java.awt.Component;
-import java.awt.FlowLayout;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -30,10 +29,6 @@ import javax.swing.ListCellRenderer;
 
 import org.apache.log4j.Logger;
 
-import com.jgoodies.forms.builder.PanelBuilder;
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
-
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLCatalog;
@@ -48,6 +43,10 @@ import ca.sqlpower.security.PLSecurityException;
 import ca.sqlpower.security.PLSecurityManager;
 import ca.sqlpower.sql.SQL;
 import ca.sqlpower.util.UnknownFreqCodeException;
+
+import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
 
 
 /**

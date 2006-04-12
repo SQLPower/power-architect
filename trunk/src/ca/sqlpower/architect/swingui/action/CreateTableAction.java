@@ -1,16 +1,21 @@
 package ca.sqlpower.architect.swingui.action;
 
-import java.awt.event.*;
-import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 
-import ca.sqlpower.architect.*;
+import javax.swing.AbstractAction;
+import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
+
+import org.apache.log4j.Logger;
+
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
 import ca.sqlpower.architect.swingui.TablePane;
-
-import org.apache.log4j.Logger;
 
 public class CreateTableAction extends AbstractAction {
 	private static final Logger logger = Logger.getLogger(CreateTableAction.class);
@@ -42,7 +47,7 @@ public class CreateTableAction extends AbstractAction {
 		
 		TablePane tp = new TablePane(t, pp);
 		pp.addFloating(tp);
-		pp.setMouseMode(PlayPen.MouseModeType.CREATING_TABLE);
+		PlayPen.setMouseMode(PlayPen.MouseModeType.CREATING_TABLE);
 	}
 	
 	public void setPlayPen(PlayPen pp) {
