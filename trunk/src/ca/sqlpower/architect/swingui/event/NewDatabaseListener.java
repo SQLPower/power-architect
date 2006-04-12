@@ -74,7 +74,10 @@ public class NewDatabaseListener implements ActionListener {
 				dbcsPanel.discardChanges();
 				d.setVisible(false);
 			}
+			
 		};
+		
+		cancelAction.putValue(AbstractAction.NAME, ArchitectPanelBuilder.CANCEL_BUTTON_LABEL);
 		JButton cancelButton = new JButton(cancelAction);
 		ArchitectPanelBuilder.makeJDialogCancellable(d, cancelAction);
 	
