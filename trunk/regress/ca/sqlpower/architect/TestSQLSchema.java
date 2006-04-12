@@ -1,7 +1,5 @@
 package regress.ca.sqlpower.architect;
 
-import java.util.ArrayList;
-
 import regress.ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
