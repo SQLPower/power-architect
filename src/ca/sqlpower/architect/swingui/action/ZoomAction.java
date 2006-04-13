@@ -25,6 +25,7 @@ public class ZoomAction extends AbstractAction implements PropertyChangeListener
 
 	public static final String ZOOM_IN = "ca.sqlpower.architect.swingui.ZoomAction.ZOOM_IN";
 	public static final String ZOOM_OUT = "ca.sqlpower.architect.swingui.ZoomAction.ZOOM_OUT";
+	public static final String ZOOM_ALL = "ca.sqlpower.architect.swingui.ZoomAction.ZOOM_ALL";
 
 	public ZoomAction(double amount) {
 		super(amount > 0.0 ? "Zoom In" : "Zoom Out",

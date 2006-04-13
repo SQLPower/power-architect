@@ -34,6 +34,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
@@ -87,6 +89,7 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.Relationship.RelationshipDecorationMover;
 import ca.sqlpower.architect.swingui.action.CancelAction;
 import ca.sqlpower.architect.swingui.action.SetDataSourceAction;
+import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
@@ -238,6 +241,7 @@ public class PlayPen extends JPanel
 		ppMouseListener = new PPMouseListener();
 		addMouseListener(ppMouseListener);
 		addMouseMotionListener(ppMouseListener);
+		addMouseWheelListener(ppMouseListener);
 		
 		dgl = new TablePaneDragGestureListener();
 		ds = new DragSource();
@@ -1883,7 +1887,8 @@ public class PlayPen extends JPanel
 	 * ppcomponents, and also handles playpen-specific behaviour like
 	 * rubber band selection and popup menu triggering.
 	 */
-	protected class PPMouseListener implements MouseListener, MouseMotionListener {
+	protected class PPMouseListener 
+		implements MouseListener, MouseMotionListener, MouseWheelListener  {
 
 		
 		/**
@@ -1938,6 +1943,7 @@ public class PlayPen extends JPanel
 	
 		
 		public void mousePressed(MouseEvent evt) {
+			
 			requestFocus();
 			maybeShowPopup(evt);
 			Point p = evt.getPoint();
@@ -2080,7 +2086,7 @@ public class PlayPen extends JPanel
 		}
 		
 		public void mouseMoved(MouseEvent evt) {
-	
+
 			if (rubberBand != null) {
 				// repaint old region in case of shrinkage
 				Rectangle dirtyRegion = zoomRect(new Rectangle(rubberBand));
@@ -2173,6 +2179,20 @@ public class PlayPen extends JPanel
 				}
 			}
 			return false;
+		}
+
+		public void mouseWheelMoved(MouseWheelEvent e) {
+			if ( (e.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) != 0 ) {
+				if ( e.getWheelRotation() > 0 )
+					ArchitectFrame.getMainInstance().getZoomInAction().actionPerformed(null);
+				else
+					ArchitectFrame.getMainInstance().getZoomOutAction().actionPerformed(null);
+			}
+			else {
+				MouseWheelListener[] ml = ArchitectFrame.getMainInstance().splitPane.getRightComponent().getMouseWheelListeners();
+				for ( MouseWheelListener m : ml )
+					m.mouseWheelMoved(e);
+			}
 		}
 	}
 

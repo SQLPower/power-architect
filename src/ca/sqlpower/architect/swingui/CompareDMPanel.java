@@ -348,7 +348,8 @@ public class CompareDMPanel extends JPanel {
 					// check if we need to do schemas
 					SQLCatalog cat = (SQLCatalog) catalogDropdown
 							.getSelectedItem();
-					catalogLabel.setText(cat.getNativeTerm());
+					if ( cat != null && cat.getNativeTerm() !=null )
+						catalogLabel.setText(cat.getNativeTerm());
 					schemaParent = null;
 					if (cat == null) {
 						// there are no catalogs (database is completely empty)
@@ -410,7 +411,9 @@ public class CompareDMPanel extends JPanel {
 
 							if (schemaDropdown.getItemCount() > 0) {
 								schemaDropdown.setEnabled(true);
-								schemaLabel.setText(((SQLSchema)(finalSchemaParent.getChild(0))).getNativeTerm());
+								if ( ((SQLSchema)(finalSchemaParent.getChild(0))).getNativeTerm() != null )
+									schemaLabel.setText(((SQLSchema)
+											(finalSchemaParent.getChild(0))).getNativeTerm());
 							}
 
 							startCompareAction.setEnabled(isStartable());
@@ -479,7 +482,8 @@ public class CompareDMPanel extends JPanel {
 
 					if (schemaDropdown.getItemCount() > 0) {
 						schemaDropdown.setEnabled(true);
-						schemaLabel.setText(((SQLSchema)(populatedCat.getChild(0))).getNativeTerm());
+						if ( ((SQLSchema)(populatedCat.getChild(0))).getNativeTerm() != null )
+							schemaLabel.setText(((SQLSchema)(populatedCat.getChild(0))).getNativeTerm());
 					}
 				}
 				startCompareAction.setEnabled(isStartable());

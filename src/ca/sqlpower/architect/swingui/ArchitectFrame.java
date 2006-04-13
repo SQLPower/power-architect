@@ -871,4 +871,12 @@ public class ArchitectFrame extends JFrame {
 	public Preferences getPrefs() {
 		return prefs;
 	}
+
+	public ZoomAction getZoomInAction() {
+		return zoomInAction;
+	}
+
+	public ZoomAction getZoomOutAction() {
+		return zoomOutAction;
+	}
 }
