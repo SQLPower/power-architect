@@ -230,7 +230,7 @@ public class CompareDMPanel extends JPanel {
 
 				JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
 						dbcsPanel, SwingUtilities.getWindowAncestor(CompareDMPanel.this),
-						DBCS_DIALOG_TITLE, "Compare",
+						DBCS_DIALOG_TITLE, "OK",
 						okAction, cancelAction);
 
 				setNewConnectionDialog(d);
