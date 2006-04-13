@@ -143,7 +143,7 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	// -------------- treeModel event source support -----------------
 	protected LinkedList treeModelListeners;
 
-	public void addTreeModelListener(TreeModelListener l) {
+	public void addTreeModelListener(TreeModelListener l) {		
 		treeModelListeners.add(l);
 	}
 
@@ -200,7 +200,8 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	}
 
 	protected void fireTreeStructureChanged(TreeModelEvent e) {
-		final TreeModelEvent ev =e; 
+		logger.debug("firing TreeStructuredChanged. source="+e.getSource());
+		final TreeModelEvent ev =e; 		
 		Runnable notifier = new Runnable(){
 			public void run() {
 				Iterator it = treeModelListeners.iterator();
@@ -306,6 +307,7 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 
 	// --------------------- SQLObject listener support -----------------------
 	public void dbChildrenInserted(SQLObjectEvent e) {
+		logger.debug("dbchildrenadd. source="+e.getSource());
 		if (!SwingUtilities.isEventDispatchThread()) return;
 		if (logger.isDebugEnabled()) {
 			if (e.getSQLSource() instanceof SQLRelationship) {
@@ -353,6 +355,7 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	}
 
 	public void dbChildrenRemoved(SQLObjectEvent e) {
+		logger.debug("dbchildrenremove. source="+e.getSource());
 		if (!SwingUtilities.isEventDispatchThread()) return;
 		if (logger.isDebugEnabled()) logger.debug("dbChildrenRemoved SQLObjectEvent: "+e);
 		try {
@@ -389,8 +392,13 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	}
 	
 	public void dbObjectChanged(SQLObjectEvent e) {
+		logger.debug("dbObjectChanged. source="+e.getSource());
 		if (!SwingUtilities.isEventDispatchThread()) return;
 		if (logger.isDebugEnabled()) logger.debug("dbObjectChanged SQLObjectEvent: "+e);
+		if (e.getPropertyName().equals("name") && 
+				!e.getNewValue().equals(e.getSQLSource().getName()) ) {
+			logger.error("Name change event has wrong new value. new="+e.getNewValue()+"; real="+e.getSQLSource().getName());
+		}
 		SQLObject source = e.getSQLSource();
 		if (source instanceof SQLRelationship) {
 			SQLRelationship r = (SQLRelationship) source;
@@ -402,8 +410,9 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	}
 
 	public void dbStructureChanged(SQLObjectEvent e) {
+		logger.debug("dbStructureChanged. source="+e.getSource());
 		if (!SwingUtilities.isEventDispatchThread()) return;
-		try {
+		try {			
 			ArchitectUtils.listenToHierarchy(this, e.getSQLSource());
 			TreeModelEvent tme = new TreeModelEvent(this, getPathToNode(e.getSQLSource()));
 			fireTreeStructureChanged(tme);
