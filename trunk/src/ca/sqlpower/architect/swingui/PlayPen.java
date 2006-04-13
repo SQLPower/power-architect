@@ -295,8 +295,8 @@ public class PlayPen extends JPanel
 		db.setIgnoreReset(true);
 		if (db.getDataSource() == null) {
 			ArchitectDataSource dbcs = new ArchitectDataSource();
-			dbcs.setName("Target Database");
-			dbcs.setDisplayName("Target Database");
+			dbcs.setName("Not Configured");
+			dbcs.setDisplayName("Not Configured");
 			db.setDataSource(dbcs);
 		}
 		try {

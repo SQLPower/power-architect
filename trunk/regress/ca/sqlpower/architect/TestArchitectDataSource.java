@@ -165,7 +165,7 @@ public class TestArchitectDataSource extends TestCase {
 		ds.setDisplayName("test");
 		
 		assertEquals(1, l.getPropertyChangeCount());
-		assertEquals("displayName", l.getLastPropertyChange());
+		assertEquals("name", l.getLastPropertyChange());
 		assertEquals("test", ds.getDisplayName());
 	}
 
