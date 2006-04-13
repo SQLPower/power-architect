@@ -280,8 +280,8 @@ public class ArchitectDataSource {
 	 *
 	 * @param argDisplayName Value to assign to this.displayName
 	 */
-	public void setDisplayName(String argDisplayName){
-		putImpl(PL_LOGICAL, argDisplayName, "displayName");
+	public void setDisplayName(String argDisplayName){		
+		putImpl(PL_LOGICAL, argDisplayName, "name");
 	}
 
 	/**

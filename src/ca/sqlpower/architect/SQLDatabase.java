@@ -526,7 +526,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 			reset();
 		}
 		dataSource = argDataSource;
-		dataSource.addPropertyChangeListener(this);
+		dataSource.addPropertyChangeListener(this);		
 		fireDbObjectChanged("dataSource",oldDataSource,argDataSource);
 	}
 
@@ -589,7 +589,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	 * SQLDatabase if a critical property (url, driver, username)
 	 * changes.
 	 */
-	public void propertyChange(PropertyChangeEvent e) {
+	public void propertyChange(PropertyChangeEvent e) {		
 		String pn = e.getPropertyName();
 		if ( (e.getOldValue() == null && e.getNewValue() != null)
 			 || (e.getOldValue() != null && e.getNewValue() == null)
@@ -597,7 +597,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 				 && !e.getOldValue().equals(e.getNewValue())) ) {
 			if ("url".equals(pn) || "driverClass".equals(pn) || "user".equals(pn)) {
 				reset();
-			} else if ("displayName".equals(pn)) {
+			} else if ("name".equals(pn)) {				
 				fireDbObjectChanged("shortDisplayName",e.getOldValue(),e.getNewValue());
 			}
 		}
