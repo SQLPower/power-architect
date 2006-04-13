@@ -180,10 +180,10 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 			con = getConnection();
 			DatabaseMetaData dbmd = con.getMetaData();
 
-			setShoresMixedCaseIdentifier(dbmd.storesMixedCaseIdentifiers());
+/*			setShoresMixedCaseIdentifier(dbmd.storesMixedCaseIdentifiers());
 			setShoresUpperCaseIdentifier(dbmd.storesMixedCaseIdentifiers());
 			setShoresLowerCaseIdentifier(dbmd.storesMixedCaseIdentifiers());
-			
+*/			
 			rs = dbmd.getCatalogs();
 			while (rs.next()) {
 				String catName = rs.getString(1);
