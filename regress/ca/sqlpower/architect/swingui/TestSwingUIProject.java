@@ -117,7 +117,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		SQLDatabase target = project.getTargetDatabase(); 
 		assertNotNull(target);
 		
-		assertEquals(target.getName(), "Target Database");
+		assertEquals(target.getName(), "Not Configured");
 		assertEquals(target.getChildCount(), 2);		
 	}
 	

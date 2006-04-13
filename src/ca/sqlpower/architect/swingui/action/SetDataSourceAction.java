@@ -41,6 +41,7 @@ public class SetDataSourceAction extends AbstractAction {
 		
 		// copy over the values from the selected DB.
 		ArchitectDataSource tSpec = db.getDataSource();
+		tSpec.setDisplayName(dbcs.getDisplayName());
 		tSpec.setDriverClass(dbcs.getDriverClass());
 		tSpec.setUrl(dbcs.getUrl());
 		tSpec.setUser(dbcs.getUser());

@@ -562,7 +562,7 @@ public class DBTree extends JTree implements DragSourceListener {
 							                                   + dbcs.getDisplayName() 
 															   + ".  It already exists in the current project.", 
 												  "Warning", JOptionPane.WARNING_MESSAGE);
-				} else {				
+				} else {
 					SQLDatabase newDB = new SQLDatabase(dbcs);		
 					root.addChild(root.getChildCount(), newDB);
 					ArchitectFrame.getMainInstance().getProject().setModified(true);
@@ -791,6 +791,24 @@ public class DBTree extends JTree implements DragSourceListener {
 				if (ArchitectFrame.getMainInstance().getProject() == null || // getProject() is null when program is starting
 			        ArchitectFrame.getMainInstance().getProject().getTargetDatabase() == value) {
 					setIcon(targetIcon);
+					StringBuffer name = new StringBuffer();
+					name.append("Project");
+
+					/*if (ArchitectFrame.getMainInstance().getProject() != null ){
+						String temp = ArchitectFrame.getMainInstance().getProject().
+									getTargetDatabase().getName();
+						if (temp == null) {
+							temp = "";  // beacuse empty string is omitted from the label
+						} else {
+							temp = temp.trim();
+						}
+						if (temp.length() > 0){
+							name.append(" (");
+							name.append(ArchitectFrame.getMainInstance().getProject().getTargetDatabase().getName());
+							name.append(")");
+						}
+					}												
+					setText(name.toString());	*/				
 				} else {
 					setIcon(dbIcon);
 				}
