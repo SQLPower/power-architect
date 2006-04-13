@@ -2,8 +2,10 @@ package ca.sqlpower.architect.swingui;
 
 import javax.swing.SwingUtilities;
 
-public abstract class ArchitectSwingWorker implements Runnable {
+import org.apache.log4j.Logger;
 
+public abstract class ArchitectSwingWorker implements Runnable {
+	private static final Logger logger = Logger.getLogger(ArchitectSwingWorker.class);
 	private Exception doStuffException;
 	
 	private ArchitectSwingWorker nextProcess;
@@ -77,6 +79,7 @@ public abstract class ArchitectSwingWorker implements Runnable {
 	}
 
 	public void setNextProcess(ArchitectSwingWorker nextProcess) {
+		logger.debug("Moving to object:" + nextProcess);
 		this.nextProcess = nextProcess;
 	}
 	
