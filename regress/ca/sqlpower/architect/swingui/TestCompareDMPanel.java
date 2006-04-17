@@ -217,13 +217,13 @@ public class TestCompareDMPanel extends JFCTestCase {
 
 		// enables the new source connection button (among other things)
 		Point p = sourcePhysicalRadio.getLocationOnScreen();
-		robot.mouseMove(p.x, p.y);
+		robot.mouseMove(p.x+2, p.y+2);
 		robot.mousePress(InputEvent.BUTTON1_MASK);
 		robot.mouseRelease(InputEvent.BUTTON1_MASK);
 		
 		// clicks the button (which is now enabled)
 		p = sourceNewConnButton.getLocationOnScreen();
-		robot.mouseMove(p.x, p.y);
+		robot.mouseMove(p.x+2, p.y+2);
 		robot.mousePress(InputEvent.BUTTON1_MASK);
 		robot.mouseRelease(InputEvent.BUTTON1_MASK);
 
@@ -247,7 +247,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 		
 		// clicks the button (which is now enabled)
 		Point p = targetNewConnButton.getLocationOnScreen();
-		robot.mouseMove(p.x, p.y);
+		robot.mouseMove(p.x+2, p.y+2);
 		robot.mousePress(InputEvent.BUTTON1_MASK);
 		robot.mouseRelease(InputEvent.BUTTON1_MASK);
 
