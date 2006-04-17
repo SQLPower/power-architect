@@ -28,7 +28,7 @@ public class TestSQLObjectChildrenInsert extends TestCase {
 		// setup a playpen like database
 		SQLDatabase db = new SQLDatabase();
 		UndoManager undoManager = new UndoManager(db);
-		db.setIgnoreReset(true);
+		db.setPlayPenDatabase(true);
 		SQLTable table1 = new SQLTable(db,"table1","remark1","TABLE",true);
 		SQLTable table2 = new SQLTable(db,"table2","remark2","TABLE",true);
 		SQLTable table3 = new SQLTable(db,"table3","remark3","TABLE",true);

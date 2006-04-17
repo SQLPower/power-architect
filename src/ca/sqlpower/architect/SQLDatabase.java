@@ -36,19 +36,16 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	protected transient Connection connection;
 
 	/**
-	 * Stops removal of children and the closure of connection when properties change
-	 * Used to stop the playpen from getting wiped when connection properties change
+	 * Tells this database that it is being used to back the PlayPen.  Also 
+	 * stops removal of children and the closure of connection when properties
+	 * change.
 	 */
-	protected boolean ignoreReset = false;
+	private boolean playPenDatabase = false;
 
 	/**
 	 * The valid types for this database
 	 */
 	private Map<Integer,GenericTypeDescriptor> typeMap = null;
-
-	private boolean shoresMixedCaseIdentifier;
-	private boolean shoresLowerCaseIdentifier;
-	private boolean shoresUpperCaseIdentifier;
 
 	/**
 	 * Constructor for instances that connect to a real database by JDBC.
@@ -179,11 +176,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 		try {
 			con = getConnection();
 			DatabaseMetaData dbmd = con.getMetaData();
-
-/*			setShoresMixedCaseIdentifier(dbmd.storesMixedCaseIdentifiers());
-			setShoresUpperCaseIdentifier(dbmd.storesMixedCaseIdentifiers());
-			setShoresLowerCaseIdentifier(dbmd.storesMixedCaseIdentifiers());
-*/			
+			
 			rs = dbmd.getCatalogs();
 			while (rs.next()) {
 				String catName = rs.getString(1);
@@ -530,28 +523,26 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 		fireDbObjectChanged("dataSource",oldDataSource,argDataSource);
 	}
 
-	public void setIgnoreReset(boolean v) {
-		boolean oldIgnoreReset = ignoreReset;
-		ignoreReset = v;
-		
-		if (oldIgnoreReset != v)
-		{
-			fireDbObjectChanged("ignoreReset",oldIgnoreReset,v);
-		}
+	public void setPlayPenDatabase(boolean v) {
+		boolean oldValue = playPenDatabase;
+		playPenDatabase = v;
 
+		if (oldValue != v) {
+			fireDbObjectChanged("playPenDatabase", oldValue, v);
+		}
 	}
 
-	public boolean getIgnoreReset() {
-		return ignoreReset;
+	public boolean isPlayPenDatabase() {
+		return playPenDatabase;
 	}
 
 	/**
 	 * Removes all children, closes and discards the JDBC connection.  
-	 * Unless {@link #ignoreReset} is true
+	 * Unless {@link #playPenDatabase} is true
 	 */
 	protected void reset() {
 		
-		if (ignoreReset) {
+		if (playPenDatabase) {
 			// preserve the objects that are in the Target system when
             // the connection spec changes
 			logger.debug("Ignoring Reset request for: " + getDataSource());
@@ -689,32 +680,5 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 			return ((SQLObject)children.get(0)).getClass();
 		}
 	}
-
-	public boolean isShoresMixedCaseIdentifier() {
-		return shoresMixedCaseIdentifier;
-	}
-
-	public void setShoresMixedCaseIdentifier(boolean shoresMixedCaseIdentifier) {
-		this.shoresMixedCaseIdentifier = shoresMixedCaseIdentifier;
-	}
-
-
-	private void setShoresLowerCaseIdentifier(boolean b) {
-		shoresLowerCaseIdentifier = b;
-		
-	}
-
-	private void setShoresUpperCaseIdentifier(boolean b) {
-		shoresUpperCaseIdentifier = b;
-	}
-
-	public boolean isShoresLowerCaseIdentifier() {
-		return shoresLowerCaseIdentifier;
-	}
-
-	public boolean isShoresUpperCaseIdentifier() {
-		return shoresUpperCaseIdentifier;
-	}
-	
 	
 }

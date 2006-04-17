@@ -304,8 +304,10 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		propertiesToIgnore.add("populated");
 		propertiesToIgnore.add("secondaryChangeMode");
 		propertiesToIgnore.add("dataSource");  // we set this already!
-		propertiesToIgnore.add("ignoreReset");  // only used (and set) by playpen code
+		propertiesToIgnore.add("playPenDatabase");  // only set by playpen code
 		propertiesToIgnore.add("progressMonitor");
+		propertiesToIgnore.add("zoomInAction");
+		propertiesToIgnore.add("zoomOutAction");
 		
 		Map<String,Object> oldDescription =
 			setAllInterestingProperties(db, propertiesToIgnore);

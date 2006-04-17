@@ -108,7 +108,7 @@ public class TestSQLTable extends SQLTestCase {
 		SQLTable table1;
 		// Check to make sure it can be added to a playpen like database
 		SQLDatabase pp = new SQLDatabase();
-		pp.setIgnoreReset(true);
+		pp.setPlayPenDatabase(true);
 		assertNotNull(table1 = db.getTableByName("REGRESSION_TEST1"));
 		derivedTable = SQLTable.getDerivedInstance(table1, pp);
 

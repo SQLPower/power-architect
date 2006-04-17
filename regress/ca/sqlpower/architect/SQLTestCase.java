@@ -92,8 +92,10 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 		propertiesToIgnore.add("undoEventListeners");
 		propertiesToIgnore.add("connection");
 		propertiesToIgnore.add("typeMap");
-		propertiesToIgnore.add("secondaryChangeMode");		
-				
+		propertiesToIgnore.add("secondaryChangeMode");	
+		propertiesToIgnore.add("zoomInAction");
+		propertiesToIgnore.add("zoomOutAction");
+		
 		if(so instanceof SQLDatabase)
 		{
 			// should be handled in the Datasource
@@ -199,6 +201,8 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 		propertiesToIgnore.add("connection");
 		propertiesToIgnore.add("typeMap");
 		propertiesToIgnore.add("secondaryChangeMode");		
+		propertiesToIgnore.add("zoomInAction");
+		propertiesToIgnore.add("zoomOutAction");
 
 		if(so instanceof SQLDatabase)
 		{
