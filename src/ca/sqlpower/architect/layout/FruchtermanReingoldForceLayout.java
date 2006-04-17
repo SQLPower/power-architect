@@ -107,7 +107,7 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 					if (u != v) {
 						while (v.getLocation().equals(u.getLocation()))
 						{
-							v.setMovePathPoint((int)Math.round(Math.random()*5-3),(int)Math.round(Math.random()*5-3));
+							v.setLocation((int)Math.round(Math.random()*5-3),(int)Math.round(Math.random()*5-3));
 						}
 						
 						Point delta = new Point(v.getLocation().x
@@ -178,7 +178,7 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 				{
 					done = false;
 				}
-				v.setMovePathPoint(pos);
+				v.setLocation(pos);
 			}
 			if (done)
 			{

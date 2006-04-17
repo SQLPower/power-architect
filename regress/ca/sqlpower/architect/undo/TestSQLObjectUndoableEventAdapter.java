@@ -8,7 +8,9 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.TablePane;
+import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoManager;
+import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 
 public class TestSQLObjectUndoableEventAdapter extends TestCase {
 	
@@ -74,12 +76,10 @@ public class TestSQLObjectUndoableEventAdapter extends TestCase {
 		newLocation2 = location2.getLocation();
 		newLocation2.x+=2;
 		newLocation2.y+=2;
-		tp.setMoving(true);
-		tp2.setMoving(true);
-		tp.setMovePathPoint(newLocation);
-		tp2.setMovePathPoint(newLocation2);
-		tp.setMoving(false);
-		tp2.setMoving(false);
+		pp.startCompoundEdit("Starting move");
+		tp.setLocation(newLocation);
+		tp2.setLocation(newLocation2);
+		pp.endCompoundEdit("Ending move");
 		assertTrue("Moved 1 to the right location", newLocation.equals(tp.getLocation() ));
 		assertTrue("Moved 2 to the right location", newLocation2.equals(tp2.getLocation() ));
 		undoManager.undo();

@@ -6,6 +6,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
+import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 
 public abstract class SQLObject implements java.io.Serializable {
 
@@ -390,7 +391,7 @@ public abstract class SQLObject implements java.io.Serializable {
 		undoEventListeners.remove(l);
 	}
 	
-	protected void fireUndoCompoundEvent(UndoCompoundEvent e) {
+	private void fireUndoCompoundEvent(UndoCompoundEvent e) {
 		UndoCompoundEventListener[] listeners = undoEventListeners.toArray(new UndoCompoundEventListener[0]);
 		if (e.getType().isStartEvent()) {
 			for(int i = listeners.length-1;i>=0;i--) {
@@ -402,6 +403,14 @@ public abstract class SQLObject implements java.io.Serializable {
 			}
 		} 
 		
+	}
+	
+	public void startCompoundEdit(String message){
+		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.COMPOUND_EDIT_START,message));
+	}
+	
+	public void endCompoundEdit(String message){
+		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.COMPOUND_EDIT_END,message));
 	}
 
 	public LinkedList<UndoCompoundEventListener> getUndoEventListeners() {

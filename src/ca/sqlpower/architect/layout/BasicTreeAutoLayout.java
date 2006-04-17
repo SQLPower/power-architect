@@ -10,6 +10,7 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.Relationship;
@@ -95,38 +96,32 @@ public class BasicTreeAutoLayout extends AbstractLayout {
 	public void setup(List<TablePane> nodes, List<Relationship> edges,Rectangle frame) {
 		origLocations = new HashMap<TablePane,Point>();
 		
-			for (TablePane tp : nodes) {
-				origLocations.put(tp, tp.getLocation());
-			}
-			Point p = new Point();
-			newLocations = new HashMap<TablePane,Point>();
-			List<TablePane> tablePanes = nodes;
-			try {
-				doRecursiveLayout(tablePanes, p, newLocations);
-				if (logger.isDebugEnabled()) {
-					for (Map.Entry<TablePane, Point> entry : newLocations.entrySet()) {
-						TablePane tp = entry.getKey();
-						Point newLoc = entry.getValue();
-						Point oldLoc = origLocations.get(tp);
-						
-						logger.debug("Table "+tp.getModel().getName()+": old="+oldLoc.x+","+oldLoc.y+"; new="+newLoc.x+","+newLoc.y);
-					}
+		for (TablePane tp : nodes) {
+			origLocations.put(tp, tp.getLocation());
+		}
+		Point p = new Point();
+		newLocations = new HashMap<TablePane,Point>();
+		List<TablePane> tablePanes = nodes;
+		try {
+			doRecursiveLayout(tablePanes, p, newLocations);
+			if (logger.isDebugEnabled()) {
+				for (Map.Entry<TablePane, Point> entry : newLocations.entrySet()) {
+					TablePane tp = entry.getKey();
+					Point newLoc = entry.getValue();
+					Point oldLoc = origLocations.get(tp);
+					
+					logger.debug("Table "+tp.getModel().getName()+": old="+oldLoc.x+","+oldLoc.y+"; new="+newLoc.x+","+newLoc.y);
 				}
-		
-			} catch (ArchitectException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
 			
-		
+		} catch (ArchitectException e) {
+			throw new ArchitectRuntimeException(e);
+		}
 	}
 
 	public void done() {
 		for (Map.Entry<TablePane, Point> entry : newLocations.entrySet()) {
-			entry.getKey().setMovePathPoint(entry.getValue().x, entry.getValue().y);
-		}
-		for (Map.Entry<TablePane, Point> entry : newLocations.entrySet()) {
-			entry.getKey().setMoving(false);
+			entry.getKey().setLocation(entry.getValue().x, entry.getValue().y);
 		}
 		frame = numFramesInAnim;
 	}
@@ -138,11 +133,6 @@ public class BasicTreeAutoLayout extends AbstractLayout {
 
 	public void nextFrame() {
 		frame++;
-		if (frame >= numFramesInAnim){
-			for (Map.Entry<TablePane, Point> entry : newLocations.entrySet()) {
-				entry.getKey().setMoving(false);
-			}
-		}
 		double progress = ((double) frame) / ((double) numFramesInAnim);
 		logger.debug(progress);
 		for (Map.Entry<TablePane, Point> entry : newLocations.entrySet()) {
@@ -153,14 +143,13 @@ public class BasicTreeAutoLayout extends AbstractLayout {
 			int x = (int) (oldLoc.x + (double) (newLoc.x - oldLoc.x) * progress);
 			int y = (int) (oldLoc.y + (double) (newLoc.y - oldLoc.y) * progress);
 			
-			tp.setMovePathPoint(x, y);
+			tp.setLocation(x, y);
 		}
 		pp.repaint();
 		
 	}
 
 	public void setup(List<TablePane> nodes, List<Relationship> edges, int frameX, int frameY, int frameHeight, int frameWidth) {
-		// TODO Auto-generated method stub
-		
+		// no setup required
 	}
 }

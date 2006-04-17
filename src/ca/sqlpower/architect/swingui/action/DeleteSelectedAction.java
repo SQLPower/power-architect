@@ -115,32 +115,34 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 						return;
 					}	
 				
-					pp.fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.MULTI_SELECT_START,"Starting multi-select"));
-					
-					// now, delete the columns
-					Iterator it2 = selectedColumns.iterator();
-					while (it2.hasNext()) {
-						SQLColumn sc = (SQLColumn) it2.next();
-						try {
-							tp.getModel().removeColumn(sc);
-						} catch (LockedColumnException ex) {
-							int decision = JOptionPane.showConfirmDialog(pp,
-									"Could not delete the column " + sc.getName() + " because it is part of\n" +
-									"the relationship \""+ex.getLockingRelationship()+"\".\n\n" +
-									"Continue deleting remaining selected columns?",
-									"Column is Locked",
-									JOptionPane.YES_NO_OPTION);
-							if (decision == JOptionPane.NO_OPTION) {
-								return;
+					try {
+						pp.startCompoundEdit("Starting multi-select");
+						
+						// now, delete the columns
+						Iterator it2 = selectedColumns.iterator();
+						while (it2.hasNext()) {
+							SQLColumn sc = (SQLColumn) it2.next();
+							try {
+								tp.getModel().removeColumn(sc);
+							} catch (LockedColumnException ex) {
+								int decision = JOptionPane.showConfirmDialog(pp,
+										"Could not delete the column " + sc.getName() + " because it is part of\n" +
+										"the relationship \""+ex.getLockingRelationship()+"\".\n\n" +
+										"Continue deleting remaining selected columns?",
+										"Column is Locked",
+										JOptionPane.YES_NO_OPTION);
+								if (decision == JOptionPane.NO_OPTION) {
+									return;
+								}
+							} catch (ArchitectException e) {
+								logger.error("Unexpected exception encountered when attempting to delete column '"+
+										sc+"' of table '"+sc.getParentTable()+"'");
+								ASUtils.showExceptionDialog(pp, "Encountered a Problem Deleting the column", e);
 							}
-						} catch (ArchitectException e) {
-							logger.error("Unexpected exception encountered when attempting to delete column '"+
-									sc+"' of table '"+sc.getParentTable()+"'");
-							ASUtils.showExceptionDialog(pp, "Encountered a Problem Deleting the column", e);
 						}
+					} finally {
+						pp.endCompoundEdit("Ending multi-select");
 					}
-					
-					pp.fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.MULTI_SELECT_END,"Ending multi-select"));
 					
 				}
 				if (deletingColumns) { // we tried to delete 1 or more columns, so don't try to delete the table
@@ -149,39 +151,40 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 			}
 			
 			
-			pp.fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.MULTI_SELECT_START,"Starting multi-select"));
-			
-			
-			// items.size() > 0, user has OK'ed the delete
-			Iterator it = items.iterator();
-			while (it.hasNext()) {
-				Selectable item = (Selectable) it.next();
-				logger.debug("next item for delete is: " + item.getClass().getName());
-				if (item instanceof TablePane) {
-					TablePane tp = (TablePane) item;
-					tp.setSelected(false);
-					pp.getDatabase().removeChild(tp.getModel());
-					if (logger.isDebugEnabled()) {
-						logger.debug("removing element from tableNames set: " + tp.getModel().getName());
-						logger.debug("before delete: " + pp.getTablePanes().toArray());
+			pp.startCompoundEdit("Starting multi-select");
+			try {
+				
+				// items.size() > 0, user has OK'ed the delete
+				Iterator it = items.iterator();
+				while (it.hasNext()) {
+					Selectable item = (Selectable) it.next();
+					logger.debug("next item for delete is: " + item.getClass().getName());
+					if (item instanceof TablePane) {
+						TablePane tp = (TablePane) item;
+						tp.setSelected(false);
+						pp.getDatabase().removeChild(tp.getModel());
+						if (logger.isDebugEnabled()) {
+							logger.debug("removing element from tableNames set: " + tp.getModel().getName());
+							logger.debug("before delete: " + pp.getTablePanes().toArray());
+						}
+						pp.getTablePanes().remove(tp.getModel().getName().toLowerCase());
+						if (logger.isDebugEnabled()) {
+							logger.debug("after delete: " + pp.getTablePanes().toArray());
+						}
+					} else if (item instanceof Relationship) {
+						Relationship r = (Relationship) item;
+						logger.debug("trying to delete relationship " + r);
+						r.setSelected(false);
+						SQLRelationship sr = r.getModel();
+						sr.getPkTable().removeExportedKey(sr);
+					} else {
+						JOptionPane.showMessageDialog((JComponent) item,
+						"The selected item type is not recognised");
 					}
-					pp.getTablePanes().remove(tp.getModel().getName().toLowerCase());
-					if (logger.isDebugEnabled()) {
-						logger.debug("after delete: " + pp.getTablePanes().toArray());
-					}
-				} else if (item instanceof Relationship) {
-					Relationship r = (Relationship) item;
-					logger.debug("trying to delete relationship " + r);
-					r.setSelected(false);
-					SQLRelationship sr = r.getModel();
-					sr.getPkTable().removeExportedKey(sr);
-				} else {
-					JOptionPane.showMessageDialog((JComponent) item,
-												  "The selected item type is not recognised");
 				}
+			} finally {
+				pp.endCompoundEdit("Ending multi-select");
 			}
-			
-			pp.fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.MULTI_SELECT_END,"Ending multi-select"));
 			
 		} else if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE)) {
 			logger.debug("delete action came from dbtree");
@@ -197,47 +200,48 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 				}
 			}	
 			
-			pp.fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.MULTI_SELECT_START,"Starting multi-select"));
-			
-			// FIXME: parts of the following code look like they were cut'n'pasted from above... PURE EVIL!
-			Iterator it = Arrays.asList(selections).iterator();
-			while (it.hasNext()) {
-				TreePath tp = (TreePath) it.next();
-				SQLObject so = (SQLObject) tp.getLastPathComponent();
-				if (so instanceof SQLTable) {
-					SQLTable st = (SQLTable) so;
-					pp.getDatabase().removeChild(st);
-					pp.getTablePanes().remove(st.getName().toLowerCase());
-				} else if (so instanceof SQLColumn) {
-					SQLColumn sc = (SQLColumn)so;
-					SQLTable st = sc.getParentTable();
-					try {
-						st.removeColumn(sc); 
-					} catch (LockedColumnException ex) {
-						int decision = JOptionPane.showConfirmDialog(dbt,
-													 "Could not delete the column " + sc.getName() 
-                                                           + " because it is part of a relationship key.  Continue"
-                                                           + " deleting of other selected items?",
-													 "Column is Locked",
-													 JOptionPane.YES_NO_OPTION);
-						if (decision == JOptionPane.NO_OPTION) {
-							return;
+			pp.startCompoundEdit("Starting multi-select");
+			try {
+				// FIXME: parts of the following code look like they were cut'n'pasted from above... PURE EVIL!
+				Iterator it = Arrays.asList(selections).iterator();
+				while (it.hasNext()) {
+					TreePath tp = (TreePath) it.next();
+					SQLObject so = (SQLObject) tp.getLastPathComponent();
+					if (so instanceof SQLTable) {
+						SQLTable st = (SQLTable) so;
+						pp.getDatabase().removeChild(st);
+						pp.getTablePanes().remove(st.getName().toLowerCase());
+					} else if (so instanceof SQLColumn) {
+						SQLColumn sc = (SQLColumn)so;
+						SQLTable st = sc.getParentTable();
+						try {
+							st.removeColumn(sc); 
+						} catch (LockedColumnException ex) {
+							int decision = JOptionPane.showConfirmDialog(dbt,
+									"Could not delete the column " + sc.getName() 
+									+ " because it is part of a relationship key.  Continue"
+									+ " deleting of other selected items?",
+									"Column is Locked",
+									JOptionPane.YES_NO_OPTION);
+							if (decision == JOptionPane.NO_OPTION) {
+								return;
+							}
+						} catch (ArchitectException e) {
+							logger.error("Unexpected exception encountered when attempting to delete column '"+
+									sc+"' of table '"+sc.getParentTable()+"'");
+							ASUtils.showExceptionDialog(pp, "Encountered a Problem Deleting the column", e);
 						}
-					} catch (ArchitectException e) {
-						logger.error("Unexpected exception encountered when attempting to delete column '"+
-								sc+"' of table '"+sc.getParentTable()+"'");
-						ASUtils.showExceptionDialog(pp, "Encountered a Problem Deleting the column", e);
+					} else if (so instanceof SQLRelationship) {
+						SQLRelationship sr = (SQLRelationship) so;
+						sr.getPkTable().removeExportedKey(sr);
+						sr.getFkTable().removeImportedKey(sr);
+					} else {
+						JOptionPane.showMessageDialog(dbt, "The selected SQLObject type is not recognised: " + so.getClass().getName());
 					}
-				} else if (so instanceof SQLRelationship) {
-					SQLRelationship sr = (SQLRelationship) so;
-					sr.getPkTable().removeExportedKey(sr);
-					sr.getFkTable().removeImportedKey(sr);
-				} else {
-					JOptionPane.showMessageDialog(dbt, "The selected SQLObject type is not recognised: " + so.getClass().getName());
 				}
+			} finally {
+				pp.endCompoundEdit("Ending multi-select");
 			}
-			
-			pp.fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.MULTI_SELECT_END,"Ending multi-select"));
 			
 		} else {
 			logger.debug("delete action came from unknown source, so we do nothing.");

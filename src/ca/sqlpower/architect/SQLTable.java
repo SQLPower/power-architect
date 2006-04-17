@@ -871,14 +871,17 @@ public class SQLTable extends SQLObject {
 	 */
 	public void setName(String argName) {
 		String oldName =  getName();
-		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.PROPERTY_CHANGE_GROUP_START,"Starting table name compound edit"));
-		super.setName(argName);
-		if (primaryKeyName == null
-			|| primaryKeyName.equals("")
-			|| primaryKeyName.equals(oldName+"_pk")) {
-			setPrimaryKeyName( getName()+"_pk");
+		try {
+			startCompoundEdit("Starting table name compound edit");
+			super.setName(argName);
+			if (primaryKeyName == null
+					|| primaryKeyName.equals("")
+					|| primaryKeyName.equals(oldName+"_pk")) {
+				setPrimaryKeyName( getName()+"_pk");
+			}
+		} finally {
+			endCompoundEdit("Ending table name compound edit");
 		}
-		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.PROPERTY_CHANGE_GROUP_END,"Ending table name compound edit"));
 	}
 
 	/**

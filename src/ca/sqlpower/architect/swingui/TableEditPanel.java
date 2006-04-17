@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import javax.swing.*;
 
 import ca.sqlpower.architect.*;
+import ca.sqlpower.architect.swingui.CompareDMPanel.StartCompareAction;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
@@ -40,11 +41,14 @@ public class TableEditPanel extends JPanel implements ArchitectPanel {
 
 	// --------------------- ArchitectPanel interface ------------------
 	public boolean applyChanges() {
-		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.PROPERTY_CHANGE_GROUP_START,"Starting new compound edit event in table edit panel"));
-		table.setPrimaryKeyName(pkName.getText());
-		table.setName(name.getText());
-		table.setRemarks(remarks.getText());
-		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.PROPERTY_CHANGE_GROUP_END,"Ending new compound edit event in table edit panel"));
+		startCompoundEdit("Starting new compound edit event in table edit panel");
+		try {
+			table.setPrimaryKeyName(pkName.getText());
+			table.setName(name.getText());
+			table.setRemarks(remarks.getText());
+		} finally {
+			endCompoundEdit("Ending new compound edit event in table edit panel");
+		}
 		return true;
 	}
 
@@ -80,6 +84,14 @@ public class TableEditPanel extends JPanel implements ArchitectPanel {
 		} 
 	}
 
+	public void startCompoundEdit(String message){
+		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.COMPOUND_EDIT_START,message));
+	}
+	
+	public void endCompoundEdit(String message){
+		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.COMPOUND_EDIT_END,message));
+	}
+	
 	public JPanel getPanel() {
 		return this;
 	}

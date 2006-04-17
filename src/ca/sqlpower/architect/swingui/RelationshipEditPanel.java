@@ -127,32 +127,35 @@ public class RelationshipEditPanel extends JPanel
 	// ------------------ ARCHITECT PANEL INTERFACE ---------------------
 	
 	public boolean applyChanges() {
-		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.PROPERTY_CHANGE_GROUP_START,"Starting new compound edit event in relationship edit panel"));
-		relationship.setName(relationshipName.getText());
+		startCompoundEdit("Starting new compound edit event in relationship edit panel");
 		try {
-			relationship.setIdentifying(identifyingButton.isSelected());
-		} catch (ArchitectException ex) {
-			logger.warn("Call to setIdentifying failed. Continuing with other properties.", ex);
+			relationship.setName(relationshipName.getText());
+			try {
+				relationship.setIdentifying(identifyingButton.isSelected());
+			} catch (ArchitectException ex) {
+				logger.warn("Call to setIdentifying failed. Continuing with other properties.", ex);
+			}
+			
+			if (pkTypeZeroOne.isSelected()) {
+				relationship.setPkCardinality(SQLRelationship.ZERO | SQLRelationship.ONE);
+			} else if (pkTypeZeroToMany.isSelected()) {
+				relationship.setPkCardinality(SQLRelationship.ZERO | SQLRelationship.ONE | SQLRelationship.MANY);
+			} else if (pkTypeOneToMany.isSelected()) {
+				relationship.setPkCardinality(SQLRelationship.ONE | SQLRelationship.MANY);
+			} else if (pkTypeOne.isSelected()) {
+				relationship.setPkCardinality(SQLRelationship.ONE);
+			}
+			
+			if (fkTypeZeroOne.isSelected()) {
+				relationship.setFkCardinality(SQLRelationship.ZERO | SQLRelationship.ONE);
+			} else if (fkTypeZeroToMany.isSelected()) {
+				relationship.setFkCardinality(SQLRelationship.ZERO | SQLRelationship.ONE | SQLRelationship.MANY);
+			} else if (fkTypeOneToMany.isSelected()) {
+				relationship.setFkCardinality(SQLRelationship.ONE | SQLRelationship.MANY);
+			}
+		} finally {
+			endCompoundEdit("Ending new compound edit event in relationship edit panel");
 		}
-
-		if (pkTypeZeroOne.isSelected()) {
-			relationship.setPkCardinality(SQLRelationship.ZERO | SQLRelationship.ONE);
-		} else if (pkTypeZeroToMany.isSelected()) {
-			relationship.setPkCardinality(SQLRelationship.ZERO | SQLRelationship.ONE | SQLRelationship.MANY);
-		} else if (pkTypeOneToMany.isSelected()) {
-			relationship.setPkCardinality(SQLRelationship.ONE | SQLRelationship.MANY);
-		} else if (pkTypeOne.isSelected()) {
-			relationship.setPkCardinality(SQLRelationship.ONE);
-		}
-
-		if (fkTypeZeroOne.isSelected()) {
-			relationship.setFkCardinality(SQLRelationship.ZERO | SQLRelationship.ONE);
-		} else if (fkTypeZeroToMany.isSelected()) {
-			relationship.setFkCardinality(SQLRelationship.ZERO | SQLRelationship.ONE | SQLRelationship.MANY);
-		} else if (fkTypeOneToMany.isSelected()) {
-			relationship.setFkCardinality(SQLRelationship.ONE | SQLRelationship.MANY);
-		}
-		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.PROPERTY_CHANGE_GROUP_END,"Ending new compound edit event in relationship edit panel"));
 		return true;
 	}
 
@@ -189,6 +192,14 @@ public class RelationshipEditPanel extends JPanel
 			}
 		} 
 		
+	}
+	
+	public void startCompoundEdit(String message){
+		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.COMPOUND_EDIT_START,message));
+	}
+	
+	public void endCompoundEdit(String message){
+		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.COMPOUND_EDIT_END,message));
 	}
 
 	public JPanel getPanel() {

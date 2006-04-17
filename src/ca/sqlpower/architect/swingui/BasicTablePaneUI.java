@@ -248,13 +248,12 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 				itemsToCheck.add(col.toString());
 			}
 			itemsToCheck.add(table.getName());   // this works as long as the title uses the same font as the columns
-			Iterator<String> columnIt = itemsToCheck.iterator();
-			while (columnIt.hasNext()) {
-				String theColumn = columnIt.next();
+			for(String item : itemsToCheck) {
+				if (item == null) item = "(null!?)";
 				if (frc == null) {
-				    width = Math.max(width, metrics.stringWidth(theColumn));
+				    width = Math.max(width, metrics.stringWidth(item));
 				} else {
-				    width = Math.max(width, (int) font.getStringBounds(theColumn, frc).getWidth());
+				    width = Math.max(width, (int) font.getStringBounds(item, frc).getWidth());
 				}
 				logger.debug("new width is: " + width);
 			}

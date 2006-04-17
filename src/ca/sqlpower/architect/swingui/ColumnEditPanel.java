@@ -125,7 +125,6 @@ public class ColumnEditPanel extends JPanel
 	 * You should call selectColumn with a nonnegative index after calling setModel.
 	 */
 	public void setModel(SQLTable newModel) {
-		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.PROPERTY_CHANGE_GROUP_START,"Starting new compound edit event in column edit panel"));
 		// detach old model
 		if (model != null) {
 			model.getColumnsFolder().removeSQLObjectListener(tableListModel);
@@ -313,6 +312,7 @@ public class ColumnEditPanel extends JPanel
 	protected void updateModel() {
 		logger.debug("Updating model");
 		try {
+			startCompoundEdit("Starting new compound edit event in column edit panel");
 			SQLColumn col = model.getColumn(index);
 			col.setName(colName.getText());
 			col.setType(((SQLType) colType.getSelectedItem()).type);
@@ -341,6 +341,8 @@ public class ColumnEditPanel extends JPanel
 		} catch (ArchitectException ex) {
 			JOptionPane.showMessageDialog(this, "Couldn't update column information");
 			logger.error("Couldn't update model!", ex);
+		} finally {
+			endCompoundEdit("Ending compound edit event in column edit panel");
 		}
 	}
 	
@@ -356,7 +358,6 @@ public class ColumnEditPanel extends JPanel
 		} catch (ArchitectException e) {
 			logger.error("Caught exception removing treemodel from column listener list");
 		}
-		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.PROPERTY_CHANGE_GROUP_END,"Ending compound edit event in column edit panel"));
 		model.getColumnsFolder().removeSQLObjectListener(tableListModel);
 	}
 
@@ -415,7 +416,13 @@ public class ColumnEditPanel extends JPanel
 				((UndoCompoundEventListener) it.next()).compoundEditEnd(e);
 			}
 		} 
-		
+	}
+	public void startCompoundEdit(String message){
+		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.COMPOUND_EDIT_START,message));
+	}
+	
+	public void endCompoundEdit(String message){
+		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.COMPOUND_EDIT_END,message));
 	}
 	
 	// THESE GETTERS ARE TO BE USED FOR TESTING ONLY

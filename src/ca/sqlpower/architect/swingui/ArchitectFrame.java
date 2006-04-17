@@ -293,8 +293,10 @@ public class ArchitectFrame extends JFrame {
 				openFile(fileName);
 			}
 		};
+		
 		 openProjectAction = new OpenProjectAction(recent);
 
+		 
 		 JMenuItem clearItem = new JMenuItem("Clear Recent Files");
 		 clearItem.addActionListener(new ActionListener() {
 			 public void actionPerformed(ActionEvent e) {
@@ -382,12 +384,15 @@ public class ArchitectFrame extends JFrame {
 		fileMenu.add(openProjectAction);
 		fileMenu.add(recent);
 		fileMenu.add(clearItem);
+		fileMenu.addSeparator();
 		fileMenu.add(saveProjectAction);
 		fileMenu.add(saveProjectAsAction);
 		fileMenu.add(printAction);
+		fileMenu.addSeparator();
 		fileMenu.add(prefAction);
 		fileMenu.add(projectSettingsAction);
 		fileMenu.add(saveSettingsAction);
+		fileMenu.addSeparator();
 		fileMenu.add(exitAction);
 		menuBar.add(fileMenu);
 
@@ -443,7 +448,6 @@ public class ArchitectFrame extends JFrame {
 		projectBar.add(redoAction);
 		projectBar.addSeparator();
 		projectBar.add(exportDDLAction);
-		projectBar.addSeparator();
 		projectBar.add(compareDMAction);
 		projectBar.addSeparator();
 		projectBar.add(autoLayoutAction);

@@ -143,4 +143,9 @@ public class ArchitectPropertyChangeUndoableEdit extends AbstractUndoableEdit {
 		return toolTip;
 	}
 	
+	@Override
+	public String toString() {
+		return event.getSource() + "."+event.getPropertyName()+" changed from ["+event.getOldValue()+"] to ["+ event.getNewValue() + "]";
+	}
+	
 }

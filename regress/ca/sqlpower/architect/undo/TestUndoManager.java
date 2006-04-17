@@ -18,7 +18,9 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.action.CreateRelationshipAction;
+import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoManager;
+import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 
 public class TestUndoManager extends TestCase {
 
@@ -39,6 +41,8 @@ public class TestUndoManager extends TestCase {
 	PlayPen pp;
 	SQLTable fkTable;
 	SQLTable pkTable;
+	TablePane tp2;
+	
 	protected void setUp() throws Exception {
 		super.setUp();
 		System.out.println("-----------------Start setup for "+getName()+"----------------");
@@ -50,7 +54,7 @@ public class TestUndoManager extends TestCase {
 		pp.addTablePane(tp,new Point(1,1));
 		pkTable = new SQLTable(db,true);
 		pkTable.setName("parent");
-		TablePane tp2 = new TablePane(pkTable,pp);
+		tp2 = new TablePane(pkTable,pp);
 		pp.addTablePane(tp2,new Point(1,1));
 		undoManager = new UndoManager(pp);
 		pkTable.addColumn(new SQLColumn());
@@ -62,6 +66,7 @@ public class TestUndoManager extends TestCase {
 		pkTable.getColumn(1).setName("pk2");
 		pkTable.getColumn(1).setType(Types.INTEGER);
 		db.addChild(pkTable);
+		db.addChild(fkTable);
 		System.out.println("-----------------End setup for "+getName()+"----------------");
 		
 	}
@@ -71,10 +76,11 @@ public class TestUndoManager extends TestCase {
 		// TODO: add a change listener to the undo manager and make sure it fires events when it changes
 		
 		undoManager = new UndoManager(pp);
-				UndoableEdit stubEdit = new AbstractUndoableEdit() {
+		UndoableEdit stubEdit = new AbstractUndoableEdit() {
 			public String getPresentationName() { return "cows"; }
 		};
-	
+		
+			
 		CL cl = new CL();
 		undoManager.addChangeListener(cl);
 		
@@ -89,7 +95,7 @@ public class TestUndoManager extends TestCase {
 		assertFalse(undoManager.canUndo());
 	}
 	
-	public void testCompoundEdits()
+	public void testAllowCompoundEdit()
 	{
 		UndoableEdit stubEdit1 = new AbstractUndoableEdit(); 
 		UndoableEdit stubEdit2 = new AbstractUndoableEdit(); 
@@ -101,6 +107,46 @@ public class TestUndoManager extends TestCase {
 		ce.end();
 		undoManager.addEdit(ce);
 		assertTrue(undoManager.canUndo());
+	}
+	
+	public void testNestedCompoundEdits() {
+		pkTable.setName("old");
+		fkTable.setName("old");
+		pkTable.setRemarks("old");
+		fkTable.setRemarks("old");
+		
+		undoManager.getEventAdapter().compoundEditStart(
+				new UndoCompoundEvent(this,EventTypes.COMPOUND_EDIT_START,"Starting compoundedit"));
+		pkTable.setName("one");
+		undoManager.getEventAdapter().compoundEditStart(
+				new UndoCompoundEvent(this,EventTypes.COMPOUND_EDIT_START,"Starting nested compoundedit"));
+		fkTable.setName("two");
+		undoManager.getEventAdapter().compoundEditEnd(
+				new UndoCompoundEvent(this,EventTypes.COMPOUND_EDIT_END,"Ending nested compoundedit"));
+		pkTable.setRemarks("three");
+		undoManager.getEventAdapter().compoundEditEnd(
+				new UndoCompoundEvent(this,EventTypes.COMPOUND_EDIT_END,"Ending compoundedit"));
+		fkTable.setRemarks("four");
+		
+		assertEquals("one", pkTable.getName());
+		assertEquals("two", fkTable.getName());
+		assertEquals("three", pkTable.getRemarks());
+		assertEquals("four", fkTable.getRemarks());
+		
+		undoManager.undo();
+		
+		assertEquals("one", pkTable.getName());
+		assertEquals("two", fkTable.getName());
+		assertEquals("three", pkTable.getRemarks());
+		assertEquals("old", fkTable.getRemarks());
+		
+		undoManager.undo();
+
+		assertEquals("old", pkTable.getName());
+		assertEquals("old", fkTable.getName());
+		assertEquals("old", pkTable.getRemarks());
+		assertEquals("old", fkTable.getRemarks());
+
 	}
 	
 	public void testUndoCreateRelationship() throws ArchitectException {
@@ -181,6 +227,18 @@ public class TestUndoManager extends TestCase {
 		
 		// this is the point of the test
 		assertEquals("pk1 didn't go back to old type", Types.INTEGER, pk1.getType());
+	}
+	
+	public void testUndoMovement() {
+		Point oldLoc = tp2.getLocation();
+		pp.startCompoundEdit("start move");
+		tp2.setLocation(123, 456);
+		tp2.setLocation(333, 444);
+		tp2.setLocation(333, 344);
+		pp.endCompoundEdit("end move");
+		assertEquals(new Point(333,344), tp2.getLocation());
+		undoManager.undo();
+		assertEquals(oldLoc, tp2.getLocation());
 	}
 
 }

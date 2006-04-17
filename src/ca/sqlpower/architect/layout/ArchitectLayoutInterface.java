@@ -24,8 +24,7 @@ public interface ArchitectLayoutInterface {
 	public Object getProperty(String key);
 	
 	/**
-	 * Interupt the algorithm and put in a consistant state
-	 *
+	 * Interrupts the algorithm and puts play pen in a consistent state.
 	 */
 	public void done();
 	
