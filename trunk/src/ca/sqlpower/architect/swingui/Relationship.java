@@ -124,6 +124,11 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 	public Point getPreferredLocation() {
 		return ((RelationshipUI) getUI()).getPreferredLocation();
 	}
+	
+	@Override
+	public String toString() {
+		return "Relationship: "+model;
+	}
 
 	// -------------------- PlayPenComponent overrides --------------------
 

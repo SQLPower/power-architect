@@ -1121,6 +1121,7 @@ public class PlayPen extends JPanel
 						// this might reasonably happen (user deleted the column)
 						continue;
 					}
+					fkCol.addReference();
 					SQLRelationship.ColumnMapping newMapping
 						= new SQLRelationship.ColumnMapping();
 					newMapping.setPkColumn(pkCol);

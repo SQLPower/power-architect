@@ -154,6 +154,10 @@ public class TablePane
 		updateUI();
 	}
 
+	@Override
+	public String toString() {
+		return "TablePane: "+model;
+	}
 
 	// ---------------------- PlayPenComponent Overrides ----------------------
 	// see also PlayPenComponent

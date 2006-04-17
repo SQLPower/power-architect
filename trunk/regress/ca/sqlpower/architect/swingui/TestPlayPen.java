@@ -1,13 +1,18 @@
 package regress.ca.sqlpower.architect.swingui;
 
 import java.awt.Point;
+import java.sql.Types;
 
 import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.PlayPenComponent;
+import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.SwingUIProject;
 import ca.sqlpower.architect.swingui.TablePane;
 
@@ -70,4 +75,47 @@ public class TestPlayPen extends TestCase {
 				new Point(99,98), tp.getLocation());
 	}
 
+	public void testImportTableCopyHijacksProperly() throws ArchitectException {
+
+		SQLDatabase sourceDB = new SQLDatabase();
+
+		SQLTable sourceParentTable = new SQLTable(sourceDB, true);
+		sourceParentTable.setName("parent");
+		sourceParentTable.addColumn(new SQLColumn(sourceParentTable, "key", Types.BOOLEAN, 1, 0));
+		sourceParentTable.getColumn(0).setPrimaryKeySeq(0);
+		sourceDB.addChild(sourceParentTable);
+		
+		SQLTable sourceChildTable = new SQLTable(sourceDB, true);
+		sourceChildTable.setName("child");
+		sourceChildTable.addColumn(new SQLColumn(sourceChildTable, "key", Types.BOOLEAN, 1, 0));
+		sourceDB.addChild(sourceChildTable);
+
+		SQLRelationship sourceRel = new SQLRelationship();
+		sourceRel.attachRelationship(sourceParentTable, sourceChildTable, true);
+		
+		pp.importTableCopy(sourceChildTable, new Point(10, 10));
+		pp.importTableCopy(sourceParentTable, new Point(10, 10));
+		pp.importTableCopy(sourceParentTable, new Point(10, 10));
+
+		int relCount = 0;
+		int tabCount = 0;
+		int otherCount = 0;
+		for (int i = 0; i < pp.getPlayPenContentPane().getComponentCount(); i++) {
+			PlayPenComponent ppc = pp.getPlayPenContentPane().getComponent(i);
+			if (ppc instanceof Relationship) {
+				relCount++;
+			} else if (ppc instanceof TablePane) {
+				tabCount++;
+			} else {
+				otherCount++;
+			}
+		}
+		assertEquals("Expected three tables in pp", 3, tabCount);
+		assertEquals("Expected two relationships in pp", 2, relCount);
+		assertEquals("Found junk in playpen", 0, otherCount);
+		
+		TablePane importedChild = pp.findTablePaneByName("child");
+		assertEquals("Incorrect reference count on imported child col",
+				3, importedChild.getModel().getColumn(0).getReferenceCount());
+	}
 }
