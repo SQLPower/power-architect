@@ -365,6 +365,28 @@ public class TestSQLRelationship extends SQLTestCase {
 		assertEquals("fkcol's name didn't update", "custom fk col name", fkcol.getName());
 	}
 
+	public void testPKColNameChangeGoesToFKIsSecondaryEvent() throws ArchitectException{				
+		SQLColumn pkcol = new SQLColumn(parentTable, "old name", Types.VARCHAR, 10, 0);
+		parentTable.addColumn(pkcol);
+		pkcol.setPrimaryKeySeq(0);
+		
+		MySQLObjectListener l = new MySQLObjectListener();
+		ArchitectUtils.listenToHierarchy(l, database);
+		
+		pkcol.setName("new name");
+		
+		// Expect one primary event for the name change in the parent table
+		assertEquals("too many primary events!", 1, l.getPrimaryCount());
+		
+		// expect secondary events for the related columns in child_table_1 and child_table_2
+		assertEquals("not enough secondary events!", 2, l.getSecondaryCount());
+		
+		// make sure columns aren't stuck in secondary mode
+		assertFalse(parentTable.getColumnByName("new name").isSecondaryChangeMode());
+		assertFalse(childTable1.getColumnByName("new name").isSecondaryChangeMode());
+		assertFalse(childTable2.getColumnByName("new name").isSecondaryChangeMode());
+	}
+	
 	public void testPKColTypeChangeGoesToFKCol() throws ArchitectException {
 		SQLColumn pkcol = new SQLColumn(parentTable, "old name", Types.VARCHAR, 10, 0);
 		parentTable.addColumn(pkcol);
@@ -459,8 +481,8 @@ public class TestSQLRelationship extends SQLTestCase {
 				secondaryCount++;
 			} else {
 				primaryCount++;
-				System.out.printf("Primary dbObjectChanged: source=%s, prop=%s, old=%s, new=%s\n",
-						e.getSource(), e.getPropertyName(), e.getOldValue(), e.getNewValue());
+				System.out.printf("Primary dbObjectChanged: source=%s (parent %s), prop=%s, old=%s, new=%s\n",
+						e.getSource(), e.getSQLSource().getParent(), e.getPropertyName(), e.getOldValue(), e.getNewValue());
 			}
 		}
 
