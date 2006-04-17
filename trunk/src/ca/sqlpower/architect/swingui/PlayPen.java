@@ -660,6 +660,16 @@ public class PlayPen extends JPanel
 	}
 	
 
+	// set the size of the viewport that we are sitting in (return null if there isn't one);
+	public void setViewportSize(int width, int height) {
+		Container c = SwingUtilities.getAncestorOfClass(JViewport.class, this);
+		if (c != null) {
+			JViewport jvp = (JViewport) c;
+			logger.debug("viewport size set to: " + width + "," + height);
+			jvp.setSize(width,height);
+		} 
+	}
+	
 	/**
 	 * If some playpen components get dragged into a negative range all tables are then shifted
 	 * so that the lowest x and y values are 0.  The tables will retain their relative location.
@@ -703,7 +713,30 @@ public class PlayPen extends JPanel
 			repaint();
 		}			
 	}
-
+	
+//	 get the position of the viewport that we are sitting in
+	public Point getViewPosition() {
+		Container c = SwingUtilities.getAncestorOfClass(JViewport.class, this);
+		if (c != null) {
+			JViewport jvp = (JViewport) c;
+			Point viewPosition = jvp.getViewPosition();
+			logger.debug("view position is: " + viewPosition);
+			return viewPosition;
+		} else {
+			return null;
+		}
+	}
+	
+	// set the position of the viewport that we are sitting in
+	public void setViewPosition(Point p ) {
+		Container c = SwingUtilities.getAncestorOfClass(JViewport.class, this);
+		if (c != null) {
+			JViewport jvp = (JViewport) c;
+			logger.debug("view position set to: " + p);
+			jvp.setViewPosition(p);
+		} 
+	}
+	
 	public void paintComponent(Graphics g) {
 
 		logger.debug("start of paintComponent, width="+getWidth()+",height="+getHeight());
