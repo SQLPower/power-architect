@@ -362,7 +362,8 @@ public class DBTree extends JTree implements DragSourceListener {
 		
 		for (ArchitectDataSource dbcs : ArchitectFrame.getMainInstance().getUserSettings().getConnections()) {
 			connectionsMenu.add(new JMenuItem(new AddDBCSAction(dbcs)));
-		}	
+		}
+		ASUtils.breakLongMenu(ArchitectFrame.getMainInstance(),connectionsMenu);
 		
 		if (isTargetDatabaseNode(p)) {
 			newMenu.addSeparator();
