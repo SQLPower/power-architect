@@ -124,7 +124,7 @@ public class SpringForce extends AbstractLayout {
 				movement=false;
 			}
 			
-			tablePanes.get(ii).setMovePathPoint(newPosition);
+			tablePanes.get(ii).setLocation(newPosition);
 			
 		}
 

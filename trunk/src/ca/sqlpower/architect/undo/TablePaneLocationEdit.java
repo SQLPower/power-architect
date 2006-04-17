@@ -16,20 +16,19 @@ public class TablePaneLocationEdit extends AbstractUndoableEdit {
 	ArrayList<PlayPenComponentEvent> list;
 	
 	public TablePaneLocationEdit(PlayPenComponentEvent e) {
-		list = new ArrayList();
+		list = new ArrayList<PlayPenComponentEvent>();
 		list.add(e);
 	}
 	
-	public TablePaneLocationEdit(Collection<PlayPenComponentEvent> list)
-	{
-		this.list = new ArrayList();
+	public TablePaneLocationEdit(Collection<PlayPenComponentEvent> list) {
+		this.list = new ArrayList<PlayPenComponentEvent>();
 		this.list.addAll(list);
 	}
+	
 	@Override
 	public void undo() throws CannotUndoException {
 		super.undo();
-		for(PlayPenComponentEvent componentEvent : list)
-		{
+		for (PlayPenComponentEvent componentEvent : list) {
 			changeLocation(componentEvent, componentEvent.getOldPoint());
 		}
 	}
@@ -37,28 +36,23 @@ public class TablePaneLocationEdit extends AbstractUndoableEdit {
 	@Override
 	public void redo() throws CannotRedoException {
 		super.redo();
-		for(PlayPenComponentEvent componentEvent : list)
-		{
-			changeLocation( componentEvent, componentEvent.getNewPoint());
+		for (PlayPenComponentEvent componentEvent : list) {
+			changeLocation(componentEvent, componentEvent.getNewPoint());
 		}
 	}
 	
-	private void changeLocation(PlayPenComponentEvent componentEvent,Point newPoint)
-	{	
-		if(componentEvent.getSource() instanceof TablePane)
-		{
-			((TablePane)componentEvent.getSource()).setLocation(newPoint);	
-			((TablePane)componentEvent.getSource()).repaint();
-			((TablePane)componentEvent.getSource()).getPlayPen().revalidate();
+	private void changeLocation(PlayPenComponentEvent componentEvent, Point newPoint) {
+		if (componentEvent.getSource() instanceof TablePane) {
+			((TablePane) componentEvent.getSource()).setLocation(newPoint);
+			((TablePane) componentEvent.getSource()).repaint();
+			((TablePane) componentEvent.getSource()).getPlayPen().revalidate();
 		}
-			
+
 	}
 	
 	@Override
 	public String getPresentationName() {
 		return "Move";
 	}
-	
-	
 	
 }

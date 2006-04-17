@@ -10,60 +10,33 @@ import ca.sqlpower.architect.layout.ArchitectLayoutInterface;
 
 public class LayoutAnimator implements ActionListener {
 
-	private ArchitectLayoutInterface layout;
-	private Timer timer;
-
-	private List<TablePane> tables;
 	private PlayPen pp;
-	
-	public ArchitectLayoutInterface getLayout() {
-		return layout;
-	}
+	private Timer timer;
+	private ArchitectLayoutInterface layout;
 
-
-	public void setLayout(ArchitectLayoutInterface layout) {
+	public LayoutAnimator(PlayPen pp, Timer timer, ArchitectLayoutInterface layout) {
+		this.pp = pp;
+		this.timer = timer;
 		this.layout = layout;
+		pp.startCompoundEdit("Layout animation starting");
 	}
-
-
+	
 	public void actionPerformed(ActionEvent e) {
-		if (pp == null)
-		{
-			pp = ArchitectFrame.getMainInstance().playpen;
-		}
-		if (layout.isDone() )
-		{
+		if (layout.isDone()) {
 			timer.stop();
 			layout.done();
-			for (TablePane tp: tables)
-			{
-				tp.firePlayPenComponentMoveEnd(tp.getLocation());
-			}
-		}
-		else
-		{
-			
+			pp.endCompoundEdit("Layout animation finished");
+		} else {
 			layout.nextFrame();
 			pp.revalidate();
-			
 		}
 	}
-
 
 	public Timer getTimer() {
 		return timer;
 	}
 
-	public void setPlayPen(PlayPen playPen)
-	{
-		pp = playPen;
-	}
-
-	public void setTimer(Timer timer) {
-		this.timer = timer;
-	}
-	public void setTablePanes(List <TablePane> tablePanes)
-	{
-		tables = tablePanes;
+	public ArchitectLayoutInterface getLayout() {
+		return layout;
 	}
 }

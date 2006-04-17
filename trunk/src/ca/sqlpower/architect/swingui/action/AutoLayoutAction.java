@@ -64,10 +64,7 @@ public class AutoLayoutAction extends AbstractAction {
 				}
 				layoutAreaOffset = new Point(maxWidth,0);
 			}
-				
-			for(TablePane tp:tablePanes){
-				tp.firePlayPenComponentMoveStart(tp.getLocation());
-			}
+
 			List<Relationship> relationships = pp.getRelationships();
 			logger.debug("About to do layout. tablePanes="+tablePanes);
 			logger.debug("About to do layout. relationships="+relationships);
@@ -83,13 +80,8 @@ public class AutoLayoutAction extends AbstractAction {
 		if (!animationEnabled) {
 			layout.done();
 		} else {
-		
 			final Timer timer = new Timer( (int) (1.0 / ((double) framesPerSecond) * 1000.0), null);
-			LayoutAnimator animator = new LayoutAnimator();
-			animator.setLayout(layout);
-			animator.setTimer(timer);
-			animator.setPlayPen(pp);
-			animator.setTablePanes(tables);
+			LayoutAnimator animator = new LayoutAnimator(pp, timer, layout);
 			timer.addActionListener(animator);
 			timer.start();
 		}

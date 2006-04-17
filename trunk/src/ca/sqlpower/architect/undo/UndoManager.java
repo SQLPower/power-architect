@@ -3,11 +3,13 @@
  */
 package ca.sqlpower.architect.undo;
 
+import java.awt.Point;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -26,6 +28,7 @@ import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentListener;
 
@@ -45,22 +48,21 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 			SQLObjectListener, PropertyChangeListener, PlayPenComponentListener {
 		
 		
-		private PlayPenComponentEvent movementEvent;
 		private CompoundEdit ce;
 		private int compoundEditStackCount;
-		private int simulMoveCount;
-		private HashMap<Object,PlayPenComponentEvent> moveList;
+		private HashMap<PlayPenComponent, Point> newPositions;
+		private HashMap<PlayPenComponent, Point> originalPositions;
 		
 		public SQLObjectUndoableEventAdapter() {
-			
 			ce = null;
-			compoundEditStackCount =0;
-			simulMoveCount=0;
-			moveList = new HashMap<Object,PlayPenComponentEvent>();
+			compoundEditStackCount = 0;
+			newPositions = new HashMap<PlayPenComponent, Point>();
+			originalPositions = new HashMap<PlayPenComponent, Point>();
 		}
 		
 		/**
-		 * 
+		 * Begins a compound edit.  Compound edits can be nested, so every call to this method
+		 * has to be balanced with a call to {@link #compoundGroupEnd()}.
 		 */
 		private void compoundGroupStart() {		
 			compoundEditStackCount++;
@@ -70,10 +72,13 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 				logger.debug("compoundGroupStart: edit stack ="+compoundEditStackCount);
 			}
 		}
-		/**
-		 * 
-		 */
 
+		/**
+		 * Ends a compound edit.  Compound edits can be nested, so every call to this method
+		 * has to be preceeded by a call to {@link #compoundGroupStart()}.
+		 * 
+		 * @throws IllegalStateException if there wasn't already a compound edit in progress.
+		 */
 		private void compoundGroupEnd() {
 			if (compoundEditStackCount  <= 0){
 				throw new IllegalStateException("No compound edit in progress");
@@ -175,84 +180,59 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 		 */
 		private void returnToEditState()
 		{
-			if ( simulMoveCount != 0 || compoundEditStackCount !=0)
-				throw new IllegalStateException("Both the move count ("+simulMoveCount+") and the compound edit stack ("+compoundEditStackCount+") should be 0");
-			if(ce!= null) {
+			if (compoundEditStackCount != 0) {
+				throw new IllegalStateException("The compound edit stack ("+compoundEditStackCount+") should be 0");
+			}
+			
+			
+			// add any movements
+			List<PlayPenComponentEvent> condensedMoveEvents = new ArrayList<PlayPenComponentEvent>();
+			for (Map.Entry<PlayPenComponent, Point> ent : newPositions.entrySet()) {
+				PlayPenComponent ppc = ent.getKey();
+				Point oldPos = originalPositions.get(ppc);
+				Point newPos = ent.getValue();
+				condensedMoveEvents.add(new PlayPenComponentEvent(ppc, oldPos, newPos));
+			}
+			
+			if (ce != null) {
+				TablePaneLocationEdit tableEdit = new TablePaneLocationEdit(condensedMoveEvents);
+				ce.addEdit(tableEdit);
+
 				// make sure the edit is no longer in progress
 				ce.end();
-				// add at least one movement when ignoring move events
-				if (movementEvent != null)
-				{
-					ce.addEdit(new TablePaneLocationEdit(movementEvent));
-					movementEvent = null;
-				}
-				if (ce.canUndo())
-				{
-					logger.debug("Adding compound edit "+ ce +" to undo manager");
+
+				newPositions.clear();
+				if (ce.canUndo()) {
+					logger.debug("Adding compound edit " + ce + " to undo manager");
 					UndoManager.this.addEdit(ce);
 				} else {
-					logger.debug("Compound edit "+ ce +" is not undoable so we are not adding it");
+					logger.debug("Compound edit " + ce + " is not undoable so we are not adding it");
 				}
-				
+
 				ce = null;
-			}
-			else
-			{
-				if (movementEvent != null)
-				{
-					UndoManager.this.addEdit(new TablePaneLocationEdit(movementEvent));
-					movementEvent = null;
-				}
+			} else {
+				UndoManager.this.addEdit(new TablePaneLocationEdit(condensedMoveEvents));
+				newPositions.clear();
 			}
 			
 			logger.debug("Returning to regular state");
 		}
 
 		public void componentMoved(PlayPenComponentEvent e) {
-					
+			if (newPositions.put(e.getPPComponent(), e.getNewPoint()) == null) {
+				originalPositions.put(e.getPPComponent(), e.getOldPoint());
+			}
+			if(ce == null) {
+				returnToEditState();
+			}
 		}
 
 		public void componentResized(PlayPenComponentEvent e) {
-			// TODO Auto-generated method stub
-			
-		}
 
-		public void componentMoveStart(PlayPenComponentEvent e) {
-			
-			compoundGroupStart();
-			simulMoveCount++;
-			moveList.put(e.getSource(),e);			
-			logger.debug("UndoAdapter Starting move "+ simulMoveCount + "::");
-		}
-
-		public void componentMoveEnd(PlayPenComponentEvent e) {
-			logger.debug("UndoAdapter ending move "+ simulMoveCount);
-			if ( simulMoveCount <= 0 )
-				throw new IllegalStateException("Trying to move a component that has not started");
-			simulMoveCount--;
-			compoundGroupEnd();
-
-			
-			PlayPenComponentEvent oldEvent = moveList.get(e.getSource());
-			if (oldEvent != null)
-			{
-				oldEvent.setNewPoint(e.getNewPoint());
-			}
-			
-			if (simulMoveCount == 0) {
-				if( !oldEvent.getOldPoint().equals( e.getNewPoint()))
-				{
-					TablePaneLocationEdit tableEdit = new TablePaneLocationEdit (moveList.values());		
-					addEdit(tableEdit);
-				}
-				moveList.clear();		
-			}
-			
 		}
 
 		public void propertyChange(PropertyChangeEvent evt) {
-			// TODO Auto-generated method stub
-			
+	
 		}
 
 		public void compoundEditStart(UndoCompoundEvent e) {

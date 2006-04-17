@@ -702,9 +702,7 @@ public class TablePane
 					logger.debug("Importing items from tree: "+paths);
 					
 					// put the undo event adapter into a drag and drop state
-					ArchitectFrame.getMainInstance().playpen.fireUndoCompoundEvent(
-							new UndoCompoundEvent(
-							this,EventTypes.DRAG_AND_DROP_START, "Starting drag and drop"));
+					ArchitectFrame.getMainInstance().playpen.startCompoundEdit("Starting drag and drop");
 					
 					ArrayList<SQLObject> droppedItems = new ArrayList<SQLObject>();
 					for (int[] path : paths) {
@@ -729,9 +727,7 @@ public class TablePane
 					tp.getModel().normalizePrimaryKey();
 					
 					// put the undo event adapter into a regular state
-					ArchitectFrame.getMainInstance().playpen.fireUndoCompoundEvent(
-							new UndoCompoundEvent(
-							this,EventTypes.DRAG_AND_DROP_END, "End drag and drop"));
+					ArchitectFrame.getMainInstance().playpen.endCompoundEdit("End drag and drop");
 				}
 			}
 		}

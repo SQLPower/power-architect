@@ -37,8 +37,6 @@ public abstract class PlayPenComponent implements Selectable {
 	private String name;
 	private Color foregroundColor;
 	private String toolTipText;
-	private boolean moving=false;
-	
 	private boolean opaque;
 	
 	private PlayPenComponentUI ui;
@@ -105,14 +103,16 @@ public abstract class PlayPenComponent implements Selectable {
 	}
 
 	/**
-	 * Issues a repaint to the PlayPen which covers the old bounds of
-	 * this component.  This will allow newly-exposed sections of the
-	 * PlayPen to draw themselves in case this setBounds call is
-	 * shrinking this component. Normally in Swing, this is done
-	 * automatically to the parent component but because of the
-	 * zooming implementation, the PlayPen is not our parent.
+	 * Updates the bounds of this component, then issues a repaint to the
+	 * PlayPen which covers the old bounds of this component. This will allow
+	 * newly-exposed sections of the PlayPen to draw themselves in case this
+	 * setBounds call is shrinking this component.  Also ensures the new bounds
+	 * do not remain left of or above the (0,0) point by normalizing the play pen.
+	 * 
+	 * <p>All methods that affect the bounds rectangle should do so by calling this
+	 * method.
 	 */
-	public void setBounds(int x, int y, int width, int height) {
+	protected void setBoundsImpl(int x, int y, int width, int height) { 
 		Rectangle oldBounds = getBounds(); 
 		PlayPen owner = getPlayPen();
 		if (owner != null) {
@@ -130,6 +130,10 @@ public abstract class PlayPenComponent implements Selectable {
 		Point oldPoint = new Point(bounds.x,bounds.y);
 		bounds.setBounds(x,y,width,height);
 		
+		if (bounds.x < 0 || bounds.y <0) {
+			owner.normalize();
+		}
+		
 		if (oldBounds.x != x || oldBounds.y != y) {
 			firePlayPenComponentMoved(oldPoint, new Point(x,y));
 		}
@@ -139,6 +143,13 @@ public abstract class PlayPenComponent implements Selectable {
 		}
 
 		repaint();
+	}
+
+	/**
+	 * See setBoundsImpl.
+	 */
+	public void setBounds(int x, int y, int width, int height) {
+		setBoundsImpl(x, y, width, height);
 	}
 
 	/**
@@ -192,61 +203,27 @@ public abstract class PlayPenComponent implements Selectable {
 	}
 	
 	/**
-	 * Set a new point along the movement path
-	 *
+	 * Updates the on-screen location of this component.  If you try to move this
+	 * component to a negative co-ordinate, it will automatically be normalized (along
+	 * with everything else in the playpen) to non-negative coordinates.
 	 */
-	public void setMovePathPoint(Point point)
-	{
-		setMovePathPoint(point.x,point.y);
-	}
-	/**
-	 * Set a new point along the movement path
-	 *
-	 */
-	public void setMovePathPoint(int x,int y)
-	{
-	
-		Point oldPoint = new Point(bounds.x,bounds.y);
-		PlayPen owner = getPlayPen();
-		if (owner != null) {
-			Rectangle r = getBounds();
-			double zoom = owner.getZoom();
-			owner.repaint((int) Math.floor((double) r.x * zoom),
-						  (int) Math.floor((double) r.y * zoom),
-						  (int) Math.ceil((double) r.width * zoom),
-						  (int) Math.ceil((double) r.height * zoom));
-		}
-		this.repaint();
-		if (bounds.x != x || bounds.y != y) {
-			bounds.x = x;
-			bounds.y = y;
-			firePlayPenComponentMoved(oldPoint,new Point(x,y));
-		}
-	}
-	
-	/**
-	 * Perform a single move operation on one component.
-	 * If you need to do multiple moves or move multiple items at once
-	 * use @link{setMovePathPoint(Point)}
-	 * 
-	 * @param point
-	 */
-	
 	public void setLocation(Point point) {
-		setLocation(point.x,point.y);
+		setBoundsImpl(point.x,point.y, getWidth(), getHeight());
 	}
+
 	/**
-	 * Perform a single move operation on one component.
-	 * If you need to do multiple moves or move multiple items at once
-	 * use @link{setMovePathPoint(int,int)}
-	 *
+	 * Updates the on-screen location of this component.  If you try to move this
+	 * component to a negative co-ordinate, it will automatically be normalized (along
+	 * with everything else in the playpen) to non-negative coordinates.
 	 */
 	public void setLocation(int x, int y) {
-	
-		setMoving(true);
-		setMovePathPoint(x,y);
-		setMoving(false);
+		setBoundsImpl(x, y, getWidth(), getHeight());
 	}
+	
+	public void setSize(Dimension size) {
+		setBoundsImpl(getX(), getY(), size.width, size.height);
+	}
+
 	/**
 	 * Forwards to {@link #repaint(Rectangle)}.
 	 */
@@ -296,26 +273,6 @@ public abstract class PlayPenComponent implements Selectable {
 	public void removePlayPenComponentListener(PlayPenComponentListener l) {
 		playPenComponentListeners.remove(l);
 	}
-	
-
-	
-
-	public void firePlayPenComponentMoveStart(Point oldPoint) {
-		PlayPenComponentEvent e = new PlayPenComponentEvent(this,oldPoint,null);
-		Iterator it = playPenComponentListeners.iterator();
-		while (it.hasNext()) {
-			((PlayPenComponentListener) it.next()).componentMoveStart(e);
-		}
-	}
-
-	protected void firePlayPenComponentMoveEnd(Point newPoint) {
-		PlayPenComponentEvent e = new PlayPenComponentEvent(this,null,newPoint);
-		Iterator it = playPenComponentListeners.iterator();
-		while (it.hasNext()) {
-			((PlayPenComponentListener) it.next()).componentMoveEnd(e);
-		}
-	}
-	
 	
 	protected void firePlayPenComponentMoved(Point oldPoint,Point newPoint) {
 		PlayPenComponentEvent e = new PlayPenComponentEvent(this,oldPoint,newPoint);
@@ -445,34 +402,6 @@ public abstract class PlayPenComponent implements Selectable {
 		return getUI().getPreferredSize();
 	}
 
-	public void setSize(Dimension size) {
-		bounds.height = size.height;
-		bounds.width = size.width;
-		firePlayPenComponentResized();
-		
-	}
-
-
-	public boolean isMoving() {
-		return moving;
-	}
-
-	public void setMoving(boolean moving) {
-		if(moving && !this.moving){
-			firePlayPenComponentMoveStart(new Point(bounds.x,bounds.y));
-		}
-		else if (!moving && this.moving)
-		{
-			firePlayPenComponentMoveEnd(new Point(bounds.x,bounds.y));
-		}
-		else
-		{
-			logger.debug("Trying to change the moving state to the current state of moving="+moving);
-		}
-		this.moving = moving;
-	}
-
 	public abstract Object getModel();
-
 	
 }

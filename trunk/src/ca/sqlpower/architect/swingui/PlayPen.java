@@ -231,7 +231,6 @@ public class PlayPen extends JPanel
 		zoom = 1.0;
 		setBackground(java.awt.Color.white);
 		contentPane = new PlayPenContentPane(this);
-		setLayout(new PlayPenLayout());
 		setName("Play Pen");
 		setMinimumSize(new Dimension(1,1));
 		dt = new DropTarget(this, new PlayPenDropListener());
@@ -495,7 +494,7 @@ public class PlayPen extends JPanel
 	 * @param y the apparent visible Y co-ordinate
 	 */
 	protected void setChildPositionImpl(PlayPenComponent child, int x, int y) {
-		child.setMovePathPoint((int) ((double) x / zoom), (int) ((double) y / zoom));
+		child.setLocation((int) ((double) x / zoom), (int) ((double) y / zoom));
 	}
 	
 	/**
@@ -633,7 +632,6 @@ public class PlayPen extends JPanel
 	
 	public Dimension getUsedArea() {
 		Rectangle cbounds = null;
-		//int minx = Integer.MAX_VALUE, miny = Integer.MAX_VALUE, maxx = 0, maxy = 0;
 		int minx = 0, miny = 0, maxx = 0, maxy = 0;
 		for (int i = 0; i < contentPane.getComponentCount(); i++) {
 			PlayPenComponent c = contentPane.getComponent(i);
@@ -662,6 +660,49 @@ public class PlayPen extends JPanel
 	}
 	
 
+	/**
+	 * If some playpen components get dragged into a negative range all tables are then shifted
+	 * so that the lowest x and y values are 0.  The tables will retain their relative location.
+	 *
+	 * If this function is moved into a layout manager it causes problems with undo because we do
+	 * no know when this gets called.
+	 */
+	protected void normalize() {
+	
+		int minX, minY;
+		minX = minY = 0;
+		Iterator it = getTablePanes().iterator();
+		while (it.hasNext()) {
+			TablePane tp = (TablePane) it.next();
+			if ( minX > tp.getX() )
+				minX = tp.getX();
+			if ( minY > tp.getY() )
+				minY = tp.getY();
+		}
+		int newX, newY;
+		if ( minX < 0 )
+			newX = 0 - minX;
+		else
+			newX = 0;
+		if ( minY < 0 )
+			newY = 0 - minY;
+		else
+			newY = 0;
+
+		if ( newX > 0 || newY > 0 ) {
+
+			it = getTablePanes().iterator();
+			while (it.hasNext()) {
+				TablePane tp = (TablePane) it.next();
+				tp.setLocation(tp.getX()+newX, tp.getY()+newY);
+			}
+			
+			// This function may have expanded the playpen's minimum
+			// and preferred sizes, so the original repaint region could be
+			// too small!
+			repaint();
+		}			
+	}
 
 	public void paintComponent(Graphics g) {
 
@@ -1225,7 +1266,7 @@ public class PlayPen extends JPanel
 				}
 			}
 
-			ArchitectFrame.getMainInstance().getProject().getPlayPen().fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.MULTI_SELECT_START,"Starting multi-select"));
+			ArchitectFrame.getMainInstance().getProject().getPlayPen().startCompoundEdit("Starting multi-select");
 				
 			try {
 				
@@ -1290,7 +1331,7 @@ public class PlayPen extends JPanel
 			} finally {
 				finished = true;
 				hasStarted = false;
-				ArchitectFrame.getMainInstance().getProject().getPlayPen().fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.MULTI_SELECT_END,"Ending multi-select"));
+				ArchitectFrame.getMainInstance().getProject().getPlayPen().endCompoundEdit("Ending multi-select");
 			}
 		}
 		
@@ -1596,7 +1637,7 @@ public class PlayPen extends JPanel
 		undoEventListeners.remove(l);
 	}
 	
-	public void fireUndoCompoundEvent(UndoCompoundEvent e) {
+	private void fireUndoCompoundEvent(UndoCompoundEvent e) {
 		Iterator it = undoEventListeners.iterator();
 		
 		
@@ -1610,6 +1651,14 @@ public class PlayPen extends JPanel
 			}
 		} 
 		
+	}
+	
+	public void startCompoundEdit(String message){
+		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.COMPOUND_EDIT_START,message));
+	}
+	
+	public void endCompoundEdit(String message){
+		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.COMPOUND_EDIT_END,message));
 	}
 	// ------------------------------------- INNER CLASSES ----------------------------
 
@@ -2070,10 +2119,11 @@ public class PlayPen extends JPanel
 					
 					zoomRect(dirtyRegion);
 					repaintRubberBandRegion(dirtyRegion);
-					if ( getSelectedItems().size() > 0 )
+					if ( getSelectedItems().size() > 0 ) {
 						mouseMode = MouseModeType.MULTI_SELECT;
-					else
+					} else {
 						mouseMode = MouseModeType.IDLE;
+					}
 				}
 			}
 			maybeShowPopup(evt);
@@ -2209,9 +2259,14 @@ public class PlayPen extends JPanel
 		private TablePane tp;
 		private Point handle;
 		private Point p;
+		
+		/**
+		 * If true, we will add the given TablePane to the play pen once the user clicks,
+		 * and add its model to the playpen's database. 
+		 */
 		private boolean addToPP;
 		
-		public FloatingTableListener(PlayPen pp, TablePane tp, Point handle,boolean addToPP) {
+		public FloatingTableListener(PlayPen pp, TablePane tp, Point handle, boolean addToPP) {
 			this.pp = pp;
 			this.addToPP = addToPP;
 			PointerInfo pi = MouseInfo.getPointerInfo();
@@ -2223,6 +2278,7 @@ public class PlayPen extends JPanel
 		
 			this.tp = tp;
 			this.handle = handle;
+			
 			pp.addMouseMotionListener(this);
 			pp.addMouseListener(this); // the click that ends this operation
 			pp.addCancelableListener(this);
@@ -2230,10 +2286,8 @@ public class PlayPen extends JPanel
 				pp.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 			} else { 
 				pp.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
-				//Set the table pane to moving if the undomanager is already listening
-				tp.setMoving(true);
+				pp.startCompoundEdit("Starting move for table "+tp.getName());
 			}
-			
 		}
 
 		public void mouseMoved(MouseEvent e) {
@@ -2251,45 +2305,42 @@ public class PlayPen extends JPanel
 		 * Anchors the tablepane and disposes this listener instance.
 		 */
 		public void mouseReleased(MouseEvent e) {
-			cleanup();
+			cleanup(false);
 		}
 
-		public void cancel()
-		{
-			removeFromListeners();
+		public void cancel() {
+			cleanup(true);
 		}
 		
-		protected void cleanup() {
-			if(addToPP)
-			{
-				pp.unzoomPoint(p);
-				logger.debug("Placing table at: "+p);
-				pp.addImpl(tp,p,pp.getPPComponentCount());
-				try {
-					pp.db.addChild(tp.getModel());
-					pp.selectNone();
-					tp.setSelected(true);
-					mouseMode = MouseModeType.SELECT_TABLE;
-				} catch (ArchitectException e) {
-					logger.error("Couldn't add table \""+tp.getModel()+"\" to play pen:", e);
-					JOptionPane.showMessageDialog(null, "Failed to add table:\n"+e.getMessage());
-					return;
+		protected void cleanup(boolean cancelled) {
+			try { 
+				if (addToPP && !cancelled) {
+					pp.unzoomPoint(p);
+					logger.debug("Placing table at: " + p);
+					pp.addImpl(tp, p, pp.getPPComponentCount());
+					try {
+						pp.db.addChild(tp.getModel());
+						pp.selectNone();
+						tp.setSelected(true);
+						mouseMode = MouseModeType.SELECT_TABLE;
+					} catch (ArchitectException e) {
+						logger.error("Couldn't add table \"" + tp.getModel() + "\" to play pen:", e);
+						JOptionPane.showMessageDialog(null, "Failed to add table:\n" + e.getMessage());
+						return;
+					}
 				}
-			} else {
-				tp.setMoving(false);
+			} finally {
+				if (!addToPP) {
+					pp.endCompoundEdit("Ending move for table "+tp.getName());
+				}
 			}
-			removeFromListeners();
-			pp.revalidate();
-		}
-		
-		private void removeFromListeners() {
+			
 			pp.setCursor(null);
 			pp.removeMouseMotionListener(this);
 			pp.removeMouseListener(this);
 			pp.removeCancelableListener(this);
+			pp.revalidate();
 		}
-	
-		
 	}
 
 	// -------------- Bring to Front / Send To Back ------------------

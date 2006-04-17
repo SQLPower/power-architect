@@ -126,18 +126,6 @@ public class PlayPenContentPane {
 		playPenComponentListeners.remove(l);
 	}
 	
-	private void refirePlayPenComponentMoveStart(PlayPenComponentEvent e) {
-		for (PlayPenComponentListener l : playPenComponentListeners) {
-			l.componentMoveStart(e);
-		}
-	}
-
-	private void refirePlayPenComponentMoveEnd(PlayPenComponentEvent e) {
-		for (PlayPenComponentListener l : playPenComponentListeners) {
-			l.componentMoveEnd(e);
-		}
-	}
-	
 	private void refirePlayPenComponentMoved(PlayPenComponentEvent e) {
 		for (PlayPenComponentListener l : playPenComponentListeners) {
 			l.componentMoved(e);
@@ -160,13 +148,5 @@ public class PlayPenContentPane {
 			refirePlayPenComponentResized(e);
 		}
 
-		public void componentMoveStart(PlayPenComponentEvent e) {
-			refirePlayPenComponentMoveStart(e);
-		}
-
-		public void componentMoveEnd(PlayPenComponentEvent e) {
-			refirePlayPenComponentMoveEnd(e);
-		}
-		
 	}
 }
