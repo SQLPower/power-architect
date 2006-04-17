@@ -118,6 +118,7 @@ public class ArchitectFrame extends JFrame {
  	protected ZoomAction zoomInAction;
  	protected ZoomAction zoomOutAction;
  	protected Action zoomNormalAction;
+ 	protected Action zoomAllAction;
  	protected  JComponent contentPane;
 	private AutoLayoutAction autoLayoutAction;
 
@@ -350,6 +351,38 @@ public class ArchitectFrame extends JFrame {
 				};
 		zoomNormalAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Reset Zoom");
 		
+		
+		zoomAllAction = new AbstractAction("Zoom to fit",
+							 ASUtils.createJLFIcon("general/Zoom",
+												   "Reset Zoom",
+												   sprefs.getInt(SwingUserSettings.ICON_SIZE, 24))) {
+				public void actionPerformed(ActionEvent e) {
+					Rectangle rect = null;
+					if ( playpen != null ) {
+						for (int i = 0; i < playpen.getContentPane().getComponentCount(); i++) {
+							PlayPenComponent ppc = playpen.getContentPane().getComponent(i);
+							if ( i == 0 ) {
+								rect = new Rectangle(ppc.getLocation(),ppc.getSize());
+							}
+							else {
+								rect.add(ppc.getBounds());
+							}
+						}
+					}
+					double zoom = playpen.getViewportSize().getHeight()/rect.height;
+					double zoom1 = playpen.getViewportSize().getWidth()/rect.width;
+					if ( zoom1 < zoom )
+						zoom = zoom1;
+					zoom *= 0.95;
+
+					playpen.setZoom(zoom);
+					playpen.scrollRectToVisible(playpen.unzoomRect(rect));
+				}
+			};
+		zoomAllAction.putValue(AbstractAction.SHORT_DESCRIPTION, "View All");
+	
+	
+		
 		undoAction = new UndoAction();
 		redoAction = new RedoAction();
 		autoLayoutAction = new AutoLayoutAction();
@@ -461,6 +494,7 @@ public class ArchitectFrame extends JFrame {
  		ppBar.add(zoomInAction);
  		ppBar.add(zoomOutAction);
  		ppBar.add(zoomNormalAction);
+ 		ppBar.add(zoomAllAction);
 		ppBar.addSeparator();
 		tempButton = ppBar.add(deleteSelectedAction);
 		tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
