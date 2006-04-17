@@ -55,7 +55,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         " <project-name>TestSwingUIProject</project-name>" +
         " <project-data-sources>" +
         "  <data-source id='DS0'>" +
-        "   <property key='Logical' value='Target Database' />" +
+        "   <property key='Logical' value='Not Configured' />" +
         "  </data-source>" +
         " </project-data-sources>" +
         " <source-databases>" +
