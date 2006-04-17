@@ -281,19 +281,19 @@ public class TestSQLDatabase extends SQLTestCase {
 	}
 
 		
-	public void testIgnoreReset() throws ArchitectException
+	public void testIsPlayPen() throws ArchitectException
 	{		
 		// Cause db to connect
 		db.getChild(0);
 		
-		db.setIgnoreReset(true);
-		assertTrue(db.getIgnoreReset());
+		db.setPlayPenDatabase(true);
+		assertTrue(db.isPlayPenDatabase());
 		
 		db.setDataSource(db.getDataSource());
 		assertTrue(db.isPopulated());
 		
-		db.setIgnoreReset(false);
-		assertFalse(db.getIgnoreReset());
+		db.setPlayPenDatabase(false);
+		assertFalse(db.isPlayPenDatabase());
 		db.setDataSource(db.getDataSource());
 		assertFalse(db.isPopulated());			
 	}

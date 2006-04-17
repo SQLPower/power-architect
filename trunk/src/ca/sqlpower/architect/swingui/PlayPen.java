@@ -291,7 +291,7 @@ public class PlayPen extends JPanel
 	private final void setDatabase(SQLDatabase newdb) {
 		if (newdb == null) throw new NullPointerException("db must be non-null");
 		this.db = newdb;
-		db.setIgnoreReset(true);
+		db.setPlayPenDatabase(true);
 		if (db.getDataSource() == null) {
 			ArchitectDataSource dbcs = new ArchitectDataSource();
 			dbcs.setName("Not Configured");

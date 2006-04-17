@@ -79,7 +79,7 @@ public class DBTree extends JTree implements DragSourceListener {
 
 	// ----------- CONSTRUCTORS ------------
 
-	public DBTree() {
+	private DBTree() {
 		setUI(new MultiDragTreeUI());
 		setRootVisible(false);
 		setShowsRootHandles(true);
@@ -787,28 +787,14 @@ public class DBTree extends JTree implements DragSourceListener {
 													  boolean hasFocus) {
 			setText(value.toString());
 			if (value instanceof SQLDatabase) {
-				logger.debug("project: " + ArchitectFrame.getMainInstance().getProject());
-				if (ArchitectFrame.getMainInstance().getProject() == null || // getProject() is null when program is starting
-			        ArchitectFrame.getMainInstance().getProject().getTargetDatabase() == value) {
+				SQLDatabase db = (SQLDatabase) value;
+				if (db.isPlayPenDatabase()) {
 					setIcon(targetIcon);
-					StringBuffer name = new StringBuffer();
-					name.append("Project");
-
-					/*if (ArchitectFrame.getMainInstance().getProject() != null ){
-						String temp = ArchitectFrame.getMainInstance().getProject().
-									getTargetDatabase().getName();
-						if (temp == null) {
-							temp = "";  // beacuse empty string is omitted from the label
-						} else {
-							temp = temp.trim();
-						}
-						if (temp.length() > 0){
-							name.append(" (");
-							name.append(ArchitectFrame.getMainInstance().getProject().getTargetDatabase().getName());
-							name.append(")");
-						}
-					}												
-					setText(name.toString());	*/				
+					if (db.getName() == null || db.getName().length() == 0) {
+						setText("Project");
+					} else {
+						setText("Project ("+db.getName()+")");
+					}
 				} else {
 					setIcon(dbIcon);
 				}
