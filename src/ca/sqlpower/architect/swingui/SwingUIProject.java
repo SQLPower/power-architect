@@ -260,10 +260,11 @@ public class SwingUIProject {
 		d.addSetProperties("*/sql-exception");
 		d.addSetNext("*/sql-exception", "addChild");
 
+		TargetDBFactory targetDBFactory = new TargetDBFactory();
 		// target database hierarchy
-		d.addFactoryCreate("architect-project/target-database", dbFactory);
+		d.addFactoryCreate("architect-project/target-database", targetDBFactory);
 		d.addSetProperties("architect-project/target-database");
-		d.addSetNext("architect-project/target-database", "addAllTablesFrom");
+		//d.addSetNext("architect-project/target-database", "add");
 
 		// the play pen
 		TablePaneFactory tablePaneFactory = new TablePaneFactory();
@@ -316,6 +317,27 @@ public class SwingUIProject {
 			return dbcs;
 		}
 	}
+	/**
+	 * Gets the playpen SQLDatabase instance.
+	 * Also attaches the DBCS referenced by the dbcsref attribute, if
+	 * there is such an attribute.
+	 * NOTE: this will only work until we support multiple playpens.
+	 */
+	protected class TargetDBFactory extends AbstractObjectCreationFactory {
+
+		@Override
+		public Object createObject(Attributes attributes) throws Exception {
+			SQLDatabase ppdb = playPen.getDatabase();
+
+			String dbcsid = attributes.getValue("dbcs-ref");
+			if (dbcsid != null) {
+				ppdb.setDataSource((ArchitectDataSource) dbcsIdMap.get(dbcsid));
+			}
+			return ppdb;
+		}
+		
+	}
+
 
 	/**
 	 * Creates a SQLDatabase instance and adds it to the objectIdMap.
