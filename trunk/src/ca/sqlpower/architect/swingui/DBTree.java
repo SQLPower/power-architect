@@ -48,6 +48,7 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.swingui.action.DBCS_OkAction;
 import ca.sqlpower.architect.swingui.action.SetDataSourceAction;
 
 public class DBTree extends JTree implements DragSourceListener {
@@ -56,7 +57,7 @@ public class DBTree extends JTree implements DragSourceListener {
 	protected DragSource ds;
 	protected JPopupMenu popup;
 	protected JMenu connectionsMenu;
-	protected JDialog propDialog;
+	//protected JDialog propDialog;
 	protected DBCSPanel dbcsPanel;
 	protected NewDBCSAction newDBCSAction;
 	protected DBCSPropertiesAction dbcsPropertiesAction;
@@ -91,7 +92,6 @@ public class DBTree extends JTree implements DragSourceListener {
 		dbcsPropertiesAction = new DBCSPropertiesAction();
 		removeDBCSAction = new RemoveDBCSAction();
 		showInPlayPenAction = new ShowInPlayPenAction();
-		setupPropDialog();
 		addMouseListener(new PopupListener());
 		setCellRenderer(new SQLObjectRenderer());				
 	}
@@ -101,66 +101,7 @@ public class DBTree extends JTree implements DragSourceListener {
 		setDatabaseList(initialDatabases);
 	}
 
-	/**
-	 * Sets up the DBCS dialog window and its DBCSPanel instance.  You
-	 * only need to call this once, and the constructor does that.
-	 */
-	protected void setupPropDialog() {
-		dbcsPanel = new DBCSPanel();
-		
-		Action okAction = new AbstractAction() {
-			public void actionPerformed(ActionEvent e) {
-				dbcsPanel.applyChanges();
-				edittingDB.setDataSource(dbcsPanel.getDbcs());
-				// does not get called when setting Target
-				if (panelHoldsNewDBCS) { // don't allow new duplicate connections to be added
-					ArchitectDataSource dup = getDuplicateDbcs(edittingDB.getDataSource());							
-					if (dup == null) { // did not find one, go ahead and add it to User Settings
-						ArchitectFrame.getMainInstance().getUserSettings()
-						.getPlDotIni().addDataSource(dbcsPanel.getDbcs());
-						SQLObject root = (SQLObject) getModel().getRoot();
-						try {
-							root.addChild(root.getChildCount(), edittingDB);
-							ArchitectFrame.getMainInstance().getProject().setModified(true);
-						} catch (ArchitectException ex) {
-							logger.warn("Couldn't add new database to tree", ex);
-							JOptionPane.showMessageDialog(DBTree.this, "Couldn't add new connection:\n"+ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-						}
-					} else {
-						final String message = "The connection you tried to create already exists under the name: " + dup.getDisplayName();
-						logger.warn(message);
-						JOptionPane.showMessageDialog(DBTree.this, message,
-								"Error", JOptionPane.ERROR_MESSAGE);
-						return; // don't dispose() of the dialog just yet...
-					}
-				}
-				else {
-					ArchitectFrame.getMainInstance().getProject().setModified(true);
-				}
-				panelHoldsNewDBCS = false;
-				propDialog.dispose();
-				}
-			};
-			
-		Action cancelAction = new AbstractAction() {
-				public void actionPerformed(ActionEvent e) {
-					dbcsPanel.discardChanges();
-					propDialog.dispose();
-				}
-			};
-			
-		propDialog = ArchitectPanelBuilder.createArchitectPanelDialog(
-			dbcsPanel,
-			ArchitectFrame.getMainInstance(),
-			"Database Connection Properties",
-			"OK",
-			okAction,
-			cancelAction);
-
-		propDialog.pack();
-		propDialog.setLocationRelativeTo(ArchitectFrame.getMainInstance());
-	}
-
+	
 
 	// ----------- INSTANCE METHODS ------------
 
@@ -591,12 +532,34 @@ public class DBTree extends JTree implements DragSourceListener {
 		}
 
 		public void actionPerformed(ActionEvent e) {
+			
+			final DBCSPanel dbcsPanel = new DBCSPanel();
 			ArchitectDataSource dbcs = new ArchitectDataSource();
+			
+			dbcsPanel.setDbcs(new ArchitectDataSource());
+
+
+			DBCS_OkAction okButton = new DBCS_OkAction(dbcsPanel,true);
+			
+			Action cancelAction = new AbstractAction() {
+				public void actionPerformed(ActionEvent evt) {
+					dbcsPanel.discardChanges();
+					
+				}
+			};
+			
+			JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
+					dbcsPanel,ArchitectFrame.getMainInstance(),
+					"New Connection", ArchitectPanelBuilder.OK_BUTTON_LABEL,
+					okButton, cancelAction);
+			
+			okButton.setConnectionDialog(d);
+			
+			d.pack();
+			d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
+			d.setVisible(true);
 			edittingDB = new SQLDatabase(dbcs);
 			panelHoldsNewDBCS = true;
-			dbcsPanel.setDbcs(dbcs);
-			propDialog.setVisible(true);
-			propDialog.requestFocus();
 		}
 	}
 
@@ -694,12 +657,36 @@ public class DBTree extends JTree implements DragSourceListener {
 				ii++;
 			}
 			if (sd != null) {
+				
+				final DBCSPanel dbcsPanel = new DBCSPanel();
 				ArchitectDataSource dbcs = sd.getDataSource();
+				
+				dbcsPanel.setDbcs(new ArchitectDataSource());
+
+
+				DBCS_OkAction okButton = new DBCS_OkAction(dbcsPanel,true);
+				
+				Action cancelAction = new AbstractAction() {
+					public void actionPerformed(ActionEvent evt) {
+						dbcsPanel.discardChanges();
+						
+					}
+				};
+				
+				JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
+						dbcsPanel,ArchitectFrame.getMainInstance(),
+						"New Connection", ArchitectPanelBuilder.OK_BUTTON_LABEL,
+						okButton, cancelAction);
+				
+				okButton.setConnectionDialog(d);
+				
+				d.pack();
+				d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
+				d.setVisible(true);
 				logger.debug("Setting existing DBCS on panel: "+dbcs);
 				edittingDB = sd;
 				dbcsPanel.setDbcs(dbcs);
-				propDialog.setVisible(true);
-				propDialog.requestFocus();
+
 			}
 		}
 	}

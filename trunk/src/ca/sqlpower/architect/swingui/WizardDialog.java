@@ -177,24 +177,6 @@ public class WizardDialog extends JDialog {
 		return wizard;
 	}
 	
-	public static void refreshTargetConnections (JComboBox targetConnectionsBox,
-									ListCellRenderer dataSourceRenderer) {
-		
-		
-		
-		Vector connections = new Vector();
-		connections.add(null);
-		Iterator it = ArchitectFrame.getMainInstance().getUserSettings().getConnections().iterator();
-		while (it.hasNext()) {
-			connections.add(it.next());
-		}
-		Object selectedConnection = targetConnectionsBox.getSelectedItem();
-		targetConnectionsBox.setModel(new DefaultComboBoxModel(connections));
-		if (selectedConnection != null) {
-			targetConnectionsBox.setSelectedItem(selectedConnection);
-		}
-		targetConnectionsBox.setRenderer(dataSourceRenderer);
-	}
 	public JButton getBackButton() {
 		return backButton;
 	}

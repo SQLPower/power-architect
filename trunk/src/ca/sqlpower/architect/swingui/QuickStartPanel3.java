@@ -77,20 +77,7 @@ public class QuickStartPanel3 implements WizardPanel {
 	private JCheckBox runPLEngine;
 	private JProgressBar progressBar;
 	
-	private ListCellRenderer dataSourceRenderer = new DefaultListCellRenderer() {
-		public Component getListCellRendererComponent(JList list, Object value,
-				int index, boolean isSelected, boolean cellHasFocus) {
-			ArchitectDataSource ds = (ArchitectDataSource) value;
-			String label;
-			if (ds == null) {
-				label = "(Choose a Connection)";
-			} else {
-				label = ds.getName();
-			}
-			return super.getListCellRendererComponent(list, label, index,
-					isSelected, cellHasFocus);
-		}
-	};
+	private ListCellRenderer dataSourceRenderer = new DataSourceRenderer();
 
 	private JLabel label;
 	
@@ -106,7 +93,8 @@ public class QuickStartPanel3 implements WizardPanel {
 		CellConstraints cc = new CellConstraints();
 		
 		panel = new JPanel();
-		repositoryConnectionsBox = new JComboBox();
+		repositoryConnectionsBox = new JComboBox(new ConnectionComboBoxModel());
+		repositoryConnectionsBox.setRenderer(dataSourceRenderer);
 		repositoryCatalogComboBox = new JComboBox();
 		repositorySchemaComboBox = new JComboBox();
 		progressBar = ((WizardDialog)wizard.getParentDialog()).getProgressBar();
@@ -131,9 +119,7 @@ public class QuickStartPanel3 implements WizardPanel {
 		
 		repositoryConnectionsBox.addActionListener(dcl);
 		
-		WizardDialog.refreshTargetConnections(repositoryConnectionsBox,
-								dataSourceRenderer );
-		
+			
 		repositoryCatalogComboBox.addActionListener(new CatalogComboBoxListener(
 					(JPanel)getPanel(),repositoryConnectionsBox, 
 					repositoryCatalogComboBox, repositorySchemaComboBox));

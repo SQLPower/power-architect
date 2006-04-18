@@ -90,9 +90,8 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		plDotIniPath = af.getUserSettings().getPlDotIniPath(); // is this bad?
 		ddlGeneratorMap = ArchitectUtils.getDriverDDLGeneratorMap();
 		
-		targetConnectionsBox = new JComboBox();
-		targetConnectionsBox.setRenderer(new ConnectionsCellRenderer());
-		refreshTargetConnections();
+		targetConnectionsBox = new JComboBox(new ConnectionComboBoxModel());
+		targetConnectionsBox.setRenderer(new DataSourceRenderer());
 		targetConnectionsBox.addActionListener(new TargetListener());
 		newTargetButton= new JButton("New");
 
@@ -105,9 +104,8 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		targetSchema = new JTextField();
 
 		// 
-		repositoryConnectionsBox = new JComboBox();
-		repositoryConnectionsBox.setRenderer(new ConnectionsCellRenderer());
-		refreshRepositoryConnections();
+		repositoryConnectionsBox = new JComboBox(new ConnectionComboBoxModel());
+		repositoryConnectionsBox.setRenderer(new DataSourceRenderer());
 		repositoryConnectionsBox.addActionListener(new RepositoryListener());
 		newRepositoryButton= new JButton("New");
 		newRepositoryButton.addActionListener(new NewDatabaseListener(
@@ -395,31 +393,7 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 		return runPLEngine.isSelected();
 	}
 
-	public void refreshRepositoryConnections () { // XXX: this needs to remember if something was selected		
-		Vector connections = new Vector();
-		Iterator it = ArchitectFrame.getMainInstance().getUserSettings().getConnections().iterator();
-		while (it.hasNext()) {
-			connections.add(it.next());
-		}
-		Object selectedConnection = repositoryConnectionsBox.getSelectedItem();
-		repositoryConnectionsBox.setModel(new DefaultComboBoxModel(connections));
-		if (selectedConnection != null) {
-			repositoryConnectionsBox.setSelectedItem(selectedConnection);
-		}
-	}
-
-	public void refreshTargetConnections () { // XXX: this needs to remember if something was selected		
-		Vector connections = new Vector();
-		Iterator it = ArchitectFrame.getMainInstance().getUserSettings().getConnections().iterator();
-		while (it.hasNext()) {
-			connections.add(it.next());
-		}
-		Object selectedConnection = targetConnectionsBox.getSelectedItem();
-		targetConnectionsBox.setModel(new DefaultComboBoxModel(connections));
-		if (selectedConnection != null) {
-			targetConnectionsBox.setSelectedItem(selectedConnection);
-		}
-	}		
+		
 	
 
 

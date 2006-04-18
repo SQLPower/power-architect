@@ -12,12 +12,15 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
+import ca.sqlpower.architect.swingui.CompareDMPanel;
 import ca.sqlpower.architect.swingui.DBCSPanel;
 import ca.sqlpower.architect.swingui.JDefaultButton;
+import ca.sqlpower.architect.swingui.action.DBCS_OkAction;
 
 /*
  * When a new database connection has been established, this listener
@@ -39,52 +42,27 @@ public class NewDatabaseListener implements ActionListener {
 
 	public void actionPerformed(ActionEvent e) {
 		
-		// ArchitectPanelBuilder cannot handle this because of the
-		// wizard-style buttons (right-justified FlowLayout).
-		
-		final JDialog d = new JDialog(frame,title );
-		JPanel plr = new JPanel(new BorderLayout(12,12));
-		plr.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
 		final DBCSPanel dbcsPanel = new DBCSPanel();
+		
 		dbcsPanel.setDbcs(new ArchitectDataSource());
-		plr.add(dbcsPanel, BorderLayout.CENTER);
 
-		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
-		JDefaultButton okButton = new JDefaultButton(ArchitectPanelBuilder.OK_BUTTON_LABEL);
-		okButton.addActionListener(new ActionListener() {
+		DBCS_OkAction okButton = new DBCS_OkAction(dbcsPanel,true);
 		
-			public void actionPerformed(ActionEvent evt) {
-				dbcsPanel.applyChanges();
-				ArchitectDataSource dbcs = dbcsPanel.getDbcs();
-				
-				if ( comboBox != null ) {
-					comboBox.addItem(dbcs);
-					comboBox.setSelectedItem(dbcs);
-				}
-							
-				frame.getUserSettings().getPlDotIni().addDataSource(dbcs);
-				d.setVisible(false);
-			}
-		});
-		
-		buttonPanel.add(okButton);
 		Action cancelAction = new AbstractAction() {
 			public void actionPerformed(ActionEvent evt) {
 				dbcsPanel.discardChanges();
-				d.setVisible(false);
+				
 			}
-			
 		};
 		
-		cancelAction.putValue(AbstractAction.NAME, ArchitectPanelBuilder.CANCEL_BUTTON_LABEL);
-		JButton cancelButton = new JButton(cancelAction);
-		ArchitectPanelBuilder.makeJDialogCancellable(d, cancelAction);
-	
-		buttonPanel.add(cancelButton);
-		plr.add(buttonPanel, BorderLayout.SOUTH);
-		d.getRootPane().setDefaultButton(okButton);
-		d.setContentPane(plr);
+		JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
+				dbcsPanel,frame,
+				title, ArchitectPanelBuilder.OK_BUTTON_LABEL,
+				okButton, cancelAction);
+		
+		okButton.setConnectionDialog(d);
+		
 		d.pack();
 		d.setLocationRelativeTo(frame);
 		d.setVisible(true);

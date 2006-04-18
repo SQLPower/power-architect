@@ -424,18 +424,18 @@ public class PlDotIni {
      * 
      * @param dbcs The new data source to add
      */
-    public void addDataSource(ArchitectDataSource dbcs) {
-    	String newName = dbcs.getDisplayName();
-    	for (Object o : fileSections) {
-    		if (o instanceof ArchitectDataSource) {
+	public void addDataSource(ArchitectDataSource dbcs) {
+		String newName = dbcs.getDisplayName();
+		for (Object o : fileSections) {
+			if (o instanceof ArchitectDataSource) {
 				ArchitectDataSource oneDbcs = (ArchitectDataSource) o;
 				if (newName.equalsIgnoreCase(oneDbcs.getDisplayName())) {
 					throw new IllegalArgumentException(
-						"There is already a datasource with the name " + newName);
+							"There is already a datasource with the name " + newName);
 				}
 			}
-    	}
-        add(dbcs);
+		}
+		add(dbcs);
     }
     
 	/**
@@ -499,15 +499,15 @@ public class PlDotIni {
 		}
     }
     
-    public void addListener(DatabaseListChangeListener list) {
+    public void addDatabaseListChangeListener(DatabaseListChangeListener l) {
     	synchronized(listeners) {
-    		listeners.add(list);
+    		listeners.add(l);
     	}
     }
     
-    public void removeListener(DatabaseListChangeListener list) {
+    public void removeDatabaseListChangeListener(DatabaseListChangeListener l) {
     	synchronized(listeners) {
-    		listeners.remove(list);
+    		listeners.remove(l);
     	}
     }
 

@@ -67,7 +67,7 @@ import ca.sqlpower.architect.diff.DiffType;
 import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
 import ca.sqlpower.architect.swingui.CompareDMSettings.RadioButtonSelection;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
-import ca.sqlpower.architect.swingui.JDBCDriverPanel.LoadJDBCDriversWorker;
+import ca.sqlpower.architect.swingui.action.DBCS_OkAction;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.debug.FormDebugPanel;
@@ -212,15 +212,8 @@ public class CompareDMPanel extends JPanel {
 				final DBCSPanel dbcsPanel = new DBCSPanel();
 				dbcsPanel.setDbcs(new ArchitectDataSource());
 				
-				Action okAction = new AbstractAction() {
-					public void actionPerformed(ActionEvent e) {
-						dbcsPanel.applyChanges();
-						ArchitectDataSource newDS = dbcsPanel.getDbcs();
-						databaseDropdown.addItem(newDS);
-						databaseDropdown.setSelectedItem(newDS);
-						setNewConnectionDialog(null);
-					}
-				};
+				DBCS_OkAction okAction = new DBCS_OkAction(dbcsPanel, true);
+				
 				Action cancelAction = new AbstractAction() {
 					public void actionPerformed(ActionEvent e) {
 						dbcsPanel.discardChanges();
@@ -230,9 +223,10 @@ public class CompareDMPanel extends JPanel {
 
 				JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
 						dbcsPanel, SwingUtilities.getWindowAncestor(CompareDMPanel.this),
-						DBCS_DIALOG_TITLE, "OK",
+						DBCS_DIALOG_TITLE, ArchitectPanelBuilder.OK_BUTTON_LABEL,
 						okAction, cancelAction);
 
+				okAction.setConnectionDialog(d);
 				setNewConnectionDialog(d);
 				d.setVisible(true);
 			}
@@ -538,10 +532,7 @@ public class CompareDMPanel extends JPanel {
 
 			databaseDropdown = new JComboBox();
 			databaseDropdown.setName(prefix + "DatabaseDropdown");
-			databaseDropdown.addItem(null); // the non-selection selection
-			for (ArchitectDataSource ds : af.getUserSettings().getConnections()) {
-				databaseDropdown.addItem(ds);
-			}
+			databaseDropdown.setModel(new ConnectionComboBoxModel());
 			databaseDropdown.setEnabled(false);
 			databaseDropdown.setRenderer(dataSourceRenderer);
 
@@ -738,20 +729,7 @@ public class CompareDMPanel extends JPanel {
 	/**
 	 * Renders list cells which have a value that is an ArchitectDataSource.
 	 */
-	private ListCellRenderer dataSourceRenderer = new DefaultListCellRenderer() {
-		public Component getListCellRendererComponent(JList list, Object value,
-				int index, boolean isSelected, boolean cellHasFocus) {
-			ArchitectDataSource ds = (ArchitectDataSource) value;
-			String label;
-			if (ds == null) {
-				label = "(Choose a Connection)";
-			} else {
-				label = ds.getName();
-			}
-			return super.getListCellRendererComponent(list, label, index,
-					isSelected, cellHasFocus);
-		}
-	};
+	private ListCellRenderer dataSourceRenderer = new DataSourceRenderer();
 
 	/**
 	 * Returns true iff the comparison process can start given the current state

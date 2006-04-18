@@ -79,11 +79,7 @@ public class ExportPLTransAction extends AbstractAction {
 		// always refresh Target Database (it might have changed)
 		plexp.setTargetDataSource(ArchitectFrame.getMainInstance().getProject().getTargetDatabase().getDataSource());
 				
-		if (d != null) {
-			refreshConnections();
-			return;
-		}
-
+		
 		// Cannot use ArchitectPanelBuilder here yet because
 		// of the progressbar.
 		
@@ -196,27 +192,7 @@ public class ExportPLTransAction extends AbstractAction {
 		d.setVisible(true); 
 	}
 
-	private void refreshConnections() {
-		PLExportPanel plep = null;
-		boolean found = false;
-		int ii = 0;
-		java.awt.Component [] panels = d.getContentPane().getComponents();
-		// figure out which panel is the PLExportPanel
-		while (!found && ii < panels.length) {
-			if (panels [ii] instanceof PLExportPanel) {
-				logger.debug("content pane class:" + panels[ii].getClass().getName());
-				plep = (PLExportPanel) panels [ii];
-				found = true;
-			}
-		}
-		// call the refresh method
-		if (plep != null) { 
-			logger.debug("refreshing PL Export JDBC connection list");
-			plep.refreshTargetConnections();
-			plep.refreshRepositoryConnections();
-		}
-	}
-	
+		
 	/**
 	 * Checks for missing tables in the target database.  Returns a
 	 * list of table names that need to be created.
