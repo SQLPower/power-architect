@@ -410,34 +410,39 @@ public class ASUtils {
 	 * @param input The JMenu.
 	 */
 	public static void breakLongMenu(final Window frame, final JMenu input) {
-		final Dimension size = frame.getSize();
-		final int windowHeight = size.height;
+
+		if ( input.getItemCount() <= 0 )
+			return;
+		
+		final int windowHeight = frame.getSize().height;
 		final int totalRows = input.getItemCount();
 		final int preferredHeight = input.getItem(0).getPreferredSize().height;
 		final int FUDGE = 3; // XXX find a better way to compute this...
-		final int rowsPerSubMenu = (windowHeight/ preferredHeight) - FUDGE;
-		if (totalRows < rowsPerSubMenu) {
+
+		int rowsPerSubMenu = (windowHeight/ preferredHeight) - FUDGE;
+		if ( rowsPerSubMenu < 3 )
+			rowsPerSubMenu = 3;
+		if (totalRows <= rowsPerSubMenu) {
 			return;
 		}
 
 		JMenu parentMenu = input;
-		JMenu subMenu = new JMenu("More");
+		JMenu subMenu = new JMenu("More...");
+		parentMenu.add(subMenu);
 
-		int fudge = 0;
-		while (input.getItemCount() > rowsPerSubMenu + fudge) {
+		while (input.getItemCount() > rowsPerSubMenu + 1) {
 			final JMenuItem item = input.getItem(rowsPerSubMenu);
-			subMenu.add(item);
-			int n = subMenu.getItemCount();
-			if (n >= rowsPerSubMenu) {
-				parentMenu.add(subMenu);	// Note that this removes it from the original menu!
+			subMenu.add(item);	// Note that this removes it from the original menu!
+
+			if (subMenu.getItemCount() >= rowsPerSubMenu &&
+				input.getItemCount() > rowsPerSubMenu + 1 ) {
 				parentMenu = subMenu;
-				subMenu = new JMenu("More");
-				fudge = 1;
+				subMenu = new JMenu("More...");
+				parentMenu.add(subMenu);
 			}
 		}
-		if (subMenu.getItemCount() > 0) {
-			parentMenu.add(subMenu);
-		}
+
+		
 		/** TODO: Resizing the main window does not change the height of the menu.
 		 * This is left as an exercise for the reader:
 		 * frame.addComponentListener(new ComponentAdapter() {
