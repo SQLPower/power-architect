@@ -5,16 +5,13 @@
  * Window - Preferences - Java - Code Style - Code Templates
  */
 package ca.sqlpower.architect.swingui;
-import java.awt.Component;
 import java.sql.Connection;
 import java.util.ArrayList;
 
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -70,6 +67,9 @@ public class QuickStartPanel2 implements WizardPanel {
 		wizard.setPlExport(new PLExport());				
 		
 		targetConnectionsBox = new JComboBox();
+		targetConnectionsBox.setModel( new ConnectionComboBoxModel());
+		targetConnectionsBox.setRenderer(dataSourceRenderer);
+		
 		targetCatalog = new JComboBox();
 		targetSchema = new JComboBox();
 		progressBar = ((WizardDialog)wizard.getParentDialog()).getProgressBar();
@@ -96,10 +96,7 @@ public class QuickStartPanel2 implements WizardPanel {
 		
 		targetConnectionsBox.addActionListener(dcl);
 		
-		WizardDialog.refreshTargetConnections(targetConnectionsBox,
-								dataSourceRenderer );
-	
-		
+			
 		JButton newTargetButton= new JButton(" New ");
 		newTargetButton.addActionListener(new NewDatabaseListener(
 							ArchitectFrame.getMainInstance(),
@@ -128,20 +125,7 @@ public class QuickStartPanel2 implements WizardPanel {
 		
 	}
 	
-	private ListCellRenderer dataSourceRenderer = new DefaultListCellRenderer() {
-		public Component getListCellRendererComponent(JList list, Object value,
-				int index, boolean isSelected, boolean cellHasFocus) {
-			ArchitectDataSource ds = (ArchitectDataSource) value;
-			String label;
-			if (ds == null) {
-				label = "(Choose a Connection)";
-			} else {
-				label = ds.getName();
-			}
-			return super.getListCellRendererComponent(list, label, index,
-					isSelected, cellHasFocus);
-		}
-	};
+	private ListCellRenderer dataSourceRenderer = new DataSourceRenderer();
 	
 	
 	

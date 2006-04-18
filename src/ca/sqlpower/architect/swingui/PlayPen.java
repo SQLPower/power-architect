@@ -88,6 +88,7 @@ import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.Relationship.RelationshipDecorationMover;
 import ca.sqlpower.architect.swingui.action.CancelAction;
+import ca.sqlpower.architect.swingui.action.DBCS_OkAction;
 import ca.sqlpower.architect.swingui.action.SetDataSourceAction;
 import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
@@ -943,14 +944,23 @@ public class PlayPen extends JPanel
 	 */
 	public void showDbcsDialog() {
 		final DBCSPanel dbcsPanel = new DBCSPanel();
-		final JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
-			dbcsPanel,
-			ArchitectFrame.getMainInstance(),
-			"Target Database Connection",
-			ArchitectPanelBuilder.OK_BUTTON_LABEL );		
+			
 		dbcsPanel.setDbcs(db.getDataSource());		
 
+		DBCS_OkAction okAction = new DBCS_OkAction(dbcsPanel, true);
 		
+		Action cancelAction = new AbstractAction() {
+			public void actionPerformed(ActionEvent e) {
+				dbcsPanel.discardChanges();
+			}
+		};
+
+		JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
+				dbcsPanel, ArchitectFrame.getMainInstance(),
+				"Target Database Connection", ArchitectPanelBuilder.OK_BUTTON_LABEL,
+				okAction, cancelAction);
+
+		okAction.setConnectionDialog(d);
 		d.pack();
 		d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
 		dbcsDialog = d;

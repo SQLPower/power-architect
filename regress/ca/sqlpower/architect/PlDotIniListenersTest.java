@@ -70,7 +70,7 @@ public class PlDotIniListenersTest extends TestCase {
 	 * Test method for 'ca.sqlpower.architect.PlDotIni.addListener(DatabaseListChangeListener)'
 	 */
 	public void testAddListener() {
-		pld.addListener(liszt);
+		pld.addDatabaseListChangeListener(liszt);
 		assertNull(addNotified);
 		pld.addDataSource(dbcs);
 		assertNotNull(addNotified);
