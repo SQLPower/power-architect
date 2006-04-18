@@ -20,6 +20,7 @@ import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.CellRendererPane;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -361,7 +362,7 @@ public class ArchitectFrame extends JFrame {
 					if ( playpen != null ) {
 						for (int i = 0; i < playpen.getContentPane().getComponentCount(); i++) {
 							PlayPenComponent ppc = playpen.getContentPane().getComponent(i);
-							if ( i == 0 ) {
+							if ( rect == null ) {
 								rect = new Rectangle(ppc.getLocation(),ppc.getSize());
 							}
 							else {
@@ -369,17 +370,19 @@ public class ArchitectFrame extends JFrame {
 							}
 						}
 					}
-					double zoom = playpen.getViewportSize().getHeight()/rect.height;
-					double zoom1 = playpen.getViewportSize().getWidth()/rect.width;
-					if ( zoom1 < zoom )
-						zoom = zoom1;
-					zoom *= 0.95;
+					
+					if ( rect == null )
+						return;
+
+					double zoom = Math.min(playpen.getViewportSize().getHeight()/rect.height,
+									playpen.getViewportSize().getWidth()/rect.width);
+					zoom *= 0.90;
 
 					playpen.setZoom(zoom);
-					playpen.scrollRectToVisible(playpen.unzoomRect(rect));
+					playpen.scrollRectToVisible(playpen.zoomRect(rect));
 				}
 			};
-		zoomAllAction.putValue(AbstractAction.SHORT_DESCRIPTION, "View All");
+		zoomAllAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Zoom to fit");
 	
 	
 		
