@@ -2,7 +2,6 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -21,14 +20,12 @@ import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -1095,7 +1092,7 @@ public class CompareDMPanel extends JPanel {
 			};
 			
 			new Thread(compareWorker).start();
-			ProgressWatcher pw = new ProgressWatcher(progressBar,sourceComp);
+			new ProgressWatcher(progressBar,sourceComp);
 		}
 		
 		/**
@@ -1409,7 +1406,7 @@ public class CompareDMPanel extends JPanel {
 				f.add(new CompareDMPanel(null)); // FIXME: won't work
 				f.pack();
 				f.setVisible(true);
-			};
+			}
 		});
 	}
 }

@@ -33,7 +33,7 @@ import com.jgoodies.forms.debug.FormDebugPanel;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class CompareDMFrame extends JFrame{
+public class CompareDMFrame extends JFrame {
 
 	private static Logger logger = Logger.getLogger(CompareDMFrame.class);
 	private JTextPane leftOutputArea;
@@ -43,8 +43,7 @@ public class CompareDMFrame extends JFrame{
 	private AbstractDocument targetOutputText;
 
 	private String title;
-	private static JComponent panel;
-
+	private JComponent panel;
 			
 	public CompareDMFrame(AbstractDocument sourceOutputText, AbstractDocument targetOutputText, 
 						String leftDBName, String rightDBName)
@@ -98,7 +97,7 @@ public class CompareDMFrame extends JFrame{
 	
 		Action sourceSave = new AbstractAction(){
 			public void actionPerformed(ActionEvent e) {
-				SaveDocument sd = new SaveDocument(CompareDMFrame.this,
+				new SaveDocument(CompareDMFrame.this,
 						sourceOutputText,
 						(FileExtensionFilter) ASUtils.TEXT_FILE_FILTER );
 			}
@@ -159,7 +158,7 @@ public class CompareDMFrame extends JFrame{
 		
 		Action targetSaveAction = new AbstractAction(){
 			public void actionPerformed(ActionEvent e) {
-				SaveDocument sd = new SaveDocument(CompareDMFrame.this,
+				new SaveDocument(CompareDMFrame.this,
 						targetOutputText,
 						(FileExtensionFilter) ASUtils.TEXT_FILE_FILTER );
 			}
