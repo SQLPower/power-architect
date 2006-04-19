@@ -28,7 +28,6 @@ public final class DBCS_OkAction extends AbstractAction {
 		super("Ok");
 		this.dbcsPanel = dbcsPanel;
 		this.isNew = isNew;
-		dbcsPanel.setDbcs(new ArchitectDataSource());
 	}
 	
 	public void actionPerformed(ActionEvent e) {
