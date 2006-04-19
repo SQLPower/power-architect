@@ -88,8 +88,7 @@ public class FormLayout implements LayoutManager {
 		
 		int lColWidth = Math.min(size.width, lrh.left);
 		int rColWidth = size.width - ins.left - lColWidth - hgap - ins.right;
-		int height = Math.min(size.height, lrh.height);
-
+		
 		Dimension d;
 		int lHeight = 0;
 		int y = ins.top;

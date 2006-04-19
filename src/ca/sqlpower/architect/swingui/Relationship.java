@@ -112,15 +112,6 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 		popup.add(mi);
 	}
 
-	/**
-	 * Calculates the point at b - a.  This is useful if Points a and
-	 * b are in the same coordinate space and you want to know the
-	 * position of b relative to a.
-	 */
-	private Point coord(Point a, Point b) {
-		return new Point(b.x - a.x, b.y - a.y);
-	}
-
 	public Point getPreferredLocation() {
 		return ((RelationshipUI) getUI()).getPreferredLocation();
 	}

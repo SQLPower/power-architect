@@ -68,7 +68,7 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 			if (logger.isDebugEnabled()) logger.debug("returning "+((SQLObject) parent).getChildCount());
 			return ((SQLObject) parent).getChildCount();
 		} catch (Exception e) {
-			SQLExceptionNode fakeChild = putExceptionNodeUnder((SQLObject) parent, e);
+			putExceptionNodeUnder((SQLObject) parent, e);
 			return 1; // XXX: could be incorrect if exception was not a populate problem!
 		}
 	}

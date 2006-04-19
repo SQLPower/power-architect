@@ -38,8 +38,6 @@ import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
-import ca.sqlpower.architect.undo.UndoCompoundEvent;
-import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 
 public class TablePane 
 	extends PlayPenComponent 

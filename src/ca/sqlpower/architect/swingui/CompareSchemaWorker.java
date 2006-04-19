@@ -1,6 +1,3 @@
-/**
- * 
- */
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Color;
@@ -24,8 +21,7 @@ import ca.sqlpower.architect.ddl.GenericTypeDescriptor;
 
 public class CompareSchemaWorker implements Runnable {
 
-	private static final Logger logger = Logger
-			.getLogger(CompareSchemaWorker.class);
+	private static final Logger logger = Logger.getLogger(CompareSchemaWorker.class);
 
 	private TreeSet<SQLTable> sourceTableList;
 
@@ -53,14 +49,8 @@ public class CompareSchemaWorker implements Runnable {
 	private boolean finished;
 
 
-	private boolean english;
 	private Map<Integer,GenericTypeDescriptor> sourceType;
 	private Map<Integer,GenericTypeDescriptor> targetType;
-
-	private GenericDDLGenerator sqlDdlgen;
-
-	private AbstractDocument sqlDiff;
-	// collection of sqltable<sqlobject> sqlcolumn<sqlobject> from<string>
 
 	/**
 	 * Use this constructor to compare the two tables in english
@@ -72,8 +62,6 @@ public class CompareSchemaWorker implements Runnable {
 		this(sourceTableList,targetTableList,leftType,rightType);
 		this.sourceDiff = sourceDiff;
 		this.targetDiff = targetDiff;
-
-		this.english = true;
 		
 		
 
@@ -84,9 +72,6 @@ public class CompareSchemaWorker implements Runnable {
 	 */
 	public CompareSchemaWorker(TreeSet<SQLTable> sourceTableSet, TreeSet<SQLTable> targetTableSet, AbstractDocument sqlDiff, Map<Integer, GenericTypeDescriptor> typeMap, Map<Integer, GenericTypeDescriptor> typeMap2, GenericDDLGenerator sqlDdlgen) {
 		this(sourceTableSet,targetTableSet,typeMap,typeMap2);
-		this.sqlDiff = sqlDiff;
-		this.sqlDdlgen = sqlDdlgen;
-		this.english = false;
 	}
 
 	/**
