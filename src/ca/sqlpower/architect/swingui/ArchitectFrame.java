@@ -837,7 +837,8 @@ public class ArchitectFrame extends JFrame {
 					lastSaveOpSuccessful = false;
 					project.setSaveInProgress(true);
 					project.save(finalSeparateThread ? pm : null);
-					lastSaveOpSuccessful = true;					
+					lastSaveOpSuccessful = true;	
+					JOptionPane.showMessageDialog(ArchitectFrame.this, "Save successful");
 				} catch (Exception ex) {
 					lastSaveOpSuccessful = false;
 					JOptionPane.showMessageDialog
