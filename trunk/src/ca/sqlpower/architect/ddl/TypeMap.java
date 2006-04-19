@@ -1,9 +1,3 @@
-/*
- * Created on Sep 20, 2005
- *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Style - Code Templates
- */
 package ca.sqlpower.architect.ddl;
 
 import java.io.BufferedReader;
@@ -61,11 +55,12 @@ public class TypeMap {
    	protected static TypeMap mainInstance = new TypeMap();
 
 	public static void main(String[] args) {
-		TypeMap tm = TypeMap.getInstance();		
+		TypeMap tm = TypeMap.getInstance();	
+		System.out.println(tm);
 	}
 	
 	/*
-	 * Warning: this code globally effects the behaviour of BeanUtils, 
+	 * Warning: this code globally affects the behaviour of BeanUtils, 
 	 * which the XML Digester relies heavily upon.  The TypeMap singleton
 	 * is created right at the start of the app to ensure consistent
 	 * behaviour.

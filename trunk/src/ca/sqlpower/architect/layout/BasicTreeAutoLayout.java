@@ -30,11 +30,6 @@ public class BasicTreeAutoLayout extends AbstractLayout {
 	 * The number of frames to try for in the repositioning animation.
 	 */
 	private int numFramesInAnim = 50;
-
-	/**
-	 * The number of frames per second to render.
-	 */
-	private int framesPerSecond = 25;
 	
 	private HashMap<TablePane,Point> newLocations;
 	private Map<TablePane,Point> origLocations;
