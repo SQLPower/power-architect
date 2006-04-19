@@ -35,6 +35,8 @@ public class CompareDMAction extends AbstractAction {
 
 	public void actionPerformed(ActionEvent e) {
 		
+		logger.debug("Compare Action started");
+		
 		// This can not easily be replaced with ArchitectPanelBuilder
 		// because the current CompareDMPanel is not an ArchitectPanel
 		// (and has no intention of becoming one, without some work).

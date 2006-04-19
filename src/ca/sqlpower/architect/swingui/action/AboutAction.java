@@ -2,9 +2,13 @@ package ca.sqlpower.architect.swingui.action;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
-import java.awt.event.*;
-import javax.swing.*;
-import org.apache.log4j.Logger;
+import java.awt.event.ActionEvent;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
 
 import ca.sqlpower.architect.swingui.AboutPanel;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
@@ -14,8 +18,7 @@ import ca.sqlpower.architect.swingui.JDefaultButton;
 import ca.sqlpower.architect.swingui.PlayPen;
 
 public class AboutAction extends AbstractAction {
-	private static final Logger logger = Logger.getLogger(AboutAction.class);
-
+	
 	/**
 	 * The PlayPen instance that owns this Action.
 	 */
