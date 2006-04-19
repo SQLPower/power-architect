@@ -88,39 +88,27 @@ public class SQLSchema extends SQLObject {
 
 		int oldSize = children.size();
 		
-		SQLObject databaseParent;
 		SQLObject tmp = parent;
-		if ( tmp instanceof SQLDatabase )	databaseParent = tmp;
-		else {
-			while ( true ) {
-				databaseParent = tmp.getParent();
-				if ( databaseParent == null ) {
-					databaseParent = tmp;
-					break;
-				}
-				if ( databaseParent instanceof SQLDatabase )	break;
-				else	tmp = databaseParent;
-			}
+		while (tmp != null && (! (tmp instanceof SQLDatabase))) {
+			tmp = tmp.getParent();
 		}
+		if (tmp == null) throw new IllegalStateException("Schema does not have a SQLDatabase ancestor. Can't populate.");
+		SQLDatabase parentDatabase = (SQLDatabase) tmp;
 		
-		
-		
-		
+		Connection con = null;
 		ResultSet rs = null;
-		
 		try {
-			synchronized (databaseParent) {
-				Connection con = ((SQLDatabase)databaseParent).getConnection();
+			synchronized (parentDatabase) {
+				con = parentDatabase.getConnection();
 				DatabaseMetaData dbmd = con.getMetaData();
 				
-				tmp = parent;
-				if ( tmp instanceof SQLDatabase ) {
+				if ( parent instanceof SQLDatabase ) {
 					rs = dbmd.getTables(null,
 							getName(),
 							"%",
 							new String[] {"TABLE", "VIEW"});
-				} else if ( tmp instanceof SQLCatalog ) {
-					rs = dbmd.getTables(tmp.getName(),
+				} else if ( parent instanceof SQLCatalog ) {
+					rs = dbmd.getTables(parent.getName(),
 							getName(),
 							"%",
 							new String[] {"TABLE", "VIEW"});
@@ -149,21 +137,19 @@ public class SQLSchema extends SQLObject {
 			try {
 				if ( rs != null ) rs.close();
 			} catch (SQLException e2) {
-				throw new ArchitectException("schema.rs.close.fail", e2);
+				logger.error("Could not close result set", e2);
+			}
+			try {
+				if ( con != null ) con.close();
+			} catch (SQLException e2) {
+				logger.error("Could not close connection", e2);
 			}
 		}
-		
-		
 		logger.debug("SQLSchema: populate finished");
-
 	}
 
 
 	// ----------------- accessors and mutators -------------------
-
-
-
-
 	
 	/**
 	 * Gets the value of nativeTerm

@@ -46,10 +46,11 @@ public class TestSQLDatabase extends SQLTestCase {
 	public static void oneTimeSetUp() throws Exception {
 		System.out.println("TestSQLDatabase.oneTimeSetUp()");
 		SQLDatabase mydb = new SQLDatabase(getDataSource());
-		Connection con = mydb.getConnection();
+		Connection con = null;
 		Statement stmt = null;
 
 		try {
+			con = mydb.getConnection();
 			stmt = con.createStatement();
 			
 			/*
@@ -68,7 +69,18 @@ public class TestSQLDatabase extends SQLTestCase {
 			stmt.executeUpdate("CREATE TABLE REGRESSION_TEST2 (t2_c1 char(10))");
 			
 		} finally {
-			if (stmt != null) stmt.close();
+			try {
+				if (stmt != null) stmt.close();
+			} catch (SQLException ex) {
+				System.out.println("Couldn't close statement");
+				ex.printStackTrace();
+			}
+			try {
+				if (con != null) con.close();
+			} catch (SQLException ex) {
+				System.out.println("Couldn't close connection");
+				ex.printStackTrace();
+			}
 			mydb.disconnect();
 		}
 	}
@@ -117,20 +129,23 @@ public class TestSQLDatabase extends SQLTestCase {
 		assertNull(db.getParent());
 	}
 	
-	public void testGoodConnect() throws ArchitectException {
+	public void testGoodConnect() throws ArchitectException, SQLException {
 		assertFalse("db shouldn't have been connected yet", db.isConnected());
 		Connection con = db.getConnection();
 		assertNotNull("db gave back a null connection", con);
 		assertTrue("db should have said it is connected", db.isConnected());
+		con.close();
 	}
 
-	public void testPopulate() throws ArchitectException {
-		db.getConnection(); // causes db to actually connect
+	public void testPopulate() throws ArchitectException, SQLException {
+		Connection con = db.getConnection(); // causes db to actually connect
 		assertFalse("even though connected, should not be populated yet", db.isPopulated());
 		db.populate();
 		assertTrue("should be populated now", db.isPopulated());
 
 		db.populate(); // it must be allowed to call populate multiple times
+		
+		con.close();
 	}
 
 	/*
@@ -432,7 +447,7 @@ public class TestSQLDatabase extends SQLTestCase {
 		assertFalse (db.isConnected());				
 	}
 	
-	public void testReconnect() throws ArchitectException {
+	public void testReconnect() throws ArchitectException, SQLException {
 		
 		// cause db to actually connect
 		assertNotNull(db.getChild(0));
@@ -446,10 +461,12 @@ public class TestSQLDatabase extends SQLTestCase {
 
 		assertTrue("db should be repopulated", db.isPopulated());
 		assertTrue("db should be reconnected", db.isConnected());
-		assertNotNull("db should be reconnected", db.getConnection());
+		Connection con = db.getConnection();
+		assertNotNull("db should be reconnected", con);
+		con.close();
 	}
 
-	public void testMissingDriverConnect() {
+	public void testMissingDriverConnect() throws SQLException {
 		ArchitectDataSource ds = db.getDataSource();
 		ds.setDriverClass("ca.sqlpower.xxx.does.not.exist");
 		
@@ -465,10 +482,11 @@ public class TestSQLDatabase extends SQLTestCase {
 		assertNotNull("should have got an ArchitectException", exc);
 		// XXX: this test should be re-enabled when the product has I18N implemented.
 		//assertEquals("error message should have been dbconnect.noDriver", "dbconnect.noDriver", exc.getMessage());
+		if (con != null) con.close(); // but we think it's null
 		assertNull("connection should be null", con);
 	}
 
-	public void testBadURLConnect() {
+	public void testBadURLConnect() throws Exception {
 		ArchitectDataSource ds = db.getDataSource();
 		ds.setUrl("jdbc:bad:moo");
 		
@@ -484,10 +502,11 @@ public class TestSQLDatabase extends SQLTestCase {
 		assertNotNull("should have got an ArchitectException", exc);
 //		XXX: this test should be re-enabled when the product has I18N implemented.
 		//assertEquals("error message should have been dbconnect.connectionFailed", "dbconnect.connectionFailed", exc.getMessage());
+		if (con != null) con.close();  // con should be null, but if it isn't we have to put it back in the pool.
 		assertNull("connection should be null", con);
 	}
 
-	public void testBadPasswordConnect() {
+	public void testBadPasswordConnect() throws SQLException {
 		ArchitectDataSource ds = db.getDataSource();
 		ds.setPass("foofoofoofoofooSDFGHJK");  // XXX: if this is the password, we lose.
 		
@@ -503,6 +522,7 @@ public class TestSQLDatabase extends SQLTestCase {
 		assertNotNull("should have got an ArchitectException", exc);
 		// XXX: this test should be re-enabled when the product has I18N implemented.
 		// assertEquals("error message should have been dbconnect.connectionFailed", "dbconnect.connectionFailed", exc.getMessage());
+		if (con != null) con.close(); // but we hope it's null
 		assertNull("connection should be null", con);
 	}
 	
@@ -528,6 +548,45 @@ public class TestSQLDatabase extends SQLTestCase {
 		SQLObject child = db.getChild(0);
 		assertTrue(db.isPopulated());
 		assertFalse(child.isPopulated());
+	}
+	
+	public void testConnectionsPerThreadAreUnique() throws Exception{
+		ArchitectDataSource ads = new ArchitectDataSource();
+		ads.setDriverClass("regress.ca.sqlpower.architect.MockJDBCDriver");
+		ads.setUrl("jdbc:mock:dbmd.catalogTerm=Catalog&dbmd.schemaTerm=Schema&catalogs=farm,yard,zoo&schemas.farm=cow,pig&schemas.yard=cat,robin&schemas.zoo=lion,giraffe&tables.farm.cow=moo&tables.farm.pig=oink&tables.yard.cat=meow&tables.yard.robin=tweet&tables.zoo.lion=roar&tables.zoo.giraffe=***,^%%");
+		ads.setUser("fake");
+		ads.setPass("fake");
+		ads.setDisplayName("test");
+		db.setDataSource(ads);
+		class ConnectionGetter implements Runnable {
+			Connection con;
+			public void run() {
+				try {
+					con = db.getConnection();
+				} catch (ArchitectException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		ConnectionGetter cg1 = new ConnectionGetter();
+		Thread t1 = new Thread(cg1);
+		ConnectionGetter cg2 = new ConnectionGetter();
+		Thread t2 = new Thread(cg2);
+		
+		t1.start();
+		t2.start();
+		
+		t1.join();
+		t2.join();
+		
+		if (cg1.con == null) fail("cg1 didn't get a connection");
+		if (cg2.con == null) fail("cg2 didn't get a connection");
+		
+		assertNotSame("Both threads got the same connection!", cg1.con, cg2.con);
+		
+		cg1.con.close();
+		cg2.con.close();
 	}
 	
 	

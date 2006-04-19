@@ -1,6 +1,7 @@
 package ca.sqlpower.architect.swingui;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 import javax.swing.JButton;
@@ -127,12 +128,12 @@ public class QuickStartPanel2 implements WizardPanel {
 		plexp.setTargetDataSource((ArchitectDataSource)targetConnectionsBox.getSelectedItem());
 		database = dcl.getDatabase();
 		
-		
-		 try {
-			Connection con = database.getConnection();
-		 
-		    if (con == null) {
-		    	JOptionPane.showMessageDialog(getPanel(),
+		Connection con = null;
+		try {
+			con = database.getConnection();
+			
+			if (con == null) {
+				JOptionPane.showMessageDialog(getPanel(),
 						"Couldn't connect to target database.",
 						"Database Error", JOptionPane.ERROR_MESSAGE);
 				return false;
@@ -142,11 +143,14 @@ public class QuickStartPanel2 implements WizardPanel {
 					e.getMessage(),
 					"Database Error", JOptionPane.ERROR_MESSAGE);
 			return false;
+		} finally {
+			try {
+				if (con != null) con.close();
+			} catch (SQLException e) {
+				logger.error("Couldn't close connection", e);
+			}
 		}
 
-		
-		
-		
 		catalog = (SQLCatalog) targetCatalog.getSelectedItem();
 		schema = (SQLSchema) targetSchema.getSelectedItem();
 		

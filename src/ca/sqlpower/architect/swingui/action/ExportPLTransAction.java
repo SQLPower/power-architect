@@ -232,18 +232,27 @@ public class ExportPLTransAction extends AbstractAction {
 		}
 
 		List actualColumns = new ArrayList();
-		Connection con = t.getParentDatabase().getConnection();
-		DatabaseMetaData dbmd = con.getMetaData();
+		Connection con = null;
 		ResultSet rs = null;
 		try {
+			con = t.getParentDatabase().getConnection();
+			DatabaseMetaData dbmd = con.getMetaData();
 			logger.debug("Fetching columns of "+plexp.getTargetSchema()+"."+tableName);
 			rs = dbmd.getColumns(null, plexp.getTargetSchema(), tableName, null);
 			while (rs.next()) {
 				actualColumns.add(rs.getString(4).toLowerCase()); // column name
 			}
 		} finally {
-			if (rs != null) rs.close();
-			dbmd = null;
+			try {
+				if (rs != null) rs.close();
+			} catch (SQLException ex) {
+				logger.error("Could not close result set", ex);
+			}
+			try {
+				if (con != null) con.close();
+			} catch (SQLException ex) {
+				logger.error("Could not close connection", ex);
+			}
 		}
 		
 		if (logger.isDebugEnabled()) {

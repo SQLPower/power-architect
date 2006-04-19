@@ -20,6 +20,7 @@ import org.apache.log4j.*;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
@@ -75,8 +76,9 @@ public class ConflictResolver implements Monitorable {
         /**
          * Adds the dependant imported and exported key relationships which must
          * be dropped before this conflict can be dropped. 
+         * @param dbmd The database metadata to consult.
          */
-        public void addTableDependants() throws SQLException {
+        private void addTableDependants(DatabaseMetaData dbmd) throws SQLException {
             ResultSet ikrs = dbmd.getImportedKeys(getCatalog(), getSchema(), getName());
             addDependantsFromKeys(ikrs);
             ikrs.close();
@@ -167,8 +169,7 @@ public class ConflictResolver implements Monitorable {
         }
     }
     
-    private Connection con;
-    private DatabaseMetaData dbmd;
+    private SQLDatabase targetDatabase;
     private List ddlStatements;
     private List conflicts;
     private String lastSQLStatement;
@@ -183,15 +184,11 @@ public class ConflictResolver implements Monitorable {
     /**
      * Creates a new ConflictResolver.  You should call findConflicting() after you get
      * this new object.
-     * 
-     * @param con
-     * @param ddlStatements
      */
-    public ConflictResolver(Connection con, DDLGenerator ddlg, List ddlStatements) throws SQLException {
-        this.con = con;
+    public ConflictResolver(SQLDatabase target, DDLGenerator ddlg, List ddlStatements) throws SQLException {
+    	this.targetDatabase = target;
         this.ddlg = ddlg;
         this.ddlStatements = ddlStatements;
-        this.dbmd = con.getMetaData();
     }
 
     public void aboutToCallDropConflicting() {
@@ -204,9 +201,11 @@ public class ConflictResolver implements Monitorable {
      * 
      * @return a list of object names that need to be removed before ddlStmt
      *         will succeed.
+     * @throws ArchitectException 
      */
-    public void findConflicting() throws SQLException {
+    public void findConflicting() throws SQLException, ArchitectException {
    		doingFindConflicting = true;
+   		Connection con = null;
    		try {
    			conflicts = new ArrayList();
    			monitorableProgress = 0;
@@ -214,6 +213,9 @@ public class ConflictResolver implements Monitorable {
    			if (logger.isDebugEnabled()) {
    				logger.debug("About to find conflicting objects for DDL Script: "+ddlStatements);
    			}
+   			
+   			con = targetDatabase.getConnection();
+   			DatabaseMetaData dbmd = con.getMetaData();
    			
    			Iterator it = ddlStatements.iterator();
    			while (it.hasNext()) {
@@ -242,7 +244,7 @@ public class ConflictResolver implements Monitorable {
 								rs.getString("TABLE_SCHEM"),
 								rs.getString("TABLE_NAME"));
    						c.setSqlDropStatement(ddlg.makeDropTableSQL(c.getCatalog(), c.getSchema(), c.getName()));
-   						c.addTableDependants();
+   						c.addTableDependants(dbmd);
    						conflicts.add(c);
    					}
    					rs.close();
@@ -260,6 +262,11 @@ public class ConflictResolver implements Monitorable {
    		} finally {    			
    			findConflictingFinished = true;
    			doingFindConflicting = false;
+   			try {
+   				if (con != null) con.close();
+   			} catch (SQLException ex) {
+   				logger.error("Couldn't close connection");
+   			}
    		}
     }
 
@@ -267,8 +274,9 @@ public class ConflictResolver implements Monitorable {
      * Drops the conflicting objects which findConflicting() found in the target database.
      * 
      * @throws SQLException
+     * @throws ArchitectException 
      */
-    public void dropConflicting() throws SQLException {
+    public void dropConflicting() throws SQLException, ArchitectException {
     		if (conflicts == null) {
     			throw new IllegalStateException("You have to call findConflicting() before dropConflicting()");
     		}
@@ -276,8 +284,10 @@ public class ConflictResolver implements Monitorable {
     		dropConflictingStarted = true;
     		doingDropConflicting = true;
     		Iterator it = conflicts.iterator();
+    		Connection con = null;
     		Statement stmt = null;
     		try {
+    			con = targetDatabase.getConnection();
     			stmt = con.createStatement();
     			Set alreadyDropped = new HashSet();
     			while (it.hasNext()) {
@@ -288,7 +298,16 @@ public class ConflictResolver implements Monitorable {
     		} finally {
     			dropConflictingFinished = true;
     			doingDropConflicting = false;
-    			if (stmt != null) stmt.close();
+    			try {
+    				if (stmt != null) stmt.close();
+    			} catch (SQLException ex) {
+    				logger.error("Couldn't close statement", ex);
+    			}
+    			try {
+    				if (con != null) con.close();
+    			} catch (SQLException ex) {
+    				logger.error("Couldn't close connection", ex);
+    			}
     		}
     }
     

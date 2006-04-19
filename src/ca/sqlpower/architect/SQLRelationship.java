@@ -178,9 +178,10 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		if (!db.isPopulated()) {
 			throw new ArchitectException("relationship.unpopulatedTargetDatabase");
 		}
-		Connection con = db.getConnection();
+		Connection con = null;
 		ResultSet rs = null;
 		try {
+			con = db.getConnection();
 			DatabaseMetaData dbmd = con.getMetaData();
 			SQLRelationship r = null;
 			int currentKeySeq;
@@ -252,6 +253,11 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 				if (rs != null) rs.close();
 			} catch (SQLException e) {
 				logger.warn("Couldn't close resultset", e);
+			}
+			try {
+				if (con != null) con.close();
+			} catch (SQLException e) {
+				logger.warn("Couldn't close connection", e);
 			}
 		}
 	}

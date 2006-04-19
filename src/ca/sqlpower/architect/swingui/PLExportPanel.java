@@ -422,6 +422,13 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 					logger.error("problem closing statement.",se);					
 				}
 			}
+			if (con != null) {
+				try {
+					con.close();
+				} catch (SQLException se) {
+					logger.error("problem closing connection.",se);					
+				}
+			}
 		}
 		if (count == 0) {
 			return false;

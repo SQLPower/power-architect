@@ -409,10 +409,15 @@ public class SQLScriptDialog extends JDialog {
 				logWriter.flush();
 				logWriter.close();
 				try {
-					stmt.close();
+					if (stmt != null) stmt.close();
 				} catch (SQLException ex) {
 					logger.error("SQLException while closing statement", ex);
-				}			
+				}
+				try {
+					if (con != null) con.close();
+				} catch (SQLException ex) {
+					logger.error("Couldn't close connection", ex);
+				}
 			}
 			
 			finished = true;

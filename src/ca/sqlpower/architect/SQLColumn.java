@@ -216,9 +216,10 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 										 String schema,
 										 String tableName) 
 		throws SQLException, DuplicateColumnException, ArchitectException {
-		Connection con = addTo.getParentDatabase().getConnection();
+		Connection con = null;
 		ResultSet rs = null;
 		try {
+			con = addTo.getParentDatabase().getConnection();
 			DatabaseMetaData dbmd = con.getMetaData();
 			logger.debug("SQLColumn.addColumnsToTable: catalog="+catalog+"; schema="+schema+"; tableName="+tableName);
 			rs = dbmd.getColumns(catalog, schema, tableName, "%");
@@ -281,7 +282,16 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 			rs.close();
 			rs = null;
 		} finally {
-			if (rs != null) rs.close();
+			try {
+				if (rs != null) rs.close();
+			} catch (SQLException ex) {
+				logger.error("Couldn't close result set", ex);
+			}
+			try {
+				if (con != null) con.close();
+			} catch (SQLException ex) {
+				logger.error("Couldn't close connection", ex);
+			}
 		}
 	}
 

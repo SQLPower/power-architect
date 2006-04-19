@@ -80,8 +80,19 @@ public class TestSQLColumn extends SQLTestCase {
 					" cow numeric(11),\n" +
 					" moo varchar(10),\n" +
 					" foo char(10))");
-		} finally {		
-			if (stmt != null) stmt.close();
+		} finally {
+			try {
+				if (stmt != null) stmt.close();
+			} catch (SQLException ex) {
+				System.out.println("Couldn't close statement");
+				ex.printStackTrace();
+			}
+			try {
+				if (con != null) con.close();
+			} catch (SQLException ex) {
+				System.out.println("Couldn't close connection");
+				ex.printStackTrace();
+			}
 			//mydb.disconnect();  FIXME: this should be uncommented when bug 1005 is fixed
 		}
 	}

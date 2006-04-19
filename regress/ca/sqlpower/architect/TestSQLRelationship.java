@@ -125,10 +125,11 @@ public class TestSQLRelationship extends SQLTestCase {
 	}
 
 	public void testReadFromDB() throws Exception {
-		Connection con = db.getConnection();
+		Connection con = null;
 		Statement stmt = null;
 		String lastSQL = null;
 		try {
+			con = db.getConnection();
 			stmt = con.createStatement();
 
 			try {
@@ -173,7 +174,18 @@ public class TestSQLRelationship extends SQLTestCase {
 			ex.printStackTrace();
 			fail("SQL statement failed. See system console for details.");
 		} finally {
-			if (stmt != null) stmt.close();
+			try {
+				if (stmt != null) stmt.close();
+			} catch (SQLException e) {
+				System.out.println("Couldn't close statement");
+				e.printStackTrace();
+			}
+			try {
+				if (con != null) con.close();
+			} catch (SQLException e) {
+				System.out.println("Couldn't close connection");
+				e.printStackTrace();
+			}
 		}
 		
 		SQLTable parent = db.getTableByName("relationship_test_parent");

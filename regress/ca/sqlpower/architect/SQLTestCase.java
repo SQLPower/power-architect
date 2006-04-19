@@ -67,8 +67,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 	}
 	
 	protected void tearDown() throws Exception {
-		// we don't disconnect: this slows down the test because it 
-		// requires setUp() to reconnect rather than using a cached connection!
+		db.disconnect();
 		db = null;
 	}
 	
