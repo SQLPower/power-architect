@@ -25,6 +25,8 @@ public class ProjectSettingsAction extends AbstractAction {
 	}
 
 	public void actionPerformed(ActionEvent evt) {
+		logger.debug(getValue(SHORT_DESCRIPTION) + " invoked");
+		
 		final ProjectSettingsPanel settingsPanel = new ProjectSettingsPanel(af.getProject());
 
 		final JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
