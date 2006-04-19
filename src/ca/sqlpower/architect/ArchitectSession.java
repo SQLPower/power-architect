@@ -1,5 +1,6 @@
 package ca.sqlpower.architect;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.LinkedList;
 
@@ -22,7 +23,7 @@ public class ArchitectSession {
 	protected static ArchitectSession instance;
 	protected UserSettings userSettings;
 	protected JDBCClassLoader jdbcClassLoader;
-	protected List driverJarList;
+	protected List<String> driverJarList;
 
 	protected ArchitectSession() {
 		driverJarList = new LinkedList();
@@ -64,23 +65,27 @@ public class ArchitectSession {
 		this.userSettings = argUserSettings;
 	}
 
-	public List getDriverJarList() {
-		return driverJarList;
-	}
-
-	public void setDriverJarList(List v) {
-		driverJarList = v;
+	public List<String> getDriverJarList() {
+		return Collections.unmodifiableList(driverJarList);
 	}
 
 	/**
 	 * Adds an entry to the list of JDBC driver JAR files.  The
 	 * ConfigFile class uses this when loading the user settings file.
 	 */
-	public void addDriverJarPath(String path) {
-		driverJarList.add(path);
+	public boolean addDriverJar(String fullPath) {
+		return driverJarList.add(fullPath);
+	}
+	public boolean removeDriverJar(String fullPath) {
+		return driverJarList.remove(fullPath);
+	}
+	
+	public void clearDriverJarList() {
+		driverJarList.clear();
 	}
 
 	public JDBCClassLoader getJDBCClassLoader() {
 		return jdbcClassLoader;
 	}
+
 }
