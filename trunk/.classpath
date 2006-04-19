@@ -14,5 +14,8 @@
 	<classpathentry sourcepath="libsrc/forms-1.0.6-src.zip" kind="lib" path="lib/forms-1.0.6.jar"/>
 	<classpathentry sourcepath="libsrc/jfcunit-2.08_src.jar" kind="lib" path="lib/jfcunit.jar"/>
 	<classpathentry kind="lib" path="lib/jakarta-regexp-1.2.jar"/>
+	<classpathentry kind="lib" path="lib/commons-collections-3.1.jar"/>
+	<classpathentry sourcepath="libsrc/commons-dbcp-1.2.1-src.zip" kind="lib" path="lib/commons-dbcp-1.2.1.jar"/>
+	<classpathentry sourcepath="libsrc/commons-pool-1.3-src.zip" kind="lib" path="lib/commons-pool-1.3.jar"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>

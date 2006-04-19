@@ -51,13 +51,14 @@ public class TestSQLTable extends SQLTestCase {
 	public static void oneTimeSetUp() throws Exception {
 		System.out.println("TestSQLTable.oneTimeSetUp()");
 		SQLDatabase mydb = new SQLDatabase(getDataSource());
-		Connection con = mydb.getConnection();
+		Connection con = null;
 		Statement stmt = null;
 		
 		/*
 		 * Setting up a clean db for each of the tests
 		 */
 		try {
+			con = mydb.getConnection();
 			stmt = con.createStatement();
 			try {
 				stmt.executeUpdate("DROP TABLE REGRESSION_TEST1");
@@ -70,7 +71,16 @@ public class TestSQLTable extends SQLTestCase {
 			stmt.executeUpdate("CREATE TABLE REGRESSION_TEST1 (t1_c1 numeric(10), t1_c2 numeric(5))");
 			stmt.executeUpdate("CREATE TABLE REGRESSION_TEST2 (t2_c1 char(10))");
 		} finally {
-			if (stmt != null) stmt.close();
+			try {
+				if (stmt != null) stmt.close();
+			} catch (SQLException e) {
+				System.out.println("Couldn't close statement");
+			}
+			try {
+				if (con != null) con.close();
+			} catch (SQLException e) {
+				System.out.println("Couldn't close connection");
+			}
 			mydb.disconnect();
 		}
 	}

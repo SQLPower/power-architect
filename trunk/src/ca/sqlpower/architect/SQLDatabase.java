@@ -1,51 +1,44 @@
 package ca.sqlpower.architect;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Iterator;
-import java.util.HashMap;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Properties;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-import java.sql.Driver;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeEvent;
-import org.apache.log4j.Logger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
-import ca.sqlpower.architect.ArchitectDataSource;
-import ca.sqlpower.architect.ddl.GenericDDLGenerator;
-import ca.sqlpower.architect.ddl.GenericTypeDescriptor;
-import ca.sqlpower.architect.jdbc.ConnectionDecorator;
+import org.apache.commons.dbcp.ConnectionFactory;
+import org.apache.commons.dbcp.PoolableConnectionFactory;
+import org.apache.commons.pool.BaseObjectPool;
+import org.apache.commons.pool.impl.GenericObjectPool;
+import org.apache.log4j.Logger;
 
 public class SQLDatabase extends SQLObject implements java.io.Serializable, PropertyChangeListener {
 	private static Logger logger = Logger.getLogger(SQLDatabase.class);
 
 	/**
-	 * Caches connections across serialization attempts.  See {@link
-	 * #connect()}.
+	 * This ArchitectDataSource describes how to connect to the 
+	 * physical database that backs this SQLDatabase object.
 	 */
-	private static Map<ArchitectDataSource,Connection> dbConnections =
-		new HashMap<ArchitectDataSource,Connection>();
+	private ArchitectDataSource dataSource;
 
-	protected ArchitectDataSource dataSource;
-	protected transient Connection connection;
-
+	/**
+	 * A pool of JDBC connections backed by a Jakarta Commons DBCP pool.
+	 * You should access it only via the getConnectionPool() method.
+	 */
+	private transient BaseObjectPool connectionPool;
+	
 	/**
 	 * Tells this database that it is being used to back the PlayPen.  Also 
 	 * stops removal of children and the closure of connection when properties
 	 * change.
 	 */
 	private boolean playPenDatabase = false;
-
-	/**
-	 * The valid types for this database
-	 */
-	private Map<Integer,GenericTypeDescriptor> typeMap = null;
 
 	/**
 	 * Constructor for instances that connect to a real database by JDBC.
@@ -64,105 +57,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	}
 
 	public synchronized boolean isConnected() {
-		return connection != null;
-	}
-
-	
-	
-	public Map<Integer,GenericTypeDescriptor> getTypeMap() throws SQLException {
-		if (typeMap == null)
-		{
-			if (connection == null ) {
-				typeMap=new GenericDDLGenerator().getTypeMap();
-				return typeMap;
-			}
-			
-			typeMap = new HashMap<Integer,GenericTypeDescriptor>();
-			DatabaseMetaData dbmd = connection.getMetaData();
-			ResultSet rs = dbmd.getTypeInfo();
-			while (rs.next()) {
-				GenericTypeDescriptor td = new GenericTypeDescriptor(rs);
-				typeMap.put(new Integer(td.getDataType()), td);
-			}
-			rs.close();
-		}
-
-		return typeMap;
-	}
-
-	/**
-	 * Connects to the database if necessary.  It is safe to call this
-	 * method many times; it returns quickly if nothing needs to be
-	 * done.
-	 */
-	private synchronized void connect() throws ArchitectException {
-		try {
-			if (connection != null && !connection.isClosed()) return;
-			connection = dbConnections.get(dataSource);
-			if (connection != null && !connection.isClosed()) return;
-
-			if (dataSource.getDriverClass() == null
-				|| dataSource.getDriverClass().trim().length() == 0) {
-				throw new ArchitectException("Connection \""+dataSource.getName()+"\" has no JDBC Driver class specified.");
-			}
-
-			if (dataSource.getUrl() == null
-				|| dataSource.getUrl().trim().length() == 0) {
-				throw new ArchitectException("Connection \""+dataSource.getName()+"\" has no JDBC URL.");
-			}
-
-			if (dataSource.getUser() == null
-				|| dataSource.getUser().trim().length() == 0) {
-				throw new ArchitectException("Connection \""+dataSource.getName()+"\" has no JDBC username.");
-			}
-
- 			ArchitectSession session = ArchitectSession.getInstance();
- 			if (session == null) {
- 				throw new ArchitectException
- 					("Can't connect to database \""+dataSource.getName()+
- 					        "\" because ArchitectSession.getInstance() returned null");
- 			}
-			if (logger.isDebugEnabled()) {
-//				DriverManager.setLogStream(System.err);
-				ClassLoader cl = this.getClass().getClassLoader();
-				StringBuffer loaders = new StringBuffer();
-				loaders.append("Local Classloader chain: ");
-				while (cl != null) {
-					loaders.append(cl).append(", ");
-					cl = cl.getParent();
-				}
-				logger.debug(loaders);
-			}
-			Driver driver = (Driver) Class.forName(dataSource.getDriverClass(), true, session.getJDBCClassLoader()).newInstance();
-			logger.info("Driver Class "+dataSource.getDriverClass()+" loaded without exception");
-			if (!driver.acceptsURL(dataSource.getUrl())) {
-				throw new ArchitectException("Couldn't connect to database:\n"
-						+"JDBC Driver "+dataSource.getDriverClass()+"\n"
-						+"does not accept the URL "+dataSource.getUrl());
-			}
-			Properties connectionProps = new Properties();
-			connectionProps.setProperty("user", dataSource.getUser());
-			connectionProps.setProperty("password", dataSource.getPass());
-			Connection realConnection = driver.connect(dataSource.getUrl(), connectionProps);
-			if (realConnection == null) {
-				throw new ArchitectException("Couldn't connect to database: JDBC Driver returned a null connection!");
-			}
-			connection = ConnectionDecorator.createFacade(realConnection);
-			logger.debug("Connection class is: " + connection.getClass().getName());
-			dbConnections.put(dataSource, connection);
-		} catch (ClassNotFoundException e) {
-			logger.warn("Driver Class not found", e);
-			throw new ArchitectException("JDBC Driver \""+dataSource.getDriverClass()
-										 +"\" not found.", e);
-		} catch (SQLException e) {
-			throw new ArchitectException("Couldn't connect to database:\n"+e.getMessage(), e);
-		} catch (InstantiationException e) {
-			throw new ArchitectException("Couldn't connect to database because an instance of the\n" +
-					"JDBC driver would not be created."+e.getMessage(), e);
-		} catch (IllegalAccessException e) {
-			throw new ArchitectException("Couldn't connect to database because the\n" +
-					"JDBC driver has no public constructor (this is bad)."+e.getMessage(), e);
-		}
+		return connectionPool != null;
 	}
 
 	public synchronized void populate() throws ArchitectException {
@@ -215,9 +110,14 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 				fireDbChildrenInserted(changedIndices, children.subList(oldSize, newSize));
 			}
 			try {
-				if ( rs != null )	rs.close();
+				if (rs != null ) rs.close();
 			} catch (SQLException e2) {
 				throw new ArchitectException("database.rs.close.fail", e2);
+			}
+			try {
+				if (con != null ) con.close();
+			} catch (SQLException e2) {
+				throw new ArchitectException("Couldn't close connection", e2);
 			}
 		}
 		
@@ -494,10 +394,6 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 		return tables;
 	}
 
-
-	
-	
-	
 	/**
 	 * Gets the value of dataSource
 	 *
@@ -540,7 +436,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	 * Removes all children, closes and discards the JDBC connection.  
 	 * Unless {@link #playPenDatabase} is true
 	 */
-	protected void reset() {
+	protected synchronized void reset() {
 		
 		if (playPenDatabase) {
 			// preserve the objects that are in the Target system when
@@ -564,15 +460,15 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 			populated = false;
 		}
 		
-		// reset connection in either case
-		if (connection != null) {
+		// destroy connection pool in either case (it still points to the old data source)
+		if (connectionPool != null) {
 			try {
-				connection.close();
-			} catch (SQLException e) {
+				connectionPool.close();
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
-		connection = null;
+		connectionPool = null;
 	}
 
 	/**
@@ -595,18 +491,26 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	}
 
 	/**
-	 * Returns a reference to the JDBC connection to this database.
-	 * Calls connect() if necessary.
+	 * Returns a JDBC connection to the backing database, if there
+	 * is one.  The connection that you get will be yours and only yours
+	 * until you call close() on it.  To maximize efficiency of the pool,
+	 * try to call close() as soon as you are done with the connection.
 	 *
 	 * @return an open connection if this database has a valid
 	 * dataSource; null if this is a dummy database (such as the
 	 * playpen instance).
 	 */
 	public Connection getConnection() throws ArchitectException {
-		if (dataSource != null && connection == null) {
-			connect();
+		if (dataSource == null) {
+			return null;
+		} else {
+			try {
+				return (Connection) getConnectionPool().borrowObject();
+			} catch (Exception e) {
+				throw new ArchitectException(
+						"Couldn't connect to database: "+e.getMessage(), e);
+			}
 		}
-		return this.connection;
 	}
 
 	public String toString() {
@@ -627,29 +531,15 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	
 	public class PopulateProgressMonitor {
 		
-		private Integer jobSize;
-		
 		/**
-		 * Returns the number of children this database will have when
-		 * it is populated.  If the database connection has not been made
-		 * yet, it returns null.  Otherwise it counts schemas, catalogs,
-		 * or tables (depending on DBMS type).
+		 * Returns null, which will keep the monitor in indeterminate mode.
 		 */
 		public Integer getJobSize() throws ArchitectException {
-			if (connection == null) {
-				return null;
-			} else if (jobSize == null) {
-				jobSize = new Integer(getChildCount());  // this will probably do network io
-			}
-			return jobSize;
+			return null;
 		}
 		
 		public int getProgress() {
-			if (children == null) {
-				return 0;
-			} else {
-				return children.size();
-			}
+			return 0;
 		}
 		
 		public boolean isFinished() {
@@ -663,12 +553,24 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	 */
 	public void disconnect() {
 		try {
-			if (connection != null && !connection.isClosed()) connection.close();
-		} catch (SQLException ex) {
-			logger.error("Error disconnecting main connection in disconnect()");
+			if (connectionPool != null){
+				connectionPool.close();
+			}
+		} catch (Exception ex) {
+			logger.error("Error closing connection pool", ex);
 		} finally {
-			connection = null;
+			connectionPool = null;
 		}
+	}
+	
+	private synchronized BaseObjectPool getConnectionPool() {
+		if (connectionPool == null) {
+			connectionPool = new GenericObjectPool();			
+			ConnectionFactory cf = new ArchitectConnectionFactory(dataSource);			
+			new PoolableConnectionFactory(cf, connectionPool, null,
+					null, false, true);
+		}
+		return connectionPool;
 	}
 
 	@Override

@@ -145,6 +145,8 @@ public class TestSQLCatalog extends SQLTestCase {
 		ArchitectDataSource dataSource = db.getDataSource();
 		Connection conn = db.getConnection();
 		DatabaseMetaData meta = conn.getMetaData();
+		conn.close();
+		conn = null;
 		String ct = meta.getCatalogTerm();
 		if (null == ct || ct.length() == 0) { // unless this platform has catalogs.
 			return;

@@ -107,10 +107,11 @@ public class SQLCatalog extends SQLObject {
 		int oldSize = children.size();
 		synchronized (parent) {
 			
+			Connection con = null;
 			ResultSet rs = null;
 			try {
 			
-				Connection con = ((SQLDatabase)parent).getConnection();
+				con = ((SQLDatabase) parent).getConnection();
 				DatabaseMetaData dbmd = con.getMetaData();	
 
 				con.setCatalog(getName());
@@ -130,7 +131,7 @@ public class SQLCatalog extends SQLObject {
 				rs.close();
 				rs = null;
 				
-				if ( oldSize == children.size() ) {
+				if (oldSize == children.size()) {
 					rs = dbmd.getTables(getName(),
 										null,
 										"%",
@@ -160,9 +161,14 @@ public class SQLCatalog extends SQLObject {
 					fireDbChildrenInserted(changedIndices, children.subList(oldSize, newSize));
 				}
 				try {
-					if ( rs != null )	rs.close();
+					if (rs != null) rs.close();
 				} catch (SQLException e2) {
 					throw new ArchitectException("catalog.rs.close.fail", e2);
+				}
+				try {
+					if (con != null) con.close();
+				} catch (SQLException e2) {
+					throw new ArchitectException("Couldn't close connection", e2);
 				}
 			}
 		}

@@ -132,27 +132,34 @@ public class GenericDDLGenerator implements DDLGenerator {
 		ddl = new StringBuffer(500);
 		topLevelNames = new HashMap();  // for tracking dup table/relationship names
 
-		if (allowConnection) {
-			con = source.getConnection();
-		} else {
-			con = null;
+		try {
+			if (allowConnection) {
+				con = source.getConnection();
+			} else {
+				con = null;
+			}
+			
+			createTypeMap();
+			
+			Iterator it = source.getChildren().iterator();
+			while (it.hasNext()) {
+				
+				SQLTable t = (SQLTable) it.next();
+				writeTable(t);
+				writePrimaryKey(t);
+			}
+			it = source.getChildren().iterator();
+			while (it.hasNext()) {
+				SQLTable t = (SQLTable) it.next();
+				writeExportedRelationships(t);
+			}
+		} finally {
+			try {
+				if (con != null) con.close();
+			} catch (SQLException ex) {
+				logger.error("Couldn't close connection", ex);
+			}
 		}
-		
-		createTypeMap();
-
-		Iterator it = source.getChildren().iterator();
-		while (it.hasNext()) {
-		
-			SQLTable t = (SQLTable) it.next();
-			writeTable(t);
-			writePrimaryKey(t);
-		}
-		it = source.getChildren().iterator();
-		while (it.hasNext()) {
-			SQLTable t = (SQLTable) it.next();
-			writeExportedRelationships(t);
-		}
-
 		return ddlStatements;
 	}
 

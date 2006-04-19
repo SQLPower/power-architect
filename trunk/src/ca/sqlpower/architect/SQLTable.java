@@ -104,10 +104,12 @@ public class SQLTable extends SQLObject {
 		HashMap catalogs = new HashMap();
 		HashMap schemas = new HashMap();
 		synchronized (addTo) {
-			Connection con = addTo.getConnection();
-			DatabaseMetaData dbmd = con.getMetaData();
+			Connection con = null;
+			DatabaseMetaData dbmd = null;
 			ResultSet rs = null;
 			try {
+				con = addTo.getConnection();
+				dbmd = con.getMetaData();
 				rs = dbmd.getTables(null,
 								   null,
 								   "%",
@@ -156,7 +158,16 @@ public class SQLTable extends SQLObject {
 														  false));
 				}
 			} finally {
-				if (rs != null) rs.close();
+				try {
+					if (rs != null) rs.close();
+				} catch (SQLException ex) {
+					logger.error("Couldn't close result set ", ex);
+				}
+				try {
+					if (con != null) con.close();
+				} catch (SQLException ex) {
+					logger.error("Couldn't close connection", ex);
+				}
 			}
 		}
 	}
@@ -716,8 +727,10 @@ public class SQLTable extends SQLObject {
 					parent.populateRelationships();
 				} else if (type == EXPORTED_KEYS) {
 					ResultSet rs = null;
+					Connection con = null;
 					try {
-						DatabaseMetaData dbmd = parent.getParentDatabase().getConnection().getMetaData();
+						con = parent.getParentDatabase().getConnection();
+						DatabaseMetaData dbmd = con.getMetaData();
 						rs = dbmd.getExportedKeys(parent.getCatalogName(), parent.getSchemaName(), parent.getName());
 						while (rs.next()) {
 							if (rs.getInt(9) != 1) {
@@ -736,6 +749,11 @@ public class SQLTable extends SQLObject {
 					} finally {
 						try {
 							if (rs != null) rs.close();
+						} catch (SQLException ex) {
+							logger.warn("Couldn't close resultset", ex);
+						}
+						try {
+							if (con != null) con.close();
 						} catch (SQLException ex) {
 							logger.warn("Couldn't close resultset", ex);
 						}

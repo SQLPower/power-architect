@@ -775,6 +775,7 @@ public class PLExport implements Monitorable {
 	public void export(SQLDatabase playpenDB) throws SQLException, ArchitectException {
 		finished = false;
 		hasStarted = true;
+		Connection con = null;
 		try {			
 			currentDB = playpenDB;
 			
@@ -782,7 +783,6 @@ public class PLExport implements Monitorable {
 			logWriter = new LogWriter(ArchitectSession.getInstance().getUserSettings().getETLUserSettings().getETLLogPath());			
 						
 			SQLDatabase repository = new SQLDatabase(repositoryDataSource); // we are exporting db into this
-			Connection con = null;
         	
 			con = repository.getConnection();
 			try {
@@ -963,6 +963,11 @@ public class PLExport implements Monitorable {
 			logWriter.flush();		
 			logWriter.close();
 			logWriter=null;
+			try {
+				if (con != null) con.close();
+			} catch (SQLException e) {
+				logger.error("Couldn't close connection", e);
+			}
 		}
 	}
 

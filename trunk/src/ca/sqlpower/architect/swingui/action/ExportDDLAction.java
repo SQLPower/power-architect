@@ -1,7 +1,7 @@
 package ca.sqlpower.architect.swingui.action;
 
+
 import java.awt.event.ActionEvent;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -164,8 +164,7 @@ public class ExportDDLAction extends AbstractAction {
 			this.ddlg = ddlg;
 			this.statements = statements;
 
-			Connection con = target.getConnection();
-			cr = new ConflictResolver(con, ddlg, statements);
+			cr = new ConflictResolver(target, ddlg, statements);
 		}
 		
 		/**
@@ -275,7 +274,9 @@ public class ExportDDLAction extends AbstractAction {
 		private ConflictFinderProcess conflictFinder;
 
 		private ConflictResolver cr;
-		private String errorMessage;		
+ 
+		private String errorMessage;
+		private Exception error;
 		
 		/**
 		 * @param d The dialog we anchor popup messages to
@@ -296,7 +297,7 @@ public class ExportDDLAction extends AbstractAction {
 				cr.aboutToCallDropConflicting();
 				try {
 					cr.dropConflicting();
-				} catch (SQLException ex) {
+				} catch (Exception ex) {
 					logger.error("Error while dropping conflicting objects", ex);
 					errorMessage = "Error while dropping conflicting objects:\n\n"+ex.getMessage();
 				}
@@ -310,12 +311,10 @@ public class ExportDDLAction extends AbstractAction {
 		 */
 		public void cleanup() {
 			if (errorMessage != null) {
-				JOptionPane.showMessageDialog(parentDialog, errorMessage, "Error Dropping Conflicts", JOptionPane.ERROR_MESSAGE);
+				ASUtils.showExceptionDialog(parentDialog, "Error Dropping Conflicts: "+errorMessage, error);
 				setCancelled(true);
 			}
-			
 		}
-		
 	
 		public Integer getJobSize() throws ArchitectException {
 			return cr.getJobSize();

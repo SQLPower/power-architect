@@ -170,33 +170,34 @@ public class QuickStartPanel3 implements WizardPanel {
 			return false;
 		}
 		
-		 try {
-			Connection con = database.getConnection();
+		Connection con = null;
+		try {
+			con = database.getConnection();
 			
-			 if (con == null) {
-		    	JOptionPane.showMessageDialog(getPanel(),
+			if (con == null) {
+				JOptionPane.showMessageDialog(getPanel(),
 						"Couldn't connect to repository database.",
 						"Repository Database Connection Error", JOptionPane.ERROR_MESSAGE);
 				return false;
 			}
-			 
+			
 			PLSecurityManager sm = null;
 			sm = new PLSecurityManager(con, 
-		                database.getDataSource().get(ArchitectDataSource.PL_UID),
-		                database.getDataSource().get(ArchitectDataSource.PL_PWD),
-		                false);
-			 
-		    if (sm == null) {
-		    	JOptionPane.showMessageDialog(getPanel(),
+					database.getDataSource().get(ArchitectDataSource.PL_UID),
+					database.getDataSource().get(ArchitectDataSource.PL_PWD),
+					false);
+			
+			if (sm == null) {
+				JOptionPane.showMessageDialog(getPanel(),
 						"Couldn't login to repository database.",
 						"Repository Database Login Error", JOptionPane.ERROR_MESSAGE);
 				return false;
 			}
-		    
-		    StringBuffer sql = new StringBuffer("SELECT SCHEMA_VERSION FROM ");
+			
+			StringBuffer sql = new StringBuffer("SELECT SCHEMA_VERSION FROM ");
 			sql.append( DDLUtils.toQualifiedName(catalog==null?null:catalog.getName(),
-											schema==null?null:schema.getName(),
-											"DEF_PARAM"));
+					schema==null?null:schema.getName(),
+			"DEF_PARAM"));
 			Statement s = con.createStatement();
 			ResultSet rs = null;
 			Set set = new HashSet();
@@ -216,11 +217,15 @@ public class QuickStartPanel3 implements WizardPanel {
 						"Repository Database Error", JOptionPane.ERROR_MESSAGE);
 				return false;
 			} finally {
-				if (rs != null) {
-					rs.close();				
+				try {
+					if (rs != null) rs.close();
+				} catch (SQLException ex) {
+					logger.error("Couldn't close result set", ex);
 				}
-				if (s != null) {
-					s.close();
+				try {
+					if (s != null) s.close();
+				} catch (SQLException ex) {
+					logger.error("Couldn't close statement", ex);
 				}
 			}
 			
@@ -258,11 +263,15 @@ public class QuickStartPanel3 implements WizardPanel {
 						"Repository Database Error", JOptionPane.ERROR_MESSAGE);
 				return false;
 			} finally {
-				if (rs != null) {
-					rs.close();				
+				try {
+					if (rs != null) rs.close();
+				} catch (SQLException ex) {
+					logger.error("Couldn't close result set", ex);
 				}
-				if (s != null) {
-					s.close();
+				try {
+					if (s != null) s.close();
+				} catch (SQLException ex) {
+					logger.error("Couldn't close statement", ex);
 				}
 			}
 			
@@ -295,6 +304,12 @@ public class QuickStartPanel3 implements WizardPanel {
 					e.getMessage(),
 					"Repository Database Error", JOptionPane.ERROR_MESSAGE);
 			return false;
+		} finally {
+			try {
+				if (con != null) con.close();
+			} catch (SQLException ex) {
+				logger.error("Couldn't close connection", ex);
+			}
 		}
 		
 		
