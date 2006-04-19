@@ -23,7 +23,6 @@ import ca.sqlpower.architect.swingui.SwingUserSettings;
 import ca.sqlpower.architect.swingui.TableEditPanel;
 import ca.sqlpower.architect.swingui.TablePane;
 
-
 public class EditTableAction extends AbstractAction {
 	private static final Logger logger = Logger.getLogger(EditTableAction.class);
 
@@ -69,7 +68,7 @@ public class EditTableAction extends AbstractAction {
 				TreePath tp = selections[0];
 				SQLObject so = (SQLObject) tp.getLastPathComponent();
 				SQLTable st = null;
-				int idx = 0;
+
 				if (so instanceof SQLTable) {
 					logger.debug("user clicked on table, so we shall try to edit the table properties.");
 					st = (SQLTable) so;
