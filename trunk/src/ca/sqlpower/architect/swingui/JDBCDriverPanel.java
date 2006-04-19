@@ -92,7 +92,7 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 		dtm.setRoot(new DefaultMutableTreeNode());		
 		LoadJDBCDrivers ljd = new LoadJDBCDrivers(session.getDriverJarList());
 		LoadJDBCDriversWorker worker = new LoadJDBCDriversWorker(ljd);
-        ProgressWatcher watcher = new ProgressWatcher(progressBar,ljd,progressLabel);
+        new ProgressWatcher(progressBar,ljd,progressLabel);
 		new Thread(worker).start();
 	}
 

@@ -6,7 +6,6 @@ import java.util.LinkedList;
 import javax.swing.*;
 
 import ca.sqlpower.architect.*;
-import ca.sqlpower.architect.swingui.CompareDMPanel.StartCompareAction;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;

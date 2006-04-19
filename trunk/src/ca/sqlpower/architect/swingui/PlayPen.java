@@ -90,7 +90,6 @@ import ca.sqlpower.architect.swingui.Relationship.RelationshipDecorationMover;
 import ca.sqlpower.architect.swingui.action.CancelAction;
 import ca.sqlpower.architect.swingui.action.DBCS_OkAction;
 import ca.sqlpower.architect.swingui.action.SetDataSourceAction;
-import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
@@ -2241,7 +2240,6 @@ public class PlayPen extends JPanel
 			if ( c instanceof Relationship) {
 				if (evt.isPopupTrigger() && !evt.isConsumed()) {
 					Relationship r = (Relationship) c;
-					PlayPen pp = (PlayPen) evt.getSource();
 					r.setSelected(true);
 					r.showPopup(r.popup, p);
 					return true;

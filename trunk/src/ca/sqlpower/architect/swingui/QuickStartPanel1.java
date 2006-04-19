@@ -11,7 +11,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.swing.Box;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -38,12 +37,7 @@ import ca.sqlpower.architect.SQLDatabase.PopulateProgressMonitor;
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-/**
- * @author jack
- *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Style - Code Templates
- */
+
 public class QuickStartPanel1 implements WizardPanel {
 	private static final Logger logger = Logger.getLogger(WizardPanel.class);
 	
@@ -53,9 +47,7 @@ public class QuickStartPanel1 implements WizardPanel {
 		this.wizard = wizard;
 	}
 	
-	private Box box; // components laid out in here
 	private DBTree dbTree;
-	private JScrollPane scrollPane;
 	private JProgressBar progressBar;
 	private JLabel label;
 	private JPanel panel;
