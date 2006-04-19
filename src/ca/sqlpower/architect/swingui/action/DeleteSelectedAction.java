@@ -32,8 +32,6 @@ import ca.sqlpower.architect.swingui.SwingUserSettings;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
-import ca.sqlpower.architect.undo.UndoCompoundEvent;
-import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 
 public class DeleteSelectedAction extends AbstractAction implements SelectionListener {
 	private static final Logger logger = Logger.getLogger(DeleteSelectedAction.class);
