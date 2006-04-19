@@ -93,7 +93,7 @@ public class UserSettings {
 	 * Convenience method that calls ArchitectSession.getInstance().addDriverJarPath(path).
 	 */
 	public void addDriverJarPath(String path) {
-		ArchitectSession.getInstance().addDriverJarPath(path);
+		ArchitectSession.getInstance().addDriverJar(path);
 	}
 	
     /**

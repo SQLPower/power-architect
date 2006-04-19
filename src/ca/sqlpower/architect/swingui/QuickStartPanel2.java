@@ -1,10 +1,5 @@
-/*
- * Created on Jun 22, 2005
- *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Style - Code Templates
- */
 package ca.sqlpower.architect.swingui;
+
 import java.sql.Connection;
 import java.util.ArrayList;
 
@@ -33,17 +28,9 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
-
-/**
- * @author jack
- *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Style - Code Templates
- */
 public class QuickStartPanel2 implements WizardPanel {
 
 	private static final Logger logger = Logger.getLogger(QuickStartPanel2.class);
-	
 
 	private QuickStartWizard wizard;
 	private JPanel panel;
@@ -58,9 +45,7 @@ public class QuickStartPanel2 implements WizardPanel {
 	private SQLSchema schema;
 	DatabaseComboBoxListener dcl;
 
-
 	private JLabel label;
-	
 	
 	public QuickStartPanel2 (QuickStartWizard wizard) {
 		this.wizard = wizard;
