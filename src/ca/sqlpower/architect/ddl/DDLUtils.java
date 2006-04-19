@@ -43,6 +43,7 @@ public class DDLUtils {
         }
         
         qualName.append(name);
+        logger.debug(String.format("%s.%s.%s -> %s", catalog, schema, name, qualName));
         return qualName.toString();
     }
     

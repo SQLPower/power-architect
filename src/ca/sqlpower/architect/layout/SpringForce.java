@@ -53,8 +53,7 @@ public class SpringForce extends AbstractLayout {
 			friction = 1;
 		}
 		// create the adjacency list
-		for(TablePane table :tablePanes)
-		{
+		for (int i = 0; i < tablePanes.size(); i++) {
 			adjacentNodes.add(new HashMap<TablePane,Boolean>());
 		}
 		// TODO improve from order (E*N)
