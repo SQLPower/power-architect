@@ -1,15 +1,12 @@
 package ca.sqlpower.architect.etl;
 
 import java.util.Properties;
-import org.apache.log4j.Logger;
 
 /**
  * The PLConnectionSpec class is a container for POWER*LOADER ODBC
  * Connection information (normally retrieved from the PL.ini file).
  */
 public class PLConnectionSpec {
-
-	private static final Logger logger = Logger.getLogger(PLConnectionSpec.class);
 	
 	Properties props;
 	
