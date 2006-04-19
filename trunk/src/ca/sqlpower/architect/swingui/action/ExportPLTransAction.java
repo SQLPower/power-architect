@@ -272,8 +272,7 @@ public class ExportPLTransAction extends AbstractAction {
 			this.plExport = plExport;
 			d = parentDialog;
 			label.setText("Exporting Meta Data...");			
-			ProgressWatcher pw = new ProgressWatcher(progressBar, plExport, label);			
-			
+			new ProgressWatcher(progressBar, plExport, label);			
 		}		
 
 		public void doStuff() {

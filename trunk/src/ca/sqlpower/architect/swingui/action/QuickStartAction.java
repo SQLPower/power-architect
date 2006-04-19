@@ -24,6 +24,8 @@ public class QuickStartAction extends AbstractAction {
 	}
 
 	public void actionPerformed(ActionEvent e) {
+		logger.debug(getValue(SHORT_DESCRIPTION) + ": started");
+		
 		ArchitectFrame.getMainInstance().getNewProjectAction().actionPerformed(new ActionEvent(this,0,null));
 		// always start from scratch
 		d = new WizardDialog(ArchitectFrame.getMainInstance(),new QuickStartWizard());		

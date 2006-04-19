@@ -23,6 +23,7 @@ public class SelectAllAction extends AbstractAction {
 	}
 
 	public void actionPerformed(ActionEvent evt) {
+		logger.debug(getValue(SHORT_DESCRIPTION) + ": started");
 		pp.selectAll();
 	}
 	

@@ -4,7 +4,6 @@
 package ca.sqlpower.architect.swingui.action;
 
 import java.awt.event.ActionEvent;
-import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.JDialog;
@@ -31,6 +30,7 @@ public final class DBCS_OkAction extends AbstractAction {
 	}
 	
 	public void actionPerformed(ActionEvent e) {
+		logger.debug(getValue(SHORT_DESCRIPTION) + " started");
 		dbcsPanel.applyChanges();
 		ArchitectDataSource newDS = dbcsPanel.getDbcs();
 		if (isNew) {
