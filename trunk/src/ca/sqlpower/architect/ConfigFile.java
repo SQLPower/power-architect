@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.List;
+import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import org.apache.log4j.Logger;
@@ -17,7 +18,7 @@ import ca.sqlpower.architect.swingui.SwingUserSettings;
 /**
  * Historically this file read from a configuration file named .architect-prefs in the
  * user's home directory (though the file's location could be changed with a file chooser).
- * This version uses java.util.prefs instead.
+ * This version uses java.util.prefs instead; we've kept the class name for the time being...
  */
 public class ConfigFile {
 
@@ -54,27 +55,28 @@ public class ConfigFile {
 		return singleton;
 	}
 
-	// -------------------- READING THE FILE --------------------------
+	// -------------------- READING THE "FILE" --------------------------
 
 	public UserSettings read(ArchitectSession session) throws IOException {
+		logger.debug("reading UserSettings from java.util.prefs.");
 		Preferences prefs = ArchitectFrame.getMainInstance().getPrefs();
 		
 		UserSettings userSettings = new UserSettings();
-		List<String> driverJarNameList = session.getDriverJarList();
 		
 		int i;
 		for (i = 0; i <= 99; i++) {
 			String jarName = prefs.get(jarFilePrefName(i), null);
+			logger.debug("read Jar File entry: " + jarName);
 			if (jarName == null) {
 				break;
 			}
-			// System.out.println("Getting JarName: " + jarName);
-			if (!driverJarNameList.contains(jarName)) {
-				driverJarNameList.add(jarName);
-			}
+			
+			logger.debug("Adding JarName: " + jarName);
+			session.addDriverJar(jarName);
+			
 		}
 		for (; i <= 99; i++) {
-			// System.out.println("Pruning dead jar entry " + i);
+			logger.debug("Pruning dead jar entry " + i);
 			prefs.remove(jarFilePrefName(i));
 		}		
 		
@@ -103,17 +105,24 @@ public class ConfigFile {
 	// -------------------- "WRITING THE FILE" --------------------------
 
 	public void write(ArchitectSession session) throws ArchitectException {
+		logger.debug("Saving prefs to java.util.prefs");
 		Preferences prefs = ArchitectFrame.getMainInstance().getPrefs();
 		
 		UserSettings userSettings = session.getUserSettings();
 		
 		List<String> driverJarList = session.getDriverJarList();
 		Iterator<String> it = driverJarList.iterator();
-		for (int i = 0 ; i <= 99 && it.hasNext(); i++) {
-			String name = it.next();
-			// System.out.println("Putting JAR " + i + " " + name);
-			prefs.put(jarFilePrefName(i), name);
+		for (int i = 0 ; i <= 99; i++) {
+			if (it.hasNext()) {
+				String name = it.next();
+				logger.debug("Putting JAR " + i + " " + name);
+				prefs.put(jarFilePrefName(i), name);
+			} else {
+				// XXX optimize this - make jar file be its own node, just delete the node before starting.
+				prefs.remove(jarFilePrefName(i));
+			}
 		}
+		
 		
 		prefs.put("PL.INI.PATH", userSettings.getPlDotIniPath());
 		
@@ -130,6 +139,12 @@ public class ConfigFile {
 
 		PrintUserSettings printUserSettings = userSettings.getPrintUserSettings();
 		prefs.put(PrintUserSettings.DEFAULT_PRINTER_NAME, printUserSettings.getDefaultPrinterName());
+		
+		try {
+			prefs.flush();
+		} catch (BackingStoreException e) {
+			throw new ArchitectException("Unable to flush Java preferences", e);
+		}
 	}
 
 	/**
