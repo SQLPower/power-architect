@@ -945,9 +945,9 @@ public class PlayPen extends JPanel
 	public void showDbcsDialog() {
 		final DBCSPanel dbcsPanel = new DBCSPanel();
 			
-		dbcsPanel.setDbcs(db.getDataSource());		
 
-		DBCS_OkAction okAction = new DBCS_OkAction(dbcsPanel, true);
+		DBCS_OkAction okAction = new DBCS_OkAction(dbcsPanel, false);
+		dbcsPanel.setDbcs(db.getDataSource());		
 		
 		Action cancelAction = new AbstractAction() {
 			public void actionPerformed(ActionEvent e) {

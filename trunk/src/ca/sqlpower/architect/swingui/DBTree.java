@@ -675,7 +675,7 @@ public class DBTree extends JTree implements DragSourceListener {
 				
 				JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
 						dbcsPanel,ArchitectFrame.getMainInstance(),
-						"New Connection", ArchitectPanelBuilder.OK_BUTTON_LABEL,
+						"Connection Properties", ArchitectPanelBuilder.OK_BUTTON_LABEL,
 						okButton, cancelAction);
 				
 				okButton.setConnectionDialog(d);
