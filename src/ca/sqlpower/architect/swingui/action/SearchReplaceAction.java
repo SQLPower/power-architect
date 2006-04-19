@@ -33,6 +33,7 @@ public class SearchReplaceAction extends AbstractAction {
     }
     
     public void actionPerformed(ActionEvent evt) {
+    	logger.debug(getValue(SHORT_DESCRIPTION) + ": started");
         SearchReplace sr = new SearchReplace();
         sr.showSearchDialog(pp);
     }

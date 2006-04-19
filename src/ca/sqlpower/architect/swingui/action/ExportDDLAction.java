@@ -62,8 +62,8 @@ public class ExportDDLAction extends AbstractAction {
 							GenericDDLGenerator ddlg = architectFrame.getProject().getDDLGenerator();
 							ddlg.setTargetSchema(ddlPanel.getSchemaField().getText());
 							
-							// XXX why is this generated but never used??
-							StringBuffer ddl = ddlg.generateDDL(architectFrame.getProject().getPlayPen().getDatabase());
+							// XXX is it OK that is this generated but never used??
+							ddlg.generateDDL(architectFrame.getProject().getPlayPen().getDatabase());
 							List warnings = ddlg.getWarnings();
 							if (warnings.size() > 0) {
 								TableSorter sorter = new TableSorter(new DDLWarningTableModel(warnings));
@@ -147,7 +147,6 @@ public class ExportDDLAction extends AbstractAction {
 		 */
 		Throwable error;
 		private boolean shouldDropConflicts;
-		private boolean userWantsToDeleteConflicts;
 		
 		/**
 		 * @param parentDialog The JDialog we're doing this in.
@@ -276,9 +275,7 @@ public class ExportDDLAction extends AbstractAction {
 		private ConflictFinderProcess conflictFinder;
 
 		private ConflictResolver cr;
-		private String errorMessage;
-		private SQLException error;
-		
+		private String errorMessage;		
 		
 		/**
 		 * @param d The dialog we anchor popup messages to
@@ -302,7 +299,6 @@ public class ExportDDLAction extends AbstractAction {
 				} catch (SQLException ex) {
 					logger.error("Error while dropping conflicting objects", ex);
 					errorMessage = "Error while dropping conflicting objects:\n\n"+ex.getMessage();
-					error = ex;
 				}
 			}
 		}

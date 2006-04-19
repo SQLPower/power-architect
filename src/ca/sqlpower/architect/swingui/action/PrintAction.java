@@ -31,6 +31,8 @@ public class PrintAction extends AbstractAction {
 	}
 
 	public void actionPerformed(ActionEvent evt) {
+		logger.debug(getValue(SHORT_DESCRIPTION) + ": started");
+		
 		final PrintPanel printPanel = new PrintPanel(pp);
 		
 		final JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
