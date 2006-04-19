@@ -14,9 +14,17 @@ import javax.swing.text.BadLocationException;
 
 import ca.sqlpower.architect.swingui.ASUtils.FileExtensionFilter;
 
+/** A JFileChooser that includes code to save the Document.
+ * @author ian
+ */
 public class SaveDocument extends JFileChooser {
 
-
+	/**
+	 * This Constructor pops up the chooser and saves the Document.
+	 * @param owner
+	 * @param doc
+	 * @param fef
+	 */
 	public SaveDocument ( Component owner, 
 				AbstractDocument doc, FileExtensionFilter fef ) {
 		super();

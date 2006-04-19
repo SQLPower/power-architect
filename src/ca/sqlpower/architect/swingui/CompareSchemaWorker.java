@@ -44,7 +44,8 @@ public class CompareSchemaWorker implements Runnable {
 	private SimpleAttributeSet attrsModify = null;
 	
 
-	private enum printType {MISSING,ADDED,SAME, MODIFY};
+	private enum printType {MISSING,ADDED,SAME, MODIFY}
+	
 	int jobSize;
 
 	int progress;
