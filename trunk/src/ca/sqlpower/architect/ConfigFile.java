@@ -75,8 +75,8 @@ public class ConfigFile {
 			session.addDriverJar(jarName);
 			
 		}
+		// XXX Put prefs in sub-node, just delete it before you start.
 		for (; i <= 99; i++) {
-			logger.debug("Pruning dead jar entry " + i);
 			prefs.remove(jarFilePrefName(i));
 		}		
 		
