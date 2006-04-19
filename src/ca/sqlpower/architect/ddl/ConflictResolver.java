@@ -242,7 +242,6 @@ public class ConflictResolver implements Monitorable {
 								rs.getString("TABLE_SCHEM"),
 								rs.getString("TABLE_NAME"));
    						c.setSqlDropStatement(ddlg.makeDropTableSQL(c.getCatalog(), c.getSchema(), c.getName()));
-   						List dependants = new ArrayList();
    						c.addTableDependants();
    						conflicts.add(c);
    					}
