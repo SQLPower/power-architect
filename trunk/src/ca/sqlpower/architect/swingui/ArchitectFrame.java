@@ -150,7 +150,7 @@ public class ArchitectFrame extends JFrame {
 	 * Updates the swing settings and then writes all settings to the
 	 * config file whenever actionPerformed is invoked.
 	 */
-	protected Action saveSettingsAction = new AbstractAction("Save Settings") {
+	protected Action saveSettingsAction = new AbstractAction("Save User Preferences") {
 	    public void actionPerformed(ActionEvent e) {
 	        try {
 	            saveSettings();
@@ -296,7 +296,6 @@ public class ArchitectFrame extends JFrame {
 		};
 		
 		 openProjectAction = new OpenProjectAction(recent);
-
 		 
 		 JMenuItem clearItem = new JMenuItem("Clear Recent Files");
 		 clearItem.addActionListener(new ActionListener() {
@@ -425,8 +424,8 @@ public class ArchitectFrame extends JFrame {
 		fileMenu.add(printAction);
 		fileMenu.addSeparator();
 		fileMenu.add(prefAction);
-		fileMenu.add(projectSettingsAction);
 		fileMenu.add(saveSettingsAction);
+		fileMenu.add(projectSettingsAction);
 		fileMenu.addSeparator();
 		fileMenu.add(exitAction);
 		menuBar.add(fileMenu);
