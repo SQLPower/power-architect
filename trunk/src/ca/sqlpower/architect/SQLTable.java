@@ -11,11 +11,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-
 import org.apache.log4j.Logger;
-
-import ca.sqlpower.architect.undo.UndoCompoundEvent;
-import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 
 public class SQLTable extends SQLObject {
 
