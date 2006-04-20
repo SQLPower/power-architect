@@ -161,5 +161,27 @@ public class TestColumnEditPanel extends TestCase {
 		editPanel.applyChanges();
 		assertEquals (0, table.getColumnIndex(table.getColumnByName("PKColumn 1")));		
 	}
+	
+	/*
+	 * This test case is making sure that we let the user
+	 * know that they cannot give a column an empty name.
+	 * If a column has an empty name, this can cause errors 
+	 * in functions like Forward Engineering or CompareDM.
+	 */	
+
+	public void testDenyEmptyColumnName(){
+		boolean gotException = false;
+		panel.getColName().setText("");
+		try{
+			panel.applyChanges();			
+		} catch (Exception e){
+			//Proper behaviour is to get here
+			gotException = true;			
+			System.out.println("Caught expected error");
+		}
+		assertTrue ("Having an empty column name should throw exception!",
+				gotException);
+	}
+		
 
 }
