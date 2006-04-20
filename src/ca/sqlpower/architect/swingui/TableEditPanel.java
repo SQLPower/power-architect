@@ -94,4 +94,13 @@ public class TableEditPanel extends JPanel implements ArchitectPanel {
 	public JPanel getPanel() {
 		return this;
 	}
+
+	public String getNameText() {
+		return name.getText();
+	}
+
+	public void setNameText(String newName) {
+		name.setText(newName);
+	}
+	
 }
