@@ -1,6 +1,7 @@
 package regress.ca.sqlpower.architect;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
@@ -18,10 +19,16 @@ import ca.sqlpower.architect.LockedColumnException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLTable.Folder;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.ColumnEditPanel;
+import ca.sqlpower.architect.swingui.DBTree;
+import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.TablePane;
+import ca.sqlpower.architect.swingui.action.EditColumnAction;
 
 public class TestSQLTable extends SQLTestCase {
 
@@ -244,6 +251,28 @@ public class TestSQLTable extends SQLTestCase {
 		assertEquals("New column should be at requested position", 3, t.getColumnIndex(newcol));
 		newcol.setPrimaryKeySeq(3);
 		assertEquals("New column should still be at requested position", 3, t.getColumnIndex(newcol));
+	}
+	
+	public void testPkColumnDragUnchecksAllowNulls() throws ArchitectException{				
+		PlayPen pp = new PlayPen();
+		SQLTable t = db.getTableByName("REGRESSION_TEST1");		
+		SQLColumn c = t.getColumnByName("t1_c1");				
+		ColumnEditPanel editCol1 = new ColumnEditPanel(t,t.getColumnIndex(c));
+		editCol1.getColNullable().setSelected(true);
+		editCol1.applyChanges();
+		
+		assertFalse(editCol1.getColInPK().isEnabled());
+		assertFalse(editCol1.getColInPK().isSelected());		
+				
+		t.changeColumnIndex(0,0,true);		
+		
+		//Refreshes the edit column panel
+		editCol1 = new ColumnEditPanel(t,t.getColumnIndex(c));
+		assertTrue(t.getColumnByName("t1_c1").isPrimaryKey());
+		assertTrue(editCol1.getColInPK().isEnabled());
+		assertTrue(editCol1.getColInPK().isSelected());
+		assertFalse(editCol1.getColNullable().isEnabled());
+		assertFalse(editCol1.getColNullable().isSelected());		
 	}
 
 	public void testRemoveColumnOutBounds() throws ArchitectException {

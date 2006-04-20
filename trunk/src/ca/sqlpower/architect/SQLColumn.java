@@ -555,12 +555,13 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	 *
 	 * @param argPrimaryKeySeq Value to assign to this.primaryKeySeq
 	 */
-	public void setPrimaryKeySeq(Integer argPrimaryKeySeq) {
+	public void setPrimaryKeySeq(Integer argPrimaryKeySeq) {				
 		Integer oldPrimaryKeySeq = primaryKeySeq;
 		if (argPrimaryKeySeq != null && !this.autoIncrement) {
-			setNullable(DatabaseMetaData.columnNoNulls);
+			setNullable(DatabaseMetaData.columnNoNulls);	
 		}
 		if (this.primaryKeySeq != null && this.primaryKeySeq.equals(argPrimaryKeySeq)) return;
+		logger.info("Making Changes to the key of the column");
 		this.primaryKeySeq = argPrimaryKeySeq;
 		if (parent != null) {
 			Collections.sort(getParentTable().columnsFolder.children, new SortByPKSeq());
