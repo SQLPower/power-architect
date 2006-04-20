@@ -319,7 +319,7 @@ public class DBTree extends JTree implements DragSourceListener {
 				for (ArchitectDataSource dbcs : ArchitectFrame.getMainInstance().getUserSettings().getConnections()) {
 					connectionsMenu.add(new JMenuItem(new SetDataSourceAction(ppdb, dbcs)));
 				}
-				
+				ASUtils.breakLongMenu(ArchitectFrame.getMainInstance(),connectionsMenu);
 			}
 			JMenuItem popupProperties = new JMenuItem(dbcsPropertiesAction);
 			newMenu.add(popupProperties);  
