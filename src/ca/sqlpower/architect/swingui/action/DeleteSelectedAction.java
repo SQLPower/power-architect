@@ -92,9 +92,13 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 															 +tCount+" tables and "+rCount+" relationships?",
 															 "Multiple Delete",
 															 JOptionPane.YES_NO_OPTION);
-				if (decision == JOptionPane.NO_OPTION) {
+				if (decision != JOptionPane.YES_OPTION ) {
 					return;
 				}
+				logger.debug("JOptionPane.Yes_OPTION is " + JOptionPane.YES_OPTION);
+				logger.debug("JOptionPane.NO_OPTION is " + JOptionPane.NO_OPTION);
+				logger.debug ("Our decision is " + decision);
+				
 			} else { // single selection, so we might be deleting columns
 				boolean deletingColumns = false;
 				Selectable item = (Selectable) items.get(0);
@@ -244,7 +248,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 		} else {
 			logger.debug("delete action came from unknown source, so we do nothing.");
 	  		// unknown action command source, do nothing
-		}
+		}		
 	}
 	
 	public void setPlayPen(PlayPen newPP) throws ArchitectException {
