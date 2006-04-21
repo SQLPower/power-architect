@@ -94,11 +94,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 															 JOptionPane.YES_NO_OPTION);
 				if (decision != JOptionPane.YES_OPTION ) {
 					return;
-				}
-				logger.debug("JOptionPane.Yes_OPTION is " + JOptionPane.YES_OPTION);
-				logger.debug("JOptionPane.NO_OPTION is " + JOptionPane.NO_OPTION);
-				logger.debug ("Our decision is " + decision);
-				
+				}								
 			} else { // single selection, so we might be deleting columns
 				boolean deletingColumns = false;
 				Selectable item = (Selectable) items.get(0);
@@ -162,23 +158,20 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 					Selectable item = (Selectable) it.next();
 					logger.debug("next item for delete is: " + item.getClass().getName());
 					if (item instanceof TablePane) {
+						//XXX: This code decides to delete the table as long as it is 
+						//selected.  It does not check that a table is being selected due  
+						//to the fact a column within the table is selected.  As a result
+						//in any multiselect, when a column is selected and a delete action
+						//was sent, the whole table is removed.
 						TablePane tp = (TablePane) item;
 						tp.setSelected(false);
 						pp.getDatabase().removeChild(tp.getModel());
-						if (logger.isDebugEnabled()) {
-							logger.debug("removing element from tableNames set: " + tp.getModel().getName());
-							logger.debug("before delete: " + pp.getTablePanes().toArray());
-						}
-						pp.getTablePanes().remove(tp.getModel().getName().toLowerCase());
-						if (logger.isDebugEnabled()) {
-							logger.debug("after delete: " + pp.getTablePanes().toArray());
-						}
 					} else if (item instanceof Relationship) {
 						Relationship r = (Relationship) item;
 						logger.debug("trying to delete relationship " + r);
-						r.setSelected(false);
+						r.setSelected(false);						
 						SQLRelationship sr = r.getModel();
-						sr.getPkTable().removeExportedKey(sr);
+						sr.getPkTable().removeExportedKey(sr);						
 					} else {
 						JOptionPane.showMessageDialog((JComponent) item,
 						"The selected item type is not recognised");
