@@ -4,6 +4,7 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
+import java.awt.image.BufferedImage;
 
 import javax.swing.AbstractAction;
 import javax.swing.JOptionPane;
@@ -104,10 +105,11 @@ public class TestAutoLayoutAction extends TestCase {
 		
 		pp.addRelationship(r1);
 		pp.addRelationship(r2);
-		
+		Graphics2D g = new BufferedImage(1,1,BufferedImage.TYPE_INT_RGB).createGraphics();
 		// the relationships init their paths only when painted
-		r1.paint((Graphics2D) pp.getGraphics());
-		r2.paint((Graphics2D) pp.getGraphics());
+		r1.paint(g);
+		r2.paint(g);
+		
 		
 		// check that the relationships start out crossed
 		assertTrue(((RelationshipUI) r1.getUI()).intersectsShape(((RelationshipUI) r2.getUI()).getShape()));
@@ -128,9 +130,9 @@ public class TestAutoLayoutAction extends TestCase {
 		layoutAction.actionPerformed(new ActionEvent(this, 0, null));
 
 		// make the paths update
-		r1.paint((Graphics2D) pp.getGraphics());
-		r2.paint((Graphics2D) pp.getGraphics());
-		
+		r1.paint(g);
+		r2.paint(g);
+		g.dispose();
 		// check that the relationships are uncrossed
 		assertFalse(((RelationshipUI) r1.getUI()).intersectsShape(((RelationshipUI) r2.getUI()).getShape()));
 

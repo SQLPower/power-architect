@@ -953,8 +953,6 @@ public class PLExport implements Monitorable {
 				}
 				outputTableNum++; // moved out of inner loop
 			}
-		
-		
 		} finally {
 			hasStarted = false;
 			finished = true;			
