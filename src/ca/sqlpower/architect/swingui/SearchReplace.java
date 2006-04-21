@@ -72,6 +72,8 @@ public class SearchReplace {
         
         public SearchResultsTableModel(List results) {
             this.results = results;
+            //Ignores the PlayPen Database in the search result
+            this.results.remove(ArchitectFrame.getMainInstance().playpen.getDatabase());
         }
 
         public int getRowCount() {
