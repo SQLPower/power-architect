@@ -60,7 +60,7 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
 		dbDriverField = new JComboBox(getDriverClasses());
 		dbDriverField.insertItemAt("", 0);
 		dbNameField = new JTextField();
-		
+		dbNameField.setName("dbNameField");
 		platformSpecificOptions = new JPanel();
 		platformSpecificOptions.setLayout(new PlatformOptionsLayout());
 		platformSpecificOptions.setBorder(BorderFactory.createEmptyBorder());

@@ -19,6 +19,7 @@ import junit.extensions.jfcunit.TestHelper;
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.CompareDMPanel;
 import ca.sqlpower.architect.swingui.SwingUIProject;
 
@@ -276,7 +277,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 				"&tables.cat3=tab3");
 		sourcePhysicalRadio.setSelected(true);
 		
-		sourceDatabaseDropdown.addItem(ds);
+		ArchitectFrame.getMainInstance().getUserSettings().getPlDotIni().addDataSource(ds);
 		sourceDatabaseDropdown.setSelectedItem(ds);
 		flushAWT();
 		assertFalse(sourceSchemaDropdown.isEnabled());
@@ -293,7 +294,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 		ds.setUrl("jdbc:mock:dbmd.catalogTerm=Catalog&dbmd.schemaTerm=Schema&catalogs=cow_catalog&schemas.cow_catalog=moo_schema,quack_schema&tables.cow_catalog.moo_schema=braaaap,pffft&tables.cow_catalog.quack_schema=duck,goose");
 		sourcePhysicalRadio.setSelected(true);
 		
-		sourceDatabaseDropdown.addItem(ds);
+		ArchitectFrame.getMainInstance().getUserSettings().getPlDotIni().addDataSource(ds);
 		sourceDatabaseDropdown.setSelectedItem(ds);
 		flushAWT();
 

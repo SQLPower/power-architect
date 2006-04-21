@@ -661,10 +661,10 @@ public class DBTree extends JTree implements DragSourceListener {
 				final DBCSPanel dbcsPanel = new DBCSPanel();
 				ArchitectDataSource dbcs = sd.getDataSource();
 				
-				dbcsPanel.setDbcs(new ArchitectDataSource());
+				dbcsPanel.setDbcs(dbcs);
 
 
-				DBCS_OkAction okButton = new DBCS_OkAction(dbcsPanel,true);
+				DBCS_OkAction okButton = new DBCS_OkAction(dbcsPanel,false);
 				
 				Action cancelAction = new AbstractAction() {
 					public void actionPerformed(ActionEvent evt) {

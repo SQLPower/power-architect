@@ -811,7 +811,7 @@ public class PlayPen extends JPanel
 	 */
 	protected void addImpl(PlayPenComponent c, Object constraints, int index) {
 		if (c instanceof Relationship) {
-			contentPane.add(c, 0);
+			contentPane.add(c, contentPane.getFirstRelationIndex());
 		} else if (c instanceof TablePane) {
 			if (constraints instanceof Point) {				
 				c.setLocation((Point) constraints);
@@ -945,8 +945,8 @@ public class PlayPen extends JPanel
 		final DBCSPanel dbcsPanel = new DBCSPanel();
 			
 
-		DBCS_OkAction okAction = new DBCS_OkAction(dbcsPanel, false);
 		dbcsPanel.setDbcs(db.getDataSource());		
+		DBCS_OkAction okAction = new DBCS_OkAction(dbcsPanel, false);
 		
 		Action cancelAction = new AbstractAction() {
 			public void actionPerformed(ActionEvent e) {
@@ -1438,7 +1438,12 @@ public class PlayPen extends JPanel
 				
 				PlayPenComponent ppc = removedComponents.get(c[i]);
 				if (ppc != null) {
-					contentPane.add(ppc, contentPane.getComponentCount());
+					if (ppc instanceof Relationship) {
+						contentPane.add(ppc, contentPane.getComponentCount());
+					} else {
+						contentPane.add(ppc, contentPane.getFirstRelationIndex());
+					}
+					
 				}
 			}
 		}
@@ -2401,7 +2406,11 @@ public class PlayPen extends JPanel
 			while (it.hasNext()) {
 				PlayPenComponent c = (PlayPenComponent) it.next();
 				pp.contentPane.remove(c);
-				pp.contentPane.add(c, 0);
+				if (c instanceof Relationship) {
+					pp.contentPane.add(c,pp.contentPane.getFirstRelationIndex());
+				} else {
+					pp.contentPane.add(c, 0);
+				}
 			}
 			pp.repaint();
 		}

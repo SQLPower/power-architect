@@ -37,13 +37,13 @@ public class TestPlayPenComponent extends TestCase {
 		component.setLocation(1,1);
 		component.setLocation(2,2);
 		pp.endCompoundEdit("Ending move");
-		assertEquals("We did not generate move events",1,eventCounter.getMoved());
+		assertEquals("Even in Compound edits should still generate a move event for each setLocation",2,eventCounter.getMoved());
 		//component.setMoving(false);
 		//assertEquals("We did not generate a move end event",1,eventCounter.getEnds());
 		
 		component.setLocation(3,3);
 		//assertEquals("We did not generate a move start event",2,eventCounter.getStarts());
-		assertEquals("We did not generate move events",2,eventCounter.getMoved());
+		assertEquals("We did not generate move events",3,eventCounter.getMoved());
 		//assertEquals("We did not generate a move end event",2,eventCounter.getEnds());
 	}
 	

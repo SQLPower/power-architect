@@ -6,9 +6,11 @@ import junit.framework.TestSuite;
 import regress.ca.sqlpower.architect.layout.TestFruchtermanReingoldForceLayout;
 import regress.ca.sqlpower.architect.swingui.TestArchitectFrame;
 import regress.ca.sqlpower.architect.swingui.TestAutoLayoutAction;
+import regress.ca.sqlpower.architect.swingui.TestBasicRelationshipUI;
 import regress.ca.sqlpower.architect.swingui.TestColumnEditPanel;
 import regress.ca.sqlpower.architect.swingui.TestCompareDMPanel;
 import regress.ca.sqlpower.architect.swingui.TestPlayPen;
+import regress.ca.sqlpower.architect.swingui.TestPlayPenComponent;
 import regress.ca.sqlpower.architect.swingui.TestRelationship;
 import regress.ca.sqlpower.architect.swingui.TestSwingUIProject;
 import regress.ca.sqlpower.architect.swingui.TestTableEditPane;
@@ -34,6 +36,9 @@ public class ArchitectSwingTestSuite extends TestCase {
 		suite.addTestSuite(TestTablePane.class);
 		suite.addTestSuite(TestDeleteSelectedAction.class);
 		suite.addTestSuite(TestRelationship.class);
+		suite.addTestSuite(TestBasicRelationshipUI.class);
+		suite.addTestSuite(TestPlayPenComponent.class);
+
 		suite.addTestSuite(TestTableEditPane.class);
 		//$JUnit-END$
 		return suite;

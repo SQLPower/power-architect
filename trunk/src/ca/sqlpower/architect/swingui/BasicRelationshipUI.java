@@ -476,7 +476,11 @@ public class BasicRelationshipUI extends RelationshipUI
 		return answer;
 	}
 
-	protected void computeBounds() {
+	/**
+	 * Compute bounds should only be called by objects in this package or from regress.
+	 *
+	 */
+	public void computeBounds() {
 		// XXX: should check for valid cached bounds before recomputing!
 
 		TablePane pkTable = relationship.pkTable;
