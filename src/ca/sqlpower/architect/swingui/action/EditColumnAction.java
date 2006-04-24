@@ -150,7 +150,12 @@ public class EditColumnAction extends AbstractAction implements SelectionListene
 							columnEditPanel.applyChanges();
 							EditColumnAction.this.putValue(SHORT_DESCRIPTION, "Editting "+columnEditPanel.getColName().getText() );
 						}
-					}, null);
+					}, 
+					new AbstractAction(){
+						public void actionPerformed(ActionEvent e) {
+							columnEditPanel.discardChanges();
+						}
+					});
 			panel.setOpaque(true);
 			editDialog.pack();
 			editDialog.setLocationRelativeTo(ArchitectFrame.getMainInstance());
