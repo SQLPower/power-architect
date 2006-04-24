@@ -7,7 +7,6 @@ import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 
 import javax.swing.AbstractAction;
-import javax.swing.JOptionPane;
 
 import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
@@ -26,16 +25,6 @@ public class TestAutoLayoutAction extends TestCase {
 	
 	private BasicTreeAutoLayout layout;
 	private AutoLayoutAction layoutAction;
-	
-	/**
-	 * Shows the GUI on the screen.  Helpful when you want to see why a test is failing.
-	 * @param message The message to show in the JOptionPane
-	 */
-	private void showGUI(String message) {
-		ArchitectFrame.getMainInstance().setVisible(true);
-
-		JOptionPane.showMessageDialog(null, message != null ? message : "Cows often say moo");
-	}
 	
 	@Override
 	protected void setUp() throws Exception {
