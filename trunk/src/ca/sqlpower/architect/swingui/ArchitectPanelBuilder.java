@@ -107,32 +107,6 @@ public class ArchitectPanelBuilder {
 	}
 
 	/**
-	 * Arrange for a JDialog to close nicely. Called with an Action,
-	 * which will become the cancelAction of the dialog.
-	 * Note: we explicitly close the dialog from this code.
-	 * @param d
-	 * @param cancelAction
-	 */
-	public static void makeJDialogCancellable(
-			final JDialog d, 
-			final Action cancelAction) {
-		
-		JComponent c = (JComponent) d.getRootPane();
-				
-		InputMap inputMap = c.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-		ActionMap actionMap = c.getActionMap();
-		
-		inputMap.put(KeyStroke.getKeyStroke("ESCAPE"), "cancel");
-		actionMap.put("cancel", new AbstractAction() {
-			public void actionPerformed(ActionEvent e) {
-				cancelAction.actionPerformed(e);
-				d.setVisible(false);
-				d.dispose();
-			}			
-		});
-	}
-
-	/**
 	 * Build a JDialog around an object that implements ArchitectPanel, to
 	 * provide consistent behaviours such as Cancel button, <ESC> to close, and
 	 * so on.
@@ -167,5 +141,29 @@ public class ArchitectPanelBuilder {
 				actionButtonTitle, okAction, cancelAction);
 	}
 	
-
+	/**
+	 * Arrange for an existing JDialog to close nicely. Called with an Action,
+	 * which will become the cancelAction of the dialog.
+	 * Note: we explicitly close the dialog from this code.
+	 * @param d
+	 * @param cancelAction
+	 */
+	public static void makeJDialogCancellable(
+			final JDialog d, 
+			final Action cancelAction) {
+		
+		JComponent c = (JComponent) d.getRootPane();
+				
+		InputMap inputMap = c.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+		ActionMap actionMap = c.getActionMap();
+		
+		inputMap.put(KeyStroke.getKeyStroke("ESCAPE"), "cancel");
+		actionMap.put("cancel", new AbstractAction() {
+			public void actionPerformed(ActionEvent e) {
+				cancelAction.actionPerformed(e);
+				d.setVisible(false);
+				d.dispose();
+			}			
+		});
+	}
 }
