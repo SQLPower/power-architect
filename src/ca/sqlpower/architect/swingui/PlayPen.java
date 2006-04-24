@@ -687,7 +687,7 @@ public class PlayPen extends JPanel
 			minY = Math.min(minY, tp.getY());
 		}
 		
-		//Readjusts the table pane, since minX and min >= 0, 
+		//Readjusts the table pane, since minX and min <= 0, 
 		//the adjustments of subtracting minX and/or minY makes sense.
 		if ( minX < 0 || minY < 0 ) {
 			it = getTablePanes().iterator();
