@@ -6,7 +6,6 @@ import junit.framework.TestCase;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
-import ca.sqlpower.architect.swingui.IERelationshipUI;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
 import ca.sqlpower.architect.swingui.Relationship;
