@@ -130,7 +130,6 @@ public class CompareSchemaWorkerTest extends TestCase {
 		SQLTable table2 = new SQLTable(null, "b", "actually r2",SQLTable.class.toString(),true); 
 		SQLColumn c3 = new SQLColumn(table2, "Column3", 0,2,3);
 		SQLColumn c4 = new SQLColumn(table2, "Column3a", 0,2,3);
-		SQLColumn c4a = new SQLColumn (table2, "Colum3b",0,2,3);
 		table2.addColumn(c3);
 		table2.addColumn(c4);
 		
