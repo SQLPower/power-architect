@@ -1,7 +1,6 @@
 package regress.ca.sqlpower.architect;
 
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
@@ -19,16 +18,11 @@ import ca.sqlpower.architect.LockedColumnException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLTable.Folder;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ColumnEditPanel;
-import ca.sqlpower.architect.swingui.DBTree;
-import ca.sqlpower.architect.swingui.PlayPen;
-import ca.sqlpower.architect.swingui.TablePane;
-import ca.sqlpower.architect.swingui.action.EditColumnAction;
 
 public class TestSQLTable extends SQLTestCase {
 
@@ -254,7 +248,6 @@ public class TestSQLTable extends SQLTestCase {
 	}
 	
 	public void testPkColumnDragUnchecksAllowNulls() throws ArchitectException{				
-		PlayPen pp = new PlayPen();
 		SQLTable t = db.getTableByName("REGRESSION_TEST1");		
 		SQLColumn c = t.getColumnByName("t1_c1");				
 		ColumnEditPanel editCol1 = new ColumnEditPanel(t,t.getColumnIndex(c));
