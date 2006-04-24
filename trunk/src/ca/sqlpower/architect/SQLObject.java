@@ -1,6 +1,10 @@
 package ca.sqlpower.architect;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 
@@ -23,6 +27,36 @@ public abstract class SQLObject implements java.io.Serializable {
 	 */
 	protected List children;
 
+	/**
+	 * When this counter is > 0, the fireXXX methods will ignore secondary changes.
+	 */
+	protected int magicDisableCount = 0;
+	 
+	public synchronized void setMagicEnabled(boolean enable) {
+		if (magicDisableCount < 0) {
+			throw new IllegalStateException("magicDisableCount < 0");
+		}
+		if (enable) {
+			if (magicDisableCount == 0) {
+				throw new IllegalArgumentException("Sorry, you asked me to enable, but disable count already 0");
+				// return;
+			}
+			--magicDisableCount;
+		} else { // disable
+			++magicDisableCount;
+		}
+	}
+	
+	public boolean isMagicEnabled() {
+		if (magicDisableCount > 0) {
+			return false;
+		}
+		if (getParent() != null) {
+			return getParent().isMagicEnabled();
+		}
+		return true;
+	}
+	
 	/**
 	 * When this counter is > 0, the fireXXX methods will fire events in
 	 * a "secondary change" mode, which indicates that the changes are side
