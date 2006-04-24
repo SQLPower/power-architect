@@ -18,7 +18,6 @@ public class TestFolder extends SQLTestCase {
 
 	public TestFolder(String name) throws Exception {
 		super(name);
-		// TODO Auto-generated constructor stub
 	}
 	
 	/**
@@ -104,21 +103,11 @@ public class TestFolder extends SQLTestCase {
 	 */
 	private SQLTable table1pk;
 
-	/**
-	 * A table with no primary key.  Gets set up in setUp().
-	 */
-	private SQLTable table0pk;
-	
-	/**
-	 * A table with three primary key columns.  Gets set up in setUp().
-	 */
-	private SQLTable table3pk;
-	
 	protected void setUp() throws Exception {		
 		super.setUp();
 		table1pk = db.getTableByName("SQL_COLUMN_TEST_1PK");
-		table0pk = db.getTableByName("SQL_COLUMN_TEST_0PK");
-		table3pk = db.getTableByName("SQL_COLUMN_TEST_3PK");
+		db.getTableByName("SQL_COLUMN_TEST_0PK");
+		db.getTableByName("SQL_COLUMN_TEST_3PK");
 	}
 
 	/**
@@ -127,7 +116,6 @@ public class TestFolder extends SQLTestCase {
 	 */
 	@Override
 	protected SQLObject getSQLObjectUnderTest() {
-		// TODO Auto-generated method stub
 		return table1pk.getColumnsFolder();
 	}
 	
@@ -198,10 +186,10 @@ public class TestFolder extends SQLTestCase {
 		
 		List children = new ArrayList(main1.getChildren());
 		
-		assertTrue (main1.getChildren().contains(c1));
-		assertTrue (main1.getChildren().contains(c2));
-		assertTrue (main1.getChildren().contains(c3));
-		assertEquals (main1.getChildren().size(), 3);
+		assertTrue (children.contains(c1));
+		assertTrue (children.contains(c2));
+		assertTrue (children.contains(c3));
+		assertEquals (children.size(), 3);
 		assertEquals (main1.getChildCount(),3);
 				
 		assertEquals (main1.getChild(1), c3);	
