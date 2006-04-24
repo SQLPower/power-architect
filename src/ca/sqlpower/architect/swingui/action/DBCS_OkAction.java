@@ -42,6 +42,7 @@ public final class DBCS_OkAction extends AbstractAction {
 	
 
 	public void actionPerformed(ActionEvent e)  {
+		logger.debug("DBCS Acgtion invoked");
 		ArchitectDataSource newDS = dbcsPanel.getDbcs();
 		String curName = null;
 		for (Component c : ((TextPanel)dbcsPanel.getComponents()[0]).getComponents()) {
