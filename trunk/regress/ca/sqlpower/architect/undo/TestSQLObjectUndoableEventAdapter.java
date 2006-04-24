@@ -8,9 +8,7 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.TablePane;
-import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoManager;
-import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 
 public class TestSQLObjectUndoableEventAdapter extends TestCase {
 	

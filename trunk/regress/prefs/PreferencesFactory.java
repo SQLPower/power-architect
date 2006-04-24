@@ -1,7 +1,5 @@
 package regress.prefs;
 
-import java.util.prefs.BackingStoreException;
-import java.util.prefs.NodeChangeEvent;
 import java.util.prefs.Preferences;
 
 import org.apache.log4j.Logger;
