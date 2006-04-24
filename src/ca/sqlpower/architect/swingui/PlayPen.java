@@ -677,42 +677,31 @@ public class PlayPen extends JPanel
 	 * If this function is moved into a layout manager it causes problems with undo because we do
 	 * no know when this gets called.
 	 */
-	protected void normalize() {
-	
-		int minX, minY;
-		minX = minY = 0;
+	protected void normalize() {		
+		int minX = 0;
+		int minY = 0;		
 		Iterator it = getTablePanes().iterator();
 		while (it.hasNext()) {
 			TablePane tp = (TablePane) it.next();
-			if ( minX > tp.getX() )
-				minX = tp.getX();
-			if ( minY > tp.getY() )
-				minY = tp.getY();
+			minX = Math.min(minX, tp.getX());
+			minY = Math.min(minY, tp.getY());
 		}
-		int newX, newY;
-		if ( minX < 0 )
-			newX = 0 - minX;
-		else
-			newX = 0;
-		if ( minY < 0 )
-			newY = 0 - minY;
-		else
-			newY = 0;
-
-		if ( newX > 0 || newY > 0 ) {
-
+		
+		//Readjusts the table pane, since minX and min >= 0, 
+		//the adjustments of subtracting minX and/or minY makes sense.
+		if ( minX < 0 || minY < 0 ) {
 			it = getTablePanes().iterator();
 			while (it.hasNext()) {
 				TablePane tp = (TablePane) it.next();
-				tp.setLocation(tp.getX()+newX, tp.getY()+newY);
+				tp.setLocation(tp.getX()-minX, tp.getY()-minY);				
 			}
 			
 			// This function may have expanded the playpen's minimum
 			// and preferred sizes, so the original repaint region could be
-			// too small!
+			// too small!			
 			repaint();
 		}			
-	}
+	}	
 	
 //	 get the position of the viewport that we are sitting in
 	public Point getViewPosition() {
