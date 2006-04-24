@@ -30,8 +30,6 @@ public class CompareSchemaWorkerTest extends TestCase {
 	SQLTable l2;
 	
 	private Map<Integer, GenericTypeDescriptor> typeMap;
-	private Map<Integer, GenericTypeDescriptor> typeMap1;
-	
 	
 	protected void setUp() throws Exception {
 		super.setUp();		
