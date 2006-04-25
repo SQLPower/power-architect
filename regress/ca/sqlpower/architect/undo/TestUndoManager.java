@@ -2,6 +2,7 @@ package regress.ca.sqlpower.architect.undo;
 
 import java.awt.Point;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.event.ChangeEvent;
@@ -14,13 +15,17 @@ import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.action.CreateRelationshipAction;
+import ca.sqlpower.architect.undo.ArchitectPropertyChangeUndoableEdit;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoManager;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
+import ca.sqlpower.architect.undo.UndoManager.SQLObjectUndoableEventAdapter;
 
 public class TestUndoManager extends TestCase {
 
@@ -36,6 +41,46 @@ public class TestUndoManager extends TestCase {
 			return changeCount;
 		}
 	}
+
+    /**
+     * Helps test undo manager by logging all calls to setFoo() in the
+     * history list.
+     */
+    public class UndoTester extends SQLObject {
+        public List<Integer> history = new ArrayList<Integer>();
+        
+        public void setFoo(Integer v) { history.add(v); }
+
+        @Override
+        public SQLObject getParent() {
+            return null;
+        }
+
+        @Override
+        protected void setParent(SQLObject parent) {
+            // whatever
+        }
+
+        @Override
+        protected void populate() throws ArchitectException {
+            // nop
+        }
+
+        @Override
+        public String getShortDisplayName() {
+            return "test object";
+        }
+
+        @Override
+        public boolean allowsChildren() {
+            return false;
+        }
+
+        @Override
+        public Class<? extends SQLObject> getChildType() {
+            return null;
+        }
+    }
 
 	UndoManager undoManager;
 	PlayPen pp;
@@ -148,6 +193,34 @@ public class TestUndoManager extends TestCase {
 		assertEquals("old", fkTable.getRemarks());
 
 	}
+    
+    /**
+     * Makes sure compound edits added through the sql object event adapter
+     * are undone in order of most recent to least recent.
+     */
+    public void testCompoundEditsUndoInCorrectOrder() {
+        UndoTester myTester = new UndoTester();
+        SQLObjectUndoableEventAdapter adapter = undoManager.getEventAdapter();
+        myTester.addUndoEventListener(adapter);
+        myTester.startCompoundEdit("Test Compound undo");
+        adapter.dbObjectChanged(
+                new SQLObjectEvent(
+                        myTester, "foo", new Integer(0), new Integer(1), false));
+        adapter.dbObjectChanged(
+                new SQLObjectEvent(
+                        myTester, "foo", new Integer(1), new Integer(2), false));
+        adapter.dbObjectChanged(
+                new SQLObjectEvent(
+                        myTester, "foo", new Integer(2), new Integer(3), false));
+        myTester.endCompoundEdit("Test Compound undo");
+        
+        undoManager.undo();
+
+        // Ensure the compound undo happened last..first
+        assertEquals(new Integer(2), myTester.history.get(0));
+        assertEquals(new Integer(1), myTester.history.get(1));
+        assertEquals(new Integer(0), myTester.history.get(2));
+    }
 	
 	public void testUndoCreateRelationship() throws ArchitectException {
 		assertEquals("Oops started out with relationships", 0, pkTable.getExportedKeys().size());
