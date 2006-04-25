@@ -121,6 +121,68 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		assertEquals(target.getChildCount(), 2);		
 	}
 	
+    /**
+     * Ensures the primary key property of columns loads properly. (from the example file)
+     */
+    public void testLoadPK() throws Exception {
+        testLoad();
+        
+        SQLDatabase target = project.getTargetDatabase();
+        
+        SQLTable t1 = (SQLTable) target.getChild(0);
+        assertEquals(1, t1.getPkSize());
+        assertEquals(new Integer(0), t1.getColumn(0).getPrimaryKeySeq());
+        assertNull(t1.getColumn(1).getPrimaryKeySeq());
+    }
+    
+    private void subroutineForTestSaveLoadPK(SQLTable t) throws ArchitectException {
+        assertEquals(2, t.getPkSize());
+        assertEquals(new Integer(0), t.getColumn(0).getPrimaryKeySeq());
+        assertEquals(new Integer(1), t.getColumn(1).getPrimaryKeySeq());
+        assertEquals(null, t.getColumn(2).getPrimaryKeySeq());
+        assertFalse(t.getColumn(0).isDefinitelyNullable());
+        assertFalse(t.getColumn(1).isDefinitelyNullable());
+        assertTrue(t.getColumn(0).isPrimaryKey());
+        assertTrue(t.getColumn(1).isPrimaryKey());
+        assertFalse(t.getColumn(2).isPrimaryKey());
+    }
+    
+    /**
+     * Ensures the primary key stuff of tables saves and loads properly.
+     */
+    public void testSaveLoadPK() throws Exception {
+        // make a table with a pksize of 2
+        SQLDatabase target = project.getTargetDatabase();
+        SQLTable t = new SQLTable(null, "test_pk", null, "TABLE", true);
+        t.addColumn(new SQLColumn(t, "pk1", Types.CHAR, 10, 0));
+        t.addColumn(new SQLColumn(t, "pk2", Types.CHAR, 10, 0));
+        t.addColumn(new SQLColumn(t, "nonpk", Types.CHAR, 10, 0));
+        t.getColumn(0).setPrimaryKeySeq(0);
+        t.getColumn(1).setPrimaryKeySeq(1);
+        target.addChild(t);
+        
+        subroutineForTestSaveLoadPK(t);
+        
+        // save it
+        File tmp = File.createTempFile("test", ".architect");
+        if (deleteOnExit) {
+            tmp.deleteOnExit();
+        } else {
+            System.out.println("testSaveLoadPK: tmp file is "+tmp);
+        }
+        PrintWriter out = new PrintWriter(tmp,ENCODING);
+        assertNotNull(out);
+        project.save(out,ENCODING);
+        
+        // load it back and check
+        SwingUIProject project2 = new SwingUIProject("new test project");
+        project2.load(new BufferedInputStream(new FileInputStream(tmp)));
+        
+        target = project2.getTargetDatabase();
+        t = target.getTableByName("test_pk");
+        subroutineForTestSaveLoadPK(t);
+    }
+    
 	/*
 	 * Test method for 'ca.sqlpower.architect.swingui.SwingUIProject.save(ProgressMonitor)'
 	 */
@@ -308,6 +370,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		propertiesToIgnore.add("progressMonitor");
 		propertiesToIgnore.add("zoomInAction");
 		propertiesToIgnore.add("zoomOutAction");
+        propertiesToIgnore.add("magicEnabled");
 		
 		Map<String,Object> oldDescription =
 			setAllInterestingProperties(db, propertiesToIgnore);
@@ -370,6 +433,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		propertiesToIgnore.add("childCount");
 		propertiesToIgnore.add("secondaryChangeMode");
 		propertiesToIgnore.add("populated");
+        propertiesToIgnore.add("magicEnabled");
 
 		Map<String,Object> oldDescription =
 			setAllInterestingProperties(target, propertiesToIgnore);
@@ -420,6 +484,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		propertiesToIgnore.add("childCount");
 		propertiesToIgnore.add("populated");
 		propertiesToIgnore.add("secondaryChangeMode");
+        propertiesToIgnore.add("magicEnabled");
 
 		Map<String,Object> oldDescription =
 			setAllInterestingProperties(target, propertiesToIgnore);
@@ -471,6 +536,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		propertiesToIgnore.add("populated");
 		propertiesToIgnore.add("columnsFolder");
 		propertiesToIgnore.add("secondaryChangeMode");
+        propertiesToIgnore.add("magicEnabled");
 
 		Map<String,Object> oldDescription =
 			setAllInterestingProperties(target, propertiesToIgnore);
@@ -519,6 +585,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		propertiesToIgnore.add("populated");
 		propertiesToIgnore.add("undoEventListeners");
 		propertiesToIgnore.add("secondaryChangeMode");
+        propertiesToIgnore.add("magicEnabled");
 
 		Map<String,Object> oldDescription =
 			setAllInterestingProperties(target, propertiesToIgnore);
