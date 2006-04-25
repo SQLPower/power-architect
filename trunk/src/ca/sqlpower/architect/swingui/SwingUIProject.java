@@ -674,11 +674,7 @@ public class SwingUIProject {
 			throw new ArchitectException("Unable to create output file for save operation, data NOT saved.\n" + e, e);
 		}
 		
-		objectIdMap = new HashMap();
-		dbcsIdMap = new HashMap();
-		indent = 0;
 		progress = 0;
-		boolean saveOk = false; // use this to determine if save process worked
 		this.pm = pm;
 		if (pm != null) {
 			int pmMax = 0;
@@ -694,7 +690,7 @@ public class SwingUIProject {
 		    pm.setMillisToDecideToPopup(0);
 		}
 		
-		saveOk = save(out,encoding);	// Does ALL the actual I/O
+		save(out,encoding);	// Does ALL the actual I/O
 		out = null;
 		if (pm != null) 
 			pm.close();
@@ -703,31 +699,30 @@ public class SwingUIProject {
 		// Do the rename dance.
 		// This is a REALLY bad place for failure (especially if we've made the user wait several hours to save
 		// a large project), so we MUST check failures from renameto (both places!)
-		if (saveOk) {
-			boolean fstatus = false;
-			fstatus = backupFile.delete();			
-			logger.debug("deleting backup~ file: " + fstatus);
-			
-			// If this is a brand new project, the old file does not yet exist, no point trying to rename it.
-			// But if it already existed, renaming current to backup must succeed, or we give up.
-			if (file.exists()) {
-				fstatus = file.renameTo(backupFile);
-				logger.debug("rename current file to backupFile: " + fstatus);
-				if (!fstatus) {
-					throw new ArchitectException((
-							"Could not rename current file to backup\nProject saved in " + 
-							tempFile + ": " + file + " still contains old project"));
-				}
-			}
-			fstatus = tempFile.renameTo(file);
-			if (!fstatus) {
-				throw new ArchitectException((
-						"Could not rename temp file to current\nProject saved in " + 
-						tempFile + ": " + file + " still contains old project"));
-			}
-			logger.debug("rename tempFile to current file: " + fstatus);
-		}		
+		boolean fstatus = false;
+		fstatus = backupFile.delete();			
+		logger.debug("deleting backup~ file: " + fstatus);
+		
+		// If this is a brand new project, the old file does not yet exist, no point trying to rename it.
+		// But if it already existed, renaming current to backup must succeed, or we give up.
+		if (file.exists()) {
+		    fstatus = file.renameTo(backupFile);
+		    logger.debug("rename current file to backupFile: " + fstatus);
+		    if (!fstatus) {
+		        throw new ArchitectException((
+		                "Could not rename current file to backup\nProject saved in " + 
+		                tempFile + ": " + file + " still contains old project"));
+		    }
+		}
+		fstatus = tempFile.renameTo(file);
+		if (!fstatus) {
+		    throw new ArchitectException((
+		            "Could not rename temp file to current\nProject saved in " + 
+		            tempFile + ": " + file + " still contains old project"));
+		}
+		logger.debug("rename tempFile to current file: " + fstatus);
 	}
+    
 	/**
 	 * Do just the writing part of save, given a PrintWriter
 	 * @param out - the file to write to
@@ -735,10 +730,12 @@ public class SwingUIProject {
 	 * @throws IOException
 	 * @throws ArchitectException
 	 */
-	public boolean save(PrintWriter out, String encoding) throws IOException, ArchitectException {
-		boolean saveOk;
+	public void save(PrintWriter out, String encoding) throws IOException, ArchitectException {
+        objectIdMap = new HashMap();
+        dbcsIdMap = new HashMap();
+        indent = 0;
+
 		try {
-			
 			println(out, "<?xml version=\"1.0\" encoding=\""+encoding+"\"?>");
 			println(out, "<architect-project version=\"0.1\">");
 			indent++;
@@ -752,12 +749,9 @@ public class SwingUIProject {
 			indent--;
 			println(out, "</architect-project>");
 			setModified(false);
-			saveOk = true;
 		} finally {
 			if (out != null) out.close();
-			
 		}
-		return saveOk;
 	}
 	
 	
