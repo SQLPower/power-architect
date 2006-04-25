@@ -94,6 +94,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 		propertiesToIgnore.add("secondaryChangeMode");	
 		propertiesToIgnore.add("zoomInAction");
 		propertiesToIgnore.add("zoomOutAction");
+        propertiesToIgnore.add("magicEnabled");
 		
 		if(so instanceof SQLDatabase)
 		{
@@ -202,6 +203,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 		propertiesToIgnore.add("secondaryChangeMode");		
 		propertiesToIgnore.add("zoomInAction");
 		propertiesToIgnore.add("zoomOutAction");
+        propertiesToIgnore.add("magicEnabled");
 
 		if(so instanceof SQLDatabase)
 		{
