@@ -284,6 +284,14 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 		}
 	}
 	
+    /**
+     * Adds then given edit to this undo manager.
+     * 
+     * <p>Warning: Edits added here do not respect compounding.  You
+     * can add a whole CompoundEdit here, but if the current state of
+     * the undo manager is that it's in a compound edit, it doesn't matter.
+     * You will get individual edits when you add individual edits. 
+     */
 	public synchronized boolean addEdit(UndoableEdit anEdit) {
 		
 		if( !(isUndoing() || isRedoing())){
