@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 
@@ -132,7 +133,9 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 		} else {
 			logger.debug("NEW COLUMN "+colName+"@"+hashCode()+" (null parent)");
 		}
-		this.parent = parentTable.getColumnsFolder();
+        if (parentTable != null) {
+            this.parent = parentTable.getColumnsFolder();
+        }
 		this.setName(colName);
 		this.type = dataType;
 		this.sourceDataTypeName = nativeType;
@@ -550,25 +553,51 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 		return this.primaryKeySeq;
 	}
 
-	/**
-	 * Sets the value of primaryKeySeq
-	 *
-	 * @param argPrimaryKeySeq Value to assign to this.primaryKeySeq
-	 */
-	public void setPrimaryKeySeq(Integer argPrimaryKeySeq) {				
-		Integer oldPrimaryKeySeq = primaryKeySeq;
-		if (argPrimaryKeySeq != null && !this.autoIncrement) {
-			setNullable(DatabaseMetaData.columnNoNulls);	
-		}
-		if (this.primaryKeySeq != null && this.primaryKeySeq.equals(argPrimaryKeySeq)) return;
-		logger.info("Making Changes to the key of the column");
-		this.primaryKeySeq = argPrimaryKeySeq;
-		if (parent != null) {
-			Collections.sort(getParentTable().columnsFolder.children, new SortByPKSeq());
-			getParentTable().normalizePrimaryKey();
-		}
-		
-		fireDbObjectChanged("primaryKeySeq",oldPrimaryKeySeq,argPrimaryKeySeq);
+    /**
+     * Sets the value of primaryKeySeq
+     *
+     * @param argPrimaryKeySeq Value to assign to this.primaryKeySeq
+     */
+	public void setPrimaryKeySeq(Integer argPrimaryKeySeq) {
+	    // do nothing if there's no change
+	    if ( (primaryKeySeq == null && argPrimaryKeySeq == null) ||
+	         (primaryKeySeq != null && primaryKeySeq.equals(argPrimaryKeySeq)) ) {
+            return;
+        }
+	    try {
+            startCompoundEdit("Starting PrimaryKeySeq compound edit");
+ 
+	        Integer oldPrimaryKeySeq = primaryKeySeq;
+	        if (argPrimaryKeySeq != null && !this.autoIncrement) {
+	            setNullable(DatabaseMetaData.columnNoNulls);	
+	        }
+	        SQLObject p = parent;
+            if (p != null) {
+	            p.removeChild(this);
+	        }
+	        this.primaryKeySeq = argPrimaryKeySeq;
+	        if (p != null) {
+	            int idx = 0;
+	            int targetPKS = primaryKeySeq == null ? Integer.MAX_VALUE : primaryKeySeq.intValue();
+                logger.debug("Parent = "+p);
+                logger.debug("Parent.children = "+p.children);
+	            for (SQLColumn col : (List<SQLColumn>) p.children) {
+	                if (col.getPrimaryKeySeq() == null ||
+	                        col.getPrimaryKeySeq() > targetPKS) {
+                        logger.debug("idx is " + idx);
+	                    break;
+	                }
+	                idx++;
+	            }                
+	            p.addChild(idx, this);
+	            getParentTable().normalizePrimaryKey();
+	        }	    
+	        fireDbObjectChanged("primaryKeySeq",oldPrimaryKeySeq,argPrimaryKeySeq);
+        } catch (ArchitectException e) {
+            throw new ArchitectRuntimeException(e);
+        } finally {
+            endCompoundEdit("Ending PrimaryKeySeq compound edit");
+        }
 	}
 
 	/**
