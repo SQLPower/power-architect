@@ -4,7 +4,7 @@
 
 	<property file="user.properties" />
 
-	<property name="src" value="."/>
+	<property name="src" value="src"/>
 	<property name="build" value="build"/>
 	<property name="build.compiler" value="modern"/>
 
