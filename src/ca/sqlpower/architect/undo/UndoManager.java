@@ -29,11 +29,12 @@ import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
+import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentListener;
 
 /**
- * @author Matt
+ * 
  *
  */
 public class UndoManager extends javax.swing.undo.UndoManager {
@@ -42,18 +43,53 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 	
 	/**
 	 * Converts received SQLObjectEvents into UndoableEdits and adds them to an UndoManager. 
-	 * @author Matt
 	 */
 	public class SQLObjectUndoableEventAdapter  implements UndoCompoundEventListener,
 			SQLObjectListener, PropertyChangeListener, PlayPenComponentListener {
 		
 		
+		private final class CompEdit extends CompoundEdit {
+			
+			String toolTip;
+
+			public CompEdit(String toolTip){
+				super();
+				this.toolTip = toolTip;
+			}
+			
+			@Override
+			public String getPresentationName() {
+				return toolTip;
+			}
+
+			@Override
+			public String getUndoPresentationName() {
+				return "Undo "+getPresentationName();
+			}
+
+			@Override
+			public String getRedoPresentationName() {
+				return "Redo "+getPresentationName();
+			}
+			
+			@Override
+			public String toString() {
+				StringBuffer sb = new StringBuffer();
+				for (Object o: edits) {
+					sb.append(o).append("\n");
+				}
+				
+				return sb.toString();
+			}
+		}
+
 		private CompoundEdit ce;
 		private int compoundEditStackCount;
 		private HashMap<PlayPenComponent, Point> newPositions;
 		private HashMap<PlayPenComponent, Point> originalPositions;
 		
 		public SQLObjectUndoableEventAdapter() {
+			
 			ce = null;
 			compoundEditStackCount = 0;
 			newPositions = new HashMap<PlayPenComponent, Point>();
@@ -64,10 +100,11 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 		 * Begins a compound edit.  Compound edits can be nested, so every call to this method
 		 * has to be balanced with a call to {@link #compoundGroupEnd()}.
 		 */
-		private void compoundGroupStart() {		
+		private void compoundGroupStart(String toolTip) {
+			if (UndoManager.this.isUndoOrRedoing()) return;
 			compoundEditStackCount++;
 			if (compoundEditStackCount == 1)
-				ce = new CompoundEdit();
+				ce = new CompEdit(toolTip);
 			if (logger.isDebugEnabled()) {
 				logger.debug("compoundGroupStart: edit stack ="+compoundEditStackCount);
 			}
@@ -80,6 +117,7 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 		 * @throws IllegalStateException if there wasn't already a compound edit in progress.
 		 */
 		private void compoundGroupEnd() {
+			if (UndoManager.this.isUndoOrRedoing()) return;
 			if (compoundEditStackCount  <= 0){
 				throw new IllegalStateException("No compound edit in progress");
 			}
@@ -91,8 +129,8 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 			}
 		}
 		
-		private void addEdit(UndoableEdit undoEdit)
-		{
+		private void addEdit(UndoableEdit undoEdit) {
+			
 			if (logger.isDebugEnabled()) {
 				logger.debug("Adding new edit: "+undoEdit);
 			}
@@ -108,7 +146,7 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 		}
 		
 		public void dbChildrenInserted(SQLObjectEvent e) {
-			if (e.isSecondary()) return;
+			if (UndoManager.this.isUndoOrRedoing()) return;
 			if (e.getSource() instanceof SQLDatabase ||
 					e.getSource() instanceof SQLTable.Folder)
 			{
@@ -128,8 +166,7 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 		}
 
 		public void dbChildrenRemoved(SQLObjectEvent e) {
-			if(e.isSecondary()) return;
-			
+			if (UndoManager.this.isUndoOrRedoing()) return;
 			if (e.getSource() instanceof SQLDatabase ||
 					e.getSource() instanceof SQLTable.Folder)
 			{
@@ -138,19 +175,16 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 				addEdit(undoEvent);
 			
 			}
-			try{
-				ArchitectUtils.unlistenToHierarchy(this,e.getChildren());
-				ArchitectUtils.undoUnlistenToHierarchy(this,e.getChildren());
-				}
-				catch(ArchitectException ex)
-				{
-					logger.error("SQLObjectUndoableEventAdapter cannot attach to new children",ex);
-			}
+//			try{
+//				ArchitectUtils.unlistenToHierarchy(this,e.getChildren());
+//				ArchitectUtils.undoUnlistenToHierarchy(this,e.getChildren());
+//			} catch(ArchitectException ex) {
+//				logger.error("SQLObjectUndoableEventAdapter cannot attach to new children",ex);
+//			}
 		}
 
 		public void dbObjectChanged(SQLObjectEvent e) {
-			if (e.isSecondary()) return;
-				
+			if (UndoManager.this.isUndoOrRedoing()) return;
 			if (e.getSource() instanceof SQLDatabase &&
 					e.getPropertyName().equals("shortDisplayName")){
 				// this is not undoable at this time.
@@ -166,7 +200,6 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 
 		public void dbStructureChanged(SQLObjectEvent e) {
 			logger.error("Unexpected structure change event");
-			if (e.isSecondary()) return;
 			
 			// too many changes clear undo
 			UndoManager.this.discardAllEdits();
@@ -195,8 +228,10 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 			}
 			
 			if (ce != null) {
-				TablePaneLocationEdit tableEdit = new TablePaneLocationEdit(condensedMoveEvents);
-				ce.addEdit(tableEdit);
+				if (condensedMoveEvents.size()>0 ){
+					TablePaneLocationEdit tableEdit = new TablePaneLocationEdit(condensedMoveEvents);
+					ce.addEdit(tableEdit);
+				}
 
 				// make sure the edit is no longer in progress
 				ce.end();
@@ -211,7 +246,9 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 
 				ce = null;
 			} else {
-				UndoManager.this.addEdit(new TablePaneLocationEdit(condensedMoveEvents));
+				if (condensedMoveEvents.size()>0 ){
+					UndoManager.this.addEdit(new TablePaneLocationEdit(condensedMoveEvents));
+				}
 				newPositions.clear();
 			}
 			
@@ -219,6 +256,10 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 		}
 
 		public void componentMoved(PlayPenComponentEvent e) {
+			if (UndoManager.this.isUndoOrRedoing()) return;
+			//TODO Add relationship handle move support
+			if (e.getSource() instanceof Relationship) return;
+			
 			if (newPositions.put(e.getPPComponent(), e.getNewPoint()) == null) {
 				originalPositions.put(e.getPPComponent(), e.getOldPoint());
 			}
@@ -228,18 +269,18 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 		}
 
 		public void componentResized(PlayPenComponentEvent e) {
-
+			if (UndoManager.this.isUndoOrRedoing()) return;
 		}
 
 		public void propertyChange(PropertyChangeEvent evt) {
-	
+			if (UndoManager.this.isUndoOrRedoing()) return;
 		}
 
 		public void compoundEditStart(UndoCompoundEvent e) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("compoundEditStart with event: "+e.toString());
 			}
-			compoundGroupStart();
+			compoundGroupStart(e.getMessage());
 			
 		}
 
@@ -353,7 +394,9 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 		return undoing;
 	}
 
-
+	public boolean isUndoOrRedoing() {
+		return undoing || redoing;
+	}
 
 	public SQLObjectUndoableEventAdapter getEventAdapter() {
 		return eventAdapter;
@@ -378,6 +421,15 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 		for (ChangeListener l : changeListeners) {
 			l.stateChanged(event);
 		}
+	}
+
+	public String printUndoVector() {
+		StringBuffer sb = new StringBuffer();
+		for (Object o: edits) {
+			sb.append(o).append("\n");
+		}
+		
+		return sb.toString();
 	}
 
 	

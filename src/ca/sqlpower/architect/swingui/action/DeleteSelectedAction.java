@@ -114,7 +114,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 					}	
 				
 					try {
-						pp.startCompoundEdit("Starting multi-select");
+						pp.startCompoundEdit("Delete");
 						
 						// now, delete the columns
 						Iterator it2 = selectedColumns.iterator();
@@ -149,7 +149,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 			}
 			
 			
-			pp.startCompoundEdit("Starting multi-select");
+			pp.startCompoundEdit("Delete");
 			try {
 				
 				// items.size() > 0, user has OK'ed the delete
@@ -195,7 +195,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 				}
 			}	
 			
-			pp.startCompoundEdit("Starting multi-select");
+			pp.startCompoundEdit("Delete");
 			try {
 				// FIXME: parts of the following code look like they were cut'n'pasted from above... PURE EVIL!
 				Iterator it = Arrays.asList(selections).iterator();

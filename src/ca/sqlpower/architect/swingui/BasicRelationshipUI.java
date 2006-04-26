@@ -559,6 +559,7 @@ public class BasicRelationshipUI extends RelationshipUI
 			}
 		}
 		relationship.setBounds(computedBounds.x, computedBounds.y, computedBounds.width, computedBounds.height);
+		
 	}
 	
 	public Dimension getPreferredSize() {

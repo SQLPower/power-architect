@@ -27,4 +27,7 @@ public class UndoCompoundEvent extends Event {
 		return type;
 	}
 	
+	public String getMessage() {
+		return arg.toString();
+	}
 }

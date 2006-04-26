@@ -205,13 +205,13 @@ public class TestUndoManager extends TestCase {
         myTester.startCompoundEdit("Test Compound undo");
         adapter.dbObjectChanged(
                 new SQLObjectEvent(
-                        myTester, "foo", new Integer(0), new Integer(1), false));
+                        myTester, "foo", new Integer(0), new Integer(1)));
         adapter.dbObjectChanged(
                 new SQLObjectEvent(
-                        myTester, "foo", new Integer(1), new Integer(2), false));
+                        myTester, "foo", new Integer(1), new Integer(2)));
         adapter.dbObjectChanged(
                 new SQLObjectEvent(
-                        myTester, "foo", new Integer(2), new Integer(3), false));
+                        myTester, "foo", new Integer(2), new Integer(3)));
         myTester.endCompoundEdit("Test Compound undo");
         
         undoManager.undo();

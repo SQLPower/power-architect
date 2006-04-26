@@ -312,7 +312,7 @@ public class ColumnEditPanel extends JPanel
 	protected void updateModel() {
 		logger.debug("Updating model");
 		try {
-			startCompoundEdit("Starting new compound edit event in column edit panel");
+			startCompoundEdit("Column Edit");
 			SQLColumn col = model.getColumn(index);
 			col.setName(colName.getText());
 			col.setType(((SQLType) colType.getSelectedItem()).type);

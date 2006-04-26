@@ -17,7 +17,7 @@ public class LayoutAnimator implements ActionListener {
 		this.pp = pp;
 		this.timer = timer;
 		this.layout = layout;
-		pp.startCompoundEdit("Layout animation starting");
+		pp.startCompoundEdit("Auto Layout");
 	}
 	
 	public void actionPerformed(ActionEvent e) {

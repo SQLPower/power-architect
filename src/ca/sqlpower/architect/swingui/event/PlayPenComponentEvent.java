@@ -39,4 +39,9 @@ public class PlayPenComponentEvent extends EventObject {
 	public PlayPenComponent getPPComponent() {
 		return (PlayPenComponent) getSource();
 	}
+	
+	@Override
+	public String toString() {
+		return "Moving "+source+" from "+oldPoint +" to "+newPoint;
+	}
 }

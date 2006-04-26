@@ -74,13 +74,13 @@ public class CreateRelationshipAction extends AbstractAction
 
 	static public void doCreateRelationship(SQLTable pkTable,SQLTable fkTable,PlayPen pp, boolean identifying) {
 		try {
-			pp.startCompoundEdit("Starting the creation of a relationship");
+			pp.startCompoundEdit("Add Relationship");
 			SQLRelationship model = new SQLRelationship();
 			// XXX: need to ensure uniqueness of setName(), but 
 			// to_identifier should take care of this...			
 			model.setName(pkTable.getName()+"_"+fkTable.getName()+"_fk"); 
 			model.setIdentifying(identifying);
-			fkTable.setSecondaryChangeMode(true);
+			fkTable.setMagicEnabled(false);
 			model.attachRelationship(pkTable,fkTable,true);
 			
 			Relationship r = new Relationship(pp, model);
@@ -91,7 +91,7 @@ public class CreateRelationshipAction extends AbstractAction
 			logger.error("Couldn't create relationship", ex);
 			JOptionPane.showMessageDialog(pp, "Couldn't create relationship: "+ex.getMessage());
 		} finally {
-			fkTable.setSecondaryChangeMode(false);
+			fkTable.setMagicEnabled(true);
 			pp.endCompoundEdit("Ending the creation of a relationship");
 		}
 	}

@@ -633,8 +633,12 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 		logger.debug("decremented reference count to: " + referenceCount);
 		if (referenceCount == 0) {
 			// delete from the parent (columnsFolder) 
-			logger.debug("reference count is 0, deleting column from parent.");
-			getParent().removeChild(this);
+			if (getParent() != null){
+				logger.debug("reference count is 0, deleting column from parent.");
+				getParent().removeChild(this);
+			} else {
+				logger.debug("Already removed from parent");
+			}
 		}
 	}
 

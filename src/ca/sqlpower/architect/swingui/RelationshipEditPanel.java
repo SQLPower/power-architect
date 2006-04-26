@@ -127,7 +127,7 @@ public class RelationshipEditPanel extends JPanel
 	// ------------------ ARCHITECT PANEL INTERFACE ---------------------
 	
 	public boolean applyChanges() {
-		startCompoundEdit("Starting new compound edit event in relationship edit panel");
+		startCompoundEdit("Relationship Properties Change");
 		try {
 			relationship.setName(relationshipName.getText());
 			try {

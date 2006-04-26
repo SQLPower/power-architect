@@ -170,10 +170,10 @@ public class TestTablePane extends TestCase {
 		
 		// this event came from somewhere else.  it shouldn't affect the success of the next event
 		SQLColumn fakeSource = new SQLColumn();
-		tp.dbChildrenRemoved(new SQLObjectEvent(fakeSource, new int[] {6}, new SQLObject[] {fakeSource}, false));
+		tp.dbChildrenRemoved(new SQLObjectEvent(fakeSource, new int[] {6}, new SQLObject[] {fakeSource}));
 		
 		// this event notifies the table pane that we removed c1 earlier on.  It should not throw an exception
-		tp.dbChildrenRemoved(new SQLObjectEvent(t.getColumnsFolder(), new int[] {0}, new SQLObject[] {c1}, false));
+		tp.dbChildrenRemoved(new SQLObjectEvent(t.getColumnsFolder(), new int[] {0}, new SQLObject[] {c1}));
 	}
 	
 }
