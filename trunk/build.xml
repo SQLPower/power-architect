@@ -25,7 +25,7 @@
 	<target name="copyicons" depends="init">
 		<mkdir dir="${build}/icons"/>
         <copy todir="${build}/icons">
-			<fileset dir="icons">
+			<fileset dir="src/icons">
 				<include name="*.gif"/>
 			</fileset>
 		</copy>
@@ -36,9 +36,9 @@
 	<target name="copylog4jprops" depends="init">
 	    <!-- copies the template log4j config file into the build dir -->
 	    <copy tofile="${build}/log4j.properties"
-    	        file="log4j.properties.example"/>
+    	        file="src/log4j.properties.example"/>
 	    <!-- copies customized log4j config file into the build dir -->
-	    <copy file="log4j.properties" todir="${build}" overwrite="true" />
+	    <copy file="src/log4j.properties" todir="${build}" overwrite="true" />
     </target>
 
     <!-- Creates a WebStart distribution under the webstart/ directory -->
