@@ -52,6 +52,14 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	private static String generateUniqueColumnName(SQLColumn column, SQLTable table) {
 		return column.getParentTable().getName() + "_" + column.getName();  // FIXME: still might not be unique
 	}
+    
+    /**
+     * This method is for the benefit of the unit tests.  It should never
+     * be necessary to use it in the real world.
+     */
+    public RelationshipManager getRelationshipManager() {
+        return fkColumnManager;
+    }
 	
 	private void attachListeners() throws ArchitectException {
 		ArchitectUtils.listenToHierarchy(fkColumnManager,pkTable);
