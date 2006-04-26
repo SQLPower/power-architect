@@ -1,7 +1,6 @@
-package regress.ca.sqlpower.architect;
+package ca.sqlpower.architect;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.ArchitectException;
 
 public class ArchitectExceptionTest extends TestCase {
 

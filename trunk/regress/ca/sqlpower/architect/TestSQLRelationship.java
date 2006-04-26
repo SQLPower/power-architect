@@ -1,4 +1,4 @@
-package regress.ca.sqlpower.architect;
+package ca.sqlpower.architect;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -6,13 +6,6 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
-
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLTable;
 
 public class TestSQLRelationship extends SQLTestCase {
 

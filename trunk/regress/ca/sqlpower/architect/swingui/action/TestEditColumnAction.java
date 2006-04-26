@@ -1,4 +1,4 @@
-package regress.ca.sqlpower.architect.swingui.action;
+package ca.sqlpower.architect.swingui.action;
 
 import java.awt.Point;
 import java.sql.Types;
@@ -11,7 +11,6 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.TablePane;
-import ca.sqlpower.architect.swingui.action.EditColumnAction;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 
 public class TestEditColumnAction extends TestCase {

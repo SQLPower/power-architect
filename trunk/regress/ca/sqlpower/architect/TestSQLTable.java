@@ -1,4 +1,4 @@
-package regress.ca.sqlpower.architect;
+package ca.sqlpower.architect;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -13,15 +13,8 @@ import junit.framework.TestSuite;
 
 import org.apache.commons.beanutils.BeanUtils;
 
-import regress.ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.LockedColumnException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLTable.Folder;
+import ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ColumnEditPanel;
 

@@ -1,4 +1,4 @@
-package regress.ca.sqlpower.architect.swingui.action;
+package ca.sqlpower.architect.swingui.action;
 
 
 import java.awt.Point;
@@ -11,7 +11,6 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.TablePane;
-import ca.sqlpower.architect.swingui.action.CreateRelationshipAction;
 
 public class TestCreateRelationshipAction extends TestCase {
 

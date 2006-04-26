@@ -1,4 +1,4 @@
-package regress.ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui;
 
 import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
@@ -10,7 +10,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.swingui.ASUtils;
 
 public class TestASUtilsMenu extends TestCase {
 	

@@ -1,4 +1,4 @@
-package regress.ca.sqlpower.architect.diff;
+package ca.sqlpower.architect.diff;
 
 import java.sql.Types;
 import java.util.ArrayList;
@@ -11,9 +11,6 @@ import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.diff.CompareSQL;
-import ca.sqlpower.architect.diff.DiffChunk;
-import ca.sqlpower.architect.diff.DiffType;
 
 public class CompareSQLTest extends TestCase {
 

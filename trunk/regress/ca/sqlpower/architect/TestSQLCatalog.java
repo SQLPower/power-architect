@@ -1,17 +1,10 @@
-package regress.ca.sqlpower.architect;
+package ca.sqlpower.architect;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.util.Iterator;
 
-import regress.ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
-import ca.sqlpower.architect.ArchitectDataSource;
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLCatalog;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLSchema;
-import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
 
 public class TestSQLCatalog extends SQLTestCase {
 

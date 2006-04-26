@@ -1,4 +1,4 @@
-package regress.ca.sqlpower.architect.layout;
+package ca.sqlpower.architect.layout;
 
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -7,7 +7,6 @@ import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.TablePane;
 

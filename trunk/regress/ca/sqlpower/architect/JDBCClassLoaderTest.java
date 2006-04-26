@@ -1,8 +1,6 @@
-package regress.ca.sqlpower.architect;
+package ca.sqlpower.architect;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.ArchitectSession;
-import ca.sqlpower.architect.JDBCClassLoader;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 
 public class JDBCClassLoaderTest extends TestCase {

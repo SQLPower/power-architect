@@ -1,4 +1,4 @@
-package regress.ca.sqlpower.architect.undo;
+package ca.sqlpower.architect.undo;
 
 import java.awt.Point;
 
@@ -8,7 +8,6 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.TablePane;
-import ca.sqlpower.architect.undo.UndoManager;
 
 public class TestSQLObjectUndoableEventAdapter extends TestCase {
 	

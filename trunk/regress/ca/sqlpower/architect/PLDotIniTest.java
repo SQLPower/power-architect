@@ -1,4 +1,4 @@
-package regress.ca.sqlpower.architect;
+package ca.sqlpower.architect;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -7,8 +7,6 @@ import java.io.PrintWriter;
 import java.util.List;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.ArchitectDataSource;
-import ca.sqlpower.architect.PlDotIni;
 
 public class PLDotIniTest extends TestCase {
 

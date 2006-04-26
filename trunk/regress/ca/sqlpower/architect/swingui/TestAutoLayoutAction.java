@@ -1,4 +1,4 @@
-package regress.ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui;
 
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -14,11 +14,6 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.layout.BasicTreeAutoLayout;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
-import ca.sqlpower.architect.swingui.PlayPen;
-import ca.sqlpower.architect.swingui.Relationship;
-import ca.sqlpower.architect.swingui.RelationshipUI;
-import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
 
 public class TestAutoLayoutAction extends TestCase {

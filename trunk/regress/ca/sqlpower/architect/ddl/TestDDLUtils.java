@@ -1,7 +1,6 @@
-package regress.ca.sqlpower.architect.ddl;
+package ca.sqlpower.architect.ddl;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.ddl.DDLUtils;
 
 public class TestDDLUtils extends TestCase {
 

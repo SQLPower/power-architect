@@ -1,4 +1,4 @@
-package regress.ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui;
 
 import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentListener;

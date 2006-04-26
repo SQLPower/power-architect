@@ -1,4 +1,4 @@
-package regress.ca.sqlpower.architect;
+package ca.sqlpower.architect;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -6,7 +6,6 @@ import java.io.FileReader;
 import java.io.IOException;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.LogWriter;
 
 public class LogWriterTest extends TestCase {
 	public static final String MESSAGE = "0123456789abcdefghijklmnopqrstuvwxyz";

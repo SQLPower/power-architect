@@ -1,4 +1,4 @@
-package regress.ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui;
 
 import java.beans.PropertyDescriptor;
 import java.io.BufferedInputStream;
@@ -19,7 +19,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.commons.beanutils.PropertyUtils;
 
-import regress.ArchitectTestCase;
+import ca.sqlpower.ArchitectTestCase;
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLCatalog;
@@ -28,10 +28,6 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.CompareDMSettings;
-import ca.sqlpower.architect.swingui.DBTree;
-import ca.sqlpower.architect.swingui.DBTreeModel;
-import ca.sqlpower.architect.swingui.SwingUIProject;
 
 /**
  * Test case, mainly for loading and saving via SwingUIProject.

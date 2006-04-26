@@ -1,14 +1,10 @@
-package regress.ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui;
 
 import java.awt.Point;
 
 import junit.framework.TestCase;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
-import ca.sqlpower.architect.swingui.PlayPen;
-import ca.sqlpower.architect.swingui.Relationship;
-import ca.sqlpower.architect.swingui.TablePane;
 
 public class TestRelationship extends TestCase {
 

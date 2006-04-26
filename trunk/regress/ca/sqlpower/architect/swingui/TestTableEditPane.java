@@ -1,12 +1,10 @@
-package regress.ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui;
 
 import java.sql.Types;
 
 import junit.framework.TestCase;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
-import ca.sqlpower.architect.swingui.TableEditPanel;
 
 public class TestTableEditPane extends TestCase {
 

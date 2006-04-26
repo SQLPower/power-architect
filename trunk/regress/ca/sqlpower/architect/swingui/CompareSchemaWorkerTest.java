@@ -1,4 +1,4 @@
-package regress.ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,8 +12,6 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.GenericTypeDescriptor;
-import ca.sqlpower.architect.swingui.CompareSchemaWorker;
-import ca.sqlpower.architect.swingui.SQLObjectCompare;
 
 public class CompareSchemaWorkerTest extends TestCase {
 

@@ -3,21 +3,21 @@ package ca.sqlpower;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import regress.ca.sqlpower.architect.layout.TestFruchtermanReingoldForceLayout;
-import regress.ca.sqlpower.architect.swingui.TestArchitectFrame;
-import regress.ca.sqlpower.architect.swingui.TestAutoLayoutAction;
-import regress.ca.sqlpower.architect.swingui.TestBasicRelationshipUI;
-import regress.ca.sqlpower.architect.swingui.TestColumnEditPanel;
-import regress.ca.sqlpower.architect.swingui.TestCompareDMPanel;
-import regress.ca.sqlpower.architect.swingui.TestPlayPen;
-import regress.ca.sqlpower.architect.swingui.TestPlayPenComponent;
-import regress.ca.sqlpower.architect.swingui.TestRelationship;
-import regress.ca.sqlpower.architect.swingui.TestSwingUIProject;
-import regress.ca.sqlpower.architect.swingui.TestTableEditPane;
-import regress.ca.sqlpower.architect.swingui.TestTablePane;
-import regress.ca.sqlpower.architect.swingui.action.TestDeleteSelectedAction;
-import regress.ca.sqlpower.architect.undo.TestSQLObjectUndoableEventAdapter;
-import regress.ca.sqlpower.architect.undo.TestUndoManager;
+import ca.sqlpower.architect.layout.TestFruchtermanReingoldForceLayout;
+import ca.sqlpower.architect.swingui.TestArchitectFrame;
+import ca.sqlpower.architect.swingui.TestAutoLayoutAction;
+import ca.sqlpower.architect.swingui.TestBasicRelationshipUI;
+import ca.sqlpower.architect.swingui.TestColumnEditPanel;
+import ca.sqlpower.architect.swingui.TestCompareDMPanel;
+import ca.sqlpower.architect.swingui.TestPlayPen;
+import ca.sqlpower.architect.swingui.TestPlayPenComponent;
+import ca.sqlpower.architect.swingui.TestRelationship;
+import ca.sqlpower.architect.swingui.TestSwingUIProject;
+import ca.sqlpower.architect.swingui.TestTableEditPane;
+import ca.sqlpower.architect.swingui.TestTablePane;
+import ca.sqlpower.architect.swingui.action.TestDeleteSelectedAction;
+import ca.sqlpower.architect.undo.TestSQLObjectUndoableEventAdapter;
+import ca.sqlpower.architect.undo.TestUndoManager;
 
 public class ArchitectSwingTestSuite extends TestCase {
 

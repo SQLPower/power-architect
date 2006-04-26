@@ -1,4 +1,4 @@
-package regress.ca.sqlpower.architect;
+package ca.sqlpower.architect;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
