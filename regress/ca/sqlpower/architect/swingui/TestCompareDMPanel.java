@@ -262,7 +262,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 	public void testSourceDropDownsWithOnlyCatalog() {
 		ArchitectDataSource ds = new ArchitectDataSource();
 		ds.setDisplayName("Schemaless Database");
-		ds.setDriverClass("regress.ca.sqlpower.architect.MockJDBCDriver");
+		ds.setDriverClass("ca.sqlpower.architect.MockJDBCDriver");
 		ds.setUser("fake");
 		ds.setPass("fake");
 		//this creates a mock jdbc database with only catalogs
@@ -284,7 +284,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 	public void testSourceDropDownsWithSchemaAndCatalog() {
 		ArchitectDataSource ds = new ArchitectDataSource();
 		ds.setDisplayName("Schemaless Database");
-		ds.setDriverClass("regress.ca.sqlpower.architect.MockJDBCDriver");
+		ds.setDriverClass("ca.sqlpower.architect.MockJDBCDriver");
 		ds.setUser("fake");
 		ds.setPass("fake");
 		//this creates a mock jdbc database with catalogs and schemas
@@ -302,7 +302,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 	public void testSourceDropDownsWithOnlySchema() {
 		ArchitectDataSource ds = new ArchitectDataSource();
 		ds.setDisplayName("Catalogless Database");
-		ds.setDriverClass("regress.ca.sqlpower.architect.MockJDBCDriver");
+		ds.setDriverClass("ca.sqlpower.architect.MockJDBCDriver");
 		ds.setUser("fake");
 		ds.setPass("fake");
 		//this creates a mock jdbc database with schemas only
@@ -320,7 +320,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 	public void testTargetDropDownsWithOnlyCatalog() {
 		ArchitectDataSource ds = new ArchitectDataSource();
 		ds.setDisplayName("Schemaless Database");
-		ds.setDriverClass("regress.ca.sqlpower.architect.MockJDBCDriver");
+		ds.setDriverClass("ca.sqlpower.architect.MockJDBCDriver");
 		ds.setUser("fake");
 		ds.setPass("fake");
 		//this creates a mock jdbc database with schemas only
@@ -341,7 +341,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 	public void testTargetDropDownsWithSchemaAndCatalog() {
 		ArchitectDataSource ds = new ArchitectDataSource();
 		ds.setDisplayName("Schemaless Database");
-		ds.setDriverClass("regress.ca.sqlpower.architect.MockJDBCDriver");
+		ds.setDriverClass("ca.sqlpower.architect.MockJDBCDriver");
 		ds.setUser("fake");
 		ds.setPass("fake");
 		//this creates a mock jdbc database with schemas and catalogs
@@ -361,7 +361,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 	public void testTargetDropDownsWithOnlySchema() {
 		ArchitectDataSource ds = new ArchitectDataSource();
 		ds.setDisplayName("Catalogless Database");
-		ds.setDriverClass("regress.ca.sqlpower.architect.MockJDBCDriver");
+		ds.setDriverClass("ca.sqlpower.architect.MockJDBCDriver");
 		ds.setUser("fake");
 		ds.setPass("fake");
 		//this creates a mock jdbc database with only schemas
@@ -377,7 +377,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 	public void testTargetSchemaUpdateByCatalogChange(){
 		ArchitectDataSource ds = new ArchitectDataSource();
 		ds.setDisplayName("DatabaseWithEverything");
-		ds.setDriverClass("regress.ca.sqlpower.architect.MockJDBCDriver");
+		ds.setDriverClass("ca.sqlpower.architect.MockJDBCDriver");
 		ds.setUser("fake");
 		ds.setPass("fake");
 		//this creates a mock jdbc database with catalogs and schemas where the catalogs have different schema names from each other
