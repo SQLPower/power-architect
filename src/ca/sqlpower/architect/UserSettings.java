@@ -96,6 +96,17 @@ public class UserSettings {
 		ArchitectSession.getInstance().addDriverJar(path);
 	}
 	
+    public boolean isPlDotIniPathValid() {
+        logger.debug("Checking pl.ini path: "+getPlDotIniPath());
+        String path = getPlDotIniPath();
+        if (path == null) {
+            return false;
+        } else {
+            File f = new File(path);
+            return (f.canRead() && f.isFile());
+        }
+    }
+    
     /**
      * Tries to read the plDotIni if it hasn't been done already.  If it can't be read,
      * returns null and leaves the plDotIni property as null as well. See {@link #plDotIni}.

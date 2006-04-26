@@ -80,7 +80,7 @@ public class ConfigFile {
 			prefs.remove(jarFilePrefName(i));
 		}		
 		
-		userSettings.setPlDotIniPath(prefs.get("PL.INI.PATH", defaultHomeFile("pl.ini")));
+		userSettings.setPlDotIniPath(prefs.get("PL.INI.PATH", null));
 		
 		SwingUserSettings swingUserSettings = userSettings.getSwingSettings();
 		swingUserSettings.setBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED,

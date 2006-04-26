@@ -219,7 +219,7 @@ public class ArchitectFrame extends JFrame {
 			throw new ArchitectException("prefs.read", e);
 		}
 
-		while (us.getPlDotIni() == null) {
+		while (!us.isPlDotIniPathValid()) {
 		    String message;
 		    String[] options = new String[] {"Browse", "Create"};
 		    if (us.getPlDotIniPath() == null) {
