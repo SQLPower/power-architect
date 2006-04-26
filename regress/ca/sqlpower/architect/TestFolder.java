@@ -1,4 +1,4 @@
-package regress.ca.sqlpower.architect;
+package ca.sqlpower.architect;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -6,13 +6,8 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import regress.ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLTable.Folder;
+import ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
 
 public class TestFolder extends SQLTestCase {
 

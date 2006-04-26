@@ -1,4 +1,4 @@
-package regress.ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui;
 
 import java.awt.Component;
 import java.awt.Container;
@@ -19,9 +19,6 @@ import junit.extensions.jfcunit.TestHelper;
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
-import ca.sqlpower.architect.swingui.CompareDMPanel;
-import ca.sqlpower.architect.swingui.SwingUIProject;
 
 public class TestCompareDMPanel extends JFCTestCase {
 

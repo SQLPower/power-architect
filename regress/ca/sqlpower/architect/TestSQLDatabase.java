@@ -1,4 +1,4 @@
-package regress.ca.sqlpower.architect;
+package ca.sqlpower.architect;
 
 import java.beans.PropertyChangeEvent;
 import java.sql.Connection;
@@ -9,14 +9,7 @@ import java.util.List;
 import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestSuite;
-import regress.ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
-import ca.sqlpower.architect.ArchitectDataSource;
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLCatalog;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLSchema;
-import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
 
 public class TestSQLDatabase extends SQLTestCase {
 	

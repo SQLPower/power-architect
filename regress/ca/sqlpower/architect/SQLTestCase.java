@@ -1,4 +1,4 @@
-package regress.ca.sqlpower.architect;
+package ca.sqlpower.architect;
 
 import java.beans.PropertyDescriptor;
 import java.io.File;
@@ -12,14 +12,7 @@ import java.util.Set;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 
-import regress.ArchitectTestCase;
-import ca.sqlpower.architect.ArchitectDataSource;
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.PlDotIni;
-import ca.sqlpower.architect.SQLCatalog;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.ArchitectTestCase;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.undo.UndoManager;
 

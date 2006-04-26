@@ -1,9 +1,5 @@
-package regress.ca.sqlpower.architect;
+package ca.sqlpower.architect;
 
-import ca.sqlpower.architect.ArchitectDataSource;
-import ca.sqlpower.architect.DatabaseListChangeEvent;
-import ca.sqlpower.architect.DatabaseListChangeListener;
-import ca.sqlpower.architect.PlDotIni;
 import junit.framework.TestCase;
 
 public class PlDotIniListenersTest extends TestCase {

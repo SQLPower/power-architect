@@ -1,10 +1,6 @@
-package regress.ca.sqlpower.architect;
+package ca.sqlpower.architect;
 
-import regress.ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLSchema;
-import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
 
 public class TestSQLSchema extends SQLTestCase {
 

@@ -1,4 +1,4 @@
-package regress.ca.sqlpower.architect;
+package ca.sqlpower.architect;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -16,14 +16,6 @@ import junit.framework.Test;
 import junit.framework.TestSuite;
 
 import org.apache.commons.beanutils.BeanUtils;
-
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLObjectEvent;
-import ca.sqlpower.architect.SQLObjectListener;
-import ca.sqlpower.architect.SQLTable;
 
 public class TestSQLColumn extends SQLTestCase {
 

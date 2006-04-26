@@ -1,7 +1,6 @@
-package regress.ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.swingui.ArchitectSwingWorker;
 
 public class TestArchitectSwingWorker extends TestCase {
 

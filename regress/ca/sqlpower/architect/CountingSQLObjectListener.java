@@ -1,7 +1,5 @@
-package regress.ca.sqlpower.architect;
+package ca.sqlpower.architect;
 
-import ca.sqlpower.architect.SQLObjectEvent;
-import ca.sqlpower.architect.SQLObjectListener;
 
 /**
  * Helps with testing SQLObject methods that should fire SQLObjectEvents.

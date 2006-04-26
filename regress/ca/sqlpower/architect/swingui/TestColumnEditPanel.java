@@ -1,4 +1,4 @@
-package regress.ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui;
 
 import java.sql.DatabaseMetaData;
 
@@ -7,10 +7,6 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.ColumnEditPanel;
-import ca.sqlpower.architect.swingui.PlayPen;
-import ca.sqlpower.architect.swingui.SQLType;
-import ca.sqlpower.architect.swingui.TablePane;
 
 public class TestColumnEditPanel extends TestCase {
 	SQLDatabase db;

@@ -1,10 +1,6 @@
-package regress.ca.sqlpower.architect;
+package ca.sqlpower.architect;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectUtils;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 

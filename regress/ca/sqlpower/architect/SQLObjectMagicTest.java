@@ -1,8 +1,5 @@
-package regress.ca.sqlpower.architect;
+package ca.sqlpower.architect;
 
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLTable;
 import junit.framework.TestCase;
 
 /**
