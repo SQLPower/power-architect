@@ -81,15 +81,15 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		if (this.pkTable != null || this.fkTable != null) {
 			this.detachListeners();
 		}
-		this.pkTable = pkTable;
-		this.fkTable = fkTable;
-		
-		this.fireDbObjectChanged("pkTable",oldPkt,pkTable);
-		this.fireDbObjectChanged("fkTable",oldFkt,fkTable);
-		
 		try {
-			fkTable.getColumnsFolder().setSecondaryChangeMode(true);
-			fkTable.getImportedKeysFolder().setSecondaryChangeMode(true);
+			this.pkTable = pkTable;
+			this.fkTable = fkTable;
+			
+			this.fireDbObjectChanged("pkTable",oldPkt,pkTable);
+			this.fireDbObjectChanged("fkTable",oldFkt,fkTable);
+		
+			fkTable.getColumnsFolder().setMagicEnabled(false);
+			fkTable.getImportedKeysFolder().setMagicEnabled(false);
 			
 			pkTable.addExportedKey(this);
 			fkTable.addImportedKey(this);
@@ -130,10 +130,9 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 			this.attachListeners();
 		} finally {
 			if ( fkTable != null ) {
-				fkTable.getColumnsFolder().setSecondaryChangeMode(false);
-				fkTable.getImportedKeysFolder().setSecondaryChangeMode(false);
+				fkTable.getColumnsFolder().setMagicEnabled(true);
+				fkTable.getImportedKeysFolder().setMagicEnabled(true);
 			}
-			
 		}
 	}
 
@@ -148,7 +147,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		for (ColumnMapping m : getMappings()) {
 			SQLColumn fkCol = m.getFkColumn();
 			try {
-				fkCol.setSecondaryChangeMode(true);
+				fkCol.setMagicEnabled(false);
 				if (fkCol.getReferenceCount() == 0) fkCol.addReference();
 				// This might bump up the reference count (which would be correct)
 				fkTable.addColumn(fkCol);
@@ -158,7 +157,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 					fkCol.setPrimaryKeySeq(new Integer(fkTable.getPkSize()));
 				}
 			} finally {
-				fkCol.setSecondaryChangeMode(false);
+				fkCol.setMagicEnabled(true);
 			}
 		}
 	}
@@ -352,11 +351,17 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	 */
 	protected class RelationshipManager implements SQLObjectListener {
 		public void dbChildrenInserted(SQLObjectEvent e) {
+			
+			if (!(e.getSQLSource().isMagicEnabled())){
+				logger.debug("Magic disabled ignoring sqlobjectEvent "+e);
+				return;
+			}
 			if (logger.isDebugEnabled()) {
 				logger.debug("dbChildrenInserted event! parent="+e.getSource()+";" +
 						" children="+Arrays.asList(e.getChildren()));
 			}
 			try {
+				startCompoundEdit("Children Inserted Secondary Effect");
 				for (SQLObject so : e.getChildren()) {
 					ArchitectUtils.listenToHierarchy(this, so);
 				}
@@ -381,10 +386,16 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 				}
 			} catch (ArchitectException ex) {
 				throw new ArchitectRuntimeException(ex);
-			} 
+			} finally {
+				endCompoundEdit("End children inserted handler");
+			}
 		}
 
 		public void dbChildrenRemoved(SQLObjectEvent e) {
+			if (!(e.getSQLSource().isMagicEnabled())){
+				logger.debug("Magic disabled ignoring sqlobjectEvent "+e);
+				return;
+			}
 			if (logger.isDebugEnabled()) {
 				logger.debug("dbChildrenRemoved event! parent="+e.getSource()+";" +
 						" children="+Arrays.asList(e.getChildren()));
@@ -396,51 +407,64 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 				if (e.getSQLSource() instanceof SQLTable.Folder) {
 					SQLTable.Folder f = (SQLTable.Folder) e.getSource();
 					if (f == pkTable.getExportedKeysFolder()) {
-						detachListeners();
 						SQLObject[] removedRels = e.getChildren();
 						int size = removedRels.length;
 						for (int i = 0; i < size; i++) {
 							SQLRelationship r = (SQLRelationship) removedRels[i];
 							if (r == SQLRelationship.this) {
 								try {
-									r.getFkTable().getImportedKeysFolder().setSecondaryChangeMode(true);
-									r.getFkTable().removeImportedKey(r);
-								} finally {
-									r.getFkTable().getImportedKeysFolder().setSecondaryChangeMode(false);
-								}
-								logger.debug("Removing references for mappings: "+getMappings());
-								
-								for (ColumnMapping cm : r.getMappings()) {
-									logger.debug("Removing reference to fkcol "+ cm.getFkColumn());
+									startCompoundEdit("Children removed secondary effect");
 									try {
-										fkTable.getColumnsFolder().setSecondaryChangeMode(true);
-										cm.getFkColumn().setSecondaryChangeMode(true);
-										cm.getFkColumn().removeReference();
+										
+										r.getFkTable().getImportedKeysFolder().setMagicEnabled(false);
+										r.getFkTable().removeImportedKey(r);
 									} finally {
-										cm.getFkColumn().setSecondaryChangeMode(false);
-										fkTable.getColumnsFolder().setSecondaryChangeMode(false);
+										r.getFkTable().getImportedKeysFolder().setMagicEnabled(true);
 									}
+									logger.debug("Removing references for mappings: "+getMappings());
+									
+									for (ColumnMapping cm : r.getMappings()) {
+										logger.debug("Removing reference to fkcol "+ cm.getFkColumn());
+										try {
+											fkTable.getColumnsFolder().setMagicEnabled(false);
+											cm.getFkColumn().setMagicEnabled(false);
+											cm.getFkColumn().removeReference();
+										} finally {
+											cm.getFkColumn().setMagicEnabled(true);
+											fkTable.getColumnsFolder().setMagicEnabled(true);
+										}
+									}
+								} finally {
+									endCompoundEdit("End children removed handler");
+									detachListeners();
 								}
 							}
 						}
 					} else if (f == pkTable.getColumnsFolder()) {
 						SQLObject[] cols = e.getChildren();
-						for (int i = 0; i < cols.length; i++) {
-							SQLColumn col = (SQLColumn) cols[i];
-							try {
+						try {
+							startCompoundEdit("Remove mapped fk columns");
+							for (int i = 0; i < cols.length; i++) {
+								SQLColumn col = (SQLColumn) cols[i];
 								ensureNotInMapping(col);
-							} catch (ArchitectException ex) {
-								logger.warn("Couldn't remove mapped FK columns", ex);
 							}
+						} catch (ArchitectException ex) {
+							logger.warn("Couldn't remove mapped FK columns", ex);
+						} finally {
+							endCompoundEdit("End remove mapped fk columns");
 						}
 					}
 				} 
 			} catch (ArchitectException ex) {
 				throw new ArchitectRuntimeException(ex);
-			} 
+			}
 		}
 
 		public void dbObjectChanged(SQLObjectEvent e) {
+			if (!(e.getSQLSource().isMagicEnabled())){
+				logger.debug("Magic disabled ignoring sqlobjectEvent "+e);
+				return;
+			}
 			String prop = e.getPropertyName();
 			if (logger.isDebugEnabled()) {
 				logger.debug("Property changed!" +
@@ -449,79 +473,89 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 						"\n old=" + e.getOldValue() +
 						"\n new=" + e.getNewValue());
 			}
-			if (e.getSource() instanceof SQLColumn) {
-				SQLColumn col = (SQLColumn) e.getSource();
-				
-				if (col.getParentTable() == pkTable) {
-					if (prop.equals("primaryKeySeq")) {
-						try {
-							if (col.getPrimaryKeySeq() != null) {
-								ensureInMapping(col);
-							} else {
-								ensureNotInMapping(col);
-							}
-						} catch (ArchitectException ae) {
-							throw new ArchitectRuntimeException(ae);
-						}
-						return;
-					}
+			try{
+				startCompoundEdit("Object change");
+				if (e.getSource() instanceof SQLColumn) {
+					SQLColumn col = (SQLColumn) e.getSource();
 					
-					ColumnMapping m = getMappingByPkCol(col);
-					if (m == null) {
-						logger.debug("Ignoring change for column "+col+" parent "+col.getParentTable());
-						return;
-					}
-					if (m.getPkColumn() == null) throw new NullPointerException("Missing pk column in mapping");
-					if (m.getFkColumn() == null) throw new NullPointerException("Missing fk column in mapping");
-					
-					if (prop == null
-							|| prop.equals("parent")
-							|| prop.equals("remarks")) {
-						// don't care
-					} else if (prop.equals("sourceColumn")) {
-						m.getFkColumn().setSourceColumn(m.getPkColumn().getSourceColumn());
-					} else if (prop.equals("name")) {
-						// only update the fkcol name if its name was the same as the old pkcol name
-						if (m.getFkColumn().getName().equalsIgnoreCase((String) e.getOldValue())) {
+					if (col.getParentTable() == pkTable) {
+						if (prop.equals("primaryKeySeq")) {
 							try {
-								m.getFkColumn().setSecondaryChangeMode(true);
-								m.getFkColumn().setName(m.getPkColumn().getName());
-							} finally {
-								m.getFkColumn().setSecondaryChangeMode(false);
+								if (col.getPrimaryKeySeq() != null) {
+									ensureInMapping(col);
+								} else {
+									ensureNotInMapping(col);
+								}
+							} catch (ArchitectException ae) {
+								throw new ArchitectRuntimeException(ae);
 							}
+							return;
 						}
-					} else if (prop.equals("type")) {
-						m.getFkColumn().setType(m.getPkColumn().getType());
-					} else if (prop.equals("sourceDataTypeName")) {
-						m.getFkColumn().setSourceDataTypeName(m.getPkColumn().getSourceDataTypeName());
-					} else if (prop.equals("scale")) {
-						m.getFkColumn().setScale(m.getPkColumn().getScale());
-					} else if (prop.equals("precision")) {
-						m.getFkColumn().setPrecision(m.getPkColumn().getPrecision());
-					} else if (prop.equals("nullable")) {
-						m.getFkColumn().setNullable(m.getPkColumn().getNullable());
-					} else if (prop.equals("defaultValue")) {
-						m.getFkColumn().setDefaultValue(m.getPkColumn().getDefaultValue());
-					} else if (prop.equals("autoIncrement")) {
-						m.getFkColumn().setAutoIncrement(m.getPkColumn().isAutoIncrement());
-					} else {
-						logger.warn("Warning: unknown column property "+prop
-								+" changed while monitoring pkTable");
+						
+						ColumnMapping m = getMappingByPkCol(col);
+						if (m == null) {
+							logger.debug("Ignoring change for column "+col+" parent "+col.getParentTable());
+							return;
+						}
+						if (m.getPkColumn() == null) throw new NullPointerException("Missing pk column in mapping");
+						if (m.getFkColumn() == null) throw new NullPointerException("Missing fk column in mapping");
+						
+						if (prop == null
+								|| prop.equals("parent")
+								|| prop.equals("remarks")) {
+							// don't care
+						} else if (prop.equals("sourceColumn")) {
+							m.getFkColumn().setSourceColumn(m.getPkColumn().getSourceColumn());
+						} else if (prop.equals("name")) {
+							// only update the fkcol name if its name was the same as the old pkcol name
+							if (m.getFkColumn().getName().equalsIgnoreCase((String) e.getOldValue())) {
+								try {
+									m.getFkColumn().setMagicEnabled(false);
+									m.getFkColumn().setName(m.getPkColumn().getName());
+								} finally {
+									m.getFkColumn().setMagicEnabled(true);
+								}
+							}
+						} else if (prop.equals("type")) {
+							m.getFkColumn().setType(m.getPkColumn().getType());
+						} else if (prop.equals("sourceDataTypeName")) {
+							m.getFkColumn().setSourceDataTypeName(m.getPkColumn().getSourceDataTypeName());
+						} else if (prop.equals("scale")) {
+							m.getFkColumn().setScale(m.getPkColumn().getScale());
+						} else if (prop.equals("precision")) {
+							m.getFkColumn().setPrecision(m.getPkColumn().getPrecision());
+						} else if (prop.equals("nullable")) {
+							m.getFkColumn().setNullable(m.getPkColumn().getNullable());
+						} else if (prop.equals("defaultValue")) {
+							m.getFkColumn().setDefaultValue(m.getPkColumn().getDefaultValue());
+						} else if (prop.equals("autoIncrement")) {
+							m.getFkColumn().setAutoIncrement(m.getPkColumn().isAutoIncrement());
+						} else {
+							logger.warn("Warning: unknown column property "+prop
+									+" changed while monitoring pkTable");
+						}
+					}
+				} else if (e.getSource() == fkTable || e.getSource() == pkTable) {
+					if (prop.equals("parent") && e.getNewValue() == null) {
+						// this will cause a callback to this listener which removes the imported key from fktable
+						pkTable.removeExportedKey(SQLRelationship.this);
 					}
 				}
-			} else if (e.getSource() == fkTable || e.getSource() == pkTable) {
-				if (prop.equals("parent") && e.getNewValue() == null) {
-					// this will cause a callback to this listener which removes the imported key from fktable
-					pkTable.removeExportedKey(SQLRelationship.this);
-				}
+			}finally {
+				endCompoundEdit("End Object change handler");				
 			}
 		}
 
 		public void dbStructureChanged(SQLObjectEvent e) {
+			if (!(e.getSQLSource().isMagicEnabled())){
+				logger.debug("Magic disabled ignoring sqlobjectEvent "+e);
+				return;
+			}
 			logger.debug("Received a dbStructure changed event");
 			// wow!  let's re-scan the whole table
 			// FIXME: This should also check if this relationship is still part of pktable and fktable, and copy properties from pkcol to fkcol in the mappings
 			try {
+				startCompoundEdit("Structure Change");
 				Iterator it = pkTable.getColumns().iterator();
 				while (it.hasNext()) {
 					SQLColumn col = (SQLColumn) it.next();
@@ -533,6 +567,8 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 				}
 			} catch (ArchitectException ex) {
 				logger.warn("Coulnd't re-scan table as a result of dbStructureChanged", ex);
+			} finally {
+				endCompoundEdit("End structure changed handler");
 			}
 			
 		}
@@ -543,16 +579,16 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 				SQLColumn fkcol = fkTable.getColumnByName(pkcol.getName());
 				if (fkcol == null) fkcol = new SQLColumn(pkcol);
 				try {
-					fkTable.getColumnsFolder().setSecondaryChangeMode(true);
-					fkcol.setSecondaryChangeMode(true);
+					fkTable.getColumnsFolder().setMagicEnabled(false);
+					fkcol.setMagicEnabled(false);
 					fkTable.addColumn(fkcol);
 					logger.debug("Is the relationship identifying? "+identifying);
 					if (identifying) {
 						fkcol.setPrimaryKeySeq(new Integer(fkTable.getPkSize()));
 					}
 				} finally {
-					fkTable.getColumnsFolder().setSecondaryChangeMode(false);
-					fkcol.setSecondaryChangeMode(false);
+					fkTable.getColumnsFolder().setMagicEnabled(true);
+					fkcol.setMagicEnabled(true);
 				}
 				addMapping(pkcol, fkcol);
 			}
@@ -569,12 +605,17 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 				ColumnMapping m = getMappingByPkCol(pkcol);
 				removeChild(m);
 				try {
-					m.getFkColumn().setSecondaryChangeMode(true);
+					m.getFkColumn().setMagicEnabled(false);
 					m.getFkColumn().removeReference();
 				} finally {
-					m.getFkColumn().setSecondaryChangeMode(false);
+					m.getFkColumn().setMagicEnabled(true);
 				}
 			}
+		}
+		
+		@Override
+		public String toString() {
+			return "RelManager of "+SQLRelationship.this.toString();
 		}
 	}
 

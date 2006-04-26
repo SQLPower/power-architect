@@ -28,9 +28,21 @@ public abstract class SQLObjectChildren extends AbstractUndoableEdit {
 	public void removeChildren(){
 		int changed[] =e.getChangedIndices();
 		SQLObject sqlObject= e.getSQLSource();
-		for (int ii = 0; ii < changed.length;ii++)
-		{
-			sqlObject.removeChild(changed[ii]);
+		SQLObject parent = sqlObject.getParent();
+		try {
+			if (parent != null) {
+				sqlObject.setMagicEnabled(false);
+			}
+			sqlObject.setMagicEnabled(false);
+			for (int ii = 0; ii < changed.length;ii++)
+			{
+				sqlObject.removeChild(changed[ii]);
+			}
+		}finally {
+			sqlObject.setMagicEnabled(true);
+			if (parent != null) {
+				sqlObject.setMagicEnabled(true);
+			}
 		}
 	}
 	
@@ -40,18 +52,21 @@ public abstract class SQLObjectChildren extends AbstractUndoableEdit {
 		int changed[] = e.getChangedIndices();
 		SQLObject sqlObject= e.getSQLSource();
 		SQLObject children[] = e.getChildren();
-		
-		for (int ii = 0; ii < changed.length; ii++) {
-			if (children[ii] instanceof SQLRelationship) {
-				SQLRelationship rel = (SQLRelationship) children[ii];
-				int size =rel.getChildren().size();
-			    for(int jj = 0; jj < size ; jj++){
-					rel.removeChild(0);
-				}
-				rel.attachRelationship(rel.getPkTable(), rel.getFkTable(),true);
-			} else {
-				sqlObject.addChild(changed[ii], children[ii]);
+		SQLObject parent = sqlObject.getParent();
+		try{
+			if (parent != null) {
+				sqlObject.setMagicEnabled(false);
 			}
+			sqlObject.setMagicEnabled(false);
+			for (int ii = 0; ii < changed.length; ii++) {
+				sqlObject.addChild(changed[ii], children[ii]);
+				
+			}
+		}finally {
+			if (parent != null) {
+				sqlObject.setMagicEnabled(true);
+			}
+			sqlObject.setMagicEnabled(true);
 		}
 	}
 	

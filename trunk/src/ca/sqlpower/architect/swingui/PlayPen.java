@@ -677,7 +677,7 @@ public class PlayPen extends JPanel
 	 * If this function is moved into a layout manager it causes problems with undo because we do
 	 * no know when this gets called.
 	 */
-	protected void normalize() {		
+	protected void normalize() {
 		int minX = 0;
 		int minY = 0;		
 		Iterator it = getTablePanes().iterator();
@@ -913,6 +913,16 @@ public class PlayPen extends JPanel
 							componentList.append(c).append("["+c.getModel()+"]\n");
 						}
 						JOptionPane.showMessageDialog(PlayPen.this, new JScrollPane(new JTextArea(componentList.toString())));
+					}
+				});
+			playPenPopup.add(mi);
+			
+			mi = new JMenuItem("Show Undo Vector");
+			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+			mi.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent evt) {
+						StringBuffer componentList = new StringBuffer();
+						JOptionPane.showMessageDialog(PlayPen.this, new JScrollPane(new JTextArea(ArchitectFrame.getMainInstance().getProject().getUndoManager().printUndoVector())));
 					}
 				});
 			playPenPopup.add(mi);
@@ -1183,7 +1193,7 @@ public class PlayPen extends JPanel
 	public synchronized void addObjects(List list, Point preferredLocation, ArchitectSwingWorker nextProcess) throws ArchitectException {
 		ProgressMonitor pm
 		 = new ProgressMonitor(null,
-		                      "Copying objects from DBTree",
+		                      "Copying objects to the playpen",
 		                      "...",
 		                      0,
 			                  100);			
@@ -1298,7 +1308,7 @@ public class PlayPen extends JPanel
 				}
 			}
 
-			ArchitectFrame.getMainInstance().getProject().getPlayPen().startCompoundEdit("Starting multi-select");
+			ArchitectFrame.getMainInstance().getProject().getPlayPen().startCompoundEdit("Drag to Playpen");
 				
 			try {
 				
@@ -1784,7 +1794,6 @@ public class PlayPen extends JPanel
 				dtde.rejectDrop();
 			} else {
 				try {
-					
 					
 					dtde.acceptDrop(DnDConstants.ACTION_COPY);
 					Point dropLoc = playpen.unzoomPoint(new Point(dtde.getLocation()));									
@@ -2322,7 +2331,7 @@ public class PlayPen extends JPanel
 				pp.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 			} else { 
 				pp.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
-				pp.startCompoundEdit("Starting move for table "+tp.getName());
+				pp.startCompoundEdit("Move"+tp.getName());
 			}
 		}
 

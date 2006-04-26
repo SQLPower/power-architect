@@ -17,11 +17,13 @@ import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
+import org.apache.log4j.Logger;
+
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.factories.ButtonBarFactory;
 
 public class ArchitectPanelBuilder {
-
+	static Logger logger = Logger.getLogger(ArchitectPanelBuilder.class);
 	public static final String OK_BUTTON_LABEL = "OK";
 	public static final String CANCEL_BUTTON_LABEL = "Cancel";
 	
@@ -73,6 +75,8 @@ public class ArchitectPanelBuilder {
 		Action closeAction = new CommonCloseAction(d);
 		if (cancelAction != null){
 			closeAction = cancelAction;
+		} else {
+			logger.debug("WARNING using a null cancel action.  You probably want to use action so you can cleanup");
 		}
 		
 		okButton.addActionListener(closeAction);

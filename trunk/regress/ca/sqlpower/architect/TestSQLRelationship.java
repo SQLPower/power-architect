@@ -68,11 +68,6 @@ public class TestSQLRelationship extends SQLTestCase {
 	
 	@Override
 	protected void tearDown() throws Exception {
-		assertFalse("Parent table was left in secondary mode!", parentTable.isSecondaryChangeMode());
-		assertFalse("Child table 1 was left in secondary mode!", childTable1.isSecondaryChangeMode());
-		assertFalse("Child table 2 was left in secondary mode!", childTable2.isSecondaryChangeMode());
-		assertFalse("Rel 1 was left in secondary mode!", rel1.isSecondaryChangeMode());
-		assertFalse("Rel 2 was left in secondary mode!", rel2.isSecondaryChangeMode());
 		super.tearDown();
 	}
 	
@@ -377,28 +372,6 @@ public class TestSQLRelationship extends SQLTestCase {
 		assertEquals("fkcol's name didn't update", "custom fk col name", fkcol.getName());
 	}
 
-	public void testPKColNameChangeGoesToFKIsSecondaryEvent() throws ArchitectException{				
-		SQLColumn pkcol = new SQLColumn(parentTable, "old name", Types.VARCHAR, 10, 0);
-		parentTable.addColumn(pkcol);
-		pkcol.setPrimaryKeySeq(0);
-		
-		MySQLObjectListener l = new MySQLObjectListener();
-		ArchitectUtils.listenToHierarchy(l, database);
-		
-		pkcol.setName("new name");
-		
-		// Expect one primary event for the name change in the parent table
-		assertEquals("too many primary events!", 1, l.getPrimaryCount());
-		
-		// expect secondary events for the related columns in child_table_1 and child_table_2
-		assertEquals("not enough secondary events!", 2, l.getSecondaryCount());
-		
-		// make sure columns aren't stuck in secondary mode
-		assertFalse(parentTable.getColumnByName("new name").isSecondaryChangeMode());
-		assertFalse(childTable1.getColumnByName("new name").isSecondaryChangeMode());
-		assertFalse(childTable2.getColumnByName("new name").isSecondaryChangeMode());
-	}
-	
 	public void testPKColTypeChangeGoesToFKCol() throws ArchitectException {
 		SQLColumn pkcol = new SQLColumn(parentTable, "old name", Types.VARCHAR, 10, 0);
 		parentTable.addColumn(pkcol);
@@ -463,82 +436,7 @@ public class TestSQLRelationship extends SQLTestCase {
 		assertEquals("There are multiple copies of this relationship in the child's import keys folder",1,myChild.getImportedKeys().size());
 	}
 
-	
-	private class MySQLObjectListener implements SQLObjectListener {
-
-		private int primaryCount = 0;
-		private int secondaryCount = 0;
 		
-		public void dbChildrenInserted(SQLObjectEvent e) {
-			if (e.isSecondary()) {
-				secondaryCount++;
-			} else {
-				primaryCount++;
-				System.out.printf("Primary dbChildredInserted: parent=%s, children=%s\n", e.getSource(), Arrays.asList(e.getChildren()));
-			}
-		}
-
-		public void dbChildrenRemoved(SQLObjectEvent e) {
-			if (e.isSecondary()) {
-				secondaryCount++;
-			} else {
-				primaryCount++;
-				System.out.printf("Primary dbChildredRemoved: parent=%s, children=%s\n", e.getSource(), Arrays.asList(e.getChildren()));
-				new Exception().printStackTrace(System.out);
-			}
-		}
-
-		public void dbObjectChanged(SQLObjectEvent e) {
-			if (e.isSecondary()) {
-				secondaryCount++;
-			} else {
-				primaryCount++;
-				System.out.printf("Primary dbObjectChanged: source=%s (parent %s), prop=%s, old=%s, new=%s\n",
-						e.getSource(), e.getSQLSource().getParent(), e.getPropertyName(), e.getOldValue(), e.getNewValue());
-			}
-		}
-
-		public void dbStructureChanged(SQLObjectEvent e) {
-			if (e.isSecondary()) {
-				secondaryCount++;
-			} else {
-				primaryCount++;
-				System.out.printf("Primary dbStructureChanged: parent=%s, children=%s\n", e.getSource(), e.getChildren());
-			}
-		}
-
-		public int getPrimaryCount() {
-			return primaryCount;
-		}
-
-		public int getSecondaryCount() {
-			return secondaryCount;
-		}
-	}
-	
-	public void testAutoDeleteFKIsSecondary() throws ArchitectException {
-		
-		
-		MySQLObjectListener myListener = new MySQLObjectListener();
-		ArchitectUtils.listenToHierarchy(myListener, childTable1);
-		
-		parentTable.removeExportedKey(rel1);
-		
-		assertEquals("Got primary events (this is bad)", 0, myListener.getPrimaryCount());
-		assertTrue("Didn't get any secondary events (this is bad)", myListener.getSecondaryCount() > 0);
-	}
-	
-	public void testAttachRelationshipIsSecondary() throws ArchitectException {
-		MySQLObjectListener myListener = new MySQLObjectListener();
-		parentTable.removeExportedKey(rel1);
-		
-		ArchitectUtils.listenToHierarchy(myListener, childTable1);
-		rel1.attachRelationship(parentTable,childTable1,false);
-		assertEquals("Got primary events (this is bad)", 0, myListener.getPrimaryCount());
-		assertTrue("Didn't get any secondary events (this is bad)", myListener.getSecondaryCount() > 0);
-		
-	}
-	
 	public void testMovingPKColOutOfPK() throws ArchitectException {
 		SQLColumn col = parentTable.getColumnByName("pkcol_1");
 		

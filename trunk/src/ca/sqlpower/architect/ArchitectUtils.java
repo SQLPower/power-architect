@@ -139,9 +139,10 @@ public class ArchitectUtils {
 	 */
 	public static void unlistenToHierarchy(SQLObjectListener listener, SQLObject source)
 	throws ArchitectException {
-		logger.debug("Unlistening to SQL Object "+source);
+		logger.debug("Removing "+listener+" from listener list of "+source);
 		source.removeSQLObjectListener(listener);
 		if (source.isPopulated() && source.allowsChildren()) {
+			logger.debug("        Now removing for children: "+source.getChildren());
 			Iterator it = source.getChildren().iterator();
 			while (it.hasNext()) {
 				SQLObject ob = (SQLObject) it.next();

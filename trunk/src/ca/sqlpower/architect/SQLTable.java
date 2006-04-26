@@ -770,7 +770,7 @@ public class SQLTable extends SQLObject {
 		}
 
 		protected void addChildImpl(int index, SQLObject child) throws ArchitectException {
-			logger.debug("[31mAdding child "+child.getName()+" to folder "+getName()+"[0m");
+			logger.debug("[31mAdding child "+child.getName()+" to folder "+getName()+"[0m" );
 			super.addChildImpl(index, child);
 		}
 
@@ -886,7 +886,7 @@ public class SQLTable extends SQLObject {
 	public void setName(String argName) {
 		String oldName =  getName();
 		try {
-			startCompoundEdit("Starting table name compound edit");
+			startCompoundEdit("Table Name Change");
 			super.setName(argName);
 			if (primaryKeyName == null
 					|| primaryKeyName.equals("")

@@ -291,7 +291,21 @@ public class ArchitectFrame extends JFrame {
 		final RecentMenu recent = new RecentMenu(this) {
 			@Override
 			public void loadFile(String fileName) throws IOException {
-				openFile(fileName);
+				File f = new File(fileName);
+				
+				LoadFileWorker worker;
+				try {
+					worker = new LoadFileWorker(f);
+					new Thread(worker).start();
+				} catch (FileNotFoundException e1) {
+					JOptionPane.showMessageDialog(
+							ArchitectFrame.this,
+							"File not found: "+f.getPath());
+				} catch (Exception e1) {
+					ASUtils.showExceptionDialog(
+							ArchitectFrame.this,
+							"Error loading file", e1);
+				}
 			}
 		};
 		
@@ -642,6 +656,41 @@ public class ArchitectFrame extends JFrame {
 		return false;			
 	}
 
+	private class LoadFileWorker extends ArchitectSwingWorker {
+		InputStream in;
+		SwingUIProject project;
+		
+		public LoadFileWorker(File file) throws ArchitectException, FileNotFoundException {
+				closeProject(getProject());
+				project = new SwingUIProject("Loading...");
+				project.setFile(file);
+				in = new BufferedInputStream
+				(new ProgressMonitorInputStream
+						(ArchitectFrame.this,
+								"Reading " + file.getName(),
+								new FileInputStream(file)));					
+		}
+		
+		@Override
+		public void doStuff() throws IOException, ArchitectException {
+			project.load(in);
+		}
+		
+		@Override
+		public void cleanup() throws ArchitectException {
+            setProject(project);
+            ((SQLObject) project.getSourceDatabases().getModel().getRoot()).fireDbStructureChanged();
+        	try {
+        		if (in != null) {
+        			in.close();					                    		
+        		}
+        	} catch (IOException ie) {
+        		logger.error("got exception while closing project file", ie);	
+        	}
+
+		}
+	}
+	
 	private class OpenProjectAction extends AbstractAction {
 		RecentMenu recent;
 		private OpenProjectAction(RecentMenu recent) {
@@ -681,40 +730,7 @@ public class ArchitectFrame extends JFrame {
 		    }
 		}
 		
-		private class LoadFileWorker extends ArchitectSwingWorker {
-			InputStream in;
-			SwingUIProject project;
-			
-			public LoadFileWorker(File file) throws ArchitectException, FileNotFoundException {
-					closeProject(getProject());
-					project = new SwingUIProject("Loading...");
-					project.setFile(file);
-					in = new BufferedInputStream
-					(new ProgressMonitorInputStream
-							(ArchitectFrame.this,
-									"Reading " + file.getName(),
-									new FileInputStream(file)));					
-			}
-			
-			@Override
-			public void doStuff() throws IOException, ArchitectException {
-				project.load(in);
-			}
-			
-			@Override
-			public void cleanup() throws ArchitectException {
-                setProject(project);
-                ((SQLObject) project.getSourceDatabases().getModel().getRoot()).fireDbStructureChanged();
-            	try {
-            		if (in != null) {
-            			in.close();					                    		
-            		}
-            	} catch (IOException ie) {
-            		logger.error("got exception while closing project file", ie);	
-            	}
 
-			}
-		}
 	}
 
 	class ArchitectFrameWindowListener extends WindowAdapter {

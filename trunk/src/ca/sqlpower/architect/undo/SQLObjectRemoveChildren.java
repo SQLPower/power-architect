@@ -7,6 +7,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 
@@ -50,5 +51,15 @@ public class SQLObjectRemoveChildren extends SQLObjectChildren {
 			}
 		}
 		
+	}
+	@Override
+	public String toString() {
+		StringBuffer childList = new StringBuffer();
+		childList.append("{");
+		for (SQLObject child : e.getChildren()) {
+			childList.append(child).append(", ");
+		}
+		childList.append("}");
+		return "Remove "+childList+" from "+e.getSource();
 	}
 }

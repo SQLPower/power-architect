@@ -58,15 +58,6 @@ public abstract class SQLObject implements java.io.Serializable {
 	}
 	
 	/**
-	 * When this counter is > 0, the fireXXX methods will fire events in
-	 * a "secondary change" mode, which indicates that the changes are side
-	 * effects of another change.  These events should still cause UI repaints
-	 * and other non-permanent effects, but should not be part of an undo history
-	 * and should not cause the project to get marked "dirty."
-	 */
-	private int secondaryChangeDepth = 0;
-	
-	/**
 	 * This is the name of the object.  For tables, it returns the
 	 * table name; for catalogs, the catalog name, and so on.
 	 */
@@ -289,14 +280,12 @@ public abstract class SQLObject implements java.io.Serializable {
 	protected void fireDbChildrenInserted(int[] newIndices, List newChildren) {
 		if (logger.isDebugEnabled()) {
 			logger.debug(getClass().getName()+" "+toString()+": " +
-					"firing dbChildrenInserted event " +
-					"(secondary = "+isSecondaryChangeMode()+")");
+					"firing dbChildrenInserted event");
 		}
 		SQLObjectEvent e = new SQLObjectEvent
 			(this,
 			 newIndices,
-			 (SQLObject[]) newChildren.toArray(new SQLObject[newChildren.size()]),
-			 isSecondaryChangeMode());
+			 (SQLObject[]) newChildren.toArray(new SQLObject[newChildren.size()]));
 		synchronized(sqlObjectListeners) {
 			Iterator<SQLObjectListener> it = sqlObjectListeners.iterator();
 			int count = 0;
@@ -320,20 +309,22 @@ public abstract class SQLObject implements java.io.Serializable {
 	protected void fireDbChildrenRemoved(int[] oldIndices, List oldChildren) {
 		if (logger.isDebugEnabled()) {
 			logger.debug(getClass().getName()+" "+toString()+": " +
-					"firing dbChildrenRemoved event " +
-					"(secondary = "+isSecondaryChangeMode()+")");
+					"firing dbChildrenRemoved event");
+			logger.debug("Removing children "+oldChildren +" from "+oldIndices);
 		}
 		SQLObjectEvent e = new SQLObjectEvent
 			(this,
 			 oldIndices,
-			 (SQLObject[]) oldChildren.toArray(new SQLObject[oldChildren.size()]),
-			 isSecondaryChangeMode());
+			 (SQLObject[]) oldChildren.toArray(new SQLObject[oldChildren.size()]));
+		int count =0;
 		synchronized(sqlObjectListeners) {
 			SQLObjectListener[] listeners = sqlObjectListeners.toArray(new SQLObjectListener[0]);
 			for(int i = listeners.length-1;i>=0;i--) {
 				listeners[i].dbChildrenRemoved(e);
+				count++;
 			}
 		}
+		if (logger.isDebugEnabled()) logger.debug("Notified "+count+" listeners.");
 	}
 
 	protected void fireDbChildRemoved(int oldIndex, SQLObject oldChild) {
@@ -342,6 +333,7 @@ public abstract class SQLObject implements java.io.Serializable {
 		List oldChildList = new ArrayList(1);
 		oldChildList.add(oldChild);
 		fireDbChildrenRemoved(oldIndexArray, oldChildList);
+		
 	}
 
 	protected void fireDbObjectChanged(String propertyName, Object oldValue, Object newValue) {
@@ -349,8 +341,7 @@ public abstract class SQLObject implements java.io.Serializable {
 				this,
 				propertyName,
 				oldValue,
-				newValue,
-				isSecondaryChangeMode());
+				newValue);
 		boolean same = (oldValue == null ? oldValue == newValue : oldValue.equals(newValue));
 		if (same) {
 			logger.debug("Object changed event aborted, the old value '"+oldValue+"' of "
@@ -359,8 +350,9 @@ public abstract class SQLObject implements java.io.Serializable {
 		}
 		if (logger.isDebugEnabled()) {
 			logger.debug(getClass().getName()+" "+toString()+": " +
-					"firing dbObjectChanged event " +
-					"(secondary = "+isSecondaryChangeMode()+")");
+					"firing dbObjectChanged event");
+			logger.debug("Changed the old value '"+oldValue+"' of "
+					+propertyName+" to '"+newValue+"'");
 		}
 
 		int count = 0;
@@ -383,13 +375,11 @@ public abstract class SQLObject implements java.io.Serializable {
 	public void fireDbStructureChanged() {
 		if (logger.isDebugEnabled()) {
 			logger.debug(getClass().getName()+" "+toString()+": " +
-					"firing dbStructureChanged event " +
-					"(secondary = "+isSecondaryChangeMode()+")");
+					"firing dbStructureChanged event");
 		}
 		SQLObjectEvent e = new SQLObjectEvent(
 				this,
-				null,
-				isSecondaryChangeMode());
+				null);
 
 		int count = 0;
 		synchronized(sqlObjectListeners) {
@@ -449,32 +439,6 @@ public abstract class SQLObject implements java.io.Serializable {
 
 	public LinkedList<UndoCompoundEventListener> getUndoEventListeners() {
 		return undoEventListeners;
-	}
-
-
-	public synchronized boolean isSecondaryChangeMode() {
-		return secondaryChangeDepth > 0;
-	}
-
-	/**
-	 * Increments or decrements the secondary change depth.  At any point in time, you
-	 * may only give <code>false</code> as the argument as many times as you have already called this
-	 * method with that argument <code>true</code>.
-	 * 
-	 * @param secondaryChangeMode True increments the depth of secondary changes; false decrements it.
-	 * @throws IllegalStateException if you try to decrement more times than incrementing
-	 */
-	public synchronized void setSecondaryChangeMode(boolean secondaryChangeMode) {
-		if (secondaryChangeMode) {
-			this.secondaryChangeDepth++;
-		} else {
-			if (this.secondaryChangeDepth <= 0) {
-				throw new IllegalStateException(
-						"Secondary change mode depth is already "
-						+this.secondaryChangeDepth);
-			}
-			this.secondaryChangeDepth--;
-		}
 	}
 
 }

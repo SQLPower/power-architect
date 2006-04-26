@@ -40,7 +40,7 @@ public class TableEditPanel extends JPanel implements ArchitectPanel {
 
 	// --------------------- ArchitectPanel interface ------------------
 	public boolean applyChanges() {
-		startCompoundEdit("Starting new compound edit event in table edit panel");
+		startCompoundEdit("Table Properties Change");
 		try {
 			table.setPrimaryKeyName(pkName.getText());
 			table.setName(name.getText());

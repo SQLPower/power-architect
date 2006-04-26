@@ -704,7 +704,7 @@ public class TablePane
 					logger.debug("Importing items from tree: "+paths);
 					
 					// put the undo event adapter into a drag and drop state
-					ArchitectFrame.getMainInstance().playpen.startCompoundEdit("Starting drag and drop");
+					ArchitectFrame.getMainInstance().playpen.startCompoundEdit("Drag and Drop");
 					
 					ArrayList<SQLObject> droppedItems = new ArrayList<SQLObject>();
 					for (int[] path : paths) {
