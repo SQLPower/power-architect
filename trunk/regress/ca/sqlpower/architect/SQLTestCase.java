@@ -197,6 +197,9 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 		propertiesToIgnore.add("zoomInAction");
 		propertiesToIgnore.add("zoomOutAction");
         propertiesToIgnore.add("magicEnabled");
+ 
+        propertiesToIgnore.add("deleteRule");
+        propertiesToIgnore.add("updateRule");
 
 		if(so instanceof SQLDatabase)
 		{
@@ -258,7 +261,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 				BeanUtils.copyProperty(so, property.getName(), newVal);
 				
 				// some setters fire multiple events (they change more than one property)  but only register one as an undo
-				assertEquals("Event for set "+property.getName()+" on "+so.getClass().getName()+" added multiple undos!",
+				assertEquals("Event for set "+property.getName()+" on "+so.getClass().getName()+" added multiple ("+undoManager.printUndoVector()+") undos!",
 						oldChangeCount+1,undoManager.getUndoableEditCount());
 				
 			} catch (InvocationTargetException e) {
