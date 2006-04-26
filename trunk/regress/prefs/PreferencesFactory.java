@@ -1,53 +1,47 @@
 package prefs;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.prefs.Preferences;
 
 import org.apache.log4j.Logger;
 
+/**
+ * A java.util.prefs.PreferencesFactory that lets us use the MemoryPreferences
+ * so that tests will not affect (nor be affected by) preferences previously created
+ * by the user running the tests.
+ */
 public class PreferencesFactory implements java.util.prefs.PreferencesFactory {
 
 	public static final String PREFS_FACTORY_SYSTEM_PROPERTY = "java.util.prefs.PreferencesFactory";
 
 	public static final String MY_CLASS_NAME = "prefs.PreferencesFactory";
 
-	static String referenceFactoryClassName = getPlatformDefaultFactory();
-
-	static PreferencesFactory system;
-
 	private static Logger logger = Logger.getLogger(PreferencesFactory.class);
 
-	static void init() {
-		System.out.println("In static init method, ref factory class is " + referenceFactoryClassName);
-		System.setProperty(PREFS_FACTORY_SYSTEM_PROPERTY, MY_CLASS_NAME);
-		try {
-			system = (PreferencesFactory) Class.forName(referenceFactoryClassName).newInstance();
-		} catch (Exception e) {
-			logger.error("Could not create Reference PreferencesFactory!!!!!", e);
-		}
-	}
-
-	public Preferences systemRoot() {
-		return system.systemRoot();
-	}
-
-	public Preferences userRoot() {
-		return system.systemRoot().node("TEST");
-	}
+	final static Map<String, Preferences> systemNodes = new HashMap<String, Preferences>();
 	
+	final Map<String, Preferences> userNodes = new HashMap<String, Preferences>();
 
 	/**
-	 * Return the class name of the "platform-specific system-wide default" Factory
+	 * There is always only one System Root node
 	 */
-	static String getPlatformDefaultFactory() {
-		if (
-		    System.getProperty("os.name").startsWith("Windows")) {
-		    return "java.util.prefs.WindowsPreferencesFactory";
-		} else if  (System.getProperty("os.name").startsWith("Mac OS X")) {
-			// return Mac-specific preference factory (introduced with 1.5-b63)
-			return "java.util.prefs.MacOSXPreferencesFactory";
-		} else { return
-		     "java.util.prefs.FileSystemPreferencesFactory";
-		
-		}
+	final MemoryPreferences systemRoot = new MemoryPreferences(systemNodes, true, "/");
+
+	public Preferences systemRoot() {
+		logger.debug("PreferencesFactory.systemRoot()");
+		return systemRoot;
 	}
+
+	/**
+	 * In this implementation there is only one UserRoot, because this
+	 * implementation is only used for in-memory testing.
+	 */
+	final MemoryPreferences userRoot = new MemoryPreferences(userNodes, false, "/");
+	
+	public Preferences userRoot() {
+		logger.debug("PreferencesFactory.userRoot()");
+		return userRoot;
+	}
+	
 }
