@@ -71,7 +71,15 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 			public String getRedoPresentationName() {
 				return "Redo "+getPresentationName();
 			}
-			
+			@Override
+			public boolean canUndo() {
+				
+				return super.canUndo() && edits.size()>0;
+			}
+			@Override
+			public boolean canRedo() {
+				return super.canRedo() && edits.size() > 0;
+			}
 			@Override
 			public String toString() {
 				StringBuffer sb = new StringBuffer();

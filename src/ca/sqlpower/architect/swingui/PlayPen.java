@@ -1514,8 +1514,9 @@ public class PlayPen extends JPanel
 	 * <p>NOTE: This is not currently implemented.
 	 */
 	public void dbStructureChanged(SQLObjectEvent e) {
-		throw new UnsupportedOperationException
-			("FIXME: we have to make sure we're listening to the right objects now!");
+		logger.debug("Playpen has recieved a db structure change this is unsupported at the moment");
+		//throw new UnsupportedOperationException
+		//	("FIXME: we have to make sure we're listening to the right objects now!");
 		//firePropertyChange("model.children", null, null);
 		//revalidate();
 	}
