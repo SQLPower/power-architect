@@ -1356,13 +1356,6 @@ public class PlayPen extends JPanel
 								progress++;
 							}
 						}
-					} else if (someData instanceof SQLColumn) {
-						SQLColumn column = (SQLColumn) someData;
-						JLabel colName = new JLabel(column.getName());
-						colName.setSize(colName.getPreferredSize());
-						add(colName, preferredLocation);
-						logger.debug("Added "+column.getName()+" to playpen (temporary, only for testing)");
-						colName.revalidate();
 					} else {
 						logger.error("Unknown object dropped in PlayPen: "+someData);
 					}				
