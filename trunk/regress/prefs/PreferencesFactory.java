@@ -1,4 +1,4 @@
-package regress.prefs;
+package prefs;
 
 import java.util.prefs.Preferences;
 

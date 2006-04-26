@@ -1,10 +1,9 @@
-package regress.prefs;
+package prefs;
 
 import java.util.prefs.Preferences;
 
-import ca.sqlpower.architect.swingui.ArchitectFrame;
-
 import junit.framework.TestCase;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 
 public class PreferencesFactoryTest extends TestCase {
 
