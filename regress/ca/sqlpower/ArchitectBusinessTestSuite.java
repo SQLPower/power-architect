@@ -1,4 +1,4 @@
-package regress;
+package ca.sqlpower;
 
 import junit.framework.Test;
 import junit.framework.TestCase;

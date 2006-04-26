@@ -1,4 +1,4 @@
-package regress;
+package ca.sqlpower;
 
 import java.util.Map;
 
