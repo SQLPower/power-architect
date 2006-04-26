@@ -551,4 +551,21 @@ public class TestSQLRelationship extends SQLTestCase {
 		parentTable.changeColumnIndex(index,1,false);
 		assertTrue("pkcol_1 dropped from the parent table", parentTable.getColumns().contains(col));
 	}
+    
+    /**
+     * The relationship manager was detaching from its whole table whenever
+     * one relationship (not necessarily the listening one) was removed
+     * from its pk table.  This test checks for that problem.
+     */
+    public void testRelManagerDoesntDetachEarly() {
+        assertTrue(parentTable.getSQLObjectListeners().contains(rel1.getRelationshipManager()));
+        assertTrue(parentTable.getSQLObjectListeners().contains(rel2.getRelationshipManager()));
+        
+        parentTable.getExportedKeysFolder().removeChild(rel1);
+        
+        assertFalse(parentTable.getSQLObjectListeners().contains(rel1.getRelationshipManager()));
+        
+        // and finally, what we're testing for:
+        assertTrue(parentTable.getSQLObjectListeners().contains(rel2.getRelationshipManager()));
+    }
 }
