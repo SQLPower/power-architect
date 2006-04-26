@@ -545,7 +545,7 @@ public class TestSQLDatabase extends SQLTestCase {
 	
 	public void testConnectionsPerThreadAreUnique() throws Exception{
 		ArchitectDataSource ads = new ArchitectDataSource();
-		ads.setDriverClass("regress.ca.sqlpower.architect.MockJDBCDriver");
+		ads.setDriverClass("ca.sqlpower.architect.MockJDBCDriver");
 		ads.setUrl("jdbc:mock:dbmd.catalogTerm=Catalog&dbmd.schemaTerm=Schema&catalogs=farm,yard,zoo&schemas.farm=cow,pig&schemas.yard=cat,robin&schemas.zoo=lion,giraffe&tables.farm.cow=moo&tables.farm.pig=oink&tables.yard.cat=meow&tables.yard.robin=tweet&tables.zoo.lion=roar&tables.zoo.giraffe=***,^%%");
 		ads.setUser("fake");
 		ads.setPass("fake");

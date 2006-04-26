@@ -398,7 +398,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		
 		ArchitectDataSource ds = new ArchitectDataSource();
 		ds.setDisplayName("Schemaless Database");
-		ds.setDriverClass("regress.ca.sqlpower.architect.MockJDBCDriver");
+		ds.setDriverClass("ca.sqlpower.architect.MockJDBCDriver");
 		ds.setUser("fake");
 		ds.setPass("fake");
 		//this creates a mock jdbc database with only catalogs
