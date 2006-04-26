@@ -8,7 +8,7 @@ public class PreferencesFactory implements java.util.prefs.PreferencesFactory {
 
 	public static final String PREFS_FACTORY_SYSTEM_PROPERTY = "java.util.prefs.PreferencesFactory";
 
-	public static final String MY_CLASS_NAME = "regress.prefs.PreferencesFactory";
+	public static final String MY_CLASS_NAME = "prefs.PreferencesFactory";
 
 	static String referenceFactoryClassName = getPlatformDefaultFactory();
 
