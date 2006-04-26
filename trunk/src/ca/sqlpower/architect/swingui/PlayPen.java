@@ -921,7 +921,6 @@ public class PlayPen extends JPanel
 			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 			mi.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent evt) {
-						StringBuffer componentList = new StringBuffer();
 						JOptionPane.showMessageDialog(PlayPen.this, new JScrollPane(new JTextArea(ArchitectFrame.getMainInstance().getProject().getUndoManager().printUndoVector())));
 					}
 				});
