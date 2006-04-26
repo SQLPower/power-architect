@@ -5,7 +5,6 @@ import javax.swing.undo.AbstractUndoableEdit;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
-import ca.sqlpower.architect.SQLRelationship;
 
 public abstract class SQLObjectChildren extends AbstractUndoableEdit {
 
