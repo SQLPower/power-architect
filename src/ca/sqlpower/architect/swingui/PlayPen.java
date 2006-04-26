@@ -784,7 +784,7 @@ public class PlayPen extends JPanel
 	}
 
 	protected void addImpl(Component c, Object constraints, int index) {
-		throw new UnsupportedOperationException("You cann't add swing component for argument");
+		throw new UnsupportedOperationException("You can't add swing component for argument");
 	}
 		
 	/**
