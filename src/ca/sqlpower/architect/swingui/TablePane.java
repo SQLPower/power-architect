@@ -266,6 +266,11 @@ public class TablePane
 	 * delegate) with a ChangeEvent.
 	 */
 	public void dbObjectChanged(SQLObjectEvent e) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("TablePane got object changed event." +
+					"  Source="+e.getSource()+" Property="+e.getPropertyName()+
+					" oldVal="+e.getOldValue()+" newVal="+e.getNewValue());
+		}
 		firePropertyChange("model."+e.getPropertyName(), null, null);
 		//repaint();
 	}
@@ -277,6 +282,7 @@ public class TablePane
 	 * delegate) with a ChangeEvent.
 	 */
 	public void dbStructureChanged(SQLObjectEvent e) {
+		logger.debug("TablePane got db structure change event. source="+e.getSource());
 		if (e.getSource() == model.getColumnsFolder()) {
 			int numCols = e.getChildren().length;
 			columnSelection = new ArrayList<Boolean>(numCols);
