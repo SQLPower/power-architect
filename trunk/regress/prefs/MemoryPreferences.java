@@ -12,6 +12,7 @@ import java.util.prefs.Preferences;
 /**
  * A java.util.prefs.Preferences that does NOT persist anything, so it has no effect (nor is
  * affected by!) any use of the "regular" Preferences.
+ * XXX re-implement subclassing from AbstractPreferences, remove numerous methods that way.
  */
 public class MemoryPreferences extends Preferences {
 	
@@ -107,7 +108,7 @@ public class MemoryPreferences extends Preferences {
 	
 	@Override
 	public void put(String key, String value) {
-		put(key, value);
+		put(key, (Object)value);
 	}
 	
 	void put(String key, Object value) {
