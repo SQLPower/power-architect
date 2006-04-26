@@ -1,12 +1,16 @@
 package regress.ca.sqlpower.architect.swingui;
 
+import java.sql.DatabaseMetaData;
+
 import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ColumnEditPanel;
+import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.SQLType;
+import ca.sqlpower.architect.swingui.TablePane;
 
 public class TestColumnEditPanel extends TestCase {
 	SQLDatabase db;
@@ -18,25 +22,24 @@ public class TestColumnEditPanel extends TestCase {
 	SQLTable table2;
 	ColumnEditPanel panel;
 	
-	
 	protected void setUp() throws Exception {
 		db = new SQLDatabase();
 		table = new SQLTable(db,"Table1","remark1","Table",true);
 		table2 = new SQLTable(db,"Table2","remark2","Table",true);
 		db.addChild(0,table);
-		col1 = new SQLColumn(table,"Column 1",1,2,3);
-		col2 = new SQLColumn(table,"Column 2",2,3,4);
-		col3 = new SQLColumn(table,"Column 3",1,2,3);
-		col4 = new SQLColumn(table,"Column 4",1,2,3);	
+		col1 = new SQLColumn(null,"Column 1",1,2,3);
+		col2 = new SQLColumn(null,"Column 2",2,3,4);
+		col3 = new SQLColumn(null,"Column 3",1,2,3);
+		col4 = new SQLColumn(null,"Column 4",1,2,3);	
 		
 		col2.setAutoIncrement(false);
-		col2.setNullable(0);
+		col2.setNullable(DatabaseMetaData.columnNoNulls);
 		col2.setPrimaryKeySeq(0);
 		table.addColumn(col1);
 		table.addColumn(col2);
 		table.addColumn(col3);
 		table2.addColumn(col4);
-		panel = new ColumnEditPanel(table,1);
+		panel = new ColumnEditPanel(table,table.getColumnIndex(col2));
 		
 		super.setUp();
 	}
@@ -49,13 +52,6 @@ public class TestColumnEditPanel extends TestCase {
 		col3 = null;
 		col4 = null;
 		super.tearDown();
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.swingui.ColumnEditPanel.ColumnEditPanel(SQLTable, int)'
-	 */
-	public void testColumnEditPanel() throws ArchitectException {
-
 	}
 
 	/*
@@ -73,8 +69,12 @@ public class TestColumnEditPanel extends TestCase {
 	/*
 	 * Test method for 'ca.sqlpower.architect.swingui.ColumnEditPanel.editColumn(int)'
 	 */
-	public void testEditColumn() {
-
+	public void testEditColumn() throws ArchitectException {
+        assertEquals(null, col1.getPrimaryKeySeq());
+        //assertEquals(0, table.getPkSize());
+        assertEquals(1, table.getColumnIndex(col2));
+	    assertEquals("The column we're editing is not in PK", null, col2.getPrimaryKeySeq());
+        
 		assertEquals("Wrong column name",col2.getName(),panel.getColName().getText());
 		assertEquals("Wrong Precision",col2.getPrecision(),((Integer) (panel.getColPrec().getValue())).intValue());
 		assertEquals("Wrong type",2,((SQLType)(panel.getColType().getSelectedItem())).getType());
@@ -156,11 +156,32 @@ public class TestColumnEditPanel extends TestCase {
 		c1.setPrimaryKeySeq(0);
 		c2.setPrimaryKeySeq(1);
 		assertEquals (5, table.getColumns().size());
+        assertTrue (c1.isPrimaryKey());
+        assertTrue (c1.isPrimaryKey());
 		
-		ColumnEditPanel editPanel = new ColumnEditPanel(table,0);		
+        int previousIdx = table.getColumnIndex(table.getColumnByName("PKColumn 1"));
+		ColumnEditPanel editPanel = new ColumnEditPanel(table, previousIdx);
 		editPanel.applyChanges();
-		assertEquals (0, table.getColumnIndex(table.getColumnByName("PKColumn 1")));		
+		assertEquals (previousIdx, table.getColumnIndex(table.getColumnByName("PKColumn 1")));		
 	}
+    
+    /*
+     * This test makes sure that if a column is put into pk via
+     * the ColumnEditPanel that after the modification, it is still
+     * being selected.
+     */
+    
+    public void testSelectColumnTestAfterKeyChange() throws ArchitectException{        
+        PlayPen pp = new PlayPen(db);        
+        TablePane tp = new TablePane(table, pp);
+        tp.setSelected(true);
+        tp.selectColumn(table.getColumnIndex(col3));        
+        ColumnEditPanel ce = new ColumnEditPanel(table, table.getColumnIndex(col3));        
+        ce.getColInPK().setSelected(true);
+        ce.applyChanges();
+        assertEquals(table.getColumnIndex(col3), tp.getSelectedColumnIndex());
+    }
+    
 	
 	/*
 	 * This test case is making sure that we let the user
