@@ -1,6 +1,7 @@
 package regress.ca.sqlpower.architect;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
@@ -103,6 +104,17 @@ public class TestSQLTable extends SQLTestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		table = new SQLTable(null, true);
+        table.addColumn(new SQLColumn(table, "one", Types.INTEGER, 10, 0));
+        table.addColumn(new SQLColumn(table, "two", Types.INTEGER, 10, 0));
+        table.addColumn(new SQLColumn(table, "three", Types.INTEGER, 10, 0));
+        table.addColumn(new SQLColumn(table, "four", Types.INTEGER, 10, 0));
+        table.addColumn(new SQLColumn(table, "five", Types.INTEGER, 10, 0));
+        table.addColumn(new SQLColumn(table, "six", Types.INTEGER, 10, 0));
+        table.getColumn(0).setPrimaryKeySeq(0);        
+        table.getColumn(1).setPrimaryKeySeq(1);
+        table.getColumn(2).setPrimaryKeySeq(2);
+        table.getColumn(0).setNullable(DatabaseMetaData.columnNullable);
+        table.getColumn(0).setAutoIncrement(true);
 	}
 
 	@Override
