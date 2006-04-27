@@ -107,7 +107,7 @@ public class ExportPLTransAction extends AbstractAction {
 
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		
-		JButton okButton = new JButton("Ok");
+		JButton okButton = new JButton(ArchitectPanelBuilder.OK_BUTTON_LABEL);
 		okButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
 				if (!plPanel.applyChanges()) {
