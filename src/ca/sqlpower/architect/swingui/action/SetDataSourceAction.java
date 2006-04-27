@@ -39,7 +39,10 @@ public class SetDataSourceAction extends AbstractAction {
 	public void actionPerformed(ActionEvent e) {
 		logger.debug("Setting data source of "+db+" to "+dbcs);
 		
+		//db.setDataSource(dbcs);
+		
 		// copy over the values from the selected DB.
+		
 		ArchitectDataSource tSpec = db.getDataSource();
 		tSpec.setDisplayName(dbcs.getDisplayName());
 		tSpec.setDriverClass(dbcs.getDriverClass());

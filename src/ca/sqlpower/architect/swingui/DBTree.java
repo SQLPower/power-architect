@@ -134,7 +134,7 @@ public class DBTree extends JTree implements DragSourceListener {
 		boolean found = false;
 		while (it.hasNext() && found == false) {
 			ArchitectDataSource dbcs = ((SQLDatabase) it.next()).getDataSource();
-			if (spec.equals(dbcs)) {
+			if (spec==dbcs) {
 				found = true;
 			}
 		}

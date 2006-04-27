@@ -94,6 +94,7 @@ public abstract class PlayPenComponent implements Selectable {
 		Rectangle r = new Rectangle(bounds);
 		PlayPenComponentUI ui = getUI();
 		if (ui != null) {
+			ui.revalidate();
 			Dimension ps = ui.getPreferredSize();
 			if (ps != null) setSize(ps);
 		}
@@ -130,9 +131,7 @@ public abstract class PlayPenComponent implements Selectable {
 		Point oldPoint = new Point(bounds.x,bounds.y);
 		bounds.setBounds(x,y,width,height);
 		
-		if (bounds.x < 0 || bounds.y <0) {
-			owner.normalize();
-		}
+		
 		
 		if (oldBounds.x != x || oldBounds.y != y) {
 			firePlayPenComponentMoved(oldPoint, new Point(x,y));

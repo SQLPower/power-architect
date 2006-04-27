@@ -9,6 +9,7 @@ import ca.sqlpower.architect.swingui.TestAutoLayoutAction;
 import ca.sqlpower.architect.swingui.TestBasicRelationshipUI;
 import ca.sqlpower.architect.swingui.TestColumnEditPanel;
 import ca.sqlpower.architect.swingui.TestCompareDMPanel;
+import ca.sqlpower.architect.swingui.TestDBTree;
 import ca.sqlpower.architect.swingui.TestPlayPen;
 import ca.sqlpower.architect.swingui.TestPlayPenComponent;
 import ca.sqlpower.architect.swingui.TestRelationship;
@@ -38,7 +39,7 @@ public class ArchitectSwingTestSuite extends TestCase {
 		suite.addTestSuite(TestRelationship.class);
 		suite.addTestSuite(TestBasicRelationshipUI.class);
 		suite.addTestSuite(TestPlayPenComponent.class);
-
+		suite.addTestSuite(TestDBTree.class);
 		suite.addTestSuite(TestTableEditPane.class);
 		//$JUnit-END$
 		return suite;
