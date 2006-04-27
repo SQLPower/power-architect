@@ -127,8 +127,7 @@ public class EditColumnAction extends AbstractAction implements SelectionListene
 
 	private void makeDialog(SQLTable st, int colIdx) throws ArchitectException {
 		if (editDialog != null) {
-			columnEditPanel.setModel(st);
-			columnEditPanel.selectColumn(colIdx);			
+			columnEditPanel.editColumn(st.getColumn(colIdx));			
 			editDialog.setTitle("Column Properties of "+st.getName());
 			editDialog.setVisible(true);				
 			//editDialog.requestFocus();
@@ -137,7 +136,7 @@ public class EditColumnAction extends AbstractAction implements SelectionListene
 			JPanel panel = new JPanel();
 			panel.setLayout(new BorderLayout(12,12));
 			panel.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
-			columnEditPanel = new ColumnEditPanel(st, colIdx);
+			columnEditPanel = new ColumnEditPanel(st.getColumn(colIdx));
 			panel.add(columnEditPanel, BorderLayout.CENTER);
 			
 			editDialog = ArchitectPanelBuilder.createArchitectPanelDialog(

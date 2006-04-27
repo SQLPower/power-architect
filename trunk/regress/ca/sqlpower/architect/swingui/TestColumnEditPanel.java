@@ -7,6 +7,7 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.swingui.ColumnEditPanel;
 
 public class TestColumnEditPanel extends TestCase {
 	SQLDatabase db;
@@ -35,7 +36,7 @@ public class TestColumnEditPanel extends TestCase {
 		table.addColumn(col2);
 		table.addColumn(col3);
 		table2.addColumn(col4);
-		panel = new ColumnEditPanel(table,table.getColumnIndex(col2));
+		panel = new ColumnEditPanel(col2);
 		
 		super.setUp();
 	}
@@ -50,52 +51,36 @@ public class TestColumnEditPanel extends TestCase {
 		super.tearDown();
 	}
 
-	/*
-	 * Test method for 'ca.sqlpower.architect.swingui.ColumnEditPanel.setModel(SQLTable)'
-	 */
-	public void testSetModel() {
-		
-		assertEquals("Wrong model was added by the constructor",panel.getModel(),table);
-		panel.setModel(table2);
-		assertEquals("Error changing models",panel.getModel(),table2);
-		
-	}
-
-	
-	/*
-	 * Test method for 'ca.sqlpower.architect.swingui.ColumnEditPanel.editColumn(int)'
-	 */
 	public void testEditColumn() throws ArchitectException {
-        assertEquals(null, col1.getPrimaryKeySeq());
-        //assertEquals(0, table.getPkSize());
-        assertEquals(1, table.getColumnIndex(col2));
-	    assertEquals("The column we're editing is not in PK", null, col2.getPrimaryKeySeq());
+	    assertEquals(2, table.getColumnIndex(col3));
+	    assertEquals("The column we plan to edit should not be in PK",
+                null, col3.getPrimaryKeySeq());
+
+        panel.editColumn(col3);
         
-		assertEquals("Wrong column name",col2.getName(),panel.getColName().getText());
-		assertEquals("Wrong Precision",col2.getPrecision(),((Integer) (panel.getColPrec().getValue())).intValue());
-		assertEquals("Wrong type",2,((SQLType)(panel.getColType().getSelectedItem())).getType());
-		assertEquals("Wrong Scale",col2.getScale(),((Integer) (panel.getColScale().getValue())).intValue());
-		assertFalse(panel.getColAutoInc().getModel().isSelected());
-		assertFalse(panel.getColAutoInc().getModel().isEnabled());
-		assertFalse(panel.getColInPK().getModel().isSelected());
-		assertTrue(panel.getColInPK().getModel().isEnabled());
-		assertFalse(panel.getColNullable().getModel().isSelected());
-		assertTrue(panel.getColNullable().getModel().isEnabled());
+		assertEquals("Wrong column name",col3.getName(),panel.getColName().getText());
+		assertEquals("Wrong Precision",col3.getPrecision(),((Integer) (panel.getColPrec().getValue())).intValue());
+		assertEquals("Wrong type",col3.getType(),((SQLType)(panel.getColType().getSelectedItem())).getType());
+		assertEquals("Wrong Scale",col3.getScale(),((Integer) (panel.getColScale().getValue())).intValue());
+		assertEquals(col3.isAutoIncrement(), panel.getColAutoInc().getModel().isSelected());
+		assertEquals(col3.isPrimaryKey(), panel.getColInPK().getModel().isSelected());
+		assertEquals(col3.getNullable() == DatabaseMetaData.columnNullable, panel.getColNullable().getModel().isSelected());
 		assertEquals("None Specified",panel.getSourceDB().getText());
 		assertEquals("None Specified",panel.getSourceTableCol().getText());
+
+        panel.editColumn(col2);
+
+        assertEquals("Wrong column name",col2.getName(),panel.getColName().getText());
+        assertEquals("Wrong Precision",col2.getPrecision(),((Integer) (panel.getColPrec().getValue())).intValue());
+        assertEquals("Wrong type",col2.getType(),((SQLType)(panel.getColType().getSelectedItem())).getType());
+        assertEquals("Wrong Scale",col2.getScale(),((Integer) (panel.getColScale().getValue())).intValue());
+        assertEquals(col2.isAutoIncrement(), panel.getColAutoInc().getModel().isSelected());
+        assertEquals(col2.isPrimaryKey(), panel.getColInPK().getModel().isSelected());
+        assertEquals(col2.getNullable() == DatabaseMetaData.columnNullable, panel.getColNullable().getModel().isSelected());
+        assertEquals("None Specified",panel.getSourceDB().getText());
+        assertEquals("None Specified",panel.getSourceTableCol().getText());
 	}
 
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.swingui.ColumnEditPanel.cleanup()'
-	 */
-	public void testCleanup() {
-		
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.swingui.ColumnEditPanel.applyChanges()'
-	 */
 	public void testApplyChanges() {
 
 		panel.getColName().setText("CHANGED");
@@ -119,9 +104,6 @@ public class TestColumnEditPanel extends TestCase {
 		assertTrue(col2.isDefinitelyNullable());
 	}
 
-	/*
-	 * Test method for 'ca.sqlpower.architect.swingui.ColumnEditPanel.discardChanges()'
-	 */
 	public void testDiscardChanges() {
 		panel.getColName().setText("CHANGED");
 		panel.getColPrec().setValue(new Integer(1234));
@@ -139,8 +121,6 @@ public class TestColumnEditPanel extends TestCase {
 		assertFalse(col2.isAutoIncrement());
 		assertFalse(col2.isPrimaryKey());
 		assertFalse(col2.isDefinitelyNullable());
-		
-		
 	}
 	
 	/** Tests for real problem (columns in pk were getting moved to bottom of PK after editing) */
@@ -151,53 +131,46 @@ public class TestColumnEditPanel extends TestCase {
 		table.addColumn(c2);
 		c1.setPrimaryKeySeq(0);
 		c2.setPrimaryKeySeq(1);
-		assertEquals (5, table.getColumns().size());
-        assertTrue (c1.isPrimaryKey());
-        assertTrue (c1.isPrimaryKey());
+		assertEquals(5, table.getColumns().size());
+        assertTrue(c1.isPrimaryKey());
+        assertTrue(c1.isPrimaryKey());
 		
         int previousIdx = table.getColumnIndex(table.getColumnByName("PKColumn 1"));
-		ColumnEditPanel editPanel = new ColumnEditPanel(table, previousIdx);
+		ColumnEditPanel editPanel = new ColumnEditPanel(c1);
 		editPanel.applyChanges();
-		assertEquals (previousIdx, table.getColumnIndex(table.getColumnByName("PKColumn 1")));		
+		assertEquals(previousIdx, table.getColumnIndex(table.getColumnByName("PKColumn 1")));		
 	}
     
-    /*
+    /**
      * This test makes sure that if a column is put into pk via
      * the ColumnEditPanel that after the modification, it is still
      * being selected.
      */
-    
     public void testSelectColumnTestAfterKeyChange() throws ArchitectException{        
         PlayPen pp = new PlayPen(db);        
         TablePane tp = new TablePane(table, pp);
         tp.setSelected(true);
         tp.selectColumn(table.getColumnIndex(col3));        
-        ColumnEditPanel ce = new ColumnEditPanel(table, table.getColumnIndex(col3));        
+        ColumnEditPanel ce = new ColumnEditPanel(col3);        
         ce.getColInPK().setSelected(true);
         ce.applyChanges();
         assertEquals(table.getColumnIndex(col3), tp.getSelectedColumnIndex());
     }
     
-	
-	/*
+	/**
 	 * This test case is making sure that we let the user
 	 * know that they cannot give a column an empty name.
 	 * If a column has an empty name, this can cause errors 
 	 * in functions like Forward Engineering or CompareDM.
 	 */	
-
 	public void testDenyEmptyColumnName(){
-		boolean gotException = false;
 		panel.getColName().setText("");
-		try{
-			panel.applyChanges();			
+		try {
+			panel.applyChanges();
+            fail("Having an empty column name should throw exception!");
 		} catch (Exception e){
 			//Proper behaviour is to get here
-			gotException = true;			
-			System.out.println("Caught expected error");
 		}
-		assertTrue ("Having an empty column name should throw exception!",
-				gotException);
 	}
 		
 
