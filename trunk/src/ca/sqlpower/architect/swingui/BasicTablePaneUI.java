@@ -328,5 +328,8 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 		return tablePane.getBounds().contains(p);
 	}
 
+	public void revalidate() {
+	}
+
 
 }

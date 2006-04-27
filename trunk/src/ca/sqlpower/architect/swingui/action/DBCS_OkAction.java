@@ -42,7 +42,7 @@ public final class DBCS_OkAction extends AbstractAction {
 	
 
 	public void actionPerformed(ActionEvent e)  {
-		logger.debug("DBCS Acgtion invoked");
+		logger.debug("DBCS Action invoked");
 		ArchitectDataSource newDS = dbcsPanel.getDbcs();
 		String curName = null;
 		for (Component c : ((TextPanel)dbcsPanel.getComponents()[0]).getComponents()) {
@@ -71,12 +71,16 @@ public final class DBCS_OkAction extends AbstractAction {
 				}
 			}
 			
+		} else if ("".equals(curName.trim())) {
+			JOptionPane.showMessageDialog(newConnectionDialog,"A connection must have at least 1 character that is not whitespace");
+			newConnectionDialog.setVisible(true);
 		} else if (curName.equals(oldName)) {
 			System.out.println("The current Name is the same as the old name");
 			dbcsPanel.applyChanges();
 		} else {
 			PlDotIni plDotIni = ArchitectFrame.getMainInstance().getUserSettings().getPlDotIni();
-			if (plDotIni.getDataSource(newDS.getName()) == null )  {
+			ArchitectDataSource dataSource = plDotIni.getDataSource(curName);
+			if (dataSource == null )  {
 				dbcsPanel.applyChanges();
 
 			} else {

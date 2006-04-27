@@ -88,7 +88,13 @@ public class BasicRelationshipUI extends RelationshipUI
 		relationship = (Relationship) c;
 		relationship.removePropertyChangeListener(this);
     }
-	
+	public void revalidate() {
+		Rectangle OldBounds = computedBounds;
+		Rectangle bounds = computeBounds();
+		if (!computedBounds.equals(OldBounds)) {
+			relationship.setBounds(bounds.x,bounds.y,bounds.width,bounds.height);
+		}
+	}
     public void paint(Graphics2D g2) {
 		paint(g2,relationship);
 	}
@@ -480,7 +486,7 @@ public class BasicRelationshipUI extends RelationshipUI
 	 * Compute bounds should only be called by objects in this package or from regress.
 	 *
 	 */
-	public void computeBounds() {
+	protected Rectangle computeBounds() {
 		// XXX: should check for valid cached bounds before recomputing!
 
 		TablePane pkTable = relationship.pkTable;
@@ -558,8 +564,8 @@ public class BasicRelationshipUI extends RelationshipUI
 						+" (topleft="+topLeft+"; bottomRight="+bottomRight+")");
 			}
 		}
-		relationship.setBounds(computedBounds.x, computedBounds.y, computedBounds.width, computedBounds.height);
-		
+		//relationship.setBounds(computedBounds.x, computedBounds.y, computedBounds.width, computedBounds.height);
+		return computedBounds;
 	}
 	
 	public Dimension getPreferredSize() {
@@ -567,7 +573,7 @@ public class BasicRelationshipUI extends RelationshipUI
 	}
 
 	public Dimension getPreferredSize(PlayPenComponent c) {
-		computeBounds();
+		//computeBounds();
 		if (logger.isDebugEnabled()) {
 			logger.debug("[31mComputed size is ["+computedBounds.width+","+computedBounds.height+"][0m");
 		}
@@ -575,7 +581,7 @@ public class BasicRelationshipUI extends RelationshipUI
 	}
 
 	public Point getPreferredLocation() {
-		computeBounds();
+		//computeBounds();
 		if (logger.isDebugEnabled()) {
 			logger.debug("[31mComputed locn is ["+computedBounds.x+","+computedBounds.y+"][0m");
 		}

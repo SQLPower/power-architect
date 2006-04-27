@@ -226,6 +226,8 @@ public class PlayPen extends JPanel
 
 	private TablePaneDragGestureListener dgl;
 	private DragSource ds;
+
+	private boolean normalizing;
 	
 	public PlayPen() {
 		zoom = 1.0;
@@ -678,6 +680,8 @@ public class PlayPen extends JPanel
 	 * no know when this gets called.
 	 */
 	protected void normalize() {
+		if (normalizing) return;
+		normalizing=true;
 		int minX = 0;
 		int minY = 0;		
 		Iterator it = getTablePanes().iterator();
@@ -700,7 +704,8 @@ public class PlayPen extends JPanel
 			// and preferred sizes, so the original repaint region could be
 			// too small!			
 			repaint();
-		}			
+		}	
+		normalizing = false;
 	}	
 	
 //	 get the position of the viewport that we are sitting in
@@ -2426,7 +2431,11 @@ public class PlayPen extends JPanel
 			while (it.hasNext()) {
 				PlayPenComponent c = (PlayPenComponent) it.next();
 				pp.contentPane.remove(c);
-				pp.contentPane.add(c, pp.contentPane.getComponentCount());
+				if (c instanceof Relationship) {
+					pp.contentPane.add(c,pp.contentPane.getComponentCount());
+				} else {
+					pp.contentPane.add(c, pp.contentPane.getFirstRelationIndex());
+				} 
 			}
 			pp.repaint();
 		}

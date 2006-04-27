@@ -18,5 +18,6 @@ public interface PlayPenComponentUI {
 	
 	public void paint(Graphics2D g2);
 
+	public void revalidate();
 	public Dimension getPreferredSize();
 }
