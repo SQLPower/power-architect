@@ -7,6 +7,7 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 
 import junit.extensions.TestSetup;
@@ -18,7 +19,6 @@ import org.apache.commons.beanutils.BeanUtils;
 import ca.sqlpower.architect.SQLTable.Folder;
 import ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
-import ca.sqlpower.architect.swingui.ColumnEditPanel;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 
@@ -681,6 +681,10 @@ public class TestSQLTable extends SQLTestCase {
                 log.add(currentCompoundLog);
                 currentCompoundLog = null;
             }
+        }
+        
+        public List<Map<String,Object>> makeTableSnapshot(SQLTable t) {
+            return null; //TODO: finish method
         }
     }
     
