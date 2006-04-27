@@ -2320,7 +2320,11 @@ public class PlayPen extends JPanel
 			pp.addMouseMotionListener(this);
 			pp.addMouseListener(this); // the click that ends this operation
 			pp.addCancelableListener(this);
-			if (addToPP) {
+            
+			//In order to get here, the user must let go of the mouse click 
+            //on the create new table icon.  If the user decides to click on the
+            //icon but let go elsewhere, the create table action will not occur
+            if (addToPP) {
 				pp.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 			} else { 
 				pp.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
