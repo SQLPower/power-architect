@@ -26,6 +26,7 @@ import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.Selectable;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
@@ -76,7 +77,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 		if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN)) {
 
 			logger.debug("delete action came from playpen");
-			List items = pp.getSelectedItems();			
+			List <PlayPenComponent>items = pp.getSelectedItems();			
 
 			if (items.size() < 1) {
 				JOptionPane.showMessageDialog(pp, "No items to delete!");
@@ -114,7 +115,8 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 					}	
 				
 					try {
-						pp.startCompoundEdit("Delete");
+				
+                        pp.startCompoundEdit("Delete");
 						
 						// now, delete the columns
 						Iterator it2 = selectedColumns.iterator();
@@ -153,23 +155,25 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 			try {
 				
 				// items.size() > 0, user has OK'ed the delete
-				Iterator it = items.iterator();
+			   
+                //We deselect the components first because relationships might be already
+                //deleted when one of the table that it was attached to got deleted. 
+                //Therefore deselecting them when it comes around in the item list would
+                //cause an exception.
+                for (PlayPenComponent ppc : items){
+			       ppc.setSelected(false);
+               }
+                
+                Iterator it = items.iterator();
 				while (it.hasNext()) {
 					Selectable item = (Selectable) it.next();
 					logger.debug("next item for delete is: " + item.getClass().getName());
 					if (item instanceof TablePane) {
-						//XXX: This code decides to delete the table as long as it is 
-						//selected.  It does not check that a table is being selected due  
-						//to the fact a column within the table is selected.  As a result
-						//in any multiselect, when a column is selected and a delete action
-						//was sent, the whole table is removed.
 						TablePane tp = (TablePane) item;
-						tp.setSelected(false);
 						pp.getDatabase().removeChild(tp.getModel());
 					} else if (item instanceof Relationship) {
 						Relationship r = (Relationship) item;
 						logger.debug("trying to delete relationship " + r);
-						r.setSelected(false);						
 						SQLRelationship sr = r.getModel();
 						sr.getPkTable().removeExportedKey(sr);						
 					} else {
