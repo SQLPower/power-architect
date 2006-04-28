@@ -1560,7 +1560,7 @@ public class PlayPen extends JPanel
 	/**
 	 * Returns a read-only view of the set of selected children in the PlayPen.
 	 */
-	public List getSelectedItems() {
+	public List <PlayPenComponent>getSelectedItems() {
 		// It would be possible to speed this up by maintaining a
 		// cache of which children are selected, but the need would
 		// have to be demonstrated first.
