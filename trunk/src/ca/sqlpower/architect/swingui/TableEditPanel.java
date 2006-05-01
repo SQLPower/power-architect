@@ -40,15 +40,33 @@ public class TableEditPanel extends JPanel implements ArchitectPanel {
 
 	// --------------------- ArchitectPanel interface ------------------
 	public boolean applyChanges() {
-		startCompoundEdit("Table Properties Change");
-		try {
-			table.setPrimaryKeyName(pkName.getText());
-			table.setName(name.getText());
-			table.setRemarks(remarks.getText());
+		startCompoundEdit("Table Properties Change");		
+        try {	
+		    StringBuffer warnings = new StringBuffer();
+            //We need to check if the table name and/or primary key name is empty or not
+            //if they are, we need to warn the user since it will mess up the SQLScripts we create
+            if (name.getText().trim().length() == 0) {
+                warnings.append("The table cannot be assigned a blank name \n");
+                
+            }
+            if (pkName.getText().trim().length() == 0) {
+                warnings.append("The primary key cannot be assigned a blank name");                
+            }
+            
+            if (warnings.toString().length() == 0){
+                //The operation is successful
+                table.setName(name.getText());
+                table.setPrimaryKeyName(pkName.getText());
+                table.setRemarks(remarks.getText());                
+                return true;
+            } else{
+                JOptionPane.showMessageDialog(this,warnings.toString());
+                //this is done so we can go back to this dialog after the error message
+                return false;
+            }            
 		} finally {
 			endCompoundEdit("Ending new compound edit event in table edit panel");
 		}
-		return true;
 	}
 
 	public void discardChanges() {
