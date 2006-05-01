@@ -1,5 +1,8 @@
 package prefs;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.prefs.AbstractPreferences;
@@ -15,6 +18,8 @@ import org.apache.log4j.Logger;
  */
 public class MemoryPreferences extends AbstractPreferences {
 	
+	private static final String STATIC_XML_FILE = "testbed/statictestprefs.xml";
+
 	private static final Logger logger = Logger.getLogger(MemoryPreferences.class);
 	
 	/**
@@ -25,14 +30,33 @@ public class MemoryPreferences extends AbstractPreferences {
 	/** The map of all Preferences nodes immediately below this node
 	 */
 	final Map<String,Preferences> children = new HashMap<String,Preferences>();
+
+	private static boolean lazyLoaded;
 	
 	public final static String SYSTEM_PROPS_ERROR_MESSAGE =
 		"Did you remember to run with -D"+PreferencesFactory.PREFS_FACTORY_SYSTEM_PROPERTY+"="+PreferencesFactory.MY_CLASS_NAME+"?";
 	
-	static {
-		System.err.println("Warning, you are using a Preferences implementation which deliberately");
-		System.err.println("violates the contract of java.util.prefs.Preferences with regard to");
-		System.err.println("persistence; none of your Preferences changes will be saved!");
+	private static synchronized void lazyLoad() {
+		InputStream rdr = null;
+		try {
+			rdr = new FileInputStream(STATIC_XML_FILE);
+			Preferences.importPreferences(rdr);
+			System.err.println("Warning, you are using a Preferences implementation which deliberately");
+			System.err.println("violates the contract of java.util.prefs.Preferences with regard to");
+			System.err.println("persistence; initial prefs loaded from " + STATIC_XML_FILE);
+			System.err.println("and none of your Preferences changes will be saved!");
+			lazyLoaded = true;
+		} catch (Exception e) {
+			System.err.println("Failed to load static preferences file " + STATIC_XML_FILE);
+			e.printStackTrace();
+		} finally {
+			if (rdr != null)
+				try {
+					rdr.close();
+				} catch (IOException e) {
+					// CANTHAPPEN
+				}
+		}
 	}
 	
 	/**
@@ -53,6 +77,9 @@ public class MemoryPreferences extends AbstractPreferences {
 
 	@Override
 	protected String getSpi(String key) {
+		if (!lazyLoaded) {
+			lazyLoad();
+		}
 		String value = values.get(key);
 		logger.debug(String.format("get: %s=%s", key, value));
 		return value;
@@ -80,7 +107,7 @@ public class MemoryPreferences extends AbstractPreferences {
 
 	@Override
 	protected AbstractPreferences childSpi(String name) {
-		logger.debug(String.format("MemoryPreferences.node(%s)%n", name));
+		logger.debug(String.format("MemoryPreferences.node(%s)", name));
 		AbstractPreferences n = new MemoryPreferences(this, name);
 		children.put(name, n);
 		return n;
