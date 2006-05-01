@@ -134,4 +134,31 @@ public class SQLObjectEvent extends EventObject implements java.io.Serializable 
 		this.oldValue = oldValue;
 	}
 
+    @Override
+    public String toString() {
+        StringBuffer sb = new StringBuffer();
+        sb.append("SQLObjectEvent[");
+        sb.append("source=").append(source);
+        if (propertyName != null) {
+            sb.append(" propertyName=").append(propertyName);
+            sb.append(" oldValue=").append(oldValue);
+            sb.append(" newValue=").append(newValue);
+        }
+        if (changedIndices != null) {
+            sb.append(" changed indices=");
+            for (int i = 0; i < changedIndices.length; i++) {
+                if (i != 0) sb.append(" ");
+                sb.append(changedIndices[i]);
+            }
+        }
+        if (children != null) {
+            sb.append(" children=");
+            for (int i = 0; i < children.length; i++) {
+                if (i != 0) sb.append(" ");
+                sb.append(children[i] == null ? "null" : children[i].getName());
+            }
+        }
+        sb.append("]");
+        return sb.toString();
+    }
 }
