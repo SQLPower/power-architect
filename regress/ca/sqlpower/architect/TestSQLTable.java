@@ -1,11 +1,14 @@
 package ca.sqlpower.architect;
 
+import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -18,6 +21,7 @@ import org.apache.commons.beanutils.BeanUtils;
 
 import ca.sqlpower.architect.SQLTable.Folder;
 import ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
+import ca.sqlpower.architect.TestSQLTable.EventLogger.TableSnapshot;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
@@ -622,10 +626,21 @@ public class TestSQLTable extends SQLTestCase {
         assertEquals(5, table.getColumnIndex(table.getColumnByName("six")));
     }
     
-    public void testChangeFifthColumnKey() throws ArchitectException{
+    public void testChangeFifthColumnKey() throws Exception {
+        EventLogger l = new EventLogger();
         SQLColumn col5 = table.getColumnByName("five");
         assertNotNull(col5);
-        col5.setPrimaryKeySeq(0);       
+
+        TableSnapshot original = l.makeTableSnapshot(table);
+        
+        ArchitectUtils.listenToHierarchy(l, table);
+        col5.setPrimaryKeySeq(0);
+        ArchitectUtils.unlistenToHierarchy(l, table);
+
+        System.out.println("Event log:\n"+l);
+
+        TableSnapshot afterChange = l.makeTableSnapshot(table);
+
         assertEquals(4, table.getPkSize());
         
         assertEquals(0, table.getColumnIndex(table.getColumnByName("one")));
@@ -633,67 +648,336 @@ public class TestSQLTable extends SQLTestCase {
         assertEquals(2, table.getColumnIndex(table.getColumnByName("two")));
         assertEquals(3, table.getColumnIndex(table.getColumnByName("three")));
         assertEquals(4, table.getColumnIndex(table.getColumnByName("four")));
-        assertEquals(5, table.getColumnIndex(table.getColumnByName("six")));  
+        assertEquals(5, table.getColumnIndex(table.getColumnByName("six")));
+        
+        System.out.println("Original: "+original);
+        System.out.println("After: "+afterChange);
+        
+        l.rollBack(afterChange);
+        
+        assertEquals(original.toString(), afterChange.toString());
+        
+        // also roll forward original and compare to afterChange
     }
     
     
-    
-    //------------Testing Undo/Redo for SQLTable Changes----------//
+    /**
+     * Utility class that can log events for a tree of SQLObjects, and make snapshots of the
+     * state of that tree on demand.  The snapshots can be rolled back using the event log
+     * (this is similar functionality to the undo manager, but does not depend on the undo manager
+     * in any way), and compared to older snapshots.  Old snapshots can also be rolled forward
+     * (like an undo manager redo operation) to test that a stream of events is fully redoable.
+     */
     public static class EventLogger implements SQLObjectListener, UndoCompoundEventListener {
-        private List currentCompoundLog;
-        private List log = new ArrayList();
-        private int compoundDepth = 0;
-        
-        private void addEvent(SQLObjectEvent e) {
-            if (currentCompoundLog != null) {
-                currentCompoundLog.add(e);
-            } else {
-                log.add(e);
+
+        /**
+         * The list of events captured from the SQLObject tree.  Events are stored in the order they
+         * are recieved, oldest first.
+         */
+        private List<LogItem> log = new ArrayList<LogItem>();
+
+        /**
+         * Enumerates the event types for items that are stored in the log.
+         */
+        private enum LogItemType { INSERT, REMOVE, CHANGE, STRUCTURE_CHANGE }
+
+        /**
+         * An item in the log.  It has a type (based on which listener method was invoked) and the
+         * event that the listener recieved.
+         */
+        private static class LogItem {
+            private LogItemType type;
+            private SQLObjectEvent event;
+            public LogItem(LogItemType type, SQLObjectEvent event) {
+                this.type = type;
+                this.event = event;
+            }
+            
+            public LogItemType getType() {
+                return type;
+            }
+            
+            public SQLObjectEvent getEvent() {
+                return event;
+            }
+            
+            @Override
+            public String toString() {
+                return type+": "+event;
             }
         }
+        
+        /**
+         * Adds an item to the end of the event log.
+         *
+         * @param type The event type (based on which listener method was called)
+         * @param e The event.  Must not be null.
+         */
+        private void addToLog(LogItemType type, SQLObjectEvent e) {
+            if (e == null) throw new NullPointerException("Can't add null events, dude");
+            log.add(new LogItem(type, e));
+        }
+        
+        /**
+         * Listener method.  Adds the received event to the log.
+         */
         public void dbChildrenInserted(SQLObjectEvent e) {
-            log.add(e);
+            addToLog(LogItemType.INSERT, e);
         }
 
+        /**
+         * Listener method.  Adds the received event to the log.
+         */
         public void dbChildrenRemoved(SQLObjectEvent e) {
-            log.add(e);
+            addToLog(LogItemType.REMOVE, e);
         }
 
+        /**
+         * Listener method.  Adds the received event to the log.
+         */
         public void dbObjectChanged(SQLObjectEvent e) {
-            log.add(e);
+            addToLog(LogItemType.CHANGE, e);
         }
 
+        /**
+         * Listener method.  Throws UnsupportedOperationException when called, because we are trying
+         * to wean the object model from StructureChangeEvents, because they are not undoable.
+         * Failing early will help to weed these events out of the object model.
+         */
         public void dbStructureChanged(SQLObjectEvent e) {
-            log.add(e);
+            throw new UnsupportedOperationException("Structure changes are not undoable");
         }
 
         public void compoundEditStart(UndoCompoundEvent e) {
-            compoundDepth++;
-            if (compoundDepth == 1) {
-                currentCompoundLog = new ArrayList();
-            }
+            // whatever
         }
 
         public void compoundEditEnd(UndoCompoundEvent e) {
-            if (compoundDepth == 0) throw new IllegalStateException("Not in a compound edit");
-            compoundDepth--;
-            if (compoundDepth == 0) {
-                log.add(currentCompoundLog);
-                currentCompoundLog = null;
+            // whatever
+        }
+        
+        /**
+         * Holds the crazy table snapshot data structure, and allows rolling property change-type events
+         * forward and backward.
+         */
+        public static class TableSnapshot {
+            
+            /**
+             * The list holds the column in their table order, and the maps inside it hold the BeanUtils
+             * description of each column at the time of the snapshot.
+             */
+            private List<Map<String,Object>> snapshot;
+
+            /**
+             * Creates a snapshot of the given table's columns.
+             */
+            public TableSnapshot(SQLTable t) throws Exception {
+                snapshot = new ArrayList<Map<String, Object>>();
+                for (SQLColumn c : t.getColumns()) {
+                    snapshot.add(createColumnSnapshot(c));
+                }
+            }
+
+            /**
+             * Checks equality with the given object's snapshot list.
+             */
+            @Override
+            public boolean equals(Object obj) {
+                return snapshot.equals(((TableSnapshot) obj).snapshot);
+            }
+            
+            /**
+             * Returns the given object's snapshot hashcode.
+             */
+            @Override
+            public int hashCode() {
+                return snapshot.hashCode();
+            }
+            
+            /**
+             * Returns the shapshot list.
+             */
+            public List<Map<String,Object>> listValue() {
+                return snapshot;
+            }
+
+            /**
+             * Does a "roll forward" operation which simulates "redoing" the operation that triggered
+             * event e.  Affects only this snapshot, not the referenced object.
+             */
+            public void applyChange(SQLObjectEvent e) {
+                if (e.getPropertyName() == null) {
+                    System.out.println("error: this is not a property change event (no property name)");
+                    return;
+                }
+                Map<String, Object> colprops = findColByName(e.getSQLSource().getName());
+                if (colprops == null) {
+                    System.out.println("can't apply change: no such column in snapshot: '"+e.getSQLSource().getName()+"'" +
+                            " (property '"+e.getPropertyName()+"' change '"+e.getOldValue()+"' -> '"+e.getNewValue()+"')");
+                    return;
+                }
+                if (!colprops.containsKey(e.getPropertyName())) {
+                    System.out.println("error: no such property '"+e.getPropertyName()+
+                            "' for column '"+e.getSQLSource().getName()+"'");
+                    return;
+                }
+                colprops.put(e.getPropertyName(), e.getNewValue());
+            }
+            
+            /**
+             * Does a "roll back" operation which simulates "undoing" the operation that triggered
+             * event e.  Affects only this snapshot, not the referenced object.
+             */
+            public void revertChange(SQLObjectEvent e) {
+                if (e.getPropertyName() == null) {
+                    System.out.println("error: this is not a property change event (no property name)");
+                    return;
+                }
+                Map<String, Object> colprops = findColByName(e.getSQLSource().getName());
+                if (colprops == null) {
+                    System.out.println("can't revert change: no such column in snapshot: '"+e.getSQLSource().getName()+"'" +
+                            " (property '"+e.getPropertyName()+"' change '"+e.getNewValue()+"' -> '"+e.getOldValue()+"')");
+                    return;
+                }
+                if (!colprops.containsKey(e.getPropertyName())) {
+                    System.out.println("error: no such property '"+e.getPropertyName()+
+                            "' for column '"+e.getSQLSource().getName()+"'");
+                    return;
+                }
+                System.out.println("revertChange: putting '"+e.getPropertyName()+"' = '"+e.getOldValue()+"'");
+                colprops.put(e.getPropertyName(), e.getOldValue());
+            }
+
+            /**
+             * Finds and returns the first column in the snapshot that has the given name.
+             * @return The column property map for the named column, or null if there is no column by that name.
+             */
+            private Map<String, Object> findColByName(String name) {
+                for (Map<String, Object> colprops : snapshot) {
+                    if (colprops.get("name").equals(name)) return colprops;
+                }
+                return null;
+            }
+            
+            /**
+             * Creates and returns a string representation of the snapshot states of all columns in this snapshot.
+             */
+            @Override
+            public String toString() {
+                StringBuffer sb = new StringBuffer();
+                for (Map<String,Object> colprops : snapshot) {
+                    sb.append("  ").append(colprops.get("name")).append(": ");
+                    sb.append(colprops);
+                    sb.append("\n");
+                }
+                return sb.toString();
+            }
+
+            /**
+             * Inserts a snapshot of the given column at the given index.  This is useful for rolling forward a
+             * dbChildrenInserted event, or rolling back a dbChildrenRemoved event.
+             */
+            public void insertColumn(int index, SQLColumn object) throws Exception {
+                snapshot.add(index, createColumnSnapshot(object));
+            }
+
+            /**
+             * Removes the snapshot of the given column at the given index.  This is useful for rolling back a
+             * dbChildrenInserted event, or rolling forward a dbChildrenRemoved event.
+             * 
+             * @throws IllegalStateException if the given index does not contain a snapshot of the column with the
+             * given name.
+             */
+            public void removeColumn(int index, SQLObject object) {
+                // sanity check
+                if (!object.getName().equals(snapshot.get(index).get("name"))) {
+                    throw new IllegalStateException("Got a removeColumn for actual object '"+object.getName()+"', but corresponding snapshot name was '"+snapshot.get(index).get("name")+"'");
+                }
+                snapshot.remove(index);
             }
         }
         
-        public List<Map<String,Object>> makeTableSnapshot(SQLTable t) {
-            return null; //TODO: finish method
+        public TableSnapshot makeTableSnapshot(SQLTable t) throws Exception {
+            return new TableSnapshot(t);
+        }
+
+        private static final String[] SECONDARY_COLUMN_PROPS = { "definitelyNullable", "primaryKey" };
+        
+        /**
+         * Creates a snapshot of the given column, with the property names in alphabetical order.  Alpha order is
+         * useful for comparing the string representation of the map, becuase the eclipse JUnit plugin does fine-grained diffs
+         * on long strings but not other types of objects.
+         */
+        private static Map<String, Object> createColumnSnapshot(SQLColumn c) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+            Map props = new TreeMap(BeanUtils.describe(c));
+            props.keySet().removeAll(Arrays.asList(SECONDARY_COLUMN_PROPS));
+            return props;
+        }
+        
+        /**
+         * Applies all the changes in this log to the given snapshot.
+         * @param snapshot
+         */
+        public void rollForward(TableSnapshot snapshot) throws Exception {
+            for (LogItem li : log) {
+                LogItemType type = li.getType();
+                SQLObjectEvent e = li.getEvent();
+                if (type == LogItemType.INSERT) {
+                    for (int i = 0; i < e.getChangedIndices().length; i++) {
+                        snapshot.insertColumn(e.getChangedIndices()[i], (SQLColumn) e.getChildren()[i]);
+                    }
+                } else if (type == LogItemType.REMOVE) {
+                    for (int i = 0; i < e.getChangedIndices().length; i++) {
+                        snapshot.removeColumn(e.getChangedIndices()[i], e.getChildren()[i]);
+                    }
+                } else if (type == LogItemType.CHANGE) {
+                    snapshot.applyChange(e);
+                } else if (type == LogItemType.STRUCTURE_CHANGE) {
+                    throw new UnsupportedOperationException("Structure changes are not undoable");
+                } else {
+                    throw new UnsupportedOperationException("Unknown log item type "+type);
+                }
+            }
+        }
+        
+        /**
+         * Reverts all the changes in this log on the given snapshot, in reverse order.
+         * @param snapshot
+         */
+        public void rollBack(TableSnapshot snapshot) throws Exception {
+            List<LogItem> revlog = new ArrayList(log);
+            Collections.reverse(revlog);
+            for (LogItem li : revlog) {
+                LogItemType type = li.getType();
+                SQLObjectEvent e = li.getEvent();
+                System.out.println("Rolling back: "+li);
+                if (type == LogItemType.INSERT) {
+                    for (int i = 0; i < e.getChangedIndices().length; i++) {
+                        snapshot.removeColumn(e.getChangedIndices()[i], e.getChildren()[i]);
+                    }
+                } else if (type == LogItemType.REMOVE) {
+                    for (int i = 0; i < e.getChangedIndices().length; i++) {
+                        snapshot.insertColumn(e.getChangedIndices()[i], (SQLColumn) e.getChildren()[i]);
+                    }
+                } else if (type == LogItemType.CHANGE) {
+                    snapshot.revertChange(e);
+                } else if (type == LogItemType.STRUCTURE_CHANGE) {
+                    throw new UnsupportedOperationException("Structure changes are not undoable");
+                } else {
+                    throw new UnsupportedOperationException("Unknown log item type "+type);
+                }
+            }
+        }
+        
+        @Override
+        public String toString() {
+            StringBuffer sb = new StringBuffer();
+            for (LogItem li : log) {
+                sb.append(li.getType()).append(": ").append(li.getEvent()).append("\n");
+            }
+            return sb.toString();
         }
     }
     
-    public void testUndoColumnIndexChange() throws ArchitectException{                   
-        
-    }
-    
-    public void testUndoColumnKeyChange(){
-        
-    }
 }
 

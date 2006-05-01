@@ -565,23 +565,30 @@ public class SQLTable extends SQLObject {
 	 */
 	public void normalizePrimaryKey() {
 		try {
-			if (getColumns().isEmpty()) return;
-		
-			boolean donePk = false;
-			int i = 0;
-			Iterator it = getColumns().iterator();
-			while (it.hasNext()) {
-				SQLColumn col = (SQLColumn) it.next();
-				if (col.getPrimaryKeySeq() == null) donePk = true;
-				if (!donePk) {
-					col.primaryKeySeq = new Integer(i);
-				} else {
-					col.primaryKeySeq = null;
-				}
-				i++;
-			}
+            startCompoundEdit("Normalizing Primary Key");
+            if (getColumns().isEmpty()) return;
+            
+            boolean donePk = false;
+            int i = 0;
+            Iterator it = getColumns().iterator();
+            while (it.hasNext()) {
+                SQLColumn col = (SQLColumn) it.next();
+                if (col.getPrimaryKeySeq() == null) donePk = true;
+                Integer oldValue = col.getPrimaryKeySeq();
+                Integer newValue;
+                if (!donePk) {
+                    newValue = new Integer(i);
+                } else {
+                    newValue = null;
+                }
+                col.primaryKeySeq = newValue;
+                col.fireDbObjectChanged("primaryKeySeq", oldValue, newValue);
+                i++;
+            }
 		} catch (ArchitectException e) {
-			logger.warn("Unexpected ArchitectException in normalizePrimaryKey "+e);
+		    logger.warn("Unexpected ArchitectException in normalizePrimaryKey "+e);
+		} finally {
+		    endCompoundEdit("Normalizing Primary Key");
 		}
 	}
 	
