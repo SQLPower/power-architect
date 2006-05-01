@@ -26,7 +26,7 @@ public class PreferencesFactory implements java.util.prefs.PreferencesFactory {
 	/**
 	 * There is always only one System Root node
 	 */
-	final MemoryPreferences systemRoot = new MemoryPreferences(systemNodes, true, "/");
+	final MemoryPreferences systemRoot = new MemoryPreferences(null, "");
 
 	public Preferences systemRoot() {
 		logger.debug("PreferencesFactory.systemRoot()");
@@ -37,7 +37,7 @@ public class PreferencesFactory implements java.util.prefs.PreferencesFactory {
 	 * In this implementation there is only one UserRoot, because this
 	 * implementation is only used for in-memory testing.
 	 */
-	final MemoryPreferences userRoot = new MemoryPreferences(userNodes, false, "/");
+	final MemoryPreferences userRoot = new MemoryPreferences(null, "");
 	
 	public Preferences userRoot() {
 		logger.debug("PreferencesFactory.userRoot()");

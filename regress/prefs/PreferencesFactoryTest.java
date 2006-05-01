@@ -12,9 +12,8 @@ public class PreferencesFactoryTest extends TestCase {
 		System.out.println("PreferencesFactoryTest.testPreReqs()");
 		String n = System.getProperty(PreferencesFactory.PREFS_FACTORY_SYSTEM_PROPERTY);
 		System.out.println(n);
-		String message = "Did you remember to run with -D"+PreferencesFactory.PREFS_FACTORY_SYSTEM_PROPERTY+"="+PreferencesFactory.MY_CLASS_NAME+"?";
-		assertNotNull(message, n);
-		assertEquals(message, PreferencesFactory.MY_CLASS_NAME, n);		
+		assertNotNull(MemoryPreferences.SYSTEM_PROPS_ERROR_MESSAGE, n);
+		assertEquals(MemoryPreferences.SYSTEM_PROPS_ERROR_MESSAGE, PreferencesFactory.MY_CLASS_NAME, n);		
 	}
 	
 	/*
