@@ -1,6 +1,5 @@
 package ca.sqlpower.architect.swingui;
 
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.Connection;
@@ -9,10 +8,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
 
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -21,21 +17,18 @@ import javax.swing.JTextField;
 
 import org.apache.log4j.Logger;
 
-import com.jgoodies.forms.builder.PanelBuilder;
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
-
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.PLExport;
 import ca.sqlpower.architect.etl.PLUtils;
-import ca.sqlpower.architect.swingui.event.CatalogComboBoxListener;
 import ca.sqlpower.architect.swingui.event.DatabaseComboBoxListener;
-import ca.sqlpower.architect.swingui.event.NewDatabaseListener;
 import ca.sqlpower.sql.SQL;
+
+import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
 
 public class PLExportPanel extends JPanel implements ArchitectPanel {
 
