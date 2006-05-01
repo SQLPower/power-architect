@@ -72,22 +72,21 @@ public class CreateRelationshipAction extends AbstractAction
 		pp.selectNone();
 	}
 
-	static public void doCreateRelationship(SQLTable pkTable,SQLTable fkTable,PlayPen pp, boolean identifying) {
+	static public void doCreateRelationship(SQLTable pkTable, SQLTable fkTable, PlayPen pp, boolean identifying) {
 		try {
 			pp.startCompoundEdit("Add Relationship");
+			fkTable.setMagicEnabled(false);
 			SQLRelationship model = new SQLRelationship();
 			// XXX: need to ensure uniqueness of setName(), but 
 			// to_identifier should take care of this...			
 			model.setName(pkTable.getName()+"_"+fkTable.getName()+"_fk"); 
 			model.setIdentifying(identifying);
-			fkTable.setMagicEnabled(false);
 			model.attachRelationship(pkTable,fkTable,true);
 			
 			Relationship r = new Relationship(pp, model);
 			pp.addRelationship(r);
 			r.revalidate();
 		} catch (ArchitectException ex) {
-			
 			logger.error("Couldn't create relationship", ex);
 			JOptionPane.showMessageDialog(pp, "Couldn't create relationship: "+ex.getMessage());
 		} finally {
