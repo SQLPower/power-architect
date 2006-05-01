@@ -1,5 +1,6 @@
 package ca.sqlpower;
 
+import prefs.AllPrefsTests;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -28,7 +29,11 @@ public class ArchitectBusinessTestSuite extends TestCase {
 
 	public static Test suite() {
 		TestSuite suite = new TestSuite("Test for regress");
+		
+		// AllPrefsTests must be first, as it calls LoadFakeTestPrefs to load the static preferences initialization.
+		
 		//$JUnit-BEGIN$
+		suite.addTest(AllPrefsTests.suite());
 		suite.addTestSuite(ArchitectUtilsTest.class);
 		suite.addTestSuite(SQLObjectTest.class);
 		suite.addTestSuite(SQLObjectMagicTest.class);
