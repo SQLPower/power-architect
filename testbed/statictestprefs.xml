@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+ This is a set of faked-up Preferences values to be used in running tests
+ without loading from or saving to the user's real preferences; see
+ prefs.MemoryPreferences for information on how this works.
+ -->
+<!DOCTYPE preferences SYSTEM "http://java.sun.com/dtd/preferences.dtd">
+<preferences EXTERNAL_XML_VERSION="1.0">
+	<root type="user">
+		<map>
+			<!-- This entry is used in LoadFakeTestPrefs to test that this file got loaded OK -->
+			<entry key="staticTestPrefsLoaded" value="true"/>
+		</map>
+		<node name="ca">
+			<map/>
+			<node name="sqlpower">
+				<map/>
+				<node name="architect">
+					<map>
+						<entry key="DDLUserSettings.PROP_DDL_LOG_PATH" value="testbed/ddl.log"/>
+						<entry key="DEFAULT_PRINTER_NAME" value=""/>
+						<entry key="ETLUserSettings.PROP_ETL_LOG_PATH" value="testbed/etl.log"/>
+						<entry key="ETLUserSettings.PROP_PL_ENGINE_PATH" value=""/>
+						<entry key="JDBCJarFile.00" value="testbed/ojdbc14.jar"/>
+						<entry key="JDBCJarFile.01" value="testbed/postgresql.jar"/>
+						<entry key="PL.INI.PATH" value="testbed/pl.ini"/>
+						<entry key="SwingUserSettings.DIVIDER_LOCATION" value="264"/>
+						<entry key="SwingUserSettings.MAIN_FRAME_HEIGHT" value="671"/>
+						<entry key="SwingUserSettings.MAIN_FRAME_WIDTH" value="980"/>
+						<entry key="SwingUserSettings.MAIN_FRAME_X" value="255"/>
+						<entry key="SwingUserSettings.MAIN_FRAME_Y" value="18"/>
+						<entry key="SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED" value="false"/>
+					</map>
+					<node name="swingui">
+						<map>
+							<entry key="recentFile0" value="/home/tester/architect/abc.architect"/>
+							<entry key="recentFile1" value="/home/tester/architect/ecom.architect"/>
+						</map>
+					</node>
+				</node>
+			</node>
+		</node>
+	</root>
+</preferences>
