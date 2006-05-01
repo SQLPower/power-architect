@@ -5,6 +5,8 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.DatabaseMetaData;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -12,6 +14,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
@@ -228,36 +231,43 @@ public class ColumnEditPanel extends JPanel
 	/**
 	 * Sets the properties of the current column in the model to match
 	 * those on screen.
+     * 
+     * @return A list of error messages if the update was not successful.
 	 */
-	private void updateModel() {
-		logger.debug("Updating model");
-		try {
-			column.startCompoundEdit("Column Edit Panel Changes");
-            // FIXME: should disallow empty column name here
-			column.setName(colName.getText());
-			column.setType(((SQLType) colType.getSelectedItem()).type);
-			column.setScale(((Integer) colScale.getValue()).intValue());
-			column.setPrecision(((Integer) colPrec.getValue()).intValue());
-			column.setNullable(colNullable.isSelected()
-							? DatabaseMetaData.columnNullable
-							: DatabaseMetaData.columnNoNulls);
-			column.setRemarks(colRemarks.getText());
-			if (!(column.getDefaultValue() == null && colDefaultValue.getText().equals("")))
-			{
-				column.setDefaultValue(colDefaultValue.getText());
-			}
-			// Autoincrement has to go before the primary key or 
-			// this column will never allow nulls
-			column.setAutoIncrement(colAutoInc.isSelected());
-			if (column.getPrimaryKeySeq() == null) {
-				column.setPrimaryKeySeq(colInPK.isSelected() ? new Integer(column.getParentTable().getPkSize()) : null);
-			} else {
-				column.setPrimaryKeySeq(colInPK.isSelected() ? new Integer(column.getPrimaryKeySeq()) : null);
-			}
-		} finally {
-			column.endCompoundEdit("Column Edit Panel Changes");
-		}
-	}
+    private List<String> updateModel() {
+        logger.debug("Updating model");
+        List<String> errors = new ArrayList<String>();
+        try {
+            column.startCompoundEdit("Column Edit Panel Changes");
+            if (colName.getText().trim().length() == 0) {
+                errors.add("Column name is required");
+            } else {
+                column.setName(colName.getText());
+            }
+            column.setType(((SQLType) colType.getSelectedItem()).type);
+            column.setScale(((Integer) colScale.getValue()).intValue());
+            column.setPrecision(((Integer) colPrec.getValue()).intValue());
+            column.setNullable(colNullable.isSelected()
+                    ? DatabaseMetaData.columnNullable
+                            : DatabaseMetaData.columnNoNulls);
+            column.setRemarks(colRemarks.getText());
+            if (!(column.getDefaultValue() == null && colDefaultValue.getText().equals("")))
+            {
+                column.setDefaultValue(colDefaultValue.getText());
+            }
+            // Autoincrement has to go before the primary key or 
+            // this column will never allow nulls
+            column.setAutoIncrement(colAutoInc.isSelected());
+            if (column.getPrimaryKeySeq() == null) {
+                column.setPrimaryKeySeq(colInPK.isSelected() ? new Integer(column.getParentTable().getPkSize()) : null);
+            } else {
+                column.setPrimaryKeySeq(colInPK.isSelected() ? new Integer(column.getPrimaryKeySeq()) : null);
+            }
+        } finally {
+            column.endCompoundEdit("Column Edit Panel Changes");
+        }
+        return errors;
+    }
 	
 	// ------------------ ARCHITECT PANEL INTERFACE ---------------------
 	
@@ -266,8 +276,13 @@ public class ColumnEditPanel extends JPanel
 	 * hitting enter on a text field.
 	 */
 	public boolean applyChanges() {
-		updateModel();
-		return true;
+		List<String> errors = updateModel();
+        if (!errors.isEmpty()) {
+            JOptionPane.showMessageDialog(this, errors.toString());
+            return false;
+        } else {
+            return true;
+        }
 	}
 
 	/**
