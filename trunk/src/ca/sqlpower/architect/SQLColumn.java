@@ -498,6 +498,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	 */
 	public void setNullable(int argNullable) {
 		int oldNullable = this.nullable;
+		logger.debug("Changing nullable "+oldNullable+" -> "+argNullable);
 		if (this.nullable != argNullable) {
 			this.nullable = argNullable;
 			fireDbObjectChanged("nullable",oldNullable,argNullable);
@@ -571,12 +572,13 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	        if (argPrimaryKeySeq != null && !this.autoIncrement) {
 	            setNullable(DatabaseMetaData.columnNoNulls);	
 	        }
-	        SQLObject p = parent;
+
+            this.primaryKeySeq = argPrimaryKeySeq;
+            fireDbObjectChanged("primaryKeySeq",oldPrimaryKeySeq,argPrimaryKeySeq);
+
+            SQLObject p = parent;
             if (p != null) {
 	            p.removeChild(this);
-	        }
-	        this.primaryKeySeq = argPrimaryKeySeq;
-	        if (p != null) {
 	            int idx = 0;
 	            int targetPKS = primaryKeySeq == null ? Integer.MAX_VALUE : primaryKeySeq.intValue();
                 logger.debug("Parent = "+p);
@@ -591,8 +593,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	            }                
 	            p.addChild(idx, this);
 	            getParentTable().normalizePrimaryKey();
-	        }	    
-	        fireDbObjectChanged("primaryKeySeq",oldPrimaryKeySeq,argPrimaryKeySeq);
+            }
         } catch (ArchitectException e) {
             throw new ArchitectRuntimeException(e);
         } finally {
