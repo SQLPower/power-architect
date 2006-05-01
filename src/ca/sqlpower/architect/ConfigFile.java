@@ -60,6 +60,7 @@ public class ConfigFile {
 	public UserSettings read(ArchitectSession session) throws IOException {
 		logger.debug("reading UserSettings from java.util.prefs.");
 		Preferences prefs = ArchitectFrame.getMainInstance().getPrefs();
+		logger.debug("Preferences class = " + prefs.getClass());
 		
 		UserSettings userSettings = new UserSettings();
 		
