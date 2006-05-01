@@ -6,12 +6,16 @@ import java.util.prefs.AbstractPreferences;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
+import org.apache.log4j.Logger;
+
 /**
  * A java.util.prefs.Preferences that does NOT persist anything, so it has no effect (nor is
  * affected by!) any use of the "regular" Preferences.
  * To use, run with -Djava.util.prefs.PreferencesFactory=prefs.PreferencesFactory
  */
 public class MemoryPreferences extends AbstractPreferences {
+	
+	private static final Logger logger = Logger.getLogger(MemoryPreferences.class);
 	
 	/**
 	 * The map of all data in this particular node.
@@ -39,7 +43,7 @@ public class MemoryPreferences extends AbstractPreferences {
 	 */
 	MemoryPreferences(AbstractPreferences parent, String name) {
 		super(parent, name);
-		//System.out.printf("MemoryPreferences.MemoryPreferences(%s, %s)", parent, name);
+		logger.debug(String.format("MemoryPreferences.MemoryPreferences(%s, %s)", parent, name));
 	}
 	
 	@Override
@@ -49,7 +53,9 @@ public class MemoryPreferences extends AbstractPreferences {
 
 	@Override
 	protected String getSpi(String key) {
-		return values.get(key);
+		String value = values.get(key);
+		logger.debug(String.format("get: %s=%s", key, value));
+		return value;
 	}
 
 	@Override
@@ -74,7 +80,7 @@ public class MemoryPreferences extends AbstractPreferences {
 
 	@Override
 	protected AbstractPreferences childSpi(String name) {
-		// System.out.printf("MemoryPreferences.node(%s)%n", name);
+		logger.debug(String.format("MemoryPreferences.node(%s)%n", name));
 		AbstractPreferences n = new MemoryPreferences(this, name);
 		children.put(name, n);
 		return n;

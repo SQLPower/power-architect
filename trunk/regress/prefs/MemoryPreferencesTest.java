@@ -50,7 +50,6 @@ public class MemoryPreferencesTest extends TestCase {
 		ByteArrayInputStream rdr = new ByteArrayInputStream(xml.getBytes());
 		Preferences.importPreferences(rdr);
 		String val = Preferences.userRoot().node("structure").get("textFontName", "I give up");
-		System.out.println(val);
 		assertEquals("get value from xml-loaded prefs", "times-roman", val);
 	}
 	
