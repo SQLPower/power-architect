@@ -89,9 +89,12 @@ public class EditTableAction extends AbstractAction {
 
 		Action okAction = new AbstractAction() {
 			public void actionPerformed(ActionEvent evt) {
-				editPanel.applyChanges();
-				// XXX: also apply changes on mapping tab
-				d.setVisible(false);
+				//We need to see if the operation is successful, if
+                //successful, we close down the dialog, if not, we need 
+                //to return the dialog (hence why it is setVisible(!success))
+                boolean success = editPanel.applyChanges();
+				// XXX: also apply changes on mapping tab                
+                d.setVisible(!success);
 			}
 		};
 
