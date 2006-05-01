@@ -224,12 +224,11 @@ public class TestUndoManager extends TestCase {
 		assertEquals("Oops started out with relationships", 0, fkTable.getImportedKeys().size());
 		CreateRelationshipAction.doCreateRelationship(pkTable, fkTable, pp, false);
 		assertEquals("Wrong number of relationships created", 1, pp.getRelationships().size());
-		List<SQLColumn> columns = fkTable.getColumns();
-		assertEquals("Did the relationship create the columns in the fkTable", 2, columns.size());
-		assertNull("Is the first column a key column?", columns.get(0).getPrimaryKeySeq());
-		assertNull("Is the second column a key column?", columns.get(1).getPrimaryKeySeq());
-		assertEquals("Is the first column pk1?", "pk1", columns.get(0).getName());
-		assertEquals("Is the second column pk2?", "pk2", columns.get(1).getName());
+		assertEquals("Did the relationship create the columns in the fkTable", 2, fkTable.getColumns().size());
+		assertNull("First column should not be in PK", fkTable.getColumns().get(0).getPrimaryKeySeq());
+		assertNull("Second column should not be in PK", fkTable.getColumns().get(1).getPrimaryKeySeq());
+		assertEquals("first column should be called 'pk1'", "pk1", fkTable.getColumns().get(0).getName());
+		assertEquals("second column should be called 'pk2'", "pk2", fkTable.getColumns().get(1).getName());
 		
 		assertTrue("Not registering create action with the undo manager", undoManager.canUndo());
 		System.out.println(undoManager.toString());
