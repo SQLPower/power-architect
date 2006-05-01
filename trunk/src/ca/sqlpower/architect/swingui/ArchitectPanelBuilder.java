@@ -35,14 +35,14 @@ public class ArchitectPanelBuilder {
 	 * @param arch
 	 *            The ArchitectPanel implementation
 	 * @param dialogParent
-	 *            A Window class to be the parent, or null
+	 *            A Window object to be the dialog's parent, or null
 	 * @param dialogTitle
-	 *            The display title.
+	 *            The dialog title.
 	 * @param actionButtonTitle 
-	 *            The title for the OK button
-	 * @return The build JDialog
+	 *            The label text for the OK button
+	 * @return The new JDialog, which has the panel in it along with OK and Cancel buttons
 	 * @param okAction Action to be invoked when the OK/action button is
-	 * 	pressed; does NOT need to dismiss the dialog (we do that).
+	 * 	pressed; does NOT need to dismiss the dialog (we do that if applyChanges() returns true).
 	 * @param cancelAction Action to be invoked when the cancel button is
 	 * 	pressed; does NOT need to dismiss the dialog.
 	 * @return
@@ -73,7 +73,9 @@ public class ArchitectPanelBuilder {
 		okButton.setText(actionButtonTitle);	
 		// In all cases we have to close the dialog.
 		Action closeAction = new CommonCloseAction(d);
-		if (cancelAction != null){
+		
+        //If the user passes in a non-null cancelAction, we have that as the closeAction
+        if (cancelAction != null){
 			closeAction = cancelAction;
 		} else {
 			logger.debug("WARNING using a null cancel action.  You probably want to use action so you can cleanup");
@@ -81,7 +83,7 @@ public class ArchitectPanelBuilder {
 		
 		okButton.addActionListener(closeAction);
 		makeJDialogCancellable(d, closeAction);
-		okButton.addActionListener(new CommonCloseAction(d));		
+		okButton.addActionListener(new CommonCloseAction(d));
 		JButton cancelButton = new JDefaultButton(cancelAction);
 		cancelButton.setText(CANCEL_BUTTON_LABEL);
 		cancelButton.addActionListener(closeAction);
