@@ -454,22 +454,25 @@ public class SQLTable extends SQLObject {
 			col.addReference();
 			return;
 		}
-		boolean addToPK = false;
-		int pkSize = getPkSize();
-		if (getColumns().size() > 0 && pos < pkSize) {
-			addToPK = true;
-			normalizePrimaryKey();
-			for (int i = pos; i < pkSize; i++) {
-				((SQLColumn) getColumns().get(i)).primaryKeySeq = new Integer(i + 1);
-			}
-		}
-
-		col.setParent(null);
-		if (addToPK) {
-			col.nullable = DatabaseMetaData.columnNoNulls;
-			col.primaryKeySeq = new Integer(pos);
-		} else {
-			col.primaryKeySeq = null;
+        
+		if (isMagicEnabled()) {
+		    boolean addToPK = false;
+		    int pkSize = getPkSize();
+		    if (getColumns().size() > 0 && pos < pkSize) {
+		        addToPK = true;
+		        normalizePrimaryKey();
+		        for (int i = pos; i < pkSize; i++) {
+		            ((SQLColumn) getColumns().get(i)).primaryKeySeq = new Integer(i + 1);
+		        }
+		    }
+		    
+		    col.setParent(null);
+		    if (addToPK) {
+		        col.nullable = DatabaseMetaData.columnNoNulls;
+		        col.primaryKeySeq = new Integer(pos);
+		    } else {
+		        col.primaryKeySeq = null;
+		    }
 		}
 		columnsFolder.addChild(pos, col);
 	}
@@ -524,14 +527,16 @@ public class SQLTable extends SQLObject {
 	 * @throws ArchitectException If something goes wrong accessing the table's foreign keys 
 	 */
 	public void removeColumn(SQLColumn col) throws ArchitectException {
-		
-		// a column is only locked if it is an IMPORTed key--not if it is EXPORTed.
-		for (SQLRelationship r : getImportedKeys()) {
-			r.checkColumnLocked(col);
-		}
-
-		columnsFolder.removeChild(col);
-		normalizePrimaryKey();
+		if (!isMagicEnabled()) {
+            columnsFolder.removeChild(col);
+		} else {
+		    // a column is only locked if it is an IMPORTed key--not if it is EXPORTed.
+		    for (SQLRelationship r : getImportedKeys()) {
+		        r.checkColumnLocked(col);
+		    }
+		    columnsFolder.removeChild(col);
+		    normalizePrimaryKey();
+        }
 	}
 
 	/**
@@ -547,16 +552,28 @@ public class SQLTable extends SQLObject {
 	public void changeColumnIndex(int oldIdx, int newIdx, boolean putInPK) throws ArchitectException {
 		// remove and add the column directly, then manually fire the event.
 	    // This is necessary because the relationships prevent deletion of locked keys.
- 		SQLColumn col = (SQLColumn) columnsFolder.children.remove(oldIdx);
- 		columnsFolder.fireDbChildRemoved(oldIdx, col);
- 		columnsFolder.children.add(newIdx, col);
- 		if (putInPK) {
- 			col.primaryKeySeq = new Integer(1); // will get sane value when normalized
- 		} else {
- 			col.primaryKeySeq = null;
- 		}
- 		normalizePrimaryKey();
- 		columnsFolder.fireDbChildInserted(newIdx, col);
+        try {
+            startCompoundEdit("Changing column index");
+            SQLColumn col = (SQLColumn) columnsFolder.children.get(oldIdx);
+            Integer oldPkSeq = col.primaryKeySeq;
+            Integer interimPkSeq;
+            if (putInPK) {
+                interimPkSeq = new Integer(1); // will get sane value when normalized
+            } else {
+                interimPkSeq = null;
+            }
+            col.primaryKeySeq = interimPkSeq;
+            col.fireDbObjectChanged("primaryKeySeq", oldPkSeq, interimPkSeq);
+            
+            columnsFolder.children.remove(oldIdx);
+            columnsFolder.fireDbChildRemoved(oldIdx, col);
+            columnsFolder.children.add(newIdx, col);
+            columnsFolder.fireDbChildInserted(newIdx, col);
+
+            normalizePrimaryKey();
+        } finally {
+            endCompoundEdit("Changing column index");
+        }
 	}
 
 	/**
@@ -891,18 +908,20 @@ public class SQLTable extends SQLObject {
 	 * @param argName The new table name.  NULL is not allowed.
 	 */
 	public void setName(String argName) {
-		String oldName =  getName();
-		try {
-			startCompoundEdit("Table Name Change");
-			super.setName(argName);
-			if (primaryKeyName == null
-					|| primaryKeyName.equals("")
-					|| primaryKeyName.equals(oldName+"_pk")) {
-				setPrimaryKeyName( getName()+"_pk");
-			}
-		} finally {
-			endCompoundEdit("Ending table name compound edit");
-		}
+        if (!isMagicEnabled()) {
+            super.setName(argName);
+        } else try {
+            String oldName = getName();
+            startCompoundEdit("Table Name Change");
+            super.setName(argName);
+            if (primaryKeyName == null
+                    || primaryKeyName.equals("")
+                    || primaryKeyName.equals(oldName+"_pk")) {
+                setPrimaryKeyName( getName()+"_pk");
+            }
+        } finally {
+            endCompoundEdit("Ending table name compound edit");
+        }
 	}
 
 	/**
@@ -920,7 +939,7 @@ public class SQLTable extends SQLObject {
 	 * @param argRemarks Value to assign to this.remarks
 	 */
 	public void setRemarks(String argRemarks) {
-		String oldRemarks =this.remarks;
+		String oldRemarks = this.remarks;
 		this.remarks = argRemarks;
 		fireDbObjectChanged("remarks",oldRemarks,argRemarks);
 	}

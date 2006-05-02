@@ -38,6 +38,7 @@ public class ArchitectPropertyChangeUndoableEdit extends AbstractUndoableEdit {
 	@Override
 	public void redo() throws CannotRedoException {
 		try {
+            event.getSQLSource().setMagicEnabled(false);
 		    modifyProperty(event.getNewValue());
 		} catch (IllegalAccessException e) {
 			logger.error("Couldn't access setter for "+
@@ -51,13 +52,16 @@ public class ArchitectPropertyChangeUndoableEdit extends AbstractUndoableEdit {
 			logger.error("Couldn't introspect source object "+
 					event.getSource(), e);
 			throw new CannotRedoException();
-		}
+		} finally {
+            event.getSQLSource().setMagicEnabled(true);
+        }
 		super.redo();
 	}
 	
 	@Override
 	public void undo() throws CannotUndoException {
 		try {
+            event.getSQLSource().setMagicEnabled(false);
 		    modifyProperty(event.getOldValue());
 		} catch (IllegalAccessException e) {
 			logger.error("Couldn't access setter for "+
@@ -71,7 +75,9 @@ public class ArchitectPropertyChangeUndoableEdit extends AbstractUndoableEdit {
 			logger.error("Couldn't introspect source object "+
 					event.getSource(), e);
 			throw new CannotUndoException();
-		}
+		} finally {
+            event.getSQLSource().setMagicEnabled(true);
+        }
 		super.undo();
 	}
 	
