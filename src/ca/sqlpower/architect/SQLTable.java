@@ -559,6 +559,7 @@ public class SQLTable extends SQLObject {
             Integer interimPkSeq;
             if (putInPK) {
                 interimPkSeq = new Integer(1); // will get sane value when normalized
+                col.setNullable(DatabaseMetaData.columnNoNulls);
             } else {
                 interimPkSeq = null;
             }
