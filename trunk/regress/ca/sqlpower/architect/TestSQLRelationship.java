@@ -372,6 +372,56 @@ public class TestSQLRelationship extends SQLTestCase {
 		
 		assertEquals("fkcol's type didn't update", Types.BINARY, fkcol.getType());
 	}
+    
+    public void testCreateIdentifyingRelationship() throws ArchitectException {
+        SQLTable parent = new SQLTable(null, "Parent", null, "TABLE", true);
+        SQLTable child = new SQLTable(null, "Child", null, "TABLE", true);
+        SQLColumn parentCol1 = new SQLColumn(null, "pk1", Types.INTEGER, 10, 0);
+        SQLColumn childCol1 = new SQLColumn(null, "child_attr", Types.INTEGER, 10, 0);
+        
+        parent.addColumn(parentCol1);
+        parentCol1.setPrimaryKeySeq(0);
+        
+        child.addColumn(childCol1);
+        childCol1.setPrimaryKeySeq(null);
+        
+        SQLRelationship rel = new SQLRelationship();
+        rel.setIdentifying(true);
+        rel.attachRelationship(parent, child, true);
+        
+        assertEquals("pk1", parent.getColumn(0).getName());
+        assertEquals(new Integer(0), parent.getColumn(0).getPrimaryKeySeq());
+        
+        assertEquals("pk1", child.getColumn(0).getName());
+        assertEquals(new Integer(0), child.getColumn(0).getPrimaryKeySeq());
+        assertEquals("child_attr", child.getColumn(1).getName());
+        assertEquals(null, child.getColumn(1).getPrimaryKeySeq());
+    }
+    
+    public void testCreateNonIdentifyingRelationship() throws ArchitectException {
+        SQLTable parent = new SQLTable(null, "Parent", null, "TABLE", true);
+        SQLTable child = new SQLTable(null, "Child", null, "TABLE", true);
+        SQLColumn parentCol1 = new SQLColumn(null, "pk1", Types.INTEGER, 10, 0);
+        SQLColumn childCol1 = new SQLColumn(null, "child_attr", Types.INTEGER, 10, 0);
+        
+        parent.addColumn(parentCol1);
+        parentCol1.setPrimaryKeySeq(0);
+        
+        child.addColumn(childCol1);
+        childCol1.setPrimaryKeySeq(null);
+        
+        SQLRelationship rel = new SQLRelationship();
+        rel.setIdentifying(false);
+        rel.attachRelationship(parent, child, true);
+        
+        assertEquals("pk1", parent.getColumn(0).getName());
+        assertEquals(new Integer(0), parent.getColumn(0).getPrimaryKeySeq());
+        
+        assertEquals("child_attr", child.getColumn(0).getName());
+        assertEquals(null, child.getColumn(0).getPrimaryKeySeq());
+        assertEquals("pk1", child.getColumn(1).getName());
+        assertEquals(null, child.getColumn(1).getPrimaryKeySeq());
+    }
 
 	public void testPKColPrecisionChangeGoesToFKCol() throws ArchitectException {
 		SQLColumn pkcol = new SQLColumn(parentTable, "old name", Types.VARCHAR, 10, 0);
@@ -395,8 +445,8 @@ public class TestSQLRelationship extends SQLTestCase {
 		
 		assertEquals("Exported key columns disappeared", origParentCols, parentTable.getColumns());
 		assertEquals("Imported key columns didn't get put back", origChild1Cols, childTable1.getColumns());
-		assertEquals("There are multiple copies of this relationship in the parent's export keys folder",2,parentTable.getExportedKeys().size());
-		assertEquals("There are multiple copies of this relationship in the child's import keys folder",1,childTable1.getImportedKeys().size());
+		assertEquals("There are multiple copies of this relationship in the parent's exported keys folder",2,parentTable.getExportedKeys().size());
+		assertEquals("There are multiple copies of this relationship in the child's imported keys folder",1,childTable1.getImportedKeys().size());
 	}
 	
 	/** This is something the undo manager will attempt when you undo deleting a relationship */
