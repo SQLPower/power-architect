@@ -540,8 +540,14 @@ public class TestSQLTable extends SQLTestCase {
         assertEquals(5, table.getColumnIndex(table.getColumnByName("six")));
     }
     
-    public void testChangeSFifthColumnIdxToSecond() throws ArchitectException{
+    public void testChangeSFifthColumnIdxToSecond() throws Exception {
+        EventLogger l = new EventLogger();
+        TableSnapshot original = l.makeTableSnapshot(table);
+        
+        ArchitectUtils.listenToHierarchy(l, table);
         table.changeColumnIndex(4, 1, true);        
+        ArchitectUtils.unlistenToHierarchy(l, table);
+
         assertEquals(4, table.getPkSize());
         
         assertEquals(0, table.getColumnIndex(table.getColumnByName("one")));
@@ -550,6 +556,46 @@ public class TestSQLTable extends SQLTestCase {
         assertEquals(3, table.getColumnIndex(table.getColumnByName("three")));
         assertEquals(4, table.getColumnIndex(table.getColumnByName("four")));       
         assertEquals(5, table.getColumnIndex(table.getColumnByName("six")));
+
+        System.out.println("Event log:\n"+l);
+
+        TableSnapshot afterChange = l.makeTableSnapshot(table);
+
+        System.out.println("Original: "+original);
+        System.out.println("After: "+afterChange);
+        
+        l.rollBack(afterChange);
+        
+        assertEquals(original.toString(), afterChange.toString());
+    }
+    
+    public void testChangeSFifthColumnIdxToTop() throws Exception {
+        EventLogger l = new EventLogger();
+        TableSnapshot original = l.makeTableSnapshot(table);
+        
+        ArchitectUtils.listenToHierarchy(l, table);
+        table.changeColumnIndex(4, 0, true);        
+        ArchitectUtils.unlistenToHierarchy(l, table);
+
+        assertEquals(4, table.getPkSize());
+        
+        assertEquals(0, table.getColumnIndex(table.getColumnByName("five")));
+        assertEquals(1, table.getColumnIndex(table.getColumnByName("one")));
+        assertEquals(2, table.getColumnIndex(table.getColumnByName("two")));
+        assertEquals(3, table.getColumnIndex(table.getColumnByName("three")));
+        assertEquals(4, table.getColumnIndex(table.getColumnByName("four")));       
+        assertEquals(5, table.getColumnIndex(table.getColumnByName("six")));
+
+        System.out.println("Event log:\n"+l);
+
+        TableSnapshot afterChange = l.makeTableSnapshot(table);
+
+        System.out.println("Original: "+original);
+        System.out.println("After: "+afterChange);
+        
+        l.rollBack(afterChange);
+        
+        assertEquals(original.toString(), afterChange.toString());
     }
     
     public void testChangeSFifthColumnIdxToThird() throws ArchitectException{

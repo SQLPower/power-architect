@@ -392,11 +392,9 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	 */
 	public void setType(int argType) {
 		int oldType = type;
-		if (type != argType) {
-			setSourceDataTypeName(null);
-			this.type = argType;
-			fireDbObjectChanged("type",oldType,argType);
-		}
+		setSourceDataTypeName(null);
+		this.type = argType;
+		fireDbObjectChanged("type",oldType,argType);
 	}
 
 	public String getSourceDataTypeName() {
@@ -499,10 +497,8 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	public void setNullable(int argNullable) {
 		int oldNullable = this.nullable;
 		logger.debug("Changing nullable "+oldNullable+" -> "+argNullable);
-		if (this.nullable != argNullable) {
-			this.nullable = argNullable;
-			fireDbObjectChanged("nullable",oldNullable,argNullable);
-		}
+		this.nullable = argNullable;
+		fireDbObjectChanged("nullable",oldNullable,argNullable);
 	}
 
 	/**
@@ -555,9 +551,10 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	}
 
     /**
-     * Sets the value of primaryKeySeq
-     *
-     * @param argPrimaryKeySeq Value to assign to this.primaryKeySeq
+     * Sets the value of primaryKeySeq, and moves the column to the appropriate location in the
+     * parent table's column folder.  However, if magic is disabled on this column, this method
+     * simply sets the PrimaryKeySeq property to the given value, fires the change event, and
+     * returns without trying to re-order the columns. 
      */
 	public void setPrimaryKeySeq(Integer argPrimaryKeySeq) {
 	    // do nothing if there's no change
@@ -565,10 +562,14 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	         (primaryKeySeq != null && primaryKeySeq.equals(argPrimaryKeySeq)) ) {
             return;
         }
-	    try {
+
+        Integer oldPrimaryKeySeq = primaryKeySeq;
+        if (!isMagicEnabled()) {
+            this.primaryKeySeq = argPrimaryKeySeq;
+            fireDbObjectChanged("primaryKeySeq",oldPrimaryKeySeq,argPrimaryKeySeq);
+        } else try {
             startCompoundEdit("Starting PrimaryKeySeq compound edit");
  
-	        Integer oldPrimaryKeySeq = primaryKeySeq;
 	        if (argPrimaryKeySeq != null && !this.autoIncrement) {
 	            setNullable(DatabaseMetaData.columnNoNulls);	
 	        }
