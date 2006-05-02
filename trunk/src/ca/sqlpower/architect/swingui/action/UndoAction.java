@@ -6,9 +6,12 @@ import java.awt.event.KeyEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
+import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
@@ -17,6 +20,8 @@ import ca.sqlpower.architect.undo.UndoManager;
 
 public class UndoAction extends AbstractAction {
 	
+    private static final Logger logger = Logger.getLogger(UndoAction.class);
+    
 	private class ManagerListener implements ChangeListener {
 		public void stateChanged(ChangeEvent e) {
 			updateSettingsFromManager();
@@ -37,7 +42,18 @@ public class UndoAction extends AbstractAction {
 	}
 	
 	public void actionPerformed(ActionEvent evt ) {
-		manager.undo();
+        if (logger.isDebugEnabled()) {
+            logger.debug(manager);
+            int choice = JOptionPane.showConfirmDialog(null,
+                    "Undo manager state dumped to logger." +
+                    "\n\n" +
+                    "Proceed with undo?");
+            if (choice == JOptionPane.YES_OPTION) {
+                manager.undo();
+            }
+        } else {
+            manager.undo();
+        }
 	}
 
 	/**
