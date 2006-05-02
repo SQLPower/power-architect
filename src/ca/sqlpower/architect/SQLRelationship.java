@@ -114,10 +114,12 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 						} else {
 							fkCol = new SQLColumn(pkCol);
 							fkCol.setName(generateUniqueColumnName(pkCol,fkTable));
+							fkCol.setPrimaryKeySeq(null);
 						}
 					} else {
 						// no match, so we need to import this column from PK table
 						fkCol = new SQLColumn(pkCol);
+						fkCol.setPrimaryKeySeq(null);
 					}
 					
 					this.addMapping(pkCol, fkCol);
@@ -143,24 +145,47 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	 * 
 	 * @throws ArchitectException If something goes terribly wrong
 	 */
-	private void realizeMapping() throws ArchitectException {
-		for (ColumnMapping m : getMappings()) {
-			SQLColumn fkCol = m.getFkColumn();
-			try {
-				fkCol.setMagicEnabled(false);
-				if (fkCol.getReferenceCount() == 0) fkCol.addReference();
-				// This might bump up the reference count (which would be correct)
-				fkTable.addColumn(fkCol);
-				if (fkCol.getReferenceCount() <= 0) throw new IllegalStateException("Created a column with 0 references!");
-				
-				if (identifying && fkCol.getPrimaryKeySeq() == null) {
-					fkCol.setPrimaryKeySeq(new Integer(fkTable.getPkSize()));
-				}
-			} finally {
-				fkCol.setMagicEnabled(true);
-			}
-		}
-	}
+    	private void realizeMapping() throws ArchitectException {
+        for (ColumnMapping m : getMappings()) {
+            SQLColumn fkCol = m.getFkColumn();
+            try {
+                fkCol.setMagicEnabled(false);
+                if (fkCol.getReferenceCount() == 0)
+                    fkCol.addReference();
+
+                // since we turned magic off, we have to insert the PK cols in
+                // the correct position
+                int insertIdx;
+                if (identifying) {
+                    if (fkCol.getPrimaryKeySeq() == null) {
+                        insertIdx = fkTable.getPkSize();
+                    } else {
+                        insertIdx = fkCol.getPrimaryKeySeq();
+                    }
+                } else {
+                    if (fkCol.getPrimaryKeySeq() != null) {
+                        insertIdx = fkCol.getPrimaryKeySeq();
+                    } else {
+                        insertIdx = fkTable.getColumns().size();
+                    }
+                }
+                        
+                // This might bump up the reference count (which would be
+                // correct)
+                fkTable.addColumn(insertIdx, fkCol);
+                logger.debug("Added column '" + fkCol.getName() + "' at index " + insertIdx);
+                if (fkCol.getReferenceCount() <= 0)
+                    throw new IllegalStateException("Created a column with 0 references!");
+                
+                if (identifying && fkCol.getPrimaryKeySeq() == null) {
+                    fkCol.setPrimaryKeySeq(new Integer(fkTable.getPkSize()));
+                }
+
+            } finally {
+                fkCol.setMagicEnabled(true);
+            }
+        }
+    }
 	
 	/**
 	 * Fetches all imported keys for the given table.  (Imported keys
