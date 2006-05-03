@@ -72,6 +72,10 @@ import ca.sqlpower.architect.swingui.action.UndoAction;
 import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.undo.UndoManager;
 
+/**
+ * The Main Window for the Architect Application; contains a main() method that is
+ * the conventional way to start the application running.
+ */
 public class ArchitectFrame extends JFrame {
 
 	private static Logger logger = Logger.getLogger(ArchitectFrame.class);
@@ -229,7 +233,7 @@ public class ArchitectFrame extends JFrame {
 		    } else {
 		        message = "file \n\n\""+us.getPlDotIniPath()+"\"\n\n does not exist";
 		    }
-		    int choice = JOptionPane.showOptionDialog(null,
+		    int choice = JOptionPane.showOptionDialog(null,   // blocking wait
 		            "The Architect keeps its list of database connections" +
 		            "\nin a file called PL.INI.  Your PL.INI "+message+"." +
 		            "\n\nYou can browse for an existing PL.INI file on your system" +
@@ -238,19 +242,22 @@ public class ArchitectFrame extends JFrame {
 		            "\nan existing PL.INI in your Power*Loader installation directory.",
 		            "Missing PL.INI", 0, JOptionPane.INFORMATION_MESSAGE, null, options, null);
 		    File newPlIniFile;
-		    if (choice == 0) {
+            if (choice == JOptionPane.CLOSED_OPTION) {
+                throw new ArchitectException("Can't start without a pl.ini file");
+            } else if (choice == 0) {
 		        JFileChooser fc = new JFileChooser();
 		        fc.setFileFilter(ASUtils.INI_FILE_FILTER);
 		        fc.setDialogTitle("Locate your PL.INI file");
-		        int fcChoice = fc.showOpenDialog(null);
+		        int fcChoice = fc.showOpenDialog(null);       // blocking wait
 		        if (fcChoice == JFileChooser.APPROVE_OPTION) {
 		            newPlIniFile = fc.getSelectedFile();
 		        } else {
 		            newPlIniFile = null;
 		        }
-		    } else {
+		    } else if (choice == 1) {
 		        newPlIniFile = new File(System.getProperty("user.home"), "pl.ini");
-		    }
+		    } else 
+                throw new ArchitectException("Unexpected return from JOptionPane.showOptionDialog to get pl.ini");
 		    
 		    if (newPlIniFile != null) try {
 		        newPlIniFile.createNewFile();
