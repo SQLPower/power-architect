@@ -14,9 +14,10 @@ public class AboutPanel extends JPanel implements ArchitectPanel {
 
 	public void initComponents() {
 		setLayout(new FlowLayout());
-		content = new JLabel("<html>Power*Architect 1.0<br><br>"
-							 +"Copyright 2003-2004 SQL Power Group Inc.<br>"
-							 +"</html>");
+        // XXX This should include the new Power*Architect Icon!
+		content = new JLabel("<html>Power*Architect 1.0<br><br>" +
+							"Copyright 2003-2006 SQL Power Group Inc.<br>" +
+							"</html>");
 		add(content);
 	}
 
