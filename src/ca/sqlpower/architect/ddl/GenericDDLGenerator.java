@@ -239,9 +239,9 @@ public class GenericDDLGenerator implements DDLGenerator {
 			if (colNameMap.get(c.getName()) == null) {
 				if (firstColumn) {
 					firstColumn = false;
-					print(getPhysicalName(colNameMap, c));
+					print(createPhysicalName(colNameMap, c));
 				} else {
-					print(", " + getPhysicalName(colNameMap, c));
+					print(", " + createPhysicalName(colNameMap, c));
 				}
 				colNameMap.put(c.getName(), c);
 			}
@@ -259,9 +259,9 @@ public class GenericDDLGenerator implements DDLGenerator {
 			if (colNameMap.get(c.getName()) == null) {
 				if (firstColumn) {
 					firstColumn = false;
-					print(getPhysicalName(colNameMap, c));
+					print(createPhysicalName(colNameMap, c));
 				} else {
-					print(", " + getPhysicalName(colNameMap, c));
+					print(", " + createPhysicalName(colNameMap, c));
 				}
 				colNameMap.put(c.getName(), c);
 			}
@@ -287,7 +287,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		print("\n ALTER TABLE ");
 		print( toQualifiedName(t) );
 		print(" DROP COLUMN ");
-		print(getPhysicalName(colNameMap,c));
+		print(createPhysicalName(colNameMap,c));
 		endStatement(DDLStatement.StatementType.DROP, c);
 		
 	}
@@ -310,22 +310,41 @@ public class GenericDDLGenerator implements DDLGenerator {
 		endStatement(DDLStatement.StatementType.DROP, t);
 		
 	}
+    
 	protected String columnDefinition(SQLColumn c, Map colNameMap) throws ArchitectDiffException
 	{
 		StringBuffer def = new StringBuffer(); 
-		getPhysicalName(colNameMap,c); // also adds generated physical name to the map
-		GenericTypeDescriptor td = (GenericTypeDescriptor) typeMap.get(new Integer(c.getType()));
-		if (td == null) {
-			td = (GenericTypeDescriptor) typeMap.get(getDefaultType()); //better be non-null!
-			GenericTypeDescriptor oldType = new GenericTypeDescriptor
-				(c.getSourceDataTypeName(), c.getType(), c.getPrecision(),
-				 null, null, c.getNullable(), false, false);
-			oldType.determineScaleAndPrecision();
-			warnings.add(new TypeMapWarning(c, "Unknown Target Type", oldType, td));
-		}
-		
-		def.append(c.getPhysicalName());
+        
+        // Column name
+		def.append(createPhysicalName(colNameMap,c));
 		def.append(" ");
+        
+		def.append(columnType(c));
+        def.append(" ");
+
+        // Column nullability
+        def.append(columnNullability(c));
+        
+		return def.toString();
+	}
+
+    protected String columnNullability(SQLColumn c) {
+        GenericTypeDescriptor td = failsafeGetTypeDescriptor(c);       
+        if (c.isDefinitelyNullable()) {
+			if (! td.isNullable()) {
+				throw new UnsupportedOperationException
+					("The data type "+td.getName()+" is not nullable on the target database platform.");
+			}
+			return "NULL";
+		} else {
+			return "NOT NULL";
+		}
+    }
+
+	/** Columnn type */
+    protected String columnType(SQLColumn c) {
+        StringBuffer def = new StringBuffer();
+		GenericTypeDescriptor td = failsafeGetTypeDescriptor(c);       
 		def.append(td.getName());
 		if (td.getHasPrecision()) {
 			def.append("("+c.getPrecision());
@@ -334,22 +353,33 @@ public class GenericDDLGenerator implements DDLGenerator {
 			}
 			def.append(")");
 		}
+        return def.toString();
+    }
 
-		if (c.isDefinitelyNullable()) {
-			if (! td.isNullable()) {
-				throw new UnsupportedOperationException
-					("The data type "+td.getName()+" is not nullable on the target database platform.");
-			}
-			def.append(" NULL");
-		} else {
-			def.append(" NOT NULL");
+    /**
+     * Returns the type descriptor for the given column's type if that exists in this generator's typemap,
+     * else returns the default type.
+     */
+    protected GenericTypeDescriptor failsafeGetTypeDescriptor(SQLColumn c) {
+        GenericTypeDescriptor td = (GenericTypeDescriptor) typeMap.get(new Integer(c.getType()));
+		if (td == null) {
+		    td = (GenericTypeDescriptor) typeMap.get(getDefaultType());
+		    if (td == null) {
+		        throw new NullPointerException("Current type map does not have entry for default datatype!");
+		    }
+		    GenericTypeDescriptor oldType = new GenericTypeDescriptor
+		    (c.getSourceDataTypeName(), c.getType(), c.getPrecision(),
+		            null, null, c.getNullable(), false, false);
+		    oldType.determineScaleAndPrecision();
+		    warnings.add(new TypeMapWarning(c, "Unknown Target Type", oldType, td));
 		}
-		return def.toString();
-	}
+        return td;
+    }
+    
 	public void writeTable(SQLTable t) throws SQLException, ArchitectException {
 		Map colNameMap = new HashMap();  // for detecting duplicate column names
 		// generate a new physical name if necessary
-		getPhysicalName(topLevelNames,t); // also adds generated physical name to the map
+		createPhysicalName(topLevelNames,t); // also adds generated physical name to the map
 		print("\nCREATE TABLE ");
 		print( toQualifiedName(t) );
 		println(" (");
@@ -357,7 +387,6 @@ public class GenericDDLGenerator implements DDLGenerator {
 		Iterator it = t.getColumns().iterator();
 		while (it.hasNext()) {
 			SQLColumn c = (SQLColumn) it.next();
-			// generate a new physical name if necessary
 			
 			if (!firstCol) println(",");
 			print("                ");
@@ -417,7 +446,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		while (it.hasNext()) {
 			SQLRelationship rel = (SQLRelationship) it.next();
 			// geneate a physical name for this relationship
-			getPhysicalName(topLevelNames,rel); 
+			createPhysicalName(topLevelNames,rel); 
 			//
 			println("");
 			print("ALTER TABLE ");
@@ -714,7 +743,7 @@ public class GenericDDLGenerator implements DDLGenerator {
      * Generate, set, and return a valid identifier for this SQLObject.
 	 * @throws ArchitectException 
      */
-	public String getPhysicalName(Map dupCheck, SQLObject so) throws ArchitectDiffException {				
+	protected String createPhysicalName(Map dupCheck, SQLObject so) throws ArchitectDiffException {				
 		
 		boolean firstTime = true;
 		String oldName = so.getName();
@@ -815,7 +844,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 					first =false;
 				}
 				
-				sqlStatement.append(getPhysicalName(colNameMap,c));
+				sqlStatement.append(createPhysicalName(colNameMap,c));
 			}
 		}
 		sqlStatement.append(")");
