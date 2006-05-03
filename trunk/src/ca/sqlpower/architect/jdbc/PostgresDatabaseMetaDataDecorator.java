@@ -7,7 +7,10 @@ package ca.sqlpower.architect.jdbc;
 
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
+
 import ca.sqlpower.sql.CachedRowSet;
 
 /**
@@ -18,6 +21,13 @@ import ca.sqlpower.sql.CachedRowSet;
  */
 public class PostgresDatabaseMetaDataDecorator extends DatabaseMetaDataDecorator {
     
+    /** XXX Make a Connections Panel extention to let you set this kind of thing. */
+    public static final int UGLY_DEFAULT_VARCHAR_SIZE = 1024;
+    private static final int DIGITS_IN_INT8 = 20;
+    private static final int DIGITS_IN_INT4 = 10;
+    private static final int DIGITS_IN_FLOAT4 = 38;
+    private static final int DIGITS_IN_FLOAT8 = 308;
+
     /**
      * Creates a new facade for PostgreSQL's DatabaseMetaData.
      */
@@ -48,6 +58,32 @@ public class PostgresDatabaseMetaDataDecorator extends DatabaseMetaDataDecorator
 		crs.populate(rs);
 		rs.close();
 		st.close();
-		return crs;		
+		return crs;
 	}
+    
+    /** Compensates for unlimited length varchar (which is otherwise reported as VARCHAR(0)
+     * by returning a large limit for column_length
+     */
+    @Override
+    public ResultSet getColumns(String catalog, String schemaPattern, String tableNamePattern, String columnNamePattern) throws SQLException {
+        ResultSet rs = super.getColumns(catalog, schemaPattern, tableNamePattern, columnNamePattern);
+        CachedRowSet crs = new CachedRowSet();
+        crs.populate(rs);
+        rs.close();
+        while (crs.next()) {
+            if (crs.getInt(5) == Types.VARCHAR && crs.getInt(7) <= 0) {
+                crs.updateInt(7, UGLY_DEFAULT_VARCHAR_SIZE);
+            } else if ("int4".equalsIgnoreCase(crs.getString(6))) {
+                crs.updateInt(7, DIGITS_IN_INT4);
+            } else if ("int8".equalsIgnoreCase(crs.getString(6))) {
+                crs.updateInt(7, DIGITS_IN_INT8);
+            } else if ("float4".equalsIgnoreCase(crs.getString(6))) {
+                crs.updateInt(7, DIGITS_IN_FLOAT4);
+            } else if ("float8".equalsIgnoreCase(crs.getString(6))) {
+                crs.updateInt(7, DIGITS_IN_FLOAT8);
+            }
+        }
+        crs.beforeFirst();
+        return crs;
+    }
 }

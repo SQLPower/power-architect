@@ -2,13 +2,22 @@ package ca.sqlpower.architect.ddl;
 
 import java.sql.*;
 import java.util.*;
+
 import org.apache.log4j.Logger;
+
+import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.diff.ArchitectDiffException;
+
 import java.util.regex.*;
 
+/**
+ * DDL Generator for Postgres 8.x (does not support e.g., ALTER COLUMN operations 7.[34]).
+ */
 public class PostgresDDLGenerator extends GenericDDLGenerator {
+    
 	public PostgresDDLGenerator() throws SQLException {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	public static final String GENERATOR_VERSION = "$Revision$";
@@ -353,9 +362,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
      *  <li> identifiers must begin with a letter (one is added if needed)
      *  <li> can't be a postgres reserved word 
      *  <li> can only be comprised of letters, numbers, underscores, and $ 
-     * </ul>
-     * 
-     * <p>XXX: substring replacement routine does not play well with regex chars like ^ and | 
+     * </ul> 
 	 */
 	public String toIdentifier(String logicalName, String physicalName) {
 		// replace spaces with underscores
@@ -381,6 +388,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
 		ident = ident.replaceAll("[^a-zA-Z0-9_$]", "_");
 
 		// first time through
+        // XXX clean this up
 		if (physicalName == null) {
 			// length is ok
             if (ident.length() <= 63) {
@@ -415,14 +423,38 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
 	}
 	
 	/**
-     * Generates a command for dropping a foreign key on oracle.
-     * The statement looks like <code>ALTER TABLE $fktable DROP CONSTRAINT $fkname</code>.
+     * Generates a command for dropping a foreign key.
+     * The statement looks like <code>ALTER TABLE ONLY $fktable DROP CONSTRAINT $fkname</code>.
      */
     public String makeDropForeignKeySQL(String fkCatalog, String fkSchema, String fkTable, String fkName) {
-        return "ALTER TABLE "
+        return "\n ALTER TABLE ONLY "
             +DDLUtils.toQualifiedName(fkCatalog, fkSchema, fkTable)
             +" DROP CONSTRAINT "
             +fkName;
+    }
+    
+    public void modifyColumn(SQLColumn c) throws ArchitectDiffException {
+        Map colNameMap = new HashMap(); 
+        SQLTable t = c.getParentTable();
+        print("\n ALTER TABLE ONLY ");
+        print( toQualifiedName(t) );
+        print(" ALTER COLUMN ");
+        
+        // Column name
+        String columnPhysName = createPhysicalName(colNameMap,c);
+        print(columnPhysName);
+        print(" TYPE ");       
+        print(columnType(c));
+        
+        // Column nullability
+        print(", ALTER COLUMN ");
+        print(columnPhysName);
+        print(" ");
+        print(c.isDefinitelyNullable() ? "DROP" : "SET");
+        print(" NOT NULL");
+
+        endStatement(DDLStatement.StatementType.MODIFY, c);
+        
     }
     
 	/**
