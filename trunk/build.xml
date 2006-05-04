@@ -7,7 +7,13 @@
 	<property name="src" value="src"/>
 	<property name="build" value="build"/>
 	<property name="build.compiler" value="modern"/>
-
+	<property name="installer.dir" value="installer"/>
+	<property name="izpack.dir" value="IzPack"/>
+	<property name="deploy.dir" value="deploy"/>
+	<property name="ver" value="1"/>
+	<property name="rel" value="0"/>
+	<taskdef name="izpack" classpath="${izpack.dir}/lib/compiler.jar" classname="com.izforge.izpack.ant.IzPackTask"/>
+	
 	<target name="init">
 		<tstamp/>
 		<mkdir dir="${build}"/>
@@ -57,8 +63,9 @@
     
     <target name="deploy" depends="dist">
         <mkdir dir="${deploy.dir}"/>
+    	<mkdir dir="${deploy.dir}/lib"/>
         <copy file="webstart/lib/architect.jar" todir="${deploy.dir}"/>
-        	<copy todir="${deploy.dir}">
+        	<copy todir="${deploy.dir}/lib">
             <fileset dir="webstart/lib" excludes="architect.jar"/>
         </copy>
 	</target>
@@ -71,6 +78,7 @@
 
 	<target name="clean">
 		<delete dir="${build}"/>
+		<delete dir="${deploy.dir}"/>
 		<delete dir="webstart/lib"/>
 	</target>
 
@@ -118,6 +126,14 @@
 		</javadoc>
 		<copy file="html/index.html" todir="${build}/docs"/>
 
+	</target>
+	
+	<target name="Windows Installer" depends="deploy">
+		<mkdir dir="${installer.dir}/compiled"/>
+		<izpack input="${installer.dir}/Architect-install.xml"
+		output="${installer.dir}/compiled/Architect-${ver}.${rel}.jar"
+		installerType="standard" basedir="${installer.dir}"
+		izPackDir="${izpack.dir}/"/>
 	</target>
 
 </project>
