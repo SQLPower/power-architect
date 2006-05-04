@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="yes"?>
+
+<installation version="1.0">
+	<!-- comment -->
+	<info>
+		<appname>Power Architect</appname>
+		<appversion>1.0.0</appversion>
+		<url>http://www.sqlpower.ca/</url>
+		<javaversion>1.5</javaversion>
+	</info>
+	<guiprefs height="600" resizable="yes" width="800">
+		<laf name="metouia">
+			<os family="unix"/>
+		</laf>
+	</guiprefs>
+	
+	<locale>
+		<langpack iso3="eng"/>
+	</locale>
+	<resources>
+		<res id="Installer.image" src="../src/icons/architect.png"/>
+		<res src="ArchitectShortcut.xml" id="shortcutSpec.xml"/>
+	</resources>
+	<panels>
+		<panel classname="HelloPanel"/>
+		<panel classname="TargetPanel"/>
+		<panel classname="InstallPanel"/>
+		<panel classname="ShortcutPanel"/>
+		<panel classname="SimpleFinishPanel"/>
+	</panels>
+	<packs>
+		<pack name="Core" required="yes">
+			<description>Architect Core Files</description>
+			<fileset dir="../deploy/" targetdir="$INSTALL_PATH">
+				<include name="**/*.jar"/>
+			</fileset>
+			<fileset dir="../src/icons" targetdir="$INSTALL_PATH">
+				<include name="*.ico"/>
+			</fileset>
+			<file src="architect.bat" targetdir="$INSTALL_PATH"/>
+		</pack>
+	</packs>
+	
+	<native type="izpack" name="ShellLink.dll"/>
+</installation>
