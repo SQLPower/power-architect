@@ -1,4 +1,16 @@
 Main-Class: ca.sqlpower.architect.swingui.ArchitectFrame
-Class-Path: lib/jlfgr-1_0.jar lib/commons-beanutils.jar
-   lib/junit.jar lib/commons-collections-3.0.jar lib/log4j.jar
-   lib/commons-digester.jar lib/sqlpower.jar lib/commons-logging.jar
+Class-Path: lib/commons-beanutils-bean-collections.jar
+  lib/commons-beanutils-core.jar
+  lib/commons-beanutils.jar
+  lib/commons-collections-3.1.jar
+  lib/commons-dbcp-1.2.1.jar
+  lib/commons-digester.jar
+  lib/commons-logging.jar
+  lib/commons-pool-1.3.jar
+  lib/forms-1.0.6.jar
+  lib/jakarta-regexp-1.2.jar
+  lib/jfcunit.jar
+  lib/jlfgr-1_0.jar
+  lib/junit.jar
+  lib/log4j.jar
+  lib/sqlpower.jar
