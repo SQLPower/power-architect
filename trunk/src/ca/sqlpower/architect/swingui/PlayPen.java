@@ -2386,7 +2386,8 @@ public class PlayPen extends JPanel
 			pp.removeMouseMotionListener(this);
 			pp.removeMouseListener(this);
 			pp.removeCancelableListener(this);
-			pp.revalidate();
+            pp.normalize();
+			pp.revalidate();    
 		}
 	}
 
