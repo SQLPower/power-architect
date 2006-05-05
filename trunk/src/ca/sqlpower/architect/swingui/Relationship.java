@@ -4,14 +4,20 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.event.MouseInputAdapter;
 
 import org.apache.log4j.Logger;
@@ -110,6 +116,23 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 		mi = new JMenuItem(af.deleteSelectedAction);
 		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		popup.add(mi);
+        
+        if (logger.isDebugEnabled()) {
+            mi = new JMenuItem(new AbstractAction("Show Mappings") {
+
+                public void actionPerformed(ActionEvent e) {
+                    StringBuffer componentList = new StringBuffer();
+                    for ( ColumnMapping columnMap : getModel().getMappings()) {
+                        
+                        componentList.append(columnMap).append("\n");
+                    }
+                    JOptionPane.showMessageDialog(ArchitectFrame.getMainInstance(), new JScrollPane(new JTextArea(componentList.toString())));
+                }
+                
+            });
+ 
+            popup.add(mi);
+        }
 	}
 
 	public Point getPreferredLocation() {
