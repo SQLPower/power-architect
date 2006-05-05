@@ -17,6 +17,13 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 
 	private static Logger logger = Logger.getLogger(DBTreeModel.class);
 
+    /**
+     * Controls this model's "testing" mode.  When in testing mode,
+     * the checks for whether or not events are on the Swing Event Dispatch
+     * Thread are bypassed.
+     */
+    private boolean testMode = false;
+    
 	protected SQLObject root;
 
 	/**
@@ -34,12 +41,12 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	 * @param initialDatabases A collection whose items are all
 	 * distinct SQLDatabase objects.
 	 */
-	public DBTreeModel(Collection initialDatabases) throws ArchitectException {
+	public DBTreeModel(Collection<SQLDatabase> initialDatabases) throws ArchitectException {
 		this.root = new DBTreeRoot();
 		if (initialDatabases != null) {
-			Iterator it = initialDatabases.iterator();
+			Iterator<SQLDatabase> it = initialDatabases.iterator();
 			while (it.hasNext()) {
-				root.addChild((SQLDatabase) it.next());
+				root.addChild(it.next());
 			}
 		}
 		this.treeModelListeners = new LinkedList();
@@ -247,16 +254,18 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 
 	public SQLObject[] getPkPathToRelationship(SQLRelationship rel) {
 		SQLObject[] pathToPkTable = getPathToNode(rel.getPkTable());
-		SQLObject[] path = new SQLObject[pathToPkTable.length + 1];
+		SQLObject[] path = new SQLObject[pathToPkTable.length + 2];
 		System.arraycopy(pathToPkTable, 0, path, 0, pathToPkTable.length);
-		path[path.length - 1] = rel;
+        path[path.length - 2] = rel.getPkTable().getExportedKeysFolder();
+        path[path.length - 1] = rel;
 		return path;
 	}
 
 	public SQLObject[] getFkPathToRelationship(SQLRelationship rel) {
 		SQLObject[] pathToFkTable = getPathToNode(rel.getFkTable());
-		SQLObject[] path = new SQLObject[pathToFkTable.length + 1];
+		SQLObject[] path = new SQLObject[pathToFkTable.length + 2];
 		System.arraycopy(pathToFkTable, 0, path, 0, pathToFkTable.length);
+        path[path.length - 2] = rel.getFkTable().getImportedKeysFolder();
 		path[path.length - 1] = rel;
 		return path;
 	}
@@ -307,8 +316,11 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 
 	// --------------------- SQLObject listener support -----------------------
 	public void dbChildrenInserted(SQLObjectEvent e) {
-		logger.debug("dbchildrenadd. source="+e.getSource());
-		if (!SwingUtilities.isEventDispatchThread()) return;
+        if (logger.isDebugEnabled()) {
+            logger.debug("dbChildrenInserted. source="+e.getSource()
+                    +" indices: "+Arrays.asList(e.getChangedIndices())
+                    +" children: "+Arrays.asList(e.getChildren()));
+        }
 		if (logger.isDebugEnabled()) {
 			if (e.getSQLSource() instanceof SQLRelationship) {
 				SQLRelationship r = (SQLRelationship) e.getSQLSource();
@@ -328,6 +340,11 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 		} catch (ArchitectException ex) {
 			logger.error("Error listening to added object", ex);
 		}
+
+        if ((!SwingUtilities.isEventDispatchThread()) && (!testMode)) {
+            logger.debug("Not refiring because this is not the EDT.");
+            return;
+        }
 
 		// relationships have two parents (pktable and fktable) so we need to fire two TMEs
 		if (e.getSQLSource() instanceof SQLRelationship) {
@@ -355,8 +372,11 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	}
 
 	public void dbChildrenRemoved(SQLObjectEvent e) {
-		logger.debug("dbchildrenremove. source="+e.getSource());
-		if (!SwingUtilities.isEventDispatchThread()) return;
+        if (logger.isDebugEnabled()) {
+            logger.debug("dbchildrenremoved. source="+e.getSource()
+                    +" indices: "+Arrays.asList(e.getChangedIndices())
+                    +" children: "+Arrays.asList(e.getChildren()));
+        }
 		if (logger.isDebugEnabled()) logger.debug("dbChildrenRemoved SQLObjectEvent: "+e);
 		try {
 			SQLObject[] oldEventSources = e.getChildren();
@@ -366,6 +386,11 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 		} catch (ArchitectException ex) {
 			logger.error("Error unlistening to removed object", ex);
 		}
+
+        if ((!SwingUtilities.isEventDispatchThread()) && (!testMode)) {
+            logger.debug("Not refiring because this is not the EDT.");
+            return;
+        }
 
 		if (e.getSQLSource() instanceof SQLRelationship) {
 			TreeModelEvent tme = new TreeModelEvent
@@ -393,7 +418,10 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	
 	public void dbObjectChanged(SQLObjectEvent e) {
 		logger.debug("dbObjectChanged. source="+e.getSource());
-		if (!SwingUtilities.isEventDispatchThread()) return;
+        if ((!SwingUtilities.isEventDispatchThread()) && (!testMode)) {
+            logger.debug("Not refiring because this is not the EDT.");
+            return;
+        }
 		if (logger.isDebugEnabled()) logger.debug("dbObjectChanged SQLObjectEvent: "+e);
 		if (e.getPropertyName().equals("name") && 
 				!e.getNewValue().equals(e.getSQLSource().getName()) ) {
@@ -411,13 +439,23 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 
 	public void dbStructureChanged(SQLObjectEvent e) {
 		logger.debug("dbStructureChanged. source="+e.getSource());
-		if (!SwingUtilities.isEventDispatchThread()) return;
 		try {			
 			ArchitectUtils.listenToHierarchy(this, e.getSQLSource());
-			TreeModelEvent tme = new TreeModelEvent(this, getPathToNode(e.getSQLSource()));
-			fireTreeStructureChanged(tme);
 		} catch (ArchitectException ex) {
 			logger.error("Couldn't listen to hierarchy rooted at "+e.getSQLSource(), ex);
 		}
+        if ((!SwingUtilities.isEventDispatchThread()) && (!testMode)) {
+            logger.debug("Not refiring because this is not the EDT.");
+            return;
+        }
+		TreeModelEvent tme = new TreeModelEvent(this, getPathToNode(e.getSQLSource()));
+		fireTreeStructureChanged(tme);
 	}
+    
+    /**
+     * Sets the {@link #testMode} flag.
+     */
+    public void setTestMode(boolean v) {
+        testMode = v;
+    }
 }
