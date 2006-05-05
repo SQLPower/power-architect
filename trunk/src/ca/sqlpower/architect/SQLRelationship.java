@@ -39,6 +39,11 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 
 	protected RelationshipManager fkColumnManager;
 
+    /**
+     * A counter for {@link #setParent()} to decide when to detach listeners.
+     */
+    private int parentCount;
+
 	public SQLRelationship() {
 		children = new LinkedList();
 		pkCardinality = ONE;
@@ -60,7 +65,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
     public RelationshipManager getRelationshipManager() {
         return fkColumnManager;
     }
-	
+    
 	private void attachListeners() throws ArchitectException {
 		ArchitectUtils.listenToHierarchy(fkColumnManager,pkTable);
 		ArchitectUtils.listenToHierarchy(fkColumnManager,fkTable);
@@ -68,8 +73,10 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	}
 	
 	private void detachListeners() throws ArchitectException {
-		ArchitectUtils.unlistenToHierarchy(fkColumnManager,pkTable);
-		ArchitectUtils.unlistenToHierarchy(fkColumnManager,fkTable);
+        if (pkTable != null)
+            ArchitectUtils.unlistenToHierarchy(fkColumnManager,pkTable);
+        if (fkTable != null)
+            ArchitectUtils.unlistenToHierarchy(fkColumnManager,fkTable);
 	}
 	
 	public void attachRelationship(SQLTable pkTable, SQLTable fkTable, boolean autoGenerateMapping) throws ArchitectException {
@@ -78,15 +85,15 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		
 		SQLTable oldPkt = this.pkTable;
 		SQLTable oldFkt = this.fkTable;
-		if (this.pkTable != null || this.fkTable != null) {
-			this.detachListeners();
-		}
+		
+		detachListeners();
+		
 		try {
 			this.pkTable = pkTable;
 			this.fkTable = fkTable;
 			
-			this.fireDbObjectChanged("pkTable",oldPkt,pkTable);
-			this.fireDbObjectChanged("fkTable",oldFkt,fkTable);
+			fireDbObjectChanged("pkTable",oldPkt,pkTable);
+			fireDbObjectChanged("fkTable",oldFkt,fkTable);
 		
 			fkTable.getColumnsFolder().setMagicEnabled(false);
 			fkTable.getImportedKeysFolder().setMagicEnabled(false);
@@ -654,22 +661,37 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 	}
 
 	/**
-	 * This method is not useful, and has no side effects.
+	 * This method is useful, and has side effects.
 	 *
+     * setParent detaches the relation manager if newParent is null
+     * and reattaches the relation manager if newParent is not null
+     *
 	 * @param newParent If this is the same as pkTable or fkTable,
 	 * this method returns normally.  Otherwise, this method throws
 	 * IllegalArgumentException.
+	 * @throws ArchitectException 
 	 * @throws IllegalArgumentException if newParent is anything other
 	 * than this relationship's pkTable.exportedKeysFolder or
 	 * fkTable.importedKeysFolder
 	 */
 	protected void setParent(SQLObject newParent) {
-		if (newParent != null
-			&& (pkTable != null && newParent != pkTable.exportedKeysFolder)
-			&& (fkTable != null && newParent != fkTable.importedKeysFolder)) {
-			throw new IllegalArgumentException
-				("You can't change the parent of a SQLRelationship this way");
-		}
+	    logger.info("Setting parent of " + this + " to "+ newParent);
+	    try {
+	        if (newParent == null) {
+                if (--parentCount == 0) {
+                    detachListeners();
+                }
+	        } else if ( (pkTable != null && newParent != pkTable.exportedKeysFolder)
+	                && (fkTable != null && newParent != fkTable.importedKeysFolder)) {
+	            throw new IllegalArgumentException
+	            ("You can't change the parent of a SQLRelationship this way");
+	        } else {
+	            attachListeners();
+                parentCount++;
+	        }
+	    }catch (ArchitectException ae) {
+	        throw new ArchitectRuntimeException(ae);
+	    }
 	}
 
 	/**
