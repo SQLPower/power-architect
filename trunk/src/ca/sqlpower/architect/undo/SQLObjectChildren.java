@@ -30,7 +30,7 @@ public abstract class SQLObjectChildren extends AbstractUndoableEdit {
 		SQLObject parent = sqlObject.getParent();
 		try {
 			if (parent != null) {
-				sqlObject.setMagicEnabled(false);
+				parent.setMagicEnabled(false);
 			}
 			sqlObject.setMagicEnabled(false);
 			for (int ii = 0; ii < changed.length;ii++)
@@ -40,7 +40,7 @@ public abstract class SQLObjectChildren extends AbstractUndoableEdit {
 		}finally {
 			sqlObject.setMagicEnabled(true);
 			if (parent != null) {
-				sqlObject.setMagicEnabled(true);
+				parent.setMagicEnabled(true);
 			}
 		}
 	}
@@ -54,7 +54,7 @@ public abstract class SQLObjectChildren extends AbstractUndoableEdit {
 		SQLObject parent = sqlObject.getParent();
 		try{
 			if (parent != null) {
-				sqlObject.setMagicEnabled(false);
+				parent.setMagicEnabled(false);
 			}
 			sqlObject.setMagicEnabled(false);
 			for (int ii = 0; ii < changed.length; ii++) {
@@ -63,7 +63,7 @@ public abstract class SQLObjectChildren extends AbstractUndoableEdit {
 			}
 		}finally {
 			if (parent != null) {
-				sqlObject.setMagicEnabled(true);
+				parent.setMagicEnabled(true);
 			}
 			sqlObject.setMagicEnabled(true);
 		}
