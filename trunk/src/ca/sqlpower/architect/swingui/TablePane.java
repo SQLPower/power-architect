@@ -98,7 +98,7 @@ public class TablePane
 	/**
 	 * Tracks current highlight colours of the columns in this table.
 	 */
-	protected ArrayList<Color> columnHighlight;
+	protected List<List<Color>> columnHighlight;
 
 	/**
 	 * During a drag operation where a column is being dragged from
@@ -122,7 +122,7 @@ public class TablePane
 		this.dtl = new TablePaneDropListener(this);
 		this.margin = (Insets) tp.margin.clone();
 		this.columnSelection = new ArrayList<Boolean>(tp.columnSelection);
-		this.columnHighlight = new ArrayList<Color>(tp.columnHighlight);
+		this.columnHighlight = new ArrayList<List<Color>>(tp.columnHighlight);
 		try {
 			
 			PlayPenComponentUI newUi = tp.getUI().getClass().newInstance();
@@ -212,7 +212,7 @@ public class TablePane
 			int ci[] = e.getChangedIndices();
 			for (int i = 0; i < ci.length; i++) {
 				columnSelection.add(ci[i], Boolean.FALSE);
-				columnHighlight.add(ci[i], null);
+				columnHighlight.add(ci[i], new ArrayList<Color>());
 			}
 		}
 		try {
@@ -289,9 +289,9 @@ public class TablePane
 			for (int i = 0; i < numCols; i++) {
 				columnSelection.add(Boolean.FALSE);
 			}
-			columnHighlight = new ArrayList<Color>(numCols);
+			columnHighlight = new ArrayList<List<Color>>(numCols);
 			for (int i = 0; i < numCols; i++) {
-				columnHighlight.add(null);
+				columnHighlight.add(new ArrayList<Color>());
 			}
 			firePropertyChange("model.children", null, null);
 			//revalidate();
@@ -339,9 +339,9 @@ public class TablePane
 			for (int i = 0; i < m.getColumns().size(); i++) {
 				columnSelection.add(Boolean.FALSE);
 			}
-			columnHighlight = new ArrayList<Color>(m.getColumns().size());
+			columnHighlight = new ArrayList<List<Color>>(m.getColumns().size());
 			for (int i = 0; i < m.getColumns().size(); i++) {
-				columnHighlight.add(null);
+				columnHighlight.add(new ArrayList<Color>());
 			}
 		} catch (ArchitectException e) {
 			logger.error("Error getting children on new model", e);
@@ -861,9 +861,14 @@ public class TablePane
      * @param c The new colour to show the column in.  null means use this TablePane's current
      * foreground colour.
      */
-    public void setColumnHighlight(int i, Color c) {
-        columnHighlight.set(i, c);
+    public void addColumnHighlight(int i, Color c) {
+        columnHighlight.get(i).add(c);
         repaint(); // XXX: should constrain repaint region to column i
+    }
+    
+    public void removeColumnHighlight(int i, Color c) {
+        columnHighlight.get(i).remove(c);
+        repaint();
     }
     
     /**
@@ -874,6 +879,18 @@ public class TablePane
      *   null indicates the current tablepane foreground colour will be used.
      */
     public Color getColumnHighlight(int i) {
-        return (Color) columnHighlight.get(i);
+        if (columnHighlight.get(i).isEmpty()) {
+            return getForeground();
+        } else {
+            float[] rgbsum = new float[3];
+            for (Color c : columnHighlight.get(i)) {
+                float[] comps = c.getRGBColorComponents(new float[3]);
+                rgbsum[0] += comps[0];
+                rgbsum[1] += comps[1];
+                rgbsum[2] += comps[2];
+            }
+            float sz = columnHighlight.get(i).size();
+            return new Color(rgbsum[0]/sz, rgbsum[1]/sz, rgbsum[2]/sz);
+        }
     }
 }
