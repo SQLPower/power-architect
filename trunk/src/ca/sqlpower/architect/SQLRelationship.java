@@ -606,20 +606,31 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		}
 
 		protected void ensureInMapping(SQLColumn pkcol) throws ArchitectException {
-			logger.debug("Adding "+pkcol.getParentTable()+"."+pkcol+" to mapping");
 			if (!containsPkColumn(pkcol)) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("ensureInMapping("+getName()+"): Adding "
+                            +pkcol.getParentTable().getName()+"."+pkcol.getName()
+                            +" to mapping");
+                }
 				SQLColumn fkcol = fkTable.getColumnByName(pkcol.getName());
 				if (fkcol == null) fkcol = new SQLColumn(pkcol);
 				try {
-					fkTable.getColumnsFolder().setMagicEnabled(false);
+                    fkTable.setMagicEnabled(false);
 					fkcol.setMagicEnabled(false);
-					fkTable.addColumn(fkcol);
-					logger.debug("Is the relationship identifying? "+identifying);
-					if (identifying) {
-						fkcol.setPrimaryKeySeq(new Integer(fkTable.getPkSize()));
-					}
+                    int insertIdx;
+                    if (identifying) {
+                        insertIdx = fkTable.getPkSize();
+                        fkcol.setPrimaryKeySeq(new Integer(insertIdx));
+                    } else {
+                        insertIdx = fkTable.getColumns().size();
+                        fkcol.setPrimaryKeySeq(null);
+                    }
+                    logger.debug("ensureInMapping("+getName()+"): adding fkcol at index "+
+                            insertIdx+" (rel is identifying? "+identifying+
+                            ", pkseq="+fkcol.getPrimaryKeySeq()+")");
+					fkTable.addColumn(insertIdx, fkcol);
 				} finally {
-					fkTable.getColumnsFolder().setMagicEnabled(true);
+					fkTable.setMagicEnabled(true);
 					fkcol.setMagicEnabled(true);
 				}
 				addMapping(pkcol, fkcol);
