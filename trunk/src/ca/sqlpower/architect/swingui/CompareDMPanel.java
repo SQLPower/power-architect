@@ -302,6 +302,10 @@ public class CompareDMPanel extends JPanel {
 				} catch (ArchitectException e) {
 					logger.debug(
 						"Unexpected architect exception in ConnectionListener",	e);
+                    JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(CompareDMPanel.this),
+                        "Unexpected architect exception in ConnectionListener" + "\n" + e, "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                            
 				}
 			}
 
