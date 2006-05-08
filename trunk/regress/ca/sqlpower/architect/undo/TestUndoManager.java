@@ -287,9 +287,10 @@ public class TestUndoManager extends TestCase {
 		CreateRelationshipAction.doCreateRelationship(pkTable, fkTable, pp, false);
 		SQLColumn pk1 = pkTable.getColumnByName("pk1");
 		assertEquals("pk1 was already the new type.. makes testing silly", pk1.getType(), Types.INTEGER);
-		pk1.setType(Types.BINARY);
 		SQLColumn fk1 = fkTable.getColumnByName("pk1");
-		assertNotNull("Pk1 was not propegated to fkTable",fk1);
+		assertNotNull("fk column not in fkTable", fk1);
+        assertEquals("pk and fk must start out with same datatype", pk1.getType(), fk1.getType());
+		pk1.setType(Types.BINARY);
 		assertEquals("fkTable not updated when the pktable was updated",Types.BINARY,fk1.getType());
 		undoManager.undo();
 		assertEquals("fk1 didn't go back to old type", Types.INTEGER, fk1.getType());
