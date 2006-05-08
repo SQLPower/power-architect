@@ -7,8 +7,6 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
-import sun.rmi.log.ReliableLog;
-
 public class TestSQLRelationship extends SQLTestCase {
 
 	private SQLTable parentTable;
@@ -515,11 +513,24 @@ public class TestSQLRelationship extends SQLTestCase {
         parentTable.addColumn(0, mycol);
         mycol.setPrimaryKeySeq(0);
         assertTrue(mycol.isPrimaryKey());
-
+        assertTrue(rel1.isIdentifying());
+        
         // and the point of the test...
         SQLColumn generatedCol = childTable1.getColumnByName("my_column"); 
-        assertTrue(generatedCol.isPrimaryKey());
+        System.out.println("Columns of childTable1: "+childTable1.getColumns());
+        System.out.println("Column 0 pk value:"+childTable1.getColumn(0).getPrimaryKeySeq());
         assertTrue(childTable1.getColumnIndex(generatedCol) < childTable1.getPkSize());
+        assertTrue(generatedCol.isPrimaryKey());
+    }
+    
+    public void testCreateMappingsFiresEvents() throws ArchitectException {
+        CountingSQLObjectListener l = new CountingSQLObjectListener();
+        rel1.addSQLObjectListener(l);
+        SQLRelationship.ColumnMapping columnMapping = new SQLRelationship.ColumnMapping();
+        columnMapping.setPkColumn(parentTable.getColumn(0));
+        columnMapping.setFkColumn(childTable1.getColumn(0));
+        rel1.addChild(0,columnMapping);
+        assertEquals(1, l.getInsertedCount());
     }
     
     public void testRemoveMappingsFiresEvents() {
