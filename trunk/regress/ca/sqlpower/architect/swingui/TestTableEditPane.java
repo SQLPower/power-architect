@@ -36,7 +36,8 @@ public class TestTableEditPane extends TestCase {
 	 * If a table has an empty name, this can cause errors 
 	 * in functions like Forward Engineering or CompareDM.
 	 */	
-	public void testDeniesEmptyName(){			
+	public void testDeniesEmptyName() {
+        fail("This test is disabled due to sucky design");
 		boolean gotException = false;
 		tep.setNameText("");
 		try{
