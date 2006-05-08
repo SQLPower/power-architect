@@ -797,13 +797,13 @@ public class CompareDMPanel extends JPanel {
 
 		CellConstraints cc = new CellConstraints();
 
-		builder.appendSeparator("Compare Source");
+		builder.appendSeparator("Compare Older");
 		builder.nextLine();
 		builder.append(""); // takes up blank space
 
 		source.buildPartialUI(builder, true);
 
-		builder.appendSeparator("With Target");
+		builder.appendSeparator("With Newer");
 		builder.appendRow(builder.getLineGapSpec());
 		builder.appendRow("pref");
 		builder.nextLine(2);
@@ -832,10 +832,11 @@ public class CompareDMPanel extends JPanel {
 		builder.append(sqlButton);
 
 		JPanel ddlTypePanel = new JPanel(new BorderLayout(3, 3));
-		ddlTypePanel.add(new JLabel("SQL for"), BorderLayout.WEST);
+		ddlTypePanel.add(new JLabel("SQL for "), BorderLayout.WEST);
 		ddlTypePanel.add(sqlTypeDropdown, BorderLayout.CENTER); // ddl generator
 																// type list
-		builder.append(ddlTypePanel);
+        ddlTypePanel.add(new JLabel(" to make Older look like Newer"), BorderLayout.EAST);
+		builder.append(ddlTypePanel, 3);
 
 		builder.appendRow(builder.getLineGapSpec());
 		builder.appendRow("pref");
