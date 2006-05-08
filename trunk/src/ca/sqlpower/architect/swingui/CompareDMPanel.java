@@ -644,7 +644,7 @@ public class CompareDMPanel extends JPanel {
 				o = project.getTargetDatabase();
 			} else {
 				throw new IllegalStateException(
-						"Do not which source to compare from");
+						"Do not know which source to compare from");
 			}
 
 			return o;
