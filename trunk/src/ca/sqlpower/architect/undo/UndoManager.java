@@ -155,13 +155,11 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 		
 		public void dbChildrenInserted(SQLObjectEvent e) {
 			if (UndoManager.this.isUndoOrRedoing()) return;
-			if (e.getSource() instanceof SQLDatabase ||
-					e.getSource() instanceof SQLTable.Folder)
-			{
-				SQLObjectInsertChildren undoEvent = new SQLObjectInsertChildren();
-				undoEvent.createEditFromEvent(e);
-				addEdit(undoEvent);
-			}
+			
+			SQLObjectInsertChildren undoEvent = new SQLObjectInsertChildren();
+			undoEvent.createEditFromEvent(e);
+			addEdit(undoEvent);
+			
 			try{
 			ArchitectUtils.listenToHierarchy(this,e.getChildren());
 			ArchitectUtils.addUndoListenerToHierarchy(this,e.getChildren());
@@ -175,14 +173,11 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 
 		public void dbChildrenRemoved(SQLObjectEvent e) {
 			if (UndoManager.this.isUndoOrRedoing()) return;
-			if (e.getSource() instanceof SQLDatabase ||
-					e.getSource() instanceof SQLTable.Folder)
-			{
-				SQLObjectRemoveChildren undoEvent = new SQLObjectRemoveChildren();
-				undoEvent.createEditFromEvent(e);
-				addEdit(undoEvent);
 			
-			}
+			SQLObjectRemoveChildren undoEvent = new SQLObjectRemoveChildren();
+			undoEvent.createEditFromEvent(e);
+			addEdit(undoEvent);
+			
 //			try{
 //				ArchitectUtils.unlistenToHierarchy(this,e.getChildren());
 //				ArchitectUtils.undoUnlistenToHierarchy(this,e.getChildren());
