@@ -164,6 +164,7 @@ public class TestColumnEditPanel extends TestCase {
 	 * in functions like Forward Engineering or CompareDM.
 	 */	
 	public void testDenyEmptyColumnName(){
+        fail("This test is disabled due to sucky design");
 		panel.getColName().setText("");
 		try {
 			panel.applyChanges();
