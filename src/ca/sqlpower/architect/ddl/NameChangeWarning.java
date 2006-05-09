@@ -1,11 +1,10 @@
 package ca.sqlpower.architect.ddl;
 
-import java.lang.reflect.InvocationTargetException;
-
-import org.apache.commons.beanutils.BeanUtils;
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.*;
+import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLTable;
 
 /**
  * A NameChangeWarning object represents a warning about a SQLObject
@@ -16,6 +15,7 @@ import ca.sqlpower.architect.*;
 public class NameChangeWarning implements DDLWarning {
 
     private static final Logger logger = Logger.getLogger(NameChangeWarning.class);
+    
 	protected SQLObject subject;
 	protected String reason;
 	protected String oldName;
@@ -58,13 +58,8 @@ public class NameChangeWarning implements DDLWarning {
 	}
 	
     public void setNewValue(Object newValue) {
-        try {
-            BeanUtils.setProperty(subject, "physicalName", newValue);
-        } catch (InvocationTargetException ex) {
-            logger.info("BeanUtils couldn't set physicalName of "+subject+" to "+newValue, ex);
-        } catch (IllegalAccessException ex) {
-            logger.info("BeanUtils couldn't set physicalName of "+subject+" to "+newValue, ex);
-        }
+        logger.debug("Setting logical name of "+subject+" to "+newValue);
+        subject.setName(newValue == null ? null : newValue.toString());
     }
 	
 }
