@@ -49,71 +49,74 @@ public class ExportDDLAction extends AbstractAction {
 	
 	private JDialog d;
 
-	public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(ActionEvent e) {
 
-		final DDLExportPanel ddlPanel = new DDLExportPanel(architectFrame.getProject());
-		
-		Action okAction, cancelAction;
-		okAction = new AbstractAction() {
-				public void actionPerformed(ActionEvent evt) {
-					try {
-						if (ddlPanel.applyChanges()) {
-							
-							GenericDDLGenerator ddlg = architectFrame.getProject().getDDLGenerator();
-							ddlg.setTargetSchema(ddlPanel.getSchemaField().getText());
-							
-							// XXX is it OK that is this generated but never used??
-							ddlg.generateDDL(architectFrame.getProject().getPlayPen().getDatabase());
-							List warnings = ddlg.getWarnings();
-							if (warnings.size() > 0) {
-								TableSorter sorter = new TableSorter(new DDLWarningTableModel(warnings));
-								JTable warningTable = new JTable(sorter);
-								sorter.setTableHeader(warningTable.getTableHeader());
-								JOptionPane.showMessageDialog(d, new JScrollPane(warningTable), "Warnings in generated DDL", JOptionPane.WARNING_MESSAGE);
-							}
-							
-							SQLDatabase ppdb = ArchitectFrame.getMainInstance().getProject().getPlayPen().getDatabase();
-							SQLScriptDialog ssd = 
-								new SQLScriptDialog(d, "Preview SQL Script", "", false,
-									ddlg,
-									ppdb.getDataSource(),
-									true);
-							MonitorableWorker scriptWorker = ssd.getExecuteTask();
-							ConflictFinderProcess cfp = new ConflictFinderProcess(ssd, ppdb, ddlg, ddlg.getDdlStatements());
-							ConflictResolverProcess crp = new ConflictResolverProcess(ssd, cfp);
-							cfp.setNextProcess(crp);
-							crp.setNextProcess(scriptWorker);
-							ssd.setExecuteTask(cfp);
-							ssd.setVisible(true);
-						}
-					} catch (Exception ex) {
-						JOptionPane.showMessageDialog
-							(architectFrame,
-							 "Can't export DDL: "+ex.getMessage());
-						logger.error("Got exception while exporting DDL", ex);
-
-					}
-				}
-			};
-			
-
-		
-		cancelAction = new AbstractAction() {
-				public void actionPerformed(ActionEvent evt) {
-					ddlPanel.discardChanges();
-					d.setVisible(false);
-				}
-			};
-		d = ArchitectPanelBuilder.createArchitectPanelDialog(
-					ddlPanel,
-					ArchitectFrame.getMainInstance(),
-					"Forward Engineer SQL Script", "OK",
-					okAction, cancelAction);
-		
-		d.pack();
-		d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
-		d.setVisible(true);
-	}
+        final DDLExportPanel ddlPanel = new DDLExportPanel(architectFrame.getProject());
+        
+        Action okAction, cancelAction;
+        okAction = new AbstractAction() {
+            public void actionPerformed(ActionEvent evt) {
+                try {
+                    if (ddlPanel.applyChanges()) {
+                        
+                        GenericDDLGenerator ddlg = architectFrame.getProject().getDDLGenerator();
+                        ddlg.setTargetSchema(ddlPanel.getSchemaField().getText());
+                        
+                        for (;;) {
+                            // generate DDL in order to come up with a list of warnings
+                            ddlg.generateDDL(architectFrame.getProject().getPlayPen().getDatabase());
+                            List warnings = ddlg.getWarnings();
+                            if (warnings.size() == 0)  break;
+                            TableSorter sorter = new TableSorter(new DDLWarningTableModel(warnings));
+                            JTable warningTable = new JTable(sorter);
+                            sorter.setTableHeader(warningTable.getTableHeader());
+                            // FIXME: this should not be a JOptionPane. It should be a new type of ArchitectPanel.
+                            int choice = JOptionPane.showConfirmDialog(d, new JScrollPane(warningTable), "Errors in generated DDL", JOptionPane.WARNING_MESSAGE);
+                            if (choice != JOptionPane.OK_OPTION) return;
+                        }
+                        
+                        SQLDatabase ppdb = ArchitectFrame.getMainInstance().getProject().getPlayPen().getDatabase();
+                        SQLScriptDialog ssd = 
+                            new SQLScriptDialog(d, "Preview SQL Script", "", false,
+                                    ddlg,
+                                    ppdb.getDataSource(),
+                                    true);
+                        MonitorableWorker scriptWorker = ssd.getExecuteTask();
+                        ConflictFinderProcess cfp = new ConflictFinderProcess(ssd, ppdb, ddlg, ddlg.getDdlStatements());
+                        ConflictResolverProcess crp = new ConflictResolverProcess(ssd, cfp);
+                        cfp.setNextProcess(crp);
+                        crp.setNextProcess(scriptWorker);
+                        ssd.setExecuteTask(cfp);
+                        ssd.setVisible(true);
+                    }
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog
+                    (architectFrame,
+                            "Can't export DDL: "+ex.getMessage());
+                    logger.error("Got exception while exporting DDL", ex);
+                    
+                }
+            }
+        };
+        
+        
+        
+        cancelAction = new AbstractAction() {
+            public void actionPerformed(ActionEvent evt) {
+                ddlPanel.discardChanges();
+                d.setVisible(false);
+            }
+        };
+        d = ArchitectPanelBuilder.createArchitectPanelDialog(
+                ddlPanel,
+                ArchitectFrame.getMainInstance(),
+                "Forward Engineer SQL Script", "OK",
+                okAction, cancelAction);
+        
+        d.pack();
+        d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
+        d.setVisible(true);
+    }
 
 	/**
 	 * The ConflictFinderProcess uses a ConflictResolver (which it monitors with
