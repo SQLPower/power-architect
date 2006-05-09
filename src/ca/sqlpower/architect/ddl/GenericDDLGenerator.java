@@ -153,6 +153,8 @@ public class GenericDDLGenerator implements DDLGenerator {
 				SQLTable t = (SQLTable) it.next();
 				writeExportedRelationships(t);
 			}
+            
+			// TODO add warnings for the originals of the existing duplicate name warnings
 		} finally {
 			try {
 				if (con != null) con.close();
@@ -303,30 +305,26 @@ public class GenericDDLGenerator implements DDLGenerator {
 		
 	}
 	
-	public void dropTable(SQLTable t)
-	{
-		
-		print(makeDropTableSQL(t.getCatalogName(),t.getSchemaName(),t.getName()));
-		endStatement(DDLStatement.StatementType.DROP, t);
-		
-	}
+	public void dropTable(SQLTable t) {
+        print(makeDropTableSQL(t.getCatalogName(), t.getSchemaName(), t.getName()));
+        endStatement(DDLStatement.StatementType.DROP, t);
+    }
     
-	protected String columnDefinition(SQLColumn c, Map colNameMap) throws ArchitectDiffException
-	{
-		StringBuffer def = new StringBuffer(); 
-        
+	protected String columnDefinition(SQLColumn c, Map colNameMap) throws ArchitectDiffException {
+        StringBuffer def = new StringBuffer();
+
         // Column name
-		def.append(createPhysicalName(colNameMap,c));
-		def.append(" ");
-        
-		def.append(columnType(c));
+        def.append(createPhysicalName(colNameMap, c));
+        def.append(" ");
+
+        def.append(columnType(c));
         def.append(" ");
 
         // Column nullability
         def.append(columnNullability(c));
-        
-		return def.toString();
-	}
+
+        return def.toString();
+    }
 
     protected String columnNullability(SQLColumn c) {
         GenericTypeDescriptor td = failsafeGetTypeDescriptor(c);       
@@ -419,7 +417,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 			if (col.getPrimaryKeySeq() == null) break;
 			if (firstCol) {
 				// generate a unique primary key name
-                getPhysicalPrimaryKeyName(topLevelNames,t);
+                createPhysicalPrimaryKeyName(topLevelNames,t);
 				//
 				println("");
 				print("ALTER TABLE ");
@@ -571,11 +569,6 @@ public class GenericDDLGenerator implements DDLGenerator {
 	 * non-alphanumeric characters alone. Subclasses might choose to
 	 * quote and leave everything alone, or whatever.
 	 */
-	public String toIdentifier(String logicalName, String physicalName) {
-        if (logicalName == null) return null;
-		else return logicalName.replace(' ', '_');
-	}
-
 	public String toIdentifier(String name) {
         if (name == null) return null;
 		else return name.replace(' ', '_');
@@ -743,31 +736,14 @@ public class GenericDDLGenerator implements DDLGenerator {
      * Generate, set, and return a valid identifier for this SQLObject.
 	 * @throws ArchitectException 
      */
-	protected String createPhysicalName(Map dupCheck, SQLObject so) throws ArchitectDiffException {				
-		
-		boolean firstTime = true;
-		String oldName = so.getName();
-		// loop until we manage to generate a unique physical name
-		logger.debug("transform identifier source: " + so.getName());
-		
-		String temp = null;
-		if (firstTime) {
-			// naming is deterministic, so unconditionally regenerate
-			firstTime = false;
-			temp = toIdentifier(so.getName(),null); 
-		} else {
-			temp = toIdentifier(so.getName(),so.getPhysicalName());
-		}
-		logger.debug("transform identifier result: " + temp);
-		so.setPhysicalName(temp);
+	protected String createPhysicalName(Map dupCheck, SQLObject so) {
+		logger.debug("transform identifier source: " + so.getPhysicalName());
+		so.setPhysicalName(toIdentifier(so.getName()));
+        logger.debug("transform identifier result: " + so.getPhysicalName());
 		if (dupCheck.get(so.getPhysicalName()) == null) {
-			
-			warnings.add(new NameChangeWarning(so, "Duplicate Name Found", oldName)); //TODO make sure these appear in the warnings table, and make sure they're editable
 			dupCheck.put(so.getPhysicalName(), so);
-		}
-		else
-		{
-			throw new ArchitectDiffException("Duplicate name \""+so.getPhysicalName()+"\" found in \""+so.toString()+"\" of type "+so.getClass().getName());
+		} else {
+            warnings.add(new NameChangeWarning(so, "Duplicate Name", so.getName()));
 		}
 						
 		return so.getPhysicalName();
@@ -776,28 +752,18 @@ public class GenericDDLGenerator implements DDLGenerator {
 	/**
      * Generate, set, and return a physicalPrimaryKeyName. 
      */
-	public String getPhysicalPrimaryKeyName(Map dupCheck, SQLTable t) {		
-		boolean done = false;
-		boolean firstTime = true;
-		// loop until we manage to generate a valid physical primary key name
-		while (!done) {
-			logger.debug("getting phsysical primary key name, logical="+t.getPrimaryKeyName()+",physical="+t.getPhysicalPrimaryKeyName());
-			String temp = null;
-			if (firstTime) {
-				// naming is deterministic, so unconditionally regenerate
-				firstTime = false;
-				temp = toIdentifier(t.getPrimaryKeyName(),null);
-			} else {
-				temp = toIdentifier(t.getPrimaryKeyName(),t.getPhysicalPrimaryKeyName()); 
-			}
-			logger.debug("transform key identifier result: " + temp);
-			t.setPhysicalPrimaryKeyName(temp);
-			if (dupCheck.get(t.getPhysicalPrimaryKeyName()) == null) {
-				done = true; // we managed to generate something valid and unique
-				dupCheck.put(t.getPhysicalPrimaryKeyName(),t);
-			}
-		}				
-		return t.getPhysicalPrimaryKeyName();
+	public String createPhysicalPrimaryKeyName(Map dupCheck, SQLTable t) {
+	    logger.debug("getting physical primary key name, logical="+t.getPrimaryKeyName()+",physical="+t.getPhysicalPrimaryKeyName());
+	    String temp = null;
+	    temp = toIdentifier(t.getPrimaryKeyName());
+	    logger.debug("transform key identifier result: " + temp);
+	    t.setPhysicalPrimaryKeyName(temp);
+	    if (dupCheck.get(t.getPhysicalPrimaryKeyName()) == null) {
+	        dupCheck.put(t.getPhysicalPrimaryKeyName(),t);
+	    } else {
+            warnings.add(new NameChangeWarning(t, "Duplicate Primary Key Name", t.getPrimaryKeyName()));
+        }
+	    return t.getPhysicalPrimaryKeyName();
 	}
 
     /**
