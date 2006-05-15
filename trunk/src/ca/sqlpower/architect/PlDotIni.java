@@ -29,17 +29,57 @@ import org.apache.log4j.Logger;
  * the name, this actually represents the master list of Data Source connections,
  * and XXX should be renamed to DataSourceList.
  * <p>
- * <b>Warning:</b> this file only reads (and therefore writes) files with MS-DOS line endings.
+ * <b>Warning:</b> this file only reads (and therefore writes) files with MS-DOS line endings,
+ * regardless of platform, since the encoding of binary passwords
+ * could result in a bare \n in the encryption...
  * @version $Id$
  */
 public class PlDotIni {
     
     public static final String DOS_CR_LF = "\r\n";
     
+    /** 
+     * Boolean to control whether we autosave, to prevent calling it while we're already saving.
+     */
+    private boolean dontAutoSave;
+    
 	/**
 	 * The list of Listeners to notify when a datasource is added or removed.
 	 */
-	List<DatabaseListChangeListener> listeners = new ArrayList<DatabaseListChangeListener>();
+	List<DatabaseListChangeListener> listeners;
+    
+	DatabaseListChangeListener saver = new DatabaseListChangeListener() {
+	    
+	    public void databaseAdded(DatabaseListChangeEvent e) {
+	        saveIfFileKnown();
+	    }
+	    
+	    public void databaseRemoved(DatabaseListChangeEvent e) {
+            saveIfFileKnown();
+	    }
+	    
+	    private void saveIfFileKnown() {
+            if (dontAutoSave)
+                return;
+	        if (lastFileAccessed != null) {
+	            try {
+	                write(lastFileAccessed);
+	            } catch (IOException e) {
+	                logger.error("Error auto-saving PL.INI file", e);
+	            }
+	        }
+	        
+	    }
+	};
+	    
+    /**
+     * Construct a PL.INI object, and set an Add Listener to save
+     * the file when a database is added (bugid 1032).
+     */
+    public PlDotIni() {
+        listeners = new ArrayList<DatabaseListChangeListener>();
+        listeners.add(saver);
+    }
 
 	/**
      * The Section class represents a named section in the PL.INI file.
@@ -88,8 +128,8 @@ public class PlDotIni {
     
     /**
      * A list of Section and ArchitectDataSource objects, in the order they appear in the file;
-     * this List contains Mixed Content which is Very Bad so it cannot be converted to Java 5
-     * Generic Collection.
+     * this List contains Mixed Content (both Section and ArchitectDataSource) which is 
+     * A Very Bad Idea(tm) so it cannot be converted to Java 5 Generic Collection.
      */
     private final List fileSections= new ArrayList();
     
@@ -110,12 +150,12 @@ public class PlDotIni {
 			while (!shuttingDown) {
 				try {
 					Thread.sleep(WAIT_TIME * 1000);
-					if (lastFileRead == null) {
+					if (lastFileAccessed == null) {
 						continue;
 					}
-					long newFileTime = lastFileRead.lastModified();
+					long newFileTime = lastFileAccessed.lastModified();
 					if (newFileTime != fileTime) {
-						read(lastFileRead);
+						read(lastFileAccessed);
 						fileTime = newFileTime;
 					}
 				} catch (Exception e) {
@@ -125,7 +165,7 @@ public class PlDotIni {
 		}
 	};
     
-    File lastFileRead;
+    File lastFileAccessed;
     
 	/**
 	 * Reads the PL.INI file at the given location into a new fileSections list.
@@ -136,60 +176,65 @@ public class PlDotIni {
 	    final int MODE_READ_GENERIC = 1;  // reading a generic named section
 	    int mode = MODE_READ_GENERIC;
 	    
-	    if (!location.canRead()) {
-	    	throw new IllegalArgumentException("pl.ini file cannot be read: " + location.getAbsolutePath());
-	    }
-	    lastFileRead = location;
-		
-		ArchitectDataSource currentDS = null;
-		Section currentSection = new Section(null);  // this accounts for any properties before the first named section
-		fileSections.add(currentSection);
-		fileTime =  location.lastModified();
-		
-		// Can't use Reader to read this file because the encrypted passwords contain non-ASCII characters
-		BufferedInputStream in = new BufferedInputStream(new FileInputStream(location));
-
-		byte[] lineBytes = null;
-
-		while ((lineBytes = readLine(in)) != null) {
-		    String line = new String(lineBytes);
-		    logger.debug("Read in new line: "+line);
-			if (line.startsWith("[Databases_")) {
-				logger.debug("It's a new database connection spec!");
-				currentDS =  new ArchitectDataSource();
-				add(currentDS);
-				mode = MODE_READ_DS;
-			} else if (line.startsWith("[")) {
-				logger.debug("It's a new generic section!");
-			    currentSection = new Section(line.substring(1, line.length()-1));
-			    fileSections.add(currentSection);
-			    mode = MODE_READ_GENERIC;
-			} else {
-			    String key;
-			    String value;
-			    	int equalsIdx = line.indexOf('=');
-				if (equalsIdx > 0) {
-					key = line.substring(0, equalsIdx);
-					value = line.substring(equalsIdx+1, line.length());
-				} else {
-				    key = line;
-				    value = null;
-				}
-				logger.debug("key="+key+",val="+value);
-				
-				if (mode == MODE_READ_DS) {
-				    if (key.equals("PWD") && value != null) {
-				        byte[] cypherBytes = new byte[lineBytes.length - equalsIdx - 1];
-				        System.arraycopy(lineBytes, equalsIdx + 1, cypherBytes, 0, cypherBytes.length);
-				        value = decryptPassword(9, cypherBytes);
-				    }
-				    currentDS.put(key, value);
-				} else if (mode == MODE_READ_GENERIC) {
-				    currentSection.put(key, value);
-				}
-			}
-		}
-		in.close();
+        try {
+            dontAutoSave = true;
+            if (!location.canRead()) {
+                throw new IllegalArgumentException("pl.ini file cannot be read: " + location.getAbsolutePath());
+            }
+            lastFileAccessed = location;
+            
+            ArchitectDataSource currentDS = null;
+            Section currentSection = new Section(null);  // this accounts for any properties before the first named section
+            fileSections.add(currentSection);
+            fileTime =  location.lastModified();
+            
+            // Can't use Reader to read this file because the encrypted passwords contain non-ASCII characters
+            BufferedInputStream in = new BufferedInputStream(new FileInputStream(location));
+            
+            byte[] lineBytes = null;
+            
+            while ((lineBytes = readLine(in)) != null) {
+                String line = new String(lineBytes);
+                logger.debug("Read in new line: "+line);
+                if (line.startsWith("[Databases_")) {
+                    logger.debug("It's a new database connection spec!");
+                    currentDS =  new ArchitectDataSource();
+                    add(currentDS);
+                    mode = MODE_READ_DS;
+                } else if (line.startsWith("[")) {
+                    logger.debug("It's a new generic section!");
+                    currentSection = new Section(line.substring(1, line.length()-1));
+                    fileSections.add(currentSection);
+                    mode = MODE_READ_GENERIC;
+                } else {
+                    String key;
+                    String value;
+                    int equalsIdx = line.indexOf('=');
+                    if (equalsIdx > 0) {
+                        key = line.substring(0, equalsIdx);
+                        value = line.substring(equalsIdx+1, line.length());
+                    } else {
+                        key = line;
+                        value = null;
+                    }
+                    logger.debug("key="+key+",val="+value);
+                    
+                    if (mode == MODE_READ_DS) {
+                        if (key.equals("PWD") && value != null) {
+                            byte[] cypherBytes = new byte[lineBytes.length - equalsIdx - 1];
+                            System.arraycopy(lineBytes, equalsIdx + 1, cypherBytes, 0, cypherBytes.length);
+                            value = decryptPassword(9, cypherBytes);
+                        }
+                        currentDS.put(key, value);
+                    } else if (mode == MODE_READ_GENERIC) {
+                        currentSection.put(key, value);
+                    }
+                }
+            }
+            in.close();
+        } finally {
+            dontAutoSave = false;
+        }
 		
 		if (logger.isDebugEnabled()) logger.debug("Finished reading file. Parsed contents:\n"+toString());
 	}
@@ -240,13 +285,19 @@ public class PlDotIni {
 	 * @throws IOException if the location is not writeable for any reason.
 	 */
 	public void write(File location) throws IOException {
-	    OutputStream out = new BufferedOutputStream(new FileOutputStream(location));
-	    write(out);
-	    out.close();
-	    fileTime = location.lastModified();
+        try {
+            dontAutoSave = true;
+    	    OutputStream out = new BufferedOutputStream(new FileOutputStream(location));
+    	    write(out);
+    	    out.close();
+            lastFileAccessed = location;
+    	    fileTime = location.lastModified();
+        } finally {
+            dontAutoSave = false;
+        }
 	}
 	
-	public void write(OutputStream out) throws IOException {
+	private void write(OutputStream out) throws IOException {
 	    int dbNum = 1;
 	    Iterator it = fileSections.iterator();
 	    while (it.hasNext()) {
@@ -274,7 +325,7 @@ public class PlDotIni {
 	 * @param properties The properties to output in this section.
 	 * @throws IOException when writing to the given stream fails.
 	 */
-	public void writeSection(OutputStream out, String name, Map properties) throws IOException {
+	private void writeSection(OutputStream out, String name, Map properties) throws IOException {
 	    if (name != null) {
 	        String sectionHeading = "["+name+"]" + DOS_CR_LF;
 	        out.write(sectionHeading.getBytes());
