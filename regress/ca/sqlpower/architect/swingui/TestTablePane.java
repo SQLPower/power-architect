@@ -174,13 +174,14 @@ public class TestTablePane extends TestCase {
 		tp.dbChildrenRemoved(new SQLObjectEvent(t.getColumnsFolder(), new int[] {0}, new SQLObject[] {c1}));
 	}
 	
-    public void testMultiHighlight() {
-        tp.addColumnHighlight(0, Color.RED);
-        tp.addColumnHighlight(0, Color.GREEN);
-        assertEquals(new Color(128, 128, 0), tp.getColumnHighlight(0));
-        tp.removeColumnHighlight(0, Color.RED);
-        assertEquals(Color.GREEN, tp.getColumnHighlight(0));
-        tp.removeColumnHighlight(0, Color.GREEN);
-        assertEquals(tp.getForeground(), tp.getColumnHighlight(0));
+    public void testMultiHighlight() throws ArchitectException {
+        SQLColumn col = tp.getModel().getColumn(0);
+        tp.addColumnHighlight(col, Color.RED);
+        tp.addColumnHighlight(col, Color.GREEN);
+        assertEquals(new Color(128, 128, 0), tp.getColumnHighlight(col));
+        tp.removeColumnHighlight(col, Color.RED);
+        assertEquals(Color.GREEN, tp.getColumnHighlight(col));
+        tp.removeColumnHighlight(col, Color.GREEN);
+        assertEquals(tp.getForeground(), tp.getColumnHighlight(col));
     }
 }

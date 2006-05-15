@@ -49,7 +49,7 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 	 */
     private Color columnHighlightColour = Color.red;
  
-
+       
 	public Relationship(Relationship r, PlayPenContentPane contentPane, TablePane pkTable, TablePane fkTable) {
 		super(contentPane);
 		this.model = r.model;
@@ -186,14 +186,13 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 		        Iterator it = getModel().getChildren().iterator();
 		        while (it.hasNext()) {
 		            SQLRelationship.ColumnMapping m = (ColumnMapping) it.next();
-		            int pkColIdx = pkTable.getModel().getColumnIndex(m.getPkColumn());
-		            int fkColIdx = fkTable.getModel().getColumnIndex(m.getFkColumn());
+		            
                     if (isSelected) {
-                        pkTable.addColumnHighlight(pkColIdx, columnHighlightColour);
-                        fkTable.addColumnHighlight(fkColIdx, columnHighlightColour);
+                        pkTable.addColumnHighlight(m.getPkColumn(), columnHighlightColour);
+                        fkTable.addColumnHighlight(m.getFkColumn(), columnHighlightColour);
                     } else {
-                        pkTable.removeColumnHighlight(pkColIdx, columnHighlightColour);
-                        fkTable.removeColumnHighlight(fkColIdx, columnHighlightColour);
+                        pkTable.removeColumnHighlight(m.getPkColumn(), columnHighlightColour);
+                        fkTable.removeColumnHighlight(m.getFkColumn(), columnHighlightColour);
                     }
 		        }
 		    } catch (ArchitectException e) {
