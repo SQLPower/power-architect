@@ -17,10 +17,12 @@ import java.awt.dnd.DropTargetListener;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
@@ -98,7 +100,7 @@ public class TablePane
 	/**
 	 * Tracks current highlight colours of the columns in this table.
 	 */
-	protected List<List<Color>> columnHighlight;
+	protected Map<SQLColumn, List<Color>> columnHighlight;
 
 	/**
 	 * During a drag operation where a column is being dragged from
@@ -122,7 +124,7 @@ public class TablePane
 		this.dtl = new TablePaneDropListener(this);
 		this.margin = (Insets) tp.margin.clone();
 		this.columnSelection = new ArrayList<Boolean>(tp.columnSelection);
-		this.columnHighlight = new ArrayList<List<Color>>(tp.columnHighlight);
+		this.columnHighlight = new HashMap<SQLColumn,List<Color>>(tp.columnHighlight);
 		try {
 			
 			PlayPenComponentUI newUi = tp.getUI().getClass().newInstance();
@@ -212,7 +214,11 @@ public class TablePane
 			int ci[] = e.getChangedIndices();
 			for (int i = 0; i < ci.length; i++) {
 				columnSelection.add(ci[i], Boolean.FALSE);
-				columnHighlight.add(ci[i], new ArrayList<Color>());
+                // This is only supposed to work if we deselct the columns before selecting them
+                // this if stops the insert from wiping out a highlighted column
+                if (columnHighlight.get((SQLColumn) e.getChildren()[i]) == null) {
+                    columnHighlight.put((SQLColumn) e.getChildren()[i], new ArrayList<Color>());
+                }
 			}
 		}
 		try {
@@ -236,7 +242,6 @@ public class TablePane
 			logger.debug("Columns removed. Syncing select/highlight lists. Removed indices="+Arrays.asList(ci));
 			for (int i = 0; i < ci.length; i++) {
 			    columnSelection.remove(ci[i]);
-			    columnHighlight.remove(ci[i]);
 			}
 			if (columnSelection.size() > 0) {
 				selectNone();
@@ -247,9 +252,6 @@ public class TablePane
 			try {
 				if (columnSelection.size() != this.model.getColumns().size()) {
 					throw new IllegalStateException("out-of-sync selection list (event source="+e.getSource()+"): selection="+columnSelection+"; children="+this.model.getColumns());
-				}
-				if (columnHighlight.size() != this.model.getColumns().size()) {
-					throw new IllegalStateException("out-of-sync highlight list (event source="+e.getSource()+"): highlights="+columnHighlight+"; children="+this.model.getColumns());
 				}
 			} catch (ArchitectException ex) {
 				throw new ArchitectRuntimeException(ex);
@@ -289,10 +291,14 @@ public class TablePane
 			for (int i = 0; i < numCols; i++) {
 				columnSelection.add(Boolean.FALSE);
 			}
-			columnHighlight = new ArrayList<List<Color>>(numCols);
-			for (int i = 0; i < numCols; i++) {
-				columnHighlight.add(new ArrayList<Color>());
-			}
+			columnHighlight = new HashMap<SQLColumn,List<Color>>();
+			try {
+                for (SQLColumn child :((List<SQLColumn>) model.getColumnsFolder().getChildren())) {
+                	columnHighlight.put(child,new ArrayList<Color>());
+                }
+            } catch (ArchitectException e1) {
+                throw new ArchitectRuntimeException(e1);
+            }
 			firePropertyChange("model.children", null, null);
 			//revalidate();
 		}
@@ -339,9 +345,9 @@ public class TablePane
 			for (int i = 0; i < m.getColumns().size(); i++) {
 				columnSelection.add(Boolean.FALSE);
 			}
-			columnHighlight = new ArrayList<List<Color>>(m.getColumns().size());
-			for (int i = 0; i < m.getColumns().size(); i++) {
-				columnHighlight.add(new ArrayList<Color>());
+			columnHighlight = new HashMap<SQLColumn,List<Color>>();
+			for (SQLColumn column: model.getColumns()) {
+				columnHighlight.put(column, new ArrayList<Color>());
 			}
 		} catch (ArchitectException e) {
 			logger.error("Error getting children on new model", e);
@@ -858,16 +864,16 @@ public class TablePane
      * want to colour in a column.
      * 
      * @param i The column index to recolour
-     * @param c The new colour to show the column in.  null means use this TablePane's current
+     * @param colour The new colour to show the column in.  null means use this TablePane's current
      * foreground colour.
      */
-    public void addColumnHighlight(int i, Color c) {
-        columnHighlight.get(i).add(c);
+    public void addColumnHighlight(SQLColumn column, Color colour) {
+        columnHighlight.get(column).add(colour);
         repaint(); // XXX: should constrain repaint region to column i
     }
     
-    public void removeColumnHighlight(int i, Color c) {
-        columnHighlight.get(i).remove(c);
+    public void removeColumnHighlight(SQLColumn column, Color colour) {
+        columnHighlight.get(column).remove(colour);
         repaint();
     }
     
@@ -877,19 +883,26 @@ public class TablePane
      * @param i The index of the column in question
      * @return The current highlight colour for the column at index i in this table.
      *   null indicates the current tablepane foreground colour will be used.
+     * @throws ArchitectException 
      */
-    public Color getColumnHighlight(int i) {
-        if (columnHighlight.get(i).isEmpty()) {
+    public Color getColumnHighlight(int i) throws ArchitectException {
+        
+        return getColumnHighlight(model.getColumn(i));
+    }
+    
+    public Color getColumnHighlight(SQLColumn column) {
+        logger.debug("Checking column "+column);
+        if (columnHighlight.get(column).isEmpty()) {
             return getForeground();
         } else {
             float[] rgbsum = new float[3];
-            for (Color c : columnHighlight.get(i)) {
+            for (Color c : columnHighlight.get(column)) {
                 float[] comps = c.getRGBColorComponents(new float[3]);
                 rgbsum[0] += comps[0];
                 rgbsum[1] += comps[1];
                 rgbsum[2] += comps[2];
             }
-            float sz = columnHighlight.get(i).size();
+            float sz = columnHighlight.get(column).size();
             return new Color(rgbsum[0]/sz, rgbsum[1]/sz, rgbsum[2]/sz);
         }
     }

@@ -50,12 +50,12 @@ public class TestRelationship extends TestCase {
         rel.setSelected(true);
         assertEquals(Color.RED,tp1.getColumnHighlight(0));
         assertEquals(Color.RED,tp2.getColumnHighlight(1));
-        assertNull(tp2.getColumnHighlight(0));
+        assertEquals(tp2.getForeground(), tp2.getColumnHighlight(0));
         rel.setSelected(false);
         
-        assertNull(tp1.getColumnHighlight(0));
-        assertNull(tp2.getColumnHighlight(1));
-        assertNull(tp2.getColumnHighlight(0));
+        assertEquals(tp1.getForeground(), tp1.getColumnHighlight(0));
+        assertEquals(tp2.getForeground(), tp2.getColumnHighlight(1));
+        assertEquals(tp2.getForeground(), tp2.getColumnHighlight(0));
         
         rel.setSelected(true);
         rel.getModel().setIdentifying(true);       
@@ -64,6 +64,6 @@ public class TestRelationship extends TestCase {
         SQLColumn fkCol = tp2.getModel().getColumnByName("fkcol");
         assertEquals(0, tp2.getModel().getColumnIndex(fkCol));
         assertEquals(Color.RED,tp2.getColumnHighlight(0));
-        assertNull(tp2.getColumnHighlight(1));      
+        assertEquals(tp2.getForeground(), tp2.getColumnHighlight(1));      
     }
 }
