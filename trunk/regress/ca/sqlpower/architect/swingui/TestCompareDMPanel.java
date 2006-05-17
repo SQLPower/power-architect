@@ -18,6 +18,7 @@ import junit.extensions.jfcunit.JFCTestHelper;
 import junit.extensions.jfcunit.TestHelper;
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.PlDotIni;
 import ca.sqlpower.architect.SQLObject;
 
 public class TestCompareDMPanel extends JFCTestCase {
@@ -45,7 +46,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 	JRadioButton targetLoadRadio = null;
 	JTextField targetLoadFilePath = null;
 	JButton targetLoadFileButton = null;
-		
+    PlDotIni plDotIni = ArchitectFrame.getMainInstance().getUserSettings().getPlDotIni();
 
 	protected void setUp() throws Exception {
 		super.setUp();
@@ -261,7 +262,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 	
 	public void testSourceDropDownsWithOnlyCatalog() {
 		ArchitectDataSource ds = new ArchitectDataSource();
-		ds.setDisplayName("Schemaless Database");
+		ds.setDisplayName("testSourceDropDownsWithOnlyCatalog");
 		ds.setDriverClass("ca.sqlpower.architect.MockJDBCDriver");
 		ds.setUser("fake");
 		ds.setPass("fake");
@@ -283,7 +284,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 	
 	public void testSourceDropDownsWithSchemaAndCatalog() {
 		ArchitectDataSource ds = new ArchitectDataSource();
-		ds.setDisplayName("Schemaless Database");
+		ds.setDisplayName("testSourceDropDownsWithSchemaAndCatalog");
 		ds.setDriverClass("ca.sqlpower.architect.MockJDBCDriver");
 		ds.setUser("fake");
 		ds.setPass("fake");
@@ -301,7 +302,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 	
 	public void testSourceDropDownsWithOnlySchema() {
 		ArchitectDataSource ds = new ArchitectDataSource();
-		ds.setDisplayName("Catalogless Database");
+		ds.setDisplayName("testSourceDropDownsWithOnlySchema");
 		ds.setDriverClass("ca.sqlpower.architect.MockJDBCDriver");
 		ds.setUser("fake");
 		ds.setPass("fake");
@@ -309,7 +310,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 		ds.setUrl("jdbc:mock:dbmd.schemaTerm=Schema&schemas=scheme1,scheme2,scheme3");
 
 		sourcePhysicalRadio.setSelected(true);
-		sourceDatabaseDropdown.addItem(ds);
+		plDotIni.addDataSource(ds);
 		sourceDatabaseDropdown.setSelectedItem(ds);
 		flushAWT();
 		
@@ -319,7 +320,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 	
 	public void testTargetDropDownsWithOnlyCatalog() {
 		ArchitectDataSource ds = new ArchitectDataSource();
-		ds.setDisplayName("Schemaless Database");
+		ds.setDisplayName("testTargetDropDownsWithOnlyCatalog");
 		ds.setDriverClass("ca.sqlpower.architect.MockJDBCDriver");
 		ds.setUser("fake");
 		ds.setPass("fake");
@@ -331,7 +332,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 				"&tables.cat2=tab2" +
 				"&tables.cat3=tab3");
 	
-		targetDatabaseDropdown.addItem(ds);
+        plDotIni.addDataSource(ds);
 		targetDatabaseDropdown.setSelectedItem(ds);
 		flushAWT();
 		assertFalse(targetSchemaDropdown.isEnabled());
@@ -340,14 +341,14 @@ public class TestCompareDMPanel extends JFCTestCase {
 	
 	public void testTargetDropDownsWithSchemaAndCatalog() {
 		ArchitectDataSource ds = new ArchitectDataSource();
-		ds.setDisplayName("Schemaless Database");
+		ds.setDisplayName("testTargetDropDownsWithSchemaAndCatalog");
 		ds.setDriverClass("ca.sqlpower.architect.MockJDBCDriver");
 		ds.setUser("fake");
 		ds.setPass("fake");
 		//this creates a mock jdbc database with schemas and catalogs
 		ds.setUrl("jdbc:mock:dbmd.catalogTerm=Catalog&dbmd.schemaTerm=Schema&catalogs=cow_catalog&schemas.cow_catalog=moo_schema,quack_schema&tables.cow_catalog.moo_schema=braaaap,pffft&tables.cow_catalog.quack_schema=duck,goose");
 
-		targetDatabaseDropdown.addItem(ds);
+        plDotIni.addDataSource(ds);
 		targetDatabaseDropdown.setSelectedItem(ds);
 		flushAWT();
 		assertTrue(targetSchemaDropdown.isEnabled());
@@ -360,14 +361,14 @@ public class TestCompareDMPanel extends JFCTestCase {
 	
 	public void testTargetDropDownsWithOnlySchema() {
 		ArchitectDataSource ds = new ArchitectDataSource();
-		ds.setDisplayName("Catalogless Database");
+		ds.setDisplayName("testTargetDropDownsWithOnlySchema");
 		ds.setDriverClass("ca.sqlpower.architect.MockJDBCDriver");
 		ds.setUser("fake");
 		ds.setPass("fake");
 		//this creates a mock jdbc database with only schemas
 		ds.setUrl("jdbc:mock:dbmd.schemaTerm=Schema&schemas=scheme1,scheme2,scheme3");
 
-		targetDatabaseDropdown.addItem(ds);
+        plDotIni.addDataSource(ds);
 		targetDatabaseDropdown.setSelectedItem(ds);
 		flushAWT();
 		assertTrue(targetSchemaDropdown.isEnabled());
@@ -376,14 +377,14 @@ public class TestCompareDMPanel extends JFCTestCase {
 	
 	public void testTargetSchemaUpdateByCatalogChange(){
 		ArchitectDataSource ds = new ArchitectDataSource();
-		ds.setDisplayName("DatabaseWithEverything");
+		ds.setDisplayName("testTargetSchemaUpdateByCatalogChange");
 		ds.setDriverClass("ca.sqlpower.architect.MockJDBCDriver");
 		ds.setUser("fake");
 		ds.setPass("fake");
 		//this creates a mock jdbc database with catalogs and schemas where the catalogs have different schema names from each other
 		ds.setUrl("jdbc:mock:dbmd.catalogTerm=Catalog&dbmd.schemaTerm=Schema&catalogs=farm,zoo,backyard&schemas.farm=birds,mammals&tables.farm.birds=chicken,turkey,hen&tables.farm.mammals=cow,horse,buffalo?&schemas.zoo=birds2,mammals2&tables.zoo.birds2=penguin,flamingo&tables.zoo.mammals2=elephant&schemas.backyard=mammals3&tables.backyard.mammals3=mouse,rat,cat,dog,raccoon");
 				
-		targetDatabaseDropdown.addItem(ds);
+        plDotIni.addDataSource(ds);
 		targetDatabaseDropdown.setSelectedItem(ds);
 		flushAWT();
 		assertTrue(targetCatalogDropdown.isEnabled());
