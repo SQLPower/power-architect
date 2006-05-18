@@ -394,7 +394,9 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 		int oldType = type;
 		setSourceDataTypeName(null);
 		this.type = argType;
+        startCompoundEdit("Type change");
 		fireDbObjectChanged("type",oldType,argType);
+        endCompoundEdit("Type change");
 	}
 
 	public String getSourceDataTypeName() {
