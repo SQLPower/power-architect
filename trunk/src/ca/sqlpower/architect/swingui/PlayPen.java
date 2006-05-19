@@ -1936,21 +1936,25 @@ public class PlayPen extends JPanel
 						if (logger.isDebugEnabled()) { 
 							logger.debug("Exporting column "+colIndex+" with DnD");
 						}
+                        
 						tp.draggingColumn = tp.getModel().getColumn(colIndex);
 						DBTree tree = ArchitectFrame.getMainInstance().dbTree;
-						int[] path = tree.getDnDPathToNode(tp.draggingColumn);
-						if (logger.isDebugEnabled()) {
-							StringBuffer array = new StringBuffer();
-							for (int i = 0; i < path.length; i++) {
-								array.append(path[i]);
-								array.append(",");
-							}
-							logger.debug("Path to dragged node: "+array);
-						}
-						// export list of DnD-type tree paths
-						ArrayList paths = new ArrayList(1);
-						paths.add(path);
-						logger.info("TablePaneDragGestureListener: exporting 1-item list of DnD-type tree path");
+						ArrayList paths = new ArrayList();
+                        for (SQLColumn column: tp.getSelectedColumns()) {
+
+                            int[] path = tree.getDnDPathToNode(column);
+                            if (logger.isDebugEnabled()) {
+                                StringBuffer array = new StringBuffer();
+                                for (int i = 0; i < path.length; i++) {
+                                    array.append(path[i]);
+                                    array.append(",");
+                                }
+                                logger.debug("Path to dragged node: "+array);
+                            }
+                            // export list of DnD-type tree paths
+                            paths.add(path);
+                        }
+						logger.info("TablePaneDragGestureListener: exporting "+paths.size()+"-item list of DnD-type tree path");
 						JLabel label = new JLabel(tp.getModel().getName()+"."+tp.draggingColumn.getName());
 						Dimension labelSize = label.getPreferredSize();
 						label.setSize(labelSize);  // because a LayoutManager would normally do this
@@ -1989,7 +1993,7 @@ public class PlayPen extends JPanel
 		 * resizing the rubber band in response to user input.
 		 */
 		protected Point rubberBandOrigin;
-
+        private boolean componentPreviouslySelected;
 		// ------------------- MOUSE LISTENER INTERFACE ------------------
 		
 		public void mouseEntered(MouseEvent evt) {
@@ -2011,23 +2015,36 @@ public class PlayPen extends JPanel
 					(new ActionEvent(evt.getSource(),
 							ActionEvent.ACTION_PERFORMED,
 							ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
-				}
+				} else if(evt.getClickCount()==1){
+				    if (c.isSelected()&& componentPreviouslySelected)c.setSelected(false);
+                }
 			} else if ( c instanceof TablePane ) {
 				TablePane tp = (TablePane) c;
 				if ((evt.getModifiers() & MouseEvent.BUTTON1_MASK) != 0) {
-					if (evt.getClickCount() == 2) { // double click
-						if (tp.isSelected()) {
-							ArchitectFrame af = ArchitectFrame.getMainInstance();
-							int selectedColIndex = tp.getSelectedColumnIndex();
-							if (selectedColIndex == TablePane.COLUMN_INDEX_NONE) {
-								af.editTableAction.actionPerformed
-								(new ActionEvent(tp, ActionEvent.ACTION_PERFORMED, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
-							} else if (selectedColIndex >= 0) {
-								af.editColumnAction.actionPerformed
-								(new ActionEvent(tp, ActionEvent.ACTION_PERFORMED, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
-							}
-						}
-					}
+				    try {
+				        int selectedColIndex = tp.pointToColumnIndex(p);
+				        if (evt.getClickCount() == 2) { // double click
+				            if (tp.isSelected()) {
+				                ArchitectFrame af = ArchitectFrame.getMainInstance();
+				                if (selectedColIndex == TablePane.COLUMN_INDEX_NONE) {
+				                    af.editTableAction.actionPerformed
+				                    (new ActionEvent(tp, ActionEvent.ACTION_PERFORMED, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
+				                } else if (selectedColIndex >= 0) {
+				                    af.editColumnAction.actionPerformed
+				                    (new ActionEvent(tp, ActionEvent.ACTION_PERFORMED, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
+				                }
+				            }
+				        } else if(evt.getClickCount()==1) {
+				            System.out.println("Col index "+selectedColIndex);
+				            if (selectedColIndex > TablePane.COLUMN_INDEX_TITLE && componentPreviouslySelected){
+				                ((TablePane)c).deselectColumn(selectedColIndex);
+				            } else if (c.isSelected()&& componentPreviouslySelected) {
+				                c.setSelected(false);
+				            }
+				        }
+				    } catch (ArchitectException e) {
+				        logger.error("Exception converting point to column", e);
+				    }
 				}
 			} else {
 				maybeShowPopup(evt);
@@ -2036,14 +2053,14 @@ public class PlayPen extends JPanel
 	
 		
 		public void mousePressed(MouseEvent evt) {
-			
+            componentPreviouslySelected = false;
 			requestFocus();
 			maybeShowPopup(evt);
 			Point p = evt.getPoint();
 			unzoomPoint(p);
 			PlayPenComponent c = contentPane.getComponentAt(p);
 			if (c != null) p.translate(-c.getX(), -c.getY());
-			
+            
 			if (c instanceof Relationship) {
 				
 				Relationship r = (Relationship) c;
@@ -2061,7 +2078,12 @@ public class PlayPen extends JPanel
 						}
 					}
 				}
-				r.setSelected(true);
+                if (r.isSelected()) {
+                    componentPreviouslySelected = true;
+                } else {
+                    r.setSelected(true);
+                }
+                
 
 				// moving pk/fk decoration
 				boolean overPkDec = ((RelationshipUI) r.getUI()).isOverPkDecoration(p);
@@ -2101,14 +2123,20 @@ public class PlayPen extends JPanel
 								}
 								mouseMode = MouseModeType.SELECT_COLUMN;
 							} 
-							
-							tp.selectColumn(clickCol);
+                            if (tp.isColumnSelected(clickCol)) {
+                                componentPreviouslySelected = true;
+                            } else {
+                                tp.selectColumn(clickCol);
+                            }
+                            
 							tp.fireSelectionEvent(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT));
 							tp.repaint();
 						}
-						
-						tp.setSelected(true);
-						
+                        if (tp.isSelected()&& clickCol == TablePane.COLUMN_INDEX_TITLE){
+                            componentPreviouslySelected = true;
+                        } else {
+                            tp.setSelected(true);
+                        }
 					}
 					
 
