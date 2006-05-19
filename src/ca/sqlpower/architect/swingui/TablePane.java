@@ -438,6 +438,19 @@ public class TablePane
 	}
 	
 
+    /**
+     * @param i The column to deselect.  If less than 0, {@link
+     * #selectNone()} is called.
+     */
+    public void deselectColumn(int i) {
+        if (i < 0) {
+            selectNone();
+            return;
+        }
+        columnSelection.set(i, Boolean.FALSE);
+        repaint();
+    }
+    
 	/**
 	 * @param i The column to select.  If less than 0, {@link
 	 * #selectNone()} is called rather than selecting a column.
@@ -592,12 +605,20 @@ public class TablePane
 								+"' to table '"+getModel().getName()
 								+"' at position "+insertionPoint);
 					}
-					getModel().addColumn(insertionPoint, col);
-					
-					if (newColumnsInPk) {
-					    col.setPrimaryKeySeq(new Integer(insertionPoint));
-					} else {
-					    col.setPrimaryKeySeq(null);
+					try {
+                        // You need to disable the magic (really the normalization) otherwise it goes around
+                        // the property change events and causes undo to fail when dragging into the primary 
+                        // key of a table
+					    getModel().setMagicEnabled(false);
+					    getModel().addColumn(insertionPoint, col);
+					    
+					    if (newColumnsInPk) {
+					        col.setPrimaryKeySeq(new Integer(insertionPoint));
+					    } else {
+					        col.setPrimaryKeySeq(null);
+					    }
+					} finally {
+                        getModel().setMagicEnabled(true);
 					}
 				} else {
 					// importing column from a source database
