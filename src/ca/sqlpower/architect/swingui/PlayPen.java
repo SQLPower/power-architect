@@ -2026,7 +2026,7 @@ public class PlayPen extends JPanel
 				        if (evt.getClickCount() == 2) { // double click
 				            if (tp.isSelected()) {
 				                ArchitectFrame af = ArchitectFrame.getMainInstance();
-				                if (selectedColIndex == TablePane.COLUMN_INDEX_NONE) {
+				                if (selectedColIndex == TablePane.COLUMN_INDEX_TITLE) {
 				                    af.editTableAction.actionPerformed
 				                    (new ActionEvent(tp, ActionEvent.ACTION_PERFORMED, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
 				                } else if (selectedColIndex >= 0) {
