@@ -2,6 +2,7 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
+import java.awt.HeadlessException;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -13,6 +14,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
@@ -22,6 +24,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -40,6 +43,7 @@ import javax.swing.SwingUtilities;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.ConfigFile;
@@ -47,6 +51,7 @@ import ca.sqlpower.architect.PrefsUtils;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.UserSettings;
+import ca.sqlpower.architect.etl.ExportCSV;
 import ca.sqlpower.architect.layout.ArchitectLayoutInterface;
 import ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout;
 import ca.sqlpower.architect.swingui.action.AboutAction;
@@ -415,6 +420,49 @@ public class ArchitectFrame extends JFrame {
 
 		exportPLTransAction = new ExportPLTransAction();
 		quickStartAction = new QuickStartAction();
+        Action exportCSVAction = new AbstractAction("Export CSV File") {
+
+            public void actionPerformed(ActionEvent e) {
+                ExportCSV export = new ExportCSV(getProject().getPlayPen());
+               
+                    File file = null;
+
+                    // ----------------------------------------------------
+                    // open a file chooser dialog to get a path / file name
+                    // ----------------------------------------------------
+                    JFileChooser fileDialog = new JFileChooser();
+                    fileDialog.setSelectedFile(new File("map.csv"));
+
+                    if (fileDialog.showSaveDialog(ArchitectFrame.getMainInstance()) == JFileChooser.APPROVE_OPTION)
+                    {
+                        file = fileDialog.getSelectedFile();
+                    }
+                    else
+                    {
+                        return;
+                    }
+
+                    // ----------------------------------------------------
+                    // save to the file
+                    // ----------------------------------------------------
+                    FileWriter output = null;
+                    StringBuffer buffer = new StringBuffer();
+
+                    try {
+                        output = new FileWriter(file);
+                        output.write(export.getCSVMapping().replaceAll("\n",System.getProperty("line.separator", "\n")));
+                        output.flush();
+                    } catch (IOException e1) {
+                        throw new RuntimeException(e1);
+                    } catch (ArchitectException e1) {
+                       throw new ArchitectRuntimeException(e1);
+                    }
+                    
+                    
+               
+            }
+            
+        };
 		deleteSelectedAction = new DeleteSelectedAction();
 		createIdentifyingRelationshipAction = new CreateRelationshipAction(true);
 		createNonIdentifyingRelationshipAction = new CreateRelationshipAction(false);
@@ -473,7 +521,8 @@ public class ArchitectFrame extends JFrame {
 		etlSubmenuOne.add(new JMenuItem("PL Transaction File Export"));
 		etlSubmenuOne.add(new JMenuItem("Run Power*Loader"));
 		etlSubmenuOne.add(quickStartAction);
-		etlMenu.add(etlSubmenuOne);		
+		etlMenu.add(etlSubmenuOne);	
+        etlMenu.add(exportCSVAction);
 		menuBar.add(etlMenu);
 
 		JMenu toolsMenu = new JMenu("Tools");
