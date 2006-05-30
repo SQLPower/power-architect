@@ -1,0 +1,145 @@
+package ca.sqlpower.architect.etl;
+
+import ca.sqlpower.architect.ArchitectDataSource;
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLCatalog;
+import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLSchema;
+import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.swingui.PlayPen;
+
+public class ExportCSV {
+    private PlayPen pp;
+    private boolean passwordVisible;
+    
+    public ExportCSV(PlayPen pp) {
+        this.pp = pp;
+    }
+    
+    public String getCSVMapping() throws ArchitectException {
+        StringBuffer buf = new StringBuffer();
+        buf.append(createHeader()+"\n");
+        buf.append(createBody());
+        
+        return buf.toString();
+    }
+    
+    private String createHeader() {
+        return getColumnToCSVHeaders()+"," + getColumnToCSVHeaders();
+    }
+    
+    private StringBuffer createBody() throws ArchitectException {
+        StringBuffer buf = new StringBuffer();
+        for (Object o :  pp.getDatabase().getChildren()){
+            if (o instanceof SQLTable){
+                for ( SQLColumn c : ((SQLTable) o).getColumns()){
+                    buf.append(columnToCSV(c.getSourceColumn())+","+columnToCSV(c)+"\n");
+                }
+            }             
+        }
+        return buf;
+    }
+    
+    private String getColumnToCSVHeaders(){
+        return getDsToCSVHeaders()+",DATABASE,SCHEMA,CATALOG,TABLE,COLUMN";
+    }
+    
+    private StringBuffer columnToCSV(SQLColumn c) throws ArchitectException {
+        StringBuffer connection = new StringBuffer();
+        StringBuffer database = new StringBuffer();
+        StringBuffer schema =new StringBuffer();
+        StringBuffer catalog =new StringBuffer();
+        StringBuffer table = new StringBuffer();
+        if (c != null) {
+            SQLObject parent = c.getParent();
+            while (parent != null) {
+                if (parent instanceof SQLDatabase){
+                    SQLDatabase db = (SQLDatabase) parent;
+                    connection.append(dsToCSV(db.getDataSource()));
+                    database.append(db.getPhysicalName());
+                } else if( parent instanceof SQLSchema) {
+                    schema.append(parent.getPhysicalName());
+                } else if (parent instanceof SQLCatalog) {
+                    catalog.append(parent.getPhysicalName());
+                } else if (parent instanceof SQLTable){
+                    table.append(parent.getPhysicalName());
+                } else if (parent instanceof SQLTable.Folder){
+                    
+                } else{
+                    throw new ArchitectException("Invalid object tree, parent should be a database, schema or catalog");
+                }
+                parent = parent.getParent();
+            }
+        }
+        if (connection.length() == 0) {
+            connection.append(dsToCSV(null));
+        }
+        connection.append(",").append("\""+database.toString().replaceAll("\"","\"\"")+"\"");
+        connection.append(",").append("\""+catalog.toString().replaceAll("\"","\"\"")+"\"");
+        connection.append(",").append("\""+schema.toString().replaceAll("\"","\"\"")+"\"");
+        connection.append(",").append("\""+table.toString().replaceAll("\"","\"\"")+"\"");
+        connection.append(",");
+        if (c!= null) {
+            connection.append("\""+c.getPhysicalName().replaceAll("\"","\"\"")+"\"");
+        }
+        
+        return connection;
+    }
+    
+    private String getDsToCSVHeaders(){
+        StringBuffer header = new StringBuffer();
+        header.append("DISPLAY_NAME,DRIVER_CLASS,JDBC_URL,USERNAME");
+        if (isPasswordVisible()) {
+            header.append(",PASSWORD");
+        }
+        header.append(",ODBC_DSN");
+        return header.toString();
+    }
+    /**
+     * Turn an architect datasource into a set of 6 csv columns, the password column is optional
+     * With the headers
+     * DISPLAY_NAME,DRIVER_CLASS,JDBC_URL,USERNAME,PASSWORD,DATABASE_TYPE,ODBC_DSN
+     */
+    private StringBuffer dsToCSV(ArchitectDataSource ds) {
+        StringBuffer buf = new StringBuffer();
+      
+        if (ds != null && ds.getDisplayName() != null) { 
+            buf.append("\""+ds.getDisplayName().replaceAll("\"","\"\"")+"\"");
+        }
+        buf.append(",");
+        if (ds != null && ds.getDriverClass() != null) {
+            buf.append("\""+ds.getDriverClass().replaceAll("\"","\"\"")+"\"");
+        }
+        buf.append( ",");
+        if (ds != null && ds.getUrl() != null ){
+            buf.append("\""+ds.getUrl().replaceAll("\"","\"\"")+"\"");
+        }
+        buf.append( ",");
+        if(ds != null && ds.getUser()!= null) {
+            buf.append("\""+ds.getUser().replaceAll("\"","\"\"")+"\"");
+        }
+        if(isPasswordVisible()) {
+            buf.append( ",");
+            if(ds != null && ds.getPass()!= null ) {
+                buf.append("\""+ds.getPass().replaceAll("\"","\"\"")+"\"");
+            }
+        }
+        buf.append( ",");
+        if (ds != null && ds.getOdbcDsn()!=null) {
+            buf.append("\""+ds.getOdbcDsn().replaceAll("\"","\"\"")+"\"");
+        }
+       
+        return buf;
+    }
+
+    public boolean isPasswordVisible() {
+        return passwordVisible;
+    }
+
+    public void setPasswordVisible(boolean passwordVisible) {
+        this.passwordVisible = passwordVisible;
+    }
+
+}
