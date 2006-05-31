@@ -27,7 +27,7 @@ public class ExportCSV {
     }
     
     private String createHeader() {
-        return getColumnToCSVHeaders()+"," + getColumnToCSVHeaders();
+        return getColumnToCSVHeaders("SOURCE_")+"," + getColumnToCSVHeaders("TARGET_");
     }
     
     private StringBuffer createBody() throws ArchitectException {
@@ -42,8 +42,14 @@ public class ExportCSV {
         return buf;
     }
     
-    private String getColumnToCSVHeaders(){
-        return getDsToCSVHeaders()+",DATABASE,SCHEMA,CATALOG,TABLE,COLUMN";
+    private String getColumnToCSVHeaders(String prefix){
+        StringBuffer buf = new StringBuffer(getDsToCSVHeaders(prefix));
+        buf.append(",").append(prefix).append("DATABASE");
+        buf.append(",").append(prefix).append("SCHEMA");
+        buf.append(",").append(prefix).append("CATALOG");
+        buf.append(",").append(prefix).append("TABLE");
+        buf.append(",").append(prefix).append("COLUMN");
+        return buf.toString();
     }
     
     private StringBuffer columnToCSV(SQLColumn c) throws ArchitectException {
@@ -88,13 +94,16 @@ public class ExportCSV {
         return connection;
     }
     
-    private String getDsToCSVHeaders(){
+    private String getDsToCSVHeaders(String prefix){
         StringBuffer header = new StringBuffer();
-        header.append("DISPLAY_NAME,DRIVER_CLASS,JDBC_URL,USERNAME");
+        header.append(prefix).append("DISPLAY_NAME,"); 
+        header.append(prefix).append("DRIVER_CLASS,");
+        header.append(prefix).append("JDBC_URL,");
+        header.append(prefix).append("USERNAME,");
         if (isPasswordVisible()) {
-            header.append(",PASSWORD");
+            header.append(prefix).append("PASSWORD,");
         }
-        header.append(",ODBC_DSN");
+        header.append(prefix).append("ODBC_DSN");
         return header.toString();
     }
     /**
