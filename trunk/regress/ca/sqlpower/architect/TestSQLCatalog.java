@@ -16,6 +16,8 @@ public class TestSQLCatalog extends SQLTestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		c = new SQLCatalog();
+        c.setPopulated(true);
+        c.setParent(new SQLDatabase());
 	}
 
 	@Override
@@ -51,10 +53,6 @@ public class TestSQLCatalog extends SQLTestCase {
 	 * Test method for 'ca.sqlpower.architect.SQLCatalog.getParent()'
 	 */
 	public void testGetParent() {
-
-		assertEquals(c.getParent(),null);
-		assertEquals(c.getParentDatabase(),null);
-		
 		SQLDatabase mydb = new SQLDatabase(db.getDataSource());
 		c = new SQLCatalog(mydb,"aaa");
 		assertEquals(c.getParent(),mydb);
@@ -118,7 +116,6 @@ public class TestSQLCatalog extends SQLTestCase {
 	 * Test method for 'ca.sqlpower.architect.SQLObject.isPopulated()'
 	 */
 	public void testIsPopulated() throws Exception {
-		assertFalse(c.isPopulated());
 		c.setPopulated(true);
 		assertTrue(c.isPopulated());
 		c.setPopulated(false);
