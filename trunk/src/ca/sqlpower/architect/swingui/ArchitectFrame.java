@@ -2,7 +2,6 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
-import java.awt.HeadlessException;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -24,7 +23,6 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -423,45 +421,30 @@ public class ArchitectFrame extends JFrame {
         Action exportCSVAction = new AbstractAction("Export CSV File") {
 
             public void actionPerformed(ActionEvent e) {
-                ExportCSV export = new ExportCSV(getProject().getPlayPen());
-               
+                try {
+                    ExportCSV export = new ExportCSV(getProject().getPlayPen().getDatabase().getTables());
+                    
                     File file = null;
 
-                    // ----------------------------------------------------
-                    // open a file chooser dialog to get a path / file name
-                    // ----------------------------------------------------
                     JFileChooser fileDialog = new JFileChooser();
                     fileDialog.setSelectedFile(new File("map.csv"));
-
-                    if (fileDialog.showSaveDialog(ArchitectFrame.getMainInstance()) == JFileChooser.APPROVE_OPTION)
-                    {
+                    
+                    if (fileDialog.showSaveDialog(ArchitectFrame.getMainInstance()) == JFileChooser.APPROVE_OPTION){
                         file = fileDialog.getSelectedFile();
-                    }
-                    else
-                    {
+                    } else {
                         return;
                     }
-
-                    // ----------------------------------------------------
-                    // save to the file
-                    // ----------------------------------------------------
+                    
                     FileWriter output = null;
-                    StringBuffer buffer = new StringBuffer();
-
-                    try {
-                        output = new FileWriter(file);
-                        output.write(export.getCSVMapping().replaceAll("\n",System.getProperty("line.separator", "\n")));
-                        output.flush();
-                    } catch (IOException e1) {
-                        throw new RuntimeException(e1);
-                    } catch (ArchitectException e1) {
-                       throw new ArchitectRuntimeException(e1);
-                    }
-                    
-                    
-               
+                    output = new FileWriter(file);
+                    output.write(export.getCSVMapping());
+                    output.flush();
+                } catch (IOException e1) {
+                    throw new RuntimeException(e1);
+                } catch (ArchitectException e1) {
+                    throw new ArchitectRuntimeException(e1);
+                }
             }
-            
         };
 		deleteSelectedAction = new DeleteSelectedAction();
 		createIdentifyingRelationshipAction = new CreateRelationshipAction(true);

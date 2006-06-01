@@ -1,5 +1,9 @@
 package ca.sqlpower.architect.etl;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLCatalog;
@@ -8,38 +12,40 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.PlayPen;
 
 public class ExportCSV {
-    private PlayPen pp;
+    private Collection<SQLTable> exportList;
     private boolean passwordVisible;
+    private static final String EOL = System.getProperty("line.separator");
     
-    public ExportCSV(PlayPen pp) {
-        this.pp = pp;
+    public ExportCSV(Collection<SQLTable> exportList) {
+        this.exportList = exportList;
     }
     
     public String getCSVMapping() throws ArchitectException {
         StringBuffer buf = new StringBuffer();
-        buf.append(createHeader()+"\n");
-        buf.append(createBody());
-        
+        buf.append(createHeader()+EOL);
+        for (String row : createBody()) {
+            buf.append(row);
+            buf.append(EOL);
+        }        
         return buf.toString();
     }
     
-    private String createHeader() {
+    public String createHeader() {
         return getColumnToCSVHeaders("SOURCE_")+"," + getColumnToCSVHeaders("TARGET_");
     }
     
-    private StringBuffer createBody() throws ArchitectException {
-        StringBuffer buf = new StringBuffer();
-        for (Object o :  pp.getDatabase().getChildren()){
+    public List<String> createBody() throws ArchitectException {
+        List<String> rows = new ArrayList<String>();
+        for (Object o :  exportList){
             if (o instanceof SQLTable){
                 for ( SQLColumn c : ((SQLTable) o).getColumns()){
-                    buf.append(columnToCSV(c.getSourceColumn())+","+columnToCSV(c)+"\n");
+                    rows.add(columnToCSV(c.getSourceColumn())+","+columnToCSV(c));
                 }
             }             
         }
-        return buf;
+        return rows;
     }
     
     private String getColumnToCSVHeaders(String prefix){
