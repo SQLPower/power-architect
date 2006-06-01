@@ -1,5 +1,7 @@
 package ca.sqlpower.architect;
 
+import java.util.Collections;
+
 /**
  * A SQLExceptionNode exists for reporting failures in the SQLObject
  * hierarchy.  For example, when the DBTree tries to expand a node and
@@ -14,6 +16,7 @@ public class SQLExceptionNode extends SQLObject {
 	public SQLExceptionNode(Throwable exception, String message) {
 		this.exception = exception;
 		this.message = message;
+        this.children = Collections.EMPTY_LIST;
 	}
 	
 	/**
@@ -44,7 +47,9 @@ public class SQLExceptionNode extends SQLObject {
 	 * the parent directly.
 	 */
 	public void setParent(SQLObject parent) {
+        SQLObject oldParent = this.parent;
 		this.parent = parent;
+        fireDbObjectChanged("parent", oldParent, parent);
 	}
 
 	public void populate() {
@@ -76,7 +81,9 @@ public class SQLExceptionNode extends SQLObject {
 	}
 	
 	public void setMessage(String v) {
-	    this.message = v;
+        String oldMessage = message;
+	    message = v;
+        fireDbObjectChanged("message", oldMessage, message);
 	}
 
 	@Override
