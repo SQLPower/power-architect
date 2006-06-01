@@ -269,5 +269,13 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 			}
 		}
 	}
+    
+    /**
+     * The child list should never be null for any SQL Object, even if
+     * that object's type is childless.
+     */
+    public void testChildrenNotNull() throws ArchitectException {
+        assertNotNull(getSQLObjectUnderTest().getChildren());
+    }
 
 }

@@ -10,9 +10,9 @@ import junit.framework.TestCase;
 public class SQLObjectTest extends TestCase {
 
 	SQLObject target;
-	protected boolean allowsChildren;
 	
-	class SQLObjectImpl extends SQLObject {
+	static class SQLObjectImpl extends SQLObject {
+	    protected boolean allowsChildren;
 		SQLObjectImpl() {
 			children = new ArrayList();
 		}
@@ -182,7 +182,7 @@ public class SQLObjectTest extends TestCase {
 		TestListener tt = (TestListener)t;
 		
 		target.addSQLObjectListener(t);
-		allowsChildren = true;
+		((SQLObjectImpl) target).allowsChildren = true;
 		
 		tt.setChildInserted(false);
 		final SQLObjectImpl objectImpl = new SQLObjectImpl();
