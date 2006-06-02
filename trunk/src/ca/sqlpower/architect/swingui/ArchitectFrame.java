@@ -1,7 +1,9 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Container;
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -21,6 +23,7 @@ import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -446,6 +449,37 @@ public class ArchitectFrame extends JFrame {
                 }
             }
         };
+        Action mappingReportAction = new AbstractAction("Visual Mapping Report") {
+
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    final MappingReport mr = new MappingReport(playpen.getDatabase().getTables());
+                    JFrame f = new JFrame("Mapping Report");
+                    
+                    // You call this a radar?? -- No sir, we call it Mr. Panel.
+                    JPanel mrPanel = new JPanel() {
+                        protected void paintComponent(java.awt.Graphics g) {
+                            super.paintComponent(g);
+                            try {
+                                mr.drawHighLevelReport((Graphics2D) g);
+                            } catch (ArchitectException e1) {
+                                logger.error("ArchitectException while generating mapping diagram", e1);
+                                ASUtils.showExceptionDialog(ArchitectFrame.this, "Couldn't generate mapping diagram", e1);
+                            }
+                        }
+                    };
+                    mrPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+                    mrPanel.setPreferredSize(mr.getRequiredSize());
+                    mrPanel.setOpaque(true);
+                    mrPanel.setBackground(Color.WHITE);
+                    f.setContentPane(new JScrollPane(mrPanel));
+                    f.pack();
+                    f.setVisible(true);
+                } catch (ArchitectException e1) {
+                    throw new ArchitectRuntimeException(e1);
+                }
+            }
+        };
 		deleteSelectedAction = new DeleteSelectedAction();
 		createIdentifyingRelationshipAction = new CreateRelationshipAction(true);
 		createNonIdentifyingRelationshipAction = new CreateRelationshipAction(false);
@@ -506,6 +540,7 @@ public class ArchitectFrame extends JFrame {
 		etlSubmenuOne.add(quickStartAction);
 		etlMenu.add(etlSubmenuOne);	
         etlMenu.add(exportCSVAction);
+        etlMenu.add(mappingReportAction);
 		menuBar.add(etlMenu);
 
 		JMenu toolsMenu = new JMenu("Tools");
