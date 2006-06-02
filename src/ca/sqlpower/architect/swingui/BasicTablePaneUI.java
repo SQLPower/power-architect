@@ -130,7 +130,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 			g2.setColor(c.getForeground());
 
 			// print table name
-			g2.drawString(tablePane.getModel().getName(), 0, y += ascent);
+			g2.drawString(getTitleString(tablePane), 0, y += ascent);
 
 			// draw box around columns
 			if (fontHeight < 0) {
@@ -247,7 +247,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 				}
 				itemsToCheck.add(col.toString());
 			}
-			itemsToCheck.add(table.getName());   // this works as long as the title uses the same font as the columns
+			itemsToCheck.add(getTitleString(c));   // this works as long as the title uses the same font as the columns
 			for(String item : itemsToCheck) {
 				if (item == null) item = "(null!?)";
 				if (frc == null) {
@@ -331,5 +331,21 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 	public void revalidate() {
 	}
 
+    private String getTitleString(TablePane tp) {
+        if (tp.isFullyQualifiedNameInHeader()) {
+            SQLTable t = tp.getModel();
+            String db = t.getParentDatabase() == null ? null : t.getParentDatabase().getName();
+            String cat = t.getCatalogName().length() == 0 ? null : t.getCatalogName();
+            String sch = t.getSchemaName().length() == 0 ? null : t.getSchemaName();
+            StringBuffer fqn = new StringBuffer();
+            fqn.append(db);
+            if (cat != null) fqn.append('.').append(cat);
+            if (sch != null) fqn.append('.').append(sch);
+            fqn.append('.').append(tp.getModel().getName());
+            return fqn.toString();
+        } else {
+            return tp.getModel().getName();
+        }
+    }
 
 }

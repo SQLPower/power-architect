@@ -109,6 +109,7 @@ public class TablePane
 	 */
 	protected SQLColumn draggingColumn;
 
+    private boolean fullyQualifiedNameInHeader = false;
 	
 	static {
 		UIManager.put(TablePaneUI.UI_CLASS_ID, "ca.sqlpower.architect.swingui.BasicTablePaneUI");
@@ -926,5 +927,13 @@ public class TablePane
             float sz = columnHighlight.get(column).size();
             return new Color(rgbsum[0]/sz, rgbsum[1]/sz, rgbsum[2]/sz);
         }
+    }
+    
+    public void setFullyQualifiedNameInHeader(boolean fullyQualifiedNameInHeader) {
+        this.fullyQualifiedNameInHeader = fullyQualifiedNameInHeader;
+    }
+    
+    public boolean isFullyQualifiedNameInHeader() {
+        return fullyQualifiedNameInHeader;
     }
 }
