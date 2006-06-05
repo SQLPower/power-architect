@@ -314,9 +314,8 @@ public class ArchitectUtils {
 	}
 	
 	/**
-	 * 
+	 * Map from JDBC Driver Class name to the template used to create database URLs
 	 * XXX: look thise up from somewhere (i.e. don't hard code them)
-	 * 
 	 */
 	public static Map<String,String> getDriverTemplateMap() {
 		Map<String,String> drivers = new HashMap<String,String>();
@@ -328,15 +327,18 @@ public class ArchitectUtils {
 					"jdbc:postgresql://<Hostname>:<Port:5432>/<Database>");
 		drivers.put("ibm.sql.DB2Driver",
 					"jdbc:db2:<Hostname>");
+        drivers.put("org.apache.derby.jdbc.EmbeddedDriver",
+                    "jdbc:derby:<Database>;create=true");
+        drivers.put("org.hsqldb.jdbcDriver", 
+                    "jdbc:hsqldb:<Database>");
 		drivers.put("ca.sqlpower.architect.MockJDBCDriver",
 					"jdbc:mock:catalogTerm=<Catalog Term:Catalog>&schemaTerm=<Schema Term:Schema>");
 		return drivers;
 	}
 	
 	/**
-	 * 
+	 * Map from driver class name to a short name for the database.
 	 * XXX: look thise up from somewhere (i.e. don't hard code them)
-	 * 
 	 */
 	public static Map<String,String> getDriverTypeMap() {
 		Map<String,String> driverSystems = new HashMap<String,String>();
@@ -344,6 +346,8 @@ public class ArchitectUtils {
 		driverSystems.put("com.microsoft.jdbc.sqlserver.SQLServerDriver", "SQL SERVER");
 		driverSystems.put("org.postgresql.Driver", "POSTGRES");
 		driverSystems.put("ibm.sql.DB2Driver", "DB2");
+        driverSystems.put("org.apache.derby.jdbc.EmbeddedDriver", "DERBY");
+        driverSystems.put("org.hsqldb.jdbcDriver", "HSQLDB");
 		driverSystems.put("ca.sqlpower.architect.MockJDBCDriver", "OTHER");
 		return driverSystems;
 	}
