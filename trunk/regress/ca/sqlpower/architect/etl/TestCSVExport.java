@@ -27,7 +27,6 @@ public class TestCSVExport extends TestCase {
         SQLSchema schema1 = new SQLSchema(catalog1,"schema1",true);
         SQLTable table1 = new SQLTable(schema1,"table1","","",true);
         SQLColumn column1 = new SQLColumn(table1,"column1",1,1,1);
-        SQLColumn column2 = new SQLColumn(table1,"column2",1,1,1);
         ArchitectDataSource ppds = new ArchitectDataSource();
         SQLDatabase playpenDB = new SQLDatabase(ppds);
         SQLTable ppTable1 = new SQLTable(playpenDB,true);
