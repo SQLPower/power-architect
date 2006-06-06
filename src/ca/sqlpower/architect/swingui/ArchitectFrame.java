@@ -71,6 +71,7 @@ import ca.sqlpower.architect.swingui.action.EditRelationshipAction;
 import ca.sqlpower.architect.swingui.action.EditTableAction;
 import ca.sqlpower.architect.swingui.action.ExportDDLAction;
 import ca.sqlpower.architect.swingui.action.ExportPLTransAction;
+import ca.sqlpower.architect.swingui.action.HelpAction;
 import ca.sqlpower.architect.swingui.action.InsertColumnAction;
 import ca.sqlpower.architect.swingui.action.PreferencesAction;
 import ca.sqlpower.architect.swingui.action.PrintAction;
@@ -161,6 +162,7 @@ public class ArchitectFrame extends JFrame {
 	    }
 	};
 	
+    protected Action helpAction;
 	/**
 	 * Updates the swing settings and then writes all settings to the
 	 * config file whenever actionPerformed is invoked.
@@ -283,7 +285,8 @@ public class ArchitectFrame extends JFrame {
 		
 		// Create actions
 		aboutAction = new AboutAction();
-
+		helpAction = new HelpAction();
+        
 		newProjectAction
 			 = new AbstractAction("New Project",
 					      ASUtils.createJLFIcon("general/New","New Project",sprefs.getInt(SwingUserSettings.ICON_SIZE, 24))) {
@@ -627,6 +630,8 @@ public class ArchitectFrame extends JFrame {
 		JMenu helpMenu = new JMenu("Help");
 		helpMenu.setMnemonic('h');
 		helpMenu.add(aboutAction);
+        helpMenu.addSeparator();
+        helpMenu.add(helpAction);
 		menuBar.add(helpMenu);
 		
 		setJMenuBar(menuBar);
@@ -647,8 +652,11 @@ public class ArchitectFrame extends JFrame {
 		projectBar.add(compareDMAction);
 		projectBar.addSeparator();
 		projectBar.add(autoLayoutAction);
+        projectBar.addSeparator();
+        projectBar.add(helpAction);
 		projectBar.setToolTipText("Project Toolbar");
 		projectBar.setName("Project Toolbar");
+        
 		
 		
 		JButton tempButton = null; // shared actions need to report where they are coming from
