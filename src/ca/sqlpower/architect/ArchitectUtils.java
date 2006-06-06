@@ -413,4 +413,26 @@ public class ArchitectUtils {
 		}
 		return sb.toString();
 	}
+    
+      /**
+     * Pulls out all SQLTable objects which exist under the start object
+     * and adds them to the given list.
+     * 
+     * TODO make this generic so we can ask for any object type
+     * 
+     * @param db The database to extract the tables from
+     * @return A flat List consisting of all the SQLTable objects in db.
+     * @throws ArchitectException
+     */
+    public static List<SQLTable> extractTables(SQLObject start, List addTo) throws ArchitectException {
+        if (start.allowsChildren()) {
+            Iterator it = start.getChildren().iterator();
+            while (it.hasNext()) {
+                SQLObject so = (SQLObject) it.next();
+                if (so instanceof SQLTable) addTo.add(so);
+                else extractTables(so, addTo);
+            }
+        }
+        return addTo;
+    }
 }

@@ -132,7 +132,11 @@ public class DepthFirstSearch {
     
     public DepthFirstSearch(SQLDatabase db) throws ArchitectException {
         List tables = new ArrayList();
-        extractTables(db, tables);
+        ArchitectUtils.extractTables(db, tables);
+        performSearch(tables);
+    }
+    
+    public DepthFirstSearch(List<SQLTable> tables) throws ArchitectException {
         performSearch(tables);
     }
 
@@ -191,25 +195,6 @@ public class DepthFirstSearch {
         finishOrder.addFirst(u);
     }
 
-    /**
-     * Pulls out all SQLTable objects which exist under the start object
-     * and adds them to the given list.
-     * 
-     * @param db The database to extract the tables from
-     * @return A flat List consisting of all the SQLTable objects in db.
-     * @throws ArchitectException
-     */
-    private List extractTables(SQLObject start, List addTo) throws ArchitectException {
-        if (start.allowsChildren()) {
-            Iterator it = start.getChildren().iterator();
-            while (it.hasNext()) {
-                SQLObject so = (SQLObject) it.next();
-                if (so instanceof SQLTable) addTo.add(so);
-                else extractTables(so, addTo);
-            }
-        }
-        return addTo;
-    }
     
     
     /**

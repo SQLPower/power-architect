@@ -289,6 +289,13 @@ public class PlayPen extends JPanel
 	public SQLDatabase getDatabase() {
 		return db;
 	}
+    
+    public List<SQLTable> getTables() throws ArchitectException {
+        List<SQLTable> tables = new ArrayList(); 
+        ArchitectUtils.extractTables(db,tables);
+        return tables;
+        
+    }
 
 	private final void setDatabase(SQLDatabase newdb) {
 		if (newdb == null) throw new NullPointerException("db must be non-null");

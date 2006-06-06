@@ -178,6 +178,7 @@ public class QuickStartPanel4 implements WizardPanel {
 			// got this far, so it's ok to run the PL Export thread
 			ExportTxProcess etp = epta.new ExportTxProcess(
 				wizard.getPlExport(),
+                epta.getExportingTables(),
 				wizard.getParentDialog(),
 				((WizardDialog)wizard.getParentDialog()).getProgressBar(),
 				((WizardDialog)wizard.getParentDialog()).getProgressLabel());

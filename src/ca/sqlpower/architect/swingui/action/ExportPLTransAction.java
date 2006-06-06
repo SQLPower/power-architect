@@ -21,7 +21,6 @@ import ca.sqlpower.architect.swingui.CommonCloseAction;
 import ca.sqlpower.architect.swingui.EngineExecPanel;
 import ca.sqlpower.architect.swingui.JDefaultButton;
 import ca.sqlpower.architect.swingui.PLExportPanel;
-import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.ProgressWatcher;
 import ca.sqlpower.architect.swingui.QuickStartWizard;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
@@ -35,7 +34,7 @@ public class ExportPLTransAction extends AbstractAction {
 	private static final Logger logger = Logger.getLogger(ExportPLTransAction.class);
 
 	protected ArchitectFrame architectFrame;
-	protected PlayPen playpen;
+	protected List<SQLTable> tables;
 
 	/** The PLExport object that this action uses to create PL transactions. */
 	protected PLExport plexp;
@@ -56,8 +55,8 @@ public class ExportPLTransAction extends AbstractAction {
 		putValue(SHORT_DESCRIPTION, "PL Transaction Export");
 	}
 
-	public void setPlayPen(PlayPen playpen) {
-		this.playpen = playpen;
+	public void setExportingTables(List<SQLTable> exportingTables) {
+		tables = exportingTables;
 	}
 	
 		
@@ -115,7 +114,7 @@ public class ExportPLTransAction extends AbstractAction {
 				}
 				
 				try {
-					List targetTables = playpen.getDatabase().getTables();					
+				    List targetTables = tables;				
 					List targetDBWarnings = listMissingTargetTables(targetTables);
 					if (!targetDBWarnings.isEmpty()) {
 						// modal dialog (hold things up until the user says YES or NO)
@@ -129,6 +128,10 @@ public class ExportPLTransAction extends AbstractAction {
 							return;
 						}
 					}
+					// got this far, so it's ok to run the PL Export thread
+					ExportTxProcess etp = new ExportTxProcess(plexp,targetTables,d,
+					        plCreateTxProgressBar,plCreateTxLabel);
+					new Thread(etp).start();
 				} catch (SQLException esql) {
 					JOptionPane.showMessageDialog (architectFrame,"Can't export Transaction: "+esql.getMessage());
 					logger.error("Got exception while exporting Trans", esql);
@@ -139,10 +142,6 @@ public class ExportPLTransAction extends AbstractAction {
 					return;
 				}		
 				
-				// got this far, so it's ok to run the PL Export thread
-				ExportTxProcess etp = new ExportTxProcess(plexp,d,
-						plCreateTxProgressBar,plCreateTxLabel);
-				new Thread(etp).start();
 			}
 		});
 		buttonPanel.add(okButton);
@@ -275,10 +274,12 @@ public class ExportPLTransAction extends AbstractAction {
 		PLExport plExport;
 		final JDialog d;
 		private Runnable nextProcess;
+        private List<SQLTable> exportTables;
 
-		public ExportTxProcess (PLExport plExport, JDialog parentDialog,
+		public ExportTxProcess (PLExport plExport,List<SQLTable> exportTables, JDialog parentDialog,
 				JProgressBar progressBar, JLabel label) {
 			this.plExport = plExport;
+            this.exportTables = exportTables;
 			d = parentDialog;
 			label.setText("Exporting Meta Data...");			
 			new ProgressWatcher(progressBar, plExport, label);			
@@ -289,7 +290,7 @@ public class ExportPLTransAction extends AbstractAction {
 				return;
 			// now implements Monitorable, so we can ask it how it's doing
 			try {
-				plExport.export(playpen.getDatabase());
+				plExport.export(exportTables);
 				// if the user requested, try running the PL Job afterwards
 				if (plExport.getRunPLEngine()) {
 					logger.debug("Running PL Engine");
@@ -394,5 +395,9 @@ public class ExportPLTransAction extends AbstractAction {
 			}
 		}
 
-	}	
+	}
+
+    public List<SQLTable> getExportingTables() {
+        return tables;
+    }	
 }
