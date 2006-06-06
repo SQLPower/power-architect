@@ -22,17 +22,15 @@ public class MappingReport {
     private int unrelatedSourcesGap = 10;
     private int arrowheadLength = 10;
     private double arrowheadAngle = Math.PI / 6.0;
+    Map<SQLTable, Collection<SQLTable>> mappings; 
+    Map<SQLTable, TablePane> panes = new HashMap<SQLTable, TablePane>();
+    int maxSourceWidth = 0;
+    int maxTargetWidth = 0;
     
-    public MappingReport(Collection<SQLTable> targetTables) {
-        this.targetTables = targetTables;
-    }
-    
-    public Dimension drawHighLevelReport(Graphics2D g) throws ArchitectException {
+    public MappingReport(Collection<SQLTable> targetTables) throws ArchitectException {
         PlayPen pp = new PlayPen();
-        Map<SQLTable, Collection<SQLTable>> mappings = ETLUtils.findTableLevelMappings(targetTables);
-        Map<SQLTable, TablePane> panes = new HashMap<SQLTable, TablePane>();
-
-        int maxSourceWidth = 0;
+        this.targetTables = targetTables;
+        mappings = ETLUtils.findTableLevelMappings(targetTables);
         for (SQLTable sourceTable : mappings.keySet()) {
             if (sourceTable == null) continue;
             TablePane stp = new TablePane(sourceTable, pp);
@@ -40,59 +38,76 @@ public class MappingReport {
             panes.put(sourceTable, stp);
             maxSourceWidth = Math.max(maxSourceWidth, stp.getPreferredSize().width);
         }
-
-        int maxTargetWidth = 0;
+        
         for (SQLTable targetTable : targetTables) {
             TablePane ttp = new TablePane(targetTable, pp);
             panes.put(targetTable, ttp);
             maxTargetWidth = Math.max(maxTargetWidth, ttp.getPreferredSize().width);
         }
-        
-        int sx = 0, sy = 0;
-        int tx = maxSourceWidth + sourceTargetGap, ty = 0;
+    }
+    
+    public Dimension drawHighLevelReport(Graphics2D g, Dimension pageSize) throws ArchitectException {
+
+        int y = 0;
         for (Map.Entry<SQLTable, Collection<SQLTable>> entry : mappings.entrySet()) {
             SQLTable st = entry.getKey();
             Collection<SQLTable> targets = entry.getValue();
-            for (SQLTable targetTable : targets) {
-                
-                TablePane ttp = panes.get(targetTable);
-                Dimension tpsize = ttp.getPreferredSize();
-                ttp.setBounds(
-                        tx + maxTargetWidth/2 - tpsize.width/2, ty,
-                        tpsize.width, tpsize.height);
-                if (g != null) {
-                    g.translate(ttp.getX(), ttp.getY());
-                    ttp.paint(g);
-                    g.translate(-ttp.getX(), -ttp.getY());
+            if (pageSize != null) {
+                int clusterSize = drawSourceTargetCluster(null, panes, maxSourceWidth, maxTargetWidth, y, st, targets);
+                if ((y % pageSize.height)+(clusterSize%pageSize.height) >= pageSize.height){
+                    y += pageSize.height - (y % pageSize.height); 
                 }
-                ty += ttp.getHeight();
             }
-            int targetsHeight = ty - sy;
-            TablePane stp = panes.get(st);
-            if (stp != null) {
-                Dimension stpsize = stp.getPreferredSize();
-                stp.setBounds(
-                        sx + maxSourceWidth/2 - stpsize.width/2, Math.max(sy, sy + targetsHeight/2 - stpsize.height/2),
-                        stpsize.width, stpsize.height);
-                if (g != null) {
+            y = drawSourceTargetCluster(g, panes, maxSourceWidth, maxTargetWidth, y, st, targets);
+        }
+        return new Dimension(maxSourceWidth + sourceTargetGap + maxTargetWidth, y - unrelatedSourcesGap);
+    }
+
+    private int drawSourceTargetCluster(Graphics2D g, Map<SQLTable, TablePane> panes, int maxSourceWidth, int maxTargetWidth,  int sy,  SQLTable st, Collection<SQLTable> targets) {
+        int sx = 0;
+        int tx = maxSourceWidth + sourceTargetGap;
+        int ty = sy;
+        for (SQLTable targetTable : targets) {
+            
+            TablePane ttp = panes.get(targetTable);
+            Dimension tpsize = ttp.getPreferredSize();
+            ttp.setBounds(
+                    tx + maxTargetWidth/2 - tpsize.width/2, ty,
+                    tpsize.width, tpsize.height);
+            if (g != null && g.hitClip(ttp.getX(),ttp.getY(),ttp.getWidth(),ttp.getHeight())) {
+                g.translate(ttp.getX(), ttp.getY());
+                ttp.paint(g);
+                g.translate(-ttp.getX(), -ttp.getY());
+            }
+            ty += ttp.getHeight();
+        }
+        int targetsHeight = ty - sy;
+        TablePane stp = panes.get(st);
+        if (stp != null) {
+            Dimension stpsize = stp.getPreferredSize();
+            stp.setBounds(
+                    sx + maxSourceWidth/2 - stpsize.width/2, Math.max(sy, sy + targetsHeight/2 - stpsize.height/2),
+                    stpsize.width, stpsize.height);
+            if (g != null ) {
+                if (g.hitClip(stp.getX(),stp.getY(),stp.getWidth(),stp.getHeight())) {                    
                     g.translate(stp.getX(), stp.getY());
                     stp.paint(g);
                     g.translate(-stp.getX(), -stp.getY());
-                    for (SQLTable targetTable : targets) {
-                        drawArrow(g,
-                                stp.getBounds(),
-                                panes.get(targetTable).getBounds());
-                    }
+                }
+                for (SQLTable targetTable : targets) {
+                    drawArrow(g,
+                            stp.getBounds(),
+                            panes.get(targetTable).getBounds());
                 }
             }
-            ty += unrelatedSourcesGap ;
-            sy = ty;
         }
-        return new Dimension(maxSourceWidth + sourceTargetGap + maxTargetWidth, sy - unrelatedSourcesGap);
+        ty += unrelatedSourcesGap ;
+        sy = Math.max(ty,sy+stp.getHeight()+unrelatedSourcesGap);
+        return sy;
     }
 
     public Dimension getRequiredSize() throws ArchitectException {
-        return drawHighLevelReport(null);
+        return drawHighLevelReport(null,null);
     }
     
     private void drawArrow(Graphics2D g, Rectangle from, Rectangle to) {

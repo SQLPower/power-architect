@@ -55,12 +55,12 @@ public class PLExport implements Monitorable {
 	}
 	protected boolean finished; // so the Timer thread knows when to kill itself
 	protected boolean cancelled; // FIXME: placeholder for when the user cancels halfway through a PL Export 			 
-	SQLDatabase currentDB; // if this is non-null, an export job is running
+	List<SQLTable> currentDB; // if this is non-null, an export job is running
 	int tableCount = 0; // only has meaning when an export job is running
 	
 	public Integer getJobSize() throws ArchitectException {			
 		if (currentDB != null) {
-			return new Integer(currentDB.getChildren().size());
+			return new Integer(currentDB.size());
 		} else {			
 			return null;
 		}		
@@ -772,12 +772,12 @@ public class PLExport implements Monitorable {
      * TODO: Strictly speaking, this method should be synchronized (though currently, it's
      * pretty hard to get two copies of it going at the same time)
 	 */
-	public void export(SQLDatabase playpenDB) throws SQLException, ArchitectException {
+	public void export(List<SQLTable> tablesToExport) throws SQLException, ArchitectException {
 		finished = false;
 		hasStarted = true;
 		Connection con = null;
 		try {			
-			currentDB = playpenDB;
+			currentDB = tablesToExport;
 			
 			// first, set the logWriter
 			logWriter = new LogWriter(ArchitectSession.getInstance().getUserSettings().getETLUserSettings().getETLLogPath());			
@@ -833,7 +833,7 @@ public class PLExport implements Monitorable {
 			// before their children
 		
 		
-			DepthFirstSearch targetDFS = new DepthFirstSearch(playpenDB);
+			DepthFirstSearch targetDFS = new DepthFirstSearch(tablesToExport);
 			List tables = targetDFS.getFinishOrder();
 			
 		
@@ -846,49 +846,6 @@ public class PLExport implements Monitorable {
 			    }
 			    logger.debug("Safe load order for job is: "+tableOrder);
 			}
-
-/*			Left in for posterity so we can refer to how things used to be.  See below
- *          for the brave new world, in which we process columns 1 at a time, and 
- *          enforce a strict 1-to-1 mapping between transactions and inputs.
-			
-			int outputTableNum = 1;
-			Iterator targetTableIt = tables.iterator();
-			while (targetTableIt.hasNext()) {
-				tableCount++;
-				SQLTable outputTable = (SQLTable) targetTableIt.next();
-				HashSet inputTables = new HashSet();
-				Iterator cols = outputTable.getColumns().iterator();
-				while (cols.hasNext()) {
-					SQLColumn outputCol = (SQLColumn) cols.next();
-					SQLColumn inputCol = outputCol.getSourceColumn();
-					// looking for unique input tables of outputTable
-					if (inputCol != null && !inputTables.contains(inputCol.getParentTable())) {
-						SQLTable inputTable = inputCol.getParentTable();
-						inputTables.add(inputTable);
-						String baseTransName = PLUtils.toPLIdentifier("LOAD_"+outputTable.getName());
-						int transNum = generateUniqueTransIdx(con,baseTransName);
-						String transName = baseTransName + "_" + transNum;
-						insertTrans(con, transName, outputTable.getRemarks());
-						insertFolderDetail(con, "TRANSACTION", transName);
-						insertTransExceptHandler(con, "A", transName, tCon); // error handling is w.r.t. target database
-						insertTransExceptHandler(con, "U", transName, tCon); // error handling is w.r.t. target database
-						insertTransExceptHandler(con, "D", transName, tCon); // error handling is w.r.t. target database
-						insertJobDetail(con, outputTableNum*10, "TRANSACTION", transName);
-						logger.debug("outputTableNum: " + outputTableNum);
-						logger.debug("transName: " + transName);
-						String outputTableId = PLUtils.toPLIdentifier(outputTable.getName()+"_OUT_"+outputTableNum);
-						String inputTableId = PLUtils.toPLIdentifier(inputTable.getName()+"_IN_"+transNum);
-						logger.debug("outputTableId: " + outputTableId);
-						logger.debug("inputTableId: " + inputTableId);
-						insertTransTableFile(con, transName, outputTableId, outputTable, true, transNum);						
-						insertTransTableFile(con, transName, inputTableId, inputTable, false, transNum);
-						insertMappings(con, transName, outputTableId, outputTable, inputTableId, inputTable);
-					}
-					outputTableNum++;
-				}
-			}
-			
-			*/
 
 			int outputTableNum = 1;
 			Hashtable inputTables = new Hashtable();
