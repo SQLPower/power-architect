@@ -10,12 +10,14 @@ import javax.swing.BorderFactory;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 
+import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.AboutPanel;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.CommonCloseAction;
 import ca.sqlpower.architect.swingui.JDefaultButton;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.SwingUserSettings;
 
 public class AboutAction extends AbstractAction {
 	
@@ -25,10 +27,9 @@ public class AboutAction extends AbstractAction {
 	protected PlayPen pp;
 	
 	public AboutAction() {
-		super("About...");
-// 			  ASUtils.createIcon("TableProperties",
-// 								 "Table Properties",
-// 								 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
+		super("About...", ASUtils.createJLFIcon( "general/Information",
+                        "Information", 
+                        ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
 		putValue(SHORT_DESCRIPTION, "About the Power*Architect");
 	}
 
