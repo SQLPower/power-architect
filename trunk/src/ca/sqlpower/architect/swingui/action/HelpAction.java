@@ -62,11 +62,6 @@ public class HelpAction extends AbstractAction  {
         editorPane.setPreferredSize(new Dimension(600,600));
 
         editorPane.addHyperlinkListener(new Hyperactive());
-        //kit = (HTMLEditorKit) editorPane.createEditorKitForContentType(null);
-        kit = new HTMLEditorKit();
-        editorPane.setEditorKit(kit);
-
-//          doc = (HTMLDocument) kit.createDefaultDocument();
         
         buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         homeAction = new AbstractAction("Home",
@@ -171,11 +166,9 @@ public class HelpAction extends AbstractAction  {
         ArchitectPanelBuilder.makeJDialogCancellable(
                 d, new CommonCloseAction(d));
         d.setContentPane(cp);
-
         cp.add(buttonPanel, BorderLayout.NORTH);
         
         JScrollPane scrollableTextArea = new JScrollPane(editorPane);
-
         cp.add(scrollableTextArea, BorderLayout.CENTER);
 
         if ( editorPane.getPage() == null ) {
@@ -186,6 +179,7 @@ public class HelpAction extends AbstractAction  {
                 e1.printStackTrace();
             }
         }
+        cp.validate();
 
         resetButtoms();
         d.pack();

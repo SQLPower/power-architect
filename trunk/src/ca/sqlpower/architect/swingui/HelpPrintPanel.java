@@ -56,7 +56,7 @@ public class HelpPrintPanel extends JPanel implements ArchitectPanel, Pageable, 
     /**
      * This is the playpen we're printing.
      */
- //   protected PlayPen pp;
+
     protected JEditorPane editorPane;
 
     protected JComboBox printerBox;
@@ -250,7 +250,6 @@ public class HelpPrintPanel extends JPanel implements ArchitectPanel, Pageable, 
             g2.translate(leftMargin - col*width, topMargin - row*height);
             g2.scale(zoom, zoom);
             editorPane.print(g2);
-//            pp.print(g2);
             
             g2.setTransform(backupXform);
             if (printPageNumbersBox.isSelected()) {
