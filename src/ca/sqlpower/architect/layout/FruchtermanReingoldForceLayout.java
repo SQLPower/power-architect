@@ -3,10 +3,10 @@ package ca.sqlpower.architect.layout;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-
-import javax.management.relation.Relation;
 
 import org.apache.log4j.Logger;
 
@@ -55,6 +55,10 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 	 */
 	private boolean overrideDone;
 
+    private int frameNum = 0;
+    
+    private static final int ORPHAN_BUFFER = 50;
+    
 	public void setup(List<TablePane> nodes, List<Relationship> edges,Rectangle frame) {
 		
 	    this.frame = frame;
@@ -65,7 +69,7 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
         for (TablePane tp: nodes) {
             try {
                 if (tp.getModel().getExportedKeys().size() == 0 && tp.getModel().getImportedKeys().size() ==0){
-                 //   orphanedTables.add(tp);
+                   orphanedTables.add(tp);
                 }
             } catch (ArchitectException e) {
                 throw new ArchitectRuntimeException(e);
@@ -109,6 +113,23 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 	 * Performs the next step of the spring layout
 	 */
 	public void nextFrame() {
+        
+        if (frameNum == 0) {
+            ArchitectGridLayout gl = new ArchitectGridLayout();
+            gl.setup(orphanedTables, Collections.EMPTY_LIST, frame);
+            gl.done();
+            
+            int maxy = 0;
+            for (TablePane tp : orphanedTables) {
+                maxy = Math.max(tp.getY() + tp.getHeight(), maxy);
+            }
+            int orphanStartY = frame.height - maxy;
+            logger.debug("max y is "+maxy+". orphanStartY is "+orphanStartY);
+            for (TablePane tp : orphanedTables) {
+                tp.setBounds(tp.getX(), tp.getY() + orphanStartY, tp.getWidth(), tp.getHeight());
+            }
+            frame.height -= maxy + ORPHAN_BUFFER;
+        }
 		
 		HashMap<TablePane, Point> displacement;
 		displacement = new HashMap<TablePane, Point>();
@@ -204,6 +225,7 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 			}
 		}
 		this.cool();
+        frameNum++;
 	}
 
     private Point displacementBetween(TablePane u, TablePane v) {
