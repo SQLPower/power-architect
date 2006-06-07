@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.management.relation.Relation;
+
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
@@ -121,25 +123,19 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 				Point disp = displacement.get(v);
 				for (int jj = 0; jj < nodes.size(); jj++) {
 					TablePane u = nodes.get(jj);
-					if (u != v) {
-						while (v.getLocation().equals(u.getLocation()))
-						{
-							v.setLocation((int)Math.round(Math.random()*5-3),(int)Math.round(Math.random()*5-3));
-						}
-						
-						Point delta = new Point(v.getLocation().x
-								- u.getLocation().x, v.getLocation().y
-								- u.getLocation().y);
-
-						
-						if (delta.distance(0,0) < 5*k)
-						{
-							disp.translate((int) Math.round(delta.x
-								/ magnitude(delta)
-								* repulsiveForce(magnitude(delta), k)),
-								(int) Math.round(delta.y / magnitude(delta)
-										* repulsiveForce(magnitude(delta), k)));
-						}
+					if (u == v) continue;
+                    
+					while (v.getLocation().equals(u.getLocation())) {
+					    v.setLocation((int) Math.round(Math.random()*5-3),
+					                  (int) Math.round(Math.random()*5-3));
+					}
+					
+					Point delta = displacementBetween(u, v);
+					
+					if (delta.distance(0,0) < 5*k) {
+					    disp.translate(
+					      (int) Math.round(delta.x / magnitude(delta) * repulsiveForce(magnitude(delta), u, v, k)),
+					      (int) Math.round(delta.y / magnitude(delta) * repulsiveForce(magnitude(delta), u, v, k)));
 					}
 
 				}
@@ -148,10 +144,11 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 			// calculate Attractive force
 
 			for (Relationship e : edges) {
+            
 				TablePane v = e.getPkTable();
 				TablePane u = e.getFkTable();
-				Point delta = new Point(v.getLocation().x - u.getLocation().x,
-						v.getLocation().y - u.getLocation().y);
+				Point delta = displacementBetween(u, v);
+                                 
 				Point vDisp = displacement.get(v);
 				if (vDisp == null) {
 					break;
@@ -160,55 +157,66 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 				if (uDisp == null) {
 					break;
 				}
-				if(uDisp.equals(vDisp))
-				{
-					
+				if(uDisp.equals(vDisp)) {
 					vDisp.translate((int)Math.random()+1,(int)Math.random()+1 );
 				}
 				
-				vDisp.translate(-(int) Math.round(delta.x / magnitude(delta)
-						* attractiveForce(delta, k)), -(int) Math
-						.round(delta.y / magnitude(delta)
-								* attractiveForce(delta, k)));
+				vDisp.translate(
+                        -(int) Math.round(0.5 * (delta.x / magnitude(delta) * attractiveForce(delta, k))),
+                        -(int) Math.round(0.5 * (delta.y / magnitude(delta) * attractiveForce(delta, k))));
 
-				uDisp.translate((int) Math.round(delta.x / magnitude(delta)
-						* attractiveForce(delta, k)), (int) Math
-						.round(delta.y / magnitude(delta)
-								* attractiveForce(delta, k)));
-				
+				uDisp.translate(
+                        (int) Math.round(0.5 * (delta.x / magnitude(delta) * attractiveForce(delta, k))),
+                        (int) Math.round(0.5 * (delta.y / magnitude(delta) * attractiveForce(delta, k))));
 			}
 
-			Boolean done =true;
+			boolean done = true;
 			// add the forces to the current location
 			for (TablePane v : nodes) {
 				Point pos = (Point) v.getLocation().clone();
 				Point disp = displacement.get(v);
-				pos.translate((int) Math.round(disp.x / magnitude(disp)
-						* Math.min(magnitude(disp), getTemp())), (int) Math
-						.round(disp.y / magnitude(disp)
-								* Math.min(magnitude(disp), getTemp())));
-				logger.debug("Unmodified move x:"+pos.x+", y:"+pos.y);
-                int xJitter = (int)Math.round(Math.random()*baseLineJitter);
-                int yJitter = (int)Math.round(Math.random()*baseLineJitter);
-                pos.x = Math.min(Math.max(frame.x+xJitter, pos.x),
-                                 getRightBoundary()-v.getWidth()-xJitter);
-				pos.y = Math.min(Math.max(frame.y+yJitter, pos.y),
-                                 getLowerBoundary()-v.getHeight()-yJitter);
-				logger.debug("Moving table "+v+" to position "+pos);
-				if (pos.distance(v.getLocation())>2)
-				{
+				pos.translate(
+                        (int) Math.round(disp.x / magnitude(disp) * Math.min(magnitude(disp), getTemp())),
+                        (int) Math.round(disp.y / magnitude(disp) * Math.min(magnitude(disp), getTemp())));
+
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Unmodified move x:"+pos.x+", y:"+pos.y);
+                }
+                
+                int xJitter = (int) Math.round(Math.random()*baseLineJitter);
+                int yJitter = (int) Math.round(Math.random()*baseLineJitter);
+                pos.x = Math.min(Math.max(frame.x + xJitter, pos.x),
+                                 getRightBoundary() - v.getWidth() - xJitter);
+				pos.y = Math.min(Math.max(frame.y + yJitter, pos.y),
+                                 getLowerBoundary() - v.getHeight() - yJitter);
+                
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Moving table "+v+" to position "+pos);
+                }
+
+                if (pos.distance(v.getLocation()) > 2) {
 					done = false;
 				}
 				v.setLocation(pos);
 			}
-			if (done)
-			{
+			if (done) {
 				stoppedFrames++;
 			}
 		}
 		this.cool();
 	}
 
+    private Point displacementBetween(TablePane u, TablePane v) {
+        Point dist = null;
+     
+        if (dist == null) {
+            dist = new Point(
+                    (v.getLocation().x + v.getWidth()/2) - (u.getLocation().x + u.getWidth()/2),
+                    (v.getLocation().y + v.getHeight()/2) - (u.getLocation().y + u.getHeight()/2));
+        }
+        return dist;
+    }
+    
 	/**
 	 * Calculate the attractive force
 	 * @param distance The distance between two nodes
@@ -229,12 +237,15 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 	 * @param emptyRadius  The radius we want to keep clear
 	 * @return the force between the two nodes
 	 */
-	protected double repulsiveForce(double distance, double emptyRadius) {
+	protected double repulsiveForce(double distance,TablePane u, TablePane v, double emptyRadius) {
+        final double baseForce = .1;
+        final double tableSizes = u.getHeight() + u.getWidth() + v.getHeight() + v.getWidth();
 		double force;
-		force = 16*( emptyRadius * emptyRadius ) / (distance * distance );
+		force = baseForce * tableSizes *( emptyRadius * emptyRadius ) / (distance * distance );
 
 		return force;
 	}
+ 
 
 	/**
 	 * The clear radius between two nodes
