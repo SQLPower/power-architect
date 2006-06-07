@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.AbstractAction;
-import javax.swing.Timer;
 
 import org.apache.log4j.Logger;
 
@@ -44,17 +43,16 @@ public class AutoLayoutAction extends AbstractAction {
 
 	public void actionPerformed(ActionEvent evt) {
 		
-		
 		if (layout != null)
 		{
 			
-			List<TablePane> tablePanes = pp.getSelectedTables();
-			Point layoutAreaOffset = new Point();
+			List<TablePane> tablePanes = new ArrayList(pp.getSelectedTables());
+            List<TablePane> notLaidOut = new ArrayList<TablePane>(pp.getTablePanes());
+            notLaidOut.removeAll(tablePanes);
+ 			Point layoutAreaOffset = new Point();
 			if (tablePanes.size() == 0) {
 				tablePanes = pp.getTablePanes();	
-			} else if (tablePanes.size() != pp.getTablePanes().size()){
-				List<TablePane> notLaidOut = new ArrayList<TablePane>(pp.getTablePanes());
-				notLaidOut.removeAll(tablePanes);
+			} else if (tablePanes.size() != pp.getTablePanes().size()){                
 				int maxWidth =0;
 				for (TablePane tp : notLaidOut){
 					int width = tp.getWidth()+tp.getX();
@@ -64,31 +62,23 @@ public class AutoLayoutAction extends AbstractAction {
 				}
 				layoutAreaOffset = new Point(maxWidth,0);
 			}
-
+            
 			List<Relationship> relationships = pp.getRelationships();
 			logger.debug("About to do layout. tablePanes="+tablePanes);
 			logger.debug("About to do layout. relationships="+relationships);
+            
+            
 			Rectangle layoutArea = new Rectangle(layoutAreaOffset,layout.getNewArea(tablePanes));
 			layout.setup(tablePanes,relationships,layoutArea);
-			doAnimation(layout, tablePanes);
+            LayoutAnimator anim = new LayoutAnimator(pp,layout);
+            anim.setAnimationEnabled(animationEnabled);
+            anim.setFramesPerSecond(framesPerSecond);
+			anim.startAnimation();
 		}
 		
 	}
 	
-	private void doAnimation(ArchitectLayoutInterface layout, List<TablePane> tables) {
 		
-		if (!animationEnabled) {
-			layout.done();
-		} else {
-			final Timer timer = new Timer( (int) (1.0 / ((double) framesPerSecond) * 1000.0), null);
-			LayoutAnimator animator = new LayoutAnimator(pp, timer, layout);
-			timer.addActionListener(animator);
-			timer.start();
-		}
-	}
-
-	
-	
 	public void setPlayPen(PlayPen pp) {
 		this.pp = pp;
 	}

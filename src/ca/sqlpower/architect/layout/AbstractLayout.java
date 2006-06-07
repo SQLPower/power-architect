@@ -35,15 +35,25 @@ public abstract class AbstractLayout implements ArchitectLayoutInterface {
 	
 	public Dimension getNewArea(List<TablePane> nodes) {
 		Dimension d = new Dimension();
-		int radius =0;
-		
+		long width=0;
+		long height=0;
+        long area=0;
 		for (TablePane tp : nodes) {
 			Rectangle b = tp.getBounds();
-			radius= Math.max(b.height,radius);
-			radius= Math.max(b.width,radius);
+			width += b.width;
+			height += b.height;
+            area += b.width *b.height;
 		}
-		
-		d.setSize(radius*2*Math.sqrt(nodes.size()),radius*2*Math.sqrt(nodes.size()));
+       
+        if (width == 0 || height == 0) return new Dimension();
+        
+		long avgWidth = width/nodes.size()+1;
+        long avgHeight = height/nodes.size() +1;
+        long radius = Math.max(avgWidth,avgHeight);
+        final double areaFudgeFactor = 16.0;
+        double newWidth = Math.sqrt( (11.0/8.5) * area * areaFudgeFactor );
+        double newHeight = (8.5/11.0) * newWidth;
+		d.setSize((int) newWidth, (int) newHeight);
 		return d;
 	}
 

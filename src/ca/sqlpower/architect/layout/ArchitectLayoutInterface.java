@@ -12,6 +12,9 @@ public interface ArchitectLayoutInterface {
 	/**
 	 * Setup the layout algoritm.
 	 * 
+     * TODO change the Rectangle into a point.  This should indicate where to start
+     * but the layout should determine dimensions 
+     * 
 	 * @param nodes  The list of entities to be placed on  
 	 * @param preferedFrames The prefered number of animation frames, may be ignored by the layout algorithm
 	 */

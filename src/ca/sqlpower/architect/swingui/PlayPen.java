@@ -224,6 +224,14 @@ public class PlayPen extends JPanel
 	 */
     private Map<SQLObject,PlayPenComponent> removedComponents = new WeakHashMap<SQLObject, PlayPenComponent>();
 
+    /**
+     * Tells whether or not this component will paint its contents.  This was
+     * originally added to test the speed of the SpringLayout when it doesn't
+     * have to repaint everything for every frame.  It might be useful for
+     * other stuff later on too.
+     */
+    private boolean paintingEnabled = true;
+    
 	private TablePaneDragGestureListener dgl;
 	private DragSource ds;
 
@@ -738,8 +746,19 @@ public class PlayPen extends JPanel
 		} 
 	}
 	
+    /** See {@link #paintingEnabled}. */
+    public void setPaintingEnabled(boolean paintingEnabled) {
+        this.paintingEnabled = paintingEnabled;
+    }
+    
+    /** See {@link #paintingEnabled}. */
+    public boolean isPaintingEnabled() {
+        return paintingEnabled;
+    }
+    
 	public void paintComponent(Graphics g) {
-
+	    if (!paintingEnabled) return;
+        
 		logger.debug("start of paintComponent, width="+getWidth()+",height="+getHeight());
 		Graphics2D g2 = (Graphics2D) g;
 		g2.setColor(getBackground());

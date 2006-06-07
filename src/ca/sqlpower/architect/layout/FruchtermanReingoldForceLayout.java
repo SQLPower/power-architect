@@ -8,6 +8,8 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.TablePane;
@@ -17,7 +19,7 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 			.getLogger(FruchtermanReingoldForceLayout.class);
 
 	private ArrayList<TablePane> nodes;
-
+    private ArrayList<TablePane> orphanedTables = new ArrayList<TablePane>();
 	private ArrayList<Relationship> edges;
 
 	/**
@@ -53,14 +55,28 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 
 	public void setup(List<TablePane> nodes, List<Relationship> edges,Rectangle frame) {
 		
-		this.frame = frame;
-		
+	    this.frame = frame;
+              
+	    //nodes.removeAll(noRelationTables);
 		this.nodes = new ArrayList<TablePane>(nodes);
+        
+        for (TablePane tp: nodes) {
+            try {
+                if (tp.getModel().getExportedKeys().size() == 0 && tp.getModel().getImportedKeys().size() ==0){
+                 //   orphanedTables.add(tp);
+                }
+            } catch (ArchitectException e) {
+                throw new ArchitectRuntimeException(e);
+            }
+        }
+        
+        this.nodes.removeAll(orphanedTables);
+        
 		this.edges = new ArrayList<Relationship>(edges);
 
 		
 		baseLineJitter =10;
-		temp = 100*nodes.size();
+		temp = 1000*nodes.size();
 		
 		stoppedFrames =0;
 		overrideDone = false;
@@ -81,6 +97,7 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 	 */
 	public boolean isDone() {
 		if (stoppedFrames > 5 || nodes.size() < 2 || overrideDone) {
+
 			return true;
 		}
 		return false;
@@ -171,8 +188,12 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 						.round(disp.y / magnitude(disp)
 								* Math.min(magnitude(disp), getTemp())));
 				logger.debug("Unmodified move x:"+pos.x+", y:"+pos.y);
-				pos.x = Math.min(getRightBoundry()-(int)Math.round(Math.random()*baseLineJitter), Math.max(frame.x+(int)Math.round(Math.random()*baseLineJitter), pos.x));
-				pos.y = Math.min(getLowerBoundry()-(int)Math.round(Math.random()*baseLineJitter), Math.max(frame.y+(int)Math.round(Math.random()*baseLineJitter), pos.y));
+                int xJitter = (int)Math.round(Math.random()*baseLineJitter);
+                int yJitter = (int)Math.round(Math.random()*baseLineJitter);
+                pos.x = Math.min(Math.max(frame.x+xJitter, pos.x),
+                                 getRightBoundary()-v.getWidth()-xJitter);
+				pos.y = Math.min(Math.max(frame.y+yJitter, pos.y),
+                                 getLowerBoundary()-v.getHeight()-yJitter);
 				logger.debug("Moving table "+v+" to position "+pos);
 				if (pos.distance(v.getLocation())>2)
 				{
@@ -196,8 +217,8 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 	 */
 	protected double attractiveForce(Point distance, double emptyRadius) {
 		double force;
-		force = Math.abs( distance.x *distance.x) / Math.sqrt(emptyRadius);
-		force +=Math.abs((distance.y * distance.y)/ Math.sqrt(emptyRadius));
+		force =  (distance.x *distance.x + distance.y*distance.y) / emptyRadius;
+		
 
 		return force;
 	}
@@ -210,7 +231,7 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 	 */
 	protected double repulsiveForce(double distance, double emptyRadius) {
 		double force;
-		force = ( emptyRadius * emptyRadius ) / distance;
+		force = 16*( emptyRadius * emptyRadius ) / (distance * distance );
 
 		return force;
 	}
@@ -221,12 +242,13 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 	 * @return
 	 */
 	public double getEmptyRadius() {
-			int radius =0;
+			double radius =0;
 			for (TablePane tp : nodes) {
 				Rectangle b = tp.getBounds();
-				radius=Math.max(b.height,radius);
-				radius=Math.max(b.width,radius);
+				radius +=b.height;
+				radius +=b.width;
 			}
+            radius = radius/(nodes.size()); 
 			return radius*SPACING_MULTIPLIER;
 	}
 
@@ -234,6 +256,7 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 
 	public void done() {
 		overrideDone = true;
+        
 	}
 
 	/**
@@ -265,12 +288,12 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 		return frame.height;
 	}
 
-	public int getRightBoundry(){
+	public int getRightBoundary(){
 		return frame.x+frame.width;
 		
 	}
 	
-	public int getLowerBoundry(){
+	public int getLowerBoundary(){
 		return frame.y+frame.height;
 	}
 	
