@@ -29,27 +29,33 @@ import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.CommonCloseAction;
 import ca.sqlpower.architect.swingui.HelpPrintPanel;
-import ca.sqlpower.architect.swingui.PrintPanel;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
 
+/**
+ * Help Display for the Architect.
+ * XXX Might be better to reimplement using Java Help API.
+ */
+/**
+ * X is a Y.
+ */
 public class HelpAction extends AbstractAction  {
 
-    String urlStr = "file:///P:/test_data/PowerArchitectUserGuide.html";
+    // XXX This is not usable yet, we need a way to find this from the installation directory;
+    // either using getResource(), or a directory in the installation.
+    public static final String URL_STRING = "file:///P:/test_data/PowerArchitectUserGuide.html";
+    
     JEditorPane editorPane;
     HTMLDocument doc;
     HTMLEditorKit kit;
-    Hyperactive ha;
-    
+    Hyperactive ha;    
     
     JPanel buttonPanel;
     Action homeAction;
     Action backAction;
     Action forwardAction;
     Action printHelpAction;
-    URLHistroyList history;
-    
-            
-            
+    URLHistoryList history;
+              
     public HelpAction() {
         
         super("Help",ASUtils.createJLFIcon( "general/Help",
@@ -70,10 +76,10 @@ public class HelpAction extends AbstractAction  {
                                                 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 16)) ) {
             public void actionPerformed(ActionEvent evt) {
                 try {
-                    editorPane.setPage(urlStr);
-                    history.add(urlStr);
+                    editorPane.setPage(URL_STRING);
+                    history.add(URL_STRING);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    handleHelpError(e);
                 }
                 resetButtoms();
             }
@@ -93,8 +99,7 @@ public class HelpAction extends AbstractAction  {
                 try {
                     editorPane.setPage(url);
                 } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    handleHelpError(e);
                 }
                 resetButtoms();
             }
@@ -114,8 +119,7 @@ public class HelpAction extends AbstractAction  {
                 try {
                     editorPane.setPage(url);
                 } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    handleHelpError(e);
                 }
                 resetButtoms();
             }
@@ -147,14 +151,20 @@ public class HelpAction extends AbstractAction  {
     
         printHelpAction.putValue(Action.NAME, "Print");
         JButton printButton = new JButton(printHelpAction);
-        buttonPanel.add(printButton);
-        
-        
+        buttonPanel.add(printButton);            
 
-        history = new URLHistroyList();
+        history = new URLHistoryList();
+    }            
+
+    void handleHelpError(Throwable t) {
+        StringBuilder sb= new StringBuilder();
+        sb.append("<html><h1>Help Failed</h1>");
+        sb.append("<p>The help page failed to load because of the following error:");
+        sb.append("<p><b>").append(t).append("</b></p>");
+        //sb.append("<p>The following traceback will help our developers find the problem if necessary:</p>");
+        //sb.append("<pre>").append("(not available yet"); // XXXt.printStacktrace() to a memorywriter...
+        editorPane.setText(sb.toString());
     }
-            
-
         
     public void actionPerformed(ActionEvent e) {
 
@@ -173,10 +183,10 @@ public class HelpAction extends AbstractAction  {
 
         if ( editorPane.getPage() == null ) {
             try {
-                editorPane.setPage(urlStr);
-                history.add(urlStr);
+                editorPane.setPage(URL_STRING);
+                history.add(URL_STRING);
             } catch (IOException e1) {
-                e1.printStackTrace();
+                handleHelpError(e1);
             }
         }
         cp.validate();
@@ -214,7 +224,7 @@ public class HelpAction extends AbstractAction  {
                         pane.setPage(url);
                         history.add(url);
                     } catch (Throwable t) {
-                        t.printStackTrace();
+                        handleHelpError(t);
                     }
                     resetButtoms();
                 }
@@ -222,12 +232,16 @@ public class HelpAction extends AbstractAction  {
         }
     }
     
-    class URLHistroyList {
+    /**
+     * A simple list of visited pages. 
+     * XXX Reimplement based on java.util.Stack.
+     */
+    class URLHistoryList {
 
         List<URL> urlArray;
         int currentIndex;
         
-        public URLHistroyList() {
+        public URLHistoryList() {
             urlArray = new ArrayList<URL>();
             currentIndex = -1;
         }
@@ -238,11 +252,10 @@ public class HelpAction extends AbstractAction  {
                 url = new URL(urlStr);
                 return add(url);
             } catch (MalformedURLException e) {
-                e.printStackTrace();
+                handleHelpError(e);
             }
             return false;
-        }
-        
+        }      
         
         public boolean add(URL url) {
             boolean returnCode = true;
@@ -288,8 +301,7 @@ public class HelpAction extends AbstractAction  {
             s.append(currentIndex);
             s.append("  ");
             s.append(urlArray.toString());
-            return s.toString();
-            
+            return s.toString();           
         }
         
         public boolean isBackwardable() {
