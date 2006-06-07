@@ -12,14 +12,26 @@ public class LayoutAnimator implements ActionListener {
 	private PlayPen pp;
 	private Timer timer;
 	private ArchitectLayoutInterface layout;
+    private boolean animationEnabled = true;
+    private int framesPerSecond = 15;
 
-	public LayoutAnimator(PlayPen pp, Timer timer, ArchitectLayoutInterface layout) {
+
+    public LayoutAnimator(PlayPen pp, ArchitectLayoutInterface layout) {
 		this.pp = pp;
-		this.timer = timer;
 		this.layout = layout;
-		pp.startCompoundEdit("Auto Layout");
 	}
 	
+    public void startAnimation() {
+        pp.startCompoundEdit("Auto Layout");
+        if (!animationEnabled) {
+            layout.done();
+        } else {
+            timer = new Timer( (int) (1.0 / ((double) framesPerSecond) * 1000.0), null);
+            timer.addActionListener(this);
+            timer.start();
+        }
+    }
+    
 	public void actionPerformed(ActionEvent e) {
 		if (layout.isDone()) {
 			timer.stop();
@@ -30,12 +42,24 @@ public class LayoutAnimator implements ActionListener {
 			pp.revalidate();
 		}
 	}
-
-	public Timer getTimer() {
-		return timer;
-	}
-
+    
 	public ArchitectLayoutInterface getLayout() {
 		return layout;
+	}
+    
+	public boolean isAnimationEnabled() {
+	    return animationEnabled;
+	}
+	
+	public void setAnimationEnabled(boolean animationEnabled) {
+	    this.animationEnabled = animationEnabled;
+	}
+	
+	public int getFramesPerSecond() {
+	    return framesPerSecond;
+	}
+	
+	public void setFramesPerSecond(int framesPerSecond) {
+	    this.framesPerSecond = framesPerSecond;
 	}
 }
