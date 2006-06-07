@@ -47,9 +47,6 @@ public abstract class AbstractLayout implements ArchitectLayoutInterface {
        
         if (width == 0 || height == 0) return new Dimension();
         
-		long avgWidth = width/nodes.size()+1;
-        long avgHeight = height/nodes.size() +1;
-        long radius = Math.max(avgWidth,avgHeight);
         final double areaFudgeFactor = 16.0;
         double newWidth = Math.sqrt( (11.0/8.5) * area * areaFudgeFactor );
         double newHeight = (8.5/11.0) * newWidth;
