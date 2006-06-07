@@ -35,18 +35,12 @@ public abstract class AbstractLayout implements ArchitectLayoutInterface {
 	
 	public Dimension getNewArea(List<TablePane> nodes) {
 		Dimension d = new Dimension();
-		long width=0;
-		long height=0;
         long area=0;
 		for (TablePane tp : nodes) {
 			Rectangle b = tp.getBounds();
-			width += b.width;
-			height += b.height;
             area += b.width *b.height;
 		}
-       
-        if (width == 0 || height == 0) return new Dimension();
-        
+
         final double areaFudgeFactor = 16.0;
         double newWidth = Math.sqrt( (11.0/8.5) * area * areaFudgeFactor );
         double newHeight = (8.5/11.0) * newWidth;
