@@ -12,7 +12,9 @@
 	<property name="deploy.dir" value="deploy"/>
 	<property name="ver" value="1"/>
 	<property name="rel" value="0"/>
+	
 	<taskdef name="izpack" classpath="${izpack.dir}/lib/compiler.jar" classname="com.izforge.izpack.ant.IzPackTask"/>
+	<taskdef name="jarbundler" classpath="osx_packaging_utils/jarbundler.jar:osx_packaging_utils/xercesImpl.jar:osx_packaging_utils/xml-apis.jar" classname="net.sourceforge.jarbundler.JarBundler"/>
 	
 	<target name="init">
 		<tstamp/>
@@ -111,8 +113,8 @@
 	<target name="docs" depends="compile">
 		<mkdir dir="${build}/docs/api"/>
 		<javadoc sourcepath="${src}" destdir="${build}/docs/api"
-			packagenames="com.darwinsys.*"
-			maxmemory="32m" 
+			packagenames="ca.sqlpower.*"
+			maxmemory="100m" 
 			windowtitle="ca.sqlpower.architect.* Power*Architect"
 			Version="true" Author="true" Use="true"
 			Overview="html/overview.html"
@@ -122,18 +124,37 @@
 				<include name="ca/sqlpower/**" />
 				<exclude name="regress/**"/>
 			</packageset>
-			<bottom><![CDATA[<i>Copyright &#169; 2003 SQL Power Group Inc. <a href="http://www.sqlpower.ca/">www.sqlpower.ca</a>]]></bottom>
+			<bottom><![CDATA[<i>Copyright &#169; 2003-2006 SQL Power Group Inc. <a href="http://www.sqlpower.ca/">www.sqlpower.ca</a>]]></bottom>
 		</javadoc>
 		<copy file="html/index.html" todir="${build}/docs"/>
 
 	</target>
 	
 	<target name="Windows Installer" depends="deploy">
-		<mkdir dir="${installer.dir}/compiled"/>
 		<izpack input="${installer.dir}/Architect-install.xml"
-		output="${installer.dir}/compiled/Architect-${ver}.${rel}.jar"
-		installerType="standard" basedir="${installer.dir}"
-		izPackDir="${izpack.dir}/"/>
+		        output="${deploy.dir}/Architect-setup-${ver}.${rel}.jar"
+		        installerType="standard"
+			    basedir="${installer.dir}"
+		        izPackDir="${izpack.dir}/"/>
 	</target>
 
+	<target name="osx_dist" depends="deploy">
+		
+		<!-- The pre-compiled osx adapter class (it only compiles on OS X) -->
+		<copy file="osx_packaging_utils/osx_adapter.jar" todir="${deploy.dir}/lib"/>
+		
+		<jarbundler dir="deploy"
+           name="Power*Architect"
+           version="${ver}.${rel}.0"
+           mainclass="ca.sqlpower.architect.swingui.ArchitectFrame"
+           icon="src/icons/Power Architect.icns"
+           jvmversion="1.5+"
+           shortname="Architect"
+           stubfile="osx_packaging_utils/PowerArchitectStub"
+           vmoptions="-Xmx600m">
+			<jarfileset dir="${deploy.dir}/lib" includes="*.jar"/>
+			<jarfileset dir="${deploy.dir}" includes="architect.jar"/>
+		</jarbundler>
+	</target>
+	
 </project>
