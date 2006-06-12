@@ -18,6 +18,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -44,8 +45,6 @@ import javax.swing.ProgressMonitorInputStream;
 import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
-
-import com.jgoodies.forms.builder.ButtonBarBuilder;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectRuntimeException;
@@ -84,6 +83,8 @@ import ca.sqlpower.architect.swingui.action.UndoAction;
 import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.undo.UndoManager;
 
+import com.jgoodies.forms.builder.ButtonBarBuilder;
+
 /**
  * The Main Window for the Architect Application; contains a main() method that is
  * the conventional way to start the application running.
@@ -96,6 +97,8 @@ public class ArchitectFrame extends JFrame {
 	 * The ArchitectFrame is a singleton; this is the main instance.
 	 */
 	protected static ArchitectFrame mainInstance;
+
+    public static final boolean MAC_OS_X = (System.getProperty("os.name").toLowerCase().startsWith("mac os x"));
 
 	public static final double ZOOM_STEP = 0.25;
 	
@@ -586,11 +589,15 @@ public class ArchitectFrame extends JFrame {
 		fileMenu.add(saveProjectAsAction);
 		fileMenu.add(printAction);
 		fileMenu.addSeparator();
-		fileMenu.add(prefAction);
+		if (!MAC_OS_X) {
+		    fileMenu.add(prefAction);
+		}
 		fileMenu.add(saveSettingsAction);
 		fileMenu.add(projectSettingsAction);
-		fileMenu.addSeparator();
-		fileMenu.add(exitAction);
+		if (!MAC_OS_X) {
+		    fileMenu.addSeparator();
+		    fileMenu.add(exitAction);
+		}
 		menuBar.add(fileMenu);
 
 		JMenu editMenu = new JMenu("Edit");
@@ -629,8 +636,10 @@ public class ArchitectFrame extends JFrame {
 		
 		JMenu helpMenu = new JMenu("Help");
 		helpMenu.setMnemonic('h');
-		helpMenu.add(aboutAction);
-        helpMenu.addSeparator();
+        if (!MAC_OS_X) {
+            helpMenu.add(aboutAction);
+            helpMenu.addSeparator();
+        }
         helpMenu.add(helpAction);
 		menuBar.add(helpMenu);
 		
@@ -942,6 +951,9 @@ public class ArchitectFrame extends JFrame {
 	 * an acceptable way to launch the Architect application.
 	 */
 	public static void main(String args[]) throws ArchitectException {
+        
+        System.setProperty("apple.laf.useScreenMenuBar", "true");
+        
 		ArchitectUtils.configureLog4j();
 
 		getMainInstance();
@@ -949,14 +961,57 @@ public class ArchitectFrame extends JFrame {
 		SwingUtilities.invokeLater(new Runnable() {
 				public void run() {
 					// this doesn't appear to have any effect on the motion threshold 
-                    // in the Playpen, but it does seem to work on the DBTree...
+				    // in the Playpen, but it does seem to work on the DBTree...
 					logger.debug("current motion threshold is: " + System.getProperty("awt.dnd.drag.threshold"));
 					System.setProperty("awt.dnd.drag.threshold","50");
 					logger.debug("new motion threshold is: " + System.getProperty("awt.dnd.drag.threshold"));
+                    
+					getMainInstance().macOSXRegistration();
+
 					getMainInstance().setVisible(true);
 				}
 			});
 	}
+
+    /**
+     * Registers this application in Mac OS X if we're running on that platform.
+     * 
+     * <p>This code came from Apple's "OS X Java Adapter" example.
+     */
+    private void macOSXRegistration() {
+        if (MAC_OS_X) {
+            try {
+                Class osxAdapter = ClassLoader.getSystemClassLoader().loadClass("ca.sqlpower.architect.swingui.OSXAdapter");
+                
+                Class[] defArgs = {ArchitectFrame.class};
+                Method registerMethod = osxAdapter.getDeclaredMethod("registerMacOSXApplication", defArgs);
+                if (registerMethod != null) {
+                    Object[] args = { this };
+                    registerMethod.invoke(osxAdapter, args);
+                }
+                // This is slightly gross.  to reflectively access methods with boolean args, 
+                // use "boolean.class", then pass a Boolean object in as the arg, which apparently
+                // gets converted for you by the reflection system.
+                defArgs[0] = boolean.class;
+                Method prefsEnableMethod =  osxAdapter.getDeclaredMethod("enablePrefs", defArgs);
+                if (prefsEnableMethod != null) {
+                    Object args[] = {Boolean.TRUE};
+                    prefsEnableMethod.invoke(osxAdapter, args);
+                }
+            } catch (NoClassDefFoundError e) {
+                // This will be thrown first if the OSXAdapter is loaded on a system without the EAWT
+                // because OSXAdapter extends ApplicationAdapter in its def
+                System.err.println("This version of Mac OS X does not support the Apple EAWT.  Application Menu handling has been disabled (" + e + ")");
+            } catch (ClassNotFoundException e) {
+                // This shouldn't be reached; if there's a problem with the OSXAdapter we should get the 
+                // above NoClassDefFoundError first.
+                System.err.println("This version of Mac OS X does not support the Apple EAWT.  Application Menu handling has been disabled (" + e + ")");
+            } catch (Exception e) {
+                System.err.println("Exception while loading the OSXAdapter:");
+                e.printStackTrace();
+            }
+        }
+    }
 
 	/**
 	 * Saves the project, showing a file chooser when appropriate.
