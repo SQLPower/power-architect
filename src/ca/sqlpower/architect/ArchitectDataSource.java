@@ -199,7 +199,7 @@ public class ArchitectDataSource {
 	 * Prints some info from this data source.  For use in debugging.
 	 */
 	public String toString() {
-		return "ArchitectDataSource: "+getDisplayName()+", "+getDriverClass()+", "+getUrl();
+		return getDisplayName();
 	}
 	
 	/**
