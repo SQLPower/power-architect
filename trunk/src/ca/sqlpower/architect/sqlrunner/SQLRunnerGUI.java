@@ -71,7 +71,7 @@ public class SQLRunnerGUI  {
 	
 	final JTextArea inputTextArea;
 	
-	final JButton runButton, cancelButton;
+	final JButton runButton;
 	
 	final PrintWriter out;
 	
@@ -140,14 +140,6 @@ public class SQLRunnerGUI  {
 					
 				}.start();
 			}
-		});
-		
-		cancelButton = new JButton("Cancel");
-		controlsArea.add(cancelButton);
-		cancelButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				error("Cancel button not working yet");
-			}		
 		});
 
 		inputTextArea = new JTextArea(6, DISPLAY_COLUMNS);
