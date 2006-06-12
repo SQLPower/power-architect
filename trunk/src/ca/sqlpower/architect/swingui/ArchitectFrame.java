@@ -77,6 +77,7 @@ import ca.sqlpower.architect.swingui.action.PrintAction;
 import ca.sqlpower.architect.swingui.action.ProjectSettingsAction;
 import ca.sqlpower.architect.swingui.action.QuickStartAction;
 import ca.sqlpower.architect.swingui.action.RedoAction;
+import ca.sqlpower.architect.swingui.action.SQLRunnerAction;
 import ca.sqlpower.architect.swingui.action.SearchReplaceAction;
 import ca.sqlpower.architect.swingui.action.SelectAllAction;
 import ca.sqlpower.architect.swingui.action.UndoAction;
@@ -631,6 +632,7 @@ public class ArchitectFrame extends JFrame {
 		toolsMenu.setMnemonic('t');
 		toolsMenu.add(exportDDLAction);
 		toolsMenu.add(compareDMAction);
+        toolsMenu.add(new SQLRunnerAction());
 		menuBar.add(toolsMenu);
 		
 		
