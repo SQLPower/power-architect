@@ -164,7 +164,7 @@ public class SQLRunner {
 				if (xmlDecorator == null) {
 					xmlDecorator = new ResultsDecoratorXML(out, verbosity);
 				}
-				newDecorator = sqlDecorator;
+				newDecorator = xmlDecorator;
 				break;
 			default:
 				String values = OutputMode.values().toString();
@@ -204,8 +204,6 @@ public class SQLRunner {
 				throw new ArchitectException("\\o needs output file arg");
 			}
 			setOutputFile(rest);
-		} else if (str.startsWith("\\q")){
-			System.exit(0);
 		} else {
 			throw new ArchitectException("Unknown escape: " + str);
 		}		
