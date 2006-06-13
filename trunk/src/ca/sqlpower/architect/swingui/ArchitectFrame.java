@@ -59,6 +59,7 @@ import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.etl.ExportCSV;
 import ca.sqlpower.architect.layout.ArchitectLayoutInterface;
 import ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout;
+import ca.sqlpower.architect.qfa.ExceptionHandler;
 import ca.sqlpower.architect.swingui.action.AboutAction;
 import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
 import ca.sqlpower.architect.swingui.action.CompareDMAction;
@@ -963,18 +964,19 @@ public class ArchitectFrame extends JFrame {
 		getMainInstance();
 		
 		SwingUtilities.invokeLater(new Runnable() {
-				public void run() {
-					// this doesn't appear to have any effect on the motion threshold 
-				    // in the Playpen, but it does seem to work on the DBTree...
-					logger.debug("current motion threshold is: " + System.getProperty("awt.dnd.drag.threshold"));
-					System.setProperty("awt.dnd.drag.threshold","50");
-					logger.debug("new motion threshold is: " + System.getProperty("awt.dnd.drag.threshold"));
-                    
-					getMainInstance().macOSXRegistration();
-
-					getMainInstance().setVisible(true);
-				}
-			});
+		    public void run() {
+		        Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());
+		        // this doesn't appear to have any effect on the motion threshold 
+		        // in the Playpen, but it does seem to work on the DBTree...
+		        logger.debug("current motion threshold is: " + System.getProperty("awt.dnd.drag.threshold"));
+		        System.setProperty("awt.dnd.drag.threshold","10");
+		        logger.debug("new motion threshold is: " + System.getProperty("awt.dnd.drag.threshold"));
+		        
+		        getMainInstance().macOSXRegistration();
+		        
+		        getMainInstance().setVisible(true);
+		    }
+		});
 	}
 
     /**
