@@ -36,6 +36,8 @@ public class ExceptionReport {
     // undo history (need permission)
     // JDBC drivers and other crap on classpath (need permission)
     private String userActivityDescription;
+
+    private String remarks;
     
     
     public ExceptionReport(Throwable exception) {
@@ -75,6 +77,7 @@ public class ExceptionReport {
         xml.append("\n <num-source-connections>").append(numSourceConnections).append("</num-source-connections>");
         xml.append("\n <num-objects-in-playpen>").append(numObjectsInPlayPen).append("</num-objects-in-playpen>");
         xml.append("\n <user-activity-description>").append(ArchitectUtils.escapeXML(userActivityDescription)).append("</user-activity-description>");
+        xml.append("\n <remarks>").append(ArchitectUtils.escapeXML(remarks)).append("</remarks>");
         xml.append("\n</architect-exception-report>");
         xml.append("\n");
         return xml.toString();
@@ -178,6 +181,14 @@ public class ExceptionReport {
 
     public void setArchitectVersion(String architectVersion) {
         this.architectVersion = architectVersion;
+    }
+
+    public void setRemarks(String v) {
+        this.remarks = v;
+    }
+    
+    public String getRemarks() {
+        return remarks;
     }
 
 }
