@@ -22,6 +22,13 @@ import java.net.URL;
 public class ArchitectUtils {
 	
 	private static final Logger logger = Logger.getLogger(ArchitectUtils.class);
+    public static final String APP_VERSION = "1.0";
+    public static final String MARKETING_APP_VERSION = "6.0";
+    
+    /**
+     * The System.currentTimeMillis when this class was loaded.
+     */
+    private static final long startupTimeMillis = System.currentTimeMillis();
 	
 	/**
 	 * This class is just a container for utility routines; you do not
@@ -31,6 +38,17 @@ public class ArchitectUtils {
 		// never gets called
 	}
 	
+    /**
+     * Performs startup tasks for the architect system.  You should call
+     * this when starting the Architect.
+     */
+    public static void startup() {
+        // By virtue of referencing this class, calling this method early in the app's
+        // startup sequence will cause the startupTimeMillis to init itself.
+        
+        // there's nothing else to do, really.
+    }
+    
 	/**
 	 * Sets up the log4j logging framework.
 	 */
@@ -434,5 +452,9 @@ public class ArchitectUtils {
             }
         }
         return addTo;
+    }
+
+    public static long getAppUptime() {
+        return System.currentTimeMillis() - startupTimeMillis;
     }
 }
