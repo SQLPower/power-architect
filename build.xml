@@ -157,4 +157,13 @@
 		</jarbundler>
 	</target>
 	
+	<!-- This target will only work on OS X (it needs the hdiutil command) -->
+	<target name="osx_dmg"> <!-- depends="osx_dist" -->
+		<exec executable="hdiutil">
+			<arg value="create"/>
+			<arg value="-srcfolder"/>
+			<arg value="${deploy.dir}/Power*Architect.app"/>
+			<arg value="${deploy.dir}/Power_Architect-${ver}.${rel}.dmg"/>
+		</exec>
+	</target>
 </project>
