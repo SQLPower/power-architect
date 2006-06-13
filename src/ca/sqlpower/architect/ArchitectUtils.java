@@ -400,6 +400,7 @@ public class ArchitectUtils {
 	 * valid XML documents should declare these entities..."
 	 */
 	public static String escapeXML(String src) {
+        if (src == null) return "";
 		StringBuffer sb = new StringBuffer(src.length()+10);  // arbitrary amount of extra space
 		char ch;
 		for (int i = 0, n = src.length(); i < n; i++) {
