@@ -954,6 +954,8 @@ public class ArchitectFrame extends JFrame {
 	 */
 	public static void main(String args[]) throws ArchitectException {
         
+        ArchitectUtils.startup();
+        
         System.setProperty("apple.laf.useScreenMenuBar", "true");
         
 		ArchitectUtils.configureLog4j();
