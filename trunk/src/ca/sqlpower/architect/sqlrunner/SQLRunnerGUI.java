@@ -28,7 +28,9 @@ package ca.sqlpower.architect.sqlrunner;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -42,11 +44,11 @@ import java.util.prefs.Preferences;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
@@ -65,11 +67,16 @@ public class SQLRunnerGUI  {
 
 	final Preferences p = Preferences.userNodeForPackage(SQLRunnerGUI.class);
 	
-	final JProgressBar bar = new JProgressBar();
+	final JComponent bar = new JComponent() {
+	    public void paint(Graphics g) {
+            g.setColor(getBackground());
+            g.fillRect(0, 0, getWidth(), getHeight());
+        }
+    };
 	
 	final JFrame mainWindow;
 	
-	final JTextArea inputTextArea;
+	final JTextArea inputTextArea, outputTextArea;
 	
 	final JButton runButton;
 	
@@ -108,7 +115,6 @@ public class SQLRunnerGUI  {
                     Connection conn;
 					public void run() {
 						try {
-                            // XXX OPTIMIZEME
                             ArchitectDataSource ds = (ArchitectDataSource) connectionsList.getSelectedItem();
                             SQLDatabase db = new SQLDatabase(ds);
                             conn = db.getConnection();
@@ -118,7 +124,7 @@ public class SQLRunnerGUI  {
 							prog.setOutputMode((OutputMode) modeList.getSelectedItem());
 							SwingUtilities.invokeAndWait(new Runnable() {
 								public void run() {
-									setActive();
+									setNeutral();
 								}
 							});
 							prog.runStatement(inputTextArea.getText());
@@ -141,15 +147,25 @@ public class SQLRunnerGUI  {
 				}.start();
 			}
 		});
+        
 
 		inputTextArea = new JTextArea(6, DISPLAY_COLUMNS);
 		inputTextArea.setBorder(BorderFactory.createTitledBorder("SQL Command"));
 		
-		setActive();
+		setNeutral();
 		
-		JTextArea outputTextArea = new JTextArea(20, DISPLAY_COLUMNS);
+		outputTextArea = new JTextArea(20, DISPLAY_COLUMNS);
 		outputTextArea.setBorder(BorderFactory.createTitledBorder("SQL Results"));
 		
+		JButton clearOutput = new JButton("Clear Output");
+		clearOutput.addActionListener(new ActionListener() {		    
+		    public void actionPerformed(ActionEvent e) {
+		        outputTextArea.setText("");
+                setNeutral();
+		    }	    
+		});
+        controlsArea.add(clearOutput);
+        
 		mainWindow.add(new JSplitPane(JSplitPane.VERTICAL_SPLIT, 
 					new JScrollPane(inputTextArea), 
 					new JScrollPane(outputTextArea)), BorderLayout.CENTER);
@@ -157,6 +173,8 @@ public class SQLRunnerGUI  {
 		mainWindow.add(bar, BorderLayout.SOUTH);
 
 		out = new PrintWriter(new TextAreaWriter(outputTextArea));
+        
+        bar.setPreferredSize(new Dimension(400, 20));
 		
 		mainWindow.pack();
 		mainWindow.setVisible(true);
@@ -193,11 +211,10 @@ public class SQLRunnerGUI  {
     }
 	
 	/**
-	 * Set the bar to green, used only at the beginning
+	 * Set the bar to green
 	 */
 	void setSuccess() {
-		bar.setValue(bar.getMaximum());
-		bar.setForeground(Color.GREEN);
+		bar.setBackground(Color.GREEN);
 		bar.repaint();
 	}
 	
@@ -205,17 +222,15 @@ public class SQLRunnerGUI  {
 	 * Set the bar to red, used when a test fails or errors.
 	 */
 	void setFailure() {
-		bar.setValue(bar.getMaximum());
-		bar.setForeground(Color.RED);
+		bar.setBackground(Color.RED);
 		bar.repaint();
 	}
 	
 	/**
 	 * Set the bar to neutral
 	 */
-	void setActive() {
-		bar.setValue(bar.getMaximum());
-		bar.setForeground(mainWindow.getBackground());
+	void setNeutral() {
+		bar.setBackground(mainWindow.getBackground());
 		bar.repaint();
 	}
 	
