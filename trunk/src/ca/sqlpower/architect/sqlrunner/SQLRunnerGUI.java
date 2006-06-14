@@ -148,12 +148,14 @@ public class SQLRunnerGUI  {
         
 
 		inputTextArea = new JTextArea(6, DISPLAY_COLUMNS);
-		inputTextArea.setBorder(BorderFactory.createTitledBorder("SQL Command"));
+		JScrollPane inputAreaScrollPane = new JScrollPane(inputTextArea);
+		inputAreaScrollPane.setBorder(BorderFactory.createTitledBorder("SQL Command"));
 		
 		setNeutral();
 		
 		outputTextArea = new JTextArea(20, DISPLAY_COLUMNS);
-		outputTextArea.setBorder(BorderFactory.createTitledBorder("SQL Results"));
+		JScrollPane outputAreaScrollPane = new JScrollPane(outputTextArea);
+		outputAreaScrollPane.setBorder(BorderFactory.createTitledBorder("SQL Results"));
 		
 		JButton clearOutput = new JButton("Clear Output");
 		clearOutput.addActionListener(new ActionListener() {		    
@@ -164,9 +166,9 @@ public class SQLRunnerGUI  {
 		});
         controlsArea.add(clearOutput);
         
-		mainWindow.add(new JSplitPane(JSplitPane.VERTICAL_SPLIT, 
-					new JScrollPane(inputTextArea), 
-					new JScrollPane(outputTextArea)), BorderLayout.CENTER);
+        mainWindow.add(new JSplitPane(JSplitPane.VERTICAL_SPLIT, 
+					inputAreaScrollPane, 
+					outputAreaScrollPane), BorderLayout.CENTER);
 		
 		mainWindow.add(bar, BorderLayout.SOUTH);
 
