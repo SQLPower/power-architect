@@ -53,6 +53,7 @@ import javax.swing.JTextArea;
 
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 
 /**
@@ -174,6 +175,7 @@ public class SQLRunnerGUI  {
         bar.setPreferredSize(new Dimension(400, 20));
 		
 		mainWindow.pack();
+        ASUtils.centre(mainWindow);
 		mainWindow.setVisible(true);
 	}
 	

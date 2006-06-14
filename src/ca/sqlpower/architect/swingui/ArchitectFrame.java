@@ -558,6 +558,7 @@ public class ArchitectFrame extends JFrame {
                     basePane.add(buttonBar.getPanel(),BorderLayout.SOUTH);
                     f.setContentPane(basePane);
                     f.pack();
+                    ASUtils.centre(f);
                     f.setVisible(true);
                 } catch (ArchitectException e1) {
                     throw new ArchitectRuntimeException(e1);
@@ -718,6 +719,7 @@ public class ArchitectFrame extends JFrame {
 		bounds.width = prefs.getInt(SwingUserSettings.MAIN_FRAME_WIDTH, 600);
 		bounds.height = prefs.getInt(SwingUserSettings.MAIN_FRAME_HEIGHT, 440);
 		setBounds(bounds);
+        ASUtils.centre(this);
 		addWindowListener(afWindowListener = new ArchitectFrameWindowListener());
 				
 		setProject(new SwingUIProject("New Project"));
