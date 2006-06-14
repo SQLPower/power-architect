@@ -113,18 +113,15 @@ public class SQLRunnerGUI  {
                     Connection conn;
 					public void run() {
 						try {
+                            runButton.setEnabled(false);
                             ArchitectDataSource ds = (ArchitectDataSource) connectionsList.getSelectedItem();
                             SQLDatabase db = new SQLDatabase(ds);
                             conn = db.getConnection();
 							SQLRunner.setVerbosity(Verbosity.QUIET);
 							SQLRunner prog = new SQLRunner(conn, null, "t");
 							prog.setOutputFile(out);
-							prog.setOutputMode((OutputMode) modeList.getSelectedItem());
-							SwingUtilities.invokeAndWait(new Runnable() {
-								public void run() {
-									setNeutral();
-								}
-							});
+							prog.setOutputMode((OutputMode) modeList.getSelectedItem());							
+							setNeutral();							
 							prog.runStatement(inputTextArea.getText());
 							setSuccess();	// If no exception thrown							
 						} catch (Exception e) {
@@ -139,6 +136,7 @@ public class SQLRunnerGUI  {
 							        // We just don't care at this point....
 							    }                     
                             }
+							runButton.setEnabled(true);
 						}
 					}
 					
