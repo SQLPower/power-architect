@@ -33,9 +33,7 @@ import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.Writer;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
@@ -179,36 +177,6 @@ public class SQLRunnerGUI  {
 		mainWindow.pack();
 		mainWindow.setVisible(true);
 	}
-    
-    /**
-     * Simple way to "print" to a JTextArea; just say
-     * PrintWriter out = new PrintWriter(new TextAreaWriter(myTextArea));
-     * Then out.println() et all will all appear in the TextArea.
-     */
-    public final class TextAreaWriter extends Writer {
-
-        private final JTextArea textArea;
-
-        public TextAreaWriter(final JTextArea textArea) {
-            this.textArea = textArea;
-        }
-
-        @Override
-        public void flush(){
-            // null
-        }
-        
-        @Override
-        public void close(){
-            // null
-        }
-
-        @Override
-        public void write(char[] cbuf, int off, int len) throws IOException {
-            textArea.append(new String(cbuf, off, len));
-            
-        }
-    }
 	
 	/**
 	 * Set the bar to green
