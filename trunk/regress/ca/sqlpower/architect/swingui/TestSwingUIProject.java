@@ -656,10 +656,10 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		assertFalse (cds.getSaveFlag());		
 		assertEquals("SQLServer 2000", cds.getSqlScriptFormat());
 		assertEquals("ENGLISH", cds.getOutputFormatAsString());
-		assertEquals("PROJECT", cds.getSourceSettings().getButtonSelection().toString());
+		assertEquals("PROJECT", cds.getSourceSettings().getDatastoreType().toString());
 		assertEquals("Arthur_test", cds.getSourceSettings().getConnectName());
 		assertEquals("ARCHITECT_REGRESS", cds.getSourceSettings().getSchema());
-		assertEquals("FILE", cds.getTargetSettings().getButtonSelection().toString());
+		assertEquals("FILE", cds.getTargetSettings().getDatastoreType().toString());
 		assertEquals("Testpath", cds.getTargetSettings().getFilePath());				
 	}
 }

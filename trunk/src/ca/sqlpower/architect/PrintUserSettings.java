@@ -5,7 +5,7 @@ import java.util.Properties;
 /**
  * The DDLUserSettings class stores project-independent DDL settings.
  *
- * @see ca.sqlpower.architect.UserSettings
+ * @see ca.sqlpower.architect.CoreUserSettings
  * @see ca.sqlpower.architect.etl.ETLUserSettings
  * @see ca.sqlpower.architect.ddl.DDLUserSettings
  * @see ca.sqlpower.architect.swingui.SwingUserSettings

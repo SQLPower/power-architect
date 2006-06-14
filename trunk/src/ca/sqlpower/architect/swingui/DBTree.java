@@ -400,7 +400,7 @@ public class DBTree extends JTree implements DragSourceListener {
             final SQLExceptionNode node = (SQLExceptionNode) p.getLastPathComponent();
             newMenu.add(new JMenuItem(new AbstractAction("Show Exception Details") {
                 public void actionPerformed(ActionEvent e) {
-                    ASUtils.showExceptionDialog("Exception Node Report", node.getException());        
+                    ASUtils.showExceptionDialogNoReport("Exception Node Report", node.getException());        
                 }
             }));
 
@@ -421,7 +421,7 @@ public class DBTree extends JTree implements DragSourceListener {
 									logger.error("Couldn't add SQLExceptionNode to menu:", e1);
 									JOptionPane.showMessageDialog(null, "Failed to add SQLExceptionNode:\n"+e1.getMessage());
 								}
-                                ASUtils.showExceptionDialog("Exception occurred during retry", ex);
+                                ASUtils.showExceptionDialogNoReport("Exception occurred during retry", ex);
                             }
                         }
                     }));

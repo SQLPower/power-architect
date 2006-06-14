@@ -21,7 +21,7 @@ import java.util.LinkedList;
  */
 public class ArchitectSession {
 	protected static ArchitectSession instance;
-	protected UserSettings userSettings;
+	protected CoreUserSettings userSettings;
 	protected JDBCClassLoader jdbcClassLoader;
 	protected List<String> driverJarList;
 
@@ -52,7 +52,7 @@ public class ArchitectSession {
 	 *
 	 * @return the value of userSettings
 	 */
-	public UserSettings getUserSettings()  {
+	public CoreUserSettings getUserSettings()  {
 		return this.userSettings;
 	}
 
@@ -61,7 +61,7 @@ public class ArchitectSession {
 	 *
 	 * @param argUserSettings Value to assign to this.userSettings
 	 */
-	public void setUserSettings(UserSettings argUserSettings) {
+	public void setUserSettings(CoreUserSettings argUserSettings) {
 		this.userSettings = argUserSettings;
 	}
 

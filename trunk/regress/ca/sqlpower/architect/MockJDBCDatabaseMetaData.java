@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -762,6 +763,12 @@ public class MockJDBCDatabaseMetaData implements DatabaseMetaData {
 	public ResultSet getColumns(String catalog, String schemaPattern,
 			String tableNamePattern, String columnNamePattern)
 			throws SQLException {
+        logger.debug("getColumns: Searching for:");
+        logger.debug("    catalog '"+catalog+"' (pattern )");
+        logger.debug("     schema '"+schemaPattern+"' (pattern )");
+        logger.debug("      table '"+tableNamePattern+"' (pattern )");
+        logger.debug("     column '"+columnNamePattern+"' (pattern )");
+        
 		MockJDBCResultSet rs = new MockJDBCResultSet(null, 22);
 		rs.setColumnName(1, "TABLE_CAT");
 		rs.setColumnName(2, "TABLE_SCHEM");
@@ -786,9 +793,65 @@ public class MockJDBCDatabaseMetaData implements DatabaseMetaData {
 		rs.setColumnName(21, "SCOPE_TABLE");
 		rs.setColumnName(22, "SOURCE_DATA_TYPE");
 
-		// TODO: make columns
-		
-		return rs;
+        // FIXME: doesn't support null catalog, schema, or table patterns yet!
+        
+        StringBuffer colListPropName = new StringBuffer();
+        colListPropName.append("columns.");
+        if (getCatalogTerm() != null) {
+            if (catalog == null) {
+                // FIXME: this should be made optional, but it's a lot of work
+                throw new SQLException("Catalog name is mandatory for this JDBC Driver.");
+            }
+            colListPropName.append(catalog).append(".");
+        }
+        if (getSchemaTerm() != null) {
+            if (schemaPattern == null) {
+                // FIXME: this should be made optional, but it's a lot of work
+                throw new SQLException("Schema name is mandatory for this JDBC Driver.");
+            }
+            colListPropName.append(schemaPattern).append(".");
+        }
+        colListPropName.append(tableNamePattern);
+        
+        logger.debug("getColumns: property name for column list is '"+colListPropName+"'");
+        String columnList = connection.getProperties().getProperty(colListPropName.toString());
+        logger.debug("getColumns: user-supplied column list is '"+columnList+"'");
+        if (columnList == null) {
+            columnList = tableNamePattern+"_col_1,"
+                        +tableNamePattern+"_col_2,"
+                        +tableNamePattern+"_col_3,"
+                        +tableNamePattern+"_col_4";
+        }
+        int colNo = 1;
+        for (String colName : Arrays.asList(columnList.split(","))) {
+            rs.addRow();
+            rs.updateObject(1, catalog);
+            rs.updateObject(2, schemaPattern);
+            rs.updateObject(3, tableNamePattern);
+            rs.updateObject(4, colName);
+            rs.updateInt(5, Types.VARCHAR);
+            rs.updateObject(6, "VARCHAR");
+            rs.updateInt(7, 20);
+            rs.updateObject(8, null);
+            rs.updateInt(9, 0);
+            rs.updateInt(10, 0);
+            rs.updateInt(11, columnNoNulls);
+            rs.updateObject(12, null);
+            rs.updateObject(13, null);
+            rs.updateInt(14, 0);
+            rs.updateInt(15, 0);
+            rs.updateInt(16, 20);
+            rs.updateInt(17, colNo);
+            rs.updateObject(18, "NO");
+            rs.updateObject(19, null);
+            rs.updateObject(20, null);
+            rs.updateObject(21, null);
+            rs.updateObject(22, null);
+            colNo++;
+        }
+
+        rs.beforeFirst();
+        return rs;
 	}
 
 	public ResultSet getColumnPrivileges(String catalog, String schema,

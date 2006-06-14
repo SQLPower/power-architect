@@ -294,7 +294,7 @@ public class ExportPLTransAction extends AbstractAction {
 				// if the user requested, try running the PL Job afterwards
 				if (plExport.getRunPLEngine()) {
 					logger.debug("Running PL Engine");
-					File plEngine = new File(architectFrame.getUserSettings().getETLUserSettings().getPowerLoaderEnginePath());					
+					File plEngine = new File(architectFrame.getUserSettings().getETLUserSettings().getString(ETLUserSettings.PROP_PL_ENGINE_PATH,""));					
 					File plDir = plEngine.getParentFile();
 					File engineExe = new File(plDir, PLUtils.getEngineExecutableName(plExport.getRepositoryDataSource()));
 					final StringBuffer commandLine = new StringBuffer(1000);

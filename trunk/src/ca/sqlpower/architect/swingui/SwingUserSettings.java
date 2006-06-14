@@ -1,13 +1,8 @@
 package ca.sqlpower.architect.swingui;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.HashMap;
-import org.apache.log4j.Logger;
+import ca.sqlpower.architect.AbstractUserSetting;
 
-public class SwingUserSettings {
-
-	private static Logger logger = Logger.getLogger(SwingUserSettings.class);
+public class SwingUserSettings extends AbstractUserSetting {
 
 	public static final String DIVIDER_LOCATION 
 		= "SwingUserSettings.DIVIDER_LOCATION";
@@ -29,126 +24,5 @@ public class SwingUserSettings {
 
     public static final String PLAYPEN_RENDER_ANTIALIASED
     		= "SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED";
-
-	protected Map settings;
-
-	public SwingUserSettings() {
-		super();
-		settings = new HashMap();
-	}
-
-	/**
-	 * Gets the named property from the settings map.  If the value in
-	 * the map is a Number, the value is obtained by calling
-	 * <code>intValue()</code> on it.  If it is a String, it is
-	 * converted with <code>Integer.parseInt()</code>. Otherwise, the
-	 * default value is returned a warning is logged using
-	 * <code>logger</code>.  If there is no such value in the map,
-	 * the default is returned without logging a warning.
-	 */
-	public int getInt(String propName, int defaultValue) {
-		Object result = settings.get(propName);
-		if (result == null) {
-			return defaultValue;
-		} else if (result instanceof Number) {
-			return ((Number) result).intValue();
-		} else if (result instanceof String) {
-			try {
-				return Integer.parseInt((String) result);
-			} catch (NumberFormatException e) {
-				logger.warn("Couldn't parse value '"+result
-							+"' as integer for property '"+propName+"'");
-			}
-		}			
-		logger.warn("Using default value for integer property '"+propName+"' because of unknown data type for existing value");
-		return defaultValue;
-	}
-
-	public void setInt(String propName, int value) {
-		settings.put(propName, new Integer(value));
-	}
-
-	/**
-	 * Gets the named property from the settings map.  If the value in
-	 * the map is a Boolean, the value is obtained by calling
-	 * <code>booleanValue()</code> on it.  If it is a String, it is
-	 * converted with <code>Boolean.parseBoolean()</code>. Otherwise, the
-	 * default value is returned and a warning is logged using
-	 * <code>logger</code>.  If there is no such value in the map,
-	 * the default is returned without logging a warning.
-	 */
-	public boolean getBoolean(String propName, boolean defaultValue) {
-		Object result = settings.get(propName);
-		if (result == null) {
-			return defaultValue;
-		} else if (result instanceof Boolean) {
-			return ((Boolean) result).booleanValue();
-		} else if (result instanceof String) {
-		    return Boolean.valueOf((String) result).booleanValue();
-		}			
-		logger.warn("Using default value for boolean property '"+propName+"' because of unknown data type for existing value");
-		return defaultValue;
-	}
-
-	public void setBoolean(String propName, boolean value) {
-		settings.put(propName, new Boolean(value));
-	}
-
-	public void setObject(String propName, Object value) {
-		settings.put(propName, value);
-	}
-
-	/**
-	 * Adds a new setting or updates the value of an existing setting.  This
-	 * method is meant to be used by the ConfigFile read method: The set&lt;Type&gt;
-	 * methods are an easier interface to the same thing.
-	 * 
-	 * @param propName The name of the property to add or update.
-	 * @param propClassName The class name of the property's value. Currently,
-	 * "java.lang.Integer" and "java.lang.Boolean" are supported.
-	 * @param propValue A string representation of the property's value.
-	 */
-	public void putSetting(String propName, String propClassName, String propValue) {
-		Object prop = null;
-		if (propClassName.equals("java.lang.Integer")) {
-			try {
-				prop = new Integer(propValue);
-			} catch (NumberFormatException e) {
-				logger.warn("Invalid integer setting "+propName+"="+propValue);
-				return;
-			}
-		} else if (propClassName.equals("java.lang.Boolean")) {
-		    prop = new Boolean(propValue);
-		} else {
-			logger.warn("Unknown property class "+propClassName);
-			return;
-		}
-		settings.put(propName, prop);
-	}
-
-	public String getString(String propName, String defaultValue) {
-		Object result = settings.get(propName);
-		if (result == null) {
-			return defaultValue;
-		} else {
-			return result.toString();
-		}	
-	}
-
-	public Object getObject(String propName, Object defaultValue) {
-		Object result = settings.get(propName);
-		if (result == null) {
-			return defaultValue;
-		} else {
-			return result;
-		}	
-	}
-
-	/**
-	 * Returns the names of all settings currently held by this
-	 * SwingUserSettings object.  They will all be Strings.
-	 */
-	public Set getSettingNames() {
-		return settings.keySet();
-	}
+  	
 }

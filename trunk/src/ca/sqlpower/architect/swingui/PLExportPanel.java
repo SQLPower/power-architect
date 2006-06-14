@@ -21,6 +21,7 @@ import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.etl.ETLUserSettings;
 import ca.sqlpower.architect.etl.PLExport;
 import ca.sqlpower.architect.etl.PLUtils;
 import ca.sqlpower.architect.swingui.event.DatabaseComboBoxListener;
@@ -222,7 +223,7 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 
 		// make sure we have an engine!
 		if (plexp.getRunPLEngine()) {
-			String plEngineSpec = ArchitectFrame.getMainInstance().getUserSettings().getETLUserSettings().getPowerLoaderEnginePath(); 
+			String plEngineSpec = ArchitectFrame.getMainInstance().getUserSettings().getETLUserSettings().getString(ETLUserSettings.PROP_PL_ENGINE_PATH,""); 
 			if (plEngineSpec == null || plEngineSpec.length() == 0) {
 				// not set yet, so redirect the user to User Settings dialog
 				JOptionPane.showMessageDialog

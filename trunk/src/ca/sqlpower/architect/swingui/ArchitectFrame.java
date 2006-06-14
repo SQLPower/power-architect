@@ -56,6 +56,7 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.UserSettings;
+import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.etl.ExportCSV;
 import ca.sqlpower.architect.layout.ArchitectLayoutInterface;
 import ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout;
@@ -115,7 +116,7 @@ public class ArchitectFrame extends JFrame {
 	protected ArchitectSession architectSession = null;
 	protected SwingUIProject project = null;
 	protected ConfigFile configFile = null;
-	protected SwingUserSettings sprefs = null;
+	protected UserSettings sprefs = null;
 	protected JToolBar projectBar = null;
 	protected JToolBar ppBar = null;
 	protected JMenuBar menuBar = null;
@@ -128,6 +129,7 @@ public class ArchitectFrame extends JFrame {
 	
     private JMenu connectionsMenu;
 
+    private RecentMenu recent;
 	protected AboutAction aboutAction;
 	protected Action newProjectAction;
 	protected Action openProjectAction;
@@ -224,7 +226,7 @@ public class ArchitectFrame extends JFrame {
 		int accelMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
 		prefs = PrefsUtils.getUserPrefsNode(architectSession);
-	    UserSettings us;
+	    CoreUserSettings us;
 	    // must be done right away, because a static
 	    // initializer in this class effects BeanUtils 
 	    // behaviour which the XML Digester relies 
@@ -314,14 +316,14 @@ public class ArchitectFrame extends JFrame {
 		newProjectAction.putValue(AbstractAction.ACCELERATOR_KEY, 
 				KeyStroke.getKeyStroke(KeyEvent.VK_N, accelMask));
 		
-		final RecentMenu recent = new RecentMenu(this) {
+		recent = new RecentMenu(this) {
 			@Override
 			public void loadFile(String fileName) throws IOException {
 				File f = new File(fileName);
 				
 				LoadFileWorker worker;
 				try {
-					worker = new LoadFileWorker(f);
+					worker = new LoadFileWorker(f,null);
 					new Thread(worker).start();
 				} catch (FileNotFoundException e1) {
 					JOptionPane.showMessageDialog(
@@ -807,7 +809,7 @@ public class ArchitectFrame extends JFrame {
 	/**
 	 * Convenience method for getArchitectSession().getUserSettings().
 	 */
-	public UserSettings getUserSettings() {
+	public CoreUserSettings getUserSettings() {
 		return architectSession.getUserSettings();
 	}
 
@@ -827,11 +829,22 @@ public class ArchitectFrame extends JFrame {
 	private class LoadFileWorker extends ArchitectSwingWorker {
 		InputStream in;
 		SwingUIProject project;
-		
-		public LoadFileWorker(File file) throws ArchitectException, FileNotFoundException {
+        File file;
+        RecentMenu recent;
+		/**
+         * Load file worker creates a new worker and opens the given file.
+         * 
+         * @param file  this file gets opened in the constructor
+         * @param recent optional recent menu in which to add the file
+         * @throws ArchitectException when the project creation fails.
+         * @throws FileNotFoundException if file doesn't exist 
+		 */
+		public LoadFileWorker(File file,RecentMenu recent) throws ArchitectException, FileNotFoundException {
 				closeProject(getProject());
 				project = new SwingUIProject("Loading...");
 				project.setFile(file);
+                this.file = file;
+                this.recent = recent;
 				in = new BufferedInputStream
 				(new ProgressMonitorInputStream
 						(ArchitectFrame.this,
@@ -842,6 +855,9 @@ public class ArchitectFrame extends JFrame {
 		@Override
 		public void doStuff() throws IOException, ArchitectException {
 			project.load(in);
+            if (recent != null) {
+                recent.putRecentFileName(file.getAbsolutePath());
+            }
 		}
 		
 		@Override
@@ -882,8 +898,7 @@ public class ArchitectFrame extends JFrame {
 		        	File f = chooser.getSelectedFile();
 		        	LoadFileWorker worker;
 					try {
-						worker = new LoadFileWorker(f);
-						recent.putRecentFileName(f.getAbsolutePath());
+						worker = new LoadFileWorker(f,recent);
 						new Thread(worker).start();
 					} catch (FileNotFoundException e1) {
 						JOptionPane.showMessageDialog(
@@ -918,7 +933,7 @@ public class ArchitectFrame extends JFrame {
 		
 		configFile.write(getArchitectSession());
 		
-		UserSettings us = getUserSettings();
+		CoreUserSettings us = getUserSettings();
 		try {
             us.getPlDotIni().write(new File(us.getPlDotIniPath()));
         } catch (IOException e) {
@@ -961,10 +976,21 @@ public class ArchitectFrame extends JFrame {
         
 		ArchitectUtils.configureLog4j();
 
+        
+       String architectFileArg = null;
+       final File openFile;
+        if (args.length > 0) {
+            architectFileArg = args[0];
+            openFile = new File(architectFileArg);
+        } else {
+            openFile = null;
+        }
 		getMainInstance();
+        
 		
 		SwingUtilities.invokeLater(new Runnable() {
 		    public void run() {
+		        
 		        Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());
 		        // this doesn't appear to have any effect on the motion threshold 
 		        // in the Playpen, but it does seem to work on the DBTree...
@@ -975,6 +1001,21 @@ public class ArchitectFrame extends JFrame {
 		        getMainInstance().macOSXRegistration();
 		        
 		        getMainInstance().setVisible(true);
+		        LoadFileWorker worker;
+		        if (openFile != null) {
+		            try {
+		                worker = getMainInstance().new LoadFileWorker(openFile,getMainInstance().recent);
+		                new Thread(worker).start();
+		            } catch (FileNotFoundException e1) {
+		                JOptionPane.showMessageDialog(
+		                        getMainInstance(),
+		                        "File not found: "+openFile.getPath());
+		            } catch (Exception e1) {
+		                ASUtils.showExceptionDialog(
+		                        getMainInstance(),
+		                        "Error loading file", e1);
+		            }
+		        }
 		    }
 		});
 	}
@@ -1121,15 +1162,15 @@ public class ArchitectFrame extends JFrame {
 		return getProject().getUndoManager();
 	}
 	
-	public SwingUserSettings getSwingUserSettings() {
+	public UserSettings getSwingUserSettings() {
 		return sprefs;	
 	}
 
-	public SwingUserSettings getSprefs() {
+	public UserSettings getSprefs() {
 		return sprefs;
 	}
 
-	public void setSprefs(SwingUserSettings sprefs) {
+	public void setSprefs(UserSettings sprefs) {
 		this.sprefs = sprefs;
 	}
 
