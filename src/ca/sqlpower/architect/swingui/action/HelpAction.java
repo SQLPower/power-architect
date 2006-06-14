@@ -21,7 +21,6 @@ import javax.swing.JScrollPane;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.HTMLDocument;
-import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.HTMLFrameHyperlinkEvent;
 
 import ca.sqlpower.architect.swingui.ASUtils;
@@ -40,22 +39,17 @@ import ca.sqlpower.architect.swingui.SwingUserSettings;
  */
 public class HelpAction extends AbstractAction  {
 
-    // XXX This is not usable yet, we need a way to find this from the installation directory;
-    // either using getResource(), or a directory in the installation.
-    public static final String URL_STRING = "file:///P:/test_data/PowerArchitectUserGuide.html";
+    private final String HOME_URL_STRING = "file:///P:/test_data/PowerArchitectUserGuide.html";
+    private JEditorPane editorPane;
+
+    private JPanel buttonPanel;
+    private Action homeAction;
+    private Action backAction;
+    private Action forwardAction;
+    private Action printHelpAction;
+    private URLHistoryList history;
     
-    JEditorPane editorPane;
-    HTMLDocument doc;
-    HTMLEditorKit kit;
-    Hyperactive ha;    
-    
-    JPanel buttonPanel;
-    Action homeAction;
-    Action backAction;
-    Action forwardAction;
-    Action printHelpAction;
-    URLHistoryList history;
-              
+ 
     public HelpAction() {
         
         super("Help",ASUtils.createJLFIcon( "general/Help",
@@ -76,8 +70,8 @@ public class HelpAction extends AbstractAction  {
                                                 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 16)) ) {
             public void actionPerformed(ActionEvent evt) {
                 try {
-                    editorPane.setPage(URL_STRING);
-                    history.add(URL_STRING);
+                    editorPane.setPage(HOME_URL_STRING);
+                    history.add(HOME_URL_STRING);
                 } catch (IOException e) {
                     handleHelpError(e);
                 }
@@ -183,8 +177,8 @@ public class HelpAction extends AbstractAction  {
 
         if ( editorPane.getPage() == null ) {
             try {
-                editorPane.setPage(URL_STRING);
-                history.add(URL_STRING);
+                editorPane.setPage(HOME_URL_STRING);
+                history.add(HOME_URL_STRING);
             } catch (IOException e1) {
                 handleHelpError(e1);
             }
