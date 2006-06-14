@@ -30,7 +30,6 @@ import javax.swing.filechooser.FileFilter;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.qfa.ExceptionReport;
-import ca.sqlpower.architect.qfa.QFAUserSettings;
 
 /**
  * ASUtils is a container class for static utility methods used
