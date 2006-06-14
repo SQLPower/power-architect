@@ -17,7 +17,6 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.etl.ETLUtils;
 
 public class MappingReport {
-    private Collection<SQLTable> targetTables;
     private int sourceTargetGap = 100;
     private int unrelatedSourcesGap = 10;
     private int arrowheadLength = 10;
@@ -29,7 +28,6 @@ public class MappingReport {
     
     public MappingReport(Collection<SQLTable> targetTables) throws ArchitectException {
         PlayPen pp = new PlayPen();
-        this.targetTables = targetTables;
         mappings = ETLUtils.findTableLevelMappings(targetTables);
         for (SQLTable sourceTable : mappings.keySet()) {
             if (sourceTable == null) continue;
