@@ -136,6 +136,8 @@ public class HelpAction extends AbstractAction  {
                         ArchitectFrame.getMainInstance(),
                         "Print", "Print");
                 
+                printPanel.setZoom(0.3);
+                d.setSize(800,600);
                 d.pack();
                 d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
                 d.setVisible(true);
