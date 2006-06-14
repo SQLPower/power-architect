@@ -112,7 +112,12 @@ public class MockJDBCResultSet implements ResultSet {
 	}
 
 	public int getInt(int columnIndex) throws SQLException {
-		throw new UnsupportedOperationException("Not implemented");
+        Object val = getRowCol(columnIndex);
+        if (val == null) {
+            return 0;
+        } else {
+            return ((Number) val).intValue();
+        }
 	}
 
 	public long getLong(int columnIndex) throws SQLException {
@@ -329,7 +334,7 @@ public class MockJDBCResultSet implements ResultSet {
 	}
 
 	public void updateInt(int columnIndex, int x) throws SQLException {
-		throw new UnsupportedOperationException("Not implemented");
+        updateObject(columnIndex, new Integer(x));
 	}
 
 	public void updateLong(int columnIndex, long x) throws SQLException {
@@ -411,7 +416,7 @@ public class MockJDBCResultSet implements ResultSet {
 	}
 
 	public void updateInt(String columnName, int x) throws SQLException {
-		throw new UnsupportedOperationException("Not implemented");
+        updateInt(findColumn(columnName), x);
 	}
 
 	public void updateLong(String columnName, long x) throws SQLException {
@@ -617,7 +622,7 @@ public class MockJDBCResultSet implements ResultSet {
 	}
 
 	public int getInt(String columnName) throws SQLException {
-		throw new UnsupportedOperationException("Not implemented");
+        return getInt(findColumn(columnName));
 	}
 
 	public long getLong(String columnName) throws SQLException {

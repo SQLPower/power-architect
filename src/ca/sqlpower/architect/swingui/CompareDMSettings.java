@@ -2,7 +2,7 @@ package ca.sqlpower.architect.swingui;
 
 public class CompareDMSettings {
 	
-	public enum RadioButtonSelection { PROJECT, DATABASE, FILE; }
+	public enum DatastoreType { PROJECT, DATABASE, FILE; }
 	public enum OutputFormat { SQL, ENGLISH; }
 	
 	private OutputFormat outputFormat;
@@ -10,7 +10,7 @@ public class CompareDMSettings {
 	private boolean saveFlag = false;	//Checks if the user has been on compareDM
 	
 	public static class SourceOrTargetSettings {
-		private RadioButtonSelection buttonSelection;
+		private DatastoreType datastoreType;
 		private String connectName;
 		private String connectURL;
 		private String connectUserName;
@@ -18,11 +18,11 @@ public class CompareDMSettings {
 		private String schema;
 		private String filePath;
 
-		public RadioButtonSelection getButtonSelection() {
-			return buttonSelection;
+		public DatastoreType getDatastoreType() {
+			return datastoreType;
 		}
-		public void setButtonSelection(RadioButtonSelection buttonSelection) {
-			this.buttonSelection = buttonSelection;
+		public void setDatastoreType(DatastoreType v) {
+			this.datastoreType = v;
 		}
 		public String getCatalog() {
 			return catalog;
@@ -58,12 +58,12 @@ public class CompareDMSettings {
 			this.connectUserName = connectUserName;
 		}
 		
-		public String getRadioButtonSelectionAsString() {
-			return buttonSelection.toString();
+		public String getDatastoreTypeAsString() {
+			return datastoreType.toString();
 		}
 
-		public void setRadioButtonSelectionAsString(String v) {
-			buttonSelection = RadioButtonSelection.valueOf(v);
+		public void setDatastoreTypeAsString(String v) {
+			datastoreType = DatastoreType.valueOf(v);
 		}
 		
 	}

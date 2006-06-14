@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ddl.DDLUserSettings;
 import ca.sqlpower.architect.etl.ETLUserSettings;
+import ca.sqlpower.architect.qfa.QFAUserSettings;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
 
@@ -57,12 +58,12 @@ public class ConfigFile {
 
 	// -------------------- READING THE "FILE" --------------------------
 
-	public UserSettings read(ArchitectSession session) throws IOException {
+	public CoreUserSettings read(ArchitectSession session) throws IOException {
 		logger.debug("reading UserSettings from java.util.prefs.");
 		Preferences prefs = ArchitectFrame.getMainInstance().getPrefs();
 		logger.debug("Preferences class = " + prefs.getClass());
 		
-		UserSettings userSettings = new UserSettings();
+		CoreUserSettings userSettings = new CoreUserSettings();
 		
 		int i;
 		for (i = 0; i <= 99; i++) {
@@ -83,22 +84,25 @@ public class ConfigFile {
 		
 		userSettings.setPlDotIniPath(prefs.get("PL.INI.PATH", null));
 		
-		SwingUserSettings swingUserSettings = userSettings.getSwingSettings();
+		UserSettings swingUserSettings = userSettings.getSwingSettings();
 		swingUserSettings.setBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED,
 			prefs.getBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
 		
 		ETLUserSettings etlUserSettings = userSettings.getETLUserSettings();
-		etlUserSettings.setPowerLoaderEnginePath(
+		etlUserSettings.setString(ETLUserSettings.PROP_PL_ENGINE_PATH,
 			prefs.get(ETLUserSettings.PROP_PL_ENGINE_PATH, ""));
-		etlUserSettings.setETLLogPath(
+		etlUserSettings.setString(ETLUserSettings.PROP_ETL_LOG_PATH,
 			prefs.get(ETLUserSettings.PROP_ETL_LOG_PATH, defaultHomeFile("etl.log")));
 		
 		DDLUserSettings ddlUserSettings = userSettings.getDDLUserSettings();
-		ddlUserSettings.setDDLLogPath(prefs.get(DDLUserSettings.PROP_DDL_LOG_PATH, defaultHomeFile("ddl.log")));
-		PrintUserSettings printUserSettings = userSettings.getPrintUserSettings();
-		printUserSettings.setDefaultPrinterName(
-				prefs.get(PrintUserSettings.DEFAULT_PRINTER_NAME, ""));
-		
+		ddlUserSettings.setString(DDLUserSettings.PROP_DDL_LOG_PATH,prefs.get(DDLUserSettings.PROP_DDL_LOG_PATH, defaultHomeFile("ddl.log")));
+        
+		QFAUserSettings qfaUserSettings = userSettings.getQfaUserSettings();
+        qfaUserSettings.setBoolean(QFAUserSettings.EXCEPTION_REPORTING,prefs.getBoolean(QFAUserSettings.EXCEPTION_REPORTING,true));
+        
+        PrintUserSettings printUserSettings = userSettings.getPrintUserSettings();
+        printUserSettings.setDefaultPrinterName(
+                prefs.get(PrintUserSettings.DEFAULT_PRINTER_NAME, ""));
 		return userSettings;
 	}
 	
@@ -109,7 +113,7 @@ public class ConfigFile {
 		logger.debug("Saving prefs to java.util.prefs");
 		Preferences prefs = ArchitectFrame.getMainInstance().getPrefs();
 		
-		UserSettings userSettings = session.getUserSettings();
+		CoreUserSettings userSettings = session.getUserSettings();
 		
 		List<String> driverJarList = session.getDriverJarList();
 		Iterator<String> it = driverJarList.iterator();
@@ -127,16 +131,19 @@ public class ConfigFile {
 		
 		prefs.put("PL.INI.PATH", userSettings.getPlDotIniPath());
 		
-		SwingUserSettings swingUserSettings = userSettings.getSwingSettings();
+		UserSettings swingUserSettings = userSettings.getSwingSettings();
 		prefs.putBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED,
 				swingUserSettings.getBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
 		
 		ETLUserSettings etlUserSettings = userSettings.getETLUserSettings();
-		prefs.put(ETLUserSettings.PROP_PL_ENGINE_PATH, etlUserSettings.getPowerLoaderEnginePath());
-		prefs.put(ETLUserSettings.PROP_ETL_LOG_PATH, etlUserSettings.getETLLogPath());
+		prefs.put(ETLUserSettings.PROP_PL_ENGINE_PATH, etlUserSettings.getString(ETLUserSettings.PROP_PL_ENGINE_PATH,""));
+		prefs.put(ETLUserSettings.PROP_ETL_LOG_PATH, etlUserSettings.getString(ETLUserSettings.PROP_ETL_LOG_PATH,""));
 		
 		DDLUserSettings ddlUserSettings = userSettings.getDDLUserSettings();
-		prefs.put(DDLUserSettings.PROP_DDL_LOG_PATH, ddlUserSettings.getDDLLogPath());
+		prefs.put(DDLUserSettings.PROP_DDL_LOG_PATH, ddlUserSettings.getString(DDLUserSettings.PROP_DDL_LOG_PATH,""));
+        
+        QFAUserSettings qfaUserSettings = userSettings.getQfaUserSettings();
+        prefs.putBoolean(QFAUserSettings.EXCEPTION_REPORTING,qfaUserSettings.getBoolean(QFAUserSettings.EXCEPTION_REPORTING,true));
 
 		PrintUserSettings printUserSettings = userSettings.getPrintUserSettings();
 		prefs.put(PrintUserSettings.DEFAULT_PRINTER_NAME, printUserSettings.getDefaultPrinterName());

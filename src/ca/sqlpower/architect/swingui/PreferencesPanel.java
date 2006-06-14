@@ -1,6 +1,10 @@
 package ca.sqlpower.architect.swingui;
 
 import ca.sqlpower.architect.*;
+import ca.sqlpower.architect.ddl.DDLUserSettings;
+import ca.sqlpower.architect.etl.ETLUserSettings;
+import ca.sqlpower.architect.qfa.QFAUserSettings;
+
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.*;
@@ -13,7 +17,7 @@ public class PreferencesPanel extends JPanel implements ArchitectPanel {
 	/**
 	 * The settings we're editing
 	 */
-	protected UserSettings us;
+	protected CoreUserSettings us;
 
 	protected JTextField plIniName;
 	protected JButton plIniButton;
@@ -29,8 +33,11 @@ public class PreferencesPanel extends JPanel implements ArchitectPanel {
 
 	protected JRadioButton playPenAntialiasOn;
 	protected JRadioButton playPenAntialiasOff;
+    
+    protected JRadioButton exceptionReportOn;
+    protected JRadioButton exceptionReportOff;
 
-	public PreferencesPanel(UserSettings us) {
+	public PreferencesPanel(CoreUserSettings us) {
 		this.us = us;
 		setup();
 		revertToUserSettings();
@@ -80,26 +87,42 @@ public class PreferencesPanel extends JPanel implements ArchitectPanel {
 		playPenAntialiasPanel.add(playPenAntialiasOn);
 		playPenAntialiasPanel.add(playPenAntialiasOff);
 		add(playPenAntialiasPanel);
+        //line 6
+        add(new JLabel("Error Reporting"));
+        JPanel exeptionReportPanel = new JPanel();
+        exeptionReportPanel.setLayout(new FlowLayout());
+        ButtonGroup exeptionReportGroup = new ButtonGroup();
+        exeptionReportGroup.add(exceptionReportOn = new JRadioButton("On"));
+        exeptionReportGroup.add(exceptionReportOff = new JRadioButton("Off"));
+        exeptionReportPanel.add(exceptionReportOn);
+        exeptionReportPanel.add(exceptionReportOff);
+        add(exeptionReportPanel);
 	}
 
 	protected void revertToUserSettings() {
 		plIniName.setText(us.getPlDotIniPath());
-		powerLoaderEngine.setText(us.getETLUserSettings().getPowerLoaderEnginePath());
-		etlLogFileName.setText(us.getETLUserSettings().getETLLogPath());
-		ddlLogFileName.setText(us.getDDLUserSettings().getDDLLogPath());
+		powerLoaderEngine.setText(us.getETLUserSettings().getString(ETLUserSettings.PROP_PL_ENGINE_PATH,""));
+		etlLogFileName.setText(us.getETLUserSettings().getString(ETLUserSettings.PROP_ETL_LOG_PATH,""));
+		ddlLogFileName.setText(us.getDDLUserSettings().getString(DDLUserSettings.PROP_DDL_LOG_PATH,""));
 		if (us.getSwingSettings().getBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false)) {
 		    playPenAntialiasOn.setSelected(true);
 		} else {
 		    playPenAntialiasOff.setSelected(true);
 		}
+        if (us.getQfaUserSettings().getBoolean(QFAUserSettings.EXCEPTION_REPORTING, true)) {
+            exceptionReportOn.setSelected(true);
+        } else {
+            exceptionReportOff.setSelected(true);
+        }
 	}
 
 	public boolean applyChanges() {
 		us.setPlDotIniPath(plIniName.getText());
-	    us.getETLUserSettings().setPowerLoaderEnginePath(powerLoaderEngine.getText());
-		us.getETLUserSettings().setETLLogPath(etlLogFileName.getText());
-		us.getDDLUserSettings().setDDLLogPath(ddlLogFileName.getText());
+	    us.getETLUserSettings().setString(ETLUserSettings.PROP_PL_ENGINE_PATH,powerLoaderEngine.getText());
+		us.getETLUserSettings().setString(ETLUserSettings.PROP_ETL_LOG_PATH,etlLogFileName.getText());
+		us.getDDLUserSettings().setString(DDLUserSettings.PROP_DDL_LOG_PATH,ddlLogFileName.getText());
 		us.getSwingSettings().setBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, playPenAntialiasOn.isSelected());
+        us.getQfaUserSettings().setBoolean(QFAUserSettings.EXCEPTION_REPORTING, exceptionReportOn.isSelected());
 		ArchitectFrame.getMainInstance().getProject().getPlayPen().setRenderingAntialiased(playPenAntialiasOn.isSelected());
 		return true;
 	}

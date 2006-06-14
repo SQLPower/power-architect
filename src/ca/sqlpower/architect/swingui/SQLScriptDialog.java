@@ -45,6 +45,7 @@ import ca.sqlpower.architect.LogWriter;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLStatement;
+import ca.sqlpower.architect.ddl.DDLUserSettings;
 import ca.sqlpower.architect.swingui.ASUtils.FileExtensionFilter;
 import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
 
@@ -317,7 +318,7 @@ public class SQLScriptDialog extends JDialog {
 			LogWriter logWriter = null;
 			
 			try {
-				logWriter = new LogWriter(ArchitectSession.getInstance().getUserSettings().getDDLUserSettings().getDDLLogPath());
+				logWriter = new LogWriter(ArchitectSession.getInstance().getUserSettings().getDDLUserSettings().getString(DDLUserSettings.PROP_DDL_LOG_PATH,""));
 			} catch (ArchitectException ex) {
 				finished = true;
 				final Exception fex = ex;

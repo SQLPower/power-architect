@@ -62,7 +62,7 @@ import ca.sqlpower.architect.diff.CompareSQL;
 import ca.sqlpower.architect.diff.DiffChunk;
 import ca.sqlpower.architect.diff.DiffType;
 import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
-import ca.sqlpower.architect.swingui.CompareDMSettings.RadioButtonSelection;
+import ca.sqlpower.architect.swingui.CompareDMSettings.DatastoreType;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
 import ca.sqlpower.architect.swingui.action.DBCS_OkAction;
 
@@ -960,13 +960,15 @@ public class CompareDMPanel extends JPanel {
 				targetComp = new CompareSQL(targetTables,
 						sourceTables);
 			} catch (FileNotFoundException ex) {
-				ASUtils
-				.showExceptionDialog("Your file could not be found.",
-						ex);
+                JOptionPane.showMessageDialog(
+                        ArchitectFrame.getMainInstance(),
+                        "File not found: "+ex.getMessage());
 				logger.error("File could not be found.", ex);
 				return;
 			} catch (IOException ex) {
-				ASUtils.showExceptionDialog("Could not read file", ex);
+                JOptionPane.showMessageDialog(
+                        ArchitectFrame.getMainInstance(),
+                        "Could not read file: "+ex.getMessage());
 				logger.error("Could not read file", ex);
 				return;
 			} catch (ArchitectException ex) {
@@ -1319,11 +1321,11 @@ public class CompareDMPanel extends JPanel {
 		setting.setFilePath(stuff.loadFilePath.getText());
 		
 		if ( stuff.loadRadio.isSelected() )
-			setting.setButtonSelection(CompareDMSettings.RadioButtonSelection.FILE);
+			setting.setDatastoreType(CompareDMSettings.DatastoreType.FILE);
 		if ( stuff.physicalRadio.isSelected() )
-			setting.setButtonSelection(CompareDMSettings.RadioButtonSelection.DATABASE);
+			setting.setDatastoreType(CompareDMSettings.DatastoreType.DATABASE);
 		if ( stuff.playPenRadio.isSelected() )
-			setting.setButtonSelection(CompareDMSettings.RadioButtonSelection.PROJECT);
+			setting.setDatastoreType(CompareDMSettings.DatastoreType.PROJECT);
 	}
 	
 	private void restoreSettingsFromProject() throws ArchitectException {
@@ -1353,12 +1355,12 @@ public class CompareDMPanel extends JPanel {
 	private void restoreSourceOrTargetSettingsFromProject(SourceOrTargetStuff stuff,
 			SourceOrTargetSettings set) throws ArchitectException {
 		
-		RadioButtonSelection rbs = set.getButtonSelection();
-		if ( rbs == CompareDMSettings.RadioButtonSelection.PROJECT )
+		DatastoreType rbs = set.getDatastoreType();
+		if ( rbs == CompareDMSettings.DatastoreType.PROJECT )
 			stuff.playPenRadio.doClick();
-		else if ( rbs == CompareDMSettings.RadioButtonSelection.DATABASE )
+		else if ( rbs == CompareDMSettings.DatastoreType.DATABASE )
 			stuff.physicalRadio.doClick();
-		else if ( rbs == CompareDMSettings.RadioButtonSelection.FILE )
+		else if ( rbs == CompareDMSettings.DatastoreType.FILE )
 			stuff.loadRadio.doClick();
 
 		List<ArchitectDataSource> lds = ArchitectFrame.getMainInstance().getUserSettings().getConnections();		

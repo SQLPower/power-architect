@@ -13,6 +13,8 @@ import java.net.URL;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.UserSettings;
+import ca.sqlpower.architect.swingui.ArchitectFrame;
 
 public class ExceptionReport {
 
@@ -58,15 +60,7 @@ public class ExceptionReport {
         StringBuffer xml = new StringBuffer();
         xml.append("<?xml version=\"1.0\" encoding=\"ISO-8859-1\" ?>");
         xml.append("\n<architect-exception-report version=\"1.0\">");
-        xml.append("\n <exception class=\"").append(ArchitectUtils.escapeXML(exception.getClass().getName())).append("\">");
-        for (StackTraceElement ste : exception.getStackTrace()) {
-            xml.append("\n  <trace-element class=\"").append(ArchitectUtils.escapeXML(ste.getClassName()))
-                    .append("\" method=\"").append(ArchitectUtils.escapeXML(ste.getMethodName()))
-                    .append("\" file=\"").append(ArchitectUtils.escapeXML(ste.getFileName()))
-                    .append("\" line=\"").append(ste.getLineNumber())
-                    .append("\" />");
-        }
-        xml.append("\n </exception>");
+        appendNestedExceptions(xml,exception);
         xml.append("\n <architect-version>").append(ArchitectUtils.escapeXML(architectVersion)).append("</architect-version>");
         xml.append("\n <architect-uptime>").append(applicationUptime).append("</architect-uptime>");
         xml.append("\n <total-mem>").append(totalMem).append("</total-mem>");
@@ -83,12 +77,30 @@ public class ExceptionReport {
         return xml.toString();
     }
 
+    private void appendNestedExceptions(StringBuffer xml, Throwable exception) {
+        if (exception == null) return;
+        xml.append("\n <exception class=\"").append(ArchitectUtils.escapeXML(exception.getClass().getName())).append("\" message=\"")
+                        .append(ArchitectUtils.escapeXML(exception.getMessage())).append("\">");
+        for (StackTraceElement ste : exception.getStackTrace()) {
+            xml.append("\n  <trace-element class=\"").append(ArchitectUtils.escapeXML(ste.getClassName()))
+                    .append("\" method=\"").append(ArchitectUtils.escapeXML(ste.getMethodName()))
+                    .append("\" file=\"").append(ArchitectUtils.escapeXML(ste.getFileName()))
+                    .append("\" line=\"").append(ste.getLineNumber())
+                    .append("\" />");
+        }
+        appendNestedExceptions(xml,exception.getCause());
+        xml.append("\n </exception>");
+    }
+
     /**
      * Attempts to send this exception report, in XML form, to the official SQL
      * Power error reporting URL for the architect.
      */
     public void postReportToSQLPower() {
         final String url = "http://bugs.sqlpower.ca/architect/postReport";
+        // TODO decouple this from the main frame
+        UserSettings settings = ArchitectFrame.getMainInstance().getUserSettings().getQfaUserSettings();
+        if(!settings.getBoolean(QFAUserSettings.EXCEPTION_REPORTING,true)) return;
         try {
             HttpURLConnection dest = (HttpURLConnection) new URL(url).openConnection();
             dest.setDoOutput(true);

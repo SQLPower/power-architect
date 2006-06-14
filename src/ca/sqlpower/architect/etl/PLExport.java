@@ -780,7 +780,7 @@ public class PLExport implements Monitorable {
 			currentDB = tablesToExport;
 			
 			// first, set the logWriter
-			logWriter = new LogWriter(ArchitectSession.getInstance().getUserSettings().getETLUserSettings().getETLLogPath());			
+			logWriter = new LogWriter(ArchitectSession.getInstance().getUserSettings().getETLUserSettings().getString(ETLUserSettings.PROP_ETL_LOG_PATH,""));			
 						
 			SQLDatabase repository = new SQLDatabase(repositoryDataSource); // we are exporting db into this
         	

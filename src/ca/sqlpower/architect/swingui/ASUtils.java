@@ -29,6 +29,9 @@ import javax.swing.filechooser.FileFilter;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.qfa.ExceptionReport;
+import ca.sqlpower.architect.qfa.QFAUserSettings;
+
 /**
  * ASUtils is a container class for static utility methods used
  * throughout the Swing user interface.  "ASUtils" is short for
@@ -286,18 +289,49 @@ public class ASUtils {
 	 * @param throwable
 	 */
 	public static void showExceptionDialog(Component parent, String message, Throwable throwable) {
-		StringWriter traceWriter = new StringWriter();
-		throwable.printStackTrace(new PrintWriter(traceWriter));
-		JPanel messageComponent = new JPanel(new BorderLayout());
-		messageComponent.add(new JLabel(message), BorderLayout.NORTH);
-		messageComponent.add(new JScrollPane(new JTextArea(traceWriter.toString())), BorderLayout.CENTER);
-		messageComponent.setPreferredSize(new Dimension(600, 400));
-		JOptionPane.showMessageDialog(parent, 
-									  messageComponent,
-									  "Error Report",
-									  JOptionPane.ERROR_MESSAGE);
+        ExceptionReport er = new ExceptionReport(throwable);
+        er.setNumObjectsInPlayPen(ArchitectFrame.getMainInstance().playpen.getTablePanes().size()
+                                  + ArchitectFrame.getMainInstance().playpen.getRelationships().size());
+        er.setNumSourceConnections(ArchitectFrame.getMainInstance().dbTree.getDatabaseList().size());
+        er.setUserActivityDescription("");
+        logger.debug(er.toXML());
+        er.postReportToSQLPower();
+        
+        displayExceptionDialog(parent,message,throwable);
 	}
 
+    /**
+     * Displays a dialog box with the given message and exception,
+     * allowing the user to examine the stack trace.  The dialog's
+     * parent component will be the ArchitectFrame's main instance.
+     */
+	public static void showExceptionDialogNoReport(String string, Throwable ex) {
+        displayExceptionDialog(ArchitectFrame.getMainInstance(), string, ex);  
+	}
+    /** Displays a dialog box with the given message and exception,
+     * returning focus to the given component. Intended for use
+     * on panels like the CompareDMPanel, so focus works better.
+     * @param parent
+     * @param message
+     * @param throwable
+     */
+    public static void showExceptionDialogNoReport(Component parent,String string, Throwable ex) {
+       displayExceptionDialog(parent, string, ex);  
+    }
+    
+    private static void displayExceptionDialog(Component parent, String message, Throwable throwable) {
+        StringWriter traceWriter = new StringWriter();
+        throwable.printStackTrace(new PrintWriter(traceWriter));
+        JPanel messageComponent = new JPanel(new BorderLayout());
+        messageComponent.add(new JLabel(message), BorderLayout.NORTH);
+        messageComponent.add(new JScrollPane(new JTextArea(traceWriter.toString())), BorderLayout.CENTER);
+        messageComponent.setPreferredSize(new Dimension(600, 400));
+        JOptionPane.showMessageDialog(parent, 
+                                      messageComponent,
+                                      "Error Report",
+                                      JOptionPane.ERROR_MESSAGE);
+    }
+    
 	public static String lineToString(Line2D.Double l) {
 		return "[("+l.x1+","+l.y1+") - ("+l.x2+","+l.y2+")]";
 	}
@@ -455,5 +489,6 @@ public class ASUtils {
 		 * });
 		 */
 	}
+
 	
 }

@@ -37,6 +37,7 @@ import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.PLExport;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
@@ -852,7 +853,7 @@ public class SwingUIProject {
 	
 	
 	private void saveSourceOrTargetAttributes(PrintWriter out, SourceOrTargetSettings sourceSettings) {
-		print(out, " radioButtonSelectionAsString=\""+ArchitectUtils.escapeXML(sourceSettings.getRadioButtonSelectionAsString())+"\"");
+		print(out, " datastoreTypeAsString=\""+ArchitectUtils.escapeXML(sourceSettings.getDatastoreTypeAsString())+"\"");
 		if (sourceSettings.getConnectName() != null)
 		print(out, " connectName=\""+ArchitectUtils.escapeXML(sourceSettings.getConnectName())+"\"");
 		
@@ -1204,7 +1205,7 @@ public class SwingUIProject {
 	 */
 	public void setPlayPen(PlayPen argPlayPen) {
 		this.playPen = argPlayPen;
-		SwingUserSettings sprefs = ArchitectFrame.getMainInstance().getSprefs();
+		UserSettings sprefs = ArchitectFrame.getMainInstance().getSprefs();
 		if (sprefs != null) {
 		    playPen.setRenderingAntialiased(sprefs.getBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
 		}
