@@ -965,7 +965,7 @@ public class ArchitectFrame extends JFrame {
 	}
 
 	/**
-	 * Creates an ArchitectFrame and sets is visible.  This method is
+	 * Creates an ArchitectFrame and sets it visible.  This method is
 	 * an acceptable way to launch the Architect application.
 	 */
 	public static void main(String args[]) throws ArchitectException {
