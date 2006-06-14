@@ -261,7 +261,7 @@ public class SQLRunner {
 	public void setOutputFile(String fileName) throws IOException {
 		if (fileName == null) {
 			/* Set the output file back to System.out */
-			out = new PrintWriter(System.out, true);
+            setOutputFile(new PrintWriter(System.out, true));
 		} else {
 			File file = new File(fileName);
 			setOutputFile(new PrintWriter(new FileWriter(file), true));
@@ -269,11 +269,12 @@ public class SQLRunner {
 		}
 	}
 
-	/** Set the output to the given Writer
+	/** Set the output to the given Writer; immediately update the textDecorator so \dt works...
 	 * @param writer
 	 */
 	public void setOutputFile(PrintWriter writer) {
 		out = writer;
+        textDecorator = new ResultsDecoratorText(out, verbosity);
 	}
 
 	/** Run one Statement, and format results as per Update or Query.
