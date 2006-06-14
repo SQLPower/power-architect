@@ -50,7 +50,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
-import javax.swing.SwingUtilities;
 
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.SQLDatabase;
@@ -126,7 +125,7 @@ public class SQLRunnerGUI  {
 							setSuccess();	// If no exception thrown							
 						} catch (Exception e) {
 							setFailure();
-							error("Error: " + e);
+                            error("<html><p>Error: <font color='red'>" + e);
 							e.printStackTrace();
 						} finally {
 							if (conn != null) {
