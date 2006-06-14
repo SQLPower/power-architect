@@ -719,7 +719,6 @@ public class ArchitectFrame extends JFrame {
 		bounds.width = prefs.getInt(SwingUserSettings.MAIN_FRAME_WIDTH, 600);
 		bounds.height = prefs.getInt(SwingUserSettings.MAIN_FRAME_HEIGHT, 440);
 		setBounds(bounds);
-        ASUtils.centre(this);
 		addWindowListener(afWindowListener = new ArchitectFrameWindowListener());
 				
 		setProject(new SwingUIProject("New Project"));
