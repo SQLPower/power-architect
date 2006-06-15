@@ -27,6 +27,7 @@ import java.util.prefs.Preferences;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -197,6 +198,7 @@ public class ArchitectFrame extends JFrame {
 		synchronized (ArchitectFrame.class) {
 			mainInstance = this;
 		}
+        setIconImage(new ImageIcon(getClass().getResource("/icons/architect.png")).getImage());
 	    // close handled by window listener
 	    setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 	    architectSession = ArchitectSession.getInstance();
