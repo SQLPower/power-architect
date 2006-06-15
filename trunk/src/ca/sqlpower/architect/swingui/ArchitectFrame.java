@@ -199,7 +199,7 @@ public class ArchitectFrame extends JFrame {
 		synchronized (ArchitectFrame.class) {
 			mainInstance = this;
 		}
-        setIconImage(new ImageIcon(getClass().getResource("/icons/architect.png")).getImage());
+        setIconImage(new ImageIcon(getClass().getResource("/icons/Architect16.png")).getImage());
 	    // close handled by window listener
 	    setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 	    architectSession = ArchitectSession.getInstance();
