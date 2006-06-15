@@ -119,6 +119,9 @@ public class ASUtils {
 	public static final FileFilter LOG_FILE_FILTER =
 		new FileExtensionFilter("Log Files", new String[] {"log"});
 
+    public static final FileFilter XML_FILE_FILTER =
+        new FileExtensionFilter("XML Files", new String[] {"xml"});
+
 	public static class FileExtensionFilter extends FileFilter {
 
 		protected LinkedHashSet<String> extensions;

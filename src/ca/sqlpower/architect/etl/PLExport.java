@@ -1,22 +1,44 @@
 package ca.sqlpower.architect.etl;
 
-import java.sql.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.HashSet;
 import java.util.List;
-
 import java.util.Set;
 
-import ca.sqlpower.sql.*;
-import ca.sqlpower.security.*;
-import ca.sqlpower.architect.*;
+import org.apache.log4j.Logger;
+
+import ca.sqlpower.architect.ArchitectDataSource;
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectSession;
+import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.DepthFirstSearch;
+import ca.sqlpower.architect.LogWriter;
+import ca.sqlpower.architect.SQLCatalog;
+import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLSchema;
+import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.swingui.Monitorable;
 import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
-
-import org.apache.log4j.Logger;
+import ca.sqlpower.security.PLSecurityException;
+import ca.sqlpower.security.PLSecurityManager;
+import ca.sqlpower.sql.DBConnection;
+import ca.sqlpower.sql.DatabaseObject;
+import ca.sqlpower.sql.DefaultParameters;
+import ca.sqlpower.sql.PLSchemaException;
+import ca.sqlpower.sql.SQL;
 
 public class PLExport implements Monitorable {
 
@@ -29,6 +51,9 @@ public class PLExport implements Monitorable {
 		= "PLExport $Revision$".replace('$',' ').trim();
 
 	protected DefaultParameters defParam;
+    
+    protected File file;
+    
 	protected String folderName;   // = "Architect Jobs";
 	protected String jobId;
 	protected String jobDescription;
@@ -1207,6 +1232,44 @@ public class PLExport implements Monitorable {
 	public void setExportResultList(ArrayList<LabelValueBean> exportResultList) {
 		this.exportResultList = exportResultList;
 	}
+
+    public File getFile() {
+        return file;
+    }
+
+    public void setFile(File file) {
+        this.file = file;
+    }
+
+    protected void println(PrintWriter out, int indent, String text) {
+        for (int i = 0; i < indent; i++) {
+            out.print(" ");
+        }
+        out.println(text);
+    }
+    
+    public void exportXML() throws IOException {
+
+        PrintWriter out = null;
+        final String encoding = "ISO-8859-1";
+        int indent = 0;
+
+        out = new PrintWriter(file);
+        
+
+        try {
+            println(out, indent, "<?xml version=\"1.0\" encoding=\""+encoding+"\"?>");
+            println(out, indent, "<EXPORT>");
+            indent++;
+            println(out, indent, "<SCHEMA_VERSION>5.0.22</SCHEMA_VERSION>");
+            indent--;
+            println(out, indent, "</EXPORT>");
+        } finally {
+            if (out != null) out.close();
+        }
+        
+        
+    }
 
 
 

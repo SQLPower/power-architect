@@ -71,6 +71,7 @@ import ca.sqlpower.architect.swingui.action.EditColumnAction;
 import ca.sqlpower.architect.swingui.action.EditRelationshipAction;
 import ca.sqlpower.architect.swingui.action.EditTableAction;
 import ca.sqlpower.architect.swingui.action.ExportDDLAction;
+import ca.sqlpower.architect.swingui.action.ExportPLJobXMLAction;
 import ca.sqlpower.architect.swingui.action.ExportPLTransAction;
 import ca.sqlpower.architect.swingui.action.HelpAction;
 import ca.sqlpower.architect.swingui.action.InsertColumnAction;
@@ -161,6 +162,8 @@ public class ArchitectFrame extends JFrame {
 	protected Action exportDDLAction;
 	protected Action compareDMAction;
 	protected ExportPLTransAction exportPLTransAction;
+    protected ExportPLJobXMLAction exportPLJobXMLAction;
+    
 	protected QuickStartAction quickStartAction;
 	protected ArchitectFrameWindowListener afWindowListener;
 	protected Action exitAction = new AbstractAction("Exit") {
@@ -435,6 +438,7 @@ public class ArchitectFrame extends JFrame {
 		compareDMAction = new CompareDMAction();
 
 		exportPLTransAction = new ExportPLTransAction();
+        exportPLJobXMLAction = new ExportPLJobXMLAction();
 		quickStartAction = new QuickStartAction();
         Action exportCSVAction = new AbstractAction("Export CSV File") {
 
@@ -624,7 +628,11 @@ public class ArchitectFrame extends JFrame {
 		etlMenu.setMnemonic('l');
 		JMenu etlSubmenuOne = new JMenu("Power*Loader");		
 		etlSubmenuOne.add(exportPLTransAction);
-		etlSubmenuOne.add(new JMenuItem("PL Transaction File Export"));
+        
+        etlSubmenuOne.add(exportPLJobXMLAction);
+        
+        
+		//etlSubmenuOne.add(new JMenuItem("PL Transaction File Export"));
 		etlSubmenuOne.add(new JMenuItem("Run Power*Loader"));
 		etlSubmenuOne.add(quickStartAction);
 		etlMenu.add(etlSubmenuOne);	
