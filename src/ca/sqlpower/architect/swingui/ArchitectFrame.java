@@ -81,6 +81,7 @@ import ca.sqlpower.architect.swingui.action.PrintAction;
 import ca.sqlpower.architect.swingui.action.ProjectSettingsAction;
 import ca.sqlpower.architect.swingui.action.QuickStartAction;
 import ca.sqlpower.architect.swingui.action.RedoAction;
+import ca.sqlpower.architect.swingui.action.RunPLAction;
 import ca.sqlpower.architect.swingui.action.SQLRunnerAction;
 import ca.sqlpower.architect.swingui.action.SearchReplaceAction;
 import ca.sqlpower.architect.swingui.action.SelectAllAction;
@@ -630,12 +631,16 @@ public class ArchitectFrame extends JFrame {
 		etlMenu.setMnemonic('l');
 		JMenu etlSubmenuOne = new JMenu("Power*Loader");		
 		etlSubmenuOne.add(exportPLTransAction);
-        
-        etlSubmenuOne.add(exportPLJobXMLAction);
-        
-        
-		//etlSubmenuOne.add(new JMenuItem("PL Transaction File Export"));
-		etlSubmenuOne.add(new JMenuItem("Run Power*Loader"));
+
+		// Todo add in ability to run the engine from the architect
+        /*
+            Action runPL = new RunPLAction();
+            runPL.putValue(Action.NAME,"Run Power*Loader");
+		    etlSubmenuOne.add(runPL); 
+        */
+
+		etlSubmenuOne.add(exportPLJobXMLAction);
+
 		etlSubmenuOne.add(quickStartAction);
 		etlMenu.add(etlSubmenuOne);	
         etlMenu.add(exportCSVAction);
