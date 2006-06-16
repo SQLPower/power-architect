@@ -6,6 +6,8 @@
 package ca.sqlpower.architect.qfa;
 
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -18,7 +20,21 @@ import ca.sqlpower.architect.swingui.ArchitectFrame;
 
 public class ExceptionReport {
 
+
     private static final Logger logger = Logger.getLogger(ExceptionReport.class);
+
+    /**
+     * The system property that controls which URL error reports go to.
+     * The default (used when this property is not defined) is
+     * <tt>http://bugs.sqlpower.ca/architect/postReport</tt>.
+     */
+    private static final String REPORT_URL_SYSTEM_PROP = "ca.sqlpower.architect.qfa.REPORT_URL";
+    
+    /**
+     * The URL to post the error report to if the system property
+     * that overrides it isn't defined.
+     */
+    private static final String DEFAULT_REPORT_URL = "http://bugs.sqlpower.ca/architect/postReport";
     
     private Throwable exception;
     private String architectVersion;
@@ -97,14 +113,21 @@ public class ExceptionReport {
      * Power error reporting URL for the architect.
      */
     public void postReportToSQLPower() {
-        final String url = "http://bugs.sqlpower.ca/architect/postReport";
+        String url = System.getProperty(REPORT_URL_SYSTEM_PROP);
+        if (url == null) {
+            url = DEFAULT_REPORT_URL;
+        }
         // TODO decouple this from the main frame
         UserSettings settings = ArchitectFrame.getMainInstance().getUserSettings().getQfaUserSettings();
         if(!settings.getBoolean(QFAUserSettings.EXCEPTION_REPORTING,true)) return;
+        logger.info("Attempting to post error report to SQL Power at URL <"+url+">");
         try {
             HttpURLConnection dest = (HttpURLConnection) new URL(url).openConnection();
             dest.setDoOutput(true);
+            dest.setDoInput(true);
+            dest.setUseCaches(false);
             dest.setRequestMethod("POST");
+            dest.setRequestProperty("Content-Type", "text/xml");
             dest.connect();
             OutputStream out = null;
             try {
@@ -114,6 +137,16 @@ public class ExceptionReport {
             } finally {
                 if (out != null) out.close();
             }
+            
+            // Note: the error report will only get sent if we attempt to read from the URL Connection (!??!?)
+            BufferedReader in = new BufferedReader(new InputStreamReader(dest.getInputStream()));
+            StringBuffer response = new StringBuffer();
+            String line;
+            while ((line = in.readLine()) != null) {
+                response.append(line);
+            }
+            in.close();
+            logger.info("Error report servlet response: "+response);
         } catch (Exception e) {
             // Just catch-and-squash everything because we're already in up to our necks at this point.
             logger.error("Couldn't send exception report to <\""+url+"\">", e);
