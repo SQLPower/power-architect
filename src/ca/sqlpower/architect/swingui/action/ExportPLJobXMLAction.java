@@ -7,6 +7,7 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -20,6 +21,7 @@ import javax.swing.JProgressBar;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.etl.PLExport;
 import ca.sqlpower.architect.etl.PLUtils;
@@ -28,6 +30,7 @@ import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.ArchitectSwingWorker;
 import ca.sqlpower.architect.swingui.PLExportXMLPanel;
+import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.ProgressWatcher;
 import ca.sqlpower.architect.swingui.QuickStartWizard;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
@@ -37,7 +40,7 @@ public class ExportPLJobXMLAction extends AbstractAction {
     private static final Logger logger = Logger.getLogger(ExportPLJobXMLAction.class);
 
     protected ArchitectFrame architectFrame;
-    protected List<SQLTable> tables;
+    protected PlayPen pp;
 
     /** The PLExport object that this action uses to create PL transactions. */
     protected PLExport plexp;
@@ -58,11 +61,6 @@ public class ExportPLJobXMLAction extends AbstractAction {
         putValue(SHORT_DESCRIPTION, "PL XML Script Export");
     }
 
-    public void setExportingTables(List<SQLTable> exportingTables) {
-        tables = exportingTables;
-    }
-    
-        
     /**
      * Sets up the dialog the first time it is called.  After that,
      * just returns without doing anything.
@@ -108,11 +106,21 @@ public class ExportPLJobXMLAction extends AbstractAction {
                     return;
                 }
                 
-                // got this far, so it's ok to run the PL Export thread
-                ExportTxProcess etp = new ExportTxProcess(plexp,d,
-                        plCreateTxProgressBar,
-                        plCreateTxLabel);
-                new Thread(etp).start();       
+                try {
+                    List targetTables;
+                    targetTables = pp.getTables();
+                   
+                    // got this far, so it's ok to run the PL Export thread
+                    ExportTxProcess etp = new ExportTxProcess(plexp,targetTables,d,
+                            plCreateTxProgressBar,
+                            plCreateTxLabel);
+                    new Thread(etp).start();       
+                } catch (ArchitectException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+
+
             }
         });
         buttonPanel.add(okButton);
@@ -168,12 +176,14 @@ public class ExportPLJobXMLAction extends AbstractAction {
         PLExport plExport;
         final JDialog d;
         private Runnable nextProcess;
+        List targetTables;
 
         public ExportTxProcess (PLExport plExport,
-                                JDialog parentDialog,
+                                List targetTables, JDialog parentDialog,
                                 JProgressBar progressBar,
                                 JLabel label) {
             this.plExport = plExport;
+            this.targetTables = targetTables;
             d = parentDialog;
             label.setText("Exporting Meta Data...");            
             new ProgressWatcher(progressBar, plExport, label);          
@@ -184,9 +194,17 @@ public class ExportPLJobXMLAction extends AbstractAction {
                 return;
             // now implements Monitorable, so we can ask it how it's doing
             try {
-                plExport.exportXML();
+                plExport.exportXML(targetTables);
             } catch (IOException e) {
                 // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (ArchitectException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (SQLException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -206,7 +224,8 @@ public class ExportPLJobXMLAction extends AbstractAction {
 
     }
 
-    public List<SQLTable> getExportingTables() {
-        return tables;
+
+    public void setPlayPen(PlayPen pp) {
+        this.pp = pp;
     }   
 }

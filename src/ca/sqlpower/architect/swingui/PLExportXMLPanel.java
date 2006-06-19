@@ -15,8 +15,10 @@ import javax.swing.JTextField;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.etl.PLExport;
 import ca.sqlpower.architect.etl.PLUtils;
+import ca.sqlpower.architect.swingui.event.DatabaseComboBoxListener;
 
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -42,6 +44,8 @@ public class PLExportXMLPanel extends JPanel implements ArchitectPanel {
     protected JTextField plJobDescription;
     protected JTextField plJobComment;
 
+    protected DatabaseComboBoxListener dcl;
+    protected DatabaseSelector repository;
     
     // Watch PL.INI for changes
     protected javax.swing.Timer timer;
@@ -59,6 +63,8 @@ public class PLExportXMLPanel extends JPanel implements ArchitectPanel {
         progressBar.setVisible(false);
         label.setVisible(false);
         
+        repository = new DatabaseSelector(progressBar,label,this.getPanel());
+        
         plFolderName = new JTextField();
         plJobId = new JTextField();
         plJobDescription = new JTextField();
@@ -73,17 +79,39 @@ public class PLExportXMLPanel extends JPanel implements ArchitectPanel {
         
         PanelBuilder pb = new PanelBuilder(layout);
         CellConstraints cc = new CellConstraints();     
-        pb.add(new JLabel("PL Folder Name"), cc.xy(2,2, "r,c"));       
-        pb.add(plFolderName, cc.xyw(4,2,2));
-        pb.add(new JLabel("PL Job Id"), cc.xy(2,4, "r,c"));        
-        pb.add(plJobId, cc.xyw(4,4,2));
-        pb.add(new JLabel("PL Job Description"), cc.xy(2,6, "r,c"));       
-        pb.add(plJobDescription, cc.xyw(4,6,2));
-        pb.add(new JLabel("PL Job Comment"), cc.xy(2,8, "r,c"));       
-        pb.add(plJobComment, cc.xyw(4,8,2));       
+        
+        int row = 0;
+        
+        row = 2;
+        
+        pb.add(new JLabel("Repository Connection"), cc.xy(2,row,"r,c"));
+        pb.add(repository.getConnectionsBox(), cc.xyw(4,row,2));
+        pb.add(repository.getNewButton(), cc.xy(7,row));
+        row += 2;
+        pb.add(new JLabel("Repository Catalog"), cc.xy(2,row, "r,c"));       
+        pb.add(repository.getCatalogBox(), cc.xyw(4,row,2));
+        row += 2;
+        pb.add(new JLabel("Repository Schema"), cc.xy(2,row, "r,c"));        
+        pb.add(repository.getSchemaBox(), cc.xyw(4,row,2));
+        
+        row += 2;
+        
+        pb.add(new JLabel("PL Folder Name"), cc.xy(2,row, "r,c"));       
+        pb.add(plFolderName, cc.xyw(4,row,2));
+        
+        row += 2;
+        pb.add(new JLabel("PL Job Id"), cc.xy(2,row, "r,c"));        
+        pb.add(plJobId, cc.xyw(4,row,2));
+        row += 2;
+        pb.add(new JLabel("PL Job Description"), cc.xy(2,row, "r,c"));       
+        pb.add(plJobDescription, cc.xyw(4,row,2));
+        row += 2;
+        pb.add(new JLabel("PL Job Comment"), cc.xy(2,row, "r,c"));       
+        pb.add(plJobComment, cc.xyw(4,row,2));       
 
-        pb.add(new JLabel("File Name"), cc.xy(2,12, "r,c"));       
-        pb.add(xmlFileName, cc.xyw(4,12,2));  
+        row += 4;
+        pb.add(new JLabel("File Name"), cc.xy(2,row, "r,c"));       
+        pb.add(xmlFileName, cc.xyw(4,row,2));  
         pb.add(new JButton(new AbstractAction(){
 
             public void actionPerformed(ActionEvent e) {
@@ -120,7 +148,7 @@ public class PLExportXMLPanel extends JPanel implements ArchitectPanel {
                 xmlFileName.setText(file.getPath());
             }
             
-        }), cc.xy(6,12));
+        }), cc.xy(6,row));
         
         pb.add(label, cc.xy(2,24, "r,c"));      
         pb.add(progressBar, cc.xyw(4,24,2));
@@ -137,6 +165,7 @@ public class PLExportXMLPanel extends JPanel implements ArchitectPanel {
     public void setPLExport(PLExport plexp) {
         this.plexp = plexp;
 
+        repository.getConnectionsBox().setSelectedItem(plexp.getRepositoryDataSource());
         plFolderName.setText(plexp.getFolderName());
         plJobId.setText(plexp.getJobId());
         plJobDescription.setText(plexp.getJobDescription());
@@ -179,7 +208,6 @@ public class PLExportXMLPanel extends JPanel implements ArchitectPanel {
         
         // repository schema does not need to be set here, it is set in the 
         // the Architect Data Source!
-        
         plJobId.setText(PLUtils.toPLIdentifier(plJobId.getText()));
         plexp.setJobId(plJobId.getText());
         plFolderName.setText(PLUtils.toPLIdentifier(plFolderName.getText()));
@@ -189,8 +217,19 @@ public class PLExportXMLPanel extends JPanel implements ArchitectPanel {
         
         File file = new File(xmlFileName.getText());
         plexp.setFile(file);
-        
 
+        plexp.setRepositoryDataSource((ArchitectDataSource)repository.getConnectionsBox().getSelectedItem());
+        if (repository.getSchemaBox().isEnabled()){
+            plexp.setRepositorySchema((repository.getSchemaBox().getSelectedItem()).toString());
+        }
+        if (repository.getCatalogBox().isEnabled()){
+            plexp.setRepositoryCatalog((repository.getCatalogBox().getSelectedItem()).toString());
+        }
+
+        if (plexp.getRepositoryDataSource() == null) {
+            JOptionPane.showMessageDialog(this, "You have to select a Repository database from the list.", "Error", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
         
         return true;
     }

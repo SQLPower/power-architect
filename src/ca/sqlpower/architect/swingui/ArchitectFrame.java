@@ -791,6 +791,7 @@ public class ArchitectFrame extends JFrame {
 		createNonIdentifyingRelationshipAction.setPlayPen(playpen);
 		editRelationshipAction.setPlayPen(playpen);
 		exportPLTransAction.setExportingTables(playpen.getTables());
+        exportPLJobXMLAction.setPlayPen(playpen);
 		zoomInAction.setPlayPen(playpen);
 		zoomOutAction.setPlayPen(playpen);
 		autoLayoutAction.setPlayPen(playpen);
