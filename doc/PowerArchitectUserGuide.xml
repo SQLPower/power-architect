@@ -1,0 +1,1683 @@
+<?xml version='1.0'?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.0//EN" "http://www.oasis-open.org/docbook/xml/simple/1.0/sdocbook.dtd">
+<book id="architect-user-guide" lang="en">
+
+  <copyright><year> </year><holder>SQLPower Group Inc.</holder></copyright>
+  <bookinfo>
+
+    <imageobject><imagedata fileref="images/architect_logo.png"
+     format="PNG"/></imageobject>
+    <title>Power*Architect User Guide</title>
+
+    <corpauthor>SQLPower Group Inc.</corpauthor>
+
+    <date>Last Modified</date>
+  </bookinfo>
+
+  <title>Introduction</title>
+
+  <para>Data Architects, DBAs, Analysts and Designers rely on 
+  state-of-the-art Data Modeling Tools to facilitate and simplify their 
+  data Modeling efforts, while maximizing the use of their resources. 
+  The Power*Architect program allows these busy highly technical 
+  professionals to perform this most intricate part of their job in a 
+  fraction of the time.</para>
+
+  <para>SQL Power Group&apos;s Power*Architect is an innovative data 
+  modeling tool designed primarily for Data Warehouse and Data Mart 
+  design. It allows the designer to open multiple concurrent source 
+  Database connections, drag and drop source schemas, tables and 
+  columns into the data modeling playpen, and forward-engineer the 
+  resulting target database and its associated ETL template.</para>
+
+  <para>The Power*Architect is a user-friendly DW data modeling tool 
+  created by data warehouse designers, and has many features geared 
+  specifically for the data warehouse architect, including:</para>
+
+  <itemizedlist>
+
+    <listitem>
+
+      <para>Access any JDBC- or ODBC-accessible source database;</para>
+
+    </listitem>
+
+    <listitem>
+
+      <para>Design every aspect of the target database Data 
+      Model;</para>
+
+    </listitem>
+
+    <listitem>
+
+      <para>Compare the database structure of any two databases, 
+      highlighting the structural differences and generating the 
+      required DDL to synchronize;</para>
+
+    </listitem>
+
+    <listitem>
+
+      <para>Compare the Data Model data structures to an existing 
+      target database; Save a snapshot of all source systems’ data 
+      structures in the project file, allowing data warehouse designers 
+      to evolve their target data model remotely;</para>
+
+    </listitem>
+
+    <listitem>
+
+      <para>Forward engineer to Oracle, SQL Server, DB2, PostgreSQL and 
+      other databases;</para>
+
+    </listitem>
+
+    <listitem>
+
+      <para>Forward engineer ETL Templates containing source-to-target 
+      data mappings;</para>
+
+    </listitem>
+
+    <listitem>
+
+      <para>Invoke ETL Engine to load initial set of data into the 
+      target database;</para>
+
+    </listitem>
+
+    <listitem>
+
+      <para>Enable easy centralized installation and updates to 
+      multiple end users (using <trademark>Java WebStart</trademark> 
+      technology).</para>
+
+    </listitem>
+
+  </itemizedlist>
+
+  <para>Power*Architect can open multiple source databases 
+  concurrently, even those from competing database vendors. Another key 
+  feature of the Power*Architect that sets it apart from other data 
+  modeling tools is that it remembers the origin of each column, and is 
+  capable of automatically generating the source-to-target data 
+  mappings.</para>
+
+  <para>Whether you’re building or maintaining your Data Warehouse data 
+  model, the Power*Architect will provide you a complete view of all 
+  required database structures and will expedite every aspect of your 
+  data warehouse design.</para>
+
+  <para>We firmly believe you can...</para>
+
+  <para />
+
+  <sidebar>
+
+    <para>Design your Data Warehouse in a fraction of the time with 
+    Power*Architect.</para>
+
+  </sidebar>
+
+  <epigraph>
+
+    <para>Power*Architect is a versatile tool for the busy data 
+    warehousing practitioner.</para>
+
+  </epigraph>
+
+  <sect1 id="about-this-book">
+
+    <title>Basic Concepts</title>
+
+    <para><emphasis>Project</emphasis> – a Power*Architect project 
+    consists of a view of multiple databases; you can load and save a 
+    Project to work on it at leisure.</para>
+
+    <para><emphasis>Driver</emphasis> – Most programs need a distinct 
+    driver program to communicated with each different type of 
+    database. Power*Architect uses Java-based drivers, which normally 
+    come from the database vendor in the form of &quot;JAR&quot; 
+    <footnote><para>Java Archive files; these are an extension to the 
+    file format used by PKZip/WinZip archives</para></footnote> files. 
+    You need to inform Power*Architect about each driver before you can 
+    use it; do this from the User Preferences panel, under JDBC Drivers 
+    (just click Add and browse to the Jar file for your driver). If you 
+    do not have the JDBC driver for a given database, you can usually 
+    obtain one from the database vendor. If that fails, you can find a 
+    directory of databases drivers on 
+    <ulink url="http://developers.sun.com/product/jdbc/drivers">
+    Sun&apos;s web site</ulink> .</para>
+
+    <para><emphasis>Playpen</emphasis> – This is the main area of the 
+    Power*Architect window, in which you manipulate tables and 
+    relationships. You can play here to your heart&apos;s content, 
+    knowing it will not be saved until you ask the program to 
+    save.</para>
+
+  </sect1>
+
+  <sect1 id="work-in-progress">
+
+    <title>Who this book is for</title>
+
+    <para>This book is a step-by-step guide on how to use the full 
+    capabilities of Power*Architect . It covers topics from how to 
+    install the Power*Architect through setting up database connections 
+    to engineering your data model.</para>
+
+    <para>We assume you are familiar with basic database terms. If you 
+    meet any terms that are unfamiliar, please refer to the Glossary at 
+    the end of this book.</para>
+
+    <para>This book also assumes you are familiar with basic computer 
+    operations.</para>
+
+    <para>We also assume you have SQL Power&apos;s Power*Architect 
+    software installed on your computer; if not, please refer to the 
+    Installation Guide.</para>
+
+  </sect1>
+
+  <chapter id="Installation_Guide">
+
+    <title>Installation Guide</title>
+
+  </chapter>
+
+  <chapter id="How_to_use">
+
+    <title>How to Use the Power*Architect</title>
+
+    <section>
+
+      <title>Power*Architect User Interface</title>
+
+      <para>When you start the Power*Architect, you will see the 
+      Project window, shown below, which is the main view area and 
+      starting point for actions.</para>
+
+      <para><inlinemediaobject><imageobject>
+      <imagedata fileref="images/basicui.png"
+       format="PNG"/></imageobject></inlinemediaobject></para>
+
+      <para><emphasis>Database Tree</emphasis> – This is where you can 
+      add, maintain and explore imported connections. It uses a 
+      tree-node dropdown method. Therefore to explore inner components, 
+      you can expand components within this container as needed.</para>
+
+      <para><emphasis>Playpen</emphasis> – This is the main area of the 
+      window, in which you manipulate tables and relationships. You can 
+      play here to your heart&apos;s content, knowing it will not be 
+      saved until you ask the program to save.</para>
+
+      <para><emphasis>Playpen Components</emphasis> – These are the 
+      components that can go into the playpen. The playpen components 
+      are Tables and Relationships.</para>
+
+      <para><emphasis>Zoom Tools</emphasis> allow you to control the 
+      magnification level of components display</para>
+
+      <para><emphasis>Delete</emphasis> will delete the selected 
+      component(s).</para>
+
+      <para><emphasis>Create/Maintain Playpen Components</emphasis> is 
+      discussed in XXX below.</para>
+
+    </section>
+
+    <section>
+
+      <title>Setting the User Preferences</title>
+
+      <para>When getting started, you need to set up some files and 
+      drivers to use the full functionality of the Power*Architect. If 
+      you have not already done so already, please go to “User 
+      Preferences” under the File Menu to configure the 
+      Power*Architect. This will pop up a dialog (shown below) where 
+      you can specify your file locations.</para>
+
+      <para><inlinemediaobject><imageobject>
+      <imagedata fileref="images/basicui.png"
+       format="PNG"/></imageobject></inlinemediaobject></para>
+
+      <para>The pl.ini file stores the database connections that you 
+      set up (see JDBC Drivers on page 8). If you leave this location 
+      blank, the Architect program will prompt you to use a default 
+      location when you start it up. If you have a pl.ini file from 
+      other SQL Power applications you should generally use the same 
+      file, as doing so will save you from having to re-enter all your 
+      database connection information. The Power*Loader Engine setting 
+      is optional; if you are not using the Power*Loader engine you can 
+      leave this blank; if you are, you should set it to the location 
+      where the Power*Loader Engine program is installed on your 
+      system. The next two settings are for log files that will be 
+      written when you use the ETL and Forward Engineering functions of 
+      the application. The final setting controls the operations of 
+      graphics in the PlayPen. Turning “antialiased rendering” on may 
+      give better display of the graphical database layouts shown in 
+      the PlayPen, but may use more CPU time in the process.</para>
+
+    </section>
+
+    <section>
+
+      <title>JDBC Drivers</title>
+
+      <para>Besides setting up these file locations, you must also tell 
+      the Power*Architect about the JDBC drivers you wish to use. JDBC 
+      Drivers are needed to access most databases, and are distributed 
+      in &quot;JAR file&quot; format. Click on the “JDBC Drivers” tab 
+      and click Add... to specify the location of a JDBC driver jar 
+      file; if it is valid, the system will list the names of any 
+      Driver classes found in it, as shown below (note that 
+      &quot;ojdbc&quot; stands for Oracle&apos;s JDBC driver, whereas 
+      &quot;ODBC&quot; is Microsoft&apos;s technology for database 
+      access).</para>
+
+      <para><inlinemediaobject><imageobject>
+      <imagedata fileref="images/basicui.png"
+       format="PNG"/></imageobject></inlinemediaobject></para>
+
+      <para>Note: The tie-in between Drivers and Connections might seem 
+      a bit indirect if you are not used to using Java JDBC. In this 
+      section of the User Preferences you are simply telling the 
+      Power*Architect to load these drivers into memory when it starts 
+      up. When you set up an actual Connection, you implicitly tell the 
+      software which driver to use by the second field of the &quot;db 
+      URL&quot; as described on page 21. If you need more information 
+      on JDBC drivers, please refer to the Basic Concepts section of 
+      this manual on page 3.</para>
+
+    </section>
+
+    <section>
+
+      <title>A Brief Example</title>
+
+      <para>This section will show you how to set up 
+      <footnote><para>Assumes you have used some vendor-specific 
+      external tool to create a new database.</para></footnote> a 
+      simple database “from scratch”, just to get you started using the 
+      tools, without modifying any live data. If you follow the example 
+      literally, you will create a trivial &quot;customer and orders 
+      database&quot;.</para>
+
+      <orderedlist>
+
+        <listitem>
+
+          <para>Setup Driver. Select File-&gt;User Preferences and 
+          select the JDBC Drivers tab. If there is already an entry for 
+          the driver you wish to use,, click OK and go on to the next 
+          step. Otherwise, click the Add button, navigate to where you 
+          have the driver Jar file installed, and click OK.</para>
+
+        </listitem>
+
+        <listitem>
+
+          <para>Create a Connection. In the Database Tree section of 
+          the main window, right click and choose Add Source 
+          Connection-&gt;New Connection. For this example you can use a 
+          name like SampleDB, for both the Connection Name and the 
+          Database name (these names do not have to be the same, but 
+          we&apos;ll keep them the same for simplicity). If you select 
+          the JDBC Driver before you type the database name, then as 
+          you type the Database name, it will be added to the DB URL, 
+          so you don&apos;t have to type it an extra time. Fill in all 
+          the fields and click OK.</para>
+
+        </listitem>
+
+        <listitem>
+
+          <para>Now right click on the Project in the Database tree, 
+          and select Set Target Database, then choose the Database 
+          connection you just created (e.g., SampleHSQLDB). Note that 
+          Add Source Connection makes a database available to copy 
+          tables from, whereas Set Target Database specifies where SQL 
+          commands will get executed to create the structure you are 
+          building in your project.</para>
+
+        </listitem>
+
+        <listitem>
+
+          <para>You are now ready to design some tables. For this 
+          example, we will create the Customer and Orders table shown 
+          here.</para>
+
+          <orderedlist>
+
+            <listitem>
+
+              <para>Click on the New Table icon at the right side. The 
+              cursor will change to a crosshair. Move the cursor near 
+              the left of the Playpen area, and click. A &quot;New 
+              Table&quot; will appear.</para>
+
+            </listitem>
+
+            <listitem>
+
+              <para>Double click on the title, and the Table Properties 
+              Dialog will appear. Rename this table to Customer, and 
+              the Primary Key to Customer_PK.</para>
+
+            </listitem>
+
+            <listitem>
+
+              <para>Click on the Insert Column icon, and a &quot;New 
+              Column&quot; will appear. Double-click on the column, or 
+              click on the Column Properties, and the Column Properties 
+              Dialog will appear. Rename the column to ID and make it 
+              part of the primary key.</para>
+
+            </listitem>
+
+            <listitem>
+
+              <para>Insert additional columns for Firstname, Lastname, 
+              Address, City, Province, Country Code 
+              <footnote><para>There is an ISO standard, ISO-3166, which 
+              specifies a two-letter code (and a rarely-used three 
+              letter code) for every country of the world: us for the 
+              United States, ca for Canada, and so on. Some developers 
+              like to use these in the Country field of a database, as 
+              we are doing here.</para></footnote> and Postal Code. The 
+              table should look something like the following:</para>
+
+              <mediaobject><imageobject>
+              <imagedata fileref="images/basicui.png"
+               format="PNG"/></imageobject></mediaobject>
+            </listitem>
+
+            <listitem>
+
+              <para>Create a second table, and name it Orders.</para>
+
+            </listitem>
+
+            <listitem>
+
+              <para>Create columns named Id (in the primary key), 
+              Quantity, and Total Amount. Your project should now look 
+              something like the following:</para>
+
+              <mediaobject><imageobject>
+              <imagedata fileref="images/basicui.png"
+               format="PNG"/></imageobject></mediaobject>
+            </listitem>
+
+            <listitem>
+
+              <para>We need a relationship between these tables. An 
+              order should have a foreign key that refers to the 
+              customer. Click the &quot;New Non-Identifying 
+              Relationship&quot; icon. Select the Order table, then the 
+              Customer table, and a link will be drawn as shown. Click 
+              on this link and the keys that take part in the 
+              relationship will be highlighted in red.</para>
+
+              <mediaobject><imageobject>
+              <imagedata fileref="images/basicui.png"
+               format="PNG"/></imageobject></mediaobject>
+            </listitem>
+
+          </orderedlist>
+
+        </listitem>
+
+        <listitem>
+
+          <para>If you&apos;re happy with the database layout (you can 
+          always change it later), it&apos;s time to create the 
+          database. Click on the Forward Engineer button. You should 
+          see a window similar to the following:</para>
+
+          <mediaobject><imageobject>
+          <imagedata fileref="images/basicui.png"
+           format="PNG"/></imageobject></mediaobject>
+        </listitem>
+
+        <listitem>
+
+          <para>If this looks plausible, click Execute, and the tables 
+          and their relationship will be created. Congratulations! You 
+          have now created a simple database using the visual tools in 
+          Power*Architect. But let&apos;s not stop here. Suppose that 
+          after using this database, you realize that there should be a 
+          &quot;shipping amount&quot; field in the Order table (we 
+          never promised this would be completely realistic 
+          example).</para>
+
+        </listitem>
+
+        <listitem>
+
+          <para>Select the Order table by clicking on its title.</para>
+
+        </listitem>
+
+        <listitem>
+
+          <para>Click the Insert Column field and, as before, rename 
+          the New Column, this time to Shipping_Amount. Change its type 
+          to Decimal(10,2).</para>
+
+        </listitem>
+
+        <listitem>
+
+          <para>Now we need to compare two different Data Models, the 
+          original database and the current project. Click the Compare 
+          DM icon. Set the &quot;Older&quot; to Physical Database 
+          SampleDB (you may need to change the Schema to Public). Set 
+          the &quot;Newer&quot; to &quot;Current Project&quot; (since 
+          it is now newer than the database you created in Step 6). Set 
+          the output format to SQL.</para>
+
+          <mediaobject><imageobject>
+          <imagedata fileref="images/basicui.png"
+           format="PNG"/></imageobject></mediaobject>
+        </listitem>
+
+        <listitem>
+
+          <para>Click Start. You should see the SQL Preview window 
+          again, but this time with just an ADD for the column you just 
+          added:</para>
+
+          <mediaobject><imageobject>
+          <imagedata fileref="images/basicui.png"
+           format="PNG"/></imageobject></mediaobject>
+        </listitem>
+
+        <listitem>
+
+          <para>Click Execute, and the new column will be added to your 
+          database table.</para>
+
+          <mediaobject><imageobject>
+          <imagedata fileref="images/basicui.png"
+           format="PNG"/></imageobject></mediaobject>
+        </listitem>
+
+      </orderedlist>
+
+      <para>When you exit the program, it will ask to save your 
+      project. Since you might want to alter this in future, to 
+      experiment with some of the other tools without damaging any live 
+      data, you may wish to save the Project file.</para>
+
+      <para>The remainder of this document provides a more 
+      comprehensive explanation of the various functions that 
+      Power*Architect offers.</para>
+
+    </section>
+
+    <section>
+
+      <title>Using Diagram Components</title>
+
+      <section>
+
+        <title>Creating New Tables</title>
+
+        <para><inlinemediaobject><imageobject>
+        <imagedata fileref="../src/icons/NewTable24.gif"
+         format="GIF"/></imageobject></inlinemediaobject> There are 
+        several ways to create new tables in Power*Architect. The first 
+        way is to click on the New Table Icon on the sidebar menu. The 
+        cursor turns into a “+” cursor indicating the mode change. 
+        Simply click on the playpen on the spot you desire to place the 
+        new table at. The second method to create a table is to right 
+        click on the playpen and select the “New Table” option. A newly 
+        created table will then be placed at the point of the right 
+        click. A third way is to type the letter T with the mouse over 
+        the playpen.</para>
+
+      </section>
+
+      <section>
+
+        <title>Editing Tables</title>
+
+        <para><inlinemediaobject><imageobject>
+        <imagedata fileref="../src/icons/TableProperties24.gif"
+         format="GIF"/></imageobject></inlinemediaobject> To edit a 
+        table, right click on the table title and select “Table 
+        Properties”. This pops up the Table Properties dialog.</para>
+
+        <mediaobject><imageobject><imagedata fileref=""
+         format="PNG"/></imageobject></mediaobject>
+        <para>In this dialog, you can:</para>
+
+        <itemizedlist>
+
+          <listitem>
+
+            <para>Change the name of the table</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Rename the primary key section of the table</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Add comments/notes about the table</para>
+
+          </listitem>
+
+        </itemizedlist>
+
+      </section>
+
+      <section>
+
+        <title>Creating New Columns</title>
+
+        <para><inlinemediaobject><imageobject>
+        <imagedata fileref="../src/icons/NewColumn24.gif"
+         format="GIF"/></imageobject></inlinemediaobject> First select 
+        the table the new column will be placed in. Click on the 
+        &quot;Insert Column&quot; button and a column is created in the 
+        selected table. Another way to add a new column is to right 
+        click on a table and select the &quot;New Column...&quot; 
+        option. The new column will be added to the table below the 
+        selected column. It will be placed at the bottom of the table 
+        if no columns are selected. If a table has existing columns in 
+        the primary key and you wish to create new columns within the 
+        primary key, select a column that is already in the desired 
+        primary key and then create a new column. The newly created 
+        column will be placed within the primary key as well.</para>
+
+      </section>
+
+      <section>
+
+        <title>Editing Columns</title>
+
+        <para><inlinemediaobject><imageobject>
+        <imagedata fileref="../src/icons/ColumnPropertes24.gif"
+         format="GIF"/></imageobject></inlinemediaobject> Select the 
+        desired column, right click and select &quot;Column 
+        Properties&quot;. The Edit Column Properties dialog pops up. Or 
+        you can select the column and click the &quot;Edit Column&quot; 
+        button on the Playpen toolbar.</para>
+
+        <mediaobject><imageobject><imagedata fileref=""
+         format="PNG"/></imageobject></mediaobject>
+        <para>In this dialog, you can:</para>
+
+        <itemizedlist>
+
+          <listitem>
+
+            <para>Rename the column</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Change the type of data the column holds</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Set the precision of the data</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Set the scale</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Indicate if the column is in the primary key or 
+            not</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Indicate if the column should handle null information 
+            or not</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Indicate if auto increment is allowed or not</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Add additional comments about the column</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Set a default value for the column</para>
+
+          </listitem>
+
+        </itemizedlist>
+
+        <para>A special feature of the Power*Architect is that if a 
+        column orginated from a database, the Power*Architect is able 
+        to remember the database and table it orginated from.</para>
+
+      </section>
+
+      <section>
+
+        <title>Dragging Columns</title>
+
+        <para>The Power*Architect allows you to drag columns within a 
+        table&apos;s key and from table to table freely. Simply select 
+        the desired columns and drag them into the desired destination. 
+        For now, only one column can be moved at a time.</para>
+
+      </section>
+
+      <section>
+
+        <title>Creating Non-Identifying and Identifying 
+        Relationships</title>
+
+        <para><inlinemediaobject><imageobject>
+        <imagedata fileref="../src/icons/NewIdentifyingRelationship24.gif"
+         format="GIF"/></imageobject></inlinemediaobject> 
+        <inlinemediaobject><imageobject>
+        <imagedata fileref="../src/icons/NewNonIdentifyingRelationship.gif"
+         format="GIF"/></imageobject></inlinemediaobject> To create a 
+        relationship, select the desired type of relationship on the 
+        Playpen ToolBar. The non-identifying relationship icon is 
+        <inlinemediaobject><imageobject>
+        <imagedata fileref="../src/icons/NewNonIdentifyingRelationship.gif"
+         format="GIF"/></imageobject></inlinemediaobject> (keyboard 
+        shortcut is shift+R). The identifying relationship icon is 
+        identified by <inlinemediaobject><imageobject>
+        <imagedata fileref="../src/icons/NewIdentifyingRelationship.gif"
+         format="GIF"/></imageobject></inlinemediaobject> (shortcut key 
+        is R). The cursor changes to the &quot;+&quot; cursor to 
+        indicate the mode change. (TODO: might want to use a different 
+        cursor so the user can differentiate betwen creating tables and 
+        creating relationship) First click on the parent table and then 
+        click on the child table. (TODO: We need some kind of indicator 
+        to show that a parent table has been selected) Once this has 
+        been done, the relationship will be created, and will appear as 
+        a link between the two tables.</para>
+
+      </section>
+
+      <section>
+
+        <title>Editing a Relationship</title>
+
+        <para><inlinemediaobject><imageobject>
+        <imagedata fileref="../src/icons/RelationshipPropertes24.gif"
+         format="GIF"/></imageobject></inlinemediaobject> Select the 
+        desired relationship and right click on the relationship. 
+        Choose the &quot;Relationship Properties&quot; options. This 
+        can also be done by selecting the relationship and clicking on 
+        the relationship properties button. In both cases, the 
+        Relationship Properties dialog will appear.</para>
+
+        <mediaobject><imageobject><imagedata fileref=""
+         format="PNG"/></imageobject></mediaobject>
+        <para>In this dialog, you can:</para>
+
+        <itemizedlist>
+
+          <listitem>
+
+            <para>Rename the relationship</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Choose the relationship type</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Change the primary key end cardinality</para>
+
+          </listitem>
+
+          <listitem>
+
+            <para>Change the foreign key end cardinality</para>
+
+          </listitem>
+
+        </itemizedlist>
+
+      </section>
+
+      <section>
+
+        <title>Selecting Multiple Items in the Playpen</title>
+
+        <para>There are two ways to select multiple items in the 
+        playpen. One way is to hold down the shift key or the ctrl key 
+        as more items are being selected. The alternative method is to 
+        use the selection box.</para>
+
+      </section>
+
+      <section>
+
+        <title>Relocating Objects in the Playpen</title>
+
+        <para>The Power*Architect allows diagram objects to move around 
+        freely in the playpen. To do so, first select the items you 
+        want to move in the Playpen. Click and hold on one of the 
+        selected item and drag the items to a desired spot on the 
+        playpen.</para>
+
+      </section>
+
+      <section>
+
+        <title>Deleting Diagram Components</title>
+
+        <para>Select the desired diagram components on the playpen and 
+        click on the delete items button on the Playpen Toolbar. It is 
+        also possible to delete the selected items by right clicking on 
+        one of the components and selecting &quot;Delete 
+        Selected&quot;.</para>
+
+        <para>(TODO: Currently if a column and a table/relationship is 
+        selected, deleting the items will delete the entire table the 
+        column belongs to, this seems to be an undesired 
+        behaviour)</para>
+
+      </section>
+
+    </section>
+
+    <section>
+
+      <title>Database Usage in Power*Architect</title>
+
+      <section>
+
+        <title>Adding a New Connection to the Power*Architect</title>
+
+        <para>To add a new connection, go to &quot;Add 
+        Connections&quot; under &quot;Connections&quot; and select 
+        &quot;New Connection..&quot; at the top. The other method is to 
+        right click a white space on the Database Tree and select 
+        &quot;New Connection&quot; under &quot;Add Connections&quot;. 
+        Both ways open up this dialog:</para>
+
+        <mediaobject><imageobject><imagedata fileref=""
+         format="PNG"/></imageobject></mediaobject>
+        <para>You must know which JDBC driver to use before you can 
+        connect to a database. When you have selected the JDBC Driver, 
+        the Connect Options will change to allow you to enter the 
+        particular parameters that the given database driver needs. If 
+        you are using one of the fully-supported drivers, then as you 
+        enter these parameters, they will be added into the &quot;JDBC 
+        URL&quot; field in the order that the Java driver expects to 
+        see them (this string is sometimes called a &quot;db URL&quot; 
+        in Java terminology). In the example below, we&apos;ve selected 
+        the PostgreSQL driver and entered the hostname and database 
+        name (the &quot;port number&quot; was already filled in; do not 
+        change this unless the database server software has been 
+        reconfigured to use a different value).</para>
+
+        <para>When you are finished, press the OK button. Any new 
+        connection will automatically be added in the 
+        user-preference.</para>
+
+        <mediaobject><imageobject><imagedata fileref=""
+         format="PNG"/></imageobject></mediaobject>
+        <para>Note: if you have too many connections (more than the 
+        height of the Architect window), the Architect does not have 
+        the ability to show all of them. (TODO At present there is no 
+        way to delete connections from the list of connections)</para>
+
+      </section>
+
+      <section>
+
+        <title>Adding an Existing Connection</title>
+
+        <para>Right click on empty space in the Database Tree and go to 
+        &quot;Add Connection&quot;, there it shows all databases that 
+        were previously stored on the Architect</para>
+
+      </section>
+
+      <section>
+
+        <title>Editing Database Connection Properties</title>
+
+        <para>Select the database connection you wish to change and go 
+        to &quot;Connections&quot; and select the option 
+        &quot;Connection Properties..&quot;, this leads you to the 
+        Connection Setting dialog. An alternate solution is to right 
+        click on the database and select &quot;Connection 
+        Properties...&quot; option.</para>
+
+      </section>
+
+      <section>
+
+        <title>Removing a Database Connection</title>
+
+        <para>Select the database connection you wish to change and go 
+        to &quot;Connections&quot; and select the option &quot;Remove 
+        Connection..&quot;. Right clicking on the database connection 
+        and selecting &quot;Remove Connection..&quot; will perform the 
+        same action.</para>
+
+      </section>
+
+      <section>
+
+        <title>Setting the Current Project Database</title>
+
+        <para><inlinemediaobject><imageobject>
+        <imagedata fileref="../src/icons/TargetDatabaseArrow16.gif"
+         format="GIF"/></imageobject></inlinemediaobject> The project 
+        database can be set to an existing database connection or the 
+        user can create a new connection for it as well. Setting the 
+        project database can be achieved in one of several ways. The 
+        first method is to right click on any empty space on the 
+        Playpen and go to &quot;Set Target Database&quot;. Another 
+        option is to right-click on the Target Database (the target 
+        database can always be identified by this icon: ) and choose 
+        &quot;Set Target Database&quot; from there.</para>
+
+      </section>
+
+      <section>
+
+        <title>Navigating through the Database Tree</title>
+
+        <para>The Database Tree works like a tree-dropdown model. 
+        Clicking on any item will cause the component to expand display 
+        the items under that specific component. Each item will have an 
+        unique icon beside its name to identify the type of object it 
+        is. The table below shows what each icon means:</para>
+
+        <table>
+
+          <title>Database Tree Icons</title>
+
+          <tgroup cols="2">
+
+            <thead>
+
+              <row><entry>Icon</entry><entry>Representation</entry></row>
+
+            </thead>
+
+            <tbody>
+
+              <row><entry><inlinemediaobject><imageobject>
+              <imagedata fileref="../src/icons/Database16.gif"
+               format="GIF"/></imageobject></inlinemediaobject></entry><entry>Database</entry></row>
+
+              <row><entry><inlinemediaobject><imageobject>
+              <imagedata fileref="../src/icons/Catalog16.gif"
+               format="GIF"/></imageobject></inlinemediaobject></entry><entry>Catalog</entry></row>
+
+              <row><entry><inlinemediaobject><imageobject>
+              <imagedata fileref="../src/icons/Schema16.gif"
+               format="GIF"/></imageobject></inlinemediaobject></entry><entry>Schema</entry></row>
+
+              <row><entry><inlinemediaobject><imageobject>
+              <imagedata fileref="../src/icons/Owner16.gif"
+               format="GIF"/></imageobject></inlinemediaobject></entry><entry>Owner</entry></row>
+
+              <row><entry><inlinemediaobject><imageobject>
+              <imagedata fileref="../src/icons/Table16.gif"
+               format="GIF"/></imageobject></inlinemediaobject></entry><entry>Table</entry></row>
+
+              <row><entry><inlinemediaobject><imageobject>
+              <imagedata fileref="../src/icons/Relationship16.gif"
+               format="GIF"/></imageobject></inlinemediaobject></entry><entry>Relationship</entry></row>
+
+            </tbody>
+
+          </tgroup>
+
+        </table>
+
+      </section>
+
+      <section>
+
+        <title>Moving Items from the Database Tree</title>
+
+        <para>To copy items from the Database Tree to the playpen, 
+        simply select the desired items in the tree and drag them onto 
+        the playpen. Depending on the size of the items dragged onto 
+        the playpen, it will take some time to load.</para>
+
+      </section>
+
+    </section>
+
+    <section>
+
+      <title>Find/Replace Function</title>
+
+      <section>
+
+        <title>What It Does:</title>
+
+        <para>This functions searches the whole playpen for any 
+        relevant matches with the search constraints and displays the 
+        resulting matches. The user can request for those items to be 
+        focused on the screen.</para>
+
+        <mediaobject><imageobject><imagedata fileref=""
+         format="PNG"/></imageobject></mediaobject>
+      </section>
+
+      <section>
+
+        <title>How to Use Find / Replace Function:</title>
+
+        <para>Go to &quot;Edit&quot; under the menu bar and click on 
+        Find/Replace option. This shows the Find/Replace function. In 
+        this window, enter the search constraints and press 
+        &quot;OK&quot; when you are finished. This will popup a new 
+        window with your search result in a chart format.</para>
+
+        <para>You can rename the component by selecting the column in 
+        the list and clicking on &quot;Rename Component&quot;. You can 
+        also have Power*Architect focus on a certain component by 
+        selecting the component in the list and press the &quot;Show in 
+        Playpen&quot;.</para>
+
+      </section>
+
+    </section>
+
+    <section>
+
+      <title>Forward Engineering and Compare Data Model</title>
+
+      <para>These two functions are similar; they both involve using 
+      the PlayPen (usually) and generating SQL. The Forward Engineer 
+      function always creates a SQL script to generate a database 
+      identical with the complete current project (current PlayPen 
+      contents). The Compare DM function can output either an 
+      English-language description or a SQL script describing the 
+      differences between two databases, or stored projects, or one of 
+      these and the PlayPen.</para>
+
+      <section>
+
+        <title>Forward Engineering</title>
+
+        <section>
+
+          <title>What It Does</title>
+
+          <para>Forward Engineering creates a SQL Script that can be 
+          run to update or put the components of the current Playpen 
+          into a database</para>
+
+        </section>
+
+        <section>
+
+          <title>How To Use Forward Engineering</title>
+
+          <para><inlinemediaobject><imageobject>
+          <imagedata fileref="../src/icons/ForwardEngineer24.gif"
+           format="GIF"/></imageobject></inlinemediaobject> First set 
+          the target connection to the database you want the changes to 
+          be made in. Then go to &quot;Tools&quot; and click 
+          &quot;Forward Engineering&quot;. Another way is to press the 
+          &quot;Forward Engineering&quot; button at the top. This pops 
+          up a dialog that looks similar to the one below:</para>
+
+          <mediaobject><imageobject><imagedata fileref=""
+           format="PNG"/></imageobject></mediaobject>
+          <para>Fill in the fields as necessary and hit &quot;OK&quot; 
+          when you are done. Depending on the situation, a dialog 
+          warning you of possible side-effects of creating the script 
+          may pop up. Finally a script that would create data structure 
+          currently in the Playpen will be displayed. It is the same 
+          dialog used in CompareDataModel-Part 2- In SQL Script.</para>
+
+          <mediaobject><imageobject><imagedata fileref=""
+           format="PNG"/></imageobject></mediaobject>
+        </section>
+
+      </section>
+
+      <section>
+
+        <title>Compare Data Model Function</title>
+
+        <section>
+
+          <title>What It Does</title>
+
+          <para>The Compare DataModel Function takes two databases or 
+          Power*Architect projects (or one of each) or the current 
+          PlayPen, and compares and contrasts the structure of the two 
+          database/projects.</para>
+
+        </section>
+
+        <section>
+
+          <title>How to use Compare Data Model Function:</title>
+
+          <section>
+
+            <title>Part 1</title>
+
+            <para><inlinemediaobject><imageobject>
+            <imagedata fileref="../src/icons/CompareDatabases24.gif"
+             format="GIF"/></imageobject></inlinemediaobject> To start 
+            the Compare Data Model Function, either go to 
+            &quot;Tools&quot; and click &quot;Compare Data Model&quot; 
+            or just click the &quot;Compare Data Model&quot; icon on 
+            the project toolbar. This will bring up the main Compare 
+            Data Model window. Here select the source and target models 
+            you want to compare and contrast. You can choose either the 
+            current playpen, an existing database or select a saved 
+            project file function. If one of or both the source and the 
+            target has invalid models, the start button will not 
+            enable. The similarities and differences can be displayed 
+            either in SQL Script language or in English.</para>
+
+            <mediaobject><imageobject><imagedata fileref=""
+             format="PNG"/></imageobject></mediaobject>
+          </section>
+
+          <section>
+
+            <title>Part 2</title>
+
+            <section>
+
+              <title>English Descriptions</title>
+
+              <para>If this option is selected, a side-by-side document 
+              will be displayed stating the similarlities and 
+              differences of the source and target in plain English. 
+              The left text gives English descriptions to make the 
+              source database look like the target database. In 
+              addition to the text, they are also colour coded. You can 
+              copy the text to the clipboard by pressing the copy 
+              button, or save the results to a text file. The table 
+              below explains what each colour means.</para>
+
+              <table>
+
+                <title>Compare Database Model Colur Codes</title>
+
+                <tgroup cols="2">
+
+                  <thead>
+
+                    <row><entry>Colour</entry><entry>Explanation of the 
+                    Colour Code</entry></row>
+
+                  </thead>
+
+                  <tbody>
+
+                    <row>
+                    <entry id="black_colour">Black</entry><entry>This 
+                    component exists in both databases</entry></row>
+
+                    <row>
+                    <entry id="green_colour">Green</entry><entry>This 
+                    component only exists in this database but not the 
+                    other</entry></row>
+
+                    <row><entry id="red_colour">Red</entry><entry>This 
+                    component does not exist on this database but 
+                    exists on the other</entry></row>
+
+                    <row>
+                    <entry id="blue_colour">Blue</entry><entry>This 
+                    component is a column and is on different keys in 
+                    the two databases</entry></row>
+
+                  </tbody>
+
+                </tgroup>
+
+              </table>
+
+            </section>
+
+            <section>
+
+              <title>In SQL Script</title>
+
+              <para>If this option is chosen, this will produce a SQL 
+              Script in the SQL dialect chosen in Step 1 to make the 
+              source database look like the target database. You can 
+              either copy the results to the clipboard, or save the 
+              results in a text file. If the source has a valid 
+              connection database, the Execute button will enable and 
+              you can directly execute the changes. If the source does 
+              not have a valid connection, the execute button is 
+              disabled.</para>
+
+            </section>
+
+          </section>
+
+        </section>
+
+      </section>
+
+    </section>
+
+    <section>
+
+      <title>Autolayout</title>
+
+      <section>
+
+        <title>What It Does:</title>
+
+        <para>It displays the selected tables (or all tables) in an 
+        organized manner.</para>
+
+      </section>
+
+      <section>
+
+        <title>How to Use Autolayout:</title>
+
+        <para><inlinemediaobject><imageobject>
+        <imagedata fileref="../src/icons/AutoLayout24.gif"
+         format="GIF"/></imageobject></inlinemediaobject> Select the 
+        tables on the playpen that you want to organize and hit the 
+        autolayout button at the top. If no table is selected, by 
+        default, the program will autolayout every table in the 
+        playpen. Note that if only one table is selected, AutoLayout 
+        will not do anything; either select two or more tables, or 
+        &quot;click away&quot; (not on any table) so that nothing in 
+        the Playpen is selected, and click AutoLayout again. Also note 
+        that the layout algorithm may produce a few surprises when run 
+        with a small number of tables; it works best for a large or 
+        medium-sized collection of tables.</para>
+
+      </section>
+
+    </section>
+
+    <section>
+
+      <title>SQLRunner</title>
+
+      <section>
+
+        <title>What It Does:</title>
+
+        <para>SQLRunner is a “fall-back” tool that lets you work at the 
+        raw SQL command level. This is an advanced topic and should 
+        only be used by (or made available to) those familiar with the 
+        intricacies of SQL commands and the details of your database; 
+        like a sharp knife, this tool is very useful in the hands of a 
+        skilled chef, but a slip of the fingers here can be quite 
+        messy...</para>
+
+        <para>SQLRunner was written by Ian Darwin, and is distributed 
+        under a liberal free-software, open-source license which 
+        permits its inclusion in programs such as 
+        Power*Architect.</para>
+
+      </section>
+
+      <section>
+
+        <title>How to Use SQLRunner:</title>
+
+        <para>SQLRunner is started from the menu entry under the Tools 
+        menu, and begins with the GUI window shown below. The first 
+        thing you should do is select which database connection you 
+        wish to use. The list of Connections is the same as the main 
+        program uses, as set up in the JDBC Connections window.</para>
+
+        <para>The basic steps to using SQLRunner are to type a command 
+        in the top (SQL Command) window and click the Run button; the 
+        results are displayed in the bottom (SQL Results) window.</para>
+
+        <mediaobject><imageobject><imagedata fileref=""
+         format="PNG"/></imageobject></mediaobject>
+        <para>The command can actually be one of two kinds: either one 
+        of a half-dozen escape commands listed below, or, anything that 
+        is valid input to your database&apos;s command interface (e.g., 
+        programs such as psql or SQL*Plus™).</para>
+
+        <table>
+
+          <title>SQLRunner Escape Characters</title>
+
+          <tgroup cols="2">
+
+            <thead>
+
+              <row><entry>Escape 
+              Sequence</entry><entry>Action</entry></row>
+
+            </thead>
+
+            <tbody>
+
+              <row><entry>\dt</entry><entry>Describe list of all 
+              tables</entry></row>
+
+              <row><entry>\dtT</entry><entry>Describe column names of 
+              table named T</entry></row>
+
+              <row><entry>\dmX</entry><entry>Set the mode, where X is 
+              the first letter of the mode (t for text, s for SQL, h 
+              for HTML or x for XML; not needed in the embedded version 
+              because the GUI has a control for this)</entry></row>
+
+              <row><entry>\oF</entry><entry>Send output to the given 
+              file instead of the screen (though you can usually just 
+              view the output and copy-and-paste to save parts of it 
+              into a file; does not work in GUI versions).</entry></row>
+
+              <row><entry>\q</entry><entry>Exit the program (not 
+              supported in embedded versions).</entry></row>
+
+            </tbody>
+
+          </tgroup>
+
+        </table>
+
+        <para>SQL Statements are entered one at a time, can be more 
+        than one line long, and need not end with a semicolon. These 
+        statements are not interpreted by SQLRunner itself, so anything 
+        that the given database and driver accepts can be used. For 
+        example, with Oracle™, you can use PL*SQL™ statements. With 
+        most drivers you should be able to use stored procedures. Each 
+        SQL statement is executed in its own transaction context, that 
+        is, changes are committed immediately (so be careful!).</para>
+
+      </section>
+
+      <section>
+
+        <title>Output (Results) Window</title>
+
+        <para>Command Output in the chosen format (see below) appears 
+        in the SQL Output window. A scrollbar will appear if the 
+        information cannot all be seen at once.</para>
+
+        <para>A visual indication of the success or failure of the 
+        command is displayed below the output: green for success, red 
+        for failure. As well, failures will be accompanied by a pop-up 
+        window containing details on the failure.</para>
+
+        <para>The Clear Output button clears the contents of the output 
+        window.</para>
+
+      </section>
+
+      <section>
+
+        <title>Output Formats</title>
+
+        <para>There are several output modes for the display of SQL 
+        “select” results: text, SQL, HTML and XML (output from the 
+        escape commands are always displayed as plain text). Text mode 
+        is the default, and is primarily a raw display format. SQL 
+        output is most useful with the output of a SELECT statement; it 
+        will generate SQL that will attempt to re-create the data in 
+        another database. HTML mode generates an HTML table to display 
+        the results of a Select. XML format is similar but may be used 
+        for exporting data into other applications.</para>
+
+        <para>For example, with SQL mode selected, a “select * from 
+        anecdotes” (a table in a sample bookstore web site&apos;s 
+        database, used to display a casual quotation about books) 
+        looked like this:</para>
+
+        <mediaobject><imageobject><imagedata fileref=""
+         format="PNG"/></imageobject></mediaobject>
+        <para>This could, as you can see, be used to create a SQL 
+        script to re-create the contents of the database. In fact, some 
+        developers use SQLRunner primarily for this purpose: to create 
+        stable test databases from “live” data that was created by 
+        their application.</para>
+
+        <para>You can view this same data in HTML just by changing the 
+        Format selection to HTML and clicking the Run button 
+        again:</para>
+
+        <mediaobject><imageobject><imagedata fileref=""
+         format="PNG"/></imageobject></mediaobject>
+        <para>When copied and pasted into an HTML file and viewed in a 
+        browser, the output looked like this:</para>
+
+        <mediaobject><imageobject><imagedata fileref=""
+         format="PNG"/></imageobject></mediaobject>
+        <para>With a bit of formatting, or even a CSS style sheet, this 
+        HTML page could be made quite usable.</para>
+
+      </section>
+
+    </section>
+
+    <section>
+
+      <title>Quick Start Wizard</title>
+
+      <section>
+
+        <title>What It Does:</title>
+
+        <para>The QuickStart Wizard is a simple five-step process to 
+        set up a database using the Power*Loader.</para>
+
+      </section>
+
+      <section>
+
+        <title>How to Use Autolayout:</title>
+
+        <para>To run the QuickStart Wizard, go to ETL and click 
+        QuickStart Wizard button under Power*Loader.</para>
+
+        <para>TODO: Write the steps in for QuickStart Wizard and maybe 
+        add in screenshoots</para>
+
+        <section>
+
+          <title>Step 1</title>
+
+          <para>Select the source playpen components you want and click 
+          next.</para>
+
+        </section>
+
+        <section>
+
+          <title>Step 2</title>
+
+          <para>Select or create the target database.</para>
+
+          <mediaobject><imageobject><imagedata fileref=""
+           format="PNG"/></imageobject></mediaobject>
+        </section>
+
+        <section>
+
+          <title>Step 3</title>
+
+          <para>Select or create the repository database and fill in 
+          any additional information. The JobID must be filled in order 
+          to continue.</para>
+
+          <mediaobject><imageobject><imagedata fileref=""
+           format="PNG"/></imageobject></mediaobject>
+        </section>
+
+        <section>
+
+          <title>Step 4</title>
+
+          <para>A SQL Script will be created; you can review the script 
+          and if you wish to execute it, press 
+          &quot;Execute&quot;</para>
+
+        </section>
+
+        <section>
+
+          <title>Step 5</title>
+
+          <para>A summary report of the process will be shown.</para>
+
+        </section>
+
+      </section>
+
+    </section>
+
+  </chapter>
+
+  <chapter>
+
+    <title>Summary</title>
+
+    <para>This is the end of the SQL*Power User&apos;s Guide.</para>
+
+    <para>We have covered... XXX</para>
+
+    <para>TODO where to go for more information...</para>
+
+  </chapter>
+
+  <chapter>
+
+    <title>Database Product Notes</title>
+
+    <informaltable frame="all">
+
+      <tgroup cols="2">
+
+        <thead>
+
+          <row><entry><para>Database</para></entry><entry><para>Notes</para></entry></row>
+
+        </thead>
+
+        <tbody>
+
+          <row><entry><para>Oracle</para></entry><entry><para>Is fully 
+          supported.</para></entry></row>
+
+          <row><entry><para>SQL Server</para></entry><entry><para>Is 
+          fully supported.</para></entry></row>
+
+          <row><entry><para>PostgreSQL</para></entry><entry><para>Is 
+          fully supported.</para></entry></row>
+
+          <row><entry><para>IBM DB2</para></entry><entry><para>Is fully 
+          supported.</para></entry></row>
+
+          <row><entry><para>HSQLDB</para></entry><entry><para>Works; 
+          used in samples.</para></entry></row>
+
+          <row><entry><para>Derby</para></entry><entry><para>Does not 
+          work; the current version (10.1.2) has what we consider some 
+          unwarranted chumminess with the JDBC Driver Manager that 
+          breaks because we use our own Java 
+          &quot;ClassLoader&quot;</para></entry></row>
+
+          <row><entry><para>MySQL</para></entry><entry><para>Not tested 
+          yet.</para></entry></row>
+
+        </tbody>
+
+      </tgroup>
+
+    </informaltable>
+
+  </chapter>
+
+  <chapter>
+
+    <title>Troubleshooting</title>
+
+    <para>We have worked hard to ensure that Power*Architect works 
+    correctly. However there are probably always going to be some 
+    combinations of different database products and database 
+    configurarations, user actions, computer setups, and so on, that 
+    just don&apos;t work. We apologize in advance for any inconvenience 
+    this may cause...</para>
+
+    <para>If you are having trouble with Power*Architect, we may ask 
+    that, in order to help us to diagnose the problem, you take some or 
+    all of the following actions:</para>
+
+    <para>XXX</para>
+
+  </chapter>
+
+  <chapter>
+
+    <title>Glossary</title>
+
+    <para>This section lists some database-related terms and their 
+    meanings.</para>
+
+    <informaltable frame="all">
+
+      <tgroup cols="2">
+
+        <tbody>
+
+          <row><entry><para>Column</para></entry><entry><para>The set 
+          of all instances of a given field from all records in a 
+          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?table">
+          table</ulink> .</para></entry></row>
+
+          <row><entry><para>Database</para></entry><entry><para>One or 
+          more large structured sets of persistent data, usually 
+          associated with software to update and 
+          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?query">
+          query</ulink> the data. A simple database might be a single 
+          file containing many 
+          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?records">
+          records</ulink> , each of which contains the same set of 
+          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?fields">
+          fields</ulink> where each field is a certain fixed 
+          width.</para></entry></row>
+
+          <row><entry><para>Data Modelling</para></entry><entry><para 
+          /></entry></row>
+
+          <row><entry><para>Data Warehousing</para></entry><entry><para 
+          /></entry></row>
+
+          <row><entry><para>ETL</para></entry><entry><para>Extraction, 
+          Transforming and Loading – the process of maintaining and 
+          transforming data into and out of a relational 
+          database.</para></entry></row>
+
+          <row><entry><para>Foreign key</para></entry><entry><para>A 
+          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?column">
+          column</ulink> in a database 
+          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?table">
+          table</ulink> containing values that are also found in some 
+          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?primary+key">
+          primary key</ulink> column (of a different table). By 
+          extension, any reference to entities of a different 
+          type.</para><para>Some 
+          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?RDBMSs">
+          RDBMSs</ulink> allow a column to be explicitly labelled as a 
+          foreign key and only allow values to be inserted if they 
+          already exist in the relevant primary key 
+          column.</para></entry></row>
+
+          <row><entry><para>Identifying 
+          Relationship</para></entry><entry><para /></entry></row>
+
+          <row><entry><para>JDBC</para></entry><entry><para>Java 
+          DataBase Connectivity, an unofficial acronym for the 
+          &quot;java.sql&quot; package of functionality used to access 
+          relational databases from programs written in the Java 
+          programming language.</para></entry></row>
+
+          <row><entry><para>Key</para></entry><entry><para>A value used 
+          to identify a 
+          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?record">
+          record</ulink> in a database, derived by applying some fixed 
+          function to the record. The key is often simply one of the 
+          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?fields">
+          fields</ulink> (a 
+          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?column">
+          column</ulink> if the database is considered as a table with 
+          records being rows, see &quot; 
+          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?key+field">
+          key field</ulink> &quot;). Alternatively the key may be 
+          obtained by applying some function, e.g. a 
+          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?hash+function">
+          hash function</ulink> , to one or more of the fields. The set 
+          of keys for all records forms an 
+          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?index">
+          index</ulink> . Multiple indexes may be built for one 
+          database depending on how it is to be 
+          searched.</para></entry></row>
+
+          <row><entry><para>Primary key</para></entry><entry><para>The 
+          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?candidate+key">
+          candidate key</ulink> selected as being most important for 
+          identifying a body of information (an entity, object or 
+          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?record">
+          record</ulink> ).</para></entry></row>
+
+          <row><entry><para>Record (row)</para></entry><entry><para>One 
+          or more structured sets of persistent data, usually 
+          associated with software to update and 
+          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?query">
+          query</ulink> the data. A simple database might be a single 
+          file containing many 
+          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?records">
+          records</ulink> , each of which contains the same set of 
+          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?fields">
+          fields</ulink> where each field is a certain fixed 
+          width.</para></entry></row>
+
+          <row><entry><para>SQL</para></entry><entry><para>
+          <ulink url="http://en.wikipedia.org/wiki/SQL#History">Originally 
+          SEQUEL</ulink> and still pronounced that way by many 
+          practitioners, SQL is the Standard Query Language; a unified 
+          language for creating queries that is accepted (with some 
+          variations) by all modern relational 
+          databases.</para></entry></row>
+
+          <row><entry><para>Table</para></entry><entry><para>A 
+          collection of 
+          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?records">
+          records</ulink> in a 
+          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?relational+database">
+          relational database</ulink> .</para></entry></row>
+
+        </tbody>
+
+      </tgroup>
+
+    </informaltable>
+
+    <para>Some of these terms are from FolDoc, &quot;The Free On-line 
+    Dictionary of Computing&quot;, http://www.foldoc.org/, Editor Denis 
+    Howe.</para>
+
+  </chapter>
+
+</book>
+
