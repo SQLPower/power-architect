@@ -10,6 +10,7 @@ import javax.swing.AbstractAction;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.layout.ArchitectLayoutInterface;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
@@ -42,7 +43,12 @@ public class AutoLayoutAction extends AbstractAction {
 	}
 
 	public void actionPerformed(ActionEvent evt) {
-		
+        try {
+            layout = layout.getClass().newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        
 		if (layout != null)
 		{
 			
