@@ -1,0 +1,111 @@
+======================================================================
+The Apache XSLT Compiler (XSLTC) is a Java-based tool for compiling
+XSL stylesheets into extremely lightweight and portable Java byte
+code.  The XSLTC Java Runtime environment can then process XML files
+against these compiled stylesheets (Translets) to generate any manner
+of output per the stylesheet instructions.
+
+This Applet Demo shows you how translets can be run in a client 
+browser as Java applets to perform XSLT transformations on XML 
+source documents residing on a Web server. Because of XSLTC's small 
+footprint, it is possible to download the compiled stylesheets 
+(translets) and the runtime classes in the applet. Whereas, this
+would not be easy with a fullsize Java-based XSLT processor. 
+
+There are two important advantages of this approach: 
+
+  1) It offloads XSLT processing from the server
+  2) It enables browsers, such as Netscape 4.x, that do not have native 
+     XSLT support to perform XSLT transformations today!
+
+-----------------------------------------------------------------------
+DEMO CONTENTS
+-----------------------------------------------------------------------
+The applet demo is very generic. It will let you run any pre-compiled
+translet through an applet, and it lets you use that on any XML file
+you can refer to using an URL. The contents of this demo are:
+
+  TransformApplet.java -  The applet that wraps the XSLTC runtime 
+      classes and your translet(s).
+
+  index.html - Your main HTML document (displays two frames)
+
+  menu.html  - The HTML document for your dialog frame. This is the
+      document that invokes the TransformApplet
+
+
+  singleTransform.html
+             - Another main HTML document that invokes the applet using
+      two <param> tags to specify the input document and stylesheet URI
+
+-----------------------------------------------------------------------
+HOW TO SET UP THE DEMO ON YOUR SITE
+-----------------------------------------------------------------------
+1. Install and configure Xalan with XSLTC
+
+2. Compile the stylesheets you want to export. This will result in one
+   or more small Java classes (translets).
+
+3. Create a JAR file containing your translet classes.  Include a file
+   named META-INF/services/javax.xml.transform.TransformerFactory in
+   your JAR file that contains the following line:
+
+       org.apache.xalan.xsltc.trax.TransformerFactoryImpl
+
+   Be sure to make the JAR file world readable!
+
+4. Copy the JAR file containing your translet classes and the following
+   JAR files to the same directory containing index.html:  xalan.jar,
+   xml-apis.jar, xercesImpl.jar and xsltcapplet.jar.
+
+5. Make your XML source documents readable through a URL (either place
+   them behind a web server or make them readable for your browser as
+   a file).
+
+6. Open the supplied index.html and try out the demo!  Alternatively,
+   open the singleTransform.html, with the value attribute of the
+   "input-document" <param> tag set to the URI of your input document,
+   and the value attribute of the "stylesheet-name" <param> tag set to
+   the URI of the stylesheet.
+   
+7. This sample has been tested successfully with JDK 1.4.0 using IE5.5 
+   and NetScape7.0. With an earlier version of the JDK, you may have 
+   problems with the JavaScript code.
+
+----------------------------------------------------------------------
+KNOWN PROBLEMS
+----------------------------------------------------------------------
+. The following problems are specific to the Netscape 4.x browser.
+
+Class Already Loaded - If you start up the Netscape client browser on 
+a Unix system where you have been running XSLTC, and consequently 
+have a CLASSPATH that includes xml.jar, and xlstcrt.jar, the applet 
+demo fails. You'll see a message saying a class has already been 
+loaded in the Javascript console. To bring up the Javascript console,
+you type
+
+    javascript:
+
+in the location/URL field of the browser. To work around this problem, 
+unset your CLASSPATH before starting Netscape from a terminal window.
+This still may not resolve the problem if Netscape is started from 
+a wrapper that sets your environment from your startup file (e.g., 
+your .cshrc file for the C-shell).
+
+Parser Exception - This problem only applies to Netscape on the 
+Windows platform with XML documents that have an external DTD.
+If you see the following message:
+
+    org.xml.sax.SAXParseException: 
+    External parameter entity "%(DOCTYPE);"
+    has characters after markup.
+
+try removing the reference to an external DTD in your XML source.
+
+. The following problems are specific to the Sun JRE 1.4.* plugin for browsers.
+
+java.lang.IllegalAccessError - Sun JRE 1.4.* has bundled with it an old version
+of Xalan-J Interpretive (2.2.D11).
+Copy a new verison of xalan.jar to the %Java_JRE%/lib/endorsed/ directory.
+----------------------------------------------------------------------
+END OF README

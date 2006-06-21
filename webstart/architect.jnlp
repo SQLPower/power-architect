@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <jnlp
   spec="1.0+"
-  codebase="http://jaws.sqlpower.ca/architect/"
+  codebase="localhost:8090/webstart"
   href="architect.jnlp">
   <information>
     <title>Power Architect</title>

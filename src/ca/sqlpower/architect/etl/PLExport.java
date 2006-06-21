@@ -1384,7 +1384,7 @@ public class PLExport implements Monitorable {
 
                     SQLColumn outputCol = (SQLColumn) cols.next();
                     SQLColumn inputCol = outputCol.getSourceColumn();
-
+System.out.println("output col=" + outputCol.getName() + "  input col isnull? " + (inputCol==null?"yes":"no"));
                     if (inputCol != null && !inputTables.keySet().contains(inputCol.getParentTable())) {
                         // create transaction and input table meta data here if
                         // we need to
@@ -1437,7 +1437,9 @@ public class PLExport implements Monitorable {
                     }
 
                     if (inputCol != null) {
-                        exportXMLTransColMap(out, indent, con, inputCol, transName, inputTableId, outputTableId, seqNum);
+                        exportXMLTransColMap(out, indent, con,
+                                inputCol, transName, inputTableId,
+                                outputTableId, seqNum);
                     }
                 }
                 outputTableNum++;
@@ -1683,8 +1685,12 @@ public class PLExport implements Monitorable {
         println(out, indent, "</TRANS_EXCEPT_HANDLE>");
     }
 
-    private void exportXMLTransTableFile(PrintWriter out, int indent, Connection con, String transId,
-            String inputTableId, SQLTable table, int seqNo, boolean isOutput) throws SQLException {
+    private void exportXMLTransTableFile(PrintWriter out,
+                                int indent, Connection con,
+                                String transId,
+                                String inputTableId,
+                                SQLTable table, int seqNo,
+                                boolean isOutput) throws SQLException {
 
         println(out, indent, "<TRANS_TABLE_FILE>");
         indent++;

@@ -1,0 +1,69 @@
+Manifest-Version: 1.0
+Created-By: 1.3.1 (IBM Corporation)
+Main-Class: org.apache.xalan.xslt.Process
+Class-Path: xercesImpl.jar xml-apis.jar serializer.jar
+
+Name: org/apache/xalan/
+Comment: Main Xalan engine implementing TrAX/JAXP
+Specification-Title: Java API for XML Processing
+Specification-Vendor: Sun Microsystems Inc.
+Specification-Version: 1.3
+Implementation-Title: org.apache.xalan
+Implementation-Version: 2.7.0
+Implementation-Vendor: Apache Software Foundation
+Implementation-URL: http://xml.apache.org/xalan-j/
+
+Name: org/apache/xpath/
+Comment: XPath engine
+Implementation-Title: org.apache.xpath
+Implementation-Version: 2.7.0
+Implementation-Vendor: Apache Software Foundation
+Implementation-URL: http://xml.apache.org/xalan-j/
+
+Name: org/apache/xml/
+Comment: DTM implementation and utilities
+Implementation-Title: org.apache.xml
+Implementation-Version: 2.7.0
+Implementation-Vendor: Apache Software Foundation
+Implementation-URL: http://xml.apache.org/xalan-j/
+
+Name: org/apache/xalan/xsltc/
+Comment: Main XSLTC engine implementing TrAX/JAXP
+Specification-Title: Java API for XML Processing
+Specification-Vendor: Sun Microsystems Inc.
+Specification-Version: 1.3
+Implementation-Title: org.apache.xalan.xsltc
+Implementation-Version: 2.7.0
+Implementation-Vendor: Apache Software Foundation
+Implementation-URL: http://xml.apache.org/xalan-j/
+
+Name: java_cup/runtime/
+Comment: Runtime component of JCup 
+Specification-Title: Runtime component of JCup
+Specification-Vendor: Princeton University 
+Specification-Version: 0.10k 
+Implementation-Title: runtime 
+Implementation-Version: 2.7.0
+Implementation-Vendor: Princeton University  
+Implementation-URL: http://www.cs.princeton.edu/~appel/modern/java/CUP/ 
+
+Name: org/apache/bcel/
+Comment: Byte Code Engineering Library 
+Specification-Title: Byte Code Engineering Library 
+Specification-Vendor: Markus Dahm 
+Specification-Version: 5.0 rc1 
+Implementation-Title: org.apache.bcel
+Implementation-Version: 2.7.0
+Implementation-Vendor: Apache Software Foundation
+Implementation-URL: http://jakarta.apache.org/bcel
+
+Name: org/apache/regexp/
+Comment: Java Regular Expression package 
+Specification-Title: Java Regular Expression package 
+Specification-Vendor: Apache Software Foundation 
+Specification-Version: 1.2
+Implementation-Title: org.apache.regexp
+Implementation-Version: 2.7.0
+Implementation-Vendor: Apache Software Foundation
+Implementation-URL: http://jakarta.apache.org/regexp
+

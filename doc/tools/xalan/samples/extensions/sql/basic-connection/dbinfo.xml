@@ -1,0 +1,11 @@
+<dbtest>
+ <description>This file contains information required to make a connection to the DBMS</description>
+
+ <DBINFO>
+   <dbdriver>org.apache.derby.jdbc.EmbeddedDriver</dbdriver>
+   <dburl>jdbc:derby:sampleDB</dburl>
+   <user />
+   <password/>
+ </DBINFO>
+
+</dbtest>

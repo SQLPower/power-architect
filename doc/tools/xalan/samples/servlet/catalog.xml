@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<!-- 5630-A23, 5630-A22, (C) Copyright IBM Corporation, 1997, 2000 -->
+<!-- All rights reserved. Licensed Materials Property of IBM -->
+<!-- Note to US Government users: Documentation related to restricted rights -->
+<!-- Use, duplication or disclosure is subject to restrictions set forth in GSA ADP Schedule with IBM Corp. -->
+<!-- This page may contain other proprietary notices and copyright information, the terms of which must be observed and followed. -->
+<CATALOG>
+	<BOOK>
+
+		<TITLE>A Certain Justice</TITLE>
+		<AUTHOR>P.D. James</AUTHOR>
+		<YEAR-PUBLISHED>1998</YEAR-PUBLISHED>
+		<ISBN>0375401091</ISBN>
+
+	</BOOK>
+	<BOOK>
+
+		<TITLE>Ashworth Hall</TITLE>
+		<AUTHOR>Anne Perry</AUTHOR>
+		<YEAR-PUBLISHED>1997</YEAR-PUBLISHED>
+		<ISBN>0449908445</ISBN>
+
+	</BOOK>
+	<BOOK>
+
+		<TITLE>L.A. Confidential</TITLE>
+		<AUTHOR>James Ellroy</AUTHOR>
+		<YEAR-PUBLISHED>1997</YEAR-PUBLISHED> <ISBN>0446674249</ISBN>
+
+	</BOOK>
+	<BOOK>
+
+		<TITLE>Shadow Woman</TITLE>
+		<AUTHOR>Thomas Perry</AUTHOR>
+		<YEAR-PUBLISHED>1997</YEAR-PUBLISHED>
+		<ISBN>0679453024</ISBN>
+
+	</BOOK>
+
+</CATALOG>
