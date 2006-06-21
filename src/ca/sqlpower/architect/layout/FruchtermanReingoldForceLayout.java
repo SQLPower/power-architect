@@ -101,7 +101,7 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 	 * Checks and sees if the program stops
 	 */
 	public boolean isDone() {
-		if (stoppedFrames > 5 || nodes.size() < 2 || overrideDone) {
+		if (stoppedFrames > 5 || (nodes.size() + orphanedTables.size() <2) || overrideDone) {
 
 			return true;
 		}

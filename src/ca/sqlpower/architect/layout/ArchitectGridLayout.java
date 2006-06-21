@@ -9,7 +9,8 @@ import ca.sqlpower.architect.swingui.TablePane;
 
 public class ArchitectGridLayout extends AbstractLayout  {
     private boolean hasBeenCalled = false;
-    private static final int LINE_SEPERATOR = 20;
+    private static final int LINE_SEPERATOR = 100;
+    private static final int SEPERATOR = 20;
     List<TablePane> tables;
 
     @Override
@@ -37,7 +38,7 @@ public class ArchitectGridLayout extends AbstractLayout  {
                 maxHeight = 0;
             }
             tp.setLocation(d.width,d.height);
-            d.width += tp.getWidth();
+            d.width += tp.getWidth()+SEPERATOR;
             maxHeight = Math.max(maxHeight,tp.getHeight());
         }
     }
