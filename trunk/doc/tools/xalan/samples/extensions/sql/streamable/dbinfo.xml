@@ -1,0 +1,12 @@
+<dbtest>
+ <description>This file contains information required to make a connection to the DBMS</description>
+
+ <DBINFO>
+   <dbdriver>com.lutris.instantdb.jdbc.idbDriver</dbdriver>
+   <dburl>jdbc:idb:../../instantdb/sample.prp</dburl>
+   <user />
+   <password/>
+ </DBINFO>
+ 
+
+</dbtest>

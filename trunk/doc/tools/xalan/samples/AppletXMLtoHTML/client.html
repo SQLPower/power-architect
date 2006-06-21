@@ -1,0 +1,136 @@
+<!--
+ * Copyright 2004 The Apache Software Foundation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<!doctype HTML public "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+  <head>
+	  <title>Untitled</title>
+  </head>
+  <script language="JavaScript">
+
+    
+    function writeSource(sourceString)
+    {
+
+      var escString=document.xslControl.escapeString(sourceString);
+      var title="XML Source Doc";
+      var doc=top.frames[1].document;      
+      doc.open();
+      doc.write("<h3>" + title + "</h3>");
+      doc.write("<PRE>");
+      doc.write(escString);
+      doc.write("</PRE>");
+      doc.close();    
+    }
+  
+    function writeStylesheet(styleString)
+    {
+      var escString=document.xslControl.escapeString(styleString);
+      var title="XSL Stylesheet";
+      var doc=top.frames[2].document;          
+      doc.open();
+      doc.write("<h3>" + title + "</h3>");
+      doc.write("<PRE>");
+      doc.write(escString);
+      doc.write("</PRE>");
+      doc.close();     
+    } 
+
+    function writeTarget(targetString)
+    {
+      var doc=top.frames[3].document;
+      doc.open();
+      var title="HTML Output";      
+      doc.write("<h3>" + title + "</h3>");
+      if (document.xmlTransform.displayMode[0].checked) //display HTML
+      {
+        doc.write(targetString);
+      }
+      else // display source
+      {
+        var escString=document.xslControl.escapeString(targetString);
+        doc.write("<PRE>");
+        doc.write(escString);
+        doc.write("</PRE>");
+      }
+      doc.close();    
+    }
+  
+    function clearFrames()
+    {
+      document.xslControl.freeCache();
+      for (i=1; i<4; i++)
+        {
+        var doc=top.frames[i].document;
+        doc.open();
+        doc.clear();
+        doc.close();
+        }
+    }
+  
+    function transform()
+    {  
+      clearFrames();
+      var xmlSource=document.xmlTransform.xmlSourceList.options[document.xmlTransform.xmlSourceList.selectedIndex].value;
+      document.xslControl.setDocumentURL(xmlSource);
+      var sourceString=document.xslControl.getSourceTreeAsText();
+      var styleString=document.xslControl.getStyleTreeAsText();
+      var targetString=document.xslControl.getHtmlText();      
+      writeSource(sourceString);
+      writeStylesheet(styleString);
+      writeTarget(targetString);
+    }
+  </script>
+  <body onLoad="clearFrames();" bgcolor="#808080" text="#ffffff">
+    <form name="xmlTransform" action="" method="POST">
+      <h2><img border="0" hspace="0" vspace="0" align="left" src="rabbitwhorn.jpg">&nbsp;Transform XML Document</h2>
+        <table>
+          <tr>
+            <td width="50"></td>
+            <td align="center"><i>Document to transform</i></td>
+            <td align="center"><i>Display output as</i></td>
+          </tr>
+          <tr>
+          <td></td>
+          <td align="center">
+            <select name="xmlSourceList">
+              <option value="xalanApplets.xml" selected>&nbsp;xalanApplets.xml&nbsp;
+              <option value="foo-s1.xml">&nbsp;foo-s1.xml&nbsp;
+            </select>
+          </td>
+          <td align="center">
+            <input type="radio" name="displayMode" checked>HTML&nbsp;&nbsp;
+            <input type="radio" name="displayMode">HTML Source
+          </td>
+          <td>&nbsp;&nbsp;&nbsp;&nbsp;
+            <input type="button" name="transformButton" value="Transform" 
+            onClick="transform();">
+          </td>
+        </tr>
+      </table>
+    </form>
+    <!-- Be sure you have applet archive attribute set
+         so the applet can find xalan.jar,xml-apis.jar, serializer.jar and xercesImpl.jar -->  
+    <applet  
+      name="xslControl"
+      code="org.apache.xalan.client.XSLTProcessorApplet.class"
+      archive="../../xalan.jar,../../build/xalan.jar,../../serializer.jar,../../build/serializer.jar,../../lib/xml-apis.jar,../../lib/xercesImpl.jar"
+      height="0"
+      width="0">
+      <param name="documentURL" value="xalanApplets.xml"/>  <!--default setting-->
+      <param name="styleURL" value="s1ToHTML.xsl"/> <!--doesn't change-->
+    </applet>
+  </body>
+</html>

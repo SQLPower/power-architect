@@ -1,0 +1,10 @@
+<?xml version="1.0"?> 
+<doc>
+  <foo file="1-redir.out">
+    Testing Redirect extension:
+    <bar>A foo subelement text node</bar>
+  </foo>
+  <main>
+    Everything else
+  </main>  
+</doc>

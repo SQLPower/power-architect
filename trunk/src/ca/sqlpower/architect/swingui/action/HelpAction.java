@@ -39,7 +39,7 @@ import ca.sqlpower.architect.swingui.SwingUserSettings;
  */
 public class HelpAction extends AbstractAction  {
 
-    private final String HOME_URL_STRING = "file:///P:/test_data/PowerArchitectUserGuide.html";
+    private final String HOME_URL_STRING = "ca/sqlpower/architect/doc/PowerArchitectUserGuide.html";
     private JEditorPane editorPane;
 
     private JPanel buttonPanel;
@@ -70,8 +70,13 @@ public class HelpAction extends AbstractAction  {
                                                 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 16)) ) {
             public void actionPerformed(ActionEvent evt) {
                 try {
-                    editorPane.setPage(HOME_URL_STRING);
-                    history.add(HOME_URL_STRING);
+                    URL url = HelpAction.class.getClassLoader().getResource(HOME_URL_STRING);
+                    if (url == null) {
+                       System.err.println("Warning: Couldn't find User Guide '"+HOME_URL_STRING+"'");
+                    } else {
+                        editorPane.setPage(url);
+                        history.add(url.toString());
+                    }
                 } catch (IOException e) {
                     handleHelpError(e);
                 }
@@ -179,8 +184,13 @@ public class HelpAction extends AbstractAction  {
 
         if ( editorPane.getPage() == null ) {
             try {
-                editorPane.setPage(HOME_URL_STRING);
-                history.add(HOME_URL_STRING);
+                URL url = HelpAction.class.getClassLoader().getResource(HOME_URL_STRING);
+                if (url == null) {
+                   System.err.println("Warning: Couldn't find User Guide '"+HOME_URL_STRING+"'");
+                } else {
+                    editorPane.setPage(url);
+                    history.add(url.toString());
+                }
             } catch (IOException e1) {
                 handleHelpError(e1);
             }

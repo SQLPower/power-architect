@@ -1,0 +1,113 @@
+============================================================
+CONTENTS OF THIS DOCUMENT:
+
+  o) HOW TO PROVIDE XSL TRANSFORMATIONS AS A WEB SERVICE
+  o) HOW TO INVOKE TRANSLETS FROM AN ENTERPRISE JAVA BEAN
+  o) TIPS FOR RUNNING THE SAMPLE ON JBOSS-3.0.4_TOMCAT-4.1.12
+
+------------------------------------------------------------
+HOW TO PROVIDE XSL TRANSFORMATIONS AS A WEB SERVICE
+
+With XSLTC, XSL transformations can be run from within a
+an Enterprise Java Bean (EJB) and exported through a servlet.
+This sample code demonstrates how that can be implemented.
+
+The CompiledServlet and CompiledBrazil sample code
+demonstrate other approaches to providing XSL transformations
+as a web service.
+
+------------------------------------------------------------
+HOW TO INVOKE TRANSLETS FROM AN ENTERPRISE JAVA BEAN
+
+ o) Create an EJB that implements SessionBean and has a
+    single transform() entry point:
+
+    public class TransformBean implements SessionBean {
+        public String transform(String document, String transletName) {
+            // instanciate translet
+            // build internal DOM
+            // run transformation
+            :
+            :
+        }
+        :
+        :
+    }
+
+ o) Create this EJB's remote interface (this is the interface
+    your servlet will use to call the bean's entry point):
+
+    public interface TransformRemote extends EJBObject {
+        public String transform(String document, String transletName) 
+        throws RemoteException;
+    }
+
+ o) Create the EJB's home interface, which your servlet
+    will use to instantiate the remote interface:
+
+    public interface TransformHome extends EJBHome {
+        TransformRemote create()
+            throws CreateException, RemoteException;
+    }
+
+ o) Create a servlet that uses the EJB's home interface to
+    create a remote interface to the EJB, and then calls
+    the EJB's transform() method through that remote
+    interface:
+
+    public class TransformServlet extends HttpServlet {
+
+        public void init(ServletConfig config) {
+            // look up the EJB's home interface using JNDI
+        }
+
+        public void doGet (HttpServletRequest request, 
+                           HttpServletResponse response) 
+            throws ServletException, IOException {
+            // create the remote interface
+            // pass the parameters from teh request to the EJB
+            // display results passed back from EJB
+        }
+    }
+
+ o) Set up your J2EE_CLASSPATH to include JAXP and the XSLTC
+    runtime jars.
+ 
+
+ o) Compile your XSL stylesheets and place them either in
+    your J2EE_CLASSPATH or wrap them in your EJB jar.
+    Make sure that the XSLTC TransformerFactory will be used
+    by either setting the system property
+    "javax.xml.transform.TransformerFactory" with the value
+    "org.apache.xalan.xsltc.trax.TransformerFactoryImpl", or
+    by making a file with the name
+    "META-INF/services/javax.xml.transform.TransformerFactory"
+    containing the single line
+
+       org.apache.xalan.xsltc.trax.TransformerFactoryImpl
+
+    available on your J2EE_CLASSPATH.
+
+
+ o) Deploy your EJB
+
+ o) Call the servlet with the necessary parameters (at least
+    an URI to the source XML document and the name of the
+    translet class).
+
+------------------------------------------------------------
+TIPS FOR RUNNING THE SAMPLE ON JBOSS-3.0.4_TOMCAT-4.1.12
+
+ o) Copy the bundled xalan.jar (a version containing XSLTC) 
+    to %Jboss_Home%/server/default/lib directory.
+
+ o) Put the translet .class file in the same directory as 
+    the EJB classes.
+
+ o) Set the value of the "translet" parameter to the name 
+    of the translet .class
+
+ o) Set the value of the "document" parameter to a valid xml 
+    URI
+------------------------------------------------------------
+END OF README

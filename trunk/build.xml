@@ -46,11 +46,31 @@
 	    <copy tofile="${build}/log4j.properties"
     	        file="src/log4j.properties.example"/>
 	    <!-- copies customized log4j config file into the build dir -->
-	    <copy file="src/log4j.properties" todir="${build}" overwrite="true" />
+	    <copy failonerror="false" file="src/log4j.properties" todir="${build}" overwrite="true" />
     </target>
 
+	<target name="createUserGuide" depends="init">
+		<mkdir dir="${build}/ca/sqlpower/architect/doc/" />
+		<mkdir dir="${build}/ca/sqlpower/architect/doc/images" />		
+		<xslt
+			style="doc/tools/xslt/html/docbook.xsl"
+			in="doc/PowerArchitectUserGuide.xml"
+			out="${build}/ca/sqlpower/architect/doc/PowerArchitectUserGuide.html">
+			<classpath>
+			    <fileset dir="doc/tools/xalan">
+			      <include name="*.jar"/>
+			    </fileset>
+			</classpath>
+		</xslt>
+		<copy todir="${build}/ca/sqlpower/architect/doc/images" overwrite="true">
+			<fileset dir="doc/images">
+				<include name="*.png"/>
+			</fileset>
+		</copy>
+    </target>
+	    	
     <!-- Creates a WebStart distribution under the webstart/ directory -->
-	<target name="dist" depends="compile">
+	<target name="dist" depends="compile,createUserGuide">
         <mkdir dir="webstart/lib"/>
 		<jar destfile="webstart/lib/architect.jar" basedir="${build}" includes="ca/** icons/** log4j.properties" manifest="manifest">
 		</jar>

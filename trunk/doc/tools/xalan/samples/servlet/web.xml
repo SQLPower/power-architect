@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE web-app PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.2//EN" "http://java.sun.com/j2ee/dtds/web-app_2_2.dtd">
+<web-app>
+	<display-name>xalanservlet</display-name>
+	<servlet>
+		<servlet-name>SimpleXSLTServlet</servlet-name>
+		<display-name>SimpleXSLTServlet</display-name>
+		<servlet-class>servlet.SimpleXSLTServlet</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>UseStylesheetParamServlet</servlet-name>
+		<display-name>UseStylesheetParamServlet</display-name>
+		<servlet-class>servlet.UseStylesheetParamServlet</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>XSLTServletWithParams</servlet-name>
+		<display-name>XSLTServletWithParams</display-name>
+		<servlet-class>servlet.XSLTServletWithParams</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>ApplyXSLT</servlet-name>
+		<display-name>ApplyXSLT</display-name>
+		<servlet-class>servlet.ApplyXSLT</servlet-class>
+		<init-param>
+			<param-name>mediaURL</param-name>
+			<param-value>media.properties</param-value>
+		</init-param>
+		<init-param>
+			<param-name>xslURL</param-name>
+			<param-value>/xalanservlet/booklist1.xsl</param-value>
+		</init-param>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>SimpleXSLTServlet</servlet-name>
+		<url-pattern>/SimpleXSLTServlet</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>UseStylesheetParamServlet</servlet-name>
+		<url-pattern>/UseStylesheetParamServlet</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>XSLTServletWithParams</servlet-name>
+		<url-pattern>/XSLTServletWithParams</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>ApplyXSLT</servlet-name>
+		<url-pattern>/ApplyXSLT/*</url-pattern>
+	</servlet-mapping>
+</web-app>

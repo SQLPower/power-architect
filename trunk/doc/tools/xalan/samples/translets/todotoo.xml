@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<todo project="Next year's plans">
+  <devs>
+    <person name="Paper Pusher" email="paper@example.org" id="PP"
+            expertise="paper">
+      Shuffling papers
+    </person>
+    <person name="Envelope Stuffer" email="stuffer@example.org" id="ES"
+            expertise="envelopes">
+      Stuffing envelopes, folding flaps, licking stamps
+    </person>
+    <person name="Bean Counter" email="bcount@example.org" id="BC"
+            expertise="counting" status="emeritus">
+      Scrutinizing, retirement
+    </person>
+  </devs>
+
+  <actions>
+    <action category="tidy up" who="PP">
+      Shred documents
+    </action>
+    <action category="decorative" who="ES">
+      Make paper-clip sculptures
+    </action>
+    <action category="planning" who="PP">
+      Create next year's to-do lists
+    </action>
+  </actions>
+</todo>
