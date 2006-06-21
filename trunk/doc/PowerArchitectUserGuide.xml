@@ -5,9 +5,9 @@
   <copyright><year> </year><holder>SQLPower Group Inc.</holder></copyright>
   <bookinfo>
 
-    <imageobject><imagedata fileref="images/architect_logo.png"
+    <imageobject id="architect_logo"><imagedata fileref="images/architect_logo.png"
      format="PNG"/></imageobject>
-    <title>Power*Architect User Guide</title>
+    <title id="user">Power*Architect User Guide</title>
 
     <corpauthor>SQLPower Group Inc.</corpauthor>
 
@@ -190,7 +190,7 @@
 
     <title>How to Use the Power*Architect</title>
 
-    <section>
+    <section id="Architect_UI">
 
       <title>Power*Architect User Interface</title>
 
@@ -227,7 +227,7 @@
 
     </section>
 
-    <section>
+    <section id="User_Prefs">
 
       <title>Setting the User Preferences</title>
 
@@ -261,7 +261,7 @@
 
     </section>
 
-    <section>
+    <section id="JDBC_Drivers">
 
       <title>JDBC Drivers</title>
 
@@ -292,7 +292,7 @@
 
     </section>
 
-    <section>
+    <section id="example">
 
       <title>A Brief Example</title>
 
@@ -519,16 +519,16 @@
 
     </section>
 
-    <section>
+    <section id="diagram_components">
 
       <title>Using Diagram Components</title>
 
-      <section>
+      <section id="new_table">
 
         <title>Creating New Tables</title>
 
         <para><inlinemediaobject><imageobject>
-        <imagedata fileref="../src/icons/NewTable24.gif"
+        <imagedata fileref="images/NewTable24.gif"
          format="GIF"/></imageobject></inlinemediaobject> There are 
         several ways to create new tables in Power*Architect. The first 
         way is to click on the New Table Icon on the sidebar menu. The 
@@ -542,12 +542,12 @@
 
       </section>
 
-      <section>
+      <section id="edit_table">
 
         <title>Editing Tables</title>
 
         <para><inlinemediaobject><imageobject>
-        <imagedata fileref="../src/icons/TableProperties24.gif"
+        <imagedata fileref="images/TableProperties24.gif"
          format="GIF"/></imageobject></inlinemediaobject> To edit a 
         table, right click on the table title and select “Table 
         Properties”. This pops up the Table Properties dialog.</para>
@@ -580,12 +580,12 @@
 
       </section>
 
-      <section>
+      <section id="new_column">
 
         <title>Creating New Columns</title>
 
         <para><inlinemediaobject><imageobject>
-        <imagedata fileref="../src/icons/NewColumn24.gif"
+        <imagedata fileref="images/NewColumn24.gif"
          format="GIF"/></imageobject></inlinemediaobject> First select 
         the table the new column will be placed in. Click on the 
         &quot;Insert Column&quot; button and a column is created in the 
@@ -601,12 +601,12 @@
 
       </section>
 
-      <section>
+      <section id="edit_column">
 
         <title>Editing Columns</title>
 
         <para><inlinemediaobject><imageobject>
-        <imagedata fileref="../src/icons/ColumnPropertes24.gif"
+        <imagedata fileref="images/ColumnProperties24.gif"
          format="GIF"/></imageobject></inlinemediaobject> Select the 
         desired column, right click and select &quot;Column 
         Properties&quot;. The Edit Column Properties dialog pops up. Or 
@@ -683,7 +683,7 @@
 
       </section>
 
-      <section>
+      <section id="drag_columns">
 
         <title>Dragging Columns</title>
 
@@ -694,25 +694,25 @@
 
       </section>
 
-      <section>
+      <section id="create_relationship">
 
         <title>Creating Non-Identifying and Identifying 
         Relationships</title>
 
         <para><inlinemediaobject><imageobject>
-        <imagedata fileref="../src/icons/NewIdentifyingRelationship24.gif"
+        <imagedata fileref="images/NewIdentifyingRelationship24.gif"
          format="GIF"/></imageobject></inlinemediaobject> 
         <inlinemediaobject><imageobject>
-        <imagedata fileref="../src/icons/NewNonIdentifyingRelationship.gif"
+        <imagedata fileref="images/NewNonIdentifyingRelationship24.gif"
          format="GIF"/></imageobject></inlinemediaobject> To create a 
         relationship, select the desired type of relationship on the 
         Playpen ToolBar. The non-identifying relationship icon is 
         <inlinemediaobject><imageobject>
-        <imagedata fileref="../src/icons/NewNonIdentifyingRelationship.gif"
+        <imagedata fileref="images/NewNonIdentifyingRelationship24.gif"
          format="GIF"/></imageobject></inlinemediaobject> (keyboard 
         shortcut is shift+R). The identifying relationship icon is 
         identified by <inlinemediaobject><imageobject>
-        <imagedata fileref="../src/icons/NewIdentifyingRelationship.gif"
+        <imagedata fileref="images/NewIdentifyingRelationship24.gif"
          format="GIF"/></imageobject></inlinemediaobject> (shortcut key 
         is R). The cursor changes to the &quot;+&quot; cursor to 
         indicate the mode change. (TODO: might want to use a different 
@@ -725,12 +725,12 @@
 
       </section>
 
-      <section>
+      <section id="edit_relationship">
 
         <title>Editing a Relationship</title>
 
         <para><inlinemediaobject><imageobject>
-        <imagedata fileref="../src/icons/RelationshipPropertes24.gif"
+        <imagedata fileref="images/RelationshipProperties24.gif"
          format="GIF"/></imageobject></inlinemediaobject> Select the 
         desired relationship and right click on the relationship. 
         Choose the &quot;Relationship Properties&quot; options. This 
@@ -772,7 +772,7 @@
 
       </section>
 
-      <section>
+      <section id="multiple_selection">
 
         <title>Selecting Multiple Items in the Playpen</title>
 
@@ -783,7 +783,7 @@
 
       </section>
 
-      <section>
+      <section id="move_object">
 
         <title>Relocating Objects in the Playpen</title>
 
@@ -795,7 +795,7 @@
 
       </section>
 
-      <section>
+      <section id="delete_object">
 
         <title>Deleting Diagram Components</title>
 
@@ -814,11 +814,11 @@
 
     </section>
 
-    <section>
+    <section id="db_usage">
 
       <title>Database Usage in Power*Architect</title>
 
-      <section>
+      <section id="new_connection">
 
         <title>Adding a New Connection to the Power*Architect</title>
 
@@ -858,7 +858,7 @@
 
       </section>
 
-      <section>
+      <section id="add_connection">
 
         <title>Adding an Existing Connection</title>
 
@@ -868,7 +868,7 @@
 
       </section>
 
-      <section>
+      <section id="edit_connection">
 
         <title>Editing Database Connection Properties</title>
 
@@ -881,7 +881,7 @@
 
       </section>
 
-      <section>
+      <section id="remove_connection">
 
         <title>Removing a Database Connection</title>
 
@@ -893,12 +893,12 @@
 
       </section>
 
-      <section>
+      <section id="project_database">
 
         <title>Setting the Current Project Database</title>
 
         <para><inlinemediaobject><imageobject>
-        <imagedata fileref="../src/icons/TargetDatabaseArrow16.gif"
+        <imagedata fileref="images/TargetDatabaseArrow16.gif"
          format="GIF"/></imageobject></inlinemediaobject> The project 
         database can be set to an existing database connection or the 
         user can create a new connection for it as well. Setting the 
@@ -911,7 +911,7 @@
 
       </section>
 
-      <section>
+      <section id="dbtree_nav">
 
         <title>Navigating through the Database Tree</title>
 
@@ -921,7 +921,7 @@
         unique icon beside its name to identify the type of object it 
         is. The table below shows what each icon means:</para>
 
-        <table>
+        <table id="dbtree_icons">
 
           <title>Database Tree Icons</title>
 
@@ -936,27 +936,27 @@
             <tbody>
 
               <row><entry><inlinemediaobject><imageobject>
-              <imagedata fileref="../src/icons/Database16.gif"
+              <imagedata fileref="images/Database16.gif"
                format="GIF"/></imageobject></inlinemediaobject></entry><entry>Database</entry></row>
 
               <row><entry><inlinemediaobject><imageobject>
-              <imagedata fileref="../src/icons/Catalog16.gif"
+              <imagedata fileref="images/Catalog16.gif"
                format="GIF"/></imageobject></inlinemediaobject></entry><entry>Catalog</entry></row>
 
               <row><entry><inlinemediaobject><imageobject>
-              <imagedata fileref="../src/icons/Schema16.gif"
+              <imagedata fileref="images/Schema16.gif"
                format="GIF"/></imageobject></inlinemediaobject></entry><entry>Schema</entry></row>
 
               <row><entry><inlinemediaobject><imageobject>
-              <imagedata fileref="../src/icons/Owner16.gif"
+              <imagedata fileref="images/Owner16.gif"
                format="GIF"/></imageobject></inlinemediaobject></entry><entry>Owner</entry></row>
 
               <row><entry><inlinemediaobject><imageobject>
-              <imagedata fileref="../src/icons/Table16.gif"
+              <imagedata fileref="images/Table16.gif"
                format="GIF"/></imageobject></inlinemediaobject></entry><entry>Table</entry></row>
 
               <row><entry><inlinemediaobject><imageobject>
-              <imagedata fileref="../src/icons/Relationship16.gif"
+              <imagedata fileref="images/Relationship16.gif"
                format="GIF"/></imageobject></inlinemediaobject></entry><entry>Relationship</entry></row>
 
             </tbody>
@@ -967,7 +967,7 @@
 
       </section>
 
-      <section>
+      <section id="dbtree_move">
 
         <title>Moving Items from the Database Tree</title>
 
@@ -980,11 +980,11 @@
 
     </section>
 
-    <section>
+    <section id="find">
 
       <title>Find/Replace Function</title>
 
-      <section>
+      <section id="find.what">
 
         <title>What It Does:</title>
 
@@ -997,7 +997,7 @@
          format="PNG"/></imageobject></mediaobject>
       </section>
 
-      <section>
+      <section id="find.use">
 
         <title>How to Use Find / Replace Function:</title>
 
@@ -1017,7 +1017,7 @@
 
     </section>
 
-    <section>
+    <section id="forward_engineer_and_compare_dm">
 
       <title>Forward Engineering and Compare Data Model</title>
 
@@ -1030,11 +1030,11 @@
       differences between two databases, or stored projects, or one of 
       these and the PlayPen.</para>
 
-      <section>
+      <section id="forward_engineer">
 
         <title>Forward Engineering</title>
 
-        <section>
+        <section id="forward_engineer.what">
 
           <title>What It Does</title>
 
@@ -1044,12 +1044,12 @@
 
         </section>
 
-        <section>
+        <section id="forward_engineer.how">
 
           <title>How To Use Forward Engineering</title>
 
           <para><inlinemediaobject><imageobject>
-          <imagedata fileref="../src/icons/ForwardEngineer24.gif"
+          <imagedata fileref="images/ForwardEngineer24.gif"
            format="GIF"/></imageobject></inlinemediaobject> First set 
           the target connection to the database you want the changes to 
           be made in. Then go to &quot;Tools&quot; and click 
@@ -1072,11 +1072,11 @@
 
       </section>
 
-      <section>
+      <section id="compare_dm">
 
         <title>Compare Data Model Function</title>
 
-        <section>
+        <section id="compare_dm.what">
 
           <title>What It Does</title>
 
@@ -1087,16 +1087,16 @@
 
         </section>
 
-        <section>
+        <section id="compare_dm.how">
 
           <title>How to use Compare Data Model Function:</title>
 
-          <section>
+          <section id="compare_dm.how.1">
 
             <title>Part 1</title>
 
             <para><inlinemediaobject><imageobject>
-            <imagedata fileref="../src/icons/CompareDatabases24.gif"
+            <imagedata fileref="images/CompareDatabases24.gif"
              format="GIF"/></imageobject></inlinemediaobject> To start 
             the Compare Data Model Function, either go to 
             &quot;Tools&quot; and click &quot;Compare Data Model&quot; 
@@ -1114,11 +1114,11 @@
              format="PNG"/></imageobject></mediaobject>
           </section>
 
-          <section>
+          <section id="compare_dm.how.2">
 
             <title>Part 2</title>
 
-            <section>
+            <section id="compare_dm.how.2.english">
 
               <title>English Descriptions</title>
 
@@ -1132,9 +1132,9 @@
               button, or save the results to a text file. The table 
               below explains what each colour means.</para>
 
-              <table>
+              <table id="compare_dm.how.2.english.colour_codes">
 
-                <title>Compare Database Model Colur Codes</title>
+                <title>Compare Database Model Colour Codes</title>
 
                 <tgroup cols="2">
 
@@ -1173,7 +1173,7 @@
 
             </section>
 
-            <section>
+            <section id="compare_dm.how.2.SQL">
 
               <title>In SQL Script</title>
 
@@ -1197,11 +1197,11 @@
 
     </section>
 
-    <section>
+    <section id="autolayout">
 
       <title>Autolayout</title>
 
-      <section>
+      <section id="autolayout.what">
 
         <title>What It Does:</title>
 
@@ -1210,12 +1210,12 @@
 
       </section>
 
-      <section>
+      <section id="autolayout.how">
 
         <title>How to Use Autolayout:</title>
 
         <para><inlinemediaobject><imageobject>
-        <imagedata fileref="../src/icons/AutoLayout24.gif"
+        <imagedata fileref="images/AutoLayout24.gif"
          format="GIF"/></imageobject></inlinemediaobject> Select the 
         tables on the playpen that you want to organize and hit the 
         autolayout button at the top. If no table is selected, by 
@@ -1232,11 +1232,11 @@
 
     </section>
 
-    <section>
+    <section id="SQLRunner">
 
       <title>SQLRunner</title>
 
-      <section>
+      <section id="SQLRunner.what">
 
         <title>What It Does:</title>
 
@@ -1255,7 +1255,7 @@
 
       </section>
 
-      <section>
+      <section id="SQLRunner.how">
 
         <title>How to Use SQLRunner:</title>
 
@@ -1276,7 +1276,7 @@
         is valid input to your database&apos;s command interface (e.g., 
         programs such as psql or SQL*Plus™).</para>
 
-        <table>
+        <table id="SQLRunner.escape_chars">
 
           <title>SQLRunner Escape Characters</title>
 
@@ -1327,7 +1327,7 @@
 
       </section>
 
-      <section>
+      <section id="SQLRunner.results">
 
         <title>Output (Results) Window</title>
 
@@ -1345,7 +1345,7 @@
 
       </section>
 
-      <section>
+      <section id="SQLRunner.output_format">
 
         <title>Output Formats</title>
 
@@ -1390,11 +1390,11 @@
 
     </section>
 
-    <section>
+    <section id="quick_start_wizard">
 
       <title>Quick Start Wizard</title>
 
-      <section>
+      <section id="quick_start_wizard.what">
 
         <title>What It Does:</title>
 
@@ -1403,9 +1403,9 @@
 
       </section>
 
-      <section>
+      <section id="quick_start_wizard.how">
 
-        <title>How to Use Autolayout:</title>
+        <title>How to Use The Quick Start Wizard</title>
 
         <para>To run the QuickStart Wizard, go to ETL and click 
         QuickStart Wizard button under Power*Loader.</para>
@@ -1413,7 +1413,7 @@
         <para>TODO: Write the steps in for QuickStart Wizard and maybe 
         add in screenshoots</para>
 
-        <section>
+        <section id="quick_start_wizard.how.1">
 
           <title>Step 1</title>
 
@@ -1422,7 +1422,7 @@
 
         </section>
 
-        <section>
+        <section id="quick_start_wizard.how.2">
 
           <title>Step 2</title>
 
@@ -1432,7 +1432,7 @@
            format="PNG"/></imageobject></mediaobject>
         </section>
 
-        <section>
+        <section id="quick_start_wizard.how.3">
 
           <title>Step 3</title>
 
@@ -1444,7 +1444,7 @@
            format="PNG"/></imageobject></mediaobject>
         </section>
 
-        <section>
+        <section id="quick_start_wizard.how.4">
 
           <title>Step 4</title>
 
@@ -1454,7 +1454,7 @@
 
         </section>
 
-        <section>
+        <section id="quick_start_wizard.how.5">
 
           <title>Step 5</title>
 
@@ -1468,7 +1468,7 @@
 
   </chapter>
 
-  <chapter>
+  <chapter id="summary">
 
     <title>Summary</title>
 
@@ -1480,11 +1480,11 @@
 
   </chapter>
 
-  <chapter>
+  <chapter id="db_product_notes">
 
     <title>Database Product Notes</title>
 
-    <informaltable frame="all">
+    <informaltable frame="all" id="db_notes_table">
 
       <tgroup cols="2">
 
@@ -1528,7 +1528,7 @@
 
   </chapter>
 
-  <chapter>
+  <chapter id="troubleshooting">
 
     <title>Troubleshooting</title>
 
@@ -1547,14 +1547,14 @@
 
   </chapter>
 
-  <chapter>
+  <chapter id="glossary">
 
     <title>Glossary</title>
 
     <para>This section lists some database-related terms and their 
     meanings.</para>
 
-    <informaltable frame="all">
+    <informaltable frame="all" id="glossary_table">
 
       <tgroup cols="2">
 
