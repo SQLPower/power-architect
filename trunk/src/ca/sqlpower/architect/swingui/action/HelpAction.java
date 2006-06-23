@@ -1,5 +1,6 @@
 package ca.sqlpower.architect.swingui.action;
 
+
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -26,6 +27,7 @@ import javax.swing.text.html.HTMLFrameHyperlinkEvent;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
+import ca.sqlpower.architect.swingui.ArchitectSwingWorker;
 import ca.sqlpower.architect.swingui.CommonCloseAction;
 import ca.sqlpower.architect.swingui.HelpPrintPanel;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
@@ -39,7 +41,7 @@ import ca.sqlpower.architect.swingui.SwingUserSettings;
  */
 public class HelpAction extends AbstractAction  {
 
-    private final String HOME_URL_STRING = "ca/sqlpower/architect/doc/PowerArchitectUserGuide.html";
+    private final String HOME_URL_STRING = "ca/sqlpower/architect/doc/index.html";
     private JEditorPane editorPane;
 
     private JPanel buttonPanel;
@@ -75,7 +77,7 @@ public class HelpAction extends AbstractAction  {
                        System.err.println("Warning: Couldn't find User Guide '"+HOME_URL_STRING+"'");
                     } else {
                         editorPane.setPage(url);
-                        history.add(url.toString());
+                        history.add(url);
                     }
                 } catch (IOException e) {
                     handleHelpError(e);
@@ -155,6 +157,28 @@ public class HelpAction extends AbstractAction  {
         buttonPanel.add(printButton);            
 
         history = new URLHistoryList();
+        
+        ArchitectSwingWorker worker = new ArchitectSwingWorker() {
+
+            @Override
+            public void cleanup() throws Exception {
+            }
+
+            @Override
+            public void doStuff() throws Exception {
+                URL url = HelpAction.class.getClassLoader().getResource(HOME_URL_STRING);
+                if (url == null) {
+                   System.err.println("Warning: Couldn't find User Guide '"+HOME_URL_STRING+"'");
+                } else {
+                    editorPane.setPage(url);
+                    history.add(url);
+                    editorPane.validate();
+                }
+            }
+        };
+        new Thread(worker).start();
+        
+       
     }            
 
     void handleHelpError(Throwable t) {
@@ -189,7 +213,7 @@ public class HelpAction extends AbstractAction  {
                    System.err.println("Warning: Couldn't find User Guide '"+HOME_URL_STRING+"'");
                 } else {
                     editorPane.setPage(url);
-                    history.add(url.toString());
+                    history.add(url);
                 }
             } catch (IOException e1) {
                 handleHelpError(e1);
@@ -215,6 +239,7 @@ public class HelpAction extends AbstractAction  {
             forwardAction.setEnabled(false);
     }
 
+    
     class Hyperactive implements HyperlinkListener {
         
         public void hyperlinkUpdate(HyperlinkEvent e) {
