@@ -2,16 +2,16 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.0//EN" "http://www.oasis-open.org/docbook/xml/simple/1.0/sdocbook.dtd">
 <book id="architect-user-guide" lang="en">
 
-  <copyright><year> </year><holder>SQLPower Group Inc.</holder></copyright>
   <bookinfo>
 
     <imageobject id="architect_logo"><imagedata fileref="images/architect_logo.png"
      format="PNG"/></imageobject>
     <title id="user">Power*Architect User Guide</title>
 
-    <corpauthor>SQLPower Group Inc.</corpauthor>
+    <corpauthor><ulink url="http://www.sqlpower.ca">SQL Power</ulink> Group Inc.</corpauthor>
 
     <date>Last Modified</date>
+  	<copyright><year>2006</year><holder>SQL Power Group Inc.</holder></copyright>
   </bookinfo>
 
   <title>Introduction</title>
@@ -113,9 +113,10 @@
 
   <para />
 
+	
   <sidebar>
-
-    <para>Design your Data Warehouse in a fraction of the time with 
+	
+    <para >Design your Data Warehouse in a fraction of the time with 
     Power*Architect.</para>
 
   </sidebar>
@@ -175,14 +176,57 @@
     operations.</para>
 
     <para>We also assume you have SQL Power&apos;s Power*Architect 
-    software installed on your computer; if not, please refer to the 
-    Installation Guide.</para>
+    software installed on your computer; if not, please refer to the <link linkend="Installation_Guide">
+    Installation Guide</link>.</para>
 
   </sect1>
 
   <chapter id="Installation_Guide">
 
     <title>Installation Guide</title>
+    
+    <section id="prereqs"> 
+    	<title>Power*Architect Prerequisites</title>
+    	<para>To run the Power*Architect you need a Java 1.5 or newer Java VM.  A current version of the Java VM can be obtained from <ulink url="http://java.sun.com/javase/downloads/index.html">Sun Microsystems</ulink>.</para>
+    </section>
+    
+    <section id="get_the_architect">
+    	<title>How to get the Power*Architect</title>
+    	<para>Power*Architect can be obtained from the <ulink url="http://download.sqlpower.ca">download section</ulink> of the <ulink url="http://www.sqlpower.ca/">SQLPower Website</ulink>.</para>
+    </section>
+    
+    <section id="how_to_install"> 
+    	<title>How to Install Power*Architect</title>
+    	<section id="install_win">
+    		<title>Windows</title>
+    		<para>Double click on the architect-setup-1.0.jar this will launch the windows installer. Follow the on screen instructions.</para>
+    	</section>
+    	<section id="install_mac">
+    		<title>Mac</title>
+    		<para>Drag the architect.dmg file to the Applications folder</para>
+    	</section>
+    	<section id="install_java">
+    		<title>Other Platforms</title>
+    		<para>Extract the architect.tar.gz package into the desired directory.  
+			</para>
+    	</section>
+    </section>
+    <section id="how_to_run">
+    	<title>How to Run Power*Architect</title>
+    	<section id="run_win">
+    		<title>Windows</title>
+    		<para>From the start menu, select All Programs.  Then select the Power Loader Suite program group.  Finally click on the Power Architect shortcut.</para>
+    	</section>
+    	<section id="run_mac">
+    		<title>Mac</title>
+    		<para>From the finder select Applications, then select Power*Architect</para>
+    	</section>
+    	<section id="run_java">
+    		<title>Other Platforms</title>
+    		<para>From the directory that you extracted the architect, run the command <command>java -jar architect.jar</command>
+			</para>
+    	</section>
+    </section>
 
   </chapter>
 
@@ -239,7 +283,7 @@
       you can specify your file locations.</para>
 
       <para><inlinemediaobject><imageobject>
-      <imagedata fileref="images/basicui.png"
+      <imagedata fileref="images/user_prefs.png"
        format="PNG"/></imageobject></inlinemediaobject></para>
 
       <para>The pl.ini file stores the database connections that you 
@@ -277,7 +321,7 @@
       access).</para>
 
       <para><inlinemediaobject><imageobject>
-      <imagedata fileref="images/basicui.png"
+      <imagedata fileref="images/jdbc_user_prefs.png"
        format="PNG"/></imageobject></inlinemediaobject></para>
 
       <para>Note: The tie-in between Drivers and Connections might seem 
@@ -391,7 +435,7 @@
               table should look something like the following:</para>
 
               <mediaobject><imageobject>
-              <imagedata fileref="images/basicui.png"
+              <imagedata fileref="images/example_4_4.png"
                format="PNG"/></imageobject></mediaobject>
             </listitem>
 
@@ -408,7 +452,7 @@
               something like the following:</para>
 
               <mediaobject><imageobject>
-              <imagedata fileref="images/basicui.png"
+              <imagedata fileref="images/example_4_6.png"
                format="PNG"/></imageobject></mediaobject>
             </listitem>
 
@@ -423,7 +467,7 @@
               relationship will be highlighted in red.</para>
 
               <mediaobject><imageobject>
-              <imagedata fileref="images/basicui.png"
+              <imagedata fileref="images/example_4_7.png"
                format="PNG"/></imageobject></mediaobject>
             </listitem>
 
@@ -439,7 +483,7 @@
           see a window similar to the following:</para>
 
           <mediaobject><imageobject>
-          <imagedata fileref="images/basicui.png"
+          <imagedata fileref="images/example_5.png"
            format="PNG"/></imageobject></mediaobject>
         </listitem>
 
@@ -481,7 +525,7 @@
           the output format to SQL.</para>
 
           <mediaobject><imageobject>
-          <imagedata fileref="images/basicui.png"
+          <imagedata fileref="images/example_9.png"
            format="PNG"/></imageobject></mediaobject>
         </listitem>
 
@@ -492,7 +536,7 @@
           added:</para>
 
           <mediaobject><imageobject>
-          <imagedata fileref="images/basicui.png"
+          <imagedata fileref="images/example_10.png"
            format="PNG"/></imageobject></mediaobject>
         </listitem>
 
@@ -500,10 +544,7 @@
 
           <para>Click Execute, and the new column will be added to your 
           database table.</para>
-
-          <mediaobject><imageobject>
-          <imagedata fileref="images/basicui.png"
-           format="PNG"/></imageobject></mediaobject>
+          
         </listitem>
 
       </orderedlist>
@@ -552,7 +593,7 @@
         table, right click on the table title and select “Table 
         Properties”. This pops up the Table Properties dialog.</para>
 
-        <mediaobject><imageobject><imagedata fileref=""
+        <mediaobject><imageobject><imagedata fileref="images/Table_Properties.png"
          format="PNG"/></imageobject></mediaobject>
         <para>In this dialog, you can:</para>
 
@@ -613,7 +654,7 @@
         you can select the column and click the &quot;Edit Column&quot; 
         button on the Playpen toolbar.</para>
 
-        <mediaobject><imageobject><imagedata fileref=""
+        <mediaobject><imageobject><imagedata fileref="images/Column_properties.png"
          format="PNG"/></imageobject></mediaobject>
         <para>In this dialog, you can:</para>
 
@@ -738,7 +779,7 @@
         the relationship properties button. In both cases, the 
         Relationship Properties dialog will appear.</para>
 
-        <mediaobject><imageobject><imagedata fileref=""
+        <mediaobject><imageobject><imagedata fileref="images/relationship_roperties.png"
          format="PNG"/></imageobject></mediaobject>
         <para>In this dialog, you can:</para>
 
@@ -829,7 +870,7 @@
         &quot;New Connection&quot; under &quot;Add Connections&quot;. 
         Both ways open up this dialog:</para>
 
-        <mediaobject><imageobject><imagedata fileref=""
+        <mediaobject><imageobject><imagedata fileref="images/db_connection_properties.png"
          format="PNG"/></imageobject></mediaobject>
         <para>You must know which JDBC driver to use before you can 
         connect to a database. When you have selected the JDBC Driver, 
@@ -849,7 +890,7 @@
         connection will automatically be added in the 
         user-preference.</para>
 
-        <mediaobject><imageobject><imagedata fileref=""
+        <mediaobject><imageobject><imagedata fileref="images/new_connection.png"
          format="PNG"/></imageobject></mediaobject>
         <para>Note: if you have too many connections (more than the 
         height of the Architect window), the Architect does not have 
@@ -993,7 +1034,7 @@
         resulting matches. The user can request for those items to be 
         focused on the screen.</para>
 
-        <mediaobject><imageobject><imagedata fileref=""
+        <mediaobject><imageobject><imagedata fileref="images/find.png"
          format="PNG"/></imageobject></mediaobject>
       </section>
 
@@ -1057,7 +1098,7 @@
           &quot;Forward Engineering&quot; button at the top. This pops 
           up a dialog that looks similar to the one below:</para>
 
-          <mediaobject><imageobject><imagedata fileref=""
+          <mediaobject><imageobject><imagedata fileref="images/forward_engineer.png"
            format="PNG"/></imageobject></mediaobject>
           <para>Fill in the fields as necessary and hit &quot;OK&quot; 
           when you are done. Depending on the situation, a dialog 
@@ -1066,7 +1107,7 @@
           currently in the Playpen will be displayed. It is the same 
           dialog used in CompareDataModel-Part 2- In SQL Script.</para>
 
-          <mediaobject><imageobject><imagedata fileref=""
+          <mediaobject><imageobject><imagedata fileref="images/preview_sql.png"
            format="PNG"/></imageobject></mediaobject>
         </section>
 
@@ -1110,7 +1151,7 @@
             enable. The similarities and differences can be displayed 
             either in SQL Script language or in English.</para>
 
-            <mediaobject><imageobject><imagedata fileref=""
+            <mediaobject><imageobject><imagedata fileref="images/compare_dm.png"
              format="PNG"/></imageobject></mediaobject>
           </section>
 
@@ -1269,7 +1310,7 @@
         in the top (SQL Command) window and click the Run button; the 
         results are displayed in the bottom (SQL Results) window.</para>
 
-        <mediaobject><imageobject><imagedata fileref=""
+        <mediaobject><imageobject><imagedata fileref="images/sqlrunner.png"
          format="PNG"/></imageobject></mediaobject>
         <para>The command can actually be one of two kinds: either one 
         of a half-dozen escape commands listed below, or, anything that 
@@ -1364,7 +1405,7 @@
         database, used to display a casual quotation about books) 
         looked like this:</para>
 
-        <mediaobject><imageobject><imagedata fileref=""
+        <mediaobject><imageobject><imagedata fileref="images/sqlrunner_output.png"
          format="PNG"/></imageobject></mediaobject>
         <para>This could, as you can see, be used to create a SQL 
         script to re-create the contents of the database. In fact, some 
@@ -1376,12 +1417,12 @@
         Format selection to HTML and clicking the Run button 
         again:</para>
 
-        <mediaobject><imageobject><imagedata fileref=""
+        <mediaobject><imageobject><imagedata fileref="images/sqlrunner_output_2.png"
          format="PNG"/></imageobject></mediaobject>
         <para>When copied and pasted into an HTML file and viewed in a 
         browser, the output looked like this:</para>
 
-        <mediaobject><imageobject><imagedata fileref=""
+        <mediaobject><imageobject><imagedata fileref="images/sqlrunner_html_output.png"
          format="PNG"/></imageobject></mediaobject>
         <para>With a bit of formatting, or even a CSS style sheet, this 
         HTML page could be made quite usable.</para>
@@ -1428,7 +1469,7 @@
 
           <para>Select or create the target database.</para>
 
-          <mediaobject><imageobject><imagedata fileref=""
+          <mediaobject><imageobject><imagedata fileref="images/quick_start_2.png"
            format="PNG"/></imageobject></mediaobject>
         </section>
 
@@ -1440,7 +1481,7 @@
           any additional information. The JobID must be filled in order 
           to continue.</para>
 
-          <mediaobject><imageobject><imagedata fileref=""
+          <mediaobject><imageobject><imagedata fileref="images/quick_start_3.png"
            format="PNG"/></imageobject></mediaobject>
         </section>
 
@@ -1465,18 +1506,6 @@
       </section>
 
     </section>
-
-  </chapter>
-
-  <chapter id="summary">
-
-    <title>Summary</title>
-
-    <para>This is the end of the SQL*Power User&apos;s Guide.</para>
-
-    <para>We have covered... XXX</para>
-
-    <para>TODO where to go for more information...</para>
 
   </chapter>
 
@@ -1541,9 +1570,16 @@
 
     <para>If you are having trouble with Power*Architect, we may ask 
     that, in order to help us to diagnose the problem, you take some or 
-    all of the following actions:</para>
-
-    <para>XXX</para>
+    all of the following actions:
+    </para>
+    <itemizedlist>
+    	<listitem> <para> Prepare a description of what you were doing</para>
+    	</listitem>
+    	<listitem> <para> Prepare a copy of any errors you encountered</para> 
+    	</listitem>
+    	<listitem> <para> Post your problem to the <ulink url="http://www.sqlpower.ca/forum/forums/show/2.page">Power*Architect help forum</ulink></para> 
+    	</listitem>
+    </itemizedlist>
 
   </chapter>
 
@@ -1578,10 +1614,10 @@
           width.</para></entry></row>
 
           <row><entry><para>Data Modelling</para></entry><entry><para 
-          /></entry></row>
+          >The product of the database design process which aims to identify and organize the required data logically and physically.</para></entry></row>
 
           <row><entry><para>Data Warehousing</para></entry><entry><para 
-          /></entry></row>
+          >A database, often remote, containing recent snapshots of corporate data. Planners and researchers can use this database freely without worrying about slowing down day-to-day operations of the production database.</para></entry></row>
 
           <row><entry><para>ETL</para></entry><entry><para>Extraction, 
           Transforming and Loading – the process of maintaining and 
