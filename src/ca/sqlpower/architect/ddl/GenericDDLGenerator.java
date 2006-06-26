@@ -117,7 +117,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		while (it.hasNext()) {
 			DDLStatement ddlStmt = (DDLStatement) it.next();
 			ddl.append(ddlStmt.getSQLText());
-			writeStatementTerminator();
+			println(getStatementTerminator());
 		}
 		
 		writeDDLTransactionEnd();
@@ -176,7 +176,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 			logger.info("endStatement: " + ddl.toString());
 		}
 		
-		ddlStatements.add(new DDLStatement(sqlObject, type, ddl.toString(), getTargetCatalog(), getTargetSchema()));
+		ddlStatements.add(new DDLStatement(sqlObject, type, ddl.toString(), getStatementTerminator(), getTargetCatalog(), getTargetSchema()));
 		ddl = new StringBuffer(500);
 		println("");
 	}
@@ -189,10 +189,10 @@ public class GenericDDLGenerator implements DDLGenerator {
 	 * Prints a single semicolon character (no newline).  If your
 	 * database needs something else, override this method.
 	 */
-	public void writeStatementTerminator() {
-		print(";");
+	public String getStatementTerminator() {
+		return ";";
 	}
-
+    
 	/**
 	 * Does nothing.  If your target system supports transactional
 	 * DDL, override this method and print the appropriate statement.
