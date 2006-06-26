@@ -19,6 +19,7 @@ import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.PlDotIni;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.DBCSPanel;
+import ca.sqlpower.architect.swingui.DBConnectionCallBack;
 import ca.sqlpower.architect.swingui.TextPanel;
 
 public final class DBCS_OkAction extends AbstractAction {
@@ -27,9 +28,12 @@ public final class DBCS_OkAction extends AbstractAction {
 	private JDialog newConnectionDialog;
 	private boolean isNew;
 	private String oldName;
+    private DBConnectionCallBack connectionSelectionCallBack;
 	
 		
-	public DBCS_OkAction(DBCSPanel dbcsPanel, boolean isNew) {
+
+
+    public DBCS_OkAction(DBCSPanel dbcsPanel, boolean isNew) {
 		super("Ok");
 		this.dbcsPanel = dbcsPanel;
 		this.isNew = isNew;
@@ -64,6 +68,9 @@ public final class DBCS_OkAction extends AbstractAction {
 				PlDotIni plDotIni = ArchitectFrame.getMainInstance().getUserSettings().getPlDotIni();
 				if (plDotIni.getDataSource(newDS.getName()) == null )  {
 					plDotIni.addDataSource(newDS);
+                    if (connectionSelectionCallBack != null) {
+                        connectionSelectionCallBack.selectDBConnection(newDS);
+                    }
 
 				} else {
 					JOptionPane.showMessageDialog(newConnectionDialog,"A connection with the name \""+curName+"\" already exists");
@@ -97,5 +104,14 @@ public final class DBCS_OkAction extends AbstractAction {
 	 */
 	public void setConnectionDialog(JDialog newConnectionDialog) {
 		this.newConnectionDialog = newConnectionDialog;
+	}
+    
+	public DBConnectionCallBack getConnectionSelectionCallBack() {
+	    return connectionSelectionCallBack;
+	}
+	
+	
+	public void setConnectionSelectionCallBack(DBConnectionCallBack callBack) {
+	    this.connectionSelectionCallBack = callBack;
 	}
 }

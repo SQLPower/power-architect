@@ -51,7 +51,7 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.action.DBCS_OkAction;
 import ca.sqlpower.architect.swingui.action.SetDataSourceAction;
 
-public class DBTree extends JTree implements DragSourceListener {
+public class DBTree extends JTree implements DragSourceListener, DBConnectionCallBack {
 	static Logger logger = Logger.getLogger(DBTree.class);
 
 	protected DragSource ds;
@@ -524,6 +524,8 @@ public class DBTree extends JTree implements DragSourceListener {
 	 * When invoked, this action creates a new DBCS, sets the
 	 * panelHoldsNewDBCS flag, and pops up the propDialog to edit the
 	 * new DBCS.
+     * 
+     * Calls selectDBConnection() to add the connection to the db tree
 	 */
 	protected class NewDBCSAction extends AbstractAction {
 
@@ -540,7 +542,7 @@ public class DBTree extends JTree implements DragSourceListener {
 
 
 			DBCS_OkAction okButton = new DBCS_OkAction(dbcsPanel,true);
-			
+			okButton.setConnectionSelectionCallBack(DBTree.this);
 			Action cancelAction = new AbstractAction() {
 				public void actionPerformed(ActionEvent evt) {
 					dbcsPanel.discardChanges();
@@ -828,4 +830,12 @@ public class DBTree extends JTree implements DragSourceListener {
 			return this;
 		}
 	}
+
+    /**
+     *  Adds the datasource to the dbtree
+     */
+    public void selectDBConnection(ArchitectDataSource ds) {
+        Action act = new AddDBCSAction(ds);
+        act.actionPerformed(null);
+    }
 }
