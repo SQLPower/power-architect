@@ -9,17 +9,19 @@ import java.util.*;
 // deferred until we have an architect customer who wants to use it with DB2.
 
 public class DB2DDLGenerator extends GenericDDLGenerator {
+    
 	public DB2DDLGenerator() throws SQLException {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	public static final String GENERATOR_VERSION = "$Revision$";
 
+    @Override
 	public void writeHeader() {
 		println("-- Created by SQLPower DB2 DDL Generator "+GENERATOR_VERSION+" --");
 	}
 
+    @Override
 	protected void createTypeMap() throws SQLException {
 		typeMap = new HashMap();
 		
@@ -49,6 +51,7 @@ public class DB2DDLGenerator extends GenericDDLGenerator {
 	/**
 	 * Returns the string "Database".
 	 */
+    @Override
 	public String getCatalogTerm() {
 		return "Database";
 	}
@@ -56,6 +59,7 @@ public class DB2DDLGenerator extends GenericDDLGenerator {
 	/**
 	 * Returns the string "Schema".
 	 */
+    @Override
 	public String getSchemaTerm() {
 		return "Schema";
 	}
