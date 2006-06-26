@@ -1,7 +1,0 @@
-serializer.jar - Xalan-Java 2 - Serializer
-
-Source:	        http://xml.apache.org
-Used by: 	Xalan-Java 2 and Xerces-Java 2
-
-See licenses/serializer.LICENSE.txt and licenses/serializer.NOTICE.txt
-for the license and attribution notice file that applies to serializer.jar.
