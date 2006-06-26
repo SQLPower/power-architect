@@ -1640,7 +1640,7 @@
           column.</para></entry></row>
 
           <row><entry><para>Identifying 
-          Relationship</para></entry><entry><para /></entry></row>
+          Relationship</para></entry><entry><para>Where the key of the parent table is a subset of the key of the child table.</para></entry></row>
 
           <row><entry><para>JDBC</para></entry><entry><para>Java 
           DataBase Connectivity, an unofficial acronym for the 
