@@ -126,7 +126,7 @@ public class SQLScriptDialog extends JDialog {
 		
 		for (DDLStatement ddl : statements){
 			try {
-				sqlDoc.insertString(sqlDoc.getLength(),ddl.getSQLText(),att);				
+				sqlDoc.insertString(sqlDoc.getLength(), ddl.getSQLText()+ddl.getSqlTerminator(), att);
 			} catch(BadLocationException e) {
 				ASUtils.showExceptionDialog(
 						"Could not create document for results", e);
