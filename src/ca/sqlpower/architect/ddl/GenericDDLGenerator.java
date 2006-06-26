@@ -2,7 +2,6 @@ package ca.sqlpower.architect.ddl;
 
 import ca.sqlpower.architect.*;
 import ca.sqlpower.architect.SQLRelationship.ColumnMapping;
-import ca.sqlpower.architect.diff.ArchitectDiffException;
 
 import java.sql.*;
 import java.util.*;
@@ -126,9 +125,9 @@ public class GenericDDLGenerator implements DDLGenerator {
 	}
 
 	
-	public List generateDDLStatements(SQLDatabase source) throws SQLException, ArchitectException {
+	public List<DDLStatement> generateDDLStatements(SQLDatabase source) throws SQLException, ArchitectException {
 		warnings = new ArrayList();
-		ddlStatements = new ArrayList();
+		ddlStatements = new ArrayList<DDLStatement>();
 		ddl = new StringBuffer(500);
 		topLevelNames = new HashMap();  // for tracking dup table/relationship names
 
@@ -224,8 +223,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		endStatement(DDLStatement.StatementType.DROP, r);
 	}
 	
-	public void addRelationship(SQLRelationship r)
-			throws ArchitectDiffException {
+	public void addRelationship(SQLRelationship r) {
 		
 		print("\n ALTER TABLE ");
 		print( toQualifiedName(r.getFkTable()) );
@@ -274,31 +272,31 @@ public class GenericDDLGenerator implements DDLGenerator {
 		
 	}
 	
-	public void addColumn(SQLColumn c, SQLTable t) throws ArchitectDiffException {
+	public void addColumn(SQLColumn c) {
 		Map colNameMap = new HashMap();  
 		print("\n ALTER TABLE ");
-		print( toQualifiedName(t) );
+		print(toQualifiedName(c.getParentTable()));
 		print(" ADD COLUMN ");
 		print(columnDefinition(c,colNameMap));
 		endStatement(DDLStatement.StatementType.CREATE, c);
 		
 	}
 	
-	public void dropColumn(SQLColumn c, SQLTable t) throws ArchitectDiffException {
+	public void dropColumn(SQLColumn c) {
 		Map colNameMap = new HashMap();  
 		print("\n ALTER TABLE ");
-		print( toQualifiedName(t) );
+		print(toQualifiedName(c.getParentTable()));
 		print(" DROP COLUMN ");
 		print(createPhysicalName(colNameMap,c));
 		endStatement(DDLStatement.StatementType.DROP, c);
 		
 	}
 	
-	public void modifyColumn(SQLColumn c) throws ArchitectDiffException {
+	public void modifyColumn(SQLColumn c) {
 		Map colNameMap = new HashMap(); 
 		SQLTable t = c.getParentTable();
 		print("\n ALTER TABLE ");
-		print( toQualifiedName(t) );
+		print(toQualifiedName(t));
 		print(" ALTER COLUMN ");
 		print(columnDefinition(c,colNameMap));
 		endStatement(DDLStatement.StatementType.MODIFY, c);
@@ -306,11 +304,11 @@ public class GenericDDLGenerator implements DDLGenerator {
 	}
 	
 	public void dropTable(SQLTable t) {
-        print(makeDropTableSQL(t.getCatalogName(), t.getSchemaName(), t.getName()));
+        print(makeDropTableSQL(t.getName()));
         endStatement(DDLStatement.StatementType.DROP, t);
     }
     
-	protected String columnDefinition(SQLColumn c, Map colNameMap) throws ArchitectDiffException {
+	protected String columnDefinition(SQLColumn c, Map colNameMap) {
         StringBuffer def = new StringBuffer();
 
         // Column name
@@ -465,9 +463,8 @@ public class GenericDDLGenerator implements DDLGenerator {
 					pkCols.append(", ");
 					fkCols.append(", ");
 				}
-				// 
-				append(pkCols, cmap.getPkColumn().getPhysicalName());
-				append(fkCols, cmap.getFkColumn().getPhysicalName());
+				pkCols.append(cmap.getPkColumn().getPhysicalName());
+				fkCols.append(cmap.getFkColumn().getPhysicalName());
 				firstCol = false;
 			}
 			print(fkCols.toString());
@@ -534,34 +531,6 @@ public class GenericDDLGenerator implements DDLGenerator {
 		ddl.append(text);
 	}
 
-
-
-
-	/**
-	 * Calls {@link #appendIdentifier} on <code>ddl</code>, the
-	 * internal StringBuffer that accumulates the results of DDL
-	 * generation.  It should never be necessary to override this
-	 * method, because changes to appendIdentifier will always affect
-	 * this method's behaviour.
-	 */
-
-	// NOT NEEDED ANYMORE?
-	protected final void printIdentifier(String text) {
-		appendIdentifier(ddl, text);
-	}
-
-	/**
-	 * Converts <code>text</code> to a SQL identifier by calling
-	 * {@link #toIdentifier} and appends the result to <code>sb</code>
-	 */
-	// NOT NEEDED ANYMORE?
-	protected void appendIdentifier(StringBuffer sb, String text) {
-		sb.append(toIdentifier(text));		
-	}
-	protected void append(StringBuffer sb, String text) {
-		sb.append(text);
-	}
-
 	/**
 	 * Converts space to underscore in <code>name</code> and returns
 	 * the possibly-modified string.  This will not be completely
@@ -574,29 +543,36 @@ public class GenericDDLGenerator implements DDLGenerator {
 		else return name.replace(' ', '_');
 	}
 
-
+	/**
+     * Creates a fully-qualified table name from the given table's phyiscal name
+     * and this DDL Generator's current target schema and catalog.
+     * 
+     * @param t The table whose name to qualify.  The parents of this table are
+     * disregarded; only the DDL Generator's target schema and catalog matter.
+     * @return A string of the form <tt>[catalog.][schema.]table</tt> (catalog and
+     * schema are omitted if null).
+	 */
 	public String toQualifiedName(SQLTable t) {
-		String catalog = getTargetCatalog();
-		if ( catalog == null )
-			catalog = t.getCatalogName();
-		String schema = getTargetSchema();
-		if ( schema == null )
-			schema = t.getSchemaName();
-		
-		return DDLUtils.toQualifiedName(catalog,schema,t.getPhysicalName());
+		return toQualifiedName(t.getPhysicalName());
 	}
-	
-	public String toQualifiedName(String catalog, String schema, String table) {
-		String catalog2 = getTargetCatalog();
-		if ( catalog2 == null )
-			catalog2 = catalog;
-		String schema2 = getTargetSchema();
-		if ( schema2 == null )
-			schema2 = schema;
-		
-		return DDLUtils.toQualifiedName(catalog2,schema2,table);
-	}
-	
+
+    /**
+     * Creates a fully-qualified table name from the given string (which
+     * is the non-qualified table name) and this DDL Generator's current
+     * target schema and catalog.
+     * 
+     * @param tname The table name to qualify. Must not contain the name separator
+     * character (usually '.').
+     * @return A string of the form <tt>[catalog.][schema.]table</tt> (catalog and
+     * schema are omitted if null).
+     */
+    public String toQualifiedName(String tname) {
+        String catalog = getTargetCatalog();
+        String schema = getTargetSchema();
+        
+        return DDLUtils.toQualifiedName(catalog, schema, tname);
+    }
+
 	// ---------------------- accessors and mutators ----------------------
 	
 	/**
@@ -769,17 +745,17 @@ public class GenericDDLGenerator implements DDLGenerator {
     /**
      * Generates a standard <code>DROP TABLE $tablename</code> command.  Should work on most platforms. 
      */
-    public String makeDropTableSQL(String catalog, String schema, String table) {
-        return "DROP TABLE "+toQualifiedName(catalog, schema, table);
+    public String makeDropTableSQL(String table) {
+        return "DROP TABLE "+toQualifiedName(table);
     }
 
     /**
      * Generates a command for dropping a foreign key which works on some platforms.
      * The statement looks like <code>ALTER TABLE $fktable DROP FOREIGN KEY $fkname</code>.
      */
-    public String makeDropForeignKeySQL(String fkCatalog, String fkSchema, String fkTable, String fkName) {
+    public String makeDropForeignKeySQL(String fkTable, String fkName) {
         return "ALTER TABLE "
-            +toQualifiedName(fkCatalog, fkSchema, fkTable)
+            +toQualifiedName(fkTable)
             +" DROP FOREIGN KEY "
             +fkName;
     }
@@ -788,19 +764,18 @@ public class GenericDDLGenerator implements DDLGenerator {
 		return ddlStatements;
 	}
 
-	public void dropPrimaryKey(SQLTable t, String primaryKeyName) {
+	public void dropPrimaryKey(SQLTable t) {
 
-		print("ALTER TABLE " + toQualifiedName(t.getCatalogName(),t.getSchemaName(),t.getName())
-			+ " DROP PRIMARY KEY " + primaryKeyName);
-		endStatement(DDLStatement.StatementType.DROP,t);
-		
+		print("ALTER TABLE " + toQualifiedName(t.getName())
+			+ " DROP PRIMARY KEY " + t.getPrimaryKeyName());
+		endStatement(DDLStatement.StatementType.DROP, t);
 	}
 
-	public void addPrimaryKey(SQLTable t, String primaryKeyName) throws ArchitectException {
+	public void addPrimaryKey(SQLTable t) throws ArchitectException {
 		Map colNameMap = new HashMap();  
 		StringBuffer sqlStatement = new StringBuffer();
 		boolean first = true;
-		sqlStatement.append("ALTER TABLE "+ toQualifiedName(t.getCatalogName(),t.getSchemaName(),t.getName())
+		sqlStatement.append("ALTER TABLE "+ toQualifiedName(t.getName())
 				+ " ADD PRIMARY KEY (");
 		for (SQLColumn c : t.getColumns()) {
 			if (c.isPrimaryKey()) {

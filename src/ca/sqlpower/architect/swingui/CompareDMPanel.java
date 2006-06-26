@@ -998,7 +998,14 @@ public class CompareDMPanel extends JPanel {
 						DefaultStyledDocument targetDoc = new DefaultStyledDocument();
 						
 						DDLGenerator gen =(DDLGenerator)((Class)((LabelValueBean) sqlTypeDropdown.getSelectedItem()).getValue()).newInstance();
-						
+						if (source.physicalRadio.isSelected()) {
+						    // Set generator for target catalog/schema if "newer" schema comes from a physical database
+						    SQLCatalog cat = (SQLCatalog) source.catalogDropdown.getSelectedItem();
+						    SQLSchema sch = (SQLSchema) source.schemaDropdown.getSelectedItem();
+						    gen.setTargetCatalog(cat == null ? null : cat.getPhysicalName());
+						    gen.setTargetSchema(sch == null ? null : sch.getPhysicalName());
+						}
+                        
 						final Map<DiffType, AttributeSet> styles = new HashMap<DiffType, AttributeSet>();
 						{		
 							SimpleAttributeSet att = new SimpleAttributeSet();
@@ -1028,6 +1035,7 @@ public class CompareDMPanel extends JPanel {
 							List<DiffChunk<SQLObject>> dropRelationships = new ArrayList<DiffChunk<SQLObject>>();
 							List<DiffChunk<SQLObject>> nonRelationship = new ArrayList<DiffChunk<SQLObject>>	();
 							for (DiffChunk d : diff) {
+							    if (logger.isDebugEnabled()) logger.debug(d);
 								if (d.getData() instanceof SQLRelationship) {
 									if (d.getType() == DiffType.LEFTONLY) {
 										dropRelationships.add(d);
@@ -1227,9 +1235,9 @@ public class CompareDMPanel extends JPanel {
 							}
 						}
 						if (hasKey) {
-							gen.addPrimaryKey(t,t.getPrimaryKeyName());
+							gen.addPrimaryKey(t);
 						} else {						
-							gen.dropPrimaryKey(t,t.getPrimaryKeyName());	
+							gen.dropPrimaryKey(t);	
 						}
 					}
 					
@@ -1241,7 +1249,7 @@ public class CompareDMPanel extends JPanel {
 						gen.dropTable(t);
 					}else if (chunk.getData() instanceof SQLColumn){
 						SQLColumn c = (SQLColumn) chunk.getData();
-						gen.dropColumn(c,c.getParentTable());
+						gen.dropColumn(c);
 					} else if (chunk.getData() instanceof SQLRelationship){
 						SQLRelationship r = (SQLRelationship)chunk.getData();
 						gen.dropRelationship(r);
@@ -1257,7 +1265,7 @@ public class CompareDMPanel extends JPanel {
 						gen.writeTable(t);
 					}else if (chunk.getData() instanceof SQLColumn){
 						SQLColumn c = (SQLColumn) chunk.getData();
-						gen.addColumn(c,c.getParentTable());
+						gen.addColumn(c);
 					}else if (chunk.getData() instanceof SQLRelationship){
 						SQLRelationship r = (SQLRelationship)chunk.getData();
 						gen.addRelationship(r);

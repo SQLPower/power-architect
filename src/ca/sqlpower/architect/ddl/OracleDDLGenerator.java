@@ -1,18 +1,23 @@
 package ca.sqlpower.architect.ddl;
 
-import java.sql.*;
-import java.util.*;
-import java.util.regex.*;
-import org.apache.log4j.Logger;             
+import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.diff.ArchitectDiffException;
 
 public class OracleDDLGenerator extends GenericDDLGenerator {
+    
 	public OracleDDLGenerator() throws SQLException {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	public static final String GENERATOR_VERSION = "$Revision$";
@@ -137,14 +142,12 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
 		reservedWords.add("WITH");		
 	}
 
-	private static boolean isReservedWord(String word) {
-		return reservedWords.contains(word.toUpperCase());
-	}
-		
+    @Override
 	public void writeHeader() {
 		println("-- Created by SQLPower Oracle 8i/9i DDL Generator "+GENERATOR_VERSION+" --");
 	}
 
+    @Override
 	protected void createTypeMap() throws SQLException {
 		typeMap = new HashMap();
 		
@@ -172,8 +175,8 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
 	}
 
 	/**
-	 * Turn a logical identifier into a legal identifier (physical name) for Oracle 8i/9i.  
-     * Also, upcase the identifier for consistency.  
+	 * Turns a logical identifier into a legal identifier (physical name) for Oracle 8i/9i.  
+     * Also, upcases the identifier for consistency.  
      * 
      * <p>Uses a deterministic method to generate tie-breaking numbers when there is a namespace 
      * conflict.  If you pass null as the physical name, it will use just the logical name when 
@@ -191,7 +194,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
      *  <li> can only be comprised of letters, numbers, and underscores (XXX: does not play well with regex chars like ^ and |)
      * </ul>
 	 */
-	public String toIdentifier(String logicalName, String physicalName) {
+	private String toIdentifier(String logicalName, String physicalName) {
 		// replace spaces with underscores
 		if (logicalName == null) return null;
 		if (logger.isDebugEnabled()) logger.debug("getting physical name for: " + logicalName);
@@ -242,8 +245,17 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
 			if (logger.isDebugEnabled()) logger.debug("regenerated identifier is: " + (base + tiebreaker));
 			return (base + tiebreaker);
 		}
-	}	
+    }
+    
+    /**
+     * Subroutine for toIdentifier().  Probably a generally useful feature that we
+     * should pull up to the GenericDDLGenerator.
+     */
+    private static boolean isReservedWord(String word) {
+        return reservedWords.contains(word.toUpperCase());
+    }
 
+    @Override
 	public String toIdentifier(String name) {
 		return toIdentifier(name,null);
 	}
@@ -251,6 +263,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
 	/**
 	 * Returns null because Oracle doesn't have catalogs.
 	 */
+    @Override
 	public String getCatalogTerm() {
 		return null;
 	}
@@ -258,6 +271,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
 	/**
 	 * Returns the string "Schema".
 	 */
+    @Override
 	public String getSchemaTerm() {
 		return "Schema";
 	}
@@ -266,22 +280,22 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
      * Generates a command for dropping a foreign key on oracle.
      * The statement looks like <code>ALTER TABLE $fktable DROP CONSTRAINT $fkname</code>.
      */
-    public String makeDropForeignKeySQL(String fkCatalog, String fkSchema, String fkTable, String fkName) {
+    @Override
+    public String makeDropForeignKeySQL(String fkTable, String fkName) {
         return "ALTER TABLE "
-            +DDLUtils.toQualifiedName(fkCatalog, fkSchema, fkTable)
-            +" DROP CONSTRAINT "
-            +fkName;
+            + toQualifiedName(fkTable)
+            + " DROP CONSTRAINT "
+            + fkName;
     }
     
     @Override
-    public void modifyColumn(SQLColumn c) throws ArchitectDiffException {
+    public void modifyColumn(SQLColumn c) {
 		Map colNameMap = new HashMap(); 
 		SQLTable t = c.getParentTable();
 		print("\n ALTER TABLE ");
-		print( DDLUtils.toQualifiedName(t.getCatalogName(),t.getSchemaName(),t.getPhysicalName()) );
+		print(toQualifiedName(t.getPhysicalName()));
 		print(" MODIFY ");
 		print(columnDefinition(c,colNameMap));
 		endStatement(DDLStatement.StatementType.MODIFY, c);
-		
 	}
 }

@@ -5,7 +5,6 @@
  */
 package ca.sqlpower.architect.ddl;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
@@ -15,7 +14,6 @@ import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.diff.ArchitectDiffException;
 
 /**
  * The DDLGenerator interface is a generic API for turning a SQLObject
@@ -26,25 +24,77 @@ import ca.sqlpower.architect.diff.ArchitectDiffException;
  * @version $Id$
  */
 public interface DDLGenerator {
-    public abstract List generateDDLStatements(SQLDatabase source)
+    
+    /**
+     * Creates a list of DDLStatement objects which create all of the tables,
+     * their columns and primary keys, and the foreign key relationships of the 
+     * given database.
+     * 
+     * @param source The database to generate a DDL representation of.
+     * @return The list of DDL statements that can create the given database, in the
+     * order they should be executed.
+     * @throws SQLException If there is a problem getting type info from the target DB.
+     * @throws ArchitectException If there are problems with the Architect objects.
+     */
+    public abstract List<DDLStatement> generateDDLStatements(SQLDatabase source)
             throws SQLException, ArchitectException;
     
-    public void dropColumn(SQLColumn c, SQLTable t) throws ArchitectDiffException;
-    public void addColumn(SQLColumn c, SQLTable t) throws ArchitectDiffException;
-    public void modifyColumn(SQLColumn c) throws ArchitectDiffException ;
-    public void addRelationship(SQLRelationship r) throws ArchitectDiffException;
+    /**
+     * Appends the DDL statement for dropping the given column from its parent
+     * table in this DDL Generator's target schema/catalog.
+     * 
+     * @param c The column to create a DROP statement for.
+     */
+    public void dropColumn(SQLColumn c);
+
+    /**
+     * Appends the DDL statement for adding the given column to its parent
+     * table in this DDL Generator's target schema/catalog.
+     * 
+     * @param c The column to create a ADD statement for.
+     */
+    public void addColumn(SQLColumn c);
+
+    /**
+     * Appends the DDL statement for modifying the given column's datatype and
+     * nullability in its parent table in this DDL Generator's target schema/catalog.
+     * 
+     * @param c The column to create a MODIFY or ALTER COLUMN statement for.
+     */
+    public void modifyColumn(SQLColumn c);
+
+    /**
+     * Appends the DDL statement for creating the given FK relationship
+     * in this DDL Generator's target schema/catalog.
+     * 
+     * @param c The relationship to create a FOREIGN KEY statement for.
+     */
+    public void addRelationship(SQLRelationship r);
+    
+    /**
+     * Appends the DDL statement for dropping the given FK relationship
+     * in this DDL Generator's target schema/catalog.
+     * 
+     * @param c The relationship to create a DROP FOREIGN KEY statement for.
+     */
     public void dropRelationship(SQLRelationship r);
 
     /** 
-     * Writes out the sql statements for droping a table using SQLTable t's name.
-     * It then adds the statement to the DdlStatements list.
+     * Appends the DDL statements for dropping the table in this DDL Generator's
+     * current catalog and schema using SQLTable t's physical name.
      */
     public void dropTable(SQLTable t);
+    
     /** 
-     * Writes out the sql statements for creating a table using SQLTable t as a 
-     * template.  It then adds the statement to the DdlStatements list.
+     * Appends the DDL statements for creating a table in this DDL Generator's
+     * current catalog and schema using SQLTable t as a template.
      */
     public void writeTable(SQLTable t) throws SQLException, ArchitectException;
+    
+    /**
+     * Returns the list of DDL statements that have been created so far.  Call
+     * {@link #generateDDLStatements(SQLDatabase)} to populate this list.
+     */
     public List<DDLStatement> getDdlStatements();
 
     /**
@@ -57,32 +107,30 @@ public interface DDLGenerator {
     public abstract String toIdentifier(String name);
 
     /**
-     * Creates and returns a DDL statement which will drop the given table.
+     * Creates and returns a DDL statement which will drop the given table in this
+     * DDL Generator's current catalog and schema.
      * 
-     * @param catalog The catalog of the table to be dropped (NULL for no catalog).
-     * @param schema The schema of the table to be dropped (NULL for no schema).
      * @param table The name of the table to be dropped.
      * @return A SQL statement which will drop the table. 
      */
-    public abstract String makeDropTableSQL(String catalog, String schema, String table);
+    public abstract String makeDropTableSQL(String table);
 
     /**
-     * Creates and returns a DDL statement which will drop a foreign key relationship.
+     * Creates and returns a DDL statement which will drop a foreign key relationship in this
+     * DDL Generator's current catalog and schema.
      * 
-     * @param fkCatalog The catalog of the FK table whose relationship should be dropped.
-     * @param fkSchema The schema of the FK table whose relationship should be dropped.
      * @param fkTable The name of the FK table whose relationship should be dropped.
      * @param fkName The name of the key to drop.
      * @return a SQL statement which will drop the key.
      */
-    public abstract String makeDropForeignKeySQL(String fkCatalog, String fkSchema, String fkTable, String fkName);
+    public abstract String makeDropForeignKeySQL(String fkTable, String fkName);
 
     // ---------------------- accessors and mutators ----------------------
 
     /**
      * Tells the generator whether or not it can connect to the target 
      * database and ask for additional information during the generation
-     * process. 
+     * process. For instance, to populate the type map.
      */
     public abstract boolean getAllowConnection();
 
@@ -104,20 +152,6 @@ public interface DDLGenerator {
      * @param argTypeMap Value to assign to this.typeMap
      */
     public abstract void setTypeMap(Map argTypeMap);
-
-    /**
-     * Gets the value of con
-     *
-     * @return the value of con
-     */
-    public abstract Connection getCon();
-
-    /**
-     * Sets the value of con
-     *
-     * @param argCon Value to assign to this.con
-     */
-    public abstract void setCon(Connection argCon);
 
     /**
      * Returns {@link #warnings}.
@@ -166,7 +200,7 @@ public interface DDLGenerator {
      */
     public abstract String getSchemaTerm();
 
-	public abstract void dropPrimaryKey(SQLTable t, String primaryKeyName);
+	public abstract void dropPrimaryKey(SQLTable t);
 
-	public abstract void addPrimaryKey(SQLTable t, String primaryKeyName) throws ArchitectException;
+	public abstract void addPrimaryKey(SQLTable t) throws ArchitectException;
 }
