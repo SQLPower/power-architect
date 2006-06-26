@@ -36,8 +36,8 @@ public interface DDLGenerator {
      * @throws SQLException If there is a problem getting type info from the target DB.
      * @throws ArchitectException If there are problems with the Architect objects.
      */
-    public abstract List<DDLStatement> generateDDLStatements(SQLDatabase source)
-            throws SQLException, ArchitectException;
+    public List<DDLStatement> generateDDLStatements(SQLDatabase source)
+    throws SQLException, ArchitectException;
     
     /**
      * Appends the DDL statement for dropping the given column from its parent
@@ -46,7 +46,7 @@ public interface DDLGenerator {
      * @param c The column to create a DROP statement for.
      */
     public void dropColumn(SQLColumn c);
-
+    
     /**
      * Appends the DDL statement for adding the given column to its parent
      * table in this DDL Generator's target schema/catalog.
@@ -54,7 +54,7 @@ public interface DDLGenerator {
      * @param c The column to create a ADD statement for.
      */
     public void addColumn(SQLColumn c);
-
+    
     /**
      * Appends the DDL statement for modifying the given column's datatype and
      * nullability in its parent table in this DDL Generator's target schema/catalog.
@@ -62,7 +62,7 @@ public interface DDLGenerator {
      * @param c The column to create a MODIFY or ALTER COLUMN statement for.
      */
     public void modifyColumn(SQLColumn c);
-
+    
     /**
      * Appends the DDL statement for creating the given FK relationship
      * in this DDL Generator's target schema/catalog.
@@ -78,7 +78,7 @@ public interface DDLGenerator {
      * @param c The relationship to create a DROP FOREIGN KEY statement for.
      */
     public void dropRelationship(SQLRelationship r);
-
+    
     /** 
      * Appends the DDL statements for dropping the table in this DDL Generator's
      * current catalog and schema using SQLTable t's physical name.
@@ -96,7 +96,7 @@ public interface DDLGenerator {
      * {@link #generateDDLStatements(SQLDatabase)} to populate this list.
      */
     public List<DDLStatement> getDdlStatements();
-
+    
     /**
      * Converts an arbitrary string (which may contain spaces, mixed case, 
      * punctuation, and so on) into a valid identifier in the target
@@ -104,8 +104,8 @@ public interface DDLGenerator {
      * to the minimum degree necessary to make the given string into a valid
      * identifier on the target system.
      */
-    public abstract String toIdentifier(String name);
-
+    public String toIdentifier(String name);
+    
     /**
      * Creates and returns a DDL statement which will drop the given table in this
      * DDL Generator's current catalog and schema.
@@ -113,8 +113,8 @@ public interface DDLGenerator {
      * @param table The name of the table to be dropped.
      * @return A SQL statement which will drop the table. 
      */
-    public abstract String makeDropTableSQL(String table);
-
+    public String makeDropTableSQL(String table);
+    
     /**
      * Creates and returns a DDL statement which will drop a foreign key relationship in this
      * DDL Generator's current catalog and schema.
@@ -123,84 +123,90 @@ public interface DDLGenerator {
      * @param fkName The name of the key to drop.
      * @return a SQL statement which will drop the key.
      */
-    public abstract String makeDropForeignKeySQL(String fkTable, String fkName);
-
+    public String makeDropForeignKeySQL(String fkTable, String fkName);
+    
     // ---------------------- accessors and mutators ----------------------
-
+    
     /**
      * Tells the generator whether or not it can connect to the target 
      * database and ask for additional information during the generation
      * process. For instance, to populate the type map.
      */
-    public abstract boolean getAllowConnection();
-
+    public boolean getAllowConnection();
+    
     /**
      * See {@link #getAllowConnection()}.
      */
-    public abstract void setAllowConnection(boolean argAllowConnection);
-
+    public void setAllowConnection(boolean argAllowConnection);
+    
     /**
      * Gets the value of typeMap
      *
      * @return the value of typeMap
      */
-    public abstract Map getTypeMap();
-
+    public Map getTypeMap();
+    
     /**
      * Sets the value of typeMap
      *
      * @param argTypeMap Value to assign to this.typeMap
      */
-    public abstract void setTypeMap(Map argTypeMap);
-
+    public void setTypeMap(Map argTypeMap);
+    
     /**
      * Returns {@link #warnings}.
      */
-    public abstract List getWarnings();
-
+    public List getWarnings();
+    
     /**
      * See {@link #targetCatalog}.
      *
      * @return the value of targetCatalog
      */
-    public abstract String getTargetCatalog();
-
+    public String getTargetCatalog();
+    
     /**
      * See {@link #targetCatalog}.
      *
      * @param argTargetCatalog Value to assign to this.targetCatalog
      */
-    public abstract void setTargetCatalog(String argTargetCatalog);
-
+    public void setTargetCatalog(String argTargetCatalog);
+    
     /**
      * See {@link #targetSchema}.
      *
      * @return the value of targetSchema
      */
-    public abstract String getTargetSchema();
-
+    public String getTargetSchema();
+    
     /**
      * See {@link #targetSchema}.
      *
      * @param argTargetSchema Value to assign to this.targetSchema
      */
-    public abstract void setTargetSchema(String argTargetSchema);
-
+    public void setTargetSchema(String argTargetSchema);
+    
     /**
      * The name that the target database gives to the JDBC idea of
      * "catalog."  For Oracle, this would be null (no catalogs) and
      * for SQL Server it would be "Database".
      */
-    public abstract String getCatalogTerm();
-
+    public String getCatalogTerm();
+    
     /**
      * The name that the target database gives to the JDBC idea of
      * "schema."  For Oracle, this would be "Schema" and for SQL
      * Server it would be "Owner".
      */
-    public abstract String getSchemaTerm();
-
-	public abstract void dropPrimaryKey(SQLTable t);
-
-	public abstract void addPrimaryKey(SQLTable t) throws ArchitectException;
+    public String getSchemaTerm();
+    
+    public void dropPrimaryKey(SQLTable t);
+    
+    public void addPrimaryKey(SQLTable t) throws ArchitectException;
+    
+    /**
+     * Returns the string that should be used at the end of each statement.
+     * For many platforms, this is a semicolon.
+     */
+    public String getStatementTerminator();
 }
