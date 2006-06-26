@@ -217,12 +217,12 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
 	}
 
 	/**
-	 * Prints nothing because SS2k doesn't need DDL statement
+	 * Returns an empty string because SS2k doesn't need DDL statement
 	 * terminators.
 	 */
     @Override
-	public void writeStatementTerminator() {
-        // override to suppress
+	public String getStatementTerminator() {
+        return "";
 	}
 
     @Override
