@@ -27,7 +27,6 @@
         </javac>
 	</target>
 
-
     <!-- copies our custom icon files to the build dir so
          they will be in the classpath at runtime. -->
 	<target name="copyicons" depends="init">
@@ -50,7 +49,16 @@
 	    <copy failonerror="false" file="src/log4j.properties" todir="${build}" overwrite="true" />
     </target>
 
-	<target name="createUserGuide" depends="init">
+	<!-- DOCUMENTATION -->
+
+	<!-- NOTE: All parts currenlty require xalan on classpath since JDK1.5 is behind -->
+
+	<target name="userguide" depends="html" description="Create user guide in HTML and PDF">
+	</target>
+	<!-- depends="html,fo,pdf" -->
+
+	<!-- First the HTML -->
+	<target name="html" depends="init" description="Create user guide in HTML">
 		<mkdir dir="${build}/ca/sqlpower/architect/doc/" />
 		<mkdir dir="${build}/ca/sqlpower/architect/doc/images" />		
 		<xslt
@@ -72,10 +80,45 @@
 				<include name="*.png"/>				
 			</fileset>
 		</copy>
+	</target>
+
+	<!-- Convert User Manual from XML to FO -->
+	<target name="fo" depends="init" description="Create user guide in HTML">
+		<mkdir dir="${build}/doc/" />
+        <xslt 
+			style="doc/tools/xslt/fo/docbook.xsl"
+			in="doc/PowerArchitectUserGuide.xml" 
+			out="${build}/doc/PowerArchitectUserGuide.fo">
+			<classpath>
+			    <fileset dir="doc/tools/xalan">
+			      <include name="*.jar"/>
+			    </fileset>
+			</classpath>
+		</xslt>
+	</target>
+
+	<!-- Now finish it, from FO to PDF -->
+	<target name="pdf" depends="fo" description="Create user guide in HTML">
+		<path id="fop-classpath">
+			<fileset dir="doc/tools/xalan">
+			  <include name="*.jar"/>
+			</fileset>
+			<fileset dir="doc/tools/fop">
+			  <include name="*.jar"/>
+			</fileset>
+		</path>
+		<taskdef name="fop" classname="org.apache.fop.tools.anttasks.Fop" classpathref="fop-classpath"/>
+
+        <fop format="application/pdf" messagelevel="info" relativebase="true">
+			<fileset dir=".">
+				<include name="${build}/doc/*.fo"/>
+			</fileset>
+		</fop>
+
     </target>
 	    	
     <!-- Creates a WebStart distribution under the webstart/ directory -->
-	<target name="dist" depends="compile,createUserGuide">
+	<target name="dist" depends="compile,userguide">
         <mkdir dir="webstart/lib"/>
 		<jar destfile="webstart/lib/architect.jar" basedir="${build}" includes="ca/** icons/** log4j.properties" manifest="manifest">
 		</jar>
