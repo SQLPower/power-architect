@@ -43,14 +43,21 @@ public class DDLStatement {
 	private SQLObject object;
 	private StatementType type;
 	private String sqlText;
-
-	public DDLStatement(SQLObject object, StatementType type, String sqlText,
-			String targetCatalog, String targetSchema) {
-		this.object = object;
-		this.type = type;
-		this.sqlText = sqlText;
-		this.targetCatalog = targetCatalog;
-		this.targetSchema = targetSchema;
+	private String sqlTerminator;
+    
+	public DDLStatement(
+	        SQLObject object,
+	        StatementType type,
+	        String sqlText,
+	        String sqlTerminator,
+	        String targetCatalog,
+	        String targetSchema) {
+	    this.object = object;
+	    this.type = type;
+	    this.sqlText = sqlText;
+	    this.sqlTerminator = sqlTerminator;
+	    this.targetCatalog = targetCatalog;
+	    this.targetSchema = targetSchema;
 	}
 
 	// ------------------------ Accessors and Mutators -------------------------
@@ -109,6 +116,14 @@ public class DDLStatement {
 		this.sqlText = v;
 	}
 
+    public void setSqlTerminator(String sqlTerminator) {
+        this.sqlTerminator = sqlTerminator;
+    }
+    
+    public String getSqlTerminator() {
+        return sqlTerminator;
+    }
+    
 	public String getTargetCatalog() {
 		return targetCatalog;
 	}
