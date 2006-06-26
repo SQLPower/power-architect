@@ -298,4 +298,14 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
 		print(columnDefinition(c,colNameMap));
 		endStatement(DDLStatement.StatementType.MODIFY, c);
 	}
+    
+    @Override
+    public void addColumn(SQLColumn c) {
+        Map colNameMap = new HashMap();  
+        print("\n ALTER TABLE ");
+        print(toQualifiedName(c.getParentTable()));
+        print(" ADD ");
+        print(columnDefinition(c,colNameMap));
+        endStatement(DDLStatement.StatementType.CREATE, c);
+    }
 }
