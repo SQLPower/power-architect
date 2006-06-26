@@ -198,10 +198,12 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
 		return reservedWords.contains(word.toUpperCase());
 	}
 
+    @Override
 	public void writeHeader() {
 		println("-- Created by SQLPower SQLServer 2000 DDL Generator "+GENERATOR_VERSION+" --");
 	}
 	
+    @Override
 	public void writeDDLTransactionBegin() {
         // nothing needs to be done for beginning a transaction
 	}
@@ -209,6 +211,7 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
 	/**
 	 * Prints "GO" on its own line.
 	 */
+    @Override
 	public void writeDDLTransactionEnd() {
 		println("GO");
 	}
@@ -217,10 +220,12 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
 	 * Prints nothing because SS2k doesn't need DDL statement
 	 * terminators.
 	 */
+    @Override
 	public void writeStatementTerminator() {
         // override to suppress
 	}
 
+    @Override
 	protected void createTypeMap() throws SQLException {
 		typeMap = new HashMap();
 		
@@ -250,6 +255,7 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
 	/**
 	 * Returns the string "Database".
 	 */
+    @Override
 	public String getCatalogTerm() {
 		return "Database";
 	}
@@ -257,6 +263,7 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
 	/**
 	 * Returns the string "Owner".
 	 */
+    @Override
 	public String getSchemaTerm() {
 		return "Owner";
 	}
@@ -281,7 +288,7 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
      * 
      * <p>XXX: the illegal character replacement routine does not play well with regex chars like ^ and |
 	 */
-	public String toIdentifier(String logicalName, String physicalName) {
+	private String toIdentifier(String logicalName, String physicalName) {
 		// replace spaces with underscores
 		if (logicalName == null) return null;
 		logger.debug("getting physical name for: " + logicalName);
@@ -326,6 +333,7 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
 		}
 	}	
 
+    @Override
 	public String toIdentifier(String name) {
 		return toIdentifier(name,null);
 	}

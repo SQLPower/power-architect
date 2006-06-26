@@ -106,9 +106,10 @@ public class ConflictResolver implements Monitorable {
                 if (c.equals(prev)) continue;
                 prev = c;
                 
+                ddlg.setTargetCatalog(c.getCatalog());
+                ddlg.setTargetSchema(c.getSchema());
                 c.setSqlDropStatement(
-                        ddlg.makeDropForeignKeySQL(c.getCatalog(), c.getSchema(),
-                                                   rs.getString("FKTABLE_NAME"), c.getName()));
+                        ddlg.makeDropForeignKeySQL(rs.getString("FKTABLE_NAME"), c.getName()));
                 dependants.add(c);
             }
         }
@@ -243,7 +244,9 @@ public class ConflictResolver implements Monitorable {
 								rs.getString("TABLE_CAT"),
 								rs.getString("TABLE_SCHEM"),
 								rs.getString("TABLE_NAME"));
-   						c.setSqlDropStatement(ddlg.makeDropTableSQL(c.getCatalog(), c.getSchema(), c.getName()));
+   						ddlg.setTargetCatalog(c.getCatalog());
+   						ddlg.setTargetSchema(c.getSchema());
+   						c.setSqlDropStatement(ddlg.makeDropTableSQL(c.getName()));
    						c.addTableDependants(dbmd);
    						conflicts.add(c);
    					}
