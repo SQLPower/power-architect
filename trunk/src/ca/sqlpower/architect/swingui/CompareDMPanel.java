@@ -165,7 +165,7 @@ public class CompareDMPanel extends JPanel {
 	 * <p>
 	 * Note: this class is only public because the test needs to refer to it. :(
 	 */
-	public class SourceOrTargetStuff {
+	public class SourceOrTargetStuff implements DBConnectionCallBack{
 
 		private JComboBox databaseDropdown;
 
@@ -210,7 +210,7 @@ public class CompareDMPanel extends JPanel {
 				dbcsPanel.setDbcs(new ArchitectDataSource());
 				
 				DBCS_OkAction okAction = new DBCS_OkAction(dbcsPanel, true);
-				
+				okAction.setConnectionSelectionCallBack(SourceOrTargetStuff.this);
 				Action cancelAction = new AbstractAction() {
 					public void actionPerformed(ActionEvent e) {
 						dbcsPanel.discardChanges();
@@ -725,6 +725,11 @@ public class CompareDMPanel extends JPanel {
 
 			newConnectionAction.setEnabled(enable);
 		}
+
+        public void selectDBConnection(ArchitectDataSource ds) {
+           databaseDropdown.setSelectedItem(ds);
+            
+        }
 	}
 
 	/**
