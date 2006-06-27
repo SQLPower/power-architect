@@ -13,7 +13,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JFrame;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -33,7 +33,7 @@ import com.jgoodies.forms.debug.FormDebugPanel;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class CompareDMFrame extends JFrame {
+public class CompareDMFrame extends JDialog {
 
 	private static Logger logger = Logger.getLogger(CompareDMFrame.class);
 	private JTextPane leftOutputArea;
@@ -43,18 +43,19 @@ public class CompareDMFrame extends JFrame {
 	private AbstractDocument targetOutputText;
 
 	private String title;
+    private String whatTheHeckIsGoingOn;
 	private JComponent panel;
 			
 	public CompareDMFrame(AbstractDocument sourceOutputText, AbstractDocument targetOutputText, 
 						String leftDBName, String rightDBName)
 	{
-		super();	
+		super(ArchitectFrame.getMainInstance());	
 		
 		setTitle("Data Model comparison");
 		this.sourceOutputText = sourceOutputText;
 		this.targetOutputText = targetOutputText;
-		this.title = "Comparing " + leftDBName+ " to "
-		+ rightDBName + " using English";	
+		this.title = "Comparing " + leftDBName+ " to " + rightDBName + ".";
+        whatTheHeckIsGoingOn ="The following changes need to be done to make one into the other:";	
 		panel = mainFrame();
 		getContentPane().add(panel);
 		
@@ -77,15 +78,16 @@ public class CompareDMFrame extends JFrame {
 		
 		FormLayout layout = new FormLayout(
 				"4dlu,fill:min(150dlu;default):grow, 6dlu, fill:min(150dlu;default):grow, 4dlu", // columns
-				" min(300dlu;default), 6dlu,  min(300dlu;default), 3dlu, fill:min(300dlu;default):grow, 3dlu, 20dlu,6dlu,20dlu"); // rows
+				" min(300dlu;default), 6dlu, min(300dlu;default), 6dlu,  min(300dlu;default), 3dlu, fill:min(300dlu;default):grow, 3dlu, 20dlu,6dlu,20dlu"); // rows
 		
 
 		CellConstraints cc = new CellConstraints();
-		Font titleFont = new Font("Ariel",1,16);
-		
 		JLabel titleLabel = new JLabel(title);
-		titleLabel.setFont(titleFont);
+        Font oldFont  = titleLabel.getFont();
+		Font titleFont = new Font(oldFont.getName(),oldFont.getStyle(),oldFont.getSize()*2);
 		
+		titleLabel.setFont(titleFont);
+		JLabel subTitleLabel = new JLabel(whatTheHeckIsGoingOn);
 		leftOutputArea = new JTextPane();
 		leftOutputArea.setMargin(new Insets(6, 10, 4, 6));
 		leftOutputArea.setDocument(sourceOutputText);
@@ -103,7 +105,7 @@ public class CompareDMFrame extends JFrame {
 			}
 		};
 		CloseAction close = new CloseAction();
-		close.setFrame(this);
+		close.setDialog(this);
 		
 		ButtonBarBuilder sourcebbBuilder = new ButtonBarBuilder();
 		JButton copySource = new JButton(sourceCopy);
@@ -131,12 +133,7 @@ public class CompareDMFrame extends JFrame {
 		
 		layout.setColumnGroups(new int [][] { {2,4}}); 
 		JPanel p = logger.isDebugEnabled()  ? new FormDebugPanel(layout) : new JPanel(layout);
-		pb = new PanelBuilder(layout, p);			
-		pb.setDefaultDialogBorder();	
-		pb.add(titleLabel, cc.xy(2, 1));			
-		pb.add(sp, cc.xy(2, 3));
-		pb.add(sourcebbBuilder.getPanel(), cc.xy(2, 5, "c,c"));
-		pb.add(closeBar.getPanel(), cc.xy(2,7, "r,c"));
+
 		
 		pb = new PanelBuilder(layout,p);
 		pb.setDefaultDialogBorder();		
@@ -173,12 +170,13 @@ public class CompareDMFrame extends JFrame {
 
 		
 		pb.add(titleLabel, cc.xyw(2, 1, 3,"c,c"));
-		pb.add(new JLabel("Source"), cc.xy(2,3));
-		pb.add(new JLabel("Target"), cc.xy(4,3));
-		pb.add(sp, cc.xyw(2, 5,3));
-		pb.add(sourcebbBuilder.getPanel(), cc.xy(2, 7, "l,c"));
-		pb.add(targetbbBuilder.getPanel(), cc.xy(4, 7, "r,c"));
-		pb.add(closeBar.getPanel(), cc.xy(4,9, "r,c"));
+        pb.add(subTitleLabel,cc.xyw(2, 3, 3,"c,c"));
+		pb.add(new JLabel("Source"), cc.xy(2,5));
+		pb.add(new JLabel("Target"), cc.xy(4,5));
+		pb.add(sp, cc.xyw(2, 7,3));
+		pb.add(sourcebbBuilder.getPanel(), cc.xy(2, 9, "l,c"));
+		pb.add(targetbbBuilder.getPanel(), cc.xy(4, 9, "r,c"));
+		pb.add(closeBar.getPanel(), cc.xy(4,11, "r,c"));
 	
 		return pb.getPanel();
 	}
@@ -225,13 +223,13 @@ public class CompareDMFrame extends JFrame {
 	}
 
 	public class CloseAction extends AbstractAction {	
-		JFrame localframe;
+		JDialog localDialog;
 		
-		public void setFrame(JFrame frame){
-			localframe = frame;				
+		public void setDialog(JDialog dialog){
+			localDialog = dialog;				
 		}
 		public void actionPerformed(ActionEvent e) {
-			localframe.setVisible(false);
+			localDialog.setVisible(false);
 		}						
 	}
 	

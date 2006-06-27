@@ -1061,8 +1061,7 @@ public class CompareDMPanel extends JPanel {
 						
 						// get the title string for the compareDMFrame
 						if (sqlButton.isSelected()) {
-							String titleString = "Comparing " + left.getName() + " to "
-							+ right.getName() + " using SQL";
+							String titleString = "Generated SQL Script to turn "+left.getName()+ " into " + right.getName();
 							
 							SQLDatabase db = null;
 							if ( source.loadRadio.isSelected() )
@@ -1182,23 +1181,23 @@ public class CompareDMPanel extends JPanel {
 				String diffTypeEnglish;
 				switch (chunk.getType()) {
 				case LEFTONLY:
-					diffTypeEnglish = "was removed";
+					diffTypeEnglish = "should be removed";
 					break;
 					
 				case MODIFIED:
-					diffTypeEnglish = "was modified";
+					diffTypeEnglish = "should be modified";
 					break;
 					
 				case SAME:
-					diffTypeEnglish = "stayed the same";
+					diffTypeEnglish = "needs no changes";
 					break;
 					
 				case RIGHTONLY:
-					diffTypeEnglish = "was added";
+					diffTypeEnglish = "should be added";
 					break;
 					
 				case KEY_CHANGED:
-					diffTypeEnglish = "has a different primary key";
+					diffTypeEnglish = "needs a different primary key";
 					break;
 					
 				default:
