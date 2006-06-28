@@ -85,7 +85,7 @@ public class SQLRelationshipComparator implements Comparator<SQLRelationship> {
 		boolean sourceContinue;
 		boolean targetContinue;
 
-		//Checks if both lists of tables contain any tables at all, if they do
+		//Checks if both lists of tables contain any columns at all, if they do
 		//the iterator is initialized for the list
 		do {
 
