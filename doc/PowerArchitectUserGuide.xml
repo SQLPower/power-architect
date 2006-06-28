@@ -8,7 +8,7 @@
 	<!-- $Id$ -->
 	
     <imageobject id="architect_logo">
-    <imagedata fileref="images/architect_logo.png" format="PNG"/>
+    <imagedata fileref="doc/images/architect_logo.png" format="PNG"/>
     </imageobject>
     <title id="user">Power*Architect User Guide</title>
 
@@ -298,8 +298,8 @@
       starting point for actions.</para>
 
       <para><inlinemediaobject><imageobject>
-      <imagedata fileref="images/basicui.png"
-       format="PNG"/></imageobject></inlinemediaobject></para>
+      <imagedata fileref="doc/images/basicui.png"
+       format="PNG" width="4in" /></imageobject></inlinemediaobject></para>
 
       <para><emphasis>Database Tree</emphasis> – This is where you can 
       add, maintain and explore imported connections. It uses a 
@@ -338,8 +338,8 @@
       you can specify your file locations.</para>
 
       <para><inlinemediaobject><imageobject>
-      <imagedata fileref="images/user_prefs.png"
-       format="PNG"/></imageobject></inlinemediaobject></para>
+      <imagedata fileref="doc/images/user_prefs.png"
+       format="PNG" width="4in"/></imageobject></inlinemediaobject></para>
 
       <para>The pl.ini file stores the database connections that you 
       set up (see JDBC Drivers on page 8). If you leave this location 
@@ -376,8 +376,8 @@
       access).</para>
 
       <para><inlinemediaobject><imageobject>
-      <imagedata fileref="images/jdbc_user_prefs.png"
-       format="PNG"/></imageobject></inlinemediaobject></para>
+      <imagedata fileref="doc/images/jdbc_user_prefs.png"
+       format="PNG" width="4in" /></imageobject></inlinemediaobject></para>
 
       <para>Note: The tie-in between Drivers and Connections might seem 
       a bit indirect if you are not used to using Java JDBC. In this 
@@ -490,8 +490,8 @@
               table should look something like the following:</para>
 
               <mediaobject><imageobject>
-              <imagedata fileref="images/example_4_4.png"
-               format="PNG"/></imageobject></mediaobject>
+              <imagedata fileref="doc/images/example_4_4.png"
+               format="PNG" width="4in"/></imageobject></mediaobject>
             </listitem>
 
             <listitem>
@@ -507,8 +507,8 @@
               something like the following:</para>
 
               <mediaobject><imageobject>
-              <imagedata fileref="images/example_4_6.png"
-               format="PNG"/></imageobject></mediaobject>
+              <imagedata fileref="doc/images/example_4_6.png"
+               format="PNG" width="4in"/></imageobject></mediaobject>
             </listitem>
 
             <listitem>
@@ -522,8 +522,8 @@
               relationship will be highlighted in red.</para>
 
               <mediaobject><imageobject>
-              <imagedata fileref="images/example_4_7.png"
-               format="PNG"/></imageobject></mediaobject>
+              <imagedata fileref="doc/images/example_4_7.png"
+               format="PNG" width="4in"/></imageobject></mediaobject>
             </listitem>
 
           </orderedlist>
@@ -538,8 +538,8 @@
           see a window similar to the following:</para>
 
           <mediaobject><imageobject>
-          <imagedata fileref="images/example_5.png"
-           format="PNG"/></imageobject></mediaobject>
+          <imagedata fileref="doc/images/example_5.png"
+           format="PNG" width="4in"/></imageobject></mediaobject>
         </listitem>
 
         <listitem>
@@ -580,8 +580,8 @@
           the output format to SQL.</para>
 
           <mediaobject><imageobject>
-          <imagedata fileref="images/example_9.png"
-           format="PNG"/></imageobject></mediaobject>
+          <imagedata fileref="doc/images/example_9.png"
+           format="PNG" width="4in"/></imageobject></mediaobject>
         </listitem>
 
         <listitem>
@@ -591,8 +591,8 @@
           added:</para>
 
           <mediaobject><imageobject>
-          <imagedata fileref="images/example_10.png"
-           format="PNG"/></imageobject></mediaobject>
+          <imagedata fileref="doc/images/example_10.png"
+           format="PNG" width="4in"/></imageobject></mediaobject>
         </listitem>
 
         <listitem>
@@ -624,7 +624,7 @@
         <title>Creating New Tables</title>
 
         <para><inlinemediaobject><imageobject>
-        <imagedata fileref="images/NewTable24.gif"
+        <imagedata fileref="src/icons/NewTable24.gif"
          format="GIF"/></imageobject></inlinemediaobject> There are 
         several ways to create new tables in Power*Architect. The first 
         way is to click on the New Table Icon on the sidebar menu. The 
@@ -643,14 +643,14 @@
         <title>Editing Tables</title>
 
         <para><inlinemediaobject><imageobject>
-        <imagedata fileref="images/TableProperties24.gif"
+        <imagedata fileref="src/icons/TableProperties24.gif"
          format="GIF"/></imageobject></inlinemediaobject> To edit a 
         table, right click on the table title and select “Table 
         Properties”. This pops up the Table Properties dialog.</para>
 
         <mediaobject><imageobject>
-        <imagedata fileref="images/Table_Properties.png"
-         format="PNG"/></imageobject></mediaobject>
+        <imagedata fileref="doc/images/Table_Properties.png"
+         format="PNG" width="4in"/></imageobject></mediaobject>
         <para>In this dialog, you can:</para>
 
         <itemizedlist>
@@ -682,7 +682,7 @@
         <title>Creating New Columns</title>
 
         <para><inlinemediaobject><imageobject>
-        <imagedata fileref="images/NewColumn24.gif"
+        <imagedata fileref="src/icons/NewColumn24.gif"
          format="GIF"/></imageobject></inlinemediaobject> First select 
         the table the new column will be placed in. Click on the 
         &quot;Insert Column&quot; button and a column is created in the 
@@ -703,7 +703,7 @@
         <title>Editing Columns</title>
 
         <para><inlinemediaobject><imageobject>
-        <imagedata fileref="images/ColumnProperties24.gif"
+        <imagedata fileref="src/icons/ColumnProperties24.gif"
          format="GIF"/></imageobject></inlinemediaobject> Select the 
         desired column, right click and select &quot;Column 
         Properties&quot;. The Edit Column Properties dialog pops up. Or 
@@ -711,8 +711,8 @@
         button on the Playpen toolbar.</para>
 
         <mediaobject><imageobject>
-        <imagedata fileref="images/Column_properties.png"
-         format="PNG"/></imageobject></mediaobject>
+        <imagedata fileref="doc/images/Column_properties.png"
+         format="PNG" width="4in"/></imageobject></mediaobject>
         <para>In this dialog, you can:</para>
 
         <itemizedlist>
@@ -798,19 +798,19 @@
         Relationships</title>
 
         <para><inlinemediaobject><imageobject>
-        <imagedata fileref="images/NewIdentifyingRelationship24.gif"
+        <imagedata fileref="src/icons/NewIdentifyingRelationship24.gif"
          format="GIF"/></imageobject></inlinemediaobject> 
         <inlinemediaobject><imageobject>
-        <imagedata fileref="images/NewNonIdentifyingRelationship24.gif"
+        <imagedata fileref="src/icons/NewNonIdentifyingRelationship24.gif"
          format="GIF"/></imageobject></inlinemediaobject> To create a 
         relationship, select the desired type of relationship on the 
         Playpen ToolBar. The non-identifying relationship icon is 
         <inlinemediaobject><imageobject>
-        <imagedata fileref="images/NewNonIdentifyingRelationship24.gif"
+        <imagedata fileref="src/icons/NewNonIdentifyingRelationship24.gif"
          format="GIF"/></imageobject></inlinemediaobject> (keyboard 
         shortcut is shift+R). The identifying relationship icon is 
         identified by <inlinemediaobject><imageobject>
-        <imagedata fileref="images/NewIdentifyingRelationship24.gif"
+        <imagedata fileref="src/icons/NewIdentifyingRelationship24.gif"
          format="GIF"/></imageobject></inlinemediaobject> (shortcut key 
         is R). The cursor changes to the &quot;+&quot; cursor to 
         indicate the mode change. First click on the parent table and then 
@@ -825,7 +825,7 @@
         <title>Editing a Relationship</title>
 
         <para><inlinemediaobject><imageobject>
-        <imagedata fileref="images/RelationshipProperties24.gif"
+        <imagedata fileref="src/icons/RelationshipProperties24.gif"
          format="GIF"/></imageobject></inlinemediaobject> Select the 
         desired relationship and right click on the relationship. 
         Choose the &quot;Relationship Properties&quot; options. This 
@@ -834,8 +834,8 @@
         Relationship Properties dialog will appear.</para>
 
         <mediaobject><imageobject>
-        <imagedata fileref="images/relationship_roperties.png"
-         format="PNG"/></imageobject></mediaobject>
+        <imagedata fileref="doc/images/relationship_properties.png"
+         format="PNG" width="4in"/></imageobject></mediaobject>
         <para>In this dialog, you can:</para>
 
         <itemizedlist>
@@ -921,8 +921,8 @@
         Both ways open up this dialog:</para>
 
         <mediaobject><imageobject>
-        <imagedata fileref="images/db_connection_properties.png"
-         format="PNG"/></imageobject></mediaobject>
+        <imagedata fileref="doc/images/db_connection_properties.png"
+         format="PNG" width="4in"/></imageobject></mediaobject>
         <para>You must know which JDBC driver to use before you can 
         connect to a database. When you have selected the JDBC Driver, 
         the Connect Options will change to allow you to enter the 
@@ -942,8 +942,8 @@
         user-preference.</para>
 
         <mediaobject><imageobject>
-        <imagedata fileref="images/new_connection.png"
-         format="PNG"/></imageobject></mediaobject>
+        <imagedata fileref="doc/images/new_connection.png"
+         format="PNG" width="4in"/></imageobject></mediaobject>
         <para>Note: if you have too many connections (more than the 
         height of the Architect window), the Architect does not have 
         the ability to show all of them.</para>
@@ -990,7 +990,7 @@
         <title>Setting the Current Project Database</title>
 
         <para><inlinemediaobject><imageobject>
-        <imagedata fileref="images/TargetDatabaseArrow16.gif"
+        <imagedata fileref="src/icons/TargetDatabaseArrow16.gif"
          format="GIF"/></imageobject></inlinemediaobject> The project 
         database can be set to an existing database connection or the 
         user can create a new connection for it as well. Setting the 
@@ -1028,27 +1028,27 @@
             <tbody>
 
               <row><entry><inlinemediaobject><imageobject>
-              <imagedata fileref="images/Database16.gif"
+              <imagedata fileref="src/icons/Database16.gif"
                format="GIF"/></imageobject></inlinemediaobject></entry><entry>Database</entry></row>
 
               <row><entry><inlinemediaobject><imageobject>
-              <imagedata fileref="images/Catalog16.gif"
+              <imagedata fileref="src/icons/Catalog16.gif"
                format="GIF"/></imageobject></inlinemediaobject></entry><entry>Catalog</entry></row>
 
               <row><entry><inlinemediaobject><imageobject>
-              <imagedata fileref="images/Schema16.gif"
+              <imagedata fileref="src/icons/Schema16.gif"
                format="GIF"/></imageobject></inlinemediaobject></entry><entry>Schema</entry></row>
 
               <row><entry><inlinemediaobject><imageobject>
-              <imagedata fileref="images/Owner16.gif"
+              <imagedata fileref="src/icons/Owner16.gif"
                format="GIF"/></imageobject></inlinemediaobject></entry><entry>Owner</entry></row>
 
               <row><entry><inlinemediaobject><imageobject>
-              <imagedata fileref="images/Table16.gif"
+              <imagedata fileref="src/icons/Table16.gif"
                format="GIF"/></imageobject></inlinemediaobject></entry><entry>Table</entry></row>
 
               <row><entry><inlinemediaobject><imageobject>
-              <imagedata fileref="images/Relationship16.gif"
+              <imagedata fileref="src/icons/Relationship16.gif"
                format="GIF"/></imageobject></inlinemediaobject></entry><entry>Relationship</entry></row>
 
             </tbody>
@@ -1085,8 +1085,8 @@
         resulting matches. The user can request for those items to be 
         focused on the screen.</para>
 
-        <mediaobject><imageobject><imagedata fileref="images/find.png"
-         format="PNG"/></imageobject></mediaobject>
+        <mediaobject><imageobject><imagedata fileref="doc/images/find.png"
+         format="PNG" width="4in"/></imageobject></mediaobject>
       </section>
 
       <section id="find.use">
@@ -1141,7 +1141,7 @@
           <title>How To Use Forward Engineering</title>
 
           <para><inlinemediaobject><imageobject>
-          <imagedata fileref="images/ForwardEngineer24.gif"
+          <imagedata fileref="doc/images/ForwardEngineer24.gif"
            format="GIF"/></imageobject></inlinemediaobject> First set 
           the target connection to the database you want the changes to 
           be made in. Then go to &quot;Tools&quot; and click 
@@ -1150,8 +1150,8 @@
           up a dialog that looks similar to the one below:</para>
 
           <mediaobject><imageobject>
-          <imagedata fileref="images/forward_engineer.png"
-           format="PNG"/></imageobject></mediaobject>
+          <imagedata fileref="doc/images/forward_engineer.png"
+           format="PNG" width="4in"/></imageobject></mediaobject>
           <para>Fill in the fields as necessary and hit &quot;OK&quot; 
           when you are done. Depending on the situation, a dialog 
           warning you of possible side-effects of creating the script 
@@ -1160,8 +1160,8 @@
           dialog used in CompareDataModel-Part 2- In SQL Script.</para>
 
           <mediaobject><imageobject>
-          <imagedata fileref="images/preview_sql.png"
-           format="PNG"/></imageobject></mediaobject>
+          <imagedata fileref="doc/images/preview_sql.png"
+           format="PNG" width="4in"/></imageobject></mediaobject>
         </section>
 
       </section>
@@ -1190,7 +1190,7 @@
             <title>Part 1</title>
 
             <para><inlinemediaobject><imageobject>
-            <imagedata fileref="images/CompareDatabases24.gif"
+            <imagedata fileref="src/icons/CompareDatabases24.gif"
              format="GIF"/></imageobject></inlinemediaobject> To start 
             the Compare Data Model Function, either go to 
             &quot;Tools&quot; and click &quot;Compare Data Model&quot; 
@@ -1205,8 +1205,8 @@
             either in SQL Script language or in English.</para>
 
             <mediaobject><imageobject>
-            <imagedata fileref="images/compare_dm.png"
-             format="PNG"/></imageobject></mediaobject>
+            <imagedata fileref="doc/images/compare_dm.png"
+             format="PNG" width="4in"/></imageobject></mediaobject>
           </section>
 
           <section id="compare_dm.how.2">
@@ -1310,7 +1310,7 @@
         <title>How to Use Autolayout:</title>
 
         <para><inlinemediaobject><imageobject>
-        <imagedata fileref="images/AutoLayout24.gif"
+        <imagedata fileref="src/icons/AutoLayout24.gif"
          format="GIF"/></imageobject></inlinemediaobject> Select the 
         tables on the playpen that you want to organize and hit the 
         autolayout button at the top. If no table is selected, by 
@@ -1371,8 +1371,8 @@
         </para>
 
         <mediaobject><imageobject>
-        <imagedata fileref="images/sqlrunner.png"
-         format="PNG"/></imageobject></mediaobject>
+        <imagedata fileref="doc/images/sqlrunner.png"
+         format="PNG" width="4in"/></imageobject></mediaobject>
         <para>The command can actually be one of two kinds: either one 
         of a half-dozen escape commands listed below, or, anything that 
         is valid input to your database&apos;s command interface (e.g., 
@@ -1467,8 +1467,8 @@
         looked like this:</para>
 
         <mediaobject><imageobject>
-        <imagedata fileref="images/sqlrunner_output.png"
-         format="PNG"/></imageobject></mediaobject>
+        <imagedata fileref="doc/images/sqlrunner_output.png"
+         format="PNG" width="4in"/></imageobject></mediaobject>
         <para>This could, as you can see, be used to create a SQL 
         script to re-create the contents of the database. In fact, some 
         developers use SQLRunner primarily for this purpose: to create 
@@ -1480,14 +1480,14 @@
         again:</para>
 
         <mediaobject><imageobject>
-        <imagedata fileref="images/sqlrunner_output_2.png"
-         format="PNG"/></imageobject></mediaobject>
+        <imagedata fileref="doc/images/sqlrunner_output_2.png"
+         format="PNG" width="4in"/></imageobject></mediaobject>
         <para>When copied and pasted into an HTML file and viewed in a 
         browser, the output looked like this:</para>
 
         <mediaobject><imageobject>
-        <imagedata fileref="images/sqlrunner_html_output.png"
-         format="PNG"/></imageobject></mediaobject>
+        <imagedata fileref="doc/images/sqlrunner_html_output.png"
+         format="PNG" width="4in"/></imageobject></mediaobject>
         <para>With a bit of formatting, or even a CSS style sheet, this 
         HTML page could be made quite usable.</para>
         
@@ -1537,8 +1537,8 @@
           <para>Select or create the target database.</para>
 
           <mediaobject><imageobject>
-          <imagedata fileref="images/quick_start_2.png"
-           format="PNG"/></imageobject></mediaobject>
+          <imagedata fileref="doc/images/quick_start_2.png"
+           format="PNG" width="4in"/></imageobject></mediaobject>
         </section>
 
         <section id="quick_start_wizard.how.3">
@@ -1550,8 +1550,8 @@
           to continue.</para>
 
           <mediaobject><imageobject>
-          <imagedata fileref="images/quick_start_3.png"
-           format="PNG"/></imageobject></mediaobject>
+          <imagedata fileref="doc/images/quick_start_3.png"
+           format="PNG" width="4in"/></imageobject></mediaobject>
         </section>
 
         <section id="quick_start_wizard.how.4">
