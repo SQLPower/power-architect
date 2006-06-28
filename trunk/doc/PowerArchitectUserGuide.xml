@@ -20,7 +20,7 @@
     <copyright><year>2006</year><holder>SQL Power Group 
     Inc.</holder></copyright>
   </bookinfo>
-
+	<chapter id="intro-chapter">
   <title>Introduction</title>
 
   <para>Data Architects, DBAs, Analysts and Designers rely on 
@@ -163,7 +163,7 @@
 
   </sect1>
 
-  <sect1 id="work-in-progress">
+  <sect1 id="who-book-is-for">
 
     <title>Who this book is for</title>
 
@@ -181,19 +181,22 @@
 
     <para>We also assume you have SQL Power&apos;s Power*Architect 
     software installed on your computer; if not, please refer to the 
-    <link linkend="Installation_Guide">Installation Guide</link>.</para>
+    Installation Guide below.</para>
 
   </sect1>
+  
+  </chapter>
 
-  <chapter id="Installation_Guide">
+  <chapter id="installation.guide">
 
     <title>Installation Guide</title>
-
+	
     <section id="prereqs">
 
       <title>Power*Architect Prerequisites</title>
+      <para>
 
-      <para>To run the Power*Architect you need a Java 1.5 or newer 
+      To run the Power*Architect you need a Java 1.5 or newer 
       Java Runtime (&quot;Java VM&quot; or &quot;JVM&quot;). A current 
       version of the Java VM can be obtained from 
       <ulink url="http://java.sun.com/javase/downloads/index.html">Sun 
@@ -1075,7 +1078,7 @@
 
       <section id="find.what">
 
-        <title>What It Does:</title>
+        <title>What It Does</title>
 
         <para>This functions searches the whole playpen for any 
         relevant matches with the search constraints and displays the 
@@ -1295,7 +1298,7 @@
 
       <section id="autolayout.what">
 
-        <title>What It Does:</title>
+        <title>What It Does</title>
 
         <para>It displays the selected tables (or all tables) in an 
         organized manner.</para>
@@ -1330,9 +1333,9 @@
 
       <section id="SQLRunner.what">
 
-        <title>What It Does:</title>
+        <title>What It Does</title>
 
-        <para>SQLRunner is a “fall-back” tool that lets you work at the 
+        <para>SQLRunner is a &quot;fall-back&quot; tool that lets you work at the 
         raw SQL command level. This is an advanced topic and should 
         only be used by (or made available to) those familiar with the 
         intricacies of SQL commands and the details of your database; 
@@ -1349,7 +1352,7 @@
 
       <section id="SQLRunner.how">
 
-        <title>How to Use SQLRunner:</title>
+        <title>How to Use SQLRunner</title>
 
         <para>SQLRunner is started from the menu entry under the Tools 
         menu, and begins with the GUI window shown below. The first 
@@ -1359,7 +1362,13 @@
 
         <para>The basic steps to using SQLRunner are to type a command 
         in the top (SQL Command) window and click the Run button; the 
-        results are displayed in the bottom (SQL Results) window.</para>
+        results are displayed in the bottom (SQL Results) window.
+        To save you some typing, there is a &quot;Statement Template&quot;
+        mechanism that will insert a template for SELECT, INSERT or UPDATE
+        SQL statements (just select the template you want and click 
+        &quot;Apply Template&quot; and the template will replace the
+        current Input Statement.
+        </para>
 
         <mediaobject><imageobject>
         <imagedata fileref="images/sqlrunner.png"
@@ -1443,7 +1452,7 @@
         <title>Output Formats</title>
 
         <para>There are several output modes for the display of SQL 
-        “select” results: text, SQL, HTML and XML (output from the 
+        &quot;select&quot; results: text, SQL, HTML and XML (output from the 
         escape commands are always displayed as plain text). Text mode 
         is the default, and is primarily a raw display format. SQL 
         output is most useful with the output of a SELECT statement; it 
@@ -1463,7 +1472,7 @@
         <para>This could, as you can see, be used to create a SQL 
         script to re-create the contents of the database. In fact, some 
         developers use SQLRunner primarily for this purpose: to create 
-        stable test databases from “live” data that was created by 
+        stable test databases from &quot;live&quot; data that was created by 
         their application.</para>
 
         <para>You can view this same data in HTML just by changing the 
@@ -1481,6 +1490,9 @@
          format="PNG"/></imageobject></mediaobject>
         <para>With a bit of formatting, or even a CSS style sheet, this 
         HTML page could be made quite usable.</para>
+        
+        <para>SQLRunner is not perfect, but it is adequate for many
+        purposes involving direct use of SQL.</para>
 
       </section>
 
@@ -1492,7 +1504,7 @@
 
       <section id="quick_start_wizard.what">
 
-        <title>What It Does:</title>
+        <title>What It Does</title>
 
         <para>The QuickStart Wizard is a simple five-step process to 
         set up a database using the Power*Loader.</para>
