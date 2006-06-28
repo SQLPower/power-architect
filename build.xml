@@ -51,7 +51,7 @@
 
 	<!-- DOCUMENTATION -->
 
-	<!-- NOTE: All parts currenlty require xalan on classpath since JDK1.5 is behind -->
+	<!-- NOTE: All parts currently require xalan on classpath since JDK1.5 is behind -->
 
 	<target name="userguide" depends="html" description="Create user guide in HTML and PDF">
 	</target>
@@ -98,7 +98,7 @@
 	</target>
 
 	<!-- Now finish it, from FO to PDF -->
-	<target name="pdf" depends="fo" description="Create user guide in HTML">
+	<target name="pdf" depends="fo" description="Create user guide in PDF">
 		<path id="fop-classpath">
 			<fileset dir="doc/tools/xalan">
 			  <include name="*.jar"/>
