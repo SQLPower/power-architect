@@ -51,12 +51,11 @@
 
 	<!-- DOCUMENTATION -->
 
-	<!-- NOTE: All parts currently require xalan on classpath since JDK1.5 is behind -->
+	<!-- NOTE: All steps currently require xalan on classpath since JDK1.5 is behind -->
 
-	<target name="userguide" depends="html" description="Create user guide in HTML and PDF">
+	<target name="userguide" depends="html,pdf" description="Create user guide in HTML and PDF">
 	</target>
-	<!-- depends="html,fo,pdf" -->
-
+	
 	<!-- First the HTML -->
 	<target name="html" depends="init" description="Create user guide in HTML">
 		<mkdir dir="${build}/ca/sqlpower/architect/doc/" />
@@ -108,8 +107,7 @@
 			</fileset>
 		</path>
 		<taskdef name="fop" classname="org.apache.fop.tools.anttasks.Fop" classpathref="fop-classpath"/>
-
-        <fop format="application/pdf" messagelevel="info" relativebase="true">
+        <fop format="application/pdf" messagelevel="info" relativebase="true" >
 			<fileset dir=".">
 				<include name="${build}/doc/*.fo"/>
 			</fileset>
