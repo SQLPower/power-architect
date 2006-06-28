@@ -143,7 +143,7 @@
     <para><emphasis>Driver</emphasis> – Most programs need a distinct 
     driver program to communicated with each different type of 
     database. Power*Architect uses Java-based drivers, which normally 
-    come from the database vendor in the form of &quot;JAR&quot; 
+    come from the database vendor in the form of <quote>JAR</quote> 
     <footnote><para>Java Archive files; these are an extension to the 
     file format used by PKZip/WinZip archives</para></footnote> files. 
     You need to inform Power*Architect about each driver before you can 
@@ -197,7 +197,7 @@
       <para>
 
       To run the Power*Architect you need a Java 1.5 or newer 
-      Java Runtime (&quot;Java VM&quot; or &quot;JVM&quot;). A current 
+      Java Runtime (<quote>Java VM</quote> or <quote>JVM</quote>). A current 
       version of the Java VM can be obtained from 
       <ulink url="http://java.sun.com/javase/downloads/index.html">Sun 
       Microsystems</ulink>.</para>
@@ -367,12 +367,12 @@
       <para>Besides setting up these file locations, you must also tell 
       the Power*Architect about the JDBC drivers you wish to use. JDBC 
       Drivers are needed to access most databases, and are distributed 
-      in &quot;JAR file&quot; format. Click on the “JDBC Drivers” tab 
+      in <quote>JAR file</quote> format. Click on the “JDBC Drivers” tab 
       and click Add... to specify the location of a JDBC driver jar 
       file; if it is valid, the system will list the names of any 
       Driver classes found in it, as shown below (note that 
-      &quot;ojdbc&quot; stands for Oracle&apos;s JDBC driver, whereas 
-      &quot;ODBC&quot; is Microsoft&apos;s technology for database 
+      <quote>ojdbc</quote> stands for Oracle&apos;s JDBC driver, whereas 
+      <quote>ODBC</quote> is Microsoft&apos;s technology for database 
       access).</para>
 
       <para><inlinemediaobject><imageobject>
@@ -384,8 +384,8 @@
       section of the User Preferences you are simply telling the 
       Power*Architect to load these drivers into memory when it starts 
       up. When you set up an actual Connection, you implicitly tell the 
-      software which driver to use by the second field of the &quot;db 
-      URL&quot; as described on page 21. If you need more information 
+      software which driver to use by the second field of the <quote>db 
+      URL</quote> as described on page 21. If you need more information 
       on JDBC drivers, please refer to the Basic Concepts section of 
       this manual on page 3.</para>
 
@@ -400,8 +400,8 @@
       external tool to create a new database.</para></footnote> a 
       simple database “from scratch”, just to get you started using the 
       tools, without modifying any live data. If you follow the example 
-      literally, you will create a trivial &quot;customer and orders 
-      database&quot;.</para>
+      literally, you will create a trivial <quote>customer and orders 
+      database</quote>.</para>
 
       <orderedlist>
 
@@ -454,8 +454,8 @@
 
               <para>Click on the New Table icon at the right side. The 
               cursor will change to a crosshair. Move the cursor near 
-              the left of the Playpen area, and click. A &quot;New 
-              Table&quot; will appear.</para>
+              the left of the Playpen area, and click. A <quote>New 
+              Table</quote> will appear.</para>
 
             </listitem>
 
@@ -469,8 +469,8 @@
 
             <listitem>
 
-              <para>Click on the Insert Column icon, and a &quot;New 
-              Column&quot; will appear. Double-click on the column, or 
+              <para>Click on the Insert Column icon, and a <quote>New 
+              Column</quote> will appear. Double-click on the column, or 
               click on the Column Properties, and the Column Properties 
               Dialog will appear. Rename the column to ID and make it 
               part of the primary key.</para>
@@ -515,8 +515,8 @@
 
               <para>We need a relationship between these tables. An 
               order should have a foreign key that refers to the 
-              customer. Click the &quot;New Non-Identifying 
-              Relationship&quot; icon. Select the Order table, then the 
+              customer. Click the <quote>New Non-Identifying 
+              Relationship</quote> icon. Select the Order table, then the 
               Customer table, and a link will be drawn as shown. Click 
               on this link and the keys that take part in the 
               relationship will be highlighted in red.</para>
@@ -549,7 +549,7 @@
           have now created a simple database using the visual tools in 
           Power*Architect. But let&apos;s not stop here. Suppose that 
           after using this database, you realize that there should be a 
-          &quot;shipping amount&quot; field in the Order table (we 
+          <quote>shipping amount</quote> field in the Order table (we 
           never promised this would be completely realistic 
           example).</para>
 
@@ -573,9 +573,9 @@
 
           <para>Now we need to compare two different Data Models, the 
           original database and the current project. Click the Compare 
-          DM icon. Set the &quot;Older&quot; to Physical Database 
+          DM icon. Set the <quote>Older</quote> to Physical Database 
           SampleDB (you may need to change the Schema to Public). Set 
-          the &quot;Newer&quot; to &quot;Current Project&quot; (since 
+          the <quote>Newer</quote> to <quote>Current Project</quote> (since 
           it is now newer than the database you created in Step 6). Set 
           the output format to SQL.</para>
 
@@ -685,9 +685,9 @@
         <imagedata fileref="src/icons/NewColumn24.gif"
          format="GIF"/></imageobject></inlinemediaobject> First select 
         the table the new column will be placed in. Click on the 
-        &quot;Insert Column&quot; button and a column is created in the 
+        <quote>Insert Column</quote> button and a column is created in the 
         selected table. Another way to add a new column is to right 
-        click on a table and select the &quot;New Column...&quot; 
+        click on a table and select the <quote>New Column...</quote> 
         option. The new column will be added to the table below the 
         selected column. It will be placed at the bottom of the table 
         if no columns are selected. If a table has existing columns in 
@@ -705,9 +705,9 @@
         <para><inlinemediaobject><imageobject>
         <imagedata fileref="src/icons/ColumnProperties24.gif"
          format="GIF"/></imageobject></inlinemediaobject> Select the 
-        desired column, right click and select &quot;Column 
-        Properties&quot;. The Edit Column Properties dialog pops up. Or 
-        you can select the column and click the &quot;Edit Column&quot; 
+        desired column, right click and select <quote>Column 
+        Properties</quote>. The Edit Column Properties dialog pops up. Or 
+        you can select the column and click the <quote>Edit Column</quote> 
         button on the Playpen toolbar.</para>
 
         <mediaobject><imageobject>
@@ -812,7 +812,7 @@
         identified by <inlinemediaobject><imageobject>
         <imagedata fileref="src/icons/NewIdentifyingRelationship24.gif"
          format="GIF"/></imageobject></inlinemediaobject> (shortcut key 
-        is R). The cursor changes to the &quot;+&quot; cursor to 
+        is R). The cursor changes to the <quote>+</quote> cursor to 
         indicate the mode change. First click on the parent table and then 
         click on the child table. Once this has 
         been done, the relationship will be created, and will appear as 
@@ -828,7 +828,7 @@
         <imagedata fileref="src/icons/RelationshipProperties24.gif"
          format="GIF"/></imageobject></inlinemediaobject> Select the 
         desired relationship and right click on the relationship. 
-        Choose the &quot;Relationship Properties&quot; options. This 
+        Choose the <quote>Relationship Properties</quote> options. This 
         can also be done by selecting the relationship and clicking on 
         the relationship properties button. In both cases, the 
         Relationship Properties dialog will appear.</para>
@@ -898,8 +898,8 @@
         <para>Select the desired diagram components on the playpen and 
         click on the delete items button on the Playpen Toolbar. It is 
         also possible to delete the selected items by right clicking on 
-        one of the components and selecting &quot;Delete 
-        Selected&quot;.</para>
+        one of the components and selecting <quote>Delete 
+        Selected</quote>.</para>
 
       </section>
 
@@ -913,11 +913,11 @@
 
         <title>Adding a New Connection to the Power*Architect</title>
 
-        <para>To add a new connection, go to &quot;Add 
-        Connections&quot; under &quot;Connections&quot; and select 
-        &quot;New Connection..&quot; at the top. The other method is to 
+        <para>To add a new connection, go to <quote>Add 
+        Connections</quote> under <quote>Connections</quote> and select 
+        <quote>New Connection..</quote> at the top. The other method is to 
         right click a white space on the Database Tree and select 
-        &quot;New Connection&quot; under &quot;Add Connections&quot;. 
+        <quote>New Connection</quote> under <quote>Add Connections</quote>. 
         Both ways open up this dialog:</para>
 
         <mediaobject><imageobject>
@@ -928,12 +928,12 @@
         the Connect Options will change to allow you to enter the 
         particular parameters that the given database driver needs. If 
         you are using one of the fully-supported drivers, then as you 
-        enter these parameters, they will be added into the &quot;JDBC 
-        URL&quot; field in the order that the Java driver expects to 
-        see them (this string is sometimes called a &quot;db URL&quot; 
+        enter these parameters, they will be added into the <quote>JDBC 
+        URL</quote> field in the order that the Java driver expects to 
+        see them (this string is sometimes called a <quote>db URL</quote> 
         in Java terminology). In the example below, we&apos;ve selected 
         the PostgreSQL driver and entered the hostname and database 
-        name (the &quot;port number&quot; was already filled in; do not 
+        name (the <quote>port number</quote> was already filled in; do not 
         change this unless the database server software has been 
         reconfigured to use a different value).</para>
 
@@ -955,7 +955,7 @@
         <title>Adding an Existing Connection</title>
 
         <para>Right click on empty space in the Database Tree and go to 
-        &quot;Add Connection&quot;, there it shows all databases that 
+        <quote>Add Connection</quote>, there it shows all databases that 
         were previously stored on the Architect</para>
 
       </section>
@@ -965,11 +965,11 @@
         <title>Editing Database Connection Properties</title>
 
         <para>Select the database connection you wish to change and go 
-        to &quot;Connections&quot; and select the option 
-        &quot;Connection Properties..&quot;, this leads you to the 
+        to <quote>Connections</quote> and select the option 
+        <quote>Connection Properties..</quote>, this leads you to the 
         Connection Setting dialog. An alternate solution is to right 
-        click on the database and select &quot;Connection 
-        Properties...&quot; option.</para>
+        click on the database and select <quote>Connection 
+        Properties...</quote> option.</para>
 
       </section>
 
@@ -978,9 +978,9 @@
         <title>Removing a Database Connection</title>
 
         <para>Select the database connection you wish to change and go 
-        to &quot;Connections&quot; and select the option &quot;Remove 
-        Connection..&quot;. Right clicking on the database connection 
-        and selecting &quot;Remove Connection..&quot; will perform the 
+        to <quote>Connections</quote> and select the option <quote>Remove 
+        Connection..</quote>. Right clicking on the database connection 
+        and selecting <quote>Remove Connection..</quote> will perform the 
         same action.</para>
 
       </section>
@@ -996,10 +996,10 @@
         user can create a new connection for it as well. Setting the 
         project database can be achieved in one of several ways. The 
         first method is to right click on any empty space on the 
-        Playpen and go to &quot;Set Target Database&quot;. Another 
+        Playpen and go to <quote>Set Target Database</quote>. Another 
         option is to right-click on the Target Database (the target 
         database can always be identified by this icon: ) and choose 
-        &quot;Set Target Database&quot; from there.</para>
+        <quote>Set Target Database</quote> from there.</para>
 
       </section>
 
@@ -1093,17 +1093,17 @@
 
         <title>How to Use Find / Replace Function:</title>
 
-        <para>Go to &quot;Edit&quot; under the menu bar and click on 
+        <para>Go to <quote>Edit</quote> under the menu bar and click on 
         Find/Replace option. This shows the Find/Replace function. In 
         this window, enter the search constraints and press 
-        &quot;OK&quot; when you are finished. This will popup a new 
+        <quote>OK</quote> when you are finished. This will popup a new 
         window with your search result in a chart format.</para>
 
         <para>You can rename the component by selecting the column in 
-        the list and clicking on &quot;Rename Component&quot;. You can 
+        the list and clicking on <quote>Rename Component</quote>. You can 
         also have Power*Architect focus on a certain component by 
-        selecting the component in the list and press the &quot;Show in 
-        Playpen&quot;.</para>
+        selecting the component in the list and press the <quote>Show in 
+        Playpen</quote> button.</para>
 
       </section>
 
@@ -1144,15 +1144,15 @@
           <imagedata fileref="src/icons/ForwardEngineer24.gif"
            format="GIF"/></imageobject></inlinemediaobject> First set 
           the target connection to the database you want the changes to 
-          be made in. Then go to &quot;Tools&quot; and click 
-          &quot;Forward Engineering&quot;. Another way is to press the 
-          &quot;Forward Engineering&quot; button at the top. This pops 
+          be made in. Then go to <quote>Tools</quote> and click 
+          <quote>Forward Engineering</quote>. Another way is to press the 
+          <quote>Forward Engineering</quote> button at the top. This pops 
           up a dialog that looks similar to the one below:</para>
 
           <mediaobject><imageobject>
           <imagedata fileref="doc/images/forward_engineer.png"
            format="PNG" width="4in"/></imageobject></mediaobject>
-          <para>Fill in the fields as necessary and hit &quot;OK&quot; 
+          <para>Fill in the fields as necessary and hit <quote>OK</quote>
           when you are done. Depending on the situation, a dialog 
           warning you of possible side-effects of creating the script 
           may pop up. Finally a script that would create data structure 
@@ -1193,8 +1193,8 @@
             <imagedata fileref="src/icons/CompareDatabases24.gif"
              format="GIF"/></imageobject></inlinemediaobject> To start 
             the Compare Data Model Function, either go to 
-            &quot;Tools&quot; and click &quot;Compare Data Model&quot; 
-            or just click the &quot;Compare Data Model&quot; icon on 
+            <quote>Tools</quote> and click <quote>Compare Data Model</quote> 
+            or just click the <quote>Compare Data Model</quote> icon on 
             the project toolbar. This will bring up the main Compare 
             Data Model window. Here select the source and target models 
             you want to compare and contrast. You can choose either the 
@@ -1317,7 +1317,7 @@
         default, the program will autolayout every table in the 
         playpen. Note that if only one table is selected, AutoLayout 
         will not do anything; either select two or more tables, or 
-        &quot;click away&quot; (not on any table) so that nothing in 
+        <quote>click away</quote> (not on any table) so that nothing in 
         the Playpen is selected, and click AutoLayout again. Also note 
         that the layout algorithm may produce a few surprises when run 
         with a small number of tables; it works best for a large or 
@@ -1335,7 +1335,7 @@
 
         <title>What It Does</title>
 
-        <para>SQLRunner is a &quot;fall-back&quot; tool that lets you work at the 
+        <para>SQLRunner is a <quote>fall-back</quote> tool that lets you work at the 
         raw SQL command level. This is an advanced topic and should 
         only be used by (or made available to) those familiar with the 
         intricacies of SQL commands and the details of your database; 
@@ -1363,10 +1363,10 @@
         <para>The basic steps to using SQLRunner are to type a command 
         in the top (SQL Command) window and click the Run button; the 
         results are displayed in the bottom (SQL Results) window.
-        To save you some typing, there is a &quot;Statement Template&quot;
+        To save you some typing, there is a <quote>Statement Template</quote>
         mechanism that will insert a template for SELECT, INSERT or UPDATE
         SQL statements (just select the template you want and click 
-        &quot;Apply Template&quot; and the template will replace the
+        <quote>Apply Template</quote> and the template will replace the
         current Input Statement.
         </para>
 
@@ -1452,7 +1452,7 @@
         <title>Output Formats</title>
 
         <para>There are several output modes for the display of SQL 
-        &quot;select&quot; results: text, SQL, HTML and XML (output from the 
+        <quote>select</quote> results: text, SQL, HTML and XML (output from the 
         escape commands are always displayed as plain text). Text mode 
         is the default, and is primarily a raw display format. SQL 
         output is most useful with the output of a SELECT statement; it 
@@ -1472,7 +1472,7 @@
         <para>This could, as you can see, be used to create a SQL 
         script to re-create the contents of the database. In fact, some 
         developers use SQLRunner primarily for this purpose: to create 
-        stable test databases from &quot;live&quot; data that was created by 
+        stable test databases from <quote>live</quote> data that was created by 
         their application.</para>
 
         <para>You can view this same data in HTML just by changing the 
@@ -1560,7 +1560,7 @@
 
           <para>A SQL Script will be created; you can review the script 
           and if you wish to execute it, press 
-          &quot;Execute&quot;</para>
+          <quote>Execute</quote></para>
 
         </section>
 
@@ -1613,7 +1613,7 @@
           work; the current version (10.1.2) has what we consider some 
           unwarranted chumminess with the JDBC Driver Manager that 
           breaks because we use our own Java 
-          &quot;ClassLoader&quot;</para></entry></row>
+          <quote>ClassLoader</quote></para></entry></row>
 
           <row><entry><para>MySQL</para></entry><entry><para>Not tested 
           yet.</para></entry></row>
@@ -1737,7 +1737,7 @@
 
           <row><entry><para>JDBC</para></entry><entry><para>Java 
           DataBase Connectivity, an unofficial acronym for the 
-          &quot;java.sql&quot; package of functionality used to access 
+          <quote>java.sql</quote> package of functionality used to access 
           relational databases from programs written in the Java 
           programming language.</para></entry></row>
 
@@ -1750,9 +1750,9 @@
           fields</ulink> (a 
           <ulink url="http://foldoc.org/foldoc/foldoc.cgi?column">
           column</ulink> if the database is considered as a table with 
-          records being rows, see &quot; 
+          records being rows, see </quote> 
           <ulink url="http://foldoc.org/foldoc/foldoc.cgi?key+field">
-          key field</ulink> &quot;). Alternatively the key may be 
+          key field</ulink> </quote>). Alternatively the key may be 
           obtained by applying some function, e.g. a 
           <ulink url="http://foldoc.org/foldoc/foldoc.cgi?hash+function">
           hash function</ulink> , to one or more of the fields. The set 
@@ -1802,8 +1802,8 @@
 
     </informaltable>
 
-    <para>Some of these terms are from FolDoc, &quot;The Free On-line 
-    Dictionary of Computing&quot;, http://www.foldoc.org/, Editor Denis 
+    <para>Some of these terms are from FolDoc, <quote>The Free On-line 
+    Dictionary of Computing<quote>, http://www.foldoc.org/, Editor Denis 
     Howe.</para>
 
   </chapter>
