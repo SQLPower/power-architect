@@ -221,10 +221,10 @@
 
       <section id="install_win">
 
-        <title>Windows</title>
+        <title>Microsoft Windows</title>
 
-        <para>Double click on the architect-setup-1.0.jar this will 
-        launch the windows installer. Follow the on screen 
+        <para>Double click on the architect-setup-1.0.jar. This will 
+        launch the Microsoft Windows installer. Follow the on screen 
         instructions.</para>
 
       </section>
@@ -322,7 +322,8 @@
       component(s).</para>
 
       <para><emphasis>Create/Maintain Playpen Components</emphasis> is 
-      discussed in XXX below.</para>
+      discussed in <link linkend="diagram_components">Using Components</link>
+      below.</para>
 
     </section>
 
