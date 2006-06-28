@@ -1141,7 +1141,7 @@
           <title>How To Use Forward Engineering</title>
 
           <para><inlinemediaobject><imageobject>
-          <imagedata fileref="doc/images/ForwardEngineer24.gif"
+          <imagedata fileref="src/icons/ForwardEngineer24.gif"
            format="GIF"/></imageobject></inlinemediaobject> First set 
           the target connection to the database you want the changes to 
           be made in. Then go to &quot;Tools&quot; and click 
