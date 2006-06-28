@@ -1750,7 +1750,7 @@
           fields</ulink> (a 
           <ulink url="http://foldoc.org/foldoc/foldoc.cgi?column">
           column</ulink> if the database is considered as a table with 
-          records being rows, see </quote> 
+          records being rows, see <quote> 
           <ulink url="http://foldoc.org/foldoc/foldoc.cgi?key+field">
           key field</ulink> </quote>). Alternatively the key may be 
           obtained by applying some function, e.g. a 
@@ -1803,7 +1803,7 @@
     </informaltable>
 
     <para>Some of these terms are from FolDoc, <quote>The Free On-line 
-    Dictionary of Computing<quote>, http://www.foldoc.org/, Editor Denis 
+    Dictionary of Computing</quote>, http://www.foldoc.org/, Editor Denis 
     Howe.</para>
 
   </chapter>
