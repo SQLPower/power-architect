@@ -1226,14 +1226,7 @@ public class CompareDMPanel extends JPanel {
 					if(chunk.getData() instanceof SQLTable)
 					{
 						SQLTable t = (SQLTable) chunk.getData();
-						boolean hasKey = false;
-						for (SQLColumn c : t.getColumns()) {
-							if (c.isPrimaryKey()) {
-								hasKey=true;
-								break;
-							}
-						}
-						if (hasKey) {
+						if (hasKey(t)) {
 							gen.addPrimaryKey(t);
 						} else {						
 							gen.dropPrimaryKey(t);	
@@ -1262,6 +1255,9 @@ public class CompareDMPanel extends JPanel {
 					{
 						SQLTable t = (SQLTable) chunk.getData();
 						gen.writeTable(t);
+                        if (hasKey(t)) {
+                            gen.addPrimaryKey(t);
+                        }
 					}else if (chunk.getData() instanceof SQLColumn){
 						SQLColumn c = (SQLColumn) chunk.getData();
 						gen.addColumn(c);
@@ -1286,6 +1282,17 @@ public class CompareDMPanel extends JPanel {
 				}
 			}
 		}
+
+        private boolean hasKey(SQLTable t) throws ArchitectException {
+            boolean hasKey = false;
+            for (SQLColumn c : t.getColumns()) {
+                if (c.isPrimaryKey()) {
+                    hasKey=true;
+                    break;
+                }
+            }
+            return hasKey;
+        }
 	}
 
 	public SourceOrTargetStuff getSourceStuff() {
