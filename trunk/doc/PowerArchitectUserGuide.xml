@@ -1,9 +1,12 @@
 <?xml version='1.0'?>
-<!DOCTYPE book PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.0//EN" "http://www.oasis-open.org/docbook/xml/simple/1.0/sdocbook.dtd">
+<!DOCTYPE book PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.0//EN" 
+	"http://www.oasis-open.org/docbook/xml/simple/1.0/sdocbook.dtd">
 <book id="architect-user-guide" lang="en">
 
   <bookinfo>
-
+  
+	<!-- $Id$ -->
+	
     <imageobject id="architect_logo">
     <imagedata fileref="images/architect_logo.png" format="PNG"/>
     </imageobject>
@@ -807,11 +810,8 @@
         <imagedata fileref="images/NewIdentifyingRelationship24.gif"
          format="GIF"/></imageobject></inlinemediaobject> (shortcut key 
         is R). The cursor changes to the &quot;+&quot; cursor to 
-        indicate the mode change. (TODO: might want to use a different 
-        cursor so the user can differentiate betwen creating tables and 
-        creating relationship) First click on the parent table and then 
-        click on the child table. (TODO: We need some kind of indicator 
-        to show that a parent table has been selected) Once this has 
+        indicate the mode change. First click on the parent table and then 
+        click on the child table. Once this has 
         been done, the relationship will be created, and will appear as 
         a link between the two tables.</para>
 
@@ -898,11 +898,6 @@
         one of the components and selecting &quot;Delete 
         Selected&quot;.</para>
 
-        <para>(TODO: Currently if a column and a table/relationship is 
-        selected, deleting the items will delete the entire table the 
-        column belongs to, this seems to be an undesired 
-        behaviour)</para>
-
       </section>
 
     </section>
@@ -948,8 +943,7 @@
          format="PNG"/></imageobject></mediaobject>
         <para>Note: if you have too many connections (more than the 
         height of the Architect window), the Architect does not have 
-        the ability to show all of them. (TODO At present there is no 
-        way to delete connections from the list of connections)</para>
+        the ability to show all of them.</para>
 
       </section>
 
@@ -1513,7 +1507,7 @@
         QuickStart Wizard button under Power*Loader.</para>
 
         <para>TODO: Write the steps in for QuickStart Wizard and maybe 
-        add in screenshoots</para>
+        add in screenshots</para>
 
         <section id="quick_start_wizard.how.1">
 
