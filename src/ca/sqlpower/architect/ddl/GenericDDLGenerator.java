@@ -5,6 +5,7 @@ import ca.sqlpower.architect.SQLRelationship.ColumnMapping;
 
 import java.sql.*;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.io.File;
 import org.apache.log4j.Logger;
 
@@ -14,6 +15,13 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 	private static final Logger logger = Logger.getLogger(GenericDDLGenerator.class);
 
+     /**
+     * Check to see if the word word is on the list of reserved words for this database
+     * @return
+     */
+    public boolean isReservedWord(String word){
+        return false;
+    }
 	/**
 	 * This property says whether or not the user will allow us to
 	 * connect to the target system in order to determine database
@@ -715,6 +723,17 @@ public class GenericDDLGenerator implements DDLGenerator {
 	protected String createPhysicalName(Map dupCheck, SQLObject so) {
 		logger.debug("transform identifier source: " + so.getPhysicalName());
 		so.setPhysicalName(toIdentifier(so.getName()));
+        if(isReservedWord(so.getPhysicalName())) {
+            warnings.add(new NameChangeWarning(so, "Name is a reserved word",so.getPhysicalName()));
+            return so.getPhysicalName();
+        }
+       
+        int pointIndex = so.getPhysicalName().lastIndexOf('.');
+        if (!so.getName().substring(pointIndex+1,pointIndex+2).matches("[a-zA-Z]")){
+            warnings.add(new NameChangeWarning(so, "Name starts with a non-alpha character",so.getPhysicalName()));
+            return so.getPhysicalName();
+        }
+        
         logger.debug("transform identifier result: " + so.getPhysicalName());
 		if (dupCheck.get(so.getPhysicalName()) == null) {
 			dupCheck.put(so.getPhysicalName(), so);

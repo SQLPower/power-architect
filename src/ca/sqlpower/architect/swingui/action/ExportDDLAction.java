@@ -410,6 +410,7 @@ public class ExportDDLAction extends AbstractAction {
 			if (columnIndex == 4) {
 			    w.setNewValue(aValue);
 			}
-		}
+            fireTableCellUpdated(rowIndex,4);
+        }
 	}
 }

@@ -194,7 +194,7 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
 		reservedWords.add("WRITETEXT");	
 	}
 
-	private static boolean isReservedWord(String word) {
+	public boolean isReservedWord(String word) {
 		return reservedWords.contains(word.toUpperCase());
 	}
 
@@ -294,12 +294,7 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
 		logger.debug("getting physical name for: " + logicalName);
 		String ident = logicalName.replace(' ','_');
 		logger.debug("after replace of spaces: " + ident);
-		// see if it's a reserved word, and add something alpha to front if it is...
-		if (isReservedWord(ident)) {
-			ident = "X" + ident;
-			logger.debug("identifier was reserved word, appending X: " + ident);
-		}
-
+		
 		// replace anything that is not a letter, character, or underscore with an underscore...
 		ident = ident.replaceAll("[^a-zA-Z0-9_@$#]", "_");
 

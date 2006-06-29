@@ -220,37 +220,40 @@ public class ConflictResolver implements Monitorable {
    			
    			Iterator it = ddlStatements.iterator();
    			while (it.hasNext()) {
-   				DDLStatement ddlStmt = (DDLStatement) it.next();
-   				monitorableProgress += 1;
-   				if (ddlStmt.getType() != DDLStatement.StatementType.CREATE) continue;
-   				SQLObject so = ddlStmt.getObject();
-   				Class clazz = so.getClass();
-   				if (clazz.equals(SQLTable.class)) {
-   					SQLTable t = (SQLTable) so;
-   					String cat = ddlStmt.getTargetCatalog();
-   					String sch = ddlStmt.getTargetSchema();
-   					if (logger.isDebugEnabled()) {
-   						logger.debug("Finding conflicts for TABLE '" + cat + "'.'"
-   								+ sch + "'.'" + t.getPhysicalName() + "'");
-   					}
-   					ResultSet rs = dbmd.getTables(
-   							ddlg.toIdentifier(cat),
-							ddlg.toIdentifier(sch),
-							ddlg.toIdentifier(t.getPhysicalName()),
-							null);
-   					while (rs.next()) {
-   						Conflict c = new Conflict(
-   								rs.getString("TABLE_TYPE"),
-								rs.getString("TABLE_CAT"),
-								rs.getString("TABLE_SCHEM"),
-								rs.getString("TABLE_NAME"));
-   						ddlg.setTargetCatalog(c.getCatalog());
-   						ddlg.setTargetSchema(c.getSchema());
-   						c.setSqlDropStatement(ddlg.makeDropTableSQL(c.getName()));
-   						c.addTableDependants(dbmd);
-   						conflicts.add(c);
-   					}
-   					rs.close();
+   			    DDLStatement ddlStmt = (DDLStatement) it.next();
+   			    monitorableProgress += 1;
+   			    if (ddlStmt.getType() != DDLStatement.StatementType.CREATE) continue;
+   			    SQLObject so = ddlStmt.getObject();
+   			    Class clazz = so.getClass();
+   			    
+   			    if (clazz.equals(SQLTable.class)) {
+   			        SQLTable t = (SQLTable) so;
+   			        String cat = ddlStmt.getTargetCatalog();
+   			        String sch = ddlStmt.getTargetSchema();
+   			        if (logger.isDebugEnabled()) {
+   			            logger.debug("Finding conflicts for TABLE '" + cat + "'.'"
+   			                    + sch + "'.'" + t.getPhysicalName() + "'");
+   			        }
+   			        
+   			        ResultSet rs = dbmd.getTables(
+   			                ddlg.toIdentifier(cat),
+   			                ddlg.toIdentifier(sch),
+   			                ddlg.toIdentifier(t.getPhysicalName()),
+   			                null);
+   			        while (rs.next()) {
+   			            Conflict c = new Conflict(
+   			                    rs.getString("TABLE_TYPE"),
+   			                    rs.getString("TABLE_CAT"),
+   			                    rs.getString("TABLE_SCHEM"),
+   			                    rs.getString("TABLE_NAME"));
+   			            ddlg.setTargetCatalog(c.getCatalog());
+   			            ddlg.setTargetSchema(c.getSchema());
+   			            c.setSqlDropStatement(ddlg.makeDropTableSQL(c.getName()));
+   			            c.addTableDependants(dbmd);
+   			            conflicts.add(c);
+   			        }
+   			        rs.close();
+   			        
    				} else if (clazz.equals(SQLRelationship.class)) {
    					logger.error("Relationship conflicts are not supported yet!");
    				} else {
