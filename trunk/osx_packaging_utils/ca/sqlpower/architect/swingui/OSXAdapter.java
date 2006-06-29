@@ -62,6 +62,8 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.event.ActionEvent;
 
+import ca.sqlpower.architect.swingui.ArchitectFrame;
+
 import com.apple.eawt.ApplicationAdapter;
 import com.apple.eawt.ApplicationEvent;
 
@@ -115,6 +117,15 @@ public class OSXAdapter extends ApplicationAdapter {
         }
     }
     
+    @Override
+    public void handleOpenFile(ApplicationEvent ae) {
+        if (architectFrame != null) {
+            String file = ae.getFilename();
+            architectFrame.
+        } else {
+            throw new IllegalStateException("handleQuit: MyApp instance detached from listener");
+        }
+    }
     
     // The main entry-point for this functionality.  This is the only method
     // that needs to be called at runtime, and it can easily be done using

@@ -60,7 +60,6 @@
 	<!-- First the HTML -->
 	<target name="html" depends="init" description="Create user guide in HTML">
 		<mkdir dir="${build}/ca/sqlpower/architect/doc/" />
-		<mkdir dir="${build}/ca/sqlpower/architect/doc/images" />		
 		<xslt
 			style="doc/tools/xslt/html/chunk.xsl"
 			in="doc/PowerArchitectUserGuide.xml"
@@ -71,10 +70,17 @@
 			    </fileset>
 			</classpath>
 		</xslt>
-		<copy todir="${build}/ca/sqlpower/architect/doc/images" overwrite="true">
+		
+		<!-- Warning: This is an extremely evil hack to get the product out the door!
+		              See bugzilla 1195 for details -->
+		<mkdir dir="${build}/ca/sqlpower/architect/doc/doc/images" />		
+		<copy todir="${build}/ca/sqlpower/architect/doc/doc/images" overwrite="true">
 			<fileset dir="doc/images">
 				<include name="*.png"/>
 			</fileset>
+		</copy>
+		<mkdir dir="${build}/ca/sqlpower/architect/doc/src/icons" />		
+		<copy todir="${build}/ca/sqlpower/architect/doc/src/icons" overwrite="true">
 			<fileset dir="src/icons">
 				<include name="*.gif"/>
 				<include name="*.png"/>				
@@ -122,11 +128,13 @@
 		<jar destfile="webstart/lib/architect.jar" basedir="${build}" includes="ca/** icons/** log4j.properties" manifest="manifest">
 		</jar>
         <copy todir="webstart/lib">
-            <fileset dir="lib"/>
+            <fileset dir="lib" includes="*.jar"/>
         </copy>
+		<!-- No point in signing until we have a certificate that's signed by a CA
         <signjar alias="sqlpower" keystore="keystore" storepass="low_security" keypass="low_security">
             <fileset dir="webstart/lib"/>
         </signjar>
+        -->
 	</target>
 
     
@@ -205,7 +213,7 @@
 	
 	<target name="Windows Installer" depends="deploy">
 		<izpack input="${installer.dir}/Architect-install.xml"
-		        output="${deploy.dir}/Architect-setup-${major}.${minor}.${tiny}.jar"
+		        output="${deploy.dir}/Architect-Setup-Windows-${major}.${minor}.${tiny}.jar"
 		        installerType="standard"
 			    basedir="${installer.dir}"
 		        izPackDir="${izpack.dir}/"/>

@@ -7,3 +7,4 @@ build
 TEST*
 architect.log*
 .fbwarnings
+deploy
