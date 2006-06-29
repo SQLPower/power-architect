@@ -25,22 +25,22 @@ public class ArchitectSwingTestSuite extends TestCase {
 	public static Test suite() {
 		TestSuite suite = new TestSuite("Test for Architect's Swing GUI");
 		//$JUnit-BEGIN$		
-		suite.addTestSuite(TestSwingUIProject.class);
 		suite.addTestSuite(TestArchitectFrame.class);
 		suite.addTestSuite(TestAutoLayoutAction.class);
-		suite.addTestSuite(TestPlayPen.class);
-		suite.addTestSuite(TestUndoManager.class);
-		suite.addTestSuite(TestColumnEditPanel.class);		
-		suite.addTestSuite(TestSQLObjectUndoableEventAdapter.class);
-		suite.addTestSuite(TestFruchtermanReingoldForceLayout.class);
-		suite.addTestSuite(TestCompareDMPanel.class);
-		suite.addTestSuite(TestTablePane.class);
-		suite.addTestSuite(TestDeleteSelectedAction.class);
-		suite.addTestSuite(TestRelationship.class);
 		suite.addTestSuite(TestBasicRelationshipUI.class);
-		suite.addTestSuite(TestPlayPenComponent.class);
 		suite.addTestSuite(TestDBTree.class);
+		suite.addTestSuite(TestColumnEditPanel.class);		
+		suite.addTestSuite(TestDeleteSelectedAction.class);
+		suite.addTestSuite(TestCompareDMPanel.class);
+		suite.addTestSuite(TestFruchtermanReingoldForceLayout.class);
+		suite.addTestSuite(TestRelationship.class);
+		suite.addTestSuite(TestPlayPen.class);
+		suite.addTestSuite(TestPlayPenComponent.class);
+		suite.addTestSuite(TestSwingUIProject.class);
+		suite.addTestSuite(TestSQLObjectUndoableEventAdapter.class);
 		suite.addTestSuite(TestTableEditPane.class);
+		suite.addTestSuite(TestTablePane.class);
+		suite.addTestSuite(TestUndoManager.class);
 		//$JUnit-END$
 		return suite;
 	}
