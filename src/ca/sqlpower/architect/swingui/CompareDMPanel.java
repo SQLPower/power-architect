@@ -2,6 +2,7 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -791,8 +792,8 @@ public class CompareDMPanel extends JPanel {
 		buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
 		FormLayout formLayout = new FormLayout("20dlu, 2dlu, pref, 4dlu," + // 1-4
-				"pref:grow, 4dlu, pref:grow, 4dlu," + // 5-8
-				"pref:grow, 4dlu, pref", // 9-11
+				"0:grow, 4dlu, 0:grow, 4dlu," + // 5-8
+				"0:grow, 4dlu, pref", // 9-11
 				"");
 		formLayout.setColumnGroups(new int[][] { { 5, 7, 9, } });
 		JPanel panel = logger.isDebugEnabled() ? new FormDebugPanel()
@@ -861,7 +862,7 @@ public class CompareDMPanel extends JPanel {
 
 		setLayout(new BorderLayout());
 		add(builder.getPanel());
-		
+		setPreferredSize(new Dimension(800,600));
 		try {
 			restoreSettingsFromProject();
 		} catch (ArchitectException e1) {
