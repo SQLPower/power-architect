@@ -4,7 +4,7 @@
 	<classpathentry kind="src" path="regress"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry sourcepath="libsrc/commons-beanutils-1.7.0-src.jar" kind="lib" path="lib/commons-beanutils.jar"/>
-	<classpathentry kind="lib" path="lib/commons-digester.jar"/>
+	<classpathentry sourcepath="libsrc/commons-digester-1.5-src.zip" kind="lib" path="lib/commons-digester.jar"/>
 	<classpathentry kind="lib" path="lib/commons-logging.jar"/>
 	<classpathentry kind="lib" path="lib/jlfgr-1_0.jar"/>
 	<classpathentry kind="lib" path="lib/log4j.jar"/>
