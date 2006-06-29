@@ -743,7 +743,7 @@ public class CompareDMPanel extends JPanel {
 	 */
 	public boolean isStartable() {
 		logger.debug("isStartable is checking...");
-		return source.isThisPartStartable() && target.isThisPartStartable();
+		return source.isThisPartStartable() && target.isThisPartStartable() && !(source.playPenRadio.isSelected() && sqlButton.isSelected());
 	}
 
 	public Action getStartCompareAction() {
@@ -1254,7 +1254,9 @@ public class CompareDMPanel extends JPanel {
 					if (chunk.getData() instanceof SQLTable)
 					{
 						SQLTable t = (SQLTable) chunk.getData();
-						gen.writeTable(t);
+                        if(t.getObjectType().equals("TABLE")) {
+                            gen.writeTable(t);                            
+                        } 
                         if (hasKey(t)) {
                             gen.addPrimaryKey(t);
                         }

@@ -21,7 +21,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
     
 	public PostgresDDLGenerator() throws SQLException {
 		super();
-	}
+   	}
 
 	public static final String GENERATOR_VERSION = "$Revision$";
 	private static final Logger logger = Logger.getLogger(PostgresDDLGenerator.class);
@@ -306,7 +306,8 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
 		reservedWords.add("ZONE");
 	}
 
-	private static boolean isReservedWord(String word) {
+    @Override
+	public boolean isReservedWord(String word) {
 		return reservedWords.contains(word.toUpperCase());
 	}
 
@@ -374,19 +375,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
 		if (logger.isDebugEnabled()) logger.debug("getting physical name for: " + logicalName);
 		String ident = logicalName.replace(' ','_').toLowerCase();
 		if (logger.isDebugEnabled()) logger.debug("after replace of spaces: " + ident);
-		// make sure first character is alpha
- 		Pattern p = Pattern.compile("^[^a-zA-Z]+");
- 		Matcher m = p.matcher(ident);
-		if (m.find()) {
-			// just add something alpha to the front for now
-			ident = "X" + ident;
-			if (logger.isDebugEnabled()) logger.debug("identifiers must start with letter; prepending X: " + ident);
-		}
-		// see if it's a reserved word, and add something alpha to front if it is...
-		if (isReservedWord(ident)) {
-			ident = "X" + ident;
-			if (logger.isDebugEnabled()) logger.debug("identifier was reserved word, prepending X: " + ident);
-		}
+		
 
 		// replace anything that is not a letter, character, or underscore with an underscore...
 		ident = ident.replaceAll("[^a-zA-Z0-9_$]", "_");

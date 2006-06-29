@@ -200,20 +200,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
 		if (logger.isDebugEnabled()) logger.debug("getting physical name for: " + logicalName);
 		String ident = logicalName.replace(' ','_').toUpperCase();
 		if (logger.isDebugEnabled()) logger.debug("after replace of spaces: " + ident);
-		// make sure first character is alpha
- 		Pattern p = Pattern.compile("^[^a-zA-Z]+");
- 		Matcher m = p.matcher(ident);
-		if (m.find()) {
-			// just add something alpha to the front for now
-			ident = "X" + ident;
-			if (logger.isDebugEnabled()) logger.debug("identifiers must start with letter, appending X: " + ident);
-		}
-		// see if it's a reserved word, and add something alpha to front if it is...
-		if (isReservedWord(ident)) {
-			ident = "X" + ident;
-			if (logger.isDebugEnabled()) logger.debug("identifier was reserved word, appending X: " + ident);
-		}
-
+				
 		// replace anything that is not a letter, character, or underscore with an underscore...
 		ident = ident.replaceAll("[^a-zA-Z0-9_]", "_");
 
@@ -251,7 +238,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
      * Subroutine for toIdentifier().  Probably a generally useful feature that we
      * should pull up to the GenericDDLGenerator.
      */
-    private static boolean isReservedWord(String word) {
+    public boolean isReservedWord(String word) {
         return reservedWords.contains(word.toUpperCase());
     }
 

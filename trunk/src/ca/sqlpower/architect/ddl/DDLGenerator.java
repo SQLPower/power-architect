@@ -209,4 +209,9 @@ public interface DDLGenerator {
      * For many platforms, this is a semicolon.
      */
     public String getStatementTerminator();
+    /**
+     * Check to see if the word word is on the list of reserved words for this database
+     * @return
+     */
+    public boolean isReservedWord(String word);
 }
