@@ -13,8 +13,10 @@ public class SQLObjectComparator implements Comparator<SQLObject> {
 		else if (t2 == null) return 1;
 		else {
             //TODO In version 2.0 we want this to be an option
-			String n1 = t1.getName().toLowerCase();
-			String n2 = t2.getName().toLowerCase();
+			String n1 = t1.getName();
+			String n2 = t2.getName();
+            if (n1 != null) n1 = n1.toLowerCase();
+            if (n2 != null) n2 = n2.toLowerCase();
             if (n1 == n2) return 0;
 			else if (n1 == null) return -1;
 			else if (n2 == null) return 1;
