@@ -738,7 +738,7 @@ public class SwingUIProject {
 
 		try {
 			println(out, "<?xml version=\"1.0\" encoding=\""+encoding+"\"?>");
-			println(out, "<architect-project version=\"0.1\">");
+			println(out, "<architect-project version=\"1.0\" appversion=\""+ArchitectUtils.APP_VERSION+"\">");
 			indent++;
 			println(out, "<project-name>"+ArchitectUtils.escapeXML(name)+"</project-name>");
 			saveDataSources(out);

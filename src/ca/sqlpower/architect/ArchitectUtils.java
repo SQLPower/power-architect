@@ -22,8 +22,8 @@ import java.net.URL;
 public class ArchitectUtils {
 	
 	private static final Logger logger = Logger.getLogger(ArchitectUtils.class);
-    public static final String APP_VERSION = "1.0";
-    public static final String MARKETING_APP_VERSION = "6.0";
+    public static final String APP_VERSION = "1.0.19";
+    public static final String MARKETING_APP_VERSION = "1.0.19";
     
     /**
      * The System.currentTimeMillis when this class was loaded.

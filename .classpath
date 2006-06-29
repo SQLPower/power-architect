@@ -7,18 +7,17 @@
 	<classpathentry kind="lib" path="lib/commons-digester.jar"/>
 	<classpathentry kind="lib" path="lib/commons-logging.jar"/>
 	<classpathentry kind="lib" path="lib/jlfgr-1_0.jar"/>
-	<classpathentry sourcepath="libsrc/junit_3.8.1.jar" kind="lib" path="lib/junit.jar"/>
 	<classpathentry kind="lib" path="lib/log4j.jar"/>
 	<classpathentry sourcepath="/web-development/classes" kind="lib" path="lib/sqlpower.jar"/>
 	<classpathentry kind="lib" path="lib/commons-beanutils-bean-collections.jar"/>
 	<classpathentry kind="lib" path="lib/commons-beanutils-core.jar"/>
 	<classpathentry sourcepath="libsrc/forms-1.0.6-src.zip" kind="lib" path="lib/forms-1.0.6.jar"/>
-	<classpathentry sourcepath="libsrc/jfcunit-2.08_src.jar" kind="lib" path="lib/jfcunit.jar"/>
 	<classpathentry kind="lib" path="lib/jakarta-regexp-1.2.jar"/>
 	<classpathentry kind="lib" path="lib/commons-collections-3.1.jar"/>
 	<classpathentry sourcepath="libsrc/commons-dbcp-1.2.1-src.zip" kind="lib" path="lib/commons-dbcp-1.2.1.jar"/>
 	<classpathentry sourcepath="libsrc/commons-pool-1.3-src.zip" kind="lib" path="lib/commons-pool-1.3.jar"/>
-	<classpathentry kind="lib" path="lib/itext-1.4.1.jar"/>
 	<classpathentry kind="lib" path="osx_packaging_utils/osx_adapter.jar"/>
+	<classpathentry kind="lib" path="buildlib/junit.jar"/>
+	<classpathentry kind="lib" path="buildlib/jfcunit.jar"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>
