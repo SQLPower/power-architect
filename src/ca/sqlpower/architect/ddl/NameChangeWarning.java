@@ -60,6 +60,7 @@ public class NameChangeWarning implements DDLWarning {
     public void setNewValue(Object newValue) {
         logger.debug("Setting logical name of "+subject+" to "+newValue);
         subject.setName(newValue == null ? null : newValue.toString());
+        subject.setPhysicalName(null);
     }
 	
 }
