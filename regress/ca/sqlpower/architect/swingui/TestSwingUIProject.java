@@ -426,6 +426,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		propertiesToIgnore.add("parent");
 		propertiesToIgnore.add("parentDatabase");
 		propertiesToIgnore.add("class");
+        
 		propertiesToIgnore.add("childCount");
 		propertiesToIgnore.add("secondaryChangeMode");
 		propertiesToIgnore.add("populated");
