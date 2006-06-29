@@ -31,8 +31,11 @@
 	<packs>
 		<pack name="Core" required="yes">
 			<description>Architect Core Files</description>
-			<fileset dir="../deploy/" targetdir="$INSTALL_PATH">
-				<include name="**/*.jar"/>
+			<fileset dir="../deploy" targetdir="$INSTALL_PATH">
+				<include name="architect.jar"/>
+			</fileset>
+			<fileset dir="../deploy/lib" targetdir="$INSTALL_PATH">
+				<include name="*.jar"/>
 			</fileset>
 			<fileset dir="../src/icons" targetdir="$INSTALL_PATH">
 				<include name="*.ico"/>
