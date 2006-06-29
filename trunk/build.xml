@@ -10,8 +10,9 @@
 	<property name="installer.dir" value="installer"/>
 	<property name="izpack.dir" value="IzPack"/>
 	<property name="deploy.dir" value="deploy"/>
-	<property name="ver" value="1"/>
-	<property name="rel" value="0"/>
+	<property name="major" value="1"/>
+	<property name="minor" value="0"/>
+	<property name="tiny" value="19"/>
 	
 	<taskdef name="izpack" classpath="${izpack.dir}/lib/compiler.jar" classname="com.izforge.izpack.ant.IzPackTask"/>
 	<taskdef name="jarbundler" classpath="osx_packaging_utils/jarbundler.jar:osx_packaging_utils/xercesImpl.jar:osx_packaging_utils/xml-apis.jar" classname="net.sourceforge.jarbundler.JarBundler"/>
@@ -82,7 +83,7 @@
 	</target>
 
 	<!-- Convert User Manual from XML to FO -->
-	<target name="fo" depends="init" description="Create user guide in HTML">
+	<target name="fo" depends="init" description="Create user guide in XML Formatting Objects">
 		<mkdir dir="${build}/doc/" />
         <xslt 
 			style="doc/tools/xslt/fo/docbook.xsl"
@@ -114,7 +115,7 @@
 		</fop>
 
     </target>
-	    	
+	
     <!-- Creates a WebStart distribution under the webstart/ directory -->
 	<target name="dist" depends="compile,userguide">
         <mkdir dir="webstart/lib"/>
@@ -131,9 +132,9 @@
     
     <target name="deploy" depends="dist">
         <mkdir dir="${deploy.dir}"/>
-    	<mkdir dir="${deploy.dir}/lib"/>
+        <mkdir dir="${deploy.dir}/lib"/>
         <copy file="webstart/lib/architect.jar" todir="${deploy.dir}"/>
-        	<copy todir="${deploy.dir}/lib">
+        <copy todir="${deploy.dir}/lib">
             <fileset dir="webstart/lib" excludes="architect.jar"/>
         </copy>
 	</target>
@@ -154,11 +155,17 @@
 		<fileset dir="lib">
 			<include name="*.jar"/>
 		</fileset>
+		<fileset dir="buildlib">
+			<include name="*.jar"/>
+		</fileset>
 	</path>
 
 	<path id="test.classpath">
 		<pathelement location="build"/>
 		<fileset dir="lib">
+			<include name="*.jar"/>
+		</fileset>
+		<fileset dir="buildlib">
 			<include name="*.jar"/>
 		</fileset>
 	</path>
@@ -198,7 +205,7 @@
 	
 	<target name="Windows Installer" depends="deploy">
 		<izpack input="${installer.dir}/Architect-install.xml"
-		        output="${deploy.dir}/Architect-setup-${ver}.${rel}.jar"
+		        output="${deploy.dir}/Architect-setup-${major}.${minor}.${tiny}.jar"
 		        installerType="standard"
 			    basedir="${installer.dir}"
 		        izPackDir="${izpack.dir}/"/>
@@ -211,7 +218,7 @@
 		
 		<jarbundler dir="deploy"
            name="Power*Architect"
-           version="${ver}.${rel}.0"
+           version="${major}.${minor}.${tiny}"
            mainclass="ca.sqlpower.architect.swingui.ArchitectFrame"
            icon="src/icons/Power Architect.icns"
            jvmversion="1.5+"
@@ -229,7 +236,7 @@
 			<arg value="create"/>
 			<arg value="-srcfolder"/>
 			<arg value="${deploy.dir}/Power*Architect.app"/>
-			<arg value="${deploy.dir}/Power_Architect-${ver}.${rel}.dmg"/>
+			<arg value="${deploy.dir}/Power_Architect-${major}.${minor}.${tiny}.dmg"/>
 		</exec>
 	</target>
 </project>
