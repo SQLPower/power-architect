@@ -34,13 +34,28 @@
 			<fileset dir="../deploy" targetdir="$INSTALL_PATH">
 				<include name="architect.jar"/>
 			</fileset>
-			<fileset dir="../deploy/lib" targetdir="$INSTALL_PATH">
+			<fileset dir="../deploy/lib" targetdir="$INSTALL_PATH/lib">
 				<include name="*.jar"/>
+			</fileset>
+			<fileset dir="." targetdir="$INSTALL_PATH">
+				<include name="*.reg"/>
 			</fileset>
 			<fileset dir="../src/icons" targetdir="$INSTALL_PATH">
 				<include name="*.ico"/>
 			</fileset>
-			<file src="architect.bat" targetdir="$INSTALL_PATH"/>
+			<parsable targetfile="${INSTALL_PATH}/architect_file_association.reg" type="windowsreg"/>
+			<executable targetfile="regedit.exe" stage="postinstall" keep="true">
+			   <args>
+			     <arg value="\/s"/>
+			     <arg value="$INSTALL_PATH/architect_file_association.reg"/>
+		      </args>
+		   </executable>
+			<executable targetfile="regedit.exe" stage="uninstall" keep="true">
+			   <args>
+			     <arg value="\/s"/>
+			     <arg value="$INSTALL_PATH/uninstall.reg"/>
+		      </args>
+		   </executable>
 		</pack>
 	</packs>
 	
