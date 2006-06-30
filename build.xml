@@ -60,9 +60,22 @@
 	<!-- First the HTML -->
 	<target name="html" depends="init" description="Create user guide in HTML">
 		<mkdir dir="${build}/ca/sqlpower/architect/doc/" />
+		
+		<!-- Create an intermediate docbook document with no width attributes on the images
+		     (the swing html browser chokes when there is width but not height in an img tag) -->
+		<xslt
+			style="doc/tools/strip-width.xsl"
+			in="doc/PowerArchitectUserGuide.xml"
+			out="${build}/ca/sqlpower/architect/doc/PowerArchitectUserGuide-nowidth.xml">
+			<classpath>
+		    	<fileset dir="doc/tools/xalan">
+		    	  <include name="*.jar"/>
+		    	</fileset>
+			</classpath>
+		</xslt>
 		<xslt
 			style="doc/tools/xslt/html/chunk.xsl"
-			in="doc/PowerArchitectUserGuide.xml"
+			in="${build}/ca/sqlpower/architect/doc/PowerArchitectUserGuide-nowidth.xml"
 			out="${build}/ca/sqlpower/architect/doc/PowerArchitectUserGuide.html">
 			<classpath>
 			    <fileset dir="doc/tools/xalan">
