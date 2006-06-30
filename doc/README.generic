@@ -1,0 +1,20 @@
+This generic distribution of the Power*Architect is intended
+for platforms that we do not have a specific distribution
+for.  For example, NetBSD, FreeBSD, and OpenBSD, Solaris, and
+all flavours of Linux.
+
+To launch the Architect from the command line, do the following:
+
+% java -jar $ARCHITECT_HOME/architect.jar
+
+(where $ARCHITECT_HOME is the directory this README file is in).
+
+For especially large projects (with thousands of tables), the
+default memory size limit of 64MB may not be enough.  To extend
+the limit, use:
+
+% java -Xmx600M -jar $ARCHITECT_HOME/architect.jar
+
+And that will give you 600MB of heap space to play with.
+
+Enjoy!
