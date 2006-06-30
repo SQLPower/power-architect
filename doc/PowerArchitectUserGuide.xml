@@ -1049,8 +1049,12 @@
                format="GIF"/></imageobject></inlinemediaobject></entry><entry>Table</entry></row>
 
               <row><entry><inlinemediaobject><imageobject>
-              <imagedata fileref="src/icons/Relationship16.gif"
-               format="GIF"/></imageobject></inlinemediaobject></entry><entry>Relationship</entry></row>
+              <imagedata fileref="src/icons/ExportedKey16.gif"
+               format="GIF"/></imageobject></inlinemediaobject></entry><entry>Exported Key</entry></row>
+
+              <row><entry><inlinemediaobject><imageobject>
+              <imagedata fileref="src/icons/ImportedKey16.gif"
+               format="GIF"/></imageobject></inlinemediaobject></entry><entry>Imported Key</entry></row>
 
             </tbody>
 
