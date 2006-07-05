@@ -8,10 +8,11 @@
   
 	<!-- $Id$ -->
 	
-    <imageobject id="architect_logo">
+    <title id="book">Power*Architect User Guide</title>
+
+    <mediaobject><imageobject id="architect_logo">
     <imagedata fileref="doc/images/architect_logo.png" format="PNG"/>
-    </imageobject>
-    <title id="user">Power*Architect User Guide</title>
+    </imageobject></mediaobject>
 
     <corpauthor><ulink url="http://www.sqlpower.ca">SQL Power</ulink> 
     Group Inc.</corpauthor>
