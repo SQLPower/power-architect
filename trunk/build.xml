@@ -136,7 +136,7 @@
     </target>
 	
     <!-- Creates a WebStart distribution under the webstart/ directory -->
-	<target name="dist" depends="compile,userguide">
+	<target name="webstart_dist" depends="compile,userguide">
         <mkdir dir="webstart/lib"/>
 		<jar destfile="webstart/lib/architect.jar" basedir="${build}" includes="ca/** icons/** log4j.properties" manifest="manifest">
 		</jar>
@@ -150,8 +150,9 @@
         -->
 	</target>
 
-    
-    <target name="deploy" depends="dist">
+    <!-- Copy the main Jar file, and dependent libs, to the deploy dir. 
+     -->
+    <target name="deploy" depends="webstart_dist">
         <mkdir dir="${deploy.dir}"/>
         <mkdir dir="${deploy.dir}/lib"/>
         <copy file="webstart/lib/architect.jar" todir="${deploy.dir}"/>
@@ -224,7 +225,7 @@
 
 	</target>
 	
-	<target name="Windows Installer" depends="deploy">
+	<target name="windows_installer" depends="deploy">
 		<izpack input="${installer.dir}/Architect-install.xml"
 		        output="${deploy.dir}/Architect-Setup-Windows-${major}.${minor}.${tiny}.jar"
 		        installerType="standard"
@@ -237,6 +238,7 @@
 		<!-- The pre-compiled osx adapter class (it only compiles on OS X) -->
 		<copy file="osx_packaging_utils/osx_adapter.jar" todir="${deploy.dir}/lib"/>
 		
+		<!-- jarbundler is from sourceforge, defined near top of file -->
 		<jarbundler dir="deploy"
            name="Power*Architect"
            version="${major}.${minor}.${tiny}"
@@ -252,12 +254,24 @@
 	</target>
 	
 	<!-- This target will only work on OS X (it needs the hdiutil command) -->
-	<target name="osx_dmg"> <!-- depends="osx_dist" -->
+	<target name="osx_dmg" depends="osx_dist">
 		<exec executable="hdiutil">
 			<arg value="create"/>
 			<arg value="-srcfolder"/>
 			<arg value="${deploy.dir}/Power*Architect.app"/>
 			<arg value="${deploy.dir}/Power_Architect-${major}.${minor}.${tiny}.dmg"/>
 		</exec>
+	</target>
+	
+	<!-- Build a "generic" (e.g., UNIX) install that users will just un-tar -->
+    <target name="generic_install" depends="deploy">
+		<tar destfile="${deploy.dir}/Architect-generic-${major}.${minor}.${tiny}.tar.gz"
+			compression="gzip">
+			<tarfileset dir="${deploy.dir}" includes="lib/*.jar"/>
+			<tarfileset dir="${deploy.dir}" includes="architect.jar"/>
+		</tar>
+    </target>
+	
+	<target name="dist" depends="windows_installer,generic_install"><!-- ,osx_dmg -->
 	</target>
 </project>
