@@ -1,6 +1,7 @@
 <?xml version='1.0'?>
 <!DOCTYPE book PUBLIC "-//OASIS//DTD Simplified DocBook XML V1.0//EN" 
 	"http://www.oasis-open.org/docbook/xml/simple/1.0/sdocbook.dtd">
+
 <book id="architect-user-guide" lang="en">
 
   <bookinfo>
@@ -198,9 +199,14 @@
 
       To run the Power*Architect you need a Java 1.5 or newer 
       Java Runtime (<quote>Java VM</quote> or <quote>JVM</quote>). A current 
-      version of the Java VM can be obtained from 
+      version of the Java VM for common platforms can be obtained from 
       <ulink url="http://java.sun.com/javase/downloads/index.html">Sun 
-      Microsystems</ulink>.</para>
+      Microsystems</ulink>. 
+      To ensure that your JVM is up-to-date,
+      Apple Macintosh users should use Software Update (from the Apple Menu)
+      while others should use the Java Updater (from, e.g., the
+      Microsoft Windows Control Panel).
+      </para>
 
     </section>
 
@@ -211,7 +217,14 @@
       <para>Power*Architect can be obtained from the 
       <ulink url="http://download.sqlpower.ca">download section</ulink> 
       of the <ulink url="http://www.sqlpower.ca/">SQLPower 
-      Website</ulink>.</para>
+      Website</ulink>.
+      You should only need to download one file, choosing the
+      platform-appropriate distribution (Windows-Installer for
+      Microsoft Windows, "DMG" for Apple Macintosh,
+      and ".tar.gz" for UNIX/Linux/other platforms).
+      You should normally choose the download with the highest
+      revision number available.
+      </para>
 
     </section>
 
@@ -223,8 +236,8 @@
 
         <title>Microsoft Windows</title>
 
-        <para>Double click on the architect-setup-1.0.jar. This will 
-        launch the Microsoft Windows installer. Follow the on screen 
+        <para>Double click on the Architect-setup-Windows-n.m.jar. This will 
+        launch the Microsoft Windows installer. Follow the on-screen 
         instructions.</para>
 
       </section>
@@ -233,7 +246,7 @@
 
         <title>Macintosh Mac OS X</title>
 
-        <para>Drag the architect.dmg file to the Applications 
+        <para>Drag the architect-n.m.dmg file to the Applications 
         folder</para>
 
       </section>
@@ -242,7 +255,7 @@
 
         <title>Other Platforms</title>
 
-        <para>Extract the architect.tar.gz package into the desired 
+        <para>Extract the Architect-generic-n.m.tar.gz package into the desired 
         directory.</para>
 
       </section>
@@ -255,7 +268,7 @@
 
       <section id="run_win">
 
-        <title>Windows</title>
+        <title>Microsoft Windows</title>
 
         <para>From the start menu, select All Programs. Then select the 
         Power Loader Suite program group. Finally click on the Power 
@@ -267,8 +280,12 @@
 
         <title>Mac</title>
 
-        <para>From the finder select Applications, then select 
-        Power*Architect</para>
+        <para>From the Finder, select Applications, then select 
+        Power*Architect.
+        To enable launching of the Architect directly from the Dock,
+        either drag the image there or, while it is running, Apple-Click 
+        on the running icon and select Keep In Dock.
+        </para>
 
       </section>
 
@@ -276,8 +293,11 @@
 
         <title>Other Platforms</title>
 
-        <para>From the directory that you extracted the architect, run 
-        the command <command>java -jar architect.jar</command></para>
+        <para>In the directory into which you extracted the Architect, run 
+        the command <command>java  -jar  architect.jar</command>.
+        If you have a visual browser, you may be able to launch
+        the architect by clicking (or double-clicking) on the
+        architect.jar file.</para>
 
       </section>
 
@@ -1816,7 +1836,7 @@
   <chapter id="acknowledgements">
     <title>Acknowlegdements</title>
     
-    <section><title>The Apache Software Foundation</title>
+    <section id="ASF"><title>The Apache Software Foundation</title>
     <para>The Power*Architect development team is grateful to the Apache Software Foundation
     and their contributors; their high-quality reusable Java libraries have been
     invaluable in the development of the Architect.  The text of the Apache License follows,
@@ -1838,7 +1858,7 @@
       <listitem><para>commons-pool-1.3.jar</para></listitem>
     </itemizedlist>
     
-	<screen>
+	<literallayout>
                               Apache License
                         Version 2.0, January 2004
                      http://www.apache.org/licenses/
@@ -2040,10 +2060,10 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-    	</screen>
-    	</section>
+    	</literallayout>
+    </section>
     	
-    <section><title>JGoodies Karsten Lentzsch</title>
+    <section id="JGoodies"><title>JGoodies Karsten Lentzsch</title>
     	
     	<para>The Power*Architect team is also grateful to JGoodies for their
     	excellent forms layout manager for Swing.  JGoodies forms is released
@@ -2056,7 +2076,7 @@ limitations under the License.
       <listitem><para>forms-1.0.6.jar</para></listitem>
     </itemizedlist>
 
-    	<screen>
+    	<literallayout>
               The BSD License for the JGoodies Forms
               ======================================
 
@@ -2088,11 +2108,11 @@ OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
 WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
 OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-    	</screen>
+    	</literallayout>
     	
     	</section>
     	
-    <section><title>JUnit</title>
+    <section id="JUnit"><title>JUnit</title>
     	<para>The Power*Architect team would also like to extend our sincere thanks
     	to the JUnit.org team.  JUnit forms an invaluable part of our development
     	process, but it is not redistributed as part of the Architect download so its
@@ -2100,21 +2120,28 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     	</para>
     	
     	<para>If you develop software, you should become test infected too!  Learn
-    	about JUnit at http://www.junit.org/.
+    	about JUnit at <ulink url="http://www.junit.org/">http://www.junit.org/</ulink>.
     	</para>
     
-    	</section>
+    </section>
+    
+    <section id="eclipse"><title>The Eclipse Foundation</title>
+    	<para>The Power*Archited was primarily developed and tested
+    	using the <ulink url="http://www.sqlpower.ca/">Eclipse</ulink>
+		Java Development Tools, one of the
+    	more productive Java environments around.</para>
+    </section>
     	
-    <section><title>Sun Microsystems</title>
+    <section id="SUNW"><title>Sun Microsystems</title>
 
-    <para>Last but not least, many thanks to Sun Microsystems and their various
+    <para>Last but not least, many thanks to 
+    <ulink url="http://java.sun.com/">Sun Microsystems</ulink> and their various
     Java development teams for creating, extending, bugfixing, documenting, and
-    supporting the Java platform over the past <constant>N</constant> years!
+    supporting the Java platform over the past <emphasis>N</emphasis> years!
     </para>
 
-    	</section>
+    </section>
     
   </chapter>
   
 </book>
-
