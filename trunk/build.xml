@@ -136,7 +136,9 @@
     <!-- Creates a WebStart distribution under the webstart/ directory -->
 	<target name="webstart_dist" depends="compile,userguide">
         <mkdir dir="webstart/lib"/>
-		<jar destfile="webstart/lib/architect.jar" basedir="${build}" includes="ca/** icons/** log4j.properties" manifest="manifest">
+		<jar destfile="webstart/lib/architect.jar" update="no"
+			basedir="${build}" includes="ca/** icons/** log4j.properties" 
+			manifest="manifest">
 		</jar>
         <copy todir="webstart/lib">
             <fileset dir="lib" includes="*.jar"/>
