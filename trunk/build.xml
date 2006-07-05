@@ -46,8 +46,6 @@
 	    <!-- copies the template log4j config file into the build dir -->
 	    <copy tofile="${build}/log4j.properties"
     	        file="src/log4j.properties.example"/>
-	    <!-- copies customized log4j config file into the build dir -->
-	    <copy failonerror="false" file="src/log4j.properties" todir="${build}" overwrite="true" />
     </target>
 
 	<!-- DOCUMENTATION -->
@@ -191,19 +189,6 @@
 			<include name="*.jar"/>
 		</fileset>
 	</path>
-
-	<target name="regress" depends="compile">
-		<junit printsummary="yes" fork="no" haltonfailure="yes">
-			<sysproperty key="architect.databaseListFile" value="/jonathan/jdbc/databases.xml"/>
-			<sysproperty key="architect.databaseListFile.nameToUse" value="autotest_ss"/>
-			<classpath refid="test.classpath"/>
-			<formatter type="plain"/>
-			<test name="regress.ArchitectExceptionTest"/>
-			<test name="regress.TestSQLColumn"/>
-			<test name="regress.TestSQLDatabase"/>
-		</junit>
-	</target>
-
 
 	<target name="docs" depends="compile">
 		<mkdir dir="${build}/docs/api"/>
