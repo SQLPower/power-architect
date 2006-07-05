@@ -1544,9 +1544,6 @@
         <para>To run the QuickStart Wizard, go to ETL and click 
         QuickStart Wizard button under Power*Loader.</para>
 
-        <para>TODO: Write the steps in for QuickStart Wizard and maybe 
-        add in screenshots</para>
-
         <section id="quick_start_wizard.how.1">
 
           <title>Step 1</title>
@@ -1835,7 +1832,7 @@
   </chapter>
   
   <chapter id="acknowledgements">
-    <title>Acknowlegdements</title>
+    <title>Acknowledgements</title>
     
     <section id="ASF"><title>The Apache Software Foundation</title>
     <para>The Power*Architect development team is grateful to the Apache Software Foundation
