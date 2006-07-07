@@ -1,6 +1,7 @@
 <project name="architect" default="dist" basedir=".">
 
 	<!-- $Id$ -->
+	<!-- get the version number from source code ArchitectUtils -->
 
 	<property file="user.properties" />
 
@@ -10,9 +11,6 @@
 	<property name="installer.dir" value="installer"/>
 	<property name="izpack.dir" value="IzPack"/>
 	<property name="deploy.dir" value="deploy"/>
-	<property name="major" value="1"/>
-	<property name="minor" value="0"/>
-	<property name="tiny" value="19"/>
 	
 	<taskdef name="izpack" classpath="${izpack.dir}/lib/compiler.jar" classname="com.izforge.izpack.ant.IzPackTask"/>
 	<taskdef name="jarbundler" classpath="osx_packaging_utils/jarbundler.jar:osx_packaging_utils/xercesImpl.jar:osx_packaging_utils/xml-apis.jar" classname="net.sourceforge.jarbundler.JarBundler"/>
@@ -161,7 +159,7 @@
         </copy>
 	</target>
 
-	<target name="run" depends="compile">
+	<target name="run" depends="compile,gen_version">
 		<java fork="true" classname="ca.sqlpower.architect.swingui.ArchitectFrame" classpathref="test.classpath">
 			<jvmarg value="-Dlog4j.configuration=file:log4j.properties"/>
 		</java>
@@ -212,15 +210,24 @@
 
 	</target>
 	
-	<target name="windows_installer" depends="deploy">
+	<!-- generate version number, get the version number from the code - ArchitectUtils -->
+	<target name="gen_version" depends="compile">
+		<taskdef name="genVersion"
+			classname="ca.sqlpower.architect.ArchitectVersion"
+	        classpath="build"/>
+		<genVersion message="Architect!"/>
+		<echo message="Building Architect version: ${app_ver_major}.${app_ver_minor}.${app_ver_tiny}"> </echo>
+	</target>
+		
+	<target name="windows_installer" depends="deploy,gen_version">
 		<izpack input="${installer.dir}/Architect-install.xml"
-		        output="${deploy.dir}/Architect-Setup-Windows-${major}.${minor}.${tiny}.jar"
+		        output="${deploy.dir}/Architect-Setup-Windows-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.jar"
 		        installerType="standard"
 			    basedir="${installer.dir}"
 		        izPackDir="${izpack.dir}/"/>
 	</target>
 
-	<target name="osx_dist" depends="deploy">
+	<target name="osx_dist" depends="deploy,gen_version">
 		
 		<!-- The pre-compiled osx adapter class (it only compiles on OS X) -->
 		<copy file="osx_packaging_utils/osx_adapter.jar" todir="${deploy.dir}/lib"/>
@@ -228,7 +235,7 @@
 		<!-- jarbundler is from sourceforge, defined near top of file -->
 		<jarbundler dir="deploy"
            name="Power*Architect"
-           version="${major}.${minor}.${tiny}"
+           version="${app_ver_major}.${app_ver_minor}.${app_ver_tiny}"
            mainclass="ca.sqlpower.architect.swingui.ArchitectFrame"
            icon="src/icons/Power Architect.icns"
            jvmversion="1.5+"
@@ -241,18 +248,18 @@
 	</target>
 	
 	<!-- This target will only work on OS X (it needs the hdiutil command) -->
-	<target name="osx_dmg" depends="osx_dist">
+	<target name="osx_dmg" depends="osx_dist,gen_version">
 		<exec executable="hdiutil">
 			<arg value="create"/>
 			<arg value="-srcfolder"/>
 			<arg value="${deploy.dir}/Power*Architect.app"/>
-			<arg value="${deploy.dir}/Power_Architect-${major}.${minor}.${tiny}.dmg"/>
+			<arg value="${deploy.dir}/Power_Architect-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.dmg"/>
 		</exec>
 	</target>
 	
 	<!-- Build a "generic" (e.g., UNIX) install that users will just un-tar -->
-    <target name="generic_install" depends="deploy">
-		<tar destfile="${deploy.dir}/Architect-generic-${major}.${minor}.${tiny}.tar.gz"
+    <target name="generic_install" depends="deploy,gen_version">
+		<tar destfile="${deploy.dir}/Architect-generic-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.tar.gz"
 			compression="gzip">
 			<tarfileset dir="${deploy.dir}" includes="lib/*.jar"/>
 			<tarfileset dir="${deploy.dir}" includes="architect.jar"/>
