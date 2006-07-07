@@ -22,9 +22,12 @@ import java.net.URL;
 public class ArchitectUtils {
 	
 	private static final Logger logger = Logger.getLogger(ArchitectUtils.class);
-    public static final String APP_VERSION = "1.0.19";
-    public static final String MARKETING_APP_VERSION = "1.0.19";
-    
+    public static final String APP_VERSION_MAJOR = "1";
+    public static final String APP_VERSION_MINOR = "0";
+    public static final String APP_VERSION_TINY = "19";
+    public static final String APP_VERSION = APP_VERSION_MAJOR+"."+
+                                            APP_VERSION_MINOR+"." +
+                                            APP_VERSION_TINY;
     /**
      * The System.currentTimeMillis when this class was loaded.
      */

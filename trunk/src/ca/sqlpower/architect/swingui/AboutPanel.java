@@ -2,6 +2,10 @@ package ca.sqlpower.architect.swingui;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+
+import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.ArchitectVersion;
+
 import java.awt.FlowLayout;
 
 public class AboutPanel extends JPanel implements ArchitectPanel {
@@ -14,8 +18,10 @@ public class AboutPanel extends JPanel implements ArchitectPanel {
 
 	public void initComponents() {
 		setLayout(new FlowLayout());
+        
         // XXX This should include the new Power*Architect Icon!
-		content = new JLabel("<html>Power*Architect 1.0<br><br>" +
+		content = new JLabel("<html>Power*Architect "+
+		                    ArchitectUtils.APP_VERSION+"<br><br>" +
 							"Copyright 2003-2006 SQL Power Group Inc.<br>" +
 							"</html>");
 		add(content);
