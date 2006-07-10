@@ -56,38 +56,95 @@
     	        file="src/log4j.properties.example"/>
     </target>
 
-	<!-- DOCUMENTATION -->
+	<!-- DOCUMENTATION 
+		There are THREE main documentation targets, all built from the
+		docbook XML file docs/PowerArchitectUsersGuide:
+			help - JavaHelp (jarred and shipped)
+			html - for quick viewing on our web site
+			PDF - because we can :-)
+	-->
 
-	<!-- NOTE: All steps currently require xalan on classpath since JDK1.5 is behind -->
-
+	<!-- NOTE: All XSLT steps currently require xalan on classpath since JDK1.5 is behind -->
+	<path id="docbookclasspath">
+		<fileset dir="doc/tools/xalan">
+			<include name="*.jar"/>
+		</fileset>
+	</path>
+	
 	<target name="userguide" depends="html,pdf" description="Create user guide in HTML and PDF">
 	</target>
 	
-	<!-- First the HTML -->
-	<target name="html" depends="init" description="Create user guide in HTML">
-		<mkdir dir="${build}/ca/sqlpower/architect/doc/" />
-		
-		<!-- Create an intermediate docbook document with no width attributes on the images
-		     (the swing html browser chokes when there is width but not height in an img tag) -->
+	<!-- Create an intermediate docbook document - for use both by help and html -
+	with no width attributes on the images (the Swing HTML browser chokes 
+	when there is width but no height in an image tag) 
+	-->	
+	<target name="xslt-stripwidths">
 		<xslt
 			style="doc/tools/strip-width.xsl"
 			in="doc/PowerArchitectUserGuide.xml"
-			out="${build}/ca/sqlpower/architect/doc/PowerArchitectUserGuide-nowidth.xml">
-			<classpath>
-		    	<fileset dir="doc/tools/xalan">
-		    	  <include name="*.jar"/>
-		    	</fileset>
-			</classpath>
+			out="${java.io.tmpdir}/PowerArchitectUserGuide-nowidth.xml"
+			classpathref="docbookclasspath">
 		</xslt>
+	</target>
+	
+	<!-- Build the Help (JavaHelp, HTML-based format) -->
+	<target name="help" depends="xslt-stripwidths" description="Create JavaHelp">
+		<delete dir="help"/>
+		<mkdir dir="help"/>
+		<xslt
+			style="doc/tools/xslt/javahelp/javahelp.xsl"
+			in="${java.io.tmpdir}/PowerArchitectUserGuide-nowidth.xml"
+			out="help/zzz"
+			classpathref="docbookclasspath">
+		</xslt>
+		
+		<!-- index it -->
+		<java classname="com.sun.java.help.search.Indexer" 
+			classpath="lib/jhall.jar"
+			fork="true" failonerror="true">
+			<arg value="help"/>
+		</java>
+		<mkdir dir="help/JavaHelpSearch"/>
+		<move todir="help/JavaHelpSearch">
+			<fileset dir="JavaHelpSearch" includes="**"/>
+		</move>
+		
+		<!-- Add the Index and Favorites views into the JavaHelp Config -->
+		<replace file="help/jhelpset.hs" token="&lt;/helpset>"
+			value="&lt;view>&lt;name>favorites&lt;/name>&lt;label>Favorites&lt;/label>&lt;type>javax.help.FavoritesView&lt;/type>&lt;/view>&lt;/helpset>"/>
+
+		<!-- Copy the images and icons; the DocBook files have
+			these horrid "src/" and "doc/" paths prepended
+			so we have to preserve these here -->			
+		<mkdir dir="help/doc/images"/>		
+		<copy todir="help/doc/images" overwrite="true">
+			<fileset dir="doc/images">
+				<include name="*.png"/>
+			</fileset>
+		</copy>
+		
+		<mkdir dir="help/src/icons"/>
+		<copy todir="help/src/icons" overwrite="true">
+			<fileset dir="src/icons">
+				<include name="*.gif"/>
+				<include name="*.png"/>				
+			</fileset>
+		</copy>
+		
+		<!-- Jar the whole mess up and add to classpath -->
+		<jar file="lib/architecthelp.jar" basedir="help" update="false">
+		</jar>
+	</target>
+	
+	<!-- Build the HTML -->
+	<target name="html" depends="xslt-stripwidths" description="Create user guide in HTML">
+		<mkdir dir="${build}/ca/sqlpower/architect/doc/" />
+		
 		<xslt
 			style="doc/tools/xslt/html/chunk.xsl"
-			in="${build}/ca/sqlpower/architect/doc/PowerArchitectUserGuide-nowidth.xml"
-			out="${build}/ca/sqlpower/architect/doc/PowerArchitectUserGuide.html">
-			<classpath>
-			    <fileset dir="doc/tools/xalan">
-			      <include name="*.jar"/>
-			    </fileset>
-			</classpath>
+			in="${java.io.tmpdir}/PowerArchitectUserGuide-nowidth.xml"
+			out="${build}/ca/sqlpower/architect/doc/PowerArchitectUserGuide.html"
+			classpathref="docbookclasspath">
 		</xslt>
 		
 		<!-- Warning: This is an extremely evil hack to get the product out the door!
@@ -113,16 +170,12 @@
         <xslt 
 			style="doc/tools/xslt/fo/docbook.xsl"
 			in="doc/PowerArchitectUserGuide.xml" 
-			out="${build}/doc/PowerArchitectUserGuide.fo">
-			<classpath>
-			    <fileset dir="doc/tools/xalan">
-			      <include name="*.jar"/>
-			    </fileset>
-			</classpath>
+			out="${build}/doc/PowerArchitectUserGuide.fo"
+			classpathref="docbookclasspath">
 		</xslt>
 	</target>
 
-	<!-- Now finish it, from FO to PDF -->
+	<!-- Finish it, from FO to PDF -->
 	<target name="pdf" depends="fo" description="Create user guide in PDF">
 		<path id="fop-classpath">
 			<fileset dir="doc/tools/xalan">
@@ -200,7 +253,7 @@
 		</fileset>
 	</path>
 
-	<target name="docs" depends="compile">
+	<target name="javadoc" depends="compile">
 		<mkdir dir="${build}/docs/api"/>
 		<javadoc sourcepath="${src}" destdir="${build}/docs/api"
 			packagenames="ca.sqlpower.*"
