@@ -5,7 +5,6 @@ import ca.sqlpower.architect.SQLRelationship.ColumnMapping;
 
 import java.sql.*;
 import java.util.*;
-import java.util.regex.Pattern;
 import java.io.File;
 import org.apache.log4j.Logger;
 

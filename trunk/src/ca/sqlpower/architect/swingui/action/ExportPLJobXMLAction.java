@@ -22,7 +22,6 @@ import javax.swing.JProgressBar;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.etl.PLExport;
 import ca.sqlpower.architect.etl.PLUtils;
 import ca.sqlpower.architect.swingui.ASUtils;

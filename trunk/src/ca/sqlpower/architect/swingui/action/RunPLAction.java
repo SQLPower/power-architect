@@ -19,8 +19,6 @@ import javax.swing.SwingUtilities;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.etl.ETLUserSettings;
-import ca.sqlpower.architect.etl.PLExport;
-import ca.sqlpower.architect.etl.PLUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.CommonCloseAction;
 import ca.sqlpower.architect.swingui.EngineExecPanel;
