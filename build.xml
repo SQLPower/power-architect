@@ -15,6 +15,16 @@
 	<taskdef name="izpack" classpath="${izpack.dir}/lib/compiler.jar" classname="com.izforge.izpack.ant.IzPackTask"/>
 	<taskdef name="jarbundler" classpath="osx_packaging_utils/jarbundler.jar:osx_packaging_utils/xercesImpl.jar:osx_packaging_utils/xml-apis.jar" classname="net.sourceforge.jarbundler.JarBundler"/>
 	
+	<condition property="isMac">
+		<os family="mac"/>
+	</condition>
+
+	<condition property="isNotMac">
+		<not>
+			<os family="mac"/>
+		</not>
+	</condition>
+	
 	<target name="init">
 		<tstamp/>
 		<mkdir dir="${build}"/>
@@ -220,11 +230,75 @@
 	</target>
 		
 	<target name="windows_installer" depends="deploy,gen_version">
-		<izpack input="${installer.dir}/Architect-install.xml"
-		        output="${deploy.dir}/Architect-windows-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.jar"
+		<izpack output="${deploy.dir}/Architect-Setup-Windows-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.jar"
 		        installerType="standard"
 			    basedir="${installer.dir}"
-		        izPackDir="${izpack.dir}/"/>
+		        izPackDir="${izpack.dir}/">
+		
+		<config><![CDATA[
+			<installation version="1.0">
+				<!-- comment -->
+				<info>
+					<appname>Power Architect</appname>
+					<appversion>@{app_ver_major}.@{app_ver_minor}.@{app_ver_tiny}</appversion>
+					<url>http://www.sqlpower.ca/</url>
+					<javaversion>1.5</javaversion>
+				</info>
+				<guiprefs height="600" resizable="yes" width="800">
+					<laf name="metouia">
+						<os family="unix"/>
+					</laf>
+				</guiprefs>
+				
+				<locale>
+					<langpack iso3="eng"/>
+				</locale>
+				<resources>
+					<res id="Installer.image" src="../src/icons/architect.png"/>
+					<res src="ArchitectShortcut.xml" id="shortcutSpec.xml"/>
+				</resources>
+				<panels>
+					<panel classname="HelloPanel"/>
+					<panel classname="TargetPanel"/>
+					<panel classname="InstallPanel"/>
+					<panel classname="ShortcutPanel"/>
+					<panel classname="SimpleFinishPanel"/>
+				</panels>
+				<packs>
+					<pack name="Core" required="yes">
+						<description>Architect Core Files</description>
+						<fileset dir="../deploy" targetdir="$INSTALL_PATH">
+							<include name="architect.jar"/>
+						</fileset>
+						<fileset dir="../deploy/lib" targetdir="$INSTALL_PATH/lib">
+							<include name="*.jar"/>
+						</fileset>
+						<fileset dir="." targetdir="$INSTALL_PATH">
+							<include name="*.reg"/>
+						</fileset>
+						<fileset dir="../src/icons" targetdir="$INSTALL_PATH">
+							<include name="*.ico"/>
+						</fileset>
+						<parsable targetfile="${INSTALL_PATH}/architect_file_association.reg" type="windowsreg"/>
+						<executable targetfile="regedit.exe" stage="postinstall" keep="true">
+						   <args>
+						     <arg value="\/s"/>
+						     <arg value="$INSTALL_PATH/architect_file_association.reg"/>
+					      </args>
+					   </executable>
+						<executable targetfile="regedit.exe" stage="uninstall" keep="true">
+						   <args>
+						     <arg value="\/s"/>
+						     <arg value="$INSTALL_PATH/uninstall.reg"/>
+					      </args>
+					   </executable>
+					</pack>
+				</packs>
+				<native type="izpack" name="ShellLink.dll"/>
+			</installation>
+			]]>		
+		</config>
+		</izpack>
 	</target>
 
 	<target name="osx_dist" depends="deploy,gen_version">
@@ -234,7 +308,7 @@
 		
 		<!-- jarbundler is from sourceforge, defined near top of file -->
 		<jarbundler dir="deploy"
-           name="Power*Architect"
+           name="PowerArchitect"
            version="${app_ver_major}.${app_ver_minor}.${app_ver_tiny}"
            mainclass="ca.sqlpower.architect.swingui.ArchitectFrame"
            icon="src/icons/Power Architect.icns"
@@ -248,22 +322,21 @@
 	</target>
 	
 	<!-- This target will only work on OS X (it needs the hdiutil command) -->
-	<target name="osx_dmg" depends="osx_dist,gen_version">
-		<!-- hdiutil create -size 50m -fs HFS+ -volname "Power*Architect" RWArchitect.dmg
-		     hdiutil attach RWArchitect.dmg
-		     (copy architect.app over, position it, etc)
-		     /Developer/Tools/SetFile -a V /Volumes/Power\*Architect/install_folder_background.png
-		     hdiutil detach /Volumes/Power\*Architect/
-		     rm Power_Architect-1.0.19.dmg
-		     hdiutil convert -format UDCO -o Power_Architect-1.0.19.dmg RWArchitect.dmg
-		  -->
-		     
+
+	<target name="osx_dmg" depends="osx_dist,gen_version" if="isMac">
 		<exec executable="hdiutil">
 			<arg value="create"/>
 			<arg value="-srcfolder"/>
 			<arg value="${deploy.dir}/Power*Architect.app"/>
 			<arg value="${deploy.dir}/Architect-osx-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.dmg"/>
 		</exec>
+	</target>
+	
+	<target name="osx_tgz" depends="osx_dist,gen_version" if="isNotMac">
+		<tar destfile="${deploy.dir}/Architect-OSX-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.tar.gz"
+					compression="gzip">
+			<tarfileset dir="${deploy.dir}" includes="PowerArchitect.app/**"/>
+		</tar>	
 	</target>
 	
 	<!-- Build a "generic" (e.g., UNIX) install that users will just un-tar -->
@@ -275,6 +348,6 @@
 		</tar>
     </target>
 	
-	<target name="dist" depends="windows_installer,generic_install"><!-- ,osx_dmg -->
+	<target name="dist" depends="windows_installer,generic_install,osx_tgz,osx_dmg"><!-- ,osx_dmg -->
 	</target>
 </project>
