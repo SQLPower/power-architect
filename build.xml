@@ -167,7 +167,7 @@
 
 	<target name="clean">
 		<delete dir="${build}"/>
-		<delete dir="${deploy.dir}"/>
+		<delete><fileset includes="lib,Power*Architect.app,architect.jar"/></delete>
 		<delete dir="webstart/lib"/>
 	</target>
 
@@ -221,7 +221,7 @@
 		
 	<target name="windows_installer" depends="deploy,gen_version">
 		<izpack input="${installer.dir}/Architect-install.xml"
-		        output="${deploy.dir}/Architect-Setup-Windows-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.jar"
+		        output="${deploy.dir}/Architect-windows-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.jar"
 		        installerType="standard"
 			    basedir="${installer.dir}"
 		        izPackDir="${izpack.dir}/"/>
@@ -249,11 +249,20 @@
 	
 	<!-- This target will only work on OS X (it needs the hdiutil command) -->
 	<target name="osx_dmg" depends="osx_dist,gen_version">
+		<!-- hdiutil create -size 50m -fs HFS+ -volname "Power*Architect" RWArchitect.dmg
+		     hdiutil attach RWArchitect.dmg
+		     (copy architect.app over, position it, etc)
+		     /Developer/Tools/SetFile -a V /Volumes/Power\*Architect/install_folder_background.png
+		     hdiutil detach /Volumes/Power\*Architect/
+		     rm Power_Architect-1.0.19.dmg
+		     hdiutil convert -format UDCO -o Power_Architect-1.0.19.dmg RWArchitect.dmg
+		  -->
+		     
 		<exec executable="hdiutil">
 			<arg value="create"/>
 			<arg value="-srcfolder"/>
 			<arg value="${deploy.dir}/Power*Architect.app"/>
-			<arg value="${deploy.dir}/Power_Architect-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.dmg"/>
+			<arg value="${deploy.dir}/Architect-osx-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.dmg"/>
 		</exec>
 	</target>
 	
