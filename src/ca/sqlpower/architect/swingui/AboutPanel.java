@@ -1,12 +1,11 @@
 package ca.sqlpower.architect.swingui;
 
+import java.awt.FlowLayout;
+
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import ca.sqlpower.architect.ArchitectUtils;
-import ca.sqlpower.architect.ArchitectVersion;
-
-import java.awt.FlowLayout;
 
 public class AboutPanel extends JPanel implements ArchitectPanel {
 
