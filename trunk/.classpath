@@ -19,6 +19,6 @@
 	<classpathentry kind="lib" path="osx_packaging_utils/osx_adapter.jar"/>
 	<classpathentry kind="lib" path="buildlib/junit.jar"/>
 	<classpathentry kind="lib" path="buildlib/jfcunit.jar"/>
-	<classpathentry kind="lib" path="lib/ant.jar"/>
+	<classpathentry kind="lib" path="buildlib/ant.jar"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>
