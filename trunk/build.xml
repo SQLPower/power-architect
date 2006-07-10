@@ -308,7 +308,7 @@
 		
 		<!-- jarbundler is from sourceforge, defined near top of file -->
 		<jarbundler dir="deploy"
-           name="PowerArchitect"
+           name="Power Architect"
            version="${app_ver_major}.${app_ver_minor}.${app_ver_tiny}"
            mainclass="ca.sqlpower.architect.swingui.ArchitectFrame"
            icon="src/icons/Power Architect.icns"
@@ -327,7 +327,7 @@
 		<exec executable="hdiutil">
 			<arg value="create"/>
 			<arg value="-srcfolder"/>
-			<arg value="${deploy.dir}/Power*Architect.app"/>
+			<arg value="${deploy.dir}/Power Architect.app"/>
 			<arg value="${deploy.dir}/Architect-osx-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.dmg"/>
 		</exec>
 	</target>
@@ -335,7 +335,7 @@
 	<target name="osx_tgz" depends="osx_dist,gen_version" if="isNotMac">
 		<tar destfile="${deploy.dir}/Architect-OSX-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.tar.gz"
 					compression="gzip">
-			<tarfileset dir="${deploy.dir}" includes="PowerArchitect.app/**"/>
+			<tarfileset dir="${deploy.dir}" includes="Power Architect.app/**"/>
 		</tar>	
 	</target>
 	
