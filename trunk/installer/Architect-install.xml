@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="iso-8859-1" standalone="yes"?>
 
 <installation version="1.0">
+
+	<properties>
+		<property file="user.properties" />
+	</properties>
+	
 	<!-- comment -->
 	<info>
 		<appname>Power Architect</appname>
-		<appversion>1.0.19</appversion>
+		<appversion>${app_ver_major}.${app_ver_minor}.${app_ver_tiny}</appversion>
 		<url>http://www.sqlpower.ca/</url>
 		<javaversion>1.5</javaversion>
 	</info>
