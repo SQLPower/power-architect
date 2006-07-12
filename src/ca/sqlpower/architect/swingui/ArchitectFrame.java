@@ -19,11 +19,15 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.prefs.Preferences;
 
+import javax.help.CSH;
+import javax.help.HelpBroker;
+import javax.help.HelpSet;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -74,7 +78,6 @@ import ca.sqlpower.architect.swingui.action.EditTableAction;
 import ca.sqlpower.architect.swingui.action.ExportDDLAction;
 import ca.sqlpower.architect.swingui.action.ExportPLJobXMLAction;
 import ca.sqlpower.architect.swingui.action.ExportPLTransAction;
-import ca.sqlpower.architect.swingui.action.HelpAction;
 import ca.sqlpower.architect.swingui.action.InsertColumnAction;
 import ca.sqlpower.architect.swingui.action.PreferencesAction;
 import ca.sqlpower.architect.swingui.action.PrintAction;
@@ -173,7 +176,6 @@ public class ArchitectFrame extends JFrame {
 	    }
 	};
 	
-    protected Action helpAction;
 	/**
 	 * Updates the swing settings and then writes all settings to the
 	 * config file whenever actionPerformed is invoked.
@@ -297,7 +299,30 @@ public class ArchitectFrame extends JFrame {
 		
 		// Create actions
 		aboutAction = new AboutAction();
-		helpAction = new HelpAction();
+        
+        Action helpAction = new AbstractAction("Help",
+                ASUtils.createJLFIcon( "general/Help",
+                        "Help", 
+                        ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24))){
+
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    String helpHS = "jhelpset.hs";
+                    ClassLoader cl = getClass().getClassLoader();
+                    URL hsURL = HelpSet.findHelpSet(cl, helpHS);
+                    HelpSet hs = new HelpSet(null, hsURL);
+                    HelpBroker hb = hs.createHelpBroker();
+                    new CSH.DisplayHelpFromSource(hb).actionPerformed(e);
+
+                } catch (Exception ev) {
+                    setEnabled(false);
+                    JOptionPane.showMessageDialog(ArchitectFrame.this, 
+                            "Could not load Help File\n" + e + "\n" +
+                            "Help function disabled",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                }         
+            }
+        };
         
 		newProjectAction
 			 = new AbstractAction("New Project",
@@ -428,8 +453,6 @@ public class ArchitectFrame extends JFrame {
 				}
 			};
 		zoomAllAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Zoom to fit");
-	
-	
 		
 		undoAction = new UndoAction();
 		redoAction = new RedoAction();
