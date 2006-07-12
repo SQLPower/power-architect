@@ -18,15 +18,22 @@ import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 
+/**
+ * Implements a "call home, we're broken" functionality - does not report
+ * anything terribly secret, but does dump out the list of what's in the
+ * playpen; the data are posted to a URL on our web site to keep track
+ * of errors that people see when running the product.
+ */
 public class ExceptionReport {
 
+    private static final int MAX_REPORT_TRIES = 10;
 
     private static final Logger logger = Logger.getLogger(ExceptionReport.class);
 
     /**
      * The system property that controls which URL error reports go to.
      * The default (used when this property is not defined) is
-     * <tt>http://bugs.sqlpower.ca/architect/postReport</tt>.
+     * the value of <tt>DEFAULT_REPORT_URL</tt>.
      */
     private static final String REPORT_URL_SYSTEM_PROP = "ca.sqlpower.architect.qfa.REPORT_URL";
     
@@ -56,7 +63,6 @@ public class ExceptionReport {
     private String userActivityDescription;
 
     private String remarks;
-    
     
     public ExceptionReport(Throwable exception) {
         this.exception = exception;
@@ -108,11 +114,19 @@ public class ExceptionReport {
         xml.append("\n </exception>");
     }
 
+    static int numReportsThisRun = 0;
+    
     /**
-     * Attempts to send this exception report, in XML form, to the official SQL
-     * Power error reporting URL for the architect.
+     * Attempt to send this exception report, in XML form, to the official SQL
+     * Power error reporting URL for the Architect.
      */
     public void postReportToSQLPower() {
+        if (numReportsThisRun++ > MAX_REPORT_TRIES) {
+            logger.info(
+                String.format(
+                    "Not logging this error, threshold of %d exceeded", MAX_REPORT_TRIES));
+            return;
+        }
         String url = System.getProperty(REPORT_URL_SYSTEM_PROP);
         if (url == null) {
             url = DEFAULT_REPORT_URL;
@@ -120,7 +134,7 @@ public class ExceptionReport {
         // TODO decouple this from the main frame
         UserSettings settings = ArchitectFrame.getMainInstance().getUserSettings().getQfaUserSettings();
         if(!settings.getBoolean(QFAUserSettings.EXCEPTION_REPORTING,true)) return;
-        logger.info("Attempting to post error report to SQL Power at URL <"+url+">");
+        logger.info("Posting error report to SQL Power at URL <"+url+">");
         try {
             HttpURLConnection dest = (HttpURLConnection) new URL(url).openConnection();
             dest.setDoOutput(true);
