@@ -83,7 +83,7 @@
 		</fileset>
 	</path>
 	
-	<target name="userguide" depends="html,pdf" description="Create user guide in HTML and PDF">
+	<target name="userguide" depends="help,html,pdf" description="Create user guide in HTML and PDF">
 	</target>
 	
 	<!-- Create an intermediate docbook document - for use both by help and html -
