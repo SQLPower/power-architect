@@ -1,6 +1,6 @@
 This generic distribution of the Power*Architect is intended
 for platforms that we do not have a specific distribution
-for.  For example, NetBSD, FreeBSD, and OpenBSD, Solaris, and
+for.  For example, NetBSD, FreeBSD, OpenBSD, Solaris, and
 all flavours of Linux.
 
 To launch the Architect from the command line, do the following:
