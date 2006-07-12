@@ -5,37 +5,58 @@
 
 <index version="2.0">
 
-<indexitem text="Introduction" target="intro-chapter"/>
-<indexitem text="Who this book is for" target="intro-chapter"/>
+<!-- Should be alphabetical by target value, but note:
+  *** DO NOT SORT this file, due to the nested items.
+  -->
+<indexitem text="Acknowledgements" text="acknowledgements"/>
+<indexitem text="Apache Software Foundation" target="ASF"/>
+<indexitem text="Autolayout" target="autolayout">
+	<indexitem text="What It Does" target="autolayout.what"/>
+	<indexitem text="How to Use" target="autolayout.how"/>
+</indexitem>
+<indexitem text="Columns">
+	<indexitem text="Creating New Columns" target="new_column"/>
+	<indexitem text="Editing Columns" target="edit_column"/>
+	<indexitem text="Dragging Columns" target="drag_columns"/>
+</indexitem>
+<indexitem text="Compare Data Model Function" target="compare_dm">
+	<indexitem text="What It Does" target="compare_dm.what"/>
+	<indexitem text="How to use" target="compare_dm.how"/>
+</indexitem>
+<indexitem text="Databases">
+	<indexitem text="Connection, adding new" target="new_connection"/>
+	<indexitem text="Connection, adding existing" target="add_connection"/>
+	<indexitem text="Connection Properties, editing" target="edit_connection"/>
+	<indexitem text="Connection, Removing" target="remove_connection"/>
+	<indexitem text="Drivers" target="JDBC_Drivers"/>
+	<indexitem text="Example" target="example"/>
+	<indexitem text="Product Notes" target="db_product_notes"/>
+	<indexitem text="Usage in Power*Architect" target="db_usage"/>
+</indexitem>
+<indexitem text="Deleting Diagram Components" target="delete_object"/>
+<indexitem text="Diagram Components" target="diagram_components"/>
+<indexitem text="Eclipse Foundation, The" target="eclipse"/>
+<indexitem text="Find/Replace Function" target="find.what"/>
+<indexitem text="Forward Engineering" target="forward_engineer_and_compare_dm"/>
+<indexitem text="Glossary" target="glossary"/>
 <indexitem text="Installation Guide" target="installation.guide">
-	<indexitem text="Power*Architect Prerequisites" target="prereqs"/>
+	<indexitem text="Prerequisites" target="prereqs"/>
 	<indexitem text="How to Obtain the Power*Architect Software" target="get_the_architect"/>
 	<indexitem text="How to Install Power*Architect" target="how_to_install"/>
 	<indexitem text="Microsoft Windows" target="install_win"/>
 	<indexitem text="Macintosh OS X" target="install_mac"/>
 	<indexitem text="Other Platforms" target="install_java"/>
 </indexitem>
-<indexitem text="How to Run Power*Architect" target="how_to_run">
-	<indexitem text="Microsoft Windows" target="run_win"/>
-	<indexitem text="Macintosh OS X" target="run_mac"/>
-	<indexitem text="Other Platforms" target="run_java"/>
-</indexitem>
-<indexitem text="Power*Architect User Interface" target="Architect_UI"/>
-<indexitem text="Setting the User Preferences" target="User_Prefs"/>
+<indexitem text="Introduction to Power*Architect" target="intro-chapter"/>
 <indexitem text="JDBC Drivers" target="JDBC_Drivers"/>
-<indexitem text="Example" target="example"/>
-<indexitem text="Diagram Components" target="diagram_components"/>
-<indexitem text="Tables">
-	<indexitem text="Creating New Tables" target="new_table"/>
-	<indexitem text="Editing Tables" target="edit_table"/>
-	<indexitem text="Creating New Columns" target="new_column"/>
-	<indexitem text="Editing Columns" target="edit_column"/>
-	<indexitem text="Dragging Columns" target="drag_columns"/>
-</indexitem>
-<indexitem text="Columns">
-	<indexitem text="Creating New Columns" target="new_column"/>
-	<indexitem text="Editing Columns" target="edit_column"/>
-	<indexitem text="Dragging Columns" target="drag_columns"/>
+<indexitem text="JGoodies" target="JGoodies"/>
+<indexitem text="JUnit" target="JUnit"/>
+<indexitem text="Moving Items from the Database Tree" target="dbtree_move"/>
+<indexitem text="Navigating through the Database Tree" target="dbtree_nav"/>
+<indexitem text="Preferences" target="User_Prefs"/>
+<indexitem text="Quick Start Wizard" target="quick_start_wizard">
+	<indexitem text="What It Does" target="quick_start_wizard.what"/>
+	<indexitem text="How to Use" target="quick_start_wizard.how"/>
 </indexitem>
 <indexitem text="Relationships">
 	<indexitem text="Creating" target="create_relationship"/>
@@ -43,45 +64,29 @@
 	<indexitem text="Selecting Multiple Items in the Playpen" target="multiple_selection"/>
 </indexitem>
 <indexitem text="Relocating Objects in the Playpen" target="move_object"/>
-<indexitem text="Deleting Diagram Components" target="delete_object"/>
-<indexitem text="Database Usage in Power*Architect" target="db_usage"/>
-<indexitem text="Adding a New Connection to the Power*Architect" target="new_connection"/>
-<indexitem text="Adding an Existing Connection" target="add_connection"/>
-<indexitem text="Editing Database Connection Properties" target="edit_connection"/>
-<indexitem text="Removing a Database Connection" target="remove_connection"/>
+<indexitem text="Running Power*Architect" target="how_to_run">
+	<indexitem text="Microsoft Windows" target="run_win"/>
+	<indexitem text="Macintosh OS X" target="run_mac"/>
+	<indexitem text="Other Platforms" target="run_java"/>
+</indexitem>
 <indexitem text="Setting the Current Project Database" target="project_database"/>
-<indexitem text="Navigating through the Database Tree" target="dbtree_nav"/>
-<indexitem text="Moving Items from the Database Tree" target="dbtree_move"/>
-<indexitem text="Find/Replace Function" target="find.what"/>
-<indexitem text="Forward Engineering" target="forward_engineer_and_compare_dm"/>
-<indexitem text="Compare Data Model" target="forward_engineer_and_compare_dm"/>
-<indexitem text="What It Does" target="forward_engineer.what"/>
-<indexitem text="How To Use Forward Engineering" target="forward_engineer.how"/>
-<indexitem text="Compare Data Model Function" target="compare_dm"/>
-<indexitem text="What It Does" target="compare_dm.what"/>
-<indexitem text="How to use Compare Data Model Function:" target="compare_dm.how"/>
-<indexitem text="Autolayout" target="autolayout"/>
-<indexitem text="What It Does" target="autolayout.what"/>
-<indexitem text="How to Use Autolayout:" target="autolayout.how"/>
 <indexitem text="SQLRunner" target="SQLRunner">
 	<indexitem text="What It Does" target="SQLRunner.what"/>
 	<indexitem text="How to Use SQLRunner" target="SQLRunner.how"/>
-	<indexitem text="SQLRunner, Output (Results) Window" target="SQLRunner.results"/>
-	<indexitem text="SQLRunner, Output Formats" target="SQLRunner.output_format"/>
+	<indexitem text="Output (Results) Window" target="SQLRunner.results"/>
+	<indexitem text="Output Formats" target="SQLRunner.output_format"/>
 </indexitem>
 <indexitem text="SQL Commands-running, see SQL Runner"/>
-<indexitem text="Quick Start Wizard" target="quick_start_wizard">
-	<indexitem text="What It Does" target="quick_start_wizard.what"/>
-	<indexitem text="How to Use The Quick Start Wizard" target="quick_start_wizard.how"/>
+<indexitem text="Sun Microsystems"  target="SUNW"/>
+<indexitem text="Setting Preferences" target="User_Prefs"/>
+<indexitem text="Tables">
+	<indexitem text="Creating New Tables" target="new_table"/>
+	<indexitem text="Editing Tables" target="edit_table"/>
+	<indexitem text="Creating New Columns" target="new_column"/>
+	<indexitem text="Editing Columns" target="edit_column"/>
+	<indexitem text="Dragging Columns" target="drag_columns"/>
 </indexitem>
-<indexitem target="db_product_notes" text="Database Product Notes"/>
-<indexitem target="troubleshooting" text="Troubleshooting"/>
-<indexitem target="glossary" text="Glossary"/>
-<indexitem target="acknowledgements" text="Acknowledgements"/>
-<indexitem target="ASF" text="The Apache Software Foundation"/>
-<indexitem target="JGoodies" text="JGoodies Karsten Lentzsch"/>
-<indexitem target="JUnit" text="JUnit"/>
-<indexitem target="eclipse" text="The Eclipse Foundation"/>
-<indexitem target="SUNW" text="Sun Microsystems"/>
+<indexitem text="Troubleshooting" target="troubleshooting"/>
+<indexitem text="Who this book is for" target="intro-chapter"/>
 
 </index>
