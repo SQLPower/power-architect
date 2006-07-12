@@ -20,5 +20,7 @@
 	<classpathentry kind="lib" path="buildlib/junit.jar"/>
 	<classpathentry kind="lib" path="buildlib/jfcunit.jar"/>
 	<classpathentry kind="lib" path="buildlib/ant.jar"/>
+	<classpathentry kind="lib" path="lib/jhall.jar"/>
+	<classpathentry kind="lib" path="lib/architecthelp.jar"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>

@@ -101,50 +101,64 @@
 	
 	<!-- Build the Help (JavaHelp, HTML-based format) -->
 	<target name="help" depends="xslt-stripwidths" description="Create JavaHelp">
-		<delete dir="help"/>
-		<mkdir dir="help"/>
+		<delete dir="${build}/help"/>
+		<mkdir dir="${build}/help"/>
 		<xslt
 			style="doc/tools/xslt/javahelp/javahelp.xsl"
 			in="${java.io.tmpdir}/PowerArchitectUserGuide-nowidth.xml"
-			out="help/zzz"
+			out="${build}/help/zzz"
 			classpathref="docbookclasspath">
 		</xslt>
+		<!-- Seemed to need to give dest/file (help/zzz) in above, clean up -->
+		<delete file="${build}/help/zzz"/>
 		
-		<!-- index it -->
+		<!-- Index it I: limited-terms index: created manually, just copy it,
+		 *** overwriting empty one that DocBook Javahelp made.
+		 -->
+		<copy file="doc/jhelpidx.xml" todir="${build}/help" overwrite="true"/>
+		
+		<!-- Index it II: full text search -->
+		<!-- DO NOT USE as it seems to have a built-in assumption
+		 *** that the help is all in one file.
 		<java classname="com.sun.java.help.search.Indexer" 
 			classpath="lib/jhall.jar"
 			fork="true" failonerror="true">
-			<arg value="help"/>
+			<arg value="${build}/help"/>
 		</java>
-		<mkdir dir="help/JavaHelpSearch"/>
-		<move todir="help/JavaHelpSearch">
+		<mkdir dir="${build}/help/JavaHelpSearch"/>
+		<move todir="${build}/help/JavaHelpSearch">
 			<fileset dir="JavaHelpSearch" includes="**"/>
 		</move>
+		-->
+		<!-- So, remove the search view from the JavaHelp config -->
+		<replace file="${build}/help/jhelpset.hs" value="">
+			<replacetoken><![CDATA[<view><name>Search</name><label>Search</label><type>javax.help.SearchView</type><data engine="com.sun.java.help.search.DefaultSearchEngine">JavaHelpSearch</data></view>]]></replacetoken>
+		</replace>
 		
-		<!-- Add the Index and Favorites views into the JavaHelp Config -->
-		<replace file="help/jhelpset.hs" token="&lt;/helpset>"
+		<!-- Add the Favorites/Bookmarks views into the JavaHelp Config -->
+		<replace file="${build}/help/jhelpset.hs" token="&lt;/helpset>"
 			value="&lt;view>&lt;name>favorites&lt;/name>&lt;label>Favorites&lt;/label>&lt;type>javax.help.FavoritesView&lt;/type>&lt;/view>&lt;/helpset>"/>
 
 		<!-- Copy the images and icons; the DocBook files have
 			these horrid "src/" and "doc/" paths prepended
 			so we have to preserve these here -->			
-		<mkdir dir="help/doc/images"/>		
-		<copy todir="help/doc/images" overwrite="true">
+		<mkdir dir="${build}/help/doc/images"/>		
+		<copy todir="${build}/help/doc/images" overwrite="true">
 			<fileset dir="doc/images">
 				<include name="*.png"/>
 			</fileset>
 		</copy>
 		
-		<mkdir dir="help/src/icons"/>
-		<copy todir="help/src/icons" overwrite="true">
+		<mkdir dir="${build}/help/src/icons"/>
+		<copy todir="${build}/help/src/icons" overwrite="true">
 			<fileset dir="src/icons">
 				<include name="*.gif"/>
 				<include name="*.png"/>				
 			</fileset>
 		</copy>
 		
-		<!-- Jar the whole mess up and add to classpath -->
-		<jar file="lib/architecthelp.jar" basedir="help" update="false">
+		<!-- Jar the whole mess up and add to working classpath -->
+		<jar file="lib/architecthelp.jar" basedir="${build}/help" update="false">
 		</jar>
 	</target>
 	
