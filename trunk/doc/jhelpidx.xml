@@ -8,7 +8,7 @@
 <!-- Should be alphabetical by target value, but note:
   *** DO NOT SORT this file, due to the nested items.
   -->
-<indexitem text="Acknowledgements" text="acknowledgements"/>
+<indexitem text="Acknowledgements" target="acknowledgements"/>
 <indexitem text="Apache Software Foundation" target="ASF"/>
 <indexitem text="Autolayout" target="autolayout">
 	<indexitem text="What It Does" target="autolayout.what"/>
@@ -30,6 +30,7 @@
 	<indexitem text="Connection, Removing" target="remove_connection"/>
 	<indexitem text="Drivers" target="JDBC_Drivers"/>
 	<indexitem text="Example" target="example"/>
+	<indexitem text="Icons" target="dbtree_icons"/>
 	<indexitem text="Product Notes" target="db_product_notes"/>
 	<indexitem text="Usage in Power*Architect" target="db_usage"/>
 </indexitem>
@@ -39,6 +40,7 @@
 <indexitem text="Find/Replace Function" target="find.what"/>
 <indexitem text="Forward Engineering" target="forward_engineer_and_compare_dm"/>
 <indexitem text="Glossary" target="glossary"/>
+<indexitem text="Icons" target="dbtree_icons"/>
 <indexitem text="Installation Guide" target="installation.guide">
 	<indexitem text="Prerequisites" target="prereqs"/>
 	<indexitem text="How to Obtain the Power*Architect Software" target="get_the_architect"/>
@@ -64,11 +66,7 @@
 	<indexitem text="Selecting Multiple Items in the Playpen" target="multiple_selection"/>
 </indexitem>
 <indexitem text="Relocating Objects in the Playpen" target="move_object"/>
-<indexitem text="Running Power*Architect" target="how_to_run">
-	<indexitem text="Microsoft Windows" target="run_win"/>
-	<indexitem text="Macintosh OS X" target="run_mac"/>
-	<indexitem text="Other Platforms" target="run_java"/>
-</indexitem>
+<indexitem text="Running Power*Architect" target="how_to_run"/>
 <indexitem text="Setting the Current Project Database" target="project_database"/>
 <indexitem text="SQLRunner" target="SQLRunner">
 	<indexitem text="What It Does" target="SQLRunner.what"/>
