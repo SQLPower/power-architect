@@ -9,9 +9,10 @@
 	<property name="build" value="build"/>
 	<property name="build.compiler" value="modern"/>
 	<property name="installer.dir" value="installer"/>
+	<!-- The staging directory is a temp dir that is used as a base for all the distributions -->
+	<property name="staging.dir" value="staging" />
 	<property name="izpack.dir" value="IzPack"/>
-	<property name="deploy.dir" value="deploy"/>
-	
+		
 	<taskdef name="izpack" classpath="${izpack.dir}/lib/compiler.jar" classname="com.izforge.izpack.ant.IzPackTask"/>
 	<taskdef name="jarbundler" classpath="osx_packaging_utils/jarbundler.jar:osx_packaging_utils/xercesImpl.jar:osx_packaging_utils/xml-apis.jar" classname="net.sourceforge.jarbundler.JarBundler"/>
 	
@@ -28,6 +29,17 @@
 	<target name="init">
 		<tstamp/>
 		<mkdir dir="${build}"/>
+		<javac srcdir="${src}" destdir="${build}" classpathref="compile.classpath" includes="ca/sqlpower/architect/ArchitectVersion.java" debug="true" deprecation="true">
+			
+		</javac>
+		<taskdef name="genVersion"
+					classname="ca.sqlpower.architect.ArchitectVersion"
+			        classpath="build"/>
+		<genVersion message="Architect!"/>
+		<echo message="Building Architect version: ${app_ver_major}.${app_ver_minor}.${app_ver_tiny}"> </echo>
+		<property name="deploy.dir" value="deploy/architect-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}"/>
+		<mkdir dir="${deploy.dir}"/>
+		
 	</target>
 
 	<target name="compile" depends="init,copyicons,copylog4jprops">
@@ -195,31 +207,36 @@
     </target>
 	
     <!-- Creates a WebStart distribution under the webstart/ directory -->
-	<target name="webstart_dist" depends="compile,userguide">
+	<target name="webstart_dist" depends="stage">
         <mkdir dir="webstart/lib"/>
 		<jar destfile="webstart/lib/architect.jar" update="no"
 			basedir="${build}" includes="ca/** icons/** log4j.properties" 
 			manifest="manifest">
 		</jar>
-        <copy todir="webstart/lib">
+        <copy todir="webstart/">
             <fileset dir="lib" includes="*.jar"/>
         </copy>
-		<!-- No point in signing until we have a certificate that's signed by a CA
-        <signjar alias="sqlpower" keystore="keystore" storepass="low_security" keypass="low_security">
-            <fileset dir="webstart/lib"/>
-        </signjar>
-        -->
+		
 	</target>
 
     <!-- Copy the main Jar file, and dependent libs, to the deploy dir. 
      -->
-    <target name="deploy" depends="webstart_dist">
-        <mkdir dir="${deploy.dir}"/>
-        <mkdir dir="${deploy.dir}/lib"/>
-        <copy file="webstart/lib/architect.jar" todir="${deploy.dir}"/>
-        <copy todir="${deploy.dir}/lib">
-            <fileset dir="webstart/lib" excludes="architect.jar"/>
-        </copy>
+    <target name="stage" depends="compile,userguide">
+    		<mkdir dir="${deploy.dir}" />
+        <mkdir dir="${staging.dir}"/>
+        <mkdir dir="${staging.dir}/lib"/>
+    		<jar destfile="${staging.dir}/architect.jar" update="no"
+    				basedir="${build}" includes="ca/** icons/** log4j.properties" 
+    				manifest="manifest">
+    		</jar>
+    	    <copy todir="${staging.dir}/lib">
+    	        <fileset dir="lib" includes="*.jar"/>
+    	    </copy>
+    		<!-- No point in signing until we have a certificate that's signed by a CA
+    	    <signjar alias="sqlpower" keystore="keystore" storepass="low_security" keypass="low_security">
+    	        <fileset dir="webstart/lib"/>
+    	    </signjar>
+    	        -->
 	</target>
 
 	<target name="run" depends="compile">
@@ -228,10 +245,18 @@
 		</java>
 	</target>
 
-	<target name="clean">
+	<target name="clean" depends="init">
 		<delete dir="${build}"/>
-		<delete><fileset includes="lib,Power*Architect.app,architect.jar"/></delete>
 		<delete dir="webstart/lib"/>
+		<delete dir="${staging.dir}"/>
+		<delete dir="${deploy.dir}" />
+	</target>
+	
+	<target name="dist-clean" depends="clean">
+		<delete >
+			<fileset dir="deploy" excludes="CVS/">
+			</fileset>
+		</delete>
 	</target>
 
 	<path id="compile.classpath">
@@ -273,16 +298,8 @@
 
 	</target>
 	
-	<!-- generate version number, get the version number from the code - ArchitectUtils -->
-	<target name="gen_version" depends="compile">
-		<taskdef name="genVersion"
-			classname="ca.sqlpower.architect.ArchitectVersion"
-	        classpath="build"/>
-		<genVersion message="Architect!"/>
-		<echo message="Building Architect version: ${app_ver_major}.${app_ver_minor}.${app_ver_tiny}"> </echo>
-	</target>
-		
-	<target name="windows_installer" depends="deploy,gen_version">
+	
+	<target name="windows_installer" depends="stage">
 		<izpack output="${deploy.dir}/Architect-Setup-Windows-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.jar"
 		        installerType="standard"
 			    basedir="${installer.dir}"
@@ -320,10 +337,10 @@
 				<packs>
 					<pack name="Core" required="yes">
 						<description>Architect Core Files</description>
-						<fileset dir="../deploy" targetdir="$INSTALL_PATH">
+						<fileset dir="../staging/" targetdir="$INSTALL_PATH">
 							<include name="architect.jar"/>
 						</fileset>
-						<fileset dir="../deploy/lib" targetdir="$INSTALL_PATH/lib">
+						<fileset dir="../staging/lib" targetdir="$INSTALL_PATH/lib">
 							<include name="*.jar"/>
 						</fileset>
 						<fileset dir="." targetdir="$INSTALL_PATH">
@@ -354,13 +371,13 @@
 		</izpack>
 	</target>
 
-	<target name="osx_dist" depends="deploy,gen_version">
+	<target name="osx_dist" depends="stage">
 		
 		<!-- The pre-compiled osx adapter class (it only compiles on OS X) -->
-		<copy file="osx_packaging_utils/osx_adapter.jar" todir="${deploy.dir}/lib"/>
+		<copy file="osx_packaging_utils/osx_adapter.jar" todir="${staging.dir}/lib"/>
 		
 		<!-- jarbundler is from sourceforge, defined near top of file -->
-		<jarbundler dir="deploy"
+		<jarbundler dir="${staging.dir}"
            name="Power Architect"
            version="${app_ver_major}.${app_ver_minor}.${app_ver_tiny}"
            mainclass="ca.sqlpower.architect.swingui.ArchitectFrame"
@@ -369,46 +386,72 @@
            shortname="Architect"
            stubfile="osx_packaging_utils/PowerArchitectStub"
            vmoptions="-Xmx600m">
-			<jarfileset dir="${deploy.dir}/lib" includes="*.jar"/>
-			<jarfileset dir="${deploy.dir}" includes="architect.jar"/>
+			<jarfileset dir="${staging.dir}/lib" includes="*.jar"/>
+			<jarfileset dir="${staging.dir}" includes="architect.jar"/>
 		</jarbundler>
 	</target>
 	
 	<!-- This target will only work on OS X (it needs the hdiutil command) -->
 
-	<target name="osx_dmg" depends="osx_dist,gen_version" if="isMac">
+	<target name="osx_dmg" depends="osx_dist" if="isMac">
+		<!-- hdiutil create -size 50m -fs HFS+ -volname "Power*Architect" RWArchitect.dmg
+				     hdiutil attach RWArchitect.dmg
+				     (copy architect.app over, position it, etc)
+				     /Developer/Tools/SetFile -a V /Volumes/Power\*Architect/install_folder_background.png
+				     hdiutil detach /Volumes/Power\*Architect/
+				     rm Power_Architect-1.0.19.dmg
+				     hdiutil convert -format UDCO -o Power_Architect-1.0.19.dmg RWArchitect.dmg
+				  -->
+		<copy file="osx_packaging_utils/RWArchitect.dmg.sparseimage" tofile="${staging.dir}/RWArchitect.dmg.sparseimage" overwrite="true" />
 		<exec executable="hdiutil">
-			<arg value="create"/>
-			<arg value="-srcfolder"/>
-			<arg value="${deploy.dir}/Power Architect.app"/>
-			<arg value="${deploy.dir}/Architect-osx-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.dmg"/>
+					<arg value="detach" />
+					<arg value="/Volumes/Power*Architect" />
+		</exec>
+		<exec executable="hdiutil">
+			<arg value="attach" />
+			<arg value="${staging.dir}/RWArchitect.dmg.sparseimage" />
+		</exec>
+		<copy todir="/Volumes/Power*Architect/" overwrite="true" >
+			<fileset dir="${staging.dir}/Power Architect.app"></fileset>
+		</copy>
+		
+		<exec executable="hdiutil">
+			<arg value="detach" />
+			<arg value="/Volumes/Power*Architect" />
+		</exec>
+		<delete file="${deploy.dir}/Architect-OSX-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.dmg" />
+		<exec executable="hdiutil">
+			<arg value="convert"/>
+			<arg value="${staging.dir}/RWArchitect.dmg.sparseimage"/>
+			<arg value="-format"/>
+			<arg value="UDCO"/>
+			<arg value="-o"/>
+			<arg value="${deploy.dir}/Architect-OSX-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.dmg"/>
 		</exec>
 	</target>
 	
-	<target name="osx_tgz" depends="osx_dist,gen_version" if="isNotMac">
+	<target name="osx_tgz" depends="osx_dist" if="isNotMac">
 		<tar destfile="${deploy.dir}/Architect-OSX-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.tar.gz"
 					compression="gzip">
-			<tarfileset dir="${deploy.dir}" includes="Power Architect.app/**"/>
+			<tarfileset dir="${staging.dir}" includes="Power Architect.app/**"/>
 		</tar>	
 	</target>
 	
 	<!-- Build a "generic" (e.g., UNIX) install that users will just un-tar -->
-    <target name="generic_install" depends="deploy,gen_version">
+    <target name="generic_install" depends="stage">
 		<tar destfile="${deploy.dir}/Architect-generic-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.tar.gz"
 			compression="gzip">
-			<tarfileset dir="${deploy.dir}" includes="lib/*.jar"/>
-			<tarfileset dir="${deploy.dir}" includes="architect.jar"/>
+			<tarfileset dir="${staging.dir}" includes="lib/*.jar"/>
+			<tarfileset dir="${staging.dir}" includes="architect.jar"/>
 		</tar>
     </target>
 	
 	<target name="dist" depends="windows_installer,generic_install,osx_tgz,osx_dmg"><!-- ,osx_dmg -->
-
 	    <copy tofile="${deploy.dir}/index.html" file="html/SQL Power - PowerArchitect.html"/>
 		<replace file="${deploy.dir}/index.html">
 			<replacefilter token="@@app_ver_major" value="${app_ver_major}"/>
 			<replacefilter token="@@app_var_minor" value="${app_ver_minor}"/>
 			<replacefilter token="@@app_ver_tiny" value="${app_ver_tiny}"/>		
 		</replace>
-		
 	</target>
 </project>
