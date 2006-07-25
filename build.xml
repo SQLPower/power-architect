@@ -255,7 +255,7 @@
 
 	<target name="run" depends="compile">
 		<java fork="true" classname="ca.sqlpower.architect.swingui.ArchitectFrame" classpathref="test.classpath">
-			<jvmarg value="-Dlog4j.configuration=file:log4j.properties"/>
+			<jvmarg value="-Dlog4j.configuration=log4j.properties"/>
 		</java>
 	</target>
 
