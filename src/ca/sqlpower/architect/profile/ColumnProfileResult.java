@@ -9,6 +9,7 @@ public class ColumnProfileResult extends ProfileResult {
     private int minLength;
     private int maxLength;
     private int avgLength;
+    private int nullCount;
     
     public ColumnProfileResult(long createCost) {
         super(createCost);
@@ -72,13 +73,24 @@ public class ColumnProfileResult extends ProfileResult {
 
     @Override
     public String toString() {
-        return "[TableProfileResult: col: ??; dataType: ??" +
+        return "[ColumnProfileResult:" + 
+//                "Create Date:[" + getCreateDate() + "]" +
+//                "Time to Create: " + getTimeToCreate() + "ms" +
                 "; distinctValues: "+distinctValueCount+
                 "; minLength: "+minLength+
                 "; maxLength: "+maxLength+
                 "; avgLength: "+avgLength+
                 "; minValue: "+minValue+
                 "; maxValue: "+maxValue+
-                "; avgValue: "+avgValue+"]";
+                "; avgValue: "+avgValue+
+                "; nullCount: "+getNullCount()+ "]";
+    }
+
+    public int getNullCount() {
+        return nullCount;
+    }
+
+    public void setNullCount(int nullCount) {
+        this.nullCount = nullCount;
     }
 }

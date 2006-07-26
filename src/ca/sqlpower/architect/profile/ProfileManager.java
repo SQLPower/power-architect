@@ -1,9 +1,11 @@
 package ca.sqlpower.architect.profile;
 
+import java.sql.Array;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,6 +39,8 @@ public class ProfileManager implements Monitorable {
 
     private boolean findingDistinctCount;
 
+    private boolean findingNullCount;
+    
     private Integer jobSize;
 
     /**
@@ -52,6 +56,7 @@ public class ProfileManager implements Monitorable {
     private String currentProfilingTable;
 
     private boolean userCancel;
+
     
     public void putResult(SQLObject sqlObject, ProfileResult profileResult) {
         results.put(sqlObject, profileResult);
@@ -105,66 +110,153 @@ public class ProfileManager implements Monitorable {
         try {
             conn = db.getConnection();
             StringBuffer sql = new StringBuffer();
-            sql.append("SELECT COUNT(*)");
+            sql.append("SELECT COUNT(*) \"ROWCOUNT\"");
+
+            int i = 0;
             for (SQLColumn col : table.getColumns()) {
-                if (findingDistinctCount) {
-                    sql.append(",\n COUNT(DISTINCT ").append(col.getName()).append(")");
+
+                if (findingDistinctCount &&
+                    col.getType() != Types.LONGVARCHAR &&
+                    col.getType() != Types.LONGVARBINARY ) {
+                    sql.append(",\n COUNT(DISTINCT ").append(col.getName()).append(") \"DISTINCTCOUNT_"+i+"\"");
                 }
-                if (findingMin) {
-                    sql.append(",\n MIN(").append(col.getName()).append(")");
+                if (findingMin &&
+                    col.getType() != Types.LONGVARCHAR &&
+                    col.getType() != Types.VARBINARY &&
+                    col.getType() != Types.LONGVARBINARY ) {
+                    sql.append(",\n MIN(").append(col.getName()).append(") \"MINVALUE_"+i+"\"");
                 }
-                if (findingMax) {
-                    sql.append(",\n MAX(").append(col.getName()).append(")");
+                if (findingMax &&
+                    col.getType() != Types.LONGVARCHAR &&                        
+                    col.getType() != Types.VARBINARY &&
+                    col.getType() != Types.LONGVARBINARY ) {
+                    sql.append(",\n MAX(").append(col.getName()).append(") \"MAXVALUE_"+i+"\"");
                 }
-                if (findingAvg) {
-                    sql.append(",\n AVG(").append(col.getName()).append(")");
+                if (findingAvg &&
+                    col.getType() != Types.LONGVARCHAR &&
+                    col.getType() != Types.LONGVARBINARY &&
+                    col.getType() != Types.VARBINARY &&
+                    col.getType() != Types.TIMESTAMP &&
+                    col.getType() != Types.CHAR &&
+                    col.getType() != Types.VARCHAR ) {
+                    sql.append(",\n AVG(").append(col.getName()).append(") \"AVGVALUE_"+i+"\"");
                 }
-                if (findingMinLength) {
-                    sql.append(",\n MIN(LENGTH(").append(col.getName()).append("))");
+                if (findingMinLength &&
+                    col.getType() != Types.LONGVARCHAR &&
+                    col.getType() != Types.LONGVARBINARY ) {
+                    sql.append(",\n MIN(LENGTH(").append(col.getName()).append(")) \"MINLENGTH_"+i+"\"");
                 }
-                if (findingMaxLength) {
-                    sql.append(",\n MAX(LENGTH(").append(col.getName()).append("))");
+                if (findingMaxLength &&
+                    col.getType() != Types.LONGVARCHAR &&
+                    col.getType() != Types.LONGVARBINARY ) {
+                    sql.append(",\n MAX(LENGTH(").append(col.getName()).append(")) \"MAXLENGTH_"+i+"\"");
                 }
-                if (findingAvgLength) {
-                    sql.append(",\n AVG(LENGTH(").append(col.getName()).append("))");
+                if (findingAvgLength &&
+                    col.getType() != Types.LONGVARCHAR &&
+                    col.getType() != Types.LONGVARBINARY ) {
+                    sql.append(",\n AVG(LENGTH(").append(col.getName()).append(")) \"AVGLENGTH_"+i+"\"");
                 }
+                
+                if ( findingNullCount &&
+                    col.getType() != Types.LONGVARBINARY &&
+                    col.getType() != Types.LONGVARCHAR ) {
+                    
+                    if ( db.getDataSource().getDriverClass().equals("oracle.jdbc.driver.OracleDriver") ) {
+                        sql.append(",\n SUM(DECODE(").append(col.getName()).append(",NULL,1)) \"NULLCOUNT_"+i+"\"");
+                    }
+                    else if ( db.getDataSource().getDriverClass().equals("com.microsoft.jdbc.sqlserver.SQLServerDriver") ) {
+                        sql.append(",\n SUM(CASE WHEN ").append(col.getName()).append(" IS NULL THEN 1 ELSE 0 END) \"NULLCOUNT_"+i+"\"");
+                    }
+                    else if ( db.getDataSource().getDriverClass().equals("org.postgresql.Driver") ) {
+                        sql.append(",\n SUM(CASE WHEN ").append(col.getName()).append(" IS NULL THEN 1 ELSE 0 END) \"NULLCOUNT_"+i+"\"");
+                    }
+                    else if ( db.getDataSource().getDriverClass().equals("ibm.sql.DB2Driver") ) {
+                        sql.append(",\n SUM(CASE WHEN ").append(col.getName()).append(" IS NULL THEN 1 ELSE 0 END) \"NULLCOUNT_"+i+"\"");
+                    }
+                }
+                
+
+                
+                i++;
             }
             sql.append("\nFROM ").append(table.getName());
             stmt = conn.createStatement();
             lastSQL = sql.toString();
-            
+    
             long startTime = System.currentTimeMillis();
             rs = stmt.executeQuery(lastSQL);
             long endTime = System.currentTimeMillis();
             
             if ( rs.next() ) {
-                int rscol = 1;
-                TableProfileResult tableProfileResult = new TableProfileResult(endTime-startTime,rs.getInt(rscol++));
+
+                TableProfileResult tableProfileResult = new TableProfileResult(endTime-startTime,rs.getInt("ROWCOUNT"));
                 putResult(table, tableProfileResult);
+                i = 0;
                 for (SQLColumn col : table.getColumns()) {
                     ColumnProfileResult colResult = new ColumnProfileResult(endTime-startTime);
-                    if (findingDistinctCount) {
-                        colResult.setDistinctValueCount(rs.getInt(rscol++));
+
+                    if (findingDistinctCount &&
+                        col.getType() != Types.LONGVARCHAR &&
+                        col.getType() != Types.LONGVARBINARY ) {
+                        lastSQL = "DISTINCTCOUNT_"+i;
+                        colResult.setDistinctValueCount(rs.getInt(lastSQL));
                     }
-                    if (findingMin) {
-                        colResult.setMinValue(rs.getObject(rscol++));
+                    if (findingMin &&
+                        col.getType() != Types.LONGVARCHAR &&
+                        col.getType() != Types.VARBINARY &&
+                        col.getType() != Types.LONGVARBINARY ) {
+                        lastSQL = "MINVALUE_"+i;
+                        colResult.setMinValue(rs.getObject(lastSQL));
                     }
-                    if (findingMax) {
-                        colResult.setMaxValue(rs.getObject(rscol++));
+                    if (findingMax &&
+                        col.getType() != Types.LONGVARCHAR &&                        
+                        col.getType() != Types.VARBINARY &&
+                        col.getType() != Types.LONGVARBINARY ) {
+                        lastSQL = "MAXVALUE_"+i;
+                        colResult.setMaxValue(rs.getObject(lastSQL));
                     }
-                    if (findingAvg) {
-                        colResult.setAvgValue(rs.getObject(rscol++));
+                    if (findingAvg &&
+                            col.getType() != Types.LONGVARCHAR &&
+                            col.getType() != Types.LONGVARBINARY &&
+                            col.getType() != Types.VARBINARY &&
+                            col.getType() != Types.TIMESTAMP &&
+                            col.getType() != Types.CHAR &&
+                            col.getType() != Types.VARCHAR ) {
+                        lastSQL = "AVGVALUE_"+i;
+                        colResult.setAvgValue(rs.getObject(lastSQL));
                     }
-                    if (findingMinLength) {
-                        colResult.setMinLength(rs.getInt(rscol++));
+                    if (findingMinLength &&
+                        col.getType() != Types.LONGVARCHAR &&
+                        col.getType() != Types.LONGVARBINARY ) {
+                        lastSQL = "MINLENGTH_"+i;
+                        colResult.setMinLength(rs.getInt(lastSQL));
                     }
-                    if (findingMaxLength) {
-                        colResult.setMaxLength(rs.getInt(rscol++));
+                    if (findingMaxLength &&
+                        col.getType() != Types.LONGVARCHAR &&
+                        col.getType() != Types.LONGVARBINARY ) {
+                        lastSQL = "MAXLENGTH_"+i;
+                        colResult.setMaxLength(rs.getInt(lastSQL));
                     }
-                    if (findingAvgLength) {
-                        colResult.setAvgLength(rs.getInt(rscol++));
+                    if (findingAvgLength &&
+                        col.getType() != Types.LONGVARCHAR &&
+                        col.getType() != Types.LONGVARBINARY ) {
+                        lastSQL = "AVGLENGTH_"+i;
+                        colResult.setAvgLength(rs.getInt(lastSQL));
                     }
+                    
+                    if ( findingNullCount &&
+                         col.getType() != Types.LONGVARBINARY &&
+                         col.getType() != Types.LONGVARCHAR ) {
+                        try {
+                            lastSQL = "NULLCOUNT_"+i;
+                            colResult.setNullCount(rs.getInt(lastSQL));
+                        } catch ( SQLException ex1 ) {
+                            
+                        }
+                    }
+                    
                     putResult(col, colResult);
+                    i++;
                 }
             }
             
@@ -229,5 +321,69 @@ public class ProfileManager implements Monitorable {
         synchronized (monitorableMutex) {
             userCancel = true;
         }
+    }
+
+    public boolean isFindingAvg() {
+        return findingAvg;
+    }
+
+    public void setFindingAvg(boolean findingAvg) {
+        this.findingAvg = findingAvg;
+    }
+
+    public boolean isFindingAvgLength() {
+        return findingAvgLength;
+    }
+
+    public void setFindingAvgLength(boolean findingAvgLength) {
+        this.findingAvgLength = findingAvgLength;
+    }
+
+    public boolean isFindingDistinctCount() {
+        return findingDistinctCount;
+    }
+
+    public void setFindingDistinctCount(boolean findingDistinctCount) {
+        this.findingDistinctCount = findingDistinctCount;
+    }
+
+    public boolean isFindingMax() {
+        return findingMax;
+    }
+
+    public void setFindingMax(boolean findingMax) {
+        this.findingMax = findingMax;
+    }
+
+    public boolean isFindingMaxLength() {
+        return findingMaxLength;
+    }
+
+    public void setFindingMaxLength(boolean findingMaxLength) {
+        this.findingMaxLength = findingMaxLength;
+    }
+
+    public boolean isFindingMin() {
+        return findingMin;
+    }
+
+    public void setFindingMin(boolean findingMin) {
+        this.findingMin = findingMin;
+    }
+
+    public boolean isFindingMinLength() {
+        return findingMinLength;
+    }
+
+    public void setFindingMinLength(boolean findingMinLength) {
+        this.findingMinLength = findingMinLength;
+    }
+
+    public boolean isFindingNullCount() {
+        return findingNullCount;
+    }
+
+    public void setFindingNullCount(boolean findingNullCount) {
+        this.findingNullCount = findingNullCount;
     }
 }

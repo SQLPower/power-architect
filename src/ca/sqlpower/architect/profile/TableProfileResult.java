@@ -17,4 +17,10 @@ public class TableProfileResult extends ProfileResult {
         this.rowCount = rowCount;
     }
 
+    @Override
+    public String toString() {
+        return "RowCount:" + rowCount +
+                "   Run Date:[" + getCreateDate() + "]" +
+                "   Time To Create:" + getTimeToCreate() + "ms";
+    }
 }
