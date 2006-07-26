@@ -186,6 +186,8 @@ log4j.rootLogger=INFO, R, C
 #log4j.logger.ca.sqlpower.architect.undo.UndoCompoundEventListener=debug
 #log4j.logger.ca.sqlpower.architect.undo.UndoManager=debug
 
+log4j.logger.ca.sqlpower.architect.profile.ProfileManager=debug
+
 #log4j.logger.prefs.MemoryPreferences=debug
 #log4j.logger.prefs.Preferences=debug
 
