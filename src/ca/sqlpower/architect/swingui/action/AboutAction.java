@@ -27,8 +27,8 @@ public class AboutAction extends AbstractAction {
 	protected PlayPen pp;
 	
 	public AboutAction() {
-		super("About...", ASUtils.createJLFIcon( "general/Information",
-                        "Information", 
+		super("About...", ASUtils.createJLFIcon( "general/About",
+                        "About", 
                         ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
 		putValue(SHORT_DESCRIPTION, "About the Power*Architect");
 	}

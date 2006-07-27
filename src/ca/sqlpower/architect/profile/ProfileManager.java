@@ -13,10 +13,12 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.swingui.Monitorable;
 
 public class ProfileManager implements Monitorable {
@@ -25,21 +27,21 @@ public class ProfileManager implements Monitorable {
 
     private Map<SQLObject, ProfileResult> results = new HashMap<SQLObject, ProfileResult>();
 
-    private boolean findingMin;
+    private boolean findingMin = true;
 
-    private boolean findingMax;
+    private boolean findingMax = true;
 
-    private boolean findingAvg;
+    private boolean findingAvg = true;
 
-    private boolean findingMinLength;
+    private boolean findingMinLength = true;
 
-    private boolean findingMaxLength;
+    private boolean findingMaxLength = true;
 
-    private boolean findingAvgLength;
+    private boolean findingAvgLength = true;
 
-    private boolean findingDistinctCount;
+    private boolean findingDistinctCount = true;
 
-    private boolean findingNullCount;
+    private boolean findingNullCount = true;
     
     private Integer jobSize;
 
@@ -179,7 +181,7 @@ public class ProfileManager implements Monitorable {
                 
                 i++;
             }
-            sql.append("\nFROM ").append(table.getName());
+            sql.append("\nFROM ").append(DDLUtils.toQualifiedName(table.getCatalogName(),table.getSchemaName(),table.getName()));
             stmt = conn.createStatement();
             lastSQL = sql.toString();
     
