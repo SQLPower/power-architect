@@ -65,6 +65,7 @@ import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.etl.ExportCSV;
 import ca.sqlpower.architect.layout.ArchitectLayoutInterface;
 import ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout;
+import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.qfa.ExceptionHandler;
 import ca.sqlpower.architect.swingui.action.AboutAction;
 import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
@@ -81,6 +82,7 @@ import ca.sqlpower.architect.swingui.action.ExportPLTransAction;
 import ca.sqlpower.architect.swingui.action.InsertColumnAction;
 import ca.sqlpower.architect.swingui.action.PreferencesAction;
 import ca.sqlpower.architect.swingui.action.PrintAction;
+import ca.sqlpower.architect.swingui.action.ProfileAction;
 import ca.sqlpower.architect.swingui.action.ProjectSettingsAction;
 import ca.sqlpower.architect.swingui.action.QuickStartAction;
 import ca.sqlpower.architect.swingui.action.RedoAction;
@@ -88,6 +90,7 @@ import ca.sqlpower.architect.swingui.action.SQLRunnerAction;
 import ca.sqlpower.architect.swingui.action.SearchReplaceAction;
 import ca.sqlpower.architect.swingui.action.SelectAllAction;
 import ca.sqlpower.architect.swingui.action.UndoAction;
+import ca.sqlpower.architect.swingui.action.ViewProfileAction;
 import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.undo.UndoManager;
 
@@ -112,6 +115,7 @@ public class ArchitectFrame extends JFrame {
 	
 	protected Preferences prefs;
 
+    protected ProfileManager profileManager;
 	/**
 	 * Tracks whether or not the most recent "save project" operation was
 	 * successful.
@@ -143,6 +147,8 @@ public class ArchitectFrame extends JFrame {
 	protected PreferencesAction prefAction;
 	protected ProjectSettingsAction projectSettingsAction;
 	protected PrintAction printAction;
+    protected ProfileAction profileAction;
+    protected ViewProfileAction viewProfileAction;
  	protected ZoomAction zoomInAction;
  	protected ZoomAction zoomOutAction;
  	protected Action zoomNormalAction;
@@ -189,6 +195,7 @@ public class ArchitectFrame extends JFrame {
 	        }
 	    }
 	};
+
 
 	/**
 	 * You can't create an architect frame using this constructor.  You have to
@@ -609,6 +616,10 @@ public class ArchitectFrame extends JFrame {
 		selectAllAction.putValue(AbstractAction.ACCELERATOR_KEY,
 				KeyStroke.getKeyStroke(KeyEvent.VK_A, accelMask));
 		
+        /* profiling stuff */
+		profileManager = new ProfileManager();
+        profileAction = new ProfileAction(profileManager);
+        viewProfileAction = new ViewProfileAction(playpen,profileManager);
 		menuBar = new JMenuBar();
 		
 		//Settingup
@@ -676,7 +687,12 @@ public class ArchitectFrame extends JFrame {
         toolsMenu.add(new SQLRunnerAction());
 		menuBar.add(toolsMenu);
 		
-		
+        JMenu profileMenu = new JMenu("Profile");
+        profileMenu.setMnemonic('p');
+        profileMenu.add(profileAction);
+        profileMenu.add(viewProfileAction);
+        menuBar.add(profileMenu);
+        
 		JMenu helpMenu = new JMenu("Help");
 		helpMenu.setMnemonic('h');
         if (!MAC_OS_X) {
@@ -704,6 +720,7 @@ public class ArchitectFrame extends JFrame {
 		projectBar.add(compareDMAction);
 		projectBar.addSeparator();
 		projectBar.add(autoLayoutAction);
+        projectBar.add(profileAction);
         projectBar.addSeparator();
         projectBar.add(helpAction);
 		projectBar.setToolTipText("Project Toolbar");
@@ -828,7 +845,8 @@ public class ArchitectFrame extends JFrame {
 		deleteSelectedAction.setDBTree(dbTree);
 		editTableAction.setDBTree(dbTree);
 		searchReplaceAction.setDBTree(dbTree);
-		
+		profileAction.setDBTree(dbTree);
+        
 		//
 		prefAction.setArchitectFrame(this);
 		projectSettingsAction.setArchitectFrame(this);			
