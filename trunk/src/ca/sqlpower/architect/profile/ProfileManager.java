@@ -1,6 +1,5 @@
 package ca.sqlpower.architect.profile;
 
-import java.sql.Array;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -13,7 +12,6 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
@@ -112,7 +110,7 @@ public class ProfileManager implements Monitorable {
         try {
             conn = db.getConnection();
             StringBuffer sql = new StringBuffer();
-            sql.append("SELECT COUNT(*) \"ROWCOUNT\"");
+            sql.append("SELECT COUNT(*) AS ROWCOUNT");
 
             int i = 0;
             for (SQLColumn col : table.getColumns()) {
@@ -120,43 +118,44 @@ public class ProfileManager implements Monitorable {
                 if (findingDistinctCount &&
                     col.getType() != Types.LONGVARCHAR &&
                     col.getType() != Types.LONGVARBINARY ) {
-                    sql.append(",\n COUNT(DISTINCT ").append(col.getName()).append(") \"DISTINCTCOUNT_"+i+"\"");
+                    sql.append(",\n COUNT(DISTINCT ").append(col.getName()).append(") AS DISTINCTCOUNT_"+i);
                 }
                 if (findingMin &&
                     col.getType() != Types.LONGVARCHAR &&
                     col.getType() != Types.VARBINARY &&
                     col.getType() != Types.LONGVARBINARY ) {
-                    sql.append(",\n MIN(").append(col.getName()).append(") \"MINVALUE_"+i+"\"");
+                    sql.append(",\n MIN(").append(col.getName()).append(") AS MINVALUE_"+i);
                 }
                 if (findingMax &&
                     col.getType() != Types.LONGVARCHAR &&                        
                     col.getType() != Types.VARBINARY &&
                     col.getType() != Types.LONGVARBINARY ) {
-                    sql.append(",\n MAX(").append(col.getName()).append(") \"MAXVALUE_"+i+"\"");
+                    sql.append(",\n MAX(").append(col.getName()).append(") AS MAXVALUE_"+i);
                 }
                 if (findingAvg &&
                     col.getType() != Types.LONGVARCHAR &&
                     col.getType() != Types.LONGVARBINARY &&
                     col.getType() != Types.VARBINARY &&
                     col.getType() != Types.TIMESTAMP &&
+                    col.getType() != Types.DATE &&
                     col.getType() != Types.CHAR &&
                     col.getType() != Types.VARCHAR ) {
-                    sql.append(",\n AVG(").append(col.getName()).append(") \"AVGVALUE_"+i+"\"");
+                    sql.append(",\n AVG(").append(col.getName()).append(") AS AVGVALUE_"+i);
                 }
                 if (findingMinLength &&
                     col.getType() != Types.LONGVARCHAR &&
                     col.getType() != Types.LONGVARBINARY ) {
-                    sql.append(",\n MIN(LENGTH(").append(col.getName()).append(")) \"MINLENGTH_"+i+"\"");
+                    sql.append(",\n MIN(LENGTH(").append(col.getName()).append(")) AS MINLENGTH_"+i);
                 }
                 if (findingMaxLength &&
                     col.getType() != Types.LONGVARCHAR &&
                     col.getType() != Types.LONGVARBINARY ) {
-                    sql.append(",\n MAX(LENGTH(").append(col.getName()).append(")) \"MAXLENGTH_"+i+"\"");
+                    sql.append(",\n MAX(LENGTH(").append(col.getName()).append(")) AS MAXLENGTH_"+i);
                 }
                 if (findingAvgLength &&
                     col.getType() != Types.LONGVARCHAR &&
                     col.getType() != Types.LONGVARBINARY ) {
-                    sql.append(",\n AVG(LENGTH(").append(col.getName()).append(")) \"AVGLENGTH_"+i+"\"");
+                    sql.append(",\n AVG(LENGTH(").append(col.getName()).append(")) AS AVGLENGTH_"+i);
                 }
                 
                 if ( findingNullCount &&
@@ -164,16 +163,16 @@ public class ProfileManager implements Monitorable {
                     col.getType() != Types.LONGVARCHAR ) {
                     
                     if ( db.getDataSource().getDriverClass().equals("oracle.jdbc.driver.OracleDriver") ) {
-                        sql.append(",\n SUM(DECODE(").append(col.getName()).append(",NULL,1)) \"NULLCOUNT_"+i+"\"");
+                        sql.append(",\n SUM(DECODE(").append(col.getName()).append(",NULL,1)) AS NULLCOUNT_"+i);
                     }
                     else if ( db.getDataSource().getDriverClass().equals("com.microsoft.jdbc.sqlserver.SQLServerDriver") ) {
-                        sql.append(",\n SUM(CASE WHEN ").append(col.getName()).append(" IS NULL THEN 1 ELSE 0 END) \"NULLCOUNT_"+i+"\"");
+                        sql.append(",\n SUM(CASE WHEN ").append(col.getName()).append(" IS NULL THEN 1 ELSE 0 END) AS NULLCOUNT_"+i);
                     }
                     else if ( db.getDataSource().getDriverClass().equals("org.postgresql.Driver") ) {
-                        sql.append(",\n SUM(CASE WHEN ").append(col.getName()).append(" IS NULL THEN 1 ELSE 0 END) \"NULLCOUNT_"+i+"\"");
+                        sql.append(",\n SUM(CASE WHEN ").append(col.getName()).append(" IS NULL THEN 1 ELSE 0 END) AS NULLCOUNT_"+i);
                     }
                     else if ( db.getDataSource().getDriverClass().equals("ibm.sql.DB2Driver") ) {
-                        sql.append(",\n SUM(CASE WHEN ").append(col.getName()).append(" IS NULL THEN 1 ELSE 0 END) \"NULLCOUNT_"+i+"\"");
+                        sql.append(",\n SUM(CASE WHEN ").append(col.getName()).append(" IS NULL THEN 1 ELSE 0 END) AS NULLCOUNT_"+i);
                     }
                 }
                 

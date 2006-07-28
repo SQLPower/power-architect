@@ -1,9 +1,10 @@
 package ca.sqlpower.architect.swingui.action;
 
 import java.awt.BorderLayout;
-import java.awt.Dialog;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -11,11 +12,19 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.naming.Context;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.JDialog;
+import javax.swing.JEditorPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.EditorKit;
+import javax.swing.text.html.HTMLDocument;
+import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.tree.TreePath;
 
 import ca.sqlpower.architect.ArchitectException;
@@ -24,8 +33,8 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileResult;
+import ca.sqlpower.architect.profile.ProfileResultFormatter;
 import ca.sqlpower.architect.swingui.ASUtils;
-import ca.sqlpower.architect.swingui.AboutPanel;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.CommonCloseAction;
@@ -75,17 +84,31 @@ public class ProfileAction extends AbstractAction {
             
             d = new JDialog(ArchitectFrame.getMainInstance(),"Table Profiles");
             
-            JPanel cp = new JPanel(new BorderLayout(12,12));
-            cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
-            final AboutPanel aboutPanel = new AboutPanel();
-            cp.add(aboutPanel, BorderLayout.CENTER);
-                
+            JPanel cp = new JPanel(new BorderLayout());
+            
+            
+            JEditorPane editorPane = new JEditorPane();
+            editorPane.setEditable(false);
+            editorPane.setContentType("text/html");
+            ProfileResultFormatter prf = new ProfileResultFormatter();
+            editorPane.setText(prf.format(tables,profileManager) );
+
+            JScrollPane editorScrollPane = new JScrollPane(editorPane);
+            editorScrollPane.setVerticalScrollBarPolicy(
+                            JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+            editorScrollPane.setPreferredSize(new Dimension(800, 600));
+            editorScrollPane.setMinimumSize(new Dimension(10, 10));
+            
+            
+            cp.add(editorScrollPane, BorderLayout.CENTER);
+            
+            
+            
             JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
                 
             Action okAction = new AbstractAction() {
                 public void actionPerformed(ActionEvent evt) {
-                        aboutPanel.applyChanges();
-                        d.setVisible(false);
+                    d.setVisible(false);
                 }
             };
             okAction.putValue(Action.NAME, "OK");
