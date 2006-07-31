@@ -1,5 +1,7 @@
 package ca.sqlpower.architect.swingui.action;
 
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.net.URL;
 
@@ -16,10 +18,10 @@ import ca.sqlpower.architect.swingui.SwingUserSettings;
 public class HelpAction extends AbstractAction {
     
     public HelpAction() {
-    super("Help",      
-        ASUtils.createJLFIcon( "general/Help",
-        "Help", 
-        ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
+        super("Help",      
+                ASUtils.createJLFIcon( "general/Help",
+                        "Help", 
+                        ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -29,7 +31,14 @@ public class HelpAction extends AbstractAction {
             URL hsURL = HelpSet.findHelpSet(cl, helpHS);
             HelpSet hs = new HelpSet(null, hsURL);
             HelpBroker hb = hs.createHelpBroker();
-            // Need to make it about 800x600 on 1024x768, or 640x480 on smaller screens
+            Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
+ 
+            // Default HelpBroker size is too small, make bigger unless on anciente "VGA" resolution
+            if (d.width >= 1024 && d.height >= 800) {
+                hb.setSize(new Dimension(1024, 700));
+            } else {
+                hb.setSize(new Dimension(640, 480));
+            }
             CSH.DisplayHelpFromSource helpDisplay = new CSH.DisplayHelpFromSource(hb);
             helpDisplay.actionPerformed(e);
 
