@@ -2,6 +2,7 @@ package ca.sqlpower.architect.ddl;
 
 import ca.sqlpower.architect.*;
 import ca.sqlpower.architect.SQLRelationship.ColumnMapping;
+import ca.sqlpower.architect.profile.ProfileFunctionDescriptor;
 
 import java.sql.*;
 import java.util.*;
@@ -102,6 +103,12 @@ public class GenericDDLGenerator implements DDLGenerator {
 	 */
 	protected String targetSchema;
 
+    /**
+     * A mapping from JDBC type code (Integer values) to
+     * appliable profile functions (min,max,avg,sum,etc...)
+     */
+    protected Map profileFunctionMap;
+    
 	public GenericDDLGenerator() throws SQLException {
 		allowConnection = true;
 		warnings = new ArrayList();
@@ -110,9 +117,12 @@ public class GenericDDLGenerator implements DDLGenerator {
 		println("");
 		topLevelNames = new HashMap();  // for tracking dup table/relationship names
 		createTypeMap();
+        createProfileFunctionMap();
 	}
 
-	public StringBuffer generateDDL(SQLDatabase source) throws SQLException, ArchitectException {
+	
+
+    public StringBuffer generateDDL(SQLDatabase source) throws SQLException, ArchitectException {
 		List statements = generateDDLStatements(source);
 
 		ddl = new StringBuffer(4000);
@@ -345,7 +355,7 @@ public class GenericDDLGenerator implements DDLGenerator {
     }
 
 	/** Columnn type */
-    protected String columnType(SQLColumn c) {
+    public String columnType(SQLColumn c) {
         StringBuffer def = new StringBuffer();
 		GenericTypeDescriptor td = failsafeGetTypeDescriptor(c);       
 		def.append(td.getName());
@@ -529,6 +539,32 @@ public class GenericDDLGenerator implements DDLGenerator {
 			rs.close();
 		}
 	}
+    
+    protected void createProfileFunctionMap() {
+        profileFunctionMap = new HashMap();
+        profileFunctionMap.put("BIGINT", new ProfileFunctionDescriptor("BIGINT", Types.BIGINT, true,true,true,true,true,true,true,true,true));
+        profileFunctionMap.put("BINARY", new ProfileFunctionDescriptor("BINARY", Types.BINARY, true,false,false,false,true,true,true,true,true));
+        profileFunctionMap.put("BIT", new ProfileFunctionDescriptor("BIT", Types.BIT, true,false,false,false,true,true,true,true,true));
+        profileFunctionMap.put("BLOB", new ProfileFunctionDescriptor("BLOB", Types.BLOB, true,false,false,false,true,true,true,true,true));
+        profileFunctionMap.put("CHAR", new ProfileFunctionDescriptor("CHAR", Types.CHAR, true,false,false,false,true,true,true,true,true));
+        profileFunctionMap.put("CLOB", new ProfileFunctionDescriptor("CLOB", Types.CLOB, true,false,false,false,true,true,true,true,true));
+        profileFunctionMap.put("DATE", new ProfileFunctionDescriptor("DATE", Types.DATE, true,true,true,false,true,true,true,true,true));
+        profileFunctionMap.put("DECIMAL", new ProfileFunctionDescriptor("DECIMAL", Types.DECIMAL, true,true,true,true,true,true,true,true,true));
+        profileFunctionMap.put("DOUBLE", new ProfileFunctionDescriptor("DOUBLE", Types.DOUBLE, true,true,true,true,true,true,true,true,true));
+        profileFunctionMap.put("FLOAT", new ProfileFunctionDescriptor("FLOAT", Types.FLOAT, true,true,true,true,true,true,true,true,true));
+        profileFunctionMap.put("INTEGER", new ProfileFunctionDescriptor("INTEGER", Types.INTEGER, true,true,true,true,true,true,true,true,true));
+        profileFunctionMap.put("LONGVARBINARY", new ProfileFunctionDescriptor("LONGVARBINARY", Types.LONGVARBINARY, false,false,false,false,true,true,true,true,true));
+        profileFunctionMap.put("LONGVARCHAR", new ProfileFunctionDescriptor("LONGVARCHAR", Types.LONGVARCHAR, false,false,false,false,true,true,true,true,true));
+        profileFunctionMap.put("NUMERIC", new ProfileFunctionDescriptor("NUMERIC", Types.NUMERIC, true,true,true,true,true,true,true,true,true));
+        profileFunctionMap.put("REAL", new ProfileFunctionDescriptor("REAL", Types.REAL, true,true,true,true,true,true,true,true,true));
+        profileFunctionMap.put("SMALLINT", new ProfileFunctionDescriptor("SMALLINT", Types.SMALLINT, true,true,true,true,true,true,true,true,true));
+        profileFunctionMap.put("TIME", new ProfileFunctionDescriptor("TIME", Types.TIME, true,true,true,false,true,true,true,true,true));
+        profileFunctionMap.put("TIMESTAMP", new ProfileFunctionDescriptor("TIMESTAMP", Types.TIMESTAMP, true,true,true,false,true,true,true,true,true));
+        profileFunctionMap.put("TINYINT", new ProfileFunctionDescriptor("TINYINT", Types.TINYINT, true,true,true,true,true,true,true,true,true));
+        profileFunctionMap.put("VARBINARY", new ProfileFunctionDescriptor("VARBINARY", Types.VARBINARY, true,true,true,false,true,true,true,true,true));
+        profileFunctionMap.put("VARCHAR", new ProfileFunctionDescriptor("VARCHAR", Types.VARCHAR, true,true,true,false,true,true,true,true,true));
+    }
+    
 
 	protected void println(String text) {
 		ddl.append(text).append(EOL);
@@ -636,6 +672,13 @@ public class GenericDDLGenerator implements DDLGenerator {
 		this.typeMap = argTypeMap;
 	}
 
+    public Map getProfileFunctionMap() {
+        return this.profileFunctionMap;
+    }
+    public void setProfileFunctionMap(Map profileFunctionMap) {
+        this.profileFunctionMap = profileFunctionMap;
+    }
+    
 	/**
 	 * Gets the value of con
 	 *
@@ -813,6 +856,10 @@ public class GenericDDLGenerator implements DDLGenerator {
 			endStatement(DDLStatement.StatementType.CREATE,t);
 		}
 	}
+
+
+
+
 
 	
 }

@@ -9,14 +9,19 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.swing.JOptionPane;
+
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLUtils;
+import ca.sqlpower.architect.ddl.GenericDDLGenerator;
+import ca.sqlpower.architect.ddl.GenericTypeDescriptor;
 import ca.sqlpower.architect.swingui.Monitorable;
 
 public class ProfileManager implements Monitorable {
@@ -109,70 +114,100 @@ public class ProfileManager implements Monitorable {
         String lastSQL = null;
         try {
             conn = db.getConnection();
+            
+            
+            Map ddlGeneratorMap = ArchitectUtils.getDriverDDLGeneratorMap();
+            Class selectedGeneratorClass = (Class) ddlGeneratorMap.get(
+                    db.getDataSource().getDriverClass());
+            if (selectedGeneratorClass == null)
+            {
+                System.out.println("Unable to create Profile for the target database.");
+                return;
+            }
+            GenericDDLGenerator ddlg = null;
+            try {
+                ddlg = (GenericDDLGenerator) selectedGeneratorClass.newInstance();
+            } catch (InstantiationException e1) {
+                logger.error("problem running Profile Manager", e1);
+            } catch ( IllegalAccessException e1 ) {
+            
+            }
+            
+                
             StringBuffer sql = new StringBuffer();
             sql.append("SELECT COUNT(*) AS ROWCOUNT");
 
             int i = 0;
             for (SQLColumn col : table.getColumns()) {
+                
+                ProfileFunctionDescriptor pfd = (ProfileFunctionDescriptor)ddlg.getProfileFunctionMap().get(col.getSourceDataTypeName());
+System.out.println("name:"+col.getName()+ " " + col.getType() + "  [" + col.getSourceDataTypeName() + "]  pfd="+pfd );
 
-                if (findingDistinctCount &&
-                    col.getType() != Types.LONGVARCHAR &&
-                    col.getType() != Types.LONGVARBINARY ) {
-                    sql.append(",\n COUNT(DISTINCT ").append(col.getName()).append(") AS DISTINCTCOUNT_"+i);
-                }
-                if (findingMin &&
-                    col.getType() != Types.LONGVARCHAR &&
-                    col.getType() != Types.VARBINARY &&
-                    col.getType() != Types.LONGVARBINARY ) {
-                    sql.append(",\n MIN(").append(col.getName()).append(") AS MINVALUE_"+i);
-                }
-                if (findingMax &&
-                    col.getType() != Types.LONGVARCHAR &&                        
-                    col.getType() != Types.VARBINARY &&
-                    col.getType() != Types.LONGVARBINARY ) {
-                    sql.append(",\n MAX(").append(col.getName()).append(") AS MAXVALUE_"+i);
-                }
-                if (findingAvg &&
-                    col.getType() != Types.LONGVARCHAR &&
-                    col.getType() != Types.LONGVARBINARY &&
-                    col.getType() != Types.VARBINARY &&
-                    col.getType() != Types.TIMESTAMP &&
-                    col.getType() != Types.DATE &&
-                    col.getType() != Types.CHAR &&
-                    col.getType() != Types.VARCHAR ) {
-                    sql.append(",\n AVG(").append(col.getName()).append(") AS AVGVALUE_"+i);
-                }
-                if (findingMinLength &&
-                    col.getType() != Types.LONGVARCHAR &&
-                    col.getType() != Types.LONGVARBINARY ) {
-                    sql.append(",\n MIN(LENGTH(").append(col.getName()).append(")) AS MINLENGTH_"+i);
-                }
-                if (findingMaxLength &&
-                    col.getType() != Types.LONGVARCHAR &&
-                    col.getType() != Types.LONGVARBINARY ) {
-                    sql.append(",\n MAX(LENGTH(").append(col.getName()).append(")) AS MAXLENGTH_"+i);
-                }
-                if (findingAvgLength &&
-                    col.getType() != Types.LONGVARCHAR &&
-                    col.getType() != Types.LONGVARBINARY ) {
-                    sql.append(",\n AVG(LENGTH(").append(col.getName()).append(")) AS AVGLENGTH_"+i);
+                if ( pfd == null ) {
+                    System.out.println(col.getName()+
+                            " Unknown DataType:(" +
+                            col.getSourceDataTypeName() + 
+                            "). please setup the profile function mapping");
+                    continue;
                 }
                 
-                if ( findingNullCount &&
-                    col.getType() != Types.LONGVARBINARY &&
-                    col.getType() != Types.LONGVARCHAR ) {
+                if (findingDistinctCount && pfd.isCountDist() ) {
+                    sql.append(",\n COUNT(DISTINCT \"");
+                    sql.append(col.getName());
+                    sql.append("\") AS DISTINCTCOUNT_"+i);
+                }
+                if (findingMin && pfd.isMinValue() ) {
+                    sql.append(",\n MIN(\"");
+                    sql.append(col.getName());
+                    sql.append("\") AS MINVALUE_"+i);
+                }
+                if (findingMax && pfd.isMaxValus() ) {
+                    sql.append(",\n MAX(\"");
+                    sql.append(col.getName());
+                    sql.append("\") AS MAXVALUE_"+i);
+                }
+                if (findingAvg && pfd.isAvgValue() ) {
+                    sql.append(",\n AVG(\"");
+                    sql.append(col.getName());
+                    sql.append("\") AS AVGVALUE_"+i);
+                }
+                if (findingMinLength && pfd.isMinLength() ) {
+                    sql.append(",\n MIN(LENGTH(\"");
+                    sql.append(col.getName());
+                    sql.append("\")) AS MINLENGTH_"+i);
+                }
+                if (findingMaxLength && pfd.isMaxLength() ) {
+                    sql.append(",\n MAX(LENGTH(\"");
+                    sql.append(col.getName());
+                    sql.append("\")) AS MAXLENGTH_"+i);
+                }
+                if (findingAvgLength && pfd.isAvgLength() ) {
+                    sql.append(",\n AVG(LENGTH(\"");
+                    sql.append(col.getName());
+                    sql.append("\")) AS AVGLENGTH_"+i);
+                }
+                
+                if ( findingNullCount && pfd.isNullCount() ) {
                     
                     if ( db.getDataSource().getDriverClass().equals("oracle.jdbc.driver.OracleDriver") ) {
-                        sql.append(",\n SUM(DECODE(").append(col.getName()).append(",NULL,1)) AS NULLCOUNT_"+i);
+                        sql.append(",\n SUM(DECODE(\"");
+                        sql.append(col.getName());
+                        sql.append("\",NULL,1)) AS NULLCOUNT_"+i);
                     }
                     else if ( db.getDataSource().getDriverClass().equals("com.microsoft.jdbc.sqlserver.SQLServerDriver") ) {
-                        sql.append(",\n SUM(CASE WHEN ").append(col.getName()).append(" IS NULL THEN 1 ELSE 0 END) AS NULLCOUNT_"+i);
+                        sql.append(",\n SUM(CASE WHEN \"");
+                        sql.append(col.getName());
+                        sql.append("\" IS NULL THEN 1 ELSE 0 END) AS NULLCOUNT_"+i);
                     }
                     else if ( db.getDataSource().getDriverClass().equals("org.postgresql.Driver") ) {
-                        sql.append(",\n SUM(CASE WHEN ").append(col.getName()).append(" IS NULL THEN 1 ELSE 0 END) AS NULLCOUNT_"+i);
+                        sql.append(",\n SUM(CASE WHEN \"");
+                        sql.append(col.getName());
+                        sql.append("\" IS NULL THEN 1 ELSE 0 END) AS NULLCOUNT_"+i);
                     }
                     else if ( db.getDataSource().getDriverClass().equals("ibm.sql.DB2Driver") ) {
-                        sql.append(",\n SUM(CASE WHEN ").append(col.getName()).append(" IS NULL THEN 1 ELSE 0 END) AS NULLCOUNT_"+i);
+                        sql.append(",\n SUM(CASE WHEN \"");
+                        sql.append(col.getName());
+                        sql.append("\" IS NULL THEN 1 ELSE 0 END) AS NULLCOUNT_"+i);
                     }
                 }
                 
@@ -182,12 +217,11 @@ public class ProfileManager implements Monitorable {
             }
             sql.append("\nFROM ").append(DDLUtils.toQualifiedName(table.getCatalogName(),table.getSchemaName(),table.getName()));
             stmt = conn.createStatement();
+            stmt.setEscapeProcessing(false);
             lastSQL = sql.toString();
-    
             long startTime = System.currentTimeMillis();
             rs = stmt.executeQuery(lastSQL);
             long endTime = System.currentTimeMillis();
-            
             if ( rs.next() ) {
 
                 TableProfileResult tableProfileResult = new TableProfileResult(endTime-startTime,rs.getInt("ROWCOUNT"));
@@ -195,59 +229,38 @@ public class ProfileManager implements Monitorable {
                 i = 0;
                 for (SQLColumn col : table.getColumns()) {
                     ColumnProfileResult colResult = new ColumnProfileResult(endTime-startTime);
+                    ProfileFunctionDescriptor pfd = (ProfileFunctionDescriptor)ddlg.getProfileFunctionMap().get(col.getType());
 
-                    if (findingDistinctCount &&
-                        col.getType() != Types.LONGVARCHAR &&
-                        col.getType() != Types.LONGVARBINARY ) {
+                    if (findingDistinctCount && pfd.isCountDist() ) {
                         lastSQL = "DISTINCTCOUNT_"+i;
                         colResult.setDistinctValueCount(rs.getInt(lastSQL));
                     }
-                    if (findingMin &&
-                        col.getType() != Types.LONGVARCHAR &&
-                        col.getType() != Types.VARBINARY &&
-                        col.getType() != Types.LONGVARBINARY ) {
+                    if (findingMin && pfd.isMinValue() ) {
                         lastSQL = "MINVALUE_"+i;
                         colResult.setMinValue(rs.getObject(lastSQL));
                     }
-                    if (findingMax &&
-                        col.getType() != Types.LONGVARCHAR &&                        
-                        col.getType() != Types.VARBINARY &&
-                        col.getType() != Types.LONGVARBINARY ) {
+                    if (findingMax && pfd.isMaxValus() ) {
                         lastSQL = "MAXVALUE_"+i;
                         colResult.setMaxValue(rs.getObject(lastSQL));
                     }
-                    if (findingAvg &&
-                            col.getType() != Types.LONGVARCHAR &&
-                            col.getType() != Types.LONGVARBINARY &&
-                            col.getType() != Types.VARBINARY &&
-                            col.getType() != Types.TIMESTAMP &&
-                            col.getType() != Types.CHAR &&
-                            col.getType() != Types.VARCHAR ) {
+                    if (findingAvg && pfd.isAvgValue() ) {
                         lastSQL = "AVGVALUE_"+i;
                         colResult.setAvgValue(rs.getObject(lastSQL));
                     }
-                    if (findingMinLength &&
-                        col.getType() != Types.LONGVARCHAR &&
-                        col.getType() != Types.LONGVARBINARY ) {
+                    if (findingMinLength && pfd.isMinLength() ) {
                         lastSQL = "MINLENGTH_"+i;
                         colResult.setMinLength(rs.getInt(lastSQL));
                     }
-                    if (findingMaxLength &&
-                        col.getType() != Types.LONGVARCHAR &&
-                        col.getType() != Types.LONGVARBINARY ) {
+                    if (findingMaxLength && pfd.isMaxLength() ) {
                         lastSQL = "MAXLENGTH_"+i;
                         colResult.setMaxLength(rs.getInt(lastSQL));
                     }
-                    if (findingAvgLength &&
-                        col.getType() != Types.LONGVARCHAR &&
-                        col.getType() != Types.LONGVARBINARY ) {
+                    if (findingAvgLength && pfd.isAvgLength() ) {
                         lastSQL = "AVGLENGTH_"+i;
                         colResult.setAvgLength(rs.getInt(lastSQL));
                     }
                     
-                    if ( findingNullCount &&
-                         col.getType() != Types.LONGVARBINARY &&
-                         col.getType() != Types.LONGVARCHAR ) {
+                    if ( findingNullCount && pfd.isNullCount() ) {
                         try {
                             lastSQL = "NULLCOUNT_"+i;
                             colResult.setNullCount(rs.getInt(lastSQL));
