@@ -19,6 +19,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.tree.TreePath;
 
+import org.apache.log4j.Logger;
+
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
@@ -35,8 +37,8 @@ import ca.sqlpower.architect.swingui.JDefaultButton;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
 
 public class ProfileAction extends AbstractAction {
+    private static final Logger logger = Logger.getLogger(ProfileAction.class);
 
-    
     protected DBTree dbTree;
     protected ProfileManager profileManager;
     protected JDialog d;
@@ -54,6 +56,10 @@ public class ProfileAction extends AbstractAction {
     
         
     public void actionPerformed(ActionEvent e) {
+        if (dbTree == null) {
+            logger.debug("dbtree was null when actionPerformed called");
+            return;
+        }
         try {
             Set <SQLTable> tables = new HashSet();
             for ( TreePath p : dbTree.getSelectionPaths() ) {
