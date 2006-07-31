@@ -74,14 +74,12 @@ public class ColumnProfileResult extends ProfileResult {
     @Override
     public String toString() {
         return "[ColumnProfileResult:" + 
-//                "Create Date:[" + getCreateDate() + "]" +
-//                "Time to Create: " + getTimeToCreate() + "ms" +
                 "; distinctValues: "+distinctValueCount+
                 "; minLength: "+minLength+
                 "; maxLength: "+maxLength+
                 "; avgLength: "+avgLength+
-                "; minValue: "+minValue+
-                "; maxValue: "+maxValue+
+                "; minValue: "+getMinValue()+
+                "; maxValue: "+getMaxValue()+
                 "; avgValue: "+avgValue+
                 "; nullCount: "+getNullCount()+ "]";
     }

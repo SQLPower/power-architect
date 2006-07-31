@@ -61,6 +61,9 @@ public class ProfileAction extends AbstractAction {
             return;
         }
         try {
+            if ( dbTree.getSelectionPaths() == null )
+                return;
+            
             Set <SQLTable> tables = new HashSet();
             for ( TreePath p : dbTree.getSelectionPaths() ) {
                 SQLObject so = (SQLObject) p.getLastPathComponent();
