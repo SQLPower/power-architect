@@ -128,8 +128,10 @@ public class ProfileAction extends AbstractAction {
             
             
         } catch (SQLException ex) {
+            logger.error("Error in Profile Action ", ex);
             ASUtils.showExceptionDialogNoReport(dbTree, "Error during profile run", ex);
         } catch (Exception ex) {
+            logger.error("Error in Profile Action ", ex);
             ASUtils.showExceptionDialog(dbTree, "Error during profile run", ex);
         }
     }

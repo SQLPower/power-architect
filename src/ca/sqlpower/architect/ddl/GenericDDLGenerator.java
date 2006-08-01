@@ -542,27 +542,27 @@ public class GenericDDLGenerator implements DDLGenerator {
     
     protected void createProfileFunctionMap() {
         profileFunctionMap = new HashMap();
-        profileFunctionMap.put("BIGINT", new ProfileFunctionDescriptor("BIGINT", Types.BIGINT, true,true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("BINARY", new ProfileFunctionDescriptor("BINARY", Types.BINARY, true,false,false,false,true,true,true,true,true));
-        profileFunctionMap.put("BIT", new ProfileFunctionDescriptor("BIT", Types.BIT, true,false,false,false,true,true,true,true,true));
-        profileFunctionMap.put("BLOB", new ProfileFunctionDescriptor("BLOB", Types.BLOB, true,false,false,false,true,true,true,true,true));
-        profileFunctionMap.put("CHAR", new ProfileFunctionDescriptor("CHAR", Types.CHAR, true,false,false,false,true,true,true,true,true));
-        profileFunctionMap.put("CLOB", new ProfileFunctionDescriptor("CLOB", Types.CLOB, true,false,false,false,true,true,true,true,true));
-        profileFunctionMap.put("DATE", new ProfileFunctionDescriptor("DATE", Types.DATE, true,true,true,false,true,true,true,true,true));
-        profileFunctionMap.put("DECIMAL", new ProfileFunctionDescriptor("DECIMAL", Types.DECIMAL, true,true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("DOUBLE", new ProfileFunctionDescriptor("DOUBLE", Types.DOUBLE, true,true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("FLOAT", new ProfileFunctionDescriptor("FLOAT", Types.FLOAT, true,true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("INTEGER", new ProfileFunctionDescriptor("INTEGER", Types.INTEGER, true,true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("LONGVARBINARY", new ProfileFunctionDescriptor("LONGVARBINARY", Types.LONGVARBINARY, false,false,false,false,true,true,true,true,true));
-        profileFunctionMap.put("LONGVARCHAR", new ProfileFunctionDescriptor("LONGVARCHAR", Types.LONGVARCHAR, false,false,false,false,true,true,true,true,true));
-        profileFunctionMap.put("NUMERIC", new ProfileFunctionDescriptor("NUMERIC", Types.NUMERIC, true,true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("REAL", new ProfileFunctionDescriptor("REAL", Types.REAL, true,true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("SMALLINT", new ProfileFunctionDescriptor("SMALLINT", Types.SMALLINT, true,true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("TIME", new ProfileFunctionDescriptor("TIME", Types.TIME, true,true,true,false,true,true,true,true,true));
-        profileFunctionMap.put("TIMESTAMP", new ProfileFunctionDescriptor("TIMESTAMP", Types.TIMESTAMP, true,true,true,false,true,true,true,true,true));
-        profileFunctionMap.put("TINYINT", new ProfileFunctionDescriptor("TINYINT", Types.TINYINT, true,true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("VARBINARY", new ProfileFunctionDescriptor("VARBINARY", Types.VARBINARY, true,true,true,false,true,true,true,true,true));
-        profileFunctionMap.put("VARCHAR", new ProfileFunctionDescriptor("VARCHAR", Types.VARCHAR, true,true,true,false,true,true,true,true,true));
+        profileFunctionMap.put("BIGINT", new ProfileFunctionDescriptor("BIGINT", Types.BIGINT, true,true,true,true,true,true,true,true));
+        profileFunctionMap.put("BINARY", new ProfileFunctionDescriptor("BINARY", Types.BINARY, true,false,false,false,true,true,true,true));
+        profileFunctionMap.put("BIT", new ProfileFunctionDescriptor("BIT", Types.BIT, true,false,false,false,true,true,true,true));
+        profileFunctionMap.put("BLOB", new ProfileFunctionDescriptor("BLOB", Types.BLOB, true,false,false,false,true,true,true,true));
+        profileFunctionMap.put("CHAR", new ProfileFunctionDescriptor("CHAR", Types.CHAR, true,false,false,false,true,true,true,true));
+        profileFunctionMap.put("CLOB", new ProfileFunctionDescriptor("CLOB", Types.CLOB, true,false,false,false,true,true,true,true));
+        profileFunctionMap.put("DATE", new ProfileFunctionDescriptor("DATE", Types.DATE, true,true,true,false,true,true,true,true));
+        profileFunctionMap.put("DECIMAL", new ProfileFunctionDescriptor("DECIMAL", Types.DECIMAL, true,true,true,true,true,true,true,true));
+        profileFunctionMap.put("DOUBLE", new ProfileFunctionDescriptor("DOUBLE", Types.DOUBLE, true,true,true,true,true,true,true,true));
+        profileFunctionMap.put("FLOAT", new ProfileFunctionDescriptor("FLOAT", Types.FLOAT, true,true,true,true,true,true,true,true));
+        profileFunctionMap.put("INTEGER", new ProfileFunctionDescriptor("INTEGER", Types.INTEGER, true,true,true,true,true,true,true,true));
+        profileFunctionMap.put("LONGVARBINARY", new ProfileFunctionDescriptor("LONGVARBINARY", Types.LONGVARBINARY, false,false,false,false,true,true,true,true));
+        profileFunctionMap.put("LONGVARCHAR", new ProfileFunctionDescriptor("LONGVARCHAR", Types.LONGVARCHAR, false,false,false,false,true,true,true,true));
+        profileFunctionMap.put("NUMERIC", new ProfileFunctionDescriptor("NUMERIC", Types.NUMERIC, true,true,true,true,true,true,true,true));
+        profileFunctionMap.put("REAL", new ProfileFunctionDescriptor("REAL", Types.REAL, true,true,true,true,true,true,true,true));
+        profileFunctionMap.put("SMALLINT", new ProfileFunctionDescriptor("SMALLINT", Types.SMALLINT, true,true,true,true,true,true,true,true));
+        profileFunctionMap.put("TIME", new ProfileFunctionDescriptor("TIME", Types.TIME, true,true,true,false,true,true,true,true));
+        profileFunctionMap.put("TIMESTAMP", new ProfileFunctionDescriptor("TIMESTAMP", Types.TIMESTAMP, true,true,true,false,true,true,true,true));
+        profileFunctionMap.put("TINYINT", new ProfileFunctionDescriptor("TINYINT", Types.TINYINT, true,true,true,true,true,true,true,true));
+        profileFunctionMap.put("VARBINARY", new ProfileFunctionDescriptor("VARBINARY", Types.VARBINARY, true,true,true,false,true,true,true,true));
+        profileFunctionMap.put("VARCHAR", new ProfileFunctionDescriptor("VARCHAR", Types.VARCHAR, true,true,true,false,true,true,true,true));
     }
     
 
