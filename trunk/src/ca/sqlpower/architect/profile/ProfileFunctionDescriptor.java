@@ -12,7 +12,6 @@ public class ProfileFunctionDescriptor {
     private boolean minLength;
     private boolean sumDecode;
     private boolean avgLength;
-    private boolean nullCount;
     
     
     public ProfileFunctionDescriptor(String dataTypeName,
@@ -24,8 +23,7 @@ public class ProfileFunctionDescriptor {
                                 boolean maxLength,
                                 boolean minLength,
                                 boolean avgLength,
-                                boolean sumDecode,
-                                boolean nullCount) {
+                                boolean sumDecode) {
         this.dataTypeName = dataTypeName;
         this.dataTypeCode = dataTypeCode;
         this.countDist = countDist;
@@ -36,7 +34,6 @@ public class ProfileFunctionDescriptor {
         this.minLength = minLength;
         this.avgLength = avgLength;
         this.sumDecode = sumDecode;
-        this.nullCount = nullCount;
     }
 
 
@@ -139,14 +136,5 @@ public class ProfileFunctionDescriptor {
         this.sumDecode = sumDecode;
     }
 
-
-    public boolean isNullCount() {
-        return nullCount;
-    }
-
-
-    public void setNullCount(boolean nullCount) {
-        this.nullCount = nullCount;
-    }
 
 }

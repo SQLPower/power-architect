@@ -1,6 +1,7 @@
 package ca.sqlpower.architect.profile;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -112,27 +113,29 @@ public class ProfileManager implements Monitorable {
         Statement stmt = null;
         ResultSet rs = null;
         String lastSQL = null;
+        
+        TableProfileResult tableResult = new TableProfileResult(0,0);
+        putResult(table, tableResult);
+        
         try {
+
             conn = db.getConnection();
-            
-            
             Map ddlGeneratorMap = ArchitectUtils.getDriverDDLGeneratorMap();
-            Class selectedGeneratorClass = (Class) ddlGeneratorMap.get(
+            Class generatorClass = (Class) ddlGeneratorMap.get(
                     db.getDataSource().getDriverClass());
-            if (selectedGeneratorClass == null)
+            if (generatorClass == null)
             {
                 System.out.println("Unable to create Profile for the target database.");
                 return;
             }
             GenericDDLGenerator ddlg = null;
             try {
-                ddlg = (GenericDDLGenerator) selectedGeneratorClass.newInstance();
+                ddlg = (GenericDDLGenerator) generatorClass.newInstance();
             } catch (InstantiationException e1) {
                 logger.error("problem running Profile Manager", e1);
             } catch ( IllegalAccessException e1 ) {
             
             }
-            
                 
             StringBuffer sql = new StringBuffer();
             sql.append("SELECT COUNT(*) AS ROWCOUNT");
@@ -141,7 +144,6 @@ public class ProfileManager implements Monitorable {
             for (SQLColumn col : table.getColumns()) {
                 
                 ProfileFunctionDescriptor pfd = (ProfileFunctionDescriptor)ddlg.getProfileFunctionMap().get(col.getSourceDataTypeName());
-System.out.println("name:"+col.getName()+ " " + col.getType() + "  [" + col.getSourceDataTypeName() + "]  pfd="+pfd );
 
                 if ( pfd == null ) {
                     System.out.println(col.getName()+
@@ -187,7 +189,7 @@ System.out.println("name:"+col.getName()+ " " + col.getType() + "  [" + col.getS
                     sql.append("\")) AS AVGLENGTH_"+i);
                 }
                 
-                if ( findingNullCount && pfd.isNullCount() ) {
+                if ( findingNullCount && pfd.isSumDecode() ) {
                     
                     if ( db.getDataSource().getDriverClass().equals("oracle.jdbc.driver.OracleDriver") ) {
                         sql.append(",\n SUM(DECODE(\"");
@@ -222,53 +224,66 @@ System.out.println("name:"+col.getName()+ " " + col.getType() + "  [" + col.getS
             long startTime = System.currentTimeMillis();
             rs = stmt.executeQuery(lastSQL);
             long endTime = System.currentTimeMillis();
+            
             if ( rs.next() ) {
 
-                TableProfileResult tableProfileResult = new TableProfileResult(endTime-startTime,rs.getInt("ROWCOUNT"));
-                putResult(table, tableProfileResult);
+                tableResult = (TableProfileResult) getResult(table);
+                tableResult.setTimeToCreate(endTime-startTime);
+                tableResult.setRowCount(rs.getInt("ROWCOUNT"));
+
                 i = 0;
                 for (SQLColumn col : table.getColumns()) {
                     ColumnProfileResult colResult = new ColumnProfileResult(endTime-startTime);
-                    ProfileFunctionDescriptor pfd = (ProfileFunctionDescriptor)ddlg.getProfileFunctionMap().get(col.getType());
+                    ProfileFunctionDescriptor pfd = (ProfileFunctionDescriptor)ddlg.getProfileFunctionMap().get(col.getSourceDataTypeName());
 
-                    if (findingDistinctCount && pfd.isCountDist() ) {
-                        lastSQL = "DISTINCTCOUNT_"+i;
-                        colResult.setDistinctValueCount(rs.getInt(lastSQL));
+                    if ( pfd == null ) {
+                        System.out.println(col.getName()+
+                                " Unknown DataType:(" +
+                                col.getSourceDataTypeName() + 
+                                "). please setup the profile function mapping");
+                        continue;
                     }
-                    if (findingMin && pfd.isMinValue() ) {
-                        lastSQL = "MINVALUE_"+i;
-                        colResult.setMinValue(rs.getObject(lastSQL));
-                    }
-                    if (findingMax && pfd.isMaxValus() ) {
-                        lastSQL = "MAXVALUE_"+i;
-                        colResult.setMaxValue(rs.getObject(lastSQL));
-                    }
-                    if (findingAvg && pfd.isAvgValue() ) {
-                        lastSQL = "AVGVALUE_"+i;
-                        colResult.setAvgValue(rs.getObject(lastSQL));
-                    }
-                    if (findingMinLength && pfd.isMinLength() ) {
-                        lastSQL = "MINLENGTH_"+i;
-                        colResult.setMinLength(rs.getInt(lastSQL));
-                    }
-                    if (findingMaxLength && pfd.isMaxLength() ) {
-                        lastSQL = "MAXLENGTH_"+i;
-                        colResult.setMaxLength(rs.getInt(lastSQL));
-                    }
-                    if (findingAvgLength && pfd.isAvgLength() ) {
-                        lastSQL = "AVGLENGTH_"+i;
-                        colResult.setAvgLength(rs.getInt(lastSQL));
-                    }
-                    
-                    if ( findingNullCount && pfd.isNullCount() ) {
-                        try {
+
+                    try {
+                        if (findingDistinctCount && pfd.isCountDist() ) {
+                            lastSQL = "DISTINCTCOUNT_"+i;
+                            colResult.setDistinctValueCount(rs.getInt(lastSQL));
+                        }
+                        if (findingMin && pfd.isMinValue() ) {
+                            lastSQL = "MINVALUE_"+i;
+                            colResult.setMinValue(rs.getObject(lastSQL));
+                        }
+                        if (findingMax && pfd.isMaxValus() ) {
+                            lastSQL = "MAXVALUE_"+i;
+                            colResult.setMaxValue(rs.getObject(lastSQL));
+                        }
+                        if (findingAvg && pfd.isAvgValue() ) {
+                            lastSQL = "AVGVALUE_"+i;
+                            colResult.setAvgValue(rs.getObject(lastSQL));
+                        }
+                        if (findingMinLength && pfd.isMinLength() ) {
+                            lastSQL = "MINLENGTH_"+i;
+                            colResult.setMinLength(rs.getInt(lastSQL));
+                        }
+                        if (findingMaxLength && pfd.isMaxLength() ) {
+                            lastSQL = "MAXLENGTH_"+i;
+                            colResult.setMaxLength(rs.getInt(lastSQL));
+                        }
+                        if (findingAvgLength && pfd.isAvgLength() ) {
+                            lastSQL = "AVGLENGTH_"+i;
+                            colResult.setAvgLength(rs.getInt(lastSQL));
+                        }
+                        
+                        if ( findingNullCount && pfd.isSumDecode() ) {
                             lastSQL = "NULLCOUNT_"+i;
                             colResult.setNullCount(rs.getInt(lastSQL));
-                        } catch ( SQLException ex1 ) {
-                            
                         }
+                    } catch ( SQLException ex ) {
+                        colResult.setError(true);
+                        colResult.setEx(ex);
+                        logger.error("Error in SQL: "+lastSQL, ex);
                     }
-                    
+
                     putResult(col, colResult);
                     i++;
                 }
@@ -280,7 +295,10 @@ System.out.println("name:"+col.getName()+ " " + col.getType() + "  [" + col.getS
             // XXX: add where filter later
         } catch (SQLException ex) {
             logger.error("Error in SQL query: "+lastSQL, ex);
-            throw ex;
+            tableResult = (TableProfileResult) getResult(table);
+            tableResult.setError(true);
+            tableResult.setEx(ex);
+//            throw ex;
         } finally {
             try {
                 if (rs != null) rs.close();
