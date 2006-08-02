@@ -43,6 +43,8 @@ public class ProfileManager implements Monitorable {
 
     private boolean findingNullCount = true;
     
+    private boolean findingTopTen = true;
+    
     private Integer jobSize;
 
     /**
@@ -58,6 +60,7 @@ public class ProfileManager implements Monitorable {
     private String currentProfilingTable;
 
     private boolean userCancel;
+
 
     
     public void putResult(SQLObject sqlObject, ProfileResult profileResult) {
@@ -123,14 +126,7 @@ public class ProfileManager implements Monitorable {
                 System.out.println("Unable to create Profile for the target database.");
                 return;
             }
-            DDLGenerator ddlg = null;
-            try {
-                ddlg = (DDLGenerator) generatorClass.newInstance();
-            } catch (InstantiationException e1) {
-                logger.error("problem running Profile Manager", e1);
-            } catch ( IllegalAccessException e1 ) {
-            
-            }
+
                 
             StringBuffer sql = new StringBuffer();
             sql.append("SELECT COUNT(*) AS ROWCOUNT");
@@ -337,6 +333,44 @@ public class ProfileManager implements Monitorable {
                     rs = null;
                 }
                 i++;
+                
+                if (findingTopTen && pfd.isCountDist() ) {
+                    sql = new StringBuffer();
+                    sql.append("SELECT \"");
+                    sql.append(col.getName());
+                    sql.append("\" AS MYVALUE, COUNT(*) AS COUNT1 FROM ");
+                    sql.append(DDLUtils.toQualifiedName(table.getCatalogName(),table.getSchemaName(),table.getName()));
+                    sql.append(" GROUP BY \"");
+                    sql.append(col.getName());
+                    sql.append("\" ORDER BY COUNT1 DESC");
+
+                    colResult = (ColumnProfileResult) getResult(col);
+                    try {
+                        lastSQL = sql.toString();
+                        rs = stmt.executeQuery(lastSQL);
+                        for ( int n=0; rs.next() && n < 10; n++ ) {
+                            colResult.addValueCount(rs.getObject("MYVALUE"), rs.getInt("COUNT1"));
+                        }
+                        
+                    } catch ( SQLException ex ) {
+                        colResult.setError(true);
+                        colResult.setEx(ex);
+                        logger.error("Error in Column Profiling: "+lastSQL, ex);
+                    } finally {
+                        colResult.setCreateEndTime(System.currentTimeMillis());
+                        putResult(col, colResult);
+                        
+                        try {
+                            if (rs != null) rs.close();
+                        } catch (SQLException ex) {
+                            logger.error("Couldn't clean up result set", ex);
+                        }
+                        rs = null;
+                    }
+                }
+
+
+                
             }      
             // XXX: add where filter later
         } finally {
