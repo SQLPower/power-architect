@@ -8,6 +8,7 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.JOptionPane;
@@ -20,8 +21,8 @@ import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
-import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.ddl.GenericTypeDescriptor;
 import ca.sqlpower.architect.swingui.Monitorable;
 
@@ -114,8 +115,7 @@ public class ProfileManager implements Monitorable {
         ResultSet rs = null;
         String lastSQL = null;
         
-        TableProfileResult tableResult = new TableProfileResult(0,0);
-        putResult(table, tableResult);
+        TableProfileResult tableResult = new TableProfileResult(System.currentTimeMillis());
         
         try {
 
@@ -128,9 +128,9 @@ public class ProfileManager implements Monitorable {
                 System.out.println("Unable to create Profile for the target database.");
                 return;
             }
-            GenericDDLGenerator ddlg = null;
+            DDLGenerator ddlg = null;
             try {
-                ddlg = (GenericDDLGenerator) generatorClass.newInstance();
+                ddlg = (DDLGenerator) generatorClass.newInstance();
             } catch (InstantiationException e1) {
                 logger.error("problem running Profile Manager", e1);
             } catch ( IllegalAccessException e1 ) {
@@ -139,11 +139,95 @@ public class ProfileManager implements Monitorable {
                 
             StringBuffer sql = new StringBuffer();
             sql.append("SELECT COUNT(*) AS ROWCOUNT");
+            sql.append("\nFROM ").append(DDLUtils.toQualifiedName(table.getCatalogName(),table.getSchemaName(),table.getName()));
+            stmt = conn.createStatement();
+            stmt.setEscapeProcessing(false);
+            lastSQL = sql.toString();
 
+            rs = stmt.executeQuery(lastSQL);
+            
+            if ( rs.next() ) {
+                tableResult.setCreateEndTime(System.currentTimeMillis());
+                tableResult.setRowCount(rs.getInt("ROWCOUNT"));
+            }
+                       
+            rs.close();
+            rs = null;
+            
+            doColumnProfile(table.getColumns(), conn);
+            
+            // XXX: add where filter later
+        } catch (SQLException ex) {
+            logger.error("Error in SQL query: "+lastSQL, ex);
+            tableResult.setError(true);
+            tableResult.setEx(ex);
+        } finally {
+            try {
+                if (rs != null) rs.close();
+            } catch (SQLException ex) {
+                logger.error("Couldn't clean up result set", ex);
+            }
+            try {
+                if (stmt != null) stmt.close();
+            } catch (SQLException ex) {
+                logger.error("Couldn't clean up statement", ex);
+            }
+            try {
+                if (conn != null) conn.close();
+            } catch (SQLException ex) {
+                logger.error("Couldn't clean up connection", ex);
+            }
+            putResult(table, tableResult);
+        }
+    }
+
+    
+    
+    
+    
+    
+    
+    
+    
+
+    private void doColumnProfile(List<SQLColumn> columns, Connection conn) throws SQLException {
+
+        Statement stmt = null;
+        ResultSet rs = null;
+        String lastSQL = null;
+        
+        
+        try {
+            if ( columns.size() == 0 )
+                return;
+            SQLColumn col1 = columns.get(0);
+
+            DDLGenerator ddlg = null;
+            Class generatorClass = null;
+            try {
+                Map ddlGeneratorMap = ArchitectUtils.getDriverDDLGeneratorMap();
+                generatorClass = (Class) ddlGeneratorMap.get(
+                        col1.getParentTable().getParentDatabase().getDataSource().getDriverClass());
+                // FIXME: make warning user visable
+                if (generatorClass == null) {
+                    System.out.println("Unable to create Profile for the target database.");
+                    return;
+                }
+                ddlg = (DDLGenerator) generatorClass.newInstance();
+            } catch (InstantiationException e1) {
+                logger.error("problem running Profile Manager", e1);
+            } catch ( IllegalAccessException e1 ) {
+                logger.error("problem running Profile Manager", e1);
+            }
+
+            stmt = conn.createStatement();
+            stmt.setEscapeProcessing(false);
+            
             int i = 0;
-            for (SQLColumn col : table.getColumns()) {
+            for (SQLColumn col : columns ) {
                 
-                ProfileFunctionDescriptor pfd = (ProfileFunctionDescriptor)ddlg.getProfileFunctionMap().get(col.getSourceDataTypeName());
+                ProfileFunctionDescriptor pfd = ddlg.getProfileFunctionMap().get(col.getSourceDataTypeName());
+                ColumnProfileResult colResult = new ColumnProfileResult(System.currentTimeMillis());
 
                 if ( pfd == null ) {
                     System.out.println(col.getName()+
@@ -153,6 +237,10 @@ public class ProfileManager implements Monitorable {
                     continue;
                 }
                 
+                StringBuffer sql = new StringBuffer();
+                
+                sql.append("SELECT 1");
+
                 if (findingDistinctCount && pfd.isCountDist() ) {
                     sql.append(",\n COUNT(DISTINCT \"");
                     sql.append(col.getName());
@@ -190,61 +278,19 @@ public class ProfileManager implements Monitorable {
                 }
                 
                 if ( findingNullCount && pfd.isSumDecode() ) {
-                    
-                    if ( db.getDataSource().getDriverClass().equals("oracle.jdbc.driver.OracleDriver") ) {
-                        sql.append(",\n SUM(DECODE(\"");
-                        sql.append(col.getName());
-                        sql.append("\",NULL,1)) AS NULLCOUNT_"+i);
-                    }
-                    else if ( db.getDataSource().getDriverClass().equals("com.microsoft.jdbc.sqlserver.SQLServerDriver") ) {
-                        sql.append(",\n SUM(CASE WHEN \"");
-                        sql.append(col.getName());
-                        sql.append("\" IS NULL THEN 1 ELSE 0 END) AS NULLCOUNT_"+i);
-                    }
-                    else if ( db.getDataSource().getDriverClass().equals("org.postgresql.Driver") ) {
-                        sql.append(",\n SUM(CASE WHEN \"");
-                        sql.append(col.getName());
-                        sql.append("\" IS NULL THEN 1 ELSE 0 END) AS NULLCOUNT_"+i);
-                    }
-                    else if ( db.getDataSource().getDriverClass().equals("ibm.sql.DB2Driver") ) {
-                        sql.append(",\n SUM(CASE WHEN \"");
-                        sql.append(col.getName());
-                        sql.append("\" IS NULL THEN 1 ELSE 0 END) AS NULLCOUNT_"+i);
-                    }
+                    sql.append(",\n SUM(");
+                    sql.append(ddlg.caseWhen("\""+col.getName()+"\"", "NULL", "1"));
+                    sql.append(") AS NULLCOUNT_"+i);
                 }
-                
+                SQLTable table = col.getParentTable();
+                sql.append("\n FROM ").append(DDLUtils.toQualifiedName(table.getCatalogName(),table.getSchemaName(),table.getName()));
 
-                
-                i++;
-            }
-            sql.append("\nFROM ").append(DDLUtils.toQualifiedName(table.getCatalogName(),table.getSchemaName(),table.getName()));
-            stmt = conn.createStatement();
-            stmt.setEscapeProcessing(false);
-            lastSQL = sql.toString();
-            long startTime = System.currentTimeMillis();
-            rs = stmt.executeQuery(lastSQL);
-            long endTime = System.currentTimeMillis();
-            
-            if ( rs.next() ) {
+                try {
+                    
+                    lastSQL = sql.toString();
+                    rs = stmt.executeQuery(lastSQL);
 
-                tableResult = (TableProfileResult) getResult(table);
-                tableResult.setTimeToCreate(endTime-startTime);
-                tableResult.setRowCount(rs.getInt("ROWCOUNT"));
-
-                i = 0;
-                for (SQLColumn col : table.getColumns()) {
-                    ColumnProfileResult colResult = new ColumnProfileResult(endTime-startTime);
-                    ProfileFunctionDescriptor pfd = (ProfileFunctionDescriptor)ddlg.getProfileFunctionMap().get(col.getSourceDataTypeName());
-
-                    if ( pfd == null ) {
-                        System.out.println(col.getName()+
-                                " Unknown DataType:(" +
-                                col.getSourceDataTypeName() + 
-                                "). please setup the profile function mapping");
-                        continue;
-                    }
-
-                    try {
+                    if ( rs.next() ) {
                         if (findingDistinctCount && pfd.isCountDist() ) {
                             lastSQL = "DISTINCTCOUNT_"+i;
                             colResult.setDistinctValueCount(rs.getInt(lastSQL));
@@ -278,27 +324,26 @@ public class ProfileManager implements Monitorable {
                             lastSQL = "NULLCOUNT_"+i;
                             colResult.setNullCount(rs.getInt(lastSQL));
                         }
-                    } catch ( SQLException ex ) {
-                        colResult.setError(true);
-                        colResult.setEx(ex);
-                        logger.error("Error in SQL: "+lastSQL, ex);
                     }
-
+                        
+                } catch ( SQLException ex ) {
+                    colResult.setError(true);
+                    colResult.setEx(ex);
+                    logger.error("Error in Column Profiling: "+lastSQL, ex);
+                } finally {
+                    colResult.setCreateEndTime(System.currentTimeMillis());
                     putResult(col, colResult);
-                    i++;
+                    
+                    try {
+                        if (rs != null) rs.close();
+                    } catch (SQLException ex) {
+                        logger.error("Couldn't clean up result set", ex);
+                    }
+                    rs = null;
                 }
-            }
-            
-            rs.close();
-            rs = null;
-            
+                i++;
+            }      
             // XXX: add where filter later
-        } catch (SQLException ex) {
-            logger.error("Error in SQL query: "+lastSQL, ex);
-            tableResult = (TableProfileResult) getResult(table);
-            tableResult.setError(true);
-            tableResult.setEx(ex);
-//            throw ex;
         } finally {
             try {
                 if (rs != null) rs.close();
@@ -310,13 +355,8 @@ public class ProfileManager implements Monitorable {
             } catch (SQLException ex) {
                 logger.error("Couldn't clean up statement", ex);
             }
-            try {
-                if (conn != null) conn.close();
-            } catch (SQLException ex) {
-                logger.error("Couldn't clean up connection", ex);
-            }
         }
-    }
+    }            
     
     // =========== Monitorable Interface =============
     public int getProgress() throws ArchitectException {

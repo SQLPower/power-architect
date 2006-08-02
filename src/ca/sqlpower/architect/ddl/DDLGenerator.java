@@ -12,8 +12,11 @@ import java.util.Map;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.profile.ProfileFunctionDescriptor;
+import ca.sqlpower.architect.profile.ProfileResult;
 
 /**
  * The DDLGenerator interface is a generic API for turning a SQLObject
@@ -214,4 +217,24 @@ public interface DDLGenerator {
      * @return
      */
     public boolean isReservedWord(String word);
+
+    /**
+     * Creates a SQL CASE statement that will evaluates the given expression and return
+     * a particular value based on the value of that expression.
+     * <p>
+     * In ANSI SQL, this method will return something like:
+     * <code>CASE <i>expression</i> WHEN <i>when</i> THEN <i>then</i> END</code>.  Some
+     * platforms don't support ANSI case statements, so the DDL Generators for those platforms
+     * (i.e. Oracle) will be different, but should have the same meaning.
+     */
+    public String caseWhen(String expression, String when, String then);
+
+    /**
+     * Returns the mapping from SQL type names to a description of which profiling functions
+     * apply to them for this database platform.
+     * 
+     * @return A map where the keys are the native type names for this DDL generator's platform,
+     * and the values are {@link ca.sqlpower.architect.profile.ProfileFunctionDescriptor} objects.
+     */
+    public Map<String, ProfileFunctionDescriptor> getProfileFunctionMap();
 }
