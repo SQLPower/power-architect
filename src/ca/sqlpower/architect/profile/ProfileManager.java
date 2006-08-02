@@ -1,17 +1,13 @@
 package ca.sqlpower.architect.profile;
 
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Types;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.swing.JOptionPane;
 
 import org.apache.log4j.Logger;
 
@@ -23,7 +19,6 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
-import ca.sqlpower.architect.ddl.GenericTypeDescriptor;
 import ca.sqlpower.architect.swingui.Monitorable;
 
 public class ProfileManager implements Monitorable {

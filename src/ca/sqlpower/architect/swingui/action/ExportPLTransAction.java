@@ -3,16 +3,42 @@ package ca.sqlpower.architect.swingui.action;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-import java.sql.*;
-import java.util.*;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.JScrollPane;
+import javax.swing.SwingUtilities;
 
-import ca.sqlpower.architect.ddl.*;
-import ca.sqlpower.architect.etl.*;
+import org.apache.log4j.Logger;
+
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.ddl.GenericDDLGenerator;
+import ca.sqlpower.architect.etl.ETLUserSettings;
+import ca.sqlpower.architect.etl.PLExport;
+import ca.sqlpower.architect.etl.PLUtils;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
@@ -25,10 +51,7 @@ import ca.sqlpower.architect.swingui.ProgressWatcher;
 import ca.sqlpower.architect.swingui.QuickStartWizard;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
 import ca.sqlpower.architect.swingui.WizardDialog;
-import ca.sqlpower.architect.*;
 import ca.sqlpower.security.PLSecurityException;
-
-import org.apache.log4j.Logger;
 
 public class ExportPLTransAction extends AbstractAction {
 	private static final Logger logger = Logger.getLogger(ExportPLTransAction.class);

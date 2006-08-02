@@ -1,7 +1,8 @@
 package ca.sqlpower.architect.etl;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.util.Date;
+
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectDataSource;

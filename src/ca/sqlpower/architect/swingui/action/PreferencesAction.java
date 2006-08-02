@@ -2,8 +2,17 @@ package ca.sqlpower.architect.swingui.action;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
-import java.awt.event.*;
-import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ArchitectFrame;

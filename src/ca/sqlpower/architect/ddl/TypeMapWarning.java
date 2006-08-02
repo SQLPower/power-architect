@@ -1,6 +1,7 @@
 package ca.sqlpower.architect.ddl;
 
-import ca.sqlpower.architect.*;
+import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLObject;
 
 /**
  * A TypeMapWarning is generated when the DDL Generator tries to make

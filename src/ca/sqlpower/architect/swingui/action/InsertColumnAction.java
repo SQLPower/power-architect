@@ -1,10 +1,18 @@
 package ca.sqlpower.architect.swingui.action;
 
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
 import java.util.List;
-import javax.swing.*;
+
+import javax.swing.AbstractAction;
+import javax.swing.JOptionPane;
 import javax.swing.tree.TreePath;
-import ca.sqlpower.architect.*;
+
+import org.apache.log4j.Logger;
+
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
@@ -15,8 +23,6 @@ import ca.sqlpower.architect.swingui.SwingUserSettings;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
-
-import org.apache.log4j.Logger;
 
 public class InsertColumnAction extends AbstractAction implements SelectionListener {
 	private static final Logger logger = Logger.getLogger(InsertColumnAction.class);

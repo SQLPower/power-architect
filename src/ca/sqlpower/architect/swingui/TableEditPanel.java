@@ -3,9 +3,14 @@ package ca.sqlpower.architect.swingui;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-import javax.swing.*;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
 
-import ca.sqlpower.architect.*;
+import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;

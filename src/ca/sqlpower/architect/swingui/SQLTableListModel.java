@@ -1,11 +1,19 @@
 package ca.sqlpower.architect.swingui;
 
-import javax.swing.*;
-import javax.swing.event.*;
 import java.util.ArrayList;
 import java.util.Iterator;
-import ca.sqlpower.architect.*;
+
+import javax.swing.ListModel;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
+
 import org.apache.log4j.Logger;
+
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLObjectEvent;
+import ca.sqlpower.architect.SQLObjectListener;
+import ca.sqlpower.architect.SQLTable;
 
 public class SQLTableListModel implements ListModel, SQLObjectListener {
 

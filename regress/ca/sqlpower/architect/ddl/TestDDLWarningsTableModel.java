@@ -2,10 +2,10 @@ package ca.sqlpower.architect.ddl;
 
 import java.util.ArrayList;
 
+import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.action.ExportDDLAction.DDLWarningTableModel;
-import junit.framework.TestCase;
 
 public class TestDDLWarningsTableModel extends TestCase {
     DDLWarningTableModel tm;

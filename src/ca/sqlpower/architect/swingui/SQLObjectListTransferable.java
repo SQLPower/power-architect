@@ -1,8 +1,11 @@
 package ca.sqlpower.architect.swingui;
 
-import java.awt.datatransfer.*;
-import ca.sqlpower.architect.SQLObject;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
+
+import ca.sqlpower.architect.SQLObject;
 
 public class SQLObjectListTransferable implements Transferable, java.io.Serializable {
 	public static final DataFlavor SQLOBJECT_ARRAY_FLAVOR = new DataFlavor

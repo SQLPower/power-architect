@@ -25,11 +25,12 @@
 
 package ca.sqlpower.architect.sqlrunner;
 
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 import java.sql.Types;
-import java.io.*;
-import java.sql.*;
 
 /**
  * Print an SQL ResultSet in SQL-import format.

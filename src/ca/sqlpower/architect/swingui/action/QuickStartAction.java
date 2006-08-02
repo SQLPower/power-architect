@@ -1,7 +1,10 @@
 package ca.sqlpower.architect.swingui.action;
 
-import java.awt.event.*;
-import javax.swing.*;
+import java.awt.event.ActionEvent;
+
+import javax.swing.AbstractAction;
+import javax.swing.JDialog;
+
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ASUtils;

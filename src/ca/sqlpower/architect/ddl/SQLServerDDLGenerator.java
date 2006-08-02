@@ -1,7 +1,11 @@
 package ca.sqlpower.architect.ddl;
 
-import java.sql.*;
-import java.util.*;
+import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.HashMap;
+import java.util.HashSet;
+
 import org.apache.log4j.Logger;
 
 

@@ -4,12 +4,18 @@ package ca.sqlpower.architect.swingui;
 // A simple label/field form panel
 // from http://examples.oreilly.com/jswing2/code/ch19/TextForm.java
 
-import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 import org.apache.log4j.Logger;
-
-import java.awt.event.*;
-import java.awt.*;
 
 /**
  * TextForm is a JPanel that supports a bunch of labelled fields with

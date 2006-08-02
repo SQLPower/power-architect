@@ -1,7 +1,13 @@
 package ca.sqlpower.architect.swingui;
 
-import java.awt.*;
-import javax.swing.*;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Insets;
+import java.awt.LayoutManager;
+
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 public class FormLayout implements LayoutManager {
 

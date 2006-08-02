@@ -1,6 +1,9 @@
 package ca.sqlpower.architect.ddl;
 
-import java.sql.*;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
 
 /**
  * GenericTypeDescriptor is a class that describes a SQL type.  It can

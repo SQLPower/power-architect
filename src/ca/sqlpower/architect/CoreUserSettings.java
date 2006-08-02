@@ -6,10 +6,10 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.qfa.QFAUserSettings;
-import ca.sqlpower.architect.swingui.SwingUserSettings;  // slight breech of MVC
-import ca.sqlpower.architect.etl.ETLUserSettings;
 import ca.sqlpower.architect.ddl.DDLUserSettings;
+import ca.sqlpower.architect.etl.ETLUserSettings;
+import ca.sqlpower.architect.qfa.QFAUserSettings;
+import ca.sqlpower.architect.swingui.SwingUserSettings;
 
 public class CoreUserSettings {
     private static final Logger logger = Logger.getLogger(ConfigFile.class);

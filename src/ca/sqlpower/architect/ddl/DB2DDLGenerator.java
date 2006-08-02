@@ -1,7 +1,9 @@
 package ca.sqlpower.architect.ddl;
 
-import java.sql.*;
-import java.util.*;
+import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.HashMap;
 
 // TODO: override to_identifier routine to ensure identifier names are legal 
 // and unique for DB2.  See the Oracle, SQL Server, and Postgres DDL generators

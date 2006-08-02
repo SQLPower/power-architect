@@ -3,10 +3,10 @@ package ca.sqlpower.architect.swingui;
 import java.util.ArrayList;
 import java.util.List;
 
+import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLDatabase;
-import junit.framework.TestCase;
 
 public class TestDBTree extends TestCase {
 

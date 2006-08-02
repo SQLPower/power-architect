@@ -1,16 +1,21 @@
 package ca.sqlpower.architect.swingui;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.swingui.event.TaskTerminationEvent;
-import ca.sqlpower.architect.swingui.event.TaskTerminationListener;
-
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.swing.*;
+import javax.swing.JLabel;
+import javax.swing.JProgressBar;
+import javax.swing.ProgressMonitor;
+import javax.swing.Timer;
+
 import org.apache.log4j.Logger;
+
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.swingui.event.TaskTerminationEvent;
+import ca.sqlpower.architect.swingui.event.TaskTerminationListener;
 
 public class ProgressWatcher implements ActionListener {
 	private JProgressBar bar = null;

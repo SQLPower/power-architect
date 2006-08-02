@@ -6,6 +6,7 @@
  * when it does a "back" or "next" command.
  */
 package ca.sqlpower.architect.swingui;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;

@@ -6,12 +6,16 @@
  */
 package ca.sqlpower.architect.swingui;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.plaf.basic.*;
+import java.awt.Dimension;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.util.Vector;
+
+import javax.swing.ComboBoxModel;
+import javax.swing.JComboBox;
+import javax.swing.event.ListDataEvent;
+import javax.swing.plaf.basic.BasicComboBoxUI;
+import javax.swing.plaf.basic.ComboPopup;
  
 public class ScrollablePopupMenu extends JComboBox {
    public ScrollablePopupMenu(ComboBoxModel aModel) {

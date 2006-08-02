@@ -1,16 +1,24 @@
 package ca.sqlpower.architect.swingui;
 
-import ca.sqlpower.architect.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.io.File;
+
+import javax.swing.AbstractAction;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JTextField;
+import javax.swing.filechooser.FileFilter;
+
+import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.ddl.DDLUserSettings;
 import ca.sqlpower.architect.etl.ETLUserSettings;
 import ca.sqlpower.architect.qfa.QFAUserSettings;
-
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.filechooser.FileFilter;
-import java.io.File;
 
 public class PreferencesPanel extends JPanel implements ArchitectPanel {
 
