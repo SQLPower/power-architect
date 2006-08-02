@@ -1,5 +1,9 @@
 package ca.sqlpower.architect.profile;
 
+import java.util.ArrayList;
+import java.util.List;
+
+
 public class ColumnProfileResult extends ProfileResult {
 
     private int distinctValueCount;
@@ -10,9 +14,11 @@ public class ColumnProfileResult extends ProfileResult {
     private int maxLength;
     private int avgLength;
     private int nullCount;
+    private List<ColumnValueCount> topTen;
     
     public ColumnProfileResult(long createCost) {
         super(createCost);
+        topTen = new ArrayList<ColumnValueCount>();
     }
 
     public int getAvgLength() {
@@ -90,5 +96,36 @@ public class ColumnProfileResult extends ProfileResult {
 
     public void setNullCount(int nullCount) {
         this.nullCount = nullCount;
+    }
+
+    public void addValueCount(Object value, int count) {
+        topTen.add(new ColumnValueCount(value,count));
+        return;
+    }
+    public List<ColumnValueCount> getValueCount() {
+        return topTen;
+    }
+    
+    public ColumnValueCount getValueCount(int index) {
+        if ( index >= 0 && index < topTen.size() )
+            return topTen.get(index);
+        else
+            return null;
+    }
+    
+    public class ColumnValueCount {
+        private Object value;
+        private int count;
+        
+        public ColumnValueCount(Object value, int count) {
+            this.value = value;
+            this.count = count;
+        }
+        public int getCount() {
+            return count;
+        }
+        public Object getValue() {
+            return value;
+        }
     }
 }
