@@ -338,4 +338,17 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
         print(columnDefinition(c,colNameMap));
         endStatement(DDLStatement.StatementType.CREATE, c);
     }
+    
+    @Override
+    public String caseWhen(String expression, String when, String then) {
+        StringBuffer sql = new StringBuffer();
+        sql.append("DECODE(");
+        sql.append(expression);
+        sql.append(",");
+        sql.append(when);
+        sql.append(",");
+        sql.append(then);
+        sql.append(")");
+        return sql.toString();
+    }
 }

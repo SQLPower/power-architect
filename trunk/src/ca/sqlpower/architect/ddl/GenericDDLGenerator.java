@@ -107,7 +107,7 @@ public class GenericDDLGenerator implements DDLGenerator {
      * A mapping from JDBC type code (Integer values) to
      * appliable profile functions (min,max,avg,sum,etc...)
      */
-    protected Map profileFunctionMap;
+    protected Map<String, ProfileFunctionDescriptor> profileFunctionMap;
     
 	public GenericDDLGenerator() throws SQLException {
 		allowConnection = true;
@@ -541,7 +541,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	}
     
     protected void createProfileFunctionMap() {
-        profileFunctionMap = new HashMap();
+        profileFunctionMap = new HashMap<String, ProfileFunctionDescriptor>();
         profileFunctionMap.put("BIGINT", new ProfileFunctionDescriptor("BIGINT", Types.BIGINT, true,true,true,true,true,true,true,true));
         profileFunctionMap.put("BINARY", new ProfileFunctionDescriptor("BINARY", Types.BINARY, true,false,false,false,true,true,true,true));
         profileFunctionMap.put("BIT", new ProfileFunctionDescriptor("BIT", Types.BIT, true,false,false,false,true,true,true,true));
@@ -672,7 +672,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		this.typeMap = argTypeMap;
 	}
 
-    public Map getProfileFunctionMap() {
+    public Map<String, ProfileFunctionDescriptor> getProfileFunctionMap() {
         return this.profileFunctionMap;
     }
     public void setProfileFunctionMap(Map profileFunctionMap) {
@@ -856,6 +856,22 @@ public class GenericDDLGenerator implements DDLGenerator {
 			endStatement(DDLStatement.StatementType.CREATE,t);
 		}
 	}
+
+
+
+    public String caseWhen(String expression, String when, String then) {
+
+        StringBuffer sql = new StringBuffer();
+        sql.append("CASE ");
+        sql.append(expression);
+        sql.append(" WHEN ");
+        sql.append(when);
+        sql.append(" THEN ");
+        sql.append(then);
+        sql.append(" END");
+        
+        return sql.toString();
+    }
 
 
 

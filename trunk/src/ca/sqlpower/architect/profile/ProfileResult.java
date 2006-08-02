@@ -4,34 +4,30 @@ import java.util.Date;
 
 public class ProfileResult {
 
-    private Date createDate;
-    private long timeToCreate;
+    private long createEndTime;
+    private long createStartTime;
     private Exception ex;
     private boolean error; 
 
-    public ProfileResult(long createCost) {
-        this.timeToCreate = createCost;
-        createDate = new Date();
+    public ProfileResult(long createStartTime) {
+        this.createEndTime = -1;
+        this.createStartTime = createStartTime;
         ex = null;
         error = false;
     }
-
+    
     public Date getCreateDate() {
-        return createDate;
-    }
-
-    public void setCreateDate(Date createDate) {
-        this.createDate = createDate;
+        return new Date(createStartTime);
     }
 
     public long getTimeToCreate() {
-        return timeToCreate;
+        return createEndTime-createStartTime;
     }
 
-    public void setTimeToCreate(long timeToCreate) {
-        this.timeToCreate = timeToCreate;
+    public void setCreateEndTime(long createEndTime) {
+        this.createEndTime = createEndTime;
     }
-
+    
     public boolean isError() {
         return error;
     }

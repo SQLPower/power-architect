@@ -4,9 +4,8 @@ public class TableProfileResult extends ProfileResult {
 
     private int rowCount;
 
-    public TableProfileResult(long createCost, int rowCount) {
-        super(createCost);
-        this.rowCount = rowCount;
+    public TableProfileResult(long createStartTime) {
+        super(createStartTime);
     }
 
     public int getRowCount() {
