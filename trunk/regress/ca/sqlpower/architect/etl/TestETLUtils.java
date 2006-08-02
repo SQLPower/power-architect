@@ -6,10 +6,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import junit.framework.TestCase;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
-import junit.framework.TestCase;
 
 public class TestETLUtils extends TestCase {
     

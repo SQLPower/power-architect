@@ -1,13 +1,27 @@
 package ca.sqlpower.architect.ddl;
 
-import ca.sqlpower.architect.*;
+import java.io.File;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLRelationship;
+import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLRelationship.ColumnMapping;
 import ca.sqlpower.architect.profile.ProfileFunctionDescriptor;
-
-import java.sql.*;
-import java.util.*;
-import java.io.File;
-import org.apache.log4j.Logger;
 
 public class GenericDDLGenerator implements DDLGenerator {
 

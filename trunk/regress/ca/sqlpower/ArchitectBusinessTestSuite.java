@@ -1,9 +1,9 @@
 package ca.sqlpower;
 
-import prefs.AllPrefsTests;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+import prefs.AllPrefsTests;
 import ca.sqlpower.architect.ArchitectExceptionTest;
 import ca.sqlpower.architect.ArchitectUtilsTest;
 import ca.sqlpower.architect.JDBCClassLoaderTest;

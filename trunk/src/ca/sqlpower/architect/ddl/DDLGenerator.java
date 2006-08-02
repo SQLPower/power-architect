@@ -12,11 +12,9 @@ import java.util.Map;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.profile.ProfileFunctionDescriptor;
-import ca.sqlpower.architect.profile.ProfileResult;
 
 /**
  * The DDLGenerator interface is a generic API for turning a SQLObject

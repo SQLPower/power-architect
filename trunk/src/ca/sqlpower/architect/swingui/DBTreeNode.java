@@ -1,14 +1,19 @@
 package ca.sqlpower.architect.swingui;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 import javax.swing.JOptionPane;
-import javax.swing.tree.*;
+import javax.swing.tree.MutableTreeNode;
+import javax.swing.tree.TreeNode;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLObject;
 
 public class DBTreeNode implements MutableTreeNode {
 	private static final Logger logger = Logger.getLogger(DBTreeNode.class);

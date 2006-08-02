@@ -1,12 +1,22 @@
 package ca.sqlpower.architect.swingui;
 
-import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JCheckBox;
+import javax.swing.JPanel;
+import javax.swing.JScrollBar;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
-
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
 
 public class EngineExecPanel extends JPanel {
 	private static final Logger logger = Logger.getLogger(EngineExecPanel.class);

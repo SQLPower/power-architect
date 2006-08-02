@@ -1,7 +1,7 @@
 package ca.sqlpower.architect;
 
-import java.io.PrintWriter;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 
 /**
  * A general exception class for the Architect application.

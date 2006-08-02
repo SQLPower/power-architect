@@ -1,8 +1,10 @@
 package ca.sqlpower.architect.swingui;
 
+import java.awt.Rectangle;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+
 import javax.swing.plaf.basic.BasicTreeUI;
-import java.awt.*;
-import java.awt.event.*;
 
 import org.apache.log4j.Logger;
 

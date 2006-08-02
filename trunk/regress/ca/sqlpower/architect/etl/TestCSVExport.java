@@ -3,6 +3,7 @@ package ca.sqlpower.architect.etl;
 import java.util.ArrayList;
 import java.util.List;
 
+import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLCatalog;
@@ -10,8 +11,6 @@ import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
-
-import junit.framework.TestCase;
 
 public class TestCSVExport extends TestCase {
 

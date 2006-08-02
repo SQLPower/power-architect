@@ -1,6 +1,6 @@
 package ca.sqlpower.architect.ddl;
 
-import ca.sqlpower.architect.*;
+import ca.sqlpower.architect.SQLObject;
 
 /**
  * A DDLWarning object encapsulates the details of a single warning

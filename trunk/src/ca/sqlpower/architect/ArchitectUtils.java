@@ -1,5 +1,6 @@
 package ca.sqlpower.architect;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -13,8 +14,6 @@ import ca.sqlpower.architect.ddl.OracleDDLGenerator;
 import ca.sqlpower.architect.ddl.PostgresDDLGenerator;
 import ca.sqlpower.architect.ddl.SQLServerDDLGenerator;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
-
-import java.net.URL;
 
 /**
  * Collection of static utility methods for Architect.

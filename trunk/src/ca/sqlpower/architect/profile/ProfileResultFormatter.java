@@ -2,13 +2,9 @@ package ca.sqlpower.architect.profile;
 
 import java.sql.SQLException;
 import java.text.NumberFormat;
-import java.util.Map;
 import java.util.Set;
 
-import javax.swing.text.NumberFormatter;
-
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
