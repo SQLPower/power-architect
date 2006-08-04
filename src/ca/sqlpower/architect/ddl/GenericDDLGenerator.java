@@ -887,6 +887,14 @@ public class GenericDDLGenerator implements DDLGenerator {
         return sql.toString();
     }
 
+    public String getStringLengthSQLFunctionName(String expression) {
+        return "LENGTH("+expression+")";
+    }
+
+    public String getAverageSQLFunctionName(String expression) {
+        return "AVG("+expression+")";
+    }
+
 
 
 

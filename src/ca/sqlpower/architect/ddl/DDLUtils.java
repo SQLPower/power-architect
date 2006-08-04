@@ -47,6 +47,60 @@ public class DDLUtils {
         return qualName.toString();
     }
     
+    /**
+     * Formats the components of a fully qualified database object name
+     * into the standard SQL "dot notation", with quote.
+     * 
+     * @param catalog The catalog name of the object, or null if it has no catalog
+     * @param schema The schema name of the object, or null if it has no schema
+     * @param name The name of the object (null is not acceptable)
+     * @param openQuote openning quote
+     * @param closeQuote closing quote
+     * @return A dot-separated string of all the non-null arguments.
+     */
+    public static String toQualifiedName(String catalog, String schema, String name,
+                                        String openQuote, String closeQuote) {
+
+        String newCatalog = null;
+        String newSchema = null;
+        String newName = null;
+        if (catalog != null && catalog.length() > 0 ) {
+            if ( openQuote != null && openQuote.length() > 0 &&
+                    closeQuote != null && closeQuote.length() > 0 ) {
+                newCatalog = openQuote + catalog + closeQuote;
+            }
+            else if ( openQuote != null && openQuote.length() > 0 ) {
+                newCatalog = openQuote + catalog;
+            }
+            else {
+                newCatalog = catalog;
+            }
+        }
+        if (schema != null && schema.length() > 0) {
+            if ( openQuote != null && openQuote.length() > 0 &&
+                    closeQuote != null && closeQuote.length() > 0 ) {
+                newSchema = openQuote + schema + closeQuote;
+            }
+            else if ( openQuote != null && openQuote.length() > 0 ) {
+                newSchema = openQuote + schema;
+            }
+            else {
+                newSchema = schema;
+            }
+        }
+        if ( openQuote != null && openQuote.length() > 0 &&
+                closeQuote != null && closeQuote.length() > 0 ) {
+            newName = openQuote + name + closeQuote;
+        }
+        else if ( openQuote != null && openQuote.length() > 0 ) {
+            newName = openQuote + name;
+        }
+        else {
+            newName = name;
+        }
+        return toQualifiedName(newCatalog,newSchema,newName);
+    }
+    
     public static Vector<LabelValueBean> getDDLTypes()
     {
     	
