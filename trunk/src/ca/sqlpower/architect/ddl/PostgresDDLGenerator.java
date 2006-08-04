@@ -3,14 +3,20 @@ package ca.sqlpower.architect.ddl;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import com.lowagie.text.List;
+
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.profile.ProfileFunctionDescriptor;
 
 /**
  * DDL Generator for Postgres 8.x (does not support e.g., ALTER COLUMN operations 7.[34]).
@@ -347,6 +353,50 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
 		typeMap.put(new Integer(Types.VARCHAR), new GenericTypeDescriptor("VARCHAR", Types.VARCHAR, 4000000000L, "'", "'", DatabaseMetaData.columnNullable, true, false));
 	}
 	
+    @Override
+    protected void createProfileFunctionMap() {
+        profileFunctionMap = new HashMap();
+        profileFunctionMap.put("varchar", new ProfileFunctionDescriptor("varchar", Types.VARCHAR, true,true,true,false,true,true,true,true));
+        profileFunctionMap.put("char", new ProfileFunctionDescriptor("char", Types.CHAR, true,true,true,false,true,true,true,true));
+        profileFunctionMap.put("name", new ProfileFunctionDescriptor("name", Types.CHAR, true,true,true,false,true,true,true,true));
+        profileFunctionMap.put("bpchar", new ProfileFunctionDescriptor("bpchar", Types.CHAR, true,true,true,false,true,true,true,true));
+                
+        profileFunctionMap.put("date", new ProfileFunctionDescriptor("date", Types.DATE, true,true,true,false,true,true,true,true));
+        profileFunctionMap.put("time", new ProfileFunctionDescriptor("time", Types.TIME, true,true,true,false,true,true,true,true));
+        profileFunctionMap.put("timestamp", new ProfileFunctionDescriptor("timestamp", Types.TIMESTAMP, true,true,true,false,true,true,true,true));
+        profileFunctionMap.put("timestamptz", new ProfileFunctionDescriptor("timestamptz", Types.TIMESTAMP, true,true,true,false,true,true,true,true));
+        profileFunctionMap.put("timetz", new ProfileFunctionDescriptor("timetz", Types.TIME, true,true,true,false,true,true,true,true));
+        
+        
+        profileFunctionMap.put("float4", new ProfileFunctionDescriptor("float", Types.FLOAT, true,true,true,true,true,true,true,true));
+        profileFunctionMap.put("float8", new ProfileFunctionDescriptor("float", Types.FLOAT, true,true,true,true,true,true,true,true));
+        profileFunctionMap.put("int2", new ProfileFunctionDescriptor("int", Types.INTEGER, true,true,true,true,true,true,true,true));
+        profileFunctionMap.put("int4", new ProfileFunctionDescriptor("int", Types.INTEGER, true,true,true,true,true,true,true,true));
+        profileFunctionMap.put("int8", new ProfileFunctionDescriptor("int", Types.INTEGER, true,true,true,true,true,true,true,true));
+        profileFunctionMap.put("float4", new ProfileFunctionDescriptor("float", Types.FLOAT, true,true,true,true,true,true,true,true));
+        profileFunctionMap.put("float4", new ProfileFunctionDescriptor("float", Types.FLOAT, true,true,true,true,true,true,true,true));
+        profileFunctionMap.put("numeric", new ProfileFunctionDescriptor("numeric", Types.FLOAT, true,true,true,true,true,true,true,true));
+        profileFunctionMap.put("interval", new ProfileFunctionDescriptor("interval", Types.FLOAT, true,true,true,true,true,true,true,true));
+        
+        
+        profileFunctionMap.put("bool", new ProfileFunctionDescriptor("bool", Types.BOOLEAN, true,false,false,false,false,false,false,true));
+        profileFunctionMap.put("bit", new ProfileFunctionDescriptor("bit", Types.BIT, true,false,false,false,false,false,false,true));
+        
+        profileFunctionMap.put("bytea", new ProfileFunctionDescriptor("bytea", Types.BLOB, false,false,false,false,false,false,false,true));
+        profileFunctionMap.put("text", new ProfileFunctionDescriptor("text", Types.BLOB, false,false,false,false,false,false,false,true));
+        profileFunctionMap.put("oid", new ProfileFunctionDescriptor("oid", Types.BLOB, false,false,false,false,false,false,false,true));
+        profileFunctionMap.put("xid", new ProfileFunctionDescriptor("xid", Types.BLOB, false,false,false,false,false,false,false,true));
+        profileFunctionMap.put("cid", new ProfileFunctionDescriptor("cid", Types.BLOB, false,false,false,false,false,false,false,true));
+
+        /* add data type start with '_' like _int4 to the mapping */
+        Map profileFunctionMap2 = new HashMap();
+        for ( Map.Entry<String, ProfileFunctionDescriptor> entry : profileFunctionMap.entrySet() ) {
+            String key = entry.getKey();
+            ProfileFunctionDescriptor pfd = entry.getValue();
+            profileFunctionMap2.put("_"+key, pfd);
+        }
+        profileFunctionMap.putAll(profileFunctionMap2);
+    }
 
 	/**
 	 * Turns a logical identifier into a legal identifier (physical name) for PostgreSQL.  

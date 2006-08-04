@@ -1,6 +1,7 @@
 package ca.sqlpower.architect.profile;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -118,6 +119,16 @@ public class ProfileManager implements Monitorable {
         try {
 
             conn = db.getConnection();
+            String databaseIdentifierQuoteString = null;
+            
+        
+/*            DatabaseMetaData dbmd = conn.getMetaData();
+            rs = dbmd.getTypeInfo();
+            while (rs.next()) {
+                System.out.println("name="+rs.getString(1)+"  type:"+rs.getInt(2));
+            }
+            rs.close();*/
+            
             Map ddlGeneratorMap = ArchitectUtils.getDriverDDLGeneratorMap();
             Class generatorClass = (Class) ddlGeneratorMap.get(
                     db.getDataSource().getDriverClass());
@@ -126,11 +137,16 @@ public class ProfileManager implements Monitorable {
                 System.out.println("Unable to create Profile for the target database.");
                 return;
             }
-
+            databaseIdentifierQuoteString = conn.getMetaData().getIdentifierQuoteString();
                 
             StringBuffer sql = new StringBuffer();
-            sql.append("SELECT COUNT(*) AS ROWCOUNT");
-            sql.append("\nFROM ").append(DDLUtils.toQualifiedName(table.getCatalogName(),table.getSchemaName(),table.getName()));
+            sql.append("SELECT COUNT(*) AS ROW__COUNT");
+            sql.append("\nFROM ");
+            sql.append(DDLUtils.toQualifiedName(table.getCatalogName(),
+                                                table.getSchemaName(),
+                                                table.getName(),
+                                                databaseIdentifierQuoteString,
+                                                databaseIdentifierQuoteString));
             stmt = conn.createStatement();
             stmt.setEscapeProcessing(false);
             lastSQL = sql.toString();
@@ -139,7 +155,7 @@ public class ProfileManager implements Monitorable {
             
             if ( rs.next() ) {
                 tableResult.setCreateEndTime(System.currentTimeMillis());
-                tableResult.setRowCount(rs.getInt("ROWCOUNT"));
+                tableResult.setRowCount(rs.getInt("ROW__COUNT"));
             }
                        
             rs.close();
@@ -186,7 +202,7 @@ public class ProfileManager implements Monitorable {
         Statement stmt = null;
         ResultSet rs = null;
         String lastSQL = null;
-        
+        String databaseIdentifierQuoteString = null;
         
         try {
             if ( columns.size() == 0 )
@@ -195,6 +211,7 @@ public class ProfileManager implements Monitorable {
 
             DDLGenerator ddlg = null;
             Class generatorClass = null;
+            
             try {
                 Map ddlGeneratorMap = ArchitectUtils.getDriverDDLGeneratorMap();
                 generatorClass = (Class) ddlGeneratorMap.get(
@@ -205,6 +222,7 @@ public class ProfileManager implements Monitorable {
                     return;
                 }
                 ddlg = (DDLGenerator) generatorClass.newInstance();
+                databaseIdentifierQuoteString = conn.getMetaData().getIdentifierQuoteString();
             } catch (InstantiationException e1) {
                 logger.error("problem running Profile Manager", e1);
             } catch ( IllegalAccessException e1 ) {
@@ -248,24 +266,24 @@ public class ProfileManager implements Monitorable {
                     sql.append("\") AS MAXVALUE_"+i);
                 }
                 if (findingAvg && pfd.isAvgValue() ) {
-                    sql.append(",\n AVG(\"");
-                    sql.append(col.getName());
-                    sql.append("\") AS AVGVALUE_"+i);
+                    sql.append(",\n ");
+                    sql.append(ddlg.getAverageSQLFunctionName("\""+col.getName()+"\""));
+                    sql.append(" AS AVGVALUE_"+i);
                 }
                 if (findingMinLength && pfd.isMinLength() ) {
-                    sql.append(",\n MIN(LENGTH(\"");
-                    sql.append(col.getName());
-                    sql.append("\")) AS MINLENGTH_"+i);
+                    sql.append(",\n MIN(");
+                    sql.append(ddlg.getStringLengthSQLFunctionName("\""+col.getName()+"\""));
+                    sql.append(") AS MINLENGTH_"+i);
                 }
                 if (findingMaxLength && pfd.isMaxLength() ) {
-                    sql.append(",\n MAX(LENGTH(\"");
-                    sql.append(col.getName());
-                    sql.append("\")) AS MAXLENGTH_"+i);
+                    sql.append(",\n MAX(");
+                    sql.append(ddlg.getStringLengthSQLFunctionName("\""+col.getName()+"\""));
+                    sql.append(") AS MAXLENGTH_"+i);
                 }
                 if (findingAvgLength && pfd.isAvgLength() ) {
-                    sql.append(",\n AVG(LENGTH(\"");
-                    sql.append(col.getName());
-                    sql.append("\")) AS AVGLENGTH_"+i);
+                    sql.append(",\n AVG(");
+                    sql.append(ddlg.getStringLengthSQLFunctionName("\""+col.getName()+"\""));
+                    sql.append(") AS AVGLENGTH_"+i);
                 }
                 
                 if ( findingNullCount && pfd.isSumDecode() ) {
@@ -274,7 +292,12 @@ public class ProfileManager implements Monitorable {
                     sql.append(") AS NULLCOUNT_"+i);
                 }
                 SQLTable table = col.getParentTable();
-                sql.append("\n FROM ").append(DDLUtils.toQualifiedName(table.getCatalogName(),table.getSchemaName(),table.getName()));
+                sql.append("\n FROM ");
+                sql.append(DDLUtils.toQualifiedName(table.getCatalogName(),
+                                                    table.getSchemaName(),
+                                                    table.getName(),
+                                                    databaseIdentifierQuoteString,
+                                                    databaseIdentifierQuoteString));
 
                 try {
                     
@@ -339,7 +362,11 @@ public class ProfileManager implements Monitorable {
                     sql.append("SELECT \"");
                     sql.append(col.getName());
                     sql.append("\" AS MYVALUE, COUNT(*) AS COUNT1 FROM ");
-                    sql.append(DDLUtils.toQualifiedName(table.getCatalogName(),table.getSchemaName(),table.getName()));
+                    sql.append(DDLUtils.toQualifiedName(table.getCatalogName(),
+                                                        table.getSchemaName(),
+                                                        table.getName(),
+                                                        databaseIdentifierQuoteString,
+                                                        databaseIdentifierQuoteString));
                     sql.append(" GROUP BY \"");
                     sql.append(col.getName());
                     sql.append("\" ORDER BY COUNT1 DESC");

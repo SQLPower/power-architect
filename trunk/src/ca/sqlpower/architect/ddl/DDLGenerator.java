@@ -235,4 +235,17 @@ public interface DDLGenerator {
      * and the values are {@link ca.sqlpower.architect.profile.ProfileFunctionDescriptor} objects.
      */
     public Map<String, ProfileFunctionDescriptor> getProfileFunctionMap();
+    
+    /**
+     * get the SQL Function name of string length for this database platform.
+     * @return String
+     */
+    public String getStringLengthSQLFunctionName(String expression);
+    
+    /**
+     * get the SQL function name of average for this database platform.
+     * <p>In SQL Server, we want to convert the input datatype to decimal first to avoid overflow
+     * @return String
+     */
+    public String getAverageSQLFunctionName(String expression);
 }
