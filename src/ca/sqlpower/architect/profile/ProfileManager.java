@@ -1,7 +1,6 @@
 package ca.sqlpower.architect.profile;
 
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -62,8 +61,6 @@ public class ProfileManager implements Monitorable {
 
     private boolean userCancel;
 
-
-    
     public void putResult(SQLObject sqlObject, ProfileResult profileResult) {
         results.put(sqlObject, profileResult);
     }
@@ -81,7 +78,12 @@ public class ProfileManager implements Monitorable {
      */
     public synchronized void createProfiles(Collection<SQLTable> tables) throws SQLException, ArchitectException {
         synchronized (monitorableMutex) {
-            jobSize = new Integer(tables.size());
+            int objCount = 0;
+            for (SQLTable t : tables) {
+                objCount += 1;
+                objCount += 2*t.getColumns().size();
+            }
+            jobSize = new Integer(objCount);
             finished = false;
             progress = 0;
             userCancel = false;
@@ -106,7 +108,6 @@ public class ProfileManager implements Monitorable {
         }
     }
 
-        
     private void doTableProfile(SQLTable table) throws SQLException, ArchitectException {
         SQLDatabase db = table.getParentDatabase();
         Connection conn = null;
@@ -154,7 +155,6 @@ public class ProfileManager implements Monitorable {
             rs = stmt.executeQuery(lastSQL);
             
             if ( rs.next() ) {
-                tableResult.setCreateEndTime(System.currentTimeMillis());
                 tableResult.setRowCount(rs.getInt("ROW__COUNT"));
             }
                        
@@ -184,18 +184,11 @@ public class ProfileManager implements Monitorable {
             } catch (SQLException ex) {
                 logger.error("Couldn't clean up connection", ex);
             }
+            tableResult.setCreateEndTime(System.currentTimeMillis());
             putResult(table, tableResult);
         }
     }
 
-    
-    
-    
-    
-    
-    
-    
-    
 
     private void doColumnProfile(List<SQLColumn> columns, Connection conn) throws SQLException {
 
@@ -207,6 +200,7 @@ public class ProfileManager implements Monitorable {
         try {
             if ( columns.size() == 0 )
                 return;
+            
             SQLColumn col1 = columns.get(0);
 
             DDLGenerator ddlg = null;
@@ -235,6 +229,9 @@ public class ProfileManager implements Monitorable {
             int i = 0;
             for (SQLColumn col : columns ) {
                 
+                synchronized (monitorableMutex) {
+                    if (userCancel) return;
+                }
                 ProfileFunctionDescriptor pfd = ddlg.getProfileFunctionMap().get(col.getSourceDataTypeName());
                 ColumnProfileResult colResult = new ColumnProfileResult(System.currentTimeMillis());
 
@@ -357,6 +354,12 @@ public class ProfileManager implements Monitorable {
                 }
                 i++;
                 
+                synchronized (monitorableMutex) {
+                    progress++;
+                    if (userCancel) break;
+                }
+
+                
                 if (findingTopTen && pfd.isCountDist() ) {
                     sql = new StringBuffer();
                     sql.append("SELECT \"");
@@ -396,6 +399,10 @@ public class ProfileManager implements Monitorable {
                     }
                 }
 
+                synchronized (monitorableMutex) {
+                    progress++;
+                    if (userCancel) break;
+                }
 
                 
             }      
