@@ -184,9 +184,10 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
         profileFunctionMap.put("RAW",       new ProfileFunctionDescriptor("VARBINARY", Types.VARBINARY, true,true,true,false,true,true,true,true));
         profileFunctionMap.put("VARCHAR", new ProfileFunctionDescriptor("VARCHAR", Types.VARCHAR,       true,true,true,false,true,true,true,true));
         profileFunctionMap.put("VARCHAR2",new ProfileFunctionDescriptor("VARCHAR", Types.VARCHAR,       true,true,true,false,true,true,true,true));
+        profileFunctionMap.put("NVARCHAR2",new ProfileFunctionDescriptor("NVARCHAR", Types.VARCHAR,     true,true,true,false,true,true,true,true));
         
-        profileFunctionMap.put("BLOB", new ProfileFunctionDescriptor("BLOB", Types.BLOB, true,false,false,false,true,true,true,true));
-        profileFunctionMap.put("CLOB", new ProfileFunctionDescriptor("CLOB", Types.CLOB, true,false,false,false,true,true,true,true));
+        profileFunctionMap.put("BLOB", new ProfileFunctionDescriptor("BLOB", Types.BLOB, false,false,false,false,false,false,false,false));
+        profileFunctionMap.put("CLOB", new ProfileFunctionDescriptor("CLOB", Types.CLOB, false,false,false,false,false,false,false,false));
         
         profileFunctionMap.put("BIGINT", new ProfileFunctionDescriptor("BIGINT", Types.BIGINT,       true,true,true,true,true,true,true,true));
         profileFunctionMap.put("DECIMAL", new ProfileFunctionDescriptor("DECIMAL", Types.DECIMAL,    true,true,true,true,true,true,true,true));

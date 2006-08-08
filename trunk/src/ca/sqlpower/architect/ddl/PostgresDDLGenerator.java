@@ -3,16 +3,11 @@ package ca.sqlpower.architect.ddl;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
-
-import com.lowagie.text.List;
 
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;

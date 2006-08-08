@@ -16,6 +16,7 @@ import javax.swing.Action;
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.tree.TreePath;
 
@@ -34,7 +35,10 @@ import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.CommonCloseAction;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.JDefaultButton;
+import ca.sqlpower.architect.swingui.ProgressWatcher;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
+import ca.sqlpower.architect.swingui.event.TaskTerminationEvent;
+import ca.sqlpower.architect.swingui.event.TaskTerminationListener;
 
 public class ProfileAction extends AbstractAction {
     private static final Logger logger = Logger.getLogger(ProfileAction.class);
@@ -51,7 +55,6 @@ public class ProfileAction extends AbstractAction {
         
         putValue(SHORT_DESCRIPTION, "Profile Tables");
         this.profileManager = profileManager;
-        
     }
     
         
@@ -64,7 +67,7 @@ public class ProfileAction extends AbstractAction {
             if ( dbTree.getSelectionPaths() == null )
                 return;
             
-            Set <SQLTable> tables = new HashSet();
+            final Set <SQLTable> tables = new HashSet();
             for ( TreePath p : dbTree.getSelectionPaths() ) {
                 SQLObject so = (SQLObject) p.getLastPathComponent();
                 Collection<SQLTable> tablesUnder = tablesUnder(so);
@@ -72,50 +75,22 @@ public class ProfileAction extends AbstractAction {
                 tables.addAll(tablesUnder);
             }
             
-            profileManager.createProfiles(tables);
-            
-            for ( SQLTable t : tables ) {
-                ProfileResult pr = profileManager.getResult(t);
-                System.out.println(t.getName()+"  "+pr.toString());
-                for ( SQLColumn c : t.getColumns() ) {
-                    pr = profileManager.getResult(c);
-                    System.out.println(c.getName()+"["+c.getSourceDataTypeName()+"]   "+pr);
-                }
-            }
-            
-            d = new JDialog(ArchitectFrame.getMainInstance(),"Table Profiles");
-            
-            JPanel cp = new JPanel(new BorderLayout());
-            
-            
-            JEditorPane editorPane = new JEditorPane();
-            editorPane.setEditable(false);
-            editorPane.setContentType("text/html");
-            ProfileResultFormatter prf = new ProfileResultFormatter();
-            editorPane.setText(prf.format(tables,profileManager) );
-
-            JScrollPane editorScrollPane = new JScrollPane(editorPane);
-            editorScrollPane.setVerticalScrollBarPolicy(
-                            JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-            editorScrollPane.setPreferredSize(new Dimension(800, 600));
-            editorScrollPane.setMinimumSize(new Dimension(10, 10));
-            
-            
-            cp.add(editorScrollPane, BorderLayout.CENTER);
-            
-            
-            
-            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-                
+            final JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
             Action okAction = new AbstractAction() {
                 public void actionPerformed(ActionEvent evt) {
                     d.setVisible(false);
                 }
             };
             okAction.putValue(Action.NAME, "OK");
-            JDefaultButton okButton = new JDefaultButton(okAction);
+            final JDefaultButton okButton = new JDefaultButton(okAction);
             buttonPanel.add(okButton);
-                
+            
+            d = new JDialog(ArchitectFrame.getMainInstance(),"Table Profiles");
+            final JPanel cp = new JPanel(new BorderLayout());
+            final JProgressBar bar = new JProgressBar();
+            bar.setPreferredSize(new Dimension(450,20));
+            cp.add(bar, BorderLayout.CENTER);
+
             cp.add(buttonPanel, BorderLayout.SOUTH);
             ArchitectPanelBuilder.makeJDialogCancellable(
                     d, new CommonCloseAction(d));
@@ -125,11 +100,66 @@ public class ProfileAction extends AbstractAction {
             d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
             d.setVisible(true);
             
+            new ProgressWatcher(bar,profileManager);
+            
+            new Thread( new Runnable() {
+            
+            	public void run() {
+            	    try {
+                        profileManager.createProfiles(tables);
+                        
+                        bar.setVisible(false);
+                        JEditorPane editorPane = new JEditorPane();
+                        editorPane.setEditable(false);
+                        editorPane.setContentType("text/html");
+                        ProfileResultFormatter prf = new ProfileResultFormatter();
+                        editorPane.setText(prf.format(tables,profileManager) );
+
+                        JScrollPane editorScrollPane = new JScrollPane(editorPane);
+                        editorScrollPane.setVerticalScrollBarPolicy(
+                                        JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+                        editorScrollPane.setPreferredSize(new Dimension(800, 600));
+                        editorScrollPane.setMinimumSize(new Dimension(10, 10));
+                        
+                        d.remove(cp);
+                        JPanel cp2 = new JPanel(new BorderLayout());
+                        cp2.add(editorScrollPane, BorderLayout.CENTER);
+                        
+                        cp2.add(buttonPanel, BorderLayout.SOUTH);
+                        ArchitectPanelBuilder.makeJDialogCancellable(
+                                d, new CommonCloseAction(d));
+                        d.getRootPane().setDefaultButton(okButton);
+                        d.setContentPane(cp2);
+                        d.pack();
+//                        d.repaint();
+                        
+                        
+                        
+                        
+/*                        for ( SQLTable t : tables ) {
+                            ProfileResult pr = profileManager.getResult(t);
+                            System.out.println(t.getName()+"  "+pr.toString());
+                            for ( SQLColumn c : t.getColumns() ) {
+                                pr = profileManager.getResult(c);
+                                System.out.println(c.getName()+"["+c.getSourceDataTypeName()+"]   "+pr);
+                            }
+                        }
+*/                    } catch (SQLException e) {
+                        logger.error("Error in Profile Action ", e);
+                        ASUtils.showExceptionDialogNoReport(dbTree, "Error during profile run", e);
+                    } catch (ArchitectException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+            	}
+            
+            }).start();
+
             
             
-        } catch (SQLException ex) {
-            logger.error("Error in Profile Action ", ex);
-            ASUtils.showExceptionDialogNoReport(dbTree, "Error during profile run", ex);
+            
+            
+            
         } catch (Exception ex) {
             logger.error("Error in Profile Action ", ex);
             ASUtils.showExceptionDialog(dbTree, "Error during profile run", ex);
@@ -151,5 +181,82 @@ public class ProfileAction extends AbstractAction {
 
     public void setDBTree(DBTree dbTree) {
         this.dbTree = dbTree;
+    }
+    
+    private class DisplayProfileResult implements TaskTerminationListener {
+
+        Set<SQLTable> tables;
+        ProfileManager pm;
+        JDialog d;
+
+        public DisplayProfileResult(Set<SQLTable> tables,
+                                    ProfileManager pm,
+                                    JDialog d) {
+            this.tables = tables;
+            this.pm = pm;
+            this.d = d;
+        }
+        
+        public void taskFinished(TaskTerminationEvent e) {
+
+            
+            System.out.println("\n\n\n=========================================");
+            try {
+                for ( SQLTable t : tables ) {
+                    ProfileResult pr = profileManager.getResult(t);
+                    System.out.println(t.getName()+"  "+pr.toString());
+                        for ( SQLColumn c : t.getColumns() ) {
+                            pr = profileManager.getResult(c);
+                            System.out.println(c.getName()+"["+c.getSourceDataTypeName()+"]   "+pr);
+                        }
+                }
+            } catch (ArchitectException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            }
+
+            return;
+           /* 
+            d.removeAll();
+            d.setVisible(false);
+            
+            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+            Action okAction = new AbstractAction() {
+                public void actionPerformed(ActionEvent evt) {
+                    d.setVisible(false);
+                }
+            };
+            okAction.putValue(Action.NAME, "OK");
+            JDefaultButton okButton = new JDefaultButton(okAction);
+            buttonPanel.add(okButton);
+            
+            
+            
+            JPanel cp = new JPanel(new BorderLayout());
+            JEditorPane editorPane = new JEditorPane();
+            editorPane.setEditable(false);
+            editorPane.setContentType("text/html");
+            ProfileResultFormatter prf = new ProfileResultFormatter();
+            editorPane.setText(prf.format(tables,profileManager) );
+
+            JScrollPane editorScrollPane = new JScrollPane(editorPane);
+            editorScrollPane.setVerticalScrollBarPolicy(
+                            JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+            editorScrollPane.setPreferredSize(new Dimension(800, 600));
+            editorScrollPane.setMinimumSize(new Dimension(10, 10));
+            
+            
+            cp.add(editorScrollPane, BorderLayout.CENTER);
+            cp.add(buttonPanel, BorderLayout.SOUTH);
+            ArchitectPanelBuilder.makeJDialogCancellable(
+                    d, new CommonCloseAction(d));
+            d.getRootPane().setDefaultButton(okButton);
+            d.setContentPane(cp);
+            
+            d.pack();
+            d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
+            d.setVisible(true);*/
+        }
+        
     }
 }
