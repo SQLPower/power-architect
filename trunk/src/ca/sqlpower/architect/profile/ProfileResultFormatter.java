@@ -11,12 +11,14 @@ import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 
 public class ProfileResultFormatter {
 
+    
+
     /**
      * This class generates formatted HTML of the profile information
      *  
      * TODO Make an interface and this class a implementation of the interface  
      */
-    public String format(Set <SQLTable> tables, ProfileManager pm) {
+    public String format(Set <SQLTable> tables, ProfileManager pm) throws SQLException {
         StringBuffer s = new StringBuffer();
         int cellCount = 0;
         
@@ -81,13 +83,7 @@ public class ProfileResultFormatter {
         
         
         
-        GenericDDLGenerator gddl = null;
-        try {
-            gddl = new GenericDDLGenerator();
-        } catch (SQLException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
-        }
+        GenericDDLGenerator gddl = new GenericDDLGenerator();
         
         for ( SQLTable t : tables ) {
             

@@ -1,9 +1,14 @@
 package ca.sqlpower.architect.ddl;
 
+import java.util.Map;
 import java.util.Vector;
+
+import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ArchitectDataSource;
+import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
 
@@ -113,5 +118,16 @@ public class DDLUtils {
 		return dbTypeList;
     }
     
+    public static DDLGenerator createDDLGenerator(ArchitectDataSource ads) 
+                        throws InstantiationException, IllegalAccessException {
+
+        Class generatorClass = (Class) ArchitectUtils.getDriverDDLGeneratorMap().get(
+                                                                ads.getDriverClass());
+        if (generatorClass == null) {
+            return null;
+        }
+        return (DDLGenerator)generatorClass.newInstance();
+
+    }
 
 }

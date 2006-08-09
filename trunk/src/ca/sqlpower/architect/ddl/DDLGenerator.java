@@ -248,4 +248,11 @@ public interface DDLGenerator {
      * @return String
      */
     public String getAverageSQLFunctionName(String expression);
+
+    /**
+     * get the datatype with scale and percision of the column, example: "decimal(10,5)"
+     * @param col
+     * @return
+     */
+    public String columnType(SQLColumn col);
 }
