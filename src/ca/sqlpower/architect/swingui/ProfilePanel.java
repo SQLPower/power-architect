@@ -196,7 +196,7 @@ public class ProfilePanel extends JPanel {
         nullableLabel.setText(Boolean.toString(c.isDefinitelyNullable()));
         nullCountLabel.setText(Integer.toString(cr.getNullCount()));
         int nullsInRecords = cr.getNullCount();
-        double ratio = rowCount > 0 ? nullsInRecords / rowCount : 0;
+        double ratio = rowCount > 0 ? nullsInRecords * 100D / rowCount : 0;
         nullPercentLabel.setText(format(ratio));
         
         minLengthLabel.setText(Integer.toString(cr.getMinLength()));
