@@ -1,14 +1,7 @@
 package ca.sqlpower.architect.swingui.action;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -18,31 +11,24 @@ import java.util.Set;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JDialog;
-import javax.swing.JEditorPane;
 import javax.swing.JPanel;
-import javax.swing.JProgressBar;
-import javax.swing.JScrollPane;
 import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
-
-import com.lowagie.text.DocumentException;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.profile.ProfileManager;
-import ca.sqlpower.architect.profile.ProfilePDFFormat;
 import ca.sqlpower.architect.profile.ProfileResult;
-import ca.sqlpower.architect.profile.ProfileResultFormatter;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.CommonCloseAction;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.JDefaultButton;
-import ca.sqlpower.architect.swingui.ProgressWatcher;
+import ca.sqlpower.architect.swingui.ProfilePanel;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
 import ca.sqlpower.architect.swingui.event.TaskTerminationEvent;
 import ca.sqlpower.architect.swingui.event.TaskTerminationListener;
@@ -64,7 +50,9 @@ public class ProfileAction extends AbstractAction {
         this.profileManager = profileManager;
     }
     
-        
+    /**
+     * Called to pop up the ProfilePanel
+     */
     public void actionPerformed(ActionEvent e) {
         if (dbTree == null) {
             logger.debug("dbtree was null when actionPerformed called");
@@ -92,86 +80,58 @@ public class ProfileAction extends AbstractAction {
             final JDefaultButton okButton = new JDefaultButton(okAction);
             buttonPanel.add(okButton);
             
-            d = new JDialog(ArchitectFrame.getMainInstance(),"Table Profiles");
-            final JPanel cp = new JPanel(new BorderLayout());
-            final JProgressBar bar = new JProgressBar();
-            bar.setPreferredSize(new Dimension(450,20));
-            cp.add(bar, BorderLayout.CENTER);
-
-            cp.add(buttonPanel, BorderLayout.SOUTH);
+            d = new JDialog(ArchitectFrame.getMainInstance(), "Table Profiles");
+            
+            ProfilePanel p = new ProfilePanel();
+            List<SQLTable> list = new ArrayList(tables);
+            p.setTables(list);
+//            final JProgressBar bar = new JProgressBar();
+//            bar.setPreferredSize(new Dimension(450,20));
+//            cp.add(bar, BorderLayout.CENTER);
+ 
             ArchitectPanelBuilder.makeJDialogCancellable(
                     d, new CommonCloseAction(d));
-            d.getRootPane().setDefaultButton(okButton);
-            d.setContentPane(cp);
+            d.setContentPane(p);
             d.pack();
             d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
             d.setVisible(true);
-            
-            new ProgressWatcher(bar,profileManager);
-            
-            new Thread( new Runnable() {
-            
-            	public void run() {
-            	    try {
-                        profileManager.createProfiles(tables);
-                        cp.remove(bar);
-                        bar.setVisible(false);
-                        JEditorPane editorPane = new JEditorPane();
-                        editorPane.setEditable(false);
-                        editorPane.setContentType("text/html");
-                        ProfileResultFormatter prf = new ProfileResultFormatter();
-                        editorPane.setText(prf.format(tables,profileManager) );
 
-                        JScrollPane editorScrollPane = new JScrollPane(editorPane);
-                        editorScrollPane.setVerticalScrollBarPolicy(
-                                        JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-                        editorScrollPane.setPreferredSize(new Dimension(800, 600));
-                        editorScrollPane.setMinimumSize(new Dimension(10, 10));
-                        
-                        cp.add(editorScrollPane, BorderLayout.CENTER);
-                        d.pack();
-System.out.println("\n\nPDF output starts:");
-                        try {
-                            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-                            List tabList = new ArrayList(tables);
-                            ProfilePDFFormat.createPdf(buffer,tabList,profileManager);
-System.out.println("\n\nprofiled tables:"+ tabList);
-                            FileOutputStream file = new FileOutputStream(new File("M:\\architect_profile.pdf"));
-System.out.println("\n\nPDF:"+ buffer.toString());
-                            buffer.writeTo(file);
-                            file.close();
-                        } catch (DocumentException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
-                        } catch (IOException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
-                        } catch (InstantiationException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
-                        } catch (IllegalAccessException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
-                        }
-                        
-                        
-                        
-                    } catch (SQLException e) {
-                        logger.error("Error in Profile Action ", e);
-                        ASUtils.showExceptionDialogNoReport(dbTree, "Error during profile run", e);
-                    } catch (ArchitectException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-            	}
-            
-            }).start();
+//            
+//            new ProgressWatcher(bar,profileManager);
+//            
+//            new Thread( new Runnable() {
+//            
+//            	public void run() {
+//            	    try {
+//                        profileManager.createProfiles(tables);
+//                        
+//                        bar.setVisible(false);
+//                        JEditorPane editorPane = new JEditorPane();
+//                        editorPane.setEditable(false);
+//                        editorPane.setContentType("text/html");
+//                        ProfileResultFormatter prf = new ProfileResultFormatter();
+//                        editorPane.setText(prf.format(tables,profileManager) );
+//
+//                        JScrollPane editorScrollPane = new JScrollPane(editorPane);
+//                        editorScrollPane.setVerticalScrollBarPolicy(
+//                                        JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+//                        editorScrollPane.setPreferredSize(new Dimension(800, 600));
+//                        editorScrollPane.setMinimumSize(new Dimension(10, 10));
+//                        
 
-            
-            
-            
-            
-            
+                        
+//                    } catch (SQLException e) {
+//                        logger.error("Error in Profile Action ", e);
+//                        ASUtils.showExceptionDialogNoReport(dbTree, "Error during profile run", e);
+//                    } catch (ArchitectException e) {
+//                        // TODO Auto-generated catch block
+//                        e.printStackTrace();
+//                    }
+//            	}
+//            
+//            }).start();
+//           
+          
         } catch (Exception ex) {
             logger.error("Error in Profile Action ", ex);
             ASUtils.showExceptionDialog(dbTree, "Error during profile run", ex);
@@ -195,7 +155,8 @@ System.out.println("\n\nPDF:"+ buffer.toString());
         this.dbTree = dbTree;
     }
     
-    private class DisplayProfileResult implements TaskTerminationListener {
+    /** XXX not used?? */
+    class DisplayProfileResult implements TaskTerminationListener {
 
         Set<SQLTable> tables;
         ProfileManager pm;
@@ -222,52 +183,13 @@ System.out.println("\n\nPDF:"+ buffer.toString());
                             System.out.println(c.getName()+"["+c.getSourceDataTypeName()+"]   "+pr);
                         }
                 }
-            } catch (ArchitectException e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
+            } catch (ArchitectException ex) {
+                logger.error("Error in Profile Action ", ex);
+                ASUtils.showExceptionDialog(dbTree, "Error during profile run", ex);
             }
 
             return;
-           /* 
-            d.removeAll();
-            d.setVisible(false);
-            
-            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-            Action okAction = new AbstractAction() {
-                public void actionPerformed(ActionEvent evt) {
-                    d.setVisible(false);
-                }
-            };
-            okAction.putValue(Action.NAME, "OK");
-            JDefaultButton okButton = new JDefaultButton(okAction);
-            buttonPanel.add(okButton);
-            
-            
-            
-            JPanel cp = new JPanel(new BorderLayout());
-            JEditorPane editorPane = new JEditorPane();
-            editorPane.setEditable(false);
-            editorPane.setContentType("text/html");
-            ProfileResultFormatter prf = new ProfileResultFormatter();
-            editorPane.setText(prf.format(tables,profileManager) );
-
-            JScrollPane editorScrollPane = new JScrollPane(editorPane);
-            editorScrollPane.setVerticalScrollBarPolicy(
-                            JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-            editorScrollPane.setPreferredSize(new Dimension(800, 600));
-            editorScrollPane.setMinimumSize(new Dimension(10, 10));
-            
-            
-            cp.add(editorScrollPane, BorderLayout.CENTER);
-            cp.add(buttonPanel, BorderLayout.SOUTH);
-            ArchitectPanelBuilder.makeJDialogCancellable(
-                    d, new CommonCloseAction(d));
-            d.getRootPane().setDefaultButton(okButton);
-            d.setContentPane(cp);
-            
-            d.pack();
-            d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
-            d.setVisible(true);*/
+ 
         }
         
     }
