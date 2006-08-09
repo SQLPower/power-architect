@@ -2,6 +2,7 @@ package ca.sqlpower.architect.profile;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -58,15 +59,15 @@ public class TestProfileManager extends TestCase {
             lastSQL = "CREATE TABLE PROFILE_TEST3 (t3_c1 char(100), t3_c2 date, t3_c4 decimal, t3_c5 float, t3_c6 int, t3_c9 long raw,   t3_c10 raw(500), t3_c11 number(12,2), t3_c13 numeric(10), t3_c14 real, t3_c15 smallint, t3_c16 varchar(200), t3_c17 varchar2(120))";
             stmt.executeUpdate(lastSQL);
             
-            lastSQL = "Insert into PROFILE_TEST1 values ('abc12345678901234567890a', to_date('26-jul-2006 11:22:33','dd-mon-yyyy hh24:mi:ss'), 12345.6789, 23456.789, 987654321, 1234567890, '5B5261775F446174615D',    1234567.89, 123456789,  567.89, 321,   'column of varchar 200 aaa', 'column of varchar2 200 xxx')";
+            lastSQL = "Insert into PROFILE_TEST1 values ('abc12345678901234567890a', to_date('26-jul-2006 11:22:33','dd-mon-yyyy hh24:mi:ss'), 12345.6789, 23456.789, 1, 1234567890, '5B5261775F446174615D',    1234567.89, 123456789,  567.89, 321,   'column of varchar 200 aaa', 'column of varchar2 200 xxx')";
             stmt.executeUpdate(lastSQL);
-            lastSQL = "Insert into PROFILE_TEST1 values ('abc12345678901234567890b', to_date('26-jul-2006 11:22:34','dd-mon-yyyy hh24:mi:ss'), 22345.6789, 33456.789, 987654322, 1234567891, '6B5261775F446174615D',   2234567.89, 1234567890, 667.89, 3212,  'column of varchar 200 bbb', 'column of varchar2 200 yyy')";
+            lastSQL = "Insert into PROFILE_TEST1 values ('abc12345678901234567890b', to_date('26-jul-2006 11:22:34','dd-mon-yyyy hh24:mi:ss'), 22345.6789, 33456.789, 2, 1234567891, '6B5261775F446174615D',   2234567.89, 1234567890, 667.89, 3212,  'column of varchar 200 bbb', 'column of varchar2 200 yyy')";
             stmt.executeUpdate(lastSQL);
-            lastSQL = "Insert into PROFILE_TEST1 values ('abc12345678901234567890c', to_date('26-jul-2006 11:22:35','dd-mon-yyyy hh24:mi:ss'), 32345.6789, 43456.789, 987654323, 1234567892, '8B526146174615D',  3234567.89, 1234567891, 767.89, 32123, 'column of varchar 200 ccc', 'column of varchar2 200 zzz')";
+            lastSQL = "Insert into PROFILE_TEST1 values ('abc12345678901234567890c', to_date('26-jul-2006 11:22:35','dd-mon-yyyy hh24:mi:ss'), 32345.6789, 43456.789, 3, 1234567892, '8B526146174615D',  3234567.89, 1234567891, 767.89, 32123, 'column of varchar 200 ccc', 'column of varchar2 200 zzz')";
             stmt.executeUpdate(lastSQL);
-            lastSQL = "Insert into PROFILE_TEST1 values ('abc12345678901234567890d', to_date('26-jul-2006 11:22:36','dd-mon-yyyy hh24:mi:ss'), 42345.6789, 53456.789, 987654324, 1234567893, '8B526146174615D', 4234567.89, 1234567892, 867.89, 32124, 'column of varchar 200 ddd', 'column of varchar2 200 sss')";
+            lastSQL = "Insert into PROFILE_TEST1 values ('abc12345678901234567890d', to_date('26-jul-2006 11:22:36','dd-mon-yyyy hh24:mi:ss'), 42345.6789, 53456.789, 4, 1234567893, '8B526146174615D', 4234567.89, 1234567892, 867.89, 32124, 'column of varchar 200 ddd', 'column of varchar2 200 sss')";
             stmt.executeUpdate(lastSQL);
-            lastSQL = "Insert into PROFILE_TEST1 values ('abc12345678901234567890e', to_date('26-jul-2006 11:22:37','dd-mon-yyyy hh24:mi:ss'), 52345.6789, 63456.789, 987654325, 1234567894, '9B52616174615D',5234567.89, 1234567893, 967.89, 32125, 'column of varchar 200 eee', 'column of varchar2 200 ddd')";
+            lastSQL = "Insert into PROFILE_TEST1 values ('abc12345678901234567890e', to_date('26-jul-2006 11:22:37','dd-mon-yyyy hh24:mi:ss'), 52345.6789, 63456.789, 5, 1234567894, '9B52616174615D',5234567.89, 1234567893, 967.89, 32125, 'column of varchar 200 eee', 'column of varchar2 200 ddd')";
             stmt.executeUpdate(lastSQL);
             
             lastSQL = "Insert into PROFILE_TEST2 values ('abc12345678901234567890a', to_date('26-jul-2006 11:22:33','dd-mon-yyyy hh24:mi:ss'), 12345.6789, 23456.789, 987654321, '1234567890', '5B5261775F446174615D',    1234567.89, 123456789,  567.89, 321,   'column of varchar 200 aaa', 'column of varchar2 200 xxx')";
@@ -80,10 +81,9 @@ public class TestProfileManager extends TestCase {
             lastSQL = "Insert into PROFILE_TEST2 values ('1234567890',               to_date('26-jul-2006 11:22:37','dd-mon-yyyy hh24:mi:ss'), 52345.6789, NULL,      987654325, NULL,         null,                      5234567.89, 1234567893, 967.89, NULL,  'col',                       'column of varchar2 200 ddd')";
             stmt.executeUpdate(lastSQL);
             
-
             conn.commit();
             
-            List tableList = new ArrayList();
+            List<SQLTable> tableList = new ArrayList<SQLTable>();
             for ( int i=1; i<4; i++ ) {
                 SQLTable t = mydb.getTableByName("PROFILE_TEST"+i);
                 tableList.add(t);
@@ -100,6 +100,7 @@ public class TestProfileManager extends TestCase {
             
             pm.createProfiles(tableList);
             
+            // Dump the results in case somebody wants to read them
             for ( int i=1; i<4; i++ ) {
                 SQLTable t = mydb.getTableByName("PROFILE_TEST"+i);
                 ProfileResult pr = pm.getResult(t);
@@ -108,6 +109,43 @@ public class TestProfileManager extends TestCase {
                     pr = pm.getResult(c);
                     System.out.println(c.getName()+"["+c.getSourceDataTypeName()+"]   "+pr);
                 }
+            }
+            
+            // Now actually test some subset of the results.
+            {
+                SQLTable t = mydb.getTableByName("PROFILE_TEST1");
+                ProfileResult pr = pm.getResult(t);
+                System.out.println(t.getName()+"  "+pr.toString());
+                SQLColumn c = t.getColumnByName("t1_c6");
+                ColumnProfileResult cr = (ColumnProfileResult) pm.getResult(c);
+                assertNotNull("get column result", cr);
+                assertEquals(5, cr.getDistinctValueCount());
+                assertEquals(3, ((BigDecimal)cr.getAvgValue()).intValue());
+            }
+            
+            {
+                SQLTable t = mydb.getTableByName("PROFILE_TEST2");
+                ProfileResult pr = pm.getResult(t);
+                System.out.println(t.getName()+"  "+pr.toString());
+                SQLColumn c = t.getColumnByName("t2_c6");
+                ColumnProfileResult cr = (ColumnProfileResult) pm.getResult(c);
+                assertNotNull("get column result", cr);
+                assertEquals(4, cr.getDistinctValueCount()); // one is null
+                assertEquals(987654322, ((BigDecimal)cr.getAvgValue()).intValue());
+            }
+            
+            {
+                SQLTable t = mydb.getTableByName("PROFILE_TEST3");
+                ProfileResult pr = pm.getResult(t);
+                System.out.println(t.getName()+"  "+pr.toString());
+                SQLColumn c = t.getColumnByName("t3_c6");
+                ColumnProfileResult cr = (ColumnProfileResult) pm.getResult(c);
+                assertNotNull("get column result", cr);
+                assertEquals(0, cr.getDistinctValueCount());
+                assertNull("get avg of no values", (BigDecimal)cr.getAvgValue());
+                assertNull("get min of no values", (BigDecimal)cr.getMinValue());
+                assertNull("get max of no values", (BigDecimal)cr.getMaxValue());
+                
             }
            
             
