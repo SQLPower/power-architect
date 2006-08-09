@@ -3,7 +3,6 @@ package ca.sqlpower.architect.profile;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class ColumnProfileResult extends ProfileResult {
 
     private int distinctValueCount;
@@ -29,6 +28,10 @@ public class ColumnProfileResult extends ProfileResult {
         this.avgLength = avgLength;
     }
 
+    /**
+     * @return The average value as a Number object, or null if there were
+     * 0 values.
+     */
     public Object getAvgValue() {
         return avgValue;
     }
@@ -53,6 +56,10 @@ public class ColumnProfileResult extends ProfileResult {
         this.maxLength = maxLength;
     }
 
+    /**
+     * @return The minimum value as a Number object, or null if there were
+     * 0 values.
+     */
     public Object getMaxValue() {
         return maxValue;
     }
@@ -69,6 +76,10 @@ public class ColumnProfileResult extends ProfileResult {
         this.minLength = minLength;
     }
 
+    /**
+     * @return The minimum value as a Number object, or null if there were
+     * 0 values.
+     */
     public Object getMinValue() {
         return minValue;
     }
