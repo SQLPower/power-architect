@@ -11,7 +11,11 @@ import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 
 public class ProfileResultFormatter {
 
-    
+    /**
+     * This class generates formatted HTML of the profile information
+     *  
+     * TODO Make an interface and this class a implementation of the interface  
+     */
     public String format(Set <SQLTable> tables, ProfileManager pm) {
         StringBuffer s = new StringBuffer();
         int cellCount = 0;
