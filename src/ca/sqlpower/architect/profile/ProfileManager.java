@@ -129,15 +129,7 @@ public class ProfileManager implements Monitorable {
                 System.out.println("name="+rs.getString(1)+"  type:"+rs.getInt(2));
             }
             rs.close();*/
-            
-            Map ddlGeneratorMap = ArchitectUtils.getDriverDDLGeneratorMap();
-            Class generatorClass = (Class) ddlGeneratorMap.get(
-                    db.getDataSource().getDriverClass());
-            if (generatorClass == null)
-            {
-                System.out.println("Unable to create Profile for the target database.");
-                return;
-            }
+
             databaseIdentifierQuoteString = conn.getMetaData().getIdentifierQuoteString();
                 
             StringBuffer sql = new StringBuffer();
@@ -204,18 +196,10 @@ public class ProfileManager implements Monitorable {
             SQLColumn col1 = columns.get(0);
 
             DDLGenerator ddlg = null;
-            Class generatorClass = null;
-            
+
             try {
-                Map ddlGeneratorMap = ArchitectUtils.getDriverDDLGeneratorMap();
-                generatorClass = (Class) ddlGeneratorMap.get(
-                        col1.getParentTable().getParentDatabase().getDataSource().getDriverClass());
-                // FIXME: make warning user visable
-                if (generatorClass == null) {
-                    System.out.println("Unable to create Profile for the target database.");
-                    return;
-                }
-                ddlg = (DDLGenerator) generatorClass.newInstance();
+                ddlg = (DDLGenerator) DDLUtils.createDDLGenerator(
+                        col1.getParentTable().getParentDatabase().getDataSource());
                 databaseIdentifierQuoteString = conn.getMetaData().getIdentifierQuoteString();
             } catch (InstantiationException e1) {
                 logger.error("problem running Profile Manager", e1);
