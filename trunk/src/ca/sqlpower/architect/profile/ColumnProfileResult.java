@@ -117,13 +117,6 @@ public class ColumnProfileResult extends ProfileResult {
         return topTen;
     }
     
-    public ColumnValueCount getValueCount(int index) {
-        if ( index >= 0 && index < topTen.size() )
-            return topTen.get(index);
-        else
-            return null;
-    }
-    
     public class ColumnValueCount {
         private Object value;
         private int count;
