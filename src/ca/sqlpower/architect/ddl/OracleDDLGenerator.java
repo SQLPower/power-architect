@@ -206,13 +206,15 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
         profileFunctionMap.put("TIMESTAMP", new ProfileFunctionDescriptor("TIMESTAMP", Types.TIMESTAMP, true,true,true,false,true,true,true,true));
         profileFunctionMap.put("TIMESTAMP WITH LOCAL TIME ZONE", new ProfileFunctionDescriptor("TIMESTAMP", Types.TIMESTAMP, true,true,true,false,true,true,true,true));
         profileFunctionMap.put("TIMESTAMP WITH TIME ZONE", new ProfileFunctionDescriptor("TIMESTAMP", Types.TIMESTAMP, true,true,true,false,true,true,true,true));
-        profileFunctionMap.put("DATE",      new ProfileFunctionDescriptor("DATE", Types.DATE,           true,true,true,false,true,true,true,true));
+ //       profileFunctionMap.put("DATE",      new ProfileFunctionDescriptor("DATE", Types.DATE,           true,true,true,false,true,true,true,true));
         
         profileFunctionMap.put("LONG",          new ProfileFunctionDescriptor("LONGVARCHAR", Types.LONGVARCHAR,     false,false,false,false,false,false,false,false));
         profileFunctionMap.put("LONG RAW",      new ProfileFunctionDescriptor("LONGVARBINARY", Types.LONGVARBINARY, false,false,false,false,false,false,false,false));
         profileFunctionMap.put("STRUCT",        new ProfileFunctionDescriptor("LONGVARBINARY", Types.LONGVARBINARY, false,false,false,false,false,false,false,false));
         profileFunctionMap.put("ARRAY",         new ProfileFunctionDescriptor("LONGVARBINARY", Types.LONGVARBINARY, false,false,false,false,false,false,false,false));
         profileFunctionMap.put("REF",           new ProfileFunctionDescriptor("LONGVARBINARY", Types.LONGVARBINARY, false,false,false,false,false,false,false,false));
+        
+        
         
 
     }

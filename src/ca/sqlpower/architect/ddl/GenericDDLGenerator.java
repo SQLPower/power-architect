@@ -383,6 +383,21 @@ public class GenericDDLGenerator implements DDLGenerator {
         return def.toString();
     }
 
+    /** Columnn type */
+    public String getColumnDataTypeName(SQLColumn c) {
+        StringBuffer def = new StringBuffer();
+        GenericTypeDescriptor td = failsafeGetTypeDescriptor(c);       
+        def.append(td.getName());
+        if (td.getHasPrecision()) {
+            def.append("("+c.getPrecision());
+            if (td.getHasScale()) {
+                def.append(","+c.getScale());
+            }
+            def.append(")");
+        }
+        return def.toString();
+    }
+    
     /**
      * Returns the type descriptor for the given column's type if that exists in this generator's typemap,
      * else returns the default type.

@@ -5,7 +5,7 @@ public class ProfileFunctionDescriptor {
     private String dataTypeName;
     private int dataTypeCode;
     private boolean countDist;
-    private boolean maxValus;
+    private boolean maxValue;
     private boolean minValue;
     private boolean avgValue;
     private boolean maxLength;
@@ -27,7 +27,7 @@ public class ProfileFunctionDescriptor {
         this.dataTypeName = dataTypeName;
         this.dataTypeCode = dataTypeCode;
         this.countDist = countDist;
-        this.maxValus = maxValus;
+        this.maxValue = maxValus;
         this.minValue = minValue;
         this.avgValue = avgValue;
         this.maxLength = maxLength;
@@ -97,13 +97,13 @@ public class ProfileFunctionDescriptor {
     }
 
 
-    public boolean isMaxValus() {
-        return maxValus;
+    public boolean isMaxValue() {
+        return maxValue;
     }
 
 
-    public void setMaxValus(boolean maxValus) {
-        this.maxValus = maxValus;
+    public void setMaxValue(boolean maxValue) {
+        this.maxValue = maxValue;
     }
 
 
