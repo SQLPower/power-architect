@@ -19,6 +19,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
@@ -74,7 +75,7 @@ public class ProfileAction extends AbstractAction {
             if ( dbTree.getSelectionPaths() == null )
                 return;
             
-            final Set <SQLTable> tables = new HashSet();
+            final List <SQLTable> tables = new ArrayList();
             for ( TreePath p : dbTree.getSelectionPaths() ) {
                 SQLObject so = (SQLObject) p.getLastPathComponent();
                 Collection<SQLTable> tablesUnder = tablesUnder(so);
@@ -82,6 +83,7 @@ public class ProfileAction extends AbstractAction {
                 tables.addAll(tablesUnder);
             }
             
+            final JPanel cp = new JPanel(new BorderLayout());
             final JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
             Action okAction = new AbstractAction() {
                 public void actionPerformed(ActionEvent evt) {
@@ -91,14 +93,16 @@ public class ProfileAction extends AbstractAction {
             okAction.putValue(Action.NAME, "OK");
             final JDefaultButton okButton = new JDefaultButton(okAction);
             buttonPanel.add(okButton);
+            cp.add(buttonPanel, BorderLayout.SOUTH);
             
             d = new JDialog(ArchitectFrame.getMainInstance(),"Table Profiles");
-            final JPanel cp = new JPanel(new BorderLayout());
             final JProgressBar bar = new JProgressBar();
             bar.setPreferredSize(new Dimension(450,20));
             cp.add(bar, BorderLayout.CENTER);
+            
+            final JLabel workingOn = new JLabel("Profiling:");
+            cp.add(workingOn, BorderLayout.NORTH);
 
-            cp.add(buttonPanel, BorderLayout.SOUTH);
             ArchitectPanelBuilder.makeJDialogCancellable(
                     d, new CommonCloseAction(d));
             d.getRootPane().setDefaultButton(okButton);
@@ -107,13 +111,13 @@ public class ProfileAction extends AbstractAction {
             d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
             d.setVisible(true);
             
-            new ProgressWatcher(bar,profileManager);
+            new ProgressWatcher(bar,profileManager,workingOn);
             
             new Thread( new Runnable() {
             
             	public void run() {
             	    try {
-                        profileManager.createProfiles(tables);
+                        profileManager.createProfiles(tables, workingOn);
 
                         
                         FileOutputStream file = null;

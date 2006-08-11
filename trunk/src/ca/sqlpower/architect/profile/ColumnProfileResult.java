@@ -15,8 +15,8 @@ public class ColumnProfileResult extends ProfileResult {
     private int nullCount;
     private List<ColumnValueCount> topTen;
     
-    public ColumnProfileResult(long createCost) {
-        super(createCost);
+    public ColumnProfileResult(long createStartTime) {
+        super(createStartTime);
         topTen = new ArrayList<ColumnValueCount>();
     }
 

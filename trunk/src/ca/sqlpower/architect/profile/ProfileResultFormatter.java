@@ -2,6 +2,7 @@ package ca.sqlpower.architect.profile;
 
 import java.sql.SQLException;
 import java.text.NumberFormat;
+import java.util.Collection;
 import java.util.Set;
 
 import ca.sqlpower.architect.ArchitectException;
@@ -18,7 +19,7 @@ public class ProfileResultFormatter {
      *  
      * TODO Make an interface and this class a implementation of the interface  
      */
-    public String format(Set <SQLTable> tables, ProfileManager pm) throws SQLException {
+    public String format(Collection <SQLTable> tables, ProfileManager pm) throws SQLException {
         StringBuffer s = new StringBuffer();
         int cellCount = 0;
         

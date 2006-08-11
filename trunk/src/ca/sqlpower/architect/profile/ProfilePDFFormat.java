@@ -4,7 +4,9 @@ import java.awt.Color;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.SQLException;
+import java.text.DateFormat;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.LinkedList;
 import java.util.StringTokenizer;
 
@@ -40,12 +42,12 @@ public class ProfilePDFFormat {
     private static final Logger logger = Logger.getLogger(ProfileManager.class);
     private int totalColumn;
     private final String[] headings = new String[] {
-            "Table Name",
-            "Row Count",
             "Column Name",
             "Data Type",
-            "Null Count / %",
-            "Unique Count / %",
+            "Null Count",
+            "% null",
+            "Unique Count",
+            "% unique",
             "Min Length",
             "Max Length",
             "Avg Length",
@@ -92,7 +94,7 @@ public class ProfilePDFFormat {
         final PdfWriter writer = PdfWriter.getInstance(document, out);
 
         final float fsize = 6f; // the font size to use in the table body
-        final BaseFont bf = BaseFont.createFont(BaseFont.HELVETICA, BaseFont.WINANSI, false);
+        final BaseFont bf = BaseFont.createFont(BaseFont.HELVETICA, BaseFont.WINANSI, BaseFont.NOT_EMBEDDED);
         document.addTitle("Table Profiling Report");
         document.addSubject("Tables: " + tables);
         document.addAuthor(System.getProperty("user.name"));
@@ -159,7 +161,7 @@ public class ProfilePDFFormat {
 
                 // adjust for orphan rows. Might create widows or make 
                 // endrow < startrow, which is handled later by deferring the table
-                if (endrow < table.size() && endrow + minRowsTogether >= table.size()) {
+/*                if (endrow < table.size() && endrow + minRowsTogether >= table.size()) {
                     if (endrow + 1 == table.size()) {
                         // short by 1 row.. just squeeze it in
                         endrow = table.size();
@@ -167,7 +169,7 @@ public class ProfilePDFFormat {
                         // more than 1 row remains: shorten this page so orphans aren't lonely
                         endrow = table.size() - minRowsTogether;
                     }
-                }
+                }*/
 
                 if (endrow == table.size() || endrow - startrow > minRowsTogether) {
                     // this is the end of the table, or we have enough rows to bother printing
@@ -234,8 +236,9 @@ public class ProfilePDFFormat {
         table.setWidthPercentage(100f);
 
         Font f = new Font(bf, fsize);
-
-        addHeaderRow(table, bf, f, fsize, widths);
+        float titleFSize = fsize * 1.5f;
+        float colHeadingFSize = fsize;
+        addHeaderRow(pm, sqlTable, table, bf, titleFSize, colHeadingFSize, widths);
         
         // body rows
         for (SQLColumn col : sqlTable.getColumns()) {
@@ -256,13 +259,70 @@ public class ProfilePDFFormat {
      * width value for that column.  Words are split using the default
      * settings for java.util.StringTokenizer.
      */
-    private void addHeaderRow(PdfPTable table,
-                                       BaseFont bf, Font f, float fsize, float[] widths) 
+    private void addHeaderRow(ProfileManager pm, SQLTable sqlTable, 
+                                PdfPTable table, BaseFont bf, float titleFSize,
+                                float colHeadingFSize, float[] widths) 
         throws DocumentException, IOException, ArchitectException {
         
         
         int ncols = headings.length;
 
+        Font titleFont = new Font(bf, titleFSize, Font.BOLD);
+        Font colHeadingFont = new Font(bf, colHeadingFSize);
+        
+        TableProfileResult tProfile = (TableProfileResult) pm.getResult(sqlTable);
+        PdfPTable infoTable = new PdfPTable(2);
+        StringBuffer heading = new StringBuffer();
+        if ( tProfile.isError() ) {
+            heading.append("Table: ").append(sqlTable.getName());
+            heading.append(" Profiling Error");
+            if ( tProfile.getEx() != null )
+                heading.append(":\n").append(tProfile.getEx());
+        }
+        else {
+            PdfPCell infoCell;
+            
+            heading.append("Table: ").append(sqlTable.getName());
+            infoCell = new PdfPCell(new Phrase("Row Count:",colHeadingFont));
+            infoCell.setBorder(Rectangle.NO_BORDER);
+            infoCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            infoTable.addCell(infoCell);
+            
+            infoCell = new PdfPCell(new Phrase(String.valueOf(tProfile.getRowCount()), colHeadingFont));
+            infoCell.setBorder(Rectangle.NO_BORDER);
+            infoTable.addCell(infoCell);
+            
+            infoCell = new PdfPCell(new Phrase("Create Date:",colHeadingFont));
+            infoCell.setBorder(Rectangle.NO_BORDER);
+            infoCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            infoTable.addCell(infoCell);
+
+            DateFormat df = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+            infoCell = new PdfPCell(new Phrase(df.format(tProfile.getCreateDate()), colHeadingFont));
+            infoCell.setBorder(Rectangle.NO_BORDER);
+            infoTable.addCell(infoCell);
+            
+            infoCell = new PdfPCell(new Phrase("Elapsed:",colHeadingFont));
+            infoCell.setBorder(Rectangle.NO_BORDER);
+            infoCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            infoTable.addCell(infoCell);
+            
+            infoCell = new PdfPCell(new Phrase(tProfile.getTimeToCreate()+"ms", colHeadingFont));
+            infoCell.setBorder(Rectangle.NO_BORDER);
+            infoTable.addCell(infoCell);
+        }
+        PdfPCell hcell = new PdfPCell(new Phrase(heading.toString(), titleFont));
+        hcell.setColspan(ncols - 2);
+        hcell.setBorder(Rectangle.NO_BORDER);
+        hcell.setVerticalAlignment(Element.ALIGN_BOTTOM);
+        table.addCell(hcell);
+        
+        hcell = new PdfPCell(infoTable);
+        hcell.setColspan(2);
+        hcell.setBorder(Rectangle.NO_BORDER);
+        table.addCell(hcell);
+
+        
         for (int colNo = 0; colNo < ncols; colNo++) {
             String contents = headings[colNo];
             
@@ -270,10 +330,10 @@ public class ProfilePDFFormat {
             StringTokenizer st = new StringTokenizer(contents);
             while (st.hasMoreTokens()) {
                 widths[colNo] = Math.max(widths[colNo],
-                        bf.getWidthPoint(st.nextToken(), fsize));
+                        bf.getWidthPoint(st.nextToken(), colHeadingFSize));
             }
             
-            Phrase colTitle = new Phrase(contents, f);
+            Phrase colTitle = new Phrase(contents, colHeadingFont);
             PdfPCell cell = new PdfPCell(colTitle);
             cell.setBorder(Rectangle.BOTTOM | Rectangle.TOP);
             cell.setBorderWidth(2);
@@ -282,7 +342,7 @@ public class ProfilePDFFormat {
             table.addCell(cell);
         }
         
-        table.setHeaderRows(1);
+        table.setHeaderRows(2);
     }
 
     protected void addBodyRow(ProfileManager pm, SQLColumn col, PdfPTable table,
@@ -292,35 +352,43 @@ public class ProfilePDFFormat {
 
         TableProfileResult tProfile = (TableProfileResult) pm.getResult(col.getParentTable());
         ColumnProfileResult cProfile = (ColumnProfileResult) pm.getResult(col);
-
         
         DDLGenerator gddl = DDLUtils.createDDLGenerator(
                 col.getParentTable().getParentDatabase().getDataSource());
 
-        DecimalFormat pctFormat = new DecimalFormat("0%");
-        
         int rowCount = -1;
         if ( tProfile != null && tProfile.isError() != true ) {
             rowCount = tProfile.getRowCount();
         }
         java.util.List<ColumnValueCount> topTen = null;
+        
+        boolean errorColumnProfiling = false;
+        Exception columnException = null;
         if ( cProfile != null && cProfile.isError() != true ) {
             topTen = cProfile.getValueCount();
         }
+        else {
+            errorColumnProfiling = true;
+            if ( cProfile != null && cProfile.getEx() != null )
+                columnException = cProfile.getEx();
+        }
+        
+        DecimalFormat pctFormat = new DecimalFormat("0%");
+        
+        DecimalFormat df = new DecimalFormat("#,##0.00");
+        df.setMaximumFractionDigits(col.getScale());
+        df.setMinimumFractionDigits(col.getScale());
+        
+        DecimalFormat adf = new DecimalFormat("#,##0.00");
+        adf.setMaximumFractionDigits(Math.max(2,col.getScale()));
+        adf.setMinimumFractionDigits(Math.max(2,col.getScale()));
         
         for (int colNo = 0; colNo < totalColumn; colNo++) {
             
             String contents;
             int alignment;
-            DecimalFormat df = new DecimalFormat("#,##0.00");
-            df.setMaximumFractionDigits(col.getScale());
-            df.setMinimumFractionDigits(col.getScale());
             
-            DecimalFormat adf = new DecimalFormat("#,##0.00");
-            adf.setMaximumFractionDigits(Math.max(2,col.getScale()));
-            adf.setMinimumFractionDigits(Math.max(2,col.getScale()));
-            
-            if (colNo == 0) {
+            if ( headings[colNo].equalsIgnoreCase("table name") ) {
                 if ( tProfile == null || tProfile.isError() ) {
                     contents = col.getParentTable().getName() + "\nProfiling Error:\n";
                     if ( tProfile != null && tProfile.getEx() != null )
@@ -330,52 +398,73 @@ public class ProfilePDFFormat {
                     contents = col.getParentTable().getName();
                 }
                 alignment = Element.ALIGN_LEFT;
-            } else if (colNo == 1) {
+            } else if ( headings[colNo].equalsIgnoreCase("row count") ) {
                 contents = String.valueOf(rowCount);
                 alignment = Element.ALIGN_RIGHT;
-            } else if (colNo == 2) {
+            } else if ( headings[colNo].equalsIgnoreCase("column name") ) {
                 contents = col.getName();
                 alignment = Element.ALIGN_LEFT;
-            } else if (colNo == 3) {
+            } else if ( headings[colNo].equalsIgnoreCase("data type") ) {
                 contents = gddl.columnType(col);
                 alignment = Element.ALIGN_LEFT;
-            } else if (colNo == 4) {
-                if ( cProfile != null && !cProfile.isError() ) {
+            } else if ( headings[colNo].equalsIgnoreCase("null count") ) {
+                if ( errorColumnProfiling ) {
+                    contents = "Column Profiling Error:\n";
+                    if ( columnException != null )
+                        contents += columnException; 
+                    alignment = Element.ALIGN_LEFT;
+                }
+                else {
                     if ( col.isDefinitelyNullable() ) {
                         contents = String.valueOf(cProfile.getNullCount());
-                        if (rowCount == 0) {
-                            contents += " / N/A";
+                    }
+                    else {
+                        contents = "!NULL";
+                    }
+                    alignment = Element.ALIGN_RIGHT;
+                }
+            } else if ( headings[colNo].equalsIgnoreCase("% null") ) {
+                if ( errorColumnProfiling ) {
+                    continue;
+                }
+                else {
+                    if ( col.isDefinitelyNullable() ) {
+                        if (rowCount <= 0) {
+                            contents = "N/A";
                             alignment = Element.ALIGN_CENTER;
                         } else {
-                            contents += " / " + pctFormat.format(cProfile.getNullCount() / (double) rowCount);
+                            contents = pctFormat.format(cProfile.getNullCount() / (double) rowCount);
                             alignment = Element.ALIGN_RIGHT;
                         }
                     }
                     else {
-                        contents = "NOT NULL";
+                        contents = "---";
+                        alignment = Element.ALIGN_CENTER;
                     }
-                    alignment = Element.ALIGN_RIGHT;
                 }
-                else {
-                    contents = "Column Profiling Error";
-                    alignment = Element.ALIGN_LEFT;
-                }
-            } else if (colNo == 5) {
-                if ( cProfile != null && !cProfile.isError() ) {
+            } else if ( headings[colNo].equalsIgnoreCase("Unique Count") ) {
+                if ( !errorColumnProfiling ) {
                     contents = String.valueOf(cProfile.getDistinctValueCount());
-                    if (rowCount == 0) {
-                        contents += " / N/A";
-                    } else {
-                        contents += " / " + pctFormat.format(cProfile.getDistinctValueCount() / (double) rowCount);
-                    }
                     alignment = Element.ALIGN_RIGHT;
                 }
                 else {
-                    contents = "";
-                    alignment = Element.ALIGN_LEFT;
+                    continue;
                 }
-            } else if (colNo == 6) {
-                if ( cProfile != null && !cProfile.isError() ) {
+            } else if ( headings[colNo].equalsIgnoreCase("% unique") ) {
+                if ( !errorColumnProfiling ) {
+                    if (rowCount == 0) {
+                        contents = "N/A";
+                        alignment = Element.ALIGN_CENTER;
+                    } else {
+                        contents = pctFormat.format(cProfile.getDistinctValueCount() / (double) rowCount);
+                        alignment = Element.ALIGN_RIGHT;
+                    }
+                }
+                else {
+                    continue;
+                }
+            } else if ( headings[colNo].equalsIgnoreCase("Min Length") ) {
+                if ( !errorColumnProfiling ) {
                     contents = String.valueOf(cProfile.getMinLength());
                     alignment = Element.ALIGN_RIGHT;
                 }
@@ -383,8 +472,8 @@ public class ProfilePDFFormat {
                     contents = "";
                     alignment = Element.ALIGN_LEFT;
                 }
-            } else if (colNo == 7) {
-                if ( cProfile != null && !cProfile.isError() ) {
+            } else if ( headings[colNo].equalsIgnoreCase("Max Length") ) {
+                if ( !errorColumnProfiling ) {
                     contents = String.valueOf(cProfile.getMaxLength());
                     alignment = Element.ALIGN_RIGHT;
                 }
@@ -392,8 +481,8 @@ public class ProfilePDFFormat {
                     contents = "";
                     alignment = Element.ALIGN_LEFT;
                 }
-            } else if (colNo == 8) {
-                if ( cProfile != null && !cProfile.isError() ) {
+            } else if ( headings[colNo].equalsIgnoreCase("avg Length") ) {
+                if ( !errorColumnProfiling ) {
                     contents = String.valueOf(cProfile.getAvgLength());
                     alignment = Element.ALIGN_RIGHT;
                 }
@@ -401,8 +490,8 @@ public class ProfilePDFFormat {
                     contents = "";
                     alignment = Element.ALIGN_LEFT;
                 }
-            } else if (colNo == 9) {
-                if ( cProfile != null && !cProfile.isError() ) {
+            } else if ( headings[colNo].equalsIgnoreCase("Min value") ) {
+                if ( !errorColumnProfiling ) {
                     if (cProfile.getMinValue() == null) {
                         alignment = Element.ALIGN_CENTER;
                         contents = "";
@@ -418,8 +507,8 @@ public class ProfilePDFFormat {
                     contents = "";
                     alignment = Element.ALIGN_LEFT;
                 }
-            } else if (colNo == 10) {
-                if ( cProfile != null && !cProfile.isError() ) {
+            } else if ( headings[colNo].equalsIgnoreCase("Max value") ) {
+                if ( !errorColumnProfiling ) {
                     if (cProfile.getMaxValue() == null) {
                         alignment = Element.ALIGN_CENTER;
                         contents = "";
@@ -435,8 +524,8 @@ public class ProfilePDFFormat {
                     contents = "";
                     alignment = Element.ALIGN_LEFT;
                 }
-            } else if (colNo == 11) {
-                if ( cProfile != null && !cProfile.isError() ) {
+            } else if ( headings[colNo].equalsIgnoreCase("avg value") ) {
+                if ( !errorColumnProfiling ) {
                     if (cProfile.getAvgValue() == null) {
                         alignment = Element.ALIGN_CENTER;
                         contents = "";
@@ -452,8 +541,8 @@ public class ProfilePDFFormat {
                     contents = "";
                     alignment = Element.ALIGN_LEFT;
                 }
-            } else if (colNo == 12) {
-                if ( cProfile != null && !cProfile.isError() && topTen != null ) {
+            } else if ( headings[colNo].equalsIgnoreCase("Top N Values") ) {
+                if ( !errorColumnProfiling && topTen != null ) {
                     StringBuffer sb = new StringBuffer();
                     for ( ColumnValueCount cvc : topTen ) {
                         sb.append(cvc.getValue()).append("\n");
@@ -465,8 +554,8 @@ public class ProfilePDFFormat {
                     contents = "";
                     alignment = Element.ALIGN_LEFT;
                 }
-            } else if (colNo == 13) {
-                if ( cProfile != null && !cProfile.isError() ) {
+            } else if ( headings[colNo].equalsIgnoreCase("Count") ) {
+                if ( !errorColumnProfiling ) {
                     StringBuffer sb = new StringBuffer();
                     for ( ColumnValueCount cvc : topTen ) {
                         sb.append(cvc.getCount()).append("\n");
@@ -496,9 +585,14 @@ public class ProfilePDFFormat {
             
 
             PdfPCell cell;
-            if ( colNo == 12 || colNo == 13 ) {
+            if ( headings[colNo].equalsIgnoreCase("Top N Values") ||
+                 headings[colNo].equalsIgnoreCase("Count") ) {
                 cell = new PdfPCell(new Paragraph(truncContents.toString(), f)); 
                 cell.setNoWrap(true);
+            } else if ( headings[colNo].equalsIgnoreCase("null count") &&
+                        errorColumnProfiling ) {
+                cell = new PdfPCell(new Paragraph(truncContents.toString(), f));
+                cell.setColspan(4);
             }
             else {
                 Phrase phr = new Phrase(truncContents.toString(), f);
