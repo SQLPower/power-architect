@@ -40,6 +40,7 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.PLExport;
+import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentListener;
@@ -61,6 +62,7 @@ public class SwingUIProject {
 	protected boolean savingEntireSource;
 	protected PLExport plExport;
 	protected CompareDMSettings compareDMSettings;
+    protected ProfileManager profileManager;
 
 	// ------------------ load and save support -------------------
 
@@ -72,8 +74,8 @@ public class SwingUIProject {
 	/**
 	 * Don't let application exit while saving.
 	 */
-	protected boolean saveInProgress; 
-	
+	protected boolean saveInProgress;
+
 	/**
 	 * @return Returns the saveInProgress.
 	 */
@@ -124,13 +126,13 @@ public class SwingUIProject {
 
 	/**
 	 * Sets up a new project with the given name.
-	 * @throws  
+	 * @throws
 	 */
 	public SwingUIProject(String name) throws ArchitectException {
 		this.name = name;
-		
+
 		SQLDatabase ppdb = new SQLDatabase();
-		
+
 		PlayPen pp = new PlayPen(ppdb);
 		ToolTipManager.sharedInstance().registerComponent(pp);
 		setPlayPen(pp);
@@ -145,15 +147,16 @@ public class SwingUIProject {
 		plExport = new PLExport();
 		compareDMSettings = new CompareDMSettings();
 		undoManager = new UndoManager(pp);
+        profileManager = new ProfileManager();
 	}
 
 	// ------------- READING THE PROJECT FILE ---------------
-	
+
 	// FIXME: this should static and return a new instance of SwingUIProject
 	public void load(InputStream in) throws IOException, ArchitectException {
 		dbcsIdMap = new HashMap();
 		objectIdMap = new HashMap();
-		
+
 		// use digester to read from file
 		try {
 			setupDigester().parse(in);
@@ -174,8 +177,8 @@ public class SwingUIProject {
 		undoManager.discardAllEdits();
 	}
 
-	
-	
+
+
 	protected Digester setupDigester() {
 		Digester d = new Digester();
 		d.setValidating(false);
@@ -202,7 +205,7 @@ public class SwingUIProject {
 		d.addCallParam("architect-project/project-data-sources/data-source/property", 0, "key");
 		d.addCallParam("architect-project/project-data-sources/data-source/property", 1, "value");
 		//d.addSetNext("architect-project/project-data-sources/data-source", );
-		
+
 		// source database hierarchy
 		d.addObjectCreate("architect-project/source-databases", LinkedList.class);
 		d.addSetNext("architect-project/source-databases", "setSourceDatabaseList");
@@ -233,10 +236,10 @@ public class SwingUIProject {
 
 		SQLColumnFactory columnFactory = new SQLColumnFactory();
 		d.addFactoryCreate("*/column", columnFactory);
-		d.addSetProperties("*/column");		
-		// this needs to be manually set last to prevent generic types 
+		d.addSetProperties("*/column");
+		// this needs to be manually set last to prevent generic types
 		// from overwriting database specific types
-		
+
 		// Old name (it has been updated to sourceDataTypeName)
 		d.addCallMethod("*/column","setSourceDataTypeName",1);
 		d.addCallParam("*/column",0,"sourceDBTypeName");
@@ -245,7 +248,7 @@ public class SwingUIProject {
 		d.addCallMethod("*/column","setSourceDataTypeName",1);
 		d.addCallParam("*/column",0,"sourceDataTypeName");
 		d.addSetNext("*/column", "addChild");
-		
+
 		SQLRelationshipFactory relationshipFactory = new SQLRelationshipFactory();
 		d.addFactoryCreate("*/relationship", relationshipFactory);
 		d.addSetProperties("*/relationship");
@@ -274,7 +277,7 @@ public class SwingUIProject {
 
 		PPRelationshipFactory ppRelationshipFactory = new PPRelationshipFactory();
 		d.addFactoryCreate("architect-project/play-pen/table-link", ppRelationshipFactory);
-		
+
 		DDLGeneratorFactory ddlgFactory = new DDLGeneratorFactory();
 		d.addFactoryCreate("architect-project/ddl-generator", ddlgFactory);
 		d.addSetProperties("architect-project/ddl-generator");
@@ -283,16 +286,16 @@ public class SwingUIProject {
 		d.addFactoryCreate("architect-project/compare-dm-settings", settingFactory);
 		d.addSetProperties("architect-project/compare-dm-settings");
 //		d.addSetNext("architect-project/compare-dm-settings", "setCompareDMSettings");
-		
+
 		CompareDMStuffSettingFactory sourceStuffFactory = new CompareDMStuffSettingFactory(true);
 		d.addFactoryCreate("architect-project/compare-dm-settings/source-stuff", sourceStuffFactory);
 		d.addSetProperties("architect-project/compare-dm-settings/source-stuff");
-		
+
 		CompareDMStuffSettingFactory targetStuffFactory = new CompareDMStuffSettingFactory(false);
 		d.addFactoryCreate("architect-project/compare-dm-settings/target-stuff", targetStuffFactory);
 		d.addSetProperties("architect-project/compare-dm-settings/target-stuff");
-		
-		
+
+
 		FileFactory fileFactory = new FileFactory();
 		d.addFactoryCreate("*/file", fileFactory);
 		d.addSetNext("*/file", "setFile");
@@ -301,7 +304,7 @@ public class SwingUIProject {
 
 		return d;
 	}
-	
+
 	/**
 	 * Creates a ArchitectDataSource object and puts a mapping from its
 	 * id (in the attributes) to the new instance into the dbcsIdMap.
@@ -336,7 +339,7 @@ public class SwingUIProject {
 			}
 			return ppdb;
 		}
-		
+
 	}
 
 
@@ -390,7 +393,7 @@ public class SwingUIProject {
 			return schema;
 		}
 	}
-	
+
 	/**
 	 * Creates a SQLTable instance and adds it to the objectIdMap.
 	 */
@@ -419,7 +422,7 @@ public class SwingUIProject {
 		}
 	}
 
-	/** 
+	/**
 	 * Creates a SQLFolder instance which is marked as populated.
 	 */
 	protected class SQLFolderFactory extends AbstractObjectCreationFactory {
@@ -465,7 +468,7 @@ public class SwingUIProject {
 			if (sourceId != null) {
 				col.setSourceColumn((SQLColumn) objectIdMap.get(sourceId));
 			}
-			
+
 			return col;
 		}
 	}
@@ -509,7 +512,7 @@ public class SwingUIProject {
 
 			String fkTableId = attributes.getValue("fk-table-ref");
 			String pkTableId = attributes.getValue("pk-table-ref");
-			
+
 			if (fkTableId != null && pkTableId != null) {
 				SQLTable fkTable = (SQLTable) objectIdMap.get(fkTableId);
 				SQLTable pkTable = (SQLTable) objectIdMap.get(pkTableId);
@@ -598,7 +601,7 @@ public class SwingUIProject {
 	protected class DDLGeneratorFactory extends AbstractObjectCreationFactory {
 		public Object createObject(Attributes attributes) throws SQLException {
 			try {
-				GenericDDLGenerator ddlg = 
+				GenericDDLGenerator ddlg =
 					(GenericDDLGenerator) Class.forName(attributes.getValue("type")).newInstance();
 				ddlg.setTargetCatalog(attributes.getValue("target-catalog"));
 				ddlg.setTargetSchema(attributes.getValue("target-schema"));
@@ -635,38 +638,38 @@ public class SwingUIProject {
 			if ( source )
 				return getCompareDMSettings().getSourceSettings();
 			else
-				return getCompareDMSettings().getTargetSettings(); 
+				return getCompareDMSettings().getTargetSettings();
 		}
-	}	
-	
+	}
+
 	// ------------- WRITING THE PROJECT FILE ---------------
-	
+
 	/**
 	 * Saves this project by writing an XML description of it to a temp file, then renaming.
 	 * The location of the file is determined by this project's <code>file</code> property.
-	 * 
-	 * @param pm An optional progress monitor which will be initialised then updated 
+	 *
+	 * @param pm An optional progress monitor which will be initialised then updated
 	 * periodically during the save operation.  If you use a progress monitor, don't
 	 * invoke this method on the AWT event dispatch thread!
 	 */
 	public void save(ProgressMonitor pm) throws IOException, ArchitectException {
 		// write to temp file and then rename (this preserves old project file
-		// when there's problems) 
+		// when there's problems)
 		if (file.exists() && !file.canWrite()) {
 			// write problems with architect file will muck up the save process
-			throw new ArchitectException("problem saving project -- " 
+			throw new ArchitectException("problem saving project -- "
 					                    + "cannot write to architect file: "
-										+ file.getAbsolutePath()); 
+										+ file.getAbsolutePath());
 		}
-		
-		File backupFile = new File (file.getParent(), file.getName()+"~");		
-		
+
+		File backupFile = new File (file.getParent(), file.getName()+"~");
+
 		// Several places we would check dir perms, but MS-Windows stupidly doesn't let use the
 		// "directory write" attribute for directory writing (but instead overloads
 		// it to mean 'this is a special directory'.
-		
+
 		File tempFile = null;
-		tempFile = new File (file.getParent(),"tmp___" + file.getName());			
+		tempFile = new File (file.getParent(),"tmp___" + file.getName());
 		String encoding = "UTF-8";
 		try {
 			// If creating this temp file fails, feed the user back a more explanatory message
@@ -674,7 +677,7 @@ public class SwingUIProject {
 		} catch (IOException e) {
 			throw new ArchitectException("Unable to create output file for save operation, data NOT saved.\n" + e, e);
 		}
-		
+
 		progress = 0;
 		this.pm = pm;
 		if (pm != null) {
@@ -690,20 +693,20 @@ public class SwingUIProject {
 		    pm.setProgress(progress);
 		    pm.setMillisToDecideToPopup(0);
 		}
-		
+
 		save(out,encoding);	// Does ALL the actual I/O
 		out = null;
-		if (pm != null) 
+		if (pm != null)
 			pm.close();
 		pm = null;
-		
+
 		// Do the rename dance.
 		// This is a REALLY bad place for failure (especially if we've made the user wait several hours to save
 		// a large project), so we MUST check failures from renameto (both places!)
 		boolean fstatus = false;
-		fstatus = backupFile.delete();			
+		fstatus = backupFile.delete();
 		logger.debug("deleting backup~ file: " + fstatus);
-		
+
 		// If this is a brand new project, the old file does not yet exist, no point trying to rename it.
 		// But if it already existed, renaming current to backup must succeed, or we give up.
 		if (file.exists()) {
@@ -711,19 +714,19 @@ public class SwingUIProject {
 		    logger.debug("rename current file to backupFile: " + fstatus);
 		    if (!fstatus) {
 		        throw new ArchitectException((
-		                "Could not rename current file to backup\nProject saved in " + 
+		                "Could not rename current file to backup\nProject saved in " +
 		                tempFile + ": " + file + " still contains old project"));
 		    }
 		}
 		fstatus = tempFile.renameTo(file);
 		if (!fstatus) {
 		    throw new ArchitectException((
-		            "Could not rename temp file to current\nProject saved in " + 
+		            "Could not rename temp file to current\nProject saved in " +
 		            tempFile + ": " + file + " still contains old project"));
 		}
 		logger.debug("rename tempFile to current file: " + fstatus);
 	}
-    
+
 	/**
 	 * Do just the writing part of save, given a PrintWriter
 	 * @param out - the file to write to
@@ -747,6 +750,7 @@ public class SwingUIProject {
 			saveDDLGenerator(out);
 			saveCompareDMSettings(out);
 			savePlayPen(out);
+            saveProfiles(out);
 			indent--;
 			println(out, "</architect-project>");
 			setModified(false);
@@ -754,10 +758,8 @@ public class SwingUIProject {
 			if (out != null) out.close();
 		}
 	}
-	
-	
 
-	protected int countSourceTables(SQLObject o) throws ArchitectException {
+    protected int countSourceTables(SQLObject o) throws ArchitectException {
 		if (o instanceof SQLTable) {
 			return 1;
 		} else if (o == playPen.getDatabase()) {
@@ -830,9 +832,9 @@ public class SwingUIProject {
 
 	protected void saveCompareDMSettings(PrintWriter out) throws IOException {
 
-		//If the user never uses compareDM function, the saving process 
-		//would fail since some of the return values of saving compareDM 
-		//settings would be null.  Therefore the saveFlag is used as an 
+		//If the user never uses compareDM function, the saving process
+		//would fail since some of the return values of saving compareDM
+		//settings would be null.  Therefore the saveFlag is used as an
 		//indicator to tell if the user went into compareDM or not.
 		if ( !compareDMSettings.getSaveFlag() )
 			return;
@@ -850,24 +852,24 @@ public class SwingUIProject {
 		indent--;
 		println(out, "</compare-dm-settings>");
 	}
-	
-	
+
+
 	private void saveSourceOrTargetAttributes(PrintWriter out, SourceOrTargetSettings sourceSettings) {
 		print(out, " datastoreTypeAsString=\""+ArchitectUtils.escapeXML(sourceSettings.getDatastoreTypeAsString())+"\"");
 		if (sourceSettings.getConnectName() != null)
 		print(out, " connectName=\""+ArchitectUtils.escapeXML(sourceSettings.getConnectName())+"\"");
-		
+
 		if (sourceSettings.getCatalog() != null)
 		print(out, " catalog=\""+ArchitectUtils.escapeXML(sourceSettings.getCatalog())+"\"");
 		if (sourceSettings.getSchema() != null)
 		print(out, " schema=\""+ArchitectUtils.escapeXML(sourceSettings.getSchema())+"\"");
 		print(out, " filePath=\""+ArchitectUtils.escapeXML(sourceSettings.getFilePath())+"\"");
-		
+
 	}
 	/**
 	 * Creates a &lt;source-databases&gt; element which contains zero
 	 * or more &lt;database&gt; elements.
-	 * @param out2 
+	 * @param out2
 	 */
 	protected void saveSourceDatabases(PrintWriter out) throws IOException, ArchitectException {
 		println(out, "<source-databases>");
@@ -883,7 +885,7 @@ public class SwingUIProject {
 		indent--;
 		println(out, "</source-databases>");
 	}
-	
+
 	/**
 	 * Recursively walks through the children of db, writing to the
 	 * output file all SQLRelationship objects encountered.
@@ -927,7 +929,7 @@ public class SwingUIProject {
 		indent--;
 		println(out, "</target-database>");
 	}
-	
+
 	protected void savePlayPen(PrintWriter out) throws IOException, ArchitectException {
 		println(out, "<play-pen>");
 		indent++;
@@ -956,6 +958,19 @@ public class SwingUIProject {
 		println(out, "</play-pen>");
 	}
 
+    /**
+     * Save all of the profiling information.
+     * @param out
+     */
+    protected void saveProfiles(PrintWriter out) {
+        println(out, "<profiles>");
+        indent++;
+//        playPen.getp
+        ///
+        println(out, "</profiles>");
+        indent--;
+    }
+
 	/**
 	 * Creates an XML element describing the given SQLObject and
 	 * writes it to the <code>out</code> PrintWriter.
@@ -980,11 +995,11 @@ public class SwingUIProject {
 
 		String type;
 		Map<String,Object> propNames = new TreeMap<String,Object>();
-		
+
 		// properties of all SQLObject types
 		propNames.put("physicalName", o.getPhysicalName());
 		// FIXME: refactor so we can put in the getName() here too
-		
+
 		if (o instanceof SQLDatabase) {
 			id = "DB"+objectIdMap.size();
 			type = "database";
@@ -1059,11 +1074,11 @@ public class SwingUIProject {
 			throw new UnsupportedOperationException("Whoops, the SQLObject type "
 													+o.getClass().getName()+" is not supported!");
 		}
-	
+
 		objectIdMap.put(o, id);
-		
+
 		boolean skipChildren = false;
-		
+
 		//print("<"+type+" hashCode=\""+o.hashCode()+"\" id=\""+id+"\" ");  // use this for debugging duplicate object problems
 		print(out, "<"+type+" id="+quote(id)+" ");
 
@@ -1109,7 +1124,7 @@ public class SwingUIProject {
 	    return "\""+ArchitectUtils.escapeXML(str)+"\"";
 	}
 	// ------------------- accessors and mutators ---------------------
-	
+
 	/**
 	 * Gets the value of name
 	 *
@@ -1187,8 +1202,8 @@ public class SwingUIProject {
 	/**
 	 * Adds all the tables in the given database into the playpen database.  This is really only
 	 * for loading projects, so please think twice about using it for other stuff.
-	 * 
-	 * @param db The database to add tables from.  The database must contain tables directly. 
+	 *
+	 * @param db The database to add tables from.  The database must contain tables directly.
 	 * @throws ArchitectException If adding the tables of db fails
 	 */
 	public void addAllTablesFrom(SQLDatabase db) throws ArchitectException {
@@ -1197,7 +1212,7 @@ public class SwingUIProject {
 			ppdb.addChild(table);
 		}
 	}
-	
+
 	/**
 	 * Sets the value of playPen
 	 *
@@ -1226,7 +1241,7 @@ public class SwingUIProject {
 	public void setCompareDMSettings(CompareDMSettings compareDMSettings) {
 		this.compareDMSettings = compareDMSettings;
 	}
-	
+
 	/**
 	 * See {@link #savingEntireSource}.
 	 *
@@ -1257,7 +1272,7 @@ public class SwingUIProject {
 	/**
 	 * Prints to the output writer {@link #out} indentation spaces
 	 * (according to {@link #indent}) followed by the given text.
-	 * @param out 
+	 * @param out
 	 */
 	protected void print(PrintWriter out, String text) {
 		for (int i = 0; i < indent; i++) {
@@ -1266,7 +1281,7 @@ public class SwingUIProject {
 		out.print(text);
 	}
 
-	/** 
+	/**
 	 * Prints <code>text</code> to the output writer {@link #out} (no
 	 * indentation).
 	 */
@@ -1274,7 +1289,7 @@ public class SwingUIProject {
 		out.print(text);
 	}
 
-	/** 
+	/**
 	 * Prints <code>text</code> followed by newline to the output
 	 * writer {@link #out} (no indentation).
 	 */
@@ -1293,19 +1308,19 @@ public class SwingUIProject {
 		}
 		out.println(text);
 	}
-	
+
     /**
      * The ProjectModificationWatcher watches a PlayPen's components and
      * business model for changes.  When it detects any, it marks the
      * project dirty.
-     * 
+     *
      * <p>Note: when we implement proper undo/redo support, this class should
      * be replaced with a hook into that system.
      */
     private class ProjectModificationWatcher implements SQLObjectListener, PlayPenComponentListener {
 
         /**
-         * Sets up a new modification watcher on the given playpen. 
+         * Sets up a new modification watcher on the given playpen.
          */
         public ProjectModificationWatcher(PlayPen pp) {
             try {
@@ -1354,7 +1369,7 @@ public class SwingUIProject {
         }
 
 		public void componentMoved(PlayPenComponentEvent e) {
-			
+
 		}
 
 		public void componentResized(PlayPenComponentEvent e) {
@@ -1370,14 +1385,14 @@ public class SwingUIProject {
 		}
 
     }
-    
+
     /**
      * See {@link #modified}.
      */
     public boolean isModified() {
         return modified;
     }
-    
+
     /**
      * See {@link #modified}.
      */
@@ -1388,5 +1403,11 @@ public class SwingUIProject {
 	public UndoManager getUndoManager() {
 		return undoManager;
 	}
-	    
+    public ProfileManager getProfileManager() {
+        return profileManager;
+    }
+    public void setProfileManager(ProfileManager profileManager) {
+        this.profileManager = profileManager;
+    }
+
 }

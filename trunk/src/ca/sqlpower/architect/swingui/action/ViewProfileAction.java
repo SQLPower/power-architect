@@ -12,22 +12,38 @@ import ca.sqlpower.architect.swingui.SwingUserSettings;
 
 public class ViewProfileAction extends AbstractAction {
 
-    
-    protected PlayPen pp;
+
+    private PlayPen pp;
     private ProfileManager profileManager;
-    
-    public ViewProfileAction(PlayPen pp, ProfileManager profileManager) {
+
+    public ViewProfileAction() {
         super("View Profile...", ASUtils.createJLFIcon( "general/History",
-                        "View Profiles", 
+                        "View Profiles",
                         ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
-        
+
         putValue(SHORT_DESCRIPTION, "View Profiled Tables");
-        this.pp = pp;
-        this.profileManager = profileManager;
+
     }
+
     public void actionPerformed(ActionEvent e) {
         // TODO Auto-generated method stub
 
+    }
+
+    public PlayPen getPlayPen() {
+        return pp;
+    }
+
+    public void setPlayPen(PlayPen pp) {
+        this.pp = pp;
+    }
+
+    public ProfileManager getProfileManager() {
+        return profileManager;
+    }
+
+    public void setProfileManager(ProfileManager profileManager) {
+        this.profileManager = profileManager;
     }
 
 }

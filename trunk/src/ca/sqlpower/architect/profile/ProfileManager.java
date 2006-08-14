@@ -8,13 +8,10 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.swing.JLabel;
 
 import org.apache.log4j.Logger;
-
-import sun.misc.GC.LatencyRequest;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
@@ -46,11 +43,11 @@ public class ProfileManager implements Monitorable {
     private boolean findingDistinctCount = true;
 
     private boolean findingNullCount = true;
-    
+
     private boolean findingTopTen = true;
-    
+
     private Integer jobSize;
-    
+
     /**
      * This object is the mutex for controlling access to the fields
      * that implement the Monitorable interface.
@@ -67,6 +64,10 @@ public class ProfileManager implements Monitorable {
 
     private int topNCount = 10;
 
+    public ProfileManager() {
+
+    }
+
     public void putResult(SQLObject sqlObject, ProfileResult profileResult) {
         results.put(sqlObject, profileResult);
     }
@@ -74,13 +75,13 @@ public class ProfileManager implements Monitorable {
     public ProfileResult getResult(SQLObject sqlObject) {
         return results.get(sqlObject);
     }
-    
+
     /**
      * Creates a new profile object for the given SQL Object.
-     * 
+     *
      * @param obj The database object you want to profile.
-     * @throws ArchitectException 
-     * @throws SQLException 
+     * @throws ArchitectException
+     * @throws SQLException
      */
     public synchronized void createProfiles(Collection<SQLTable> tables,
                         JLabel workingOn) throws SQLException, ArchitectException {
@@ -126,16 +127,16 @@ public class ProfileManager implements Monitorable {
         Statement stmt = null;
         ResultSet rs = null;
         String lastSQL = null;
-        
+
         TableProfileResult tableResult = new TableProfileResult(System.currentTimeMillis());
-        
+
         try {
 
             conn = db.getConnection();
             String databaseIdentifierQuoteString = null;
 
             databaseIdentifierQuoteString = conn.getMetaData().getIdentifierQuoteString();
-                
+
             StringBuffer sql = new StringBuffer();
             sql.append("SELECT COUNT(*) AS ROW__COUNT");
             sql.append("\nFROM ");
@@ -149,11 +150,11 @@ public class ProfileManager implements Monitorable {
             lastSQL = sql.toString();
 
             rs = stmt.executeQuery(lastSQL);
-            
+
             if ( rs.next() ) {
                 tableResult.setRowCount(rs.getInt("ROW__COUNT"));
             }
-                       
+
             rs.close();
             rs = null;
 
@@ -173,11 +174,11 @@ public class ProfileManager implements Monitorable {
             } catch (SQLException ex) {
                 logger.error("Couldn't clean up statement", ex);
             }
-            
+
             tableResult.setCreateEndTime(System.currentTimeMillis());
             putResult(table, tableResult);
             doColumnProfile(table.getColumns(), conn);
-            
+
             try {
                 if (conn != null) conn.close();
             } catch (SQLException ex) {
@@ -187,18 +188,16 @@ public class ProfileManager implements Monitorable {
     }
 
 
-    private void doColumnProfile(List<SQLColumn> columns, Connection conn) 
+    private void doColumnProfile(List<SQLColumn> columns, Connection conn)
                     throws SQLException, ArchitectException {
 
         Statement stmt = null;
         ResultSet rs = null;
         String lastSQL = null;
-        String databaseIdentifierQuoteString = null;
-        
         try {
             if ( columns.size() == 0 )
                 return;
-            
+
             SQLColumn col1 = columns.get(0);
 
             DDLGenerator ddlg = null;
@@ -206,7 +205,6 @@ public class ProfileManager implements Monitorable {
             try {
                 ddlg = (DDLGenerator) DDLUtils.createDDLGenerator(
                         col1.getParentTable().getParentDatabase().getDataSource());
-                databaseIdentifierQuoteString = conn.getMetaData().getIdentifierQuoteString();
             } catch (InstantiationException e1) {
                 throw new ArchitectException("problem running Profile Manager", e1);
             } catch ( IllegalAccessException e1 ) {
@@ -215,26 +213,25 @@ public class ProfileManager implements Monitorable {
 
             stmt = conn.createStatement();
             stmt.setEscapeProcessing(false);
-            
-            int i = 0;
+
             for (SQLColumn col : columns ) {
-                
+
                 synchronized (monitorableMutex) {
                     if (userCancel) return;
                 }
                 ProfileFunctionDescriptor pfd = ddlg.getProfileFunctionMap().get(col.getSourceDataTypeName());
                 ColumnProfileResult colResult = null;
                 long profileStartTime = System.currentTimeMillis();
-                
+
                 if ( pfd == null ) {
                     System.out.println(col.getName()+
                             " Unknown DataType:(" +
-                            col.getSourceDataTypeName() + 
+                            col.getSourceDataTypeName() +
                             ").");
-                    
+
                     pfd = discoverProfileFunctionDescriptor(col,ddlg,conn);
                 }
-                
+
                 try {
                     colResult = execProfileFunction(pfd,col,ddlg,conn);
                 } catch ( Exception ex ) {
@@ -252,8 +249,8 @@ public class ProfileManager implements Monitorable {
                     if (userCancel) break;
                 }
 
-                
-            }      
+
+            }
             // XXX: add where filter later
         } finally {
             try {
@@ -267,8 +264,8 @@ public class ProfileManager implements Monitorable {
                 logger.error("Couldn't clean up statement", ex);
             }
         }
-    }            
-    
+    }
+
     /**
      * Discovers which profiling functions can be applied to the given column
      * by trial and error.  This could be extremely time-consuming.
@@ -281,7 +278,7 @@ public class ProfileManager implements Monitorable {
     private ProfileFunctionDescriptor discoverProfileFunctionDescriptor(SQLColumn col, DDLGenerator ddlg, Connection conn) {
         ProfileFunctionDescriptor pfd = new ProfileFunctionDescriptor(col.getSourceDataTypeName(),
                 col.getType(),false,false,false,false,false,false,false,false);
-        
+
         logger.debug("Discovering profile functions for column "+col);
 
         try {
@@ -292,7 +289,7 @@ public class ProfileManager implements Monitorable {
             logger.debug("countDist failed", e);
             pfd.setCountDist(false);
         }
-        
+
         try {
             pfd.setMaxValue(true);
             pfd.setMinValue(true);
@@ -335,7 +332,7 @@ public class ProfileManager implements Monitorable {
             pfd.setSumDecode(false);
         }
 
-        
+
         return pfd;
     }
 
@@ -351,7 +348,7 @@ public class ProfileManager implements Monitorable {
         String lastSQL = null;
         String columnName = null;
         String databaseIdentifierQuoteString = null;
-        
+
         try {
             databaseIdentifierQuoteString = conn.getMetaData().getIdentifierQuoteString();
             sql.append("SELECT 1");
@@ -390,7 +387,7 @@ public class ProfileManager implements Monitorable {
                 sql.append(ddlg.getStringLengthSQLFunctionName("\""+col.getName()+"\""));
                 sql.append(") AS AVGLENGTH_"+i);
             }
-            
+
             if ( findingNullCount && pfd.isSumDecode() ) {
                 sql.append(",\n SUM(");
                 sql.append(ddlg.caseWhen("\""+col.getName()+"\"", "NULL", "1"));
@@ -398,13 +395,13 @@ public class ProfileManager implements Monitorable {
             }
             SQLTable table = col.getParentTable();
             sql.append("\n FROM ");
-  
+
             sql.append(DDLUtils.toQualifiedName(table.getCatalogName(),
                     table.getSchemaName(),
                     table.getName(),
                     databaseIdentifierQuoteString,
                     databaseIdentifierQuoteString));
-            
+
             stmt = conn.createStatement();
             stmt.setEscapeProcessing(false);
 
@@ -413,8 +410,8 @@ public class ProfileManager implements Monitorable {
             ColumnProfileResult colResult = new ColumnProfileResult(createStartTime);
 
             if ( rs.next() ) {
-                
-                
+
+
                 if (findingDistinctCount && pfd.isCountDist() ) {
                     columnName = "DISTINCTCOUNT_"+i;
                     colResult.setDistinctValueCount(rs.getInt(columnName));
@@ -443,7 +440,7 @@ public class ProfileManager implements Monitorable {
                     columnName = "AVGLENGTH_"+i;
                     colResult.setAvgLength(rs.getDouble(columnName));
                 }
-                
+
                 if ( findingNullCount && pfd.isSumDecode() ) {
                     columnName = "NULLCOUNT_"+i;
                     colResult.setNullCount(rs.getInt(columnName));
@@ -455,7 +452,7 @@ public class ProfileManager implements Monitorable {
             }
             rs.close();
             rs = null;
-            
+
             if (findingTopTen && pfd.isCountDist() ) {
                 sql = new StringBuffer();
                 sql.append("SELECT ").append(databaseIdentifierQuoteString);
@@ -476,10 +473,10 @@ public class ProfileManager implements Monitorable {
                     colResult.addValueCount(rs.getObject("MYVALUE"), rs.getInt("COUNT1"));
                 }
             }
-            
+
             colResult.setCreateEndTime(System.currentTimeMillis());
             return colResult;
-            
+
         } finally {
             try {
                 if (rs != null)
@@ -490,12 +487,12 @@ public class ProfileManager implements Monitorable {
                 logger.error("Couldn't clean up result set", ex);
             }
         }
-        
-        
-        
-        
+
+
+
+
     }
-    
+
     // =========== Monitorable Interface =============
     public int getProgress() throws ArchitectException {
         synchronized (monitorableMutex ) {
