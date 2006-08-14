@@ -144,34 +144,50 @@ public class ProfilePDFFormat {
         // add the PdfPTables to the document; try to avoid orphan and widow rows
         pos = writer.getVerticalPosition(true) - fsize;
         logger.debug("Starting at pos="+pos);
+        int x=1;
         for (PdfPTable table : profiles) {
+            
+
             table.setTotalWidth(pagesize.width() - mrgt - mlft);
             table.setWidths(widths);
             int startrow = table.getHeaderRows();
             int endrow = startrow; // current page will contain header+startrow..endrow
+System.out.println("\n\npage size="+document.getPageSize());
+System.out.println("table:"+(x++)+ "  total="+table.size()+"(rows)   page="+writer.getPageNumber()+"   Starting at pos="+pos+"  header height="+calcHeaderHeight(table)+"  row="+table.getHeaderRows());
+            
+            if (endrow == table.size()) {
+                pos = table.writeSelectedRows(0, table.getHeaderRows(), mlft, pos, cb);
+                continue;
+            }
             
             while (endrow < table.size()) {
 
                 // figure out how many body rows fit nicely on the page
                 float endpos = pos - calcHeaderHeight(table);
+System.out.println("pos="+pos+"  endpos="+endpos);                
                 while (endpos > (mbot + pbot) && endrow < table.size() ) {
                     endpos -= table.getRowHeight(endrow);
+System.out.println("endrow="+ endrow+ "  endpos="+endpos+"  height="+table.getRowHeight(endrow) );                    
                     endrow++;
                 }
 
                 // adjust for orphan rows. Might create widows or make 
                 // endrow < startrow, which is handled later by deferring the table
-/*                if (endrow < table.size() && endrow + minRowsTogether >= table.size()) {
+                if (endrow < table.size() && endrow + minRowsTogether >= table.size()) {
                     if (endrow + 1 == table.size()) {
+System.out.println("\ntry to squeeze!!!\n");
+System.out.println("table size="+table.size()+"   endrow="+endrow+ "   endpos="+endpos );
+System.out.println("last row heigth="+table.getRowHeight(endrow+1)+"    this row heigth="+table.getRowHeight(endrow));
+
                         // short by 1 row.. just squeeze it in
                         endrow = table.size();
                     } else {
                         // more than 1 row remains: shorten this page so orphans aren't lonely
                         endrow = table.size() - minRowsTogether;
                     }
-                }*/
+                }
 
-                if (endrow == table.size() || endrow - startrow > minRowsTogether) {
+                if (endrow == table.size() || endrow - startrow >= minRowsTogether) {
                     // this is the end of the table, or we have enough rows to bother printing
                     pos = table.writeSelectedRows(0, table.getHeaderRows(), mlft, pos, cb);
                     pos = table.writeSelectedRows(startrow, endrow, mlft, pos, cb);
@@ -179,6 +195,7 @@ public class ProfilePDFFormat {
                 } else {
                     // not the end of the table and not enough rows to print out
                     endrow = startrow;
+//                    throw new IllegalStateException("Page is not large engouh to display "+minRowsTogether+" row(s)");
                 }
 
                 // new page if necessary (that is, when we aren't finished the table yet)
@@ -311,6 +328,7 @@ public class ProfilePDFFormat {
             infoCell.setBorder(Rectangle.NO_BORDER);
             infoTable.addCell(infoCell);
         }
+        
         PdfPCell hcell = new PdfPCell(new Phrase(heading.toString(), titleFont));
         hcell.setColspan(ncols - 2);
         hcell.setBorder(Rectangle.NO_BORDER);
@@ -321,27 +339,36 @@ public class ProfilePDFFormat {
         hcell.setColspan(2);
         hcell.setBorder(Rectangle.NO_BORDER);
         table.addCell(hcell);
+        
+        if ( sqlTable.getColumns().size() > 0 ) {
 
-        
-        for (int colNo = 0; colNo < ncols; colNo++) {
-            String contents = headings[colNo];
-            
-            // ensure column width is at least enough for widest word in heading
-            StringTokenizer st = new StringTokenizer(contents);
-            while (st.hasMoreTokens()) {
-                widths[colNo] = Math.max(widths[colNo],
-                        bf.getWidthPoint(st.nextToken(), colHeadingFSize));
+            for (int colNo = 0; colNo < ncols; colNo++) {
+                String contents = headings[colNo];
+                
+                // ensure column width is at least enough for widest word in heading
+                StringTokenizer st = new StringTokenizer(contents);
+                while (st.hasMoreTokens()) {
+                    widths[colNo] = Math.max(widths[colNo],
+                            bf.getWidthPoint(st.nextToken(), colHeadingFSize));
+                }
+                
+                Phrase colTitle = new Phrase(contents, colHeadingFont);
+                PdfPCell cell = new PdfPCell(colTitle);
+                cell.setBorder(Rectangle.BOTTOM | Rectangle.TOP);
+                cell.setBorderWidth(2);
+                cell.setBackgroundColor(new Color(200, 200, 200));
+                cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                table.addCell(cell);
             }
-            
-            Phrase colTitle = new Phrase(contents, colHeadingFont);
-            PdfPCell cell = new PdfPCell(colTitle);
-            cell.setBorder(Rectangle.BOTTOM | Rectangle.TOP);
-            cell.setBorderWidth(2);
-            cell.setBackgroundColor(new Color(200, 200, 200));
-            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-            table.addCell(cell);
+    
         }
-        
+        else {
+            hcell = new PdfPCell(new Phrase("No Column Found in the table", titleFont));
+            hcell.setColspan(ncols);
+            hcell.setBorder(Rectangle.BOTTOM);
+            hcell.setVerticalAlignment(Element.ALIGN_LEFT);
+            table.addCell(hcell);
+        }
         table.setHeaderRows(2);
     }
 

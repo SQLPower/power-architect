@@ -11,7 +11,7 @@ public class ColumnProfileResult extends ProfileResult {
     private Object avgValue;
     private int minLength;
     private int maxLength;
-    private int avgLength;
+    private double avgLength;
     private int nullCount;
     private List<ColumnValueCount> topTen;
     
@@ -20,11 +20,11 @@ public class ColumnProfileResult extends ProfileResult {
         topTen = new ArrayList<ColumnValueCount>();
     }
 
-    public int getAvgLength() {
+    public double getAvgLength() {
         return avgLength;
     }
 
-    public void setAvgLength(int avgLength) {
+    public void setAvgLength(double avgLength) {
         this.avgLength = avgLength;
     }
 
