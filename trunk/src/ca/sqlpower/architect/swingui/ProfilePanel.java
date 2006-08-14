@@ -27,9 +27,11 @@ import org.apache.log4j.Logger;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.CategoryAxis;
+import org.jfree.chart.axis.CategoryLabelPositions;
 import org.jfree.chart.labels.StandardPieSectionLabelGenerator;
-import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PiePlot;
+import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.DefaultKeyedValues;
 import org.jfree.data.category.CategoryToPieDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
@@ -72,6 +74,10 @@ public class ProfilePanel extends JPanel {
     private final JProgressBar progressBar = new JProgressBar();
     private ChartPanel chartPanel;
 
+    public enum ChartTypes { BAR, PIE }
+    
+    private ChartTypes chartType = ChartTypes.PIE;
+    
     private ProfileManager pm = new ProfileManager();
     
     public ProfilePanel() {
@@ -267,23 +273,36 @@ public class ProfilePanel extends JPanel {
             catDataset.addValue(otherDataCount,sqo.getName(),"Other Values");
         }
         
-        /*chart = ChartFactory.createBarChart(
-                "Top "+numberOfTopValues+" most common non-unique values",
-                "","",catDataset,PlotOrientation.VERTICAL,
-                false,true,false);
+        if ( chartType == ChartTypes.BAR ){
+            chart = ChartFactory.createBarChart(
+                    "Top "+numberOfTopValues+" most common non-unique values",
+                    "","",catDataset,PlotOrientation.VERTICAL,
+                    false,true,false);
                 
-                */ 
+            final CategoryAxis domainAxis = chart.getCategoryPlot().getDomainAxis();
+            domainAxis.setCategoryLabelPositions(CategoryLabelPositions.DOWN_90);
+        } else if (chartType == ChartTypes.PIE) {
         
-        
-        chart = ChartFactory.createPieChart(
-                "Top "+numberOfTopValues+" most common values",
-                new CategoryToPieDataset(catDataset,TableOrder.BY_ROW,0),
-                false,true,false);
-        if (chart.getPlot() instanceof PiePlot) {
-            ((PiePlot)chart.getPlot()).setLabelGenerator(new StandardPieSectionLabelGenerator("{0} [{1}]"));
+            chart = ChartFactory.createPieChart(
+                    "Top "+numberOfTopValues+" most common values",
+                    new CategoryToPieDataset(catDataset,TableOrder.BY_ROW,0),
+                    false,true,false);
+            if (chart.getPlot() instanceof PiePlot) {
+                ((PiePlot)chart.getPlot()).setLabelGenerator(new StandardPieSectionLabelGenerator("{0} [{1}]"));
+            }
+        } else {
+            throw new IllegalStateException("chart type "+chartType+" not recognized");
         }
         return chart;
     }
+    public ChartTypes getChartType() {
+        return chartType;
+    }
+
+    public void setChartType(ChartTypes chartType) {
+        this.chartType = chartType;
+    }
+
     private String format(double d) {
         return String.format("%6.2f", d);
     }
