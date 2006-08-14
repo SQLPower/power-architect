@@ -981,6 +981,7 @@ public class SwingUIProject {
             } else {
                 logger.error("Unknown PropfileResult Subclass: " + value.getClass());
             }
+            println(out, "</profile>");
         }
         println(out, "</profiles>");
         indent--;
