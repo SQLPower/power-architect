@@ -26,7 +26,7 @@ public class ProfileManager implements Monitorable {
 
     private static final Logger logger = Logger.getLogger(ProfileManager.class);
 
-    private Map<SQLObject, ProfileResult> results = new HashMap<SQLObject, ProfileResult>();
+    private final Map<SQLObject, ProfileResult> results = new HashMap<SQLObject, ProfileResult>();
 
     private boolean findingMin = true;
 
@@ -128,7 +128,8 @@ public class ProfileManager implements Monitorable {
         ResultSet rs = null;
         String lastSQL = null;
 
-        TableProfileResult tableResult = new TableProfileResult(System.currentTimeMillis());
+        TableProfileResult tableResult = new TableProfileResult();
+        tableResult.setCreateStartTime(System.currentTimeMillis());
 
         try {
 
@@ -162,7 +163,7 @@ public class ProfileManager implements Monitorable {
         } catch (SQLException ex) {
             logger.error("Error in SQL query: "+lastSQL, ex);
             tableResult.setError(true);
-            tableResult.setEx(ex);
+            tableResult.setException(ex);
         } finally {
             try {
                 if (rs != null) rs.close();
@@ -235,9 +236,10 @@ public class ProfileManager implements Monitorable {
                 try {
                     colResult = execProfileFunction(pfd,col,ddlg,conn);
                 } catch ( Exception ex ) {
-                    colResult = new ColumnProfileResult(profileStartTime);
+                    colResult = new ColumnProfileResult();
+                    colResult.setCreateStartTime(profileStartTime);
                     colResult.setError(true);
-                    colResult.setEx(ex);
+                    colResult.setException(ex);
                     colResult.setCreateEndTime(System.currentTimeMillis());
                     logger.error("Error in Column Profiling: "+lastSQL, ex);
                 } finally {
@@ -407,7 +409,8 @@ public class ProfileManager implements Monitorable {
 
             lastSQL = sql.toString();
             rs = stmt.executeQuery(lastSQL);
-            ColumnProfileResult colResult = new ColumnProfileResult(createStartTime);
+            ColumnProfileResult colResult = new ColumnProfileResult();
+            colResult.setCreateStartTime(createStartTime);
 
             if ( rs.next() ) {
 
@@ -600,6 +603,10 @@ public class ProfileManager implements Monitorable {
 
     public void setTopNCount(int topNCount) {
         this.topNCount = topNCount;
+    }
+
+    public Map<SQLObject, ProfileResult> getResults() {
+        return results;
     }
 
 

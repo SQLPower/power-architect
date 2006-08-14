@@ -40,7 +40,10 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.PLExport;
+import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ProfileManager;
+import ca.sqlpower.architect.profile.ProfileResult;
+import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentListener;
@@ -965,8 +968,20 @@ public class SwingUIProject {
     protected void saveProfiles(PrintWriter out) {
         println(out, "<profiles>");
         indent++;
-//        playPen.getp
-        ///
+        ProfileManager profmgr = getProfileManager();
+        Map<SQLObject, ProfileResult> results = profmgr.getResults();
+        for (Map.Entry<SQLObject, ProfileResult> e : results.entrySet()) {
+            //SQLObject key = e.getKey();
+            ProfileResult value = e.getValue();
+            println(out, "<profile type=" + value.getClass().getName() + ">");
+            if (value instanceof TableProfileResult) {
+                // XXX
+            } else if (value instanceof ColumnProfileResult) {
+                // XXX
+            } else {
+                logger.error("Unknown PropfileResult Subclass: " + value.getClass());
+            }
+        }
         println(out, "</profiles>");
         indent--;
     }

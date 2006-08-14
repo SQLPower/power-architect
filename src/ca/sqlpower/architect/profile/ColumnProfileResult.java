@@ -13,11 +13,10 @@ public class ColumnProfileResult extends ProfileResult {
     private int maxLength;
     private double avgLength;
     private int nullCount;
-    private List<ColumnValueCount> topTen;
-    
-    public ColumnProfileResult(long createStartTime) {
-        super(createStartTime);
-        topTen = new ArrayList<ColumnValueCount>();
+    private List<ColumnValueCount> topTen = new ArrayList<ColumnValueCount>();
+
+    public ColumnProfileResult() {
+
     }
 
     public double getAvgLength() {
@@ -90,7 +89,7 @@ public class ColumnProfileResult extends ProfileResult {
 
     @Override
     public String toString() {
-        return "[ColumnProfileResult:" + 
+        return "[ColumnProfileResult:" +
                 "; distinctValues: "+distinctValueCount+
                 "; minLength: "+minLength+
                 "; maxLength: "+maxLength+
@@ -116,11 +115,11 @@ public class ColumnProfileResult extends ProfileResult {
     public List<ColumnValueCount> getValueCount() {
         return topTen;
     }
-    
+
     public class ColumnValueCount {
         private Object value;
         private int count;
-        
+
         public ColumnValueCount(Object value, int count) {
             this.value = value;
             this.count = count;

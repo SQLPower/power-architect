@@ -3,6 +3,7 @@ package ca.sqlpower.architect.profile;
 import java.sql.SQLException;
 import java.text.NumberFormat;
 import java.util.Collection;
+import java.util.Date;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
@@ -95,8 +96,8 @@ public class ProfileResultFormatter {
                 s.append("</h3>");
                 s.append("</td></tr>");
                 s.append("<tr><td colspan=\"" +cellCount+ "\">" );
-                if ( tpr != null && tpr.getEx() != null ) {
-                    s.append(tpr.getEx());
+                if ( tpr != null && tpr.getException() != null ) {
+                    s.append(tpr.getException());
                     s.append("</td></tr>");
                 }
             }
@@ -104,7 +105,7 @@ public class ProfileResultFormatter {
                 s.append("&nbsp;&nbsp;&nbsp;Row&nbsp;Count:&nbsp;");
                 s.append(tpr.getRowCount());
                 s.append("&nbsp;&nbsp;&nbsp;Run&nbsp;Date:");
-                s.append(tpr.getCreateDate());
+                s.append(new Date(tpr.getCreateStartTime()));
 
                 s.append("&nbsp;&nbsp;&nbsp;Time&nbsp;To&nbsp;Create:");
                 s.append(tpr.getTimeToCreate());
@@ -142,7 +143,7 @@ public class ProfileResultFormatter {
                         s.append("<td bgcolor=\"#f0f0f0\" colspan=\""+(cellCount-2)+"\">");
                         s.append("Column Profile Error:");
                         if ( cpr != null ) {
-                            s.append(cpr.getEx());
+                            s.append(cpr.getException());
                         }
                         s.append("</td>");
                     }
