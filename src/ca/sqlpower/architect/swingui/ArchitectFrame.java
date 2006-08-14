@@ -61,7 +61,6 @@ import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.etl.ExportCSV;
 import ca.sqlpower.architect.layout.ArchitectLayoutInterface;
 import ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout;
-import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.qfa.ExceptionHandler;
 import ca.sqlpower.architect.swingui.action.AboutAction;
 import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
@@ -109,11 +108,10 @@ public class ArchitectFrame extends JFrame {
     public static final boolean MAC_OS_X = (System.getProperty("os.name").toLowerCase().startsWith("mac os x"));
 
 	public static final double ZOOM_STEP = 0.25;
-	
+
 	protected Preferences prefs;
 
-    protected ProfileManager profileManager;
-	/**
+    /**
 	 * Tracks whether or not the most recent "save project" operation was
 	 * successful.
 	 */
@@ -129,10 +127,10 @@ public class ArchitectFrame extends JFrame {
 	protected JSplitPane splitPane = null;
 	protected PlayPen playpen = null;
 	protected DBTree dbTree = null;
-	
+
 	private UndoAction undoAction;
 	private RedoAction redoAction;
-	
+
     private JMenu connectionsMenu;
 
     private RecentMenu recent;
@@ -170,7 +168,7 @@ public class ArchitectFrame extends JFrame {
 	protected Action compareDMAction;
 	protected ExportPLTransAction exportPLTransAction;
     protected ExportPLJobXMLAction exportPLJobXMLAction;
-    
+
 	protected QuickStartAction quickStartAction;
 	protected ArchitectFrameWindowListener afWindowListener;
 	protected Action exitAction = new AbstractAction("Exit") {
@@ -178,7 +176,7 @@ public class ArchitectFrame extends JFrame {
 	        exit();
 	    }
 	};
-	
+
 	/**
 	 * Updates the swing settings and then writes all settings to the
 	 * config file whenever actionPerformed is invoked.
@@ -197,7 +195,7 @@ public class ArchitectFrame extends JFrame {
 	/**
 	 * You can't create an architect frame using this constructor.  You have to
 	 * call {@link #getMainInstance()}.
-	 * 
+	 *
 	 * @throws ArchitectException
 	 */
 	private ArchitectFrame() throws ArchitectException {
@@ -210,12 +208,12 @@ public class ArchitectFrame extends JFrame {
 	    architectSession = ArchitectSession.getInstance();
 	    init();
 	}
-	
+
 	/**
 	 * Checks if the project is modified, and if so presents the user with the option to save
 	 * the existing project.  This is useful to use in actions that are about to get rid of
 	 * the currently open project.
-	 * 
+	 *
 	 * @return True if the project can be closed; false if the project should remain open.
 	 */
     protected boolean promptForUnsavedModifications() {
@@ -233,18 +231,18 @@ public class ArchitectFrame extends JFrame {
         }
     }
 
-	protected void init() throws ArchitectException {
+	private void init() throws ArchitectException {
 		int accelMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
 		prefs = PrefsUtils.getUserPrefsNode(architectSession);
 	    CoreUserSettings us;
 	    // must be done right away, because a static
-	    // initializer in this class effects BeanUtils 
-	    // behaviour which the XML Digester relies 
+	    // initializer in this class effects BeanUtils
+	    // behaviour which the XML Digester relies
 	    // upon heavily
 	    //TypeMap.getInstance();
 	    contentPane = (JComponent)getContentPane();
-	    
+
 		try {
 			ConfigFile cf = ConfigFile.getDefaultInstance();
 			us = cf.read(getArchitectSession());
@@ -287,25 +285,25 @@ public class ArchitectFrame extends JFrame {
 		        }
 		    } else if (choice == 1) {
 		        newPlIniFile = new File(System.getProperty("user.home"), "pl.ini");
-		    } else 
+		    } else
                 throw new ArchitectException("Unexpected return from JOptionPane.showOptionDialog to get pl.ini");
-		    
+
 		    if (newPlIniFile != null) try {
 		        newPlIniFile.createNewFile();
 		        us.setPlDotIniPath(newPlIniFile.getPath());
 		    } catch (IOException e1) {
 		        logger.error("Caught IO exception while creating empty PL.INI at \""
 		                +newPlIniFile.getPath()+"\"", e1);
-		        JOptionPane.showMessageDialog(null, "Failed to create file \""+newPlIniFile.getPath()+"\":\n"+e1.getMessage(), 
+		        JOptionPane.showMessageDialog(null, "Failed to create file \""+newPlIniFile.getPath()+"\":\n"+e1.getMessage(),
 		                "Error", JOptionPane.ERROR_MESSAGE);
 		    }
 		}
-		
+
 		// Create actions
 		aboutAction = new AboutAction();
-        
+
         Action helpAction = new HelpAction();
-        
+
 		newProjectAction
 			 = new AbstractAction("New Project",
 					      ASUtils.createJLFIcon("general/New","New Project",sprefs.getInt(SwingUserSettings.ICON_SIZE, 24))) {
@@ -315,7 +313,7 @@ public class ArchitectFrame extends JFrame {
 			        	prefs.putInt(SwingUserSettings.DIVIDER_LOCATION, splitPane.getDividerLocation());
 			        	closeProject(getProject());
 			            setProject(new SwingUIProject("New Project"));
-			            logger.debug("Glass pane is "+getGlassPane());			            
+			            logger.debug("Glass pane is "+getGlassPane());
 			        } catch (Exception ex) {
 			            JOptionPane.showMessageDialog(ArchitectFrame.this,
 			                    "Can't create new project: "+ex.getMessage());
@@ -325,14 +323,14 @@ public class ArchitectFrame extends JFrame {
 			}
 		};
 		newProjectAction.putValue(AbstractAction.SHORT_DESCRIPTION, "New");
-		newProjectAction.putValue(AbstractAction.ACCELERATOR_KEY, 
+		newProjectAction.putValue(AbstractAction.ACCELERATOR_KEY,
 				KeyStroke.getKeyStroke(KeyEvent.VK_N, accelMask));
-		
+
 		recent = new RecentMenu(this) {
 			@Override
 			public void loadFile(String fileName) throws IOException {
 				File f = new File(fileName);
-				
+
 				LoadFileWorker worker;
 				try {
 					worker = new LoadFileWorker(f,null);
@@ -348,17 +346,17 @@ public class ArchitectFrame extends JFrame {
 				}
 			}
 		};
-		
+
 		 openProjectAction = new OpenProjectAction(recent);
-		 
+
 		 JMenuItem clearItem = new JMenuItem("Clear Recent Files");
 		 clearItem.addActionListener(new ActionListener() {
 			 public void actionPerformed(ActionEvent e) {
 				 recent.clear();
-			 }			
+			 }
 		 });
-		
-		saveProjectAction 
+
+		saveProjectAction
 			= new AbstractAction("Save Project",
 								 ASUtils.createJLFIcon("general/Save",
 													   "Save Project",
@@ -370,7 +368,7 @@ public class ArchitectFrame extends JFrame {
 		saveProjectAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Save");
 		saveProjectAction.putValue(AbstractAction.ACCELERATOR_KEY,
 				KeyStroke.getKeyStroke(KeyEvent.VK_S, accelMask));
-		
+
 		saveProjectAsAction
 			= new AbstractAction("Save Project As...",
 								 ASUtils.createJLFIcon("general/SaveAs",
@@ -389,7 +387,7 @@ public class ArchitectFrame extends JFrame {
 		printAction = new PrintAction();
 		printAction.putValue(AbstractAction.ACCELERATOR_KEY,
 				KeyStroke.getKeyStroke(KeyEvent.VK_P, accelMask));
-		
+
 		zoomInAction = new ZoomAction(ZOOM_STEP);
 		zoomOutAction = new ZoomAction(ZOOM_STEP * -1.0);
 
@@ -403,8 +401,8 @@ public class ArchitectFrame extends JFrame {
 					}
 				};
 		zoomNormalAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Reset Zoom");
-		
-		
+
+
 		zoomAllAction = new AbstractAction("Zoom to fit",
 							 ASUtils.createJLFIcon("general/Zoom",
 												   "Reset Zoom",
@@ -422,7 +420,7 @@ public class ArchitectFrame extends JFrame {
 							}
 						}
 					}
-					
+
 					if ( rect == null )
 						return;
 
@@ -435,7 +433,7 @@ public class ArchitectFrame extends JFrame {
 				}
 			};
 		zoomAllAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Zoom to fit");
-		
+
 		undoAction = new UndoAction();
 		redoAction = new RedoAction();
 		autoLayoutAction = new AutoLayoutAction();
@@ -452,18 +450,18 @@ public class ArchitectFrame extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 try {
                     ExportCSV export = new ExportCSV(getProject().getPlayPen().getDatabase().getTables());
-                    
+
                     File file = null;
 
                     JFileChooser fileDialog = new JFileChooser();
                     fileDialog.setSelectedFile(new File("map.csv"));
-                    
+
                     if (fileDialog.showSaveDialog(ArchitectFrame.getMainInstance()) == JFileChooser.APPROVE_OPTION){
                         file = fileDialog.getSelectedFile();
                     } else {
                         return;
                     }
-                    
+
                     FileWriter output = null;
                     output = new FileWriter(file);
                     output.write(export.getCSVMapping());
@@ -485,23 +483,23 @@ public class ArchitectFrame extends JFrame {
                     if (playpen.getSelectedTables().size() == 0) {
                         selectedTables = new ArrayList(playpen.getTables());
                     } else {
-                        if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(ArchitectFrame.getMainInstance(),"View only the "+playpen.getSelectedTables().size()+" selected tables","Show Mapping",JOptionPane.YES_NO_OPTION)) {                            
+                        if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(ArchitectFrame.getMainInstance(),"View only the "+playpen.getSelectedTables().size()+" selected tables","Show Mapping",JOptionPane.YES_NO_OPTION)) {
                             selectedTables = new ArrayList<SQLTable>();
                             for(TablePane tp: playpen.getSelectedTables()) {
                                 selectedTables.add(tp.getModel());
                             }
                         } else {
-                            selectedTables = new ArrayList(playpen.getTables());   
+                            selectedTables = new ArrayList(playpen.getTables());
                         }
                     }
                     mr = new MappingReport(selectedTables);
-                    
+
                     final JFrame f = new JFrame("Mapping Report");
-                    
+
                     // You call this a radar?? -- No sir, we call it Mr. Panel.
                     JPanel mrPanel = new JPanel() {
                         protected void paintComponent(java.awt.Graphics g) {
-                            
+
                             super.paintComponent(g);
                             try {
                                 mr.drawHighLevelReport((Graphics2D) g,null);
@@ -522,18 +520,18 @@ public class ArchitectFrame extends JFrame {
                         public void actionPerformed(ActionEvent e) {
                             try {
                                 ExportCSV export = new ExportCSV(selectedTables);
-                                
+
                                 File file = null;
 
                                 JFileChooser fileDialog = new JFileChooser();
                                 fileDialog.setSelectedFile(new File("map.csv"));
-                                
+
                                 if (fileDialog.showSaveDialog(ArchitectFrame.getMainInstance()) == JFileChooser.APPROVE_OPTION){
                                     file = fileDialog.getSelectedFile();
                                 } else {
                                     return;
                                 }
-                                
+
                                 FileWriter output = null;
                                 output = new FileWriter(file);
                                 output.write(export.getCSVMapping());
@@ -544,7 +542,7 @@ public class ArchitectFrame extends JFrame {
                                 throw new ArchitectRuntimeException(e1);
                             }
                         }
-                        
+
                     });
                     csv.setText("Export CSV");
                     buttonBar.addGriddedGrowing(csv);
@@ -559,7 +557,7 @@ public class ArchitectFrame extends JFrame {
                         public void actionPerformed(ActionEvent e) {
                             f.setVisible(false);
                         }
-                        
+
                     });
                     close.setText("Close");
                     buttonBar.addRelatedGap();
@@ -590,16 +588,15 @@ public class ArchitectFrame extends JFrame {
 		selectAllAction = new SelectAllAction();
 		selectAllAction.putValue(AbstractAction.ACCELERATOR_KEY,
 				KeyStroke.getKeyStroke(KeyEvent.VK_A, accelMask));
-		
+
         /* profiling stuff */
-		profileManager = new ProfileManager();
-        profileAction = new ProfileAction(profileManager);
-        viewProfileAction = new ViewProfileAction(playpen,profileManager);
+        profileAction = new ProfileAction();
+        viewProfileAction = new ViewProfileAction();
 		menuBar = new JMenuBar();
-		
+
 		//Settingup
 		JMenu fileMenu = new JMenu("File");
-		fileMenu.setMnemonic('f');		
+		fileMenu.setMnemonic('f');
 		fileMenu.add(newProjectAction);
 		fileMenu.add(openProjectAction);
 		fileMenu.add(recent);
@@ -629,7 +626,7 @@ public class ArchitectFrame extends JFrame {
 		editMenu.addSeparator();
 		editMenu.add(searchReplaceAction);
 		menuBar.add(editMenu);
-		
+
 		// the connections menu is set up when a new project is created (because it depends on the current DBTree)
 		connectionsMenu = new JMenu("Connections");
 		connectionsMenu.setMnemonic('c');
@@ -637,20 +634,20 @@ public class ArchitectFrame extends JFrame {
 
 		JMenu etlMenu = new JMenu("ETL");
 		etlMenu.setMnemonic('l');
-		JMenu etlSubmenuOne = new JMenu("Power*Loader");		
+		JMenu etlSubmenuOne = new JMenu("Power*Loader");
 		etlSubmenuOne.add(exportPLTransAction);
 
 		// Todo add in ability to run the engine from the architect
         /*
             Action runPL = new RunPLAction();
             runPL.putValue(Action.NAME,"Run Power*Loader");
-		    etlSubmenuOne.add(runPL); 
+		    etlSubmenuOne.add(runPL);
         */
 
 		etlSubmenuOne.add(exportPLJobXMLAction);
 
 		etlSubmenuOne.add(quickStartAction);
-		etlMenu.add(etlSubmenuOne);	
+		etlMenu.add(etlSubmenuOne);
         etlMenu.add(exportCSVAction);
         etlMenu.add(mappingReportAction);
 		menuBar.add(etlMenu);
@@ -661,13 +658,13 @@ public class ArchitectFrame extends JFrame {
 		toolsMenu.add(compareDMAction);
         toolsMenu.add(new SQLRunnerAction());
 		menuBar.add(toolsMenu);
-		
+
         JMenu profileMenu = new JMenu("Profile");
         profileMenu.setMnemonic('p');
         profileMenu.add(profileAction);
         profileMenu.add(viewProfileAction);
         menuBar.add(profileMenu);
-        
+
 		JMenu helpMenu = new JMenu("Help");
 		helpMenu.setMnemonic('h');
         if (!MAC_OS_X) {
@@ -676,7 +673,7 @@ public class ArchitectFrame extends JFrame {
         }
         helpMenu.add(helpAction);
 		menuBar.add(helpMenu);
-		
+
 		setJMenuBar(menuBar);
 
 		projectBar = new JToolBar(JToolBar.HORIZONTAL);
@@ -700,9 +697,9 @@ public class ArchitectFrame extends JFrame {
         projectBar.add(helpAction);
 		projectBar.setToolTipText("Project Toolbar");
 		projectBar.setName("Project Toolbar");
-        
-		
-		
+
+
+
 		JButton tempButton = null; // shared actions need to report where they are coming from
 		ppBar.setToolTipText("PlayPen Toolbar");
 		ppBar.setName("PlayPen ToolBar");
@@ -726,7 +723,7 @@ public class ArchitectFrame extends JFrame {
 		ppBar.add(createIdentifyingRelationshipAction);
 		tempButton = ppBar.add(editRelationshipAction);
 		tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-		
+
 
 		Container projectBarPane = getContentPane();
 		projectBarPane.setLayout(new BorderLayout());
@@ -739,7 +736,7 @@ public class ArchitectFrame extends JFrame {
 		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 		cp.add(splitPane, BorderLayout.CENTER);
 		logger.debug("Added splitpane to content pane");
-		
+
 		splitPane.setDividerLocation(prefs.getInt(SwingUserSettings.DIVIDER_LOCATION,150));
 
 		Rectangle bounds = new Rectangle();
@@ -749,31 +746,31 @@ public class ArchitectFrame extends JFrame {
 		bounds.height = prefs.getInt(SwingUserSettings.MAIN_FRAME_HEIGHT, 440);
 		setBounds(bounds);
 		addWindowListener(afWindowListener = new ArchitectFrameWindowListener());
-				
+
 		setProject(new SwingUIProject("New Project"));
 	}
-	
+
 	public void setProject(SwingUIProject p) throws ArchitectException {
 		this.project = p;
 		logger.debug("Setting project to "+project);
 		setTitle(project.getName()+" - Power*Architect");
 		playpen = project.getPlayPen();
 		dbTree = project.getSourceDatabases();
-		
+
 		setupActions();
 
 		setupConnectionsMenu();
-		
+
 		splitPane.setLeftComponent(new JScrollPane(dbTree));
 		splitPane.setRightComponent(new JScrollPane(playpen));
-		
+
 		splitPane.setDividerLocation(prefs.getInt(SwingUserSettings.DIVIDER_LOCATION,150));
 	}
-	
+
 	public SwingUIProject getProject(){
 		return this.project;
 	}
-	
+
 	/**
 	 * Sets up the items in the Connections menu to operate on the current dbtree.
 	 */
@@ -809,22 +806,24 @@ public class ArchitectFrame extends JFrame {
 		zoomInAction.setPlayPen(playpen);
 		zoomOutAction.setPlayPen(playpen);
 		autoLayoutAction.setPlayPen(playpen);
-		
+        viewProfileAction.setPlayPen(playpen);
+
 		undoAction.setManager(project.getUndoManager());
 		redoAction.setManager(project.getUndoManager());
-		
+
 		// dbtree actions
-		editColumnAction.setDBTree(dbTree);		
+		editColumnAction.setDBTree(dbTree);
 		insertColumnAction.setDBTree(dbTree);
 		editRelationshipAction.setDBTree(dbTree);
 		deleteSelectedAction.setDBTree(dbTree);
 		editTableAction.setDBTree(dbTree);
 		searchReplaceAction.setDBTree(dbTree);
 		profileAction.setDBTree(dbTree);
-        
-		//
+		profileAction.setProfileManager(project.getProfileManager());
+        viewProfileAction.setProfileManager(project.getProfileManager());
+
 		prefAction.setArchitectFrame(this);
-		projectSettingsAction.setArchitectFrame(this);			
+		projectSettingsAction.setArchitectFrame(this);
 	}
 
 	public static synchronized ArchitectFrame getMainInstance() {
@@ -837,7 +836,7 @@ public class ArchitectFrame extends JFrame {
 		}
 		return mainInstance;
 	}
-	
+
 	/**
 	 * Convenience method for getArchitectSession().getUserSettings().
 	 */
@@ -848,14 +847,14 @@ public class ArchitectFrame extends JFrame {
 	public ArchitectSession getArchitectSession() {
 		return architectSession;
 	}
-	
+
 	/**
 	 * Determine if either create relationship action is currently active.
 	 */
 	public boolean createRelationshipIsActive () {
 		if (createIdentifyingRelationshipAction.isActive()) return true;
 		if (createNonIdentifyingRelationshipAction.isActive()) return true;
-		return false;			
+		return false;
 	}
 
 	private class LoadFileWorker extends ArchitectSwingWorker {
@@ -865,11 +864,11 @@ public class ArchitectFrame extends JFrame {
         RecentMenu recent;
 		/**
          * Load file worker creates a new worker and opens the given file.
-         * 
+         *
          * @param file  this file gets opened in the constructor
          * @param recent optional recent menu in which to add the file
          * @throws ArchitectException when the project creation fails.
-         * @throws FileNotFoundException if file doesn't exist 
+         * @throws FileNotFoundException if file doesn't exist
 		 */
 		public LoadFileWorker(File file,RecentMenu recent) throws ArchitectException, FileNotFoundException {
 				closeProject(getProject());
@@ -881,9 +880,9 @@ public class ArchitectFrame extends JFrame {
 				(new ProgressMonitorInputStream
 						(ArchitectFrame.this,
 								"Reading " + file.getName(),
-								new FileInputStream(file)));					
+								new FileInputStream(file)));
 		}
-		
+
 		@Override
 		public void doStuff() throws IOException, ArchitectException {
 			project.load(in);
@@ -891,22 +890,22 @@ public class ArchitectFrame extends JFrame {
                 recent.putRecentFileName(file.getAbsolutePath());
             }
 		}
-		
+
 		@Override
 		public void cleanup() throws ArchitectException {
             setProject(project);
             ((SQLObject) project.getSourceDatabases().getModel().getRoot()).fireDbStructureChanged();
         	try {
         		if (in != null) {
-        			in.close();					                    		
+        			in.close();
         		}
         	} catch (IOException ie) {
-        		logger.error("got exception while closing project file", ie);	
+        		logger.error("got exception while closing project file", ie);
         	}
 
 		}
 	}
-	
+
 	private class OpenProjectAction extends AbstractAction {
 		RecentMenu recent;
 		private OpenProjectAction(RecentMenu recent) {
@@ -944,7 +943,7 @@ public class ArchitectFrame extends JFrame {
 		        }
 		    }
 		}
-		
+
 
 	}
 
@@ -962,9 +961,9 @@ public class ArchitectFrame extends JFrame {
 		prefs.putInt(SwingUserSettings.MAIN_FRAME_Y, getLocation().y);
 		prefs.putInt(SwingUserSettings.MAIN_FRAME_WIDTH, getWidth());
 		prefs.putInt(SwingUserSettings.MAIN_FRAME_HEIGHT, getHeight());
-		
+
 		configFile.write(getArchitectSession());
-		
+
 		CoreUserSettings us = getUserSettings();
 		try {
             us.getPlDotIni().write(new File(us.getPlDotIniPath()));
@@ -977,14 +976,14 @@ public class ArchitectFrame extends JFrame {
 	 * Calling this method quits the application and terminates the
 	 * JVM.
 	 */
-	public void exit() {		
+	public void exit() {
 		if (getProject().isSaveInProgress()) {
-			// project save is in progress, don't allow exit			
-	        JOptionPane.showMessageDialog(this, "Project is saving, cannot exit the Power Architect.  Please wait for the save to finish, and then try again.", 
-	                "Warning", JOptionPane.WARNING_MESSAGE);	
+			// project save is in progress, don't allow exit
+	        JOptionPane.showMessageDialog(this, "Project is saving, cannot exit the Power Architect.  Please wait for the save to finish, and then try again.",
+	                "Warning", JOptionPane.WARNING_MESSAGE);
 	        return;
 		}
-		
+
 	    if (promptForUnsavedModifications()) {
 	        try {
 	        	closeProject(getProject());
@@ -1001,14 +1000,14 @@ public class ArchitectFrame extends JFrame {
 	 * an acceptable way to launch the Architect application.
 	 */
 	public static void main(String args[]) throws ArchitectException {
-        
+
         ArchitectUtils.startup();
-        
+
         System.setProperty("apple.laf.useScreenMenuBar", "true");
-        
+
 		ArchitectUtils.configureLog4j();
 
-        
+
        String architectFileArg = null;
        final File openFile;
         if (args.length > 0) {
@@ -1018,20 +1017,20 @@ public class ArchitectFrame extends JFrame {
             openFile = null;
         }
 		getMainInstance();
-        
-		
+
+
 		SwingUtilities.invokeLater(new Runnable() {
 		    public void run() {
-		        
+
 		        Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());
-		        // this doesn't appear to have any effect on the motion threshold 
+		        // this doesn't appear to have any effect on the motion threshold
 		        // in the Playpen, but it does seem to work on the DBTree...
 		        logger.debug("current motion threshold is: " + System.getProperty("awt.dnd.drag.threshold"));
 		        System.setProperty("awt.dnd.drag.threshold","10");
 		        logger.debug("new motion threshold is: " + System.getProperty("awt.dnd.drag.threshold"));
-		        
+
 		        getMainInstance().macOSXRegistration();
-		        
+
 		        getMainInstance().setVisible(true);
 		        LoadFileWorker worker;
 		        if (openFile != null) {
@@ -1054,21 +1053,21 @@ public class ArchitectFrame extends JFrame {
 
     /**
      * Registers this application in Mac OS X if we're running on that platform.
-     * 
+     *
      * <p>This code came from Apple's "OS X Java Adapter" example.
      */
     private void macOSXRegistration() {
         if (MAC_OS_X) {
             try {
                 Class osxAdapter = ClassLoader.getSystemClassLoader().loadClass("ca.sqlpower.architect.swingui.OSXAdapter");
-                
+
                 Class[] defArgs = {ArchitectFrame.class};
                 Method registerMethod = osxAdapter.getDeclaredMethod("registerMacOSXApplication", defArgs);
                 if (registerMethod != null) {
                     Object[] args = { this };
                     registerMethod.invoke(osxAdapter, args);
                 }
-                // This is slightly gross.  to reflectively access methods with boolean args, 
+                // This is slightly gross.  to reflectively access methods with boolean args,
                 // use "boolean.class", then pass a Boolean object in as the arg, which apparently
                 // gets converted for you by the reflection system.
                 defArgs[0] = boolean.class;
@@ -1082,7 +1081,7 @@ public class ArchitectFrame extends JFrame {
                 // because OSXAdapter extends ApplicationAdapter in its def
                 System.err.println("This version of Mac OS X does not support the Apple EAWT.  Application Menu handling has been disabled (" + e + ")");
             } catch (ClassNotFoundException e) {
-                // This shouldn't be reached; if there's a problem with the OSXAdapter we should get the 
+                // This shouldn't be reached; if there's a problem with the OSXAdapter we should get the
                 // above NoClassDefFoundError first.
                 System.err.println("This version of Mac OS X does not support the Apple EAWT.  Application Menu handling has been disabled (" + e + ")");
             } catch (Exception e) {
@@ -1093,8 +1092,8 @@ public class ArchitectFrame extends JFrame {
     }
 
 	/**
-	 * Saves the project, showing a file chooser when appropriate.
-	 * 
+	 * Condition the Model to save the project, showing a file chooser when appropriate.
+	 *
 	 * @param showChooser If true, a chooser will always be shown; otherwise a
 	 * chooser will only be shown if the project has no file associated with it
 	 * (this is usually because it has never been saved before).
@@ -1136,14 +1135,14 @@ public class ArchitectFrame extends JFrame {
 		final boolean finalSeparateThread = separateThread;
 		final ProgressMonitor pm = new ProgressMonitor
 			(ArchitectFrame.this, "Saving Project", "", 0, 100);
-		
+
 		Runnable saveTask = new Runnable() {
 			public void run() {
 				try {
 					lastSaveOpSuccessful = false;
 					project.setSaveInProgress(true);
 					project.save(finalSeparateThread ? pm : null);
-					lastSaveOpSuccessful = true;	
+					lastSaveOpSuccessful = true;
 					JOptionPane.showMessageDialog(ArchitectFrame.this, "Save successful");
 				} catch (Exception ex) {
 					lastSaveOpSuccessful = false;
@@ -1180,7 +1179,7 @@ public class ArchitectFrame extends JFrame {
 	public AutoLayoutAction getAutoLayoutAction() {
 		return autoLayoutAction;
 	}
-	
+
 	public JToolBar getProjectToolBar() {
 		return projectBar;
 	}
@@ -1188,14 +1187,14 @@ public class ArchitectFrame extends JFrame {
 	public JToolBar getPlayPenToolBar() {
 		return ppBar;
 	}
-	
+
 	public UndoManager getUndoManager() {
 		// XXX: Matt may have had other ideas; not sure what they were
 		return getProject().getUndoManager();
 	}
-	
+
 	public UserSettings getSwingUserSettings() {
-		return sprefs;	
+		return sprefs;
 	}
 
 	public UserSettings getSprefs() {
