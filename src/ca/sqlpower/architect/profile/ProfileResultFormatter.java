@@ -3,7 +3,6 @@ package ca.sqlpower.architect.profile;
 import java.sql.SQLException;
 import java.text.NumberFormat;
 import java.util.Collection;
-import java.util.Set;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
@@ -12,88 +11,84 @@ import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 
 public class ProfileResultFormatter {
 
-    
-
     /**
      * This class generates formatted HTML of the profile information
-     *  
-     * TODO Make an interface and this class a implementation of the interface  
+     *
+     * TODO Make an interface and this class a implementation of the interface
      */
     public String format(Collection <SQLTable> tables, ProfileManager pm) throws SQLException {
         StringBuffer s = new StringBuffer();
         int cellCount = 0;
-        
+
         s.append("<table border=\"0\" width=\"100%\">");
         s.append("<tr>");
-        
+
         s.append("<th>");
         s.append("Column Name");
         cellCount++;
         s.append("</th>");
-        
+
         s.append("<th>");
         s.append("Data Type");
         cellCount++;
         s.append("</th>");
-        
+
         s.append("<th>");
         s.append("Distinct Value");
         cellCount++;
         s.append("</th>");
-        
+
         s.append("<th>");
         s.append("Null Value");
         cellCount++;
         s.append("</th>");
-        
+
         s.append("<th>");
         s.append("MinValue");
         cellCount++;
         s.append("</th>");
-        
+
         s.append("<th>");
         s.append("MaxValue");
         cellCount++;
         s.append("</th>");
-        
+
         s.append("<th>");
         s.append("AvgValue");
         cellCount++;
         s.append("</th>");
-        
+
         s.append("<th>");
         s.append("MinLength");
         cellCount++;
         s.append("</th>");
-        
+
         s.append("<th>");
         s.append("MaxLength");
         cellCount++;
         s.append("</th>");
-        
+
         s.append("<th>");
         s.append("AvgLength");
         cellCount++;
         s.append("</th>");
-        
+
         s.append("</tr>");
-        
+
         NumberFormat mf = NumberFormat.getInstance();
         mf.setMaximumFractionDigits(1);
         mf.setGroupingUsed(false);
-        
-        
-        
+
         GenericDDLGenerator gddl = new GenericDDLGenerator();
-        
+
         for ( SQLTable t : tables ) {
-            
+
             s.append("<tr><tr>");
 
             s.append("<tr><td colspan=\"" +cellCount+ "\">" );
             s.append("<h3>");
             s.append(t.getName());
-            
+
             TableProfileResult tpr = (TableProfileResult) pm.getResult(t);
             if ( tpr == null || tpr.isError() ) {
                 s.append("&nbsp;&nbsp;&nbsp;Profiling Error:");
@@ -110,23 +105,23 @@ public class ProfileResultFormatter {
                 s.append(tpr.getRowCount());
                 s.append("&nbsp;&nbsp;&nbsp;Run&nbsp;Date:");
                 s.append(tpr.getCreateDate());
-                
+
                 s.append("&nbsp;&nbsp;&nbsp;Time&nbsp;To&nbsp;Create:");
                 s.append(tpr.getTimeToCreate());
                 s.append(" ms");
                 s.append("</h3>");
                 s.append("</td></tr>");
-                
+
             }
-            
-            
+
+
             double rowCount = (double)tpr.getRowCount();
-            
+
             try {
                 for ( SQLColumn c : t.getColumns() ) {
 
                     ColumnProfileResult cpr = (ColumnProfileResult) pm.getResult(c);
-                    
+
                     s.append("<tr>");
                     s.append("<td bgcolor=\"#e0e0e0\">");
                     if ( c.isPrimaryKey() )
@@ -135,14 +130,14 @@ public class ProfileResultFormatter {
                     if ( c.isPrimaryKey() )
                         s.append("</b>");
                     s.append("</td>");
-                    
+
                     s.append("<td bgcolor=\"#e0e0e0\">");
                     if ( gddl != null )
                         s.append(gddl.columnType(c));
                     else
                         s.append("-----");
                     s.append("</td>");
-                    
+
                     if ( cpr == null || cpr.isError() ) {
                         s.append("<td bgcolor=\"#f0f0f0\" colspan=\""+(cellCount-2)+"\">");
                         s.append("Column Profile Error:");
@@ -152,35 +147,35 @@ public class ProfileResultFormatter {
                         s.append("</td>");
                     }
                     else {
-                        
+
                         // distinct count
                         s.append("<td bgcolor=\"#f0f0f0\">");
-                        s.append( ((ColumnProfileResult)cpr).getDistinctValueCount());
+                        s.append( cpr.getDistinctValueCount());
                         if ( rowCount > 0 ) {
                             s.append("(");
-                            s.append(mf.format( ((ColumnProfileResult)cpr).getDistinctValueCount()*100.0/rowCount) );
+                            s.append(mf.format( cpr.getDistinctValueCount()*100.0/rowCount) );
                             s.append("%)");
                         } else {
                             s.append("(-)");
                         }
                         s.append("</td>");
-                        
+
                         // null count
                         s.append("<td bgcolor=\"#f0f0f0\">");
-                        s.append( ((ColumnProfileResult)cpr).getNullCount());
+                        s.append( cpr.getNullCount());
                         if ( rowCount > 0 ) {
                             s.append("(" );
-                            s.append( mf.format( ((ColumnProfileResult)cpr).getNullCount()*100.0/rowCount) );
+                            s.append( mf.format( cpr.getNullCount()*100.0/rowCount) );
                             s.append("%)");
                         }
                         else
                             s.append("(-)");
                         s.append("</td>");
-                        
+
                         // min value
                         s.append("<td bgcolor=\"#e0e0e0\">");
                         String minVal = null;
-                        Object minValObj = ((ColumnProfileResult)cpr).getMinValue();
+                        Object minValObj = cpr.getMinValue();
                         if ( minValObj != null ) {
                             minVal = minValObj.toString();
                             if ( minVal != null && minVal.length() > 30 ) {
@@ -190,11 +185,11 @@ public class ProfileResultFormatter {
                         }
                         s.append( minVal );
                         s.append("</td>");
-                        
+
                         // max value
                         s.append("<td bgcolor=\"#e0e0e0\">");
                         String maxVal = null;
-                        Object maxValObj = ((ColumnProfileResult)cpr).getMaxValue();
+                        Object maxValObj = cpr.getMaxValue();
                         if ( maxValObj != null ) {
                             maxVal = maxValObj.toString();
                             if ( maxVal != null && maxVal.length() > 30 ) {
@@ -204,34 +199,34 @@ public class ProfileResultFormatter {
                         }
                         s.append( maxVal);
                         s.append("</td>");
-                        
+
                         // avg value
                         s.append("<td bgcolor=\"#e0e0e0\">");
-                        try {
-                            s.append(mf.format(((ColumnProfileResult)cpr).getAvgValue()));
-                        } catch ( java.lang.IllegalArgumentException ex ) {
-                            s.append(((ColumnProfileResult)cpr).getAvgValue());
+                        if (cpr.getAvgValue() instanceof Number) {
+                            s.append(mf.format(cpr.getAvgValue()));
+                        } else {
+                            s.append(cpr.getAvgValue());
                         }
                         s.append("</td>");
-                        
+
                         // min length
                         s.append("<td bgcolor=\"#f0f0f0\">");
-                        s.append( ((ColumnProfileResult)cpr).getMinLength());
+                        s.append( cpr.getMinLength());
                         s.append("</td>");
-                        
+
                         // max length
                         s.append("<td bgcolor=\"#f0f0f0\">");
-                        s.append( ((ColumnProfileResult)cpr).getMaxLength());
+                        s.append( cpr.getMaxLength());
                         s.append("</td>");
-                        
+
                         // avg length
                         s.append("<td bgcolor=\"#f0f0f0\">");
-                        s.append( ((ColumnProfileResult)cpr).getAvgLength());
+                        s.append(mf.format(cpr.getAvgLength()));
                         s.append("</td>");
 
                     }
-                                        
-                    
+
+
                     s.append("</tr>");
                 }
             } catch (ArchitectException e) {
@@ -240,7 +235,7 @@ public class ProfileResultFormatter {
         }
         s.append("</table>");
         return s.toString();
-        
+
     }
-    
+
 }

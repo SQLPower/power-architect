@@ -58,7 +58,7 @@ public class ProfilePDFFormat {
             "Count"
     };
     private int maxCharsInTopN = 50;
-    
+
     public ProfilePDFFormat() {
         super();
         totalColumn = headings.length;
@@ -69,20 +69,20 @@ public class ProfilePDFFormat {
      * Anything in excess of this number of characters will be truncated and replaced
      * by an ellipsis.
      */
-    
+
     /**
      * Outputs a PDF file report of the data in drs to the given
      * output stream.
-     * @throws ArchitectException 
-     * @throws IllegalAccessException 
-     * @throws InstantiationException 
+     * @throws ArchitectException
+     * @throws IllegalAccessException
+     * @throws InstantiationException
      */
     public void createPdf(OutputStream out,
                                  java.util.List<SQLTable> tables,
                                  ProfileManager pm)
-                throws DocumentException, IOException, SQLException, 
+                throws DocumentException, IOException, SQLException,
                     ArchitectException, InstantiationException, IllegalAccessException {
-        
+
         final int minRowsTogether = 1;  // counts smaller than this are considered orphan/widow
         final int mtop = 50;  // margin at top of page (in points)
         final int mbot = 50;  // margin at bottom of page (page numbers are below this)
@@ -99,10 +99,10 @@ public class ProfilePDFFormat {
         document.addSubject("Tables: " + tables);
         document.addAuthor(System.getProperty("user.name"));
         document.addCreator("Power*Architect version "+ArchitectUtils.APP_VERSION);
-    
+
         document.open();
 
-        // vertical position where next element should start 
+        // vertical position where next element should start
         //   (bottom is 0; top is pagesize.height())
         float pos = pagesize.height() - mtop;
 
@@ -146,7 +146,7 @@ public class ProfilePDFFormat {
         logger.debug("Starting at pos="+pos);
         int x=1;
         for (PdfPTable table : profiles) {
-            
+
 
             table.setTotalWidth(pagesize.width() - mrgt - mlft);
             table.setWidths(widths);
@@ -154,24 +154,24 @@ public class ProfilePDFFormat {
             int endrow = startrow; // current page will contain header+startrow..endrow
 System.out.println("\n\npage size="+document.getPageSize());
 System.out.println("table:"+(x++)+ "  total="+table.size()+"(rows)   page="+writer.getPageNumber()+"   Starting at pos="+pos+"  header height="+calcHeaderHeight(table)+"  row="+table.getHeaderRows());
-            
+
             if (endrow == table.size()) {
                 pos = table.writeSelectedRows(0, table.getHeaderRows(), mlft, pos, cb);
                 continue;
             }
-            
+
             while (endrow < table.size()) {
 
                 // figure out how many body rows fit nicely on the page
                 float endpos = pos - calcHeaderHeight(table);
-System.out.println("pos="+pos+"  endpos="+endpos);                
+System.out.println("pos="+pos+"  endpos="+endpos);
                 while (endpos > (mbot + pbot) && endrow < table.size() ) {
                     endpos -= table.getRowHeight(endrow);
-System.out.println("endrow="+ endrow+ "  endpos="+endpos+"  height="+table.getRowHeight(endrow) );                    
+System.out.println("endrow="+ endrow+ "  endpos="+endpos+"  height="+table.getRowHeight(endrow) );
                     endrow++;
                 }
 
-                // adjust for orphan rows. Might create widows or make 
+                // adjust for orphan rows. Might create widows or make
                 // endrow < startrow, which is handled later by deferring the table
                 if (endrow < table.size() && endrow + minRowsTogether >= table.size()) {
                     if (endrow + 1 == table.size()) {
@@ -237,13 +237,13 @@ System.out.println("last row heigth="+table.getRowHeight(endrow+1)+"    this row
      * each table's column widths using the final resulting widths
      * array.  If you want each table to have its own optimal widths,
      * use a new array for each invocation.
-     * @throws ArchitectException 
-     * @throws SQLException 
-     * @throws IllegalAccessException 
-     * @throws InstantiationException 
+     * @throws ArchitectException
+     * @throws SQLException
+     * @throws IllegalAccessException
+     * @throws InstantiationException
      */
     protected PdfPTable makeNextTable(ProfileManager pm, SQLTable sqlTable,
-                                             BaseFont bf, float fsize, float[] widths) 
+                                             BaseFont bf, float fsize, float[] widths)
             throws DocumentException, IOException, ArchitectException,
                     SQLException, InstantiationException, IllegalAccessException {
 
@@ -256,7 +256,7 @@ System.out.println("last row heigth="+table.getRowHeight(endrow+1)+"    this row
         float titleFSize = fsize * 1.5f;
         float colHeadingFSize = fsize;
         addHeaderRow(pm, sqlTable, table, bf, titleFSize, colHeadingFSize, widths);
-        
+
         // body rows
         for (SQLColumn col : sqlTable.getColumns()) {
             addBodyRow(pm, col, table, bf, f, fsize, widths);
@@ -276,17 +276,17 @@ System.out.println("last row heigth="+table.getRowHeight(endrow+1)+"    this row
      * width value for that column.  Words are split using the default
      * settings for java.util.StringTokenizer.
      */
-    private void addHeaderRow(ProfileManager pm, SQLTable sqlTable, 
+    private void addHeaderRow(ProfileManager pm, SQLTable sqlTable,
                                 PdfPTable table, BaseFont bf, float titleFSize,
-                                float colHeadingFSize, float[] widths) 
+                                float colHeadingFSize, float[] widths)
         throws DocumentException, IOException, ArchitectException {
-        
-        
+
+
         int ncols = headings.length;
 
         Font titleFont = new Font(bf, titleFSize, Font.BOLD);
         Font colHeadingFont = new Font(bf, colHeadingFSize);
-        
+
         TableProfileResult tProfile = (TableProfileResult) pm.getResult(sqlTable);
         PdfPTable infoTable = new PdfPTable(2);
         StringBuffer heading = new StringBuffer();
@@ -298,17 +298,17 @@ System.out.println("last row heigth="+table.getRowHeight(endrow+1)+"    this row
         }
         else {
             PdfPCell infoCell;
-            
+
             heading.append("Table: ").append(sqlTable.getName());
             infoCell = new PdfPCell(new Phrase("Row Count:",colHeadingFont));
             infoCell.setBorder(Rectangle.NO_BORDER);
             infoCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
             infoTable.addCell(infoCell);
-            
+
             infoCell = new PdfPCell(new Phrase(String.valueOf(tProfile.getRowCount()), colHeadingFont));
             infoCell.setBorder(Rectangle.NO_BORDER);
             infoTable.addCell(infoCell);
-            
+
             infoCell = new PdfPCell(new Phrase("Create Date:",colHeadingFont));
             infoCell.setBorder(Rectangle.NO_BORDER);
             infoCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
@@ -318,40 +318,40 @@ System.out.println("last row heigth="+table.getRowHeight(endrow+1)+"    this row
             infoCell = new PdfPCell(new Phrase(df.format(tProfile.getCreateDate()), colHeadingFont));
             infoCell.setBorder(Rectangle.NO_BORDER);
             infoTable.addCell(infoCell);
-            
+
             infoCell = new PdfPCell(new Phrase("Elapsed:",colHeadingFont));
             infoCell.setBorder(Rectangle.NO_BORDER);
             infoCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
             infoTable.addCell(infoCell);
-            
+
             infoCell = new PdfPCell(new Phrase(tProfile.getTimeToCreate()+"ms", colHeadingFont));
             infoCell.setBorder(Rectangle.NO_BORDER);
             infoTable.addCell(infoCell);
         }
-        
+
         PdfPCell hcell = new PdfPCell(new Phrase(heading.toString(), titleFont));
         hcell.setColspan(ncols - 2);
         hcell.setBorder(Rectangle.NO_BORDER);
         hcell.setVerticalAlignment(Element.ALIGN_BOTTOM);
         table.addCell(hcell);
-        
+
         hcell = new PdfPCell(infoTable);
         hcell.setColspan(2);
         hcell.setBorder(Rectangle.NO_BORDER);
         table.addCell(hcell);
-        
+
         if ( sqlTable.getColumns().size() > 0 ) {
 
             for (int colNo = 0; colNo < ncols; colNo++) {
                 String contents = headings[colNo];
-                
+
                 // ensure column width is at least enough for widest word in heading
                 StringTokenizer st = new StringTokenizer(contents);
                 while (st.hasMoreTokens()) {
                     widths[colNo] = Math.max(widths[colNo],
                             bf.getWidthPoint(st.nextToken(), colHeadingFSize));
                 }
-                
+
                 Phrase colTitle = new Phrase(contents, colHeadingFont);
                 PdfPCell cell = new PdfPCell(colTitle);
                 cell.setBorder(Rectangle.BOTTOM | Rectangle.TOP);
@@ -360,7 +360,7 @@ System.out.println("last row heigth="+table.getRowHeight(endrow+1)+"    this row
                 cell.setHorizontalAlignment(Element.ALIGN_CENTER);
                 table.addCell(cell);
             }
-    
+
         }
         else {
             hcell = new PdfPCell(new Phrase("No Column Found in the table", titleFont));
@@ -373,13 +373,13 @@ System.out.println("last row heigth="+table.getRowHeight(endrow+1)+"    this row
     }
 
     protected void addBodyRow(ProfileManager pm, SQLColumn col, PdfPTable table,
-                                     BaseFont bf, Font f, float fsize, float[] widths) 
+                                     BaseFont bf, Font f, float fsize, float[] widths)
         throws DocumentException, IOException, ArchitectException,
                 SQLException, InstantiationException, IllegalAccessException {
 
         TableProfileResult tProfile = (TableProfileResult) pm.getResult(col.getParentTable());
         ColumnProfileResult cProfile = (ColumnProfileResult) pm.getResult(col);
-        
+
         DDLGenerator gddl = DDLUtils.createDDLGenerator(
                 col.getParentTable().getParentDatabase().getDataSource());
 
@@ -388,7 +388,7 @@ System.out.println("last row heigth="+table.getRowHeight(endrow+1)+"    this row
             rowCount = tProfile.getRowCount();
         }
         java.util.List<ColumnValueCount> topTen = null;
-        
+
         boolean errorColumnProfiling = false;
         Exception columnException = null;
         if ( cProfile != null && cProfile.isError() != true ) {
@@ -399,22 +399,22 @@ System.out.println("last row heigth="+table.getRowHeight(endrow+1)+"    this row
             if ( cProfile != null && cProfile.getEx() != null )
                 columnException = cProfile.getEx();
         }
-        
+
         DecimalFormat pctFormat = new DecimalFormat("0%");
-        
+
         DecimalFormat df = new DecimalFormat("#,##0.00");
         df.setMaximumFractionDigits(col.getScale());
         df.setMinimumFractionDigits(col.getScale());
-        
+
         DecimalFormat adf = new DecimalFormat("#,##0.00");
         adf.setMaximumFractionDigits(Math.max(2,col.getScale()));
         adf.setMinimumFractionDigits(Math.max(2,col.getScale()));
-        
+
         for (int colNo = 0; colNo < totalColumn; colNo++) {
-            
+
             String contents;
             int alignment;
-            
+
             if ( headings[colNo].equalsIgnoreCase("table name") ) {
                 if ( tProfile == null || tProfile.isError() ) {
                     contents = col.getParentTable().getName() + "\nProfiling Error:\n";
@@ -438,7 +438,7 @@ System.out.println("last row heigth="+table.getRowHeight(endrow+1)+"    this row
                 if ( errorColumnProfiling ) {
                     contents = "Column Profiling Error:\n";
                     if ( columnException != null )
-                        contents += columnException; 
+                        contents += columnException;
                     alignment = Element.ALIGN_LEFT;
                 }
                 else {
@@ -510,7 +510,7 @@ System.out.println("last row heigth="+table.getRowHeight(endrow+1)+"    this row
                 }
             } else if ( headings[colNo].equalsIgnoreCase("avg Length") ) {
                 if ( !errorColumnProfiling ) {
-                    contents = String.valueOf(cProfile.getAvgLength());
+                    contents = adf.format(cProfile.getAvgLength());
                     alignment = Element.ALIGN_RIGHT;
                 }
                 else {
@@ -597,7 +597,7 @@ System.out.println("last row heigth="+table.getRowHeight(endrow+1)+"    this row
             } else {
                 throw new IllegalStateException("I don't know about column "+colNo);
             }
-            
+
             StringBuffer truncContents = new StringBuffer(contents.length());
 
             // update column width to reflect the widest cell
@@ -609,12 +609,12 @@ System.out.println("last row heigth="+table.getRowHeight(endrow+1)+"    this row
                                       bf.getWidthPoint((String) contentLine, fsize));
                 truncContents.append(contentLine).append("\n");
             }
-            
+
 
             PdfPCell cell;
             if ( headings[colNo].equalsIgnoreCase("Top N Values") ||
                  headings[colNo].equalsIgnoreCase("Count") ) {
-                cell = new PdfPCell(new Paragraph(truncContents.toString(), f)); 
+                cell = new PdfPCell(new Paragraph(truncContents.toString(), f));
                 cell.setNoWrap(true);
             } else if ( headings[colNo].equalsIgnoreCase("null count") &&
                         errorColumnProfiling ) {
@@ -624,7 +624,7 @@ System.out.println("last row heigth="+table.getRowHeight(endrow+1)+"    this row
             else {
                 Phrase phr = new Phrase(truncContents.toString(), f);
                 cell = new PdfPCell(phr);
-            
+
             }
 //            cell.setBorder(Rectangle.NO_BORDER);
             cell.setHorizontalAlignment(alignment);
