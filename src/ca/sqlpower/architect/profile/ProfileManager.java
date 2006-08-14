@@ -133,14 +133,6 @@ public class ProfileManager implements Monitorable {
 
             conn = db.getConnection();
             String databaseIdentifierQuoteString = null;
-            
-        
-/*            DatabaseMetaData dbmd = conn.getMetaData();
-            rs = dbmd.getTypeInfo();
-            while (rs.next()) {
-                System.out.println("name="+rs.getString(1)+"  type:"+rs.getInt(2));
-            }
-            rs.close();*/
 
             databaseIdentifierQuoteString = conn.getMetaData().getIdentifierQuoteString();
                 
@@ -164,9 +156,7 @@ public class ProfileManager implements Monitorable {
                        
             rs.close();
             rs = null;
-            
-            doColumnProfile(table.getColumns(), conn);
-            
+
             // XXX: add where filter later
         } catch (SQLException ex) {
             logger.error("Error in SQL query: "+lastSQL, ex);
@@ -183,13 +173,16 @@ public class ProfileManager implements Monitorable {
             } catch (SQLException ex) {
                 logger.error("Couldn't clean up statement", ex);
             }
+            
+            tableResult.setCreateEndTime(System.currentTimeMillis());
+            putResult(table, tableResult);
+            doColumnProfile(table.getColumns(), conn);
+            
             try {
                 if (conn != null) conn.close();
             } catch (SQLException ex) {
                 logger.error("Couldn't clean up connection", ex);
             }
-            tableResult.setCreateEndTime(System.currentTimeMillis());
-            putResult(table, tableResult);
         }
     }
 
@@ -448,7 +441,7 @@ public class ProfileManager implements Monitorable {
                 }
                 if (findingAvgLength && pfd.isAvgLength() ) {
                     columnName = "AVGLENGTH_"+i;
-                    colResult.setAvgLength(rs.getInt(columnName));
+                    colResult.setAvgLength(rs.getDouble(columnName));
                 }
                 
                 if ( findingNullCount && pfd.isSumDecode() ) {
