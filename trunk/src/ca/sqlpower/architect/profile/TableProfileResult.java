@@ -1,11 +1,13 @@
 package ca.sqlpower.architect.profile;
 
+import java.util.Date;
+
 public class TableProfileResult extends ProfileResult {
 
     private int rowCount;
 
-    public TableProfileResult(long createStartTime) {
-        super(createStartTime);
+    public TableProfileResult() {
+
     }
 
     public int getRowCount() {
@@ -19,7 +21,7 @@ public class TableProfileResult extends ProfileResult {
     @Override
     public String toString() {
         return "RowCount:" + rowCount +
-                "   Run Date:[" + getCreateDate() + "]" +
+                "   Run Date:[" + new Date(getCreateStartTime()) + "]" +
                 "   Time To Create:" + getTimeToCreate() + "ms";
     }
 }

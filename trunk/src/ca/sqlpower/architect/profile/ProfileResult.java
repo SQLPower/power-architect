@@ -1,23 +1,22 @@
 package ca.sqlpower.architect.profile;
 
-import java.util.Date;
+public abstract class ProfileResult {
 
-public class ProfileResult {
-
-    private long createEndTime;
-    private long createStartTime;
+    private long createEndTime = -1L;
+    private long createStartTime = -1L;
     private Exception ex;
-    private boolean error; 
+    private boolean error;
 
-    public ProfileResult(long createStartTime) {
-        this.createEndTime = -1;
-        this.createStartTime = createStartTime;
-        ex = null;
-        error = false;
+    public ProfileResult() {
+
     }
-    
-    public Date getCreateDate() {
-        return new Date(createStartTime);
+
+    public long getCreateStartTime() {
+        return createStartTime;
+    }
+
+    public void setCreateStartTime(long createStartTime) {
+        this.createStartTime = createStartTime;
     }
 
     public long getTimeToCreate() {
@@ -27,7 +26,11 @@ public class ProfileResult {
     public void setCreateEndTime(long createEndTime) {
         this.createEndTime = createEndTime;
     }
-    
+
+    public long getCreateEndTime() {
+        return createEndTime;
+    }
+
     public boolean isError() {
         return error;
     }
@@ -36,13 +39,11 @@ public class ProfileResult {
         this.error = error;
     }
 
-    public Exception getEx() {
+    public Exception getException() {
         return ex;
     }
 
-    public void setEx(Exception ex) {
+    public void setException(Exception ex) {
         this.ex = ex;
     }
-    
-    
 }
