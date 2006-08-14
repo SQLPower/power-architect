@@ -993,6 +993,12 @@ public class CompareDMPanel extends JPanel {
 				}
 				
 				public void cleanup() {
+                    if (getDoStuffException() != null) {
+                        Throwable exc = getDoStuffException();
+                        logger.error("Error in doStuff()", exc);
+                        ASUtils.showExceptionDialog(CompareDMPanel.this, "Database Comparison Failed!", exc);
+                        return;
+                    }
 					logger.debug("cleanup starts");
 					try {
 						DefaultStyledDocument sourceDoc = new DefaultStyledDocument();
