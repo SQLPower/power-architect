@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.StringTokenizer;
 
@@ -41,6 +42,27 @@ public class ProfilePDFFormat {
 
     private static final Logger logger = Logger.getLogger(ProfileManager.class);
     private int totalColumn;
+
+    
+    private final String[] heading1stLine = new String[] {
+            "Column Name",
+            "Data Type",
+            "Null",
+            "Unique",
+            "Length",
+            "Value",
+            "Value"
+    };
+    private final String[] heading2ndLine = new String[] {
+            "Column Name",
+            "Data Type",
+            "Null",
+            "Unique",
+            "Length",
+            "Value",
+            "Value"
+    };
+    
     private final String[] headings = new String[] {
             "Column Name",
             "Data Type",
@@ -58,7 +80,7 @@ public class ProfilePDFFormat {
             "Count"
     };
     private int maxCharsInTopN = 50;
-
+    
     public ProfilePDFFormat() {
         super();
         totalColumn = headings.length;
@@ -69,24 +91,24 @@ public class ProfilePDFFormat {
      * Anything in excess of this number of characters will be truncated and replaced
      * by an ellipsis.
      */
-
+    
     /**
      * Outputs a PDF file report of the data in drs to the given
      * output stream.
-     * @throws ArchitectException
-     * @throws IllegalAccessException
-     * @throws InstantiationException
+     * @throws ArchitectException 
+     * @throws IllegalAccessException 
+     * @throws InstantiationException 
      */
     public void createPdf(OutputStream out,
                                  java.util.List<SQLTable> tables,
                                  ProfileManager pm)
-                throws DocumentException, IOException, SQLException,
+                throws DocumentException, IOException, SQLException, 
                     ArchitectException, InstantiationException, IllegalAccessException {
-
+        
         final int minRowsTogether = 1;  // counts smaller than this are considered orphan/widow
         final int mtop = 50;  // margin at top of page (in points)
         final int mbot = 50;  // margin at bottom of page (page numbers are below this)
-        final int pbot = 20;  // padding between bottom margin and bottom of body text
+//        final int pbot = 20;  // padding between bottom margin and bottom of body text
         final int mlft = 50;  // margin at left side of page
         final int mrgt = 50;  // margin at right side of page
         final Rectangle pagesize = PageSize.LETTER.rotate();
@@ -99,10 +121,10 @@ public class ProfilePDFFormat {
         document.addSubject("Tables: " + tables);
         document.addAuthor(System.getProperty("user.name"));
         document.addCreator("Power*Architect version "+ArchitectUtils.APP_VERSION);
-
+    
         document.open();
 
-        // vertical position where next element should start
+        // vertical position where next element should start 
         //   (bottom is 0; top is pagesize.height())
         float pos = pagesize.height() - mtop;
 
@@ -144,40 +166,46 @@ public class ProfilePDFFormat {
         // add the PdfPTables to the document; try to avoid orphan and widow rows
         pos = writer.getVerticalPosition(true) - fsize;
         logger.debug("Starting at pos="+pos);
-        int x=1;
-        for (PdfPTable table : profiles) {
+        boolean newPageInd = true;
 
+        for (PdfPTable table : profiles) {
+            
 
             table.setTotalWidth(pagesize.width() - mrgt - mlft);
             table.setWidths(widths);
             int startrow = table.getHeaderRows();
             int endrow = startrow; // current page will contain header+startrow..endrow
-System.out.println("\n\npage size="+document.getPageSize());
-System.out.println("table:"+(x++)+ "  total="+table.size()+"(rows)   page="+writer.getPageNumber()+"   Starting at pos="+pos+"  header height="+calcHeaderHeight(table)+"  row="+table.getHeaderRows());
 
+            /* no other rows in the table, just the header, and the header may 
+             * contain error message
+             */
             if (endrow == table.size()) {
                 pos = table.writeSelectedRows(0, table.getHeaderRows(), mlft, pos, cb);
                 continue;
             }
-
+            
             while (endrow < table.size()) {
 
                 // figure out how many body rows fit nicely on the page
                 float endpos = pos - calcHeaderHeight(table);
-System.out.println("pos="+pos+"  endpos="+endpos);
-                while (endpos > (mbot + pbot) && endrow < table.size() ) {
+
+                // y position of page number# = (mbot/2+fsize)
+                while ( (endpos-table.getRowHeight(endrow)) >= (mbot/2+fsize+2) &&
+                        endrow < table.size() ) {
                     endpos -= table.getRowHeight(endrow);
-System.out.println("endrow="+ endrow+ "  endpos="+endpos+"  height="+table.getRowHeight(endrow) );
                     endrow++;
                 }
 
-                // adjust for orphan rows. Might create widows or make
+                    
+                // adjust for orphan rows. Might create widows or make 
                 // endrow < startrow, which is handled later by deferring the table
                 if (endrow < table.size() && endrow + minRowsTogether >= table.size()) {
-                    if (endrow + 1 == table.size()) {
-System.out.println("\ntry to squeeze!!!\n");
-System.out.println("table size="+table.size()+"   endrow="+endrow+ "   endpos="+endpos );
-System.out.println("last row heigth="+table.getRowHeight(endrow+1)+"    this row heigth="+table.getRowHeight(endrow));
+                    
+                    // page # maybe fall into table area, but usually that's column of 
+                    // min value, usually that's enough space for both, or we should 
+                    // disable page # on this page
+                    if (endrow + 1 == table.size() &&
+                        endpos - table.getRowHeight(endrow) > 10 ) {
 
                         // short by 1 row.. just squeeze it in
                         endrow = table.size();
@@ -192,16 +220,19 @@ System.out.println("last row heigth="+table.getRowHeight(endrow+1)+"    this row
                     pos = table.writeSelectedRows(0, table.getHeaderRows(), mlft, pos, cb);
                     pos = table.writeSelectedRows(startrow, endrow, mlft, pos, cb);
                     startrow = endrow;
+                    newPageInd = false;
                 } else {
                     // not the end of the table and not enough rows to print out
+                    if ( newPageInd )
+                        throw new IllegalStateException("PDF Page is not large engouh to display "+minRowsTogether+" row(s)");
                     endrow = startrow;
-//                    throw new IllegalStateException("Page is not large engouh to display "+minRowsTogether+" row(s)");
                 }
 
                 // new page if necessary (that is, when we aren't finished the table yet)
                 if (endrow != table.size()) {
                     document.newPage();
                     pos = pagesize.height() - mtop;
+                    newPageInd = true;
                 }
             }
         }
@@ -237,13 +268,13 @@ System.out.println("last row heigth="+table.getRowHeight(endrow+1)+"    this row
      * each table's column widths using the final resulting widths
      * array.  If you want each table to have its own optimal widths,
      * use a new array for each invocation.
-     * @throws ArchitectException
-     * @throws SQLException
-     * @throws IllegalAccessException
-     * @throws InstantiationException
+     * @throws ArchitectException 
+     * @throws SQLException 
+     * @throws IllegalAccessException 
+     * @throws InstantiationException 
      */
     protected PdfPTable makeNextTable(ProfileManager pm, SQLTable sqlTable,
-                                             BaseFont bf, float fsize, float[] widths)
+                                             BaseFont bf, float fsize, float[] widths) 
             throws DocumentException, IOException, ArchitectException,
                     SQLException, InstantiationException, IllegalAccessException {
 
@@ -256,7 +287,7 @@ System.out.println("last row heigth="+table.getRowHeight(endrow+1)+"    this row
         float titleFSize = fsize * 1.5f;
         float colHeadingFSize = fsize;
         addHeaderRow(pm, sqlTable, table, bf, titleFSize, colHeadingFSize, widths);
-
+        
         // body rows
         for (SQLColumn col : sqlTable.getColumns()) {
             addBodyRow(pm, col, table, bf, f, fsize, widths);
@@ -276,17 +307,17 @@ System.out.println("last row heigth="+table.getRowHeight(endrow+1)+"    this row
      * width value for that column.  Words are split using the default
      * settings for java.util.StringTokenizer.
      */
-    private void addHeaderRow(ProfileManager pm, SQLTable sqlTable,
+    private void addHeaderRow(ProfileManager pm, SQLTable sqlTable, 
                                 PdfPTable table, BaseFont bf, float titleFSize,
-                                float colHeadingFSize, float[] widths)
+                                float colHeadingFSize, float[] widths) 
         throws DocumentException, IOException, ArchitectException {
-
-
+        
+        
         int ncols = headings.length;
 
         Font titleFont = new Font(bf, titleFSize, Font.BOLD);
         Font colHeadingFont = new Font(bf, colHeadingFSize);
-
+        
         TableProfileResult tProfile = (TableProfileResult) pm.getResult(sqlTable);
         PdfPTable infoTable = new PdfPTable(2);
         StringBuffer heading = new StringBuffer();
@@ -298,17 +329,17 @@ System.out.println("last row heigth="+table.getRowHeight(endrow+1)+"    this row
         }
         else {
             PdfPCell infoCell;
-
+            
             heading.append("Table: ").append(sqlTable.getName());
             infoCell = new PdfPCell(new Phrase("Row Count:",colHeadingFont));
             infoCell.setBorder(Rectangle.NO_BORDER);
             infoCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
             infoTable.addCell(infoCell);
-
+            
             infoCell = new PdfPCell(new Phrase(String.valueOf(tProfile.getRowCount()), colHeadingFont));
             infoCell.setBorder(Rectangle.NO_BORDER);
             infoTable.addCell(infoCell);
-
+            
             infoCell = new PdfPCell(new Phrase("Create Date:",colHeadingFont));
             infoCell.setBorder(Rectangle.NO_BORDER);
             infoCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
@@ -318,40 +349,230 @@ System.out.println("last row heigth="+table.getRowHeight(endrow+1)+"    this row
             infoCell = new PdfPCell(new Phrase(df.format(tProfile.getCreateDate()), colHeadingFont));
             infoCell.setBorder(Rectangle.NO_BORDER);
             infoTable.addCell(infoCell);
-
+            
             infoCell = new PdfPCell(new Phrase("Elapsed:",colHeadingFont));
             infoCell.setBorder(Rectangle.NO_BORDER);
             infoCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
             infoTable.addCell(infoCell);
-
+            
             infoCell = new PdfPCell(new Phrase(tProfile.getTimeToCreate()+"ms", colHeadingFont));
             infoCell.setBorder(Rectangle.NO_BORDER);
             infoTable.addCell(infoCell);
         }
-
+        
         PdfPCell hcell = new PdfPCell(new Phrase(heading.toString(), titleFont));
         hcell.setColspan(ncols - 2);
         hcell.setBorder(Rectangle.NO_BORDER);
         hcell.setVerticalAlignment(Element.ALIGN_BOTTOM);
         table.addCell(hcell);
-
+        
         hcell = new PdfPCell(infoTable);
         hcell.setColspan(2);
         hcell.setBorder(Rectangle.NO_BORDER);
         table.addCell(hcell);
-
+        
         if ( sqlTable.getColumns().size() > 0 ) {
 
-            for (int colNo = 0; colNo < ncols; colNo++) {
+            // column name
+            Phrase colTitle = new Phrase("Column Name", colHeadingFont);
+            PdfPCell cell = new PdfPCell(colTitle);
+            cell.setBorder(Rectangle.BOTTOM | Rectangle.TOP);
+            cell.setBorderWidth(2);
+            cell.setBackgroundColor(new Color(200, 200, 200));
+            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            table.addCell(cell);
+            
+            // date type
+            colTitle = new Phrase("Data Type", colHeadingFont);
+            cell = new PdfPCell(colTitle);
+            cell.setBorder(Rectangle.BOTTOM | Rectangle.TOP);
+            cell.setBorderWidth(2);
+            cell.setBackgroundColor(new Color(200, 200, 200));
+            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            table.addCell(cell);
+            
+            // null count and %
+            colTitle = new Phrase("NULL", colHeadingFont);
+            cell = new PdfPCell(colTitle);
+            cell.setBorder(Rectangle.TOP);
+            cell.setBorderWidth(2);
+            cell.setBackgroundColor(new Color(200, 200, 200));
+            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            cell.setColspan(2);
+            PdfPTable innerTable = new PdfPTable(2);
+            innerTable.addCell(cell);
+            
+            colTitle = new Phrase("#", colHeadingFont);
+            cell = new PdfPCell(colTitle);
+            cell.setBorder(Rectangle.BOTTOM);
+            cell.setBorderWidth(2);
+            cell.setBackgroundColor(new Color(200, 200, 200));
+            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            innerTable.addCell(cell);
+            
+            colTitle = new Phrase("%", colHeadingFont);
+            cell = new PdfPCell(colTitle);
+            cell.setBorder(Rectangle.BOTTOM);
+            cell.setBorderWidth(2);
+            cell.setBackgroundColor(new Color(200, 200, 200));
+            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            innerTable.addCell(cell);
+            
+            cell = new PdfPCell(innerTable);
+            cell.setColspan(2);
+            table.addCell(cell);
+            
+            // unique count and %
+            colTitle = new Phrase("Unique", colHeadingFont);
+            cell = new PdfPCell(colTitle);
+            cell.setBorder(Rectangle.TOP);
+            cell.setBorderWidth(2);
+            cell.setBackgroundColor(new Color(200, 200, 200));
+            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            cell.setColspan(2);
+            innerTable = new PdfPTable(2);
+            innerTable.addCell(cell);
+            
+            colTitle = new Phrase("#", colHeadingFont);
+            cell = new PdfPCell(colTitle);
+            cell.setBorder(Rectangle.BOTTOM);
+            cell.setBorderWidth(2);
+            cell.setBackgroundColor(new Color(200, 200, 200));
+            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            innerTable.addCell(cell);
+            
+            colTitle = new Phrase("%", colHeadingFont);
+            cell = new PdfPCell(colTitle);
+            cell.setBorder(Rectangle.BOTTOM);
+            cell.setBorderWidth(2);
+            cell.setBackgroundColor(new Color(200, 200, 200));
+            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            innerTable.addCell(cell);
+            
+            cell = new PdfPCell(innerTable);
+            cell.setColspan(2);
+            table.addCell(cell);
+            
+            // length max/min/avg
+            colTitle = new Phrase("Length", colHeadingFont);
+            cell = new PdfPCell(colTitle);
+            cell.setBorder(Rectangle.TOP);
+            cell.setBorderWidth(2);
+            cell.setBackgroundColor(new Color(200, 200, 200));
+            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            cell.setColspan(3);
+            innerTable = new PdfPTable(3);
+            innerTable.addCell(cell);
+            
+            colTitle = new Phrase("Min", colHeadingFont);
+            cell = new PdfPCell(colTitle);
+            cell.setBorder(Rectangle.BOTTOM);
+            cell.setBorderWidth(2);
+            cell.setBackgroundColor(new Color(200, 200, 200));
+            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            innerTable.addCell(cell);
+            
+            colTitle = new Phrase("Max", colHeadingFont);
+            cell = new PdfPCell(colTitle);
+            cell.setBorder(Rectangle.BOTTOM);
+            cell.setBorderWidth(2);
+            cell.setBackgroundColor(new Color(200, 200, 200));
+            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            innerTable.addCell(cell);
+            
+            colTitle = new Phrase("Avg", colHeadingFont);
+            cell = new PdfPCell(colTitle);
+            cell.setBorder(Rectangle.BOTTOM);
+            cell.setBorderWidth(2);
+            cell.setBackgroundColor(new Color(200, 200, 200));
+            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            innerTable.addCell(cell);
+            
+            cell = new PdfPCell(innerTable);
+            cell.setColspan(3);
+            table.addCell(cell);
+            
+            // value max/min/avg
+            colTitle = new Phrase("Value", colHeadingFont);
+            cell = new PdfPCell(colTitle);
+            cell.setBorder(Rectangle.TOP);
+            cell.setBorderWidth(2);
+            cell.setBackgroundColor(new Color(200, 200, 200));
+            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            cell.setColspan(3);
+            innerTable = new PdfPTable(3);
+            innerTable.addCell(cell);
+            
+            colTitle = new Phrase("Min", colHeadingFont);
+            cell = new PdfPCell(colTitle);
+            cell.setBorder(Rectangle.BOTTOM);
+            cell.setBorderWidth(2);
+            cell.setBackgroundColor(new Color(200, 200, 200));
+            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            innerTable.addCell(cell);
+            
+            colTitle = new Phrase("Max", colHeadingFont);
+            cell = new PdfPCell(colTitle);
+            cell.setBorder(Rectangle.BOTTOM);
+            cell.setBorderWidth(2);
+            cell.setBackgroundColor(new Color(200, 200, 200));
+            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            innerTable.addCell(cell);
+            
+            colTitle = new Phrase("Avg", colHeadingFont);
+            cell = new PdfPCell(colTitle);
+            cell.setBorder(Rectangle.BOTTOM);
+            cell.setBorderWidth(2);
+            cell.setBackgroundColor(new Color(200, 200, 200));
+            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            innerTable.addCell(cell);
+            
+            cell = new PdfPCell(innerTable);
+            cell.setColspan(3);
+            table.addCell(cell);
+            
+            // top n
+            colTitle = new Phrase("Top N", colHeadingFont);
+            cell = new PdfPCell(colTitle);
+            cell.setBorder(Rectangle.TOP);
+            cell.setBorderWidth(2);
+            cell.setBackgroundColor(new Color(200, 200, 200));
+            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            cell.setColspan(2);
+            innerTable = new PdfPTable(2);
+            innerTable.addCell(cell);
+            
+            colTitle = new Phrase("Values", colHeadingFont);
+            cell = new PdfPCell(colTitle);
+            cell.setBorder(Rectangle.BOTTOM);
+            cell.setBorderWidth(2);
+            cell.setBackgroundColor(new Color(200, 200, 200));
+            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            innerTable.addCell(cell);
+            
+            colTitle = new Phrase("#", colHeadingFont);
+            cell = new PdfPCell(colTitle);
+            cell.setBorder(Rectangle.BOTTOM);
+            cell.setBorderWidth(2);
+            cell.setBackgroundColor(new Color(200, 200, 200));
+            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            innerTable.addCell(cell);
+            
+            cell = new PdfPCell(innerTable);
+            cell.setColspan(2);
+            table.addCell(cell);
+       
+            
+         /*   for (int colNo = 0; colNo < ncols; colNo++) {
                 String contents = headings[colNo];
-
+                
                 // ensure column width is at least enough for widest word in heading
                 StringTokenizer st = new StringTokenizer(contents);
                 while (st.hasMoreTokens()) {
                     widths[colNo] = Math.max(widths[colNo],
                             bf.getWidthPoint(st.nextToken(), colHeadingFSize));
                 }
-
+                
                 Phrase colTitle = new Phrase(contents, colHeadingFont);
                 PdfPCell cell = new PdfPCell(colTitle);
                 cell.setBorder(Rectangle.BOTTOM | Rectangle.TOP);
@@ -359,8 +580,8 @@ System.out.println("last row heigth="+table.getRowHeight(endrow+1)+"    this row
                 cell.setBackgroundColor(new Color(200, 200, 200));
                 cell.setHorizontalAlignment(Element.ALIGN_CENTER);
                 table.addCell(cell);
-            }
-
+            }*/
+    
         }
         else {
             hcell = new PdfPCell(new Phrase("No Column Found in the table", titleFont));
@@ -373,13 +594,13 @@ System.out.println("last row heigth="+table.getRowHeight(endrow+1)+"    this row
     }
 
     protected void addBodyRow(ProfileManager pm, SQLColumn col, PdfPTable table,
-                                     BaseFont bf, Font f, float fsize, float[] widths)
+                                     BaseFont bf, Font f, float fsize, float[] widths) 
         throws DocumentException, IOException, ArchitectException,
                 SQLException, InstantiationException, IllegalAccessException {
 
         TableProfileResult tProfile = (TableProfileResult) pm.getResult(col.getParentTable());
         ColumnProfileResult cProfile = (ColumnProfileResult) pm.getResult(col);
-
+        
         DDLGenerator gddl = DDLUtils.createDDLGenerator(
                 col.getParentTable().getParentDatabase().getDataSource());
 
@@ -388,7 +609,7 @@ System.out.println("last row heigth="+table.getRowHeight(endrow+1)+"    this row
             rowCount = tProfile.getRowCount();
         }
         java.util.List<ColumnValueCount> topTen = null;
-
+        
         boolean errorColumnProfiling = false;
         Exception columnException = null;
         if ( cProfile != null && cProfile.isError() != true ) {
@@ -399,22 +620,22 @@ System.out.println("last row heigth="+table.getRowHeight(endrow+1)+"    this row
             if ( cProfile != null && cProfile.getEx() != null )
                 columnException = cProfile.getEx();
         }
-
+        
         DecimalFormat pctFormat = new DecimalFormat("0%");
-
+        
         DecimalFormat df = new DecimalFormat("#,##0.00");
         df.setMaximumFractionDigits(col.getScale());
         df.setMinimumFractionDigits(col.getScale());
-
+        
         DecimalFormat adf = new DecimalFormat("#,##0.00");
         adf.setMaximumFractionDigits(Math.max(2,col.getScale()));
         adf.setMinimumFractionDigits(Math.max(2,col.getScale()));
-
+        
         for (int colNo = 0; colNo < totalColumn; colNo++) {
-
+            
             String contents;
             int alignment;
-
+            
             if ( headings[colNo].equalsIgnoreCase("table name") ) {
                 if ( tProfile == null || tProfile.isError() ) {
                     contents = col.getParentTable().getName() + "\nProfiling Error:\n";
@@ -438,7 +659,7 @@ System.out.println("last row heigth="+table.getRowHeight(endrow+1)+"    this row
                 if ( errorColumnProfiling ) {
                     contents = "Column Profiling Error:\n";
                     if ( columnException != null )
-                        contents += columnException;
+                        contents += columnException; 
                     alignment = Element.ALIGN_LEFT;
                 }
                 else {
@@ -597,7 +818,7 @@ System.out.println("last row heigth="+table.getRowHeight(endrow+1)+"    this row
             } else {
                 throw new IllegalStateException("I don't know about column "+colNo);
             }
-
+            
             StringBuffer truncContents = new StringBuffer(contents.length());
 
             // update column width to reflect the widest cell
@@ -609,12 +830,12 @@ System.out.println("last row heigth="+table.getRowHeight(endrow+1)+"    this row
                                       bf.getWidthPoint((String) contentLine, fsize));
                 truncContents.append(contentLine).append("\n");
             }
-
+            
 
             PdfPCell cell;
             if ( headings[colNo].equalsIgnoreCase("Top N Values") ||
                  headings[colNo].equalsIgnoreCase("Count") ) {
-                cell = new PdfPCell(new Paragraph(truncContents.toString(), f));
+                cell = new PdfPCell(new Paragraph(truncContents.toString(), f)); 
                 cell.setNoWrap(true);
             } else if ( headings[colNo].equalsIgnoreCase("null count") &&
                         errorColumnProfiling ) {
@@ -624,7 +845,7 @@ System.out.println("last row heigth="+table.getRowHeight(endrow+1)+"    this row
             else {
                 Phrase phr = new Phrase(truncContents.toString(), f);
                 cell = new PdfPCell(phr);
-
+            
             }
 //            cell.setBorder(Rectangle.NO_BORDER);
             cell.setHorizontalAlignment(alignment);
