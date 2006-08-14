@@ -1,9 +1,6 @@
 package ca.sqlpower.architect.ddl;
 
-import java.util.Map;
 import java.util.Vector;
-
-import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 
@@ -30,7 +27,7 @@ public class DDLUtils {
     /**
      * Formats the components of a fully qualified database object name
      * into the standard SQL "dot notation".
-     * 
+     *
      * @param catalog The catalog name of the object, or null if it has no catalog
      * @param schema The schema name of the object, or null if it has no schema
      * @param name The name of the object (null is not acceptable)
@@ -46,16 +43,16 @@ public class DDLUtils {
         	qualName.append(schema);
         	qualName.append(".");
         }
-        
+
         qualName.append(name);
         logger.debug(String.format("%s.%s.%s -> %s", catalog, schema, name, qualName));
         return qualName.toString();
     }
-    
+
     /**
      * Formats the components of a fully qualified database object name
      * into the standard SQL "dot notation", with quote.
-     * 
+     *
      * @param catalog The catalog name of the object, or null if it has no catalog
      * @param schema The schema name of the object, or null if it has no schema
      * @param name The name of the object (null is not acceptable)
@@ -105,10 +102,10 @@ public class DDLUtils {
         }
         return toQualifiedName(newCatalog,newSchema,newName);
     }
-    
+
     public static Vector<LabelValueBean> getDDLTypes()
     {
-    	
+
     		Vector<LabelValueBean> dbTypeList = new Vector();
 		dbTypeList.add(ASUtils.lvb("SQL 92", GenericDDLGenerator.class));
 		dbTypeList.add(ASUtils.lvb("DB2", DB2DDLGenerator.class));
@@ -117,8 +114,8 @@ public class DDLUtils {
 		dbTypeList.add(ASUtils.lvb("SQLServer 2000", SQLServerDDLGenerator.class));
 		return dbTypeList;
     }
-    
-    public static DDLGenerator createDDLGenerator(ArchitectDataSource ads) 
+
+    public static DDLGenerator createDDLGenerator(ArchitectDataSource ads)
                         throws InstantiationException, IllegalAccessException {
 
         Class generatorClass = (Class) ArchitectUtils.getDriverDDLGeneratorMap().get(
