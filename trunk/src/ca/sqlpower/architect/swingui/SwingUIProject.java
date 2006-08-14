@@ -44,6 +44,7 @@ import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileResult;
 import ca.sqlpower.architect.profile.TableProfileResult;
+import ca.sqlpower.architect.profile.ColumnProfileResult.ColumnValueCount;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentListener;
@@ -971,20 +972,50 @@ public class SwingUIProject {
         ProfileManager profmgr = getProfileManager();
         Map<SQLObject, ProfileResult> results = profmgr.getResults();
         for (Map.Entry<SQLObject, ProfileResult> e : results.entrySet()) {
-            //SQLObject key = e.getKey();
-            ProfileResult value = e.getValue();
-            println(out, "<profile type=" + value.getClass().getName() + ">");
-            if (value instanceof TableProfileResult) {
-                // XXX
-            } else if (value instanceof ColumnProfileResult) {
-                // XXX
+            //SQLObject key = e.getKey(); // XXX needs to be used in the below code!
+            ProfileResult profileResult = e.getValue();
+            println(out, "<profile type='" + profileResult.getClass().getName() + "'>");
+            if (profileResult instanceof TableProfileResult) {
+                TableProfileResult tpr = (TableProfileResult)profileResult;
+                simpleTag(out, "column-count", tpr.getRowCount());
+            } else if (profileResult instanceof ColumnProfileResult) {
+                ColumnProfileResult cpr = (ColumnProfileResult)profileResult;
+                simpleTag(out, "average-length", cpr.getAvgLength());
+                simpleTag(out, "average-value", cpr.getAvgValue());
+                simpleTag(out, "distinct-value-count", cpr.getDistinctValueCount());
+                simpleTag(out, "maximum-value", cpr.getMaxValue());
+                simpleTag(out, "minimum-value", cpr.getMinValue());
+                simpleTag(out, "minimum-length", cpr.getMinLength());
+                simpleTag(out, "maximum-length", cpr.getMaxLength());
+                simpleTag(out, "null-count", cpr.getNullCount());
+                List<ColumnValueCount> valueCount = cpr.getValueCount();
+                if (valueCount != null) {
+                    println(out, "<value-count-list>");
+                    for (ColumnValueCount count : valueCount) {
+                        simpleTag(out, "value-count", count);
+                    }
+                    println(out, "</value-count-list>");
+                }
             } else {
-                logger.error("Unknown PropfileResult Subclass: " + value.getClass());
+                String message = "Unknown ProfileResult Subclass: " + profileResult.getClass();
+                println(out, "<!-- " + message + "-->");
+                logger.error(message);
             }
             println(out, "</profile>");
         }
         println(out, "</profiles>");
         indent--;
+    }
+
+    // XXX do these not exist someplace already??
+    void simpleTag(PrintWriter out, String name, Object value) {
+        println(out, '<' + name + '>' + value + "</" + name + '>');
+    }
+    void simpleTag(PrintWriter out, String name, int value) {
+        println(out, '<' + name + '>' + value + "</" + name + '>');
+    }
+    void simpleTag(PrintWriter out, String name, double value) {
+        println(out, '<' + name + '>' + value + "</" + name + '>');
     }
 
 	/**
