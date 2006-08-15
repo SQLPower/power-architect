@@ -11,6 +11,7 @@ import java.util.Set;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JPanel;
@@ -95,11 +96,16 @@ public class ProfilePanelAction extends AbstractAction {
             editorScrollPane.setPreferredSize(new Dimension(800, 600));
             editorScrollPane.setMinimumSize(new Dimension(10, 10));
             
-            
-            
             tabPane.addTab("Table View", editorScrollPane );
             ProfilePanel p = new ProfilePanel(profileManager);
             tabPane.addTab("Graph View",p);
+            
+            JPanel empty = new JPanel();
+            tabPane.addTab("Profile Explorer",empty);
+            ProfileAction profileAction = new ProfileAction();
+            empty.add(new JButton(profileAction));
+            profileAction.setDBTree(dbTree);
+            profileAction.setProfileManager(profileManager);
             
             List<SQLTable> list = new ArrayList(tables);
             p.setTables(list);
