@@ -4,6 +4,10 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -15,6 +19,8 @@ import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
@@ -28,6 +34,7 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.profile.ProfileManager;
+import ca.sqlpower.architect.profile.ProfilePDFFormat;
 import ca.sqlpower.architect.profile.ProfileResultFormatter;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
@@ -102,7 +109,60 @@ public class ProfilePanelAction extends AbstractAction {
             JPanel htmlPane = new JPanel(new BorderLayout());
             htmlPane.add(editorScrollPane,BorderLayout.CENTER);
             ButtonBarBuilder buttonBuilder = new ButtonBarBuilder();
-            JButton save = new JButton("Save");
+            JButton save = new JButton(new AbstractAction("Save") {
+            
+                public void actionPerformed(ActionEvent e) {
+
+                    JFileChooser chooser = new JFileChooser();
+                    chooser.addChoosableFileFilter(ASUtils.PDF_FILE_FILTER);
+                    int response = chooser.showSaveDialog(d);
+                    if (response != JFileChooser.APPROVE_OPTION) {
+                        return;
+                    } else {
+                        File file = chooser.getSelectedFile();
+                        if (!file.getPath().endsWith(".pdf")) {
+                            file = new File(file.getPath()+".pdf");
+                        }
+                        if (file.exists()) {
+                            response = JOptionPane.showConfirmDialog(
+                                    d,
+                                    "The file\n\n"+file.getPath()+"\n\nalready exists. Do you want to overwrite it?",
+                                    "File Exists", JOptionPane.YES_NO_OPTION);
+                            if (response == JOptionPane.NO_OPTION) {
+                                actionPerformed(e);
+                                return;
+                            }
+                        }
+                        
+                        final File file2 = new File(file.getPath());
+                        Runnable saveTask = new Runnable() {
+                            public void run() {
+                                List tabList = new ArrayList(tables);
+                                ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+                                FileOutputStream PDFFile = null;
+                                try {
+                                    PDFFile = new FileOutputStream(file2);
+                                    new ProfilePDFFormat().createPdf(buffer,tabList,profileManager);
+                                    buffer.writeTo(PDFFile);
+                                } catch (Exception ex) {
+                                    ASUtils.showExceptionDialog(d,"Could not save PDF File", ex);
+                                } finally {
+                                    if ( PDFFile != null ) {
+                                        try {
+                                            PDFFile.close();
+                                        } catch (IOException ex) {
+                                            ASUtils.showExceptionDialog(d,"Could not close PDF File", ex);
+                                        }
+                                    }
+                                }
+                            }
+                        };
+                        new Thread(saveTask).start();
+                    }
+                }
+            
+            });
+            
             JButton print = new JButton("Print");
             JButton close = new JButton("close");
             JButton[] buttonArray = {save,print,close};

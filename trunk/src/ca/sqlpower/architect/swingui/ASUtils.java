@@ -122,6 +122,9 @@ public class ASUtils {
     public static final FileFilter XML_FILE_FILTER =
         new FileExtensionFilter("XML Files", new String[] {"xml"});
 
+    public static final FileFilter PDF_FILE_FILTER =
+        new FileExtensionFilter("PDF Files", new String[] {"pdf"});
+    
 	public static class FileExtensionFilter extends FileFilter {
 
 		protected LinkedHashSet<String> extensions;
