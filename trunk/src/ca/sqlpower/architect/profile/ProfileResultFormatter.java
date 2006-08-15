@@ -19,9 +19,9 @@ public class ProfileResultFormatter {
      */
     public String format(Collection <SQLTable> tables, ProfileManager pm) throws SQLException {
         StringBuffer s = new StringBuffer();
-        int cellCount = 0;
 
-        s.append("<table border=\"0\" width=\"100%\">");
+        int cellCount = 0;
+        
         s.append("<tr>");
 
         s.append("<th>");
@@ -75,7 +75,11 @@ public class ProfileResultFormatter {
         s.append("</th>");
 
         s.append("</tr>");
+        
+        String header =s.toString();
 
+        s = new StringBuffer();
+        
         NumberFormat mf = NumberFormat.getInstance();
         mf.setMaximumFractionDigits(1);
         mf.setGroupingUsed(false);
@@ -84,8 +88,9 @@ public class ProfileResultFormatter {
 
         for ( SQLTable t : tables ) {
 
-            s.append("<tr><tr>");
-
+            s.append("<br><br>");
+            s.append("<table border=\"0\" width=\"100%\">");
+            
             s.append("<tr><td colspan=\"" +cellCount+ "\">" );
             s.append("<h3>");
             s.append(t.getName());
@@ -114,15 +119,14 @@ public class ProfileResultFormatter {
                 s.append("</td></tr>");
 
             }
-
-
+            s.append(header);
             double rowCount = (double)tpr.getRowCount();
 
             try {
                 for ( SQLColumn c : t.getColumns() ) {
+                  
 
                     ColumnProfileResult cpr = (ColumnProfileResult) pm.getResult(c);
-
                     s.append("<tr>");
                     s.append("<td bgcolor=\"#e0e0e0\">");
                     if ( c.isPrimaryKey() )
@@ -230,11 +234,12 @@ public class ProfileResultFormatter {
 
                     s.append("</tr>");
                 }
+                s.append("</table>");
             } catch (ArchitectException e) {
                 e.printStackTrace();
             }
         }
-        s.append("</table>");
+       
         return s.toString();
 
     }

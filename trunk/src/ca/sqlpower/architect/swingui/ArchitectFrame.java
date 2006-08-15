@@ -79,6 +79,7 @@ import ca.sqlpower.architect.swingui.action.InsertColumnAction;
 import ca.sqlpower.architect.swingui.action.PreferencesAction;
 import ca.sqlpower.architect.swingui.action.PrintAction;
 import ca.sqlpower.architect.swingui.action.ProfileAction;
+import ca.sqlpower.architect.swingui.action.ProfilePanelAction;
 import ca.sqlpower.architect.swingui.action.ProjectSettingsAction;
 import ca.sqlpower.architect.swingui.action.QuickStartAction;
 import ca.sqlpower.architect.swingui.action.RedoAction;
@@ -91,6 +92,7 @@ import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.undo.UndoManager;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
+import com.sun.org.apache.bcel.internal.classfile.PMGClass;
 
 /**
  * The Main Window for the Architect Application; contains a main() method that is
@@ -142,7 +144,7 @@ public class ArchitectFrame extends JFrame {
 	protected PreferencesAction prefAction;
 	protected ProjectSettingsAction projectSettingsAction;
 	protected PrintAction printAction;
-    protected ProfileAction profileAction;
+    protected ProfilePanelAction profileAction;
     protected ViewProfileAction viewProfileAction;
  	protected ZoomAction zoomInAction;
  	protected ZoomAction zoomOutAction;
@@ -590,8 +592,9 @@ public class ArchitectFrame extends JFrame {
 				KeyStroke.getKeyStroke(KeyEvent.VK_A, accelMask));
 
         /* profiling stuff */
-        profileAction = new ProfileAction();
+        profileAction = new ProfilePanelAction();
         viewProfileAction = new ViewProfileAction();
+
 		menuBar = new JMenuBar();
 
 		//Settingup
