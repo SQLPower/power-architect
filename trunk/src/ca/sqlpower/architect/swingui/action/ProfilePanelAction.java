@@ -1,5 +1,6 @@
 package ca.sqlpower.architect.swingui.action;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
@@ -20,6 +21,8 @@ import javax.swing.JTabbedPane;
 import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
+
+import com.jgoodies.forms.builder.ButtonBarBuilder;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLObject;
@@ -96,7 +99,16 @@ public class ProfilePanelAction extends AbstractAction {
             editorScrollPane.setPreferredSize(new Dimension(800, 600));
             editorScrollPane.setMinimumSize(new Dimension(10, 10));
             
-            tabPane.addTab("Table View", editorScrollPane );
+            JPanel htmlPane = new JPanel(new BorderLayout());
+            htmlPane.add(editorScrollPane,BorderLayout.CENTER);
+            ButtonBarBuilder buttonBuilder = new ButtonBarBuilder();
+            JButton save = new JButton("Save");
+            JButton print = new JButton("Print");
+            JButton close = new JButton("close");
+            JButton[] buttonArray = {save,print,close};
+            buttonBuilder.addGriddedButtons(buttonArray);
+            htmlPane.add(buttonBuilder.getPanel(),BorderLayout.SOUTH);
+            tabPane.addTab("Table View", htmlPane );
             ProfilePanel p = new ProfilePanel(profileManager);
             tabPane.addTab("Graph View",p);
             
