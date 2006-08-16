@@ -68,8 +68,13 @@ public class ProfileManager implements Monitorable {
 
     }
 
-    public void putResult(SQLObject sqlObject, ProfileResult profileResult) {
-        results.put(sqlObject, profileResult);
+    public void putResult(ProfileResult profileResult) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("[instance "+hashCode()+"]" +
+                    " Adding new profile result for "+profileResult.getProfiledObject().getName()+
+                    " existing profile count: "+results.size());
+        }
+        results.put(profileResult.getProfiledObject(), profileResult);
     }
 
     public ProfileResult getResult(SQLObject sqlObject) {
@@ -177,7 +182,7 @@ public class ProfileManager implements Monitorable {
             }
 
             tableResult.setCreateEndTime(System.currentTimeMillis());
-            putResult(table, tableResult);
+            putResult(tableResult);
             doColumnProfile(table.getColumns(), conn);
 
             try {
@@ -243,7 +248,7 @@ public class ProfileManager implements Monitorable {
                     colResult.setCreateEndTime(System.currentTimeMillis());
                     logger.error("Error in Column Profiling: "+lastSQL, ex);
                 } finally {
-                    putResult(col, colResult);
+                    putResult(colResult);
                 }
 
                 synchronized (monitorableMutex) {
