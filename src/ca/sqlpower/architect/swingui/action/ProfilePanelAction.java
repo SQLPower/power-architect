@@ -127,17 +127,17 @@ public class ProfilePanelAction extends AbstractAction {
 
 
 
-                        progressViewPanel.remove(progressBar);
                         progressBar.setVisible(false);
-                        workingOn.setVisible(false);
                         
-                        
+                        JLabel status = new JLabel("Generating reports, Please wait......");
+                        progressViewPanel.add(status, BorderLayout.NORTH);
+                        status.setVisible(true);
+
                         JTabbedPane tabPane = new JTabbedPane();
                         JEditorPane editorPane = new JEditorPane();
                         editorPane.setEditable(false);
                         editorPane.setContentType("text/html");
                         ProfileResultFormatter prf = new ProfileResultFormatter();
-                        editorPane.setText(prf.format(tables,profileManager) );
 
                         JScrollPane editorScrollPane = new JScrollPane(editorPane);
                         editorScrollPane.setVerticalScrollBarPolicy(
@@ -222,12 +222,11 @@ public class ProfilePanelAction extends AbstractAction {
                         p.setTables(list);
                         p.setChartType(ChartTypes.PIE);
 
-                        ArchitectPanelBuilder.makeJDialogCancellable(
-                                d, new CommonCloseAction(d));
+                        d.remove(progressViewPanel);
                         d.setContentPane(tabPane);
                         d.pack();
                         d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
-                        d.setVisible(true);
+                        editorPane.setText(prf.format(tables,profileManager) );
 
                     } catch (SQLException e) {
                         logger.error("Error in Profile Action ", e);
