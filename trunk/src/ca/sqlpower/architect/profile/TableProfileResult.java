@@ -2,12 +2,14 @@ package ca.sqlpower.architect.profile;
 
 import java.util.Date;
 
-public class TableProfileResult extends ProfileResult {
+import ca.sqlpower.architect.SQLTable;
+
+public class TableProfileResult extends ProfileResult<SQLTable> {
 
     private int rowCount;
 
-    public TableProfileResult() {
-
+    public TableProfileResult(SQLTable profiledObject) {
+        super(profiledObject);
     }
 
     public int getRowCount() {

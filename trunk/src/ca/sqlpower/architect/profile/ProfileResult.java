@@ -1,16 +1,29 @@
 package ca.sqlpower.architect.profile;
 
-public abstract class ProfileResult {
+import ca.sqlpower.architect.SQLObject;
 
+public abstract class ProfileResult<T extends SQLObject> {
+
+    private T profiledObject;
     private long createEndTime = -1L;
     private long createStartTime = -1L;
     private Exception ex;
     private boolean error;
 
-    public ProfileResult() {
-
+    /**
+     * Creates a new ProfileResult which will hold profile data about the given SQL Object.
+     * 
+     * @param profiledObject The object that this profile data refers to.  Must not be null.
+     */
+    public ProfileResult(T profiledObject) {
+        if (profiledObject == null) throw new NullPointerException("The profiled object has to be non-null");
+        this.profiledObject = profiledObject;
     }
 
+    public T getProfiledObject() {
+        return profiledObject;
+    }
+    
     public long getCreateStartTime() {
         return createStartTime;
     }

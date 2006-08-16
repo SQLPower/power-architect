@@ -61,7 +61,6 @@ public class ProfilePanel extends JPanel {
 
     private JComboBox tableSelector;
     private JList columnSelector;
-    private int rowCount;
     private ChartTypes chartType = ChartTypes.PIE;
     private JLabel rowCountDisplay;
     private JPanel controlsArea;
@@ -134,8 +133,8 @@ public class ProfilePanel extends JPanel {
 
         });
         columnSelector = new JList();
-        // XXX maybe someday we can allow the user to compare profiles by
-        // removing this...
+        
+        // TODO maybe someday we can allow the user to compare profiles by removing this...
         columnSelector.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         columnSelector.addListSelectionListener(new ListSelectionListener() {
@@ -167,7 +166,6 @@ public class ProfilePanel extends JPanel {
     }
 
     protected void setRowCount(int rowCount) {
-        this.rowCount = rowCount;
         rowCountDisplay.setText("Row count: " + rowCount);
     }
 
@@ -269,9 +267,12 @@ public class ProfilePanel extends JPanel {
             nullableLabel.setText(Boolean.toString(c.isDefinitelyNullable()));
             if (cr == null) {
                 logger.error("displayProfile called but unable to get ColumnProfileResult for column: "+c);
-                cr = new ColumnProfileResult();
+                
+                // XXX the following code should instead replace chartPanel with a JLabel that contains the error message
+                //     (and also not create a dummy profile result)
+                cr = new ColumnProfileResult(c);
                 cr.setCreateStartTime(0);
-                chartPanel.setChart(ChartFactory.createPieChart("",new DefaultPieDataset(),false,false,false));
+                chartPanel.setChart(ChartFactory.createPieChart("", new DefaultPieDataset(), false, false, false));
             } else {
                 chartPanel.setChart(createTopNChart(c));
             }
@@ -352,6 +353,7 @@ public class ProfilePanel extends JPanel {
             }
             return chart;
         }
+
         public ChartTypes getChartType() {
             return chartType;
         }
