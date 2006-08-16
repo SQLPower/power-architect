@@ -236,4 +236,19 @@ public class ArchitectUtilsTest extends TestCase {
 		}
 		
 	}
+    
+    public void testGetParentDatabase() throws ArchitectException {
+        SQLDatabase parentdb = new SQLDatabase();
+        SQLSchema sch = new SQLSchema(true);
+        SQLTable t = new SQLTable(sch, "cows", "remarkable cows", "TABLE", true);
+        
+        parentdb.addChild(sch);
+        sch.addChild(t);
+        
+        assertEquals(parentdb, ArchitectUtils.getParentDatabase(t.getColumnsFolder()));
+        
+        parentdb.removeChild(sch);
+        
+        assertNull(ArchitectUtils.getParentDatabase(t.getColumnsFolder()));
+    }
 }
