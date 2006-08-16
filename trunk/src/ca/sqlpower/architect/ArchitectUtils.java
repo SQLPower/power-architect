@@ -468,14 +468,14 @@ public class ArchitectUtils {
     
     /**
      * Returns the parent database of <tt>so</tt> or <tt>null</tt> if <tt>so</tt>
-     * doesn't have an ancestor of type {@link SQLDatabase}.
+     * doesn't have an ancestor whose class is <tt>ancestorType</tt>.
      * 
-     * @param so The object for whose database ancestor to look. (Thanks, Winston).
-     * @return The nearest ancestor of type SQLDatabase, or null if no such ancestor exists.
+     * @param so The object for whose ancestor to look. (Thanks, Winston).
+     * @return The nearest ancestor of type ancestorType, or null if no such ancestor exists.
      */
-    public static SQLDatabase getParentDatabase(SQLObject so) {
+    public static <T extends SQLObject> T getAncestor(SQLObject so, Class<T> ancestorType) {
         while (so != null) {
-            if (so instanceof SQLDatabase) return (SQLDatabase) so;
+            if (so.getClass().equals(ancestorType)) return (T) so;
             so = so.getParent();
         }
         return null;

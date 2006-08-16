@@ -237,7 +237,7 @@ public class ArchitectUtilsTest extends TestCase {
 		
 	}
     
-    public void testGetParentDatabase() throws ArchitectException {
+    public void testGetAncestor() throws ArchitectException {
         SQLDatabase parentdb = new SQLDatabase();
         SQLSchema sch = new SQLSchema(true);
         SQLTable t = new SQLTable(sch, "cows", "remarkable cows", "TABLE", true);
@@ -245,10 +245,13 @@ public class ArchitectUtilsTest extends TestCase {
         parentdb.addChild(sch);
         sch.addChild(t);
         
-        assertEquals(parentdb, ArchitectUtils.getParentDatabase(t.getColumnsFolder()));
+        assertEquals(parentdb, ArchitectUtils.getAncestor(t.getColumnsFolder(), SQLDatabase.class));
+        assertEquals(sch, ArchitectUtils.getAncestor(t.getColumnsFolder(), SQLSchema.class));
+        assertEquals(t, ArchitectUtils.getAncestor(t.getColumnsFolder(), SQLTable.class));
+        assertEquals(t.getColumnsFolder(), ArchitectUtils.getAncestor(t.getColumnsFolder(), SQLTable.Folder.class));
+        assertNull(ArchitectUtils.getAncestor(t.getColumnsFolder(), SQLCatalog.class));
         
         parentdb.removeChild(sch);
-        
-        assertNull(ArchitectUtils.getParentDatabase(t.getColumnsFolder()));
+        assertNull(ArchitectUtils.getAncestor(t.getColumnsFolder(), SQLDatabase.class));
     }
 }
