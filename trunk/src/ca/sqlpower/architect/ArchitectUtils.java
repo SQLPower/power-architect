@@ -457,7 +457,27 @@ public class ArchitectUtils {
         return addTo;
     }
 
+    /**
+     * Returns the number of milliseconds since the Architect was launched.  This count
+     * will only be accurate if the Architect's startup mechanism called {@link #startup()}
+     * (The Swing UI startup mechanism does this).
+     */
     public static long getAppUptime() {
         return System.currentTimeMillis() - startupTimeMillis;
+    }
+    
+    /**
+     * Returns the parent database of <tt>so</tt> or <tt>null</tt> if <tt>so</tt>
+     * doesn't have an ancestor of type {@link SQLDatabase}.
+     * 
+     * @param so The object for whose database ancestor to look. (Thanks, Winston).
+     * @return The nearest ancestor of type SQLDatabase, or null if no such ancestor exists.
+     */
+    public static SQLDatabase getParentDatabase(SQLObject so) {
+        while (so != null) {
+            if (so instanceof SQLDatabase) return (SQLDatabase) so;
+            so = so.getParent();
+        }
+        return null;
     }
 }
