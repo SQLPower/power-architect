@@ -128,7 +128,7 @@ public class ProfileManager implements Monitorable {
         ResultSet rs = null;
         String lastSQL = null;
 
-        TableProfileResult tableResult = new TableProfileResult();
+        TableProfileResult tableResult = new TableProfileResult(table);
         tableResult.setCreateStartTime(System.currentTimeMillis());
 
         try {
@@ -236,7 +236,7 @@ public class ProfileManager implements Monitorable {
                 try {
                     colResult = execProfileFunction(pfd,col,ddlg,conn);
                 } catch ( Exception ex ) {
-                    colResult = new ColumnProfileResult();
+                    colResult = new ColumnProfileResult(col);
                     colResult.setCreateStartTime(profileStartTime);
                     colResult.setError(true);
                     colResult.setException(ex);
@@ -409,7 +409,7 @@ public class ProfileManager implements Monitorable {
 
             lastSQL = sql.toString();
             rs = stmt.executeQuery(lastSQL);
-            ColumnProfileResult colResult = new ColumnProfileResult();
+            ColumnProfileResult colResult = new ColumnProfileResult(col);
             colResult.setCreateStartTime(createStartTime);
 
             if ( rs.next() ) {

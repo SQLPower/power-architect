@@ -3,7 +3,9 @@ package ca.sqlpower.architect.profile;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ColumnProfileResult extends ProfileResult {
+import ca.sqlpower.architect.SQLColumn;
+
+public class ColumnProfileResult extends ProfileResult<SQLColumn> {
 
     private int distinctValueCount;
     private Object minValue;
@@ -15,8 +17,8 @@ public class ColumnProfileResult extends ProfileResult {
     private int nullCount;
     private List<ColumnValueCount> topTen = new ArrayList<ColumnValueCount>();
 
-    public ColumnProfileResult() {
-
+    public ColumnProfileResult(SQLColumn profiledObject) {
+        super(profiledObject);
     }
 
     public double getAvgLength() {
