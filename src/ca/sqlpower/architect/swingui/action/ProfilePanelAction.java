@@ -4,13 +4,19 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
-import java.io.ByteArrayOutputStream;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -19,7 +25,6 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JEditorPane;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -27,18 +32,20 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTable;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
-import com.jgoodies.forms.builder.ButtonBarBuilder;
-
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectRuntimeException;
+import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.profile.ProfileHTMLFormat;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfilePDFFormat;
-import ca.sqlpower.architect.profile.ProfileResultFormatter;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
@@ -46,12 +53,16 @@ import ca.sqlpower.architect.swingui.CommonCloseAction;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.JDefaultButton;
 import ca.sqlpower.architect.swingui.ProfilePanel;
+import ca.sqlpower.architect.swingui.ProfileTableCellRenderer;
+import ca.sqlpower.architect.swingui.ProfileTableModel;
 import ca.sqlpower.architect.swingui.ProgressWatcher;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
 import ca.sqlpower.architect.swingui.ProfilePanel.ChartTypes;
 
+import com.jgoodies.forms.builder.ButtonBarBuilder;
+
 public class ProfilePanelAction extends AbstractAction {
-    private static final Logger logger = Logger.getLogger(ProfileAction.class);
+    private static final Logger logger = Logger.getLogger(ProfilePanelAction.class);
 
     protected DBTree dbTree;
     protected ProfileManager profileManager;
@@ -122,10 +133,13 @@ public class ProfilePanelAction extends AbstractAction {
 
                 public void run() {
                     try {
-                        profileManager.createProfiles(tables, workingOn);
-
-
-
+                        List<SQLTable> toBeProfiled = new ArrayList<SQLTable>();
+                        for (SQLTable t: tables) {
+                            if (profileManager.getResult(t)== null) {
+                                toBeProfiled.add(t);
+                            }
+                        }
+                        profileManager.createProfiles(toBeProfiled, workingOn);
 
                         progressBar.setVisible(false);
                         
@@ -134,33 +148,48 @@ public class ProfilePanelAction extends AbstractAction {
                         status.setVisible(true);
 
                         JTabbedPane tabPane = new JTabbedPane();
-                        JEditorPane editorPane = new JEditorPane();
-                        editorPane.setEditable(false);
-                        editorPane.setContentType("text/html");
-                        ProfileResultFormatter prf = new ProfileResultFormatter();
+                       
 
-                        JScrollPane editorScrollPane = new JScrollPane(editorPane);
+                        ProfileTableModel tm = new ProfileTableModel();
+                        tm.setProfileManager(profileManager);
+                        final JTable viewTable = new JTable(tm);
+                        ProfilePanelMouseListener profilePanelMouseListener = new ProfilePanelMouseListener();
+                        profilePanelMouseListener.setTabPane(tabPane);
+                        viewTable.addMouseListener( profilePanelMouseListener);
+                        viewTable.setDefaultRenderer(Object.class,new ProfileTableCellRenderer());
+                        JScrollPane editorScrollPane = new JScrollPane(viewTable);
                         editorScrollPane.setVerticalScrollBarPolicy(
                                         JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
                         editorScrollPane.setPreferredSize(new Dimension(800, 600));
                         editorScrollPane.setMinimumSize(new Dimension(10, 10));
                         
-                        JPanel htmlPane = new JPanel(new BorderLayout());
-                        htmlPane.add(editorScrollPane,BorderLayout.CENTER);
+                        JPanel tableViewPane = new JPanel(new BorderLayout());
+
+                        tableViewPane.add(editorScrollPane,BorderLayout.CENTER);
                         ButtonBarBuilder buttonBuilder = new ButtonBarBuilder();
                         JButton save = new JButton(new AbstractAction("Save") {
                         
                             public void actionPerformed(ActionEvent e) {
 
                                 JFileChooser chooser = new JFileChooser();
+                                
                                 chooser.addChoosableFileFilter(ASUtils.PDF_FILE_FILTER);
+                                chooser.addChoosableFileFilter(ASUtils.HTML_FILE_FILTER);
+                                chooser.removeChoosableFileFilter(chooser.getAcceptAllFileFilter());
                                 int response = chooser.showSaveDialog(d);
                                 if (response != JFileChooser.APPROVE_OPTION) {
                                     return;
                                 } else {
                                     File file = chooser.getSelectedFile();
-                                    if (!file.getPath().endsWith(".pdf")) {
-                                        file = new File(file.getPath()+".pdf");
+                                    final FileFilter fileFilter = chooser.getFileFilter();
+                                    if (fileFilter == ASUtils.HTML_FILE_FILTER) {
+                                        if (!file.getPath().endsWith(".html")) {
+                                            file = new File(file.getPath()+".html");
+                                        }
+                                    } else {
+                                        if (!file.getPath().endsWith(".pdf")) {
+                                            file = new File(file.getPath()+".pdf");
+                                        }
                                     }
                                     if (file.exists()) {
                                         response = JOptionPane.showConfirmDialog(
@@ -177,18 +206,25 @@ public class ProfilePanelAction extends AbstractAction {
                                     Runnable saveTask = new Runnable() {
                                         public void run() {
                                             List tabList = new ArrayList(tables);
-                                            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-                                            FileOutputStream PDFFile = null;
+                                            OutputStream out = null;
                                             try {
-                                                PDFFile = new FileOutputStream(file2);
-                                                new ProfilePDFFormat().createPdf(buffer,tabList,profileManager);
-                                                buffer.writeTo(PDFFile);
+                                                out = new BufferedOutputStream(new FileOutputStream(file2));
+                                                if (fileFilter == ASUtils.HTML_FILE_FILTER){
+                                                    final String encoding = "utf-8";
+                                                    ProfileHTMLFormat prf = new ProfileHTMLFormat(encoding);
+                                                    OutputStreamWriter osw = new OutputStreamWriter(out, encoding);
+                                                    osw.append(prf.format(tabList,profileManager));
+                                                    osw.flush();
+                                                } else {
+                                                    new ProfilePDFFormat().createPdf(out, tabList, profileManager);
+                                                }
                                             } catch (Exception ex) {
                                                 ASUtils.showExceptionDialog(d,"Could not save PDF File", ex);
                                             } finally {
-                                                if ( PDFFile != null ) {
+                                                if ( out != null ) {
                                                     try {
-                                                        PDFFile.close();
+                                                        out.flush();
+                                                        out.close();
                                                     } catch (IOException ex) {
                                                         ASUtils.showExceptionDialog(d,"Could not close PDF File", ex);
                                                     }
@@ -201,23 +237,62 @@ public class ProfilePanelAction extends AbstractAction {
                             }
                         
                         });
+
+                        JButton refresh = new JButton(new AbstractAction("Refresh"){
+
+                            public void actionPerformed(ActionEvent e) {
+                               Set<SQLTable> uniqueTables = new HashSet(); 
+                               for (int i: viewTable.getSelectedRows()) {
+                                   Object o = viewTable.getValueAt(i,3);
+                                   System.out.println(o.getClass());
+                                   SQLTable table = (SQLTable) o ;
+                                   uniqueTables.add(table);
+                               }
+                               
+                               try {
+                                profileManager.createProfiles(uniqueTables);
+                                } catch (SQLException e1) {
+                                    throw new RuntimeException(e1);
+                                } catch (ArchitectException e1) {
+                                    throw new ArchitectRuntimeException(e1);
+                                }
+                                ((ProfileTableModel)viewTable.getModel()).refresh();
+                            }
+                            
+                        });
                         
-                        JButton print = new JButton("Print");
-                        
-                        JButton[] buttonArray = {save,print,closeButton};
+                        JButton delete  = new JButton(new AbstractAction("Delete"){
+
+                            public void actionPerformed(ActionEvent e) {
+                                int[] killMe = viewTable.getSelectedRows();
+                                Arrays.sort(killMe);
+
+                                // iterate backwards so the rows don't shift away on us!
+                                for (int i = killMe.length-1; i >= 0; i--) {
+                                    logger.debug("Deleting row "+killMe[i]+": "+viewTable.getValueAt(killMe[i],4));
+                                    SQLColumn col = (SQLColumn) viewTable.getValueAt(killMe[i], 4);
+                                    profileManager.remove(col);
+                                }                         
+                                ((ProfileTableModel)viewTable.getModel()).refresh();
+                            }
+                            
+                        });
+                        JButton deleteAll = new JButton(new AbstractAction("Delete All"){
+
+                            public void actionPerformed(ActionEvent e) {
+                                profileManager.clear();
+                                ((ProfileTableModel)viewTable.getModel()).refresh();
+                            }
+                            
+                        });
+                        JButton[] buttonArray = {refresh,delete,deleteAll,save,closeButton};
                         buttonBuilder.addGriddedButtons(buttonArray);
-                        htmlPane.add(buttonBuilder.getPanel(),BorderLayout.SOUTH);
-                        tabPane.addTab("Table View", htmlPane );
+                        tableViewPane.add(buttonBuilder.getPanel(),BorderLayout.SOUTH);
+                        tabPane.addTab("Table View", tableViewPane );
                         ProfilePanel p = new ProfilePanel(profileManager);
                         tabPane.addTab("Graph View",p);
-                        
-                        JPanel empty = new JPanel();
-                        tabPane.addTab("Profile Explorer",empty);
-                        ProfileAction profileAction = new ProfileAction();
-                        empty.add(new JButton(profileAction));
-                        profileAction.setDBTree(dbTree);
-                        profileAction.setProfileManager(profileManager);
-                        
+
+                        profilePanelMouseListener.setProfilePanel(p);
                         List<SQLTable> list = new ArrayList(tables);
                         p.setTables(list);
                         p.setChartType(ChartTypes.PIE);
@@ -226,7 +301,7 @@ public class ProfilePanelAction extends AbstractAction {
                         d.setContentPane(tabPane);
                         d.pack();
                         d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
-                        editorPane.setText(prf.format(tables,profileManager) );
+                        
 
                     } catch (SQLException e) {
                         logger.error("Error in Profile Action ", e);
@@ -275,6 +350,76 @@ public class ProfilePanelAction extends AbstractAction {
     public void setProfileManager(ProfileManager profileManager) {
         this.profileManager = profileManager;
     }
+  
     
+    /**
+     * The PPMouseListener class receives all mouse and mouse motion
+     * events in the PlayPen.  It tries to dispatch them to the
+     * ppcomponents, and also handles playpen-specific behaviour like
+     * rubber band selection and popup menu triggering.
+     */
+    protected class ProfilePanelMouseListener implements MouseListener  {
+        private ProfilePanel profilePanel;
+        private JTabbedPane tabPane;
+
+        public ProfilePanel getProfilePanel() {
+            return profilePanel;
+        }
+
+        public void setProfilePanel(ProfilePanel profilePanel) {
+            this.profilePanel = profilePanel;
+        }
+
+        public void mouseClicked(MouseEvent evt) {
+            // TODO Auto-generated method stub
+
+            Object obj = evt.getSource();
+            if (evt.getClickCount() == 2) {
+                if ( obj instanceof JTable ) {
+                    JTable t = (JTable)obj;
+                    SQLColumn col = (SQLColumn)t.getValueAt(t.getSelectedRow(),4);
+                    Set<SQLTable> tables = new HashSet<SQLTable>();
+                    for (int i =0; i < t.getRowCount(); i++){
+                        tables.add((SQLTable)t.getValueAt(i,3));
+                    }
+                    profilePanel.setTables(new ArrayList(tables));
+                    profilePanel.getTableSelector().setSelectedItem(col.getParentTable());
+                    profilePanel.getColumnSelector().setSelectedValue(col,true);
+                    tabPane.setSelectedIndex(1);
+                }
+            }
+        }
+
+        public void mousePressed(MouseEvent e) {
+            // TODO Auto-generated method stub
+            
+        }
+
+        public void mouseReleased(MouseEvent e) {
+            // TODO Auto-generated method stub
+            
+        }
+
+        public void mouseEntered(MouseEvent e) {
+            // TODO Auto-generated method stub
+            
+        }
+
+        public void mouseExited(MouseEvent e) {
+            // TODO Auto-generated method stub
+            
+        }
+
+        public JTabbedPane getTabPane() {
+            return tabPane;
+        }
+
+        public void setTabPane(JTabbedPane tabPane) {
+            this.tabPane = tabPane;
+        }
+
+
+    
+    }
 
 }
