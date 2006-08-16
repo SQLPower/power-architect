@@ -342,6 +342,14 @@ public class ProfileManager implements Monitorable {
 
         return pfd;
     }
+    
+    public void clear(){
+        results.clear();
+    }
+    
+    public void remove(SQLObject sqo){
+        results.remove(sqo);
+    }
 
     private ColumnProfileResult execProfileFunction(ProfileFunctionDescriptor pfd,
                                 SQLColumn col, DDLGenerator ddlg,

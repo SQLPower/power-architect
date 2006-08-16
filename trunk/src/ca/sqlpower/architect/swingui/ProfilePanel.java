@@ -1,19 +1,15 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.BorderLayout;
-import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
 
-import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
-import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -24,27 +20,11 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.apache.log4j.Logger;
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartPanel;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.CategoryAxis;
-import org.jfree.chart.axis.CategoryLabelPositions;
-import org.jfree.chart.labels.StandardPieSectionLabelGenerator;
-import org.jfree.chart.plot.PiePlot;
-import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.data.DefaultKeyedValues;
-import org.jfree.data.category.CategoryToPieDataset;
-import org.jfree.data.category.DefaultCategoryDataset;
-import org.jfree.data.general.DefaultPieDataset;
-import org.jfree.util.TableOrder;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ProfileManager;
-import ca.sqlpower.architect.profile.TableProfileResult;
-import ca.sqlpower.architect.profile.ColumnProfileResult.ColumnValueCount;
 
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.debug.FormDebugPanel;
@@ -55,30 +35,30 @@ import com.jgoodies.forms.layout.FormLayout;
  * Let the user choose a column for profiling and display the Profile results
  */
 public class ProfilePanel extends JPanel {
-    private static Logger logger = Logger.getLogger(ProfilePanel.class);
+    static Logger logger = Logger.getLogger(ProfilePanel.class);
     public enum ChartTypes { BAR, PIE }
 
 
     private JComboBox tableSelector;
     private JList columnSelector;
     private ChartTypes chartType = ChartTypes.PIE;
-    private JLabel rowCountDisplay;
+    
     private JPanel controlsArea;
-    private DisplayPanel displayPanel;
+    private ProfileGraphPanel displayPanel;
     
     private final JProgressBar progressBar = new JProgressBar();
     private final ProfileManager pm;
     
     public ProfilePanel(ProfileManager pm) {
         this.pm = pm;
-        displayPanel = new DisplayPanel(0,pm);
+        displayPanel = new ProfileGraphPanel(this, 0,pm);
         setup();
     }
     private void setup() {
         progressBar.setVisible(false);
         FormLayout controlsLayout = new FormLayout(
                 "4dlu,fill:min(150dlu;default):grow, 4dlu", // columns
-                "default, 4dlu, default, 4dlu,  fill:min(200dlu;default):grow,4dlu,default"); // rows
+                "default, 4dlu, fill:min(200dlu;default):grow,4dlu,default"); // rows
 
         CellConstraints cc = new CellConstraints();
 
@@ -110,9 +90,7 @@ public class ProfilePanel extends JPanel {
                                 progressBar.setVisible(true);
                                 if (pm.getResult(t) == null) {
                                     pm.createProfiles(Collections.nCopies(1, t));
-                                }
-                                TableProfileResult r = (TableProfileResult) pm.getResult(t);
-                                setRowCount(r.getRowCount());
+                                }                               
                                 progressBar.setVisible(false);
                             } catch (SQLException e) {
                                 logger.error("Error in Profile Action ", e);
@@ -150,238 +128,41 @@ public class ProfilePanel extends JPanel {
                 displayPanel.displayProfile((SQLTable) tableSelector.getSelectedItem(), col);              
             }           
         });
-        rowCountDisplay = new JLabel("Row Count: --");
+        
 
         PanelBuilder pb = new PanelBuilder(controlsLayout,controlsArea);
         pb.setDefaultDialogBorder();
 
         pb.add(tableSelector, cc.xy(2, 1));
-        pb.add(rowCountDisplay, cc.xy(2, 3));
-        pb.add(new JScrollPane(columnSelector), cc.xy(2, 5));
-        pb.add(progressBar,cc.xy(2,7));
+        
+        pb.add(new JScrollPane(columnSelector), cc.xy(2, 3));
+        pb.add(progressBar,cc.xy(2,5));
         this.add(controlsArea, BorderLayout.WEST);
         displayPanel.setChartType(chartType);
         this.add(displayPanel.getDisplayArea(), BorderLayout.CENTER);
 
     }
 
-    protected void setRowCount(int rowCount) {
-        rowCountDisplay.setText("Row count: " + rowCount);
-    }
-
-    public void setTables(List<SQLTable> tables) {
+      public void setTables(List<SQLTable> tables) {
         tableSelector.setModel(new DefaultComboBoxModel(tables.toArray()));
     }
     
-    /**
-     *  Creates and handles a specific display panel
-     *
-     */
-    class DisplayPanel {
-        
-        private JLabel title;
-        private JLabel nullableLabel;
-        private JLabel minValue;
-        private JLabel maxValue;
-        private JLabel avgValue;
-        private JLabel nullCountLabel;
-        private JLabel nullPercentLabel;
-        private JLabel minLengthLabel;
-        private JLabel uniqueCountLabel;
-        private JLabel uniquePercentLabel;
-        private JLabel maxLengthLabel;
-        private ChartTypes chartType = ChartTypes.PIE;
-        private JPanel displayArea;
-        private int rowCount;
-        private ChartPanel chartPanel;
-        private ProfileManager pm;
-        
-        
-        public DisplayPanel(int rowCount, ProfileManager pm) {
-            this.rowCount = rowCount;
-            this.pm = pm;
-            displayArea = new JPanel();
-            FormLayout displayLayout = new FormLayout(
-                    "4dlu, default, 4dlu, 100dlu, 4dlu, fill:default:grow, 4dlu", // columns
-                    "4dlu, default, 6dlu"); // rows
-            CellConstraints cc = new CellConstraints();
-            
-            displayArea = logger.isDebugEnabled()  ? new FormDebugPanel(displayLayout) : new JPanel(displayLayout);
-            displayArea.setBorder(BorderFactory.createEtchedBorder());
-            
-            Font bodyFont = displayArea.getFont();
-            Font titleFont = bodyFont.deriveFont(Font.BOLD, bodyFont.getSize() * 1.25F);
-            
-            title = new JLabel("Column Name");
-            title.setFont(titleFont);
-            
-            PanelBuilder pb = new PanelBuilder(displayLayout, displayArea);
-            pb.add(title, cc.xyw(2, 2, 5));
-            
-            int row = 4;
-            nullableLabel = makeInfoRow(pb, "Nullable", row); row += 2;
-            nullCountLabel = makeInfoRow(pb, "Null Count", row); row += 2;
-            nullPercentLabel = makeInfoRow(pb, "% Null Records", row); row += 2;
-            minLengthLabel = makeInfoRow(pb, "Minimum Length", row); row += 2;
-            maxLengthLabel = makeInfoRow(pb, "Maximum Length", row); row += 2;
-            uniqueCountLabel = makeInfoRow(pb,"Unique Values",row); row+=2;
-            uniquePercentLabel = makeInfoRow(pb,"% Unique", row); row +=2;
-            minValue = makeInfoRow(pb, "Minimum Value", row); row += 2;
-            maxValue = makeInfoRow(pb, "Maximum Value", row); row += 2;
-            avgValue = makeInfoRow(pb, "Average Value", row); row += 2;
-            
-            pb.appendRow("fill:4dlu:grow");
-            pb.appendRow("4dlu");
-            // Now add something to represent the chart
-            JFreeChart createPieChart = ChartFactory.createPieChart("",new DefaultPieDataset(new DefaultKeyedValues()),false,false,false);
-            chartPanel = new ChartPanel(createPieChart);
-          
-            pb.add(chartPanel, cc.xywh(6, 4, 1, row-3));
-        }
-        
-        public void setTitle(String title) {
-            this.title.setText(title);
-        }
-        
-        
-        public JPanel getDisplayArea() {
-            return displayArea;
-        }
-
-        public void setDisplayArea(JPanel displayArea) {
-            this.displayArea = displayArea;
-        }
-
-        public void displayProfile(SQLTable t, SQLColumn c) {
-            ColumnProfileResult cr = (ColumnProfileResult) pm.getResult(c);
-            TableProfileResult tr = (TableProfileResult) pm.getResult(t);
-            if (tr instanceof TableProfileResult) {
-                rowCount = tr.getRowCount();
-            }
-            StringBuffer sb = new StringBuffer();
-            sb.append(c);
-            if (c.isPrimaryKey()) {
-                sb.append(' ').append("[PK]");
-            }
-            setTitle(sb.toString());
-            nullableLabel.setText(Boolean.toString(c.isDefinitelyNullable()));
-            if (cr == null) {
-                logger.error("displayProfile called but unable to get ColumnProfileResult for column: "+c);
-                
-                // XXX the following code should instead replace chartPanel with a JLabel that contains the error message
-                //     (and also not create a dummy profile result)
-                cr = new ColumnProfileResult(c);
-                cr.setCreateStartTime(0);
-                chartPanel.setChart(ChartFactory.createPieChart("", new DefaultPieDataset(), false, false, false));
-            } else {
-                chartPanel.setChart(createTopNChart(c));
-            }
-                nullCountLabel.setText(Integer.toString(cr.getNullCount()));
-                int nullsInRecords = cr.getNullCount();
-                double ratio = rowCount > 0 ? nullsInRecords * 100D / rowCount : 0;
-                nullPercentLabel.setText(format(ratio));
-                uniqueCountLabel.setText(Integer.toString(cr.getDistinctValueCount()));
-                double uniqueRatio = rowCount > 0 ? nullsInRecords * 100D / rowCount : 0;
-                uniquePercentLabel.setText(format(uniqueRatio));
-                minLengthLabel.setText(Integer.toString(cr.getMinLength()));
-                maxLengthLabel.setText(Integer.toString(cr.getMaxLength()));
-                
-                minValue.setText(cr.getMinValue() == null ? "" : cr.getMinValue().toString());
-                maxValue.setText(cr.getMaxValue() == null ? "" : cr.getMaxValue().toString());
-                Object o = cr.getAvgValue();
-                if (o == null) {
-                    avgValue.setText("");
-                } else if (o instanceof BigDecimal) {
-                    double d = ((BigDecimal)o).doubleValue();
-                    avgValue.setText(format(d));
-                } else {
-                    logger.debug("Got avgValue of type: " + o.getClass().getName());
-                    avgValue.setText(cr.getAvgValue().toString());  
-                }
-        }
-        
-        private JFreeChart createTopNChart(SQLColumn sqo){
-            JFreeChart chart;
-            ColumnProfileResult cr = (ColumnProfileResult) pm.getResult(sqo);
-            List<ColumnValueCount> valueCounts = cr.getValueCount();
-            DefaultCategoryDataset catDataset = new DefaultCategoryDataset();
-         
-            long otherDataCount = rowCount;
-            for (ColumnValueCount vc: valueCounts){    
-                catDataset.addValue(vc.getCount(),sqo.getName(),vc.getValue()==null ? "null" : vc.getValue().toString());
-                otherDataCount -= vc.getCount();
-            }
-            int numberOfTopValues = catDataset.getColumnCount();
-            if (otherDataCount > 0){
-                catDataset.addValue(otherDataCount,sqo.getName(),"Other Values");
-            }
-            
-            if ( chartType == ChartTypes.BAR ){
-                String chartTitle;
-                if (numberOfTopValues == 10 ) {
-                    chartTitle = "Top "+numberOfTopValues+" most common values";
-                } else {
-                    chartTitle = "All "+numberOfTopValues+" values";
-                }
-               
-                chart = ChartFactory.createBarChart(
-                        chartTitle,
-                        "","",catDataset,PlotOrientation.VERTICAL,
-                        false,true,false);
-                    
-                final CategoryAxis domainAxis = chart.getCategoryPlot().getDomainAxis();
-                domainAxis.setCategoryLabelPositions(CategoryLabelPositions.DOWN_90);
-            } else if (chartType == ChartTypes.PIE) {
-            
-                String chartTitle;
-                if (numberOfTopValues == 10 ) {
-                    chartTitle = "Top "+numberOfTopValues+" most common values";
-                } else {
-                    chartTitle = "All "+numberOfTopValues+" values";
-                }
-                
-                chart = ChartFactory.createPieChart(
-                        chartTitle,
-                        new CategoryToPieDataset(catDataset,TableOrder.BY_ROW,0),
-                        false,true,false);
-                if (chart.getPlot() instanceof PiePlot) {
-                    ((PiePlot)chart.getPlot()).setLabelGenerator(new StandardPieSectionLabelGenerator("{0} [{1}]"));
-                }
-            } else {
-
-                throw new IllegalStateException("chart type "+chartType+" not recognized");
-            }
-            return chart;
-        }
-
-        public ChartTypes getChartType() {
-            return chartType;
-        }
-    
-        public void setChartType(ChartTypes chartType) {
-            this.chartType = chartType;
-        }
-    
-        private String format(double d) {
-            return String.format("%6.2f", d);
-        }
-
-        
-        private JLabel makeInfoRow(PanelBuilder pb, String title, int row) {
-            CellConstraints cc = new CellConstraints();
-            pb.appendRow("default");
-            pb.appendRow("2dlu");
-            pb.add(new JLabel(title), cc.xy(2, row));
-            JLabel label = new JLabel("--");
-            pb.add(label, cc.xy(4, row));
-            return label;
-        }
-    }
-
     public ChartTypes getChartType() {
         return chartType;
     }
     public void setChartType(ChartTypes chartType) {
         this.chartType = chartType;
+    }
+    public JList getColumnSelector() {
+        return columnSelector;
+    }
+    public void setColumnSelector(JList columnSelector) {
+        this.columnSelector = columnSelector;
+    }
+    public JComboBox getTableSelector() {
+        return tableSelector;
+    }
+    public void setTableSelector(JComboBox tableSelector) {
+        this.tableSelector = tableSelector;
     }
 }
