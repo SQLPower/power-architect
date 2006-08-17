@@ -89,6 +89,7 @@ public class ProfilePanel extends JPanel {
                             try {
                                 progressBar.setVisible(true);
                                 if (pm.getResult(t) == null) {
+                                    pm.setCancelled(false);
                                     pm.createProfiles(Collections.nCopies(1, t));
                                 }                               
                                 progressBar.setVisible(false);

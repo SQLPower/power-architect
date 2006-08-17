@@ -17,8 +17,12 @@ import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -250,8 +254,24 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 
         private void maybeShowPopup(MouseEvent e) {
             if (e.isPopupTrigger()) {
-				TreePath p = getPathForLocation(e.getX(), e.getY());								
+				TreePath p = getPathForLocation(e.getX(), e.getY());
 				logger.debug("TreePath is: " + p);
+
+                
+TreePath[] tpx = getSelectionPaths();
+if ( tpx != null ) {
+    for ( TreePath x : tpx ) {
+        System.out.println("TreePath X is : " + x + "  type:" + x.getLastPathComponent().getClass().getName());
+        for ( Object o : x.getPath() ) {
+            if ( o != null )
+                System.out.println("object:"+o);
+        }
+    }
+}
+else {
+    System.out.println("tpx is null");
+}
+
 				if (p != null) {
 					logger.debug("selected node object type is: " + p.getLastPathComponent().getClass().getName());
 				}
@@ -693,6 +713,74 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 		}
 	}
 
+    /**
+     * The ProfileTheseAction responds to the "Profile" item in
+     * the popup menu.  It determines which item in the tree is
+     * currently selected, then (creates and) shows its properties
+     * window.
+     */
+    protected class ProfileTheseAction extends AbstractAction {
+        public ProfileTheseAction() {
+            super("Profile...");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            TreePath [] paths = getSelectionPaths();
+            if (paths == null) {
+                return;
+            }
+            Set<SQLObject> sqlObject = new HashSet<SQLObject>();
+            for ( TreePath tp : paths ) {
+                
+                if ( tp.getLastPathComponent() instanceof SQLDatabase )
+                    sqlObject.add((SQLDatabase)tp.getLastPathComponent());
+                else if ( tp.getLastPathComponent() instanceof SQLCatalog ) {
+                    SQLCatalog cat = (SQLCatalog)tp.getLastPathComponent();
+                    sqlObject.add(cat);
+                    SQLDatabase db = cat.getParentDatabase();
+                    if ( sqlObject.contains(db))
+                        sqlObject.remove(db);
+                } else if ( tp.getLastPathComponent() instanceof SQLSchema ) {
+                    SQLSchema sch = (SQLSchema)tp.getLastPathComponent();
+                    sqlObject.add(sch);
+                    SQLCatalog cat = (SQLCatalog) sch.getParent();
+                    if ( sqlObject.contains(cat))
+                        sqlObject.remove(cat);
+                }  else if ( tp.getLastPathComponent() instanceof SQLTable ) {
+                    SQLTable tab = (SQLTable)tp.getLastPathComponent();
+                    sqlObject.add(tab);
+                    
+                    SQLCatalog cat = tab.getCatalog();
+                    if ( cat != null && sqlObject.contains(cat))
+                        sqlObject.remove(cat);
+                    SQLSchema sch = tab.getSchema();
+                    if ( sch != null && sqlObject.contains(sch))
+                        sqlObject.remove(sch);
+                } else if ( tp.getLastPathComponent() instanceof SQLColumn ) {
+                    SQLTable tab = ((SQLColumn)tp.getLastPathComponent()).getParentTable();
+                    sqlObject.add(tab);
+                    SQLCatalog cat = tab.getCatalog();
+                    if ( cat != null && sqlObject.contains(cat))
+                        sqlObject.remove(cat);
+                    SQLSchema sch = tab.getSchema();
+                    if ( sch != null && sqlObject.contains(sch))
+                        sqlObject.remove(sch);
+                }
+            }
+            
+            Set<SQLTable> tables = new HashSet<SQLTable>();
+            for ( SQLObject o : sqlObject ) {
+                try {
+                    tables.addAll(ArchitectUtils.tablesUnder(o));
+                } catch (ArchitectException e1) {
+                    // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
+            }
+System.out.println("tables to be profiled are:"+tables);
+        }
+    }
+    
 	/**
 	 * The DBCSPropertiesAction responds to the "Properties" item in
 	 * the popup menu.  It determines which item in the tree is
