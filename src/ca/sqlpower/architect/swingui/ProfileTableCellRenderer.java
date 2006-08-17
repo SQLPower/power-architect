@@ -2,6 +2,7 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.Component;
 import java.text.DateFormat;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -18,6 +19,11 @@ public class ProfileTableCellRenderer extends DefaultTableCellRenderer {
             int row, int column) {
         String formattedValue = new String();
         
+        DecimalFormat pctFormat = new DecimalFormat("0%");
+        DecimalFormat aldf = new DecimalFormat("#,##0.0");
+        aldf.setMaximumFractionDigits(1);
+        aldf.setMinimumFractionDigits(0);
+        
         if ( column < 5) {
             if (value == null) {
                 formattedValue = "null";
@@ -31,7 +37,13 @@ public class ProfileTableCellRenderer extends DefaultTableCellRenderer {
             if (value == null) {
                 formattedValue = "N/A";
             } else {
-                formattedValue = value.toString();
+                formattedValue = pctFormat.format(value);
+            }
+        } else if (column == 14 ) {
+            if (value == null) {
+                formattedValue = "null";
+            } else {
+                formattedValue = aldf.format(value);
             }
         } else {
             if (value == null) {

@@ -110,13 +110,13 @@ public class ProfileTableModel extends AbstractTableModel {
             return columnProfile.getNullCount();
         } else if (columnIndex == 9) {
             //  Percent null records
-            return columnProfile.getNullCount() == 0 ? null :  columnProfile.getNullCount() * 100D / rowCount ;
+            return rowCount == 0 ? null :  (double)columnProfile.getNullCount() / rowCount ;
         } else if (columnIndex == 10) {
             //  Number of unique records
             return columnProfile.getDistinctValueCount();
         } else if (columnIndex == 11) {
             //  percent of unique records
-            return columnProfile.getDistinctValueCount() == 0 ? null : columnProfile.getDistinctValueCount() * 100D / rowCount;
+            return rowCount == 0 ? null : (double)columnProfile.getDistinctValueCount() / rowCount;
         } else if (columnIndex == 12) {
             //  min Length
             return columnProfile.getMinLength();
