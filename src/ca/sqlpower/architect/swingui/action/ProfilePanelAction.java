@@ -16,7 +16,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -97,12 +96,13 @@ public class ProfilePanelAction extends AbstractAction {
                 tables.addAll(tablesUnder);
             }
             
-            
+            profileManager.setCancelled(false);
             d = new JDialog(ArchitectFrame.getMainInstance(), "Table Profiles");
             
             
             Action closeAction = new AbstractAction() {
                 public void actionPerformed(ActionEvent evt) {
+                    profileManager.setCancelled(true);
                     d.setVisible(false);
                 }
             };
@@ -137,6 +137,8 @@ public class ProfilePanelAction extends AbstractAction {
                         for (SQLTable t: tables) {
                             if (profileManager.getResult(t)== null) {
                                 toBeProfiled.add(t);
+                                workingOn.setText("Adding "+t.getName()+
+                                        "  ("+toBeProfiled.size()+")");
                             }
                         }
                         profileManager.createProfiles(toBeProfiled, workingOn);
@@ -250,7 +252,8 @@ public class ProfilePanelAction extends AbstractAction {
                                }
                                
                                try {
-                                profileManager.createProfiles(uniqueTables);
+                                   profileManager.setCancelled(false);
+                                   profileManager.createProfiles(uniqueTables);
                                 } catch (SQLException e1) {
                                     throw new RuntimeException(e1);
                                 } catch (ArchitectException e1) {
@@ -271,8 +274,12 @@ public class ProfilePanelAction extends AbstractAction {
                                 for (int i = killMe.length-1; i >= 0; i--) {
                                     logger.debug("Deleting row "+killMe[i]+": "+viewTable.getValueAt(killMe[i],4));
                                     SQLColumn col = (SQLColumn) viewTable.getValueAt(killMe[i], 4);
-                                    profileManager.remove(col);
-                                }                         
+                                    try {
+                                        profileManager.remove(col);
+                                    } catch (ArchitectException e1) {
+                                        ASUtils.showExceptionDialog(d,"Could delete column:", e1);
+                                    }
+                                }
                                 ((ProfileTableModel)viewTable.getModel()).refresh();
                             }
                             
