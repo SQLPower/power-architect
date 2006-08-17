@@ -2,6 +2,7 @@ package ca.sqlpower.architect;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -479,5 +480,22 @@ public class ArchitectUtils {
             so = so.getParent();
         }
         return null;
+    }
+    
+    /**
+     * returns the tables under the given SQLObject
+     * 
+     */
+    
+    public static Collection<SQLTable> tablesUnder(SQLObject so) throws ArchitectException {
+        List<SQLTable> tables = new ArrayList<SQLTable>();
+        if (so instanceof SQLTable) {
+            tables.add((SQLTable) so);
+        } else if (so.allowsChildren()) {
+            for (SQLObject child : (List<SQLObject>) so.getChildren()) {
+                tables.addAll(tablesUnder(child));
+            }
+        }
+        return tables;
     }
 }

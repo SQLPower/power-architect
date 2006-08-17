@@ -39,6 +39,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectRuntimeException;
+import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
@@ -91,7 +92,7 @@ public class ProfilePanelAction extends AbstractAction {
             final Set <SQLTable> tables = new HashSet();
             for ( TreePath p : dbTree.getSelectionPaths() ) {
                 SQLObject so = (SQLObject) p.getLastPathComponent();
-                Collection<SQLTable> tablesUnder = tablesUnder(so);
+                Collection<SQLTable> tablesUnder = ArchitectUtils.tablesUnder(so);
                 System.out.println("Tables under "+so+" are: "+tablesUnder);
                 tables.addAll(tablesUnder);
             }
@@ -334,17 +335,7 @@ public class ProfilePanelAction extends AbstractAction {
     }
 
 
-    private Collection<SQLTable> tablesUnder(SQLObject so) throws ArchitectException {
-        List<SQLTable> tables = new ArrayList<SQLTable>();
-        if (so instanceof SQLTable) {
-            tables.add((SQLTable) so);
-        } else if (so.allowsChildren()) {
-            for (SQLObject child : (List<SQLObject>) so.getChildren()) {
-                tables.addAll(tablesUnder(child));
-            }
-        }
-        return tables;
-    }
+    
 
     public void setDBTree(DBTree dbTree) {
         this.dbTree = dbTree;
