@@ -356,13 +356,13 @@ public class ProfilePDFFormat {
         }
 
         PdfPCell hcell = new PdfPCell(new Phrase(heading.toString(), titleFont));
-        hcell.setColspan(ncols - 2);
+        hcell.setColspan(ncols - 3);
         hcell.setBorder(Rectangle.NO_BORDER);
         hcell.setVerticalAlignment(Element.ALIGN_BOTTOM);
         table.addCell(hcell);
 
         hcell = new PdfPCell(infoTable);
-        hcell.setColspan(2);
+        hcell.setColspan(3);
         hcell.setBorder(Rectangle.NO_BORDER);
         table.addCell(hcell);
 
@@ -690,10 +690,16 @@ public class ProfilePDFFormat {
                 contents = gddl.columnType(col);
                 alignment = Element.ALIGN_LEFT;
             } else if ( headings[colNo].equalsIgnoreCase("null count") ) {
+                
                 if ( errorColumnProfiling ) {
-                    contents = "Column Profiling Error:\n";
-                    if ( columnException != null )
-                        contents += columnException;
+                    if ( cProfile == null ) {
+                        contents = "Column Profiling Not Found\n";
+                    }
+                    else {
+                        contents = "Column Profiling Error:\n";
+                        if ( columnException != null )
+                            contents += columnException;
+                    }
                     alignment = Element.ALIGN_LEFT;
                 }
                 else {
