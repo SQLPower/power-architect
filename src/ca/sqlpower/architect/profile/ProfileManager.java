@@ -6,8 +6,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.swing.JLabel;
 
@@ -20,6 +22,7 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
+import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.Monitorable;
 
 public class ProfileManager implements Monitorable {
@@ -223,18 +226,18 @@ public class ProfileManager implements Monitorable {
             for (SQLColumn col : columns ) {
 
                 synchronized (monitorableMutex) {
-                    if (userCancel) return;
+                    if (userCancel) {
+                        remove(col.getParentTable());
+                        return;
+                    }
                 }
                 ProfileFunctionDescriptor pfd = ddlg.getProfileFunctionMap().get(col.getSourceDataTypeName());
                 ColumnProfileResult colResult = null;
                 long profileStartTime = System.currentTimeMillis();
 
                 if ( pfd == null ) {
-                    System.out.println(col.getName()+
-                            " Unknown DataType:(" +
-                            col.getSourceDataTypeName() +
-                            ").");
-
+                    System.out.println(col.getName()+ " Unknown DataType:(" +
+                            col.getSourceDataTypeName() + ").");
                     pfd = discoverProfileFunctionDescriptor(col,ddlg,conn);
                 }
 
@@ -253,10 +256,11 @@ public class ProfileManager implements Monitorable {
 
                 synchronized (monitorableMutex) {
                     progress++;
-                    if (userCancel) break;
+                    if (userCancel) {
+                        remove(col.getParentTable());
+                        break;
+                    }
                 }
-
-
             }
             // XXX: add where filter later
         } finally {
@@ -347,8 +351,26 @@ public class ProfileManager implements Monitorable {
         results.clear();
     }
     
-    public void remove(SQLObject sqo){
+    public void remove(SQLObject sqo) throws ArchitectException{
         results.remove(sqo);
+        
+        if ( sqo instanceof SQLTable ) {
+            for ( SQLColumn col: ((SQLTable)sqo).getColumns()) {
+                results.remove(col);
+            }
+        }
+        else if ( sqo instanceof SQLColumn ) {
+            SQLTable table = ((SQLColumn)sqo).getParentTable();
+            boolean allColumnDeleted = true;
+            for ( SQLColumn col: table.getColumns()) {
+                if ( getResult(col) != null ) {
+                    allColumnDeleted = false;
+                    break;
+                }
+            }
+            if ( allColumnDeleted )
+                results.remove(table);
+        }
     }
 
     private ColumnProfileResult execProfileFunction(ProfileFunctionDescriptor pfd,
@@ -356,118 +378,145 @@ public class ProfileManager implements Monitorable {
                                 Connection conn) throws SQLException {
 
         long createStartTime = System.currentTimeMillis();
-        int i = 0;
+        final int i = 0;
         StringBuffer sql = new StringBuffer();
         Statement stmt = null;
         ResultSet rs = null;
         String lastSQL = null;
         String columnName = null;
         String databaseIdentifierQuoteString = null;
+        ColumnProfileResult colResult = new ColumnProfileResult(col);
+        colResult.setCreateStartTime(createStartTime);
+        SQLTable table = col.getParentTable();
 
         try {
             databaseIdentifierQuoteString = conn.getMetaData().getIdentifierQuoteString();
             sql.append("SELECT 1");
+            int tryCount = 0;
             if (findingDistinctCount && pfd.isCountDist() ) {
-                sql.append(",\n COUNT(DISTINCT \"");
+                sql.append(",\n COUNT(DISTINCT ");
+                sql.append(databaseIdentifierQuoteString);
                 sql.append(col.getName());
-                sql.append("\") AS DISTINCTCOUNT_"+i);
+                sql.append(databaseIdentifierQuoteString);
+                sql.append(") AS DISTINCTCOUNT_"+i);
+                tryCount++;
             }
             if (findingMin && pfd.isMinValue() ) {
-                sql.append(",\n MIN(\"");
+                sql.append(",\n MIN(");
+                sql.append(databaseIdentifierQuoteString);
                 sql.append(col.getName());
-                sql.append("\") AS MINVALUE_"+i);
+                sql.append(databaseIdentifierQuoteString);
+                sql.append(") AS MINVALUE_"+i);
+                tryCount++;
             }
             if (findingMax && pfd.isMaxValue() ) {
-                sql.append(",\n MAX(\"");
+                sql.append(",\n MAX(");
+                sql.append(databaseIdentifierQuoteString);
                 sql.append(col.getName());
-                sql.append("\") AS MAXVALUE_"+i);
+                sql.append(databaseIdentifierQuoteString);
+                sql.append(") AS MAXVALUE_"+i);
+                tryCount++;
             }
             if (findingAvg && pfd.isAvgValue() ) {
                 sql.append(",\n ");
-                sql.append(ddlg.getAverageSQLFunctionName("\""+col.getName()+"\""));
+                sql.append(ddlg.getAverageSQLFunctionName(databaseIdentifierQuoteString+
+                                        col.getName()+
+                                        databaseIdentifierQuoteString));
                 sql.append(" AS AVGVALUE_"+i);
+                tryCount++;
             }
             if (findingMinLength && pfd.isMinLength() ) {
                 sql.append(",\n MIN(");
-                sql.append(ddlg.getStringLengthSQLFunctionName("\""+col.getName()+"\""));
+                sql.append(ddlg.getStringLengthSQLFunctionName(databaseIdentifierQuoteString+
+                                    col.getName()+databaseIdentifierQuoteString));
                 sql.append(") AS MINLENGTH_"+i);
+                tryCount++;
             }
             if (findingMaxLength && pfd.isMaxLength() ) {
                 sql.append(",\n MAX(");
-                sql.append(ddlg.getStringLengthSQLFunctionName("\""+col.getName()+"\""));
+                sql.append(ddlg.getStringLengthSQLFunctionName(databaseIdentifierQuoteString+
+                        col.getName()+databaseIdentifierQuoteString));
                 sql.append(") AS MAXLENGTH_"+i);
+                tryCount++;
             }
             if (findingAvgLength && pfd.isAvgLength() ) {
                 sql.append(",\n AVG(");
-                sql.append(ddlg.getStringLengthSQLFunctionName("\""+col.getName()+"\""));
+                sql.append(ddlg.getStringLengthSQLFunctionName(databaseIdentifierQuoteString+
+                        col.getName()+databaseIdentifierQuoteString));
                 sql.append(") AS AVGLENGTH_"+i);
+                tryCount++;
             }
 
             if ( findingNullCount && pfd.isSumDecode() ) {
                 sql.append(",\n SUM(");
-                sql.append(ddlg.caseWhen("\""+col.getName()+"\"", "NULL", "1"));
+                sql.append(ddlg.caseWhenNull(
+                        databaseIdentifierQuoteString+
+                        col.getName()+
+                        databaseIdentifierQuoteString,
+                        "1"));
                 sql.append(") AS NULLCOUNT_"+i);
+                tryCount++;
             }
-            SQLTable table = col.getParentTable();
-            sql.append("\n FROM ");
-
-            sql.append(DDLUtils.toQualifiedName(table.getCatalogName(),
-                    table.getSchemaName(),
-                    table.getName(),
-                    databaseIdentifierQuoteString,
-                    databaseIdentifierQuoteString));
-
-            stmt = conn.createStatement();
-            stmt.setEscapeProcessing(false);
-
-            lastSQL = sql.toString();
-            rs = stmt.executeQuery(lastSQL);
-            ColumnProfileResult colResult = new ColumnProfileResult(col);
-            colResult.setCreateStartTime(createStartTime);
-
-            if ( rs.next() ) {
-
-
-                if (findingDistinctCount && pfd.isCountDist() ) {
-                    columnName = "DISTINCTCOUNT_"+i;
-                    colResult.setDistinctValueCount(rs.getInt(columnName));
+            
+            if ( tryCount > 0 ) {
+                sql.append("\n FROM ");
+    
+                sql.append(DDLUtils.toQualifiedName(table.getCatalogName(),
+                        table.getSchemaName(),
+                        table.getName(),
+                        databaseIdentifierQuoteString,
+                        databaseIdentifierQuoteString));
+    
+                stmt = conn.createStatement();
+                stmt.setEscapeProcessing(false);
+    
+                lastSQL = sql.toString();
+                rs = stmt.executeQuery(lastSQL);
+    
+                if ( rs.next() ) {
+    
+    
+                    if (findingDistinctCount && pfd.isCountDist() ) {
+                        columnName = "DISTINCTCOUNT_"+i;
+                        colResult.setDistinctValueCount(rs.getInt(columnName));
+                    }
+                    if (findingMin && pfd.isMinValue() ) {
+                        columnName = "MINVALUE_"+i;
+                        colResult.setMinValue(rs.getObject(columnName));
+                    }
+                    if (findingMax && pfd.isMaxValue() ) {
+                        columnName = "MAXVALUE_"+i;
+                        colResult.setMaxValue(rs.getObject(columnName));
+                    }
+                    if (findingAvg && pfd.isAvgValue() ) {
+                        columnName = "AVGVALUE_"+i;
+                        colResult.setAvgValue(rs.getObject(columnName));
+                    }
+                    if (findingMinLength && pfd.isMinLength() ) {
+                        columnName = "MINLENGTH_"+i;
+                        colResult.setMinLength(rs.getInt(columnName));
+                    }
+                    if (findingMaxLength && pfd.isMaxLength() ) {
+                        columnName = "MAXLENGTH_"+i;
+                        colResult.setMaxLength(rs.getInt(columnName));
+                    }
+                    if (findingAvgLength && pfd.isAvgLength() ) {
+                        columnName = "AVGLENGTH_"+i;
+                        colResult.setAvgLength(rs.getDouble(columnName));
+                    }
+    
+                    if ( findingNullCount && pfd.isSumDecode() ) {
+                        columnName = "NULLCOUNT_"+i;
+                        colResult.setNullCount(rs.getInt(columnName));
+                    }
                 }
-                if (findingMin && pfd.isMinValue() ) {
-                    columnName = "MINVALUE_"+i;
-                    colResult.setMinValue(rs.getObject(columnName));
+                else {
+                    throw new IllegalStateException("Query executed, but returns no rows:\n" +
+                            lastSQL + "\nColumn Name: " + columnName );
                 }
-                if (findingMax && pfd.isMaxValue() ) {
-                    columnName = "MAXVALUE_"+i;
-                    colResult.setMaxValue(rs.getObject(columnName));
-                }
-                if (findingAvg && pfd.isAvgValue() ) {
-                    columnName = "AVGVALUE_"+i;
-                    colResult.setAvgValue(rs.getObject(columnName));
-                }
-                if (findingMinLength && pfd.isMinLength() ) {
-                    columnName = "MINLENGTH_"+i;
-                    colResult.setMinLength(rs.getInt(columnName));
-                }
-                if (findingMaxLength && pfd.isMaxLength() ) {
-                    columnName = "MAXLENGTH_"+i;
-                    colResult.setMaxLength(rs.getInt(columnName));
-                }
-                if (findingAvgLength && pfd.isAvgLength() ) {
-                    columnName = "AVGLENGTH_"+i;
-                    colResult.setAvgLength(rs.getDouble(columnName));
-                }
-
-                if ( findingNullCount && pfd.isSumDecode() ) {
-                    columnName = "NULLCOUNT_"+i;
-                    colResult.setNullCount(rs.getInt(columnName));
-                }
+                rs.close();
+                rs = null;
             }
-            else {
-                throw new IllegalStateException("Query executed, but returns no rows:\n" +
-                        lastSQL + "\nColumn Name: " + columnName );
-            }
-            rs.close();
-            rs = null;
 
             if (findingTopTen && pfd.isCountDist() ) {
                 sql = new StringBuffer();
@@ -488,6 +537,8 @@ public class ProfileManager implements Monitorable {
                 for ( int n=0; rs.next() && n < topNCount; n++ ) {
                     colResult.addValueCount(rs.getObject("MYVALUE"), rs.getInt("COUNT1"));
                 }
+                rs.close();
+                rs = null;
             }
 
             colResult.setCreateEndTime(System.currentTimeMillis());
@@ -542,7 +593,7 @@ public class ProfileManager implements Monitorable {
 
     public void setCancelled(boolean cancelled) {
         synchronized (monitorableMutex) {
-            userCancel = true;
+            userCancel = cancelled;
         }
     }
 
