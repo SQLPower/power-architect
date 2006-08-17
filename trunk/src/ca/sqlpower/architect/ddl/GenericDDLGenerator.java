@@ -888,14 +888,12 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 
 
-    public String caseWhen(String expression, String when, String then) {
+    public String caseWhenNull(String expression, String then) {
 
         StringBuffer sql = new StringBuffer();
-        sql.append("CASE ");
+        sql.append("CASE WHEN ");
         sql.append(expression);
-        sql.append(" WHEN ");
-        sql.append(when);
-        sql.append(" THEN ");
+        sql.append(" IS NULL THEN ");
         sql.append(then);
         sql.append(" END");
         

@@ -206,7 +206,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
         profileFunctionMap.put("TIMESTAMP", new ProfileFunctionDescriptor("TIMESTAMP", Types.TIMESTAMP, true,true,true,false,true,true,true,true));
         profileFunctionMap.put("TIMESTAMP WITH LOCAL TIME ZONE", new ProfileFunctionDescriptor("TIMESTAMP", Types.TIMESTAMP, true,true,true,false,true,true,true,true));
         profileFunctionMap.put("TIMESTAMP WITH TIME ZONE", new ProfileFunctionDescriptor("TIMESTAMP", Types.TIMESTAMP, true,true,true,false,true,true,true,true));
- //       profileFunctionMap.put("DATE",      new ProfileFunctionDescriptor("DATE", Types.DATE,           true,true,true,false,true,true,true,true));
+        profileFunctionMap.put("DATE",      new ProfileFunctionDescriptor("DATE", Types.DATE,           true,true,true,false,true,true,true,true));
         
         profileFunctionMap.put("LONG",          new ProfileFunctionDescriptor("LONGVARCHAR", Types.LONGVARCHAR,     false,false,false,false,false,false,false,false));
         profileFunctionMap.put("LONG RAW",      new ProfileFunctionDescriptor("LONGVARBINARY", Types.LONGVARBINARY, false,false,false,false,false,false,false,false));
@@ -343,13 +343,11 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
     }
     
     @Override
-    public String caseWhen(String expression, String when, String then) {
+    public String caseWhenNull(String expression, String then) {
         StringBuffer sql = new StringBuffer();
         sql.append("DECODE(");
         sql.append(expression);
-        sql.append(",");
-        sql.append(when);
-        sql.append(",");
+        sql.append(",NULL,");
         sql.append(then);
         sql.append(")");
         return sql.toString();
