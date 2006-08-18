@@ -3,6 +3,7 @@ package ca.sqlpower.architect.swingui;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.Event;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DragGestureEvent;
 import java.awt.dnd.DragGestureListener;
@@ -17,12 +18,8 @@ import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -52,7 +49,9 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.swingui.action.DBCS_OkAction;
+import ca.sqlpower.architect.swingui.action.ProfilePanelAction;
 import ca.sqlpower.architect.swingui.action.SetDataSourceAction;
 
 public class DBTree extends JTree implements DragSourceListener, DBConnectionCallBack {
@@ -67,6 +66,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 	protected DBCSPropertiesAction dbcsPropertiesAction;
 	protected RemoveDBCSAction removeDBCSAction;
 	protected ShowInPlayPenAction showInPlayPenAction;
+	private ProfilePanelAction profileSelectionAction;
 
 	/**
 	 * This is the database whose DBCS is currently being editted in
@@ -82,6 +82,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 	 */
 	protected boolean panelHoldsNewDBCS;
 
+
 	// ----------- CONSTRUCTORS ------------
 
 	private DBTree() {
@@ -96,13 +97,16 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 		dbcsPropertiesAction = new DBCSPropertiesAction();
 		removeDBCSAction = new RemoveDBCSAction();
 		showInPlayPenAction = new ShowInPlayPenAction();
+        profileSelectionAction = new ProfilePanelAction();
+        profileSelectionAction.setDBTree(this);
 		addMouseListener(new PopupListener());
 		setCellRenderer(new SQLObjectRenderer());				
 	}
 
-	public DBTree(List initialDatabases) throws ArchitectException {
+	public DBTree(List initialDatabases, ProfileManager profileManager) throws ArchitectException {
 		this();
 		setDatabaseList(initialDatabases);
+		profileSelectionAction.setProfileManager(profileManager);
 	}
 
 	
@@ -245,32 +249,18 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 	class PopupListener extends MouseAdapter {
 
         public void mousePressed(MouseEvent e) {
-            maybeShowPopup(e);
+            maybeShowPopup(e,true);
         }
 
         public void mouseReleased(MouseEvent e) {
-            maybeShowPopup(e);
+            maybeShowPopup(e,false);
         }
 
-        private void maybeShowPopup(MouseEvent e) {
+        private void maybeShowPopup(MouseEvent e, boolean isPress) {
+            
+            TreePath p = getPathForLocation(e.getX(), e.getY());
             if (e.isPopupTrigger()) {
-				TreePath p = getPathForLocation(e.getX(), e.getY());
 				logger.debug("TreePath is: " + p);
-
-                
-TreePath[] tpx = getSelectionPaths();
-if ( tpx != null ) {
-    for ( TreePath x : tpx ) {
-        System.out.println("TreePath X is : " + x + "  type:" + x.getLastPathComponent().getClass().getName());
-        for ( Object o : x.getPath() ) {
-            if ( o != null )
-                System.out.println("object:"+o);
-        }
-    }
-}
-else {
-    System.out.println("tpx is null");
-}
 
 				if (p != null) {
 					logger.debug("selected node object type is: " + p.getLastPathComponent().getClass().getName());
@@ -278,17 +268,22 @@ else {
 				popup = refreshMenu(p);
 
 				// if the item is not already selected, select it (and deselect everything else)
-                // if the item is already selected, don't touch the selection model				
+                // if the item is already selected, don't touch the selection model
 				if (isTargetDatabaseChild(p)) {
 					if (!isPathSelected(p)) {
 						setSelectionPath(p);
 				    }	
 				} else {
 					// multi-select for menus is not supported outside the Target Database
-					setSelectionPath(p);
+                    if (!isPathSelected(p)) {
+                        setSelectionPath(p);
+                    }
 				}
                 popup.show(e.getComponent(),
                            e.getX(), e.getY());
+            } else {
+                if ( p == null && !isPress && e.getButton() == MouseEvent.BUTTON1 )
+                    setSelectionPath(null);
             }
         }
     }
@@ -319,6 +314,9 @@ else {
 		newMenu.add(connectionsMenu = new JMenu("Add Source Connection")); 
 		connectionsMenu.add(new JMenuItem(newDBCSAction));		
 		connectionsMenu.addSeparator();
+        
+        newMenu.add(new JMenuItem(profileSelectionAction));
+        
 		// populate		
 		
 		for (ArchitectDataSource dbcs : ArchitectFrame.getMainInstance().getUserSettings().getConnections()) {
@@ -713,74 +711,7 @@ else {
 		}
 	}
 
-    /**
-     * The ProfileTheseAction responds to the "Profile" item in
-     * the popup menu.  It determines which item in the tree is
-     * currently selected, then (creates and) shows its properties
-     * window.
-     */
-    protected class ProfileTheseAction extends AbstractAction {
-        public ProfileTheseAction() {
-            super("Profile...");
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            TreePath [] paths = getSelectionPaths();
-            if (paths == null) {
-                return;
-            }
-            Set<SQLObject> sqlObject = new HashSet<SQLObject>();
-            for ( TreePath tp : paths ) {
-                
-                if ( tp.getLastPathComponent() instanceof SQLDatabase )
-                    sqlObject.add((SQLDatabase)tp.getLastPathComponent());
-                else if ( tp.getLastPathComponent() instanceof SQLCatalog ) {
-                    SQLCatalog cat = (SQLCatalog)tp.getLastPathComponent();
-                    sqlObject.add(cat);
-                    SQLDatabase db = cat.getParentDatabase();
-                    if ( sqlObject.contains(db))
-                        sqlObject.remove(db);
-                } else if ( tp.getLastPathComponent() instanceof SQLSchema ) {
-                    SQLSchema sch = (SQLSchema)tp.getLastPathComponent();
-                    sqlObject.add(sch);
-                    SQLCatalog cat = (SQLCatalog) sch.getParent();
-                    if ( sqlObject.contains(cat))
-                        sqlObject.remove(cat);
-                }  else if ( tp.getLastPathComponent() instanceof SQLTable ) {
-                    SQLTable tab = (SQLTable)tp.getLastPathComponent();
-                    sqlObject.add(tab);
-                    
-                    SQLCatalog cat = tab.getCatalog();
-                    if ( cat != null && sqlObject.contains(cat))
-                        sqlObject.remove(cat);
-                    SQLSchema sch = tab.getSchema();
-                    if ( sch != null && sqlObject.contains(sch))
-                        sqlObject.remove(sch);
-                } else if ( tp.getLastPathComponent() instanceof SQLColumn ) {
-                    SQLTable tab = ((SQLColumn)tp.getLastPathComponent()).getParentTable();
-                    sqlObject.add(tab);
-                    SQLCatalog cat = tab.getCatalog();
-                    if ( cat != null && sqlObject.contains(cat))
-                        sqlObject.remove(cat);
-                    SQLSchema sch = tab.getSchema();
-                    if ( sch != null && sqlObject.contains(sch))
-                        sqlObject.remove(sch);
-                }
-            }
-            
-            Set<SQLTable> tables = new HashSet<SQLTable>();
-            for ( SQLObject o : sqlObject ) {
-                try {
-                    tables.addAll(ArchitectUtils.tablesUnder(o));
-                } catch (ArchitectException e1) {
-                    // TODO Auto-generated catch block
-                    e1.printStackTrace();
-                }
-            }
-System.out.println("tables to be profiled are:"+tables);
-        }
-    }
-    
+   
 	/**
 	 * The DBCSPropertiesAction responds to the "Properties" item in
 	 * the popup menu.  It determines which item in the tree is
