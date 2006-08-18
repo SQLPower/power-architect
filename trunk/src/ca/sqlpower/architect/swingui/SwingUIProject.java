@@ -149,7 +149,8 @@ public class SwingUIProject {
         setPlayPen(pp);
         List initialDBList = new ArrayList();
         initialDBList.add(playPen.getDatabase());
-        this.sourceDatabases = new DBTree(initialDBList);
+        profileManager = new ProfileManager();
+        this.sourceDatabases = new DBTree(initialDBList,profileManager);
         try {
             ddlGenerator = new GenericDDLGenerator();
         } catch (SQLException e) {
@@ -158,7 +159,6 @@ public class SwingUIProject {
         plExport = new PLExport();
         compareDMSettings = new CompareDMSettings();
         undoManager = new UndoManager(pp);
-        profileManager = new ProfileManager();
     }
     
     // ------------- READING THE PROJECT FILE ---------------

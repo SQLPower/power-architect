@@ -40,8 +40,11 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLTable.Folder;
 import ca.sqlpower.architect.profile.ProfileHTMLFormat;
@@ -86,32 +89,75 @@ public class ProfilePanelAction extends AbstractAction {
             logger.debug("dbtree was null when actionPerformed called");
             return;
         }
-        try {
-                        
-            final Set <SQLTable> tables = new HashSet();
-            final ArrayList<SQLObject> filter = new ArrayList<SQLObject>();
-            
-            TreePath[] selectionPaths = dbTree.getSelectionPaths();
-            if (selectionPaths != null) {
-                for ( TreePath p : selectionPaths ) {
-                    if (p.getLastPathComponent() instanceof SQLObject){
-                        
-                        SQLObject so = (SQLObject) p.getLastPathComponent();
-                        if (so instanceof SQLColumn){
-                            tables.add(((SQLColumn)so).getParentTable());
-                        } else {                 
-                            Collection<SQLTable> tablesUnder = ArchitectUtils.tablesUnder(so);
-                            logger.debug("Tables under "+so+" are: "+tablesUnder);
-                            tables.addAll(tablesUnder);
-                        }
-                        if (! (so instanceof Folder)){
-                            filter.add(so);
-                        }
-                    }
-                }
+        if ( dbTree.getSelectionPaths() == null ) {
+            logger.debug("dbtree path selection was null when actionPerformed called");
+            return;
+        }
 
+        try {
+            Set<SQLObject> sqlObject = new HashSet<SQLObject>();
+            for ( TreePath tp : dbTree.getSelectionPaths() ) {
+                if ( tp.getLastPathComponent() instanceof SQLDatabase ) {
+                    sqlObject.add((SQLDatabase)tp.getLastPathComponent());
+                }
+                else if ( tp.getLastPathComponent() instanceof SQLCatalog ) {
+                    SQLCatalog cat = (SQLCatalog)tp.getLastPathComponent();
+                    sqlObject.add(cat);
+                    SQLDatabase db = ArchitectUtils.getAncestor(cat,SQLDatabase.class);
+                    if ( db != null && sqlObject.contains(db))
+                        sqlObject.remove(db);
+                } else if ( tp.getLastPathComponent() instanceof SQLSchema ) {
+                    SQLSchema sch = (SQLSchema)tp.getLastPathComponent();
+                    sqlObject.add(sch);
+                    
+                    SQLCatalog cat = ArchitectUtils.getAncestor(sch,SQLCatalog.class);
+                    if ( cat != null && sqlObject.contains(cat))
+                        sqlObject.remove(cat);
+                    SQLDatabase db = ArchitectUtils.getAncestor(sch,SQLDatabase.class);
+                    if ( db != null && sqlObject.contains(db))
+                        sqlObject.remove(db);
+                }  else if ( tp.getLastPathComponent() instanceof SQLTable ) {
+                    SQLTable tab = (SQLTable)tp.getLastPathComponent();
+                    sqlObject.add(tab);
+
+                    SQLSchema sch = ArchitectUtils.getAncestor(tab,SQLSchema.class);
+                    if ( sch != null && sqlObject.contains(sch))
+                        sqlObject.remove(sch);
+                    SQLCatalog cat = ArchitectUtils.getAncestor(sch,SQLCatalog.class);
+                    if ( cat != null && sqlObject.contains(cat))
+                        sqlObject.remove(cat);
+                    SQLDatabase db = ArchitectUtils.getAncestor(sch,SQLDatabase.class);
+                    if ( db != null && sqlObject.contains(db))
+                        sqlObject.remove(db);
+                } else if ( tp.getLastPathComponent() instanceof SQLColumn ) {
+                    SQLTable tab = ((SQLColumn)tp.getLastPathComponent()).getParentTable();
+                    sqlObject.add((SQLColumn)tp.getLastPathComponent());
+                    SQLSchema sch = ArchitectUtils.getAncestor(tab,SQLSchema.class);
+                    if ( sch != null && sqlObject.contains(sch))
+                        sqlObject.remove(sch);
+                    SQLCatalog cat = ArchitectUtils.getAncestor(sch,SQLCatalog.class);
+                    if ( cat != null && sqlObject.contains(cat))
+                        sqlObject.remove(cat);
+                    SQLDatabase db = ArchitectUtils.getAncestor(sch,SQLDatabase.class);
+                    if ( db != null && sqlObject.contains(db))
+                        sqlObject.remove(db);
+                    
+                }
             }
             
+            final ArrayList<SQLObject> filter = new ArrayList<SQLObject>();
+            final Set<SQLTable> tables = new HashSet<SQLTable>();
+            for ( SQLObject o : sqlObject ) {
+                if ( o instanceof SQLColumn){
+                    tables.add(((SQLColumn)o).getParentTable());
+                } else {                 
+                    tables.addAll(ArchitectUtils.tablesUnder(o));
+                }
+                if (! (o instanceof Folder)){
+                    filter.add(o);
+                }
+            }
+
             profileManager.setCancelled(false);
 
             d = new JDialog(ArchitectFrame.getMainInstance(), "Table Profiles");
