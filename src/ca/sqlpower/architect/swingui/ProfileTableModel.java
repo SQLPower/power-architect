@@ -6,10 +6,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.table.AbstractTableModel;
+
+import org.apache.commons.digester.RegexMatcher;
+import org.apache.log4j.Logger;
 
 import com.lowagie.text.Phrase;
 import com.lowagie.text.pdf.PdfPCell;
@@ -32,13 +38,18 @@ import ca.sqlpower.architect.profile.TableProfileResult;
 
 public class ProfileTableModel extends AbstractTableModel {
 
+    static Logger logger = Logger.getLogger(ProfileTableModel.class);
     ArrayList<String> columnNames;
 
     private ProfileManager profileManager;
 
     private List<ColumnProfileResult> resultList;
-
+    
+    private List<SQLObject> filters;
+    
+    
     public ProfileTableModel() {
+        filters = new ArrayList<SQLObject>();
         columnNames = new ArrayList<String>();
         columnNames.add("Database");
         columnNames.add("Catalog");
@@ -60,6 +71,23 @@ public class ProfileTableModel extends AbstractTableModel {
         columnNames.add("Avg. Value");
 
     }
+    /**
+     * removes all filters this will show all the columns
+     *
+     */
+    public void removeAllFilters(){
+        filters.clear();
+    }
+        
+    public void removeFiltersByRegex(SQLObject sqo) {
+        filters.remove(sqo);
+    }
+    /** 
+     *  Adds a new object that passes the filter
+     */ 
+    public void addFilter(SQLObject sqo){
+        filters.add(sqo);
+    }
 
     @Override
     public String getColumnName(int column) {
@@ -76,6 +104,10 @@ public class ProfileTableModel extends AbstractTableModel {
 
     public Object getValueAt(int rowIndex, int columnIndex) {
         ColumnProfileResult columnProfile = resultList.get(rowIndex);
+        return getColumnValueFromProfile(columnIndex, columnProfile, profileManager);
+    }
+
+    private static Object getColumnValueFromProfile(int columnIndex, ColumnProfileResult columnProfile, ProfileManager profileManager) {
         SQLColumn col = columnProfile.getProfiledObject();
         int rowCount = ((TableProfileResult) profileManager.getResult(col.getParentTable())).getRowCount();
 
@@ -148,11 +180,47 @@ public class ProfileTableModel extends AbstractTableModel {
         resultList = new ArrayList<ColumnProfileResult>();
         for (ProfileResult pr : profileManager.getResults().values()) {
             if (pr instanceof ColumnProfileResult) {
-                resultList.add((ColumnProfileResult) pr);
+                if (filters.size() > 0) {
+                    
+                    if (shouldNotBeFilteredOut((ColumnProfileResult) pr)) {
+                        resultList.add((ColumnProfileResult) pr);
+                    }
+                } else {
+                    resultList.add((ColumnProfileResult) pr);
+                }
             }
         }
         Collections.sort(resultList);
         fireTableDataChanged();
+    }
+
+    /**
+     * If one of the SQLObjects in filters matches with a sqlobject in the 
+     * profile results return true else return false
+     * 
+     */
+    private boolean shouldNotBeFilteredOut(ColumnProfileResult result) {
+        for (SQLObject sqo : filters){
+            int objectColumn;
+            if (sqo instanceof SQLDatabase){
+                 objectColumn=0;
+            } else if(sqo instanceof SQLCatalog) {
+                objectColumn=1;
+            } else if(sqo instanceof SQLSchema) {
+                objectColumn=2;
+            } else if(sqo instanceof SQLTable) {
+                objectColumn=3;
+            } else if(sqo instanceof SQLColumn) {
+                objectColumn=4;
+            } else {
+                continue;
+                
+            }
+            if (sqo.equals(getColumnValueFromProfile(objectColumn,result,profileManager))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void setProfileManager(ProfileManager profileManager) {
@@ -160,4 +228,5 @@ public class ProfileTableModel extends AbstractTableModel {
         refresh();
     }
 
+   
 }

@@ -43,6 +43,7 @@ import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.SQLTable.Folder;
 import ca.sqlpower.architect.profile.ProfileHTMLFormat;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfilePDFFormat;
@@ -86,18 +87,33 @@ public class ProfilePanelAction extends AbstractAction {
             return;
         }
         try {
-            if ( dbTree.getSelectionPaths() == null )
-                return;
-            
+                        
             final Set <SQLTable> tables = new HashSet();
-            for ( TreePath p : dbTree.getSelectionPaths() ) {
-                SQLObject so = (SQLObject) p.getLastPathComponent();
-                Collection<SQLTable> tablesUnder = ArchitectUtils.tablesUnder(so);
-                System.out.println("Tables under "+so+" are: "+tablesUnder);
-                tables.addAll(tablesUnder);
+            final ArrayList<SQLObject> filter = new ArrayList<SQLObject>();
+            
+            TreePath[] selectionPaths = dbTree.getSelectionPaths();
+            if (selectionPaths != null) {
+                for ( TreePath p : selectionPaths ) {
+                    if (p.getLastPathComponent() instanceof SQLObject){
+                        
+                        SQLObject so = (SQLObject) p.getLastPathComponent();
+                        if (so instanceof SQLColumn){
+                            tables.add(((SQLColumn)so).getParentTable());
+                        } else {                 
+                            Collection<SQLTable> tablesUnder = ArchitectUtils.tablesUnder(so);
+                            logger.debug("Tables under "+so+" are: "+tablesUnder);
+                            tables.addAll(tablesUnder);
+                        }
+                        if (! (so instanceof Folder)){
+                            filter.add(so);
+                        }
+                    }
+                }
+
             }
             
             profileManager.setCancelled(false);
+
             d = new JDialog(ArchitectFrame.getMainInstance(), "Table Profiles");
             
             
@@ -154,6 +170,9 @@ public class ProfilePanelAction extends AbstractAction {
                        
 
                         ProfileTableModel tm = new ProfileTableModel();
+                        for (SQLObject sqo: filter){
+                            tm.addFilter(sqo);
+                        }
                         tm.setProfileManager(profileManager);
                         final JTable viewTable = new JTable(tm);
                         ProfilePanelMouseListener profilePanelMouseListener = new ProfilePanelMouseListener();
