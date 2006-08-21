@@ -1,24 +1,12 @@
 package ca.sqlpower.architect.swingui;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.swing.table.AbstractTableModel;
 
-import org.apache.commons.digester.RegexMatcher;
 import org.apache.log4j.Logger;
-
-import com.lowagie.text.Phrase;
-import com.lowagie.text.pdf.PdfPCell;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectRuntimeException;
@@ -44,10 +32,10 @@ public class ProfileTableModel extends AbstractTableModel {
     private ProfileManager profileManager;
 
     private List<ColumnProfileResult> resultList;
-    
+
     private List<SQLObject> filters;
-    
-    
+
+
     public ProfileTableModel() {
         filters = new ArrayList<SQLObject>();
         columnNames = new ArrayList<String>();
@@ -78,13 +66,13 @@ public class ProfileTableModel extends AbstractTableModel {
     public void removeAllFilters(){
         filters.clear();
     }
-        
+
     public void removeFiltersByRegex(SQLObject sqo) {
         filters.remove(sqo);
     }
-    /** 
+    /**
      *  Adds a new object that passes the filter
-     */ 
+     */
     public void addFilter(SQLObject sqo){
         filters.add(sqo);
     }
@@ -122,7 +110,7 @@ public class ProfileTableModel extends AbstractTableModel {
         } else if (columnIndex == 4) {
             return col;
         } else if (columnIndex == 5) {
-            // Run date          
+            // Run date
             return columnProfile.getCreateStartTime();
         } else if (columnIndex == 6) {
             // Row Count
@@ -175,13 +163,13 @@ public class ProfileTableModel extends AbstractTableModel {
     public ProfileManager getProfileManager() {
         return profileManager;
     }
-    
+
     public void refresh(){
         resultList = new ArrayList<ColumnProfileResult>();
         for (ProfileResult pr : profileManager.getResults().values()) {
             if (pr instanceof ColumnProfileResult) {
                 if (filters.size() > 0) {
-                    
+
                     if (shouldNotBeFilteredOut((ColumnProfileResult) pr)) {
                         resultList.add((ColumnProfileResult) pr);
                     }
@@ -195,9 +183,9 @@ public class ProfileTableModel extends AbstractTableModel {
     }
 
     /**
-     * If one of the SQLObjects in filters matches with a sqlobject in the 
+     * If one of the SQLObjects in filters matches with a sqlobject in the
      * profile results return true else return false
-     * 
+     *
      */
     private boolean shouldNotBeFilteredOut(ColumnProfileResult result) {
         for (SQLObject sqo : filters){
@@ -214,7 +202,7 @@ public class ProfileTableModel extends AbstractTableModel {
                 objectColumn=4;
             } else {
                 continue;
-                
+
             }
             if (sqo.equals(getColumnValueFromProfile(objectColumn,result,profileManager))) {
                 return true;
@@ -228,5 +216,5 @@ public class ProfileTableModel extends AbstractTableModel {
         refresh();
     }
 
-   
+
 }
