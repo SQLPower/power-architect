@@ -265,7 +265,6 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 				if (p != null) {
 					logger.debug("selected node object type is: " + p.getLastPathComponent().getClass().getName());
 				}
-				popup = refreshMenu(p);
 
 				// if the item is not already selected, select it (and deselect everything else)
                 // if the item is already selected, don't touch the selection model
@@ -279,6 +278,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
                         setSelectionPath(p);
                     }
 				}
+				popup = refreshMenu(p);
                 popup.show(e.getComponent(),
                            e.getX(), e.getY());
             } else {
@@ -315,7 +315,9 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 		connectionsMenu.add(new JMenuItem(newDBCSAction));		
 		connectionsMenu.addSeparator();
         
-        newMenu.add(new JMenuItem(profileSelectionAction));
+        if ( getSelectionPaths() != null ) {
+            newMenu.add(new JMenuItem(profileSelectionAction));
+        }
         
 		// populate		
 		
