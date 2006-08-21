@@ -9,12 +9,17 @@ import java.lang.Thread.UncaughtExceptionHandler;
 
 import javax.swing.tree.TreeModel;
 
+import org.apache.log4j.Logger;
+
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.SwingUIProject;
 
+
 public class ExceptionHandler implements UncaughtExceptionHandler {
+
+    private static final Logger logger = Logger.getLogger(ExceptionHandler.class);
 
     public void uncaughtException(Thread t, Throwable e) {
         ExceptionReport r = new ExceptionReport(e);
@@ -46,10 +51,9 @@ public class ExceptionHandler implements UncaughtExceptionHandler {
         } else {
             remarks.append("[architect frame's main instance was null]");
         }
-        
+
         r.setRemarks(remarks.toString());
-        
-        r.postReportToSQLPower();
+        r.postReport();
     }
 
 }

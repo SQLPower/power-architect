@@ -41,7 +41,7 @@ public class ASUtils {
 	private static final Logger logger = Logger.getLogger(ASUtils.class);
 
 	private ASUtils() {
-        // this constructor never gets called 
+        // this constructor never gets called
     }
 
 	/**
@@ -73,7 +73,7 @@ public class ASUtils {
 			this.label = label;
 			this.value = value;
 		}
-		
+
 		public String getLabel()  {
 			return this.label;
 		}
@@ -89,7 +89,7 @@ public class ASUtils {
 		public void setValue(Object argValue) {
 			this.value = argValue;
 		}
-		
+
 		/**
 		 * Just returns the label.
 		 */
@@ -103,7 +103,7 @@ public class ASUtils {
 
 	public static final FileFilter TEXT_FILE_FILTER =
 		new FileExtensionFilter("Text Files ", new String[] {"txt"});
-	
+
 	public static final FileFilter SQL_FILE_FILTER =
 		new FileExtensionFilter("SQL Script Files", new String[] {"sql","ddl"});
 
@@ -124,10 +124,10 @@ public class ASUtils {
 
     public static final FileFilter PDF_FILE_FILTER =
         new FileExtensionFilter("PDF Files", new String[] {"pdf"});
-    
+
     public static final FileFilter HTML_FILE_FILTER =
         new FileExtensionFilter("HTML Files", new String[] {"html"});
-    
+
 	public static class FileExtensionFilter extends FileFilter {
 
 		protected LinkedHashSet<String> extensions;
@@ -163,37 +163,37 @@ public class ASUtils {
 
 		/*
 		 * Get the extension of a file.
-		 */  
+		 */
 		public static String getExtension(File f) {
 			String ext = "";
 			String s = f.getName();
 			int i = s.lastIndexOf('.');
-			
+
 			if (i > 0 &&  i < s.length() - 1) {
 				ext = s.substring(i+1).toLowerCase();
 			}
 			return ext;
 		}
-		
+
 		/*
 		 * Get the extension of a filter.
-		 */  
+		 */
 		public String getFilterExtension(Integer index) {
 			List<String> l = new ArrayList<String>(extensions);
 			int i;
-			
+
 			if ( index == null ||
 					index.intValue() < 0 ||
 					index.intValue() >= l.size() )
 				i = 0;
 			else
 				i = index.intValue();
-			
+
 			if ( l.size() > 0 )
 				return l.get(i);
 			return null;
-			
-				
+
+
 		}
 	}
 
@@ -242,7 +242,7 @@ public class ASUtils {
 			return null;
 		}
 	}
-	
+
 	private Thread focusDebuggerThread = null;
 	private boolean focusDebuggerStopping = true;
 	private Runnable showFocusOwnerTask = new Runnable() {
@@ -284,13 +284,13 @@ public class ASUtils {
     /** Centre a Window, Frame, JFrame, Dialog, etc. */
     public static void centre(final Window w) {
         // After packing a Frame or Dialog, centre it on the screen.
-        Dimension us = w.getSize(), 
+        Dimension us = w.getSize(),
             them = Toolkit.getDefaultToolkit().getScreenSize();
         int newX = (them.width - us.width) / 2;
         int newY = (them.height- us.height)/ 2;
         w.setLocation(newX, newY);
     }
-    
+
 	/**
 	 * Displays a dialog box with the given message and exception,
 	 * allowing the user to examine the stack trace.  The dialog's
@@ -299,7 +299,7 @@ public class ASUtils {
 	public static void showExceptionDialog(String message, Throwable throwable) {
 		showExceptionDialog(ArchitectFrame.getMainInstance(), message, throwable);
 	}
-	
+
 	/** Displays a dialog box with the given message and exception,
 	 * returning focus to the given component. Intended for use
 	 * on panels like the CompareDMPanel, so focus works better.
@@ -313,9 +313,9 @@ public class ASUtils {
                                   + ArchitectFrame.getMainInstance().playpen.getRelationships().size());
         er.setNumSourceConnections(ArchitectFrame.getMainInstance().dbTree.getDatabaseList().size());
         er.setUserActivityDescription("");
-        logger.debug(er.toXML());
-        er.postReportToSQLPower();
-        
+        logger.debug(er.toString());
+        er.postReport();
+
         displayExceptionDialog(parent,message,throwable);
 	}
 
@@ -325,7 +325,7 @@ public class ASUtils {
      * parent component will be the ArchitectFrame's main instance.
      */
 	public static void showExceptionDialogNoReport(String string, Throwable ex) {
-        displayExceptionDialog(ArchitectFrame.getMainInstance(), string, ex);  
+        displayExceptionDialog(ArchitectFrame.getMainInstance(), string, ex);
 	}
     /** Displays a dialog box with the given message and exception,
      * returning focus to the given component. Intended for use
@@ -335,9 +335,9 @@ public class ASUtils {
      * @param throwable
      */
     public static void showExceptionDialogNoReport(Component parent,String string, Throwable ex) {
-       displayExceptionDialog(parent, string, ex);  
+       displayExceptionDialog(parent, string, ex);
     }
-    
+
     private static void displayExceptionDialog(Component parent, String message, Throwable throwable) {
         StringWriter traceWriter = new StringWriter();
         throwable.printStackTrace(new PrintWriter(traceWriter));
@@ -345,19 +345,19 @@ public class ASUtils {
         messageComponent.add(new JLabel(message), BorderLayout.NORTH);
         messageComponent.add(new JScrollPane(new JTextArea(traceWriter.toString())), BorderLayout.CENTER);
         messageComponent.setPreferredSize(new Dimension(600, 400));
-        JOptionPane.showMessageDialog(parent, 
+        JOptionPane.showMessageDialog(parent,
                                       messageComponent,
                                       "Error Report",
                                       JOptionPane.ERROR_MESSAGE);
     }
-    
+
 	public static String lineToString(Line2D.Double l) {
 		return "[("+l.x1+","+l.y1+") - ("+l.x2+","+l.y2+")]";
 	}
-	
+
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 */
 	public static List <Point2D.Double> getIntersectPoints(Shape s1, Shape s2) {
 		List <Point2D.Double>list   = new ArrayList();
@@ -369,14 +369,14 @@ public class ASUtils {
 			if (mySegType == PathIterator.SEG_LINETO) {
 				myLine.x1 = myLine.x2;
 				myLine.y1 = myLine.y2;
-				
+
 				myLine.x2 = myCoords[0];
 				myLine.y2 = myCoords[1];
 			} else if (mySegType == PathIterator.SEG_MOVETO ||
 					mySegType == PathIterator.SEG_CLOSE ) {
 				myLine.x1 = myCoords[0];
 				myLine.y1 = myCoords[1];
-				
+
 				myLine.x2 = myCoords[0];
 				myLine.y2 = myCoords[1];
 			} else {
@@ -385,10 +385,10 @@ public class ASUtils {
 						". Current myLine is "+lineToString(myLine));
 			}
 			myPI.next();
-			
+
 			// if this line has no length, no need to check for intersection
 			if (myLine.x1 == myLine.x2 && myLine.y1 == myLine.y2) continue;
-			
+
 			PathIterator otherPI = s2.getPathIterator(null);
 			Line2D.Double otherLine = new Line2D.Double();
 			float[] otherCoords = new float[6];
@@ -397,14 +397,14 @@ public class ASUtils {
 				if (otherSegType == PathIterator.SEG_LINETO) {
 					otherLine.x1 = otherLine.x2;
 					otherLine.y1 = otherLine.y2;
-					
+
 					otherLine.x2 = otherCoords[0];
 					otherLine.y2 = otherCoords[1];
 				} else if (otherSegType == PathIterator.SEG_MOVETO ||
 						otherSegType == PathIterator.SEG_CLOSE ) {
 					otherLine.x1 = otherCoords[0];
 					otherLine.y1 = otherCoords[1];
-					
+
 					otherLine.x2 = otherCoords[0];
 					otherLine.y2 = otherCoords[1];
 				} else {
@@ -413,7 +413,7 @@ public class ASUtils {
 							". Current otherLine is "+lineToString(otherLine));
 				}
 				otherPI.next();
-				
+
 				// if this line has no length, no need to check for intersection
 				if (otherLine.x1 == otherLine.x2 && otherLine.y1 == otherLine.y2) continue;
 
@@ -426,7 +426,7 @@ public class ASUtils {
 		return list;
 	}
 	/**
-	 * calculate the intersection point of 2 lines, 
+	 * calculate the intersection point of 2 lines,
 	 * copy from http://persistent.info/archives/2004/03/08/java_lineline_intersections
 	 * @param l1
 	 * @param l2
@@ -435,7 +435,7 @@ public class ASUtils {
 	 */
 	public static boolean getLineLineIntersection(Line2D.Double l1, Line2D.Double l2,
 			Point2D.Double intersection) {
-		
+
 		if (!l1.intersectsLine(l2))
 			return false;
 
@@ -449,12 +449,12 @@ public class ASUtils {
 
 		return true;
 	}
-	
+
 
 	static double det(double a, double b, double c, double d) {
 		return a * d - b * c;
 	}
-	
+
 	/**
 	 * Update a potentially-long JMenu with the nth-last items replaced by sub-menus.
 	 * If the menu seems to fit the current frame, it is unchanged.
@@ -466,7 +466,7 @@ public class ASUtils {
 
 		if ( input.getItemCount() <= 0 )
 			return;
-		
+
 		final int windowHeight = frame.getSize().height;
 		final int totalRows = input.getItemCount();
 		final int preferredHeight = input.getItem(0).getPreferredSize().height;
@@ -495,7 +495,7 @@ public class ASUtils {
 			}
 		}
 
-		
+
 		/** TODO: Resizing the main window does not change the height of the menu.
 		 * This is left as an exercise for the reader:
 		 * frame.addComponentListener(new ComponentAdapter() {
@@ -509,5 +509,5 @@ public class ASUtils {
 		 */
 	}
 
-	
+
 }

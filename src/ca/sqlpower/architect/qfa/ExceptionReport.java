@@ -36,13 +36,13 @@ public class ExceptionReport {
      * the value of <tt>DEFAULT_REPORT_URL</tt>.
      */
     private static final String REPORT_URL_SYSTEM_PROP = "ca.sqlpower.architect.qfa.REPORT_URL";
-    
+
     /**
      * The URL to post the error report to if the system property
      * that overrides it isn't defined.
      */
     private static final String DEFAULT_REPORT_URL = "http://bugs.sqlpower.ca/architect/postReport";
-    
+
     private Throwable exception;
     private String architectVersion;
     private long applicationUptime;
@@ -63,7 +63,7 @@ public class ExceptionReport {
     private String userActivityDescription;
 
     private String remarks;
-    
+
     public ExceptionReport(Throwable exception) {
         this.exception = exception;
         architectVersion = ArchitectUtils.APP_VERSION;
@@ -77,7 +77,7 @@ public class ExceptionReport {
         osName = System.getProperty("os.name");
         osVersion = System.getProperty("os.version");
     }
-    
+
     public String toXML() {
         StringBuffer xml = new StringBuffer();
         xml.append("<?xml version=\"1.0\" encoding=\"ISO-8859-1\" ?>");
@@ -99,6 +99,15 @@ public class ExceptionReport {
         return xml.toString();
     }
 
+    @Override
+    public String toString() {
+        StringBuffer sb = new StringBuffer();
+        sb.append("Exception Report: ");
+        sb.append(exception);
+        sb.append(" ");
+        sb.append(remarks);
+        return sb.toString();
+    }
     private void appendNestedExceptions(StringBuffer xml, Throwable exception) {
         if (exception == null) return;
         xml.append("\n <exception class=\"").append(ArchitectUtils.escapeXML(exception.getClass().getName())).append("\" message=\"")
@@ -115,18 +124,20 @@ public class ExceptionReport {
     }
 
     static int numReportsThisRun = 0;
-    
+
     /**
      * Attempt to send this exception report, in XML form, to the official SQL
      * Power error reporting URL for the Architect.
      */
-    public void postReportToSQLPower() {
+    public void postReport() {
+        logger.debug(toString());
         if (numReportsThisRun++ > MAX_REPORT_TRIES) {
             logger.info(
                 String.format(
                     "Not logging this error, threshold of %d exceeded", MAX_REPORT_TRIES));
             return;
         }
+        exception.printStackTrace();
         String url = System.getProperty(REPORT_URL_SYSTEM_PROP);
         if (url == null) {
             url = DEFAULT_REPORT_URL;
@@ -151,7 +162,7 @@ public class ExceptionReport {
             } finally {
                 if (out != null) out.close();
             }
-            
+
             // Note: the error report will only get sent if we attempt to read from the URL Connection (!??!?)
             BufferedReader in = new BufferedReader(new InputStreamReader(dest.getInputStream()));
             StringBuffer response = new StringBuffer();
@@ -166,7 +177,7 @@ public class ExceptionReport {
             logger.error("Couldn't send exception report to <\""+url+"\">", e);
         }
     }
-    
+
     public long getApplicationUptime() {
         return applicationUptime;
     }
@@ -245,7 +256,7 @@ public class ExceptionReport {
     public void setRemarks(String v) {
         this.remarks = v;
     }
-    
+
     public String getRemarks() {
         return remarks;
     }
