@@ -3,7 +3,6 @@ package ca.sqlpower.architect.swingui;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
-import java.awt.Event;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DragGestureEvent;
 import java.awt.dnd.DragGestureListener;
@@ -89,7 +88,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 		setUI(new MultiDragTreeUI());
 		setRootVisible(false);
 		setShowsRootHandles(true);
-		ds = new DragSource();		
+		ds = new DragSource();
 		ds.createDefaultDragGestureRecognizer
 			(this, DnDConstants.ACTION_COPY, new DBTreeDragGestureListener());
 
@@ -100,7 +99,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
         profileSelectionAction = new ProfilePanelAction();
         profileSelectionAction.setDBTree(this);
 		addMouseListener(new PopupListener());
-		setCellRenderer(new SQLObjectRenderer());				
+		setCellRenderer(new SQLObjectRenderer());
 	}
 
 	public DBTree(List initialDatabases, ProfileManager profileManager) throws ArchitectException {
@@ -109,14 +108,14 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 		profileSelectionAction.setProfileManager(profileManager);
 	}
 
-	
+
 
 	// ----------- INSTANCE METHODS ------------
 
 	public void setDatabaseList(List databases) throws ArchitectException {
 		setModel(new DBTreeModel(databases));
 	}
-	
+
 	/**
 	 * Returns a list of all the databases in this DBTree's model.
 	 */
@@ -136,7 +135,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
      * tree's model).
 	 */
 	public boolean dbcsAlreadyExists(ArchitectDataSource spec) throws ArchitectException {
-		SQLObject so = (SQLObject) getModel().getRoot();		
+		SQLObject so = (SQLObject) getModel().getRoot();
 		// the children of the root, if they exists, are always SQLDatabase objects
 		Iterator it = so.getChildren().iterator();
 		boolean found = false;
@@ -146,18 +145,18 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 				found = true;
 			}
 		}
-		return found;		
+		return found;
 	}
 
 	/**
-     * Pass in a spec, and look for a duplicate in the list of DBCS objects in 
+     * Pass in a spec, and look for a duplicate in the list of DBCS objects in
      * User Settings.  If we find one, return a handle to it.  If we don't find
      * one, return null.
 	 */
 	public ArchitectDataSource getDuplicateDbcs(ArchitectDataSource spec) {
 		ArchitectDataSource dup = null;
 		boolean found = false;
-		Iterator it = ArchitectFrame.getMainInstance().getUserSettings().getConnections().iterator();		
+		Iterator it = ArchitectFrame.getMainInstance().getUserSettings().getConnections().iterator();
 		while (it.hasNext() && found == false) {
 			ArchitectDataSource dbcs = (ArchitectDataSource) it.next();
 			if (spec.equals(dbcs)) {
@@ -201,9 +200,9 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 		return getRowForPath(path);
 	}
 
-	
+
 	// -------------- JTree Overrides ---------------------
-	
+
 	public void expandPath(TreePath tp) {
 		try {
 			ArchitectFrame.getMainInstance().setCursor(new Cursor(Cursor.WAIT_CURSOR));
@@ -223,7 +222,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 	public void dragOver(DragSourceDragEvent dsde) {
 		logger.debug("DBTree: got dragOver event");
 	}
-	
+
 	public void dropActionChanged(DragSourceDragEvent dsde) {
 		logger.debug("DBTree: got dropActionChanged event");
 	}
@@ -231,12 +230,12 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 	public void dragExit(DragSourceEvent dse) {
 		logger.debug("DBTree: got dragExit event");
 	}
-	
+
 	public void dragDropEnd(DragSourceDropEvent dsde) {
 		logger.debug("DBTree: got dragDropEnd event");
 	}
 
-		
+
 
 	// ----------------- popup menu stuff ----------------
 
@@ -257,7 +256,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
         }
 
         private void maybeShowPopup(MouseEvent e, boolean isPress) {
-            
+
             TreePath p = getPathForLocation(e.getX(), e.getY());
             if (e.isPopupTrigger()) {
 				logger.debug("TreePath is: " + p);
@@ -271,7 +270,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 				if (isTargetDatabaseChild(p)) {
 					if (!isPathSelected(p)) {
 						setSelectionPath(p);
-				    }	
+				    }
 				} else {
 					// multi-select for menus is not supported outside the Target Database
                     if (!isPathSelected(p)) {
@@ -287,45 +286,45 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
             }
         }
     }
-		
+
 	/**
 	 * Creates a context sensitive menu for managing Database Connections. There
      * are several modes of operations:
-     * 
+     *
      * <ol>
      *  <li>click on target database.  the user can modify the properties manually,
-     * or select a target from the ones defined in user settings.  If there is 
+     * or select a target from the ones defined in user settings.  If there is
      * nothing defined, then that option is disabled.
-     * 
-     *  <li>click on an DBCS reference in the DBTree.  Bring up the dialog that 
+     *
+     *  <li>click on an DBCS reference in the DBTree.  Bring up the dialog that
      * allows the user to modify this connection.
-     * 
+     *
      *  <li>click on the background of the DBTree.  Allow the user to select DBCS
-     * from a list, or create a new DBCS from scratch (which will be added to the  
+     * from a list, or create a new DBCS from scratch (which will be added to the
      * User Settings list of DBCS objects).
 	 * </ol>
-     * 
+     *
      * <p>FIXME: add in column, table, exported key, imported keys menus; you can figure
      * out where the click came from by checking the TreePath.
 	 */
 	protected JPopupMenu refreshMenu(TreePath p) {
 		logger.debug("refreshMenu is being called.");
-		JPopupMenu newMenu = new JPopupMenu();		
-		newMenu.add(connectionsMenu = new JMenu("Add Source Connection")); 
-		connectionsMenu.add(new JMenuItem(newDBCSAction));		
+		JPopupMenu newMenu = new JPopupMenu();
+		newMenu.add(connectionsMenu = new JMenu("Add Source Connection"));
+		connectionsMenu.add(new JMenuItem(newDBCSAction));
 		connectionsMenu.addSeparator();
-        
+
         if ( getSelectionPaths() != null ) {
             newMenu.add(new JMenuItem(profileSelectionAction));
         }
-        
-		// populate		
-		
+
+		// populate
+
 		for (ArchitectDataSource dbcs : ArchitectFrame.getMainInstance().getUserSettings().getConnections()) {
 			connectionsMenu.add(new JMenuItem(new AddDBCSAction(dbcs)));
 		}
 		ASUtils.breakLongMenu(ArchitectFrame.getMainInstance(),connectionsMenu);
-		
+
 		if (isTargetDatabaseNode(p)) {
 			newMenu.addSeparator();
 			// two menu items: "Set Target Database" and "Connection Properties
@@ -342,12 +341,12 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 				ASUtils.breakLongMenu(ArchitectFrame.getMainInstance(),connectionsMenu);
 			}
 			JMenuItem popupProperties = new JMenuItem(dbcsPropertiesAction);
-			newMenu.add(popupProperties);  
-		} else if (isTargetDatabaseChild(p)) {	
+			newMenu.add(popupProperties);
+		} else if (isTargetDatabaseChild(p)) {
 			newMenu.addSeparator();
 			ArchitectFrame af = ArchitectFrame.getMainInstance();
 			JMenuItem mi;
-	
+
 			mi = new JMenuItem();
 			mi.setAction(af.editColumnAction);
 			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
@@ -357,7 +356,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 			} else {
 				mi.setEnabled(false);
 			}
-					
+
 			mi = new JMenuItem();
 			mi.setAction(af.insertColumnAction);
 			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
@@ -369,11 +368,11 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 			}
 
 			newMenu.addSeparator();
-			
+
 			mi = new JMenuItem();
 			mi.setAction(showInPlayPenAction);
 			newMenu.add(mi);
-	
+
 			mi = new JMenuItem();
 			mi.setAction(af.editTableAction);
 			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
@@ -383,7 +382,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 			} else {
 				mi.setEnabled(false);
 			}
-	
+
 			mi = new JMenuItem();
 			mi.setAction(af.editRelationshipAction);
 			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
@@ -393,17 +392,17 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 			} else {
 				mi.setEnabled(false);
 			}
-	
+
 			mi = new JMenuItem();
 			mi.setAction(af.deleteSelectedAction);
 			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
 			newMenu.add(mi);
-			if (p.getLastPathComponent() instanceof SQLTable || 
-			        p.getLastPathComponent() instanceof SQLColumn || 
+			if (p.getLastPathComponent() instanceof SQLTable ||
+			        p.getLastPathComponent() instanceof SQLColumn ||
 			        p.getLastPathComponent() instanceof SQLRelationship) {
 			    mi.setEnabled(true);
 			} else {
-				mi.setEnabled(false);	
+				mi.setEnabled(false);
 			}
 		} else if (p != null) { // clicked on DBCS item in DBTree
 			newMenu.addSeparator();
@@ -420,7 +419,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
             final SQLExceptionNode node = (SQLExceptionNode) p.getLastPathComponent();
             newMenu.add(new JMenuItem(new AbstractAction("Show Exception Details") {
                 public void actionPerformed(ActionEvent e) {
-                    ASUtils.showExceptionDialogNoReport("Exception Node Report", node.getException());        
+                    ASUtils.showExceptionDialogNoReport("Exception Node Report", node.getException());
                 }
             }));
 
@@ -450,9 +449,9 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
                 logger.error("Couldn't count siblings of SQLExceptionNode", ex);
             }
 		}
-		
+
 		// add in Show Listeners if debug is enabled
-		if (logger.isDebugEnabled()) { 
+		if (logger.isDebugEnabled()) {
 			newMenu.addSeparator();
 			JMenuItem showListeners = new JMenuItem("Show Listeners");
 			showListeners.addActionListener(new ActionListener() {
@@ -469,7 +468,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 	}
 
 	/**
-     * Checks to see if the SQLDatabase reference from the the DBTree is the 
+     * Checks to see if the SQLDatabase reference from the the DBTree is the
      * same as the one held by the PlayPen.  If it is, we are looking at the
      * Target Database.
      */
@@ -483,7 +482,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 
 	/**
      * Checks to see if the given tree path contains the playpen SQLDatabase.
-     * 
+     *
      * @return True if <code>tp</code> contains the playpen (target) database.
      *   Note that this is not stritcly limited to children of the target
      * database: it will return true if <code>tp</code> ends at the target
@@ -492,7 +491,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 	protected boolean isTargetDatabaseChild(TreePath tp) {
 		if (tp == null) {
 			return false;
-		}		
+		}
 
 		Object[] oo = tp.getPath();
 		for (int i = 0; i < oo.length; i++)
@@ -520,12 +519,12 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 				// check to see if we've already seen this one
 				if (dbcsAlreadyExists(dbcs)) {
 					logger.warn("database already exists in this project.");
-					JOptionPane.showMessageDialog(DBTree.this, "Can't set connection " 
-							                                   + dbcs.getDisplayName() 
-															   + ".  It already exists in the current project.", 
+					JOptionPane.showMessageDialog(DBTree.this, "Can't set connection "
+							                                   + dbcs.getDisplayName()
+															   + ".  It already exists in the current project.",
 												  "Warning", JOptionPane.WARNING_MESSAGE);
 				} else {
-					SQLDatabase newDB = new SQLDatabase(dbcs);		
+					SQLDatabase newDB = new SQLDatabase(dbcs);
 					root.addChild(root.getChildCount(), newDB);
 					ArchitectFrame.getMainInstance().getProject().setModified(true);
 					// start a thread to poke the new SQLDatabase object...
@@ -539,12 +538,12 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 			}
 		}
 	}
-	
+
 	/**
 	 * When invoked, this action creates a new DBCS, sets the
 	 * panelHoldsNewDBCS flag, and pops up the propDialog to edit the
 	 * new DBCS.
-     * 
+     *
      * Calls selectDBConnection() to add the connection to the db tree
 	 */
 	protected class NewDBCSAction extends AbstractAction {
@@ -554,10 +553,10 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 		}
 
 		public void actionPerformed(ActionEvent e) {
-			
+
 			final DBCSPanel dbcsPanel = new DBCSPanel();
 			ArchitectDataSource dbcs = new ArchitectDataSource();
-			
+
 			dbcsPanel.setDbcs(new ArchitectDataSource());
 
 
@@ -566,17 +565,17 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 			Action cancelAction = new AbstractAction() {
 				public void actionPerformed(ActionEvent evt) {
 					dbcsPanel.discardChanges();
-					
+
 				}
 			};
-			
+
 			JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
 					dbcsPanel,ArchitectFrame.getMainInstance(),
 					"New Connection", ArchitectPanelBuilder.OK_BUTTON_LABEL,
 					okButton, cancelAction);
-			
+
 			okButton.setConnectionDialog(d);
-			
+
 			d.pack();
 			d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
 			d.setVisible(true);
@@ -589,7 +588,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 		SQLObject so;
 		PokeDBThread (SQLObject so) {
 			super();
-			this.so = so;			
+			this.so = so;
 		}
 		public void run() {
 			try {
@@ -600,16 +599,16 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 			logger.debug("finished poking database " + so.getName());
 		}
 	}
-	
+
 	/**
 	 * The RemoveDBCSAction removes the currently-selected database connection from the project.
 	 */
 	protected class RemoveDBCSAction extends AbstractAction {
-		
+
 		public RemoveDBCSAction() {
 			super("Remove Connection");
 		}
-		
+
 		public void actionPerformed(ActionEvent arg0) {
 			TreePath tp = getSelectionPath();
 			if (tp == null) {
@@ -645,14 +644,14 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 			    }
 			} catch (ArchitectException ex) {
 				logger.error("Couldn't locate dependant columns", ex);
-				JOptionPane.showMessageDialog(DBTree.this, 
+				JOptionPane.showMessageDialog(DBTree.this,
 						"Couldn't search for dependant columns:\n"+ex.getMessage()
 						+"\n\nDatabase connection not removed.",
 						"Couldn't remove", JOptionPane.ERROR_MESSAGE);
 			}
 		}
 	}
-	
+
 	/**
 	 * The DBCSPropertiesAction responds to the "Properties" item in
 	 * the popup menu.  It determines which item in the tree is
@@ -669,39 +668,39 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 			if (p == null) {
 				return;
 			}
-			Object [] pathArray = p.getPath();			
+			Object [] pathArray = p.getPath();
 			int ii = 0;
 			SQLDatabase sd = null;
 			while (ii < pathArray.length && sd == null) {
 				if (pathArray[ii] instanceof SQLDatabase) {
-					sd = (SQLDatabase) pathArray[ii]; 				
+					sd = (SQLDatabase) pathArray[ii];
 				}
 				ii++;
 			}
 			if (sd != null) {
-				
+
 				final DBCSPanel dbcsPanel = new DBCSPanel();
 				ArchitectDataSource dbcs = sd.getDataSource();
-				
+
 				dbcsPanel.setDbcs(dbcs);
 
 
 				DBCS_OkAction okButton = new DBCS_OkAction(dbcsPanel,false);
-				
+
 				Action cancelAction = new AbstractAction() {
 					public void actionPerformed(ActionEvent evt) {
 						dbcsPanel.discardChanges();
-						
+
 					}
 				};
-				
+
 				JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
 						dbcsPanel,ArchitectFrame.getMainInstance(),
 						"Connection Properties", ArchitectPanelBuilder.OK_BUTTON_LABEL,
 						okButton, cancelAction);
-				
+
 				okButton.setConnectionDialog(d);
-				
+
 				d.pack();
 				d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
 				d.setVisible(true);
@@ -713,7 +712,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 		}
 	}
 
-   
+
 	/**
 	 * The DBCSPropertiesAction responds to the "Properties" item in
 	 * the popup menu.  It determines which item in the tree is
@@ -769,11 +768,11 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 					}
 				}
 				logger.info("DBTree: exporting list of DnD-type tree paths");
-				
+
 				// TODO add undo event
 				dge.getDragSource().startDrag
-					(dge, 
-					 null, //DragSource.DefaultCopyNoDrop, 
+					(dge,
+					 null, //DragSource.DefaultCopyNoDrop,
 					 new DnDTreePathTransferable(paths),
 					 t);
 			}
@@ -788,7 +787,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 		public static final ImageIcon tableIcon = ASUtils.createIcon("Table", "SQL Table", 16);
 		public static final ImageIcon keyIcon = ASUtils.createIcon("ExportedKey", "Exported key", 16);
 		public static final ImageIcon ownerIcon = ASUtils.createIcon("Owner", "Owner", 16);
-		
+
 		public Component getTreeCellRendererComponent(JTree tree,
 													  Object value,
 													  boolean sel,

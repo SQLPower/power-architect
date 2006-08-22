@@ -27,7 +27,6 @@ import ca.sqlpower.architect.profile.TableProfileResult;
 public class ProfileTableModel extends AbstractTableModel {
 
     static Logger logger = Logger.getLogger(ProfileTableModel.class);
-    ArrayList<String> columnNames;
 
     private ProfileManager profileManager;
 
@@ -35,29 +34,26 @@ public class ProfileTableModel extends AbstractTableModel {
 
     private List<SQLObject> filters;
 
-
+    private String[] columnNames = {"Database",
+                                    "Catalog",
+                                    "Schema",
+                                    "Table",
+                                    "Column",
+                                    "Run Date",
+                                    "Record Count",
+                                    "Data Type",
+                                    "# Null",
+                                    "% Null",
+                                    "# Unique",
+                                    "% Unique",
+                                    "Min Length",
+                                    "Max Length",
+                                    "Avg. Length",
+                                    "Min Value",
+                                    "Max Value",
+                                    "Avg. Value" };
     public ProfileTableModel() {
         filters = new ArrayList<SQLObject>();
-        columnNames = new ArrayList<String>();
-        columnNames.add("Database");
-        columnNames.add("Catalog");
-        columnNames.add("Schema");
-        columnNames.add("Table");
-        columnNames.add("Column");
-        columnNames.add("Run Date");
-        columnNames.add("Record Count");
-        columnNames.add("Data Type");
-        columnNames.add("# Null");
-        columnNames.add("% Null");
-        columnNames.add("# Unique");
-        columnNames.add("% Unique");
-        columnNames.add("Min Length");
-        columnNames.add("Max Length");
-        columnNames.add("Avg. Length");
-        columnNames.add("Min Value");
-        columnNames.add("Max Value");
-        columnNames.add("Avg. Value");
-
     }
     /**
      * removes all filters this will show all the columns
@@ -78,8 +74,8 @@ public class ProfileTableModel extends AbstractTableModel {
     }
 
     @Override
-    public String getColumnName(int column) {
-        return columnNames.get(column);
+    public String getColumnName(int col) {
+        return columnNames[col];
     }
 
     public int getRowCount() {
@@ -87,7 +83,7 @@ public class ProfileTableModel extends AbstractTableModel {
     }
 
     public int getColumnCount() {
-        return columnNames.size();
+        return columnNames.length;
     }
 
     public Object getValueAt(int rowIndex, int columnIndex) {

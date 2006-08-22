@@ -1,5 +1,7 @@
 package ca.sqlpower.architect.swingui.action;
 
+
+
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -34,6 +36,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.tree.TreePath;
@@ -68,6 +71,7 @@ import ca.sqlpower.architect.swingui.TableModelSortDecorator;
 import ca.sqlpower.architect.swingui.ProfilePanel.ChartTypes;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
+
 
 public class ProfilePanelAction extends AbstractAction {
     private static final Logger logger = Logger.getLogger(ProfilePanelAction.class);
@@ -236,22 +240,29 @@ public class ProfilePanelAction extends AbstractAction {
                             tm.addFilter(sqo);
                         }
                         tm.setProfileManager(profileManager);
-                        TableModelSortDecorator tableModelSortDecorator = new TableModelSortDecorator(tm);
+
+
+                        TableModelSortDecorator tableModelSortDecorator =
+                                                new TableModelSortDecorator(tm);
                         final JTable viewTable = new JTable(tableModelSortDecorator);
+                        viewTable.setDefaultRenderer(Object.class,new ProfileTableCellRenderer());
+                        JTableHeader tableHeader = viewTable.getTableHeader();
+                        tableModelSortDecorator.setTableHeader(tableHeader);
+
+                        // reset column widths
+                  //      tableModelSortDecorator.initColumnSizes(viewTable);
+
+
                         viewTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
                         ProfilePanelMouseListener profilePanelMouseListener = new ProfilePanelMouseListener();
                         profilePanelMouseListener.setTabPane(tabPane);
                         viewTable.addMouseListener( profilePanelMouseListener);
-                        ProfileTableCellRenderer ptcr = new ProfileTableCellRenderer();
-                        viewTable.setDefaultRenderer(Object.class,ptcr);
                         JScrollPane editorScrollPane = new JScrollPane(viewTable);
                         editorScrollPane.setVerticalScrollBarPolicy(
                                         JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
                         editorScrollPane.setPreferredSize(new Dimension(800, 600));
                         editorScrollPane.setMinimumSize(new Dimension(10, 10));
 
-                        // reset column widths
-                        initColumnSizes(viewTable);
 
                         JPanel tableViewPane = new JPanel(new BorderLayout());
 
@@ -507,43 +518,5 @@ public class ProfilePanelAction extends AbstractAction {
 
     }
 
-    /*
-     * This method picks good column sizes.
-     * If all column heads are wider than the column's cells'
-     * contents, then you can just use column.sizeWidthToFit().
-     */
-    private void initColumnSizes(JTable table) {
-        AbstractTableModel model = (AbstractTableModel)table.getModel();
-        TableColumn column = null;
-        Component comp = null;
-        int headerWidth = 0;
-        int cellWidth = 0;
-        TableCellRenderer headerRenderer =
-            table.getTableHeader().getDefaultRenderer();
 
-        for (int i = 0; i < model.getColumnCount(); i++) {
-            column = table.getColumnModel().getColumn(i);
-            cellWidth = 0;
-            comp = headerRenderer.getTableCellRendererComponent(
-                                 null, column.getHeaderValue(),
-                                 false, false, 0, 0);
-            headerWidth = comp.getPreferredSize().width;
-
-            for (int j = 0; j < table.getRowCount(); j++) {
-
-                comp = table.getDefaultRenderer(model.getColumnClass(i)).
-                                 getTableCellRendererComponent(
-                                     table, table.getValueAt(j,i),
-                                     false, false, j, i);
-                cellWidth = Math.max(cellWidth, comp.getPreferredSize().width);
-
-
-            }
-            System.out.println("Initializing width of column "
-                    + i + ". "
-                    + "headerWidth = " + headerWidth
-                    + "; cellWidth = " + cellWidth);
-            column.setPreferredWidth(Math.max(headerWidth, cellWidth));
-        }
-    }
 }
