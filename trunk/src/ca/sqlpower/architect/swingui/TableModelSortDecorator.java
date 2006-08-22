@@ -22,6 +22,7 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 
@@ -255,9 +256,9 @@ public class TableModelSortDecorator extends AbstractTableModel {
     }
 
     // Added - not proven.
-    public int viewIndex(int modelIndex) {
+/*    public int viewIndex(int modelIndex) {
         return getModelToView()[modelIndex];
-    }
+    }*/
 
     private int[] getModelToView() {
         if (modelToView == null) {
@@ -498,6 +499,44 @@ public class TableModelSortDecorator extends AbstractTableModel {
         public Directive(int column, int direction) {
             this.column = column;
             this.direction = direction;
+        }
+    }
+
+    /*
+     * This method picks good column sizes.
+     * If all column heads are wider than the column's cells'
+     * contents, then you can just use column.sizeWidthToFit().
+     */
+    public void initColumnSizes(JTable table) {
+        AbstractTableModel model = (AbstractTableModel)table.getModel();
+        TableColumn column = null;
+        Component comp = null;
+        int headerWidth = 0;
+        int cellWidth = 0;
+        TableCellRenderer headerRenderer =
+            table.getTableHeader().getDefaultRenderer();
+
+        for (int i = 0; i < model.getColumnCount(); i++) {
+
+            int colNo = table.convertColumnIndexToModel(i);
+            column = table.getColumnModel().getColumn(colNo);
+            cellWidth = 0;
+            comp = headerRenderer.getTableCellRendererComponent(
+                                 null, column.getHeaderValue(),
+                                 false, false, 0, 0);
+            headerWidth = comp.getPreferredSize().width;
+
+            for (int j = 0; j < table.getRowCount(); j++) {
+
+                comp = table.getDefaultRenderer(model.getColumnClass(colNo)).
+                                 getTableCellRendererComponent(
+                                     table, table.getValueAt(j,colNo),
+                                     false, false, j, colNo);
+                cellWidth = Math.max(cellWidth, comp.getPreferredSize().width);
+
+
+            }
+            column.setPreferredWidth(Math.max(headerWidth, cellWidth));
         }
     }
 }

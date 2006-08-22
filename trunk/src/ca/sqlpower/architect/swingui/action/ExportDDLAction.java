@@ -1,6 +1,7 @@
 package ca.sqlpower.architect.swingui.action;
 
 
+
 import java.awt.event.ActionEvent;
 import java.sql.SQLException;
 import java.util.List;
@@ -31,7 +32,7 @@ import ca.sqlpower.architect.swingui.DDLExportPanel;
 import ca.sqlpower.architect.swingui.MonitorableWorker;
 import ca.sqlpower.architect.swingui.SQLScriptDialog;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
-import ca.sqlpower.architect.swingui.TableSorter;
+import ca.sqlpower.architect.swingui.TableModelSortDecorator;
 
 public class ExportDDLAction extends AbstractAction {
 	private static final Logger logger = Logger.getLogger(ExportDDLAction.class);
@@ -46,37 +47,37 @@ public class ExportDDLAction extends AbstractAction {
 		architectFrame = ArchitectFrame.getMainInstance();
 		putValue(SHORT_DESCRIPTION, "Forward Engineer SQL Script");
 	}
-	
+
 	private JDialog d;
 
     public void actionPerformed(ActionEvent e) {
 
         final DDLExportPanel ddlPanel = new DDLExportPanel(architectFrame.getProject());
-        
+
         Action okAction, cancelAction;
         okAction = new AbstractAction() {
             public void actionPerformed(ActionEvent evt) {
                 try {
                     if (ddlPanel.applyChanges()) {
-                        
+
                         GenericDDLGenerator ddlg = architectFrame.getProject().getDDLGenerator();
                         ddlg.setTargetSchema(ddlPanel.getSchemaField().getText());
-                        
+
                         for (;;) {
                             // generate DDL in order to come up with a list of warnings
                             ddlg.generateDDL(architectFrame.getProject().getPlayPen().getDatabase());
                             List warnings = ddlg.getWarnings();
                             if (warnings.size() == 0)  break;
-                            TableSorter sorter = new TableSorter(new DDLWarningTableModel(warnings));
+                            TableModelSortDecorator sorter = new TableModelSortDecorator(new DDLWarningTableModel(warnings));
                             JTable warningTable = new JTable(sorter);
                             sorter.setTableHeader(warningTable.getTableHeader());
                             // FIXME: this should not be a JOptionPane. It should be a new type of ArchitectPanel.
                             int choice = JOptionPane.showConfirmDialog(d, new JScrollPane(warningTable), "Errors in generated DDL", JOptionPane.WARNING_MESSAGE);
                             if (choice != JOptionPane.OK_OPTION) return;
                         }
-                        
+
                         SQLDatabase ppdb = ArchitectFrame.getMainInstance().getProject().getPlayPen().getDatabase();
-                        SQLScriptDialog ssd = 
+                        SQLScriptDialog ssd =
                             new SQLScriptDialog(d, "Preview SQL Script", "", false,
                                     ddlg,
                                     ppdb.getDataSource(),
@@ -94,13 +95,13 @@ public class ExportDDLAction extends AbstractAction {
                     (architectFrame,
                             "Can't export DDL: "+ex.getMessage());
                     logger.error("Got exception while exporting DDL", ex);
-                    
+
                 }
             }
         };
-        
-        
-        
+
+
+
         cancelAction = new AbstractAction() {
             public void actionPerformed(ActionEvent evt) {
                 ddlPanel.discardChanges();
@@ -112,7 +113,7 @@ public class ExportDDLAction extends AbstractAction {
                 ArchitectFrame.getMainInstance(),
                 "Forward Engineer SQL Script", "OK",
                 okAction, cancelAction);
-        
+
         d.pack();
         d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
         d.setVisible(true);
@@ -122,7 +123,7 @@ public class ExportDDLAction extends AbstractAction {
 	 * The ConflictFinderProcess uses a ConflictResolver (which it monitors with
 	 * a progress bar) to locate objects in the target database which need to be
 	 * removed before a set of DDL statements can be executed in it.
-	 * 
+	 *
 	 * @author fuerth
 	 */
 	public class ConflictFinderProcess extends MonitorableWorker {
@@ -131,8 +132,8 @@ public class ExportDDLAction extends AbstractAction {
 		SQLDatabase target;
 		DDLGenerator ddlg;
 		List statements;
-			
-		
+
+
 		/**
 		 * This Conflict Resolver is created and populated by the run() method.
 		 */
@@ -143,14 +144,14 @@ public class ExportDDLAction extends AbstractAction {
 		 * be given a message to display in this string.
 		 */
 		String errorMessage;
-		
+
 		/**
 		 * If something throws an exception in the run() method, it is saved here and
 		 * displayed in runFinished().
 		 */
 		Throwable error;
 		private boolean shouldDropConflicts;
-		
+
 		/**
 		 * @param parentDialog The JDialog we're doing this in.
 		 * @param target The target database (where to search for the conflicts).
@@ -169,7 +170,7 @@ public class ExportDDLAction extends AbstractAction {
 
 			cr = new ConflictResolver(target, ddlg, statements);
 		}
-		
+
 		/**
 		 * @return True if and only if the user has asked for the conflicts to
 		 *         be deleted.
@@ -183,11 +184,11 @@ public class ExportDDLAction extends AbstractAction {
 		 * thread). It will take a while.
 		 */
 		public void doStuff() {
-			
+
 			if (this.isCanceled()) return;
 			try {
 				cr.findConflicting();
-				
+
 			} catch (Exception ex) {
 				error = ex;
 				errorMessage = "You have to specify a target database connection"
@@ -196,7 +197,7 @@ public class ExportDDLAction extends AbstractAction {
 
 			}
 		}
-		
+
 		/**
 		 * When the run() method is done, it schedules this method to be invoked on the AWT event
 		 * dispatch thread.
@@ -237,8 +238,8 @@ public class ExportDDLAction extends AbstractAction {
 		public ConflictResolver getConflictResolver() {
 			return cr;
 		}
-		
-	
+
+
 
 		public Integer getJobSize() throws ArchitectException {
 			return cr.getJobSize();
@@ -267,7 +268,7 @@ public class ExportDDLAction extends AbstractAction {
 	 * The ConflictResolverProcess grabs a conflict resolver from the conflict
 	 * finder process, checks if the user said to delete the conflicts, then
 	 * asks it to remove the conflicting items while monitoring the progress.
-	 * 
+	 *
 	 * @author fuerth
 	 * @version $Id$
 	 */
@@ -277,10 +278,10 @@ public class ExportDDLAction extends AbstractAction {
 		private ConflictFinderProcess conflictFinder;
 
 		private ConflictResolver cr;
- 
+
 		private String errorMessage;
 		private Exception error;
-		
+
 		/**
 		 * @param d The dialog we anchor popup messages to
 		 * @param cfp The conflict finder we extract the conflict list from
@@ -306,7 +307,7 @@ public class ExportDDLAction extends AbstractAction {
 				}
 			}
 		}
-		
+
 		/**
 		 * Displays error messages or invokes the next process in the chain on a new
 		 * thread. The run method asks swing to invoke this method on the event dispatch
@@ -318,7 +319,7 @@ public class ExportDDLAction extends AbstractAction {
 				setCancelled(true);
 			}
 		}
-	
+
 		public Integer getJobSize() throws ArchitectException {
 			return cr.getJobSize();
 		}
@@ -339,7 +340,7 @@ public class ExportDDLAction extends AbstractAction {
 			return cr.isFinished();
 		}
 
-	
+
 	}
 
 	public static class DDLWarningTableModel extends AbstractTableModel {
@@ -395,16 +396,16 @@ public class ExportDDLAction extends AbstractAction {
 				throw new IndexOutOfBoundsException("Requested column "+column+" of "+getColumnCount());
 			}
 		}
-		
+
 		public Class getColumnClass(int columnIndex) {
 		    return String.class;
 		}
-		
+
 		public boolean isCellEditable(int rowIndex, int columnIndex) {
 			DDLWarning w = (DDLWarning) warnings.get(rowIndex);
 		    return w instanceof NameChangeWarning && columnIndex == 4;
 		}
-		
+
 		public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
 			DDLWarning w = (DDLWarning) warnings.get(rowIndex);
 			if (columnIndex == 4) {
