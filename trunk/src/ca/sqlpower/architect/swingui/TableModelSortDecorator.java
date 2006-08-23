@@ -526,10 +526,10 @@ public class TableModelSortDecorator extends AbstractTableModel {
 
             for (int j = 0; j < table.getRowCount(); j++) {
 
-                comp = table.getDefaultRenderer(model.getColumnClass(i)).
-                                 getTableCellRendererComponent(
-                                     table, table.getValueAt(j,i),
-                                     false, false, j, i);
+                comp = table.getCellRenderer(j,i).getTableCellRendererComponent(table,
+                        table.getValueAt(j,i),false,false,j,i);
+
+
                 cellWidth = Math.max(cellWidth, comp.getPreferredSize().width);
 
 

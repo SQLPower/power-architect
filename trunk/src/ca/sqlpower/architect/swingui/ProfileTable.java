@@ -9,15 +9,13 @@ import ca.sqlpower.architect.swingui.table.DateRendererFactory;
 import ca.sqlpower.architect.swingui.table.DecimalRendererFactory;
 import ca.sqlpower.architect.swingui.table.PercentRendererFactory;
 import ca.sqlpower.architect.swingui.table.SQLObjectRendererFactory;
+import ca.sqlpower.architect.swingui.table.ValueRendererFactory;
 
 /**
  * Override JTable methods that control cell formatting, because we want
  * to always use particular format subclasses (from c.s.a.swingui.table)
  * to format particular columns.
- * <p>
- * This class "knows" that the ProfileManager gives us data suitable for rendering
- * in the order listed in the ProfileTableModel, hence the dependencies on
- * particular column numbers.
+ *
  */
 public class ProfileTable extends JTable {
 
@@ -37,8 +35,11 @@ public class ProfileTable extends JTable {
         case PERCENT_NULL:
             return new PercentRendererFactory();
         case AVERAGE_LENGTH:
-        case AVERAGE_VALUE:
             return new DecimalRendererFactory();
+        case MIN_VALUE:
+        case MAX_VALUE:
+        case AVERAGE_VALUE:
+            return new ValueRendererFactory();
         default:
             return super.getCellRenderer(row, column);
 
