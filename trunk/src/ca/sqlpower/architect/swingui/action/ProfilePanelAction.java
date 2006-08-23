@@ -395,10 +395,12 @@ public class ProfilePanelAction extends AbstractAction {
                         p.setTables(list);
                         p.setChartType(ChartTypes.PIE);
 
+                        d.setVisible(false);
                         d.remove(progressViewPanel);
                         d.setContentPane(tabPane);
                         d.pack();
                         d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
+                        d.setVisible(true);
 
 
                     } catch (SQLException e) {
