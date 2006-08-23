@@ -319,7 +319,6 @@ public class TableModelSortDecorator extends AbstractTableModel {
                 int column = directive.column;
                 Object o1 = tableModel.getValueAt(row1, column);
                 Object o2 = tableModel.getValueAt(row2, column);
-
                 int comparison = 0;
                 // Define null less than everything, except null.
                 if (o1 == null && o2 == null) {
@@ -518,20 +517,19 @@ public class TableModelSortDecorator extends AbstractTableModel {
 
         for (int i = 0; i < model.getColumnCount(); i++) {
 
-            int colNo = table.convertColumnIndexToModel(i);
-            column = table.getColumnModel().getColumn(colNo);
+            column = table.getColumnModel().getColumn(i);
             cellWidth = 0;
             comp = headerRenderer.getTableCellRendererComponent(
-                                 null, column.getHeaderValue(),
+                                 table, column.getHeaderValue(),
                                  false, false, 0, 0);
             headerWidth = comp.getPreferredSize().width;
 
             for (int j = 0; j < table.getRowCount(); j++) {
 
-                comp = table.getDefaultRenderer(model.getColumnClass(colNo)).
+                comp = table.getDefaultRenderer(model.getColumnClass(i)).
                                  getTableCellRendererComponent(
-                                     table, table.getValueAt(j,colNo),
-                                     false, false, j, colNo);
+                                     table, table.getValueAt(j,i),
+                                     false, false, j, i);
                 cellWidth = Math.max(cellWidth, comp.getPreferredSize().width);
 
 

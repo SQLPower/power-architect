@@ -1,5 +1,6 @@
 package ca.sqlpower.architect.swingui;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -212,5 +213,49 @@ public class ProfileTableModel extends AbstractTableModel {
         refresh();
     }
 
+    @Override
+    public Class<?> getColumnClass(int columnIndex) {
+
+        if (columnIndex == 0) {
+            return SQLDatabase.class;
+        } else if (columnIndex == 1) {
+            return SQLCatalog.class;
+        } else if (columnIndex == 2) {
+            return SQLSchema.class;
+        } else if (columnIndex == 3) {
+            return SQLTable.class;
+        } else if (columnIndex == 4) {
+            return SQLColumn.class;
+        } else if (columnIndex == 5) {
+            return Long.class;
+        } else if (columnIndex == 6) {
+            // Row Count
+            return Integer.class;
+        } else if (columnIndex == 7) {
+            return String.class;
+        } else if (columnIndex == 8) {
+            return Integer.class;
+        } else if (columnIndex == 9) {
+            return BigDecimal.class;
+        } else if (columnIndex == 10) {
+            return Integer.class;
+        } else if (columnIndex == 11) {
+            return BigDecimal.class;
+        } else if (columnIndex == 12) {
+            return Integer.class;
+        } else if (columnIndex == 13) {
+            return Integer.class;
+        } else if (columnIndex == 14) {
+            return BigDecimal.class;
+        } else if (columnIndex == 15) {
+            return Object.class;
+        } else if (columnIndex == 16) {
+            return Object.class;
+        } else if (columnIndex == 17) {
+            return Object.class;
+        } else {
+            throw new IllegalArgumentException("Column Index out of bounds");
+        }
+    }
 
 }

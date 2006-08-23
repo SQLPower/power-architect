@@ -49,6 +49,14 @@ public class ProfileTableCellRenderer extends DefaultTableCellRenderer {
             } else {
                 formattedValue = aldf.format(value);
             }
+        } else if (column == 17 ) {
+            if (value == null) {
+                formattedValue = "null";
+            } else if ( value instanceof Number ) {
+                formattedValue = aldf.format(value);
+            } else {
+                formattedValue = value.toString();
+            }
         } else {
             if (value == null) {
                 formattedValue = "null";

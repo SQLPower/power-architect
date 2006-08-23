@@ -15,6 +15,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -246,11 +247,19 @@ public class ProfilePanelAction extends AbstractAction {
                                                 new TableModelSortDecorator(tm);
                         final JTable viewTable = new JTable(tableModelSortDecorator);
                         viewTable.setDefaultRenderer(Object.class,new ProfileTableCellRenderer());
+                        viewTable.setDefaultRenderer(BigDecimal.class,new ProfileTableCellRenderer());
+                        viewTable.setDefaultRenderer(Integer.class,new ProfileTableCellRenderer());
+                        viewTable.setDefaultRenderer(Long.class,new ProfileTableCellRenderer());
+                        viewTable.setDefaultRenderer(SQLDatabase.class,new ProfileTableCellRenderer());
+                        viewTable.setDefaultRenderer(SQLCatalog.class,new ProfileTableCellRenderer());
+                        viewTable.setDefaultRenderer(SQLSchema.class,new ProfileTableCellRenderer());
+                        viewTable.setDefaultRenderer(SQLTable.class,new ProfileTableCellRenderer());
+                        viewTable.setDefaultRenderer(SQLColumn.class,new ProfileTableCellRenderer());
+
+
                         JTableHeader tableHeader = viewTable.getTableHeader();
                         tableModelSortDecorator.setTableHeader(tableHeader);
 
-                        // reset column widths
-                  //      tableModelSortDecorator.initColumnSizes(viewTable);
 
 
                         viewTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
@@ -263,6 +272,8 @@ public class ProfilePanelAction extends AbstractAction {
                         editorScrollPane.setPreferredSize(new Dimension(800, 600));
                         editorScrollPane.setMinimumSize(new Dimension(10, 10));
 
+                        // reset column widths
+                        tableModelSortDecorator.initColumnSizes(viewTable);
 
                         JPanel tableViewPane = new JPanel(new BorderLayout());
 
