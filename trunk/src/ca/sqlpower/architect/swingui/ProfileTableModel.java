@@ -21,6 +21,7 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
+import ca.sqlpower.architect.profile.ProfileColumn;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileResult;
 import ca.sqlpower.architect.profile.TableProfileResult;
@@ -35,24 +36,7 @@ public class ProfileTableModel extends AbstractTableModel {
 
     private List<SQLObject> filters;
 
-    private String[] columnNames = {"Database",
-                                    "Catalog",
-                                    "Schema",
-                                    "Table",
-                                    "Column",
-                                    "Run Date",
-                                    "Record Count",
-                                    "Data Type",
-                                    "# Null",
-                                    "% Null",
-                                    "# Unique",
-                                    "% Unique",
-                                    "Min Length",
-                                    "Max Length",
-                                    "Avg. Length",
-                                    "Min Value",
-                                    "Max Value",
-                                    "Avg. Value" };
+
     public ProfileTableModel() {
         filters = new ArrayList<SQLObject>();
     }
@@ -76,7 +60,7 @@ public class ProfileTableModel extends AbstractTableModel {
 
     @Override
     public String getColumnName(int col) {
-        return columnNames[col];
+        return ProfileColumn.values()[col].getName();
     }
 
     public int getRowCount() {
@@ -84,7 +68,7 @@ public class ProfileTableModel extends AbstractTableModel {
     }
 
     public int getColumnCount() {
-        return columnNames.length;
+        return ProfileColumn.values().length;
     }
 
     public Object getValueAt(int rowIndex, int columnIndex) {
@@ -96,64 +80,53 @@ public class ProfileTableModel extends AbstractTableModel {
         SQLColumn col = columnProfile.getProfiledObject();
         int rowCount = ((TableProfileResult) profileManager.getResult(col.getParentTable())).getRowCount();
 
-        if (columnIndex == 0) {
+        ProfileColumn column = ProfileColumn.values()[columnIndex];
+        switch(column) {
+        case DATABASE:
             return ArchitectUtils.getAncestor(col,SQLDatabase.class);
-        } else if (columnIndex == 1) {
+        case CATALOG:
             return ArchitectUtils.getAncestor(col,SQLCatalog.class);
-        } else if (columnIndex == 2) {
+        case  SCHEMA:
             return ArchitectUtils.getAncestor(col,SQLSchema.class);
-        } else if (columnIndex == 3) {
+        case TABLE:
             return ArchitectUtils.getAncestor(col,SQLTable.class);
-        } else if (columnIndex == 4) {
+        case COLUMN:
             return col;
-        } else if (columnIndex == 5) {
-            // Run date
+        case RUNDATE:
             return columnProfile.getCreateStartTime();
-        } else if (columnIndex == 6) {
-            // Row Count
+        case RECORD_COUNT:
             return rowCount;
-        } else if (columnIndex == 7) {
-            // data type
-            DDLGenerator gddl;
+        case DATA_TYPE:
             try {
-                gddl = DDLUtils.createDDLGenerator(col.getParentTable().getParentDatabase().getDataSource());
+                DDLGenerator gddl = DDLUtils.createDDLGenerator(col.getParentTable().getParentDatabase().getDataSource());
                 return gddl.columnType(col);
             } catch (Exception e) {
                 throw new ArchitectRuntimeException(new ArchitectException(
                         "Unable to get DDL information.  Do we have a valid data source?", e));
             }
-        } else if (columnIndex == 8) {
-            //  Number of null records
+        case NULL_COUNT:
             return columnProfile.getNullCount();
-        } else if (columnIndex == 9) {
-            //  Percent null records
+        case PERCENT_NULL:
             return rowCount == 0 ? null :  (double)columnProfile.getNullCount() / rowCount ;
-        } else if (columnIndex == 10) {
-            //  Number of unique records
+        case UNIQUE_COUNT:
             return columnProfile.getDistinctValueCount();
-        } else if (columnIndex == 11) {
-            //  percent of unique records
+        case  PERCENT_UNIQUE:
             return rowCount == 0 ? null : (double)columnProfile.getDistinctValueCount() / rowCount;
-        } else if (columnIndex == 12) {
-            //  min Length
+        case  MIN_LENGTH:
             return columnProfile.getMinLength();
-        } else if (columnIndex == 13) {
-            //  Max Length
+        case  MAX_LENGTH:
             return columnProfile.getMaxLength();
-        } else if (columnIndex == 14) {
-            //  Avg Length
+        case  AVERAGE_LENGTH:
             return columnProfile.getAvgLength();
-        } else if (columnIndex == 15) {
-            //  min Value
+        case  MIN_VALUE:            //  min Value
             return columnProfile.getMinValue();
-        } else if (columnIndex == 16) {
-            //  Max value
+        case  MAX_VALUE:
             return columnProfile.getMaxValue();
-        } else if (columnIndex == 17) {
-            //  Avg Value
+        case  AVERAGE_VALUE:
             return columnProfile.getAvgValue();
-        } else {
-            throw new IllegalArgumentException("Column Index out of bounds");
+        default:
+            throw new IllegalArgumentException(
+                    String.format("ProfileColumn enum value %s not handled", column));
         }
     }
 
@@ -215,46 +188,47 @@ public class ProfileTableModel extends AbstractTableModel {
 
     @Override
     public Class<?> getColumnClass(int columnIndex) {
-
-        if (columnIndex == 0) {
+        ProfileColumn pc = ProfileColumn.values()[columnIndex];
+        switch(pc) {
+        case DATABASE:
             return SQLDatabase.class;
-        } else if (columnIndex == 1) {
+        case CATALOG:
             return SQLCatalog.class;
-        } else if (columnIndex == 2) {
+        case SCHEMA:
             return SQLSchema.class;
-        } else if (columnIndex == 3) {
+        case TABLE:
             return SQLTable.class;
-        } else if (columnIndex == 4) {
+        case COLUMN:
             return SQLColumn.class;
-        } else if (columnIndex == 5) {
+        case RUNDATE:
             return Long.class;
-        } else if (columnIndex == 6) {
-            // Row Count
+        case RECORD_COUNT:
             return Integer.class;
-        } else if (columnIndex == 7) {
+        case DATA_TYPE:
             return String.class;
-        } else if (columnIndex == 8) {
+        case NULL_COUNT:
             return Integer.class;
-        } else if (columnIndex == 9) {
+        case PERCENT_NULL:
             return BigDecimal.class;
-        } else if (columnIndex == 10) {
+        case UNIQUE_COUNT:
             return Integer.class;
-        } else if (columnIndex == 11) {
+        case PERCENT_UNIQUE:
             return BigDecimal.class;
-        } else if (columnIndex == 12) {
+        case MIN_LENGTH:
             return Integer.class;
-        } else if (columnIndex == 13) {
+        case MAX_LENGTH:
             return Integer.class;
-        } else if (columnIndex == 14) {
+        case AVERAGE_LENGTH:
             return BigDecimal.class;
-        } else if (columnIndex == 15) {
+        case MIN_VALUE:
             return Object.class;
-        } else if (columnIndex == 16) {
+        case MAX_VALUE:
             return Object.class;
-        } else if (columnIndex == 17) {
+        case AVERAGE_VALUE:
             return Object.class;
-        } else {
-            throw new IllegalArgumentException("Column Index out of bounds");
+        default:
+            throw new IllegalArgumentException(
+                    String.format("ProfileColumn value %s unknown", pc));
         }
     }
 
