@@ -25,7 +25,8 @@ public class ProfileTable extends JTable {
 
     @Override
     public TableCellRenderer getCellRenderer(int row, int column) {
-        ProfileColumn pc = ProfileColumn.values()[column];
+        int modelColumn = convertColumnIndexToModel(column);
+        ProfileColumn pc = ProfileColumn.values()[modelColumn];
         switch(pc) {
         case DATABASE: case SCHEMA: case CATALOG: case TABLE: case COLUMN:
             return new SQLObjectRendererFactory();
