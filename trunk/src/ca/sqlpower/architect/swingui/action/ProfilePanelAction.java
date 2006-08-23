@@ -33,6 +33,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.table.JTableHeader;
+import javax.swing.table.TableModel;
 import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
@@ -371,7 +372,11 @@ public class ProfilePanelAction extends AbstractAction {
                                         ASUtils.showExceptionDialog(d,"Could delete column:", e1);
                                     }
                                 }
-                                ((ProfileTableModel)viewTable.getModel()).refresh();
+
+                                // This's ugly, depends on knowledge of wrap class order
+                                TableModelSortDecorator t = (TableModelSortDecorator) viewTable.getModel();
+                                ProfileTableModel t2 = (ProfileTableModel) t.getTableModel();
+                                t2.refresh();
                             }
 
                         });
@@ -379,7 +384,10 @@ public class ProfilePanelAction extends AbstractAction {
 
                             public void actionPerformed(ActionEvent e) {
                                 profileManager.clear();
-                                ((ProfileTableModel)viewTable.getModel()).refresh();
+                                // This's ugly, depends on knowledge of wrap class order
+                                TableModelSortDecorator t = (TableModelSortDecorator) viewTable.getModel();
+                                ProfileTableModel t2 = (ProfileTableModel) t.getTableModel();
+                                t2.refresh();
                             }
 
                         });
