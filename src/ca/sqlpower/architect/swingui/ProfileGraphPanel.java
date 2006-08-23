@@ -40,10 +40,6 @@ import com.jgoodies.forms.layout.FormLayout;
  *
  */
 public class ProfileGraphPanel {
-    /**
-     * 
-     */
-    private ProfilePanel displayPanel;
     private JLabel rowCountDisplay;
     private JLabel title;
     private JLabel nullableLabel;
@@ -61,10 +57,9 @@ public class ProfileGraphPanel {
     private int rowCount;
     private ChartPanel chartPanel;
     private ProfileManager pm;
-    
-    
+
+
     public ProfileGraphPanel(ProfilePanel panel, int rowCount, ProfileManager pm) {
-        displayPanel = panel;
         this.rowCount = rowCount;
         this.pm = pm;
         displayArea = new JPanel();
@@ -72,19 +67,19 @@ public class ProfileGraphPanel {
                 "4dlu, default, 4dlu, 100dlu, 4dlu, fill:default:grow, 4dlu", // columns
                 "4dlu, default, 6dlu"); // rows
         CellConstraints cc = new CellConstraints();
-        
+
         displayArea = ProfilePanel.logger.isDebugEnabled()  ? new FormDebugPanel(displayLayout) : new JPanel(displayLayout);
         displayArea.setBorder(BorderFactory.createEtchedBorder());
-        
+
         Font bodyFont = displayArea.getFont();
         Font titleFont = bodyFont.deriveFont(Font.BOLD, bodyFont.getSize() * 1.25F);
-        
+
         title = new JLabel("Column Name");
         title.setFont(titleFont);
-        
+
         PanelBuilder pb = new PanelBuilder(displayLayout, displayArea);
         pb.add(title, cc.xyw(2, 2, 5));
-        
+
         int row = 4;
         rowCountDisplay = makeInfoRow(pb, "RowCount", row); row += 2;
         nullableLabel = makeInfoRow(pb, "Nullable", row); row += 2;
@@ -97,21 +92,21 @@ public class ProfileGraphPanel {
         minValue = makeInfoRow(pb, "Minimum Value", row); row += 2;
         maxValue = makeInfoRow(pb, "Maximum Value", row); row += 2;
         avgValue = makeInfoRow(pb, "Average Value", row); row += 2;
-        
+
         pb.appendRow("fill:4dlu:grow");
         pb.appendRow("4dlu");
         // Now add something to represent the chart
         JFreeChart createPieChart = ChartFactory.createPieChart("",new DefaultPieDataset(new DefaultKeyedValues()),false,false,false);
         chartPanel = new ChartPanel(createPieChart);
-      
+
         pb.add(chartPanel, cc.xywh(6, 4, 1, row-3));
     }
-    
+
     public void setTitle(String title) {
         this.title.setText(title);
     }
-    
-    
+
+
     public JPanel getDisplayArea() {
         return displayArea;
     }
@@ -129,7 +124,7 @@ public class ProfileGraphPanel {
             rowCount = 0;
         }
         rowCountDisplay.setText(Integer.toString(rowCount));
-        
+
         StringBuffer sb = new StringBuffer();
         sb.append(c);
         if (c.isPrimaryKey()) {
@@ -139,7 +134,7 @@ public class ProfileGraphPanel {
         nullableLabel.setText(Boolean.toString(c.isDefinitelyNullable()));
         if (cr == null) {
             ProfilePanel.logger.error("displayProfile called but unable to get ColumnProfileResult for column: "+c);
-            
+
             // XXX the following code should instead replace chartPanel with a JLabel that contains the error message
             //     (and also not create a dummy profile result)
             cr = new ColumnProfileResult(c);
@@ -157,7 +152,7 @@ public class ProfileGraphPanel {
             uniquePercentLabel.setText(format(uniqueRatio));
             minLengthLabel.setText(Integer.toString(cr.getMinLength()));
             maxLengthLabel.setText(Integer.toString(cr.getMaxLength()));
-            
+
             minValue.setText(cr.getMinValue() == null ? "" : cr.getMinValue().toString());
             maxValue.setText(cr.getMaxValue() == null ? "" : cr.getMaxValue().toString());
             Object o = cr.getAvgValue();
@@ -168,18 +163,18 @@ public class ProfileGraphPanel {
                 avgValue.setText(format(d));
             } else {
                 ProfilePanel.logger.debug("Got avgValue of type: " + o.getClass().getName());
-                avgValue.setText(cr.getAvgValue().toString());  
+                avgValue.setText(cr.getAvgValue().toString());
             }
     }
-    
+
     private JFreeChart createTopNChart(SQLColumn sqo){
         JFreeChart chart;
         ColumnProfileResult cr = (ColumnProfileResult) pm.getResult(sqo);
         List<ColumnValueCount> valueCounts = cr.getValueCount();
         DefaultCategoryDataset catDataset = new DefaultCategoryDataset();
-     
+
         long otherDataCount = rowCount;
-        for (ColumnValueCount vc: valueCounts){    
+        for (ColumnValueCount vc: valueCounts){
             catDataset.addValue(vc.getCount(),sqo.getName(),vc.getValue()==null ? "null" : vc.getValue().toString());
             otherDataCount -= vc.getCount();
         }
@@ -187,7 +182,7 @@ public class ProfileGraphPanel {
         if (otherDataCount > 0){
             catDataset.addValue(otherDataCount,sqo.getName(),"Other Values");
         }
-        
+
         if ( chartType == ChartTypes.BAR ){
             String chartTitle;
             if (numberOfTopValues == 10 ) {
@@ -195,23 +190,23 @@ public class ProfileGraphPanel {
             } else {
                 chartTitle = "All "+numberOfTopValues+" values";
             }
-           
+
             chart = ChartFactory.createBarChart(
                     chartTitle,
                     "","",catDataset,PlotOrientation.VERTICAL,
                     false,true,false);
-                
+
             final CategoryAxis domainAxis = chart.getCategoryPlot().getDomainAxis();
             domainAxis.setCategoryLabelPositions(CategoryLabelPositions.DOWN_90);
         } else if (chartType == ChartTypes.PIE) {
-        
+
             String chartTitle;
             if (numberOfTopValues == 10 ) {
                 chartTitle = "Top "+numberOfTopValues+" most common values";
             } else {
                 chartTitle = "All "+numberOfTopValues+" values";
             }
-            
+
             chart = ChartFactory.createPieChart(
                     chartTitle,
                     new CategoryToPieDataset(catDataset,TableOrder.BY_ROW,0),
@@ -238,7 +233,7 @@ public class ProfileGraphPanel {
         return String.format("%6.2f", d);
     }
 
-    
+
     private JLabel makeInfoRow(PanelBuilder pb, String title, int row) {
         CellConstraints cc = new CellConstraints();
         pb.appendRow("default");

@@ -1,9 +1,6 @@
 package ca.sqlpower.architect.swingui.action;
 
-
-
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
@@ -15,7 +12,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,10 +32,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.filechooser.FileFilter;
-import javax.swing.table.AbstractTableModel;
 import javax.swing.table.JTableHeader;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumn;
 import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
@@ -64,7 +57,7 @@ import ca.sqlpower.architect.swingui.CommonCloseAction;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.JDefaultButton;
 import ca.sqlpower.architect.swingui.ProfilePanel;
-import ca.sqlpower.architect.swingui.ProfileTableCellRenderer;
+import ca.sqlpower.architect.swingui.ProfileTable;
 import ca.sqlpower.architect.swingui.ProfileTableModel;
 import ca.sqlpower.architect.swingui.ProgressWatcher;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
@@ -245,22 +238,10 @@ public class ProfilePanelAction extends AbstractAction {
 
                         TableModelSortDecorator tableModelSortDecorator =
                                                 new TableModelSortDecorator(tm);
-                        final JTable viewTable = new JTable(tableModelSortDecorator);
-                        viewTable.setDefaultRenderer(Object.class,new ProfileTableCellRenderer());
-                        viewTable.setDefaultRenderer(BigDecimal.class,new ProfileTableCellRenderer());
-                        viewTable.setDefaultRenderer(Integer.class,new ProfileTableCellRenderer());
-                        viewTable.setDefaultRenderer(Long.class,new ProfileTableCellRenderer());
-                        viewTable.setDefaultRenderer(SQLDatabase.class,new ProfileTableCellRenderer());
-                        viewTable.setDefaultRenderer(SQLCatalog.class,new ProfileTableCellRenderer());
-                        viewTable.setDefaultRenderer(SQLSchema.class,new ProfileTableCellRenderer());
-                        viewTable.setDefaultRenderer(SQLTable.class,new ProfileTableCellRenderer());
-                        viewTable.setDefaultRenderer(SQLColumn.class,new ProfileTableCellRenderer());
-
+                        final JTable viewTable = new ProfileTable(tableModelSortDecorator);
 
                         JTableHeader tableHeader = viewTable.getTableHeader();
                         tableModelSortDecorator.setTableHeader(tableHeader);
-
-
 
                         viewTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
                         ProfilePanelMouseListener profilePanelMouseListener = new ProfilePanelMouseListener();
