@@ -6,10 +6,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.swing.JLabel;
 
@@ -22,7 +20,6 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
-import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.Monitorable;
 
 public class ProfileManager implements Monitorable {
@@ -346,14 +343,14 @@ public class ProfileManager implements Monitorable {
 
         return pfd;
     }
-    
+
     public void clear(){
         results.clear();
     }
-    
+
     public void remove(SQLObject sqo) throws ArchitectException{
         results.remove(sqo);
-        
+
         if ( sqo instanceof SQLTable ) {
             for ( SQLColumn col: ((SQLTable)sqo).getColumns()) {
                 results.remove(col);
@@ -457,25 +454,25 @@ public class ProfileManager implements Monitorable {
                 sql.append(") AS NULLCOUNT_"+i);
                 tryCount++;
             }
-            
+
             if ( tryCount > 0 ) {
                 sql.append("\n FROM ");
-    
+
                 sql.append(DDLUtils.toQualifiedName(table.getCatalogName(),
                         table.getSchemaName(),
                         table.getName(),
                         databaseIdentifierQuoteString,
                         databaseIdentifierQuoteString));
-    
+
                 stmt = conn.createStatement();
                 stmt.setEscapeProcessing(false);
-    
+
                 lastSQL = sql.toString();
                 rs = stmt.executeQuery(lastSQL);
-    
+
                 if ( rs.next() ) {
-    
-    
+
+
                     if (findingDistinctCount && pfd.isCountDist() ) {
                         columnName = "DISTINCTCOUNT_"+i;
                         colResult.setDistinctValueCount(rs.getInt(columnName));
@@ -504,7 +501,7 @@ public class ProfileManager implements Monitorable {
                         columnName = "AVGLENGTH_"+i;
                         colResult.setAvgLength(rs.getDouble(columnName));
                     }
-    
+
                     if ( findingNullCount && pfd.isSumDecode() ) {
                         columnName = "NULLCOUNT_"+i;
                         colResult.setNullCount(rs.getInt(columnName));
