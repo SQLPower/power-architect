@@ -11,14 +11,14 @@ public class DecimalRendererFactory extends DefaultTableCellRenderer  implements
 
     DecimalFormat aldf;
 
+    public DecimalRendererFactory() {
+        aldf = new DecimalFormat("#,##0.0");
+        aldf.setMaximumFractionDigits(1);
+        aldf.setMinimumFractionDigits(0);
+    }
+
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
             int row, int column) {
-
-        if (aldf == null) {
-            aldf = new DecimalFormat("#,##0.0");
-            aldf.setMaximumFractionDigits(1);
-            aldf.setMinimumFractionDigits(0);
-        }
 
         String formattedValue;
 
