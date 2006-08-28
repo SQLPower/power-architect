@@ -22,7 +22,6 @@ public class ProfileCSVFormat implements ProfileFormat {
         PrintWriter out = new PrintWriter(nout);
 
         // Print a header
-        out.print('#');
         out.println(CSVExport.toString(Arrays.asList(ProfileColumn.values())));
         DateFormat dateFormat = (DateFormat) new DateRendererFactory().getFormat();
         DecimalFormat decFormat = (DecimalFormat) new DecimalRendererFactory().getFormat();
