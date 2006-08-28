@@ -2,13 +2,14 @@ package ca.sqlpower.architect.swingui.table;
 
 import java.awt.Component;
 import java.text.DecimalFormat;
+import java.text.Format;
 
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 
-public class PercentRendererFactory extends DefaultTableCellRenderer {
+public class PercentRendererFactory extends DefaultTableCellRenderer implements FormatFactory {
 
-    static DecimalFormat pctFormat = new DecimalFormat("0%");
+    DecimalFormat pctFormat = new DecimalFormat("0%");
 
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
             int row, int column) {
@@ -22,5 +23,9 @@ public class PercentRendererFactory extends DefaultTableCellRenderer {
             formattedValue = pctFormat.format(value);
         }
         return super.getTableCellRendererComponent(table, formattedValue, isSelected, hasFocus, row, column);
+    }
+
+    public Format getFormat() {
+        return pctFormat;
     }
 }
