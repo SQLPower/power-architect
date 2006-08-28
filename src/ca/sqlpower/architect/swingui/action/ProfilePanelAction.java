@@ -11,7 +11,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,6 +46,8 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLTable.Folder;
+import ca.sqlpower.architect.profile.ProfileCSVFormat;
+import ca.sqlpower.architect.profile.ProfileFormat;
 import ca.sqlpower.architect.profile.ProfileHTMLFormat;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfilePDFFormat;
@@ -74,6 +75,8 @@ public class ProfilePanelAction extends AbstractAction {
     protected ProfileManager profileManager;
     protected JDialog d;
 
+    /** The set of valid file types for saving the report in */
+    private enum SaveableFileType { HTML, PDF, CSV }
 
     public ProfilePanelAction() {
         super("Profile...", ASUtils.createJLFIcon( "general/Information",
@@ -207,6 +210,7 @@ public class ProfilePanelAction extends AbstractAction {
 
             new ProgressWatcher(progressBar,profileManager,workingOn);
 
+            // XXX This should be its own Action class?
             new Thread( new Runnable() {
 
                 public void run() {
@@ -262,73 +266,113 @@ public class ProfilePanelAction extends AbstractAction {
                         ButtonBarBuilder buttonBuilder = new ButtonBarBuilder();
                         JButton save = new JButton(new AbstractAction("Save") {
 
+                            // Save the report information into a formatted file.
                             public void actionPerformed(ActionEvent e) {
+
 
                                 JFileChooser chooser = new JFileChooser();
 
-                                chooser.addChoosableFileFilter(ASUtils.PDF_FILE_FILTER);
                                 chooser.addChoosableFileFilter(ASUtils.HTML_FILE_FILTER);
+                                chooser.addChoosableFileFilter(ASUtils.PDF_FILE_FILTER);
+                                chooser.addChoosableFileFilter(ASUtils.CSV_FILE_FILTER);
                                 chooser.removeChoosableFileFilter(chooser.getAcceptAllFileFilter());
+
+                                // Ask the user to pick a file
                                 int response = chooser.showSaveDialog(d);
+
                                 if (response != JFileChooser.APPROVE_OPTION) {
                                     return;
+                                }
+                                File file = chooser.getSelectedFile();
+                                final FileFilter fileFilter = chooser.getFileFilter();
+                                final SaveableFileType type;
+                                String fileName = file.getName();
+                                int x = fileName.lastIndexOf('.');
+                                boolean gotType = true;
+                                SaveableFileType ntype = null;
+                                if (x != -1) {
+                                    // pick file by filename the user typed
+                                    String ext = fileName.substring(x+1);
+                                    try {
+                                        ntype = SaveableFileType.valueOf(ext.toUpperCase());
+                                    } catch (IllegalArgumentException iex) {
+                                        gotType = false;
+                                    }
+                                }
+                                if (gotType) {
+                                    type = ntype;
                                 } else {
-                                    File file = chooser.getSelectedFile();
-                                    final FileFilter fileFilter = chooser.getFileFilter();
+                                    // force filename to end with correct extention
                                     if (fileFilter == ASUtils.HTML_FILE_FILTER) {
-                                        if (!file.getPath().endsWith(".html")) {
+                                        if (!fileName.endsWith(".html")) {
                                             file = new File(file.getPath()+".html");
                                         }
-                                    } else {
-                                        if (!file.getPath().endsWith(".pdf")) {
+                                        type = SaveableFileType.HTML;
+                                    } else if (fileFilter == ASUtils.PDF_FILE_FILTER){
+                                        if (!fileName.endsWith(".pdf")) {
                                             file = new File(file.getPath()+".pdf");
                                         }
-                                    }
-                                    if (file.exists()) {
-                                        response = JOptionPane.showConfirmDialog(
-                                                d,
-                                                "The file\n\n"+file.getPath()+"\n\nalready exists. Do you want to overwrite it?",
-                                                "File Exists", JOptionPane.YES_NO_OPTION);
-                                        if (response == JOptionPane.NO_OPTION) {
-                                            actionPerformed(e);
-                                            return;
+                                        type = SaveableFileType.PDF;
+                                    } else if (fileFilter == ASUtils.CSV_FILE_FILTER){
+                                        if (!fileName.endsWith(".csv")) {
+                                            file = new File(file.getPath()+".csv");
                                         }
+                                        type = SaveableFileType.CSV;
+                                    } else {
+                                        throw new IllegalStateException("Unexpected file filter chosen");
                                     }
+                                }
+                                if (file.exists()) {
+                                    response = JOptionPane.showConfirmDialog(
+                                            d,
+                                            "The file\n"+file.getPath()+"\nalready exists. Do you want to overwrite it?",
+                                            "File Exists", JOptionPane.YES_NO_OPTION);
+                                    if (response == JOptionPane.NO_OPTION) {
+                                        actionPerformed(e);
+                                        return;
+                                    }
+                                }
 
-                                    final File file2 = new File(file.getPath());
-                                    Runnable saveTask = new Runnable() {
-                                        public void run() {
-                                            List tabList = new ArrayList(tables);
-                                            OutputStream out = null;
-                                            try {
-                                                out = new BufferedOutputStream(new FileOutputStream(file2));
-                                                if (fileFilter == ASUtils.HTML_FILE_FILTER){
-                                                    final String encoding = "utf-8";
-                                                    ProfileHTMLFormat prf = new ProfileHTMLFormat(encoding);
-                                                    OutputStreamWriter osw = new OutputStreamWriter(out, encoding);
-                                                    osw.append(prf.format(tabList,profileManager));
-                                                    osw.flush();
-                                                } else {
-                                                    new ProfilePDFFormat().createPdf(out, tabList, profileManager);
-                                                }
-                                            } catch (Exception ex) {
-                                                ASUtils.showExceptionDialog(d,"Could not save PDF File", ex);
-                                            } finally {
-                                                if ( out != null ) {
-                                                    try {
-                                                        out.flush();
-                                                        out.close();
-                                                    } catch (IOException ex) {
-                                                        ASUtils.showExceptionDialog(d,"Could not close PDF File", ex);
-                                                    }
+                                // Clone file object for use in inner class, can not make "file" final as we change it to add extension
+                                final File file2 = new File(file.getPath());
+                                Runnable saveTask = new Runnable() {
+                                    public void run() {
+                                        List tabList = new ArrayList(tables);
+                                        OutputStream out = null;
+                                        try {
+                                            ProfileFormat prf = null;
+                                            out = new BufferedOutputStream(new FileOutputStream(file2));
+                                            switch(type) {
+                                            case HTML:
+                                                final String encoding = "utf-8";
+                                                prf = new ProfileHTMLFormat(encoding);
+                                                break;
+                                            case PDF:
+                                                prf = new ProfilePDFFormat();
+                                                break;
+                                            case CSV:
+                                                prf = new ProfileCSVFormat();
+                                                break;
+                                            default:
+                                                throw new IllegalArgumentException("Unknown type");
+                                            }
+                                            prf.format(out, tabList,profileManager);
+                                        } catch (Exception ex) {
+                                            ASUtils.showExceptionDialog(d,"Could not generate/save report file", ex);
+                                        } finally {
+                                            if ( out != null ) {
+                                                try {
+                                                    out.flush();
+                                                    out.close();
+                                                } catch (IOException ex) {
+                                                    ASUtils.showExceptionDialog(d,"Could not close report file", ex);
                                                 }
                                             }
                                         }
-                                    };
-                                    new Thread(saveTask).start();
-                                }
+                                    }
+                                };
+                                new Thread(saveTask).start();
                             }
-
                         });
 
                         JButton refresh = new JButton(new AbstractAction("Refresh"){

@@ -8,3 +8,4 @@ TEST*
 architect.log*
 .fbwarnings
 deploy
+.fbprefs

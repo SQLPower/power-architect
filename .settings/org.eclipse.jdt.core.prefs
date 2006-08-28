@@ -1,4 +1,4 @@
-#Mon May 01 18:18:10 EDT 2006
+#Mon Aug 14 17:50:52 EDT 2006
 eclipse.preferences.version=1
 org.eclipse.jdt.core.compiler.codegen.inlineJsrBytecode=enabled
 org.eclipse.jdt.core.compiler.codegen.targetPlatform=1.5
@@ -47,7 +47,7 @@ org.eclipse.jdt.core.compiler.problem.unnecessaryTypeCheck=ignore
 org.eclipse.jdt.core.compiler.problem.unqualifiedFieldAccess=ignore
 org.eclipse.jdt.core.compiler.problem.unusedDeclaredThrownException=ignore
 org.eclipse.jdt.core.compiler.problem.unusedDeclaredThrownExceptionWhenOverriding=disabled
-org.eclipse.jdt.core.compiler.problem.unusedImport=warning
+org.eclipse.jdt.core.compiler.problem.unusedImport=error
 org.eclipse.jdt.core.compiler.problem.unusedLocal=warning
 org.eclipse.jdt.core.compiler.problem.unusedParameter=ignore
 org.eclipse.jdt.core.compiler.problem.unusedParameterWhenImplementingAbstract=disabled
