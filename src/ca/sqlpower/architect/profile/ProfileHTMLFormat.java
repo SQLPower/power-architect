@@ -255,6 +255,7 @@ public class ProfileHTMLFormat implements ProfileFormat {
             outw.print("\n </table>");
         }
         outw.print("\n</body></html>");
+        outw.close();
     }
 
 }

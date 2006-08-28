@@ -468,11 +468,6 @@ public class ProfilePanelAction extends AbstractAction {
             }).start();
 
 
-
-
-
-
-
         } catch (Exception ex) {
             logger.error("Error in Profile Action ", ex);
             ASUtils.showExceptionDialog(dbTree, "Error during profile run", ex);
