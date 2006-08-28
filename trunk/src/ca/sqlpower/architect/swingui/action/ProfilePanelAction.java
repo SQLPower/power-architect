@@ -350,7 +350,9 @@ public class ProfilePanelAction extends AbstractAction {
                                 } catch (ArchitectException e1) {
                                     throw new ArchitectRuntimeException(e1);
                                 }
-                                ((ProfileTableModel)viewTable.getModel()).refresh();
+                                TableModelSortDecorator t = (TableModelSortDecorator) viewTable.getModel();
+                                ProfileTableModel t2 = (ProfileTableModel) t.getTableModel();
+                                t2.refresh();
                             }
 
                         });
