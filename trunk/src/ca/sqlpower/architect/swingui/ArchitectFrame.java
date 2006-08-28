@@ -91,7 +91,6 @@ import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.undo.UndoManager;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
-import com.sun.org.apache.bcel.internal.classfile.PMGClass;
 
 /**
  * The Main Window for the Architect Application; contains a main() method that is
