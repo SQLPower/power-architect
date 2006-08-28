@@ -114,7 +114,7 @@ public class ASUtils {
 		new FileExtensionFilter(".EXE Files", new String[] {"exe"});
 
 	public static final FileFilter JAR_ZIP_FILE_FILTER =
-		new FileExtensionFilter("JAR Files", new String[] {"jar", "zip"});
+		new FileExtensionFilter("Java JAR Files", new String[] {"jar", "zip"});
 
 	public static final FileFilter LOG_FILE_FILTER =
 		new FileExtensionFilter("Log Files", new String[] {"log"});
@@ -123,7 +123,10 @@ public class ASUtils {
         new FileExtensionFilter("XML Files", new String[] {"xml"});
 
     public static final FileFilter PDF_FILE_FILTER =
-        new FileExtensionFilter("PDF Files", new String[] {"pdf"});
+        new FileExtensionFilter("Portable Document (PDF) Files", new String[] {"pdf"});
+
+    public static final FileFilter CSV_FILE_FILTER =
+        new FileExtensionFilter("Comma-Separated Value Files", new String[] {"csv"});
 
     public static final FileFilter HTML_FILE_FILTER =
         new FileExtensionFilter("HTML Files", new String[] {"html"});

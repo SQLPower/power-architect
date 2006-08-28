@@ -1,8 +1,12 @@
 package ca.sqlpower.architect.profile;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.text.NumberFormat;
-import java.util.Collection;
+import java.util.List;
 import java.util.Date;
 
 import ca.sqlpower.architect.ArchitectException;
@@ -10,29 +14,26 @@ import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 
-public class ProfileHTMLFormat {
+public class ProfileHTMLFormat implements ProfileFormat {
 
     /**
      * The character encoding that will appear in the HTML declaration.
      */
     private String encoding;
-    
+
     public ProfileHTMLFormat(String encoding) {
         this.encoding = encoding;
     }
-    
-    /**
-     * This class generates formatted HTML of the profile information
-     *
-     * TODO Make an interface and this class a implementation of the interface
-     */
-    public String format(Collection <SQLTable> tables, ProfileManager pm) throws SQLException {
-        StringBuffer s = new StringBuffer();
 
+    /**
+     * Generates formatted HTML of the profile information
+     */
+    public void format(OutputStream out, List<SQLTable> tables, ProfileManager pm) throws IOException, SQLException {
+
+        // Create header first, obtaining column count, so we can use it in a colspan later.
+        StringBuffer s = new StringBuffer();
         int cellCount = 0;
-        
-              
-        
+
         s.append("\n  <tr>");
 
         s.append("<th>");
@@ -86,15 +87,17 @@ public class ProfileHTMLFormat {
         s.append("</th>");
 
         s.append("</tr>");
-        
+
         String header = s.toString();
 
-        s = new StringBuffer();
-        
-        s.append("<? xml version=\"1.0\" encoding=\"").append(encoding).append("\" ?>");
-        s.append("\n<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">");
-        s.append("\n<html><body>");
-        
+        // Do the rest in normal I/O mode...
+        PrintWriter outw = new PrintWriter(new OutputStreamWriter(out, encoding));
+
+        outw.printf("<? xml version=\"1.0\" encoding=\"%s\" ?>", encoding);
+
+        outw.print("\n<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">");
+        outw.print("\n<html><body>");
+
         NumberFormat mf = NumberFormat.getInstance();
         mf.setMaximumFractionDigits(1);
         mf.setGroupingUsed(false);
@@ -103,94 +106,94 @@ public class ProfileHTMLFormat {
 
         for ( SQLTable t : tables ) {
 
-            s.append("\n<br/><br/>");
-            s.append("\n<table border=\"0\" width=\"100%\">");
-            
-            s.append("\n  <tr><td colspan=\"" +cellCount+ "\">" );
-            s.append("<h3>");
-            s.append(t.getName());
+            outw.print("\n<br/><br/>");
+            outw.print("\n<table border=\"0\" width=\"100%\">");
+
+            outw.print("\n  <tr><td colspan=\"" +cellCount+ "\">" );
+            outw.print("<h3>");
+            outw.print(t.getName());
 
             TableProfileResult tpr = (TableProfileResult) pm.getResult(t);
             if ( tpr == null || tpr.isError() ) {
-                s.append("&nbsp;&nbsp;&nbsp;Profiling Error:");
-                s.append("</h3>");
-                s.append("</td></tr>");
-                s.append("\n  <tr><td colspan=\"" +cellCount+ "\">" );
+                outw.print("&nbsp;&nbsp;&nbsp;Profiling Error:");
+                outw.print("</h3>");
+                outw.print("</td></tr>");
+                outw.print("\n  <tr><td colspan=\"" +cellCount+ "\">" );
                 if ( tpr != null && tpr.getException() != null ) {
-                    s.append(tpr.getException());
-                    s.append("</td></tr>");
+                    outw.print(tpr.getException());
+                    outw.print("</td></tr>");
                 }
             } else {
-                s.append("&nbsp;&nbsp;&nbsp;Row&nbsp;Count:&nbsp;");
-                s.append(tpr.getRowCount());
-                s.append("&nbsp;&nbsp;&nbsp;Run&nbsp;Date:");
-                s.append(new Date(tpr.getCreateStartTime()));
+                outw.print("&nbsp;&nbsp;&nbsp;Row&nbsp;Count:&nbsp;");
+                outw.print(tpr.getRowCount());
+                outw.print("&nbsp;&nbsp;&nbsp;Run&nbsp;Date:");
+                outw.print(new Date(tpr.getCreateStartTime()));
 
-                s.append("&nbsp;&nbsp;&nbsp;Time&nbsp;To&nbsp;Create:");
-                s.append(tpr.getTimeToCreate());
-                s.append(" ms");
-                s.append("</h3>");
-                s.append("</td></tr>");
+                outw.print("&nbsp;&nbsp;&nbsp;Time&nbsp;To&nbsp;Create:");
+                outw.print(tpr.getTimeToCreate());
+                outw.print(" ms");
+                outw.print("</h3>");
+                outw.print("</td></tr>");
 
-                s.append(header);
+                outw.print(header);
                 double rowCount = (double)tpr.getRowCount();
-                
+
                 try {
                     for ( SQLColumn c : t.getColumns() ) {
-                        
-                        
+
+
                         ColumnProfileResult cpr = (ColumnProfileResult) pm.getResult(c);
-                        s.append("\n  <tr>");
-                        s.append("<td bgcolor=\"#e0e0e0\">");
+                        outw.print("\n  <tr>");
+                        outw.print("<td bgcolor=\"#e0e0e0\">");
                         if ( c.isPrimaryKey() )
-                            s.append("<b>");
-                        s.append(c.getName());
+                            outw.print("<b>");
+                        outw.print(c.getName());
                         if ( c.isPrimaryKey() )
-                            s.append("</b>");
-                        s.append("</td>");
-                        
-                        s.append("<td bgcolor=\"#e0e0e0\">");
+                            outw.print("</b>");
+                        outw.print("</td>");
+
+                        outw.print("<td bgcolor=\"#e0e0e0\">");
                         if ( gddl != null )
-                            s.append(gddl.columnType(c));
+                            outw.print(gddl.columnType(c));
                         else
-                            s.append("-----");
-                        s.append("</td>");
-                        
+                            outw.print("-----");
+                        outw.print("</td>");
+
                         if ( cpr == null || cpr.isError() ) {
-                            s.append("<td bgcolor=\"#f0f0f0\" colspan=\""+(cellCount-2)+"\">");
-                            s.append("Column Profile Error:");
+                            outw.print("<td bgcolor=\"#f0f0f0\" colspan=\""+(cellCount-2)+"\">");
+                            outw.print("Column Profile Error:");
                             if ( cpr != null ) {
-                                s.append(cpr.getException());
+                                outw.print(cpr.getException());
                             }
-                            s.append("</td>");
+                            outw.print("</td>");
                         } else {
-                            
+
                             // distinct count
-                            s.append("<td bgcolor=\"#f0f0f0\">");
-                            s.append( cpr.getDistinctValueCount());
+                            outw.print("<td bgcolor=\"#f0f0f0\">");
+                            outw.print( cpr.getDistinctValueCount());
                             if ( rowCount > 0 ) {
-                                s.append("(");
-                                s.append(mf.format( cpr.getDistinctValueCount()*100.0/rowCount) );
-                                s.append("%)");
+                                outw.print("(");
+                                outw.print(mf.format( cpr.getDistinctValueCount()*100.0/rowCount) );
+                                outw.print("%)");
                             } else {
-                                s.append("(-)");
+                                outw.print("(-)");
                             }
-                            s.append("</td>");
-                            
+                            outw.print("</td>");
+
                             // null count
-                            s.append("<td bgcolor=\"#f0f0f0\">");
-                            s.append( cpr.getNullCount());
+                            outw.print("<td bgcolor=\"#f0f0f0\">");
+                            outw.print( cpr.getNullCount());
                             if ( rowCount > 0 ) {
-                                s.append("(" );
-                                s.append( mf.format( cpr.getNullCount()*100.0/rowCount) );
-                                s.append("%)");
+                                outw.print("(" );
+                                outw.print( mf.format( cpr.getNullCount()*100.0/rowCount) );
+                                outw.print("%)");
                             } else {
-                                s.append("(-)");
+                                outw.print("(-)");
                             }
-                            s.append("</td>");
-                            
+                            outw.print("</td>");
+
                             // min value
-                            s.append("<td bgcolor=\"#e0e0e0\">");
+                            outw.print("<td bgcolor=\"#e0e0e0\">");
                             String minVal = null;
                             Object minValObj = cpr.getMinValue();
                             if ( minValObj != null ) {
@@ -200,11 +203,11 @@ public class ProfileHTMLFormat {
                                     minVal = minVal2 + "...";
                                 }
                             }
-                            s.append( minVal );
-                            s.append("</td>");
-                            
+                            outw.print( minVal );
+                            outw.print("</td>");
+
                             // max value
-                            s.append("<td bgcolor=\"#e0e0e0\">");
+                            outw.print("<td bgcolor=\"#e0e0e0\">");
                             String maxVal = null;
                             Object maxValObj = cpr.getMaxValue();
                             if ( maxValObj != null ) {
@@ -214,46 +217,44 @@ public class ProfileHTMLFormat {
                                     maxVal = maxVal2 + "...";
                                 }
                             }
-                            s.append( maxVal);
-                            s.append("</td>");
-                            
+                            outw.print( maxVal);
+                            outw.print("</td>");
+
                             // avg value
-                            s.append("<td bgcolor=\"#e0e0e0\">");
+                            outw.print("<td bgcolor=\"#e0e0e0\">");
                             if (cpr.getAvgValue() instanceof Number) {
-                                s.append(mf.format(cpr.getAvgValue()));
+                                outw.print(mf.format(cpr.getAvgValue()));
                             } else {
-                                s.append(cpr.getAvgValue());
+                                outw.print(cpr.getAvgValue());
                             }
-                            s.append("</td>");
-                            
+                            outw.print("</td>");
+
                             // min length
-                            s.append("<td bgcolor=\"#f0f0f0\">");
-                            s.append( cpr.getMinLength());
-                            s.append("</td>");
-                            
+                            outw.print("<td bgcolor=\"#f0f0f0\">");
+                            outw.print( cpr.getMinLength());
+                            outw.print("</td>");
+
                             // max length
-                            s.append("<td bgcolor=\"#f0f0f0\">");
-                            s.append( cpr.getMaxLength());
-                            s.append("</td>");
-                            
+                            outw.print("<td bgcolor=\"#f0f0f0\">");
+                            outw.print( cpr.getMaxLength());
+                            outw.print("</td>");
+
                             // avg length
-                            s.append("<td bgcolor=\"#f0f0f0\">");
-                            s.append(mf.format(cpr.getAvgLength()));
-                            s.append("</td>");
-                            
+                            outw.print("<td bgcolor=\"#f0f0f0\">");
+                            outw.print(mf.format(cpr.getAvgLength()));
+                            outw.print("</td>");
+
                         }
-                        
-                        s.append("</tr>");
+
+                        outw.print("</tr>");
                     }
                 } catch (ArchitectException e) {
                     e.printStackTrace();
                 }
             }
-            s.append("\n </table>");
+            outw.print("\n </table>");
         }
-        s.append("\n</body></html>");
-        return s.toString();
-
+        outw.print("\n</body></html>");
     }
 
 }
