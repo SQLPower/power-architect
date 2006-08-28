@@ -33,7 +33,6 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.table.JTableHeader;
-import javax.swing.table.TableModel;
 import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
