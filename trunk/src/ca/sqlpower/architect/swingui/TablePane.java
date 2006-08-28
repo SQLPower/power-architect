@@ -25,6 +25,7 @@ import java.util.ListIterator;
 import java.util.Map;
 
 import javax.swing.JComponent;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
@@ -33,6 +34,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.LockedColumnException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
@@ -41,13 +43,13 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 
-public class TablePane 
-	extends PlayPenComponent 
+public class TablePane
+	extends PlayPenComponent
 	implements SQLObjectListener, java.io.Serializable, Selectable, DragSourceListener {
 
 	private static final Logger logger = Logger.getLogger(TablePane.class);
 
-	
+
 
 	/**
 	 * A special column index that represents the titlebar area.
@@ -58,7 +60,7 @@ public class TablePane
 	 * A special column index that means "no location."
 	 */
 	public static final int COLUMN_INDEX_NONE = -2;
-	
+
 	/**
 	 * A special column index that represents the gap between the last PK column and the PK line.
 	 */
@@ -96,7 +98,7 @@ public class TablePane
 	 * Tracks which columns in this table are currently selected.
 	 */
 	protected ArrayList<Boolean> columnSelection;
-	
+
 	/**
 	 * Tracks current highlight colours of the columns in this table.
 	 */
@@ -110,14 +112,14 @@ public class TablePane
 	protected SQLColumn draggingColumn;
 
     private boolean fullyQualifiedNameInHeader = false;
-	
+
 	static {
 		UIManager.put(TablePaneUI.UI_CLASS_ID, "ca.sqlpower.architect.swingui.BasicTablePaneUI");
 	}
 
 	private SQLTable model;
 
-	
+
     public TablePane(TablePane tp, PlayPenContentPane parent) {
 		super(parent);
 		this.model = tp.model;
@@ -127,7 +129,7 @@ public class TablePane
 		this.columnSelection = new ArrayList<Boolean>(tp.columnSelection);
 		this.columnHighlight = new HashMap<SQLColumn,List<Color>>(tp.columnHighlight);
 		try {
-			
+
 			PlayPenComponentUI newUi = tp.getUI().getClass().newInstance();
 			newUi.installUI(this);
 			setUI(newUi);
@@ -142,16 +144,16 @@ public class TablePane
 	}
 
 
-	public TablePane(SQLTable m, PlayPen parentPP) {	    
+	public TablePane(SQLTable m, PlayPen parentPP) {
     		super(parentPP.getPlayPenContentPane());
 		setModel(m);
 		setOpaque(true);
 		setInsertionPoint(COLUMN_INDEX_NONE);
 
-		
+
 		//dt = new DropTarget(parentPP, new TablePaneDropListener(this));
 		dtl = new TablePaneDropListener(this);
-		
+
 		updateUI();
 	}
 
@@ -181,7 +183,7 @@ public class TablePane
 		SwingUtilities.convertPointToScreen(p, pp);
 		return p;
 	}
-	
+
 	// ---------------------- utility methods ----------------------
 
 	/**
@@ -248,7 +250,7 @@ public class TablePane
 				selectNone();
 				columnSelection.set(Math.min(ci[0], columnSelection.size()-1), Boolean.TRUE);
 			}
-			
+
 			// make sure everything is synced up
 			try {
 				if (columnSelection.size() != this.model.getColumns().size()) {
@@ -306,7 +308,7 @@ public class TablePane
 	}
 
 	// ----------------------- accessors and mutators --------------------------
-	
+
 	/**
 	 * Gets the value of model
 	 *
@@ -325,7 +327,7 @@ public class TablePane
 	 */
 	public void setModel(SQLTable m) {
 		SQLTable old = model;
-		
+
 		if (m == null) {
 			throw new IllegalArgumentException("model may not be null");
 		} else {
@@ -403,7 +405,7 @@ public class TablePane
 			repaint();
 		}
 	}
-	
+
 	/**
 	 * See {@link #selected}.
 	 */
@@ -437,7 +439,7 @@ public class TablePane
 		}
 		repaint();
 	}
-	
+
 
     /**
      * @param i The column to deselect.  If less than 0, {@link
@@ -451,7 +453,7 @@ public class TablePane
         columnSelection.set(i, Boolean.FALSE);
         repaint();
     }
-    
+
 	/**
 	 * @param i The column to select.  If less than 0, {@link
 	 * #selectNone()} is called rather than selecting a column.
@@ -492,7 +494,7 @@ public class TablePane
 		}
 		return COLUMN_INDEX_NONE;
 	}
-	
+
 	/**
 	 * Returns the list of selected column(s).
 	 * @throws ArchitectException
@@ -518,7 +520,7 @@ public class TablePane
 	public void removeSelectionListener(SelectionListener l) {
 		selectionListeners.remove(l);
 	}
-	
+
 	protected void fireSelectionEvent(SelectionEvent e) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Notifying "+selectionListeners.size()
@@ -552,8 +554,8 @@ public class TablePane
 
 	/**
 	 * Inserts the list of SQLObjects into this table at the specified location.
-	 * 
-	 * @param items A list of SQLTable and/or SQLColumn objects.  Other types are not allowed. 
+	 *
+	 * @param items A list of SQLTable and/or SQLColumn objects.  Other types are not allowed.
 	 * @param insertionPoint The position that the first item in the item list should go into.
 	 * This can be a nonnegative integer to specify a position in the column list, or one
 	 * of the constants COLUMN_INDEX_END_OF_PK or COLUMN_INDEX_START_OF_NON_PK to indicate a special position.
@@ -608,11 +610,11 @@ public class TablePane
 					}
 					try {
                         // You need to disable the magic (really the normalization) otherwise it goes around
-                        // the property change events and causes undo to fail when dragging into the primary 
+                        // the property change events and causes undo to fail when dragging into the primary
                         // key of a table
 					    getModel().setMagicEnabled(false);
 					    getModel().addColumn(insertionPoint, col);
-					    
+
 					    if (newColumnsInPk) {
 					        col.setPrimaryKeySeq(new Integer(insertionPoint));
 					    } else {
@@ -639,7 +641,7 @@ public class TablePane
 	 * at the current mouse position.
 	 */
 	public static class TablePaneDropListener implements DropTargetListener {
-		
+
 		protected TablePane tp;
 
 		public TablePaneDropListener(TablePane tp) {
@@ -661,7 +663,7 @@ public class TablePane
 				logger.debug("DragEnter event on "+tp.getName());
 			}
 		}
-		
+
 		/**
 		 * Called while a drag operation is ongoing, when the mouse
 		 * pointer has exited the operable part of the drop site for the
@@ -678,7 +680,7 @@ public class TablePane
 			}
 			tp.setInsertionPoint(COLUMN_INDEX_NONE);
 		}
-		
+
 		/**
 		 * Called when a drag operation is ongoing, while the mouse
 		 * pointer is still over the operable part of the drop site for
@@ -706,7 +708,7 @@ public class TablePane
 				logger.error("Got exception translating drag location", e);
 			}
 		}
-		
+
 		/**
 		 * Called when the drag operation has terminated with a drop on
 		 * the operable part of the drop site for the DropTarget
@@ -736,16 +738,30 @@ public class TablePane
 
 					ArrayList<int[]> paths = (ArrayList<int[]>) t.getTransferData(importFlavor);
 					logger.debug("Importing items from tree: "+paths);
-					
+
 					// put the undo event adapter into a drag and drop state
 					ArchitectFrame.getMainInstance().playpen.startCompoundEdit("Drag and Drop");
-					
+
 					ArrayList<SQLObject> droppedItems = new ArrayList<SQLObject>();
 					for (int[] path : paths) {
 						droppedItems.add(dbtree.getNodeForDnDPath(path));
 					}
 
-					boolean success = tp.insertObjects(droppedItems, insertionPoint);
+                    boolean success = false;
+                    try {
+                        success = tp.insertObjects(droppedItems, insertionPoint);
+                    } catch (LockedColumnException ex ) {
+                        JOptionPane.showConfirmDialog(pp,
+                                "Could not delete the column " +
+                                ex.getCol().getName() +
+                                " because it is part of\n" +
+                                "the relationship \""+ex.getLockingRelationship()+"\".\n\n",
+                                "Column is Locked",
+                                JOptionPane.CLOSED_OPTION);
+                        success = false;
+                    }
+
+
 					if (success) {
 						dtde.acceptDrop(DnDConstants.ACTION_COPY); // XXX: not always true
 					} else {
@@ -759,16 +775,16 @@ public class TablePane
 					dtde.rejectDrop();
 					dtde.dropComplete(false);
 					ASUtils.showExceptionDialog("Error processing drop operation", ex);
-				} finally {
+                } finally {
 					tp.setInsertionPoint(COLUMN_INDEX_NONE);
 					tp.getModel().normalizePrimaryKey();
-					
+
 					// put the undo event adapter into a regular state
 					ArchitectFrame.getMainInstance().playpen.endCompoundEdit("End drag and drop");
 				}
 			}
 		}
-		
+
 		/**
 		 * Called if the user has modified the current drop gesture.
 		 */
@@ -815,12 +831,12 @@ public class TablePane
 		 */
 		public boolean canImport(JComponent c, DataFlavor[] flavors) {
 			return bestImportFlavor(c, flavors) != null;
-		} 
+		}
 	}
 
 	/**
      * Deselects everything <b>except</b> the selected item.  This method exists
-     * to stop multiple selection events from propogating into the 
+     * to stop multiple selection events from propogating into the
      * CreateRelationshipAction listeners.
      */
 	void deSelectEverythingElse (MouseEvent evt) {
@@ -838,7 +854,7 @@ public class TablePane
 				t3.selectNone();
 			}
 		}
-		
+
 		// also de-select all the selected relationships
 		it = getPlayPen().getSelectedRelationShips().iterator();
 		while (it.hasNext()) {
@@ -854,7 +870,7 @@ public class TablePane
 	public void mouseExited(MouseEvent evt) {
         // we don't do anything about this at the moment
 	}
-	
+
 	// --------------------- Drag Source Listener ------------------------
 	public void dragEnter(DragSourceDragEvent dsde) {
         // don't care
@@ -867,7 +883,7 @@ public class TablePane
 	public void dropActionChanged(DragSourceDragEvent dsde) {
         // don't care
 	}
-		
+
 	public void dragExit(DragSourceEvent dse) {
         // don't care
 	}
@@ -880,11 +896,11 @@ public class TablePane
 		}
 		draggingColumn = null;
 	}
-    
+
     /**
      * Changes the foreground colour of a column.  This is useful when outside forces
      * want to colour in a column.
-     * 
+     *
      * @param i The column index to recolour
      * @param colour The new colour to show the column in.  null means use this TablePane's current
      * foreground colour.
@@ -893,25 +909,25 @@ public class TablePane
         columnHighlight.get(column).add(colour);
         repaint(); // XXX: should constrain repaint region to column i
     }
-    
+
     public void removeColumnHighlight(SQLColumn column, Color colour) {
         columnHighlight.get(column).remove(colour);
         repaint();
     }
-    
+
     /**
      * Returns the current highlight colour for a particular column.
-     * 
+     *
      * @param i The index of the column in question
      * @return The current highlight colour for the column at index i in this table.
      *   null indicates the current tablepane foreground colour will be used.
-     * @throws ArchitectException 
+     * @throws ArchitectException
      */
     public Color getColumnHighlight(int i) throws ArchitectException {
-        
+
         return getColumnHighlight(model.getColumn(i));
     }
-    
+
     public Color getColumnHighlight(SQLColumn column) {
         logger.debug("Checking column "+column);
         if (columnHighlight.get(column).isEmpty()) {
@@ -928,11 +944,11 @@ public class TablePane
             return new Color(rgbsum[0]/sz, rgbsum[1]/sz, rgbsum[2]/sz);
         }
     }
-    
+
     public void setFullyQualifiedNameInHeader(boolean fullyQualifiedNameInHeader) {
         this.fullyQualifiedNameInHeader = fullyQualifiedNameInHeader;
     }
-    
+
     public boolean isFullyQualifiedNameInHeader() {
         return fullyQualifiedNameInHeader;
     }
