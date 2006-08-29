@@ -6,10 +6,9 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.text.NumberFormat;
-import java.util.List;
 import java.util.Date;
+import java.util.List;
 
-import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
@@ -28,7 +27,8 @@ public class ProfileHTMLFormat implements ProfileFormat {
     /**
      * Generates formatted HTML of the profile information
      */
-    public void format(OutputStream out, List<SQLTable> tables, ProfileManager pm) throws IOException, SQLException {
+    public void format(OutputStream out, List<ProfileResult> profileResults,
+                        ProfileManager pm) throws IOException, SQLException {
 
         // Create header first, obtaining column count, so we can use it in a colspan later.
         StringBuffer s = new StringBuffer();
@@ -104,156 +104,164 @@ public class ProfileHTMLFormat implements ProfileFormat {
 
         GenericDDLGenerator gddl = new GenericDDLGenerator();
 
-        for ( SQLTable t : tables ) {
+        boolean firstTable = true;
 
-            outw.print("\n<br/><br/>");
-            outw.print("\n<table border=\"0\" width=\"100%\">");
+        for ( ProfileResult result : profileResults ) {
+            if ( result instanceof TableProfileResult ) {
 
-            outw.print("\n  <tr><td colspan=\"" +cellCount+ "\">" );
-            outw.print("<h3>");
-            outw.print(t.getName());
+                if ( firstTable ) {
+                    firstTable = false;
+                } else {
+                    outw.print("\n </table>");
+                }
 
-            TableProfileResult tpr = (TableProfileResult) pm.getResult(t);
-            if ( tpr == null || tpr.isError() ) {
-                outw.print("&nbsp;&nbsp;&nbsp;Profiling Error:");
-                outw.print("</h3>");
-                outw.print("</td></tr>");
+                SQLTable t = ((TableProfileResult)result).getProfiledObject();
+
+                outw.print("\n<br/><br/>");
+                outw.print("\n<table border=\"0\" width=\"100%\">");
+
                 outw.print("\n  <tr><td colspan=\"" +cellCount+ "\">" );
-                if ( tpr != null && tpr.getException() != null ) {
-                    outw.print(tpr.getException());
+                outw.print("<h3>");
+                outw.print(t.getName());
+
+                if ( result == null || result.isError() ) {
+                    outw.print("&nbsp;&nbsp;&nbsp;Profiling Error:");
+                    outw.print("</h3>");
                     outw.print("</td></tr>");
-                }
-            } else {
-                outw.print("&nbsp;&nbsp;&nbsp;Row&nbsp;Count:&nbsp;");
-                outw.print(tpr.getRowCount());
-                outw.print("&nbsp;&nbsp;&nbsp;Run&nbsp;Date:");
-                outw.print(new Date(tpr.getCreateStartTime()));
-
-                outw.print("&nbsp;&nbsp;&nbsp;Time&nbsp;To&nbsp;Create:");
-                outw.print(tpr.getTimeToCreate());
-                outw.print(" ms");
-                outw.print("</h3>");
-                outw.print("</td></tr>");
-
-                outw.print(header);
-                double rowCount = (double)tpr.getRowCount();
-
-                try {
-                    for ( SQLColumn c : t.getColumns() ) {
-
-
-                        ColumnProfileResult cpr = (ColumnProfileResult) pm.getResult(c);
-                        outw.print("\n  <tr>");
-                        outw.print("<td bgcolor=\"#e0e0e0\">");
-                        if ( c.isPrimaryKey() )
-                            outw.print("<b>");
-                        outw.print(c.getName());
-                        if ( c.isPrimaryKey() )
-                            outw.print("</b>");
-                        outw.print("</td>");
-
-                        outw.print("<td bgcolor=\"#e0e0e0\">");
-                        if ( gddl != null )
-                            outw.print(gddl.columnType(c));
-                        else
-                            outw.print("-----");
-                        outw.print("</td>");
-
-                        if ( cpr == null || cpr.isError() ) {
-                            outw.print("<td bgcolor=\"#f0f0f0\" colspan=\""+(cellCount-2)+"\">");
-                            outw.print("Column Profile Error:");
-                            if ( cpr != null ) {
-                                outw.print(cpr.getException());
-                            }
-                            outw.print("</td>");
-                        } else {
-
-                            // distinct count
-                            outw.print("<td bgcolor=\"#f0f0f0\">");
-                            outw.print( cpr.getDistinctValueCount());
-                            if ( rowCount > 0 ) {
-                                outw.print("(");
-                                outw.print(mf.format( cpr.getDistinctValueCount()*100.0/rowCount) );
-                                outw.print("%)");
-                            } else {
-                                outw.print("(-)");
-                            }
-                            outw.print("</td>");
-
-                            // null count
-                            outw.print("<td bgcolor=\"#f0f0f0\">");
-                            outw.print( cpr.getNullCount());
-                            if ( rowCount > 0 ) {
-                                outw.print("(" );
-                                outw.print( mf.format( cpr.getNullCount()*100.0/rowCount) );
-                                outw.print("%)");
-                            } else {
-                                outw.print("(-)");
-                            }
-                            outw.print("</td>");
-
-                            // min value
-                            outw.print("<td bgcolor=\"#e0e0e0\">");
-                            String minVal = null;
-                            Object minValObj = cpr.getMinValue();
-                            if ( minValObj != null ) {
-                                minVal = minValObj.toString();
-                                if ( minVal != null && minVal.length() > 30 ) {
-                                    String minVal2 = minVal.substring(0,30);
-                                    minVal = minVal2 + "...";
-                                }
-                            }
-                            outw.print( minVal );
-                            outw.print("</td>");
-
-                            // max value
-                            outw.print("<td bgcolor=\"#e0e0e0\">");
-                            String maxVal = null;
-                            Object maxValObj = cpr.getMaxValue();
-                            if ( maxValObj != null ) {
-                                maxVal = maxValObj.toString();
-                                if ( maxVal != null && maxVal.length() > 30 ) {
-                                    String maxVal2 = maxVal.substring(0,30);
-                                    maxVal = maxVal2 + "...";
-                                }
-                            }
-                            outw.print( maxVal);
-                            outw.print("</td>");
-
-                            // avg value
-                            outw.print("<td bgcolor=\"#e0e0e0\">");
-                            if (cpr.getAvgValue() instanceof Number) {
-                                outw.print(mf.format(cpr.getAvgValue()));
-                            } else {
-                                outw.print(cpr.getAvgValue());
-                            }
-                            outw.print("</td>");
-
-                            // min length
-                            outw.print("<td bgcolor=\"#f0f0f0\">");
-                            outw.print( cpr.getMinLength());
-                            outw.print("</td>");
-
-                            // max length
-                            outw.print("<td bgcolor=\"#f0f0f0\">");
-                            outw.print( cpr.getMaxLength());
-                            outw.print("</td>");
-
-                            // avg length
-                            outw.print("<td bgcolor=\"#f0f0f0\">");
-                            outw.print(mf.format(cpr.getAvgLength()));
-                            outw.print("</td>");
-
-                        }
-
-                        outw.print("</tr>");
+                    outw.print("\n  <tr><td colspan=\"" +cellCount+ "\">" );
+                    if ( result != null && result.getException() != null ) {
+                        outw.print(result.getException());
+                        outw.print("</td></tr>");
                     }
-                } catch (ArchitectException e) {
-                    e.printStackTrace();
+                } else {
+                    double rowCount = (double) (((TableProfileResult)result).getRowCount());
+                    outw.print("&nbsp;&nbsp;&nbsp;Row&nbsp;Count:&nbsp;");
+                    outw.print(rowCount);
+                    outw.print("&nbsp;&nbsp;&nbsp;Run&nbsp;Date:");
+                    outw.print(new Date(result.getCreateStartTime()));
+
+                    outw.print("&nbsp;&nbsp;&nbsp;Time&nbsp;To&nbsp;Create:");
+                    outw.print(result.getTimeToCreate());
+                    outw.print(" ms");
+                    outw.print("</h3>");
+                    outw.print("</td></tr>");
+
+                    outw.print(header);
                 }
+            } else if ( result instanceof ColumnProfileResult ) {
+                SQLColumn c = (SQLColumn) result.getProfiledObject();
+                SQLTable t = c.getParentTable();
+                TableProfileResult tResult = (TableProfileResult) pm.getResult(t);
+                double rowCount = (double) tResult.getRowCount();
+
+                outw.print("\n  <tr>");
+                outw.print("<td bgcolor=\"#e0e0e0\">");
+                if ( c.isPrimaryKey() )
+                    outw.print("<b>");
+                outw.print(c.getName());
+                if ( c.isPrimaryKey() )
+                    outw.print("</b>");
+                outw.print("</td>");
+
+                outw.print("<td bgcolor=\"#e0e0e0\">");
+                if ( gddl != null )
+                    outw.print(gddl.columnType(c));
+                else
+                    outw.print("-----");
+                outw.print("</td>");
+
+                if ( result == null || result.isError() ) {
+                    outw.print("<td bgcolor=\"#f0f0f0\" colspan=\""+(cellCount-2)+"\">");
+                    outw.print("Column Profile Error:");
+                    if ( result != null ) {
+                        outw.print(result.getException());
+                    }
+                    outw.print("</td>");
+                } else {
+
+                    // distinct count
+                    outw.print("<td bgcolor=\"#f0f0f0\">");
+                    outw.print( ((ColumnProfileResult) result).getDistinctValueCount());
+                    if ( rowCount > 0 ) {
+                        outw.print("(");
+                        outw.print(mf.format( ((ColumnProfileResult) result).getDistinctValueCount()*100.0/rowCount) );
+                        outw.print("%)");
+                    } else {
+                        outw.print("(-)");
+                    }
+                    outw.print("</td>");
+
+                    // null count
+                    outw.print("<td bgcolor=\"#f0f0f0\">");
+                    outw.print( ((ColumnProfileResult) result).getNullCount());
+                    if ( rowCount > 0 ) {
+                        outw.print("(" );
+                        outw.print( mf.format( ((ColumnProfileResult) result).getNullCount()*100.0/rowCount) );
+                        outw.print("%)");
+                    } else {
+                        outw.print("(-)");
+                    }
+                    outw.print("</td>");
+
+                    // min value
+                    outw.print("<td bgcolor=\"#e0e0e0\">");
+                    String minVal = null;
+                    Object minValObj = ((ColumnProfileResult) result).getMinValue();
+                    if ( minValObj != null ) {
+                        minVal = minValObj.toString();
+                        if ( minVal != null && minVal.length() > 30 ) {
+                            String minVal2 = minVal.substring(0,30);
+                            minVal = minVal2 + "...";
+                        }
+                    }
+                    outw.print( minVal );
+                    outw.print("</td>");
+
+                    // max value
+                    outw.print("<td bgcolor=\"#e0e0e0\">");
+                    String maxVal = null;
+                    Object maxValObj = ((ColumnProfileResult) result).getMaxValue();
+                    if ( maxValObj != null ) {
+                        maxVal = maxValObj.toString();
+                        if ( maxVal != null && maxVal.length() > 30 ) {
+                            String maxVal2 = maxVal.substring(0,30);
+                            maxVal = maxVal2 + "...";
+                        }
+                    }
+                    outw.print( maxVal);
+                    outw.print("</td>");
+
+                    // avg value
+                    outw.print("<td bgcolor=\"#e0e0e0\">");
+                    if (((ColumnProfileResult) result).getAvgValue() instanceof Number) {
+                        outw.print(mf.format(((ColumnProfileResult) result).getAvgValue()));
+                    } else {
+                        outw.print(((ColumnProfileResult) result).getAvgValue());
+                    }
+                    outw.print("</td>");
+
+                    // min length
+                    outw.print("<td bgcolor=\"#f0f0f0\">");
+                    outw.print( ((ColumnProfileResult) result).getMinLength());
+                    outw.print("</td>");
+
+                    // max length
+                    outw.print("<td bgcolor=\"#f0f0f0\">");
+                    outw.print( ((ColumnProfileResult) result).getMaxLength());
+                    outw.print("</td>");
+
+                    // avg length
+                    outw.print("<td bgcolor=\"#f0f0f0\">");
+                    outw.print(mf.format(((ColumnProfileResult) result).getAvgLength()));
+                    outw.print("</td>");
+
+                }
+
+                outw.print("</tr>");
             }
-            outw.print("\n </table>");
         }
+
+        outw.print("\n </table>");
         outw.print("\n</body></html>");
         outw.close();
     }

@@ -3,8 +3,6 @@ package ca.sqlpower.architect.profile;
 import java.io.OutputStream;
 import java.util.List;
 
-import ca.sqlpower.architect.SQLTable;
-
 /**
  * The general contract of a class that can format a profile results.
  * Implementations may format the profile results in HTML, XML, PDF, CSV, etc.
@@ -31,5 +29,5 @@ public interface ProfileFormat {
      * @param profile The list of SQL Tables
      * @param pm    The ProfileManager which generated this Profile
      */
-    public void format(OutputStream out, List<SQLTable> profile, ProfileManager pm) throws Exception;
+    public void format(OutputStream out, List<ProfileResult> profile, ProfileManager pm) throws Exception;
 }

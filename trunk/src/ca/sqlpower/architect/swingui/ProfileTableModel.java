@@ -257,4 +257,7 @@ public class ProfileTableModel extends AbstractTableModel {
         }
     }
 
+    public ProfileResult getResultForRow(int row) {
+        return resultList.get(row);
+    }
 }

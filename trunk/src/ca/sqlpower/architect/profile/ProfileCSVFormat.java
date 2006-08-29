@@ -18,7 +18,8 @@ public class ProfileCSVFormat implements ProfileFormat {
     /** The desired CSV column list is published in the ProfileColumn enum.
      * @see ca.sqlpower.architect.profile.ProfileFormat#format(java.io.OutputStream, java.util.List, ca.sqlpower.architect.profile.ProfileManager)
      */
-    public void format(OutputStream nout, List<SQLTable> profile, ProfileManager pm) throws Exception {
+    public void format(OutputStream nout, List<ProfileResult> profileResult,
+                                        ProfileManager pm) throws Exception {
         PrintWriter out = new PrintWriter(nout);
 
         // Print a header
@@ -27,32 +28,34 @@ public class ProfileCSVFormat implements ProfileFormat {
         DecimalFormat decFormat = (DecimalFormat) new DecimalRendererFactory().getFormat();
 
         // Now print column profile
-        for (SQLTable t : profile) {
+        for ( ProfileResult result : profileResult ) {
+
+            if ( !(result instanceof ColumnProfileResult) )
+                continue;
+
+            SQLColumn c = (SQLColumn) result.getProfiledObject();
+            SQLTable t = c.getParentTable();
             TableProfileResult tpr = (TableProfileResult) pm.getResult(t);
             List<Object> commonData = new ArrayList<Object>();
-            commonData.add(t.getParent().getName());
+            commonData.add(t.getParentDatabase().getName());
             commonData.add(t.getName());
             commonData.add(t.getCatalog() != null ? t.getCatalog().getName() : "");
             commonData.add(t.getSchema() != null ? t.getSchema().getName() : "");
-            for (SQLColumn c : t.getColumns()) {
-                List<Object> rowData = new ArrayList<Object>();
-                rowData.addAll(commonData);
-                rowData.add(c.getName());
-                Date date = new Date(tpr.getCreateStartTime());
-                rowData.add(dateFormat.format(date));
-                rowData.add(tpr.getRowCount());
-                rowData.add(c.getType());
-                ColumnProfileResult cpr = (ColumnProfileResult) pm.getResult(c);
-                rowData.add(cpr.getNullCount());
-                rowData.add(cpr.getValueCount());
-                rowData.add(cpr.getMinLength());
-                rowData.add(cpr.getMaxLength());
-                rowData.add(decFormat.format(cpr.getAvgLength()));
-                rowData.add(cpr.getMinValue());
-                rowData.add(cpr.getMaxValue());
-                rowData.add(cpr.getAvgValue());
-//                out.println(CSVExport.toString(rowData));
-            }
+            commonData.add(c.getName());
+            Date date = new Date(tpr.getCreateStartTime());
+            commonData.add(dateFormat.format(date));
+            commonData.add(tpr.getRowCount());
+            commonData.add(c.getType());
+            ColumnProfileResult cpr = (ColumnProfileResult) pm.getResult(c);
+            commonData.add(cpr.getNullCount());
+            commonData.add(cpr.getValueCount());
+            commonData.add(cpr.getMinLength());
+            commonData.add(cpr.getMaxLength());
+            commonData.add(decFormat.format(cpr.getAvgLength()));
+            commonData.add(cpr.getMinValue());
+            commonData.add(cpr.getMaxValue());
+            commonData.add(cpr.getAvgValue());
+//          out.println(CSVExport.toString(commonData));
         }
         out.close();
     }

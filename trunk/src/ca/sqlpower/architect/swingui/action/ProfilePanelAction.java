@@ -6,11 +6,6 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,15 +17,12 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
-import javax.swing.filechooser.FileFilter;
 import javax.swing.table.JTableHeader;
 import javax.swing.tree.TreePath;
 
@@ -46,11 +38,7 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLTable.Folder;
-import ca.sqlpower.architect.profile.ProfileCSVFormat;
-import ca.sqlpower.architect.profile.ProfileFormat;
-import ca.sqlpower.architect.profile.ProfileHTMLFormat;
 import ca.sqlpower.architect.profile.ProfileManager;
-import ca.sqlpower.architect.profile.ProfilePDFFormat;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
@@ -75,8 +63,7 @@ public class ProfilePanelAction extends AbstractAction {
     protected ProfileManager profileManager;
     protected JDialog d;
 
-    /** The set of valid file types for saving the report in */
-    private enum SaveableFileType { HTML, PDF, CSV }
+
 
     public ProfilePanelAction() {
         super("Profile...", ASUtils.createJLFIcon( "general/Information",
@@ -264,116 +251,7 @@ public class ProfilePanelAction extends AbstractAction {
 
                         tableViewPane.add(editorScrollPane,BorderLayout.CENTER);
                         ButtonBarBuilder buttonBuilder = new ButtonBarBuilder();
-                        JButton save = new JButton(new AbstractAction("Save") {
-
-                            // Save the report information into a formatted file.
-                            public void actionPerformed(ActionEvent e) {
-
-
-                                JFileChooser chooser = new JFileChooser();
-
-                                chooser.addChoosableFileFilter(ASUtils.HTML_FILE_FILTER);
-                                chooser.addChoosableFileFilter(ASUtils.PDF_FILE_FILTER);
-                                chooser.addChoosableFileFilter(ASUtils.CSV_FILE_FILTER);
-                                chooser.removeChoosableFileFilter(chooser.getAcceptAllFileFilter());
-
-                                // Ask the user to pick a file
-                                int response = chooser.showSaveDialog(d);
-
-                                if (response != JFileChooser.APPROVE_OPTION) {
-                                    return;
-                                }
-                                File file = chooser.getSelectedFile();
-                                final FileFilter fileFilter = chooser.getFileFilter();
-                                final SaveableFileType type;
-                                String fileName = file.getName();
-                                int x = fileName.lastIndexOf('.');
-                                boolean gotType = true;
-                                SaveableFileType ntype = null;
-                                if (x != -1) {
-                                    // pick file by filename the user typed
-                                    String ext = fileName.substring(x+1);
-                                    try {
-                                        ntype = SaveableFileType.valueOf(ext.toUpperCase());
-                                    } catch (IllegalArgumentException iex) {
-                                        gotType = false;
-                                    }
-                                }
-                                if (gotType) {
-                                    type = ntype;
-                                } else {
-                                    // force filename to end with correct extention
-                                    if (fileFilter == ASUtils.HTML_FILE_FILTER) {
-                                        if (!fileName.endsWith(".html")) {
-                                            file = new File(file.getPath()+".html");
-                                        }
-                                        type = SaveableFileType.HTML;
-                                    } else if (fileFilter == ASUtils.PDF_FILE_FILTER){
-                                        if (!fileName.endsWith(".pdf")) {
-                                            file = new File(file.getPath()+".pdf");
-                                        }
-                                        type = SaveableFileType.PDF;
-                                    } else if (fileFilter == ASUtils.CSV_FILE_FILTER){
-                                        if (!fileName.endsWith(".csv")) {
-                                            file = new File(file.getPath()+".csv");
-                                        }
-                                        type = SaveableFileType.CSV;
-                                    } else {
-                                        throw new IllegalStateException("Unexpected file filter chosen");
-                                    }
-                                }
-                                if (file.exists()) {
-                                    response = JOptionPane.showConfirmDialog(
-                                            d,
-                                            "The file\n"+file.getPath()+"\nalready exists. Do you want to overwrite it?",
-                                            "File Exists", JOptionPane.YES_NO_OPTION);
-                                    if (response == JOptionPane.NO_OPTION) {
-                                        actionPerformed(e);
-                                        return;
-                                    }
-                                }
-
-                                // Clone file object for use in inner class, can not make "file" final as we change it to add extension
-                                final File file2 = new File(file.getPath());
-                                Runnable saveTask = new Runnable() {
-                                    public void run() {
-                                        List tabList = new ArrayList(tables);
-                                        OutputStream out = null;
-                                        try {
-                                            ProfileFormat prf = null;
-                                            out = new BufferedOutputStream(new FileOutputStream(file2));
-                                            switch(type) {
-                                            case HTML:
-                                                final String encoding = "utf-8";
-                                                prf = new ProfileHTMLFormat(encoding);
-                                                break;
-                                            case PDF:
-                                                prf = new ProfilePDFFormat();
-                                                break;
-                                            case CSV:
-                                                prf = new ProfileCSVFormat();
-                                                break;
-                                            default:
-                                                throw new IllegalArgumentException("Unknown type");
-                                            }
-                                            prf.format(out, tabList,profileManager);
-                                        } catch (Exception ex) {
-                                            ASUtils.showExceptionDialog(d,"Could not generate/save report file", ex);
-                                        } finally {
-                                            if ( out != null ) {
-                                                try {
-                                                    out.flush();
-                                                    out.close();
-                                                } catch (IOException ex) {
-                                                    ASUtils.showExceptionDialog(d,"Could not close report file", ex);
-                                                }
-                                            }
-                                        }
-                                    }
-                                };
-                                new Thread(saveTask).start();
-                            }
-                        });
+                        JButton save = new JButton(new SaveProfileAction(d,viewTable,profileManager));
 
                         JButton refresh = new JButton(new AbstractAction("Refresh"){
 
