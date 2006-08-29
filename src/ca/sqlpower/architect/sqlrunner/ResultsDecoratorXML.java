@@ -40,21 +40,21 @@ import javax.sql.rowset.WebRowSet;
 public class ResultsDecoratorXML extends ResultsDecorator {
 	private static final String SUN_WEBROWSET_IMPL_CLASS = "com.sun.rowset.WebRowSetImpl";
 	WebRowSet results;
-	
+
 	public ResultsDecoratorXML(PrintWriter out, Verbosity v) {
 		super(out, v);
-		
+
 		try {
 			// The class name is uncommitted so subject to change.
 			Class c = Class.forName(SUN_WEBROWSET_IMPL_CLASS);
 			results = (WebRowSet)c.newInstance();
-			
+
 		} catch (Exception ex){
 			throw new IllegalArgumentException(
 			"can't load " + SUN_WEBROWSET_IMPL_CLASS + ", check CLASSPATH");
 		}
 	}
-	
+
 	@Override
 	public int write(ResultSet rs) throws SQLException {
 		results.writeXml(rs, out);
@@ -64,7 +64,7 @@ public class ResultsDecoratorXML extends ResultsDecorator {
 	@Override
 	public void printRowCount(int rowCount) throws IOException {
 		System.err.println("RowCount: " + rowCount);
-		
+
 	}
 
 	/* (non-Javadoc)

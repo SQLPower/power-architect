@@ -21,7 +21,8 @@ public enum ProfileColumn {
     AVERAGE_LENGTH("Avg. Length"),
     MIN_VALUE("Min Value"),
     MAX_VALUE("Max Value"),
-    AVERAGE_VALUE("Avg. Value");
+    AVERAGE_VALUE("Avg. Value"),
+    TOP_VALUE("Top Values");
 
     String name;
 
