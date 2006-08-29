@@ -130,7 +130,7 @@ public class ExceptionReport {
      * Power error reporting URL for the Architect.
      */
     public void postReport() {
-        logger.debug(toString());
+        logger.debug("posting report: "+toString());
         if (numReportsThisRun++ > MAX_REPORT_TRIES) {
             logger.info(
                 String.format(
@@ -148,6 +148,8 @@ public class ExceptionReport {
         logger.info("Posting error report to SQL Power at URL <"+url+">");
         try {
             HttpURLConnection dest = (HttpURLConnection) new URL(url).openConnection();
+            dest.setConnectTimeout(3000);
+            dest.setReadTimeout(3000);
             dest.setDoOutput(true);
             dest.setDoInput(true);
             dest.setUseCaches(false);
@@ -163,8 +165,10 @@ public class ExceptionReport {
                 if (out != null) out.close();
             }
 
+
             // Note: the error report will only get sent if we attempt to read from the URL Connection (!??!?)
-            BufferedReader in = new BufferedReader(new InputStreamReader(dest.getInputStream()));
+            InputStreamReader inputStreamReader = new InputStreamReader(dest.getInputStream());
+            BufferedReader in = new BufferedReader(inputStreamReader);
             StringBuffer response = new StringBuffer();
             String line;
             while ((line = in.readLine()) != null) {
@@ -176,6 +180,7 @@ public class ExceptionReport {
             // Just catch-and-squash everything because we're already in up to our necks at this point.
             logger.error("Couldn't send exception report to <\""+url+"\">", e);
         }
+        logger.debug("Finished posting report");
     }
 
     public long getApplicationUptime() {

@@ -105,7 +105,7 @@ public class CompareDMPanel extends JPanel {
 		 * the first item it finds whose name matches selectItemName.  If a match
 		 * if found and selected, this listener is also removed from the list data
 		 * listener list (because it's no longer needed).
-		 * 
+		 *
 		 * @param low The index to start the search at
 		 * @param high One past the index to end the search at
 		 */
@@ -113,7 +113,7 @@ public class CompareDMPanel extends JPanel {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Looking for '"+selectItemName+"' from index "+low+" to "+high);
 			}
-			
+
 			for (int i = low; i <= high; i++) {
 				SQLObject o = (SQLObject) box.getItemAt(i);
 				if (o != null && o.getName().equals(selectItemName)) {
@@ -138,7 +138,7 @@ public class CompareDMPanel extends JPanel {
 	private JPanel buttonPanel;
 
 	private JComboBox sqlTypeDropdown;
-	
+
 	private JRadioButton sqlButton;
 
 	private JRadioButton englishButton;
@@ -150,7 +150,7 @@ public class CompareDMPanel extends JPanel {
 	private SourceOrTargetStuff source = new SourceOrTargetStuff();
 
 	private SourceOrTargetStuff target = new SourceOrTargetStuff();
-	
+
 	/**
 	 * The project this panel works with (it's used for saving and restoring
 	 * the settings).
@@ -162,7 +162,7 @@ public class CompareDMPanel extends JPanel {
 	 * source or target system. The idea is, the panel will have two instances
 	 * of this class: One for the "source" system, and the other for the
 	 * "target" system.
-	 * 
+	 *
 	 * <p>
 	 * Note: this class is only public because the test needs to refer to it. :(
 	 */
@@ -190,7 +190,7 @@ public class CompareDMPanel extends JPanel {
 		private JRadioButton loadRadio;
 
 		private JDialog newConnectionDialog;
-		
+
 		private JLabel catalogLabel;
 		private JLabel schemaLabel;
 
@@ -209,7 +209,7 @@ public class CompareDMPanel extends JPanel {
 				}
 				final DBCSPanel dbcsPanel = new DBCSPanel();
 				dbcsPanel.setDbcs(new ArchitectDataSource());
-				
+
 				DBCS_OkAction okAction = new DBCS_OkAction(dbcsPanel, true);
 				okAction.setConnectionSelectionCallBack(SourceOrTargetStuff.this);
 				Action cancelAction = new AbstractAction() {
@@ -253,7 +253,7 @@ public class CompareDMPanel extends JPanel {
 			/**
 			 * Checks the datasource selected in the databaseDropdown, and
 			 * starts a worker thread to read its contents if it exists.
-			 * 
+			 *
 			 * <p>
 			 * Otherwise, clears out the catalog and schema dropdowns and does
 			 * not start a worker thread.
@@ -294,7 +294,7 @@ public class CompareDMPanel extends JPanel {
 			public void doStuff() throws Exception {
 
 				try {
-					ListerProgressBarUpdater progressBarUpdater = 
+					ListerProgressBarUpdater progressBarUpdater =
 						new ListerProgressBarUpdater(progressBar, this);
 					new javax.swing.Timer(100, progressBarUpdater).start();
 
@@ -306,13 +306,13 @@ public class CompareDMPanel extends JPanel {
                     JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(CompareDMPanel.this),
                         "Unexpected architect exception in ConnectionListener" + "\n" + e, "Error",
                         JOptionPane.ERROR_MESSAGE);
-                            
+
 				}
 			}
 
 			/**
 			 * Does GUI cleanup work on the Swing EDT once the worker is done.
-			 * 
+			 *
 			 * <p>
 			 * This work involves:
 			 * <ul>
@@ -372,16 +372,16 @@ public class CompareDMPanel extends JPanel {
 				} else {
 					// need a final reference to this so we can use it in the
 					// inner class
-					// we only get here if the database is a schema container not 
+					// we only get here if the database is a schema container not
 					// a catalog container.
-					
+
 					final SQLObject finalSchemaParent = schemaParent;
 
 					new Thread(new Populator() {
 
 						@Override
 						public void doStuff() throws Exception {
-							ListerProgressBarUpdater progressBarUpdater = 
+							ListerProgressBarUpdater progressBarUpdater =
 								new ListerProgressBarUpdater(progressBar, this);
 							new javax.swing.Timer(100, progressBarUpdater)
 									.start();
@@ -393,7 +393,7 @@ public class CompareDMPanel extends JPanel {
 						/**
 						 * Populates the schema dropdown box from the schema
 						 * parent that doStuff() populated.
-						 * 
+						 *
 						 * @throws ArchitectException
 						 */
 						@Override
@@ -447,7 +447,7 @@ public class CompareDMPanel extends JPanel {
 			@Override
 			public void doStuff() throws ArchitectException {
 				logger.debug("SCHEMA POPULATOR IS STARTED...");
-				ListerProgressBarUpdater progressBarUpdater = 
+				ListerProgressBarUpdater progressBarUpdater =
 					new ListerProgressBarUpdater(progressBar, this);
 				new javax.swing.Timer(100, progressBarUpdater).start();
 
@@ -460,7 +460,7 @@ public class CompareDMPanel extends JPanel {
 			 * Examines the newly-populated catalog and adds its schemas to the
 			 * GUI. If the catalog doesn't contain schemas, cleanup just checks
 			 * if the comparison action is startable.
-			 * 
+			 *
 			 * @throws ArchitectException
 			 */
 			@Override
@@ -545,8 +545,8 @@ public class CompareDMPanel extends JPanel {
 
 			loadFilePath = new JTextField();
 			loadFilePath.setName(prefix + "LoadFilePath");
-			
-			loadFilePath.setEnabled(false);			
+
+			loadFilePath.setEnabled(false);
 			loadFilePath.getDocument().addDocumentListener(
 					new DocumentListener() {
 						public void insertUpdate(DocumentEvent e) {
@@ -579,7 +579,7 @@ public class CompareDMPanel extends JPanel {
 			} else {
 				physicalRadio.doClick();
 			}
-			
+
 			// now give all our shiny new components to the builder
 			builder.append(playPenRadio);
 			builder.append("Current Project [" + project.getName() + "]");
@@ -614,7 +614,7 @@ public class CompareDMPanel extends JPanel {
 		/**
 		 * Figures out which SQLObject holds the tables we want to compare, and
 		 * returns it.
-		 * 
+		 *
 		 * @throws ArchitectException
 		 * @throws IOException
 		 * @throws IOException
@@ -654,7 +654,7 @@ public class CompareDMPanel extends JPanel {
 		/**
 		 * The public isStartable() method uses this to check source and target
 		 * readiness.
-		 * 
+		 *
 		 * XXX: this is really similar to the getObjectToCompare() method,
 		 * except that it doesn't try to load the file (so it runs quicker)
 		 */
@@ -729,7 +729,7 @@ public class CompareDMPanel extends JPanel {
 
         public void selectDBConnection(ArchitectDataSource ds) {
            databaseDropdown.setSelectedItem(ds);
-            
+
         }
 	}
 
@@ -759,9 +759,9 @@ public class CompareDMPanel extends JPanel {
 		this.project = project;
 		buildUI();
 	}
-	
+
 	private void buildUI() {
-		
+
 		progressBar = new JProgressBar();
 		progressBar.setIndeterminate(true);
 		progressBar.setVisible(false);
@@ -784,7 +784,7 @@ public class CompareDMPanel extends JPanel {
 		// Group the radio buttons.
 		ButtonGroup outputGroup = new ButtonGroup();
 		outputGroup.add(sqlButton);
-		outputGroup.add(englishButton);	
+		outputGroup.add(englishButton);
 
 		startCompareAction = new StartCompareAction();
 		startCompareAction.setEnabled(false);
@@ -937,11 +937,11 @@ public class CompareDMPanel extends JPanel {
 
 		public void actionPerformed(ActionEvent e) {
 			startCompareAction.setEnabled(false);
-			
+
 			copySettingsToProject();
-			
+
 			// XXX: should do most or all of this work in a worker thread
-			
+
 			final CompareSQL sourceComp;
 			final CompareSQL targetComp;
 			final SQLObject left;
@@ -953,7 +953,7 @@ public class CompareDMPanel extends JPanel {
 				} else {
 					sourceTables = new ArrayList();
 				}
-				
+
 				right = target.getObjectToCompare();
 				if (right.getChildType() == SQLTable.class) {
 					targetTables = right.getChildren();
@@ -978,20 +978,21 @@ public class CompareDMPanel extends JPanel {
 				logger.error("Could not read file", ex);
 				return;
 			} catch (ArchitectException ex) {
-				ASUtils.showExceptionDialog(CompareDMPanel.this, "Could not begin diff process", ex);
+				ASUtils.showExceptionDialog(CompareDMPanel.this,
+                        "Could not begin diff process", ex);
 				return;
 			}
-			
+
 			ArchitectSwingWorker compareWorker = new ArchitectSwingWorker() {
-								
+
 				private List<DiffChunk<SQLObject>> diff;
 				private List<DiffChunk<SQLObject>> diff1;
-				
+
 				public void doStuff() throws ArchitectException {
 					diff = sourceComp.generateTableDiffs();
 					diff1 = targetComp.generateTableDiffs();
 				}
-				
+
 				public void cleanup() {
                     if (getDoStuffException() != null) {
                         Throwable exc = getDoStuffException();
@@ -1003,7 +1004,7 @@ public class CompareDMPanel extends JPanel {
 					try {
 						DefaultStyledDocument sourceDoc = new DefaultStyledDocument();
 						DefaultStyledDocument targetDoc = new DefaultStyledDocument();
-						
+
 						DDLGenerator gen =(DDLGenerator)((Class)((LabelValueBean) sqlTypeDropdown.getSelectedItem()).getValue()).newInstance();
 						if (source.physicalRadio.isSelected()) {
 						    // Set generator for target catalog/schema if "newer" schema comes from a physical database
@@ -1012,32 +1013,32 @@ public class CompareDMPanel extends JPanel {
 						    gen.setTargetCatalog(cat == null ? null : cat.getPhysicalName());
 						    gen.setTargetSchema(sch == null ? null : sch.getPhysicalName());
 						}
-                        
+
 						final Map<DiffType, AttributeSet> styles = new HashMap<DiffType, AttributeSet>();
-						{		
+						{
 							SimpleAttributeSet att = new SimpleAttributeSet();
 							StyleConstants.setForeground(att, Color.red);
 							styles.put(DiffType.LEFTONLY, att);
-							
+
 							att = new SimpleAttributeSet();
 							StyleConstants.setForeground(att, Color.green.darker().darker());
 							styles.put(DiffType.RIGHTONLY, att);
-							
+
 							att = new SimpleAttributeSet();
 							StyleConstants.setForeground(att, Color.black);
 							styles.put(DiffType.SAME, att);
-							
+
 							att = new SimpleAttributeSet();
 							StyleConstants.setForeground(att, Color.orange);
 							styles.put(DiffType.MODIFIED, att);
-							
+
 							att = new SimpleAttributeSet();
 							StyleConstants.setForeground(att, Color.blue);
 							styles.put(DiffType.KEY_CHANGED, att);
 						}
 
 						if (sqlButton.isSelected()) {
-							
+
 							List<DiffChunk<SQLObject>> addRelationships = new ArrayList<DiffChunk<SQLObject>>();
 							List<DiffChunk<SQLObject>> dropRelationships = new ArrayList<DiffChunk<SQLObject>>();
 							List<DiffChunk<SQLObject>> nonRelationship = new ArrayList<DiffChunk<SQLObject>>	();
@@ -1053,23 +1054,23 @@ public class CompareDMPanel extends JPanel {
 									nonRelationship.add(d);
 								}
 							}
-							
+
 							sqlScriptGenerator(styles, dropRelationships, gen);
 							sqlScriptGenerator(styles, nonRelationship, gen);
 							sqlScriptGenerator(styles, addRelationships, gen);
-							
+
 						} else if (englishButton.isSelected()) {
 							generateEnglishDescription(styles, diff, sourceDoc);
-							generateEnglishDescription(styles, diff1, targetDoc);					
+							generateEnglishDescription(styles, diff1, targetDoc);
 						} else {
 							throw new IllegalStateException(
 							"Don't know what type of output to make");
 						}
-						
+
 						// get the title string for the compareDMFrame
 						if (sqlButton.isSelected()) {
 							String titleString = "Generated SQL Script to turn "+left.getName()+ " into " + right.getName();
-							
+
 							SQLDatabase db = null;
 							if ( source.loadRadio.isSelected() )
 								db = null;
@@ -1077,7 +1078,7 @@ public class CompareDMPanel extends JPanel {
 								db = ArchitectFrame.getMainInstance().playpen.getDatabase();
 							else
 								db = source.getDatabase();
-							
+
 							SQLScriptDialog ssd = new SQLScriptDialog(ArchitectFrame.getMainInstance(),
 									"Compare DM",
 									titleString,
@@ -1087,11 +1088,11 @@ public class CompareDMPanel extends JPanel {
 											false);
 							ssd.setVisible(true);
 						} else {
-							
-							
-							CompareDMFrame cf = 
+
+
+							CompareDMFrame cf =
 								new CompareDMFrame(sourceDoc, targetDoc, left.getName(),right.getName());
-							
+
 							cf.pack();
 							cf.setVisible(true);
 						}
@@ -1116,16 +1117,16 @@ public class CompareDMPanel extends JPanel {
 					logger.debug("cleanup finished");
 				}
 			};
-			
+
 			new Thread(compareWorker).start();
 			new ProgressWatcher(progressBar,sourceComp);
 		}
-		
+
 		/**
 		 * This method generates english descriptions by taking in the diff list
 		 * and putting the appropiate statements in the document.  It will iterate
-		 * through the diff list and identify which type of DiffChunk it is and 
-		 * what kind of SQLType it is to produce the proper english description 
+		 * through the diff list and identify which type of DiffChunk it is and
+		 * what kind of SQLType it is to produce the proper english description
 		 * output
 		 * @throws BadLocationException
 		 * @throws ArchitectException
@@ -1134,12 +1135,12 @@ public class CompareDMPanel extends JPanel {
 				Map<DiffType, AttributeSet> styles,
 				List<DiffChunk<SQLObject>> diff, DefaultStyledDocument sourceDoc)
 				throws BadLocationException, ArchitectException {
-			
+
 			for (DiffChunk<SQLObject> chunk : diff) {
 				AttributeSet attributes = styles.get(chunk.getType());
 				MutableAttributeSet boldAttributes = new SimpleAttributeSet(attributes);
 				StyleConstants.setBold(boldAttributes, true);
-				
+
 				SQLObject o = chunk.getData();
 				if (o == null) {
 					sourceDoc.insertString(
@@ -1183,30 +1184,30 @@ public class CompareDMPanel extends JPanel {
 							o.getClass().getName() + " ",
 							boldAttributes);
 				}
-				
+
 
 				String diffTypeEnglish;
 				switch (chunk.getType()) {
 				case LEFTONLY:
 					diffTypeEnglish = "should be removed";
 					break;
-					
+
 				case MODIFIED:
 					diffTypeEnglish = "should be modified";
 					break;
-					
+
 				case SAME:
 					diffTypeEnglish = "needs no changes";
 					break;
-					
+
 				case RIGHTONLY:
 					diffTypeEnglish = "should be added";
 					break;
-					
+
 				case KEY_CHANGED:
 					diffTypeEnglish = "needs a different primary key";
 					break;
-					
+
 				default:
 					diffTypeEnglish = "!UNKNOWN DIFF TYPE!";
 					logger.error("Woops, unknown diff chunk type: "+chunk.getType());
@@ -1219,15 +1220,15 @@ public class CompareDMPanel extends JPanel {
 						attributes);
 			}
 		}
-		
+
 		private void sqlScriptGenerator(Map<DiffType, AttributeSet> styles,
 				List<DiffChunk<SQLObject>> diff,
-				DDLGenerator gen) 
+				DDLGenerator gen)
 			throws ArchitectDiffException, SQLException,
 				ArchitectException, BadLocationException,
 				InstantiationException, IllegalAccessException {
-			
-			
+
+
 			for (DiffChunk<SQLObject> chunk : diff) {
 				if (chunk.getType() == DiffType.KEY_CHANGED) {
 					if(chunk.getData() instanceof SQLTable)
@@ -1235,11 +1236,11 @@ public class CompareDMPanel extends JPanel {
 						SQLTable t = (SQLTable) chunk.getData();
 						if (hasKey(t)) {
 							gen.addPrimaryKey(t);
-						} else {						
-							gen.dropPrimaryKey(t);	
+						} else {
+							gen.dropPrimaryKey(t);
 						}
 					}
-					
+
 				}else if (chunk.getType() == DiffType.LEFTONLY)
 				{
 					if (chunk.getData() instanceof SQLTable)
@@ -1252,18 +1253,18 @@ public class CompareDMPanel extends JPanel {
 					} else if (chunk.getData() instanceof SQLRelationship){
 						SQLRelationship r = (SQLRelationship)chunk.getData();
 						gen.dropRelationship(r);
-						
+
 					} else {
 						throw new IllegalStateException("DiffChunk is an unexpected type.");
 					}
-					
+
 				} else if (chunk.getType() == DiffType.RIGHTONLY){
 					if (chunk.getData() instanceof SQLTable)
 					{
 						SQLTable t = (SQLTable) chunk.getData();
                         if(t.getObjectType().equals("TABLE")) {
-                            gen.writeTable(t);                            
-                        } 
+                            gen.writeTable(t);
+                        }
                         if (hasKey(t)) {
                             gen.addPrimaryKey(t);
                         }
@@ -1276,8 +1277,8 @@ public class CompareDMPanel extends JPanel {
 					}else {
 						throw new IllegalStateException("DiffChunk is an unexpected type.");
 					}
-				} 
-				else if (chunk.getType() == DiffType.MODIFIED) 
+				}
+				else if (chunk.getType() == DiffType.MODIFIED)
 				{
 					if (chunk.getData() instanceof SQLColumn)
 					{
@@ -1287,7 +1288,7 @@ public class CompareDMPanel extends JPanel {
 						throw new IllegalStateException("DiffChunk is an unexpected type.");
 					}
 				} else {
-					
+
 				}
 			}
 		}
@@ -1313,7 +1314,7 @@ public class CompareDMPanel extends JPanel {
 		s.setSaveFlag(true);
 		s.setOutputFormat(englishButton.isSelected()?CompareDMSettings.OutputFormat.ENGLISH:CompareDMSettings.OutputFormat.SQL);
 		s.setSqlScriptFormat( ((LabelValueBean)sqlTypeDropdown.getSelectedItem()).getLabel() );
-		
+
 		SourceOrTargetSettings sourceSetting = s.getSourceSettings();
 		copySourceOrTargetSettingsToProject(sourceSetting,source);
 
@@ -1321,33 +1322,33 @@ public class CompareDMPanel extends JPanel {
 		copySourceOrTargetSettingsToProject(targetSetting,target);
 
 	}
-	
+
 	public void copySourceOrTargetSettingsToProject(SourceOrTargetSettings setting,
 													SourceOrTargetStuff stuff) {
 
 		if ( stuff.databaseDropdown.getItemCount() > 0 &&
 			 stuff.databaseDropdown.getSelectedIndex() >= 0 &&
-			 stuff.databaseDropdown.getSelectedItem() != null )			
+			 stuff.databaseDropdown.getSelectedItem() != null )
 			setting.setConnectName( ((ArchitectDataSource)stuff.databaseDropdown.getSelectedItem()).getName() );
 		else
 			setting.setConnectName( null );
-		
-		
+
+
 		if ( stuff.catalogDropdown.getItemCount() > 0 &&
 				 stuff.catalogDropdown.getSelectedIndex() >= 0 &&
-				 stuff.catalogDropdown.getSelectedItem() != null )			
+				 stuff.catalogDropdown.getSelectedItem() != null )
 			setting.setCatalog( ((SQLObject)stuff.catalogDropdown.getSelectedItem()).getName() );
 		else setting.setCatalog(null);
-		
+
 		if ( stuff.schemaDropdown.getItemCount() > 0 &&
 				 stuff.schemaDropdown.getSelectedIndex() >= 0 &&
 				 stuff.schemaDropdown.getSelectedItem() != null )
 			setting.setSchema( ((SQLObject)stuff.schemaDropdown.getSelectedItem()).getName() );
 		else
 			setting.setSchema(null);
-		
+
 		setting.setFilePath(stuff.loadFilePath.getText());
-		
+
 		if ( stuff.loadRadio.isSelected() )
 			setting.setDatastoreType(CompareDMSettings.DatastoreType.FILE);
 		if ( stuff.physicalRadio.isSelected() )
@@ -1355,10 +1356,10 @@ public class CompareDMPanel extends JPanel {
 		if ( stuff.playPenRadio.isSelected() )
 			setting.setDatastoreType(CompareDMSettings.DatastoreType.PROJECT);
 	}
-	
+
 	private void restoreSettingsFromProject() throws ArchitectException {
 		CompareDMSettings s = project.getCompareDMSettings();
-		
+
 		restoreSourceOrTargetSettingsFromProject(source,s.getSourceSettings());
 		restoreSourceOrTargetSettingsFromProject(target,s.getTargetSettings());
 		if ( s.getOutputFormat() == CompareDMSettings.OutputFormat.ENGLISH )
@@ -1368,7 +1369,7 @@ public class CompareDMPanel extends JPanel {
 			sqlButton.doClick();
 
 		if ( s.getSqlScriptFormat() != null && s.getSqlScriptFormat().length() > 0 ) {
-			
+
 			for ( int i=0; i<sqlTypeDropdown.getItemCount(); i++ ) {
 				LabelValueBean lvb = (LabelValueBean)sqlTypeDropdown.getItemAt(i);
 				if ( lvb.getLabel().equals(s.getSqlScriptFormat())) {
@@ -1378,11 +1379,11 @@ public class CompareDMPanel extends JPanel {
 			}
 		}
 	}
-	
-	
+
+
 	private void restoreSourceOrTargetSettingsFromProject(SourceOrTargetStuff stuff,
 			SourceOrTargetSettings set) throws ArchitectException {
-		
+
 		DatastoreType rbs = set.getDatastoreType();
 		if ( rbs == CompareDMSettings.DatastoreType.PROJECT )
 			stuff.playPenRadio.doClick();
@@ -1391,7 +1392,7 @@ public class CompareDMPanel extends JPanel {
 		else if ( rbs == CompareDMSettings.DatastoreType.FILE )
 			stuff.loadRadio.doClick();
 
-		List<ArchitectDataSource> lds = ArchitectFrame.getMainInstance().getUserSettings().getConnections();		
+		List<ArchitectDataSource> lds = ArchitectFrame.getMainInstance().getUserSettings().getConnections();
 		for (ArchitectDataSource ds : lds){
 			if (ds.getDisplayName().equals(set.getConnectName())){
 				stuff.databaseDropdown.setSelectedItem(ds);
@@ -1416,7 +1417,7 @@ public class CompareDMPanel extends JPanel {
 					}
 				}
 				break;
-			}			
+			}
 		}
 		if (set.getFilePath() != null)
 			stuff.loadFilePath.setText(set.getFilePath());
@@ -1428,7 +1429,7 @@ public class CompareDMPanel extends JPanel {
 
 	/**
 	 * Just for testing the form layout without running the whole Architect.
-	 * 
+	 *
 	 * <p>
 	 * The frame it makes is EXIT_ON_CLOSE, so you should never use this in a
 	 * real app.
