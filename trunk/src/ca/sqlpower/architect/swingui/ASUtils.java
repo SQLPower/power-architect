@@ -311,15 +311,20 @@ public class ASUtils {
 	 * @param throwable
 	 */
 	public static void showExceptionDialog(Component parent, String message, Throwable throwable) {
-        ExceptionReport er = new ExceptionReport(throwable);
-        er.setNumObjectsInPlayPen(ArchitectFrame.getMainInstance().playpen.getTablePanes().size()
-                                  + ArchitectFrame.getMainInstance().playpen.getRelationships().size());
-        er.setNumSourceConnections(ArchitectFrame.getMainInstance().dbTree.getDatabaseList().size());
-        er.setUserActivityDescription("");
-        logger.debug(er.toString());
-        er.postReport();
-
-        displayExceptionDialog(parent,message,throwable);
+        try {
+            ExceptionReport er = new ExceptionReport(throwable);
+            er.setNumObjectsInPlayPen(ArchitectFrame.getMainInstance().playpen.getTablePanes().size()
+                                      + ArchitectFrame.getMainInstance().playpen.getRelationships().size());
+            er.setNumSourceConnections(ArchitectFrame.getMainInstance().dbTree.getDatabaseList().size());
+            er.setUserActivityDescription("");
+            logger.debug(er.toString());
+            er.postReport();
+        } catch (Throwable seriousProblem) {
+            logger.error("Couldn't generate and send exception report!  Note that this is not the primary problem; it's a side effect of trying to report the real problem.", seriousProblem);
+            JOptionPane.showMessageDialog(null, "Error reporting failed: "+seriousProblem.getMessage()+"\nAdditional information is available in the application log.");
+        } finally {
+            displayExceptionDialog(parent,message,throwable);
+        }
 	}
 
     /**
