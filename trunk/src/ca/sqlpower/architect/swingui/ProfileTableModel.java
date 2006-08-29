@@ -25,6 +25,7 @@ import ca.sqlpower.architect.profile.ProfileColumn;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileResult;
 import ca.sqlpower.architect.profile.TableProfileResult;
+import ca.sqlpower.architect.profile.ColumnProfileResult.ColumnValueCount;
 
 public class ProfileTableModel extends AbstractTableModel {
 
@@ -71,9 +72,25 @@ public class ProfileTableModel extends AbstractTableModel {
         return ProfileColumn.values().length;
     }
 
+    /**
+     * Get value at table cell(row,column), return the most top value on
+     * column "TOP_VALUE", not the whole list!
+     * @param rowIndex
+     * @param columnIndex
+     * @return
+     */
     public Object getValueAt(int rowIndex, int columnIndex) {
         ColumnProfileResult columnProfile = resultList.get(rowIndex);
         return getColumnValueFromProfile(columnIndex, columnProfile, profileManager);
+    }
+
+    /**
+     * Get top N value at table cell(row), on column "TOP_VALUE"
+     * @param rowIndex
+     * @return List of top N Value
+     */
+    public List<ColumnValueCount> getTopNValueAt(int rowIndex) {
+        return resultList.get(rowIndex).getValueCount();
     }
 
     private static Object getColumnValueFromProfile(int columnIndex, ColumnProfileResult columnProfile, ProfileManager profileManager) {
@@ -124,6 +141,12 @@ public class ProfileTableModel extends AbstractTableModel {
             return columnProfile.getMaxValue();
         case  AVERAGE_VALUE:
             return columnProfile.getAvgValue();
+        case  TOP_VALUE:
+            List<ColumnValueCount> valueCount = columnProfile.getValueCount();
+            if ( valueCount != null && valueCount.size() > 0 )
+                return valueCount.get(0).getValue();
+            else
+                return null;
         default:
             throw new IllegalArgumentException(
                     String.format("ProfileColumn enum value %s not handled", column));
@@ -225,6 +248,8 @@ public class ProfileTableModel extends AbstractTableModel {
         case MAX_VALUE:
             return Object.class;
         case AVERAGE_VALUE:
+            return Object.class;
+        case TOP_VALUE:
             return Object.class;
         default:
             throw new IllegalArgumentException(
