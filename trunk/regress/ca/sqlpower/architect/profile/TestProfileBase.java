@@ -24,9 +24,7 @@ import ca.sqlpower.architect.swingui.ArchitectFrame;
 public abstract class TestProfileBase extends TestCase {
 
     static {
-        System.out.println("TestProfileBase.clinit()");
         ArchitectFrame.getMainInstance();  // creates an ArchitectFrame, which loads settings
-        System.out.println("TestProfileBase.clinit() DONE");
     }
 
     SQLDatabase mydb;
