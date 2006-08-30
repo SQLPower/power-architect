@@ -462,11 +462,13 @@
     </target>
 	
 	<target name="dist" depends="windows_installer,generic_install,osx_tgz,osx_dmg"><!-- ,osx_dmg -->
+		<echo>Don't forget to turn off all the debugging in log4j.properties!</echo>
 	    <copy tofile="${deploy.dir}/index.html" file="html/SQL Power - PowerArchitect.html"/>
 		<replace file="${deploy.dir}/index.html">
 			<replacefilter token="@@app_ver_major" value="${app_ver_major}"/>
 			<replacefilter token="@@app_var_minor" value="${app_ver_minor}"/>
 			<replacefilter token="@@app_ver_tiny" value="${app_ver_tiny}"/>		
 		</replace>
+		<echo>Did you forget to turn off all the debugging in log4j.properties?!</echo>
 	</target>
 </project>
