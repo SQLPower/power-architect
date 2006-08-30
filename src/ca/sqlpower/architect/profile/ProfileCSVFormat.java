@@ -12,6 +12,7 @@ import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.table.DateRendererFactory;
 import ca.sqlpower.architect.swingui.table.DecimalRendererFactory;
+import ca.sqlpower.architect.swingui.table.PercentRendererFactory;
 
 public class ProfileCSVFormat implements ProfileFormat {
 
@@ -23,10 +24,12 @@ public class ProfileCSVFormat implements ProfileFormat {
         PrintWriter out = new PrintWriter(nout);
 
         // Print a header
-        out.println(CSVExport.toString(Arrays.asList(ProfileColumn.values())));
+        ProfileColumn[] columns = ProfileColumn.values();
+        out.println(CSVExport.toString(Arrays.asList(columns)));
+
         DateFormat dateFormat = (DateFormat) new DateRendererFactory().getFormat();
         DecimalFormat decFormat = (DecimalFormat) new DecimalRendererFactory().getFormat();
-
+        DecimalFormat pctFormat = (DecimalFormat) new PercentRendererFactory().getFormat();
         // Now print column profile
         for ( ProfileResult result : profileResult ) {
 
@@ -37,24 +40,90 @@ public class ProfileCSVFormat implements ProfileFormat {
             SQLTable t = c.getParentTable();
             TableProfileResult tpr = (TableProfileResult) pm.getResult(t);
             List<Object> commonData = new ArrayList<Object>();
-            commonData.add(t.getParentDatabase().getName());
-            commonData.add(t.getName());
-            commonData.add(t.getCatalog() != null ? t.getCatalog().getName() : "");
-            commonData.add(t.getSchema() != null ? t.getSchema().getName() : "");
-            commonData.add(c.getName());
-            Date date = new Date(tpr.getCreateStartTime());
-            commonData.add(dateFormat.format(date));
-            commonData.add(tpr.getRowCount());
-            commonData.add(c.getType());
-            ColumnProfileResult cpr = (ColumnProfileResult) pm.getResult(c);
-            commonData.add(cpr.getNullCount());
-            commonData.add(cpr.getValueCount());
-            commonData.add(cpr.getMinLength());
-            commonData.add(cpr.getMaxLength());
-            commonData.add(decFormat.format(cpr.getAvgLength()));
-            commonData.add(cpr.getMinValue());
-            commonData.add(cpr.getMaxValue());
-            commonData.add(cpr.getAvgValue());
+
+            for ( ProfileColumn pc : columns ) {
+                switch(pc) {
+                case DATABASE:
+                    commonData.add(t.getParentDatabase().getName());
+                    break;
+                case CATALOG:
+                    commonData.add(t.getCatalog() != null ? t.getCatalog().getName() : "");
+                    break;
+                case SCHEMA:
+                    commonData.add(t.getSchema() != null ? t.getSchema().getName() : "");
+                    break;
+                case TABLE:
+                    commonData.add(t.getName());
+                    break;
+                case COLUMN:
+                    commonData.add(c.getName());
+                    break;
+                case RUNDATE:
+                    Date date = new Date(tpr.getCreateStartTime());
+                    commonData.add(dateFormat.format(date));
+                    break;
+                case RECORD_COUNT:
+                    commonData.add(tpr.getRowCount());
+                    break;
+                case DATA_TYPE:
+                    commonData.add(c.getType());
+                    break;
+                case NULL_COUNT:
+                    commonData.add(((ColumnProfileResult) result).getNullCount());
+                    break;
+                case PERCENT_NULL:
+                    if ( tpr.getRowCount() == 0 )
+                        commonData.add("n/a");
+                    else
+                        commonData.add( pctFormat.format(
+                            ((ColumnProfileResult) result).getNullCount() / (double)tpr.getRowCount()));
+                    break;
+                case UNIQUE_COUNT:
+                    commonData.add(((ColumnProfileResult) result).getDistinctValueCount());
+                    break;
+                case PERCENT_UNIQUE:
+                    if ( tpr.getRowCount() == 0 )
+                        commonData.add("n/a");
+                    else
+                        commonData.add( pctFormat.format(
+                            ((ColumnProfileResult) result).getDistinctValueCount() / (double)tpr.getRowCount()));
+                    break;
+                case MIN_LENGTH:
+                    commonData.add(((ColumnProfileResult) result).getMinLength());
+                    break;
+                case MAX_LENGTH:
+                    commonData.add(((ColumnProfileResult) result).getMaxLength());
+                    break;
+                case AVERAGE_LENGTH:
+                    commonData.add(decFormat.format(((ColumnProfileResult) result).getAvgLength()));
+                    break;
+                case MIN_VALUE:
+                    commonData.add(((ColumnProfileResult) result).getMinValue());
+                    break;
+                case MAX_VALUE:
+                    commonData.add(((ColumnProfileResult) result).getMaxValue());
+                    break;
+                case AVERAGE_VALUE:
+
+                    String formattedValue;
+                    Object value = ((ColumnProfileResult) result).getAvgValue();
+                    if (value == null) {
+                        formattedValue = "";
+                    } else if (value instanceof Number) {
+                        formattedValue = decFormat.format(value);
+                    } else {
+                        formattedValue = value.toString();
+                    }
+                    commonData.add(formattedValue);
+                    break;
+                case TOP_VALUE:
+                    commonData.add("");
+                    break;
+                default:
+                    throw new IllegalStateException("Need code to handle this column!");
+
+                }
+            }
             out.println(CSVExport.toString(commonData));
         }
         out.close();

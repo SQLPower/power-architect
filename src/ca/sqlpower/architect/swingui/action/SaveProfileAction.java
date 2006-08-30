@@ -136,66 +136,72 @@ public class SaveProfileAction extends AbstractAction {
         chooser.addChoosableFileFilter(ASUtils.CSV_FILE_FILTER);
         chooser.removeChoosableFileFilter(chooser.getAcceptAllFileFilter());
 
-        // Ask the user to pick a file
-        int response = chooser.showSaveDialog(parent);
+        File file = null;
+        SaveableFileType type;
+        while ( true ) {
+            // Ask the user to pick a file
+            int response = chooser.showSaveDialog(parent);
 
-        if (response != JFileChooser.APPROVE_OPTION) {
-            return;
-        }
-        File file = chooser.getSelectedFile();
-        final FileFilter fileFilter = chooser.getFileFilter();
-        final SaveableFileType type;
-        String fileName = file.getName();
-        int x = fileName.lastIndexOf('.');
-        boolean gotType = false;
-        SaveableFileType ntype = null;
-        if (x != -1) {
-            // pick file by filename the user typed
-            String ext = fileName.substring(x+1);
-            try {
-                ntype = SaveableFileType.valueOf(ext.toUpperCase());
-                gotType = true;
-            } catch (IllegalArgumentException iex) {
-                gotType = false;
-            }
-        }
-
-        if (gotType) {
-            type = ntype;
-        } else {
-            // force filename to end with correct extention
-            if (fileFilter == ASUtils.HTML_FILE_FILTER) {
-                if (!fileName.endsWith(".html")) {
-                    file = new File(file.getPath()+".html");
-                }
-                type = SaveableFileType.HTML;
-            } else if (fileFilter == ASUtils.PDF_FILE_FILTER){
-                if (!fileName.endsWith(".pdf")) {
-                    file = new File(file.getPath()+".pdf");
-                }
-                type = SaveableFileType.PDF;
-            } else if (fileFilter == ASUtils.CSV_FILE_FILTER){
-                if (!fileName.endsWith(".csv")) {
-                    file = new File(file.getPath()+".csv");
-                }
-                type = SaveableFileType.CSV;
-            } else {
-                throw new IllegalStateException("Unexpected file filter chosen");
-            }
-        }
-        if (file.exists()) {
-            response = JOptionPane.showConfirmDialog(
-                    parent,
-                    "The file\n"+file.getPath()+"\nalready exists. Do you want to overwrite it?",
-                    "File Exists", JOptionPane.YES_NO_OPTION);
-            if (response == JOptionPane.NO_OPTION) {
-                actionPerformed(e);
+            if (response != JFileChooser.APPROVE_OPTION) {
                 return;
             }
+            file = chooser.getSelectedFile();
+            final FileFilter fileFilter = chooser.getFileFilter();
+            String fileName = file.getName();
+            int x = fileName.lastIndexOf('.');
+            boolean gotType = false;
+            SaveableFileType ntype = null;
+            if (x != -1) {
+                // pick file by filename the user typed
+                String ext = fileName.substring(x+1);
+                try {
+                    ntype = SaveableFileType.valueOf(ext.toUpperCase());
+                    gotType = true;
+                } catch (IllegalArgumentException iex) {
+                    gotType = false;
+                }
+            }
+
+            if (gotType) {
+                type = ntype;
+            } else {
+                // force filename to end with correct extention
+                if (fileFilter == ASUtils.HTML_FILE_FILTER) {
+                    if (!fileName.endsWith(".html")) {
+                        file = new File(file.getPath()+".html");
+                    }
+                    type = SaveableFileType.HTML;
+                } else if (fileFilter == ASUtils.PDF_FILE_FILTER){
+                    if (!fileName.endsWith(".pdf")) {
+                        file = new File(file.getPath()+".pdf");
+                    }
+                    type = SaveableFileType.PDF;
+                } else if (fileFilter == ASUtils.CSV_FILE_FILTER){
+                    if (!fileName.endsWith(".csv")) {
+                        file = new File(file.getPath()+".csv");
+                    }
+                    type = SaveableFileType.CSV;
+                } else {
+                    throw new IllegalStateException("Unexpected file filter chosen");
+                }
+            }
+            if (file.exists()) {
+                response = JOptionPane.showConfirmDialog(
+                        parent,
+                        "The file\n"+file.getPath()+"\nalready exists. Do you want to overwrite it?",
+                        "File Exists", JOptionPane.YES_NO_OPTION);
+                if (response != JOptionPane.NO_OPTION) {
+                    break;
+                }
+            } else {
+                break;
+            }
+
         }
 
         // Clone file object for use in inner class, can not make "file" final as we change it to add extension
         final File file2 = new File(file.getPath());
+        final SaveableFileType type2 = type;
         Runnable saveTask = new Runnable() {
             public void run() {
 
@@ -203,7 +209,7 @@ public class SaveProfileAction extends AbstractAction {
                 try {
                     ProfileFormat prf = null;
                     out = new BufferedOutputStream(new FileOutputStream(file2));
-                    switch(type) {
+                    switch(type2) {
                     case HTML:
                         final String encoding = "utf-8";
                         prf = new ProfileHTMLFormat(encoding);
