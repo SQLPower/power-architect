@@ -100,6 +100,7 @@ public class ProfileManager implements Monitorable {
             finished = false;
             progress = 0;
             userCancel = false;
+            logger.debug("Job Size:"+jobSize+"    progress="+progress);
         }
         try {
             for (SQLTable t : tables) {
@@ -113,6 +114,7 @@ public class ProfileManager implements Monitorable {
                 synchronized (monitorableMutex) {
                     progress++;
                     if (userCancel) break;
+                    logger.debug("Job Size:"+jobSize+"    progress="+progress);
                 }
             }
         } finally {

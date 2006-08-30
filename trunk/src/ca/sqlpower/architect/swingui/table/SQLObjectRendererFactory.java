@@ -1,5 +1,6 @@
 package ca.sqlpower.architect.swingui.table;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.text.FieldPosition;
 import java.text.Format;
@@ -11,6 +12,8 @@ import javax.swing.table.DefaultTableCellRenderer;
 import ca.sqlpower.architect.SQLObject;
 
 public class SQLObjectRendererFactory extends DefaultTableCellRenderer implements FormatFactory {
+
+    private boolean hasError = false;
 
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
             int row, int column) {
@@ -24,6 +27,8 @@ public class SQLObjectRendererFactory extends DefaultTableCellRenderer implement
         } else {
             formattedValue = ((SQLObject)value).getName();
         }
+        if ( hasError )
+            setBackground(Color.RED);
         return super.getTableCellRendererComponent(table, formattedValue, isSelected, hasFocus, row, column);
     }
 
@@ -44,5 +49,9 @@ public class SQLObjectRendererFactory extends DefaultTableCellRenderer implement
 
     public Format getFormat() {
         return fakeFormatter;
+    }
+
+    public void setError(boolean b) {
+        hasError  = b;
     }
 }
