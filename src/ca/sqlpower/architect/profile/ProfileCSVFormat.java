@@ -6,7 +6,7 @@ import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.util.*;
 
-//import com.darwinsys.csv.CSVExport;
+import com.darwinsys.csv.CSVExport;
 
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
@@ -23,7 +23,7 @@ public class ProfileCSVFormat implements ProfileFormat {
         PrintWriter out = new PrintWriter(nout);
 
         // Print a header
-//        out.println(CSVExport.toString(Arrays.asList(ProfileColumn.values())));
+        out.println(CSVExport.toString(Arrays.asList(ProfileColumn.values())));
         DateFormat dateFormat = (DateFormat) new DateRendererFactory().getFormat();
         DecimalFormat decFormat = (DecimalFormat) new DecimalRendererFactory().getFormat();
 
@@ -55,7 +55,7 @@ public class ProfileCSVFormat implements ProfileFormat {
             commonData.add(cpr.getMinValue());
             commonData.add(cpr.getMaxValue());
             commonData.add(cpr.getAvgValue());
-//          out.println(CSVExport.toString(commonData));
+            out.println(CSVExport.toString(commonData));
         }
         out.close();
     }
