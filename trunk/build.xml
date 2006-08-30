@@ -261,6 +261,7 @@
 
 	<target name="clean" depends="init">
 		<delete dir="${build}"/>
+		<delete><fileset dir="${deploy.dir}" includes="lib,Power*Architect.app,architect.jar"/></delete>
 		<delete dir="webstart/lib"/>
 		<delete dir="${staging.dir}"/>
 		<delete dir="${deploy.dir}" />
@@ -425,7 +426,7 @@
 			<arg value="attach" />
 			<arg value="${staging.dir}/RWArchitect.dmg.sparseimage" />
 		</exec>
-		<copy todir="/Volumes/Power*Architect/" overwrite="true" >
+		<copy todir="/Volumes/Power*Architect/Power*Architect.app/" overwrite="true" >
 			<fileset dir="${staging.dir}/Power Architect.app"></fileset>
 		</copy>
 		
