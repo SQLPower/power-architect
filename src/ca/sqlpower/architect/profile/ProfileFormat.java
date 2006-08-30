@@ -17,12 +17,10 @@ public interface ProfileFormat {
      * An outline of one possible algorithm is:
      * <pre>
      * // Generate headers ...
-     * for ( SQLTable t : profile ) {
-     *   TableProfileResult tpr = (TableProfileResult) pm.getResult(t);
-     *      // format results e.g., tpr.getRowCount());
-     *      for ( SQLColumn c : t.getColumns() ) {
-     *          ColumnProfileResult cpr = (ColumnProfileResult) pm.getResult(c);
-     *          // format cpr...
+     * for (ProfileResult res : profile) {
+     *      for (ProfileColumn pc : ProfileColumn.values()) {
+     *          switch (pc) {
+     *              // format each column here
      *      }
      * }
      * @param out   The file to write to.
