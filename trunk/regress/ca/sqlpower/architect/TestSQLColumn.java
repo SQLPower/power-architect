@@ -192,6 +192,17 @@ public class TestSQLColumn extends SQLTestCase {
 		assertEquals("column doesn't belong to correct parent!", table1pk, fooCol.getParentTable());
 	}
 	
+    public void testReferenceCountFiresEvents() {
+        SQLColumn col = new SQLColumn();
+        TestSQLObjectListener testListener = new TestSQLObjectListener();
+        col.addSQLObjectListener(testListener);
+        assertEquals("Strange the test listener has recieved events",testListener.getChangedCount(),0);
+        col.addReference();
+        assertEquals("Incorrect number of change events!",testListener.getChangedCount(),1);
+        col.removeReference();
+        assertEquals("Incorrect number of change events!",testListener.getChangedCount(),2);
+    }
+    
 	public void testPKAttributes() throws Exception {
 		SQLColumn cowCol = table1pk.getColumnByName("cow");
 		SQLColumn fooCol = table1pk.getColumnByName("foo");

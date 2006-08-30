@@ -646,8 +646,10 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	}
 	
 	public void addReference() {
+        int oldReference = referenceCount;
 		referenceCount++;
 		logger.debug("incremented reference count to: " + referenceCount);
+        fireDbObjectChanged("referenceCount", oldReference, referenceCount);
 	}
 	
 	public void removeReference() {
@@ -660,8 +662,10 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 			
 		}
 		if (referenceCount == 0) {
-			throw new IllegalStateException("Reference count is already 0; can't remove any references!");
+		    logger.debug("Reference count of "+ this.getParentTable() +"."+this+" was already 0");
+			throw new IllegalStateException("Reference count of is already 0; can't remove any references!");
 		}
+        int oldReference = referenceCount;
 		referenceCount--;
 		logger.debug("decremented reference count to: " + referenceCount);
 		if (referenceCount == 0) {
@@ -673,9 +677,16 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 				logger.debug("Already removed from parent");
 			}
 		}
+        fireDbObjectChanged("referenceCount", oldReference, referenceCount);
 	}
 
 
+    public int getAVASD(){
+        return 0;
+    }
+    public void setAVASD(int i){
+        
+    }
 	
 	
 	/**
@@ -685,7 +696,16 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 		return referenceCount;
 	}
 
-	@Override
+    /**
+     * WARNING this should not be used by hand coded objects
+     * @param referenceCount
+     */
+	@Deprecated
+    public void setReferenceCount(int referenceCount) {
+        this.referenceCount = referenceCount;
+    }
+
+    @Override
 	public Class<? extends SQLObject> getChildType() {
 		return null;
 	}
