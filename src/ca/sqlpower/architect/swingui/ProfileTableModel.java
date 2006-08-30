@@ -153,6 +153,11 @@ public class ProfileTableModel extends AbstractTableModel {
         }
     }
 
+    public boolean isErrorColumnProfile(int row) {
+        ColumnProfileResult columnProfile = resultList.get(row);
+        return columnProfile.isError();
+
+    }
     public ProfileManager getProfileManager() {
         return profileManager;
     }

@@ -28,11 +28,18 @@ public class ProfileTable extends JTable {
 
     @Override
     public TableCellRenderer getCellRenderer(int row, int column) {
+
+        TableModelSortDecorator t = (TableModelSortDecorator) getModel();
+        ProfileTableModel model = (ProfileTableModel) t.getTableModel();
         int modelColumn = convertColumnIndexToModel(column);
         ProfileColumn pc = ProfileColumn.values()[modelColumn];
+
         switch(pc) {
         case DATABASE: case SCHEMA: case CATALOG: case TABLE: case COLUMN:
-            return new SQLObjectRendererFactory();
+            SQLObjectRendererFactory objectRendererFactory = new SQLObjectRendererFactory();
+            if ( model.isErrorColumnProfile(row) )
+                objectRendererFactory.setError(true);
+            return objectRendererFactory;
         case RUNDATE:
             return new DateRendererFactory();
         case PERCENT_UNIQUE:
@@ -48,10 +55,8 @@ public class ProfileTable extends JTable {
             ValueRendererFactory valueRendererFactory = new ValueRendererFactory();
             StringBuffer toolTip = new StringBuffer();
 
-            TableModelSortDecorator t = (TableModelSortDecorator) getModel();
-            ProfileTableModel t2 = (ProfileTableModel) t.getTableModel();
 
-            List<ColumnValueCount> topNValue = t2.getTopNValueAt(row);
+            List<ColumnValueCount> topNValue = model.getTopNValueAt(row);
             if ( topNValue != null ) {
                 toolTip.append("<html><table>");
                 for ( ColumnValueCount v : topNValue ) {
