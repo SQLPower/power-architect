@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -68,13 +69,14 @@ public class ProfileManager implements Monitorable {
 
     }
 
-    public void putResult(ProfileResult profileResult) {
+    private void putResult(ProfileResult profileResult) {
         if (logger.isDebugEnabled()) {
             logger.debug("[instance "+hashCode()+"]" +
                     " Adding new profile result for "+profileResult.getProfiledObject().getName()+
                     " existing profile count: "+results.size());
         }
         results.put(profileResult.getProfiledObject(), profileResult);
+        fireProfileAddedEvent(new ProfileChangeEvent(this, profileResult));
     }
 
     public ProfileResult getResult(SQLObject sqlObject) {
@@ -351,11 +353,13 @@ public class ProfileManager implements Monitorable {
     }
 
     public void remove(SQLObject sqo) throws ArchitectException{
-        results.remove(sqo);
-
+        fireProfileRemovedEvent(new ProfileChangeEvent(this, results.get(sqo)));
+        ProfileResult old = results.remove(sqo);
+        
         if ( sqo instanceof SQLTable ) {
             for ( SQLColumn col: ((SQLTable)sqo).getColumns()) {
-                results.remove(col);
+                fireProfileRemovedEvent(new ProfileChangeEvent(this, old));
+                results.remove(col);                
             }
         }
         else if ( sqo instanceof SQLColumn ) {
@@ -367,8 +371,10 @@ public class ProfileManager implements Monitorable {
                     break;
                 }
             }
-            if ( allColumnDeleted )
+            if ( allColumnDeleted ){
+                fireProfileRemovedEvent(new ProfileChangeEvent(this, results.get(table)));
                 results.remove(table);
+            }
         }
     }
 
@@ -387,6 +393,7 @@ public class ProfileManager implements Monitorable {
         ColumnProfileResult colResult = new ColumnProfileResult(col);
         colResult.setCreateStartTime(createStartTime);
         SQLTable table = col.getParentTable();
+        
 
         try {
             databaseIdentifierQuoteString = conn.getMetaData().getIdentifierQuoteString();
@@ -473,8 +480,6 @@ public class ProfileManager implements Monitorable {
                 rs = stmt.executeQuery(lastSQL);
 
                 if ( rs.next() ) {
-
-
                     if (findingDistinctCount && pfd.isCountDist() ) {
                         columnName = "DISTINCTCOUNT_"+i;
                         colResult.setDistinctValueCount(rs.getInt(columnName));
@@ -553,9 +558,6 @@ public class ProfileManager implements Monitorable {
                 logger.error("Couldn't clean up result set", ex);
             }
         }
-
-
-
 
     }
 
@@ -670,7 +672,30 @@ public class ProfileManager implements Monitorable {
 
     public Map<SQLObject, ProfileResult> getResults() {
         return results;
+    }        
+    
+    //==================================
+    // ProfileManagerListeners
+    //==================================
+    List<ProfileChangeListener> listeners = new ArrayList<ProfileChangeListener>();
+    
+    public void addProfileChangeListener(ProfileChangeListener listener){
+        listeners.add(listener);
     }
-
-
+    
+    public void removeProfileChangeListener(ProfileChangeListener listener){
+        listeners.remove(listener);
+    }
+    
+    private void fireProfileAddedEvent(ProfileChangeEvent event){
+        for (ProfileChangeListener listener: listeners){
+            listener.profileAdded(event);
+        }
+    }
+    
+    private void fireProfileRemovedEvent(ProfileChangeEvent event){
+        for (ProfileChangeListener listener: listeners){
+            listener.profileRemoved(event);
+        }
+    }
 }
