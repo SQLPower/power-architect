@@ -21,6 +21,8 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
+import ca.sqlpower.architect.profile.ProfileChangeEvent;
+import ca.sqlpower.architect.profile.ProfileChangeListener;
 import ca.sqlpower.architect.profile.ProfileColumn;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileResult;
@@ -211,6 +213,15 @@ public class ProfileTableModel extends AbstractTableModel {
 
     public void setProfileManager(ProfileManager profileManager) {
         this.profileManager = profileManager;
+        profileManager.addProfileChangeListener(new ProfileChangeListener(){
+
+            public void profileRemoved(ProfileChangeEvent e) {
+                refresh();
+            }
+
+            public void profileAdded(ProfileChangeEvent e) {
+                refresh();                
+            }});
         refresh();
     }
 
