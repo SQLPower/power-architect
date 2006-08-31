@@ -22,7 +22,7 @@ public enum ProfileColumn {
     MIN_VALUE("Min Value"),
     MAX_VALUE("Max Value"),
     AVERAGE_VALUE("Avg. Value"),
-    TOP_VALUE("Top Values");
+    TOP_VALUE("Most Frequent");
 
     String name;
 
