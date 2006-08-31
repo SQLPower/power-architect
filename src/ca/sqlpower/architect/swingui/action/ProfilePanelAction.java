@@ -61,8 +61,6 @@ public class ProfilePanelAction extends AbstractAction {
 
     protected DBTree dbTree;
     protected ProfileManager profileManager;
-    protected JDialog d;
-
 
 
     public ProfilePanelAction() {
@@ -165,13 +163,13 @@ public class ProfilePanelAction extends AbstractAction {
 
             profileManager.setCancelled(false);
 
-            d = new JDialog(ArchitectFrame.getMainInstance(), "Table Profiles");
+            final JDialog d = new JDialog(ArchitectFrame.getMainInstance(), "Table Profiles");
 
-
+            final CommonCloseAction commonCloseAction = new CommonCloseAction(d);
             Action closeAction = new AbstractAction() {
                 public void actionPerformed(ActionEvent evt) {
                     profileManager.setCancelled(true);
-                    d.setVisible(false);
+                    commonCloseAction.actionPerformed(evt);
                 }
             };
             closeAction.putValue(Action.NAME, "Close");
@@ -188,7 +186,7 @@ public class ProfilePanelAction extends AbstractAction {
             progressViewPanel.add(workingOn, BorderLayout.NORTH);
 
             ArchitectPanelBuilder.makeJDialogCancellable(
-                    d, new CommonCloseAction(d));
+                    d, commonCloseAction);
             d.getRootPane().setDefaultButton(closeButton);
             d.setContentPane(progressViewPanel);
             d.pack();
