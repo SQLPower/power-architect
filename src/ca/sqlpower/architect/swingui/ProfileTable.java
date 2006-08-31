@@ -30,6 +30,7 @@ public class ProfileTable extends JTable {
     public TableCellRenderer getCellRenderer(int row, int column) {
 
         TableModelSortDecorator t = (TableModelSortDecorator) getModel();
+        int row2 = t.modelIndex(row);
         ProfileTableModel model = (ProfileTableModel) t.getTableModel();
         int modelColumn = convertColumnIndexToModel(column);
         ProfileColumn pc = ProfileColumn.values()[modelColumn];
@@ -37,7 +38,7 @@ public class ProfileTable extends JTable {
         switch(pc) {
         case DATABASE: case SCHEMA: case CATALOG: case TABLE: case COLUMN:
             SQLObjectRendererFactory objectRendererFactory = new SQLObjectRendererFactory();
-            if ( model.isErrorColumnProfile(row) )
+            if ( model.isErrorColumnProfile(row2) )
                 objectRendererFactory.setError(true);
             return objectRendererFactory;
         case RUNDATE:
@@ -55,8 +56,7 @@ public class ProfileTable extends JTable {
             ValueRendererFactory valueRendererFactory = new ValueRendererFactory();
             StringBuffer toolTip = new StringBuffer();
 
-
-            List<ColumnValueCount> topNValue = model.getTopNValueAt(row);
+            List<ColumnValueCount> topNValue = model.getTopNValueAt(row2);
             if ( topNValue != null ) {
                 toolTip.append("<html><table>");
                 for ( ColumnValueCount v : topNValue ) {
@@ -69,9 +69,9 @@ public class ProfileTable extends JTable {
                     }
                     toolTip.append("</td>");
                     toolTip.append("<td>&nbsp;&nbsp;&nbsp;</td>");
-                    toolTip.append("<td align=\"right\">");
+                    toolTip.append("<td align=\"right\"><b>[");
                     toolTip.append(v.getCount());
-                    toolTip.append("</td>");
+                    toolTip.append("]</td>");
                     toolTip.append("</tr>");
                 }
                 toolTip.append("</table></html>");
@@ -79,7 +79,7 @@ public class ProfileTable extends JTable {
             }
             return valueRendererFactory;
         default:
-            return super.getCellRenderer(row, column);
+            return super.getCellRenderer(row2, column);
 
         }
     }
