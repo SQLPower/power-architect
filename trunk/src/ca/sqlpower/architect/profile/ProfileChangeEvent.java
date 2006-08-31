@@ -10,9 +10,6 @@ public class ProfileChangeEvent extends EventObject {
     
     public ProfileChangeEvent(Object source, ProfileResult pr) {
         super(source);
-        if (pr == null){
-            throw new NullPointerException("pr may not be null");
-        }
         this.pr = pr;        
     }
 

@@ -18,13 +18,11 @@ public class TestProfileManagerListeners extends TestProfileBase {
     public void testListeners() throws Exception{
         ProfileChangeListener listener = new ProfileChangeListener() {
         
-            public void profileAdded(ProfileChangeEvent e) {
-                System.out.println(e);
+            public void profileAdded(ProfileChangeEvent e) {                
                 addedEvents++;        
             }
         
             public void profileRemoved(ProfileChangeEvent e) {
-                System.out.println(e);
                 removedEvents++;
             }
         

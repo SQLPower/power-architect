@@ -221,6 +221,7 @@ public class ProfilePanelAction extends AbstractAction {
                         JTabbedPane tabPane = new JTabbedPane();
 
                         ProfileTableModel tm = new ProfileTableModel();
+                        
                         for (SQLObject sqo: filter){
                             tm.addFilter(sqo);
                         }
@@ -272,9 +273,6 @@ public class ProfilePanelAction extends AbstractAction {
                                 } catch (ArchitectException e1) {
                                     throw new ArchitectRuntimeException(e1);
                                 }
-                                TableModelSortDecorator t = (TableModelSortDecorator) viewTable.getModel();
-                                ProfileTableModel t2 = (ProfileTableModel) t.getTableModel();
-                                t2.refresh();
                             }
 
                         });
@@ -295,11 +293,6 @@ public class ProfilePanelAction extends AbstractAction {
                                         ASUtils.showExceptionDialog(d,"Could delete column:", e1);
                                     }
                                 }
-
-                                // This's ugly, depends on knowledge of wrap class order
-                                TableModelSortDecorator t = (TableModelSortDecorator) viewTable.getModel();
-                                ProfileTableModel t2 = (ProfileTableModel) t.getTableModel();
-                                t2.refresh();
                             }
 
                         });
@@ -307,10 +300,6 @@ public class ProfilePanelAction extends AbstractAction {
 
                             public void actionPerformed(ActionEvent e) {
                                 profileManager.clear();
-                                // This's ugly, depends on knowledge of wrap class order
-                                TableModelSortDecorator t = (TableModelSortDecorator) viewTable.getModel();
-                                ProfileTableModel t2 = (ProfileTableModel) t.getTableModel();
-                                t2.refresh();
                             }
 
                         });

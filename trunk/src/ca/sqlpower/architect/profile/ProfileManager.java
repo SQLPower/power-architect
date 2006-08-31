@@ -76,7 +76,6 @@ public class ProfileManager implements Monitorable {
                     " existing profile count: "+results.size());
         }
         results.put(profileResult.getProfiledObject(), profileResult);
-        fireProfileAddedEvent(new ProfileChangeEvent(this, profileResult));
     }
 
     public ProfileResult getResult(SQLObject sqlObject) {
@@ -124,6 +123,7 @@ public class ProfileManager implements Monitorable {
                 finished = true;
                 jobSize = null;
             }
+            fireProfileAddedEvent(new ProfileChangeEvent(this, null));
         }
     }
 
@@ -350,15 +350,14 @@ public class ProfileManager implements Monitorable {
 
     public void clear(){
         results.clear();
+        fireProfileRemovedEvent(new ProfileChangeEvent(this, null));
     }
 
     public void remove(SQLObject sqo) throws ArchitectException{
-        fireProfileRemovedEvent(new ProfileChangeEvent(this, results.get(sqo)));
         ProfileResult old = results.remove(sqo);
         
         if ( sqo instanceof SQLTable ) {
             for ( SQLColumn col: ((SQLTable)sqo).getColumns()) {
-                fireProfileRemovedEvent(new ProfileChangeEvent(this, old));
                 results.remove(col);                
             }
         }
@@ -372,10 +371,10 @@ public class ProfileManager implements Monitorable {
                 }
             }
             if ( allColumnDeleted ){
-                fireProfileRemovedEvent(new ProfileChangeEvent(this, results.get(table)));
                 results.remove(table);
             }
         }
+        fireProfileRemovedEvent(new ProfileChangeEvent(this, null));
     }
 
     private ColumnProfileResult execProfileFunction(ProfileFunctionDescriptor pfd,
