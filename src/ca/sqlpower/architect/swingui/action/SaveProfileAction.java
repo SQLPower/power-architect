@@ -15,7 +15,6 @@ import javax.swing.AbstractAction;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
-import javax.swing.JTable;
 import javax.swing.filechooser.FileFilter;
 
 import ca.sqlpower.architect.ArchitectException;
@@ -30,8 +29,7 @@ import ca.sqlpower.architect.profile.ProfilePDFFormat;
 import ca.sqlpower.architect.profile.ProfileResult;
 import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.swingui.ASUtils;
-import ca.sqlpower.architect.swingui.ProfileTableModel;
-import ca.sqlpower.architect.swingui.TableModelSortDecorator;
+import ca.sqlpower.architect.swingui.table.ProfileTable;
 
 public class SaveProfileAction extends AbstractAction {
 
@@ -39,10 +37,10 @@ public class SaveProfileAction extends AbstractAction {
     private enum SaveableFileType { HTML, PDF, CSV }
 
     private JDialog parent;
-    private JTable viewTable;
+    private ProfileTable viewTable;
     private ProfileManager pm;
 
-    public SaveProfileAction(JDialog parent, JTable viewTable, ProfileManager pm) {
+    public SaveProfileAction(JDialog parent, ProfileTable viewTable, ProfileManager pm) {
         super("Save");
         this.parent = parent;
         this.viewTable = viewTable;
@@ -53,8 +51,6 @@ public class SaveProfileAction extends AbstractAction {
     public void actionPerformed(ActionEvent e) {
 
         final List<ProfileResult> objectToSave = new ArrayList<ProfileResult>();
-        TableModelSortDecorator tmsd = (TableModelSortDecorator) viewTable.getModel();
-        ProfileTableModel model = (ProfileTableModel) tmsd.getTableModel();
 
         if ( viewTable.getSelectedRowCount() > 1 ) {
             int selectedRows[] = viewTable.getSelectedRows();
@@ -62,7 +58,7 @@ public class SaveProfileAction extends AbstractAction {
             Set<SQLColumn> selectedColumn = new HashSet<SQLColumn>();
             for ( int i=0; i<selectedRows.length; i++ ) {
                 int rowid = selectedRows[i];
-                ColumnProfileResult result = (ColumnProfileResult) model.getResultForRow(rowid);
+                ColumnProfileResult result = viewTable.getColumnProfileResultForRow(rowid);
                 selectedTable.add(result.getProfiledObject().getParentTable());
                 selectedColumn.add(result.getProfiledObject());
             }
@@ -107,7 +103,7 @@ public class SaveProfileAction extends AbstractAction {
             } else {
                 for ( int i=0; i<selectedRows.length; i++ ) {
                     int rowid = selectedRows[i];
-                    ColumnProfileResult result = (ColumnProfileResult) model.getResultForRow(rowid);
+                    ColumnProfileResult result = viewTable.getColumnProfileResultForRow(rowid);
                     SQLColumn column = result.getProfiledObject();
                     SQLTable table = column.getParentTable();
                     TableProfileResult tpr = (TableProfileResult) pm.getResult(table);
@@ -118,7 +114,7 @@ public class SaveProfileAction extends AbstractAction {
             }
         } else {
             for ( int i=0; i<viewTable.getRowCount(); i++ ) {
-                ColumnProfileResult result = (ColumnProfileResult) model.getResultForRow(i);
+                ColumnProfileResult result = viewTable.getColumnProfileResultForRow(i);
                 SQLColumn column = result.getProfiledObject();
                 SQLTable table = column.getParentTable();
                 TableProfileResult tpr = (TableProfileResult) pm.getResult(table);

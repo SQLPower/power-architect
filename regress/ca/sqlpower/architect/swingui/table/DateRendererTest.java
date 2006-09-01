@@ -14,7 +14,7 @@ public class DateRendererTest extends BaseRendererTest {
         Date d = c.getTime();
         long time = d.getTime();
 
-        DateRendererFactory dateRenderer = new DateRendererFactory();
+        DateTableCellRenderer dateRenderer = new DateTableCellRenderer();
         JLabel renderer = (JLabel) dateRenderer.getTableCellRendererComponent(table, time, false, false, 0, 0);
         String renderedValue = renderer.getText();
         assertEquals("renderer formatted OK", "1999-12-31 12:00:00", renderedValue);

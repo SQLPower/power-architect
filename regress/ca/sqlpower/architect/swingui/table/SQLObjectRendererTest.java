@@ -15,7 +15,7 @@ public class SQLObjectRendererTest extends BaseRendererTest {
         db.setName("MyName");
 
         // Test with SQLDatabase
-        SQLObjectRendererFactory sqlRenderer = new SQLObjectRendererFactory();
+        SQLObjectTableCellRenderer sqlRenderer = new SQLObjectTableCellRenderer();
         JLabel renderer = (JLabel) sqlRenderer.getTableCellRendererComponent(table, db, false, false, 0, 0);
         assertEquals("renderer formatted OK", "MyName", renderer.getText());
 

@@ -14,6 +14,7 @@ public class ProjectSettingsPanel extends JPanel implements ArchitectPanel {
 	private SwingUIProject proj;
 	
 	private JCheckBox saveEntireSource;
+    private JCheckBox clearProfile;
 
 	public ProjectSettingsPanel(SwingUIProject proj) {
 		this.proj = proj;
@@ -25,6 +26,9 @@ public class ProjectSettingsPanel extends JPanel implements ArchitectPanel {
 		setLayout(new FormLayout());
 		add(new JLabel("Snapshot entire source database in project file?"));
 		add(saveEntireSource = new JCheckBox());
+        
+        add(new JLabel("Clear the Profile result in the project?"));
+        add( clearProfile=new JCheckBox());
 	}
 
 	protected void revertToProjectSettings() {
@@ -36,6 +40,10 @@ public class ProjectSettingsPanel extends JPanel implements ArchitectPanel {
         logger.debug("Setting snapshot option to:"+saveEntireSource.isSelected());
 		proj.setSavingEntireSource(saveEntireSource.isSelected());
         logger.debug("Project "+proj.getName() +" snapshot option is:"+proj.isSavingEntireSource());
+        
+        if ( clearProfile.isSelected() ) {
+            proj.getProfileManager().clear();
+        }
 		return true;
 	}
 

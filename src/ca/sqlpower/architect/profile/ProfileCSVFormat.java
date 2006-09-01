@@ -2,17 +2,19 @@ package ca.sqlpower.architect.profile;
 
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.text.DateFormat;
-import java.text.DecimalFormat;
-import java.util.*;
-
-import com.darwinsys.csv.CSVExport;
+import java.text.Format;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.table.DateRendererFactory;
-import ca.sqlpower.architect.swingui.table.DecimalRendererFactory;
-import ca.sqlpower.architect.swingui.table.PercentRendererFactory;
+import ca.sqlpower.architect.swingui.table.DateTableCellRenderer;
+import ca.sqlpower.architect.swingui.table.DecimalTableCellRenderer;
+import ca.sqlpower.architect.swingui.table.PercentTableCellRenderer;
+
+import com.darwinsys.csv.CSVExport;
 
 public class ProfileCSVFormat implements ProfileFormat {
 
@@ -27,9 +29,9 @@ public class ProfileCSVFormat implements ProfileFormat {
         ProfileColumn[] columns = ProfileColumn.values();
         out.println(CSVExport.toString(Arrays.asList(columns)));
 
-        DateFormat dateFormat = (DateFormat) new DateRendererFactory().getFormat();
-        DecimalFormat decFormat = (DecimalFormat) new DecimalRendererFactory().getFormat();
-        DecimalFormat pctFormat = (DecimalFormat) new PercentRendererFactory().getFormat();
+        Format dateFormat = new DateTableCellRenderer().getFormat();
+        Format decFormat =  new DecimalTableCellRenderer().getFormat();
+        Format pctFormat =  new PercentTableCellRenderer().getFormat();
         // Now print column profile
         for ( ProfileResult result : profileResult ) {
 
