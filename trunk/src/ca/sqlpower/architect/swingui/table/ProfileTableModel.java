@@ -1,4 +1,4 @@
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect.swingui.table;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -30,6 +30,16 @@ import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.profile.ColumnProfileResult.ColumnValueCount;
 
 public class ProfileTableModel extends AbstractTableModel {
+
+    /**
+     * Requesting the value at this column index will give back the
+     * entire ColumnProfileResult object that provides the data for
+     * the specified row.  This constant is package private because
+     * no users outside the table package should be using it.
+     * 
+     * <p>See {@link ProfileTable#getColumnProfileResultForRow(int)}.
+     */
+    static final int CPR_PSEUDO_COLUMN_INDEX = -1;
 
     static Logger logger = Logger.getLogger(ProfileTableModel.class);
 
@@ -82,24 +92,19 @@ public class ProfileTableModel extends AbstractTableModel {
      * @return
      */
     public Object getValueAt(int rowIndex, int columnIndex) {
-        ColumnProfileResult columnProfile = resultList.get(rowIndex);
-        return getColumnValueFromProfile(columnIndex, columnProfile, profileManager);
+        ColumnProfileResult cpr = resultList.get(rowIndex);
+        if (columnIndex == CPR_PSEUDO_COLUMN_INDEX) {
+            return cpr;
+        } else {
+            return getColumnValueFromProfile(
+                    ProfileColumn.values()[columnIndex],cpr,profileManager);
+        }
     }
 
-    /**
-     * Get top N value at table cell(row), on column "TOP_VALUE"
-     * @param rowIndex
-     * @return List of top N Value
-     */
-    public List<ColumnValueCount> getTopNValueAt(int rowIndex) {
-        return resultList.get(rowIndex).getValueCount();
-    }
-
-    private static Object getColumnValueFromProfile(int columnIndex, ColumnProfileResult columnProfile, ProfileManager profileManager) {
+     private static Object getColumnValueFromProfile(ProfileColumn column, ColumnProfileResult columnProfile, ProfileManager profileManager) {
         SQLColumn col = columnProfile.getProfiledObject();
         int rowCount = ((TableProfileResult) profileManager.getResult(col.getParentTable())).getRowCount();
 
-        ProfileColumn column = ProfileColumn.values()[columnIndex];
         switch(column) {
         case DATABASE:
             return ArchitectUtils.getAncestor(col,SQLDatabase.class);
@@ -144,6 +149,7 @@ public class ProfileTableModel extends AbstractTableModel {
         case  AVERAGE_VALUE:
             return columnProfile.getAvgValue();
         case  TOP_VALUE:
+            // XXX just return the whole list and use a special renderer to dig out the first item
             List<ColumnValueCount> valueCount = columnProfile.getValueCount();
             if ( valueCount != null && valueCount.size() > 0 )
                 return valueCount.get(0).getValue();
@@ -155,6 +161,15 @@ public class ProfileTableModel extends AbstractTableModel {
         }
     }
 
+     /**
+      * Get top N value at table cell(row), on column "TOP_VALUE"
+      * @param rowIndex
+      * @return List of top N Value
+      */
+     public List<ColumnValueCount> getTopNValueAt(int rowIndex) {
+         return resultList.get(rowIndex).getValueCount();
+     }
+     
     public boolean isErrorColumnProfile(int row) {
         ColumnProfileResult columnProfile = resultList.get(row);
         return columnProfile.isError();
@@ -189,22 +204,23 @@ public class ProfileTableModel extends AbstractTableModel {
      */
     private boolean shouldNotBeFilteredOut(ColumnProfileResult result) {
         for (SQLObject sqo : filters){
-            int objectColumn;
+
+            ProfileColumn column;
             if (sqo instanceof SQLDatabase){
-                 objectColumn=0;
+                 column = ProfileColumn.DATABASE;
             } else if(sqo instanceof SQLCatalog) {
-                objectColumn=1;
+                column = ProfileColumn.CATALOG;
             } else if(sqo instanceof SQLSchema) {
-                objectColumn=2;
+                column = ProfileColumn.SCHEMA;
             } else if(sqo instanceof SQLTable) {
-                objectColumn=3;
+                column = ProfileColumn.TABLE;
             } else if(sqo instanceof SQLColumn) {
-                objectColumn=4;
+                column = ProfileColumn.COLUMN;
             } else {
                 continue;
 
             }
-            if (sqo.equals(getColumnValueFromProfile(objectColumn,result,profileManager))) {
+            if (sqo.equals(getColumnValueFromProfile(column,result,profileManager))) {
                 return true;
             }
         }
@@ -273,7 +289,30 @@ public class ProfileTableModel extends AbstractTableModel {
         }
     }
 
-    public ProfileResult getResultForRow(int row) {
-        return resultList.get(row);
+    public List<ColumnProfileResult> getResultList() {
+        return resultList;
     }
+/*    public interface ResultListChangeListener extends EventListener {
+        public void resultListChange(ProfileResultChangeEvent e);
+    }
+    
+//  ==================================
+    // ProfileManagerListeners
+    //==================================
+    List<ResultListChangeListener> listeners = new ArrayList<ResultListChangeListener>();
+    
+    public void addResultListChangeListener(ResultListChangeListener listener){
+        listeners.add(listener);
+    }
+    
+    public void removeResultListChangeListener(ResultListChangeListener listener){
+        listeners.remove(listener);
+    }
+    
+    private void fireResultListChangeEvent(ProfileResultChangeEvent event){
+        for (ResultListChangeListener listener: listeners){
+            listener.resultListChange(event);
+        }
+    }*/
+    
 }

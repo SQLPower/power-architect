@@ -32,7 +32,7 @@ import ca.sqlpower.architect.swingui.DDLExportPanel;
 import ca.sqlpower.architect.swingui.MonitorableWorker;
 import ca.sqlpower.architect.swingui.SQLScriptDialog;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
-import ca.sqlpower.architect.swingui.TableModelSortDecorator;
+import ca.sqlpower.architect.swingui.table.TableModelSortDecorator;
 
 public class ExportDDLAction extends AbstractAction {
 	private static final Logger logger = Logger.getLogger(ExportDDLAction.class);

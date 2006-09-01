@@ -8,7 +8,7 @@ public class DecimalRendererTest extends BaseRendererTest {
 
     public void test1() {
 
-        DecimalRendererFactory fmt = new DecimalRendererFactory();
+        DecimalTableCellRenderer fmt = new DecimalTableCellRenderer();
         JLabel renderer = (JLabel) fmt.getTableCellRendererComponent(table, 1.2345, false, false, 0, 0);
         String renderedValue = renderer.getText();
         assertEquals("renderer formatted OK", "1.2", renderedValue);

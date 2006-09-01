@@ -23,6 +23,7 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.table.JTableHeader;
 import javax.swing.tree.TreePath;
 
@@ -46,12 +47,13 @@ import ca.sqlpower.architect.swingui.CommonCloseAction;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.JDefaultButton;
 import ca.sqlpower.architect.swingui.ProfilePanel;
-import ca.sqlpower.architect.swingui.ProfileTable;
-import ca.sqlpower.architect.swingui.ProfileTableModel;
 import ca.sqlpower.architect.swingui.ProgressWatcher;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
-import ca.sqlpower.architect.swingui.TableModelSortDecorator;
 import ca.sqlpower.architect.swingui.ProfilePanel.ChartTypes;
+import ca.sqlpower.architect.swingui.table.ProfileTable;
+import ca.sqlpower.architect.swingui.table.ProfileTableModel;
+import ca.sqlpower.architect.swingui.table.TableModelSearchDecorator;
+import ca.sqlpower.architect.swingui.table.TableModelSortDecorator;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
 
@@ -225,16 +227,20 @@ public class ProfilePanelAction extends AbstractAction {
                         }
                         tm.setProfileManager(profileManager);
 
-
+                        TableModelSearchDecorator searchDecorator = 
+                                        new TableModelSearchDecorator(tm);
                         TableModelSortDecorator tableModelSortDecorator =
-                                                new TableModelSortDecorator(tm);
-                        final JTable viewTable = new ProfileTable(tableModelSortDecorator);
-
+                                        new TableModelSortDecorator(searchDecorator);
+                        final ProfileTable viewTable = 
+                                        new ProfileTable(tableModelSortDecorator);
+                        searchDecorator.setTableTextConverter(viewTable);
+                        
                         JTableHeader tableHeader = viewTable.getTableHeader();
                         tableModelSortDecorator.setTableHeader(tableHeader);
 
                         viewTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
-                        ProfilePanelMouseListener profilePanelMouseListener = new ProfilePanelMouseListener();
+                        ProfilePanelMouseListener profilePanelMouseListener =
+                                        new ProfilePanelMouseListener();
                         profilePanelMouseListener.setTabPane(tabPane);
                         viewTable.addMouseListener( profilePanelMouseListener);
                         JScrollPane editorScrollPane = new JScrollPane(viewTable);
@@ -244,11 +250,20 @@ public class ProfilePanelAction extends AbstractAction {
                         editorScrollPane.setMinimumSize(new Dimension(10, 10));
 
                         // reset column widths
-                        tableModelSortDecorator.initColumnSizes(viewTable);
+                        ((ProfileTable) viewTable).initColumnSizes();
 
                         JPanel tableViewPane = new JPanel(new BorderLayout());
 
                         tableViewPane.add(editorScrollPane,BorderLayout.CENTER);
+                        
+                        JLabel searchLabel = new JLabel("Search:");
+                        JTextField searchField = new JTextField(searchDecorator.getDoc(),"",25);
+                        searchField.setEditable(true);
+                        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+                        searchPanel.add(searchLabel);
+                        searchPanel.add(searchField);
+                        tableViewPane.add(searchPanel,BorderLayout.NORTH);
+                        
                         ButtonBarBuilder buttonBuilder = new ButtonBarBuilder();
                         JButton save = new JButton(new SaveProfileAction(d,viewTable,profileManager));
 
@@ -288,7 +303,7 @@ public class ProfilePanelAction extends AbstractAction {
                                     try {
                                         profileManager.remove(col);
                                     } catch (ArchitectException e1) {
-                                        ASUtils.showExceptionDialog(d,"Could delete column:", e1);
+                                        ASUtils.showExceptionDialog(d,"Could delete row of:" + col.getName(), e1);
                                     }
                                 }
                             }
@@ -297,7 +312,14 @@ public class ProfilePanelAction extends AbstractAction {
                         JButton deleteAll = new JButton(new AbstractAction("Delete All"){
 
                             public void actionPerformed(ActionEvent e) {
-                                profileManager.clear();
+                                while ( viewTable.getRowCount() > 0 ) {
+                                    SQLColumn col = (SQLColumn) viewTable.getValueAt(0, 4);
+                                    try {
+                                        profileManager.remove(col);
+                                    } catch (ArchitectException e1) {
+                                        ASUtils.showExceptionDialog(d,"Could delete row of:" + col.getName(), e1);
+                                    }
+                                }
                             }
 
                         });

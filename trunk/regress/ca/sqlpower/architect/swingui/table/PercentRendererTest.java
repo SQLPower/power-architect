@@ -6,7 +6,7 @@ public class PercentRendererTest extends BaseRendererTest {
 
     public void test1() {
 
-        PercentRendererFactory fmt = new PercentRendererFactory();
+        PercentTableCellRenderer fmt = new PercentTableCellRenderer();
         JLabel renderer = (JLabel) fmt.getTableCellRendererComponent(table, 1.2345, false, false, 0, 0);
         String renderedValue = renderer.getText();
         assertEquals("renderer formatted OK", "123%", renderedValue);

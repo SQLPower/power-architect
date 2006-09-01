@@ -11,7 +11,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 
 import ca.sqlpower.architect.SQLObject;
 
-public class SQLObjectRendererFactory extends DefaultTableCellRenderer implements FormatFactory {
+public class SQLObjectTableCellRenderer extends DefaultTableCellRenderer implements FormatFactory {
 
     private boolean hasError = false;
 
