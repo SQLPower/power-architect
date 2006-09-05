@@ -76,6 +76,11 @@ public class ProfileTable extends JTable implements TableTextConverter {
         return m3;
     }
     
+    public int modelIndex(int viewIndex) {
+        TableModelSortDecorator m1 = (TableModelSortDecorator) getModel();        
+        return m1.modelIndex(viewIndex);
+    }
+    
     /*
      * This method picks good column sizes.
      * If all column heads are wider than the column's cells'
@@ -113,4 +118,6 @@ public class ProfileTable extends JTable implements TableTextConverter {
         JLabel renderer = (JLabel) getCellRenderer(row, col).getTableCellRendererComponent(this, getModel().getValueAt(row, getColumnModel().getColumn(col).getModelIndex()), false, false, row, col);
         return renderer.getText();
     }
+
+
 }

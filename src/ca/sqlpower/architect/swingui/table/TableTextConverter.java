@@ -15,4 +15,5 @@ public interface TableTextConverter {
      * row and column of a table.
      */
     String getTextForCell(int row, int col);
+    int modelIndex(int viewIndex);
 }
