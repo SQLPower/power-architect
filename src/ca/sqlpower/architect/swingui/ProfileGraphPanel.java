@@ -7,7 +7,9 @@ import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
+import org.apache.log4j.Logger;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -29,6 +31,9 @@ import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.profile.ColumnProfileResult.ColumnValueCount;
 import ca.sqlpower.architect.swingui.ProfilePanel.ChartTypes;
+import ca.sqlpower.architect.swingui.table.FreqValueCountTableModel;
+import ca.sqlpower.architect.swingui.table.FreqValueTable;
+import ca.sqlpower.architect.swingui.table.TableModelSortDecorator;
 
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.debug.FormDebugPanel;
@@ -52,23 +57,29 @@ public class ProfileGraphPanel {
     private JLabel uniqueCountLabel;
     private JLabel uniquePercentLabel;
     private JLabel maxLengthLabel;
+    
+    private FreqValueTable freqValueTable;
+    private JScrollPane freqValueSp;
+    
     ChartTypes chartType = ChartTypes.PIE;
     JPanel displayArea;
     private int rowCount;
     private ChartPanel chartPanel;
     private ProfileManager pm;
+    
+    private static final Logger logger = Logger.getLogger(ProfileGraphPanel.class);
 
 
     public ProfileGraphPanel(ProfilePanel panel, int rowCount, ProfileManager pm) {
         this.rowCount = rowCount;
         this.pm = pm;
-        displayArea = new JPanel();
+        
         FormLayout displayLayout = new FormLayout(
                 "4dlu, default, 4dlu, 100dlu, 4dlu, fill:default:grow, 4dlu", // columns
                 "4dlu, default, 6dlu"); // rows
         CellConstraints cc = new CellConstraints();
 
-        displayArea = ProfilePanel.logger.isDebugEnabled()  ? new FormDebugPanel(displayLayout) : new JPanel(displayLayout);
+        displayArea = ProfileGraphPanel.logger.isDebugEnabled() ? new FormDebugPanel(displayLayout) : new JPanel(displayLayout);
         displayArea.setBorder(BorderFactory.createEtchedBorder());
 
         Font bodyFont = displayArea.getFont();
@@ -92,14 +103,29 @@ public class ProfileGraphPanel {
         minValue = makeInfoRow(pb, "Minimum Value", row); row += 2;
         maxValue = makeInfoRow(pb, "Maximum Value", row); row += 2;
         avgValue = makeInfoRow(pb, "Average Value", row); row += 2;
-
+        
+        
+        freqValueTable = new FreqValueTable(null);
+        freqValueSp = new JScrollPane(freqValueTable);
+        
+        pb.appendRow("fill:10dlu:grow");
+        pb.appendRow("fill:default:grow");
+        pb.add(freqValueSp, cc.xyw(2,row+1,3));
+        
+        
+        
+        
         pb.appendRow("fill:4dlu:grow");
         pb.appendRow("4dlu");
+        
+        
         // Now add something to represent the chart
         JFreeChart createPieChart = ChartFactory.createPieChart("",new DefaultPieDataset(new DefaultKeyedValues()),false,false,false);
         chartPanel = new ChartPanel(createPieChart);
+        
+        pb.add(chartPanel, cc.xywh(6, 4, 1, row-2));
+        
 
-        pb.add(chartPanel, cc.xywh(6, 4, 1, row-3));
     }
 
     public void setTitle(String title) {
@@ -165,6 +191,13 @@ public class ProfileGraphPanel {
                 ProfilePanel.logger.debug("Got avgValue of type: " + o.getClass().getName());
                 avgValue.setText(cr.getAvgValue().toString());
             }
+            
+            
+            FreqValueCountTableModel freqValueCountTableModel = new FreqValueCountTableModel(cr);
+            TableModelSortDecorator sortModel = new TableModelSortDecorator(freqValueCountTableModel);
+            freqValueTable.setModel(sortModel);
+            sortModel.setTableHeader(freqValueTable.getTableHeader());
+            freqValueTable.initColumnSizes();
     }
 
     private JFreeChart createTopNChart(SQLColumn sqo){
