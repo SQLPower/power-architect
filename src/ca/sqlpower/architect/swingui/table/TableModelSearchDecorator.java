@@ -28,21 +28,21 @@ public class TableModelSearchDecorator extends AbstractTableModel {
      * put on the screen.
      */
     private TableTextConverter tableTextConverter;
-    
+
     protected TableModel tableModel;
     private List<Integer> rowMapping = null;  // null means identity mapping
     protected Document doc;
     private String searchText = null;
-    
+
     private DocumentListener docListener = new DocumentListener(){
 
         private String getSearchText(DocumentEvent e) {
             String searchText = null;
             try {
-                searchText = e.getDocument().getText(0,e.getDocument().getLength());                    
+                searchText = e.getDocument().getText(0,e.getDocument().getLength());
             } catch (BadLocationException e1) {
                 ASUtils.showExceptionDialog("Internal Error (search profile)!", e1);
-            } 
+            }
             return searchText;
         }
         public void insertUpdate(DocumentEvent e) {
@@ -57,25 +57,25 @@ public class TableModelSearchDecorator extends AbstractTableModel {
             search(getSearchText(e));
         }
     };
-    
+
     public TableModelSearchDecorator(TableModel model) {
         super();
         this.tableModel = model;
         setDoc(new DefaultStyledDocument());
-        
+
         model.addTableModelListener(new TableModelListener(){
 
             public void tableChanged(TableModelEvent e) {
                 search(searchText);
             }});
     }
-    
+
     private void search(String searchText) {
 
         rowMapping = null;
         fireTableDataChanged();
 
-        List<Integer> newRowMap = new ArrayList<Integer>();        
+        List<Integer> newRowMap = new ArrayList<Integer>();
         CharSequence searchSubSequence = searchText == null ? null : searchText.toLowerCase().subSequence(0,searchText.length());
         for ( int row = 0; row < tableModel.getRowCount(); row++ ) {
             boolean match = false;
@@ -93,8 +93,9 @@ public class TableModelSearchDecorator extends AbstractTableModel {
                     }
                 }
             }
-            if ( match )
-                newRowMap.add(row);
+            if ( match ) {
+                newRowMap.add(tableTextConverter.modelIndex(row));
+            }
         }
         setSearchText(searchText);
         rowMapping = newRowMap;
@@ -103,7 +104,7 @@ public class TableModelSearchDecorator extends AbstractTableModel {
         }
         fireTableDataChanged();
     }
-    
+
     public int getRowCount() {
         if (rowMapping == null) {
             return tableModel.getRowCount();
@@ -130,12 +131,12 @@ public class TableModelSearchDecorator extends AbstractTableModel {
     public String getColumnName(int column) {
         return tableModel.getColumnName(column);
     }
-    
+
     @Override
     public Class<?> getColumnClass(int columnIndex) {
         return tableModel.getColumnClass(columnIndex);
     }
-    
+
 
     public TableModel getTableModel() {
         return tableModel;
@@ -153,9 +154,9 @@ public class TableModelSearchDecorator extends AbstractTableModel {
         if ( this.doc != null ) {
             doc.removeDocumentListener(docListener);
         }
-        
+
         this.doc = doc;
-        
+
         if (doc != null) {
             doc.addDocumentListener(docListener);
         }

@@ -251,8 +251,6 @@ public class TableModelSortDecorator extends AbstractTableModel {
     }
 
     public int modelIndex(int viewIndex) {
-/*        System.out.println("****getViewToModel()[viewIndex].modelIndex**"+
-                getViewToModel()[viewIndex].modelIndex);*/
         return getViewToModel()[viewIndex].modelIndex;
     }
 
@@ -268,7 +266,7 @@ public class TableModelSortDecorator extends AbstractTableModel {
             for (int i = 0; i < n; i++) {
                 modelToView[modelIndex(i)] = i;
             }
-        }        
+        }
         return modelToView;
     }
 
@@ -301,7 +299,7 @@ public class TableModelSortDecorator extends AbstractTableModel {
     public void setValueAt(Object aValue, int row, int column) {
         tableModel.setValueAt(aValue, modelIndex(row), column);
     }
-    
+
     // Helper classes
 
     private class Row implements Comparable {
