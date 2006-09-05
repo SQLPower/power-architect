@@ -53,9 +53,7 @@ public class ProfileTable extends JTable implements TableTextConverter {
         }
     }
 
-    public void resetTableColumnModel() {
-        
-    }
+
     /**
      * Returns the ColumnProfileResult object that is associated with the
      * given row number.
