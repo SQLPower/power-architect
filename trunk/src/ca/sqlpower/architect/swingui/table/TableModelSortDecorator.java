@@ -266,7 +266,7 @@ public class TableModelSortDecorator extends AbstractTableModel {
             for (int i = 0; i < n; i++) {
                 modelToView[modelIndex(i)] = i;
             }
-        }
+        }        
         return modelToView;
     }
 

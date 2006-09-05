@@ -209,8 +209,8 @@ public class ProfilePanelAction extends AbstractAction {
                                         "  ("+toBeProfiled.size()+")");
                             }
                         }
-                        profileManager.createProfiles(toBeProfiled, workingOn);
 
+                        profileManager.createProfiles(toBeProfiled, workingOn);
                         progressBar.setVisible(false);
 
                         JLabel status = new JLabel("Generating reports, Please wait......");
@@ -272,7 +272,6 @@ public class ProfilePanelAction extends AbstractAction {
                                Set<SQLTable> uniqueTables = new HashSet();
                                for (int i: viewTable.getSelectedRows()) {
                                    Object o = viewTable.getValueAt(i,3);
-                                   System.out.println(o.getClass());
                                    SQLTable table = (SQLTable) o ;
                                    uniqueTables.add(table);
                                }
@@ -322,6 +321,7 @@ public class ProfilePanelAction extends AbstractAction {
                             }
 
                         });
+                        
                         JButton[] buttonArray = {refresh,delete,deleteAll,save,closeButton};
                         buttonBuilder.addGriddedButtons(buttonArray);
                         tableViewPane.add(buttonBuilder.getPanel(),BorderLayout.SOUTH);

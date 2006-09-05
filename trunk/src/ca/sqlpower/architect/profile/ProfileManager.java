@@ -237,7 +237,7 @@ public class ProfileManager implements Monitorable {
                 long profileStartTime = System.currentTimeMillis();
 
                 if ( pfd == null ) {
-                    System.out.println(col.getName()+ " Unknown DataType:(" +
+                    logger.debug(col.getName()+ " Unknown DataType:(" +
                             col.getSourceDataTypeName() + ").");
                     pfd = discoverProfileFunctionDescriptor(col,ddlg,conn);
                 }
