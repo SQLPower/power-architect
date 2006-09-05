@@ -251,6 +251,8 @@ public class TableModelSortDecorator extends AbstractTableModel {
     }
 
     public int modelIndex(int viewIndex) {
+/*        System.out.println("****getViewToModel()[viewIndex].modelIndex**"+
+                getViewToModel()[viewIndex].modelIndex);*/
         return getViewToModel()[viewIndex].modelIndex;
     }
 

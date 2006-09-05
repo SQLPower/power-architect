@@ -76,7 +76,7 @@ public class TableModelSearchDecorator extends AbstractTableModel {
         fireTableDataChanged();
 
         List<Integer> newRowMap = new ArrayList<Integer>();        
-        CharSequence searchSubSequence = searchText == null ? null : searchText.subSequence(0,searchText.length());
+        CharSequence searchSubSequence = searchText == null ? null : searchText.toLowerCase().subSequence(0,searchText.length());
         for ( int row = 0; row < tableModel.getRowCount(); row++ ) {
             boolean match = false;
             if ( searchSubSequence == null ) {
