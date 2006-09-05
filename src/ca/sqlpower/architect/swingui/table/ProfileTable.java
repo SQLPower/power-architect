@@ -53,6 +53,9 @@ public class ProfileTable extends JTable implements TableTextConverter {
         }
     }
 
+    public void resetTableColumnModel() {
+        
+    }
     /**
      * Returns the ColumnProfileResult object that is associated with the
      * given row number.
@@ -107,7 +110,7 @@ public class ProfileTable extends JTable implements TableTextConverter {
 
     public String getTextForCell(int row, int col) {
         // note: this will only work because we know all the renderers are jlabels
-        JLabel renderer = (JLabel) getCellRenderer(row, col).getTableCellRendererComponent(this, getModel().getValueAt(row, col), false, false, row, col);
+        JLabel renderer = (JLabel) getCellRenderer(row, col).getTableCellRendererComponent(this, getModel().getValueAt(row, getColumnModel().getColumn(col).getModelIndex()), false, false, row, col);
         return renderer.getText();
     }
 }

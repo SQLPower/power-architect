@@ -292,27 +292,5 @@ public class ProfileTableModel extends AbstractTableModel {
     public List<ColumnProfileResult> getResultList() {
         return resultList;
     }
-/*    public interface ResultListChangeListener extends EventListener {
-        public void resultListChange(ProfileResultChangeEvent e);
-    }
-    
-//  ==================================
-    // ProfileManagerListeners
-    //==================================
-    List<ResultListChangeListener> listeners = new ArrayList<ResultListChangeListener>();
-    
-    public void addResultListChangeListener(ResultListChangeListener listener){
-        listeners.add(listener);
-    }
-    
-    public void removeResultListChangeListener(ResultListChangeListener listener){
-        listeners.remove(listener);
-    }
-    
-    private void fireResultListChangeEvent(ProfileResultChangeEvent event){
-        for (ResultListChangeListener listener: listeners){
-            listener.resultListChange(event);
-        }
-    }*/
     
 }

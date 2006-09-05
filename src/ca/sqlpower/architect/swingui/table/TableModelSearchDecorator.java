@@ -74,20 +74,23 @@ public class TableModelSearchDecorator extends AbstractTableModel {
 
         rowMapping = null;
         fireTableDataChanged();
-        
-        List<Integer> newRowMap = new ArrayList<Integer>();
-        
-        CharSequence searchSubSequence = searchText.toLowerCase().subSequence(0,searchText.length());
+
+        List<Integer> newRowMap = new ArrayList<Integer>();        
+        CharSequence searchSubSequence = searchText == null ? null : searchText.subSequence(0,searchText.length());
         for ( int row = 0; row < tableModel.getRowCount(); row++ ) {
             boolean match = false;
-            for ( int column = 0; column < tableModel.getColumnCount(); column++ ) {
-                String value = tableTextConverter.getTextForCell(row, column);
-                if (value.toLowerCase().contains(searchSubSequence)) {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Match: "+value.toLowerCase()+" contains "+searchSubSequence);
+            if ( searchSubSequence == null ) {
+                match = true;
+            } else {
+                for ( int column = 0; column < tableModel.getColumnCount(); column++ ) {
+                    String value = tableTextConverter.getTextForCell(row, column);
+                    if (value.toLowerCase().contains(searchSubSequence)) {
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Match: "+value.toLowerCase()+" contains "+searchSubSequence);
+                        }
+                        match = true;
+                        break;
                     }
-                    match = true;
-                    break;
                 }
             }
             if ( match )
