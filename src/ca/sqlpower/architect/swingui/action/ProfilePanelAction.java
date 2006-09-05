@@ -64,7 +64,6 @@ public class ProfilePanelAction extends AbstractAction {
     protected DBTree dbTree;
     protected ProfileManager profileManager;
 
-
     public ProfilePanelAction() {
         super("Profile...", ASUtils.createJLFIcon( "general/Information",
                         "Information",
@@ -221,7 +220,7 @@ public class ProfilePanelAction extends AbstractAction {
                         JTabbedPane tabPane = new JTabbedPane();
 
                         ProfileTableModel tm = new ProfileTableModel();
-                        
+
                         for (SQLObject sqo: filter){
                             tm.addFilter(sqo);
                         }
