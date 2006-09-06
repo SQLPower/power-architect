@@ -46,7 +46,7 @@ public class ProfileTableModel extends AbstractTableModel {
     private ProfileManager profileManager;
 
     private List<ColumnProfileResult> resultList;
-
+    
     private List<SQLObject> filters;
 
 

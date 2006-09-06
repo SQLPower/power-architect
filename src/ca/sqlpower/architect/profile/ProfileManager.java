@@ -354,7 +354,7 @@ public class ProfileManager implements Monitorable {
     }
 
     public void remove(SQLObject sqo) throws ArchitectException{
-        ProfileResult old = results.remove(sqo);
+        results.remove(sqo);
         
         if ( sqo instanceof SQLTable ) {
             for ( SQLColumn col: ((SQLTable)sqo).getColumns()) {

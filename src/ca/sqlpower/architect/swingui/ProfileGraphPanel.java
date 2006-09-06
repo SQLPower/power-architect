@@ -168,7 +168,6 @@ public class ProfileGraphPanel {
             chartPanel.setChart(ChartFactory.createPieChart("", new DefaultPieDataset(), false, false, false));
         } else {
             chartPanel.setChart(createTopNChart(c));
-        }
             nullCountLabel.setText(Integer.toString(cr.getNullCount()));
             int nullsInRecords = cr.getNullCount();
             double ratio = rowCount > 0 ? nullsInRecords * 100D / rowCount : 0;
@@ -198,6 +197,7 @@ public class ProfileGraphPanel {
             freqValueTable.setModel(sortModel);
             sortModel.setTableHeader(freqValueTable.getTableHeader());
             freqValueTable.initColumnSizes();
+        }
     }
 
     private JFreeChart createTopNChart(SQLColumn sqo){
