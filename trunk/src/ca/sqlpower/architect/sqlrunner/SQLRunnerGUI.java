@@ -50,6 +50,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 
+import com.darwinsys.io.TextAreaWriter;
+
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.swingui.ASUtils;
@@ -59,11 +61,11 @@ import ca.sqlpower.architect.swingui.ArchitectFrame;
  * A simple GUI to run one set of commands.
  */
 public class SQLRunnerGUI  {
-    
+
     private static final int DISPLAY_COLUMNS = 70;
-    
+
     final Preferences p = Preferences.userNodeForPackage(SQLRunnerGUI.class);
-    
+
     @SuppressWarnings("serial")
     final JComponent bar = new JComponent() {
         public void paint(Graphics g) {
@@ -71,30 +73,30 @@ public class SQLRunnerGUI  {
             g.fillRect(0, 0, getWidth(), getHeight());
         }
     };
-    
+
     final JFrame mainWindow;
-    
+
     final JTextArea inputTextArea, outputTextArea;
-    
+
     final JButton runButton;
-    
+
     final PrintWriter out;
-    
+
     /**
      * Constructor
      */
     public SQLRunnerGUI() {
         mainWindow = new JFrame("Power*Architect: SQLRunner");
-        
+
         final Container controlsArea = new JPanel();
         mainWindow.add(controlsArea, BorderLayout.NORTH);
-        
+
         List<ArchitectDataSource> connections =
             ArchitectFrame.getMainInstance().getUserSettings().getConnections();
         final JComboBox connectionsList = new JComboBox(connections.toArray(new ArchitectDataSource[connections.size()]));
         controlsArea.add(new JLabel("Connection"));
         controlsArea.add(connectionsList);
-        
+
         final JComboBox inTemplateChoice = new JComboBox();
         // XXX Of course these should come from Properties and be editable...
         inTemplateChoice.addItem("Input Template:");
@@ -102,24 +104,24 @@ public class SQLRunnerGUI  {
         inTemplateChoice.addItem("INSERT into TABLE(col,col) VALUES(val,val)");
         inTemplateChoice.addItem("UPDATE TABLE set x = y where x = y");
         controlsArea.add(inTemplateChoice);
-        
+
         final JButton inTemplateButton = new JButton("Apply Template");
         controlsArea.add(inTemplateButton);
-        
+
         final JComboBox modeList = new JComboBox();
         for (OutputMode mode : OutputMode.values()) {
             modeList.addItem(mode);
         }
         controlsArea.add(new JLabel("Output Format:"));
         controlsArea.add(modeList);
-        
+
         runButton = new JButton("Run");
         controlsArea.add(runButton);
         runButton.addActionListener(new ActionListener() {
-            
+
             /** Called each time the user presses the Run button */
             public void actionPerformed(ActionEvent evt) {
-                
+
                 // Run this under a its own Thread, so we don't block the EventDispatch thread...
                 new Thread() {
                     Connection conn;
@@ -151,21 +153,21 @@ public class SQLRunnerGUI  {
                             runButton.setEnabled(true);
                         }
                     }
-                    
+
                 }.start();
             }
         });
-        
+
         inputTextArea = new JTextArea(6, DISPLAY_COLUMNS);
         JScrollPane inputAreaScrollPane = new JScrollPane(inputTextArea);
         inputAreaScrollPane.setBorder(BorderFactory.createTitledBorder("SQL Command"));
-        
+
         setNeutral();
-        
+
         outputTextArea = new JTextArea(20, DISPLAY_COLUMNS);
         JScrollPane outputAreaScrollPane = new JScrollPane(outputTextArea);
         outputAreaScrollPane.setBorder(BorderFactory.createTitledBorder("SQL Results"));
-        
+
         inTemplateButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (inTemplateChoice.getSelectedIndex() == 0) {
@@ -174,7 +176,7 @@ public class SQLRunnerGUI  {
                 inputTextArea.setText((String)inTemplateChoice.getSelectedItem());
             }
         });
-        
+
         JButton clearOutput = new JButton("Clear Output");
         clearOutput.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -183,22 +185,22 @@ public class SQLRunnerGUI  {
             }
         });
         controlsArea.add(clearOutput);
-        
+
         mainWindow.add(new JSplitPane(JSplitPane.VERTICAL_SPLIT,
                 inputAreaScrollPane,
                 outputAreaScrollPane), BorderLayout.CENTER);
-        
+
         mainWindow.add(bar, BorderLayout.SOUTH);
-        
+
         out = new PrintWriter(new TextAreaWriter(outputTextArea));
-        
+
         bar.setPreferredSize(new Dimension(400, 20));
-        
+
         mainWindow.pack();
         ASUtils.centre(mainWindow);
         mainWindow.setVisible(true);
     }
-    
+
     /**
      * Set the bar to green
      */
@@ -206,7 +208,7 @@ public class SQLRunnerGUI  {
         bar.setBackground(Color.GREEN);
         bar.repaint();
     }
-    
+
     /**
      * Set the bar to red, used when a test fails or errors.
      */
@@ -214,7 +216,7 @@ public class SQLRunnerGUI  {
         bar.setBackground(Color.RED);
         bar.repaint();
     }
-    
+
     /**
      * Set the bar to neutral
      */
@@ -222,7 +224,7 @@ public class SQLRunnerGUI  {
         bar.setBackground(mainWindow.getBackground());
         bar.repaint();
     }
-    
+
     /**
      * The obvious error handling.
      * @param mesg
