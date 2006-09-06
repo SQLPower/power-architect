@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.ProgressMonitor;
 import javax.swing.ToolTipManager;
@@ -74,6 +75,8 @@ public class SwingUIProject {
     private PLExport plExport;
     private CompareDMSettings compareDMSettings;
     private ProfileManager profileManager;
+    final JDialog profileDialog = new JDialog(ArchitectFrame.getMainInstance(), "Table Profiles");
+    final ArrayList<SQLObject> filter = new ArrayList<SQLObject>();
     
     // ------------------ load and save support -------------------
     
@@ -1479,6 +1482,12 @@ public class SwingUIProject {
     
     public ProfileManager getProfileManager() {
         return profileManager;
+    }
+    public JDialog getProfileDialog() {
+        return profileDialog;
+    }
+    public ArrayList<SQLObject> getFilter() {
+        return filter;
     }
     
 }

@@ -821,6 +821,7 @@ public class ArchitectFrame extends JFrame {
 		searchReplaceAction.setDBTree(dbTree);
 		profileAction.setDBTree(dbTree);
 		profileAction.setProfileManager(project.getProfileManager());
+		profileAction.setDialog(project.getProfileDialog());
         viewProfileAction.setProfileManager(project.getProfileManager());
 
 		prefAction.setArchitectFrame(this);
