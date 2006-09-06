@@ -96,8 +96,6 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 		dbcsPropertiesAction = new DBCSPropertiesAction();
 		removeDBCSAction = new RemoveDBCSAction();
 		showInPlayPenAction = new ShowInPlayPenAction();
-        profileSelectionAction = new ProfilePanelAction();
-        profileSelectionAction.setDBTree(this);
 		addMouseListener(new PopupListener());
 		setCellRenderer(new SQLObjectRenderer());
 	}
@@ -105,7 +103,10 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 	public DBTree(List initialDatabases, ProfileManager profileManager) throws ArchitectException {
 		this();
 		setDatabaseList(initialDatabases);
+		profileSelectionAction = new ProfilePanelAction();
+		profileSelectionAction.setDBTree(this);
 		profileSelectionAction.setProfileManager(profileManager);
+/*        profileSelectionAction.setDialog(ArchitectFrame.getMainInstance().getProject().getProfileDialog());*/
 	}
 
 
@@ -316,6 +317,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 
         if ( getSelectionPaths() != null ) {
             newMenu.add(new JMenuItem(profileSelectionAction));
+            profileSelectionAction.setDialog(ArchitectFrame.getMainInstance().getProject().getProfileDialog());
         }
 
 		// populate

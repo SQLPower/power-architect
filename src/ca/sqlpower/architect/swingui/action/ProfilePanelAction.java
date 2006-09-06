@@ -64,6 +64,7 @@ public class ProfilePanelAction extends AbstractAction {
 
     protected DBTree dbTree;
     protected ProfileManager profileManager;
+    private JDialog dialog;
 
     public ProfilePanelAction() {
         super("Profile...", ASUtils.createJLFIcon( "general/Information",
@@ -165,9 +166,14 @@ public class ProfilePanelAction extends AbstractAction {
 
             profileManager.setCancelled(false);
 
-            final JDialog d = new JDialog(ArchitectFrame.getMainInstance(), "Table Profiles");
-
-            final CommonCloseAction commonCloseAction = new CommonCloseAction(d);
+           final JDialog d = new JDialog(ArchitectFrame.getMainInstance(), "Table Profiles");
+           if ( !dialog.isVisible()) {
+               ArchitectFrame.getMainInstance().getProject().getFilter().clear();
+           }
+           ArchitectFrame.getMainInstance().getProject().getFilter().addAll(filter);
+           
+System.out.println("dialog is visible?"+dialog.isVisible());           
+            final CommonCloseAction commonCloseAction = new CommonCloseAction(dialog);
             Action closeAction = new AbstractAction() {
                 public void actionPerformed(ActionEvent evt) {
                     profileManager.setCancelled(true);
@@ -188,12 +194,12 @@ public class ProfilePanelAction extends AbstractAction {
             progressViewPanel.add(workingOn, BorderLayout.NORTH);
 
             ArchitectPanelBuilder.makeJDialogCancellable(
-                    d, commonCloseAction);
-            d.getRootPane().setDefaultButton(closeButton);
-            d.setContentPane(progressViewPanel);
-            d.pack();
-            d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
-            d.setVisible(true);
+                    dialog, commonCloseAction);
+            dialog.getRootPane().setDefaultButton(closeButton);
+            dialog.setContentPane(progressViewPanel);
+            dialog.pack();
+            dialog.setLocationRelativeTo(ArchitectFrame.getMainInstance());
+            dialog.setVisible(true);
 
             new ProgressWatcher(progressBar,profileManager,workingOn);
 
@@ -222,9 +228,10 @@ public class ProfilePanelAction extends AbstractAction {
 
                         ProfileTableModel tm = new ProfileTableModel();
 
-                        for (SQLObject sqo: filter){
+                        for (SQLObject sqo: ArchitectFrame.getMainInstance().getProject().getFilter()){
                             tm.addFilter(sqo);
                         }
+                        
                         tm.setProfileManager(profileManager);
 
                         TableModelSearchDecorator searchDecorator = 
@@ -265,7 +272,7 @@ public class ProfilePanelAction extends AbstractAction {
                         tableViewPane.add(searchPanel,BorderLayout.NORTH);
                         
                         ButtonBarBuilder buttonBuilder = new ButtonBarBuilder();
-                        JButton save = new JButton(new SaveProfileAction(d,viewTable,profileManager));
+                        JButton save = new JButton(new SaveProfileAction(dialog,viewTable,profileManager));
 
                         JButton refresh = new JButton(new AbstractAction("Refresh"){
 
@@ -311,7 +318,7 @@ public class ProfilePanelAction extends AbstractAction {
                                     try {
                                         profileManager.remove(col);
                                     } catch (ArchitectException e1) {
-                                        ASUtils.showExceptionDialog(d,"Could delete row of:" + col.getName(), e1);
+                                        ASUtils.showExceptionDialog(dialog,"Could delete row of:" + col.getName(), e1);
                                     }
                                 }
                             }
@@ -327,7 +334,7 @@ public class ProfilePanelAction extends AbstractAction {
                                     try {
                                         profileManager.remove(col);
                                     } catch (ArchitectException e1) {
-                                        ASUtils.showExceptionDialog(d,"Could delete row of:" + col.getName(), e1);
+                                        ASUtils.showExceptionDialog(dialog,"Could delete row of:" + col.getName(), e1);
                                     }
                                 }
                             }
@@ -357,12 +364,12 @@ public class ProfilePanelAction extends AbstractAction {
                         }
                         
                         
-                        d.setVisible(false);
-                        d.remove(progressViewPanel);
-                        d.setContentPane(tabPane);
-                        d.pack();
-                        d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
-                        d.setVisible(true);
+                        dialog.setVisible(false);
+                        dialog.remove(progressViewPanel);
+                        dialog.setContentPane(tabPane);
+                        dialog.pack();
+                        dialog.setLocationRelativeTo(ArchitectFrame.getMainInstance());
+                        dialog.setVisible(true);
 
 
                     } catch (SQLException e) {
@@ -418,8 +425,6 @@ public class ProfilePanelAction extends AbstractAction {
         }
 
         public void mouseClicked(MouseEvent evt) {
-            // TODO Auto-generated method stub
-
             Object obj = evt.getSource();
             if (evt.getClickCount() == 2) {
                 if ( obj instanceof JTable ) {
@@ -435,23 +440,19 @@ public class ProfilePanelAction extends AbstractAction {
         }
 
         public void mousePressed(MouseEvent e) {
-            // TODO Auto-generated method stub
-
+            // don't care
         }
 
         public void mouseReleased(MouseEvent e) {
-            // TODO Auto-generated method stub
-
+            // don't care
         }
 
         public void mouseEntered(MouseEvent e) {
-            // TODO Auto-generated method stub
-
+            // don't care
         }
 
         public void mouseExited(MouseEvent e) {
-            // TODO Auto-generated method stub
-
+            // don't care
         }
 
         public JTabbedPane getTabPane() {
@@ -464,6 +465,15 @@ public class ProfilePanelAction extends AbstractAction {
 
 
 
+    }
+
+
+    public JDialog getDialog() {
+        return dialog;
+    }
+
+    public void setDialog(JDialog dialog) {
+        this.dialog = dialog;
     }
 
 
