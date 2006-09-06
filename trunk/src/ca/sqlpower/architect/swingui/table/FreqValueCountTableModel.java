@@ -8,7 +8,10 @@ import ca.sqlpower.architect.profile.ColumnProfileResult;
 
 public class FreqValueCountTableModel extends AbstractTableModel {
 
-    private ColumnProfileResult profile;
+    private ColumnProfileResult profile;    
+    
+    private static final String COUNT="COUNT";
+    private static final String VALUE="VALUE";
     
     public FreqValueCountTableModel(ColumnProfileResult profile) {
         super();
@@ -20,9 +23,9 @@ public class FreqValueCountTableModel extends AbstractTableModel {
     @Override
     public String getColumnName(int column) {
         if ( column == 0 ) {
-            return "Count";
+            return COUNT;
         } else if ( column == 1 ) {
-            return "Value";
+            return VALUE;
         } else {
             throw new IllegalStateException("Unknown Column Index:"+column);
         }

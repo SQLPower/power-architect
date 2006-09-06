@@ -39,6 +39,7 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLTable.Folder;
+import ca.sqlpower.architect.profile.ProfileColumn;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
@@ -271,7 +272,9 @@ public class ProfilePanelAction extends AbstractAction {
                             public void actionPerformed(ActionEvent e) {
                                Set<SQLTable> uniqueTables = new HashSet();
                                for (int i: viewTable.getSelectedRows()) {
-                                   Object o = viewTable.getValueAt(i,3);
+                                   Object o = viewTable.getValueAt(i,
+                                           viewTable.convertColumnIndexToView(
+                                                   ProfileColumn.valueOf("TABLE").ordinal()));
                                    SQLTable table = (SQLTable) o ;
                                    uniqueTables.add(table);
                                }
@@ -296,8 +299,15 @@ public class ProfilePanelAction extends AbstractAction {
 
                                 // iterate backwards so the rows don't shift away on us!
                                 for (int i = killMe.length-1; i >= 0; i--) {
-                                    logger.debug("Deleting row "+killMe[i]+": "+viewTable.getValueAt(killMe[i],4));
-                                    SQLColumn col = (SQLColumn) viewTable.getValueAt(killMe[i], 4);
+                                    logger.debug("Deleting row "+
+                                            killMe[i]+
+                                            ": "+
+                                            viewTable.getValueAt(killMe[i],
+                                                    viewTable.convertColumnIndexToView(
+                                                            ProfileColumn.valueOf("COLUMN").ordinal())));
+                                    SQLColumn col = (SQLColumn) viewTable.getValueAt(killMe[i], 
+                                            viewTable.convertColumnIndexToView(
+                                                    ProfileColumn.valueOf("COLUMN").ordinal()));
                                     try {
                                         profileManager.remove(col);
                                     } catch (ArchitectException e1) {
@@ -311,7 +321,9 @@ public class ProfilePanelAction extends AbstractAction {
 
                             public void actionPerformed(ActionEvent e) {
                                 while ( viewTable.getRowCount() > 0 ) {
-                                    SQLColumn col = (SQLColumn) viewTable.getValueAt(0, 4);
+                                    SQLColumn col = (SQLColumn) viewTable.getValueAt(0, 
+                                            viewTable.convertColumnIndexToView(
+                                                    ProfileColumn.valueOf("COLUMN").ordinal()));
                                     try {
                                         profileManager.remove(col);
                                     } catch (ArchitectException e1) {
@@ -327,13 +339,24 @@ public class ProfilePanelAction extends AbstractAction {
                         tableViewPane.add(buttonBuilder.getPanel(),BorderLayout.SOUTH);
                         tabPane.addTab("Table View", tableViewPane );
                         ProfilePanel p = new ProfilePanel(profileManager);
+                        p.setViewTable(viewTable);
+                        p.setTabPane(tabPane);
+                        p.setTableModel(tm);
                         tabPane.addTab("Graph View",p);
 
                         profilePanelMouseListener.setProfilePanel(p);
-                        List<SQLTable> list = new ArrayList(tables);
-                        p.setTables(list);
                         p.setChartType(ChartTypes.PIE);
 
+                        
+                        if ( viewTable.getRowCount() > 0 ) {
+                            SQLColumn col = (SQLColumn)viewTable.getValueAt(0,
+                                    viewTable.convertColumnIndexToView(
+                                            ProfileColumn.valueOf("COLUMN").ordinal()));
+                            p.getTableSelector().setSelectedItem(col.getParentTable());
+                            p.getColumnSelector().setSelectedValue(col,true);
+                        }
+                        
+                        
                         d.setVisible(false);
                         d.remove(progressViewPanel);
                         d.setContentPane(tabPane);
@@ -401,12 +424,9 @@ public class ProfilePanelAction extends AbstractAction {
             if (evt.getClickCount() == 2) {
                 if ( obj instanceof JTable ) {
                     JTable t = (JTable)obj;
-                    SQLColumn col = (SQLColumn)t.getValueAt(t.getSelectedRow(),4);
-                    Set<SQLTable> tables = new HashSet<SQLTable>();
-                    for (int i =0; i < t.getRowCount(); i++){
-                        tables.add((SQLTable)t.getValueAt(i,3));
-                    }
-                    profilePanel.setTables(new ArrayList(tables));
+                    SQLColumn col = (SQLColumn)t.getValueAt(t.getSelectedRow(),
+                                        t.convertColumnIndexToView(
+                                                ProfileColumn.valueOf("COLUMN").ordinal()));
                     profilePanel.getTableSelector().setSelectedItem(col.getParentTable());
                     profilePanel.getColumnSelector().setSelectedValue(col,true);
                     tabPane.setSelectedIndex(1);
