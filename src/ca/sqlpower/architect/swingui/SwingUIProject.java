@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -690,7 +691,21 @@ public class SwingUIProject {
                 return new TableProfileResult(t);
             } else if (className.equals(ColumnProfileResult.class.getName())) {
                 SQLColumn c = (SQLColumn) objectIdMap.get(refid);
-                return new ColumnProfileResult(c);
+                String avgValueClass = attributes.getValue("avgValueClass");
+                String minValueClass = attributes.getValue("minValueClass");
+                String maxValueClass = attributes.getValue("maxValueClass");
+                String avgValuex = attributes.getValue("avgValuex");
+                
+                ColumnProfileResult columnProfileResult = new ColumnProfileResult(c);
+                if (avgValuex != null && 
+                        avgValueClass != null &&
+                        avgValueClass.equals(BigDecimal.class.getName()) ) {
+                    columnProfileResult.setAvgValue(BigDecimal.valueOf(Double.valueOf(avgValuex)));
+                } 
+                
+                
+                
+                return columnProfileResult;
             } else {
                 throw new ArchitectException("Profile result type \""+className+"\" not recognised");
             }
@@ -1024,10 +1039,18 @@ public class SwingUIProject {
             } else if (profileResult instanceof ColumnProfileResult) {
                 ColumnProfileResult cpr = (ColumnProfileResult) profileResult;
                 niprint(out, " avgLength=\"" + cpr.getAvgLength() + "\"");
-                niprint(out, " avgValue=\"" + cpr.getAvgValue() + "\"");
+                
+                niprint(out, " avgValuex=\"" + ArchitectUtils.escapeXML(String.valueOf(cpr.getAvgValue())) + "\"");
+                if ( cpr.getAvgValue() != null )
+                    niprint(out, " avgValueClass=\"" + cpr.getAvgValue().getClass().getName() + "\"");
                 niprint(out, " distinctValueCount=\"" + cpr.getDistinctValueCount() + "\"");
-                niprint(out, " maxValue=\"" + ArchitectUtils.escapeXML(String.valueOf(cpr.getMaxValue())) + "\"");
-                niprint(out, " minValue=\"" + ArchitectUtils.escapeXML(String.valueOf(cpr.getMinValue())) + "\"");
+                niprint(out, " maxValuex=\"" + ArchitectUtils.escapeXML(String.valueOf(cpr.getMaxValue())) + "\"");
+                if ( cpr.getMaxValue() != null )
+                    niprint(out, " maxValueClass=\"" + cpr.getMaxValue().getClass().getName() + "\"");
+                niprint(out, " minValuex=\"" + ArchitectUtils.escapeXML(String.valueOf(cpr.getMinValue())) + "\"");
+                if ( cpr.getMinValue() != null )
+                    niprint(out, " minValueClass=\"" + cpr.getMinValue().getClass().getName() + "\"");
+                
                 niprint(out, " minLength=\"" + cpr.getMinLength() + "\"");
                 niprint(out, " maxLength=\"" + cpr.getMaxLength() + "\"");
                 niprint(out, " nullCount=\"" + cpr.getNullCount() + "\"");
