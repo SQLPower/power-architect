@@ -5,9 +5,13 @@ import java.text.DecimalFormat;
 import java.text.FieldPosition;
 import java.text.Format;
 import java.text.ParsePosition;
+import java.util.List;
 
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
+
+import ca.sqlpower.architect.profile.ColumnProfileResult;
+import ca.sqlpower.architect.profile.ColumnProfileResult.ColumnValueCount;
 
 public class ValueTableCellRenderer extends DefaultTableCellRenderer {
 
@@ -28,6 +32,33 @@ public class ValueTableCellRenderer extends DefaultTableCellRenderer {
             formattedValue = "";
         } else if (value instanceof Number) {
             formattedValue = aldf.format(value);
+        } else if ( value instanceof List ) {
+            if ( ((List) value).size() > 0 )
+                formattedValue = String.valueOf(
+                        ((ColumnProfileResult.ColumnValueCount)((List) value).get(0)).getValue());
+            else
+                formattedValue = "";
+            
+            
+            StringBuffer toolTip = new StringBuffer();
+            toolTip.append("<html><table>");
+            for ( ColumnValueCount v : (List<ColumnValueCount>)value ) {
+                toolTip.append("<tr>");
+                toolTip.append("<td align=\"left\">");
+                if ( v.getValue() == null ) {
+                    toolTip.append("null");
+                } else {
+                    toolTip.append(v.getValue().toString());
+                }
+                toolTip.append("</td>");
+                toolTip.append("<td>&nbsp;&nbsp;&nbsp;</td>");
+                toolTip.append("<td align=\"right\"><b>[");
+                toolTip.append(v.getCount());
+                toolTip.append("]</td>");
+                toolTip.append("</tr>");
+            }
+            toolTip.append("</table></html>");
+            setToolTipText(toolTip.toString());
         } else {
             formattedValue = value.toString();
         }

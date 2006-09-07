@@ -149,12 +149,7 @@ public class ProfileTableModel extends AbstractTableModel {
         case  AVERAGE_VALUE:
             return columnProfile.getAvgValue();
         case  TOP_VALUE:
-            // XXX just return the whole list and use a special renderer to dig out the first item
-            List<ColumnValueCount> valueCount = columnProfile.getValueCount();
-            if ( valueCount != null && valueCount.size() > 0 )
-                return valueCount.get(0).getValue();
-            else
-                return null;
+            return columnProfile.getValueCount();
         default:
             throw new IllegalArgumentException(
                     String.format("ProfileColumn enum value %s not handled", column));
