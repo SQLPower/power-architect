@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -58,13 +59,13 @@ import ca.sqlpower.architect.undo.UndoManager;
  * and reading in a previously-written stream to re-create a previous instance of
  * a project at a later date.  Such "project files" are meant to be highly portable,
  * and should remain backward compatible now that the product has been released.
- * 
+ *
  * <p>Anyone who makes a change to the file reading code which causes a failure to
  * read older (release 1.0.19 or later) project files will get Airzooka'ed.
  */
 public class SwingUIProject {
     private static final Logger logger = Logger.getLogger(SwingUIProject.class);
-    
+
     //  ---------------- persistent properties -------------------
     private String name;
     private DBTree sourceDatabases;
@@ -78,19 +79,19 @@ public class SwingUIProject {
     private ProfileManager profileManager;
     final JDialog profileDialog = new JDialog(ArchitectFrame.getMainInstance(), "Table Profiles");
     final ArrayList<SQLObject> filter = new ArrayList<SQLObject>();
-    
+
     // ------------------ load and save support -------------------
-    
+
     /**
      * Tracks whether or not this project has been modified since last saved.
      */
     private boolean modified;
-    
+
     /**
      * Don't let application exit while saving.
      */
     private boolean saveInProgress;
-    
+
     /**
      * @return Returns the saveInProgress.
      */
@@ -108,46 +109,46 @@ public class SwingUIProject {
      * project, at which time it's writing to the project file.
      */
     private PrintWriter out;
-    
+
     /**
      * Used for saving only: this is the current indentation amount in
      * the XML output file.
      */
     private int indent = 0;
-    
+
     /**
      * During a LOAD, this map maps String ID codes to SQLObject instances.
      * During a SAVE, it holds mappings from SQLObject instance to String
      * ID (the inverse of the LOAD mapping).
      */
     private Map objectIdMap;
-    
+
     /**
      * During a LOAD, this map maps String ID codes to DBCS instances.
      * During a SAVE, it holds mappings from DBCS instance to String
      * ID (the inverse of the LOAD mapping).
      */
     private Map dbcsIdMap;
-    
+
     /**
      * Shows progress during saves and loads.
      */
     private ProgressMonitor pm;
-    
+
     /**
      * The last value we sent to the progress monitor.
      */
     private int progress = 0;
-    
+
     /**
      * Sets up a new project with the given name.
      * @throws
      */
     public SwingUIProject(String name) throws ArchitectException {
         this.name = name;
-        
+
         SQLDatabase ppdb = new SQLDatabase();
-        
+
         PlayPen pp = new PlayPen(ppdb);
         ToolTipManager.sharedInstance().registerComponent(pp);
         setPlayPen(pp);
@@ -164,14 +165,14 @@ public class SwingUIProject {
         compareDMSettings = new CompareDMSettings();
         undoManager = new UndoManager(pp);
     }
-    
+
     // ------------- READING THE PROJECT FILE ---------------
-    
+
     // FIXME: this should static and return a new instance of SwingUIProject
     public void load(InputStream in) throws IOException, ArchitectException {
         dbcsIdMap = new HashMap();
         objectIdMap = new HashMap();
-        
+
         // use digester to read from file
         try {
             setupDigester().parse(in);
@@ -185,23 +186,23 @@ public class SwingUIProject {
             logger.error("General Exception in config file parse!", ex);
             throw new ArchitectException("Unexpected Exception", ex);
         }
-        
+
         ((SQLObject) sourceDatabases.getModel().getRoot()).addChild(0, playPen.getDatabase());
         setModified(false);
         // TODO change this to load the undo history from a file
         undoManager.discardAllEdits();
     }
-    
-    
-    
+
+
+
     private Digester setupDigester() {
         Digester d = new Digester();
         d.setValidating(false);
         d.push(this);
-        
+
         // project name
         d.addCallMethod("architect-project/project-name", "setName", 0); // argument is element body text
-        
+
         // source DB connection specs (deprecated in favour of project-data-sources)
         DBCSFactory dbcsFactory = new DBCSFactory();
         d.addFactoryCreate("architect-project/project-connection-specs/dbcs", dbcsFactory);
@@ -213,119 +214,127 @@ public class SwingUIProject {
                 "pass", "seqNo", "singleLogin"});
         d.addCallMethod("architect-project/project-connection-specs/dbcs", "setName", 0);
         // these instances get picked out of the dbcsIdMap by the SQLDatabase factory
-        
+
         // project data sources (replaces project connection specs)
         d.addFactoryCreate("architect-project/project-data-sources/data-source", dbcsFactory);
         d.addCallMethod("architect-project/project-data-sources/data-source/property", "put", 2);
         d.addCallParam("architect-project/project-data-sources/data-source/property", 0, "key");
         d.addCallParam("architect-project/project-data-sources/data-source/property", 1, "value");
         //d.addSetNext("architect-project/project-data-sources/data-source", );
-        
+
         // source database hierarchy
         d.addObjectCreate("architect-project/source-databases", LinkedList.class);
         d.addSetNext("architect-project/source-databases", "setSourceDatabaseList");
-        
+
         SQLDatabaseFactory dbFactory = new SQLDatabaseFactory();
         d.addFactoryCreate("architect-project/source-databases/database", dbFactory);
         d.addSetProperties("architect-project/source-databases/database");
         d.addSetNext("architect-project/source-databases/database", "add");
-        
+
         d.addObjectCreate("architect-project/source-databases/database/catalog", SQLCatalog.class);
         d.addSetProperties("architect-project/source-databases/database/catalog");
         d.addSetNext("architect-project/source-databases/database/catalog", "addChild");
-        
+
         SQLSchemaFactory schemaFactory = new SQLSchemaFactory();
         d.addFactoryCreate("*/schema", schemaFactory);
         d.addSetProperties("*/schema");
         d.addSetNext("*/schema", "addChild");
-        
+
         SQLTableFactory tableFactory = new SQLTableFactory();
         d.addFactoryCreate("*/table", tableFactory);
         d.addSetProperties("*/table");
         d.addSetNext("*/table", "addChild");
-        
+
         SQLFolderFactory folderFactory = new SQLFolderFactory();
         d.addFactoryCreate("*/folder", folderFactory);
         d.addSetProperties("*/folder");
         d.addSetNext("*/folder", "addChild");
-        
+
         SQLColumnFactory columnFactory = new SQLColumnFactory();
         d.addFactoryCreate("*/column", columnFactory);
         d.addSetProperties("*/column");
         // this needs to be manually set last to prevent generic types
         // from overwriting database specific types
-        
+
         // Old name (it has been updated to sourceDataTypeName)
         d.addCallMethod("*/column","setSourceDataTypeName",1);
         d.addCallParam("*/column",0,"sourceDBTypeName");
-        
+
         // new name
         d.addCallMethod("*/column","setSourceDataTypeName",1);
         d.addCallParam("*/column",0,"sourceDataTypeName");
         d.addSetNext("*/column", "addChild");
-        
+
         SQLRelationshipFactory relationshipFactory = new SQLRelationshipFactory();
         d.addFactoryCreate("*/relationship", relationshipFactory);
         d.addSetProperties("*/relationship");
         // the factory adds the relationships to the correct PK and FK tables
-        
+
         ColumnMappingFactory columnMappingFactory = new ColumnMappingFactory();
         d.addFactoryCreate("*/column-mapping", columnMappingFactory);
         d.addSetProperties("*/column-mapping");
         d.addSetNext("*/column-mapping", "addChild");
-        
+
         SQLExceptionFactory exceptionFactory = new SQLExceptionFactory();
         d.addFactoryCreate("*/sql-exception", exceptionFactory);
         d.addSetProperties("*/sql-exception");
         d.addSetNext("*/sql-exception", "addChild");
-        
+
         TargetDBFactory targetDBFactory = new TargetDBFactory();
         // target database hierarchy
         d.addFactoryCreate("architect-project/target-database", targetDBFactory);
         d.addSetProperties("architect-project/target-database");
-        
+
         // the play pen
         TablePaneFactory tablePaneFactory = new TablePaneFactory();
         d.addFactoryCreate("architect-project/play-pen/table-pane", tablePaneFactory);
         // factory will add the tablepanes to the playpen
-        
+
         PPRelationshipFactory ppRelationshipFactory = new PPRelationshipFactory();
         d.addFactoryCreate("architect-project/play-pen/table-link", ppRelationshipFactory);
-        
+
         DDLGeneratorFactory ddlgFactory = new DDLGeneratorFactory();
         d.addFactoryCreate("architect-project/ddl-generator", ddlgFactory);
         d.addSetProperties("architect-project/ddl-generator");
-        
+
         CompareDMSettingFactory settingFactory = new CompareDMSettingFactory();
         d.addFactoryCreate("architect-project/compare-dm-settings", settingFactory);
         d.addSetProperties("architect-project/compare-dm-settings");
-        
+
         CompareDMStuffSettingFactory sourceStuffFactory = new CompareDMStuffSettingFactory(true);
         d.addFactoryCreate("architect-project/compare-dm-settings/source-stuff", sourceStuffFactory);
         d.addSetProperties("architect-project/compare-dm-settings/source-stuff");
-        
+
         CompareDMStuffSettingFactory targetStuffFactory = new CompareDMStuffSettingFactory(false);
         d.addFactoryCreate("architect-project/compare-dm-settings/target-stuff", targetStuffFactory);
         d.addSetProperties("architect-project/compare-dm-settings/target-stuff");
-        
+
         ProfileManagerFactory profileManagerFactory = new ProfileManagerFactory();
         d.addFactoryCreate("*/profiles", profileManagerFactory);
         d.addSetProperties("*/profiles");
-        
+
         ProfileResultFactory profileResultFactory = new ProfileResultFactory();
         d.addFactoryCreate("*/profiles/profile-result", profileResultFactory);
         d.addSetProperties("*/profiles/profile-result");
         d.addSetNext("*/profiles/profile-result", "putResult");
-        
+
+        ProfileResultValueFactory profileResultValueFactory = new ProfileResultValueFactory();
+        d.addFactoryCreate("*/profiles/profile-result/avgValue", profileResultValueFactory );
+        d.addSetNext("*/profiles/profile-result/avgValue", "setAvgValue");
+        d.addFactoryCreate("*/profiles/profile-result/minValue", profileResultValueFactory);
+        d.addSetNext("*/profiles/profile-result/minValue", "setMinValue");
+        d.addFactoryCreate("*/profiles/profile-result/maxValue", profileResultValueFactory);
+        d.addSetNext("*/profiles/profile-result/maxValue", "setMaxValue");
+
         FileFactory fileFactory = new FileFactory();
         d.addFactoryCreate("*/file", fileFactory);
         d.addSetNext("*/file", "setFile");
-        
+
         d.addSetNext("architect-project/ddl-generator", "setDDLGenerator");
-        
+
         return d;
     }
-    
+
     /**
      * Creates a ArchitectDataSource object and puts a mapping from its
      * id (in the attributes) to the new instance into the dbcsIdMap.
@@ -349,21 +358,21 @@ public class SwingUIProject {
      * NOTE: this will only work until we support multiple playpens.
      */
     private class TargetDBFactory extends AbstractObjectCreationFactory {
-        
+
         @Override
         public Object createObject(Attributes attributes) throws Exception {
             SQLDatabase ppdb = playPen.getDatabase();
-            
+
             String dbcsid = attributes.getValue("dbcs-ref");
             if (dbcsid != null) {
                 ppdb.setDataSource((ArchitectDataSource) dbcsIdMap.get(dbcsid));
             }
             return ppdb;
         }
-        
+
     }
-    
-    
+
+
     /**
      * Creates a SQLDatabase instance and adds it to the objectIdMap.
      * Also attaches the DBCS referenced by the dbcsref attribute, if
@@ -372,28 +381,28 @@ public class SwingUIProject {
     private class SQLDatabaseFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) {
             SQLDatabase db = new SQLDatabase();
-            
+
             String id = attributes.getValue("id");
             if (id != null) {
                 objectIdMap.put(id, db);
             } else {
                 logger.warn("No ID found in database element while loading project!");
             }
-            
+
             String dbcsid = attributes.getValue("dbcs-ref");
             if (dbcsid != null) {
                 db.setDataSource((ArchitectDataSource) dbcsIdMap.get(dbcsid));
             }
-            
+
             String populated = attributes.getValue("populated");
             if (populated != null && populated.equals("false")) {
                 db.setPopulated(false);
             }
-            
+
             return db;
         }
     }
-    
+
     /**
      * Creates a SQLSchema instance and adds it to the objectIdMap.
      */
@@ -402,7 +411,7 @@ public class SwingUIProject {
             boolean startPopulated;
             String populated = attributes.getValue("populated");
             startPopulated = (populated != null && populated.equals("true"));
-            
+
             SQLSchema schema = new SQLSchema(startPopulated);
             String id = attributes.getValue("id");
             if (id != null) {
@@ -410,25 +419,25 @@ public class SwingUIProject {
             } else {
                 logger.warn("No ID found in database element while loading project!");
             }
-            
+
             return schema;
         }
     }
-    
+
     /**
      * Creates a SQLTable instance and adds it to the objectIdMap.
      */
     private class SQLTableFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) {
             SQLTable tab = new SQLTable();
-            
+
             String id = attributes.getValue("id");
             if (id != null) {
                 objectIdMap.put(id, tab);
             } else {
                 logger.warn("No ID found in table element while loading project!");
             }
-            
+
             String populated = attributes.getValue("populated");
             if (populated != null && populated.equals("false")) {
                 try {
@@ -438,11 +447,11 @@ public class SwingUIProject {
                     JOptionPane.showMessageDialog(null, "Failed to add folder to table:\n"+e.getMessage());
                 }
             }
-            
+
             return tab;
         }
     }
-    
+
     /**
      * Creates a SQLFolder instance which is marked as populated.
      */
@@ -468,7 +477,7 @@ public class SwingUIProject {
             return new SQLTable.Folder(type, true);
         }
     }
-    
+
     /**
      * Creates a SQLColumn instance and adds it to the
      * objectIdMap. Also dereferences the source-column-ref attribute
@@ -477,23 +486,23 @@ public class SwingUIProject {
     private class SQLColumnFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) {
             SQLColumn col = new SQLColumn();
-            
+
             String id = attributes.getValue("id");
             if (id != null) {
                 objectIdMap.put(id, col);
             } else {
                 logger.warn("No ID found in column element while loading project!");
             }
-            
+
             String sourceId = attributes.getValue("source-column-ref");
             if (sourceId != null) {
                 col.setSourceColumn((SQLColumn) objectIdMap.get(sourceId));
             }
-            
+
             return col;
         }
     }
-    
+
     /**
      * Creates a SQLException instance and adds it to the
      * objectIdMap.
@@ -501,20 +510,20 @@ public class SwingUIProject {
     private class SQLExceptionFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) {
             SQLExceptionNode exc = new SQLExceptionNode(null, null);
-            
+
             String id = attributes.getValue("id");
             if (id != null) {
                 objectIdMap.put(id, exc);
             } else {
                 logger.warn("No ID found in exception element while loading project!");
             }
-            
+
             exc.setMessage(attributes.getValue("message"));
-            
+
             return exc;
         }
     }
-    
+
     /**
      * Creates a SQLRelationship instance and adds it to the
      * objectIdMap.  Also dereferences the fk-table-ref and
@@ -523,17 +532,17 @@ public class SwingUIProject {
     private class SQLRelationshipFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) {
             SQLRelationship rel = new SQLRelationship();
-            
+
             String id = attributes.getValue("id");
             if (id != null) {
                 objectIdMap.put(id, rel);
             } else {
                 logger.warn("No ID found in relationship element while loading project!");
             }
-            
+
             String fkTableId = attributes.getValue("fk-table-ref");
             String pkTableId = attributes.getValue("pk-table-ref");
-            
+
             if (fkTableId != null && pkTableId != null) {
                 SQLTable fkTable = (SQLTable) objectIdMap.get(fkTableId);
                 SQLTable pkTable = (SQLTable) objectIdMap.get(pkTableId);
@@ -546,11 +555,11 @@ public class SwingUIProject {
             } else {
                 JOptionPane.showMessageDialog(null, "Missing pktable or fktable references for relationship id \""+id+"\"");
             }
-            
+
             return rel;
         }
     }
-    
+
     /**
      * Creates a ColumnMapping instance and adds it to the
      * objectIdMap.  Also dereferences the fk-column-ref and
@@ -559,28 +568,28 @@ public class SwingUIProject {
     private class ColumnMappingFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) {
             SQLRelationship.ColumnMapping cmap = new SQLRelationship.ColumnMapping();
-            
+
             String id = attributes.getValue("id");
             if (id != null) {
                 objectIdMap.put(id, cmap);
             } else {
                 logger.warn("No ID found in column-mapping element while loading project!");
             }
-            
+
             String fkColumnId = attributes.getValue("fk-column-ref");
             if (fkColumnId != null) {
                 cmap.setFkColumn((SQLColumn) objectIdMap.get(fkColumnId));
             }
-            
+
             String pkColumnId = attributes.getValue("pk-column-ref");
             if (pkColumnId != null) {
                 cmap.setPkColumn((SQLColumn) objectIdMap.get(pkColumnId));
             }
-            
+
             return cmap;
         }
     }
-    
+
     private class TablePaneFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) {
             int x = Integer.parseInt(attributes.getValue("x"));
@@ -591,7 +600,7 @@ public class SwingUIProject {
             return tp;
         }
     }
-    
+
     private class PPRelationshipFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) {
             Relationship r = null;
@@ -600,7 +609,7 @@ public class SwingUIProject {
                     (SQLRelationship) objectIdMap.get(attributes.getValue("relationship-ref"));
                 r = new Relationship(playPen, rel);
                 playPen.addRelationship(r);
-                
+
                 int pkx = Integer.parseInt(attributes.getValue("pk-x"));
                 int pky = Integer.parseInt(attributes.getValue("pk-y"));
                 int fkx = Integer.parseInt(attributes.getValue("fk-x"));
@@ -618,7 +627,7 @@ public class SwingUIProject {
             return r;
         }
     }
-    
+
     private class DDLGeneratorFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) throws SQLException {
             try {
@@ -633,23 +642,23 @@ public class SwingUIProject {
             }
         }
     }
-    
+
     private class FileFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) {
             return new File(attributes.getValue("path"));
         }
     }
-    
+
     /**
      * Creates a compareDM instance and adds it to the objectIdMap.
      */
     private class CompareDMSettingFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) {
-            
+
             return getCompareDMSettings();
         }
     }
-    
+
     private class CompareDMStuffSettingFactory extends AbstractObjectCreationFactory {
         private boolean source;
         public CompareDMStuffSettingFactory(boolean source) {
@@ -673,17 +682,17 @@ public class SwingUIProject {
             return profileManager;
         }
     }
-    
+
     private class ProfileResultFactory extends AbstractObjectCreationFactory {
         @Override
-        public Object createObject(Attributes attributes) throws ArchitectException {
+        public Object createObject(Attributes attributes) throws ArchitectException, ClassNotFoundException, InstantiationException, IllegalAccessException {
             String refid = attributes.getValue("ref-id");
             String className = attributes.getValue("type");
 
             if (refid == null) {
                 throw new ArchitectException("Missing mandatory attribute \"ref-id\" in <profile-result> element");
             }
-            
+
             if (className == null) {
                 throw new ArchitectException("Missing mandatory attribute \"type\" in <profile-result> element");
             } else if (className.equals(TableProfileResult.class.getName())) {
@@ -691,29 +700,33 @@ public class SwingUIProject {
                 return new TableProfileResult(t);
             } else if (className.equals(ColumnProfileResult.class.getName())) {
                 SQLColumn c = (SQLColumn) objectIdMap.get(refid);
-                String avgValueClass = attributes.getValue("avgValueClass");
-                String minValueClass = attributes.getValue("minValueClass");
-                String maxValueClass = attributes.getValue("maxValueClass");
-                String avgValuex = attributes.getValue("avgValuex");
-                
-                ColumnProfileResult columnProfileResult = new ColumnProfileResult(c);
-                if (avgValuex != null && 
-                        avgValueClass != null &&
-                        avgValueClass.equals(BigDecimal.class.getName()) ) {
-                    columnProfileResult.setAvgValue(BigDecimal.valueOf(Double.valueOf(avgValuex)));
-                } 
-                
-                
-                
-                return columnProfileResult;
+                return new ColumnProfileResult(c);
             } else {
                 throw new ArchitectException("Profile result type \""+className+"\" not recognised");
             }
         }
     }
-    
+
+    private class ProfileResultValueFactory extends AbstractObjectCreationFactory {
+        @Override
+        public Object createObject(Attributes attributes) throws ArchitectException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+            String className = attributes.getValue("type");
+            if (className == null) {
+                throw new ArchitectException("Missing mandatory attribute \"type\" in <avgValue> or <minValue> or <maxValue> element");
+            } else if (className.equals(BigDecimal.class.getName()) ) {
+                return new BigDecimal(attributes.getValue("value"));
+            } else if (className.equals(Timestamp.class.getName()) ) {
+                return new Timestamp( Timestamp.valueOf(attributes.getValue("value")).getTime() );
+            } else if (className.equals(String.class.getName()) ) {
+                return new String(attributes.getValue("value"));
+            } else {
+                return Class.forName(className).newInstance();
+            }
+        }
+    }
+
     // ------------- WRITING THE PROJECT FILE ---------------
-    
+
     /**
      * Saves this project by writing an XML description of it to a temp file, then renaming.
      * The location of the file is determined by this project's <code>file</code> property.
@@ -731,13 +744,13 @@ public class SwingUIProject {
                     + "cannot write to architect file: "
                     + file.getAbsolutePath());
         }
-        
+
         File backupFile = new File (file.getParent(), file.getName()+"~");
-        
+
         // Several places we would check dir perms, but MS-Windows stupidly doesn't let use the
         // "directory write" attribute for directory writing (but instead overloads
         // it to mean 'this is a special directory'.
-        
+
         File tempFile = null;
         tempFile = new File (file.getParent(),"tmp___" + file.getName());
         String encoding = "UTF-8";
@@ -747,7 +760,7 @@ public class SwingUIProject {
         } catch (IOException e) {
             throw new ArchitectException("Unable to create output file for save operation, data NOT saved.\n" + e, e);
         }
-        
+
         progress = 0;
         this.pm = pm;
         if (pm != null) {
@@ -763,20 +776,20 @@ public class SwingUIProject {
             pm.setProgress(progress);
             pm.setMillisToDecideToPopup(0);
         }
-        
+
         save(out,encoding);	// Does ALL the actual I/O
         out = null;
         if (pm != null)
             pm.close();
         pm = null;
-        
+
         // Do the rename dance.
         // This is a REALLY bad place for failure (especially if we've made the user wait several hours to save
         // a large project), so we MUST check failures from renameto (both places!)
         boolean fstatus = false;
         fstatus = backupFile.delete();
         logger.debug("deleting backup~ file: " + fstatus);
-        
+
         // If this is a brand new project, the old file does not yet exist, no point trying to rename it.
         // But if it already existed, renaming current to backup must succeed, or we give up.
         if (file.exists()) {
@@ -796,7 +809,7 @@ public class SwingUIProject {
         }
         logger.debug("rename tempFile to current file: " + fstatus);
     }
-    
+
     /**
      * Do just the writing part of save, given a PrintWriter
      * @param out - the file to write to
@@ -808,7 +821,7 @@ public class SwingUIProject {
         objectIdMap = new HashMap();
         dbcsIdMap = new HashMap();
         indent = 0;
-        
+
         try {
             println(out, "<?xml version=\"1.0\" encoding=\""+encoding+"\"?>");
             println(out, "<architect-project version=\"1.0\" appversion=\""+ArchitectUtils.APP_VERSION+"\">");
@@ -828,7 +841,7 @@ public class SwingUIProject {
             if (out != null) out.close();
         }
     }
-    
+
     private void saveDataSources(PrintWriter out) throws IOException, ArchitectException {
         println(out, "<project-data-sources>");
         indent++;
@@ -862,7 +875,7 @@ public class SwingUIProject {
         indent--;
         println(out, "</project-data-sources>");
     }
-    
+
     private void saveDDLGenerator(PrintWriter out) throws IOException {
         print(out, "<ddl-generator"
                 +" type=\""+ddlGenerator.getClass().getName()+"\""
@@ -881,10 +894,10 @@ public class SwingUIProject {
         indent--;
         println(out, "</ddl-generator>");
     }
-    
-    
+
+
     private void saveCompareDMSettings(PrintWriter out) throws IOException {
-        
+
         //If the user never uses compareDM function, the saving process
         //would fail since some of the return values of saving compareDM
         //settings would be null.  Therefore the saveFlag is used as an
@@ -905,19 +918,19 @@ public class SwingUIProject {
         indent--;
         println(out, "</compare-dm-settings>");
     }
-    
-    
+
+
     private void saveSourceOrTargetAttributes(PrintWriter out, SourceOrTargetSettings sourceSettings) {
         print(out, " datastoreTypeAsString=\""+ArchitectUtils.escapeXML(sourceSettings.getDatastoreTypeAsString())+"\"");
         if (sourceSettings.getConnectName() != null)
             print(out, " connectName=\""+ArchitectUtils.escapeXML(sourceSettings.getConnectName())+"\"");
-        
+
         if (sourceSettings.getCatalog() != null)
             print(out, " catalog=\""+ArchitectUtils.escapeXML(sourceSettings.getCatalog())+"\"");
         if (sourceSettings.getSchema() != null)
             print(out, " schema=\""+ArchitectUtils.escapeXML(sourceSettings.getSchema())+"\"");
         print(out, " filePath=\""+ArchitectUtils.escapeXML(sourceSettings.getFilePath())+"\"");
-        
+
     }
     /**
      * Creates a &lt;source-databases&gt; element which contains zero
@@ -938,7 +951,7 @@ public class SwingUIProject {
         indent--;
         println(out, "</source-databases>");
     }
-    
+
     /**
      * Recursively walks through the children of db, writing to the
      * output file all SQLRelationship objects encountered.
@@ -953,7 +966,7 @@ public class SwingUIProject {
         indent--;
         println(out, "</relationships>");
     }
-    
+
     /**
      * The recursive subroutine of saveRelationships.
      */
@@ -969,7 +982,7 @@ public class SwingUIProject {
             }
         }
     }
-    
+
     private void saveTargetDatabase(PrintWriter out) throws IOException, ArchitectException {
         SQLDatabase db = (SQLDatabase) playPen.getDatabase();
         println(out, "<target-database dbcs-ref="+ quote(dbcsIdMap.get(db.getDataSource()).toString())+ ">");
@@ -982,7 +995,7 @@ public class SwingUIProject {
         indent--;
         println(out, "</target-database>");
     }
-    
+
     private void savePlayPen(PrintWriter out) throws IOException, ArchitectException {
         println(out, "<play-pen>");
         indent++;
@@ -997,7 +1010,7 @@ public class SwingUIProject {
                 pm.setNote(tp.getModel().getShortDisplayName());
             }
         }
-        
+
         it = playPen.getRelationships().iterator();
         while (it.hasNext()) {
             Relationship r = (Relationship) it.next();
@@ -1010,7 +1023,7 @@ public class SwingUIProject {
         indent--;
         println(out, "</play-pen>");
     }
-    
+
     /**
      * Save all of the profiling information.
      * @param out
@@ -1039,24 +1052,37 @@ public class SwingUIProject {
             } else if (profileResult instanceof ColumnProfileResult) {
                 ColumnProfileResult cpr = (ColumnProfileResult) profileResult;
                 niprint(out, " avgLength=\"" + cpr.getAvgLength() + "\"");
-                
-                niprint(out, " avgValuex=\"" + ArchitectUtils.escapeXML(String.valueOf(cpr.getAvgValue())) + "\"");
-                if ( cpr.getAvgValue() != null )
-                    niprint(out, " avgValueClass=\"" + cpr.getAvgValue().getClass().getName() + "\"");
-                niprint(out, " distinctValueCount=\"" + cpr.getDistinctValueCount() + "\"");
-                niprint(out, " maxValuex=\"" + ArchitectUtils.escapeXML(String.valueOf(cpr.getMaxValue())) + "\"");
-                if ( cpr.getMaxValue() != null )
-                    niprint(out, " maxValueClass=\"" + cpr.getMaxValue().getClass().getName() + "\"");
-                niprint(out, " minValuex=\"" + ArchitectUtils.escapeXML(String.valueOf(cpr.getMinValue())) + "\"");
-                if ( cpr.getMinValue() != null )
-                    niprint(out, " minValueClass=\"" + cpr.getMinValue().getClass().getName() + "\"");
-                
+
                 niprint(out, " minLength=\"" + cpr.getMinLength() + "\"");
                 niprint(out, " maxLength=\"" + cpr.getMaxLength() + "\"");
                 niprint(out, " nullCount=\"" + cpr.getNullCount() + "\"");
+                niprint(out, " distinctValueCount=\"" + cpr.getDistinctValueCount() + "\"");
                 niprintln(out, ">");
-                
+
                 indent++;
+
+                if ( cpr.getAvgValue() != null ) {
+                    println(out, "<avgValue type=\"" +
+                            cpr.getAvgValue().getClass().getName() +
+                            "\" value=\""+
+                            ArchitectUtils.escapeXML(String.valueOf(cpr.getAvgValue())) +
+                            "\"/>" );
+                }
+                if ( cpr.getMaxValue() != null ) {
+                    println(out, "<maxValue type=\"" +
+                            cpr.getMaxValue().getClass().getName() +
+                            "\" value=\""+
+                            ArchitectUtils.escapeXML(String.valueOf(cpr.getMaxValue())) +
+                            "\"/>" );
+                }
+                if ( cpr.getMinValue() != null ) {
+                    println(out, "<minValue type=\"" +
+                            cpr.getMinValue().getClass().getName() +
+                            "\" value=\""+
+                            ArchitectUtils.escapeXML(String.valueOf(cpr.getMinValue())) +
+                            "\"/>" );
+                }
+
                 List<ColumnValueCount> valueCount = cpr.getValueCount();
                 if (valueCount != null) {
                     for (ColumnValueCount count : valueCount) {
@@ -1064,7 +1090,7 @@ public class SwingUIProject {
                     }
                 }
                 indent--;
-                
+
                 println(out, "</profile-result>");
             } else {
                 String message = "Unknown ProfileResult Subclass: " + profileResult.getClass().getName();
@@ -1075,7 +1101,7 @@ public class SwingUIProject {
         println(out, "</profiles>");
         indent--;
     }
- 
+
     /**
      * Creates an XML element describing the given SQLObject and
      * writes it to the <code>out</code> PrintWriter.
@@ -1097,14 +1123,14 @@ public class SwingUIProject {
             println(out, "<reference ref-id=\""+ArchitectUtils.escapeXML(id)+"\" />");
             return;
         }
-        
+
         String type;
         Map<String,Object> propNames = new TreeMap<String,Object>();
-        
+
         // properties of all SQLObject types
         propNames.put("physicalName", o.getPhysicalName());
         propNames.put("name", o.getName()); // note: there was no name attrib for SQLDatabase, SQLRelationship.ColumnMapping, and SQLExceptionNode
-        
+
         if (o instanceof SQLDatabase) {
             id = "DB"+objectIdMap.size();
             type = "database";
@@ -1173,14 +1199,14 @@ public class SwingUIProject {
             throw new UnsupportedOperationException("Whoops, the SQLObject type "
                     +o.getClass().getName()+" is not supported!");
         }
-        
+
         objectIdMap.put(o, id);
-        
+
         boolean skipChildren = false;
-        
+
         //print("<"+type+" hashCode=\""+o.hashCode()+"\" id=\""+id+"\" ");  // use this for debugging duplicate object problems
         print(out, "<"+type+" id="+quote(id)+" ");
-        
+
         if (o.allowsChildren() && o.isPopulated() && o.getChildCount() == 1 && o.getChild(0) instanceof SQLExceptionNode) {
             // if the only child is an exception node, just save the parent as non-populated
             niprint(out, "populated=\"false\" ");
@@ -1190,7 +1216,7 @@ public class SwingUIProject {
         } else {
             niprint(out, "populated=\"true\" ");
         }
-        
+
         Iterator props = propNames.keySet().iterator();
         while (props.hasNext()) {
             Object key = props.next();
@@ -1218,12 +1244,12 @@ public class SwingUIProject {
             niprintln(out, "/>");
         }
     }
-    
+
     private String quote(String str) {
         return "\""+ArchitectUtils.escapeXML(str)+"\"";
     }
     // ------------------- accessors and mutators ---------------------
-    
+
     /**
      * Gets the value of name
      *
@@ -1232,7 +1258,7 @@ public class SwingUIProject {
     public String getName()  {
         return this.name;
     }
-    
+
     /**
      * Sets the value of name
      *
@@ -1241,7 +1267,7 @@ public class SwingUIProject {
     public void setName(String argName) {
         this.name = argName;
     }
-    
+
     /**
      * Gets the value of sourceDatabases
      *
@@ -1250,7 +1276,7 @@ public class SwingUIProject {
     public DBTree getSourceDatabases()  {
         return this.sourceDatabases;
     }
-    
+
     /**
      * Sets the value of sourceDatabases
      *
@@ -1259,18 +1285,18 @@ public class SwingUIProject {
     public void setSourceDatabases(DBTree argSourceDatabases) {
         this.sourceDatabases = argSourceDatabases;
     }
-    
+
     public void setSourceDatabaseList(List databases) throws ArchitectException {
         this.sourceDatabases.setModel(new DBTreeModel(databases));
     }
-    
+
     /**
      * Gets the target database in the playPen.
      */
     public SQLDatabase getTargetDatabase()  {
         return playPen.getDatabase();
     }
-    
+
     /**
      * Gets the value of file
      *
@@ -1279,7 +1305,7 @@ public class SwingUIProject {
     public File getFile()  {
         return this.file;
     }
-    
+
     /**
      * Sets the value of file
      *
@@ -1288,7 +1314,7 @@ public class SwingUIProject {
     public void setFile(File argFile) {
         this.file = argFile;
     }
-    
+
     /**
      * Gets the value of playPen
      *
@@ -1297,7 +1323,7 @@ public class SwingUIProject {
     public PlayPen getPlayPen()  {
         return this.playPen;
     }
-    
+
     /**
      * Adds all the tables in the given database into the playpen database.  This is really only
      * for loading projects, so please think twice about using it for other stuff.
@@ -1311,7 +1337,7 @@ public class SwingUIProject {
             ppdb.addChild(table);
         }
     }
-    
+
     /**
      * Sets the value of playPen
      *
@@ -1325,22 +1351,22 @@ public class SwingUIProject {
         }
         new ProjectModificationWatcher(playPen);
     }
-    
+
     public GenericDDLGenerator getDDLGenerator() {
         return ddlGenerator;
     }
-    
+
     public void setDDLGenerator(GenericDDLGenerator generator) {
         ddlGenerator = generator;
     }
-    
+
     public CompareDMSettings getCompareDMSettings() {
         return compareDMSettings;
     }
     public void setCompareDMSettings(CompareDMSettings compareDMSettings) {
         this.compareDMSettings = compareDMSettings;
     }
-    
+
     /**
      * See {@link #savingEntireSource}.
      *
@@ -1349,7 +1375,7 @@ public class SwingUIProject {
     public boolean isSavingEntireSource()  {
         return this.savingEntireSource;
     }
-    
+
     /**
      * See {@link #savingEntireSource}.
      *
@@ -1358,15 +1384,15 @@ public class SwingUIProject {
     public void setSavingEntireSource(boolean argSavingEntireSource) {
         this.savingEntireSource = argSavingEntireSource;
     }
-    
+
     public PLExport getPLExport() {
         return plExport;
     }
-    
+
     public void setPLExport(PLExport v) {
         plExport = v;
     }
-    
+
     // ------------------- utility methods -------------------
     /**
      * Prints to the output writer {@link #out} indentation spaces
@@ -1379,7 +1405,7 @@ public class SwingUIProject {
         }
         out.print(text);
     }
-    
+
     /**
      * Prints <code>text</code> to the output writer {@link #out} (no
      * indentation).
@@ -1387,7 +1413,7 @@ public class SwingUIProject {
     private void niprint(PrintWriter out, String text) {
         out.print(text);
     }
-    
+
     /**
      * Prints <code>text</code> followed by newline to the output
      * writer {@link #out} (no indentation).
@@ -1395,7 +1421,7 @@ public class SwingUIProject {
     private void niprintln(PrintWriter out, String text) {
         out.println(text);
     }
-    
+
     /**
      * Prints to the output writer {@link #out} indentation spaces
      * (according to {@link #indent}) followed by the given text
@@ -1407,7 +1433,7 @@ public class SwingUIProject {
         }
         out.println(text);
     }
-    
+
     /**
      * The ProjectModificationWatcher watches a PlayPen's components and
      * business model for changes.  When it detects any, it marks the
@@ -1417,7 +1443,7 @@ public class SwingUIProject {
      * be replaced with a hook into that system.
      */
     private class ProjectModificationWatcher implements SQLObjectListener, PlayPenComponentListener {
-        
+
         /**
          * Sets up a new modification watcher on the given playpen.
          */
@@ -1430,7 +1456,7 @@ public class SwingUIProject {
             PlayPenContentPane ppcp = pp.contentPane;
             ppcp.addPlayPenComponentListener(this);
         }
-        
+
         /** Marks project dirty, and starts listening to new kids. */
         public void dbChildrenInserted(SQLObjectEvent e) {
             setModified(true);
@@ -1443,7 +1469,7 @@ public class SwingUIProject {
                 }
             }
         }
-        
+
         /** Marks project dirty, and stops listening to removed kids. */
         public void dbChildrenRemoved(SQLObjectEvent e) {
             setModified(true);
@@ -1452,12 +1478,12 @@ public class SwingUIProject {
                 oldKids[i].removeSQLObjectListener(this);
             }
         }
-        
+
         /** Marks project dirty. */
         public void dbObjectChanged(SQLObjectEvent e) {
             setModified(true);
         }
-        
+
         /** Marks project dirty and listens to new hierarchy. */
         public void dbStructureChanged(SQLObjectEvent e) {
             try {
@@ -1466,32 +1492,32 @@ public class SwingUIProject {
                 logger.error("dbStructureChanged listener: Failed to listen to new project hierarchy", e1);
             }
         }
-        
+
         public void componentMoved(PlayPenComponentEvent e) {
-            
+
         }
-        
+
         public void componentResized(PlayPenComponentEvent e) {
             setModified(true);
         }
-        
+
         public void componentMoveStart(PlayPenComponentEvent e) {
             setModified(true);
         }
-        
+
         public void componentMoveEnd(PlayPenComponentEvent e) {
             setModified(true);
         }
-        
+
     }
-    
+
     /**
      * See {@link #modified}.
      */
     public boolean isModified() {
         return modified;
     }
-    
+
     /**
      * See {@link #modified}.
      */
@@ -1499,11 +1525,11 @@ public class SwingUIProject {
         if (logger.isDebugEnabled()) logger.debug("Project modified: "+modified);
         this.modified = modified;
     }
-    
+
     public UndoManager getUndoManager() {
         return undoManager;
     }
-    
+
     public ProfileManager getProfileManager() {
         return profileManager;
     }
@@ -1513,5 +1539,5 @@ public class SwingUIProject {
     public ArrayList<SQLObject> getFilter() {
         return filter;
     }
-    
+
 }
