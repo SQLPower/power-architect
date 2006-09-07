@@ -166,13 +166,14 @@ public class ProfilePanelAction extends AbstractAction {
 
             profileManager.setCancelled(false);
 
+            // TODO use this dialog to display progress bar
            final JDialog d = new JDialog(ArchitectFrame.getMainInstance(), "Table Profiles");
+           
            if ( !dialog.isVisible()) {
                ArchitectFrame.getMainInstance().getProject().getFilter().clear();
            }
            ArchitectFrame.getMainInstance().getProject().getFilter().addAll(filter);
            
-System.out.println("dialog is visible?"+dialog.isVisible());           
             final CommonCloseAction commonCloseAction = new CommonCloseAction(dialog);
             Action closeAction = new AbstractAction() {
                 public void actionPerformed(ActionEvent evt) {

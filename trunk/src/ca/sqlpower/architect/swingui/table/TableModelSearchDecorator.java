@@ -76,22 +76,34 @@ public class TableModelSearchDecorator extends AbstractTableModel {
         fireTableDataChanged();
 
         List<Integer> newRowMap = new ArrayList<Integer>();
-        CharSequence searchSubSequence = searchText == null ? null : searchText.toLowerCase().subSequence(0,searchText.length());
+        String[] searchWords = (searchText == null ? null : searchText.split(" "));
+
         for ( int row = 0; row < tableModel.getRowCount(); row++ ) {
             boolean match = false;
-            if ( searchSubSequence == null ) {
+            if ( searchWords == null ) {
                 match = true;
             } else {
-                for ( int column = 0; column < tableModel.getColumnCount(); column++ ) {
-                    String value = tableTextConverter.getTextForCell(row, column);
-                    if (value.toLowerCase().contains(searchSubSequence)) {
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("Match: "+value.toLowerCase()+" contains "+searchSubSequence);
+                
+                int i;
+                for ( i=0; i<searchWords.length; i++ ) {
+                    
+                    match = false;
+                    for ( int column = 0; column < tableModel.getColumnCount(); column++ ) {
+                        String value = tableTextConverter.getTextForCell(row, column);
+                        if ( value.toLowerCase().indexOf(searchWords[i].toLowerCase()) >= 0 ) {
+                            match = true;
+                            if (logger.isDebugEnabled()) {
+                                logger.debug("Match: "+value.toLowerCase()+" contains "+searchWords[i]+ "     "+value.toLowerCase().indexOf(searchWords[i].toLowerCase()));
+                            }
+                            break;
                         }
-                        match = true;
-                        break;
                     }
+                    if ( !match )
+                        break;
+                        
                 }
+                if ( i < searchWords.length )
+                    match = false;
             }
             if ( match ) {
                 newRowMap.add(tableTextConverter.modelIndex(row));
