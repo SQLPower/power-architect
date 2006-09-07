@@ -69,7 +69,7 @@ public class ProfileManager implements Monitorable {
 
     }
 
-    private void putResult(ProfileResult profileResult) {
+    public void putResult(ProfileResult profileResult) {
         if (logger.isDebugEnabled()) {
             logger.debug("[instance "+hashCode()+"]" +
                     " Adding new profile result for "+profileResult.getProfiledObject().getName()+
@@ -669,6 +669,10 @@ public class ProfileManager implements Monitorable {
         this.topNCount = topNCount;
     }
 
+    public void setTopNCount(String topNCount) {
+        this.topNCount = Integer.valueOf(topNCount);
+    }
+    
     public Map<SQLObject, ProfileResult> getResults() {
         return results;
     }        

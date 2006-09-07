@@ -261,7 +261,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 				}
 				
 				// do any database specific transformations required for this column
-				/* TODO This is not used to be replace with an XML format later
+				/* TODO This is not used.  To be replace with an XML format later
 				  
 				 
 				if(TypeMap.getInstance().applyRules(col)) {
@@ -279,8 +279,14 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 			rs = dbmd.getPrimaryKeys(catalog, schema, tableName);
 			while (rs.next()) {
 				SQLColumn col = addTo.getColumnByName(rs.getString(4), false);
-				col.primaryKeySeq = new Integer(rs.getInt(5));
-				addTo.setPrimaryKeyName(rs.getString(6));
+				//logger.debug(rs.getString(4));
+                if (col != null ){
+                    col.primaryKeySeq = new Integer(rs.getInt(5));
+				    addTo.setPrimaryKeyName(rs.getString(6));
+                } else {
+                    SQLException exception = new SQLException("Column "+rs.getString(4)+ " not found in "+addTo);
+                    throw exception;
+                }
 			}
 			rs.close();
 			rs = null;
