@@ -309,6 +309,7 @@ public class SwingUIProject {
         
         ProfileManagerFactory profileManagerFactory = new ProfileManagerFactory();
         d.addFactoryCreate("*/profiles", profileManagerFactory);
+        d.addSetProperties("*/profiles");
         
         ProfileResultFactory profileResultFactory = new ProfileResultFactory();
         d.addFactoryCreate("*/profiles/profile-result", profileResultFactory);
@@ -1000,9 +1001,9 @@ public class SwingUIProject {
      * @param out
      */
     private void saveProfiles(PrintWriter out) {
-        println(out, "<profiles>");
-        indent++;
         ProfileManager profmgr = getProfileManager();
+        println(out, "<profiles topNCount=\""+profmgr.getTopNCount()+"\">");
+        indent++;
         Map<SQLObject, ProfileResult> results = profmgr.getResults();
         for (Map.Entry<SQLObject, ProfileResult> e : results.entrySet()) {
             SQLObject so = e.getKey();
