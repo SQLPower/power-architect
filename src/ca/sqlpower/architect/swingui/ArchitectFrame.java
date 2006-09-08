@@ -143,7 +143,7 @@ public class ArchitectFrame extends JFrame {
 	protected ProjectSettingsAction projectSettingsAction;
 	protected PrintAction printAction;
     protected ProfilePanelAction profileAction;
-    protected ViewProfileAction viewProfileAction;
+    protected ViewProfileAction viewProfileAction; //not being used for second architect release
  	protected ZoomAction zoomInAction;
  	protected ZoomAction zoomOutAction;
  	protected Action zoomNormalAction;
@@ -591,7 +591,7 @@ public class ArchitectFrame extends JFrame {
 
         /* profiling stuff */
         profileAction = new ProfilePanelAction();
-        viewProfileAction = new ViewProfileAction();
+        //viewProfileAction = new ViewProfileAction(); not being used for second architect release
 
 		menuBar = new JMenuBar();
 
@@ -663,7 +663,7 @@ public class ArchitectFrame extends JFrame {
         JMenu profileMenu = new JMenu("Profile");
         profileMenu.setMnemonic('p');
         profileMenu.add(profileAction);
-        profileMenu.add(viewProfileAction);
+        //profileMenu.add(viewProfileAction);not being used for second architect release
         menuBar.add(profileMenu);
 
 		JMenu helpMenu = new JMenu("Help");
@@ -807,7 +807,7 @@ public class ArchitectFrame extends JFrame {
 		zoomInAction.setPlayPen(playpen);
 		zoomOutAction.setPlayPen(playpen);
 		autoLayoutAction.setPlayPen(playpen);
-        viewProfileAction.setPlayPen(playpen);
+        //viewProfileAction.setPlayPen(playpen);not being used for second architect release
 
 		undoAction.setManager(project.getUndoManager());
 		redoAction.setManager(project.getUndoManager());
@@ -822,7 +822,7 @@ public class ArchitectFrame extends JFrame {
 		profileAction.setDBTree(dbTree);
 		profileAction.setProfileManager(project.getProfileManager());
 		profileAction.setDialog(project.getProfileDialog());
-        viewProfileAction.setProfileManager(project.getProfileManager());
+        //viewProfileAction.setProfileManager(project.getProfileManager());not being used for second architect release
 
 		prefAction.setArchitectFrame(this);
 		projectSettingsAction.setArchitectFrame(this);
