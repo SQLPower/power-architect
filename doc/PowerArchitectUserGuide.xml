@@ -4,2142 +4,3208 @@
 
 <book id="architect-user-guide" lang="en">
 
-  <bookinfo>
-  
-	<!-- $Id$ -->
-	
-    <title id="book">Power*Architect User Guide</title>
+	<bookinfo>
 
-    <mediaobject><imageobject id="architect_logo">
-    <imagedata fileref="doc/images/architect_logo.png" format="PNG"/>
-    </imageobject></mediaobject>
+		<!-- $Id$ -->
 
-    <corpauthor><ulink url="http://www.sqlpower.ca">SQL Power</ulink> 
-    Group Inc.</corpauthor>
+		<title id="book">Power*Architect User Guide</title>
 
-    <date>Last Modified</date>
-     
-    <copyright><year>2006</year><holder>SQL Power Group 
-    Inc.</holder></copyright>
-  </bookinfo>
+		<mediaobject>
+			<imageobject id="architect_logo">
+				<imagedata fileref="doc/images/architect_logo.png"
+					format="PNG" />
+			</imageobject>
+		</mediaobject>
+
+		<corpauthor>
+			<ulink url="http://www.sqlpower.ca">SQL Power</ulink>
+			Group Inc.
+		</corpauthor>
+
+		<date>Last Modified</date>
+
+		<copyright>
+			<year>2006</year>
+			<holder>SQL Power Group Inc.</holder>
+		</copyright>
+	</bookinfo>
 	<chapter id="intro-chapter">
-  <title>Introduction</title>
+		<title>Introduction</title>
 
-  <para>Data Architects, DBAs, Analysts and Designers rely on 
-  state-of-the-art Data Modeling Tools to facilitate and simplify their 
-  data Modeling efforts, while maximizing the use of their resources. 
-  The Power*Architect software allows these busy technical 
-  professionals to perform this most intricate part of their job in a 
-  fraction of the time.</para>
+		<para>
+			Data Architects, DBAs, Analysts and Designers rely on
+			state-of-the-art Data Modeling Tools to facilitate and
+			simplify their data Modeling efforts, while maximizing the
+			use of their resources. The Power*Architect software allows
+			these busy technical professionals to perform this most
+			intricate part of their job in a fraction of the time.
+		</para>
 
-  <para>SQL Power Group&apos;s Power*Architect is an innovative data 
-  modeling tool designed primarily for Data Warehouse and Data Mart 
-  design. It allows the designer to open multiple concurrent source 
-  Database connections, drag and drop source schemas, tables and 
-  columns into the data modeling playpen, and forward-engineer the 
-  resulting target database and its associated ETL template.</para>
+		<para>
+			SQL Power Group&apos;s Power*Architect is an innovative data
+			modeling tool designed primarily for Data Warehouse and Data
+			Mart design. It allows the designer to open multiple
+			concurrent source Database connections, drag and drop source
+			schemas, tables and columns into the data modeling playpen,
+			and forward-engineer the resulting target database and its
+			associated ETL template.
+		</para>
 
-  <para>The Power*Architect is a user-friendly DW data modeling tool 
-  created by data warehouse designers, and has many features geared 
-  specifically for the data warehouse architect, including:</para>
+		<para>
+			The Power*Architect is a user-friendly DW data modeling tool
+			created by data warehouse designers, and has many features
+			geared specifically for the data warehouse architect,
+			including:
+		</para>
 
-  <itemizedlist>
+		<itemizedlist>
 
-    <listitem>
+			<listitem>
 
-      <para>Access any JDBC- or ODBC-accessible source database;</para>
+				<para>
+					Access any JDBC- or ODBC-accessible source database;
+				</para>
 
-    </listitem>
+			</listitem>
 
-    <listitem>
+			<listitem>
 
-      <para>Design every aspect of the target database Data 
-      Model;</para>
+				<para>
+					Design every aspect of the target database Data
+					Model;
+				</para>
 
-    </listitem>
+			</listitem>
 
-    <listitem>
+			<listitem>
 
-      <para>Compare the database structure of any two databases, 
-      highlighting the structural differences and generating the 
-      required DDL to synchronize;</para>
+				<para>
+					Compare the database structure of any two databases,
+					highlighting the structural differences and
+					generating the required DDL to synchronize;
+				</para>
 
-    </listitem>
+			</listitem>
 
-    <listitem>
+			<listitem>
 
-      <para>Compare the Data Model data structures to an existing 
-      target database; Save a snapshot of all source systems’ data 
-      structures in the project file, allowing data warehouse designers 
-      to evolve their target data model remotely;</para>
+				<para>
+					Compare the Data Model data structures to an
+					existing target database; Save a snapshot of all
+					source systems’ data structures in the project file,
+					allowing data warehouse designers to evolve their
+					target data model remotely;
+				</para>
 
-    </listitem>
+			</listitem>
 
-    <listitem>
+			<listitem>
+
+				<para>
+					Forward engineer to Oracle, SQL Server, DB2,
+					PostgreSQL and other databases;
+				</para>
+
+			</listitem>
+
+			<listitem>
+
+				<para>
+					Forward engineer ETL Templates containing
+					source-to-target data mappings;
+				</para>
+
+			</listitem>
+
+			<listitem>
+
+				<para>
+					Invoke ETL Engine to load initial set of data into
+					the target database;
+				</para>
+
+			</listitem>
+
+			<listitem>
+
+				<para>
+					Enable easy centralized installation and updates to
+					multiple end users (using
+					<trademark>Java WebStart</trademark>
+					technology).
+				</para>
+
+			</listitem>
+
+		</itemizedlist>
+
+		<para>
+			Power*Architect can open multiple source databases
+			concurrently, even those from competing database vendors.
+			Another key feature of the Power*Architect that sets it
+			apart from other data modeling tools is that it remembers
+			the origin of each column, and is capable of automatically
+			generating the source-to-target data mappings.
+		</para>
+
+		<para>
+			Whether you’re building or maintaining your Data Warehouse
+			data model, the Power*Architect will provide you a complete
+			view of all required database structures and will expedite
+			every aspect of your data warehouse design.
+		</para>
+
+		<para>We firmly believe you can...</para>
+
+		<sidebar>
+
+			<para>
+				Design your Data Warehouse in a fraction of the time
+				with Power*Architect.
+			</para>
+
+		</sidebar>
+
+		<epigraph>
+
+			<para>
+				Power*Architect is a versatile tool for the busy data
+				warehousing practitioner.
+			</para>
+
+		</epigraph>
+
+		<sect1 id="about-this-book">
+
+			<title>Basic Concepts</title>
+
+			<para>
+				<emphasis>Project</emphasis>
+				– a Power*Architect project consists of a view of
+				multiple databases; you can load and save a Project to
+				work on it at leisure.
+			</para>
+
+			<para>
+				<emphasis>Driver</emphasis>
+				– Most programs need a distinct driver program to
+				communicated with each different type of database.
+				Power*Architect uses Java-based drivers, which normally
+				come from the database vendor in the form of "JAR"
+				<footnote>
+					<para>
+						Java Archive files; these are an extension to
+						the file format used by PKZip/WinZip archives
+					</para>
+				</footnote>
+				files. You need to inform Power*Architect about each
+				driver before you can use it; do this from the User
+				Preferences panel, under JDBC Drivers (just click Add
+				and browse to the Jar file for your driver). If you do
+				not have the JDBC driver for a given database, you can
+				usually obtain one from the database vendor. If that
+				fails, you can find a directory of databases drivers on
+				<ulink
+					url="http://developers.sun.com/product/jdbc/drivers">
+					Sun&apos;s web site
+				</ulink>
+				.
+			</para>
+
+			<para>
+				<emphasis>Playpen</emphasis>
+				– This is the main area of the Power*Architect window,
+				in which you manipulate tables and relationships. You
+				can play here to your heart&apos;s content, knowing it
+				will not be saved until you ask the program to save.
+			</para>
+
+		</sect1>
+
+		<sect1 id="who-book-is-for">
+
+			<title>Who this book is for</title>
+
+			<para>
+				This book is a step-by-step guide on how to use the full
+				capabilities of Power*Architect . It covers topics from
+				how to install the Power*Architect through setting up
+				database connections to engineering your data model.
+			</para>
+
+			<para>
+				We assume you are familiar with basic database terms. If
+				you meet any terms that are unfamiliar, please refer to
+				the Glossary at the end of this book.
+			</para>
+
+			<para>
+				This book also assumes you are familiar with basic
+				computer operations.
+			</para>
+
+			<para>
+				We also assume you have SQL Power&apos;s Power*Architect
+				software installed on your computer; if not, please
+				refer to the Installation Guide below.
+			</para>
 
-      <para>Forward engineer to Oracle, SQL Server, DB2, PostgreSQL and 
-      other databases;</para>
+		</sect1>
+
+	</chapter>
+
+	<chapter id="installation.guide">
+
+		<title>Installation Guide</title>
 
-    </listitem>
+		<section id="prereqs">
 
-    <listitem>
+			<title>Power*Architect Prerequisites</title>
+			<para>
 
-      <para>Forward engineer ETL Templates containing source-to-target 
-      data mappings;</para>
+				To run the Power*Architect you need a Java 1.5 or newer
+				Java Runtime ("Java VM" or "JVM"). A current version of
+				the Java VM for common platforms can be obtained from
+				<ulink
+					url="http://java.sun.com/javase/downloads/index.html">
+					Sun Microsystems
+				</ulink>
+				. To ensure that your JVM is up-to-date, Apple Macintosh
+				users should use Software Update (from the Apple Menu)
+				while others should use the Java Updater (from, e.g.,
+				the Microsoft Windows Control Panel).
+			</para>
 
-    </listitem>
+		</section>
 
-    <listitem>
+		<section id="get_the_architect">
 
-      <para>Invoke ETL Engine to load initial set of data into the 
-      target database;</para>
+			<title>How to Obtain the Power*Architect Software</title>
 
-    </listitem>
+			<para>
+				Power*Architect can be obtained from the
+				<ulink url="http://download.sqlpower.ca">
+					download section
+				</ulink>
+				of the
+				<ulink url="http://www.sqlpower.ca/">
+					SQLPower Website
+				</ulink>
+				. You should only need to download one file, choosing
+				the platform-appropriate distribution (Windows-Installer
+				for Microsoft Windows, "DMG" for Apple Macintosh, and
+				".tar.gz" for UNIX/Linux/other platforms). You should
+				normally choose the download with the highest revision
+				number available.
+			</para>
 
-    <listitem>
+		</section>
 
-      <para>Enable easy centralized installation and updates to 
-      multiple end users (using <trademark>Java WebStart</trademark> 
-      technology).</para>
+		<section id="how_to_install">
 
-    </listitem>
+			<title>How to Install Power*Architect</title>
 
-  </itemizedlist>
+			<section id="install_win">
 
-  <para>Power*Architect can open multiple source databases 
-  concurrently, even those from competing database vendors. Another key 
-  feature of the Power*Architect that sets it apart from other data 
-  modeling tools is that it remembers the origin of each column, and is 
-  capable of automatically generating the source-to-target data 
-  mappings.</para>
+				<title>Microsoft Windows</title>
 
-  <para>Whether you’re building or maintaining your Data Warehouse data 
-  model, the Power*Architect will provide you a complete view of all 
-  required database structures and will expedite every aspect of your 
-  data warehouse design.</para>
+				<para>
+					Double click on the Architect-setup-Windows-n.m.jar.
+					This will launch the Microsoft Windows installer.
+					Follow the on-screen instructions.
+				</para>
 
-  <para>We firmly believe you can...</para>
+			</section>
 
-  <sidebar>
+			<section id="install_mac">
 
-    <para>Design your Data Warehouse in a fraction of the time with 
-    Power*Architect.</para>
-
-  </sidebar>
-
-  <epigraph>
-
-    <para>Power*Architect is a versatile tool for the busy data 
-    warehousing practitioner.</para>
+				<title>Macintosh OS X</title>
 
-  </epigraph>
+				<para>
+					Drag the architect-n.m.dmg file to the Applications
+					folder
+				</para>
 
-  <sect1 id="about-this-book">
+			</section>
+
+			<section id="install_java">
 
-    <title>Basic Concepts</title>
+				<title>Other Platforms</title>
+
+				<para>
+					Extract the Architect-generic-n.m.tar.gz package
+					into the desired directory.
+				</para>
+
+			</section>
+
+		</section>
+
+		<section id="how_to_run">
+
+			<title>How to Run Power*Architect</title>
+
+			<section id="run_win">
+
+				<title>Microsoft Windows</title>
+
+				<para>
+					From the start menu, select All Programs. Then
+					select the Power Loader Suite program group. Finally
+					click on the Power Architect shortcut.
+				</para>
+
+			</section>
+
+			<section id="run_mac">
+
+				<title>Macintosh OS X</title>
+
+				<para>
+					From the Finder, select Applications, then select
+					Power*Architect. To enable launching of the
+					Architect directly from the Dock, either drag the
+					image there or, while it is running, Apple-Click on
+					the running icon and select Keep In Dock.
+				</para>
+
+			</section>
+
+			<section id="run_java">
+
+				<title>Other Platforms</title>
+
+				<para>
+					In the directory into which you extracted the
+					Architect, run the command
+					<command>java -jar architect.jar</command>
+					. If you have a visual browser, you may be able to
+					launch the architect by clicking (or
+					double-clicking) on the architect.jar file.
+				</para>
+
+			</section>
+
+		</section>
+
+	</chapter>
+
+	<chapter id="How_to_use">
+
+		<title>How to Use the Power*Architect</title>
+
+		<section id="Architect_UI">
+
+			<title>Power*Architect User Interface</title>
+
+			<para>
+				When you start the Power*Architect, you will see the
+				Project window, shown below, which is the main view area
+				and starting point for actions.
+			</para>
+
+			<para>
+				<inlinemediaobject>
+					<imageobject>
+						<imagedata fileref="doc/images/basicui.png"
+							format="PNG" width="4in" />
+					</imageobject>
+				</inlinemediaobject>
+			</para>
+
+			<para>
+				<emphasis>Database Tree</emphasis>
+				– This is where you can add, maintain and explore
+				imported connections. It uses a tree-node dropdown
+				method. Therefore to explore inner components, you can
+				expand components within this container as needed.
+			</para>
+
+			<para>
+				<emphasis>Playpen</emphasis>
+				– This is the main area of the window, in which you
+				manipulate tables and relationships. You can play here
+				to your heart&apos;s content, knowing it will not be
+				saved until you ask the program to save.
+			</para>
+
+			<para>
+				<emphasis>Playpen Components</emphasis>
+				– These are the components that can go into the playpen.
+				The playpen components are Tables and Relationships.
+			</para>
+
+			<para>
+				<emphasis>Zoom Tools</emphasis>
+				allow you to control the magnification level of
+				components display
+			</para>
+
+			<para>
+				<emphasis>Delete</emphasis>
+				will delete the selected component(s).
+			</para>
+
+			<para>
+				<emphasis>Create/Maintain Playpen Components</emphasis>
+				is discussed in
+				<link linkend="diagram_components">
+					Using Components
+				</link>
+				below.
+			</para>
+
+		</section>
+
+		<section id="User_Prefs">
+
+			<title>Setting the User Preferences</title>
+
+			<para>
+				When getting started, you need to set up some files and
+				drivers to use the full functionality of the
+				Power*Architect. If you have not already done so
+				already, please go to "User Preferences" under the File
+				Menu to configure the Power*Architect. This will pop up
+				a dialog (shown below) where you can specify your file
+				locations.
+			</para>
+
+			<para>
+				<inlinemediaobject>
+					<imageobject>
+						<imagedata fileref="doc/images/user_prefs.png"
+							format="PNG" width="4in" />
+					</imageobject>
+				</inlinemediaobject>
+			</para>
+
+			<para>
+				The pl.ini file stores the database connections that you
+				set up (see JDBC Drivers on page 8). If you leave this
+				location blank, the Architect program will prompt you to
+				use a default location when you start it up. If you have
+				a pl.ini file from other SQL Power applications you
+				should generally use the same file, as doing so will
+				save you from having to re-enter all your database
+				connection information. The Power*Loader Engine setting
+				is optional; if you are not using the Power*Loader
+				engine you can leave this blank; if you are, you should
+				set it to the location where the Power*Loader Engine
+				program is installed on your system. The next two
+				settings are for log files that will be written when you
+				use the ETL and Forward Engineering functions of the
+				application. The final setting controls the operations
+				of graphics in the PlayPen. Turning "antialiased
+				rendering" on may give better display of the graphical
+				database layouts shown in the PlayPen, but may use more
+				CPU time in the process.
+			</para>
+
+		</section>
+
+		<section id="JDBC_Drivers">
+
+			<title>JDBC Drivers</title>
+
+			<para>
+				Besides setting up these file locations, you must also
+				tell the Power*Architect about the JDBC drivers you wish
+				to use. JDBC Drivers are needed to access most
+				databases, and are distributed in "JAR file" format.
+				Click on the "JDBC Drivers" tab and click Add... to
+				specify the location of a JDBC driver jar file; if it is
+				valid, the system will list the names of any Driver
+				classes found in it, as shown below (note that "ojdbc"
+				stands for Oracle&apos;s JDBC driver, whereas "ODBC" is
+				Microsoft&apos;s technology for database access).
+			</para>
+
+			<para>
+				<inlinemediaobject>
+					<imageobject>
+						<imagedata
+							fileref="doc/images/jdbc_user_prefs.png" format="PNG"
+							width="4in" />
+					</imageobject>
+				</inlinemediaobject>
+			</para>
+
+			<para>
+				Note: The tie-in between Drivers and Connections might
+				seem a bit indirect if you are not used to using Java
+				JDBC. In this section of the User Preferences you are
+				simply telling the Power*Architect to load these drivers
+				into memory when it starts up. When you set up an actual
+				Connection, you implicitly tell the software which
+				driver to use by the second field of the "db URL" as
+				described on page 21. If you need more information on
+				JDBC drivers, please refer to the Basic Concepts section
+				of this manual on page 3.
+			</para>
+
+		</section>
+
+		<section id="example">
+
+			<title>A Brief Example</title>
+
+			<para>
+				This section will show you how to set up
+				<footnote>
+					<para>
+						Assumes you have used some vendor-specific
+						external tool to create a new database.
+					</para>
+				</footnote>
+				a simple database "from scratch", just to get you
+				started using the tools, without modifying any live
+				data. If you follow the example literally, you will
+				create a trivial "customer and orders database".
+			</para>
+
+			<orderedlist>
+
+				<listitem>
+
+					<para>
+						Setup Driver. Select File-&gt;User Preferences
+						and select the JDBC Drivers tab. If there is
+						already an entry for the driver you wish to
+						use,, click OK and go on to the next step.
+						Otherwise, click the Add button, navigate to
+						where you have the driver Jar file installed,
+						and click OK.
+					</para>
+
+				</listitem>
+
+				<listitem>
+
+					<para>
+						Create a Connection. In the Database Tree
+						section of the main window, right click and
+						choose Add Source Connection-&gt;New Connection.
+						For this example you can use a name like
+						SampleDB, for both the Connection Name and the
+						Database name (these names do not have to be the
+						same, but we&apos;ll keep them the same for
+						simplicity). If you select the JDBC Driver
+						before you type the database name, then as you
+						type the Database name, it will be added to the
+						DB URL, so you don&apos;t have to type it an
+						extra time. Fill in all the fields and click OK.
+					</para>
+
+				</listitem>
+
+				<listitem>
+
+					<para>
+						Now right click on the Project in the Database
+						tree, and select Set Target Database, then
+						choose the Database connection you just created
+						(e.g., SampleHSQLDB). Note that Add Source
+						Connection makes a database available to copy
+						tables from, whereas Set Target Database
+						specifies where SQL commands will get executed
+						to create the structure you are building in your
+						project.
+					</para>
+
+				</listitem>
+
+				<listitem>
+
+					<para>
+						You are now ready to design some tables. For
+						this example, we will create the Customer and
+						Orders table shown here.
+					</para>
+
+					<orderedlist>
+
+						<listitem>
+
+							<para>
+								Click on the New Table icon at the right
+								side. The cursor will change to a
+								crosshair. Move the cursor near the left
+								of the Playpen area, and click. A "New
+								Table" will appear.
+							</para>
+
+						</listitem>
+
+						<listitem>
+
+							<para>
+								Double click on the title, and the Table
+								Properties Dialog will appear. Rename
+								this table to Customer, and the Primary
+								Key to Customer_PK.
+							</para>
+
+						</listitem>
+
+						<listitem>
+
+							<para>
+								Click on the Insert Column icon, and a
+								"New Column" will appear. Double-click
+								on the column, or click on the Column
+								Properties, and the Column Properties
+								Dialog will appear. Rename the column to
+								ID and make it part of the primary key.
+							</para>
+
+						</listitem>
+
+						<listitem>
+
+							<para>
+								Insert additional columns for Firstname,
+								Lastname, Address, City, Province,
+								Country Code
+								<footnote>
+									<para>
+										There is an ISO standard,
+										ISO-3166, which specifies a
+										two-letter code (and a
+										rarely-used three letter code)
+										for every country of the world:
+										us for the United States, ca for
+										Canada, and so on. Some
+										developers like to use these in
+										the Country field of a database,
+										as we are doing here.
+									</para>
+								</footnote>
+								and Postal Code. The table should look
+								something like the following:
+							</para>
+
+							<mediaobject>
+								<imageobject>
+									<imagedata
+										fileref="doc/images/example_4_4.png" format="PNG" width="4in" />
+								</imageobject>
+							</mediaobject>
+						</listitem>
+
+						<listitem>
+
+							<para>
+								Create a second table, and name it
+								Orders.
+							</para>
+
+						</listitem>
+
+						<listitem>
+
+							<para>
+								Create columns named Id (in the primary
+								key), Quantity, and Total Amount. Your
+								project should now look something like
+								the following:
+							</para>
+
+							<mediaobject>
+								<imageobject>
+									<imagedata
+										fileref="doc/images/example_4_6.png" format="PNG" width="4in" />
+								</imageobject>
+							</mediaobject>
+						</listitem>
+
+						<listitem>
+
+							<para>
+								We need a relationship between these
+								tables. An order should have a foreign
+								key that refers to the customer. Click
+								the "New Non-Identifying Relationship"
+								icon. Select the Order table, then the
+								Customer table, and a link will be drawn
+								as shown. Click on this link and the
+								keys that take part in the relationship
+								will be highlighted in red.
+							</para>
+
+							<mediaobject>
+								<imageobject>
+									<imagedata
+										fileref="doc/images/example_4_7.png" format="PNG" width="4in" />
+								</imageobject>
+							</mediaobject>
+						</listitem>
+
+					</orderedlist>
+
+				</listitem>
+
+				<listitem>
+
+					<para>
+						If you&apos;re happy with the database layout
+						(you can always change it later), it&apos;s time
+						to create the database. Click on the Forward
+						Engineer button. You should see a window similar
+						to the following:
+					</para>
+
+					<mediaobject>
+						<imageobject>
+							<imagedata
+								fileref="doc/images/example_5.png" format="PNG" width="4in" />
+						</imageobject>
+					</mediaobject>
+				</listitem>
+
+				<listitem>
+
+					<para>
+						If this looks plausible, click Execute, and the
+						tables and their relationship will be created.
+						Congratulations! You have now created a simple
+						database using the visual tools in
+						Power*Architect. But let&apos;s not stop here.
+						Suppose that after using this database, you
+						realize that there should be a "shipping amount"
+						field in the Order table (we never promised this
+						would be completely realistic example).
+					</para>
+
+				</listitem>
+
+				<listitem>
+
+					<para>
+						Select the Order table by clicking on its title.
+					</para>
+
+				</listitem>
+
+				<listitem>
+
+					<para>
+						Click the Insert Column field and, as before,
+						rename the New Column, this time to
+						Shipping_Amount. Change its type to
+						Decimal(10,2).
+					</para>
+
+				</listitem>
+
+				<listitem>
+
+					<para>
+						Now we need to compare two different Data
+						Models, the original database and the current
+						project. Click the Compare DM icon. Set the
+						"Older" to Physical Database SampleDB (you may
+						need to change the Schema to Public). Set the
+						"Newer" to "Current Project" (since it is now
+						newer than the database you created in Step 6).
+						Set the output format to SQL.
+					</para>
+
+					<mediaobject>
+						<imageobject>
+							<imagedata
+								fileref="doc/images/example_9.png" format="PNG" width="4in" />
+						</imageobject>
+					</mediaobject>
+				</listitem>
+
+				<listitem>
+
+					<para>
+						Click Start. You should see the SQL Preview
+						window again, but this time with just an ADD for
+						the column you just added:
+					</para>
+
+					<mediaobject>
+						<imageobject>
+							<imagedata
+								fileref="doc/images/example_10.png" format="PNG" width="4in" />
+						</imageobject>
+					</mediaobject>
+				</listitem>
+
+				<listitem>
+
+					<para>
+						Click Execute, and the new column will be added
+						to your database table.
+					</para>
+
+				</listitem>
+
+			</orderedlist>
+
+			<para>
+				When you exit the program, it will ask to save your
+				project. Since you might want to alter this in future,
+				to experiment with some of the other tools without
+				damaging any live data, you may wish to save the Project
+				file.
+			</para>
+
+			<para>
+				The remainder of this document provides a more
+				comprehensive explanation of the various functions that
+				Power*Architect offers.
+			</para>
+
+		</section>
+
+		<section id="diagram_components">
+
+			<title>Using Diagram Components</title>
+
+			<section id="new_table">
+
+				<title>Creating New Tables</title>
+
+				<para>
+					<inlinemediaobject>
+						<imageobject>
+							<imagedata
+								fileref="src/icons/NewTable24.gif" format="GIF" />
+						</imageobject>
+					</inlinemediaobject>
+					There are several ways to create new tables in
+					Power*Architect. The first way is to click on the
+					New Table Icon on the sidebar menu. The cursor turns
+					into a "+" cursor indicating the mode change. Simply
+					click on the playpen on the spot you desire to place
+					the new table at. The second method to create a
+					table is to right click on the playpen and select
+					the "New Table" option. A newly created table will
+					then be placed at the point of the right click. A
+					third way is to type the letter T with the mouse
+					over the playpen.
+				</para>
+
+			</section>
+
+			<section id="edit_table">
+
+				<title>Editing Tables</title>
+
+				<para>
+					<inlinemediaobject>
+						<imageobject>
+							<imagedata
+								fileref="src/icons/TableProperties24.gif" format="GIF" />
+						</imageobject>
+					</inlinemediaobject>
+					To edit a table, right click on the table title and
+					select "Table Properties". This pops up the Table
+					Properties dialog.
+				</para>
+
+				<mediaobject>
+					<imageobject>
+						<imagedata
+							fileref="doc/images/Table_Properties.png" format="PNG"
+							width="4in" />
+					</imageobject>
+				</mediaobject>
+				<para>In this dialog, you can:</para>
+
+				<itemizedlist>
+
+					<listitem>
+
+						<para>Change the name of the table</para>
+
+					</listitem>
+
+					<listitem>
+
+						<para>
+							Rename the primary key section of the table
+						</para>
+
+					</listitem>
+
+					<listitem>
+
+						<para>Add comments/notes about the table</para>
+
+					</listitem>
+
+				</itemizedlist>
+
+			</section>
+
+			<section id="new_column">
+
+				<title>Creating New Columns</title>
+
+				<para>
+					<inlinemediaobject>
+						<imageobject>
+							<imagedata
+								fileref="src/icons/NewColumn24.gif" format="GIF" />
+						</imageobject>
+					</inlinemediaobject>
+					First select the table the new column will be placed
+					in. Click on the "Insert Column" button and a column
+					is created in the selected table. Another way to add
+					a new column is to right click on a table and select
+					the "New Column..." option. The new column will be
+					added to the table below the selected column. It
+					will be placed at the bottom of the table if no
+					columns are selected. If a table has existing
+					columns in the primary key and you wish to create
+					new columns within the primary key, select a column
+					that is already in the desired primary key and then
+					create a new column. The newly created column will
+					be placed within the primary key as well.
+				</para>
+
+			</section>
+
+			<section id="edit_column">
+
+				<title>Editing Columns</title>
+
+				<para>
+					<inlinemediaobject>
+						<imageobject>
+							<imagedata
+								fileref="src/icons/ColumnProperties24.gif" format="GIF" />
+						</imageobject>
+					</inlinemediaobject>
+					Select the desired column, right click and select
+					"Column Properties". The Edit Column Properties
+					dialog pops up. Or you can select the column and
+					click the "Edit Column" button on the Playpen
+					toolbar.
+				</para>
+
+				<mediaobject>
+					<imageobject>
+						<imagedata
+							fileref="doc/images/Column_properties.png" format="PNG"
+							width="4in" />
+					</imageobject>
+				</mediaobject>
+				<para>In this dialog, you can:</para>
+
+				<itemizedlist>
+
+					<listitem>
+
+						<para>Rename the column</para>
+
+					</listitem>
+
+					<listitem>
+
+						<para>
+							Change the type of data the column holds
+						</para>
+
+					</listitem>
+
+					<listitem>
+
+						<para>Set the precision of the data</para>
+
+					</listitem>
+
+					<listitem>
+
+						<para>Set the scale</para>
+
+					</listitem>
+
+					<listitem>
+
+						<para>
+							Indicate if the column is in the primary key
+							or not
+						</para>
+
+					</listitem>
+
+					<listitem>
+
+						<para>
+							Indicate if the column should handle null
+							information or not
+						</para>
+
+					</listitem>
+
+					<listitem>
+
+						<para>
+							Indicate if auto increment is allowed or not
+						</para>
+
+					</listitem>
+
+					<listitem>
+
+						<para>
+							Add additional comments about the column
+						</para>
+
+					</listitem>
+
+					<listitem>
+
+						<para>Set a default value for the column</para>
+
+					</listitem>
+
+				</itemizedlist>
+
+				<para>
+					A special feature of the Power*Architect is that if
+					a column orginated from a database, the
+					Power*Architect is able to remember the database and
+					table it orginated from.
+				</para>
+
+			</section>
+
+			<section id="drag_columns">
+
+				<title>Dragging Columns</title>
+
+				<para>
+					The Power*Architect allows you to drag columns
+					within a table&apos;s key and from table to table
+					freely. Simply select the desired columns and drag
+					them into the desired destination. For now, only one
+					column can be moved at a time.
+				</para>
+
+			</section>
+
+			<section id="create_relationship">
+
+				<title>
+					Creating Non-Identifying and Identifying
+					Relationships
+				</title>
+
+				<para>
+					<inlinemediaobject>
+						<imageobject>
+							<imagedata
+								fileref="src/icons/NewIdentifyingRelationship24.gif"
+								format="GIF" />
+						</imageobject>
+					</inlinemediaobject>
+					<inlinemediaobject>
+						<imageobject>
+							<imagedata
+								fileref="src/icons/NewNonIdentifyingRelationship24.gif"
+								format="GIF" />
+						</imageobject>
+					</inlinemediaobject>
+					To create a relationship, select the desired type of
+					relationship on the Playpen ToolBar. The
+					non-identifying relationship icon is
+					<inlinemediaobject>
+						<imageobject>
+							<imagedata
+								fileref="src/icons/NewNonIdentifyingRelationship24.gif"
+								format="GIF" />
+						</imageobject>
+					</inlinemediaobject>
+					(keyboard shortcut is shift+R). The identifying
+					relationship icon is identified by
+					<inlinemediaobject>
+						<imageobject>
+							<imagedata
+								fileref="src/icons/NewIdentifyingRelationship24.gif"
+								format="GIF" />
+						</imageobject>
+					</inlinemediaobject>
+					(shortcut key is R). The cursor changes to the "+"
+					cursor to indicate the mode change. First click on
+					the parent table and then click on the child table.
+					Once this has been done, the relationship will be
+					created, and will appear as a link between the two
+					tables.
+				</para>
+
+			</section>
+
+			<section id="edit_relationship">
+
+				<title>Editing a Relationship</title>
+
+				<para>
+					<inlinemediaobject>
+						<imageobject>
+							<imagedata
+								fileref="src/icons/RelationshipProperties24.gif" format="GIF" />
+						</imageobject>
+					</inlinemediaobject>
+					Select the desired relationship and right click on
+					the relationship. Choose the "Relationship
+					Properties" options. This can also be done by
+					selecting the relationship and clicking on the
+					relationship properties button. In both cases, the
+					Relationship Properties dialog will appear.
+				</para>
+
+				<mediaobject>
+					<imageobject>
+						<imagedata
+							fileref="doc/images/relationship_properties.png" format="PNG"
+							width="4in" />
+					</imageobject>
+				</mediaobject>
+				<para>In this dialog, you can:</para>
+
+				<itemizedlist>
+
+					<listitem>
+
+						<para>Rename the relationship</para>
+
+					</listitem>
+
+					<listitem>
+
+						<para>Choose the relationship type</para>
+
+					</listitem>
+
+					<listitem>
+
+						<para>
+							Change the primary key end cardinality
+						</para>
+
+					</listitem>
+
+					<listitem>
+
+						<para>
+							Change the foreign key end cardinality
+						</para>
+
+					</listitem>
+
+				</itemizedlist>
+
+			</section>
+
+			<section id="multiple_selection">
+
+				<title>Selecting Multiple Items in the Playpen</title>
+
+				<para>
+					There are two ways to select multiple items in the
+					playpen. One way is to hold down the shift key or
+					the ctrl key as more items are being selected. The
+					alternative method is to use the selection box.
+				</para>
+
+			</section>
+
+			<section id="move_object">
+
+				<title>Relocating Objects in the Playpen</title>
+
+				<para>
+					The Power*Architect allows diagram objects to move
+					around freely in the playpen. To do so, first select
+					the items you want to move in the Playpen. Click and
+					hold on one of the selected item and drag the items
+					to a desired spot on the playpen.
+				</para>
+
+			</section>
+
+			<section id="delete_object">
+
+				<title>Deleting Diagram Components</title>
+
+				<para>
+					Select the desired diagram components on the playpen
+					and click on the delete items button on the Playpen
+					Toolbar. It is also possible to delete the selected
+					items by right clicking on one of the components and
+					selecting "Delete Selected".
+				</para>
+
+			</section>
+
+		</section>
+
+		<section id="db_usage">
+
+			<title>Database Usage in Power*Architect</title>
+
+			<section id="new_connection">
+
+				<title>
+					Adding a New Connection to the Power*Architect
+				</title>
+
+				<para>
+					To add a new connection, go to "Add Connections"
+					under "Connections" and select "New Connection.." at
+					the top. The other method is to right click a white
+					space on the Database Tree and select "New
+					Connection" under "Add Connections". Both ways open
+					up this dialog:
+				</para>
+
+				<mediaobject>
+					<imageobject>
+						<imagedata
+							fileref="doc/images/db_connection_properties.png" format="PNG"
+							width="4in" />
+					</imageobject>
+				</mediaobject>
+				<para>
+					You must know which JDBC driver to use before you
+					can connect to a database. When you have selected
+					the JDBC Driver, the Connect Options will change to
+					allow you to enter the particular parameters that
+					the given database driver needs. If you are using
+					one of the fully-supported drivers, then as you
+					enter these parameters, they will be added into the
+					"JDBC URL" field in the order that the Java driver
+					expects to see them (this string is sometimes called
+					a "db URL" in Java terminology). In the example
+					below, we&apos;ve selected the PostgreSQL driver and
+					entered the hostname and database name (the "port
+					number" was already filled in; do not change this
+					unless the database server software has been
+					reconfigured to use a different value).
+				</para>
+
+				<para>
+					When you are finished, press the OK button. Any new
+					connection will automatically be added in the
+					user-preference.
+				</para>
+
+				<mediaobject>
+					<imageobject>
+						<imagedata
+							fileref="doc/images/new_connection.png" format="PNG" width="4in" />
+					</imageobject>
+				</mediaobject>
+				<para>
+					Note: if you have too many connections (more than
+					the height of the Architect window), the Architect
+					does not have the ability to show all of them.
+				</para>
+
+			</section>
+
+			<section id="add_connection">
+
+				<title>Adding an Existing Connection</title>
+
+				<para>
+					Right click on empty space in the Database Tree and
+					go to "Add Connection", there it shows all databases
+					that were previously stored on the Architect
+				</para>
+
+			</section>
+
+			<section id="edit_connection">
+
+				<title>Editing Database Connection Properties</title>
+
+				<para>
+					Select the database connection you wish to change
+					and go to "Connections" and select the option
+					"Connection Properties..", this leads you to the
+					Connection Setting dialog. An alternate solution is
+					to right click on the database and select
+					"Connection Properties..." option.
+				</para>
+
+			</section>
+
+			<section id="remove_connection">
+
+				<title>Removing a Database Connection</title>
+
+				<para>
+					Select the database connection you wish to change
+					and go to "Connections" and select the option
+					"Remove Connection..". Right clicking on the
+					database connection and selecting "Remove
+					Connection.." will perform the same action.
+				</para>
+
+			</section>
+
+			<section id="project_database">
+
+				<title>Setting the Current Project Database</title>
+
+				<para>
+					<inlinemediaobject>
+						<imageobject>
+							<imagedata
+								fileref="src/icons/TargetDatabaseArrow16.gif" format="GIF" />
+						</imageobject>
+					</inlinemediaobject>
+					The project database can be set to an existing
+					database connection or the user can create a new
+					connection for it as well. Setting the project
+					database can be achieved in one of several ways. The
+					first method is to right click on any empty space on
+					the Playpen and go to "Set Target Database". Another
+					option is to right-click on the Target Database (the
+					target database can always be identified by this
+					icon: ) and choose "Set Target Database" from there.
+				</para>
+
+			</section>
+
+			<section id="dbtree_nav">
+
+				<title>Navigating through the Database Tree</title>
+
+				<para>
+					The Database Tree works like a tree-dropdown model.
+					Clicking on any item will cause the component to
+					expand display the items under that specific
+					component. Each item will have an unique icon beside
+					its name to identify the type of object it is. The
+					table below shows what each icon means:
+				</para>
+
+				<table id="dbtree_icons">
+
+					<title>Database Tree Icons</title>
+
+					<tgroup cols="2">
+
+						<thead>
+
+							<row>
+								<entry>Icon</entry>
+								<entry>Representation</entry>
+							</row>
+
+						</thead>
+
+						<tbody>
+
+							<row>
+								<entry>
+									<inlinemediaobject>
+										<imageobject>
+											<imagedata
+												fileref="src/icons/Database16.gif" format="GIF" />
+										</imageobject>
+									</inlinemediaobject>
+								</entry>
+								<entry>Database</entry>
+							</row>
+
+							<row>
+								<entry>
+									<inlinemediaobject>
+										<imageobject>
+											<imagedata
+												fileref="src/icons/Catalog16.gif" format="GIF" />
+										</imageobject>
+									</inlinemediaobject>
+								</entry>
+								<entry>Catalog</entry>
+							</row>
+
+							<row>
+								<entry>
+									<inlinemediaobject>
+										<imageobject>
+											<imagedata
+												fileref="src/icons/Schema16.gif" format="GIF" />
+										</imageobject>
+									</inlinemediaobject>
+								</entry>
+								<entry>Schema</entry>
+							</row>
+
+							<row>
+								<entry>
+									<inlinemediaobject>
+										<imageobject>
+											<imagedata
+												fileref="src/icons/Owner16.gif" format="GIF" />
+										</imageobject>
+									</inlinemediaobject>
+								</entry>
+								<entry>Owner</entry>
+							</row>
+
+							<row>
+								<entry>
+									<inlinemediaobject>
+										<imageobject>
+											<imagedata
+												fileref="src/icons/Table16.gif" format="GIF" />
+										</imageobject>
+									</inlinemediaobject>
+								</entry>
+								<entry>Table</entry>
+							</row>
+
+							<row>
+								<entry>
+									<inlinemediaobject>
+										<imageobject>
+											<imagedata
+												fileref="src/icons/ExportedKey16.gif" format="GIF" />
+										</imageobject>
+									</inlinemediaobject>
+								</entry>
+								<entry>Exported Key</entry>
+							</row>
+
+							<row>
+								<entry>
+									<inlinemediaobject>
+										<imageobject>
+											<imagedata
+												fileref="src/icons/ImportedKey16.gif" format="GIF" />
+										</imageobject>
+									</inlinemediaobject>
+								</entry>
+								<entry>Imported Key</entry>
+							</row>
+
+						</tbody>
+
+					</tgroup>
+
+				</table>
+
+			</section>
+
+			<section id="dbtree_move">
+
+				<title>Moving Items from the Database Tree</title>
+
+				<para>
+					To copy items from the Database Tree to the playpen,
+					simply select the desired items in the tree and drag
+					them onto the playpen. Depending on the size of the
+					items dragged onto the playpen, it will take some
+					time to load.
+				</para>
+
+			</section>
+
+		</section>
+
+		<section id="find">
+
+			<title>Find/Replace Function</title>
+
+			<section id="find.what">
+
+				<title>What It Does</title>
+
+				<para>
+					This functions searches the whole playpen for any
+					relevant matches with the search constraints and
+					displays the resulting matches. The user can request
+					for those items to be focused on the screen.
+				</para>
+
+				<mediaobject>
+					<imageobject>
+						<imagedata fileref="doc/images/find.png"
+							format="PNG" width="4in" />
+					</imageobject>
+				</mediaobject>
+			</section>
+
+			<section id="find.use">
+
+				<title>How to Use Find / Replace Function:</title>
+
+				<para>
+					Go to "Edit" under the menu bar and click on
+					Find/Replace option. This shows the Find/Replace
+					function. In this window, enter the search
+					constraints and press "OK" when you are finished.
+					This will popup a new window with your search result
+					in a chart format.
+				</para>
+
+				<para>
+					You can rename the component by selecting the column
+					in the list and clicking on "Rename Component". You
+					can also have Power*Architect focus on a certain
+					component by selecting the component in the list and
+					press the "Show in Playpen" button.
+				</para>
+
+			</section>
+
+		</section>
+
+		<section id="profiling">
+			<title>Profiling</title>
+			<para>
+				Profiling displays a summary of the data found in a
+				database. The summary can be used for such tasks as;
+				database optimization and data migration.
+
+				Select the columns and tables that you wish to profile
+				from the database tree on the left hand side of the
+				screen. Then activate the profile feature by either
+				going to the “Profile” menu and selecting “Profile...”,
+				or by right clicking on a selected item and select
+				“Profile..” from the context menu, or by selecting the
+				Profile Icon
+				<inlinemediaobject>
+					<imageobject>
+						<imagedata fileref="doc/images/profile_icon.png"
+							format="PNG" />
+					</imageobject>
+				</inlinemediaobject>
+				in the Advanced Tool icon bar.
+
+				If there is still an existing Profile window, the new
+				profiling results will be added on to the existing
+				window, otherwise, the resulting profile will be
+				displayed in a new window.
+			</para>
+
+			<section id="profiling.tableView">
+				<title>Table View</title>
+				<para>
+					In the profiling window, the profiling information
+					is sortable. Simply click on the column header and
+					it will sort the data by ascending or decesending
+					order.
+
+					In addition, if you place your mouse pointer over a
+					most frequent cell, it will display the value and
+					frequency of the most recurring items in the column.
+
+					You can narrow down the results by using the search
+					bar on the top right corner of the profile window.
+
+					To delete columns from the profile result, simply
+					select the desired columns and press the “Delete”
+					button.
+
+					As for refreshing the data within the profile table,
+					select any one of the columns within the table and
+					hit “Refresh”. This will update the contents of the
+					whole table.
+
+					If you wish the save the profile results, you can
+					highlight the desired columns to save, and click the
+					“Save” button. If no column is selected, the
+					Architect will save all the displayed results. You
+					have the option to save it in CVS, PDF or HTML
+					format.
+				</para>
+					<mediaobject>
+						<imageobject>
+							<imagedata
+								fileref="doc/images/profileTable.png" format="PNG"/>
+						</imageobject>
+					</mediaobject>
+			</section>
+
+			<section id="profiling.graphView">
+				<title>Graph View</title>
+				<para>
+					Besides the tabular view, there is also the
+					graphical view. Simply click on “Graph View” tab on
+					the top to switch. On the left side of this window,
+					you can select which column you want to profile. In
+					the middle, it will show statistics about that
+					particular column. It will also display the most
+					frequent 'n' values and its frequency within the
+					table. The pie chart on the right displays the
+					portionality of the most frequent 'n' values in the
+					column (the value of 'n' can be set in the “Project
+					Settings” under the “File” menu).
+				</para>
+				<mediaobject>
+						<imageobject>
+							<imagedata
+								fileref="doc/images/profilePieChart.png" format="PNG"/>
+						</imageobject>
+					</mediaobject>
+			</section>
+		</section>
+
+		<section id="forward_engineer_and_compare_dm">
+
+			<title>Forward Engineering and Compare Data Model</title>
+
+			<para>
+				These two functions are similar; they both involve using
+				the PlayPen (usually) and generating SQL. The Forward
+				Engineer function always creates a SQL script to
+				generate a database identical with the complete current
+				project (current PlayPen contents). The Compare DM
+				function can output either an English-language
+				description or a SQL script describing the differences
+				between two databases, or stored projects, or one of
+				these and the PlayPen.
+			</para>
+
+			<section id="forward_engineer">
+
+				<title>Forward Engineering</title>
+
+				<section id="forward_engineer.what">
+
+					<title>What It Does</title>
+
+					<para>
+						Forward Engineering creates a SQL Script that
+						can be run to update or put the components of
+						the current Playpen into a database
+					</para>
+
+				</section>
+
+				<section id="forward_engineer.how">
+
+					<title>How To Use Forward Engineering</title>
+
+					<para>
+						<inlinemediaobject>
+							<imageobject>
+								<imagedata
+									fileref="src/icons/ForwardEngineer24.gif" format="GIF" />
+							</imageobject>
+						</inlinemediaobject>
+						First set the target connection to the database
+						you want the changes to be made in. Then go to
+						"Tools" and click "Forward Engineering". Another
+						way is to press the "Forward Engineering" button
+						at the top. This pops up a dialog that looks
+						similar to the one below:
+					</para>
+
+					<mediaobject>
+						<imageobject>
+							<imagedata
+								fileref="doc/images/forward_engineer.png" format="PNG"
+								width="4in" />
+						</imageobject>
+					</mediaobject>
+					<para>
+						Fill in the fields as necessary and hit "OK"
+						when you are done. Depending on the situation, a
+						dialog warning you of possible side-effects of
+						creating the script may pop up. Finally a script
+						that would create data structure currently in
+						the Playpen will be displayed. It is the same
+						dialog used in CompareDataModel-Part 2- In SQL
+						Script.
+					</para>
+
+					<mediaobject>
+						<imageobject>
+							<imagedata
+								fileref="doc/images/preview_sql.png" format="PNG" width="4in" />
+						</imageobject>
+					</mediaobject>
+				</section>
+
+			</section>
+
+			<section id="compare_dm">
+
+				<title>Compare Data Model Function</title>
+
+				<section id="compare_dm.what">
+
+					<title>What It Does</title>
+
+					<para>
+						The Compare DataModel Function takes two
+						databases or Power*Architect projects (or one of
+						each) or the current PlayPen, and compares and
+						contrasts the structure of the two
+						database/projects.
+					</para>
+
+				</section>
+
+				<section id="compare_dm.how">
+
+					<title>
+						How to use Compare Data Model Function:
+					</title>
+
+					<section id="compare_dm.how.1">
+
+						<title>Part 1</title>
+
+						<para>
+							<inlinemediaobject>
+								<imageobject>
+									<imagedata
+										fileref="src/icons/CompareDatabases24.gif" format="GIF" />
+								</imageobject>
+							</inlinemediaobject>
+							To start the Compare Data Model Function,
+							either go to "Tools" and click "Compare Data
+							Model" or just click the "Compare Data
+							Model" icon on the project toolbar. This
+							will bring up the main Compare Data Model
+							window. Here select the source and target
+							models you want to compare and contrast. You
+							can choose either the current playpen, an
+							existing database or select a saved project
+							file function. If one of or both the source
+							and the target has invalid models, the start
+							button will not enable. The similarities and
+							differences can be displayed either in SQL
+							Script language or in English.
+						</para>
+
+						<mediaobject>
+							<imageobject>
+								<imagedata
+									fileref="doc/images/compare_dm.png" format="PNG" width="4in" />
+							</imageobject>
+						</mediaobject>
+					</section>
+
+					<section id="compare_dm.how.2">
+
+						<title>Part 2</title>
+
+						<section id="compare_dm.how.2.english">
+
+							<title>English Descriptions</title>
+
+							<para>
+								If this option is selected, a
+								side-by-side document will be displayed
+								stating the similarlities and
+								differences of the source and target in
+								plain English. The left text gives
+								English descriptions to make the source
+								database look like the target database.
+								In addition to the text, they are also
+								colour coded. You can copy the text to
+								the clipboard by pressing the copy
+								button, or save the results to a text
+								file. The table below explains what each
+								colour means.
+							</para>
+
+							<table
+								id="compare_dm.how.2.english.colour_codes">
+
+								<title>
+									Compare Database Model Colour Codes
+								</title>
+
+								<tgroup cols="2">
+
+									<thead>
+
+										<row>
+											<entry>Colour</entry>
+											<entry>
+												Explanation of the
+												Colour Code
+											</entry>
+										</row>
+
+									</thead>
+
+									<tbody>
+
+										<row>
+											<entry id="black_colour">
+												Black
+											</entry>
+											<entry>
+												This component exists in
+												both databases
+											</entry>
+										</row>
+
+										<row>
+											<entry id="green_colour">
+												Green
+											</entry>
+											<entry>
+												This component only
+												exists in this database
+												but not the other
+											</entry>
+										</row>
+
+										<row>
+											<entry id="red_colour">
+												Red
+											</entry>
+											<entry>
+												This component does not
+												exist on this database
+												but exists on the other
+											</entry>
+										</row>
+
+										<row>
+											<entry id="blue_colour">
+												Blue
+											</entry>
+											<entry>
+												This component is a
+												column and is on
+												different keys in the
+												two databases
+											</entry>
+										</row>
+
+									</tbody>
+
+								</tgroup>
+
+							</table>
+
+						</section>
+
+						<section id="compare_dm.how.2.SQL">
+
+							<title>In SQL Script</title>
+
+							<para>
+								If this option is chosen, this will
+								produce a SQL Script in the SQL dialect
+								chosen in Step 1 to make the source
+								database look like the target database.
+								You can either copy the results to the
+								clipboard, or save the results in a text
+								file. If the source has a valid
+								connection database, the Execute button
+								will enable and you can directly execute
+								the changes. If the source does not have
+								a valid connection, the execute button
+								is disabled.
+							</para>
+
+						</section>
+
+					</section>
+
+				</section>
+
+			</section>
+
+		</section>
+
+		<section id="autolayout">
+
+			<title>Autolayout</title>
+
+			<section id="autolayout.what">
+
+				<title>What It Does</title>
+
+				<para>
+					It displays the selected tables (or all tables) in
+					an organized manner.
+				</para>
+
+			</section>
+
+			<section id="autolayout.how">
+
+				<title>How to Use Autolayout:</title>
+
+				<para>
+					<inlinemediaobject>
+						<imageobject>
+							<imagedata
+								fileref="src/icons/AutoLayout24.gif" format="GIF" />
+						</imageobject>
+					</inlinemediaobject>
+					Select the tables on the playpen that you want to
+					organize and hit the autolayout button at the top.
+					If no table is selected, by default, the program
+					will autolayout every table in the playpen. Note
+					that if only one table is selected, AutoLayout will
+					not do anything; either select two or more tables,
+					or "click away" (not on any table) so that nothing
+					in the Playpen is selected, and click AutoLayout
+					again. Also note that the layout algorithm may
+					produce a few surprises when run with a small number
+					of tables; it works best for a large or medium-sized
+					collection of tables.
+				</para>
+
+			</section>
+
+		</section>
+
+		<section id="SQLRunner">
+
+			<title>SQLRunner</title>
+
+			<section id="SQLRunner.what">
+
+				<title>What It Does</title>
+
+				<para>
+					SQLRunner is a "fall-back" tool that lets you work
+					at the raw SQL command level. This is an advanced
+					topic and should only be used by (or made available
+					to) those familiar with the intricacies of SQL
+					commands and the details of your database; like a
+					sharp knife, this tool is very useful in the hands
+					of a skilled chef, but a slip of the fingers here
+					can be quite messy...
+				</para>
+
+				<para>
+					SQLRunner was written by Ian Darwin, and is
+					distributed under a liberal free-software,
+					open-source license which permits its inclusion in
+					programs such as Power*Architect.
+				</para>
+
+			</section>
+
+			<section id="SQLRunner.how">
+
+				<title>How to Use SQLRunner</title>
+
+				<para>
+					SQLRunner is started from the menu entry under the
+					Tools menu, and begins with the GUI window shown
+					below. The first thing you should do is select which
+					database connection you wish to use. The list of
+					Connections is the same as the main program uses, as
+					set up in the JDBC Connections window.
+				</para>
+
+				<para>
+					The basic steps to using SQLRunner are to type a
+					command in the top (SQL Command) window and click
+					the Run button; the results are displayed in the
+					bottom (SQL Results) window. To save you some
+					typing, there is a "Statement Template" mechanism
+					that will insert a template for SELECT, INSERT or
+					UPDATE SQL statements (just select the template you
+					want and click "Apply Template" and the template
+					will replace the current Input Statement.
+				</para>
+
+				<mediaobject>
+					<imageobject>
+						<imagedata fileref="doc/images/sqlrunner.png"
+							format="PNG" width="4in" />
+					</imageobject>
+				</mediaobject>
+				<para>
+					The command can actually be one of two kinds: either
+					one of a half-dozen escape commands listed below,
+					or, anything that is valid input to your
+					database&apos;s command interface (e.g., programs
+					such as psql or SQL*Plus™).
+				</para>
+
+				<table id="SQLRunner.escape_chars">
+
+					<title>SQLRunner Escape Characters</title>
+
+					<tgroup cols="2">
+
+						<thead>
+
+							<row>
+								<entry>Escape Sequence</entry>
+								<entry>Action</entry>
+							</row>
+
+						</thead>
+
+						<tbody>
+
+							<row>
+								<entry>\dt</entry>
+								<entry>
+									Describe list of all tables
+								</entry>
+							</row>
+
+							<row>
+								<entry>\dtT</entry>
+								<entry>
+									Describe column names of table named
+									T
+								</entry>
+							</row>
+
+							<row>
+								<entry>\dmX</entry>
+								<entry>
+									Set the mode, where X is the first
+									letter of the mode (t for text, s
+									for SQL, h for HTML or x for XML;
+									not needed in the embedded version
+									because the GUI has a control for
+									this)
+								</entry>
+							</row>
+
+							<row>
+								<entry>\oF</entry>
+								<entry>
+									Send output to the given file
+									instead of the screen (though you
+									can usually just view the output and
+									copy-and-paste to save parts of it
+									into a file; does not work in GUI
+									versions).
+								</entry>
+							</row>
+
+							<row>
+								<entry>\q</entry>
+								<entry>
+									Exit the program (not supported in
+									embedded versions).
+								</entry>
+							</row>
+
+						</tbody>
+
+					</tgroup>
+
+				</table>
+
+				<para>
+					SQL Statements are entered one at a time, can be
+					more than one line long, and need not end with a
+					semicolon. These statements are not interpreted by
+					SQLRunner itself, so anything that the given
+					database and driver accepts can be used. For
+					example, with Oracle™, you can use PL*SQL™
+					statements. With most drivers you should be able to
+					use stored procedures. Each SQL statement is
+					executed in its own transaction context, that is,
+					changes are committed immediately (so be careful!).
+				</para>
+
+			</section>
+
+			<section id="SQLRunner.results">
+
+				<title>Output (Results) Window</title>
+
+				<para>
+					Command Output in the chosen format (see below)
+					appears in the SQL Output window. A scrollbar will
+					appear if the information cannot all be seen at
+					once.
+				</para>
+
+				<para>
+					A visual indication of the success or failure of the
+					command is displayed below the output: green for
+					success, red for failure. As well, failures will be
+					accompanied by a pop-up window containing details on
+					the failure.
+				</para>
+
+				<para>
+					The Clear Output button clears the contents of the
+					output window.
+				</para>
+
+			</section>
+
+			<section id="SQLRunner.output_format">
+
+				<title>Output Formats</title>
+
+				<para>
+					There are several output modes for the display of
+					SQL "select" results: text, SQL, HTML and XML
+					(output from the escape commands are always
+					displayed as plain text). Text mode is the default,
+					and is primarily a raw display format. SQL output is
+					most useful with the output of a SELECT statement;
+					it will generate SQL that will attempt to re-create
+					the data in another database. HTML mode generates an
+					HTML table to display the results of a Select. XML
+					format is similar but may be used for exporting data
+					into other applications.
+				</para>
+
+				<para>
+					For example, with SQL mode selected, a "select *
+					from anecdotes" (a table in a sample bookstore web
+					site&apos;s database, used to display a casual
+					quotation about books) looked like this:
+				</para>
+
+				<mediaobject>
+					<imageobject>
+						<imagedata
+							fileref="doc/images/sqlrunner_output.png" format="PNG"
+							width="4in" />
+					</imageobject>
+				</mediaobject>
+				<para>
+					This could, as you can see, be used to create a SQL
+					script to re-create the contents of the database. In
+					fact, some developers use SQLRunner primarily for
+					this purpose: to create stable test databases from
+					"live" data that was created by their application.
+				</para>
+
+				<para>
+					You can view this same data in HTML just by changing
+					the Format selection to HTML and clicking the Run
+					button again:
+				</para>
+
+				<mediaobject>
+					<imageobject>
+						<imagedata
+							fileref="doc/images/sqlrunner_output_2.png" format="PNG"
+							width="4in" />
+					</imageobject>
+				</mediaobject>
+				<para>
+					When copied and pasted into an HTML file and viewed
+					in a browser, the output looked like this:
+				</para>
+
+				<mediaobject>
+					<imageobject>
+						<imagedata
+							fileref="doc/images/sqlrunner_html_output.png" format="PNG"
+							width="4in" />
+					</imageobject>
+				</mediaobject>
+				<para>
+					With a bit of formatting, or even a CSS style sheet,
+					this HTML page could be made quite usable.
+				</para>
+
+				<para>
+					SQLRunner is not perfect, but it is adequate for
+					many purposes involving direct use of SQL.
+				</para>
+
+			</section>
+
+		</section>
+
+		<section id="quick_start_wizard">
+
+			<title>Quick Start Wizard</title>
+
+			<section id="quick_start_wizard.what">
+
+				<title>What It Does</title>
+
+				<para>
+					The QuickStart Wizard is a simple five-step process
+					to set up a database using the Power*Loader.
+				</para>
+
+			</section>
+
+			<section id="quick_start_wizard.how">
+
+				<title>How to Use The Quick Start Wizard</title>
+
+				<para>
+					To run the QuickStart Wizard, go to ETL and click
+					QuickStart Wizard button under Power*Loader.
+				</para>
+
+				<section id="quick_start_wizard.how.1">
+
+					<title>Step 1</title>
+
+					<para>
+						Select the source playpen components you want
+						and click next.
+					</para>
+
+				</section>
+
+				<section id="quick_start_wizard.how.2">
+
+					<title>Step 2</title>
+
+					<para>Select or create the target database.</para>
+
+					<mediaobject>
+						<imageobject>
+							<imagedata
+								fileref="doc/images/quick_start_2.png" format="PNG" width="4in" />
+						</imageobject>
+					</mediaobject>
+				</section>
+
+				<section id="quick_start_wizard.how.3">
+
+					<title>Step 3</title>
+
+					<para>
+						Select or create the repository database and
+						fill in any additional information. The JobID
+						must be filled in order to continue.
+					</para>
+
+					<mediaobject>
+						<imageobject>
+							<imagedata
+								fileref="doc/images/quick_start_3.png" format="PNG" width="4in" />
+						</imageobject>
+					</mediaobject>
+				</section>
+
+				<section id="quick_start_wizard.how.4">
+
+					<title>Step 4</title>
+
+					<para>
+						A SQL Script will be created; you can review the
+						script and if you wish to execute it, press
+						"Execute"
+					</para>
+
+				</section>
+
+				<section id="quick_start_wizard.how.5">
+
+					<title>Step 5</title>
+
+					<para>
+						A summary report of the process will be shown.
+					</para>
+
+				</section>
+
+			</section>
+
+		</section>
+
+	</chapter>
+
+	<chapter id="db_product_notes">
+
+		<title>Database Product Notes</title>
+
+		<informaltable frame="all" id="db_notes_table">
+
+			<tgroup cols="2">
+
+				<thead>
+
+					<row>
+						<entry>
+							<para>Database</para>
+						</entry>
+						<entry>
+							<para>Notes</para>
+						</entry>
+					</row>
+
+				</thead>
+
+				<tbody>
+
+					<row>
+						<entry>
+							<para>Oracle</para>
+						</entry>
+						<entry>
+							<para>Is fully supported.</para>
+						</entry>
+					</row>
+
+					<row>
+						<entry>
+							<para>SQL Server</para>
+						</entry>
+						<entry>
+							<para>Is fully supported.</para>
+						</entry>
+					</row>
+
+					<row>
+						<entry>
+							<para>PostgreSQL</para>
+						</entry>
+						<entry>
+							<para>Is fully supported.</para>
+						</entry>
+					</row>
+
+					<row>
+						<entry>
+							<para>IBM DB2</para>
+						</entry>
+						<entry>
+							<para>Is fully supported.</para>
+						</entry>
+					</row>
+
+					<row>
+						<entry>
+							<para>HSQLDB</para>
+						</entry>
+						<entry>
+							<para>Works; used in samples.</para>
+						</entry>
+					</row>
+
+					<row>
+						<entry>
+							<para>Derby</para>
+						</entry>
+						<entry>
+							<para>
+								Does not work; the current version
+								(10.1.2) has what we consider some
+								unwarranted chumminess with the JDBC
+								Driver Manager that breaks because we
+								use our own Java "ClassLoader"
+							</para>
+						</entry>
+					</row>
+
+					<row>
+						<entry>
+							<para>MySQL</para>
+						</entry>
+						<entry>
+							<para>Not tested yet.</para>
+						</entry>
+					</row>
+
+				</tbody>
+
+			</tgroup>
+
+		</informaltable>
+
+	</chapter>
+
+	<chapter id="troubleshooting">
+
+		<title>Troubleshooting</title>
+
+		<para>
+			We have worked hard to ensure that Power*Architect works
+			correctly. However there are probably always going to be
+			some combinations of different database products and
+			database configurarations, user actions, computer setups,
+			and so on, that just don&apos;t work. We apologize in
+			advance for any inconvenience this may cause...
+		</para>
+
+		<para>
+			If you are having trouble with Power*Architect, we may ask
+			that, in order to help us to diagnose the problem, you take
+			some or all of the following actions:
+		</para>
+
+		<itemizedlist>
+
+			<listitem>
+
+				<para>
+					Prepare a description of what you were doing
+				</para>
+
+			</listitem>
+
+			<listitem>
+
+				<para>
+					Prepare a copy of any errors you encountered
+				</para>
+
+			</listitem>
+
+			<listitem>
+
+				<para>
+					Post your problem to the
+					<ulink
+						url="http://www.sqlpower.ca/forum/forums/show/2.page">
+						Power*Architect help forum
+					</ulink>
+				</para>
+
+			</listitem>
+
+		</itemizedlist>
+
+	</chapter>
+
+	<chapter id="glossary">
+
+		<title>Glossary</title>
+
+		<para>
+			This section lists some database-related terms and their
+			meanings.
+		</para>
+
+		<informaltable frame="all" id="glossary_table">
+
+			<tgroup cols="2">
+
+				<tbody>
+
+					<row>
+						<entry>
+							<para>Column</para>
+						</entry>
+						<entry>
+							<para>
+								The set of all instances of a given
+								field from all records in a
+								<ulink
+									url="http://foldoc.org/foldoc/foldoc.cgi?table">
+									table
+								</ulink>
+								.
+							</para>
+						</entry>
+					</row>
+
+					<row>
+						<entry>
+							<para>Database</para>
+						</entry>
+						<entry>
+							<para>
+								One or more large structured sets of
+								persistent data, usually associated with
+								software to update and
+								<ulink
+									url="http://foldoc.org/foldoc/foldoc.cgi?query">
+									query
+								</ulink>
+								the data. A simple database might be a
+								single file containing many
+								<ulink
+									url="http://foldoc.org/foldoc/foldoc.cgi?records">
+									records
+								</ulink>
+								, each of which contains the same set of
+								<ulink
+									url="http://foldoc.org/foldoc/foldoc.cgi?fields">
+									fields
+								</ulink>
+								where each field is a certain fixed
+								width.
+							</para>
+						</entry>
+					</row>
+
+					<row>
+						<entry>
+							<para>Data Modelling</para>
+						</entry>
+						<entry>
+							<para>
+								The product of the database design
+								process which aims to identify and
+								organize the required data logically and
+								physically.
+							</para>
+						</entry>
+					</row>
+
+					<row>
+						<entry>
+							<para>Data Warehousing</para>
+						</entry>
+						<entry>
+							<para>
+								A database, often remote, containing
+								recent snapshots of corporate data.
+								Planners and researchers can use this
+								database freely without worrying about
+								slowing down day-to-day operations of
+								the production database.
+							</para>
+						</entry>
+					</row>
+
+					<row>
+						<entry>
+							<para>ETL</para>
+						</entry>
+						<entry>
+							<para>
+								Extraction, Transforming and Loading –
+								the process of maintaining and
+								transforming data into and out of a
+								relational database.
+							</para>
+						</entry>
+					</row>
+
+					<row>
+						<entry>
+							<para>Foreign key</para>
+						</entry>
+						<entry>
+							<para>
+								A
+								<ulink
+									url="http://foldoc.org/foldoc/foldoc.cgi?column">
+									column
+								</ulink>
+								in a database
+								<ulink
+									url="http://foldoc.org/foldoc/foldoc.cgi?table">
+									table
+								</ulink>
+								containing values that are also found in
+								some
+								<ulink
+									url="http://foldoc.org/foldoc/foldoc.cgi?primary+key">
+									primary key
+								</ulink>
+								column (of a different table). By
+								extension, any reference to entities of
+								a different type.
+							</para>
+							<para>
+								Some
+								<ulink
+									url="http://foldoc.org/foldoc/foldoc.cgi?RDBMSs">
+									RDBMSs
+								</ulink>
+								allow a column to be explicitly labelled
+								as a foreign key and only allow values
+								to be inserted if they already exist in
+								the relevant primary key column.
+							</para>
+						</entry>
+					</row>
+
+					<row>
+						<entry>
+							<para>Identifying Relationship</para>
+						</entry>
+						<entry>
+							<para>
+								Where the key of the parent table is a
+								subset of the key of the child table.
+							</para>
+						</entry>
+					</row>
+
+					<row>
+						<entry>
+							<para>JDBC</para>
+						</entry>
+						<entry>
+							<para>
+								Java DataBase Connectivity, an
+								unofficial acronym for the "java.sql"
+								package of functionality used to access
+								relational databases from programs
+								written in the Java programming
+								language.
+							</para>
+						</entry>
+					</row>
+
+					<row>
+						<entry>
+							<para>Key</para>
+						</entry>
+						<entry>
+							<para>
+								A value used to identify a
+								<ulink
+									url="http://foldoc.org/foldoc/foldoc.cgi?record">
+									record
+								</ulink>
+								in a database, derived by applying some
+								fixed function to the record. The key is
+								often simply one of the
+								<ulink
+									url="http://foldoc.org/foldoc/foldoc.cgi?fields">
+									fields
+								</ulink>
+								(a
+								<ulink
+									url="http://foldoc.org/foldoc/foldoc.cgi?column">
+									column
+								</ulink>
+								if the database is considered as a table
+								with records being rows, see "
+								<ulink
+									url="http://foldoc.org/foldoc/foldoc.cgi?key+field">
+									key field
+								</ulink>
+								"). Alternatively the key may be
+								obtained by applying some function, e.g.
+								a
+								<ulink
+									url="http://foldoc.org/foldoc/foldoc.cgi?hash+function">
+									hash function
+								</ulink>
+								, to one or more of the fields. The set
+								of keys for all records forms an
+								<ulink
+									url="http://foldoc.org/foldoc/foldoc.cgi?index">
+									index
+								</ulink>
+								. Multiple indexes may be built for one
+								database depending on how it is to be
+								searched.
+							</para>
+						</entry>
+					</row>
+
+					<row>
+						<entry>
+							<para>Primary key</para>
+						</entry>
+						<entry>
+							<para>
+								The
+								<ulink
+									url="http://foldoc.org/foldoc/foldoc.cgi?candidate+key">
+									candidate key
+								</ulink>
+								selected as being most important for
+								identifying a body of information (an
+								entity, object or
+								<ulink
+									url="http://foldoc.org/foldoc/foldoc.cgi?record">
+									record
+								</ulink>
+								).
+							</para>
+						</entry>
+					</row>
+
+					<row>
+						<entry>
+							<para>Record (row)</para>
+						</entry>
+						<entry>
+							<para>
+								One or more structured sets of
+								persistent data, usually associated with
+								software to update and
+								<ulink
+									url="http://foldoc.org/foldoc/foldoc.cgi?query">
+									query
+								</ulink>
+								the data. A simple database might be a
+								single file containing many
+								<ulink
+									url="http://foldoc.org/foldoc/foldoc.cgi?records">
+									records
+								</ulink>
+								, each of which contains the same set of
+								<ulink
+									url="http://foldoc.org/foldoc/foldoc.cgi?fields">
+									fields
+								</ulink>
+								where each field is a certain fixed
+								width.
+							</para>
+						</entry>
+					</row>
+
+					<row>
+						<entry>
+							<para>SQL</para>
+						</entry>
+						<entry>
+							<para>
+								<ulink
+									url="http://en.wikipedia.org/wiki/SQL#History">
+									Originally SEQUEL
+								</ulink>
+								and still pronounced that way by many
+								practitioners, SQL is the Standard Query
+								Language; a unified language for
+								creating queries that is accepted (with
+								some variations) by all modern
+								relational databases.
+							</para>
+						</entry>
+					</row>
+
+					<row>
+						<entry>
+							<para>Table</para>
+						</entry>
+						<entry>
+							<para>
+								A collection of
+								<ulink
+									url="http://foldoc.org/foldoc/foldoc.cgi?records">
+									records
+								</ulink>
+								in a
+								<ulink
+									url="http://foldoc.org/foldoc/foldoc.cgi?relational+database">
+									relational database
+								</ulink>
+								.
+							</para>
+						</entry>
+					</row>
+
+				</tbody>
+
+			</tgroup>
+
+		</informaltable>
+
+		<para>
+			Some of these terms are from FolDoc, "The Free On-line
+			Dictionary of Computing", http://www.foldoc.org/, Editor
+			Denis Howe.
+		</para>
+
+	</chapter>
+
+	<chapter id="acknowledgements">
+		<title>Acknowledgements</title>
+
+		<section id="ASF">
+			<title>The Apache Software Foundation</title>
+			<para>
+				The Power*Architect development team is grateful to the
+				Apache Software Foundation and their contributors; their
+				high-quality reusable Java libraries have been
+				invaluable in the development of the Architect. The text
+				of the Apache License follows, because we are
+				redistributing several Apache libraries upon which the
+				Architect depends.
+			</para>
+
+			<para>
+				The following license applies to these library jar
+				files, which are distributed as part of the Architect
+				download:
+			</para>
+
+			<itemizedlist>
+				<listitem>
+					<para>commons-beanutils.jar</para>
+				</listitem>
+				<listitem>
+					<para>commons-digester.jar</para>
+				</listitem>
+				<listitem>
+					<para>commons-logging.jar</para>
+				</listitem>
+				<listitem>
+					<para>commons-beanutils-bean-collections.jar</para>
+				</listitem>
+				<listitem>
+					<para>commons-beanutils-core.jar</para>
+				</listitem>
+				<listitem>
+					<para>jakarta-regexp-1.2.jar</para>
+				</listitem>
+				<listitem>
+					<para>commons-collections-3.1.jar</para>
+				</listitem>
+				<listitem>
+					<para>commons-dbcp-1.2.1.jar</para>
+				</listitem>
+				<listitem>
+					<para>commons-pool-1.3.jar</para>
+				</listitem>
+			</itemizedlist>
+
+			<literallayout>
+				Apache License Version 2.0, January 2004
+				http://www.apache.org/licenses/
+
+				TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND
+				DISTRIBUTION
+
+				1. Definitions.
+
+				"License" shall mean the terms and conditions for use,
+				reproduction, and distribution as defined by Sections 1
+				through 9 of this document.
+
+				"Licensor" shall mean the copyright owner or entity
+				authorized by the copyright owner that is granting the
+				License.
+
+				"Legal Entity" shall mean the union of the acting entity
+				and all other entities that control, are controlled by,
+				or are under common control with that entity. For the
+				purposes of this definition, "control" means (i) the
+				power, direct or indirect, to cause the direction or
+				management of such entity, whether by contract or
+				otherwise, or (ii) ownership of fifty percent (50%) or
+				more of the outstanding shares, or (iii) beneficial
+				ownership of such entity.
+
+				"You" (or "Your") shall mean an individual or Legal
+				Entity exercising permissions granted by this License.
+
+				"Source" form shall mean the preferred form for making
+				modifications, including but not limited to software
+				source code, documentation source, and configuration
+				files.
+
+				"Object" form shall mean any form resulting from
+				mechanical transformation or translation of a Source
+				form, including but not limited to compiled object code,
+				generated documentation, and conversions to other media
+				types.
+
+				"Work" shall mean the work of authorship, whether in
+				Source or Object form, made available under the License,
+				as indicated by a copyright notice that is included in
+				or attached to the work (an example is provided in the
+				Appendix below).
+
+				"Derivative Works" shall mean any work, whether in
+				Source or Object form, that is based on (or derived
+				from) the Work and for which the editorial revisions,
+				annotations, elaborations, or other modifications
+				represent, as a whole, an original work of authorship.
+				For the purposes of this License, Derivative Works shall
+				not include works that remain separable from, or merely
+				link (or bind by name) to the interfaces of, the Work
+				and Derivative Works thereof.
+
+				"Contribution" shall mean any work of authorship,
+				including the original version of the Work and any
+				modifications or additions to that Work or Derivative
+				Works thereof, that is intentionally submitted to
+				Licensor for inclusion in the Work by the copyright
+				owner or by an individual or Legal Entity authorized to
+				submit on behalf of the copyright owner. For the
+				purposes of this definition, "submitted" means any form
+				of electronic, verbal, or written communication sent to
+				the Licensor or its representatives, including but not
+				limited to communication on electronic mailing lists,
+				source code control systems, and issue tracking systems
+				that are managed by, or on behalf of, the Licensor for
+				the purpose of discussing and improving the Work, but
+				excluding communication that is conspicuously marked or
+				otherwise designated in writing by the copyright owner
+				as "Not a Contribution."
+
+				"Contributor" shall mean Licensor and any individual or
+				Legal Entity on behalf of whom a Contribution has been
+				received by Licensor and subsequently incorporated
+				within the Work.
+
+				2. Grant of Copyright License. Subject to the terms and
+				conditions of this License, each Contributor hereby
+				grants to You a perpetual, worldwide, non-exclusive,
+				no-charge, royalty-free, irrevocable copyright license
+				to reproduce, prepare Derivative Works of, publicly
+				display, publicly perform, sublicense, and distribute
+				the Work and such Derivative Works in Source or Object
+				form.
+
+				3. Grant of Patent License. Subject to the terms and
+				conditions of this License, each Contributor hereby
+				grants to You a perpetual, worldwide, non-exclusive,
+				no-charge, royalty-free, irrevocable (except as stated
+				in this section) patent license to make, have made, use,
+				offer to sell, sell, import, and otherwise transfer the
+				Work, where such license applies only to those patent
+				claims licensable by such Contributor that are
+				necessarily infringed by their Contribution(s) alone or
+				by combination of their Contribution(s) with the Work to
+				which such Contribution(s) was submitted. If You
+				institute patent litigation against any entity
+				(including a cross-claim or counterclaim in a lawsuit)
+				alleging that the Work or a Contribution incorporated
+				within the Work constitutes direct or contributory
+				patent infringement, then any patent licenses granted to
+				You under this License for that Work shall terminate as
+				of the date such litigation is filed.
+
+				4. Redistribution. You may reproduce and distribute
+				copies of the Work or Derivative Works thereof in any
+				medium, with or without modifications, and in Source or
+				Object form, provided that You meet the following
+				conditions:
+
+				(a) You must give any other recipients of the Work or
+				Derivative Works a copy of this License; and
+
+				(b) You must cause any modified files to carry prominent
+				notices stating that You changed the files; and
+
+				(c) You must retain, in the Source form of any
+				Derivative Works that You distribute, all copyright,
+				patent, trademark, and attribution notices from the
+				Source form of the Work, excluding those notices that do
+				not pertain to any part of the Derivative Works; and
+
+				(d) If the Work includes a "NOTICE" text file as part of
+				its distribution, then any Derivative Works that You
+				distribute must include a readable copy of the
+				attribution notices contained within such NOTICE file,
+				excluding those notices that do not pertain to any part
+				of the Derivative Works, in at least one of the
+				following places: within a NOTICE text file distributed
+				as part of the Derivative Works; within the Source form
+				or documentation, if provided along with the Derivative
+				Works; or, within a display generated by the Derivative
+				Works, if and wherever such third-party notices normally
+				appear. The contents of the NOTICE file are for
+				informational purposes only and do not modify the
+				License. You may add Your own attribution notices within
+				Derivative Works that You distribute, alongside or as an
+				addendum to the NOTICE text from the Work, provided that
+				such additional attribution notices cannot be construed
+				as modifying the License.
+
+				You may add Your own copyright statement to Your
+				modifications and may provide additional or different
+				license terms and conditions for use, reproduction, or
+				distribution of Your modifications, or for any such
+				Derivative Works as a whole, provided Your use,
+				reproduction, and distribution of the Work otherwise
+				complies with the conditions stated in this License.
+
+				5. Submission of Contributions. Unless You explicitly
+				state otherwise, any Contribution intentionally
+				submitted for inclusion in the Work by You to the
+				Licensor shall be under the terms and conditions of this
+				License, without any additional terms or conditions.
+				Notwithstanding the above, nothing herein shall
+				supersede or modify the terms of any separate license
+				agreement you may have executed with Licensor regarding
+				such Contributions.
+
+				6. Trademarks. This License does not grant permission to
+				use the trade names, trademarks, service marks, or
+				product names of the Licensor, except as required for
+				reasonable and customary use in describing the origin of
+				the Work and reproducing the content of the NOTICE file.
+
+				7. Disclaimer of Warranty. Unless required by applicable
+				law or agreed to in writing, Licensor provides the Work
+				(and each Contributor provides its Contributions) on an
+				"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+				KIND, either express or implied, including, without
+				limitation, any warranties or conditions of TITLE,
+				NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
+				PARTICULAR PURPOSE. You are solely responsible for
+				determining the appropriateness of using or
+				redistributing the Work and assume any risks associated
+				with Your exercise of permissions under this License.
+
+				8. Limitation of Liability. In no event and under no
+				legal theory, whether in tort (including negligence),
+				contract, or otherwise, unless required by applicable
+				law (such as deliberate and grossly negligent acts) or
+				agreed to in writing, shall any Contributor be liable to
+				You for damages, including any direct, indirect,
+				special, incidental, or consequential damages of any
+				character arising as a result of this License or out of
+				the use or inability to use the Work (including but not
+				limited to damages for loss of goodwill, work stoppage,
+				computer failure or malfunction, or any and all other
+				commercial damages or losses), even if such Contributor
+				has been advised of the possibility of such damages.
+
+				9. Accepting Warranty or Additional Liability. While
+				redistributing the Work or Derivative Works thereof, You
+				may choose to offer, and charge a fee for, acceptance of
+				support, warranty, indemnity, or other liability
+				obligations and/or rights consistent with this License.
+				However, in accepting such obligations, You may act only
+				on Your own behalf and on Your sole responsibility, not
+				on behalf of any other Contributor, and only if You
+				agree to indemnify, defend, and hold each Contributor
+				harmless for any liability incurred by, or claims
+				asserted against, such Contributor by reason of your
+				accepting any such warranty or additional liability.
+
+				END OF TERMS AND CONDITIONS
+
+				APPENDIX: How to apply the Apache License to your work.
+
+				To apply the Apache License to your work, attach the
+				following boilerplate notice, with the fields enclosed
+				by brackets "[]" replaced with your own identifying
+				information. (Don't include the brackets!) The text
+				should be enclosed in the appropriate comment syntax for
+				the file format. We also recommend that a file or class
+				name and description of purpose be included on the same
+				"printed page" as the copyright notice for easier
+				identification within third-party archives.
+
+				Copyright [yyyy] [name of copyright owner]
+
+				Licensed under the Apache License, Version 2.0 (the
+				"License"); you may not use this file except in
+				compliance with the License. You may obtain a copy of
+				the License at
+
+				http://www.apache.org/licenses/LICENSE-2.0
+
+				Unless required by applicable law or agreed to in
+				writing, software distributed under the License is
+				distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+				CONDITIONS OF ANY KIND, either express or implied. See
+				the License for the specific language governing
+				permissions and limitations under the License.
+			</literallayout>
+		</section>
+
+		<section id="JGoodies">
+			<title>JGoodies Karsten Lentzsch</title>
+
+			<para>
+				The Power*Architect team is also grateful to JGoodies
+				for their excellent forms layout manager for Swing.
+				JGoodies forms is released under the BSD license,
+				reproduced below.
+			</para>
+
+			<para>
+				The following license applies to these library jar
+				files, which are distributed as part of the Architect
+				download:
+			</para>
+
+			<itemizedlist>
+				<listitem>
+					<para>forms-1.0.6.jar</para>
+				</listitem>
+			</itemizedlist>
+
+			<literallayout>
+				The BSD License for the JGoodies Forms
+				======================================
+
+				Copyright (c) 2002-2006 JGoodies Karsten Lentzsch. All
+				rights reserved.
+
+				Redistribution and use in source and binary forms, with
+				or without modification, are permitted provided that the
+				following conditions are met:
+
+				o Redistributions of source code must retain the above
+				copyright notice, this list of conditions and the
+				following disclaimer.
+
+				o Redistributions in binary form must reproduce the
+				above copyright notice, this list of conditions and the
+				following disclaimer in the documentation and/or other
+				materials provided with the distribution.
+
+
+				o Neither the name of JGoodies Karsten Lentzsch nor the
+				names of its contributors may be used to endorse or
+				promote products derived from this software without
+				specific prior written permission.
+
+				THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+				CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+				WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+				WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+				PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+				COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY
+				DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+				CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+				PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+				USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+				CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+				CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+				NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+				USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+				OF SUCH DAMAGE.
+			</literallayout>
+
+		</section>
+
+		<section id="JUnit">
+			<title>JUnit</title>
+			<para>
+				The Power*Architect team would also like to extend our
+				sincere thanks to the JUnit.org team. JUnit forms an
+				invaluable part of our development process, but it is
+				not redistributed as part of the Architect download so
+				its license is not reproduced here.
+			</para>
+
+			<para>
+				If you develop software, you should become test infected
+				too! Learn about JUnit at
+				<ulink url="http://www.junit.org/">
+					http://www.junit.org/
+				</ulink>
+				.
+			</para>
+
+		</section>
+
+		<section id="eclipse">
+			<title>The Eclipse Foundation</title>
+			<para>
+				The Power*Archited was primarily developed and tested
+				using the
+				<ulink url="http://www.sqlpower.ca/">Eclipse</ulink>
+				Java Development Tools, one of the more productive Java
+				environments around.
+			</para>
+		</section>
+
+		<section id="SUNW">
+			<title>Sun Microsystems</title>
+
+			<para>
+				Last but not least, many thanks to
+				<ulink url="http://java.sun.com/">
+					Sun Microsystems
+				</ulink>
+				and their various Java development teams for creating,
+				extending, bugfixing, documenting, and supporting the
+				Java platform over the past
+				<emphasis>N</emphasis>
+				years!
+			</para>
+
+		</section>
+
+	</chapter>
 
-    <para><emphasis>Project</emphasis> – a Power*Architect project 
-    consists of a view of multiple databases; you can load and save a 
-    Project to work on it at leisure.</para>
-
-    <para><emphasis>Driver</emphasis> – Most programs need a distinct 
-    driver program to communicated with each different type of 
-    database. Power*Architect uses Java-based drivers, which normally 
-    come from the database vendor in the form of "JAR" 
-    <footnote><para>Java Archive files; these are an extension to the 
-    file format used by PKZip/WinZip archives</para></footnote> files. 
-    You need to inform Power*Architect about each driver before you can 
-    use it; do this from the User Preferences panel, under JDBC Drivers 
-    (just click Add and browse to the Jar file for your driver). If you 
-    do not have the JDBC driver for a given database, you can usually 
-    obtain one from the database vendor. If that fails, you can find a 
-    directory of databases drivers on 
-    <ulink url="http://developers.sun.com/product/jdbc/drivers">
-    Sun&apos;s web site</ulink> .</para>
-
-    <para><emphasis>Playpen</emphasis> – This is the main area of the 
-    Power*Architect window, in which you manipulate tables and 
-    relationships. You can play here to your heart&apos;s content, 
-    knowing it will not be saved until you ask the program to 
-    save.</para>
-
-  </sect1>
-
-  <sect1 id="who-book-is-for">
-
-    <title>Who this book is for</title>
-
-    <para>This book is a step-by-step guide on how to use the full 
-    capabilities of Power*Architect . It covers topics from how to 
-    install the Power*Architect through setting up database connections 
-    to engineering your data model.</para>
-
-    <para>We assume you are familiar with basic database terms. If you 
-    meet any terms that are unfamiliar, please refer to the Glossary at 
-    the end of this book.</para>
-
-    <para>This book also assumes you are familiar with basic computer 
-    operations.</para>
-
-    <para>We also assume you have SQL Power&apos;s Power*Architect 
-    software installed on your computer; if not, please refer to the 
-    Installation Guide below.</para>
-
-  </sect1>
-  
-  </chapter>
-
-  <chapter id="installation.guide">
-
-    <title>Installation Guide</title>
-	
-    <section id="prereqs">
-
-      <title>Power*Architect Prerequisites</title>
-      <para>
-
-      To run the Power*Architect you need a Java 1.5 or newer 
-      Java Runtime ("Java VM" or "JVM"). A current 
-      version of the Java VM for common platforms can be obtained from 
-      <ulink url="http://java.sun.com/javase/downloads/index.html">Sun 
-      Microsystems</ulink>. 
-      To ensure that your JVM is up-to-date,
-      Apple Macintosh users should use Software Update (from the Apple Menu)
-      while others should use the Java Updater (from, e.g., the
-      Microsoft Windows Control Panel).
-      </para>
-
-    </section>
-
-    <section id="get_the_architect">
-
-      <title>How to Obtain the Power*Architect Software</title>
-
-      <para>Power*Architect can be obtained from the 
-      <ulink url="http://download.sqlpower.ca">download section</ulink> 
-      of the <ulink url="http://www.sqlpower.ca/">SQLPower 
-      Website</ulink>.
-      You should only need to download one file, choosing the
-      platform-appropriate distribution (Windows-Installer for
-      Microsoft Windows, "DMG" for Apple Macintosh,
-      and ".tar.gz" for UNIX/Linux/other platforms).
-      You should normally choose the download with the highest
-      revision number available.
-      </para>
-
-    </section>
-
-    <section id="how_to_install">
-
-      <title>How to Install Power*Architect</title>
-
-      <section id="install_win">
-
-        <title>Microsoft Windows</title>
-
-        <para>Double click on the Architect-setup-Windows-n.m.jar. This will 
-        launch the Microsoft Windows installer. Follow the on-screen 
-        instructions.</para>
-
-      </section>
-
-      <section id="install_mac">
-
-        <title>Macintosh OS X</title>
-
-        <para>Drag the architect-n.m.dmg file to the Applications 
-        folder</para>
-
-      </section>
-
-      <section id="install_java">
-
-        <title>Other Platforms</title>
-
-        <para>Extract the Architect-generic-n.m.tar.gz package into the desired 
-        directory.</para>
-
-      </section>
-
-    </section>
-
-    <section id="how_to_run">
-
-      <title>How to Run Power*Architect</title>
-
-      <section id="run_win">
-
-        <title>Microsoft Windows</title>
-
-        <para>From the start menu, select All Programs. Then select the 
-        Power Loader Suite program group. Finally click on the Power 
-        Architect shortcut.</para>
-
-      </section>
-
-      <section id="run_mac">
-
-        <title>Macintosh OS X</title>
-
-        <para>From the Finder, select Applications, then select 
-        Power*Architect.
-        To enable launching of the Architect directly from the Dock,
-        either drag the image there or, while it is running, Apple-Click 
-        on the running icon and select Keep In Dock.
-        </para>
-
-      </section>
-
-      <section id="run_java">
-
-        <title>Other Platforms</title>
-
-        <para>In the directory into which you extracted the Architect, run 
-        the command <command>java  -jar  architect.jar</command>.
-        If you have a visual browser, you may be able to launch
-        the architect by clicking (or double-clicking) on the
-        architect.jar file.</para>
-
-      </section>
-
-    </section>
-
-  </chapter>
-
-  <chapter id="How_to_use">
-
-    <title>How to Use the Power*Architect</title>
-
-    <section id="Architect_UI">
-
-      <title>Power*Architect User Interface</title>
-
-      <para>When you start the Power*Architect, you will see the 
-      Project window, shown below, which is the main view area and 
-      starting point for actions.</para>
-
-      <para><inlinemediaobject><imageobject>
-      <imagedata fileref="doc/images/basicui.png"
-       format="PNG" width="4in" /></imageobject></inlinemediaobject></para>
-
-      <para><emphasis>Database Tree</emphasis> – This is where you can 
-      add, maintain and explore imported connections. It uses a 
-      tree-node dropdown method. Therefore to explore inner components, 
-      you can expand components within this container as needed.</para>
-
-      <para><emphasis>Playpen</emphasis> – This is the main area of the 
-      window, in which you manipulate tables and relationships. You can 
-      play here to your heart&apos;s content, knowing it will not be 
-      saved until you ask the program to save.</para>
-
-      <para><emphasis>Playpen Components</emphasis> – These are the 
-      components that can go into the playpen. The playpen components 
-      are Tables and Relationships.</para>
-
-      <para><emphasis>Zoom Tools</emphasis> allow you to control the 
-      magnification level of components display</para>
-
-      <para><emphasis>Delete</emphasis> will delete the selected 
-      component(s).</para>
-
-      <para><emphasis>Create/Maintain Playpen Components</emphasis> is 
-      discussed in <link linkend="diagram_components">Using Components</link>
-      below.</para>
-
-    </section>
-
-    <section id="User_Prefs">
-
-      <title>Setting the User Preferences</title>
-
-      <para>When getting started, you need to set up some files and 
-      drivers to use the full functionality of the Power*Architect. If 
-      you have not already done so already, please go to "User 
-      Preferences" under the File Menu to configure the 
-      Power*Architect. This will pop up a dialog (shown below) where 
-      you can specify your file locations.</para>
-
-      <para><inlinemediaobject><imageobject>
-      <imagedata fileref="doc/images/user_prefs.png"
-       format="PNG" width="4in"/></imageobject></inlinemediaobject></para>
-
-      <para>The pl.ini file stores the database connections that you 
-      set up (see JDBC Drivers on page 8). If you leave this location 
-      blank, the Architect program will prompt you to use a default 
-      location when you start it up. If you have a pl.ini file from 
-      other SQL Power applications you should generally use the same 
-      file, as doing so will save you from having to re-enter all your 
-      database connection information. The Power*Loader Engine setting 
-      is optional; if you are not using the Power*Loader engine you can 
-      leave this blank; if you are, you should set it to the location 
-      where the Power*Loader Engine program is installed on your 
-      system. The next two settings are for log files that will be 
-      written when you use the ETL and Forward Engineering functions of 
-      the application. The final setting controls the operations of 
-      graphics in the PlayPen. Turning "antialiased rendering" on may 
-      give better display of the graphical database layouts shown in 
-      the PlayPen, but may use more CPU time in the process.</para>
-
-    </section>
-
-    <section id="JDBC_Drivers">
-
-      <title>JDBC Drivers</title>
-
-      <para>Besides setting up these file locations, you must also tell 
-      the Power*Architect about the JDBC drivers you wish to use. JDBC 
-      Drivers are needed to access most databases, and are distributed 
-      in "JAR file" format. Click on the "JDBC Drivers" tab 
-      and click Add... to specify the location of a JDBC driver jar 
-      file; if it is valid, the system will list the names of any 
-      Driver classes found in it, as shown below (note that 
-      "ojdbc" stands for Oracle&apos;s JDBC driver, whereas 
-      "ODBC" is Microsoft&apos;s technology for database 
-      access).</para>
-
-      <para><inlinemediaobject><imageobject>
-      <imagedata fileref="doc/images/jdbc_user_prefs.png"
-       format="PNG" width="4in" /></imageobject></inlinemediaobject></para>
-
-      <para>Note: The tie-in between Drivers and Connections might seem 
-      a bit indirect if you are not used to using Java JDBC. In this 
-      section of the User Preferences you are simply telling the 
-      Power*Architect to load these drivers into memory when it starts 
-      up. When you set up an actual Connection, you implicitly tell the 
-      software which driver to use by the second field of the "db 
-      URL" as described on page 21. If you need more information 
-      on JDBC drivers, please refer to the Basic Concepts section of 
-      this manual on page 3.</para>
-
-    </section>
-
-    <section id="example">
-
-      <title>A Brief Example</title>
-
-      <para>This section will show you how to set up 
-      <footnote><para>Assumes you have used some vendor-specific 
-      external tool to create a new database.</para></footnote> a 
-      simple database "from scratch", just to get you started using the 
-      tools, without modifying any live data. If you follow the example 
-      literally, you will create a trivial "customer and orders 
-      database".</para>
-
-      <orderedlist>
-
-        <listitem>
-
-          <para>Setup Driver. Select File-&gt;User Preferences and 
-          select the JDBC Drivers tab. If there is already an entry for 
-          the driver you wish to use,, click OK and go on to the next 
-          step. Otherwise, click the Add button, navigate to where you 
-          have the driver Jar file installed, and click OK.</para>
-
-        </listitem>
-
-        <listitem>
-
-          <para>Create a Connection. In the Database Tree section of 
-          the main window, right click and choose Add Source 
-          Connection-&gt;New Connection. For this example you can use a 
-          name like SampleDB, for both the Connection Name and the 
-          Database name (these names do not have to be the same, but 
-          we&apos;ll keep them the same for simplicity). If you select 
-          the JDBC Driver before you type the database name, then as 
-          you type the Database name, it will be added to the DB URL, 
-          so you don&apos;t have to type it an extra time. Fill in all 
-          the fields and click OK.</para>
-
-        </listitem>
-
-        <listitem>
-
-          <para>Now right click on the Project in the Database tree, 
-          and select Set Target Database, then choose the Database 
-          connection you just created (e.g., SampleHSQLDB). Note that 
-          Add Source Connection makes a database available to copy 
-          tables from, whereas Set Target Database specifies where SQL 
-          commands will get executed to create the structure you are 
-          building in your project.</para>
-
-        </listitem>
-
-        <listitem>
-
-          <para>You are now ready to design some tables. For this 
-          example, we will create the Customer and Orders table shown 
-          here.</para>
-
-          <orderedlist>
-
-            <listitem>
-
-              <para>Click on the New Table icon at the right side. The 
-              cursor will change to a crosshair. Move the cursor near 
-              the left of the Playpen area, and click. A "New 
-              Table" will appear.</para>
-
-            </listitem>
-
-            <listitem>
-
-              <para>Double click on the title, and the Table Properties 
-              Dialog will appear. Rename this table to Customer, and 
-              the Primary Key to Customer_PK.</para>
-
-            </listitem>
-
-            <listitem>
-
-              <para>Click on the Insert Column icon, and a "New 
-              Column" will appear. Double-click on the column, or 
-              click on the Column Properties, and the Column Properties 
-              Dialog will appear. Rename the column to ID and make it 
-              part of the primary key.</para>
-
-            </listitem>
-
-            <listitem>
-
-              <para>Insert additional columns for Firstname, Lastname, 
-              Address, City, Province, Country Code 
-              <footnote><para>There is an ISO standard, ISO-3166, which 
-              specifies a two-letter code (and a rarely-used three 
-              letter code) for every country of the world: us for the 
-              United States, ca for Canada, and so on. Some developers 
-              like to use these in the Country field of a database, as 
-              we are doing here.</para></footnote> and Postal Code. The 
-              table should look something like the following:</para>
-
-              <mediaobject><imageobject>
-              <imagedata fileref="doc/images/example_4_4.png"
-               format="PNG" width="4in"/></imageobject></mediaobject>
-            </listitem>
-
-            <listitem>
-
-              <para>Create a second table, and name it Orders.</para>
-
-            </listitem>
-
-            <listitem>
-
-              <para>Create columns named Id (in the primary key), 
-              Quantity, and Total Amount. Your project should now look 
-              something like the following:</para>
-
-              <mediaobject><imageobject>
-              <imagedata fileref="doc/images/example_4_6.png"
-               format="PNG" width="4in"/></imageobject></mediaobject>
-            </listitem>
-
-            <listitem>
-
-              <para>We need a relationship between these tables. An 
-              order should have a foreign key that refers to the 
-              customer. Click the "New Non-Identifying 
-              Relationship" icon. Select the Order table, then the 
-              Customer table, and a link will be drawn as shown. Click 
-              on this link and the keys that take part in the 
-              relationship will be highlighted in red.</para>
-
-              <mediaobject><imageobject>
-              <imagedata fileref="doc/images/example_4_7.png"
-               format="PNG" width="4in"/></imageobject></mediaobject>
-            </listitem>
-
-          </orderedlist>
-
-        </listitem>
-
-        <listitem>
-
-          <para>If you&apos;re happy with the database layout (you can 
-          always change it later), it&apos;s time to create the 
-          database. Click on the Forward Engineer button. You should 
-          see a window similar to the following:</para>
-
-          <mediaobject><imageobject>
-          <imagedata fileref="doc/images/example_5.png"
-           format="PNG" width="4in"/></imageobject></mediaobject>
-        </listitem>
-
-        <listitem>
-
-          <para>If this looks plausible, click Execute, and the tables 
-          and their relationship will be created. Congratulations! You 
-          have now created a simple database using the visual tools in 
-          Power*Architect. But let&apos;s not stop here. Suppose that 
-          after using this database, you realize that there should be a 
-          "shipping amount" field in the Order table (we 
-          never promised this would be completely realistic 
-          example).</para>
-
-        </listitem>
-
-        <listitem>
-
-          <para>Select the Order table by clicking on its title.</para>
-
-        </listitem>
-
-        <listitem>
-
-          <para>Click the Insert Column field and, as before, rename 
-          the New Column, this time to Shipping_Amount. Change its type 
-          to Decimal(10,2).</para>
-
-        </listitem>
-
-        <listitem>
-
-          <para>Now we need to compare two different Data Models, the 
-          original database and the current project. Click the Compare 
-          DM icon. Set the "Older" to Physical Database 
-          SampleDB (you may need to change the Schema to Public). Set 
-          the "Newer" to "Current Project" (since 
-          it is now newer than the database you created in Step 6). Set 
-          the output format to SQL.</para>
-
-          <mediaobject><imageobject>
-          <imagedata fileref="doc/images/example_9.png"
-           format="PNG" width="4in"/></imageobject></mediaobject>
-        </listitem>
-
-        <listitem>
-
-          <para>Click Start. You should see the SQL Preview window 
-          again, but this time with just an ADD for the column you just 
-          added:</para>
-
-          <mediaobject><imageobject>
-          <imagedata fileref="doc/images/example_10.png"
-           format="PNG" width="4in"/></imageobject></mediaobject>
-        </listitem>
-
-        <listitem>
-
-          <para>Click Execute, and the new column will be added to your 
-          database table.</para>
-
-        </listitem>
-
-      </orderedlist>
-
-      <para>When you exit the program, it will ask to save your 
-      project. Since you might want to alter this in future, to 
-      experiment with some of the other tools without damaging any live 
-      data, you may wish to save the Project file.</para>
-
-      <para>The remainder of this document provides a more 
-      comprehensive explanation of the various functions that 
-      Power*Architect offers.</para>
-
-    </section>
-
-    <section id="diagram_components">
-
-      <title>Using Diagram Components</title>
-
-      <section id="new_table">
-
-        <title>Creating New Tables</title>
-
-        <para><inlinemediaobject><imageobject>
-        <imagedata fileref="src/icons/NewTable24.gif"
-         format="GIF"/></imageobject></inlinemediaobject> There are 
-        several ways to create new tables in Power*Architect. The first 
-        way is to click on the New Table Icon on the sidebar menu. The 
-        cursor turns into a "+" cursor indicating the mode change. 
-        Simply click on the playpen on the spot you desire to place the 
-        new table at. The second method to create a table is to right 
-        click on the playpen and select the "New Table" option. A newly 
-        created table will then be placed at the point of the right 
-        click. A third way is to type the letter T with the mouse over 
-        the playpen.</para>
-
-      </section>
-
-      <section id="edit_table">
-
-        <title>Editing Tables</title>
-
-        <para><inlinemediaobject><imageobject>
-        <imagedata fileref="src/icons/TableProperties24.gif"
-         format="GIF"/></imageobject></inlinemediaobject> To edit a 
-        table, right click on the table title and select "Table 
-        Properties". This pops up the Table Properties dialog.</para>
-
-        <mediaobject><imageobject>
-        <imagedata fileref="doc/images/Table_Properties.png"
-         format="PNG" width="4in"/></imageobject></mediaobject>
-        <para>In this dialog, you can:</para>
-
-        <itemizedlist>
-
-          <listitem>
-
-            <para>Change the name of the table</para>
-
-          </listitem>
-
-          <listitem>
-
-            <para>Rename the primary key section of the table</para>
-
-          </listitem>
-
-          <listitem>
-
-            <para>Add comments/notes about the table</para>
-
-          </listitem>
-
-        </itemizedlist>
-
-      </section>
-
-      <section id="new_column">
-
-        <title>Creating New Columns</title>
-
-        <para><inlinemediaobject><imageobject>
-        <imagedata fileref="src/icons/NewColumn24.gif"
-         format="GIF"/></imageobject></inlinemediaobject> First select 
-        the table the new column will be placed in. Click on the 
-        "Insert Column" button and a column is created in the 
-        selected table. Another way to add a new column is to right 
-        click on a table and select the "New Column..." 
-        option. The new column will be added to the table below the 
-        selected column. It will be placed at the bottom of the table 
-        if no columns are selected. If a table has existing columns in 
-        the primary key and you wish to create new columns within the 
-        primary key, select a column that is already in the desired 
-        primary key and then create a new column. The newly created 
-        column will be placed within the primary key as well.</para>
-
-      </section>
-
-      <section id="edit_column">
-
-        <title>Editing Columns</title>
-
-        <para><inlinemediaobject><imageobject>
-        <imagedata fileref="src/icons/ColumnProperties24.gif"
-         format="GIF"/></imageobject></inlinemediaobject> Select the 
-        desired column, right click and select "Column 
-        Properties". The Edit Column Properties dialog pops up. Or 
-        you can select the column and click the "Edit Column" 
-        button on the Playpen toolbar.</para>
-
-        <mediaobject><imageobject>
-        <imagedata fileref="doc/images/Column_properties.png"
-         format="PNG" width="4in"/></imageobject></mediaobject>
-        <para>In this dialog, you can:</para>
-
-        <itemizedlist>
-
-          <listitem>
-
-            <para>Rename the column</para>
-
-          </listitem>
-
-          <listitem>
-
-            <para>Change the type of data the column holds</para>
-
-          </listitem>
-
-          <listitem>
-
-            <para>Set the precision of the data</para>
-
-          </listitem>
-
-          <listitem>
-
-            <para>Set the scale</para>
-
-          </listitem>
-
-          <listitem>
-
-            <para>Indicate if the column is in the primary key or 
-            not</para>
-
-          </listitem>
-
-          <listitem>
-
-            <para>Indicate if the column should handle null information 
-            or not</para>
-
-          </listitem>
-
-          <listitem>
-
-            <para>Indicate if auto increment is allowed or not</para>
-
-          </listitem>
-
-          <listitem>
-
-            <para>Add additional comments about the column</para>
-
-          </listitem>
-
-          <listitem>
-
-            <para>Set a default value for the column</para>
-
-          </listitem>
-
-        </itemizedlist>
-
-        <para>A special feature of the Power*Architect is that if a 
-        column orginated from a database, the Power*Architect is able 
-        to remember the database and table it orginated from.</para>
-
-      </section>
-
-      <section id="drag_columns">
-
-        <title>Dragging Columns</title>
-
-        <para>The Power*Architect allows you to drag columns within a 
-        table&apos;s key and from table to table freely. Simply select 
-        the desired columns and drag them into the desired destination. 
-        For now, only one column can be moved at a time.</para>
-
-      </section>
-
-      <section id="create_relationship">
-
-        <title>Creating Non-Identifying and Identifying 
-        Relationships</title>
-
-        <para><inlinemediaobject><imageobject>
-        <imagedata fileref="src/icons/NewIdentifyingRelationship24.gif"
-         format="GIF"/></imageobject></inlinemediaobject> 
-        <inlinemediaobject><imageobject>
-        <imagedata fileref="src/icons/NewNonIdentifyingRelationship24.gif"
-         format="GIF"/></imageobject></inlinemediaobject> To create a 
-        relationship, select the desired type of relationship on the 
-        Playpen ToolBar. The non-identifying relationship icon is 
-        <inlinemediaobject><imageobject>
-        <imagedata fileref="src/icons/NewNonIdentifyingRelationship24.gif"
-         format="GIF"/></imageobject></inlinemediaobject> (keyboard 
-        shortcut is shift+R). The identifying relationship icon is 
-        identified by <inlinemediaobject><imageobject>
-        <imagedata fileref="src/icons/NewIdentifyingRelationship24.gif"
-         format="GIF"/></imageobject></inlinemediaobject> (shortcut key 
-        is R). The cursor changes to the "+" cursor to 
-        indicate the mode change. First click on the parent table and then 
-        click on the child table. Once this has 
-        been done, the relationship will be created, and will appear as 
-        a link between the two tables.</para>
-
-      </section>
-
-      <section id="edit_relationship">
-
-        <title>Editing a Relationship</title>
-
-        <para><inlinemediaobject><imageobject>
-        <imagedata fileref="src/icons/RelationshipProperties24.gif"
-         format="GIF"/></imageobject></inlinemediaobject> Select the 
-        desired relationship and right click on the relationship. 
-        Choose the "Relationship Properties" options. This 
-        can also be done by selecting the relationship and clicking on 
-        the relationship properties button. In both cases, the 
-        Relationship Properties dialog will appear.</para>
-
-        <mediaobject><imageobject>
-        <imagedata fileref="doc/images/relationship_properties.png"
-         format="PNG" width="4in"/></imageobject></mediaobject>
-        <para>In this dialog, you can:</para>
-
-        <itemizedlist>
-
-          <listitem>
-
-            <para>Rename the relationship</para>
-
-          </listitem>
-
-          <listitem>
-
-            <para>Choose the relationship type</para>
-
-          </listitem>
-
-          <listitem>
-
-            <para>Change the primary key end cardinality</para>
-
-          </listitem>
-
-          <listitem>
-
-            <para>Change the foreign key end cardinality</para>
-
-          </listitem>
-
-        </itemizedlist>
-
-      </section>
-
-      <section id="multiple_selection">
-
-        <title>Selecting Multiple Items in the Playpen</title>
-
-        <para>There are two ways to select multiple items in the 
-        playpen. One way is to hold down the shift key or the ctrl key 
-        as more items are being selected. The alternative method is to 
-        use the selection box.</para>
-
-      </section>
-
-      <section id="move_object">
-
-        <title>Relocating Objects in the Playpen</title>
-
-        <para>The Power*Architect allows diagram objects to move around 
-        freely in the playpen. To do so, first select the items you 
-        want to move in the Playpen. Click and hold on one of the 
-        selected item and drag the items to a desired spot on the 
-        playpen.</para>
-
-      </section>
-
-      <section id="delete_object">
-
-        <title>Deleting Diagram Components</title>
-
-        <para>Select the desired diagram components on the playpen and 
-        click on the delete items button on the Playpen Toolbar. It is 
-        also possible to delete the selected items by right clicking on 
-        one of the components and selecting "Delete 
-        Selected".</para>
-
-      </section>
-
-    </section>
-
-    <section id="db_usage">
-
-      <title>Database Usage in Power*Architect</title>
-
-      <section id="new_connection">
-
-        <title>Adding a New Connection to the Power*Architect</title>
-
-        <para>To add a new connection, go to "Add 
-        Connections" under "Connections" and select 
-        "New Connection.." at the top. The other method is to 
-        right click a white space on the Database Tree and select 
-        "New Connection" under "Add Connections". 
-        Both ways open up this dialog:</para>
-
-        <mediaobject><imageobject>
-        <imagedata fileref="doc/images/db_connection_properties.png"
-         format="PNG" width="4in"/></imageobject></mediaobject>
-        <para>You must know which JDBC driver to use before you can 
-        connect to a database. When you have selected the JDBC Driver, 
-        the Connect Options will change to allow you to enter the 
-        particular parameters that the given database driver needs. If 
-        you are using one of the fully-supported drivers, then as you 
-        enter these parameters, they will be added into the "JDBC 
-        URL" field in the order that the Java driver expects to 
-        see them (this string is sometimes called a "db URL" 
-        in Java terminology). In the example below, we&apos;ve selected 
-        the PostgreSQL driver and entered the hostname and database 
-        name (the "port number" was already filled in; do not 
-        change this unless the database server software has been 
-        reconfigured to use a different value).</para>
-
-        <para>When you are finished, press the OK button. Any new 
-        connection will automatically be added in the 
-        user-preference.</para>
-
-        <mediaobject><imageobject>
-        <imagedata fileref="doc/images/new_connection.png"
-         format="PNG" width="4in"/></imageobject></mediaobject>
-        <para>Note: if you have too many connections (more than the 
-        height of the Architect window), the Architect does not have 
-        the ability to show all of them.</para>
-
-      </section>
-
-      <section id="add_connection">
-
-        <title>Adding an Existing Connection</title>
-
-        <para>Right click on empty space in the Database Tree and go to 
-        "Add Connection", there it shows all databases that 
-        were previously stored on the Architect</para>
-
-      </section>
-
-      <section id="edit_connection">
-
-        <title>Editing Database Connection Properties</title>
-
-        <para>Select the database connection you wish to change and go 
-        to "Connections" and select the option 
-        "Connection Properties..", this leads you to the 
-        Connection Setting dialog. An alternate solution is to right 
-        click on the database and select "Connection 
-        Properties..." option.</para>
-
-      </section>
-
-      <section id="remove_connection">
-
-        <title>Removing a Database Connection</title>
-
-        <para>Select the database connection you wish to change and go 
-        to "Connections" and select the option "Remove 
-        Connection..". Right clicking on the database connection 
-        and selecting "Remove Connection.." will perform the 
-        same action.</para>
-
-      </section>
-
-      <section id="project_database">
-
-        <title>Setting the Current Project Database</title>
-
-        <para><inlinemediaobject><imageobject>
-        <imagedata fileref="src/icons/TargetDatabaseArrow16.gif"
-         format="GIF"/></imageobject></inlinemediaobject> The project 
-        database can be set to an existing database connection or the 
-        user can create a new connection for it as well. Setting the 
-        project database can be achieved in one of several ways. The 
-        first method is to right click on any empty space on the 
-        Playpen and go to "Set Target Database". Another 
-        option is to right-click on the Target Database (the target 
-        database can always be identified by this icon: ) and choose 
-        "Set Target Database" from there.</para>
-
-      </section>
-
-      <section id="dbtree_nav">
-
-        <title>Navigating through the Database Tree</title>
-
-        <para>The Database Tree works like a tree-dropdown model. 
-        Clicking on any item will cause the component to expand display 
-        the items under that specific component. Each item will have an 
-        unique icon beside its name to identify the type of object it 
-        is. The table below shows what each icon means:</para>
-
-        <table id="dbtree_icons">
-
-          <title>Database Tree Icons</title>
-
-          <tgroup cols="2">
-
-            <thead>
-
-              <row><entry>Icon</entry><entry>Representation</entry></row>
-
-            </thead>
-
-            <tbody>
-
-              <row><entry><inlinemediaobject><imageobject>
-              <imagedata fileref="src/icons/Database16.gif"
-               format="GIF"/></imageobject></inlinemediaobject></entry><entry>Database</entry></row>
-
-              <row><entry><inlinemediaobject><imageobject>
-              <imagedata fileref="src/icons/Catalog16.gif"
-               format="GIF"/></imageobject></inlinemediaobject></entry><entry>Catalog</entry></row>
-
-              <row><entry><inlinemediaobject><imageobject>
-              <imagedata fileref="src/icons/Schema16.gif"
-               format="GIF"/></imageobject></inlinemediaobject></entry><entry>Schema</entry></row>
-
-              <row><entry><inlinemediaobject><imageobject>
-              <imagedata fileref="src/icons/Owner16.gif"
-               format="GIF"/></imageobject></inlinemediaobject></entry><entry>Owner</entry></row>
-
-              <row><entry><inlinemediaobject><imageobject>
-              <imagedata fileref="src/icons/Table16.gif"
-               format="GIF"/></imageobject></inlinemediaobject></entry><entry>Table</entry></row>
-
-              <row><entry><inlinemediaobject><imageobject>
-              <imagedata fileref="src/icons/ExportedKey16.gif"
-               format="GIF"/></imageobject></inlinemediaobject></entry><entry>Exported Key</entry></row>
-
-              <row><entry><inlinemediaobject><imageobject>
-              <imagedata fileref="src/icons/ImportedKey16.gif"
-               format="GIF"/></imageobject></inlinemediaobject></entry><entry>Imported Key</entry></row>
-
-            </tbody>
-
-          </tgroup>
-
-        </table>
-
-      </section>
-
-      <section id="dbtree_move">
-
-        <title>Moving Items from the Database Tree</title>
-
-        <para>To copy items from the Database Tree to the playpen, 
-        simply select the desired items in the tree and drag them onto 
-        the playpen. Depending on the size of the items dragged onto 
-        the playpen, it will take some time to load.</para>
-
-      </section>
-
-    </section>
-
-    <section id="find">
-
-      <title>Find/Replace Function</title>
-
-      <section id="find.what">
-
-        <title>What It Does</title>
-
-        <para>This functions searches the whole playpen for any 
-        relevant matches with the search constraints and displays the 
-        resulting matches. The user can request for those items to be 
-        focused on the screen.</para>
-
-        <mediaobject><imageobject><imagedata fileref="doc/images/find.png"
-         format="PNG" width="4in"/></imageobject></mediaobject>
-      </section>
-
-      <section id="find.use">
-
-        <title>How to Use Find / Replace Function:</title>
-
-        <para>Go to "Edit" under the menu bar and click on 
-        Find/Replace option. This shows the Find/Replace function. In 
-        this window, enter the search constraints and press 
-        "OK" when you are finished. This will popup a new 
-        window with your search result in a chart format.</para>
-
-        <para>You can rename the component by selecting the column in 
-        the list and clicking on "Rename Component". You can 
-        also have Power*Architect focus on a certain component by 
-        selecting the component in the list and press the "Show in 
-        Playpen" button.</para>
-
-      </section>
-
-    </section>
-
-    <section id="forward_engineer_and_compare_dm">
-
-      <title>Forward Engineering and Compare Data Model</title>
-
-      <para>These two functions are similar; they both involve using 
-      the PlayPen (usually) and generating SQL. The Forward Engineer 
-      function always creates a SQL script to generate a database 
-      identical with the complete current project (current PlayPen 
-      contents). The Compare DM function can output either an 
-      English-language description or a SQL script describing the 
-      differences between two databases, or stored projects, or one of 
-      these and the PlayPen.</para>
-
-      <section id="forward_engineer">
-
-        <title>Forward Engineering</title>
-
-        <section id="forward_engineer.what">
-
-          <title>What It Does</title>
-
-          <para>Forward Engineering creates a SQL Script that can be 
-          run to update or put the components of the current Playpen 
-          into a database</para>
-
-        </section>
-
-        <section id="forward_engineer.how">
-
-          <title>How To Use Forward Engineering</title>
-
-          <para><inlinemediaobject><imageobject>
-          <imagedata fileref="src/icons/ForwardEngineer24.gif"
-           format="GIF"/></imageobject></inlinemediaobject> First set 
-          the target connection to the database you want the changes to 
-          be made in. Then go to "Tools" and click 
-          "Forward Engineering". Another way is to press the 
-          "Forward Engineering" button at the top. This pops 
-          up a dialog that looks similar to the one below:</para>
-
-          <mediaobject><imageobject>
-          <imagedata fileref="doc/images/forward_engineer.png"
-           format="PNG" width="4in"/></imageobject></mediaobject>
-          <para>Fill in the fields as necessary and hit "OK"
-          when you are done. Depending on the situation, a dialog 
-          warning you of possible side-effects of creating the script 
-          may pop up. Finally a script that would create data structure 
-          currently in the Playpen will be displayed. It is the same 
-          dialog used in CompareDataModel-Part 2- In SQL Script.</para>
-
-          <mediaobject><imageobject>
-          <imagedata fileref="doc/images/preview_sql.png"
-           format="PNG" width="4in"/></imageobject></mediaobject>
-        </section>
-
-      </section>
-
-      <section id="compare_dm">
-
-        <title>Compare Data Model Function</title>
-
-        <section id="compare_dm.what">
-
-          <title>What It Does</title>
-
-          <para>The Compare DataModel Function takes two databases or 
-          Power*Architect projects (or one of each) or the current 
-          PlayPen, and compares and contrasts the structure of the two 
-          database/projects.</para>
-
-        </section>
-
-        <section id="compare_dm.how">
-
-          <title>How to use Compare Data Model Function:</title>
-
-          <section id="compare_dm.how.1">
-
-            <title>Part 1</title>
-
-            <para><inlinemediaobject><imageobject>
-            <imagedata fileref="src/icons/CompareDatabases24.gif"
-             format="GIF"/></imageobject></inlinemediaobject> To start 
-            the Compare Data Model Function, either go to 
-            "Tools" and click "Compare Data Model" 
-            or just click the "Compare Data Model" icon on 
-            the project toolbar. This will bring up the main Compare 
-            Data Model window. Here select the source and target models 
-            you want to compare and contrast. You can choose either the 
-            current playpen, an existing database or select a saved 
-            project file function. If one of or both the source and the 
-            target has invalid models, the start button will not 
-            enable. The similarities and differences can be displayed 
-            either in SQL Script language or in English.</para>
-
-            <mediaobject><imageobject>
-            <imagedata fileref="doc/images/compare_dm.png"
-             format="PNG" width="4in"/></imageobject></mediaobject>
-          </section>
-
-          <section id="compare_dm.how.2">
-
-            <title>Part 2</title>
-
-            <section id="compare_dm.how.2.english">
-
-              <title>English Descriptions</title>
-
-              <para>If this option is selected, a side-by-side document 
-              will be displayed stating the similarlities and 
-              differences of the source and target in plain English. 
-              The left text gives English descriptions to make the 
-              source database look like the target database. In 
-              addition to the text, they are also colour coded. You can 
-              copy the text to the clipboard by pressing the copy 
-              button, or save the results to a text file. The table 
-              below explains what each colour means.</para>
-
-              <table id="compare_dm.how.2.english.colour_codes">
-
-                <title>Compare Database Model Colour Codes</title>
-
-                <tgroup cols="2">
-
-                  <thead>
-
-                    <row><entry>Colour</entry><entry>Explanation of the 
-                    Colour Code</entry></row>
-
-                  </thead>
-
-                  <tbody>
-
-                    <row>
-                    <entry id="black_colour">Black</entry><entry>This 
-                    component exists in both databases</entry></row>
-
-                    <row>
-                    <entry id="green_colour">Green</entry><entry>This 
-                    component only exists in this database but not the 
-                    other</entry></row>
-
-                    <row><entry id="red_colour">Red</entry><entry>This 
-                    component does not exist on this database but 
-                    exists on the other</entry></row>
-
-                    <row>
-                    <entry id="blue_colour">Blue</entry><entry>This 
-                    component is a column and is on different keys in 
-                    the two databases</entry></row>
-
-                  </tbody>
-
-                </tgroup>
-
-              </table>
-
-            </section>
-
-            <section id="compare_dm.how.2.SQL">
-
-              <title>In SQL Script</title>
-
-              <para>If this option is chosen, this will produce a SQL 
-              Script in the SQL dialect chosen in Step 1 to make the 
-              source database look like the target database. You can 
-              either copy the results to the clipboard, or save the 
-              results in a text file. If the source has a valid 
-              connection database, the Execute button will enable and 
-              you can directly execute the changes. If the source does 
-              not have a valid connection, the execute button is 
-              disabled.</para>
-
-            </section>
-
-          </section>
-
-        </section>
-
-      </section>
-
-    </section>
-
-    <section id="autolayout">
-
-      <title>Autolayout</title>
-
-      <section id="autolayout.what">
-
-        <title>What It Does</title>
-
-        <para>It displays the selected tables (or all tables) in an 
-        organized manner.</para>
-
-      </section>
-
-      <section id="autolayout.how">
-
-        <title>How to Use Autolayout:</title>
-
-        <para><inlinemediaobject><imageobject>
-        <imagedata fileref="src/icons/AutoLayout24.gif"
-         format="GIF"/></imageobject></inlinemediaobject> Select the 
-        tables on the playpen that you want to organize and hit the 
-        autolayout button at the top. If no table is selected, by 
-        default, the program will autolayout every table in the 
-        playpen. Note that if only one table is selected, AutoLayout 
-        will not do anything; either select two or more tables, or 
-        "click away" (not on any table) so that nothing in 
-        the Playpen is selected, and click AutoLayout again. Also note 
-        that the layout algorithm may produce a few surprises when run 
-        with a small number of tables; it works best for a large or 
-        medium-sized collection of tables.</para>
-
-      </section>
-
-    </section>
-
-    <section id="SQLRunner">
-
-      <title>SQLRunner</title>
-
-      <section id="SQLRunner.what">
-
-        <title>What It Does</title>
-
-        <para>SQLRunner is a "fall-back" tool that lets you work at the 
-        raw SQL command level. This is an advanced topic and should 
-        only be used by (or made available to) those familiar with the 
-        intricacies of SQL commands and the details of your database; 
-        like a sharp knife, this tool is very useful in the hands of a 
-        skilled chef, but a slip of the fingers here can be quite 
-        messy...</para>
-
-        <para>SQLRunner was written by Ian Darwin, and is distributed 
-        under a liberal free-software, open-source license which 
-        permits its inclusion in programs such as 
-        Power*Architect.</para>
-
-      </section>
-
-      <section id="SQLRunner.how">
-
-        <title>How to Use SQLRunner</title>
-
-        <para>SQLRunner is started from the menu entry under the Tools 
-        menu, and begins with the GUI window shown below. The first 
-        thing you should do is select which database connection you 
-        wish to use. The list of Connections is the same as the main 
-        program uses, as set up in the JDBC Connections window.</para>
-
-        <para>The basic steps to using SQLRunner are to type a command 
-        in the top (SQL Command) window and click the Run button; the 
-        results are displayed in the bottom (SQL Results) window.
-        To save you some typing, there is a "Statement Template"
-        mechanism that will insert a template for SELECT, INSERT or UPDATE
-        SQL statements (just select the template you want and click 
-        "Apply Template" and the template will replace the
-        current Input Statement.
-        </para>
-
-        <mediaobject><imageobject>
-        <imagedata fileref="doc/images/sqlrunner.png"
-         format="PNG" width="4in"/></imageobject></mediaobject>
-        <para>The command can actually be one of two kinds: either one 
-        of a half-dozen escape commands listed below, or, anything that 
-        is valid input to your database&apos;s command interface (e.g., 
-        programs such as psql or SQL*Plus™).</para>
-
-        <table id="SQLRunner.escape_chars">
-
-          <title>SQLRunner Escape Characters</title>
-
-          <tgroup cols="2">
-
-            <thead>
-
-              <row><entry>Escape 
-              Sequence</entry><entry>Action</entry></row>
-
-            </thead>
-
-            <tbody>
-
-              <row><entry>\dt</entry><entry>Describe list of all 
-              tables</entry></row>
-
-              <row><entry>\dtT</entry><entry>Describe column names of 
-              table named T</entry></row>
-
-              <row><entry>\dmX</entry><entry>Set the mode, where X is 
-              the first letter of the mode (t for text, s for SQL, h 
-              for HTML or x for XML; not needed in the embedded version 
-              because the GUI has a control for this)</entry></row>
-
-              <row><entry>\oF</entry><entry>Send output to the given 
-              file instead of the screen (though you can usually just 
-              view the output and copy-and-paste to save parts of it 
-              into a file; does not work in GUI versions).</entry></row>
-
-              <row><entry>\q</entry><entry>Exit the program (not 
-              supported in embedded versions).</entry></row>
-
-            </tbody>
-
-          </tgroup>
-
-        </table>
-
-        <para>SQL Statements are entered one at a time, can be more 
-        than one line long, and need not end with a semicolon. These 
-        statements are not interpreted by SQLRunner itself, so anything 
-        that the given database and driver accepts can be used. For 
-        example, with Oracle™, you can use PL*SQL™ statements. With 
-        most drivers you should be able to use stored procedures. Each 
-        SQL statement is executed in its own transaction context, that 
-        is, changes are committed immediately (so be careful!).</para>
-
-      </section>
-
-      <section id="SQLRunner.results">
-
-        <title>Output (Results) Window</title>
-
-        <para>Command Output in the chosen format (see below) appears 
-        in the SQL Output window. A scrollbar will appear if the 
-        information cannot all be seen at once.</para>
-
-        <para>A visual indication of the success or failure of the 
-        command is displayed below the output: green for success, red 
-        for failure. As well, failures will be accompanied by a pop-up 
-        window containing details on the failure.</para>
-
-        <para>The Clear Output button clears the contents of the output 
-        window.</para>
-
-      </section>
-
-      <section id="SQLRunner.output_format">
-
-        <title>Output Formats</title>
-
-        <para>There are several output modes for the display of SQL 
-        "select" results: text, SQL, HTML and XML (output from the 
-        escape commands are always displayed as plain text). Text mode 
-        is the default, and is primarily a raw display format. SQL 
-        output is most useful with the output of a SELECT statement; it 
-        will generate SQL that will attempt to re-create the data in 
-        another database. HTML mode generates an HTML table to display 
-        the results of a Select. XML format is similar but may be used 
-        for exporting data into other applications.</para>
-
-        <para>For example, with SQL mode selected, a "select * from 
-        anecdotes" (a table in a sample bookstore web site&apos;s 
-        database, used to display a casual quotation about books) 
-        looked like this:</para>
-
-        <mediaobject><imageobject>
-        <imagedata fileref="doc/images/sqlrunner_output.png"
-         format="PNG" width="4in"/></imageobject></mediaobject>
-        <para>This could, as you can see, be used to create a SQL 
-        script to re-create the contents of the database. In fact, some 
-        developers use SQLRunner primarily for this purpose: to create 
-        stable test databases from "live" data that was created by 
-        their application.</para>
-
-        <para>You can view this same data in HTML just by changing the 
-        Format selection to HTML and clicking the Run button 
-        again:</para>
-
-        <mediaobject><imageobject>
-        <imagedata fileref="doc/images/sqlrunner_output_2.png"
-         format="PNG" width="4in"/></imageobject></mediaobject>
-        <para>When copied and pasted into an HTML file and viewed in a 
-        browser, the output looked like this:</para>
-
-        <mediaobject><imageobject>
-        <imagedata fileref="doc/images/sqlrunner_html_output.png"
-         format="PNG" width="4in"/></imageobject></mediaobject>
-        <para>With a bit of formatting, or even a CSS style sheet, this 
-        HTML page could be made quite usable.</para>
-        
-        <para>SQLRunner is not perfect, but it is adequate for many
-        purposes involving direct use of SQL.</para>
-
-      </section>
-
-    </section>
-
-    <section id="quick_start_wizard">
-
-      <title>Quick Start Wizard</title>
-
-      <section id="quick_start_wizard.what">
-
-        <title>What It Does</title>
-
-        <para>The QuickStart Wizard is a simple five-step process to 
-        set up a database using the Power*Loader.</para>
-
-      </section>
-
-      <section id="quick_start_wizard.how">
-
-        <title>How to Use The Quick Start Wizard</title>
-
-        <para>To run the QuickStart Wizard, go to ETL and click 
-        QuickStart Wizard button under Power*Loader.</para>
-
-        <section id="quick_start_wizard.how.1">
-
-          <title>Step 1</title>
-
-          <para>Select the source playpen components you want and click 
-          next.</para>
-
-        </section>
-
-        <section id="quick_start_wizard.how.2">
-
-          <title>Step 2</title>
-
-          <para>Select or create the target database.</para>
-
-          <mediaobject><imageobject>
-          <imagedata fileref="doc/images/quick_start_2.png"
-           format="PNG" width="4in"/></imageobject></mediaobject>
-        </section>
-
-        <section id="quick_start_wizard.how.3">
-
-          <title>Step 3</title>
-
-          <para>Select or create the repository database and fill in 
-          any additional information. The JobID must be filled in order 
-          to continue.</para>
-
-          <mediaobject><imageobject>
-          <imagedata fileref="doc/images/quick_start_3.png"
-           format="PNG" width="4in"/></imageobject></mediaobject>
-        </section>
-
-        <section id="quick_start_wizard.how.4">
-
-          <title>Step 4</title>
-
-          <para>A SQL Script will be created; you can review the script 
-          and if you wish to execute it, press 
-          "Execute"</para>
-
-        </section>
-
-        <section id="quick_start_wizard.how.5">
-
-          <title>Step 5</title>
-
-          <para>A summary report of the process will be shown.</para>
-
-        </section>
-
-      </section>
-
-    </section>
-
-  </chapter>
-
-  <chapter id="db_product_notes">
-
-    <title>Database Product Notes</title>
-
-    <informaltable frame="all" id="db_notes_table">
-
-      <tgroup cols="2">
-
-        <thead>
-
-          <row><entry><para>Database</para></entry><entry><para>Notes</para></entry></row>
-
-        </thead>
-
-        <tbody>
-
-          <row><entry><para>Oracle</para></entry><entry><para>Is fully 
-          supported.</para></entry></row>
-
-          <row><entry><para>SQL Server</para></entry><entry><para>Is 
-          fully supported.</para></entry></row>
-
-          <row><entry><para>PostgreSQL</para></entry><entry><para>Is 
-          fully supported.</para></entry></row>
-
-          <row><entry><para>IBM DB2</para></entry><entry><para>Is fully 
-          supported.</para></entry></row>
-
-          <row><entry><para>HSQLDB</para></entry><entry><para>Works; 
-          used in samples.</para></entry></row>
-
-          <row><entry><para>Derby</para></entry><entry><para>Does not 
-          work; the current version (10.1.2) has what we consider some 
-          unwarranted chumminess with the JDBC Driver Manager that 
-          breaks because we use our own Java 
-          "ClassLoader"</para></entry></row>
-
-          <row><entry><para>MySQL</para></entry><entry><para>Not tested 
-          yet.</para></entry></row>
-
-        </tbody>
-
-      </tgroup>
-
-    </informaltable>
-
-  </chapter>
-
-  <chapter id="troubleshooting">
-
-    <title>Troubleshooting</title>
-
-    <para>We have worked hard to ensure that Power*Architect works 
-    correctly. However there are probably always going to be some 
-    combinations of different database products and database 
-    configurarations, user actions, computer setups, and so on, that 
-    just don&apos;t work. We apologize in advance for any inconvenience 
-    this may cause...</para>
-
-    <para>If you are having trouble with Power*Architect, we may ask 
-    that, in order to help us to diagnose the problem, you take some or 
-    all of the following actions:</para>
-
-    <itemizedlist>
-
-      <listitem>
-
-        <para>Prepare a description of what you were doing</para>
-
-      </listitem>
-
-      <listitem>
-
-        <para>Prepare a copy of any errors you encountered</para>
-
-      </listitem>
-
-      <listitem>
-
-        <para>Post your problem to the 
-        <ulink url="http://www.sqlpower.ca/forum/forums/show/2.page">
-        Power*Architect help forum</ulink></para>
-
-      </listitem>
-
-    </itemizedlist>
-
-  </chapter>
-
-  <chapter id="glossary">
-
-    <title>Glossary</title>
-
-    <para>This section lists some database-related terms and their 
-    meanings.</para>
-
-    <informaltable frame="all" id="glossary_table">
-
-      <tgroup cols="2">
-
-        <tbody>
-
-          <row><entry><para>Column</para></entry><entry><para>The set 
-          of all instances of a given field from all records in a 
-          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?table">
-          table</ulink> .</para></entry></row>
-
-          <row><entry><para>Database</para></entry><entry><para>One or 
-          more large structured sets of persistent data, usually 
-          associated with software to update and 
-          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?query">
-          query</ulink> the data. A simple database might be a single 
-          file containing many 
-          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?records">
-          records</ulink> , each of which contains the same set of 
-          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?fields">
-          fields</ulink> where each field is a certain fixed 
-          width.</para></entry></row>
-
-          <row><entry><para>Data 
-          Modelling</para></entry><entry><para>The product of the 
-          database design process which aims to identify and organize 
-          the required data logically and 
-          physically.</para></entry></row>
-
-          <row><entry><para>Data 
-          Warehousing</para></entry><entry><para>A database, often 
-          remote, containing recent snapshots of corporate data. 
-          Planners and researchers can use this database freely without 
-          worrying about slowing down day-to-day operations of the 
-          production database.</para></entry></row>
-
-          <row><entry><para>ETL</para></entry><entry><para>Extraction, 
-          Transforming and Loading – the process of maintaining and 
-          transforming data into and out of a relational 
-          database.</para></entry></row>
-
-          <row><entry><para>Foreign key</para></entry><entry><para>A 
-          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?column">
-          column</ulink> in a database 
-          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?table">
-          table</ulink> containing values that are also found in some 
-          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?primary+key">
-          primary key</ulink> column (of a different table). By 
-          extension, any reference to entities of a different 
-          type.</para><para>Some 
-          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?RDBMSs">
-          RDBMSs</ulink> allow a column to be explicitly labelled as a 
-          foreign key and only allow values to be inserted if they 
-          already exist in the relevant primary key 
-          column.</para></entry></row>
-
-          <row><entry><para>Identifying 
-          Relationship</para></entry><entry><para>Where the key of the 
-          parent table is a subset of the key of the child 
-          table.</para></entry></row>
-
-          <row><entry><para>JDBC</para></entry><entry><para>Java 
-          DataBase Connectivity, an unofficial acronym for the 
-          "java.sql" package of functionality used to access 
-          relational databases from programs written in the Java 
-          programming language.</para></entry></row>
-
-          <row><entry><para>Key</para></entry><entry><para>A value used 
-          to identify a 
-          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?record">
-          record</ulink> in a database, derived by applying some fixed 
-          function to the record. The key is often simply one of the 
-          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?fields">
-          fields</ulink> (a 
-          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?column">
-          column</ulink> if the database is considered as a table with 
-          records being rows, see " 
-          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?key+field">
-          key field</ulink> "). Alternatively the key may be 
-          obtained by applying some function, e.g. a 
-          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?hash+function">
-          hash function</ulink> , to one or more of the fields. The set 
-          of keys for all records forms an 
-          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?index">
-          index</ulink> . Multiple indexes may be built for one 
-          database depending on how it is to be 
-          searched.</para></entry></row>
-
-          <row><entry><para>Primary key</para></entry><entry><para>The 
-          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?candidate+key">
-          candidate key</ulink> selected as being most important for 
-          identifying a body of information (an entity, object or 
-          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?record">
-          record</ulink> ).</para></entry></row>
-
-          <row><entry><para>Record (row)</para></entry><entry><para>One 
-          or more structured sets of persistent data, usually 
-          associated with software to update and 
-          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?query">
-          query</ulink> the data. A simple database might be a single 
-          file containing many 
-          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?records">
-          records</ulink> , each of which contains the same set of 
-          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?fields">
-          fields</ulink> where each field is a certain fixed 
-          width.</para></entry></row>
-
-          <row><entry><para>SQL</para></entry><entry><para>
-          <ulink url="http://en.wikipedia.org/wiki/SQL#History">Originally 
-          SEQUEL</ulink> and still pronounced that way by many 
-          practitioners, SQL is the Standard Query Language; a unified 
-          language for creating queries that is accepted (with some 
-          variations) by all modern relational 
-          databases.</para></entry></row>
-
-          <row><entry><para>Table</para></entry><entry><para>A 
-          collection of 
-          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?records">
-          records</ulink> in a 
-          <ulink url="http://foldoc.org/foldoc/foldoc.cgi?relational+database">
-          relational database</ulink> .</para></entry></row>
-
-        </tbody>
-
-      </tgroup>
-
-    </informaltable>
-
-    <para>Some of these terms are from FolDoc, "The Free On-line 
-    Dictionary of Computing", http://www.foldoc.org/, Editor Denis 
-    Howe.</para>
-
-  </chapter>
-  
-  <chapter id="acknowledgements">
-    <title>Acknowledgements</title>
-    
-    <section id="ASF"><title>The Apache Software Foundation</title>
-    <para>The Power*Architect development team is grateful to the Apache Software Foundation
-    and their contributors; their high-quality reusable Java libraries have been
-    invaluable in the development of the Architect.  The text of the Apache License follows,
-    because we are redistributing several Apache libraries upon which the Architect depends.
-    </para>
-    
-    <para>The following license applies to these library jar files, which are distributed
-    as part of the Architect download:</para>
-
-    <itemizedlist>
-      <listitem><para>commons-beanutils.jar</para></listitem>
-      <listitem><para>commons-digester.jar</para></listitem>
-      <listitem><para>commons-logging.jar</para></listitem>
-      <listitem><para>commons-beanutils-bean-collections.jar</para></listitem>
-      <listitem><para>commons-beanutils-core.jar</para></listitem>
-      <listitem><para>jakarta-regexp-1.2.jar</para></listitem>
-      <listitem><para>commons-collections-3.1.jar</para></listitem>
-      <listitem><para>commons-dbcp-1.2.1.jar</para></listitem>
-      <listitem><para>commons-pool-1.3.jar</para></listitem>
-    </itemizedlist>
-    
-	<literallayout>
-                              Apache License
-                        Version 2.0, January 2004
-                     http://www.apache.org/licenses/
-
-TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
-
-1. Definitions.
-
-   "License" shall mean the terms and conditions for use, reproduction,
-   and distribution as defined by Sections 1 through 9 of this document.
-
-   "Licensor" shall mean the copyright owner or entity authorized by
-   the copyright owner that is granting the License.
-   
-   "Legal Entity" shall mean the union of the acting entity and all
-   other entities that control, are controlled by, or are under common
-   control with that entity. For the purposes of this definition,
-   "control" means (i) the power, direct or indirect, to cause the
-   direction or management of such entity, whether by contract or
-   otherwise, or (ii) ownership of fifty percent (50%) or more of the
-   outstanding shares, or (iii) beneficial ownership of such entity.
-   
-   "You" (or "Your") shall mean an individual or Legal Entity
-   exercising permissions granted by this License.
-   
-   "Source" form shall mean the preferred form for making modifications,
-   including but not limited to software source code, documentation
-   source, and configuration files.
-   
-   "Object" form shall mean any form resulting from mechanical
-   transformation or translation of a Source form, including but
-   not limited to compiled object code, generated documentation,
-   and conversions to other media types.
-   
-   "Work" shall mean the work of authorship, whether in Source or
-   Object form, made available under the License, as indicated by a
-   copyright notice that is included in or attached to the work
-   (an example is provided in the Appendix below).
-   
-   "Derivative Works" shall mean any work, whether in Source or Object
-   form, that is based on (or derived from) the Work and for which the
-   editorial revisions, annotations, elaborations, or other modifications
-   represent, as a whole, an original work of authorship. For the purposes
-   of this License, Derivative Works shall not include works that remain
-   separable from, or merely link (or bind by name) to the interfaces of,
-   the Work and Derivative Works thereof.
-   
-   "Contribution" shall mean any work of authorship, including
-   the original version of the Work and any modifications or additions
-   to that Work or Derivative Works thereof, that is intentionally
-   submitted to Licensor for inclusion in the Work by the copyright owner
-   or by an individual or Legal Entity authorized to submit on behalf of
-   the copyright owner. For the purposes of this definition, "submitted"
-   means any form of electronic, verbal, or written communication sent
-   to the Licensor or its representatives, including but not limited to
-   communication on electronic mailing lists, source code control systems,
-   and issue tracking systems that are managed by, or on behalf of, the
-   Licensor for the purpose of discussing and improving the Work, but
-   excluding communication that is conspicuously marked or otherwise
-   designated in writing by the copyright owner as "Not a Contribution."
-   
-   "Contributor" shall mean Licensor and any individual or Legal Entity
-   on behalf of whom a Contribution has been received by Licensor and
-   subsequently incorporated within the Work.
-   
-2. Grant of Copyright License. Subject to the terms and conditions of
-   this License, each Contributor hereby grants to You a perpetual,
-   worldwide, non-exclusive, no-charge, royalty-free, irrevocable
-   copyright license to reproduce, prepare Derivative Works of,
-   publicly display, publicly perform, sublicense, and distribute the
-   Work and such Derivative Works in Source or Object form.
-   
-3. Grant of Patent License. Subject to the terms and conditions of
-   this License, each Contributor hereby grants to You a perpetual,
-   worldwide, non-exclusive, no-charge, royalty-free, irrevocable
-   (except as stated in this section) patent license to make, have made,
-   use, offer to sell, sell, import, and otherwise transfer the Work,
-   where such license applies only to those patent claims licensable
-   by such Contributor that are necessarily infringed by their
-   Contribution(s) alone or by combination of their Contribution(s)
-   with the Work to which such Contribution(s) was submitted. If You
-   institute patent litigation against any entity (including a
-   cross-claim or counterclaim in a lawsuit) alleging that the Work
-   or a Contribution incorporated within the Work constitutes direct
-   or contributory patent infringement, then any patent licenses
-   granted to You under this License for that Work shall terminate
-   as of the date such litigation is filed.
-   
-4. Redistribution. You may reproduce and distribute copies of the
-   Work or Derivative Works thereof in any medium, with or without
-   modifications, and in Source or Object form, provided that You
-   meet the following conditions:
-
-   (a) You must give any other recipients of the Work or
-       Derivative Works a copy of this License; and
-
-   (b) You must cause any modified files to carry prominent notices
-       stating that You changed the files; and
-   
-   (c) You must retain, in the Source form of any Derivative Works
-       that You distribute, all copyright, patent, trademark, and
-       attribution notices from the Source form of the Work,
-       excluding those notices that do not pertain to any part of
-       the Derivative Works; and
-   
-   (d) If the Work includes a "NOTICE" text file as part of its
-       distribution, then any Derivative Works that You distribute must
-       include a readable copy of the attribution notices contained
-       within such NOTICE file, excluding those notices that do not
-       pertain to any part of the Derivative Works, in at least one
-       of the following places: within a NOTICE text file distributed
-       as part of the Derivative Works; within the Source form or
-       documentation, if provided along with the Derivative Works; or,
-       within a display generated by the Derivative Works, if and
-       wherever such third-party notices normally appear. The contents
-       of the NOTICE file are for informational purposes only and
-       do not modify the License. You may add Your own attribution
-       notices within Derivative Works that You distribute, alongside
-       or as an addendum to the NOTICE text from the Work, provided
-       that such additional attribution notices cannot be construed
-       as modifying the License.
-   
-   You may add Your own copyright statement to Your modifications and
-   may provide additional or different license terms and conditions
-   for use, reproduction, or distribution of Your modifications, or
-   for any such Derivative Works as a whole, provided Your use,
-   reproduction, and distribution of the Work otherwise complies with
-   the conditions stated in this License.
-
-5. Submission of Contributions. Unless You explicitly state otherwise,
-   any Contribution intentionally submitted for inclusion in the Work
-   by You to the Licensor shall be under the terms and conditions of
-   this License, without any additional terms or conditions.
-   Notwithstanding the above, nothing herein shall supersede or modify
-   the terms of any separate license agreement you may have executed
-   with Licensor regarding such Contributions.
-   
-6. Trademarks. This License does not grant permission to use the trade
-   names, trademarks, service marks, or product names of the Licensor,
-   except as required for reasonable and customary use in describing the
-   origin of the Work and reproducing the content of the NOTICE file.
-   
-7. Disclaimer of Warranty. Unless required by applicable law or
-   agreed to in writing, Licensor provides the Work (and each
-   Contributor provides its Contributions) on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
-   implied, including, without limitation, any warranties or conditions
-   of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
-   PARTICULAR PURPOSE. You are solely responsible for determining the
-   appropriateness of using or redistributing the Work and assume any
-   risks associated with Your exercise of permissions under this License.
-   
-8. Limitation of Liability. In no event and under no legal theory,
-   whether in tort (including negligence), contract, or otherwise,
-   unless required by applicable law (such as deliberate and grossly
-   negligent acts) or agreed to in writing, shall any Contributor be
-   liable to You for damages, including any direct, indirect, special,
-   incidental, or consequential damages of any character arising as a
-   result of this License or out of the use or inability to use the
-   Work (including but not limited to damages for loss of goodwill,
-   work stoppage, computer failure or malfunction, or any and all
-   other commercial damages or losses), even if such Contributor
-   has been advised of the possibility of such damages.
-   
-9. Accepting Warranty or Additional Liability. While redistributing
-   the Work or Derivative Works thereof, You may choose to offer,
-   and charge a fee for, acceptance of support, warranty, indemnity,
-   or other liability obligations and/or rights consistent with this
-   License. However, in accepting such obligations, You may act only
-   on Your own behalf and on Your sole responsibility, not on behalf
-   of any other Contributor, and only if You agree to indemnify,
-   defend, and hold each Contributor harmless for any liability
-   incurred by, or claims asserted against, such Contributor by reason
-   of your accepting any such warranty or additional liability.
-   
-END OF TERMS AND CONDITIONS
-   
-APPENDIX: How to apply the Apache License to your work.
-   
-   To apply the Apache License to your work, attach the following
-   boilerplate notice, with the fields enclosed by brackets "[]"
-   replaced with your own identifying information. (Don't include
-   the brackets!)  The text should be enclosed in the appropriate
-   comment syntax for the file format. We also recommend that a
-   file or class name and description of purpose be included on the
-   same "printed page" as the copyright notice for easier
-   identification within third-party archives.
-   
-Copyright [yyyy] [name of copyright owner]
-   
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-    	</literallayout>
-    </section>
-    	
-    <section id="JGoodies"><title>JGoodies Karsten Lentzsch</title>
-    	
-    	<para>The Power*Architect team is also grateful to JGoodies for their
-    	excellent forms layout manager for Swing.  JGoodies forms is released
-    	under the BSD license, reproduced below.</para>
-    	
-    <para>The following license applies to these library jar files,
-    which are distributed as part of the Architect download:</para>
-
-    <itemizedlist>
-      <listitem><para>forms-1.0.6.jar</para></listitem>
-    </itemizedlist>
-
-    	<literallayout>
-              The BSD License for the JGoodies Forms
-              ======================================
-
-Copyright (c) 2002-2006 JGoodies Karsten Lentzsch. All rights reserved.
-
-Redistribution and use in source and binary forms, with or without 
-modification, are permitted provided that the following conditions are met:
-
- o Redistributions of source code must retain the above copyright notice, 
-   this list of conditions and the following disclaimer. 
-
- o Redistributions in binary form must reproduce the above copyright notice, 
-   this list of conditions and the following disclaimer in the documentation 
-   and/or other materials provided with the distribution. 
-    
-
- o Neither the name of JGoodies Karsten Lentzsch nor the names of 
-   its contributors may be used to endorse or promote products derived 
-   from this software without specific prior written permission. 
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
-EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-    	</literallayout>
-    	
-    	</section>
-    	
-    <section id="JUnit"><title>JUnit</title>
-    	<para>The Power*Architect team would also like to extend our sincere thanks
-    	to the JUnit.org team.  JUnit forms an invaluable part of our development
-    	process, but it is not redistributed as part of the Architect download so its
-    	license is not reproduced here.
-    	</para>
-    	
-    	<para>If you develop software, you should become test infected too!  Learn
-    	about JUnit at <ulink url="http://www.junit.org/">http://www.junit.org/</ulink>.
-    	</para>
-    
-    </section>
-    
-    <section id="eclipse"><title>The Eclipse Foundation</title>
-    	<para>The Power*Archited was primarily developed and tested
-    	using the <ulink url="http://www.sqlpower.ca/">Eclipse</ulink>
-		Java Development Tools, one of the
-    	more productive Java environments around.</para>
-    </section>
-    	
-    <section id="SUNW"><title>Sun Microsystems</title>
-
-    <para>Last but not least, many thanks to 
-    <ulink url="http://java.sun.com/">Sun Microsystems</ulink> and their various
-    Java development teams for creating, extending, bugfixing, documenting, and
-    supporting the Java platform over the past <emphasis>N</emphasis> years!
-    </para>
-
-    </section>
-    
-  </chapter>
-  
 </book>
