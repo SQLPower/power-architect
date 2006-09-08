@@ -239,6 +239,7 @@
     		<mkdir dir="${deploy.dir}" />
         <mkdir dir="${staging.dir}"/>
         <mkdir dir="${staging.dir}/lib"/>
+    	<mkdir dir="${staging.dir}/doc"/>
     		<jar destfile="${staging.dir}/architect.jar" update="no"
     				basedir="${build}" includes="ca/** icons/** log4j.properties" 
     				manifest="manifest">
@@ -246,6 +247,9 @@
     	    <copy todir="${staging.dir}/lib">
     	        <fileset dir="lib" includes="*.jar"/>
     	    </copy>
+    		<copy todir="${staging.dir}/doc">
+        		<fileset dir="${build}/doc" includes="*.pdf"/>
+    		</copy>
     		<!-- No point in signing until we have a certificate that's signed by a CA
     	    <signjar alias="sqlpower" keystore="keystore" storepass="low_security" keypass="low_security">
     	        <fileset dir="webstart/lib"/>
@@ -358,6 +362,9 @@
 						<fileset dir="../staging/lib" targetdir="$INSTALL_PATH/lib">
 							<include name="*.jar"/>
 						</fileset>
+						<fileset dir="../staging/doc" targetdir="$INSTALL_PATH/doc">
+							<include name="*.pdf"/>
+						</fileset>
 						<fileset dir="." targetdir="$INSTALL_PATH">
 							<include name="*.reg"/>
 						</fileset>
@@ -449,6 +456,7 @@
 		<tar destfile="${deploy.dir}/Architect-OSX-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.tar.gz"
 					compression="gzip">
 			<tarfileset dir="${staging.dir}" includes="Power Architect.app/**"/>
+			<tarfileset dir="${staging.dir}/doc" includes="*.pdf"/>
 		</tar>	
 	</target>
 	
@@ -458,6 +466,7 @@
 			compression="gzip">
 			<tarfileset dir="${staging.dir}" includes="lib/*.jar"/>
 			<tarfileset dir="${staging.dir}" includes="architect.jar"/>
+			<tarfileset dir="${staging.dir}/doc" includes="*.pdf"/>
 		</tar>
     </target>
 	
