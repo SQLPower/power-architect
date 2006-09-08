@@ -114,23 +114,14 @@ public class ColumnProfileResult extends ProfileResult<SQLColumn> {
         topTen.add(new ColumnValueCount(value,count));
         return;
     }
+
+    public void addValueCount(ColumnValueCount value) {
+        topTen.add(value);
+        return;
+    }
     public List<ColumnValueCount> getValueCount() {
         return topTen;
     }
 
-    public class ColumnValueCount {
-        private Object value;
-        private int count;
 
-        public ColumnValueCount(Object value, int count) {
-            this.value = value;
-            this.count = count;
-        }
-        public int getCount() {
-            return count;
-        }
-        public Object getValue() {
-            return value;
-        }
-    }
 }

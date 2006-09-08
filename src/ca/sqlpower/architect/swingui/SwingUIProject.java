@@ -44,10 +44,10 @@ import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.PLExport;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
+import ca.sqlpower.architect.profile.ColumnValueCount;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileResult;
 import ca.sqlpower.architect.profile.TableProfileResult;
-import ca.sqlpower.architect.profile.ColumnProfileResult.ColumnValueCount;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentListener;
@@ -325,6 +325,10 @@ public class SwingUIProject {
         d.addSetNext("*/profiles/profile-result/minValue", "setMinValue");
         d.addFactoryCreate("*/profiles/profile-result/maxValue", profileResultValueFactory);
         d.addSetNext("*/profiles/profile-result/maxValue", "setMaxValue");
+
+        ProfileResultTopNValueFactory topNValueFactory = new ProfileResultTopNValueFactory();
+        d.addFactoryCreate("*/profiles/profile-result/topNvalue", topNValueFactory );
+        d.addSetNext("*/profiles/profile-result/topNvalue", "addValueCount");
 
         FileFactory fileFactory = new FileFactory();
         d.addFactoryCreate("*/file", fileFactory);
@@ -720,7 +724,28 @@ public class SwingUIProject {
             } else if (className.equals(String.class.getName()) ) {
                 return new String(attributes.getValue("value"));
             } else {
-                return Class.forName(className).newInstance();
+                return new String(attributes.getValue("value"));
+            }
+        }
+    }
+
+    private class ProfileResultTopNValueFactory extends AbstractObjectCreationFactory {
+        @Override
+        public Object createObject(Attributes attributes) throws ArchitectException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+            String className = attributes.getValue("type");
+            int count = Integer.valueOf(attributes.getValue("count"));
+            String value = attributes.getValue("value");
+
+            if (className == null || className.length() == 0 ) {
+                return new ColumnValueCount(null,count);
+            } else if (className.equals(BigDecimal.class.getName()) ) {
+                return new ColumnValueCount(new BigDecimal(value),count);
+            } else if (className.equals(Timestamp.class.getName()) ) {
+                return new ColumnValueCount(new Timestamp( Timestamp.valueOf(value).getTime() ),count);
+            } else if (className.equals(String.class.getName()) ) {
+                return new ColumnValueCount(new String(value),count);
+            } else {
+                return new ColumnValueCount(new String(value),count);
             }
         }
     }
@@ -985,7 +1010,8 @@ public class SwingUIProject {
 
     private void saveTargetDatabase(PrintWriter out) throws IOException, ArchitectException {
         SQLDatabase db = (SQLDatabase) playPen.getDatabase();
-        println(out, "<target-database dbcs-ref="+ quote(dbcsIdMap.get(db.getDataSource()).toString())+ ">");
+        println(out, "<target-database dbcs-ref="+
+                quote(dbcsIdMap.get(db.getDataSource()).toString())+ ">");
         indent++;
         Iterator it = db.getChildren().iterator();
         while (it.hasNext()) {
@@ -1086,7 +1112,13 @@ public class SwingUIProject {
                 List<ColumnValueCount> valueCount = cpr.getValueCount();
                 if (valueCount != null) {
                     for (ColumnValueCount count : valueCount) {
-                        println(out, "<value occurrences=\""+count.getCount()+"\">"+ArchitectUtils.escapeXML(String.valueOf(count.getValue()))+"</value>");
+                        println(out, "<topNvalue count=\""+
+                                count.getCount()+
+                                "\" type=\"" +
+                                (count.getValue() == null ? "" : count.getValue().getClass().getName()) +
+                                "\" value=\""+
+                                ArchitectUtils.escapeXML(String.valueOf(count.getValue()))+
+                                "\"/>" );
                     }
                 }
                 indent--;
