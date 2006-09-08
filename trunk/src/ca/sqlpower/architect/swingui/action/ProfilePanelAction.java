@@ -18,6 +18,7 @@ import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
@@ -86,10 +87,29 @@ public class ProfilePanelAction extends AbstractAction {
             logger.debug("dbtree path selection was null when actionPerformed called");
             return;
         }
+       
+        TreePath targetDBPath = dbTree.getPathForRow(0);                
+        for (TreePath path: dbTree.getSelectionPaths()){
+            if (path.isDescendant(targetDBPath)) {
+                
+                    int answer = JOptionPane.showConfirmDialog(dialog, 
+                                    "Cannot perform profiling on the project database." +
+                                    "\nDo you want to continue profiling?",
+                                    "Continue Profiling",JOptionPane.OK_CANCEL_OPTION);
+                    if (answer == JOptionPane.CANCEL_OPTION){
+                        return;                        
+                    } else {
+                        break;
+                    }
+             
+            }
+        }
 
         try {
             Set<SQLObject> sqlObject = new HashSet<SQLObject>();
             for ( TreePath tp : dbTree.getSelectionPaths() ) {
+                // skip the target db
+                if (tp.isDescendant(targetDBPath)) continue;
                 if ( tp.getLastPathComponent() instanceof SQLDatabase ) {
                     sqlObject.add((SQLDatabase)tp.getLastPathComponent());
                 }
