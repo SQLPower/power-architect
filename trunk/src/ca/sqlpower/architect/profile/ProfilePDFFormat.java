@@ -19,7 +19,6 @@ import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
-import ca.sqlpower.architect.profile.ColumnProfileResult.ColumnValueCount;
 
 import com.lowagie.text.Document;
 import com.lowagie.text.DocumentException;

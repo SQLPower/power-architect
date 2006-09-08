@@ -21,13 +21,13 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
+import ca.sqlpower.architect.profile.ColumnValueCount;
 import ca.sqlpower.architect.profile.ProfileChangeEvent;
 import ca.sqlpower.architect.profile.ProfileChangeListener;
 import ca.sqlpower.architect.profile.ProfileColumn;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileResult;
 import ca.sqlpower.architect.profile.TableProfileResult;
-import ca.sqlpower.architect.profile.ColumnProfileResult.ColumnValueCount;
 
 public class ProfileTableModel extends AbstractTableModel {
 
@@ -36,7 +36,7 @@ public class ProfileTableModel extends AbstractTableModel {
      * entire ColumnProfileResult object that provides the data for
      * the specified row.  This constant is package private because
      * no users outside the table package should be using it.
-     * 
+     *
      * <p>See {@link ProfileTable#getColumnProfileResultForRow(int)}.
      */
     static final int CPR_PSEUDO_COLUMN_INDEX = -1;
@@ -46,7 +46,7 @@ public class ProfileTableModel extends AbstractTableModel {
     private ProfileManager profileManager;
 
     private List<ColumnProfileResult> resultList;
-    
+
     private List<SQLObject> filters;
 
 
@@ -101,7 +101,9 @@ public class ProfileTableModel extends AbstractTableModel {
         }
     }
 
-     private static Object getColumnValueFromProfile(ProfileColumn column, ColumnProfileResult columnProfile, ProfileManager profileManager) {
+     private static Object getColumnValueFromProfile(ProfileColumn column,
+             ColumnProfileResult columnProfile,
+             ProfileManager profileManager) {
         SQLColumn col = columnProfile.getProfiledObject();
         int rowCount = ((TableProfileResult) profileManager.getResult(col.getParentTable())).getRowCount();
 
@@ -164,7 +166,7 @@ public class ProfileTableModel extends AbstractTableModel {
      public List<ColumnValueCount> getTopNValueAt(int rowIndex) {
          return resultList.get(rowIndex).getValueCount();
      }
-     
+
     public boolean isErrorColumnProfile(int row) {
         ColumnProfileResult columnProfile = resultList.get(row);
         return columnProfile.isError();
@@ -231,7 +233,7 @@ public class ProfileTableModel extends AbstractTableModel {
             }
 
             public void profileAdded(ProfileChangeEvent e) {
-                refresh();                
+                refresh();
             }});
         refresh();
     }
@@ -287,5 +289,5 @@ public class ProfileTableModel extends AbstractTableModel {
     public List<ColumnProfileResult> getResultList() {
         return resultList;
     }
-    
+
 }

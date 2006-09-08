@@ -10,8 +10,7 @@ import java.util.List;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 
-import ca.sqlpower.architect.profile.ColumnProfileResult;
-import ca.sqlpower.architect.profile.ColumnProfileResult.ColumnValueCount;
+import ca.sqlpower.architect.profile.ColumnValueCount;
 
 public class ValueTableCellRenderer extends DefaultTableCellRenderer {
 
@@ -35,11 +34,11 @@ public class ValueTableCellRenderer extends DefaultTableCellRenderer {
         } else if ( value instanceof List ) {
             if ( ((List) value).size() > 0 )
                 formattedValue = String.valueOf(
-                        ((ColumnProfileResult.ColumnValueCount)((List) value).get(0)).getValue());
+                        ((ColumnValueCount)((List) value).get(0)).getValue());
             else
                 formattedValue = "";
-            
-            
+
+
             StringBuffer toolTip = new StringBuffer();
             toolTip.append("<html><table>");
             for ( ColumnValueCount v : (List<ColumnValueCount>)value ) {
@@ -82,7 +81,7 @@ public class ValueTableCellRenderer extends DefaultTableCellRenderer {
         }
 
     };
-    
+
     public Format getFormat() {
         return fakeFormatter;
     }
