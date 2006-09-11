@@ -572,7 +572,13 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
         }
 
         Integer oldPrimaryKeySeq = primaryKeySeq;
+        //The check for setNullable() is not moved out is because it is
+        //needed to be part of the compound edit if isMagicEnabled is true
+        
         if (!isMagicEnabled()) {
+            if (argPrimaryKeySeq != null && !this.autoIncrement) {
+                setNullable(DatabaseMetaData.columnNoNulls);    
+            }
             this.primaryKeySeq = argPrimaryKeySeq;
             fireDbObjectChanged("primaryKeySeq",oldPrimaryKeySeq,argPrimaryKeySeq);
         } else try {
