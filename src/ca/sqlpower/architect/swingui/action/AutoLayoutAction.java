@@ -26,10 +26,10 @@ public class AutoLayoutAction extends AbstractAction {
 	 * The PlayPen instance that owns this Action.
 	 */
 	private PlayPen pp;
-	
+
 	private boolean animationEnabled = true;
 
-	private ArchitectLayoutInterface layout; 
+	private ArchitectLayoutInterface layout;
 
 	private int framesPerSecond = 25;
 
@@ -47,17 +47,17 @@ public class AutoLayoutAction extends AbstractAction {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        
+
 		if (layout != null)
 		{
-			
+
 			List<TablePane> tablePanes = new ArrayList(pp.getSelectedTables());
             List<TablePane> notLaidOut = new ArrayList<TablePane>(pp.getTablePanes());
             notLaidOut.removeAll(tablePanes);
  			Point layoutAreaOffset = new Point();
-			if (tablePanes.size() == 0) {
-				tablePanes = pp.getTablePanes();	
-			} else if (tablePanes.size() != pp.getTablePanes().size()){                
+			if (tablePanes.size() == 0 || tablePanes.size() == 1) {
+				tablePanes = pp.getTablePanes();
+			} else if (tablePanes.size() != pp.getTablePanes().size()){
 				int maxWidth =0;
 				for (TablePane tp : notLaidOut){
 					int width = tp.getWidth()+tp.getX();
@@ -67,12 +67,12 @@ public class AutoLayoutAction extends AbstractAction {
 				}
 				layoutAreaOffset = new Point(maxWidth,0);
 			}
-            
+
 			List<Relationship> relationships = pp.getRelationships();
 			logger.debug("About to do layout. tablePanes="+tablePanes);
 			logger.debug("About to do layout. relationships="+relationships);
-            
-            
+
+
 			Rectangle layoutArea = new Rectangle(layoutAreaOffset,layout.getNewArea(tablePanes));
 			layout.setup(tablePanes,relationships,layoutArea);
             LayoutAnimator anim = new LayoutAnimator(pp,layout);
@@ -80,14 +80,14 @@ public class AutoLayoutAction extends AbstractAction {
             anim.setFramesPerSecond(framesPerSecond);
 			anim.startAnimation();
 		}
-		
+
 	}
-	
-		
+
+
 	public void setPlayPen(PlayPen pp) {
 		this.pp = pp;
 	}
-	
+
 	public PlayPen getPlayPen() {
 		return pp;
 	}
