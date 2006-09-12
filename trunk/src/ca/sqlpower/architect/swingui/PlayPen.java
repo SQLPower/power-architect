@@ -2061,7 +2061,7 @@ public class PlayPen extends JPanel
 				                }
 				            }
 				        } else if(evt.getClickCount()==1) {
-				            System.out.println("Col index "+selectedColIndex);
+				            logger.debug("Col index "+selectedColIndex);
 				            if (selectedColIndex > TablePane.COLUMN_INDEX_TITLE && componentPreviouslySelected){
 				                ((TablePane)c).deselectColumn(selectedColIndex);
 				            } else if (c.isSelected()&& componentPreviouslySelected) {

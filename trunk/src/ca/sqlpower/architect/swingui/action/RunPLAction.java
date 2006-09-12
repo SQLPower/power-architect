@@ -35,7 +35,7 @@ public class RunPLAction  extends AbstractAction{
         File engineExe = new File(plDir, "PowerLoader_odbc.exe");
         
         final StringBuffer commandLine = getPLCommandLine();
-        System.out.println("Running pl");
+       logger.debug("Running pl");
         if ( engineExe.exists()) {
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
