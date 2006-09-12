@@ -1125,9 +1125,20 @@ public class PlayPen extends JPanel
 		logger.info("adding table "+newTable);
 		addImpl(tp, preferredLocation,getPPComponentCount());
 		tp.revalidate();
-		
-		// create exported relationships if the importing tables exist in pp
-		Iterator sourceKeys = source.getExportedKeys().iterator();
+			
+        createRelationshipsFromPP(source, newTable,true);
+        createRelationshipsFromPP(source, newTable,false);
+		return tp;
+	}
+
+    private void createRelationshipsFromPP(SQLTable source, SQLTable newTable, boolean isPrimaryKeyTableNew) throws ArchitectException {
+        // create exported relationships if the importing tables exist in pp
+		Iterator sourceKeys = null;
+        if (isPrimaryKeyTableNew) {
+            sourceKeys = source.getExportedKeys().iterator();
+        } else {
+            sourceKeys = source.getImportedKeys().iterator();
+        }
 		while (sourceKeys.hasNext()) {
 		    Object next = sourceKeys.next();
 		    if ( !(next instanceof SQLRelationship) ) continue;  // there could be SQLExceptionNodes here
@@ -1135,87 +1146,76 @@ public class PlayPen extends JPanel
 			if (logger.isInfoEnabled()) {
 				logger.info("Looking for fk table "+r.getFkTable().getName()+" in playpen");
 			}
-			TablePane fkTablePane = findTablePaneByName(r.getFkTable().getName());
-			if (fkTablePane != null) {
+           
+            TablePane tablePane =  null; 
+            if (isPrimaryKeyTableNew){
+                tablePane =findTablePaneByName(r.getFkTable().getName());
+            } else {
+                tablePane =findTablePaneByName(r.getPkTable().getName());
+            }
+            
+			if (tablePane != null) {
 				logger.info("FOUND IT!");
-				SQLTable fkTable = fkTablePane.getModel();
+				SQLTable oldTable = tablePane.getModel();
+               
 				SQLRelationship newRel = new SQLRelationship();
 				newRel.setName(r.getName());
 				newRel.setIdentifying(true);
-				newRel.attachRelationship(newTable,fkTable,false);
+                if (isPrimaryKeyTableNew) {
+                    newRel.attachRelationship(newTable,oldTable,false);
+                } else {
+                    newRel.attachRelationship(oldTable,newTable,false);
+                }
 				addImpl(new Relationship(this, newRel),null,getPPComponentCount());
 
 				Iterator mappings = r.getChildren().iterator();
 				while (mappings.hasNext()) {
 					SQLRelationship.ColumnMapping m
 						= (SQLRelationship.ColumnMapping) mappings.next();
-					SQLColumn pkCol = newTable.getColumnByName(m.getPkColumn().getName());
-					SQLColumn fkCol = fkTable.getColumnByName(m.getFkColumn().getName());
-					if (pkCol == null) {
-						// this shouldn't happen
-						throw new IllegalStateException("Couldn't fink pkCol "+m.getPkColumn().getName()+" in new table");
-					}
-					if (fkCol == null) {
-						// this might reasonably happen (user deleted the column)
-						continue;
-					}
-					fkCol.addReference();
-					SQLRelationship.ColumnMapping newMapping
-						= new SQLRelationship.ColumnMapping();
-					newMapping.setPkColumn(pkCol);
-					newMapping.setFkColumn(fkCol);
-					newRel.addChild(newMapping);
+					setupMapping(newTable, oldTable, newRel, m,isPrimaryKeyTableNew);
 				}
 			} else {
 				logger.info("NOT FOUND");
 			}
 		}
+    }
 
-		
-		// create imported relationships if the exporting tables exist in pp
-		sourceKeys = source.getImportedKeys().iterator();
-		while (sourceKeys.hasNext()) {
-			SQLRelationship r = (SQLRelationship) sourceKeys.next();
-			if (logger.isDebugEnabled()) {
-				logger.info("Looking for pk table "+r.getPkTable().getName()+" in playpen");
-			}
-			TablePane pkTablePane = findTablePaneByName(r.getPkTable().getName());
-			if (pkTablePane != null) {
-				logger.info("FOUND IT!");
-				SQLTable pkTable = pkTablePane.getModel();
-				SQLRelationship newRel = new SQLRelationship();
-				newRel.setName(r.getName());
-				newRel.setIdentifying(true);
-				newRel.attachRelationship(pkTable,newTable,false);
-				addImpl(new Relationship(this, newRel),null,getPPComponentCount());
+    private void setupMapping(SQLTable newTable, SQLTable otherTable, SQLRelationship newRel, SQLRelationship.ColumnMapping m, boolean newTableIsPk) throws ArchitectException {
+        SQLColumn pkCol = null;
+        SQLColumn fkCol = null;
 
-				Iterator mappings = r.getChildren().iterator();
-				while (mappings.hasNext()) {
-					SQLRelationship.ColumnMapping m
-						= (SQLRelationship.ColumnMapping) mappings.next();
-					SQLColumn pkCol = pkTable.getColumnByName(m.getPkColumn().getName());
-					SQLColumn fkCol = newTable.getColumnByName(m.getFkColumn().getName());
-					if (fkCol == null) {
-						// this shouldn't happen
-						throw new IllegalStateException("Couldn't fink fkCol "+m.getPkColumn().getName()+" in new table");
-					}
-					if (pkCol == null) {
-						// this might reasonably happen (user deleted the column)
-						continue;
-					}
-					SQLRelationship.ColumnMapping newMapping
-						= new SQLRelationship.ColumnMapping();
-					newMapping.setPkColumn(pkCol);
-					newMapping.setFkColumn(fkCol);
-					newRel.addChild(newMapping);
-				}
-			} else {
-				logger.info("NOT FOUND");
-			}
-		}
+        if (newTableIsPk) {
+            pkCol=newTable.getColumnByName(m.getPkColumn().getName());
+            fkCol=otherTable.getColumnByName(m.getFkColumn().getName());
 
-		return tp;
-	}
+            if (pkCol == null) {
+                // this shouldn't happen
+                throw new IllegalStateException("Couldn't find pkCol "+m.getPkColumn().getName()+" in new table");
+            }
+            if (fkCol == null) {
+                // this might reasonably happen (user deleted the column)
+                return;
+            }
+        } else {
+            pkCol=otherTable.getColumnByName(m.getPkColumn().getName());
+            fkCol=newTable.getColumnByName(m.getFkColumn().getName());
+            if (fkCol == null) {
+                // this shouldn't happen
+                throw new IllegalStateException("Couldn't find fkCol "+m.getFkColumn().getName()+" in new table");
+            }
+            if (pkCol == null) {
+                // this might reasonably happen (user deleted the column)
+                return;
+            };
+        }
+       
+        fkCol.addReference();  
+        SQLRelationship.ColumnMapping newMapping
+        	= new SQLRelationship.ColumnMapping();
+        newMapping.setPkColumn(pkCol);
+        newMapping.setFkColumn(fkCol);
+        newRel.addChild(newMapping);
+    }
 	
 	/**
 	 * Calls {@link #importTableCopy} for each table contained in the given schema.
