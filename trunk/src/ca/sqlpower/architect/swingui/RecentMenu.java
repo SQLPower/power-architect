@@ -185,6 +185,17 @@ public abstract class RecentMenu extends JMenu {
 				mi.addActionListener(recentOpener);
 			}
 		}
+        
+        //Add in the clear item to the menu
+        this.addSeparator();
+        JMenuItem clearItem = new JMenuItem("Clear Recent Files");
+        clearItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                clear();
+            }
+        });
+        recentFileNames.add("Clear Recent Items");
+        this.add(clearItem);
 	}
 	
 	/**

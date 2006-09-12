@@ -7,7 +7,6 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -348,14 +347,7 @@ public class ArchitectFrame extends JFrame {
 		};
 
 		 openProjectAction = new OpenProjectAction(recent);
-
-		 JMenuItem clearItem = new JMenuItem("Clear Recent Files");
-		 clearItem.addActionListener(new ActionListener() {
-			 public void actionPerformed(ActionEvent e) {
-				 recent.clear();
-			 }
-		 });
-
+		 
 		saveProjectAction
 			= new AbstractAction("Save Project",
 								 ASUtils.createJLFIcon("general/Save",
@@ -600,8 +592,7 @@ public class ArchitectFrame extends JFrame {
 		fileMenu.setMnemonic('f');
 		fileMenu.add(newProjectAction);
 		fileMenu.add(openProjectAction);
-		fileMenu.add(recent);
-		fileMenu.add(clearItem);
+		fileMenu.add(recent);		
 		fileMenu.addSeparator();
 		fileMenu.add(saveProjectAction);
 		fileMenu.add(saveProjectAsAction);
