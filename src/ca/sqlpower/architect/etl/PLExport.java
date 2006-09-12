@@ -1384,7 +1384,6 @@ public class PLExport implements Monitorable {
 
                     SQLColumn outputCol = (SQLColumn) cols.next();
                     SQLColumn inputCol = outputCol.getSourceColumn();
-System.out.println("output col=" + outputCol.getName() + "  input col isnull? " + (inputCol==null?"yes":"no"));
                     if (inputCol != null && !inputTables.keySet().contains(inputCol.getParentTable())) {
                         // create transaction and input table meta data here if
                         // we need to

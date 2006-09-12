@@ -82,7 +82,7 @@ public final class DBCS_OkAction extends AbstractAction {
 			JOptionPane.showMessageDialog(newConnectionDialog,"A connection must have at least 1 character that is not whitespace");
 			newConnectionDialog.setVisible(true);
 		} else if (curName.equals(oldName)) {
-			System.out.println("The current Name is the same as the old name");
+			logger.debug("The current Name is the same as the old name");
 			dbcsPanel.applyChanges();
 		} else {
 			PlDotIni plDotIni = ArchitectFrame.getMainInstance().getUserSettings().getPlDotIni();
