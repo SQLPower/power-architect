@@ -7,6 +7,7 @@ import java.sql.Types;
 import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 
@@ -66,4 +67,71 @@ public class TestRelationship extends TestCase {
         assertEquals(Color.RED,tp2.getColumnHighlight(0));
         assertEquals(tp2.getForeground(), tp2.getColumnHighlight(1));      
     }
+    
+    private void setupRefCountTests(SQLDatabase db, SQLTable pkTable, SQLTable fkTable, SQLRelationship sourceRel) throws ArchitectException {
+        pkTable.setName("pkTable");
+        pkTable.addColumn(new SQLColumn(pkTable, "PKTableCol1", Types.INTEGER, 1, 0));
+        pkTable.addColumn(new SQLColumn(pkTable, "PKTableCol2", Types.INTEGER, 1, 0));
+        pkTable.getColumn(0).setPrimaryKeySeq(0);
+        db.addChild(pkTable);
+        
+        fkTable.setName("child");
+        fkTable.addColumn(new SQLColumn(fkTable, "FKTableCol1", Types.INTEGER, 1, 0));
+        db.addChild(fkTable);
+        
+        sourceRel.addMapping(pkTable.getColumn(0), fkTable.getColumn(0));
+        sourceRel.attachRelationship(pkTable, fkTable, true);        
+    }
+    
+    public void testRefCountWithFkTableInsertedFirst() throws ArchitectException {
+        SQLDatabase db = new SQLDatabase();        
+        SQLTable fkTable = new SQLTable(db, true);
+        SQLRelationship sourceRel = new SQLRelationship();
+        SQLTable pkTable = new SQLTable(db, true);        
+        setupRefCountTests(db,pkTable, fkTable, sourceRel);
+        
+        TablePane FkPane = pp.importTableCopy(fkTable, new Point(10, 10));
+        TablePane PkPane = pp.importTableCopy(pkTable, new Point(10, 10));
+                
+        assertEquals(2,FkPane.getModel().getColumn(0).getReferenceCount());
+        assertEquals(1, PkPane.getModel().getColumn(0).getReferenceCount());    
+    }
+
+    public void testRefCountWithPkTableInsertedFirst() throws ArchitectException {
+        SQLDatabase db = new SQLDatabase();
+        SQLTable fkTable = new SQLTable(db, true);
+        SQLRelationship sourceRel = new SQLRelationship();
+        SQLTable pkTable = new SQLTable(db, true);        
+        setupRefCountTests(db, pkTable, fkTable, sourceRel);
+        
+        TablePane PkPane = pp.importTableCopy(pkTable, new Point(10, 10));        
+        TablePane FkPane = pp.importTableCopy(fkTable, new Point(10, 10));
+
+        assertEquals(2, FkPane.getModel().getColumn(0).getReferenceCount());
+        assertEquals(1, PkPane.getModel().getColumn(0).getReferenceCount());    
+    }
+    
+    public void testRefCountWithMultipleTablesInserted() throws ArchitectException{
+        SQLDatabase db = new SQLDatabase();
+        SQLTable fkTable = new SQLTable(db, true);
+        SQLRelationship sourceRel = new SQLRelationship();
+        SQLTable pkTable = new SQLTable(db, true);        
+        
+        setupRefCountTests(db, pkTable, fkTable, sourceRel);
+        SQLTable fkTable2 = new SQLTable (db,true);
+        fkTable2.addColumn(new SQLColumn(fkTable2, "FKTable2Col1", Types.INTEGER, 1, 0));
+        SQLRelationship newRel = new SQLRelationship();
+        newRel.addMapping(pkTable.getColumn(0), fkTable2.getColumn(0));
+        newRel.attachRelationship(pkTable,fkTable2, true);
+               
+        
+        TablePane PkPane = pp.importTableCopy(pkTable, new Point(10, 10));        
+        TablePane FkPane = pp.importTableCopy(fkTable, new Point(10, 10));
+        TablePane FkPane2 = pp.importTableCopy(fkTable2, new Point(10, 10));               
+        
+        assertEquals (1, PkPane.getModel().getColumn(0).getReferenceCount());
+        assertEquals (2, FkPane.getModel().getColumn(0).getReferenceCount());
+        assertEquals (2, FkPane2.getModel().getColumn(0).getReferenceCount());        
+    }
+
 }
