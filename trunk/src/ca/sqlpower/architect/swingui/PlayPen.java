@@ -1206,7 +1206,7 @@ public class PlayPen extends JPanel
             if (pkCol == null) {
                 // this might reasonably happen (user deleted the column)
                 return;
-            };
+            }
         }
        
         fkCol.addReference();  

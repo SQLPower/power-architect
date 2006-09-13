@@ -55,7 +55,7 @@ public class ProfilePanel extends JPanel {
     private ProfileGraphPanel displayPanel;
     
     private final JProgressBar progressBar = new JProgressBar();
-    private final ProfileManager pm;
+
     private JTable viewTable;
     private JTabbedPane tabPane;
     private ProfileTableModel tableModel;
@@ -66,7 +66,6 @@ public class ProfilePanel extends JPanel {
     };
     
     public ProfilePanel(ProfileManager pm) {
-        this.pm = pm;
         displayPanel = new ProfileGraphPanel(this, 0,pm);
         setup();
     }

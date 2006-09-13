@@ -60,14 +60,14 @@ public class SQLComparatorTest extends TestCase {
 		// e1.equals((Object)e2)
 	}
 	
-	public void testForObjectCompareToNull(){
+	public void testForObjectCompareToNull() throws ArchitectException{
 		SQLTable t = new SQLTable();
 		t.setName("Testing");
 		assertEquals (1, comparator.compare(t, null));
 		assertEquals (-1, comparator.compare(null, t));		
 	}
 	
-	public void testForObjectCompareToObject(){
+	public void testForObjectCompareToObject() throws ArchitectException{
 		SQLTable t1 = new SQLTable();
 		SQLTable t2 = new SQLTable();
 		t1.setName("cow");
@@ -77,13 +77,13 @@ public class SQLComparatorTest extends TestCase {
 		
 	}
 	
-	public void testWithNullName() {
+	public void testWithNullName() throws ArchitectException {
 		SQLTable t1 = new SQLTable();
 		SQLTable t2 = new SQLTable();
 		assertEquals(0, comparator.compare(t1,t2));		
 	}
 	
-	public void testWithSameName(){
+	public void testWithSameName() throws ArchitectException{
 		SQLTable t1 = new SQLTable();
 		SQLTable t2 = new SQLTable();
 		t1.setName("cow");

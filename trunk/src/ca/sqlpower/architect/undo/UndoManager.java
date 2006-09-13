@@ -102,16 +102,32 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 			newPositions = new HashMap<PlayPenComponent, Point>();
 			originalPositions = new HashMap<PlayPenComponent, Point>();
 		}
+        
+       /**
+        * You should not undo when in a compound edit 
+        * @return
+        */
+		public boolean canUndoOrRedo() {
+		    if (ce == null) {
+		        return true;
+            } else {
+                return false;
+            }
+        }
 		
 		/**
 		 * Begins a compound edit.  Compound edits can be nested, so every call to this method
 		 * has to be balanced with a call to {@link #compoundGroupEnd()}.
+         * 
+         * fires a state changed event when a new compound edit is created
 		 */
 		private void compoundGroupStart(String toolTip) {
 			if (UndoManager.this.isUndoOrRedoing()) return;
 			compoundEditStackCount++;
-			if (compoundEditStackCount == 1)
+			if (compoundEditStackCount == 1){
 				ce = new CompEdit(toolTip);
+				fireStateChanged();
+            }
 			if (logger.isDebugEnabled()) {
 				logger.debug("compoundGroupStart: edit stack ="+compoundEditStackCount);
 			}
@@ -132,7 +148,7 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 			if (compoundEditStackCount == 0)
 				returnToEditState();   
 			if (logger.isDebugEnabled()) {
-				logger.debug("compoundGroupEnd: edit stack ="+compoundEditStackCount);
+				logger.debug("compoundGroupEnd: edit stack ="+compoundEditStackCount +" ce=" +ce);
 			}
 		}
 		
@@ -253,7 +269,7 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 				}
 				newPositions.clear();
 			}
-			
+			fireStateChanged();
 			logger.debug("Returning to regular state");
 		}
 
@@ -369,7 +385,17 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 		redoing =false;
 	}
 	
-	
+	@Override
+	public synchronized boolean canUndo() {
+	    // TODO Auto-generated method stub
+	    return super.canUndo() && eventAdapter.canUndoOrRedo();
+	}
+    
+    @Override
+    public synchronized boolean canRedo() {
+        // TODO Auto-generated method stub
+        return super.canRedo() && eventAdapter.canUndoOrRedo();
+    }
 	
 	/* Public getters and setters appear after this point */
 
@@ -386,6 +412,7 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 		int count;
 		count = edits.size() -this.edits.indexOf(this.editToBeRedone());
 		return count;
+        
 	}
 	
 	public boolean isRedoing() {
