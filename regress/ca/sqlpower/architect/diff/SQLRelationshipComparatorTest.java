@@ -63,7 +63,7 @@ public class SQLRelationshipComparatorTest extends TestCase {
 		assertNotSame ("Shouldn't be same relationship", 0,colComparator.compare(left,right));
 	}
 	
-	public void testCompareColumn (){
+	public void testCompareColumn () throws ArchitectException{
 		Set<SQLColumn>list1 = generateColumnList(3);
 		Set<SQLColumn>list2 = generateColumnList(3);
 		assertEquals (0, colComparator.compareColumns(list1, list2));
@@ -73,7 +73,7 @@ public class SQLRelationshipComparatorTest extends TestCase {
 		assertEquals (-1, colComparator.compareColumns(list2, list1));
 	}
 	
-	public Set<SQLColumn> generateColumnList(int num){
+	public Set<SQLColumn> generateColumnList(int num) throws ArchitectException{
 		Set<SQLColumn> colList = new TreeSet<SQLColumn>(comparator);
 		for (int ii=1; ii <= num; ii++){
 			colList.add(new SQLColumn(new SQLTable(),"col"+ii,Types.INTEGER,3, 0)); 

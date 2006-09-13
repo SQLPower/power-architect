@@ -432,7 +432,7 @@ public class SwingUIProject {
      * Creates a SQLTable instance and adds it to the objectIdMap.
      */
     private class SQLTableFactory extends AbstractObjectCreationFactory {
-        public Object createObject(Attributes attributes) {
+        public Object createObject(Attributes attributes) throws ArchitectException{
             SQLTable tab = new SQLTable();
 
             String id = attributes.getValue("id");

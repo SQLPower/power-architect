@@ -7,11 +7,12 @@ import junit.framework.TestCase;
  */
 public class SQLObjectMagicTest extends TestCase {
 
-	SQLObject parent = new SQLTable();
+	SQLObject parent;
 	SQLObject child = new SQLTable.Folder<SQLColumn>(SQLTable.Folder.COLUMNS, false);
 	
 	@Override
 	protected void setUp() throws Exception {
+        parent  = new SQLTable();
 		parent.addChild(child);
 	}
 	

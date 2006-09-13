@@ -68,7 +68,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 	
 	public void testAllSettersGenerateEvents()
 	throws IllegalArgumentException, IllegalAccessException, 
-	InvocationTargetException, NoSuchMethodException {
+	InvocationTargetException, NoSuchMethodException, ArchitectException {
 		
 		SQLObject so = getSQLObjectUnderTest();
 		

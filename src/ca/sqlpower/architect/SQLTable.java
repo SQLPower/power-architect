@@ -20,7 +20,7 @@ public class SQLTable extends SQLObject {
 
 	protected SQLObject parent;
 	protected String remarks="";
-	protected String objectType;
+	private String objectType;
 	protected String primaryKeyName;
 	protected String physicalPrimaryKeyName;
 	
@@ -50,14 +50,21 @@ public class SQLTable extends SQLObject {
 	
 	public SQLTable(SQLObject parent, String name, String remarks, String objectType, boolean startPopulated) throws ArchitectException {
 		logger.debug("NEW TABLE "+name+"@"+hashCode());
-		this.parent = parent;
+		setup(parent, name, remarks, objectType);
+		initFolders(startPopulated);
+	}
+
+    /**
+     * Sets up the values for the new Table 
+     */
+    private void setup(SQLObject parent, String name, String remarks, String objectType) {
+        this.parent = parent;
 		setName(name);
 		this.remarks = remarks;
 		this.objectType = objectType;
-
+		if (this.objectType == null) throw new NullPointerException();
 		this.children = new ArrayList();
-		initFolders(startPopulated);
-	}
+    }
 	
 	/**
 	 * Creates a new SQLTable with parent as its parent and a null
@@ -70,19 +77,20 @@ public class SQLTable extends SQLObject {
 
 	/**
 	 * Creates a new SQLTable with no children, no parent, and all
-	 * properties set to their defaults.
+	 * properties set to their defaults.   Note this should never 
+     * Initialize the folders.
 	 * 
 	 * <p>This is mainly for code that needs to reconstruct a SQLTable
 	 * from outside configuration info, such as the SwingUIProject.load() method.
 	 * If you want to make SQLTable objects from scratch, consider using one
 	 * of the other constructors, which initialise the state more thoroughly.
+	 * 
 	 */
 	public SQLTable() {
-		//columnsPopulated = true;
-		//relationshipsPopulated = true;
-		children = new ArrayList();
+        setup(null,null,null,"TABLE");
 	}
 
+  
 		
 	/**
 	 * If you create a table from scratch using the no-args
@@ -1077,6 +1085,7 @@ public class SQLTable extends SQLObject {
 	public void setObjectType(String argObjectType) {
 		String oldObjectType = this.objectType;
 		this.objectType = argObjectType;
+        if (this.objectType == null) throw new NullPointerException();
 		fireDbObjectChanged("objectType",oldObjectType, argObjectType);
 	}
 

@@ -2,17 +2,29 @@ package ca.sqlpower.architect.undo;
 
 import java.awt.Point;
 
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
 import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.TablePane;
+import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 
 public class TestSQLObjectUndoableEventAdapter extends TestCase {
 	
 	
-	@Override
+	private final class StateChangeTestListner implements ChangeListener {
+        public int stateChanges;
+
+        public void stateChanged(ChangeEvent e) {
+            stateChanges++;    
+        }
+    }
+
+    @Override
 	protected void setUp() throws Exception {
 		super.setUp();
 	}
@@ -87,5 +99,21 @@ public class TestSQLObjectUndoableEventAdapter extends TestCase {
 		assertTrue("Moved 2 to the right location", newLocation2.equals(tp2.getLocation() ));
 		
 	}
-	
+    
+    public void testCompoundEditEvent() throws ArchitectException{
+        SQLDatabase db = new SQLDatabase();
+        PlayPen pp = new PlayPen(db);
+        UndoManager manager = new UndoManager(pp);
+        StateChangeTestListner listner = new StateChangeTestListner();
+        manager.addChangeListener(listner);
+        UndoManager.SQLObjectUndoableEventAdapter adapter = manager.getEventAdapter();
+        assertTrue(adapter.canUndoOrRedo());
+        
+        adapter.compoundEditStart(new UndoCompoundEvent(new SQLTable(),EventTypes.COMPOUND_EDIT_START, "Test"));
+        assertEquals(" Improper number of state changes after first compound edit",1,listner.stateChanges);
+        assertFalse(adapter.canUndoOrRedo());
+        adapter.compoundEditEnd(new UndoCompoundEvent(new SQLTable(),EventTypes.COMPOUND_EDIT_END, "Test"));
+        assertEquals(" Improper number of state changes after first compound edit",2,listner.stateChanges);
+        assertTrue(adapter.canUndoOrRedo());
+    }
 }

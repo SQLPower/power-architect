@@ -36,8 +36,9 @@ public class CreateTableAction extends AbstractAction {
 
 	public void actionPerformed(ActionEvent evt) {
 		pp.fireCancel();
-		SQLTable t = new SQLTable();
+		SQLTable t = null; 
 		try {
+            t = new SQLTable();
 			t.initFolders(true);
 		} catch (ArchitectException e) {
 			logger.error("Couldn't add folder to table \""+t.getName()+"\"", e);

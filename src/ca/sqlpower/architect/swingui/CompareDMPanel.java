@@ -1262,6 +1262,7 @@ public class CompareDMPanel extends JPanel {
 					if (chunk.getData() instanceof SQLTable)
 					{
 						SQLTable t = (SQLTable) chunk.getData();
+                        if (t == null ) throw new NullPointerException();
                         if(t.getObjectType().equals("TABLE")) {
                             gen.writeTable(t);
                         }
