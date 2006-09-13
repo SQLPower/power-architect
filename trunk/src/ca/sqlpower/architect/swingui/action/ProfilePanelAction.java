@@ -62,19 +62,19 @@ import com.jgoodies.forms.builder.ButtonBarBuilder;
 
 public class ProfilePanelAction extends AbstractAction {
     private static final Logger logger = Logger.getLogger(ProfilePanelAction.class);
-
+    
     protected DBTree dbTree;
     protected ProfileManager profileManager;
     private JDialog dialog;
-
+    
     public ProfilePanelAction() {
         super("Profile...", ASUtils.createJLFIcon( "general/Information",
-                        "Information",
-                        ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
-
+                "Information",
+                ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
+        
         putValue(SHORT_DESCRIPTION, "Profile Tables");
     }
-
+    
     /**
      * Called to pop up the ProfilePanel
      */
@@ -87,24 +87,24 @@ public class ProfilePanelAction extends AbstractAction {
             logger.debug("dbtree path selection was null when actionPerformed called");
             return;
         }
-       
+        
         TreePath targetDBPath = dbTree.getPathForRow(0);                
         for (TreePath path: dbTree.getSelectionPaths()){
             if (path.isDescendant(targetDBPath)) {
                 
-                    int answer = JOptionPane.showConfirmDialog(dialog, 
-                                    "Cannot perform profiling on the project database." +
-                                    "\nDo you want to continue profiling?",
-                                    "Continue Profiling",JOptionPane.OK_CANCEL_OPTION);
-                    if (answer == JOptionPane.CANCEL_OPTION){
-                        return;                        
-                    } else {
-                        break;
-                    }
-             
+                int answer = JOptionPane.showConfirmDialog(dialog, 
+                        "Cannot perform profiling on the project database." +
+                        "\nDo you want to continue profiling?",
+                        "Continue Profiling",JOptionPane.OK_CANCEL_OPTION);
+                if (answer == JOptionPane.CANCEL_OPTION){
+                    return;                        
+                } else {
+                    break;
+                }
+                
             }
         }
-
+        
         try {
             Set<SQLObject> sqlObject = new HashSet<SQLObject>();
             for ( TreePath tp : dbTree.getSelectionPaths() ) {
@@ -122,7 +122,7 @@ public class ProfilePanelAction extends AbstractAction {
                 } else if ( tp.getLastPathComponent() instanceof SQLSchema ) {
                     SQLSchema sch = (SQLSchema)tp.getLastPathComponent();
                     sqlObject.add(sch);
-
+                    
                     SQLCatalog cat = ArchitectUtils.getAncestor(sch,SQLCatalog.class);
                     if ( cat != null && sqlObject.contains(cat))
                         sqlObject.remove(cat);
@@ -132,7 +132,7 @@ public class ProfilePanelAction extends AbstractAction {
                 }  else if ( tp.getLastPathComponent() instanceof SQLTable ) {
                     SQLTable tab = (SQLTable)tp.getLastPathComponent();
                     sqlObject.add(tab);
-
+                    
                     SQLSchema sch = ArchitectUtils.getAncestor(tab,SQLSchema.class);
                     if ( sch != null && sqlObject.contains(sch))
                         sqlObject.remove(sch);
@@ -154,7 +154,7 @@ public class ProfilePanelAction extends AbstractAction {
                     SQLDatabase db = ArchitectUtils.getAncestor(sch,SQLDatabase.class);
                     if ( db != null && sqlObject.contains(db))
                         sqlObject.remove(db);
-
+                    
                 } else if ( tp.getLastPathComponent() instanceof SQLColumn ) {
                     SQLTable tab = ((SQLColumn)tp.getLastPathComponent()).getParentTable();
                     sqlObject.add((SQLColumn)tp.getLastPathComponent());
@@ -167,10 +167,10 @@ public class ProfilePanelAction extends AbstractAction {
                     SQLDatabase db = ArchitectUtils.getAncestor(sch,SQLDatabase.class);
                     if ( db != null && sqlObject.contains(db))
                         sqlObject.remove(db);
-
+                    
                 }
             }
-
+            
             final ArrayList<SQLObject> filter = new ArrayList<SQLObject>();
             final Set<SQLTable> tables = new HashSet<SQLTable>();
             for ( SQLObject o : sqlObject ) {
@@ -183,17 +183,17 @@ public class ProfilePanelAction extends AbstractAction {
                     filter.add(o);
                 }
             }
-
+            
             profileManager.setCancelled(false);
-
+            
             // TODO use this dialog to display progress bar
-           final JDialog d = new JDialog(ArchitectFrame.getMainInstance(), "Table Profiles");
-           
-           if ( !dialog.isVisible()) {
-               ArchitectFrame.getMainInstance().getProject().getFilter().clear();
-           }
-           ArchitectFrame.getMainInstance().getProject().getFilter().addAll(filter);
-           
+            final JDialog d = new JDialog(ArchitectFrame.getMainInstance(), "Table Profiles");
+            
+            if ( !dialog.isVisible()) {
+                ArchitectFrame.getMainInstance().getProject().getFilter().clear();
+            }
+            ArchitectFrame.getMainInstance().getProject().getFilter().addAll(filter);
+            
             final CommonCloseAction commonCloseAction = new CommonCloseAction(dialog);
             Action closeAction = new AbstractAction() {
                 public void actionPerformed(ActionEvent evt) {
@@ -203,7 +203,7 @@ public class ProfilePanelAction extends AbstractAction {
             };
             closeAction.putValue(Action.NAME, "Close");
             final JDefaultButton closeButton = new JDefaultButton(closeAction);
-
+            
             final JPanel progressViewPanel = new JPanel(new BorderLayout());
             final JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
             buttonPanel.add(closeButton);
@@ -213,7 +213,7 @@ public class ProfilePanelAction extends AbstractAction {
             progressViewPanel.add(progressBar, BorderLayout.CENTER);
             final JLabel workingOn = new JLabel("Profiling:");
             progressViewPanel.add(workingOn, BorderLayout.NORTH);
-
+            
             ArchitectPanelBuilder.makeJDialogCancellable(
                     dialog, commonCloseAction);
             dialog.getRootPane().setDefaultButton(closeButton);
@@ -221,12 +221,12 @@ public class ProfilePanelAction extends AbstractAction {
             dialog.pack();
             dialog.setLocationRelativeTo(ArchitectFrame.getMainInstance());
             dialog.setVisible(true);
-
+            
             new ProgressWatcher(progressBar,profileManager,workingOn);
-
+            
             // XXX This should be its own Action class?
             new Thread( new Runnable() {
-
+                
                 public void run() {
                     try {
                         List<SQLTable> toBeProfiled = new ArrayList<SQLTable>();
@@ -237,51 +237,51 @@ public class ProfilePanelAction extends AbstractAction {
                                         "  ("+toBeProfiled.size()+")");
                             }
                         }
-
+                        
                         profileManager.createProfiles(toBeProfiled, workingOn);
                         progressBar.setVisible(false);
-
+                        
                         JLabel status = new JLabel("Generating reports, Please wait......");
                         progressViewPanel.add(status, BorderLayout.NORTH);
                         status.setVisible(true);
-
+                        
                         JTabbedPane tabPane = new JTabbedPane();
-
+                        
                         ProfileTableModel tm = new ProfileTableModel();
-
+                        
                         for (SQLObject sqo: ArchitectFrame.getMainInstance().getProject().getFilter()){
                             tm.addFilter(sqo);
                         }
                         
                         tm.setProfileManager(profileManager);
-
+                        
                         TableModelSearchDecorator searchDecorator = 
-                                        new TableModelSearchDecorator(tm);
+                            new TableModelSearchDecorator(tm);
                         TableModelSortDecorator tableModelSortDecorator =
-                                        new TableModelSortDecorator(searchDecorator);
+                            new TableModelSortDecorator(searchDecorator);
                         final ProfileTable viewTable = 
-                                        new ProfileTable(tableModelSortDecorator);
+                            new ProfileTable(tableModelSortDecorator);
                         searchDecorator.setTableTextConverter(viewTable);
                         
                         JTableHeader tableHeader = viewTable.getTableHeader();
                         tableModelSortDecorator.setTableHeader(tableHeader);
-
+                        
                         viewTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
                         ProfilePanelMouseListener profilePanelMouseListener =
-                                        new ProfilePanelMouseListener();
+                            new ProfilePanelMouseListener();
                         profilePanelMouseListener.setTabPane(tabPane);
                         viewTable.addMouseListener( profilePanelMouseListener);
                         JScrollPane editorScrollPane = new JScrollPane(viewTable);
                         editorScrollPane.setVerticalScrollBarPolicy(
-                                        JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+                                JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
                         editorScrollPane.setPreferredSize(new Dimension(800, 600));
                         editorScrollPane.setMinimumSize(new Dimension(10, 10));
-
+                        
                         // reset column widths
                         ((ProfileTable) viewTable).initColumnSizes();
-
+                        
                         JPanel tableViewPane = new JPanel(new BorderLayout());
-
+                        
                         tableViewPane.add(editorScrollPane,BorderLayout.CENTER);
                         
                         JLabel searchLabel = new JLabel("Search:");
@@ -294,22 +294,27 @@ public class ProfilePanelAction extends AbstractAction {
                         
                         ButtonBarBuilder buttonBuilder = new ButtonBarBuilder();
                         JButton save = new JButton(new SaveProfileAction(dialog,viewTable,profileManager));
-
+                        
                         JButton refresh = new JButton(new AbstractAction("Refresh"){
-
+                            
                             public void actionPerformed(ActionEvent e) {
-                               Set<SQLTable> uniqueTables = new HashSet();
-                               for (int i: viewTable.getSelectedRows()) {
-                                   Object o = viewTable.getValueAt(i,
-                                           viewTable.convertColumnIndexToView(
-                                                   ProfileColumn.valueOf("TABLE").ordinal()));
-                                   SQLTable table = (SQLTable) o ;
-                                   uniqueTables.add(table);
-                               }
-
-                               try {
-                                   profileManager.setCancelled(false);
-                                   profileManager.createProfiles(uniqueTables);
+                                Set<SQLTable> uniqueTables = new HashSet();
+                                
+                                //If no column in the viewTable is selected, refresh
+                                //all the columns that are visible.
+                                if (viewTable.getSelectedRowCount() == 0){                                   
+                                    for (int i = 0; i < viewTable.getRowCount(); i++){
+                                        refreshProfileTable(viewTable, uniqueTables, i);
+                                    }
+                                } else{
+                                    for (int i: viewTable.getSelectedRows()) {
+                                        refreshProfileTable(viewTable, uniqueTables, i);
+                                    }
+                                }
+                                
+                                try {
+                                    profileManager.setCancelled(false);
+                                    profileManager.createProfiles(uniqueTables);
                                 } catch (SQLException e1) {
                                     throw new RuntimeException(e1);
                                 } catch (ArchitectException e1) {
@@ -317,14 +322,22 @@ public class ProfilePanelAction extends AbstractAction {
                                 }
                             }
 
+                            private void refreshProfileTable(final ProfileTable viewTable, Set<SQLTable> uniqueTables, int i) {
+                                Object o = viewTable.getValueAt(i,
+                                        viewTable.convertColumnIndexToView(
+                                                ProfileColumn.valueOf("TABLE").ordinal()));
+                                SQLTable table = (SQLTable) o ;
+                                uniqueTables.add(table);
+                            }
+                            
                         });
-
+                        
                         JButton delete  = new JButton(new AbstractAction("Delete"){
-
+                            
                             public void actionPerformed(ActionEvent e) {
                                 int[] killMe = viewTable.getSelectedRows();
                                 Arrays.sort(killMe);
-
+                                
                                 // iterate backwards so the rows don't shift away on us!
                                 for (int i = killMe.length-1; i >= 0; i--) {
                                     logger.debug("Deleting row "+
@@ -343,10 +356,10 @@ public class ProfilePanelAction extends AbstractAction {
                                     }
                                 }
                             }
-
+                            
                         });
                         JButton deleteAll = new JButton(new AbstractAction("Delete All"){
-
+                            
                             public void actionPerformed(ActionEvent e) {
                                 while ( viewTable.getRowCount() > 0 ) {
                                     SQLColumn col = (SQLColumn) viewTable.getValueAt(0, 
@@ -359,7 +372,7 @@ public class ProfilePanelAction extends AbstractAction {
                                     }
                                 }
                             }
-
+                            
                         });
                         
                         JButton[] buttonArray = {refresh,delete,deleteAll,save,closeButton};
@@ -371,10 +384,10 @@ public class ProfilePanelAction extends AbstractAction {
                         p.setTabPane(tabPane);
                         p.setTableModel(tm);
                         tabPane.addTab("Graph View",p);
-
+                        
                         profilePanelMouseListener.setProfilePanel(p);
                         p.setChartType(ChartTypes.PIE);
-
+                        
                         
                         if ( viewTable.getRowCount() > 0 ) {
                             SQLColumn col = (SQLColumn)viewTable.getValueAt(0,
@@ -391,8 +404,8 @@ public class ProfilePanelAction extends AbstractAction {
                         dialog.pack();
                         dialog.setLocationRelativeTo(ArchitectFrame.getMainInstance());
                         dialog.setVisible(true);
-
-
+                        
+                        
                     } catch (SQLException e) {
                         logger.error("Error in Profile Action ", e);
                         ASUtils.showExceptionDialogNoReport(dbTree, "Error during profile run", e);
@@ -401,32 +414,32 @@ public class ProfilePanelAction extends AbstractAction {
                         ASUtils.showExceptionDialog(dbTree, "Error during profile run", e);
                     }
                 }
-
+                
             }).start();
-
-
+            
+            
         } catch (Exception ex) {
             logger.error("Error in Profile Action ", ex);
             ASUtils.showExceptionDialog(dbTree, "Error during profile run", ex);
         }
     }
-
-
-
-
+    
+    
+    
+    
     public void setDBTree(DBTree dbTree) {
         this.dbTree = dbTree;
     }
-
+    
     public ProfileManager getProfileManager() {
         return profileManager;
     }
-
+    
     public void setProfileManager(ProfileManager profileManager) {
         this.profileManager = profileManager;
     }
-
-
+    
+    
     /**
      * The PPMouseListener class receives all mouse and mouse motion
      * events in the PlayPen.  It tries to dispatch them to the
@@ -436,66 +449,66 @@ public class ProfilePanelAction extends AbstractAction {
     protected class ProfilePanelMouseListener implements MouseListener  {
         private ProfilePanel profilePanel;
         private JTabbedPane tabPane;
-
+        
         public ProfilePanel getProfilePanel() {
             return profilePanel;
         }
-
+        
         public void setProfilePanel(ProfilePanel profilePanel) {
             this.profilePanel = profilePanel;
         }
-
+        
         public void mouseClicked(MouseEvent evt) {
             Object obj = evt.getSource();
             if (evt.getClickCount() == 2) {
                 if ( obj instanceof JTable ) {
                     JTable t = (JTable)obj;
                     SQLColumn col = (SQLColumn)t.getValueAt(t.getSelectedRow(),
-                                        t.convertColumnIndexToView(
-                                                ProfileColumn.valueOf("COLUMN").ordinal()));
+                            t.convertColumnIndexToView(
+                                    ProfileColumn.valueOf("COLUMN").ordinal()));
                     profilePanel.getTableSelector().setSelectedItem(col.getParentTable());
                     profilePanel.getColumnSelector().setSelectedValue(col,true);
                     tabPane.setSelectedIndex(1);
                 }
             }
         }
-
+        
         public void mousePressed(MouseEvent e) {
             // don't care
         }
-
+        
         public void mouseReleased(MouseEvent e) {
             // don't care
         }
-
+        
         public void mouseEntered(MouseEvent e) {
             // don't care
         }
-
+        
         public void mouseExited(MouseEvent e) {
             // don't care
         }
-
+        
         public JTabbedPane getTabPane() {
             return tabPane;
         }
-
+        
         public void setTabPane(JTabbedPane tabPane) {
             this.tabPane = tabPane;
         }
-
-
-
+        
+        
+        
     }
-
-
+    
+    
     public JDialog getDialog() {
         return dialog;
     }
-
+    
     public void setDialog(JDialog dialog) {
         this.dialog = dialog;
     }
-
-
+    
+    
 }

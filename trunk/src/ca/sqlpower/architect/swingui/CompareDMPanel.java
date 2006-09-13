@@ -1069,7 +1069,8 @@ public class CompareDMPanel extends JPanel {
 
 						// get the title string for the compareDMFrame
 						if (sqlButton.isSelected()) {
-							String titleString = "Generated SQL Script to turn "+left.getName()+ " into " + right.getName();
+							String titleString = "Generated SQL Script to turn "+ toTitleText(source, true)
+                                            + " into " + toTitleText(target, false);
 
 							SQLDatabase db = null;
 							if ( source.loadRadio.isSelected() )
@@ -1088,10 +1089,11 @@ public class CompareDMPanel extends JPanel {
 											false);
 							ssd.setVisible(true);
 						} else {
-
-
+						    String leftTitle = toTitleText(source, true);
+                            String rightTitle = toTitleText(target, false);
+                            
 							CompareDMFrame cf =
-								new CompareDMFrame(sourceDoc, targetDoc, left.getName(),right.getName());
+								new CompareDMFrame(sourceDoc, targetDoc, leftTitle,rightTitle);
 
 							cf.pack();
 							cf.setVisible(true);
@@ -1116,6 +1118,35 @@ public class CompareDMPanel extends JPanel {
 					}
 					logger.debug("cleanup finished");
 				}
+
+                //Generates the proper title text for compareDMFrame or SQLScriptDialog                
+                private String toTitleText(SourceOrTargetStuff stuff, boolean isSource) {                    
+                    StringBuffer fileName = new StringBuffer();
+
+                    //Deals with the file name first if avaiable
+                    if (stuff.loadRadio.isSelected()){                                
+                        File f = new File(stuff.loadFilePath.getText());                                                                                         
+                        String tempName = f.getName();
+                        fileName.append(tempName.substring(0, tempName.lastIndexOf(".architect")));
+                    } else if (stuff.playPenRadio.isSelected()){                        
+                        try{
+                            String tempName = ArchitectFrame.getMainInstance().project.getFile().getName();
+                            int lastIndex = tempName.lastIndexOf(".architect");
+                            fileName.append(tempName.substring(0,lastIndex));                      
+                        } catch (NullPointerException e){
+                            //No big deal, it's a new project
+                            fileName.append( "New Project");
+                        }
+                        
+                    }
+                    //Add in the database name
+                    if (isSource){
+                        fileName.append(" (" + left.getName() + ")");
+                    } else{
+                        fileName.append(" (" + left.getName() + ")");
+                    }
+                    return fileName.toString(); 
+                }
 			};
 
 			new Thread(compareWorker).start();
