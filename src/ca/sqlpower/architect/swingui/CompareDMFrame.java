@@ -47,14 +47,14 @@ public class CompareDMFrame extends JDialog {
 	private JComponent panel;
 			
 	public CompareDMFrame(AbstractDocument sourceOutputText, AbstractDocument targetOutputText, 
-						String leftDBName, String rightDBName)
+						String leftTitle, String rightTitle)
 	{
 		super(ArchitectFrame.getMainInstance());	
 		
 		setTitle("Data Model comparison");
 		this.sourceOutputText = sourceOutputText;
 		this.targetOutputText = targetOutputText;
-		this.title = "Comparing " + leftDBName+ " to " + rightDBName + ".";
+		this.title = "Comparing " + leftTitle+ " to " + rightTitle + ".";
         whatTheHeckIsGoingOn ="The following changes need to be done to make one into the other:";	
 		panel = mainFrame();
 		getContentPane().add(panel);
@@ -65,8 +65,8 @@ public class CompareDMFrame extends JDialog {
 		StyleConstants.setFontSize(att,leftOutputArea.getFont().getSize() * 2);
 
 		try {
-			sourceOutputText.insertString(0,leftDBName + "\n\n",att);
-			targetOutputText.insertString(0,rightDBName + "\n\n",att);
+			sourceOutputText.insertString(0,leftTitle + "\n\n",att);
+			targetOutputText.insertString(0,rightTitle + "\n\n",att);
 		} catch (BadLocationException e) {
 			e.printStackTrace();
 		}
