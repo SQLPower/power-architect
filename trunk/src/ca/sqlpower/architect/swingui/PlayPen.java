@@ -1234,7 +1234,7 @@ public class PlayPen extends JPanel
 	 */
 	public synchronized void addObjects(List list, Point preferredLocation, ArchitectSwingWorker nextProcess) throws ArchitectException {
 		ProgressMonitor pm
-		 = new ProgressMonitor(null,
+		 = new ProgressMonitor(this,
 		                      "Copying objects to the playpen",
 		                      "...",
 		                      0,
