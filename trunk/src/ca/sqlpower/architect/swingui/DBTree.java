@@ -66,6 +66,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 	protected RemoveDBCSAction removeDBCSAction;
 	protected ShowInPlayPenAction showInPlayPenAction;
 	private ProfilePanelAction profileSelectionAction;
+    protected SetConnAsTargetDB setConnAsTargetDB;
 
 	/**
 	 * This is the database whose DBCS is currently being editted in
@@ -92,6 +93,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 		ds.createDefaultDragGestureRecognizer
 			(this, DnDConstants.ACTION_COPY, new DBTreeDragGestureListener());
 
+        setConnAsTargetDB = new SetConnAsTargetDB(null);
 		newDBCSAction = new NewDBCSAction();
 		dbcsPropertiesAction = new DBCSPropertiesAction();
 		removeDBCSAction = new RemoveDBCSAction();
@@ -413,6 +415,11 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 			}
 			JMenuItem popupProperties = new JMenuItem(dbcsPropertiesAction);
 			newMenu.add(popupProperties);
+            if (p.getLastPathComponent() instanceof SQLDatabase){
+                SQLDatabase tempDB=(SQLDatabase)(p.getLastPathComponent());
+                JMenuItem setAsDB = new JMenuItem(new SetConnAsTargetDB(tempDB.getDataSource()));
+                newMenu.add(setAsDB);            
+            }
 		}
 
 		// Show exception details (SQLException node can appear anywhere in the hierarchy)
@@ -540,6 +547,19 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 			}
 		}
 	}
+    
+    protected class SetConnAsTargetDB extends AbstractAction{
+        ArchitectDataSource dbcs;
+        
+        public SetConnAsTargetDB(ArchitectDataSource dbcs){
+            super("Set As Target Database");            
+            this.dbcs  = dbcs;
+        }
+
+        public void actionPerformed(ActionEvent e) {                  
+            ArchitectFrame.getMainInstance().getProject().getPlayPen().setDatabaseConnection(dbcs);
+        }        
+    }
 
 	/**
 	 * When invoked, this action creates a new DBCS, sets the
