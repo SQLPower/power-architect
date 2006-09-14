@@ -323,6 +323,18 @@ public class PlayPen extends JPanel
 		}
 		tableNames = new HashSet();
 	}
+    
+    protected void setDatabaseConnection(ArchitectDataSource dbcs){        
+        ArchitectDataSource tSpec = db.getDataSource();
+        tSpec.setDisplayName(dbcs.getDisplayName());
+        tSpec.setDriverClass(dbcs.getDriverClass());
+        tSpec.setUrl(dbcs.getUrl());
+        tSpec.setUser(dbcs.getUser());
+        tSpec.setPass(dbcs.getPass());
+        tSpec.setPlSchema(dbcs.getPlSchema());
+        tSpec.setPlDbType(dbcs.getPlDbType());
+        tSpec.setOdbcDsn(dbcs.getOdbcDsn());
+    }
 
 	/**
 	 * This routine is called by the PlayPen constructor after it has
