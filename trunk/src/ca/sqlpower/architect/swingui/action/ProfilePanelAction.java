@@ -54,6 +54,7 @@ import ca.sqlpower.architect.swingui.SwingUserSettings;
 import ca.sqlpower.architect.swingui.ProfilePanel.ChartTypes;
 import ca.sqlpower.architect.swingui.table.ProfileTable;
 import ca.sqlpower.architect.swingui.table.ProfileTableModel;
+import ca.sqlpower.architect.swingui.table.TableModelColumnAutofit;
 import ca.sqlpower.architect.swingui.table.TableModelSearchDecorator;
 import ca.sqlpower.architect.swingui.table.TableModelSortDecorator;
 
@@ -262,9 +263,12 @@ public class ProfilePanelAction extends AbstractAction {
                         final ProfileTable viewTable = 
                             new ProfileTable(tableModelSortDecorator);
                         searchDecorator.setTableTextConverter(viewTable);
+                        TableModelColumnAutofit columnAutoFit = 
+                            new TableModelColumnAutofit(tableModelSortDecorator, viewTable);
                         
                         JTableHeader tableHeader = viewTable.getTableHeader();
                         tableModelSortDecorator.setTableHeader(tableHeader);
+                        columnAutoFit.setTableHeader(tableHeader);
                         
                         viewTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
                         ProfilePanelMouseListener profilePanelMouseListener =

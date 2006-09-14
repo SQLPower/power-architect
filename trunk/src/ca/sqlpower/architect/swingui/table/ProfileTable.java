@@ -85,32 +85,32 @@ public class ProfileTable extends JTable implements TableTextConverter {
      * contents, then you can just use column.sizeWidthToFit().
      */
     public void initColumnSizes() {
+        for (int i = 0; i < getColumnCount(); i++) {
+            initSingleColumnSize(i);
+        }
+    }
+
+    public void initSingleColumnSize(int colIndex){
         TableColumn column = null;
-        Component comp = null;
+        Component comp = null;  
         int headerWidth = 0;
         int cellWidth = 0;
         TableCellRenderer headerRenderer =
             getTableHeader().getDefaultRenderer();
-
-        for (int i = 0; i < getColumnCount(); i++) {
-
-            column = getColumnModel().getColumn(i);
-            cellWidth = 0;
+            column = getColumnModel().getColumn(colIndex);
+            
             comp = headerRenderer.getTableCellRendererComponent(
                                  this, column.getHeaderValue(),
                                  false, false, 0, 0);
             headerWidth = comp.getPreferredSize().width;
 
-            for (int j = 0; j < getRowCount(); j++) {
-                comp = getCellRenderer(j,i).getTableCellRendererComponent(this,
-                        getModel().getValueAt(j,i),false,false,j,i);
-
-                cellWidth = Math.max(cellWidth, comp.getPreferredSize().width);
-            }
-            column.setPreferredWidth(Math.max(headerWidth, cellWidth));
-        }
+            for (int j = 0; j < getRowCount(); j++) {                
+                comp = getCellRenderer(j,colIndex).getTableCellRendererComponent(this,
+                        getValueAt(j, colIndex),false,false,j, colIndex);                                        
+                cellWidth = Math.max(cellWidth, comp.getPreferredSize().width);                
+            }              
+            column.setPreferredWidth((Math.max(headerWidth, cellWidth)));       
     }
-
     public String getTextForCell(int row, int col) {
         // note: this will only work because we know all the renderers are jlabels
         JLabel renderer = (JLabel) getCellRenderer(row, col).getTableCellRendererComponent(this, getModel().getValueAt(row, getColumnModel().getColumn(col).getModelIndex()), false, false, row, col);
