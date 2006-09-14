@@ -140,7 +140,7 @@ public class QuickStartPanel4 implements WizardPanel {
 			
 	
 			// 1. copy SQL Tables
-			ProgressMonitor pm = new ProgressMonitor(null,
+			ProgressMonitor pm = new ProgressMonitor(panel,
 					"Copying objects from DBTree", "...", 0, 100);
 			AddObjectsTask aot = p.new AddObjectsTask(
 					wizard.getSourceTables(), new Point(50, 50),
