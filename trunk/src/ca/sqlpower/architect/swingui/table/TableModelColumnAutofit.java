@@ -7,7 +7,14 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
-
+/*
+ * This class is used to manipulate the sizing on columns within profiling. 
+ * By ctrl + selecting the header, the column will automatically resize to fit
+ * all the elements under it.  However at the moment, it will not expand fully
+ * to its desired size due to the fact that the maximum amount of space a column
+ * has is bounded by the other columns as well.  This problem could be fixed
+ * if profile table has a horizontal scroll pane as well.
+ */
 public class TableModelColumnAutofit extends AbstractTableModel{
 
     private TableModel tableModel;
@@ -52,7 +59,8 @@ public class TableModelColumnAutofit extends AbstractTableModel{
             JTableHeader h = (JTableHeader) e.getSource();
             TableColumnModel columnModel = h.getColumnModel();
             int viewColumn = columnModel.getColumnIndexAtX(e.getX());
-            //XXX: Change this condition for size editting            
+            //XXX: Should change to a better condition for size editting
+            //     for now, it's just ctrl click on the header
             if (e.isControlDown()){                                                    
                 table.initSingleColumnSize(viewColumn);
             }            
