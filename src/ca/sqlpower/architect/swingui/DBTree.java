@@ -743,7 +743,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 	 */
 	protected class ShowInPlayPenAction extends AbstractAction {
 		public ShowInPlayPenAction() {
-			super("Show in Play Pen");
+			super("Show in Playpen");
 		}
 
 		public void actionPerformed(ActionEvent e) {
@@ -753,7 +753,21 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 			}
 			PlayPen pp = ArchitectFrame.getMainInstance().playpen;
 			SQLObject selection = (SQLObject) p.getLastPathComponent();
-			pp.selectAndShow(selection);
+            //Since we cannot directly select a SQLColumn directly 
+            //from the playpen, there is a special case for it
+            if (selection instanceof SQLColumn){
+                SQLColumn col = (SQLColumn)selection;
+                SQLTable table = col.getParentTable();                
+                TablePane tp = pp.findTablePane(table);
+                pp.selectAndShow(table);
+                try {
+                    tp.columnSelection.set(table.getColumnIndex(col), Boolean.TRUE);
+                } catch (ArchitectException e1) {
+                  ASUtils.showExceptionDialog("Error in selecting the column!", e1);
+                }                
+            } else
+                pp.selectAndShow(selection);
+            
 		}
 	}
 

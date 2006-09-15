@@ -240,6 +240,16 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 				}
 			} finally {
 				pp.endCompoundEdit("Ending multi-select");
+                
+                /* 
+                 * We need to disable the delete function right after
+                 * since the "Delete Selected" function in the dbtree does
+                 * not update the status of the delete function in the playpen
+                 * tool bar and could lead to the button going into a bad state
+                 * Therefore we disable it after the deletion is done and have 
+                 * it update again (to maybe re-enable by the selectionlistener.
+                 */
+                setEnabled(false);
 			}
 			
 		} else {
@@ -324,7 +334,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 					numSelectedItems += Math.max(((TablePane) item).getSelectedColumns().size()-1, 0);				
 				}
 			}
-			putValue(SHORT_DESCRIPTION, "Delete "+numSelectedItems+" items");
-		}
+			putValue(SHORT_DESCRIPTION, "Delete "+numSelectedItems+" items");            
+		}        
 	}
 }
