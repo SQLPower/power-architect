@@ -35,29 +35,29 @@ import org.apache.log4j.Logger;
  * @version $Id$
  */
 public class PlDotIni {
-    
+
     public static final String DOS_CR_LF = "\r\n";
-    
-    /** 
+
+    /**
      * Boolean to control whether we autosave, to prevent calling it while we're already saving.
      */
     private boolean dontAutoSave;
-    
+
 	/**
 	 * The list of Listeners to notify when a datasource is added or removed.
 	 */
 	List<DatabaseListChangeListener> listeners;
-    
+
 	DatabaseListChangeListener saver = new DatabaseListChangeListener() {
-	    
+
 	    public void databaseAdded(DatabaseListChangeEvent e) {
 	        saveIfFileKnown();
 	    }
-	    
+
 	    public void databaseRemoved(DatabaseListChangeEvent e) {
             saveIfFileKnown();
 	    }
-	    
+
 	    private void saveIfFileKnown() {
             if (dontAutoSave)
                 return;
@@ -68,10 +68,10 @@ public class PlDotIni {
 	                logger.error("Error auto-saving PL.INI file", e);
 	            }
 	        }
-	        
+
 	    }
 	};
-	    
+
     /**
      * Construct a PL.INI object, and set an Add Listener to save
      * the file when a database is added (bugid 1032).
@@ -85,26 +85,26 @@ public class PlDotIni {
      * The Section class represents a named section in the PL.INI file.
      */
     private static class Section {
-        
+
         /** The name of this section (without the square brackets). */
         private String name;
-        
+
         /**
          * The contents of this section (part before the '=' is the key, and
          * the rest of the line is the value).
          */
         private Map properties;
-        
+
         /** Creates a new section with the given name and no properties. */
         public Section(String name) {
             this.name = name;
             this.properties = new HashMap();
         }
-        
+
         /**
          * Puts a new property in this section, or replaces an existing
          * property which has the same key. Keys are case-sensitive.
-         * 
+         *
          * @param key The property's key
          * @param value The property's value
          * @return The old value of the property under this key, if one existed.
@@ -112,7 +112,7 @@ public class PlDotIni {
         public Object put(String key, String value) {
             return properties.put(key, value);
         }
-        
+
         /** Returns the whole properties map.  This is required when saving the PL.INI file. */
         public Map getPropertiesMap() {
             return properties;
@@ -125,22 +125,22 @@ public class PlDotIni {
     }
 
     private static final Logger logger = Logger.getLogger(PlDotIni.class);
-    
+
     /**
      * A list of Section and ArchitectDataSource objects, in the order they appear in the file;
-     * this List contains Mixed Content (both Section and ArchitectDataSource) which is 
+     * this List contains Mixed Content (both Section and ArchitectDataSource) which is
      * A Very Bad Idea(tm) so it cannot be converted to Java 5 Generic Collection.
      */
     private final List fileSections= new ArrayList();
-    
+
     /**
      * The time we last read the PL.INI file.
      */
-    private long fileTime;	
+    private long fileTime;
     boolean shuttingDown = false;
     /** Seconds to wait between checking the file */
     int WAIT_TIME = 30;
-    
+
     /**
      * Thread to stat file periodically, reload if PL changed it.
      * XXX This thread is not currently started!
@@ -164,9 +164,9 @@ public class PlDotIni {
 			}
 		}
 	};
-    
+
     File lastFileAccessed;
-    
+
 	/**
 	 * Reads the PL.INI file at the given location into a new fileSections list.
 	 * Also updates the fileTime.
@@ -175,24 +175,24 @@ public class PlDotIni {
 	    final int MODE_READ_DS = 0;       // reading a data source section
 	    final int MODE_READ_GENERIC = 1;  // reading a generic named section
 	    int mode = MODE_READ_GENERIC;
-	    
+
         try {
             dontAutoSave = true;
             if (!location.canRead()) {
                 throw new IllegalArgumentException("pl.ini file cannot be read: " + location.getAbsolutePath());
             }
             lastFileAccessed = location;
-            
+
             ArchitectDataSource currentDS = null;
             Section currentSection = new Section(null);  // this accounts for any properties before the first named section
             fileSections.add(currentSection);
             fileTime =  location.lastModified();
-            
+
             // Can't use Reader to read this file because the encrypted passwords contain non-ASCII characters
             BufferedInputStream in = new BufferedInputStream(new FileInputStream(location));
-            
+
             byte[] lineBytes = null;
-            
+
             while ((lineBytes = readLine(in)) != null) {
                 String line = new String(lineBytes);
                 logger.debug("Read in new line: "+line);
@@ -218,7 +218,7 @@ public class PlDotIni {
                         value = null;
                     }
                     logger.debug("key="+key+",val="+value);
-                    
+
                     if (mode == MODE_READ_DS) {
                         if (key.equals("PWD") && value != null) {
                             byte[] cypherBytes = new byte[lineBytes.length - equalsIdx - 1];
@@ -235,7 +235,7 @@ public class PlDotIni {
         } finally {
             dontAutoSave = false;
         }
-		
+
 		if (logger.isDebugEnabled()) logger.debug("Finished reading file. Parsed contents:\n"+toString());
 	}
 
@@ -244,10 +244,10 @@ public class PlDotIni {
 	 * If a line is longer than some arbitrary maximum (currently 10000 bytes), it will
 	 * be split into pieces not larger than that size and returned as separate lines.
 	 * In this case, an error will be logged to the class's logger.
-	 * 
+	 *
 	 * <p>Note: We think that we require CRLF line ends because the encrypted password
 	 * could contain a bare CR or LF, which we don't want to interpret as an end-of-line.
-	 * 
+	 *
      * @param in The input stream to read.
      * @return All of the bytes read except the terminating CRLF.  If there are no more
      * bytes to read (because in is already at end-of-file) then this method returns null.
@@ -268,19 +268,19 @@ public class PlDotIni {
 
         // check for end of file
         if (ch == -1 && lineSize == 0) return null;
-        
+
         // check for split lines
         if (lineSize == MAX_LINE_LENGTH) logger.error("Maximum line size exceeded while reading pl.ini.  Line will be split up.");
-        
+
         byte chopBuffer[] = new byte[lineSize];
         System.arraycopy(buffer, 0, chopBuffer, 0, lineSize);
         return chopBuffer;
     }
 
     /**
-	 * Writes out every section in the fileSections list in the 
+	 * Writes out every section in the fileSections list in the
 	 * order they appear in that list.
-	 * 
+	 *
 	 * @param location The location to write to.
 	 * @throws IOException if the location is not writeable for any reason.
 	 */
@@ -296,13 +296,13 @@ public class PlDotIni {
             dontAutoSave = false;
         }
 	}
-	
+
 	private void write(OutputStream out) throws IOException {
 	    int dbNum = 1;
 	    Iterator it = fileSections.iterator();
 	    while (it.hasNext()) {
 	        Object next = it.next();
-	        
+
 	        if (next instanceof Section) {
 	            writeSection(out, ((Section) next).getName(), ((Section) next).getPropertiesMap());
 	        } else if (next instanceof ArchitectDataSource) {
@@ -315,11 +315,11 @@ public class PlDotIni {
 	        }
 	    }
 	}
-	
+
 	/**
-	 * Writes out the named section header, followed by all the properties, one per line.  Each 
+	 * Writes out the named section header, followed by all the properties, one per line.  Each
 	 * line is terminated with a CRLF, regardless of the current platform default.
-	 * 
+	 *
 	 * @param out The output stream to write to.
 	 * @param name The name of the section.
 	 * @param properties The properties to output in this section.
@@ -363,7 +363,7 @@ public class PlDotIni {
 
 	/**
 	 * Searches the list of connections for one with the given name.
-	 * 
+	 *
 	 * @param name The Logical datbabase name to look for.
 	 * @return the first ArchitectDataSource in the file whose name matches the
 	 * given name, or null if no such datasource exists.
@@ -396,7 +396,7 @@ public class PlDotIni {
         Collections.sort(connections, new ArchitectDataSource.DefaultComparator());
         return connections;
     }
-    
+
     public String toString() {
         OutputStream out = new ByteArrayOutputStream();
         try {
@@ -406,7 +406,7 @@ public class PlDotIni {
         }
         return out.toString();
     }
-    
+
 	/**
 	 * Encrypts a PL.INI password.  The correct argument for
 	 * <code>number</code> is 9.
@@ -423,11 +423,11 @@ public class PlDotIni {
             } else {
                 temp = temp + key;
             }
-            
+
             temp = temp ^ (10 - key);
             cyphertext[i] = ((byte) temp);
         }
-               
+
         if (logger.isDebugEnabled()) {
             StringBuffer nums = new StringBuffer();
             for (int i = 0; i < cyphertext.length; i++) {
@@ -436,17 +436,17 @@ public class PlDotIni {
             }
             logger.debug("Encrypt: Plaintext: \""+plaintext+"\"; cyphertext=("+nums+")");
         }
-        
+
         return cyphertext;
     }
-    
+
 	/**
 	 * Decrypts a PL.INI password.  The correct argument for
 	 * <code>number</code> is 9.
 	 */
 	public static String decryptPassword(int number, byte[] cyphertext) {
 		StringBuffer plaintext = new StringBuffer(cyphertext.length);
-		
+
 		for (int i = 0, n = cyphertext.length; i < n; i++) {
 			int temp = (( ((int) cyphertext[i]) & 0x00ff) ^ (10 - number));
 
@@ -457,7 +457,7 @@ public class PlDotIni {
 			}
 			plaintext.append((char) temp);
 		}
-		
+
 		if (logger.isDebugEnabled()) {
             StringBuffer nums = new StringBuffer();
             for (int i = 0; i < cyphertext.length; i++) {
@@ -472,7 +472,7 @@ public class PlDotIni {
 
     /**
      * Adds a new data source to the end of this file's list of sections.
-     * 
+     *
      * @param dbcs The new data source to add
      */
 	public void addDataSource(ArchitectDataSource dbcs) {
@@ -488,7 +488,7 @@ public class PlDotIni {
 		}
 		add(dbcs);
     }
-    
+
 	/**
      * Make sure an ArchitectDataSource is in the master list; either copy its properties
      * to one with the same name found in the list, OR, add it to the list.
@@ -513,13 +513,19 @@ public class PlDotIni {
     	}
         add(dbcs);
     }
-    
+
     public void removeDataSource(ArchitectDataSource dbcs) {
-    	int where = fileSections.indexOf(dbcs);
-    	if (where < 0) 
-    		throw new IllegalArgumentException("dbcs not in list");
-    	fileSections.remove(dbcs);
-    	fireRemoveEvent(where, dbcs);
+        for ( int where=0; where<fileSections.size(); where++ ) {
+            Object o  = fileSections.get(where);
+            if (o instanceof ArchitectDataSource) {
+                if ( o.equals(dbcs) ) {
+                    fileSections.remove(where);
+                    fireRemoveEvent(where, dbcs);
+                    return;
+                }
+            }
+        }
+        throw new IllegalArgumentException("dbcs not in list");
     }
 
 	/**
@@ -530,32 +536,32 @@ public class PlDotIni {
 		fileSections.add(dbcs);
 		fireAddEvent(dbcs);
 	}
-    
+
     private void fireAddEvent(ArchitectDataSource dbcs) {
-		int index = fileSections.size()-1;	
+		int index = fileSections.size()-1;
 		DatabaseListChangeEvent e = new DatabaseListChangeEvent(this, index, dbcs);
-    	synchronized(listeners) {   		
+    	synchronized(listeners) {
 			for(DatabaseListChangeListener listener : listeners) {
 				listener.databaseAdded(e);
 			}
 		}
 	}
-       
+
     private void fireRemoveEvent(int i, ArchitectDataSource dbcs) {
     	DatabaseListChangeEvent e = new DatabaseListChangeEvent(this, i, dbcs);
-    	synchronized(listeners) {   		
+    	synchronized(listeners) {
 			for(DatabaseListChangeListener listener : listeners) {
 				listener.databaseRemoved(e);
 			}
 		}
     }
-    
+
     public void addDatabaseListChangeListener(DatabaseListChangeListener l) {
     	synchronized(listeners) {
     		listeners.add(l);
     	}
     }
-    
+
     public void removeDatabaseListChangeListener(DatabaseListChangeListener l) {
     	synchronized(listeners) {
     		listeners.remove(l);

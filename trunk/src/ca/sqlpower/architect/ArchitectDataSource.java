@@ -9,8 +9,8 @@ package ca.sqlpower.architect;
  * The ArchitectDataSource represents a database that the Power Loader or
  * the Architect can connect to.  It holds all the information required for
  * making JDBC, ODBC, or native Oracle connections (depending on what type
- * of database the connection is for). 
- * 
+ * of database the connection is for).
+ *
  * @see ca.sqlpower.architect.PlDotIni
  * @author jack, jonathan
  */
@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ArchitectDataSource {
-	
+
 	/**
 	 * Compares this data source to the given data source by comparing
 	 * the respecitive fields in the following order:
@@ -36,16 +36,16 @@ public class ArchitectDataSource {
 	 *  <li>user
 	 *  <li>password
 	 * </ol>
-	 * 
+	 *
 	 * <p>Note: the ArchitectDataSource doesn't implement Comparable itself
 	 * because it would be difficult and unnecessary to do a complete comparison
 	 * which is consistent with equals and hashCode.
 	 */
 	public static class DefaultComparator implements Comparator<ArchitectDataSource> {
-		
+
 		/**
 		 * Performs the comparison described in the class comment.
-		 * 
+		 *
 		 * @param o the ArchitectDataSource object to compare with.
 		 * @return &lt;0 if this data source comes before o; 0 if they
 		 *  are equal; &gt;0 otherwise.
@@ -56,7 +56,7 @@ public class ArchitectDataSource {
 			if (ds1 == ds2) return 0;
 			int tmp;
 			String v1, v2;
-			
+
 			v1 = ds1.getName();
 			v2 = ds2.getName();
 			if (v1 == null && v2 != null) return -1;
@@ -67,7 +67,7 @@ public class ArchitectDataSource {
 				tmp = 0;
 			}
 			if (tmp != 0) return tmp;
-			
+
 			v1 = ds1.getUrl();
 			v2 = ds2.getUrl();
 			if (v1 == null && v2 != null) return -1;
@@ -78,7 +78,7 @@ public class ArchitectDataSource {
 				tmp = 0;
 			}
 			if (tmp != 0) return tmp;
-			
+
 			v1 = ds1.getDriverClass();
 			v2 = ds2.getDriverClass();
 			if (v1 == null && v2 != null) return -1;
@@ -89,7 +89,7 @@ public class ArchitectDataSource {
 				tmp = 0;
 			}
 			if (tmp != 0) return tmp;
-			
+
 			v1 = ds1.getUser();
 			v2 = ds2.getUser();
 			if (v1 == null && v2 != null) return -1;
@@ -100,7 +100,7 @@ public class ArchitectDataSource {
 				tmp = 0;
 			}
 			if (tmp != 0) return tmp;
-			
+
 			v1 = ds1.getPass();
 			v2 = ds2.getPass();
 			if (v1 == null && v2 != null) return -1;
@@ -111,7 +111,7 @@ public class ArchitectDataSource {
 				tmp = 0;
 			}
 			if (tmp != 0) return tmp;
-			
+
 			return 0;
 		}
 	}
@@ -126,7 +126,7 @@ public class ArchitectDataSource {
 	 */
 	public static final String DBCS_DRIVER_CLASS = "JDBC Driver Class";
 	public static final String DBCS_URL = "JDBC URL";
-	
+
 	public static final String PL_LOGICAL = "Logical";
 	public static final String PL_TYPE = "Type";
 	public static final String PL_DSN = "DSN";
@@ -143,7 +143,7 @@ public class ArchitectDataSource {
 	 * will disappear when this instance is serialized.
 	 */
 	private transient PropertyChangeSupport pcs;
-	
+
 	/**
 	 * Returns this DataSource's property change support, creating
 	 * a new one if necessary.
@@ -159,7 +159,7 @@ public class ArchitectDataSource {
 
 	/**
 	 * The method that actually modifies the property map.
-	 * 
+	 *
 	 * @param key The key to use in the map (this will be a PL.INI property name)
 	 * @param value The value that corresponds with the key
 	 * @param propertyName The name of the Java Beans property that changed.  This will
@@ -172,10 +172,10 @@ public class ArchitectDataSource {
 		getPcs().firePropertyChange(propertyName, oldValue, value);
 		return oldValue;
 	}
-	
+
 	/**
 	 * Adds the given key to the map.
-	 * 
+	 *
 	 * @param key The key to use.
 	 * @param value The value to associate with key.
 	 * @return The old value of the property.
@@ -183,25 +183,25 @@ public class ArchitectDataSource {
 	public String put(String key, String value) {
 		return putImpl(key, value, key);
 	}
-	
+
 	public String get(String key) {
 		return properties.get(key);
 	}
-	
+
 	/**
 	 * Returns a read-only view of this data source's properties.
 	 */
 	public Map<String,String> getPropertiesMap() {
 		return Collections.unmodifiableMap(properties);
 	}
-	
+
 	/**
 	 * Prints some info from this data source.  For use in debugging.
 	 */
 	public String toString() {
 		return getDisplayName();
 	}
-	
+
 	/**
 	 * Compares all properties of this data source to those of the other.
 	 * If there are any differences, returns false.  Otherwise, returns true.
@@ -212,7 +212,7 @@ public class ArchitectDataSource {
 		ArchitectDataSource other = (ArchitectDataSource) o;
 		return this.properties.equals(other.properties);
 	}
-	
+
 	/**
 	 * Returns a hash that depends on all property values.
 	 */
@@ -220,12 +220,12 @@ public class ArchitectDataSource {
 	public int hashCode() {
 		return properties.hashCode();
 	}
-	
+
 	// --------------------- property change ---------------------------
-	
+
 	/**
 	 * Registers the given object as a listener to property changes on this
-	 * ArchitectDataSource. 
+	 * ArchitectDataSource.
 	 */
 	public void addPropertyChangeListener(PropertyChangeListener l) {
 		getPcs().addPropertyChangeListener(l);
@@ -280,7 +280,7 @@ public class ArchitectDataSource {
 	 *
 	 * @param argDisplayName Value to assign to this.displayName
 	 */
-	public void setDisplayName(String argDisplayName){		
+	public void setDisplayName(String argDisplayName){
 		putImpl(PL_LOGICAL, argDisplayName, "name");
 	}
 
@@ -355,7 +355,7 @@ public class ArchitectDataSource {
 	public void setPass(String argPass){
 		putImpl(PL_PWD, argPass, "pass");
 	}
-	
+
 	public String getPlSchema() {
         return properties.get(PL_SCHEMA_OWNER);
     }
