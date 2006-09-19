@@ -26,7 +26,7 @@ public class ArchitectPanelBuilder {
 	static Logger logger = Logger.getLogger(ArchitectPanelBuilder.class);
 	public static final String OK_BUTTON_LABEL = "OK";
 	public static final String CANCEL_BUTTON_LABEL = "Cancel";
-	
+
 	/**
 	 * Build a JDialog around an object that implements ArchitectPanel, to
 	 * provide consistent behaviours such as Cancel button, <ESC> to close, and
@@ -38,7 +38,7 @@ public class ArchitectPanelBuilder {
 	 *            A Window object to be the dialog's parent, or null
 	 * @param dialogTitle
 	 *            The dialog title.
-	 * @param actionButtonTitle 
+	 * @param actionButtonTitle
 	 *            The label text for the OK button
 	 * @return The new JDialog, which has the panel in it along with OK and Cancel buttons
 	 * @param okAction Action to be invoked when the OK/action button is
@@ -48,13 +48,13 @@ public class ArchitectPanelBuilder {
 	 * @return
 	 */
 	public static JDialog createArchitectPanelDialog(
-			final ArchitectPanel arch,			
-			final Window dialogParent, 
+			final ArchitectPanel arch,
+			final Window dialogParent,
 			final String dialogTitle,
-			final String actionButtonTitle, 
+			final String actionButtonTitle,
 			final Action okAction,
 			final Action cancelAction) {
-		
+
 		final JDialog d;
 		if (dialogParent instanceof Frame) {
 			d = new JDialog((Frame) dialogParent, dialogTitle);
@@ -67,20 +67,20 @@ public class ArchitectPanelBuilder {
 							+ dialogParent.getClass().getName() + ")");
 		}
 		JComponent panel = arch.getPanel();
-		
-		
+
+
 		JButton okButton = new JDefaultButton(okAction);
-		okButton.setText(actionButtonTitle);	
+		okButton.setText(actionButtonTitle);
 		// In all cases we have to close the dialog.
 		Action closeAction = new CommonCloseAction(d);
-		
+
         //If the user passes in a non-null cancelAction, we have that as the closeAction
         if (cancelAction != null){
 			closeAction = cancelAction;
 		} else {
 			logger.debug("WARNING using a null cancel action.  You probably want to use action so you can cleanup");
 		}
-		
+
 		okButton.addActionListener(closeAction);
 		makeJDialogCancellable(d, closeAction);
 		okButton.addActionListener(new CommonCloseAction(d));
@@ -88,26 +88,26 @@ public class ArchitectPanelBuilder {
 		cancelButton.setText(CANCEL_BUTTON_LABEL);
 		cancelButton.addActionListener(closeAction);
 		cancelButton.addActionListener(new CommonCloseAction(d));
-		
+
 		// Handle if the user presses Enter in the dialog - do OK action
 		d.getRootPane().setDefaultButton(okButton);
-		
-		
+
+
 		// Now build the GUI.
 		JPanel cp = new JPanel(new BorderLayout());
 		cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
 		cp.add(panel, BorderLayout.CENTER);
-		
+
 		cp.add(ButtonBarFactory.buildOKCancelBar(okButton, cancelButton),
 				BorderLayout.SOUTH);
 		cp.setBorder(Borders.DIALOG_BORDER);
-		
+
 		//d.add(cp);
 		d.setContentPane(cp);
-		
+
 		// XXX maybe pass yet another argument for this?
 		// d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
-		
+
 		d.pack();
 		return d;
 	}
@@ -116,20 +116,20 @@ public class ArchitectPanelBuilder {
 	 * Build a JDialog around an object that implements ArchitectPanel, to
 	 * provide consistent behaviours such as Cancel button, <ESC> to close, and
 	 * so on.
-	 * 
+	 *
 	 * @param arch
 	 *            The ArchitectPanel implementation
 	 * @param dialogParent
 	 *            A Window class to be the parent, or null
 	 * @param dialogTitle
 	 *            The display title.
-	 * @param actionButtonTitle 
+	 * @param actionButtonTitle
 	 *            The title for the OK button
 	 * @return The built JDialog
 	 */
 	public static JDialog createArchitectPanelDialog(
 			final ArchitectPanel arch,
-			final Window dialogParent, 
+			final Window dialogParent,
 			final String dialogTitle,
 			final String actionButtonTitle) {
 
@@ -146,7 +146,7 @@ public class ArchitectPanelBuilder {
 		return createArchitectPanelDialog(arch, dialogParent, dialogTitle,
 				actionButtonTitle, okAction, cancelAction);
 	}
-	
+
 	/**
 	 * Arrange for an existing JDialog to close nicely. Called with an Action,
 	 * which will become the cancelAction of the dialog.
@@ -155,21 +155,21 @@ public class ArchitectPanelBuilder {
 	 * @param cancelAction
 	 */
 	public static void makeJDialogCancellable(
-			final JDialog d, 
+			final JDialog d,
 			final Action cancelAction) {
-		
+
 		JComponent c = (JComponent) d.getRootPane();
-				
+
 		InputMap inputMap = c.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 		ActionMap actionMap = c.getActionMap();
-		
+
 		inputMap.put(KeyStroke.getKeyStroke("ESCAPE"), "cancel");
 		actionMap.put("cancel", new AbstractAction() {
 			public void actionPerformed(ActionEvent e) {
 				cancelAction.actionPerformed(e);
 				d.setVisible(false);
 				d.dispose();
-			}			
+			}
 		});
 	}
 }

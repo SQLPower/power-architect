@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package ca.sqlpower.architect.swingui.action;
 
@@ -29,23 +29,44 @@ public final class DBCS_OkAction extends AbstractAction {
 	private boolean isNew;
 	private String oldName;
     private DBConnectionCallBack connectionSelectionCallBack;
-	
-		
+    private PlDotIni plDotIni;
 
 
+
+    /**
+     * create the DBCS_OkAction object, use the default pl.ini from the
+     * ArchitectFrame
+     * @param dbcsPanel
+     * @param isNew
+     */
     public DBCS_OkAction(DBCSPanel dbcsPanel, boolean isNew) {
-		super("Ok");
-		this.dbcsPanel = dbcsPanel;
-		this.isNew = isNew;
-		if (!isNew) {
-			oldName = dbcsPanel.getDbcs().getName();
-		} else {
-			oldName = null;
-		}
+        this(dbcsPanel,
+                isNew,
+                ArchitectFrame.getMainInstance().getUserSettings().getPlDotIni());
 	}
-	
 
-	public void actionPerformed(ActionEvent e)  {
+
+    /**
+     * create a DBCS_OkAction object, and user the pl.ini that passed in
+     * instead of the one from ArchitectFrame
+     * @param dbcsPanel
+     * @param isNew
+     * @param plDotIni
+     */
+	public DBCS_OkAction(DBCSPanel dbcsPanel, boolean isNew, PlDotIni plDotIni) {
+	    super("Ok");
+	    this.dbcsPanel = dbcsPanel;
+	    this.isNew = isNew;
+	    if (!isNew) {
+	        oldName = dbcsPanel.getDbcs().getName();
+	    } else {
+	        oldName = null;
+	    }
+        this.plDotIni = plDotIni;
+    }
+
+
+    public void actionPerformed(ActionEvent e)  {
 		logger.debug("DBCS Action invoked");
 		ArchitectDataSource newDS = dbcsPanel.getDbcs();
 		String curName = null;
@@ -54,18 +75,17 @@ public final class DBCS_OkAction extends AbstractAction {
 				curName = ((JTextField) c).getText();
 			}
 		}
-		
+
 		if (curName == null ) {
 			throw new ArchitectRuntimeException(new ArchitectException("DBCS Panel improperly intialized"));
 		}
-		
+
 		if (isNew) {
 			dbcsPanel.applyChanges();
 			if ("".equals(newDS.getName().trim())) {
 				JOptionPane.showMessageDialog(newConnectionDialog,"A connection must have at least 1 character that is not whitespace");
 				newConnectionDialog.setVisible(true);
 			} else {
-				PlDotIni plDotIni = ArchitectFrame.getMainInstance().getUserSettings().getPlDotIni();
 				if (plDotIni.getDataSource(newDS.getName()) == null )  {
 					plDotIni.addDataSource(newDS);
                     if (connectionSelectionCallBack != null) {
@@ -77,7 +97,7 @@ public final class DBCS_OkAction extends AbstractAction {
 					newConnectionDialog.setVisible(true);
 				}
 			}
-			
+
 		} else if ("".equals(curName.trim())) {
 			JOptionPane.showMessageDialog(newConnectionDialog,"A connection must have at least 1 character that is not whitespace");
 			newConnectionDialog.setVisible(true);
@@ -85,7 +105,6 @@ public final class DBCS_OkAction extends AbstractAction {
 			logger.debug("The current Name is the same as the old name");
 			dbcsPanel.applyChanges();
 		} else {
-			PlDotIni plDotIni = ArchitectFrame.getMainInstance().getUserSettings().getPlDotIni();
 			ArchitectDataSource dataSource = plDotIni.getDataSource(curName);
 			if (dataSource == null )  {
 				dbcsPanel.applyChanges();
@@ -95,22 +114,22 @@ public final class DBCS_OkAction extends AbstractAction {
 				newConnectionDialog.setVisible(true);
 			}
 		}
-		
-		
+
+
 	}
-	
+
 	/**
 	 * If you set the connection dialog this action will hide the dialog passed in on a success.
 	 */
 	public void setConnectionDialog(JDialog newConnectionDialog) {
 		this.newConnectionDialog = newConnectionDialog;
 	}
-    
+
 	public DBConnectionCallBack getConnectionSelectionCallBack() {
 	    return connectionSelectionCallBack;
 	}
-	
-	
+
+
 	public void setConnectionSelectionCallBack(DBConnectionCallBack callBack) {
 	    this.connectionSelectionCallBack = callBack;
 	}
