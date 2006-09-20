@@ -10,13 +10,16 @@ import ca.sqlpower.architect.SQLObject;
 public class DDLStatement {
 
 	public static class StatementType {
-	
+
 		public static final StatementType CREATE = new StatementType("CREATE");
 		public static final StatementType DROP = new StatementType("DROP");
 		public static final StatementType ALTER = new StatementType("ALTER");
 		public static final StatementType ADD_PK = new StatementType("ADD_PK");
 		public static final StatementType ADD_FK = new StatementType("ADD_FK");
 		public static final StatementType MODIFY = new StatementType("MODIFY");
+
+        // NOT A DDL STATEMENT
+        public static final StatementType SELECT = new StatementType("SELECT");
 
 		private String type;
 
@@ -27,12 +30,12 @@ public class DDLStatement {
 		public boolean equals(Object other) {
 			return this.type.equals(((StatementType) other).type);
 		}
-		
+
 		@Override
 		public int hashCode() {
 			return type.hashCode();
 		}
-        
+
         public String toString() {
             return type;
         }
@@ -44,7 +47,7 @@ public class DDLStatement {
 	private StatementType type;
 	private String sqlText;
 	private String sqlTerminator;
-    
+
 	public DDLStatement(
 	        SQLObject object,
 	        StatementType type,
@@ -61,7 +64,7 @@ public class DDLStatement {
 	}
 
 	// ------------------------ Accessors and Mutators -------------------------
-	
+
 	/**
 	 * See {@link #object}.
 	 *
@@ -119,11 +122,11 @@ public class DDLStatement {
     public void setSqlTerminator(String sqlTerminator) {
         this.sqlTerminator = sqlTerminator;
     }
-    
+
     public String getSqlTerminator() {
         return sqlTerminator;
     }
-    
+
 	public String getTargetCatalog() {
 		return targetCatalog;
 	}
@@ -136,7 +139,7 @@ public class DDLStatement {
 	public void setTargetSchema(String targetSchema) {
 		this.targetSchema = targetSchema;
 	}
-    
+
     public String toString() {
         return getType()+" "+DDLUtils.toQualifiedName(getTargetCatalog(), getTargetSchema(), object.getName());
     }
