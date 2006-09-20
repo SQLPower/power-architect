@@ -122,7 +122,7 @@ public class GenericDDLGenerator implements DDLGenerator {
      * appliable profile functions (min,max,avg,sum,etc...)
      */
     protected Map<String, ProfileFunctionDescriptor> profileFunctionMap;
-    
+
 	public GenericDDLGenerator() throws SQLException {
 		allowConnection = true;
 		warnings = new ArrayList();
@@ -134,7 +134,7 @@ public class GenericDDLGenerator implements DDLGenerator {
         createProfileFunctionMap();
 	}
 
-	
+
 
     public StringBuffer generateDDL(SQLDatabase source) throws SQLException, ArchitectException {
 		List statements = generateDDLStatements(source);
@@ -150,12 +150,12 @@ public class GenericDDLGenerator implements DDLGenerator {
 			ddl.append(ddlStmt.getSQLText());
 			println(getStatementTerminator());
 		}
-		
+
 		writeDDLTransactionEnd();
 		return ddl;
 	}
 
-	
+
 	public List<DDLStatement> generateDDLStatements(SQLDatabase source) throws SQLException, ArchitectException {
 		warnings = new ArrayList();
 		ddlStatements = new ArrayList<DDLStatement>();
@@ -168,12 +168,12 @@ public class GenericDDLGenerator implements DDLGenerator {
 			} else {
 				con = null;
 			}
-			
+
 			createTypeMap();
-			
+
 			Iterator it = source.getChildren().iterator();
 			while (it.hasNext()) {
-				
+
 				SQLTable t = (SQLTable) it.next();
 				writeTable(t);
 				writePrimaryKey(t);
@@ -183,7 +183,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 				SQLTable t = (SQLTable) it.next();
 				writeExportedRelationships(t);
 			}
-            
+
 			// TODO add warnings for the originals of the existing duplicate name warnings
 		} finally {
 			try {
@@ -206,7 +206,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		if (logger.isInfoEnabled()) {
 			logger.info("endStatement: " + ddl.toString());
 		}
-		
+
 		ddlStatements.add(new DDLStatement(sqlObject, type, ddl.toString(), getStatementTerminator(), getTargetCatalog(), getTargetSchema()));
 		ddl = new StringBuffer(500);
 		println("");
@@ -223,7 +223,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	public String getStatementTerminator() {
 		return ";";
 	}
-    
+
 	/**
 	 * Does nothing.  If your target system supports transactional
 	 * DDL, override this method and print the appropriate statement.
@@ -245,23 +245,23 @@ public class GenericDDLGenerator implements DDLGenerator {
 	}
 
 	public void dropRelationship(SQLRelationship r) {
-		
+
 		print("\n ALTER TABLE ");
-		
+
 		print( toQualifiedName(r.getFkTable()) );
 		print(" DROP CONSTRAINT ");
 		print(r.getName());
 		endStatement(DDLStatement.StatementType.DROP, r);
 	}
-	
+
 	public void addRelationship(SQLRelationship r) {
-		
+
 		print("\n ALTER TABLE ");
 		print( toQualifiedName(r.getFkTable()) );
 		print(" ADD CONSTRAINT ");
 		print(r.getName());
 		print(" FOREIGN KEY ( ");
-		Map<String, SQLColumn> colNameMap = new HashMap<String, SQLColumn> (); 
+		Map<String, SQLColumn> colNameMap = new HashMap<String, SQLColumn> ();
 		boolean firstColumn = true;
 
 		for (ColumnMapping cm : r.getMappings()) {
@@ -300,45 +300,45 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 		print(" )");
 		endStatement(DDLStatement.StatementType.CREATE, r);
-		
+
 	}
-	
+
 	public void addColumn(SQLColumn c) {
-		Map colNameMap = new HashMap();  
+		Map colNameMap = new HashMap();
 		print("\n ALTER TABLE ");
 		print(toQualifiedName(c.getParentTable()));
 		print(" ADD COLUMN ");
 		print(columnDefinition(c,colNameMap));
 		endStatement(DDLStatement.StatementType.CREATE, c);
-		
+
 	}
-	
+
 	public void dropColumn(SQLColumn c) {
-		Map colNameMap = new HashMap();  
+		Map colNameMap = new HashMap();
 		print("\n ALTER TABLE ");
 		print(toQualifiedName(c.getParentTable()));
 		print(" DROP COLUMN ");
 		print(createPhysicalName(colNameMap,c));
 		endStatement(DDLStatement.StatementType.DROP, c);
-		
+
 	}
-	
+
 	public void modifyColumn(SQLColumn c) {
-		Map colNameMap = new HashMap(); 
+		Map colNameMap = new HashMap();
 		SQLTable t = c.getParentTable();
 		print("\n ALTER TABLE ");
 		print(toQualifiedName(t));
 		print(" ALTER COLUMN ");
 		print(columnDefinition(c,colNameMap));
 		endStatement(DDLStatement.StatementType.MODIFY, c);
-		
+
 	}
-	
+
 	public void dropTable(SQLTable t) {
         print(makeDropTableSQL(t.getName()));
         endStatement(DDLStatement.StatementType.DROP, t);
     }
-    
+
 	protected String columnDefinition(SQLColumn c, Map colNameMap) {
         StringBuffer def = new StringBuffer();
 
@@ -356,7 +356,7 @@ public class GenericDDLGenerator implements DDLGenerator {
     }
 
     protected String columnNullability(SQLColumn c) {
-        GenericTypeDescriptor td = failsafeGetTypeDescriptor(c);       
+        GenericTypeDescriptor td = failsafeGetTypeDescriptor(c);
         if (c.isDefinitelyNullable()) {
 			if (! td.isNullable()) {
 				throw new UnsupportedOperationException
@@ -371,7 +371,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	/** Columnn type */
     public String columnType(SQLColumn c) {
         StringBuffer def = new StringBuffer();
-		GenericTypeDescriptor td = failsafeGetTypeDescriptor(c);       
+		GenericTypeDescriptor td = failsafeGetTypeDescriptor(c);
 		def.append(td.getName());
 		if (td.getHasPrecision()) {
 			def.append("("+c.getPrecision());
@@ -386,7 +386,7 @@ public class GenericDDLGenerator implements DDLGenerator {
     /** Columnn type */
     public String getColumnDataTypeName(SQLColumn c) {
         StringBuffer def = new StringBuffer();
-        GenericTypeDescriptor td = failsafeGetTypeDescriptor(c);       
+        GenericTypeDescriptor td = failsafeGetTypeDescriptor(c);
         def.append(td.getName());
         if (td.getHasPrecision()) {
             def.append("("+c.getPrecision());
@@ -397,7 +397,7 @@ public class GenericDDLGenerator implements DDLGenerator {
         }
         return def.toString();
     }
-    
+
     /**
      * Returns the type descriptor for the given column's type if that exists in this generator's typemap,
      * else returns the default type.
@@ -417,7 +417,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		}
         return td;
     }
-    
+
 	public void writeTable(SQLTable t) throws SQLException, ArchitectException {
 		Map colNameMap = new HashMap();  // for detecting duplicate column names
 		// generate a new physical name if necessary
@@ -429,7 +429,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		Iterator it = t.getColumns().iterator();
 		while (it.hasNext()) {
 			SQLColumn c = (SQLColumn) it.next();
-			
+
 			if (!firstCol) println(",");
 			print("                ");
 
@@ -441,10 +441,10 @@ public class GenericDDLGenerator implements DDLGenerator {
 		println("");
 		print(")");
 		endStatement(DDLStatement.StatementType.CREATE, t);
-		
+
 	}
-	
-	
+
+
 	/**
 	 * Returns the default data type for this platform.  Normally, this can be VARCHAR,
 	 * but if your platform doesn't have a varchar, override this method.
@@ -479,7 +479,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		if (!firstCol) {
 			print(")");
 			endStatement(DDLStatement.StatementType.ADD_PK, t);
-			
+
 		}
 	}
 
@@ -488,13 +488,13 @@ public class GenericDDLGenerator implements DDLGenerator {
 		while (it.hasNext()) {
 			SQLRelationship rel = (SQLRelationship) it.next();
 			// geneate a physical name for this relationship
-			createPhysicalName(topLevelNames,rel); 
+			createPhysicalName(topLevelNames,rel);
 			//
 			println("");
 			print("ALTER TABLE ");
 			// this works because all the tables have had their physical names generated already...
 			print( toQualifiedName(rel.getFkTable()) );
-			
+
 			print(" ADD CONSTRAINT ");
 			print(rel.getPhysicalName());
 			println("");
@@ -521,9 +521,32 @@ public class GenericDDLGenerator implements DDLGenerator {
 			print(pkCols.toString());
 			print(")");
 			endStatement(DDLStatement.StatementType.ADD_FK, t);
-			
+
 		}
 	}
+
+
+    public void selectTable(SQLTable t,
+            String selectList,
+            String whereClause ) {
+
+        setTargetCatalog(t.getCatalogName());
+        setTargetSchema(t.getSchemaName());
+        print("SELECT ");
+        if ( selectList != null && selectList.length() > 0 ) {
+            print(selectList);
+        } else {
+            print("*");
+        }
+        print(" FROM ");
+        print( toQualifiedName(t) );
+        if ( whereClause != null && whereClause.length() > 0 ) {
+            print(" WHERE ");
+            print(whereClause);
+
+        }
+        endStatement(DDLStatement.StatementType.SELECT, t);
+    }
 
 	/**
 	 * Creates and populates <code>typeMap</code> using
@@ -568,7 +591,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 			rs.close();
 		}
 	}
-    
+
     protected void createProfileFunctionMap() {
         profileFunctionMap = new HashMap<String, ProfileFunctionDescriptor>();
         profileFunctionMap.put("BIGINT", new ProfileFunctionDescriptor("BIGINT", Types.BIGINT, true,true,true,true,true,true,true,true));
@@ -593,7 +616,7 @@ public class GenericDDLGenerator implements DDLGenerator {
         profileFunctionMap.put("VARBINARY", new ProfileFunctionDescriptor("VARBINARY", Types.VARBINARY, true,true,true,false,true,true,true,true));
         profileFunctionMap.put("VARCHAR", new ProfileFunctionDescriptor("VARCHAR", Types.VARCHAR, true,true,true,false,true,true,true,true));
     }
-    
+
 
 	protected void println(String text) {
 		ddl.append(text).append(EOL);
@@ -618,7 +641,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	/**
      * Creates a fully-qualified table name from the given table's phyiscal name
      * and this DDL Generator's current target schema and catalog.
-     * 
+     *
      * @param t The table whose name to qualify.  The parents of this table are
      * disregarded; only the DDL Generator's target schema and catalog matter.
      * @return A string of the form <tt>[catalog.][schema.]table</tt> (catalog and
@@ -632,7 +655,7 @@ public class GenericDDLGenerator implements DDLGenerator {
      * Creates a fully-qualified table name from the given string (which
      * is the non-qualified table name) and this DDL Generator's current
      * target schema and catalog.
-     * 
+     *
      * @param tname The table name to qualify. Must not contain the name separator
      * character (usually '.').
      * @return A string of the form <tt>[catalog.][schema.]table</tt> (catalog and
@@ -641,12 +664,12 @@ public class GenericDDLGenerator implements DDLGenerator {
     public String toQualifiedName(String tname) {
         String catalog = getTargetCatalog();
         String schema = getTargetSchema();
-        
+
         return DDLUtils.toQualifiedName(catalog, schema, tname);
     }
 
 	// ---------------------- accessors and mutators ----------------------
-	
+
 	/**
 	 * Gets the value of allowConnection
 	 *
@@ -707,7 +730,7 @@ public class GenericDDLGenerator implements DDLGenerator {
     public void setProfileFunctionMap(Map profileFunctionMap) {
         this.profileFunctionMap = profileFunctionMap;
     }
-    
+
 	/**
 	 * Gets the value of con
 	 *
@@ -789,7 +812,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 	/**
      * Generate, set, and return a valid identifier for this SQLObject.
-	 * @throws ArchitectException 
+	 * @throws ArchitectException
      */
 	protected String createPhysicalName(Map dupCheck, SQLObject so) {
 		logger.debug("transform identifier source: " + so.getPhysicalName());
@@ -798,25 +821,25 @@ public class GenericDDLGenerator implements DDLGenerator {
             warnings.add(new NameChangeWarning(so, "Name is a reserved word",so.getPhysicalName()));
             return so.getPhysicalName();
         }
-       
+
         int pointIndex = so.getPhysicalName().lastIndexOf('.');
         if (!so.getName().substring(pointIndex+1,pointIndex+2).matches("[a-zA-Z]")){
             warnings.add(new NameChangeWarning(so, "Name starts with a non-alpha character",so.getPhysicalName()));
             return so.getPhysicalName();
         }
-        
+
         logger.debug("transform identifier result: " + so.getPhysicalName());
 		if (dupCheck.get(so.getPhysicalName()) == null) {
 			dupCheck.put(so.getPhysicalName(), so);
 		} else {
             warnings.add(new NameChangeWarning(so, "Duplicate Name", so.getName()));
 		}
-						
+
 		return so.getPhysicalName();
 	}
 
 	/**
-     * Generate, set, and return a physicalPrimaryKeyName. 
+     * Generate, set, and return a physicalPrimaryKeyName.
      */
 	public String createPhysicalPrimaryKeyName(Map dupCheck, SQLTable t) {
 	    logger.debug("getting physical primary key name, logical="+t.getPrimaryKeyName()+",physical="+t.getPhysicalPrimaryKeyName());
@@ -833,7 +856,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	}
 
     /**
-     * Generates a standard <code>DROP TABLE $tablename</code> command.  Should work on most platforms. 
+     * Generates a standard <code>DROP TABLE $tablename</code> command.  Should work on most platforms.
      */
     public String makeDropTableSQL(String table) {
         return "DROP TABLE "+toQualifiedName(table);
@@ -862,7 +885,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	}
 
 	public void addPrimaryKey(SQLTable t) throws ArchitectException {
-		Map colNameMap = new HashMap();  
+		Map colNameMap = new HashMap();
 		StringBuffer sqlStatement = new StringBuffer();
 		boolean first = true;
 		sqlStatement.append("ALTER TABLE "+ toQualifiedName(t.getName())
@@ -874,7 +897,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 				}else{
 					first =false;
 				}
-				
+
 				sqlStatement.append(createPhysicalName(colNameMap,c));
 			}
 		}
@@ -896,7 +919,7 @@ public class GenericDDLGenerator implements DDLGenerator {
         sql.append(" IS NULL THEN ");
         sql.append(then);
         sql.append(" END");
-        
+
         return sql.toString();
     }
 
@@ -912,5 +935,5 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 
 
-	
+
 }
