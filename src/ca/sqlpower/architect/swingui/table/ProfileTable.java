@@ -84,12 +84,25 @@ public class ProfileTable extends JTable implements TableTextConverter {
      * If all column heads are wider than the column's cells'
      * contents, then you can just use column.sizeWidthToFit().
      */
+    /**
+     * TODO remove these functions
+     * 
+     * Moved into the Table Model Column Autofit
+     * 
+     */
+    @Deprecated
     public void initColumnSizes() {
         for (int i = 0; i < getColumnCount(); i++) {
             initSingleColumnSize(i);
         }
     }
-
+    /**
+     * TODO remove these functions
+     * 
+     * Moved into the Table Model Column Autofit
+     * 
+     */
+    @Deprecated
     public void initSingleColumnSize(int colIndex){
         TableColumn column = null;
         Component comp = null;  

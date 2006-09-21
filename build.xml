@@ -250,6 +250,9 @@
     		<copy todir="${staging.dir}/doc">
         		<fileset dir="${build}/doc" includes="*.pdf"/>
     		</copy>
+    		<copy todir="${staging.dir}/doc">
+    	    	<fileset dir="${build}/doc" includes="*.txt"/>
+    	    </copy>
     		<!-- No point in signing until we have a certificate that's signed by a CA
     	    <signjar alias="sqlpower" keystore="keystore" storepass="low_security" keypass="low_security">
     	        <fileset dir="webstart/lib"/>
@@ -365,6 +368,9 @@
 						<fileset dir="../staging/doc" targetdir="$INSTALL_PATH/doc">
 							<include name="*.pdf"/>
 						</fileset>
+						<fileset dir="../staging/doc" targetdir="$INSTALL_PATH/doc">
+							<include name="*.txt"/>
+						</fileset>
 						<fileset dir="." targetdir="$INSTALL_PATH">
 							<include name="*.reg"/>
 						</fileset>
@@ -433,10 +439,13 @@
 			<arg value="attach" />
 			<arg value="${staging.dir}/RWArchitect.dmg.sparseimage" />
 		</exec>
-		<copy todir="/Volumes/Power*Architect/Power*Architect.app/" overwrite="true" >
+		<copy todir="/Volumes/Power*Architect/Power*Architect.app/" overwrite="true"  >
 			<fileset dir="${staging.dir}/Power Architect.app"></fileset>
 		</copy>
-		
+		<exec executable="chmod">
+			<arg value="a+x"/>
+			<arg value="/Volumes/Power*Architect/Power*Architect.app/Contents/MacOS/PowerArchitectStub"/>
+		</exec>
 		<exec executable="hdiutil">
 			<arg value="detach" />
 			<arg value="/Volumes/Power*Architect" />
@@ -457,6 +466,7 @@
 					compression="gzip">
 			<tarfileset dir="${staging.dir}" includes="Power Architect.app/**"/>
 			<tarfileset dir="${staging.dir}/doc" includes="*.pdf"/>
+			<tarfileset dir="${staging.dir}/doc" includes="*.txt"/>
 		</tar>	
 	</target>
 	
@@ -467,6 +477,7 @@
 			<tarfileset dir="${staging.dir}" includes="lib/*.jar"/>
 			<tarfileset dir="${staging.dir}" includes="architect.jar"/>
 			<tarfileset dir="${staging.dir}/doc" includes="*.pdf"/>
+			<tarfileset dir="${staging.dir}/doc" includes="*.txt"/>
 		</tar>
     </target>
 	
