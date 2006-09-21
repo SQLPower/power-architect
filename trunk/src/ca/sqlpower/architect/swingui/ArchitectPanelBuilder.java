@@ -35,7 +35,7 @@ public class ArchitectPanelBuilder {
 	 * @param arch
 	 *            The ArchitectPanel implementation
 	 * @param dialogParent
-	 *            A Window object to be the dialog's parent, or null
+	 *            A Window object to be the dialog's parent
 	 * @param dialogTitle
 	 *            The dialog title.
 	 * @param actionButtonTitle

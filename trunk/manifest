@@ -14,3 +14,10 @@ Class-Path: lib/commons-beanutils-bean-collections.jar
   lib/junit.jar
   lib/log4j.jar
   lib/sqlpower.jar
+  lib/darwinsys.jar
+  lib/architecthelp.jar
+  lib/jhall.jar
+  lib/jsearch.jar
+  lib/itext-1.4.2.jar
+  lib/jfreechart-1.0.1.jar
+  lib/jcommon-1.0.0.jar

@@ -1565,7 +1565,12 @@
 		<section id="profiling">
 			<title>Profiling</title>
 			<para>
-				Profiling displays a summary of the data found in a
+				<inlinemediaobject>
+					<imageobject>
+						<imagedata fileref="doc/images/information24.gif"
+							format="GIF" width="0.25in" />
+					</imageobject>
+				</inlinemediaobject>Profiling displays a summary of the data found in a
 				database. The summary can be used for such tasks as;
 				database optimization and data migration.
 
@@ -1575,14 +1580,7 @@
 				going to the “Profile” menu and selecting “Profile...”,
 				or by right clicking on a selected item and select
 				“Profile..” from the context menu, or by selecting the
-				Profile Icon
-				<inlinemediaobject>
-					<imageobject>
-						<imagedata fileref="doc/images/profile_icon.png"
-							format="PNG" />
-					</imageobject>
-				</inlinemediaobject>
-				in the Advanced Tool icon bar.
+				Profile Icon in the Advanced Tool icon bar.
 
 				If there is still an existing Profile window, the new
 				profiling results will be added on to the existing
@@ -1624,7 +1622,7 @@
 					<mediaobject>
 						<imageobject>
 							<imagedata
-								fileref="doc/images/profileTable.png" format="PNG"/>
+								fileref="doc/images/profileTable.png" format="PNG" width="4in" />
 						</imageobject>
 					</mediaobject>
 			</section>
@@ -1645,11 +1643,11 @@
 					Settings” under the “File” menu).
 				</para>
 				<mediaobject>
-						<imageobject>
-							<imagedata
-								fileref="doc/images/profilePieChart.png" format="PNG"/>
-						</imageobject>
-					</mediaobject>
+					<imageobject>
+						<imagedata
+							fileref="doc/images/profilePieChart.png" format="PNG" width="4in" />
+					</imageobject>
+				</mediaobject>
 			</section>
 		</section>
 
@@ -1947,16 +1945,11 @@
 					</inlinemediaobject>
 					Select the tables on the playpen that you want to
 					organize and hit the autolayout button at the top.
-					If no table is selected, by default, the program
+					If one or zero tables are selected, the program
 					will autolayout every table in the playpen. Note
-					that if only one table is selected, AutoLayout will
-					not do anything; either select two or more tables,
-					or "click away" (not on any table) so that nothing
-					in the Playpen is selected, and click AutoLayout
-					again. Also note that the layout algorithm may
-					produce a few surprises when run with a small number
-					of tables; it works best for a large or medium-sized
-					collection of tables.
+					that the layout algorithm may produce a few surprises 
+					when run with a small number of tables; it works best 
+					for a large or medium-sized collection of tables.
 				</para>
 
 			</section>
