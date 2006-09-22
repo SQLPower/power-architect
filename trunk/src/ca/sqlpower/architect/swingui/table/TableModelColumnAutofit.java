@@ -29,6 +29,7 @@ public class TableModelColumnAutofit extends AbstractTableModel{
     public TableModelColumnAutofit(TableModel tableModel, JTable table){
         this.tableModel = tableModel;
         this.table = table;
+        tableHeader = table.getTableHeader();
         mouseListener = new MouseListener();        
     }
     
@@ -37,6 +38,12 @@ public class TableModelColumnAutofit extends AbstractTableModel{
         else return tableModel.getRowCount();
     }
 
+    @Override
+    public Class<?> getColumnClass(int columnIndex) {
+        if (tableModel == null) return null;
+        return tableModel.getColumnClass(columnIndex);
+    }
+    
     public int getColumnCount() {
         if (tableModel == null) return 0;
         else return tableModel.getColumnCount();
@@ -46,13 +53,18 @@ public class TableModelColumnAutofit extends AbstractTableModel{
         if (tableModel == null) return null;
         else return tableModel.getValueAt(rowIndex, columnIndex);
     }
-    
+    @Override
+    public String getColumnName(int column) {
+        if (tableModel == null) return null;
+        return tableModel.getColumnName(column);
+    }
 
     public JTableHeader getTableHeader() {
         return tableHeader;
     }
 
     public void setTableHeader(JTableHeader tableHeader) {
+        this.tableHeader.removeMouseListener(mouseListener);
         this.tableHeader = tableHeader;
         this.tableHeader.addMouseListener(mouseListener);
     }
