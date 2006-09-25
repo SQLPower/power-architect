@@ -30,6 +30,7 @@ import org.xml.sax.SAXException;
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.IOUtils;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
@@ -109,12 +110,6 @@ public class SwingUIProject {
      * project, at which time it's writing to the project file.
      */
     private PrintWriter out;
-
-    /**
-     * Used for saving only: this is the current indentation amount in
-     * the XML output file.
-     */
-    private int indent = 0;
 
     /**
      * During a LOAD, this map maps String ID codes to SQLObject instances.
@@ -835,6 +830,7 @@ public class SwingUIProject {
         logger.debug("rename tempFile to current file: " + fstatus);
     }
 
+    IOUtils ioo = new IOUtils();
     /**
      * Do just the writing part of save, given a PrintWriter
      * @param out - the file to write to
@@ -845,13 +841,13 @@ public class SwingUIProject {
     public void save(PrintWriter out, String encoding) throws IOException, ArchitectException {
         objectIdMap = new HashMap();
         dbcsIdMap = new HashMap();
-        indent = 0;
+        ioo.indent = 0;
 
         try {
-            println(out, "<?xml version=\"1.0\" encoding=\""+encoding+"\"?>");
-            println(out, "<architect-project version=\"1.0\" appversion=\""+ArchitectUtils.APP_VERSION+"\">");
-            indent++;
-            println(out, "<project-name>"+ArchitectUtils.escapeXML(name)+"</project-name>");
+            ioo.println(out, "<?xml version=\"1.0\" encoding=\""+encoding+"\"?>");
+            ioo.println(out, "<architect-project version=\"1.0\" appversion=\""+ArchitectUtils.APP_VERSION+"\">");
+            ioo.indent++;
+            ioo.println(out, "<project-name>"+ArchitectUtils.escapeXML(name)+"</project-name>");
             saveDataSources(out);
             saveSourceDatabases(out);
             saveTargetDatabase(out);
@@ -859,8 +855,8 @@ public class SwingUIProject {
             saveCompareDMSettings(out);
             savePlayPen(out);
             saveProfiles(out);
-            indent--;
-            println(out, "</architect-project>");
+            ioo.indent--;
+            ioo.println(out, "</architect-project>");
             setModified(false);
         } finally {
             if (out != null) out.close();
@@ -868,8 +864,8 @@ public class SwingUIProject {
     }
 
     private void saveDataSources(PrintWriter out) throws IOException, ArchitectException {
-        println(out, "<project-data-sources>");
-        indent++;
+        ioo.println(out, "<project-data-sources>");
+        ioo.indent++;
         int dsNum = 0;
         SQLObject dbTreeRoot = (SQLObject) sourceDatabases.getModel().getRoot();
         Iterator it = dbTreeRoot.getChildren().iterator();
@@ -882,42 +878,42 @@ public class SwingUIProject {
                     id = "DS"+dsNum;
                     dbcsIdMap.put(ds, id);
                 }
-                println(out, "<data-source id=\""+ArchitectUtils.escapeXML(id)+"\">");
-                indent++;
+                ioo.println(out, "<data-source id=\""+ArchitectUtils.escapeXML(id)+"\">");
+                ioo.indent++;
                 Iterator pit = ds.getPropertiesMap().entrySet().iterator();
                 while (pit.hasNext()) {
                     Map.Entry ent = (Map.Entry) pit.next();
                     if (ent.getValue() != null) {
-                        println(out, "<property key="+quote((String) ent.getKey())+" value="+quote((String) ent.getValue())+" />");
+                        ioo.println(out, "<property key="+quote((String) ent.getKey())+" value="+quote((String) ent.getValue())+" />");
                     }
                 }
-                indent--;
-                println(out, "</data-source>");
+                ioo.indent--;
+                ioo.println(out, "</data-source>");
                 dsNum++;
             }
             dsNum++;
         }
-        indent--;
-        println(out, "</project-data-sources>");
+        ioo.indent--;
+        ioo.println(out, "</project-data-sources>");
     }
 
     private void saveDDLGenerator(PrintWriter out) throws IOException {
-        print(out, "<ddl-generator"
+        ioo.print(out, "<ddl-generator"
                 +" type=\""+ddlGenerator.getClass().getName()+"\""
                 +" allow-connection=\""+ddlGenerator.getAllowConnection()+"\"");
         if (ddlGenerator.getTargetCatalog() != null) {
-            niprint(out, " target-catalog=\""+ArchitectUtils.escapeXML(ddlGenerator.getTargetCatalog())+"\"");
+            ioo.niprint(out, " target-catalog=\""+ArchitectUtils.escapeXML(ddlGenerator.getTargetCatalog())+"\"");
         }
         if (ddlGenerator.getTargetSchema() != null) {
-            niprint(out, " target-schema=\""+ArchitectUtils.escapeXML(ddlGenerator.getTargetSchema())+"\"");
+            ioo.niprint(out, " target-schema=\""+ArchitectUtils.escapeXML(ddlGenerator.getTargetSchema())+"\"");
         }
-        niprint(out, ">");
-        indent++;
+        ioo.niprint(out, ">");
+        ioo.indent++;
         if (ddlGenerator.getFile() != null) {
-            println(out, "<file path=\""+ArchitectUtils.escapeXML(ddlGenerator.getFile().getPath())+"\" />");
+            ioo.println(out, "<file path=\""+ArchitectUtils.escapeXML(ddlGenerator.getFile().getPath())+"\" />");
         }
-        indent--;
-        println(out, "</ddl-generator>");
+        ioo.indent--;
+        ioo.println(out, "</ddl-generator>");
     }
 
 
@@ -929,32 +925,32 @@ public class SwingUIProject {
         //indicator to tell if the user went into compareDM or not.
         if ( !compareDMSettings.getSaveFlag() )
             return;
-        print(out, "<compare-dm-settings");
-        print(out, " sqlScriptFormat=\""+ArchitectUtils.escapeXML(compareDMSettings.getSqlScriptFormat())+"\"");
-        print(out, " outputFormatAsString=\""+ArchitectUtils.escapeXML(compareDMSettings.getOutputFormatAsString())+"\"");
-        println(out, ">");
-        indent++;
-        print(out, "<source-stuff");
+        ioo.print(out, "<compare-dm-settings");
+        ioo.print(out, " sqlScriptFormat=\""+ArchitectUtils.escapeXML(compareDMSettings.getSqlScriptFormat())+"\"");
+        ioo.print(out, " outputFormatAsString=\""+ArchitectUtils.escapeXML(compareDMSettings.getOutputFormatAsString())+"\"");
+        ioo.println(out, ">");
+        ioo.indent++;
+        ioo.print(out, "<source-stuff");
         saveSourceOrTargetAttributes(out, compareDMSettings.getSourceSettings());
-        print(out, "/>");
-        print(out, "<target-stuff");
+        ioo.print(out, "/>");
+        ioo.print(out, "<target-stuff");
         saveSourceOrTargetAttributes(out, compareDMSettings.getTargetSettings());
-        print(out, "/>");
-        indent--;
-        println(out, "</compare-dm-settings>");
+        ioo.print(out, "/>");
+        ioo.indent--;
+        ioo.println(out, "</compare-dm-settings>");
     }
 
 
     private void saveSourceOrTargetAttributes(PrintWriter out, SourceOrTargetSettings sourceSettings) {
-        print(out, " datastoreTypeAsString=\""+ArchitectUtils.escapeXML(sourceSettings.getDatastoreTypeAsString())+"\"");
+        ioo.print(out, " datastoreTypeAsString=\""+ArchitectUtils.escapeXML(sourceSettings.getDatastoreTypeAsString())+"\"");
         if (sourceSettings.getConnectName() != null)
-            print(out, " connectName=\""+ArchitectUtils.escapeXML(sourceSettings.getConnectName())+"\"");
+            ioo.print(out, " connectName=\""+ArchitectUtils.escapeXML(sourceSettings.getConnectName())+"\"");
 
         if (sourceSettings.getCatalog() != null)
-            print(out, " catalog=\""+ArchitectUtils.escapeXML(sourceSettings.getCatalog())+"\"");
+            ioo.print(out, " catalog=\""+ArchitectUtils.escapeXML(sourceSettings.getCatalog())+"\"");
         if (sourceSettings.getSchema() != null)
-            print(out, " schema=\""+ArchitectUtils.escapeXML(sourceSettings.getSchema())+"\"");
-        print(out, " filePath=\""+ArchitectUtils.escapeXML(sourceSettings.getFilePath())+"\"");
+            ioo.print(out, " schema=\""+ArchitectUtils.escapeXML(sourceSettings.getSchema())+"\"");
+        ioo.print(out, " filePath=\""+ArchitectUtils.escapeXML(sourceSettings.getFilePath())+"\"");
 
     }
     /**
@@ -963,8 +959,8 @@ public class SwingUIProject {
      * @param out2
      */
     private void saveSourceDatabases(PrintWriter out) throws IOException, ArchitectException {
-        println(out, "<source-databases>");
-        indent++;
+        ioo.println(out, "<source-databases>");
+        ioo.indent++;
         SQLObject dbTreeRoot = (SQLObject) sourceDatabases.getModel().getRoot();
         Iterator it = dbTreeRoot.getChildren().iterator();
         while (it.hasNext()) {
@@ -973,8 +969,8 @@ public class SwingUIProject {
                 saveSQLObject(out, o);
             }
         }
-        indent--;
-        println(out, "</source-databases>");
+        ioo.indent--;
+        ioo.println(out, "</source-databases>");
     }
 
     /**
@@ -982,14 +978,14 @@ public class SwingUIProject {
      * output file all SQLRelationship objects encountered.
      */
     private void saveRelationships(PrintWriter out, SQLDatabase db) throws ArchitectException, IOException {
-        println(out, "<relationships>");
-        indent++;
+        ioo.println(out, "<relationships>");
+        ioo.indent++;
         Iterator it = db.getChildren().iterator();
         while (it.hasNext()) {
             saveRelationshipsRecurse(out, (SQLObject) it.next());
         }
-        indent--;
-        println(out, "</relationships>");
+        ioo.indent--;
+        ioo.println(out, "</relationships>");
     }
 
     /**
@@ -1010,26 +1006,26 @@ public class SwingUIProject {
 
     private void saveTargetDatabase(PrintWriter out) throws IOException, ArchitectException {
         SQLDatabase db = (SQLDatabase) playPen.getDatabase();
-        println(out, "<target-database dbcs-ref="+
+        ioo.println(out, "<target-database dbcs-ref="+
                 quote(dbcsIdMap.get(db.getDataSource()).toString())+ ">");
-        indent++;
+        ioo.indent++;
         Iterator it = db.getChildren().iterator();
         while (it.hasNext()) {
             saveSQLObject(out, (SQLObject) it.next());
         }
         saveRelationships(out, db);
-        indent--;
-        println(out, "</target-database>");
+        ioo.indent--;
+        ioo.println(out, "</target-database>");
     }
 
     private void savePlayPen(PrintWriter out) throws IOException, ArchitectException {
-        println(out, "<play-pen>");
-        indent++;
+        ioo.println(out, "<play-pen>");
+        ioo.indent++;
         Iterator it = playPen.getTablePanes().iterator();
         while (it.hasNext()) {
             TablePane tp = (TablePane) it.next();
             Point p = tp.getLocation();
-            println(out, "<table-pane table-ref="+quote(objectIdMap.get(tp.getModel()).toString())+""
+            ioo.println(out, "<table-pane table-ref="+quote(objectIdMap.get(tp.getModel()).toString())+""
                     +" x=\""+p.x+"\" y=\""+p.y+"\" />");
             if (pm != null) {
                 pm.setProgress(++progress);
@@ -1040,14 +1036,14 @@ public class SwingUIProject {
         it = playPen.getRelationships().iterator();
         while (it.hasNext()) {
             Relationship r = (Relationship) it.next();
-            println(out, "<table-link relationship-ref="+quote(objectIdMap.get(r.getModel()).toString())
+            ioo.println(out, "<table-link relationship-ref="+quote(objectIdMap.get(r.getModel()).toString())
                     +" pk-x=\""+r.getPkConnectionPoint().x+"\""
                     +" pk-y=\""+r.getPkConnectionPoint().y+"\""
                     +" fk-x=\""+r.getFkConnectionPoint().x+"\""
                     +" fk-y=\""+r.getFkConnectionPoint().y+"\" />");
         }
-        indent--;
-        println(out, "</play-pen>");
+        ioo.indent--;
+        ioo.println(out, "</play-pen>");
     }
 
     /**
@@ -1056,53 +1052,53 @@ public class SwingUIProject {
      */
     private void saveProfiles(PrintWriter out) {
         ProfileManager profmgr = getProfileManager();
-        println(out, "<profiles topNCount=\""+profmgr.getTopNCount()+"\">");
-        indent++;
+        ioo.println(out, "<profiles topNCount=\""+profmgr.getTopNCount()+"\">");
+        ioo.indent++;
         Map<SQLObject, ProfileResult> results = profmgr.getResults();
         for (Map.Entry<SQLObject, ProfileResult> e : results.entrySet()) {
             SQLObject so = e.getKey();
             ProfileResult profileResult = e.getValue();
-            print(out, "<profile-result ref-id=\""+objectIdMap.get(so)+"\"" +
+            ioo.print(out, "<profile-result ref-id=\""+objectIdMap.get(so)+"\"" +
                             " type=\"" + profileResult.getClass().getName() + "\"" +
                             " createStartTime=\""+profileResult.getCreateStartTime()+"\"" +
                             " createEndTime=\""+profileResult.getCreateEndTime()+"\"" +
                             " error=\""+profileResult.isError()+"\"");
             if (profileResult.getException() != null) {
-                niprint(out, " exception-type=\""+ArchitectUtils.escapeXML(profileResult.getException().getClass().getName())+"\"");
-                niprint(out, " exception-message=\""+ArchitectUtils.escapeXML(profileResult.getException().getMessage())+"\"");
+                ioo.niprint(out, " exception-type=\""+ArchitectUtils.escapeXML(profileResult.getException().getClass().getName())+"\"");
+                ioo.niprint(out, " exception-message=\""+ArchitectUtils.escapeXML(profileResult.getException().getMessage())+"\"");
             }
             if (profileResult instanceof TableProfileResult) {
                 TableProfileResult tpr = (TableProfileResult) profileResult;
-                print(out, " rowCount=\""+tpr.getRowCount()+"\"");
-                niprintln(out, "/>");
+                ioo.print(out, " rowCount=\""+tpr.getRowCount()+"\"");
+                ioo.niprintln(out, "/>");
             } else if (profileResult instanceof ColumnProfileResult) {
                 ColumnProfileResult cpr = (ColumnProfileResult) profileResult;
-                niprint(out, " avgLength=\"" + cpr.getAvgLength() + "\"");
+                ioo.niprint(out, " avgLength=\"" + cpr.getAvgLength() + "\"");
 
-                niprint(out, " minLength=\"" + cpr.getMinLength() + "\"");
-                niprint(out, " maxLength=\"" + cpr.getMaxLength() + "\"");
-                niprint(out, " nullCount=\"" + cpr.getNullCount() + "\"");
-                niprint(out, " distinctValueCount=\"" + cpr.getDistinctValueCount() + "\"");
-                niprintln(out, ">");
+                ioo.niprint(out, " minLength=\"" + cpr.getMinLength() + "\"");
+                ioo.niprint(out, " maxLength=\"" + cpr.getMaxLength() + "\"");
+                ioo.niprint(out, " nullCount=\"" + cpr.getNullCount() + "\"");
+                ioo.niprint(out, " distinctValueCount=\"" + cpr.getDistinctValueCount() + "\"");
+                ioo.niprintln(out, ">");
 
-                indent++;
+                ioo.indent++;
 
                 if ( cpr.getAvgValue() != null ) {
-                    println(out, "<avgValue type=\"" +
+                    ioo.println(out, "<avgValue type=\"" +
                             cpr.getAvgValue().getClass().getName() +
                             "\" value=\""+
                             ArchitectUtils.escapeXML(String.valueOf(cpr.getAvgValue())) +
                             "\"/>" );
                 }
                 if ( cpr.getMaxValue() != null ) {
-                    println(out, "<maxValue type=\"" +
+                    ioo.println(out, "<maxValue type=\"" +
                             cpr.getMaxValue().getClass().getName() +
                             "\" value=\""+
                             ArchitectUtils.escapeXML(String.valueOf(cpr.getMaxValue())) +
                             "\"/>" );
                 }
                 if ( cpr.getMinValue() != null ) {
-                    println(out, "<minValue type=\"" +
+                    ioo.println(out, "<minValue type=\"" +
                             cpr.getMinValue().getClass().getName() +
                             "\" value=\""+
                             ArchitectUtils.escapeXML(String.valueOf(cpr.getMinValue())) +
@@ -1112,7 +1108,7 @@ public class SwingUIProject {
                 List<ColumnValueCount> valueCount = cpr.getValueCount();
                 if (valueCount != null) {
                     for (ColumnValueCount count : valueCount) {
-                        println(out, "<topNvalue count=\""+
+                        ioo.println(out, "<topNvalue count=\""+
                                 count.getCount()+
                                 "\" type=\"" +
                                 (count.getValue() == null ? "" : count.getValue().getClass().getName()) +
@@ -1121,17 +1117,17 @@ public class SwingUIProject {
                                 "\"/>" );
                     }
                 }
-                indent--;
+                ioo.indent--;
 
-                println(out, "</profile-result>");
+                ioo.println(out, "</profile-result>");
             } else {
                 String message = "Unknown ProfileResult Subclass: " + profileResult.getClass().getName();
-                niprintln(out, "/> <!-- " + message + "-->");
+                ioo.niprintln(out, "/> <!-- " + message + "-->");
                 logger.error(message);
             }
         }
-        println(out, "</profiles>");
-        indent--;
+        ioo.println(out, "</profiles>");
+        ioo.indent--;
     }
 
     /**
@@ -1152,7 +1148,7 @@ public class SwingUIProject {
     private void saveSQLObject(PrintWriter out, SQLObject o) throws IOException, ArchitectException {
         String id = (String) objectIdMap.get(o);
         if (id != null) {
-            println(out, "<reference ref-id=\""+ArchitectUtils.escapeXML(id)+"\" />");
+            ioo.println(out, "<reference ref-id=\""+ArchitectUtils.escapeXML(id)+"\" />");
             return;
         }
 
@@ -1236,17 +1232,17 @@ public class SwingUIProject {
 
         boolean skipChildren = false;
 
-        //print("<"+type+" hashCode=\""+o.hashCode()+"\" id=\""+id+"\" ");  // use this for debugging duplicate object problems
-        print(out, "<"+type+" id="+quote(id)+" ");
+        //ioo.print("<"+type+" hashCode=\""+o.hashCode()+"\" id=\""+id+"\" ");  // use this for debugging duplicate object problems
+        ioo.print(out, "<"+type+" id="+quote(id)+" ");
 
         if (o.allowsChildren() && o.isPopulated() && o.getChildCount() == 1 && o.getChild(0) instanceof SQLExceptionNode) {
             // if the only child is an exception node, just save the parent as non-populated
-            niprint(out, "populated=\"false\" ");
+            ioo.niprint(out, "populated=\"false\" ");
             skipChildren = true;
         } else if ( (!savingEntireSource) && (!o.isPopulated()) ) {
-            niprint(out, "populated=\"false\" ");
+            ioo.niprint(out, "populated=\"false\" ");
         } else {
-            niprint(out, "populated=\"true\" ");
+            ioo.niprint(out, "populated=\"true\" ");
         }
 
         Iterator props = propNames.keySet().iterator();
@@ -1254,13 +1250,13 @@ public class SwingUIProject {
             Object key = props.next();
             Object value = propNames.get(key);
             if (value != null) {
-                niprint(out, key+"="+quote(value.toString())+" ");
+                ioo.niprint(out, key+"="+quote(value.toString())+" ");
             }
         }
         if ( (!skipChildren) && o.allowsChildren() && (savingEntireSource || o.isPopulated()) ) {
-            niprintln(out, ">");
+            ioo.niprintln(out, ">");
             Iterator children = o.getChildren().iterator();
-            indent++;
+            ioo.indent++;
             while (children.hasNext()) {
                 SQLObject child = (SQLObject) children.next();
                 if ( ! (child instanceof SQLRelationship)) {
@@ -1270,10 +1266,10 @@ public class SwingUIProject {
             if (o instanceof SQLDatabase) {
                 saveRelationships(out, (SQLDatabase) o);
             }
-            indent--;
-            println(out, "</"+type+">");
+            ioo.indent--;
+            ioo.println(out, "</"+type+">");
         } else {
-            niprintln(out, "/>");
+            ioo.niprintln(out, "/>");
         }
     }
 
@@ -1425,46 +1421,7 @@ public class SwingUIProject {
         plExport = v;
     }
 
-    // ------------------- utility methods -------------------
-    /**
-     * Prints to the output writer {@link #out} indentation spaces
-     * (according to {@link #indent}) followed by the given text.
-     * @param out
-     */
-    private void print(PrintWriter out, String text) {
-        for (int i = 0; i < indent; i++) {
-            out.print(" ");
-        }
-        out.print(text);
-    }
 
-    /**
-     * Prints <code>text</code> to the output writer {@link #out} (no
-     * indentation).
-     */
-    private void niprint(PrintWriter out, String text) {
-        out.print(text);
-    }
-
-    /**
-     * Prints <code>text</code> followed by newline to the output
-     * writer {@link #out} (no indentation).
-     */
-    private void niprintln(PrintWriter out, String text) {
-        out.println(text);
-    }
-
-    /**
-     * Prints to the output writer {@link #out} indentation spaces
-     * (according to {@link #indent}) followed by the given text
-     * followed by a newline.
-     */
-    private void println(PrintWriter out, String text) {
-        for (int i = 0; i < indent; i++) {
-            out.print(" ");
-        }
-        out.println(text);
-    }
 
     /**
      * The ProjectModificationWatcher watches a PlayPen's components and
