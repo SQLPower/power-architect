@@ -56,7 +56,10 @@ public class ArchitectPanelBuilder {
 			final Action cancelAction) {
 
 		final JDialog d;
-		if (dialogParent instanceof Frame) {
+
+        if ( dialogParent == null ) {
+            d = new JDialog();
+        } else if (dialogParent instanceof Frame) {
 			d = new JDialog((Frame) dialogParent, dialogTitle);
 		} else if (dialogParent instanceof Dialog) {
 			d = new JDialog((Dialog) dialogParent, dialogTitle);
@@ -172,4 +175,109 @@ public class ArchitectPanelBuilder {
 			}
 		});
 	}
+
+
+    /**
+     * Build a JDialog around an object that implements ArchitectPanel, to
+     * provide consistent behaviours such as Cancel button, <ESC> to close, and
+     * so on.
+     *
+     * @param arch
+     *            The ArchitectPanel implementation
+     * @param dialogParent
+     *            A Window class to be the parent, or null
+     * @param dialogTitle
+     *            The display title.
+     * @param actionButtonTitle
+     *            The title for the OK button
+     * @return The built JDialog
+     */
+    public static JDialog createSingleButtonArchitectPanelDialog(
+            final ArchitectPanel arch,
+            final Window dialogParent,
+            final String dialogTitle,
+            final String actionButtonTitle) {
+
+        Action okAction = new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                arch.applyChanges();
+            }
+        };
+
+        return createSingleButtonArchitectPanelDialog(arch, dialogParent, dialogTitle,
+                actionButtonTitle, okAction );
+    }
+
+
+    /**
+     * Build a JDialog around an object that implements ArchitectPanel, to
+     * provide consistent behaviours such as Cancel button, <ESC> to close, and
+     * so on.
+     * XXX Worry about modal vs non-modal
+     * @param arch
+     *            The ArchitectPanel implementation
+     * @param dialogParent
+     *            A Window object to be the dialog's parent
+     * @param dialogTitle
+     *            The dialog title.
+     * @param actionButtonTitle
+     *            The label text for the OK button
+     * @param okAction Action to be invoked when the OK/action button is
+     *  pressed; does NOT need to dismiss the dialog (we do that if applyChanges() returns true).
+     * @return The new JDialog, which has the panel in it along with OK and Cancel buttons
+     */
+    public static JDialog createSingleButtonArchitectPanelDialog(
+            final ArchitectPanel arch,
+            final Window dialogParent,
+            final String dialogTitle,
+            final String actionButtonTitle,
+            final Action okAction ) {
+
+        final JDialog d;
+
+        if ( dialogParent == null ) {
+            d = new JDialog();
+        } else if (dialogParent instanceof Frame) {
+            d = new JDialog((Frame) dialogParent, dialogTitle);
+        } else if (dialogParent instanceof Dialog) {
+            d = new JDialog((Dialog) dialogParent, dialogTitle);
+        } else {
+            throw new IllegalArgumentException(
+                    "The dialogParent you gave me is not a "
+                            + "Frame or Dialog (it is a "
+                            + dialogParent.getClass().getName() + ")");
+        }
+        JComponent panel = arch.getPanel();
+
+
+        JButton okButton = new JDefaultButton(okAction);
+        okButton.setText(actionButtonTitle);
+        // In all cases we have to close the dialog.
+        Action closeAction = new CommonCloseAction(d);
+        okButton.addActionListener(closeAction);
+        makeJDialogCancellable(d, closeAction);
+        okButton.addActionListener(new CommonCloseAction(d));
+
+        // Handle if the user presses Enter in the dialog - do OK action
+        d.getRootPane().setDefaultButton(okButton);
+
+
+        // Now build the GUI.
+        JPanel cp = new JPanel(new BorderLayout());
+        cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
+        cp.add(panel, BorderLayout.CENTER);
+
+        cp.add(ButtonBarFactory.buildCenteredBar(okButton),
+                BorderLayout.SOUTH);
+        cp.setBorder(Borders.DIALOG_BORDER);
+
+        //d.add(cp);
+        d.setContentPane(cp);
+
+        // XXX maybe pass yet another argument for this?
+        // d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
+
+        d.pack();
+        return d;
+    }
 }
