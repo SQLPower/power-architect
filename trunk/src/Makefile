@@ -1,5 +1,5 @@
 log4j.properties.example: . log4j.properties.tail Makefile
-	echo "# Log4J configuration file for SQL*Power Group MatchMaker." >$@
+	echo "# Log4J configuration file for SQL*Power Group Architect." >$@
 	echo "# DO NOT EDIT file log4j.properties.example; it is generated automatically." >>$@	
 	echo "# Please configure your own logging in a copy named \"log4j.properties.\"" >>$@
 	echo >> $@
