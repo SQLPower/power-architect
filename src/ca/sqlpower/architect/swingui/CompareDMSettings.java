@@ -7,7 +7,13 @@ public class CompareDMSettings {
 	
 	private OutputFormat outputFormat;
 	private String sqlScriptFormat;
-	private boolean saveFlag = false;	//Checks if the user has been on compareDM
+    
+    /**
+     * This flag should be set to true after the user has potentially modified
+     * the CompareDM settings (for example, because the user has pressed the OK
+     * button on the CompareDM dialog).
+     */
+	private boolean saveFlag = false;
 	
 	public static class SourceOrTargetSettings {
 		private DatastoreType datastoreType;
@@ -98,9 +104,17 @@ public class CompareDMSettings {
 	public void setOutputFormatAsString(String v) {
 		outputFormat = OutputFormat.valueOf(v);
 	}
+    
+    /**
+     * If the user never uses compareDM function, the saving process
+     * would fail since some of the return values of saving compareDM
+     * settings would be null.  Therefore the saveFlag is used as an
+     * indicator to tell if the user went into compareDM or not.
+     */
 	public boolean getSaveFlag() {
 		return saveFlag;
 	}
+    
 	public void setSaveFlag(boolean saveFlag) {
 		this.saveFlag = saveFlag;
 	}

@@ -145,7 +145,7 @@ public class TestColumnEditPanel extends TestCase {
      * the ColumnEditPanel that after the modification, it is still
      * being selected.
      */
-    public void testSelectColumnTestAfterKeyChange() throws ArchitectException{        
+    public void testColumnStaysSelectedWhenMovedToPK() throws ArchitectException{        
         PlayPen pp = new PlayPen(db);        
         TablePane tp = new TablePane(table, pp);
         tp.setSelected(true);

@@ -19,11 +19,6 @@ import ca.sqlpower.architect.swingui.TablePane;
 public class BasicTreeAutoLayout extends AbstractLayout {
 	private static final Logger logger = Logger.getLogger(BasicTreeAutoLayout.class);
 
-	/**
-	 * The PlayPen instance that owns this Action.
-	 */
-	private PlayPen pp;
-	
 	private boolean animationEnabled = true;
 
 	/**
@@ -43,7 +38,11 @@ public class BasicTreeAutoLayout extends AbstractLayout {
 		Rectangle b = new Rectangle();
 		int x = startPoint.x;
 		int y = startPoint.y;
-		
+        
+        if (logger.isDebugEnabled()) {
+            logger.debug("Starting layout. tpList="+tpList+"; startPoint="+startPoint);
+        }
+        
 		for (TablePane tp : tpList) {
 			if (alreadyDone.containsKey(tp)) continue;
 			
@@ -54,10 +53,12 @@ public class BasicTreeAutoLayout extends AbstractLayout {
 
 			List<TablePane> relatedTables = new ArrayList<TablePane>();
 			for (SQLRelationship key : tp.getModel().getExportedKeys()) {
+                PlayPen pp = tp.getPlayPen();
 				TablePane relatedTable = pp.findTablePane(key.getFkTable());
 				if (!alreadyDone.containsKey(relatedTable)) relatedTables.add(relatedTable);
 			}
 			for (SQLRelationship key : tp.getModel().getImportedKeys()) {
+                PlayPen pp = tp.getPlayPen();
 				TablePane relatedTable = pp.findTablePane(key.getPkTable());
 				if (!alreadyDone.containsKey(relatedTable)) relatedTables.add(relatedTable);
 			}
@@ -71,14 +72,6 @@ public class BasicTreeAutoLayout extends AbstractLayout {
 		return new Point(x, y);
 	}
 	
-	public void setPlayPen(PlayPen pp) {
-		this.pp = pp;
-	}
-	
-	public PlayPen getPlayPen() {
-		return pp;
-	}
-
 	public boolean isAnimationEnabled() {
 		return animationEnabled;
 	}
@@ -130,6 +123,7 @@ public class BasicTreeAutoLayout extends AbstractLayout {
 		frame++;
 		double progress = ((double) frame) / ((double) numFramesInAnim);
 		logger.debug(progress);
+        PlayPen pp = null;
 		for (Map.Entry<TablePane, Point> entry : newLocations.entrySet()) {
 			TablePane tp = entry.getKey();
 			Point newLoc = entry.getValue();
@@ -139,9 +133,12 @@ public class BasicTreeAutoLayout extends AbstractLayout {
 			int y = (int) (oldLoc.y + (double) (newLoc.y - oldLoc.y) * progress);
 			
 			tp.setLocation(x, y);
+            pp = tp.getPlayPen();
 		}
-		pp.repaint();
-		
+        
+        if (pp != null) {
+            pp.repaint();
+        }
 	}
 
 	public void setup(List<TablePane> nodes, List<Relationship> edges, int frameX, int frameY, int frameHeight, int frameWidth) {

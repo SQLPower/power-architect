@@ -27,7 +27,6 @@ public class TestAutoLayoutAction extends TestCase {
 		PlayPen pp = ArchitectFrame.getMainInstance().getProject().getPlayPen();
 		layoutAction = new AutoLayoutAction();
 		layout = new BasicTreeAutoLayout();
-		layout.setPlayPen(pp);
 		pp.repaint();
 		//action = af.getAutoLayoutAction();
 		layoutAction.setPlayPen(pp);
@@ -112,7 +111,7 @@ public class TestAutoLayoutAction extends TestCase {
 		}
 		
 		layoutAction.actionPerformed(new ActionEvent(this, 0, null));
-
+        
 		// make the paths update
 		r1.paint(g);
 		r2.paint(g);
