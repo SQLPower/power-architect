@@ -45,11 +45,9 @@ import ca.sqlpower.architect.swingui.event.SelectionListener;
 
 public class TablePane
 	extends PlayPenComponent
-	implements SQLObjectListener, java.io.Serializable, Selectable, DragSourceListener {
+	implements java.io.Serializable, Selectable, DragSourceListener {
 
 	private static final Logger logger = Logger.getLogger(TablePane.class);
-
-
 
 	/**
 	 * A special column index that represents the titlebar area.
@@ -119,6 +117,7 @@ public class TablePane
 
 	private SQLTable model;
 
+    SQLObjectListener columnListener = new ColumnListener();
 
     public TablePane(TablePane tp, PlayPenContentPane parent) {
 		super(parent);
@@ -198,7 +197,7 @@ public class TablePane
 	 */
 	public void destroy() {
 		try {
-			ArchitectUtils.unlistenToHierarchy(this, model);
+			ArchitectUtils.unlistenToHierarchy(columnListener, model);
 		} catch (ArchitectException e) {
 			logger.error("Caught exception while unlistening to all children", e);
 		}
@@ -206,107 +205,140 @@ public class TablePane
 
 	// -------------------- sqlobject event support ---------------------
 
-	/**
-	 * Listens for property changes in the model (columns
-	 * or relationships added).  If this change affects the appearance of
-	 * this widget, we will notify all change listeners (the UI
-	 * delegate) with a PropertyChangeEvent.
-	 */
-	public void dbChildrenInserted(SQLObjectEvent e) {
-		if (e.getSource() == getModel().getColumnsFolder()) {
-			int ci[] = e.getChangedIndices();
-			for (int i = 0; i < ci.length; i++) {
-				columnSelection.add(ci[i], Boolean.FALSE);
-                // This is only supposed to work if we deselct the columns before selecting them
-                // this if stops the insert from wiping out a highlighted column
-                if (columnHighlight.get((SQLColumn) e.getChildren()[i]) == null) {
-                    columnHighlight.put((SQLColumn) e.getChildren()[i], new ArrayList<Color>());
+    private class ColumnListener implements SQLObjectListener {
+        
+        /**
+         * The column that was most recently removed from this table while it
+         * was still selected.  This is kept here in case the column is subsequently
+         * reinserted into the table (possibly at a different index) so it can be
+         * selected when it comes back from the dead.
+         */
+        private SQLColumn mostRecentSelectedRemoval;
+
+        /**
+         * Listens for property changes in the model (columns
+         * or relationships added).  If this change affects the appearance of
+         * this widget, we will notify all change listeners (the UI
+         * delegate) with a PropertyChangeEvent.
+         */
+        public void dbChildrenInserted(SQLObjectEvent e) {
+            if (e.getSource() == getModel().getColumnsFolder()) {
+                int ci[] = e.getChangedIndices();
+
+                if (logger.isDebugEnabled()) {
+                    StringBuffer sb = new StringBuffer();
+                    for (int i : ci) {
+                        sb.append(i).append(' ');
+                    }
+                    logger.debug("Columns inserted. Syncing select/highlight lists. New indices=["+sb+"]");
                 }
-			}
-		}
-		try {
-			ArchitectUtils.listenToHierarchy(this, e.getChildren());
-		} catch (ArchitectException ex) {
-			logger.error("Caught exception while listening to added children", ex);
-		}
-		firePropertyChange("model.children", null, null);
-		//revalidate();
-	}
 
-	/**
-	 * Listens for property changes in the model (columns
-	 * removed).  If this change affects the appearance of
-	 * this widget, we will notify all change listeners (the UI
-	 * delegate) with a PropertyChangeEvent.
-	 */
-	public void dbChildrenRemoved(SQLObjectEvent e) {
-		if (e.getSource() == this.model.getColumnsFolder()) {
-			int ci[] = e.getChangedIndices();
-			logger.debug("Columns removed. Syncing select/highlight lists. Removed indices="+Arrays.asList(ci));
-			for (int i = 0; i < ci.length; i++) {
-			    columnSelection.remove(ci[i]);
-			}
-			if (columnSelection.size() > 0) {
-				selectNone();
-				columnSelection.set(Math.min(ci[0], columnSelection.size()-1), Boolean.TRUE);
-			}
-
-			// make sure everything is synced up
-			try {
-				if (columnSelection.size() != this.model.getColumns().size()) {
-					throw new IllegalStateException("out-of-sync selection list (event source="+e.getSource()+"): selection="+columnSelection+"; children="+this.model.getColumns());
-				}
-			} catch (ArchitectException ex) {
-				throw new ArchitectRuntimeException(ex);
-			}
-		}
-		firePropertyChange("model.children", null, null);
-		//revalidate();
-	}
-
-	/**
-	 * Listens for property changes in the model (columns
-	 * properties modified).  If this change affects the appearance of
-	 * this widget, we will notify all change listeners (the UI
-	 * delegate) with a ChangeEvent.
-	 */
-	public void dbObjectChanged(SQLObjectEvent e) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("TablePane got object changed event." +
-					"  Source="+e.getSource()+" Property="+e.getPropertyName()+
-					" oldVal="+e.getOldValue()+" newVal="+e.getNewValue());
-		}
-		firePropertyChange("model."+e.getPropertyName(), null, null);
-		//repaint();
-	}
-
-	/**
-	 * Listens for property changes in the model (significant
-	 * structure change).  If this change affects the appearance of
-	 * this widget, we will notify all change listeners (the UI
-	 * delegate) with a ChangeEvent.
-	 */
-	public void dbStructureChanged(SQLObjectEvent e) {
-		logger.debug("TablePane got db structure change event. source="+e.getSource());
-		if (e.getSource() == model.getColumnsFolder()) {
-			int numCols = e.getChildren().length;
-			columnSelection = new ArrayList<Boolean>(numCols);
-			for (int i = 0; i < numCols; i++) {
-				columnSelection.add(Boolean.FALSE);
-			}
-			columnHighlight = new HashMap<SQLColumn,List<Color>>();
-			try {
-                for (SQLColumn child :((List<SQLColumn>) model.getColumnsFolder().getChildren())) {
-                	columnHighlight.put(child,new ArrayList<Color>());
+                for (int i = 0; i < ci.length; i++) {
+                    boolean wasSelectedPreviously = (e.getChildren()[i] == mostRecentSelectedRemoval);
+                    if (wasSelectedPreviously) {
+                        selectNone();
+                    }
+                    columnSelection.add(ci[i], wasSelectedPreviously);
+                    // This is only supposed to work if we deselct the columns before selecting them
+                    // this if stops the insert from wiping out a highlighted column
+                    if (columnHighlight.get((SQLColumn) e.getChildren()[i]) == null) {
+                        columnHighlight.put((SQLColumn) e.getChildren()[i], new ArrayList<Color>());
+                    }
                 }
-            } catch (ArchitectException e1) {
-                throw new ArchitectRuntimeException(e1);
             }
-			firePropertyChange("model.children", null, null);
-			//revalidate();
-		}
-	}
+            try {
+                ArchitectUtils.listenToHierarchy(this, e.getChildren());
+            } catch (ArchitectException ex) {
+                logger.error("Caught exception while listening to added children", ex);
+            }
+            firePropertyChange("model.children", null, null);
+            //revalidate();
+        }
 
+        /**
+         * Listens for property changes in the model (columns
+         * removed).  If this change affects the appearance of
+         * this widget, we will notify all change listeners (the UI
+         * delegate) with a PropertyChangeEvent.
+         */
+        public void dbChildrenRemoved(SQLObjectEvent e) {
+            if (e.getSource() == model.getColumnsFolder()) {
+                int ci[] = e.getChangedIndices();
+                if (logger.isDebugEnabled()) {
+                    StringBuffer sb = new StringBuffer();
+                    for (int i : ci) {
+                        sb.append(i).append(' ');
+                    }
+                    logger.debug("Columns removed. Syncing select/highlight lists. Removed indices=["+sb+"]");
+                }
+                for (int i = 0; i < ci.length; i++) {
+                    if (columnSelection.get(ci[i]) == true) {
+                        mostRecentSelectedRemoval = (SQLColumn) e.getChildren()[i];
+                    }
+                    columnSelection.remove(ci[i]);
+                }
+                if (columnSelection.size() > 0) {
+                    selectNone();
+                    columnSelection.set(Math.min(ci[0], columnSelection.size()-1), Boolean.TRUE);
+                }
+
+                // make sure everything is synced up
+                try {
+                    if (columnSelection.size() != model.getColumns().size()) {
+                        throw new IllegalStateException("out-of-sync selection list (event source="+e.getSource()+"): selection="+columnSelection+"; children="+model.getColumns());
+                    }
+                } catch (ArchitectException ex) {
+                    throw new ArchitectRuntimeException(ex);
+                }
+            }
+            firePropertyChange("model.children", null, null);
+            //revalidate();
+        }
+
+        /**
+         * Listens for property changes in the model (columns
+         * properties modified).  If this change affects the appearance of
+         * this widget, we will notify all change listeners (the UI
+         * delegate) with a ChangeEvent.
+         */
+        public void dbObjectChanged(SQLObjectEvent e) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("TablePane got object changed event." +
+                        "  Source="+e.getSource()+" Property="+e.getPropertyName()+
+                        " oldVal="+e.getOldValue()+" newVal="+e.getNewValue());
+            }
+            firePropertyChange("model."+e.getPropertyName(), null, null);
+            //repaint();
+        }
+
+        /**
+         * Listens for property changes in the model (significant
+         * structure change).  If this change affects the appearance of
+         * this widget, we will notify all change listeners (the UI
+         * delegate) with a ChangeEvent.
+         */
+        public void dbStructureChanged(SQLObjectEvent e) {
+            logger.debug("TablePane got db structure change event. source="+e.getSource());
+            if (e.getSource() == model.getColumnsFolder()) {
+                int numCols = e.getChildren().length;
+                columnSelection = new ArrayList<Boolean>(numCols);
+                for (int i = 0; i < numCols; i++) {
+                    columnSelection.add(Boolean.FALSE);
+                }
+                columnHighlight = new HashMap<SQLColumn,List<Color>>();
+                try {
+                    for (SQLColumn child :((List<SQLColumn>) model.getColumnsFolder().getChildren())) {
+                        columnHighlight.put(child,new ArrayList<Color>());
+                    }
+                } catch (ArchitectException e1) {
+                    throw new ArchitectRuntimeException(e1);
+                }
+                firePropertyChange("model.children", null, null);
+                //revalidate();
+            }
+        }
+    }
+        
 	// ----------------------- accessors and mutators --------------------------
 
 	/**
@@ -336,7 +368,7 @@ public class TablePane
 
 		if (old != null) {
 			try {
-				ArchitectUtils.unlistenToHierarchy(this, old);
+				ArchitectUtils.unlistenToHierarchy(columnListener, old);
 			} catch (ArchitectException e) {
 				logger.error("Caught exception while unlistening to old model", e);
 			}
@@ -357,7 +389,7 @@ public class TablePane
 		}
 
 		try {
-			ArchitectUtils.listenToHierarchy(this, model);
+			ArchitectUtils.listenToHierarchy(columnListener, model);
 		} catch (ArchitectException e) {
 			logger.error("Caught exception while listening to new model", e);
 		}
@@ -433,6 +465,9 @@ public class TablePane
 
 	// --------------------- column selection support --------------------
 
+    /**
+     * Deselects all columns in this tablepane.
+     */
 	public void selectNone() {
 		for (int i = 0; i < columnSelection.size(); i++) {
 			columnSelection.set(i, Boolean.FALSE);

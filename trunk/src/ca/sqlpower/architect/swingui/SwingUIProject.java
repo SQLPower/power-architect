@@ -916,13 +916,15 @@ public class SwingUIProject {
         ioo.println(out, "</ddl-generator>");
     }
 
-
+    /**
+     * Writes out the CompareDM settings for this project unless the user has not
+     * used that feature.
+     *  
+     * @param out
+     * @throws IOException
+     */
     private void saveCompareDMSettings(PrintWriter out) throws IOException {
 
-        //If the user never uses compareDM function, the saving process
-        //would fail since some of the return values of saving compareDM
-        //settings would be null.  Therefore the saveFlag is used as an
-        //indicator to tell if the user went into compareDM or not.
         if ( !compareDMSettings.getSaveFlag() )
             return;
         ioo.print(out, "<compare-dm-settings");

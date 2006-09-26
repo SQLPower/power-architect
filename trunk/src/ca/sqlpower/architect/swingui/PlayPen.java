@@ -80,6 +80,7 @@ import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLExceptionNode;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
@@ -1347,6 +1348,7 @@ public class PlayPen extends JPanel
 				JOptionPane.showMessageDialog(parentDialog, errorMessage, "Error Dropping Tables into Playpen", JOptionPane.ERROR_MESSAGE);
 				if (getNextProcess() != null) {
 					setCancelled(true);	
+                    
 				}
 			}
 
@@ -1369,7 +1371,9 @@ public class PlayPen extends JPanel
 						SQLSchema sourceSchema = (SQLSchema) someData;						
 						Iterator it = sourceSchema.getChildren().iterator();
 						while (it.hasNext() && !isCanceled()) {
-							SQLTable sourceTable = (SQLTable) it.next();
+                            Object nextTable = it.next();
+                            if (nextTable instanceof SQLExceptionNode) continue;
+							SQLTable sourceTable = (SQLTable) nextTable;
 							message = ArchitectUtils.truncateString(sourceTable.getName());
 							TablePane tp = importTableCopy(sourceTable, preferredLocation);
 							preferredLocation.x += tp.getPreferredSize().width + 5;
@@ -1383,7 +1387,9 @@ public class PlayPen extends JPanel
 								SQLSchema sourceSchema = (SQLSchema) cit.next();						
 								Iterator it = sourceSchema.getChildren().iterator();
 								while (it.hasNext() && !isCanceled()) {
-									SQLTable sourceTable = (SQLTable) it.next();									
+									Object nextTable = it.next();
+                                    if (nextTable instanceof SQLExceptionNode) continue;
+                                    SQLTable sourceTable = (SQLTable) nextTable;									
 									message = ArchitectUtils.truncateString(sourceTable.getName());
 									TablePane tp = importTableCopy(sourceTable, preferredLocation);
 									preferredLocation.x += tp.getPreferredSize().width + 5;
@@ -1392,7 +1398,9 @@ public class PlayPen extends JPanel
 							}
 						} else {
 							while (cit.hasNext() && !isCanceled()) {
-								SQLTable sourceTable = (SQLTable) cit.next();
+                                Object nextTable = cit.next();
+                                if (nextTable instanceof SQLExceptionNode) continue;
+								SQLTable sourceTable = (SQLTable) nextTable;
 								message = ArchitectUtils.truncateString(sourceTable.getName());
 								TablePane tp = importTableCopy(sourceTable, preferredLocation);
 								preferredLocation.x += tp.getPreferredSize().width + 5;
