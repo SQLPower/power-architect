@@ -115,7 +115,14 @@ public class SQLCatalog extends SQLObject {
 				con = ((SQLDatabase) parent).getConnection();
 				DatabaseMetaData dbmd = con.getMetaData();	
 
-				con.setCatalog(getName());
+                // This can fail in SS2K because of privelege problems.  There is
+                // apparently no way to check if it will fail; you just have to try.
+                try {
+                    con.setCatalog(getName());
+                } catch (SQLException ex) {
+                    logger.info("populate: Could not setCatalog("+getName()+"). Assuming it's a permission problem.  Stack trace:", ex);
+                    return;
+                }
 				
 				rs = dbmd.getSchemas();
 				while (rs.next()) {
