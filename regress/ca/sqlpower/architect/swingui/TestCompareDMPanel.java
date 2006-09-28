@@ -35,7 +35,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 	JRadioButton sourceLoadRadio = null;
 	JTextField sourceLoadFilePath = null;
 	JButton sourceLoadFileButton = null;
-			
+
 
 	JRadioButton targetPlayPenRadio = null;
 	JRadioButton targetPhysicalRadio = null;
@@ -50,55 +50,55 @@ public class TestCompareDMPanel extends JFCTestCase {
 
 	protected void setUp() throws Exception {
 		super.setUp();
-		
+
 		setHelper(new JFCTestHelper());
 		panel = new CompareDMPanel(new SwingUIProject("test"));
 		robot = new Robot();
-		
+
 		Component comps[] = ((Container) panel.getComponent(0)).getComponents();
 		for (int i = 0; i < comps.length; i++) {
 
 			if ("sourcePlayPenRadio".equals(comps[i].getName())) {
-				sourcePlayPenRadio = (JRadioButton) comps[i];				
+				sourcePlayPenRadio = (JRadioButton) comps[i];
 			} else if ("sourcePhysicalRadio".equals(comps[i].getName())) {
-				sourcePhysicalRadio = (JRadioButton) comps[i];			
+				sourcePhysicalRadio = (JRadioButton) comps[i];
 			} else if ("sourceDatabaseDropdown".equals(comps[i].getName())) {
-				sourceDatabaseDropdown = (JComboBox) comps[i];			
+				sourceDatabaseDropdown = (JComboBox) comps[i];
 			} else if ("sourceCatalogDropdown".equals(comps[i].getName())) {
-				sourceCatalogDropdown = (JComboBox) comps[i];				
+				sourceCatalogDropdown = (JComboBox) comps[i];
 			} else if ("sourceSchemaDropdown".equals(comps[i].getName())) {
-				sourceSchemaDropdown = (JComboBox) comps[i];				
+				sourceSchemaDropdown = (JComboBox) comps[i];
 			} else if ("sourceNewConnButton".equals(comps[i].getName())) {
-				sourceNewConnButton = (JButton) comps[i];				
+				sourceNewConnButton = (JButton) comps[i];
 			} else if ("sourceLoadRadio".equals(comps[i].getName())){
 				sourceLoadRadio = (JRadioButton) comps[i];
 			} else if ("sourceLoadFilePath".equals(comps[i].getName())){
 				sourceLoadFilePath = (JTextField) comps[i];
 			} else if ("sourceLoadFileButton".equals (comps[i].getName())){
 				sourceLoadFileButton = (JButton) comps[i];
-			} 
+			}
 			//assigning the target variables
 			else if ("targetPlayPenRadio".equals(comps[i].getName())) {
-				targetPlayPenRadio = (JRadioButton) comps[i];				
+				targetPlayPenRadio = (JRadioButton) comps[i];
 			} else if ("targetPhysicalRadio".equals(comps[i].getName())) {
-				targetPhysicalRadio = (JRadioButton) comps[i];			
+				targetPhysicalRadio = (JRadioButton) comps[i];
 			} else if ("targetDatabaseDropdown".equals(comps[i].getName())) {
-				targetDatabaseDropdown = (JComboBox) comps[i];			
+				targetDatabaseDropdown = (JComboBox) comps[i];
 			} else if ("targetCatalogDropdown".equals(comps[i].getName())) {
-				targetCatalogDropdown = (JComboBox) comps[i];				
+				targetCatalogDropdown = (JComboBox) comps[i];
 			} else if ("targetSchemaDropdown".equals(comps[i].getName())) {
-				targetSchemaDropdown = (JComboBox) comps[i];				
+				targetSchemaDropdown = (JComboBox) comps[i];
 			} else if ("targetNewConnButton".equals(comps[i].getName())) {
-				targetNewConnButton = (JButton) comps[i];				
+				targetNewConnButton = (JButton) comps[i];
 			} else if ("targetLoadRadio".equals(comps[i].getName())){
 				targetLoadRadio = (JRadioButton) comps[i];
 			} else if ("targetLoadFilePath".equals(comps[i].getName())){
 				targetLoadFilePath = (JTextField) comps[i];
 			} else if ("targetLoadFileButton".equals (comps[i].getName())){
 				targetLoadFileButton = (JButton) comps[i];
-			} 
-			
-			
+			}
+
+
 		}
 
 	}
@@ -107,12 +107,12 @@ public class TestCompareDMPanel extends JFCTestCase {
 		TestHelper.cleanUp(this);
 		super.tearDown();
 	}
-	
+
 	/**
 	 * Ensures all components got found in setUp();
 	 */
 	public void testInitComponents() {
-		
+
 		assertNotNull("Missing component", sourcePlayPenRadio);
 		assertNotNull("Missing component", sourcePhysicalRadio);
 		assertNotNull("Missing component", sourceDatabaseDropdown);
@@ -122,8 +122,8 @@ public class TestCompareDMPanel extends JFCTestCase {
 		assertNotNull("Missing component", sourceLoadRadio);
 		assertNotNull("Missing component", sourceLoadFilePath);
 		assertNotNull("Missing component", sourceLoadFileButton);
-		
-		
+
+
 		assertNotNull("Missing component", targetPlayPenRadio);
 		assertNotNull("Missing component", targetPhysicalRadio);
 		assertNotNull("Missing component", targetDatabaseDropdown);
@@ -154,18 +154,18 @@ public class TestCompareDMPanel extends JFCTestCase {
 		robot.mouseRelease(InputEvent.BUTTON1_MASK);
 
 		flushAWT();
-		
+
 		assertTrue(sourceDatabaseDropdown.isEnabled());
 		assertTrue(sourceNewConnButton.isEnabled());
 		assertFalse(sourceCatalogDropdown.isEnabled());
 		assertFalse(sourceSchemaDropdown.isEnabled());
-		
+
 		frame.dispose();
 	}
 
 	//This test case method will fail randomly but will theortically work
 	public void testDisableSourceDatabaseComponents() {
-		JFrame frame = new JFrame();		
+		JFrame frame = new JFrame();
 		frame.setContentPane(panel);
 		frame.pack();
 		frame.setVisible(true);
@@ -176,7 +176,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 		assertFalse(sourceLoadFilePath.isEnabled());
 		assertFalse(sourceLoadFileButton.isEnabled());
 
-		
+
 		flushAWT();
 
 		// Select the database drop down
@@ -187,29 +187,29 @@ public class TestCompareDMPanel extends JFCTestCase {
 		robot.mouseRelease(InputEvent.BUTTON1_MASK);
 
 		flushAWT();
-		
+
 		assertTrue(sourceDatabaseDropdown.isEnabled());
 		assertTrue(sourceNewConnButton.isEnabled());
 		assertFalse(sourceCatalogDropdown.isEnabled());
 		assertFalse(sourceSchemaDropdown.isEnabled());
 		p = sourcePlayPenRadio.getLocationOnScreen();
-		
+
 		robot.mouseMove(p.x, p.y);
 		robot.mousePress(InputEvent.BUTTON1_MASK);
 		robot.mouseRelease(InputEvent.BUTTON1_MASK);
-		
+
 		flushAWT();
 		assertFalse(sourceDatabaseDropdown.isEnabled());
 		assertFalse(sourceNewConnButton.isEnabled());
 		assertFalse(sourceCatalogDropdown.isEnabled());
 		assertFalse(sourceSchemaDropdown.isEnabled());
-		
+
 		frame.dispose();
 	}
-	
+
 	//This test case method will fail randomly but will theortically work
 	public void testNewSourceConnectionButton() throws Exception {
-		JFrame frame = new JFrame();		
+		JFrame frame = new JFrame();
 		frame.setContentPane(panel);
 		frame.pack();
 		frame.setVisible(true);
@@ -219,7 +219,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 		robot.mouseMove(p.x+2, p.y+2);
 		robot.mousePress(InputEvent.BUTTON1_MASK);
 		robot.mouseRelease(InputEvent.BUTTON1_MASK);
-		
+
 		// clicks the button (which is now enabled)
 		p = sourceNewConnButton.getLocationOnScreen();
 		robot.mouseMove(p.x+2, p.y+2);
@@ -228,22 +228,22 @@ public class TestCompareDMPanel extends JFCTestCase {
 
 		// this (hopefully) forces a wait until the AWT event queue does everything necessary to create the new dialog window
 		flushAWT();
-		
+
 		JDialog d = panel.getSourceStuff().getNewConnectionDialog();
 		assertNotNull("New source connection button didn't create dialog", d);
 		assertTrue("Dialog isn't visible!", d.isVisible());
 
 		frame.dispose();
 	}
-	
+
 	//This test case method will fail randomly but will theortically work
 	public void testNewTargetConnectionButton() throws Exception {
-		JFrame frame = new JFrame();		
+		JFrame frame = new JFrame();
 		frame.setContentPane(panel);
 		frame.pack();
 		frame.setVisible(true);
 
-		
+
 		// clicks the button (which is now enabled)
 		Point p = targetNewConnButton.getLocationOnScreen();
 		robot.mouseMove(p.x+2, p.y+2);
@@ -252,14 +252,14 @@ public class TestCompareDMPanel extends JFCTestCase {
 
 		// this (hopefully) forces a wait until the AWT event queue does everything necessary to create the new dialog window
 		flushAWT();
-		
+
 		JDialog d = panel.getTargetStuff().getNewConnectionDialog();
 		assertNotNull("New target connection button didn't create dialog", d);
 		assertTrue("Dialog isn't visible!", d.isVisible());
 
 		frame.dispose();
 	}
-	
+
 	public void testSourceDropDownsWithOnlyCatalog() {
 		ArchitectDataSource ds = new ArchitectDataSource();
 		ds.setDisplayName("testSourceDropDownsWithOnlyCatalog");
@@ -274,14 +274,17 @@ public class TestCompareDMPanel extends JFCTestCase {
 				"&tables.cat2=tab2" +
 				"&tables.cat3=tab3");
 		sourcePhysicalRadio.setSelected(true);
-		
-		ArchitectFrame.getMainInstance().getUserSettings().getPlDotIni().addDataSource(ds);
+
+        if (plDotIni.getDataSource(ds.getName()) != null) {
+            plDotIni.removeDataSource(ds);
+        }
+		plDotIni.addDataSource(ds);
 		sourceDatabaseDropdown.setSelectedItem(ds);
 		flushAWT();
 		assertFalse(sourceSchemaDropdown.isEnabled());
 		assertTrue(sourceCatalogDropdown.isEnabled());
 	}
-	
+
 	public void testSourceDropDownsWithSchemaAndCatalog() {
 		ArchitectDataSource ds = new ArchitectDataSource();
 		ds.setDisplayName("testSourceDropDownsWithSchemaAndCatalog");
@@ -291,15 +294,18 @@ public class TestCompareDMPanel extends JFCTestCase {
 		//this creates a mock jdbc database with catalogs and schemas
 		ds.setUrl("jdbc:mock:dbmd.catalogTerm=Catalog&dbmd.schemaTerm=Schema&catalogs=cow_catalog&schemas.cow_catalog=moo_schema,quack_schema&tables.cow_catalog.moo_schema=braaaap,pffft&tables.cow_catalog.quack_schema=duck,goose");
 		sourcePhysicalRadio.setSelected(true);
-		
-		ArchitectFrame.getMainInstance().getUserSettings().getPlDotIni().addDataSource(ds);
+
+        if (plDotIni.getDataSource(ds.getName()) != null) {
+            plDotIni.removeDataSource(ds);
+        }
+		plDotIni.addDataSource(ds);
 		sourceDatabaseDropdown.setSelectedItem(ds);
 		flushAWT();
 
 		assertTrue(sourceCatalogDropdown.isEnabled());
 		assertTrue(sourceSchemaDropdown.isEnabled());
 	}
-	
+
 	public void testSourceDropDownsWithOnlySchema() {
 		ArchitectDataSource ds = new ArchitectDataSource();
 		ds.setDisplayName("testSourceDropDownsWithOnlySchema");
@@ -310,14 +316,17 @@ public class TestCompareDMPanel extends JFCTestCase {
 		ds.setUrl("jdbc:mock:dbmd.schemaTerm=Schema&schemas=scheme1,scheme2,scheme3");
 
 		sourcePhysicalRadio.setSelected(true);
+        if (plDotIni.getDataSource(ds.getName()) != null) {
+            plDotIni.removeDataSource(ds);
+        }
 		plDotIni.addDataSource(ds);
 		sourceDatabaseDropdown.setSelectedItem(ds);
 		flushAWT();
-		
+
 		assertTrue(sourceSchemaDropdown.isEnabled());
 		assertFalse(sourceCatalogDropdown.isEnabled());
 	}
-	
+
 	public void testTargetDropDownsWithOnlyCatalog() {
 		ArchitectDataSource ds = new ArchitectDataSource();
 		ds.setDisplayName("testTargetDropDownsWithOnlyCatalog");
@@ -331,14 +340,17 @@ public class TestCompareDMPanel extends JFCTestCase {
 				"&tables.cat1=tab1" +
 				"&tables.cat2=tab2" +
 				"&tables.cat3=tab3");
-	
+
+        if (plDotIni.getDataSource(ds.getName()) != null) {
+            plDotIni.removeDataSource(ds);
+        }
         plDotIni.addDataSource(ds);
 		targetDatabaseDropdown.setSelectedItem(ds);
 		flushAWT();
 		assertFalse(targetSchemaDropdown.isEnabled());
 		assertTrue(targetCatalogDropdown.isEnabled());
 	}
-	
+
 	public void testTargetDropDownsWithSchemaAndCatalog() {
 		ArchitectDataSource ds = new ArchitectDataSource();
 		ds.setDisplayName("testTargetDropDownsWithSchemaAndCatalog");
@@ -348,6 +360,9 @@ public class TestCompareDMPanel extends JFCTestCase {
 		//this creates a mock jdbc database with schemas and catalogs
 		ds.setUrl("jdbc:mock:dbmd.catalogTerm=Catalog&dbmd.schemaTerm=Schema&catalogs=cow_catalog&schemas.cow_catalog=moo_schema,quack_schema&tables.cow_catalog.moo_schema=braaaap,pffft&tables.cow_catalog.quack_schema=duck,goose");
 
+        if (plDotIni.getDataSource(ds.getName()) != null) {
+            plDotIni.removeDataSource(ds);
+        }
         plDotIni.addDataSource(ds);
 		targetDatabaseDropdown.setSelectedItem(ds);
 		flushAWT();
@@ -358,7 +373,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 		assertTrue(targetSchemaDropdown.isEnabled());
 		assertTrue(targetCatalogDropdown.isEnabled());
 	}
-	
+
 	public void testTargetDropDownsWithOnlySchema() {
 		ArchitectDataSource ds = new ArchitectDataSource();
 		ds.setDisplayName("testTargetDropDownsWithOnlySchema");
@@ -368,13 +383,16 @@ public class TestCompareDMPanel extends JFCTestCase {
 		//this creates a mock jdbc database with only schemas
 		ds.setUrl("jdbc:mock:dbmd.schemaTerm=Schema&schemas=scheme1,scheme2,scheme3");
 
+        if (plDotIni.getDataSource(ds.getName()) != null) {
+            plDotIni.removeDataSource(ds);
+        }
         plDotIni.addDataSource(ds);
 		targetDatabaseDropdown.setSelectedItem(ds);
 		flushAWT();
 		assertTrue(targetSchemaDropdown.isEnabled());
 		assertFalse(targetCatalogDropdown.isEnabled());
 	}
-	
+
 	public void testTargetSchemaUpdateByCatalogChange(){
 		ArchitectDataSource ds = new ArchitectDataSource();
 		ds.setDisplayName("testTargetSchemaUpdateByCatalogChange");
@@ -383,30 +401,33 @@ public class TestCompareDMPanel extends JFCTestCase {
 		ds.setPass("fake");
 		//this creates a mock jdbc database with catalogs and schemas where the catalogs have different schema names from each other
 		ds.setUrl("jdbc:mock:dbmd.catalogTerm=Catalog&dbmd.schemaTerm=Schema&catalogs=farm,zoo,backyard&schemas.farm=birds,mammals&tables.farm.birds=chicken,turkey,hen&tables.farm.mammals=cow,horse,buffalo?&schemas.zoo=birds2,mammals2&tables.zoo.birds2=penguin,flamingo&tables.zoo.mammals2=elephant&schemas.backyard=mammals3&tables.backyard.mammals3=mouse,rat,cat,dog,raccoon");
-				
+
+        if (plDotIni.getDataSource(ds.getName()) != null) {
+            plDotIni.removeDataSource(ds);
+        }
         plDotIni.addDataSource(ds);
 		targetDatabaseDropdown.setSelectedItem(ds);
 		flushAWT();
 		assertTrue(targetCatalogDropdown.isEnabled());
-		assertTrue(targetSchemaDropdown.isEnabled());	
-		
+		assertTrue(targetSchemaDropdown.isEnabled());
+
 		flushAWT();
 		SQLObject temp = (SQLObject)(((JComboBox)(targetCatalogDropdown)).getSelectedItem());
-		
-		try {			
-			assertTrue("birds".equals(temp.getChild(0).getPhysicalName()));			
+
+		try {
+			assertTrue("birds".equals(temp.getChild(0).getPhysicalName()));
 		} catch (ArchitectException e) {
 			System.out.println ("We did not get a schema from the catalog!");
-		}								
-		
+		}
+
 		flushAWT();
 		((JComboBox)targetCatalogDropdown).setSelectedIndex(1);
 		temp =(SQLObject) ((JComboBox)targetCatalogDropdown).getSelectedItem();
-		
+
 		try {
-			assertTrue("birds2".equals(temp.getChild(0).getPhysicalName()));		
+			assertTrue("birds2".equals(temp.getChild(0).getPhysicalName()));
 		} catch (ArchitectException e) {
 			System.out.println ("We did not get a schema from the catalog!");
-		}								
+		}
 	}
 }
