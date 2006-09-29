@@ -42,13 +42,13 @@ public class SQLTable extends SQLObject {
 	 * keys.
 	 */
 	protected Folder<SQLRelationship> importedKeysFolder;
-    
+
     /**
      * A container for SQLIndex objects that describe the various database indices
      * that exist on this table.
      */
     private Folder<SQLIndex> indicesFolder;
-	
+
 	public SQLTable(SQLObject parent, String name, String remarks, String objectType, boolean startPopulated) throws ArchitectException {
 		logger.debug("NEW TABLE "+name+"@"+hashCode());
 		setup(parent, name, remarks, objectType);
@@ -71,7 +71,7 @@ public class SQLTable extends SQLObject {
 	 * Creates a new SQLTable with parent as its parent and a null
 	 * schema and catalog.  The table will contain the four default
 	 * folders: "Columns" "Exported Keys" "Imported Keys" and "Indices".
-     * 
+     *
      * @param startPopulated The initial setting of this table's folders' <tt>populated</tt> flags.
      * If this is set to false, the table will attempt to lazy-load the child folders.  Otherwise,
      * this table will not try to load its children from a database connection.
@@ -165,15 +165,15 @@ public class SQLTable extends SQLObject {
 			}
 			columnsFolder.fireDbChildrenInserted(changedIndices, columnsFolder.children);
 		}
-		
+
 		logger.debug("column folder populate finished");
 
 	}
-	
+
     private synchronized void populateIndices() throws ArchitectException {
         if (indicesFolder.isPopulated()) return;
         if (indicesFolder.children.size() > 0) throw new IllegalStateException("Can't populate indices folder because it already contains children!");
-        
+
         logger.debug("index folder populate starting");
 
         try {
@@ -195,7 +195,7 @@ public class SQLTable extends SQLObject {
 
         logger.debug("index folder populate finished");
     }
-    
+
 	/**
 	 * Populates all the imported key relationships.  This has the
 	 * side effect of populating the exported key side of the
@@ -878,7 +878,7 @@ public class SQLTable extends SQLObject {
 	public Folder<SQLRelationship> getExportedKeysFolder() {
 		return exportedKeysFolder;
 	}
-    
+
     public Folder<SQLIndex> getIndicesFolder() {
         return indicesFolder;
     }
@@ -972,13 +972,63 @@ public class SQLTable extends SQLObject {
     public SQLRelationship getExportedKeyByName(String name,
             boolean populate ) throws ArchitectException {
         if (populate) populateRelationships();
-        logger.debug("Looking for Exported Key "+name+" in "+children);
+        logger.debug("Looking for Exported Key ["+name+"] in "+exportedKeysFolder.getChildren() );
         Iterator it = exportedKeysFolder.children.iterator();
         while (it.hasNext()) {
             SQLRelationship r = (SQLRelationship) it.next();
             if (r.getName().equalsIgnoreCase(name)) {
                 logger.debug("FOUND");
                 return r;
+            }
+        }
+        logger.debug("NOT FOUND");
+        return null;
+    }
+
+    /**
+     * Gets a list of unique indices
+     */
+    public synchronized List<SQLIndex> getUniqueIndex() throws ArchitectException {
+        populateColumns();
+        populateIndices();
+        List<SQLIndex> list = new ArrayList<SQLIndex>();
+        Iterator it = getIndicesFolder().children.iterator();
+        while (it.hasNext()) {
+            SQLIndex idx = (SQLIndex) it.next();
+            if (idx.isUnique() ) {
+                list.add(idx);
+            }
+        }
+        return list;
+    }
+
+    /**
+     * Gets the value of index by name
+     *
+     * @return the value of index
+     */
+    public SQLIndex getIndexByName(String name) throws ArchitectException {
+        return getIndexByName(name,true);
+    }
+
+    /**
+     * Gets the value of index by name
+     *
+     * @return the value of index
+     */
+    public SQLIndex getIndexByName(String name,
+            boolean populate ) throws ArchitectException {
+        if (populate) {
+            populateColumns();
+            populateIndices();
+        }
+        logger.debug("Looking for Index ["+name+"] in "+getIndicesFolder().children);
+        Iterator it = getIndicesFolder().children.iterator();
+        while (it.hasNext()) {
+            SQLIndex idx = (SQLIndex) it.next();
+            if (idx.getName().equalsIgnoreCase(name)) {
+                logger.debug("FOUND");
+                return idx;
             }
         }
         logger.debug("NOT FOUND");
