@@ -23,7 +23,7 @@ public class SQLTable extends SQLObject {
 	private String objectType;
 	protected String primaryKeyName;
 	protected String physicalPrimaryKeyName;
-	
+
 	/**
 	 * A List of SQLColumn objects which make up all the columns of
 	 * this table.
@@ -41,13 +41,13 @@ public class SQLTable extends SQLObject {
 	 * A List of SQLRelationship objects describing keys that this
 	 * table imports.  This SQLTable is the "fkTable" in its imported
 	 * keys.
-	 * 
+	 *
 	 * @param startPopulated The initial setting of this table's folders' <tt>populated</tt> flags.
 	 * If this is set to false, the table will attempt to lazy-load the child folders.  Otherwise,
 	 * this table will not try to load its children from a database connection.
 	 */
 	protected Folder importedKeysFolder;
-	
+
 	public SQLTable(SQLObject parent, String name, String remarks, String objectType, boolean startPopulated) throws ArchitectException {
 		logger.debug("NEW TABLE "+name+"@"+hashCode());
 		setup(parent, name, remarks, objectType);
@@ -55,7 +55,7 @@ public class SQLTable extends SQLObject {
 	}
 
     /**
-     * Sets up the values for the new Table 
+     * Sets up the values for the new Table
      */
     private void setup(SQLObject parent, String name, String remarks, String objectType) {
         this.parent = parent;
@@ -65,7 +65,7 @@ public class SQLTable extends SQLObject {
 		if (this.objectType == null) throw new NullPointerException();
 		this.children = new ArrayList();
     }
-	
+
 	/**
 	 * Creates a new SQLTable with parent as its parent and a null
 	 * schema and catalog.  The table will contain the three default
@@ -77,21 +77,21 @@ public class SQLTable extends SQLObject {
 
 	/**
 	 * Creates a new SQLTable with no children, no parent, and all
-	 * properties set to their defaults.   Note this should never 
+	 * properties set to their defaults.   Note this should never
      * Initialize the folders.
-	 * 
+	 *
 	 * <p>This is mainly for code that needs to reconstruct a SQLTable
 	 * from outside configuration info, such as the SwingUIProject.load() method.
 	 * If you want to make SQLTable objects from scratch, consider using one
 	 * of the other constructors, which initialise the state more thoroughly.
-	 * 
+	 *
 	 */
 	public SQLTable() {
         setup(null,null,null,"TABLE");
 	}
 
-  
-		
+
+
 	/**
 	 * If you create a table from scratch using the no-args
 	 * constructor, you should call this to create the standard set of
@@ -108,7 +108,7 @@ public class SQLTable extends SQLObject {
 		addChild(new Folder(Folder.IMPORTED_KEYS, populated));
 	}
 
-	protected static void addTablesToDatabase(SQLDatabase addTo) 
+	protected static void addTablesToDatabase(SQLDatabase addTo)
 		throws SQLException, ArchitectException {
 		HashMap catalogs = new HashMap();
 		HashMap schemas = new HashMap();
@@ -159,7 +159,7 @@ public class SQLTable extends SQLObject {
 						}
 						tableParent = schema;
 					}
-														  
+
 					tableParent.children.add(new SQLTable(tableParent,
 														  rs.getString(3),
 														  rs.getString(5),
@@ -183,8 +183,8 @@ public class SQLTable extends SQLObject {
 
 	/**
 	 * Creates a new SQLTable under the given parent database.  The new table will have
-	 * all the same properties as the given source table.  
-	 * 
+	 * all the same properties as the given source table.
+	 *
 	 * @param source The table to copy
 	 * @param parent The database to insert the new table into
 	 * @return The new table
@@ -198,16 +198,16 @@ public class SQLTable extends SQLObject {
 		SQLTable t = new SQLTable(parent, true);
 		t.setName(source.getName());
 		t.remarks = source.remarks;
-		
+
 		t.setPhysicalName(source.getPhysicalName());
 		t.primaryKeyName = source.getPrimaryKeyName();
 		t.physicalPrimaryKeyName = source.getPhysicalPrimaryKeyName();
-		
+
 		t.inherit(source);
 		parent.addChild(t);
 		return t;
 	}
-	
+
 	private synchronized void populateColumns() throws ArchitectException {
 		if (columnsFolder.isPopulated()) return;
 		if (columnsFolder.children.size() > 0) throw new IllegalStateException("Can't populate table because it already contains columns");
@@ -232,11 +232,11 @@ public class SQLTable extends SQLObject {
 			}
 			columnsFolder.fireDbChildrenInserted(changedIndices, columnsFolder.children);
 		}
-		
+
 		logger.debug("SQLTable: column populate finished");
 
 	}
-	
+
 	/**
 	 * Populates all the imported key relationships.  This has the
 	 * side effect of populating the exported key side of the
@@ -245,7 +245,7 @@ public class SQLTable extends SQLObject {
 	private synchronized void populateRelationships() throws ArchitectException {
 		if (!columnsFolder.isPopulated()) throw new IllegalStateException("Table must be populated before relationships are added");
 		if (importedKeysFolder.isPopulated()) return;
-		
+
 		logger.debug("SQLTable: relationship populate starting");
 
 		int oldSize = importedKeysFolder.children.size();
@@ -277,7 +277,7 @@ public class SQLTable extends SQLObject {
 				}
 			}
 		}
-		
+
 		logger.debug("SQLTable: relationship populate finished");
 
 	}
@@ -406,7 +406,7 @@ public class SQLTable extends SQLObject {
 	public SQLColumn getColumnByName(String colName) throws ArchitectException {
 		return getColumnByName(colName, true);
 	}
-	
+
 	/**
 	 * Searches for the named table.
 	 *
@@ -417,8 +417,8 @@ public class SQLTable extends SQLObject {
 	public SQLColumn getColumnByName(String colName, boolean populate) throws ArchitectException {
 		if (populate) populateColumns();
 		logger.debug("Looking for column "+colName+" in "+children);
-		/* if columnsFolder.children.iterator(); gets changed to getColumns().iterator() 
-		 * we get infinite recursion between populateColumns, getColumns, 
+		/* if columnsFolder.children.iterator(); gets changed to getColumns().iterator()
+		 * we get infinite recursion between populateColumns, getColumns,
 		 * getColumnsByName and addColumnsToTable
 		 */
 		Iterator it = columnsFolder.children.iterator();
@@ -435,9 +435,9 @@ public class SQLTable extends SQLObject {
 
 	public int getColumnIndex(SQLColumn col) throws ArchitectException {
 		logger.debug("Looking for column index of: " + col);
-		
+
 		Iterator it = getColumns().iterator();
-		
+
 		int colIdx = 0;
 		while (it.hasNext()) {
 			if (it.next() == col) {
@@ -457,13 +457,13 @@ public class SQLTable extends SQLObject {
 	public void addColumn(int pos, SQLColumn col) throws ArchitectException {
 		addColumnImpl(pos, col);
 	}
-	
+
 	private void addColumnImpl(int pos, SQLColumn col) throws ArchitectException {
 		if (getColumnIndex(col) != -1) {
 			col.addReference();
 			return;
 		}
-        
+
 		if (isMagicEnabled()) {
 		    boolean addToPK = false;
 		    int pkSize = getPkSize();
@@ -474,7 +474,7 @@ public class SQLTable extends SQLObject {
 		            ((SQLColumn) getColumns().get(i)).primaryKeySeq = new Integer(i + 1);
 		        }
 		    }
-		    
+
 		    col.setParent(null);
 		    if (addToPK) {
 		        col.nullable = DatabaseMetaData.columnNoNulls;
@@ -510,10 +510,10 @@ public class SQLTable extends SQLObject {
 
 	/**
 	 * Calls {@link #removeColumn(SQLColumn)} with the appropriate argument.
-	 * 
+	 *
 	 * @throws LockedColumnException If the column is "owned" by a relationship, and cannot
 	 * be safely removed.
-	 * @throws ArchitectException If something goes wrong accessing the table's foreign keys 
+	 * @throws ArchitectException If something goes wrong accessing the table's foreign keys
 	 */
 	public void removeColumn(int index) throws ArchitectException {
 		removeColumn((SQLColumn) columnsFolder.children.get(index));
@@ -524,16 +524,16 @@ public class SQLTable extends SQLObject {
 	 * to change a column's, index, use the {@link
 	 * #changeColumnIndex(int,int)} method because it does not throw
 	 * LockedColumnException.
-	 * 
+	 *
 	 * <p>
 	 * FIXME: This should be implemented by decreasing the column's reference count.
 	 * (addColumn already does increase reference count when appropriate)
 	 * Then, everything that manipulates reference counts directly can just use regular
 	 * addColumn and removeColumn and magic will take care of the correct behaviour!
-	 * 
+	 *
 	 * @throws LockedColumnException If the column is "owned" by a relationship, and cannot
 	 * be safely removed.
-	 * @throws ArchitectException If something goes wrong accessing the table's foreign keys 
+	 * @throws ArchitectException If something goes wrong accessing the table's foreign keys
 	 */
 	public void removeColumn(SQLColumn col) throws ArchitectException {
 		if (!isMagicEnabled()) {
@@ -574,7 +574,7 @@ public class SQLTable extends SQLObject {
             }
             col.primaryKeySeq = interimPkSeq;
             col.fireDbObjectChanged("primaryKeySeq", oldPkSeq, interimPkSeq);
-            
+
             columnsFolder.children.remove(oldIdx);
             columnsFolder.fireDbChildRemoved(oldIdx, col);
             columnsFolder.children.add(newIdx, col);
@@ -594,7 +594,7 @@ public class SQLTable extends SQLObject {
 		try {
             startCompoundEdit("Normalizing Primary Key");
             if (getColumns().isEmpty()) return;
-            
+
             boolean donePk = false;
             int i = 0;
             Iterator it = getColumns().iterator();
@@ -618,7 +618,7 @@ public class SQLTable extends SQLObject {
 		    endCompoundEdit("Normalizing Primary Key");
 		}
 	}
-	
+
 	public List<SQLRelationship> keysOfColumn(SQLColumn col) throws ArchitectException {
 		LinkedList<SQLRelationship> keys = new LinkedList<SQLRelationship>();
 		Iterator it = getExportedKeys().iterator();
@@ -681,7 +681,7 @@ public class SQLTable extends SQLObject {
 	public void populate() throws ArchitectException {
 		logger.debug("SQLTable: populate is a no-op");
 	}
-	
+
 	public boolean isPopulated() {
 		return true;
 	}
@@ -696,7 +696,7 @@ public class SQLTable extends SQLObject {
 	public Class<? extends SQLObject> getChildType() {
 		return Folder.class;
 	}
-	
+
 	/**
 	 * The Folder class is a SQLObject that holds a SQLTable's child
 	 * folders (columns and relationships).
@@ -741,7 +741,7 @@ public class SQLTable extends SQLObject {
 
 		/**
 		 * Sets the parent reference in this folder.
-		 * 
+		 *
 		 * @throws ClassCastException if newParent is not an instance of SQLTable.
 		 */
 		protected void setParent(SQLObject newParentTable) {
@@ -798,7 +798,7 @@ public class SQLTable extends SQLObject {
 			} finally {
 				populated = true;
 			}
-			
+
 			logger.debug("SQLTable.Folder["+getName()+"]: populate finished");
 
 		}
@@ -838,7 +838,7 @@ public class SQLTable extends SQLObject {
 			return SQLColumn.class;
 		}
 	}
-	
+
 	// ------------------ Accessors and mutators below this line ------------------------
 
 	/**
@@ -914,7 +914,7 @@ public class SQLTable extends SQLObject {
 	 * Sets the table name, and also modifies the primary key name if
 	 * it was previously null or set to the default of
 	 * "oldTableName_pk".
-	 * 
+	 *
 	 * @param argName The new table name.  NULL is not allowed.
 	 */
 	public void setName(String argName) {
@@ -981,6 +981,36 @@ public class SQLTable extends SQLObject {
 	public List<SQLRelationship> getExportedKeys() throws ArchitectException {
 		return this.exportedKeysFolder.getChildren();
 	}
+
+    /**
+     * Gets the value of exportedKeys by name
+     *
+     * @return the value of exportedKeys
+     */
+    public SQLRelationship getExportedKeyByName(String name) throws ArchitectException {
+        return getExportedKeyByName(name,true);
+    }
+
+    /**
+     * Gets the value of exportedKeys by name
+     *
+     * @return the value of exportedKeys
+     */
+    public SQLRelationship getExportedKeyByName(String name,
+            boolean populate ) throws ArchitectException {
+        if (populate) populateRelationships();
+        logger.debug("Looking for Exported Key "+name+" in "+children);
+        Iterator it = exportedKeysFolder.children.iterator();
+        while (it.hasNext()) {
+            SQLRelationship r = (SQLRelationship) it.next();
+            if (r.getName().equalsIgnoreCase(name)) {
+                logger.debug("FOUND");
+                return r;
+            }
+        }
+        logger.debug("NOT FOUND");
+        return null;
+    }
 
 	/**
 	 * Gets the value of columnsPopulated
@@ -1066,8 +1096,8 @@ public class SQLTable extends SQLObject {
 		fireDbObjectChanged("physicalPrimaryKeyName",oldPhysicalPrimaryKeyName,argPhysicalPrimaryKeyName);
 	}
 
-	
-	
+
+
 	/**
 	 * Gets the type of table this object represents (TABLE or VIEW).
 	 *
