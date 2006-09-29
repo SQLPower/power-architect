@@ -141,6 +141,11 @@ public class SQLIndex extends SQLObject {
         }
 
         @Override
+        public boolean isPopulated() {
+            return true;
+        }
+
+        @Override
         protected void setParent(SQLObject parent) {
             if (parent != SQLIndex.this) {
                 throw new UnsupportedOperationException("You can't change an Index.Column's parent");
@@ -246,6 +251,11 @@ public class SQLIndex extends SQLObject {
     @Override
     protected void populate() throws ArchitectException {
         // nothing to do
+    }
+    
+    @Override
+    public boolean isPopulated() {
+        return true;
     }
 
     /**
