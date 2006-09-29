@@ -7,7 +7,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -28,26 +27,28 @@ public class SQLTable extends SQLObject {
 	 * A List of SQLColumn objects which make up all the columns of
 	 * this table.
 	 */
-	protected Folder columnsFolder;
+	protected Folder<SQLColumn> columnsFolder;
 
 	/**
 	 * A List of SQLRelationship objects describing keys that this
 	 * table exports.  This SQLTable is the "pkTable" in its exported
 	 * keys.
 	 */
-	protected Folder exportedKeysFolder;
+	protected Folder<SQLRelationship> exportedKeysFolder;
 
 	/**
-	 * A List of SQLRelationship objects describing keys that this
+	 * A container for SQLRelationship objects describing keys that this
 	 * table imports.  This SQLTable is the "fkTable" in its imported
 	 * keys.
-	 *
-	 * @param startPopulated The initial setting of this table's folders' <tt>populated</tt> flags.
-	 * If this is set to false, the table will attempt to lazy-load the child folders.  Otherwise,
-	 * this table will not try to load its children from a database connection.
 	 */
-	protected Folder importedKeysFolder;
-
+	protected Folder<SQLRelationship> importedKeysFolder;
+    
+    /**
+     * A container for SQLIndex objects that describe the various database indices
+     * that exist on this table.
+     */
+    private Folder<SQLIndex> indicesFolder;
+	
 	public SQLTable(SQLObject parent, String name, String remarks, String objectType, boolean startPopulated) throws ArchitectException {
 		logger.debug("NEW TABLE "+name+"@"+hashCode());
 		setup(parent, name, remarks, objectType);
@@ -68,8 +69,12 @@ public class SQLTable extends SQLObject {
 
 	/**
 	 * Creates a new SQLTable with parent as its parent and a null
-	 * schema and catalog.  The table will contain the three default
-	 * folders: "Columns" "Exported Keys" and "Imported Keys".
+	 * schema and catalog.  The table will contain the four default
+	 * folders: "Columns" "Exported Keys" "Imported Keys" and "Indices".
+     * 
+     * @param startPopulated The initial setting of this table's folders' <tt>populated</tt> flags.
+     * If this is set to false, the table will attempt to lazy-load the child folders.  Otherwise,
+     * this table will not try to load its children from a database connection.
 	 */
 	public SQLTable(SQLDatabase parent, boolean startPopulated) throws ArchitectException {
 		this(parent, "", "", "TABLE", startPopulated);
@@ -105,80 +110,8 @@ public class SQLTable extends SQLObject {
 	public void initFolders(boolean populated) throws ArchitectException {
 		addChild(new Folder(Folder.COLUMNS, populated));
 		addChild(new Folder(Folder.EXPORTED_KEYS, populated));
-		addChild(new Folder(Folder.IMPORTED_KEYS, populated));
-	}
-
-	protected static void addTablesToDatabase(SQLDatabase addTo)
-		throws SQLException, ArchitectException {
-		HashMap catalogs = new HashMap();
-		HashMap schemas = new HashMap();
-		synchronized (addTo) {
-			Connection con = null;
-			DatabaseMetaData dbmd = null;
-			ResultSet rs = null;
-			try {
-				con = addTo.getConnection();
-				dbmd = con.getMetaData();
-				rs = dbmd.getTables(null,
-								   null,
-								   "%",
-								   new String[] {"TABLE", "VIEW"});
-				while (rs.next()) {
-					SQLObject tableParent = addTo;
-
-					String catName = rs.getString(1);
-					SQLCatalog cat = null;
-
-					if (catName != null) {
-						cat = (SQLCatalog) catalogs.get(catName);
-						if (cat == null) {
-							cat = new SQLCatalog(addTo, catName);
-							cat.setNativeTerm(dbmd.getCatalogTerm());
-							logger.debug("Set catalog term to "+cat.getNativeTerm());
-							addTo.children.add(cat);
-							catalogs.put(catName, cat);
-						}
-						tableParent = cat;
-					}
-
-					String schName = rs.getString(2);
-					SQLSchema schema = null;
-					if (schName != null) {
-						schema = (SQLSchema) schemas.get(catName+"."+schName);
-						if (schema == null) {
-							if (cat == null) {
-								schema = new SQLSchema(addTo, schName, false);
-								addTo.children.add(schema);
-							} else {
-								schema = new SQLSchema(cat, schName, false);
-								cat.children.add(schema);
-							}
-							schema.setNativeTerm(dbmd.getSchemaTerm());
-							logger.debug("Set schema term to "+schema.getNativeTerm());
-							schemas.put(catName+"."+schName, schema);
-						}
-						tableParent = schema;
-					}
-
-					tableParent.children.add(new SQLTable(tableParent,
-														  rs.getString(3),
-														  rs.getString(5),
-														  rs.getString(4),
-														  false));
-				}
-			} finally {
-				try {
-					if (rs != null) rs.close();
-				} catch (SQLException ex) {
-					logger.error("Couldn't close result set ", ex);
-				}
-				try {
-					if (con != null) con.close();
-				} catch (SQLException ex) {
-					logger.error("Couldn't close connection", ex);
-				}
-			}
-		}
+        addChild(new Folder(Folder.IMPORTED_KEYS, populated));
+        addChild(new Folder(Folder.INDICES, populated));
 	}
 
 	/**
@@ -212,13 +145,13 @@ public class SQLTable extends SQLObject {
 		if (columnsFolder.isPopulated()) return;
 		if (columnsFolder.children.size() > 0) throw new IllegalStateException("Can't populate table because it already contains columns");
 
-		logger.debug("SQLTable: column populate starting");
+		logger.debug("column folder populate starting");
 
 		try {
 			SQLColumn.addColumnsToTable(this,
 										getCatalogName(),
 										getSchemaName(),
-										 getName());
+										getName());
 		} catch (SQLException e) {
 			throw new ArchitectException("Failed to populate columns of table "+getName(), e);
 		} finally {
@@ -232,11 +165,37 @@ public class SQLTable extends SQLObject {
 			}
 			columnsFolder.fireDbChildrenInserted(changedIndices, columnsFolder.children);
 		}
-
-		logger.debug("SQLTable: column populate finished");
+		
+		logger.debug("column folder populate finished");
 
 	}
+	
+    private synchronized void populateIndices() throws ArchitectException {
+        if (indicesFolder.isPopulated()) return;
+        if (indicesFolder.children.size() > 0) throw new IllegalStateException("Can't populate indices folder because it already contains children!");
+        
+        logger.debug("index folder populate starting");
 
+        try {
+            SQLIndex.addIndicesToTable(this,
+                                      getCatalogName(),
+                                      getSchemaName(),
+                                      getName());
+        } catch (SQLException e) {
+            throw new ArchitectException("Failed to populate indices of table "+getName(), e);
+        } finally {
+            indicesFolder.populated = true;
+            int newSize = indicesFolder.children.size();
+            int[] changedIndices = new int[newSize];
+            for (int i = 0; i < newSize; i++) {
+                changedIndices[i] = i;
+            }
+            indicesFolder.fireDbChildrenInserted(changedIndices, indicesFolder.children);
+        }
+
+        logger.debug("index folder populate finished");
+    }
+    
 	/**
 	 * Populates all the imported key relationships.  This has the
 	 * side effect of populating the exported key side of the
@@ -487,9 +446,9 @@ public class SQLTable extends SQLObject {
 	}
 
 	/**
-	 * Connects up the columnsFolder, exportedKeysFolder, and
-	 * importedKeysFolder pointers to the children at indices 0, 1,
-	 * and 2 respectively.
+	 * Connects up the columnsFolder, exportedKeysFolder,
+	 * importedKeysFolder, and indicesFolder pointers to the
+     * children at indices 0, 1, 2, and 3 respectively.
 	 */
 	protected void addChildImpl(int index, SQLObject child) throws ArchitectException {
 		if (child instanceof Folder) {
@@ -497,10 +456,12 @@ public class SQLTable extends SQLObject {
 				columnsFolder = (Folder) child;
 			} else if (children.size() == 1) {
 				exportedKeysFolder = (Folder) child;
-			} else if (children.size() == 2) {
-				importedKeysFolder = (Folder) child;
+            } else if (children.size() == 2) {
+                importedKeysFolder = (Folder) child;
+            } else if (children.size() == 3) {
+                indicesFolder = (Folder) child;
 			} else {
-				throw new UnsupportedOperationException("Can't add a 4th folder to SQLTable");
+				throw new UnsupportedOperationException("Can't add a 5th folder to SQLTable");
 			}
 		} else {
 			throw new UnsupportedOperationException("You can only add Folders to SQLTable");
@@ -676,7 +637,9 @@ public class SQLTable extends SQLObject {
 	}
 
 	/**
-	 * Just calls populateColumns and populateRelationships.
+	 * Since SQLTable is just a container for Folders, there is no special populate
+     * step.  The various populate operations (columns, keys, indices) are triggered
+     * by visiting the individual folders.
 	 */
 	public void populate() throws ArchitectException {
 		logger.debug("SQLTable: populate is a no-op");
@@ -708,7 +671,8 @@ public class SQLTable extends SQLObject {
 
 		public static final int COLUMNS = 1;
 		public static final int IMPORTED_KEYS = 2;
-		public static final int EXPORTED_KEYS = 3;
+        public static final int EXPORTED_KEYS = 3;
+        public static final int INDICES = 4;
 
 		public Folder(int type, boolean populated) {
 			this.populated = populated;
@@ -718,8 +682,10 @@ public class SQLTable extends SQLObject {
 				name = "Columns";
 			} else if (type == IMPORTED_KEYS) {
 				name = "Imported Keys";
-			} else if (type == EXPORTED_KEYS) {
-				name = "Exported Keys";
+            } else if (type == EXPORTED_KEYS) {
+                name = "Exported Keys";
+            } else if (type == INDICES) {
+                name = "Indices";
 			} else {
 				throw new IllegalArgumentException("Unknown folder type: "+type);
 			}
@@ -792,6 +758,9 @@ public class SQLTable extends SQLObject {
 							logger.warn("Couldn't close resultset", ex);
 						}
 					}
+                } else if (type == INDICES) {
+                    parent.populateColumns();
+                    parent.populateIndices();
 				} else {
 					throw new IllegalArgumentException("Unknown folder type: "+type);
 				}
@@ -898,17 +867,21 @@ public class SQLTable extends SQLObject {
 		return (SQLSchema) o;
 	}
 
-	public Folder getColumnsFolder() {
+	public Folder<SQLColumn> getColumnsFolder() {
 		return columnsFolder;
 	}
 
-	public SQLObject getImportedKeysFolder() {
+	public Folder<SQLRelationship> getImportedKeysFolder() {
 		return importedKeysFolder;
 	}
 
-	public SQLObject getExportedKeysFolder() {
+	public Folder<SQLRelationship> getExportedKeysFolder() {
 		return exportedKeysFolder;
 	}
+    
+    public Folder<SQLIndex> getIndicesFolder() {
+        return indicesFolder;
+    }
 
 	/**
 	 * Sets the table name, and also modifies the primary key name if
