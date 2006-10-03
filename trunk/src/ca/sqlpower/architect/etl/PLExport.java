@@ -830,6 +830,7 @@ public class PLExport implements Monitorable {
      * time)
      */
     public void export(List<SQLTable> tablesToExport) throws SQLException, ArchitectException {
+        logger.debug("Starting export of tables: "+tablesToExport);
         finished = false;
         hasStarted = true;
         Connection con = null;
