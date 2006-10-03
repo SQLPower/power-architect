@@ -88,7 +88,8 @@ public class ExportPLTransAction extends AbstractAction {
 	 * Sets up the dialog the first time it is called.  After that,
 	 * just returns without doing anything.
 	 *
-	 * <p>Note: the <code>plexp</code> variable must be initialized before calling this method!
+	 * <p>Note: the <code>plexp</code> variable must be initialized before calling this method, and
+     * the exportTable list must also be initialized to list the tables you want in your PL job!
 	 *
 	 * @throws NullPointerException if <code>plexp</code> is null.
 	 */
@@ -328,8 +329,8 @@ public class ExportPLTransAction extends AbstractAction {
 					commandLine.append(" USER=").append(PLUtils.getEngineConnectString(plExport.getRepositoryDataSource()));
 					commandLine.append(" DEBUG=N SEND_EMAIL=N SKIP_PACKAGES=N CALC_DETAIL_STATS=N COMMIT_FREQ=100 APPEND_TO_JOB_LOG_IND=N");
 					commandLine.append(" APPEND_TO_JOB_ERR_IND=N");
-					commandLine.append(" SHOW_PROGRESS=100" );
-					commandLine.append(" SHOW_PROGRESS=10" );
+					commandLine.append(" SHOW_PROGRESS=100");
+					commandLine.append(" SHOW_PROGRESS=10");
 					logger.debug(commandLine.toString());
 					// worker thread must not talk to Swing directly...
 					SwingUtilities.invokeLater(new Runnable() {
