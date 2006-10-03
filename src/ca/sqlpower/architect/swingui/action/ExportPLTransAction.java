@@ -79,7 +79,8 @@ public class ExportPLTransAction extends AbstractAction {
 	}
 
 	public void setExportingTables(List<SQLTable> exportingTables) {
-		tables = exportingTables;
+        logger.debug("setExportingTables(): got new list of tables to export: "+exportingTables);
+		tables = new ArrayList<SQLTable>(exportingTables);
 	}
 	
 		
@@ -137,8 +138,7 @@ public class ExportPLTransAction extends AbstractAction {
 				}
 
 				try {
-				    List targetTables = tables;				
-					List targetDBWarnings = listMissingTargetTables(targetTables);
+					List targetDBWarnings = listMissingTargetTables(tables);
 					if (!targetDBWarnings.isEmpty()) {
 						// modal dialog (hold things up until the user says YES or NO)
 						JList warnings = new JList(targetDBWarnings.toArray());
@@ -147,12 +147,12 @@ public class ExportPLTransAction extends AbstractAction {
 						cp.add(new JScrollPane(warnings), BorderLayout.CENTER);
 						cp.add(new JLabel("Do you want to continue anyway?"), BorderLayout.SOUTH);
 						int choice = JOptionPane.showConfirmDialog(architectFrame, cp, "Target Database Structure Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-						if (choice == JOptionPane.NO_OPTION) {
+						if (choice != JOptionPane.YES_OPTION) {
 							return;
 						}
 					}
 					// got this far, so it's ok to run the PL Export thread
-					ExportTxProcess etp = new ExportTxProcess(plexp,targetTables,d,
+					ExportTxProcess etp = new ExportTxProcess(plexp,tables,d,
 					        plCreateTxProgressBar,plCreateTxLabel);
 					new Thread(etp).start();
 				} catch (SQLException esql) {
@@ -299,10 +299,11 @@ public class ExportPLTransAction extends AbstractAction {
 		private Runnable nextProcess;
         private List<SQLTable> exportTables;
 
-		public ExportTxProcess (PLExport plExport,List<SQLTable> exportTables, JDialog parentDialog,
+		public ExportTxProcess(PLExport plExport,List<SQLTable> exportTables, JDialog parentDialog,
 				JProgressBar progressBar, JLabel label) {
 			this.plExport = plExport;
             this.exportTables = exportTables;
+            logger.debug("Creating new ExportTxProcess for tables: "+exportTables);
 			d = parentDialog;
 			label.setText("Exporting Meta Data...");			
 			new ProgressWatcher(progressBar, plExport, label);			
