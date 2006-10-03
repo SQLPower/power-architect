@@ -434,7 +434,20 @@ public class ArchitectFrame extends JFrame {
 		exportDDLAction = new ExportDDLAction();
 		compareDMAction = new CompareDMAction();
 
-		exportPLTransAction = new ExportPLTransAction();
+		exportPLTransAction = new ExportPLTransAction() {
+		    @Override
+		    public void actionPerformed(ActionEvent e) {
+                try {
+                    setExportingTables(getProject().getTargetDatabase().getTables());
+                    super.actionPerformed(e);
+                } catch (ArchitectException ex) {
+                    ASUtils.showExceptionDialog(
+                            ArchitectFrame.this,
+                            "Error Creating List of Tables to Export",
+                            ex);
+                }
+		    }
+        };
         exportPLJobXMLAction = new ExportPLJobXMLAction();
 		quickStartAction = new QuickStartAction();
         Action exportCSVAction = new AbstractAction("Export CSV File") {
