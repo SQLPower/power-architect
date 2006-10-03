@@ -56,18 +56,18 @@ import ca.sqlpower.security.PLSecurityException;
 public class ExportPLTransAction extends AbstractAction {
 	private static final Logger logger = Logger.getLogger(ExportPLTransAction.class);
 
-	protected ArchitectFrame architectFrame;
-	protected List<SQLTable> tables;
+	private ArchitectFrame architectFrame;
+	private List<SQLTable> tables;
 
 	/** The PLExport object that this action uses to create PL transactions. */
-	protected PLExport plexp;
+	private PLExport plexp;
 
 	/** The dialog box that this action uses to configure plexp. */
-	protected JDialog d;
+	private JDialog d;
 
 	/** Progress Bar to tell the user PL Export is still running */
-	protected JProgressBar plCreateTxProgressBar;
-	protected JLabel plCreateTxLabel;
+	private JProgressBar plCreateTxProgressBar;
+	private JLabel plCreateTxLabel;
 
 	public ExportPLTransAction() {
 		super("PL Transaction Export...",
@@ -242,7 +242,7 @@ public class ExportPLTransAction extends AbstractAction {
 	 * target database.  If the actual target table is identical to
 	 * <code>t</code>, returns <code>null</code>.
 	 */
-	protected String checkTargetTable(SQLTable t) throws SQLException, ArchitectException {
+	private String checkTargetTable(SQLTable t) throws SQLException, ArchitectException {
 		GenericDDLGenerator ddlg = ArchitectFrame.getMainInstance().getProject().getDDLGenerator();
 		logger.debug("DDLG class is: " + ddlg.getClass().getName());
 		String tableName = ddlg.toIdentifier(t.getName());
