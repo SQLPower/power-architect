@@ -26,7 +26,7 @@ public class ConfigFile {
 	private static final Logger logger = Logger.getLogger(ConfigFile.class);
 
 	private static ConfigFile singleton;
-    private Preferences prefs;
+	
 	/**
 	 * The input or output file.
 	 */
@@ -45,9 +45,9 @@ public class ConfigFile {
 	protected int indent;
 
 	private ConfigFile() {
-
+		
 	}
-
+	
 	static {
 		singleton = new ConfigFile();
 	}
@@ -60,13 +60,11 @@ public class ConfigFile {
 
 	public CoreUserSettings read(ArchitectSession session) throws IOException {
 		logger.debug("reading UserSettings from java.util.prefs.");
-        if ( prefs == null ) {
-            prefs = ArchitectFrame.getMainInstance().getPrefs();
-        }
+		Preferences prefs = ArchitectFrame.getMainInstance().getPrefs();
 		logger.debug("Preferences class = " + prefs.getClass());
-
+		
 		CoreUserSettings userSettings = new CoreUserSettings();
-
+		
 		int i;
 		for (i = 0; i <= 99; i++) {
 			String jarName = prefs.get(jarFilePrefName(i), null);
@@ -74,51 +72,49 @@ public class ConfigFile {
 			if (jarName == null) {
 				break;
 			}
-
+			
 			logger.debug("Adding JarName: " + jarName);
 			session.addDriverJar(jarName);
-
+			
 		}
 		// XXX Put prefs in sub-node, just delete it before you start.
 		for (; i <= 99; i++) {
 			prefs.remove(jarFilePrefName(i));
-		}
-
+		}		
+		
 		userSettings.setPlDotIniPath(prefs.get("PL.INI.PATH", null));
-
+		
 		UserSettings swingUserSettings = userSettings.getSwingSettings();
 		swingUserSettings.setBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED,
 			prefs.getBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
-
+		
 		ETLUserSettings etlUserSettings = userSettings.getETLUserSettings();
 		etlUserSettings.setString(ETLUserSettings.PROP_PL_ENGINE_PATH,
 			prefs.get(ETLUserSettings.PROP_PL_ENGINE_PATH, ""));
 		etlUserSettings.setString(ETLUserSettings.PROP_ETL_LOG_PATH,
 			prefs.get(ETLUserSettings.PROP_ETL_LOG_PATH, defaultHomeFile("etl.log")));
-
+		
 		DDLUserSettings ddlUserSettings = userSettings.getDDLUserSettings();
 		ddlUserSettings.setString(DDLUserSettings.PROP_DDL_LOG_PATH,prefs.get(DDLUserSettings.PROP_DDL_LOG_PATH, defaultHomeFile("ddl.log")));
-
+        
 		QFAUserSettings qfaUserSettings = userSettings.getQfaUserSettings();
         qfaUserSettings.setBoolean(QFAUserSettings.EXCEPTION_REPORTING,prefs.getBoolean(QFAUserSettings.EXCEPTION_REPORTING,true));
-
+        
         PrintUserSettings printUserSettings = userSettings.getPrintUserSettings();
         printUserSettings.setDefaultPrinterName(
                 prefs.get(PrintUserSettings.DEFAULT_PRINTER_NAME, ""));
 		return userSettings;
 	}
-
+	
 
 	// -------------------- "WRITING THE FILE" --------------------------
 
 	public void write(ArchitectSession session) throws ArchitectException {
 		logger.debug("Saving prefs to java.util.prefs");
-        if ( prefs == null ) {
-            prefs = ArchitectFrame.getMainInstance().getPrefs();
-        }
-
+		Preferences prefs = ArchitectFrame.getMainInstance().getPrefs();
+		
 		CoreUserSettings userSettings = session.getUserSettings();
-
+		
 		List<String> driverJarList = session.getDriverJarList();
 		Iterator<String> it = driverJarList.iterator();
 		for (int i = 0 ; i <= 99; i++) {
@@ -131,27 +127,27 @@ public class ConfigFile {
 				prefs.remove(jarFilePrefName(i));
 			}
 		}
-
-
+		
+		
 		prefs.put("PL.INI.PATH", userSettings.getPlDotIniPath());
-
+		
 		UserSettings swingUserSettings = userSettings.getSwingSettings();
 		prefs.putBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED,
 				swingUserSettings.getBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
-
+		
 		ETLUserSettings etlUserSettings = userSettings.getETLUserSettings();
 		prefs.put(ETLUserSettings.PROP_PL_ENGINE_PATH, etlUserSettings.getString(ETLUserSettings.PROP_PL_ENGINE_PATH,""));
 		prefs.put(ETLUserSettings.PROP_ETL_LOG_PATH, etlUserSettings.getString(ETLUserSettings.PROP_ETL_LOG_PATH,""));
-
+		
 		DDLUserSettings ddlUserSettings = userSettings.getDDLUserSettings();
 		prefs.put(DDLUserSettings.PROP_DDL_LOG_PATH, ddlUserSettings.getString(DDLUserSettings.PROP_DDL_LOG_PATH,""));
-
+        
         QFAUserSettings qfaUserSettings = userSettings.getQfaUserSettings();
         prefs.putBoolean(QFAUserSettings.EXCEPTION_REPORTING,qfaUserSettings.getBoolean(QFAUserSettings.EXCEPTION_REPORTING,true));
 
 		PrintUserSettings printUserSettings = userSettings.getPrintUserSettings();
 		prefs.put(PrintUserSettings.DEFAULT_PRINTER_NAME, printUserSettings.getDefaultPrinterName());
-
+		
 		try {
 			prefs.flush();
 		} catch (BackingStoreException e) {
@@ -166,16 +162,8 @@ public class ConfigFile {
 	private String jarFilePrefName(int i) {
 		return "JDBCJarFile." + String.format("%02d", i);
 	}
-
+	
 	private String defaultHomeFile(String name) {
 		return System.getProperty("user.home") + System.getProperty("file.separator") + name;
 	}
-
-    public Preferences getPrefs() {
-        return prefs;
-    }
-
-    public void setPrefs(Preferences prefs) {
-        this.prefs = prefs;
-    }
 }

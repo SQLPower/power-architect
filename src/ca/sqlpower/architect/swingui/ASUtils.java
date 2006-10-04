@@ -131,9 +131,6 @@ public class ASUtils {
     public static final FileFilter HTML_FILE_FILTER =
         new FileExtensionFilter("HTML Files", new String[] {"html"});
 
-    public static final FileFilter BATCH_FILE_FILTER =
-        new FileExtensionFilter("Batch Scripts", new String[] {"bat"});
-
 	public static class FileExtensionFilter extends FileFilter {
 
 		protected LinkedHashSet<String> extensions;
