@@ -1,6 +1,7 @@
 package ca.sqlpower.architect.swingui.table;
 
 import java.awt.Component;
+import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.FieldPosition;
 import java.text.Format;
@@ -15,10 +16,16 @@ public class DateTableCellRenderer extends DefaultTableCellRenderer implements F
 
     DateFormat df = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 
-    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
+    public Component getTableCellRendererComponent(JTable table, Object value,
+            boolean isSelected, boolean hasFocus,
             int row, int column) {
 
-        String formattedValue = df.format(new Date((Long) value));
+        String formattedValue = null;
+        if ( value instanceof Long ) {
+            formattedValue = df.format(new Date((Long) value));
+        } else if ( value instanceof Timestamp ) {
+            formattedValue = df.format(new Date(((Timestamp) value).getTime()));
+        }
         return super.getTableCellRendererComponent(table, formattedValue, isSelected, hasFocus, row, column);
     }
 
@@ -34,9 +41,9 @@ public class DateTableCellRenderer extends DefaultTableCellRenderer implements F
         public Object parseObject(String source, ParsePosition pos) {
             throw new UnsupportedOperationException("This formatter cannot parse");
         }
-        
+
     };
-    
+
     /* (non-Javadoc)
      * @see ca.sqlpower.architect.swingui.table.FormatFactory#getFormat()
      */
