@@ -44,39 +44,39 @@ public class PLExport implements Monitorable {
 
     private static final Logger logger = Logger.getLogger(PLExport.class);
 
-    protected LogWriter logWriter = null;
+    private LogWriter logWriter = null;
 
     public static final String PL_GENERATOR_VERSION = "PLExport $Revision$".replace('$', ' ').trim();
 
-    protected DefaultParameters defParam;
+    private DefaultParameters defParam;
 
-    protected File file;
+    private File file;
 
-    protected String folderName; // = "Architect Jobs";
+    private String folderName; // = "Architect Jobs";
 
-    protected String jobId;
+    private String jobId;
 
-    protected String jobDescription;
+    private String jobDescription;
 
-    protected String jobComment;
+    private String jobComment;
 
-    protected boolean runPLEngine;
+    private boolean runPLEngine;
 
-    protected PLSecurityManager sm;
+    private PLSecurityManager sm;
 
-    protected ArchitectDataSource repositoryDataSource;
+    private ArchitectDataSource repositoryDataSource;
 
-    protected ArchitectDataSource targetDataSource; //
+    private ArchitectDataSource targetDataSource; //
 
-    protected String targetSchema; // save this to properties file?
+    private String targetSchema; // save this to properties file?
 
-    protected String targetCatalog;
+    private String targetCatalog;
 
-    protected String repositorySchema;
+    private String repositorySchema;
 
-    protected String repositoryCatalog;
+    private String repositoryCatalog;
 
-    protected boolean hasStarted;
+    private boolean hasStarted;
 
     private ArrayList<LabelValueBean> exportResultList = new ArrayList();
 
@@ -87,9 +87,9 @@ public class PLExport implements Monitorable {
         return hasStarted;
     }
 
-    protected boolean finished; // so the Timer thread knows when to kill itself
+    private boolean finished; // so the Timer thread knows when to kill itself
 
-    protected boolean cancelled; // FIXME: placeholder for when the user
+    private boolean cancelled; // FIXME: placeholder for when the user
                                     // cancels halfway through a PL Export
 
     List<SQLTable> currentDB; // if this is non-null, an export job is running
@@ -1051,7 +1051,7 @@ public class PLExport implements Monitorable {
     }
 
     // --------------------------- UTILITY METHODS ------------------------
-    protected String fixWindowsPath(String path) {
+    private String fixWindowsPath(String path) {
         if (path == null) {
             return "";
         }
@@ -1062,7 +1062,7 @@ public class PLExport implements Monitorable {
         return path;
     }
 
-    protected String fixUnixPath(String path) {
+    private String fixUnixPath(String path) {
         if (path == null) {
             path = "";
         } else if (!path.endsWith("/")) {
@@ -1080,7 +1080,7 @@ public class PLExport implements Monitorable {
      * entire application suite needs to be regression tested.
      * 
      */
-    protected String escapeString(Connection con, String string) {
+    private String escapeString(Connection con, String string) {
         String retString = null;
         if (DBConnection.isPostgres(con)) {
             // compilation halves the number of slashes, and then regex
@@ -1092,7 +1092,7 @@ public class PLExport implements Monitorable {
         return retString;
     }
 
-    protected boolean isOracle(ArchitectDataSource dbcs) {
+    private boolean isOracle(ArchitectDataSource dbcs) {
         if (dbcs.getDriverClass().toLowerCase().indexOf("oracledriver") >= 0) {
             return true;
         } else {
@@ -1100,7 +1100,7 @@ public class PLExport implements Monitorable {
         }
     }
 
-    protected boolean isSQLServer(ArchitectDataSource dbcs) {
+    private boolean isSQLServer(ArchitectDataSource dbcs) {
         if (dbcs.getDriverClass().toLowerCase().indexOf("sqlserver") >= 0) {
             return true;
         } else {
@@ -1108,7 +1108,7 @@ public class PLExport implements Monitorable {
         }
     }
 
-    protected boolean isDB2(ArchitectDataSource dbcs) {
+    private boolean isDB2(ArchitectDataSource dbcs) {
         if (dbcs.getDriverClass().toLowerCase().indexOf("db2") >= 0) {
             return true;
         } else {
@@ -1116,7 +1116,7 @@ public class PLExport implements Monitorable {
         }
     }
 
-    protected boolean isPostgres(ArchitectDataSource dbcs) {
+    private boolean isPostgres(ArchitectDataSource dbcs) {
         if (dbcs.getDriverClass().toLowerCase().indexOf("postgres") >= 0) {
             return true;
         } else {
@@ -1306,7 +1306,7 @@ public class PLExport implements Monitorable {
         this.file = file;
     }
 
-    protected void println(PrintWriter out, int indent, String text) {
+    private void println(PrintWriter out, int indent, String text) {
         for (int i = 0; i < indent; i++) {
             out.print(" ");
         }
