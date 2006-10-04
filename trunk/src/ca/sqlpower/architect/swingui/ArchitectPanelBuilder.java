@@ -155,7 +155,7 @@ public class ArchitectPanelBuilder {
 	 * which will become the cancelAction of the dialog.
 	 * Note: we explicitly close the dialog from this code.
 	 * @param d
-	 * @param cancelAction
+	 * @param cancelAction or null for nothing
 	 */
 	public static void makeJDialogCancellable(
 			final JDialog d,
@@ -169,7 +169,9 @@ public class ArchitectPanelBuilder {
 		inputMap.put(KeyStroke.getKeyStroke("ESCAPE"), "cancel");
 		actionMap.put("cancel", new AbstractAction() {
 			public void actionPerformed(ActionEvent e) {
-				cancelAction.actionPerformed(e);
+                if ( cancelAction != null ) {
+                    cancelAction.actionPerformed(e);
+                }
 				d.setVisible(false);
 				d.dispose();
 			}
