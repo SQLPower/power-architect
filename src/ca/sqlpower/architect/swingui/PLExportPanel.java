@@ -149,25 +149,26 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 	 * PLExport object.
 	 */
 	public void setPLExport(PLExport plexp) {
+        logger.debug("Got new PLExport Object.  Updating the GUI elements...."+plexp);
 		this.plexp = plexp;
 		
 		target.getConnectionsBox().setSelectedItem(plexp.getTargetDataSource());
+        // FIXME: this won't work for two reasons:
+        //  1. The PLExport object only stores catalog and schema names (String),
+        //     but the combo boxes contain SQLObjects.  PLExport should be fixed
+        //     so it keeps SQLObject instances.
+        //  2. Changing the selected connection (above) causes a separate thread
+        //     to eventually populate the catalog and schema boxes.  We need a
+        //     special method on the DatabaseSelector to set the selected Connection,
+        //     Catalog, and Schema all at once, and it can take care of the annoying details.
+        //target.getCatalogBox().setSelectedItem(plexp.getTargetCatalog());
+        //target.getSchemaBox().setSelectedItem(plexp.getTargetSchema());
 		repository.getConnectionsBox().setSelectedItem(plexp.getRepositoryDataSource());
 		plFolderName.setText(plexp.getFolderName());
 		plJobId.setText(plexp.getJobId());
 		plJobDescription.setText(plexp.getJobDescription());
 		plJobComment.setText(plexp.getJobComment());		
 	}
-	
-	/**
-	 * Returns the PLExport object that this panel is editting.  Call
-	 * applyChanges() to update it to the current values displayed on
-	 * the panel.
-	 */
-	public PLExport getPLExport() {
-		return plexp;
-	}
-
 	
 	// -------------------- ARCHITECT PANEL INTERFACE -----------------------
 
@@ -262,14 +263,6 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 
 	// ---------------- accessors and mutators ----------------
 	
-	public boolean isSelectedRunPLEngine(){
-		return runPLEngine.isSelected();
-	}
-
-		
-	
-
-
 	public static boolean checkForDuplicateJobId(PLExport plExport) throws SQLException, ArchitectException {		
 		SQLDatabase target = new SQLDatabase(plExport.getRepositoryDataSource());
 		Connection con = null;

@@ -66,9 +66,9 @@ public class PLExport implements Monitorable {
 
     private ArchitectDataSource repositoryDataSource;
 
-    private ArchitectDataSource targetDataSource; //
+    private ArchitectDataSource targetDataSource;
 
-    private String targetSchema; // save this to properties file?
+    private String targetSchema;
 
     private String targetCatalog;
 
@@ -300,8 +300,15 @@ public class PLExport implements Monitorable {
         StringBuffer sql = new StringBuffer("INSERT INTO ");
         sql.append(DDLUtils.toQualifiedName(repositoryCatalog, repositorySchema, "PL_JOB"));
 
-        sql
-                .append(" (JOB_ID, JOB_DESC, JOB_FREQ_DESC, PROCESS_CNT, SHOW_PROGRESS_FREQ, PROCESS_SEQ_CODE, MAX_RETRY_COUNT, WRITE_DB_ERRORS_IND, ROLLBACK_SEGMENT_NAME, LOG_FILE_NAME, ERR_FILE_NAME, UNIX_LOG_FILE_NAME, UNIX_ERR_FILE_NAME, APPEND_TO_LOG_IND, APPEND_TO_ERR_IND, DEBUG_MODE_IND, COMMIT_FREQ, JOB_COMMENT, CREATE_DATE, LAST_update_DATE, LAST_update_USER, BATCH_SCRIPT_FILE_NAME, JOB_SCRIPT_FILE_NAME, UNIX_BATCH_SCRIPT_FILE_NAME, UNIX_JOB_SCRIPT_FILE_NAME, JOB_STATUS, LAST_BACKUP_NO, LAST_RUN_DATE, SKIP_PACKAGES_IND, SEND_EMAIL_IND, LAST_update_OS_USER, STATS_IND, checked_out_ind, checked_out_date, checked_out_user, checked_out_os_user");
+        sql.append(" (JOB_ID, JOB_DESC, JOB_FREQ_DESC, PROCESS_CNT, SHOW_PROGRESS_FREQ, " +
+                "PROCESS_SEQ_CODE, MAX_RETRY_COUNT, WRITE_DB_ERRORS_IND, ROLLBACK_SEGMENT_NAME, " +
+                "LOG_FILE_NAME, ERR_FILE_NAME, UNIX_LOG_FILE_NAME, UNIX_ERR_FILE_NAME, " +
+                "APPEND_TO_LOG_IND, APPEND_TO_ERR_IND, DEBUG_MODE_IND, COMMIT_FREQ, JOB_COMMENT, " +
+                "CREATE_DATE, LAST_update_DATE, LAST_update_USER, BATCH_SCRIPT_FILE_NAME, " +
+                "JOB_SCRIPT_FILE_NAME, UNIX_BATCH_SCRIPT_FILE_NAME, UNIX_JOB_SCRIPT_FILE_NAME, " +
+                "JOB_STATUS, LAST_BACKUP_NO, LAST_RUN_DATE, SKIP_PACKAGES_IND, SEND_EMAIL_IND, " +
+                "LAST_update_OS_USER, STATS_IND, checked_out_ind, checked_out_date, " +
+                "checked_out_user, checked_out_os_user");
         sql.append(") VALUES (");
         sql.append(SQL.quote(jobId)); // JOB_ID
         sql.append(",").append(SQL.quote(jobDescription)); // JOB_DESC
@@ -375,8 +382,9 @@ public class PLExport implements Monitorable {
         String status = "Unknown";
         StringBuffer sql = new StringBuffer("INSERT INTO ");
         sql.append(DDLUtils.toQualifiedName(repositoryCatalog, repositorySchema, "JOB_DETAIL"));
-        sql
-                .append(" (JOB_ID, JOB_PROCESS_SEQ_NO, OBJECT_TYPE, OBJECT_NAME, JOB_DETAIL_COMMENT, LAST_update_DATE, LAST_update_USER, FAILURE_ABORT_IND, WARNING_ABORT_IND, PKG_PARAM, ACTIVE_IND, LAST_update_OS_USER )");
+        sql.append(" (JOB_ID, JOB_PROCESS_SEQ_NO, OBJECT_TYPE, OBJECT_NAME, JOB_DETAIL_COMMENT, " +
+                "LAST_update_DATE, LAST_update_USER, FAILURE_ABORT_IND, WARNING_ABORT_IND, " +
+                "PKG_PARAM, ACTIVE_IND, LAST_update_OS_USER )");
         sql.append(" VALUES (");
         sql.append(SQL.quote(jobId)); // JOB_ID
         sql.append(",").append(seqNo); // JOB_PROCESS_SEQ_NO
@@ -533,8 +541,15 @@ public class PLExport implements Monitorable {
         StringBuffer sql = new StringBuffer("INSERT INTO ");
         sql.append(DDLUtils.toQualifiedName(repositoryCatalog, repositorySchema, "TRANS_TABLE_FILE"));
 
-        sql
-                .append(" (TRANS_ID, TABLE_FILE_ID, TABLE_FILE_IND, TABLE_FILE_TYPE, INPUT_OUTPUT_IND, SYSTEM_NAME, SERVER_NAME, FILE_CHAR_SET, TEXT_DELIMITER, TEXT_QUALIFIER, OWNER, TABLE_FILE_NAME, TABLE_FILE_ACCESS_PATH, MAX_ADD_COUNT, MAX_UPD_COUNT, MAX_DEL_COUNT, MAX_ERR_COUNT, FILTER_CRITERION, PROC_SEQ_NO, HEADER_REC_IND, LAST_UPDATE_DATE, LAST_UPDATE_USER, TRANS_TABLE_FILE_COMMENT, DB_CONNECT_NAME, UNIX_FILE_ACCESS_PATH, REC_DELIMITER, SELECT_CLAUSE, FROM_CLAUSE, WHERE_CLAUSE, ORDER_BY_CRITERION, TRUNCATE_IND, ACTION_TYPE, ANALYZE_IND, PRE_PROCESSED_FILE_NAME, UNIX_PRE_PROCESSED_FILE_NAME, PARENT_FILE_ID, CHILD_REQUIRED_IND, LAST_UPDATE_OS_USER, DELETE_IND, FROM_CLAUSE_DB)");
+        sql.append(" (TRANS_ID, TABLE_FILE_ID, TABLE_FILE_IND, TABLE_FILE_TYPE, INPUT_OUTPUT_IND, " +
+                "SYSTEM_NAME, SERVER_NAME, FILE_CHAR_SET, TEXT_DELIMITER, TEXT_QUALIFIER, OWNER, " +
+                "TABLE_FILE_NAME, TABLE_FILE_ACCESS_PATH, MAX_ADD_COUNT, MAX_UPD_COUNT, " +
+                "MAX_DEL_COUNT, MAX_ERR_COUNT, FILTER_CRITERION, PROC_SEQ_NO, HEADER_REC_IND, " +
+                "LAST_UPDATE_DATE, LAST_UPDATE_USER, TRANS_TABLE_FILE_COMMENT, DB_CONNECT_NAME, " +
+                "UNIX_FILE_ACCESS_PATH, REC_DELIMITER, SELECT_CLAUSE, FROM_CLAUSE, WHERE_CLAUSE, " +
+                "ORDER_BY_CRITERION, TRUNCATE_IND, ACTION_TYPE, ANALYZE_IND, PRE_PROCESSED_FILE_NAME, " +
+                "UNIX_PRE_PROCESSED_FILE_NAME, PARENT_FILE_ID, CHILD_REQUIRED_IND, LAST_UPDATE_OS_USER, " +
+                "DELETE_IND, FROM_CLAUSE_DB)");
 
         sql.append(" VALUES (");
         sql.append(SQL.quote(transId)); // TRANS_ID
@@ -664,7 +679,13 @@ public class PLExport implements Monitorable {
         StringBuffer sql = new StringBuffer("INSERT INTO ");
         sql.append(DDLUtils.toQualifiedName(repositoryCatalog, repositorySchema, "TRANS_COL_MAP"));
         sql
-                .append(" (TRANS_ID, INPUT_TABLE_FILE_ID, INPUT_TRANS_COL_NAME, OUTPUT_TABLE_FILE_ID, OUTPUT_TRANS_COL_NAME, VALID_ACTION_TYPE, NATURAL_ID_IND, REAL_MEM_TRANS_IND, DEFAULT_VALUE, INPUT_TRANS_VALUE, OUTPUT_TRANS_VALUE, TRANS_TABLE_NAME, SEQ_NAME, GRP_FUNC_STRING, TRANS_COL_MAP_COMMENT, PROCESS_SEQ_NO, LAST_update_DATE, LAST_update_USER, OUTPUT_PROC_SEQ_NO, TRANSLATION_VALUE, ACTIVE_IND, PL_SEQ_IND, PL_SEQ_INCREMENT, LAST_update_OS_USER, TRANSFORMATION_CRITERIA, PL_SEQ_update_TABLE_IND, SEQ_TABLE_IND, SEQ_WHERE_CLAUSE)");
+                .append(" (TRANS_ID, INPUT_TABLE_FILE_ID, INPUT_TRANS_COL_NAME, OUTPUT_TABLE_FILE_ID, " +
+                        "OUTPUT_TRANS_COL_NAME, VALID_ACTION_TYPE, NATURAL_ID_IND, REAL_MEM_TRANS_IND, " +
+                        "DEFAULT_VALUE, INPUT_TRANS_VALUE, OUTPUT_TRANS_VALUE, TRANS_TABLE_NAME, " +
+                        "SEQ_NAME, GRP_FUNC_STRING, TRANS_COL_MAP_COMMENT, PROCESS_SEQ_NO, LAST_update_DATE, " +
+                        "LAST_update_USER, OUTPUT_PROC_SEQ_NO, TRANSLATION_VALUE, ACTIVE_IND, PL_SEQ_IND, " +
+                        "PL_SEQ_INCREMENT, LAST_update_OS_USER, TRANSFORMATION_CRITERIA, PL_SEQ_update_TABLE_IND, " +
+                        "SEQ_TABLE_IND, SEQ_WHERE_CLAUSE)");
         sql.append(" VALUES (");
 
         sql.append(SQL.quote(transId)); // TRANS_ID
@@ -790,8 +811,9 @@ public class PLExport implements Monitorable {
         }
         StringBuffer sql = new StringBuffer("INSERT INTO ");
         sql.append(DDLUtils.toQualifiedName(repositoryCatalog, repositorySchema, "TRANS_EXCEPT_HANDLE"));
-        sql
-                .append(" (TRANS_ID,INPUT_ACTION_TYPE,DBMS_ERROR_CODE,RESULT_ACTION_TYPE,EXCEPT_HANDLE_COMMENT,LAST_update_DATE,LAST_update_USER,PKG_NAME,PKG_PARAM,PROC_FUNC_IND,ACTIVE_IND,LAST_update_OS_USER,DATABASE_TYPE)");
+        sql.append(" (TRANS_ID, INPUT_ACTION_TYPE, DBMS_ERROR_CODE, RESULT_ACTION_TYPE, " +
+                "EXCEPT_HANDLE_COMMENT, LAST_update_DATE, LAST_update_USER, PKG_NAME, " +
+                "PKG_PARAM, PROC_FUNC_IND, ACTIVE_IND, LAST_update_OS_USER, DATABASE_TYPE)");
         sql.append(" VALUES (");
         sql.append(SQL.quote(transId)); // TRANS_ID
         sql.append(",").append(SQL.quote(actionType)); // INPUT_ACTION_TYPE
@@ -1785,5 +1807,25 @@ public class PLExport implements Monitorable {
 
         indent--;
         println(out, indent, "</TRANS_COL_MAP>");
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("PLExport:");
+        sb.append("\n    currentDB=").append(currentDB);
+        sb.append("\n    file=").append(file);
+        sb.append("\n    folderName=").append(folderName);
+        sb.append("\n    jobComment=").append(jobComment);
+        sb.append("\n    jobDescription=").append(jobDescription);
+        sb.append("\n    jobId=").append(jobId);
+        sb.append("\n    repositoryDataSource=").append(repositoryDataSource);
+        sb.append("\n    repositoryCatalog=").append(repositoryCatalog);
+        sb.append("\n    repositorySchema=").append(repositorySchema);
+        sb.append("\n    runPLEngine=").append(runPLEngine);
+        sb.append("\n    targetDataSource=").append(targetDataSource);
+        sb.append("\n    targetCatalog=").append(targetCatalog);
+        sb.append("\n    targetSchema=").append(targetSchema);
+        return sb.toString();
     }
 }
