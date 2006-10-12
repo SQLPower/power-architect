@@ -57,6 +57,17 @@ public class TableModelSearchDecorator extends AbstractTableModel {
             search(getSearchText(e));
         }
     };
+    
+    @Override
+    public boolean isCellEditable(int rowIndex, int columnIndex) {
+        return tableModel.isCellEditable(rowIndex, columnIndex);
+    }
+    
+    @Override
+    public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+     
+       tableModel.setValueAt(aValue, rowIndex, columnIndex);
+    }
 
     public TableModelSearchDecorator(TableModel model) {
         super();
