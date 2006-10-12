@@ -35,6 +35,7 @@ import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLExceptionNode;
+import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
@@ -42,6 +43,7 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.UserSettings;
+import ca.sqlpower.architect.SQLIndex.Column;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.PLExport;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
@@ -269,6 +271,16 @@ public class SwingUIProject {
         d.addFactoryCreate("*/column-mapping", columnMappingFactory);
         d.addSetProperties("*/column-mapping");
         d.addSetNext("*/column-mapping", "addChild");
+
+        SQLIndexFactory indexFactory = new SQLIndexFactory();
+        d.addFactoryCreate("*/index", indexFactory);
+        d.addSetProperties("*/index");
+        d.addSetNext("*/index", "addChild");
+
+        SQLIndexColumnFactory indexColumnFactory = new SQLIndexColumnFactory();
+        d.addFactoryCreate("*/index-column", indexColumnFactory);
+        d.addSetProperties("*/index-column");
+        d.addSetNext("*/index-column", "addChild");
 
         SQLExceptionFactory exceptionFactory = new SQLExceptionFactory();
         d.addFactoryCreate("*/sql-exception", exceptionFactory);
@@ -586,6 +598,59 @@ public class SwingUIProject {
             }
 
             return cmap;
+        }
+    }
+
+    /**
+     * The index most recently loaded from the project file.  The SQLIndexColumnFactory
+     * has to know which index owns the index column in order to create it.
+     */
+    private SQLIndex currentIndex;
+
+    /**
+     * Creates a SQLIndex instance and adds it to the objectIdMap.
+     */
+    private class SQLIndexFactory extends AbstractObjectCreationFactory {
+
+        public Object createObject(Attributes attributes) {
+            SQLIndex index = new SQLIndex();
+
+            String id = attributes.getValue("id");
+            if (id != null) {
+                objectIdMap.put(id, index);
+            } else {
+                logger.warn("No ID found in index element while loading project!");
+            }
+
+            index.setType(SQLIndex.IndexType.valueOf(attributes.getValue("index-type")));
+            
+            currentIndex = index;
+            
+            return index;
+        }
+    }
+
+    /**
+     * Creates a SQLIndex instance and adds it to the
+     * objectIdMap.  Also dereferences the column-ref if present.
+     */
+    private class SQLIndexColumnFactory extends AbstractObjectCreationFactory {
+        public Object createObject(Attributes attributes) {
+            Column col = currentIndex.new Column();
+            
+            String id = attributes.getValue("id");
+            if (id != null) {
+                objectIdMap.put(id, col);
+            } else {
+                logger.warn("No ID found in index-column element while loading project!");
+            }
+
+            String referencedColId = attributes.getValue("column-ref");
+            if (referencedColId != null) {
+                col.setColumn((SQLColumn) objectIdMap.get(referencedColId));
+            }
+
+            return col;
         }
     }
 
@@ -1225,6 +1290,24 @@ public class SwingUIProject {
             id = "EXC"+objectIdMap.size();
             type = "sql-exception";
             propNames.put("message", ((SQLExceptionNode) o).getMessage());
+        } else if (o instanceof SQLIndex) {
+            id = "IDX"+objectIdMap.size();
+            type = "index";
+            SQLIndex index = (SQLIndex) o;
+            propNames.put("unique", index.isUnique());
+            propNames.put("qualifier", index.getQualifier());
+            propNames.put("index-type", index.getType().name());
+            propNames.put("filterCondition", index.getFilterCondition());
+        } else if (o instanceof SQLIndex.Column) {
+            id = "IDC"+objectIdMap.size();
+            type = "index-column";
+            SQLIndex.Column col = (SQLIndex.Column) o;
+            
+            if (col.getColumn() != null) {
+                propNames.put("column-ref", objectIdMap.get(col.getColumn()));
+            }
+            propNames.put("ascending", col.isAscending());
+            propNames.put("descending", col.isDescending());
         } else {
             throw new UnsupportedOperationException("Whoops, the SQLObject type "
                     +o.getClass().getName()+" is not supported!");

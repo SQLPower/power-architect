@@ -115,6 +115,9 @@ public class SQLIndex extends SQLObject {
             this.descending = descending;
         }
         
+        public Column() {
+        }
+
         @Override
         public boolean allowsChildren() {
             return false;
@@ -210,12 +213,16 @@ public class SQLIndex extends SQLObject {
     private String filterCondition;
     
     public SQLIndex(String name, boolean unique, String qualifier, IndexType type, String filter) {
+        this();
         setName(name);
-        children = new ArrayList();
         this.unique = unique;
         this.qualifier = qualifier;
         this.type = type;
         this.filterCondition = filter;
+    }
+
+    public SQLIndex() {
+        children = new ArrayList();
     }
 
     /**

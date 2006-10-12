@@ -167,8 +167,8 @@ public class TestSQLColumn extends SQLTestCase {
 	
 	public void testPopulateTable() throws ArchitectException {
 		
-		assertEquals("Table should have 3 folders as children",
-				3, table1pk.getChildCount());
+		assertEquals("Table should have 4 folders as children",
+				4, table1pk.getChildCount());
 		assertFalse("Table columns should not have been populated already",
 				table1pk.getColumnsFolder().isPopulated());
 		table1pk.getColumnsFolder().populate();
