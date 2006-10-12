@@ -32,7 +32,7 @@ public class SQLObjectInsertChildren extends SQLObjectChildren {
 
 	@Override
 	public void createToolTip() {
-		if (e.getChildren() != null)
+		if (e.getChildren().length > 0)
 		{
 			if (e.getChildren()[0] instanceof SQLTable)
 			{
