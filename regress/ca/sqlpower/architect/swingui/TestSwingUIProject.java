@@ -25,6 +25,7 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
@@ -298,6 +299,12 @@ public class TestSwingUIProject extends ArchitectTestCase {
 				} else if (props[i].getPropertyType() == SQLColumn.class) {
 					newVal = new SQLColumn();
 					((SQLColumn) newVal).setName("testing!");
+                } else if (props[i].getPropertyType() == SQLIndex.IndexType.class) {
+                    if (oldVal != SQLIndex.IndexType.HASHED) {
+                        newVal = SQLIndex.IndexType.HASHED;
+                    } else {
+                        newVal = SQLIndex.IndexType.CLUSTERED;
+                    }
 				} else {
 					throw new RuntimeException("This test case lacks a value for "+
 							props[i].getName()+
@@ -613,7 +620,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		if (deleteOnExit) {
 			tmp.deleteOnExit();
 		} else {
-			System.out.println("MY TEMP FILE: "+tmp.getAbsolutePath());
+			System.out.println("testSaveCoversAllColumnProperties: temp file is "+tmp.getAbsolutePath());
 		}
 		PrintWriter out = new PrintWriter(tmp,ENCODING);
 		assertNotNull(out);
@@ -633,14 +640,103 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		assertMapsEqual(oldDescription, newDescription);
 	}
 
+    public void testSaveCoversAllIndexProperties() throws Exception {
+        final String tableName = "rama_llama_dingdong";  // the power of the llama will save you
+        testLoad();
+        
+        SQLDatabase ppdb = project.getPlayPen().getDatabase();
+        SQLTable table = new SQLTable(ppdb, true);
+        table.setName(tableName);
+        SQLIndex target = new SQLIndex("testy index", false, null, null, null);
+        ppdb.addChild(table);
+        table.getIndicesFolder().addChild(target);
+        
+        Set<String> propertiesToIgnore = new HashSet<String>();
+        propertiesToIgnore.add("SQLObjectListeners");
+        propertiesToIgnore.add("undoEventListeners");
+        propertiesToIgnore.add("magicEnabled");
+        propertiesToIgnore.add("children");
+        propertiesToIgnore.add("parent");
+        propertiesToIgnore.add("class");
+
+        Map<String,Object> oldDescription =
+            setAllInterestingProperties(target, propertiesToIgnore);
+        
+        File tmp = File.createTempFile("test", ".architect");
+        if (deleteOnExit) {
+            tmp.deleteOnExit();
+        } else {
+            System.out.println("testSaveCoversAllIndexProperties: temp file is "+tmp.getAbsolutePath());
+        }
+        PrintWriter out = new PrintWriter(tmp,ENCODING);
+        assertNotNull(out);
+        project.save(out,ENCODING);
+        
+        SwingUIProject project2 = new SwingUIProject("new test project");
+        project2.load(new BufferedInputStream(new FileInputStream(tmp)));
+        
+        // grab the second database in the dbtree's model (the first is the play pen)
+        ppdb = (SQLDatabase) project2.getPlayPen().getDatabase();
+        
+        target = (SQLIndex) ((SQLTable) ppdb.getTableByName(tableName)).getIndicesFolder().getChild(0);
+        
+        Map<String, Object> newDescription =
+            getAllInterestingProperties(target, propertiesToIgnore);
+        
+        assertMapsEqual(oldDescription, newDescription);
+    }
+
+    public void testSaveCoversAllIndexColumnProperties() throws Exception {
+        final String tableName = "delicatessen";
+        testLoad();
+        
+        SQLDatabase ppdb = project.getPlayPen().getDatabase();
+        SQLTable table = new SQLTable(ppdb, true);
+        table.setName(tableName);
+        SQLIndex index = new SQLIndex("tasty index", false, null, null, null);
+        SQLIndex.Column target = index.new Column("phogna bologna", false, true);
+        ppdb.addChild(table);
+        table.getIndicesFolder().addChild(index);
+        
+        Set<String> propertiesToIgnore = new HashSet<String>();
+        propertiesToIgnore.add("SQLObjectListeners");
+        propertiesToIgnore.add("undoEventListeners");
+        propertiesToIgnore.add("magicEnabled");
+        propertiesToIgnore.add("children");
+        propertiesToIgnore.add("parent");
+        propertiesToIgnore.add("class");
+
+        Map<String,Object> oldDescription =
+            setAllInterestingProperties(index, propertiesToIgnore);
+        
+        File tmp = File.createTempFile("test", ".architect");
+        if (deleteOnExit) {
+            tmp.deleteOnExit();
+        } else {
+            System.out.println("testSaveCoversAllIndexProperties: temp file is "+tmp.getAbsolutePath());
+        }
+        PrintWriter out = new PrintWriter(tmp,ENCODING);
+        assertNotNull(out);
+        project.save(out,ENCODING);
+        
+        SwingUIProject project2 = new SwingUIProject("new test project");
+        project2.load(new BufferedInputStream(new FileInputStream(tmp)));
+        
+        // grab the second database in the dbtree's model (the first is the play pen)
+        ppdb = (SQLDatabase) project2.getPlayPen().getDatabase();
+        
+        index = (SQLIndex) ((SQLTable) ppdb.getTableByName(tableName)).getIndicesFolder().getChild(0);
+        
+        Map<String, Object> newDescription =
+            getAllInterestingProperties(index, propertiesToIgnore);
+        
+        assertMapsEqual(oldDescription, newDescription);
+    }
+
 	public void testNotModifiedWhenFreshlyLoaded() throws Exception {
 		testLoad();
 		assertFalse("Freshly loaded project should not be marked dirty",
 				project.isModified());
-	}
-	
-	public void testSetModified() {
-		// TODO: implement test
 	}
 	
 	public void testSaveCoversCompareDMSettings() throws Exception {
