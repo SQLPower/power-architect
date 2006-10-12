@@ -22,6 +22,7 @@ public abstract class ArchitectSwingWorker implements Runnable {
 			doStuff();
 		} catch (Exception e) {
 			doStuffException = e;
+            logger.debug(e.getStackTrace());
 		}
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
