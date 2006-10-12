@@ -10,6 +10,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 
 import org.apache.log4j.Logger;
 
@@ -110,7 +111,9 @@ public class SQLIndex extends SQLObject {
          * (such as an expression index).
          */
         public Column(String name, boolean ascending, boolean descending) {
+            children = Collections.emptyList();
             setName(name);
+            
             this.ascending = ascending;
             this.descending = descending;
         }
@@ -160,7 +163,10 @@ public class SQLIndex extends SQLObject {
         }
 
         public void setColumn(SQLColumn column) {
+            SQLColumn oldValue = this.column;
             this.column = column;
+            fireDbObjectChanged("column", oldValue, column);
+            
         }
 
         public boolean isAscending() {
@@ -168,7 +174,9 @@ public class SQLIndex extends SQLObject {
         }
 
         public void setAscending(boolean ascending) {
-            this.ascending = ascending;
+            boolean oldValue = this.ascending;
+            this.ascending = ascending; 
+            fireDbObjectChanged("ascending", oldValue, ascending);
         }
 
         public boolean isDescending() {
@@ -176,7 +184,9 @@ public class SQLIndex extends SQLObject {
         }
 
         public void setDescending(boolean descending) {
+            boolean oldValue = this.descending;
             this.descending = descending;
+            fireDbObjectChanged("descending", oldValue, descending);
         }
         
         @Override
@@ -280,7 +290,9 @@ public class SQLIndex extends SQLObject {
     }
 
     public void setFilterCondition(String filterCondition) {
+        String oldValue = this.filterCondition;
         this.filterCondition = filterCondition;
+        fireDbObjectChanged("filterCondition", oldValue, filterCondition);
     }
 
     public String getQualifier() {
@@ -288,7 +300,9 @@ public class SQLIndex extends SQLObject {
     }
 
     public void setQualifier(String qualifier) {
+        String oldValue = this.qualifier;
         this.qualifier = qualifier;
+        fireDbObjectChanged("qualifier", oldValue, qualifier);
     }
 
     public IndexType getType() {
@@ -296,7 +310,9 @@ public class SQLIndex extends SQLObject {
     }
 
     public void setType(IndexType type) {
+        IndexType oldValue = this.type;
         this.type = type;
+        fireDbObjectChanged("type", oldValue, type);
     }
 
     public boolean isUnique() {
@@ -304,7 +320,9 @@ public class SQLIndex extends SQLObject {
     }
 
     public void setUnique(boolean unique) {
+        boolean oldValue = this.unique;
         this.unique = unique;
+        fireDbObjectChanged("unique", oldValue, unique);
     }
 
     public void setParent(SQLTable.Folder<SQLIndex> parent) {
