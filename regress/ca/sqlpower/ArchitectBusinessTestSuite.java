@@ -17,6 +17,8 @@ import ca.sqlpower.architect.TestFolder;
 import ca.sqlpower.architect.TestSQLCatalog;
 import ca.sqlpower.architect.TestSQLColumn;
 import ca.sqlpower.architect.TestSQLDatabase;
+import ca.sqlpower.architect.TestSQLIndex;
+import ca.sqlpower.architect.TestSQLIndexColumn;
 import ca.sqlpower.architect.TestSQLRelationship;
 import ca.sqlpower.architect.TestSQLTable;
 import ca.sqlpower.architect.ddl.TestDDLUtils;
@@ -43,6 +45,8 @@ public class ArchitectBusinessTestSuite extends TestCase {
 		suite.addTestSuite(TestFolder.class);
 		suite.addTest(TestSQLTable.suite());
 		suite.addTest(TestSQLColumn.suite());
+        suite.addTestSuite(TestSQLIndex.class);
+        suite.addTestSuite(TestSQLIndexColumn.class);
 		suite.addTestSuite(TestSQLRelationship.class);
 		suite.addTestSuite(ArchitectExceptionTest.class);
 		suite.addTestSuite(PLDotIniTest.class);

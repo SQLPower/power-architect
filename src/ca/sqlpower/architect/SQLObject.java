@@ -167,7 +167,7 @@ public abstract class SQLObject implements java.io.Serializable {
 	 * within this SQLObject.
 	 */
 	public List getChildren() throws ArchitectException {
-		if (!allowsChildren()) //return null;
+		if (!allowsChildren()) //never return null;
 			return children;
 		populate();
 		return Collections.unmodifiableList(children);

@@ -398,9 +398,9 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	 */
 	public void setType(int argType) {
 		int oldType = type;
-		setSourceDataTypeName(null);
 		this.type = argType;
         startCompoundEdit("Type change");
+        setSourceDataTypeName(null);
 		fireDbObjectChanged("type",oldType,argType);
         endCompoundEdit("Type change");
 	}
@@ -692,14 +692,6 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
         fireDbObjectChanged("referenceCount", oldReference, referenceCount);
 	}
 
-
-    public int getAVASD(){
-        return 0;
-    }
-    public void setAVASD(int i){
-        
-    }
-	
 	
 	/**
 	 * @return Returns the referenceCount.
@@ -711,6 +703,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
     /**
      * WARNING this should not be used by hand coded objects
      * @param referenceCount
+     * @deprecated This method exists only to be called reflectively by the undo manager.  You should use addReference() and removeReference().
      */
 	@Deprecated
     public void setReferenceCount(int referenceCount) {

@@ -13,6 +13,7 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 
 import ca.sqlpower.ArchitectTestCase;
+import ca.sqlpower.architect.SQLIndex.IndexType;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.undo.UndoManager;
 
@@ -29,6 +30,10 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 	 * @see #setup()
 	 */
 	SQLDatabase db;
+    
+    
+    Set<String>propertiesToIgnoreForUndo = new HashSet<String>();
+    Set<String>propertiesToIgnoreForEventGeneration = new HashSet<String>();
 
 	public SQLTestCase(String name) throws Exception {
 		super(name);
@@ -64,35 +69,35 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 		db = null;
 	}
 	
-	protected abstract SQLObject getSQLObjectUnderTest();
+	protected abstract SQLObject getSQLObjectUnderTest() throws ArchitectException;
 	
 	public void testAllSettersGenerateEvents()
 	throws IllegalArgumentException, IllegalAccessException, 
 	InvocationTargetException, NoSuchMethodException, ArchitectException {
 		
 		SQLObject so = getSQLObjectUnderTest();
+		so.populate();
 		
-		
-		Set<String>propertiesToIgnore = new HashSet<String>();
-		propertiesToIgnore.add("populated");
-		propertiesToIgnore.add("SQLObjectListeners");
-		propertiesToIgnore.add("children");
-		propertiesToIgnore.add("parent");
-		propertiesToIgnore.add("parentDatabase");
-		propertiesToIgnore.add("class");
-		propertiesToIgnore.add("childCount");
-		propertiesToIgnore.add("undoEventListeners");
-		propertiesToIgnore.add("connection");
-		propertiesToIgnore.add("typeMap");
-		propertiesToIgnore.add("secondaryChangeMode");	
-		propertiesToIgnore.add("zoomInAction");
-		propertiesToIgnore.add("zoomOutAction");
-        propertiesToIgnore.add("magicEnabled");
+        propertiesToIgnoreForEventGeneration.add("referenceCount");
+		propertiesToIgnoreForEventGeneration.add("populated");
+		propertiesToIgnoreForEventGeneration.add("SQLObjectListeners");
+		propertiesToIgnoreForEventGeneration.add("children");
+		propertiesToIgnoreForEventGeneration.add("parent");
+		propertiesToIgnoreForEventGeneration.add("parentDatabase");
+		propertiesToIgnoreForEventGeneration.add("class");
+		propertiesToIgnoreForEventGeneration.add("childCount");
+		propertiesToIgnoreForEventGeneration.add("undoEventListeners");
+		propertiesToIgnoreForEventGeneration.add("connection");
+		propertiesToIgnoreForEventGeneration.add("typeMap");
+		propertiesToIgnoreForEventGeneration.add("secondaryChangeMode");	
+		propertiesToIgnoreForEventGeneration.add("zoomInAction");
+		propertiesToIgnoreForEventGeneration.add("zoomOutAction");
+        propertiesToIgnoreForEventGeneration.add("magicEnabled");
 		
 		if(so instanceof SQLDatabase)
 		{
 			// should be handled in the Datasource
-			propertiesToIgnore.add("name");
+			propertiesToIgnoreForEventGeneration.add("name");
 		}
 		
 		CountingSQLObjectListener listener = new CountingSQLObjectListener();
@@ -104,7 +109,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 		
 		for (PropertyDescriptor property : settableProperties) {
 			Object oldVal;
-			if (propertiesToIgnore.contains(property.getName())) continue;
+			if (propertiesToIgnoreForEventGeneration.contains(property.getName())) continue;
 			
 			try {
 				oldVal = PropertyUtils.getSimpleProperty(so, property.getName());
@@ -119,7 +124,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 				continue;
 			}
 			Object newVal;  // don't init here so compiler can warn if the following code doesn't always give it a value
-			if (property.getPropertyType() == Integer.TYPE ) {
+			if (property.getPropertyType() == Integer.TYPE ||property.getPropertyType() == Integer.class ) {
 				newVal = ((Integer)oldVal)+1;
 			} else if (property.getPropertyType() == String.class) {
 				// make sure it's unique
@@ -139,7 +144,12 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 				((ArchitectDataSource)newVal).setUrl("jdbc:mock:x=y");
 			} else if (property.getPropertyType() == SQLTable.class) {
 				newVal = new SQLTable();
-			} else {
+            } else if ( property.getPropertyType() == SQLColumn.class){
+                newVal = new SQLColumn();
+			} else if ( property.getPropertyType() == IndexType.class){
+                newVal = IndexType.STATISTIC;
+            
+            } else {
 				throw new RuntimeException("This test case lacks a value for "+
 						property.getName()+
 						" (type "+property.getPropertyType().getName()+") from "+so.getClass());
@@ -181,30 +191,28 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 	InvocationTargetException, NoSuchMethodException, ArchitectException {
 		
 		SQLObject so = getSQLObjectUnderTest();
-		
-		Set<String>propertiesToIgnore = new HashSet<String>();
-		propertiesToIgnore.add("populated");
-		propertiesToIgnore.add("SQLObjectListeners");
-		propertiesToIgnore.add("children");
-		propertiesToIgnore.add("parent");
-		propertiesToIgnore.add("parentDatabase");
-		propertiesToIgnore.add("class");
-		propertiesToIgnore.add("childCount");
-		propertiesToIgnore.add("undoEventListeners");
-		propertiesToIgnore.add("connection");
-		propertiesToIgnore.add("typeMap");
-		propertiesToIgnore.add("secondaryChangeMode");		
-		propertiesToIgnore.add("zoomInAction");
-		propertiesToIgnore.add("zoomOutAction");
-        propertiesToIgnore.add("magicEnabled");
- 
-        propertiesToIgnore.add("deleteRule");
-        propertiesToIgnore.add("updateRule");
+        propertiesToIgnoreForUndo.add("referenceCount");
+		propertiesToIgnoreForUndo.add("populated");
+		propertiesToIgnoreForUndo.add("SQLObjectListeners");
+		propertiesToIgnoreForUndo.add("children");
+		propertiesToIgnoreForUndo.add("parent");
+		propertiesToIgnoreForUndo.add("parentDatabase");
+		propertiesToIgnoreForUndo.add("class");
+		propertiesToIgnoreForUndo.add("childCount");
+		propertiesToIgnoreForUndo.add("undoEventListeners");
+		propertiesToIgnoreForUndo.add("connection");
+		propertiesToIgnoreForUndo.add("typeMap");
+		propertiesToIgnoreForUndo.add("secondaryChangeMode");		
+		propertiesToIgnoreForUndo.add("zoomInAction");
+		propertiesToIgnoreForUndo.add("zoomOutAction");
+        propertiesToIgnoreForUndo.add("magicEnabled");
+        propertiesToIgnoreForUndo.add("deleteRule");
+        propertiesToIgnoreForUndo.add("updateRule");
 
 		if(so instanceof SQLDatabase)
 		{
 			// should be handled in the Datasource
-			propertiesToIgnore.add("name");
+			propertiesToIgnoreForUndo.add("name");
 		}
 		UndoManager undoManager= new UndoManager(so);
 		List<PropertyDescriptor> settableProperties;
@@ -216,7 +224,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 		}
 		for (PropertyDescriptor property : settableProperties) {
 			Object oldVal;
-			if (propertiesToIgnore.contains(property.getName())) continue;
+			if (propertiesToIgnoreForUndo.contains(property.getName())) continue;
 			
 			try {
 				oldVal = PropertyUtils.getSimpleProperty(so, property.getName());
@@ -229,7 +237,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 				continue;
 			}
 			Object newVal;  // don't init here so compiler can warn if the following code doesn't always give it a value
-			if (property.getPropertyType() == Integer.TYPE ) {
+			if (property.getPropertyType() == Integer.TYPE  || property.getPropertyType() == Integer.class) {
 				newVal = ((Integer)oldVal)+1;
 			} else if (property.getPropertyType() == String.class) {
 				// make sure it's unique
@@ -249,7 +257,12 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 				((ArchitectDataSource)newVal).setUrl("jdbc:mock:x=y");
 			} else if (property.getPropertyType() == SQLTable.class) {
 				newVal = new SQLTable();
-			} else {
+            } else if (property.getPropertyType() == SQLColumn.class) {
+                newVal = new SQLColumn();
+			} else if ( property.getPropertyType() == IndexType.class){
+                newVal = IndexType.STATISTIC;
+    
+            } else {
 				throw new RuntimeException("This test case lacks a value for "+
 						property.getName()+
 						" (type "+property.getPropertyType().getName()+") from "+so.getClass());

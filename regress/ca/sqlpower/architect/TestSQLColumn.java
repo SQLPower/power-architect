@@ -148,12 +148,13 @@ public class TestSQLColumn extends SQLTestCase {
 	}
 
 	/**
-	 * Returns one of the tables that setUp made.  Right now, it's
-	 * table1pk.
+	 * Returns one of the columns of one of the tables that setUp made.  Right now, it's
+	 * table1pk's first column.
+	 * @throws ArchitectException 
 	 */
 	@Override
-	protected SQLObject getSQLObjectUnderTest() {
-		return table1pk;
+	protected SQLObject getSQLObjectUnderTest() throws ArchitectException {
+		return table1pk.getColumn(0);
 	}
 	
 	// ================= Constructor ====================
