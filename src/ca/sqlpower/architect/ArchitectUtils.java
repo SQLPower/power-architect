@@ -439,6 +439,40 @@ public class ArchitectUtils {
 		return sb.toString();
 	}
 
+    /**
+     * Double quotes input string for CSV if needed:
+     * string contains ", \n, \r, ','
+     */
+    public static String quoteCSV(Object val) {
+        if ( val == null ) {
+            return "";
+        } else if ( val instanceof String ) {
+            return quoteCSVStr((String) val);
+        }
+        return val.toString();
+    }
+    public static String quoteCSVStr(String val) {
+        CharSequence doubleQuote = "\"".subSequence(0,"\"".length());
+        CharSequence doubleDoubleQuote = "\"\"".subSequence(0,"\"\"".length());
+        CharSequence newLine = "\n".subSequence(0,"\n".length());
+        CharSequence cr = "\r".subSequence(0,"\r".length());
+        CharSequence comma = ",".subSequence(0,",".length());
+
+        if ( val.contains(doubleQuote) ) {
+            StringBuffer sb = new StringBuffer(doubleQuote);
+            sb.append(val.replace(doubleQuote,doubleDoubleQuote));
+            sb.append(doubleQuote);
+            return sb.toString();
+        } else if ( val.contains(newLine) ||
+                val.contains(cr) ||
+                val.contains(comma) ) {
+            StringBuffer sb = new StringBuffer(doubleQuote);
+            sb.append(val);
+            sb.append(doubleQuote);
+            return sb.toString();
+        }
+        return val;
+    }
       /**
      * Pulls out all SQLTable objects which exist under the start object
      * and adds them to the given list.
