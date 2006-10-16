@@ -59,7 +59,7 @@ public class ConfigFile {
 	// -------------------- READING THE "FILE" --------------------------
 
 	public CoreUserSettings read(ArchitectSession session) throws IOException {
-		logger.debug("reading UserSettings from java.util.prefs.");
+		logger.debug("loading UserSettings from java.util.prefs.");
         if ( prefs == null ) {
             prefs = ArchitectFrame.getMainInstance().getPrefs();
         }
@@ -81,7 +81,9 @@ public class ConfigFile {
 		}
 		// XXX Put prefs in sub-node, just delete it before you start.
 		for (; i <= 99; i++) {
-			prefs.remove(jarFilePrefName(i));
+            if (prefs.get(jarFilePrefName(i), null) != null) {
+                prefs.remove(jarFilePrefName(i));
+            }
 		}
 
 		userSettings.setPlDotIniPath(prefs.get("PL.INI.PATH", null));
