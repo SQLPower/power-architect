@@ -3,7 +3,6 @@ package ca.sqlpower.architect.swingui;
 import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.JDialog;
 
 /**
@@ -14,8 +13,8 @@ public class CommonCloseAction extends AbstractAction {
 	private JDialog d;
 
 	public CommonCloseAction(JDialog d) {
+        super("Cancel");
 		this.d = d;
-		putValue(Action.NAME, "Cancel");
 	}
 
 	public void actionPerformed(ActionEvent e) {
