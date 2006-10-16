@@ -14,6 +14,7 @@ import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
@@ -59,6 +60,7 @@ public class ArchitectPanelBuilder {
 
         if ( dialogParent == null ) {
             d = new JDialog();
+            warnAboutNullParentedDialog();
         } else if (dialogParent instanceof Frame) {
 			d = new JDialog((Frame) dialogParent, dialogTitle);
 		} else if (dialogParent instanceof Dialog) {
@@ -114,6 +116,13 @@ public class ArchitectPanelBuilder {
 		d.pack();
 		return d;
 	}
+
+    private static void warnAboutNullParentedDialog() {
+        if (logger.isDebugEnabled()) {
+            JOptionPane.showMessageDialog(null,
+                  "This action called createArchitectPanelDialog with DialogParent == null!");
+        }
+    }
 
 	/**
 	 * Build a JDialog around an object that implements ArchitectPanel, to
@@ -239,6 +248,7 @@ public class ArchitectPanelBuilder {
 
         if ( dialogParent == null ) {
             d = new JDialog();
+            warnAboutNullParentedDialog();
         } else if (dialogParent instanceof Frame) {
             d = new JDialog((Frame) dialogParent, dialogTitle);
         } else if (dialogParent instanceof Dialog) {
