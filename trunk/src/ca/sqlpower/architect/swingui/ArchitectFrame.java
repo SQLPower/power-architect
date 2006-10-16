@@ -108,7 +108,7 @@ public class ArchitectFrame extends JFrame {
 
 	public static final double ZOOM_STEP = 0.25;
 
-	protected Preferences prefs;
+	protected final Preferences prefs;
 
     /**
 	 * Tracks whether or not the most recent "save project" operation was
@@ -205,6 +205,7 @@ public class ArchitectFrame extends JFrame {
 	    // close handled by window listener
 	    setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 	    architectSession = ArchitectSession.getInstance();
+	    prefs = PrefsUtils.getUserPrefsNode(architectSession);
 	    init();
 	}
 
@@ -217,7 +218,10 @@ public class ArchitectFrame extends JFrame {
 	 */
     protected boolean promptForUnsavedModifications() {
         if (project.isModified()) {
-            int response = JOptionPane.showOptionDialog(ArchitectFrame.this, "Your project has unsaved changes", "Unsaved Changes", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, new Object[] {"Don't Save", "Cancel", "Save"}, "Save");
+            int response = JOptionPane.showOptionDialog(ArchitectFrame.this,
+                    "Your project has unsaved changes", "Unsaved Changes",
+                    JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null,
+                    new Object[] {"Don't Save", "Cancel", "Save"}, "Save");
             if (response == 0) {
                 return true;
             } else if (response == JOptionPane.CLOSED_OPTION || response == 1) {
@@ -233,7 +237,6 @@ public class ArchitectFrame extends JFrame {
 	private void init() throws ArchitectException {
 		int accelMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
-		prefs = PrefsUtils.getUserPrefsNode(architectSession);
 	    CoreUserSettings us;
 	    // must be done right away, because a static
 	    // initializer in this class effects BeanUtils
@@ -347,7 +350,7 @@ public class ArchitectFrame extends JFrame {
 		};
 
 		 openProjectAction = new OpenProjectAction(recent);
-		 
+
 		saveProjectAction
 			= new AbstractAction("Save Project",
 								 ASUtils.createJLFIcon("general/Save",
@@ -605,7 +608,7 @@ public class ArchitectFrame extends JFrame {
 		fileMenu.setMnemonic('f');
 		fileMenu.add(newProjectAction);
 		fileMenu.add(openProjectAction);
-		fileMenu.add(recent);		
+		fileMenu.add(recent);
 		fileMenu.addSeparator();
 		fileMenu.add(saveProjectAction);
 		fileMenu.add(saveProjectAsAction);
