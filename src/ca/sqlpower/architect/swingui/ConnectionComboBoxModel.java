@@ -53,6 +53,18 @@ public class ConnectionComboBoxModel implements ComboBoxModel, DatabaseListChang
 		}
 	}
 
+    public void setSelectedItem(String anItem) {
+
+        for ( ArchitectDataSource ds : connections ) {
+            if ( ds.getName().equals(anItem)) {
+                selectedItem = ds;
+                setSelectedItem(selectedItem);
+                return;
+            }
+        }
+        System.out.println("warning: set selected item:"+anItem);
+    }
+
 	public Object getSelectedItem() {
 		return selectedItem;
 	}
