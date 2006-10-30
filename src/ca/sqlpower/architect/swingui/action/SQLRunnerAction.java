@@ -3,6 +3,7 @@ package ca.sqlpower.architect.swingui.action;
 import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
+import javax.swing.JFrame;
 
 import org.apache.log4j.Logger;
 
@@ -20,8 +21,8 @@ public class SQLRunnerAction extends AbstractAction {
 
     protected ArchitectFrame architectFrame;
 
-    public SQLRunnerAction() {
-        super("SQL Runner...", 
+    public SQLRunnerAction(JFrame owner) {
+        super("SQL Runner...",
                 ASUtils.createIcon("SQLRunner", "SQL Runner", ArchitectFrame.getMainInstance()
                 .getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
         logger.debug("Creating SQLRunnerAction");

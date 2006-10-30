@@ -665,7 +665,7 @@ public class ArchitectFrame extends JFrame {
 		toolsMenu.setMnemonic('t');
 		toolsMenu.add(exportDDLAction);
 		toolsMenu.add(compareDMAction);
-        toolsMenu.add(new SQLRunnerAction());
+        toolsMenu.add(new SQLRunnerAction(this.getMainInstance()));
 		menuBar.add(toolsMenu);
 
         JMenu profileMenu = new JMenu("Profile");
