@@ -27,4 +27,6 @@ public class SwingUserSettings extends AbstractUserSetting {
 
     public static final String LAST_LOGIN_DATA_SOURCE
             = "last.login.data.source";
+    public static final String LAST_IMPORT_EXPORT_PATH
+            = "last.importexport.path";
 }
