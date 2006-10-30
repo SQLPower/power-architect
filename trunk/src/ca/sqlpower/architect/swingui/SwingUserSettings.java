@@ -4,7 +4,7 @@ import ca.sqlpower.architect.AbstractUserSetting;
 
 public class SwingUserSettings extends AbstractUserSetting {
 
-	public static final String DIVIDER_LOCATION 
+	public static final String DIVIDER_LOCATION
 		= "SwingUserSettings.DIVIDER_LOCATION";
 
 	public static final String MAIN_FRAME_X
@@ -24,5 +24,7 @@ public class SwingUserSettings extends AbstractUserSetting {
 
     public static final String PLAYPEN_RENDER_ANTIALIASED
     		= "SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED";
-  	
+
+    public static final String LAST_LOGIN_DATA_SOURCE
+            = "last.login.data.source";
 }
