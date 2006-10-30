@@ -5,7 +5,6 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Shape;
-import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.geom.Line2D;
 import java.awt.geom.PathIterator;
@@ -287,16 +286,6 @@ public class ASUtils {
 		focusDebuggerThread.start();
 	}
 
-    /** Centre a Window, Frame, JFrame, Dialog, etc. */
-    public static void centre(final Window w) {
-        // After packing a Frame or Dialog, centre it on the screen.
-        Dimension us = w.getSize(),
-            them = Toolkit.getDefaultToolkit().getScreenSize();
-        int newX = (them.width - us.width) / 2;
-        int newY = (them.height- us.height)/ 2;
-        w.setLocation(newX, newY);
-    }
-
 	/**
 	 * Displays a dialog box with the given message and exception,
 	 * allowing the user to examine the stack trace.  The dialog's
@@ -350,6 +339,9 @@ public class ASUtils {
     }
 
     private static void displayExceptionDialog(Component parent, String message, Throwable throwable) {
+        if (parent == null) {
+            logger.error("displayExceptionDialog with null parent for message " + message);
+        }
         StringWriter traceWriter = new StringWriter();
         throwable.printStackTrace(new PrintWriter(traceWriter));
         JPanel messageComponent = new JPanel(new BorderLayout());
