@@ -153,10 +153,22 @@ public class ArchitectDataSource {
 		return pcs;
 	}
 
+    /**
+     * Creates a new ArchitectDataSource with all properties set to null.
+     */
 	public ArchitectDataSource() {
 		properties = new HashMap<String,String>();
 	}
 
+    /**
+     * Copy constructor. Creates an independent copy of the given data source.
+     * 
+     * @param copyMe the ArchitectDataSource to make a copy of.
+     */
+    public ArchitectDataSource(ArchitectDataSource copyMe) {
+        properties = new HashMap<String, String>(copyMe.properties);
+    }
+    
 	/**
 	 * The method that actually modifies the property map.
 	 *
