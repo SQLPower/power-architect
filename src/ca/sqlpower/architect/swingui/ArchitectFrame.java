@@ -88,6 +88,7 @@ import ca.sqlpower.architect.swingui.action.ViewProfileAction;
 import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.undo.UndoManager;
 
+import com.darwinsys.swingui.UtilGUI;
 import com.darwinsys.util.PrefsUtils;
 import com.jgoodies.forms.builder.ButtonBarBuilder;
 
@@ -575,7 +576,7 @@ public class ArchitectFrame extends JFrame {
                     basePane.add(buttonBar.getPanel(),BorderLayout.SOUTH);
                     f.setContentPane(basePane);
                     f.pack();
-                    ASUtils.centre(f);
+                    UtilGUI.centre(f);
                     f.setVisible(true);
                 } catch (ArchitectException e1) {
                     throw new ArchitectRuntimeException(e1);

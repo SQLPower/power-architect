@@ -50,12 +50,12 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 
-import com.darwinsys.io.TextAreaWriter;
-
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
+
+import com.darwinsys.io.TextAreaWriter;
+import com.darwinsys.swingui.UtilGUI;
 
 /**
  * A simple GUI to run one set of commands.
@@ -197,7 +197,7 @@ public class SQLRunnerGUI  {
         bar.setPreferredSize(new Dimension(400, 20));
 
         mainWindow.pack();
-        ASUtils.centre(mainWindow);
+        UtilGUI.centre(mainWindow);
         mainWindow.setVisible(true);
     }
 
