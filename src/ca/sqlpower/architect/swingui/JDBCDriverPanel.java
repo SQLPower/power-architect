@@ -30,6 +30,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 
 import org.apache.log4j.Logger;
 
@@ -78,11 +79,11 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 		this.session = session;
 		setup();
 		try {
-			dtm.setRoot(new DefaultMutableTreeNode());		
+			dtm.setRoot(new DefaultMutableTreeNode());
 			doLoad(session.getDriverJarList());
 		} catch (ArchitectException e) {
 			logger.error("revertToUserSettings failed.", e);
-		}			
+		}
 	}
 
 	public void setup() {
@@ -93,13 +94,16 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 		dtm = new DefaultTreeModel(rootNode);
 		driverTree = new JTree(dtm);
 		driverTree.setRootVisible(false);
+        // Let the user delete multiple driver jars at once
+        driverTree.getSelectionModel().setSelectionMode(
+                TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
 		driverTree.addTreeSelectionListener(new TreeSelectionListener() {
 			public void valueChanged(TreeSelectionEvent e) {
 				delButton.setEnabled(true);
-			}			
+			}
 		});
 		add(new JScrollPane(driverTree), BorderLayout.CENTER);
-		
+
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
 		buttonPanel.add(addButton = new JButton(new AddAction()));
 		buttonPanel.add(delButton = new JButton(new DelAction()));
@@ -109,7 +113,7 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 		JPanel progressPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
 		progressBar = new JProgressBar();
 		progressBar.setStringPainted(true); //get space for the string
-		progressBar.setVisible(false);		
+		progressBar.setVisible(false);
 		progressPanel.add(progressBar);
 		progressLabel = new JLabel("Scanning for JDBC Drivers...");
 		progressLabel.setVisible(false);
@@ -142,7 +146,7 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 			super("Add...");
 		}
 
-		public void actionPerformed(ActionEvent e) {			
+		public void actionPerformed(ActionEvent e) {
 			try {
 				fileChooser.addChoosableFileFilter(ASUtils.JAR_ZIP_FILE_FILTER);
 				fileChooser.setMultiSelectionEnabled(true);
@@ -150,7 +154,7 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 				if(returnVal == JFileChooser.APPROVE_OPTION) {
 					File[] files = fileChooser.getSelectedFiles();
 					List list = new ArrayList();
-					for(int ii=0; ii < files.length;ii++) {					
+					for(int ii=0; ii < files.length;ii++) {
 						list.add(files[ii].getAbsolutePath());
 					}
 					doLoad(list);
@@ -164,7 +168,7 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 			}
 		}
 	}
-	
+
 	/**
 	 * Load the given List of driver names into the tree
 	 * @param list
@@ -183,21 +187,22 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 		}
 
 		public void actionPerformed(ActionEvent e) {
-			TreePath p = driverTree.getSelectionPath();
-			logger.debug(String.format("DelAction: p=%s, pathCount=%d", p, p.getPathCount()));
-			if (p != null && p.getPathCount() >= 2) {
-				logger.debug("Removing: " + p.getPathComponent(1));
-				dtm.removeNodeFromParent((MutableTreeNode) p.getPathComponent(1));
-				session.removeDriverJar(p.getPathComponent(1).toString());
-			}		
+            for (TreePath p : driverTree.getSelectionPaths()) {
+                logger.debug(String.format("DelAction: p=%s, pathCount=%d", p, p.getPathCount()));
+                if (p != null && p.getPathCount() >= 2) {
+                    logger.debug("Removing: " + p.getPathComponent(1));
+                    dtm.removeNodeFromParent((MutableTreeNode) p.getPathComponent(1));
+                    session.removeDriverJar(p.getPathComponent(1).toString());
+                }
+            }
 			delButton.setEnabled(false);
 		}
 	}
-		
+
 	protected class LoadJDBCDriversWorker implements Runnable {
 		LoadJDBCDrivers ljd;
 		LoadJDBCDriversWorker (LoadJDBCDrivers ljd) {
-			this.ljd = ljd;	
+			this.ljd = ljd;
 		}
 		public void run() {
 			ljd.execute();
@@ -207,13 +212,13 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 	protected class LoadJDBCDrivers implements Monitorable  {
 
 		public boolean hasStarted = false;
-		public boolean finished = false;		
+		public boolean finished = false;
 		private List driverJarList = null;
-		
+
 
 		private int jarCount = 0; // which member of the JAR file list are we currently processing
 		private JarFile jf = null;
-		private JDBCScanClassLoader cl = null;		
+		private JDBCScanClassLoader cl = null;
 
 		public LoadJDBCDrivers (List driverJarList) throws ArchitectException {
 			this.driverJarList = driverJarList;
@@ -221,10 +226,10 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 			finished = false;
 		}
 
-		public Integer getJobSize() throws ArchitectException {			
+		public Integer getJobSize() throws ArchitectException {
 			return new Integer(driverJarList.size() * 1000);
 		}
-		
+
 		public int getProgress() throws ArchitectException {
 			double fraction = 0.0;
 			if (cl != null) {
@@ -234,24 +239,24 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 			if (logger.isDebugEnabled()) logger.debug("******************* progress is: " + progress + " of " + getJobSize());
 			return progress;
 		}
-		
+
 		public boolean isFinished() throws ArchitectException {
 			return finished;
 		}
-		
+
 		public void setCancelled (boolean cancelled) {
 			// job not cancellable, do nothing
 		}
-		
+
 		public boolean hasStarted() throws ArchitectException {
 			return hasStarted;
 		}
-		
+
 		public String getMessage () {
 			return null; // no messages returned from this job
 		}
-		
-		public void execute() {	        
+
+		public void execute() {
 			hasStarted = true;
 			try {
 				Iterator it = driverJarList.iterator();
@@ -299,7 +304,7 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 						JOptionPane.showMessageDialog(JDBCDriverPanel.this, "Could not read JAR file \""
 													  +ffile.getPath()+"\"\n"+fex.getMessage());
 					}
-				});				
+				});
 			}
 		}
 	}
@@ -312,7 +317,7 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 		JarFile jf;
 		List drivers;
 		int count = 0;
-		
+
 
 		/**
 		 * Creates a class loader that uses this class's class loader
