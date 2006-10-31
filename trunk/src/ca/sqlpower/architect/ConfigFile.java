@@ -2,7 +2,6 @@ package ca.sqlpower.architect;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.List;
 import java.util.prefs.BackingStoreException;
@@ -23,26 +22,21 @@ import ca.sqlpower.architect.swingui.SwingUserSettings;
  */
 public class ConfigFile {
 
+    private static final int MAX_DRIVER_JAR_FILE_NAMES = 99;
+
+    protected static final String JAR_FILE_NODE_NAME = "jarfiles";
+
+    protected static final String PREFS_JARFILE_PREFIX = "JDBCJarFile.";
+
 	private static final Logger logger = Logger.getLogger(ConfigFile.class);
 
 	private static ConfigFile singleton;
     private Preferences prefs;
+
 	/**
 	 * The input or output file.
 	 */
 	protected File file;
-
-	/**
-	 * Where to write xml output to, or null if we're not in write
-	 * mode.
-	 */
-	protected PrintWriter out;
-
-	/**
-	 * The current amount of indentation (xml nesting level) in the
-	 * output file.
-	 */
-	protected int indent;
 
 	private ConfigFile() {
 
@@ -67,24 +61,19 @@ public class ConfigFile {
 
 		CoreUserSettings userSettings = new CoreUserSettings();
 
-		int i;
-		for (i = 0; i <= 99; i++) {
-			String jarName = prefs.get(jarFilePrefName(i), null);
-			logger.debug("read Jar File entry: " + jarName);
-			if (jarName == null) {
-				break;
-			}
-
-			logger.debug("Adding JarName: " + jarName);
-			session.addDriverJar(jarName);
-
-		}
-		// XXX Put prefs in sub-node, just delete it before you start.
-		for (; i <= 99; i++) {
-            if (prefs.get(jarFilePrefName(i), null) != null) {
-                prefs.remove(jarFilePrefName(i));
+        Preferences jarNode = prefs.node(JAR_FILE_NODE_NAME);
+        logger.debug("PreferencesManager.load(): jarNode " + jarNode);
+        session.removeAllDriverJars();
+        for (int i = 0; i <= MAX_DRIVER_JAR_FILE_NAMES; i++) {
+            String jarName = jarNode.get(jarFilePrefName(i), null);
+            logger.debug("read Jar File entry: " + jarName);
+            if (jarName == null) {
+                break;
             }
-		}
+
+            logger.debug("Adding JarName: " + jarName);
+            session.addDriverJar(jarName);
+        }
 
 		userSettings.setPlDotIniPath(prefs.get("PL.INI.PATH", null));
 
@@ -115,25 +104,37 @@ public class ConfigFile {
 
 	public void write(ArchitectSession session) throws ArchitectException {
 		logger.debug("Saving prefs to java.util.prefs");
-        if ( prefs == null ) {
-            prefs = ArchitectFrame.getMainInstance().getPrefs();
-        }
 
 		CoreUserSettings userSettings = session.getUserSettings();
 
-		List<String> driverJarList = session.getDriverJarList();
-		Iterator<String> it = driverJarList.iterator();
-		for (int i = 0 ; i <= 99; i++) {
-			if (it.hasNext()) {
-				String name = it.next();
-				logger.debug("Putting JAR " + i + " " + name);
-				prefs.put(jarFilePrefName(i), name);
-			} else {
-				// XXX optimize this - make jar file be its own node, just delete the node before starting.
-				prefs.remove(jarFilePrefName(i));
-			}
-		}
+        // Delete and re-create jar file sub-node
+        try {
+            prefs.node(JAR_FILE_NODE_NAME).removeNode();
+            prefs.flush();
+            if (prefs.nodeExists(JAR_FILE_NODE_NAME)) {
+                System.err.println("Warning: Jar Node Still Exists!!");
+            }
+        } catch (BackingStoreException e) {
+            // Do nothing, this is OK
+            logger.warn("Error: BackingStoreException while removing or testing previous Jar Node!!");
+        }
 
+        Preferences jarNode = prefs.node(JAR_FILE_NODE_NAME);   // (re)-create
+        List<String> driverJarList = session.getDriverJarList();
+        Iterator<String> it = driverJarList.iterator();
+        for (int i = 0 ; i <= MAX_DRIVER_JAR_FILE_NAMES; i++) {
+            if (it.hasNext()) {
+                String name = it.next();
+                logger.debug("Putting JAR " + i + " " + name);
+                jarNode.put(jarFilePrefName(i), name);
+            }
+        }
+
+        try {
+            prefs.flush();
+        } catch (BackingStoreException e) {
+            throw new RuntimeException("Unable to flush Java preferences", e);
+        }
 
 		prefs.put("PL.INI.PATH", userSettings.getPlDotIniPath());
 
