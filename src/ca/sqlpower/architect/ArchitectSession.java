@@ -79,7 +79,11 @@ public class ArchitectSession {
 	public boolean removeDriverJar(String fullPath) {
 		return driverJarList.remove(fullPath);
 	}
-	
+
+    public void removeAllDriverJars() {
+        driverJarList.clear();
+    }
+
 	public void clearDriverJarList() {
 		driverJarList.clear();
 	}
