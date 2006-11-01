@@ -343,7 +343,7 @@ public class ArchitectUtils {
 	 */
 	public static Map<String,String> getDriverTemplateMap() {
 		Map<String,String> drivers = new HashMap<String,String>();
-		drivers.put("oracle.jdbc.driver.OracleDriver",
+		drivers.put("oracle.jdbc.OracleDriver",
 					"jdbc:oracle:thin:@<Hostname>:<Port:1521>:<Instance>");
 		drivers.put("com.microsoft.jdbc.sqlserver.SQLServerDriver",
 					"jdbc:microsoft:sqlserver://<Hostname>:<Port:1433>;SelectMethod=cursor");
