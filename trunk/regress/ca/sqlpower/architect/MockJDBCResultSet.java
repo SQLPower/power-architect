@@ -65,16 +65,28 @@ public class MockJDBCResultSet implements ResultSet {
 		last();
 	}
 	
+    /**
+     * Adds a new row with the represented by row
+     * @param row the row data
+     */
+    public void addRow(Object[] row){
+        rows.add(row);
+    }
+    
 	/**
 	 * Stores a lower-case version of name for the columnIndexth column.
 	 * 
 	 * @param columnIndex The index of the column to (re)name.  This starts with 1, not 0.
 	 * @param name The name the give the column.
 	 */
-	void setColumnName(int columnIndex, String name) {
+	public void setColumnName(int columnIndex, String name) {
 		columnNames[columnIndex-1] = name.toLowerCase();
 	}
 	
+    public void setColumnCount(int columns) {
+        this.columnCount = columns;
+        columnNames = new String[columns];
+    }
 	
 	// ============ java.sql.ResultSet implementation is below this line ===========
 	
@@ -166,7 +178,12 @@ public class MockJDBCResultSet implements ResultSet {
 	}
 
 	public String getString(String columnName) throws SQLException {
-		throw new UnsupportedOperationException("Not implemented");
+        int i=0;
+		for (String s :columnNames){
+		    if (s.equals(columnName)) return (String)rows.get(currentRow)[i];
+            i++;
+        }
+        return null;
 	}
 
 	public boolean getBoolean(String columnName) throws SQLException {
