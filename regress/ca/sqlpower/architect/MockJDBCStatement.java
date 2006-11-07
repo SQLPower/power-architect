@@ -77,8 +77,11 @@ public class MockJDBCStatement implements Statement {
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
+    /**
+     * Creates a new empty result set.
+     */
 	public ResultSet getResultSet() throws SQLException {
-		throw new UnsupportedOperationException("Not implemented");
+		return new MockJDBCResultSet(this,0);
 	}
 
 	public int getUpdateCount() throws SQLException {
