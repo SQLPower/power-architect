@@ -178,12 +178,7 @@ public class MockJDBCResultSet implements ResultSet {
 	}
 
 	public String getString(String columnName) throws SQLException {
-        int i=0;
-		for (String s :columnNames){
-		    if (s.equals(columnName)) return (String)rows.get(currentRow)[i];
-            i++;
-        }
-        return null;
+        throw new UnsupportedOperationException("Not implemented");
 	}
 
 	public boolean getBoolean(String columnName) throws SQLException {
@@ -711,7 +706,7 @@ public class MockJDBCResultSet implements ResultSet {
 	}
 
 	public int findColumn(String columnName) throws SQLException {
-		return Arrays.asList(columnNames).indexOf(columnName.toLowerCase());
+		return Arrays.asList(columnNames).indexOf(columnName.toLowerCase())+1;
 	}
 
 }
