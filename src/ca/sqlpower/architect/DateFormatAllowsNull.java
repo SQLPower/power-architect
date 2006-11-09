@@ -5,14 +5,13 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * to handle to null date object
- *
+ * A DateFormat object that safely passes nulls through format().  You still can't parse() null though.
  */
 public class DateFormatAllowsNull extends SimpleDateFormat {
 
 
-	public DateFormatAllowsNull(String string) {
-		super(string);
+	public DateFormatAllowsNull(String format) {
+		super(format);
 	}
 
     public DateFormatAllowsNull() {
