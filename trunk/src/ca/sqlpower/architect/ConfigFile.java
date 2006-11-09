@@ -21,7 +21,7 @@ import ca.sqlpower.architect.swingui.SwingUserSettings;
  */
 public class ConfigFile {
 
-    private static final int MAX_DRIVER_JAR_FILE_NAMES = 99;
+     private static final int MAX_DRIVER_JAR_FILE_NAMES = 99;
 
     protected static final String JAR_FILE_NODE_NAME = "jarfiles";
 
@@ -74,7 +74,7 @@ public class ConfigFile {
             session.addDriverJar(jarName);
         }
 
-		userSettings.setPlDotIniPath(prefs.get("PL.INI.PATH", null));
+		userSettings.setPlDotIniPath(prefs.get(ArchitectSession.PREFS_PL_INI_PATH, null));
 
 		UserSettings swingUserSettings = userSettings.getSwingSettings();
 		swingUserSettings.setBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED,
@@ -135,7 +135,7 @@ public class ConfigFile {
             throw new RuntimeException("Unable to flush Java preferences", e);
         }
 
-		prefs.put("PL.INI.PATH", userSettings.getPlDotIniPath());
+		prefs.put(ArchitectSession.PREFS_PL_INI_PATH, userSettings.getPlDotIniPath());
 
 		UserSettings swingUserSettings = userSettings.getSwingSettings();
 		prefs.putBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED,
