@@ -20,6 +20,9 @@ import java.util.List;
  * @author fuerth
  */
 public class ArchitectSession {
+    
+    public static final String PREFS_PL_INI_PATH = "PL.INI.PATH";
+
 	protected static ArchitectSession instance;
 	protected CoreUserSettings userSettings;
 	protected JDBCClassLoader jdbcClassLoader;
