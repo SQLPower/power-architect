@@ -246,14 +246,10 @@ public class ArchitectFrame extends JFrame {
 	    //TypeMap.getInstance();
 	    contentPane = (JComponent)getContentPane();
 
-		try {
-			ConfigFile cf = ConfigFile.getDefaultInstance();
-			us = cf.read(getArchitectSession());
-			architectSession.setUserSettings(us);
-			sprefs = architectSession.getUserSettings().getSwingSettings();
-		} catch (IOException e) {
-			throw new ArchitectException("prefs.read", e);
-		}
+	    ConfigFile cf = ConfigFile.getDefaultInstance();
+	    us = cf.read(getArchitectSession());
+	    architectSession.setUserSettings(us);
+	    sprefs = architectSession.getUserSettings().getSwingSettings();
 
 		while (!us.isPlDotIniPathValid()) {
 		    String message;
