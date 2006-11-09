@@ -65,7 +65,7 @@ import ca.sqlpower.architect.diff.DiffType;
 import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
 import ca.sqlpower.architect.swingui.CompareDMSettings.DatastoreType;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
-import ca.sqlpower.architect.swingui.action.DBCS_OkAction;
+import ca.sqlpower.architect.swingui.action.DBCSOkAction;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.debug.FormDebugPanel;
@@ -210,7 +210,7 @@ public class CompareDMPanel extends JPanel {
 				final DBCSPanel dbcsPanel = new DBCSPanel();
 				dbcsPanel.setDbcs(new ArchitectDataSource());
 
-				DBCS_OkAction okAction = new DBCS_OkAction(dbcsPanel, true);
+				DBCSOkAction okAction = new DBCSOkAction(dbcsPanel, true);
 				okAction.setConnectionSelectionCallBack(SourceOrTargetStuff.this);
 				Action cancelAction = new AbstractAction() {
 					public void actionPerformed(ActionEvent e) {

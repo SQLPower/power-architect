@@ -89,7 +89,7 @@ import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.Relationship.RelationshipDecorationMover;
 import ca.sqlpower.architect.swingui.action.CancelAction;
-import ca.sqlpower.architect.swingui.action.DBCS_OkAction;
+import ca.sqlpower.architect.swingui.action.DBCSOkAction;
 import ca.sqlpower.architect.swingui.action.SetDataSourceAction;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
@@ -988,7 +988,7 @@ public class PlayPen extends JPanel
 			
 
 		dbcsPanel.setDbcs(db.getDataSource());		
-		DBCS_OkAction okAction = new DBCS_OkAction(dbcsPanel, false);
+		DBCSOkAction okAction = new DBCSOkAction(dbcsPanel, false);
 		
 		Action cancelAction = new AbstractAction() {
 			public void actionPerformed(ActionEvent e) {
