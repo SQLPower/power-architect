@@ -342,6 +342,7 @@ public class ASUtils {
         if (parent == null) {
             logger.error("displayExceptionDialog with null parent for message " + message);
         }
+        logger.debug("displayExceptionDialog: showing exception dialog for:", throwable);
         StringWriter traceWriter = new StringWriter();
         throwable.printStackTrace(new PrintWriter(traceWriter));
         JPanel messageComponent = new JPanel(new BorderLayout());
