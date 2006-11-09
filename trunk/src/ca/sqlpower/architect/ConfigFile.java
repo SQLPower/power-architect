@@ -1,7 +1,6 @@
 package ca.sqlpower.architect;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.prefs.BackingStoreException;
@@ -52,7 +51,7 @@ public class ConfigFile {
 
 	// -------------------- READING THE "FILE" --------------------------
 
-	public CoreUserSettings read(ArchitectSession session) throws IOException {
+	public CoreUserSettings read(ArchitectSession session) {
 		logger.debug("loading UserSettings from java.util.prefs.");
         if ( prefs == null ) {
             prefs = ArchitectFrame.getMainInstance().getPrefs();
