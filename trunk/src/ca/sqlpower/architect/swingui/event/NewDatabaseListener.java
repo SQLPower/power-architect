@@ -12,7 +12,7 @@ import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.DBCSPanel;
-import ca.sqlpower.architect.swingui.action.DBCS_OkAction;
+import ca.sqlpower.architect.swingui.action.DBCSOkAction;
 
 /**
  * When a new database connection has been established, this listener
@@ -35,7 +35,7 @@ public class NewDatabaseListener implements ActionListener {
 		
 		dbcsPanel.setDbcs(new ArchitectDataSource());
 
-		DBCS_OkAction okButton = new DBCS_OkAction(dbcsPanel,true);
+		DBCSOkAction okButton = new DBCSOkAction(dbcsPanel,true);
 		
 		Action cancelAction = new AbstractAction() {
 			public void actionPerformed(ActionEvent evt) {

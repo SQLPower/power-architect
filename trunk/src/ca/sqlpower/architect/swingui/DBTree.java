@@ -49,7 +49,7 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.profile.ProfileManager;
-import ca.sqlpower.architect.swingui.action.DBCS_OkAction;
+import ca.sqlpower.architect.swingui.action.DBCSOkAction;
 import ca.sqlpower.architect.swingui.action.ProfilePanelAction;
 import ca.sqlpower.architect.swingui.action.SetDataSourceAction;
 
@@ -582,7 +582,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 			dbcsPanel.setDbcs(new ArchitectDataSource());
 
 
-			DBCS_OkAction okButton = new DBCS_OkAction(dbcsPanel,true);
+			DBCSOkAction okButton = new DBCSOkAction(dbcsPanel,true);
 			okButton.setConnectionSelectionCallBack(DBTree.this);
 			Action cancelAction = new AbstractAction() {
 				public void actionPerformed(ActionEvent evt) {
@@ -707,7 +707,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 				dbcsPanel.setDbcs(dbcs);
 
 
-				DBCS_OkAction okButton = new DBCS_OkAction(dbcsPanel,false);
+				DBCSOkAction okButton = new DBCSOkAction(dbcsPanel,false);
 
 				Action cancelAction = new AbstractAction() {
 					public void actionPerformed(ActionEvent evt) {

@@ -1,6 +1,3 @@
-/**
- *
- */
 package ca.sqlpower.architect.swingui.action;
 
 import java.awt.Component;
@@ -22,8 +19,8 @@ import ca.sqlpower.architect.swingui.DBCSPanel;
 import ca.sqlpower.architect.swingui.DBConnectionCallBack;
 import ca.sqlpower.architect.swingui.TextPanel;
 
-public final class DBCS_OkAction extends AbstractAction {
-	private final static Logger logger = Logger.getLogger(DBCS_OkAction.class);
+public final class DBCSOkAction extends AbstractAction {
+	private final static Logger logger = Logger.getLogger(DBCSOkAction.class);
 	private final DBCSPanel dbcsPanel;
 	private JDialog newConnectionDialog;
 	private boolean isNew;
@@ -34,12 +31,12 @@ public final class DBCS_OkAction extends AbstractAction {
 
 
     /**
-     * create the DBCS_OkAction object, use the default pl.ini from the
+     * create the DBCSOkAction object, use the default pl.ini from the
      * ArchitectFrame
      * @param dbcsPanel
      * @param isNew
      */
-    public DBCS_OkAction(DBCSPanel dbcsPanel, boolean isNew) {
+    public DBCSOkAction(DBCSPanel dbcsPanel, boolean isNew) {
         this(dbcsPanel,
                 isNew,
                 ArchitectFrame.getMainInstance().getUserSettings().getPlDotIni());
@@ -47,13 +44,13 @@ public final class DBCS_OkAction extends AbstractAction {
 
 
     /**
-     * create a DBCS_OkAction object, and user the pl.ini that passed in
+     * create a DBCSOkAction object, and use the pl.ini that passed in
      * instead of the one from ArchitectFrame
      * @param dbcsPanel
      * @param isNew
      * @param plDotIni
      */
-	public DBCS_OkAction(DBCSPanel dbcsPanel, boolean isNew, PlDotIni plDotIni) {
+	public DBCSOkAction(DBCSPanel dbcsPanel, boolean isNew, PlDotIni plDotIni) {
 	    super("Ok");
 	    this.dbcsPanel = dbcsPanel;
 	    this.isNew = isNew;
