@@ -13,7 +13,6 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
-import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.CommonCloseAction;
 import ca.sqlpower.architect.swingui.CompareDMPanel;
 import ca.sqlpower.architect.swingui.JDefaultButton;
@@ -58,7 +57,7 @@ public class CompareDMAction extends AbstractAction {
 		JButton cancelButton = new JButton(new CommonCloseAction(d));	
 		buttonPanel.add(cancelButton);
 		cp.add(buttonPanel, BorderLayout.SOUTH);
-		ArchitectPanelBuilder.makeJDialogCancellable(d, cancelButton.getAction());
+		ASUtils.makeJDialogCancellable(d, cancelButton.getAction());
 		d.getRootPane().setDefaultButton(okButton);
 		d.setContentPane(cp);
 		d.pack();

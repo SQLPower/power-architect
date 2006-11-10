@@ -6,6 +6,7 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Shape;
 import java.awt.Window;
+import java.awt.event.ActionEvent;
 import java.awt.geom.Line2D;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
@@ -17,7 +18,13 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.ActionMap;
 import javax.swing.ImageIcon;
+import javax.swing.InputMap;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -25,6 +32,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.KeyStroke;
 import javax.swing.filechooser.FileFilter;
 
 import org.apache.log4j.Logger;
@@ -287,6 +295,34 @@ public class ASUtils {
 	}
 
 	/**
+     * Arrange for an existing JDialog to close nicely. Called with an Action,
+     * which will become the cancelAction of the dialog.
+     * Note: we explicitly close the dialog from this code.
+     * @param d
+     * @param cancelAction or null for nothing
+     */
+    public static void makeJDialogCancellable(
+    		final JDialog d,
+    		final Action cancelAction) {
+    
+    	JComponent c = (JComponent) d.getRootPane();
+    
+    	InputMap inputMap = c.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+    	ActionMap actionMap = c.getActionMap();
+    
+    	inputMap.put(KeyStroke.getKeyStroke("ESCAPE"), "cancel");
+    	actionMap.put("cancel", new AbstractAction() {
+    		public void actionPerformed(ActionEvent e) {
+                if ( cancelAction != null ) {
+                    cancelAction.actionPerformed(e);
+                }
+    			d.setVisible(false);
+    			d.dispose();
+    		}
+    	});
+    }
+
+    /**
 	 * Displays a dialog box with the given message and exception,
 	 * allowing the user to examine the stack trace.  The dialog's
 	 * parent component will be the ArchitectFrame's main instance.
