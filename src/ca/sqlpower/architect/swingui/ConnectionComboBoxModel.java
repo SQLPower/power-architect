@@ -14,20 +14,25 @@ import ca.sqlpower.architect.PlDotIni;
 
 public class ConnectionComboBoxModel implements ComboBoxModel, DatabaseListChangeListener {
 
-	ArchitectDataSource selectedItem;
-	List<ArchitectDataSource> connections;
-	List<ListDataListener> listenerList;
+    ArchitectDataSource selectedItem;
+
+    List<ArchitectDataSource> connections;
+
+    List<ListDataListener> listenerList;
+
     PlDotIni plini;
 
-	/**
-	 * Setup a new connection combo box model with the conections found in the PPLDotIni
-	 */
-	public ConnectionComboBoxModel() {
+    /**
+     * Setup a new connection combo box model with the conections found in the
+     * PPLDotIni.
+     */
+    public ConnectionComboBoxModel() {
         this(ArchitectFrame.getMainInstance().getUserSettings().getPlDotIni());
-	}
+    }
 
     /**
-     * Setup a new connection combo box model with the conections found in the PPLDotIni
+     * Setup a new connection combo box model with the conections found in the
+     * PPLDotIni
      */
     public ConnectionComboBoxModel(PlDotIni plini) {
         this.plini = plini;
@@ -36,79 +41,78 @@ public class ConnectionComboBoxModel implements ComboBoxModel, DatabaseListChang
         plini.addDatabaseListChangeListener(this);
     }
 
-	public void cleanup() {
-		plini.removeDatabaseListChangeListener(this);
-	}
+    public void cleanup() {
+        plini.removeDatabaseListChangeListener(this);
+    }
 
-
-	public void setSelectedItem(Object anItem) {
-		int selectedIndex = connections.indexOf(anItem);
-		if (selectedIndex >= 0) {
-			if (anItem instanceof ArchitectDataSource) {
-				selectedItem=(ArchitectDataSource)anItem;
-			} else if (anItem== null ) {
-				selectedItem = null;
-			}
-			fireContentChangedEvent(selectedIndex);
-		}
-	}
+    public void setSelectedItem(Object anItem) {
+        int selectedIndex = connections.indexOf(anItem);
+        if (selectedIndex >= 0) {
+            if (anItem instanceof ArchitectDataSource) {
+                selectedItem = (ArchitectDataSource) anItem;
+            } else if (anItem == null) {
+                selectedItem = null;
+            }
+            fireContentChangedEvent(selectedIndex);
+        }
+    }
 
     public void setSelectedItem(String anItem) {
-
-        for ( ArchitectDataSource ds : connections ) {
-            if ( ds.getName().equals(anItem)) {
+        for (ArchitectDataSource ds : connections) {
+            if (ds.getName().equals(anItem)) {
                 selectedItem = ds;
                 setSelectedItem(selectedItem);
                 return;
             }
         }
-        System.out.println("warning: set selected item:"+anItem);
+        System.out.println("warning: set selected item:" + anItem);
     }
 
-	public Object getSelectedItem() {
-		return selectedItem;
-	}
+    public Object getSelectedItem() {
+        return selectedItem;
+    }
 
-	public int getSize() {
-		return connections.size() +1;
-	}
+    public int getSize() {
+        return connections.size() + 1;
+    }
 
-	public Object getElementAt(int index) {
-		if (index == 0 ){
-			return null;
-		}
-		return connections.get(index -1);
-	}
+    public Object getElementAt(int index) {
+        if (index == 0) {
+            return null;
+        }
+        return connections.get(index - 1);
+    }
 
-	public void addListDataListener(ListDataListener l) {
-		listenerList.add(l);
-	}
+    public void addListDataListener(ListDataListener l) {
+        listenerList.add(l);
+    }
 
-	public void removeListDataListener(ListDataListener l) {
-		listenerList.remove(l);
-	}
+    public void removeListDataListener(ListDataListener l) {
+        listenerList.remove(l);
+    }
 
-	private void fireContentChangedEvent(int index) {
+    private void fireContentChangedEvent(int index) {
 
-		for (int i = listenerList.size() -1 ; i>=0; i--) {
-			listenerList.get(i).contentsChanged(new ListDataEvent(this,ListDataEvent.CONTENTS_CHANGED,index,index));
-		}
-	}
+        for (int i = listenerList.size() - 1; i >= 0; i--) {
+            listenerList.get(i).contentsChanged(new ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, index, index));
+        }
+    }
 
-	public void databaseAdded(DatabaseListChangeEvent e) {
-		connections = plini.getConnections();
+    public void databaseAdded(DatabaseListChangeEvent e) {
+        connections = plini.getConnections();
+        for (int i = listenerList.size() - 1; i >= 0; i--) {
+            listenerList.get(i).contentsChanged(
+                    new ListDataEvent(this, ListDataEvent.INTERVAL_ADDED, e.getListIndex(), e.getListIndex()));
+        }
 
-		for (int i = listenerList.size() -1 ; i>=0; i--) {
-			listenerList.get(i).contentsChanged(new ListDataEvent(this,ListDataEvent.INTERVAL_ADDED,e.getListIndex(),e.getListIndex()));
-		}
+    }
 
-	}
-
-	public void databaseRemoved(DatabaseListChangeEvent e) {
-		connections = plini.getConnections();
-		for (int i = listenerList.size() -1 ; i>=0; i--) {
-			listenerList.get(i).contentsChanged(new ListDataEvent(this,ListDataEvent.INTERVAL_REMOVED,e.getListIndex(),e.getListIndex()));
-		}
-	}
+    public void databaseRemoved(DatabaseListChangeEvent e) {
+        connections = plini.getConnections();
+        for (int i = listenerList.size() - 1; i >= 0; i--) {
+            listenerList.get(i).contentsChanged(
+                    new ListDataEvent(this, ListDataEvent.INTERVAL_REMOVED, e.getListIndex(), e.getListIndex()));
+        }
+    }
 
 }
