@@ -399,6 +399,17 @@
 		</izpack>
 	</target>
 
+	<target name="osx_adapter_jar"
+			description="Creates the osx_packaging_utils/osx_adapter.jar file (only works on OSX)">
+		<javac srcdir="osx_packaging_utils"
+   			   destdir="${build}"
+			   includes="ca/sqlpower/architect/swingui/OSXAdapter.java"
+			   />
+		<jar destfile="osx_packaging_utils/osx_adapter.jar"
+			 basedir="${build}"
+			 includes="ca/sqlpower/architect/swingui/OSXAdapter.class"/>
+	</target>
+	
 	<target name="osx_dist" depends="stage">
 		
 		<!-- The pre-compiled osx adapter class (it only compiles on OS X) -->

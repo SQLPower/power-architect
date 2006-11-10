@@ -1067,16 +1067,16 @@ public class ArchitectFrame extends JFrame {
             try {
                 Class osxAdapter = ClassLoader.getSystemClassLoader().loadClass("ca.sqlpower.architect.swingui.OSXAdapter");
 
-                Class[] defArgs = {ArchitectFrame.class};
+                // The main registration method.  Takes quitAction, prefsAction, aboutAction.
+                Class[] defArgs = { Action.class, Action.class, Action.class };
                 Method registerMethod = osxAdapter.getDeclaredMethod("registerMacOSXApplication", defArgs);
                 if (registerMethod != null) {
-                    Object[] args = { this };
+                    Object[] args = { exitAction, prefAction, aboutAction };
                     registerMethod.invoke(osxAdapter, args);
                 }
-                // This is slightly gross.  to reflectively access methods with boolean args,
-                // use "boolean.class", then pass a Boolean object in as the arg, which apparently
-                // gets converted for you by the reflection system.
-                defArgs[0] = boolean.class;
+
+                // The enable prefs method.  Takes a boolean.
+                defArgs = new Class[] { boolean.class };
                 Method prefsEnableMethod =  osxAdapter.getDeclaredMethod("enablePrefs", defArgs);
                 if (prefsEnableMethod != null) {
                     Object args[] = {Boolean.TRUE};

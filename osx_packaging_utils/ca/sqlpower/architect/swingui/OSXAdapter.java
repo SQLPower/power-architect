@@ -61,6 +61,7 @@ Copyright © 2005 Apple Computer, Inc., All Rights Reserved
 package ca.sqlpower.architect.swingui;
 
 import java.awt.event.ActionEvent;
+import javax.swing.Action;
 
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 
@@ -75,34 +76,39 @@ public class OSXAdapter extends ApplicationAdapter {
     private static com.apple.eawt.Application theApplication;
 
     // reference to the app where the existing quit, about, prefs code is
-    private ArchitectFrame architectFrame;
+    private final Action quitAction;
+    private final Action prefsAction;
+    private final Action aboutAction;
     
-    private OSXAdapter (ArchitectFrame af) {
-        architectFrame = af;
+    
+    private OSXAdapter (Action quitAction, Action prefsAction, Action aboutAction) {
+        this.quitAction = quitAction;
+        this.prefsAction = prefsAction;
+        this.aboutAction = aboutAction;
     }
     
     // implemented handler methods.  These are basically hooks into existing 
     // functionality from the main app, as if it came over from another platform.
     public void handleAbout(ApplicationEvent ae) {
-        if (architectFrame != null) {
+        if (aboutAction != null) {
             ae.setHandled(true);
-            architectFrame.aboutAction.actionPerformed(new ActionEvent(this, 0, null));
+            aboutAction.actionPerformed(new ActionEvent(this, 0, null));
         } else {
-            throw new IllegalStateException("handleAbout: MyApp instance detached from listener");
+            throw new IllegalStateException("handleAbout: about action is null");
         }
     }
     
     public void handlePreferences(ApplicationEvent ae) {
-        if (architectFrame != null) {
-            architectFrame.prefAction.actionPerformed(new ActionEvent(this, 0, null));
+        if (prefsAction != null) {
             ae.setHandled(true);
+            prefsAction.actionPerformed(new ActionEvent(this, 0, null));
         } else {
-            throw new IllegalStateException("handlePreferences: MyApp instance detached from listener");
+            throw new IllegalStateException("handlePreferences: prefs action is null");
         }
     }
     
     public void handleQuit(ApplicationEvent ae) {
-        if (architectFrame != null) {
+        if (quitAction != null) {
             /*  
             /   You MUST setHandled(false) if you want to delay or cancel the quit.
             /   This is important for cross-platform development -- have a universal quit
@@ -111,32 +117,26 @@ public class OSXAdapter extends ApplicationAdapter {
             /   defers to that universal method.
             */
             ae.setHandled(false);
-            architectFrame.exit();
+            quitAction.actionPerformed(new ActionEvent(this, 0, null));
         } else {
-            throw new IllegalStateException("handleQuit: MyApp instance detached from listener");
+            throw new IllegalStateException("handleQuit: quit action is null");
         }
     }
     
     @Override
     public void handleOpenFile(ApplicationEvent ae) {
-        if (architectFrame != null) {
-            String file = ae.getFilename();
-            architectFrame.
-        } else {
-            throw new IllegalStateException("handleQuit: MyApp instance detached from listener");
-        }
+        throw new IllegalStateException("Drag'n'Drop files on the dock not supported yet.");
     }
     
     // The main entry-point for this functionality.  This is the only method
     // that needs to be called at runtime, and it can easily be done using
     // reflection (see MyApp.java) 
-    public static void registerMacOSXApplication(ArchitectFrame af) {
+    public static void registerMacOSXApplication(Action quitAction, Action prefsAction, Action aboutAction) {
         if (theApplication == null) {
             theApplication = new com.apple.eawt.Application();
         }
-        
         if (theAdapter == null) {
-            theAdapter = new OSXAdapter(af);
+            theAdapter = new OSXAdapter(quitAction, prefsAction, aboutAction);
         }
         theApplication.addApplicationListener(theAdapter);
     }
