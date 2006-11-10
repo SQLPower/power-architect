@@ -215,7 +215,7 @@ public class SearchReplace {
         cancelAction.putValue(Action.NAME, ArchitectPanelBuilder.CANCEL_BUTTON_LABEL);
         JButton cancelButton = new JButton(cancelAction);
         
-        ArchitectPanelBuilder.makeJDialogCancellable(d, cancelAction);
+        ASUtils.makeJDialogCancellable(d, cancelAction);
         
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.add(searchButton);
@@ -332,7 +332,7 @@ public class SearchReplace {
 	
 	        Action closeAction = new CommonCloseAction(d);
 	        JButton closeButton = new JButton(closeAction);
-	        ArchitectPanelBuilder.makeJDialogCancellable(d, closeAction);
+	        ASUtils.makeJDialogCancellable(d, closeAction);
 	        
 	        ListSelectionListener buttonActivator = new ListSelectionListener() {
 	            public void valueChanged(ListSelectionEvent e) {

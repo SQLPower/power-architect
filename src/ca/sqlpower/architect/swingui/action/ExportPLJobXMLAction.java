@@ -131,7 +131,7 @@ public class ExportPLJobXMLAction extends AbstractAction {
                 }
         };
         cancelAction.putValue(Action.NAME, ArchitectPanelBuilder.CANCEL_BUTTON_LABEL);
-        ArchitectPanelBuilder.makeJDialogCancellable(d, cancelAction);
+        ASUtils.makeJDialogCancellable(d, cancelAction);
         d.getRootPane().setDefaultButton(okButton);
         JButton cancelButton = new JButton(cancelAction);
         buttonPanel.add(cancelButton);

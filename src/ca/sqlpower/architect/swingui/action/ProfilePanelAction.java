@@ -44,7 +44,6 @@ import ca.sqlpower.architect.profile.ProfileColumn;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
-import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.CommonCloseAction;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.JDefaultButton;
@@ -215,7 +214,7 @@ public class ProfilePanelAction extends AbstractAction {
             final JLabel workingOn = new JLabel("Profiling:");
             progressViewPanel.add(workingOn, BorderLayout.NORTH);
             
-            ArchitectPanelBuilder.makeJDialogCancellable(
+            ASUtils.makeJDialogCancellable(
                     dialog, commonCloseAction);
             dialog.getRootPane().setDefaultButton(closeButton);
             dialog.setContentPane(progressViewPanel);

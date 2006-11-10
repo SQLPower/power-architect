@@ -15,6 +15,7 @@ import javax.swing.JTabbedPane;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.JDBCDriverPanel;
@@ -79,7 +80,7 @@ public class PreferencesAction extends AbstractAction {
 		JButton cancelButton = new JButton(cancelAction);
 		buttonPanel.add(cancelButton);
 		
-		ArchitectPanelBuilder.makeJDialogCancellable(d, cancelAction);
+		ASUtils.makeJDialogCancellable(d, cancelAction);
 		d.getRootPane().setDefaultButton(okButton);
 		cp.add(buttonPanel, BorderLayout.SOUTH);
 		d.setContentPane(cp);

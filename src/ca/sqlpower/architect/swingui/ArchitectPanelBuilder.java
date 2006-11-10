@@ -9,15 +9,12 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
-import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
@@ -116,7 +113,7 @@ public class ArchitectPanelBuilder {
 		}
 
 		okButton.addActionListener(closeAction);
-		makeJDialogCancellable(d, closeAction);
+		ASUtils.makeJDialogCancellable(d, closeAction);
 		okButton.addActionListener(new CommonCloseAction(d));
 		JButton cancelButton = new JDefaultButton(cancelAction);
 		cancelButton.setText(CANCEL_BUTTON_LABEL);
@@ -189,35 +186,6 @@ public class ArchitectPanelBuilder {
 	}
 
 	/**
-	 * Arrange for an existing JDialog to close nicely. Called with an Action,
-	 * which will become the cancelAction of the dialog.
-	 * Note: we explicitly close the dialog from this code.
-	 * @param d
-	 * @param cancelAction or null for nothing
-	 */
-	public static void makeJDialogCancellable(
-			final JDialog d,
-			final Action cancelAction) {
-
-		JComponent c = (JComponent) d.getRootPane();
-
-		InputMap inputMap = c.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-		ActionMap actionMap = c.getActionMap();
-
-		inputMap.put(KeyStroke.getKeyStroke("ESCAPE"), "cancel");
-		actionMap.put("cancel", new AbstractAction() {
-			public void actionPerformed(ActionEvent e) {
-                if ( cancelAction != null ) {
-                    cancelAction.actionPerformed(e);
-                }
-				d.setVisible(false);
-				d.dispose();
-			}
-		});
-	}
-
-
-    /**
      * Build a JDialog around an object that implements ArchitectPanel, to
      * provide consistent behaviours such as Cancel button, <ESC> to close, and
      * so on.
@@ -296,7 +264,7 @@ public class ArchitectPanelBuilder {
         // In all cases we have to close the dialog.
         Action closeAction = new CommonCloseAction(d);
         okButton.addActionListener(closeAction);
-        makeJDialogCancellable(d, closeAction);
+        ASUtils.makeJDialogCancellable(d, closeAction);
         okButton.addActionListener(new CommonCloseAction(d));
 
         // Handle if the user presses Enter in the dialog - do OK action
