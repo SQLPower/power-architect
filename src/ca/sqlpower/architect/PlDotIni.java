@@ -172,6 +172,7 @@ public class PlDotIni {
 	 * Also updates the fileTime.
 	 */
 	public void read(File location) throws IOException {
+        //FIXME: This method needs to be called in more places, ie the constructor?
 	    final int MODE_READ_DS = 0;       // reading a data source section
 	    final int MODE_READ_GENERIC = 1;  // reading a generic named section
 	    int mode = MODE_READ_GENERIC;

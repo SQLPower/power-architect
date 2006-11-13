@@ -21,8 +21,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+
 
 public class ArchitectDataSource {
 
@@ -138,7 +141,53 @@ public class ArchitectDataSource {
 	public static final String PL_IP = "IP";
 	public static final String PL_PORT = "PORT";
 
-	/**
+    /**
+     * This is just for debugging purposes and prints out the difference between
+     * two ArchitectDataSource
+     * @param o2 the object containing the properties
+     */
+    public void diff(ArchitectDataSource o2) {
+        Map<String,String> p2 = o2.properties;
+        dump(properties, p2, DBCS_DRIVER_CLASS);
+        dump(properties, p2, DBCS_URL);
+        dump(properties, p2, PL_LOGICAL);
+        dump(properties, p2, PL_TYPE);
+        dump(properties, p2, PL_DSN);
+        dump(properties, p2, PL_SCHEMA_OWNER);
+        dump(properties, p2, PL_UID);
+        dump(properties, p2, PL_PWD);
+        dump(properties, p2, PL_TNS);
+        dump(properties, p2, PL_DATABASE_NAME);
+        dump(properties, p2, PL_IP);
+        dump(properties, p2, PL_PORT); 
+        Iterator<String> iter = properties.keySet().iterator();
+        while (iter.hasNext()) {
+            System.out.print(iter.next() + ", ");
+        }
+        System.out.println();
+        Iterator<String> iter2 = p2.keySet().iterator();
+        while (iter2.hasNext()) {
+            System.out.print(iter2.next() + ", ");
+        }
+        System.out.println();
+    }
+    
+    /**
+     * This method is for debugging purposes to print out the differences between two maps
+     * @param myMap first map to compare
+     * @param otherMap second map for comparaing
+     * @param key the property to compare
+     */
+	private void dump(Map<String, String> myMap, Map<String, String> otherMap, String key) {
+        String val1 = myMap.get(key);
+        String val2 = otherMap.get(key);
+        System.out.print("Property=" + key + "; me=" + val1 + "; other=" + val2 + ';');
+        if (val1 != null && val2 != null && !val1.equals(val2))
+            System.out.print(" <-- DIFFERENT");
+        System.out.println();
+    }
+    
+    /**
 	 * This field is transient; don't access it directly becuase it
 	 * will disappear when this instance is serialized.
 	 */

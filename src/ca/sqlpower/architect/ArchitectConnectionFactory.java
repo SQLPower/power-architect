@@ -39,7 +39,7 @@ public class ArchitectConnectionFactory implements ConnectionFactory {
 				throw new SQLException("Connection \""+dataSource.getName()+"\" has no JDBC username.");
 			}
 			
-			ArchitectSession session = ArchitectSession.getInstance();
+			ArchitectSession session = ArchitectSessionImpl.getInstance();
 			if (session == null) {
 				throw new SQLException
 				("Can't connect to database \""+dataSource.getName()+

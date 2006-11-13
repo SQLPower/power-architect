@@ -49,6 +49,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.ArchitectSession;
+import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.ConfigFile;
 import ca.sqlpower.architect.CoreUserSettings;
@@ -205,7 +206,7 @@ public class ArchitectFrame extends JFrame {
         setIconImage(new ImageIcon(getClass().getResource("/icons/Architect16.png")).getImage());
 	    // close handled by window listener
 	    setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-	    architectSession = ArchitectSession.getInstance();
+	    architectSession = ArchitectSessionImpl.getInstance();
 	    prefs = PrefsUtils.getUserPrefsNode(architectSession);
 	    init();
 	}
