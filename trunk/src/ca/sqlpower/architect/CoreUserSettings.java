@@ -104,7 +104,7 @@ public class CoreUserSettings {
 	 * Convenience method that calls ArchitectSession.getInstance().addDriverJarPath(path).
 	 */
 	public void addDriverJarPath(String path) {
-		ArchitectSession.getInstance().addDriverJar(path);
+		ArchitectSessionImpl.getInstance().addDriverJar(path);
 	}
 	
     public boolean isPlDotIniPathValid() {
@@ -137,6 +137,11 @@ public class CoreUserSettings {
         }
         return plDotIni;
     }
+    
+    public void setPlDotIni(PlDotIni ini){
+        plDotIni = ini;
+    }
+    
     /**
      * See {@link #plDotIniPath}.
      */

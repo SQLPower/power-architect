@@ -21,7 +21,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectSession;
+import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.DepthFirstSearch;
 import ca.sqlpower.architect.LogWriter;
 import ca.sqlpower.architect.SQLCatalog;
@@ -861,7 +861,7 @@ public class PLExport implements Monitorable {
             currentDB = tablesToExport;
 
             // first, set the logWriter
-            logWriter = new LogWriter(ArchitectSession.getInstance().getUserSettings().getETLUserSettings().getString(
+            logWriter = new LogWriter(ArchitectSessionImpl.getInstance().getUserSettings().getETLUserSettings().getString(
                     ETLUserSettings.PROP_ETL_LOG_PATH, ""));
 
             SQLDatabase repository = new SQLDatabase(repositoryDataSource); // we

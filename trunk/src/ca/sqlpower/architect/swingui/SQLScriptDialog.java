@@ -40,7 +40,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectSession;
+import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.LogWriter;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.ddl.DDLGenerator;
@@ -325,7 +325,7 @@ public class SQLScriptDialog extends JDialog {
 			LogWriter logWriter = null;
 
 			try {
-				logWriter = new LogWriter(ArchitectSession.getInstance().getUserSettings().getDDLUserSettings().getString(DDLUserSettings.PROP_DDL_LOG_PATH,""));
+				logWriter = new LogWriter(ArchitectSessionImpl.getInstance().getUserSettings().getDDLUserSettings().getString(DDLUserSettings.PROP_DDL_LOG_PATH,""));
 			} catch (ArchitectException ex) {
 				finished = true;
 				final Exception fex = ex;
