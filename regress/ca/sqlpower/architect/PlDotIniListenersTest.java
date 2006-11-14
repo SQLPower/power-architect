@@ -3,7 +3,7 @@ package ca.sqlpower.architect;
 import junit.framework.TestCase;
 
 public class PlDotIniListenersTest extends TestCase {
-	PlDotIni pld = new PlDotIni();
+	DataSourceCollection pld = new PlDotIni();
 	ArchitectDataSource dbcs = new ArchitectDataSource();
 	
 	@Override

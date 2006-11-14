@@ -67,7 +67,12 @@ public class MemoryPreferences extends AbstractPreferences {
 	 */
 	MemoryPreferences(AbstractPreferences parent, String name) {
 		super(parent, name);
-		logger.debug(String.format("MemoryPreferences.MemoryPreferences(%s, %s)", parent, name));
+        
+        // note, logger should never be null because it's statically initialised.  However,
+        // it comes out null every time we run the MatchMaker SwingSessionContextTest!  Hmm...
+        if (logger != null && logger.isDebugEnabled()) {
+            logger.debug(String.format("MemoryPreferences.MemoryPreferences(%s, %s)", parent, name));
+        }
 	}
 	
 	@Override

@@ -17,7 +17,7 @@ public class CoreUserSettings {
     /**
      * The parsed list of connections.
      */
-    protected PlDotIni plDotIni;
+    protected DataSourceCollection plDotIni;
     
     /**
      * The location of the PL.INI file.
@@ -122,7 +122,7 @@ public class CoreUserSettings {
      * Tries to read the plDotIni if it hasn't been done already.  If it can't be read,
      * returns null and leaves the plDotIni property as null as well. See {@link #plDotIni}.
      */
-    public PlDotIni getPlDotIni() {
+    public DataSourceCollection getPlDotIni() {
         String path = getPlDotIniPath();
         if (path == null) return null;
         
@@ -138,7 +138,7 @@ public class CoreUserSettings {
         return plDotIni;
     }
     
-    public void setPlDotIni(PlDotIni ini){
+    public void setPlDotIni(DataSourceCollection ini){
         plDotIni = ini;
     }
     

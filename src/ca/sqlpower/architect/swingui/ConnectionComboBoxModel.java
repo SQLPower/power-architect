@@ -8,9 +8,9 @@ import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
 import ca.sqlpower.architect.ArchitectDataSource;
+import ca.sqlpower.architect.DataSourceCollection;
 import ca.sqlpower.architect.DatabaseListChangeEvent;
 import ca.sqlpower.architect.DatabaseListChangeListener;
-import ca.sqlpower.architect.PlDotIni;
 
 public class ConnectionComboBoxModel implements ComboBoxModel, DatabaseListChangeListener {
 
@@ -20,7 +20,7 @@ public class ConnectionComboBoxModel implements ComboBoxModel, DatabaseListChang
 
     List<ListDataListener> listenerList;
 
-    PlDotIni plini;
+    DataSourceCollection plini;
 
     /**
      * Setup a new connection combo box model with the conections found in the
@@ -34,7 +34,7 @@ public class ConnectionComboBoxModel implements ComboBoxModel, DatabaseListChang
      * Setup a new connection combo box model with the conections found in the
      * PPLDotIni
      */
-    public ConnectionComboBoxModel(PlDotIni plini) {
+    public ConnectionComboBoxModel(DataSourceCollection plini) {
         this.plini = plini;
         listenerList = new ArrayList<ListDataListener>();
         connections = plini.getConnections();

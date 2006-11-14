@@ -11,6 +11,7 @@ import java.util.List;
 import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.DataSourceCollection;
 import ca.sqlpower.architect.PlDotIni;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
@@ -36,7 +37,7 @@ public abstract class TestProfileBase extends TestCase {
 
         // FIXME: a better approach would be to have an initialsation method
         // in the business model, which does not depend on the init routine in ArchitectFrame.
-        PlDotIni plini = new PlDotIni();
+        DataSourceCollection plini = new PlDotIni();
         plini.read(new File("pl.regression.ini"));
 
         ArchitectDataSource ds = plini.getDataSource("regression_test");

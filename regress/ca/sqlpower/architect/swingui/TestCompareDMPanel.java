@@ -18,7 +18,7 @@ import junit.extensions.jfcunit.JFCTestHelper;
 import junit.extensions.jfcunit.TestHelper;
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.PlDotIni;
+import ca.sqlpower.architect.DataSourceCollection;
 import ca.sqlpower.architect.SQLObject;
 
 public class TestCompareDMPanel extends JFCTestCase {
@@ -46,7 +46,7 @@ public class TestCompareDMPanel extends JFCTestCase {
 	JRadioButton targetLoadRadio = null;
 	JTextField targetLoadFilePath = null;
 	JButton targetLoadFileButton = null;
-    PlDotIni plDotIni = ArchitectFrame.getMainInstance().getUserSettings().getPlDotIni();
+    DataSourceCollection plDotIni = ArchitectFrame.getMainInstance().getUserSettings().getPlDotIni();
 
 	protected void setUp() throws Exception {
 		super.setUp();
