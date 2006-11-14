@@ -13,7 +13,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectRuntimeException;
-import ca.sqlpower.architect.PlDotIni;
+import ca.sqlpower.architect.DataSourceCollection;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.DBCSPanel;
 import ca.sqlpower.architect.swingui.DBConnectionCallBack;
@@ -26,7 +26,7 @@ public final class DBCSOkAction extends AbstractAction {
 	private boolean isNew;
 	private String oldName;
     private DBConnectionCallBack connectionSelectionCallBack;
-    private PlDotIni plDotIni;
+    private DataSourceCollection plDotIni;
 
 
 
@@ -50,7 +50,7 @@ public final class DBCSOkAction extends AbstractAction {
      * @param isNew
      * @param plDotIni
      */
-	public DBCSOkAction(DBCSPanel dbcsPanel, boolean isNew, PlDotIni plDotIni) {
+	public DBCSOkAction(DBCSPanel dbcsPanel, boolean isNew, DataSourceCollection plDotIni) {
 	    super("Ok");
 	    this.dbcsPanel = dbcsPanel;
 	    this.isNew = isNew;

@@ -34,9 +34,7 @@ import org.apache.log4j.Logger;
  * could result in a bare \n in the encryption...
  * @version $Id$
  */
-public class PlDotIni {
-
-    public static final String DOS_CR_LF = "\r\n";
+public class PlDotIni implements DataSourceCollection {
 
     /**
      * Boolean to control whether we autosave, to prevent calling it while we're already saving.
@@ -167,10 +165,9 @@ public class PlDotIni {
 
     File lastFileAccessed;
 
-	/**
-	 * Reads the PL.INI file at the given location into a new fileSections list.
-	 * Also updates the fileTime.
-	 */
+	/* (non-Javadoc)
+     * @see ca.sqlpower.architect.DataSourceCollection#read(java.io.File)
+     */
 	public void read(File location) throws IOException {
         //FIXME: This method needs to be called in more places, ie the constructor?
 	    final int MODE_READ_DS = 0;       // reading a data source section
@@ -278,13 +275,9 @@ public class PlDotIni {
         return chopBuffer;
     }
 
-    /**
-	 * Writes out every section in the fileSections list in the
-	 * order they appear in that list.
-	 *
-	 * @param location The location to write to.
-	 * @throws IOException if the location is not writeable for any reason.
-	 */
+    /* (non-Javadoc)
+     * @see ca.sqlpower.architect.DataSourceCollection#write(java.io.File)
+     */
 	public void write(File location) throws IOException {
         try {
             dontAutoSave = true;
@@ -362,13 +355,9 @@ public class PlDotIni {
 	    }
 	}
 
-	/**
-	 * Searches the list of connections for one with the given name.
-	 *
-	 * @param name The Logical datbabase name to look for.
-	 * @return the first ArchitectDataSource in the file whose name matches the
-	 * given name, or null if no such datasource exists.
-	 */
+	/* (non-Javadoc)
+     * @see ca.sqlpower.architect.DataSourceCollection#getDataSource(java.lang.String)
+     */
 	public ArchitectDataSource getDataSource(String name) {
 	    Iterator it = fileSections.iterator();
 	    while (it.hasNext()) {
@@ -382,8 +371,8 @@ public class PlDotIni {
 	    return null;
 	}
 
-    /**
-     * @return a sorted List of all the data sources in this pl.ini.
+    /* (non-Javadoc)
+     * @see ca.sqlpower.architect.DataSourceCollection#getConnections()
      */
     public List<ArchitectDataSource> getConnections() {
         List<ArchitectDataSource> connections = new ArrayList<ArchitectDataSource>();
@@ -398,6 +387,9 @@ public class PlDotIni {
         return connections;
     }
 
+    /* (non-Javadoc)
+     * @see ca.sqlpower.architect.DataSourceCollection#toString()
+     */
     public String toString() {
         OutputStream out = new ByteArrayOutputStream();
         try {
@@ -471,10 +463,8 @@ public class PlDotIni {
         return plaintext.toString();
 	}
 
-    /**
-     * Adds a new data source to the end of this file's list of sections.
-     *
-     * @param dbcs The new data source to add
+    /* (non-Javadoc)
+     * @see ca.sqlpower.architect.DataSourceCollection#addDataSource(ca.sqlpower.architect.ArchitectDataSource)
      */
 	public void addDataSource(ArchitectDataSource dbcs) {
 		String newName = dbcs.getDisplayName();
@@ -490,10 +480,8 @@ public class PlDotIni {
 		add(dbcs);
     }
 
-	/**
-     * Make sure an ArchitectDataSource is in the master list; either copy its properties
-     * to one with the same name found in the list, OR, add it to the list.
-     * @param dbcs
+	/* (non-Javadoc)
+     * @see ca.sqlpower.architect.DataSourceCollection#mergeDataSource(ca.sqlpower.architect.ArchitectDataSource)
      */
     public void mergeDataSource(ArchitectDataSource dbcs) {
     	String newName = dbcs.getDisplayName();
@@ -515,6 +503,9 @@ public class PlDotIni {
         add(dbcs);
     }
 
+    /* (non-Javadoc)
+     * @see ca.sqlpower.architect.DataSourceCollection#removeDataSource(ca.sqlpower.architect.ArchitectDataSource)
+     */
     public void removeDataSource(ArchitectDataSource dbcs) {
         for ( int where=0; where<fileSections.size(); where++ ) {
             Object o  = fileSections.get(where);
@@ -557,12 +548,18 @@ public class PlDotIni {
 		}
     }
 
+    /* (non-Javadoc)
+     * @see ca.sqlpower.architect.DataSourceCollection#addDatabaseListChangeListener(ca.sqlpower.architect.DatabaseListChangeListener)
+     */
     public void addDatabaseListChangeListener(DatabaseListChangeListener l) {
     	synchronized(listeners) {
     		listeners.add(l);
     	}
     }
 
+    /* (non-Javadoc)
+     * @see ca.sqlpower.architect.DataSourceCollection#removeDatabaseListChangeListener(ca.sqlpower.architect.DatabaseListChangeListener)
+     */
     public void removeDatabaseListChangeListener(DatabaseListChangeListener l) {
     	synchronized(listeners) {
     		listeners.remove(l);

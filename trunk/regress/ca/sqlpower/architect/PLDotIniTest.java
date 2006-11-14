@@ -11,7 +11,7 @@ import junit.framework.TestCase;
 public class PLDotIniTest extends TestCase {
 
 	private static final String FUN_DATASOURCE_NAME = "broomhilda";
-	private PlDotIni target;
+	private DataSourceCollection target;
 
 	@Override
 	public void setUp() {
@@ -37,17 +37,17 @@ public class PLDotIniTest extends TestCase {
 		
 		// The PLDotIni class ONLY reads files with ye anciente MS-DOS line endings...
 		PrintWriter out = new PrintWriter(tmp);
-		out.print("[random_crap]" + PlDotIni.DOS_CR_LF);
-		out.print("foo=bar" + PlDotIni.DOS_CR_LF);
-		out.print("fred=george" + PlDotIni.DOS_CR_LF);
-		out.print("[Databases_1]" + PlDotIni.DOS_CR_LF);
-		out.print("Logical=" + FUN_DATASOURCE_NAME + PlDotIni.DOS_CR_LF);
-		out.print("Type=POSTGRES" + PlDotIni.DOS_CR_LF);
-		out.print("JDBC Driver Class=org.postgresql.Driver" + PlDotIni.DOS_CR_LF);
-		out.print("PWD=" + PlDotIni.DOS_CR_LF);
-		out.print("L Schema Owner=" + PlDotIni.DOS_CR_LF);
-		out.print("DSN=" + PlDotIni.DOS_CR_LF);
-		out.print("JDBC URL=jdbc:postgresql://:5432/" + PlDotIni.DOS_CR_LF);
+		out.print("[random_crap]" + DataSourceCollection.DOS_CR_LF);
+		out.print("foo=bar" + DataSourceCollection.DOS_CR_LF);
+		out.print("fred=george" + DataSourceCollection.DOS_CR_LF);
+		out.print("[Databases_1]" + DataSourceCollection.DOS_CR_LF);
+		out.print("Logical=" + FUN_DATASOURCE_NAME + DataSourceCollection.DOS_CR_LF);
+		out.print("Type=POSTGRES" + DataSourceCollection.DOS_CR_LF);
+		out.print("JDBC Driver Class=org.postgresql.Driver" + DataSourceCollection.DOS_CR_LF);
+		out.print("PWD=" + DataSourceCollection.DOS_CR_LF);
+		out.print("L Schema Owner=" + DataSourceCollection.DOS_CR_LF);
+		out.print("DSN=" + DataSourceCollection.DOS_CR_LF);
+		out.print("JDBC URL=jdbc:postgresql://:5432/" + DataSourceCollection.DOS_CR_LF);
 		out.flush();
 		out.close();
 		return tmp;

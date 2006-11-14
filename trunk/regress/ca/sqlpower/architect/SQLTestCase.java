@@ -52,7 +52,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 		ArchitectFrame.getMainInstance();  // creates an ArchitectFrame, which loads settings
 		//FIXME: a better approach would be to have an initialsation method
 		// in the business model, which does not depend on the init routine in ArchitectFrame.
-		PlDotIni plini = new PlDotIni();
+		DataSourceCollection plini = new PlDotIni();
 		plini.read(new File("pl.regression.ini"));
 		return plini.getDataSource("regression_test");
 	}
