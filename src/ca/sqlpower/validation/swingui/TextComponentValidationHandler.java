@@ -39,7 +39,7 @@ public class TextComponentValidationHandler extends ValidationHandler {
                     public void run() {
                         String text = source.getText();
                         boolean oK = validator.validate(text);
-                        System.out.printf("Validating %s (%b)%n", text, oK);
+                        //System.out.printf("Validating %s (%b)%n", text, oK);
                         statusComponent.setError(!oK);
                         if (!oK) {
                             statusComponent.setText(validator.getMessage());
