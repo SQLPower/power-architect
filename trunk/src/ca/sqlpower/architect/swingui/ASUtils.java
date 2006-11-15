@@ -2,15 +2,20 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dialog;
 import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.Shape;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.geom.Line2D;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -23,6 +28,7 @@ import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.ImageIcon;
 import javax.swing.InputMap;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -36,6 +42,8 @@ import javax.swing.KeyStroke;
 import javax.swing.filechooser.FileFilter;
 
 import org.apache.log4j.Logger;
+
+import com.darwinsys.swingui.UtilGUI;
 
 import ca.sqlpower.architect.qfa.ExceptionReport;
 
@@ -304,12 +312,12 @@ public class ASUtils {
     public static void makeJDialogCancellable(
     		final JDialog d,
     		final Action cancelAction) {
-    
+
     	JComponent c = (JComponent) d.getRootPane();
-    
+
     	InputMap inputMap = c.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
     	ActionMap actionMap = c.getActionMap();
-    
+
     	inputMap.put(KeyStroke.getKeyStroke("ESCAPE"), "cancel");
     	actionMap.put("cancel", new AbstractAction() {
     		public void actionPerformed(ActionEvent e) {
@@ -374,21 +382,85 @@ public class ASUtils {
        displayExceptionDialog(parent, string, ex);
     }
 
+    private static JDialog dialog;
     private static void displayExceptionDialog(Component parent, String message, Throwable throwable) {
         if (parent == null) {
             logger.error("displayExceptionDialog with null parent for message " + message);
+        } else if (parent instanceof Frame) {
+            dialog = new JDialog((Frame) parent, "Error Report");
+        } else if (parent instanceof Dialog) {
+            dialog = new JDialog((Dialog)parent, "Error Report");
+        } else {
+            logger.error("non-null parent component is neither frame nor dialog");
         }
         logger.debug("displayExceptionDialog: showing exception dialog for:", throwable);
-        StringWriter traceWriter = new StringWriter();
+
+        // Details information
+        final StringWriter traceWriter = new StringWriter();
         throwable.printStackTrace(new PrintWriter(traceWriter));
-        JPanel messageComponent = new JPanel(new BorderLayout());
-        messageComponent.add(new JLabel(message), BorderLayout.NORTH);
-        messageComponent.add(new JScrollPane(new JTextArea(traceWriter.toString())), BorderLayout.CENTER);
-        messageComponent.setPreferredSize(new Dimension(600, 400));
-        JOptionPane.showMessageDialog(parent,
-                                      messageComponent,
-                                      "Error Report",
-                                      JOptionPane.ERROR_MESSAGE);
+        try {
+            traceWriter.close();
+        } catch (IOException e1) {
+            // who cares!?
+        }
+
+        final JPanel messageComponent = new JPanel(new BorderLayout());
+        JPanel top = new JPanel(new GridLayout(0,1, 5, 5));
+        final String LAYOUT_START = "<html><font color='red'><size='+4'>";
+        final String LAYOUT_END   = "</size></font>";
+        JLabel messageLabel =
+            new JLabel(LAYOUT_START + message + LAYOUT_END);
+        top.add(messageLabel);
+        JLabel errClassLabel = new JLabel(throwable.getClass().getName());
+        top.add(errClassLabel);
+        String excDetailMessage = throwable.getMessage();
+        if (excDetailMessage != null) {
+            top.add(new JLabel(excDetailMessage));
+        }
+        dialog.add(top, BorderLayout.NORTH);
+        final JScrollPane detailScroller = new JScrollPane(new JTextArea(traceWriter.toString()));
+        //detailScroller.setVisible(false);
+        messageComponent.add(detailScroller, BorderLayout.CENTER);
+        messageComponent.setPreferredSize(new Dimension(700, 400));
+
+        final Dimension SIZE_NODETAILS = new Dimension(350, 200);
+
+        final JButton detailsButton = new JButton("Show Details");
+        // N.B. AbstractAction in a JButton does not update the label
+        // automatically when you change the SHORT_DESCRIPTION value.
+        ActionListener detailsAction = new ActionListener() {
+            boolean showDetails = true;
+            public void actionPerformed(ActionEvent e) {
+                System.out.println("showDetails=" + showDetails);
+                if (showDetails) {
+                    dialog.add(messageComponent, BorderLayout.CENTER);
+                    detailsButton.setText("Hide Details");
+                    dialog.pack();
+                } else /* hide details */ {
+                    dialog.remove(messageComponent);
+                    detailsButton.setText("Show Details");
+                    dialog.setSize(SIZE_NODETAILS);
+                }
+                showDetails = ! showDetails;
+            }
+        };
+        detailsButton.addActionListener(detailsAction);
+        JButton okButton = new JButton("OK");
+        okButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                dialog.dispose();
+                dialog.setVisible(false);
+            }
+        });
+        JPanel bottom = new JPanel();
+        bottom.add(detailsButton);
+        bottom.add(okButton);
+        dialog.add(bottom, BorderLayout.SOUTH);
+        dialog.setSize(SIZE_NODETAILS);
+        if (parent == null) {
+            UtilGUI.centre(dialog);
+        }
+        dialog.setVisible(true);
     }
 
 	public static String lineToString(Line2D.Double l) {
