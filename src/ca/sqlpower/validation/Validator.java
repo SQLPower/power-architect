@@ -10,7 +10,7 @@ public interface Validator {
      * @param contents A String, or JComboBox, or whatever
      * @return
      */
-    public boolean validate(Object contents);
+    public Status validate(Object contents);
 
     /**
      * Return the failure message, if validate() returned false.

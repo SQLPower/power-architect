@@ -7,6 +7,7 @@ import java.awt.event.KeyEvent;
 import javax.swing.SwingUtilities;
 import javax.swing.text.JTextComponent;
 
+import ca.sqlpower.validation.Status;
 import ca.sqlpower.validation.Validator;
 
 /**
@@ -23,30 +24,40 @@ import ca.sqlpower.validation.Validator;
 public class TextComponentValidationHandler extends ValidationHandler {
 
     private JTextComponent source;
-    private final Color errorColor = new Color(255, 170, 170);
+    private Color savedColor;
 
     public TextComponentValidationHandler(
             Validator val, StatusComponent display,
-            JTextComponent textcomp) {
+            JTextComponent textComp) {
 
         super(val, display);
-        this.source = textcomp;
+        this.source = textComp;
+        savedColor = textComp.getBackground();
 
-        textcomp.addKeyListener(new KeyAdapter() {
+        textComp.addKeyListener(new KeyAdapter() {
             public void keyTyped(KeyEvent e) {
                 SwingUtilities.invokeLater(
                 new Runnable() {
                     public void run() {
                         String text = source.getText();
-                        boolean oK = validator.validate(text);
-                        //System.out.printf("Validating %s (%b)%n", text, oK);
-                        statusComponent.setError(!oK);
-                        if (!oK) {
+
+                        Status oK = validator.validate(text);
+                        statusComponent.setStatus(oK);
+                        switch(oK) {
+                        case OK:
+                            source.setBackground(savedColor);
+                            break;
+                        case WARN:
+                            source.setBackground(ValidationHandler.COLOR_WARNING);
+                            break;
+                        case FAIL:
+                            source.setBackground(ValidationHandler.COLOR_ERROR);
+                            break;
+                        }
+
+                        if (oK != Status.OK) {
                             statusComponent.setText(validator.getMessage());
                         }
-                        source.setBackground(oK ?
-                                source.getParent().getBackground() :
-                                errorColor);
                     }
                 });
             }
