@@ -1,5 +1,7 @@
 package ca.sqlpower.validation.swingui;
 
+import java.awt.Color;
+
 import ca.sqlpower.validation.Validator;
 
 /**
@@ -13,8 +15,14 @@ import ca.sqlpower.validation.Validator;
  * @see ca.sqlpower.validation.TextComponentValidationHandler
  */
 public abstract class ValidationHandler {
-    Validator validator;
-    StatusComponent statusComponent;
+    /** The Validator to use */
+    protected Validator validator;
+    /** Where to display results */
+    protected StatusComponent statusComponent;
+    /** The color to use in the JComponent in the event of error */
+    protected final static Color COLOR_ERROR = new Color(255, 170, 170);
+    /** The color to use in the JComponent in the event of warnings */
+    protected final static Color COLOR_WARNING = Color.YELLOW;
 
     public ValidationHandler(Validator validator, StatusComponent display) {
         super();

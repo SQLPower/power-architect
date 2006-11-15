@@ -8,6 +8,8 @@ import java.awt.Insets;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 
+import ca.sqlpower.validation.Status;
+
 /**
  * A Component that displays the success/failure status
  * with a textual message.
@@ -19,7 +21,7 @@ public class StatusComponent extends JComponent {
     private static final int X_ADJUST = 20;
     private static final int Y_ADJUST = -15;
     private static final int PAD = 7;
-    private boolean error;
+    private Status status = Status.OK;
     final private JLabel label;
     // private ImageIcon errorIcon = ASUtils.createIcon("general/Error",
     //        "Error Icon", 16);
@@ -36,14 +38,13 @@ public class StatusComponent extends JComponent {
         setLayout(null);
         this.label = label;
         add(label);
+        // XXX FIXME the label is not really drawing, we are, so
+        // can we get rid of the label?
         label.setBackground(Color.GREEN);
         label.setLocation(X_ADJUST, Y_ADJUST);
         label.setSize(label.getPreferredSize());
     }
 
-    public boolean isError() {
-        return error;
-    }
 
     /**
      * Set the text to be displayed; note that it is not necessary
@@ -56,8 +57,8 @@ public class StatusComponent extends JComponent {
         label.repaint();
     }
 
-    public void setError(boolean error) {
-        this.error = error;
+    public void setStatus(Status error) {
+        this.status = error;
         repaint();
     }
 
@@ -68,16 +69,25 @@ public class StatusComponent extends JComponent {
      */
 
     protected void paintComponent(Graphics g) {
-        if (!error) {
-            return;
-        }
         Insets insets = getInsets();
-        Color c = g.getColor();
-        g.setColor(Color.RED);
+        Color drawColor = null;
+        switch(status) {
+        case OK:
+            return;
+        case WARN:
+            drawColor = Color.YELLOW;
+            break;
+        case FAIL:
+            drawColor = Color.RED;
+            break;
+        }
+
+        Color oldColor = g.getColor();
+        g.setColor(drawColor);
         //g.drawImage(errorIcon.getImage(), 0, 0, 16, 16, this);
         g.fillOval(insets.left, 0-insets.top, 16, 16);
         g.drawString(label.getText(), X_ADJUST, 16);
-        g.setColor(c);
+        g.setColor(oldColor);
         super.paintComponent(g);
         label.repaint();
     }

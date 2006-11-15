@@ -14,13 +14,13 @@ public class RegExValidatorTest extends TestCase {
     public void testValidateDigits() {
         RegExValidator val = new RegExValidator("\\d+");
         // These work
-        assertTrue(val.validate("0"));
-        assertTrue(val.validate("42"));
+        assertEquals(Status.OK, val.validate("0"));
+        assertEquals(Status.OK, val.validate("42"));
 
         // These should not
-        assertFalse(val.validate(""));
-        assertFalse(val.validate("abcde"));
-        assertFalse(val.validate("abc123")); // uses match, not find
+        assertFalse(Status.OK == val.validate(""));
+        assertFalse(Status.OK == val.validate("abcde"));
+        assertFalse(Status.OK == val.validate("abc123")); // uses match, not find
     }
 
 }

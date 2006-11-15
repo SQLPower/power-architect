@@ -3,7 +3,8 @@ package ca.sqlpower.validation;
 import java.util.regex.Pattern;
 
 /**
- * A Validator that uses RegEx matching
+ * A Validator that uses RegEx matching; there is no notion of
+ * warnings, it either matches() or it doesn't.
  */
 public class RegExValidator implements Validator {
 
@@ -30,9 +31,9 @@ public class RegExValidator implements Validator {
         return message;
     }
 
-    public boolean validate(Object contents) {
+    public Status validate(Object contents) {
         String value = (String)contents;
-        return pattern.matcher(value).matches();
+        return pattern.matcher(value).matches() ? Status.OK : Status.FAIL;
     }
 
 }

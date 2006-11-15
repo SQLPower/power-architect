@@ -8,20 +8,22 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+import ca.sqlpower.validation.Status;
+
 /**
  * A demonstration of a dialog with a StatusComponent but not Validator;
  * validation is faked by toggling a boolean.
  */
 public class StatusComponentDemo {
 
-    static boolean error = true;
+    static Status status = Status.FAIL;
 
     public static void main(String[] args) {
         final JFrame jx = new JFrame("Test");
         jx.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         final StatusComponent statusComponent = new StatusComponent("Test");
         statusComponent.setText("Unknown error");
-        statusComponent.setError(error);
+        statusComponent.setStatus(status);
         JPanel p = new JPanel(new BorderLayout());
         jx.add(p);
         p.add(statusComponent, BorderLayout.CENTER);
@@ -29,8 +31,17 @@ public class StatusComponentDemo {
         p.add(toggleButton, BorderLayout.SOUTH);
         toggleButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                error = !error;
-                statusComponent.setError(error);
+
+                // Just cycle through all the values over and over
+                switch(status) {
+                case OK:
+                    status = Status.WARN; break;
+                case WARN:
+                    status = Status.FAIL; break;
+                case FAIL:
+                    status = Status.OK; break;
+                }
+                statusComponent.setStatus(status);
             }
         });
         jx.pack();
