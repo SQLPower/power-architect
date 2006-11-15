@@ -1,6 +1,6 @@
 /*
  * Created September 28, 2006.
- * 
+ *
  * This code belongs to SQL Power Group Inc.
  */
 package ca.sqlpower.architect;
@@ -18,11 +18,11 @@ import ca.sqlpower.architect.SQLTable.Folder;
 
 /**
  * The SQLIndex class represents an index on a table in a relational database.
- * 
+ *
  * @author fuerth
  */
 public class SQLIndex extends SQLObject {
-    
+
     private static final Logger logger = Logger.getLogger(SQLIndex.class);
 
     /**
@@ -33,28 +33,28 @@ public class SQLIndex extends SQLObject {
          * Table statistics that are returned in conjuction with a table's index descriptions.
          */
         STATISTIC(DatabaseMetaData.tableIndexStatistic),
-        
+
         /**
          * A clustered index.
          */
         CLUSTERED(DatabaseMetaData.tableIndexClustered),
-        
+
         /**
          * A hashed index.
          */
         HASHED(DatabaseMetaData.tableIndexHashed),
-        
+
         /**
          * An index that is not clustered or hashed, or table statisics.
          */
         OTHER(DatabaseMetaData.tableIndexOther);
-        
+
         private short jdbcType;
-        
+
         IndexType(short jdbcType) {
             this.jdbcType = jdbcType;
         }
-     
+
         /**
          * Returns this index type's JDBC code (one of
          * DatabaseMetaData.tableIndexStatistic,
@@ -65,7 +65,7 @@ public class SQLIndex extends SQLObject {
         public short getJdbcType() {
             return jdbcType;
         }
-        
+
         public static IndexType forJdbcType(short jdbcType) {
             if (jdbcType == DatabaseMetaData.tableIndexStatistic) return STATISTIC;
             if (jdbcType == DatabaseMetaData.tableIndexClustered) return CLUSTERED;
@@ -74,7 +74,7 @@ public class SQLIndex extends SQLObject {
             throw new IllegalArgumentException("Unknown JDBC index type code: " + jdbcType);
         }
     }
-    
+
     /**
      * A simple placeholder for a column.  We're not using real SQLColumn instances here so that the
      * tree of SQLObjects can remain tree-like.  If we put the real SQLColumns in here, the columns
@@ -87,7 +87,7 @@ public class SQLIndex extends SQLObject {
          * represents an expression rather than a single column value.
          */
         private SQLColumn column;
-        
+
         /**
          * Indicates if this index applies to ascending values.
          */
@@ -97,7 +97,7 @@ public class SQLIndex extends SQLObject {
          * Indicates if this index applies to descending values.
          */
         private boolean descending;
-        
+
         /**
          * Creates a Column object that corresponds to a particular SQLColumn.
          */
@@ -113,12 +113,13 @@ public class SQLIndex extends SQLObject {
         public Column(String name, boolean ascending, boolean descending) {
             children = Collections.emptyList();
             setName(name);
-            
+
             this.ascending = ascending;
             this.descending = descending;
         }
-        
+
         public Column() {
+            this((String) null, false, false);
         }
 
         @Override
@@ -157,7 +158,7 @@ public class SQLIndex extends SQLObject {
                 throw new UnsupportedOperationException("You can't change an Index.Column's parent");
             }
         }
-        
+
         public SQLColumn getColumn() {
             return column;
         }
@@ -166,7 +167,7 @@ public class SQLIndex extends SQLObject {
             SQLColumn oldValue = this.column;
             this.column = column;
             fireDbObjectChanged("column", oldValue, column);
-            
+
         }
 
         public boolean isAscending() {
@@ -175,7 +176,7 @@ public class SQLIndex extends SQLObject {
 
         public void setAscending(boolean ascending) {
             boolean oldValue = this.ascending;
-            this.ascending = ascending; 
+            this.ascending = ascending;
             fireDbObjectChanged("ascending", oldValue, ascending);
         }
 
@@ -188,18 +189,18 @@ public class SQLIndex extends SQLObject {
             this.descending = descending;
             fireDbObjectChanged("descending", oldValue, descending);
         }
-        
+
         @Override
         public String toString() {
             return getName();
         }
     }
-    
+
     /**
      * The parent folder that owns this index object.
      */
     private SQLTable.Folder<SQLIndex> parent;
-    
+
     /**
      * Flags whether or not this index enforces uniqueness.
      */
@@ -209,19 +210,19 @@ public class SQLIndex extends SQLObject {
      * This index's qualifier.
      */
     private String qualifier;
-    
+
     /**
      * The type of this index.
      */
     private IndexType type;
-    
+
     /**
      * The filter condition on this index, if any.  According to the ODBC programmer's reference,
      * this is probably a property of the index as a whole (as opposed to the individual index columns),
      * but it doesn't say that explicitly.  According to the JDBC spec, this could be anything at all.
      */
     private String filterCondition;
-    
+
     public SQLIndex(String name, boolean unique, String qualifier, IndexType type, String filter) {
         this();
         setName(name);
@@ -269,7 +270,7 @@ public class SQLIndex extends SQLObject {
     protected void populate() throws ArchitectException {
         // nothing to do
     }
-    
+
     @Override
     public boolean isPopulated() {
         return true;
@@ -277,14 +278,14 @@ public class SQLIndex extends SQLObject {
 
     /**
      * Updates this index's parent reference.
-     * 
+     *
      *  @param parent must be a SQLTable.Folder instance.
      */
     @Override
     protected void setParent(SQLObject parent) {
         this.parent = (Folder<SQLIndex>) parent;
     }
-    
+
     public String getFilterCondition() {
         return filterCondition;
     }
@@ -337,7 +338,7 @@ public class SQLIndex extends SQLObject {
     static void addIndicesToTable(SQLTable addTo,
                                   String catalog,
                                   String schema,
-                                  String tableName) 
+                                  String tableName)
         throws SQLException, DuplicateColumnException, ArchitectException {
         Connection con = null;
         ResultSet rs = null;
@@ -350,7 +351,7 @@ public class SQLIndex extends SQLObject {
             while (rs.next()) {
                 /*
                  * DatabaseMetadata result set columns:
-                 * 
+                 *
                 1  TABLE_CAT String => table catalog (may be null)
                 2  TABLE_SCHEM String => table schema (may be null)
                 3  TABLE_NAME String => table name
@@ -379,7 +380,7 @@ public class SQLIndex extends SQLObject {
                 boolean ascending = (ascDesc != null && ascDesc.equals("A"));
                 boolean descending = (ascDesc != null && ascDesc.equals("D"));
                 String filter = rs.getString(13);
-                
+
                 if (pos == 0) {
                     // this is just the table stats, not an index
                     continue;
@@ -388,16 +389,16 @@ public class SQLIndex extends SQLObject {
                     idx = new SQLIndex(name, !nonUnique, qualifier, type, filter);
                     addTo.getIndicesFolder().children.add(idx);
                 }
-                
+
                 logger.debug("Adding column "+colName+" to index "+idx.getName());
-                
+
                 Column col;
                 if (addTo.getColumnByName(colName, false) != null) {
                     col = idx.new Column(addTo.getColumnByName(colName, false), ascending, descending);
                 } else {
                     col = idx.new Column(colName, ascending, descending);  // probably an expression like "col1+col2"
                 }
-                
+
                 idx.children.add(col); // direct access avoids possible recursive SQLObjectEvents
             }
             rs.close();
