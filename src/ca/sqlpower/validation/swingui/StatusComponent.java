@@ -1,11 +1,11 @@
 package ca.sqlpower.validation.swingui;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.Insets;
 
-import javax.swing.JComponent;
+import javax.swing.Icon;
 import javax.swing.JLabel;
 
 import ca.sqlpower.validation.Status;
@@ -16,49 +16,89 @@ import ca.sqlpower.validation.Status;
  * <p>
  * XXX Change display from drawing code to nice icons!
  */
-public class StatusComponent extends JComponent {
+public class StatusComponent extends JLabel {
 
+    /** A red dot */
+    private static final Icon FAIL_ICON = new Icon() {
+
+        private final static int DIAMETER = 15;
+        
+        public int getIconHeight() {
+            return DIAMETER;
+        }
+
+        public int getIconWidth() {
+            return DIAMETER;
+        }
+
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            g.setColor(Color.RED);
+            g.fillOval(x, y, DIAMETER, DIAMETER);
+        }
+        
+    };
+    
+    /** A yellow dot */
+    private static final Icon WARN_ICON = new Icon() {
+
+        private final static int DIAMETER = 15;
+        
+        public int getIconHeight() {
+            return DIAMETER;
+        }
+
+        public int getIconWidth() {
+            return DIAMETER;
+        }
+
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            g.setColor(Color.YELLOW);
+            g.fillOval(x, y, DIAMETER, DIAMETER);
+        }
+        
+    };
+    
     private static final int X_ADJUST = 20;
     private static final int Y_ADJUST = -15;
     private static final int PAD = 7;
     private Status status = Status.OK;
-    final private JLabel label;
+    
     // private ImageIcon errorIcon = ASUtils.createIcon("general/Error",
     //        "Error Icon", 16);
 
     public StatusComponent() {
-        this(new JLabel("*"));
+        this("");
     }
+
 
     public StatusComponent(String text) {
-        this(new JLabel(text));
-    }
+        super(text);        
 
-    public StatusComponent(JLabel label) {
-        setLayout(null);
-        this.label = label;
-        add(label);
-        // XXX FIXME the JLabel is not really drawing, we are, so
-        // can we get rid of the label?
-        label.setBackground(Color.GREEN);
-        label.setLocation(X_ADJUST, Y_ADJUST);
-        label.setSize(label.getPreferredSize());
     }
 
 
     /**
      * Set the text to be displayed; note that it is not necessary
      * to nullify the text when the error is cleared, as calling
-     * setError(false) suppresses display of the text.
+     * setStatus(Status.OK) suppresses display of the text.
      */
     public void setText(String text) {
-        // System.out.printf("StatusComponent.setText(%s)", text);
-        label.setText(text);
-        label.repaint();
+        super.setText(text);
     }
 
     public void setStatus(Status error) {
         this.status = error;
+        switch(status) {
+        case OK:
+            setIcon(null);
+            return;
+        case WARN:
+            setIcon(WARN_ICON);
+            break;
+        case FAIL:
+            setIcon(FAIL_ICON);
+            break;
+        }
         repaint();
     }
 
@@ -68,33 +108,13 @@ public class StatusComponent extends JComponent {
      * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
      */
 
-    protected void paintComponent(Graphics g) {
-        Insets insets = getInsets();
-        Color drawColor = null;
-        switch(status) {
-        case OK:
-            return;
-        case WARN:
-            drawColor = Color.YELLOW;
-            break;
-        case FAIL:
-            drawColor = Color.RED;
-            break;
-        }
-
-        Color oldColor = g.getColor();
-        g.setColor(drawColor);
-        //g.drawImage(errorIcon.getImage(), 0, 0, 16, 16, this);
-        g.fillOval(insets.left, 0-insets.top, 16, 16);
-        g.setColor(oldColor);
-        g.drawString(label.getText(), X_ADJUST, 16);
+    protected void paintComponent(Graphics g) {        
         super.paintComponent(g);
-        label.repaint();
     }
 
     @Override
     public Dimension getPreferredSize() {
-        Dimension d = label.getPreferredSize();
+        Dimension d = super.getPreferredSize();
         d.width += X_ADJUST;
         d.width += PAD;
         d.height += 2 * PAD;
