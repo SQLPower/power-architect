@@ -11,6 +11,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import ca.sqlpower.validation.DemoTernaryRegExValidator;
 import ca.sqlpower.validation.RegExValidator;
 import ca.sqlpower.validation.Validator;
 
@@ -32,30 +33,50 @@ public class ValidationDemo {
                 JDialog dialog = new JDialog(jf, "Dialog");
                 StatusComponent status = new StatusComponent();
                 dialog.add(status, BorderLayout.NORTH);
+
+                JPanel midPanel  = new JPanel();
+
+                // SECTION ONE
                 JPanel p = new JPanel();
                 JLabel textLabel = new JLabel("Text (\\d+)");
                 p.add(textLabel);
                 JTextField tf = new JTextField(20);
                 p.add(tf);
                 textLabel.setLabelFor(tf);
-                dialog.add(p, BorderLayout.CENTER);
+                midPanel.add(p);
 
                 // what we came here for #1!!
                 Validator v = new RegExValidator("\\d+");
                 new TextComponentValidationHandler(v, status, tf);
 
+                // SECTION TWO
                 JPanel q = new JPanel();
                 q.add(new JLabel("Text (word)"));
                 JTextField tf2 = new JTextField(20);
                 q.add(tf2);
 
-                dialog.add(q, BorderLayout.SOUTH);
+                midPanel.add(q);
 
                 // what we came here for #2!!
                 Validator v2 = new RegExValidator("\\w+", "Must be one word");
                 new TextComponentValidationHandler(v2, status, tf2);
 
+                // SECTION THREE
+                JPanel r = new JPanel();
+                r.add(new JLabel("OK|PASS|FAIL"));
+                JTextField tf3 = new JTextField(20);
+                r.add(tf3);
+
+                midPanel.add(r);
+
+                // what we came here for #2!!
+                Validator v3 = new DemoTernaryRegExValidator();
+                new TextComponentValidationHandler(v3, status, tf3);
+
+                dialog.add(midPanel, BorderLayout.CENTER);
+
                 dialog.pack();
+                dialog.setLocation(200, 200);
                 dialog.setVisible(true);
             }
 
