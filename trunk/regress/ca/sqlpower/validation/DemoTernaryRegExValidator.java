@@ -20,7 +20,7 @@ public class DemoTernaryRegExValidator implements Validator {
     public DemoTernaryRegExValidator() {
         super();
         String pattern = "^(OK|WARN|FAIL)$";
-        this.pattern = Pattern.compile(pattern);
+        this.pattern = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);
         this.message = "Must match " + pattern;
     }
 

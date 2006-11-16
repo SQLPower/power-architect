@@ -1,6 +1,7 @@
 package ca.sqlpower.validation.swingui;
 
 import java.awt.BorderLayout;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -34,15 +35,17 @@ public class ValidationDemo {
                 StatusComponent status = new StatusComponent();
                 dialog.add(status, BorderLayout.NORTH);
 
-                JPanel midPanel  = new JPanel();
+                JPanel midPanel  = new JPanel(new GridLayout(0, 1 ,5, 5));
+
+                // GUI component references that get used n times
+                JPanel p;
+                JTextField tf;
 
                 // SECTION ONE
-                JPanel p = new JPanel();
-                JLabel textLabel = new JLabel("Text (\\d+)");
-                p.add(textLabel);
-                JTextField tf = new JTextField(20);
+                p = new JPanel();
+                p.add(new JLabel("Text (\\d+)"));
+                tf = new JTextField(20);
                 p.add(tf);
-                textLabel.setLabelFor(tf);
                 midPanel.add(p);
 
                 // what we came here for #1!!
@@ -50,28 +53,28 @@ public class ValidationDemo {
                 new TextComponentValidationHandler(v, status, tf);
 
                 // SECTION TWO
-                JPanel q = new JPanel();
-                q.add(new JLabel("Text (word)"));
-                JTextField tf2 = new JTextField(20);
-                q.add(tf2);
+                p = new JPanel();
+                p.add(new JLabel("Text (word)"));
+                tf = new JTextField(20);
+                p.add(tf);
 
-                midPanel.add(q);
+                midPanel.add(p);
 
                 // what we came here for #2!!
                 Validator v2 = new RegExValidator("\\w+", "Must be one word");
-                new TextComponentValidationHandler(v2, status, tf2);
+                new TextComponentValidationHandler(v2, status, tf);
 
                 // SECTION THREE
-                JPanel r = new JPanel();
-                r.add(new JLabel("OK|PASS|FAIL"));
-                JTextField tf3 = new JTextField(20);
-                r.add(tf3);
+                p = new JPanel();
+                p.add(new JLabel("OK|WARN|FAIL"));
+                tf = new JTextField(20);
+                p.add(tf);
 
-                midPanel.add(r);
+                midPanel.add(p);
 
                 // what we came here for #2!!
                 Validator v3 = new DemoTernaryRegExValidator();
-                new TextComponentValidationHandler(v3, status, tf3);
+                new TextComponentValidationHandler(v3, status, tf);
 
                 dialog.add(midPanel, BorderLayout.CENTER);
 

@@ -14,7 +14,7 @@ import ca.sqlpower.validation.Status;
  * A Component that displays the success/failure status
  * with a textual message.
  * <p>
- * XXX Change from boolean to enum Status.
+ * XXX Change display from drawing code to nice icons!
  */
 public class StatusComponent extends JComponent {
 
@@ -38,7 +38,7 @@ public class StatusComponent extends JComponent {
         setLayout(null);
         this.label = label;
         add(label);
-        // XXX FIXME the label is not really drawing, we are, so
+        // XXX FIXME the JLabel is not really drawing, we are, so
         // can we get rid of the label?
         label.setBackground(Color.GREEN);
         label.setLocation(X_ADJUST, Y_ADJUST);
