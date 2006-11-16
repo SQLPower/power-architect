@@ -86,8 +86,8 @@ public class StatusComponent extends JComponent {
         g.setColor(drawColor);
         //g.drawImage(errorIcon.getImage(), 0, 0, 16, 16, this);
         g.fillOval(insets.left, 0-insets.top, 16, 16);
-        g.drawString(label.getText(), X_ADJUST, 16);
         g.setColor(oldColor);
+        g.drawString(label.getText(), X_ADJUST, 16);
         super.paintComponent(g);
         label.repaint();
     }
