@@ -24,18 +24,19 @@ public class DemoTernaryRegExValidator implements Validator {
         this.message = "Must match " + pattern;
     }
 
-    public String getMessage() {
-        return message;
-    }
-
-    public Status validate(Object contents) {
+    public ValidateResult validate(Object contents) {
         String value = (String)contents;
         Matcher matcher = pattern.matcher(value);
+        ValidateResult result = new ValidateResult();
         if (matcher.matches()) {
             String match = matcher.group(1);
-            return Status.valueOf(match.toUpperCase());
-        } else
-            return Status.FAIL;
+            result.setStatus(ValidateResult.Status.valueOf(match.toUpperCase()));
+            result.setMessage("that's a match");
+        } else {
+            result.setStatus(ValidateResult.Status.FAIL);
+            result.setMessage(message);
+        }
+        return result;
     }
 
 }

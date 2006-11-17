@@ -8,10 +8,10 @@ import java.awt.Graphics;
 import javax.swing.Icon;
 import javax.swing.JLabel;
 
-import ca.sqlpower.validation.Status;
+import ca.sqlpower.validation.ValidateResult;
 
 /**
- * A Component that displays the success/failure status
+ * A Component that displays the success/failure result
  * with a textual message.
  * <p>
  * XXX Change display from drawing code to nice icons!
@@ -22,7 +22,7 @@ public class StatusComponent extends JLabel {
     private static final Icon FAIL_ICON = new Icon() {
 
         private final static int DIAMETER = 15;
-        
+
         public int getIconHeight() {
             return DIAMETER;
         }
@@ -35,14 +35,14 @@ public class StatusComponent extends JLabel {
             g.setColor(Color.RED);
             g.fillOval(x, y, DIAMETER, DIAMETER);
         }
-        
+
     };
-    
+
     /** A yellow dot */
     private static final Icon WARN_ICON = new Icon() {
 
         private final static int DIAMETER = 15;
-        
+
         public int getIconHeight() {
             return DIAMETER;
         }
@@ -55,14 +55,14 @@ public class StatusComponent extends JLabel {
             g.setColor(Color.YELLOW);
             g.fillOval(x, y, DIAMETER, DIAMETER);
         }
-        
+
     };
-    
+
     private static final int X_ADJUST = 20;
     private static final int Y_ADJUST = -15;
     private static final int PAD = 7;
-    private Status status = Status.OK;
-    
+    private ValidateResult result = null;
+
     // private ImageIcon errorIcon = ASUtils.createIcon("general/Error",
     //        "Error Icon", 16);
 
@@ -72,7 +72,7 @@ public class StatusComponent extends JLabel {
 
 
     public StatusComponent(String text) {
-        super(text);        
+        super(text);
 
     }
 
@@ -80,15 +80,20 @@ public class StatusComponent extends JLabel {
     /**
      * Set the text to be displayed; note that it is not necessary
      * to nullify the text when the error is cleared, as calling
-     * setStatus(Status.OK) suppresses display of the text.
+     * setStatus(ValidateResult.OK) suppresses display of the text.
      */
     public void setText(String text) {
         super.setText(text);
     }
 
-    public void setStatus(Status error) {
-        this.status = error;
-        switch(status) {
+    public void setResult(ValidateResult error) {
+        this.result = error;
+        if ( result == null ) {
+            setIcon(null);
+            return;
+        }
+
+        switch(result.getStatus()) {
         case OK:
             setIcon(null);
             return;
@@ -108,7 +113,7 @@ public class StatusComponent extends JLabel {
      * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
      */
 
-    protected void paintComponent(Graphics g) {        
+    protected void paintComponent(Graphics g) {
         super.paintComponent(g);
     }
 

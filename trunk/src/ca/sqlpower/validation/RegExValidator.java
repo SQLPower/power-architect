@@ -16,24 +16,27 @@ public class RegExValidator implements Validator {
      * @param pattern The regex pattern
      *
      */
-    public RegExValidator(String pattern) {
+    public RegExValidator(String pattern,String message) {
         super();
         this.pattern = Pattern.compile(pattern);
-        this.message = "Must match " + pattern;
-    }
-
-    public RegExValidator(String pattern, String message) {
-        this(pattern);
         this.message = message;
     }
 
-    public String getMessage() {
-        return message;
+    public RegExValidator(String pattern) {
+        this(pattern,"Input text must match pattern:"+pattern);
     }
 
-    public Status validate(Object contents) {
+    public ValidateResult validate(Object contents) {
         String value = (String)contents;
-        return pattern.matcher(value).matches() ? Status.OK : Status.FAIL;
+        ValidateResult result = new ValidateResult();
+        if ( pattern.matcher(value).matches() ) {
+            result.setStatus(ValidateResult.Status.OK);
+            result.setMessage("");
+        } else {
+            result.setStatus(ValidateResult.Status.FAIL);
+            result.setMessage(message);
+        }
+        return result;
     }
 
 }
