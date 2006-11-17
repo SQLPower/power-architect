@@ -10,11 +10,6 @@ public interface Validator {
      * @param contents A String, or JComboBox, or whatever
      * @return
      */
-    public Status validate(Object contents);
+    public ValidateResult validate(Object contents);
 
-    /**
-     * Return the failure message, if validate() returned false.
-     * @return
-     */
-    public String getMessage();
 }

@@ -8,7 +8,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-import ca.sqlpower.validation.Status;
+import ca.sqlpower.validation.ValidateResult;
 
 /**
  * A demonstration of a dialog with a StatusComponent but not Validator;
@@ -16,14 +16,16 @@ import ca.sqlpower.validation.Status;
  */
 public class StatusComponentDemo {
 
-    static Status status = Status.FAIL;
+    static ValidateResult status = new ValidateResult();
 
     public static void main(String[] args) {
         final JFrame jx = new JFrame("Test");
         jx.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         final StatusComponent statusComponent = new StatusComponent("Test");
         statusComponent.setText("Unknown error");
-        statusComponent.setStatus(status);
+        status.setMessage("");
+        status.setStatus(ValidateResult.Status.OK);
+        statusComponent.setResult(status);
         JPanel p = new JPanel(new BorderLayout());
         jx.add(p);
         p.add(statusComponent, BorderLayout.CENTER);
@@ -33,15 +35,18 @@ public class StatusComponentDemo {
             public void actionPerformed(ActionEvent e) {
 
                 // Just cycle through all the values over and over
-                switch(status) {
+                switch(status.getStatus()) {
                 case OK:
-                    status = Status.WARN; break;
+                    status.setStatus(ValidateResult.Status.WARN);
+                    break;
                 case WARN:
-                    status = Status.FAIL; break;
+                    status.setStatus(ValidateResult.Status.FAIL);
+                    break;
                 case FAIL:
-                    status = Status.OK; break;
+                    status.setStatus(ValidateResult.Status.OK);
+                    break;
                 }
-                statusComponent.setStatus(status);
+                statusComponent.setResult(status);
             }
         });
         jx.pack();
