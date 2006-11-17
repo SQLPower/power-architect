@@ -19,17 +19,36 @@ import ca.sqlpower.validation.ValidateResult;
 import ca.sqlpower.validation.Validator;
 
 /**
- * This is the prototype for a variety of ValidationHandlers; it
- * uses a JComboBox and a Validator.
+ * This is the ValidationHandlers for JComponents, for now it supports
+ * JTextComponent, JComboBox, AbstractButton.
+ * the FormValidationHandler keeps a List of Jcomponents and the validators,
+ * listens the changes of each JComponent and validate them, update the
+ * <b>StatusComponent</b> 'display' to the worst result and change the
+ * backgroound color of the problem JComponent to red or yellow.
+ *<br>
+ *<br>
+ * -for JTextComponent, the validator needs to validate String (text in the component)
+ * <br>
+ * -for JComboBox, the validator needs to validate Object (Item in the component)
+ * <br>
+ * -for AbstractButton, the validator needs to validate boolean (status of the component)
+ * <br>
  */
-public class FormValidationHandler {
+public class FormValidationHandler implements ValidationHandler {
 
     /** The color to use in the JComponent in the event of error */
     protected final static Color COLOR_ERROR = new Color(255, 170, 170);
     /** The color to use in the JComponent in the event of warnings */
     protected final static Color COLOR_WARNING = Color.YELLOW;
 
+    /**
+     * a JComponent to display result
+     */
     private StatusComponent display;
+
+    /**
+     * List of combination of JComponent,validator...
+     */
     private List<ValidateObject> objects;
 
     private class ValidateObject {
@@ -39,9 +58,13 @@ public class FormValidationHandler {
         private JComponent component;
         /**
          * the object that we want to validate, could be the text in the JTextField
-         * or select item in the JComboBox
+         * or select item in the JComboBox, etc.
          */
         private Object object;
+
+        /**
+         * the validator to do the validation
+         */
         private Validator validator;
         private Color savedColor;
         private ValidateResult result;
@@ -51,6 +74,11 @@ public class FormValidationHandler {
             this.validator = validator;
             savedColor = component.getBackground();
         }
+
+        /**
+         * calls validator to do the validation, object to be validated could be null,
+         * and handled by the validator
+         */
         protected void doValidate() {
             result = validator.validate(object);
             switch(result.getStatus()) {
@@ -100,6 +128,9 @@ public class FormValidationHandler {
         display.setText(message);
     }
 
+    /**
+     * add your Jcomponent and validator to the List
+     */
     public void addValidateObject(final JComponent component, final Validator validator) {
         final ValidateObject validateObject = new ValidateObject(component,validator);
         objects.add(validateObject);
