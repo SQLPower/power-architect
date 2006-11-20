@@ -1,13 +1,15 @@
 package ca.sqlpower.validation.swingui;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.image.ImageObserver;
 
 import javax.swing.Icon;
 import javax.swing.JLabel;
 
+import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.validation.ValidateResult;
 
 /**
@@ -20,8 +22,15 @@ public class StatusComponent extends JLabel {
 
     private final static int DIAMETER = 15;
 
+    private static ImageObserver dummyObserver = new ImageObserver() {
+        public boolean imageUpdate(Image img, int infoflags, int x, int y, int width, int height) {
+            return false;
+        }
+    };
+
     /** A red dot */
     private static final Icon FAIL_ICON = new Icon() {
+        final Image myImage = ASUtils.createIcon("stat_err_", "Failure", 16).getImage();
 
         public int getIconHeight() {
             return DIAMETER;
@@ -32,14 +41,14 @@ public class StatusComponent extends JLabel {
         }
 
         public void paintIcon(Component c, Graphics g, int x, int y) {
-            g.setColor(Color.RED);
-            g.fillOval(x, y, DIAMETER, DIAMETER);
+            g.drawImage(myImage, x, y, dummyObserver);
         }
 
     };
 
     /** A yellow dot */
     private static final Icon WARN_ICON = new Icon() {
+        Image myImage = ASUtils.createIcon("stat_warn_", "Failure", 16).getImage();
 
         public int getIconHeight() {
             return DIAMETER;
@@ -50,8 +59,7 @@ public class StatusComponent extends JLabel {
         }
 
         public void paintIcon(Component c, Graphics g, int x, int y) {
-            g.setColor(Color.YELLOW);
-            g.fillOval(x, y, DIAMETER, DIAMETER);
+            g.drawImage(myImage, x, y, dummyObserver);
         }
 
     };
