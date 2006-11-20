@@ -70,6 +70,20 @@ public class FormValidationHandler implements ValidationHandler {
         private Color savedColor;
         private ValidateResult result;
 
+        protected String getMessage() {
+            StringBuffer msg = new StringBuffer();
+            if ( getComponent().getName() != null ) {
+                msg.append(getComponent().getName()).append(" ");
+            }
+            if ( getResult() != null ) {
+                msg.append("[").append(getResult().getStatus().name()).append("]");
+                msg.append("[").append(getResult().getMessage()).append("]");
+            } else {
+                msg.append(" unknown result");
+            }
+            return msg.toString();
+        }
+
         protected ValidateObject(JComponent component, Validator validator) {
             this.component = component;
             this.validator = validator;
@@ -102,6 +116,10 @@ public class FormValidationHandler implements ValidationHandler {
         }
         protected void setObject(Object object) {
             this.object = object;
+        }
+
+        protected JComponent getComponent() {
+            return component;
         }
     }
 
@@ -172,5 +190,23 @@ public class FormValidationHandler implements ValidationHandler {
             throw new IllegalArgumentException("Unsupported JComponent type:"+
                     component.getClass());
         }
+    }
+
+
+    public List<String> getFailResults() {
+        return getResults(Status.FAIL);
+    }
+    public List<String> getWarnResults() {
+        return getResults(Status.WARN);
+    }
+    private List<String> getResults(Status status) {
+        List <String> msg = new ArrayList<String>();
+        for ( ValidateObject o : objects ) {
+            if ( o.getResult() == null ) continue;
+            if ( o.getResult().getStatus() == status ) {
+                msg.add(o.getMessage());
+            }
+        }
+        return msg;
     }
 }
