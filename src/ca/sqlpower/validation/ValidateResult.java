@@ -36,7 +36,7 @@ public class ValidateResult {
     /**
      * the status of the validation, should be one of the OK,WARN,FAIL
      */
-    private Status status;
+    private Status status = Status.OK;
     public Status getStatus() {
         return status;
     }
