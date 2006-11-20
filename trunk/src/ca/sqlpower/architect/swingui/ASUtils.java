@@ -26,6 +26,7 @@ import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ActionMap;
+import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JButton;
@@ -408,8 +409,9 @@ public class ASUtils {
             // who cares!?
         }
 
-        final JPanel messageComponent = new JPanel(new BorderLayout());
-        JPanel top = new JPanel(new GridLayout(0,1, 5, 5));
+
+        JPanel top = new JPanel(new GridLayout(0, 1, 5, 5));
+        top.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         final String LAYOUT_START = "<html><font color='red'><size='+4'>";
         final String LAYOUT_END   = "</size></font>";
         JLabel messageLabel =
@@ -423,13 +425,18 @@ public class ASUtils {
         }
         dialog.add(top, BorderLayout.NORTH);
         final JScrollPane detailScroller = new JScrollPane(new JTextArea(traceWriter.toString()));
-        //detailScroller.setVisible(false);
+
+        final JPanel messageComponent = new JPanel(new BorderLayout());
         messageComponent.add(detailScroller, BorderLayout.CENTER);
         messageComponent.setPreferredSize(new Dimension(700, 400));
 
         final Dimension SIZE_NODETAILS = new Dimension(350, 200);
 
+        // XXX This button should be at the right side of the
+        // error text instead of the bottom, so it wouldn't jump
+        // around when you activate it.
         final JButton detailsButton = new JButton("Show Details");
+
         // N.B. AbstractAction in a JButton does not update the label
         // automatically when you change the SHORT_DESCRIPTION value.
         ActionListener detailsAction = new ActionListener() {
