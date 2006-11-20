@@ -399,6 +399,9 @@ public class ASUtils {
             logger.error("non-null parent component is neither frame nor dialog");
         }
         logger.debug("displayExceptionDialog: showing exception dialog for:", throwable);
+        dialog.setLocationRelativeTo(parent);
+        ((JComponent)dialog.getContentPane()).setBorder(
+                BorderFactory.createEmptyBorder(10, 10, 5, 5));
 
         // Details information
         final StringWriter traceWriter = new StringWriter();
@@ -409,19 +412,17 @@ public class ASUtils {
             // who cares!?
         }
 
-
         JPanel top = new JPanel(new GridLayout(0, 1, 5, 5));
-        top.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        final String LAYOUT_START = "<html><font color='red'><size='+4'>";
-        final String LAYOUT_END   = "</size></font>";
+        final String LAYOUT_START = "<html><font color='red' size='+1'>";
+        final String LAYOUT_END   = "</font>";
         JLabel messageLabel =
             new JLabel(LAYOUT_START + message + LAYOUT_END);
         top.add(messageLabel);
-        JLabel errClassLabel = new JLabel(throwable.getClass().getName());
+        JLabel errClassLabel = new JLabel("Exception type: " + throwable.getClass().getName());
         top.add(errClassLabel);
         String excDetailMessage = throwable.getMessage();
         if (excDetailMessage != null) {
-            top.add(new JLabel(excDetailMessage));
+            top.add(new JLabel("Detail string: " + excDetailMessage));
         }
         dialog.add(top, BorderLayout.NORTH);
         final JScrollPane detailScroller = new JScrollPane(new JTextArea(traceWriter.toString()));
@@ -442,7 +443,7 @@ public class ASUtils {
         ActionListener detailsAction = new ActionListener() {
             boolean showDetails = true;
             public void actionPerformed(ActionEvent e) {
-                System.out.println("showDetails=" + showDetails);
+                // System.out.println("showDetails=" + showDetails);
                 if (showDetails) {
                     dialog.add(messageComponent, BorderLayout.CENTER);
                     detailsButton.setText("Hide Details");

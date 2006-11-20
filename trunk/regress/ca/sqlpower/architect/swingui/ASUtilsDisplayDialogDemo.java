@@ -15,7 +15,7 @@ public class ASUtilsDisplayDialogDemo {
         AbstractAction action = new AbstractAction("Test Now") {
 
             public void actionPerformed(ActionEvent e) {
-                Throwable t = new IllegalStateException("Woo woo");
+                Throwable t = new IllegalStateException("Moo cow");
                 ASUtils.showExceptionDialogNoReport(jf, "Something went terribly wrong", t);
             }
         };
