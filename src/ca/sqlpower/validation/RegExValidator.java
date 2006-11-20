@@ -23,20 +23,16 @@ public class RegExValidator implements Validator {
     }
 
     public RegExValidator(String pattern) {
-        this(pattern,"Input text must match pattern:"+pattern);
+        this(pattern,"Input text must match pattern:" + pattern);
     }
 
     public ValidateResult validate(Object contents) {
         String value = (String)contents;
-        ValidateResult result = new ValidateResult();
         if ( pattern.matcher(value).matches() ) {
-            result.setStatus(ValidateResult.Status.OK);
-            result.setMessage("");
+            return ValidateResult.createValidateResult(Status.OK, "");
         } else {
-            result.setStatus(ValidateResult.Status.FAIL);
-            result.setMessage(message);
+            return ValidateResult.createValidateResult(Status.FAIL, message);
         }
-        return result;
     }
 
 }

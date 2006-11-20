@@ -15,6 +15,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.JTextComponent;
 
+import ca.sqlpower.validation.Status;
 import ca.sqlpower.validation.ValidateResult;
 import ca.sqlpower.validation.Validator;
 
@@ -53,11 +54,11 @@ public class FormValidationHandler implements ValidationHandler {
 
     private class ValidateObject {
         /**
-         * the Jcomponent, for save and set the backgrond color
+         * the Jcomponent, for save and set the background color
          */
         private JComponent component;
         /**
-         * the object that we want to validate, could be the text in the JTextField
+         * the object we want to validate, could be the text in the JTextField
          * or select item in the JComboBox, etc.
          */
         private Object object;
@@ -76,8 +77,8 @@ public class FormValidationHandler implements ValidationHandler {
         }
 
         /**
-         * calls validator to do the validation, object to be validated could be null,
-         * and handled by the validator
+         * calls validator to do the validation; object to be validated
+         * may be null, and handled by the validator
          */
         protected void doValidate() {
             result = validator.validate(object);
@@ -116,11 +117,11 @@ public class FormValidationHandler implements ValidationHandler {
         for ( ValidateObject v : objects ) {
             if ( v.getResult() == null ) continue;
             message = v.getResult().getMessage();
-            if ( v.getResult().getStatus() == ValidateResult.Status.FAIL ) {
+            if ( v.getResult().getStatus() == Status.FAIL ) {
                 s = v.getResult();
                 break;
-            } else if ( v.getResult().getStatus() == ValidateResult.Status.WARN &&
-                    ( s == null || s.getStatus() != ValidateResult.Status.WARN) ) {
+            } else if ( v.getResult().getStatus() == Status.WARN &&
+                    ( s == null || s.getStatus() != Status.WARN) ) {
                 s = v.getResult();
             }
         }

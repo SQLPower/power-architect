@@ -27,16 +27,14 @@ public class DemoTernaryRegExValidator implements Validator {
     public ValidateResult validate(Object contents) {
         String value = (String)contents;
         Matcher matcher = pattern.matcher(value);
-        ValidateResult result = new ValidateResult();
         if (matcher.matches()) {
             String match = matcher.group(1);
-            result.setStatus(ValidateResult.Status.valueOf(match.toUpperCase()));
-            result.setMessage("that's a match");
+            return ValidateResult.createValidateResult(
+                    Status.valueOf(match.toUpperCase()), "that's a match (red if you matched FAIL)");
         } else {
-            result.setStatus(ValidateResult.Status.FAIL);
-            result.setMessage(message);
+            return ValidateResult.createValidateResult(
+            Status.FAIL, message);
         }
-        return result;
     }
 
 }

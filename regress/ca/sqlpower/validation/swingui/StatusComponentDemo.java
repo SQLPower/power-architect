@@ -8,6 +8,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+import ca.sqlpower.validation.Status;
 import ca.sqlpower.validation.ValidateResult;
 
 /**
@@ -16,15 +17,14 @@ import ca.sqlpower.validation.ValidateResult;
  */
 public class StatusComponentDemo {
 
-    static ValidateResult status = new ValidateResult();
+    static ValidateResult status = ValidateResult.createValidateResult(Status.OK, "");
+    static Status innerStatus = Status.OK;
 
     public static void main(String[] args) {
         final JFrame jx = new JFrame("Test");
         jx.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         final StatusComponent statusComponent = new StatusComponent("Test");
         statusComponent.setText("Unknown error");
-        status.setMessage("");
-        status.setStatus(ValidateResult.Status.OK);
         statusComponent.setResult(status);
         JPanel p = new JPanel(new BorderLayout());
         jx.add(p);
@@ -35,21 +35,25 @@ public class StatusComponentDemo {
             public void actionPerformed(ActionEvent e) {
 
                 // Just cycle through all the values over and over
-                switch(status.getStatus()) {
+                switch(statusComponent.getResult().getStatus()) {
                 case OK:
-                    status.setStatus(ValidateResult.Status.WARN);
+                    status = ValidateResult.createValidateResult(
+                            Status.WARN, "Warning");
                     break;
                 case WARN:
-                    status.setStatus(ValidateResult.Status.FAIL);
+                    status = ValidateResult.createValidateResult(
+                            Status.FAIL, "Failure");
                     break;
                 case FAIL:
-                    status.setStatus(ValidateResult.Status.OK);
+                    status = ValidateResult.createValidateResult(
+                            Status.OK, "Swell");
                     break;
                 }
                 statusComponent.setResult(status);
             }
         });
         jx.pack();
+        jx.setLocation(400, 400);
         jx.setVisible(true);
     }
 }
