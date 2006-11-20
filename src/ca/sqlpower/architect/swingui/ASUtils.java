@@ -256,6 +256,10 @@ public class ASUtils {
 		String realPath = "/icons/"+name+size+".gif";
 		logger.debug("Loading resource "+realPath);
 		java.net.URL imgURL = ASUtils.class.getResource(realPath);
+        if (imgURL == null) {
+            realPath = realPath.replace(".gif", ".png");
+            imgURL = ASUtils.class.getResource(realPath);
+        }
 		if (imgURL != null) {
 			return new ImageIcon(imgURL, description);
 		} else {
