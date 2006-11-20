@@ -19,8 +19,13 @@ public class ValidateResult {
      * @return
      */
     public static ValidateResult createValidateResult(Status status, String message) {
+        if (status == Status.OK && (message == null || message.length() == 0))
+            return sharedOKResult;
         return new ValidateResult(status, message);
     }
+
+    private static final ValidateResult sharedOKResult =
+        new ValidateResult(Status.OK, "");
 
     /**
      * the status of the validation
