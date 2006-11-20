@@ -44,9 +44,9 @@ import javax.swing.filechooser.FileFilter;
 
 import org.apache.log4j.Logger;
 
-import com.darwinsys.swingui.UtilGUI;
-
 import ca.sqlpower.architect.qfa.ExceptionReport;
+
+import com.darwinsys.swingui.UtilGUI;
 
 /**
  * ASUtils is a container class for static utility methods used
@@ -417,6 +417,7 @@ public class ASUtils {
         final String LAYOUT_END   = "</font>";
         JLabel messageLabel =
             new JLabel(LAYOUT_START + message + LAYOUT_END);
+        messageLabel.setIcon(StatusIcon.getFailIcon());
         top.add(messageLabel);
         JLabel errClassLabel = new JLabel("Exception type: " + throwable.getClass().getName());
         top.add(errClassLabel);
