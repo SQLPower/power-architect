@@ -5,6 +5,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,10 +49,13 @@ public class FormValidationHandler implements ValidationHandler {
      */
     private StatusComponent display;
 
+    private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+
     /**
      * List of combination of JComponent,validator...
      */
     private List<ValidateObject> objects;
+    private ValidateResult worstValidationStatus;
 
     private class ValidateObject {
         /**
@@ -128,24 +133,6 @@ public class FormValidationHandler implements ValidationHandler {
         objects = new ArrayList<ValidateObject>();
     }
 
-    private void showValidate() {
-        ValidateResult s = null;
-        String message = null;
-
-        for ( ValidateObject v : objects ) {
-            if ( v.getResult() == null ) continue;
-            message = v.getResult().getMessage();
-            if ( v.getResult().getStatus() == Status.FAIL ) {
-                s = v.getResult();
-                break;
-            } else if ( v.getResult().getStatus() == Status.WARN &&
-                    ( s == null || s.getStatus() != Status.WARN) ) {
-                s = v.getResult();
-            }
-        }
-        display.setResult(s);
-        display.setText(message);
-    }
 
     /**
      * add your Jcomponent and validator to the List
@@ -168,23 +155,20 @@ public class FormValidationHandler implements ValidationHandler {
                     }
                     private void doStuff() {
                         validateObject.setObject(((JTextComponent)component).getText());
-                        validateObject.doValidate();
-                        showValidate();
+                        performFormValidation();
                     }
                 });
         } else if ( component instanceof JComboBox ) {
             ((JComboBox)component).addItemListener(new ItemListener(){
                 public void itemStateChanged(ItemEvent e) {
                     validateObject.setObject(((JComboBox)component).getSelectedItem());
-                    validateObject.doValidate();
-                    showValidate();
+                    performFormValidation();
                 }});
         } else if ( component instanceof AbstractButton ) {
             ((AbstractButton)component).addActionListener(new ActionListener(){
                 public void actionPerformed(ActionEvent e) {
                     validateObject.setObject(((AbstractButton)component).isSelected());
-                    validateObject.doValidate();
-                    showValidate();
+                    performFormValidation();
                 }});
         } else {
             throw new IllegalArgumentException("Unsupported JComponent type:"+
@@ -192,6 +176,40 @@ public class FormValidationHandler implements ValidationHandler {
         }
     }
 
+    private void performFormValidation() {
+
+        for ( ValidateObject o : objects ) {
+            o.doValidate();
+        }
+        ValidateResult worst = null;
+        String message = null;
+        for ( ValidateObject o : objects ) {
+            if ( o.getResult() == null ) continue;
+            message = o.getResult().getMessage();
+            if ( o.getResult().getStatus() == Status.FAIL ) {
+                worst = o.getResult();
+                break;
+            } else if ( o.getResult().getStatus() == Status.WARN &&
+                    ( worst == null || worst.getStatus() != Status.WARN) ) {
+                worst = o.getResult();
+            } else if ( worst == null ) {
+                worst = o.getResult();
+            }
+        }
+        display.setResult(worst);
+        display.setText(message);
+        setWorstValidationStatus(worst);
+    }
+
+    public ValidateResult getWorstValidationStatus() {
+        return worstValidationStatus;
+    }
+
+    private void setWorstValidationStatus(ValidateResult result) {
+        ValidateResult oldResult = this.worstValidationStatus;
+        this.worstValidationStatus = result;
+        pcs.firePropertyChange("worstValidationStatus", oldResult, result);
+    }
 
     public List<String> getFailResults() {
         return getResults(Status.FAIL);
@@ -209,4 +227,30 @@ public class FormValidationHandler implements ValidationHandler {
         }
         return msg;
     }
+
+
+    // listener stuff
+
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+        pcs.addPropertyChangeListener(listener);
+    }
+
+    public void addPropertyChangeListener(String propertyName, PropertyChangeListener listener) {
+        pcs.addPropertyChangeListener(propertyName, listener);
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener listener) {
+        pcs.removePropertyChangeListener(listener);
+    }
+
+    public void removePropertyChangeListener(String propertyName, PropertyChangeListener listener) {
+        pcs.removePropertyChangeListener(propertyName, listener);
+    }
+
+    public PropertyChangeSupport getPCS(){
+        return pcs;
+    }
+
+
+
 }
