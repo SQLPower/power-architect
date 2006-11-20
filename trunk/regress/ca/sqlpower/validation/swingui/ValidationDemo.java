@@ -10,6 +10,7 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
@@ -35,9 +36,9 @@ public class ValidationDemo {
 
         dialogButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                JDialog dialog = new JDialog(jf, "Dialog");
-                StatusComponent display = new StatusComponent();
-                FormValidationHandler validateHandler = new FormValidationHandler(display);
+                final JDialog dialog = new JDialog(jf, "Dialog");
+                final StatusComponent display = new StatusComponent();
+                final FormValidationHandler validateHandler = new FormValidationHandler(display);
                 dialog.add(display, BorderLayout.NORTH);
 
                 JPanel midPanel  = new JPanel(new GridLayout(0, 1 ,5, 5));
@@ -85,16 +86,17 @@ public class ValidationDemo {
                 dialog.add(midPanel, BorderLayout.CENTER);
 
                 ButtonBarBuilder bPanel = new ButtonBarBuilder();
-                bPanel.addGridded(new JButton(new AbstractAction("Insert 123"){
+                bPanel.addGridded(new JButton(new AbstractAction("Insert 123 in numbers"){
                     public void actionPerformed(ActionEvent e) {
                         tf1.setText("123");
                     }}));
-                bPanel.addGridded(new JButton(new AbstractAction("Insert abc"){
+                bPanel.addGridded(new JButton(new AbstractAction("Insert abc in numbers"){
                     public void actionPerformed(ActionEvent e) {
                         tf1.setText("abc");
                     }}));
 
                 dialog.add(bPanel.getPanel(), BorderLayout.SOUTH);
+                JOptionPane pane;
 
                 dialog.pack();
                 dialog.setLocation(200, 200);

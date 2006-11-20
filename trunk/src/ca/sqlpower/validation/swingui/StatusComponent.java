@@ -18,10 +18,10 @@ import ca.sqlpower.validation.ValidateResult;
  */
 public class StatusComponent extends JLabel {
 
+    private final static int DIAMETER = 15;
+
     /** A red dot */
     private static final Icon FAIL_ICON = new Icon() {
-
-        private final static int DIAMETER = 15;
 
         public int getIconHeight() {
             return DIAMETER;
@@ -41,8 +41,6 @@ public class StatusComponent extends JLabel {
     /** A yellow dot */
     private static final Icon WARN_ICON = new Icon() {
 
-        private final static int DIAMETER = 15;
-
         public int getIconHeight() {
             return DIAMETER;
         }
@@ -58,45 +56,47 @@ public class StatusComponent extends JLabel {
 
     };
 
+    /** A blank icon of the right size, just to avoid resize flashing */
+    private static final Icon NULL_ICON = new Icon() {
+
+        public int getIconHeight() {
+            return DIAMETER;
+        }
+
+        public int getIconWidth() {
+            return DIAMETER;
+        }
+
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            // no painting required for null icon
+        }
+    };
+
     private static final int X_ADJUST = 20;
-    private static final int Y_ADJUST = -15;
     private static final int PAD = 7;
     private ValidateResult result = null;
-
-    // private ImageIcon errorIcon = ASUtils.createIcon("general/Error",
-    //        "Error Icon", 16);
 
     public StatusComponent() {
         this("");
     }
 
-
     public StatusComponent(String text) {
         super(text);
-
-    }
-
-
-    /**
-     * Set the text to be displayed; note that it is not necessary
-     * to nullify the text when the error is cleared, as calling
-     * setStatus(ValidateResult.OK) suppresses display of the text.
-     */
-    public void setText(String text) {
-        super.setText(text);
+        setIcon(NULL_ICON);
     }
 
     public void setResult(ValidateResult error) {
-        this.result = error;
-        if ( result == null ) {
-            setIcon(null);
+        result = error;
+        if (result == null) {
+            setIcon(NULL_ICON);
+            super.setText("");
             return;
         }
 
         switch(result.getStatus()) {
         case OK:
-            setIcon(null);
-            return;
+            setIcon(NULL_ICON);
+            break;
         case WARN:
             setIcon(WARN_ICON);
             break;
@@ -104,25 +104,19 @@ public class StatusComponent extends JLabel {
             setIcon(FAIL_ICON);
             break;
         }
+        setText(result.getMessage());
         repaint();
-    }
-
-    /**
-     * Draw the error icon and the message if needed;
-     * note that the text will not be drawn if !isError().
-     * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
-     */
-
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
     }
 
     @Override
     public Dimension getPreferredSize() {
         Dimension d = super.getPreferredSize();
-        d.width += X_ADJUST;
-        d.width += PAD;
+        d.width += X_ADJUST + PAD;
         d.height += 2 * PAD;
         return d;
+    }
+
+    public ValidateResult getResult() {
+        return result;
     }
 }
