@@ -18,22 +18,61 @@ import java.sql.SQLException;
 import java.sql.SQLWarning;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 import javax.help.UnsupportedOperationException;
 
 public class MockJDBCPreparedStatement implements PreparedStatement {
 
-    Object[] parameters;
+    private static class Parameter {
+        Object value;
+        boolean set;
+    }
+    
+    List<Parameter> parameters;
+    
 
     /**
      * create a new prepared statement
      * @param i the number of parameters for this statement >0
      */
-    public MockJDBCPreparedStatement(int i) {
-        parameters = new Object[i];
+    public MockJDBCPreparedStatement(int paramCount) {
+        parameters = new ArrayList<Parameter>(paramCount);
+        for (int i = 0; i < paramCount; i++) {
+            parameters.add(new Parameter());
+        }
     }
 
+    /**
+     * Throws an exception if there are any unset parameters in this prepared statement.
+     * The exception message will list the unset parameter indices.
+     */
+    public void checkAllParametersSet() throws SQLException {
+        checkParametersSet(1, parameters.size());
+    }
+    
+    /**
+     * Throws an exception if there are any unset parameters in the given range.
+     * The exception message will list the unset parameter indices.
+     * 
+     * @param start the first index to check for settedness. It uses JDBC-style 1-based indexing.
+     * @param length the number of indices (starting at start) to check
+     * @throws SQLException If there are any unset parameters in this pstmt.
+     */
+    public void checkParametersSet(int start, int length) throws SQLException {
+        StringBuilder sb = new StringBuilder();
+        for (int i = start; i < start+length; i++) {
+            if (parameters.get(i-1).set == false) sb.append(" "+i);
+        }
+        if (sb.length() > 0) {
+            throw new SQLException("The following parameters are not set: "+sb);
+        }
+    }
+    
+    ////////// PreparedStatement interface is below this line /////////////
+    
     public void addBatch() throws SQLException {
         throw new UnsupportedOperationException("This isn't yet implemented in the mock object");
     }
@@ -83,19 +122,29 @@ public class MockJDBCPreparedStatement implements PreparedStatement {
     }
 
     public Object[] getParameters() {
-        return parameters;
+        Object[] result = new Object[parameters.size()];
+        for (int i = 0; i < parameters.size(); i++) {
+            result[i] = parameters.get(i).value;
+        }
+        return result;
     }
 
     public void setParameters(Object[] parameters) {
-        this.parameters = parameters;
+        for (int i = 0; i < parameters.length; i++) {
+            Parameter parami = this.parameters.get(i);
+            parami.value = parameters[i];
+            parami.set = true;
+        }
     }
 
     public void setBoolean(int parameterIndex, boolean x) throws SQLException {
-        parameters[parameterIndex] = x;
+        parameters.get(parameterIndex-1).value = x;
+        parameters.get(parameterIndex-1).set = true;
     }
 
     public void setByte(int parameterIndex, byte x) throws SQLException {
-         parameters[parameterIndex] = x;
+         parameters.get(parameterIndex-1).value = x;
+         parameters.get(parameterIndex-1).set = true;
     }
 
     public void setBytes(int parameterIndex, byte[] x) throws SQLException {
@@ -111,7 +160,8 @@ public class MockJDBCPreparedStatement implements PreparedStatement {
     }
 
     public void setDate(int parameterIndex, Date x) throws SQLException {
-         parameters[parameterIndex] = x;
+         parameters.get(parameterIndex-1).value = x;
+         parameters.get(parameterIndex-1).set = true;
     }
 
     public void setDate(int parameterIndex, Date x, Calendar cal) throws SQLException {
@@ -119,23 +169,28 @@ public class MockJDBCPreparedStatement implements PreparedStatement {
     }
 
     public void setDouble(int parameterIndex, double x) throws SQLException {
-         parameters[parameterIndex] = x;
+         parameters.get(parameterIndex-1).value = x;
+         parameters.get(parameterIndex-1).set = true;
     }
 
     public void setFloat(int parameterIndex, float x) throws SQLException {
-         parameters[parameterIndex] = x;
+         parameters.get(parameterIndex-1).value = x;
+         parameters.get(parameterIndex-1).set = true;
     }
 
     public void setInt(int parameterIndex, int x) throws SQLException {
-         parameters[parameterIndex] = x;
+         parameters.get(parameterIndex-1).value = x;
+         parameters.get(parameterIndex-1).set = true;
     }
 
     public void setLong(int parameterIndex, long x) throws SQLException {
-         parameters[parameterIndex] = x;
-    }
+         parameters.get(parameterIndex-1).value = x;
+         parameters.get(parameterIndex-1).set = true;
+   }
 
     public void setNull(int parameterIndex, int sqlType) throws SQLException {
-        parameters[parameterIndex] = null;
+        parameters.get(parameterIndex-1).value = null;
+        parameters.get(parameterIndex-1).set = true;
     }
 
     public void setNull(int paramIndex, int sqlType, String typeName) throws SQLException {
@@ -143,7 +198,8 @@ public class MockJDBCPreparedStatement implements PreparedStatement {
     }
 
     public void setObject(int parameterIndex, Object x) throws SQLException {
-         parameters[parameterIndex] = x;
+         parameters.get(parameterIndex-1).value = x;
+         parameters.get(parameterIndex-1).set = true;
     }
 
     public void setObject(int parameterIndex, Object x, int targetSqlType) throws SQLException {
@@ -159,20 +215,24 @@ public class MockJDBCPreparedStatement implements PreparedStatement {
     }
 
     public void setShort(int parameterIndex, short x) throws SQLException {
-         parameters[parameterIndex] = x;
+         parameters.get(parameterIndex-1).value = x;
+         parameters.get(parameterIndex-1).set = true;
     }
 
     public void setString(int parameterIndex, String x) throws SQLException {
-         parameters[parameterIndex] = x;
+         parameters.get(parameterIndex-1).value = x;
+         parameters.get(parameterIndex-1).set = true;
     }
 
     public void setTime(int parameterIndex, Time x) throws SQLException {
-         parameters[parameterIndex] = x;
-    }
+         parameters.get(parameterIndex-1).value = x;
+         parameters.get(parameterIndex-1).set = true;
+   }
 
     public void setTime(int parameterIndex, Time x, Calendar cal) throws SQLException {
-         parameters[parameterIndex] = x;
-    }
+         parameters.get(parameterIndex-1).value = x;
+         parameters.get(parameterIndex-1).set = true;
+   }
 
     public void setTimestamp(int parameterIndex, Timestamp x) throws SQLException {
         throw new UnsupportedOperationException("This isn't yet implemented in the mock object");
