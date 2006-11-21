@@ -142,6 +142,7 @@ public class FormValidationHandler implements ValidationHandler {
         objects.add(validateObject);
 
         if ( component instanceof JTextComponent ) {
+            validateObject.setObject(((JTextComponent)component).getText());
             ((JTextComponent)component).getDocument()
                 .addDocumentListener(new DocumentListener(){
                     public void insertUpdate(DocumentEvent e) {
@@ -159,12 +160,14 @@ public class FormValidationHandler implements ValidationHandler {
                     }
                 });
         } else if ( component instanceof JComboBox ) {
+            validateObject.setObject(((JComboBox)component).getSelectedItem());
             ((JComboBox)component).addItemListener(new ItemListener(){
                 public void itemStateChanged(ItemEvent e) {
                     validateObject.setObject(((JComboBox)component).getSelectedItem());
                     performFormValidation();
                 }});
         } else if ( component instanceof AbstractButton ) {
+            validateObject.setObject(((AbstractButton)component).isSelected());
             ((AbstractButton)component).addActionListener(new ActionListener(){
                 public void actionPerformed(ActionEvent e) {
                     validateObject.setObject(((AbstractButton)component).isSelected());
@@ -185,15 +188,17 @@ public class FormValidationHandler implements ValidationHandler {
         String message = null;
         for ( ValidateObject o : objects ) {
             if ( o.getResult() == null ) continue;
-            message = o.getResult().getMessage();
             if ( o.getResult().getStatus() == Status.FAIL ) {
                 worst = o.getResult();
+                message = o.getResult().getMessage();
                 break;
             } else if ( o.getResult().getStatus() == Status.WARN &&
                     ( worst == null || worst.getStatus() != Status.WARN) ) {
                 worst = o.getResult();
+                message = o.getResult().getMessage();
             } else if ( worst == null ) {
                 worst = o.getResult();
+                message = o.getResult().getMessage();
             }
         }
         display.setResult(worst);
