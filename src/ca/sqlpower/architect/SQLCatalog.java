@@ -26,15 +26,20 @@ public class SQLCatalog extends SQLObject {
 	protected String nativeTerm;
 
 	public SQLCatalog() {
-		this(null, null);
+		this(null, null, false);
 	}
 
 	public SQLCatalog(SQLDatabase parent, String name) {
-		this.parent = parent;
-		setName(name);
-		this.children = new LinkedList();
-		this.nativeTerm = "catalog";
+        this(parent, name, false);
 	}
+    
+    public SQLCatalog(SQLDatabase parent, String name, boolean startPopulated) {
+        this.parent = parent;
+        setName(name);
+        this.children = new LinkedList();
+        this.nativeTerm = "catalog";
+        this.populated = startPopulated;
+    }
 
 	protected SQLTable getTableByName(String tableName) throws ArchitectException {
 		populate();

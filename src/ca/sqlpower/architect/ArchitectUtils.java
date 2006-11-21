@@ -556,7 +556,7 @@ public class ArchitectUtils {
         return null;
     }
     
-    public static void addSimulatedTable(SQLDatabase db, String catalog, String schema, String name) throws ArchitectException {
+    public static SQLTable addSimulatedTable(SQLDatabase db, String catalog, String schema, String name) throws ArchitectException {
         if (db.getTableByName(catalog, schema, name) != null) {
             throw new ArchitectException("The table "+catalog+"."+schema+"."+name+" already exists");
         }
@@ -567,7 +567,7 @@ public class ArchitectUtils {
             }
             schemaContainer = db.getCatalogByName(catalog);
             if (schemaContainer == null) {
-                schemaContainer = new SQLCatalog(db, catalog);
+                schemaContainer = new SQLCatalog(db, catalog, true);
                 db.addChild(schemaContainer);
             }
         } else {
@@ -591,6 +591,9 @@ public class ArchitectUtils {
             tableContainer = schemaContainer;
         }
         
-        tableContainer.addChild(new SQLTable(tableContainer, name, null, "TABLE", true));
+        SQLTable newTable = new SQLTable(tableContainer, name, null, "TABLE", true);
+        tableContainer.addChild(newTable);
+        
+        return newTable;
     }
 }
