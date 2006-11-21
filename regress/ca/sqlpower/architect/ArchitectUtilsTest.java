@@ -254,4 +254,21 @@ public class ArchitectUtilsTest extends TestCase {
         parentdb.removeChild(sch);
         assertNull(ArchitectUtils.getAncestor(t.getColumnsFolder(), SQLDatabase.class));
     }
+    
+    public void testCreateTableWhenExisting() throws Exception {
+        SQLDatabase db = new SQLDatabase();
+        SQLCatalog cat = new SQLCatalog(db, "cat");
+        db.addChild(cat);
+        SQLSchema schem = new SQLSchema(cat, "schem", true);
+        cat.addChild(schem);
+        SQLTable tab = new SQLTable(schem, "tab", null, "TABLE", true);
+        schem.addChild(tab);
+        
+        try {
+            ArchitectUtils.addSimulatedTable(db, "cat", "schem", "tab");
+            fail("Should not have been allowed because table exists");
+        } catch (ArchitectException ex) {
+            // expected
+        }
+    }
 }
