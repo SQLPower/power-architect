@@ -555,4 +555,42 @@ public class ArchitectUtils {
         }
         return null;
     }
+    
+    public static void addSimulatedTable(SQLDatabase db, String catalog, String schema, String name) throws ArchitectException {
+        if (db.getTableByName(catalog, schema, name) != null) {
+            throw new ArchitectException("The table "+catalog+"."+schema+"."+name+" already exists");
+        }
+        SQLObject schemaContainer;
+        if (catalog != null) {
+            if (!db.isCatalogContainer()) {
+                throw new ArchitectException("You tried to add a table with a catalog ancestor to a database that doesn't support catalogs.");
+            }
+            schemaContainer = db.getCatalogByName(catalog);
+            if (schemaContainer == null) {
+                schemaContainer = new SQLCatalog(db, catalog);
+                db.addChild(schemaContainer);
+            }
+        } else {
+            schemaContainer = db;
+        }
+        
+        SQLObject tableContainer; 
+        if (schema != null) {
+            Class<? extends SQLObject> childType = schemaContainer.getChildType();
+            if ( !(childType == null || childType == SQLSchema.class) ) {
+                throw new ArchitectException(
+                        "The schema container ("+schemaContainer+
+                        ") can't actually contain children of type SQLSchema.");
+            }
+            tableContainer = schemaContainer.getChildByName(schema);
+            if (tableContainer == null) {
+                tableContainer = new SQLSchema(schemaContainer, schema, true);
+                schemaContainer.addChild(tableContainer);
+            }
+        } else {
+            tableContainer = schemaContainer;
+        }
+        
+        tableContainer.addChild(new SQLTable(tableContainer, name, null, "TABLE", true));
+    }
 }
