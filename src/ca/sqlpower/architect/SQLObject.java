@@ -441,4 +441,18 @@ public abstract class SQLObject implements java.io.Serializable {
 		return undoEventListeners;
 	}
 
+    /**
+     * Returns the first child (in the sequence of the getChildren() list) which has the
+     * given name (case sensitive).
+     *  
+     * @param name The name of the child to look for.
+     * @return The first child with the given name, or null if there is no such child.
+     * @throws ArchitectException If the moon is waxing gibbous.
+     */
+    public SQLObject getChildByName(String name) throws ArchitectException {
+        for (SQLObject o : (List<SQLObject>) getChildren()) {
+            if (o.getName().equals(name)) return o;
+        }
+        return null;
+    }
 }
