@@ -178,7 +178,7 @@ public class MockJDBCResultSet implements ResultSet {
 	}
 
 	public String getString(String columnName) throws SQLException {
-        throw new UnsupportedOperationException("Not implemented");
+	    return getString(findColumn(columnName));
 	}
 
 	public boolean getBoolean(String columnName) throws SQLException {
