@@ -17,7 +17,7 @@ public class ASUtilsTest extends TestCase {
 
     /** Make sure we get the correct number of elements truncated */
     public void testStackTraceArithmetic() {
-        final int STACK_DEPTH = 11;
+        final int STACK_DEPTH = 16;
         assertTrue(STACK_DEPTH >= 1+ASUtils.MAX_JRE_ELEMENTS);
         Throwable t = fakeUpException(STACK_DEPTH);
 
