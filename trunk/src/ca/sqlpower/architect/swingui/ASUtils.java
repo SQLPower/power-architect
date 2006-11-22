@@ -401,7 +401,9 @@ public class ASUtils {
             dialog = new JDialog((Frame)null, "Error report");
         }
         logger.debug("displayExceptionDialog: showing exception dialog for:", throwable);
-        dialog.setLocationRelativeTo(parent);
+        if (parent != null) {
+            dialog.setLocationRelativeTo(parent);
+        }
         ((JComponent)dialog.getContentPane()).setBorder(
                 BorderFactory.createEmptyBorder(10, 10, 5, 5));
 
@@ -443,7 +445,7 @@ public class ASUtils {
         messageComponent.add(detailScroller, BorderLayout.CENTER);
         messageComponent.setPreferredSize(new Dimension(700, 400));
 
-        final Dimension SIZE_NODETAILS = new Dimension(350, 200);
+        final Dimension SIZE_NODETAILS = new Dimension(350, 250);
 
         // XXX This button should be at the right side of the
         // error text instead of the bottom, so it wouldn't jump
@@ -500,7 +502,7 @@ public class ASUtils {
                 clazzName.startsWith("sun.") ||
                 clazzName.startsWith("org.")) {
                 if (++jreElements > 10) {
-                    traceWriter.printf("\t... %d more...", stackTrace.length - i);
+                    traceWriter.printf("\t... %d more...%n", stackTrace.length - i);
                     break;
                 }
             }
