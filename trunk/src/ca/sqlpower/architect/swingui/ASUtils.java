@@ -490,7 +490,10 @@ public class ASUtils {
         dialog.setVisible(true);
     }
 
+    static final int MAX_JRE_ELEMENTS = 10;
+    static final int THRESHOLD = 5;
 	static void printStackTrace(Throwable throwable, PrintWriter traceWriter) {
+        traceWriter.println(throwable);
         StackTraceElement[] stackTrace = throwable.getStackTrace();
         for (int i = 0, jreElements = 0; i < stackTrace.length; i++) {
             StackTraceElement e = stackTrace[i];
@@ -501,8 +504,10 @@ public class ASUtils {
                 clazzName.startsWith("javax.") ||
                 clazzName.startsWith("sun.") ||
                 clazzName.startsWith("org.")) {
-                if (++jreElements > 10) {
-                    traceWriter.printf("\t... %d more...%n", stackTrace.length - i);
+                final int remainingLength = stackTrace.length - i;
+                if (++jreElements >= MAX_JRE_ELEMENTS /*&&
+                        remainingLength > THRESHOLD*/) {
+                    traceWriter.printf("\t... %d more...%n", remainingLength);
                     break;
                 }
             }
