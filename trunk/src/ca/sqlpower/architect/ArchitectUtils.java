@@ -556,6 +556,48 @@ public class ArchitectUtils {
         return null;
     }
     
+    public static boolean isCompatibleWithHierarchy(SQLDatabase db, String catalog, String schema, String name) throws ArchitectException {
+        SQLObject schemaContainer;
+        if ( catalog != null){
+            if (db.isCatalogContainer()){
+                schemaContainer = db.getCatalogByName(catalog);
+                if (schemaContainer == null) {
+                    return true;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            schemaContainer = db;
+        }
+        
+        SQLObject tableContainer;
+        if (schema != null){
+            if (schemaContainer.getChildType() == SQLSchema.class){
+                tableContainer = schemaContainer.getChildByName(schema);
+                if (tableContainer == null) {
+                    return true;
+                }
+            } else if (schemaContainer.getChildType() == null) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            tableContainer = schemaContainer;
+        }
+        
+        if (name != null) {
+            if (tableContainer.getChildType() == null || tableContainer.getChildType() == SQLTable.class){
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+    
     public static SQLTable addSimulatedTable(SQLDatabase db, String catalog, String schema, String name) throws ArchitectException {
         if (db.getTableByName(catalog, schema, name) != null) {
             throw new ArchitectException("The table "+catalog+"."+schema+"."+name+" already exists");
