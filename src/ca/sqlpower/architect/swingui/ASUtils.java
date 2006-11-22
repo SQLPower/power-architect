@@ -505,8 +505,8 @@ public class ASUtils {
                 clazzName.startsWith("sun.") ||
                 clazzName.startsWith("org.")) {
                 final int remainingLength = stackTrace.length - i;
-                if (++jreElements >= MAX_JRE_ELEMENTS /*&&
-                        remainingLength > THRESHOLD*/) {
+                if (++jreElements >= MAX_JRE_ELEMENTS &&
+                        remainingLength > THRESHOLD) {
                     traceWriter.printf("\t... %d more...%n", remainingLength);
                     break;
                 }
