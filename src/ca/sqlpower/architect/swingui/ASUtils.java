@@ -15,7 +15,6 @@ import java.awt.geom.Line2D;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -387,16 +386,19 @@ public class ASUtils {
        displayExceptionDialog(parent, string, ex);
     }
 
-    private static JDialog dialog;
-    private static void displayExceptionDialog(Component parent, String message, Throwable throwable) {
+    private static void displayExceptionDialog(final Component parent,
+            String message, final Throwable throwable) {
+        JDialog dialog;
         if (parent == null) {
             logger.error("displayExceptionDialog with null parent for message " + message);
+            dialog = new JDialog((Frame)null, "Error report");
         } else if (parent instanceof Frame) {
             dialog = new JDialog((Frame) parent, "Error Report");
         } else if (parent instanceof Dialog) {
             dialog = new JDialog((Dialog)parent, "Error Report");
         } else {
             logger.error("non-null parent component is neither frame nor dialog");
+            dialog = new JDialog((Frame)null, "Error report");
         }
         logger.debug("displayExceptionDialog: showing exception dialog for:", throwable);
         dialog.setLocationRelativeTo(parent);
@@ -404,13 +406,17 @@ public class ASUtils {
                 BorderFactory.createEmptyBorder(10, 10, 5, 5));
 
         // Details information
-        final StringWriter traceWriter = new StringWriter();
-        throwable.printStackTrace(new PrintWriter(traceWriter));
-        try {
-            traceWriter.close();
-        } catch (IOException e1) {
-            // who cares!?
-        }
+        Throwable t = throwable;
+        StringWriter stringWriter = new StringWriter();
+        final PrintWriter traceWriter = new PrintWriter(stringWriter);
+        do {
+             printStackTrace(t, traceWriter);
+            t = t.getCause();
+            if (t != null) {
+                traceWriter.println("Caused by:");
+            }
+        } while (t != null);
+        traceWriter.close();
 
         JPanel top = new JPanel(new GridLayout(0, 1, 5, 5));
         final String LAYOUT_START = "<html><font color='red' size='+1'>";
@@ -422,14 +428,16 @@ public class ASUtils {
             new JLabel(LAYOUT_START + message + LAYOUT_END);
         messageLabel.setIcon(StatusIcon.getFailIcon());
         top.add(messageLabel);
-        JLabel errClassLabel = new JLabel("Exception type: " + throwable.getClass().getName());
+        JLabel errClassLabel =
+            new JLabel("Exception type: " + throwable.getClass().getName());
         top.add(errClassLabel);
         String excDetailMessage = throwable.getMessage();
         if (excDetailMessage != null) {
             top.add(new JLabel("Detail string: " + excDetailMessage));
         }
         dialog.add(top, BorderLayout.NORTH);
-        final JScrollPane detailScroller = new JScrollPane(new JTextArea(traceWriter.toString()));
+        final JScrollPane detailScroller =
+            new JScrollPane(new JTextArea(stringWriter.toString()));
 
         final JPanel messageComponent = new JPanel(new BorderLayout());
         messageComponent.add(detailScroller, BorderLayout.CENTER);
@@ -444,18 +452,19 @@ public class ASUtils {
 
         // N.B. AbstractAction in a JButton does not update the label
         // automatically when you change the SHORT_DESCRIPTION value.
+        final JDialog finalDialogReference = dialog;
         ActionListener detailsAction = new ActionListener() {
             boolean showDetails = true;
             public void actionPerformed(ActionEvent e) {
                 // System.out.println("showDetails=" + showDetails);
                 if (showDetails) {
-                    dialog.add(messageComponent, BorderLayout.CENTER);
+                    finalDialogReference.add(messageComponent, BorderLayout.CENTER);
                     detailsButton.setText("Hide Details");
-                    dialog.pack();
+                    finalDialogReference.pack();
                 } else /* hide details */ {
-                    dialog.remove(messageComponent);
+                    finalDialogReference.remove(messageComponent);
                     detailsButton.setText("Show Details");
-                    dialog.setSize(SIZE_NODETAILS);
+                    finalDialogReference.setSize(SIZE_NODETAILS);
                 }
                 showDetails = ! showDetails;
             }
@@ -464,8 +473,8 @@ public class ASUtils {
         JButton okButton = new JButton("OK");
         okButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                dialog.dispose();
-                dialog.setVisible(false);
+                finalDialogReference.dispose();
+                finalDialogReference.setVisible(false);
             }
         });
         JPanel bottom = new JPanel();
@@ -479,7 +488,27 @@ public class ASUtils {
         dialog.setVisible(true);
     }
 
-	public static String lineToString(Line2D.Double l) {
+	static void printStackTrace(Throwable throwable, PrintWriter traceWriter) {
+        StackTraceElement[] stackTrace = throwable.getStackTrace();
+        for (int i = 0, jreElements = 0; i < stackTrace.length; i++) {
+            StackTraceElement e = stackTrace[i];
+            traceWriter.print("\t");
+            traceWriter.println(e);
+            String clazzName = e.getClassName();
+            if (clazzName.startsWith("java.") ||
+                clazzName.startsWith("javax.") ||
+                clazzName.startsWith("sun.") ||
+                clazzName.startsWith("org.")) {
+                if (++jreElements > 10) {
+                    traceWriter.printf("\t... %d more...", stackTrace.length - i);
+                    break;
+                }
+            }
+        }
+        traceWriter.flush();
+    }
+
+    public static String lineToString(Line2D.Double l) {
 		return "[("+l.x1+","+l.y1+") - ("+l.x2+","+l.y2+")]";
 	}
 
