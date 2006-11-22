@@ -111,14 +111,15 @@ public class SQLCatalog extends SQLObject {
 	
 		int oldSize = children.size();
 		synchronized (parent) {
-			
+			String oldCatalog = null;
 			Connection con = null;
 			ResultSet rs = null;
 			try {
 			
 				con = ((SQLDatabase) parent).getConnection();
 				DatabaseMetaData dbmd = con.getMetaData();	
-
+				oldCatalog = con.getCatalog();
+                
                 // This can fail in SS2K because of privelege problems.  There is
                 // apparently no way to check if it will fail; you just have to try.
                 try {
@@ -178,7 +179,10 @@ public class SQLCatalog extends SQLObject {
 					throw new ArchitectException("catalog.rs.close.fail", e2);
 				}
 				try {
-					if (con != null) con.close();
+					if (con != null) {
+                        con.setCatalog(oldCatalog);
+                        con.close();
+                    }
 				} catch (SQLException e2) {
 					throw new ArchitectException("Couldn't close connection", e2);
 				}
