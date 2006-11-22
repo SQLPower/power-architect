@@ -415,6 +415,9 @@ public class ASUtils {
         JPanel top = new JPanel(new GridLayout(0, 1, 5, 5));
         final String LAYOUT_START = "<html><font color='red' size='+1'>";
         final String LAYOUT_END   = "</font>";
+        if (message == null) {
+            message = "Unexpected error";
+        }
         JLabel messageLabel =
             new JLabel(LAYOUT_START + message + LAYOUT_END);
         messageLabel.setIcon(StatusIcon.getFailIcon());
