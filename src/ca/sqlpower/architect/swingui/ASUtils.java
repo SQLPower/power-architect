@@ -445,15 +445,11 @@ public class ASUtils {
         messageComponent.add(detailScroller, BorderLayout.CENTER);
         messageComponent.setPreferredSize(new Dimension(700, 400));
 
-        final Dimension SIZE_NODETAILS = new Dimension(350, 250);
-
         // XXX This button should be at the right side of the
         // error text instead of the bottom, so it wouldn't jump
         // around when you activate it.
         final JButton detailsButton = new JButton("Show Details");
 
-        // N.B. AbstractAction in a JButton does not update the label
-        // automatically when you change the SHORT_DESCRIPTION value.
         final JDialog finalDialogReference = dialog;
         ActionListener detailsAction = new ActionListener() {
             boolean showDetails = true;
@@ -466,7 +462,7 @@ public class ASUtils {
                 } else /* hide details */ {
                     finalDialogReference.remove(messageComponent);
                     detailsButton.setText("Show Details");
-                    finalDialogReference.setSize(SIZE_NODETAILS);
+                    finalDialogReference.pack();
                 }
                 showDetails = ! showDetails;
             }
@@ -483,7 +479,7 @@ public class ASUtils {
         bottom.add(detailsButton);
         bottom.add(okButton);
         dialog.add(bottom, BorderLayout.SOUTH);
-        dialog.setSize(SIZE_NODETAILS);
+        dialog.pack();
         if (parent == null) {
             UtilGUI.centre(dialog);
         }
