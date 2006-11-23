@@ -31,6 +31,7 @@ import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -386,18 +387,32 @@ public class ASUtils {
        displayExceptionDialog(parent, string, ex);
     }
 
+    /**
+     * XXX To get rid of this ugly static variable,
+     * the Session should handle all errors, and have
+     * all these methods require an Icon as an argument.
+     */
+    static ImageIcon masterIcon;
+
     private static void displayExceptionDialog(final Component parent,
             String message, final Throwable throwable) {
         JDialog dialog;
         if (parent == null) {
             logger.error("displayExceptionDialog with null parent for message " + message);
             dialog = new JDialog((Frame)null, "Error report");
-        } else if (parent instanceof Frame) {
-            dialog = new JDialog((Frame) parent, "Error Report");
+        } else if (parent instanceof JFrame) {
+            JFrame frame = (JFrame) parent;
+            dialog = new JDialog(frame, "Error Report");
+            if (masterIcon != null) {
+                // Ugly temporary workaround for the fact that MM uses
+                // some Architect code, which we think is creating a
+                // JFrame with the Architect icon on it...
+                frame.setIconImage(masterIcon.getImage());
+            }
         } else if (parent instanceof Dialog) {
             dialog = new JDialog((Dialog)parent, "Error Report");
         } else {
-            logger.error("non-null parent component is neither frame nor dialog");
+            logger.error("non-null parent component is neither JFrame nor JDialog");
             dialog = new JDialog((Frame)null, "Error report");
         }
         logger.debug("displayExceptionDialog: showing exception dialog for:", throwable);
