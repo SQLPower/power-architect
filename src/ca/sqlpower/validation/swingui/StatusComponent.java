@@ -60,9 +60,6 @@ public class StatusComponent extends JLabel {
             }
             text = result.getMessage();
         }
-        if (logger.isDebugEnabled()) {
-            text += "(" + getName() + ")";
-        }
         setText(text);
         setIcon(icon);
     }
