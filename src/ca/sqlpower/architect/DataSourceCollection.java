@@ -15,6 +15,16 @@ public interface DataSourceCollection {
     public void read(File location) throws IOException;
 
     /**
+     * Writes out the file as {@link #write(File)} does, using the
+     * same location as the last file that was successfully read or
+     * written using this instance.
+     * 
+     * @throws IOException if the file can't be written.
+     * @throws IllegalStateException if the file to save to can't be determined. 
+     */
+    public void write() throws IOException;
+    
+    /**
      * Writes out every section in the fileSections list in the
      * order they appear in that list.
      *
