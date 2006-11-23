@@ -46,6 +46,7 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLStatement;
 import ca.sqlpower.architect.ddl.DDLUserSettings;
+import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
 import ca.sqlpower.architect.swingui.ASUtils.FileExtensionFilter;
 import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
 
@@ -405,7 +406,8 @@ public class SQLScriptDialog extends JDialog {
 				ASUtils.showExceptionDialog(
 						SQLScriptDialog.this,
 						"Couldn't finish running this SQL Script due to the following unexpected exception:",
-						exc);
+						exc,
+                        new ArchitectExceptionReportFactory());
 			} finally {
 				final String resultsMessage =
 					(stmtsCompleted == 0 ? "Did not execute any out of " :

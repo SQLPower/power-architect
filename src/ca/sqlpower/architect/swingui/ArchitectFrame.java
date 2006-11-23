@@ -341,7 +341,6 @@ public class ArchitectFrame extends JFrame {
 							"File not found: "+f.getPath());
 				} catch (Exception e1) {
 					ASUtils.showExceptionDialog(
-							ArchitectFrame.this,
 							"Error loading file", e1);
 				}
 			}
@@ -443,7 +442,6 @@ public class ArchitectFrame extends JFrame {
                     super.actionPerformed(e);
                 } catch (ArchitectException ex) {
                     ASUtils.showExceptionDialog(
-                            ArchitectFrame.this,
                             "Error Creating List of Tables to Export",
                             ex);
                 }
@@ -511,7 +509,7 @@ public class ArchitectFrame extends JFrame {
                                 mr.drawHighLevelReport((Graphics2D) g,null);
                             } catch (ArchitectException e1) {
                                 logger.error("ArchitectException while generating mapping diagram", e1);
-                                ASUtils.showExceptionDialog(ArchitectFrame.this, "Couldn't generate mapping diagram", e1);
+                                ASUtils.showExceptionDialog("Couldn't generate mapping diagram", e1);
                             }
                         }
                     };
@@ -944,7 +942,6 @@ public class ArchitectFrame extends JFrame {
 								"File not found: "+f.getPath());
 					} catch (Exception e1) {
 						ASUtils.showExceptionDialog(
-								ArchitectFrame.this,
 								"Error loading file", e1);
 					}
 		        }
@@ -1050,7 +1047,6 @@ public class ArchitectFrame extends JFrame {
 		                        "File not found: "+openFile.getPath());
 		            } catch (Exception e1) {
 		                ASUtils.showExceptionDialog(
-		                        getMainInstance(),
 		                        "Error loading file", e1);
 		            }
 		        }

@@ -87,6 +87,7 @@ import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
 import ca.sqlpower.architect.swingui.Relationship.RelationshipDecorationMover;
 import ca.sqlpower.architect.swingui.action.CancelAction;
 import ca.sqlpower.architect.swingui.action.DBCSOkAction;
@@ -1412,7 +1413,7 @@ public class PlayPen extends JPanel
 					}				
 				}
 			} catch (ArchitectException e) {
-				ASUtils.showExceptionDialog(parentDialog, "Unexpected Exception During Import", e);
+				ASUtils.showExceptionDialog(parentDialog, "Unexpected Exception During Import", e, new ArchitectExceptionReportFactory());
 			} finally {
 				finished = true;
 				hasStarted = false;

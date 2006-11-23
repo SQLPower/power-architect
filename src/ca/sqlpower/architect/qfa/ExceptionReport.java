@@ -30,20 +30,9 @@ public class ExceptionReport {
 
     private static final Logger logger = Logger.getLogger(ExceptionReport.class);
 
-    /**
-     * The system property that controls which URL error reports go to.
-     * The default (used when this property is not defined) is
-     * the value of <tt>DEFAULT_REPORT_URL</tt>.
-     */
-    private static final String REPORT_URL_SYSTEM_PROP = "ca.sqlpower.architect.qfa.REPORT_URL";
-
-    /**
-     * The URL to post the error report to if the system property
-     * that overrides it isn't defined.
-     */
-    private static final String DEFAULT_REPORT_URL = "http://bugs.sqlpower.ca/architect/postReport";
-
     private Throwable exception;
+    private String reportUrlSysProp;
+    private String reportUrl;
     private String architectVersion;
     private long applicationUptime;
     private long totalMem;
@@ -64,10 +53,7 @@ public class ExceptionReport {
 
     private String remarks;
 
-    public ExceptionReport(Throwable exception) {
-        this.exception = exception;
-        architectVersion = ArchitectUtils.APP_VERSION;
-        applicationUptime = ArchitectUtils.getAppUptime();
+    private ExceptionReport(){
         totalMem = Runtime.getRuntime().totalMemory();
         freeMem = Runtime.getRuntime().freeMemory();
         maxMem = Runtime.getRuntime().maxMemory();
@@ -76,6 +62,15 @@ public class ExceptionReport {
         osArch = System.getProperty("os.arch");
         osName = System.getProperty("os.name");
         osVersion = System.getProperty("os.version");
+    }
+    
+    public ExceptionReport(Throwable exception, String reportUrlSysProp, String reportUrl, String architectVersion, long applicationUptime) {
+        this();
+        this.exception = exception;
+        this.reportUrlSysProp = reportUrlSysProp;
+        this.reportUrl = reportUrl;
+        this.architectVersion = architectVersion;
+        this.applicationUptime = applicationUptime;
     }
 
     public String toXML() {
@@ -138,9 +133,9 @@ public class ExceptionReport {
             return;
         }
         exception.printStackTrace();
-        String url = System.getProperty(REPORT_URL_SYSTEM_PROP);
+        String url = System.getProperty(reportUrlSysProp);
         if (url == null) {
-            url = DEFAULT_REPORT_URL;
+            url = reportUrl;
         }
         // TODO decouple this from the main frame
         UserSettings settings = ArchitectFrame.getMainInstance().getUserSettings().getQfaUserSettings();
