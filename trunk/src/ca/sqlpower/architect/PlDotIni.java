@@ -275,6 +275,13 @@ public class PlDotIni implements DataSourceCollection {
         return chopBuffer;
     }
 
+    public void write() throws IOException {
+        if (lastFileAccessed == null) {
+            throw new IllegalStateException("Can't determine location for saving");
+        }
+        write(lastFileAccessed);
+    }
+    
     /* (non-Javadoc)
      * @see ca.sqlpower.architect.DataSourceCollection#write(java.io.File)
      */
