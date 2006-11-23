@@ -22,7 +22,8 @@ public class ExceptionHandler implements UncaughtExceptionHandler {
     private static final Logger logger = Logger.getLogger(ExceptionHandler.class);
 
     public void uncaughtException(Thread t, Throwable e) {
-        ExceptionReport r = new ExceptionReport(e);
+        QFAFactory qfaFactory = new ArchitectExceptionReportFactory();
+        ExceptionReport r = qfaFactory.createExceptionReport(e);
         ArchitectFrame af = ArchitectFrame.getMainInstance();
         StringBuffer remarks = new StringBuffer();
         if (af != null) {

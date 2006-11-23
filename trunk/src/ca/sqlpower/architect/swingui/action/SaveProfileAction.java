@@ -28,6 +28,7 @@ import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfilePDFFormat;
 import ca.sqlpower.architect.profile.ProfileResult;
 import ca.sqlpower.architect.profile.TableProfileResult;
+import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.table.ProfileTable;
 
@@ -74,7 +75,7 @@ public class SaveProfileAction extends AbstractAction {
                     }
                 } catch (ArchitectException e1) {
                     ASUtils.showExceptionDialog(parent,
-                            "Could not get column from table",e1);
+                            "Could not get column from table",e1, new ArchitectExceptionReportFactory());
                 }
             }
 
@@ -97,7 +98,7 @@ public class SaveProfileAction extends AbstractAction {
                         }
                     } catch (ArchitectException e1) {
                         ASUtils.showExceptionDialog(parent,
-                                "Could not get column from table",e1);
+                                "Could not get column from table",e1, new ArchitectExceptionReportFactory());
                     }
                 }
             } else {
@@ -221,14 +222,14 @@ public class SaveProfileAction extends AbstractAction {
                     }
                     prf.format(out, objectToSave, pm);
                 } catch (Exception ex) {
-                    ASUtils.showExceptionDialog(parent,"Could not generate/save report file", ex);
+                    ASUtils.showExceptionDialog(parent,"Could not generate/save report file", ex, new ArchitectExceptionReportFactory());
                 } finally {
                     if ( out != null ) {
                         try {
                             out.flush();
                             out.close();
                         } catch (IOException ex) {
-                            ASUtils.showExceptionDialog(parent,"Could not close report file", ex);
+                            ASUtils.showExceptionDialog(parent,"Could not close report file", ex, new ArchitectExceptionReportFactory());
                         }
                     }
                 }

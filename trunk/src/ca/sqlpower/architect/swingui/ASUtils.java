@@ -45,7 +45,9 @@ import javax.swing.filechooser.FileFilter;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
 import ca.sqlpower.architect.qfa.ExceptionReport;
+import ca.sqlpower.architect.qfa.QFAFactory;
 
 /**
  * ASUtils is a container class for static utility methods used
@@ -340,7 +342,7 @@ public class ASUtils {
 	 * parent component will be the ArchitectFrame's main instance.
 	 */
 	public static void showExceptionDialog(String message, Throwable throwable) {
-		showExceptionDialog(ArchitectFrame.getMainInstance(), message, throwable);
+		showExceptionDialog(ArchitectFrame.getMainInstance(), message, throwable, new ArchitectExceptionReportFactory());
 	}
 
 	/** Displays a dialog box with the given message and exception,
@@ -350,9 +352,9 @@ public class ASUtils {
 	 * @param message
 	 * @param throwable
 	 */
-	public static void showExceptionDialog(Component parent, String message, Throwable throwable) {
+	public static void showExceptionDialog(Component parent, String message, Throwable throwable, QFAFactory qfaFactory) {
         try {
-            ExceptionReport er = new ExceptionReport(throwable);
+            ExceptionReport er = qfaFactory.createExceptionReport(throwable);
             er.setNumObjectsInPlayPen(ArchitectFrame.getMainInstance().playpen.getTablePanes().size()
                                       + ArchitectFrame.getMainInstance().playpen.getRelationships().size());
             er.setNumSourceConnections(ArchitectFrame.getMainInstance().dbTree.getDatabaseList().size());
