@@ -10,12 +10,8 @@ import ca.sqlpower.validation.ValidateResult;
 /**
  * A Component that displays the success/failure result
  * with a textual message.
- * <p>
- * XXX Change display from drawing code to nice icons!
  */
 public class StatusComponent extends JLabel {
-
-
 
     private static final int X_ADJUST = 20;
     private static final int PAD = 7;
