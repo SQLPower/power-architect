@@ -13,9 +13,15 @@ import java.util.List;
 import javax.swing.AbstractButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JTable;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.TableModel;
 import javax.swing.text.JTextComponent;
+
+import org.apache.log4j.Logger;
 
 import ca.sqlpower.validation.Status;
 import ca.sqlpower.validation.ValidateResult;
@@ -36,9 +42,13 @@ import ca.sqlpower.validation.Validator;
  * <br>
  * -for AbstractButton, the validator needs to validate boolean (status of the component)
  * <br>
+ * -for Jtable, the validator needs to validate tableModel
+ * <br>
  */
 public class FormValidationHandler implements ValidationHandler {
 
+    private static final Logger logger = Logger.getLogger(FormValidationHandler.class);
+    
     /** The color to use in the JComponent in the event of error */
     protected final static Color COLOR_ERROR = new Color(255, 170, 170);
     /** The color to use in the JComponent in the event of warnings */
@@ -173,6 +183,16 @@ public class FormValidationHandler implements ValidationHandler {
                     validateObject.setObject(((AbstractButton)component).isSelected());
                     performFormValidation();
                 }});
+        } else if ( component instanceof JTable ) {
+            final TableModel tableModel = ((JTable)component).getModel();
+            validateObject.setObject(tableModel);
+            tableModel.addTableModelListener(new TableModelListener(){
+                public void tableChanged(TableModelEvent arg0) {
+                    validateObject.setObject(tableModel);
+                    performFormValidation();
+                }});
+            
+            
         } else {
             throw new IllegalArgumentException("Unsupported JComponent type:"+
                     component.getClass());
@@ -181,29 +201,24 @@ public class FormValidationHandler implements ValidationHandler {
 
     private void performFormValidation() {
 
+        ValidateResult worst = null;
+
         for ( ValidateObject o : objects ) {
             o.doValidate();
-        }
-        ValidateResult worst = null;
-        String message = null;
-        for ( ValidateObject o : objects ) {
             if ( o.getResult() == null ) continue;
-            if ( o.getResult().getStatus() == Status.FAIL ) {
-                worst = o.getResult();
-                message = o.getResult().getMessage();
-                break;
+            if ( o.getResult().getStatus() == Status.FAIL && 
+                    (worst == null || worst.getStatus() != Status.FAIL) ) {
+                worst = o.getResult();             
             } else if ( o.getResult().getStatus() == Status.WARN &&
-                    ( worst == null || worst.getStatus() != Status.WARN) ) {
+                    ( worst == null || worst.getStatus() == Status.OK) ) {
                 worst = o.getResult();
-                message = o.getResult().getMessage();
             } else if ( worst == null ) {
                 worst = o.getResult();
-                message = o.getResult().getMessage();
             }
         }
-        display.setResult(worst);
-        display.setText(message);
+        
         setWorstValidationStatus(worst);
+        display.setResult(worst);
     }
 
     public ValidateResult getWorstValidationStatus() {

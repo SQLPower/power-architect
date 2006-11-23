@@ -1,8 +1,13 @@
 package ca.sqlpower.validation.swingui;
 
 import java.awt.Dimension;
+import java.awt.Point;
 
+import javax.swing.Icon;
 import javax.swing.JLabel;
+import javax.swing.SwingUtilities;
+
+import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.StatusIcon;
 import ca.sqlpower.validation.ValidateResult;
@@ -12,6 +17,8 @@ import ca.sqlpower.validation.ValidateResult;
  * with a textual message.
  */
 public class StatusComponent extends JLabel {
+    
+    private static final Logger logger = Logger.getLogger(StatusComponent.class);
 
     private static final int X_ADJUST = 20;
     private static final int PAD = 7;
@@ -27,26 +34,37 @@ public class StatusComponent extends JLabel {
     }
 
     public void setResult(ValidateResult error) {
+        Point p = new Point(0,0);
+        SwingUtilities.convertPointToScreen(p, this);
+        logger.debug("     location on screen="+p);
         result = error;
-        if (result == null) {
-            setIcon(StatusIcon.getNullIcon());
-            super.setText("");
-            return;
-        }
 
-        switch(result.getStatus()) {
-        case OK:
-            setIcon(StatusIcon.getNullIcon());
-            break;
-        case WARN:
-            setIcon(StatusIcon.getWarnIcon());
-            break;
-        case FAIL:
-            setIcon(StatusIcon.getFailIcon());
-            break;
+        String text;
+        Icon icon;
+        if (result == null) {
+            icon = StatusIcon.getNullIcon();
+            text = "";
+        } else {
+            switch(result.getStatus()) {
+            case OK:
+                icon = StatusIcon.getNullIcon();
+                break;
+            case WARN:
+                icon = StatusIcon.getWarnIcon();
+                break;
+            case FAIL:
+                icon = StatusIcon.getFailIcon();
+                break;
+            default:
+                icon = null;
+            }
+            text = result.getMessage();
         }
-        setText(result.getMessage());
-        repaint();
+        if (logger.isDebugEnabled()) {
+            text += "(" + getName() + ")";
+        }
+        setText(text);
+        setIcon(icon);
     }
 
     @Override
