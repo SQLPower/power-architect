@@ -7,6 +7,7 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.GridLayout;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -45,8 +46,6 @@ import javax.swing.filechooser.FileFilter;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.qfa.ExceptionReport;
-
-import com.darwinsys.swingui.UtilGUI;
 
 /**
  * ASUtils is a container class for static utility methods used
@@ -416,9 +415,8 @@ public class ASUtils {
             dialog = new JDialog((Frame)null, "Error report");
         }
         logger.debug("displayExceptionDialog: showing exception dialog for:", throwable);
-        if (parent != null) {
-            dialog.setLocationRelativeTo(parent);
-        }
+        
+        
         ((JComponent)dialog.getContentPane()).setBorder(
                 BorderFactory.createEmptyBorder(10, 10, 5, 5));
 
@@ -473,12 +471,34 @@ public class ASUtils {
                 if (showDetails) {
                     finalDialogReference.add(messageComponent, BorderLayout.CENTER);
                     detailsButton.setText("Hide Details");
-                    finalDialogReference.pack();
                 } else /* hide details */ {
                     finalDialogReference.remove(messageComponent);
                     detailsButton.setText("Show Details");
-                    finalDialogReference.pack();
                 }
+                finalDialogReference.setVisible(false);
+                finalDialogReference.pack();
+                
+                Rectangle dialogBounds = finalDialogReference.getBounds();
+                Rectangle screenBounds = finalDialogReference.getGraphicsConfiguration().getBounds();
+                if ( !screenBounds.contains(dialogBounds) ) {
+                    Point p = new Point();
+                    int x = dialogBounds.x; 
+                    int y = dialogBounds.y;
+                    if (screenBounds.x+screenBounds.width < dialogBounds.x + dialogBounds.width){
+                        x = dialogBounds.x - (dialogBounds.x + dialogBounds.width - screenBounds.x - screenBounds.width);
+                    }
+                    if (screenBounds.y+screenBounds.height < dialogBounds.y + dialogBounds.height){
+                        y = dialogBounds.y - (dialogBounds.y + dialogBounds.height - screenBounds.y - screenBounds.height);
+                    }
+                    if (screenBounds.x > x){
+                        x = screenBounds.x;
+                    }
+                    if (screenBounds.y > y){
+                        y = screenBounds.y;
+                    }
+                    finalDialogReference.setLocation(x,y);
+                }
+                finalDialogReference.setVisible(true);
                 showDetails = ! showDetails;
             }
         };
@@ -495,9 +515,8 @@ public class ASUtils {
         bottom.add(okButton);
         dialog.add(bottom, BorderLayout.SOUTH);
         dialog.pack();
-        if (parent == null) {
-            UtilGUI.centre(dialog);
-        }
+        dialog.setLocationRelativeTo(parent);
+        
         dialog.setVisible(true);
     }
 
