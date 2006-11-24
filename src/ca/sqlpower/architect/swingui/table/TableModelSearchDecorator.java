@@ -16,7 +16,12 @@ import javax.swing.text.Document;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ASUtils;
-
+/**
+ * Searches through a table model using a table text converter.  It reduces the visible table 
+ * rows as rows stop matching.
+ * 
+ * XXX: This model eats tableChanged events that get thrown from below this should be fixed! 
+ */
 public class TableModelSearchDecorator extends AbstractTableModel {
 
     private static final Logger logger = Logger.getLogger(TableModelSearchDecorator.class);
@@ -167,6 +172,7 @@ public class TableModelSearchDecorator extends AbstractTableModel {
 
     public void setTableModel(TableModel tableModel) {
         this.tableModel = tableModel;
+        fireTableStructureChanged();
     }
 
     public Document getDoc() {
