@@ -207,7 +207,9 @@ public class SQLIndex extends SQLObject {
     private boolean unique;
 
     /**
-     * This index's qualifier.
+     * The qualifier that must be used for referring to this index in the database.  This is
+     * usually the name of the table the index belongs to (in the case of SQL Server), or null
+     * (in the case of Oracle).
      */
     private String qualifier;
 
@@ -251,13 +253,25 @@ public class SQLIndex extends SQLObject {
     }
 
     /**
+     * Overriden to narrow return type.
+     */
+    @Override
+    public Column getChild(int index) throws ArchitectException {
+        return (Column) super.getChild(index);
+    }
+    
+    /**
      * Returns the table folder that owns this index.
      */
     @Override
-    public SQLObject getParent() {
+    public SQLTable.Folder<SQLIndex> getParent() {
         return parent;
     }
 
+    public SQLTable getParentTable() {
+        SQLTable.Folder<SQLIndex> parent = getParent();
+        return parent.getParent();
+    }
     @Override
     public String getShortDisplayName() {
         return getName();
