@@ -383,8 +383,10 @@ public class ArchitectUtils {
 	 */
 	public static Map getDriverDDLGeneratorMap () {
 		Map drivers = new HashMap();
-		drivers.put("oracle.jdbc.driver.OracleDriver",
-				OracleDDLGenerator.class);
+        drivers.put("oracle.jdbc.driver.OracleDriver",
+                OracleDDLGenerator.class);
+        drivers.put("oracle.jdbc.OracleDriver",
+                OracleDDLGenerator.class);
 		drivers.put("com.microsoft.jdbc.sqlserver.SQLServerDriver",
 				SQLServerDDLGenerator.class);
 		drivers.put("org.postgresql.Driver",
