@@ -1265,7 +1265,7 @@ public class CompareDMPanel extends JPanel {
 						SQLTable t = (SQLTable) chunk.getData();
                         if (t == null ) throw new NullPointerException();
                         if(t.getObjectType().equals("TABLE")) {
-                            gen.writeTable(t);
+                            gen.addTable(t);
                         }
                         if (hasKey(t)) {
                             gen.addPrimaryKey(t);

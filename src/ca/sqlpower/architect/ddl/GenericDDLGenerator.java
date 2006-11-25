@@ -17,9 +17,11 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.SQLIndex.IndexType;
 import ca.sqlpower.architect.SQLRelationship.ColumnMapping;
 import ca.sqlpower.architect.profile.ProfileFunctionDescriptor;
 
@@ -175,7 +177,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 			while (it.hasNext()) {
 
 				SQLTable t = (SQLTable) it.next();
-				writeTable(t);
+				addTable(t);
 				writePrimaryKey(t);
 			}
 			it = source.getChildren().iterator();
@@ -418,7 +420,7 @@ public class GenericDDLGenerator implements DDLGenerator {
         return td;
     }
 
-	public void writeTable(SQLTable t) throws SQLException, ArchitectException {
+	public void addTable(SQLTable t) throws SQLException, ArchitectException {
 		Map colNameMap = new HashMap();  // for detecting duplicate column names
 		// generate a new physical name if necessary
 		createPhysicalName(topLevelNames,t); // also adds generated physical name to the map
@@ -932,7 +934,40 @@ public class GenericDDLGenerator implements DDLGenerator {
     }
 
 
+    /**
+     * Adds a DDL statement to this generator that will create the
+     * given index.
+     * 
+     * @param index The specification of the index to create.  Note,
+     * if the index type is STATISTIC, no DDL will be generated because
+     * STATISTIC indices are just artificial JDBC constructs to describe
+     * table statistics (you can't create or drop them).
+     */
+    public void addIndex(SQLIndex index) throws ArchitectException {
+        if (index.getType() == IndexType.STATISTIC )
+            return;
+        print("CREATE ");
+        if (index.isUnique()) {
+            print("UNIQUE ");
+        }
+        if (index.getType() == IndexType.CLUSTERED) {
+            print("CLUSTERED ");
+        }
+        print("INDEX ");
+        print(toQualifiedName(index.getName()));
+        print("\n ON ");
+        print(toQualifiedName(index.getParentTable()));
+        print("\n ( ");
 
+        boolean first = true;
+        for (SQLIndex.Column c : (List<SQLIndex.Column>) index.getChildren()) {
+            if (!first) print(", ");
+            print(c.getName());
+            first = false;
+        }
+        print(" )\n");
+        endStatement(DDLStatement.StatementType.CREATE, index);
+    }
 
 
 
