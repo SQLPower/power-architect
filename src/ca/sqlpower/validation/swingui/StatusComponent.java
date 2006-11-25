@@ -56,7 +56,7 @@ public class StatusComponent extends JLabel {
                 icon = StatusIcon.getFailIcon();
                 break;
             default:
-                icon = null;
+                icon = StatusIcon.getNullIcon();
             }
             text = result.getMessage();
         }
