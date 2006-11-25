@@ -446,6 +446,13 @@ public class SQLTable extends SQLObject {
 	}
 
 	/**
+     * Adds the given SQLIndex object to this table's index folder.
+	 */
+    public void addIndex(SQLIndex idx) throws ArchitectException {
+        getIndicesFolder().addChild(idx);
+    }
+
+	/**
 	 * Connects up the columnsFolder, exportedKeysFolder,
 	 * importedKeysFolder, and indicesFolder pointers to the
      * children at indices 0, 1, 2, and 3 respectively.
@@ -701,7 +708,7 @@ public class SQLTable extends SQLObject {
 			fireDbObjectChanged("name", oldName, name);
 		}
 
-		public SQLObject getParent() {
+		public SQLTable getParent() {
 			return parent;
 		}
 
@@ -1141,5 +1148,4 @@ public class SQLTable extends SQLObject {
         if (this.objectType == null) throw new NullPointerException();
 		fireDbObjectChanged("objectType",oldObjectType, argObjectType);
 	}
-
 }
