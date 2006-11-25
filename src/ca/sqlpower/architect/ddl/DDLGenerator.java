@@ -12,6 +12,7 @@ import java.util.Map;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.profile.ProfileFunctionDescriptor;
@@ -90,8 +91,14 @@ public interface DDLGenerator {
      * Appends the DDL statements for creating a table in this DDL Generator's
      * current catalog and schema using SQLTable t as a template.
      */
-    public void writeTable(SQLTable t) throws SQLException, ArchitectException;
+    public void addTable(SQLTable t) throws SQLException, ArchitectException;
 
+    /**
+     * Appends the DDL statements for creating the given index this DDL Generator's
+     * current catalog and schema.
+     */
+    public void addIndex(SQLIndex idx) throws ArchitectException;
+    
     /**
      * Returns the list of DDL statements that have been created so far.  Call
      * {@link #generateDDLStatements(SQLDatabase)} to populate this list.
