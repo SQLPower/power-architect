@@ -343,8 +343,10 @@ public class ArchitectUtils {
 	 */
 	public static Map<String,String> getDriverTemplateMap() {
 		Map<String,String> drivers = new HashMap<String,String>();
-		drivers.put("oracle.jdbc.OracleDriver",
-					"jdbc:oracle:thin:@<Hostname>:<Port:1521>:<Instance>");
+        drivers.put("oracle.jdbc.OracleDriver",
+                    "jdbc:oracle:thin:@<Hostname>:<Port:1521>:<Instance>");
+        drivers.put("oracle.jdbc.driver.OracleDriver",
+                    "jdbc:oracle:thin:@<Hostname>:<Port:1521>:<Instance>");
 		drivers.put("com.microsoft.jdbc.sqlserver.SQLServerDriver",
 					"jdbc:microsoft:sqlserver://<Hostname>:<Port:1433>;SelectMethod=cursor");
 		drivers.put("org.postgresql.Driver",
@@ -366,7 +368,8 @@ public class ArchitectUtils {
 	 */
 	public static Map<String,String> getDriverTypeMap() {
 		Map<String,String> driverSystems = new HashMap<String,String>();
-		driverSystems.put("oracle.jdbc.driver.OracleDriver", "ORACLE");
+        driverSystems.put("oracle.jdbc.driver.OracleDriver", "ORACLE");
+        driverSystems.put("oracle.jdbc.OracleDriver", "ORACLE");
 		driverSystems.put("com.microsoft.jdbc.sqlserver.SQLServerDriver", "SQL SERVER");
 		driverSystems.put("org.postgresql.Driver", "POSTGRES");
 		driverSystems.put("ibm.sql.DB2Driver", "DB2");
