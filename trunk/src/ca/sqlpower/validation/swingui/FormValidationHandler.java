@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
@@ -184,14 +185,27 @@ public class FormValidationHandler implements ValidationHandler {
                     performFormValidation();
                 }});
         } else if ( component instanceof JTable ) {
-            final TableModel tableModel = ((JTable)component).getModel();
+            JTable table = (JTable)component;
+            
+            final TableModel tableModel = table.getModel();
             validateObject.setObject(tableModel);
-            tableModel.addTableModelListener(new TableModelListener(){
+            final TableModelListener tableModelListener = new TableModelListener(){
                 public void tableChanged(TableModelEvent arg0) {
                     validateObject.setObject(tableModel);
                     performFormValidation();
-                }});
-            
+                }};
+            tableModel.addTableModelListener(tableModelListener);
+            table.addPropertyChangeListener("model", new PropertyChangeListener(){
+                
+                public void propertyChange(PropertyChangeEvent evt) {
+                    TableModel old = (TableModel) evt.getOldValue();
+                    old.removeTableModelListener(tableModelListener);
+                    TableModel newModel = (TableModel) evt.getNewValue();
+                    newModel.addTableModelListener(tableModelListener);
+                    performFormValidation();
+                }
+                
+            });
             
         } else {
             throw new IllegalArgumentException("Unsupported JComponent type:"+
