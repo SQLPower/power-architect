@@ -29,6 +29,7 @@ import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -167,6 +168,7 @@ public class ArchitectFrame extends JFrame {
 
 	protected Action exportDDLAction;
 	protected Action compareDMAction;
+    protected Action dataMoverAction;
 	protected ExportPLTransAction exportPLTransAction;
     protected ExportPLJobXMLAction exportPLJobXMLAction;
 
@@ -432,7 +434,21 @@ public class ArchitectFrame extends JFrame {
 		autoLayout = new FruchtermanReingoldForceLayout();
 		autoLayoutAction.setLayout(autoLayout);
 		exportDDLAction = new ExportDDLAction();
-		compareDMAction = new CompareDMAction();
+        compareDMAction = new CompareDMAction();
+        dataMoverAction = new AbstractAction("Copy Table Data...") {
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    JDialog d = new JDialog(ArchitectFrame.this, "Copy table data");
+                    DataMoverPanel dmp = new DataMoverPanel(getArchitectSession());
+                    d.add(dmp.getPanel());
+                    d.pack();
+                    d.setLocationRelativeTo(ArchitectFrame.this);
+                    d.setVisible(true);
+                } catch (Exception ex) {
+                    ASUtils.showExceptionDialogNoReport("Couldn't start Data Mover", ex);
+                }
+            }
+        };
 
 		exportPLTransAction = new ExportPLTransAction() {
 		    @Override
@@ -661,6 +677,7 @@ public class ArchitectFrame extends JFrame {
 		toolsMenu.add(exportDDLAction);
 		toolsMenu.add(compareDMAction);
         toolsMenu.add(new SQLRunnerAction(this.getMainInstance()));
+        toolsMenu.add(dataMoverAction);
 		menuBar.add(toolsMenu);
 
         JMenu profileMenu = new JMenu("Profile");
