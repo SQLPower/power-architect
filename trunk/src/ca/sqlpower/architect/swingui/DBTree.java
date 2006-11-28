@@ -1,7 +1,5 @@
 package ca.sqlpower.architect.swingui;
 
-import java.awt.Color;
-import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DragGestureEvent;
@@ -22,7 +20,6 @@ import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.ImageIcon;
 import javax.swing.JDialog;
 import javax.swing.JList;
 import javax.swing.JMenu;
@@ -31,7 +28,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
-import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
@@ -40,13 +36,11 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectUtils;
-import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLExceptionNode;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.swingui.action.DBCSOkAction;
@@ -99,10 +93,10 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 		removeDBCSAction = new RemoveDBCSAction();
 		showInPlayPenAction = new ShowInPlayPenAction();
 		addMouseListener(new PopupListener());
-		setCellRenderer(new SQLObjectRenderer());
+		setCellRenderer(new DBTreeCellRenderer());
 	}
 
-	public DBTree(List initialDatabases, ProfileManager profileManager) throws ArchitectException {
+	public DBTree(List<SQLDatabase> initialDatabases, ProfileManager profileManager) throws ArchitectException {
 		this();
 		setDatabaseList(initialDatabases);
 		profileSelectionAction = new ProfilePanelAction();
@@ -115,7 +109,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 
 	// ----------- INSTANCE METHODS ------------
 
-	public void setDatabaseList(List databases) throws ArchitectException {
+	public void setDatabaseList(List<SQLDatabase> databases) throws ArchitectException {
 		setModel(new DBTreeModel(databases));
 	}
 
@@ -815,79 +809,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
  		}
 	}
 
-	public static class SQLObjectRenderer extends DefaultTreeCellRenderer {
-		public static final ImageIcon dbIcon = ASUtils.createIcon("Database", "SQL Database", 16);
-		public static final ImageIcon targetIcon = ASUtils.createIcon("TargetDatabaseArrow", "SQL Database", 16);
-		public static final ImageIcon cataIcon = ASUtils.createIcon("Catalog", "SQL Catalog", 16);
-		public static final ImageIcon schemaIcon = ASUtils.createIcon("Schema", "SQL Schema", 16);
-		public static final ImageIcon tableIcon = ASUtils.createIcon("Table", "SQL Table", 16);
-		public static final ImageIcon keyIcon = ASUtils.createIcon("ExportedKey", "Exported key", 16);
-		public static final ImageIcon ownerIcon = ASUtils.createIcon("Owner", "Owner", 16);
-
-		public Component getTreeCellRendererComponent(JTree tree,
-													  Object value,
-													  boolean sel,
-													  boolean expanded,
-													  boolean leaf,
-													  int row,
-													  boolean hasFocus) {
-			setText(value.toString());
-			if (value instanceof SQLDatabase) {
-				SQLDatabase db = (SQLDatabase) value;
-				if (db.isPlayPenDatabase()) {
-					setIcon(targetIcon);
-					if (db.getName() == null || db.getName().length() == 0) {
-						setText("Project");
-					} else {
-						setText("Project ("+db.getName()+")");
-					}
-				} else {
-					setIcon(dbIcon);
-				}
-			} else if (value instanceof SQLCatalog) {
-				if (((SQLCatalog) value).getNativeTerm().equals("owner")) {
-					setIcon(ownerIcon);
-				} else if (((SQLCatalog) value).getNativeTerm().equals("database")) {
-					setIcon(dbIcon);
-				} else if (((SQLCatalog) value).getNativeTerm().equals("schema")) {
-					setIcon(schemaIcon);
-				} else {
-					setIcon(cataIcon);
-				}
-			} else if (value instanceof SQLSchema) {
-				if (((SQLSchema) value).getNativeTerm().equals("owner")) {
-					setIcon(ownerIcon);
-				} else {
-					setIcon(schemaIcon);
-				}
-			} else if (value instanceof SQLTable) {
-				setIcon(tableIcon);
-				if (((SQLTable) value).getObjectType() != null) {
-				    setText(((SQLTable) value).getName()+" ("+((SQLTable) value).getObjectType()+")");
-				} else {
-				    setText(((SQLTable) value).getName());
-				}
-			} else if (value instanceof SQLRelationship) {
-				setIcon(keyIcon);
-			} else {
-				setIcon(null);
-			}
-
-			this.selected = sel;
-			this.hasFocus = hasFocus;
-
-			if (value instanceof SQLObject) {
-			    if (((SQLObject) value).isPopulated()) {
-			        setForeground(Color.black);
-			    } else {
-			        setForeground(Color.lightGray);
-			    }
-			}
-			return this;
-		}
-	}
-
-    /**
+	/**
      *  Adds the datasource to the dbtree
      */
     public void selectDBConnection(ArchitectDataSource ds) {
