@@ -219,8 +219,8 @@ public class FormValidationHandler implements ValidationHandler {
 
         for ( ValidateObject o : objects ) {
             o.doValidate();
-            if ( o.getResult() == null ) continue;
-            if ( o.getResult().getStatus() == Status.FAIL && 
+            if ( o.getResult() == null ) {
+            } else if ( o.getResult().getStatus() == Status.FAIL && 
                     (worst == null || worst.getStatus() != Status.FAIL) ) {
                 worst = o.getResult();             
             } else if ( o.getResult().getStatus() == Status.WARN &&
@@ -262,9 +262,25 @@ public class FormValidationHandler implements ValidationHandler {
         return msg;
     }
 
+    
+    /**
+     * get the validate result of the given object, it should be one of the Jcomponent
+     * that added to the handler earlier.
+     * @param object -- one of the Jcomponent that added to the handler earlier.
+     * @return Validate Result
+     * @throws IllegalArgumentException if the object is not on the list
+     */
+    public ValidateResult getResultOf(Object object) {
+        for ( ValidateObject o : objects ) {
+            if (object == o.getComponent() ) {
+                return o.getResult();
+            }
+        }
+        throw new IllegalArgumentException("Object:" +
+                (object==null?"null":object) + " not found!");
+    }
 
     // listener stuff
-
     public void addPropertyChangeListener(PropertyChangeListener listener) {
         pcs.addPropertyChangeListener(listener);
     }
