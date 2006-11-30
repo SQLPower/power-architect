@@ -309,17 +309,30 @@ public class ASUtils {
 	}
 
 	/**
-     * Arrange for an existing JDialog to close nicely. Called with an Action,
-     * which will become the cancelAction of the dialog.
+     * Arrange for an existing JDialog or JFrame to close nicely when the ESC
+     * key is pressed. Called with an Action, which will become the cancelAction 
+     * of the dialog.
+     * <p>
      * Note: we explicitly close the dialog from this code.
-     * @param d
+     * 
+     * @param w The Window which you want to make cancelable with the ESC key.  Must
+     * be either a JFrame or a JDialog.
      * @param cancelAction or null for nothing
      */
     public static void makeJDialogCancellable(
-    		final JDialog d,
+    		final Window w,
     		final Action cancelAction) {
 
-    	JComponent c = (JComponent) d.getRootPane();
+        JComponent c;
+        if (w instanceof JFrame) {
+            c = (JComponent) ((JFrame) w).getRootPane();
+        } else if (w instanceof JDialog) {
+            c = (JComponent) ((JDialog) w).getRootPane();
+        } else {
+            throw new IllegalArgumentException(
+                    "The window argument has to be either a JFrame or JDialog." +
+                    "  You provided a " + (w == null ? null : w.getClass().getName()));
+        }
 
     	InputMap inputMap = c.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
     	ActionMap actionMap = c.getActionMap();
@@ -330,8 +343,8 @@ public class ASUtils {
                 if ( cancelAction != null ) {
                     cancelAction.actionPerformed(e);
                 }
-    			d.setVisible(false);
-    			d.dispose();
+    			w.setVisible(false);
+    			w.dispose();
     		}
     	});
     }
