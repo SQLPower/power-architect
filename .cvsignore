@@ -10,3 +10,4 @@ architect.log*
 deploy
 .fbprefs
 staging
+.classpath
