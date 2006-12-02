@@ -1,14 +1,11 @@
 package ca.sqlpower.architect.swingui.table;
 
-import java.awt.Component;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.JTableHeader;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 /*
@@ -80,26 +77,8 @@ public class TableModelColumnAutofit extends AbstractTableModel{
         }
     }
 
-    public void initSingleColumnSize(int colIndex){
-        TableColumn column = null;
-        Component comp = null;  
-        int headerWidth = 0;
-        int cellWidth = 0;
-        TableCellRenderer headerRenderer =
-            getTableHeader().getDefaultRenderer();
-            column = table.getColumnModel().getColumn(colIndex);
-            
-            comp = headerRenderer.getTableCellRendererComponent(
-                                 table, column.getHeaderValue(),
-                                 false, false, 0, 0);
-            headerWidth = comp.getPreferredSize().width;
-
-            for (int j = 0; j < getRowCount(); j++) {                
-                comp = table.getCellRenderer(j,colIndex).getTableCellRendererComponent(table,
-                        table.getValueAt(j, colIndex),false,false,j, colIndex);                                        
-                cellWidth = Math.max(cellWidth, comp.getPreferredSize().width);                
-            }              
-            column.setPreferredWidth((Math.max(headerWidth, cellWidth)));       
+    public void initSingleColumnSize(int colIndex) {
+        TableUtils.fitColumnWidth(table, colIndex);
     }
     
     private class MouseListener extends MouseAdapter {
