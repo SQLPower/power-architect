@@ -358,14 +358,30 @@ public class ASUtils {
 		showExceptionDialog(ArchitectFrame.getMainInstance(), message, throwable, new ArchitectExceptionReportFactory());
 	}
 
-	/** Displays a dialog box with the given message and exception,
-	 * returning focus to the given component. Intended for use
-	 * on panels like the CompareDMPanel, so focus works better.
-	 * @param parent
-	 * @param message
-	 * @param throwable
-	 */
-	public static void showExceptionDialog(Component parent, String message, Throwable throwable, QFAFactory qfaFactory) {
+    /** Displays a dialog box with the given message and exception,
+     * returning focus to the given component. Intended for use
+     * on panels like the CompareDMPanel, so focus works better.
+     * @param parent
+     * @param message
+     * @param throwable
+     */
+    public static void showExceptionDialog(Component parent, String message, Throwable throwable, QFAFactory qfaFactory) {
+        showExceptionDialog(parent, message, null, throwable, qfaFactory);
+    }
+    
+    /**
+     * Displays a modal dialog box with the given messages and exception stack trace.
+     * 
+     * @param parent The component that should own the dialog.  Used for positioning
+     * and proper iconification behaviour.
+     * @param message Primary error message, displayed in the dialog in large red type.
+     * If you provide null, a generic "Unexpected error" message will be used.
+     * @param subMessage Secondary message, displayed in the default colour and normal
+     * size type under the primary message.  If you make this null, the sub-message
+     * will not be rendered.
+     * @param throwable
+     */
+    public static void showExceptionDialog(Component parent, String message, String subMessage, Throwable throwable, QFAFactory qfaFactory) {
         try {
             ExceptionReport er = qfaFactory.createExceptionReport(throwable);
             er.setNumObjectsInPlayPen(ArchitectFrame.getMainInstance().playpen.getTablePanes().size()
@@ -378,7 +394,7 @@ public class ASUtils {
             logger.error("Couldn't generate and send exception report!  Note that this is not the primary problem; it's a side effect of trying to report the real problem.", seriousProblem);
             JOptionPane.showMessageDialog(null, "Error reporting failed: "+seriousProblem.getMessage()+"\nAdditional information is available in the application log.");
         } finally {
-            displayExceptionDialog(parent,message,throwable);
+            displayExceptionDialog(parent,message,subMessage,throwable);
         }
 	}
 
@@ -388,7 +404,7 @@ public class ASUtils {
      * parent component will be the ArchitectFrame's main instance.
      */
 	public static void showExceptionDialogNoReport(String string, Throwable ex) {
-        displayExceptionDialog(ArchitectFrame.getMainInstance(), string, ex);
+        displayExceptionDialog(ArchitectFrame.getMainInstance(), string, null, ex);
 	}
     /** Displays a dialog box with the given message and exception,
      * returning focus to the given component. Intended for use
@@ -398,7 +414,7 @@ public class ASUtils {
      * @param throwable
      */
     public static void showExceptionDialogNoReport(Component parent,String string, Throwable ex) {
-       displayExceptionDialog(parent, string, ex);
+       displayExceptionDialog(parent, string, null, ex);
     }
 
     /**
@@ -408,8 +424,11 @@ public class ASUtils {
      */
     static ImageIcon masterIcon;
 
-    private static void displayExceptionDialog(final Component parent,
-            String message, final Throwable throwable) {
+    private static void displayExceptionDialog(
+            final Component parent,
+            String message,
+            String subMessage,
+            final Throwable throwable) {
         JDialog dialog;
         if (parent == null) {
             logger.error("displayExceptionDialog with null parent for message " + message);
@@ -449,15 +468,22 @@ public class ASUtils {
         traceWriter.close();
 
         JPanel top = new JPanel(new GridLayout(0, 1, 5, 5));
-        final String LAYOUT_START = "<html><font color='red' size='+1'>";
-        final String LAYOUT_END   = "</font>";
         if (message == null) {
             message = "Unexpected error";
         }
-        JLabel messageLabel =
-            new JLabel(LAYOUT_START + message + LAYOUT_END);
+        
+        StringBuilder labelText = new StringBuilder();
+        labelText.append("<html><font color='red' size='+1'>");
+        labelText.append(message);
+        labelText.append("</font>");
+        if (subMessage != null) {
+            labelText.append("<p>");
+            labelText.append(subMessage);
+        }
+        JLabel messageLabel = new JLabel(labelText.toString());
         messageLabel.setIcon(StatusIcon.getFailIcon());
         top.add(messageLabel);
+        
         JLabel errClassLabel =
             new JLabel("Exception type: " + throwable.getClass().getName());
         top.add(errClassLabel);

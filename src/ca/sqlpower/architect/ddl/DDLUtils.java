@@ -6,6 +6,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
 
@@ -24,6 +25,27 @@ public class DDLUtils {
         // this never gets used
 	}
 
+    /**
+     * Returns the appropriate dot-separated fully qualified name for the
+     * given table, based on its Schema and Catalog ancestors, if any.
+     * 
+     * @param table The SQLTable instance to get the qualified name of
+     * @return A string of the form:
+     * <ul>
+     *  <li><tt>catalog.schema.name</tt> if the table has a schema and catalog ancestor
+     *  <li><tt>catalog.name</tt> if the table has a catalog ancestor but no schema
+     *  <li><tt>schema.name</tt> if the table has a schema ancestor but no catalog
+     *  <li><tt>name</tt> if the table has no schema or catalog ancestors
+     * </ul>
+     * @throws NullPointerException if table is null
+     */
+    public static String toQualifiedName(SQLTable table) {
+        return toQualifiedName(
+                table.getCatalogName(),
+                table.getSchemaName(),
+                table.getName());
+    }
+    
     /**
      * Formats the components of a fully qualified database object name
      * into the standard SQL "dot notation".
