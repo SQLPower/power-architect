@@ -310,11 +310,11 @@ public class ASUtils {
 
 	/**
      * Arrange for an existing JDialog or JFrame to close nicely when the ESC
-     * key is pressed. Called with an Action, which will become the cancelAction 
+     * key is pressed. Called with an Action, which will become the cancelAction
      * of the dialog.
      * <p>
      * Note: we explicitly close the dialog from this code.
-     * 
+     *
      * @param w The Window which you want to make cancelable with the ESC key.  Must
      * be either a JFrame or a JDialog.
      * @param cancelAction or null for nothing
@@ -368,10 +368,10 @@ public class ASUtils {
     public static void showExceptionDialog(Component parent, String message, Throwable throwable, QFAFactory qfaFactory) {
         showExceptionDialog(parent, message, null, throwable, qfaFactory);
     }
-    
+
     /**
      * Displays a modal dialog box with the given messages and exception stack trace.
-     * 
+     *
      * @param parent The component that should own the dialog.  Used for positioning
      * and proper iconification behaviour.
      * @param message Primary error message, displayed in the dialog in large red type.
@@ -449,8 +449,7 @@ public class ASUtils {
             dialog = new JDialog((Frame)null, "Error report");
         }
         logger.debug("displayExceptionDialog: showing exception dialog for:", throwable);
-        
-        
+
         ((JComponent)dialog.getContentPane()).setBorder(
                 BorderFactory.createEmptyBorder(10, 10, 5, 5));
 
@@ -471,7 +470,7 @@ public class ASUtils {
         if (message == null) {
             message = "Unexpected error";
         }
-        
+
         StringBuilder labelText = new StringBuilder();
         labelText.append("<html><font color='red' size='+1'>");
         labelText.append(message);
@@ -483,7 +482,7 @@ public class ASUtils {
         JLabel messageLabel = new JLabel(labelText.toString());
         messageLabel.setIcon(StatusIcon.getFailIcon());
         top.add(messageLabel);
-        
+
         JLabel errClassLabel =
             new JLabel("Exception type: " + throwable.getClass().getName());
         top.add(errClassLabel);
@@ -518,12 +517,12 @@ public class ASUtils {
                 }
                 finalDialogReference.setVisible(false);
                 finalDialogReference.pack();
-                
+
                 Rectangle dialogBounds = finalDialogReference.getBounds();
                 Rectangle screenBounds = finalDialogReference.getGraphicsConfiguration().getBounds();
                 if ( !screenBounds.contains(dialogBounds) ) {
                     Point p = new Point();
-                    int x = dialogBounds.x; 
+                    int x = dialogBounds.x;
                     int y = dialogBounds.y;
                     if (screenBounds.x+screenBounds.width < dialogBounds.x + dialogBounds.width){
                         x = dialogBounds.x - (dialogBounds.x + dialogBounds.width - screenBounds.x - screenBounds.width);
@@ -557,7 +556,7 @@ public class ASUtils {
         dialog.add(bottom, BorderLayout.SOUTH);
         dialog.pack();
         dialog.setLocationRelativeTo(parent);
-        
+
         dialog.setVisible(true);
     }
 
@@ -689,6 +688,15 @@ public class ASUtils {
 	static double det(double a, double b, double c, double d) {
 		return a * d - b * c;
 	}
+
+    public static String niceClassName(Object o) {
+        Class c = o.getClass();
+        String name = c.getName();
+        int lastDot = name.lastIndexOf('.');
+        if (lastDot == -1)
+            return name;
+        return name.substring(lastDot + 1);
+    }
 
 	/**
 	 * Update a potentially-long JMenu with the nth-last items replaced by sub-menus.

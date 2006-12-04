@@ -58,4 +58,9 @@ public class ASUtilsTest extends TestCase {
         t.setStackTrace(data);
         return t;
     }
+
+    public void testClassNameStuff() {
+        assertEquals("String", ASUtils.niceClassName(""));
+        assertEquals("Object", ASUtils.niceClassName(new Object()));
+    }
 }
