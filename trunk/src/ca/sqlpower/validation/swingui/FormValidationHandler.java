@@ -29,14 +29,13 @@ import ca.sqlpower.validation.ValidateResult;
 import ca.sqlpower.validation.Validator;
 
 /**
- * This is the ValidationHandlers for JComponents, for now it supports
- * JTextComponent, JComboBox, AbstractButton.
- * the FormValidationHandler keeps a List of Jcomponents and the validators,
- * listens the changes of each JComponent and validate them, update the
- * <b>StatusComponent</b> 'display' to the worst result and change the
- * backgroound color of the problem JComponent to red or yellow.
- *<br>
- *<br>
+ * This is the ValidationHandler for JComponents; supporting such
+ * classes as JTextComponent, JComboBox, AbstractButton.
+ * The FormValidationHandler keeps a List of JComponents and the validators,
+ * listens for changes of each JComponent and validates them, update the
+ * <b>StatusComponent</b> 'display' to the worst result and changes the
+ * background color of the problem JComponent to red or yellow.
+ * <br>
  * -for JTextComponent, the validator needs to validate String (text in the component)
  * <br>
  * -for JComboBox, the validator needs to validate Object (Item in the component)
@@ -49,7 +48,7 @@ import ca.sqlpower.validation.Validator;
 public class FormValidationHandler implements ValidationHandler {
 
     private static final Logger logger = Logger.getLogger(FormValidationHandler.class);
-    
+
     /** The color to use in the JComponent in the event of error */
     protected final static Color COLOR_ERROR = new Color(255, 170, 170);
     /** The color to use in the JComponent in the event of warnings */
@@ -67,6 +66,8 @@ public class FormValidationHandler implements ValidationHandler {
      */
     private List<ValidateObject> objects;
     private ValidateResult worstValidationStatus;
+
+    public boolean validated;
 
     private class ValidateObject {
         /**
@@ -112,9 +113,11 @@ public class FormValidationHandler implements ValidationHandler {
             switch(result.getStatus()) {
             case OK:
                 component.setBackground(savedColor);
+                validated = true;
                 break;
             case WARN:
                 component.setBackground(COLOR_WARNING);
+                validated = true;
                 break;
             case FAIL:
                 component.setBackground(COLOR_ERROR);
@@ -143,13 +146,13 @@ public class FormValidationHandler implements ValidationHandler {
 
 
     /**
-     * add your Jcomponent and validator to the List
+     * Add one Jcomponent and its validator to the List
      */
     public void addValidateObject(final JComponent component, final Validator validator) {
         final ValidateObject validateObject = new ValidateObject(component,validator);
         objects.add(validateObject);
 
-        if ( component instanceof JTextComponent ) {
+        if (component instanceof JTextComponent) {
             validateObject.setObject(((JTextComponent)component).getText());
             ((JTextComponent)component).getDocument()
                 .addDocumentListener(new DocumentListener(){
@@ -183,7 +186,7 @@ public class FormValidationHandler implements ValidationHandler {
                 }});
         } else if ( component instanceof JTable ) {
             JTable table = (JTable)component;
-            
+
             final TableModel tableModel = table.getModel();
             validateObject.setObject(tableModel);
             final TableModelListener tableModelListener = new TableModelListener(){
@@ -193,7 +196,7 @@ public class FormValidationHandler implements ValidationHandler {
                 }};
             tableModel.addTableModelListener(tableModelListener);
             table.addPropertyChangeListener("model", new PropertyChangeListener(){
-                
+
                 public void propertyChange(PropertyChangeEvent evt) {
                     TableModel old = (TableModel) evt.getOldValue();
                     old.removeTableModelListener(tableModelListener);
@@ -201,9 +204,9 @@ public class FormValidationHandler implements ValidationHandler {
                     newModel.addTableModelListener(tableModelListener);
                     performFormValidation();
                 }
-                
+
             });
-            
+
         } else {
             throw new IllegalArgumentException("Unsupported JComponent type:"+
                     component.getClass());
@@ -213,13 +216,14 @@ public class FormValidationHandler implements ValidationHandler {
     private void performFormValidation() {
 
         ValidateResult worst = null;
+        validated = false;
 
-        for ( ValidateObject o : objects ) {
+        for (ValidateObject o : objects) {
             o.doValidate();
             if ( o.getResult() == null ) {
-            } else if ( o.getResult().getStatus() == Status.FAIL && 
+            } else if ( o.getResult().getStatus() == Status.FAIL &&
                     (worst == null || worst.getStatus() != Status.FAIL) ) {
-                worst = o.getResult();             
+                worst = o.getResult();
             } else if ( o.getResult().getStatus() == Status.WARN &&
                     ( worst == null || worst.getStatus() == Status.OK) ) {
                 worst = o.getResult();
@@ -227,7 +231,7 @@ public class FormValidationHandler implements ValidationHandler {
                 worst = o.getResult();
             }
         }
-        
+
         setWorstValidationStatus(worst);
         display.setResult(worst);
     }
@@ -251,7 +255,8 @@ public class FormValidationHandler implements ValidationHandler {
     private List<String> getResults(Status status) {
         List <String> msg = new ArrayList<String>();
         for ( ValidateObject o : objects ) {
-            if ( o.getResult() == null ) continue;
+            if ( o.getResult() == null )
+                continue;
             if ( o.getResult().getStatus() == status ) {
                 msg.add(o.getMessage());
             }
@@ -259,7 +264,7 @@ public class FormValidationHandler implements ValidationHandler {
         return msg;
     }
 
-    
+
     /**
      * get the validate result of the given object, it should be one of the Jcomponent
      * that added to the handler earlier.
@@ -298,6 +303,18 @@ public class FormValidationHandler implements ValidationHandler {
         return pcs;
     }
 
+    /** True iff at least one component validated; mainly used
+     * for implementing hasUnsaveChanges() method in EditorPane
+     * @return
+     */
+    public boolean isValidated() {
+        return validated;
+    }
 
-
+    /**
+     * Set whether at least one component has validated OK.
+     */
+    public void setValidated(boolean validated) {
+        this.validated = validated;
+    }
 }
