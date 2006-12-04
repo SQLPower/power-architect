@@ -88,12 +88,9 @@ public class FormValidationHandler implements ValidationHandler {
 
         protected String getMessage() {
             StringBuffer msg = new StringBuffer();
-            if ( getComponent().getName() != null ) {
-                msg.append(getComponent().getName()).append(" ");
-            }
             if ( getResult() != null ) {
                 msg.append("[").append(getResult().getStatus().name()).append("]");
-                msg.append("[").append(getResult().getMessage()).append("]");
+                msg.append(" ").append(getResult().getMessage());
             } else {
                 msg.append(" unknown result");
             }
