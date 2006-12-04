@@ -87,6 +87,9 @@ public class ProgressWatcher implements ActionListener {
 					}
 					bar.setVisible(true);
 				}
+                if (monitorable.isFinished()){
+				    bar.setVisible(false);
+                }
 			}
 			
 			if (label != null) {
