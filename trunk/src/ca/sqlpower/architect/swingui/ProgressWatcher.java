@@ -83,10 +83,9 @@ public class ProgressWatcher implements ActionListener {
 					} else {
 						bar.setIndeterminate(false);
 						bar.setMaximum(jobSize.intValue());
+						bar.setValue(monitorable.getProgress());
 					}
 					bar.setVisible(true);
-					bar.setValue(monitorable.getProgress());
-					bar.setIndeterminate(false);
 				}
 			}
 			
