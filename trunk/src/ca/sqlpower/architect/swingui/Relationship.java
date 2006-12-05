@@ -26,11 +26,13 @@ import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLRelationship.ColumnMapping;
+import ca.sqlpower.architect.layout.LayoutEdge;
+import ca.sqlpower.architect.layout.LayoutNode;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 
-public class Relationship extends PlayPenComponent implements Selectable, SQLObjectListener {
+public class Relationship extends PlayPenComponent implements Selectable, SQLObjectListener, LayoutEdge {
 	private static final Logger logger = Logger.getLogger(Relationship.class);
 
 	protected SQLRelationship model;
@@ -423,5 +425,16 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
      */
     public boolean intersects(Rectangle region) {
         return ((RelationshipUI) getUI()).intersects(region);
+    }
+
+    
+    // ------- LayoutEdge methods --------
+
+    public LayoutNode getHeadNode() {
+        return fkTable;
+    }
+
+    public LayoutNode getTailNode() {
+        return pkTable;
     }
 }

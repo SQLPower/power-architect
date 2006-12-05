@@ -4,13 +4,28 @@ import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.util.List;
 
-import ca.sqlpower.architect.swingui.Relationship;
-import ca.sqlpower.architect.swingui.TablePane;
-
+/**
+ * The ArchitectLayout interface is a generic interface to a collection of
+ * graph layout algorithms.  Its features include optional animation of the layout,
+ * and setting an overall maximum boundary for the laid-out graph.
+ * <p>
+ * Example for using this interface:
+ * <pre>
+ *   ArchitectLayout layout = new MyFavouriteLayout();
+ *   layout.setup(myNodes, myEdges, myMaximumBounds);
+ *   while (!layout.isDone()) {
+ *     layout.nextFrame();
+ *     myComponent.paint();
+ *   }
+ * </pre>
+ *
+ * @author matt
+ */
 public interface ArchitectLayout {
 
 	/**
-	 * Setup the layout algoritm.
+	 * Sets up the layout algoritm.  You have to call this before attempting
+     * to use an ArchitectLayout instance to perform a layout.
 	 * 
      * TODO change the Rectangle into a point.  This should indicate where to start
      * but the layout should determine dimensions 
@@ -18,29 +33,25 @@ public interface ArchitectLayout {
 	 * @param nodes  The list of entities to be placed on  
 	 * @param preferedFrames The prefered number of animation frames, may be ignored by the layout algorithm
 	 */
-	public void setup(List<TablePane> nodes, List<Relationship> edges, Rectangle frame);
+	public void setup(List<? extends LayoutNode> nodes, List<? extends LayoutEdge> edges, Rectangle frame);
 	
-	public Dimension getNewArea(List<TablePane> nodes);
-	
-	public void setProperty(String key, Object value);
-	
-	public Object getProperty(String key);
+	public Dimension getNewArea(List<? extends LayoutNode> nodes);
 	
 	/**
-	 * Interrupts the algorithm and puts play pen in a consistent state.
+	 * Interrupts the algorithm and node bounds in a consistent state.
 	 */
 	public void done();
 	
 	/**
-	 * Check and see if the layout is finished
+	 * Returns true iff the layout is finished.
 	 * 
-	 * @return true if the layout algorithm is finished with the layout, false other wise
+	 * @return true if the layout algorithm is finished with the layout, false otherwise
 	 */
 	public boolean isDone();
 	
 	/**
-	 * Draw the next frame
-	 * 
+	 * Updates all the node locations to correspond with the positions they should
+     * have in the next frame.
 	 */
 	public void nextFrame();
 
