@@ -5,18 +5,18 @@ import java.awt.event.ActionListener;
 
 import javax.swing.Timer;
 
-import ca.sqlpower.architect.layout.ArchitectLayoutInterface;
+import ca.sqlpower.architect.layout.ArchitectLayout;
 
 public class LayoutAnimator implements ActionListener {
 
 	private PlayPen pp;
 	private Timer timer;
-	private ArchitectLayoutInterface layout;
+	private ArchitectLayout layout;
     private boolean animationEnabled = true;
     private int framesPerSecond = 15;
 
 
-    public LayoutAnimator(PlayPen pp, ArchitectLayoutInterface layout) {
+    public LayoutAnimator(PlayPen pp, ArchitectLayout layout) {
 		this.pp = pp;
 		this.layout = layout;
 	}
@@ -43,7 +43,7 @@ public class LayoutAnimator implements ActionListener {
 		}
 	}
     
-	public ArchitectLayoutInterface getLayout() {
+	public ArchitectLayout getLayout() {
 		return layout;
 	}
     
