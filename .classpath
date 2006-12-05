@@ -8,7 +8,7 @@
 	<classpathentry kind="lib" path="lib/commons-logging.jar"/>
 	<classpathentry kind="lib" path="lib/jlfgr-1_0.jar"/>
 	<classpathentry kind="lib" path="lib/log4j.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/sqlpower.jar"/>
+	<classpathentry exported="true" sourcepath="/web-development/classes" kind="lib" path="lib/sqlpower.jar"/>
 	<classpathentry kind="lib" path="lib/commons-beanutils-bean-collections.jar"/>
 	<classpathentry kind="lib" path="lib/commons-beanutils-core.jar"/>
 	<classpathentry sourcepath="libsrc/forms-1.0.6-src.zip" kind="lib" path="lib/forms-1.0.6.jar"/>
