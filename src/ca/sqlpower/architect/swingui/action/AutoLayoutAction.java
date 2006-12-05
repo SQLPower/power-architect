@@ -10,7 +10,7 @@ import javax.swing.AbstractAction;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.layout.ArchitectLayoutInterface;
+import ca.sqlpower.architect.layout.ArchitectLayout;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.LayoutAnimator;
@@ -29,7 +29,7 @@ public class AutoLayoutAction extends AbstractAction {
 
 	private boolean animationEnabled = true;
 
-	private ArchitectLayoutInterface layout;
+	private ArchitectLayout layout;
 
 	private int framesPerSecond = 25;
 
@@ -100,11 +100,11 @@ public class AutoLayoutAction extends AbstractAction {
 		this.animationEnabled = animationEnabled;
 	}
 
-	public ArchitectLayoutInterface getLayout() {
+	public ArchitectLayout getLayout() {
 		return layout;
 	}
 
-	public void setLayout(ArchitectLayoutInterface layout) {
+	public void setLayout(ArchitectLayout layout) {
 		this.layout = layout;
 	}
 }

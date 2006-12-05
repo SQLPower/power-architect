@@ -59,7 +59,7 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.etl.ExportCSV;
-import ca.sqlpower.architect.layout.ArchitectLayoutInterface;
+import ca.sqlpower.architect.layout.ArchitectLayout;
 import ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout;
 import ca.sqlpower.architect.qfa.ExceptionHandler;
 import ca.sqlpower.architect.swingui.action.AboutAction;
@@ -153,7 +153,7 @@ public class ArchitectFrame extends JFrame {
  	protected  JComponent contentPane;
 	private AutoLayoutAction autoLayoutAction;
 
-	private ArchitectLayoutInterface autoLayout;
+	private ArchitectLayout autoLayout;
 	// playpen edit actions
 	protected EditColumnAction editColumnAction;
 	protected InsertColumnAction insertColumnAction;

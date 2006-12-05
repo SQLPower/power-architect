@@ -7,7 +7,7 @@ import java.util.List;
 import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.TablePane;
 
-public interface ArchitectLayoutInterface {
+public interface ArchitectLayout {
 
 	/**
 	 * Setup the layout algoritm.

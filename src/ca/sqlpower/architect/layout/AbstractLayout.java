@@ -8,7 +8,7 @@ import java.util.List;
 import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.TablePane;
 
-public abstract class AbstractLayout implements ArchitectLayoutInterface {
+public abstract class AbstractLayout implements ArchitectLayout {
 
     protected Rectangle frame;
 
