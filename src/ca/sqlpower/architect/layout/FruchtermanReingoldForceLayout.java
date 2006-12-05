@@ -9,19 +9,12 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
-import ca.sqlpower.architect.swingui.PlayPen;
-import ca.sqlpower.architect.swingui.Relationship;
-import ca.sqlpower.architect.swingui.TablePane;
-
 public class FruchtermanReingoldForceLayout extends AbstractLayout {
-	private static final Logger logger = Logger
-			.getLogger(FruchtermanReingoldForceLayout.class);
+	private static final Logger logger = Logger.getLogger(FruchtermanReingoldForceLayout.class);
 
-	private ArrayList<TablePane> nodes;
-    private ArrayList<TablePane> orphanedTables = new ArrayList<TablePane>();
-	private ArrayList<Relationship> edges;
+	private ArrayList<LayoutNode> nodes;
+    private ArrayList<LayoutNode> orphanedTables = new ArrayList<LayoutNode>();
+	private ArrayList<LayoutEdge> edges;
 
 	/**
 	 * The radius that is kept clear
@@ -58,26 +51,22 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
     
     private static final int ORPHAN_BUFFER = 50;
     
-	public void setup(List<TablePane> nodes, List<Relationship> edges,Rectangle frame) {
+	public void setup(List<? extends LayoutNode> nodes, List<? extends LayoutEdge> edges, Rectangle frame) {
 		
-	    this.frame = frame;
+	    this.frame = new Rectangle(frame);
               
 	    //nodes.removeAll(noRelationTables);
-		this.nodes = new ArrayList<TablePane>(nodes);
+		this.nodes = new ArrayList<LayoutNode>(nodes);
         
-        for (TablePane tp: nodes) {
-            try {
-                if (tp.getModel().getExportedKeys().size() == 0 && tp.getModel().getImportedKeys().size() ==0){
-                   orphanedTables.add(tp);
-                }
-            } catch (ArchitectException e) {
-                throw new ArchitectRuntimeException(e);
+        for (LayoutNode tp: nodes) {
+            if (tp.getOutboundEdges().size() == 0 && tp.getInboundEdges().size() == 0){
+                orphanedTables.add(tp);
             }
         }
         
         this.nodes.removeAll(orphanedTables);
         
-		this.edges = new ArrayList<Relationship>(edges);
+		this.edges = new ArrayList<LayoutEdge>(edges);
 
 		
 		baseLineJitter =10;
@@ -119,30 +108,30 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
             gl.done();
             
             int maxy = 0;
-            for (TablePane tp : orphanedTables) {
+            for (LayoutNode tp : orphanedTables) {
                 maxy = Math.max(tp.getY() + tp.getHeight(), maxy);
             }
             int orphanStartY = frame.height - maxy;
             logger.debug("max y is "+maxy+". orphanStartY is "+orphanStartY);
-            for (TablePane tp : orphanedTables) {
+            for (LayoutNode tp : orphanedTables) {
                 tp.setBounds(tp.getX(), tp.getY() + orphanStartY, tp.getWidth(), tp.getHeight());
             }
             frame.height -= maxy + ORPHAN_BUFFER;
         }
 		
-		HashMap<TablePane, Point> displacement;
-		displacement = new HashMap<TablePane, Point>();
+		HashMap<LayoutNode, Point> displacement;
+		displacement = new HashMap<LayoutNode, Point>();
 		
-		for (TablePane tp : this.nodes) {
+		for (LayoutNode tp : this.nodes) {
 			displacement.put(tp, new Point((int)Math.round(Math.random()*baseLineJitter-baseLineJitter/2),+(int)Math.round(Math.random()*baseLineJitter-baseLineJitter/2)));
 		}
 		// Calculate repulsive forces
 		if (nodes != null && !isDone()) {
 			for (int ii = 0; ii < nodes.size(); ii++) {
-				TablePane v = nodes.get(ii);
+				LayoutNode v = nodes.get(ii);
 				Point disp = displacement.get(v);
 				for (int jj = 0; jj < nodes.size(); jj++) {
-					TablePane u = nodes.get(jj);
+					LayoutNode u = nodes.get(jj);
 					if (u == v) continue;
                     
 					while (v.getLocation().equals(u.getLocation())) {
@@ -163,10 +152,10 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 			}
 			// calculate Attractive force
 
-			for (Relationship e : edges) {
+			for (LayoutEdge e : edges) {
             
-				TablePane v = e.getPkTable();
-				TablePane u = e.getFkTable();
+				LayoutNode v = e.getTailNode();
+				LayoutNode u = e.getHeadNode();
 				Point delta = displacementBetween(u, v);
                                  
 				Point vDisp = displacement.get(v);
@@ -192,7 +181,7 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 
 			boolean done = true;
 			// add the forces to the current location
-			for (TablePane v : nodes) {
+			for (LayoutNode v : nodes) {
 				Point pos = (Point) v.getLocation().clone();
 				Point disp = displacement.get(v);
 				pos.translate(
@@ -227,7 +216,7 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
         frameNum++;
 	}
 
-    private Point displacementBetween(TablePane u, TablePane v) {
+    private Point displacementBetween(LayoutNode u, LayoutNode v) {
         Point dist = null;
      
         if (dist == null) {
@@ -258,7 +247,7 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 	 * @param emptyRadius  The radius we want to keep clear
 	 * @return the force between the two nodes
 	 */
-	protected double repulsiveForce(double distance,TablePane u, TablePane v, double emptyRadius) {
+	protected double repulsiveForce(double distance,LayoutNode u, LayoutNode v, double emptyRadius) {
         final double baseForce = .1;
         final double tableSizes = u.getHeight() + u.getWidth() + v.getHeight() + v.getWidth();
 		double force;
@@ -275,7 +264,7 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 	 */
 	public double getEmptyRadius() {
 			double radius =0;
-			for (TablePane tp : nodes) {
+			for (LayoutNode tp : nodes) {
 				Rectangle b = tp.getBounds();
 				radius +=b.height;
 				radius +=b.width;
@@ -284,11 +273,8 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 			return radius*SPACING_MULTIPLIER;
 	}
 
-	
-
 	public void done() {
 		overrideDone = true;
-        
 	}
 
 	/**
@@ -298,9 +284,8 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 	public void cool() {	
 		temp = temp/1.1;
 	}
-
 	
-	public ArrayList<Relationship> getEdges() {
+	public ArrayList<LayoutEdge> getEdges() {
 		return edges;
 	}
 
@@ -308,7 +293,7 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 		return k;
 	}
 
-	public ArrayList<TablePane> getNodes() {
+	public ArrayList<LayoutNode> getNodes() {
 		return nodes;
 	}
 
@@ -332,13 +317,5 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
 	public int getW() {
 		return frame.width;
 	}
-
-
-	public void setPlayPen(PlayPen pp) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	
 
 }

@@ -5,14 +5,11 @@ import java.awt.Rectangle;
 import java.util.HashMap;
 import java.util.List;
 
-import ca.sqlpower.architect.swingui.Relationship;
-import ca.sqlpower.architect.swingui.TablePane;
-
 public abstract class AbstractLayout implements ArchitectLayout {
 
     protected Rectangle frame;
 
-    public void setup(List<TablePane> nodes, List<Relationship> edges, Rectangle rect) {
+    public void setup(List<? extends LayoutNode> nodes, List<? extends LayoutEdge> edges, Rectangle rect) {
         frame = rect;
     }
 
@@ -31,10 +28,10 @@ public abstract class AbstractLayout implements ArchitectLayout {
         return properties.get(key);
     }
 
-    public Dimension getNewArea(List<TablePane> nodes) {
+    public Dimension getNewArea(List<? extends LayoutNode> nodes) {
         Dimension d = new Dimension();
         long area = 0;
-        for (TablePane tp : nodes) {
+        for (LayoutNode tp : nodes) {
             Rectangle b = tp.getBounds();
             area += b.width * b.height;
         }

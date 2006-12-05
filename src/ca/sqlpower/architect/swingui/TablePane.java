@@ -39,13 +39,16 @@ import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
+import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.layout.LayoutEdge;
+import ca.sqlpower.architect.layout.LayoutNode;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 
 public class TablePane
 	extends PlayPenComponent
-	implements java.io.Serializable, Selectable, DragSourceListener {
+	implements java.io.Serializable, Selectable, DragSourceListener, LayoutNode {
 
 	private static final Logger logger = Logger.getLogger(TablePane.class);
 
@@ -986,5 +989,39 @@ public class TablePane
 
     public boolean isFullyQualifiedNameInHeader() {
         return fullyQualifiedNameInHeader;
+    }
+
+    
+    // ------- LayoutNode methods that we didn't already happen to implement --------
+
+
+    public String getNodeName() {
+        return getName();
+    }
+
+    public List<LayoutEdge> getInboundEdges() {
+        try {
+            List<SQLRelationship> relationships = getModel().getImportedKeys();
+            List<LayoutEdge> edges = new ArrayList<LayoutEdge>();
+            for (SQLRelationship r : relationships) {
+                edges.add(getPlayPen().findRelationship(r));
+            }
+            return edges;
+        } catch (ArchitectException ex) {
+            throw new ArchitectRuntimeException(ex);
+        }
+    }
+
+    public List<LayoutEdge> getOutboundEdges() {
+        try {
+            List<SQLRelationship> relationships = getModel().getExportedKeys();
+            List<LayoutEdge> edges = new ArrayList<LayoutEdge>();
+            for (SQLRelationship r : relationships) {
+                edges.add(getPlayPen().findRelationship(r));
+            }
+            return edges;
+        } catch (ArchitectException ex) {
+            throw new ArchitectRuntimeException(ex);
+        }
     }
 }

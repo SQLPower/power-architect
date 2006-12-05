@@ -11,13 +11,13 @@ import javax.swing.AbstractAction;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.layout.ArchitectLayout;
+import ca.sqlpower.architect.layout.LayoutEdge;
+import ca.sqlpower.architect.layout.LayoutNode;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.LayoutAnimator;
 import ca.sqlpower.architect.swingui.PlayPen;
-import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
-import ca.sqlpower.architect.swingui.TablePane;
 
 public class AutoLayoutAction extends AbstractAction {
 	private static final Logger logger = Logger.getLogger(AutoLayoutAction.class);
@@ -51,15 +51,15 @@ public class AutoLayoutAction extends AbstractAction {
 		if (layout != null)
 		{
 
-			List<TablePane> tablePanes = new ArrayList(pp.getSelectedTables());
-            List<TablePane> notLaidOut = new ArrayList<TablePane>(pp.getTablePanes());
+			List<? extends LayoutNode> tablePanes = new ArrayList(pp.getSelectedTables());
+            List<LayoutNode> notLaidOut = new ArrayList<LayoutNode>(pp.getTablePanes());
             notLaidOut.removeAll(tablePanes);
  			Point layoutAreaOffset = new Point();
 			if (tablePanes.size() == 0 || tablePanes.size() == 1) {
 				tablePanes = pp.getTablePanes();
 			} else if (tablePanes.size() != pp.getTablePanes().size()){
 				int maxWidth =0;
-				for (TablePane tp : notLaidOut){
+				for (LayoutNode tp : notLaidOut){
 					int width = tp.getWidth()+tp.getX();
 					if (width > maxWidth) {
 						maxWidth = width;
@@ -68,7 +68,7 @@ public class AutoLayoutAction extends AbstractAction {
 				layoutAreaOffset = new Point(maxWidth,0);
 			}
 
-			List<Relationship> relationships = pp.getRelationships();
+			List<? extends LayoutEdge> relationships = pp.getRelationships();
 			logger.debug("About to do layout. tablePanes="+tablePanes);
 			logger.debug("About to do layout. relationships="+relationships);
 

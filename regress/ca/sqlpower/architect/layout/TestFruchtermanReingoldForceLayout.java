@@ -27,26 +27,16 @@ public class TestFruchtermanReingoldForceLayout extends TestCase {
 		tp = new TablePane(table1,pp);
 		pp.addTablePane(tp,new Point(10,10));
 		layout = new FruchtermanReingoldForceLayout();
-		layout.setPlayPen(pp);
 		frame = new Rectangle(new Point(),layout.getNewArea(pp.getTablePanes()));
-		
 	}
 	
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout.magnitude(Point)'
-	 */
 	public void testMagnitude() {
 		assertEquals("Incorrect magnitude",5.0,layout.magnitude(new Point(3,4)));
 		assertEquals("Incorrect magnitude",13.0,layout.magnitude(new Point(12,5)));
 	}
 
-	/*
-	 * Test method for 'ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout.isDone()'
-	 */
 	public void testIsDoneNoElem() {
 		PlayPen p = new PlayPen();
-		layout.setPlayPen(p);
 		layout.setup(p.getTablePanes(),p.getRelationships(),frame);
 		assertTrue(layout.isDone());
 	}
@@ -56,38 +46,6 @@ public class TestFruchtermanReingoldForceLayout extends TestCase {
 		assertTrue(layout.isDone());
 	}
 	
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout.nextFrame()'
-	 */
-	public void testNextFrame() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout.attractiveForce(double, double)'
-	 */
-	public void testAttractiveForce() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout.repulsiveForce(double, double)'
-	 */
-	public void testRepulsiveForce() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout.getEmptyRadius(PlayPen)'
-	 */
-	public void testGetEmptyRadius() {
-
-	}
-
-	/*
-	 * Test method for 'ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout.done()'
-	 */
 	public void testDone() throws ArchitectException {
 		SQLTable sqlTable2 = new SQLTable(db,true);
 		TablePane t2 =new TablePane(sqlTable2,pp);
