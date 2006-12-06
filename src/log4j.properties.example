@@ -294,6 +294,8 @@ log4j.rootLogger=INFO, R, C
 #log4j.logger.org.apache.commons.beanutils.ConvertUtils=debug
 #log4j.logger.org.apache.commons.digester.Digester=debug
 
+log4j.logger.ca.sqlpower.validation.swingui.FormValidationHandler=debug
+
 # Tail end of automatically-generated log4j config file; just set up Appenders.
 
 log4j.appender.R=org.apache.log4j.RollingFileAppender
