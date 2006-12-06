@@ -23,7 +23,7 @@ public class StatusComponentDemo {
     public static void main(String[] args) {
         final JFrame jx = new JFrame("Test");
         jx.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        final StatusComponent statusComponent = new StatusComponent("Test");
+        final StatusComponent statusComponent = new StatusComponent();
         statusComponent.setText("Unknown error");
         statusComponent.setResult(status);
         JPanel p = new JPanel(new BorderLayout());

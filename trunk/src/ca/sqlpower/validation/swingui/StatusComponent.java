@@ -1,11 +1,9 @@
 package ca.sqlpower.validation.swingui;
 
-import java.awt.Dimension;
-import java.awt.Point;
-
+import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JLabel;
-import javax.swing.SwingUtilities;
+import javax.swing.border.Border;
 
 import org.apache.log4j.Logger;
 
@@ -20,31 +18,36 @@ public class StatusComponent extends JLabel {
     
     private static final Logger logger = Logger.getLogger(StatusComponent.class);
 
-    private static final int X_ADJUST = 20;
-    private static final int PAD = 7;
+    /**
+     * The border this component has by default.  If you want a different
+     * border when you use it, just call setBorder().
+     * 
+     */
+    private static final Border DEFAULT_BORDER =
+        BorderFactory.createEmptyBorder(7, 0, 7, 0);
+    
     private ValidateResult result = null;
 
+    /**
+     * Creates a new StatusComponent with no visible display, but
+     * which takes up the same amount of space as it would if it
+     * was displaying an icon and message.
+     */
     public StatusComponent() {
-        this("");
-    }
-
-    public StatusComponent(String text) {
-        super(text);
-        setIcon(StatusIcon.getNullIcon());
+        setBorder(DEFAULT_BORDER);
+        setResult(null);
     }
 
     public void setResult(ValidateResult error) {
-        Point p = new Point(0,0);
-        SwingUtilities.convertPointToScreen(p, this);
-        logger.debug("     location on screen="+p);
         result = error;
 
         String text;
         Icon icon;
         if (result == null) {
+            text = null;
             icon = StatusIcon.getNullIcon();
-            text = "";
         } else {
+            text = result.getMessage();
             switch(result.getStatus()) {
             case OK:
                 icon = StatusIcon.getNullIcon();
@@ -58,18 +61,23 @@ public class StatusComponent extends JLabel {
             default:
                 icon = StatusIcon.getNullIcon();
             }
-            text = result.getMessage();
         }
         setText(text);
         setIcon(icon);
     }
 
+    /**
+     * Takes the given text and prepends "&lt;html&gt;" before passing to JLabel's
+     * setText() method.  If the given string is null or whitespace-only, it is
+     * treated as a non-breaking space (to ensure the height of this component won't
+     * change when it is used with and without visible text). 
+     */
     @Override
-    public Dimension getPreferredSize() {
-        Dimension d = super.getPreferredSize();
-        d.width += X_ADJUST + PAD;
-        d.height += 2 * PAD;
-        return d;
+    public void setText(String text) {
+        if (text == null || text.trim().length() == 0) {
+            text = "&nbsp;";
+        }
+        super.setText("<html>"+text);
     }
 
     public ValidateResult getResult() {
