@@ -2,6 +2,7 @@ package ca.sqlpower.architect.layout;
 
 import java.awt.Dimension;
 import java.awt.Rectangle;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -33,7 +34,7 @@ public interface ArchitectLayout {
 	 * @param nodes  The list of entities to be placed on  
 	 * @param preferedFrames The prefered number of animation frames, may be ignored by the layout algorithm
 	 */
-	public void setup(List<? extends LayoutNode> nodes, List<? extends LayoutEdge> edges, Rectangle frame);
+	public void setup(Collection<? extends LayoutNode> nodes, Collection<? extends LayoutEdge> edges, Rectangle frame);
 	
 	public Dimension getNewArea(List<? extends LayoutNode> nodes);
 	

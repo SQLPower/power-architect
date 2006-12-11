@@ -3,9 +3,9 @@ package ca.sqlpower.architect.layout;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 
 import org.apache.log4j.Logger;
 
@@ -51,7 +51,7 @@ public class FruchtermanReingoldForceLayout extends AbstractLayout {
     
     private static final int ORPHAN_BUFFER = 50;
     
-	public void setup(List<? extends LayoutNode> nodes, List<? extends LayoutEdge> edges, Rectangle frame) {
+	public void setup(Collection<? extends LayoutNode> nodes, Collection<? extends LayoutEdge> edges, Rectangle frame) {
 		
 	    this.frame = new Rectangle(frame);
               
