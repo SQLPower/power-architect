@@ -2,6 +2,8 @@ package ca.sqlpower.architect.layout;
 
 import java.awt.Dimension;
 import java.awt.Rectangle;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class ArchitectGridLayout extends AbstractLayout  {
@@ -11,9 +13,9 @@ public class ArchitectGridLayout extends AbstractLayout  {
     private List<? extends LayoutNode> nodes;
 
     @Override
-    public void setup(List<? extends LayoutNode> nodes, List<? extends LayoutEdge> edges, Rectangle rect) {
+    public void setup(Collection<? extends LayoutNode> nodes, Collection<? extends LayoutEdge> edges, Rectangle rect) {
         super.setup(nodes, edges, rect);
-        this.nodes = nodes;
+        this.nodes = new ArrayList<LayoutNode>(nodes);
     }
     
     public void done() {

@@ -3,6 +3,7 @@ package ca.sqlpower.architect.layout;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,21 +30,21 @@ public class BasicTreeAutoLayout extends AbstractLayout {
 
     /**
      * 
-     * @param nodeList
+     * @param nodes
      * @param startPoint
      * @param alreadyDone A Map of nodes to their final positions (as calculated by this layout).
      * @return
      */
-	private Point doRecursiveLayout(List<? extends LayoutNode> nodeList, Point startPoint, Map<LayoutNode,Point> alreadyDone) {
+	private Point doRecursiveLayout(Collection<? extends LayoutNode> nodes, Point startPoint, Map<LayoutNode,Point> alreadyDone) {
 		Rectangle b = new Rectangle();
 		int x = startPoint.x;
 		int y = startPoint.y;
         
         if (logger.isDebugEnabled()) {
-            logger.debug("Starting layout. nodeList="+nodeList+"; startPoint="+startPoint);
+            logger.debug("Starting layout. nodeList="+nodes+"; startPoint="+startPoint);
         }
         
-		for (LayoutNode node : nodeList) {
+		for (LayoutNode node : nodes) {
 			if (alreadyDone.containsKey(node)) continue;
 			
 			// place this table
@@ -83,7 +84,7 @@ public class BasicTreeAutoLayout extends AbstractLayout {
 	}
 
 	@Override
-	public void setup(List<? extends LayoutNode> nodes, List<? extends LayoutEdge> edges, Rectangle frame) {
+	public void setup(Collection<? extends LayoutNode> nodes, Collection<? extends LayoutEdge> edges, Rectangle frame) {
 		origLocations = new HashMap<LayoutNode, Point>();
 		
 		for (LayoutNode node : nodes) {

@@ -2,6 +2,7 @@ package ca.sqlpower.architect.layout;
 
 import java.awt.Dimension;
 import java.awt.Rectangle;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -9,7 +10,7 @@ public abstract class AbstractLayout implements ArchitectLayout {
 
     protected Rectangle frame;
 
-    public void setup(List<? extends LayoutNode> nodes, List<? extends LayoutEdge> edges, Rectangle rect) {
+    public void setup(Collection<? extends LayoutNode> nodes, Collection<? extends LayoutEdge> edges, Rectangle rect) {
         frame = rect;
     }
 
