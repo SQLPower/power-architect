@@ -430,10 +430,7 @@ public class ASUtils {
             String subMessage,
             final Throwable throwable) {
         JDialog dialog;
-        if (parent == null) {
-            logger.error("displayExceptionDialog with null parent for message " + message);
-            dialog = new JDialog((Frame)null, "Error report");
-        } else if (parent instanceof JFrame) {
+        if (parent instanceof JFrame) {
             JFrame frame = (JFrame) parent;
             dialog = new JDialog(frame, "Error Report");
             if (masterIcon != null) {
@@ -445,7 +442,8 @@ public class ASUtils {
         } else if (parent instanceof Dialog) {
             dialog = new JDialog((Dialog)parent, "Error Report");
         } else {
-            logger.error("non-null parent component is neither JFrame nor JDialog");
+            logger.error(
+                    String.format("dialog parent component %s is neither JFrame nor JDialog", parent));
             dialog = new JDialog((Frame)null, "Error report");
         }
         logger.debug("displayExceptionDialog: showing exception dialog for:", throwable);
