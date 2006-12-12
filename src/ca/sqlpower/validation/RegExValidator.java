@@ -16,14 +16,13 @@ public class RegExValidator implements Validator {
      * @param pattern The regex pattern
      *
      */
-    public RegExValidator(String pattern,String message) {
-        super();
-        this.pattern = Pattern.compile(pattern);
+    public RegExValidator(String pattern, String message, boolean caseSensitive) {
+        this.pattern = Pattern.compile(pattern, caseSensitive ? 0 : Pattern.CASE_INSENSITIVE);
         this.message = message;
     }
 
     public RegExValidator(String pattern) {
-        this(pattern,"Input text must match pattern:" + pattern);
+        this(pattern,"Input text must match pattern:" + pattern, true);
     }
 
     public ValidateResult validate(Object contents) {
