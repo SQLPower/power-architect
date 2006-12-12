@@ -78,7 +78,7 @@ public class TableModelColumnAutofit extends AbstractTableModel{
     }
 
     public void initSingleColumnSize(int colIndex) {
-        TableUtils.fitColumnWidth(table, colIndex);
+        TableUtils.fitColumnWidth(table, colIndex, 0);
     }
     
     private class MouseListener extends MouseAdapter {
