@@ -34,6 +34,7 @@ public class StatusComponent extends JLabel {
      * was displaying an icon and message.
      */
     public StatusComponent() {
+        setOpaque(true);
         setBorder(DEFAULT_BORDER);
         setResult(null);
     }
