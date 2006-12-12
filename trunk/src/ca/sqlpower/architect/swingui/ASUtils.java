@@ -318,10 +318,15 @@ public class ASUtils {
      * @param w The Window which you want to make cancelable with the ESC key.  Must
      * be either a JFrame or a JDialog.
      * @param cancelAction or null for nothing
+     * @param disposeOnCancel If true, the window will be disposed after invoking the provided
+     * action when the ESC key is pressed.  Otherwise, the provided action will be invoked,
+     * but the window won't be closed.  If you set this to false, and don't provide an action,
+     * nothing interesting will happen when ESC is pressed in your dialog.
      */
     public static void makeJDialogCancellable(
     		final Window w,
-    		final Action cancelAction) {
+    		final Action cancelAction,
+            final boolean disposeOnCancel) {
 
         JComponent c;
         if (w instanceof JFrame) {
@@ -343,11 +348,27 @@ public class ASUtils {
                 if ( cancelAction != null ) {
                     cancelAction.actionPerformed(e);
                 }
-    			w.setVisible(false);
-    			w.dispose();
+                if (disposeOnCancel){
+                    w.dispose();
+                }
     		}
     	});
     }
+    
+    /**
+     * Works like {@link #makeJDialogCancellable(Window, Action, boolean)}
+     * with disposeOnCancel set to false.
+     * 
+     * @param w The Window to attach the ESC event handler to
+     * @param cancelAction The action to perform.  null is allowed: no custom
+     * action will be performed, but the dialog will still be disposed on ESC.
+     */
+    public static void makeJDialogCancellable(
+            final Window w,
+            final Action cancelAction){
+        makeJDialogCancellable(w, cancelAction, true);
+    }
+
 
     /**
 	 * Displays a dialog box with the given message and exception,
