@@ -26,4 +26,15 @@ public class RegExValidatorTest extends TestCase {
         assertFalse(Status.OK == val.validate("abc123").getStatus()); // uses match, not find
     }
 
+    public void testCaseSensitive() {
+        RegExValidator val = new RegExValidator("[a-z]*", "must be all lowercase", true);
+        assertEquals(Status.OK, val.validate("abc").getStatus());
+        assertFalse(Status.OK == val.validate("ABC").getStatus());
+    }
+
+    public void testCaseInsensitive() {
+        RegExValidator val = new RegExValidator("[a-z]*", "must be all lowercase", false);
+        assertEquals(Status.OK, val.validate("abc").getStatus());
+        assertEquals(Status.OK, val.validate("ABC").getStatus());
+    }
 }
