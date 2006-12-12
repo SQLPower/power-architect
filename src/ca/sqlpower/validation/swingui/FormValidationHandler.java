@@ -67,7 +67,12 @@ public class FormValidationHandler implements ValidationHandler {
     private List<ValidateObject> objects;
     private ValidateResult worstValidationStatus;
 
-    public boolean validated;
+    /**
+     * True if this validation handler has handled at least one validation pass
+     * since the validation status was last reset.  Mainly used
+     * for implementing hasUnsaveChanges() method in EditorPane.
+     */
+    private boolean havePerformedValidation;
 
     private class ValidateObject {
         /**
@@ -110,14 +115,13 @@ public class FormValidationHandler implements ValidationHandler {
          */
         protected void doValidate() {
             result = validator.validate(object);
+            havePerformedValidation = true;
             switch(result.getStatus()) {
             case OK:
                 component.setBackground(savedColor);
-                validated = true;
                 break;
             case WARN:
                 component.setBackground(COLOR_WARNING);
-                validated = true;
                 break;
             case FAIL:
                 component.setBackground(COLOR_ERROR);
@@ -216,7 +220,6 @@ public class FormValidationHandler implements ValidationHandler {
     private void performFormValidation() {
 
         ValidateResult worst = null;
-        validated = false;
 
         for (ValidateObject o : objects) {
             o.doValidate();
@@ -303,18 +306,17 @@ public class FormValidationHandler implements ValidationHandler {
         return pcs;
     }
 
-    /** True iff at least one component validated; mainly used
-     * for implementing hasUnsaveChanges() method in EditorPane
-     * @return
+    /** 
+     * See {@link #havePerformedValidation}.
      */
-    public boolean isValidated() {
-        return validated;
+    public boolean hasPerformedValidation() {
+        return havePerformedValidation;
     }
 
     /**
-     * Set whether at least one component has validated OK.
+     * Sets the havePerformedValidation property back to false.
      */
-    public void setValidated(boolean validated) {
-        this.validated = validated;
+    public void resetHasValidated() {
+        this.havePerformedValidation = false;
     }
 }
