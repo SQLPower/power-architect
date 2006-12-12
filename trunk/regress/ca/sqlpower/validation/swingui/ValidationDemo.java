@@ -68,7 +68,7 @@ public class ValidationDemo {
                 midPanel.add(p);
 
                 // what we came here for #2!!
-                Validator v2 = new RegExValidator("\\w+", "Must be one word");
+                Validator v2 = new RegExValidator("\\w+", "Must be one word", false);
                 validateHandler.addValidateObject(tf,v2);
 
                 // SECTION THREE
