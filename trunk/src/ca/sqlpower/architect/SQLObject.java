@@ -455,4 +455,25 @@ public abstract class SQLObject implements java.io.Serializable {
         }
         return null;
     }
+    
+    /**
+     * Returns the index of the named child, or -1 if there is no child with
+     * that name.
+     * 
+     * @param name The name of the child to look for (case sensitive)
+     * @return The index of the named child in the child list, or -1 if there
+     * is no such child.
+     * @throws ArchitectException if the child list can't be populated
+     */
+    public int getIndexOfChildByName(String name) throws ArchitectException {
+        int i = 0;
+        for (Object o : getChildren()) {
+            SQLObject so = (SQLObject) o;
+            if (so.getName().equals(name)) {
+                return i;
+            }
+            i++;
+        }
+        return -1;
+    }
 }
