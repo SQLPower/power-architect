@@ -5,9 +5,13 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLIndex;
+import ca.sqlpower.architect.SQLIndex.IndexType;
 import ca.sqlpower.architect.profile.ProfileFunctionDescriptor;
 
 
@@ -391,5 +395,32 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
     @Override
     public String getAverageSQLFunctionName(String expression) {
         return "AVG(CONVERT(DECIMAL,"+expression+"))";
+    }
+    
+    @Override
+    public void addIndex(SQLIndex index) throws ArchitectException {
+        if (index.getType() == IndexType.STATISTIC )
+            return;
+        print("CREATE ");
+        if (index.isUnique()) {
+            print("UNIQUE ");
+        }
+        if (index.getType() == IndexType.CLUSTERED) {
+            print("CLUSTERED ");
+        }
+        print("INDEX ");
+        print(DDLUtils.toQualifiedName(null,null,index.getName()));
+        print("\n ON ");
+        print(toQualifiedName(index.getParentTable()));
+        print("\n ( ");
+
+        boolean first = true;
+        for (SQLIndex.Column c : (List<SQLIndex.Column>) index.getChildren()) {
+            if (!first) print(", ");
+            print(c.getName());
+            first = false;
+        }
+        print(" )\n");
+        endStatement(DDLStatement.StatementType.CREATE, index);
     }
 }
