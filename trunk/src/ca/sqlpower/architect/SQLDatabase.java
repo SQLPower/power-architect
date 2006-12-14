@@ -213,14 +213,14 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 
 		this.populate();
 
-		if (tableName == null) {
+		if (tableName == null || tableName.length() == 0) {
 			throw new NullPointerException("Table Name must be specified");
 		}
 		
 		// we will recursively search a target (database, catalog, or schema)
 		SQLObject target = this;
 		
-		if (catalogName != null) {
+		if (catalogName != null && catalogName.length() > 0 ) {
 			target = getCatalogByName(catalogName);
 		}
 
@@ -231,7 +231,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 			return null;
 		}
 
-		if (schemaName != null) {
+		if (schemaName != null && schemaName.length() > 0) {
 			if (target instanceof SQLDatabase) {
 				target = ((SQLDatabase) target).getSchemaByName(schemaName);
 			} else if (target instanceof SQLCatalog) {
