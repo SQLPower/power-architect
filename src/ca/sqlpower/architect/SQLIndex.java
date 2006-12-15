@@ -237,6 +237,31 @@ public class SQLIndex extends SQLObject {
     public SQLIndex() {
         children = new ArrayList();
     }
+    
+    /**
+     * Copy constructor for a sql index
+     * @param oldIndex
+     * @throws ArchitectException
+     */
+    public SQLIndex(SQLIndex oldIndex) throws ArchitectException{
+        this();
+        setName(oldIndex.getName());
+        unique = oldIndex.unique;
+        parent = oldIndex.parent;
+        populated = oldIndex.populated;
+        type = oldIndex.type;
+        filterCondition = oldIndex.filterCondition;
+        qualifier = oldIndex.qualifier;
+        for (Object c: oldIndex.getChildren()){
+            Column oldCol = (Column) c;
+            Column newCol = new Column();
+            newCol.setAscending(oldCol.ascending);
+            newCol.setDescending(oldCol.descending);
+            newCol.column = oldCol.column;
+            newCol.setName(oldCol.getName());
+            addChild(newCol);
+        }
+    }
 
     /**
      * Indices are associated with one or more table columns.  The children of this index represent those columns,
@@ -449,6 +474,11 @@ public class SQLIndex extends SQLObject {
     @Override
     public String toString() {
         return getName();
+    }
+
+    public void addIndexColumn(SQLColumn col1, boolean ascending, boolean descending) throws ArchitectException {
+        Column col = new Column(col1,ascending,descending);
+        addChild(col);
     }
 
 
