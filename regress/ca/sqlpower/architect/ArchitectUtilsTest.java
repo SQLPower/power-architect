@@ -257,7 +257,7 @@ public class ArchitectUtilsTest extends TestCase {
     
     public void testCreateTableWhenExisting() throws Exception {
         SQLDatabase db = new SQLDatabase();
-        SQLCatalog cat = new SQLCatalog(db, "cat");
+        SQLCatalog cat = new SQLCatalog(db, "cat",true);
         db.addChild(cat);
         SQLSchema schem = new SQLSchema(cat, "schem", true);
         cat.addChild(schem);
