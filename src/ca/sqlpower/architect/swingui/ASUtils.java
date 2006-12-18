@@ -80,7 +80,8 @@ public class ASUtils {
 
 	/**
 	 * Useful for combo boxes where you want the user to see the label
-	 * but the code needs the value.
+	 * but the code needs the value (only useful when the value's
+     * toString() method isn't).
 	 */
 	public static class LabelValueBean {
 		String label;
@@ -317,7 +318,7 @@ public class ASUtils {
      *
      * @param w The Window which you want to make cancelable with the ESC key.  Must
      * be either a JFrame or a JDialog.
-     * @param cancelAction or null for nothing
+     * @param cancelAction The action to invoke on cancelation, or null for nothing
      * @param disposeOnCancel If true, the window will be disposed after invoking the provided
      * action when the ESC key is pressed.  Otherwise, the provided action will be invoked,
      * but the window won't be closed.  If you set this to false, and don't provide an action,
@@ -354,11 +355,11 @@ public class ASUtils {
     		}
     	});
     }
-    
+
     /**
      * Works like {@link #makeJDialogCancellable(Window, Action, boolean)}
-     * with disposeOnCancel set to false.
-     * 
+     * with disposeOnCancel set to true.
+     *
      * @param w The Window to attach the ESC event handler to
      * @param cancelAction The action to perform.  null is allowed: no custom
      * action will be performed, but the dialog will still be disposed on ESC.
