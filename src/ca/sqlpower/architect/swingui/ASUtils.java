@@ -509,7 +509,7 @@ public class ASUtils {
         labelText.append("<html><font color='red' size='+1'>");
         labelText.append(message == null ?
                 "Unexpected error" :
-                message.replaceAll("\n", "<br>"));
+                nlToBR(message));
         labelText.append("</font>");
         if (subMessage != null) {
             labelText.append("<p>");
@@ -520,11 +520,11 @@ public class ASUtils {
         top.add(messageLabel);
 
         JLabel errClassLabel =
-            new JLabel("Exception type: " + throwable.getClass().getName());
+            new JLabel("<html><b>Exception type</b>: " + nlToBR(throwable.getClass().getName()));
         top.add(errClassLabel);
         String excDetailMessage = throwable.getMessage();
         if (excDetailMessage != null) {
-            top.add(new JLabel("Detail string: " + excDetailMessage));
+            top.add(new JLabel("<html><b>Detail string</b>: " + nlToBR(excDetailMessage)));
         }
 
         final JButton detailsButton = new JButton("Show Details");
@@ -601,6 +601,16 @@ public class ASUtils {
         dialog.setLocationRelativeTo(parent);
 
         dialog.setVisible(true);
+    }
+
+    /**
+     * Simple convenience routine to replace all \n's with <br>
+     * @param s
+     * @return
+     */
+    static String nlToBR(String s) {
+        // Do NOT xml-ify the BR tag until Swing's HTML supports this.
+        return s.replaceAll("\n", "<br>");
     }
 
     static final int MAX_JRE_ELEMENTS = 10;
