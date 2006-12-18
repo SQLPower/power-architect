@@ -383,9 +383,10 @@ public class ASUtils {
     /** Displays a dialog box with the given message and exception,
      * returning focus to the given component. Intended for use
      * on panels like the CompareDMPanel, so focus works better.
-     * @param parent
-     * @param message
-     * @param throwable
+     * @param parent Frame or window to own the display
+     * @param message Message text
+     * @param throwable The cause of the problem
+     * @param qfaFactory Exception Reporter
      */
     public static void showExceptionDialog(Component parent, String message, Throwable throwable, QFAFactory qfaFactory) {
         showExceptionDialog(parent, message, null, throwable, qfaFactory);
@@ -401,7 +402,8 @@ public class ASUtils {
      * @param subMessage Secondary message, displayed in the default colour and normal
      * size type under the primary message.  If you make this null, the sub-message
      * will not be rendered.
-     * @param throwable
+     * @param throwable The cause of it all
+     * @param qfaFactory The error report generator; may not be null.
      */
     public static void showExceptionDialog(Component parent, String message, String subMessage, Throwable throwable, QFAFactory qfaFactory) {
         try {
@@ -428,6 +430,7 @@ public class ASUtils {
 	public static void showExceptionDialogNoReport(String string, Throwable ex) {
         displayExceptionDialog(ArchitectFrame.getMainInstance(), string, null, ex);
 	}
+
     /** Displays a dialog box with the given message and exception,
      * returning focus to the given component. Intended for use
      * on panels like the CompareDMPanel, so focus works better.
@@ -541,7 +544,6 @@ public class ASUtils {
                 Rectangle dialogBounds = finalDialogReference.getBounds();
                 Rectangle screenBounds = finalDialogReference.getGraphicsConfiguration().getBounds();
                 if ( !screenBounds.contains(dialogBounds) ) {
-                    Point p = new Point();
                     int x = dialogBounds.x;
                     int y = dialogBounds.y;
                     if (screenBounds.x+screenBounds.width < dialogBounds.x + dialogBounds.width){
