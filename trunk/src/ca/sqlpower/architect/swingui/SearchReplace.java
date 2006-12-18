@@ -69,7 +69,7 @@ public class SearchReplace {
     private class SearchResultsTableModel implements TableModel {
 
         private List results;
-        
+
         public SearchResultsTableModel(List results) {
             this.results = results;
             //Ignores the PlayPen Database in the search result
@@ -134,7 +134,7 @@ public class SearchReplace {
         }
 
         private ArrayList listeners = new ArrayList();
-        
+
         public void addTableModelListener(TableModelListener l) {
             listeners.add(l);
         }
@@ -153,12 +153,12 @@ public class SearchReplace {
     private JRadioButton substringMatch;
     private JRadioButton exactMatch;
     private JRadioButton regexMatch;
-    
+
     private JRadioButton tableSearch;
     private JRadioButton relationshipSearch;
     private JRadioButton columnSearch;
     private JRadioButton allSearch;
-    
+
     private JTextField searchExpression;
     private JCheckBox caseInsensitive;
 
@@ -176,7 +176,7 @@ public class SearchReplace {
         matchTypePanel.add(exactMatch);
         matchTypePanel.add(regexMatch);
         substringMatch.setSelected(true);
-        
+
         ButtonGroup searchType = new ButtonGroup();
         searchType.add(tableSearch = new JRadioButton("Tables"));
         searchType.add(relationshipSearch = new JRadioButton("Relationships"));
@@ -188,12 +188,12 @@ public class SearchReplace {
         searchTypePanel.add(columnSearch);
         searchTypePanel.add(allSearch);
         allSearch.setSelected(true);
-        
+
         caseInsensitive = new JCheckBox("Ignoring case");
         caseInsensitive.setSelected(true);
-        
+
         searchExpression = new JTextField();
-        
+
         JDefaultButton searchButton = new JDefaultButton("Search");
         // searchButton.setDefaultCapable(true);
         searchButton.addActionListener(new ActionListener() {
@@ -201,7 +201,8 @@ public class SearchReplace {
                 try {
                     showResults(d, pp);
                 } catch (ArchitectException ex) {
-                    ASUtils.showExceptionDialog("Encountered a problem during search", ex);
+                    ASUtils.showExceptionDialog(
+                        "Encountered a problem during search", ex);
                 }
             }
         });
@@ -214,9 +215,9 @@ public class SearchReplace {
         };
         cancelAction.putValue(Action.NAME, ArchitectPanelBuilder.CANCEL_BUTTON_LABEL);
         JButton cancelButton = new JButton(cancelAction);
-        
+
         ASUtils.makeJDialogCancellable(d, cancelAction);
-        
+
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.add(searchButton);
         buttonPanel.add(cancelButton);
@@ -224,22 +225,22 @@ public class SearchReplace {
         JComponent cp = (JComponent) d.getContentPane();
         cp.setLayout(new FormLayout(10, 10));
         cp.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
-        
+
         cp.add(new JLabel("Look for"));
         cp.add(searchTypePanel);
-        
+
         cp.add(new JLabel("Named"));
         cp.add(searchExpression);
-        
+
         cp.add(new JLabel("Comparing by"));
         cp.add(matchTypePanel);
-        
+
         cp.add(new JLabel(""));
         cp.add(caseInsensitive);
 
         cp.add(new JLabel(""));
         cp.add(buttonPanel);
-        
+
         d.getRootPane().setDefaultButton(searchButton);
 
         d.pack();
@@ -247,16 +248,16 @@ public class SearchReplace {
         d.setVisible(true);
         searchExpression.requestFocus();
     }
-    
+
     public void showResults(JDialog parent, final PlayPen pp) throws ArchitectException {
     	try {
 	        final List results = doSearch(pp.getDatabase());
-	        
+
 	        // XXX This JDialog has three buttons so we cannot use
 	        // ArchitectPanelBuilder to create it...
 	        final JDialog d = new JDialog(parent, "Search Results");
 	        final JTable t = new JTable(new SearchResultsTableModel(results));
-	        
+
 	        final JButton renameButton = new JButton("Rename Selected...");
 	        renameButton.setEnabled(false);
 	        renameButton.addActionListener(new ActionListener() {
@@ -264,7 +265,7 @@ public class SearchReplace {
 	            	String newName;
 	         	    newName = JOptionPane.showInputDialog(d, "Enter the new name");
 	                TableModel m = t.getModel();
-	                
+
 	                int selectedRows[] = t.getSelectedRows();
 	                for (int i = 0; i < selectedRows.length; i++) {
 	                	//newName is null if the user press cancel
@@ -275,7 +276,7 @@ public class SearchReplace {
 	                }
 	            }
 	        });
-	        
+
 	        final JButton gotoButton = new JButton("Show in Playpen");
 	        gotoButton.setEnabled(false);
 	        gotoButton.addActionListener(new ActionListener() {
@@ -297,14 +298,14 @@ public class SearchReplace {
 	                        JOptionPane.showMessageDialog(null, "Sorry, the selected search result is of an unknown type!");
 	                        return;
 	                    }
-	                    
+
 	                    if (searchTable != null) {
 	                        TablePane tp = pp.findTablePane(searchTable);
 	                        if (tp != null) {
 	                            pp.selectNone();
 	                            tp.setSelected(true);
 	                            pp.scrollRectToVisible(tp.getBounds());
-	                            
+
 	                            if (searchColumn != null) {
 	                            	try {
 	                                tp.selectColumn(searchTable.getColumnIndex(searchColumn));
@@ -329,11 +330,11 @@ public class SearchReplace {
 	                }
 	            }
 	        });
-	
+
 	        Action closeAction = new CommonCloseAction(d);
 	        JButton closeButton = new JButton(closeAction);
 	        ASUtils.makeJDialogCancellable(d, closeAction);
-	        
+
 	        ListSelectionListener buttonActivator = new ListSelectionListener() {
 	            public void valueChanged(ListSelectionEvent e) {
 	                renameButton.setEnabled(t.getSelectedRowCount() > 0);
@@ -341,29 +342,29 @@ public class SearchReplace {
 	            }
 	        };
 	        t.getSelectionModel().addListSelectionListener(buttonActivator);
-	
+
 	        JComponent cp = (JComponent) d.getContentPane();
 	        cp.setLayout(new BorderLayout());
 	        cp.add(new JScrollPane(t), BorderLayout.CENTER);
-	        
+
 	        Box buttonBox = new Box(BoxLayout.Y_AXIS);
 	        buttonBox.add(renameButton);
 	        buttonBox.add(gotoButton);
 	        buttonBox.add(Box.createVerticalGlue());
 	        buttonBox.add(closeButton);
 	        cp.add(buttonBox, BorderLayout.EAST);
-	        
+
 	        d.pack();
 	        d.setLocationRelativeTo(parent);
 	        d.setVisible(true);
     	 }
         catch(PatternSyntaxException e){
-        	
+
         	JOptionPane.showMessageDialog(null,e.getDescription(),"Regular Expression Error",
         			JOptionPane.INFORMATION_MESSAGE);
         }
     }
-    
+
     public List doSearch(SQLObject start) throws ArchitectException {
         List results = new ArrayList();
         String pat;
@@ -390,8 +391,8 @@ public class SearchReplace {
         if (caseInsensitive.isSelected()) {
             patternFlags |= (Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
         }
-      
-        Pattern searchPattern = Pattern.compile(pat, patternFlags);  
+
+        Pattern searchPattern = Pattern.compile(pat, patternFlags);
         return recursiveSearch(start, searchPattern, results);
     }
 

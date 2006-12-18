@@ -967,7 +967,8 @@ public class CompareDMPanel extends JPanel {
                     if (getDoStuffException() != null) {
                         Throwable exc = getDoStuffException();
                         logger.error("Error in doStuff()", exc);
-                        ASUtils.showExceptionDialog(CompareDMPanel.this, "Database Comparison Failed!", exc, new ArchitectExceptionReportFactory());
+                        ASUtils.showExceptionDialog(CompareDMPanel.this,
+                                "Database Comparison Failed!", exc, new ArchitectExceptionReportFactory());
                         return;
                     }
 					logger.debug("cleanup starts");

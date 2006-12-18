@@ -405,7 +405,7 @@ public class SQLScriptDialog extends JDialog {
 				logWriter.info("Caught Unexpected Exception " + exc);
 				ASUtils.showExceptionDialog(
 						SQLScriptDialog.this,
-						"Couldn't finish running this SQL Script due to the following unexpected exception:",
+						"Couldn't finish running this SQL Script",
 						exc,
                         new ArchitectExceptionReportFactory());
 			} finally {
