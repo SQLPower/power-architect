@@ -12,8 +12,9 @@ public abstract class ArchitectSwingWorker implements Runnable {
 	private boolean cancelled; 
 	
 	/**
-	 * The message that will be displayed in a dialog box when
-	 * cleanup() throws an exception.
+	 * The message that will be displayed in a dialog box if
+	 * cleanup() throws an exception. Should be changed by the
+	 * subclass calling setCleanupExceptionMessage
 	 */
 	private String cleanupExceptionMessage = "A problem occurred.";
 	
@@ -22,8 +23,9 @@ public abstract class ArchitectSwingWorker implements Runnable {
 			doStuff();
 		} catch (Exception e) {
 			doStuffException = e;
-            logger.debug(e.getStackTrace());
+			logger.debug(e.getStackTrace());
 		}
+		// Do not move into try block above, and too long to be a finally :-)
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				try {
