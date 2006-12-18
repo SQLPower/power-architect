@@ -19,6 +19,9 @@ import ca.sqlpower.architect.swingui.DBCSPanel;
 import ca.sqlpower.architect.swingui.DBConnectionCallBack;
 import ca.sqlpower.architect.swingui.TextPanel;
 
+/**
+ * XXX Somebody should document what this class is useful for.
+ */
 public final class DBCSOkAction extends AbstractAction {
 	private final static Logger logger = Logger.getLogger(DBCSOkAction.class);
 	private final DBCSPanel dbcsPanel;
@@ -27,8 +30,6 @@ public final class DBCSOkAction extends AbstractAction {
 	private String oldName;
     private DBConnectionCallBack connectionSelectionCallBack;
     private DataSourceCollection plDotIni;
-
-
 
     /**
      * create the DBCSOkAction object, use the default pl.ini from the
@@ -80,7 +81,7 @@ public final class DBCSOkAction extends AbstractAction {
 		if (isNew) {
 			dbcsPanel.applyChanges();
 			if ("".equals(newDS.getName().trim())) {
-				JOptionPane.showMessageDialog(newConnectionDialog,"A connection must have at least 1 character that is not whitespace");
+				JOptionPane.showMessageDialog(newConnectionDialog,"A connection name must have at least 1 character that is not whitespace");
 				newConnectionDialog.setVisible(true);
 			} else {
 				if (plDotIni.getDataSource(newDS.getName()) == null )  {
@@ -96,7 +97,7 @@ public final class DBCSOkAction extends AbstractAction {
 			}
 
 		} else if ("".equals(curName.trim())) {
-			JOptionPane.showMessageDialog(newConnectionDialog,"A connection must have at least 1 character that is not whitespace");
+			JOptionPane.showMessageDialog(newConnectionDialog,"A connection name must have at least 1 character that is not whitespace");
 			newConnectionDialog.setVisible(true);
 		} else if (curName.equals(oldName)) {
 			logger.debug("The current Name is the same as the old name");
