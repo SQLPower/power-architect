@@ -424,12 +424,26 @@ public class ASUtils {
 
     /**
      * Displays a dialog box with the given message and exception,
-     * allowing the user to examine the stack trace.  The dialog's
+     * allowing the user to examine the stack trace, but do NOT generate
+     * a report back to SQLPower web site.  The dialog's
      * parent component will be the ArchitectFrame's main instance.
      */
 	public static void showExceptionDialogNoReport(String string, Throwable ex) {
         displayExceptionDialog(ArchitectFrame.getMainInstance(), string, null, ex);
 	}
+
+    /**
+     * Displays a dialog box with the given message and submessage and exception,
+     * allowing the user to examine the stack trace, but do NOT generate
+     * a report back to SQLPower web site.
+     * @param dialog
+     * @param string
+     * @param string2
+     * @param e1
+     */
+    public static void showExceptionDialogNoReport(Component parent, String message, String subMessage, Throwable throwable) {
+        displayExceptionDialog(parent, message, subMessage, throwable);
+    }
 
     /** Displays a dialog box with the given message and exception,
      * returning focus to the given component. Intended for use
@@ -451,8 +465,8 @@ public class ASUtils {
 
     private static void displayExceptionDialog(
             final Component parent,
-            String message,
-            String subMessage,
+            final String message,
+            final String subMessage,
             final Throwable throwable) {
         JDialog dialog;
         if (parent instanceof JFrame) {
@@ -490,13 +504,12 @@ public class ASUtils {
         traceWriter.close();
 
         JPanel top = new JPanel(new GridLayout(0, 1, 5, 5));
-        if (message == null) {
-            message = "Unexpected error";
-        }
 
         StringBuilder labelText = new StringBuilder();
         labelText.append("<html><font color='red' size='+1'>");
-        labelText.append(message);
+        labelText.append(message == null ?
+                "Unexpected error" :
+                message.replaceAll("\n", "<br>"));
         labelText.append("</font>");
         if (subMessage != null) {
             labelText.append("<p>");
@@ -513,6 +526,12 @@ public class ASUtils {
         if (excDetailMessage != null) {
             top.add(new JLabel("Detail string: " + excDetailMessage));
         }
+
+        final JButton detailsButton = new JButton("Show Details");
+        final JPanel detailsButtonPanel = new JPanel();
+        detailsButtonPanel.add(detailsButton);
+        top.add(detailsButtonPanel);
+
         dialog.add(top, BorderLayout.NORTH);
         final JScrollPane detailScroller =
             new JScrollPane(new JTextArea(stringWriter.toString()));
@@ -521,21 +540,26 @@ public class ASUtils {
         messageComponent.add(detailScroller, BorderLayout.CENTER);
         messageComponent.setPreferredSize(new Dimension(700, 400));
 
-        // XXX This button should be at the right side of the
-        // error text instead of the bottom, so it wouldn't jump
-        // around when you activate it.
-        final JButton detailsButton = new JButton("Show Details");
+        final JComponent fakeMessageComponent = new JComponent() {
+            @Override
+            public Dimension getPreferredSize() {
+                return new Dimension(700, 0);
+            }
+        };
 
         final JDialog finalDialogReference = dialog;
+        finalDialogReference.add(fakeMessageComponent, BorderLayout.CENTER);
         ActionListener detailsAction = new ActionListener() {
             boolean showDetails = true;
             public void actionPerformed(ActionEvent e) {
                 // System.out.println("showDetails=" + showDetails);
                 if (showDetails) {
+                    finalDialogReference.remove(fakeMessageComponent);
                     finalDialogReference.add(messageComponent, BorderLayout.CENTER);
                     detailsButton.setText("Hide Details");
                 } else /* hide details */ {
                     finalDialogReference.remove(messageComponent);
+                    finalDialogReference.add(fakeMessageComponent, BorderLayout.CENTER);
                     detailsButton.setText("Show Details");
                 }
                 finalDialogReference.setVisible(false);
@@ -573,7 +597,6 @@ public class ASUtils {
             }
         });
         JPanel bottom = new JPanel();
-        bottom.add(detailsButton);
         bottom.add(okButton);
         dialog.add(bottom, BorderLayout.SOUTH);
         dialog.pack();
@@ -773,6 +796,5 @@ public class ASUtils {
 		 * });
 		 */
 	}
-
 
 }
