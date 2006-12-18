@@ -562,7 +562,6 @@ public class ASUtils {
                     finalDialogReference.add(fakeMessageComponent, BorderLayout.CENTER);
                     detailsButton.setText("Show Details");
                 }
-                finalDialogReference.setVisible(false);
                 finalDialogReference.pack();
 
                 Rectangle dialogBounds = finalDialogReference.getBounds();
@@ -584,7 +583,6 @@ public class ASUtils {
                     }
                     finalDialogReference.setLocation(x,y);
                 }
-                finalDialogReference.setVisible(true);
                 showDetails = ! showDetails;
             }
         };
