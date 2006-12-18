@@ -445,7 +445,8 @@ public class ArchitectFrame extends JFrame {
                     d.setLocationRelativeTo(ArchitectFrame.this);
                     d.setVisible(true);
                 } catch (Exception ex) {
-                    ASUtils.showExceptionDialogNoReport("Couldn't start Data Mover", ex);
+                    ASUtils.showExceptionDialogNoReport(
+                            "Couldn't start Data Mover", ex);
                 }
             }
         };
@@ -525,7 +526,8 @@ public class ArchitectFrame extends JFrame {
                                 mr.drawHighLevelReport((Graphics2D) g,null);
                             } catch (ArchitectException e1) {
                                 logger.error("ArchitectException while generating mapping diagram", e1);
-                                ASUtils.showExceptionDialog("Couldn't generate mapping diagram", e1);
+                                ASUtils.showExceptionDialog(
+                                        "Couldn't generate mapping diagram", e1);
                             }
                         }
                     };

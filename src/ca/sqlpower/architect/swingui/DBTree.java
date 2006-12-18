@@ -53,7 +53,6 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 	protected DragSource ds;
 	protected JPopupMenu popup;
 	protected JMenu connectionsMenu;
-	//protected JDialog propDialog;
 	protected DBCSPanel dbcsPanel;
 	protected NewDBCSAction newDBCSAction;
 	protected DBCSPropertiesAction dbcsPropertiesAction;
@@ -412,7 +411,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
             if (p.getLastPathComponent() instanceof SQLDatabase){
                 SQLDatabase tempDB=(SQLDatabase)(p.getLastPathComponent());
                 JMenuItem setAsDB = new JMenuItem(new SetConnAsTargetDB(tempDB.getDataSource()));
-                newMenu.add(setAsDB);            
+                newMenu.add(setAsDB);
             }
 		}
 
@@ -422,7 +421,8 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
             final SQLExceptionNode node = (SQLExceptionNode) p.getLastPathComponent();
             newMenu.add(new JMenuItem(new AbstractAction("Show Exception Details") {
                 public void actionPerformed(ActionEvent e) {
-                    ASUtils.showExceptionDialogNoReport("Exception Node Report", node.getException());
+                    ASUtils.showExceptionDialogNoReport(
+                            "Exception Node Report", node.getException());
                 }
             }));
 
@@ -443,7 +443,8 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 									logger.error("Couldn't add SQLExceptionNode to menu:", e1);
 									JOptionPane.showMessageDialog(null, "Failed to add SQLExceptionNode:\n"+e1.getMessage());
 								}
-                                ASUtils.showExceptionDialogNoReport("Exception occurred during retry", ex);
+                                ASUtils.showExceptionDialogNoReport(
+                                        "Exception occurred during retry", ex);
                             }
                         }
                     }));
@@ -541,18 +542,18 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 			}
 		}
 	}
-    
+
     protected class SetConnAsTargetDB extends AbstractAction{
         ArchitectDataSource dbcs;
-        
+
         public SetConnAsTargetDB(ArchitectDataSource dbcs){
-            super("Set As Target Database");            
+            super("Set As Target Database");
             this.dbcs  = dbcs;
         }
 
-        public void actionPerformed(ActionEvent e) {                  
+        public void actionPerformed(ActionEvent e) {
             ArchitectFrame.getMainInstance().getProject().getPlayPen().setDatabaseConnection(dbcs);
-        }        
+        }
     }
 
 	/**
@@ -747,21 +748,21 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 			}
 			PlayPen pp = ArchitectFrame.getMainInstance().playpen;
 			SQLObject selection = (SQLObject) p.getLastPathComponent();
-            //Since we cannot directly select a SQLColumn directly 
+            //Since we cannot directly select a SQLColumn directly
             //from the playpen, there is a special case for it
             if (selection instanceof SQLColumn){
                 SQLColumn col = (SQLColumn)selection;
-                SQLTable table = col.getParentTable();                
+                SQLTable table = col.getParentTable();
                 TablePane tp = pp.findTablePane(table);
                 pp.selectAndShow(table);
                 try {
                     tp.columnSelection.set(table.getColumnIndex(col), Boolean.TRUE);
                 } catch (ArchitectException e1) {
                   ASUtils.showExceptionDialog("Error in selecting the column!", e1);
-                }                
+                }
             } else
                 pp.selectAndShow(selection);
-            
+
 		}
 	}
 

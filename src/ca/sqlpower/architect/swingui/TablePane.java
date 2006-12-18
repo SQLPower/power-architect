@@ -209,7 +209,7 @@ public class TablePane
 	// -------------------- sqlobject event support ---------------------
 
     private class ColumnListener implements SQLObjectListener {
-        
+
         /**
          * The column that was most recently removed from this table while it
          * was still selected.  This is kept here in case the column is subsequently
@@ -341,7 +341,7 @@ public class TablePane
             }
         }
     }
-        
+
 	// ----------------------- accessors and mutators --------------------------
 
 	/**
@@ -807,12 +807,11 @@ public class TablePane
 					}
 					dtde.dropComplete(success);
 				} catch (Exception ex) {
-				    // Trying to show this dialog sometimes hangs the app in OS X
-					//JOptionPane.showMessageDialog(tp, "Drop failed: "+ex.getMessage());
 					logger.error("Error processing drop operation", ex);
 					dtde.rejectDrop();
 					dtde.dropComplete(false);
-					ASUtils.showExceptionDialog("Error processing drop operation", ex);
+					ASUtils.showExceptionDialog(
+                        "Error processing drop operation", ex);
                 } finally {
 					tp.setInsertionPoint(COLUMN_INDEX_NONE);
 					tp.getModel().normalizePrimaryKey();
@@ -991,7 +990,7 @@ public class TablePane
         return fullyQualifiedNameInHeader;
     }
 
-    
+
     // ------- LayoutNode methods that we didn't already happen to implement --------
 
 

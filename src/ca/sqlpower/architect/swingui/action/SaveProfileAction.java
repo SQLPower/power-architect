@@ -75,7 +75,7 @@ public class SaveProfileAction extends AbstractAction {
                     }
                 } catch (ArchitectException e1) {
                     ASUtils.showExceptionDialog(parent,
-                            "Could not get column from table",e1, new ArchitectExceptionReportFactory());
+                            "Could not get column from table", e1, new ArchitectExceptionReportFactory());
                 }
             }
 
@@ -185,7 +185,7 @@ public class SaveProfileAction extends AbstractAction {
             if (file.exists()) {
                 response = JOptionPane.showConfirmDialog(
                         parent,
-                        "The file\n"+file.getPath()+"\nalready exists. Do you want to overwrite it?",
+                        "The file\n" + file.getPath() + "\nalready exists. Do you want to overwrite it?",
                         "File Exists", JOptionPane.YES_NO_OPTION);
                 if (response != JOptionPane.NO_OPTION) {
                     break;
@@ -193,7 +193,6 @@ public class SaveProfileAction extends AbstractAction {
             } else {
                 break;
             }
-
         }
 
         // Clone file object for use in inner class, can not make "file" final as we change it to add extension
@@ -222,14 +221,16 @@ public class SaveProfileAction extends AbstractAction {
                     }
                     prf.format(out, objectToSave, pm);
                 } catch (Exception ex) {
-                    ASUtils.showExceptionDialog(parent,"Could not generate/save report file", ex, new ArchitectExceptionReportFactory());
+                    ASUtils.showExceptionDialog(parent,
+                        "Could not generate/save report file", ex, new ArchitectExceptionReportFactory());
                 } finally {
                     if ( out != null ) {
                         try {
                             out.flush();
                             out.close();
                         } catch (IOException ex) {
-                            ASUtils.showExceptionDialog(parent,"Could not close report file", ex, new ArchitectExceptionReportFactory());
+                            ASUtils.showExceptionDialog(parent,
+                                "Could not close report file", ex, new ArchitectExceptionReportFactory());
                         }
                     }
                 }
@@ -238,5 +239,4 @@ public class SaveProfileAction extends AbstractAction {
         new Thread(saveTask).start();
 
     }
-
 }

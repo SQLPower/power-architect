@@ -46,8 +46,8 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 	/**
 	 * The DBTree instance that is associated with this Action.
 	 */
-	protected DBTree dbt; 
-	
+	protected DBTree dbt;
+
 	public DeleteSelectedAction() {
 		super("Delete Selected",
 			  ASUtils.createJLFIcon("general/Delete",
@@ -58,18 +58,18 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 		putValue(ACTION_COMMAND_KEY, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		setEnabled(false);
 	}
-	
-	
+
+
 	/*
 	 * This action takes care of handling Delete requests from the DBTree and Playpen.
-	 * 
+	 *
 	 * Delete Policy (Playpen):
 	 * - if more than 1 item is selected in the playpen, it does not try to delete individual columns
 	 * - if only a single item is selected, it will attempt to delete columns (if that item was Table)
-	 * 
-	 * Delete Policy (DBTree): 
-	 * 
-	 * 
+	 *
+	 * Delete Policy (DBTree):
+	 *
+	 *
 	 */
 	public void actionPerformed(ActionEvent evt) {
 		logger.debug("delete action detected!");
@@ -78,17 +78,17 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 		if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN)) {
 
 			logger.debug("delete action came from playpen");
-			List <PlayPenComponent>items = pp.getSelectedItems();			
+			List <PlayPenComponent>items = pp.getSelectedItems();
 
 			if (items.size() < 1) {
 				JOptionPane.showMessageDialog(pp, "No items to delete!");
-			}				
+			}
 
 			if (items.size() > 1) {
 				// count how many relationships and tables there are
 				int tCount = pp.getSelectedTables().size();
 				int rCount = pp.getSelectedRelationShips().size();
-				
+
 				int decision = JOptionPane.showConfirmDialog(pp,
 															 "Are you sure you want to delete these "
 															 +tCount+" tables and "+rCount+" relationships?",
@@ -96,7 +96,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 															 JOptionPane.YES_NO_OPTION);
 				if (decision != JOptionPane.YES_OPTION ) {
 					return;
-				}								
+				}
 			} else { // single selection, so we might be deleting columns
 				boolean deletingColumns = false;
 				Selectable item = (Selectable) items.get(0);
@@ -107,18 +107,18 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 					try {
 						selectedColumns = tp.getSelectedColumns();
 						if (selectedColumns.size() > 0) {
-							// don't fall through into Table/Relationship delete logic							
+							// don't fall through into Table/Relationship delete logic
 							deletingColumns = true;
 						}
 					} catch (ArchitectException ae) {
 						JOptionPane.showMessageDialog(pp, ae.getMessage());
 						return;
-					}	
-				
+					}
+
 					try {
-				
+
                         pp.startCompoundEdit("Delete");
-						
+
 						// now, delete the columns
 						Iterator it2 = selectedColumns.iterator();
 						while (it2.hasNext()) {
@@ -138,33 +138,33 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 							} catch (ArchitectException e) {
 								logger.error("Unexpected exception encountered when attempting to delete column '"+
 										sc+"' of table '"+sc.getParentTable()+"'");
-								ASUtils.showExceptionDialog(pp, "Encountered a Problem Deleting the column", e, new ArchitectExceptionReportFactory());
+								ASUtils.showExceptionDialog(pp, "Could not delete the column", e, new ArchitectExceptionReportFactory());
 							}
 						}
 					} finally {
 						pp.endCompoundEdit("Ending multi-select");
 					}
-					
+
 				}
 				if (deletingColumns) { // we tried to delete 1 or more columns, so don't try to delete the table
 					return;
 				}
 			}
-			
-			
+
+
 			pp.startCompoundEdit("Delete");
 			try {
-				
+
 				// items.size() > 0, user has OK'ed the delete
-			   
+
                 //We deselect the components first because relationships might be already
-                //deleted when one of the table that it was attached to got deleted. 
+                //deleted when one of the table that it was attached to got deleted.
                 //Therefore deselecting them when it comes around in the item list would
                 //cause an exception.
                 for (PlayPenComponent ppc : items){
 			       ppc.setSelected(false);
                }
-                
+
                 Iterator it = items.iterator();
 				while (it.hasNext()) {
 					Selectable item = (Selectable) it.next();
@@ -176,7 +176,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 						Relationship r = (Relationship) item;
 						logger.debug("trying to delete relationship " + r);
 						SQLRelationship sr = r.getModel();
-						sr.getPkTable().removeExportedKey(sr);						
+						sr.getPkTable().removeExportedKey(sr);
 					} else {
 						JOptionPane.showMessageDialog((JComponent) item,
 						"The selected item type is not recognised");
@@ -185,7 +185,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 			} finally {
 				pp.endCompoundEdit("Ending multi-select");
 			}
-			
+
 		} else if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE)) {
 			logger.debug("delete action came from dbtree");
 			TreePath [] selections = dbt.getSelectionPaths();
@@ -198,8 +198,8 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 				if (decision == JOptionPane.NO_OPTION) {
 					return;
 				}
-			}	
-			
+			}
+
 			pp.startCompoundEdit("Delete");
 			try {
 				// FIXME: parts of the following code look like they were cut'n'pasted from above... PURE EVIL!
@@ -215,10 +215,10 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 						SQLColumn sc = (SQLColumn)so;
 						SQLTable st = sc.getParentTable();
 						try {
-							st.removeColumn(sc); 
+							st.removeColumn(sc);
 						} catch (LockedColumnException ex) {
 							int decision = JOptionPane.showConfirmDialog(dbt,
-									"Could not delete the column " + sc.getName() 
+									"Could not delete the column " + sc.getName()
 									+ " because it is part of a relationship key.  Continue"
 									+ " deleting of other selected items?",
 									"Column is Locked",
@@ -241,38 +241,38 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 				}
 			} finally {
 				pp.endCompoundEdit("Ending multi-select");
-                
-                /* 
+
+                /*
                  * We need to disable the delete function right after
                  * since the "Delete Selected" function in the dbtree does
                  * not update the status of the delete function in the playpen
                  * tool bar and could lead to the button going into a bad state
-                 * Therefore we disable it after the deletion is done and have 
+                 * Therefore we disable it after the deletion is done and have
                  * it update again (to maybe re-enable by the selectionlistener.
                  */
                 setEnabled(false);
 			}
-			
+
 		} else {
 			logger.debug("delete action came from unknown source, so we do nothing.");
 	  		// unknown action command source, do nothing
-		}		
+		}
 	}
-	
+
 	public void setPlayPen(PlayPen newPP) throws ArchitectException {
 		if (pp != null) {
 			pp.removeSelectionListener(this);
-		} 
+		}
 		pp = newPP;
 		pp.addSelectionListener(this);
-		
+
 		setupAction(pp.getSelectedItems());
 	}
 
 	public void setDBTree(DBTree newDBT) {
 		this.dbt = newDBT;
 	}
-	
+
 	public void itemSelected(SelectionEvent e) {
 		try {
 			setupAction(pp.getSelectedItems());
@@ -293,7 +293,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 	 * Updates the tooltip and enabledness of this action based on how
 	 * many items are in the selection list.  If there is only one
 	 * selected item, tries to put its name in the tooltip too!
-	 * @throws ArchitectException 
+	 * @throws ArchitectException
 	 */
 	private void setupAction(List selectedItems) throws ArchitectException {
 		if (selectedItems.size() == 0) {
@@ -329,13 +329,13 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 			for (Object item : selectedItems) {
 				numSelectedItems++;
 				if (item instanceof TablePane) {
-					// Because the table pane is already counted we need to add one less 
+					// Because the table pane is already counted we need to add one less
 					// than the columns unless there are no columns selected.  Then
 					// We need to add 0
-					numSelectedItems += Math.max(((TablePane) item).getSelectedColumns().size()-1, 0);				
+					numSelectedItems += Math.max(((TablePane) item).getSelectedColumns().size()-1, 0);
 				}
 			}
-			putValue(SHORT_DESCRIPTION, "Delete "+numSelectedItems+" items");            
-		}        
+			putValue(SHORT_DESCRIPTION, "Delete "+numSelectedItems+" items");
+		}
 	}
 }

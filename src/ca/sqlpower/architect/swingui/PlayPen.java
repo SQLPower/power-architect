@@ -102,9 +102,9 @@ import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 public class PlayPen extends JPanel
 	implements java.io.Serializable, SQLObjectListener, SelectionListener, Scrollable {
 
-	
+
 	public interface CancelableListener {
-		
+
 		public void cancel();
 
 	}
@@ -120,14 +120,14 @@ public class PlayPen extends JPanel
 
 	public enum MouseModeType {IDLE,
 						CREATING_TABLE,
-						CREATING_RELATIONSHIP,					
+						CREATING_RELATIONSHIP,
 						SELECT_TABLE,
 						SELECT_RELATIONSHIP,
 						SELECT_COLUMN,
 						MULTI_SELECT,
 						RUBBERBAND_MOVE}
 	private static MouseModeType mouseMode = MouseModeType.IDLE;
-	
+
 	/**
 	 * Links this PlayPen with an instance of PlayPenDropListener so
 	 * users can drop stuff on the playpen.
@@ -140,14 +140,14 @@ public class PlayPen extends JPanel
 	 * will be added into this database.
 	 */
 	protected SQLDatabase db;
-	
+
 	/**
 	 * Maps table names (Strings) to Integers.  Useful for making up
 	 * new table names if two tables of the same name are added todrag
 	 * this playpen.
 	 */
 	protected HashSet tableNames;
-	
+
 	/**
 	 * This is the shared popup menu that applies to right-clicks on
 	 * any TablePane in the PlayPen.
@@ -202,7 +202,7 @@ public class PlayPen extends JPanel
 	 */
 	protected JDialog dbcsDialog;
 
-	/** 
+	/**
      * used by mouseReleased to figure out if a DND operation just took place in the
      * playpen, so it can make a good choice about leaving a group of things selected
      * or deselecting everything except the TablePane that was clicked on.
@@ -220,9 +220,9 @@ public class PlayPen extends JPanel
 	 * components that are no longer in the model.  If the model components
 	 * come back from the dead (thanks the the UndoManager), then the
 	 * corresponding PlayPenComonent can be revived from this map.
-	 * 
+	 *
 	 * Allows the garbage collecter to clean up any components not in the undo manager
-	 * 
+	 *
 	 */
     private Map<SQLObject,PlayPenComponent> removedComponents = new WeakHashMap<SQLObject, PlayPenComponent>();
 
@@ -233,12 +233,12 @@ public class PlayPen extends JPanel
      * other stuff later on too.
      */
     private boolean paintingEnabled = true;
-    
+
 	private TablePaneDragGestureListener dgl;
 	private DragSource ds;
 
 	private boolean normalizing;
-	
+
 	public PlayPen() {
 		zoom = 1.0;
 		setBackground(java.awt.Color.white);
@@ -253,24 +253,24 @@ public class PlayPen extends JPanel
 		addMouseListener(ppMouseListener);
 		addMouseMotionListener(ppMouseListener);
 		addMouseWheelListener(ppMouseListener);
-		
+
 		dgl = new TablePaneDragGestureListener();
 		ds = new DragSource();
 		ds.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_MOVE, dgl);
 		logger.debug("DragGestureRecognizer motion threshold: " + getToolkit().getDesktopProperty("DnD.gestureMotionThreshold"));
 	}
-	
+
 	/**
 	 * Creates a new PlayPen with similar contents to the given PlayPen.  The new copy will have fresh
 	 * copies of all the contained PlayPenComponents, but will share the same model as the original
 	 * play pen.  This was originally intended for use by the print preview panel, but it may end
 	 * up useful for other things too.
-	 * 
+	 *
 	 * @param pp The playpen to duplicate.
 	 */
 	public PlayPen(PlayPen pp) {
 		this();
-		
+
 		for (int i = 0; i < pp.getContentPane().getComponentCount(); i++) {
 			PlayPenComponent ppc = pp.getContentPane().getComponent(i);
 			if (ppc instanceof TablePane) {
@@ -278,7 +278,7 @@ public class PlayPen extends JPanel
 				addImpl(new TablePane(tp, contentPane), ppc.getPreferredLocation(), contentPane.getComponentCount());
 			}
 		}
-		
+
 		for (int i = 0; i < pp.getContentPane().getComponentCount(); i++) {
 			PlayPenComponent ppc = pp.getContentPane().getComponent(i);
 			if (ppc instanceof Relationship) {
@@ -299,12 +299,12 @@ public class PlayPen extends JPanel
 	public SQLDatabase getDatabase() {
 		return db;
 	}
-    
+
     public List<SQLTable> getTables() throws ArchitectException {
-        List<SQLTable> tables = new ArrayList(); 
+        List<SQLTable> tables = new ArrayList();
         ArchitectUtils.extractTables(db,tables);
         return tables;
-        
+
     }
 
 	private final void setDatabase(SQLDatabase newdb) {
@@ -319,14 +319,14 @@ public class PlayPen extends JPanel
 		}
 		try {
 			ArchitectUtils.listenToHierarchy(this, db);
-			
+
 		} catch (ArchitectException ex) {
 			logger.error("Couldn't listen to database", ex);
 		}
 		tableNames = new HashSet();
 	}
-    
-    protected void setDatabaseConnection(ArchitectDataSource dbcs){        
+
+    protected void setDatabaseConnection(ArchitectDataSource dbcs){
         ArchitectDataSource tSpec = db.getDataSource();
         tSpec.setDisplayName(dbcs.getDisplayName());
         tSpec.setDriverClass(dbcs.getDriverClass());
@@ -342,8 +342,8 @@ public class PlayPen extends JPanel
 	 * This routine is called by the PlayPen constructor after it has
 	 * set up all the Action instances.  It adds all the necessary
 	 * items and action listeners to the TablePane popup menu.
-     * 
-     * Note: if an action is shared with the DBTree, make sure you 
+     *
+     * Note: if an action is shared with the DBTree, make sure you
      * set the action command in its parent menu item so that the
      * action can figure out what the source of the Action was.
 	 */
@@ -379,7 +379,7 @@ public class PlayPen extends JPanel
 		mi.setAction(sendToBackAction);
 		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		tablePanePopup.add(mi);
-		
+
 		tablePanePopup.addSeparator();
 
 		mi = new JMenuItem();
@@ -420,36 +420,36 @@ public class PlayPen extends JPanel
 			tablePanePopup.add(mi);
 		}
 	}
-	
+
 	void setupKeyboardActions() {
 		ArchitectFrame af = ArchitectFrame.getMainInstance();
 
 		InputMap inputMap = getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-		
+
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), KEY_DELETE_SELECTED);
 		getActionMap().put(KEY_DELETE_SELECTED, af.deleteSelectedAction);
 		if (af.deleteSelectedAction == null) logger.warn("af.deleteSelectedAction is null!");
-		
+
 		getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "CANCEL");
 		getActionMap().put("CANCEL", new CancelAction(this));
-		
+
 		getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.createTableAction.getValue(Action.ACCELERATOR_KEY), "NEW TABLE");
 		getActionMap().put("NEW TABLE", af.createTableAction);
-		
+
 		getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.createIdentifyingRelationshipAction.getValue(Action.ACCELERATOR_KEY), "NEW IDENTIFYING RELATION");
 		getActionMap().put("NEW IDENTIFYING RELATION", af.createIdentifyingRelationshipAction);
-		
+
 		getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.createNonIdentifyingRelationshipAction.getValue(Action.ACCELERATOR_KEY), "NEW NON IDENTIFYING RELATION");
 		getActionMap().put("NEW NON IDENTIFYING RELATION", af.createNonIdentifyingRelationshipAction);
-		
+
 		final Object KEY_SELECT_UPWARD = "ca.sqlpower.architect.PlayPen.KEY_SELECT_UPWARD";
 		final Object KEY_SELECT_DOWNWARD = "ca.sqlpower.architect.PlayPen.KEY_SELECT_DOWNWARD";
 		final Object KEY_EDIT_SELECTION = "ca.sqlpower.architect.PlayPen.KEY_EDIT_SELECTION";
-		
+
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), KEY_SELECT_UPWARD);
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), KEY_SELECT_DOWNWARD);
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), KEY_EDIT_SELECTION);
-		
+
 		getActionMap().put(KEY_SELECT_UPWARD, new AbstractAction() {
 			public void actionPerformed(ActionEvent e) {
 				List items = getSelectedItems();
@@ -457,7 +457,7 @@ public class PlayPen extends JPanel
 					PlayPenComponent item = (PlayPenComponent) items.get(0);
 					if (item instanceof TablePane) {
 						TablePane tp = (TablePane) item;
-						int oldIndex = tp.getSelectedColumnIndex();						
+						int oldIndex = tp.getSelectedColumnIndex();
 						if (oldIndex > 0) {
 							tp.selectNone();
 							tp.selectColumn(oldIndex - 1);
@@ -466,7 +466,7 @@ public class PlayPen extends JPanel
 				}
 			}
 		});
-		
+
 		getActionMap().put(KEY_SELECT_DOWNWARD, new AbstractAction() {
 			public void actionPerformed(ActionEvent e) {
 				List items = getSelectedItems();
@@ -475,7 +475,7 @@ public class PlayPen extends JPanel
 					if (item instanceof TablePane) {
 						TablePane tp = (TablePane) item;
 						int oldIndex = tp.getSelectedColumnIndex();
-						
+
 						try {
 							if (oldIndex < tp.getModel().getColumns().size() - 1) {
 								tp.selectNone();
@@ -488,13 +488,13 @@ public class PlayPen extends JPanel
 				}
 			}
 		});
-		
-		getActionMap().put(KEY_EDIT_SELECTION, new AbstractAction(){			
+
+		getActionMap().put(KEY_EDIT_SELECTION, new AbstractAction(){
 			public void actionPerformed(ActionEvent e) {
-				ActionEvent ev = new ActionEvent(e.getSource(), e.getID(), 
-								ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN, 
+				ActionEvent ev = new ActionEvent(e.getSource(), e.getID(),
+								ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN,
 								e.getWhen(), e.getModifiers());
-				ArchitectFrame.mainInstance.editColumnAction.actionPerformed(ev);				
+				ArchitectFrame.mainInstance.editColumnAction.actionPerformed(ev);
 			}
 		});
 	}
@@ -503,18 +503,18 @@ public class PlayPen extends JPanel
 
 	/**
 	 * Calls setChildPositionImpl(child, p.x, p.y).
-	 */ 
+	 */
 	public void setChildPosition(PlayPenComponent child, Point p) {
 		setChildPositionImpl(child, p.x, p.y);
 	}
 
 	/**
 	 * Calls setChildPositionImpl(child, x, y).
-	 */ 
+	 */
 	public void setChildPosition(PlayPenComponent child, int x, int y) {
 		setChildPositionImpl(child, x, y);
 	}
-	
+
 	/**
 	 * Scales the given X and Y co-ords from the visible point (x,y)
 	 * to the actual internal location, and sets child's position
@@ -527,7 +527,7 @@ public class PlayPen extends JPanel
 	protected void setChildPositionImpl(PlayPenComponent child, int x, int y) {
 		child.setLocation((int) ((double) x / zoom), (int) ((double) y / zoom));
 	}
-	
+
 	/**
 	 * Modifies the given point p in model space to apparent position
 	 * in screen space.
@@ -535,7 +535,7 @@ public class PlayPen extends JPanel
 	 * @param p The point in model space (the space where the actual
 	 * components of the content pane live).  THIS PARAMETER IS MODIFIED.
 	 * @return The given point p, which has been modified.
-	 */ 
+	 */
 	public Point zoomPoint(Point p) {
 		p.x = (int) ((double) p.x * zoom);
 		p.y = (int) ((double) p.y * zoom);
@@ -549,7 +549,7 @@ public class PlayPen extends JPanel
 	 * @param p The point in visible screen space (the space where
 	 * mouse events are reported).  THIS PARAMETER IS MODIFIED.
 	 * @return The given point p, which has been modified.
-	 */ 
+	 */
 	public Point unzoomPoint(Point p) {
 		p.x = (int) ((double) p.x / zoom);
 		p.y = (int) ((double) p.y / zoom);
@@ -563,7 +563,7 @@ public class PlayPen extends JPanel
 	 * @param r The rectangle in model space (the space where the actual
 	 * components of the content pane live).  THIS PARAMETER IS MODIFIED.
 	 * @return The given rect p, which has been modified.
-	 */ 
+	 */
 	public Rectangle zoomRect(Rectangle r) {
 		r.x = (int) ((double) r.x * zoom);
 		r.y = (int) ((double) r.y * zoom);
@@ -579,7 +579,7 @@ public class PlayPen extends JPanel
 	 * @param r The rectangle in visible screen space (the space where
 	 * mouse events are reported).  THIS PARAMETER IS MODIFIED.
 	 * @return The given rect p, which has been modified.
-	 */ 
+	 */
 	public Rectangle unzoomRect(Rectangle r) {
 		r.x = (int) ((double) r.x / zoom);
 		r.y = (int) ((double) r.y / zoom);
@@ -603,7 +603,7 @@ public class PlayPen extends JPanel
 	public double getZoom() {
 		return zoom;
 	}
-	
+
 	public void setRenderingAntialiased(boolean v) {
 	    if (v) {
 	        antialiasSetting = RenderingHints.VALUE_ANTIALIAS_ON;
@@ -612,7 +612,7 @@ public class PlayPen extends JPanel
 	    }
 	    repaint();
 	}
-	
+
 	public boolean isRenderingAntialiased() {
 	    return antialiasSetting == RenderingHints.VALUE_ANTIALIAS_ON;
 	}
@@ -620,39 +620,39 @@ public class PlayPen extends JPanel
 	public PlayPenContentPane getContentPane() {
 		return contentPane;
 	}
-	
+
 	// -------------------------- JComponent overrides ---------------------------
 
 	/**
 	 * Calculates the smallest rectangle that will completely
-	 * enclose the visible components.  
+	 * enclose the visible components.
 	 *
 	 * This is then compared to the viewport size, one dimension
 	 * at a time.  To ensure the whole playpen is "live", always
 	 * choose the larger number in each Dimension.
-	 * 
+	 *
 	 * There is also a lower bound on how small the playpen can get.  The
 	 * layout manager returns a preferred size of (100,100) when asked.
 	 */
 	public Dimension getPreferredSize() {
-		
+
 		Dimension usedSpace = getUsedArea();
 		Dimension vpSize = getViewportSize();
 		Dimension ppSize = null;
-		
+
 		// viewport seems to never come back as null, but protect anyways...
 		if (vpSize != null) {
 			ppSize = new Dimension(Math.max(usedSpace.width, vpSize.width),
 					Math.max(usedSpace.height, vpSize.height));
 		}
-		
+
 		if (logger.isDebugEnabled()) {
 			logger.debug("minsize is: " + getMinimumSize());
 			logger.debug("unzoomed userDim is: " + unzoomPoint(new Point(usedSpace.width,usedSpace.height)));
 			logger.debug("zoom="+zoom+",usedSpace size is " + usedSpace);
 		}
-		
-		if (ppSize != null) { 
+
+		if (ppSize != null) {
 			logger.debug("preferred size is ppSize (viewport size was null): " + ppSize);
 			return ppSize;
 		} else {
@@ -660,7 +660,7 @@ public class PlayPen extends JPanel
 			return usedSpace;
 		}
 	}
-	
+
 	public Dimension getUsedArea() {
 		Rectangle cbounds = null;
 		int minx = 0, miny = 0, maxx = 0, maxy = 0;
@@ -672,11 +672,11 @@ public class PlayPen extends JPanel
 			maxx = Math.max(cbounds.x + cbounds.width , maxx);
 			maxy = Math.max(cbounds.y + cbounds.height, maxy);
 		}
-		
+
 		return new Dimension((int) ((double) Math.max(maxx - minx, getMinimumSize().width) * zoom),
 				(int) ((double) Math.max(maxy - miny, getMinimumSize().height) * zoom));
 	}
-	
+
 	// get the size of the viewport that we are sitting in (return null if there isn't one);
 	public Dimension getViewportSize() {
 		Container c = SwingUtilities.getAncestorOfClass(JViewport.class, this);
@@ -689,7 +689,7 @@ public class PlayPen extends JPanel
 			return null;
 		}
 	}
-	
+
 
 	// set the size of the viewport that we are sitting in (return null if there isn't one);
 	public void setViewportSize(int width, int height) {
@@ -698,9 +698,9 @@ public class PlayPen extends JPanel
 			JViewport jvp = (JViewport) c;
 			logger.debug("viewport size set to: " + width + "," + height);
 			jvp.setSize(width,height);
-		} 
+		}
 	}
-	
+
 	/**
 	 * If some playpen components get dragged into a negative range all tables are then shifted
 	 * so that the lowest x and y values are 0.  The tables will retain their relative location.
@@ -712,31 +712,31 @@ public class PlayPen extends JPanel
 		if (normalizing) return;
 		normalizing=true;
 		int minX = 0;
-		int minY = 0;		
+		int minY = 0;
 		Iterator it = getTablePanes().iterator();
 		while (it.hasNext()) {
 			TablePane tp = (TablePane) it.next();
 			minX = Math.min(minX, tp.getX());
 			minY = Math.min(minY, tp.getY());
 		}
-		
-		//Readjusts the table pane, since minX and min <= 0, 
+
+		//Readjusts the table pane, since minX and min <= 0,
 		//the adjustments of subtracting minX and/or minY makes sense.
 		if ( minX < 0 || minY < 0 ) {
 			it = getTablePanes().iterator();
 			while (it.hasNext()) {
 				TablePane tp = (TablePane) it.next();
-				tp.setLocation(tp.getX()-minX, tp.getY()-minY);				
+				tp.setLocation(tp.getX()-minX, tp.getY()-minY);
 			}
-			
+
 			// This function may have expanded the playpen's minimum
 			// and preferred sizes, so the original repaint region could be
-			// too small!			
+			// too small!
 			repaint();
-		}	
+		}
 		normalizing = false;
-	}	
-	
+	}
+
 //	 get the position of the viewport that we are sitting in
 	public Point getViewPosition() {
 		Container c = SwingUtilities.getAncestorOfClass(JViewport.class, this);
@@ -749,7 +749,7 @@ public class PlayPen extends JPanel
 			return null;
 		}
 	}
-	
+
 	// set the position of the viewport that we are sitting in
 	public void setViewPosition(Point p ) {
 		Container c = SwingUtilities.getAncestorOfClass(JViewport.class, this);
@@ -757,22 +757,22 @@ public class PlayPen extends JPanel
 			JViewport jvp = (JViewport) c;
 			logger.debug("view position set to: " + p);
 			jvp.setViewPosition(p);
-		} 
+		}
 	}
-	
+
     /** See {@link #paintingEnabled}. */
     public void setPaintingEnabled(boolean paintingEnabled) {
         this.paintingEnabled = paintingEnabled;
     }
-    
+
     /** See {@link #paintingEnabled}. */
     public boolean isPaintingEnabled() {
         return paintingEnabled;
     }
-    
+
 	public void paintComponent(Graphics g) {
 	    if (!paintingEnabled) return;
-        
+
 		logger.debug("start of paintComponent, width="+getWidth()+",height="+getHeight());
 		Graphics2D g2 = (Graphics2D) g;
 		g2.setColor(getBackground());
@@ -831,7 +831,7 @@ public class PlayPen extends JPanel
 	protected void addImpl(Component c, Object constraints, int index) {
 		throw new UnsupportedOperationException("You can't add swing component for argument");
 	}
-		
+
 	/**
 	 * Adds the given component to this PlayPen's content pane.  Does
 	 * NOT add it to the Swing containment hierarchy. The playpen is a
@@ -847,7 +847,7 @@ public class PlayPen extends JPanel
 		if (c instanceof Relationship) {
 			contentPane.add(c, contentPane.getFirstRelationIndex());
 		} else if (c instanceof TablePane) {
-			if (constraints instanceof Point) {				
+			if (constraints instanceof Point) {
 				c.setLocation((Point) constraints);
 				contentPane.add(c, 0);
 			} else {
@@ -869,7 +869,7 @@ public class PlayPen extends JPanel
 
 	/**
 	 * This method is primarily for loading project files. Use at your own risk!
-	 * 
+	 *
 	 * @param tp
 	 * @param point
 	 */
@@ -906,14 +906,14 @@ public class PlayPen extends JPanel
 
 	/**
 	 * Delegates to the content pane.
-	 * 
+	 *
 	 * <p>Important Note: If you want tooltips to be active on this PlayPen instance,
 	 * you have to call <tt>ToolTipManager.sharedInstance().registerComponent(pp)</tt> on this
 	 * instance (where <tt>pp</tt> is whatever your reference to this playpen is called).
 	 */
 	public String getToolTipText(MouseEvent e) {
 		Point zp = unzoomPoint(e.getPoint());
-		MouseEvent zoomedEvent = 
+		MouseEvent zoomedEvent =
 			new MouseEvent((Component) e.getSource(), e.getID(), e.getWhen(), e.getModifiers(),
 					zp.x, zp.y, e.getClickCount(), e.isPopupTrigger(), e.getButton());
 		return contentPane.getToolTipText(zoomedEvent);
@@ -927,13 +927,13 @@ public class PlayPen extends JPanel
  		JMenuItem mi = new JMenuItem();
 		mi.setAction(chooseDBCSAction);
 		playPenPopup.add(mi);
-		
+
 		JMenu connectionsMenu = new JMenu("Set Target Database");
 		for(ArchitectDataSource dbcs :ArchitectFrame.getMainInstance().getUserSettings().getConnections()) {
 			connectionsMenu.add(new JMenuItem(new SetDataSourceAction(db, dbcs)));
 		}
 		playPenPopup.add(connectionsMenu);
-		
+
 		mi = new JMenuItem();
 		mi.setAction(af.createTableAction);
 		playPenPopup.add(mi);
@@ -947,7 +947,7 @@ public class PlayPen extends JPanel
 					}
 				});
 			playPenPopup.add(mi);
-			
+
 			mi = new JMenuItem("Show PlayPen Components");
 			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 			mi.addActionListener(new ActionListener() {
@@ -961,7 +961,7 @@ public class PlayPen extends JPanel
 					}
 				});
 			playPenPopup.add(mi);
-			
+
 			mi = new JMenuItem("Show Undo Vector");
 			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 			mi.addActionListener(new ActionListener() {
@@ -978,7 +978,7 @@ public class PlayPen extends JPanel
 				showDbcsDialog();
 			}
 		};
-	
+
 	/**
 	 * Pops up a dialog box that lets the user inspect and change the
 	 * target db's connection spec.  Create from scratch every time
@@ -986,11 +986,11 @@ public class PlayPen extends JPanel
 	 */
 	public void showDbcsDialog() {
 		final DBCSPanel dbcsPanel = new DBCSPanel();
-			
 
-		dbcsPanel.setDbcs(db.getDataSource());		
+
+		dbcsPanel.setDbcs(db.getDataSource());
 		DBCSOkAction okAction = new DBCSOkAction(dbcsPanel, false);
-		
+
 		Action cancelAction = new AbstractAction() {
 			public void actionPerformed(ActionEvent e) {
 				dbcsPanel.discardChanges();
@@ -1020,7 +1020,7 @@ public class PlayPen extends JPanel
 	public TablePane findTablePane(SQLTable t) {
 		for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
 			PlayPenComponent c = contentPane.getComponent(i);
-			if (c instanceof TablePane 
+			if (c instanceof TablePane
 				&& ((TablePane) c).getModel() == t) {
 				return (TablePane) c;
 			}
@@ -1047,7 +1047,7 @@ public class PlayPen extends JPanel
 		name = name.toLowerCase();
 		for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
 			PlayPenComponent c = contentPane.getComponent(i);
-			if (c instanceof TablePane 
+			if (c instanceof TablePane
 				&& ((TablePane) c).getModel().getName().toLowerCase().equals(name)) {
 				return (TablePane) c;
 			}
@@ -1120,11 +1120,11 @@ public class PlayPen extends JPanel
 	public synchronized TablePane importTableCopy(SQLTable source, Point preferredLocation) throws ArchitectException {
 		SQLTable newTable = SQLTable.getDerivedInstance(source, db); // adds newTable to db
 		String key = source.getName().toLowerCase();
-		
+
 		// ensure tablename is unique
 		if (logger.isDebugEnabled()) logger.debug("before add: " + tableNames);
 		if (!tableNames.add(key)) {
-			boolean done = false;			
+			boolean done = false;
 			int newSuffix = 0;
 			while (!done) {
 				newSuffix++;
@@ -1135,11 +1135,11 @@ public class PlayPen extends JPanel
 		if (logger.isDebugEnabled()) logger.debug("after add: " + tableNames);
 
 		TablePane tp = new TablePane(newTable, this);
-		
+
 		logger.info("adding table "+newTable);
 		addImpl(tp, preferredLocation,getPPComponentCount());
 		tp.revalidate();
-			
+
         createRelationshipsFromPP(source, newTable,true);
         createRelationshipsFromPP(source, newTable,false);
 		return tp;
@@ -1160,18 +1160,18 @@ public class PlayPen extends JPanel
 			if (logger.isInfoEnabled()) {
 				logger.info("Looking for fk table "+r.getFkTable().getName()+" in playpen");
 			}
-           
-            TablePane tablePane =  null; 
+
+            TablePane tablePane =  null;
             if (isPrimaryKeyTableNew){
                 tablePane =findTablePaneByName(r.getFkTable().getName());
             } else {
                 tablePane =findTablePaneByName(r.getPkTable().getName());
             }
-            
+
 			if (tablePane != null) {
 				logger.info("FOUND IT!");
 				SQLTable oldTable = tablePane.getModel();
-               
+
 				SQLRelationship newRel = new SQLRelationship();
 				newRel.setName(r.getName());
 				newRel.setIdentifying(true);
@@ -1222,15 +1222,15 @@ public class PlayPen extends JPanel
                 return;
             }
         }
-       
-        fkCol.addReference();  
+
+        fkCol.addReference();
         SQLRelationship.ColumnMapping newMapping
         	= new SQLRelationship.ColumnMapping();
         newMapping.setPkColumn(pkCol);
         newMapping.setFkColumn(fkCol);
         newRel.addChild(newMapping);
     }
-	
+
 	/**
 	 * Calls {@link #importTableCopy} for each table contained in the given schema.
 	 */
@@ -1240,17 +1240,17 @@ public class PlayPen extends JPanel
 		                      "Copying objects to the playpen",
 		                      "...",
 		                      0,
-			                  100);			
-		AddObjectsTask t = new AddObjectsTask(list, 
+			                  100);
+		AddObjectsTask t = new AddObjectsTask(list,
 				preferredLocation, pm, null);
 		t.setNextProcess(nextProcess);
-		new Thread(t, "Objects-Adder").start();		
+		new Thread(t, "Objects-Adder").start();
 	}
-	
+
 	protected class AddObjectsTask extends MonitorableWorker {
 		private List<SQLObject> sqlObjects;
-		private Point preferredLocation;	
-		private JDialog parentDialog;	 
+		private Point preferredLocation;
+		private JDialog parentDialog;
 		private boolean hasStarted = false;
 		private boolean finished = false;
 		private String message = null;
@@ -1258,10 +1258,10 @@ public class PlayPen extends JPanel
 		private Integer jobSize = null;
 		private String errorMessage = null;
 		private ProgressMonitor pm;
-		
-		public AddObjectsTask(List<SQLObject> sqlObjects, 
-				Point preferredLocation, 
-				ProgressMonitor pm, 
+
+		public AddObjectsTask(List<SQLObject> sqlObjects,
+				Point preferredLocation,
+				ProgressMonitor pm,
 				JDialog parentDialog) {
 			this.sqlObjects = sqlObjects;
 			this.preferredLocation = preferredLocation;
@@ -1270,19 +1270,19 @@ public class PlayPen extends JPanel
 			new ProgressWatcher(pm, this);
 			this.pm = pm;
 		}
-		
+
 		public int getProgress() {
 			return progress;
 		}
-		
+
 		public Integer getJobSize() {
 			return jobSize;
 		}
-		
+
 		public boolean isFinished() {
 			return finished;
 		}
-				
+
 		public String getMessage() {
 			return message;
 		}
@@ -1295,7 +1295,7 @@ public class PlayPen extends JPanel
 		public synchronized boolean isCanceled() {
 			return super.isCanceled() || pm.isCanceled();
 		}
-		
+
 		/**
 		 * Makes sure all the stuff we want to add is populated.
 		 */
@@ -1305,14 +1305,14 @@ public class PlayPen extends JPanel
 			try {
 				hasStarted = true;
 				int pmMax = 0;
-				
+
 				Iterator<SQLObject> soIt = sqlObjects.iterator();
 				// first pass: figure out how much work we need to do...
 				while (soIt.hasNext() && !isCanceled()) {
-					pmMax += ArchitectUtils.countTablesSnapshot(soIt.next());						
-				}				
+					pmMax += ArchitectUtils.countTablesSnapshot(soIt.next());
+				}
 				jobSize = new Integer(pmMax);
-				
+
 				ensurePopulated(sqlObjects);
 			} catch (ArchitectException e) {
 				logger.error("Unexpected exception during populate", e);
@@ -1324,7 +1324,7 @@ public class PlayPen extends JPanel
 		/**
 		 * Ensures the given objects and all their descendants are populated from the database before returning, unless
 		 * this worker gets cancelled.
-		 * 
+		 *
 		 * @param so
 		 */
 		private void ensurePopulated(List<SQLObject> soList) {
@@ -1338,7 +1338,7 @@ public class PlayPen extends JPanel
 				}
 			}
 		}
-		
+
 		/**
 		 * Displays error messages or invokes the next process in the chain on a new
 		 * thread. The run method asks swing to invoke this method on the event dispatch
@@ -1348,18 +1348,18 @@ public class PlayPen extends JPanel
 			if (errorMessage != null) {
 				JOptionPane.showMessageDialog(parentDialog, errorMessage, "Error Dropping Tables into Playpen", JOptionPane.ERROR_MESSAGE);
 				if (getNextProcess() != null) {
-					setCancelled(true);	
-                    
+					setCancelled(true);
+
 				}
 			}
 
 			ArchitectFrame.getMainInstance().getProject().getPlayPen().startCompoundEdit("Drag to Playpen");
-				
+
 			try {
-				
+
 				// reset iterator
 				Iterator<SQLObject> soIt = sqlObjects.iterator();
-				
+
 				while (soIt.hasNext() && !isCanceled()) {
 					SQLObject someData = soIt.next();
 					someData.fireDbStructureChanged();
@@ -1369,7 +1369,7 @@ public class PlayPen extends JPanel
 						preferredLocation.x += tp.getPreferredSize().width + 5;
 						progress++;
 					} else if (someData instanceof SQLSchema) {
-						SQLSchema sourceSchema = (SQLSchema) someData;						
+						SQLSchema sourceSchema = (SQLSchema) someData;
 						Iterator it = sourceSchema.getChildren().iterator();
 						while (it.hasNext() && !isCanceled()) {
                             Object nextTable = it.next();
@@ -1385,12 +1385,12 @@ public class PlayPen extends JPanel
 						Iterator cit = sourceCatalog.getChildren().iterator();
 						if (sourceCatalog.isSchemaContainer()) {
 							while (cit.hasNext() && !isCanceled()) {
-								SQLSchema sourceSchema = (SQLSchema) cit.next();						
+								SQLSchema sourceSchema = (SQLSchema) cit.next();
 								Iterator it = sourceSchema.getChildren().iterator();
 								while (it.hasNext() && !isCanceled()) {
 									Object nextTable = it.next();
                                     if (nextTable instanceof SQLExceptionNode) continue;
-                                    SQLTable sourceTable = (SQLTable) nextTable;									
+                                    SQLTable sourceTable = (SQLTable) nextTable;
 									message = ArchitectUtils.truncateString(sourceTable.getName());
 									TablePane tp = importTableCopy(sourceTable, preferredLocation);
 									preferredLocation.x += tp.getPreferredSize().width + 5;
@@ -1410,17 +1410,18 @@ public class PlayPen extends JPanel
 						}
 					} else {
 						logger.error("Unknown object dropped in PlayPen: "+someData);
-					}				
+					}
 				}
 			} catch (ArchitectException e) {
-				ASUtils.showExceptionDialog(parentDialog, "Unexpected Exception During Import", e, new ArchitectExceptionReportFactory());
+				ASUtils.showExceptionDialog(parentDialog,
+                    "Unexpected Exception During Import", e, new ArchitectExceptionReportFactory());
 			} finally {
 				finished = true;
 				hasStarted = false;
 				ArchitectFrame.getMainInstance().getProject().getPlayPen().endCompoundEdit("Ending multi-select");
 			}
 		}
-		
+
 		public boolean hasStarted () {
 			return hasStarted;
 		}
@@ -1439,25 +1440,25 @@ public class PlayPen extends JPanel
 
 	/**
 	 * Adds all the listeners that should be listining to events from
-	 * the sqlobject hieracrchy.  At this time only the play pen 
+	 * the sqlobject hieracrchy.  At this time only the play pen
 	 * needs to listen.
 	 */
 	private void addHierarcyListeners(SQLObject sqlObject) throws ArchitectException
 	{
-		ArchitectUtils.listenToHierarchy(this, sqlObject);	
-			
+		ArchitectUtils.listenToHierarchy(this, sqlObject);
+
 	}
-	
+
 	/**
 	 * Removes all the listeners that should be listining to events from
-	 * the sqlobject hieracrchy.  At this time only the play pen 
+	 * the sqlobject hieracrchy.  At this time only the play pen
 	 * needs to be removed
 	 */
 	private void removeHierarcyListeners(SQLObject sqlObject) throws ArchitectException
 	{
-		ArchitectUtils.unlistenToHierarchy(this,sqlObject);	
+		ArchitectUtils.unlistenToHierarchy(this,sqlObject);
 	}
-	
+
 	/**
 	 * Listens for property changes in the model (tables
 	 * added).  If this change affects the appearance of
@@ -1475,10 +1476,10 @@ public class PlayPen extends JPanel
 				logger.error("Couldn't listen to added object", ex);
 			}
 			if (c[i] instanceof SQLTable
-				|| (c[i] instanceof SQLRelationship 
+				|| (c[i] instanceof SQLRelationship
 						&& (((SQLTable.Folder) e.getSource()).getType() == SQLTable.Folder.EXPORTED_KEYS))) {
 				fireEvent = true;
-				
+
 				PlayPenComponent ppc = removedComponents.get(c[i]);
 				if (ppc != null) {
 					if (ppc instanceof Relationship) {
@@ -1486,11 +1487,11 @@ public class PlayPen extends JPanel
 					} else {
 						contentPane.add(ppc, contentPane.getFirstRelationIndex());
 					}
-					
+
 				}
 			}
 		}
-		
+
 		if (fireEvent) {
 			firePropertyChange("model.children", null, null);
 			revalidate();
@@ -1589,7 +1590,7 @@ public class PlayPen extends JPanel
  		// state of the mouse listener here.  However, that would interfere
  		// with its operation (because it uses this method internally)
 	}
-	
+
 	/**
 	 * Selects all selectable items in the PlayPen.
 	 */
@@ -1602,7 +1603,7 @@ public class PlayPen extends JPanel
  		}
  		mouseMode = MouseModeType.MULTI_SELECT;
 	}
-	
+
 
 	/**
 	 * Returns a read-only view of the set of selected children in the PlayPen.
@@ -1619,7 +1620,7 @@ public class PlayPen extends JPanel
 					selected.add(s);
 				}
 			}
-		}			
+		}
 		return Collections.unmodifiableList(selected);
 	}
 
@@ -1635,7 +1636,7 @@ public class PlayPen extends JPanel
 					selected.add(tp);
 				}
 			}
-		}			
+		}
 		return Collections.unmodifiableList(selected);
 	}
 
@@ -1652,12 +1653,12 @@ public class PlayPen extends JPanel
 					selected.add(r);
 				}
 			}
-		}			
+		}
 		return Collections.unmodifiableList(selected);
 	}
 
 	// ---------------------- SELECTION LISTENER ------------------------
-	
+
 	/**
 	 * Forwards the selection event <code>e</code> to all PlayPen
 	 * selection listeners.
@@ -1685,7 +1686,7 @@ public class PlayPen extends JPanel
 	public void removeSelectionListener(SelectionListener l) {
 		selectionListeners.remove(l);
 	}
-	
+
 	protected void fireSelectionEvent(SelectionEvent e) {
 		Iterator it = selectionListeners.iterator();
 		if (e.getType() == SelectionEvent.SELECTION_EVENT) {
@@ -1703,22 +1704,22 @@ public class PlayPen extends JPanel
 
 	// Cancel Support
 	protected LinkedList<CancelableListener> cancelableListeners = new LinkedList<CancelableListener>();
-	
+
 	public void addCancelableListener(CancelableListener l) {
 		cancelableListeners.add(l);
 	}
-	
+
 	public void removeCancelableListener(CancelableListener l) {
 		cancelableListeners.remove(l);
 	}
-	
+
 	public void fireCancel(){
 		for(int i = cancelableListeners.size()-1; i>=0;i--) {
 			cancelableListeners.get(i).cancel();
 		}
 	}
 	// Undo event support --------------------------------------
-	
+
 	protected LinkedList undoEventListeners = new LinkedList();
 
 	public void addUndoEventListener(UndoCompoundEventListener l) {
@@ -1728,11 +1729,11 @@ public class PlayPen extends JPanel
 	public void removeSelectionListener(UndoCompoundEventListener l) {
 		undoEventListeners.remove(l);
 	}
-	
+
 	private void fireUndoCompoundEvent(UndoCompoundEvent e) {
 		Iterator it = undoEventListeners.iterator();
-		
-		
+
+
 		if (e.getType().isStartEvent()) {
 			while (it.hasNext()) {
 				((UndoCompoundEventListener) it.next()).compoundEditStart(e);
@@ -1741,14 +1742,14 @@ public class PlayPen extends JPanel
 			while (it.hasNext()) {
 				((UndoCompoundEventListener) it.next()).compoundEditEnd(e);
 			}
-		} 
-		
+		}
+
 	}
-	
+
 	public void startCompoundEdit(String message){
 		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.COMPOUND_EDIT_START,message));
 	}
-	
+
 	public void endCompoundEdit(String message){
 		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.COMPOUND_EDIT_END,message));
 	}
@@ -1779,7 +1780,7 @@ public class PlayPen extends JPanel
 			logger.debug("Drag enter");
 			dragOver(dtde);
 		}
-		
+
 		/**
 		 * Called while a drag operation is ongoing, when the mouse
 		 * pointer has exited the operable part of the drop site for the
@@ -1790,21 +1791,21 @@ public class PlayPen extends JPanel
             if (tpTarget != null) {
             		tpTarget.getDropTargetListener().dragExit(dte);
             }
-			
+
 		}
-		
+
 		/**
 		 * Called when a drag operation is ongoing, while the mouse
 		 * pointer is still over the operable part of the drop site for
 		 * the DropTarget registered with this listener.
 		 */
 		public void dragOver(DropTargetDragEvent dtde) {
-			
+
 			PlayPen pp = (PlayPen) dtde.getDropTargetContext().getComponent();
 			Point sp = pp.unzoomPoint(new Point(dtde.getLocation()));
 			PlayPenComponent ppc = pp.contentPane.getComponentAt(sp);
 			TablePane tp = ppc != null && ppc instanceof TablePane ? (TablePane) ppc : null;
-			
+
 			if (tp != tpTarget) {
 				if (tpTarget != null) {
 					tpTarget.getDropTargetListener().dragExit(dtde);
@@ -1820,7 +1821,7 @@ public class PlayPen extends JPanel
 				dtde.acceptDrag(DnDConstants.ACTION_COPY);
 			}
 		}
-		
+
 		/**
 		 * Processes the drop action on the PlayPen (the DropTarget)
 		 * or current target TablePane if there is one.
@@ -1839,9 +1840,9 @@ public class PlayPen extends JPanel
 				dtde.rejectDrop();
 			} else {
 				try {
-					
+
 					dtde.acceptDrop(DnDConstants.ACTION_COPY);
-					Point dropLoc = playpen.unzoomPoint(new Point(dtde.getLocation()));									
+					Point dropLoc = playpen.unzoomPoint(new Point(dtde.getLocation()));
 					ArrayList paths = (ArrayList) t.getTransferData(importFlavor);
 					// turn into a Collection of SQLObjects to make this more generic
 					Iterator it = paths.iterator();
@@ -1852,13 +1853,13 @@ public class PlayPen extends JPanel
 						if (oo instanceof SQLObject) {
 							sqlObjects.add(oo);
 						} else {
-							logger.error("Unknown object dropped in PlayPen: "+oo);						
+							logger.error("Unknown object dropped in PlayPen: "+oo);
 						}
 					}
 					// null: no next task is chained off this
-					playpen.addObjects(sqlObjects, dropLoc, null);					
+					playpen.addObjects(sqlObjects, dropLoc, null);
 					dtde.dropComplete(true);
-					
+
 				} catch (UnsupportedFlavorException ufe) {
 					logger.error(ufe);
 					dtde.rejectDrop();
@@ -1874,9 +1875,9 @@ public class PlayPen extends JPanel
 				}
 			}
 		}
-		
-		
-		
+
+
+
 		/**
 		 * Called if the user has modified the current drop gesture.
 		 */
@@ -1926,27 +1927,27 @@ public class PlayPen extends JPanel
 		 */
 		public boolean canImport(JComponent c, DataFlavor[] flavors) {
 			return bestImportFlavor(c, flavors) != null;
-		} 
+		}
 	}
 
-	
+
 	public class TablePaneDragGestureListener implements DragGestureListener {
 		public void dragGestureRecognized(DragGestureEvent dge) {
-			
+
 			if (draggingTablePanes) {
 				logger.debug(
 						"TablePaneDragGestureListener: ignoring drag event " +
 						"because draggingTablePanes is true");
 				return;
 			}
-			
+
 			PlayPenComponent c = contentPane.getComponentAt(
 					unzoomPoint(((MouseEvent) dge.getTriggerEvent()).getPoint()));
-			
+
 			if ( c instanceof TablePane ) {
 				TablePane tp = (TablePane) c;
 				int colIndex = TablePane.COLUMN_INDEX_NONE;
-				
+
 				Point dragOrigin = tp.getPlayPen().unzoomPoint(new Point(dge.getDragOrigin()));
 				dragOrigin.x -= tp.getX();
 				dragOrigin.y -= tp.getY();
@@ -1955,13 +1956,13 @@ public class PlayPen extends JPanel
 				if (dge.getTriggerEvent() instanceof MouseEvent
 				   && (dge.getTriggerEvent().getModifiers() & InputEvent.BUTTON1_MASK) == 0)
 					return;
-				
+
 				// ignore drag events if we're in the middle of a createRelationship
 				if (ArchitectFrame.getMainInstance().createRelationshipIsActive()) {
 					logger.debug("CreateRelationship() is active, short circuiting DnD.");
 					return;
 				}
-				
+
 				try {
 					colIndex = tp.pointToColumnIndex(dragOrigin);
 				} catch (ArchitectException e) {
@@ -1980,10 +1981,10 @@ public class PlayPen extends JPanel
 						throw new UnsupportedOperationException("We don't use DnD for dragging table panes");
 					} else if (colIndex >= 0 && colIndex < tp.getModel().getColumns().size()) {
 						// export column as DnD event
-						if (logger.isDebugEnabled()) { 
+						if (logger.isDebugEnabled()) {
 							logger.debug("Exporting column "+colIndex+" with DnD");
 						}
-                        
+
 						tp.draggingColumn = tp.getModel().getColumn(colIndex);
 						DBTree tree = ArchitectFrame.getMainInstance().dbTree;
 						ArrayList paths = new ArrayList();
@@ -2031,10 +2032,10 @@ public class PlayPen extends JPanel
 	 * ppcomponents, and also handles playpen-specific behaviour like
 	 * rubber band selection and popup menu triggering.
 	 */
-	protected class PPMouseListener 
+	protected class PPMouseListener
 		implements MouseListener, MouseMotionListener, MouseWheelListener  {
 
-		
+
 		/**
 		 * This state is required by the mouseMoved method for
 		 * resizing the rubber band in response to user input.
@@ -2042,15 +2043,15 @@ public class PlayPen extends JPanel
 		protected Point rubberBandOrigin;
         private boolean componentPreviouslySelected;
 		// ------------------- MOUSE LISTENER INTERFACE ------------------
-		
+
 		public void mouseEntered(MouseEvent evt) {
 			// doesn't matter
 		}
-		
+
 		public void mouseExited(MouseEvent evt) {
 			// doesn't matter
 		}
-		
+
 		public void mouseClicked(MouseEvent evt) {
 			Point p = evt.getPoint();
 			unzoomPoint(p);
@@ -2097,8 +2098,8 @@ public class PlayPen extends JPanel
 				maybeShowPopup(evt);
 			}
 		}
-	
-		
+
+
 		public void mousePressed(MouseEvent evt) {
             componentPreviouslySelected = false;
 			requestFocus();
@@ -2107,15 +2108,15 @@ public class PlayPen extends JPanel
 			unzoomPoint(p);
 			PlayPenComponent c = contentPane.getComponentAt(p);
 			if (c != null) p.translate(-c.getX(), -c.getY());
-            
+
 			if (c instanceof Relationship) {
-				
+
 				Relationship r = (Relationship) c;
 				PlayPen pp = (PlayPen) r.getPlayPen();
-				
+
 				if ( mouseMode == MouseModeType.CREATING_RELATIONSHIP ) {
 				} else {
-					
+
 					if ( (evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) != 0) {
 						mouseMode = MouseModeType.MULTI_SELECT;
 					} else {
@@ -2130,7 +2131,7 @@ public class PlayPen extends JPanel
                 } else {
                     r.setSelected(true);
                 }
-                
+
 
 				// moving pk/fk decoration
 				boolean overPkDec = ((RelationshipUI) r.getUI()).isOverPkDecoration(p);
@@ -2143,7 +2144,7 @@ public class PlayPen extends JPanel
 				PlayPen pp = (PlayPen) tp.getPlayPen();
 				try {
 					int clickCol = tp.pointToColumnIndex(p);
-					
+
 					if ( mouseMode == MouseModeType.CREATING_TABLE ) {
 					}
 					else {
@@ -2156,26 +2157,26 @@ public class PlayPen extends JPanel
 						else {
 							mouseMode = MouseModeType.MULTI_SELECT;
 						}
-						
+
 						if ( clickCol > TablePane.COLUMN_INDEX_TITLE &&
 							 clickCol < tp.getModel().getColumns().size()) {
 
-							if ( (evt.getModifiersEx() & 
-									(InputEvent.SHIFT_DOWN_MASK | 
+							if ( (evt.getModifiersEx() &
+									(InputEvent.SHIFT_DOWN_MASK |
 									InputEvent.CTRL_DOWN_MASK)) == 0) {
-								
+
 								if ( !tp.isColumnSelected(clickCol) ){
 									tp.deSelectEverythingElse(evt);
 									tp.selectNone();
 								}
 								mouseMode = MouseModeType.SELECT_COLUMN;
-							} 
+							}
                             if (tp.isColumnSelected(clickCol)) {
                                 componentPreviouslySelected = true;
                             } else {
                                 tp.selectColumn(clickCol);
                             }
-                            
+
 							tp.fireSelectionEvent(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT));
 							tp.repaint();
 						}
@@ -2185,15 +2186,15 @@ public class PlayPen extends JPanel
                             tp.setSelected(true);
                         }
 					}
-					
 
-					
+
+
 					if (clickCol == TablePane.COLUMN_INDEX_TITLE && !ArchitectFrame.getMainInstance().createRelationshipIsActive()) {
 						Iterator it = pp.getSelectedTables().iterator();
 						logger.debug("event point: " + p);
 						logger.debug("zoomed event point: " + pp.zoomPoint(new Point(p)));
 						draggingTablePanes = true;
-						
+
 						while (it.hasNext()) {
 							// create FloatingTableListener for each selected item
 							TablePane t3 = (TablePane)it.next();
@@ -2204,19 +2205,19 @@ public class PlayPen extends JPanel
 							Point clickedColumn = tp.getLocationOnScreen();
 							Point otherTable = t3.getLocationOnScreen();
 							Point handle = pp.zoomPoint(new Point(p));
-							logger.debug("(" + t3.getModel().getName() + ") translation x=" 
-	                                      + (otherTable.getX() - clickedColumn.getX()) + ",y=" 
+							logger.debug("(" + t3.getModel().getName() + ") translation x="
+	                                      + (otherTable.getX() - clickedColumn.getX()) + ",y="
 	                                      + (otherTable.getY() - clickedColumn.getY()));
-							handle.translate((int)(clickedColumn.getX() - otherTable.getX()), (int) (clickedColumn.getY() - otherTable.getY()));							
+							handle.translate((int)(clickedColumn.getX() - otherTable.getX()), (int) (clickedColumn.getY() - otherTable.getY()));
 							new PlayPen.FloatingTableListener(pp, t3, handle,false);
 						}
-					}	
+					}
 				} catch (ArchitectException e) {
 					logger.error("Exception converting point to column", e);
 				}
-				
-				
-				
+
+
+
 			} else {
 				if ((evt.getModifiersEx() & InputEvent.BUTTON1_DOWN_MASK) != 0  && !evt.isPopupTrigger()) {
 					mouseMode = MouseModeType.IDLE;
@@ -2226,16 +2227,16 @@ public class PlayPen extends JPanel
 				}
 			}
 		}
-		
+
 		public void mouseReleased(MouseEvent evt) {
 			draggingTablePanes = false;
 			if (rubberBand != null) {
 				if (evt.getButton() == MouseEvent.BUTTON1) {
 					Rectangle dirtyRegion = rubberBand;
-					
+
 					rubberBandOrigin = null;
 					rubberBand = null;
-					
+
 					zoomRect(dirtyRegion);
 					repaintRubberBandRegion(dirtyRegion);
 					if ( getSelectedItems().size() > 0 ) {
@@ -2246,14 +2247,14 @@ public class PlayPen extends JPanel
 				}
 			}
 			maybeShowPopup(evt);
-			
+
 		}
-		
+
 		// ---------------- MOUSEMOTION LISTENER INTERFACE -----------------
 		public void mouseDragged(MouseEvent evt) {
 			mouseMoved(evt);
 		}
-		
+
 		public void mouseMoved(MouseEvent evt) {
 
 			if (rubberBand != null) {
@@ -2283,11 +2284,11 @@ public class PlayPen extends JPanel
 				repaintRubberBandRegion(dirtyRegion);
 			}
 		}
-		
+
 		/**
 		 * Asks the PlayPen to repaint the given region, which is in screen coordinates (not
 		 * logical playpen coordinates).
-		 * 
+		 *
 		 * @param region The region to repaint.  If this comes from a user input event, you have
 		 * to run the argument through the {@link #zoomRect(Rectangle)} method.
 		 */
@@ -2299,12 +2300,12 @@ public class PlayPen extends JPanel
 			dirtyRegion.height += 6;
 			repaint(dirtyRegion);
 		}
-		
+
 		/**
 		 * Shows the playpen popup menu if appropriate.
 		 */
 		public boolean maybeShowPopup(MouseEvent evt) {
-			
+
 			setupTablePanePopup();
 			setupPlayPenPopup();
 
@@ -2312,7 +2313,7 @@ public class PlayPen extends JPanel
 			unzoomPoint(p);
 			PlayPenComponent c = contentPane.getComponentAt(p);
 			if (c != null) p.translate(-c.getX(), -c.getY());
-			
+
 			if ( c instanceof Relationship) {
 				if (evt.isPopupTrigger() && !evt.isConsumed()) {
 					Relationship r = (Relationship) c;
@@ -2365,7 +2366,7 @@ public class PlayPen extends JPanel
 	}
 
 	// ---------- Floating Table Listener ------------
-	
+
 	/**
 	 * Listens to mouse motion and moves the given component so it
 	 * follows the mouse.  When the user lifts the mouse button, it
@@ -2377,36 +2378,36 @@ public class PlayPen extends JPanel
 		private TablePane tp;
 		private Point handle;
 		private Point p;
-		
+
 		/**
 		 * If true, we will add the given TablePane to the play pen once the user clicks,
-		 * and add its model to the playpen's database. 
+		 * and add its model to the playpen's database.
 		 */
 		private boolean addToPP;
-		
+
 		public FloatingTableListener(PlayPen pp, TablePane tp, Point handle, boolean addToPP) {
 			this.pp = pp;
 			this.addToPP = addToPP;
 			PointerInfo pi = MouseInfo.getPointerInfo();
-			
+
 			Point startLocation = pi.getLocation();
 			SwingUtilities.convertPointFromScreen(startLocation,pp);
 			logger.debug("Adding floating table at:"+ startLocation);
 			p = pp.zoomPoint(startLocation);
-		
+
 			this.tp = tp;
 			this.handle = handle;
-			
+
 			pp.addMouseMotionListener(this);
 			pp.addMouseListener(this); // the click that ends this operation
 			pp.addCancelableListener(this);
-            
-			//In order to get here, the user must let go of the mouse click 
+
+			//In order to get here, the user must let go of the mouse click
             //on the create new table icon.  If the user decides to click on the
             //icon but let go elsewhere, the create table action will not occur
             if (addToPP) {
 				pp.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
-			} else { 
+			} else {
 				pp.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
 				pp.startCompoundEdit("Move"+tp.getName());
 			}
@@ -2433,9 +2434,9 @@ public class PlayPen extends JPanel
 		public void cancel() {
 			cleanup(true);
 		}
-		
+
 		protected void cleanup(boolean cancelled) {
-			try { 
+			try {
 				if (addToPP && !cancelled) {
 					pp.unzoomPoint(p);
 					logger.debug("Placing table at: " + p);
@@ -2456,13 +2457,13 @@ public class PlayPen extends JPanel
 					pp.endCompoundEdit("Ending move for table "+tp.getName());
 				}
 			}
-			
+
 			pp.setCursor(null);
 			pp.removeMouseMotionListener(this);
 			pp.removeMouseListener(this);
 			pp.removeCancelableListener(this);
             pp.normalize();
-			pp.revalidate();    
+			pp.revalidate();
 		}
 	}
 
@@ -2511,7 +2512,7 @@ public class PlayPen extends JPanel
 					pp.contentPane.add(c,pp.contentPane.getComponentCount());
 				} else {
 					pp.contentPane.add(c, pp.contentPane.getFirstRelationIndex());
-				} 
+				}
 			}
 			pp.repaint();
 		}
@@ -2538,7 +2539,7 @@ public class PlayPen extends JPanel
     public boolean getScrollableTracksViewportWidth() {
 		return false;
 	}
-	
+
     public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
 		if (orientation == SwingConstants.HORIZONTAL) {
 			return visibleRect.width/5;
@@ -2566,8 +2567,8 @@ public class PlayPen extends JPanel
      * Selects the playpen component that represents the given SQLObject,
      * and scrolls the viewport to ensure the component is visible on-screen.
      * If the given SQL Object isn't in the playpen, this method has no effect.
-     * 
-     * @param selection Either a SQLTable or SQLRelationship object. 
+     *
+     * @param selection Either a SQLTable or SQLRelationship object.
      */
     public void selectAndShow(SQLObject selection) {
         if (selection instanceof SQLTable) {

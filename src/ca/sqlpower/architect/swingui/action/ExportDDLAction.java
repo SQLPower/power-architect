@@ -1,7 +1,5 @@
 package ca.sqlpower.architect.swingui.action;
 
-
-
 import java.awt.event.ActionEvent;
 import java.sql.SQLException;
 import java.util.List;
@@ -316,7 +314,8 @@ public class ExportDDLAction extends AbstractAction {
 		 */
 		public void cleanup() {
 			if (errorMessage != null) {
-				ASUtils.showExceptionDialog(parentDialog, "Error Dropping Conflicts: "+errorMessage, error, new ArchitectExceptionReportFactory());
+				ASUtils.showExceptionDialog(parentDialog,
+                    "Error Dropping Conflicts: "+errorMessage, error, new ArchitectExceptionReportFactory());
 				setCancelled(true);
 			}
 		}
