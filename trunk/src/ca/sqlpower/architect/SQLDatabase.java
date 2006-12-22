@@ -16,6 +16,7 @@ import org.apache.commons.dbcp.ConnectionFactory;
 import org.apache.commons.dbcp.PoolableConnectionFactory;
 import org.apache.commons.pool.BaseObjectPool;
 import org.apache.commons.pool.impl.GenericObjectPool;
+import org.apache.commons.pool.impl.GenericObjectPool.Config;
 import org.apache.log4j.Logger;
 
 public class SQLDatabase extends SQLObject implements java.io.Serializable, PropertyChangeListener {
@@ -565,7 +566,10 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	
 	private synchronized BaseObjectPool getConnectionPool() {
 		if (connectionPool == null) {
-			connectionPool = new GenericObjectPool();			
+            Config poolConfig = new GenericObjectPool.Config();
+            poolConfig.maxActive = 5;
+            poolConfig.whenExhaustedAction = GenericObjectPool.WHEN_EXHAUSTED_FAIL;
+			connectionPool = new GenericObjectPool(null, poolConfig);
 			ConnectionFactory cf = new ArchitectConnectionFactory(dataSource);			
 			new PoolableConnectionFactory(cf, connectionPool, null,
 					null, false, true);
