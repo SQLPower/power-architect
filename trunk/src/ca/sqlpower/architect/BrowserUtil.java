@@ -14,7 +14,7 @@ public class BrowserUtil {
     }
 
     /** Launches the default browser to display a URL.
-     * @throws IOException 
+     * @throws IOException
      */
     public static void launch(String uri) throws IOException {
         Runtime runtime = Runtime.getRuntime();
@@ -24,7 +24,8 @@ public class BrowserUtil {
         } else if (OS_NAME.equals("macos")) {
             p = runtime.exec("open " + uri);
         } else {
-            p = runtime.exec("mozilla " + uri);
+            // XXX check PATH for mozilla OR firefox? Opera????
+            p = runtime.exec("firefox " + uri);
         }
         try {
             p.waitFor();
