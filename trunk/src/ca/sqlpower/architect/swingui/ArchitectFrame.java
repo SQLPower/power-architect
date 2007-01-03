@@ -52,6 +52,7 @@ import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.BrowserUtil;
 import ca.sqlpower.architect.ConfigFile;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.SQLDatabase;
@@ -107,6 +108,8 @@ public class ArchitectFrame extends JFrame {
 	 */
 	protected static ArchitectFrame mainInstance;
 
+    static final String FORUM_URL = "http://www.sqlpower.ca/forum/";
+
     public static final boolean MAC_OS_X = (System.getProperty("os.name").toLowerCase().startsWith("mac os x"));
 
 	public static final double ZOOM_STEP = 0.25;
@@ -137,7 +140,8 @@ public class ArchitectFrame extends JFrame {
 
     private RecentMenu recent;
 	protected AboutAction aboutAction;
-	protected Action newProjectAction;
+    protected Action forumAction;
+    protected Action newProjectAction;
 	protected Action openProjectAction;
 	protected Action saveProjectAction;
 	protected Action saveProjectAsAction;
@@ -174,6 +178,7 @@ public class ArchitectFrame extends JFrame {
 
 	protected QuickStartAction quickStartAction;
 	protected ArchitectFrameWindowListener afWindowListener;
+
 	protected Action exitAction = new AbstractAction("Exit") {
 	    public void actionPerformed(ActionEvent e) {
 	        exit();
@@ -306,6 +311,19 @@ public class ArchitectFrame extends JFrame {
 
         Action helpAction = new HelpAction();
 
+        forumAction = new AbstractAction("Support on the Web",
+                ASUtils.createJLFIcon("development/WebComponent","New Project",
+                        sprefs.getInt(SwingUserSettings.ICON_SIZE, 24))) {
+            public void actionPerformed(ActionEvent evt) {
+                try {
+                    BrowserUtil.launch(FORUM_URL);
+                } catch (IOException e) {
+                    ASUtils.showExceptionDialog(
+                            "Could not launch browser for Forum View", e);
+                }
+            }
+        };
+
 		newProjectAction
 			 = new AbstractAction("New Project",
 					      ASUtils.createJLFIcon("general/New","New Project",sprefs.getInt(SwingUserSettings.ICON_SIZE, 24))) {
@@ -314,7 +332,7 @@ public class ArchitectFrame extends JFrame {
 			        try {
 			        	prefs.putInt(SwingUserSettings.DIVIDER_LOCATION, splitPane.getDividerLocation());
 			        	closeProject(getProject());
-			            setProject(new SwingUIProject("New Project"));
+			            setProject(new SwingUIProject("New Project"), false);
 			            logger.debug("Glass pane is "+getGlassPane());
 			        } catch (Exception ex) {
 			            JOptionPane.showMessageDialog(ArchitectFrame.this,
@@ -695,6 +713,7 @@ public class ArchitectFrame extends JFrame {
             helpMenu.addSeparator();
         }
         helpMenu.add(helpAction);
+        helpMenu.add(forumAction);
 		menuBar.add(helpMenu);
 
 		setJMenuBar(menuBar);
@@ -770,10 +789,10 @@ public class ArchitectFrame extends JFrame {
 		setBounds(bounds);
 		addWindowListener(afWindowListener = new ArchitectFrameWindowListener());
 
-		setProject(new SwingUIProject("New Project"));
+		setProject(new SwingUIProject("New Project"), true);
 	}
 
-	public void setProject(SwingUIProject p) throws ArchitectException {
+	public void setProject(SwingUIProject p, boolean showWelcome) throws ArchitectException {
 		this.project = p;
 		logger.debug("Setting project to "+project);
 		setTitle(project.getName()+" - Power*Architect");
@@ -786,12 +805,21 @@ public class ArchitectFrame extends JFrame {
 
 		splitPane.setLeftComponent(new JScrollPane(dbTree));
 		splitPane.setRightComponent(new JScrollPane(playpen));
-		//splitPane.setRightComponent(new WelcomeScreen().getPanel());
-        
+
+		JComponent welcomePanel = WelcomeScreen.getPanel(
+		        /** Trivial Runnable: remove the WelcomePanel when clicked */
+                new Runnable() {
+                    public void run() {
+                        setGlassPane(new JComponent() {});
+                    }
+                });
+        setGlassPane(welcomePanel);
+        welcomePanel.setVisible(true);
+
 		splitPane.setDividerLocation(prefs.getInt(SwingUserSettings.DIVIDER_LOCATION,150));
 	}
 
-	public SwingUIProject getProject(){
+	public SwingUIProject getProject() {
 		return this.project;
 	}
 
@@ -918,7 +946,7 @@ public class ArchitectFrame extends JFrame {
 
 		@Override
 		public void cleanup() throws ArchitectException {
-            setProject(project);
+            setProject(project, false);
             ((SQLObject) project.getSourceDatabases().getModel().getRoot()).fireDbStructureChanged();
         	try {
         		if (in != null) {
