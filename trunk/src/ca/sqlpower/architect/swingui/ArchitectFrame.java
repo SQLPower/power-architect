@@ -786,7 +786,8 @@ public class ArchitectFrame extends JFrame {
 
 		splitPane.setLeftComponent(new JScrollPane(dbTree));
 		splitPane.setRightComponent(new JScrollPane(playpen));
-
+		//splitPane.setRightComponent(new WelcomeScreen().getPanel());
+        
 		splitPane.setDividerLocation(prefs.getInt(SwingUserSettings.DIVIDER_LOCATION,150));
 	}
 
