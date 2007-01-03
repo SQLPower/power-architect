@@ -253,10 +253,15 @@ public class ASUtils {
 	 * "NewTable".  See the icons directory.
 	 * @param size Either 16 or 24.
 	 */
-	public static ImageIcon createIcon(String name,
-									   String description,
-									   int size) {
-		String realPath = "/icons/"+name+size+".gif";
+    public static ImageIcon createIcon(String name,
+                                       String description,
+                                       int size) {
+        return createIcon(name+size, description);
+    }
+    
+    public static ImageIcon createIcon(String name,
+                                       String description) {
+        String realPath = "/icons/"+name+".gif";
 		logger.debug("Loading resource "+realPath);
 		java.net.URL imgURL = ASUtils.class.getResource(realPath);
         if (imgURL == null) {
