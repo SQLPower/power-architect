@@ -140,7 +140,6 @@ public class ArchitectFrame extends JFrame {
 
     private RecentMenu recent;
 	protected AboutAction aboutAction;
-    protected Action forumAction;
     protected Action newProjectAction;
 	protected Action openProjectAction;
 	protected Action saveProjectAction;
@@ -184,6 +183,19 @@ public class ArchitectFrame extends JFrame {
 	        exit();
 	    }
 	};
+
+    protected static Action forumAction = new AbstractAction("Support on the Web",
+            ASUtils.createJLFIcon("development/WebComponent","New Project", 16)) {
+        public void actionPerformed(ActionEvent evt) {
+            try {
+                BrowserUtil.launch(FORUM_URL);
+            } catch (IOException e) {
+                ASUtils.showExceptionDialog(
+                        "Could not launch browser for Forum View", e);
+            }
+        }
+    };
+
 
 	/**
 	 * Updates the swing settings and then writes all settings to the
@@ -311,19 +323,6 @@ public class ArchitectFrame extends JFrame {
 
         Action helpAction = new HelpAction();
 
-        forumAction = new AbstractAction("Support on the Web",
-                ASUtils.createJLFIcon("development/WebComponent","New Project",
-                        sprefs.getInt(SwingUserSettings.ICON_SIZE, 24))) {
-            public void actionPerformed(ActionEvent evt) {
-                try {
-                    BrowserUtil.launch(FORUM_URL);
-                } catch (IOException e) {
-                    ASUtils.showExceptionDialog(
-                            "Could not launch browser for Forum View", e);
-                }
-            }
-        };
-
 		newProjectAction
 			 = new AbstractAction("New Project",
 					      ASUtils.createJLFIcon("general/New","New Project",sprefs.getInt(SwingUserSettings.ICON_SIZE, 24))) {
@@ -366,7 +365,7 @@ public class ArchitectFrame extends JFrame {
 			}
 		};
 
-		 openProjectAction = new OpenProjectAction(recent);
+		openProjectAction = new OpenProjectAction(recent);
 
 		saveProjectAction
 			= new AbstractAction("Save Project",
