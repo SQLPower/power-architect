@@ -3,15 +3,15 @@ package ca.sqlpower.architect;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * Utility class for dealing with Web Browsers.
+ * For now uses operating system browser and knows about os.name;
+ * when Java 6 becomes common, should delegate to java.awt.Desktop.
+ */
 public class BrowserUtil {
 
     final static String OS_NAME = System.getProperty("os.name");
     final static String OS_VER = System.getProperty("os.version");
-
-    public static void main(String[] args) throws IOException {
-        System.out.println(OS_NAME + " " + OS_VER);
-        launch("http://www.sqlpower.ca/");
-    }
 
     /** Launches the default browser to display a URL.
      * @throws IOException
