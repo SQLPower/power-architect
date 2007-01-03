@@ -14,44 +14,44 @@ public class TestPlayPen extends TestCase {
 	ArchitectFrame af;
 	private PlayPen pp;
 	private SQLDatabase ppdb;
-	
+
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
 		af = ArchitectFrame.getMainInstance();
-		af.setProject(new SwingUIProject( "Undo Project"));
+		af.setProject(new SwingUIProject( "Undo Project"), false);
 		pp = af.getProject().getPlayPen();
 		ppdb = pp.getDatabase();
-		
+
 	}
-	
+
 	public void testUndoAddTable() throws ArchitectException {
 		SQLTable t = new SQLTable(ppdb, "test_me", "", "TABLE", true);
-		
+
 		TablePane tp = new TablePane(t, pp);
 		ppdb.addChild(t);
 
 		pp.addTablePane(tp, new Point(99,98));
 
 
-		
+
 		// this isn't the point of the test, but adding the tablepane has to work!
-		assertNotNull(pp.findTablePane(t));	
-		
+		assertNotNull(pp.findTablePane(t));
+
 		//Undo the add child and the move table pane
 		af.getUndoManager().undo();
-		
+
 		assertNull(pp.findTablePane(t));
 	}
 
 	public void testRedoAddTable() throws ArchitectException {
 		SQLTable t = new SQLTable(ppdb, "test_me", "", "TABLE", true);
-		
+
 		TablePane tp = new TablePane(t, pp);
-		
+
 		ppdb.addChild(t);
 		pp.addTablePane(tp, new Point(99,98));
-		
+
 		// this isn't the point of the test, but adding the tablepane has to work!
 		assertNotNull(ppdb.getTableByName("test_me"));
 		assertNotNull(pp.findTablePane(t));
@@ -78,7 +78,7 @@ public class TestPlayPen extends TestCase {
 		sourceParentTable.addColumn(new SQLColumn(sourceParentTable, "key", Types.BOOLEAN, 1, 0));
 		sourceParentTable.getColumn(0).setPrimaryKeySeq(0);
 		sourceDB.addChild(sourceParentTable);
-		
+
 		SQLTable sourceChildTable = new SQLTable(sourceDB, true);
 		sourceChildTable.setName("child");
 		sourceChildTable.addColumn(new SQLColumn(sourceChildTable, "key", Types.BOOLEAN, 1, 0));
@@ -86,7 +86,7 @@ public class TestPlayPen extends TestCase {
 
 		SQLRelationship sourceRel = new SQLRelationship();
 		sourceRel.attachRelationship(sourceParentTable, sourceChildTable, true);
-		
+
 		pp.importTableCopy(sourceChildTable, new Point(10, 10));
 		pp.importTableCopy(sourceParentTable, new Point(10, 10));
 		pp.importTableCopy(sourceParentTable, new Point(10, 10));
@@ -107,7 +107,7 @@ public class TestPlayPen extends TestCase {
 		assertEquals("Expected three tables in pp", 3, tabCount);
 		assertEquals("Expected two relationships in pp", 2, relCount);
 		assertEquals("Found junk in playpen", 0, otherCount);
-		
+
 		TablePane importedChild = pp.findTablePaneByName("child");
 		assertEquals("Incorrect reference count on imported child col",
 				3, importedChild.getModel().getColumn(0).getReferenceCount());
