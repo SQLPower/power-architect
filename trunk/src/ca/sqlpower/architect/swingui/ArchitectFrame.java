@@ -185,6 +185,7 @@ public class ArchitectFrame extends JFrame {
 	};
 
     protected static Action forumAction = new AbstractAction("Support on the Web",
+            // Alas this is now static so the size can't be gotten from sprefs...
             ASUtils.createJLFIcon("development/WebComponent","New Project", 16)) {
         public void actionPerformed(ActionEvent evt) {
             try {
