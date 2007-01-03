@@ -258,7 +258,7 @@ public class ASUtils {
                                        int size) {
         return createIcon(name+size, description);
     }
-    
+
     public static ImageIcon createIcon(String name,
                                        String description) {
         String realPath = "/icons/"+name+".gif";
@@ -535,6 +535,9 @@ public class ASUtils {
         final JButton detailsButton = new JButton("Show Details");
         final JPanel detailsButtonPanel = new JPanel();
         detailsButtonPanel.add(detailsButton);
+
+        final JButton forumButton = new JButton(ArchitectFrame.forumAction);
+        detailsButtonPanel.add(forumButton);
         top.add(detailsButtonPanel);
 
         dialog.add(top, BorderLayout.NORTH);
