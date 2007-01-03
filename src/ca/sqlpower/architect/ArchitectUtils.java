@@ -25,9 +25,9 @@ import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 public class ArchitectUtils {
 
 	private static final Logger logger = Logger.getLogger(ArchitectUtils.class);
-    public static final String APP_VERSION_MAJOR = "1";
-    public static final String APP_VERSION_MINOR = "1";
-    public static final String APP_VERSION_TINY = "24";
+    public static final String APP_VERSION_MAJOR = "0";
+    public static final String APP_VERSION_MINOR = "9";
+    public static final String APP_VERSION_TINY  = "0";
     public static final String APP_VERSION = APP_VERSION_MAJOR+"."+
                                             APP_VERSION_MINOR+"." +
                                             APP_VERSION_TINY;
@@ -560,7 +560,7 @@ public class ArchitectUtils {
         }
         return null;
     }
-    
+
     public static boolean isCompatibleWithHierarchy(SQLDatabase db, String catalog, String schema, String name) throws ArchitectException {
         SQLObject schemaContainer;
         if ( catalog != null){
@@ -575,7 +575,7 @@ public class ArchitectUtils {
         } else {
             schemaContainer = db;
         }
-        
+
         SQLObject tableContainer;
         if (schema != null){
             if (schemaContainer.getChildType() == SQLSchema.class){
@@ -591,7 +591,7 @@ public class ArchitectUtils {
         } else {
             tableContainer = schemaContainer;
         }
-        
+
         if (name != null) {
             if (tableContainer.getChildType() == null || tableContainer.getChildType() == SQLTable.class){
                 return true;
@@ -602,7 +602,7 @@ public class ArchitectUtils {
             return false;
         }
     }
-    
+
     public static SQLTable addSimulatedTable(SQLDatabase db, String catalog, String schema, String name) throws ArchitectException {
         if (db.getTableByName(catalog, schema, name) != null) {
             throw new ArchitectException("The table "+catalog+"."+schema+"."+name+" already exists");
@@ -620,8 +620,8 @@ public class ArchitectUtils {
         } else {
             schemaContainer = db;
         }
-        
-        SQLObject tableContainer; 
+
+        SQLObject tableContainer;
         if (schema != null) {
             Class<? extends SQLObject> childType = schemaContainer.getChildType();
             if ( !(childType == null || childType == SQLSchema.class) ) {
@@ -637,10 +637,10 @@ public class ArchitectUtils {
         } else {
             tableContainer = schemaContainer;
         }
-        
+
         SQLTable newTable = new SQLTable(tableContainer, name, null, "TABLE", true);
         tableContainer.addChild(newTable);
-        
+
         return newTable;
     }
 }
