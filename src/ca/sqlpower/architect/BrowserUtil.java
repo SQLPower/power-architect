@@ -21,7 +21,7 @@ public class BrowserUtil {
         Process p = null;
         if (OS_NAME.contains("Windows")) {
             p = runtime.exec("cmd /C \"start " + uri + "\"");
-        } else if (OS_NAME.equals("macos")) {
+        } else if (OS_NAME.startsWith("Mac OS")) {
             p = runtime.exec("open " + uri);
         } else {
             // XXX check PATH for mozilla OR firefox? Opera????
