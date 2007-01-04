@@ -68,6 +68,7 @@ import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
 import ca.sqlpower.architect.swingui.action.CompareDMAction;
 import ca.sqlpower.architect.swingui.action.CreateRelationshipAction;
 import ca.sqlpower.architect.swingui.action.CreateTableAction;
+import ca.sqlpower.architect.swingui.action.DataMoverAction;
 import ca.sqlpower.architect.swingui.action.DeleteSelectedAction;
 import ca.sqlpower.architect.swingui.action.EditColumnAction;
 import ca.sqlpower.architect.swingui.action.EditRelationshipAction;
@@ -455,21 +456,7 @@ public class ArchitectFrame extends JFrame {
 		autoLayoutAction.setLayout(autoLayout);
 		exportDDLAction = new ExportDDLAction();
         compareDMAction = new CompareDMAction();
-        dataMoverAction = new AbstractAction("Copy Table Data...") {
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    JDialog d = new JDialog(ArchitectFrame.this, "Copy table data");
-                    DataMoverPanel dmp = new DataMoverPanel(getArchitectSession());
-                    d.add(dmp.getPanel());
-                    d.pack();
-                    d.setLocationRelativeTo(ArchitectFrame.this);
-                    d.setVisible(true);
-                } catch (Exception ex) {
-                    ASUtils.showExceptionDialogNoReport(
-                            "Couldn't start Data Mover", ex);
-                }
-            }
-        };
+        dataMoverAction = new DataMoverAction(this, getArchitectSession());
 
 		exportPLTransAction = new ExportPLTransAction(this) {
 		    @Override
@@ -700,7 +687,10 @@ public class ArchitectFrame extends JFrame {
 		toolsMenu.add(exportDDLAction);
 		toolsMenu.add(compareDMAction);
         toolsMenu.add(new SQLRunnerAction(ArchitectFrame.getMainInstance()));
-        toolsMenu.add(dataMoverAction);
+        
+        // disabled for 0.9.0 release (still has too many bugs to work out)
+//        toolsMenu.add(dataMoverAction);
+        
 		menuBar.add(toolsMenu);
 
         JMenu profileMenu = new JMenu("Profile");
