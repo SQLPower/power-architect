@@ -7,6 +7,7 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -94,6 +95,8 @@ import ca.sqlpower.architect.undo.UndoManager;
 import com.darwinsys.swingui.UtilGUI;
 import com.darwinsys.util.PrefsUtils;
 import com.jgoodies.forms.builder.ButtonBarBuilder;
+import com.jgoodies.forms.factories.Borders;
+import com.jgoodies.forms.factories.ButtonBarFactory;
 
 /**
  * The Main Window for the Architect Application; contains a main() method that is
@@ -109,6 +112,7 @@ public class ArchitectFrame extends JFrame {
 	protected static ArchitectFrame mainInstance;
 
     static final String FORUM_URL = "http://www.sqlpower.ca/forum/";
+    static final String DRIVERS_URL = "http://www.sqlpower.ca/forum/posts/list/401.page";
 
     public static final boolean MAC_OS_X = (System.getProperty("os.name").toLowerCase().startsWith("mac os x"));
 
@@ -807,15 +811,24 @@ public class ArchitectFrame extends JFrame {
 		splitPane.setRightComponent(new JScrollPane(playpen));
 
         if (showWelcome) {
-            JComponent welcomePanel = WelcomeScreen.getPanel(
-                    /** Trivial Runnable: remove the WelcomePanel when clicked */
-                    new Runnable() {
-                        public void run() {
-                            setGlassPane(new JComponent() {});
-                        }
-                    });
-            setGlassPane(welcomePanel);
-            welcomePanel.setVisible(true);
+            JComponent welcomePanel = WelcomeScreen.getPanel();
+            final JDialog d = new JDialog(this, "Welcome to the Power*Architect");
+            d.setLayout(new BorderLayout(12, 12));
+            ((JComponent) d.getContentPane()).setBorder(Borders.DIALOG_BORDER);
+            
+            JButton closeButton = new JButton("Close");
+            closeButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    d.dispose();
+                }
+            });
+            
+            d.add(welcomePanel, BorderLayout.CENTER);
+            d.add(ButtonBarFactory.buildCloseBar(closeButton), BorderLayout.SOUTH);
+            d.getRootPane().setDefaultButton(closeButton);
+            d.pack();
+            d.setLocationRelativeTo(this);
+            d.setVisible(true);
         }
 
 		splitPane.setDividerLocation(prefs.getInt(SwingUserSettings.DIVIDER_LOCATION,150));
