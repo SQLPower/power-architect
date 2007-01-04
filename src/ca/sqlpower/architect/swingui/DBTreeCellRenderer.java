@@ -21,7 +21,7 @@ import ca.sqlpower.architect.SQLTable;
 
 /**
  * The DBTreeCellRenderer renders nodes of a JTree which are of
- * type SQLObject.  This class is much other than November 2006; it
+ * type SQLObject.  This class is much older than November 2006; it
  * was pulled out of the DBTree.java compilation unit into its own
  * file on this date so it could be used more naturally as the cell
  * renderer for a different JTree.
@@ -92,9 +92,9 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
 
 		if (value instanceof SQLObject) {
 		    if (((SQLObject) value).isPopulated()) {
-		        tree.setForeground(Color.black);
+		        setForeground(Color.black);
 		    } else {
-		        tree.setForeground(Color.lightGray);
+		        setForeground(Color.lightGray);
 		    }
 		}
 		return this;
