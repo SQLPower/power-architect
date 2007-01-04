@@ -806,15 +806,17 @@ public class ArchitectFrame extends JFrame {
 		splitPane.setLeftComponent(new JScrollPane(dbTree));
 		splitPane.setRightComponent(new JScrollPane(playpen));
 
-		JComponent welcomePanel = WelcomeScreen.getPanel(
-		        /** Trivial Runnable: remove the WelcomePanel when clicked */
-                new Runnable() {
-                    public void run() {
-                        setGlassPane(new JComponent() {});
-                    }
-                });
-        setGlassPane(welcomePanel);
-        welcomePanel.setVisible(true);
+        if (showWelcome) {
+            JComponent welcomePanel = WelcomeScreen.getPanel(
+                    /** Trivial Runnable: remove the WelcomePanel when clicked */
+                    new Runnable() {
+                        public void run() {
+                            setGlassPane(new JComponent() {});
+                        }
+                    });
+            setGlassPane(welcomePanel);
+            welcomePanel.setVisible(true);
+        }
 
 		splitPane.setDividerLocation(prefs.getInt(SwingUserSettings.DIVIDER_LOCATION,150));
 	}
