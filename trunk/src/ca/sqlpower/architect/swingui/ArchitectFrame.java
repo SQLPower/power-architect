@@ -27,7 +27,6 @@ import java.util.prefs.Preferences;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -92,7 +91,6 @@ import ca.sqlpower.architect.swingui.action.ViewProfileAction;
 import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.undo.UndoManager;
 
-import com.darwinsys.swingui.UtilGUI;
 import com.darwinsys.util.PrefsUtils;
 import com.jgoodies.forms.builder.ButtonBarBuilder;
 import com.jgoodies.forms.factories.Borders;
@@ -227,7 +225,7 @@ public class ArchitectFrame extends JFrame {
 		synchronized (ArchitectFrame.class) {
 			mainInstance = this;
 		}
-        setIconImage(new ImageIcon(getClass().getResource("/icons/Architect16.png")).getImage());
+        setIconImage(ASUtils.getFrameIconImage());
 	    // close handled by window listener
 	    setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 	    architectSession = ArchitectSessionImpl.getInstance();
@@ -473,7 +471,7 @@ public class ArchitectFrame extends JFrame {
             }
         };
 
-		exportPLTransAction = new ExportPLTransAction() {
+		exportPLTransAction = new ExportPLTransAction(this) {
 		    @Override
 		    public void actionPerformed(ActionEvent e) {
                 try {
@@ -538,7 +536,8 @@ public class ArchitectFrame extends JFrame {
                     mr = new MappingReport(selectedTables);
 
                     final JFrame f = new JFrame("Mapping Report");
-
+                    f.setIconImage(ASUtils.getFrameIconImage());
+                    
                     // You call this a radar?? -- No sir, we call it Mr. Panel.
                     JPanel mrPanel = new JPanel() {
                         protected void paintComponent(java.awt.Graphics g) {
@@ -570,7 +569,7 @@ public class ArchitectFrame extends JFrame {
                                 JFileChooser fileDialog = new JFileChooser();
                                 fileDialog.setSelectedFile(new File("map.csv"));
 
-                                if (fileDialog.showSaveDialog(ArchitectFrame.getMainInstance()) == JFileChooser.APPROVE_OPTION){
+                                if (fileDialog.showSaveDialog(f) == JFileChooser.APPROVE_OPTION){
                                     file = fileDialog.getSelectedFile();
                                 } else {
                                     return;
@@ -590,7 +589,7 @@ public class ArchitectFrame extends JFrame {
                     });
                     csv.setText("Export CSV");
                     buttonBar.addGriddedGrowing(csv);
-                    ExportPLTransAction plTransaction = new ExportPLTransAction();
+                    ExportPLTransAction plTransaction = new ExportPLTransAction(f);
                     JButton pl = new JButton(plTransaction);
                     plTransaction.setExportingTables(selectedTables);
                     pl.setText("Export PL Transaction");
@@ -599,7 +598,7 @@ public class ArchitectFrame extends JFrame {
                     JButton close = new JButton(new AbstractAction(){
 
                         public void actionPerformed(ActionEvent e) {
-                            f.setVisible(false);
+                            f.dispose();
                         }
 
                     });
@@ -611,7 +610,7 @@ public class ArchitectFrame extends JFrame {
                     basePane.add(buttonBar.getPanel(),BorderLayout.SOUTH);
                     f.setContentPane(basePane);
                     f.pack();
-                    UtilGUI.centre(f);
+                    f.setLocationRelativeTo(ArchitectFrame.getMainInstance());
                     f.setVisible(true);
                 } catch (ArchitectException e1) {
                     throw new ArchitectRuntimeException(e1);
