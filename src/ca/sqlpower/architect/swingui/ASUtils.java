@@ -6,6 +6,7 @@ import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
@@ -812,5 +813,13 @@ public class ASUtils {
 		 * });
 		 */
 	}
+
+    /**
+     * Returns an icon that is suitable for use as a frame icon image
+     * in the Architect.
+     */
+    public static Image getFrameIconImage() {
+        return createIcon("Architect", "Architect Logo", 16).getImage();
+    }
 
 }
