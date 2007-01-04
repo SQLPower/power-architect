@@ -18,62 +18,52 @@ import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
 
 
-public class DDLExportPanel extends JPanel implements ArchitectPanel {
+public class DDLExportPanel implements ArchitectPanel {
 	private static final Logger logger = Logger.getLogger(DDLExportPanel.class);
 
-	protected SwingUIProject project;
-
-    protected JLabel targetDBName;
+    private JPanel panel = new JPanel();
     
-    protected JComboBox dbType;
-	
-	protected JLabel catalogLabel;
-	protected JTextField catalogField;
+	private SwingUIProject project;
 
-	protected JLabel schemaLabel;
-	protected JTextField schemaField;
+    private JComboBox dbType;
+	
+	private JLabel catalogLabel;
+	private JTextField catalogField;
+
+	private JLabel schemaLabel;
+	private JTextField schemaField;
 
 	public DDLExportPanel(SwingUIProject project) {
 		this.project = project;
 		setup();
-		setVisible(true);
+		panel.setVisible(true);
 	}
 
-	protected void setup() {		
+	private void setup() {		
 		GenericDDLGenerator ddlg = project.getDDLGenerator();		
-		setLayout(new FormLayout());
-        add(new JLabel("Create in:"));
+        panel.setLayout(new FormLayout());
+        panel.add(new JLabel("Create in:"));
         
         ArchitectDataSource dbcs = project.getTargetDatabase().getDataSource();
-        add(targetDBName = new JLabel(dbcs == null 
-                                        ? "(target connection not set up)" 
-                                        : dbcs.getDisplayName()));
-		
-		add(new JLabel("Generate DDL for Database Type:"));
+        panel.add(new JLabel(dbcs == null 
+                        ? "(target connection not set up)" 
+                        : dbcs.getDisplayName()));
+
+        panel.add(new JLabel("Generate DDL for Database Type:"));
 		Vector<LabelValueBean> ddlTypes =DDLUtils.getDDLTypes();
-		add(dbType = new JComboBox(ddlTypes));
+        panel.add(dbType = new JComboBox(ddlTypes));
 		LabelValueBean unknownGenerator = ASUtils.lvb("Unknown Generator", ddlg.getClass());
 		dbType.addItem(unknownGenerator);
 		dbType.setSelectedItem(unknownGenerator);
-		for (LabelValueBean lvb : ddlTypes)
-		{
-		
-			
-			if (ddlg.getClass() == lvb.getValue() && lvb != unknownGenerator)
-			{
-				dbType.setSelectedItem(lvb);
-				
-			}
-			
-		}
-		if (dbType.getSelectedItem() != unknownGenerator)
-		{
-			// remove the unknown generator if we have a known generator
-			dbType.removeItem(unknownGenerator);
-		}
-		
-		
-		
+		for (LabelValueBean lvb : ddlTypes) {
+            if (ddlg.getClass() == lvb.getValue() && lvb != unknownGenerator) {
+                dbType.setSelectedItem(lvb);
+            }
+        }
+		if (dbType.getSelectedItem() != unknownGenerator) {
+            // remove the unknown generator if we have a known generator
+            dbType.removeItem(unknownGenerator);
+        }
 		
 		dbType.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
@@ -81,10 +71,10 @@ public class DDLExportPanel extends JPanel implements ArchitectPanel {
 				}
 			});
 
-		add(catalogLabel = new JLabel("Target Catalog"));
-		add(catalogField = new JTextField(ddlg.getTargetCatalog()));
-		add(schemaLabel = new JLabel("Target Schema"));
-		add(schemaField = new JTextField(ddlg.getTargetSchema()));
+        panel.add(catalogLabel = new JLabel("Target Catalog"));
+        panel.add(catalogField = new JTextField(ddlg.getTargetCatalog()));
+        panel.add(schemaLabel = new JLabel("Target Schema"));
+        panel.add(schemaField = new JTextField(ddlg.getTargetSchema()));
 		
 		setUpCatalogAndSchemaFields();
 	}
@@ -127,7 +117,7 @@ public class DDLExportPanel extends JPanel implements ArchitectPanel {
 				message += (":\n"+selectedGeneratorClass.getName());
 			}
 			logger.error(message, ex);
-			JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(panel, message, "Error", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
@@ -152,7 +142,7 @@ public class DDLExportPanel extends JPanel implements ArchitectPanel {
 				|| dbcs.getDriverClass().length() == 0) {
 
 				JOptionPane.showMessageDialog
-				(this,"You can't use the Generic JDBC Generator\n"
+				(panel, "You can't use the Generic JDBC Generator\n"
 						+"until you set up the target database connection.");
 								
 				ArchitectFrame.getMainInstance().playpen.showDbcsDialog();
@@ -166,7 +156,7 @@ public class DDLExportPanel extends JPanel implements ArchitectPanel {
 		if (catalogField.isEnabled()) {
 			if (catalogField.getText() == null || catalogField.getText().trim().length() == 0) {
 				JOptionPane.showMessageDialog
-				(this,"Please provide a valid database catalog.");
+				(panel, "Please provide a valid database catalog.");
 				return false;
 			} else {	
 				ddlg.setTargetCatalog(catalogField.getText());
@@ -176,7 +166,7 @@ public class DDLExportPanel extends JPanel implements ArchitectPanel {
 		if (schemaField.isEnabled()) {
 			if (schemaField.getText() == null || schemaField.getText().trim().length() == 0) {
 				JOptionPane.showMessageDialog
-				(this,"Please provide a valid schema name.");
+				(panel, "Please provide a valid schema name.");
 				return false;
 			} else {	
 				ddlg.setTargetSchema(schemaField.getText());
@@ -199,11 +189,7 @@ public class DDLExportPanel extends JPanel implements ArchitectPanel {
 		this.schemaField = schemaField;
 	}
 
-	/* Return this component's JPanel, for use in 
-	 * ASUtils.build
-	 * @see ca.sqlpower.architect.swingui.ArchitectPanel#getPanel()
-	 */
 	public JPanel getPanel() {
-		return this;
+		return panel;
 	}
 }
