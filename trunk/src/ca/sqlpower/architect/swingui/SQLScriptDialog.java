@@ -254,7 +254,7 @@ public class SQLScriptDialog extends JDialog {
 		}
 	}
 
-	public class CloseAction extends AbstractAction {
+	private class CloseAction extends AbstractAction {
 
 		Component c;
 
