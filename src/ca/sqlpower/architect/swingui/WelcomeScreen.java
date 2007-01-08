@@ -40,7 +40,7 @@ public class WelcomeScreen {
         "<p>&nbsp;&nbsp;Check out the JDBC drivers section under <i>How to Use Power*Architect</i> in the " +
         "help for configuring JDBC drivers." +
         "<br>" +
-        "<p>&nbsp;&nbsp;Need help finding the JDBC drivers? Visit our <a href=\"" + ArchitectFrame.DRIVERS_URL + "\">forum thread</a>";
+        "<p>&nbsp;&nbsp;Need help finding the JDBC drivers? Visit our <a href=\"" + ArchitectFrame.DRIVERS_URL + "\">forum thread</a>.";
 
     /**
      * Creates and returns the welcome panel.
