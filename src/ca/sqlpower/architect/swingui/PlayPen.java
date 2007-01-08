@@ -2058,7 +2058,7 @@ public class PlayPen extends JPanel
 			PlayPenComponent c = contentPane.getComponentAt(p);
 			if (c != null) p.translate(-c.getX(), -c.getY());
 			if ( c instanceof Relationship) {
-				if (evt.getClickCount() == 2) {
+			    if (evt.getClickCount() == 2) {
 					ArchitectFrame.getMainInstance().editRelationshipAction.actionPerformed
 					(new ActionEvent(evt.getSource(),
 							ActionEvent.ACTION_PERFORMED,
@@ -2103,13 +2103,13 @@ public class PlayPen extends JPanel
 		public void mousePressed(MouseEvent evt) {
             componentPreviouslySelected = false;
 			requestFocus();
-			maybeShowPopup(evt);
+            maybeShowPopup(evt);
 			Point p = evt.getPoint();
 			unzoomPoint(p);
 			PlayPenComponent c = contentPane.getComponentAt(p);
 			if (c != null) p.translate(-c.getX(), -c.getY());
-
-			if (c instanceof Relationship) {
+            
+            if (c instanceof Relationship) {
 
 				Relationship r = (Relationship) c;
 				PlayPen pp = (PlayPen) r.getPlayPen();
@@ -2135,7 +2135,8 @@ public class PlayPen extends JPanel
 
 				// moving pk/fk decoration
 				boolean overPkDec = ((RelationshipUI) r.getUI()).isOverPkDecoration(p);
-				if (overPkDec || ((RelationshipUI) r.getUI()).isOverFkDecoration(p)) {
+                boolean overFkDec = ((RelationshipUI) r.getUI()).isOverFkDecoration(p);
+				if (overPkDec || overFkDec && SwingUtilities.isLeftMouseButton(evt)) {
 					new RelationshipDecorationMover(r, overPkDec);
 				}
 			} else if (c instanceof TablePane) {
@@ -2163,7 +2164,7 @@ public class PlayPen extends JPanel
 
 							if ( (evt.getModifiersEx() &
 									(InputEvent.SHIFT_DOWN_MASK |
-									InputEvent.CTRL_DOWN_MASK)) == 0) {
+									 InputEvent.CTRL_DOWN_MASK)) == 0) {
 
 								if ( !tp.isColumnSelected(clickCol) ){
 									tp.deSelectEverythingElse(evt);
