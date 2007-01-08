@@ -80,7 +80,7 @@
 			<listitem>
 
 				<para>
-					Compare the database structure of any two databases,
+					 Compare the database structure of any two databases,
 					highlighting the structural differences and
 					generating the required DDL to synchronize;
 				</para>
@@ -90,9 +90,9 @@
 			<listitem>
 
 				<para>
-					Compare the Data Model data structures to an
+					 Compare the Data Model data structures to an
 					existing target database; Save a snapshot of all
-					source systems’ data structures in the project file,
+					source systems' data structures in the project file,
 					allowing data warehouse designers to evolve their
 					target data model remotely;
 				</para>
@@ -102,7 +102,7 @@
 			<listitem>
 
 				<para>
-					Forward engineer to Oracle, SQL Server, DB2,
+					 Forward engineer to Oracle, SQL Server, DB2,
 					PostgreSQL and other databases;
 				</para>
 
@@ -149,7 +149,7 @@
 		</para>
 
 		<para>
-			Whether you’re building or maintaining your Data Warehouse
+			Whether you're building or maintaining your Data Warehouse
 			data model, the Power*Architect will provide you a complete
 			view of all required database structures and will expedite
 			every aspect of your data warehouse design.
@@ -181,14 +181,14 @@
 
 			<para>
 				<emphasis>Project</emphasis>
-				– a Power*Architect project consists of a view of
+				- a Power*Architect project consists of a view of
 				multiple databases; you can load and save a Project to
 				work on it at leisure.
 			</para>
 
 			<para>
 				<emphasis>Driver</emphasis>
-				– Most programs need a distinct driver program to
+				- Most programs need a distinct driver program to
 				communicated with each different type of database.
 				Power*Architect uses Java-based drivers, which normally
 				come from the database vendor in the form of "JAR"
@@ -214,7 +214,7 @@
 
 			<para>
 				<emphasis>Playpen</emphasis>
-				– This is the main area of the Power*Architect window,
+				- This is the main area of the Power*Architect window,
 				in which you manipulate tables and relationships. You
 				can play here to your heart&apos;s content, knowing it
 				will not be saved until you ask the program to save.
@@ -415,7 +415,7 @@
 
 			<para>
 				<emphasis>Database Tree</emphasis>
-				– This is where you can add, maintain and explore
+				- This is where you can add, maintain and explore
 				imported connections. It uses a tree-node dropdown
 				method. Therefore to explore inner components, you can
 				expand components within this container as needed.
@@ -423,15 +423,15 @@
 
 			<para>
 				<emphasis>Playpen</emphasis>
-				– This is the main area of the window, in which you
+				- This is the main area of the window, in which you
 				manipulate tables and relationships. You can play here
-				to your heart&apos;s content, knowing it will not be
+				to your heart's content, knowing it will not be
 				saved until you ask the program to save.
 			</para>
 
 			<para>
 				<emphasis>Playpen Components</emphasis>
-				– These are the components that can go into the playpen.
+				- These are the components that can go into the playpen.
 				The playpen components are Tables and Relationships.
 			</para>
 
@@ -1577,9 +1577,9 @@
 				Select the columns and tables that you wish to profile
 				from the database tree on the left hand side of the
 				screen. Then activate the profile feature by either
-				going to the “Profile” menu and selecting “Profile...”,
+				going to the "Profile" menu and selecting "Profile...",
 				or by right clicking on a selected item and select
-				“Profile..” from the context menu, or by selecting the
+				"Profile.." from the context menu, or by selecting the
 				Profile Icon in the Advanced Tool icon bar.
 
 				If there is still an existing Profile window, the new
@@ -1604,17 +1604,17 @@
 					bar on the top right corner of the profile window.
 
 					To delete columns from the profile result, simply
-					select the desired columns and press the “Delete”
+					select the desired columns and press the "Delete"
 					button.
 
 					As for refreshing the data within the profile table,
 					select any one of the columns within the table and
-					hit “Refresh”. This will update the contents of the
+					hit "Refresh". This will update the contents of the
 					whole table.
 
 					If you wish the save the profile results, you can
 					highlight the desired columns to save, and click the
-					“Save” button. If no column is selected, the
+					"Save" button. If no column is selected, the
 					Architect will save all the displayed results. You
 					have the option to save it in CVS, PDF or HTML
 					format.
@@ -1631,7 +1631,7 @@
 				<title>Graph View</title>
 				<para>
 					Besides the tabular view, there is also the
-					graphical view. Simply click on “Graph View” tab on
+					graphical view. Simply click on "Graph View" tab on
 					the top to switch. On the left side of this window,
 					you can select which column you want to profile. In
 					the middle, it will show statistics about that
@@ -1639,8 +1639,8 @@
 					frequent 'n' values and its frequency within the
 					table. The pie chart on the right displays the
 					portionality of the most frequent 'n' values in the
-					column (the value of 'n' can be set in the “Project
-					Settings” under the “File” menu).
+					column (the value of 'n' can be set in the "Project
+					Settings" under the "File" menu).
 				</para>
 				<mediaobject>
 					<imageobject>
