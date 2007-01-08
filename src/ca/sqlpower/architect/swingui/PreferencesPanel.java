@@ -41,9 +41,13 @@ public class PreferencesPanel extends JPanel implements ArchitectPanel {
 
 	protected JRadioButton playPenAntialiasOn;
 	protected JRadioButton playPenAntialiasOff;
-    
+
     protected JRadioButton exceptionReportOn;
     protected JRadioButton exceptionReportOff;
+
+    protected JRadioButton showWelcomeOn;
+    protected JRadioButton showWelcomeOff;
+
 
 	public PreferencesPanel(CoreUserSettings us) {
 		this.us = us;
@@ -77,6 +81,7 @@ public class PreferencesPanel extends JPanel implements ArchitectPanel {
 		etlLogFilePanel.add(etlLogFileButton = new JButton(), BorderLayout.EAST);
 		etlLogFileButton.setAction(new ChooseFileAction(etlLogFileName,ASUtils.LOG_FILE_FILTER,"Browse..."));
 		add(etlLogFilePanel);
+
 		// line 4
 		add(new JLabel("Forward Engineering Log File"));
 		JPanel ddlLogFilePanel = new JPanel();
@@ -85,6 +90,7 @@ public class PreferencesPanel extends JPanel implements ArchitectPanel {
 		ddlLogFilePanel.add(ddlLogFileButton = new JButton(), BorderLayout.EAST);
 		ddlLogFileButton.setAction(new ChooseFileAction(ddlLogFileName,ASUtils.LOG_FILE_FILTER,"Browse..."));
 		add(ddlLogFilePanel);
+
 		// line 5
 		add(new JLabel("Antialiased Rendering in PlayPen"));
 		JPanel playPenAntialiasPanel = new JPanel();
@@ -95,16 +101,27 @@ public class PreferencesPanel extends JPanel implements ArchitectPanel {
 		playPenAntialiasPanel.add(playPenAntialiasOn);
 		playPenAntialiasPanel.add(playPenAntialiasOff);
 		add(playPenAntialiasPanel);
+
         //line 6
         add(new JLabel("Error Reporting"));
-        JPanel exeptionReportPanel = new JPanel();
-        exeptionReportPanel.setLayout(new FlowLayout());
-        ButtonGroup exeptionReportGroup = new ButtonGroup();
-        exeptionReportGroup.add(exceptionReportOn = new JRadioButton("On"));
-        exeptionReportGroup.add(exceptionReportOff = new JRadioButton("Off"));
-        exeptionReportPanel.add(exceptionReportOn);
-        exeptionReportPanel.add(exceptionReportOff);
-        add(exeptionReportPanel);
+        JPanel exceptionReportPanel = new JPanel();
+        exceptionReportPanel.setLayout(new FlowLayout());
+        ButtonGroup exceptionReportGroup = new ButtonGroup();
+        exceptionReportGroup.add(exceptionReportOn = new JRadioButton("On"));
+        exceptionReportGroup.add(exceptionReportOff = new JRadioButton("Off"));
+        exceptionReportPanel.add(exceptionReportOn);
+        exceptionReportPanel.add(exceptionReportOff);
+        add(exceptionReportPanel);
+        //line 7
+        add(new JLabel("Show Welcome Screen"));
+        JPanel showWelcomePanel = new JPanel();
+        showWelcomePanel.setLayout(new FlowLayout());
+        ButtonGroup showWelcomeGroup = new ButtonGroup();
+        showWelcomeGroup.add(showWelcomeOn = new JRadioButton("Yes"));
+        showWelcomeGroup.add(showWelcomeOff = new JRadioButton("No"));
+        showWelcomePanel.add(showWelcomeOn);
+        showWelcomePanel.add(showWelcomeOff);
+        add(showWelcomePanel);
 	}
 
 	protected void revertToUserSettings() {
@@ -117,6 +134,11 @@ public class PreferencesPanel extends JPanel implements ArchitectPanel {
 		} else {
 		    playPenAntialiasOff.setSelected(true);
 		}
+        if (us.getSwingSettings().getBoolean(SwingUserSettings.SHOW_WELCOMESCREEN, true)) {
+            showWelcomeOn.setSelected(true);
+        } else {
+            showWelcomeOff.setSelected(true);
+        }
         if (us.getQfaUserSettings().getBoolean(QFAUserSettings.EXCEPTION_REPORTING, true)) {
             exceptionReportOn.setSelected(true);
         } else {
@@ -130,6 +152,7 @@ public class PreferencesPanel extends JPanel implements ArchitectPanel {
 		us.getETLUserSettings().setString(ETLUserSettings.PROP_ETL_LOG_PATH,etlLogFileName.getText());
 		us.getDDLUserSettings().setString(DDLUserSettings.PROP_DDL_LOG_PATH,ddlLogFileName.getText());
 		us.getSwingSettings().setBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, playPenAntialiasOn.isSelected());
+        us.getSwingSettings().setBoolean(SwingUserSettings.SHOW_WELCOMESCREEN, showWelcomeOn.isSelected());
         us.getQfaUserSettings().setBoolean(QFAUserSettings.EXCEPTION_REPORTING, exceptionReportOn.isSelected());
 		ArchitectFrame.getMainInstance().getProject().getPlayPen().setRenderingAntialiased(playPenAntialiasOn.isSelected());
 		return true;
@@ -140,7 +163,7 @@ public class PreferencesPanel extends JPanel implements ArchitectPanel {
 	}
 
 	// generic action for browse buttons
-	protected class ChooseFileAction extends AbstractAction {		
+	protected class ChooseFileAction extends AbstractAction {
 		JTextField fileName;
 		FileFilter filter;
 		public ChooseFileAction(JTextField fileName, FileFilter filter, String buttonText) {
@@ -155,7 +178,7 @@ public class PreferencesPanel extends JPanel implements ArchitectPanel {
 				if (initialLocation.exists()) {
 					fc.setCurrentDirectory(initialLocation);
 				}
-			}			
+			}
 			fc.addChoosableFileFilter(filter);
 			int returnVal = fc.showOpenDialog(PreferencesPanel.this);
 			if(returnVal == JFileChooser.APPROVE_OPTION) {

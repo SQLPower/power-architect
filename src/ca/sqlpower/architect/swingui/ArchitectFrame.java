@@ -28,6 +28,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -95,7 +96,6 @@ import ca.sqlpower.architect.undo.UndoManager;
 import com.darwinsys.util.PrefsUtils;
 import com.jgoodies.forms.builder.ButtonBarBuilder;
 import com.jgoodies.forms.factories.Borders;
-import com.jgoodies.forms.factories.ButtonBarFactory;
 
 /**
  * The Main Window for the Architect Application; contains a main() method that is
@@ -524,7 +524,7 @@ public class ArchitectFrame extends JFrame {
 
                     final JFrame f = new JFrame("Mapping Report");
                     f.setIconImage(ASUtils.getFrameIconImage());
-                    
+
                     // You call this a radar?? -- No sir, we call it Mr. Panel.
                     JPanel mrPanel = new JPanel() {
                         protected void paintComponent(java.awt.Graphics g) {
@@ -687,10 +687,10 @@ public class ArchitectFrame extends JFrame {
 		toolsMenu.add(exportDDLAction);
 		toolsMenu.add(compareDMAction);
         toolsMenu.add(new SQLRunnerAction(ArchitectFrame.getMainInstance()));
-        
+
         // disabled for 0.9.0 release (still has too many bugs to work out)
 //        toolsMenu.add(dataMoverAction);
-        
+
 		menuBar.add(toolsMenu);
 
         JMenu profileMenu = new JMenu("Profile");
@@ -781,6 +781,8 @@ public class ArchitectFrame extends JFrame {
 		bounds.height = prefs.getInt(SwingUserSettings.MAIN_FRAME_HEIGHT, 440);
 		setBounds(bounds);
 		addWindowListener(afWindowListener = new ArchitectFrameWindowListener());
+        getUserSettings().getSwingSettings().setBoolean(SwingUserSettings.SHOW_WELCOMESCREEN,
+            prefs.getBoolean(SwingUserSettings.SHOW_WELCOMESCREEN, true));
 
 		setProject(new SwingUIProject("New Project"), true);
 	}
@@ -799,21 +801,32 @@ public class ArchitectFrame extends JFrame {
 		splitPane.setLeftComponent(new JScrollPane(dbTree));
 		splitPane.setRightComponent(new JScrollPane(playpen));
 
-        if (showWelcome) {
+        final JCheckBox showPrefsAgain;
+        if (showWelcome &&
+                getUserSettings().getSwingSettings().getBoolean(SwingUserSettings.SHOW_WELCOMESCREEN, true)) {
             JComponent welcomePanel = WelcomeScreen.getPanel();
             final JDialog d = new JDialog(this, "Welcome to the Power*Architect");
             d.setLayout(new BorderLayout(12, 12));
             ((JComponent) d.getContentPane()).setBorder(Borders.DIALOG_BORDER);
-            
+
+            showPrefsAgain = new JCheckBox("Show this Welcome Screen in future");
+            showPrefsAgain.setSelected(true);
+
             JButton closeButton = new JButton("Close");
             closeButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
+                    getUserSettings().getSwingSettings().setBoolean(SwingUserSettings.SHOW_WELCOMESCREEN,
+                        showPrefsAgain.isSelected());
                     d.dispose();
                 }
             });
-            
+
             d.add(welcomePanel, BorderLayout.CENTER);
-            d.add(ButtonBarFactory.buildCloseBar(closeButton), BorderLayout.SOUTH);
+            JPanel bottomPanel = new JPanel();
+            bottomPanel.setLayout(new BorderLayout());
+            bottomPanel.add(showPrefsAgain, BorderLayout.WEST);
+            bottomPanel.add(closeButton, BorderLayout.EAST);
+            d.add(bottomPanel, BorderLayout.SOUTH);
             d.getRootPane().setDefaultButton(closeButton);
             d.pack();
             d.setLocationRelativeTo(this);
@@ -1012,15 +1025,22 @@ public class ArchitectFrame extends JFrame {
 	public void saveSettings() throws ArchitectException {
 		if (configFile == null) configFile = ConfigFile.getDefaultInstance();
 
+        CoreUserSettings us = getUserSettings();
+
+        /** These are saved directly in java.util.Preferences.
+         * XXX Eventually we should save almost everything there, except
+         * the PL.INI contents that must be shared with other non-Java programs.
+         */
 		prefs.putInt(SwingUserSettings.DIVIDER_LOCATION, splitPane.getDividerLocation());
 		prefs.putInt(SwingUserSettings.MAIN_FRAME_X, getLocation().x);
 		prefs.putInt(SwingUserSettings.MAIN_FRAME_Y, getLocation().y);
 		prefs.putInt(SwingUserSettings.MAIN_FRAME_WIDTH, getWidth());
 		prefs.putInt(SwingUserSettings.MAIN_FRAME_HEIGHT, getHeight());
+        prefs.putBoolean(SwingUserSettings.SHOW_WELCOMESCREEN,
+                us.getSwingSettings().getBoolean(SwingUserSettings.SHOW_WELCOMESCREEN, true));
 
 		configFile.write(getArchitectSession());
 
-		CoreUserSettings us = getUserSettings();
 		try {
             us.getPlDotIni().write(new File(us.getPlDotIniPath()));
         } catch (IOException e) {

@@ -2,6 +2,9 @@ package ca.sqlpower.architect.swingui;
 
 import ca.sqlpower.architect.AbstractUserSetting;
 
+/**
+ * These are constantized Strings used in Preferences
+ */
 public class SwingUserSettings extends AbstractUserSetting {
 
 	public static final String DIVIDER_LOCATION
@@ -24,6 +27,9 @@ public class SwingUserSettings extends AbstractUserSetting {
 
     public static final String PLAYPEN_RENDER_ANTIALIASED
     		= "SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED";
+
+    public static final String SHOW_WELCOMESCREEN
+            = "SwingUserSettings.SHOW_WELCOMESCREEN";
 
     public static final String LAST_LOGIN_DATA_SOURCE
             = "last.login.data.source";
