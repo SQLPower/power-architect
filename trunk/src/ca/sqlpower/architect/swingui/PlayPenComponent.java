@@ -74,9 +74,10 @@ public abstract class PlayPenComponent implements Selectable {
 	 * corner) to show it at.
 	 */
 	public void showPopup(JPopupMenu menu, Point p) {
+        final int xAdjust = 5;  // ensure menu doesn't appear directly under pointer
 		p.translate(getX(), getY());
 		getPlayPen().zoomPoint(p);
-		menu.show(getPlayPen(), p.x, p.y);
+		menu.show(getPlayPen(), p.x + xAdjust, p.y);
 	}
 	
 	/**
