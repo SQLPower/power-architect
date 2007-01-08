@@ -2328,7 +2328,7 @@ public class PlayPen extends JPanel
 					PlayPen pp = tp.getPlayPen();
 
 					try {
-						// tp.selectNone(); // single column selection model for now
+						tp.selectNone(); // single column selection model for now
 						int idx = tp.pointToColumnIndex(p);
 						if (idx >= 0) {
 							tp.selectColumn(idx);
