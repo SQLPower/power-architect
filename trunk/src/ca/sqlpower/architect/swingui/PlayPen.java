@@ -99,6 +99,9 @@ import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 
 
+/**
+ * The PlayPen is the main GUI component of the SQL*Power Architect.
+ */
 public class PlayPen extends JPanel
 	implements java.io.Serializable, SQLObjectListener, SelectionListener, Scrollable {
 
@@ -2108,7 +2111,7 @@ public class PlayPen extends JPanel
 			unzoomPoint(p);
 			PlayPenComponent c = contentPane.getComponentAt(p);
 			if (c != null) p.translate(-c.getX(), -c.getY());
-            
+
             if (c instanceof Relationship) {
 
 				Relationship r = (Relationship) c;
