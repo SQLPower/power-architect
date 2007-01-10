@@ -253,6 +253,7 @@
     		<copy todir="${staging.dir}/doc">
     	    	<fileset dir="${build}/doc" includes="*.txt"/>
     	    </copy>
+    	    <copy tofile="${staging.dir}/LICENSE" file="Architect License.txt"/>
     		<!-- No point in signing until we have a certificate that's signed by a CA
     	    <signjar alias="sqlpower" keystore="keystore" storepass="low_security" keypass="low_security">
     	        <fileset dir="webstart/lib"/>
@@ -314,7 +315,7 @@
 				<include name="ca/sqlpower/**" />
 				<exclude name="regress/**"/>
 			</packageset>
-			<bottom><![CDATA[<i>Copyright &#169; 2003-2006 SQL Power Group Inc. <a href="http://www.sqlpower.ca/">www.sqlpower.ca</a>]]></bottom>
+			<bottom><![CDATA[<i>Copyright &#169; 2003-2007 SQL Power Group Inc. <a href="http://www.sqlpower.ca/">www.sqlpower.ca</a>]]></bottom>
 		</javadoc>
 		<copy file="html/index.html" todir="${build}/docs"/>
 
@@ -500,6 +501,7 @@
     <target name="generic_install" depends="stage">
 		<tar destfile="${deploy.dir}/Architect-generic-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.tar.gz"
 			compression="gzip">
+			<tarfileset dir="${staging.dir}" includes="LICENSE"/>
 			<tarfileset dir="${staging.dir}" includes="lib/*.jar"/>
 			<tarfileset dir="${staging.dir}" includes="architect.jar"/>
 			<tarfileset dir="${staging.dir}/doc" includes="*.pdf"/>
@@ -507,10 +509,11 @@
 		</tar>
     </target>
 
-	<target name="dist" depends="windows_installer,generic_install,osx_tgz,osx_dmg"><!-- ,osx_dmg -->
+	<target name="dist" depends="windows_installer,generic_install,osx_tgz,osx_dmg">
 		<echo>Don't forget to turn off all the debugging in log4j.properties!</echo>
-	    <copy tofile="${deploy.dir}/index.html" file="html/SQL Power - PowerArchitect.html"/>
+	    <get dest="${deploy.dir}/index.html" src="http://www.sqlpower.ca/page/architect_download_template"/>
 		<replace file="${deploy.dir}/index.html">
+			<replacefilter token="&lt;head&gt;" value="&lt;head&gt;&lt;base href=&quot;http://www.sqlpower.ca/&quot;/&gt;"/>
 			<replacefilter token="@@app_ver_major" value="${app_ver_major}"/>
 			<replacefilter token="@@app_var_minor" value="${app_ver_minor}"/>
 			<replacefilter token="@@app_ver_tiny" value="${app_ver_tiny}"/>
