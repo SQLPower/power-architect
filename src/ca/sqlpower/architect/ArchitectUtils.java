@@ -27,7 +27,7 @@ public class ArchitectUtils {
 	private static final Logger logger = Logger.getLogger(ArchitectUtils.class);
     public static final String APP_VERSION_MAJOR = "0";
     public static final String APP_VERSION_MINOR = "9";
-    public static final String APP_VERSION_TINY  = "0";
+    public static final String APP_VERSION_TINY  = "1";
     public static final String APP_VERSION = APP_VERSION_MAJOR+"."+
                                             APP_VERSION_MINOR+"." +
                                             APP_VERSION_TINY;
