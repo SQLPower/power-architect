@@ -137,8 +137,9 @@
 		</replace>
 
 		<!-- Add the Favorites/Bookmarks views into the JavaHelp Config -->
-		<replace file="${build}/help/jhelpset.hs" token="&lt;/helpset>"
-			value="&lt;view>&lt;name>favorites&lt;/name>&lt;label>Favorites&lt;/label>&lt;type>javax.help.FavoritesView&lt;/type>&lt;/view>&lt;/helpset>"/>
+		<replace file="${build}/help/jhelpset.hs"
+			token="jhelpidx.xml&lt;/data>&lt;/view>&lt;/helpset>"
+			value="jhelpidx.xml&lt;/data>&lt;/view>&lt;view>&lt;name>favorites&lt;/name>&lt;label>Favorites&lt;/label>&lt;type>javax.help.FavoritesView&lt;/type>&lt;/view>&lt;/helpset>"/>
 
 		<!-- Copy the images and icons; the DocBook files have
 			these horrid "src/" and "doc/" paths prepended
