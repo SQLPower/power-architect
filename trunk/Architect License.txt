@@ -1,0 +1,53 @@
+Power*Architect Product License
+Version 1.0
+
+The Power*Architect is Copyright 2007 SQL Power Group Inc.
+
+0. Definitions
+
+	Architect, The Architect, Power*Architect: A software productivity tool for database design and analysis.  This is the software product covered by this license.
+
+	You, Your: Any user of the Power*Architect
+
+	Us, We, Our: SQL Power Group Inc., the Canadian Corporation who developed the Power*Architect and owns the rights to it.
+
+
+1. When you can use the Architect for free
+
+	a. Personal use
+
+		You may use the Architect free of charge for personal projects.  A personal project is any project not related to a job or venture for which you earn income. 
+
+	b. Educational use
+
+		You may use the Architect free of charge in the course of studies at any accredited public or private educational institution.  If you are a teacher, professor, instructor, or tutor, you may use the Architect for free as a teaching aid or to aid in the development of course material.
+
+	c. Trial or Proof-of-concept
+
+		You may use the Architect free of charge in order to evaluate its usefulness in situations not covered by the above sections.  Once your use of the Architect begins to support real production activities, you must purchase a license from us.  Your trial or proof-of-concept phase must not exceed 90 days.
+
+
+2. When you have to pay to use the Architect
+
+	1. Use in a production setting
+
+		If you use the Architect at your place of work or in carrying out your job, and none of the free use provisions apply to you, then you must purchase a license from us in order to use the product.
+
+	2. When you want professional-level support
+
+		Notwithstanding the free use provisions in Section 1, if you wish to receive professional-level support from us for your use of the Architect, you must purchase a license from us and pay a recurring annual maintenance fee.
+
+
+3. Redistribution
+
+	You may redistribute unmodified copies of the official Architect downloads which are freely available on our web site.  You may not charge a fee for this redistribution, and this license will still apply to everyone to whom you distribute the package.  You must not alter this license, and you must not impose additional or modified licensing terms on the redistributed Architect copies.  If you choose to redistribute the Architect in this manner, please make an effort to provide the newest available release.
+
+
+4. No Warranty
+
+	The Architect comes with no warranty, and you use it at your own risk.  Although we do our best to provide a useful, stable, secure product, we will not be held accountable for any loss or damage you suffer as a result of your use of the Architect.  We do not promise to release bug fixes, security patches, or new versions of the Architect, but we will normally try to do so when the need arises.
+
+
+5. Limitation of Liability
+
+	We accept no liability for your use of the Architect.  In case we must legally accept some liability for your use of the Architect, we accept the absolute minimum liability required by law.
