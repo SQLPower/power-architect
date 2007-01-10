@@ -23,9 +23,9 @@ import ca.sqlpower.architect.BrowserUtil;
  * Creates a JPanel that is the Welcome Screen, for adding to the main window.
  */
 public class WelcomeScreen {
-    
+
     private static final Logger logger = Logger.getLogger(WelcomeScreen.class);
-    
+
     /**
      * The contents of the Welcome Screen text.
      */
@@ -36,7 +36,7 @@ public class WelcomeScreen {
         "<br><br><br>" +
         "<p>&nbsp;&nbsp;Please visit our <a href=\"" + ArchitectFrame.FORUM_URL + "\">support forum</a>" +
         "   if you have any questions, comments, suggestions, or if you just need a friend." +
-        "<br><br>" + 
+        "<br><br>" +
         "<p>&nbsp;&nbsp;Check out the JDBC drivers section under <i>How to Use Power*Architect</i> in the " +
         "help for configuring JDBC drivers." +
         "<br>" +
@@ -47,9 +47,11 @@ public class WelcomeScreen {
      */
     public static JComponent getPanel() {
         Box b = Box.createVerticalBox();
-        
+
         JPanel iconPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         iconPanel.setBorder(BorderFactory.createEmptyBorder(25, 0, 25, 0));
+
+        iconPanel.add(new JLabel(ASUtils.createIcon("sqlpower_transparent", "Large SQL*Power Logo")));
         iconPanel.add(new JLabel(ASUtils.createIcon("architect", "Large Architect Logo")));
         b.add(iconPanel);
 
@@ -76,7 +78,7 @@ public class WelcomeScreen {
             }
         });
         b.add(htmlComponent);
-        
+
         return b;
     }
 }
