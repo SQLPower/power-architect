@@ -12,10 +12,10 @@
 	<!-- The staging directory is a temp dir that is used as a base for all the distributions -->
 	<property name="staging.dir" value="staging" />
 	<property name="izpack.dir" value="IzPack"/>
-		
+
 	<taskdef name="izpack" classpath="${izpack.dir}/lib/compiler.jar" classname="com.izforge.izpack.ant.IzPackTask"/>
 	<taskdef name="jarbundler" classpath="osx_packaging_utils/jarbundler.jar:osx_packaging_utils/xercesImpl.jar:osx_packaging_utils/xml-apis.jar" classname="net.sourceforge.jarbundler.JarBundler"/>
-	
+
 	<condition property="isMac">
 		<os family="mac"/>
 	</condition>
@@ -25,12 +25,12 @@
 			<os family="mac"/>
 		</not>
 	</condition>
-	
+
 	<target name="init">
 		<tstamp/>
 		<mkdir dir="${build}"/>
 		<javac srcdir="${src}" destdir="${build}" classpathref="compile.classpath" includes="ca/sqlpower/architect/ArchitectVersion.java" debug="true" deprecation="true">
-			
+
 		</javac>
 		<taskdef name="genVersion"
 					classname="ca.sqlpower.architect.ArchitectVersion"
@@ -39,7 +39,7 @@
 		<echo message="Building Architect version: ${app_ver_major}.${app_ver_minor}.${app_ver_tiny}"> </echo>
 		<property name="deploy.dir" value="deploy/architect-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}"/>
 		<mkdir dir="${deploy.dir}"/>
-		
+
 	</target>
 
 	<target name="compile" depends="init,copyicons,copylog4jprops">
@@ -55,7 +55,7 @@
         <copy todir="${build}/icons">
 			<fileset dir="src/icons">
 				<include name="*.gif"/>
-				<include name="*.png"/>				
+				<include name="*.png"/>
 			</fileset>
 		</copy>
     </target>
@@ -68,7 +68,7 @@
     	        file="src/log4j.properties.example"/>
     </target>
 
-	<!-- DOCUMENTATION 
+	<!-- DOCUMENTATION
 		There are THREE main documentation targets, all built from the
 		docbook XML file docs/PowerArchitectUsersGuide:
 			help - JavaHelp (jarred and shipped)
@@ -82,14 +82,14 @@
 			<include name="*.jar"/>
 		</fileset>
 	</path>
-	
+
 	<target name="userguide" depends="help,html,pdf" description="Create user guide in HTML and PDF">
 	</target>
-	
+
 	<!-- Create an intermediate docbook document - for use both by help and html -
-	with no width attributes on the images (the Swing HTML browser chokes 
-	when there is width but no height in an image tag) 
-	-->	
+	with no width attributes on the images (the Swing HTML browser chokes
+	when there is width but no height in an image tag)
+	-->
 	<target name="xslt-stripwidths">
 		<xslt
 			style="doc/tools/strip-width.xsl"
@@ -98,8 +98,12 @@
 			classpathref="docbookclasspath">
 		</xslt>
 	</target>
-	
-	<!-- Build the Help (JavaHelp, HTML-based format) -->
+
+	<!-- Build the Help (JavaHelp, HTML-based format).
+	 ** Note that at this time you must NOT have spaces in your
+	 ** path (e.g., an Eclipse Workspace under "Documents and Settings"
+	 ** will fail out because it changes spaces in filenames to %20.
+	 -->
 	<target name="help" depends="xslt-stripwidths" description="Create JavaHelp">
 		<delete dir="${build}/help"/>
 		<mkdir dir="${build}/help"/>
@@ -111,16 +115,16 @@
 		</xslt>
 		<!-- Seemed to need to give dest/file (help/zzz) in above, clean up -->
 		<delete file="${build}/help/zzz"/>
-		
+
 		<!-- Index it I: limited-terms index: created manually, just copy it,
 		 *** overwriting empty one that DocBook Javahelp made.
 		 -->
 		<copy file="doc/jhelpidx.xml" todir="${build}/help" overwrite="true"/>
-		
+
 		<!-- Index it II: full text search -->
 		<!-- DO NOT USE as it seems to have a built-in assumption
 		 *** that the help is all in one file.
-		<java classname="com.sun.java.help.search.Indexer" 
+		<java classname="com.sun.java.help.search.Indexer"
 			classpath="lib/jhall.jar"
 			fork="true" failonerror="true">
 			<arg value="${build}/help"/>
@@ -134,58 +138,58 @@
 		<replace file="${build}/help/jhelpset.hs" value="">
 			<replacetoken><![CDATA[<view><name>Search</name><label>Search</label><type>javax.help.SearchView</type><data engine="com.sun.java.help.search.DefaultSearchEngine">JavaHelpSearch</data></view>]]></replacetoken>
 		</replace>
-		
+
 		<!-- Add the Favorites/Bookmarks views into the JavaHelp Config -->
 		<replace file="${build}/help/jhelpset.hs" token="&lt;/helpset>"
 			value="&lt;view>&lt;name>favorites&lt;/name>&lt;label>Favorites&lt;/label>&lt;type>javax.help.FavoritesView&lt;/type>&lt;/view>&lt;/helpset>"/>
 
 		<!-- Copy the images and icons; the DocBook files have
 			these horrid "src/" and "doc/" paths prepended
-			so we have to preserve these here -->			
-		<mkdir dir="${build}/help/doc/images"/>		
+			so we have to preserve these here -->
+		<mkdir dir="${build}/help/doc/images"/>
 		<copy todir="${build}/help/doc/images" overwrite="true">
 			<fileset dir="doc/images">
 				<include name="*.png"/>
 			</fileset>
 		</copy>
-		
+
 		<mkdir dir="${build}/help/src/icons"/>
 		<copy todir="${build}/help/src/icons" overwrite="true">
 			<fileset dir="src/icons">
 				<include name="*.gif"/>
-				<include name="*.png"/>				
+				<include name="*.png"/>
 			</fileset>
 		</copy>
-		
+
 		<!-- Jar the whole mess up and add to working classpath -->
 		<jar file="lib/architecthelp.jar" basedir="${build}/help" update="false">
 		</jar>
 	</target>
-	
+
 	<!-- Build the HTML -->
 	<target name="html" depends="xslt-stripwidths" description="Create user guide in HTML">
 		<mkdir dir="${build}/ca/sqlpower/architect/doc/" />
-		
+
 		<xslt
 			style="doc/tools/xslt/html/chunk.xsl"
 			in="${java.io.tmpdir}/PowerArchitectUserGuide-nowidth.xml"
 			out="${build}/ca/sqlpower/architect/doc/PowerArchitectUserGuide.html"
 			classpathref="docbookclasspath">
 		</xslt>
-		
+
 		<!-- Warning: This is an extremely evil hack to get the product out the door!
 		              See bugzilla 1195 for details -->
-		<mkdir dir="${build}/ca/sqlpower/architect/doc/doc/images" />		
+		<mkdir dir="${build}/ca/sqlpower/architect/doc/doc/images" />
 		<copy todir="${build}/ca/sqlpower/architect/doc/doc/images" overwrite="true">
 			<fileset dir="doc/images">
 				<include name="*.png"/>
 			</fileset>
 		</copy>
-		<mkdir dir="${build}/ca/sqlpower/architect/doc/src/icons" />		
+		<mkdir dir="${build}/ca/sqlpower/architect/doc/src/icons" />
 		<copy todir="${build}/ca/sqlpower/architect/doc/src/icons" overwrite="true">
 			<fileset dir="src/icons">
 				<include name="*.gif"/>
-				<include name="*.png"/>				
+				<include name="*.png"/>
 			</fileset>
 		</copy>
 	</target>
@@ -193,9 +197,9 @@
 	<!-- Convert User Manual from XML to FO -->
 	<target name="fo" depends="init" description="Create user guide in XML Formatting Objects">
 		<mkdir dir="${build}/doc/" />
-        <xslt 
+        <xslt
 			style="doc/tools/xslt/fo/docbook.xsl"
-			in="doc/PowerArchitectUserGuide.xml" 
+			in="doc/PowerArchitectUserGuide.xml"
 			out="${build}/doc/PowerArchitectUserGuide.fo"
 			classpathref="docbookclasspath">
 		</xslt>
@@ -219,21 +223,21 @@
 		</fop>
 
     </target>
-	
+
     <!-- Creates a WebStart distribution under the webstart/ directory -->
 	<target name="webstart_dist" depends="stage">
         <mkdir dir="webstart/lib"/>
 		<jar destfile="webstart/lib/architect.jar" update="no"
-			basedir="${build}" includes="ca/** icons/** log4j.properties" 
+			basedir="${build}" includes="ca/** icons/** log4j.properties"
 			manifest="manifest">
 		</jar>
         <copy todir="webstart/">
             <fileset dir="lib" includes="*.jar"/>
         </copy>
-		
+
 	</target>
 
-    <!-- Copy the main Jar file, and dependent libs, to the deploy dir. 
+    <!-- Copy the main Jar file, and dependent libs, to the deploy dir.
      -->
     <target name="stage" depends="compile,userguide">
     		<mkdir dir="${deploy.dir}" />
@@ -241,7 +245,7 @@
         <mkdir dir="${staging.dir}/lib"/>
     	<mkdir dir="${staging.dir}/doc"/>
     		<jar destfile="${staging.dir}/architect.jar" update="no"
-    				basedir="${build}" includes="ca/** icons/** log4j.properties" 
+    				basedir="${build}" includes="ca/** icons/** log4j.properties"
     				manifest="manifest">
     		</jar>
     	    <copy todir="${staging.dir}/lib">
@@ -273,7 +277,7 @@
 		<delete dir="${staging.dir}"/>
 		<delete dir="${deploy.dir}" />
 	</target>
-	
+
 	<target name="dist-clean" depends="clean">
 		<delete >
 			<fileset dir="deploy" excludes="CVS/">
@@ -304,7 +308,7 @@
 		<mkdir dir="${build}/docs/api"/>
 		<javadoc sourcepath="${src}" destdir="${build}/docs/api"
 			packagenames="ca.sqlpower.*"
-			maxmemory="100m" 
+			maxmemory="100m"
 			windowtitle="ca.sqlpower.architect.* Power*Architect"
 			Version="true" Author="true" Use="true"
 			Overview="html/overview.html"
@@ -319,14 +323,14 @@
 		<copy file="html/index.html" todir="${build}/docs"/>
 
 	</target>
-	
-	
+
+
 	<target name="windows_installer" depends="stage">
 		<izpack output="${deploy.dir}/Architect-Setup-Windows-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.jar"
 		        installerType="standard"
 			    basedir="${installer.dir}"
 		        izPackDir="${izpack.dir}/">
-		
+
 		<config><![CDATA[
 			<installation version="1.0">
 				<!-- comment -->
@@ -341,7 +345,7 @@
 						<os family="unix"/>
 					</laf>
 				</guiprefs>
-				
+
 				<locale>
 					<langpack iso3="eng"/>
 				</locale>
@@ -394,7 +398,7 @@
 				</packs>
 				<native type="izpack" name="ShellLink.dll"/>
 			</installation>
-			]]>		
+			]]>
 		</config>
 		</izpack>
 	</target>
@@ -409,12 +413,12 @@
 			 basedir="${build}"
 			 includes="ca/sqlpower/architect/swingui/OSXAdapter.class"/>
 	</target>
-	
+
 	<target name="osx_dist" depends="stage">
-		
+
 		<!-- The pre-compiled osx adapter class (it only compiles on OS X) -->
 		<copy file="osx_packaging_utils/osx_adapter.jar" todir="${staging.dir}/lib"/>
-		
+
 		<!-- jarbundler is from sourceforge, defined near top of file -->
 		<jarbundler dir="${staging.dir}"
            name="Power Architect"
@@ -429,7 +433,7 @@
 			<jarfileset dir="${staging.dir}" includes="architect.jar"/>
 		</jarbundler>
 	</target>
-	
+
 	<!-- This target will only work on OS X (it needs the hdiutil command) -->
 
 	<target name="osx_dmg" depends="osx_dist" if="isMac">
@@ -471,16 +475,16 @@
 			<arg value="${deploy.dir}/Architect-OSX-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.dmg"/>
 		</exec>
 	</target>
-	
+
 	<target name="osx_tgz" depends="osx_dist" if="isNotMac">
 		<tar destfile="${deploy.dir}/Architect-OSX-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.tar.gz"
 					compression="gzip">
 			<tarfileset dir="${staging.dir}" includes="Power Architect.app/**"/>
 			<tarfileset dir="${staging.dir}/doc" includes="*.pdf"/>
 			<tarfileset dir="${staging.dir}/doc" includes="*.txt"/>
-		</tar>	
+		</tar>
 	</target>
-	
+
 	<!-- Build a "generic" (e.g., UNIX) install that users will just un-tar -->
     <target name="generic_install" depends="stage">
 		<tar destfile="${deploy.dir}/Architect-generic-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.tar.gz"
@@ -491,14 +495,14 @@
 			<tarfileset dir="${staging.dir}/doc" includes="*.txt"/>
 		</tar>
     </target>
-	
+
 	<target name="dist" depends="windows_installer,generic_install,osx_tgz,osx_dmg"><!-- ,osx_dmg -->
 		<echo>Don't forget to turn off all the debugging in log4j.properties!</echo>
 	    <copy tofile="${deploy.dir}/index.html" file="html/SQL Power - PowerArchitect.html"/>
 		<replace file="${deploy.dir}/index.html">
 			<replacefilter token="@@app_ver_major" value="${app_ver_major}"/>
 			<replacefilter token="@@app_var_minor" value="${app_ver_minor}"/>
-			<replacefilter token="@@app_ver_tiny" value="${app_ver_tiny}"/>		
+			<replacefilter token="@@app_ver_tiny" value="${app_ver_tiny}"/>
 		</replace>
 		<echo>Did you forget to turn off all the debugging in log4j.properties?!</echo>
 	</target>
