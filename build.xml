@@ -482,7 +482,7 @@
 		<addLicenseToDMG
 				dmgFile="${deploy.dir}/Architect-OSX-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.dmg"
                 licenseFile="Architect License.txt"
-		        resourceTemplateFile="osx_packaging_utils/sla_template.r" debug="true"/>
+		        resourceTemplateFile="osx_packaging_utils/sla_template.r"/>
             
     </target>
 
