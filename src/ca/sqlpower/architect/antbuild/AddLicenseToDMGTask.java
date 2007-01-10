@@ -133,12 +133,13 @@ public class AddLicenseToDMGTask extends Task {
      * is on.
      */
     private void execv(String ... args) throws IOException {
+        StringBuilder command = new StringBuilder();
+        for (String arg : args) {
+            command.append(" \"").append(arg).append("\"");
+        }
+        
         if (debug) {
-            System.out.print("Executing:");
-            for (String arg : args) {
-                System.out.print(" \""+arg+"\"");
-            }
-            System.out.println();
+            System.out.println("Executing:"+command);
         }
         long startTime = System.currentTimeMillis();
         Process proc = Runtime.getRuntime().exec(args);
@@ -152,13 +153,16 @@ public class AddLicenseToDMGTask extends Task {
             long finshTime = System.currentTimeMillis();
             System.out.println("Completed in "+(finshTime-startTime)+"ms with exit code "+exitVal);
         }
+        if (exitVal != 0) {
+            throw new RuntimeException("Command failed with exit code "+exitVal+":"+command);
+        }
     }
     
     /**
      * Appends the currently-configured license text file to the given
      * file (which should be a fresh copy of the resource template file).
      * The file contents will be appended to the outFile in the "Rez" style
-     * resource entry format.
+     * resource entry format (basically a hex dump).
      */
     private void appendLicenseToTemplate(File outFile) throws IOException {
         PrintWriter out = new PrintWriter(new FileWriter(outFile, true));
