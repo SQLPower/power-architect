@@ -105,7 +105,6 @@
 	 ** will fail out because it changes spaces in filenames to %20.
 	 -->
 	<target name="help" depends="xslt-stripwidths" description="Create JavaHelp">
-		<delete dir="${build}/help"/>
 		<mkdir dir="${build}/help"/>
 		<xslt
 			style="doc/tools/xslt/javahelp/javahelp.xsl"
@@ -113,8 +112,6 @@
 			out="${build}/help/zzz"
 			classpathref="docbookclasspath">
 		</xslt>
-		<!-- Seemed to need to give dest/file (help/zzz) in above, clean up -->
-		<delete file="${build}/help/zzz"/>
 
 		<!-- Index it I: limited-terms index: created manually, just copy it,
 		 *** overwriting empty one that DocBook Javahelp made.
