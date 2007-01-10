@@ -29,9 +29,7 @@
 	<target name="init">
 		<tstamp/>
 		<mkdir dir="${build}"/>
-		<javac srcdir="${src}" destdir="${build}" classpathref="compile.classpath" includes="ca/sqlpower/architect/ArchitectVersion.java" debug="true" deprecation="true">
-
-		</javac>
+		<javac srcdir="${src}" destdir="${build}" classpathref="compile.classpath" includes="ca/sqlpower/architect/ArchitectVersion.java" debug="true" deprecation="true" />
 		<taskdef name="genVersion"
 					classname="ca.sqlpower.architect.ArchitectVersion"
 			        classpath="build"/>
@@ -477,7 +475,17 @@
 			<arg value="-o"/>
 			<arg value="${deploy.dir}/Architect-OSX-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.dmg"/>
 		</exec>
-	</target>
+		
+		<taskdef name="addLicenseToDMG"
+				 classname="ca.sqlpower.architect.antbuild.AddLicenseToDMGTask"
+			     classpath="build"/>
+		<addLicenseToDMG
+				dmgFile="${deploy.dir}/Architect-OSX-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.dmg"
+                licenseFile="Architect License.txt"
+		        resourceTemplateFile="osx_packaging_utils/sla_template.r" debug="true"/>
+            
+    </target>
+
 
 	<target name="osx_tgz" depends="osx_dist" if="isNotMac">
 		<tar destfile="${deploy.dir}/Architect-OSX-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.tar.gz"
