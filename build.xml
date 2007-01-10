@@ -352,9 +352,11 @@
 				<resources>
 					<res id="Installer.image" src="../src/icons/architect.png"/>
 					<res src="ArchitectShortcut.xml" id="shortcutSpec.xml"/>
+					<res id="LicencePanel.licence" src="../Architect License.txt" />
 				</resources>
 				<panels>
 					<panel classname="HelloPanel"/>
+					<panel classname="LicencePanel"/>
 					<panel classname="TargetPanel"/>
 					<panel classname="InstallPanel"/>
 					<panel classname="ShortcutPanel"/>
@@ -374,6 +376,9 @@
 						</fileset>
 						<fileset dir="../staging/doc" targetdir="$INSTALL_PATH/doc">
 							<include name="*.txt"/>
+						</fileset>
+						<fileset dir=".." targetdir="$INSTALL_PATH">
+							<include name="Architect License.txt"/>
 						</fileset>
 						<fileset dir="." targetdir="$INSTALL_PATH">
 							<include name="*.reg"/>
