@@ -34,13 +34,13 @@ public class WelcomeScreen {
         "<body>" +
         "<h1 align=\"center\">Power*Architect " + ArchitectUtils.APP_VERSION + "</h1>" +
         "<br><br><br>" +
-        "<p>&nbsp;&nbsp;Please visit our <a href=\"" + ArchitectFrame.FORUM_URL + "\">support forum</a>" +
+        "<p>Please visit our <a href=\"" + ArchitectFrame.FORUM_URL + "\">support forum</a>" +
         "   if you have any questions, comments, suggestions, or if you just need a friend." +
         "<br><br>" +
-        "<p>&nbsp;&nbsp;Check out the JDBC drivers section under <i>How to Use Power*Architect</i> in the " +
+        "<p>Check out the JDBC drivers section under <i>How to Use Power*Architect</i> in the " +
         "help for configuring JDBC drivers." +
         "<br>" +
-        "<p>&nbsp;&nbsp;Need help finding the JDBC drivers? Visit our <a href=\"" + ArchitectFrame.DRIVERS_URL + "\">forum thread</a>.";
+        "<p>Need help finding the JDBC drivers? Visit our <a href=\"" + ArchitectFrame.DRIVERS_URL + "\">forum thread</a>.";
 
     /**
      * Creates and returns the welcome panel.
@@ -62,7 +62,7 @@ public class WelcomeScreen {
         htmlComponent.setEditable(false);
         htmlComponent.setBackground(null);
 
-        /** Jump to the forum (in the user's configured browser)
+        /** Jump to the URL (in the user's configured browser)
          * when a link is clicked.
          */
         htmlComponent.addHyperlinkListener(new HyperlinkListener() {
