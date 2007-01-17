@@ -55,7 +55,10 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 
 import com.darwinsys.io.TextAreaWriter;
+import com.darwinsys.sql.OutputMode;
+import com.darwinsys.sql.SQLRunner;
 import com.darwinsys.swingui.UtilGUI;
+import com.darwinsys.util.Verbosity;
 
 /**
  * A simple GUI to run one set of commands.
@@ -134,7 +137,7 @@ public class SQLRunnerGUI  {
                             SQLRunner.setVerbosity(Verbosity.QUIET);
                             SQLRunner prog = new SQLRunner(conn, null, "t");
                             prog.setOutputFile(out);
-                            prog.setOutputMode((OutputMode) modeList.getSelectedItem());
+                            // XXX prog.setOutputMode((OutputMode) modeList.getSelectedItem());
                             setNeutral();
                             prog.runStatement(inputTextArea.getText());
                             setSuccess();   // If no exception thrown
