@@ -7,7 +7,10 @@ import javax.swing.JFrame;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.sqlrunner.SQLRunnerGUI;
+import com.darwinsys.sql.ConfigurationManager;
+import com.darwinsys.sql.SQLRunnerGUI;
+
+import ca.sqlpower.architect.sqlrunner.ArchitectSQLRunnerConfigurationManager;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
@@ -21,6 +24,8 @@ public class SQLRunnerAction extends AbstractAction {
 
     protected ArchitectFrame architectFrame;
 
+    static ConfigurationManager configManager;
+
     public SQLRunnerAction(JFrame owner) {
         super("SQL Runner...",
                 ASUtils.createIcon("SQLRunner", "SQL Runner", ArchitectFrame.getMainInstance()
@@ -28,11 +33,13 @@ public class SQLRunnerAction extends AbstractAction {
         logger.debug("Creating SQLRunnerAction");
         architectFrame = ArchitectFrame.getMainInstance();
         putValue(SHORT_DESCRIPTION, "Run SQL directly");
+
+        configManager = new ArchitectSQLRunnerConfigurationManager();
     }
 
     public void actionPerformed(ActionEvent e) {
         logger.debug("Showing SQLRunnerGUI");
-        new SQLRunnerGUI(); // Sets itself visible; this is all we need here.
+        new SQLRunnerGUI(new ArchitectSQLRunnerConfigurationManager(),"Power*Architect SQLRunner"); // Sets itself visible; this is all we need here.
     }
 
 }
