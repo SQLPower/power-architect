@@ -3,6 +3,7 @@ package ca.sqlpower.architect.swingui.action;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -172,6 +173,9 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 					if (item instanceof TablePane) {
 						TablePane tp = (TablePane) item;
 						pp.getDatabase().removeChild(tp.getModel());
+                        HashSet tableNames = pp.getTableNames();
+                        String remove = tp.getName().substring(11,tp.getName().length()-8);
+                        tableNames.remove(remove.toLowerCase());
 					} else if (item instanceof Relationship) {
 						Relationship r = (Relationship) item;
 						logger.debug("trying to delete relationship " + r);
