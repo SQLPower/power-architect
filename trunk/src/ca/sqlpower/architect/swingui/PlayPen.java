@@ -1103,6 +1103,14 @@ public class PlayPen extends JPanel
 		return tablePanes;
 	}
 
+    /**
+     * Returns the already in use table names. Useful for
+     * deleting tables so it can be removed from this list as well.
+     */
+    public HashSet getTableNames () {
+        return tableNames;
+    }
+    
 	/**
 	 * Returns the number of components in this PlayPen's
 	 * PlayPenContentPane.
