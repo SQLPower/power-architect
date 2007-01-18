@@ -1,11 +1,11 @@
 package ca.sqlpower.architect.sqlrunner;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.List;
 
 import ca.sqlpower.architect.ArchitectDataSource;
+import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 
 import com.darwinsys.database.DataBaseException;
@@ -88,8 +88,8 @@ public class ArchitectSQLRunnerConfigurationManager implements ConfigurationMana
     public Connection getConnection(Configuration conf) {
         ArchitectDataSourceConfiguration config = (ArchitectDataSourceConfiguration) conf;
         try {
-            Class.forName(config.getDriverName()); // Maybe redundant but might be first use this Architect startup...
-            return DriverManager.getConnection(config.getDbURL(), config.getUserName(), config.getPassword());
+            SQLDatabase db = new SQLDatabase(config.getArchitectDataSource());
+            return db.getConnection();
         } catch (Exception e) {
             throw new DataBaseException("Could not connect:" + e.toString());
         }
