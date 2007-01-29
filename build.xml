@@ -233,7 +233,8 @@
 
 	</target>
 
-    <!-- Copy the main Jar file, and dependent libs, to the deploy dir.
+    <!-- Create the Architect jar file.
+     *** Copy the Architect Jar file, and dependent libs, to the deploy dir.
      -->
     <target name="stage" depends="compile,userguide">
     		<mkdir dir="${deploy.dir}" />
@@ -476,7 +477,7 @@
 			<arg value="-o"/>
 			<arg value="${deploy.dir}/Architect-OSX-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.dmg"/>
 		</exec>
-		
+
 		<taskdef name="addLicenseToDMG"
 				 classname="ca.sqlpower.architect.antbuild.AddLicenseToDMGTask"
 			     classpath="build"/>
@@ -484,7 +485,7 @@
 				dmgFile="${deploy.dir}/Architect-OSX-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.dmg"
                 licenseFile="Architect License.txt"
 		        resourceTemplateFile="osx_packaging_utils/sla_template.r"/>
-            
+
     </target>
 
 
