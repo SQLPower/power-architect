@@ -689,7 +689,7 @@ public class ArchitectFrame extends JFrame {
         toolsMenu.add(new SQLRunnerAction(ArchitectFrame.getMainInstance()));
 
         // disabled for 0.9.0 release (still has too many bugs to work out)
-//        toolsMenu.add(dataMoverAction);
+        toolsMenu.add(dataMoverAction);
 
 		menuBar.add(toolsMenu);
 
