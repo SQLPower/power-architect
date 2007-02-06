@@ -132,8 +132,33 @@ public class DataMoverPanel {
     }
     
     public void doDataMove() throws SQLException, ArchitectException {
-        final TreePath sourcePath = sourceTree.getSelectionPath();
-        final SQLTable sourceTable = (SQLTable) sourcePath.getLastPathComponent();
+        final TreePath[] sourcePaths = sourceTree.getSelectionPaths();
+        int tableCount = 0;
+        int rowCount = 0;
+        for (TreePath sourcePath : sourcePaths) {
+            final SQLTable sourceTable = (SQLTable) sourcePath.getLastPathComponent();
+            int thisCount = moveSingleTable(sourceTable);
+            if (thisCount == -1) {
+                int choice = JOptionPane.showConfirmDialog(panel, "Continue copying remaining tables?");
+                if (choice != JOptionPane.YES_OPTION) {
+                    break;
+                }
+            } else {
+                tableCount += 1;
+                rowCount += thisCount;
+            }
+        }
+        JOptionPane.showMessageDialog(panel, "Copied data from "+tableCount+" tables ("+rowCount+" rows in total)");
+    }
+    
+    /**
+     * Moves the data from the table identified by 
+     * @param sourcePath
+     * @return The number of rows moved, or -1 if the user canceled the operation.
+     * @throws SQLException
+     * @throws ArchitectException
+     */
+    private int moveSingleTable(final SQLTable sourceTable) throws SQLException, ArchitectException {
         final SQLDatabase sourceDB = getParentDatabase(sourceTable);
         
         final TreePath destPath = destTree.getSelectionPath();
@@ -180,7 +205,7 @@ public class DataMoverPanel {
                 int choice = JOptionPane.showConfirmDialog(panel, "The destination table\n" +
                         destQualifiedName + 
                         "\nDoes not exist.  Create it?");
-                if (choice != JOptionPane.YES_OPTION) return;
+                if (choice != JOptionPane.YES_OPTION) return -1;
                 
                 DDLGenerator ddlg = DDLUtils.createDDLGenerator(destDB.getDataSource());
                 ddlg.addTable(destTable);
@@ -199,14 +224,14 @@ public class DataMoverPanel {
             DataMover mover = new DataMover(destCon, sourceCon);
             mover.setCreatingDestinationTable(false);
             mover.setTruncatingDestinationTable(truncateDestinationTableBox.isSelected());
-            mover.setDebug(false);  // when true, debug data goes to System.out
+            mover.setDebug(true);  // when true, debug data goes to System.out
 
             JOptionPane.showMessageDialog(panel,
                     "About to copy\n"+sourceQualifiedName+"\nto\n"+destQualifiedName);
             
             int count = mover.copyTable(destQualifiedName, sourceQualifiedName);
             
-            JOptionPane.showMessageDialog(panel, "Success! Copied "+count+" rows.");
+            return count;
         } catch (InstantiationException ex) {
             throw new RuntimeException("Couldn't create DDL Generator", ex);
         } catch (IllegalAccessException ex) {
