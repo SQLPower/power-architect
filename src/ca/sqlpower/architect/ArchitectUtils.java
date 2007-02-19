@@ -351,6 +351,8 @@ public class ArchitectUtils {
 					"jdbc:microsoft:sqlserver://<Hostname>:<Port:1433>;SelectMethod=cursor");
 		drivers.put("org.postgresql.Driver",
 					"jdbc:postgresql://<Hostname>:<Port:5432>/<Database>");
+        drivers.put("com.mysql.jdbc.Driver",
+                    "jdbc:mysql://<Hostname>:<Port:3306>/<Instance>");
 		drivers.put("ibm.sql.DB2Driver",
 					"jdbc:db2:<Hostname>");
         drivers.put("org.apache.derby.jdbc.EmbeddedDriver",
@@ -372,6 +374,7 @@ public class ArchitectUtils {
         driverSystems.put("oracle.jdbc.OracleDriver", "ORACLE");
 		driverSystems.put("com.microsoft.jdbc.sqlserver.SQLServerDriver", "SQL SERVER");
 		driverSystems.put("org.postgresql.Driver", "POSTGRES");
+        driverSystems.put("com.mysql.jdbc.Driver", "MySql");
 		driverSystems.put("ibm.sql.DB2Driver", "DB2");
         driverSystems.put("org.apache.derby.jdbc.EmbeddedDriver", "DERBY");
         driverSystems.put("org.hsqldb.jdbcDriver", "HSQLDB");
