@@ -5,12 +5,16 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.SQLIndex.IndexType;
 import ca.sqlpower.architect.profile.ProfileFunctionDescriptor;
 
 /**
@@ -341,4 +345,33 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
 		if (targetSchema != null) return targetSchema;
 		else return "public";
 	}
+    
+    /**
+     * create index ddl in postgresql syntax
+     */
+    @Override
+    public void addIndex(SQLIndex index) throws ArchitectException {
+        if (index.getType() == IndexType.STATISTIC )
+            return;
+        
+        println("");
+        print("CREATE ");
+        if (index.isUnique()) {
+            print("UNIQUE ");
+        }
+        print("INDEX ");
+        print(index.getName());
+        print("\n ON ");
+        print(toQualifiedName(index.getParentTable()));
+        print("\n ( ");
+
+        boolean first = true;
+        for (SQLIndex.Column c : (List<SQLIndex.Column>) index.getChildren()) {
+            if (!first) print(", ");
+            print(c.getName());
+            first = false;
+        }
+        print(" )");
+        endStatement(DDLStatement.StatementType.CREATE, index);
+    }
 }
