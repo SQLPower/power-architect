@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 
@@ -479,6 +480,29 @@ public class SQLIndex extends SQLObject {
     public void addIndexColumn(SQLColumn col1, boolean ascending, boolean descending) throws ArchitectException {
         Column col = new Column(col1,ascending,descending);
         addChild(col);
+    }
+
+    public static SQLIndex getDerivedInstance(SQLIndex source, SQLTable parenTable) throws ArchitectException {
+        
+        SQLIndex index = new SQLIndex();
+        index.setName(source.getName());
+        index.setUnique(source.isUnique());
+        index.setPopulated(source.isPopulated());
+        index.setType(source.getType());
+        index.setFilterCondition(source.getFilterCondition());
+        index.setQualifier(source.getQualifier());
+        
+        for (Column column : (List<Column>)source.getChildren()) {
+            SQLColumn sqlColumn = parenTable.getColumnByName(column.getColumn().getName());
+            if ( sqlColumn == null ) {
+                throw new ArchitectException("Can not derive instance, because coulmn " +
+                        column.getColumn().getName() + "is not found in parent table [" +
+                        parenTable.getName() + "]");
+            }
+            Column newColumn = index.new Column(sqlColumn,column.isAscending(),column.isDescending());
+            index.addChild(newColumn);
+        }
+        return index;
     }
 
 
