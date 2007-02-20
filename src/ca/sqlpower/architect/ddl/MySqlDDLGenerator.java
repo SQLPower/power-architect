@@ -5,8 +5,13 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 
 import org.apache.log4j.Logger;
+
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLIndex;
+import ca.sqlpower.architect.SQLIndex.IndexType;
 
 public class MySqlDDLGenerator extends GenericDDLGenerator {
 
@@ -279,5 +284,36 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
      */
     public boolean isReservedWord(String word) {
         return reservedWords.contains(word.toUpperCase());
+    }
+    
+    /**
+     * create index ddl in mySql syntax
+     */
+    @Override
+    public void addIndex(SQLIndex index) throws ArchitectException {
+        if (index.getType() == IndexType.STATISTIC )
+            return;
+        
+        println("");
+        print("CREATE ");
+        if (index.isUnique()) {
+            print("UNIQUE ");
+        }
+        print("INDEX ");
+        print(index.getName());
+        print("\n ON ");
+        print(toQualifiedName(index.getParentTable()));
+        print("\n ( ");
+
+        boolean first = true;
+        for (SQLIndex.Column c : (List<SQLIndex.Column>) index.getChildren()) {
+            if (!first) print(", ");
+            print(c.getName());
+            print(c.isAscending() ? " ASC" : "");
+            print(c.isDescending() ? " DESC" : "");
+            first = false;
+        }
+        print(" )");
+        endStatement(DDLStatement.StatementType.CREATE, index);
     }
 }
