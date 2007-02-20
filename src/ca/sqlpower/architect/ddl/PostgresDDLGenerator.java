@@ -353,7 +353,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
     public void addIndex(SQLIndex index) throws ArchitectException {
         if (index.getType() == IndexType.STATISTIC )
             return;
-        
+        checkDupIndexname(index);
         println("");
         print("CREATE ");
         if (index.isUnique()) {

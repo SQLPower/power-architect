@@ -401,6 +401,9 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
     public void addIndex(SQLIndex index) throws ArchitectException {
         if (index.getType() == IndexType.STATISTIC )
             return;
+        
+        checkDupIndexname(index);
+        
         print("CREATE ");
         if (index.isUnique()) {
             print("UNIQUE ");
@@ -408,6 +411,7 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
         if (index.getType() == IndexType.CLUSTERED) {
             print("CLUSTERED ");
         }
+        
         print("INDEX ");
         print(DDLUtils.toQualifiedName(null,null,index.getName()));
         print("\n ON ");

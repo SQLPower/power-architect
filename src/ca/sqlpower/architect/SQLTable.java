@@ -192,12 +192,37 @@ public class SQLTable extends SQLObject {
         logger.debug("index folder populate starting");
 
         try {
+            logger.debug("before addIndicesToTable");
+            
             SQLIndex.addIndicesToTable(this,
                                       getCatalogName(),
                                       getSchemaName(),
                                       getName());
+            
+            logger.debug("found "+indicesFolder.children.size()+" indices.");
+            boolean foundPKColumn = false;
+            for (SQLColumn column : getColumns()) {
+                if (column.getPrimaryKeySeq() != null) {
+                    foundPKColumn = true;
+                    break;
+                }
+            }
+            
+            logger.debug("about to check foundPKColumn");
+            
+            if (foundPKColumn) {
+                SQLIndex pk = getIndexByName(getPrimaryKeyName(), false);
+                logger.debug("table has primary key columns. " +
+                        (pk == null?"but pk index not found ":"pk index found "+pk.getName()));
+                pk.setPrimaryKeyIndex(true);
+            } else {
+                logger.debug("did not find any primary key column.");
+            }
+                
         } catch (SQLException e) {
             throw new ArchitectException("Failed to populate indices of table "+getName(), e);
+        } catch (Exception e) {
+            logger.error("Lost exception is",e);
         } finally {
             indicesFolder.populated = true;
             int newSize = indicesFolder.children.size();
