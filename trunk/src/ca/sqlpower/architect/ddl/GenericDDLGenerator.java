@@ -179,6 +179,10 @@ public class GenericDDLGenerator implements DDLGenerator {
 				SQLTable t = (SQLTable) it.next();
 				addTable(t);
 				writePrimaryKey(t);
+                for (SQLIndex index : (List<SQLIndex>)t.getIndicesFolder().getChildren()) {
+                    if (index.getName().equals(t.getPrimaryKeyName())) continue;
+                    addIndex(index);
+                }
 			}
 			it = source.getChildren().iterator();
 			while (it.hasNext()) {
@@ -946,6 +950,8 @@ public class GenericDDLGenerator implements DDLGenerator {
     public void addIndex(SQLIndex index) throws ArchitectException {
         if (index.getType() == IndexType.STATISTIC )
             return;
+        
+        println("");
         print("CREATE ");
         if (index.isUnique()) {
             print("UNIQUE ");
@@ -963,12 +969,13 @@ public class GenericDDLGenerator implements DDLGenerator {
         for (SQLIndex.Column c : (List<SQLIndex.Column>) index.getChildren()) {
             if (!first) print(", ");
             print(c.getName());
+            print(c.isAscending() ? " ASC" : "");
+            print(c.isDescending() ? " DESC" : "");
             first = false;
         }
-        print(" )\n");
+        print(" )");
         endStatement(DDLStatement.StatementType.CREATE, index);
     }
-
 
 
 }
