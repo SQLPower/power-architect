@@ -180,7 +180,8 @@ public class GenericDDLGenerator implements DDLGenerator {
 				addTable(t);
 				writePrimaryKey(t);
                 for (SQLIndex index : (List<SQLIndex>)t.getIndicesFolder().getChildren()) {
-                    if (index.getName().equals(t.getPrimaryKeyName())) continue;
+System.out.println("*** name:" + index.getName()+"   is pk?"+index.isPrimaryKeyIndex());         
+                    if (index.isPrimaryKeyIndex()) continue;
                     addIndex(index);
                 }
 			}
@@ -848,7 +849,10 @@ public class GenericDDLGenerator implements DDLGenerator {
      * Generate, set, and return a physicalPrimaryKeyName.
      */
 	public String createPhysicalPrimaryKeyName(Map dupCheck, SQLTable t) {
-	    logger.debug("getting physical primary key name, logical="+t.getPrimaryKeyName()+",physical="+t.getPhysicalPrimaryKeyName());
+	    logger.debug("getting physical primary key name, logical=" +
+                t.getPrimaryKeyName() +
+                ",physical=" +
+                t.getPhysicalPrimaryKeyName());
 	    String temp = null;
 	    temp = toIdentifier(t.getPrimaryKeyName());
 	    logger.debug("transform key identifier result: " + temp);
@@ -938,6 +942,14 @@ public class GenericDDLGenerator implements DDLGenerator {
     }
 
 
+    protected void checkDupIndexname(SQLIndex index) {
+        if (topLevelNames.get(index.getName()) == null) {
+            topLevelNames.put(index.getName(),index.getParentTable());
+        } else {
+            warnings.add(new NameChangeWarning(index.getParentTable(),
+                    "Duplicate Index Name", index.getName()));
+        }
+    }
     /**
      * Adds a DDL statement to this generator that will create the
      * given index.
@@ -951,14 +963,14 @@ public class GenericDDLGenerator implements DDLGenerator {
         if (index.getType() == IndexType.STATISTIC )
             return;
         
+        checkDupIndexname(index);
+        
         println("");
         print("CREATE ");
         if (index.isUnique()) {
             print("UNIQUE ");
         }
-        if (index.getType() == IndexType.CLUSTERED) {
-            print("CLUSTERED ");
-        }
+
         print("INDEX ");
         print(toQualifiedName(index.getName()));
         print("\n ON ");

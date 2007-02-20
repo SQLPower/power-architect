@@ -226,6 +226,8 @@ public class SQLIndex extends SQLObject {
      */
     private String filterCondition;
 
+    private boolean primaryKeyIndex;
+
     public SQLIndex(String name, boolean unique, String qualifier, IndexType type, String filter) {
         this();
         setName(name);
@@ -237,6 +239,7 @@ public class SQLIndex extends SQLObject {
 
     public SQLIndex() {
         children = new ArrayList();
+        primaryKeyIndex = false;
     }
     
     /**
@@ -472,6 +475,18 @@ public class SQLIndex extends SQLObject {
         }
     }
 
+    public boolean isPrimaryKeyIndex() {
+        return primaryKeyIndex;
+    }
+    
+    /**
+     * set this index as primary key index 
+     * @param isPrimaryKey
+     */
+    protected void setPrimaryKeyIndex(boolean isPrimaryKey) {
+        this.primaryKeyIndex = isPrimaryKey;
+    }
+
     @Override
     public String toString() {
         return getName();
@@ -491,6 +506,7 @@ public class SQLIndex extends SQLObject {
         index.setType(source.getType());
         index.setFilterCondition(source.getFilterCondition());
         index.setQualifier(source.getQualifier());
+        index.setPrimaryKeyIndex(source.isPrimaryKeyIndex());
         
         for (Column column : (List<Column>)source.getChildren()) {
             SQLColumn sqlColumn = parenTable.getColumnByName(column.getColumn().getName());
@@ -504,6 +520,8 @@ public class SQLIndex extends SQLObject {
         }
         return index;
     }
+
+
 
 
 }

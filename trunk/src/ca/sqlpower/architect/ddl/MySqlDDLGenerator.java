@@ -294,6 +294,8 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         if (index.getType() == IndexType.STATISTIC )
             return;
         
+        checkDupIndexname(index);
+        
         println("");
         print("CREATE ");
         if (index.isUnique()) {
