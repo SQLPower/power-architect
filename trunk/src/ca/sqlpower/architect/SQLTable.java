@@ -128,6 +128,7 @@ public class SQLTable extends SQLObject {
 		throws ArchitectException {
 		source.populateColumns();
 		source.populateRelationships();
+        source.populateIndices();
 		SQLTable t = new SQLTable(parent, true);
 		t.setName(source.getName());
 		t.remarks = source.remarks;
@@ -137,9 +138,23 @@ public class SQLTable extends SQLObject {
 		t.physicalPrimaryKeyName = source.getPhysicalPrimaryKeyName();
 
 		t.inherit(source);
+        inheritIndices(source,t);
 		parent.addChild(t);
 		return t;
 	}
+    
+    /**
+     * inherit indices from the source table,
+     * @param source
+     * @param target    
+     * @throws ArchitectException 
+     */
+    private static void inheritIndices(SQLTable source, SQLTable target) throws ArchitectException {
+        for ( SQLIndex index : (List<SQLIndex>)source.getIndicesFolder().getChildren()) {
+            SQLIndex index2 = SQLIndex.getDerivedInstance(index,target);
+            target.addIndex(index2);
+        }
+    }
 
 	private synchronized void populateColumns() throws ArchitectException {
 		if (columnsFolder.isPopulated()) return;
