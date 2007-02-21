@@ -408,9 +408,6 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
         if (index.isUnique()) {
             print("UNIQUE ");
         }
-        if (index.getType() == IndexType.CLUSTERED) {
-            print("CLUSTERED ");
-        }
         
         print("INDEX ");
         print(DDLUtils.toQualifiedName(null,null,index.getName()));
