@@ -6,8 +6,10 @@ import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
@@ -26,6 +28,7 @@ import ca.sqlpower.architect.ddl.NameChangeWarning;
 import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.ArchitectPanel;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.DDLExportPanel;
 import ca.sqlpower.architect.swingui.MonitorableWorker;
@@ -62,17 +65,39 @@ public class ExportDDLAction extends AbstractAction {
                         GenericDDLGenerator ddlg = architectFrame.getProject().getDDLGenerator();
                         ddlg.setTargetSchema(ddlPanel.getSchemaField().getText());
 
-                        for (;;) {
                             // generate DDL in order to come up with a list of warnings
                             ddlg.generateDDL(architectFrame.getProject().getPlayPen().getDatabase());
                             List warnings = ddlg.getWarnings();
-                            if (warnings.size() == 0)  break;
-                            TableModelSortDecorator sorter = new TableModelSortDecorator(new DDLWarningTableModel(warnings));
-                            JTable warningTable = new JTable(sorter);
-                            sorter.setTableHeader(warningTable.getTableHeader());
-                            // FIXME: this should not be a JOptionPane. It should be a new type of ArchitectPanel.
-                            int choice = JOptionPane.showConfirmDialog(d, new JScrollPane(warningTable), "Errors in generated DDL", JOptionPane.WARNING_MESSAGE);
-                            if (choice != JOptionPane.OK_OPTION) return;
+                            if (warnings.size() != 0) {
+                                TableModelSortDecorator sorter = new TableModelSortDecorator(new DDLWarningTableModel(warnings));
+                                final JTable warningTable = new JTable(sorter);
+                                sorter.setTableHeader(warningTable.getTableHeader());
+                                ArchitectPanel panel = new ArchitectPanel() {
+                                    
+                                    public boolean applyChanges() {                                   
+                                        return false;
+                                    }
+                                    
+                                    public void discardChanges() {
+                                    }
+                                    
+                                    public JComponent getPanel() {
+                                        JPanel panel = new JPanel();   
+                                        panel.add(new JScrollPane(warningTable));
+                                        return panel;
+                                    }
+                                };
+                                
+                                JDialog dialog = ArchitectPanelBuilder.
+                                    createSingleButtonArchitectPanelDialog(
+                                        panel, null, "Errors in generated DDL", "OK");
+                                dialog.setModal(true);
+                                dialog.setVisible(true);    // blocking  
+                                
+                                // We cannot continue from here to "Preview SQL Script"
+                                // until the NameWarnings actually work and result in
+                                // new names for the affected SQLObjects.
+                                return;
                         }
 
                         SQLDatabase ppdb = ArchitectFrame.getMainInstance().getProject().getPlayPen().getDatabase();
