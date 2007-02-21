@@ -369,8 +369,11 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
         for (SQLIndex.Column c : (List<SQLIndex.Column>) index.getChildren()) {
             if (!first) print(", ");
             print(c.getName());
+            //TODO: ASC and DESC are not supported in the current version of PostgreSQL (8.2.3)
+            //but is expected to be added in later versions (8.3 for example)
             first = false;
         }
+      
         print(" )");
         endStatement(DDLStatement.StatementType.CREATE, index);
     }
