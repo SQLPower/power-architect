@@ -947,7 +947,7 @@ public class SQLTable extends SQLObject {
             if (primaryKeyName == null
                     || primaryKeyName.equals("")
                     || primaryKeyName.equals(oldName+"_pk")) {
-                setPrimaryKeyName( getName()+"_pk");
+                setPrimaryKeyName( getName()+"_PK");
             }
         } finally {
             endCompoundEdit("Ending table name compound edit");
