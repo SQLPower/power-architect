@@ -86,6 +86,8 @@ public class GenericDDLGenerator implements DDLGenerator {
 	 * their SQL identifiers are stored in this map (key is name,
 	 * value is object having that name).  Warnings are created when
 	 * multiple objects in this top-level scope use the same name.
+     * XXX Consider changing this to a Set as it appears that the values
+     * stored in the Map are never used.
 	 */
 	protected Map topLevelNames;
 
@@ -125,13 +127,15 @@ public class GenericDDLGenerator implements DDLGenerator {
      */
     protected Map<String, ProfileFunctionDescriptor> profileFunctionMap;
 
+
+    
 	public GenericDDLGenerator() throws SQLException {
 		allowConnection = true;
 		warnings = new ArrayList();
 		ddlStatements = new ArrayList();
 		ddl = new StringBuffer(500);
 		println("");
-		topLevelNames = new HashMap();  // for tracking dup table/relationship names
+		topLevelNames = new CaseInsensitiveHashMap();  // for tracking dup table/relationship names
 		createTypeMap();
         createProfileFunctionMap();
 	}
@@ -158,11 +162,15 @@ public class GenericDDLGenerator implements DDLGenerator {
 	}
 
 
-	public List<DDLStatement> generateDDLStatements(SQLDatabase source) throws SQLException, ArchitectException {
+	/**
+     *  This is the main entry point from the rest of the application to generate DDL.
+	 * @see ca.sqlpower.architect.ddl.DDLGenerator#generateDDLStatements(ca.sqlpower.architect.SQLDatabase)
+	 */
+	public final List<DDLStatement> generateDDLStatements(SQLDatabase source) throws SQLException, ArchitectException {
 		warnings = new ArrayList();
 		ddlStatements = new ArrayList<DDLStatement>();
 		ddl = new StringBuffer(500);
-		topLevelNames = new HashMap();  // for tracking dup table/relationship names
+		topLevelNames.clear();
 
 		try {
 			if (allowConnection) {
@@ -468,8 +476,7 @@ System.out.println("*** name:" + index.getName()+"   is pk?"+index.isPrimaryKeyI
 			if (col.getPrimaryKeySeq() == null) break;
 			if (firstCol) {
 				// generate a unique primary key name
-                createPhysicalPrimaryKeyName(topLevelNames,t);
-				//
+                createPhysicalPrimaryKeyName(t);
 				println("");
 				print("ALTER TABLE ");
 				print( toQualifiedName(t) );
@@ -836,35 +843,31 @@ System.out.println("*** name:" + index.getName()+"   is pk?"+index.isPrimaryKeyI
         }
 
         logger.debug("transform identifier result: " + so.getPhysicalName());
-		if (dupCheck.get(so.getPhysicalName()) == null) {
+        // XXX should change checkDupName(Map where, so.getPhysicalName(), so, "Duplicate Physical Name", so.getName());
+		
+        if (dupCheck.get(so.getPhysicalName()) == null) {
 			dupCheck.put(so.getPhysicalName(), so);
 		} else {
-            warnings.add(new NameChangeWarning(so, "Duplicate Name", so.getName()));
+            warnings.add(new NameChangeWarning(so, "Duplicate Physical Name", so.getName()));
 		}
 
 		return so.getPhysicalName();
 	}
 
 	/**
-     * Generate, set, and return a physicalPrimaryKeyName.
+     * Generate, set, and return a physicalPrimaryKeyName which is just the
+     * logical primary key name run through "toIdentifier()".
+     * Before returning it, run it past checkDupName to check in and add
+     * it to the topLevelNames Map.
      */
-	public String createPhysicalPrimaryKeyName(Map dupCheck, SQLTable t) {
-	    logger.debug("getting physical primary key name, logical=" +
-                t.getPrimaryKeyName() +
-                ",physical=" +
-                t.getPhysicalPrimaryKeyName());
-	    String temp = null;
-	    temp = toIdentifier(t.getPrimaryKeyName());
-	    logger.debug("transform key identifier result: " + temp);
-	    t.setPhysicalPrimaryKeyName(temp);
-	    if (dupCheck.get(t.getPhysicalPrimaryKeyName()) == null) {
-	        dupCheck.put(t.getPhysicalPrimaryKeyName(),t);
-	    } else {
-            warnings.add(new NameChangeWarning(t, "Duplicate Primary Key Name", t.getPrimaryKeyName()));
-        }
-	    return t.getPhysicalPrimaryKeyName();
-	}
-
+    private String createPhysicalPrimaryKeyName(SQLTable t) {
+        String physName = toIdentifier(t.getPrimaryKeyName());
+        t.setPhysicalPrimaryKeyName(physName);
+        checkDupName(physName, t, 
+                "Duplicate Primary Key Name", physName);
+        return physName;
+    }
+	
     /**
      * Generates a standard <code>DROP TABLE $tablename</code> command.  Should work on most platforms.
      */
@@ -942,12 +945,30 @@ System.out.println("*** name:" + index.getName()+"   is pk?"+index.isPrimaryKeyI
     }
 
 
-    protected void checkDupIndexname(SQLIndex index) {
-        if (topLevelNames.get(index.getName()) == null) {
-            topLevelNames.put(index.getName(),index.getParentTable());
+    protected final void checkDupIndexname(SQLIndex index) {
+        String name = index.getName();
+        checkDupName(name, index.getParentTable(), "Index name is not unique", name);
+    }
+    
+    /**
+     * Check that given name is not already present in the top level namespace.
+     * @param name The top level name to be checked.
+     * @param obj The value to go with the name.
+     * @param warning The text of the name change warning to generate.
+     * @param name2 The name to go in the name change warning.
+     */
+    protected final void checkDupName(String name, 
+            SQLObject obj, 
+            String warning, 
+            String name2) {
+        if (name.equals(name2)) {
+            System.err.println("Error: checkDupName called with newname == oldname");
+        }
+        if (topLevelNames.get(name) == null) {
+            topLevelNames.put(name, obj);
         } else {
-            warnings.add(new NameChangeWarning(index.getParentTable(),
-                    "Duplicate Index Name", index.getName()));
+            warnings.add(new NameChangeWarning(obj, 
+                    warning, name2));
         }
     }
     /**
