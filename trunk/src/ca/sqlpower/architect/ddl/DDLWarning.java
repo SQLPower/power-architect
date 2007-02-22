@@ -1,5 +1,7 @@
 package ca.sqlpower.architect.ddl;
 
+import java.util.List;
+
 import ca.sqlpower.architect.SQLObject;
 
 /**
@@ -9,35 +11,32 @@ import ca.sqlpower.architect.SQLObject;
 public interface DDLWarning {
 
 	/**
-	 * The subject of this warning.  For instance, if there is a
-	 * duplicte column name, the SQLColumn object with the duplicate
-	 * name will be the warning's subject.
+	 * Get the message associated with this warning, e.g., a string
+     * like "Primary Key Name is already in use"
 	 */
-	public SQLObject getSubject();
-    
-	/**
-	 * This warning's category/reason.  Should be only one or two words.
-	 * Users may find it useful to sort warnings by reason while
-	 * fixing problems.
-	 */
-	public String getReason();
-	
-	/**
-	 * The problematic value, which is a property of the warning's
-	 * subject, and is described by getReason.
-	 */
-	public Object getOldValue();
+	public String getMessage();
 
 	/**
-	 * The new value assigned by the DDL Generator in order to
-	 * continue with the DDL Generation.  The user should be given the
-	 * chance to see and possibly modify this value before executing
-	 * the DDL script.
+	 * The subject(s) of this warning.  For instance, if there is a
+	 * duplicate table names, the SQLTable objects with the duplicate
+	 * names will be the "involved objects".
 	 */
-	public Object getNewValue();
+	public List<SQLObject> getInvolvedObjects();
 
-	/**
-	 * Modifies the value set by the DDL Generator to something else.
-	 */
-	public void setNewValue(Object newValue);
+	/** Return true if the user has repaired or quickfixed the problem */
+	public boolean isFixed();
+
+    public void setFixed(boolean fixed);
+
+    /** Tell whether the user can "quick fix" this problem */
+    public boolean isQuickFixable();
+
+    /** If isQuickFixable(), then this gives the message about what
+     * will be done.
+     */
+    public String getQuickFixMessage();
+
+    /** If isQuickFixable(), then this applies the quick fix */
+    public boolean quickFix();
+
 }

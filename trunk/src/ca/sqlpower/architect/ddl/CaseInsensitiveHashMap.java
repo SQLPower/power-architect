@@ -2,17 +2,19 @@ package ca.sqlpower.architect.ddl;
 
 import java.util.HashMap;
 
-public class CaseInsensitiveHashMap extends HashMap<String, Object> {
+import ca.sqlpower.architect.SQLObject;
+
+public class CaseInsensitiveHashMap extends HashMap<String, SQLObject> {
         @Override
-        public Object put(String key, Object value) {
+        public SQLObject put(String key, SQLObject value) {
             return super.put(safeUppercaseKey(key), value);
         }
-        
+
         @Override
-        public Object get(Object key) {
+        public SQLObject get(Object key) {
             return super.get(safeUppercaseKey((String)key));
         }
-        
+
         private static String safeUppercaseKey(String key) {
             return key == null ? null : key.toUpperCase();
         }

@@ -1,5 +1,7 @@
 package ca.sqlpower.architect.swingui.action;
 
+import java.awt.BorderLayout;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.sql.SQLException;
 import java.util.List;
@@ -11,11 +13,8 @@ import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
-import javax.swing.table.AbstractTableModel;
-
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
@@ -23,8 +22,9 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.ddl.ConflictResolver;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLWarning;
+import ca.sqlpower.architect.ddl.DDLWarningComponent;
+import ca.sqlpower.architect.ddl.DDLWarningComponentFactory;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
-import ca.sqlpower.architect.ddl.NameChangeWarning;
 import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
@@ -34,10 +34,18 @@ import ca.sqlpower.architect.swingui.DDLExportPanel;
 import ca.sqlpower.architect.swingui.MonitorableWorker;
 import ca.sqlpower.architect.swingui.SQLScriptDialog;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
-import ca.sqlpower.architect.swingui.table.TableModelSortDecorator;
 
 public class ExportDDLAction extends AbstractAction {
-	private static final Logger logger = Logger.getLogger(ExportDDLAction.class);
+
+    private static final Logger logger = Logger.getLogger(ExportDDLAction.class);
+
+	private static final String GENDDL_WARNINGS_EXPLANATION =
+        "Errors:\n" +
+        "The DDL could not be generated because the following error(s) were detected. " +
+        "You need to correct all the errors before we can generate DDL for you. " +
+        "Some errors may have their 'QuickFix' button enabled; holding the mouse over these buttons will tell you what the " +
+        "suggested quick-fix is. If you are OK with the suggestion, press the QuickFix button, " +
+        "otherwise, make the change yourself using the GUI controls following the message.";
 
 	protected ArchitectFrame architectFrame;
 
@@ -65,39 +73,79 @@ public class ExportDDLAction extends AbstractAction {
                         GenericDDLGenerator ddlg = architectFrame.getProject().getDDLGenerator();
                         ddlg.setTargetSchema(ddlPanel.getSchemaField().getText());
 
+                        boolean done = false;
+                        while (!done) {
                             // generate DDL in order to come up with a list of warnings
                             ddlg.generateDDL(architectFrame.getProject().getPlayPen().getDatabase());
-                            List warnings = ddlg.getWarnings();
-                            if (warnings.size() != 0) {
-                                TableModelSortDecorator sorter = new TableModelSortDecorator(new DDLWarningTableModel(warnings));
-                                final JTable warningTable = new JTable(sorter);
-                                sorter.setTableHeader(warningTable.getTableHeader());
-                                ArchitectPanel panel = new ArchitectPanel() {
-                                    
-                                    public boolean applyChanges() {                                   
+                            final List<DDLWarning> warnings = ddlg.getWarnings();
+                            final JPanel outerPanel = new JPanel();
+                            if (warnings.size() == 0) {
+                                done = true;
+                            } else {
+
+                                ArchitectPanel dialogPanel = new ArchitectPanel() {
+
+                                    public boolean applyChanges() {
                                         return false;
                                     }
-                                    
+
                                     public void discardChanges() {
                                     }
-                                    
+
                                     public JComponent getPanel() {
-                                        JPanel panel = new JPanel();   
-                                        panel.add(new JScrollPane(warningTable));
-                                        return panel;
+                                        outerPanel.setLayout(new BorderLayout());
+                                        JTextArea explanation = new JTextArea(GENDDL_WARNINGS_EXPLANATION, 5, 60);
+                                        explanation.setLineWrap(true);
+                                        explanation.setWrapStyleWord(true);
+                                        explanation.setEditable(false);
+                                        explanation.setBackground(outerPanel.getBackground());
+                                        outerPanel.add(explanation, BorderLayout.NORTH);
+                                        JPanel listBoxPanel = new JPanel();
+                                        listBoxPanel.setLayout(new GridLayout(0, 1, 5, 5));
+                                        for (Object o : warnings) {
+                                            DDLWarning ddlwarning = (DDLWarning) o;
+                                            DDLWarningComponent ddlWarningComponent = DDLWarningComponentFactory.createComponent(ddlwarning);
+                                            listBoxPanel.add(ddlWarningComponent.getComponent());
+                                        }
+                                        outerPanel.add(new JScrollPane(listBoxPanel), BorderLayout.CENTER);
+                                        return outerPanel;
                                     }
                                 };
-                                
-                                JDialog dialog = ArchitectPanelBuilder.
-                                    createSingleButtonArchitectPanelDialog(
-                                        panel, null, "Errors in generated DDL", "OK");
-                                dialog.setModal(true);
-                                dialog.setVisible(true);    // blocking  
-                                
-                                // We cannot continue from here to "Preview SQL Script"
-                                // until the NameWarnings actually work and result in
-                                // new names for the affected SQLObjects.
-                                return;
+                                String[] options = {
+                                        "QuickFix All",
+                                        "Ignore Warnings",
+                                        "Cancel",
+                                        "Recheck"
+                                };
+
+                                int dialogChoice = JOptionPane.showOptionDialog(
+                                        ArchitectFrame.getMainInstance(),
+                                        dialogPanel.getPanel(),
+                                        "Errors in generated DDL",
+                                        JOptionPane.DEFAULT_OPTION,
+                                        JOptionPane.ERROR_MESSAGE,
+                                        null,   // JOptionPane gets icon from owningComponent,
+                                        options,
+                                        options[options.length - 1]);    // blocking
+                                System.out.println(dialogChoice);
+                                switch (dialogChoice) {
+                                case 0:
+                                    for (DDLWarning warning : warnings) {
+                                        if (warning.isQuickFixable()) {
+                                            warning.quickFix();
+                                        }
+                                    }
+                                    break;
+                                case 1:
+                                    done = true;
+                                    break;
+                                case 2:     // "Cancel"
+                                case -1:    // Kill dialog
+                                    return;
+                                case 3: /* nothing to do */
+                                    break;
+                                }
+                            }
                         }
 
                         SQLDatabase ppdb = ArchitectFrame.getMainInstance().getProject().getPlayPen().getDatabase();
@@ -117,11 +165,17 @@ public class ExportDDLAction extends AbstractAction {
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog
                     (architectFrame,
-                            "Can't export DDL: "+ex.getMessage());
+                            "Can't export DDL: " + ex);
                     logger.error("Got exception while exporting DDL", ex);
 
                 }
             }
+
+            private void generateAnyway() {
+                System.out.println("generateAnyway()");
+            }
+
+
         };
 
 
@@ -368,75 +422,5 @@ public class ExportDDLAction extends AbstractAction {
 
 	}
 
-	public static class DDLWarningTableModel extends AbstractTableModel {
-		protected List warnings;
 
-		public DDLWarningTableModel(List warnings) {
-			this.warnings = warnings;
-		}
-
-		public int getRowCount() {
-			return warnings.size();
-		}
-
-		public int getColumnCount() {
-			return 5;
-		}
-
-		public String getColumnName(int columnIndex) {
-			switch(columnIndex) {
-			case 0:
-				return "Parent";
-			case 1:
-				return "Name";
-			case 2:
-				return "Warning Type";
-			case 3:
-				return "Old Value";
-			case 4:
-				return "New Value";
-			default:
-				throw new IndexOutOfBoundsException("Requested column name "+columnIndex+" of "+getColumnCount());
-			}
-		}
-
-		public Object getValueAt(int row, int column) {
-			DDLWarning w = (DDLWarning) warnings.get(row);
-			switch(column) {
-			case 0:
-			    if (w.getSubject().getParent() == null) {
-			        return "(No Parent)";
-			    } else {
-			        return w.getSubject().getParent().getParent();
-			    }
-			case 1:
-				return w.getSubject().getName();
-			case 2:
-				return w.getReason();
-			case 3:
-				return w.getOldValue();
-			case 4:
-				return w.getNewValue();
-			default:
-				throw new IndexOutOfBoundsException("Requested column "+column+" of "+getColumnCount());
-			}
-		}
-
-		public Class getColumnClass(int columnIndex) {
-		    return String.class;
-		}
-
-		public boolean isCellEditable(int rowIndex, int columnIndex) {
-			DDLWarning w = (DDLWarning) warnings.get(rowIndex);
-		    return w instanceof NameChangeWarning && columnIndex == 4;
-		}
-
-		public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-			DDLWarning w = (DDLWarning) warnings.get(rowIndex);
-			if (columnIndex == 4) {
-			    w.setNewValue(aValue);
-			}
-            fireTableCellUpdated(rowIndex,4);
-        }
-	}
 }
