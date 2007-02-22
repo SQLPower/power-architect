@@ -22,7 +22,6 @@ import ca.sqlpower.architect.TestSQLIndexColumn;
 import ca.sqlpower.architect.TestSQLRelationship;
 import ca.sqlpower.architect.TestSQLTable;
 import ca.sqlpower.architect.ddl.TestDDLUtils;
-import ca.sqlpower.architect.ddl.TestDDLWarningsTableModel;
 import ca.sqlpower.architect.diff.CompareSQLTest;
 import ca.sqlpower.architect.diff.SQLComparatorTest;
 import ca.sqlpower.architect.diff.SQLRelationshipComparatorTest;
@@ -32,9 +31,9 @@ public class ArchitectBusinessTestSuite extends TestCase {
 
 	public static Test suite() {
 		TestSuite suite = new TestSuite("Test for regress");
-		
+
 		// AllPrefsTests must be first, as it calls LoadFakeTestPrefs to load the static preferences initialization.
-		
+
 		//$JUnit-BEGIN$
 		suite.addTest(AllPrefsTests.suite());
 		suite.addTestSuite(ArchitectUtilsTest.class);
@@ -59,7 +58,6 @@ public class ArchitectBusinessTestSuite extends TestCase {
 		suite.addTestSuite(CompareSQLTest.class);
 		suite.addTestSuite(SQLComparatorTest.class);
 		suite.addTestSuite(SQLRelationshipComparatorTest.class);
-        suite.addTestSuite(TestDDLWarningsTableModel.class);
 		//$JUnit-END$
 		return suite;
 	}

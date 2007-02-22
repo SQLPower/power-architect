@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -89,7 +90,7 @@ public class GenericDDLGenerator implements DDLGenerator {
      * XXX Consider changing this to a Set as it appears that the values
      * stored in the Map are never used.
 	 */
-	protected Map topLevelNames;
+	protected Map<String, SQLObject> topLevelNames;
 
 	/**
 	 * This list contains 0 or more {@link NameChangeWarning} objects.  It is
@@ -199,7 +200,6 @@ public class GenericDDLGenerator implements DDLGenerator {
 				writeExportedRelationships(t);
 			}
 
-			// TODO add warnings for the originals of the existing duplicate name warnings
 		} finally {
 			try {
 				if (con != null) con.close();
@@ -276,7 +276,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		print(" ADD CONSTRAINT ");
 		print(r.getName());
 		print(" FOREIGN KEY ( ");
-		Map<String, SQLColumn> colNameMap = new HashMap<String, SQLColumn> ();
+		Map<String, SQLObject> colNameMap = new HashMap<String, SQLObject> ();
 		boolean firstColumn = true;
 
 		for (ColumnMapping cm : r.getMappings()) {
@@ -295,7 +295,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		print(" ) REFERENCES ");
 		print( toQualifiedName(r.getPkTable()) );
 		print(" ( ");
-		colNameMap = new HashMap<String, SQLColumn>();
+		colNameMap.clear();
 		firstColumn = true;
 
 		for (ColumnMapping cm : r.getMappings()) {
@@ -428,7 +428,8 @@ public class GenericDDLGenerator implements DDLGenerator {
 		    (c.getSourceDataTypeName(), c.getType(), c.getPrecision(),
 		            null, null, c.getNullable(), false, false);
 		    oldType.determineScaleAndPrecision();
-		    warnings.add(new TypeMapWarning(c, "Unknown Target Type", oldType, td));
+		    warnings.add(
+                    new TypeMapDDLWarning(c, "Unknown Target Type", oldType, td));
 		}
         return td;
     }
@@ -828,27 +829,45 @@ public class GenericDDLGenerator implements DDLGenerator {
      * Generate, set, and return a valid identifier for this SQLObject.
 	 * @throws ArchitectException
      */
-	protected String createPhysicalName(Map dupCheck, SQLObject so) {
+	protected String createPhysicalName(Map<String, SQLObject> dupCheck, SQLObject so) {
 		logger.debug("transform identifier source: " + so.getPhysicalName());
 		so.setPhysicalName(toIdentifier(so.getName()));
-        if(isReservedWord(so.getPhysicalName())) {
-            warnings.add(new NameChangeWarning(so, "Name is a reserved word",so.getPhysicalName()));
-            return so.getPhysicalName();
+        String physicalName = so.getPhysicalName();
+        if(isReservedWord(physicalName)) {
+            String renameTo = physicalName   + "XXX";
+            warnings.add(new DuplicateNameDDLWarning(
+                    String.format("%s is a reserved word", physicalName),
+                    Arrays.asList(new SQLObject[] { so }),
+                    String.format("Rename %s to %s", physicalName, renameTo),
+                    so, renameTo));
+            return physicalName;
         }
 
         int pointIndex = so.getPhysicalName().lastIndexOf('.');
         if (!so.getName().substring(pointIndex+1,pointIndex+2).matches("[a-zA-Z]")){
-            warnings.add(new NameChangeWarning(so, "Name starts with a non-alpha character",so.getPhysicalName()));
-            return so.getPhysicalName();
+            String renameTo = "X" + so.getName();
+            warnings.add(new DuplicateNameDDLWarning(
+                    String.format("Name %s starts with a non-alpha character", physicalName),
+                    Arrays.asList(new SQLObject[] { so }),
+                    String.format("Rename %s to %s", physicalName, renameTo),
+                    so, renameTo));
+            return physicalName;
         }
 
         logger.debug("transform identifier result: " + so.getPhysicalName());
         // XXX should change checkDupName(Map where, so.getPhysicalName(), so, "Duplicate Physical Name", so.getName());
 
-        if (dupCheck.get(so.getPhysicalName()) == null) {
-			dupCheck.put(so.getPhysicalName(), so);
+        String physicalName2 = so.getPhysicalName();
+        SQLObject object = dupCheck.get(physicalName2);
+        if (object == null) {
+			dupCheck.put(physicalName2, so);
 		} else {
-            warnings.add(new NameChangeWarning(so, "Duplicate Physical Name", so.getName()));
+            String renameTo2 = physicalName2 + "2XXX";
+                    warnings.add(new DuplicateNameDDLWarning(
+                            String.format("Global name %s already in use", physicalName),
+                            Arrays.asList(new SQLObject[] { so, object }),
+                            String.format("Rename %s to %s", physicalName, renameTo2),
+                            so, renameTo2));
 		}
 
 		return so.getPhysicalName();
@@ -964,11 +983,16 @@ public class GenericDDLGenerator implements DDLGenerator {
         if (name.equals(name2)) {
             System.err.println("Error: checkDupName called with newname == oldname");
         }
-        if (topLevelNames.get(name) == null) {
+        final SQLObject object = topLevelNames.get(name);
+        if (object == null) {
             topLevelNames.put(name, obj);
         } else {
-            warnings.add(new NameChangeWarning(obj,
-                    warning, name2));
+            warnings.add(
+                    new DuplicateNameDDLWarning(
+                            String.format("Global name %s already in use", name),
+                            Arrays.asList(new SQLObject[] { obj, object }),
+                            String.format("Rename %s to %s", name, name + "XXX3"),
+                            obj, name + "XXX3"));
         }
     }
     /**
