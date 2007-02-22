@@ -128,7 +128,7 @@ public class GenericDDLGenerator implements DDLGenerator {
     protected Map<String, ProfileFunctionDescriptor> profileFunctionMap;
 
 
-    
+
 	public GenericDDLGenerator() throws SQLException {
 		allowConnection = true;
 		warnings = new ArrayList();
@@ -188,7 +188,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 				addTable(t);
 				writePrimaryKey(t);
                 for (SQLIndex index : (List<SQLIndex>)t.getIndicesFolder().getChildren()) {
-System.out.println("*** name:" + index.getName()+"   is pk?"+index.isPrimaryKeyIndex());         
+                    logger.info("*** name:" + index.getName()+"   is pk?"+index.isPrimaryKeyIndex());
                     if (index.isPrimaryKeyIndex()) continue;
                     addIndex(index);
                 }
@@ -418,7 +418,7 @@ System.out.println("*** name:" + index.getName()+"   is pk?"+index.isPrimaryKeyI
      * else returns the default type.
      */
     protected GenericTypeDescriptor failsafeGetTypeDescriptor(SQLColumn c) {
-        GenericTypeDescriptor td = (GenericTypeDescriptor) typeMap.get(new Integer(c.getType()));
+        GenericTypeDescriptor td = (GenericTypeDescriptor) typeMap.get(Integer.valueOf(c.getType()));
 		if (td == null) {
 		    td = (GenericTypeDescriptor) typeMap.get(getDefaultType());
 		    if (td == null) {
@@ -572,27 +572,27 @@ System.out.println("*** name:" + index.getName()+"   is pk?"+index.isPrimaryKeyI
 		typeMap = new HashMap();
 		if (con == null || !allowConnection) {
 			// Add generic type map
-			typeMap.put(new Integer(Types.BIGINT), new GenericTypeDescriptor("BIGINT", Types.BIGINT, 38, null, null, DatabaseMetaData.columnNullable, false, false));
-			typeMap.put(new Integer(Types.BINARY), new GenericTypeDescriptor("BINARY", Types.BINARY, 2000, "0x", null, DatabaseMetaData.columnNullable, true, false));
-			typeMap.put(new Integer(Types.BIT), new GenericTypeDescriptor("BIT", Types.BIT, 1, null, null, DatabaseMetaData.columnNullable, false, false));
-			typeMap.put(new Integer(Types.BLOB), new GenericTypeDescriptor("BLOB", Types.BLOB, 2147483647, "0x", null, DatabaseMetaData.columnNullable, true, false));
-			typeMap.put(new Integer(Types.CHAR), new GenericTypeDescriptor("CHAR", Types.CHAR, 8000, "'", "'", DatabaseMetaData.columnNullable, true, false));
-			typeMap.put(new Integer(Types.CLOB), new GenericTypeDescriptor("CLOB", Types.CLOB, 2147483647, "'", "'", DatabaseMetaData.columnNullable, true, false));
-			typeMap.put(new Integer(Types.DATE), new GenericTypeDescriptor("DATE", Types.DATE, 23, "'", "'", DatabaseMetaData.columnNullable, false, false));
-			typeMap.put(new Integer(Types.DECIMAL), new GenericTypeDescriptor("DECIMAL", Types.DECIMAL, 38, null, null, DatabaseMetaData.columnNullable, true, true));
-			typeMap.put(new Integer(Types.DOUBLE), new GenericTypeDescriptor("DOUBLE", Types.DOUBLE, 38, null, null, DatabaseMetaData.columnNullable, false, false));
-			typeMap.put(new Integer(Types.FLOAT), new GenericTypeDescriptor("FLOAT", Types.FLOAT, 38, null, null, DatabaseMetaData.columnNullable, false, false));
-			typeMap.put(new Integer(Types.INTEGER), new GenericTypeDescriptor("INTEGER", Types.INTEGER, 10, null, null, DatabaseMetaData.columnNullable, false, false));
-			typeMap.put(new Integer(Types.LONGVARBINARY), new GenericTypeDescriptor("LONGVARBINARY", Types.LONGVARBINARY, 2147483647, "0x", null, DatabaseMetaData.columnNullable, true, false));
-			typeMap.put(new Integer(Types.LONGVARCHAR), new GenericTypeDescriptor("LONGVARCHAR", Types.LONGVARCHAR, 2147483647, "'", "'", DatabaseMetaData.columnNullable, true, false));
-			typeMap.put(new Integer(Types.NUMERIC), new GenericTypeDescriptor("NUMERIC", Types.NUMERIC, 38, null, null, DatabaseMetaData.columnNullable, true, true));
-			typeMap.put(new Integer(Types.REAL), new GenericTypeDescriptor("REAL", Types.REAL, 38, null, null, DatabaseMetaData.columnNullable, false, false));
-			typeMap.put(new Integer(Types.SMALLINT), new GenericTypeDescriptor("SMALLINT", Types.SMALLINT, 5, null, null, DatabaseMetaData.columnNullable, false, false));
-			typeMap.put(new Integer(Types.TIME), new GenericTypeDescriptor("TIME", Types.TIME, 23, "'", "'", DatabaseMetaData.columnNullable, false, false));
-			typeMap.put(new Integer(Types.TIMESTAMP), new GenericTypeDescriptor("TIMESTAMP", Types.TIMESTAMP, 23, "'", "'", DatabaseMetaData.columnNullable, false, false));
-			typeMap.put(new Integer(Types.TINYINT), new GenericTypeDescriptor("TINYINT", Types.TINYINT, 3, null, null, DatabaseMetaData.columnNullable, false, false));
-			typeMap.put(new Integer(Types.VARBINARY), new GenericTypeDescriptor("VARBINARY", Types.VARBINARY, 8000, null, null, DatabaseMetaData.columnNullable, true, false));
-			typeMap.put(new Integer(Types.VARCHAR), new GenericTypeDescriptor("VARCHAR", Types.VARCHAR, 8000, "'", "'", DatabaseMetaData.columnNullable, true, false));
+			typeMap.put(Integer.valueOf(Types.BIGINT), new GenericTypeDescriptor("BIGINT", Types.BIGINT, 38, null, null, DatabaseMetaData.columnNullable, false, false));
+			typeMap.put(Integer.valueOf(Types.BINARY), new GenericTypeDescriptor("BINARY", Types.BINARY, 2000, "0x", null, DatabaseMetaData.columnNullable, true, false));
+			typeMap.put(Integer.valueOf(Types.BIT), new GenericTypeDescriptor("BIT", Types.BIT, 1, null, null, DatabaseMetaData.columnNullable, false, false));
+			typeMap.put(Integer.valueOf(Types.BLOB), new GenericTypeDescriptor("BLOB", Types.BLOB, 2147483647, "0x", null, DatabaseMetaData.columnNullable, true, false));
+			typeMap.put(Integer.valueOf(Types.CHAR), new GenericTypeDescriptor("CHAR", Types.CHAR, 8000, "'", "'", DatabaseMetaData.columnNullable, true, false));
+			typeMap.put(Integer.valueOf(Types.CLOB), new GenericTypeDescriptor("CLOB", Types.CLOB, 2147483647, "'", "'", DatabaseMetaData.columnNullable, true, false));
+			typeMap.put(Integer.valueOf(Types.DATE), new GenericTypeDescriptor("DATE", Types.DATE, 23, "'", "'", DatabaseMetaData.columnNullable, false, false));
+			typeMap.put(Integer.valueOf(Types.DECIMAL), new GenericTypeDescriptor("DECIMAL", Types.DECIMAL, 38, null, null, DatabaseMetaData.columnNullable, true, true));
+			typeMap.put(Integer.valueOf(Types.DOUBLE), new GenericTypeDescriptor("DOUBLE", Types.DOUBLE, 38, null, null, DatabaseMetaData.columnNullable, false, false));
+			typeMap.put(Integer.valueOf(Types.FLOAT), new GenericTypeDescriptor("FLOAT", Types.FLOAT, 38, null, null, DatabaseMetaData.columnNullable, false, false));
+			typeMap.put(Integer.valueOf(Types.INTEGER), new GenericTypeDescriptor("INTEGER", Types.INTEGER, 10, null, null, DatabaseMetaData.columnNullable, false, false));
+			typeMap.put(Integer.valueOf(Types.LONGVARBINARY), new GenericTypeDescriptor("LONGVARBINARY", Types.LONGVARBINARY, 2147483647, "0x", null, DatabaseMetaData.columnNullable, true, false));
+			typeMap.put(Integer.valueOf(Types.LONGVARCHAR), new GenericTypeDescriptor("LONGVARCHAR", Types.LONGVARCHAR, 2147483647, "'", "'", DatabaseMetaData.columnNullable, true, false));
+			typeMap.put(Integer.valueOf(Types.NUMERIC), new GenericTypeDescriptor("NUMERIC", Types.NUMERIC, 38, null, null, DatabaseMetaData.columnNullable, true, true));
+			typeMap.put(Integer.valueOf(Types.REAL), new GenericTypeDescriptor("REAL", Types.REAL, 38, null, null, DatabaseMetaData.columnNullable, false, false));
+			typeMap.put(Integer.valueOf(Types.SMALLINT), new GenericTypeDescriptor("SMALLINT", Types.SMALLINT, 5, null, null, DatabaseMetaData.columnNullable, false, false));
+			typeMap.put(Integer.valueOf(Types.TIME), new GenericTypeDescriptor("TIME", Types.TIME, 23, "'", "'", DatabaseMetaData.columnNullable, false, false));
+			typeMap.put(Integer.valueOf(Types.TIMESTAMP), new GenericTypeDescriptor("TIMESTAMP", Types.TIMESTAMP, 23, "'", "'", DatabaseMetaData.columnNullable, false, false));
+			typeMap.put(Integer.valueOf(Types.TINYINT), new GenericTypeDescriptor("TINYINT", Types.TINYINT, 3, null, null, DatabaseMetaData.columnNullable, false, false));
+			typeMap.put(Integer.valueOf(Types.VARBINARY), new GenericTypeDescriptor("VARBINARY", Types.VARBINARY, 8000, null, null, DatabaseMetaData.columnNullable, true, false));
+			typeMap.put(Integer.valueOf(Types.VARCHAR), new GenericTypeDescriptor("VARCHAR", Types.VARCHAR, 8000, "'", "'", DatabaseMetaData.columnNullable, true, false));
 		}
 		else
 		{
@@ -600,7 +600,7 @@ System.out.println("*** name:" + index.getName()+"   is pk?"+index.isPrimaryKeyI
 			ResultSet rs = dbmd.getTypeInfo();
 			while (rs.next()) {
 				GenericTypeDescriptor td = new GenericTypeDescriptor(rs);
-				typeMap.put(new Integer(td.getDataType()), td);
+				typeMap.put(Integer.valueOf(td.getDataType()), td);
 			}
 			rs.close();
 		}
@@ -844,7 +844,7 @@ System.out.println("*** name:" + index.getName()+"   is pk?"+index.isPrimaryKeyI
 
         logger.debug("transform identifier result: " + so.getPhysicalName());
         // XXX should change checkDupName(Map where, so.getPhysicalName(), so, "Duplicate Physical Name", so.getName());
-		
+
         if (dupCheck.get(so.getPhysicalName()) == null) {
 			dupCheck.put(so.getPhysicalName(), so);
 		} else {
@@ -863,11 +863,11 @@ System.out.println("*** name:" + index.getName()+"   is pk?"+index.isPrimaryKeyI
     private String createPhysicalPrimaryKeyName(SQLTable t) {
         String physName = toIdentifier(t.getPrimaryKeyName());
         t.setPhysicalPrimaryKeyName(physName);
-        checkDupName(physName, t, 
+        checkDupName(physName, t,
                 "Duplicate Primary Key Name", physName);
         return physName;
     }
-	
+
     /**
      * Generates a standard <code>DROP TABLE $tablename</code> command.  Should work on most platforms.
      */
@@ -949,7 +949,7 @@ System.out.println("*** name:" + index.getName()+"   is pk?"+index.isPrimaryKeyI
         String name = index.getName();
         checkDupName(name, index.getParentTable(), "Index name is not unique", name);
     }
-    
+
     /**
      * Check that given name is not already present in the top level namespace.
      * @param name The top level name to be checked.
@@ -957,9 +957,9 @@ System.out.println("*** name:" + index.getName()+"   is pk?"+index.isPrimaryKeyI
      * @param warning The text of the name change warning to generate.
      * @param name2 The name to go in the name change warning.
      */
-    protected final void checkDupName(String name, 
-            SQLObject obj, 
-            String warning, 
+    protected final void checkDupName(String name,
+            SQLObject obj,
+            String warning,
             String name2) {
         if (name.equals(name2)) {
             System.err.println("Error: checkDupName called with newname == oldname");
@@ -967,14 +967,14 @@ System.out.println("*** name:" + index.getName()+"   is pk?"+index.isPrimaryKeyI
         if (topLevelNames.get(name) == null) {
             topLevelNames.put(name, obj);
         } else {
-            warnings.add(new NameChangeWarning(obj, 
+            warnings.add(new NameChangeWarning(obj,
                     warning, name2));
         }
     }
     /**
      * Adds a DDL statement to this generator that will create the
      * given index.
-     * 
+     *
      * @param index The specification of the index to create.  Note,
      * if the index type is STATISTIC, no DDL will be generated because
      * STATISTIC indices are just artificial JDBC constructs to describe
@@ -983,9 +983,9 @@ System.out.println("*** name:" + index.getName()+"   is pk?"+index.isPrimaryKeyI
     public void addIndex(SQLIndex index) throws ArchitectException {
         if (index.getType() == IndexType.STATISTIC )
             return;
-        
+
         checkDupIndexname(index);
-        
+
         println("");
         print("CREATE ");
         if (index.isUnique()) {

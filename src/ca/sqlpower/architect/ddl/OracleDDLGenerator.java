@@ -14,7 +14,7 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.profile.ProfileFunctionDescriptor;
 
 public class OracleDDLGenerator extends GenericDDLGenerator {
-    
+
 	public OracleDDLGenerator() throws SQLException {
 		super();
 	}
@@ -24,7 +24,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
 	private static final Logger logger = Logger.getLogger(OracleDDLGenerator.class);
 
 	private static HashSet reservedWords;
-	
+
 	static {
 		reservedWords = new HashSet();
 		reservedWords.add("ACCESS");
@@ -138,7 +138,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
 		reservedWords.add("VIEW");
 		reservedWords.add("WHENEVER");
 		reservedWords.add("WHERE");
-		reservedWords.add("WITH");		
+		reservedWords.add("WITH");
 	}
 
     @Override
@@ -149,29 +149,29 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
     @Override
 	protected void createTypeMap() throws SQLException {
 		typeMap = new HashMap();
-		
-		typeMap.put(new Integer(Types.BIGINT), new GenericTypeDescriptor("NUMBER", Types.BIGINT, 38, null, null, DatabaseMetaData.columnNullable, true, false));
-		typeMap.put(new Integer(Types.BINARY), new GenericTypeDescriptor("RAW", Types.BINARY, 2000, null, null, DatabaseMetaData.columnNullable, true, false));
-		typeMap.put(new Integer(Types.BIT), new GenericTypeDescriptor("NUMBER", Types.BIT, 1, null, null, DatabaseMetaData.columnNullable, true, false));
-		typeMap.put(new Integer(Types.BLOB), new GenericTypeDescriptor("BLOB", Types.BLOB, 4000000000L, null, null, DatabaseMetaData.columnNullable, true, false));
-		typeMap.put(new Integer(Types.CHAR), new GenericTypeDescriptor("CHAR", Types.CHAR, 2000, "'", "'", DatabaseMetaData.columnNullable, true, false));
-		typeMap.put(new Integer(Types.CLOB), new GenericTypeDescriptor("CLOB", Types.CLOB, 4000000000L, null, null, DatabaseMetaData.columnNullable, true, false));
-		typeMap.put(new Integer(Types.DATE), new GenericTypeDescriptor("DATE", Types.DATE, 0, "'", "'", DatabaseMetaData.columnNullable, false, false));
-		typeMap.put(new Integer(Types.DECIMAL), new GenericTypeDescriptor("NUMBER", Types.DECIMAL, 38, null, null, DatabaseMetaData.columnNullable, true, true));
-		typeMap.put(new Integer(Types.DOUBLE), new GenericTypeDescriptor("NUMBER", Types.DOUBLE, 38, null, null, DatabaseMetaData.columnNullable, false, false));
-		typeMap.put(new Integer(Types.FLOAT), new GenericTypeDescriptor("FLOAT", Types.FLOAT, 38, null, null, DatabaseMetaData.columnNullable, false, false));
-		typeMap.put(new Integer(Types.INTEGER), new GenericTypeDescriptor("NUMBER", Types.INTEGER, 38, null, null, DatabaseMetaData.columnNullable, true, false));
-		typeMap.put(new Integer(Types.LONGVARBINARY), new GenericTypeDescriptor("LONG RAW", Types.LONGVARBINARY, 2000000000L, null, null, DatabaseMetaData.columnNullable, true, false));
-		typeMap.put(new Integer(Types.LONGVARCHAR), new GenericTypeDescriptor("VARCHAR2", Types.LONGVARCHAR, 4000, "'", "'", DatabaseMetaData.columnNullable, true, false));
-		typeMap.put(new Integer(Types.NUMERIC), new GenericTypeDescriptor("NUMBER", Types.NUMERIC, 38, null, null, DatabaseMetaData.columnNullable, true, true));
-		typeMap.put(new Integer(Types.REAL), new GenericTypeDescriptor("NUMBER", Types.REAL, 38, null, null, DatabaseMetaData.columnNullable, false, false));
-		typeMap.put(new Integer(Types.SMALLINT), new GenericTypeDescriptor("NUMBER", Types.SMALLINT, 38, null, null, DatabaseMetaData.columnNullable, true, false));
-		typeMap.put(new Integer(Types.TIME), new GenericTypeDescriptor("DATE", Types.TIME, 0, "'", "'", DatabaseMetaData.columnNullable, false, false));
-		typeMap.put(new Integer(Types.TIMESTAMP), new GenericTypeDescriptor("DATE", Types.TIMESTAMP, 0, "'", "'", DatabaseMetaData.columnNullable, false, false));
-		typeMap.put(new Integer(Types.TINYINT), new GenericTypeDescriptor("NUMBER", Types.TINYINT, 38, null, null, DatabaseMetaData.columnNullable, true, false));
-		typeMap.put(new Integer(Types.LONGVARCHAR), new GenericTypeDescriptor("LONG", Types.LONGVARCHAR, 2000000000L, null, null, DatabaseMetaData.columnNullable, true, false));
-        typeMap.put(new Integer(Types.VARBINARY), new GenericTypeDescriptor("LONG RAW", Types.VARBINARY, 2000000000L, null, null, DatabaseMetaData.columnNullable, true, false));
-		typeMap.put(new Integer(Types.VARCHAR), new GenericTypeDescriptor("VARCHAR2", Types.VARCHAR, 4000, "'", "'", DatabaseMetaData.columnNullable, true, false));
+
+		typeMap.put(Integer.valueOf(Types.BIGINT), new GenericTypeDescriptor("NUMBER", Types.BIGINT, 38, null, null, DatabaseMetaData.columnNullable, true, false));
+		typeMap.put(Integer.valueOf(Types.BINARY), new GenericTypeDescriptor("RAW", Types.BINARY, 2000, null, null, DatabaseMetaData.columnNullable, true, false));
+		typeMap.put(Integer.valueOf(Types.BIT), new GenericTypeDescriptor("NUMBER", Types.BIT, 1, null, null, DatabaseMetaData.columnNullable, true, false));
+		typeMap.put(Integer.valueOf(Types.BLOB), new GenericTypeDescriptor("BLOB", Types.BLOB, 4000000000L, null, null, DatabaseMetaData.columnNullable, true, false));
+		typeMap.put(Integer.valueOf(Types.CHAR), new GenericTypeDescriptor("CHAR", Types.CHAR, 2000, "'", "'", DatabaseMetaData.columnNullable, true, false));
+		typeMap.put(Integer.valueOf(Types.CLOB), new GenericTypeDescriptor("CLOB", Types.CLOB, 4000000000L, null, null, DatabaseMetaData.columnNullable, true, false));
+		typeMap.put(Integer.valueOf(Types.DATE), new GenericTypeDescriptor("DATE", Types.DATE, 0, "'", "'", DatabaseMetaData.columnNullable, false, false));
+		typeMap.put(Integer.valueOf(Types.DECIMAL), new GenericTypeDescriptor("NUMBER", Types.DECIMAL, 38, null, null, DatabaseMetaData.columnNullable, true, true));
+		typeMap.put(Integer.valueOf(Types.DOUBLE), new GenericTypeDescriptor("NUMBER", Types.DOUBLE, 38, null, null, DatabaseMetaData.columnNullable, false, false));
+		typeMap.put(Integer.valueOf(Types.FLOAT), new GenericTypeDescriptor("FLOAT", Types.FLOAT, 38, null, null, DatabaseMetaData.columnNullable, false, false));
+		typeMap.put(Integer.valueOf(Types.INTEGER), new GenericTypeDescriptor("NUMBER", Types.INTEGER, 38, null, null, DatabaseMetaData.columnNullable, true, false));
+		typeMap.put(Integer.valueOf(Types.LONGVARBINARY), new GenericTypeDescriptor("LONG RAW", Types.LONGVARBINARY, 2000000000L, null, null, DatabaseMetaData.columnNullable, true, false));
+		typeMap.put(Integer.valueOf(Types.LONGVARCHAR), new GenericTypeDescriptor("VARCHAR2", Types.LONGVARCHAR, 4000, "'", "'", DatabaseMetaData.columnNullable, true, false));
+		typeMap.put(Integer.valueOf(Types.NUMERIC), new GenericTypeDescriptor("NUMBER", Types.NUMERIC, 38, null, null, DatabaseMetaData.columnNullable, true, true));
+		typeMap.put(Integer.valueOf(Types.REAL), new GenericTypeDescriptor("NUMBER", Types.REAL, 38, null, null, DatabaseMetaData.columnNullable, false, false));
+		typeMap.put(Integer.valueOf(Types.SMALLINT), new GenericTypeDescriptor("NUMBER", Types.SMALLINT, 38, null, null, DatabaseMetaData.columnNullable, true, false));
+		typeMap.put(Integer.valueOf(Types.TIME), new GenericTypeDescriptor("DATE", Types.TIME, 0, "'", "'", DatabaseMetaData.columnNullable, false, false));
+		typeMap.put(Integer.valueOf(Types.TIMESTAMP), new GenericTypeDescriptor("DATE", Types.TIMESTAMP, 0, "'", "'", DatabaseMetaData.columnNullable, false, false));
+		typeMap.put(Integer.valueOf(Types.TINYINT), new GenericTypeDescriptor("NUMBER", Types.TINYINT, 38, null, null, DatabaseMetaData.columnNullable, true, false));
+		typeMap.put(Integer.valueOf(Types.LONGVARCHAR), new GenericTypeDescriptor("LONG", Types.LONGVARCHAR, 2000000000L, null, null, DatabaseMetaData.columnNullable, true, false));
+        typeMap.put(Integer.valueOf(Types.VARBINARY), new GenericTypeDescriptor("LONG RAW", Types.VARBINARY, 2000000000L, null, null, DatabaseMetaData.columnNullable, true, false));
+		typeMap.put(Integer.valueOf(Types.VARCHAR), new GenericTypeDescriptor("VARCHAR2", Types.VARCHAR, 4000, "'", "'", DatabaseMetaData.columnNullable, true, false));
 	}
 
     @Override
@@ -185,10 +185,10 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
         profileFunctionMap.put("VARCHAR", new ProfileFunctionDescriptor("VARCHAR", Types.VARCHAR,       true,true,true,false,true,true,true,true));
         profileFunctionMap.put("VARCHAR2",new ProfileFunctionDescriptor("VARCHAR", Types.VARCHAR,       true,true,true,false,true,true,true,true));
         profileFunctionMap.put("NVARCHAR2",new ProfileFunctionDescriptor("NVARCHAR", Types.VARCHAR,     true,true,true,false,true,true,true,true));
-        
+
         profileFunctionMap.put("BLOB", new ProfileFunctionDescriptor("BLOB", Types.BLOB, false,false,false,false,false,false,false,false));
         profileFunctionMap.put("CLOB", new ProfileFunctionDescriptor("CLOB", Types.CLOB, false,false,false,false,false,false,false,false));
-        
+
         profileFunctionMap.put("BIGINT", new ProfileFunctionDescriptor("BIGINT", Types.BIGINT,       true,true,true,true,true,true,true,true));
         profileFunctionMap.put("DECIMAL", new ProfileFunctionDescriptor("DECIMAL", Types.DECIMAL,    true,true,true,true,true,true,true,true));
         profileFunctionMap.put("DOUBLE", new ProfileFunctionDescriptor("DOUBLE", Types.DOUBLE,       true,true,true,true,true,true,true,true));
@@ -201,40 +201,40 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
         profileFunctionMap.put("TINYINT", new ProfileFunctionDescriptor("TINYINT", Types.TINYINT,    true,true,true,true,true,true,true,true));
         profileFunctionMap.put("INTERVALDS", new ProfileFunctionDescriptor("TINYINT", Types.TINYINT,    true,true,true,true,true,true,true,true));
         profileFunctionMap.put("INTERVALYM", new ProfileFunctionDescriptor("TINYINT", Types.TINYINT,    true,true,true,true,true,true,true,true));
-        
+
         profileFunctionMap.put("TIME",      new ProfileFunctionDescriptor("TIME", Types.TIME,           true,true,true,false,true,true,true,true));
         profileFunctionMap.put("TIMESTAMP", new ProfileFunctionDescriptor("TIMESTAMP", Types.TIMESTAMP, true,true,true,false,true,true,true,true));
         profileFunctionMap.put("TIMESTAMP WITH LOCAL TIME ZONE", new ProfileFunctionDescriptor("TIMESTAMP", Types.TIMESTAMP, true,true,true,false,true,true,true,true));
         profileFunctionMap.put("TIMESTAMP WITH TIME ZONE", new ProfileFunctionDescriptor("TIMESTAMP", Types.TIMESTAMP, true,true,true,false,true,true,true,true));
         profileFunctionMap.put("DATE",      new ProfileFunctionDescriptor("DATE", Types.DATE,           true,true,true,false,true,true,true,true));
-        
+
         profileFunctionMap.put("LONG",          new ProfileFunctionDescriptor("LONGVARCHAR", Types.LONGVARCHAR,     false,false,false,false,false,false,false,false));
         profileFunctionMap.put("LONG RAW",      new ProfileFunctionDescriptor("LONGVARBINARY", Types.LONGVARBINARY, false,false,false,false,false,false,false,false));
         profileFunctionMap.put("STRUCT",        new ProfileFunctionDescriptor("LONGVARBINARY", Types.LONGVARBINARY, false,false,false,false,false,false,false,false));
         profileFunctionMap.put("ARRAY",         new ProfileFunctionDescriptor("LONGVARBINARY", Types.LONGVARBINARY, false,false,false,false,false,false,false,false));
         profileFunctionMap.put("REF",           new ProfileFunctionDescriptor("LONGVARBINARY", Types.LONGVARBINARY, false,false,false,false,false,false,false,false));
-        
-        
-        
+
+
+
 
     }
 
-    
+
 	/**
-	 * Turns a logical identifier into a legal identifier (physical name) for Oracle 8i/9i.  
-     * Also, upcases the identifier for consistency.  
-     * 
-     * <p>Uses a deterministic method to generate tie-breaking numbers when there is a namespace 
-     * conflict.  If you pass null as the physical name, it will use just the logical name when 
+	 * Turns a logical identifier into a legal identifier (physical name) for Oracle 8i/9i.
+     * Also, upcases the identifier for consistency.
+     *
+     * <p>Uses a deterministic method to generate tie-breaking numbers when there is a namespace
+     * conflict.  If you pass null as the physical name, it will use just the logical name when
      * trying to come up with tie-breaking hashes for identifier names.  If the first attempt
-     * at generating a unique name fails, subsequent calls should pass each new illegal     
+     * at generating a unique name fails, subsequent calls should pass each new illegal
      * identifier which will be used with the logical name to generate a another hash.
-     * 
+     *
      * <p>Oracle Rules:
      * <ul>
      *  <li> no spaces
      *  <li> 30 character limit
-     *  <li> identifiers must begin with a letter (the offending chunk of characters is moved to the 
+     *  <li> identifiers must begin with a letter (the offending chunk of characters is moved to the
      *       back of the new physical identifier)
      *  <li> can't be an oracle reserved word
      *  <li> can only be comprised of letters, numbers, and underscores (XXX: does not play well with regex chars like ^ and |)
@@ -246,7 +246,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
 		if (logger.isDebugEnabled()) logger.debug("getting physical name for: " + logicalName);
 		String ident = logicalName.replace(' ','_').toUpperCase();
 		if (logger.isDebugEnabled()) logger.debug("after replace of spaces: " + ident);
-				
+
 		// replace anything that is not a letter, character, or underscore with an underscore...
 		ident = ident.replaceAll("[^a-zA-Z0-9_]", "_");
 
@@ -264,10 +264,10 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
 				return (base + tiebreaker);
 			}
 		} else {
-			// back for more, which means that we had a 
+			// back for more, which means that we had a
             // namespace conflict.  Hack the ident down
-            // to size if it's too big, and then generate 
-            // a hash tiebreaker using the ident and the 
+            // to size if it's too big, and then generate
+            // a hash tiebreaker using the ident and the
             // current value of physicalName
 			if (logger.isDebugEnabled()) logger.debug("physical idenfier is not unique, regenerating: " + physicalName);
 			String base = ident;
@@ -279,7 +279,7 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
 			return (base + tiebreaker);
 		}
     }
-    
+
     /**
      * Subroutine for toIdentifier().  Probably a generally useful feature that we
      * should pull up to the GenericDDLGenerator.
@@ -320,10 +320,10 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
             + " DROP CONSTRAINT "
             + fkName;
     }
-    
+
     @Override
     public void modifyColumn(SQLColumn c) {
-		Map colNameMap = new HashMap(); 
+		Map colNameMap = new HashMap();
 		SQLTable t = c.getParentTable();
 		print("\n ALTER TABLE ");
 		print(toQualifiedName(t.getPhysicalName()));
@@ -331,17 +331,17 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
 		print(columnDefinition(c,colNameMap));
 		endStatement(DDLStatement.StatementType.MODIFY, c);
 	}
-    
+
     @Override
     public void addColumn(SQLColumn c) {
-        Map colNameMap = new HashMap();  
+        Map colNameMap = new HashMap();
         print("\n ALTER TABLE ");
         print(toQualifiedName(c.getParentTable()));
         print(" ADD ");
         print(columnDefinition(c,colNameMap));
         endStatement(DDLStatement.StatementType.CREATE, c);
     }
-    
+
     @Override
     public String caseWhenNull(String expression, String then) {
         StringBuffer sql = new StringBuffer();
