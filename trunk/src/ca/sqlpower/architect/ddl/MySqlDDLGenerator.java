@@ -19,13 +19,13 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
     public MySqlDDLGenerator() throws SQLException {
         super();
     }
-    
+
     public static final String GENERATOR_VERSION = "$Revision$";
 
     private static final Logger logger = Logger.getLogger(MySqlDDLGenerator.class);
 
     private static HashSet reservedWords;
-    
+
     static {
         reservedWords = new HashSet();
         reservedWords.add("ADD");
@@ -250,35 +250,35 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         reservedWords.add("ZEROFILL");
 
     }
-  
+
 
     @Override
     protected void createTypeMap() throws SQLException {
         typeMap = new HashMap();
-        
-        typeMap.put(new Integer(Types.BIGINT), new GenericTypeDescriptor("BIGINT", Types.BIGINT, 38, null, null, DatabaseMetaData.columnNullable, true, false));
-        typeMap.put(new Integer(Types.BIT), new GenericTypeDescriptor("TINYINT", Types.BIT, 1, null, null, DatabaseMetaData.columnNullable, true, false));
-        typeMap.put(new Integer(Types.BLOB), new GenericTypeDescriptor("LONGBLOB", Types.BLOB, 4000000000L, null, null, DatabaseMetaData.columnNullable, false, false));
-        typeMap.put(new Integer(Types.CHAR), new GenericTypeDescriptor("CHAR", Types.CHAR, 2000, "'", "'", DatabaseMetaData.columnNullable, true, false));
-        typeMap.put(new Integer(Types.CLOB), new GenericTypeDescriptor("LONGTEXT", Types.CLOB, 4000000000L, null, null, DatabaseMetaData.columnNullable, false, false));
-        typeMap.put(new Integer(Types.DATE), new GenericTypeDescriptor("DATE", Types.DATE, 0, "'", "'", DatabaseMetaData.columnNullable, false, false));
-        typeMap.put(new Integer(Types.DECIMAL), new GenericTypeDescriptor("DECIMAL", Types.DECIMAL, 38, null, null, DatabaseMetaData.columnNullable, true, true));
-        typeMap.put(new Integer(Types.DOUBLE), new GenericTypeDescriptor("DOUBLE PRECISION", Types.DOUBLE, 38, null, null, DatabaseMetaData.columnNullable, false, false));
-        typeMap.put(new Integer(Types.FLOAT), new GenericTypeDescriptor("DOUBLE PRECISION", Types.FLOAT, 38, null, null, DatabaseMetaData.columnNullable, false, false));
-        typeMap.put(new Integer(Types.INTEGER), new GenericTypeDescriptor("INT", Types.INTEGER, 38, null, null, DatabaseMetaData.columnNullable, true, false));
-        typeMap.put(new Integer(Types.NUMERIC), new GenericTypeDescriptor("NUMERIC", Types.NUMERIC, 38, null, null, DatabaseMetaData.columnNullable, true, true));
-        typeMap.put(new Integer(Types.REAL), new GenericTypeDescriptor("DOUBLE PRECISION", Types.REAL, 38, null, null, DatabaseMetaData.columnNullable, false, false));
-        typeMap.put(new Integer(Types.SMALLINT), new GenericTypeDescriptor("SMALLINT", Types.SMALLINT, 38, null, null, DatabaseMetaData.columnNullable, true, false));
-        typeMap.put(new Integer(Types.TIME), new GenericTypeDescriptor("TIME", Types.TIME, 0, "'", "'", DatabaseMetaData.columnNullable, false, false));
-        typeMap.put(new Integer(Types.TIMESTAMP), new GenericTypeDescriptor("TIMESTAMP", Types.TIMESTAMP, 0, "'", "'", DatabaseMetaData.columnNullable, false, false));
-        typeMap.put(new Integer(Types.TINYINT), new GenericTypeDescriptor("TINYINT", Types.TINYINT, 38, null, null, DatabaseMetaData.columnNullable, true, false));
-        typeMap.put(new Integer(Types.BINARY), new GenericTypeDescriptor("BINARY", Types.BINARY, 65535, null, null, DatabaseMetaData.columnNullable, true, false));
-        typeMap.put(new Integer(Types.LONGVARBINARY), new GenericTypeDescriptor("VARBINARY", Types.LONGVARBINARY, 65535, null, null, DatabaseMetaData.columnNullable, true, false));
-        typeMap.put(new Integer(Types.VARBINARY), new GenericTypeDescriptor("VARBINARY", Types.VARBINARY, 65535, null, null, DatabaseMetaData.columnNullable, true, false));
-        typeMap.put(new Integer(Types.LONGVARCHAR), new GenericTypeDescriptor("VARCHAR", Types.LONGVARCHAR, 65535, "'", "'", DatabaseMetaData.columnNullable, true, false));
-        typeMap.put(new Integer(Types.VARCHAR), new GenericTypeDescriptor("VARCHAR", Types.VARCHAR, 65535, "'", "'", DatabaseMetaData.columnNullable, true, false));
+
+        typeMap.put(Integer.valueOf(Types.BIGINT), new GenericTypeDescriptor("BIGINT", Types.BIGINT, 38, null, null, DatabaseMetaData.columnNullable, true, false));
+        typeMap.put(Integer.valueOf(Types.BIT), new GenericTypeDescriptor("TINYINT", Types.BIT, 1, null, null, DatabaseMetaData.columnNullable, true, false));
+        typeMap.put(Integer.valueOf(Types.BLOB), new GenericTypeDescriptor("LONGBLOB", Types.BLOB, 4000000000L, null, null, DatabaseMetaData.columnNullable, false, false));
+        typeMap.put(Integer.valueOf(Types.CHAR), new GenericTypeDescriptor("CHAR", Types.CHAR, 2000, "'", "'", DatabaseMetaData.columnNullable, true, false));
+        typeMap.put(Integer.valueOf(Types.CLOB), new GenericTypeDescriptor("LONGTEXT", Types.CLOB, 4000000000L, null, null, DatabaseMetaData.columnNullable, false, false));
+        typeMap.put(Integer.valueOf(Types.DATE), new GenericTypeDescriptor("DATE", Types.DATE, 0, "'", "'", DatabaseMetaData.columnNullable, false, false));
+        typeMap.put(Integer.valueOf(Types.DECIMAL), new GenericTypeDescriptor("DECIMAL", Types.DECIMAL, 38, null, null, DatabaseMetaData.columnNullable, true, true));
+        typeMap.put(Integer.valueOf(Types.DOUBLE), new GenericTypeDescriptor("DOUBLE PRECISION", Types.DOUBLE, 38, null, null, DatabaseMetaData.columnNullable, false, false));
+        typeMap.put(Integer.valueOf(Types.FLOAT), new GenericTypeDescriptor("DOUBLE PRECISION", Types.FLOAT, 38, null, null, DatabaseMetaData.columnNullable, false, false));
+        typeMap.put(Integer.valueOf(Types.INTEGER), new GenericTypeDescriptor("INT", Types.INTEGER, 38, null, null, DatabaseMetaData.columnNullable, true, false));
+        typeMap.put(Integer.valueOf(Types.NUMERIC), new GenericTypeDescriptor("NUMERIC", Types.NUMERIC, 38, null, null, DatabaseMetaData.columnNullable, true, true));
+        typeMap.put(Integer.valueOf(Types.REAL), new GenericTypeDescriptor("DOUBLE PRECISION", Types.REAL, 38, null, null, DatabaseMetaData.columnNullable, false, false));
+        typeMap.put(Integer.valueOf(Types.SMALLINT), new GenericTypeDescriptor("SMALLINT", Types.SMALLINT, 38, null, null, DatabaseMetaData.columnNullable, true, false));
+        typeMap.put(Integer.valueOf(Types.TIME), new GenericTypeDescriptor("TIME", Types.TIME, 0, "'", "'", DatabaseMetaData.columnNullable, false, false));
+        typeMap.put(Integer.valueOf(Types.TIMESTAMP), new GenericTypeDescriptor("TIMESTAMP", Types.TIMESTAMP, 0, "'", "'", DatabaseMetaData.columnNullable, false, false));
+        typeMap.put(Integer.valueOf(Types.TINYINT), new GenericTypeDescriptor("TINYINT", Types.TINYINT, 38, null, null, DatabaseMetaData.columnNullable, true, false));
+        typeMap.put(Integer.valueOf(Types.BINARY), new GenericTypeDescriptor("BINARY", Types.BINARY, 65535, null, null, DatabaseMetaData.columnNullable, true, false));
+        typeMap.put(Integer.valueOf(Types.LONGVARBINARY), new GenericTypeDescriptor("VARBINARY", Types.LONGVARBINARY, 65535, null, null, DatabaseMetaData.columnNullable, true, false));
+        typeMap.put(Integer.valueOf(Types.VARBINARY), new GenericTypeDescriptor("VARBINARY", Types.VARBINARY, 65535, null, null, DatabaseMetaData.columnNullable, true, false));
+        typeMap.put(Integer.valueOf(Types.LONGVARCHAR), new GenericTypeDescriptor("VARCHAR", Types.LONGVARCHAR, 65535, "'", "'", DatabaseMetaData.columnNullable, true, false));
+        typeMap.put(Integer.valueOf(Types.VARCHAR), new GenericTypeDescriptor("VARCHAR", Types.VARCHAR, 65535, "'", "'", DatabaseMetaData.columnNullable, true, false));
     }
-    
+
     @Override
     protected void createProfileFunctionMap() {
         profileFunctionMap = new HashMap<String, ProfileFunctionDescriptor>();
@@ -304,7 +304,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         profileFunctionMap.put("VARBINARY", new ProfileFunctionDescriptor("VARBINARY", Types.VARBINARY, true,true,true,false,true,true,true,true));
         profileFunctionMap.put("VARCHAR", new ProfileFunctionDescriptor("VARCHAR", Types.VARCHAR, true,true,true,false,true,true,true,true));
     }
-    
+
     /**
      * Subroutine for toIdentifier().  Probably a generally useful feature that we
      * should pull up to the GenericDDLGenerator.
@@ -312,7 +312,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
     public boolean isReservedWord(String word) {
         return reservedWords.contains(word.toUpperCase());
     }
-    
+
     /**
      * create index ddl in mySql syntax
      */
@@ -320,9 +320,9 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
     public void addIndex(SQLIndex index) throws ArchitectException {
         if (index.getType() == IndexType.STATISTIC )
             return;
-        
+
         checkDupIndexname(index);
-        
+
         println("");
         print("CREATE ");
         if (index.isUnique()) {

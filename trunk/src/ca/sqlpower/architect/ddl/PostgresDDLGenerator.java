@@ -21,7 +21,7 @@ import ca.sqlpower.architect.profile.ProfileFunctionDescriptor;
  * DDL Generator for Postgres 8.x (does not support e.g., ALTER COLUMN operations 7.[34]).
  */
 public class PostgresDDLGenerator extends GenericDDLGenerator {
-    
+
 	public PostgresDDLGenerator() throws SQLException {
 		super();
    	}
@@ -30,7 +30,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
 	private static final Logger logger = Logger.getLogger(PostgresDDLGenerator.class);
 
 	private static HashSet reservedWords;
-	
+
 	static {
 		reservedWords = new HashSet();
         reservedWords.add("AND");
@@ -144,30 +144,30 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
 	@Override
 	protected void createTypeMap() throws SQLException {
 		typeMap = new HashMap();
-		
-		typeMap.put(new Integer(Types.BIGINT), new GenericTypeDescriptor("NUMERIC", Types.BIGINT, 1000, null, null, DatabaseMetaData.columnNullable, true, false));
-		typeMap.put(new Integer(Types.BINARY), new GenericTypeDescriptor("BYTEA", Types.BINARY, 4000000000L, null, null, DatabaseMetaData.columnNullable, false, false));
-		typeMap.put(new Integer(Types.BIT), new GenericTypeDescriptor("BIT", Types.BIT, 1, null, null, DatabaseMetaData.columnNullable, true, false));
-		typeMap.put(new Integer(Types.BLOB), new GenericTypeDescriptor("BYTEA", Types.BLOB, 4000000000L, null, null, DatabaseMetaData.columnNullable, false, false));
-		typeMap.put(new Integer(Types.CHAR), new GenericTypeDescriptor("CHAR", Types.CHAR, 4000000000L, "'", "'", DatabaseMetaData.columnNullable, true, false));
-		typeMap.put(new Integer(Types.CLOB), new GenericTypeDescriptor("TEXT", Types.CLOB, 4000000000L, null, null, DatabaseMetaData.columnNullable, false, false));
-		typeMap.put(new Integer(Types.DATE), new GenericTypeDescriptor("DATE", Types.DATE, 0, "'", "'", DatabaseMetaData.columnNullable, false, false));
-		typeMap.put(new Integer(Types.DECIMAL), new GenericTypeDescriptor("NUMERIC", Types.DECIMAL, 1000, null, null, DatabaseMetaData.columnNullable, true, true));
-		typeMap.put(new Integer(Types.DOUBLE), new GenericTypeDescriptor("DOUBLE PRECISION", Types.DOUBLE, 38, null, null, DatabaseMetaData.columnNullable, false, false));
-		typeMap.put(new Integer(Types.FLOAT), new GenericTypeDescriptor("REAL", Types.FLOAT, 38, null, null, DatabaseMetaData.columnNullable, false, false));
-		typeMap.put(new Integer(Types.INTEGER), new GenericTypeDescriptor("INTEGER", Types.INTEGER, 38, null, null, DatabaseMetaData.columnNullable, false, false));
-		typeMap.put(new Integer(Types.LONGVARBINARY), new GenericTypeDescriptor("BYTEA", Types.LONGVARBINARY, 4000000000L, null, null, DatabaseMetaData.columnNullable, false, false));
-		typeMap.put(new Integer(Types.LONGVARCHAR), new GenericTypeDescriptor("TEXT", Types.LONGVARCHAR, 4000000000L, "'", "'", DatabaseMetaData.columnNullable, false, false));
-		typeMap.put(new Integer(Types.NUMERIC), new GenericTypeDescriptor("NUMERIC", Types.NUMERIC, 1000, null, null, DatabaseMetaData.columnNullable, true, true));
-		typeMap.put(new Integer(Types.REAL), new GenericTypeDescriptor("REAL", Types.REAL, 38, null, null, DatabaseMetaData.columnNullable, false, false));
-		typeMap.put(new Integer(Types.SMALLINT), new GenericTypeDescriptor("SMALLINT", Types.SMALLINT, 16, null, null, DatabaseMetaData.columnNullable, false, false));
-		typeMap.put(new Integer(Types.TIME), new GenericTypeDescriptor("TIME", Types.TIME, 0, "'", "'", DatabaseMetaData.columnNullable, false, false));
-		typeMap.put(new Integer(Types.TIMESTAMP), new GenericTypeDescriptor("TIMESTAMP", Types.TIMESTAMP, 0, "'", "'", DatabaseMetaData.columnNullable, false, false));
-		typeMap.put(new Integer(Types.TINYINT), new GenericTypeDescriptor("SMALLINT", Types.TINYINT, 16, null, null, DatabaseMetaData.columnNullable, false, false));
-		typeMap.put(new Integer(Types.VARBINARY), new GenericTypeDescriptor("BYTEA", Types.VARBINARY, 4000000000L, null, null, DatabaseMetaData.columnNullable, false, false));
-		typeMap.put(new Integer(Types.VARCHAR), new GenericTypeDescriptor("VARCHAR", Types.VARCHAR, 4000000000L, "'", "'", DatabaseMetaData.columnNullable, true, false));
+
+		typeMap.put(Integer.valueOf(Types.BIGINT), new GenericTypeDescriptor("NUMERIC", Types.BIGINT, 1000, null, null, DatabaseMetaData.columnNullable, true, false));
+		typeMap.put(Integer.valueOf(Types.BINARY), new GenericTypeDescriptor("BYTEA", Types.BINARY, 4000000000L, null, null, DatabaseMetaData.columnNullable, false, false));
+		typeMap.put(Integer.valueOf(Types.BIT), new GenericTypeDescriptor("BIT", Types.BIT, 1, null, null, DatabaseMetaData.columnNullable, true, false));
+		typeMap.put(Integer.valueOf(Types.BLOB), new GenericTypeDescriptor("BYTEA", Types.BLOB, 4000000000L, null, null, DatabaseMetaData.columnNullable, false, false));
+		typeMap.put(Integer.valueOf(Types.CHAR), new GenericTypeDescriptor("CHAR", Types.CHAR, 4000000000L, "'", "'", DatabaseMetaData.columnNullable, true, false));
+		typeMap.put(Integer.valueOf(Types.CLOB), new GenericTypeDescriptor("TEXT", Types.CLOB, 4000000000L, null, null, DatabaseMetaData.columnNullable, false, false));
+		typeMap.put(Integer.valueOf(Types.DATE), new GenericTypeDescriptor("DATE", Types.DATE, 0, "'", "'", DatabaseMetaData.columnNullable, false, false));
+		typeMap.put(Integer.valueOf(Types.DECIMAL), new GenericTypeDescriptor("NUMERIC", Types.DECIMAL, 1000, null, null, DatabaseMetaData.columnNullable, true, true));
+		typeMap.put(Integer.valueOf(Types.DOUBLE), new GenericTypeDescriptor("DOUBLE PRECISION", Types.DOUBLE, 38, null, null, DatabaseMetaData.columnNullable, false, false));
+		typeMap.put(Integer.valueOf(Types.FLOAT), new GenericTypeDescriptor("REAL", Types.FLOAT, 38, null, null, DatabaseMetaData.columnNullable, false, false));
+		typeMap.put(Integer.valueOf(Types.INTEGER), new GenericTypeDescriptor("INTEGER", Types.INTEGER, 38, null, null, DatabaseMetaData.columnNullable, false, false));
+		typeMap.put(Integer.valueOf(Types.LONGVARBINARY), new GenericTypeDescriptor("BYTEA", Types.LONGVARBINARY, 4000000000L, null, null, DatabaseMetaData.columnNullable, false, false));
+		typeMap.put(Integer.valueOf(Types.LONGVARCHAR), new GenericTypeDescriptor("TEXT", Types.LONGVARCHAR, 4000000000L, "'", "'", DatabaseMetaData.columnNullable, false, false));
+		typeMap.put(Integer.valueOf(Types.NUMERIC), new GenericTypeDescriptor("NUMERIC", Types.NUMERIC, 1000, null, null, DatabaseMetaData.columnNullable, true, true));
+		typeMap.put(Integer.valueOf(Types.REAL), new GenericTypeDescriptor("REAL", Types.REAL, 38, null, null, DatabaseMetaData.columnNullable, false, false));
+		typeMap.put(Integer.valueOf(Types.SMALLINT), new GenericTypeDescriptor("SMALLINT", Types.SMALLINT, 16, null, null, DatabaseMetaData.columnNullable, false, false));
+		typeMap.put(Integer.valueOf(Types.TIME), new GenericTypeDescriptor("TIME", Types.TIME, 0, "'", "'", DatabaseMetaData.columnNullable, false, false));
+		typeMap.put(Integer.valueOf(Types.TIMESTAMP), new GenericTypeDescriptor("TIMESTAMP", Types.TIMESTAMP, 0, "'", "'", DatabaseMetaData.columnNullable, false, false));
+		typeMap.put(Integer.valueOf(Types.TINYINT), new GenericTypeDescriptor("SMALLINT", Types.TINYINT, 16, null, null, DatabaseMetaData.columnNullable, false, false));
+		typeMap.put(Integer.valueOf(Types.VARBINARY), new GenericTypeDescriptor("BYTEA", Types.VARBINARY, 4000000000L, null, null, DatabaseMetaData.columnNullable, false, false));
+		typeMap.put(Integer.valueOf(Types.VARCHAR), new GenericTypeDescriptor("VARCHAR", Types.VARCHAR, 4000000000L, "'", "'", DatabaseMetaData.columnNullable, true, false));
 	}
-	
+
     @Override
     protected void createProfileFunctionMap() {
         profileFunctionMap = new HashMap();
@@ -175,14 +175,14 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
         profileFunctionMap.put("char", new ProfileFunctionDescriptor("char", Types.CHAR, true,true,true,false,true,true,true,true));
         profileFunctionMap.put("name", new ProfileFunctionDescriptor("name", Types.CHAR, true,true,true,false,true,true,true,true));
         profileFunctionMap.put("bpchar", new ProfileFunctionDescriptor("bpchar", Types.CHAR, true,true,true,false,true,true,true,true));
-                
+
         profileFunctionMap.put("date", new ProfileFunctionDescriptor("date", Types.DATE, true,true,true,false,true,true,true,true));
         profileFunctionMap.put("time", new ProfileFunctionDescriptor("time", Types.TIME, true,true,true,false,true,true,true,true));
         profileFunctionMap.put("timestamp", new ProfileFunctionDescriptor("timestamp", Types.TIMESTAMP, true,true,true,false,true,true,true,true));
         profileFunctionMap.put("timestamptz", new ProfileFunctionDescriptor("timestamptz", Types.TIMESTAMP, true,true,true,false,true,true,true,true));
         profileFunctionMap.put("timetz", new ProfileFunctionDescriptor("timetz", Types.TIME, true,true,true,false,true,true,true,true));
-        
-        
+
+
         profileFunctionMap.put("float4", new ProfileFunctionDescriptor("float", Types.FLOAT, true,true,true,true,true,true,true,true));
         profileFunctionMap.put("float8", new ProfileFunctionDescriptor("float", Types.FLOAT, true,true,true,true,true,true,true,true));
         profileFunctionMap.put("int2", new ProfileFunctionDescriptor("int", Types.INTEGER, true,true,true,true,true,true,true,true));
@@ -192,11 +192,11 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
         profileFunctionMap.put("float4", new ProfileFunctionDescriptor("float", Types.FLOAT, true,true,true,true,true,true,true,true));
         profileFunctionMap.put("numeric", new ProfileFunctionDescriptor("numeric", Types.FLOAT, true,true,true,true,true,true,true,true));
         profileFunctionMap.put("interval", new ProfileFunctionDescriptor("interval", Types.FLOAT, true,true,true,true,true,true,true,true));
-        
-        
+
+
         profileFunctionMap.put("bool", new ProfileFunctionDescriptor("bool", Types.BOOLEAN, true,false,false,false,false,false,false,true));
         profileFunctionMap.put("bit", new ProfileFunctionDescriptor("bit", Types.BIT, true,false,false,false,false,false,false,true));
-        
+
         profileFunctionMap.put("bytea", new ProfileFunctionDescriptor("bytea", Types.BLOB, false,false,false,false,false,false,false,true));
         profileFunctionMap.put("text", new ProfileFunctionDescriptor("text", Types.BLOB, false,false,false,false,false,false,false,true));
         profileFunctionMap.put("oid", new ProfileFunctionDescriptor("oid", Types.BLOB, false,false,false,false,false,false,false,true));
@@ -214,23 +214,23 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
     }
 
 	/**
-	 * Turns a logical identifier into a legal identifier (physical name) for PostgreSQL.  
-     * Also, downcases the identifier for consistency.  
-     * 
-     * <p>Uses a deterministic method to generate tie-breaking numbers when there is a namespace 
-     * conflict.  If you pass null as the physical name, it will use just the logical name when 
+	 * Turns a logical identifier into a legal identifier (physical name) for PostgreSQL.
+     * Also, downcases the identifier for consistency.
+     *
+     * <p>Uses a deterministic method to generate tie-breaking numbers when there is a namespace
+     * conflict.  If you pass null as the physical name, it will use just the logical name when
      * trying to come up with tie-breaking hashes for identifier names.  If the first attempt
-     * at generating a unique name fails, subsequent calls should pass each new illegal     
+     * at generating a unique name fails, subsequent calls should pass each new illegal
      * identifier which will be used with the logical name to generate a another hash.
-     * 
+     *
      * <p>Postgres 8.0 rules:
      * <ul>
      *  <li> no spaces
      *  <li> 63 character limit
      *  <li> identifiers must begin with a letter (one is added if needed)
-     *  <li> can't be a postgres reserved word 
-     *  <li> can only be comprised of letters, numbers, underscores, and $ 
-     * </ul> 
+     *  <li> can't be a postgres reserved word
+     *  <li> can only be comprised of letters, numbers, underscores, and $
+     * </ul>
 	 */
 	private String toIdentifier(String logicalName, String physicalName) {
 		// replace spaces with underscores
@@ -238,7 +238,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
 		if (logger.isDebugEnabled()) logger.debug("getting physical name for: " + logicalName);
 		String ident = logicalName.replace(' ','_').toLowerCase();
 		if (logger.isDebugEnabled()) logger.debug("after replace of spaces: " + ident);
-		
+
 
 		// replace anything that is not a letter, character, or underscore with an underscore...
 		ident = ident.replaceAll("[^a-zA-Z0-9_$]", "_");
@@ -256,12 +256,12 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
 				int tiebreaker = ((ident.hashCode() % 1000) + 1000) % 1000;
 				if (logger.isDebugEnabled()) logger.debug("new identifier: " + base + tiebreaker);
 				return (base + tiebreaker);
-			}						
+			}
 		} else {
-			// back for more, which means that we probably 
+			// back for more, which means that we probably
             // had a namespace conflict.  Hack the ident down
-            // to size if it's too big, and then generate 
-            // a hash tiebreaker using the ident and the 
+            // to size if it's too big, and then generate
+            // a hash tiebreaker using the ident and the
             // passed value physicalName
 			if (logger.isDebugEnabled()) logger.debug("physical identifier is not unique, regenerating: " + physicalName);
 			String base = ident;
@@ -272,13 +272,13 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
 			if (logger.isDebugEnabled()) logger.debug("regenerated identifier is: " + (base + tiebreaker));
 			return (base + tiebreaker);
 		}
-	}	
+	}
 
     @Override
 	public String toIdentifier(String name) {
 		return toIdentifier(name,null);
 	}
-	
+
 	/**
      * Generates a command for dropping a foreign key.
      * The statement looks like <code>ALTER TABLE ONLY $fktable DROP CONSTRAINT $fkname</code>.
@@ -290,21 +290,21 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
             + " DROP CONSTRAINT "
             + fkName;
     }
-    
+
     @Override
     public void modifyColumn(SQLColumn c) {
-        Map colNameMap = new HashMap(); 
+        Map colNameMap = new HashMap();
         SQLTable t = c.getParentTable();
         print("\n ALTER TABLE ONLY ");
         print( toQualifiedName(t) );
         print(" ALTER COLUMN ");
-        
+
         // Column name
         String columnPhysName = createPhysicalName(colNameMap,c);
         print(columnPhysName);
-        print(" TYPE ");       
+        print(" TYPE ");
         print(columnType(c));
-        
+
         // Column nullability
         print(", ALTER COLUMN ");
         print(columnPhysName);
@@ -313,9 +313,9 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
         print(" NOT NULL");
 
         endStatement(DDLStatement.StatementType.MODIFY, c);
-        
+
     }
-    
+
 	/**
 	 * Returns null, even though Postgres calls this "Database."  The reason is,
 	 * you can't refer to objects in a different database than the default
@@ -326,7 +326,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
 	public String getCatalogTerm() {
 		return null;
 	}
-	
+
 	/**
 	 * Returns "Schema".
 	 */
@@ -334,7 +334,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
 	public String getSchemaTerm() {
 		return "Schema";
 	}
-	
+
 	/**
 	 * Returns the previously-set target schema name, or "public" if there is no
 	 * current setting. Public is the Postgres default when no schema is
@@ -345,7 +345,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
 		if (targetSchema != null) return targetSchema;
 		else return "public";
 	}
-    
+
     /**
      * create index ddl in postgresql syntax
      */
@@ -373,7 +373,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
             //but is expected to be added in later versions (8.3 for example)
             first = false;
         }
-      
+
         print(" )");
         endStatement(DDLStatement.StatementType.CREATE, index);
     }
