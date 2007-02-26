@@ -185,6 +185,28 @@ public class SwingUIProject {
         }
 
         ((SQLObject) sourceDatabases.getModel().getRoot()).addChild(0, playPen.getDatabase());
+        
+        
+        
+        /**
+         * for backward compatibilty, set the index as primary key index
+         * if the index name == table.primaryKeyName
+         */
+        for (SQLTable table : (List<SQLTable>)playPen.getDatabase().getTables()) {
+            int pkCount = 0;
+            SQLIndex pkIndex = null;
+            for (SQLIndex index : (List<SQLIndex>)table.getIndicesFolder().getChildren()) {
+                if (index.isPrimaryKeyIndex()) pkCount++;
+                if (index.getPhysicalName().equals(table.getPrimaryKeyName()) &&
+                        !index.isPrimaryKeyIndex()) {
+                    pkIndex = index;
+                }
+            }
+            if (pkIndex != null && pkCount == 0 ) {
+                pkIndex.setPrimaryKeyIndex(true);
+            }
+        }
+
         setModified(false);
         // TODO change this to load the undo history from a file
         undoManager.discardAllEdits();
@@ -623,7 +645,8 @@ public class SwingUIProject {
             }
 
             index.setType(SQLIndex.IndexType.valueOf(attributes.getValue("index-type")));
-            
+            index.setPrimaryKeyIndex(Boolean.valueOf(attributes.getValue("isPrimaryKeyIndex")));
+
             currentIndex = index;
             
             return index;
@@ -647,9 +670,10 @@ public class SwingUIProject {
 
             String referencedColId = attributes.getValue("column-ref");
             if (referencedColId != null) {
-                col.setColumn((SQLColumn) objectIdMap.get(referencedColId));
+                SQLColumn column = (SQLColumn) objectIdMap.get(referencedColId);
+                col.setColumn(column);
             }
-
+            
             return col;
         }
     }
@@ -1297,6 +1321,7 @@ public class SwingUIProject {
             propNames.put("unique", index.isUnique());
             propNames.put("qualifier", index.getQualifier());
             propNames.put("index-type", index.getType().name());
+            propNames.put("isPrimaryKeyIndex", index.isPrimaryKeyIndex());
             propNames.put("filterCondition", index.getFilterCondition());
         } else if (o instanceof SQLIndex.Column) {
             id = "IDC"+objectIdMap.size();
