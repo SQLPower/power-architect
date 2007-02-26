@@ -483,7 +483,7 @@ public class SQLIndex extends SQLObject {
      * set this index as primary key index 
      * @param isPrimaryKey
      */
-    protected void setPrimaryKeyIndex(boolean isPrimaryKey) {
+    public void setPrimaryKeyIndex(boolean isPrimaryKey) {
         this.primaryKeyIndex = isPrimaryKey;
     }
 
