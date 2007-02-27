@@ -1,6 +1,8 @@
 package ca.sqlpower.architect;
 
 
+
+
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -20,7 +22,7 @@ public class SQLTable extends SQLObject {
 	protected SQLObject parent;
 	protected String remarks="";
 	private String objectType;
-	protected String primaryKeyName;
+    private SQLIndex primaryKeyIndex;
 	protected String physicalPrimaryKeyName;
 
 	/**
@@ -134,11 +136,11 @@ public class SQLTable extends SQLObject {
 		t.remarks = source.remarks;
 
 		t.setPhysicalName(source.getPhysicalName());
-		t.primaryKeyName = source.getPrimaryKeyName();
 		t.physicalPrimaryKeyName = source.getPhysicalPrimaryKeyName();
 
 		t.inherit(source);
         inheritIndices(source,t);
+        
 		parent.addChild(t);
 		return t;
 	}
@@ -153,6 +155,12 @@ public class SQLTable extends SQLObject {
         for ( SQLIndex index : (List<SQLIndex>)source.getIndicesFolder().getChildren()) {
             SQLIndex index2 = SQLIndex.getDerivedInstance(index,target);
             target.addIndex(index2);
+System.out.println("INDEX NAME:"+index2.getName()+ "  pk? " + index2.isPrimaryKeyIndex());            
+            if (target.getPrimaryKeyIndex() == null && index2.isPrimaryKeyIndex()) {
+               target.setPrimaryKeyIndex(index2);
+            } else if (target.getPrimaryKeyIndex() != null && index2.isPrimaryKeyIndex()) {
+                throw new ArchitectException("Found more than one primary key indices!");
+            }
         }
     }
 
@@ -172,7 +180,6 @@ public class SQLTable extends SQLObject {
 		} finally {
 			columnsFolder.populated = true;
 			Collections.sort(columnsFolder.children, new SQLColumn.SortByPKSeq());
-			normalizePrimaryKey();
 			int newSize = columnsFolder.children.size();
 			int[] changedIndices = new int[newSize];
 			for (int i = 0; i < newSize; i++) {
@@ -358,7 +365,6 @@ public class SQLTable extends SQLObject {
 		int originalSize = getColumns().size();
 		if (originalSize == 0 || pos < pkSize) {
 			addToPK = true;
-			normalizePrimaryKey();
 			for (int i = pos; i < pkSize; i++) {
 				((SQLColumn) columnsFolder.children.get(i)).primaryKeySeq = new Integer(i + sourceSize);
 			}
@@ -468,7 +474,6 @@ public class SQLTable extends SQLObject {
 		    int pkSize = getPkSize();
 		    if (getColumns().size() > 0 && pos < pkSize) {
 		        addToPK = true;
-		        normalizePrimaryKey();
 		        for (int i = pos; i < pkSize; i++) {
 		            ((SQLColumn) getColumns().get(i)).primaryKeySeq = new Integer(i + 1);
 		        }
@@ -552,7 +557,6 @@ public class SQLTable extends SQLObject {
 		        r.checkColumnLocked(col);
 		    }
 		    columnsFolder.removeChild(col);
-		    normalizePrimaryKey();
         }
 	}
 
@@ -597,12 +601,20 @@ public class SQLTable extends SQLObject {
 	/**
 	 * Sets the primaryKeySeq on each child column currently in the
 	 * primary key to its index in this table.
+	 * @throws ArchitectException 
 	 */
-	public void normalizePrimaryKey() {
+	public void normalizePrimaryKey() throws ArchitectException {
 		try {
             startCompoundEdit("Normalizing Primary Key");
             if (getColumns().isEmpty()) return;
 
+            if (getPrimaryKeyIndex() == null) {
+                SQLIndex pkIndex = new SQLIndex(getName()+"_PK", true, null, SQLIndex.IndexType.CLUSTERED,null);
+                addIndex(pkIndex);
+                setPrimaryKeyIndex(pkIndex);
+                logger.debug("new pkIndex.getChildCount()="+pkIndex.getChildCount());
+            }
+            
             boolean donePk = false;
             int i = 0;
             Iterator it = getColumns().iterator();
@@ -623,6 +635,22 @@ public class SQLTable extends SQLObject {
 		} catch (ArchitectException e) {
 		    logger.warn("Unexpected ArchitectException in normalizePrimaryKey "+e);
 		} finally {
+		    SQLIndex pkIndex = getPrimaryKeyIndex();
+		    if (pkIndex != null ) {
+		        while (pkIndex.getChildCount() > 0) {
+		            pkIndex.removeChild(0);
+		        }
+		        Iterator it = getColumns().iterator();
+		        while (it.hasNext()) {
+		            SQLColumn col = (SQLColumn) it.next();
+		            if (col.getPrimaryKeySeq() == null) break;
+		            pkIndex.addIndexColumn(col,false,false);
+		        }
+		        if (pkIndex.getChildCount() == 0) {
+		            getIndicesFolder().removeChild(pkIndex);
+		            setPrimaryKeyIndex(null);
+		        }
+            }
 		    endCompoundEdit("Normalizing Primary Key");
 		}
 	}
@@ -938,15 +966,19 @@ public class SQLTable extends SQLObject {
 	 * @param argName The new table name.  NULL is not allowed.
 	 */
 	public void setName(String argName) {
+
         if (!isMagicEnabled()) {
             super.setName(argName);
         } else try {
             String oldName = getName();
             startCompoundEdit("Table Name Change");
             super.setName(argName);
-            if (primaryKeyName == null
-                    || primaryKeyName.equals("")
-                    || primaryKeyName.equals(oldName+"_pk")) {
+            
+            if (argName != null &&
+                primaryKeyIndex != null && 
+               (getPrimaryKeyName() == null
+                    || "".equals(getPrimaryKeyName())
+                    || (oldName+"_pk").equals(getPrimaryKeyName())) ) {
                 setPrimaryKeyName( getName()+"_PK");
             }
         } finally {
@@ -1038,6 +1070,7 @@ public class SQLTable extends SQLObject {
     public synchronized List<SQLIndex> getUniqueIndex() throws ArchitectException {
         populateColumns();
         populateIndices();
+        normalizePrimaryKey();
         List<SQLIndex> list = new ArrayList<SQLIndex>();
         Iterator it = getIndicesFolder().children.iterator();
         while (it.hasNext()) {
@@ -1068,6 +1101,7 @@ public class SQLTable extends SQLObject {
         if (populate) {
             populateColumns();
             populateIndices();
+            normalizePrimaryKey();
         }
         logger.debug("Looking for Index ["+name+"] in "+getIndicesFolder().children);
         Iterator it = getIndicesFolder().children.iterator();
@@ -1132,7 +1166,7 @@ public class SQLTable extends SQLObject {
 	 * @return the value of primaryKeyName
 	 */
 	public String getPrimaryKeyName()  {
-		return this.primaryKeyName;
+		return primaryKeyIndex==null?null:primaryKeyIndex.getName();
 	}
 
 	/**
@@ -1141,9 +1175,12 @@ public class SQLTable extends SQLObject {
 	 * @param argPrimaryKeyName Value to assign to this.primaryKeyName
 	 */
 	public void setPrimaryKeyName(String argPrimaryKeyName) {
-		String oldPrimaryKeyName = this.primaryKeyName;
-		this.primaryKeyName = argPrimaryKeyName;
-		fireDbObjectChanged("primaryKeyName",oldPrimaryKeyName,argPrimaryKeyName);
+        /** to avoid problem when loading the project, 
+         * we have to check primaryKeyIndex not null here  */
+        if ( primaryKeyIndex == null)
+            return;
+        
+        primaryKeyIndex.setName(argPrimaryKeyName);
 	}
 
 	/**
@@ -1188,4 +1225,12 @@ public class SQLTable extends SQLObject {
         if (this.objectType == null) throw new NullPointerException();
 		fireDbObjectChanged("objectType",oldObjectType, argObjectType);
 	}
+
+    public SQLIndex getPrimaryKeyIndex() {
+        return primaryKeyIndex;
+    }
+
+    public void setPrimaryKeyIndex(SQLIndex primaryKeyIndex) {
+        this.primaryKeyIndex = primaryKeyIndex;
+    }
 }
