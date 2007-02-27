@@ -84,8 +84,44 @@ public class SQLIndex extends SQLObject {
     public class Column extends SQLObject {
 
         /**
-         * The column in the table that this index column represents.  Might be null if this index column
-         * represents an expression rather than a single column value.
+         * Small class for reacting to changes in this index columns's
+         * target SQLColumn (if it has one at all). 
+         */
+        private class TargetColumnListener implements SQLObjectListener {
+
+            public void dbChildrenInserted(SQLObjectEvent e) {
+                // won't happen to a column
+            }
+
+            public void dbChildrenRemoved(SQLObjectEvent e) {
+                // won't happen to a column
+            }
+
+            /**
+             * Updates the index column name to match the new value in this
+             * event, if the event is a name change from the target SQLColumn.
+             * The process of doing the update will cause the SQLIndex.Column
+             * object to fire an event of its own. 
+             */
+            public void dbObjectChanged(SQLObjectEvent e) {
+                if ("name".equals(e.getPropertyName())) {
+                    setName((String) e.getNewValue());
+                }
+            }
+
+            /**
+             * Refires structure change events from the target SQLColumn.
+             */
+            public void dbStructureChanged(SQLObjectEvent e) {
+                Column.this.fireDbStructureChanged();
+            }
+            
+        }
+        
+        /**
+         * The column in the table that this index column represents. Might be
+         * null if this index column represents an expression rather than a
+         * single column value.
          */
         private SQLColumn column;
 
@@ -100,11 +136,20 @@ public class SQLIndex extends SQLObject {
         private boolean descending;
 
         /**
+         * A proxy that refires certain events on the target column.
+         * 
+         * <p>It is the job of {@link #setColumn(SQLColumn)} to keep this
+         * listener hooked up to the correct SQLColumn object (or completely
+         * disconnected in the case that there is no target SQLColumn).
+         */
+        private final TargetColumnListener targetColumnListener = new TargetColumnListener();
+        
+        /**
          * Creates a Column object that corresponds to a particular SQLColumn.
          */
         public Column(SQLColumn col, boolean ascending, boolean descending) {
             this(col.getName(), ascending, descending);
-            this.column = col;
+            setColumn(col);
         }
 
         /**
@@ -155,7 +200,7 @@ public class SQLIndex extends SQLObject {
 
         @Override
         protected void setParent(SQLObject parent) {
-            if (parent != SQLIndex.this) {
+            if (parent != null && parent != SQLIndex.this) {
                 throw new UnsupportedOperationException("You can't change an Index.Column's parent");
             }
         }
@@ -165,10 +210,15 @@ public class SQLIndex extends SQLObject {
         }
 
         public void setColumn(SQLColumn column) {
+            if (this.column != null) {
+                this.column.removeSQLObjectListener(targetColumnListener);
+            }
             SQLColumn oldValue = this.column;
             this.column = column;
+            if (this.column != null) {
+                this.column.addSQLObjectListener(targetColumnListener);
+            }
             fireDbObjectChanged("column", oldValue, column);
-
         }
 
         public boolean isAscending() {
@@ -388,7 +438,28 @@ public class SQLIndex extends SQLObject {
         try {
             con = addTo.getParentDatabase().getConnection();
             DatabaseMetaData dbmd = con.getMetaData();
-            logger.debug("SQLIndex.addIndicesToTable: catalog="+catalog+"; schema="+schema+"; tableName="+tableName);
+            
+            String pkName = null;
+            rs = dbmd.getPrimaryKeys(catalog, schema, tableName);
+            while (rs.next()) {
+                SQLColumn col = addTo.getColumnByName(rs.getString(4), false);
+                //logger.debug(rs.getString(4));
+                if (col != null ){
+                    col.primaryKeySeq = new Integer(rs.getInt(5));
+                    pkName = rs.getString(6); 
+                } else {
+                    SQLException exception = new SQLException("Column "+rs.getString(4)+ " not found in "+addTo);
+                    throw exception;
+                }
+            }
+            rs.close();
+            rs = null;
+            
+            
+            logger.debug("SQLIndex.addIndicesToTable: catalog=" + catalog + 
+                    "; schema=" + schema + 
+                    "; tableName="+tableName +
+                    "; primary key name=" + pkName);
             SQLIndex idx = null;
             rs = dbmd.getIndexInfo(catalog, schema, tableName, false, true);
             while (rs.next()) {
@@ -431,6 +502,9 @@ public class SQLIndex extends SQLObject {
                     logger.debug("Found index "+name);
                     idx = new SQLIndex(name, !nonUnique, qualifier, type, filter);
                     addTo.getIndicesFolder().children.add(idx);
+                    if (name.equals(pkName)) {
+                        idx.setPrimaryKeyIndex(true);
+                    }
                 }
 
                 logger.debug("Adding column "+colName+" to index "+idx.getName());
@@ -447,20 +521,7 @@ public class SQLIndex extends SQLObject {
             rs.close();
             rs = null;
 
-            rs = dbmd.getPrimaryKeys(catalog, schema, tableName);
-            while (rs.next()) {
-                SQLColumn col = addTo.getColumnByName(rs.getString(4), false);
-                //logger.debug(rs.getString(4));
-                if (col != null ){
-                    col.primaryKeySeq = new Integer(rs.getInt(5));
-                    addTo.setPrimaryKeyName(rs.getString(6));
-                } else {
-                    SQLException exception = new SQLException("Column "+rs.getString(4)+ " not found in "+addTo);
-                    throw exception;
-                }
-            }
-            rs.close();
-            rs = null;
+            
         } finally {
             try {
                 if (rs != null) rs.close();
