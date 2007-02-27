@@ -158,6 +158,7 @@ public class SQLTable extends SQLObject {
 System.out.println("INDEX NAME:"+index2.getName()+ "  pk? " + index2.isPrimaryKeyIndex());            
             if (target.getPrimaryKeyIndex() == null && index2.isPrimaryKeyIndex()) {
                target.setPrimaryKeyIndex(index2);
+               index2.setPrimaryKeyIndex(true);
             } else if (target.getPrimaryKeyIndex() != null && index2.isPrimaryKeyIndex()) {
                 throw new ArchitectException("Found more than one primary key indices!");
             }
@@ -607,11 +608,12 @@ System.out.println("INDEX NAME:"+index2.getName()+ "  pk? " + index2.isPrimaryKe
 		try {
             startCompoundEdit("Normalizing Primary Key");
             if (getColumns().isEmpty()) return;
-
+            
             if (getPrimaryKeyIndex() == null) {
                 SQLIndex pkIndex = new SQLIndex(getName()+"_PK", true, null, SQLIndex.IndexType.CLUSTERED,null);
                 addIndex(pkIndex);
                 setPrimaryKeyIndex(pkIndex);
+                pkIndex.setPrimaryKeyIndex(true);
                 logger.debug("new pkIndex.getChildCount()="+pkIndex.getChildCount());
             }
             
@@ -1166,7 +1168,7 @@ System.out.println("INDEX NAME:"+index2.getName()+ "  pk? " + index2.isPrimaryKe
 	 * @return the value of primaryKeyName
 	 */
 	public String getPrimaryKeyName()  {
-		return primaryKeyIndex==null?null:primaryKeyIndex.getName();
+		return primaryKeyIndex == null ? null : primaryKeyIndex.getName();
 	}
 
 	/**
@@ -1183,6 +1185,7 @@ System.out.println("INDEX NAME:"+index2.getName()+ "  pk? " + index2.isPrimaryKe
         primaryKeyIndex.setName(argPrimaryKeyName);
 	}
 
+    
 	/**
 	 * Gets the value of physicalPrimaryKeyName
 	 *
@@ -1197,12 +1200,12 @@ System.out.println("INDEX NAME:"+index2.getName()+ "  pk? " + index2.isPrimaryKe
 	 *
 	 * @param argPhysicalPrimaryKeyName Value to assign to this.physicalPrimaryKeyName
 	 */
-	public void setPhysicalPrimaryKeyName(String argPhysicalPrimaryKeyName) {
+
+    public void setPhysicalPrimaryKeyName(String argPhysicalPrimaryKeyName) {
 		String oldPhysicalPrimaryKeyName = this.physicalPrimaryKeyName;
 		this.physicalPrimaryKeyName = argPhysicalPrimaryKeyName;
 		fireDbObjectChanged("physicalPrimaryKeyName",oldPhysicalPrimaryKeyName,argPhysicalPrimaryKeyName);
 	}
-
 
 
 	/**

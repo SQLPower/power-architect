@@ -187,10 +187,10 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 				SQLTable t = (SQLTable) it.next();
 				addTable(t);
+                
 				writePrimaryKey(t);
                 for (SQLIndex index : (List<SQLIndex>)t.getIndicesFolder().getChildren()) {
-                    logger.info("*** name:" + index.getName()+"   is pk?"+index.isPrimaryKeyIndex());
-                    if (index.isPrimaryKeyIndex()) continue;
+                   if (index.isPrimaryKeyIndex()) continue;
                     addIndex(index);
                 }
 			}
@@ -482,7 +482,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 				print("ALTER TABLE ");
 				print( toQualifiedName(t) );
 				print(" ADD CONSTRAINT ");
-				print(t.getPhysicalPrimaryKeyName());
+				print(t.getPrimaryKeyName());
 				println("");
 				print("PRIMARY KEY (");
 				firstCol = false;
@@ -879,6 +879,7 @@ public class GenericDDLGenerator implements DDLGenerator {
      * Before returning it, run it past checkDupName to check in and add
      * it to the topLevelNames Map.
      */
+
     private String createPhysicalPrimaryKeyName(SQLTable t) {
         String physName = toIdentifier(t.getPrimaryKeyName());
         t.setPhysicalPrimaryKeyName(physName);
