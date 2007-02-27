@@ -39,7 +39,12 @@ public class TableEditPanel extends JPanel implements ArchitectPanel {
 	public void editTable(SQLTable t) {
 		table = t;
 		name.setText(t.getName());
-		pkName.setText(t.getPrimaryKeyName());
+        if (t.getPrimaryKeyIndex() == null) {
+            pkName.setEnabled(false);
+        } else {
+            pkName.setText(t.getPrimaryKeyName());
+            pkName.setEnabled(true);
+        }
 		remarks.setText(t.getRemarks());
 	}
 
@@ -54,14 +59,17 @@ public class TableEditPanel extends JPanel implements ArchitectPanel {
                 warnings.append("The table cannot be assigned a blank name \n");
                 
             }
-            if (pkName.getText().trim().length() == 0) {
+            if (pkName.isEnabled() &&
+                    pkName.getText().trim().length() == 0) {
                 warnings.append("The primary key cannot be assigned a blank name");                
             }
             
             if (warnings.toString().length() == 0){
                 //The operation is successful
                 table.setName(name.getText());
-                table.setPrimaryKeyName(pkName.getText());
+                if (pkName.isEnabled() ) {
+                    table.setPrimaryKeyName(pkName.getText());
+                }
                 table.setRemarks(remarks.getText());                
                 return true;
             } else{
