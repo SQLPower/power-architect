@@ -814,7 +814,11 @@ public class TablePane
                         "Error processing drop operation", ex);
                 } finally {
 					tp.setInsertionPoint(COLUMN_INDEX_NONE);
-					tp.getModel().normalizePrimaryKey();
+					try {
+                        tp.getModel().normalizePrimaryKey();
+                    } catch (ArchitectException e) {
+                        logger.error("Error processing normalize PrimaryKey", e);
+                    }
 
 					// put the undo event adapter into a regular state
 					ArchitectFrame.getMainInstance().playpen.endCompoundEdit("End drag and drop");
