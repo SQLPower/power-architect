@@ -74,6 +74,7 @@ import ca.sqlpower.architect.swingui.action.DeleteSelectedAction;
 import ca.sqlpower.architect.swingui.action.EditColumnAction;
 import ca.sqlpower.architect.swingui.action.EditRelationshipAction;
 import ca.sqlpower.architect.swingui.action.EditTableAction;
+import ca.sqlpower.architect.swingui.action.EditIndexAction;
 import ca.sqlpower.architect.swingui.action.ExportDDLAction;
 import ca.sqlpower.architect.swingui.action.ExportPLJobXMLAction;
 import ca.sqlpower.architect.swingui.action.ExportPLTransAction;
@@ -164,6 +165,7 @@ public class ArchitectFrame extends JFrame {
 	protected EditColumnAction editColumnAction;
 	protected InsertColumnAction insertColumnAction;
 	protected EditTableAction editTableAction;
+    protected EditIndexAction editIndexAction;
 	protected DeleteSelectedAction deleteSelectedAction;
 	protected CreateTableAction createTableAction;
 	protected CreateRelationshipAction createIdentifyingRelationshipAction;
@@ -612,6 +614,7 @@ public class ArchitectFrame extends JFrame {
 		editColumnAction = new EditColumnAction();
 		insertColumnAction = new InsertColumnAction();
 		editTableAction = new EditTableAction();
+        editIndexAction = new EditIndexAction();
 		searchReplaceAction = new SearchReplaceAction();
 		searchReplaceAction.putValue(AbstractAction.ACCELERATOR_KEY,
 				KeyStroke.getKeyStroke(KeyEvent.VK_F, accelMask));
@@ -886,6 +889,7 @@ public class ArchitectFrame extends JFrame {
 		editRelationshipAction.setDBTree(dbTree);
 		deleteSelectedAction.setDBTree(dbTree);
 		editTableAction.setDBTree(dbTree);
+        editIndexAction.setDBTree(dbTree);
 		searchReplaceAction.setDBTree(dbTree);
 		profileAction.setDBTree(dbTree);
 		profileAction.setProfileManager(project.getProfileManager());
