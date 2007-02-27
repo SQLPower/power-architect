@@ -39,6 +39,7 @@ import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLExceptionNode;
+import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
@@ -389,6 +390,16 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 			} else {
 				mi.setEnabled(false);
 			}
+
+            mi = new JMenuItem();
+            mi.setAction(af.editIndexAction);
+            mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
+            newMenu.add(mi);
+            if (p.getLastPathComponent() instanceof SQLIndex) {
+                mi.setEnabled(true);
+            } else {
+                mi.setEnabled(false);
+            }            
 
 			mi = new JMenuItem();
 			mi.setAction(af.deleteSelectedAction);
