@@ -204,8 +204,10 @@ public class SwingUIProject {
                     break;
                 }
             }
-            
+              
             if ( table.getPrimaryKeyIndex() == null) {
+                System.out.println("primary key index null in table " + table);
+                System.out.println("number of children in indices folder: " + table.getIndicesFolder().getChildCount());
                 for (SQLIndex index : (List<SQLIndex>)table.getIndicesFolder().getChildren()) {
                     if (objectIdMap.get(table.getName()+"."+index.getName()) != null) {
                         index.setPrimaryKeyIndex(true);
@@ -214,6 +216,8 @@ public class SwingUIProject {
                     }
                 }
             }
+            
+            table.normalizePrimaryKey();
         }
 
         setModified(false);
@@ -475,6 +479,7 @@ public class SwingUIProject {
 
             String id = attributes.getValue("id");
             String pkName = attributes.getValue("primaryKeyName");
+            
             if (id != null) {
                 objectIdMap.put(id, tab);
                 objectIdMap.put(id+"."+pkName, tab);
@@ -491,7 +496,7 @@ public class SwingUIProject {
                     JOptionPane.showMessageDialog(null, "Failed to add folder to table:\n"+e.getMessage());
                 }
             }
-
+            
             return tab;
         }
     }
@@ -657,9 +662,8 @@ public class SwingUIProject {
 
             index.setType(SQLIndex.IndexType.valueOf(attributes.getValue("index-type")));
             index.setPrimaryKeyIndex(Boolean.valueOf(attributes.getValue("isPrimaryKeyIndex")));
-
-            currentIndex = index;
             
+            currentIndex = index;
             return index;
         }
     }
