@@ -189,21 +189,30 @@ public class SwingUIProject {
         
         
         /**
-         * for backward compatibilty, set the index as primary key index
-         * if the index name == table.primaryKeyName
+         * for backward compatibilty, in the old project file, we have
+         * primaryKeyName in the table attrbute, but nothing
+         * in the sqlIndex that indicates primary key index,
+         * so, we have to set the index as primary key index
+         * if the index name == table.primaryKeyName after load the project,
+         * table.primaryKeyName is save in the map now, not in the table object
          */
         for (SQLTable table : (List<SQLTable>)playPen.getDatabase().getTables()) {
-            int pkCount = 0;
-            SQLIndex pkIndex = null;
+            
             for (SQLIndex index : (List<SQLIndex>)table.getIndicesFolder().getChildren()) {
-                if (index.isPrimaryKeyIndex()) pkCount++;
-                if (index.getPhysicalName().equals(table.getPrimaryKeyName()) &&
-                        !index.isPrimaryKeyIndex()) {
-                    pkIndex = index;
+                if (index.isPrimaryKeyIndex()) {
+                    table.setPrimaryKeyIndex(index);
+                    break;
                 }
             }
-            if (pkIndex != null && pkCount == 0 ) {
-                pkIndex.setPrimaryKeyIndex(true);
+            
+            if ( table.getPrimaryKeyIndex() == null) {
+                for (SQLIndex index : (List<SQLIndex>)table.getIndicesFolder().getChildren()) {
+                    if (objectIdMap.get(table.getName()+"."+index.getName()) != null) {
+                        index.setPrimaryKeyIndex(true);
+                        table.setPrimaryKeyIndex(index);
+                        break;
+                    }
+                }
             }
         }
 
@@ -465,8 +474,10 @@ public class SwingUIProject {
             SQLTable tab = new SQLTable();
 
             String id = attributes.getValue("id");
+            String pkName = attributes.getValue("primaryKeyName");
             if (id != null) {
                 objectIdMap.put(id, tab);
+                objectIdMap.put(id+"."+pkName, tab);
             } else {
                 logger.warn("No ID found in table element while loading project!");
             }
