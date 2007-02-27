@@ -282,7 +282,6 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 				//logger.debug(rs.getString(4));
                 if (col != null ){
                     col.primaryKeySeq = new Integer(rs.getInt(5));
-				    addTo.setPrimaryKeyName(rs.getString(6));
                 } else {
                     SQLException exception = new SQLException("Column "+rs.getString(4)+ " not found in "+addTo);
                     throw exception;
