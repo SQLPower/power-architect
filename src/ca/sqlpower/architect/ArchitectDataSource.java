@@ -159,7 +159,7 @@ public class ArchitectDataSource {
         dump(properties, p2, PL_TNS);
         dump(properties, p2, PL_DATABASE_NAME);
         dump(properties, p2, PL_IP);
-        dump(properties, p2, PL_PORT); 
+        dump(properties, p2, PL_PORT);
         Iterator<String> iter = properties.keySet().iterator();
         while (iter.hasNext()) {
             System.out.print(iter.next() + ", ");
@@ -171,7 +171,7 @@ public class ArchitectDataSource {
         }
         System.out.println();
     }
-    
+
     /**
      * This method is for debugging purposes to print out the differences between two maps
      * @param myMap first map to compare
@@ -186,7 +186,7 @@ public class ArchitectDataSource {
             System.out.print(" <-- DIFFERENT");
         System.out.println();
     }
-    
+
     /**
 	 * This field is transient; don't access it directly becuase it
 	 * will disappear when this instance is serialized.
@@ -211,13 +211,13 @@ public class ArchitectDataSource {
 
     /**
      * Copy constructor. Creates an independent copy of the given data source.
-     * 
+     *
      * @param copyMe the ArchitectDataSource to make a copy of.
      */
     public ArchitectDataSource(ArchitectDataSource copyMe) {
         properties = new HashMap<String, String>(copyMe.properties);
     }
-    
+
 	/**
 	 * The method that actually modifies the property map.
 	 *
@@ -269,7 +269,10 @@ public class ArchitectDataSource {
 	 */
 	@Override
 	public boolean equals(Object o) {
-		if (o == null) return false;
+		if (o == null)
+            return false;
+        if (!(o instanceof ArchitectDataSource))
+            return false;
 		ArchitectDataSource other = (ArchitectDataSource) o;
 		return this.properties.equals(other.properties);
 	}
