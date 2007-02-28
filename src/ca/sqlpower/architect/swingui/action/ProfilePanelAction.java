@@ -48,6 +48,7 @@ import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.CommonCloseAction;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.JDefaultButton;
+import ca.sqlpower.architect.swingui.Monitorable;
 import ca.sqlpower.architect.swingui.ProfilePanel;
 import ca.sqlpower.architect.swingui.ProgressWatcher;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
@@ -185,8 +186,6 @@ public class ProfilePanelAction extends AbstractAction {
                 }
             }
 
-            profileManager.setCancelled(false);
-
             // TODO use this dialog to display progress bar
             final JDialog d = new JDialog(ArchitectFrame.getMainInstance(), "Table Profiles");
 
@@ -223,8 +222,6 @@ public class ProfilePanelAction extends AbstractAction {
             dialog.setLocationRelativeTo(ArchitectFrame.getMainInstance());
             dialog.setVisible(true);
 
-            new ProgressWatcher(progressBar,profileManager,workingOn);
-
             // XXX This should be its own Action class?
             new Thread( new Runnable() {
 
@@ -239,7 +236,8 @@ public class ProfilePanelAction extends AbstractAction {
                             }
                         }
 
-                        profileManager.createProfiles(toBeProfiled, workingOn);
+                        Monitorable m = profileManager.asynchCreateProfiles(toBeProfiled);
+                        new ProgressWatcher(progressBar, m, workingOn);
                         progressBar.setVisible(false);
 
                         JLabel status = new JLabel("Generating reports, Please wait......");
@@ -423,7 +421,7 @@ public class ProfilePanelAction extends AbstractAction {
                     }
                 }
 
-            }).start();
+            }, "ProfilePanelAction Profile Runner").start();
 
 
         } catch (Exception ex) {

@@ -185,9 +185,9 @@ public class SwingUIProject {
         }
 
         ((SQLObject) sourceDatabases.getModel().getRoot()).addChild(0, playPen.getDatabase());
-        
-        
-        
+
+
+
         /**
          * for backward compatibilty, in the old project file, we have
          * primaryKeyName in the table attrbute, but nothing
@@ -197,14 +197,14 @@ public class SwingUIProject {
          * table.primaryKeyName is save in the map now, not in the table object
          */
         for (SQLTable table : (List<SQLTable>)playPen.getDatabase().getTables()) {
-            
+
             for (SQLIndex index : (List<SQLIndex>)table.getIndicesFolder().getChildren()) {
                 if (index.isPrimaryKeyIndex()) {
                     table.setPrimaryKeyIndex(index);
                     break;
                 }
             }
-              
+
             if ( table.getPrimaryKeyIndex() == null) {
                 System.out.println("primary key index null in table " + table);
                 System.out.println("number of children in indices folder: " + table.getIndicesFolder().getChildCount());
@@ -216,7 +216,7 @@ public class SwingUIProject {
                     }
                 }
             }
-            
+
             table.normalizePrimaryKey();
         }
 
@@ -479,7 +479,7 @@ public class SwingUIProject {
 
             String id = attributes.getValue("id");
             String pkName = attributes.getValue("primaryKeyName");
-            
+
             if (id != null) {
                 objectIdMap.put(id, tab);
                 objectIdMap.put(id+"."+pkName, tab);
@@ -496,7 +496,7 @@ public class SwingUIProject {
                     JOptionPane.showMessageDialog(null, "Failed to add folder to table:\n"+e.getMessage());
                 }
             }
-            
+
             return tab;
         }
     }
@@ -662,7 +662,7 @@ public class SwingUIProject {
 
             index.setType(SQLIndex.IndexType.valueOf(attributes.getValue("index-type")));
             index.setPrimaryKeyIndex(Boolean.valueOf(attributes.getValue("isPrimaryKeyIndex")));
-            
+
             currentIndex = index;
             return index;
         }
@@ -675,7 +675,7 @@ public class SwingUIProject {
     private class SQLIndexColumnFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) {
             Column col = currentIndex.new Column();
-            
+
             String id = attributes.getValue("id");
             if (id != null) {
                 objectIdMap.put(id, col);
@@ -688,7 +688,7 @@ public class SwingUIProject {
                 SQLColumn column = (SQLColumn) objectIdMap.get(referencedColId);
                 col.setColumn(column);
             }
-            
+
             return col;
         }
     }
@@ -1023,7 +1023,7 @@ public class SwingUIProject {
     /**
      * Writes out the CompareDM settings for this project unless the user has not
      * used that feature.
-     *  
+     *
      * @param out
      * @throws IOException
      */
@@ -1342,7 +1342,7 @@ public class SwingUIProject {
             id = "IDC"+objectIdMap.size();
             type = "index-column";
             SQLIndex.Column col = (SQLIndex.Column) o;
-            
+
             if (col.getColumn() != null) {
                 propNames.put("column-ref", objectIdMap.get(col.getColumn()));
             }
