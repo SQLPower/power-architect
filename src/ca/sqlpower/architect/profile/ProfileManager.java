@@ -24,6 +24,9 @@ public class ProfileManager {
     private final Map<SQLObject, ProfileResult> results =
         new HashMap<SQLObject, ProfileResult>();
 
+    private final List<TableProfileResult> tableResults =
+        new ArrayList<TableProfileResult>();
+
     private boolean findingMin = true;
 
     private boolean findingMax = true;
@@ -66,6 +69,10 @@ public class ProfileManager {
 
     public ProfileResult getResult(SQLObject sqlObject) {
         return results.get(sqlObject);
+    }
+
+    public List<TableProfileResult> getTableResults() {
+        return tableResults;
     }
 
     /**
@@ -147,6 +154,8 @@ public class ProfileManager {
                     ProfileResult tableResult = new TableProfileResult(t);
                     tableResult.populate();
                     putResult(tableResult);
+                    tableResults.add((TableProfileResult) tableResult);
+
                     progress++;
                     logger.debug("Job Size:"+jobSize.get()+"    progress="+progress);
 
