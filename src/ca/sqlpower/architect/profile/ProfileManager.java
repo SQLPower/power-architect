@@ -17,11 +17,11 @@ import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.swingui.Monitorable;
 
-public class ProfileManager {
+public class ProfileManager implements ProfileManagerInterface {
 
     private static final Logger logger = Logger.getLogger(ProfileManager.class);
 
-    private final Map<SQLObject, ProfileResult> results =
+    private final Map<SQLObject, ProfileResult> allResults =
         new HashMap<SQLObject, ProfileResult>();
 
     private final List<TableProfileResult> tableResults =
@@ -49,8 +49,6 @@ public class ProfileManager {
 
     private int progress;
 
-    private boolean finished;
-
     private ThreadLocal<String> currentProfilingTable =
         new ThreadLocal<String>();
 
@@ -62,13 +60,13 @@ public class ProfileManager {
         if (logger.isDebugEnabled()) {
             logger.debug("[instance "+hashCode()+"]" +
                     " Adding new profile result for "+profileResult.getProfiledObject().getName()+
-                    " existing profile count: "+results.size());
+                    " existing profile count: "+allResults.size());
         }
-        results.put(profileResult.getProfiledObject(), profileResult);
+        allResults.put(profileResult.getProfiledObject(), profileResult);
     }
 
     public ProfileResult getResult(SQLObject sqlObject) {
-        return results.get(sqlObject);
+        return allResults.get(sqlObject);
     }
 
     public List<TableProfileResult> getTableResults() {
@@ -139,7 +137,6 @@ public class ProfileManager {
              objCount += t.getColumns().size();
          }
          jobSize.set(Integer.valueOf(objCount));
-         finished = false;
          progress = 0;
          userCancel = false;
          logger.debug("Job Size:"+jobSize.get()+"    progress="+progress);
@@ -173,12 +170,10 @@ public class ProfileManager {
                         putResult(columnResult);
                         progress++;
                     }
+                    fireProfileAddedEvent(new ProfileChangeEvent(this, tableResult));
             }
         } finally {
-            finished = true;
             jobSize.set(null);
-
-            fireProfileAddedEvent(new ProfileChangeEvent(this, null));
         }
     }
 
@@ -205,17 +200,23 @@ public class ProfileManager {
     }
 
     public void clear(){
-        results.clear();
-        fireProfileRemovedEvent(new ProfileChangeEvent(this, null));
+        allResults.clear();
+        fireProfileChangedEvent(new ProfileChangeEvent(this, null));
     }
 
-    public void remove(SQLObject sqo) throws ArchitectException{
-        results.remove(sqo);
+    public void remove(SQLObject sqo) throws ArchitectException {
+        TableProfileResult victim = (TableProfileResult) allResults.get(sqo);
+        if (victim == null) {
+            logger.warn("Removing non-profiled table " + sqo);
+            return;
+        }
+        allResults.remove(sqo);
 
         if ( sqo instanceof SQLTable ) {
             for ( SQLColumn col: ((SQLTable)sqo).getColumns()) {
-                results.remove(col);
+                allResults.remove(col);
             }
+            fireProfileRemovedEvent(new ProfileChangeEvent(this, victim));
         }
         else if ( sqo instanceof SQLColumn ) {
             SQLTable table = ((SQLColumn)sqo).getParentTable();
@@ -227,10 +228,9 @@ public class ProfileManager {
                 }
             }
             if ( allColumnDeleted ){
-                results.remove(table);
+                allResults.remove(table);
             }
         }
-        fireProfileRemovedEvent(new ProfileChangeEvent(this, null));
     }
 
     public boolean isFindingAvg() {
@@ -314,7 +314,7 @@ public class ProfileManager {
     }
 
     public Map<SQLObject, ProfileResult> getResults() {
-        return results;
+        return allResults;
     }
 
     //==================================
@@ -342,5 +342,10 @@ public class ProfileManager {
         }
     }
 
+    private void fireProfileChangedEvent(ProfileChangeEvent event){
+        for (ProfileChangeListener listener: listeners){
+            listener.profileListChanged(event);
+        }
+    }
 
 }

@@ -10,22 +10,25 @@ import ca.sqlpower.architect.SQLTable;
 
 public class TestProfileManagerListeners extends TestProfileBase {
 
-
-    
     int addedEvents = 0;
     int removedEvents = 0;
-    
+    private int changedEvents;
+
     public void testListeners() throws Exception{
         ProfileChangeListener listener = new ProfileChangeListener() {
-        
-            public void profileAdded(ProfileChangeEvent e) {                
-                addedEvents++;        
+
+
+            public void profileAdded(ProfileChangeEvent e) {
+                addedEvents++;
             }
-        
+
             public void profileRemoved(ProfileChangeEvent e) {
                 removedEvents++;
             }
-        
+
+            public void profileListChanged(ProfileChangeEvent event) {
+                ++changedEvents;
+            }
         };
         pm.addProfileChangeListener(listener);
         assertEquals(0, addedEvents);
@@ -50,18 +53,18 @@ public class TestProfileManagerListeners extends TestProfileBase {
         pm.createProfiles(tableList);
         assertEquals("table and 1 column got added", 2, addedEvents);
         assertEquals(0, removedEvents);
-        
+
         pm.remove(t.getColumn(0));
         assertEquals(2, addedEvents);
-        assertEquals("Column Removal of single-col table removes col + table", 
+        assertEquals("Column Removal of single-col table removes col + table",
                 2, removedEvents);
-        
+
         pm.createProfiles(tableList);
-        
+
         pm.remove(t);
         assertEquals(4, addedEvents);
         assertEquals("Table Removed", 4, removedEvents);
-        
-        
+
+
     }
 }

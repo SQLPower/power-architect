@@ -21,10 +21,14 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.ScrollPaneConstants;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.profile.ProfileChangeEvent;
+import ca.sqlpower.architect.profile.ProfileChangeListener;
 import ca.sqlpower.architect.profile.ProfileManagerInterface;
+import ca.sqlpower.architect.profile.ProfileResult;
 import ca.sqlpower.architect.profile.TableProfileResult;
 
 /**
@@ -38,12 +42,11 @@ import ca.sqlpower.architect.profile.TableProfileResult;
  * if it's finished, or stops the profiling if it's active.
  * <p>
  * This code is incomplete, and still needs the following:
- * - TODO JGoodies Forms for most of the layouts!!
- * - TODO make sorting work! (maintain separare list??)
- * - TODO listeners for the progress bars, for list change events, etc., etc.!
+ * - TODO make sorting work! (maintain separate list??)
+ * - TODO listeners for the progress bars, etc.!
  * ...
  */
-public class ProfileManagerView extends JPanel {
+public class ProfileManagerView extends JPanel implements ProfileChangeListener  {
 
     private static Logger logger = Logger.getLogger(ProfileManagerView.class);
 
@@ -116,7 +119,9 @@ public class ProfileManagerView extends JPanel {
             resultListPanel.add(myRowComponent);
         }
 
-        add(new JScrollPane(resultListPanel), BorderLayout.CENTER);
+        JScrollPane scrollPane = new JScrollPane(resultListPanel);
+        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        add(scrollPane, BorderLayout.CENTER);
 
         JPanel bottomPanel = new JPanel();
         add(bottomPanel, BorderLayout.SOUTH);
@@ -182,5 +187,21 @@ public class ProfileManagerView extends JPanel {
         Dimension d = x.getPreferredSize();
         d.height *= NICE_ROWS;
         return d;
+    }
+
+    public void profileAdded(ProfileChangeEvent e) {
+        ProfileResult profileResult = e.getProfileResult();
+        System.out.println("Need to write code to add " + profileResult);
+    }
+
+    public void profileRemoved(ProfileChangeEvent e) {
+        ProfileResult profileResult = e.getProfileResult();
+        System.out.println("Need to write code to remove " + profileResult);
+
+    }
+
+    public void profileListChanged(ProfileChangeEvent e) {
+        // TODO Auto-generated method stub
+
     }
 }
