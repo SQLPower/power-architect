@@ -211,6 +211,9 @@ public abstract class AbstractProfileResult<T extends SQLObject>
      */
     @Override
     public final boolean equals(Object obj) {
+        if (!(obj instanceof AbstractProfileResult)) {
+            return false;
+        }
         AbstractProfileResult o = (AbstractProfileResult) obj;
         return (compareTo(o) == 0);
     }
