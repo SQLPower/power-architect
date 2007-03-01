@@ -20,6 +20,7 @@ public class ProfileRowComponent extends JPanel {
     private static ImageIcon stopIcon;
     /** The reload icon for all the rows (shared) */
     private static ImageIcon refreshIcon;
+    /** shared delete icon */
     private static ImageIcon deleteIcon;
 
     static {
@@ -38,21 +39,19 @@ public class ProfileRowComponent extends JPanel {
 
     final TableProfileResult result;
 
-    JButton reProfileButton, stopButton, reloadButton;
-
-    /** X means stop and remove if running, delete if finished */
-    JButton xButton;
+    JButton reProfileButton, stopButton, reloadButton, deleteButton;
 
     public ProfileRowComponent(TableProfileResult result) {
         super();
         add(new JLabel(tableIcon));
         this.result = result;
         this.reProfileButton = new JButton(refreshIcon);
-        this.xButton = new JButton(stopIcon);
-        // XXX how to change the icon dynamically??
+        this.stopButton = new JButton(stopIcon);
+        this.deleteButton = new JButton(deleteIcon);
         add(new JLabel(result.getProfiledObject().getName()));
         add(reProfileButton);
-        add(xButton);
+        add(stopButton);
+        add(deleteButton);
     }
 
     public TableProfileResult getResult() {
