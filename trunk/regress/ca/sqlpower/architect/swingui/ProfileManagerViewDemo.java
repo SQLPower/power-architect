@@ -39,7 +39,7 @@ public class ProfileManagerViewDemo {
         };
 
         jf.setContentPane(new ProfileManagerView(mock));
-        jf.setSize(600, 400);
+        jf.pack();
         jf.setVisible(true);
     }
 
