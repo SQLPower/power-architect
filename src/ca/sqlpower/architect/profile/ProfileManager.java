@@ -204,6 +204,10 @@ public class ProfileManager implements ProfileManagerInterface {
         fireProfileChangedEvent(new ProfileChangeEvent(this, null));
     }
 
+    public void remove(TableProfileResult victim) throws ArchitectException {
+        remove(victim.getProfiledObject());
+    }
+
     public void remove(SQLObject sqo) throws ArchitectException {
         TableProfileResult victim = (TableProfileResult) allResults.get(sqo);
         if (victim == null) {
@@ -211,6 +215,7 @@ public class ProfileManager implements ProfileManagerInterface {
             return;
         }
         allResults.remove(sqo);
+        tableResults.remove(sqo);
 
         if ( sqo instanceof SQLTable ) {
             for ( SQLColumn col: ((SQLTable)sqo).getColumns()) {
