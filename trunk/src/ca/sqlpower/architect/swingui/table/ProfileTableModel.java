@@ -234,6 +234,10 @@ public class ProfileTableModel extends AbstractTableModel {
 
             public void profileAdded(ProfileChangeEvent e) {
                 refresh();
+            }
+
+            public void profileListChanged(ProfileChangeEvent event) {
+                refresh();
             }});
         refresh();
     }

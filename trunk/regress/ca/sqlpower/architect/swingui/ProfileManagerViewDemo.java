@@ -22,7 +22,12 @@ public class ProfileManagerViewDemo {
 
         SQLTable mockTable = new SQLTable();
         mockTable.setName("Customers");
-        TableProfileResult tableProfileResult = new TableProfileResult(mockTable);
+        TableProfileResult tableProfileResult = new TableProfileResult(mockTable) {
+            @Override
+            public boolean isFinished() {
+                return true;
+            }
+        };
         tableProfileResult.setCreateStartTime(System.currentTimeMillis());
         mockData.add(tableProfileResult);
         mockTable = new SQLTable();

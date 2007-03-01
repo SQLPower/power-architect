@@ -16,6 +16,7 @@ public abstract class AbstractProfileResult<T extends SQLObject>
     private long createStartTime = -1L;
     private Exception ex;
     private boolean error;
+    private boolean finished;
 
     /**
      * Creates a new ProfileResult which will hold profile data about the given SQL Object.
@@ -28,6 +29,7 @@ public abstract class AbstractProfileResult<T extends SQLObject>
     }
 
     public void populate() {
+        finished = false;
         try {
             initialize();
             doProfile();    // template method
@@ -44,7 +46,8 @@ public abstract class AbstractProfileResult<T extends SQLObject>
     }
 
     void finish() {
-        setCreateEndTime(createEndTime);
+        setCreateEndTime(System.currentTimeMillis());
+        finished = true;
     }
 
     /* (non-Javadoc)
@@ -241,5 +244,9 @@ public abstract class AbstractProfileResult<T extends SQLObject>
         hash *= createStartTime;
 
         return hash;
+    }
+
+    public boolean isFinished() {
+        return finished;
     }
 }

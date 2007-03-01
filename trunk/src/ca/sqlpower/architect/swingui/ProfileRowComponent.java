@@ -8,6 +8,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 
 import ca.sqlpower.architect.profile.TableProfileResult;
 
@@ -53,27 +54,41 @@ public class ProfileRowComponent extends JPanel {
         super();
         setBorder(BorderFactory.createEtchedBorder());
         FormLayout layout = new FormLayout(
-           "l:p, 2dlu, l:max(150dlu;p), 2dlu, p, 2dlu, p",
+           "l:p, 2dlu, l:max(50dlu;p), 2dlu, max(50dlu;p), 2dlu, p, 2dlu, p",
            "p, p");
         PanelBuilder builder = new PanelBuilder(layout, this);
         CellConstraints cc = new CellConstraints();
 
-        final int ICON_COL = 1, MID_COL=3, RELOAD_COL = 5, KILL_COL = 7;
+        final int ICON_COL = 1, TEXT_COL=3, PROGRESS_COL = 5, RELOAD_COL = 7, KILL_COL = 9;
         builder.add(new JLabel(tableIcon), cc.xywh(ICON_COL, 1, 1, 2));
         this.result = result;
         this.reProfileButton = new JButton(refreshIcon);
+        reProfileButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                System.out.println("REFRESH");
+            }
+        });
         this.stopButton = new JButton(stopIcon);
+        stopButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                System.out.println("STOP");
+            }
+        });
         this.deleteButton = new JButton(deleteIcon);
         deleteButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 System.out.println("DELETE");
             }
         });
-        builder.add(new JLabel(result.getProfiledObject().getName()), cc.xy(MID_COL, 1));
+        builder.add(new JLabel(result.getProfiledObject().getName()), cc.xy(TEXT_COL, 1));
         builder.add(reProfileButton, cc.xywh(RELOAD_COL, 1, 1, 2));
-        builder.add(deleteButton, cc.xywh(KILL_COL, 1, 1, 2));
-
-        builder.add(new JLabel("Today 24 rows 1.4 sec"), cc.xy(MID_COL, 2));
+        builder.add(new JProgressBar(), cc.xywh(PROGRESS_COL, 1, 3, 2));
+        builder.add(new JLabel("Today 24 rows 1.4 sec"), cc.xy(TEXT_COL, 2));
+        if (result.isFinished()) {
+            builder.add(deleteButton, cc.xywh(KILL_COL, 1, 1, 2));
+        } else {
+            builder.add(stopButton, cc.xywh(KILL_COL, 1, 1, 2));
+        }
     }
 
     public TableProfileResult getResult() {
