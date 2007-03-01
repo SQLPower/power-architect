@@ -47,6 +47,8 @@ public class ProfileManagerView extends JPanel {
 
 	ProfileManagerInterface pm;
 
+    final JPanel resultListPanel;
+
     List<ProfileRowComponent> list = new ArrayList<ProfileRowComponent>();
 
     public ProfileManagerView(ProfileManagerInterface pm) {
@@ -84,7 +86,7 @@ public class ProfileManagerView extends JPanel {
         group.add(dateRadioButton);
         nameRadioButton.setSelected(true);
 
-        final JPanel resultListPanel = new JPanel();
+        resultListPanel = new JPanel();
         BoxLayout listLayout = new BoxLayout(resultListPanel, BoxLayout.PAGE_AXIS);
         resultListPanel.setLayout(listLayout);
         // populate this panel with MyRowComponents
@@ -136,12 +138,13 @@ public class ProfileManagerView extends JPanel {
             for (ProfileRowComponent r : list) {
                 r.setVisible(true);
             }
-            return;
+        } else {
+            String searchText = text.toLowerCase();
+            for (ProfileRowComponent r : list) {
+                r.setVisible(r.getResult().getProfiledObject().getName().toLowerCase().contains(searchText));
+            }
         }
-        String searchText = text.toLowerCase();
-        for (ProfileRowComponent r : list) {
-            r.setVisible(r.getResult().getProfiledObject().getName().toLowerCase().contains(searchText));
-        }
+        resultListPanel.invalidate();
     }
 
 }
