@@ -28,7 +28,6 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.profile.ProfileChangeEvent;
 import ca.sqlpower.architect.profile.ProfileChangeListener;
 import ca.sqlpower.architect.profile.ProfileManagerInterface;
-import ca.sqlpower.architect.profile.ProfileResult;
 import ca.sqlpower.architect.profile.TableProfileResult;
 
 /**
@@ -55,11 +54,13 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
 
     final JPanel resultListPanel;
 
+    final JScrollPane scrollPane;
+
     final JLabel statusText;
 
     List<ProfileRowComponent> list = new ArrayList<ProfileRowComponent>();
 
-    public ProfileManagerView(ProfileManagerInterface pm) {
+    public ProfileManagerView(final ProfileManagerInterface pm) {
         super();
         this.pm = pm;
 
@@ -114,12 +115,12 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         resultListPanel.setLayout(listLayout);
         // populate this panel with MyRowComponents
         for (TableProfileResult result : pm.getTableResults()) {
-            ProfileRowComponent myRowComponent = new ProfileRowComponent(result);
+            ProfileRowComponent myRowComponent = new ProfileRowComponent(result, pm);
             list.add(myRowComponent);
             resultListPanel.add(myRowComponent);
         }
 
-        JScrollPane scrollPane = new JScrollPane(resultListPanel);
+        scrollPane = new JScrollPane(resultListPanel);
         scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         add(scrollPane, BorderLayout.CENTER);
 
@@ -136,8 +137,9 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
                         System.out.println("XXX REMOVE FROM PM"); // XXX
                         resultListPanel.remove(r);
                     }
-                    resultListPanel.invalidate();
                     list.clear();
+                    pm.clear();
+                    resultListPanel.repaint();
                     System.out.println("All gone!");
                 }
             }
@@ -160,6 +162,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         int numberShowing = list.size();
         return String.format("Showing %d of %d Profiles", numberShowing, list.size());
     }
+
     /**
      * Search the list for profiles matching the given string.
      * XXX match on date fields too??
@@ -190,18 +193,22 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
     }
 
     public void profileAdded(ProfileChangeEvent e) {
-        ProfileResult profileResult = e.getProfileResult();
-        System.out.println("Need to write code to add " + profileResult);
+        TableProfileResult profileResult = (TableProfileResult) e.getProfileResult();
+        ProfileRowComponent myRowComponent = new ProfileRowComponent(profileResult, pm);
+        list.add(myRowComponent);
+        resultListPanel.add(myRowComponent);
+        repaint();
     }
 
     public void profileRemoved(ProfileChangeEvent e) {
-        ProfileResult profileResult = e.getProfileResult();
-        System.out.println("Need to write code to remove " + profileResult);
-
+        TableProfileResult profileResult = (TableProfileResult) e.getProfileResult();
+        // Can't do this because we don't set evt.getSource() in events.
+        //resultListPanel.remove(profileResult);
+        list.remove(profileResult);
+        repaint();
     }
 
     public void profileListChanged(ProfileChangeEvent e) {
-        // TODO Auto-generated method stub
-
+        throw new IllegalStateException("Not written yet");
     }
 }

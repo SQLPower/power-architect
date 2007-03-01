@@ -13,7 +13,7 @@ public class ProjectSettingsPanel extends JPanel implements ArchitectPanel {
 	 * The project whose settings we're editting.
 	 */
 	private SwingUIProject proj;
-	
+
 	private JCheckBox saveEntireSource;
     private JCheckBox clearProfile;
     private JTextField numberOfFreqValue;
@@ -28,10 +28,12 @@ public class ProjectSettingsPanel extends JPanel implements ArchitectPanel {
 		setLayout(new FormLayout());
 		add(new JLabel("Snapshot entire source database in project file?"));
 		add(saveEntireSource = new JCheckBox());
-        
-        add(new JLabel("Clear the Profile result in the project?"));
-        add( clearProfile=new JCheckBox());
-        
+
+        add(new JLabel("Don't save Profile results in the project?"));
+        add(clearProfile=new JCheckBox());
+        clearProfile.setToolTipText(
+               "Warning: this only removes current profiles");
+
         add(new JLabel("Number of Most Frequent Value in Profile:"));
         add( numberOfFreqValue=new JTextField(String.valueOf(proj.getProfileManager().getTopNCount()),6));
 	}
@@ -45,11 +47,14 @@ public class ProjectSettingsPanel extends JPanel implements ArchitectPanel {
         logger.debug("Setting snapshot option to:"+saveEntireSource.isSelected());
 		proj.setSavingEntireSource(saveEntireSource.isSelected());
         logger.debug("Project "+proj.getName() +" snapshot option is:"+proj.isSavingEntireSource());
-        
+
+        // This is a mistake! This is an action, not a project setting.
+        // It should be changed to a setting, and the Save code changed
+        // to honor it.
         if ( clearProfile.isSelected() ) {
             proj.getProfileManager().clear();
         }
-        
+
         if ( numberOfFreqValue.getText().length() > 0 ) {
             try {
                 proj.getProfileManager().setTopNCount(Integer.valueOf(numberOfFreqValue.getText()));
@@ -62,7 +67,7 @@ public class ProjectSettingsPanel extends JPanel implements ArchitectPanel {
 	}
 
 	public void discardChanges() {
-	
+
 	}
 
 	public JPanel getPanel() {
