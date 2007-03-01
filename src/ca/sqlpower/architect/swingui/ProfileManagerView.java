@@ -1,6 +1,7 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -46,8 +47,11 @@ public class ProfileManagerView extends JPanel {
     private static Logger logger = Logger.getLogger(ProfileManagerView.class);
 
 	ProfileManagerInterface pm;
+	final static int NICE_ROWS = 6;
 
     final JPanel resultListPanel;
+
+    final JLabel statusText;
 
     List<ProfileRowComponent> list = new ArrayList<ProfileRowComponent>();
 
@@ -76,10 +80,21 @@ public class ProfileManagerView extends JPanel {
             }
         });
         topPanel.add(searchText);
-        topPanel.add(new JLabel("Order by"));
+        Action clearSearch = new AbstractAction("X") {
+            public void actionPerformed(ActionEvent e) {
+                searchText.setText("");
+                doSearch("");
+            }
+        };
+        topPanel.add(new JButton(clearSearch));
+        JLabel orderByLabel = new JLabel("Order by");
+        topPanel.add(orderByLabel);
+        orderByLabel.setEnabled(false);
         JRadioButton nameRadioButton = new JRadioButton("Name");
+        nameRadioButton.setEnabled(false);
         topPanel.add(nameRadioButton);
         JRadioButton dateRadioButton = new JRadioButton("Date");
+        dateRadioButton.setEnabled(false);
         topPanel.add(dateRadioButton);
         ButtonGroup group = new ButtonGroup();
         group.add(nameRadioButton);
@@ -95,6 +110,7 @@ public class ProfileManagerView extends JPanel {
             list.add(myRowComponent);
             resultListPanel.add(myRowComponent);
         }
+
         add(new JScrollPane(resultListPanel), BorderLayout.CENTER);
 
         JPanel bottomPanel = new JPanel();
@@ -117,7 +133,7 @@ public class ProfileManagerView extends JPanel {
             }
         };
         bottomPanel.add(new JButton(deleteAllAction));
-        JLabel statusText = new JLabel("2 profiles");
+        statusText = new JLabel(getStatus());
         bottomPanel.add(statusText);
 
         JButton closeButton = new JButton("Close");
@@ -129,6 +145,11 @@ public class ProfileManagerView extends JPanel {
         bottomPanel.add(closeButton);
     }
 
+    private String getStatus() {
+        // XXX compute this dynamically when list management is done
+        int numberShowing = list.size();
+        return String.format("Showing %d of %d Profiles", numberShowing, list.size());
+    }
     /**
      * Search the list for profiles matching the given string.
      * XXX match on date fields too??
@@ -145,6 +166,16 @@ public class ProfileManagerView extends JPanel {
             }
         }
         resultListPanel.invalidate();
+        statusText.setText(getStatus());
     }
 
+    @Override
+    public Dimension getPreferredSize() {
+        if (list.size() == 0)
+            return super.getPreferredSize();
+        ProfileRowComponent x = list.get(0);
+        Dimension d = x.getPreferredSize();
+        d.height *= NICE_ROWS;
+        return d;
+    }
 }
