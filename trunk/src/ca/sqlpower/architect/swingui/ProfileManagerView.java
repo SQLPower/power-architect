@@ -13,6 +13,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -80,13 +81,17 @@ public class ProfileManagerView extends JPanel {
             }
         });
         topPanel.add(searchText);
-        Action clearSearch = new AbstractAction("X") {
+        ImageIcon clearSearchIcon = ASUtils.createJLFIcon("general/Delete", "Clear Search", ArchitectFrame.getMainInstance().getSprefs()
+                    .getInt(SwingUserSettings.ICON_SIZE, 16));
+
+        JButton clearSearchButton = new JButton(clearSearchIcon);
+        clearSearchButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 searchText.setText("");
                 doSearch("");
             }
-        };
-        topPanel.add(new JButton(clearSearch));
+        });
+        topPanel.add(clearSearchButton);
         JLabel orderByLabel = new JLabel("Order by");
         topPanel.add(orderByLabel);
         orderByLabel.setEnabled(false);
