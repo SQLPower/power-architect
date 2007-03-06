@@ -202,21 +202,21 @@ public class TestUndoManager extends TestCase {
         myTester.startCompoundEdit("Test Compound undo");
         adapter.dbObjectChanged(
                 new SQLObjectEvent(
-                        myTester, "foo", new Integer(0), new Integer(1)));
+                        myTester, "foo", 0, 1));
         adapter.dbObjectChanged(
                 new SQLObjectEvent(
-                        myTester, "foo", new Integer(1), new Integer(2)));
+                        myTester, "foo", 1, 2));
         adapter.dbObjectChanged(
                 new SQLObjectEvent(
-                        myTester, "foo", new Integer(2), new Integer(3)));
+                        myTester, "foo", 2, 3));
         myTester.endCompoundEdit("Test Compound undo");
         
         undoManager.undo();
 
         // Ensure the compound undo happened last..first
-        assertEquals(new Integer(2), myTester.history.get(0));
-        assertEquals(new Integer(1), myTester.history.get(1));
-        assertEquals(new Integer(0), myTester.history.get(2));
+        assertEquals(Integer.valueOf(2), myTester.history.get(0));
+        assertEquals(Integer.valueOf(1), myTester.history.get(1));
+        assertEquals(Integer.valueOf(0), myTester.history.get(2));
     }
 	
 	public void testUndoCreateRelationship() throws ArchitectException {
