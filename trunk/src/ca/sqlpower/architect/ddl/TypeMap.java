@@ -88,10 +88,10 @@ public class TypeMap {
 		//XXX add header.
 		// look for 7 groups on non-whitespace seperated by whitespace
 		Pattern p = Pattern.compile("^([\\S]+)[\\s]+([\\S]+)[\\s]+([\\S]+)[\\s]+([\\S]+)[\\s]+([\\S]+)[\\s]+([\\S]+)[\\s]+([\\S]+)[\\s]*");
-				
+        BufferedReader br = null;
 		try {
 			String line = null;
-			BufferedReader br = new BufferedReader(new FileReader("mappingrules.properties"));
+			br = new BufferedReader(new FileReader("mappingrules.properties"));
 			while ((line = br.readLine()) != null) {
 				if (line.trim().length() == 0) {
 					continue;
@@ -124,8 +124,16 @@ public class TypeMap {
 				}
 			}
 		} catch (IOException ie) {
-			ie.printStackTrace();
-		}
+			logger.error("IO error loading typemap", ie);
+		} finally {
+		    if (br != null) {
+		        try {
+                    br.close();
+                } catch (IOException e) {
+                    logger.error("IO error loading typemap", e);
+                }      
+            }
+        }
 		
 	}
 	
