@@ -165,32 +165,40 @@ public class AddLicenseToDMGTask extends Task {
      * resource entry format (basically a hex dump).
      */
     private void appendLicenseToTemplate(File outFile) throws IOException {
-        PrintWriter out = new PrintWriter(new FileWriter(outFile, true));
-        Reader in = new FileReader(licenseFile);
-        out.println("data 'TEXT' (5000, \"English SLA\") {");
-        int nextByte;
-        int count = 0;
-        while ( (nextByte = in.read()) >= 0 ) {
-            if (count % 16 == 0) {
-                out.print("        $\"");
+        PrintWriter out = null;
+        Reader in = null;
+        try {
+            out = new PrintWriter(new FileWriter(outFile, true));
+            in = new FileReader(licenseFile);
+            out.println("data 'TEXT' (5000, \"English SLA\") {");
+            int nextByte;
+            int count = 0;
+            while ( (nextByte = in.read()) >= 0 ) {
+                if (count % 16 == 0) {
+                    out.print("        $\"");
+                }
+
+                out.format("%02X", (nextByte & 0xff));
+                count++;
+
+                if (count % 16 == 0) {
+                    out.println("\"");
+                } else if (count % 2 == 0) {
+                    out.print(" ");
+                }
             }
-            
-            out.format("%02X", (nextByte & 0xff));
-            count++;
-            
-            if (count % 16 == 0) {
+
+            if (count % 16 != 0) {
                 out.println("\"");
-            } else if (count % 2 == 0) {
-                out.print(" ");
+            }
+            out.println("};");
+        } finally {
+            if (out != null) {
+                out.close();
+            }
+            if (in != null) {
+                in.close();
             }
         }
-        
-        if (count % 16 != 0) {
-            out.println("\"");
-        }
-        out.println("};");
-        
-        out.flush();
-        out.close();
     }
 }
