@@ -21,7 +21,7 @@ public class TestDBTree extends TestCase {
 		List dbList = new ArrayList();
 		dbList.add(0,ppdb);
 		dbList.add(1,new SQLDatabase(db2ds));
-		dbTree = new DBTree(dbList,null);
+		dbTree = new DBTree(dbList);
 	}
 	
 	public void testdbcsAlreadyExists() throws ArchitectException {

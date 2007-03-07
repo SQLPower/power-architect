@@ -36,6 +36,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
+import ca.sqlpower.architect.Monitorable;
 
 public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 

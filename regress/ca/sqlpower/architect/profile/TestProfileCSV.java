@@ -4,9 +4,9 @@ import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
-import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
 
 public class TestProfileCSV extends TestProfileBase {
@@ -17,13 +17,16 @@ public class TestProfileCSV extends TestProfileBase {
         List<ProfileResult> profileResults = new ArrayList<ProfileResult>();
         SQLTable t = mydb.getTableByName("PROFILE_TEST1");
 
+        Collection<TableProfileResult> tableResults = pm.getTableResult(t);
+        
         // Add results for table
-        ProfileResult pr = pm.getResult(t);
-        profileResults.add(pr);
+        for (TableProfileResult tpr : tableResults) {
+            profileResults.add(tpr);
 
-        // ... and for all its columns
-        for ( SQLColumn c : t.getColumns() ) {
-            profileResults.add(pm.getResult(c));
+            // ... and for all its columns
+            for (ColumnProfileResult cpr : tpr.getColumnProfileResults()) {
+                profileResults.add(cpr);
+            }
         }
 
         fmt.format(out, profileResults, pm);

@@ -17,20 +17,17 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ProfileCSVFormat;
 import ca.sqlpower.architect.profile.ProfileFormat;
 import ca.sqlpower.architect.profile.ProfileHTMLFormat;
-import ca.sqlpower.architect.profile.ProfileManager;
+import ca.sqlpower.architect.profile.TableProfileManager;
 import ca.sqlpower.architect.profile.ProfilePDFFormat;
 import ca.sqlpower.architect.profile.ProfileResult;
 import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
 import ca.sqlpower.architect.swingui.ASUtils;
-import ca.sqlpower.architect.swingui.table.ProfileTable;
+import ca.sqlpower.architect.swingui.table.ProfileJTable;
 
 public class SaveProfileAction extends AbstractAction {
 
@@ -38,11 +35,11 @@ public class SaveProfileAction extends AbstractAction {
     private enum SaveableFileType { HTML, PDF, CSV }
 
     private JDialog parent;
-    private ProfileTable viewTable;
-    private ProfileManager pm;
+    private ProfileJTable viewTable;
+    private TableProfileManager pm;
 
-    public SaveProfileAction(JDialog parent, ProfileTable viewTable, ProfileManager pm) {
-        super("Save");
+    public SaveProfileAction(JDialog parent, ProfileJTable viewTable, TableProfileManager pm) {
+        super("Save...");
         this.parent = parent;
         this.viewTable = viewTable;
         this.pm = pm;
@@ -55,70 +52,60 @@ public class SaveProfileAction extends AbstractAction {
 
         if ( viewTable.getSelectedRowCount() > 1 ) {
             int selectedRows[] = viewTable.getSelectedRows();
-            Set<SQLTable> selectedTable = new HashSet<SQLTable>();
-            Set<SQLColumn> selectedColumn = new HashSet<SQLColumn>();
+            Set<TableProfileResult> selectedTable = new HashSet<TableProfileResult>();
+            HashSet<ColumnProfileResult> selectedColumn = new HashSet<ColumnProfileResult>();
             for ( int i=0; i<selectedRows.length; i++ ) {
                 int rowid = selectedRows[i];
                 ColumnProfileResult result = viewTable.getColumnProfileResultForRow(rowid);
-                selectedTable.add(result.getProfiledObject().getParentTable());
-                selectedColumn.add(result.getProfiledObject());
+                selectedTable.add(result.getParentResult());
+                selectedColumn.add(result);
             }
 
             boolean fullSelection = true;
-            for ( SQLTable t : selectedTable ) {
-                try {
-                    for ( SQLColumn c : t.getColumns() ) {
-                        if ( !selectedColumn.contains(c) ) {
-                            fullSelection = false;
-                            break;
-                        }
+            for (TableProfileResult tpr : selectedTable) {
+                for (ColumnProfileResult cpr : tpr.getColumnProfileResults()) {
+                    if ( !selectedColumn.contains(cpr) ) {
+                        fullSelection = false;
+                        break;
                     }
-                } catch (ArchitectException e1) {
-                    ASUtils.showExceptionDialog(parent,
-                            "Could not get column from table", e1, new ArchitectExceptionReportFactory());
                 }
             }
 
-            int response = JOptionPane.YES_OPTION;
+            int response = 0;
             if ( !fullSelection ) {
-                response = JOptionPane.showConfirmDialog(
+                response = JOptionPane.showOptionDialog(
                         parent,
-                        "You have selected partical table, Do you want to save only this portion? No to save the whole table",
-                        "Your selection contains partical table(s)",
-                        JOptionPane.YES_NO_OPTION );
+                        "You have selected only part of a table.\nDo you want to save only this portion?",
+                        "Your selection contains partial table(s)",
+                        0,
+                        JOptionPane.QUESTION_MESSAGE,
+                        null,
+                        new String[] {"Save Partial","Save Entire Table"},
+                        "Save Entire Table");
             }
 
-            if (response == JOptionPane.NO_OPTION) {
+            if (response == 1) { // entire table
 
-                for ( SQLTable t : selectedTable ) {
-                    objectToSave.add(pm.getResult(t));
-                    try {
-                        for ( SQLColumn c : t.getColumns() ) {
-                            objectToSave.add(pm.getResult(c));
-                        }
-                    } catch (ArchitectException e1) {
-                        ASUtils.showExceptionDialog(parent,
-                                "Could not get column from table",e1, new ArchitectExceptionReportFactory());
+                for (TableProfileResult tpr : selectedTable) {
+                    objectToSave.add(tpr);
+                    for (ColumnProfileResult cpr : tpr.getColumnProfileResults()) {
+                        objectToSave.add(cpr);
                     }
                 }
-            } else {
+            } else { // partial table
                 for ( int i=0; i<selectedRows.length; i++ ) {
                     int rowid = selectedRows[i];
                     ColumnProfileResult result = viewTable.getColumnProfileResultForRow(rowid);
-                    SQLColumn column = result.getProfiledObject();
-                    SQLTable table = column.getParentTable();
-                    TableProfileResult tpr = (TableProfileResult) pm.getResult(table);
+                    TableProfileResult tpr = result.getParentResult();
                     if ( !objectToSave.contains(tpr) )
                         objectToSave.add(tpr);
                     objectToSave.add(result);
                 }
             }
         } else {
-            for ( int i=0; i<viewTable.getRowCount(); i++ ) {
+            for (int i = 0; i < viewTable.getRowCount(); i++) {
                 ColumnProfileResult result = viewTable.getColumnProfileResultForRow(i);
-                SQLColumn column = result.getProfiledObject();
-                SQLTable table = column.getParentTable();
-                TableProfileResult tpr = (TableProfileResult) pm.getResult(table);
+                TableProfileResult tpr = result.getParentResult();
                 if ( !objectToSave.contains(tpr) )
                     objectToSave.add(tpr);
                 objectToSave.add(result);

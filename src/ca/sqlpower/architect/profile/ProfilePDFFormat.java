@@ -38,7 +38,7 @@ import com.lowagie.text.pdf.PdfWriter;
 
 public class ProfilePDFFormat implements ProfileFormat {
 
-    private static final Logger logger = Logger.getLogger(ProfileManager.class);
+    private static final Logger logger = Logger.getLogger(TableProfileManager.class);
     private int totalColumn;
 
 
@@ -80,7 +80,7 @@ public class ProfilePDFFormat implements ProfileFormat {
      */
     public void format(OutputStream out,
                              List<ProfileResult> profileResults,
-                             ProfileManager pm)
+                             TableProfileManager pm)
                 throws DocumentException, IOException, SQLException,
                     ArchitectException, InstantiationException, IllegalAccessException {
 
@@ -141,7 +141,7 @@ public class ProfilePDFFormat implements ProfileFormat {
         Font f = new Font(bf, fsize);
 
         PdfPTable pdfTable = null;
-        for ( ProfileResult result : profileResults ) {
+        for (ProfileResult result : profileResults ) {
             if ( result instanceof TableProfileResult ) {
                 pdfTable = new PdfPTable(widths.length);
                 pdfTable.setWidthPercentage(100f);
@@ -149,8 +149,7 @@ public class ProfilePDFFormat implements ProfileFormat {
                                                             pdfTable,bf,fsize,widths);
                 profiles.add(oneProfile);
             } else if ( result instanceof ColumnProfileResult ) {
-                SQLTable t = ((SQLColumn)result.getProfiledObject()).getParentTable();
-                TableProfileResult tResult = (TableProfileResult) pm.getResult(t);
+                TableProfileResult tResult = ((ColumnProfileResult)result).getParentResult();
                 addBodyRow(tResult, (ColumnProfileResult)result, pdfTable, bf, f, fsize, widths);
             }
         }
@@ -317,7 +316,7 @@ public class ProfilePDFFormat implements ProfileFormat {
 //        TableProfileResult tProfile = (TableProfileResult) pm.getResult(sqlTable);
         PdfPTable infoTable = new PdfPTable(2);
         StringBuffer heading = new StringBuffer();
-        if ( result.isError() ) {
+        if ( result.getException() != null ) {
             heading.append("Table: ").append(sqlTable.getName());
             heading.append(" Profiling Error");
             if ( result.getException() != null )
@@ -619,14 +618,14 @@ public class ProfilePDFFormat implements ProfileFormat {
                 col.getParentTable().getParentDatabase().getDataSource());
 
         int rowCount = -1;
-        if ( tProfile != null && tProfile.isError() != true ) {
+        if ( tProfile != null && tProfile.getException() == null ) {
             rowCount = tProfile.getRowCount();
         }
         java.util.List<ColumnValueCount> topTen = null;
 
         boolean errorColumnProfiling = false;
         Exception columnException = null;
-        if ( result != null && result.isError() != true ) {
+        if ( result != null && result.getException() == null ) {
             topTen = result.getValueCount();
         }
         else {
@@ -655,7 +654,7 @@ public class ProfilePDFFormat implements ProfileFormat {
             int alignment;
 
             if ( headings[colNo].equalsIgnoreCase("table name") ) {
-                if ( tProfile == null || tProfile.isError() ) {
+                if ( tProfile == null || tProfile.getException() != null) {
                     contents = col.getParentTable().getName() + "\nProfiling Error:\n";
                     if ( tProfile != null && tProfile.getException() != null )
                         contents += tProfile.getException();

@@ -25,10 +25,9 @@ import org.jfree.data.general.DefaultPieDataset;
 import org.jfree.util.TableOrder;
 
 import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ColumnValueCount;
-import ca.sqlpower.architect.profile.ProfileManager;
+import ca.sqlpower.architect.profile.TableProfileManager;
 import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.swingui.ProfilePanel.ChartTypes;
 import ca.sqlpower.architect.swingui.table.FreqValueCountTableModel;
@@ -65,12 +64,12 @@ public class ProfileGraphPanel {
     JPanel displayArea;
     private int rowCount;
     private ChartPanel chartPanel;
-    private ProfileManager pm;
+    private TableProfileManager pm;
 
     private static final Logger logger = Logger.getLogger(ProfileGraphPanel.class);
 
 
-    public ProfileGraphPanel(ProfilePanel panel, int rowCount, ProfileManager pm) {
+    public ProfileGraphPanel(ProfilePanel panel, int rowCount, TableProfileManager pm) {
         this.rowCount = rowCount;
         this.pm = pm;
 
@@ -141,9 +140,9 @@ public class ProfileGraphPanel {
         this.displayArea = displayArea;
     }
 
-    public void displayProfile(SQLTable t, SQLColumn c) {
-        ColumnProfileResult cr = (ColumnProfileResult) pm.getResult(c);
-        TableProfileResult tr = (TableProfileResult) pm.getResult(t);
+    public void displayProfile(ColumnProfileResult cr) {
+        TableProfileResult tr = (TableProfileResult) cr.getParentResult();
+        
         if (tr instanceof TableProfileResult) {
             rowCount = tr.getRowCount();
         } else {
@@ -152,6 +151,7 @@ public class ProfileGraphPanel {
         rowCountDisplay.setText(Integer.toString(rowCount));
 
         StringBuffer sb = new StringBuffer();
+        SQLColumn c = cr.getProfiledObject();
         sb.append(c);
         if (c.isPrimaryKey()) {
             sb.append(' ').append("[PK]");
@@ -163,11 +163,11 @@ public class ProfileGraphPanel {
 
             // XXX the following code should instead replace chartPanel with a JLabel that contains the error message
             //     (and also not create a dummy profile result)
-            cr = new ColumnProfileResult(c, pm, null);
+            cr = new ColumnProfileResult(c, pm, null, null);
             cr.setCreateStartTime(0);
             chartPanel.setChart(ChartFactory.createPieChart("", new DefaultPieDataset(), false, false, false));
         } else {
-            chartPanel.setChart(createTopNChart(c));
+            chartPanel.setChart(createTopNChart(cr));
             nullCountLabel.setText(Integer.toString(cr.getNullCount()));
             int nullsInRecords = cr.getNullCount();
             double ratio = rowCount > 0 ? nullsInRecords * 100D / rowCount : 0;
@@ -200,20 +200,21 @@ public class ProfileGraphPanel {
         }
     }
 
-    private JFreeChart createTopNChart(SQLColumn sqo){
+    private JFreeChart createTopNChart(ColumnProfileResult cr){
         JFreeChart chart;
-        ColumnProfileResult cr = (ColumnProfileResult) pm.getResult(sqo);
         List<ColumnValueCount> valueCounts = cr.getValueCount();
+        SQLColumn col = cr.getProfiledObject();
         DefaultCategoryDataset catDataset = new DefaultCategoryDataset();
 
+        
         long otherDataCount = rowCount;
         for (ColumnValueCount vc: valueCounts){
-            catDataset.addValue(vc.getCount(),sqo.getName(),vc.getValue()==null ? "null" : vc.getValue().toString());
+            catDataset.addValue(vc.getCount(),col.getName(),vc.getValue()==null ? "null" : vc.getValue().toString());
             otherDataCount -= vc.getCount();
         }
         int numberOfTopValues = catDataset.getColumnCount();
         if (otherDataCount > 0){
-            catDataset.addValue(otherDataCount,sqo.getName(),"Other Values");
+            catDataset.addValue(otherDataCount,col.getName(),"Other Values");
         }
 
         if ( chartType == ChartTypes.BAR ){

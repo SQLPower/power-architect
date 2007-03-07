@@ -29,18 +29,33 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
     private double avgLength;
     private int nullCount;
     private List<ColumnValueCount> topTen = new ArrayList<ColumnValueCount>();
+    
+    /**
+     * Currently, we use the owning ProfileManager as a source of settings
+     * for which types of profiling to perform on a column.  We ought to factor
+     * these settings out into a ProfileSettings interface, and then change the
+     * type of this field to that.
+     */
     private ProfileManager manager;
 
     private DDLGenerator ddlg;
 
-    public ColumnProfileResult(SQLColumn profiledObject, ProfileManager manager, DDLGenerator ddlg) {
+    private final TableProfileResult parentResult;
+
+    public ColumnProfileResult(SQLColumn profiledObject, 
+            ProfileManager manager, 
+            DDLGenerator ddlg, 
+            TableProfileResult parentResult) {
         super(profiledObject);
         this.manager = manager;
         this.ddlg = ddlg;
+        this.parentResult = parentResult;
     }
 
-    public ColumnProfileResult(SQLColumn profiledObject) {
+    public ColumnProfileResult(SQLColumn profiledObject, 
+            TableProfileResult parentResult) {
         super(profiledObject);
+        this.parentResult = parentResult;
     }
 
     public double getAvgLength() {
@@ -114,14 +129,14 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
     @Override
     public String toString() {
         return "[ColumnProfileResult:" +
-                "; distinctValues: "+distinctValueCount+
-                "; minLength: "+minLength+
-                "; maxLength: "+maxLength+
-                "; avgLength: "+avgLength+
-                "; minValue: "+getMinValue()+
-                "; maxValue: "+getMaxValue()+
-                "; avgValue: "+avgValue+
-                "; nullCount: "+getNullCount()+ "]";
+        "; distinctValues: "+distinctValueCount+
+        "; minLength: "+minLength+
+        "; maxLength: "+maxLength+
+        "; avgLength: "+avgLength+
+        "; minValue: "+getMinValue()+
+        "; maxValue: "+getMaxValue()+
+        "; avgValue: "+avgValue+
+        "; nullCount: "+getNullCount()+ "]";
     }
 
     public int getNullCount() {
@@ -155,14 +170,14 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
             // System.err.println("Creating dummy " + getClass());
             return;
         }
+        Connection conn = null;
         Statement stmt = null;
         ResultSet rs = null;
         String lastSQL = null;
         try {
-
             SQLColumn col = getProfiledObject();
             SQLDatabase db = col.getParentTable().getParentDatabase();
-            Connection conn = db.getConnection();
+            conn = db.getConnection();
             stmt = conn.createStatement();
             stmt.setEscapeProcessing(false);
 
@@ -179,7 +194,6 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
                 execProfileFunction(pfd, col, ddlg, conn);
             } catch ( Exception ex ) {
                 setCreateStartTime(profileStartTime);
-                setError(true);
                 setException(ex);
                 setCreateEndTime(System.currentTimeMillis());
                 logger.error("Error in Column Profiling: "+lastSQL, ex);
@@ -197,6 +211,9 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
                 if (stmt != null) stmt.close();
             } catch (SQLException ex) {
                 logger.error("Couldn't clean up statement", ex);
+            }
+            if (conn != null) {
+                conn.close();
             }
         }
     }
@@ -292,7 +309,7 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
             databaseIdentifierQuoteString = conn.getMetaData().getIdentifierQuoteString();
             sql.append("SELECT 1");
             int tryCount = 0;
-            if (manager.isFindingDistinctCount() && pfd.isCountDist() ) {
+            if (manager.getProfileSettings().isFindingDistinctCount() && pfd.isCountDist() ) {
                 sql.append(",\n COUNT(DISTINCT ");
                 sql.append(databaseIdentifierQuoteString);
                 sql.append(col.getName());
@@ -300,7 +317,7 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
                 sql.append(") AS DISTINCTCOUNT_"+i);
                 tryCount++;
             }
-            if (manager.isFindingMin() && pfd.isMinValue() ) {
+            if (manager.getProfileSettings().isFindingMin() && pfd.isMinValue() ) {
                 sql.append(",\n MIN(");
                 sql.append(databaseIdentifierQuoteString);
                 sql.append(col.getName());
@@ -308,7 +325,7 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
                 sql.append(") AS MINVALUE_"+i);
                 tryCount++;
             }
-            if (manager.isFindingMax() && pfd.isMaxValue() ) {
+            if (manager.getProfileSettings().isFindingMax() && pfd.isMaxValue() ) {
                 sql.append(",\n MAX(");
                 sql.append(databaseIdentifierQuoteString);
                 sql.append(col.getName());
@@ -316,7 +333,7 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
                 sql.append(") AS MAXVALUE_"+i);
                 tryCount++;
             }
-            if (manager.isFindingAvg() && pfd.isAvgValue() ) {
+            if (manager.getProfileSettings().isFindingAvg() && pfd.isAvgValue() ) {
                 sql.append(",\n ");
                 sql.append(ddlg.getAverageSQLFunctionName(databaseIdentifierQuoteString+
                         col.getName()+
@@ -324,21 +341,21 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
                 sql.append(" AS AVGVALUE_"+i);
                 tryCount++;
             }
-            if (manager.isFindingMinLength() && pfd.isMinLength() ) {
+            if (manager.getProfileSettings().isFindingMinLength() && pfd.isMinLength() ) {
                 sql.append(",\n MIN(");
                 sql.append(ddlg.getStringLengthSQLFunctionName(databaseIdentifierQuoteString+
                         col.getName()+databaseIdentifierQuoteString));
                 sql.append(") AS MINLENGTH_"+i);
                 tryCount++;
             }
-            if (manager.isFindingMaxLength() && pfd.isMaxLength() ) {
+            if (manager.getProfileSettings().isFindingMaxLength() && pfd.isMaxLength() ) {
                 sql.append(",\n MAX(");
                 sql.append(ddlg.getStringLengthSQLFunctionName(databaseIdentifierQuoteString+
                         col.getName()+databaseIdentifierQuoteString));
                 sql.append(") AS MAXLENGTH_"+i);
                 tryCount++;
             }
-            if (manager.isFindingAvgLength() && pfd.isAvgLength() ) {
+            if (manager.getProfileSettings().isFindingAvgLength() && pfd.isAvgLength() ) {
                 sql.append(",\n AVG(");
                 sql.append(ddlg.getStringLengthSQLFunctionName(databaseIdentifierQuoteString+
                         col.getName()+databaseIdentifierQuoteString));
@@ -346,7 +363,7 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
                 tryCount++;
             }
 
-            if (manager.isFindingNullCount() && pfd.isSumDecode() ) {
+            if (manager.getProfileSettings().isFindingNullCount() && pfd.isSumDecode() ) {
                 sql.append(",\n SUM(");
                 sql.append(ddlg.caseWhenNull(
                         databaseIdentifierQuoteString+
@@ -374,36 +391,36 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
                 rs = stmt.executeQuery(lastSQL);
 
                 if (rs.next()) {
-                    if (manager.isFindingDistinctCount() && pfd.isCountDist() ) {
+                    if (manager.getProfileSettings().isFindingDistinctCount() && pfd.isCountDist() ) {
                         columnName = "DISTINCTCOUNT_"+i;
                         setDistinctValueCount(rs.getInt(columnName));
                     }
-                    if (manager.isFindingMin() && pfd.isMinValue() ) {
+                    if (manager.getProfileSettings().isFindingMin() && pfd.isMinValue() ) {
                         columnName = "MINVALUE_"+i;
                         setMinValue(rs.getObject(columnName));
                     }
-                    if (manager.isFindingMax() && pfd.isMaxValue() ) {
+                    if (manager.getProfileSettings().isFindingMax() && pfd.isMaxValue() ) {
                         columnName = "MAXVALUE_"+i;
                         setMaxValue(rs.getObject(columnName));
                     }
-                    if (manager.isFindingAvg() && pfd.isAvgValue() ) {
+                    if (manager.getProfileSettings().isFindingAvg() && pfd.isAvgValue() ) {
                         columnName = "AVGVALUE_"+i;
                         setAvgValue(rs.getObject(columnName));
                     }
-                    if (manager.isFindingMinLength() && pfd.isMinLength() ) {
+                    if (manager.getProfileSettings().isFindingMinLength() && pfd.isMinLength() ) {
                         columnName = "MINLENGTH_"+i;
                         setMinLength(rs.getInt(columnName));
                     }
-                    if (manager.isFindingMaxLength() && pfd.isMaxLength() ) {
+                    if (manager.getProfileSettings().isFindingMaxLength() && pfd.isMaxLength() ) {
                         columnName = "MAXLENGTH_"+i;
                         setMaxLength(rs.getInt(columnName));
                     }
-                    if (manager.isFindingAvgLength() && pfd.isAvgLength() ) {
+                    if (manager.getProfileSettings().isFindingAvgLength() && pfd.isAvgLength() ) {
                         columnName = "AVGLENGTH_"+i;
                         setAvgLength(rs.getDouble(columnName));
                     }
 
-                    if (manager.isFindingNullCount() && pfd.isSumDecode() ) {
+                    if (manager.getProfileSettings().isFindingNullCount() && pfd.isSumDecode() ) {
                         columnName = "NULLCOUNT_"+i;
                         setNullCount(rs.getInt(columnName));
                     }
@@ -416,7 +433,7 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
                 rs = null;
             }
 
-            if (manager.isfindingTopTen() && pfd.isCountDist() ) {
+            if (manager.getProfileSettings().isFindingTopTen() && pfd.isCountDist() ) {
                 sql = new StringBuffer();
                 sql.append("SELECT ").append(databaseIdentifierQuoteString);
                 sql.append(col.getName()).append(databaseIdentifierQuoteString);
@@ -451,7 +468,11 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
             } catch (SQLException ex) {
                 logger.error("Couldn't clean up result set", ex);
             }
-}
+        }
 
-}
+    }
+
+    public TableProfileResult getParentResult() {
+        return parentResult;
+    }
 }

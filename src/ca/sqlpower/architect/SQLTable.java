@@ -222,6 +222,9 @@ System.out.println("INDEX NAME:"+index2.getName()+ "  pk? " + index2.isPrimaryKe
                 SQLIndex pk = getIndexByName(getPrimaryKeyName(), false);
                 logger.debug("table has primary key columns. " +
                         (pk == null?"but pk index not found ":"pk index found "+pk.getName()));
+                if (pk == null) {
+                    return;         // XXX
+                }
                 pk.setPrimaryKeyIndex(true);
             } else {
                 logger.debug("did not find any primary key column.");
@@ -230,7 +233,7 @@ System.out.println("INDEX NAME:"+index2.getName()+ "  pk? " + index2.isPrimaryKe
         } catch (SQLException e) {
             throw new ArchitectException("Failed to populate indices of table "+getName(), e);
         } catch (Exception e) {
-            logger.error("Lost exception is",e);
+            logger.error("Unexpected: SQLTable caught exception", e);
         } finally {
             indicesFolder.populated = true;
             int newSize = indicesFolder.children.size();

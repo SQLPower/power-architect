@@ -43,9 +43,7 @@ import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.swingui.action.DBCSOkAction;
-import ca.sqlpower.architect.swingui.action.ProfilePanelAction;
 import ca.sqlpower.architect.swingui.action.SetDataSourceAction;
 
 public class DBTree extends JTree implements DragSourceListener, DBConnectionCallBack {
@@ -59,7 +57,6 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 	protected DBCSPropertiesAction dbcsPropertiesAction;
 	protected RemoveDBCSAction removeDBCSAction;
 	protected ShowInPlayPenAction showInPlayPenAction;
-	private ProfilePanelAction profileSelectionAction;
     protected SetConnAsTargetDB setConnAsTargetDB;
 
 	/**
@@ -96,13 +93,9 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 		setCellRenderer(new DBTreeCellRenderer());
 	}
 
-	public DBTree(List<SQLDatabase> initialDatabases, ProfileManager profileManager) throws ArchitectException {
+	public DBTree(List<SQLDatabase> initialDatabases) throws ArchitectException {
 		this();
 		setDatabaseList(initialDatabases);
-		profileSelectionAction = new ProfilePanelAction();
-		profileSelectionAction.setDBTree(this);
-		profileSelectionAction.setProfileManager(profileManager);
-/*        profileSelectionAction.setDialog(ArchitectFrame.getMainInstance().getProject().getProfileDialog());*/
 	}
 
 
@@ -310,11 +303,6 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 		newMenu.add(connectionsMenu = new JMenu("Add Source Connection"));
 		connectionsMenu.add(new JMenuItem(newDBCSAction));
 		connectionsMenu.addSeparator();
-
-        if ( getSelectionPaths() != null ) {
-            newMenu.add(new JMenuItem(profileSelectionAction));
-            profileSelectionAction.setDialog(ArchitectFrame.getMainInstance().getProject().getProfileDialog());
-        }
 
 		// populate
 

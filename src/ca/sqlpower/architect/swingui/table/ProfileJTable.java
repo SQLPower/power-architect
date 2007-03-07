@@ -1,10 +1,7 @@
 package ca.sqlpower.architect.swingui.table;
 
-import java.awt.Component;
-
 import javax.swing.JLabel;
 import javax.swing.JTable;
-import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
@@ -14,13 +11,12 @@ import ca.sqlpower.architect.profile.ProfileColumn;
 
 /**
  * Override JTable methods that control cell formatting, because we want
- * to always use particular format subclasses (from c.s.a.swingui.table)
+ * to always use particular format subclasses (from our swingui.table package)
  * to format particular columns.
- *
  */
-public class ProfileTable extends JTable implements TableTextConverter {
+public class ProfileJTable extends JTable implements TableTextConverter {
 
-    public ProfileTable(TableModel model) {
+    public ProfileJTable(TableModel model) {
         super(model);
         
         TableColumnModel cm = getColumnModel();
@@ -78,52 +74,7 @@ public class ProfileTable extends JTable implements TableTextConverter {
         TableModelSortDecorator m1 = (TableModelSortDecorator) getModel();        
         return m1.modelIndex(viewIndex);
     }
-    
-    /*
-     * This method picks good column sizes.
-     * If all column heads are wider than the column's cells'
-     * contents, then you can just use column.sizeWidthToFit().
-     */
-    /**
-     * TODO remove these functions
-     * 
-     * Moved into the Table Model Column Autofit
-     * 
-     */
-    @Deprecated
-    public void initColumnSizes() {
-        for (int i = 0; i < getColumnCount(); i++) {
-            initSingleColumnSize(i);
-        }
-    }
-    /**
-     * TODO remove these functions
-     * 
-     * Moved into the Table Model Column Autofit
-     * 
-     */
-    @Deprecated
-    public void initSingleColumnSize(int colIndex){
-        TableColumn column = null;
-        Component comp = null;  
-        int headerWidth = 0;
-        int cellWidth = 0;
-        TableCellRenderer headerRenderer =
-            getTableHeader().getDefaultRenderer();
-            column = getColumnModel().getColumn(colIndex);
-            
-            comp = headerRenderer.getTableCellRendererComponent(
-                                 this, column.getHeaderValue(),
-                                 false, false, 0, 0);
-            headerWidth = comp.getPreferredSize().width;
-
-            for (int j = 0; j < getRowCount(); j++) {                
-                comp = getCellRenderer(j,colIndex).getTableCellRendererComponent(this,
-                        getValueAt(j, colIndex),false,false,j, colIndex);                                        
-                cellWidth = Math.max(cellWidth, comp.getPreferredSize().width);                
-            }              
-            column.setPreferredWidth((Math.max(headerWidth, cellWidth)));       
-    }
+      
     public String getTextForCell(int row, int col) {
         // note: this will only work because we know all the renderers are jlabels
         JLabel renderer = (JLabel) getCellRenderer(row, col).getTableCellRendererComponent(this, getModel().getValueAt(row, getColumnModel().getColumn(col).getModelIndex()), false, false, row, col);

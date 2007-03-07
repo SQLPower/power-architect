@@ -478,6 +478,7 @@ public class ArchitectFrame extends JFrame {
         Action exportCSVAction = new AbstractAction("Export CSV File") {
 
             public void actionPerformed(ActionEvent e) {
+                FileWriter output = null;
                 try {
                     ExportCSV export = new ExportCSV(getProject().getPlayPen().getDatabase().getTables());
 
@@ -492,7 +493,6 @@ public class ArchitectFrame extends JFrame {
                         return;
                     }
 
-                    FileWriter output = null;
                     output = new FileWriter(file);
                     output.write(export.getCSVMapping());
                     output.flush();
@@ -500,6 +500,14 @@ public class ArchitectFrame extends JFrame {
                     throw new RuntimeException(e1);
                 } catch (ArchitectException e1) {
                     throw new ArchitectRuntimeException(e1);
+                } finally {
+                    if (output != null) {
+                        try {
+                            output.close();
+                        } catch (IOException e1) {
+                            logger.error("IO Error", e1);
+                        }
+                    }
                 }
             }
         };
@@ -550,6 +558,7 @@ public class ArchitectFrame extends JFrame {
                     JButton csv = new JButton(new AbstractAction(){
 
                         public void actionPerformed(ActionEvent e) {
+                            FileWriter output = null;
                             try {
                                 ExportCSV export = new ExportCSV(selectedTables);
 
@@ -564,7 +573,6 @@ public class ArchitectFrame extends JFrame {
                                     return;
                                 }
 
-                                FileWriter output = null;
                                 output = new FileWriter(file);
                                 output.write(export.getCSVMapping());
                                 output.flush();
@@ -572,6 +580,14 @@ public class ArchitectFrame extends JFrame {
                                 throw new RuntimeException(e1);
                             } catch (ArchitectException e1) {
                                 throw new ArchitectRuntimeException(e1);
+                            } finally {
+                                if (output != null) {
+                                    try {
+                                        output.close();
+                                    } catch (IOException e1) {
+                                        logger.error("IO Error", e1);
+                                    }
+                                }
                             }
                         }
 
@@ -701,7 +717,7 @@ public class ArchitectFrame extends JFrame {
         profileMenu.add(profileAction);
         //profileMenu.add(viewProfileAction);not being used for second architect release
         menuBar.add(profileMenu);
-
+        
 		JMenu helpMenu = new JMenu("Help");
 		helpMenu.setMnemonic('h');
         if (!MAC_OS_X) {
@@ -893,8 +909,6 @@ public class ArchitectFrame extends JFrame {
 		searchReplaceAction.setDBTree(dbTree);
 		profileAction.setDBTree(dbTree);
 		profileAction.setProfileManager(project.getProfileManager());
-		profileAction.setDialog(project.getProfileDialog());
-        //viewProfileAction.setProfileManager(project.getProfileManager());not being used for second architect release
 
 		prefAction.setArchitectFrame(this);
 		projectSettingsAction.setArchitectFrame(this);

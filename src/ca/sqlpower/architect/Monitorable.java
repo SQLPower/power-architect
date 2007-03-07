@@ -1,11 +1,21 @@
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect;
 
-import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.swingui.ProgressWatcher;
+
 
 /**
  * The Monitorable interface is a generic way for objects which perform certain
- * tasks to make their progress monitorable.  This information can be interpreted
- * by a ProgressWatcher which will in turn drive a progress bar in the GUI. 
+ * tasks to make their progress monitorable.  It is usually appropriate for the
+ * class that performs the work to implement this interface directly, but there
+ * are some cases where many classes share the work of one overall job, and in
+ * that case it might be best for them to use a shared instance of
+ * {@link MonitorableImpl}.
+ * 
+ * <p>
+ * If the interested party is a GUI component, this information can be interpreted
+ * by a {@link ProgressWatcher} which will in turn drive a progress bar in the GUI.
+ * Other types of user interfaces can provide similar generic classes that use a
+ * Monitorable to track progress.
  */
 public interface Monitorable {
 
