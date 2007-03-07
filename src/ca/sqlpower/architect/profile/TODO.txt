@@ -10,9 +10,9 @@ Window menu in ArchitectFrame to show/hide ProfileManagerView
 Clean up ProfileRowComponent GUI (JGoodies not being used correctly?).
 
 MAKE LAST FEW NEW CONTROLS WORK:
-	progress bar
-	STop button
+	Stop button
 	refresh profile
+	Status label (%d of %d rows)
 
 ProfileRowComponent - double click to show just that one table result
 in its own ProfileResultsViewer window.  Select Multiple Rows and

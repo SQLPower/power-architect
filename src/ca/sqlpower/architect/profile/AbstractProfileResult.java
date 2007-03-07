@@ -44,7 +44,6 @@ public abstract class AbstractProfileResult<T extends SQLObject>
      * to perform the actual work of populating this profile result.
      */
     public void populate() {
-        finished = false;
         try {
             message = getProfiledObject().getName();
             initialize();
@@ -65,6 +64,8 @@ public abstract class AbstractProfileResult<T extends SQLObject>
     public abstract void doProfile() throws SQLException, ArchitectException;
     
     void initialize() {
+        started = true;
+        finished = false;
         setCreateStartTime(System.currentTimeMillis());
     }
 
