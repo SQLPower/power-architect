@@ -1,6 +1,5 @@
 package ca.sqlpower.architect.swingui;
 
-import java.awt.Component;
 import java.awt.Point;
 import java.io.File;
 import java.io.IOException;
@@ -172,6 +171,26 @@ public class SwingUIProject {
         plExport = new PLExport();
         compareDMSettings = new CompareDMSettings();
         undoManager = new UndoManager(pp);
+    }
+    
+    /**
+     * This is a common handler for all actions that must
+     * occur when switching projects, e.g., dispose dialogs, 
+     * shut down running threads, etc. 
+     * <p>
+     * currently mostly a placeholder
+     */
+    public void close() {
+        // close connections
+        Iterator it = getSourceDatabases().getDatabaseList().iterator();
+        while (it.hasNext()) {
+            SQLDatabase db = (SQLDatabase) it.next();
+            logger.debug ("closing connection: " + db.getName());
+            db.disconnect();
+        }
+        
+        // Close dialogs
+        profileDialog.dispose();
     }
 
     // ------------- READING THE PROJECT FILE ---------------
@@ -1666,9 +1685,11 @@ public class SwingUIProject {
         return profileManager;
     }
     public JDialog getProfileDialog() {
+        // Do the pack here in case this is the first time ever.
+        profileDialog.pack();
         return profileDialog;
     }
-    public Component getProfileManagerView() {
+    public ProfileManagerView getProfileManagerView() {
         return profileManagerView;
     }
     public ProfileResultsViewer getProfileResultsViewer() {

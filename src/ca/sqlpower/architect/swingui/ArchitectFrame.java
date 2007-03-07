@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.prefs.Preferences;
 
@@ -29,6 +28,7 @@ import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -45,6 +45,8 @@ import javax.swing.KeyStroke;
 import javax.swing.ProgressMonitor;
 import javax.swing.ProgressMonitorInputStream;
 import javax.swing.SwingUtilities;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
 
 import org.apache.log4j.Logger;
 
@@ -56,7 +58,6 @@ import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.BrowserUtil;
 import ca.sqlpower.architect.ConfigFile;
 import ca.sqlpower.architect.CoreUserSettings;
-import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.UserSettings;
@@ -72,9 +73,9 @@ import ca.sqlpower.architect.swingui.action.CreateTableAction;
 import ca.sqlpower.architect.swingui.action.DataMoverAction;
 import ca.sqlpower.architect.swingui.action.DeleteSelectedAction;
 import ca.sqlpower.architect.swingui.action.EditColumnAction;
+import ca.sqlpower.architect.swingui.action.EditIndexAction;
 import ca.sqlpower.architect.swingui.action.EditRelationshipAction;
 import ca.sqlpower.architect.swingui.action.EditTableAction;
-import ca.sqlpower.architect.swingui.action.EditIndexAction;
 import ca.sqlpower.architect.swingui.action.ExportDDLAction;
 import ca.sqlpower.architect.swingui.action.ExportPLJobXMLAction;
 import ca.sqlpower.architect.swingui.action.ExportPLTransAction;
@@ -217,8 +218,7 @@ public class ArchitectFrame extends JFrame {
 	    }
 	};
 
-
-	/**
+    /**
 	 * You can't create an architect frame using this constructor.  You have to
 	 * call {@link #getMainInstance()}.
 	 *
@@ -336,7 +336,7 @@ public class ArchitectFrame extends JFrame {
 			    if (promptForUnsavedModifications()) {
 			        try {
 			        	prefs.putInt(SwingUserSettings.DIVIDER_LOCATION, splitPane.getDividerLocation());
-			        	closeProject(getProject());
+                        getProject().close();
 			            setProject(new SwingUIProject("New Project"), false);
 			            logger.debug("Glass pane is "+getGlassPane());
 			        } catch (Exception ex) {
@@ -718,6 +718,30 @@ public class ArchitectFrame extends JFrame {
         //profileMenu.add(viewProfileAction);not being used for second architect release
         menuBar.add(profileMenu);
         
+        JMenu windowMenu = new JMenu("Window");
+        final JCheckBoxMenuItem profileManagerViewCheckbox = 
+            new JCheckBoxMenuItem(new AbstractAction("Show Profile Manager") {
+            public void actionPerformed(ActionEvent e) {
+                JDialog view = project.getProfileDialog();
+                view.setVisible(!view.isVisible());            
+            }        
+            });
+        windowMenu.addMenuListener(new MenuListener() {
+
+            public void menuCanceled(MenuEvent e) {
+                // don't care
+            }
+            public void menuDeselected(MenuEvent e) {
+                // don't care
+            }
+            public void menuSelected(MenuEvent e) {
+                profileManagerViewCheckbox.setSelected(
+                        getProject().getProfileDialog().isVisible()); 
+            }           
+        });
+        windowMenu.add(profileManagerViewCheckbox);
+        menuBar.add(windowMenu);
+        
 		JMenu helpMenu = new JMenu("Help");
 		helpMenu.setMnemonic('h');
         if (!MAC_OS_X) {
@@ -959,7 +983,7 @@ public class ArchitectFrame extends JFrame {
          * @throws FileNotFoundException if file doesn't exist
 		 */
 		public LoadFileWorker(File file,RecentMenu recent) throws ArchitectException, FileNotFoundException {
-				closeProject(getProject());
+		        getProject().close();
 				project = new SwingUIProject("Loading...");
 				project.setFile(file);
                 this.file = file;
@@ -1080,7 +1104,7 @@ public class ArchitectFrame extends JFrame {
 
 	    if (promptForUnsavedModifications()) {
 	        try {
-	        	closeProject(getProject());
+	        	getProject().close();
 	            saveSettings();
 	        } catch (ArchitectException e) {
 	            logger.error("Couldn't save settings: "+e);
@@ -1101,17 +1125,13 @@ public class ArchitectFrame extends JFrame {
 
 		ArchitectUtils.configureLog4j();
 
-
-       String architectFileArg = null;
-       final File openFile;
+		final File openFile;
         if (args.length > 0) {
-            architectFileArg = args[0];
-            openFile = new File(architectFileArg);
+            openFile = new File(args[0]);
         } else {
             openFile = null;
         }
 		getMainInstance();
-
 
 		SwingUtilities.invokeLater(new Runnable() {
 		    public void run() {
@@ -1254,18 +1274,6 @@ public class ArchitectFrame extends JFrame {
 		} else {
 		    saveTask.run();
 		    return lastSaveOpSuccessful;
-		}
-	}
-	/*
-	 * Close database connections and files.
-	 */
-	protected void closeProject(SwingUIProject project) {
-		// close connections
-		Iterator it = project.getSourceDatabases().getDatabaseList().iterator();
-		while (it.hasNext()) {
-			SQLDatabase db = (SQLDatabase) it.next();
-			logger.debug ("closing connection: " + db.getName());
-			db.disconnect();
 		}
 	}
 
