@@ -44,12 +44,17 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
     final static Date date = new Date();
     final static DateFormat df = DateFormat.getDateInstance(DateFormat.MEDIUM);
 
+    /**
+     * This printf format string is used in our toString() but is also
+     * made public for use in UI controls that need an approximation
+     * of the format for e.g., sizing a JLabel or other text component
+     */
+    public static final String TOSTRING_FORMAT = "Rows: %d   %s   Time:  %d ms";
+
     @Override
     public String toString() {
         date.setTime(getCreateStartTime());
-        return "Rows: " + rowCount +
-                "  " + df.format(date) +
-                "  Time: " + getTimeToCreate() + "ms";
+        return String.format(TOSTRING_FORMAT, rowCount, df.format(date), getTimeToCreate());
     }
 
     public void doProfile() throws SQLException, ArchitectException {

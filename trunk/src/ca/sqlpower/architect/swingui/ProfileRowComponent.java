@@ -39,7 +39,7 @@ public class ProfileRowComponent extends JPanel {
     private static ImageIcon refreshIcon;
     /** shared delete icon */
     private static ImageIcon deleteIcon;
-    final JLabel statusLabel = new JLabel("");
+    final JLabel statusLabel = new JLabel(String.format(TableProfileResult.TOSTRING_FORMAT, 0, "Today", 0));
     static {
         tableIcon = ASUtils.createJLFIcon("general/Save", "DB Table", ArchitectFrame.getMainInstance().getSprefs()
                 .getInt(SwingUserSettings.ICON_SIZE, 24));
