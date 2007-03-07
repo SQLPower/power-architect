@@ -51,8 +51,10 @@ public class ProfilePanelAction extends AbstractAction {
             logger.debug("dbtree was null when actionPerformed called");
             return;
         }
-        if ( dbTree.getSelectionPaths() == null ) {
-            logger.debug("dbtree path selection was null when actionPerformed called");
+        if (dbTree.getSelectionPaths() == null) {
+            JOptionPane.showMessageDialog(dialog,
+                    "Please select table(s) in the Database Tree to profile them",
+                    "No selection", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
