@@ -14,6 +14,7 @@ import javax.swing.Timer;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.Monitorable;
 import ca.sqlpower.architect.swingui.event.TaskTerminationEvent;
 import ca.sqlpower.architect.swingui.event.TaskTerminationListener;
 

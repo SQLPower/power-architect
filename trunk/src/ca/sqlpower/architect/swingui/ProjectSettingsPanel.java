@@ -35,7 +35,7 @@ public class ProjectSettingsPanel extends JPanel implements ArchitectPanel {
                "Warning: this only removes current profiles");
 
         add(new JLabel("Number of Most Frequent Value in Profile:"));
-        add( numberOfFreqValue=new JTextField(String.valueOf(proj.getProfileManager().getTopNCount()),6));
+        add( numberOfFreqValue=new JTextField(String.valueOf(proj.getProfileManager().getProfileSettings().getTopNCount()),6));
 	}
 
 	protected void revertToProjectSettings() {
@@ -57,7 +57,7 @@ public class ProjectSettingsPanel extends JPanel implements ArchitectPanel {
 
         if ( numberOfFreqValue.getText().length() > 0 ) {
             try {
-                proj.getProfileManager().setTopNCount(Integer.valueOf(numberOfFreqValue.getText()));
+                proj.getProfileManager().getProfileSettings().setTopNCount(Integer.valueOf(numberOfFreqValue.getText()));
             } catch ( NumberFormatException e ) {
                 ASUtils.showExceptionDialogNoReport(this,
                         "Number Format Error", e);

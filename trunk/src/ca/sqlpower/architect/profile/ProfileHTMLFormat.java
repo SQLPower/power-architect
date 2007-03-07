@@ -28,7 +28,7 @@ public class ProfileHTMLFormat implements ProfileFormat {
      * Generates formatted HTML of the profile information
      */
     public void format(OutputStream out, List<ProfileResult> profileResults,
-                        ProfileManager pm) throws IOException, SQLException {
+                        TableProfileManager pm) throws IOException, SQLException {
 
         // Create header first, obtaining column count, so we can use it in a colspan later.
         StringBuffer s = new StringBuffer();
@@ -124,7 +124,7 @@ public class ProfileHTMLFormat implements ProfileFormat {
                 outw.print("<h3>");
                 outw.print(t.getName());
 
-                if ( result == null || result.isError() ) {
+                if (result == null || result.getException() != null) {
                     outw.print("&nbsp;&nbsp;&nbsp;Profiling Error:");
                     outw.print("</h3>");
                     outw.print("</td></tr>");
@@ -150,8 +150,7 @@ public class ProfileHTMLFormat implements ProfileFormat {
                 }
             } else if ( result instanceof ColumnProfileResult ) {
                 SQLColumn c = (SQLColumn) result.getProfiledObject();
-                SQLTable t = c.getParentTable();
-                TableProfileResult tResult = (TableProfileResult) pm.getResult(t);
+                TableProfileResult tResult = ((ColumnProfileResult)result).getParentResult();
                 double rowCount = (double) tResult.getRowCount();
 
                 outw.print("\n  <tr>");
@@ -170,7 +169,7 @@ public class ProfileHTMLFormat implements ProfileFormat {
                     outw.print("-----");
                 outw.print("</td>");
 
-                if ( result == null || result.isError() ) {
+                if ( result == null || result.getException() != null ) {
                     outw.print("<td bgcolor=\"#f0f0f0\" colspan=\""+(cellCount-2)+"\">");
                     outw.print("Column Profile Error:");
                     if ( result != null ) {

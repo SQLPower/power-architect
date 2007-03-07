@@ -1,5 +1,7 @@
 package ca.sqlpower.architect.swingui;
 
+import ca.sqlpower.architect.Monitorable;
+
 
 /**
  * The MonitorableWorker is an ArchitectSwingWorker that also

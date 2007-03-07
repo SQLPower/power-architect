@@ -29,7 +29,7 @@ public abstract class TestProfileBase extends TestCase {
     }
 
     SQLDatabase mydb;
-    ProfileManager pm;
+    TableProfileManager pm;
 
     @Override
     public void setUp() throws IOException {
@@ -100,26 +100,29 @@ public abstract class TestProfileBase extends TestCase {
                 SQLTable t = mydb.getTableByName("PROFILE_TEST"+i);
                 tableList.add(t);
             }
-            pm = new ProfileManager();
-            pm.setFindingAvg(true);
-            pm.setFindingMin(true);
-            pm.setFindingMax(true);
-            pm.setFindingMinLength(true);
-            pm.setFindingMaxLength(true);
-            pm.setFindingAvgLength(true);
-            pm.setFindingDistinctCount(true);
-            pm.setFindingNullCount(true);
+            pm = new TableProfileManager();
+            pm.getProfileSettings().setFindingAvg(true);
+            pm.getProfileSettings().setFindingMin(true);
+            pm.getProfileSettings().setFindingMax(true);
+            pm.getProfileSettings().setFindingMinLength(true);
+            pm.getProfileSettings().setFindingMaxLength(true);
+            pm.getProfileSettings().setFindingAvgLength(true);
+            pm.getProfileSettings().setFindingDistinctCount(true);
+            pm.getProfileSettings().setFindingNullCount(true);
 
-            pm.createProfiles(tableList);
-
+            for (SQLTable t : tableList) {
+                pm.createProfile(t);
+            }
+            
+            List<TableProfileResult> tableResults = pm.getTableResults();
             // Dump the results in case somebody wants to read them
-            for ( int i=1; i<4; i++ ) {
-                SQLTable t = mydb.getTableByName("PROFILE_TEST"+i);
-                ProfileResult pr = pm.getResult(t);
-                System.out.println(t.getName()+"  "+pr.toString());
-                for ( SQLColumn c : t.getColumns() ) {
-                    pr = pm.getResult(c);
-                    System.out.println(c.getName()+"["+c.getSourceDataTypeName()+"]   "+pr);
+            for (int i = 0; i < tableResults.size(); i++) {
+                SQLTable t = mydb.getTableByName("PROFILE_TEST"+ (i+1) ); // +1 to keep table names same
+                TableProfileResult tpr = tableResults.get(i);
+                System.out.println(t.getName() + "  " + tpr.toString());
+                for (ColumnProfileResult cpr : tpr.getColumnProfileResults()) {
+                    SQLColumn c = cpr.getProfiledObject();
+                    System.out.println(c.getName() + "[" + c.getSourceDataTypeName() + "]   "+  cpr);
                 }
             }
 

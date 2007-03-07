@@ -1,7 +1,9 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -27,30 +29,26 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.profile.ProfileChangeEvent;
 import ca.sqlpower.architect.profile.ProfileChangeListener;
-import ca.sqlpower.architect.profile.ProfileManagerInterface;
+import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.TableProfileResult;
 
 /**
- * The main view for the Profile Manager. Vaguely patterned on e.g., the
+ * The controlling view for the Profile Manager. Vaguely patterned on e.g., the
  * Safari Download box; has some controls at the top and bottom,
  * and a row of components that displays, for each table profile result,
  * the name of the table AND either:
- * <ul><li>the date, rows, elapsed time, and a Re-Profile button, or,
- * <li>a progressbar;
- * </ul>Always followed by an X button, which either deletes the profile
- * if it's finished, or stops the profiling if it's active.
+ * <ul><li>the date, rows, elapsed time, and a Re-Profile button, 
+ * and a "delete this profile" button
+ * <li>a progressbar and a Stop button.
  * <p>
- * This code is incomplete, and still needs the following:
- * - TODO make sorting work! (maintain separate list??)
- * - TODO listeners for the progress bars, etc.!
- * ...
+ * TODO make sorting work! (maintain separate list??)
  */
 public class ProfileManagerView extends JPanel implements ProfileChangeListener  {
 
     private static Logger logger = Logger.getLogger(ProfileManagerView.class);
 
-	ProfileManagerInterface pm;
-	final static int NICE_ROWS = 6;
+	ProfileManager pm;
+	final static int NICE_ROWS = 8;
 
     final JPanel resultListPanel;
 
@@ -58,9 +56,13 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
 
     final JLabel statusText;
 
+    /**
+     * The list of all valid ProfileRowComponents; note that this is NOT
+     * necessarily the same as the list that is showing (see doSearch() for why not).
+     */
     List<ProfileRowComponent> list = new ArrayList<ProfileRowComponent>();
 
-    public ProfileManagerView(final ProfileManagerInterface pm) {
+    public ProfileManagerView(final ProfileManager pm) {
         super();
         this.pm = pm;
 
@@ -126,17 +128,29 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
 
         JPanel bottomPanel = new JPanel();
         add(bottomPanel, BorderLayout.SOUTH);
+ 
+        Action viewAllAction = new AbstractAction("View All") {
+            public void actionPerformed(ActionEvent e) {
+                System.out.println("ProfileManagerView.inner.actionPerformed(): VIEW ALL"); 
+                ProfileResultsViewer profileResultsViewer = 
+                    ArchitectFrame.getMainInstance().getProject().getProfileResultsViewer();
+                for (ProfileRowComponent rowComp : list) {
+                    TableProfileResult result = rowComp.getResult();
+                    System.out.println("ProfileManagerView.inner.actionPerformed(): add " + result);
+                    profileResultsViewer.addTableProfileResult(result);
+                }
+                profileResultsViewer.getDialog().setVisible(true);
+            }           
+        };
+        bottomPanel.add(new JButton(viewAllAction));
+        
         Action deleteAllAction = new AbstractAction("Delete All") {
             public void actionPerformed(ActionEvent e) {
                 int confirm = JOptionPane.showConfirmDialog(ArchitectFrame.getMainInstance(),
                         "Are you sure you want to delete all your profile data?\n" +
                         "(this cannot be undone)");
                 if (confirm == 0) { // 0 == the first Option, which is Yes
-                    for (ProfileRowComponent r : list) {
-                        // r.setVisible(false);
-                        System.out.println("XXX REMOVE FROM PM"); // XXX
-                        resultListPanel.remove(r);
-                    }
+                    resultListPanel.removeAll();
                     list.clear();
                     pm.clear();
                     resultListPanel.repaint();
@@ -151,16 +165,22 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         JButton closeButton = new JButton("Close");
         closeButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-
+                Component c = ProfileManagerView.this.getParent();
+                while  (c != null && !(c instanceof Window)) {
+                    c = c.getParent();
+                }
+                if (c != null) {
+                    c.setVisible(false);
+                }
             }
         });
         bottomPanel.add(closeButton);
     }
 
     private String getStatus() {
-        // XXX compute this dynamically when list management is done
-        int numberShowing = list.size();
-        return String.format("Showing %d of %d Profiles", numberShowing, list.size());
+        int numberShowing = list.size();    // XXX FIXME
+        int totalNumber = list.size();      // XXX FIXME
+        return String.format("Showing %d of %d Profiles", numberShowing, totalNumber);
     }
 
     /**
@@ -192,23 +212,37 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         return d;
     }
 
+    /** Part of the ProfileChangeListener interface; called
+     * to tell us when a ProfileResult has been added; we need
+     * to create a corresponding ProfileRowComponent and add it to the view.
+     */
     public void profileAdded(ProfileChangeEvent e) {
+        System.out.println("ProfileManagerView.profileAdded(): table profile added");
         TableProfileResult profileResult = (TableProfileResult) e.getProfileResult();
         ProfileRowComponent myRowComponent = new ProfileRowComponent(profileResult, pm);
         list.add(myRowComponent);
         resultListPanel.add(myRowComponent);
-        repaint();
+        resultListPanel.revalidate();
     }
 
+    /** Part of the ProfileChangeListener interface; called
+     * to tell us when a ProfileResult has been removed; we need
+     * to find and remove the corresponding ProfileRowComponent.
+     */
     public void profileRemoved(ProfileChangeEvent e) {
         TableProfileResult profileResult = (TableProfileResult) e.getProfileResult();
-        // Can't do this because we don't set evt.getSource() in events.
-        //resultListPanel.remove(profileResult);
-        list.remove(profileResult);
-        repaint();
+        System.out.println("ProfileManagerView.profileAdded(): " + profileResult + ": profile deleted");
+        for (ProfileRowComponent view : list) {
+            if (view.getResult().equals(profileResult)) {
+                list.remove(view);
+                resultListPanel.remove(view);
+                break;
+            }
+        }
+        resultListPanel.revalidate();
     }
 
     public void profileListChanged(ProfileChangeEvent e) {
-        throw new IllegalStateException("Not written yet");
+        logger.debug("ProfileChanged method not yet implemented.");
     }
 }

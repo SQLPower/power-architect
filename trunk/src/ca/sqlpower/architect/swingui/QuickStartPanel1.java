@@ -57,7 +57,7 @@ public class QuickStartPanel1 implements WizardPanel {
 		// static method retrieves database connections
 		List databases = QuickStartWizard.getDatabases();
 		try {
-			dbTree = new DBTree(databases,null);
+			dbTree = new DBTree(databases);
 		} catch (ArchitectException e) {
 			logger.error("problem loading database list",e);
 		}

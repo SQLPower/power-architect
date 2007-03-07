@@ -19,10 +19,10 @@ import com.darwinsys.csv.CSVExport;
 public class ProfileCSVFormat implements ProfileFormat {
 
     /** The desired CSV column list is published in the ProfileColumn enum.
-     * @see ca.sqlpower.architect.profile.ProfileFormat#format(java.io.OutputStream, java.util.List, ca.sqlpower.architect.profile.ProfileManager)
+     * @see ca.sqlpower.architect.profile.ProfileFormat#format(java.io.OutputStream, java.util.List, ca.sqlpower.architect.profile.TableProfileManager)
      */
     public void format(OutputStream nout, List<ProfileResult> profileResult,
-                                        ProfileManager pm) throws Exception {
+                                        TableProfileManager pm) throws Exception {
         PrintWriter out = new PrintWriter(nout);
 
         // Print a header
@@ -40,7 +40,7 @@ public class ProfileCSVFormat implements ProfileFormat {
 
             SQLColumn c = (SQLColumn) result.getProfiledObject();
             SQLTable t = c.getParentTable();
-            TableProfileResult tpr = (TableProfileResult) pm.getResult(t);
+            TableProfileResult tpr = ((ColumnProfileResult)result).getParentResult();
             List<Object> commonData = new ArrayList<Object>();
 
             for ( ProfileColumn pc : columns ) {

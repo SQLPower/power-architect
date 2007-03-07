@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import ca.sqlpower.architect.SQLTable;
@@ -14,7 +15,7 @@ public class TestProfileManagerListeners extends TestProfileBase {
     int removedEvents = 0;
     private int changedEvents;
 
-    public void testListeners() throws Exception{
+    public void testListeners() throws Exception {
         ProfileChangeListener listener = new ProfileChangeListener() {
 
 
@@ -50,20 +51,22 @@ public class TestProfileManagerListeners extends TestProfileBase {
         }
         SQLTable t = mydb.getTableByName("PROFILE_TEST5");
         tableList.add(t);
-        pm.createProfiles(tableList);
+        for (SQLTable table : tableList) {
+            pm.createProfile(table);
+        }
         assertEquals("table and 1 column got added", 2, addedEvents);
         assertEquals(0, removedEvents);
 
-        pm.remove(t.getColumn(0));
-        assertEquals(2, addedEvents);
-        assertEquals("Column Removal of single-col table removes col + table",
-                2, removedEvents);
-
-        pm.createProfiles(tableList);
-
-        pm.remove(t);
-        assertEquals(4, addedEvents);
-        assertEquals("Table Removed", 4, removedEvents);
+        for (SQLTable table : tableList) {
+            pm.createProfile(table);
+        }
+        
+        assertEquals("Table added", tableList.size() + 2, addedEvents);
+        Collection<TableProfileResult> tableResults = pm.getTableResult(t);
+        for (TableProfileResult tpr : tableResults) {
+            pm.removeProfile(tpr);
+        }
+        assertEquals("Table Removed", tableResults.size(), removedEvents);
 
 
     }

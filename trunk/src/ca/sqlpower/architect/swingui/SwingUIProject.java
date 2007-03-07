@@ -1,5 +1,6 @@
 package ca.sqlpower.architect.swingui;
 
+import java.awt.Component;
 import java.awt.Point;
 import java.io.File;
 import java.io.IOException;
@@ -48,8 +49,8 @@ import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.PLExport;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ColumnValueCount;
-import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileResult;
+import ca.sqlpower.architect.profile.TableProfileManager;
 import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
@@ -79,9 +80,14 @@ public class SwingUIProject {
     private boolean savingEntireSource;
     private PLExport plExport;
     private CompareDMSettings compareDMSettings;
-    private ProfileManager profileManager;
-    final JDialog profileDialog = new JDialog(ArchitectFrame.getMainInstance(), "Table Profiles");
-    final ArrayList<SQLObject> filter = new ArrayList<SQLObject>();
+    private TableProfileManager profileManager;
+    /** the small dialog that lists the profiles */
+    private ProfileManagerView profileManagerView;
+    /** the dialog that contains the small ProfileManagerView */
+    final JDialog profileDialog = 
+        new JDialog(ArchitectFrame.getMainInstance(), "Table Profiles");
+    /** The main panel that views the profiles in detail */
+    final private ProfileResultsViewer profileResultsViewer;
 
     // ------------------ load and save support -------------------
 
@@ -151,8 +157,13 @@ public class SwingUIProject {
         setPlayPen(pp);
         List initialDBList = new ArrayList();
         initialDBList.add(playPen.getDatabase());
-        profileManager = new ProfileManager();
-        this.sourceDatabases = new DBTree(initialDBList,profileManager);
+        profileManager = new TableProfileManager();
+        profileManagerView = new ProfileManagerView(profileManager);
+        profileResultsViewer = new ProfileResultsViewer(profileManager);
+        profileManager.addProfileChangeListener(profileManagerView);
+        profileDialog.add(profileManagerView);
+        profileDialog.setLocationRelativeTo(ArchitectFrame.getMainInstance());
+        this.sourceDatabases = new DBTree(initialDBList);
         try {
             ddlGenerator = new GenericDDLGenerator();
         } catch (SQLException e) {
@@ -787,11 +798,13 @@ public class SwingUIProject {
     }
 
     private class ProfileResultFactory extends AbstractObjectCreationFactory {
+        TableProfileResult tableProfileResult;
+    
         @Override
         public Object createObject(Attributes attributes) throws ArchitectException, ClassNotFoundException, InstantiationException, IllegalAccessException {
             String refid = attributes.getValue("ref-id");
             String className = attributes.getValue("type");
-
+            
             if (refid == null) {
                 throw new ArchitectException("Missing mandatory attribute \"ref-id\" in <profile-result> element");
             }
@@ -800,10 +813,14 @@ public class SwingUIProject {
                 throw new ArchitectException("Missing mandatory attribute \"type\" in <profile-result> element");
             } else if (className.equals(TableProfileResult.class.getName())) {
                 SQLTable t = (SQLTable) objectIdMap.get(refid);
-                return new TableProfileResult(t);
+                tableProfileResult = new TableProfileResult(t,profileManager);
+                return tableProfileResult;
             } else if (className.equals(ColumnProfileResult.class.getName())) {
                 SQLColumn c = (SQLColumn) objectIdMap.get(refid);
-                return new ColumnProfileResult(c);
+                if (tableProfileResult == null) {
+                    throw new IllegalArgumentException("Column result does not have a parent");
+                }
+                return new ColumnProfileResult(c, tableProfileResult);
             } else {
                 throw new ArchitectException("Profile result type \""+className+"\" not recognised");
             }
@@ -1157,28 +1174,20 @@ public class SwingUIProject {
      * @param out
      */
     private void saveProfiles(PrintWriter out) {
-        ProfileManager profmgr = getProfileManager();
-        ioo.println(out, "<profiles topNCount=\""+profmgr.getTopNCount()+"\">");
+        TableProfileManager profmgr = getProfileManager();
+        ioo.println(out, "<profiles topNCount=\""+profmgr.getProfileSettings().getTopNCount()+"\">");
         ioo.indent++;
-        Map<SQLObject, ProfileResult> results = profmgr.getResults();
-        for (Map.Entry<SQLObject, ProfileResult> e : results.entrySet()) {
-            SQLObject so = e.getKey();
-            ProfileResult profileResult = e.getValue();
-            ioo.print(out, "<profile-result ref-id=\""+objectIdMap.get(so)+"\"" +
-                            " type=\"" + profileResult.getClass().getName() + "\"" +
-                            " createStartTime=\""+profileResult.getCreateStartTime()+"\"" +
-                            " createEndTime=\""+profileResult.getCreateEndTime()+"\"" +
-                            " error=\""+profileResult.isError()+"\"");
-            if (profileResult.getException() != null) {
-                ioo.niprint(out, " exception-type=\""+ArchitectUtils.escapeXML(profileResult.getException().getClass().getName())+"\"");
-                ioo.niprint(out, " exception-message=\""+ArchitectUtils.escapeXML(profileResult.getException().getMessage())+"\"");
-            }
-            if (profileResult instanceof TableProfileResult) {
-                TableProfileResult tpr = (TableProfileResult) profileResult;
-                ioo.print(out, " rowCount=\""+tpr.getRowCount()+"\"");
-                ioo.niprintln(out, "/>");
-            } else if (profileResult instanceof ColumnProfileResult) {
-                ColumnProfileResult cpr = (ColumnProfileResult) profileResult;
+
+        List<TableProfileResult> tableResults = profmgr.getTableResults();
+        
+        for (TableProfileResult tableResult : tableResults) {
+            printCommonItems(tableResult);
+            ioo.print(out, " rowCount=\"" + tableResult.getRowCount() + "\"");
+            ioo.niprintln(out, "/>");
+            
+            List<ColumnProfileResult> columnProfileResults = tableResult.getColumnProfileResults();
+            for (ColumnProfileResult cpr : columnProfileResults) {
+                printCommonItems(cpr);
                 ioo.niprint(out, " avgLength=\"" + cpr.getAvgLength() + "\"");
 
                 ioo.niprint(out, " minLength=\"" + cpr.getMinLength() + "\"");
@@ -1226,16 +1235,25 @@ public class SwingUIProject {
                 ioo.indent--;
 
                 ioo.println(out, "</profile-result>");
-            } else {
-                String message = "Unknown ProfileResult Subclass: " + profileResult.getClass().getName();
-                ioo.niprintln(out, "/> <!-- " + message + "-->");
-                logger.error(message);
             }
         }
         ioo.println(out, "</profiles>");
         ioo.indent--;
     }
 
+    private void printCommonItems(ProfileResult profileResult) {
+        SQLObject profiledObject = profileResult.getProfiledObject();
+        ioo.print(out, "<profile-result ref-id=\""+objectIdMap.get(profiledObject)+"\"" +
+                " type=\"" + profileResult.getClass().getName() + "\"" +
+                " createStartTime=\""+profileResult.getCreateStartTime()+"\"" +
+                " createEndTime=\""+profileResult.getCreateEndTime()+"\"" +
+                " exception=\""+(profileResult.getException() == null ? "false" : "true")+"\"");
+        if (profileResult.getException() != null) {
+            ioo.niprint(out, " exception-type=\""+ArchitectUtils.escapeXML(profileResult.getException().getClass().getName())+"\"");
+            ioo.niprint(out, " exception-message=\""+ArchitectUtils.escapeXML(profileResult.getException().getMessage())+"\"");
+        }
+    }
+    
     /**
      * Creates an XML element describing the given SQLObject and
      * writes it to the <code>out</code> PrintWriter.
@@ -1644,14 +1662,19 @@ public class SwingUIProject {
         return undoManager;
     }
 
-    public ProfileManager getProfileManager() {
+    public TableProfileManager getProfileManager() {
         return profileManager;
     }
     public JDialog getProfileDialog() {
         return profileDialog;
     }
-    public ArrayList<SQLObject> getFilter() {
-        return filter;
+    public Component getProfileManagerView() {
+        return profileManagerView;
     }
-
+    public ProfileResultsViewer getProfileResultsViewer() {
+        return profileResultsViewer;
+    }
+    public void setProfileManager(TableProfileManager profileManager) {
+        this.profileManager = profileManager;
+    }
 }

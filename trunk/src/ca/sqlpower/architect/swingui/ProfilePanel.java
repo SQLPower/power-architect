@@ -30,7 +30,7 @@ import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ProfileColumn;
-import ca.sqlpower.architect.profile.ProfileManager;
+import ca.sqlpower.architect.profile.TableProfileManager;
 import ca.sqlpower.architect.profile.ProfileResult;
 import ca.sqlpower.architect.swingui.table.ProfileTableModel;
 
@@ -46,7 +46,8 @@ public class ProfilePanel extends JPanel {
     static Logger logger = Logger.getLogger(ProfilePanel.class);
     public enum ChartTypes { BAR, PIE }
 
-
+    private final TableProfileManager profileManager;
+    
     private JComboBox tableSelector;
     private JList columnSelector;
     private ChartTypes chartType = ChartTypes.PIE;
@@ -65,8 +66,9 @@ public class ProfilePanel extends JPanel {
         }
     };
     
-    public ProfilePanel(ProfileManager pm) {
-        displayPanel = new ProfileGraphPanel(this, 0,pm);
+    public ProfilePanel(TableProfileManager pm) {
+        this.profileManager = pm;
+        displayPanel = new ProfileGraphPanel(this, 0, pm);
         setup();
     }
     
@@ -84,7 +86,7 @@ public class ProfilePanel extends JPanel {
         tableSelector.addActionListener(new ActionListener() {
 
             /*
-             * Called when the user selects a table; create its profile (slow)
+             * Called when the user selects a table; displays its profile (fast)
              */
             public void actionPerformed(ActionEvent e) {
                 final SQLTable t = (SQLTable) tableSelector.getSelectedItem();
@@ -141,7 +143,15 @@ public class ProfilePanel extends JPanel {
                     logger.debug("Null selection in columnSelector.ListSelectionListener");
                     return;
                 }
-                displayPanel.displayProfile((SQLTable) tableSelector.getSelectedItem(), col);              
+                for (ProfileResult pr : tableModel.getResultList() ) {
+                    if (pr instanceof ColumnProfileResult) {
+                        SQLColumn column = (SQLColumn)pr.getProfiledObject();
+                        if (col == column) {
+                            displayPanel.displayProfile((ColumnProfileResult) pr);
+                            break; 
+                        }
+                    }
+                }
             }           
         });
         columnSelector.addMouseListener(new MouseListener() {

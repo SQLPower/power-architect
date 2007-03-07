@@ -4,7 +4,7 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
 
-import ca.sqlpower.architect.profile.ProfileManager;
+import ca.sqlpower.architect.profile.TableProfileManager;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.PlayPen;
@@ -14,7 +14,7 @@ public class ViewProfileAction extends AbstractAction {
 
 
     private PlayPen pp;
-    private ProfileManager profileManager;
+    private TableProfileManager profileManager;
 
     public ViewProfileAction() {
         super("View Profile...", ASUtils.createJLFIcon( "general/History",
@@ -38,11 +38,11 @@ public class ViewProfileAction extends AbstractAction {
         this.pp = pp;
     }
 
-    public ProfileManager getProfileManager() {
+    public TableProfileManager getProfileManager() {
         return profileManager;
     }
 
-    public void setProfileManager(ProfileManager profileManager) {
+    public void setProfileManager(TableProfileManager profileManager) {
         this.profileManager = profileManager;
     }
 

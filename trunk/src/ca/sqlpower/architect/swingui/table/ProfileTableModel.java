@@ -25,8 +25,7 @@ import ca.sqlpower.architect.profile.ColumnValueCount;
 import ca.sqlpower.architect.profile.ProfileChangeEvent;
 import ca.sqlpower.architect.profile.ProfileChangeListener;
 import ca.sqlpower.architect.profile.ProfileColumn;
-import ca.sqlpower.architect.profile.ProfileManager;
-import ca.sqlpower.architect.profile.ProfileResult;
+import ca.sqlpower.architect.profile.TableProfileManager;
 import ca.sqlpower.architect.profile.TableProfileResult;
 
 public class ProfileTableModel extends AbstractTableModel {
@@ -37,24 +36,25 @@ public class ProfileTableModel extends AbstractTableModel {
      * the specified row.  This constant is package private because
      * no users outside the table package should be using it.
      *
-     * <p>See {@link ProfileTable#getColumnProfileResultForRow(int)}.
+     * <p>See {@link ProfileJTable#getColumnProfileResultForRow(int)}.
      */
     static final int CPR_PSEUDO_COLUMN_INDEX = -1;
 
     static Logger logger = Logger.getLogger(ProfileTableModel.class);
 
-    private ProfileManager profileManager;
+    private TableProfileManager profileManager;
 
     private List<ColumnProfileResult> resultList;
 
     private List<SQLObject> filters;
 
-
-    public ProfileTableModel() {
+    public ProfileTableModel(TableProfileManager profileManager) {
         filters = new ArrayList<SQLObject>();
+        setProfileManager(profileManager);
     }
+    
     /**
-     * removes all filters this will show all the columns
+     * removes all filters; this will show all the columns
      *
      */
     public void removeAllFilters(){
@@ -96,16 +96,14 @@ public class ProfileTableModel extends AbstractTableModel {
         if (columnIndex == CPR_PSEUDO_COLUMN_INDEX) {
             return cpr;
         } else {
-            return getColumnValueFromProfile(
-                    ProfileColumn.values()[columnIndex],cpr,profileManager);
+            return getColumnValueFromProfile(ProfileColumn.values()[columnIndex], cpr);
         }
     }
 
-     private static Object getColumnValueFromProfile(ProfileColumn column,
-             ColumnProfileResult columnProfile,
-             ProfileManager profileManager) {
+    private static Object getColumnValueFromProfile(ProfileColumn column,
+             ColumnProfileResult columnProfile) {
         SQLColumn col = columnProfile.getProfiledObject();
-        int rowCount = ((TableProfileResult) profileManager.getResult(col.getParentTable())).getRowCount();
+        int rowCount = columnProfile.getParentResult().getRowCount();
 
         switch(column) {
         case DATABASE:
@@ -169,24 +167,24 @@ public class ProfileTableModel extends AbstractTableModel {
 
     public boolean isErrorColumnProfile(int row) {
         ColumnProfileResult columnProfile = resultList.get(row);
-        return columnProfile.isError();
+        return columnProfile.getException() != null;
 
     }
-    public ProfileManager getProfileManager() {
+    public TableProfileManager getProfileManager() {
         return profileManager;
     }
 
     public void refresh(){
         resultList = new ArrayList<ColumnProfileResult>();
-        for (ProfileResult pr : profileManager.getResults().values()) {
-            if (pr instanceof ColumnProfileResult) {
+        for (TableProfileResult tpr : profileManager.getTableResults()) {
+            for (ColumnProfileResult cpr : tpr.getColumnProfileResults()) {
                 if (filters.size() > 0) {
 
-                    if (shouldNotBeFilteredOut((ColumnProfileResult) pr)) {
-                        resultList.add((ColumnProfileResult) pr);
+                    if (shouldNotBeFilteredOut(cpr)) {
+                        resultList.add(cpr);
                     }
                 } else {
-                    resultList.add((ColumnProfileResult) pr);
+                    resultList.add(cpr);
                 }
             }
         }
@@ -217,14 +215,14 @@ public class ProfileTableModel extends AbstractTableModel {
                 continue;
 
             }
-            if (sqo.equals(getColumnValueFromProfile(column,result,profileManager))) {
+            if (sqo.equals(getColumnValueFromProfile(column, result))) {
                 return true;
             }
         }
         return false;
     }
 
-    public void setProfileManager(ProfileManager profileManager) {
+    public void setProfileManager(TableProfileManager profileManager) {
         this.profileManager = profileManager;
         profileManager.addProfileChangeListener(new ProfileChangeListener(){
 
@@ -293,5 +291,4 @@ public class ProfileTableModel extends AbstractTableModel {
     public List<ColumnProfileResult> getResultList() {
         return resultList;
     }
-
 }

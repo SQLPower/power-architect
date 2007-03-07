@@ -1,6 +1,10 @@
 package ca.sqlpower.architect.profile;
 
+import java.sql.SQLException;
+
+import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.MonitorableImpl;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
@@ -15,8 +19,15 @@ public abstract class AbstractProfileResult<T extends SQLObject>
     private long createEndTime = -1L;
     private long createStartTime = -1L;
     private Exception ex;
-    private boolean error;
-    private boolean finished;
+    
+    // Monitorables
+    
+    private int progress = 0;
+    private Integer jobSize = null;
+    private String message = null;
+    private boolean started = false;
+    private boolean cancelled = false;
+    private boolean finished = false;
 
     /**
      * Creates a new ProfileResult which will hold profile data about the given SQL Object.
@@ -28,19 +39,31 @@ public abstract class AbstractProfileResult<T extends SQLObject>
         this.profiledObject = profiledObject;
     }
 
+    /**
+     * A generic template for populating a profile result.  Calls {@link #doProfile()}
+     * to perform the actual work of populating this profile result.
+     */
     public void populate() {
         finished = false;
         try {
+            message = getProfiledObject().getName();
             initialize();
             doProfile();    // template method
         } catch (Exception ex) {
-            setError(true);
             setException(ex);
         } finally {
             finish();
+            progress++;
         }
     }
 
+    /**
+     * This method is the hook for subclasses to perform their specific
+     * profiling activity.  The template method {@link #populate(MonitorableImpl)}
+     * calls this method at the appropriate time.
+     */
+    public abstract void doProfile() throws SQLException, ArchitectException;
+    
     void initialize() {
         setCreateStartTime(System.currentTimeMillis());
     }
@@ -93,33 +116,77 @@ public abstract class AbstractProfileResult<T extends SQLObject>
     }
 
     /* (non-Javadoc)
-     * @see ca.sqlpower.architect.profile.ProfileResultInterface#isError()
-     */
-    public boolean isError() {
-        return error;
-    }
-
-    /* (non-Javadoc)
-     * @see ca.sqlpower.architect.profile.ProfileResultInterface#setError(boolean)
-     */
-    public void setError(boolean error) {
-        this.error = error;
-    }
-
-    /* (non-Javadoc)
      * @see ca.sqlpower.architect.profile.ProfileResultInterface#getException()
      */
     public Exception getException() {
         return ex;
     }
 
-    /* (non-Javadoc)
-     * @see ca.sqlpower.architect.profile.ProfileResultInterface#setException(java.lang.Exception)
+    /**
+     * If a subclass runs into problems populating itself, it
+     * can call this method to store the exception for later inspection
+     * by client code.
      */
-    public void setException(Exception ex) {
+    protected void setException(Exception ex) {
         this.ex = ex;
     }
 
+    public synchronized boolean isCancelled() {
+        return cancelled;
+    }
+    
+    /**
+     * If you want to abort this profile operation, call this method
+     * with an argument of <tt>true</tt>.  If this profile has not yet
+     * started populating before it is cancelled, populate will not attempt
+     * any work when it is called.  If this profile is already
+     * populated, cancelling it will have no effect.
+     */
+    public synchronized void setCancelled(boolean cancelled) {
+        this.cancelled = cancelled;
+    }
+    
+    /**
+     * Specifies the amount of work that needs to be done in order to populate
+     * this profile (From the Monitorable interface). A null value indicates the
+     * amount of work is not yet known.
+     */
+    public synchronized Integer getJobSize() {
+        return jobSize;
+    }
+ 
+    /**
+     * The current message for this profile result's populate progress.  From
+     * the Monitorable interface.
+     */
+    public synchronized String getMessage() {
+        return message;
+    }
+
+    /**
+     * Returns the current amount of progress that has been made toward the
+     * goal of populating this profile result.  The number is on a scale of
+     * 0..jobSize.
+     */
+    public synchronized int getProgress() {
+        return progress;
+    }
+ 
+    /**
+     * Returns true if populate() has been called; false otherwise.
+     */
+    public synchronized boolean hasStarted() {
+        return started;
+    }
+
+    /**
+     * Returns true if populate() has completed without being
+     * cancelled, either successfully or with error.
+     */
+    public synchronized boolean isFinished() {
+        return finished;
+    }
+    
     /**
      * Compares this Profile Result based on the following attributes, in the following
      * priority:
@@ -249,7 +316,4 @@ public abstract class AbstractProfileResult<T extends SQLObject>
         return hash;
     }
 
-    public boolean isFinished() {
-        return finished;
-    }
 }
