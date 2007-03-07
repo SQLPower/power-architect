@@ -31,6 +31,8 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
      * The profile manager that "owns" this profile result.
      */
     private ProfileManager manager;
+
+    private int progress;
     
     public TableProfileResult(SQLTable profiledObject, ProfileManager manager) {
         super(profiledObject);
@@ -100,6 +102,7 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
                 ColumnProfileResult columnResult = new ColumnProfileResult(col, manager, ddlg, this);
                 columnResult.populate();
                 columnProfileResults.add(columnResult);
+                ++progress;
             }
 
             // XXX: add where filter later
@@ -120,6 +123,19 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
         }
     }
 
+    /* Return null instead of the expected real jobsize so that the
+     * progress bar will go into indeterminate mode which seems to make
+     * it start sooner & move more often than per-column increment of progress.
+     * @see ca.sqlpower.architect.profile.AbstractProfileResult#getJobSize()
+     */
+    @Override
+    public synchronized Integer getJobSize() {
+        return null;
+    }
+    @Override
+    public synchronized int getProgress() {
+        return progress;
+    }
     /**
      * Returns an unmodifiable list of columnProfileResults that
      * belong to this table.
