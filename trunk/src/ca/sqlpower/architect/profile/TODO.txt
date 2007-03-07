@@ -5,8 +5,6 @@ Have a "Don't Save Profiles" option in Architect User Settings.
 More unit tests!!
 	Ensure load/save project still OK
 
-Window menu in ArchitectFrame to show/hide ProfileManagerView
-
 Clean up ProfileRowComponent GUI (JGoodies not being used correctly?).
 
 MAKE LAST FEW NEW CONTROLS WORK:
@@ -17,9 +15,14 @@ MAKE LAST FEW NEW CONTROLS WORK:
 ProfileRowComponent - double click to show just that one table result
 in its own ProfileResultsViewer window.  Select Multiple Rows and
 "View All" button would show just those ones in its own PRV window
-(may be easy to implement using existing Filter stuff)
+(may be easy to implement using existing Filter stuff). Totally decouple
+PRV window from SwingUIProject; it should not be per-project at all.
 
 Have multiple profiles of the same table at different times.
 
 -----
 Have Project Close shut down running threads.
+
+Find out why user can create a second ProfileManagerView by toggling
+Show Profile Manager before the file gets loaded, when this does not
+create a new SwingUIProject.
