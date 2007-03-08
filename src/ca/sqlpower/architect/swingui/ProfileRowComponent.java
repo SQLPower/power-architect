@@ -1,5 +1,6 @@
 package ca.sqlpower.architect.swingui;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -264,6 +265,7 @@ public class ProfileRowComponent extends JPanel {
             ProfileRowComponent.this.remove(cancelButton);
             ProfileRowComponent.this.add(deleteButton, ComponentType.DELETE);
             if (!result.isCancelled()) {
+                statusLabel.setVisible(true);
                 statusLabel.setText(result.toString());
             }
         }           
@@ -275,7 +277,7 @@ public class ProfileRowComponent extends JPanel {
         this.pm = pm;
         setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
         final JProgressBar progressBar = new JProgressBar();
-
+        setBackground(Color.WHITE);
 
         add(new JLabel(tableIcon), ComponentType.ICON);
         this.reProfileButton = new JButton(refreshIcon);
@@ -297,6 +299,7 @@ public class ProfileRowComponent extends JPanel {
         cancelButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 result.setCancelled(true);
+                statusLabel.setVisible(true);
                 statusLabel.setText("Cancelled");
                 ProfileRowComponent.this.remove(cancelButton);
                 ProfileRowComponent.this.add(deleteButton, ComponentType.DELETE);
@@ -317,6 +320,7 @@ public class ProfileRowComponent extends JPanel {
         ProgressWatcher watcher = new ProgressWatcher(progressBar, result);
         add(progressBar, ComponentType.PROGRESS_BAR);
         watcher.addTaskTerminationListener(new ResultTaskTerminationListener());
+        statusLabel.setVisible(false);
         add(statusLabel, ComponentType.TABLE_INFO);      
         add(cancelButton, ComponentType.CANCEL);  
         this.addMouseListener(new ProfileRowMouseListener());

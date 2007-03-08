@@ -12,6 +12,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -47,6 +49,37 @@ import ca.sqlpower.architect.profile.TableProfileResult;
  * TODO make sorting work! (maintain separate list??)
  */
 public class ProfileManagerView extends JPanel implements ProfileChangeListener  {
+    
+    private static Logger logger = Logger.getLogger(ProfileManagerView.class);
+
+	ProfileManager pm;
+	final static int NICE_ROWS = 8;
+
+    final ResultListPanel resultListPanel;
+
+    final JScrollPane scrollPane;
+
+    final JLabel statusText;
+
+    final JTextField searchText;
+    
+    /**
+     * This is the sort order to show the profile results in. It will change
+     * when you click on the radio buttons to change how the results will
+     * be sorted in the list.
+     */
+    private Comparator<ProfileRowComponent> comparator;
+    
+    /**
+     * The list of all valid ProfileRowComponents; note that this is NOT
+     * necessarily the same as the list that is showing (see doSearch() for why not).
+     */
+    List<ProfileRowComponent> list = new ArrayList<ProfileRowComponent>();
+    
+    /**
+     * The list of row components we will be showing in the results panel.
+     */
+    List<ProfileRowComponent> showingRows = new ArrayList<ProfileRowComponent>();
 
     private class ResultListPanel extends JPanel implements Scrollable {
         public Dimension getPreferredScrollableViewportSize() {
@@ -73,28 +106,38 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         }
     }
     
-    private static Logger logger = Logger.getLogger(ProfileManagerView.class);
+    private class TableProfileNameComparator implements Comparator<ProfileRowComponent> {
 
-	ProfileManager pm;
-	final static int NICE_ROWS = 8;
+        public int compare(ProfileRowComponent o1, ProfileRowComponent o2) {
+            TableProfileResult tpr1 = o1.getResult();
+            TableProfileResult tpr2 = o2.getResult();
+            
+            int result;
+            result = tpr1.getProfiledObject().getName().compareTo(tpr2.getProfiledObject().getName());
+            if (result != 0) return result;
+            
+            if (tpr1.getCreateStartTime() < tpr2.getCreateStartTime()) return -1;
+            if (tpr1.getCreateStartTime() > tpr2.getCreateStartTime()) return 1;
+            return 0;
+        }
+        
+    }
 
-    final ResultListPanel resultListPanel;
+    private class TableProfileDateComparator implements Comparator<ProfileRowComponent> {
 
-    final JScrollPane scrollPane;
+        public int compare(ProfileRowComponent o1, ProfileRowComponent o2) {
+            TableProfileResult tpr1 = o1.getResult();
+            TableProfileResult tpr2 = o2.getResult();
+            
+            if (tpr1.getCreateStartTime() < tpr2.getCreateStartTime()) return -1;
+            if (tpr1.getCreateStartTime() > tpr2.getCreateStartTime()) return 1;
 
-    final JLabel statusText;
-
-    final JTextField searchText;
-    /**
-     * The list of all valid ProfileRowComponents; note that this is NOT
-     * necessarily the same as the list that is showing (see doSearch() for why not).
-     */
-    List<ProfileRowComponent> list = new ArrayList<ProfileRowComponent>();
-    
-    /**
-     * The list of row components we will be showing in the results panel.
-     */
-    List<ProfileRowComponent> showingRows = new ArrayList<ProfileRowComponent>();
+            int result;
+            result = tpr1.getProfiledObject().getName().compareTo(tpr2.getProfiledObject().getName());
+            return result;
+        }
+        
+    }
 
     public ProfileManagerView(final ProfileManager pm) {
         super();
@@ -132,20 +175,29 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
             }
         });
         topPanel.add(clearSearchButton);
+        
+        comparator = new TableProfileNameComparator();
         JLabel orderByLabel = new JLabel("Order by");
         topPanel.add(orderByLabel);
-        orderByLabel.setEnabled(false);
-        JRadioButton nameRadioButton = new JRadioButton("Name");
-        nameRadioButton.setEnabled(false);
+        final JRadioButton nameRadioButton = new JRadioButton("Name");
         topPanel.add(nameRadioButton);
-        JRadioButton dateRadioButton = new JRadioButton("Date");
-        dateRadioButton.setEnabled(false);
+        final JRadioButton dateRadioButton = new JRadioButton("Date");
         topPanel.add(dateRadioButton);
+        ActionListener radioListener = new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if(nameRadioButton.isSelected()) {
+                    setComparator(new TableProfileNameComparator());
+                } else {
+                    setComparator(new TableProfileDateComparator());
+                }
+            }            
+        };
+        nameRadioButton.addActionListener(radioListener);
+        dateRadioButton.addActionListener(radioListener);
         ButtonGroup group = new ButtonGroup();
         group.add(nameRadioButton);
         group.add(dateRadioButton);
         nameRadioButton.setSelected(true);
-
         resultListPanel = new ResultListPanel();
         resultListPanel.setBackground(Color.WHITE);
         resultListPanel.setLayout(new GridLayout(0, 1));
@@ -158,6 +210,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         }
 
         scrollPane = new JScrollPane(resultListPanel);
+        scrollPane.getViewport().setBackground(Color.WHITE);
         scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         add(scrollPane, BorderLayout.CENTER);
 
@@ -223,6 +276,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
     }
     
     private void updateResultListPanel() {
+        
         resultListPanel.removeAll();
         for (ProfileRowComponent r : showingRows) {
             resultListPanel.add(r);
@@ -248,8 +302,14 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
                 }
             }
         }
+        Collections.sort(showingRows, comparator);
         updateResultListPanel();
         updateStatus();
+    }
+    
+    private void setComparator(Comparator comparator) {
+        this.comparator = comparator;
+        doSearch(searchText.getText());
     }
 
     @Override
@@ -293,4 +353,6 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
     public void profileListChanged(ProfileChangeEvent e) {
         logger.debug("ProfileChanged method not yet implemented.");
     }
+    
+    
 }
