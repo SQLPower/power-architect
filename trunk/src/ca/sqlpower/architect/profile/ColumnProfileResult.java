@@ -161,7 +161,10 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
     }
 
     public void doProfile() throws SQLException, ArchitectException {
-
+        if (parentResult.isCancelled()) {
+            return;
+        }
+        
         if (manager == null || ddlg == null) {
             // Either:
             // This is being created by the Digester, or,

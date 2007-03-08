@@ -5,13 +5,6 @@ Have a "Don't Save Profiles" option in Architect User Settings.
 More unit tests!!
 	Ensure load/save project still OK
 
-Clean up ProfileRowComponent GUI (JGoodies not being used correctly?).
-
-MAKE LAST FEW NEW CONTROLS WORK:
-	Stop button
-	refresh profile
-	Status label (%d of %d rows)
-
 ProfileRowComponent - double click to show just that one table result
 in its own ProfileResultsViewer window.  Select Multiple Rows and
 "View All" button would show just those ones in its own PRV window
