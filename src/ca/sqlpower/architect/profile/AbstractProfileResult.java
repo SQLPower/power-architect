@@ -46,8 +46,10 @@ public abstract class AbstractProfileResult<T extends SQLObject>
     public void populate() {
         try {
             message = getProfiledObject().getName();
-            initialize();
-            doProfile();    // template method
+            if (!cancelled) {
+                initialize();
+                doProfile();    // template method
+            }
         } catch (Exception ex) {
             setException(ex);
         } finally {

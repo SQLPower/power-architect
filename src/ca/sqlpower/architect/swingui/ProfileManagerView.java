@@ -1,8 +1,11 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.GridLayout;
+import java.awt.Rectangle;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -13,7 +16,6 @@ import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -24,6 +26,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.Scrollable;
 
 import org.apache.log4j.Logger;
 
@@ -45,22 +48,53 @@ import ca.sqlpower.architect.profile.TableProfileResult;
  */
 public class ProfileManagerView extends JPanel implements ProfileChangeListener  {
 
+    private class ResultListPanel extends JPanel implements Scrollable {
+        public Dimension getPreferredScrollableViewportSize() {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
+            // TODO Auto-generated method stub
+            return 0;
+        }
+
+        public boolean getScrollableTracksViewportHeight() {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        public boolean getScrollableTracksViewportWidth() {
+            return true;
+        }
+
+        public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
+            return 15; // FIXME should be height of one ProfileRowComponent
+        }
+    }
+    
     private static Logger logger = Logger.getLogger(ProfileManagerView.class);
 
 	ProfileManager pm;
 	final static int NICE_ROWS = 8;
 
-    final JPanel resultListPanel;
+    final ResultListPanel resultListPanel;
 
     final JScrollPane scrollPane;
 
     final JLabel statusText;
 
+    final JTextField searchText;
     /**
      * The list of all valid ProfileRowComponents; note that this is NOT
      * necessarily the same as the list that is showing (see doSearch() for why not).
      */
     List<ProfileRowComponent> list = new ArrayList<ProfileRowComponent>();
+    
+    /**
+     * The list of row components we will be showing in the results panel.
+     */
+    List<ProfileRowComponent> showingRows = new ArrayList<ProfileRowComponent>();
 
     public ProfileManagerView(final ProfileManager pm) {
         super();
@@ -71,7 +105,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         add(topPanel, BorderLayout.NORTH);
 
         topPanel.add(new JLabel("Search"));
-        final JTextField searchText = new JTextField(10);
+        searchText = new JTextField(10);
         searchText.addKeyListener(new KeyListener() {
 
             public void keyPressed(KeyEvent e) {
@@ -112,14 +146,15 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         group.add(dateRadioButton);
         nameRadioButton.setSelected(true);
 
-        resultListPanel = new JPanel();
-        BoxLayout listLayout = new BoxLayout(resultListPanel, BoxLayout.PAGE_AXIS);
-        resultListPanel.setLayout(listLayout);
+        resultListPanel = new ResultListPanel();
+        resultListPanel.setBackground(Color.WHITE);
+        resultListPanel.setLayout(new GridLayout(0, 1));
         // populate this panel with MyRowComponents
         for (TableProfileResult result : pm.getTableResults()) {
             ProfileRowComponent myRowComponent = new ProfileRowComponent(result, pm);
             list.add(myRowComponent);
             resultListPanel.add(myRowComponent);
+            showingRows.add(myRowComponent);
         }
 
         scrollPane = new JScrollPane(resultListPanel);
@@ -152,14 +187,16 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
                 if (confirm == 0) { // 0 == the first Option, which is Yes
                     resultListPanel.removeAll();
                     list.clear();
+                    showingRows.clear();
                     pm.clear();
-                    resultListPanel.repaint();
+                    resultListPanel.revalidate();
                     System.out.println("All gone!");
                 }
             }
         };
         bottomPanel.add(new JButton(deleteAllAction));
-        statusText = new JLabel(getStatus());
+        statusText = new JLabel();
+        updateStatus();
         bottomPanel.add(statusText);
 
         JButton closeButton = new JButton("Close");
@@ -177,29 +214,42 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         bottomPanel.add(closeButton);
     }
 
-    private String getStatus() {
-        int numberShowing = list.size();    // XXX FIXME
-        int totalNumber = list.size();      // XXX FIXME
-        return String.format("Showing %d of %d Profiles", numberShowing, totalNumber);
+    private void updateStatus() {
+        int totalNumber = list.size();
+        int numberShowing = showingRows.size();
+        statusText.setText(String.format("Showing %d of %d Profiles", 
+                                            numberShowing, 
+                                            totalNumber));
     }
-
+    
+    private void updateResultListPanel() {
+        resultListPanel.removeAll();
+        for (ProfileRowComponent r : showingRows) {
+            resultListPanel.add(r);
+        }
+        resultListPanel.revalidate();
+    }
+    
     /**
      * Search the list for profiles matching the given string.
      * XXX match on date fields too??
      */
     protected void doSearch(final String text) {
+        showingRows.clear();
         if (text == null || text.length() == 0) {
             for (ProfileRowComponent r : list) {
-                r.setVisible(true);
+                showingRows.add(r);
             }
         } else {
             String searchText = text.toLowerCase();
             for (ProfileRowComponent r : list) {
-                r.setVisible(r.getResult().getProfiledObject().getName().toLowerCase().contains(searchText));
+                if (r.getResult().getProfiledObject().getName().toLowerCase().contains(searchText)) {
+                    showingRows.add(r);
+                }
             }
         }
-        resultListPanel.invalidate();
-        statusText.setText(getStatus());
+        updateResultListPanel();
+        updateStatus();
     }
 
     @Override
@@ -221,8 +271,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         TableProfileResult profileResult = (TableProfileResult) e.getProfileResult();
         ProfileRowComponent myRowComponent = new ProfileRowComponent(profileResult, pm);
         list.add(myRowComponent);
-        resultListPanel.add(myRowComponent);
-        resultListPanel.revalidate();
+        doSearch(searchText.getText());
     }
 
     /** Part of the ProfileChangeListener interface; called
@@ -235,11 +284,10 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         for (ProfileRowComponent view : list) {
             if (view.getResult().equals(profileResult)) {
                 list.remove(view);
-                resultListPanel.remove(view);
                 break;
             }
         }
-        resultListPanel.revalidate();
+        doSearch(searchText.getText());
     }
 
     public void profileListChanged(ProfileChangeEvent e) {

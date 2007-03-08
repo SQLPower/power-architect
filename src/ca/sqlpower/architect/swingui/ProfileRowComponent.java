@@ -1,5 +1,10 @@
 package ca.sqlpower.architect.swingui;
 
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Insets;
+import java.awt.LayoutManager2;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -10,18 +15,17 @@ import java.util.Collection;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+
+import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.swingui.event.TaskTerminationEvent;
 import ca.sqlpower.architect.swingui.event.TaskTerminationListener;
-
-import com.jgoodies.forms.builder.PanelBuilder;
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
 
 /**
  * A component that displays the status and either rowcount or progressbar
@@ -30,6 +34,18 @@ import com.jgoodies.forms.layout.FormLayout;
  * no dependencies thereon.
  */
 public class ProfileRowComponent extends JPanel {
+
+    private static final Logger logger = Logger.getLogger(ProfileRowComponent.class);
+
+    private enum ComponentType {
+        ICON,
+        TABLE_NAME,
+        TABLE_INFO,
+        PROGRESS_BAR, 
+        RELOAD, 
+        CANCEL,
+        DELETE;
+    }
 
     /** The icon for all the rows (shared) */
     private static ImageIcon tableIcon;
@@ -40,6 +56,7 @@ public class ProfileRowComponent extends JPanel {
     /** shared delete icon */
     private static ImageIcon deleteIcon;
     final JLabel statusLabel = new JLabel(String.format(TableProfileResult.TOSTRING_FORMAT, 0, "Today", 0));
+
     static {
         tableIcon = ASUtils.createJLFIcon("general/Save", "DB Table", ArchitectFrame.getMainInstance().getSprefs()
                 .getInt(SwingUserSettings.ICON_SIZE, 24));
@@ -56,8 +73,171 @@ public class ProfileRowComponent extends JPanel {
 
     final TableProfileResult result;
 
-    final JButton reProfileButton, stopButton, deleteButton;
+    final JButton reProfileButton, cancelButton, deleteButton;
     private ProfileManager pm;
+
+
+    private static class RowComponentLayout implements LayoutManager2 {
+        private int xGap;
+        private int yGap;
+        private Component icon;
+        private Component tableName;
+        private Component tableInfo;
+        private Component progressBar;
+        private Component reload;
+        private Component cancel;
+        private Component delete;
+
+
+        public RowComponentLayout(int xGap, int yGap) {
+            logger.debug("RowComponentLayout constructed");
+            this.xGap = xGap;
+            this.yGap = yGap;
+        }
+
+        public void addLayoutComponent(Component comp, Object constraints) {
+            ComponentType type = (ComponentType) constraints;
+
+            switch (type) {
+            case ICON:
+                icon = comp;
+                break;
+            case TABLE_NAME:
+                tableName = comp;
+                break;
+            case TABLE_INFO:
+                tableInfo = comp;
+                break;
+            case PROGRESS_BAR:
+                progressBar = comp;
+                break;
+            case RELOAD:
+                reload = comp;
+                break;
+            case CANCEL:
+                cancel = comp;
+                break;
+            case DELETE:
+                delete = comp;
+                break;
+            default:
+                throw new IllegalStateException("Unknown constraint given to RowCompnentLayout");
+            }
+        }
+
+        public float getLayoutAlignmentX(Container target) {
+            return 0;
+        }
+
+        public float getLayoutAlignmentY(Container target) {
+            return 0;
+        }
+
+        public void invalidateLayout(Container target) {
+        }
+
+        public Dimension maximumLayoutSize(Container target) {
+            return preferredLayoutSize(target);
+        }
+
+        public void addLayoutComponent(String name, Component comp) {
+            addLayoutComponent(comp, name);
+        }
+
+        public void layoutContainer(Container parent) {
+            logger.debug("layoutContainer called");
+            JComponent p = (JComponent) parent;
+            Insets inset = p.getBorder().getBorderInsets(p);
+            final int height = parent.getHeight() + inset.top + inset.bottom;
+            final int width = parent.getWidth();
+            final int stretchyPreferredWidth = width -
+            inset.left -
+            inset.right -
+            3 * xGap -
+            icon.getPreferredSize().width -
+            // reload and delete buttons are same size
+            2 * reload.getPreferredSize().width;
+
+            if (icon != null) {
+                Dimension preferredSize = icon.getPreferredSize();
+                int x = inset.left;
+                int y = height/2 - preferredSize.height/2; 
+                icon.setBounds(x, y, preferredSize.width, preferredSize.height);
+            }
+            if (tableName != null) {
+                Dimension preferredSize = new Dimension(stretchyPreferredWidth,
+                        tableName.getPreferredSize().height);
+                int x = inset.left + icon.getPreferredSize().width + xGap;
+                int y = height/2 - yGap/2 - preferredSize.height;
+                tableName.setBounds(x, y, preferredSize.width, preferredSize.height);
+            }
+            if (tableInfo != null) {
+                Dimension preferredSize = new Dimension(stretchyPreferredWidth,
+                        tableInfo.getPreferredSize().height);
+                int x = inset.left + icon.getPreferredSize().width + xGap;
+                int y = height/2 + yGap/2;
+                tableInfo.setBounds(x, y, preferredSize.width, preferredSize.height);
+            }
+            if (progressBar != null) {
+                Dimension preferredSize = new Dimension(stretchyPreferredWidth,
+                        progressBar.getPreferredSize().height);
+                int x = inset.left + icon.getPreferredSize().width + xGap;
+                int y = height/2 + yGap/2;
+                progressBar.setBounds(x, y, preferredSize.width, preferredSize.height);
+            }
+            if (delete != null) {
+                Dimension preferredSize = delete.getPreferredSize();
+                int x = width - inset.right - preferredSize.width;
+                int y = height/2 - preferredSize.height/2;
+                delete.setBounds(x, y, preferredSize.width, preferredSize.height);
+            }
+            if (cancel != null) {
+                Dimension preferredSize = cancel.getPreferredSize();
+                int x = width - inset.right - preferredSize.width;
+                int y = height/2 - preferredSize.height/2;
+                cancel.setBounds(x, y, preferredSize.width, preferredSize.height);
+            }
+            if (reload != null) {
+                Dimension preferredSize = reload.getPreferredSize();
+                int x = width - inset.right - cancel.getPreferredSize().width - xGap - preferredSize.width;
+                int y = height/2 - preferredSize.height/2;
+                reload.setBounds(x, y, preferredSize.width, preferredSize.height);
+            }
+        }
+
+        public Dimension minimumLayoutSize(Container parent) {
+            return new Dimension(icon.getMinimumSize().width +  
+                    3 * xGap + 
+                    Math.max(progressBar.getMinimumSize().width, 
+                            tableName.getMinimumSize().width) +
+                            // reload and delete buttons same size
+                            2 * reload.getMinimumSize().width, 
+                            tableName.getMinimumSize().height +
+                            yGap + progressBar.getMinimumSize().height);
+        }
+
+        public Dimension preferredLayoutSize(Container parent) {
+            JComponent p = (JComponent) parent;
+            Insets inset = p.getBorder().getBorderInsets(p);
+            int maxOfBarAndInfo = Math.max(progressBar.getPreferredSize().width,
+                    tableInfo.getPreferredSize().width);
+            return new Dimension(icon.getPreferredSize().width +
+                    3 * xGap +
+                    Math.max(maxOfBarAndInfo, tableName.getPreferredSize().width) +
+                    // reload and delete buttons same size
+                    2 * reload.getPreferredSize().width +
+                    inset.left + inset.right,
+                    tableName.getPreferredSize().height +
+                    yGap + progressBar.getPreferredSize().height +
+                    inset.top + inset.bottom);
+        }
+
+        public void removeLayoutComponent(Component comp) {
+            // TODO Auto-generated method stub
+
+        }
+
+    }
 
     private class ProfileRowMouseListener extends MouseAdapter {
         public void mouseClicked(MouseEvent evt) {
@@ -75,28 +255,52 @@ public class ProfileRowComponent extends JPanel {
         }
     }   
     
+    private class ResultTaskTerminationListener implements TaskTerminationListener {
+
+        public void taskFinished(TaskTerminationEvent e) {
+            // TODO show or enable Refresh button
+            // TODO maybe hide progressBar
+            // replace stop button with delete button 
+            ProfileRowComponent.this.remove(cancelButton);
+            ProfileRowComponent.this.add(deleteButton, ComponentType.DELETE);
+            if (!result.isCancelled()) {
+                statusLabel.setText(result.toString());
+            }
+        }           
+    }
+
     public ProfileRowComponent(final TableProfileResult result, final ProfileManager pm) {
-        super();
+        super(new RowComponentLayout(5, 5));
         this.result = result;
         this.pm = pm;
-        setBorder(BorderFactory.createEtchedBorder());
-        FormLayout layout = new FormLayout(
-           "l:p, 2dlu, l:max(50dlu;p), 2dlu, max(50dlu;p), 2dlu, p, 2dlu, p",
-           "p:none, p:none");
-        final PanelBuilder builder = new PanelBuilder(layout, this);
-        final CellConstraints cc = new CellConstraints();
+        setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
+        final JProgressBar progressBar = new JProgressBar();
 
-        final int ICON_COL = 1, TEXT_COL=3, PROGRESS_COL = 5, RELOAD_COL = 7, KILL_COL = 9;
-        builder.add(new JLabel(tableIcon), cc.xywh(ICON_COL, 1, 1, 2));
+
+        add(new JLabel(tableIcon), ComponentType.ICON);
         this.reProfileButton = new JButton(refreshIcon);
         reProfileButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                if (result.isCancelled()) {
+                    result.setCancelled(false);
+                    progressBar.setVisible(true);
+                    ProgressWatcher watcher = new ProgressWatcher(progressBar, result);
+                    add(progressBar, ComponentType.PROGRESS_BAR);
+                    revalidate();
+                    watcher.addTaskTerminationListener(new ResultTaskTerminationListener());
+                    result.populate();
+                }
                 System.out.println("REFRESH");
             }
         });
-        this.stopButton = new JButton(stopIcon);
-        stopButton.addActionListener(new ActionListener() {
+        this.cancelButton = new JButton(stopIcon);
+        cancelButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                result.setCancelled(true);
+                statusLabel.setText("Cancelled");
+                ProfileRowComponent.this.remove(cancelButton);
+                ProfileRowComponent.this.add(deleteButton, ComponentType.DELETE);
+                progressBar.setVisible(false);
                 System.out.println("STOP");
             }
         });
@@ -107,27 +311,14 @@ public class ProfileRowComponent extends JPanel {
                 pm.removeProfile(result);
             }
         });
-        builder.add(new JLabel(result.getProfiledObject().getName()), cc.xy(TEXT_COL, 1));
-        builder.add(reProfileButton, cc.xywh(RELOAD_COL, 1, 1, 2));
-   
-        JProgressBar progressBar = new JProgressBar();
-        ProgressWatcher watcher = new ProgressWatcher(progressBar, result);
-        builder.add(progressBar, cc.xywh(PROGRESS_COL, 1, 1, 2));
-        watcher.addTaskTerminationListener(new TaskTerminationListener() {
+        add(new JLabel(result.getProfiledObject().getName()), ComponentType.TABLE_NAME);
+        add(reProfileButton, ComponentType.RELOAD);
 
-            public void taskFinished(TaskTerminationEvent e) {
-                // TODO show or enable Refresh button
-                // TODO maybe hide progressBar
-                // replace stop button with delete button 
-                ProfileRowComponent.this.remove(stopButton);
-                builder.add(deleteButton, cc.xywh(KILL_COL, 1, 1, 2));                
-                statusLabel.setText(result.toString());
-            }           
-        });
-        
-        
-        builder.add(statusLabel, cc.xy(TEXT_COL, 2));      
-        builder.add(stopButton, cc.xywh(KILL_COL, 1, 1, 2));  
+        ProgressWatcher watcher = new ProgressWatcher(progressBar, result);
+        add(progressBar, ComponentType.PROGRESS_BAR);
+        watcher.addTaskTerminationListener(new ResultTaskTerminationListener());
+        add(statusLabel, ComponentType.TABLE_INFO);      
+        add(cancelButton, ComponentType.CANCEL);  
         this.addMouseListener(new ProfileRowMouseListener());
     }
 
