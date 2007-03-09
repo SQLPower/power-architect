@@ -723,6 +723,7 @@ public class ArchitectFrame extends JFrame {
             new JCheckBoxMenuItem(new AbstractAction("Show Profile Manager") {
             public void actionPerformed(ActionEvent e) {
                 JDialog view = project.getProfileDialog();
+                view.pack();
                 view.setVisible(!view.isVisible());            
             }        
             });

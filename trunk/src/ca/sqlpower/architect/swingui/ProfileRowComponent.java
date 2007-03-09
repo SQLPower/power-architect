@@ -22,6 +22,7 @@ import javax.swing.JProgressBar;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.profile.ProfileManager;
+import ca.sqlpower.architect.profile.TableProfileManager;
 import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.swingui.event.TaskTerminationEvent;
 import ca.sqlpower.architect.swingui.event.TaskTerminationListener;
@@ -54,11 +55,13 @@ public class ProfileRowComponent extends JPanel {
     private static ImageIcon refreshIcon;
     /** shared delete icon */
     private static ImageIcon deleteIcon;
-    final JLabel statusLabel = new JLabel(String.format(TableProfileResult.TOSTRING_FORMAT, 0, "Today", 0));
+    
+    /* Bogus numbers filled in just to have a feel of how big
+     * the status label should be when creating the dialog */
+    final JLabel statusLabel = new JLabel(String.format(TableProfileResult.TOSTRING_FORMAT, 500, "Mar 9, 2007", 15000));
 
     static {
-        tableIcon = ASUtils.createJLFIcon("general/Save", "DB Table", ArchitectFrame.getMainInstance().getSprefs()
-                .getInt(SwingUserSettings.ICON_SIZE, 24));
+        tableIcon = ASUtils.createIcon("Table", "Table Result", 16);
 
         refreshIcon = ASUtils.createJLFIcon("general/Refresh", "Re-Profile", ArchitectFrame.getMainInstance().getSprefs()
                 .getInt(SwingUserSettings.ICON_SIZE, 24));
@@ -243,7 +246,8 @@ public class ProfileRowComponent extends JPanel {
             Object obj = evt.getSource();
             if (evt.getClickCount() == 2) {
                 if (getResult().isFinished() && !(obj instanceof JButton)) {
-                    ProfileResultsViewer profileResultsViewer = ArchitectFrame.getMainInstance().getProject().getProfileResultsViewer();
+                    ProfileResultsViewer profileResultsViewer = 
+                        new ProfileResultsViewer((TableProfileManager) pm);
                     profileResultsViewer.clearScanList();
                     profileResultsViewer.addTableProfileResultToScan(result);
                     profileResultsViewer.addTableProfileResult(result);
@@ -308,7 +312,6 @@ public class ProfileRowComponent extends JPanel {
         deleteButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 System.out.println("ProfileRowComponent: DELETE object: " + result);
-                ArchitectFrame.getMainInstance().getProject().getProfileResultsViewer().removeTableProfileResultToScan(getResult());
                 pm.removeProfile(result);
             }
         });

@@ -85,8 +85,6 @@ public class SwingUIProject {
     /** the dialog that contains the small ProfileManagerView */
     final JDialog profileDialog = 
         new JDialog(ArchitectFrame.getMainInstance(), "Table Profiles");
-    /** The main panel that views the profiles in detail */
-    final private ProfileResultsViewer profileResultsViewer;
 
     // ------------------ load and save support -------------------
 
@@ -158,7 +156,6 @@ public class SwingUIProject {
         initialDBList.add(playPen.getDatabase());
         profileManager = new TableProfileManager();
         profileManagerView = new ProfileManagerView(profileManager);
-        profileResultsViewer = new ProfileResultsViewer(profileManager);
         profileManager.addProfileChangeListener(profileManagerView);
         profileDialog.add(profileManagerView);
         profileDialog.setLocationRelativeTo(ArchitectFrame.getMainInstance());
@@ -1689,12 +1686,7 @@ public class SwingUIProject {
         profileDialog.pack();
         return profileDialog;
     }
-    public ProfileManagerView getProfileManagerView() {
-        return profileManagerView;
-    }
-    public ProfileResultsViewer getProfileResultsViewer() {
-        return profileResultsViewer;
-    }
+
     public void setProfileManager(TableProfileManager profileManager) {
         this.profileManager = profileManager;
     }
