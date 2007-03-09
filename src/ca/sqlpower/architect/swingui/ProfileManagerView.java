@@ -35,6 +35,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.profile.ProfileChangeEvent;
 import ca.sqlpower.architect.profile.ProfileChangeListener;
 import ca.sqlpower.architect.profile.ProfileManager;
+import ca.sqlpower.architect.profile.TableProfileManager;
 import ca.sqlpower.architect.profile.TableProfileResult;
 
 /**
@@ -222,7 +223,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
             public void actionPerformed(ActionEvent e) {
                 System.out.println("ProfileManagerView.inner.actionPerformed(): VIEW ALL"); 
                 ProfileResultsViewer profileResultsViewer = 
-                    ArchitectFrame.getMainInstance().getProject().getProfileResultsViewer();
+                    new ProfileResultsViewer((TableProfileManager) pm);
                 profileResultsViewer.clearScanList();
                 for (ProfileRowComponent rowComp : list) {
                     TableProfileResult result = rowComp.getResult();
@@ -319,9 +320,9 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
     public Dimension getPreferredSize() {
         if (list.size() == 0)
             return super.getPreferredSize();
-        ProfileRowComponent x = list.get(0);
-        Dimension d = x.getPreferredSize();
-        d.height *= NICE_ROWS;
+        Dimension d = super.getPreferredSize();
+        d.height = list.get(0).getPreferredSize().height * NICE_ROWS;
+        d.width = Math.max(resultListPanel.getPreferredSize().width, d.width);
         return d;
     }
 

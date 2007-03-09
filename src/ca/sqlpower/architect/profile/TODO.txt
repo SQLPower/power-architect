@@ -5,9 +5,6 @@ Have a "Don't Save Profiles" option in Architect User Settings.
 More unit tests!!
 	Ensure load/save project still OK
 
-Totally decouple PofileResultView window from SwingUIProject. 
-It should not be per-project at all.
-
 Have multiple profiles of the same table at different times.
 
 -----
