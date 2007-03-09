@@ -10,8 +10,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.Collection;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -245,10 +243,9 @@ public class ProfileRowComponent extends JPanel {
             Object obj = evt.getSource();
             if (evt.getClickCount() == 2) {
                 if (getResult().isFinished() && !(obj instanceof JButton)) {
-                    Collection<TableProfileResult> results = new ArrayList<TableProfileResult>();
-                    results.add(result);
                     ProfileResultsViewer profileResultsViewer = ArchitectFrame.getMainInstance().getProject().getProfileResultsViewer();
-                    // new ProfileResultsViewer((TableProfileManager) pm);
+                    profileResultsViewer.clearScanList();
+                    profileResultsViewer.addTableProfileResultToScan(result);
                     profileResultsViewer.addTableProfileResult(result);
                     profileResultsViewer.getDialog().setVisible(true);
                 }
@@ -311,6 +308,7 @@ public class ProfileRowComponent extends JPanel {
         deleteButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 System.out.println("ProfileRowComponent: DELETE object: " + result);
+                ArchitectFrame.getMainInstance().getProject().getProfileResultsViewer().removeTableProfileResultToScan(getResult());
                 pm.removeProfile(result);
             }
         });
@@ -329,5 +327,4 @@ public class ProfileRowComponent extends JPanel {
     public TableProfileResult getResult() {
         return result;
     }
-
 }

@@ -146,7 +146,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         setLayout(new BorderLayout());
         JPanel topPanel = new JPanel();
         add(topPanel, BorderLayout.NORTH);
-
+        
         topPanel.add(new JLabel("Search"));
         searchText = new JTextField(10);
         searchText.addKeyListener(new KeyListener() {
@@ -201,6 +201,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         resultListPanel = new ResultListPanel();
         resultListPanel.setBackground(Color.WHITE);
         resultListPanel.setLayout(new GridLayout(0, 1));
+
         // populate this panel with MyRowComponents
         for (TableProfileResult result : pm.getTableResults()) {
             ProfileRowComponent myRowComponent = new ProfileRowComponent(result, pm);
@@ -222,9 +223,11 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
                 System.out.println("ProfileManagerView.inner.actionPerformed(): VIEW ALL"); 
                 ProfileResultsViewer profileResultsViewer = 
                     ArchitectFrame.getMainInstance().getProject().getProfileResultsViewer();
+                profileResultsViewer.clearScanList();
                 for (ProfileRowComponent rowComp : list) {
                     TableProfileResult result = rowComp.getResult();
                     System.out.println("ProfileManagerView.inner.actionPerformed(): add " + result);
+                    profileResultsViewer.addTableProfileResultToScan(result);
                     profileResultsViewer.addTableProfileResult(result);
                 }
                 profileResultsViewer.getDialog().setVisible(true);
@@ -353,6 +356,5 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
     public void profileListChanged(ProfileChangeEvent e) {
         logger.debug("ProfileChanged method not yet implemented.");
     }
-    
-    
+
 }

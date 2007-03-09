@@ -236,8 +236,21 @@ public class ProfileResultsViewer {
         results.add(result);
         tm.refresh();
     }
+    
+    public void addTableProfileResultToScan(TableProfileResult result) {
+        tm.addTableResultToScan(result);
+    }
+
+    public void removeTableProfileResultToScan(TableProfileResult result) {
+        tm.removeTableResultToScan(result);
+    }
+    
+    public void clearScanList() {
+        tm.clearScanList();
+    }
 
     public JDialog getDialog() {
         return dialog;
     }
+
 }

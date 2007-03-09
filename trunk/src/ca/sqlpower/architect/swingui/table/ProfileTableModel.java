@@ -44,8 +44,16 @@ public class ProfileTableModel extends AbstractTableModel {
 
     private TableProfileManager profileManager;
 
+    /**
+     * A list of profile results to show in the ProfileResultsViewer
+     */
     private List<ColumnProfileResult> resultList;
 
+    /**
+     * Only tables in this list will have the results of their columns shown.
+     */
+    private List<TableProfileResult> tableResultsToScan = new ArrayList<TableProfileResult>();
+    
     private List<SQLObject> filters;
 
     public ProfileTableModel(TableProfileManager profileManager) {
@@ -176,16 +184,16 @@ public class ProfileTableModel extends AbstractTableModel {
 
     public void refresh(){
         resultList = new ArrayList<ColumnProfileResult>();
-        for (TableProfileResult tpr : profileManager.getTableResults()) {
+        for (TableProfileResult tpr : tableResultsToScan) {
             for (ColumnProfileResult cpr : tpr.getColumnProfileResults()) {
-                if (filters.size() > 0) {
+                /*if (filters.size() > 0) {
 
                     if (shouldNotBeFilteredOut(cpr)) {
                         resultList.add(cpr);
                     }
-                } else {
+                } else {*/
                     resultList.add(cpr);
-                }
+                //}
             }
         }
         Collections.sort(resultList);
@@ -290,5 +298,17 @@ public class ProfileTableModel extends AbstractTableModel {
 
     public List<ColumnProfileResult> getResultList() {
         return resultList;
+    }
+    
+    public void addTableResultToScan(TableProfileResult tpr) {
+        tableResultsToScan.add(tpr);
+    }
+    
+    public void clearScanList() {
+        tableResultsToScan.clear();
+    }
+
+    public void removeTableResultToScan(TableProfileResult result) {
+        tableResultsToScan.remove(result);
     }
 }
