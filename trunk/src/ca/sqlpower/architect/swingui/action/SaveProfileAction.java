@@ -9,7 +9,10 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import javax.swing.AbstractAction;
 import javax.swing.JDialog;
@@ -21,9 +24,9 @@ import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ProfileCSVFormat;
 import ca.sqlpower.architect.profile.ProfileFormat;
 import ca.sqlpower.architect.profile.ProfileHTMLFormat;
-import ca.sqlpower.architect.profile.TableProfileManager;
 import ca.sqlpower.architect.profile.ProfilePDFFormat;
 import ca.sqlpower.architect.profile.ProfileResult;
+import ca.sqlpower.architect.profile.TableProfileManager;
 import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
 import ca.sqlpower.architect.swingui.ASUtils;
@@ -31,6 +34,35 @@ import ca.sqlpower.architect.swingui.table.ProfileJTable;
 
 public class SaveProfileAction extends AbstractAction {
 
+    public class ProfileResultsTree {
+        Map<TableProfileResult, Set<ColumnProfileResult>>  resultTree = new TreeMap<TableProfileResult, Set<ColumnProfileResult>>();
+        
+        public void addTableProfileResult(TableProfileResult tpr){
+            if (!resultTree.containsKey(tpr)) {
+                resultTree.put(tpr, new HashSet<ColumnProfileResult>());
+            }
+        }
+        
+        public void addColumnProfileResult(ColumnProfileResult cpr){
+            TableProfileResult tpr = cpr.getParentResult();
+            if (!resultTree.containsKey(tpr)) {
+                resultTree.put(tpr, new TreeSet<ColumnProfileResult>());
+            }
+            ((Set<ColumnProfileResult>)resultTree.get(tpr)).add(cpr);
+        }
+        
+        public List<ProfileResult> getDepthFirstList() {
+            List<ProfileResult> depthFirstList = new ArrayList<ProfileResult>();
+            for (TableProfileResult tpr : resultTree.keySet()) {
+                depthFirstList.add(tpr);
+                for (ColumnProfileResult cpr : ((Set<ColumnProfileResult>)resultTree.get(tpr))) {
+                    depthFirstList.add(cpr);
+                }
+            }
+            return depthFirstList;
+        }
+    }
+    
     /** The set of valid file types for saving the report in */
     private enum SaveableFileType { HTML, PDF, CSV }
 
@@ -48,7 +80,7 @@ public class SaveProfileAction extends AbstractAction {
 
     public void actionPerformed(ActionEvent e) {
 
-        final List<ProfileResult> objectToSave = new ArrayList<ProfileResult>();
+        final ProfileResultsTree objectToSave = new ProfileResultsTree();
 
         if ( viewTable.getSelectedRowCount() > 1 ) {
             int selectedRows[] = viewTable.getSelectedRows();
@@ -87,9 +119,8 @@ public class SaveProfileAction extends AbstractAction {
             if (response == 1) { // entire table
 
                 for (TableProfileResult tpr : selectedTable) {
-                    objectToSave.add(tpr);
                     for (ColumnProfileResult cpr : tpr.getColumnProfileResults()) {
-                        objectToSave.add(cpr);
+                        objectToSave.addColumnProfileResult(cpr);
                     }
                 }
             } else { // partial table
@@ -97,18 +128,14 @@ public class SaveProfileAction extends AbstractAction {
                     int rowid = selectedRows[i];
                     ColumnProfileResult result = viewTable.getColumnProfileResultForRow(rowid);
                     TableProfileResult tpr = result.getParentResult();
-                    if ( !objectToSave.contains(tpr) )
-                        objectToSave.add(tpr);
-                    objectToSave.add(result);
+                    objectToSave.addColumnProfileResult(result);
                 }
             }
         } else {
             for (int i = 0; i < viewTable.getRowCount(); i++) {
                 ColumnProfileResult result = viewTable.getColumnProfileResultForRow(i);
                 TableProfileResult tpr = result.getParentResult();
-                if ( !objectToSave.contains(tpr) )
-                    objectToSave.add(tpr);
-                objectToSave.add(result);
+                objectToSave.addColumnProfileResult(result);
             }
         }
 
@@ -206,7 +233,7 @@ public class SaveProfileAction extends AbstractAction {
                     default:
                         throw new IllegalArgumentException("Unknown type");
                     }
-                    prf.format(out, objectToSave, pm);
+                    prf.format(out, objectToSave.getDepthFirstList(), pm);
                 } catch (Exception ex) {
                     ASUtils.showExceptionDialog(parent,
                         "Could not generate/save report file", ex, new ArchitectExceptionReportFactory());
