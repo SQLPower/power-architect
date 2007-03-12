@@ -44,7 +44,7 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
     }
 
     final static Date date = new Date();
-    final static DateFormat df = DateFormat.getDateInstance(DateFormat.MEDIUM);
+    final static DateFormat df = DateFormat.getDateTimeInstance();
 
     /**
      * This printf format string is used in our toString() but is also
@@ -174,4 +174,17 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
         }
         return ddlg;
     }
+
+    /**
+     * Add a new column profile result to the end of the result list
+     */
+    public void addColumnProfileResult(ColumnProfileResult profileResult) {
+        columnProfileResults.add(profileResult);
+    }
+
+    public void setRowCount(int rowCount) {
+        this.rowCount = rowCount;
+    }
+    
+    
 }

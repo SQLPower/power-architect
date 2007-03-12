@@ -27,7 +27,6 @@ import org.jfree.util.TableOrder;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ColumnValueCount;
-import ca.sqlpower.architect.profile.TableProfileManager;
 import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.swingui.ProfilePanel.ChartTypes;
 import ca.sqlpower.architect.swingui.table.FreqValueCountTableModel;
@@ -64,14 +63,13 @@ public class ProfileGraphPanel {
     JPanel displayArea;
     private int rowCount;
     private ChartPanel chartPanel;
-    private TableProfileManager pm;
+  //  private TableProfileManager pm;
 
     private static final Logger logger = Logger.getLogger(ProfileGraphPanel.class);
 
 
-    public ProfileGraphPanel(ProfilePanel panel, int rowCount, TableProfileManager pm) {
+    public ProfileGraphPanel(ProfilePanel panel, int rowCount) {
         this.rowCount = rowCount;
-        this.pm = pm;
 
         FormLayout displayLayout = new FormLayout(
                 "4dlu, default, 4dlu, 100dlu, 4dlu, fill:default:grow, 4dlu", // columns
@@ -163,7 +161,7 @@ public class ProfileGraphPanel {
 
             // XXX the following code should instead replace chartPanel with a JLabel that contains the error message
             //     (and also not create a dummy profile result)
-            cr = new ColumnProfileResult(c, pm, null, null);
+            cr = new ColumnProfileResult(c, null, null, null);
             cr.setCreateStartTime(0);
             chartPanel.setChart(ChartFactory.createPieChart("", new DefaultPieDataset(), false, false, false));
         } else {

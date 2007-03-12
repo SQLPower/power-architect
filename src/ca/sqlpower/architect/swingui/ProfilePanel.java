@@ -1,15 +1,19 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComboBox;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -27,11 +31,10 @@ import javax.swing.event.TableModelListener;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ProfileColumn;
-import ca.sqlpower.architect.profile.TableProfileManager;
 import ca.sqlpower.architect.profile.ProfileResult;
+import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.swingui.table.ProfileTableModel;
 
 import com.jgoodies.forms.builder.PanelBuilder;
@@ -46,8 +49,8 @@ public class ProfilePanel extends JPanel {
     static Logger logger = Logger.getLogger(ProfilePanel.class);
     public enum ChartTypes { BAR, PIE }
 
-    private final TableProfileManager profileManager;
     
+    private final ProfileTableModel profileTableModel;
     private JComboBox tableSelector;
     private JList columnSelector;
     private ChartTypes chartType = ChartTypes.PIE;
@@ -66,9 +69,10 @@ public class ProfilePanel extends JPanel {
         }
     };
     
-    public ProfilePanel(TableProfileManager pm) {
-        this.profileManager = pm;
-        displayPanel = new ProfileGraphPanel(this, 0, pm);
+    public ProfilePanel(ProfileTableModel profileTableModel) {
+
+        this.profileTableModel = profileTableModel;
+        displayPanel = new ProfileGraphPanel(this, 0);
         setup();
     }
     
@@ -83,27 +87,38 @@ public class ProfilePanel extends JPanel {
         controlsArea = logger.isDebugEnabled()  ? new FormDebugPanel(controlsLayout) : new JPanel(controlsLayout);
         controlsArea.setLayout(new BoxLayout(controlsArea, BoxLayout.Y_AXIS));
         tableSelector = new JComboBox();
+        tableSelector.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                TableProfileResult tpr = (TableProfileResult) value;
+                StringBuffer buf = new StringBuffer();
+                if (tpr != null) {
+                    buf.append(tpr.getProfiledObject().getName());
+                    buf.append(" (");
+                    DateFormat df = DateFormat.getDateTimeInstance();
+                    buf.append(df.format(new Date(tpr.getCreateStartTime())));
+                    buf.append(")");
+                }
+                return super.getListCellRendererComponent(list, buf.toString(), index, isSelected,
+                		cellHasFocus);
+            }
+        });
         tableSelector.addActionListener(new ActionListener() {
 
             /*
              * Called when the user selects a table; displays its profile (fast)
              */
             public void actionPerformed(ActionEvent e) {
-                final SQLTable t = (SQLTable) tableSelector.getSelectedItem();
-                if (t == null) {
+                final TableProfileResult tpr = (TableProfileResult) tableSelector.getSelectedItem();
+                if (tpr == null) {
                     return;
                 }
                 try {
                     
                     List<SQLColumn> columns = new ArrayList<SQLColumn>();
-                    for (ProfileResult pr : tableModel.getResultList() ) {
-                        if (pr instanceof ColumnProfileResult) {
-                            SQLColumn column = (SQLColumn)pr.getProfiledObject();
-                            SQLTable t2 = column.getParentTable();
-                            if ( t == t2 && (!columns.contains(column)) ) {
-                                columns.add(column);
-                            }
-                        }
+                    for (ColumnProfileResult cpr : tpr.getColumnProfileResults() ) {
+                            SQLColumn column = cpr.getProfiledObject();
+                            columns.add(column);
                     }
                     
                     SQLColumn selectedColumn = null;
@@ -250,25 +265,22 @@ public class ProfilePanel extends JPanel {
     }
     
     public void resetTableSelectorModel() {
-        List<SQLTable> tables = new ArrayList<SQLTable>();
-        SQLTable selectedTable = null;
+        List<TableProfileResult> tableResults = new ArrayList<TableProfileResult>();
+        TableProfileResult selectedResult = null;
         
         if ( tableSelector.getSelectedIndex() >= 0 ) {
-            selectedTable = (SQLTable) tableSelector.getSelectedObjects()[0];
+            selectedResult = (TableProfileResult) tableSelector.getSelectedObjects()[0];
         }
         
-        for (ProfileResult pr : tableModel.getResultList() ) {
-            SQLTable t = ((SQLColumn)pr.getProfiledObject()).getParentTable();
-            if ( !tables.contains(t)) {
-                tables.add(t);
-            }
+        for (TableProfileResult pr : profileTableModel.getTableResultsToScan()) {
+            tableResults.add(pr);
         }
-        tableSelector.setModel(new DefaultComboBoxModel(tables.toArray()));
+        tableSelector.setModel(new DefaultComboBoxModel(tableResults.toArray()));
 
         
         if ( tableSelector.getModel().getSize() > 0 ) {
-            if ( selectedTable != null && tables.contains(selectedTable)) {
-                tableSelector.setSelectedItem(selectedTable);
+            if ( selectedResult != null && tableResults.contains(selectedResult)) {
+                tableSelector.setSelectedItem(selectedResult);
             } else {
                 tableSelector.setSelectedIndex(0);
             }

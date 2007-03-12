@@ -163,7 +163,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
                 //Therefore deselecting them when it comes around in the item list would
                 //cause an exception.
                 for (PlayPenComponent ppc : items){
-			       ppc.setSelected(false);
+			       ppc.setSelected(false,SelectionEvent.SINGLE_SELECT);
                }
 
                 Iterator it = items.iterator();

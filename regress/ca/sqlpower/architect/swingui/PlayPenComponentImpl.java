@@ -10,7 +10,7 @@ public class PlayPenComponentImpl extends PlayPenComponent {
 		// TODO Auto-generated constructor stub
 	}
 
-	public void setSelected(boolean v) {
+	public void setSelected(boolean v, int multiSelectType) {
 		// TODO Auto-generated method stub
 		
 	}

@@ -71,9 +71,15 @@ public abstract class AbstractProfileResult<T extends SQLObject>
         setCreateStartTime(System.currentTimeMillis());
     }
 
-    void finish() {
-        setCreateEndTime(System.currentTimeMillis());
+    /**
+     *  This method sets the end time of the profile result and sets finished to true
+     */
+    public void finish(long endTime) {
+        setCreateEndTime(endTime);
         finished = true;
+    }
+    void finish() {
+        finish(System.currentTimeMillis());
     }
 
     /* (non-Javadoc)
@@ -214,9 +220,6 @@ public abstract class AbstractProfileResult<T extends SQLObject>
 
         SQLObject po = this.getProfiledObject();
         SQLObject opo = o.getProfiledObject();
-        if (po == opo) {
-            return 0;
-        }
 
         int diff;
         SQLObject so1, so2;

@@ -182,7 +182,7 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 		}
 	}
 
-	public void setSelected(boolean isSelected) {
+	public void setSelected(boolean isSelected,int multiSelectType) {
 		if (selected != isSelected) {
 		    try {
 		        Iterator it = getModel().getChildren().iterator();
@@ -201,7 +201,7 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 		        logger.error("Couldn't modify highlights for columns in the mapping", e);
 		    }
 			selected = isSelected;
-			fireSelectionEvent(new SelectionEvent(this, selected ? SelectionEvent.SELECTION_EVENT : SelectionEvent.DESELECTION_EVENT));
+			fireSelectionEvent(new SelectionEvent(this, selected ? SelectionEvent.SELECTION_EVENT : SelectionEvent.DESELECTION_EVENT,SelectionEvent.SINGLE_SELECT));
 			repaint();
 		}
 	}

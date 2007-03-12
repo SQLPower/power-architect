@@ -47,92 +47,92 @@ public class TestDeleteSelectedAction extends TestCase {
 
 	public void testTableSelected() throws ArchitectException{
 		assertFalse("Action enabled with no items",deleteAction.isEnabled());
-		tp.setSelected(true);
-		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT));
+		tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
+		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		assertTrue("Action not enabled", deleteAction.isEnabled());
 		assertEquals("Incorrect Tooltip", "Delete Table1",deleteAction.getValue(DeleteSelectedAction.SHORT_DESCRIPTION));
-		tp.setSelected(false);
-		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.DESELECTION_EVENT));
+		tp.setSelected(false,SelectionEvent.SINGLE_SELECT);
+		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.DESELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		assertFalse("Action enabled with no items",deleteAction.isEnabled());
 	}
 	
 	public void testRelationshipSelected() {
 		assertFalse("Action enabled with no items",deleteAction.isEnabled());
-		r.setSelected(true);
-		deleteAction.itemSelected(new SelectionEvent(r, SelectionEvent.SELECTION_EVENT));
+		r.setSelected(true,SelectionEvent.SINGLE_SELECT);
+		deleteAction.itemSelected(new SelectionEvent(r, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		assertTrue("Action not enabled", deleteAction.isEnabled());
-		r.setSelected(false);
-		deleteAction.itemSelected(new SelectionEvent(r, SelectionEvent.DESELECTION_EVENT));
+		r.setSelected(false,SelectionEvent.SINGLE_SELECT);
+		deleteAction.itemSelected(new SelectionEvent(r, SelectionEvent.DESELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		assertFalse("Action enabled with no items",deleteAction.isEnabled());
 	}
 	
 	public void testTableAndRelationshipSelected() {
 		assertFalse("Action enabled with no items",deleteAction.isEnabled());
-		r.setSelected(true);
-		deleteAction.itemSelected(new SelectionEvent(r, SelectionEvent.SELECTION_EVENT));
-		tp.setSelected(true);
-		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT));
+		r.setSelected(true,SelectionEvent.SINGLE_SELECT);
+		deleteAction.itemSelected(new SelectionEvent(r, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
+		tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
+		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		assertTrue("Action not enabled", deleteAction.isEnabled());
 		assertEquals("Delete 2 items",deleteAction.getValue(DeleteSelectedAction.SHORT_DESCRIPTION));
-		r.setSelected(false);
-		deleteAction.itemSelected(new SelectionEvent(r, SelectionEvent.DESELECTION_EVENT));
+		r.setSelected(false,SelectionEvent.SINGLE_SELECT);
+		deleteAction.itemSelected(new SelectionEvent(r, SelectionEvent.DESELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		assertTrue("Action not enabled when we still have an enabled component", deleteAction.isEnabled());
-		tp.setSelected(false);
-		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.DESELECTION_EVENT));
+		tp.setSelected(false,SelectionEvent.SINGLE_SELECT);
+		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.DESELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		assertFalse("Action enabled with no items",deleteAction.isEnabled());
 	}
 	
 	public void testColumnSelected() throws ArchitectException{
 		assertFalse("Action enabled with no items",deleteAction.isEnabled());
-		tp.setSelected(true);
+		tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
 		tp.selectColumn(0);
-		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT));
+		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		assertEquals("Delete col1",deleteAction.getValue(DeleteSelectedAction.SHORT_DESCRIPTION));
 		tp.selectColumn(1);
-		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT));
+		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		assertTrue("Action not enabled", deleteAction.isEnabled());
 		assertEquals("tooltip incorrect for two selected columns","Delete 2 items",deleteAction.getValue(DeleteSelectedAction.SHORT_DESCRIPTION));
 		tp.selectNone();
-		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.DESELECTION_EVENT));
+		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.DESELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		assertTrue("Action not enable when columns unselected, but table selected",deleteAction.isEnabled());		
 	}
 	
 	public void testTableAndColumnSelected(){
 		assertFalse("Action enabled with no items",deleteAction.isEnabled());
-		tp.setSelected(true);
+		tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
 		tp.selectColumn(0);
-		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT));
-		tp2.setSelected(true);		
-		deleteAction.itemSelected(new SelectionEvent(tp2, SelectionEvent.SELECTION_EVENT));
+		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
+		tp2.setSelected(true,SelectionEvent.SINGLE_SELECT);		
+		deleteAction.itemSelected(new SelectionEvent(tp2, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		assertEquals("Delete 2 items",deleteAction.getValue(DeleteSelectedAction.SHORT_DESCRIPTION));
-		tp2.setSelected(false);
-		deleteAction.itemSelected(new SelectionEvent(tp2, SelectionEvent.DESELECTION_EVENT));
+		tp2.setSelected(false,SelectionEvent.SINGLE_SELECT);
+		deleteAction.itemSelected(new SelectionEvent(tp2, SelectionEvent.DESELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		assertTrue("Action not enabled", deleteAction.isEnabled());
 		assertEquals("tooltip incorrect for two selected columns","Delete col1",deleteAction.getValue(DeleteSelectedAction.SHORT_DESCRIPTION));
 		tp.selectNone();
-		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.DESELECTION_EVENT));
+		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.DESELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		assertTrue("Action not enable when columns unselected, but table selected",deleteAction.isEnabled());
 	}
 	
 	public void testTableAndRelationshipAndColumnSelected(){
 		assertFalse("Action enabled with no items",deleteAction.isEnabled());
-		r.setSelected(true);
-		deleteAction.itemSelected(new SelectionEvent(r, SelectionEvent.SELECTION_EVENT));
-		tp.setSelected(true);
+		r.setSelected(true,SelectionEvent.SINGLE_SELECT);
+		deleteAction.itemSelected(new SelectionEvent(r, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
+		tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
 		tp.selectColumn(0);
-		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT));
-		tp2.setSelected(true);
-		deleteAction.itemSelected(new SelectionEvent(tp2, SelectionEvent.SELECTION_EVENT));
+		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
+		tp2.setSelected(true,SelectionEvent.SINGLE_SELECT);
+		deleteAction.itemSelected(new SelectionEvent(tp2, SelectionEvent.SELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		assertTrue("Action not enabled", deleteAction.isEnabled());
 		assertEquals("Delete 3 items",deleteAction.getValue(DeleteSelectedAction.SHORT_DESCRIPTION));
-		r.setSelected(false);
-		deleteAction.itemSelected(new SelectionEvent(r, SelectionEvent.DESELECTION_EVENT));
-		tp.setSelected(false);
-		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.DESELECTION_EVENT));		
+		r.setSelected(false,SelectionEvent.SINGLE_SELECT);
+		deleteAction.itemSelected(new SelectionEvent(r, SelectionEvent.DESELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
+		tp.setSelected(false,SelectionEvent.SINGLE_SELECT);
+		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.DESELECTION_EVENT, SelectionEvent.SINGLE_SELECT));		
 		assertTrue("Action not enabled when we still have an enabled component", deleteAction.isEnabled());
 		assertEquals("Delete Table2", deleteAction.getValue(DeleteSelectedAction.SHORT_DESCRIPTION));
-		tp2.setSelected(false);
-		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.DESELECTION_EVENT));
+		tp2.setSelected(false,SelectionEvent.SINGLE_SELECT);
+		deleteAction.itemSelected(new SelectionEvent(tp, SelectionEvent.DESELECTION_EVENT, SelectionEvent.SINGLE_SELECT));
 		assertFalse ("Nothing is selected", deleteAction.isEnabled());
 		
 	}

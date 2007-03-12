@@ -385,7 +385,7 @@ public class SwingUIProject {
         ProfileResultFactory profileResultFactory = new ProfileResultFactory();
         d.addFactoryCreate("*/profiles/profile-result", profileResultFactory);
         d.addSetProperties("*/profiles/profile-result");
-        d.addSetNext("*/profiles/profile-result", "putResult");
+        d.addSetNext("*/profiles/profile-result", "loadResult");
 
         ProfileResultValueFactory profileResultValueFactory = new ProfileResultValueFactory();
         d.addFactoryCreate("*/profiles/profile-result/avgValue", profileResultValueFactory );
@@ -830,6 +830,7 @@ public class SwingUIProject {
             } else if (className.equals(TableProfileResult.class.getName())) {
                 SQLTable t = (SQLTable) objectIdMap.get(refid);
                 tableProfileResult = new TableProfileResult(t,profileManager);
+                tableProfileResult.finish(tableProfileResult.getCreateEndTime());
                 return tableProfileResult;
             } else if (className.equals(ColumnProfileResult.class.getName())) {
                 SQLColumn c = (SQLColumn) objectIdMap.get(refid);

@@ -10,6 +10,7 @@ import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.swingui.event.SelectionEvent;
 
 public class TestRelationship extends TestCase {
 
@@ -48,17 +49,17 @@ public class TestRelationship extends TestCase {
 	}
 
     public void testHighlightWithRelationshipTypeChange() throws ArchitectException {               
-        rel.setSelected(true);
+        rel.setSelected(true,SelectionEvent.SINGLE_SELECT);
         assertEquals(Color.RED,tp1.getColumnHighlight(0));
         assertEquals(Color.RED,tp2.getColumnHighlight(1));
         assertEquals(tp2.getForeground(), tp2.getColumnHighlight(0));
-        rel.setSelected(false);
+        rel.setSelected(false,SelectionEvent.SINGLE_SELECT);
         
         assertEquals(tp1.getForeground(), tp1.getColumnHighlight(0));
         assertEquals(tp2.getForeground(), tp2.getColumnHighlight(1));
         assertEquals(tp2.getForeground(), tp2.getColumnHighlight(0));
         
-        rel.setSelected(true);
+        rel.setSelected(true,SelectionEvent.SINGLE_SELECT);
         rel.getModel().setIdentifying(true);       
         
         assertEquals(Color.RED,tp1.getColumnHighlight(0));

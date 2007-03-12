@@ -14,7 +14,8 @@ import ca.sqlpower.architect.SQLTable;
 public class TableProfileManager implements ProfileManager {
 
     private static final Logger logger = Logger.getLogger(TableProfileManager.class);
-
+    private TableProfileResult lastTableProfileResult= null;
+    
     private final List<TableProfileResult> tableResults =
         new ArrayList<TableProfileResult>();
 
@@ -23,6 +24,27 @@ public class TableProfileManager implements ProfileManager {
     private void putResult(TableProfileResult profileResult) {
         tableResults.add(profileResult);
         fireProfileAdded(profileResult);
+    }
+    /**
+     * Add profileResult to the most recent table profile result that was passed
+     * to loadResult
+     * 
+     * NOTE: this is intended to be used only to load results this fires no events
+     * @param profileResult
+     */
+    public void loadResult(ColumnProfileResult profileResult){
+        lastTableProfileResult.addColumnProfileResult(profileResult);
+    }
+    
+    /**
+     * Adds profileResult to the listof table results.  It stores the profile result
+     * so that column results can be attached later.
+     * 
+     * Note: this is intended for loading and is really not thread safe
+     */
+    public void loadResult(TableProfileResult profileResult){
+        putResult(profileResult);
+        lastTableProfileResult = profileResult;
     }
 
     public List<TableProfileResult> getTableResults() {

@@ -29,6 +29,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.Scrollable;
+import javax.swing.UIManager;
 
 import org.apache.log4j.Logger;
 
@@ -37,6 +38,8 @@ import ca.sqlpower.architect.profile.ProfileChangeListener;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.TableProfileManager;
 import ca.sqlpower.architect.profile.TableProfileResult;
+import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.architect.swingui.event.SelectionListener;
 
 /**
  * The controlling view for the Profile Manager. Vaguely patterned on e.g., the
@@ -49,7 +52,7 @@ import ca.sqlpower.architect.profile.TableProfileResult;
  * <p>
  * TODO make sorting work! (maintain separate list??)
  */
-public class ProfileManagerView extends JPanel implements ProfileChangeListener  {
+public class ProfileManagerView extends JPanel implements ProfileChangeListener {
     
     private static Logger logger = Logger.getLogger(ProfileManagerView.class);
 
@@ -82,7 +85,10 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
      */
     List<ProfileRowComponent> showingRows = new ArrayList<ProfileRowComponent>();
 
-    private class ResultListPanel extends JPanel implements Scrollable {
+    private class ResultListPanel extends JPanel implements Scrollable, SelectionListener {
+        private ProfileRowComponent lastSelectedRow;
+        private boolean ignoreSelectionEvents = false;
+        
         public Dimension getPreferredScrollableViewportSize() {
             // TODO Auto-generated method stub
             return null;
@@ -104,6 +110,46 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
 
         public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
             return 15; // FIXME should be height of one ProfileRowComponent
+        }
+        
+        public void itemDeselected(SelectionEvent e) {
+            if (ignoreSelectionEvents){
+                return;
+            }
+            ignoreSelectionEvents = true;
+            
+            ignoreSelectionEvents = false;
+        }
+
+        public void itemSelected(SelectionEvent e) {
+            if (ignoreSelectionEvents){
+                return;
+            }
+            ignoreSelectionEvents = true;
+            ProfileRowComponent selectedRow = (ProfileRowComponent) e.getSource();
+            if (e.getMultiselectType() == SelectionEvent.SINGLE_SELECT) {
+                lastSelectedRow = selectedRow;
+                for (ProfileRowComponent row : list) {
+                    if (row != selectedRow) {
+                        row.setSelected(false,SelectionEvent.SINGLE_SELECT);
+                    }
+                }
+            } else if (e.getMultiselectType() == SelectionEvent.CTRL_MULTISELECT) {
+                lastSelectedRow = selectedRow;
+            } else if (e.getMultiselectType() == SelectionEvent.SHIFT_MULTISELECT) {
+                int lastSelectedRowIndex = showingRows.indexOf(lastSelectedRow);
+                int selectedRowIndex = showingRows.indexOf(selectedRow);
+                int start = Math.min(lastSelectedRowIndex, selectedRowIndex);
+                int end = Math.max(lastSelectedRowIndex, selectedRowIndex);
+                for (int i = 0; i < showingRows.size(); i++) {
+                    if (i < start || i > end) {
+                        showingRows.get(i).setSelected(false, SelectionEvent.SINGLE_SELECT);
+                    } else {
+                        showingRows.get(i).setSelected(true, SelectionEvent.SINGLE_SELECT);
+                    }
+                }
+            }
+            ignoreSelectionEvents = false;
         }
     }
     
@@ -200,13 +246,14 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         group.add(dateRadioButton);
         nameRadioButton.setSelected(true);
         resultListPanel = new ResultListPanel();
-        resultListPanel.setBackground(Color.WHITE);
+        resultListPanel.setBackground(UIManager.getColor("List.background"));
         resultListPanel.setLayout(new GridLayout(0, 1));
 
         // populate this panel with MyRowComponents
         for (TableProfileResult result : pm.getTableResults()) {
             ProfileRowComponent myRowComponent = new ProfileRowComponent(result, pm);
             list.add(myRowComponent);
+            myRowComponent.addSelectionListener(resultListPanel);
             resultListPanel.add(myRowComponent);
             showingRows.add(myRowComponent);
         }
@@ -225,7 +272,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
                 ProfileResultsViewer profileResultsViewer = 
                     new ProfileResultsViewer((TableProfileManager) pm);
                 profileResultsViewer.clearScanList();
-                for (ProfileRowComponent rowComp : list) {
+                for (ProfileRowComponent rowComp : showingRows) {
                     TableProfileResult result = rowComp.getResult();
                     System.out.println("ProfileManagerView.inner.actionPerformed(): add " + result);
                     profileResultsViewer.addTableProfileResultToScan(result);
@@ -236,6 +283,28 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         };
         bottomPanel.add(new JButton(viewAllAction));
         
+        Action viewSelectedAction = new AbstractAction("View Selected") {
+
+            public void actionPerformed(ActionEvent e) {
+                ProfileResultsViewer profileResultsViewer = 
+                    new ProfileResultsViewer((TableProfileManager) pm);
+                profileResultsViewer.clearScanList();
+                for (ProfileRowComponent rowComp : showingRows) {
+                    if (rowComp.isSelected()) {
+                        TableProfileResult result = rowComp.getResult();
+                        profileResultsViewer.addTableProfileResultToScan(result);
+                        profileResultsViewer.addTableProfileResult(result);
+                    }
+                }
+                profileResultsViewer.getDialog().setVisible(true);           
+            }            
+        };
+        bottomPanel.add(new JButton(viewSelectedAction));
+        
+        statusText = new JLabel();
+        updateStatus();
+        bottomPanel.add(statusText);
+
         Action deleteAllAction = new AbstractAction("Delete All") {
             public void actionPerformed(ActionEvent e) {
                 int confirm = JOptionPane.showConfirmDialog(ArchitectFrame.getMainInstance(),
@@ -252,9 +321,6 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
             }
         };
         bottomPanel.add(new JButton(deleteAllAction));
-        statusText = new JLabel();
-        updateStatus();
-        bottomPanel.add(statusText);
 
         JButton closeButton = new JButton("Close");
         closeButton.addActionListener(new ActionListener() {
@@ -335,6 +401,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         TableProfileResult profileResult = (TableProfileResult) e.getProfileResult();
         ProfileRowComponent myRowComponent = new ProfileRowComponent(profileResult, pm);
         list.add(myRowComponent);
+        myRowComponent.addSelectionListener(resultListPanel);
         doSearch(searchText.getText());
     }
 
@@ -348,6 +415,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         for (ProfileRowComponent view : list) {
             if (view.getResult().equals(profileResult)) {
                 list.remove(view);
+                view.removeSelectionListener(resultListPanel);
                 break;
             }
         }
@@ -357,5 +425,4 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
     public void profileListChanged(ProfileChangeEvent e) {
         logger.debug("ProfileChanged method not yet implemented.");
     }
-
 }
