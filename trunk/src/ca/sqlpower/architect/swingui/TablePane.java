@@ -451,13 +451,13 @@ public class TablePane
 	/**
 	 * See {@link #selected}.
 	 */
-	public void setSelected(boolean isSelected) {
+	public void setSelected(boolean isSelected, int multiSelectType) {
 		if (isSelected == false) {
 			selectNone();
 		}
 		if (selected != isSelected) {
 			selected = isSelected;
-			fireSelectionEvent(new SelectionEvent(this, selected ? SelectionEvent.SELECTION_EVENT : SelectionEvent.DESELECTION_EVENT));
+			fireSelectionEvent(new SelectionEvent(this, selected ? SelectionEvent.SELECTION_EVENT : SelectionEvent.DESELECTION_EVENT,multiSelectType));
 			repaint();
 		}
 	}
@@ -891,7 +891,7 @@ public class TablePane
 			if (!getLocationOnScreen().equals(t3.getLocationOnScreen())) { // equals operation might not work so good here
 				// unselect
 				logger.debug("found matching table!");
-				t3.setSelected(false);
+				t3.setSelected(false,SelectionEvent.SINGLE_SELECT);
 				t3.selectNone();
 			}
 		}
@@ -900,7 +900,7 @@ public class TablePane
 		it = getPlayPen().getSelectedRelationShips().iterator();
 		while (it.hasNext()) {
 			Relationship r = (Relationship) it.next();
-			r.setSelected(false);
+			r.setSelected(false,SelectionEvent.SINGLE_SELECT);
 		}
 	}
 

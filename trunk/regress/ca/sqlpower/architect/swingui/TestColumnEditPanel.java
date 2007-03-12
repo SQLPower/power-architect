@@ -7,6 +7,7 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.swingui.event.SelectionEvent;
 
 public class TestColumnEditPanel extends TestCase {
 	SQLDatabase db;
@@ -148,7 +149,7 @@ public class TestColumnEditPanel extends TestCase {
     public void testColumnStaysSelectedWhenMovedToPK() throws ArchitectException{        
         PlayPen pp = new PlayPen(db);        
         TablePane tp = new TablePane(table, pp);
-        tp.setSelected(true);
+        tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
         tp.selectColumn(table.getColumnIndex(col3));        
         ColumnEditPanel ce = new ColumnEditPanel(col3);        
         ce.getColInPK().setSelected(true);

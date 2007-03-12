@@ -49,6 +49,7 @@ import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.swingui.event.SelectionEvent;
 
 /**
  * SearchReplace is a GUI facility for searching for named items in the
@@ -303,7 +304,7 @@ public class SearchReplace {
 	                        TablePane tp = pp.findTablePane(searchTable);
 	                        if (tp != null) {
 	                            pp.selectNone();
-	                            tp.setSelected(true);
+	                            tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
 	                            pp.scrollRectToVisible(tp.getBounds());
 
 	                            if (searchColumn != null) {
@@ -323,7 +324,7 @@ public class SearchReplace {
 	                        Relationship r = pp.findRelationship(searchRelationship);
 	                        if (r != null) {
 	                            pp.selectNone();
-	                            r.setSelected(true);
+	                            r.setSelected(true,SelectionEvent.SINGLE_SELECT);
 	                            pp.scrollRectToVisible(r.getBounds());
 	                        }
 	                    }

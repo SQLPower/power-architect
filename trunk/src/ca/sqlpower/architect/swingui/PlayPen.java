@@ -1542,7 +1542,7 @@ public class PlayPen extends JPanel
 					if (contentPane.getComponent(j) instanceof Relationship) {
 						Relationship r = (Relationship) contentPane.getComponent(j);
 						if (r.getModel() == c[i]) {
-						    r.setSelected(false);
+						    r.setSelected(false,SelectionEvent.SINGLE_SELECT);
 							removedComponents.put(r.getModel(), contentPane.getComponent(j));
 							contentPane.remove(j);
 							foundRemovedComponent = true;
@@ -1594,7 +1594,7 @@ public class PlayPen extends JPanel
  		for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
  			if (contentPane.getComponent(i) instanceof Selectable) {
  				Selectable s = (Selectable) contentPane.getComponent(i);
- 				s.setSelected(false);
+ 				s.setSelected(false,SelectionEvent.SINGLE_SELECT);
  			}
  		}
  		// for symmetry with selectAll, it would be tempting to change the
@@ -1609,7 +1609,7 @@ public class PlayPen extends JPanel
  		for (int i = 0, n = contentPane.getComponentCount(); i < n; i++) {
  			if (contentPane.getComponent(i) instanceof Selectable) {
  				Selectable s = (Selectable) contentPane.getComponent(i);
- 				s.setSelected(true);
+ 				s.setSelected(true,SelectionEvent.SINGLE_SELECT);
  			}
  		}
  		mouseMode = MouseModeType.MULTI_SELECT;
@@ -2075,7 +2075,7 @@ public class PlayPen extends JPanel
 							ActionEvent.ACTION_PERFORMED,
 							ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
 				} else if(evt.getClickCount()==1){
-				    if (c.isSelected()&& componentPreviouslySelected)c.setSelected(false);
+				    if (c.isSelected()&& componentPreviouslySelected)c.setSelected(false,SelectionEvent.SINGLE_SELECT);
                 }
 			} else if ( c instanceof TablePane ) {
 				TablePane tp = (TablePane) c;
@@ -2098,7 +2098,7 @@ public class PlayPen extends JPanel
 				            if (selectedColIndex > TablePane.COLUMN_INDEX_TITLE && componentPreviouslySelected){
 				                ((TablePane)c).deselectColumn(selectedColIndex);
 				            } else if (c.isSelected()&& componentPreviouslySelected) {
-				                c.setSelected(false);
+				                c.setSelected(false,SelectionEvent.SINGLE_SELECT);
 				            }
 				        }
 				    } catch (ArchitectException e) {
@@ -2140,7 +2140,7 @@ public class PlayPen extends JPanel
                 if (r.isSelected()) {
                     componentPreviouslySelected = true;
                 } else {
-                    r.setSelected(true);
+                    r.setSelected(true,SelectionEvent.SINGLE_SELECT);
                 }
 
 
@@ -2189,13 +2189,13 @@ public class PlayPen extends JPanel
                                 tp.selectColumn(clickCol);
                             }
 
-							tp.fireSelectionEvent(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT));
+							tp.fireSelectionEvent(new SelectionEvent(tp, SelectionEvent.SELECTION_EVENT,SelectionEvent.SINGLE_SELECT));
 							tp.repaint();
 						}
                         if (tp.isSelected()&& clickCol == TablePane.COLUMN_INDEX_TITLE){
                             componentPreviouslySelected = true;
                         } else {
-                            tp.setSelected(true);
+                            tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
                         }
 					}
 
@@ -2284,9 +2284,9 @@ public class PlayPen extends JPanel
 					PlayPenComponent c = contentPane.getComponent(i);
 					if (c instanceof Relationship) {
 					    // relationship is non-rectangular so we can't use getBounds for intersection testing
-					    ((Relationship) c).setSelected(((Relationship) c).intersects(rubberBand));
+					    ((Relationship) c).setSelected(((Relationship) c).intersects(rubberBand),SelectionEvent.SINGLE_SELECT);
 					} else if (c instanceof Selectable) {
-						((Selectable) c).setSelected(rubberBand.intersects(c.getBounds(temp)));
+						((Selectable) c).setSelected(rubberBand.intersects(c.getBounds(temp)),SelectionEvent.SINGLE_SELECT);
 					}
 				}
 
@@ -2329,7 +2329,7 @@ public class PlayPen extends JPanel
 			if ( c instanceof Relationship) {
 				if (evt.isPopupTrigger() && !evt.isConsumed()) {
 					Relationship r = (Relationship) c;
-					r.setSelected(true);
+					r.setSelected(true,SelectionEvent.SINGLE_SELECT);
 					r.showPopup(r.popup, p);
 					return true;
 				}
@@ -2456,7 +2456,7 @@ public class PlayPen extends JPanel
 					try {
 						pp.db.addChild(tp.getModel());
 						pp.selectNone();
-						tp.setSelected(true);
+						tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
 						mouseMode = MouseModeType.SELECT_TABLE;
 					} catch (ArchitectException e) {
 						logger.error("Couldn't add table \"" + tp.getModel() + "\" to play pen:", e);
@@ -2587,7 +2587,7 @@ public class PlayPen extends JPanel
             TablePane tp = findTablePane((SQLTable) selection);
             if (tp != null) {
                 selectNone();
-                tp.setSelected(true);
+                tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
                 Rectangle scrollTo = tp.getBounds();
                 zoomRect(scrollTo);
                 scrollRectToVisible(scrollTo);
@@ -2596,7 +2596,7 @@ public class PlayPen extends JPanel
             Relationship r = findRelationship((SQLRelationship) selection);
             if (r != null) {
                 selectNone();
-                r.setSelected(true);
+                r.setSelected(true,SelectionEvent.SINGLE_SELECT);
                 Rectangle scrollTo = r.getBounds();
                 zoomRect(scrollTo);
                 scrollRectToVisible(scrollTo);

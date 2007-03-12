@@ -186,14 +186,7 @@ public class ProfileTableModel extends AbstractTableModel {
         resultList = new ArrayList<ColumnProfileResult>();
         for (TableProfileResult tpr : tableResultsToScan) {
             for (ColumnProfileResult cpr : tpr.getColumnProfileResults()) {
-                /*if (filters.size() > 0) {
-
-                    if (shouldNotBeFilteredOut(cpr)) {
-                        resultList.add(cpr);
-                    }
-                } else {*/
-                    resultList.add(cpr);
-                //}
+                resultList.add(cpr);
             }
         }
         Collections.sort(resultList);
@@ -304,6 +297,10 @@ public class ProfileTableModel extends AbstractTableModel {
         tableResultsToScan.add(tpr);
     }
     
+    public List<TableProfileResult> getTableResultsToScan() {
+        return tableResultsToScan;
+    }
+
     public void clearScanList() {
         tableResultsToScan.clear();
     }

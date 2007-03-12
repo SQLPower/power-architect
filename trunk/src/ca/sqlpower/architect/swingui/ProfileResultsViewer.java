@@ -195,7 +195,7 @@ public class ProfileResultsViewer {
         tableViewPane.add(searchPanel,BorderLayout.NORTH);
         tabPane.addTab("Table View", tableViewPane );
         
-        ProfilePanel p = new ProfilePanel(profileManager);
+        ProfilePanel p = new ProfilePanel(tm);
         p.setViewTable(viewTable);
         p.setTabPane(tabPane);
         p.setTableModel(tm);

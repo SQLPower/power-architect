@@ -8,8 +8,11 @@ import java.awt.Insets;
 import java.awt.LayoutManager2;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -18,12 +21,15 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.UIManager;
 
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.TableProfileManager;
 import ca.sqlpower.architect.profile.TableProfileResult;
+import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.architect.swingui.event.TaskTerminationEvent;
 import ca.sqlpower.architect.swingui.event.TaskTerminationListener;
 
@@ -33,7 +39,7 @@ import ca.sqlpower.architect.swingui.event.TaskTerminationListener;
  * ca.sqlpower.architect.swingui.ProfileManagerView, but has
  * no dependencies thereon.
  */
-public class ProfileRowComponent extends JPanel {
+public class ProfileRowComponent extends JPanel implements Selectable {
 
     private static final Logger logger = Logger.getLogger(ProfileRowComponent.class);
 
@@ -150,27 +156,27 @@ public class ProfileRowComponent extends JPanel {
             logger.debug("layoutContainer called");
             JComponent p = (JComponent) parent;
             Insets inset = p.getBorder().getBorderInsets(p);
-            final int height = parent.getHeight() + inset.top + inset.bottom;
-            final int width = parent.getWidth();
+            final int height = parent.getHeight() + inset.top;
+            final int width = parent.getWidth() + inset.left;
             final int stretchyPreferredWidth = width -
-            inset.left -
-            inset.right -
-            3 * xGap -
-            icon.getPreferredSize().width -
-            // reload and delete buttons are same size
-            2 * reload.getPreferredSize().width;
+                inset.left -
+                inset.right -
+                3 * xGap -
+                icon.getPreferredSize().width -
+                // reload and delete buttons are same size
+                2 * reload.getPreferredSize().width;
 
             if (icon != null) {
                 Dimension preferredSize = icon.getPreferredSize();
                 int x = inset.left;
-                int y = height/2 - preferredSize.height/2; 
+                int y = height /2 - preferredSize.height/2; 
                 icon.setBounds(x, y, preferredSize.width, preferredSize.height);
             }
             if (tableName != null) {
                 Dimension preferredSize = new Dimension(stretchyPreferredWidth,
                         tableName.getPreferredSize().height);
                 int x = inset.left + icon.getPreferredSize().width + xGap;
-                int y = height/2 - yGap/2 - preferredSize.height;
+                int y = height /2 - yGap/2 - preferredSize.height;
                 tableName.setBounds(x, y, preferredSize.width, preferredSize.height);
             }
             if (tableInfo != null) {
@@ -244,18 +250,26 @@ public class ProfileRowComponent extends JPanel {
     private class ProfileRowMouseListener extends MouseAdapter {
         public void mouseClicked(MouseEvent evt) {
             Object obj = evt.getSource();
-            if (evt.getClickCount() == 2) {
-                if (getResult().isFinished() && !(obj instanceof JButton)) {
-                    ProfileResultsViewer profileResultsViewer = 
-                        new ProfileResultsViewer((TableProfileManager) pm);
-                    profileResultsViewer.clearScanList();
-                    profileResultsViewer.addTableProfileResultToScan(result);
-                    profileResultsViewer.addTableProfileResult(result);
-                    profileResultsViewer.getDialog().setVisible(true);
+            if (evt.getButton() == MouseEvent.BUTTON1) {
+                if (evt.getClickCount() == 2) {
+                    if (getResult().isFinished() && !(obj instanceof JButton)) {
+                        ProfileResultsViewer profileResultsViewer = 
+                            new ProfileResultsViewer((TableProfileManager) pm);
+                        profileResultsViewer.clearScanList();
+                        profileResultsViewer.addTableProfileResultToScan(result);
+                        profileResultsViewer.addTableProfileResult(result);
+                        profileResultsViewer.getDialog().setVisible(true);
+                    }
+                } else if ((evt.getModifiers() & InputEvent.CTRL_MASK) != 0){
+                    setSelected(!selected, SelectionEvent.CTRL_MULTISELECT);
+                } else if ((evt.getModifiers() & InputEvent.SHIFT_MASK) != 0){
+                    setSelected(true, SelectionEvent.SHIFT_MULTISELECT);
+                }  else {
+                    setSelected(true,SelectionEvent.SINGLE_SELECT);
                 }
             }
         }
-    }   
+    }
     
     private class ResultTaskTerminationListener implements TaskTerminationListener {
 
@@ -329,5 +343,36 @@ public class ProfileRowComponent extends JPanel {
 
     public TableProfileResult getResult() {
         return result;
+    }
+    
+    boolean selected = false;
+    List<SelectionListener> listeners = new ArrayList<SelectionListener>();
+    
+    public void setSelected(boolean v,int selectionType) {
+        selected = v;
+        setBackground(selected ? UIManager.getColor("List.selectionBackground"): UIManager.getColor("List.background"));
+        fireSelectionEvent(new SelectionEvent(ProfileRowComponent.this, selected ? SelectionEvent.SELECTION_EVENT : SelectionEvent.DESELECTION_EVENT,selectionType));
+    }
+
+    public boolean isSelected() {
+        return selected;
+    }
+
+    public void addSelectionListener(SelectionListener l) {
+        listeners.add(l);
+    }
+
+    public void removeSelectionListener(SelectionListener l) {
+        listeners.remove(l);
+    }
+    
+    public void fireSelectionEvent(SelectionEvent e) {
+        for (SelectionListener listener : listeners) {
+            if (e.getType() == SelectionEvent.SELECTION_EVENT) {
+                listener.itemSelected(e);
+            } else {
+                listener.itemDeselected(e);
+            }
+        }
     }
 }

@@ -9,11 +9,18 @@ public class SelectionEvent extends EventObject {
 	public static final int SELECTION_EVENT = 1;
 	public static final int DESELECTION_EVENT = 2;
 
+    public static final int SINGLE_SELECT=4;
+    public static final int CTRL_MULTISELECT=8;
+    public static final int SHIFT_MULTISELECT=16;
+    
+    
 	protected int eventType;
-
-	public SelectionEvent(Selectable source, int eventType) {
+	private final int multiselectType;
+    
+	public SelectionEvent(Selectable source, int eventType, int multiselect) {
 		super(source);
 		this.eventType = eventType;
+        this.multiselectType = multiselect;
 	}
 
 	public Selectable getSelectableSource() {
@@ -30,4 +37,11 @@ public class SelectionEvent extends EventObject {
 	public int getType() {
 		return eventType;
 	}
+
+	/**
+	 * returns the multiselect type (SINGLE_SELECT,CTRL_MULTISELECT,SHIFT_MULTISELECT)
+	 */
+    public int getMultiselectType() {
+        return multiselectType;
+    }  
 }
