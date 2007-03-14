@@ -5,6 +5,7 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
@@ -647,7 +648,11 @@ public class TestSwingUIProject extends ArchitectTestCase {
         SQLDatabase ppdb = project.getPlayPen().getDatabase();
         SQLTable table = new SQLTable(ppdb, true);
         table.setName(tableName);
+        SQLColumn col = new SQLColumn(table, "first", Types.VARCHAR, 10, 0);
+        col.setPrimaryKeySeq(0);
+        table.addColumn(col);
         SQLIndex target = new SQLIndex("testy index", false, null, null, null);
+        target.addChild(target.new Column(col, false, false));
         ppdb.addChild(table);
         table.getIndicesFolder().addChild(target);
         
@@ -672,13 +677,26 @@ public class TestSwingUIProject extends ArchitectTestCase {
         assertNotNull(out);
         project.save(out,ENCODING);
         
+        
+        InputStream in = new BufferedInputStream(new FileInputStream(tmp));
+        StringBuffer sb = new StringBuffer(2000);
+        int c;
+        while( (c = in.read()) != -1) {
+            sb.append((char)c);
+        }
+        System.out.println(sb.toString());
+        in.close();
+
+        
+        
         SwingUIProject project2 = new SwingUIProject("new test project");
         project2.load(new BufferedInputStream(new FileInputStream(tmp)));
         
-        // grab the second database in the dbtree's model (the first is the play pen)
         ppdb = (SQLDatabase) project2.getPlayPen().getDatabase();
         
-        target = (SQLIndex) ((SQLTable) ppdb.getTableByName(tableName)).getIndicesFolder().getChild(0);
+        SQLTable targetTable = (SQLTable) ppdb.getTableByName(tableName);
+        System.out.println("target table=["+targetTable.getName()+"]");
+        target = (SQLIndex) (targetTable).getIndicesFolder().getChild(0);
         
         Map<String, Object> newDescription =
             getAllInterestingProperties(target, propertiesToIgnore);
