@@ -55,7 +55,6 @@ import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.ArchitectUtils;
-import ca.sqlpower.architect.BrowserUtil;
 import ca.sqlpower.architect.ConfigFile;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.SQLObject;
@@ -94,6 +93,7 @@ import ca.sqlpower.architect.swingui.action.UndoAction;
 import ca.sqlpower.architect.swingui.action.ViewProfileAction;
 import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.undo.UndoManager;
+import ca.sqlpower.util.BrowserUtil;
 
 import com.darwinsys.util.PrefsUtils;
 import com.jgoodies.forms.builder.ButtonBarBuilder;
