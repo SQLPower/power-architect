@@ -44,6 +44,7 @@ import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.SQLIndex.Column;
+import ca.sqlpower.architect.SQLTable.Folder;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.PLExport;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
@@ -226,6 +227,22 @@ public class SwingUIProject {
          */
         for (SQLTable table : (List<SQLTable>)playPen.getDatabase().getTables()) {
 
+            if (logger.isDebugEnabled()) {
+                if (!table.isPopulated()) {
+                    logger.debug("Table ["+table.getName()+"] not populated");
+                } else if (table.getIndicesFolder() == null) {
+                    logger.debug("Table ["+table.getName()+"] has null indices folder");
+                } else {
+                    logger.debug("Table ["+table.getName()+"] index folder contents: "+table.getIndicesFolder().getChildren());
+                }
+            }
+            
+            if (table.getIndicesFolder() == null) {
+                logger.debug("this must be a very old version, we have to add the index" +
+                        " folder manually. the table is [" + table.getName() + "]");
+                table.addChild(new Folder(Folder.INDICES, false));
+            }
+            
             for (SQLIndex index : (List<SQLIndex>)table.getIndicesFolder().getChildren()) {
                 if (index.isPrimaryKeyIndex()) {
                     table.setPrimaryKeyIndex(index);
@@ -234,8 +251,8 @@ public class SwingUIProject {
             }
 
             if ( table.getPrimaryKeyIndex() == null) {
-                System.out.println("primary key index null in table " + table);
-                System.out.println("number of children in indices folder: " + table.getIndicesFolder().getChildCount());
+                logger.debug("primary key index is null in table: " + table);
+                logger.debug("number of children found in indices folder: " + table.getIndicesFolder().getChildCount());
                 for (SQLIndex index : (List<SQLIndex>)table.getIndicesFolder().getChildren()) {
                     if (objectIdMap.get(table.getName()+"."+index.getName()) != null) {
                         index.setPrimaryKeyIndex(true);
@@ -246,6 +263,17 @@ public class SwingUIProject {
             }
 
             table.normalizePrimaryKey();
+            
+            if (logger.isDebugEnabled()) {
+                if (!table.isPopulated()) {
+                    logger.debug("Table ["+table.getName()+"] not populated");
+                } else if (table.getIndicesFolder() == null) {
+                    logger.debug("Table ["+table.getName()+"] has null indices folder");
+                } else {
+                    logger.debug("Table ["+table.getName()+"] index folder contents: "+table.getIndicesFolder().getChildren());
+                }
+            }
+
         }
 
         setModified(false);
@@ -1378,7 +1406,6 @@ public class SwingUIProject {
             id = "IDC"+objectIdMap.size();
             type = "index-column";
             SQLIndex.Column col = (SQLIndex.Column) o;
-
             if (col.getColumn() != null) {
                 propNames.put("column-ref", objectIdMap.get(col.getColumn()));
             }
