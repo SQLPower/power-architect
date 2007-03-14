@@ -174,6 +174,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	 * right after calling this).  It will refer to source as its
 	 * sourceColumn property, and otherwise be identical to source.
 	 * 
+     * Will not preserve listeners.
 	 * 
 	 */
 	public static SQLColumn getDerivedInstance(SQLColumn source, SQLTable addTo) {

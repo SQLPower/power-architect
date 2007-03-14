@@ -286,6 +286,8 @@ public class TestSQLColumn extends SQLTestCase {
 		derivProps.remove("parent");
 		derivProps.remove("sourceColumn");
 		derivProps.remove("sourceDataTypeName");
+        derivProps.remove("SQLObjectListeners");
+        origProps.remove("SQLObjectListeners");
 		origProps.remove("parentTable");
 		origProps.remove("parent");
 		origProps.remove("sourceColumn");
