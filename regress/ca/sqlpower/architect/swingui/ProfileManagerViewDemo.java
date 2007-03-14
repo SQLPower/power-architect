@@ -40,7 +40,7 @@ public class ProfileManagerViewDemo {
                 System.out.println("before remove: " + mockData);
                 boolean b = mockData.remove(victim);
                 System.out.println("after remove: " + mockData);
-                view.profileRemoved(new ProfileChangeEvent(mockTable, tableProfileResult));
+                view.profilesRemoved(new ProfileChangeEvent(mockTable, tableProfileResult));
                 return b;
             }
 
@@ -103,7 +103,7 @@ public class ProfileManagerViewDemo {
         tableProfileResult.setCreateStartTime(System.currentTimeMillis());
         mockData.add(tableProfileResult);
 
-        view.profileAdded(new ProfileChangeEvent(mockTable, tableProfileResult));
+        view.profilesAdded(new ProfileChangeEvent(mockTable, tableProfileResult));
     }
 
 }

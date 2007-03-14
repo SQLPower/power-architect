@@ -90,15 +90,14 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
             }
             
             rs.close();
+            conn.close();
             
             List<SQLColumn> columns = table.getColumns();
             if ( columns.size() == 0 ) {
-                System.out.println("TableProfileResult.doProfile(): no columns in table!!");
                 return;
             }
             DDLGenerator ddlg = getDDLGenerator(columns.get(0));
             for (SQLColumn col : columns ) {
-                System.out.println("TableProfileResult.doProfile(): populating column " + col);
                 ColumnProfileResult columnResult = new ColumnProfileResult(col, manager, ddlg, this);
                 columnResult.populate();
                 columnProfileResults.add(columnResult);

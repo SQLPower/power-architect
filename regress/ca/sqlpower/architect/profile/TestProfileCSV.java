@@ -29,7 +29,7 @@ public class TestProfileCSV extends TestProfileBase {
             }
         }
 
-        fmt.format(out, profileResults, pm);
+        fmt.format(out, profileResults);
         String x = out.toString();
         System.out.println("RET=" + x);
 

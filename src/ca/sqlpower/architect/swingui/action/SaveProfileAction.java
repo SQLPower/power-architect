@@ -68,13 +68,11 @@ public class SaveProfileAction extends AbstractAction {
 
     private JDialog parent;
     private ProfileJTable viewTable;
-    private TableProfileManager pm;
 
     public SaveProfileAction(JDialog parent, ProfileJTable viewTable, TableProfileManager pm) {
         super("Save...");
         this.parent = parent;
         this.viewTable = viewTable;
-        this.pm = pm;
     }
 
 
@@ -127,14 +125,12 @@ public class SaveProfileAction extends AbstractAction {
                 for ( int i=0; i<selectedRows.length; i++ ) {
                     int rowid = selectedRows[i];
                     ColumnProfileResult result = viewTable.getColumnProfileResultForRow(rowid);
-                    TableProfileResult tpr = result.getParentResult();
                     objectToSave.addColumnProfileResult(result);
                 }
             }
         } else {
             for (int i = 0; i < viewTable.getRowCount(); i++) {
                 ColumnProfileResult result = viewTable.getColumnProfileResultForRow(i);
-                TableProfileResult tpr = result.getParentResult();
                 objectToSave.addColumnProfileResult(result);
             }
         }
@@ -233,7 +229,7 @@ public class SaveProfileAction extends AbstractAction {
                     default:
                         throw new IllegalArgumentException("Unknown type");
                     }
-                    prf.format(out, objectToSave.getDepthFirstList(), pm);
+                    prf.format(out, objectToSave.getDepthFirstList());
                 } catch (Exception ex) {
                     ASUtils.showExceptionDialog(parent,
                         "Could not generate/save report file", ex, new ArchitectExceptionReportFactory());

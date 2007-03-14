@@ -19,11 +19,11 @@ public class TestProfileManagerListeners extends TestProfileBase {
         ProfileChangeListener listener = new ProfileChangeListener() {
 
 
-            public void profileAdded(ProfileChangeEvent e) {
+            public void profilesAdded(ProfileChangeEvent e) {
                 addedEvents++;
             }
 
-            public void profileRemoved(ProfileChangeEvent e) {
+            public void profilesRemoved(ProfileChangeEvent e) {
                 removedEvents++;
             }
 

@@ -252,7 +252,9 @@ public class ProfileRowComponent extends JPanel implements Selectable {
             Object obj = evt.getSource();
             if (evt.getButton() == MouseEvent.BUTTON1) {
                 if (evt.getClickCount() == 2) {
-                    if (getResult().isFinished() && !(obj instanceof JButton)) {
+                    if (getResult().isFinished() && 
+                                    !getResult().isCancelled() &&
+                                    !(obj instanceof JButton)) {
                         ProfileResultsViewer profileResultsViewer = 
                             new ProfileResultsViewer((TableProfileManager) pm);
                         profileResultsViewer.clearScanList();
@@ -265,7 +267,7 @@ public class ProfileRowComponent extends JPanel implements Selectable {
                 } else if ((evt.getModifiers() & InputEvent.SHIFT_MASK) != 0){
                     setSelected(true, SelectionEvent.SHIFT_MULTISELECT);
                 }  else {
-                    setSelected(true,SelectionEvent.SINGLE_SELECT);
+                    setSelected(true, SelectionEvent.SINGLE_SELECT);
                 }
             }
         }
@@ -274,9 +276,7 @@ public class ProfileRowComponent extends JPanel implements Selectable {
     private class ResultTaskTerminationListener implements TaskTerminationListener {
 
         public void taskFinished(TaskTerminationEvent e) {
-            // TODO show or enable Refresh button
-            // TODO maybe hide progressBar
-            // replace stop button with delete button 
+            reProfileButton.setVisible(true);
             ProfileRowComponent.this.remove(cancelButton);
             ProfileRowComponent.this.add(deleteButton, ComponentType.DELETE);
             if (!result.isCancelled()) {
@@ -319,6 +319,7 @@ public class ProfileRowComponent extends JPanel implements Selectable {
                 ProfileRowComponent.this.remove(cancelButton);
                 ProfileRowComponent.this.add(deleteButton, ComponentType.DELETE);
                 progressBar.setVisible(false);
+                reProfileButton.setVisible(true);
                 System.out.println("STOP");
             }
         });
@@ -331,7 +332,8 @@ public class ProfileRowComponent extends JPanel implements Selectable {
         });
         add(new JLabel(result.getProfiledObject().getName()), ComponentType.TABLE_NAME);
         add(reProfileButton, ComponentType.RELOAD);
-
+        reProfileButton.setVisible(false);
+        
         ProgressWatcher watcher = new ProgressWatcher(progressBar, result);
         add(progressBar, ComponentType.PROGRESS_BAR);
         watcher.addTaskTerminationListener(new ResultTaskTerminationListener());

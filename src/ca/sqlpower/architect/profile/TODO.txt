@@ -3,13 +3,6 @@ TODO list for Profiling.
 Have a "Don't Save Profiles" option in Architect User Settings.
 
 More unit tests!!
-	Ensure load/save project still OK
-
-Have multiple profiles of the same table at different times.
 
 -----
 Have Project Close shut down running threads.
-
-Find out why user can create a second ProfileManagerView by toggling
-Show Profile Manager before the file gets loaded, when this does not
-create a new SwingUIProject.

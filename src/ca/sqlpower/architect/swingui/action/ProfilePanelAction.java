@@ -1,10 +1,8 @@
 package ca.sqlpower.architect.swingui.action;
 
-import java.awt.event.ActionEvent;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.swing.AbstractAction;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.tree.TreePath;
@@ -27,7 +25,7 @@ import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
 
 
-public class ProfilePanelAction extends AbstractAction {
+public class ProfilePanelAction extends ProgressAction {
     private static final Logger logger = Logger.getLogger(ProfilePanelAction.class);
 
     protected DBTree dbTree;
@@ -42,11 +40,7 @@ public class ProfilePanelAction extends AbstractAction {
         putValue(SHORT_DESCRIPTION, "Profile Tables");
     }
 
-    /**
-     * Called to profile the item selected in the tree 
-     * and pop up the ProfilePanel.
-     */
-    public void actionPerformed(ActionEvent e) {
+    private void profileItemsFromDBTree(ActionMonitor monitor) {
         if (dbTree == null) {
             logger.debug("dbtree was null when actionPerformed called");
             return;
@@ -54,12 +48,17 @@ public class ProfilePanelAction extends AbstractAction {
         if (dbTree.getSelectionPaths() == null) {
             JOptionPane.showMessageDialog(dialog,
                     "Please select table(s) in the Database Tree to profile them",
-                    "No selection", JOptionPane.ERROR_MESSAGE);
+                    "No selection", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
 
         TreePath targetDBPath = dbTree.getPathForRow(0);
         for (TreePath path: dbTree.getSelectionPaths()){
+            // We wanted to cancel so exit
+            if (monitor.isCancelled()) {
+                logger.debug("Profile load canceled");
+                return;
+            }
             if (path.isDescendant(targetDBPath)) {
 
                 int answer = JOptionPane.showConfirmDialog(dialog,
@@ -79,6 +78,10 @@ public class ProfilePanelAction extends AbstractAction {
         try {
             Set<SQLObject> sqlObject = new HashSet<SQLObject>();
             for ( TreePath tp : dbTree.getSelectionPaths() ) {
+                if (monitor.isCancelled()) {
+                    logger.debug("Profile load canceled");
+                    return;
+                }
                 logger.debug("Top of first loop, treepath=" + tp);
                 // skip the target db
                 if (tp.isDescendant(targetDBPath)) continue;
@@ -142,14 +145,19 @@ public class ProfilePanelAction extends AbstractAction {
 
                 }
             }
-
+            monitor.setJobSize(sqlObject.size());
             final Set<SQLTable> tables = new HashSet<SQLTable>();
             for ( SQLObject o : sqlObject ) {
+                if (monitor.isCancelled()) {
+                    logger.debug("Profile load canceled");
+                    return;
+                }
                 if ( o instanceof SQLColumn){
                     tables.add(((SQLColumn)o).getParentTable());
                 } else {
                     tables.addAll(ArchitectUtils.tablesUnder(o));
                 }
+                monitor.setProgress(monitor.getProgress()+1);
             }
 
             logger.debug("Calling profileManager.asynchCreateProfiles(tables)");
@@ -183,4 +191,30 @@ public class ProfilePanelAction extends AbstractAction {
     public void setDialog(JDialog dialog) {
         this.dialog = dialog;
     }
+
+ 
+    @Override
+    public String getDialogMessage() {
+        return "Preparing Profiles:";
+    }
+
+    @Override
+    public void cleanUp(ActionMonitor monitor) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void doStuff(ActionMonitor monitor) {
+        monitor.setStarted(true);
+        profileItemsFromDBTree(monitor);
+        monitor.setFinished(true);
+    }
+
+    @Override
+    public void setupMonitor(ActionMonitor monitor) {
+    }
+
+ 
+
 }

@@ -4,11 +4,11 @@ import java.util.EventListener;
 
 public interface ProfileChangeListener extends EventListener{
 
-    /** One profile was added */
-    public void profileAdded(ProfileChangeEvent e);
+    /** One or Many profiles were added */
+    public void profilesAdded(ProfileChangeEvent e);
 
-    /** One profile was removed */
-    public void profileRemoved(ProfileChangeEvent e);
+    /** One or Many profiles were removed */
+    public void profilesRemoved(ProfileChangeEvent e);
 
     /** The list changed in some major way; listeners should re-fetch it */
     public void profileListChanged(ProfileChangeEvent event);

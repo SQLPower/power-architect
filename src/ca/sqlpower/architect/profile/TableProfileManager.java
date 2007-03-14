@@ -46,6 +46,11 @@ public class TableProfileManager implements ProfileManager {
         putResult(profileResult);
         lastTableProfileResult = profileResult;
     }
+    
+    public void loadManyResults(List results){
+        tableResults.addAll(results);
+        fireProfilesAdded(results);
+    }
 
     public List<TableProfileResult> getTableResults() {
         return Collections.unmodifiableList(tableResults);
@@ -84,12 +89,12 @@ public class TableProfileManager implements ProfileManager {
 
         // First, create all the result objects and add them to this manager
         // (so that they are visible and cancelable to the user)
-        final List<TableProfileResult> results = new ArrayList<TableProfileResult>();
+        final List results = new ArrayList<TableProfileResult>();
         for (SQLTable t : tables) {
             TableProfileResult tpr = new TableProfileResult(t, this);
             results.add(tpr);
-            putResult(tpr);
         }
+        loadManyResults(results);
         
         // Now, populate them one after the other on a separate worker thread
         // (Please don't change this to do them all in parallel.. it will reduce
@@ -97,7 +102,7 @@ public class TableProfileManager implements ProfileManager {
         new Thread() {
             public void run() {
                 try {
-                    for (TableProfileResult tpr : results) {
+                    for (TableProfileResult tpr : ((List<TableProfileResult>)results)) {
                         System.out.println("TableProfileManager.asynchCreateProfiles(): populate started");
                         tpr.populate();
                         System.out.println("populated: " + tpr);
@@ -123,8 +128,14 @@ public class TableProfileManager implements ProfileManager {
          return tableResult;
     }
 
-     
+     /**
+      * Cancel any running profiles and remove all profiles from
+      * the TableProfileManager
+      */
      public void clear() {
+         for (TableProfileResult tpr: tableResults){
+             tpr.setCancelled(true);
+         }
          tableResults.clear();
          fireProfileChanged();
      }
@@ -132,6 +143,7 @@ public class TableProfileManager implements ProfileManager {
     public boolean removeProfile(TableProfileResult result) {
         System.out.println("ProfileManager: removing object: " + result);
         if (tableResults.remove(result)) {
+            result.setCancelled(true);
             fireProfileRemoved(result);
             return true;
         }
@@ -163,19 +175,34 @@ public class TableProfileManager implements ProfileManager {
     private void fireProfileAdded(ProfileResult result){
         ProfileChangeEvent event = new ProfileChangeEvent(this, result);
         for (ProfileChangeListener listener: listeners){
-            listener.profileAdded(event);
+            listener.profilesAdded(event);
+        }
+    }
+    
+    private void fireProfilesAdded(List<ProfileResult> addedResultsList) {
+        ProfileChangeEvent event = new ProfileChangeEvent(this, addedResultsList);
+        for (ProfileChangeListener listener: listeners){
+            listener.profilesAdded(event);
         }
     }
 
+    private void fireProfilesRemoved(List<ProfileResult> removedResultsList) {
+        ProfileChangeEvent event = new ProfileChangeEvent(this, removedResultsList);
+        for (ProfileChangeListener listener: listeners) {
+            listener.profilesRemoved(event);
+        }
+    }    
+    
     private void fireProfileRemoved(ProfileResult removed) {
         ProfileChangeEvent event = new ProfileChangeEvent(this, removed);
         for (ProfileChangeListener listener: listeners) {
-            listener.profileRemoved(event);
+            listener.profilesRemoved(event);
         }
     }
 
     private void fireProfileChanged(){
-        ProfileChangeEvent event = new ProfileChangeEvent(this, null);
+        List<ProfileResult> profileResultList = Collections.emptyList();
+        ProfileChangeEvent event = new ProfileChangeEvent(this, profileResultList);
         for (ProfileChangeListener listener: listeners){
             listener.profileListChanged(event);
         }
