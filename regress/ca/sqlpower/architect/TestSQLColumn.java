@@ -887,7 +887,7 @@ public class TestSQLColumn extends SQLTestCase {
 		SQLColumn tmpCol = new SQLColumn();
 		SQLColumn cowCol = table3pk.getColumn(0);
 		
-		LinkedList ll = (LinkedList) tmpCol.getSQLObjectListeners();
+        LinkedList ll = (LinkedList) tmpCol.getSQLObjectListeners();
 		assertEquals(0,ll.size());
 		TestSQLObjectListener test1 = new TestSQLObjectListener();
 		tmpCol.addSQLObjectListener(test1);
@@ -955,17 +955,15 @@ public class TestSQLColumn extends SQLTestCase {
 		assertEquals(0,test2.getStructureChangedCount());
 		
 		assertEquals("name",test2.getLastEventName());
-		
-		cowCol.removeSQLObjectListener(test1);
-        cowCol.removeSQLObjectListener(test2);
 		ll = (LinkedList) cowCol.getSQLObjectListeners();
-		assertEquals(ll.toString(),0,ll.size());
+        // We have one listener because the index is listening to this column
+		assertEquals(ll.toString(),1,ll.size());
 		test1 = new TestSQLObjectListener();
 		cowCol.addSQLObjectListener(test1);
-		assertEquals(1,ll.size());
+		assertEquals(2,ll.size());
 		test2 = new TestSQLObjectListener();
 		cowCol.addSQLObjectListener(test2);
-		assertEquals(2,ll.size());
+		assertEquals(3,ll.size());
 		
 		assertEquals(test1.getInsertedCount(),0);
 		assertEquals(test1.getRemovedCount(),0);
@@ -1001,7 +999,7 @@ public class TestSQLColumn extends SQLTestCase {
 		assertEquals(test2.getStructureChangedCount(),0);
 		
 		cowCol.removeSQLObjectListener(test1);
-		assertEquals(1,ll.size());
+		assertEquals(2,ll.size());
 		
 		assertEquals(test1.getInsertedCount(),0);
 		assertEquals(test1.getRemovedCount(),0);
