@@ -347,9 +347,17 @@ public class SQLIndex extends SQLObject {
         return parent;
     }
 
+    /**
+     * Returns this index's parent table, or null if this index
+     * is not attached to a parent table.
+     */
     public SQLTable getParentTable() {
         SQLTable.Folder<SQLIndex> parent = getParent();
-        return parent.getParent();
+        if (parent == null) {
+            return null;
+        } else {
+            return parent.getParent();
+        }
     }
     @Override
     public String getShortDisplayName() {
@@ -379,6 +387,26 @@ public class SQLIndex extends SQLObject {
         this.parent = (Folder<SQLIndex>) parent;
     }
 
+    @Override
+    protected SQLObject removeImpl(int index) {
+        Column c = (Column) children.get(index);
+        if (c.getColumn() != null) {
+            c.getColumn().removeSQLObjectListener(c.targetColumnListener);
+        }
+        return super.removeImpl(index);
+    }
+
+    @Override
+    protected void addChildImpl(int index, SQLObject newChild) throws ArchitectException {
+        super.addChildImpl(index, newChild);
+        Column c = (Column) newChild;
+        if (c.getColumn() != null) {
+            // this will be redundant in some cases, but the addSQLObjectListener method
+            // checks for adding duplicate listeners and does nothing in that case
+            c.getColumn().addSQLObjectListener(c.targetColumnListener);
+        }
+    }
+    
     public String getFilterCondition() {
         return filterCondition;
     }
@@ -545,7 +573,23 @@ public class SQLIndex extends SQLObject {
      * @param isPrimaryKey
      */
     public void setPrimaryKeyIndex(boolean isPrimaryKey) {
-        this.primaryKeyIndex = isPrimaryKey;
+        boolean oldValue = this.primaryKeyIndex;
+        SQLTable parentTable = getParentTable();
+
+        try {
+            startCompoundEdit("Make index a Primary Key");
+            if (parentTable != null) {
+                SQLIndex index = parentTable.getPrimaryKeyIndex();
+                if (index != null && index.equals(this)) {
+                    throw new IllegalStateException("the table already has a primary key index.");
+                }
+                this.primaryKeyIndex = isPrimaryKey;
+                parentTable.setPrimaryKeyIndex(this);
+            }
+            fireDbObjectChanged("primaryKeyIndex", oldValue, isPrimaryKey);
+        } finally {
+            endCompoundEdit("Make index a Primary Key");
+        }
     }
 
     @Override
