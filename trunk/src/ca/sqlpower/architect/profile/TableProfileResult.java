@@ -89,9 +89,6 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
                 rowCount = rs.getInt("ROW__COUNT");
             }
             
-            rs.close();
-            conn.close();
-            
             List<SQLColumn> columns = table.getColumns();
             if ( columns.size() == 0 ) {
                 return;
