@@ -652,6 +652,7 @@ public class TestSQLColumn extends SQLTestCase {
 		Set<String> propsToIgnore = new HashSet<String>();
 		propsToIgnore.add("parentTable");
 		propsToIgnore.add("parent");
+        propsToIgnore.add("SQLObjectListeners");
 		
 		Map<String,Object> origProps = (Map<String,Object>) BeanUtils.describe(cowCol);
 		Map<String,Object> derivProps = (Map<String,Object>) BeanUtils.describe(tmpCol);
