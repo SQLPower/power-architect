@@ -94,8 +94,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 		propertiesToIgnoreForEventGeneration.add("zoomOutAction");
         propertiesToIgnoreForEventGeneration.add("magicEnabled");
 		
-		if(so instanceof SQLDatabase)
-		{
+		if (so instanceof SQLDatabase) {
 			// should be handled in the Datasource
 			propertiesToIgnoreForEventGeneration.add("name");
 		}
@@ -148,7 +147,8 @@ public abstract class SQLTestCase extends ArchitectTestCase {
                 newVal = new SQLColumn();
 			} else if ( property.getPropertyType() == IndexType.class){
                 newVal = IndexType.STATISTIC;
-            
+            } else if ( property.getPropertyType() == SQLIndex.class){
+                newVal = new SQLIndex();
             } else {
 				throw new RuntimeException("This test case lacks a value for "+
 						property.getName()+
@@ -259,6 +259,8 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 				newVal = new SQLTable();
             } else if (property.getPropertyType() == SQLColumn.class) {
                 newVal = new SQLColumn();
+            } else if (property.getPropertyType() == SQLIndex.class) {
+                newVal = new SQLIndex();
 			} else if ( property.getPropertyType() == IndexType.class){
                 newVal = IndexType.STATISTIC;
     
@@ -274,7 +276,8 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 				BeanUtils.copyProperty(so, property.getName(), newVal);
 				
 				// some setters fire multiple events (they change more than one property)  but only register one as an undo
-				assertEquals("Event for set "+property.getName()+" on "+so.getClass().getName()+" added multiple ("+undoManager.printUndoVector()+") undos!",
+				assertEquals("Event for set "+property.getName()+" on "+so.getClass().getName() +
+                        " added multiple ("+undoManager.printUndoVector()+") undos!",
 						oldChangeCount+1,undoManager.getUndoableEditCount());
 				
 			} catch (InvocationTargetException e) {
