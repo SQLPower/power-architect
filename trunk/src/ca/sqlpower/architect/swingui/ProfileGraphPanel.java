@@ -63,7 +63,6 @@ public class ProfileGraphPanel {
     JPanel displayArea;
     private int rowCount;
     private ChartPanel chartPanel;
-  //  private TableProfileManager pm;
 
     private static final Logger logger = Logger.getLogger(ProfileGraphPanel.class);
 

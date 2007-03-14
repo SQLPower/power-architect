@@ -21,8 +21,8 @@ public class ProfileCSVFormat implements ProfileFormat {
     /** The desired CSV column list is published in the ProfileColumn enum.
      * @see ca.sqlpower.architect.profile.ProfileFormat#format(java.io.OutputStream, java.util.List, ca.sqlpower.architect.profile.TableProfileManager)
      */
-    public void format(OutputStream nout, List<ProfileResult> profileResult,
-                                        TableProfileManager pm) throws Exception {
+    public void format(OutputStream nout, List<ProfileResult> profileResult) 
+                                                                throws Exception {
         PrintWriter out = new PrintWriter(nout);
 
         // Print a header

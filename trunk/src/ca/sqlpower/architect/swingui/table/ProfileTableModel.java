@@ -227,11 +227,11 @@ public class ProfileTableModel extends AbstractTableModel {
         this.profileManager = profileManager;
         profileManager.addProfileChangeListener(new ProfileChangeListener(){
 
-            public void profileRemoved(ProfileChangeEvent e) {
+            public void profilesRemoved(ProfileChangeEvent e) {
                 refresh();
             }
 
-            public void profileAdded(ProfileChangeEvent e) {
+            public void profilesAdded(ProfileChangeEvent e) {
                 refresh();
             }
 

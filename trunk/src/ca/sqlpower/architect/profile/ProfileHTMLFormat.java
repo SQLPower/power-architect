@@ -27,8 +27,8 @@ public class ProfileHTMLFormat implements ProfileFormat {
     /**
      * Generates formatted HTML of the profile information
      */
-    public void format(OutputStream out, List<ProfileResult> profileResults,
-                        TableProfileManager pm) throws IOException, SQLException {
+    public void format(OutputStream out, List<ProfileResult> profileResults) 
+                                            throws IOException, SQLException {
 
         // Create header first, obtaining column count, so we can use it in a colspan later.
         StringBuffer s = new StringBuffer();

@@ -9,6 +9,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -72,8 +73,8 @@ public class ProfileResultsViewer {
      * due to profile results being removed from the manager.
      */
     private final ProfileChangeListener profileChangeListener = new ProfileChangeListener() {
-        public void profileAdded(ProfileChangeEvent e) {
-            ProfileResult profileResult = e.getProfileResult();
+        public void profilesAdded(ProfileChangeEvent e) {
+            List<ProfileResult> profileResult = e.getProfileResult();
             System.out.println("ProfileResultsViewer.inner.profileAdded()"  + profileResult);
             // XXX this doesn't get invoked!?
         }
@@ -82,7 +83,7 @@ public class ProfileResultsViewer {
             disposeIfEmpty();
         }
 
-        public void profileRemoved(ProfileChangeEvent e) {
+        public void profilesRemoved(ProfileChangeEvent e) {
             disposeIfEmpty();
         }
         

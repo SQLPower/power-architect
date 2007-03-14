@@ -78,9 +78,7 @@ public class ProfilePDFFormat implements ProfileFormat {
      * @throws IllegalAccessException
      * @throws InstantiationException
      */
-    public void format(OutputStream out,
-                             List<ProfileResult> profileResults,
-                             TableProfileManager pm)
+    public void format(OutputStream out, List<ProfileResult> profileResults)
                 throws DocumentException, IOException, SQLException,
                     ArchitectException, InstantiationException, IllegalAccessException {
 

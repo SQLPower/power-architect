@@ -185,7 +185,8 @@ public class SwingUIProject {
             logger.debug ("closing connection: " + db.getName());
             db.disconnect();
         }
-        
+        //Clear the profile manager
+        profileManager.clear();
         // Close dialogs
         profileDialog.dispose();
     }
