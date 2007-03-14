@@ -65,7 +65,7 @@ public class ConfigFile {
         session.removeAllDriverJars();
         for (int i = 0; i <= MAX_DRIVER_JAR_FILE_NAMES; i++) {
             String jarName = jarNode.get(jarFilePrefName(i), null);
-            logger.debug("read Jar File entry: " + jarName);
+            logger.debug("read Jar File entry [" + jarFilePrefName(i) + "]: " + jarName);
             if (jarName == null) {
                 break;
             }
