@@ -152,7 +152,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
             } else {
 				throw new RuntimeException("This test case lacks a value for "+
 						property.getName()+
-						" (type "+property.getPropertyType().getName()+") from "+so.getClass());
+						" (type "+property.getPropertyType().getName()+") from "+so.getClass()+" on property"+property.getDisplayName());
 			}
 			
 			int oldChangeCount = listener.getChangedCount();
