@@ -1,10 +1,13 @@
 package ca.sqlpower.architect;
 
+import ca.sqlpower.architect.SQLIndex.Column;
 import ca.sqlpower.architect.SQLIndex.IndexType;
 
 public class TestSQLIndex extends SQLTestCase {
 
-    SQLIndex index;
+    private SQLIndex index;
+    private SQLColumn col1;
+    
     public TestSQLIndex(String name) throws Exception {
         super(name);
         propertiesToIgnoreForEventGeneration.add("parentTable");
@@ -14,7 +17,7 @@ public class TestSQLIndex extends SQLTestCase {
     protected void setUp() throws Exception {
         super.setUp();
         index = new SQLIndex("Test Index",true,"a",IndexType.HASHED,"b");
-        SQLColumn col1 = new SQLColumn();
+        col1 = new SQLColumn();
         SQLColumn col2 = new SQLColumn();
         SQLColumn col3 = new SQLColumn();
         index.addIndexColumn(col1, true, true);
@@ -32,6 +35,29 @@ public class TestSQLIndex extends SQLTestCase {
         return index;
     }
 
+    /**
+     * When you add an index column, it should attach a listener to its target column.
+     */
+    public void testReAddColumnAddsListener() throws Exception {
+        System.out.println("Original listeners:       "+col1.getSQLObjectListeners());
+        int origListeners = col1.getSQLObjectListeners().size();
+        SQLIndex.Column removed = (Column) index.removeChild(0);
+        index.addChild(removed);
+        System.out.println("Post-remove-add listeners: "+col1.getSQLObjectListeners());
+        assertEquals(origListeners, col1.getSQLObjectListeners().size());
+    }
+    
+    /**
+     * When you remove a column from an index, it has to unsubscribe its
+     * listener from its target column.
+     */
+    public void testRemoveColumnNoListenerLeak() {
+        System.out.println("Original listeners:    "+col1.getSQLObjectListeners());
+        int origListeners = col1.getSQLObjectListeners().size();
+        index.removeChild(0);
+        System.out.println("Post-remove listeners: "+col1.getSQLObjectListeners());
+        assertEquals(origListeners - 1, col1.getSQLObjectListeners().size());
+    }
     
     public void testCopyConstructor() throws ArchitectException{
         SQLIndex copyIndex = new SQLIndex(index);
