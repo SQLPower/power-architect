@@ -8,10 +8,14 @@ import junit.framework.TestCase;
 
 public class MemoryPreferencesTest extends TestCase {
 	
+    static {
+        System.setProperty("java.util.prefs.PreferencesFactory", "prefs.PreferencesFactory");
+    }
+    
 	Preferences root = Preferences.userNodeForPackage(Object.class);
 	
 	public void testSystemPropsSettings() {
-		assertEquals(root.getClass(), MemoryPreferences.class);
+		assertEquals(MemoryPreferences.class,root.getClass());
 	}
 	
 	public void testStrings() {
