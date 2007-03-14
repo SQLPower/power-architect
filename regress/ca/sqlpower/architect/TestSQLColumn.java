@@ -606,7 +606,11 @@ public class TestSQLColumn extends SQLTestCase {
 		assertEquals(null,tmpCol.getPrimaryKeySeq());
 		tmpCol.setPrimaryKeySeq(new Integer(2));
 		assertEquals(new Integer(2),tmpCol.getPrimaryKeySeq());
-		
+
+        for (SQLColumn column : table1pk.getColumns()) {
+            System.out.println("column: " + column.getName() + "  seq="+column.getPrimaryKeySeq());
+        }
+        
 		SQLColumn cowCol = table1pk.getColumn(0);
 		assertEquals(Integer.valueOf(0),cowCol.getPrimaryKeySeq());
 		cowCol.setPrimaryKeySeq(new Integer(20));
@@ -952,9 +956,10 @@ public class TestSQLColumn extends SQLTestCase {
 		
 		assertEquals("name",test2.getLastEventName());
 		
-		
+		cowCol.removeSQLObjectListener(test1);
+        cowCol.removeSQLObjectListener(test2);
 		ll = (LinkedList) cowCol.getSQLObjectListeners();
-		assertEquals(0,ll.size());
+		assertEquals(ll.toString(),0,ll.size());
 		test1 = new TestSQLObjectListener();
 		cowCol.addSQLObjectListener(test1);
 		assertEquals(1,ll.size());
