@@ -155,7 +155,8 @@ public class SQLTable extends SQLObject {
         for ( SQLIndex index : (List<SQLIndex>)source.getIndicesFolder().getChildren()) {
             SQLIndex index2 = SQLIndex.getDerivedInstance(index,target);
             target.addIndex(index2);
-System.out.println("INDEX NAME:"+index2.getName()+ "  pk? " + index2.isPrimaryKeyIndex());            
+
+            logger.debug("copying index : NAME["+index2.getName()+ "]  pk? " + index2.isPrimaryKeyIndex());            
             if (target.getPrimaryKeyIndex() == null && index2.isPrimaryKeyIndex()) {
                target.setPrimaryKeyIndex(index2);
                index2.setPrimaryKeyIndex(true);
@@ -165,6 +166,12 @@ System.out.println("INDEX NAME:"+index2.getName()+ "  pk? " + index2.isPrimaryKe
         }
     }
 
+    /**
+     * Populates the columns of this table from the database.  If successful, then the
+     * indices will also be populated.
+     * 
+     * @throws ArchitectException
+     */
 	private synchronized void populateColumns() throws ArchitectException {
 		if (columnsFolder.isPopulated()) return;
 		if (columnsFolder.children.size() > 0) throw new IllegalStateException("Can't populate table because it already contains columns");
@@ -191,12 +198,25 @@ System.out.println("INDEX NAME:"+index2.getName()+ "  pk? " + index2.isPrimaryKe
 
 		logger.debug("column folder populate finished");
 
+        populateIndices();
 	}
 
+    /**
+     * Retrieves all index information about this table from the source database
+     * it is associated with.  If the index folder has already been populated, this
+     * method returns immediately with no side effects.
+     * 
+     * <p>Note: It is essential that the columns folder of this table has been populated before calling
+     * this method.
+     * 
+     * @throws IllegalStateException if the columns folder is not yet populated, or if the
+     * index folder is both non-empty and non-populated
+     */
     private synchronized void populateIndices() throws ArchitectException {
         if (indicesFolder.isPopulated()) return;
         if (indicesFolder.children.size() > 0) throw new IllegalStateException("Can't populate indices folder because it already contains children!");
-
+        if (!columnsFolder.isPopulated()) throw new IllegalStateException("Columns folder must be populated");
+        
         logger.debug("index folder populate starting");
 
         try {
@@ -216,8 +236,6 @@ System.out.println("INDEX NAME:"+index2.getName()+ "  pk? " + index2.isPrimaryKe
                 }
             }
             
-            logger.debug("about to check foundPKColumn");
-            
             if (foundPKColumn) {
                 SQLIndex pk = getIndexByName(getPrimaryKeyName(), false);
                 logger.debug("table has primary key columns. " +
@@ -229,7 +247,10 @@ System.out.println("INDEX NAME:"+index2.getName()+ "  pk? " + index2.isPrimaryKe
             } else {
                 logger.debug("did not find any primary key column.");
             }
-                
+            
+            indicesFolder.populated = true;
+            normalizePrimaryKey();
+            
         } catch (SQLException e) {
             throw new ArchitectException("Failed to populate indices of table "+getName(), e);
         } catch (Exception e) {
@@ -615,7 +636,6 @@ System.out.println("INDEX NAME:"+index2.getName()+ "  pk? " + index2.isPrimaryKe
             if (getPrimaryKeyIndex() == null) {
                 SQLIndex pkIndex = new SQLIndex(getName()+"_PK", true, null, SQLIndex.IndexType.CLUSTERED,null);
                 addIndex(pkIndex);
-                setPrimaryKeyIndex(pkIndex);
                 pkIndex.setPrimaryKeyIndex(true);
                 logger.debug("new pkIndex.getChildCount()="+pkIndex.getChildCount());
             }
@@ -984,7 +1004,7 @@ System.out.println("INDEX NAME:"+index2.getName()+ "  pk? " + index2.isPrimaryKe
                (getPrimaryKeyName() == null
                     || "".equals(getPrimaryKeyName())
                     || (oldName+"_pk").equals(getPrimaryKeyName())) ) {
-                setPrimaryKeyName( getName()+"_PK");
+                primaryKeyIndex.setName(getName()+"_pk");
             }
         } finally {
             endCompoundEdit("Ending table name compound edit");
@@ -1166,36 +1186,20 @@ System.out.println("INDEX NAME:"+index2.getName()+ "  pk? " + index2.isPrimaryKe
 	 */
 
 	/**
-	 * Gets the value of primaryKeyName
-	 *
-	 * @return the value of primaryKeyName
+	 * Gets the name of this table's Primary Key index if it has one, otherwise
+     * returns null.
 	 */
 	public String getPrimaryKeyName()  {
 		return primaryKeyIndex == null ? null : primaryKeyIndex.getName();
 	}
-
-	/**
-	 * Sets the value of primaryKeyName
-	 *
-	 * @param argPrimaryKeyName Value to assign to this.primaryKeyName
-	 */
-	public void setPrimaryKeyName(String argPrimaryKeyName) {
-        /** to avoid problem when loading the project, 
-         * we have to check primaryKeyIndex not null here  */
-        if ( primaryKeyIndex == null)
-            return;
-        
-        primaryKeyIndex.setName(argPrimaryKeyName);
-	}
-
-    
+  
 	/**
 	 * Gets the value of physicalPrimaryKeyName
 	 *
 	 * @return the value of physicalPrimaryKeyName
 	 */
 	public String getPhysicalPrimaryKeyName()  {
-		return this.physicalPrimaryKeyName;
+        return primaryKeyIndex == null ? null : primaryKeyIndex.getPhysicalName();
 	}
 
 	/**
@@ -1237,6 +1241,8 @@ System.out.println("INDEX NAME:"+index2.getName()+ "  pk? " + index2.isPrimaryKe
     }
 
     public void setPrimaryKeyIndex(SQLIndex primaryKeyIndex) {
+        SQLIndex oldIndex = this.primaryKeyIndex;
         this.primaryKeyIndex = primaryKeyIndex;
+        fireDbObjectChanged("primaryKeyIndex", oldIndex, primaryKeyIndex);
     }
 }
