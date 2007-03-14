@@ -226,17 +226,15 @@ public abstract class SQLObject implements java.io.Serializable {
 		addChildImpl(children.size(), newChild);
 	}
 	
+    /**
+     * This implementation calls {@link#removeImpl(int)}.
+     */
 	public SQLObject removeChild(int index) {
-		SQLObject removedChild = (SQLObject) children.remove(index);
-		if (removedChild != null) {
-			removedChild.setParent(null);
-			fireDbChildRemoved(index, removedChild);
-		}
-		return removedChild;
+	    return removeImpl(index);
 	}
 
 	/**
-	 * This method is implemented in terms of {@link #removeChild(int)}.
+	 * This method is implemented in terms of {@link #removeImpl(int)}.
 	 */
 	public boolean removeChild(SQLObject child) {
 		int childIdx = children.indexOf(child);
@@ -246,6 +244,18 @@ public abstract class SQLObject implements java.io.Serializable {
 		return childIdx >= 0;
 	}
 
+    /**
+     * The implementation that all remove methods delegate to.  If you want
+     * to override the behaviour of removeChild, override this method.
+     */
+    protected SQLObject removeImpl(int index) {
+        SQLObject removedChild = (SQLObject) children.remove(index);
+        if (removedChild != null) {
+            removedChild.setParent(null);
+            fireDbChildRemoved(index, removedChild);
+        }
+        return removedChild;
+    }
 	
 	// ------------------- sql object event support -------------------
 	private final transient List<SQLObjectListener> sqlObjectListeners = 
