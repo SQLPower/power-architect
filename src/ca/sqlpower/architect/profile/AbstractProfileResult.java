@@ -52,6 +52,7 @@ public abstract class AbstractProfileResult<T extends SQLObject>
             }
         } catch (Exception ex) {
             setException(ex);
+            ex.printStackTrace();
         } finally {
             finish();
             progress++;
