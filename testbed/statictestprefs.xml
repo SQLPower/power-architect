@@ -16,13 +16,11 @@
 			<node name="sqlpower">
 				<map/>
 				<node name="architect">
-					<map>
+						<map>
 						<entry key="DDLUserSettings.PROP_DDL_LOG_PATH" value="testbed/ddl.log"/>
 						<entry key="DEFAULT_PRINTER_NAME" value=""/>
 						<entry key="ETLUserSettings.PROP_ETL_LOG_PATH" value="testbed/etl.log"/>
 						<entry key="ETLUserSettings.PROP_PL_ENGINE_PATH" value=""/>
-						<entry key="JDBCJarFile.00" value="testbed/ojdbc14.jar"/>
-						<entry key="JDBCJarFile.01" value="testbed/postgresql.jar"/>
 						<entry key="PL.INI.PATH" value="testbed/pl.ini"/>
 						<entry key="SwingUserSettings.DIVIDER_LOCATION" value="264"/>
 						<entry key="SwingUserSettings.MAIN_FRAME_HEIGHT" value="671"/>
@@ -35,6 +33,12 @@
 						<map>
 							<entry key="recentFile0" value="/home/tester/architect/abc.architect"/>
 							<entry key="recentFile1" value="/home/tester/architect/ecom.architect"/>
+						</map>
+					</node>
+						<node name='jarfiles'>
+						<map>
+							<entry key="JDBCJarFile.00" value="testbed/ojdbc14.jar"/>
+							<entry key="JDBCJarFile.01" value="testbed/postgresql.jar"/>
 						</map>
 					</node>
 				</node>
