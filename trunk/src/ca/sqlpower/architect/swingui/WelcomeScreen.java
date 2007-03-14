@@ -17,7 +17,7 @@ import javax.swing.text.html.HTMLEditorKit;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectUtils;
-import ca.sqlpower.architect.BrowserUtil;
+import ca.sqlpower.util.BrowserUtil;
 
 /**
  * Creates a JPanel that is the Welcome Screen, for adding to the main window.
