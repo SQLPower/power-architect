@@ -67,8 +67,8 @@ public class TableEditPanel extends JPanel implements ArchitectPanel {
             if (warnings.toString().length() == 0){
                 //The operation is successful
                 table.setName(name.getText());
-                if (pkName.isEnabled() ) {
-                    table.setPrimaryKeyName(pkName.getText());
+                if (pkName.isEnabled() && table.getPrimaryKeyIndex() != null) {
+                    table.getPrimaryKeyIndex().setName(pkName.getText());
                 }
                 table.setRemarks(remarks.getText());                
                 return true;
