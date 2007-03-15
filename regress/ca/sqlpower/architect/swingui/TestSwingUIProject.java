@@ -3,6 +3,7 @@ package ca.sqlpower.architect.swingui;
 import java.beans.PropertyDescriptor;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.CharArrayWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -208,22 +209,22 @@ public class TestSwingUIProject extends ArchitectTestCase {
 	 */
 	public void testSavePrintWriter() throws Exception {
 		testLoad();
-		File tmp = File.createTempFile("test", ".architect");
-		if (deleteOnExit) {
-			tmp.deleteOnExit();
-		}
-		PrintWriter out = new PrintWriter(tmp,ENCODING);
+ 
+		CharArrayWriter file1 = new CharArrayWriter();
+        PrintWriter out = new PrintWriter(file1);
 		assertNotNull(out);
 		project.save(out,ENCODING);
-		
+		out.flush();
+        out.close();
+        
 		SwingUIProject p2 = new SwingUIProject("test2");
-		p2.load(new FileInputStream(tmp));
-		File tmp2 = File.createTempFile("test2", ".architect");
-		if (deleteOnExit) {
-			tmp2.deleteOnExit();
-		}
-		p2.save(new PrintWriter(tmp2,ENCODING),ENCODING);
-		assertEquals(tmp.length(), tmp2.length());	// Quick test
+		p2.load(new ByteArrayInputStream(file1.toString().getBytes(ENCODING)));
+        CharArrayWriter file2 = new CharArrayWriter();
+		p2.save(new PrintWriter(file2),ENCODING);
+        out.flush();
+        out.close();
+        
+		assertEquals(file1.toString(), file2.toString());
 	}
 
 	/** Save a document and use built-in JAXP to ensure it is at least well-formed XML.
@@ -306,6 +307,9 @@ public class TestSwingUIProject extends ArchitectTestCase {
                     } else {
                         newVal = SQLIndex.IndexType.CLUSTERED;
                     }
+                } else if (props[i].getPropertyType() == SQLIndex.class) {
+                    newVal = new SQLIndex();
+                    ((SQLIndex) newVal).setName("a new index");
 				} else {
 					throw new RuntimeException("This test case lacks a value for "+
 							props[i].getName()+
