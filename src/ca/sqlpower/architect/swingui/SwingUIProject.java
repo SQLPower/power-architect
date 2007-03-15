@@ -29,6 +29,7 @@ import org.xml.sax.SAXException;
 
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.IOUtils;
 import ca.sqlpower.architect.SQLCatalog;
@@ -243,20 +244,12 @@ public class SwingUIProject {
                 table.addChild(new Folder(Folder.INDICES, false));
             }
             
-            for (SQLIndex index : (List<SQLIndex>)table.getIndicesFolder().getChildren()) {
-                if (index.isPrimaryKeyIndex()) {
-                    table.setPrimaryKeyIndex(index);
-                    break;
-                }
-            }
-
             if ( table.getPrimaryKeyIndex() == null) {
                 logger.debug("primary key index is null in table: " + table);
                 logger.debug("number of children found in indices folder: " + table.getIndicesFolder().getChildCount());
                 for (SQLIndex index : (List<SQLIndex>)table.getIndicesFolder().getChildren()) {
                     if (objectIdMap.get(table.getName()+"."+index.getName()) != null) {
                         index.setPrimaryKeyIndex(true);
-                        table.setPrimaryKeyIndex(index);
                         break;
                     }
                 }
@@ -717,7 +710,11 @@ public class SwingUIProject {
             }
 
             index.setType(SQLIndex.IndexType.valueOf(attributes.getValue("index-type")));
-            index.setPrimaryKeyIndex(Boolean.valueOf(attributes.getValue("isPrimaryKeyIndex")));
+            try {
+                index.setPrimaryKeyIndex(Boolean.valueOf(attributes.getValue("isPrimaryKeyIndex")));
+            } catch (ArchitectException e) {
+                throw new ArchitectRuntimeException(e);
+            }
 
             currentIndex = index;
             return index;

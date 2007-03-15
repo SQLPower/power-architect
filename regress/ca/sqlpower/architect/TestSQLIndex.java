@@ -196,7 +196,7 @@ public class TestSQLIndex extends SQLTestCase {
         }
     }
     
-    public void testSetPrimaryKeyIndexTrueWithOnNonPkAndWithNoSetPK() {
+    public void testSetPrimaryKeyIndexTrueWithOnNonPkAndWithNoSetPK() throws ArchitectException {
         assertFalse("Test Index 1 already set as the pk", index.isPrimaryKeyIndex());
         assertFalse("Test Index 2 already set as the pk", index2.isPrimaryKeyIndex());
         assertNull("Table contained a pk index",table.getPrimaryKeyIndex());
@@ -206,7 +206,7 @@ public class TestSQLIndex extends SQLTestCase {
         assertEquals("Index 1 not the table's primary key",index, table.getPrimaryKeyIndex());
     }
     
-    public void testSetPrimaryKeyIndexTrueWithOnNonPkAndWithDifferentPKSet() {
+    public void testSetPrimaryKeyIndexTrueWithOnNonPkAndWithDifferentPKSet() throws ArchitectException {
         index2.setPrimaryKeyIndex(true);
         assertFalse("Test Index 1 already set as the pk", index.isPrimaryKeyIndex());
         assertTrue("Test Index 2 not set as the pk", index2.isPrimaryKeyIndex());
@@ -217,7 +217,7 @@ public class TestSQLIndex extends SQLTestCase {
         assertEquals("Index 1 not the table's primary key",index, table.getPrimaryKeyIndex());
     }
     
-    public void testSetPrimaryKeyIndexTrueWithOnNonPkAndWithSameAsPK() {
+    public void testSetPrimaryKeyIndexTrueWithOnNonPkAndWithSameAsPK() throws ArchitectException {
         index.setPrimaryKeyIndex(true);
         assertTrue("Test Index 1 not set as the pk", index.isPrimaryKeyIndex());
         assertFalse("Test Index 2 set as the pk", index2.isPrimaryKeyIndex());
@@ -228,7 +228,7 @@ public class TestSQLIndex extends SQLTestCase {
         assertEquals("Index 1 not the table's primary key",index, table.getPrimaryKeyIndex());
     }
     
-    public void testSetPrimaryKeyIndexFalseWithOnNonPkAndWithNoSetPK() {
+    public void testSetPrimaryKeyIndexFalseWithOnNonPkAndWithNoSetPK() throws ArchitectException {
         assertFalse("Test Index 1 already set as the pk", index.isPrimaryKeyIndex());
         assertFalse("Test Index 2 already set as the pk", index2.isPrimaryKeyIndex());
         assertNull("Table contained a pk index",table.getPrimaryKeyIndex());
@@ -238,7 +238,7 @@ public class TestSQLIndex extends SQLTestCase {
         assertNull("Table contained a pk index",table.getPrimaryKeyIndex());
     }
     
-    public void testSetPrimaryKeyIndexFalseWithOnNonPkAndWithDifferentPKSet() {
+    public void testSetPrimaryKeyIndexFalseWithOnNonPkAndWithDifferentPKSet() throws ArchitectException {
         index2.setPrimaryKeyIndex(true);
         assertFalse("Test Index 1 already set as the pk", index.isPrimaryKeyIndex());
         assertTrue("Test Index 2 not set as the pk", index2.isPrimaryKeyIndex());
@@ -249,7 +249,7 @@ public class TestSQLIndex extends SQLTestCase {
         assertEquals("Table did not contain index 2 as a pk index",index2,table.getPrimaryKeyIndex());
     }
     
-    public void testSetPrimaryKeyIndexFalseWithOnNonPkAndWithSameAsPK() {
+    public void testSetPrimaryKeyIndexFalseWithOnNonPkAndWithSameAsPK() throws ArchitectException {
         index.setPrimaryKeyIndex(true);
         assertTrue("Test Index 1 not set as the pk", index.isPrimaryKeyIndex());
         assertFalse("Test Index 2 set as the pk", index2.isPrimaryKeyIndex());
@@ -263,7 +263,7 @@ public class TestSQLIndex extends SQLTestCase {
     public void testLoadFromDbGetsCorrectPK() throws ArchitectException{
         assertNotNull("No primary key loaded",dbTable.getPrimaryKeyIndex());
         assertEquals("Wrong number of indices",1,dbTable.getIndicesFolder().getChildCount());
-        assertEquals("Wrong primary key","test3pk",dbTable.getPrimaryKeyName());
+        assertEquals("Wrong primary key","TEST3PK",dbTable.getPrimaryKeyName());
     }
     
 }

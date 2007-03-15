@@ -593,29 +593,21 @@ public class SQLIndex extends SQLObject {
      * 
      * @param isPrimaryKey
      */
-    public void setPrimaryKeyIndex(boolean isPrimaryKey) {
+    public void setPrimaryKeyIndex(boolean isPrimaryKey) throws ArchitectException {
         boolean oldValue = this.primaryKeyIndex;
         if (oldValue == isPrimaryKey) return;
-        
-        SQLTable parentTable = getParentTable();
         try {
             startCompoundEdit("Make index a Primary Key");
-            primaryKeyIndex = isPrimaryKey;
             if (isPrimaryKey) {
+                SQLTable parentTable = getParentTable();
                 if (parentTable != null) {
                     SQLIndex i = parentTable.getPrimaryKeyIndex();
-                    if (i != null) {
+                    if (i != null && i != this) {
                         i.setPrimaryKeyIndex(false);
-                    }
-                    parentTable.setPrimaryKeyIndex(this);
-                }
-            } else {
-                if (parentTable != null) {
-                    if (parentTable.getPrimaryKeyIndex() == this){
-                        parentTable.setPrimaryKeyIndex(null);
                     }
                 }
             }
+            primaryKeyIndex = isPrimaryKey;
             fireDbObjectChanged("primaryKeyIndex", oldValue, isPrimaryKey);
         } finally {
             endCompoundEdit("Make index a Primary Key");
