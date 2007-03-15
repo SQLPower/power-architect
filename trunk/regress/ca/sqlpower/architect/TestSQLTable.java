@@ -118,7 +118,7 @@ public class TestSQLTable extends SQLTestCase {
         table.getColumn(1).setPrimaryKeySeq(1);
         table.getColumn(2).setPrimaryKeySeq(2);
         table.getColumn(0).setNullable(DatabaseMetaData.columnNullable);
-        table.getColumn(0).setAutoIncrement(true);   
+        table.getColumn(0).setAutoIncrement(true); 
     }
     
     @Override
@@ -158,14 +158,14 @@ public class TestSQLTable extends SQLTestCase {
         
     }
     
-    public void testRenameTableRenamesPK(){
+    public void testRenameTableRenamesPK() throws ArchitectException{
         assertNotNull("Table has null name",table.getName());
         String newName = "newTableName";
         table.setName(newName);
         assertEquals(newName+"_pk",table.getPrimaryKeyName());
     }
     
-    public void testRenameTableDoesntRenamePKIfPKRenamed(){
+    public void testRenameTableDoesntRenamePKIfPKRenamed() throws ArchitectException {
         assertNotNull("Table has null name",table.getName());
         String newTableName = "newTableName";
         String newPKName = "NewPKName";

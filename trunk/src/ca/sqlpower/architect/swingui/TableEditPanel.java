@@ -10,6 +10,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
@@ -39,11 +41,15 @@ public class TableEditPanel extends JPanel implements ArchitectPanel {
 	public void editTable(SQLTable t) {
 		table = t;
 		name.setText(t.getName());
-        if (t.getPrimaryKeyIndex() == null) {
-            pkName.setEnabled(false);
-        } else {
-            pkName.setText(t.getPrimaryKeyName());
-            pkName.setEnabled(true);
+        try {
+            if (t.getPrimaryKeyIndex() == null) {
+                pkName.setEnabled(false);
+            } else {
+                pkName.setText(t.getPrimaryKeyName());
+                pkName.setEnabled(true);
+            }
+        } catch (ArchitectException e) {
+            throw new ArchitectRuntimeException(e);
         }
 		remarks.setText(t.getRemarks());
 	}
@@ -77,7 +83,9 @@ public class TableEditPanel extends JPanel implements ArchitectPanel {
                 //this is done so we can go back to this dialog after the error message
                 return false;
             }            
-		} finally {
+		} catch (ArchitectException e) {
+            throw new ArchitectRuntimeException(e);
+        } finally {
 			endCompoundEdit("Ending new compound edit event in table edit panel");
 		}
 	}

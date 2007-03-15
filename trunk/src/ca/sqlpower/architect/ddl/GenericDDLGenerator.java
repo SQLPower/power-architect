@@ -16,6 +16,7 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLIndex;
@@ -878,9 +879,10 @@ public class GenericDDLGenerator implements DDLGenerator {
      * logical primary key name run through "toIdentifier()".
      * Before returning it, run it past checkDupName to check in and add
      * it to the topLevelNames Map.
+	 * @throws ArchitectException 
      */
 
-    private String createPhysicalPrimaryKeyName(SQLTable t) {
+    private String createPhysicalPrimaryKeyName(SQLTable t) throws ArchitectException {
         String physName = toIdentifier(t.getPrimaryKeyName());
         t.setPhysicalPrimaryKeyName(physName);
         checkDupName(physName, t,
@@ -912,8 +914,12 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 	public void dropPrimaryKey(SQLTable t) {
 
-		print("ALTER TABLE " + toQualifiedName(t.getName())
-			+ " DROP PRIMARY KEY " + t.getPrimaryKeyName());
+		try {
+            print("ALTER TABLE " + toQualifiedName(t.getName())
+            	+ " DROP PRIMARY KEY " + t.getPrimaryKeyName());
+        } catch (ArchitectException e) {
+            throw new ArchitectRuntimeException(e);
+        }
 		endStatement(DDLStatement.StatementType.DROP, t);
 	}
 
