@@ -118,7 +118,7 @@ public class TestSQLTable extends SQLTestCase {
         table.getColumn(1).setPrimaryKeySeq(1);
         table.getColumn(2).setPrimaryKeySeq(2);
         table.getColumn(0).setNullable(DatabaseMetaData.columnNullable);
-        table.getColumn(0).setAutoIncrement(true);                
+        table.getColumn(0).setAutoIncrement(true);   
     }
     
     @Override
@@ -155,6 +155,23 @@ public class TestSQLTable extends SQLTestCase {
         assertEquals("Derived table not properly copied",
                 derivedPropertyMap.toString(),
                 table1PropertyMap.toString());
+        
+    }
+    
+    public void testRenameTableRenamesPK(){
+        assertNotNull("Table has null name",table.getName());
+        String newName = "newTableName";
+        table.setName(newName);
+        assertEquals(newName+"_pk",table.getPrimaryKeyName());
+    }
+    
+    public void testRenameTableDoesntRenamePKIfPKRenamed(){
+        assertNotNull("Table has null name",table.getName());
+        String newTableName = "newTableName";
+        String newPKName = "NewPKName";
+        table.getPrimaryKeyIndex().setName(newPKName);
+        table.setName(newTableName);
+        assertEquals(newPKName, table.getPrimaryKeyName());
         
     }
     

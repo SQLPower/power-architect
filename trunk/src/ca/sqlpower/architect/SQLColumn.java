@@ -174,6 +174,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	 * right after calling this).  It will refer to source as its
 	 * sourceColumn property, and otherwise be identical to source.
 	 * 
+     * getDerivedInstance is used for reverse engineering.  
      * Will not preserve listeners.
 	 * 
 	 */
@@ -268,19 +269,6 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 			rs.close();
 			rs = null;
 
-			rs = dbmd.getPrimaryKeys(catalog, schema, tableName);
-			while (rs.next()) {
-				SQLColumn col = addTo.getColumnByName(rs.getString(4), false);
-				//logger.debug(rs.getString(4));
-                if (col != null ){
-                    col.primaryKeySeq = new Integer(rs.getInt(5));
-                } else {
-                    SQLException exception = new SQLException("Column "+rs.getString(4)+ " not found in "+addTo);
-                    throw exception;
-                }
-			}
-			rs.close();
-			rs = null;
 		} finally {
 			try {
 				if (rs != null) rs.close();
@@ -632,7 +620,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	 * primary key columns come first in their correct order, and all
 	 * the other columns come after.
 	 */
-	public static class SortByPKSeq implements Comparator {
+	public static class CompareByPKSeq implements Comparator {
 		public int compare(Object o1, Object o2) {
 			SQLColumn c1 = (SQLColumn) o1;
 			SQLColumn c2 = (SQLColumn) o2;

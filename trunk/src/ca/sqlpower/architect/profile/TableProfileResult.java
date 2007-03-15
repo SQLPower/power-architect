@@ -37,6 +37,7 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
     public TableProfileResult(SQLTable profiledObject, ProfileManager manager) {
         super(profiledObject);
         this.manager = manager;
+        setSettings(manager.getProfileSettings());
     }
 
     public int getRowCount() {
