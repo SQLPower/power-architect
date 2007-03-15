@@ -19,9 +19,8 @@ public abstract class AbstractProfileResult<T extends SQLObject>
     private long createEndTime = -1L;
     private long createStartTime = -1L;
     private Exception ex;
-    
     // Monitorables
-    
+    private ProfileSettings settings;
     private int progress = 0;
     private Integer jobSize = null;
     private String message = null;
@@ -321,6 +320,14 @@ public abstract class AbstractProfileResult<T extends SQLObject>
         hash *= createStartTime;
 
         return hash;
+    }
+
+    public ProfileSettings getSettings() {
+        return settings;
+    }
+
+    public void setSettings(ProfileSettings settings) {
+        this.settings = settings;
     }
 
 }

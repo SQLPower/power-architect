@@ -116,6 +116,18 @@ public class SQLIndex extends SQLObject {
                 Column.this.fireDbStructureChanged();
             }
             
+            @Override
+            public String toString() {
+                StringBuffer buf = new StringBuffer();
+                buf.append(SQLIndex.this.getName());
+                buf.append(".");
+                buf.append(Column.this.getName());
+                buf.append(".");
+                buf.append("TargetColumnListener");
+                buf.append(" isPrimarykey?");
+                buf.append(SQLIndex.this.primaryKeyIndex);
+                return buf.toString();
+            }
         }
         
         /**
@@ -460,7 +472,7 @@ public class SQLIndex extends SQLObject {
                                   String catalog,
                                   String schema,
                                   String tableName)
-        throws SQLException, DuplicateColumnException, ArchitectException {
+        throws SQLException, ArchitectException {
         Connection con = null;
         ResultSet rs = null;
         try {
@@ -474,10 +486,14 @@ public class SQLIndex extends SQLObject {
                 //logger.debug(rs.getString(4));
                 if (col != null ){
                     col.primaryKeySeq = new Integer(rs.getInt(5));
-                    pkName = rs.getString(6); 
+                    String pkNameCheck =rs.getString(6);
+                    if (pkName == null) {
+                        pkName = pkNameCheck;
+                    } else if (!pkName.equals(pkNameCheck)) {
+                        throw new IllegalStateException("The PK name has changed somehow while adding indices to table");
+                    }
                 } else {
-                    SQLException exception = new SQLException("Column "+rs.getString(4)+ " not found in "+addTo);
-                    throw exception;
+                    throw new SQLException("Column "+rs.getString(4)+ " not found in "+addTo);
                 }
             }
             rs.close();
@@ -569,22 +585,36 @@ public class SQLIndex extends SQLObject {
     }
     
     /**
-     * set this index as primary key index 
+     * Updates whether this index is a primary key
+     * 
+     * set this index as primary key index and remove any old primary key
+     * if isPrimaryKey is true.  Otherwise, sets primaryKeyIndex to false and 
+     * removes it from its parent table.
+     * 
      * @param isPrimaryKey
      */
     public void setPrimaryKeyIndex(boolean isPrimaryKey) {
         boolean oldValue = this.primaryKeyIndex;
+        if (oldValue == isPrimaryKey) return;
+        
         SQLTable parentTable = getParentTable();
-
         try {
             startCompoundEdit("Make index a Primary Key");
-            if (parentTable != null) {
-                SQLIndex index = parentTable.getPrimaryKeyIndex();
-                if (index != null && index.equals(this)) {
-                    throw new IllegalStateException("the table already has a primary key index.");
+            primaryKeyIndex = isPrimaryKey;
+            if (isPrimaryKey) {
+                if (parentTable != null) {
+                    SQLIndex i = parentTable.getPrimaryKeyIndex();
+                    if (i != null) {
+                        i.setPrimaryKeyIndex(false);
+                    }
+                    parentTable.setPrimaryKeyIndex(this);
                 }
-                this.primaryKeyIndex = isPrimaryKey;
-                parentTable.setPrimaryKeyIndex(this);
+            } else {
+                if (parentTable != null) {
+                    if (parentTable.getPrimaryKeyIndex() == this){
+                        parentTable.setPrimaryKeyIndex(null);
+                    }
+                }
             }
             fireDbObjectChanged("primaryKeyIndex", oldValue, isPrimaryKey);
         } finally {

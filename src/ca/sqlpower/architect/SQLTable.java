@@ -184,7 +184,6 @@ public class SQLTable extends SQLObject {
 			throw new ArchitectException("Failed to populate columns of table "+getName(), e);
 		} finally {
 			columnsFolder.populated = true;
-			Collections.sort(columnsFolder.children, new SQLColumn.SortByPKSeq());
 			int newSize = columnsFolder.children.size();
 			int[] changedIndices = new int[newSize];
 			for (int i = 0; i < newSize; i++) {
@@ -232,28 +231,15 @@ public class SQLTable extends SQLObject {
                     break;
                 }
             }
-            
-            if (foundPKColumn) {
-                SQLIndex pk = getIndexByName(getPrimaryKeyName(), false);
-                logger.debug("table has primary key columns. " +
-                        (pk == null?"but pk index not found ":"pk index found "+pk.getName()));
-                if (pk == null) {
-                    throw new IllegalStateException("Looking for index " + getPrimaryKeyName()+ " in "+ getIndicesFolder().children);
-                }
-                pk.setPrimaryKeyIndex(true);
-            } else {
-                logger.debug("did not find any primary key column.");
-            }
-            
+          
             indicesFolder.populated = true;
-            normalizePrimaryKey();
-            
         } catch (SQLException e) {
             throw new ArchitectException("Failed to populate indices of table "+getName(), e);
         } catch (Exception e) {
             logger.error("Unexpected: SQLTable caught exception", e);
         } finally {
             indicesFolder.populated = true;
+            Collections.sort(columnsFolder.children, new SQLColumn.CompareByPKSeq());
             int newSize = indicesFolder.children.size();
             int[] changedIndices = new int[newSize];
             for (int i = 0; i < newSize; i++) {
@@ -261,7 +247,7 @@ public class SQLTable extends SQLObject {
             }
             indicesFolder.fireDbChildrenInserted(changedIndices, indicesFolder.children);
         }
-
+        normalizePrimaryKey();
         logger.debug("index folder populate finished");
     }
 
@@ -441,6 +427,7 @@ public class SQLTable extends SQLObject {
 	 * list from the database; otherwise it just searches the current
 	 * list.
 	 */
+    // TODO: Have a flag that makes the check case sensitive/insensitive
 	public SQLColumn getColumnByName(String colName, boolean populate) throws ArchitectException {
 		if (populate) populateColumns();
 		logger.debug("Looking for column "+colName+" in "+children);
@@ -623,7 +610,7 @@ public class SQLTable extends SQLObject {
 	/**
 	 * Sets the primaryKeySeq on each child column currently in the
 	 * primary key to its index in this table.
-	 * @throws ArchitectException 
+	 * @throws ArchitectException
 	 */
 	public void normalizePrimaryKey() throws ArchitectException {
 		try {
@@ -631,7 +618,7 @@ public class SQLTable extends SQLObject {
             if (getColumns().isEmpty()) return;
             
             if (getPrimaryKeyIndex() == null) {
-                SQLIndex pkIndex = new SQLIndex(getName()+"_PK", true, null, SQLIndex.IndexType.CLUSTERED,null);
+                SQLIndex pkIndex = new SQLIndex(getName()+"_pk", true, null, SQLIndex.IndexType.CLUSTERED,null);
                 addIndex(pkIndex);
                 pkIndex.setPrimaryKeyIndex(true);
                 logger.debug("new pkIndex.getChildCount()="+pkIndex.getChildCount());
@@ -655,8 +642,9 @@ public class SQLTable extends SQLObject {
                 i++;
             }
 		} catch (ArchitectException e) {
-		    logger.warn("Unexpected ArchitectException in normalizePrimaryKey "+e);
-		} finally {
+		    logger.warn("Unexpected ArchitectException in normalizePrimaryKey "+ e);
+		    throw e;
+        } finally {
 		    SQLIndex pkIndex = getPrimaryKeyIndex();
 		    if (pkIndex != null ) {
 		        while (pkIndex.getChildCount() > 0) {
