@@ -261,15 +261,6 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 					throw new DuplicateColumnException(addTo, col.getName());
 				}
 				
-				// do any database specific transformations required for this column
-				/* TODO This is not used.  To be replace with an XML format later
-				  
-				 
-				if(TypeMap.getInstance().applyRules(col)) {
-					logger.debug("Applied mapppings to column: " + col);
-				}
-				*/
-				
 				addTo.columnsFolder.children.add(col); // don't use addTo.columnsFolder.addColumn() (avoids multiple SQLObjectEvents)
 
 				// XXX: need to find out if column is auto-increment
