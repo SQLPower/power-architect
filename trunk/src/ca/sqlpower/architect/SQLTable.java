@@ -1,8 +1,5 @@
 package ca.sqlpower.architect;
 
-
-
-
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -241,7 +238,7 @@ public class SQLTable extends SQLObject {
                 logger.debug("table has primary key columns. " +
                         (pk == null?"but pk index not found ":"pk index found "+pk.getName()));
                 if (pk == null) {
-                    return;         // XXX
+                    throw new IllegalStateException("Looking for index " + getPrimaryKeyName()+ " in "+ getIndicesFolder().children);
                 }
                 pk.setPrimaryKeyIndex(true);
             } else {
@@ -678,6 +675,12 @@ public class SQLTable extends SQLObject {
             }
 		    endCompoundEdit("Normalizing Primary Key");
 		}
+        if (logger.isDebugEnabled()) {
+            logger.debug("----Normalize Results----");
+            for (SQLColumn col : getColumns()) {
+                logger.debug("Column Name " + col.getName() + " Key Sequence" +col.getPrimaryKeySeq() );
+            }
+        }
 	}
 
 	public List<SQLRelationship> keysOfColumn(SQLColumn col) throws ArchitectException {
@@ -1092,7 +1095,7 @@ public class SQLTable extends SQLObject {
     /**
      * Gets a list of unique indices
      */
-    public synchronized List<SQLIndex> getUniqueIndex() throws ArchitectException {
+    public synchronized List<SQLIndex> getUniqueIndices() throws ArchitectException {
         populateColumns();
         populateIndices();
         normalizePrimaryKey();
