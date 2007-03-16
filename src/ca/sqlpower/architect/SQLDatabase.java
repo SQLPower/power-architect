@@ -87,9 +87,9 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 			rs.close();
 			rs = null;
 
-			// if we tried to get Catalogs, and there were none, then I guess
-			// we should look for Schemas instead (i.e. this database has no
-			// catalogs, and schemas attached directly to the database)
+			// If there were no catalogs, we should look for schemas
+			// instead (i.e. this database has no catalogs, and schemas
+            // may be attached directly to the database)
 			if ( children.size() == oldSize ) {
 				rs = dbmd.getSchemas();
 				while (rs.next()) {
@@ -98,6 +98,13 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 				rs.close();
 				rs = null;
 			}
+            
+            // Finally, look for tables directly under the database (this
+            // could be a platform without catalogs or schemas at all)
+            if (children.size() == oldSize) {
+                SQLTable.addTablesToTableContainer(this, dbmd, "", "");
+            }
+            
 		} catch (SQLException e) {
 			throw new ArchitectException("database.populate.fail", e);
 		} finally {

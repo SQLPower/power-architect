@@ -145,20 +145,7 @@ public class SQLCatalog extends SQLObject {
 				rs = null;
 				
 				if (oldSize == children.size()) {
-					rs = dbmd.getTables(getName(),
-										null,
-										"%",
-										new String[] {"TABLE", "VIEW"});
-
-					while (rs.next()) {
-						children.add(new SQLTable(this,
-												  rs.getString(3),
-												  rs.getString(5),
-												  rs.getString(4),
-												  false));
-					}
-					rs.close();
-					rs = null;
+				    SQLTable.addTablesToTableContainer(this, dbmd, getName(), null);
 				}
 				
 			} catch (SQLException e) {

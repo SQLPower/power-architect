@@ -103,23 +103,9 @@ public class SQLSchema extends SQLObject {
 				DatabaseMetaData dbmd = con.getMetaData();
 				
 				if ( parent instanceof SQLDatabase ) {
-					rs = dbmd.getTables(null,
-							getName(),
-							"%",
-							new String[] {"TABLE", "VIEW"});
+                    SQLTable.addTablesToTableContainer(this, dbmd, null, getName());
 				} else if ( parent instanceof SQLCatalog ) {
-					rs = dbmd.getTables(parent.getName(),
-							getName(),
-							"%",
-							new String[] {"TABLE", "VIEW"});
-				}
-				
-				while (rs != null && rs.next()) {
-					children.add(new SQLTable(this,
-							rs.getString(3),
-							rs.getString(5),
-							rs.getString(4),
-							false));
+                    SQLTable.addTablesToTableContainer(this, dbmd, parent.getName(), getName());
 				}
 			}
 		} catch (SQLException e) {

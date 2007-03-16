@@ -41,7 +41,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 	
 	private SwingUIProject project;
 	private static final String ENCODING="UTF-8";
-	private boolean deleteOnExit = true;
+	private boolean deleteOnExit = false;
 	
 	/*
 	 * Test method for 'ca.sqlpower.architect.swingui.SwingUIProject.SwingUIProject(String)'
@@ -744,9 +744,10 @@ public class TestSwingUIProject extends ArchitectTestCase {
         SQLTable table = new SQLTable(ppdb, true);
         table.setName(tableName);
         SQLIndex index = new SQLIndex("tasty index", false, null, null, null);
-        SQLIndex.Column target = index.new Column("phogna bologna", false, true);
+        SQLIndex.Column indexCol = index.new Column("phogna bologna", false, true);
         ppdb.addChild(table);
         table.getIndicesFolder().addChild(index);
+        index.addChild(indexCol);
         
         Set<String> propertiesToIgnore = new HashSet<String>();
         propertiesToIgnore.add("SQLObjectListeners");

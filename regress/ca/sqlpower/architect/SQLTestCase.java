@@ -140,7 +140,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 				((ArchitectDataSource)newVal).setUser("a");
 				((ArchitectDataSource)newVal).setPass("b");
 				((ArchitectDataSource)newVal).setDriverClass(MockJDBCDriver.class.getName());
-				((ArchitectDataSource)newVal).setUrl("jdbc:mock:x=y");
+				((ArchitectDataSource)newVal).setUrl("jdbc:mock:tables=tab1");
 			} else if (property.getPropertyType() == SQLTable.class) {
 				newVal = new SQLTable();
             } else if ( property.getPropertyType() == SQLColumn.class){
@@ -254,7 +254,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 				((ArchitectDataSource)newVal).setUser("a");
 				((ArchitectDataSource)newVal).setPass("b");
 				((ArchitectDataSource)newVal).setDriverClass(MockJDBCDriver.class.getName());
-				((ArchitectDataSource)newVal).setUrl("jdbc:mock:x=y");
+				((ArchitectDataSource)newVal).setUrl("jdbc:mock:tables=tab1,tab2");
 			} else if (property.getPropertyType() == SQLTable.class) {
 				newVal = new SQLTable();
             } else if (property.getPropertyType() == SQLColumn.class) {

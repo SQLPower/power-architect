@@ -726,6 +726,21 @@ public class TestSQLTable extends SQLTestCase {
         // also roll forward original and compare to afterChange
     }
     
+    public void testPopulateColumnsCaseSensitive() throws Exception {
+        ArchitectDataSource ds = new ArchitectDataSource();
+        ds.setDisplayName("tableWithMixedColumnCase");
+        ds.setDriverClass("ca.sqlpower.architect.MockJDBCDriver");
+        ds.setUser("fake");
+        ds.setPass("fake");
+        ds.setUrl("jdbc:mock:" +
+                "tables=tab1" +
+                "&columns.tab1=this_is_my_column,THIS_IS_MY_COLUMN");
+        SQLDatabase db = new SQLDatabase(ds);
+        SQLTable t = db.getTableByName("tab1");
+        
+        // this shouldn't throw a DuplicateColumnException
+        assertEquals(2, t.getColumns().size());
+    }
     
     /**
      * Utility class that can log events for a tree of SQLObjects, and make snapshots of the
@@ -1119,4 +1134,3 @@ public class TestSQLTable extends SQLTestCase {
     }
     
 }
-
