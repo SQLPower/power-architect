@@ -1094,7 +1094,6 @@ public class SQLTable extends SQLObject {
     public synchronized List<SQLIndex> getUniqueIndices() throws ArchitectException {
         populateColumns();
         populateIndices();
-        normalizePrimaryKey();
         List<SQLIndex> list = new ArrayList<SQLIndex>();
         Iterator it = getIndicesFolder().children.iterator();
         while (it.hasNext()) {
@@ -1125,7 +1124,6 @@ public class SQLTable extends SQLObject {
         if (populate) {
             populateColumns();
             populateIndices();
-            normalizePrimaryKey();
         }
         logger.debug("Looking for Index ["+name+"] in "+getIndicesFolder().children);
         Iterator it = getIndicesFolder().children.iterator();
