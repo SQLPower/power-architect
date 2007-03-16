@@ -150,7 +150,8 @@ public class TestTablePane extends TestCase {
 				columnsFolder = (Folder) children.get(0);
 			}
 			public void removeLastColumnNoEvent() {
-				((MyFolder) getColumnsFolder()).removeLastChildNoEvent();
+				Folder<SQLColumn> columnsFolder2 = getColumnsFolder();
+                ((MyFolder) columnsFolder2).removeLastChildNoEvent();
 			}
 		}
 		
