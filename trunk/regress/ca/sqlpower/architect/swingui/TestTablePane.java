@@ -134,7 +134,7 @@ public class TestTablePane extends TestCase {
 	
 	public void testListenerDoesntCleanUpEarly() throws ArchitectException {
 		class MySQLTable extends SQLTable {
-			class MyFolder extends SQLTable.Folder {
+			class MyFolder extends SQLTable.Folder<SQLColumn> {
 				MyFolder() {
 					super(COLUMNS, true);
 				}
