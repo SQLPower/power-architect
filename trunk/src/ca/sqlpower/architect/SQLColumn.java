@@ -258,7 +258,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 
 				logger.debug("Adding column "+col.getName());
 				
-				if (addTo.getColumnByName(col.getName(), false) != null) {
+				if (addTo.getColumnByName(col.getName(), false, true) != null) {
 					throw new DuplicateColumnException(addTo, col.getName());
 				}
 				

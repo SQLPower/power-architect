@@ -594,7 +594,7 @@ public class MockJDBCDatabaseMetaData implements DatabaseMetaData {
 		}
 
 		for (String cat : catalogs) {
-			if (cat == NO_CATALOG) {
+			if (cat.equals(NO_CATALOG)) {
 				if (schemas.get(cat) == null) {
 					// no catalogs, no schemas
 					String tableList = connection.getProperties().getProperty("tables");
@@ -948,7 +948,24 @@ public class MockJDBCDatabaseMetaData implements DatabaseMetaData {
 
 	public ResultSet getIndexInfo(String catalog, String schema, String table,
 			boolean unique, boolean approximate) throws SQLException {
-		throw new UnsupportedOperationException("Not implemented");
+        MockJDBCResultSet rs = new MockJDBCResultSet(null, 13);
+        rs.setColumnName(1, "TABLE_CAT");
+        rs.setColumnName(2, "TABLE_SCHEM");
+        rs.setColumnName(3, "TABLE_NAME");
+        rs.setColumnName(4, "NON_UNIQUE");
+        rs.setColumnName(5, "INDEX_QUALIFIER");
+        rs.setColumnName(6, "INDEX_NAME");
+        rs.setColumnName(7, "TYPE");
+        rs.setColumnName(8, "ORDINAL_POSITION");
+        rs.setColumnName(9, "COLUMN_NAME");
+        rs.setColumnName(10, "ASC_OR_DESC");
+        rs.setColumnName(11, "CARDINALITY");
+        rs.setColumnName(12, "PAGES");
+        rs.setColumnName(13, "FILTER_CONDITION");
+        
+        // TODO: define indices
+        
+        return rs;
 	}
 
 	public boolean supportsResultSetType(int type) throws SQLException {

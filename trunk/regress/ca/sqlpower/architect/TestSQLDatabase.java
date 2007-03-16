@@ -130,7 +130,7 @@ public class TestSQLDatabase extends SQLTestCase {
 		con.close();
 	}
 
-	public void testPopulate() throws ArchitectException, SQLException {
+	public void testPopulateExtremelyBasic() throws ArchitectException, SQLException {
 		Connection con = db.getConnection(); // causes db to actually connect
 		assertFalse("even though connected, should not be populated yet", db.isPopulated());
 		db.populate();
@@ -140,6 +140,65 @@ public class TestSQLDatabase extends SQLTestCase {
 		
 		con.close();
 	}
+    
+    public void testPopulateTablesOnly() throws Exception {
+        ArchitectDataSource ds = new ArchitectDataSource();
+        ds.setDisplayName("tablesOnly");
+        ds.setDriverClass("ca.sqlpower.architect.MockJDBCDriver");
+        ds.setUser("fake");
+        ds.setPass("fake");
+        ds.setUrl("jdbc:mock:tables=tab1");
+        SQLDatabase db = new SQLDatabase(ds);
+        db.populate();
+        assertEquals(1, db.getChildCount());
+        assertEquals(SQLTable.class, db.getChildType());
+        assertEquals(db.getChild(0).getName(), "tab1");
+    }
+
+    public void testPopulateSchemasAndTables() throws Exception {
+        ArchitectDataSource ds = new ArchitectDataSource();
+        ds.setDisplayName("schemasAndTables");
+        ds.setDriverClass("ca.sqlpower.architect.MockJDBCDriver");
+        ds.setUser("fake");
+        ds.setPass("fake");
+        ds.setUrl("jdbc:mock:dbmd.schemaTerm=Schema&schemas=sch1&tables.sch1=tab1");
+        SQLDatabase db = new SQLDatabase(ds);
+        db.populate();
+        assertEquals(1, db.getChildCount());
+        assertEquals(SQLSchema.class, db.getChildType());
+        assertEquals(db.getChild(0).getName(), "sch1");
+    }
+
+    public void testPopulateCatalogsAndTables() throws Exception {
+        ArchitectDataSource ds = new ArchitectDataSource();
+        ds.setDisplayName("catalogsAndTables");
+        ds.setDriverClass("ca.sqlpower.architect.MockJDBCDriver");
+        ds.setUser("fake");
+        ds.setPass("fake");
+        ds.setUrl("jdbc:mock:dbmd.catalogTerm=Catalog&catalogs=cat1&tables.cat1=tab1");
+        SQLDatabase db = new SQLDatabase(ds);
+        db.populate();
+        assertEquals(1, db.getChildCount());
+        assertEquals(SQLCatalog.class, db.getChildType());
+        assertEquals(db.getChild(0).getName(), "cat1");
+    }
+
+    public void testPopulateCatalogsSchemasAndTables() throws Exception {
+        ArchitectDataSource ds = new ArchitectDataSource();
+        ds.setDisplayName("catalogsSchemasAndTables");
+        ds.setDriverClass("ca.sqlpower.architect.MockJDBCDriver");
+        ds.setUser("fake");
+        ds.setPass("fake");
+        ds.setUrl("jdbc:mock:dbmd.catalogTerm=Catalog&dbmd.schemaTerm=Schema" +
+                "&catalogs=cat1" +
+                "&schemas.cat1=sch1" +
+                "&tables.cat1.sch1=tab1");
+        SQLDatabase db = new SQLDatabase(ds);
+        db.populate();
+        assertEquals(1, db.getChildCount());
+        assertEquals(SQLCatalog.class, db.getChildType());
+        assertEquals(db.getChild(0).getName(), "cat1");
+    }
 
 	/*
 	 * Test method for 'ca.sqlpower.architect.SQLDatabase.allowsChildren()'

@@ -482,7 +482,7 @@ public class SQLIndex extends SQLObject {
             String pkName = null;
             rs = dbmd.getPrimaryKeys(catalog, schema, tableName);
             while (rs.next()) {
-                SQLColumn col = addTo.getColumnByName(rs.getString(4), false);
+                SQLColumn col = addTo.getColumnByName(rs.getString(4), false, true);
                 //logger.debug(rs.getString(4));
                 if (col != null ){
                     col.primaryKeySeq = new Integer(rs.getInt(5));
@@ -554,8 +554,8 @@ public class SQLIndex extends SQLObject {
                 logger.debug("Adding column "+colName+" to index "+idx.getName());
 
                 Column col;
-                if (addTo.getColumnByName(colName, false) != null) {
-                    col = idx.new Column(addTo.getColumnByName(colName, false), ascending, descending);
+                if (addTo.getColumnByName(colName, false, true) != null) {
+                    col = idx.new Column(addTo.getColumnByName(colName, false, true), ascending, descending);
                 } else {
                     col = idx.new Column(colName, ascending, descending);  // probably an expression like "col1+col2"
                 }

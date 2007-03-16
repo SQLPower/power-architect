@@ -53,8 +53,8 @@ public class SQLTable extends SQLObject {
 
 	public SQLTable(SQLObject parent, String name, String remarks, String objectType, boolean startPopulated) throws ArchitectException {
 		logger.debug("NEW TABLE "+name+"@"+hashCode());
-		setup(parent, name, remarks, objectType);
 		initFolders(startPopulated);
+		setup(parent, name, remarks, objectType);
 	}
 
     /**
@@ -62,11 +62,10 @@ public class SQLTable extends SQLObject {
      */
     private void setup(SQLObject parent, String name, String remarks, String objectType) {
         this.parent = parent;
-		setName(name);
+		super.setName(name);  // this.setName will try to be far to fancy at this point, and break stuff
 		this.remarks = remarks;
 		this.objectType = objectType;
 		if (this.objectType == null) throw new NullPointerException();
-		this.children = new ArrayList();
     }
 
 	/**
@@ -94,6 +93,7 @@ public class SQLTable extends SQLObject {
 	 *
 	 */
 	public SQLTable() {
+        this.children = new ArrayList();  // initFolders normally does this, but this constructor never calls it
         setup(null,null,null,"TABLE");
 	}
 
@@ -110,6 +110,7 @@ public class SQLTable extends SQLObject {
 	 * if lazy loading from a database, it should be false.
 	 */
 	public void initFolders(boolean populated) throws ArchitectException {
+        this.children = new ArrayList();
 		addChild(new Folder(Folder.COLUMNS, populated));
 		addChild(new Folder(Folder.EXPORTED_KEYS, populated));
         addChild(new Folder(Folder.IMPORTED_KEYS, populated));
@@ -230,8 +231,6 @@ public class SQLTable extends SQLObject {
             indicesFolder.populated = true;
         } catch (SQLException e) {
             throw new ArchitectException("Failed to populate indices of table "+getName(), e);
-        } catch (Exception e) {
-            logger.error("Unexpected: SQLTable caught exception", e);
         } finally {
             indicesFolder.populated = true;
             Collections.sort(columnsFolder.children, new SQLColumn.CompareByPKSeq());
@@ -409,10 +408,11 @@ public class SQLTable extends SQLObject {
 	}
 
 	/**
-	 * Populates this table then searches for the named column.
+	 * Populates this table then searches for the named column in a case-insensitive
+     * manner.
 	 */
 	public SQLColumn getColumnByName(String colName) throws ArchitectException {
-		return getColumnByName(colName, true);
+		return getColumnByName(colName, true, false);
 	}
 
 	/**
@@ -422,10 +422,11 @@ public class SQLTable extends SQLObject {
 	 * list from the database; otherwise it just searches the current
 	 * list.
 	 */
-    // TODO: Have a flag that makes the check case sensitive/insensitive
-	public SQLColumn getColumnByName(String colName, boolean populate) throws ArchitectException {
+	public SQLColumn getColumnByName(String colName, boolean populate, boolean caseSensitive)
+        throws ArchitectException {
 		if (populate) populateColumns();
-		logger.debug("Looking for column "+colName+" in "+children);
+		if (logger.isDebugEnabled()) logger.debug("Looking for column "+colName+" in "+children);
+        
 		/* if columnsFolder.children.iterator(); gets changed to getColumns().iterator()
 		 * we get infinite recursion between populateColumns, getColumns,
 		 * getColumnsByName and addColumnsToTable
@@ -433,10 +434,17 @@ public class SQLTable extends SQLObject {
 		Iterator it = columnsFolder.children.iterator();
 		while (it.hasNext()) {
 			SQLColumn col = (SQLColumn) it.next();
-			if (col.getName().equalsIgnoreCase(colName)) {
-				logger.debug("FOUND");
-				return col;
-			}
+            if (caseSensitive) {
+                if (col.getName().equals(colName)) {
+                    logger.debug("FOUND");
+                    return col;
+                }
+            } else {
+                if (col.getName().equalsIgnoreCase(colName)) {
+                    logger.debug("FOUND");
+                    return col;
+                }
+            }
 		}
 		logger.debug("NOT FOUND");
 		return null;
@@ -989,7 +997,11 @@ public class SQLTable extends SQLObject {
 	 */
 	public void setName(String argName) {
 
-        if (!isMagicEnabled()) {
+        // this method can be called very early in a SQLTable's life,
+        // before its indices folder exists.  Therefore, we have to
+        // be careful not to look up the primary key before one exists.
+
+        if ( (!isMagicEnabled()) || (indicesFolder == null) ) {
             super.setName(argName);
         } else try {
             String oldName = getName();
@@ -1238,16 +1250,56 @@ public class SQLTable extends SQLObject {
 	}
 
     /**
-     * Returns the primary key for the table or null if non exists.
+     * Returns the primary key for this table, or null if none exists.
      * 
      * @throws ArchitectException
      */
     public SQLIndex getPrimaryKeyIndex() throws ArchitectException {
-        if (getIndicesFolder() == null) return null;
         for (SQLIndex i : (List<SQLIndex>)getIndicesFolder().getChildren()){
             if (i.isPrimaryKeyIndex()) return i;
         }
         return null;
     }
 
+    /**
+     * Retrieves all of the table names for the given catalog, schema
+     * in the container's database using DatabaseMetaData.  This method
+     * is a subroutine of the populate() methods in SQLDatabase, SQLCatalog,
+     * and SQLSchema.
+     * <p>
+     * Important Note: This method adds the tables directly to the parent's
+     * children list.  No SQLObjectEvents will be generated.  Calling code
+     * has to do this at the appropriate time, when it's safe to do so. 
+     * 
+     * @param container The container that will be the direct parent of
+     * all tables created by this method call.
+     * @param dbmd The DatabaseMetaData for the parent database in question.
+     * The fact that you have to pass it in is just an optimization: all
+     * the places from which this method gets called already have an instance
+     * of DatabaseMetaData ready to go.
+     */
+    static void addTablesToTableContainer(
+            SQLObject container, DatabaseMetaData dbmd,
+            String catalogName, String schemaName)
+    throws ArchitectException, SQLException {
+        ResultSet rs = null;
+        try {
+            rs = dbmd.getTables(catalogName,
+                    schemaName,
+                    "%",
+                    new String[] {"TABLE", "VIEW"});
+
+            while (rs.next()) {
+                container.children.add(new SQLTable(container,
+                        rs.getString(3),
+                        rs.getString(5),
+                        rs.getString(4),
+                        false));
+            }
+            rs.close();
+            rs = null;
+        } finally {
+            if (rs != null) rs.close();
+        }
+    }
 }
