@@ -10,10 +10,6 @@ public class UndoCompoundEvent extends Event {
 		public boolean isStartEvent() {
 			return (this == COMPOUND_EDIT_START);
 		}
-		
-		public boolean isEndEvent() {
-			return !isStartEvent();
-		}
 	}
 	
 	private EventTypes type;
