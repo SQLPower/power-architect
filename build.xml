@@ -29,9 +29,9 @@
 	<target name="init">
 		<tstamp/>
 		<mkdir dir="${build}"/>
-		<javac srcdir="${src}" destdir="${build}" classpathref="compile.classpath" includes="ca/sqlpower/architect/ArchitectVersion.java" debug="true" deprecation="true" />
+		<javac srcdir="${src}" destdir="${build}" classpathref="compile.classpath" includes="ca/sqlpower/architect/antbuild/ArchitectVersionTask.java" debug="true" deprecation="true" />
 		<taskdef name="genVersion"
-					classname="ca.sqlpower.architect.ArchitectVersion"
+					classname="ca.sqlpower.architect.antbuild.ArchitectVersionTask"
 			        classpath="build"/>
 		<genVersion message="Architect!"/>
 		<echo message="Building Architect version: ${app_ver_major}.${app_ver_minor}.${app_ver_tiny}"> </echo>

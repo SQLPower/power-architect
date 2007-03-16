@@ -16,7 +16,7 @@ import javax.swing.text.html.HTMLEditorKit;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.util.BrowserUtil;
 
 /**
@@ -32,7 +32,7 @@ public class WelcomeScreen {
     final static String welcomeHTMLstuff =
         "<html><head><style type=\"text/css\">body {margin-left: 100px; margin-right: 100px;}</style></head>" +
         "<body>" +
-        "<h1 align=\"center\">Power*Architect " + ArchitectUtils.APP_VERSION + "</h1>" +
+        "<h1 align=\"center\">Power*Architect " + ArchitectVersion.APP_VERSION + "</h1>" +
         "<br><br><br>" +
         "<p>Please visit our <a href=\"" + ArchitectFrame.FORUM_URL + "\">support forum</a>" +
         "   if you have any questions, comments, suggestions, or if you just need a friend." +
