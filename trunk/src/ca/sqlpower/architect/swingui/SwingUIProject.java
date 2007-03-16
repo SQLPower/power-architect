@@ -1189,9 +1189,8 @@ public class SwingUIProject {
     private void savePlayPen(PrintWriter out) throws IOException, ArchitectException {
         ioo.println(out, "<play-pen>");
         ioo.indent++;
-        Iterator it = playPen.getTablePanes().iterator();
-        while (it.hasNext()) {
-            TablePane tp = (TablePane) it.next();
+        for(int i = playPen.getTablePanes().size()-1; i>= 0; i--) {
+            TablePane tp = playPen.getTablePanes().get(i);
             Point p = tp.getLocation();
             ioo.println(out, "<table-pane table-ref="+quote(objectIdMap.get(tp.getModel()).toString())+""
                     +" x=\""+p.x+"\" y=\""+p.y+"\" />");
@@ -1201,7 +1200,7 @@ public class SwingUIProject {
             }
         }
 
-        it = playPen.getRelationships().iterator();
+        Iterator it = playPen.getRelationships().iterator();
         while (it.hasNext()) {
             Relationship r = (Relationship) it.next();
             ioo.println(out, "<table-link relationship-ref="+quote(objectIdMap.get(r.getModel()).toString())
