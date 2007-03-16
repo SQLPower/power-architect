@@ -217,14 +217,14 @@ public class TestSwingUIProject extends ArchitectTestCase {
         OutputStreamWriter out = new OutputStreamWriter(byteArrayOutputStream,ENCODING);
 		assertNotNull(out);
 		project.save(out,ENCODING);
-        System.out.println(byteArrayOutputStream.toString());
-		SwingUIProject p2 = new SwingUIProject("test2");
+
+        SwingUIProject p2 = new SwingUIProject("test2");
 		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toString().getBytes(ENCODING));
         p2.load(byteArrayInputStream);
         OutputStreamWriter out2 = new OutputStreamWriter(byteArrayOutputStream2,ENCODING);
 		p2.save(out2,ENCODING);
-        
-		assertEquals(byteArrayOutputStream.toString(), byteArrayOutputStream2);
+
+        assertEquals(byteArrayOutputStream, byteArrayOutputStream2);
 	}
     
     /*
@@ -252,7 +252,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
             TablePane tp2 = p2TablePanes.get(i);
             assertEquals("Wrong table names",tp1.getName(), tp2.getName());
         }
-        assertEquals(byteArrayOutputStream.toString(), byteArrayOutputStream2);
+        assertEquals(byteArrayOutputStream, byteArrayOutputStream2);
     }
 
 	/** Save a document and use built-in JAXP to ensure it is at least well-formed XML.
