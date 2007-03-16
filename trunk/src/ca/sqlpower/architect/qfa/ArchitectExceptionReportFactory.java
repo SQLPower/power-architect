@@ -3,6 +3,7 @@ package ca.sqlpower.architect.qfa;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.ArchitectVersion;
 /**
  * Creates Exception reports that are setup for the architect application 
  */
@@ -25,7 +26,7 @@ public class ArchitectExceptionReportFactory implements QFAFactory {
     public ExceptionReport createExceptionReport(Throwable exception) {
         ExceptionReport er = new ExceptionReport(
                 exception, REPORT_URL_SYSTEM_PROP,
-                DEFAULT_REPORT_URL, ArchitectUtils.APP_VERSION, 
+                DEFAULT_REPORT_URL, ArchitectVersion.APP_VERSION, 
                 ArchitectUtils.getAppUptime());
         return er;
     }

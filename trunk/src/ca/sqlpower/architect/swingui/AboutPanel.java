@@ -13,7 +13,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 
-import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.ArchitectVersion;
 
 public class AboutPanel extends JPanel implements ArchitectPanel {
 
@@ -42,7 +42,7 @@ public class AboutPanel extends JPanel implements ArchitectPanel {
         }
 
 		content = new JLabel("<html>Power*Architect "+
-		                    ArchitectUtils.APP_VERSION+"<br><br>" +
+		                    ArchitectVersion.APP_VERSION+"<br><br>" +
 							"Copyright 2003-2006 SQL Power Group Inc.<br>" +
 							"</html>");
 		pan.add(content);

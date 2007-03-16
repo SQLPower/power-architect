@@ -31,6 +31,7 @@ import org.xml.sax.SAXException;
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.architect.IOUtils;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
@@ -1006,7 +1007,7 @@ public class SwingUIProject {
 
         try {
             ioo.println(out, "<?xml version=\"1.0\" encoding=\""+encoding+"\"?>");
-            ioo.println(out, "<architect-project version=\"1.0\" appversion=\""+ArchitectUtils.APP_VERSION+"\">");
+            ioo.println(out, "<architect-project version=\"1.0\" appversion=\""+ArchitectVersion.APP_VERSION+"\">");
             ioo.indent++;
             ioo.println(out, "<project-name>"+ArchitectUtils.escapeXML(name)+"</project-name>");
             saveDataSources(out);

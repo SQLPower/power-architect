@@ -14,7 +14,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLGenerator;
@@ -97,7 +97,7 @@ public class ProfilePDFFormat implements ProfileFormat {
         document.addTitle("Table Profiling Report");
         document.addSubject("Tables: " + profileResults);
         document.addAuthor(System.getProperty("user.name"));
-        document.addCreator("Power*Architect version "+ArchitectUtils.APP_VERSION);
+        document.addCreator("Power*Architect version "+ArchitectVersion.APP_VERSION);
 
         document.open();
 
