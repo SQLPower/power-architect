@@ -3,16 +3,18 @@ package ca.sqlpower.architect.swingui;
 import java.beans.PropertyDescriptor;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
-import java.io.CharArrayWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.Types;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -207,25 +209,51 @@ public class TestSwingUIProject extends ArchitectTestCase {
 	 * Create two temp files, save our testData project to the first, load that
 	 * back in, save it to the second, and compare the two temp files.
 	 */
-	public void testSavePrintWriter() throws Exception {
+	public void testSave() throws Exception {
 		testLoad();
  
-		CharArrayWriter file1 = new CharArrayWriter();
-        PrintWriter out = new PrintWriter(file1);
+        ByteArrayOutputStream byteArrayOutputStream2 = new ByteArrayOutputStream();
+        ByteArrayOutputStream byteArrayOutputStream = byteArrayOutputStream2;
+        OutputStreamWriter out = new OutputStreamWriter(byteArrayOutputStream,ENCODING);
 		assertNotNull(out);
 		project.save(out,ENCODING);
-		out.flush();
-        out.close();
-        
+        System.out.println(byteArrayOutputStream.toString());
 		SwingUIProject p2 = new SwingUIProject("test2");
-		p2.load(new ByteArrayInputStream(file1.toString().getBytes(ENCODING)));
-        CharArrayWriter file2 = new CharArrayWriter();
-		p2.save(new PrintWriter(file2),ENCODING);
-        out.flush();
-        out.close();
+		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toString().getBytes(ENCODING));
+        p2.load(byteArrayInputStream);
+        OutputStreamWriter out2 = new OutputStreamWriter(byteArrayOutputStream2,ENCODING);
+		p2.save(out2,ENCODING);
         
-		assertEquals(file1.toString(), file2.toString());
+		assertEquals(byteArrayOutputStream.toString(), byteArrayOutputStream2);
 	}
+    
+    /*
+     * Test method for 'ca.sqlpower.architect.swingui.SwingUIProject.save(PrintWriter)'
+     * Create two temp files, save our testData project to the first, load that
+     * back in, and compare the names are the same.
+     */
+    public void testSavePersistsTablePanes() throws Exception {
+        testLoad();
+ 
+        ByteArrayOutputStream byteArrayOutputStream2 = new ByteArrayOutputStream();
+        ByteArrayOutputStream byteArrayOutputStream = byteArrayOutputStream2;
+        OutputStreamWriter out = new OutputStreamWriter(byteArrayOutputStream,ENCODING);
+        assertNotNull(out);
+        project.save(out,ENCODING);
+        System.out.println(byteArrayOutputStream.toString());
+        SwingUIProject p2 = new SwingUIProject("test2");
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toString().getBytes(ENCODING));
+        p2.load(byteArrayInputStream);
+        List<TablePane> projectTablePanes = project.getPlayPen().getTablePanes();
+        List<TablePane> p2TablePanes = p2.getPlayPen().getTablePanes();
+        assertEquals(projectTablePanes.size(),p2TablePanes.size());
+        for (int i=0; i<projectTablePanes.size();i++){
+            TablePane tp1 = projectTablePanes.get(i);
+            TablePane tp2 = p2TablePanes.get(i);
+            assertEquals("Wrong table names",tp1.getName(), tp2.getName());
+        }
+        assertEquals(byteArrayOutputStream.toString(), byteArrayOutputStream2);
+    }
 
 	/** Save a document and use built-in JAXP to ensure it is at least well-formed XML.
 	 * @throws Exception
@@ -653,12 +681,12 @@ public class TestSwingUIProject extends ArchitectTestCase {
         SQLTable table = new SQLTable(ppdb, true);
         table.setName(tableName);
         SQLColumn col = new SQLColumn(table, "first", Types.VARCHAR, 10, 0);
-        col.setPrimaryKeySeq(0);
         table.addColumn(col);
         SQLIndex target = new SQLIndex("testy index", false, null, null, null);
         target.addChild(target.new Column(col, false, false));
         ppdb.addChild(table);
         table.getIndicesFolder().addChild(target);
+        col.setPrimaryKeySeq(0);
         
         Set<String> propertiesToIgnore = new HashSet<String>();
         propertiesToIgnore.add("SQLObjectListeners");
@@ -717,6 +745,55 @@ public class TestSwingUIProject extends ArchitectTestCase {
         table.setName(tableName);
         SQLIndex index = new SQLIndex("tasty index", false, null, null, null);
         SQLIndex.Column target = index.new Column("phogna bologna", false, true);
+        ppdb.addChild(table);
+        table.getIndicesFolder().addChild(index);
+        
+        Set<String> propertiesToIgnore = new HashSet<String>();
+        propertiesToIgnore.add("SQLObjectListeners");
+        propertiesToIgnore.add("undoEventListeners");
+        propertiesToIgnore.add("magicEnabled");
+        propertiesToIgnore.add("children");
+        propertiesToIgnore.add("parent");
+        propertiesToIgnore.add("class");
+
+        Map<String,Object> oldDescription =
+            setAllInterestingProperties(index, propertiesToIgnore);
+        
+        File tmp = File.createTempFile("test", ".architect");
+        if (deleteOnExit) {
+            tmp.deleteOnExit();
+        } else {
+            System.out.println("testSaveCoversAllIndexProperties: temp file is "+tmp.getAbsolutePath());
+        }
+        PrintWriter out = new PrintWriter(tmp,ENCODING);
+        assertNotNull(out);
+        project.save(out,ENCODING);
+        
+        SwingUIProject project2 = new SwingUIProject("new test project");
+        project2.load(new BufferedInputStream(new FileInputStream(tmp)));
+        
+        // grab the second database in the dbtree's model (the first is the play pen)
+        ppdb = (SQLDatabase) project2.getPlayPen().getDatabase();
+        
+        index = (SQLIndex) ((SQLTable) ppdb.getTableByName(tableName)).getIndicesFolder().getChild(0);
+        
+        Map<String, Object> newDescription =
+            getAllInterestingProperties(index, propertiesToIgnore);
+        
+        assertMapsEqual(oldDescription, newDescription);
+    }
+    
+    public void testSaveIndexColumnPointingToAColumn() throws Exception {
+        final String tableName = "delicatessen";
+        testLoad();
+        
+        SQLDatabase ppdb = project.getPlayPen().getDatabase();
+        SQLTable table = new SQLTable(ppdb, true);
+        SQLColumn col = new SQLColumn(table,"Column 1",1,1,1);
+        table.addColumn(col);
+        table.setName(tableName);
+        SQLIndex index = new SQLIndex("tasty index", false, null, null, null);
+        index.addIndexColumn(col, false, true);
         ppdb.addChild(table);
         table.getIndicesFolder().addChild(index);
         

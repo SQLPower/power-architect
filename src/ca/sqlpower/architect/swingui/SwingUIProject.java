@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.sql.SQLException;
@@ -29,7 +30,6 @@ import org.xml.sax.SAXException;
 
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.IOUtils;
 import ca.sqlpower.architect.SQLCatalog;
@@ -241,7 +241,7 @@ public class SwingUIProject {
             if (table.getIndicesFolder() == null) {
                 logger.debug("this must be a very old version, we have to add the index" +
                         " folder manually. the table is [" + table.getName() + "]");
-                table.addChild(new Folder(Folder.INDICES, false));
+                table.addChild(new Folder(Folder.INDICES, true));
             }
             
             if ( table.getPrimaryKeyIndex() == null) {
@@ -708,14 +708,11 @@ public class SwingUIProject {
             } else {
                 logger.warn("No ID found in index element while loading project!");
             }
-
-            index.setType(SQLIndex.IndexType.valueOf(attributes.getValue("index-type")));
-            try {
-                index.setPrimaryKeyIndex(Boolean.valueOf(attributes.getValue("isPrimaryKeyIndex")));
-            } catch (ArchitectException e) {
-                throw new ArchitectRuntimeException(e);
+            for (int i = 0; i < attributes.getLength(); i++) {
+                logger.debug("Attribute: \"" + attributes.getQName(i) + "\" Value:"+attributes.getValue(i));
             }
-
+            index.setType(SQLIndex.IndexType.valueOf(attributes.getValue("index-type")));
+    
             currentIndex = index;
             return index;
         }
@@ -1026,6 +1023,10 @@ public class SwingUIProject {
             if (out != null) out.close();
         }
     }
+    
+    public void save(OutputStreamWriter out, String encoding) throws IOException, ArchitectException {
+        save(new PrintWriter(out), encoding);
+    }
 
     private void saveDataSources(PrintWriter out) throws IOException, ArchitectException {
         ioo.println(out, "<project-data-sources>");
@@ -1060,6 +1061,7 @@ public class SwingUIProject {
         ioo.indent--;
         ioo.println(out, "</project-data-sources>");
     }
+    
 
     private void saveDDLGenerator(PrintWriter out) throws IOException {
         ioo.print(out, "<ddl-generator"
@@ -1397,7 +1399,7 @@ public class SwingUIProject {
             propNames.put("unique", index.isUnique());
             propNames.put("qualifier", index.getQualifier());
             propNames.put("index-type", index.getType().name());
-            propNames.put("isPrimaryKeyIndex", index.isPrimaryKeyIndex());
+            propNames.put("primaryKeyIndex", index.isPrimaryKeyIndex());
             propNames.put("filterCondition", index.getFilterCondition());
         } else if (o instanceof SQLIndex.Column) {
             id = "IDC"+objectIdMap.size();

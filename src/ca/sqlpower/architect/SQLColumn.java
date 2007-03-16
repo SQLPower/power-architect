@@ -542,6 +542,9 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
      * parent table's column folder.  However, if magic is disabled on this column, this method
      * simply sets the PrimaryKeySeq property to the given value, fires the change event, and
      * returns without trying to re-order the columns. 
+     * 
+     * If there is no primary key on this column's table it will create a new key
+     * with default values.
      */
 	public void setPrimaryKeySeq(Integer argPrimaryKeySeq) {
 	    // do nothing if there's no change
