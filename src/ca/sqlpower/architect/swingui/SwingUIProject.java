@@ -255,8 +255,9 @@ public class SwingUIProject {
                     }
                 }
             }
-
+            logger.debug("Table ["+table.getName()+"]2 index folder contents: "+table.getIndicesFolder().getChildren());
             table.normalizePrimaryKey();
+            logger.debug("Table ["+table.getName()+"]3 index folder contents: "+table.getIndicesFolder().getChildren());
             
             if (logger.isDebugEnabled()) {
                 if (!table.isPopulated()) {
@@ -702,7 +703,7 @@ public class SwingUIProject {
 
         public Object createObject(Attributes attributes) {
             SQLIndex index = new SQLIndex();
-
+            logger.debug("Loading index: "+attributes.getValue("name"));
             String id = attributes.getValue("id");
             if (id != null) {
                 objectIdMap.put(id, index);
