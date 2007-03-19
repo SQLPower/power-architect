@@ -266,4 +266,29 @@ public class TestSQLIndex extends SQLTestCase {
         assertEquals("Wrong primary key","TEST3PK",dbTable.getPrimaryKeyName());
     }
     
+    public void testAddStringColumnToPKThrowsException() throws ArchitectException{
+        SQLIndex i = new SQLIndex("Index",true,"",IndexType.CLUSTERED,"");
+        i.setPrimaryKeyIndex(true);
+        try {
+            i.addChild(i.new Column("index column",true,true));
+            fail();
+        } catch (ArchitectException e) {
+            assertEquals("Cannot add a \"string\" column to a primary key index",e.getMessage());
+            return;
+        }
+        fail();
+    }
+    
+    public void testAddChangeIndexToPkWithStringColumn() throws ArchitectException{
+        SQLIndex i = new SQLIndex("Index",true,"",IndexType.CLUSTERED,"");
+        i.addChild(i.new Column("index column",true,true));
+        try {
+            i.setPrimaryKeyIndex(true);
+            fail();
+        } catch (ArchitectException e) {
+            assertEquals("A PK must only refer to Index.Columns that contain SQLColumns",e.getMessage());
+            return;
+        }
+    }
+    
 }

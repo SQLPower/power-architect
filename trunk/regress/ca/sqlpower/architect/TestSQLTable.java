@@ -22,6 +22,7 @@ import junit.framework.TestSuite;
 
 import org.apache.commons.beanutils.BeanUtils;
 
+import ca.sqlpower.architect.SQLIndex.IndexType;
 import ca.sqlpower.architect.SQLTable.Folder;
 import ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
 import ca.sqlpower.architect.TestSQLTable.EventLogger.SQLObjectSnapshot;
@@ -357,6 +358,40 @@ public class TestSQLTable extends SQLTestCase {
         assertEquals("2nd key out of order", table1.getColumn(1), col2);
         assertEquals("Too many or too few primary keys", table1.getPkSize(), 2);
         
+    }
+    
+    public void testGetPrimaryKey() throws ArchitectException {
+        SQLTable t1 = new SQLTable(null,true);
+        SQLColumn c1 = new SQLColumn(t1,"col1",1,0,0);
+        SQLIndex i1 = new SQLIndex("name",true,null,IndexType.CLUSTERED,null);
+        i1.addIndexColumn(c1, true, true);
+        t1.getIndicesFolder().addChild(i1);
+        SQLIndex i2 = new SQLIndex("name 2",true,null,IndexType.CLUSTERED,null);
+        i2.addChild(i2.new Column("Index column string",false,false));
+        t1.getIndicesFolder().addChild(i2);
+        
+        assertNull(t1.getPrimaryKeyIndex());
+        
+        i1.setPrimaryKeyIndex(true);
+        assertEquals(i1,t1.getPrimaryKeyIndex());
+        i1.setPrimaryKeyIndex(false);
+        assertNull(t1.getPrimaryKeyIndex());
+        
+    }
+    
+    public void testGetPrimaryKeyWhenPrimarykeyNotFirstIndex() throws ArchitectException {
+        SQLTable t1 = new SQLTable(null,true);
+        SQLColumn c1 = new SQLColumn(t1,"col1",1,0,0);
+        SQLIndex i1 = new SQLIndex("name",true,null,IndexType.CLUSTERED,null);
+        i1.addIndexColumn(c1, true, true);
+        SQLIndex i2 = new SQLIndex("name 2",true,null,IndexType.CLUSTERED,null);
+        i2.addChild(i2.new Column("Index column string",false,false));
+        t1.getIndicesFolder().addChild(i2);
+        t1.getIndicesFolder().addChild(i1);
+        i1.setPrimaryKeyIndex(true);
+        assertEquals(i1,t1.getPrimaryKeyIndex());
+        i1.setPrimaryKeyIndex(false);
+        assertNull(t1.getPrimaryKeyIndex());
     }
     
     /*

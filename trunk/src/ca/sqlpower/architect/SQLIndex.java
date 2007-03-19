@@ -410,6 +410,11 @@ public class SQLIndex extends SQLObject {
 
     @Override
     protected void addChildImpl(int index, SQLObject newChild) throws ArchitectException {
+        if (newChild instanceof SQLIndex.Column 
+                && primaryKeyIndex
+                && ((Column) newChild).getColumn() == null ) {
+           throw new ArchitectException("Cannot add a \"string\" column to a primary key index");
+        }
         super.addChildImpl(index, newChild);
         Column c = (Column) newChild;
         if (c.getColumn() != null) {
@@ -599,6 +604,11 @@ public class SQLIndex extends SQLObject {
         try {
             startCompoundEdit("Make index a Primary Key");
             if (isPrimaryKey) {
+                for (Column c:(List<Column>)getChildren()) {
+                    if (c.getColumn() == null) {
+                        throw new ArchitectException("A PK must only refer to Index.Columns that contain SQLColumns");
+                    }
+                }
                 SQLTable parentTable = getParentTable();
                 if (parentTable != null) {
                     SQLIndex i = parentTable.getPrimaryKeyIndex();

@@ -192,13 +192,6 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 			SQLObjectRemoveChildren undoEvent = new SQLObjectRemoveChildren();
 			undoEvent.createEditFromEvent(e);
 			addEdit(undoEvent);
-			
-//			try{
-//				ArchitectUtils.unlistenToHierarchy(this,e.getChildren());
-//				ArchitectUtils.undoUnlistenToHierarchy(this,e.getChildren());
-//			} catch(ArchitectException ex) {
-//				logger.error("SQLObjectUndoableEventAdapter cannot attach to new children",ex);
-//			}
 		}
 
 		public void dbObjectChanged(SQLObjectEvent e) {

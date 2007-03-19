@@ -734,7 +734,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         assertMapsEqual(oldDescription, newDescription);
     }
 
-    public void testSaveCoversAllIndexColumnProperties() throws Exception {
+    public void testSaveCoversAllNonPKIndexColumnProperties() throws Exception {
         final String tableName = "delicatessen";
         testLoad();
         
@@ -753,27 +753,69 @@ public class TestSwingUIProject extends ArchitectTestCase {
         propertiesToIgnore.add("magicEnabled");
         propertiesToIgnore.add("children");
         propertiesToIgnore.add("parent");
+        propertiesToIgnore.add("primaryKeyIndex");
         propertiesToIgnore.add("class");
 
         Map<String,Object> oldDescription =
             setAllInterestingProperties(index, propertiesToIgnore);
-        
-        File tmp = File.createTempFile("test", ".architect");
-        if (deleteOnExit) {
-            tmp.deleteOnExit();
-        } else {
-            System.out.println("testSaveCoversAllIndexProperties: temp file is "+tmp.getAbsolutePath());
-        }
-        PrintWriter out = new PrintWriter(tmp,ENCODING);
-        assertNotNull(out);
-        project.save(out,ENCODING);
-        
+        propertiesToIgnore.remove("primaryKeyIndex");
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        OutputStreamWriter writer = new OutputStreamWriter(byteArrayOutputStream,ENCODING);
+        project.save(writer,ENCODING);
+        System.out.println(byteArrayOutputStream.toString());
         SwingUIProject project2 = new SwingUIProject("new test project");
-        project2.load(new BufferedInputStream(new FileInputStream(tmp)));
+        project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()));
         
         // grab the second database in the dbtree's model (the first is the play pen)
         ppdb = (SQLDatabase) project2.getPlayPen().getDatabase();
         
+        index = (SQLIndex) ((SQLTable) ppdb.getTableByName(tableName)).getIndicesFolder().getChild(0);
+        
+        Map<String, Object> newDescription =
+            getAllInterestingProperties(index, propertiesToIgnore);
+        
+        assertMapsEqual(oldDescription, newDescription);
+    }
+    
+    public void testSaveCoversAllPKColumnProperties() throws Exception {
+        final String tableName = "delicatessen";
+        testLoad();
+        
+        SQLDatabase ppdb = project.getPlayPen().getDatabase();
+        SQLTable table = new SQLTable(ppdb, true);
+        SQLColumn col = new SQLColumn(table,"col",1,0,0);
+        table.setName(tableName);
+        table.addColumn(col);
+        SQLIndex index = new SQLIndex("tasty index", false, null, null, null);
+        SQLIndex.Column indexCol = index.new Column(col, false, true);
+        index.setPrimaryKeyIndex(true);
+        ppdb.addChild(table);
+        table.getIndicesFolder().addChild(index);
+        index.addChild(indexCol);
+        col.setPrimaryKeySeq(new Integer(0));
+        
+        Set<String> propertiesToIgnore = new HashSet<String>();
+        propertiesToIgnore.add("SQLObjectListeners");
+        propertiesToIgnore.add("undoEventListeners");
+        propertiesToIgnore.add("magicEnabled");
+        propertiesToIgnore.add("children");
+        propertiesToIgnore.add("parent");
+        propertiesToIgnore.add("primaryKeyIndex");
+        propertiesToIgnore.add("class");
+
+        Map<String,Object> oldDescription =
+            setAllInterestingProperties(index, propertiesToIgnore);
+        propertiesToIgnore.remove("primaryKeyIndex");
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        OutputStreamWriter writer = new OutputStreamWriter(byteArrayOutputStream,ENCODING);
+        project.save(writer,ENCODING);
+        System.out.println(byteArrayOutputStream.toString());
+        SwingUIProject project2 = new SwingUIProject("new test project");
+        project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()));
+        
+        // grab the second database in the dbtree's model (the first is the play pen)
+        ppdb = (SQLDatabase) project2.getPlayPen().getDatabase();
+        System.out.println(ppdb.getTableByName(tableName));
         index = (SQLIndex) ((SQLTable) ppdb.getTableByName(tableName)).getIndicesFolder().getChild(0);
         
         Map<String, Object> newDescription =
@@ -795,7 +837,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         index.addIndexColumn(col, false, true);
         ppdb.addChild(table);
         table.getIndicesFolder().addChild(index);
-        
+        col.setPrimaryKeySeq(new Integer(0));
         Set<String> propertiesToIgnore = new HashSet<String>();
         propertiesToIgnore.add("SQLObjectListeners");
         propertiesToIgnore.add("undoEventListeners");
