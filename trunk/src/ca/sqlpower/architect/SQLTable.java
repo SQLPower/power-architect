@@ -747,7 +747,7 @@ public class SQLTable extends SQLObject {
      * by visiting the individual folders.
 	 */
 	public void populate() throws ArchitectException {
-		logger.debug("SQLTable: populate is a no-op");
+		// SQLTable: populate is a no-op
 	}
 
 	public boolean isPopulated() {
