@@ -316,7 +316,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	// ------------------------- SQLObject support -------------------------
 
 	public void populate() throws ArchitectException {
-		logger.debug("SQLColumn: populate is a no-op");
+		// SQLColumn: populate is a no-op
 	}
 
 	
