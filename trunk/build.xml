@@ -15,6 +15,7 @@
 
 	<taskdef name="izpack" classpath="${izpack.dir}/lib/compiler.jar" classname="com.izforge.izpack.ant.IzPackTask"/>
 	<taskdef name="jarbundler" classpath="osx_packaging_utils/jarbundler.jar:osx_packaging_utils/xercesImpl.jar:osx_packaging_utils/xml-apis.jar" classname="net.sourceforge.jarbundler.JarBundler"/>
+	<taskdef resource="clovertasks"/>
 
 	<condition property="isMac">
 		<os family="mac"/>
@@ -25,6 +26,44 @@
 			<os family="mac"/>
 		</not>
 	</condition>
+
+	<target name="with.clover">
+	    <clover-setup initString="mycoverage.db" source="1.5">
+	    <statementContext name="iflog" regexp="^if ?\( ?logger.is.*"/>
+	    </clover-setup>
+	</target>
+
+	<target name="clover.html" depends="with.clover">
+	    <clover-report>
+	        <current outfile="/Users/fuerth/Sites/architect_clover_html">
+	            <format type="html" filter="iflog" />
+	        </current>
+	    </clover-report>
+	</target>
+
+	<target name="clover.swing" depends="with.clover">
+	    <clover-view/>
+	</target>
+
+	<target name="clover.summary" depends="with.clover"> 
+	    <clover-report> 
+	    	<current summary="yes" outfile="coverage.pdf"> 
+		    <format type="pdf"/> 
+		</current> 
+	    </clover-report> 
+	</target> 
+
+	<!-- In order to execute this target, you have to put junit.jar and ant-junit.jar on the
+	     system classpath that Ant sees.  You can do this from the command line with:
+		ant -lib buildlib/junit.jar:buildlib/ant-junit.jar test
+	     Or from inside Eclipse Preferences - Ant - Runtime - Classpath
+	-->
+	<target name="test" depends="compile,compile-tests">
+	   <junit printsummary="withOutAndErr">
+	       <classpath><path refid="test.classpath"/></classpath>
+	       <test name="ca.sqlpower.ArchitectMegaTestSuite"/>
+	   </junit>
+	</target>
 
 	<target name="init">
 		<tstamp/>
@@ -44,6 +83,11 @@
 		<javac srcdir="${src}" destdir="${build}" classpathref="compile.classpath" debug="true" deprecation="true">
           <!-- <compilerarg compiler="jikes" value="+Pno-naming-convention"/> -->
         </javac>
+	</target>
+
+	<target name="compile-tests" depends="compile">
+		<javac srcdir="regress" destdir="${build}" classpathref="test.classpath" debug="true" deprecation="true">
+		</javac>
 	</target>
 
     <!-- copies our custom icon files to the build dir so
@@ -303,6 +347,9 @@
 			<include name="*.jar"/>
 		</fileset>
 		<fileset dir="buildlib">
+			<include name="*.jar"/>
+		</fileset>
+		<fileset dir="/Users/fuerth/.ant/lib">
 			<include name="*.jar"/>
 		</fileset>
 	</path>
