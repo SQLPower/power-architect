@@ -784,7 +784,7 @@ public class TestSQLTable extends SQLTestCase {
      * in any way), and compared to older snapshots.  Old snapshots can also be rolled forward
      * (like an undo manager redo operation) to test that a stream of events is fully redoable.
      */
-    public static class EventLogger implements SQLObjectListener, UndoCompoundEventListener {
+    public static class EventLogger implements SQLObjectListener, ca.sqlpower.architect.undo.UndoCompoundEventListener {
 
         /**
          * The list of events captured from the SQLObject tree.  Events are stored in the order they
