@@ -291,4 +291,42 @@ public class TestSQLIndex extends SQLTestCase {
         }
     }
     
+    public void testMakeColumnsLikeOtherIndexWhichHasNoColumns() throws ArchitectException {
+        SQLIndex i = new SQLIndex("Index",true,"",IndexType.CLUSTERED,"");
+        SQLColumn col = new SQLColumn();
+        i.addChild(i.new Column("index column",true,true));
+        i.addChild(i.new Column(col,true,true));
+        
+        SQLIndex i2 = new SQLIndex("Index2",false,"",IndexType.HASHED,"asdfa");
+        i.makeColumnsLike(i2);
+        assertEquals("Oh no some children are left!",0,i.getChildCount());
+    }
+    
+    public void testMakeColumnsLikeOtherIndexWhichHasColumns() throws ArchitectException {
+        SQLIndex i = new SQLIndex("Index",true,"",IndexType.CLUSTERED,"");
+        SQLColumn col = new SQLColumn();
+        
+        SQLIndex i2 = new SQLIndex("Index2",false,"",IndexType.HASHED,"asdfa");
+        i2.addChild(i2.new Column("index column",true,true));
+        i2.addChild(i2.new Column(col,true,true));
+        i.makeColumnsLike(i2);
+        assertEquals("Wrong number of children!",2,i.getChildCount());
+        assertEquals("Oh no wrong child!",i2.getChild(0),i.getChild(0));
+        assertEquals("Oh no wrong child!",i2.getChild(1),i.getChild(1));
+    }
+    
+    public void testMakeColumnsLikeOtherIndexReordersColumns() throws ArchitectException {
+        SQLIndex i = new SQLIndex("Index",true,"",IndexType.CLUSTERED,"");
+        SQLColumn col = new SQLColumn();
+        i.addChild(i.new Column(col,true,true));
+        i.addChild(i.new Column("index column",true,true));
+
+        SQLIndex i2 = new SQLIndex("Index2",false,"",IndexType.HASHED,"asdfa");
+        i2.addChild(i2.new Column("index column",true,true));
+        i2.addChild(i2.new Column(col,true,true));
+        i.makeColumnsLike(i2);
+        assertEquals("Wrong number of children!",2,i.getChildCount());
+        assertEquals("Oh no wrong child!",i2.getChild(0),i.getChild(0));
+        assertEquals("Oh no wrong child!",i2.getChild(1),i.getChild(1));
+    }
 }

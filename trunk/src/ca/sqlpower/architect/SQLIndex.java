@@ -257,6 +257,39 @@ public class SQLIndex extends SQLObject {
         public String toString() {
             return getName();
         }
+
+        @Override
+        public int hashCode() {
+            final int PRIME = 31;
+            int result = 1;
+            result = PRIME * result + (ascending ? 1231 : 1237);
+            result = PRIME * result + ((column == null) ? 0 : column.hashCode());
+            result = PRIME * result + (descending ? 1231 : 1237);
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            final Column other = (Column) obj;
+            if (ascending != other.ascending)
+                return false;
+            if (column == null) {
+                if (other.column != null)
+                    return false;
+            } else if (!column.equals(other.column))
+                return false;
+            if (descending != other.descending)
+                return false;
+            return true;
+        }
+        
+        
     }
 
     /**
@@ -658,7 +691,27 @@ public class SQLIndex extends SQLObject {
         return index;
     }
 
-
-
-
+    /**
+     * Make this index's columns look like the columns in index
+     * 
+     * @param index The index who's columns are what we want in this index
+     * @throws ArchitectException
+     */
+    public void makeColumnsLike(SQLIndex index) throws ArchitectException {
+        List columns = index.getChildren();
+        for (int i = children.size()-1; i>=0; i--){
+            Column c =(Column) children.get(i);
+            if (c.column != null) {
+                c.column.removeSQLObjectListener(c.targetColumnListener);
+            }
+            removeChild(i);
+        }
+        
+        for (Object o : columns)  {
+            Column c = (Column)o;
+            Column newCol = new Column(c.getName(),c.isAscending(),c.isDescending());
+            newCol.setColumn(c.getColumn());
+            addChild(newCol);
+        }
+    }
 }

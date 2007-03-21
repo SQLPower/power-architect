@@ -80,6 +80,7 @@ import ca.sqlpower.architect.swingui.action.ExportPLJobXMLAction;
 import ca.sqlpower.architect.swingui.action.ExportPLTransAction;
 import ca.sqlpower.architect.swingui.action.HelpAction;
 import ca.sqlpower.architect.swingui.action.InsertColumnAction;
+import ca.sqlpower.architect.swingui.action.InsertIndexAction;
 import ca.sqlpower.architect.swingui.action.PreferencesAction;
 import ca.sqlpower.architect.swingui.action.PrintAction;
 import ca.sqlpower.architect.swingui.action.ProfilePanelAction;
@@ -165,6 +166,7 @@ public class ArchitectFrame extends JFrame {
 	// playpen edit actions
 	protected EditColumnAction editColumnAction;
 	protected InsertColumnAction insertColumnAction;
+    protected InsertIndexAction insertIndexAction;
 	protected EditTableAction editTableAction;
     protected EditIndexAction editIndexAction;
 	protected DeleteSelectedAction deleteSelectedAction;
@@ -629,6 +631,7 @@ public class ArchitectFrame extends JFrame {
 		createTableAction = new CreateTableAction();
 		editColumnAction = new EditColumnAction();
 		insertColumnAction = new InsertColumnAction();
+        insertIndexAction = new InsertIndexAction();
 		editTableAction = new EditTableAction();
         editIndexAction = new EditIndexAction();
 		searchReplaceAction = new SearchReplaceAction();
@@ -793,6 +796,9 @@ public class ArchitectFrame extends JFrame {
 		tempButton = ppBar.add(createTableAction);
 		tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		ppBar.addSeparator();
+        tempButton  = ppBar.add(insertIndexAction);
+        tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        ppBar.addSeparator();
 		tempButton = ppBar.add(insertColumnAction);
 		tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		tempButton = ppBar.add(editColumnAction);
@@ -907,6 +913,7 @@ public class ArchitectFrame extends JFrame {
 		deleteSelectedAction.setPlayPen(playpen);
 		editColumnAction.setPlayPen(playpen);
 		insertColumnAction.setPlayPen(playpen);
+        insertIndexAction.setPlayPen(playpen);
 		editTableAction.setPlayPen(playpen);
 		searchReplaceAction.setPlayPen(playpen);
 		selectAllAction.setPlayPen(playpen);
@@ -927,6 +934,7 @@ public class ArchitectFrame extends JFrame {
 		// dbtree actions
 		editColumnAction.setDBTree(dbTree);
 		insertColumnAction.setDBTree(dbTree);
+        insertIndexAction.setDBTree(dbTree);
 		editRelationshipAction.setDBTree(dbTree);
 		deleteSelectedAction.setDBTree(dbTree);
 		editTableAction.setDBTree(dbTree);

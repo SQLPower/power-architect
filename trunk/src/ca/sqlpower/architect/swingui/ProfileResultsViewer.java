@@ -37,6 +37,7 @@ import ca.sqlpower.architect.swingui.table.ProfileTableModel;
 import ca.sqlpower.architect.swingui.table.TableModelColumnAutofit;
 import ca.sqlpower.architect.swingui.table.TableModelSearchDecorator;
 import ca.sqlpower.architect.swingui.table.TableModelSortDecorator;
+import ca.sqlpower.util.table.TableTextConverter;
 
 /**
  * A class that manages a viewer component for a set of Profile Results.
@@ -164,7 +165,7 @@ public class ProfileResultsViewer {
             new TableModelSortDecorator(searchDecorator);
         final ProfileJTable viewTable =
             new ProfileJTable(tableModelSortDecorator);
-        searchDecorator.setTableTextConverter(viewTable);
+        searchDecorator.setTableTextConverter((TableTextConverter)viewTable);
         TableModelColumnAutofit columnAutoFit =
             new TableModelColumnAutofit(tableModelSortDecorator, viewTable);
 

@@ -332,7 +332,19 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 			newMenu.addSeparator();
 			ArchitectFrame af = ArchitectFrame.getMainInstance();
 			JMenuItem mi;
+            
+            mi = new JMenuItem();
+            mi.setAction(af.insertIndexAction);
+            mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
+            newMenu.add(mi);
+            if (p.getLastPathComponent() instanceof SQLTable) {
+                mi.setEnabled(true);
+            } else {
+                mi.setEnabled(false);
+            }
 
+            newMenu.addSeparator();
+            
 			mi = new JMenuItem();
 			mi.setAction(af.editColumnAction);
 			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
@@ -342,7 +354,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 			} else {
 				mi.setEnabled(false);
 			}
-
+            
 			mi = new JMenuItem();
 			mi.setAction(af.insertColumnAction);
 			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE);
@@ -395,7 +407,9 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 			newMenu.add(mi);
 			if (p.getLastPathComponent() instanceof SQLTable ||
 			        p.getLastPathComponent() instanceof SQLColumn ||
-			        p.getLastPathComponent() instanceof SQLRelationship) {
+			        p.getLastPathComponent() instanceof SQLRelationship ||
+                    (p.getLastPathComponent() instanceof SQLIndex && 
+                           !((SQLIndex) p.getLastPathComponent()).isPrimaryKeyIndex())) {
 			    mi.setEnabled(true);
 			} else {
 				mi.setEnabled(false);
