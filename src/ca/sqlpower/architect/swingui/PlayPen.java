@@ -355,7 +355,14 @@ public class PlayPen extends JPanel
 		tablePanePopup = new JPopupMenu();
 
 		JMenuItem mi;
+        
+        mi = new JMenuItem();
+        mi.setAction(af.insertIndexAction);
+        mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+        tablePanePopup.add(mi);
 
+        tablePanePopup.addSeparator();
+        
 		mi = new JMenuItem();
 		mi.setAction(af.editColumnAction);
 		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);

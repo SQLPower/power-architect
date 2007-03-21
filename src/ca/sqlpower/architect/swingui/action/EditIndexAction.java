@@ -3,13 +3,14 @@ package ca.sqlpower.architect.swingui.action;
 import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.swingui.ASUtils;
@@ -57,7 +58,11 @@ public class EditIndexAction extends AbstractAction {
                 if (so instanceof SQLIndex) {
                     logger.debug("user clicked on index, so we shall try to edit the index properties.");
                     si = (SQLIndex) so;
-                    makeDialog(si); 
+                    try {
+                        makeDialog(si);
+                    } catch (ArchitectException e) {
+                        throw new ArchitectRuntimeException(e);
+                    } 
                 } else {
                     JOptionPane.showMessageDialog(dbt, "To indicate which index name you would like to edit, please select a single index header.");
                 }
@@ -67,34 +72,14 @@ public class EditIndexAction extends AbstractAction {
         }   
     }
 
-    private JDialog d;
     
-    private void makeDialog(SQLIndex index) {
+    private void makeDialog(SQLIndex index) throws ArchitectException {
+        final JDialog d;
         final IndexEditPanel editPanel = new IndexEditPanel(index);
-
-        Action okAction = new AbstractAction() {
-            public void actionPerformed(ActionEvent evt) {
-                //We need to see if the operation is successful, if
-                //successful, we close down the dialog, if not, we need 
-                //to return the dialog (hence why it is setVisible(!success))
-                boolean success = editPanel.applyChanges();
-                // XXX: also apply changes on mapping tab                
-                d.setVisible(!success);
-            }
-        };
-
-        Action cancelAction = new AbstractAction() {
-            public void actionPerformed(ActionEvent evt) {
-                editPanel.discardChanges();
-                // XXX: also discard changes on mapping tab
-                d.setVisible(false);
-            }
-        };
-
+  
         d = ArchitectPanelBuilder.createArchitectPanelDialog(
                 editPanel, ArchitectFrame.getMainInstance(),
-                "Index Properties", "OK", okAction, cancelAction);
-
+                "Index Properties", "OK");
         d.pack();
         d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
         d.setVisible(true);
@@ -106,6 +91,5 @@ public class EditIndexAction extends AbstractAction {
 
     public void setDBTree(DBTree newDBT) {
         this.dbt = newDBT;
-        // do I need to add a selection listener here?
     }
 }

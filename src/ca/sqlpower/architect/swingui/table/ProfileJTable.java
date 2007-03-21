@@ -8,6 +8,7 @@ import javax.swing.table.TableModel;
 
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ProfileColumn;
+import ca.sqlpower.swingui.table.TableTextConverter;
 
 /**
  * Override JTable methods that control cell formatting, because we want

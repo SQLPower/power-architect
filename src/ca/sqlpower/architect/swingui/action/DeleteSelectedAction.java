@@ -19,6 +19,7 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.LockedColumnException;
 import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
@@ -239,7 +240,10 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 						SQLRelationship sr = (SQLRelationship) so;
 						sr.getPkTable().removeExportedKey(sr);
 						sr.getFkTable().removeImportedKey(sr);
-					} else {
+					} else if (so instanceof SQLIndex) {
+                        SQLIndex i = (SQLIndex) so;
+                        i.getParentTable().getIndicesFolder().removeChild(i);
+                    } else {
 						JOptionPane.showMessageDialog(dbt, "The selected SQLObject type is not recognised: " + so.getClass().getName());
 					}
 				}

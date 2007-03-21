@@ -28,7 +28,6 @@ import ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
 import ca.sqlpower.architect.TestSQLTable.EventLogger.SQLObjectSnapshot;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
-import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 
 public class TestSQLTable extends SQLTestCase {
     
