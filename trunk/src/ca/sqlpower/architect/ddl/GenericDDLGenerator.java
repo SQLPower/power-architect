@@ -145,7 +145,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 
     public StringBuffer generateDDL(SQLDatabase source) throws SQLException, ArchitectException {
-		List statements = generateDDLStatements(source);
+        List statements = generateDDLStatements(source);
 
 		ddl = new StringBuffer(4000);
 		writeHeader();
@@ -169,10 +169,10 @@ public class GenericDDLGenerator implements DDLGenerator {
 	 * @see ca.sqlpower.architect.ddl.DDLGenerator#generateDDLStatements(ca.sqlpower.architect.SQLDatabase)
 	 */
 	public final List<DDLStatement> generateDDLStatements(SQLDatabase source) throws SQLException, ArchitectException {
-		warnings = new ArrayList();
+        warnings = new ArrayList();
 		ddlStatements = new ArrayList<DDLStatement>();
 		ddl = new StringBuffer(500);
-		topLevelNames.clear();
+        topLevelNames = new CaseInsensitiveHashMap();
 
 		try {
 			if (allowConnection) {
@@ -505,7 +505,6 @@ public class GenericDDLGenerator implements DDLGenerator {
 			SQLRelationship rel = (SQLRelationship) it.next();
 			// geneate a physical name for this relationship
 			createPhysicalName(topLevelNames,rel);
-			//
 			println("");
 			print("ALTER TABLE ");
 			// this works because all the tables have had their physical names generated already...
@@ -862,10 +861,18 @@ public class GenericDDLGenerator implements DDLGenerator {
         SQLObject object = dupCheck.get(physicalName2);
         if (object == null) {
 			dupCheck.put(physicalName2, so);
-		} else {
+        } else {
             String renameTo2 = physicalName2 + "2XXX";
+            String message;
+            if (so instanceof SQLColumn) {
+                message = String.format("Column name %s in table %s already in use", 
+                        so.getName(), 
+                        ((SQLColumn) so).getParentTable().getName());
+            } else {
+                message = String.format("Global name %s already in use", physicalName);
+            }
                     warnings.add(new DuplicateNameDDLWarning(
-                            String.format("Global name %s already in use", physicalName),
+                            message,
                             Arrays.asList(new SQLObject[] { so, object }),
                             String.format("Rename %s to %s", physicalName, renameTo2),
                             so, renameTo2));
@@ -1002,6 +1009,7 @@ public class GenericDDLGenerator implements DDLGenerator {
                             obj, name + "XXX3"));
         }
     }
+    
     /**
      * Adds a DDL statement to this generator that will create the
      * given index.
