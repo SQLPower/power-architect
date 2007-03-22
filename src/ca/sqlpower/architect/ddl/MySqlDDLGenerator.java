@@ -5,12 +5,16 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLIndex;
+import ca.sqlpower.architect.SQLRelationship;
+import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLIndex.IndexType;
 import ca.sqlpower.architect.profile.ProfileFunctionDescriptor;
 
@@ -313,6 +317,58 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         return reservedWords.contains(word.toUpperCase());
     }
 
+    @Override
+    public String getCatalogTerm() {
+        return "Database";
+    }
+
+    @Override
+    public String getSchemaTerm() {
+        return null;
+    }
+    
+    public void dropRelationship(SQLRelationship r) {
+
+        print("\n ALTER TABLE ");
+
+        print( toQualifiedName(r.getFkTable()) );
+        print(" DROP FOREIGN KEY ");
+        print(r.getName());
+        endStatement(DDLStatement.StatementType.DROP, r);
+    }
+    
+    /* The primary key name in MySQL is completely ignored. Every primary
+     * key is named PRIMARY so we don't have to do any checking of name
+     * conflicts for the primary key. We don't even have to specify a
+     * name for the primary key.
+     * @see ca.sqlpower.architect.ddl.GenericDDLGenerator#writePrimaryKey(ca.sqlpower.architect.SQLTable)
+     */
+    @Override
+    protected void writePrimaryKey(SQLTable t) throws ArchitectException {
+        boolean firstCol = true;
+        Iterator it = t.getColumns().iterator();
+        while (it.hasNext()) {
+            SQLColumn col = (SQLColumn) it.next();
+            if (col.getPrimaryKeySeq() == null) break;
+            if (firstCol) {
+                // generate a unique primary key name
+                println("");
+                print("ALTER TABLE ");
+                print( toQualifiedName(t) );
+                print(" ADD CONSTRAINT ");
+                print("PRIMARY KEY (");
+                firstCol = false;
+            } else {
+                print(", ");
+            }
+            print(col.getPhysicalName());
+        }
+        if (!firstCol) {
+            print(")");
+            endStatement(DDLStatement.StatementType.ADD_PK, t);
+        }
+    }
+    
     /**
      * create index ddl in mySql syntax
      */
