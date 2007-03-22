@@ -834,7 +834,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		so.setPhysicalName(toIdentifier(so.getName()));
         String physicalName = so.getPhysicalName();
         if(isReservedWord(physicalName)) {
-            String renameTo = physicalName   + "XXX";
+            String renameTo = physicalName   + "2";
             warnings.add(new DuplicateNameDDLWarning(
                     String.format("%s is a reserved word", physicalName),
                     Arrays.asList(new SQLObject[] { so }),
@@ -845,7 +845,16 @@ public class GenericDDLGenerator implements DDLGenerator {
 
         int pointIndex = so.getPhysicalName().lastIndexOf('.');
         if (!so.getName().substring(pointIndex+1,pointIndex+2).matches("[a-zA-Z]")){
-            String renameTo = "X" + so.getName();
+            String renameTo;
+            if (so instanceof SQLTable) {
+                renameTo = "table_" + so.getName();
+            } else if (so instanceof SQLColumn) {
+                renameTo = "column_" + so.getName();
+            } else if (so instanceof SQLIndex) {
+                renameTo = "index_" + so.getName();
+            } else {
+                renameTo = "X_" + so.getName();
+            }
             warnings.add(new DuplicateNameDDLWarning(
                     String.format("Name %s starts with a non-alpha character", physicalName),
                     Arrays.asList(new SQLObject[] { so }),
@@ -862,7 +871,7 @@ public class GenericDDLGenerator implements DDLGenerator {
         if (object == null) {
 			dupCheck.put(physicalName2, so);
         } else {
-            String renameTo2 = physicalName2 + "2XXX";
+            String renameTo2 = physicalName2 + "2";
             String message;
             if (so instanceof SQLColumn) {
                 message = String.format("Column name %s in table %s already in use", 
@@ -1005,8 +1014,8 @@ public class GenericDDLGenerator implements DDLGenerator {
                     new DuplicateNameDDLWarning(
                             String.format("Global name %s already in use", name),
                             Arrays.asList(new SQLObject[] { obj, object }),
-                            String.format("Rename %s to %s", name, name + "XXX3"),
-                            obj, name + "XXX3"));
+                            String.format("Rename %s to %s", name, name + "2"),
+                            obj, name + "2"));
         }
     }
     
