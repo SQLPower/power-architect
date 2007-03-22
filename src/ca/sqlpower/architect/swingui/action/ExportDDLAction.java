@@ -1,9 +1,11 @@
 package ca.sqlpower.architect.swingui.action;
 
+
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -15,6 +17,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
+
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
@@ -82,9 +85,9 @@ public class ExportDDLAction extends AbstractAction {
                             if (warnings.size() == 0) {
                                 done = true;
                             } else {
-
+                                final List<DDLWarningComponent> warningComponents = new ArrayList<DDLWarningComponent>();
                                 ArchitectPanel dialogPanel = new ArchitectPanel() {
-
+                                    
                                     public boolean applyChanges() {
                                         return false;
                                     }
@@ -106,6 +109,7 @@ public class ExportDDLAction extends AbstractAction {
                                             DDLWarning ddlwarning = (DDLWarning) o;
                                             DDLWarningComponent ddlWarningComponent = DDLWarningComponentFactory.createComponent(ddlwarning);
                                             listBoxPanel.add(ddlWarningComponent.getComponent());
+                                            warningComponents.add(ddlWarningComponent);
                                         }
                                         outerPanel.add(new JScrollPane(listBoxPanel), BorderLayout.CENTER);
                                         return outerPanel;
@@ -142,7 +146,10 @@ public class ExportDDLAction extends AbstractAction {
                                 case 2:     // "Cancel"
                                 case -1:    // Kill dialog
                                     return;
-                                case 3: /* nothing to do */
+                                case 3: // apply all changes made
+                                    for (DDLWarningComponent warningComponent : warningComponents) {
+                                        warningComponent.applyChanges();
+                                    }
                                     break;
                                 }
                             }
