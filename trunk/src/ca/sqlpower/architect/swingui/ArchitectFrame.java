@@ -78,6 +78,7 @@ import ca.sqlpower.architect.swingui.action.EditTableAction;
 import ca.sqlpower.architect.swingui.action.ExportDDLAction;
 import ca.sqlpower.architect.swingui.action.ExportPLJobXMLAction;
 import ca.sqlpower.architect.swingui.action.ExportPLTransAction;
+import ca.sqlpower.architect.swingui.action.ExportPlaypenToPDFAction;
 import ca.sqlpower.architect.swingui.action.HelpAction;
 import ca.sqlpower.architect.swingui.action.InsertColumnAction;
 import ca.sqlpower.architect.swingui.action.InsertIndexAction;
@@ -153,6 +154,7 @@ public class ArchitectFrame extends JFrame {
 	protected PreferencesAction prefAction;
 	protected ProjectSettingsAction projectSettingsAction;
 	protected PrintAction printAction;
+    protected ExportPlaypenToPDFAction exportPlaypenToPDFAction;
     protected ProfilePanelAction profileAction;
     protected ViewProfileAction viewProfileAction; //not being used for second architect release
  	protected ZoomAction zoomInAction;
@@ -406,8 +408,10 @@ public class ArchitectFrame extends JFrame {
 		printAction = new PrintAction();
 		printAction.putValue(AbstractAction.ACCELERATOR_KEY,
 				KeyStroke.getKeyStroke(KeyEvent.VK_P, accelMask));
-
-		zoomInAction = new ZoomAction(ZOOM_STEP);
+        
+        exportPlaypenToPDFAction = new ExportPlaypenToPDFAction();
+		
+        zoomInAction = new ZoomAction(ZOOM_STEP);
 		zoomOutAction = new ZoomAction(ZOOM_STEP * -1.0);
 
 		zoomNormalAction
@@ -657,6 +661,7 @@ public class ArchitectFrame extends JFrame {
 		fileMenu.add(saveProjectAction);
 		fileMenu.add(saveProjectAsAction);
 		fileMenu.add(printAction);
+        fileMenu.add(exportPlaypenToPDFAction);
 		fileMenu.addSeparator();
 		if (!MAC_OS_X) {
 		    fileMenu.add(prefAction);
@@ -910,6 +915,7 @@ public class ArchitectFrame extends JFrame {
 		// playpen actions
 		aboutAction.setPlayPen(playpen);
 		printAction.setPlayPen(playpen);
+        exportPlaypenToPDFAction.setPlayPen(playpen);
 		deleteSelectedAction.setPlayPen(playpen);
 		editColumnAction.setPlayPen(playpen);
 		insertColumnAction.setPlayPen(playpen);
