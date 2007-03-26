@@ -51,3 +51,15 @@ The Power*Architect is Copyright 2007 SQL Power Group Inc.
 5. Limitation of Liability
 
 	We accept no liability for your use of the Architect.  In case we must legally accept some liability for your use of the Architect, we accept the absolute minimum liability required by law.
+	
+6. Additional Restrictions for Bundled JDBC Drivers
+
+	Some versions of the Architect include 3rd party JDBC drivers.  Those drivers are distributed under these additional restrictions:
+	
+	1. You may not redistribute copies of the Architect download which includes the Oracle and/or Microsoft SQL Server JDBC drivers.  If you wish to redistribute the Architect, you must obtain and distribute the version which does not include these bundled drivers.
+	
+	2. You may not publish benchmark information about performance related to yoiur use of any of the 3rd-party JDBC drivers.
+	
+	3. You may not reverse engineer, de-compile, or disassemble the 3rd party JDBC drivers.
+	
+	4. You must comply with all domestic and international United States export laws when downloading and redistributing the software.  In particular, you may not download the Architect which includes bundled 3rd-party drivers to, or allow your copy of the Architect with 3rd party bundled drivers to be exported to a country on one of the export-controlled countries.  For details, see http://www.microsoft.com/exporting and http://www.oracle.com/products/export/index.html?content.html

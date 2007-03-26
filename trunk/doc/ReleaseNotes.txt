@@ -1,4 +1,4 @@
-Architect Version 1.1.23 Release Notes 	
+Architect Version 0.0.91 Release Notes 	
 
 *Added in a new function: Profiling
 	-Displays the distrobution of a column's data in a pie chart 

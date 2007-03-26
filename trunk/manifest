@@ -21,3 +21,4 @@ Class-Path: lib/commons-beanutils-bean-collections.jar
   lib/itext-1.4.2.jar
   lib/jfreechart-1.0.1.jar
   lib/jcommon-1.0.0.jar
+  jdbc

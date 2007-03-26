@@ -299,10 +299,10 @@
 	    	</copy>
     		<copy todir="${staging.dir}/doc">
         		<fileset dir="${build}/doc" includes="*.pdf"/>
-    		</copy>
-    		<copy todir="${staging.dir}/doc">
     	    	<fileset dir="${build}/doc" includes="*.txt"/>
-    	    </copy>
+    		</copy>
+    		<!-- The src for libraries that we are required to redistribute src -->
+    		<copy file="libsrc/itext-src-1.4.8.zip" todir="${staging.dir}/libsrc"/>
     	    <copy tofile="${staging.dir}/LICENSE" file="Architect License.txt"/>
     		<!-- No point in signing until we have a certificate that's signed by a CA
     	    <signjar alias="sqlpower" keystore="keystore" storepass="low_security" keypass="low_security">
@@ -504,6 +504,8 @@
 							<fileset dir="../staging/lib" targetdir="$INSTALL_PATH/lib">
 								<include name="*.jar"/>
 							</fileset>
+							<!-- the directory jdbc is referenced in the manifest as well as
+								various targets. -->
 							<fileset dir="../staging/jdbc" targetdir="$INSTALL_PATH/jdbc">
 								<include name="*.jar"/>
 							</fileset>
@@ -589,8 +591,10 @@
            stubfile="osx_packaging_utils/PowerArchitectStub"
            vmoptions="-Xmx600m">
 			<jarfileset dir="${staging.dir}/lib" includes="*.jar"/>
-			<jarfileset dir="${staging.dir}/jdbc" includes="*.jar"/>
 			<jarfileset dir="${staging.dir}" includes="architect.jar"/>
+			<!-- Add any jdbc drivers as resources the directory jdbc is referenced 
+					in the manifest as well as various targets. -->
+			<resourcefileset dir="${staging.dir}/jdbc" includes="*.jar"/>
 		</jarbundler>
 	</target>
 	
@@ -730,6 +734,8 @@
 			<tarfileset dir="${staging.dir}" includes="architect.jar"/>
 			<tarfileset dir="${staging.dir}/doc" includes="*.pdf"/>
 			<tarfileset dir="${staging.dir}/doc" includes="*.txt"/>
+			<!-- the directory jdbc is referenced in the manifest as well as
+											various targets. -->
 			<tarfileset dir="${staging.dir}" includes="jdbc/*.jar"/>
 		</tar>
     </target>
