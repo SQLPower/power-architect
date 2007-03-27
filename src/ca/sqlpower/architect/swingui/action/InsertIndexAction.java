@@ -8,10 +8,12 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.IndexEditPanel;
+import ca.sqlpower.architect.swingui.SwingUserSettings;
 import ca.sqlpower.architect.swingui.TablePane;
 
 public class InsertIndexAction extends AbstractTableTargetedAction {
@@ -19,8 +21,10 @@ public class InsertIndexAction extends AbstractTableTargetedAction {
     private static final Logger logger = Logger.getLogger(InsertColumnAction.class);
     
     public InsertIndexAction() {
-        super("New Index");
-        putValue(SHORT_DESCRIPTION, "New Index");
+        super("New Index",
+                  ASUtils.createIcon("NewIndex",
+                                     "New Index",
+                                     ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
         putValue(ACTION_COMMAND_KEY, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
         setEnabled(false);
     }
