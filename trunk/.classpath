@@ -26,5 +26,6 @@
 	<classpathentry kind="lib" path="lib/darwinsys.jar"/>
 	<classpathentry kind="lib" path="lib/sqlpower_library.jar"/>
 	<classpathentry kind="lib" path="lib/itext-1.4.8.jar"/>
+	<classpathentry kind="lib" path="buildlib/gsbase-2.0.1.jar"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>

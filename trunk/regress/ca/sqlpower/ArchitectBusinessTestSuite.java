@@ -4,14 +4,6 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import prefs.AllPrefsTests;
-import ca.sqlpower.architect.ArchitectExceptionTest;
-import ca.sqlpower.architect.ArchitectUtilsTest;
-import ca.sqlpower.architect.JDBCClassLoaderTest;
-import ca.sqlpower.architect.LogWriterTest;
-import ca.sqlpower.architect.PLDotIniTest;
-import ca.sqlpower.architect.PlDotIniListenersTest;
-import ca.sqlpower.architect.SQLObjectMagicTest;
-import ca.sqlpower.architect.SQLObjectTest;
 import ca.sqlpower.architect.TestArchitectDataSource;
 import ca.sqlpower.architect.TestFolder;
 import ca.sqlpower.architect.TestSQLCatalog;
@@ -22,11 +14,10 @@ import ca.sqlpower.architect.TestSQLIndexColumn;
 import ca.sqlpower.architect.TestSQLRelationship;
 import ca.sqlpower.architect.TestSQLTable;
 import ca.sqlpower.architect.ddl.TestDDLUtils;
-import ca.sqlpower.architect.diff.CompareSQLTest;
-import ca.sqlpower.architect.diff.SQLComparatorTest;
-import ca.sqlpower.architect.diff.SQLRelationshipComparatorTest;
 import ca.sqlpower.architect.undo.TestSQLObjectChildrenInsert;
-
+/**
+ * load all business tests suites of the form test*
+ */
 public class ArchitectBusinessTestSuite extends TestCase {
 
 	public static Test suite() {
@@ -36,9 +27,6 @@ public class ArchitectBusinessTestSuite extends TestCase {
 
 		//$JUnit-BEGIN$
 		suite.addTest(AllPrefsTests.suite());
-		suite.addTestSuite(ArchitectUtilsTest.class);
-		suite.addTestSuite(SQLObjectTest.class);
-		suite.addTestSuite(SQLObjectMagicTest.class);
 		suite.addTest(TestSQLDatabase.suite());
 		suite.addTestSuite(TestSQLCatalog.class);
 		suite.addTestSuite(TestFolder.class);
@@ -47,17 +35,10 @@ public class ArchitectBusinessTestSuite extends TestCase {
         suite.addTestSuite(TestSQLIndex.class);
         suite.addTestSuite(TestSQLIndexColumn.class);
 		suite.addTestSuite(TestSQLRelationship.class);
-		suite.addTestSuite(ArchitectExceptionTest.class);
-		suite.addTestSuite(PLDotIniTest.class);
-		suite.addTestSuite(PlDotIniListenersTest.class);
-		suite.addTestSuite(JDBCClassLoaderTest.class);
-		suite.addTestSuite(LogWriterTest.class);
 		suite.addTestSuite(TestDDLUtils.class);
 		suite.addTestSuite(TestArchitectDataSource.class);
 		suite.addTestSuite(TestSQLObjectChildrenInsert.class);
-		suite.addTestSuite(CompareSQLTest.class);
-		suite.addTestSuite(SQLComparatorTest.class);
-		suite.addTestSuite(SQLRelationshipComparatorTest.class);
+
 		//$JUnit-END$
 		return suite;
 	}
