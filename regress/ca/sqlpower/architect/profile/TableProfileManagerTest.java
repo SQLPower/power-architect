@@ -25,12 +25,16 @@ public class TableProfileManagerTest extends TestCase {
         super.setUp();
         m = new TableProfileManager();
         t1 = new SQLTable();
+        t1.setName("t1");
         r1 = new TableProfileResult(t1,m);
         t2 = new SQLTable();
+        t2.setName("t2");
         r2 = new TableProfileResult(t2,m);
         t3 = new SQLTable();
+        t3.setName("t3");
         r3 = new TableProfileResult(t3,m);
         t4 = new SQLTable();
+        t4.setName("t4");
         r4 = new TableProfileResult(t4,m);
     }
     
