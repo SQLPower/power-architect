@@ -1,6 +1,8 @@
 package ca.sqlpower.architect.swingui.action;
 
 import java.awt.event.ActionEvent;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
@@ -106,6 +108,7 @@ public abstract class ProgressAction extends AbstractAction {
      */
     public void actionPerformed(ActionEvent e) {
         final JDialog progressDialog;
+        final Map<String,Object> properties = new HashMap<String, Object>();
         progressDialog = new JDialog(ArchitectFrame.getMainInstance(), "Progress...", false);  
         progressDialog.setLocationRelativeTo(ArchitectFrame.getMainInstance());
         progressDialog.setTitle(getDialogMessage());
@@ -115,7 +118,7 @@ public abstract class ProgressAction extends AbstractAction {
         JLabel label = new JLabel(getDialogMessage());
         JProgressBar progressBar = new JProgressBar();
         final ActionMonitor monitor = new ActionMonitor();
-        setupMonitor(monitor);        
+        setup(monitor,properties);        
         CellConstraints c = new CellConstraints();
         pb.add(label, c.xyw(2, 2, 3));
         pb.add(progressBar,c.xyw(2, 4, 3));
@@ -126,15 +129,17 @@ public abstract class ProgressAction extends AbstractAction {
             }
         }),c.xy(3,6));
         progressDialog.add(pb.getPanel());
+        
         ArchitectSwingWorker worker = new ArchitectSwingWorker() {
             @Override
             public void cleanup() throws Exception {
                 ProgressAction.this.cleanUp(monitor);
+                progressDialog.dispose();
             }
 
             @Override
             public void doStuff() throws Exception {
-                ProgressAction.this.doStuff(monitor);
+                ProgressAction.this.doStuff(monitor,properties);
             }
         };
         ProgressWatcher pw = new ProgressWatcher(progressBar,monitor);
@@ -149,13 +154,13 @@ public abstract class ProgressAction extends AbstractAction {
         new Thread(worker).start();
     }
     /**
-     * Setup the monitor parameters before the progress dialog is shown.
+     * Setup the monitor and doStuff parameters before the progress dialog is shown.
      */
-    public abstract void setupMonitor(ActionMonitor monitor);
+    public abstract void setup(ActionMonitor monitor, Map<String, Object> properties);
     /**
      * doStuff replaces the actionPerformed() call
      */
-    public abstract void doStuff(ActionMonitor monitor);
+    public abstract void doStuff(ActionMonitor monitor, Map<String, Object> properties);
     /**
      * Perform any cleanup code here 
      */
