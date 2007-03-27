@@ -72,12 +72,12 @@ public class DataMoverPanel {
             dblist.add(new SQLDatabase(ds));
         }
         
-        sourceTree = new JTree(new DBTreeModel(dblist));
+        sourceTree = new JTree(new DBTreeModel(dblist,session));
         sourceTree.setRootVisible(false);
         sourceTree.setShowsRootHandles(true);
         sourceTree.setCellRenderer(new DBTreeCellRenderer(session));
         
-        destTree = new JTree(new DBTreeModel(dblist));
+        destTree = new JTree(new DBTreeModel(dblist,session));
         destTree.setRootVisible(false);
         destTree.setShowsRootHandles(true);
         destTree.setCellRenderer(new DBTreeCellRenderer(session));

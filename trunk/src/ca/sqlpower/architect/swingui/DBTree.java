@@ -35,6 +35,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
@@ -48,7 +49,7 @@ import ca.sqlpower.architect.swingui.action.SetDataSourceAction;
 
 public class DBTree extends JTree implements DragSourceListener, DBConnectionCallBack {
 	static Logger logger = Logger.getLogger(DBTree.class);
-
+	
 	protected DragSource ds;
 	protected JPopupMenu popup;
 	protected JMenu connectionsMenu;
@@ -59,6 +60,10 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 	protected ShowInPlayPenAction showInPlayPenAction;
     protected SetConnAsTargetDB setConnAsTargetDB;
 
+    /**
+     * The architect session, so we can access common objects
+     */
+    private final ArchitectSession session = ArchitectFrame.getMainInstance().getArchitectSession();
 	/**
 	 * This is the database whose DBCS is currently being editted in
 	 * the DBCS Panel.
@@ -90,7 +95,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 		removeDBCSAction = new RemoveDBCSAction();
 		showInPlayPenAction = new ShowInPlayPenAction();
 		addMouseListener(new PopupListener());
-		setCellRenderer(new DBTreeCellRenderer(ArchitectFrame.getMainInstance().getArchitectSession()));
+        setCellRenderer(new DBTreeCellRenderer(session));
 	}
 
 	public DBTree(List<SQLDatabase> initialDatabases) throws ArchitectException {
@@ -103,7 +108,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 	// ----------- INSTANCE METHODS ------------
 
 	public void setDatabaseList(List<SQLDatabase> databases) throws ArchitectException {
-		setModel(new DBTreeModel(databases));
+		setModel(new DBTreeModel(databases,session));
 	}
 
 	/**

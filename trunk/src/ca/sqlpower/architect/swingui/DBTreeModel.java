@@ -16,6 +16,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectRuntimeException;
+import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLExceptionNode;
@@ -23,6 +24,9 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLRelationship;
+import ca.sqlpower.architect.profile.ProfileChangeEvent;
+import ca.sqlpower.architect.profile.ProfileChangeListener;
+import ca.sqlpower.architect.profile.ProfileResult;
 
 public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serializable {
 
@@ -36,13 +40,17 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
     private boolean testMode = false;
     
 	protected SQLObject root;
-
+	
+    /**
+     * The session so we can get profile results and tell when they changed
+     */
+    private final ArchitectSession session;
 	/**
 	 * Creates a tree model with an empty list of databases at its
 	 * root.
 	 */
-	public DBTreeModel() throws ArchitectException {
-		this(null);
+	public DBTreeModel(ArchitectSession session) throws ArchitectException {
+		this(null,session);
 	}
 
 	/**
@@ -52,8 +60,9 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	 * @param initialDatabases A collection whose items are all
 	 * distinct SQLDatabase objects.
 	 */
-	public DBTreeModel(Collection<SQLDatabase> initialDatabases) throws ArchitectException {
+	public DBTreeModel(Collection<SQLDatabase> initialDatabases,ArchitectSession session) throws ArchitectException {
 		this.root = new DBTreeRoot();
+        this.session = session;
 		if (initialDatabases != null) {
 			Iterator<SQLDatabase> it = initialDatabases.iterator();
 			while (it.hasNext()) {
@@ -62,6 +71,33 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 		}
 		this.treeModelListeners = new LinkedList();
 		ArchitectUtils.listenToHierarchy(this, root);
+        session.getProfileManager().addProfileChangeListener(new ProfileChangeListener(){
+
+            public void profileListChanged(ProfileChangeEvent event) {
+                //This will not change the status of the profiles so ignore it
+            }
+
+            /**
+             *  Note this will usually not be run from the event thread
+             */
+            
+            public void profilesAdded(ProfileChangeEvent e) {
+                for (ProfileResult pr : e.getProfileResult()) {
+                    if (logger.isDebugEnabled()) logger.debug("Removing profile "+pr);
+                    SQLObjectEvent soe = new SQLObjectEvent(pr.getProfiledObject(),"profile");
+                    processSQLObjectChanged(soe);
+                }
+            }
+
+            public void profilesRemoved(ProfileChangeEvent e) {
+                for (ProfileResult pr : e.getProfileResult()) {
+                    if (logger.isDebugEnabled()) logger.debug("Removing profile "+pr);
+                    SQLObjectEvent soe = new SQLObjectEvent(pr.getProfiledObject(),"profile");
+                    processSQLObjectChanged(soe);
+                }
+            }
+            
+        });
 	}
 
 	public Object getRoot() {
@@ -434,7 +470,15 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
             return;
         }
 		if (logger.isDebugEnabled()) logger.debug("dbObjectChanged SQLObjectEvent: "+e);
-		if (e.getPropertyName().equals("name") && 
+		processSQLObjectChanged(e);
+	}
+
+    /**
+     * The profile manager needs to fire events from different threads.
+     * So we need to get around the check.
+     */
+    private void processSQLObjectChanged(SQLObjectEvent e) {
+        if (e.getPropertyName().equals("name") && 
 				!e.getNewValue().equals(e.getSQLSource().getName()) ) {
 			logger.error("Name change event has wrong new value. new="+e.getNewValue()+"; real="+e.getSQLSource().getName());
 		}
@@ -446,7 +490,7 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 		} else {
 			fireTreeNodesChanged(new TreeModelEvent(this, getPathToNode(source)));
 		}
-	}
+    }
 
 	public void dbStructureChanged(SQLObjectEvent e) {
 		logger.debug("dbStructureChanged. source="+e.getSource());
