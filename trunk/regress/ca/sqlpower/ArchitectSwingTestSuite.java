@@ -21,8 +21,9 @@ import ca.sqlpower.architect.undo.TestSQLObjectUndoableEventAdapter;
 import ca.sqlpower.architect.undo.TestUndoManager;
 
 /**
- *  Add any swing test cases of the form test* 
- *
+ * This suite consists of the GUI tests whose class names do not
+ * conform to the standard junit class name format *Test.java. See
+ * the {@link ArchitectAutoTests} class for the rest of the suite.
  */
 public class ArchitectSwingTestSuite extends TestCase {
 

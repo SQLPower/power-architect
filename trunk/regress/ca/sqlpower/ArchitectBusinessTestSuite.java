@@ -15,8 +15,11 @@ import ca.sqlpower.architect.TestSQLRelationship;
 import ca.sqlpower.architect.TestSQLTable;
 import ca.sqlpower.architect.ddl.TestDDLUtils;
 import ca.sqlpower.architect.undo.TestSQLObjectChildrenInsert;
+
 /**
- * load all business tests suites of the form test*
+ * This suite consists of the business tests whose class names do not
+ * conform to the standard junit class name format *Test.java. See
+ * the {@link ArchitectAutoTests} class for the rest of the suite.
  */
 public class ArchitectBusinessTestSuite extends TestCase {
 
