@@ -98,7 +98,7 @@ public class DataMover {
                     delStmt = dstCon.createStatement();
                     lastSqlString = "DELETE FROM "+destTableName;
                     int count = delStmt.executeUpdate(lastSqlString);
-                    System.out.println("Deleted "+count+" rows from destination table");
+                    logger.info("Deleted "+count+" rows from destination table");
                 } finally {
                     if (delStmt != null) delStmt.close();
                 }

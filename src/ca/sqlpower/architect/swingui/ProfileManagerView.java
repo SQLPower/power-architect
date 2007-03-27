@@ -405,7 +405,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
      * to create a corresponding ProfileRowComponent and add it to the view.
      */
     public void profilesAdded(ProfileChangeEvent e) {
-        System.out.println("ProfileManagerView.profileAdded(): table profile added");
+        logger.debug("ProfileManagerView.profileAdded(): table profile added");
         List<ProfileResult> profileResult = new ArrayList<ProfileResult>(e.getProfileResult());
         for (ProfileResult pr : profileResult) {
             ProfileRowComponent myRowComponent;
@@ -425,13 +425,15 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
      * to find and remove the corresponding ProfileRowComponent.
      */
     public void profilesRemoved(ProfileChangeEvent e) {
-        TableProfileResult profileResult = (TableProfileResult) e.getProfileResult();
-        System.out.println("ProfileManagerView.profileAdded(): " + profileResult + ": profile deleted");
-        for (ProfileRowComponent view : list) {
-            if (view.getResult().equals(profileResult)) {
-                list.remove(view);
-                view.removeSelectionListener(resultListPanel);
-                break;
+        List<ProfileResult> profileResults = e.getProfileResult();
+        logger.debug("ProfileManagerView.profileRemoved(): " + profileResults + ": profiles deleted");
+        for (ProfileResult profileResult: profileResults) {
+            for (ProfileRowComponent view : list) {
+                if (view.getResult().equals(profileResult)) {
+                    list.remove(view);
+                    view.removeSelectionListener(resultListPanel);
+                    break;
+                }
             }
         }
         doSearch(searchText.getText());

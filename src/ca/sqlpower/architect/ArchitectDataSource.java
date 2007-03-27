@@ -25,10 +25,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
+
 
 
 public class ArchitectDataSource {
-
+    private final static Logger logger = Logger.getLogger(ArchitectDataSource.class);
 	/**
 	 * Compares this data source to the given data source by comparing
 	 * the respecitive fields in the following order:
@@ -164,12 +166,12 @@ public class ArchitectDataSource {
         while (iter.hasNext()) {
             System.out.print(iter.next() + ", ");
         }
-        System.out.println();
+        logger.debug("\n");
         Iterator<String> iter2 = p2.keySet().iterator();
         while (iter2.hasNext()) {
-            System.out.print(iter2.next() + ", ");
+            logger.debug(iter2.next() + ", ");
         }
-        System.out.println();
+        logger.debug("\n");
     }
 
     /**
@@ -183,8 +185,7 @@ public class ArchitectDataSource {
         String val2 = otherMap.get(key);
         System.out.print("Property=" + key + "; me=" + val1 + "; other=" + val2 + ';');
         if (val1 != null && val2 != null && !val1.equals(val2))
-            System.out.print(" <-- DIFFERENT");
-        System.out.println();
+            logger.debug(" <-- DIFFERENT");
     }
 
     /**
