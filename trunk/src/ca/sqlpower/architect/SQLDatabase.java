@@ -563,7 +563,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 		try {
 			if (connectionPool != null){
 				connectionPool.close();
-			}
+            }
 		} catch (Exception ex) {
 			logger.error("Error closing connection pool", ex);
 		} finally {
@@ -571,7 +571,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 		}
 	}
 	
-	private synchronized BaseObjectPool getConnectionPool() {
+	synchronized BaseObjectPool getConnectionPool() {
 		if (connectionPool == null) {
             Config poolConfig = new GenericObjectPool.Config();
             poolConfig.maxActive = 5;
