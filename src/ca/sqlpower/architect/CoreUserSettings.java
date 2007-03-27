@@ -12,22 +12,22 @@ import ca.sqlpower.architect.qfa.QFAUserSettings;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
 
 public class CoreUserSettings {
-    private static final Logger logger = Logger.getLogger(ConfigFile.class);
+    private static final Logger logger = Logger.getLogger(CoreUserSettings.class);
 
     /**
      * The parsed list of connections.
      */
-    protected DataSourceCollection plDotIni;
+    private DataSourceCollection plDotIni;
     
     /**
      * The location of the PL.INI file.
      */
-    protected String plDotIniPath;
+    private String plDotIniPath;
     
 	/**
 	 * For now, this just holds the preferred printer.  
 	 */
-	protected PrintUserSettings printUserSettings;
+    private PrintUserSettings printUserSettings;
 
 	/**
 	 * GUI-related settings.  This technically shouldn't be here
@@ -35,21 +35,21 @@ public class CoreUserSettings {
 	 * make the settings file primarily swing-specific with a
 	 * reference to the general architect prefs.
 	 */
-	protected UserSettings swingSettings;
+    private UserSettings swingSettings;
 
 	/**
 	 * ETL-related settings.  This is not a design problem like
 	 * swingSettings is, since ETL is part of the app's core
 	 * functionality.
 	 */
-	protected ETLUserSettings etlUserSettings;
+    private ETLUserSettings etlUserSettings;
 
 	/**
 	 * DDL-related settings.  
 	 */
-	protected DDLUserSettings ddlUserSettings;
+    private DDLUserSettings ddlUserSettings;
 
-	protected QFAUserSettings qfaUserSettings;
+    private QFAUserSettings qfaUserSettings;
 	
 	public CoreUserSettings() {
 		super();
@@ -100,13 +100,6 @@ public class CoreUserSettings {
 		ddlUserSettings = v;
 	}
 
-	/**
-	 * Convenience method that calls ArchitectSession.getInstance().addDriverJarPath(path).
-	 */
-	public void addDriverJarPath(String path) {
-		ArchitectSessionImpl.getInstance().addDriverJar(path);
-	}
-	
     public boolean isPlDotIniPathValid() {
         logger.debug("Checking pl.ini path: "+getPlDotIniPath());
         String path = getPlDotIniPath();
@@ -129,6 +122,8 @@ public class CoreUserSettings {
         if (plDotIni == null) {
             plDotIni = new PlDotIni();
             try {
+                logger.debug("Reading new PL.INI instance");
+                plDotIni.read(getClass().getClassLoader().getResourceAsStream("default_database_types.ini"));
                 plDotIni.read(new File(path));
             } catch (IOException e) {
                 logger.error("Failed to read pl.ini at \""+getPlDotIniPath()+"\"", e);
@@ -138,7 +133,8 @@ public class CoreUserSettings {
         return plDotIni;
     }
     
-    public void setPlDotIni(DataSourceCollection ini){
+    public void setPlDotIni(DataSourceCollection ini) {
+        logger.debug("got new pl.ini \""+ini+"\"");
         plDotIni = ini;
     }
     
@@ -148,10 +144,19 @@ public class CoreUserSettings {
     public String getPlDotIniPath() {
         return plDotIniPath;
     }
+    
     /**
-     * Sets the plDotIniPath property, and nulls out the current plDotIni.  See {@link #plDotIniPath}.
+     * Sets the plDotIniPath property, and nulls out the current plDotIni
+     * if the given value differs from the existing one.  See {@link #plDotIniPath}.
      */
     public void setPlDotIniPath(String plDotIniPath) {
+        logger.debug("PlDotIniPath changing from \""+this.plDotIniPath+"\" to \""+plDotIniPath+"\"");
+
+        // important to short-circuit when the value is not different
+        // (if we don't, the prefs panel doesn't save properly)
+        if (this.plDotIniPath != null && this.plDotIniPath.equals(plDotIniPath)) {
+            return;
+        }
         this.plDotIniPath = plDotIniPath;
         this.plDotIni = null;
     }
