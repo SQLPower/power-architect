@@ -1411,7 +1411,7 @@
 									<inlinemediaobject>
 										<imageobject>
 											<imagedata
-												fileref="src/icons/Database16.gif" format="GIF" />
+												fileref="src/icons/Database16.png" format="png" />
 										</imageobject>
 									</inlinemediaobject>
 								</entry>
@@ -1423,7 +1423,7 @@
 									<inlinemediaobject>
 										<imageobject>
 											<imagedata
-												fileref="src/icons/Catalog16.gif" format="GIF" />
+												fileref="src/icons/Catalog16.png" format="png" />
 										</imageobject>
 									</inlinemediaobject>
 								</entry>
@@ -1435,7 +1435,7 @@
 									<inlinemediaobject>
 										<imageobject>
 											<imagedata
-												fileref="src/icons/Schema16.gif" format="GIF" />
+												fileref="src/icons/Schema16.png" format="png" />
 										</imageobject>
 									</inlinemediaobject>
 								</entry>
@@ -1447,7 +1447,7 @@
 									<inlinemediaobject>
 										<imageobject>
 											<imagedata
-												fileref="src/icons/Owner16.gif" format="GIF" />
+												fileref="src/icons/Owner16.png" format="png" />
 										</imageobject>
 									</inlinemediaobject>
 								</entry>
@@ -1459,7 +1459,7 @@
 									<inlinemediaobject>
 										<imageobject>
 											<imagedata
-												fileref="src/icons/Table16.gif" format="GIF" />
+												fileref="src/icons/Table16.png" format="png" />
 										</imageobject>
 									</inlinemediaobject>
 								</entry>
@@ -1471,7 +1471,7 @@
 									<inlinemediaobject>
 										<imageobject>
 											<imagedata
-												fileref="src/icons/ExportedKey16.gif" format="GIF" />
+												fileref="src/icons/ExportedKey16.png" format="png" />
 										</imageobject>
 									</inlinemediaobject>
 								</entry>
@@ -1483,7 +1483,7 @@
 									<inlinemediaobject>
 										<imageobject>
 											<imagedata
-												fileref="src/icons/ImportedKey16.gif" format="GIF" />
+												fileref="src/icons/ImportedKey16.png" format="png" />
 										</imageobject>
 									</inlinemediaobject>
 								</entry>
@@ -1568,7 +1568,7 @@
 				<inlinemediaobject>
 					<imageobject>
 						<imagedata
-							fileref="doc/images/information24.gif" format="GIF"
+							fileref="doc/images/information24.png" format="GIF"
 							width="0.25in" />
 					</imageobject>
 				</inlinemediaobject>

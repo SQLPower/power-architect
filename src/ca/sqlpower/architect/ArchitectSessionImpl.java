@@ -4,6 +4,8 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import ca.sqlpower.architect.profile.TableProfileManager;
+
 /**
  * The ArchitectSession class represents a single user's session with
  * the architect.  If using the Swing UI (currently this is the only
@@ -21,14 +23,16 @@ import java.util.List;
  */
 public class ArchitectSessionImpl implements ArchitectSession {
     
-    protected static ArchitectSession instance;
-	protected CoreUserSettings userSettings;
-	protected JDBCClassLoader jdbcClassLoader;
-	protected List<String> driverJarList;
+    private static ArchitectSession instance;
+    private CoreUserSettings userSettings;
+    private JDBCClassLoader jdbcClassLoader;
+    private List<String> driverJarList;
+    private TableProfileManager profileManager;
 
 	public ArchitectSessionImpl() {
 		driverJarList = new LinkedList();
 		jdbcClassLoader = new JDBCClassLoader(this);
+        profileManager = new TableProfileManager();
 	}
 
 	/**
@@ -102,5 +106,9 @@ public class ArchitectSessionImpl implements ArchitectSession {
 	public JDBCClassLoader getJDBCClassLoader() {
 		return jdbcClassLoader;
 	}
+
+    public TableProfileManager getProfileManager() {
+        return profileManager;
+    }
 
 }

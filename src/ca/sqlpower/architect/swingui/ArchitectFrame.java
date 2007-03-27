@@ -63,6 +63,7 @@ import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.etl.ExportCSV;
 import ca.sqlpower.architect.layout.ArchitectLayout;
 import ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout;
+import ca.sqlpower.architect.profile.TableProfileManager;
 import ca.sqlpower.architect.qfa.ExceptionHandler;
 import ca.sqlpower.architect.swingui.action.AboutAction;
 import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
@@ -947,7 +948,7 @@ public class ArchitectFrame extends JFrame {
         editIndexAction.setDBTree(dbTree);
 		searchReplaceAction.setDBTree(dbTree);
 		profileAction.setDBTree(dbTree);
-		profileAction.setProfileManager(project.getProfileManager());
+		profileAction.setProfileManager((TableProfileManager)project.getProfileManager());
 
 		prefAction.setArchitectFrame(this);
 		projectSettingsAction.setArchitectFrame(this);

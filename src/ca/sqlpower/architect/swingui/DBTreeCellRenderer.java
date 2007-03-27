@@ -12,12 +12,15 @@ import javax.swing.ImageIcon;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
+import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.profile.TableProfileManager;
 
 /**
  * The DBTreeCellRenderer renders nodes of a JTree which are of
@@ -31,14 +34,29 @@ import ca.sqlpower.architect.SQLTable;
  */
 public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
 	public static final ImageIcon dbIcon = ASUtils.createIcon("Database", "SQL Database", 16);
-	public static final ImageIcon targetIcon = ASUtils.createIcon("TargetDatabaseArrow", "SQL Database", 16);
+    public static final ImageIcon dbProfiledIcon = ASUtils.createIcon("Database_profiled", "SQL Database", 16);
+	public static final ImageIcon targetIcon = ASUtils.createIcon("Database_target", "SQL Database", 16);
 	public static final ImageIcon cataIcon = ASUtils.createIcon("Catalog", "SQL Catalog", 16);
 	public static final ImageIcon schemaIcon = ASUtils.createIcon("Schema", "SQL Schema", 16);
 	public static final ImageIcon tableIcon = ASUtils.createIcon("Table", "SQL Table", 16);
-	public static final ImageIcon keyIcon = ASUtils.createIcon("ExportedKey", "Exported key", 16);
+    public static final ImageIcon tableProfiledIcon = ASUtils.createIcon("Table_profiled", "SQL Table", 16);
+	public static final ImageIcon exportedKeyIcon = ASUtils.createIcon("ExportedKey", "Exported key", 16);
+    public static final ImageIcon importedKeyIcon = ASUtils.createIcon("ImportedKey", "Imported key", 16);
 	public static final ImageIcon ownerIcon = ASUtils.createIcon("Owner", "Owner", 16);
+    public static final ImageIcon indexIcon = ASUtils.createIcon("Index", "SQL Table", 16);
+    public static final ImageIcon pkIndexIcon = ASUtils.createIcon("Index_key", "SQL Table", 16);
+    public static final ImageIcon uniqueIndexIcon = ASUtils.createIcon("Index_unique", "SQL Table", 16);
 
-	public Component getTreeCellRendererComponent(JTree tree,
+    private final ArchitectSession session;
+   
+    
+	public DBTreeCellRenderer(ArchitectSession session) {
+        super();
+        this.session = session;
+    }
+
+
+    public Component getTreeCellRendererComponent(JTree tree,
 												  Object value,
 												  boolean sel,
 												  boolean expanded,
@@ -75,15 +93,37 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
 				setIcon(schemaIcon);
 			}
 		} else if (value instanceof SQLTable) {
-			setIcon(tableIcon);
-			if (((SQLTable) value).getObjectType() != null) {
-			    setText(((SQLTable) value).getName()+" ("+((SQLTable) value).getObjectType()+")");
+            
+			SQLTable table = (SQLTable) value;
+            if (((TableProfileManager)session.getProfileManager()).isTableProfiled(table)) {
+                setIcon(tableProfiledIcon);
+            } else {
+                setIcon(tableIcon);
+            }
+            if ((table).getObjectType() != null) {
+			    setText((table).getName()+" ("+(table).getObjectType()+")");
 			} else {
-			    setText(((SQLTable) value).getName());
+			    setText((table).getName());
 			}
 		} else if (value instanceof SQLRelationship) {
-			setIcon(keyIcon);
-		} else {
+            SQLRelationship r = (SQLRelationship) value;
+            //XXX ARRRRRRGGGGGHHHHHHH!!!! No way of knowing which end of a relationship we're
+            // looking at
+            if (true) {
+                setIcon(exportedKeyIcon);
+            } else {
+                setIcon(importedKeyIcon);
+            }
+		} else if (value instanceof SQLIndex) {
+            SQLIndex i = (SQLIndex) value;
+            if (i.isPrimaryKeyIndex()) {
+                setIcon(pkIndexIcon);
+            } else if (i.isUnique()) {
+                setIcon(uniqueIndexIcon);
+            } else {
+                setIcon(indexIcon);
+            }
+        } else {
 			setIcon(null);
 		}
 

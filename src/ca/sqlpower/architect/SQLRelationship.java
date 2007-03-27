@@ -666,9 +666,11 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 
 	/**
 	 * Returns the table that holds the primary keys (the imported table).
+     * <p>
+     * XXX this should return the parent folder of the pk table!
 	 */
 	public SQLObject getParent() {
-		return pkTable;
+		return pkTable.getExportedKeysFolder();
 	}
 
 	/**

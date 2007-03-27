@@ -262,11 +262,11 @@ public class ASUtils {
 
     public static ImageIcon createIcon(String name,
                                        String description) {
-        String realPath = "/icons/"+name+".gif";
+        String realPath = "/icons/"+name+".png";
 		logger.debug("Loading resource "+realPath);
 		java.net.URL imgURL = ASUtils.class.getResource(realPath);
         if (imgURL == null) {
-            realPath = realPath.replace(".gif", ".png");
+            realPath = realPath.replace(".png", ".gif");
             imgURL = ASUtils.class.getResource(realPath);
         }
 		if (imgURL != null) {

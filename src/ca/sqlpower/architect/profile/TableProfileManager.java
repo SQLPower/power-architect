@@ -4,7 +4,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -18,13 +20,40 @@ public class TableProfileManager implements ProfileManager {
     
     private final List<TableProfileResult> tableResults =
         new ArrayList<TableProfileResult>();
+    private final Map<SQLTable,Integer> profileCounts = 
+        new HashMap<SQLTable, Integer>();
 
     private ProfileSettings settings = new ProfileSettings();
 
     private void putResult(TableProfileResult profileResult) {
         tableResults.add(profileResult);
         fireProfileAdded(profileResult);
+        incrementTableProfileCountCache(profileResult);
     }
+    private void incrementTableProfileCountCache(TableProfileResult profileResult) {
+        Integer profileCount = profileCounts.get(profileResult.getProfiledObject());
+        if (profileCount == null) {
+            profileCount = Integer.valueOf(1);
+        } else {
+            profileCount = Integer.valueOf(profileCount.intValue() +1);
+        }
+        profileCounts.put(profileResult.getProfiledObject(),profileCount);
+    }
+    
+    private void decrementTableProfileCountCache(TableProfileResult profileResult) {
+        Integer profileCount = profileCounts.get(profileResult.getProfiledObject());
+        if (profileCount == null) {
+            throw new IllegalStateException("Cannot remove a table from our cache, it's not there!");
+        } else {
+            profileCount = Integer.valueOf(profileCount.intValue() -1);
+        }
+        if (profileCount > 0 ) {
+            profileCounts.put(profileResult.getProfiledObject(),profileCount);
+        } else {
+            profileCounts.remove(profileResult);
+        }
+    }
+    
     /**
      * Add profileResult to the most recent table profile result that was passed
      * to loadResult
@@ -49,11 +78,21 @@ public class TableProfileManager implements ProfileManager {
     
     public void loadManyResults(List results){
         tableResults.addAll(results);
+        profileCounts.clear();
+        for (TableProfileResult result:tableResults){
+            incrementTableProfileCountCache(result);
+        }
         fireProfilesAdded(results);
     }
 
     public List<TableProfileResult> getTableResults() {
         return Collections.unmodifiableList(tableResults);
+    }
+    /**
+     * Checks if the table has at least 1 profile
+     */
+    public boolean isTableProfiled(SQLTable table) {
+        return profileCounts.containsKey(table);
     }
     
     /**
@@ -137,6 +176,7 @@ public class TableProfileManager implements ProfileManager {
              tpr.setCancelled(true);
          }
          tableResults.clear();
+         profileCounts.clear();
          fireProfileChanged();
      }
 
@@ -144,6 +184,7 @@ public class TableProfileManager implements ProfileManager {
         System.out.println("ProfileManager: removing object: " + result);
         if (tableResults.remove(result)) {
             result.setCancelled(true);
+            decrementTableProfileCountCache(result);
             fireProfileRemoved(result);
             return true;
         }
