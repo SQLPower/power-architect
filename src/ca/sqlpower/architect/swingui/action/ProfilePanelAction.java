@@ -215,7 +215,10 @@ public class ProfilePanelAction extends ProgressAction {
     @Override
     public void setup(ActionMonitor monitor, Map<String, Object> properties) {
     }
-
- 
+    
+    @Override
+    public String getButtonText() {
+        return "Cancel";
+    }
 
 }
