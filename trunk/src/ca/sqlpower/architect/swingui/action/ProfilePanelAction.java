@@ -1,6 +1,7 @@
 package ca.sqlpower.architect.swingui.action;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import javax.swing.JDialog;
@@ -205,14 +206,14 @@ public class ProfilePanelAction extends ProgressAction {
     }
 
     @Override
-    public void doStuff(ActionMonitor monitor) {
+    public void doStuff(ActionMonitor monitor, Map<String, Object> properties) {
         monitor.setStarted(true);
         profileItemsFromDBTree(monitor);
         monitor.setFinished(true);
     }
 
     @Override
-    public void setupMonitor(ActionMonitor monitor) {
+    public void setup(ActionMonitor monitor, Map<String, Object> properties) {
     }
 
  

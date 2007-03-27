@@ -14,12 +14,14 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.SQLCatalog;
+import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.SQLIndex.Column;
 import ca.sqlpower.architect.profile.TableProfileManager;
 
 /**
@@ -43,10 +45,10 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
 	public static final ImageIcon exportedKeyIcon = ASUtils.createIcon("ExportedKey", "Exported key", 16);
     public static final ImageIcon importedKeyIcon = ASUtils.createIcon("ImportedKey", "Imported key", 16);
 	public static final ImageIcon ownerIcon = ASUtils.createIcon("Owner", "Owner", 16);
-    public static final ImageIcon indexIcon = ASUtils.createIcon("Index", "SQL Table", 16);
-    public static final ImageIcon pkIndexIcon = ASUtils.createIcon("Index_key", "SQL Table", 16);
-    public static final ImageIcon uniqueIndexIcon = ASUtils.createIcon("Index_unique", "SQL Table", 16);
-
+    public static final ImageIcon indexIcon = ASUtils.createIcon("Index", "Index", 16);
+    public static final ImageIcon pkIndexIcon = ASUtils.createIcon("Index_key", "Primary Key Index", 16);
+    public static final ImageIcon uniqueIndexIcon = ASUtils.createIcon("Index_unique", "Unique Index", 16);
+    public static final ImageIcon columnIcon = ASUtils.createIcon("Column", "Column", 16);
     private final ArchitectSession session;
    
     
@@ -106,7 +108,6 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
 			    setText((table).getName());
 			}
 		} else if (value instanceof SQLRelationship) {
-            SQLRelationship r = (SQLRelationship) value;
             //XXX ARRRRRRGGGGGHHHHHHH!!!! No way of knowing which end of a relationship we're
             // looking at because the relationship has two parents.  Maybe able to do it with the row number.
             if (true) {
@@ -123,6 +124,8 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
             } else {
                 setIcon(indexIcon);
             }
+        } else if (value instanceof SQLColumn || value instanceof Column) {
+            setIcon(columnIcon);
         } else {
 			setIcon(null);
 		}
