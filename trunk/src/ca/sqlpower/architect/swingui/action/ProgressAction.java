@@ -122,7 +122,7 @@ public abstract class ProgressAction extends AbstractAction {
         CellConstraints c = new CellConstraints();
         pb.add(label, c.xyw(2, 2, 3));
         pb.add(progressBar,c.xyw(2, 4, 3));
-        pb.add(new JButton(new AbstractAction("Close") {
+        pb.add(new JButton(new AbstractAction(getButtonText()) {
             public void actionPerformed(ActionEvent e) {
                 progressDialog.dispose();
                 monitor.setCancelled(true);
@@ -153,6 +153,12 @@ public abstract class ProgressAction extends AbstractAction {
         
         new Thread(worker).start();
     }
+    
+    /**
+     *  Return the text that shows up on the dialog button
+     */
+    public abstract String getButtonText();
+
     /**
      * Setup the monitor and doStuff parameters before the progress dialog is shown.
      */

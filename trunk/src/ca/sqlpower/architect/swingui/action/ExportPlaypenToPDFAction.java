@@ -19,6 +19,8 @@ import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.PlayPenComponent;
+import ca.sqlpower.architect.swingui.PlayPenContentPane;
 
 import com.lowagie.text.Document;
 import com.lowagie.text.Rectangle;
@@ -48,7 +50,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
         monitor.started = true;
         JFileChooser chooser = new JFileChooser();
         chooser.addChoosableFileFilter(ASUtils.PDF_FILE_FILTER);
-      
+        monitor.setJobSize(pp.getPlayPenContentPane().getComponentCount());
         
         File file = null;
         while (true) {
@@ -96,13 +98,14 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
 
     @Override
     public void doStuff(ActionMonitor monitor, Map<String, Object> properties) {
+        PlayPen playPen = new PlayPen(pp);
         /* We translate the graphics to (OUTSIDE_PADDING, OUTSIDE_PADDING) 
          * so nothing is drawn right on the edge of the document. So
          * we multiply by 2 so we can accomodate the translate and ensure
          * nothing gets drawn outside of the document size.
          */
-        final int width = pp.getBounds().width + 2*OUTSIDE_PADDING;
-        final int height = pp.getBounds().height + 2*OUTSIDE_PADDING;
+        final int width = playPen.getBounds().width + 2*OUTSIDE_PADDING;
+        final int height = playPen.getBounds().height + 2*OUTSIDE_PADDING;
         final Rectangle ppSize = new Rectangle(width, height);
         
         OutputStream out = null;
@@ -122,7 +125,17 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
             Graphics2D g = cb.createGraphicsShapes(width, height);
             // ensure a margin
             g.translate(OUTSIDE_PADDING, OUTSIDE_PADDING);
-            pp.paintComponent(g);
+            PlayPenContentPane contentPane = playPen.getContentPane();
+            int j=0;
+            for (int i = contentPane.getComponentCount() - 1; i >= 0; i--) {
+                PlayPenComponent ppc = contentPane.getComponent(i);
+                g.translate(ppc.getLocation().x, ppc.getLocation().y);
+                ppc.paint(g);
+                g.translate(-ppc.getLocation().x, -ppc.getLocation().y);
+                monitor.setProgress(j);
+                j++;
+            }
+            playPen.paintComponent(g);
             g.dispose();
         } catch (Exception ex) {
             ASUtils.showExceptionDialog(c, 
@@ -157,5 +170,10 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
     @Override
     public String getDialogMessage() {
         return "Creating PDF";
+    }
+    
+    @Override
+    public String getButtonText() {
+        return "Run in Background";
     }
 }
