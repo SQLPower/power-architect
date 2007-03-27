@@ -35,12 +35,6 @@
 							<entry key="recentFile1" value="/home/tester/architect/ecom.architect"/>
 						</map>
 					</node>
-						<node name='jarfiles'>
-						<map>
-							<entry key="JDBCJarFile.00" value="testbed/ojdbc14.jar"/>
-							<entry key="JDBCJarFile.01" value="testbed/postgresql.jar"/>
-						</map>
-					</node>
 				</node>
 			</node>
 		</node>
