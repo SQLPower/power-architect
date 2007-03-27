@@ -1512,7 +1512,7 @@ public class SwingUIProject {
     }
 
     public void setSourceDatabaseList(List databases) throws ArchitectException {
-        this.sourceDatabases.setModel(new DBTreeModel(databases));
+        this.sourceDatabases.setModel(new DBTreeModel(databases,session));
     }
 
     /**
