@@ -416,7 +416,7 @@ public class SQLTable extends SQLObject {
 	}
 
 	/**
-	 * Searches for the named table.
+	 * Searches for the named column.
 	 *
 	 * @param populate If true, this table will retrieve its column
 	 * list from the database; otherwise it just searches the current
@@ -425,8 +425,9 @@ public class SQLTable extends SQLObject {
 	public SQLColumn getColumnByName(String colName, boolean populate, boolean caseSensitive)
         throws ArchitectException {
 		if (populate) populateColumns();
-		if (logger.isDebugEnabled()) logger.debug("Looking for column "+colName+" in "+children);
-        
+		if (logger.isDebugEnabled()) {
+            logger.debug("Looking for column "+colName+" in "+children);
+        }
 		/* if columnsFolder.children.iterator(); gets changed to getColumns().iterator()
 		 * we get infinite recursion between populateColumns, getColumns,
 		 * getColumnsByName and addColumnsToTable
