@@ -236,6 +236,8 @@ public class DataMoverPanel {
             throw new RuntimeException("Couldn't create DDL Generator", ex);
         } catch (IllegalAccessException ex) {
             throw new RuntimeException("Couldn't create DDL Generator", ex);
+        } catch (ClassNotFoundException ex) {
+            throw new RuntimeException("Couldn't create DDL Generator", ex);
         } finally {
             sourceCon.close();
             destCon.close();

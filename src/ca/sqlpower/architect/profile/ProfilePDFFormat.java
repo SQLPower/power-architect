@@ -18,7 +18,6 @@ import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLGenerator;
-import ca.sqlpower.architect.ddl.DDLUtils;
 
 import com.lowagie.text.Document;
 import com.lowagie.text.DocumentException;
@@ -80,7 +79,8 @@ public class ProfilePDFFormat implements ProfileFormat {
      */
     public void format(OutputStream out, List<ProfileResult> profileResults)
                 throws DocumentException, IOException, SQLException,
-                    ArchitectException, InstantiationException, IllegalAccessException {
+                    ArchitectException, InstantiationException,
+                    IllegalAccessException, ClassNotFoundException {
 
         final int minRowsTogether = 1;  // counts smaller than this are considered orphan/widow
         final int mtop = 50;  // margin at top of page (in points)
@@ -138,17 +138,24 @@ public class ProfilePDFFormat implements ProfileFormat {
 
         Font f = new Font(bf, fsize);
 
+        // This ddl generator is set to the appropriate ddl generator for the source database
+        // every time we encounter a table profile result in the list.
+        DDLGenerator ddlg = null;
+        
         PdfPTable pdfTable = null;
         for (ProfileResult result : profileResults ) {
             if ( result instanceof TableProfileResult ) {
+                TableProfileResult tableResult = (TableProfileResult) result;
                 pdfTable = new PdfPTable(widths.length);
                 pdfTable.setWidthPercentage(100f);
-                ProfileTableStructure oneProfile = makeNextTable((TableProfileResult)result,
-                                                            pdfTable,bf,fsize,widths);
+                ProfileTableStructure oneProfile = makeNextTable(
+                        tableResult, pdfTable, bf, fsize, widths);
                 profiles.add(oneProfile);
+                ddlg = tableResult.getDDLGenerator();
             } else if ( result instanceof ColumnProfileResult ) {
-                TableProfileResult tResult = ((ColumnProfileResult)result).getParentResult();
-                addBodyRow(tResult, (ColumnProfileResult)result, pdfTable, bf, f, fsize, widths);
+                final ColumnProfileResult columnResult = (ColumnProfileResult) result;
+                TableProfileResult tResult = columnResult.getParentResult();
+                addBodyRow(tResult,columnResult, ddlg, pdfTable, bf, f, fsize, widths);
             }
         }
 
@@ -601,19 +608,18 @@ public class ProfilePDFFormat implements ProfileFormat {
         }
     }
 
-    protected void addBodyRow( TableProfileResult tProfile,
+    private void addBodyRow( TableProfileResult tProfile,
                                 ColumnProfileResult result,
+                                DDLGenerator ddlg,
                                 PdfPTable table,
                                 BaseFont bf,
                                 Font f,
                                 float fsize,
                                 float[] widths)
-        throws DocumentException, IOException, ArchitectException,
-                SQLException, InstantiationException, IllegalAccessException {
+        throws DocumentException, IOException, ArchitectException, SQLException {
 
         SQLColumn col = result.getProfiledObject();
-        DDLGenerator gddl = DDLUtils.createDDLGenerator(
-                col.getParentTable().getParentDatabase().getDataSource());
+        
 
         int rowCount = -1;
         if ( tProfile != null && tProfile.getException() == null ) {
@@ -668,7 +674,7 @@ public class ProfilePDFFormat implements ProfileFormat {
                 contents = col.getName();
                 alignment = Element.ALIGN_LEFT;
             } else if ( headings[colNo].equalsIgnoreCase("data type") ) {
-                contents = gddl.columnType(col);
+                contents = ddlg.columnType(col);
                 alignment = Element.ALIGN_LEFT;
             } else if ( headings[colNo].equalsIgnoreCase("null count") ) {
 

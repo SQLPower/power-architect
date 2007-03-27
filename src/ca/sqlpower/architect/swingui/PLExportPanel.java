@@ -6,7 +6,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Map;
 
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -19,7 +18,6 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.etl.ETLUserSettings;
 import ca.sqlpower.architect.etl.PLExport;
@@ -80,15 +78,11 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 	protected javax.swing.Timer timer;
 	protected String plDotIniPath;
 	
-	protected Map ddlGeneratorMap;
 	protected TextPanel mainForm;
 	
 	public PLExportPanel() {
 		ArchitectFrame af = ArchitectFrame.getMainInstance();
 		plDotIniPath = af.getUserSettings().getPlDotIniPath(); // is this bad?
-		ddlGeneratorMap = ArchitectUtils.getDriverDDLGeneratorMap();
-		
-
 
 		progressBar = new JProgressBar();
 		label = new JLabel();

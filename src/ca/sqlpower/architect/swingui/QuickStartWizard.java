@@ -25,7 +25,7 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.ddl.GenericDDLGenerator;
+import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.etl.PLExport;
 import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
 
@@ -132,14 +132,14 @@ public class QuickStartWizard implements ArchitectWizard {
 	
 	public static class GenerateStatementsTask extends ArchitectSwingWorker {
 		List statements;
-		GenericDDLGenerator ddlg;
+		DDLGenerator ddlg;
 		SQLDatabase db;
 		JDialog parentDialog;
 		String errorMessage = null;
 		
 		
 		GenerateStatementsTask (List statements, 
-				GenericDDLGenerator ddlg,
+				DDLGenerator ddlg,
 				SQLDatabase db, 
 				JDialog parentDialog) {
 			this.statements = statements;
