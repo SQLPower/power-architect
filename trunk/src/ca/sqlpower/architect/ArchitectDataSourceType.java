@@ -167,7 +167,8 @@ public class ArchitectDataSourceType {
     public static final String PARENT_TYPE_NAME = "Parent Type";
     public static final String PL_DB_TYPE = "PL Type";
     public static final String COMMENT = "Comment";
-
+    public static final String DDL_GENERATOR = "DDL Generator";
+    
     /**
      * This type's parent type.  This value will be null if this type has no
      * parent.
@@ -311,7 +312,15 @@ public class ArchitectDataSourceType {
     public void setName(String name) {
         putPropertyImpl("name", TYPE_NAME, name);
     }
+
+    public String getDDLGeneratorClass() {
+        return getProperty(DDL_GENERATOR);
+    }
     
+    public void setDDLGeneratorClass(String className) {
+        putPropertyImpl("DDLGeneratorClass", DDL_GENERATOR, className);
+    }
+
     public ArchitectDataSourceType getParentType() {
         return parentType;
     }

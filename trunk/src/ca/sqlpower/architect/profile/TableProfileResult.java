@@ -13,6 +13,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
@@ -94,7 +95,7 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
             if ( columns.size() == 0 ) {
                 return;
             }
-            DDLGenerator ddlg = getDDLGenerator(columns.get(0));
+            DDLGenerator ddlg = getDDLGenerator();
             for (SQLColumn col : columns ) {
                 ColumnProfileResult columnResult = new ColumnProfileResult(col, manager, ddlg, this);
                 columnResult.populate();
@@ -158,18 +159,24 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
         return retCollection;
     }
     
-    private DDLGenerator getDDLGenerator(SQLColumn col1) throws ArchitectException {
-        DDLGenerator ddlg = null;
-
+    /**
+     * Returns the DDL generator associated with this table profile.
+     * 
+     * @param col1
+     * @return
+     * @throws ArchitectException
+     */
+    public DDLGenerator getDDLGenerator() throws ArchitectException {
+        ArchitectDataSource ds = getProfiledObject().getParentDatabase().getDataSource();
         try {
-            ddlg = (DDLGenerator) DDLUtils.createDDLGenerator(
-                    col1.getParentTable().getParentDatabase().getDataSource());
-        } catch (InstantiationException e1) {
-            throw new ArchitectException("problem running Profile Manager", e1);
-        } catch ( IllegalAccessException e1 ) {
-            throw new ArchitectException("problem running Profile Manager", e1);
+            return DDLUtils.createDDLGenerator(ds);
+        } catch (InstantiationException ex) {
+            throw new ArchitectException("Couldn't create DDL Generator for data source "+ds, ex);
+        } catch (IllegalAccessException ex) {
+            throw new ArchitectException("Couldn't create DDL Generator for data source "+ds, ex);
+        } catch (ClassNotFoundException ex) {
+            throw new ArchitectException("Couldn't create DDL Generator for data source "+ds, ex);
         }
-        return ddlg;
     }
 
     /**

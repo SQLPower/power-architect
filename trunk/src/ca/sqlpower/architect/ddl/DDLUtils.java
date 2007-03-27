@@ -5,7 +5,6 @@ import java.util.Vector;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectDataSource;
-import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
@@ -17,6 +16,8 @@ import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
 public class DDLUtils {
 
 	private static final Logger logger = Logger.getLogger(DDLUtils.class);
+    
+    private static final Class DEFAULT_DDL_GENERATOR_CLASS = GenericDDLGenerator.class;
 
 	/**
 	 * DDLUtils is a container for static methods.  You can't make an instance of it.
@@ -139,15 +140,17 @@ public class DDLUtils {
     }
 
     public static DDLGenerator createDDLGenerator(ArchitectDataSource ads)
-                        throws InstantiationException, IllegalAccessException {
+                        throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 
-        Class generatorClass = (Class) ArchitectUtils.getDriverDDLGeneratorMap().get(
-                                                                ads.getDriverClass());
-        if (generatorClass == null) {
-            return null;
+        Class generatorClass;
+        String className = ads.getParentType().getDDLGeneratorClass();
+        if (className != null) {
+            generatorClass = Class.forName(className);
+        } else {
+            generatorClass = DEFAULT_DDL_GENERATOR_CLASS;
         }
-        return (DDLGenerator)generatorClass.newInstance();
-
+        
+        return (DDLGenerator) generatorClass.newInstance();
     }
 
 }

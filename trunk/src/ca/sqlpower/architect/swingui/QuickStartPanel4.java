@@ -5,11 +5,9 @@ import java.awt.event.ActionEvent;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -18,11 +16,10 @@ import javax.swing.ProgressMonitor;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
-import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.PLExport;
 import ca.sqlpower.architect.swingui.PlayPen.AddObjectsTask;
 import ca.sqlpower.architect.swingui.QuickStartWizard.GenerateStatementsTask;
@@ -105,19 +102,9 @@ public class QuickStartPanel4 implements WizardPanel {
 	public boolean applyChanges() {
 
 		wizard.addSourceDatabases(wizard.getSourceTables());
-		Map ddlGeneratorMap = ArchitectUtils.getDriverDDLGeneratorMap();
-		Class selectedGeneratorClass = (Class) ddlGeneratorMap.get(
-				wizard.getPlExport().getTargetDataSource().getDriverClass());
-		if (selectedGeneratorClass == null)
-		{
-			JOptionPane.showMessageDialog(getPanel(),
-					"Unable to create DDL Script for the target database.",
-					"Database Error", JOptionPane.ERROR_MESSAGE);
-			return false;
-		}
-		GenericDDLGenerator ddlg;
+		DDLGenerator ddlg;
 		try {
-			ddlg = (GenericDDLGenerator) selectedGeneratorClass.newInstance();
+			ddlg = DDLUtils.createDDLGenerator(wizard.getPlExport().getTargetDataSource());
 			ddlg.setTargetCatalog(wizard.getPlExport().getTargetCatalog());
 			ddlg.setTargetSchema(wizard.getPlExport().getTargetSchema());
 		
@@ -193,10 +180,12 @@ public class QuickStartPanel4 implements WizardPanel {
 			((WizardDialog)wizard.getParentDialog()).getNextButton().setEnabled(false);
 			new Thread(aot, "Wizard-Objects-Adder").start();
 			
-		} catch (InstantiationException e1) {
-			logger.error("problem running Quick Start Wizard", e1);
-		} catch (IllegalAccessException e1) {
-			logger.error("problem running Quick Start Wizard", e1);
+		} catch (InstantiationException e) {
+			logger.error("problem running Quick Start Wizard", e);
+        } catch (IllegalAccessException e) {
+            logger.error("problem running Quick Start Wizard", e);
+        } catch (ClassNotFoundException e) {
+            logger.error("problem running Quick Start Wizard", e);
 		} catch (ArchitectException e) {
 			logger.error("problem running Quick Start Wizard", e);
 		} catch (SQLException e) {

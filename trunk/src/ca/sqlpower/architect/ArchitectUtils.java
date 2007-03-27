@@ -4,20 +4,14 @@ import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import javax.swing.JTree;
 import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ddl.DB2DDLGenerator;
-import ca.sqlpower.architect.ddl.OracleDDLGenerator;
-import ca.sqlpower.architect.ddl.PostgresDDLGenerator;
-import ca.sqlpower.architect.ddl.SQLServerDDLGenerator;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 
 /**
@@ -331,27 +325,6 @@ public class ArchitectUtils {
 			}
 			return myCount;
 		}
-	}
-
-	/**
-	 *
-	 * XXX: should include these in the ArchitectDataSourceType
-     *      instead of hard coding them here
-	 *
-	 */
-	public static Map getDriverDDLGeneratorMap () {
-		Map drivers = new HashMap();
-        drivers.put("oracle.jdbc.driver.OracleDriver",
-                OracleDDLGenerator.class);
-        drivers.put("oracle.jdbc.OracleDriver",
-                OracleDDLGenerator.class);
-		drivers.put("com.microsoft.jdbc.sqlserver.SQLServerDriver",
-				SQLServerDDLGenerator.class);
-		drivers.put("org.postgresql.Driver",
-				PostgresDDLGenerator.class);
-		drivers.put("ibm.sql.DB2Driver",
-				DB2DDLGenerator.class);
-		return drivers;
 	}
 
 	/**
