@@ -1,4 +1,32 @@
-Architect Version 0.0.91 Release Notes 	
+Power*Architect Release Notes
+
+IMPORTANT NOTE to users upgrading from 0.0.x versions of the Architect:
+ We have made incompatible modifications to the PL.INI file which specifies
+ your database connections.  After upgrading to this version, you will need
+ to set up database connection types for all your databases in the user
+ preferences dialog, then edit the properties on your existing connections
+ to associate them with one of the configured database types.  This will
+ also apply to connections within projects you have saved with older versions
+ of the Architect.  We apologize for the inconvenience, but the benefits will
+ outweigh the costs!
+
+1.0.0 rc1
+
+*Added PDF Export feature under File menu
+*Added MySQL compatibility
+*Improved DDL Generator Warnings interface to include a better UI and a "quick fix" feature which guesses the new value
+*Improved Profiling GUI to include a profile manager for browsing, searching, and deleting existing profile data in the project
+*Added index support for tables, forward engineering, and reverse engineering (supports unique and non-unique indices)
+*Completely reworked the strategy for loading JDBC driver classes.  New features include:
+ +A better GUI for configuring database connections
+ +Users can create new database connection types within the Architect (previously this required editing PL.INI by hand)
+ +Can have multiple versions of the same driver in use at the same time (required for Oracle 8i/9i/10g)
+ +It is now possible to ship Architect distributions with JDBC drivers built in
+ +There is now a place where we will be able to allow much more user configuration per database type in the future
+ +Unfortunately, this change is not backward compatible with the 0.0.x versions of the Architect PL.INI file.
+*Replaced the old tree icons with much nicer-looking new ones
+
+0.0.91
 
 *Added in a new function: Profiling
 	-Displays the distrobution of a column's data in a pie chart 
