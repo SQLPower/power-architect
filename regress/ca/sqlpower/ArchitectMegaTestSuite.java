@@ -6,6 +6,11 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
+/**
+ * All of the junit tests that we currently have for the Architect.  Combines
+ * the non-standardly named business and gui tests with the auto tests which
+ * picks up all the test classes whose name matches *Test.
+ */
 public class ArchitectMegaTestSuite extends TestCase {
 
     static {
