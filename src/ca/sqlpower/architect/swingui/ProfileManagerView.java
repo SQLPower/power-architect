@@ -58,7 +58,10 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
     private static Logger logger = Logger.getLogger(ProfileManagerView.class);
 
 	ProfileManager pm;
-	final static int NICE_ROWS = 8;
+    /**
+     * The number of rows we'd like the list to show by default
+     */
+	final static int VISIBLE_ROWS = 8;
 
     final ResultListPanel resultListPanel;
 
@@ -93,16 +96,16 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         @Override
         public Dimension getPreferredSize() {
             Dimension d = super.getPreferredSize();
-            if (d.height < 100) {
-                return new Dimension(d.width,100);
-            } else {
-                return d;
-            }
+            return d;
         }
         
         public Dimension getPreferredScrollableViewportSize() {
-            // TODO Auto-generated method stub
-            return null;
+            if (list.size() == 0)
+                return super.getPreferredSize();
+            Dimension d = super.getPreferredSize();
+            d.height = list.get(0).getPreferredSize().height * VISIBLE_ROWS;
+            d.width = Math.max(resultListPanel.getPreferredSize().width, d.width);
+            return d;
         }
 
         public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
@@ -390,16 +393,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         doSearch(searchText.getText());
     }
 
-    @Override
-    public Dimension getPreferredSize() {
-        if (list.size() == 0)
-            return super.getPreferredSize();
-        Dimension d = super.getPreferredSize();
-        d.height = list.get(0).getPreferredSize().height * NICE_ROWS;
-        d.width = Math.max(resultListPanel.getPreferredSize().width, d.width);
-        return d;
-    }
-
+    
     /** Part of the ProfileChangeListener interface; called
      * to tell us when a ProfileResult has been added; we need
      * to create a corresponding ProfileRowComponent and add it to the view.
