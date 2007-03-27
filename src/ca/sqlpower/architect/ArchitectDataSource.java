@@ -15,22 +15,29 @@ package ca.sqlpower.architect;
  * @author jack, jonathan
  */
 
+import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
-
+import ca.sqlpower.architect.jdbc.ConnectionDecorator;
 
 public class ArchitectDataSource {
-    private final static Logger logger = Logger.getLogger(ArchitectDataSource.class);
+
+    private static final Logger logger = Logger.getLogger(ArchitectDataSource.class);
+    
 	/**
 	 * Compares this data source to the given data source by comparing
 	 * the respecitive fields in the following order:
@@ -120,10 +127,51 @@ public class ArchitectDataSource {
 			return 0;
 		}
 	}
+    
+    /**
+     * A property change listener that should be connected to the current parentType.
+     * Its function is to keep the parent type name in the property map in sync with
+     * the parent type's actual name.
+     */
+    private class ParentTypeNameSynchronizer implements PropertyChangeListener {
 
+        public void propertyChange(PropertyChangeEvent evt) {
+            if (evt.getSource() == parentType && "name".equals(evt.getPropertyName())) {
+                properties.put(DBCS_CONNECTION_TYPE, (String) evt.getNewValue());
+            }
+        }
+        
+    }
+    
+    private final ParentTypeNameSynchronizer parentTypeUpdater = new ParentTypeNameSynchronizer();
+    
+    /**
+     * These are the actual properties that appear in the file for this data source.
+     * The getters for various properties will consult the parent type where appropriate
+     * (for example, when a value is missing from this map).
+     */
 	private Map<String,String> properties;
 
-	/*
+    /**
+     * This is the type (or class, but we don't mean Java class) for this data source.
+     * It provides defaults for all connections to the same type of database (for instance,
+     * all Oracle 8i data sources should have the same parent type, which knows where to
+     * find the Oracle driver, and what an Oracle JDBC THIN URL looks like).
+     * <p>
+     * Warning: If you modify this value directly (not using setParentType()) then you have
+     * to remove the listener from the old parent type and add it to the new one.
+     */
+    private ArchitectDataSourceType parentType;
+    
+    /**
+     * For purposes of setting the dropdown box in the DBCS panel we have to know
+     * whether a datasource type has a parent or if it is a root. Since we always set
+     * the parent type as a default one, there is no way to use a parentType == null
+     * check to determine if a parent is set. This flag is set to true when setParent is called.
+     */
+    private boolean parentSet = false;
+	
+    /*
 	 * constants used as keys to get into the properties
 	 * map.  the shared heritage of this class explains why
 	 * some constants use the prefix DBCS_ while others use
@@ -131,7 +179,9 @@ public class ArchitectDataSource {
 	 */
 	public static final String DBCS_DRIVER_CLASS = "JDBC Driver Class";
 	public static final String DBCS_URL = "JDBC URL";
-
+	public static final String DBCS_JAR = "JAR File";
+    public static final String DBCS_CONNECTION_TYPE = "Connection Type";
+    
 	public static final String PL_LOGICAL = "Logical";
 	public static final String PL_TYPE = "Type";
 	public static final String PL_DSN = "DSN";
@@ -175,7 +225,8 @@ public class ArchitectDataSource {
     }
 
     /**
-     * This method is for debugging purposes to print out the differences between two maps
+     * This method is for debugging purposes to print out the differences between two maps.
+     * 
      * @param myMap first map to compare
      * @param otherMap second map for comparaing
      * @param key the property to compare
@@ -207,16 +258,21 @@ public class ArchitectDataSource {
      * Creates a new ArchitectDataSource with all properties set to null.
      */
 	public ArchitectDataSource() {
-		properties = new HashMap<String,String>();
+		properties = new LinkedHashMap<String,String>();
+		setParentType(new ArchitectDataSourceType());
+		parentSet = false;
 	}
 
     /**
-     * Copy constructor. Creates an independent copy of the given data source.
+     * Copy constructor. Creates a semi-independent copy of the given data source.
+     * 
+     * This is for testing only!
      *
      * @param copyMe the ArchitectDataSource to make a copy of.
      */
-    public ArchitectDataSource(ArchitectDataSource copyMe) {
-        properties = new HashMap<String, String>(copyMe.properties);
+    ArchitectDataSource(ArchitectDataSource copyMe) {
+        properties = new LinkedHashMap<String, String>(copyMe.properties);
+        setParentType(copyMe.parentType);
     }
 
 	/**
@@ -285,6 +341,71 @@ public class ArchitectDataSource {
 	public int hashCode() {
 		return properties.hashCode();
 	}
+    
+    /**
+     * Creates a new connection to the database described by the properties
+     * of this Data Source.  Doesn't do any pooling, so if you want a pool
+     * of connections then make it yourself (or see {@link SQLDatabase#getConnection()}).
+     */
+    public Connection createConnection() throws SQLException {
+        
+        try {
+            if (getParentType() == null) {
+                throw new SQLException("Data Source \""+getName()+"\" has no database type.");
+            }
+
+            getParentType().checkConnectPrereqs();
+            
+            if (getUrl() == null
+                    || getUrl().trim().length() == 0) {
+                throw new SQLException("Data Source \""+getName()+"\" has no JDBC URL.");
+            }
+
+            if (getUser() == null
+                    || getUser().trim().length() == 0) {
+                throw new SQLException("Data Source \""+getName()+"\" has no JDBC username.");
+            }
+
+            if (logger.isDebugEnabled()) {
+                ClassLoader cl = this.getClass().getClassLoader();
+                StringBuffer loaders = new StringBuffer();
+                loaders.append("Local Classloader chain: ");
+                while (cl != null) {
+                    loaders.append(cl).append(", ");
+                    cl = cl.getParent();
+                }
+                logger.debug(loaders);
+            }
+            Driver driver = (Driver) Class.forName(getDriverClass(), true, parentType.getJdbcClassLoader()).newInstance();
+            logger.info("Driver Class "+getDriverClass()+" loaded without exception");
+            if (!driver.acceptsURL(getUrl())) {
+                throw new SQLException("Couldn't connect to database \""+getName()+"\":\n"
+                        +"JDBC Driver "+getDriverClass()+"\n"
+                        +"does not accept the URL "+getUrl());
+            }
+            Properties connectionProps = new Properties();
+            connectionProps.setProperty("user", getUser());
+            connectionProps.setProperty("password", getPass());
+            Connection realConnection = driver.connect(getUrl(), connectionProps);
+            if (realConnection == null) {
+                throw new SQLException("JDBC Driver returned a null connection!");
+            }
+            Connection connection = ConnectionDecorator.createFacade(realConnection);
+            logger.debug("Connection class is: " + connection.getClass().getName());
+            return connection;
+        } catch (ClassNotFoundException e) {
+            logger.warn("Driver Class not found", e);
+            throw new SQLException("JDBC Driver \""+getDriverClass()+"\" not found.");
+        } catch (InstantiationException e) {
+            logger.error("Creating SQL Exception to conform to interface.  Real exception is: ", e);
+            throw new SQLException("Couldn't create an instance of the " +
+                    "JDBC driver '"+getDriverClass()+"'. "+e.getMessage());
+        } catch (IllegalAccessException e) {
+            logger.error("Creating SQL Exception to conform to interface.  Real exception is: ", e);
+            throw new SQLException("Couldn't connect to database because the " +
+                    "JDBC driver has no public constructor (this is bad). "+e.getMessage());
+        }
+    }
 
 	// --------------------- property change ---------------------------
 
@@ -311,7 +432,34 @@ public class ArchitectDataSource {
 		return Collections.unmodifiableList(Arrays.asList(pcs.getPropertyChangeListeners()));
 	}
 
-	// ------------------- accessors and mutators ------------------------
+    // ------------------- accessors and mutators for actual instance variables ------------------------
+
+    /**
+     * Returns the parent type configured for this data source.
+     */
+    public ArchitectDataSourceType getParentType() {
+        return parentType;
+    }
+
+    /**
+     * Sets the parent type configured for this data source, and fires a
+     * property change event if the new value differs from the existing one.
+     */
+    public void setParentType(ArchitectDataSourceType type) {
+        if (parentType != null) {
+            parentType.removePropertyChangeListener(parentTypeUpdater);
+        }
+
+        parentType = type;
+        
+        if (parentType != null) {
+            parentType.addPropertyChangeListener(parentTypeUpdater);
+        }
+        parentSet = true;
+        putImpl(DBCS_CONNECTION_TYPE, type.getName(), "parentType");
+    }
+
+	// ------------------- accessors and mutators for the flat property stuff ------------------------
 
 	/**
 	 * Gets the value of name
@@ -373,16 +521,11 @@ public class ArchitectDataSource {
 	 * @return the value of driverClass
 	 */
 	public String getDriverClass() {
-		return get(DBCS_DRIVER_CLASS);
-	}
-
-	/**
-	 * Sets the value of driverClass
-	 *
-	 * @param argDriverClass Value to assign to this.driverClass
-	 */
-	public void setDriverClass(String argDriverClass){
-		putImpl(DBCS_DRIVER_CLASS, argDriverClass, "driverClass");
+        if (getParentType() == null) {
+            return null;
+        } else {
+            return getParentType().getJdbcDriver();
+        }
 	}
 
 	/**
@@ -436,12 +579,16 @@ public class ArchitectDataSource {
 	public void setPlDbType(String type) {
         putImpl(PL_TYPE, type, "plDbType");
     }
-
+    
 	public String getOdbcDsn() {
         return properties.get(PL_DSN);
     }
 
     public void setOdbcDsn(String dsn) {
         putImpl(PL_DSN, dsn, "odbcDsn");
+    }
+
+    public boolean isParentSet() {
+        return parentSet;
     }
 }

@@ -34,8 +34,9 @@ import javax.swing.tree.TreeSelectionModel;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ArchitectDataSourceType;
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectSession;
+import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.Monitorable;
 
 public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
@@ -43,51 +44,41 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 	private static final Logger logger = Logger.getLogger(JDBCDriverPanel.class);
 
 	/**
-	 * The current session (whose JDBC driver search path we're editting).
+	 * The current data source type (whose JDBC driver search path we're editting).
+     * This value will be null when there is no "current" data source type to edit.
 	 */
-	protected ArchitectSession session;
+	private ArchitectDataSourceType dataSourceType;
 
 	/**
 	 * This view shows the driver JAR files and the JDBC drivers they
 	 * contain.
 	 */
-	protected JTree driverTree;
+    private JTree driverTree;
 
 	/**
 	 * This tree model holds the registered JAR files under the root,
 	 * and lists the JDBC driver classes as children of each JAR file.
 	 */
-	protected DefaultTreeModel dtm;
+    private DefaultTreeModel dtm;
 
 	/**
 	 * The file choosed used by the add action.
 	 */
-	JFileChooser fileChooser;
+    private JFileChooser fileChooser;
 
 	/**
 	 * progress bar stuff
 	 */
-    protected JProgressBar progressBar;
-	protected javax.swing.Timer timer;
-	protected boolean doneLoadingJDBC;
-	protected JLabel progressLabel;
+    private JProgressBar progressBar;
+    private javax.swing.Timer timer;
+    private boolean doneLoadingJDBC;
+    private JLabel progressLabel;
 
-	protected JButton addButton;
-	protected JButton delButton;
-	DefaultMutableTreeNode rootNode;
+    private JButton addButton;
+    private JButton delButton;
+    private DefaultMutableTreeNode rootNode;
 
-	public JDBCDriverPanel(ArchitectSession session) {
-		this.session = session;
-		setup();
-		try {
-			dtm.setRoot(new DefaultMutableTreeNode());
-			doLoad(session.getDriverJarList());
-		} catch (ArchitectException e) {
-			logger.error("revertToUserSettings failed.", e);
-		}
-	}
-
-	public void setup() {
+	public JDBCDriverPanel() {
 		fileChooser = new JFileChooser();
 
 		setLayout(new BorderLayout());
@@ -109,7 +100,7 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 		buttonPanel.add(addButton = new JButton(new AddAction()));
 		buttonPanel.add(delButton = new JButton(new DelAction()));
 		delButton.setEnabled(false);
-		add(buttonPanel, BorderLayout.SOUTH);
+		add(buttonPanel, BorderLayout.NORTH);
 
 		JPanel progressPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
 		progressBar = new JProgressBar();
@@ -119,7 +110,7 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 		progressLabel = new JLabel("Scanning for JDBC Drivers...");
 		progressLabel.setVisible(false);
 		progressPanel.add(progressLabel);
-		add(progressPanel, BorderLayout.NORTH);
+		add(progressPanel, BorderLayout.SOUTH);
 	}
 
 	/**
@@ -128,9 +119,11 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 	 */
 	public boolean applyChanges() {
 		logger.debug("applyChanges");
-		session.clearDriverJarList();
+        
+        List<String> driverList = new ArrayList<String>();
+		
 		for (int i = 0, n = dtm.getChildCount(dtm.getRoot()); i < n; i++) {
-			session.addDriverJar(((DefaultMutableTreeNode) dtm.getChild(dtm.getRoot(), i)).getUserObject().toString());
+			driverList.add(((DefaultMutableTreeNode) dtm.getChild(dtm.getRoot(), i)).getUserObject().toString());
 		}
 		return true;
 	}
@@ -142,9 +135,20 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
         // nothing to discard
 	}
 
+    /**
+     * Switches to edit the given data source type.
+     */
+	public void editDsType(ArchitectDataSourceType dst) throws ArchitectException {
+        dataSourceType = dst;
+	    dtm.setRoot(new DefaultMutableTreeNode());
+        if (dst != null) {
+            doLoad(dataSourceType.getJdbcJarList());
+        }
+    }
+    
 	protected class AddAction extends AbstractAction {
 		public AddAction() {
-			super("Add...");
+			super("Add JAR...");
 		}
 
 		public void actionPerformed(ActionEvent e) {
@@ -161,7 +165,7 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 					doLoad(list);
 					// If they loaded without any Exceptions, add to list maintained by ArchitectSession
 					for (int i = 0; i < files.length; i++) {
-						session.addDriverJar(files[i].getAbsolutePath());
+						dataSourceType.addJdbcJar(files[i].getAbsolutePath());
 					}
 				}
 			} catch (ArchitectException ex) {
@@ -171,9 +175,10 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 	}
 
 	/**
-	 * Load the given List of driver names into the tree
-	 * @param list
-	 * @throws ArchitectException
+	 * Loads the given List of driver names into the tree, then starts
+     * a worker thread that searches for implementations of the JDBC Driver
+     * interface in them.  As the worker finds JDBC Drivers in the JARs,
+     * it will add them to the tree.
 	 */
 	private void doLoad(List<String> list) throws ArchitectException {
 		LoadJDBCDrivers ljd = new LoadJDBCDrivers(list);
@@ -182,9 +187,9 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 		new Thread(worker).start();
 	}
 
-	protected class DelAction extends AbstractAction {
+	private class DelAction extends AbstractAction {
 		public DelAction() {
-			super("Remove");
+			super("Remove JAR");
 		}
 
 		public void actionPerformed(ActionEvent e) {
@@ -193,14 +198,14 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
                 if (p != null && p.getPathCount() >= 2) {
                     logger.debug("Removing: " + p.getPathComponent(1));
                     dtm.removeNodeFromParent((MutableTreeNode) p.getPathComponent(1));
-                    session.removeDriverJar(p.getPathComponent(1).toString());
+                    dataSourceType.removeJdbcJar(p.getPathComponent(1).toString());
                 }
             }
 			delButton.setEnabled(false);
 		}
 	}
 
-	protected class LoadJDBCDriversWorker implements Runnable {
+    private class LoadJDBCDriversWorker implements Runnable {
 		LoadJDBCDrivers ljd;
 		LoadJDBCDriversWorker (LoadJDBCDrivers ljd) {
 			this.ljd = ljd;
@@ -210,7 +215,7 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 		}
 	}
 
-	protected class LoadJDBCDrivers implements Monitorable  {
+    private class LoadJDBCDrivers implements Monitorable  {
 
 		public boolean hasStarted = false;
 		public boolean finished = false;
@@ -264,9 +269,10 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 				while (it.hasNext()) {
 					// initialize counters
 					jarCount++;
-					logger.debug("**************** processin file #" + jarCount + " of " + driverJarList.size());
+					logger.debug("**************** processing file #" + jarCount + " of " + driverJarList.size());
 					String path = (String) it.next();
-					addJarFile(new File(path));
+                    File file = ArchitectUtils.jarSpecToFile(path, getClass().getClassLoader());
+					addJarFile(file);
 				}
 				finished = true;
 				logger.debug("done loading (normal operation), setting finished to true.");
@@ -279,7 +285,7 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 			}
 		}
 
-		public void addJarFile(File file) {
+		private void addJarFile(File file) {
 			DefaultMutableTreeNode root = (DefaultMutableTreeNode) dtm.getRoot();
 			try {
 				jf = new JarFile(file);
@@ -313,7 +319,7 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 	/**
 	 * Scans a jar file for instances of java.sql.Driver.
 	 */
-	protected class JDBCScanClassLoader extends ClassLoader {
+	private class JDBCScanClassLoader extends ClassLoader {
 
 		JarFile jf;
 		List drivers;

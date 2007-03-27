@@ -30,7 +30,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 	 * @see #setup()
 	 */
 	SQLDatabase db;
-    
+    private static DataSourceCollection plini = new PlDotIni();
     
     Set<String>propertiesToIgnoreForUndo = new HashSet<String>();
     Set<String>propertiesToIgnoreForEventGeneration = new HashSet<String>();
@@ -52,7 +52,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 		ArchitectFrame.getMainInstance();  // creates an ArchitectFrame, which loads settings
 		//FIXME: a better approach would be to have an initialsation method
 		// in the business model, which does not depend on the init routine in ArchitectFrame.
-		DataSourceCollection plini = new PlDotIni();
+		
 		plini.read(new File("pl.regression.ini"));
 		return plini.getDataSource("regression_test");
 	}
@@ -61,7 +61,8 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 	 * Sets up the instance variable <code>db</code> using the getDatabase() method.
 	 */
 	protected void setUp() throws Exception {
-		db = new SQLDatabase(getDataSource());
+		db = new SQLDatabase(new ArchitectDataSource(getDataSource()));
+        assertNotNull(db.getDataSource().getParentType());
 	}
 	
 	protected void tearDown() throws Exception {
@@ -139,7 +140,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 				((ArchitectDataSource)newVal).setDisplayName("test");
 				((ArchitectDataSource)newVal).setUser("a");
 				((ArchitectDataSource)newVal).setPass("b");
-				((ArchitectDataSource)newVal).setDriverClass(MockJDBCDriver.class.getName());
+				((ArchitectDataSource)newVal).getParentType().setJdbcDriver(MockJDBCDriver.class.getName());
 				((ArchitectDataSource)newVal).setUrl("jdbc:mock:tables=tab1");
 			} else if (property.getPropertyType() == SQLTable.class) {
 				newVal = new SQLTable();
@@ -253,7 +254,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 				((ArchitectDataSource)newVal).setDisplayName("test");
 				((ArchitectDataSource)newVal).setUser("a");
 				((ArchitectDataSource)newVal).setPass("b");
-				((ArchitectDataSource)newVal).setDriverClass(MockJDBCDriver.class.getName());
+				((ArchitectDataSource)newVal).getParentType().setJdbcDriver(MockJDBCDriver.class.getName());
 				((ArchitectDataSource)newVal).setUrl("jdbc:mock:tables=tab1,tab2");
 			} else if (property.getPropertyType() == SQLTable.class) {
 				newVal = new SQLTable();
@@ -292,6 +293,10 @@ public abstract class SQLTestCase extends ArchitectTestCase {
      */
     public void testChildrenNotNull() throws ArchitectException {
         assertNotNull(getSQLObjectUnderTest().getChildren());
+    }
+
+    public SQLDatabase getDb() {
+        return new SQLDatabase(new ArchitectDataSource(db.getDataSource()));
     }
 
 }

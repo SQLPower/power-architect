@@ -763,7 +763,7 @@ public class TestSQLTable extends SQLTestCase {
     public void testPopulateColumnsCaseSensitive() throws Exception {
         ArchitectDataSource ds = new ArchitectDataSource();
         ds.setDisplayName("tableWithMixedColumnCase");
-        ds.setDriverClass("ca.sqlpower.architect.MockJDBCDriver");
+        ds.getParentType().setJdbcDriver("ca.sqlpower.architect.MockJDBCDriver");
         ds.setUser("fake");
         ds.setPass("fake");
         ds.setUrl("jdbc:mock:" +

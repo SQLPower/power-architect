@@ -1,7 +1,5 @@
 package ca.sqlpower.architect;
 
-import java.util.List;
-
 import ca.sqlpower.architect.profile.ProfileManager;
 
 public interface ArchitectSession {
@@ -22,22 +20,6 @@ public interface ArchitectSession {
      */
     public void setUserSettings(CoreUserSettings argUserSettings);
 
-    public List<String> getDriverJarList();
-
-    /**
-     * Adds an entry to the list of JDBC driver JAR files.  The
-     * ConfigFile class uses this when loading the user settings file.
-     */
-    public boolean addDriverJar(String fullPath);
-
-    public boolean removeDriverJar(String fullPath);
-
-    public void removeAllDriverJars();
-
-    public void clearDriverJarList();
-
-    public JDBCClassLoader getJDBCClassLoader();
-    
     public ProfileManager getProfileManager();
 
 }

@@ -40,7 +40,7 @@ public class TestSQLCatalog extends SQLTestCase {
 		assertEquals(c.getShortDisplayName(),"yyy");
 		assertEquals(c.toString(),"yyy");
 		
-		SQLDatabase mydb = new SQLDatabase(db.getDataSource());
+		SQLDatabase mydb = new SQLDatabase(getDb().getDataSource());
 		c = new SQLCatalog(mydb,"aaa");
 		assertEquals(c.getName(),"aaa");
 		assertEquals(c.getName(),"aaa");
@@ -53,7 +53,7 @@ public class TestSQLCatalog extends SQLTestCase {
 	 * Test method for 'ca.sqlpower.architect.SQLCatalog.getParent()'
 	 */
 	public void testGetParent() {
-		SQLDatabase mydb = new SQLDatabase(db.getDataSource());
+		SQLDatabase mydb = new SQLDatabase(getDb().getDataSource());
 		c = new SQLCatalog(mydb,"aaa");
 		assertEquals(c.getParent(),mydb);
 		assertEquals(c.getParentDatabase(),mydb);
@@ -66,7 +66,7 @@ public class TestSQLCatalog extends SQLTestCase {
 
 		assertTrue(c.allowsChildren());
 		
-		SQLDatabase mydb = new SQLDatabase(db.getDataSource());
+		SQLDatabase mydb = new SQLDatabase(getDb().getDataSource());
 		c = new SQLCatalog(mydb,"aaa");
 		assertTrue(c.allowsChildren());
 	}
@@ -94,7 +94,7 @@ public class TestSQLCatalog extends SQLTestCase {
 		c.setNativeTerm("AAA");
 		assertEquals(c.getNativeTerm(),"aaa");
 		
-		SQLCatalog c2 = new SQLCatalog(new SQLDatabase(db.getDataSource()),"x");
+		SQLCatalog c2 = new SQLCatalog(new SQLDatabase(getDb().getDataSource()),"x");
 		assertEquals(c2.getNativeTerm(),"catalog");
 		c2.setNativeTerm(null);
 		assertNull(c2.getNativeTerm());
@@ -132,8 +132,8 @@ public class TestSQLCatalog extends SQLTestCase {
 	}
 	
 	public void testIsPopulateWithCatalogs() throws Exception {		
-		ArchitectDataSource dataSource = db.getDataSource();
-		Connection conn = db.getConnection();
+		ArchitectDataSource dataSource = getDb().getDataSource();
+		Connection conn = getDb().getConnection();
 		DatabaseMetaData meta = conn.getMetaData();
 		conn.close();
 		conn = null;

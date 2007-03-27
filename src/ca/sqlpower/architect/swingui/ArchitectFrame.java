@@ -404,8 +404,6 @@ public class ArchitectFrame extends JFrame {
 
 		prefAction = new PreferencesAction();
 		projectSettingsAction = new ProjectSettingsAction();
-		projectSettingsAction.putValue(AbstractAction.ACCELERATOR_KEY,
-				KeyStroke.getKeyStroke(KeyEvent.VK_COMMA, accelMask));
 		printAction = new PrintAction();
 		printAction.putValue(AbstractAction.ACCELERATOR_KEY,
 				KeyStroke.getKeyStroke(KeyEvent.VK_P, accelMask));

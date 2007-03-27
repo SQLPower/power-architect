@@ -12,22 +12,23 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.beanutils.BeanUtils;
 import org.apache.log4j.Logger;
 
 /**
  * The PlDotIni class represents the contents of a PL.INI file; despit
- * the name, this actually represents the master list of Data Source connections,
- * and XXX should be renamed to DataSourceList.
+ * the name, this actually represents the master list of Data Source connections.
+ * <p>
+ * Note, there is some confusion about whether or not section name matching should
+ * be case sensitive or not.  Both approaches are taken in this class!  Vive la difference.
  * <p>
  * <b>Warning:</b> this file only reads (and therefore writes) files with MS-DOS line endings,
  * regardless of platform, since the encoding of binary passwords
@@ -81,8 +82,9 @@ public class PlDotIni implements DataSourceCollection {
 
 	/**
      * The Section class represents a named section in the PL.INI file.
+     * It has default visibility because the unit test needs to use it.
      */
-    private static class Section {
+    static class Section {
 
         /** The name of this section (without the square brackets). */
         private String name;
@@ -96,7 +98,7 @@ public class PlDotIni implements DataSourceCollection {
         /** Creates a new section with the given name and no properties. */
         public Section(String name) {
             this.name = name;
-            this.properties = new HashMap();
+            this.properties = new LinkedHashMap();
         }
 
         /**
@@ -120,6 +122,16 @@ public class PlDotIni implements DataSourceCollection {
         public String getName() {
             return name;
         }
+
+        /**
+         * Updates this section's contents to look like the given one.
+         * Doesn't modify the name.
+         */
+        public void merge(Section s) {
+            // get rid of deleted properties
+            properties.keySet().retainAll(s.properties.keySet());
+            properties.putAll(s.properties);
+        }
     }
 
     private static final Logger logger = Logger.getLogger(PlDotIni.class);
@@ -129,19 +141,20 @@ public class PlDotIni implements DataSourceCollection {
      * this List contains Mixed Content (both Section and ArchitectDataSource) which is
      * A Very Bad Idea(tm) so it cannot be converted to Java 5 Generic Collection.
      */
-    private final List fileSections= new ArrayList();
+    private final List<Object> fileSections = new ArrayList<Object>();
 
     /**
      * The time we last read the PL.INI file.
      */
     private long fileTime;
     boolean shuttingDown = false;
-    /** Seconds to wait between checking the file */
+    
+    /** Seconds to wait between checking the file. */
     int WAIT_TIME = 30;
 
     /**
      * Thread to stat file periodically, reload if PL changed it.
-     * XXX This thread is not currently started!
+     * FIXME This thread is not currently started!
      */
     Thread monitor = new Thread() {
 		public void run() {
@@ -153,6 +166,7 @@ public class PlDotIni implements DataSourceCollection {
 					}
 					long newFileTime = lastFileAccessed.lastModified();
 					if (newFileTime != fileTime) {
+                        logger.debug("Re-reading PL.INI file because it has been modified externally.");
 						read(lastFileAccessed);
 						fileTime = newFileTime;
 					}
@@ -165,45 +179,84 @@ public class PlDotIni implements DataSourceCollection {
 
     File lastFileAccessed;
 
-	/* (non-Javadoc)
-     * @see ca.sqlpower.architect.DataSourceCollection#read(java.io.File)
+    /**
+     * Returns the requested section in this pl.ini instance.  The sections
+     * are stored in the same order they appear in the file, but of course
+     * there may have been sections added or removed since the file was
+     * last read.
+     * <p>
+     * Note, this method is really only intended for testing purposes.
+     * 
+     * @return The returned object will be of type Section, ArchitectDataSource,
+     * or ArchitectDataSourceType depending on which type of file section it
+     * represents.
      */
-	public void read(File location) throws IOException {
-        //FIXME: This method needs to be called in more places, ie the constructor?
-	    final int MODE_READ_DS = 0;       // reading a data source section
-	    final int MODE_READ_GENERIC = 1;  // reading a generic named section
-	    int mode = MODE_READ_GENERIC;
+    Object getSection(int number) {
+        return fileSections.get(number);
+    }
+
+    /**
+     * Returns the number of sections that were in the pl.ini file we read
+     * (additions and deletions after reading the file will affect the count
+     * of course).  This will include unrecognized sections and the nameless
+     * section at the top of the file, so don't expect the count to be equal
+     * to the number of database types plus the number of connections.
+     */
+    int getSectionCount() {
+        return fileSections.size();
+    }
+    
+    /**
+     * The enumeration of states that the read() method's INI file parser can be in.
+     */
+    private enum ReadState {READ_DS, READ_GENERIC, READ_TYPE}
+
+    public void read(File location) throws IOException {
+        if (!location.canRead()) {
+            throw new IOException("pl.ini file is not readable: " + location.getAbsolutePath());
+        }
+        fileTime =  location.lastModified();
+        lastFileAccessed = location;
+        read(new FileInputStream(location));
+    }
+    
+    public void read(InputStream inStream) throws IOException {
+        
+        logger.info("Beginning to read/merge new pl.ini data");
+        
+	    ReadState mode = ReadState.READ_GENERIC;
 
         try {
             dontAutoSave = true;
-            if (!location.canRead()) {
-                throw new IllegalArgumentException("pl.ini file cannot be read: " + location.getAbsolutePath());
-            }
-            lastFileAccessed = location;
 
+            ArchitectDataSourceType currentType = null;
             ArchitectDataSource currentDS = null;
             Section currentSection = new Section(null);  // this accounts for any properties before the first named section
-            fileSections.add(currentSection);
-            fileTime =  location.lastModified();
 
             // Can't use Reader to read this file because the encrypted passwords contain non-ASCII characters
-            BufferedInputStream in = new BufferedInputStream(new FileInputStream(location));
+            BufferedInputStream in = new BufferedInputStream(inStream);
 
             byte[] lineBytes = null;
 
             while ((lineBytes = readLine(in)) != null) {
                 String line = new String(lineBytes);
                 logger.debug("Read in new line: "+line);
+                
+                if (line.startsWith("[")) {
+                    mergeFileData(mode, currentType, currentDS, currentSection);
+                }
                 if (line.startsWith("[Databases_")) {
-                    logger.debug("It's a new database connection spec!");
+                    logger.debug("It's a new database connection spec!" +fileSections);
                     currentDS =  new ArchitectDataSource();
-                    add(currentDS);
-                    mode = MODE_READ_DS;
+                    mode = ReadState.READ_DS;
+                } else if (line.startsWith("[Database Types_")) {
+                    logger.debug("It's a new database type!" + fileSections);
+                    currentType =  new ArchitectDataSourceType();
+                    mode = ReadState.READ_TYPE;
                 } else if (line.startsWith("[")) {
                     logger.debug("It's a new generic section!");
                     currentSection = new Section(line.substring(1, line.length()-1));
-                    fileSections.add(currentSection);
-                    mode = MODE_READ_GENERIC;
+                    mode = ReadState.READ_GENERIC;
                 } else {
                     String key;
                     String value;
@@ -217,27 +270,112 @@ public class PlDotIni implements DataSourceCollection {
                     }
                     logger.debug("key="+key+",val="+value);
 
-                    if (mode == MODE_READ_DS) {
+                    if (mode == ReadState.READ_DS) {
+                        // passwords are special, because the spectacular obfustaction technique
+                        // can create bytes that are not in the range 32-127, which causes Java to
+                        // map them to chars whose numeric value isn't the byte value!
+                        // So, we have to read the "encrypted" password as an array of bytes.
                         if (key.equals("PWD") && value != null) {
                             byte[] cypherBytes = new byte[lineBytes.length - equalsIdx - 1];
                             System.arraycopy(lineBytes, equalsIdx + 1, cypherBytes, 0, cypherBytes.length);
                             value = decryptPassword(9, cypherBytes);
                         }
                         currentDS.put(key, value);
-                    } else if (mode == MODE_READ_GENERIC) {
+                    } else if (mode == ReadState.READ_TYPE) {
+                        currentType.putProperty(key, value);
+                    } else if (mode == ReadState.READ_GENERIC) {
                         currentSection.put(key, value);
                     }
                 }
             }
             in.close();
+            mergeFileData(mode, currentType, currentDS, currentSection);
+
+            // hook up database type hierarchy, and assign parentType pointers to data sources themselves
+            for (Object o : fileSections) {
+                if (o instanceof ArchitectDataSourceType) {
+                    ArchitectDataSourceType dst = (ArchitectDataSourceType) o;
+                    String parentTypeName = dst.getProperty(ArchitectDataSourceType.PARENT_TYPE_NAME);
+                    if (parentTypeName != null) {
+                        ArchitectDataSourceType parentType = getDataSourceType(parentTypeName);
+                        if (parentType == null) {
+                            throw new IllegalStateException(
+                                    "Database type \""+dst.getName()+"\" refers to parent type \""+
+                                    parentTypeName+"\", which doesn't exist");
+                        }
+                        dst.setParentType(parentType);
+                    }
+                } else if (o instanceof ArchitectDataSource) {
+                    ArchitectDataSource ds = (ArchitectDataSource) o;
+                    String typeName = ds.getPropertiesMap().get(ArchitectDataSource.DBCS_CONNECTION_TYPE);
+                    if (typeName != null) {
+                        ArchitectDataSourceType type = getDataSourceType(typeName);
+                        if (type == null) {
+                            throw new IllegalStateException(
+                                    "Database connection \""+ds.getName()+"\" refers to database type \""+
+                                    typeName+"\", which doesn't exist");
+                        }
+                        logger.debug("The data source type \"" + type + "\" is being set as the parent type of" + ds);
+                        ds.setParentType(type);
+                    }
+                    
+                }
+            }
         } finally {
             dontAutoSave = false;
         }
 
-		if (logger.isDebugEnabled()) logger.debug("Finished reading file. Parsed contents:\n"+toString());
+		logger.info("Finished reading file.");
 	}
 
-	/**
+    /**
+     * A subroutine of the read() method. Merges data from any of the three types of
+     * sections into the fileSections collection.
+     * <p> 
+     * A better approach than this would be to have ArchitectDataSourceType, ArchitectDataSource,
+     * and Section all implement some interface, and then just have one merge() method.
+     * 
+     * @param mode File parsing mode. Determines which mergeXXX() method is called, and
+     * which argument is passed in.
+     * @param currentType Only used when mode = READ_TYPE
+     * @param currentDS Only used when mode = READ_DS
+     * @param currentSection Only used when mode = READ_GENERIC
+     */
+    private void mergeFileData(ReadState mode, ArchitectDataSourceType currentType, ArchitectDataSource currentDS, Section currentSection) {
+        if (mode == ReadState.READ_DS) {
+            mergeDataSource(currentDS);
+        } else if (mode == ReadState.READ_GENERIC) {
+            mergeSection(currentSection);
+        } else if (mode == ReadState.READ_TYPE) {
+            // special case: sometimes the parser ends up thinking there was
+            // an empty ds type section at the end of the file. we can't merge it.
+            if (currentType.getProperties().size() > 0) {
+                mergeDataSourceType(currentType);
+            }
+        } else {
+            throw new IllegalArgumentException("Unknown read state. Can't merge");
+        }
+    }
+
+	private void mergeSection(Section currentSection) {
+        logger.debug("Attempting to merge Section: \"" + currentSection.getName() + "\"");
+        for (Object o : fileSections) {
+            if (o instanceof Section) {
+                Section s = (Section) o;
+                if ( (s.getName() == null && currentSection.getName() == null)
+                    || (s.getName() != null && s.getName().equals(currentSection.getName())) ) {
+                    logger.debug("Found a section to merge, now merging");
+                    s.merge(currentSection);
+                    return;
+                }
+            }
+        }
+        
+        logger.debug("Didn't find section to merge. Adding...");
+        fileSections.add(currentSection);
+    }
+
+    /**
 	 * Reads bytes from the input stream until a CRLF pair or end-of-file is encountered.
 	 * If a line is longer than some arbitrary maximum (currently 10000 bytes), it will
 	 * be split into pieces not larger than that size and returned as separate lines.
@@ -286,6 +424,7 @@ public class PlDotIni implements DataSourceCollection {
      * @see ca.sqlpower.architect.DataSourceCollection#write(java.io.File)
      */
 	public void write(File location) throws IOException {
+        logger.debug("Writing to "+location);
         try {
             dontAutoSave = true;
     	    OutputStream out = new BufferedOutputStream(new FileOutputStream(location));
@@ -298,17 +437,29 @@ public class PlDotIni implements DataSourceCollection {
         }
 	}
 
-	private void write(OutputStream out) throws IOException {
-	    int dbNum = 1;
-	    Iterator it = fileSections.iterator();
+    /**
+     * Writes the data source types and the data sources of this instance
+     * in the world-famous PL.INI format.  Doesn't affect the lastFileLocation
+     * or anything.
+     */
+	public void write(OutputStream out) throws IOException {
+	    
+        // counting starts at 1. Yay, VB!
+        int dbNum = 1;
+        int typeNum = 1;
+
+        Iterator it = fileSections.iterator();
 	    while (it.hasNext()) {
 	        Object next = it.next();
 
 	        if (next instanceof Section) {
 	            writeSection(out, ((Section) next).getName(), ((Section) next).getPropertiesMap());
-	        } else if (next instanceof ArchitectDataSource) {
-	            writeSection(out, "Databases_"+dbNum, ((ArchitectDataSource) next).getPropertiesMap());
-	            dbNum++;
+            } else if (next instanceof ArchitectDataSource) {
+                writeSection(out, "Databases_"+dbNum, ((ArchitectDataSource) next).getPropertiesMap());
+                dbNum++;
+            } else if (next instanceof ArchitectDataSourceType) {
+                writeSection(out, "Database Types_"+typeNum, ((ArchitectDataSourceType) next).getProperties());
+                typeNum++;
 	        } else if (next == null) {
 	            logger.error("write: Null section");
 	        } else {
@@ -362,24 +513,49 @@ public class PlDotIni implements DataSourceCollection {
 	    }
 	}
 
-	/* (non-Javadoc)
-     * @see ca.sqlpower.architect.DataSourceCollection#getDataSource(java.lang.String)
-     */
-	public ArchitectDataSource getDataSource(String name) {
-	    Iterator it = fileSections.iterator();
-	    while (it.hasNext()) {
-	        Object next = it.next();
-	        if (next instanceof ArchitectDataSource) {
-	            ArchitectDataSource ds = (ArchitectDataSource) next;
-	            logger.debug("Checking if data source "+ds+" is PL Logical connection "+name);
-	            if (ds.getName().equals(name)) return ds;
-	        }
-	    }
-	    return null;
-	}
+    public ArchitectDataSource getDataSource(String name) {
+        Iterator it = fileSections.iterator();
+        while (it.hasNext()) {
+            Object next = it.next();
+            if (next instanceof ArchitectDataSource) {
+                ArchitectDataSource ds = (ArchitectDataSource) next;
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Checking if data source "+ds+" is PL Logical connection "+name);
+                }
+                if (ds.getName().equals(name)) return ds;
+            }
+        }
+        return null;
+    }
 
-    /* (non-Javadoc)
-     * @see ca.sqlpower.architect.DataSourceCollection#getConnections()
+    public ArchitectDataSourceType getDataSourceType(String name) {
+        for (Object next : fileSections) {
+            if (next instanceof ArchitectDataSourceType) {
+                ArchitectDataSourceType dst = (ArchitectDataSourceType) next;
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Checking if data source type "+dst+" is called "+name);
+                }
+                if (dst.getName().equals(name)) return dst;
+            }
+        }
+        return null;
+    }
+
+    public List<ArchitectDataSourceType> getDataSourceTypes() {
+        List<ArchitectDataSourceType> list = new ArrayList<ArchitectDataSourceType>();
+        for (Object next : fileSections) {
+            if (next instanceof ArchitectDataSourceType) {
+                ArchitectDataSourceType dst = (ArchitectDataSourceType) next;
+                list.add(dst);
+            }
+        }
+        return list;
+    }
+
+    /* Creates a list of data sources by iterating over all the sections and
+     * picking the ones that are ArchitectDataSource items.  Yes, this is not
+     * optimal, but we can defer optimising it until someone proves it's an
+     * actual performance issue.
      */
     public List<ArchitectDataSource> getConnections() {
         List<ArchitectDataSource> connections = new ArrayList<ArchitectDataSource>();
@@ -409,7 +585,7 @@ public class PlDotIni implements DataSourceCollection {
 
 	/**
 	 * Encrypts a PL.INI password.  The correct argument for
-	 * <code>number</code> is 9.
+	 * <code>key</code> is 9.
 	 */
     private byte[] encryptPassword(int key, String plaintext) {
         byte[] cyphertext = new byte[plaintext.length()];
@@ -484,7 +660,7 @@ public class PlDotIni implements DataSourceCollection {
 				}
 			}
 		}
-		add(dbcs);
+		addDataSourceImpl(dbcs);
     }
 
 	/* (non-Javadoc)
@@ -496,28 +672,30 @@ public class PlDotIni implements DataSourceCollection {
     		if (o instanceof ArchitectDataSource) {
 				ArchitectDataSource oneDbcs = (ArchitectDataSource) o;
 				if (newName.equalsIgnoreCase(oneDbcs.getDisplayName())) {
-					try {
-						BeanUtils.copyProperties(oneDbcs, dbcs);
-						return;
-					} catch (IllegalAccessException e) {
-						throw new RuntimeException("Can't merge DBCS: " + e);
-					} catch (InvocationTargetException e) {
-						throw new RuntimeException("Can't merge DBCS: " + e);
-					}
+                    for (Map.Entry<String, String> ent : dbcs.getPropertiesMap().entrySet()) {
+                        oneDbcs.put(ent.getKey(), ent.getValue());
+                    }
+				    return;
 				}
 			}
     	}
-        add(dbcs);
+        
+        // we only get here if we didn't find a data source to update.
+        addDataSourceImpl(dbcs);
     }
 
     /* (non-Javadoc)
      * @see ca.sqlpower.architect.DataSourceCollection#removeDataSource(ca.sqlpower.architect.ArchitectDataSource)
      */
     public void removeDataSource(ArchitectDataSource dbcs) {
+        
+        // need to know the index we're removing in order to fire the remove event
+        // (so using an indexed for loop, not a ListIterator)
         for ( int where=0; where<fileSections.size(); where++ ) {
             Object o  = fileSections.get(where);
             if (o instanceof ArchitectDataSource) {
-                if ( o.equals(dbcs) ) {
+                ArchitectDataSource current = (ArchitectDataSource) o;
+                if (current.getName().equals(dbcs.getName())) {
                     fileSections.remove(where);
                     fireRemoveEvent(where, dbcs);
                     return;
@@ -527,15 +705,47 @@ public class PlDotIni implements DataSourceCollection {
         throw new IllegalArgumentException("dbcs not in list");
     }
 
+    /**
+     * Copies all the properties in the given dst into the existing DataSourceType section
+     * with the same name, if one exists.  Otherwise, adds the given dst as a new section.
+     */
+    public void mergeDataSourceType(ArchitectDataSourceType dst) {
+        logger.debug("Merging data source type "+dst.getName());
+        String newName = dst.getName();
+        if (newName == null) {
+            throw new IllegalArgumentException("Can't merge a nameless data source type: "+dst);
+        }
+        for (Object o : fileSections) {
+            if (o instanceof ArchitectDataSourceType) {
+                ArchitectDataSourceType current = (ArchitectDataSourceType) o;
+                if (newName.equalsIgnoreCase(current.getName())) {
+                    logger.debug("    Found it");
+                    for (Map.Entry<String, String> ent : dst.getProperties().entrySet()) {
+                        current.putProperty(ent.getKey(), ent.getValue());
+                    }
+                    return;
+                }
+            }
+        }
+        
+        logger.debug("    Not found.. adding");
+        addDataSourceType(dst);
+
+    }
+
 	/**
-	 * Common code for add and merge.
+	 * Common code for add and merge.  Adds the given dbcs as a section, then fires an add event.
 	 * @param dbcs
 	 */
-	private void add(ArchitectDataSource dbcs) {
+	private void addDataSourceImpl(ArchitectDataSource dbcs) {
 		fileSections.add(dbcs);
 		fireAddEvent(dbcs);
 	}
 
+    public void addDataSourceType(ArchitectDataSourceType dataSourceType) {
+        fileSections.add(dataSourceType);
+    }
+    
     private void fireAddEvent(ArchitectDataSource dbcs) {
 		int index = fileSections.size()-1;
 		DatabaseListChangeEvent e = new DatabaseListChangeEvent(this, index, dbcs);
@@ -572,6 +782,5 @@ public class PlDotIni implements DataSourceCollection {
     		listeners.remove(l);
     	}
     }
-
 
 }

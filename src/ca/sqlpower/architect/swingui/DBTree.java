@@ -584,7 +584,9 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 
 		public void actionPerformed(ActionEvent e) {
 
-			final DBCSPanel dbcsPanel = new DBCSPanel();
+			final DBCSPanel dbcsPanel = new DBCSPanel(
+                    ArchitectFrame.getMainInstance().getArchitectSession()
+                        .getUserSettings().getPlDotIni());
 			ArchitectDataSource dbcs = new ArchitectDataSource();
 
 			dbcsPanel.setDbcs(new ArchitectDataSource());
@@ -709,7 +711,9 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 			}
 			if (sd != null) {
 
-				final DBCSPanel dbcsPanel = new DBCSPanel();
+				final DBCSPanel dbcsPanel = new DBCSPanel(
+                        ArchitectFrame.getMainInstance().getArchitectSession()
+                        .getUserSettings().getPlDotIni());
 				ArchitectDataSource dbcs = sd.getDataSource();
 
 				dbcsPanel.setDbcs(dbcs);

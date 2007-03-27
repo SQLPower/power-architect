@@ -1,7 +1,6 @@
 package ca.sqlpower.architect.swingui.action;
 
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -16,11 +15,13 @@ import javax.swing.JTabbedPane;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ASUtils;
+import ca.sqlpower.architect.swingui.ArchitectDataSourceTypeEditor;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
-import ca.sqlpower.architect.swingui.JDBCDriverPanel;
 import ca.sqlpower.architect.swingui.JDefaultButton;
 import ca.sqlpower.architect.swingui.PreferencesPanel;
+
+import com.jgoodies.forms.factories.ButtonBarFactory;
 
 public class PreferencesAction extends AbstractAction {
 	private static final Logger logger = Logger.getLogger(EditTableAction.class);
@@ -54,32 +55,32 @@ public class PreferencesAction extends AbstractAction {
 		final PreferencesPanel prefPanel = new PreferencesPanel(af.getUserSettings());
 		tp.add("General", prefPanel);
 
-		final JDBCDriverPanel jdbcPanel = new JDBCDriverPanel(af.getArchitectSession());
-		tp.add("JDBC Drivers", jdbcPanel);
+        final ArchitectDataSourceTypeEditor dsTypeEditor =
+            new ArchitectDataSourceTypeEditor(af.getArchitectSession().getUserSettings().getPlDotIni());
+ 		tp.add("JDBC Drivers", dsTypeEditor.getPanel());
 
-		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		
+	
 		JDefaultButton okButton = new JDefaultButton(ArchitectPanelBuilder.OK_BUTTON_LABEL);
 		okButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent evt) {
 					prefPanel.applyChanges();
-					jdbcPanel.applyChanges();
+                    dsTypeEditor.applyChanges();
 					d.setVisible(false);
 				}
 			});
-		buttonPanel.add(okButton);
-		
+	
 		Action cancelAction = new AbstractAction() {
 				public void actionPerformed(ActionEvent evt) {
 					prefPanel.discardChanges();
-					jdbcPanel.discardChanges();
+                    dsTypeEditor.discardChanges();
 					d.setVisible(false);
 				}
 		};
 		cancelAction.putValue(Action.NAME, ArchitectPanelBuilder.CANCEL_BUTTON_LABEL);
 		JButton cancelButton = new JButton(cancelAction);
-		buttonPanel.add(cancelButton);
-		
+
+        JPanel buttonPanel = ButtonBarFactory.buildOKCancelBar(okButton, cancelButton);
+
 		ASUtils.makeJDialogCancellable(d, cancelAction);
 		d.getRootPane().setDefaultButton(okButton);
 		cp.add(buttonPanel, BorderLayout.SOUTH);
