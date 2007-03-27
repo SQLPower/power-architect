@@ -1,5 +1,6 @@
 package ca.sqlpower.architect;
 
+import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -333,53 +334,9 @@ public class ArchitectUtils {
 	}
 
 	/**
-	 * Map from JDBC Driver Class name to the template used to create database URLs
-	 * XXX: look thise up from somewhere (i.e. don't hard code them)
-	 */
-	public static Map<String,String> getDriverTemplateMap() {
-		Map<String,String> drivers = new HashMap<String,String>();
-        drivers.put("oracle.jdbc.OracleDriver",
-                    "jdbc:oracle:thin:@<Hostname>:<Port:1521>:<Instance>");
-        drivers.put("oracle.jdbc.driver.OracleDriver",
-                    "jdbc:oracle:thin:@<Hostname>:<Port:1521>:<Instance>");
-		drivers.put("com.microsoft.jdbc.sqlserver.SQLServerDriver",
-					"jdbc:microsoft:sqlserver://<Hostname>:<Port:1433>;SelectMethod=cursor");
-		drivers.put("org.postgresql.Driver",
-					"jdbc:postgresql://<Hostname>:<Port:5432>/<Database>");
-        drivers.put("com.mysql.jdbc.Driver",
-                    "jdbc:mysql://<Hostname>:<Port:3306>/<Instance>");
-		drivers.put("ibm.sql.DB2Driver",
-					"jdbc:db2:<Hostname>");
-        drivers.put("org.apache.derby.jdbc.EmbeddedDriver",
-                    "jdbc:derby:<Database>;create=true");
-        drivers.put("org.hsqldb.jdbcDriver",
-                    "jdbc:hsqldb:<Database>");
-		drivers.put("ca.sqlpower.architect.MockJDBCDriver",
-					"jdbc:mock:catalogTerm=<Catalog Term:Catalog>&schemaTerm=<Schema Term:Schema>");
-		return drivers;
-	}
-
-	/**
-	 * Map from driver class name to a short name for the database.
-	 * XXX: look thise up from somewhere (i.e. don't hard code them)
-	 */
-	public static Map<String,String> getDriverTypeMap() {
-		Map<String,String> driverSystems = new HashMap<String,String>();
-        driverSystems.put("oracle.jdbc.driver.OracleDriver", "ORACLE");
-        driverSystems.put("oracle.jdbc.OracleDriver", "ORACLE");
-		driverSystems.put("com.microsoft.jdbc.sqlserver.SQLServerDriver", "SQL SERVER");
-		driverSystems.put("org.postgresql.Driver", "POSTGRES");
-        driverSystems.put("com.mysql.jdbc.Driver", "MySql");
-		driverSystems.put("ibm.sql.DB2Driver", "DB2");
-        driverSystems.put("org.apache.derby.jdbc.EmbeddedDriver", "DERBY");
-        driverSystems.put("org.hsqldb.jdbcDriver", "HSQLDB");
-		driverSystems.put("ca.sqlpower.architect.MockJDBCDriver", "OTHER");
-		return driverSystems;
-	}
-
-	/**
 	 *
-	 * XXX: look thise up from somewhere (i.e. don't hard code them)
+	 * XXX: should include these in the ArchitectDataSourceType
+     *      instead of hard coding them here
 	 *
 	 */
 	public static Map getDriverDDLGeneratorMap () {
@@ -707,5 +664,31 @@ public class ArchitectUtils {
         tableContainer.addChild(newTable);
 
         return newTable;
+    }
+
+    /**
+     * The custom JDBC classloaders in this app support a special "builtin:" filename
+     * prefix, which means a JAR file on the classpath rather than an absolute
+     * local path name.  This method will take a string that might be a builtin reference
+     * and return the java.io.File object that points to the builtin file's real location
+     * in the filesystem.  If the given string doesn't start with builtin:, it will
+     * be treated as a normal (absolute or relative) file pathname.
+     * 
+     * @param jarFileName The builtin: file spec or a normal path name
+     * @param classLoader The classloader against which to resolve the builtin resource names.
+     * @return a File object that refers to the given filespec.
+     */
+    public static File jarSpecToFile(String jarFileName, ClassLoader classLoader) {
+        File listedFile;
+        String builtIn = "builtin:";
+        if (jarFileName.startsWith(builtIn)) {
+            String jarName = jarFileName.substring(builtIn.length());
+            URL resource = classLoader.getResource(jarName);
+            ArchitectDataSourceType.logger.debug(resource + " path = " + resource.getPath());
+            listedFile = new File(resource.getPath());
+        } else {
+            listedFile = new File(jarFileName);
+        }
+        return listedFile;
     }
 }
