@@ -131,7 +131,7 @@ public class ExportDDLAction extends AbstractAction {
                                         null,   // JOptionPane gets icon from owningComponent,
                                         options,
                                         options[options.length - 1]);    // blocking
-                                System.out.println(dialogChoice);
+                                logger.debug(dialogChoice);
                                 switch (dialogChoice) {
                                 case 0:
                                     for (DDLWarning warning : warnings) {
@@ -179,7 +179,7 @@ public class ExportDDLAction extends AbstractAction {
             }
 
             private void generateAnyway() {
-                System.out.println("generateAnyway()");
+                logger.debug("generateAnyway()");
             }
 
 

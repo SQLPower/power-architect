@@ -56,7 +56,7 @@ public class TypeMap {
 
 	public static void main(String[] args) {
 		TypeMap tm = TypeMap.getInstance();	
-		System.out.println(tm);
+		logger.debug(tm);
 	}
 	
 	/*

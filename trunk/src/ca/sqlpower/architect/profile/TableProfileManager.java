@@ -42,6 +42,7 @@ public class TableProfileManager implements ProfileManager {
     
     private void decrementTableProfileCountCache(TableProfileResult profileResult) {
         Integer profileCount = profileCounts.get(profileResult.getProfiledObject());
+        logger.debug("Decrementing from "+profileCount);
         if (profileCount == null) {
             throw new IllegalStateException("Cannot remove a table from our cache, it's not there!");
         } else {
@@ -50,8 +51,9 @@ public class TableProfileManager implements ProfileManager {
         if (profileCount > 0 ) {
             profileCounts.put(profileResult.getProfiledObject(),profileCount);
         } else {
-            profileCounts.remove(profileResult);
+            profileCounts.remove(profileResult.getProfiledObject());
         }
+        logger.debug("Decrementing to "+profileCounts.get(profileResult.getProfiledObject()));
     }
     
     /**
@@ -142,9 +144,9 @@ public class TableProfileManager implements ProfileManager {
             public void run() {
                 try {
                     for (TableProfileResult tpr : ((List<TableProfileResult>)results)) {
-                        System.out.println("TableProfileManager.asynchCreateProfiles(): populate started");
+                        logger.debug("TableProfileManager.asynchCreateProfiles(): populate started");
                         tpr.populate();
-                        System.out.println("populated: " + tpr);
+                        logger.debug("populated: " + tpr);
                     }
                 } catch (Exception e) {
                     e.printStackTrace(); // XXX save me
@@ -181,7 +183,7 @@ public class TableProfileManager implements ProfileManager {
      }
 
     public boolean removeProfile(TableProfileResult result) {
-        System.out.println("ProfileManager: removing object: " + result);
+        logger.debug("ProfileManager: removing profiling for object: " + result.getProfiledObject());
         if (tableResults.remove(result)) {
             result.setCancelled(true);
             decrementTableProfileCountCache(result);

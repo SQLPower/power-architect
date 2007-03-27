@@ -307,7 +307,7 @@ public class ProfileRowComponent extends JPanel implements Selectable {
                     watcher.addTaskTerminationListener(new ResultTaskTerminationListener());
                     result.populate();
                 }
-                System.out.println("REFRESH");
+                logger.debug("REFRESH");
             }
         });
         this.cancelButton = new JButton(stopIcon);
@@ -320,13 +320,13 @@ public class ProfileRowComponent extends JPanel implements Selectable {
                 ProfileRowComponent.this.add(deleteButton, ComponentType.DELETE);
                 progressBar.setVisible(false);
                 reProfileButton.setVisible(true);
-                System.out.println("STOP");
+                logger.debug("STOP");
             }
         });
         this.deleteButton = new JButton(deleteIcon);
         deleteButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                System.out.println("ProfileRowComponent: DELETE object: " + result);
+                logger.debug("ProfileRowComponent: DELETE object: " + result);
                 pm.removeProfile(result);
             }
         });

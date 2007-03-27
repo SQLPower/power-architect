@@ -108,7 +108,7 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
 		} else if (value instanceof SQLRelationship) {
             SQLRelationship r = (SQLRelationship) value;
             //XXX ARRRRRRGGGGGHHHHHHH!!!! No way of knowing which end of a relationship we're
-            // looking at
+            // looking at because the relationship has two parents.  Maybe able to do it with the row number.
             if (true) {
                 setIcon(exportedKeyIcon);
             } else {

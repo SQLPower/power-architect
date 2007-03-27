@@ -7,6 +7,8 @@ import javax.swing.ComboBoxModel;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
+import org.apache.log4j.Logger;
+
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.DataSourceCollection;
 import ca.sqlpower.architect.DatabaseListChangeEvent;
@@ -14,6 +16,7 @@ import ca.sqlpower.architect.DatabaseListChangeListener;
 
 public class ConnectionComboBoxModel implements ComboBoxModel, DatabaseListChangeListener {
 
+    private static final Logger logger = Logger.getLogger(ConnectionComboBoxModel.class); 
     ArchitectDataSource selectedItem;
 
     List<ArchitectDataSource> connections;
@@ -65,7 +68,7 @@ public class ConnectionComboBoxModel implements ComboBoxModel, DatabaseListChang
                 return;
             }
         }
-        System.out.println("warning: set selected item:" + anItem);
+        logger.debug("warning: set selected item:" + anItem);
     }
 
     public Object getSelectedItem() {

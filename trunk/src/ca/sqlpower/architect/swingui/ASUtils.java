@@ -561,7 +561,6 @@ public class ASUtils {
         ActionListener detailsAction = new ActionListener() {
             boolean showDetails = true;
             public void actionPerformed(ActionEvent e) {
-                // System.out.println("showDetails=" + showDetails);
                 if (showDetails) {
                     finalDialogReference.remove(fakeMessageComponent);
                     finalDialogReference.add(messageComponent, BorderLayout.CENTER);

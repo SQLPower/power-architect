@@ -75,7 +75,7 @@ public class ProfileResultsViewer {
     private final ProfileChangeListener profileChangeListener = new ProfileChangeListener() {
         public void profilesAdded(ProfileChangeEvent e) {
             List<ProfileResult> profileResult = e.getProfileResult();
-            System.out.println("ProfileResultsViewer.inner.profileAdded()"  + profileResult);
+            logger.debug("ProfileResultsViewer.inner.profileAdded()"  + profileResult);
             // XXX this doesn't get invoked!?
         }
 
