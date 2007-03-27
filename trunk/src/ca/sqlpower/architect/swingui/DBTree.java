@@ -90,7 +90,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 		removeDBCSAction = new RemoveDBCSAction();
 		showInPlayPenAction = new ShowInPlayPenAction();
 		addMouseListener(new PopupListener());
-		setCellRenderer(new DBTreeCellRenderer());
+		setCellRenderer(new DBTreeCellRenderer(ArchitectFrame.getMainInstance().getArchitectSession()));
 	}
 
 	public DBTree(List<SQLDatabase> initialDatabases) throws ArchitectException {

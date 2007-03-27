@@ -30,6 +30,8 @@ import org.xml.sax.SAXException;
 
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectRuntimeException;
+import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.architect.IOUtils;
@@ -51,6 +53,7 @@ import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.PLExport;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ColumnValueCount;
+import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileResult;
 import ca.sqlpower.architect.profile.TableProfileManager;
 import ca.sqlpower.architect.profile.TableProfileResult;
@@ -73,6 +76,8 @@ public class SwingUIProject {
     private static final Logger logger = Logger.getLogger(SwingUIProject.class);
 
     //  ---------------- persistent properties -------------------
+    // XXX This should be passed in
+    private ArchitectSession session = ArchitectFrame.getMainInstance().getArchitectSession();
     private String name;
     private DBTree sourceDatabases;
     private PlayPen playPen;
@@ -82,7 +87,7 @@ public class SwingUIProject {
     private boolean savingEntireSource;
     private PLExport plExport;
     private CompareDMSettings compareDMSettings;
-    private TableProfileManager profileManager;
+    
     /** the small dialog that lists the profiles */
     private ProfileManagerView profileManagerView;
     /** the dialog that contains the small ProfileManagerView */
@@ -157,9 +162,8 @@ public class SwingUIProject {
         setPlayPen(pp);
         List initialDBList = new ArrayList();
         initialDBList.add(playPen.getDatabase());
-        profileManager = new TableProfileManager();
-        profileManagerView = new ProfileManagerView(profileManager);
-        profileManager.addProfileChangeListener(profileManagerView);
+        profileManagerView = new ProfileManagerView(session.getProfileManager());
+        session.getProfileManager().addProfileChangeListener(profileManagerView);
         profileDialog.add(profileManagerView);
         profileDialog.setLocationRelativeTo(ArchitectFrame.getMainInstance());
         this.sourceDatabases = new DBTree(initialDBList);
@@ -189,7 +193,7 @@ public class SwingUIProject {
             db.disconnect();
         }
         //Clear the profile manager
-        profileManager.clear();
+        session.getProfileManager().clear();
         // Close dialogs
         profileDialog.dispose();
     }
@@ -834,7 +838,7 @@ public class SwingUIProject {
     private class ProfileManagerFactory extends AbstractObjectCreationFactory {
         @Override
         public Object createObject(Attributes attributes) throws ArchitectException {
-            return profileManager;
+            return session.getProfileManager();
         }
     }
 
@@ -854,7 +858,7 @@ public class SwingUIProject {
                 throw new ArchitectException("Missing mandatory attribute \"type\" in <profile-result> element");
             } else if (className.equals(TableProfileResult.class.getName())) {
                 SQLTable t = (SQLTable) objectIdMap.get(refid);
-                tableProfileResult = new TableProfileResult(t,profileManager);
+                tableProfileResult = new TableProfileResult(t,session.getProfileManager());
                 tableProfileResult.finish(tableProfileResult.getCreateEndTime());
                 return tableProfileResult;
             } else if (className.equals(ColumnProfileResult.class.getName())) {
@@ -1220,7 +1224,12 @@ public class SwingUIProject {
      * @param out
      */
     private void saveProfiles(PrintWriter out) {
-        TableProfileManager profmgr = getProfileManager();
+        TableProfileManager profmgr;
+        if (getProfileManager() instanceof TableProfileManager) {
+            profmgr = (TableProfileManager) getProfileManager();
+        } else {
+            throw new ArchitectRuntimeException(new ArchitectException("Session.getProfileManager should be a TableProfileManager"));
+        }
         ioo.println(out, "<profiles topNCount=\""+profmgr.getProfileSettings().getTopNCount()+"\">");
         ioo.indent++;
 
@@ -1707,16 +1716,12 @@ public class SwingUIProject {
         return undoManager;
     }
 
-    public TableProfileManager getProfileManager() {
-        return profileManager;
+    public ProfileManager getProfileManager() {
+        return session.getProfileManager();
     }
     public JDialog getProfileDialog() {
         // Do the pack here in case this is the first time ever.
         profileDialog.pack();
         return profileDialog;
-    }
-
-    public void setProfileManager(TableProfileManager profileManager) {
-        this.profileManager = profileManager;
     }
 }

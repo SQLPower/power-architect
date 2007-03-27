@@ -2,6 +2,8 @@ package ca.sqlpower.architect;
 
 import java.util.List;
 
+import ca.sqlpower.architect.profile.ProfileManager;
+
 public interface ArchitectSession {
 
     public static final String PREFS_PL_INI_PATH = "PL.INI.PATH";
@@ -35,5 +37,7 @@ public interface ArchitectSession {
     public void clearDriverJarList();
 
     public JDBCClassLoader getJDBCClassLoader();
+    
+    public ProfileManager getProfileManager();
 
 }

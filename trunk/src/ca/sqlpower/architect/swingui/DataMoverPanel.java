@@ -75,12 +75,12 @@ public class DataMoverPanel {
         sourceTree = new JTree(new DBTreeModel(dblist));
         sourceTree.setRootVisible(false);
         sourceTree.setShowsRootHandles(true);
-        sourceTree.setCellRenderer(new DBTreeCellRenderer());
+        sourceTree.setCellRenderer(new DBTreeCellRenderer(session));
         
         destTree = new JTree(new DBTreeModel(dblist));
         destTree.setRootVisible(false);
         destTree.setShowsRootHandles(true);
-        destTree.setCellRenderer(new DBTreeCellRenderer());
+        destTree.setCellRenderer(new DBTreeCellRenderer(session));
         
         PanelBuilder pb = new PanelBuilder(
                 new FormLayout(
