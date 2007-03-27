@@ -32,13 +32,14 @@ public class IndexColumnTableModelTest extends TestCase {
     }
 
     public void testGetColumnClassInt() {
-        assertEquals(SQLIndex.Column.class,tm.getColumnClass(0));
-        assertEquals(Boolean.class,tm.getColumnClass(1));
+        assertEquals(String.class,tm.getColumnClass(0));
+        assertEquals(SQLColumn.class,tm.getColumnClass(1));
         assertEquals(Boolean.class,tm.getColumnClass(2));
+        assertEquals(Boolean.class,tm.getColumnClass(3));
     }
 
     public void testGetColumnCount() {
-        assertEquals(3,tm.getColumnCount());
+        assertEquals(4,tm.getColumnCount());
     }
 
     
@@ -47,13 +48,10 @@ public class IndexColumnTableModelTest extends TestCase {
     }
 
     public void testGetValueAt() {
-        assertEquals(indexCol, tm.getValueAt(0,0));
-        assertEquals(true,tm.getValueAt(0, 1));
-        assertEquals(false,tm.getValueAt(1, 2));
-    }
-
-    public void testSetValueAtObjectIntInt() {
-        fail("Not yet implemented");
+        assertEquals("col1", tm.getValueAt(0,0));
+        assertEquals(indexCol.getColumn(), tm.getValueAt(0,1));
+        assertEquals(true,tm.getValueAt(0, 2));
+        assertEquals(false,tm.getValueAt(1, 3));
     }
 
 }

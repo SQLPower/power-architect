@@ -17,13 +17,13 @@ import ca.sqlpower.architect.swingui.TestSwingUIProject;
 import ca.sqlpower.architect.swingui.TestTableEditPane;
 import ca.sqlpower.architect.swingui.TestTablePane;
 import ca.sqlpower.architect.swingui.action.TestDeleteSelectedAction;
-import ca.sqlpower.architect.swingui.table.DateRendererTest;
-import ca.sqlpower.architect.swingui.table.DecimalRendererTest;
-import ca.sqlpower.architect.swingui.table.PercentRendererTest;
-import ca.sqlpower.architect.swingui.table.SQLObjectRendererTest;
 import ca.sqlpower.architect.undo.TestSQLObjectUndoableEventAdapter;
 import ca.sqlpower.architect.undo.TestUndoManager;
 
+/**
+ *  Add any swing test cases of the form test* 
+ *
+ */
 public class ArchitectSwingTestSuite extends TestCase {
 
 	public static Test suite() {
@@ -40,10 +40,6 @@ public class ArchitectSwingTestSuite extends TestCase {
 		suite.addTestSuite(TestRelationship.class);
 		suite.addTestSuite(TestPlayPen.class);
 		suite.addTestSuite(TestPlayPenComponent.class);
-        suite.addTestSuite(DateRendererTest.class);
-        suite.addTestSuite(DecimalRendererTest.class);
-        suite.addTestSuite(PercentRendererTest.class);
-        suite.addTestSuite(SQLObjectRendererTest.class);
 		suite.addTestSuite(TestSwingUIProject.class);
 		suite.addTestSuite(TestSQLObjectUndoableEventAdapter.class);
 		suite.addTestSuite(TestTableEditPane.class);
