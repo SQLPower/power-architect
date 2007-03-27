@@ -540,6 +540,73 @@ public class ArchitectUtils {
     }
 
     /**
+     * Returns the object that contains tables in the given database.
+     * Depending on platform, this could be a SQLDatabase, a SQLCatalog,
+     * or a SQLSchema.  A null catName or schemName argument means that
+     * catalogs or schemas are not present in the given database.
+     * <p>
+     * Note, all comparisons are done case-insensitively.
+     * 
+     * @param db The database to retrieve the table container from.
+     * @param catName The name of the catalog to retrieve.  Must be null iff the
+     * database does not have catalogs.
+     * @param schemaName The name of the schema to retrieve.  Must be null iff the
+     * database does not have schemas.
+     * @return The appropriate SQLObject under db that is a parent of SQLTable objects,
+     * given the catalog and schema name arguments.
+     * @throws ArchitectException 
+     */
+    public static SQLObject getTableContainer(SQLDatabase db, String catName, String schemaName) throws ArchitectException {
+        db.populate();
+        logger.debug("Looking for catalog="+catName+", schema="+schemaName+" in db "+db);
+        if (db.getChildType() == SQLTable.class) {
+            if (catName != null || schemaName != null) {
+                throw new IllegalArgumentException("Catalog or Schema name was given but neither is necessary.");
+            }
+            return db;
+        } else if (db.getChildType() == SQLSchema.class) {
+           if (catName != null) {
+               throw new IllegalArgumentException("Catalog name was given but is not necessary.");
+           }
+           if (schemaName == null) {
+               throw new IllegalArgumentException("Schema name was expected but none was given.");
+           }
+           
+           return (SQLSchema) db.getChildByNameIgnoreCase(schemaName);
+        } else if (db.getChildType() == SQLCatalog.class) {
+            if (catName == null) {
+                throw new IllegalArgumentException("Catalog name was expected but none was given.");
+            }
+            SQLCatalog tempCat = db.getCatalogByName(catName);
+            
+            if (tempCat == null) return null;
+            
+            tempCat.populate();
+            
+            logger.debug("Found catalog "+catName+". Child Type="+tempCat.getChildType());
+            if (tempCat.getChildType() == SQLSchema.class) {
+                if (schemaName == null) {
+                    throw new IllegalArgumentException("Schema name was expected but none was given.");
+                }
+                
+                return (SQLSchema) tempCat.getChildByNameIgnoreCase(schemaName);
+            }
+            
+            if (schemaName != null) {
+                throw new IllegalArgumentException("Schema name was given but is not necessary.");
+            }
+            
+            return tempCat;
+        } else if (db.getChildType() == null) {
+            // special case: there are no children of db
+            logger.debug("Database "+db+" has no children");
+            return null;
+        } else {
+            throw new IllegalStateException("Unknown database child type: " + db.getChildType());
+        }
+    }
+    
+    /**
      * Returns the first object of given type on JTree if there is any
      * on the selected path
      *
