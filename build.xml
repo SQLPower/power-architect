@@ -66,17 +66,16 @@
 	</target>
 
 	<target name="init">
-		<tstamp/>
+		<tstamp/> <!-- XXX sets three ant variables that we never use -->
 		<mkdir dir="${build}"/>
 		<javac srcdir="${src}" destdir="${build}" classpathref="compile.classpath" includes="ca/sqlpower/architect/antbuild/ArchitectVersionTask.java" debug="true" deprecation="true" />
 		<taskdef name="genVersion"
 					classname="ca.sqlpower.architect.antbuild.ArchitectVersionTask"
 			        classpath="build"/>
-		<genVersion message="Architect!"/>
+		<genVersion/>
 		<echo message="Building Architect version: ${app_ver_major}.${app_ver_minor}.${app_ver_tiny}"> </echo>
-		<property name="deploy.dir" value="deploy/architect-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}"/>
-		<mkdir dir="${deploy.dir}"/>
-
+		<property name="dist.dir" value="dist/architect-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}"/>
+		<mkdir dir="${dist.dir}"/>
 	</target>
 
 	<target name="compile" depends="init,copyicons,copylog4jprops">
@@ -125,7 +124,7 @@
 		</fileset>
 	</path>
 
-	<target name="userguide" depends="help,html,pdf" description="Create user guide in HTML and PDF">
+	<target name="userguide" depends="help,html,pdf" description="Creates user guide in HTML and PDF">
 	</target>
 
 	<!-- Create an intermediate docbook document - for use both by help and html -
@@ -281,34 +280,37 @@
      *** Copy the Architect Jar file, and dependent libs, to the deploy dir.
      -->
     <target name="stage" depends="compile,userguide">
-    		<mkdir dir="${deploy.dir}" />
+    	<mkdir dir="${dist.dir}" />
         <mkdir dir="${staging.dir}"/>
         <mkdir dir="${staging.dir}/lib"/>
         <mkdir dir="${staging.dir}/jdbc"/>
     	<mkdir dir="${staging.dir}/doc"/>
     	
-    		<jar destfile="${staging.dir}/architect.jar" update="no"
+    	<jar destfile="${staging.dir}/architect.jar" update="no"
     				basedir="${build}" includes="ca/** icons/** log4j.properties"
     				manifest="manifest">
-    		</jar>
-    	    <copy todir="${staging.dir}/lib">
-    	        <fileset dir="lib" includes="*.jar"/>
-    	    </copy>
-		    <copy todir="${staging.dir}/jdbc">
-		        <fileset dir="jdbc_drivers" includes="*.jar"/>
-	    	</copy>
-    		<copy todir="${staging.dir}/doc">
-        		<fileset dir="${build}/doc" includes="*.pdf"/>
-    	    	<fileset dir="${build}/doc" includes="*.txt"/>
-    		</copy>
-    		<!-- The src for libraries that we are required to redistribute src -->
-    		<copy file="libsrc/itext-src-1.4.8.zip" todir="${staging.dir}/libsrc"/>
-    	    <copy tofile="${staging.dir}/LICENSE" file="Architect License.txt"/>
-    		<!-- No point in signing until we have a certificate that's signed by a CA
-    	    <signjar alias="sqlpower" keystore="keystore" storepass="low_security" keypass="low_security">
-    	        <fileset dir="webstart/lib"/>
-    	    </signjar>
-    	        -->
+    	</jar>
+    	<copy todir="${staging.dir}/lib">
+    	    <fileset dir="lib" includes="*.jar"/>
+    	</copy>
+		<copy todir="${staging.dir}/jdbc">
+		    <fileset dir="jdbc_drivers" includes="*.jar"/>
+	    </copy>
+    	<copy todir="${staging.dir}/doc">
+        	<fileset dir="${build}/doc" includes="*.pdf"/>
+    	   	<fileset dir="${build}/doc" includes="*.txt"/>
+    	</copy>
+    	
+    	<!-- The src for libraries that we are required to redistribute src -->
+    	<copy file="libsrc/itext-src-1.4.8.zip" todir="${staging.dir}/libsrc"/>
+    	
+    	<copy tofile="${staging.dir}/LICENSE" file="Architect License.txt"/>
+    	
+    	<!-- No point in signing until we have a certificate that's signed by a CA
+    	<signjar alias="sqlpower" keystore="keystore" storepass="low_security" keypass="low_security">
+    	   <fileset dir="webstart/lib"/>
+    	</signjar>
+    	-->
 	</target>
 
 	<target name="run" depends="compile">
@@ -319,10 +321,10 @@
 
 	<target name="clean" depends="init">
 		<delete dir="${build}"/>
-		<delete><fileset dir="${deploy.dir}" includes="lib,Power*Architect.app,architect.jar"/></delete>
+		<delete><fileset dir="${dist.dir}" includes="lib,Power*Architect.app,architect.jar"/></delete>
 		<delete dir="webstart/lib"/>
 		<delete dir="${staging.dir}"/>
-		<delete dir="${deploy.dir}" />
+		<delete dir="${dist.dir}" />
 	</target>
 
 	<target name="dist-clean" depends="clean">
@@ -376,7 +378,7 @@
 
 
 	<target name="windows_installer" depends="stage">
-		<izpack output="${deploy.dir}/Architect-Setup-Windows-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.jar"
+		<izpack output="${dist.dir}/Architect-Setup-Windows-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.jar"
 		        installerType="standard"
 			    basedir="${installer.dir}"
 		        izPackDir="${izpack.dir}/">
@@ -459,7 +461,7 @@
 	</target>
 
 	<target name="windows_jdbc_installer" depends="stage">
-			<izpack output="${deploy.dir}/Architect-Setup-Windows-jdbc-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.jar"
+			<izpack output="${dist.dir}/Architect-Setup-Windows-jdbc-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.jar"
 			        installerType="standard"
 				    basedir="${installer.dir}"
 			        izPackDir="${izpack.dir}/">
@@ -629,21 +631,21 @@
 			<arg value="detach" />
 			<arg value="/Volumes/Power*Architect" />
 		</exec>
-		<delete file="${deploy.dir}/Architect-OSX-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.dmg" />
+		<delete file="${dist.dir}/Architect-OSX-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.dmg" />
 		<exec executable="hdiutil">
 			<arg value="convert"/>
 			<arg value="${staging.dir}/RWArchitect.dmg.sparseimage"/>
 			<arg value="-format"/>
 			<arg value="UDCO"/>
 			<arg value="-o"/>
-			<arg value="${deploy.dir}/Architect-OSX-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.dmg"/>
+			<arg value="${dist.dir}/Architect-OSX-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.dmg"/>
 		</exec>
 
 		<taskdef name="addLicenseToDMG"
 				 classname="ca.sqlpower.architect.antbuild.AddLicenseToDMGTask"
 			     classpath="build"/>
 		<addLicenseToDMG
-				dmgFile="${deploy.dir}/Architect-OSX-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.dmg"
+				dmgFile="${dist.dir}/Architect-OSX-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.dmg"
                 licenseFile="Architect License.txt"
 		        resourceTemplateFile="osx_packaging_utils/sla_template.r"/>
     </target>
@@ -677,27 +679,27 @@
 				<arg value="detach" />
 				<arg value="/Volumes/Power*Architect" />
 			</exec>
-			<delete file="${deploy.dir}/Architect-OSX-jdbc-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.dmg" />
+			<delete file="${dist.dir}/Architect-OSX-jdbc-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.dmg" />
 			<exec executable="hdiutil">
 				<arg value="convert"/>
 				<arg value="${staging.dir}/RWArchitect.dmg.sparseimage"/>
 				<arg value="-format"/>
 				<arg value="UDCO"/>
 				<arg value="-o"/>
-				<arg value="${deploy.dir}/Architect-OSX-jdbc-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.dmg"/>
+				<arg value="${dist.dir}/Architect-OSX-jdbc-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.dmg"/>
 			</exec>
 
 			<taskdef name="addLicenseToDMG"
 					 classname="ca.sqlpower.architect.antbuild.AddLicenseToDMGTask"
 				     classpath="build"/>
 			<addLicenseToDMG
-					dmgFile="${deploy.dir}/Architect-OSX-jdbc-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.dmg"
+					dmgFile="${dist.dir}/Architect-OSX-jdbc-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.dmg"
 	                licenseFile="Architect License.txt"
 			        resourceTemplateFile="osx_packaging_utils/sla_template.r"/>
 	    </target>
 	
 	<target name="osx_tgz" depends="osx_dist" if="isNotMac">
-		<tar destfile="${deploy.dir}/Architect-OSX-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.tar.gz"
+		<tar destfile="${dist.dir}/Architect-OSX-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.tar.gz"
 					compression="gzip">
 			<tarfileset dir="${staging.dir}" includes="Power Architect.app/**"/>
 			<tarfileset dir="${staging.dir}/doc" includes="*.pdf"/>
@@ -706,7 +708,7 @@
 	</target>
 	
 	<target name="osx_jdbc_tgz" depends="osx_jdbc_dist" if="isNotMac">
-		<tar destfile="${deploy.dir}/Architect-OSX-jdbc-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.tar.gz"
+		<tar destfile="${dist.dir}/Architect-OSX-jdbc-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.tar.gz"
 					compression="gzip">
 			<tarfileset dir="${staging.dir}" includes="Power Architect JDBC.app/**"/>
 			<tarfileset dir="${staging.dir}/doc" includes="*.pdf"/>
@@ -716,7 +718,7 @@
 
 	<!-- Build a "generic" (e.g., UNIX) install that users will just un-tar -->
     <target name="generic_install" depends="stage">
-		<tar destfile="${deploy.dir}/Architect-generic-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.tar.gz"
+		<tar destfile="${dist.dir}/Architect-generic-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.tar.gz"
 			compression="gzip">
 			<tarfileset dir="${staging.dir}" includes="LICENSE"/>
 			<tarfileset dir="${staging.dir}" includes="lib/*.jar"/>
@@ -727,7 +729,7 @@
     </target>
 	
     <target name="generic_jdbc_install" depends="stage">
-		<tar destfile="${deploy.dir}/Architect-generic-jdbc-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.tar.gz"
+		<tar destfile="${dist.dir}/Architect-generic-jdbc-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.tar.gz"
 			compression="gzip">
 			<tarfileset dir="${staging.dir}" includes="LICENSE"/>
 			<tarfileset dir="${staging.dir}" includes="lib/*.jar"/>
@@ -743,10 +745,11 @@
 	<target name="jdbc_dist" depends="windows_jdbc_installer,generic_jdbc_install,osx_jdbc_tgz,osx_jdbc_dmg" />
 	<target name="no_jdbc_dist" depends="windows_installer,generic_install,osx_tgz,osx_dmg" />
 
-	<target name="dist" depends="jdbc_dist,no_jdbc_dist">
+	<target name="dist" depends="jdbc_dist,no_jdbc_dist"
+	        description="Builds Architect Distribution for all supported platforms to dist/architect-version/*">
 		<echo>Don't forget to turn off all the debugging in log4j.properties!</echo>
-	    <get dest="${deploy.dir}/index.html" src="http://www.sqlpower.ca/page/architect_download_template"/>
-		<replace file="${deploy.dir}/index.html">
+	    <get dest="${dist.dir}/index.html" src="http://www.sqlpower.ca/page/architect_download_template"/>
+		<replace file="${dist.dir}/index.html">
 			<replacefilter token="&lt;head&gt;" value="&lt;head&gt;&lt;base href=&quot;http://www.sqlpower.ca/&quot;/&gt;"/>
 			<replacefilter token="@@app_ver_major" value="${app_ver_major}"/>
 			<replacefilter token="@@app_var_minor" value="${app_ver_minor}"/>
