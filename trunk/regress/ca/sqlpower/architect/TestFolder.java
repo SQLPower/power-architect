@@ -100,9 +100,9 @@ public class TestFolder extends SQLTestCase {
 
 	protected void setUp() throws Exception {		
 		super.setUp();
-		table1pk = db.getTableByName("SQL_COLUMN_TEST_1PK");
-		db.getTableByName("SQL_COLUMN_TEST_0PK");
-		db.getTableByName("SQL_COLUMN_TEST_3PK");
+		table1pk = getDb().getTableByName("SQL_COLUMN_TEST_1PK");
+		getDb().getTableByName("SQL_COLUMN_TEST_0PK");
+		getDb().getTableByName("SQL_COLUMN_TEST_3PK");
 	}
 
 	/**

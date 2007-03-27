@@ -25,6 +25,7 @@ import org.apache.commons.beanutils.PropertyUtils;
 
 import ca.sqlpower.ArchitectTestCase;
 import ca.sqlpower.architect.ArchitectDataSource;
+import ca.sqlpower.architect.ArchitectDataSourceType;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
@@ -433,10 +434,11 @@ public class TestSwingUIProject extends ArchitectTestCase {
 	
 
 	public void testSaveCoversAllCatalogProperties() throws Exception {
-		
+		ArchitectDataSourceType mockType = new ArchitectDataSourceType();
 		ArchitectDataSource ds = new ArchitectDataSource();
+        ds.setParentType(mockType);
 		ds.setDisplayName("Schemaless Database");
-		ds.setDriverClass("ca.sqlpower.architect.MockJDBCDriver");
+		ds.getParentType().setJdbcDriver("ca.sqlpower.architect.MockJDBCDriver");
 		ds.setUser("fake");
 		ds.setPass("fake");
 		//this creates a mock jdbc database with only catalogs

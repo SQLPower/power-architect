@@ -332,7 +332,7 @@ public class PlayPen extends JPanel
     protected void setDatabaseConnection(ArchitectDataSource dbcs){
         ArchitectDataSource tSpec = db.getDataSource();
         tSpec.setDisplayName(dbcs.getDisplayName());
-        tSpec.setDriverClass(dbcs.getDriverClass());
+        tSpec.getParentType().setJdbcDriver(dbcs.getDriverClass());
         tSpec.setUrl(dbcs.getUrl());
         tSpec.setUser(dbcs.getUser());
         tSpec.setPass(dbcs.getPass());
@@ -995,7 +995,9 @@ public class PlayPen extends JPanel
      * just in case the user changed the Target Database from the DBTree.
 	 */
 	public void showDbcsDialog() {
-		final DBCSPanel dbcsPanel = new DBCSPanel();
+		final DBCSPanel dbcsPanel = new DBCSPanel(
+                ArchitectFrame.getMainInstance().getArchitectSession()
+                .getUserSettings().getPlDotIni());
 
 
 		dbcsPanel.setDbcs(db.getDataSource());
@@ -2621,4 +2623,3 @@ public class PlayPen extends JPanel
 	}
 
 }
-

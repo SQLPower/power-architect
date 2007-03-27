@@ -85,7 +85,7 @@ public class TestSQLColumn extends SQLTestCase {
 				System.out.println("Couldn't close connection");
 				ex.printStackTrace();
 			}
-			//mydb.disconnect();  FIXME: this should be uncommented when bug 1005 is fixed
+			mydb.disconnect();//  FIXME: this should be uncommented when bug 1005 is fixed
 		}
 	}
 
@@ -95,6 +95,7 @@ public class TestSQLColumn extends SQLTestCase {
 	 */
 	public static void oneTimeTearDown() {
 		System.out.println("TestSQLColumn.oneTimeTearDown()");
+        
 	}
 
 	
@@ -125,6 +126,11 @@ public class TestSQLColumn extends SQLTestCase {
 		table0pk = db.getTableByName("SQL_COLUMN_TEST_0PK");
 		table3pk = db.getTableByName("SQL_COLUMN_TEST_3PK");
 	}
+    
+    @Override
+    protected void tearDown() throws Exception {
+        super.tearDown();
+    }
 	
 	/**
 	 * Tries to drop the named table, but doesn't throw an exception if the

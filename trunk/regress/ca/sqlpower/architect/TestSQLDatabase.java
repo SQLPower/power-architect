@@ -92,6 +92,7 @@ public class TestSQLDatabase extends SQLTestCase {
 
 	protected void setUp() throws Exception {
 		super.setUp();
+        assertNotNull(db.getDataSource().getParentType());
 	}
 	
 	@Override
@@ -144,7 +145,7 @@ public class TestSQLDatabase extends SQLTestCase {
     public void testPopulateTablesOnly() throws Exception {
         ArchitectDataSource ds = new ArchitectDataSource();
         ds.setDisplayName("tablesOnly");
-        ds.setDriverClass("ca.sqlpower.architect.MockJDBCDriver");
+        ds.getParentType().setJdbcDriver("ca.sqlpower.architect.MockJDBCDriver");
         ds.setUser("fake");
         ds.setPass("fake");
         ds.setUrl("jdbc:mock:tables=tab1");
@@ -158,7 +159,7 @@ public class TestSQLDatabase extends SQLTestCase {
     public void testPopulateSchemasAndTables() throws Exception {
         ArchitectDataSource ds = new ArchitectDataSource();
         ds.setDisplayName("schemasAndTables");
-        ds.setDriverClass("ca.sqlpower.architect.MockJDBCDriver");
+        ds.getParentType().setJdbcDriver("ca.sqlpower.architect.MockJDBCDriver");
         ds.setUser("fake");
         ds.setPass("fake");
         ds.setUrl("jdbc:mock:dbmd.schemaTerm=Schema&schemas=sch1&tables.sch1=tab1");
@@ -172,7 +173,7 @@ public class TestSQLDatabase extends SQLTestCase {
     public void testPopulateCatalogsAndTables() throws Exception {
         ArchitectDataSource ds = new ArchitectDataSource();
         ds.setDisplayName("catalogsAndTables");
-        ds.setDriverClass("ca.sqlpower.architect.MockJDBCDriver");
+        ds.getParentType().setJdbcDriver("ca.sqlpower.architect.MockJDBCDriver");
         ds.setUser("fake");
         ds.setPass("fake");
         ds.setUrl("jdbc:mock:dbmd.catalogTerm=Catalog&catalogs=cat1&tables.cat1=tab1");
@@ -186,7 +187,7 @@ public class TestSQLDatabase extends SQLTestCase {
     public void testPopulateCatalogsSchemasAndTables() throws Exception {
         ArchitectDataSource ds = new ArchitectDataSource();
         ds.setDisplayName("catalogsSchemasAndTables");
-        ds.setDriverClass("ca.sqlpower.architect.MockJDBCDriver");
+        ds.getParentType().setJdbcDriver("ca.sqlpower.architect.MockJDBCDriver");
         ds.setUser("fake");
         ds.setPass("fake");
         ds.setUrl("jdbc:mock:dbmd.catalogTerm=Catalog&dbmd.schemaTerm=Schema" +
@@ -520,7 +521,7 @@ public class TestSQLDatabase extends SQLTestCase {
 
 	public void testMissingDriverConnect() throws SQLException {
 		ArchitectDataSource ds = db.getDataSource();
-		ds.setDriverClass("ca.sqlpower.xxx.does.not.exist");
+		ds.getParentType().setJdbcDriver("ca.sqlpower.xxx.does.not.exist");
 		
 		SQLDatabase mydb = new SQLDatabase(ds);
 		Connection con = null;
@@ -601,10 +602,37 @@ public class TestSQLDatabase extends SQLTestCase {
 		assertTrue(db.isPopulated());
 		assertFalse(child.isPopulated());
 	}
-	
+    
+	public void testConnectionPoolFreesResources() throws SQLException, ArchitectException {
+        assertEquals(0,db.getConnectionPool().getNumActive());
+        assertEquals(0,db.getConnectionPool().getNumIdle());
+	    Connection con1 = db.getConnection();
+        Connection con2 = db.getConnection();
+        Connection con3 = db.getConnection();
+        Connection con4 = db.getConnection();
+        Connection con5 = db.getConnection();
+        con1.close();
+        con2.close();
+        con3.close();
+        con4.close();
+        con5.close();
+        con2 = db.getConnection();
+        con3 = db.getConnection();
+        assertEquals(2,db.getConnectionPool().getNumActive());
+        con2.close();
+        con3.close();
+        
+        
+        db.disconnect();
+     
+        assertEquals(0,db.getConnectionPool().getNumActive());
+        assertEquals(0,db.getConnectionPool().getNumIdle());
+    }
+    
 	public void testConnectionsPerThreadAreUnique() throws Exception{
 		ArchitectDataSource ads = new ArchitectDataSource();
-		ads.setDriverClass("ca.sqlpower.architect.MockJDBCDriver");
+        ads.setParentType(new ArchitectDataSourceType());
+		ads.getParentType().setJdbcDriver("ca.sqlpower.architect.MockJDBCDriver");
 		ads.setUrl("jdbc:mock:dbmd.catalogTerm=Catalog&dbmd.schemaTerm=Schema&catalogs=farm,yard,zoo&schemas.farm=cow,pig&schemas.yard=cat,robin&schemas.zoo=lion,giraffe&tables.farm.cow=moo&tables.farm.pig=oink&tables.yard.cat=meow&tables.yard.robin=tweet&tables.zoo.lion=roar&tables.zoo.giraffe=***,^%%");
 		ads.setUser("fake");
 		ads.setPass("fake");

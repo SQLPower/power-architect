@@ -25,7 +25,6 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -49,6 +48,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
@@ -158,6 +158,12 @@ public class CompareDMPanel extends JPanel {
 	 */
 	private SwingUIProject project;
 
+    /**
+     * Since we can create new DB connections from this panel, we need a reference
+     * to the session so we can retrieve the datasource collection.
+     */
+    private ArchitectSession session;
+    
 	/**
 	 * Contains all of the properties and GUI components that relate to the
 	 * source or target system. The idea is, the panel will have two instances
@@ -165,9 +171,9 @@ public class CompareDMPanel extends JPanel {
 	 * "target" system.
 	 *
 	 * <p>
-	 * Note: this class is only public because the test needs to refer to it. :(
+	 * Note: this class is not private because the test needs to refer to it. :(
 	 */
-	public class SourceOrTargetStuff implements DBConnectionCallBack{
+	class SourceOrTargetStuff implements DBConnectionCallBack{
 
 		private JComboBox databaseDropdown;
 
@@ -208,7 +214,7 @@ public class CompareDMPanel extends JPanel {
 					getNewConnectionDialog().requestFocus();
 					return;
 				}
-				final DBCSPanel dbcsPanel = new DBCSPanel();
+				final DBCSPanel dbcsPanel = new DBCSPanel(session.getUserSettings().getPlDotIni());
 				dbcsPanel.setDbcs(new ArchitectDataSource());
 
 				DBCSOkAction okAction = new DBCSOkAction(dbcsPanel, true);
@@ -513,7 +519,7 @@ public class CompareDMPanel extends JPanel {
 
 			ArchitectFrame af = ArchitectFrame.getMainInstance();
 			SwingUIProject project = af.getProject();
-
+			
 			playPenRadio = new JRadioButton();
 			playPenRadio.setName(prefix + "PlayPenRadio");
 			physicalRadio = new JRadioButton();
@@ -756,8 +762,9 @@ public class CompareDMPanel extends JPanel {
 		return buttonPanel;
 	}
 
-	public CompareDMPanel(SwingUIProject project) {
+	public CompareDMPanel(SwingUIProject project, ArchitectSession session) {
 		this.project = project;
+        this.session = session;
 		buildUI();
 	}
 
@@ -1430,22 +1437,4 @@ public class CompareDMPanel extends JPanel {
 		return target;
 	}
 
-	/**
-	 * Just for testing the form layout without running the whole Architect.
-	 *
-	 * <p>
-	 * The frame it makes is EXIT_ON_CLOSE, so you should never use this in a
-	 * real app.
-	 */
-	public static void main(String[] args) {
-		final JFrame f = new JFrame("Testing compare dm panel");
-		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				f.add(new CompareDMPanel(null)); // FIXME: won't work
-				f.pack();
-				f.setVisible(true);
-			}
-		});
-	}
 }

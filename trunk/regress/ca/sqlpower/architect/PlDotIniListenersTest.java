@@ -32,7 +32,7 @@ public class PlDotIniListenersTest extends TestCase {
 	 */
 	public void testMergeDataSource() {
 		pld.addDataSource(dbcs);
-		dbcs.setDriverClass("mock.Driver");
+		dbcs.getParentType().setJdbcDriver("mock.Driver");
 		pld.mergeDataSource(dbcs);
 	}
 

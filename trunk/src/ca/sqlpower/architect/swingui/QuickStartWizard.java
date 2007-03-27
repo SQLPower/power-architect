@@ -189,7 +189,7 @@ public class QuickStartWizard implements ArchitectWizard {
 	public void addTargetDatabase(ArchitectDataSource target) {
 		ArchitectDataSource tSpec = ArchitectFrame.getMainInstance().getProject().getPlayPen().getDatabase().getDataSource();
 		ArchitectDataSource dbcs = plExport.getTargetDataSource();
-    	tSpec.setDriverClass(dbcs.getDriverClass());
+    	tSpec.getParentType().setJdbcDriver(dbcs.getDriverClass());
     	tSpec.setUrl(dbcs.getUrl());
     	tSpec.setUser(dbcs.getUser());
     	tSpec.setPass(dbcs.getPass());

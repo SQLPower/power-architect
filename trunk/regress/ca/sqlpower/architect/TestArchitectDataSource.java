@@ -12,8 +12,9 @@ public class TestArchitectDataSource extends TestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		ds = new ArchitectDataSource();
+		System.out.println("NEW DATA SOURCE parent type name = "+ds.getPropertiesMap().get(ArchitectDataSource.DBCS_CONNECTION_TYPE));
 		ds.setDisplayName("Regression Test");
-		ds.setDriverClass("com.does.not.exist");
+		ds.getParentType().setJdbcDriver("com.does.not.exist");
 		ds.setName("test_name");
 		ds.setOdbcDsn("fake_odbc_dsn");
 		ds.setPass("fake_password");
@@ -21,6 +22,7 @@ public class TestArchitectDataSource extends TestCase {
 		ds.setPlSchema("my_fake_pl_schema");
 		ds.setUrl("jdbc:fake:fake:fake");
 		ds.setUser("fake_user");
+        System.out.println("NEW DATA SOURCE after init parent type name = "+ds.getPropertiesMap().get(ArchitectDataSource.DBCS_CONNECTION_TYPE));
 	}
 
 	protected void tearDown() throws Exception {
@@ -87,8 +89,8 @@ public class TestArchitectDataSource extends TestCase {
 		
 		ds1.setDisplayName("Regression Test");
 		ds2.setDisplayName("Regression Test");
-		ds1.setDriverClass("com.does.not.exist");
-		ds2.setDriverClass("com.does.not.exist");
+		ds1.getParentType().setJdbcDriver("com.does.not.exist");
+		ds2.getParentType().setJdbcDriver("com.does.not.exist");
 		ds1.setName("test_name");
 		ds2.setName("test_name");
 		ds1.setOdbcDsn("fake_odbc_dsn");
@@ -182,19 +184,6 @@ public class TestArchitectDataSource extends TestCase {
 	}
 
 	/*
-	 * Test method for 'ca.sqlpower.architect.ArchitectDataSource.setDriverClass(String)'
-	 */
-	public void testSetDriverClass() {
-		CountingPropertyChangeListener l = new CountingPropertyChangeListener();
-		ds.addPropertyChangeListener(l);
-		ds.setDriverClass("test");
-		
-		assertEquals(1, l.getPropertyChangeCount());
-		assertEquals("driverClass", l.getLastPropertyChange());
-		assertEquals("test", ds.getDriverClass());
-	}
-
-	/*
 	 * Test method for 'ca.sqlpower.architect.ArchitectDataSource.setUser(String)'
 	 */
 	public void testSetUser() {
@@ -262,10 +251,11 @@ public class TestArchitectDataSource extends TestCase {
 	public void testComparator() {
 		// set up identical second data source
 		ArchitectDataSource ds2 = new ArchitectDataSource();
+        ds2.setParentType(ds.getParentType());
 		for (String key : ds.getPropertiesMap().keySet()) {
 			ds2.put(key, ds.get(key));
-		}
-		
+        }
+        
 		Comparator<ArchitectDataSource> cmp = new ArchitectDataSource.DefaultComparator();
 		assertEquals(0, cmp.compare(ds, ds2));
 		
@@ -286,4 +276,14 @@ public class TestArchitectDataSource extends TestCase {
 		ds2.setUser("z");
 		assertTrue(cmp.compare(ds, ds2) < 0);
 	}
+    
+    /* The parent type name is just stored in the map as a string.  When the parent type's
+     * name changes at runtime, some magic is required to update the parent name in the map
+     * so it matches.
+     */
+    public void testParentNameSync() {
+        assertEquals(ds.getParentType().getName(), ds.getPropertiesMap().get(ArchitectDataSource.DBCS_CONNECTION_TYPE));
+        ds.getParentType().setName("New Name");
+        assertEquals(ds.getParentType().getName(), ds.getPropertiesMap().get(ArchitectDataSource.DBCS_CONNECTION_TYPE));
+    }
 }

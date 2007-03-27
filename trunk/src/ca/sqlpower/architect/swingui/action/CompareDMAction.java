@@ -21,7 +21,7 @@ import ca.sqlpower.architect.swingui.SwingUserSettings;
 public class CompareDMAction extends AbstractAction {
 	private static final Logger logger = Logger.getLogger(CompareDMAction.class);
 
-	protected ArchitectFrame architectFrame;
+	private ArchitectFrame architectFrame;
 
 	public CompareDMAction() {		
 		super("Compare DM...",
@@ -45,7 +45,8 @@ public class CompareDMAction extends AbstractAction {
 		JPanel cp = new JPanel(new BorderLayout(12,12));
 		cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
 		
-		final CompareDMPanel compareDMPanel = new CompareDMPanel(architectFrame.getProject());
+		final CompareDMPanel compareDMPanel = new CompareDMPanel(
+                architectFrame.getProject(), architectFrame.getArchitectSession());
 		cp.add(compareDMPanel, BorderLayout.CENTER);
 
 //		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));

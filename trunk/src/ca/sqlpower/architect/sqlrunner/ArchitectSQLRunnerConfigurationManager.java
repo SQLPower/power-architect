@@ -60,7 +60,7 @@ public class ArchitectSQLRunnerConfigurationManager implements ConfigurationMana
         }
 
         public void setDriverName(String arg0) {
-            ds.setDriverClass(arg0);
+            ds.getParentType().setJdbcDriver(arg0);
         }
 
         public void setName(String arg0) {

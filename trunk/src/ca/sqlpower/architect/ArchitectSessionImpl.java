@@ -1,8 +1,5 @@
 package ca.sqlpower.architect;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
 
 import ca.sqlpower.architect.profile.TableProfileManager;
 
@@ -23,15 +20,11 @@ import ca.sqlpower.architect.profile.TableProfileManager;
  */
 public class ArchitectSessionImpl implements ArchitectSession {
     
-    private static ArchitectSession instance;
-    private CoreUserSettings userSettings;
-    private JDBCClassLoader jdbcClassLoader;
-    private List<String> driverJarList;
+    protected static ArchitectSession instance;
+	protected CoreUserSettings userSettings;
     private TableProfileManager profileManager;
 
 	public ArchitectSessionImpl() {
-		driverJarList = new LinkedList();
-		jdbcClassLoader = new JDBCClassLoader(this);
         profileManager = new TableProfileManager();
 	}
 
@@ -66,49 +59,7 @@ public class ArchitectSessionImpl implements ArchitectSession {
 		this.userSettings = argUserSettings;
 	}
 
-	/* (non-Javadoc)
-     * @see ca.sqlpower.architect.ArchitectSession#getDriverJarList()
-     */
-	public List<String> getDriverJarList() {
-		return Collections.unmodifiableList(driverJarList);
-	}
-
-	/* (non-Javadoc)
-     * @see ca.sqlpower.architect.ArchitectSession#addDriverJar(java.lang.String)
-     */
-	public boolean addDriverJar(String fullPath) {
-		return driverJarList.add(fullPath);
-	}
-	/* (non-Javadoc)
-     * @see ca.sqlpower.architect.ArchitectSession#removeDriverJar(java.lang.String)
-     */
-	public boolean removeDriverJar(String fullPath) {
-		return driverJarList.remove(fullPath);
-	}
-
-    /* (non-Javadoc)
-     * @see ca.sqlpower.architect.ArchitectSession#removeAllDriverJars()
-     */
-    public void removeAllDriverJars() {
-        driverJarList.clear();
-    }
-
-	/* (non-Javadoc)
-     * @see ca.sqlpower.architect.ArchitectSession#clearDriverJarList()
-     */
-	public void clearDriverJarList() {
-		driverJarList.clear();
-	}
-
-	/* (non-Javadoc)
-     * @see ca.sqlpower.architect.ArchitectSession#getJDBCClassLoader()
-     */
-	public JDBCClassLoader getJDBCClassLoader() {
-		return jdbcClassLoader;
-	}
-
     public TableProfileManager getProfileManager() {
         return profileManager;
     }
-
 }

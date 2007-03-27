@@ -45,7 +45,7 @@ public class SetDataSourceAction extends AbstractAction {
 		
 		ArchitectDataSource tSpec = db.getDataSource();
 		tSpec.setDisplayName(dbcs.getDisplayName());
-		tSpec.setDriverClass(dbcs.getDriverClass());
+		tSpec.getParentType().setJdbcDriver(dbcs.getDriverClass());
 		tSpec.setUrl(dbcs.getUrl());
 		tSpec.setUser(dbcs.getUser());
 		tSpec.setPass(dbcs.getPass());

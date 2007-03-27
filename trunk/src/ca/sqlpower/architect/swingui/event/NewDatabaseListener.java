@@ -17,6 +17,9 @@ import ca.sqlpower.architect.swingui.action.DBCSOkAction;
 /**
  * When a new database connection has been established, this listener
  * kicks in to add it to the dropdown list.
+ * <p>
+ * XXX it would be simpler just to re-create the dropdown list every
+ *     time it gets displayed
  */
 public class NewDatabaseListener implements ActionListener {
 
@@ -31,7 +34,8 @@ public class NewDatabaseListener implements ActionListener {
 
 	public void actionPerformed(ActionEvent e) {
 		
-		final DBCSPanel dbcsPanel = new DBCSPanel();
+		final DBCSPanel dbcsPanel = new DBCSPanel(
+                frame.getArchitectSession().getUserSettings().getPlDotIni());
 		
 		dbcsPanel.setDbcs(new ArchitectDataSource());
 
