@@ -507,6 +507,10 @@ public class SQLTable extends SQLObject {
      * Adds the given SQLIndex object to this table's index folder.
 	 */
     public void addIndex(SQLIndex idx) throws ArchitectException {
+        if (idx.isPrimaryKeyIndex()) {
+            getIndicesFolder().addChild(0, idx);
+            return;
+        }
         getIndicesFolder().addChild(idx);
     }
 
@@ -628,8 +632,8 @@ public class SQLTable extends SQLObject {
             
             if (getPrimaryKeyIndex() == null) {
                 SQLIndex pkIndex = new SQLIndex(getName()+"_pk", true, null, SQLIndex.IndexType.CLUSTERED,null);
-                addIndex(pkIndex);
                 pkIndex.setPrimaryKeyIndex(true);
+                addIndex(pkIndex);
                 logger.debug("new pkIndex.getChildCount()="+pkIndex.getChildCount());
             }
             

@@ -728,7 +728,10 @@ public class TestSwingUIProject extends ArchitectTestCase {
         
         SQLTable targetTable = (SQLTable) ppdb.getTableByName(tableName);
         System.out.println("target table=["+targetTable.getName()+"]");
-        target = (SQLIndex) (targetTable).getIndicesFolder().getChild(0);
+        // child 1 because setPrimaryKeySeq calls normalizePrimaryKey who creates
+        // a primary key is there is none made. The primary key is placed as child 0
+        // in the list so it shows up first in the DBTree.
+        target = (SQLIndex) (targetTable).getIndicesFolder().getChild(1);
         
         Map<String, Object> newDescription =
             getAllInterestingProperties(target, propertiesToIgnore);
@@ -867,7 +870,10 @@ public class TestSwingUIProject extends ArchitectTestCase {
         // grab the second database in the dbtree's model (the first is the play pen)
         ppdb = (SQLDatabase) project2.getPlayPen().getDatabase();
         
-        index = (SQLIndex) ((SQLTable) ppdb.getTableByName(tableName)).getIndicesFolder().getChild(0);
+        // child 1 because setPrimaryKeySeq calls normalizePrimaryKey which creates
+        // a primary key is there is none made. The primary key is placed as child 0
+        // in the list so it shows up first in the DBTree.
+        index = (SQLIndex) ((SQLTable) ppdb.getTableByName(tableName)).getIndicesFolder().getChild(1);
         
         Map<String, Object> newDescription =
             getAllInterestingProperties(index, propertiesToIgnore);
