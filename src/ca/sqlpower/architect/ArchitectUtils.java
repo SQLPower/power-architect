@@ -1,7 +1,9 @@
 package ca.sqlpower.architect;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -658,7 +660,11 @@ public class ArchitectUtils {
             String jarName = jarFileName.substring(builtIn.length());
             URL resource = classLoader.getResource(jarName);
             ArchitectDataSourceType.logger.debug(resource + " path = " + resource.getPath());
-            listedFile = new File(resource.getPath());
+            try {
+                listedFile = new File(URLDecoder.decode(resource.getPath(),"iso8859-1"));
+            } catch (UnsupportedEncodingException ex) {
+                throw new RuntimeException("couldn't decode url with iso8859-1", ex);
+            }
         } else {
             listedFile = new File(jarFileName);
         }

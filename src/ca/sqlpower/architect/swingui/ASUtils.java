@@ -412,11 +412,34 @@ public class ASUtils {
      * @param qfaFactory The error report generator; may not be null.
      */
     public static void showExceptionDialog(Component parent, String message, String subMessage, Throwable throwable, QFAFactory qfaFactory) {
+        showExceptionDialog(ArchitectFrame.getMainInstance(), parent, message, subMessage, throwable, qfaFactory);
+	}
+    
+    /**
+     * Displays a modal dialog box with the given messages and exception stack trace.  This method won't
+     * try to look for any singletons in the application.  It is the only safe version of show exception dialog 
+     * during early startup.
+     *
+     * @param architectFrame An initialized instance of ArchitectFrame.  Used to gather statistics.
+     *                  It is safe to pass in null, but that will disable statistic gathering.
+     * @param parent The component that should own the dialog.  Used for positioning
+     * and proper iconification behaviour.
+     * @param message Primary error message, displayed in the dialog in large red type.
+     * If you provide null, a generic "Unexpected error" message will be used.
+     * @param subMessage Secondary message, displayed in the default colour and normal
+     * size type under the primary message.  If you make this null, the sub-message
+     * will not be rendered.
+     * @param throwable The cause of it all
+     * @param qfaFactory The error report generator; may not be null.
+     */
+    public static void showExceptionDialog(ArchitectFrame architectFrame, Component parent, String message, String subMessage, Throwable throwable, QFAFactory qfaFactory) {
         try {
             ExceptionReport er = qfaFactory.createExceptionReport(throwable);
-            er.setNumObjectsInPlayPen(ArchitectFrame.getMainInstance().playpen.getTablePanes().size()
-                                      + ArchitectFrame.getMainInstance().playpen.getRelationships().size());
-            er.setNumSourceConnections(ArchitectFrame.getMainInstance().dbTree.getDatabaseList().size());
+            if (architectFrame != null) {
+                er.setNumObjectsInPlayPen(architectFrame.playpen.getTablePanes().size()
+                                      + architectFrame.playpen.getRelationships().size());
+                er.setNumSourceConnections(architectFrame.dbTree.getDatabaseList().size());
+            }
             er.setUserActivityDescription("");
             logger.debug(er.toString());
             er.postReport();
@@ -426,7 +449,8 @@ public class ASUtils {
         } finally {
             displayExceptionDialog(parent,message,subMessage,throwable);
         }
-	}
+    }
+    
 
     /**
      * Displays a dialog box with the given message and exception,

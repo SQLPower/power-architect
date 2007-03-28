@@ -113,12 +113,13 @@ public class ArchitectDataSourceType {
                     }
                     byte[] buf = new byte[(int) ent.getSize()];
                     InputStream is = jf.getInputStream(ent);
-                    int start = 0, n = 0;
-                    while ( (n = is.read(buf, start, buf.length-start)) > 0) {
-                        start += n;
+                    int offs = 0, n = 0;
+                    while ( (n = is.read(buf, offs, buf.length-offs)) >= 0 && offs < buf.length) {
+                        offs += n;
                     }
-                    if (start+n != ent.getSize()) {
-                        logger.warn("What gives?  ZipEntry "+ent.getName()+" is "+ent.getSize()+" bytes long, but we only read "+(start+n)+" bytes!");
+                    final int total = offs;
+                    if (total != ent.getSize()) {
+                        logger.warn("What gives?  ZipEntry "+ent.getName()+" is "+ent.getSize()+" bytes long, but we only read "+total+" bytes!");
                     }
                     jf.close();
                     return defineClass(name, buf, 0, buf.length);

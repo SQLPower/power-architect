@@ -116,18 +116,25 @@ public class CoreUserSettings {
      * returns null and leaves the plDotIni property as null as well. See {@link #plDotIni}.
      */
     public DataSourceCollection getPlDotIni() {
+        
         String path = getPlDotIniPath();
         if (path == null) return null;
         
         if (plDotIni == null) {
             plDotIni = new PlDotIni();
             try {
-                logger.debug("Reading new PL.INI instance");
+                logger.debug("Reading PL.INI defaults");
                 plDotIni.read(getClass().getClassLoader().getResourceAsStream("default_database_types.ini"));
-                plDotIni.read(new File(path));
             } catch (IOException e) {
-                logger.error("Failed to read pl.ini at \""+getPlDotIniPath()+"\"", e);
-                plDotIni = null;
+                throw new ArchitectRuntimeException(new ArchitectException("Failed to read system resource default_database_types.ini",e));
+            }
+            try {
+                if (plDotIni != null) {
+                    logger.debug("Reading new PL.INI instance");
+                    plDotIni.read(new File(path));
+                }
+            } catch (IOException e) {
+                throw new ArchitectRuntimeException(new ArchitectException("Failed to read pl.ini at \""+getPlDotIniPath()+"\"", e));
             }
         }
         return plDotIni;

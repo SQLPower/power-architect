@@ -56,9 +56,11 @@ public class ArchitectDataSourceTypeEditor implements ArchitectPanel {
         dsTypeList.addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent e) {
                 try {
-                    ArchitectDataSourceType dst =
-                        (ArchitectDataSourceType) dsTypeList.getSelectedValue();
-                    switchToDsType(dst);
+                    if (!e.getValueIsAdjusting()) {
+                        ArchitectDataSourceType dst =
+                            (ArchitectDataSourceType) dsTypeList.getSelectedValue();
+                        switchToDsType(dst);
+                    }
                 } catch (ArchitectException ex) {
                     ASUtils.showExceptionDialogNoReport(
                             "Can't edit this database type due to an unexpected error", ex);
