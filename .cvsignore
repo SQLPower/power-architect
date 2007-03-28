@@ -11,3 +11,5 @@ deploy
 .fbprefs
 staging
 .classpath
+antbuild
+dist
