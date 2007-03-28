@@ -439,7 +439,6 @@
 							<include name="*.txt"/>
 						</fileset>
 						<fileset dir="../staging/jdbc" targetdir="$INSTALL_PATH/jdbc">
-							<include name="*.jar"/>
 							<include name="*.ini"/>
 						</fileset>
 						<fileset dir=".." targetdir="$INSTALL_PATH">
@@ -727,7 +726,7 @@
 			<tarfileset dir="${staging.dir}" includes="Power Architect JDBC.app/**"/>
 			<tarfileset dir="${staging.dir}/doc" includes="*.pdf"/>
 			<tarfileset dir="${staging.dir}/doc" includes="*.txt"/>
-			<tarfileset dir="${staging.dir}" includes="jdbc/*.ini"/>
+			<tarfileset dir="${staging.dir}" includes="jdbc/*.ini jdbc/*.jdbc"/>
 		</tar>
 	</target>
 
