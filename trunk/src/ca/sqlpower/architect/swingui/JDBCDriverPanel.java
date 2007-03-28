@@ -1,6 +1,7 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -70,11 +71,8 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 	 * progress bar stuff
 	 */
     private JProgressBar progressBar;
-    private javax.swing.Timer timer;
-    private boolean doneLoadingJDBC;
     private JLabel progressLabel;
 
-    private JButton addButton;
     private JButton delButton;
     private DefaultMutableTreeNode rootNode;
 
@@ -97,7 +95,7 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 		add(new JScrollPane(driverTree), BorderLayout.CENTER);
 
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-		buttonPanel.add(addButton = new JButton(new AddAction()));
+		buttonPanel.add(new JButton(new AddAction()));
 		buttonPanel.add(delButton = new JButton(new DelAction()));
 		delButton.setEnabled(false);
 		add(buttonPanel, BorderLayout.NORTH);
@@ -110,7 +108,10 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 		progressLabel = new JLabel("Scanning for JDBC Drivers...");
 		progressLabel.setVisible(false);
 		progressPanel.add(progressLabel);
+        progressPanel.setPreferredSize(new Dimension(300, progressBar.getPreferredSize().height + 20));
 		add(progressPanel, BorderLayout.SOUTH);
+        
+        setPreferredSize(new Dimension(400, 400));
 	}
 
 	/**
@@ -181,6 +182,7 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
      * it will add them to the tree.
 	 */
 	private void doLoad(List<String> list) throws ArchitectException {
+        logger.debug("about to start a worker", new Exception());
 		LoadJDBCDrivers ljd = new LoadJDBCDrivers(list);
 		LoadJDBCDriversWorker worker = new LoadJDBCDriversWorker(ljd);
 		new ProgressWatcher(progressBar,ljd,progressLabel);
@@ -403,15 +405,17 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 		private Class readAndCheckClass(InputStream is, int size, String expectedName)
 			throws IOException, ClassFormatError {
 			byte[] buf = new byte[size];
-			int start = 0, n;
-			while ( (n = is.read(buf, start, size-start)) > 0) {
-				start += n;
+			int offs = 0, n;
+            
+			while ( (n = is.read(buf, offs, size-offs)) >= 0 && offs < size) {
+				offs += n;
 			}
-			if ( (start + n) != size ) {
-				logger.warn("Only read "+(start+n)+" bytes of class "
+            final int total = offs;
+			if (total != size) {
+				logger.warn("Only read "+total+" bytes of class "
 							+expectedName+" from JAR file; exptected "+size);
 			}
-			Class clazz = defineClass(expectedName, buf, 0, start + n);
+			Class clazz = defineClass(expectedName, buf, 0, total);
 			if (java.sql.Driver.class.isAssignableFrom(clazz)) {
 				logger.info("Found jdbc driver "+clazz.getName());
 				drivers.add(clazz.getName());

@@ -64,6 +64,7 @@ import ca.sqlpower.architect.etl.ExportCSV;
 import ca.sqlpower.architect.layout.ArchitectLayout;
 import ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout;
 import ca.sqlpower.architect.profile.TableProfileManager;
+import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
 import ca.sqlpower.architect.qfa.ExceptionHandler;
 import ca.sqlpower.architect.swingui.action.AboutAction;
 import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
@@ -328,6 +329,9 @@ public class ArchitectFrame extends JFrame {
 		                "Error", JOptionPane.ERROR_MESSAGE);
 		    }
 		}
+        
+		// Make sure we can load the pl.ini file so we can handle exceptions
+        us.getPlDotIni();
 
 		// Create actions
 		aboutAction = new AboutAction();
@@ -956,7 +960,8 @@ public class ArchitectFrame extends JFrame {
 		if (mainInstance == null) {
 			try {
 				new ArchitectFrame();
-			} catch (ArchitectException e) {
+			} catch (Exception e) {
+                ASUtils.showExceptionDialog(null,null,"Couldn't start the Architect", null, e, new ArchitectExceptionReportFactory());
 				throw new RuntimeException("Couldn't create ArchitectFrame instance!");
 			}
 		}
