@@ -13,7 +13,7 @@ import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLIndex.Column;
-import ca.sqlpower.util.table.CleanupTableModel;
+import ca.sqlpower.swingui.table.CleanupTableModel;
 
 public class IndexColumnTableModel extends AbstractTableModel implements CleanupTableModel {
 

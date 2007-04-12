@@ -26,7 +26,7 @@ import ca.sqlpower.architect.SQLTable.Folder;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
-import ca.sqlpower.util.table.EditableJTable;
+import ca.sqlpower.swingui.table.EditableJTable;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
 import com.jgoodies.forms.builder.PanelBuilder;
