@@ -58,7 +58,7 @@ The Power*Architect is Copyright 2007 SQL Power Group Inc.
 	
 	1. You may not redistribute copies of the Architect download which includes the Oracle and/or Microsoft SQL Server JDBC drivers.  If you wish to redistribute the Architect, you must obtain and distribute the version which does not include these bundled drivers.
 	
-	2. You may not publish benchmark information about performance related to yoiur use of any of the 3rd-party JDBC drivers.
+	2. You may not publish benchmark information about performance related to your use of any of the 3rd-party JDBC drivers.
 	
 	3. You may not reverse engineer, de-compile, or disassemble the 3rd party JDBC drivers.
 	
