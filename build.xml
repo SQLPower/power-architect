@@ -586,8 +586,14 @@
            vmoptions="-Xmx600m">
 			<jarfileset dir="${staging.dir}" includes="lib/*.jar"/>
 			<jarfileset dir="${staging.dir}" includes="architect.jar"/>
-			<resourcefileset dir="${staging.dir}/jdbc" includes="*.jar *.ini"/>
+			<javafileset dir="${staging.dir}" includes="jdbc/*.ini"/>
+			<extraclasspathfilelist dir="KICKME" files="jdbc"/>
 		</jarbundler>
+		
+		<!-- XXX this is stupid. we should modify the jarbundler task to allow literal strings in the classpath -->
+		<replace file="${staging.dir}/Power Architect.app/Contents/Info.plist"
+				 token="${basedir}/KICKME"
+				 value="$JAVAROOT" />
 	</target>
 
 	<target name="osx_jdbc_dist" depends="stage">
@@ -604,12 +610,19 @@
            shortname="Architect"
            stubfile="osx_packaging_utils/PowerArchitectStub"
            vmoptions="-Xmx600m">
-			<jarfileset dir="${staging.dir}/lib" includes="*.jar"/>
+			<jarfileset dir="${staging.dir}" includes="lib/*.jar"/>
 			<jarfileset dir="${staging.dir}" includes="architect.jar"/>
 			<!-- Add any jdbc drivers as resources the directory jdbc is referenced 
 					in the manifest as well as various targets. -->
-			<resourcefileset dir="${staging.dir}/jdbc" includes="*.jar *.ini"/>
+			<javafileset dir="${staging.dir}" includes="jdbc/*.jar jdbc/*.ini"/>
+			<extraclasspathfilelist dir="KICKME" files="jdbc"/>
 		</jarbundler>
+		
+		<!-- XXX this is stupid. we should modify the jarbundler task to allow literal strings in the classpath -->
+		<replace file="${staging.dir}/Power Architect JDBC.app/Contents/Info.plist"
+				 token="${basedir}/KICKME"
+				 value="$JAVAROOT" />
+		
 	</target>
 	
 	<!-- This target will only work on OS X (it needs the hdiutil command) -->
@@ -680,12 +693,13 @@
 				<arg value="attach" />
 				<arg value="${staging.dir}/RWArchitect.dmg.sparseimage" />
 			</exec>
-			<copy todir="/Volumes/Power*Architect/Power*Architect-jdbc.app/" overwrite="true"  >
+			<delete dir="/Volumes/Power*Architect/Power*Architect.app/Contents/Resources/Java"/>
+			<copy todir="/Volumes/Power*Architect/Power*Architect.app/" overwrite="true"  >
 				<fileset dir="${staging.dir}/Power Architect JDBC.app"></fileset>
 			</copy>
 			<exec executable="chmod">
 				<arg value="a+x"/>
-				<arg value="/Volumes/Power*Architect/Power*Architect-jdbc.app/Contents/MacOS/PowerArchitectStub"/>
+				<arg value="/Volumes/Power*Architect/Power*Architect.app/Contents/MacOS/PowerArchitectStub"/>
 			</exec>
 			<exec executable="hdiutil">
 				<arg value="detach" />
@@ -768,7 +782,7 @@
 		<replace file="${dist.dir}/index.html">
 			<replacefilter token="&lt;head&gt;" value="&lt;head&gt;&lt;base href=&quot;http://www.sqlpower.ca/&quot;/&gt;"/>
 			<replacefilter token="@@app_ver_major" value="${app_ver_major}"/>
-			<replacefilter token="@@app_var_minor" value="${app_ver_minor}"/>
+			<replacefilter token="@@app_ver_minor" value="${app_ver_minor}"/>
 			<replacefilter token="@@app_ver_tiny" value="${app_ver_tiny}"/>
 		</replace>
 		<echo>Did you forget to turn off all the debugging in log4j.properties?!</echo>
