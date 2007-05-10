@@ -1156,48 +1156,26 @@ public class SQLTable extends SQLObject {
     }
 
 	/**
-	 * Gets the value of columnsPopulated
-	 *
-	 * @return the value of columnsPopulated
+     * Returns true if this table's columns folder says it's populated.
 	 */
 	public boolean isColumnsPopulated()  {
 		return columnsFolder.isPopulated();
 	}
 
 	/**
-	 * Allows an outsider to tell this SQLTable that its columns list
-	 * is already populated (true) or still needs to be populated from
-	 * the source database (false).  Users of the class should not
-	 * normally call this method, but the load method of
-	 * SwingUIProject needs to call this.
-	 *
-	 * @param argColumnsPopulated Value to assign to this.columnsPopulated
-	public void setColumnsPopulated(boolean argColumnsPopulated) {
-		this.columnsPopulated = argColumnsPopulated;
-	}
-	 */
-
-	/**
-	 * Gets the value of relationshipsPopulated
-	 *
-	 * @return the value of relationshipsPopulated
+	 * Returns true if this table's imported keys folder and exported
+     * keys folders both say they're populated.
 	 */
 	public boolean isRelationshipsPopulated()  {
 		return importedKeysFolder.isPopulated() && exportedKeysFolder.isPopulated();
 	}
 
-	/**
-	 * Allows an outsider to tell this SQLTable that its relationships
-	 * list is already populated (true) or still needs to be populated
-	 * from the source database (false).  Users of the class should
-	 * not normally call this method, but the load method of
-	 * SwingUIProject needs to call this.
-	 *
-	 * @param argRelationshipsPopulated Value to assign to this.relationshipsPopulated
-	public void setRelationshipsPopulated(boolean argRelationshipsPopulated) {
-		this.relationshipsPopulated = argRelationshipsPopulated;
-	}
-	 */
+    /**
+     * Returns true if this table's indices folder says it's populated.
+     */
+    public boolean isIndicesPopulated()  {
+        return indicesFolder.isPopulated();
+    }
 
 	/**
 	 * Gets the name of this table's Primary Key index if it has one, otherwise
