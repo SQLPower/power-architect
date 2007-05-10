@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
@@ -221,9 +222,7 @@ public class SwingUIProject {
 
         ((SQLObject) sourceDatabases.getModel().getRoot()).addChild(0, playPen.getDatabase());
 
-
-
-        /**
+        /*
          * for backward compatibilty, in the old project file, we have
          * primaryKeyName in the table attrbute, but nothing
          * in the sqlIndex that indicates primary key index,
@@ -998,6 +997,7 @@ public class SwingUIProject {
     }
 
     IOUtils ioo = new IOUtils();
+    
     /**
      * Do just the writing part of save, given a PrintWriter
      * @param out - the file to write to
@@ -1030,8 +1030,8 @@ public class SwingUIProject {
         }
     }
     
-    public void save(OutputStreamWriter out, String encoding) throws IOException, ArchitectException {
-        save(new PrintWriter(out), encoding);
+    public void save(OutputStream out, String encoding) throws IOException, ArchitectException {
+        save(new PrintWriter(new OutputStreamWriter(out, encoding)), encoding);
     }
 
     private void saveDataSources(PrintWriter out) throws IOException, ArchitectException {
@@ -1355,8 +1355,7 @@ public class SwingUIProject {
             type = "table";
             propNames.put("remarks", ((SQLTable) o).getRemarks());
             propNames.put("objectType", ((SQLTable) o).getObjectType());
-            propNames.put("primaryKeyName", ((SQLTable) o).getPrimaryKeyName());
-            propNames.put("physicalPrimaryKeyName", ((SQLTable) o).getPhysicalPrimaryKeyName());
+            // don't save primary key name. It is a propery of the PK index, not the table.
             if (pm != null) {
                 pm.setProgress(++progress);
                 pm.setNote(o.getShortDisplayName());
