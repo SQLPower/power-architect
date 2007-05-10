@@ -101,8 +101,8 @@ public class ArchitectDataSourceType {
                 try {
                     logger.debug("checking file "+jarFileName);
                     File listedFile = ArchitectUtils.jarSpecToFile(jarFileName, getParent());
-                    if (!listedFile.exists()) {
-                        logger.debug("Skipping non-existant JAR file "+listedFile.getPath());
+                    if (listedFile == null || !listedFile.exists()) {
+                        logger.debug("Skipping non-existant JAR file "+jarFileName);
                         continue;
                     }
                     JarFile jf = new JarFile(listedFile);

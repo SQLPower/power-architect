@@ -648,7 +648,7 @@ public class CompareDMPanel extends JPanel {
 			} else if (loadRadio.isSelected()) {
 				SwingUIProject project = new SwingUIProject("Source");
 				File f = new File(loadFilePath.getText());
-				project.load(new BufferedInputStream(new FileInputStream(f)));
+				project.load(new BufferedInputStream(new FileInputStream(f)), session.getUserSettings().getPlDotIni());
 				o = project.getTargetDatabase();
 			} else {
 				throw new IllegalStateException(

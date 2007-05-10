@@ -274,7 +274,9 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 					logger.debug("**************** processing file #" + jarCount + " of " + driverJarList.size());
 					String path = (String) it.next();
                     File file = ArchitectUtils.jarSpecToFile(path, getClass().getClassLoader());
-					addJarFile(file);
+					if (file != null) {
+                        addJarFile(file);
+                    }
 				}
 				finished = true;
 				logger.debug("done loading (normal operation), setting finished to true.");
