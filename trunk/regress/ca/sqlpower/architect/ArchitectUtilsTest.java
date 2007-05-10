@@ -7,55 +7,9 @@ import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 public class ArchitectUtilsTest extends TestCase {
 
 	SQLObject sqlo;
-	/*
-	 * Test method for 'ca.sqlpower.architect.ArchitectUtils.listenToHierarchy(SQLObjectListener, SQLObject)'
-	 */
-	public void setUp()
-	{
-		sqlo = new SQLObject(){
-
-			@Override
-			public String getName() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-
-			@Override
-			public SQLObject getParent() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-
-			@Override
-			protected void setParent(SQLObject parent) {
-				// TODO Auto-generated method stub
-				
-			}
-
-			@Override
-			protected void populate() throws ArchitectException {
-				// TODO Auto-generated method stub
-				
-			}
-
-			@Override
-			public String getShortDisplayName() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-
-			@Override
-			public boolean allowsChildren() {
-				// TODO Auto-generated method stub
-				return false;
-			}
-
-			@Override
-			public Class<? extends SQLObject> getChildType() {
-				return null;
-			}
-			
-		};
+    
+	public void setUp()	{
+		sqlo = new StubSQLObject();
 	}
 	
 	public void testListenToHierarchySQLObjectListenerSQLObject() throws ArchitectException {

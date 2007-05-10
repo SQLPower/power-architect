@@ -15,9 +15,9 @@ import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.StubSQLObject;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.action.CreateRelationshipAction;
@@ -43,40 +43,11 @@ public class TestUndoManager extends TestCase {
      * Helps test undo manager by logging all calls to setFoo() in the
      * history list.
      */
-    public class UndoTester extends SQLObject {
+    public class UndoTester extends StubSQLObject {
         public List<Integer> history = new ArrayList<Integer>();
         
         public void setFoo(Integer v) { history.add(v); }
 
-        @Override
-        public SQLObject getParent() {
-            return null;
-        }
-
-        @Override
-        protected void setParent(SQLObject parent) {
-            // whatever
-        }
-
-        @Override
-        protected void populate() throws ArchitectException {
-            // nop
-        }
-
-        @Override
-        public String getShortDisplayName() {
-            return "test object";
-        }
-
-        @Override
-        public boolean allowsChildren() {
-            return false;
-        }
-
-        @Override
-        public Class<? extends SQLObject> getChildType() {
-            return null;
-        }
     }
 
 	UndoManager undoManager;
