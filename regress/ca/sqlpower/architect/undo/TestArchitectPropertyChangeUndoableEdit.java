@@ -1,8 +1,7 @@
 package ca.sqlpower.architect.undo;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.StubSQLObject;
 
 
 public class TestArchitectPropertyChangeUndoableEdit extends TestCase {
@@ -152,46 +151,10 @@ public class TestArchitectPropertyChangeUndoableEdit extends TestCase {
 
 	}
 
-	public static class TestSQLObject extends SQLObject {
+	public static class TestSQLObject extends StubSQLObject {
 		
 		private int foo;
 		private String bar;
-
-		@Override
-		public String getName() {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public SQLObject getParent() {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		protected void setParent(SQLObject parent) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		protected void populate() throws ArchitectException {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public String getShortDisplayName() {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public boolean allowsChildren() {
-			// TODO Auto-generated method stub
-			return false;
-		}
 
 		public String getBar() {
 			return bar;
@@ -213,9 +176,5 @@ public class TestArchitectPropertyChangeUndoableEdit extends TestCase {
 			fireDbObjectChanged("foo",oldFoo,foo);
 		}
 
-		@Override
-		public Class<? extends SQLObject> getChildType() {
-			return null;
-		}
 	}
 }

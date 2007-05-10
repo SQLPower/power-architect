@@ -11,7 +11,7 @@ public class SQLObjectTest extends TestCase {
 
 	SQLObject target;
 	
-	static class SQLObjectImpl extends SQLObject {
+	private static class SQLObjectImpl extends SQLObject {
 	    protected boolean allowsChildren;
 		SQLObjectImpl() {
 			children = new ArrayList();

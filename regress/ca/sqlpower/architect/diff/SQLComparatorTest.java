@@ -6,49 +6,12 @@ import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.StubSQLObject;
 
 public class SQLComparatorTest extends TestCase {
 	Comparator<SQLObject> comparator = new SQLObjectComparator();
 
-	SQLObject o1 = new SQLObject() {
-
-		@Override
-		public SQLObject getParent() {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		protected void setParent(SQLObject parent) {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		protected void populate() throws ArchitectException {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public String getShortDisplayName() {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public boolean allowsChildren() {
-			// TODO Auto-generated method stub
-			return false;
-		}
-
-		@Override
-		public Class<? extends SQLObject> getChildType() {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-	};
+	SQLObject o1 = new StubSQLObject();
 
 	public void testForNull() {
 		assertEquals(0, comparator.compare(null, null));
