@@ -659,11 +659,16 @@ public class ArchitectUtils {
         if (jarFileName.startsWith(builtIn)) {
             String jarName = jarFileName.substring(builtIn.length());
             URL resource = classLoader.getResource(jarName);
-            ArchitectDataSourceType.logger.debug(resource + " path = " + resource.getPath());
-            try {
-                listedFile = new File(URLDecoder.decode(resource.getPath(),"iso8859-1"));
-            } catch (UnsupportedEncodingException ex) {
-                throw new RuntimeException("couldn't decode url with iso8859-1", ex);
+            if (resource == null) {
+                logger.warn("Couldn't find built-in system resource \""+jarName+"\". Skipping it.");
+                listedFile = null;
+            } else {
+                ArchitectDataSourceType.logger.debug(resource + " path = " + resource.getPath());
+                try {
+                    listedFile = new File(URLDecoder.decode(resource.getPath(),"iso8859-1"));
+                } catch (UnsupportedEncodingException ex) {
+                    throw new RuntimeException("couldn't decode url with iso8859-1", ex);
+                }
             }
         } else {
             listedFile = new File(jarFileName);

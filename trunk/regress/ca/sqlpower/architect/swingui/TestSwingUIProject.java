@@ -26,6 +26,7 @@ import ca.sqlpower.ArchitectTestCase;
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectDataSourceType;
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.PlDotIni;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
@@ -43,12 +44,15 @@ public class TestSwingUIProject extends ArchitectTestCase {
 	private SwingUIProject project;
 	private static final String ENCODING="UTF-8";
 	private boolean deleteOnExit = false;
-	
+	private PlDotIni plIni;
+    
 	/*
 	 * Test method for 'ca.sqlpower.architect.swingui.SwingUIProject.SwingUIProject(String)'
 	 */
 	public void setUp() throws Exception {
 		project = new SwingUIProject("test");
+        plIni = new PlDotIni();
+        // TODO add some database types and a test that loading the project finds them
 	}
 
 	private final String testData =
@@ -109,7 +113,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 	public void testLoad() throws Exception {
 		// StringReader r = new StringReader(testData);
 		ByteArrayInputStream r = new ByteArrayInputStream(testData.getBytes());
-		project.load(r);
+		project.load(r, plIni);
 		assertFalse("Project starts out with undo history",project.getUndoManager().canUndoOrRedo());
 
 		DBTree tree = project.getSourceDatabases();
@@ -178,7 +182,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         
         // load it back and check
         SwingUIProject project2 = new SwingUIProject("new test project");
-        project2.load(new BufferedInputStream(new FileInputStream(tmp)));
+        project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
         
         target = project2.getTargetDatabase();
         t = target.getTableByName("test_pk");
@@ -196,7 +200,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		project.save(mockProgressMonitor);
 		
 		SwingUIProject p2 = new SwingUIProject("test2");
-		p2.load(new FileInputStream(file));
+		p2.load(new FileInputStream(file), plIni);
 		File tmp2 = File.createTempFile("test2", ".architect");
 		if (deleteOnExit) {
 			tmp2.deleteOnExit();
@@ -220,7 +224,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 
         SwingUIProject p2 = new SwingUIProject("test2");
 		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toString().getBytes(ENCODING));
-        p2.load(byteArrayInputStream);
+        p2.load(byteArrayInputStream, plIni);
 		p2.save(byteArrayOutputStream2,ENCODING);
 
         assertEquals(byteArrayOutputStream.toString(), byteArrayOutputStream2.toString());
@@ -239,7 +243,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         System.out.println(byteArrayOutputStream.toString());
         SwingUIProject p2 = new SwingUIProject("test2");
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toString().getBytes(ENCODING));
-        p2.load(byteArrayInputStream);
+        p2.load(byteArrayInputStream, plIni);
         List<TablePane> projectTablePanes = project.getPlayPen().getTablePanes();
         List<TablePane> p2TablePanes = p2.getPlayPen().getTablePanes();
         assertEquals(projectTablePanes.size(),p2TablePanes.size());
@@ -416,7 +420,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		project.save(out,ENCODING);
 		
 		SwingUIProject project2 = new SwingUIProject("new test project");
-		project2.load(new BufferedInputStream(new FileInputStream(tmp)));
+		project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
 		
 		// grab the second database in the dbtree's model (the first is the play pen)
 		db = (SQLDatabase) project2.getSourceDatabases().getDatabaseList().get(1);
@@ -481,7 +485,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		project.save(out,ENCODING);
 		
 		SwingUIProject project2 = new SwingUIProject("new test project");
-		project2.load(new BufferedInputStream(new FileInputStream(tmp)));
+		project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
 		
 		// grab the second database in the dbtree's model (the first is the play pen)
 		db = (SQLDatabase) project2.getSourceDatabases().getDatabaseList().get(1);
@@ -532,7 +536,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		project.save(out,ENCODING);
 		
 		SwingUIProject project2 = new SwingUIProject("new test project");
-		project2.load(new BufferedInputStream(new FileInputStream(tmp)));
+		project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
 		
 		// grab the second database in the dbtree's model (the first is the play pen)
 		db = (SQLDatabase) project2.getSourceDatabases().getDatabaseList().get(1);
@@ -584,7 +588,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		project.save(out,ENCODING);
 		
 		SwingUIProject project2 = new SwingUIProject("new test project");
-		project2.load(new BufferedInputStream(new FileInputStream(tmp)));
+		project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
 		
 		// grab the second database in the dbtree's model (the first is the play pen)
 		db = (SQLDatabase) project2.getSourceDatabases().getDatabaseList().get(1);
@@ -656,7 +660,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		project.save(out,ENCODING);
 		
 		SwingUIProject project2 = new SwingUIProject("new test project");
-		project2.load(new BufferedInputStream(new FileInputStream(tmp)));
+		project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
 		
 		// grab the second database in the dbtree's model (the first is the play pen)
 		ppdb = (SQLDatabase) project2.getPlayPen().getDatabase();
@@ -718,7 +722,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         
         
         SwingUIProject project2 = new SwingUIProject("new test project");
-        project2.load(new BufferedInputStream(new FileInputStream(tmp)));
+        project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
         
         ppdb = (SQLDatabase) project2.getPlayPen().getDatabase();
         
@@ -764,7 +768,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         project.save(byteArrayOutputStream,ENCODING);
         System.out.println(byteArrayOutputStream.toString());
         SwingUIProject project2 = new SwingUIProject("new test project");
-        project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()));
+        project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), plIni);
         
         // grab the second database in the dbtree's model (the first is the play pen)
         ppdb = (SQLDatabase) project2.getPlayPen().getDatabase();
@@ -810,7 +814,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         project.save(byteArrayOutputStream,ENCODING);
         System.out.println(byteArrayOutputStream.toString());
         SwingUIProject project2 = new SwingUIProject("new test project");
-        project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()));
+        project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), plIni);
         
         // grab the second database in the dbtree's model (the first is the play pen)
         ppdb = (SQLDatabase) project2.getPlayPen().getDatabase();
@@ -859,7 +863,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         project.save(out,ENCODING);
         
         SwingUIProject project2 = new SwingUIProject("new test project");
-        project2.load(new BufferedInputStream(new FileInputStream(tmp)));
+        project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
         
         // grab the second database in the dbtree's model (the first is the play pen)
         ppdb = (SQLDatabase) project2.getPlayPen().getDatabase();

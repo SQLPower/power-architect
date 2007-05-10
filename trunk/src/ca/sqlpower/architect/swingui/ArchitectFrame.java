@@ -1016,7 +1016,7 @@ public class ArchitectFrame extends JFrame {
 
 		@Override
 		public void doStuff() throws IOException, ArchitectException {
-			project.load(in);
+			project.load(in, getUserSettings().getPlDotIni());
             if (recent != null) {
                 recent.putRecentFileName(file.getAbsolutePath());
             }

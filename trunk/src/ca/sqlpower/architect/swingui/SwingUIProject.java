@@ -30,11 +30,13 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
 import ca.sqlpower.architect.ArchitectDataSource;
+import ca.sqlpower.architect.ArchitectDataSourceType;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.ArchitectVersion;
+import ca.sqlpower.architect.DataSourceCollection;
 import ca.sqlpower.architect.IOUtils;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
@@ -202,7 +204,7 @@ public class SwingUIProject {
     // ------------- READING THE PROJECT FILE ---------------
 
     // FIXME: this should static and return a new instance of SwingUIProject
-    public void load(InputStream in) throws IOException, ArchitectException {
+    public void load(InputStream in, DataSourceCollection dataSources) throws IOException, ArchitectException {
         dbcsIdMap = new HashMap();
         objectIdMap = new HashMap();
 
@@ -220,8 +222,32 @@ public class SwingUIProject {
             throw new ArchitectException("Unexpected Exception", ex);
         }
 
-        ((SQLObject) sourceDatabases.getModel().getRoot()).addChild(0, playPen.getDatabase());
+        SQLObject dbConnectionContainer = ((SQLObject) sourceDatabases.getModel().getRoot());
+        dbConnectionContainer.addChild(0, playPen.getDatabase());
 
+        // hook up data source parent types
+        for (SQLDatabase db : (List<SQLDatabase>) dbConnectionContainer.getChildren()) {
+            ArchitectDataSource ds = db.getDataSource();
+            String parentTypeId = ds.getPropertiesMap().get(ArchitectDataSource.DBCS_CONNECTION_TYPE);
+            if (parentTypeId != null) {
+                for (ArchitectDataSourceType dstype : dataSources.getDataSourceTypes()) {
+                    if (dstype.getName().equals(parentTypeId)) {
+                        ds.setParentType(dstype);
+                        // TODO unit test that this works
+                    }
+                }
+                if (ds.getParentType() == null) {
+                    logger.error("Data Source \""+ds.getName()+"\" has type \""+parentTypeId+"\", which is not configured in the user prefs.");
+                    // TODO either reconstruct the parent type, or bring this problem to the attention of the user.
+                    // TODO test this
+                } else {
+                    // TODO test that the referenced parent type is properly configured (has a driver, etc)
+                    // TODO test for this behaviour
+                }
+            }
+            
+        }
+        
         /*
          * for backward compatibilty, in the old project file, we have
          * primaryKeyName in the table attrbute, but nothing
@@ -1035,6 +1061,11 @@ public class SwingUIProject {
     }
 
     private void saveDataSources(PrintWriter out) throws IOException, ArchitectException {
+        // FIXME this needs work.  It should include everything we need in order to build
+        //       the referenced parent type from scratch (except the jdbc driver path)
+        //       and the code that loads a project should check if the referenced parent
+        //       type exists.  If not, we need to create everything we can about the parent
+        //       type, then show the driver manager gui and get the user to pick a jdbc driver file.
         ioo.println(out, "<project-data-sources>");
         ioo.indent++;
         int dsNum = 0;
