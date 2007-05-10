@@ -776,6 +776,20 @@ public class TestSQLTable extends SQLTestCase {
         assertEquals(2, t.getColumns().size());
     }
     
+    //TODO: Convert this test to work on a local Hypersonic DB
+    public void testPopulateViewIndices() throws Exception {
+        ArchitectDataSource ds = getDataSource();
+        
+        SQLDatabase db = new SQLDatabase(ds);
+          
+        SQLTable t = db.getTableByName("PL_TABLES");
+        
+        SQLObject o = t.getChildByName("Indices");
+        
+        // Should not throw an ArchitectException
+        o.populate();
+    }
+    
     /**
      * Utility class that can log events for a tree of SQLObjects, and make snapshots of the
      * state of that tree on demand.  The snapshots can be rolled back using the event log
