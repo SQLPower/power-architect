@@ -209,6 +209,13 @@ public class SQLTable extends SQLObject {
         if (indicesFolder.children.size() > 0) throw new IllegalStateException("Can't populate indices folder because it already contains children!");
         if (!columnsFolder.isPopulated()) throw new IllegalStateException("Columns folder must be populated");
         
+        // If the SQLTable is a view, simply indicated folder is populated and then leave
+        // Since Views don't have indices (and Oracle throws an error)
+        if (objectType.equals("VIEW")) { 
+            indicesFolder.populated = true;
+            return;
+        }
+        
         logger.debug("index folder populate starting");
 
         try {
