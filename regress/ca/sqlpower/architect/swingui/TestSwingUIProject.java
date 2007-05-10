@@ -7,7 +7,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
@@ -34,6 +33,7 @@ import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.StubSQLObject;
 
 /**
  * Test case, mainly for loading and saving via SwingUIProject.
@@ -215,15 +215,13 @@ public class TestSwingUIProject extends ArchitectTestCase {
  
         ByteArrayOutputStream byteArrayOutputStream2 = new ByteArrayOutputStream();
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        OutputStreamWriter out = new OutputStreamWriter(byteArrayOutputStream,ENCODING);
-		assertNotNull(out);
-		project.save(out,ENCODING);
+		assertNotNull(byteArrayOutputStream);
+		project.save(byteArrayOutputStream,ENCODING);
 
         SwingUIProject p2 = new SwingUIProject("test2");
 		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toString().getBytes(ENCODING));
         p2.load(byteArrayInputStream);
-        OutputStreamWriter out2 = new OutputStreamWriter(byteArrayOutputStream2,ENCODING);
-		p2.save(out2,ENCODING);
+		p2.save(byteArrayOutputStream2,ENCODING);
 
         assertEquals(byteArrayOutputStream.toString(), byteArrayOutputStream2.toString());
 	}
@@ -237,9 +235,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         testLoad();
  
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        OutputStreamWriter out = new OutputStreamWriter(byteArrayOutputStream,ENCODING);
-        assertNotNull(out);
-        project.save(out,ENCODING);
+        project.save(byteArrayOutputStream,ENCODING);
         System.out.println(byteArrayOutputStream.toString());
         SwingUIProject p2 = new SwingUIProject("test2");
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toString().getBytes(ENCODING));
@@ -765,8 +761,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
             setAllInterestingProperties(index, propertiesToIgnore);
         propertiesToIgnore.remove("primaryKeyIndex");
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        OutputStreamWriter writer = new OutputStreamWriter(byteArrayOutputStream,ENCODING);
-        project.save(writer,ENCODING);
+        project.save(byteArrayOutputStream,ENCODING);
         System.out.println(byteArrayOutputStream.toString());
         SwingUIProject project2 = new SwingUIProject("new test project");
         project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()));
@@ -812,8 +807,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
             setAllInterestingProperties(index, propertiesToIgnore);
         propertiesToIgnore.remove("primaryKeyIndex");
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        OutputStreamWriter writer = new OutputStreamWriter(byteArrayOutputStream,ENCODING);
-        project.save(writer,ENCODING);
+        project.save(byteArrayOutputStream,ENCODING);
         System.out.println(byteArrayOutputStream.toString());
         SwingUIProject project2 = new SwingUIProject("new test project");
         project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()));
@@ -907,4 +901,80 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		assertEquals("FILE", cds.getTargetSettings().getDatastoreType().toString());
 		assertEquals("Testpath", cds.getTargetSettings().getFilePath());				
 	}
+    
+    /**
+     * Test for regression of bug 1288. This version has catalogs and schemas.
+     */
+    public void testSaveDoesntCausePopulateCatalogSchema() throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        SQLObject dbtreeRoot = (SQLObject) project.getSourceDatabases().getModel().getRoot();
+
+        ArchitectDataSource ds = new ArchitectDataSource();
+        ds.setDisplayName("test_database");
+        ds.getParentType().setJdbcDriver("ca.sqlpower.architect.MockJDBCDriver");
+        ds.setUser("fake");
+        ds.setPass("fake");
+        //this creates a mock jdbc database with catalogs and schemas
+        ds.setUrl("jdbc:mock:dbmd.catalogTerm=Catalog&dbmd.schemaTerm=Schema&catalogs=cow_catalog&schemas.cow_catalog=moo_schema,quack_schema&tables.cow_catalog.moo_schema=braaaap,pffft&tables.cow_catalog.quack_schema=duck,goose");
+
+        SQLDatabase db = new SQLDatabase(ds);
+        dbtreeRoot.addChild(db);
+        
+        project.save(out, ENCODING);
+        
+        SQLTable tab = db.getTableByName("cow_catalog", "moo_schema", "braaaap");
+        assertFalse(tab.isColumnsPopulated());
+        assertFalse(tab.isRelationshipsPopulated());
+        assertFalse(tab.isIndicesPopulated());
+    }
+
+    /**
+     * Test for regression of bug 1288. This version has schemas only (no catalogs).
+     */
+    public void testSaveDoesntCausePopulateSchema() throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        SQLObject dbtreeRoot = (SQLObject) project.getSourceDatabases().getModel().getRoot();
+
+        ArchitectDataSource ds = new ArchitectDataSource();
+        ds.setDisplayName("test_database");
+        ds.getParentType().setJdbcDriver("ca.sqlpower.architect.MockJDBCDriver");
+        ds.setUser("fake");
+        ds.setPass("fake");
+        //this creates a mock jdbc database with catalogs and schemas
+        ds.setUrl("jdbc:mock:dbmd.schemaTerm=Schema&schemas=moo_schema,quack_schema&tables.moo_schema=braaaap,pffft&tables.quack_schema=duck,goose");
+
+        SQLDatabase db = new SQLDatabase(ds);
+        dbtreeRoot.addChild(db);
+   
+        SQLSchema mooSchema = (SQLSchema) db.getChildByName("moo_schema");
+        
+        // we were only running into this bug on schemas that are already populated
+        // so this step is the key to waking up the bug!
+        mooSchema.populate();
+        
+        project.save(out, ENCODING);
+        
+        SQLTable tab = db.getTableByName(null, "moo_schema", "braaaap");
+        assertFalse(tab.isColumnsPopulated());
+        assertFalse(tab.isRelationshipsPopulated());
+        assertFalse(tab.isIndicesPopulated());
+    }
+
+    public void testSaveThrowsExceptionForUnknownSQLObjectSubclass() throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        SQLObject dbtreeRoot = (SQLObject) project.getSourceDatabases().getModel().getRoot();
+
+        SQLDatabase db = new SQLDatabase();
+        dbtreeRoot.addChild(db);
+        
+        StubSQLObject sso = new StubSQLObject();
+        db.addChild(sso);
+        
+        try {
+            project.save(out, ENCODING);
+            fail("No exception when trying to save unknown type of SQLObject");
+        } catch (UnsupportedOperationException ex) {
+            // expected result
+        }
+    }
 }
