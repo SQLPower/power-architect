@@ -344,10 +344,7 @@ public class ArchitectFrame extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 			    if (promptForUnsavedModifications()) {
 			        try {
-			        	prefs.putInt(SwingUserSettings.DIVIDER_LOCATION, splitPane.getDividerLocation());
-                        getProject().close();
-			            setProject(new SwingUIProject("New Project"), false);
-			            logger.debug("Glass pane is "+getGlassPane());
+			        	createNewProject();
 			        } catch (Exception ex) {
 			            JOptionPane.showMessageDialog(ArchitectFrame.this,
 			                    "Can't create new project: "+ex.getMessage());
@@ -355,6 +352,8 @@ public class ArchitectFrame extends JFrame {
 			        }
 			    }
 			}
+
+
 		};
 		newProjectAction.putValue(AbstractAction.SHORT_DESCRIPTION, "New");
 		newProjectAction.putValue(AbstractAction.ACCELERATOR_KEY,
@@ -845,6 +844,17 @@ public class ArchitectFrame extends JFrame {
 		setProject(new SwingUIProject("New Project"), true);
 	}
 
+    /**
+     * Closes the current project and creates a new one in its place
+     * @throws ArchitectException
+     */
+    private void createNewProject() throws ArchitectException {
+        prefs.putInt(SwingUserSettings.DIVIDER_LOCATION, splitPane.getDividerLocation());
+        getProject().close();
+        setProject(new SwingUIProject("New Project"), false);
+        logger.debug("Glass pane is "+getGlassPane());
+    }
+    
 	public void setProject(SwingUIProject p, boolean showWelcome) throws ArchitectException {
 		this.project = p;
 		logger.debug("Setting project to "+project);
@@ -1024,8 +1034,27 @@ public class ArchitectFrame extends JFrame {
 
 		@Override
 		public void cleanup() throws ArchitectException {
-            setProject(project, false);
-            ((SQLObject) project.getSourceDatabases().getModel().getRoot()).fireDbStructureChanged();
+            if (getDoStuffException() != null) {
+                JOptionPane.showMessageDialog(ArchitectFrame.this,
+                        "Can't open project '" + project.getName() + "': " + getDoStuffException().getMessage());
+                logger.error("Got exception while opening a project", getDoStuffException());
+                
+                try {                    
+                    createNewProject();
+                } catch (Exception ex) {
+                    //TODO: Think of a better error message to display to the user if the creating a new
+                    // project after a failure to load a project fails
+                    JOptionPane.showMessageDialog(ArchitectFrame.this,
+                            "Can't create new project after failing to load project '" + project.getName() +
+                            "': " + ex.getMessage());
+                    logger.error("Got exception while creating new project after failing to load project '" + 
+                            project.getName() + "': ", ex);
+                }
+            } else {
+                setProject(project, false);
+                ((SQLObject) project.getSourceDatabases().getModel().getRoot()).fireDbStructureChanged();
+            }
+            
         	try {
         		if (in != null) {
         			in.close();
@@ -1033,7 +1062,6 @@ public class ArchitectFrame extends JFrame {
         	} catch (IOException ie) {
         		logger.error("got exception while closing project file", ie);
         	}
-
 		}
 	}
 
