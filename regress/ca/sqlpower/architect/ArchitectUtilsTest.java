@@ -164,28 +164,45 @@ public class ArchitectUtilsTest extends TestCase {
 	public void testGetDriverDDLGeneratorMap() {
 
 	}
-
-	// Used by testEscapeXML
-	private static String[][] sanitizeData = {
-		// Test each one singly
-		{ "a<b", "a&lt;b" },
-		{ "a>b", "a&gt;b" },
-		{ "a\"b", "a&quot;b" },
-		{ "a\'b", "a&apos;b" },
-		{ "a&b", "a&amp;b" },
-		// Multiples
-		{ "a<>b", "a&lt;&gt;b" },
-		{ "a&&b", "a&amp;&amp;b" },
-		{ "abc", "abc" },
-		{ "<source-databases/>", "&lt;source-databases/&gt;" },
-		{ "", "" },
-	};
 	
+    // Used by testEscapeXML
+    private static String[][] sanitizeData = {
+        // Test each one singly
+        { "a<b", "a&lt;b" },
+        { "a>b", "a&gt;b" },
+        { "a\"b", "a&quot;b" },
+        { "a\'b", "a&apos;b" },
+        { "a&b", "a&amp;b" },
+        // Multiples
+        { "a<>b", "a&lt;&gt;b" },
+        { "a&&b", "a&amp;&amp;b" },
+        { "abc", "abc" },
+        { "<source-databases/>", "&lt;source-databases/&gt;" },
+        { "", "" },
+    };
+    
 	/*
 	 * Test method for 'ca.sqlpower.architect.ArchitectUtils.escapeXML(String)'
 	 */
 	public void testEscapeXML() throws Exception {
-		for (String[] td : sanitizeData) {
+
+        String[][] testData = new String[sanitizeData.length + 31][2]; 
+           
+        // Test each one singly       
+        for (int charVal = 0; charVal < 31; charVal++) {
+            char testChar = (char)charVal;            
+            testData[charVal][0] = "a" + testChar +"b";
+            testData[charVal][1] = "a&#" + charVal +";b";
+        }
+        
+        int a = 0;
+        for (String[] td : sanitizeData) {
+            testData[31 + a][0] = td[0];
+            testData[31 + a][1] = td[1];
+            a++;
+        }
+        
+        for (String[] td : testData) {
 			assertEquals(td[1], ArchitectUtils.escapeXML(td[0]));
 		}
 		

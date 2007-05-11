@@ -1036,7 +1036,7 @@ public class ArchitectFrame extends JFrame {
 		public void cleanup() throws ArchitectException {
             if (getDoStuffException() != null) {
                 JOptionPane.showMessageDialog(ArchitectFrame.this,
-                        "Can't open project '" + project.getName() + "': " + getDoStuffException().getMessage());
+                        "Cannot open project file '" + project.getName() + ".architect': \n" + getDoStuffException().getMessage());
                 logger.error("Got exception while opening a project", getDoStuffException());
                 
                 try {                    

@@ -344,31 +344,31 @@ public class ArchitectUtils {
         if (src == null) return "";
 		StringBuffer sb = new StringBuffer(src.length()+10);  // arbitrary amount of extra space
 		char ch;
+        
 		for (int i = 0, n = src.length(); i < n; i++) {
-			switch (ch = src.charAt(i)) {
-			case '\'':
+			ch = src.charAt(i);
+            int charVal = ch;
+            
+            if (ch == '\'') {
 				sb.append("&apos;");
-				break;
-
-			case '"':
+            }
+            else if (ch == '"') {
 				sb.append("&quot;");
-				break;
-
-			case '&':
+            }
+            else if (ch == '&') {
 				sb.append("&amp;");
-				break;
-
-			case '<':
+            }
+            else if (ch == '<') {
 				sb.append("&lt;");
-				break;
-
-			case '>':
+            }
+            else if (ch == '>') {
 				sb.append("&gt;");
-				break;
-
-			default:
+            }
+            else if (charVal >= 0 && charVal < 32) {
+                sb.append("&#" + charVal + ";");
+            }
+            else {
 				sb.append(ch);
-				break;
 			}
 		}
 		return sb.toString();
