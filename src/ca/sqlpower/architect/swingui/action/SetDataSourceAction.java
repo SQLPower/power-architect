@@ -11,14 +11,22 @@ import ca.sqlpower.architect.SQLDatabase;
 
 
 /**
- * When invoked, this action sets the given database's connection info to the supplied DataSource.
+ * When invoked, this action copies one database's connection info
+ * into the supplied DataSource.
  */
 public class SetDataSourceAction extends AbstractAction {
 	
 	private static final Logger logger = Logger.getLogger(SetDataSourceAction.class);
 
-	protected ArchitectDataSource dbcs;
-	protected SQLDatabase db;
+    /**
+     * The source of the database connection parameters.
+     */
+	private final ArchitectDataSource dbcs;
+    
+    /**
+     * The target for the database connection parameters.
+     */
+	private final SQLDatabase db;
 
 	/**
 	 * Creates an action that will set the DBCS properties of DB to those in DBCS when invoked.
@@ -38,19 +46,7 @@ public class SetDataSourceAction extends AbstractAction {
 
 	public void actionPerformed(ActionEvent e) {
 		logger.debug("Setting data source of "+db+" to "+dbcs);
-		
-		//db.setDataSource(dbcs);
-		
-		// copy over the values from the selected DB.
-		
-		ArchitectDataSource tSpec = db.getDataSource();
-		tSpec.setDisplayName(dbcs.getDisplayName());
-		tSpec.getParentType().setJdbcDriver(dbcs.getDriverClass());
-		tSpec.setUrl(dbcs.getUrl());
-		tSpec.setUser(dbcs.getUser());
-		tSpec.setPass(dbcs.getPass());
-		tSpec.setPlSchema(dbcs.getPlSchema());
-		tSpec.setPlDbType(dbcs.getPlDbType());
-		tSpec.setOdbcDsn(dbcs.getOdbcDsn());
+        ArchitectDataSource tSpec = db.getDataSource();
+        tSpec.copyFrom(dbcs);
 	}
 }
