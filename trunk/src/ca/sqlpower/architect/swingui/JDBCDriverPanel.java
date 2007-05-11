@@ -1,6 +1,8 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
@@ -16,20 +18,22 @@ import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
 import javax.swing.AbstractAction;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
-import javax.swing.SwingUtilities;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
+import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
@@ -41,6 +45,46 @@ import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.Monitorable;
 
 public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
+
+	private static class DriverTreeCellRenderer extends DefaultTreeCellRenderer implements TreeCellRenderer {
+        
+        private Icon jarFileIcon =
+            new ImageIcon(ClassLoader.getSystemResource("icons/famfamfam/folder_wrench.png"));
+        private Icon driverIcon =
+            new ImageIcon(ClassLoader.getSystemResource("icons/famfamfam/wrench.png"));
+        private Icon jarFileErrorIcon =
+            new ImageIcon(ClassLoader.getSystemResource("icons/famfamfam/folder_error.png"));
+        private Icon driverErrorIcon =
+            new ImageIcon(ClassLoader.getSystemResource("icons/famfamfam/error.png"));
+        
+	    @Override
+	    public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
+            super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+            int level = node.getLevel();
+            if (level == 0) {
+                // root is invisible in the driver tree
+            } else if (level == 1) {
+                setIcon(jarFileIcon);
+                for (int i = 0; i < node.getChildCount(); i++){
+                    if(((DefaultMutableTreeNode) node.getChildAt(i)).getUserObject() instanceof Throwable){
+                        setIcon(jarFileErrorIcon);
+                        break;
+                    }
+                }
+            } else if (level == 2) {
+                if (node.getUserObject() instanceof Throwable) {
+                    setForeground(Color.RED);
+                    setIcon(driverErrorIcon);
+                } else {
+                    setIcon(driverIcon);
+                }
+            } else {
+                throw new IllegalStateException("This renderer doesn't know how to handle node depth "+level);
+            }
+            return this;
+	    }
+    }
 
 	private static final Logger logger = Logger.getLogger(JDBCDriverPanel.class);
 
@@ -92,6 +136,8 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 				delButton.setEnabled(true);
 			}
 		});
+        driverTree.setCellRenderer(new DriverTreeCellRenderer());
+        
 		add(new JScrollPane(driverTree), BorderLayout.CENTER);
 
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -163,11 +209,14 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 					for(int ii=0; ii < files.length;ii++) {
 						list.add(files[ii].getAbsolutePath());
 					}
-					doLoad(list);
-					// If they loaded without any Exceptions, add to list maintained by ArchitectSession
+                    
+                    // always add the files to the data source type. if there are problems,
+                    // they will be made visible to the user via the tree UI
 					for (int i = 0; i < files.length; i++) {
-						dataSourceType.addJdbcJar(files[i].getAbsolutePath());
+					    dataSourceType.addJdbcJar(files[i].getAbsolutePath());
 					}
+                    
+					doLoad(list);
 				}
 			} catch (ArchitectException ex) {
 				logger.error("AddAction.actionPerformed() problem.", ex);
@@ -291,32 +340,26 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 
 		private void addJarFile(File file) {
 			DefaultMutableTreeNode root = (DefaultMutableTreeNode) dtm.getRoot();
+            DefaultMutableTreeNode node = new DefaultMutableTreeNode(file.getPath());
+            dtm.insertNodeInto(node, root, root.getChildCount());
 			try {
 				jf = new JarFile(file);
 				cl = new JDBCScanClassLoader(jf);
 				List driverClasses = cl.scanForDrivers();
 				logger.info("Found drivers: "+driverClasses);
-				DefaultMutableTreeNode node = new DefaultMutableTreeNode(file.getPath());
-				dtm.insertNodeInto(node, root, root.getChildCount());
 				Iterator it = driverClasses.iterator();
 				while (it.hasNext()) {
 					DefaultMutableTreeNode child = new DefaultMutableTreeNode(it.next());
 					dtm.insertNodeInto(child, node, node.getChildCount());
 				}
-				TreePath path = new TreePath(node.getPath());
-				driverTree.expandPath(path);
-				driverTree.scrollPathToVisible(path);
 			} catch (IOException ex) {
 				logger.warn("I/O Error reading JAR file",ex);
-				final Exception fex = ex;
-				final File ffile = file;
-				SwingUtilities.invokeLater(new Runnable() {
-					public void run() {
-						JOptionPane.showMessageDialog(JDBCDriverPanel.this, "Could not read JAR file \""
-													  +ffile.getPath()+"\"\n"+fex.getMessage());
-					}
-				});
+                DefaultMutableTreeNode child = new DefaultMutableTreeNode(ex);
+                dtm.insertNodeInto(child, node, node.getChildCount());
 			}
+            TreePath path = new TreePath(node.getPath());
+            driverTree.expandPath(path);
+            driverTree.scrollPathToVisible(path);
 		}
 	}
 
