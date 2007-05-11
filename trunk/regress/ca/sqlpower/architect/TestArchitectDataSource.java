@@ -2,6 +2,7 @@ package ca.sqlpower.architect;
 
 import java.util.Comparator;
 import java.util.Map;
+import java.util.TreeMap;
 
 import junit.framework.TestCase;
 
@@ -285,5 +286,27 @@ public class TestArchitectDataSource extends TestCase {
         assertEquals(ds.getParentType().getName(), ds.getPropertiesMap().get(ArchitectDataSource.DBCS_CONNECTION_TYPE));
         ds.getParentType().setName("New Name");
         assertEquals(ds.getParentType().getName(), ds.getPropertiesMap().get(ArchitectDataSource.DBCS_CONNECTION_TYPE));
+    }
+    
+    public void testCopyFrom() {
+        ArchitectDataSource targetDs = new ArchitectDataSource();
+        targetDs.copyFrom(ds);
+
+        // need to copy all props into a tree map so they're both sorted in the same order
+        Map<Object, Object> sourceMap = new TreeMap<Object, Object>(ds.getPropertiesMap());
+        Map<Object, Object> targetMap = new TreeMap<Object, Object>(targetDs.getPropertiesMap());
+        
+        assertEquals(sourceMap.toString(), targetMap.toString());
+        assertSame(ds.getParentType(), targetDs.getParentType());
+    }
+    
+    public void testCopyFromFiresNameChange() {
+        CountingPropertyChangeListener pcl = new CountingPropertyChangeListener();
+        
+        ArchitectDataSource targetDs = new ArchitectDataSource();
+        targetDs.addPropertyChangeListener(pcl);
+        targetDs.copyFrom(ds);
+
+        assertEquals(1, pcl.getPropertyChangeCount("name"));
     }
 }
