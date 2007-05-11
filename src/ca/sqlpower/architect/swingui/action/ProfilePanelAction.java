@@ -213,7 +213,8 @@ public class ProfilePanelAction extends ProgressAction {
     }
 
     @Override
-    public void setup(ActionMonitor monitor, Map<String, Object> properties) {
+    public boolean setup(ActionMonitor monitor, Map<String, Object> properties) {
+        return true;
     }
     
     @Override

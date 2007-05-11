@@ -37,7 +37,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
 
     public ExportPlaypenToPDFAction() {
         // TODO: when we have an icon for this, use one.
-        super("Export Playpen", null);
+        super("Export Playpen to PDF", null);
         putValue(SHORT_DESCRIPTION, "Export Playpen to PDF");
     }
 
@@ -46,7 +46,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
      *  and requests a file to save to. When it gets that it draws the
      *  playpen to a PDF file on a seperate thread.
      */
-    public void setup(ActionMonitor monitor, Map<String,Object> properties) {
+    public boolean setup(ActionMonitor monitor, Map<String,Object> properties) {
         monitor.started = true;
         JFileChooser chooser = new JFileChooser();
         chooser.addChoosableFileFilter(ASUtils.PDF_FILE_FILTER);
@@ -57,7 +57,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
             int response = chooser.showSaveDialog(null);
 
             if (response != JFileChooser.APPROVE_OPTION) {
-                return;
+                return false;
             }
             file = chooser.getSelectedFile();
             String fileName = file.getName();
@@ -82,6 +82,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
         logger.debug("Saving to file: "+file.getName()+" (" +file.getPath()+")");
     
         properties.put(FILE_KEY,file);
+        return true;
     }
     
     

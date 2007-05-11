@@ -118,7 +118,10 @@ public abstract class ProgressAction extends AbstractAction {
         JLabel label = new JLabel(getDialogMessage());
         JProgressBar progressBar = new JProgressBar();
         final ActionMonitor monitor = new ActionMonitor();
-        setup(monitor,properties);        
+        if (!setup(monitor,properties)){
+            // if setup indicates not to continue (returns false), then exit method
+            return;
+        }
         CellConstraints c = new CellConstraints();
         pb.add(label, c.xyw(2, 2, 3));
         pb.add(progressBar,c.xyw(2, 4, 3));
@@ -161,8 +164,10 @@ public abstract class ProgressAction extends AbstractAction {
 
     /**
      * Setup the monitor and doStuff parameters before the progress dialog is shown.
+     * @return return true to continue with the action, return false to stop the action
+     *          This could be used to respond to user choice to cancel the action
      */
-    public abstract void setup(ActionMonitor monitor, Map<String, Object> properties);
+    public abstract boolean setup(ActionMonitor monitor, Map<String, Object> properties);
     /**
      * doStuff replaces the actionPerformed() call
      */
