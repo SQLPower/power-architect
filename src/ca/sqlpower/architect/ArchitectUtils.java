@@ -675,4 +675,26 @@ public class ArchitectUtils {
         }
         return listedFile;
     }
+
+    /**
+     * Creates a dot-separated string of the name of the given SQLObject and the
+     * names of each of its ancestors.  The top-level ancestor's name will be the
+     * first name to appear in the string, and the given object's name will be
+     * the last.
+     */
+    public static String toQualifiedName(SQLObject obj) {
+        List<SQLObject> ancestors = new ArrayList<SQLObject>();
+        while (obj != null) {
+            ancestors.add(obj);
+            obj = obj.getParent();
+        }
+        StringBuilder sb = new StringBuilder();
+        for (int i = ancestors.size() - 1; i >= 0; i--) {
+            sb.append(ancestors.get(i).getName());
+            if (i != 0) {
+                sb.append(".");
+            }
+        }
+        return sb.toString();
+    }
 }
