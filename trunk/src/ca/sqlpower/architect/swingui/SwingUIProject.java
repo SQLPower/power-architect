@@ -208,15 +208,19 @@ public class SwingUIProject {
         dbcsIdMap = new HashMap();
         objectIdMap = new HashMap();
 
+        Digester digester = setupDigester();
+        
         // use digester to read from file
         try {
-            setupDigester().parse(in);
+            digester.parse(in);
         } catch (SAXException ex) {
-            logger.error("SAX Exception in config file parse!", ex);
-            throw new ArchitectException("Syntax error in Project file", ex);
+            logger.error("SAX Exception in config file parse!", ex);            
+            throw new ArchitectException("There is an XML syntax error in project file at Line:" + 
+                    digester.getDocumentLocator().getLineNumber() + " Column:" +
+                    digester.getDocumentLocator().getColumnNumber(), ex);
         } catch (IOException ex) {
             logger.error("IO Exception in config file parse!", ex);
-            throw new ArchitectException("I/O Error", ex);
+            throw new ArchitectException("There was an I/O error while reading the file", ex);
         } catch (Exception ex) {
             logger.error("General Exception in config file parse!", ex);
             throw new ArchitectException("Unexpected Exception", ex);
