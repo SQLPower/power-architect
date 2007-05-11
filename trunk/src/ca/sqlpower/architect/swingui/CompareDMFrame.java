@@ -54,7 +54,7 @@ public class CompareDMFrame extends JDialog {
 		setTitle("Data Model comparison");
 		this.sourceOutputText = sourceOutputText;
 		this.targetOutputText = targetOutputText;
-		this.title = "Comparing " + leftTitle+ " to " + rightTitle + ".";
+		this.title = "Comparing " + leftTitle+ " to " + rightTitle;
         whatTheHeckIsGoingOn ="The following changes need to be done to make one into the other:";	
 		panel = mainFrame();
 		getContentPane().add(panel);

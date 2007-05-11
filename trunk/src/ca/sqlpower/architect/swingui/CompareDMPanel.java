@@ -49,6 +49,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
+import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
@@ -1100,28 +1101,47 @@ public class CompareDMPanel extends JPanel {
                 //Generates the proper title text for compareDMFrame or SQLScriptDialog                
                 private String toTitleText(SourceOrTargetStuff stuff, boolean isSource) {                    
                     StringBuffer fileName = new StringBuffer();
-
+                    boolean needBrackets = false;
+                    
                     //Deals with the file name first if avaiable
                     if (stuff.loadRadio.isSelected()){                                
                         File f = new File(stuff.loadFilePath.getText());                                                                                         
                         String tempName = f.getName();
-                        fileName.append(tempName.substring(0, tempName.lastIndexOf(".architect")));
-                    } else if (stuff.playPenRadio.isSelected()){                        
-                        try{
-                            String tempName = ArchitectFrame.getMainInstance().project.getFile().getName();
-                            int lastIndex = tempName.lastIndexOf(".architect");
-                            fileName.append(tempName.substring(0,lastIndex));                      
-                        } catch (NullPointerException e){
-                            //No big deal, it's a new project
-                            fileName.append( "New Project");
+                        int lastIndex = tempName.lastIndexOf(".architect");
+                        if (lastIndex < 0) {
+                            fileName.append(tempName);
+                        } else {
+                            fileName.append(tempName.substring(0, lastIndex));
                         }
-                        
+                        needBrackets = true;
+                    } else if (stuff.playPenRadio.isSelected()) {
+                        SwingUIProject swingUIProject = ArchitectFrame.getMainInstance().project;
+                        String tempName;
+                        if (swingUIProject.getFile() != null) {
+                            tempName = swingUIProject.getFile().getName();
+                        } else {
+                            tempName = "New Project";
+                        }
+                        int lastIndex = tempName.lastIndexOf(".architect");
+                        if (lastIndex < 0){
+                            fileName.append(tempName);
+                        } else {
+                            fileName.append(tempName.substring(0,lastIndex));
+                        }
+                        needBrackets = true;
                     }
+                    
                     //Add in the database name
-                    if (isSource){
-                        fileName.append(" (" + left.getName() + ")");
-                    } else{
-                        fileName.append(" (" + left.getName() + ")");
+                    if (needBrackets) {
+                        fileName.append(" (");
+                    }
+                    if (isSource) {
+                        fileName.append(ArchitectUtils.toQualifiedName(left));
+                    } else {
+                        fileName.append(ArchitectUtils.toQualifiedName(right));
+                    }
+                    if (needBrackets) {
+                        fileName.append(")");
                     }
                     return fileName.toString(); 
                 }
