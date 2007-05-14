@@ -135,15 +135,11 @@
 		</findbugs>
 	</target>
 
-	<!-- In order to execute this target, you have to put junit.jar and ant-junit.jar on the
-	     system classpath that Ant sees.  You can do this from the command line with:
-		ant -lib buildlib/junit.jar:buildlib/ant-junit.jar test
-	     Or from inside Eclipse Preferences - Ant - Runtime - Classpath
-	-->
 	<target name="junit" depends="compile,compile-tests">
 	   <junit printsummary="withOutAndErr">
 	       <classpath><path refid="test.classpath"/></classpath>
-	       <test name="ca.sqlpower.ArchitectMegaTestSuite"/>
+	       <test name="ca.sqlpower.ArchitectBusinessTestSuite"/>
+           <test name="ca.sqlpower.ArchitectAutoTests"/>
 	   </junit>
 	</target>
 
