@@ -23,18 +23,32 @@ public class ArchitectAutoTests {
 			"java.util.prefs.PreferencesFactory", "prefs.PreferencesFactory");
 		System.err.println("Warning: Changed PreferencesFactory to in-memory version;");
 	}
-	
+
 	public static Test suite() throws IOException {
+
 		// Point this at the top-level of the output folder
+        // XXX This path should not be baked into the code like this.
 		File file = new File("build");
 
-		TestFilter filt = new TestFilter() {
-			public boolean accept(Class aClass) {
-				int modifiers = aClass.getModifiers();
-				return !Modifier.isAbstract(modifiers);
-			}
-		};
-		return new RecursiveTestSuite(file, filt);	
+        TestFilter filt = new TestFilter() {
+            
+            public boolean accept(Class aClass) {
+                
+                if (Modifier.isAbstract(aClass.getModifiers())) {
+                    return false;
+                }
+
+                String name = aClass.getName();
+                if (name.endsWith("TestSuite")) {
+                    return false;
+                }
+
+                // No reject conditions found, so...
+                return true;
+            }
+        };
+
+		return new RecursiveTestSuite(file, filt);
 	}
-	
+
 }
