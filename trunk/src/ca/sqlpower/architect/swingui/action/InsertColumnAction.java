@@ -50,6 +50,9 @@ public class InsertColumnAction extends AbstractTableTargetedAction {
         	idx = 0;
         }
         st.addColumn(idx, new SQLColumn());
+        EditColumnAction editColumnAction = new EditColumnAction();
+        editColumnAction.makeDialog(st, idx);
+        
     }
 
     void processTablePane(TablePane tp) throws ArchitectException {
@@ -58,6 +61,8 @@ public class InsertColumnAction extends AbstractTableTargetedAction {
         if (idx < 0) idx = tp.getModel().getColumnsFolder().getChildCount();
         
         tp.getModel().addColumn(idx, new SQLColumn());
+        EditColumnAction editColumnAction = new EditColumnAction();
+        editColumnAction.makeDialog(tp.getModel(), idx);
     }
 
     @Override

@@ -125,7 +125,7 @@ public class EditColumnAction extends AbstractAction implements SelectionListene
 		}	
 	}
 
-	private void makeDialog(SQLTable st, int colIdx) throws ArchitectException {
+	protected void makeDialog(SQLTable st, int colIdx) throws ArchitectException {
 		if (editDialog != null) {
 			columnEditPanel.editColumn(st.getColumn(colIdx));			
 			editDialog.setTitle("Column Properties of "+st.getName());
