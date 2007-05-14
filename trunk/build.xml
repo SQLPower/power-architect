@@ -3,19 +3,41 @@
 	<!-- $Id$ -->
 	<!-- get the version number from source code ArchitectUtils -->
 
-	<property file="user.properties" />
+	<!-- Optional per-user customization -->
+	<property file="${user.home}/build.properties" />
+	<!-- Optional directory customization -->
+	<property file="build.properties" />
 
 	<property name="src" value="src"/>
-	<property name="build" value="antbuild"/>
+	<property name="lib" value="lib"/>
+	<property name="build" value="build"/>
 	<property name="build.compiler" value="modern"/>
 	<property name="installer.dir" value="installer"/>
 	<!-- The staging directory is a temp dir that is used as a base for all the distributions -->
 	<property name="staging.dir" value="staging" />
-	<property name="izpack.dir" value="IzPack"/>
 
+	<!-- findbugs -->
+	<property name="findbugs.home" value="ext-tools-home/findbugs"/>
+	<property name="findbugs-ant.jar" value="${findbugs.home}/lib/findbugs-ant.jar"/>
+
+	<!-- pmd and its helper jar files -->
+	<property name="pmd.home" value="ext-tools-home/pmd"/>
+	<property name="pmd.jar" value="${pmd.home}/lib/pmd-3.9.jar"/>
+
+	<!-- izpack needs both a jar and its own directory	-->
+	<property name="izpack.dir" value="ext-tools-home/izpack"/>
 	<taskdef name="izpack" classpath="${izpack.dir}/lib/compiler.jar" classname="com.izforge.izpack.ant.IzPackTask"/>
+
+	<!-- clover -->
+	<property name="clover.home" value="ext-tools-home/clover"/>
+
+	<!-- hivemind, used for manifestclasspath task -->
+	<property name="hivemind.jar" value="buildlib/hivemind-1.1.1.jar"/>
+	<taskdef name="manifestclasspath" classname="org.apache.hivemind.ant.ManifestClassPath"
+		classpath="${hivemind.jar}"/>
+
+	<!-- os x utils -->
 	<taskdef name="jarbundler" classpath="osx_packaging_utils/jarbundler.jar:osx_packaging_utils/xercesImpl.jar:osx_packaging_utils/xml-apis.jar" classname="net.sourceforge.jarbundler.JarBundler"/>
-	<taskdef resource="clovertasks"/>
 
 	<condition property="isMac">
 		<os family="mac"/>
@@ -26,6 +48,24 @@
 			<os family="mac"/>
 		</not>
 	</condition>
+
+	<target name="init">
+		<tstamp/>
+		<mkdir dir="${build}"/>
+		<javac srcdir="${src}" destdir="${build}" classpathref="compile.classpath" includes="ca/sqlpower/architect/antbuild/ArchitectVersionTask.java" debug="true" deprecation="true" />
+		<taskdef name="genVersion"
+					classname="ca.sqlpower.architect.antbuild.ArchitectVersionTask"
+			        classpath="build"/>
+		<genVersion/>
+		<echo message="Building Architect version: ${app_ver_major}.${app_ver_minor}.${app_ver_tiny}"> </echo>
+		<property name="dist.dir" value="dist/architect-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}"/>
+		<mkdir dir="${dist.dir}"/>
+	</target>
+
+	<!-- The routine tests that work can get listed here.
+	*** Right now findbugs runs out of memory
+	-->
+	<target name="alltests" depends="junit,pmd"/>
 
 	<target name="with.clover">
 	    <clover-setup initString="mycoverage.db" source="1.5">
@@ -45,47 +85,81 @@
 	    <clover-view/>
 	</target>
 
-	<target name="clover.summary" depends="with.clover"> 
-	    <clover-report> 
-	    	<current summary="yes" outfile="coverage.pdf"> 
-		    <format type="pdf"/> 
-		</current> 
-	    </clover-report> 
-	</target> 
+	<target name="clover.summary" depends="with.clover">
+	    <clover-report>
+	    	<current summary="yes" outfile="coverage.pdf">
+		    <format type="pdf"/>
+		</current>
+	    </clover-report>
+	</target>
+
+	<target name="pmd">
+		<taskdef name="pmd" classname="net.sourceforge.pmd.ant.PMDTask"
+			classpath="${pmd.jar}"/>
+		<property name="pmd-results" value="pmd-ant-results.txt"/>
+		<pmd shortFilenames="true">
+			<ruleset>basic,imports</ruleset>
+			<formatter type="text" toFile="${pmd-results}"/>
+			<fileset dir="${src}">
+				<include name="**/*.java"/>
+			</fileset>
+		</pmd>
+		<echo message="PMD completed, output is in  ${pmd-results}."/>
+	</target>
+
+	<target name="pmd-cpd">
+		<taskdef name="cpd" classname="net.sourceforge.pmd.cpd.CPDTask"
+			classpath="${pmd.jar}"/>
+		<property name="cpd-results" value="cpd-ant-results.txt"/>
+		<cpd minimumTokenCount="120" outputFile="cpd-report.txt" outputfile="${cpd-results}">
+			<fileset dir="${src}">
+				<include name="**/*.java"/>
+				<exclude name="generated/**.java"/>
+			</fileset>
+		</cpd>
+		<echo message="CPD completed, output is in  ${cpd-results}."/>
+	</target>
+
+	<target name="findbugs" depends="compile">
+		<taskdef name="findbugs" classname="edu.umd.cs.findbugs.anttask.FindBugsTask"
+			classpath="${findbugs-ant.jar}"/>
+		<findbugs home="${findbugs.home}"
+			output="text"
+			outputFile="findbugs-ant-results.txt"
+			reportLevel="low">
+			<class location="${build}" />
+			<sourcePath path="${src}" />
+			<!-- Classes needed by our code but that we don't want tested -->
+			<auxClasspath path="${pmd.jar}" />
+			<systemProperty name="findbugs.maskedfields.locals" value='true'/>
+		</findbugs>
+	</target>
 
 	<!-- In order to execute this target, you have to put junit.jar and ant-junit.jar on the
 	     system classpath that Ant sees.  You can do this from the command line with:
 		ant -lib buildlib/junit.jar:buildlib/ant-junit.jar test
 	     Or from inside Eclipse Preferences - Ant - Runtime - Classpath
 	-->
-	<target name="test" depends="compile,compile-tests">
+	<target name="junit" depends="compile,compile-tests">
 	   <junit printsummary="withOutAndErr">
 	       <classpath><path refid="test.classpath"/></classpath>
 	       <test name="ca.sqlpower.ArchitectMegaTestSuite"/>
 	   </junit>
 	</target>
 
-	<target name="init">
-		<tstamp/> <!-- XXX sets three ant variables that we never use -->
-		<mkdir dir="${build}"/>
-		<javac srcdir="${src}" destdir="${build}" classpathref="compile.classpath" includes="ca/sqlpower/architect/antbuild/ArchitectVersionTask.java" debug="true" deprecation="true" />
-		<taskdef name="genVersion"
-					classname="ca.sqlpower.architect.antbuild.ArchitectVersionTask"
-			        classpath="build"/>
-		<genVersion/>
-		<echo message="Building Architect version: ${app_ver_major}.${app_ver_minor}.${app_ver_tiny}"> </echo>
-		<property name="dist.dir" value="dist/architect-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}"/>
-		<mkdir dir="${dist.dir}"/>
-	</target>
-
 	<target name="compile" depends="init,copyfiles">
-		<javac srcdir="${src}" destdir="${build}" classpathref="compile.classpath" debug="true" deprecation="true">
-          <!-- <compilerarg compiler="jikes" value="+Pno-naming-convention"/> -->
-        </javac>
+		<javac srcdir="${src}" destdir="${build}"
+			classpathref="compile.classpath"
+			debug="true" deprecation="true"
+			>
+         </javac>
 	</target>
 
 	<target name="compile-tests" depends="compile">
-		<javac srcdir="regress" destdir="${build}" classpathref="test.classpath" debug="true" deprecation="true">
+		<javac srcdir="regress" destdir="${build}"
+			classpathref="test.classpath"
+			debug="true" deprecation="true"
+			>
 		</javac>
 	</target>
 
@@ -102,9 +176,6 @@
 		<copy tofile="${build}/log4j.properties"
 			file="src/log4j.properties.example"/>
     </target>
-
-
-	
 
 	<!-- DOCUMENTATION
 		There are THREE main documentation targets, all built from the
@@ -282,27 +353,22 @@
         <mkdir dir="${staging.dir}/lib"/>
         <mkdir dir="${staging.dir}/jdbc"/>
     	<mkdir dir="${staging.dir}/doc"/>
-    	
+
     	<copy todir="${staging.dir}/lib">
     	    <fileset dir="lib" includes="*.jar"/>
     		<fileset dir="${build}" includes="architecthelp.jar" />
     	</copy>
-    	
+
     	<manifestclasspath property="architect.jar.classpath"
-    	                       jarfile="${staging.dir}/architect.jar">
-    		<classpath>
-	    		<pathelement path="${staging.dir}/jdbc"/>
-    			<fileset dir="${staging.dir}/">
-    				<include name="lib/*.jar"/>
-    			</fileset>
-    		</classpath>
-    	 </manifestclasspath>
-    	
+    	                        directory="${staging.dir}/">
+    		<classpath path="${architect.jar.classpath}"/>
+     	 </manifestclasspath>
+
     	<manifest file="${build}/manifest">
     		<attribute name="Main-Class" value="ca.sqlpower.architect.swingui.ArchitectFrame"/>
     		<attribute name="Class-Path" value="${architect.jar.classpath}" />
     	</manifest>
-    	
+
     	<jar destfile="${staging.dir}/architect.jar" update="no"
     				basedir="${build}" includes="ca/** icons/** log4j.properties default_database_types.ini"
     				manifest="${build}/manifest">
@@ -315,12 +381,12 @@
         	<fileset dir="${build}/doc" includes="*.pdf"/>
     	   	<fileset dir="${build}/doc" includes="*.txt"/>
     	</copy>
-    	
+
     	<!-- The src for libraries that we are required to redistribute src -->
     	<copy file="libsrc/itext-src-1.4.8.zip" todir="${staging.dir}/libsrc"/>
-    	
+
     	<copy todir="${staging.dir}" file="Architect License.txt"/>
-    	
+
     	<!-- No point in signing until we have a certificate that's signed by a CA
     	<signjar alias="sqlpower" keystore="keystore" storepass="low_security" keypass="low_security">
     	   <fileset dir="webstart/lib"/>
@@ -360,9 +426,6 @@
 			<include name="*.jar"/>
 		</fileset>
 		<fileset dir="buildlib">
-			<include name="*.jar"/>
-		</fileset>
-		<fileset dir="/Users/fuerth/.ant/lib">
 			<include name="*.jar"/>
 		</fileset>
 	</path>
@@ -558,7 +621,7 @@
 			</config>
 			</izpack>
 		</target>
-	
+
 	<target name="osx_adapter_jar"
 			description="Creates the osx_packaging_utils/osx_adapter.jar file (only works on OSX)">
 		<javac srcdir="osx_packaging_utils"
@@ -589,7 +652,7 @@
 			<javafileset dir="${staging.dir}" includes="jdbc/*.ini"/>
 			<extraclasspathfilelist dir="KICKME" files="jdbc"/>
 		</jarbundler>
-		
+
 		<!-- XXX this is stupid. we should modify the jarbundler task to allow literal strings in the classpath -->
 		<replace file="${staging.dir}/Power Architect.app/Contents/Info.plist"
 				 token="${basedir}/KICKME"
@@ -612,23 +675,24 @@
            vmoptions="-Xmx600m">
 			<jarfileset dir="${staging.dir}" includes="lib/*.jar"/>
 			<jarfileset dir="${staging.dir}" includes="architect.jar"/>
-			<!-- Add any jdbc drivers as resources the directory jdbc is referenced 
+			<!-- Add any jdbc drivers as resources the directory jdbc is referenced
 					in the manifest as well as various targets. -->
 			<javafileset dir="${staging.dir}" includes="jdbc/*.jar jdbc/*.ini"/>
 			<extraclasspathfilelist dir="KICKME" files="jdbc"/>
 		</jarbundler>
-		
+
 		<!-- XXX this is stupid. we should modify the jarbundler task to allow literal strings in the classpath -->
 		<replace file="${staging.dir}/Power Architect JDBC.app/Contents/Info.plist"
 				 token="${basedir}/KICKME"
 				 value="$JAVAROOT" />
-		
+
 	</target>
-	
+
 	<!-- This target will only work on OS X (it needs the hdiutil command) -->
 
 	<target name="osx_dmg" depends="osx_dist" if="isMac">
-		<!-- hdiutil create -size 50m -fs HFS+ -volname "Power*Architect" RWArchitect.dmg
+		<!-- What this basically does is:
+                     hdiutil create -size 50m -fs HFS+ -volname "Power*Architect" RWArchitect.dmg
 				     hdiutil attach RWArchitect.dmg
 				     (copy architect.app over, position it, etc)
 				     /Developer/Tools/SetFile -a V /Volumes/Power\*Architect/install_folder_background.png
@@ -723,7 +787,7 @@
 	                licenseFile="${staging.dir}/Architect License.txt"
 			        resourceTemplateFile="osx_packaging_utils/sla_template.r"/>
 	    </target>
-	
+
 	<target name="osx_tgz" depends="osx_dist" if="isNotMac">
 		<tar destfile="${dist.dir}/Architect-OSX-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.tar.gz"
 					compression="gzip">
@@ -733,7 +797,7 @@
 			<tarfileset dir="${staging.dir}" includes="jdbc/*.ini"/>
 		</tar>
 	</target>
-	
+
 	<target name="osx_jdbc_tgz" depends="osx_jdbc_dist" if="isNotMac">
 		<tar destfile="${dist.dir}/Architect-OSX-jdbc-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.tar.gz"
 					compression="gzip">
@@ -756,7 +820,7 @@
 			<tarfileset dir="${staging.dir}" includes="jdbc/*.ini"/>
 		</tar>
     </target>
-	
+
     <target name="generic_jdbc_install" depends="stage">
 		<tar destfile="${dist.dir}/Architect-generic-jdbc-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.tar.gz"
 			compression="gzip">
@@ -771,7 +835,7 @@
 			<tarfileset dir="${staging.dir}" includes="jdbc/*.ini"/>
 		</tar>
     </target>
-	
+
 	<target name="jdbc_dist" depends="windows_jdbc_installer,generic_jdbc_install,osx_jdbc_tgz,osx_jdbc_dmg" />
 	<target name="no_jdbc_dist" depends="windows_installer,generic_install,osx_tgz,osx_dmg" />
 
