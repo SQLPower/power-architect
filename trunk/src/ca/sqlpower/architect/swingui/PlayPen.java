@@ -1336,14 +1336,17 @@ public class PlayPen extends JPanel
 				ensurePopulated(sqlObjects);
 			} catch (ArchitectException e) {
 				logger.error("Unexpected exception during populate", e);
+                setDoStuffException(e);
 				errorMessage = "Unexpected exception during populate: " + e.getMessage();
-			}
+			} 
 			logger.info("AddObjectsTask done");
 		}
 
 		/**
 		 * Ensures the given objects and all their descendants are populated from the database before returning, unless
 		 * this worker gets cancelled.
+         * 
+         * This method is normally called from a worker thread, so don't use any swing API on it.
 		 *
 		 * @param so
 		 */
@@ -1354,7 +1357,9 @@ public class PlayPen extends JPanel
 					if (so instanceof SQLTable) progress++;
 					ensurePopulated(so.getChildren());
 				} catch (ArchitectException e) {
-					logger.error("Couldn't get children of "+so, e);
+                    errorMessage = "Couldn't get children of " + so;
+                    setDoStuffException(e);
+					logger.error("Couldn't get children of " + so, e);
 				}
 			}
 		}
@@ -1365,8 +1370,8 @@ public class PlayPen extends JPanel
 		 * thread after it's done.
 		 */
 		public void cleanup() {
-			if (errorMessage != null) {
-				JOptionPane.showMessageDialog(parentDialog, errorMessage, "Error Dropping Tables into Playpen", JOptionPane.ERROR_MESSAGE);
+			if (getDoStuffException() != null) {
+                ASUtils.showExceptionDialogNoReport(parentDialog, errorMessage, getDoStuffException());
 				if (getNextProcess() != null) {
 					setCancelled(true);
 

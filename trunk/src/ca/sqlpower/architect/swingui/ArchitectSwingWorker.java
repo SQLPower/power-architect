@@ -4,6 +4,8 @@ import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ArchitectException;
+
 public abstract class ArchitectSwingWorker implements Runnable {
 	private static final Logger logger = Logger.getLogger(ArchitectSwingWorker.class);
 	private Exception doStuffException;
@@ -56,6 +58,11 @@ public abstract class ArchitectSwingWorker implements Runnable {
 	public Exception getDoStuffException() {
 		return doStuffException;
 	}
+    
+    public void setDoStuffException(ArchitectException e) {
+        doStuffException = e;
+    }
+
 
 	public String getCleanupExceptionMessage() {
 		return cleanupExceptionMessage;
