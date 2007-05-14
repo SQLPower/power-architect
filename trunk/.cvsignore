@@ -13,3 +13,6 @@ staging
 .classpath
 antbuild
 dist
+findbugs-ant-results.txt
+pmd-ant-results.txt
+cpd-ant-results.txt
