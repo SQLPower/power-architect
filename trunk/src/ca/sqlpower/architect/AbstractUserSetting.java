@@ -8,7 +8,7 @@ import org.apache.log4j.Logger;
 
 public abstract class AbstractUserSetting implements UserSettings {
     private static Logger logger = Logger.getLogger(AbstractUserSetting.class);
-    
+
     protected Map settings;
 
     public AbstractUserSetting() {
@@ -38,7 +38,7 @@ public abstract class AbstractUserSetting implements UserSettings {
                 logger.warn("Couldn't parse value '"+result
                             +"' as integer for property '"+propName+"'");
             }
-        }           
+        }
         logger.warn("Using default value for integer property '"+propName+"' because of unknown data type for existing value");
         return defaultValue;
     }
@@ -64,13 +64,13 @@ public abstract class AbstractUserSetting implements UserSettings {
             return ((Boolean) result).booleanValue();
         } else if (result instanceof String) {
             return Boolean.valueOf((String) result).booleanValue();
-        }           
+        }
         logger.warn("Using default value for boolean property '"+propName+"' because of unknown data type for existing value");
         return defaultValue;
     }
 
     public void setBoolean(String propName, boolean value) {
-        settings.put(propName, new Boolean(value));
+        settings.put(propName,  Boolean.valueOf(value));
     }
 
     public void setObject(String propName, Object value) {
@@ -81,7 +81,7 @@ public abstract class AbstractUserSetting implements UserSettings {
      * Adds a new setting or updates the value of an existing setting.  This
      * method is meant to be used by the ConfigFile read method: The set&lt;Type&gt;
      * methods are an easier interface to the same thing.
-     * 
+     *
      * @param propName The name of the property to add or update.
      * @param propClassName The class name of the property's value. Currently,
      * "java.lang.Integer" and "java.lang.Boolean" are supported.
@@ -91,13 +91,13 @@ public abstract class AbstractUserSetting implements UserSettings {
         Object prop = null;
         if (propClassName.equals("java.lang.Integer")) {
             try {
-                prop = new Integer(propValue);
+                prop = Integer.valueOf(propValue);
             } catch (NumberFormatException e) {
                 logger.warn("Invalid integer setting "+propName+"="+propValue);
                 return;
             }
         } else if (propClassName.equals("java.lang.Boolean")) {
-            prop = new Boolean(propValue);
+            prop = Boolean.valueOf(propValue);
         } else {
             logger.warn("Unknown property class "+propClassName);
             return;
@@ -111,9 +111,9 @@ public abstract class AbstractUserSetting implements UserSettings {
             return defaultValue;
         } else {
             return result.toString();
-        }   
+        }
     }
-    
+
     public void setString(String propName, String value) {
         settings.put(propName,value);
     }
@@ -124,7 +124,7 @@ public abstract class AbstractUserSetting implements UserSettings {
             return defaultValue;
         } else {
             return result;
-        }   
+        }
     }
 
     /**
