@@ -22,6 +22,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -144,6 +145,8 @@ public class CompareDMPanel extends JPanel {
 	private JRadioButton sqlButton;
 
 	private JRadioButton englishButton;
+    
+    private JCheckBox showNoChanges;
 
 	private JLabel statusLabel;
 
@@ -789,6 +792,10 @@ public class CompareDMPanel extends JPanel {
 		englishButton.setActionCommand(OUTPUT_ENGLISH);
 		englishButton.setSelected(true);
 		englishButton.addActionListener(listener);
+        
+        showNoChanges = new JCheckBox();
+        showNoChanges.setName("showNoChanges");
+        showNoChanges.setSelected(false);
 
 		// Group the radio buttons.
 		ButtonGroup outputGroup = new ButtonGroup();
@@ -859,7 +866,14 @@ public class CompareDMPanel extends JPanel {
 		builder.nextColumn(2);
 		builder.append(englishButton);
 		builder.append("English descriptions");
-		builder.nextLine();
+
+        builder.appendRow(builder.getLineGapSpec());
+        builder.appendRow("pref");
+        builder.nextLine(2);
+        builder.nextColumn(2);
+		builder.append(showNoChanges);
+        builder.append("Suppress similarities");
+        builder.nextLine();
 
 		builder.appendSeparator("Status");
 		builder.appendRow(builder.getLineGapSpec());
@@ -882,7 +896,8 @@ public class CompareDMPanel extends JPanel {
 
 
 	/**
-	 * Handles disabling and enabling the "DDL Type" dropdown box.
+	 * Handles disabling and enabling the "DDL Type" dropdown box and 
+     * the no-change suppression checkbox.
 	 */
 	public class OutputChoiceListener implements ActionListener {
 
@@ -895,8 +910,10 @@ public class CompareDMPanel extends JPanel {
 		public void actionPerformed(ActionEvent e) {
 			if (e.getActionCommand().equals(OUTPUT_SQL)) {
 				cb.setEnabled(true);
+                showNoChanges.setEnabled(false);
 			} else {
 				cb.setEnabled(false);
+                showNoChanges.setEnabled(true);
 			}
 			startCompareAction.setEnabled(isStartable());
 		}
@@ -1166,6 +1183,9 @@ public class CompareDMPanel extends JPanel {
 				throws BadLocationException, ArchitectException {
 
 			for (DiffChunk<SQLObject> chunk : diff) {
+                if (showNoChanges.isSelected() && chunk.getType().equals(DiffType.SAME)) {
+                    continue;
+                }
 				AttributeSet attributes = styles.get(chunk.getType());
 				MutableAttributeSet boldAttributes = new SimpleAttributeSet(attributes);
 				StyleConstants.setBold(boldAttributes, true);
@@ -1344,6 +1364,7 @@ public class CompareDMPanel extends JPanel {
 		s.setSaveFlag(true);
 		s.setOutputFormat(englishButton.isSelected()?CompareDMSettings.OutputFormat.ENGLISH:CompareDMSettings.OutputFormat.SQL);
 		s.setSqlScriptFormat( ((LabelValueBean)sqlTypeDropdown.getSelectedItem()).getLabel() );
+        s.setShowNoChanges(showNoChanges.isSelected());
 
 		SourceOrTargetSettings sourceSetting = s.getSourceSettings();
 		copySourceOrTargetSettingsToProject(sourceSetting,source);
@@ -1397,6 +1418,8 @@ public class CompareDMPanel extends JPanel {
 
 		if ( s.getOutputFormat() == CompareDMSettings.OutputFormat.SQL)
 			sqlButton.doClick();
+        
+        showNoChanges.setSelected(s.getShowNoChanges());
 
 		if ( s.getSqlScriptFormat() != null && s.getSqlScriptFormat().length() > 0 ) {
 

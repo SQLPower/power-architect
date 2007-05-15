@@ -7,6 +7,7 @@ public class CompareDMSettings {
 	
 	private OutputFormat outputFormat;
 	private String sqlScriptFormat;
+    private boolean showNoChanges;
     
     /**
      * This flag should be set to true after the user has potentially modified
@@ -104,6 +105,14 @@ public class CompareDMSettings {
 	public void setOutputFormatAsString(String v) {
 		outputFormat = OutputFormat.valueOf(v);
 	}
+    
+    public void setShowNoChanges (boolean b) {
+        showNoChanges = b;
+    }
+    
+    public boolean getShowNoChanges () {
+        return showNoChanges;
+    }
     
     /**
      * If the user never uses compareDM function, the saving process
