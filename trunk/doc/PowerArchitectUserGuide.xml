@@ -1139,6 +1139,31 @@
 					created, and will appear as a link between the two
 					tables.
 				</para>
+				<para>	
+					If a column in the child table shares the name of 
+					the primary key of the parent table, the relationship
+					will map to the existing column in the child table.	
+					<inlinemediaobject>
+						<imageobject>
+							<imagedata
+								fileref="doc/images/Hijacked_Column_Relation.PNG"
+								format="PNG" />
+						</imageobject>
+					</inlinemediaobject>
+				</para>
+				<para>
+					If a column exists in the child table that has the
+					same name as the primary key in the parent table
+					but a different data type a new column will be
+					created.
+					<inlinemediaobject>
+						<imageobject>
+							<imagedata
+								fileref="doc/images/New_Column_Relation.PNG"
+								format="PNG" />
+						</imageobject>
+					</inlinemediaobject>
+				</para>
 
 			</section>
 
