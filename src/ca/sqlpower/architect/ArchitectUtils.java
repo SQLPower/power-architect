@@ -347,7 +347,6 @@ public class ArchitectUtils {
         
 		for (int i = 0, n = src.length(); i < n; i++) {
 			ch = src.charAt(i);
-            int charVal = ch;
             
             if (ch == '\'') {
 				sb.append("&apos;");
@@ -363,9 +362,6 @@ public class ArchitectUtils {
             }
             else if (ch == '>') {
 				sb.append("&gt;");
-            }
-            else if (charVal >= 0 && charVal < 32) {
-                sb.append("&#" + charVal + ";");
             }
             else {
 				sb.append(ch);
