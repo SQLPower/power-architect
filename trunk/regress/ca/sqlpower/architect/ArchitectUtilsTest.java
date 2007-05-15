@@ -185,24 +185,7 @@ public class ArchitectUtilsTest extends TestCase {
 	 * Test method for 'ca.sqlpower.architect.ArchitectUtils.escapeXML(String)'
 	 */
 	public void testEscapeXML() throws Exception {
-
-        String[][] testData = new String[sanitizeData.length + 31][2]; 
-           
-        // Test each one singly       
-        for (int charVal = 0; charVal < 31; charVal++) {
-            char testChar = (char)charVal;            
-            testData[charVal][0] = "a" + testChar +"b";
-            testData[charVal][1] = "a&#" + charVal +";b";
-        }
-        
-        int a = 0;
         for (String[] td : sanitizeData) {
-            testData[31 + a][0] = td[0];
-            testData[31 + a][1] = td[1];
-            a++;
-        }
-        
-        for (String[] td : testData) {
 			assertEquals(td[1], ArchitectUtils.escapeXML(td[0]));
 		}
 		

@@ -22,6 +22,7 @@ import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.ProgressMonitor;
 import javax.swing.ToolTipManager;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.digester.AbstractObjectCreationFactory;
 import org.apache.commons.digester.Digester;
@@ -37,7 +38,6 @@ import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.architect.DataSourceCollection;
-import ca.sqlpower.architect.IOUtils;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
@@ -64,6 +64,8 @@ import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentListener;
 import ca.sqlpower.architect.undo.UndoManager;
+import ca.sqlpower.architect.xml.UnescapingSaxParser;
+import ca.sqlpower.architect.xml.XMLHelper;
 
 /**
  * The SwingUIProject class is a container that holds all information pertaining
@@ -208,16 +210,23 @@ public class SwingUIProject {
         dbcsIdMap = new HashMap();
         objectIdMap = new HashMap();
 
-        Digester digester = setupDigester();
+        Digester digester = null;
         
         // use digester to read from file
         try {
+            digester = setupDigester();
             digester.parse(in);
         } catch (SAXException ex) {
-            logger.error("SAX Exception in config file parse!", ex);            
-            throw new ArchitectException("There is an XML syntax error in project file at Line:" + 
-                    digester.getDocumentLocator().getLineNumber() + " Column:" +
-                    digester.getDocumentLocator().getColumnNumber(), ex);
+            logger.error("SAX Exception in config file parse!", ex);
+            String message;
+            if (digester == null) {
+                message = "Couldn't create an XML parser";
+            } else {
+                message = "There is an XML syntax error in project file at Line:" + 
+                digester.getDocumentLocator().getLineNumber() + " Column:" +
+                digester.getDocumentLocator().getColumnNumber();
+            }
+            throw new ArchitectException(message, ex);
         } catch (IOException ex) {
             logger.error("IO Exception in config file parse!", ex);
             throw new ArchitectException("There was an I/O error while reading the file", ex);
@@ -311,8 +320,8 @@ public class SwingUIProject {
 
 
 
-    private Digester setupDigester() {
-        Digester d = new Digester();
+    private Digester setupDigester() throws ParserConfigurationException, SAXException {
+        Digester d = new Digester(new UnescapingSaxParser());
         d.setValidating(false);
         d.push(this);
 
@@ -1026,7 +1035,7 @@ public class SwingUIProject {
         logger.debug("rename tempFile to current file: " + fstatus);
     }
 
-    IOUtils ioo = new IOUtils();
+    XMLHelper ioo = new XMLHelper();
     
     /**
      * Do just the writing part of save, given a PrintWriter
