@@ -58,9 +58,10 @@ public class TestSQLColumn extends SQLTestCase {
 			dropTableNoFail(con, "SQL_COLUMN_TEST_0PK");
 			
 			stmt.executeUpdate("CREATE TABLE SQL_COLUMN_TEST_1PK (\n" +
-					" cow numeric(11) CONSTRAINT test1pk PRIMARY KEY,\n" +
+					" cow numeric(11),\n" +
 					" moo varchar(10),\n" +
-					" foo char(10))");
+					" foo char(10),\n" +
+                    " CONSTRAINT test1pk PRIMARY KEY (cow))");
 			
 			stmt.executeUpdate("CREATE TABLE SQL_COLUMN_TEST_3PK (\n" +
 					" cow numeric(11) NOT NULL,\n" +
@@ -283,7 +284,7 @@ public class TestSQLColumn extends SQLTestCase {
 		// These should be the only two differences between origCol and derivCol
 		assertEquals(table3pk, derivCol.getParentTable());
 		assertEquals(origCol, derivCol.getSourceColumn());
-		assertEquals("NUMBER", derivCol.getSourceDataTypeName());
+		assertEquals("NUMERIC", derivCol.getSourceDataTypeName());
 		
 		Map origProps = BeanUtils.describe(origCol);
 		Map derivProps = BeanUtils.describe(derivCol);
@@ -378,17 +379,17 @@ public class TestSQLColumn extends SQLTestCase {
 	 */
 	public void testAddColumnsToTable() throws Exception {
 		SQLColumn mooCol = table3pk.getColumn(1);
-		assertEquals(mooCol.getParentTable(),table3pk);
-		assertEquals(mooCol.getChildCount(),0);
-		assertEquals(mooCol.getName(),"MOO");
-		assertEquals(mooCol.getScale(),0);
-		assertEquals(mooCol.getPrecision(),10);
-		assertEquals(mooCol.getType(),Types.VARCHAR);
-		assertEquals(mooCol.getSourceDataTypeName(),"VARCHAR2");
-		assertEquals(mooCol.getRemarks(),"");
-		assertEquals(mooCol.getDefaultValue(),null);
-		assertEquals(mooCol.isPrimaryKey(),true);
-		assertEquals(mooCol.isDefinitelyNullable(),false);
+		assertEquals(table3pk, mooCol.getParentTable());
+		assertEquals(0, mooCol.getChildCount());
+		assertEquals("MOO", mooCol.getName());
+		assertEquals(0, mooCol.getScale());
+		assertEquals(10, mooCol.getPrecision());
+		assertEquals(Types.VARCHAR, mooCol.getType());
+		assertEquals("VARCHAR", mooCol.getSourceDataTypeName());
+		assertEquals("", mooCol.getRemarks());
+		assertEquals(null, mooCol.getDefaultValue());
+		assertEquals(true, mooCol.isPrimaryKey());
+		assertEquals(false, mooCol.isDefinitelyNullable());
 	}
 
 	/*
@@ -440,7 +441,7 @@ public class TestSQLColumn extends SQLTestCase {
 		tmpCol.setType(Types.CHAR);
 		assertEquals(Types.CHAR,tmpCol.getType());
 		SQLColumn cowCol = table1pk.getColumn(0);
-		assertEquals(Types.DECIMAL,cowCol.getType());
+		assertEquals(Types.NUMERIC,cowCol.getType());
 		cowCol.setType(Types.CHAR);
 		assertEquals(Types.CHAR,cowCol.getType());
 	}
@@ -455,7 +456,7 @@ public class TestSQLColumn extends SQLTestCase {
 		tmpCol.setSourceDataTypeName("xxx");
 		assertEquals("xxx",tmpCol.getSourceDataTypeName());
 		SQLColumn cowCol = table1pk.getColumn(0);
-		assertEquals("NUMBER",cowCol.getSourceDataTypeName());
+		assertEquals("NUMERIC",cowCol.getSourceDataTypeName());
 		cowCol.setSourceDataTypeName("yyy");
 		assertEquals("yyy",cowCol.getSourceDataTypeName());
 	}
