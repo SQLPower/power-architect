@@ -32,7 +32,7 @@ public class ArchitectBusinessTestSuite extends TestCase {
 		suite.addTest(AllPrefsTests.suite());
 		suite.addTest(TestSQLDatabase.suite());
 		suite.addTestSuite(TestSQLCatalog.class);
-		suite.addTestSuite(TestFolder.class);
+        suite.addTest(TestFolder.suite());
 		suite.addTest(TestSQLTable.suite());
 		suite.addTest(TestSQLColumn.suite());
         suite.addTestSuite(TestSQLIndex.class);
@@ -41,6 +41,7 @@ public class ArchitectBusinessTestSuite extends TestCase {
 		suite.addTestSuite(TestDDLUtils.class);
 		suite.addTestSuite(TestArchitectDataSource.class);
 		suite.addTestSuite(TestSQLObjectChildrenInsert.class);
+        
 
 		//$JUnit-END$
 		return suite;
