@@ -1,7 +1,7 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
+
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
@@ -11,12 +11,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -38,32 +35,20 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.DefaultStyledDocument;
-import javax.swing.text.MutableAttributeSet;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
 
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
-import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLCatalog;
-import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
-import ca.sqlpower.architect.diff.ArchitectDiffException;
 import ca.sqlpower.architect.diff.CompareSQL;
 import ca.sqlpower.architect.diff.DiffChunk;
-import ca.sqlpower.architect.diff.DiffType;
 import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
 import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
 import ca.sqlpower.architect.swingui.CompareDMSettings.DatastoreType;
@@ -177,7 +162,7 @@ public class CompareDMPanel extends JPanel {
 	 * <p>
 	 * Note: this class is not private because the test needs to refer to it. :(
 	 */
-	class SourceOrTargetStuff implements DBConnectionCallBack{
+	public class SourceOrTargetStuff implements DBConnectionCallBack{
 
 		private JComboBox databaseDropdown;
 
@@ -997,362 +982,18 @@ public class CompareDMPanel extends JPanel {
                         return;
                     }
 					logger.debug("cleanup starts");
-					try {
-						DefaultStyledDocument sourceDoc = new DefaultStyledDocument();
-						DefaultStyledDocument targetDoc = new DefaultStyledDocument();
-
-						DDLGenerator gen =(DDLGenerator)((Class)((LabelValueBean) sqlTypeDropdown.getSelectedItem()).getValue()).newInstance();
-						if (source.physicalRadio.isSelected()) {
-						    // Set generator for target catalog/schema if "newer" schema comes from a physical database
-						    SQLCatalog cat = (SQLCatalog) source.catalogDropdown.getSelectedItem();
-						    SQLSchema sch = (SQLSchema) source.schemaDropdown.getSelectedItem();
-						    gen.setTargetCatalog(cat == null ? null : cat.getPhysicalName());
-						    gen.setTargetSchema(sch == null ? null : sch.getPhysicalName());
-						}
-
-						final Map<DiffType, AttributeSet> styles = new HashMap<DiffType, AttributeSet>();
-						{
-							SimpleAttributeSet att = new SimpleAttributeSet();
-							StyleConstants.setForeground(att, Color.red);
-							styles.put(DiffType.LEFTONLY, att);
-
-							att = new SimpleAttributeSet();
-							StyleConstants.setForeground(att, Color.green.darker().darker());
-							styles.put(DiffType.RIGHTONLY, att);
-
-							att = new SimpleAttributeSet();
-							StyleConstants.setForeground(att, Color.black);
-							styles.put(DiffType.SAME, att);
-
-							att = new SimpleAttributeSet();
-							StyleConstants.setForeground(att, Color.orange);
-							styles.put(DiffType.MODIFIED, att);
-
-							att = new SimpleAttributeSet();
-							StyleConstants.setForeground(att, Color.blue);
-							styles.put(DiffType.KEY_CHANGED, att);
-						}
-
-						if (sqlButton.isSelected()) {
-
-							List<DiffChunk<SQLObject>> addRelationships = new ArrayList<DiffChunk<SQLObject>>();
-							List<DiffChunk<SQLObject>> dropRelationships = new ArrayList<DiffChunk<SQLObject>>();
-							List<DiffChunk<SQLObject>> nonRelationship = new ArrayList<DiffChunk<SQLObject>>	();
-							for (DiffChunk d : diff) {
-							    if (logger.isDebugEnabled()) logger.debug(d);
-								if (d.getData() instanceof SQLRelationship) {
-									if (d.getType() == DiffType.LEFTONLY) {
-										dropRelationships.add(d);
-									} else if (d.getType() == DiffType.RIGHTONLY) {
-										addRelationships.add(d);
-									}
-								} else {
-									nonRelationship.add(d);
-								}
-							}
-
-							sqlScriptGenerator(styles, dropRelationships, gen);
-							sqlScriptGenerator(styles, nonRelationship, gen);
-							sqlScriptGenerator(styles, addRelationships, gen);
-
-						} else if (englishButton.isSelected()) {
-							generateEnglishDescription(styles, diff, sourceDoc);
-							generateEnglishDescription(styles, diff1, targetDoc);
-						} else {
-							throw new IllegalStateException(
-							"Don't know what type of output to make");
-						}
-
-						// get the title string for the compareDMFrame
-						if (sqlButton.isSelected()) {
-							String titleString = "Generated SQL Script to turn "+ toTitleText(source, true)
-                                            + " into " + toTitleText(target, false);
-
-							SQLDatabase db = null;
-							if ( source.loadRadio.isSelected() )
-								db = null;
-							else if (source.playPenRadio.isSelected())
-								db = ArchitectFrame.getMainInstance().playpen.getDatabase();
-							else
-								db = source.getDatabase();
-
-							SQLScriptDialog ssd = new SQLScriptDialog(ArchitectFrame.getMainInstance(),
-									"Compare DM",
-									titleString,
-									false,
-									gen,
-									db == null?null:db.getDataSource(),
-											false);
-							ssd.setVisible(true);
-						} else {
-						    String leftTitle = toTitleText(source, true);
-                            String rightTitle = toTitleText(target, false);
-                            
-							CompareDMFrame cf =
-								new CompareDMFrame(sourceDoc, targetDoc, leftTitle,rightTitle);
-
-							cf.pack();
-							cf.setVisible(true);
-						}
-					} catch (ArchitectDiffException ex) {
-						JOptionPane.showMessageDialog(CompareDMPanel.this,
-								"Could not perform the diff:\n" + ex.getMessage(),
-								"Diff Error", JOptionPane.ERROR_MESSAGE);
-						logger.error("Couldn't do diff", ex);
-					} catch (ArchitectException exp) {
-						ASUtils.showExceptionDialog("StartCompareAction failed", exp);
-						logger.error("StartCompareAction failed", exp);
-					} catch (BadLocationException ex) {
-						ASUtils.showExceptionDialog(
-								"Could not create document for results", ex);
-						logger.error("Could not create document for results", ex);
-					} catch (Exception ex) {
-						ASUtils.showExceptionDialog("Unxepected Exception!", ex);
-						logger.error("Unxepected Exception!", ex);
-					} finally {
-						startCompareAction.setEnabled(isStartable());
-					}
-					logger.debug("cleanup finished");
+                    CompareDMFormatter dmFormat = new CompareDMFormatter(project.getCompareDMSettings());
+                    dmFormat.format(diff, diff1, left, right);
+                    startCompareAction.setEnabled(isStartable());
+                    logger.debug("cleanup finished");
 				}
 
-                //Generates the proper title text for compareDMFrame or SQLScriptDialog                
-                private String toTitleText(SourceOrTargetStuff stuff, boolean isSource) {                    
-                    StringBuffer fileName = new StringBuffer();
-                    boolean needBrackets = false;
-                    
-                    //Deals with the file name first if avaiable
-                    if (stuff.loadRadio.isSelected()){                                
-                        File f = new File(stuff.loadFilePath.getText());                                                                                         
-                        String tempName = f.getName();
-                        int lastIndex = tempName.lastIndexOf(".architect");
-                        if (lastIndex < 0) {
-                            fileName.append(tempName);
-                        } else {
-                            fileName.append(tempName.substring(0, lastIndex));
-                        }
-                        needBrackets = true;
-                    } else if (stuff.playPenRadio.isSelected()) {
-                        SwingUIProject swingUIProject = ArchitectFrame.getMainInstance().project;
-                        String tempName;
-                        if (swingUIProject.getFile() != null) {
-                            tempName = swingUIProject.getFile().getName();
-                        } else {
-                            tempName = "New Project";
-                        }
-                        int lastIndex = tempName.lastIndexOf(".architect");
-                        if (lastIndex < 0){
-                            fileName.append(tempName);
-                        } else {
-                            fileName.append(tempName.substring(0,lastIndex));
-                        }
-                        needBrackets = true;
-                    }
-                    
-                    //Add in the database name
-                    if (needBrackets) {
-                        fileName.append(" (");
-                    }
-                    if (isSource) {
-                        fileName.append(ArchitectUtils.toQualifiedName(left));
-                    } else {
-                        fileName.append(ArchitectUtils.toQualifiedName(right));
-                    }
-                    if (needBrackets) {
-                        fileName.append(")");
-                    }
-                    return fileName.toString(); 
-                }
 			};
 
 			new Thread(compareWorker).start();
 			new ProgressWatcher(progressBar,sourceComp);
 		}
 
-		/**
-		 * This method generates english descriptions by taking in the diff list
-		 * and putting the appropiate statements in the document.  It will iterate
-		 * through the diff list and identify which type of DiffChunk it is and
-		 * what kind of SQLType it is to produce the proper english description
-		 * output
-		 * @throws BadLocationException
-		 * @throws ArchitectException
-		 */
-		private void generateEnglishDescription(
-				Map<DiffType, AttributeSet> styles,
-				List<DiffChunk<SQLObject>> diff, DefaultStyledDocument sourceDoc)
-				throws BadLocationException, ArchitectException {
-
-			for (DiffChunk<SQLObject> chunk : diff) {
-                if (showNoChanges.isSelected() && chunk.getType().equals(DiffType.SAME)) {
-                    continue;
-                }
-				AttributeSet attributes = styles.get(chunk.getType());
-				MutableAttributeSet boldAttributes = new SimpleAttributeSet(attributes);
-				StyleConstants.setBold(boldAttributes, true);
-
-				SQLObject o = chunk.getData();
-				if (o == null) {
-					sourceDoc.insertString(
-							sourceDoc.getLength(),
-							"ERROR: null object in diff list\n",
-							attributes);
-				} else if (o instanceof SQLTable) {
-					sourceDoc.insertString(
-							sourceDoc.getLength(),
-							"Table ",
-							attributes);
-					sourceDoc.insertString(
-							sourceDoc.getLength(),
-							o.getName() + " ",
-							boldAttributes);
-				} else if (o instanceof SQLColumn) {
-					sourceDoc.insertString(
-							sourceDoc.getLength(),
-							"\tColumn ",
-							attributes);
-					sourceDoc.insertString(
-							sourceDoc.getLength(),
-							o.getName() + " ",
-							boldAttributes);
-				} else if (o instanceof SQLRelationship) {
-					sourceDoc.insertString(
-							sourceDoc.getLength(),
-							"Foreign Key ",
-							attributes);
-					sourceDoc.insertString(
-							sourceDoc.getLength(),
-							o.getName() + " ",
-							boldAttributes);
-				} else {
-					sourceDoc.insertString(
-							sourceDoc.getLength(),
-							"Unknown object type ",
-							attributes);
-					sourceDoc.insertString(
-							sourceDoc.getLength(),
-							o.getClass().getName() + " ",
-							boldAttributes);
-				}
-
-
-				String diffTypeEnglish;
-				switch (chunk.getType()) {
-				case LEFTONLY:
-					diffTypeEnglish = "should be removed";
-					break;
-
-				case MODIFIED:
-					diffTypeEnglish = "should be modified";
-					break;
-
-				case SAME:
-					diffTypeEnglish = "needs no changes";
-					break;
-
-				case RIGHTONLY:
-					diffTypeEnglish = "should be added";
-					break;
-
-				case KEY_CHANGED:
-					diffTypeEnglish = "needs a different primary key";
-					break;
-
-				default:
-					diffTypeEnglish = "!UNKNOWN DIFF TYPE!";
-					logger.error("Woops, unknown diff chunk type: "+chunk.getType());
-					break;
-				}
-
-				sourceDoc.insertString(
-						sourceDoc.getLength(),
-						diffTypeEnglish + "\n",
-						attributes);
-			}
-		}
-
-		private void sqlScriptGenerator(Map<DiffType, AttributeSet> styles,
-				List<DiffChunk<SQLObject>> diff,
-				DDLGenerator gen)
-			throws ArchitectDiffException, SQLException,
-				ArchitectException, BadLocationException,
-				InstantiationException, IllegalAccessException {
-
-
-			for (DiffChunk<SQLObject> chunk : diff) {
-				if (chunk.getType() == DiffType.KEY_CHANGED) {
-					if(chunk.getData() instanceof SQLTable)
-					{
-						SQLTable t = (SQLTable) chunk.getData();
-						if (hasKey(t)) {
-							gen.addPrimaryKey(t);
-						} else {
-							gen.dropPrimaryKey(t);
-						}
-					}
-
-				}else if (chunk.getType() == DiffType.LEFTONLY)
-				{
-					if (chunk.getData() instanceof SQLTable)
-					{
-						SQLTable t = (SQLTable) chunk.getData();
-						gen.dropTable(t);
-					}else if (chunk.getData() instanceof SQLColumn){
-						SQLColumn c = (SQLColumn) chunk.getData();
-						gen.dropColumn(c);
-					} else if (chunk.getData() instanceof SQLRelationship){
-						SQLRelationship r = (SQLRelationship)chunk.getData();
-						gen.dropRelationship(r);
-
-					} else {
-						throw new IllegalStateException("DiffChunk is an unexpected type.");
-					}
-
-				} else if (chunk.getType() == DiffType.RIGHTONLY){
-					if (chunk.getData() instanceof SQLTable)
-					{
-						SQLTable t = (SQLTable) chunk.getData();
-                        if (t == null ) throw new NullPointerException();
-                        if(t.getObjectType().equals("TABLE")) {
-                            gen.addTable(t);
-                        }
-                        if (hasKey(t)) {
-                            gen.addPrimaryKey(t);
-                        }
-					}else if (chunk.getData() instanceof SQLColumn){
-						SQLColumn c = (SQLColumn) chunk.getData();
-						gen.addColumn(c);
-					}else if (chunk.getData() instanceof SQLRelationship){
-						SQLRelationship r = (SQLRelationship)chunk.getData();
-						gen.addRelationship(r);
-					}else {
-						throw new IllegalStateException("DiffChunk is an unexpected type.");
-					}
-				}
-				else if (chunk.getType() == DiffType.MODIFIED)
-				{
-					if (chunk.getData() instanceof SQLColumn)
-					{
-						SQLColumn c = (SQLColumn) chunk.getData();
-						gen.modifyColumn(c);
-					} else {
-						throw new IllegalStateException("DiffChunk is an unexpected type.");
-					}
-				} else {
-
-				}
-			}
-		}
-
-        private boolean hasKey(SQLTable t) throws ArchitectException {
-            boolean hasKey = false;
-            for (SQLColumn c : t.getColumns()) {
-                if (c.isPrimaryKey()) {
-                    hasKey=true;
-                    break;
-                }
-            }
-            return hasKey;
-        }
 	}
 
 	public SourceOrTargetStuff getSourceStuff() {
@@ -1365,12 +1006,15 @@ public class CompareDMPanel extends JPanel {
 		s.setOutputFormat(englishButton.isSelected()?CompareDMSettings.OutputFormat.ENGLISH:CompareDMSettings.OutputFormat.SQL);
 		s.setSqlScriptFormat( ((LabelValueBean)sqlTypeDropdown.getSelectedItem()).getLabel() );
         s.setShowNoChanges(showNoChanges.isSelected());
-
+        s.setSqlScriptFormatValue( ((LabelValueBean)sqlTypeDropdown.getSelectedItem()).getValue() );
+        
 		SourceOrTargetSettings sourceSetting = s.getSourceSettings();
 		copySourceOrTargetSettingsToProject(sourceSetting,source);
+        s.setSourceStuff(source);
 
 		SourceOrTargetSettings targetSetting = s.getTargetSettings();
 		copySourceOrTargetSettingsToProject(targetSetting,target);
+        s.setTargetStuff(target);
 
 	}
 
@@ -1388,13 +1032,13 @@ public class CompareDMPanel extends JPanel {
 		if ( stuff.catalogDropdown.getItemCount() > 0 &&
 				 stuff.catalogDropdown.getSelectedIndex() >= 0 &&
 				 stuff.catalogDropdown.getSelectedItem() != null )
-			setting.setCatalog( ((SQLObject)stuff.catalogDropdown.getSelectedItem()).getName() );
+			setting.setCatalogObject( stuff.catalogDropdown.getSelectedItem() );
 		else setting.setCatalog(null);
 
 		if ( stuff.schemaDropdown.getItemCount() > 0 &&
 				 stuff.schemaDropdown.getSelectedIndex() >= 0 &&
 				 stuff.schemaDropdown.getSelectedItem() != null )
-			setting.setSchema( ((SQLObject)stuff.schemaDropdown.getSelectedItem()).getName() );
+			setting.setSchemaObject( stuff.schemaDropdown.getSelectedItem() );
 		else
 			setting.setSchema(null);
 
