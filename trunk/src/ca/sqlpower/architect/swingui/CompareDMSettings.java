@@ -1,5 +1,7 @@
 package ca.sqlpower.architect.swingui;
 
+import ca.sqlpower.architect.swingui.CompareDMPanel.SourceOrTargetStuff;
+
 public class CompareDMSettings {
 	
 	public enum DatastoreType { PROJECT, DATABASE, FILE; }
@@ -8,6 +10,9 @@ public class CompareDMSettings {
 	private OutputFormat outputFormat;
 	private String sqlScriptFormat;
     private boolean showNoChanges;
+    private SourceOrTargetStuff targetStuff;
+    private SourceOrTargetStuff sourceStuff;
+    private Object sqlScriptFormatValue;
     
     /**
      * This flag should be set to true after the user has potentially modified
@@ -21,8 +26,10 @@ public class CompareDMSettings {
 		private String connectName;
 		private String connectURL;
 		private String connectUserName;
-		private String catalog;
-		private String schema;
+        private String catalogName;
+        private String schemaName;
+		private Object catalog;
+		private Object schema;
 		private String filePath;
 
 		public DatastoreType getDatastoreType() {
@@ -32,10 +39,16 @@ public class CompareDMSettings {
 			this.datastoreType = v;
 		}
 		public String getCatalog() {
-			return catalog;
+			return catalogName;
 		}
+        public void setCatalogObject(Object catalog) {
+            this.catalog = catalog;
+        }
+        public Object getCatalogObject() {
+            return catalog;
+        }
 		public void setCatalog(String catalog) {
-			this.catalog = catalog;
+			this.catalogName = catalog;
 		}
 		public String getConnectName() {
 			return connectName;
@@ -50,11 +63,17 @@ public class CompareDMSettings {
 			this.filePath = filePath;
 		}
 		public String getSchema() {
-			return schema;
+			return schemaName;
 		}
 		public void setSchema(String schema) {
-			this.schema = schema;
+			this.schemaName = schema;
 		}
+        public Object getSchemaObject() {
+            return schema;
+        }
+        public void setSchemaObject(Object schema) {
+            this.schema = schema;
+        }
 		public String getConnectURL() {
 			return connectURL;
 		}
@@ -112,6 +131,30 @@ public class CompareDMSettings {
     
     public boolean getShowNoChanges () {
         return showNoChanges;
+    }
+    
+    public void setTargetStuff(SourceOrTargetStuff target) {
+        targetStuff = target;
+    }
+    
+    public SourceOrTargetStuff getTargetStuff() {
+        return targetStuff;
+    }
+    
+    public void setSourceStuff(SourceOrTargetStuff source) {
+        sourceStuff = source;
+    }
+    
+    public SourceOrTargetStuff getSourceStuff() {
+        return sourceStuff;
+    }
+    
+    public void setSqlScriptFormatValue (Object o) {
+        sqlScriptFormatValue = o;
+    }
+    
+    public Object getSqlScriptFormatValue() {
+        return sqlScriptFormatValue;
     }
     
     /**
