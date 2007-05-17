@@ -1,0 +1,371 @@
+
+
+
+
+
+
+<html>
+
+<head>
+	<title>SQL Power - Power*Architect</title> 
+	<base href="http://www.sqlpower.ca/" />
+	<script language="javascript" type="text/javascript">
+	
+<!-- // macromedia's wonderfully obfuscated mouseover code for the menu
+function MM_swapImgRestore() { //v3.0
+  var i,x,a=document.MM_sr; for(i=0;a&&i<a.length&&(x=a[i])&&x.oSrc;i++) x.src=x.oSrc;
+}
+
+function MM_findObj(n, d) { //v3.0
+  var p,i,x;  if(!d) d=document; if((p=n.indexOf("?"))>0&&parent.frames.length) {
+    d=parent.frames[n.substring(p+1)].document; n=n.substring(0,p);}
+  if(!(x=d[n])&&d.all) x=d.all[n]; for (i=0;!x&&i<d.forms.length;i++) x=d.forms[i][n];
+  for(i=0;!x&&d.layers&&i<d.layers.length;i++) x=MM_findObj(n,d.layers[i].document); return x;
+}
+
+function MM_swapImage() { //v3.0
+  var i,j=0,x,a=MM_swapImage.arguments; document.MM_sr=new Array; for(i=0;i<(a.length-2);i+=3)
+   if ((x=MM_findObj(a[i]))!=null){document.MM_sr[j++]=x; if(!x.oSrc) x.oSrc=x.src; x.src=a[i+2];}
+}
+
+function swapBg(obj,clr) {
+	if(navigator.appName == "Microsoft Internet Explorer") findCell(obj).bgColor = clr
+}
+
+function findCell(n, d) { //v4.0
+  var p,i,x;  if(!d) d=document; if((p=n.indexOf("?"))>0&&parent.frames.length) {
+    d=parent.frames[n.substring(p+1)].document; n=n.substring(0,p);}
+  if(!(x=d[n])&&d.all) x=d.all[n]; for (i=0;!x&&i<d.forms.length;i++) x=d.forms[i][n];
+  for(i=0;!x&&d.layers&&i<d.layers.length;i++) x=findCell(n,d.layers[i].document);
+  if(!x && document.getElementById) x=document.getElementById(n); return x;
+}
+
+	// --> 
+	</script>
+	<link rel="stylesheet" type="text/css" href="../sqlpower.css" />
+	
+</head>
+<body bgcolor="#ffffff" leftmargin="0" marginheight="0" marginwidth="0" topmargin="0">
+<script language=JavaScript src="../menu_array.js" type="text/javascript"></script>
+ <script language=JavaScript src="../mmenu.js" type="text/javascript"></script>
+ <table width="100%" border="0" cellspacing="0" cellpadding="0"><tr>
+ 	<td align="left" colspan="2"><a href="../page/splash"><img border="0" src="../images/sqlpower.gif"></a></td>
+ 	<td colspan="5"><!-- <img src="../images/unleash.gif"> --></td></tr>
+ 	<tr><td nowrap="yes" colspan="7" background="../images/button_wide.gif"><!-- 
+		 
+		  note, must not have whitespace between elements! 
+		  whitespace between the elements will cause spaces between the buttons.  note
+		  how the lines are all broken within tags and not between elements or in pcdata.
+		 
+		  --><a href="../page/main" onMouseOut="popdn();" 
+  		    onMouseOver="popup('company'); MM_swapImage('company','','../images/company_on.gif',1); "><img
+  		     name="company" border="0" src="../images/company_off.gif" width="170"
+  		      height="26" alt="Company"></a><a href="../page/product_overview" 
+  		      onMouseOut="popdn();" 
+  		      onMouseOver="popup('products');MM_swapImage('products','','../images/products_on.gif',1);"><img
+  		     name="products" border="0" src="../images/products_off.gif" width="118"
+  		      height="26" alt="Products"></a><a href="../page/Consult_Overview" 
+  		      onMouseOut="popdn();" 
+  		      onMouseOver="popup('consulting'); MM_swapImage('consulting','','../images/consulting_on.gif',1);"><img
+  		     name="consulting" border="0" src="../images/consulting_off.gif" width="118"
+  		      height="26" alt="Consulting"></a><a href="../page/training_overview" 
+  		      onMouseOut="popdn();" 
+  		      onMouseOver="popup('training'); MM_swapImage('training','','../images/training_on.gif',1);"><img
+  		     name="training" border="0" src="../images/training_off.gif" width="118"
+  		      height="26" alt="Training"></a><a href="../page/customer_overview" 
+  		      onMouseOut="popdn();" 
+  		      onMouseOver="popup('customers'); MM_swapImage('customers','','../images/customers_on.gif',1);"><img
+  		     name="customers" border="0" src="../images/customers_off.gif" width="118"
+  		      height="26" alt="Customers"></a><a href="../page/partnership" 
+  		      onMouseOut="popdn();" 
+  		      onMouseOver="popup('partners'); MM_swapImage('partners','','../images/partners_on.gif',1);"><img
+  		     name="partners" border="0" src="../images/partners_off.gif" width="118"
+  		      height="26" alt="Partners"></a><img src="../images/button_end.gif"></td>
+	</tr>
+	</table>
+	<table border="0" cellspacing="0" cellpadding="0">
+	<tr><td align="right" bgcolor="#c3c3c3"><img src="../images/headings/5046_large.jpg"></td>
+	<!-- large page title here -->
+	<td valign="bottom" bgcolor="#c3c3c3" colspan="5">
+	<div id="bigtitle">Power*Architect</div>
+	</td>
+	<td bgcolor="#c3c3c3" align="left"><img src="../images/headings/products.jpg"></td></tr>
+	<tr><td colspan="7" height="1" bgcolor="#555555"><img src="../images/shim.gif" height="1"></td></tr>
+	<tr>
+		<td height="30" bgcolor="#F0F0F2"><img src="../images/shim.gif" height="30" width="1"></td>
+		<td width="1" rowspan="2" bgcolor="#555555"><img src="../images/shim.gif"></td>
+		<td bgcolor="#F0F0F2" colspan="3"><img src="../images/shim.gif"></td>
+		<td rowspan="2" width="1" bgcolor="#555555"><img src="../images/shim.gif" width="1"></td>
+		<td bgcolor="#F0F0F2" colspan="2"><img src="../images/shim.gif"></td>
+
+	</tr>
+	<tr>
+		<td bgcolor="#F0F0F2" valign="top" width="170">
+
+		<!-- left navigation menu -->
+		<div id="leftmenu">
+		<table border="0" cellspacing="0" cellpadding="0" width="170">		
+	<tr>
+		<td bgcolor="#F0F0F2"><img src="../images/shim.gif" width="5" height="30"></td>
+	</tr>
+  <tr> 
+    <td height="1" colspan="2" bgcolor="#BDC4CC"><img src="../images/1px555555.gif" width="170" height="1"></td>
+  </tr>
+  <tr id="cellLeft1" bgcolor="#1B338F"> 
+    <td height="20" width="1"><img src="../images/shim.gif" height="1" width="1"></td>
+    <td height="16"><a href="../page/architect" class="leftmenuhead">
+    Power*Architect</a></td>
+  </tr>
+  <tr> 
+    <td height="1" colspan="2" bgcolor="#BDC4CC"><img src="../images/1px555555.gif" width="170" height="1"></td>
+  </tr>
+  
+  
+	
+	
+	
+  <tr id="cellLeft2"> 
+    <td height="20" width="1"><img src="../images/shim.gif"></td>
+    <td height="16">
+    <a href="../page/Summarizer" class="leftmenu" onMouseOut="swapBg('cellLeft2','#F0F0F2')" onMouseOver="swapBg('cellLeft2','#BCC3CC')">
+    Data Aggregation Tool</a></td>
+	
+  </tr>
+  <tr> 
+    <td height="1" colspan="2" bgcolor="#BDC4CC"><img src="../images/1px555555.gif" width="170" height="1"></td>
+  </tr>
+  
+	
+	
+  <tr id="cellLeft3"> 
+    <td height="20" width="1"><img src="../images/shim.gif"></td>
+    <td height="16">
+    <a href="../page/MatchMaker" class="leftmenu" onMouseOut="swapBg('cellLeft3','#F0F0F2')" onMouseOver="swapBg('cellLeft3','#BCC3CC')">
+    Data Cleansing Tool</a></td>
+	
+  </tr>
+  <tr> 
+    <td height="1" colspan="2" bgcolor="#BDC4CC"><img src="../images/1px555555.gif" width="170" height="1"></td>
+  </tr>
+  
+	
+	
+  <tr id="cellLeft4"> 
+    <td height="20" width="1"><img src="../images/shim.gif"></td>
+    <td height="16">
+    <a href="../page/Dashboard" class="leftmenu" onMouseOut="swapBg('cellLeft4','#F0F0F2')" onMouseOver="swapBg('cellLeft4','#BCC3CC')">
+    Executive Dashboard Tool</a></td>
+	
+  </tr>
+  <tr> 
+    <td height="1" colspan="2" bgcolor="#BDC4CC"><img src="../images/1px555555.gif" width="170" height="1"></td>
+  </tr>
+  
+	
+	
+  <tr id="cellLeft5"> 
+    <td height="20" width="1"><img src="../images/shim.gif"></td>
+    <td height="16">
+    <a href="../page/Scorecard" class="leftmenu" onMouseOut="swapBg('cellLeft5','#F0F0F2')" onMouseOver="swapBg('cellLeft5','#BCC3CC')">
+    Balanced Scorecard Tool</a></td>
+	
+  </tr>
+  <tr> 
+    <td height="1" colspan="2" bgcolor="#BDC4CC"><img src="../images/1px555555.gif" width="170" height="1"></td>
+  </tr>
+  
+	
+	
+  <tr id="cellLeft6"> 
+    <td height="20" width="1"><img src="../images/shim.gif"></td>
+    <td height="16">
+    <a href="../page/Support" class="leftmenu" onMouseOut="swapBg('cellLeft6','#F0F0F2')" onMouseOver="swapBg('cellLeft6','#BCC3CC')">
+    Product Support</a></td>
+	
+  </tr>
+  <tr> 
+    <td height="1" colspan="2" bgcolor="#BDC4CC"><img src="../images/1px555555.gif" width="170" height="1"></td>
+  </tr>
+  
+	
+	
+  <tr id="cellLeft7"> 
+    <td height="20" width="1"><img src="../images/shim.gif"></td>
+    <td height="16">
+    <a href="../page/Demos" class="leftmenu" onMouseOut="swapBg('cellLeft7','#F0F0F2')" onMouseOver="swapBg('cellLeft7','#BCC3CC')">
+    Product Demo</a></td>
+	
+  </tr>
+  <tr> 
+    <td height="1" colspan="2" bgcolor="#BDC4CC"><img src="../images/1px555555.gif" width="170" height="1"></td>
+  </tr>
+  
+  </table>
+  </div>
+		</td>
+		<td bgcolor="#F0F0F2"><img src="../images/shim.gif" width="10"></td>
+		<td bgcolor="#F0F0F2"><!-- pin minimum column width -->
+
+		
+
+
+
+
+
+
+
+<p>
+Data Architects, DBA's, Analysts and Designers rely on Data Modeling tools to facilitate and simplify their data Modeling efforts, while maximizing the use of their resources. The Power*Architect allows these busy highly technical resources to perform this most intricate part of their job in a fraction of the time.
+</p>
+
+<p>
+The Power*Architect is an innovative Java-based data modeling tool geared specifically for Data Warehouse and Data Mart design. It allows the designer to open multiple concurrent source Database connections, drag and drop source schemas, tables and columns into the data modeling playpen, and forward engineer the resultant target database and its associated ETL template.
+</p>
+
+<p>
+The Power*Architect is a user-friendly Data Warehouse data modeling tool created by data warehouse designers, and has many unique features geared specifically for the data warehouse architect, including:
+</p>
+
+<ul>
+<li>
+Access any JDBC or ODBC accessible source database
+
+</li>
+
+<li>
+Design the target database Data Model (Data Warehouse)
+
+</li>
+
+<li>
+Compare the database structure of any two databases  highlighting the structural differences and generating the required DDL to synchronize
+
+</li>
+
+<li>
+Compare the Data Model data structures to an existing target database
+
+</li>
+
+<li>
+Save a snapshot of all source systems' data structures in the project file, allowing data warehouse designers to evolve their target data model remotely
+
+</li>
+
+<li>
+Forward engineer to Oracle, SQL Server, DB2, and PostgreSQL and more.
+
+</li>
+
+<li>
+Forward engineer ETL Templates containing source-to-target data mappings
+
+</li>
+
+<li>
+Invoke ETL Engine to load initial set of data into the target database
+
+</li>
+
+<li>
+Enable easy centralized installation and updates to many end users (Supports Java WebStart technology)
+
+</li>
+
+</ul>
+<p>
+</ul>
+
+</p>
+
+<p>
+The Power*Architect can open multiple source databases concurrently, even if they are from competing database vendors. Another key feature of the Power*Architect, that sets it apart from other data modeling tools, is that it remembers the origin of each column, and is capable of automatically generating the source-to-target data mappings.
+
+</p>
+
+<p>
+Whether you're building or maintaining your Data Warehouse data model, the Power*Architect will provide you a complete view of all required database structures and will expedite every aspect of your data warehouse design.
+
+</p>
+
+<p>
+Design your Data Warehouse in a fraction of the time with the Power*Architect.
+
+</p>
+
+<p>
+We look forward to showing you how!
+
+</p>
+
+<p>
+The Power*Architect is available now for download! The product is available for free to individuals for personal use. Commercial licensing and support are available at competitive prices. Please call us at 1-866-SQL-POWR to purchase.
+
+</p>
+
+<h3>Download Here:
+</h3>
+
+
+<p>
+<a href="http://download.sqlpower.ca/architect/1.0.20/Architect-Setup-Windows-1.0.20.jar">Windows Installer</a> (Java 5 Runtime required)
+
+</p>
+
+<p>
+<a href="http://download.sqlpower.ca/architect/1.0.20/Power_Architect-1.0.20.dmg">Mac OS X Disk Image</a> (OS X 10.4 or greater with the Java 5 Update required)
+
+</p>
+
+<p>
+<a href="http://download.sqlpower.ca/architect/1.0.20/Architect-Setup-Windows-1.0.20.jar">Generic/Unix</a> (Launch from command line; Java 5 Runtime required)
+
+</p>
+
+
+
+
+
+
+	<table width="100%"><tr>
+	<td align="right">
+	<a href="../page/architect?print=yes" target="_blank">Printable Version</a>
+    </td></tr></table>
+			<p>&nbsp;</p>
+
+			<br /><img src="../images/shim.gif" width="570" height="1"><br />
+		</td>
+		<td bgcolor="#F0F0F2"><img src="../images/shim.gif" width="10"></td>
+		<td bgcolor="#F0F0F2" width="120" nowrap="nowrap" valign="top" >
+		<div id="rightlinks">
+			<p><a href="../page/contact">Contact Info</a><br />
+	 <a href="../page/info">Info Request</a><br />  
+	 <a href="../page/Demos">Demo Request</a><br />  
+	 
+	 
+
+			
+			
+
+			<a href="../page/lounge_default">Client Lounge</a><br/> 
+
+			
+			
+			<a href="../page/question">Ask&nbsp;the&nbsp;Experts</a><br />
+
+			<form action="../page/search"><input type="text" size="10" maxlength"40" name="q">
+			<br /><input type="submit" value="Search"></form></p>
+		</div>
+		</td>
+	</tr>
+
+	<tr><td colspan="7" height="1" bgcolor="#555555"><img src="../images/shim.gif" height="1"></td></tr>
+	<td align="left" colspan="6"><p><span id="copyright">Copyright &copy; 2006 SQL Power Group Inc.</span><br />
+	<span id="copyright"><a href="../page/privacy_policy">Privacy Policy</a></span></p></td>
+	<td align="right"><img src="../images/unleash_huge.gif"></td>
+</tr></table>
+
+</body>
+
+
+</html>
