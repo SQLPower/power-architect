@@ -67,16 +67,16 @@ public class ProfileRowComponent extends JPanel implements Selectable {
     final JLabel statusLabel = new JLabel(String.format(TableProfileResult.TOSTRING_FORMAT, 500, "Mar 9, 2007", 15000));
 
     static {
-        tableIcon = ASUtils.createIcon("Table", "Table Result", ArchitectFrame.DEFAULT_ICON_SIZE);
+        tableIcon = ASUtils.createIcon("Table", "Table Result", 16);
 
-        refreshIcon = ASUtils.createIcon("arrow_refresh", "Re-Profile", ArchitectFrame.getMainInstance().getSprefs()
-                .getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE));
+        refreshIcon = ASUtils.createJLFIcon("general/Refresh", "Re-Profile", ArchitectFrame.getMainInstance().getSprefs()
+                .getInt(SwingUserSettings.ICON_SIZE, 24));
 
-        stopIcon = ASUtils.createIcon("stop", "Stop Profile", ArchitectFrame.getMainInstance().getSprefs()
-                .getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE));
+        stopIcon = ASUtils.createJLFIcon("general/Stop", "Stop Profile", ArchitectFrame.getMainInstance().getSprefs()
+                .getInt(SwingUserSettings.ICON_SIZE, 24));
 
-        deleteIcon = ASUtils.createIcon("delete", "Delete Profile", ArchitectFrame.getMainInstance().getSprefs()
-                .getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE));
+        deleteIcon = ASUtils.createJLFIcon("general/Delete", "Delete Profile", ArchitectFrame.getMainInstance().getSprefs()
+                .getInt(SwingUserSettings.ICON_SIZE, 24));
     }
 
     final TableProfileResult result;

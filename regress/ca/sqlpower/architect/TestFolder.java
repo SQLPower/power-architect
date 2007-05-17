@@ -6,10 +6,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.extensions.TestSetup;
-import junit.framework.Test;
-import junit.framework.TestSuite;
-
 import ca.sqlpower.architect.SQLTable.Folder;
 import ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
 
@@ -18,24 +14,6 @@ public class TestFolder extends SQLTestCase {
 	public TestFolder(String name) throws Exception {
 		super(name);
 	}
-    
-    /**
-     * Creates a wrapper around the normal test suite which runs the
-     * OneTimeSetup and OneTimeTearDown procedures.
-     */
-    public static Test suite() {
-        TestSuite suite = new TestSuite();
-        suite.addTestSuite(TestFolder.class);
-        TestSetup wrapper = new TestSetup(suite) {
-            protected void setUp() throws Exception {
-                oneTimeSetUp();
-            }
-            protected void tearDown() throws Exception {
-                oneTimeTearDown();
-            }
-        };
-        return wrapper;
-    }
 	
 	/**
 	 * One-time initialization code.  The special {@link #suite()} method arranges for
@@ -56,25 +34,23 @@ public class TestFolder extends SQLTestCase {
 			dropTableNoFail(con, "SQL_COLUMN_TEST_1PK");
 			dropTableNoFail(con, "SQL_COLUMN_TEST_3PK");
 			dropTableNoFail(con, "SQL_COLUMN_TEST_0PK");
-	
+			
 			stmt.executeUpdate("CREATE TABLE SQL_COLUMN_TEST_1PK (\n" +
-					" cow numeric(11),\n" +
+					" cow numeric(11) CONSTRAINT test1pk PRIMARY KEY,\n" +
 					" moo varchar(10),\n" +
-					" foo char(10),\n" +
-                    " CONSTRAINT test1pk PRIMARY KEY (cow))");
-            
+					" foo char(10))");
+			
 			stmt.executeUpdate("CREATE TABLE SQL_COLUMN_TEST_3PK (\n" +
 					" cow numeric(11) NOT NULL,\n" +
 					" moo varchar(10) NOT NULL,\n" +
 					" foo char(10) NOT NULL,\n" +
 					" CONSTRAINT test3pk PRIMARY KEY (cow, moo, foo))");
-
-            stmt.executeUpdate("CREATE TABLE SQL_COLUMN_TEST_0PK (\n" +
+			
+			stmt.executeUpdate("CREATE TABLE SQL_COLUMN_TEST_0PK (\n" +
 					" cow numeric(11),\n" +
 					" moo varchar(10),\n" +
 					" foo char(10))");
-
-        } finally {
+		} finally {
 			try {
 				if (stmt != null) stmt.close();
 			} catch (SQLException ex) {
@@ -86,7 +62,6 @@ public class TestFolder extends SQLTestCase {
 				System.out.println("Couldn't close connection");
 			}
 			//mydb.disconnect();  FIXME: this should be uncommented when bug 1005 is fixed
-            System.out.println("finished TestSQLColumn.oneTimeSetUp()");
 		}
 	}
 	
@@ -136,7 +111,7 @@ public class TestFolder extends SQLTestCase {
 	 */
 	@Override
 	protected SQLObject getSQLObjectUnderTest() {
-        return table1pk.getColumnsFolder();
+		return table1pk.getColumnsFolder();
 	}
 	
 	/*

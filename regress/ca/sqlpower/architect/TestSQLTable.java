@@ -76,7 +76,6 @@ public class TestSQLTable extends SQLTestCase {
             
             stmt.executeUpdate("CREATE TABLE REGRESSION_TEST1 (t1_c1 numeric(10), t1_c2 numeric(5))");
             stmt.executeUpdate("CREATE TABLE REGRESSION_TEST2 (t2_c1 char(10))");
-            stmt.executeUpdate("CREATE VIEW REGRESSION_TEST1_VIEW AS SELECT * FROM REGRESSION_TEST1");
         } finally {
             try {
                 if (stmt != null) stmt.close();
@@ -783,9 +782,9 @@ public class TestSQLTable extends SQLTestCase {
         
         SQLDatabase db = new SQLDatabase(ds);
           
-        SQLTable t = db.getTableByName("REGRESSION_TEST1_VIEW");
+        SQLTable t = db.getTableByName("PL_TABLES");
         
-        SQLObject o = t.getIndicesFolder();
+        SQLObject o = t.getChildByName("Indices");
         
         // Should not throw an ArchitectException
         o.populate();

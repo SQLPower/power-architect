@@ -28,9 +28,9 @@ public class SearchReplaceAction extends AbstractAction {
     
     public SearchReplaceAction() {
         super("Find/Replace...",
-                ASUtils.createIcon("search_replace",
+                ASUtils.createJLFIcon("general/Find",
                         "Find/Replace",
-                        ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE)));
+                        ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
         putValue(SHORT_DESCRIPTION, "Find/Replace");
     }
     

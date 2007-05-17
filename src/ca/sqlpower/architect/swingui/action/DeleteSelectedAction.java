@@ -52,9 +52,9 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 
 	public DeleteSelectedAction() {
 		super("Delete Selected",
-			  ASUtils.createIcon("delete",
+			  ASUtils.createJLFIcon("general/Delete",
 								 "Delete Selected",
-								 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE)));
+								 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
 		putValue(SHORT_DESCRIPTION, "Delete Selected");
 		putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0));
 		putValue(ACTION_COMMAND_KEY, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);

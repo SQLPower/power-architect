@@ -29,9 +29,9 @@ public class ZoomAction extends AbstractAction implements PropertyChangeListener
 
 	public ZoomAction(double amount) {
 		super(amount > 0.0 ? "Zoom In" : "Zoom Out",
-			  ASUtils.createIcon(amount > 0.0 ? "zoom_in" : "zoom_out",
+			  ASUtils.createJLFIcon(amount > 0.0 ? "general/ZoomIn" : "general/ZoomOut",
 									amount > 0.0 ? "Zoom In" : "Zoom Out",
-									ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE)));
+									ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
 		putValue(AbstractAction.SHORT_DESCRIPTION, amount > 0.0 ? "Zoom In" : "Zoom Out");
 		this.zoomStep = amount;
 	}

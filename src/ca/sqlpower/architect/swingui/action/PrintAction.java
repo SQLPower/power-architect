@@ -24,9 +24,9 @@ public class PrintAction extends AbstractAction {
 
 	public PrintAction() {
 		super("Print...",
-			  ASUtils.createIcon("printer",
+			  ASUtils.createJLFIcon("general/Print",
 									"Print",
-									ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE)));
+									ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
 		putValue(SHORT_DESCRIPTION, "Print");
 	}
 

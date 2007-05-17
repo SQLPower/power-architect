@@ -23,7 +23,7 @@ import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.DBTree;
-//import ca.sqlpower.architect.swingui.SwingUserSettings;
+import ca.sqlpower.architect.swingui.SwingUserSettings;
 
 
 public class ProfilePanelAction extends ProgressAction {
@@ -34,7 +34,9 @@ public class ProfilePanelAction extends ProgressAction {
     private JDialog dialog;
 
     public ProfilePanelAction() {
-        super("Profile...", ASUtils.createIcon("Table_profiled", "Profile", 16));
+        super("Profile...", ASUtils.createJLFIcon( "general/Information",
+                "Information",
+                ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
 
         putValue(SHORT_DESCRIPTION, "Profile Tables");
     }

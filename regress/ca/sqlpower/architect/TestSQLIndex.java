@@ -80,10 +80,9 @@ public class TestSQLIndex extends SQLTestCase {
             dropTableNoFail(con, "SQL_COLUMN_TEST_0PK");
             
             stmt.executeUpdate("CREATE TABLE SQL_COLUMN_TEST_1PK (\n" +
-                    " cow numeric(11),\n" +
+                    " cow numeric(11) CONSTRAINT test1pk PRIMARY KEY,\n" +
                     " moo varchar(10),\n" +
-                    " foo char(10)," +
-                    " CONSTRAINT test1pk PRIMARY KEY (cow))");
+                    " foo char(10))");
             
             stmt.executeUpdate("CREATE TABLE SQL_COLUMN_TEST_3PK (\n" +
                     " cow numeric(11) NOT NULL,\n" +
@@ -264,7 +263,7 @@ public class TestSQLIndex extends SQLTestCase {
     public void testLoadFromDbGetsCorrectPK() throws ArchitectException{
         assertNotNull("No primary key loaded",dbTable.getPrimaryKeyIndex());
         assertEquals("Wrong number of indices",1,dbTable.getIndicesFolder().getChildCount());
-        assertEquals("Wrong primary key","SYS_IDX_",dbTable.getPrimaryKeyName().substring(0, 8));
+        assertEquals("Wrong primary key","TEST3PK",dbTable.getPrimaryKeyName());
     }
     
     public void testAddStringColumnToPKThrowsException() throws ArchitectException{
