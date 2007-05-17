@@ -122,6 +122,8 @@ public class ArchitectFrame extends JFrame {
     public static final boolean MAC_OS_X = (System.getProperty("os.name").toLowerCase().startsWith("mac os x"));
 
 	public static final double ZOOM_STEP = 0.25;
+    
+    public static final int DEFAULT_ICON_SIZE = 16;
 
 	protected final Preferences prefs;
 
@@ -150,7 +152,7 @@ public class ArchitectFrame extends JFrame {
     private RecentMenu recent;
 	protected AboutAction aboutAction;
     protected Action newProjectAction;
-	protected Action openProjectAction;
+	protected OpenProjectAction openProjectAction;
 	protected Action saveProjectAction;
 	protected Action saveProjectAsAction;
 	protected PreferencesAction prefAction;
@@ -163,7 +165,7 @@ public class ArchitectFrame extends JFrame {
  	protected ZoomAction zoomOutAction;
  	protected Action zoomNormalAction;
  	protected Action zoomAllAction;
- 	protected  JComponent contentPane;
+ 	protected JComponent contentPane;
 	private AutoLayoutAction autoLayoutAction;
 
 	private ArchitectLayout autoLayout;
@@ -192,13 +194,12 @@ public class ArchitectFrame extends JFrame {
 
 	protected Action exitAction = new AbstractAction("Exit") {
 	    public void actionPerformed(ActionEvent e) {
-	        exit();
 	    }
 	};
 
     protected static Action forumAction = new AbstractAction("Support on the Web",
             // Alas this is now static so the size can't be gotten from sprefs...
-            ASUtils.createJLFIcon("development/WebComponent","New Project", 16)) {
+            ASUtils.createIcon("world","New Project", ArchitectFrame.DEFAULT_ICON_SIZE)) {
         public void actionPerformed(ActionEvent evt) {
             try {
                 BrowserUtil.launch(FORUM_URL);
@@ -208,21 +209,6 @@ public class ArchitectFrame extends JFrame {
             }
         }
     };
-
-
-	/**
-	 * Updates the swing settings and then writes all settings to the
-	 * config file whenever actionPerformed is invoked.
-	 */
-	protected Action saveSettingsAction = new AbstractAction("Save User Preferences") {
-	    public void actionPerformed(ActionEvent e) {
-	        try {
-	            saveSettings();
-	        } catch (ArchitectException ex) {
-	            logger.error("Couldn't save settings", ex);
-	        }
-	    }
-	};
 
     /**
 	 * You can't create an architect frame using this constructor.  You have to
@@ -337,10 +323,11 @@ public class ArchitectFrame extends JFrame {
 		aboutAction = new AboutAction();
 
         Action helpAction = new HelpAction();
+        helpAction.putValue(AbstractAction.SHORT_DESCRIPTION, "User Guide");
 
 		newProjectAction
 			 = new AbstractAction("New Project",
-					      ASUtils.createJLFIcon("general/New","New Project",sprefs.getInt(SwingUserSettings.ICON_SIZE, 24))) {
+					      ASUtils.createIcon("new_project","New Project",sprefs.getInt(SwingUserSettings.ICON_SIZE, DEFAULT_ICON_SIZE))) {
 			public void actionPerformed(ActionEvent e) {
 			    if (promptForUnsavedModifications()) {
 			        try {
@@ -383,9 +370,9 @@ public class ArchitectFrame extends JFrame {
 
 		saveProjectAction
 			= new AbstractAction("Save Project",
-								 ASUtils.createJLFIcon("general/Save",
+								 ASUtils.createIcon("disk",
 													   "Save Project",
-													   sprefs.getInt(SwingUserSettings.ICON_SIZE, 24))) {
+													   sprefs.getInt(SwingUserSettings.ICON_SIZE, DEFAULT_ICON_SIZE))) {
 					public void actionPerformed(ActionEvent e) {
 						saveOrSaveAs(false, true);
 					}
@@ -396,9 +383,9 @@ public class ArchitectFrame extends JFrame {
 
 		saveProjectAsAction
 			= new AbstractAction("Save Project As...",
-								 ASUtils.createJLFIcon("general/SaveAs",
+								 ASUtils.createIcon("save_as",
 													   "Save Project As...",
-													   sprefs.getInt(SwingUserSettings.ICON_SIZE, 24))) {
+													   sprefs.getInt(SwingUserSettings.ICON_SIZE, DEFAULT_ICON_SIZE))) {
 					public void actionPerformed(ActionEvent e) {
 						saveOrSaveAs(true, true);
 					}
@@ -418,9 +405,9 @@ public class ArchitectFrame extends JFrame {
 
 		zoomNormalAction
 			= new AbstractAction("Reset Zoom",
-								 ASUtils.createJLFIcon("general/Zoom",
+								 ASUtils.createIcon("zoom_general",
 													   "Reset Zoom",
-													   sprefs.getInt(SwingUserSettings.ICON_SIZE, 24))) {
+													   sprefs.getInt(SwingUserSettings.ICON_SIZE, DEFAULT_ICON_SIZE))) {
 					public void actionPerformed(ActionEvent e) {
 						playpen.setZoom(1.0);
 					}
@@ -429,9 +416,9 @@ public class ArchitectFrame extends JFrame {
 
 
 		zoomAllAction = new AbstractAction("Zoom to fit",
-							 ASUtils.createJLFIcon("general/Zoom",
+							 ASUtils.createIcon("zoom_general",
 												   "Reset Zoom",
-												   sprefs.getInt(SwingUserSettings.ICON_SIZE, 24))) {
+												   sprefs.getInt(SwingUserSettings.ICON_SIZE, DEFAULT_ICON_SIZE))) {
 				public void actionPerformed(ActionEvent e) {
 					Rectangle rect = null;
 					if ( playpen != null ) {
@@ -668,7 +655,6 @@ public class ArchitectFrame extends JFrame {
 		if (!MAC_OS_X) {
 		    fileMenu.add(prefAction);
 		}
-		fileMenu.add(saveSettingsAction);
 		fileMenu.add(projectSettingsAction);
 		if (!MAC_OS_X) {
 		    fileMenu.addSeparator();
@@ -1068,9 +1054,9 @@ public class ArchitectFrame extends JFrame {
 	private class OpenProjectAction extends AbstractAction {
 		RecentMenu recent;
 		private OpenProjectAction(RecentMenu recent) {
-			super("Open Project...", ASUtils.createJLFIcon("general/Open",
+			super("Open Project...", ASUtils.createIcon("folder",
 					   "Open Project",
-					   sprefs.getInt(SwingUserSettings.ICON_SIZE, 24)));
+					   sprefs.getInt(SwingUserSettings.ICON_SIZE, DEFAULT_ICON_SIZE)));
 			this.recent = recent;
 			putValue(AbstractAction.SHORT_DESCRIPTION, "Open");
 			putValue(AbstractAction.ACCELERATOR_KEY,

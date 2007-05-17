@@ -27,9 +27,9 @@ public class AboutAction extends AbstractAction {
 	
 	public AboutAction() {
 		super("About Power*Architect...", 
-			ASUtils.createJLFIcon("general/About",
+			ASUtils.createIcon("Architect",
                         "About", 
-                        ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
+                        ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE)));
 		putValue(SHORT_DESCRIPTION, "About the Power*Architect");
 	}
 

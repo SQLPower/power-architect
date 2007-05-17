@@ -19,7 +19,7 @@ public class ViewProfileAction extends AbstractAction {
     public ViewProfileAction() {
         super("View Profile...", ASUtils.createJLFIcon( "general/History",
                         "View Profiles",
-                        ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
+                        ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE)));
 
         putValue(SHORT_DESCRIPTION, "View Profiled Tables");
 
