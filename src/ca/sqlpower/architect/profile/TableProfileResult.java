@@ -96,6 +96,7 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
                 return;
             }
             DDLGenerator ddlg = getDDLGenerator();
+            progress = 0;
             for (SQLColumn col : columns ) {
                 ColumnProfileResult columnResult = new ColumnProfileResult(col, manager, ddlg, this);
                 columnResult.populate();
@@ -128,7 +129,14 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
      */
     @Override
     public synchronized Integer getJobSize() {
-        return null;
+        SQLTable temp = getProfiledObject();
+        Integer ret = null;
+        try {
+            ret = new Integer(temp.getColumns().size());
+        } catch (ArchitectException e) {
+            throw new IllegalStateException("Failed to populate necessary columns.");
+        }
+        return ret;
     }
     @Override
     public synchronized int getProgress() {
