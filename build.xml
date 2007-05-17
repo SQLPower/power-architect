@@ -30,11 +30,6 @@
 	<!-- clover -->
 	<property name="clover.home" value="ext-tools-home/clover"/>
 
-	<!-- hivemind, used for manifestclasspath task -->
-	<property name="hivemind.jar" value="buildlib/hivemind-1.1.1.jar"/>
-	<taskdef name="manifestclasspath" classname="org.apache.hivemind.ant.ManifestClassPath"
-		classpath="${hivemind.jar}"/>
-
 	<!-- os x utils -->
 	<taskdef name="jarbundler" classpath="osx_packaging_utils/jarbundler.jar:osx_packaging_utils/xercesImpl.jar:osx_packaging_utils/xml-apis.jar" classname="net.sourceforge.jarbundler.JarBundler"/>
 
@@ -49,6 +44,7 @@
 	</condition>
 
 	<target name="init">
+		<echo message="Note, this build script requires Ant 1.7 or newer"/>
 		<tstamp/>
 		<mkdir dir="${build}"/>
 		<!-- get the version number from source code ArchitectUtils -->
@@ -356,9 +352,14 @@
     	</copy>
 
     	<manifestclasspath property="architect.jar.classpath"
-    	                        directory="${staging.dir}/">
-    		<classpath path="${architect.jar.classpath}"/>
-     	 </manifestclasspath>
+    	    	                       jarfile="${staging.dir}/architect.jar">
+    	    		<classpath>
+    		    		<pathelement path="${staging.dir}/jdbc"/>
+    	    			<fileset dir="${staging.dir}/">
+    	    				<include name="lib/*.jar"/>
+    	    			</fileset>
+    	    		</classpath>
+    	    	 </manifestclasspath>
 
     	<manifest file="${build}/manifest">
     		<attribute name="Main-Class" value="ca.sqlpower.architect.swingui.ArchitectFrame"/>
