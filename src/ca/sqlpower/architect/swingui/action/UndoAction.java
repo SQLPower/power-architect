@@ -32,9 +32,9 @@ public class UndoAction extends AbstractAction {
 	private ChangeListener managerListener = new ManagerListener();
 	
 	public UndoAction() {
-		putValue(Action.SMALL_ICON, ASUtils.createJLFIcon("general/Undo",
+		putValue(Action.SMALL_ICON, ASUtils.createIcon("undo_arrow",
 				"Undo",
-				ArchitectFrame.getMainInstance().getSwingUserSettings().getInt(SwingUserSettings.ICON_SIZE, 24)));
+				ArchitectFrame.getMainInstance().getSwingUserSettings().getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE)));
 		putValue(Action.NAME,"Undo");
 		putValue(AbstractAction.ACCELERATOR_KEY,
 				KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));

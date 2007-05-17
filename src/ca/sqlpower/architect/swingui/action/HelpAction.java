@@ -19,9 +19,9 @@ public class HelpAction extends AbstractAction {
     
     public HelpAction() {
         super("Help",      
-                ASUtils.createJLFIcon( "general/Help",
+                ASUtils.createIcon( "help",
                         "Help", 
-                        ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
+                        ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE)));
     }
 
     public void actionPerformed(ActionEvent e) {

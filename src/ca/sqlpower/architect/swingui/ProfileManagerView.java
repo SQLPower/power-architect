@@ -225,8 +225,8 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
             }
         });
         topPanel.add(searchText);
-        ImageIcon clearSearchIcon = ASUtils.createJLFIcon("general/Delete", "Clear Search", ArchitectFrame.getMainInstance().getSprefs()
-                    .getInt(SwingUserSettings.ICON_SIZE, 16));
+        ImageIcon clearSearchIcon = ASUtils.createIcon("delete", "Clear Search", ArchitectFrame.getMainInstance().getSprefs()
+                    .getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE));
 
         JButton clearSearchButton = new JButton(clearSearchIcon);
         clearSearchButton.addActionListener(new ActionListener() {

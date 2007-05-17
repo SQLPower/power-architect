@@ -32,9 +32,9 @@ public class RedoAction extends AbstractAction {
 	private ChangeListener managerListener = new ManagerListener();
 
 	public RedoAction() {
-		putValue(Action.SMALL_ICON, ASUtils.createJLFIcon("general/Redo",
+		putValue(Action.SMALL_ICON, ASUtils.createIcon("redo_arrow",
 				"Redo",
-				ArchitectFrame.getMainInstance().getSwingUserSettings().getInt(SwingUserSettings.ICON_SIZE, 24)));
+				ArchitectFrame.getMainInstance().getSwingUserSettings().getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE)));
 		putValue(Action.NAME,"Redo");
 		putValue(AbstractAction.ACCELERATOR_KEY,
 				KeyStroke.getKeyStroke(KeyEvent.VK_Y, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
