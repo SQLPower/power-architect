@@ -34,7 +34,7 @@ public class ProfilePanelAction extends ProgressAction {
     private JDialog dialog;
 
     public ProfilePanelAction() {
-        super("Profile...", ASUtils.createIcon("Table_profiled", "Profile", 16));
+        super("Profile...", ASUtils.createIcon("Table_profiled", "Profile", ArchitectFrame.DEFAULT_ICON_SIZE));
 
         putValue(SHORT_DESCRIPTION, "Profile Tables");
     }

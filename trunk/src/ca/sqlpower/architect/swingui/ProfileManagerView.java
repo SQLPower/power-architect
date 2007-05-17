@@ -357,7 +357,6 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
     }
     
     private void updateResultListPanel() {
-        
         resultListPanel.removeAll();
         for (ProfileRowComponent r : showingRows) {
             resultListPanel.add(r);
