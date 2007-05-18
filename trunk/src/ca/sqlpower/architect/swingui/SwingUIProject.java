@@ -1246,7 +1246,6 @@ public class SwingUIProject {
                     +" x=\""+p.x+"\" y=\""+p.y+"\" />");
             if (pm != null) {
                 pm.setProgress(++progress);
-                pm.setNote(tp.getModel().getShortDisplayName());
             }
         }
 
@@ -1402,7 +1401,6 @@ public class SwingUIProject {
             // don't save primary key name. It is a propery of the PK index, not the table.
             if (pm != null) {
                 pm.setProgress(++progress);
-                pm.setNote(o.getShortDisplayName());
             }
         } else if (o instanceof SQLTable.Folder) {
             id = "FOL"+objectIdMap.size();
