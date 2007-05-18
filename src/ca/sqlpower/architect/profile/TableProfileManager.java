@@ -18,6 +18,7 @@ public class TableProfileManager implements ProfileManager {
     private static final Logger logger = Logger.getLogger(TableProfileManager.class);
     private TableProfileResult lastTableProfileResult= null;
     
+    private List<TableProfileResult> processOrder;
     private final List<TableProfileResult> tableResults =
         new ArrayList<TableProfileResult>();
     private final Map<SQLTable,Integer> profileCounts = 
@@ -114,6 +115,21 @@ public class TableProfileManager implements ProfileManager {
         return retCollection;
     }
 
+    public void setProcessOrder(List<TableProfileResult> list) {
+        processOrder = list;
+    }
+    
+    private TableProfileResult getNextProfileToProcess()
+    {
+        TableProfileResult ret = null;
+        for (TableProfileResult temp : processOrder) {
+            if (temp.getProgress() < temp.getJobSize().intValue()) {
+                ret = temp;
+                break;
+            }
+        }
+        return ret;
+    }
     
     /**
      * Creates TableProfileResult objects for each of the tables in the
@@ -143,7 +159,8 @@ public class TableProfileManager implements ProfileManager {
         new Thread() {
             public void run() {
                 try {
-                    for (TableProfileResult tpr : ((List<TableProfileResult>)results)) {
+                    TableProfileResult tpr;
+                    while ((tpr = getNextProfileToProcess()) != null) {
                         logger.debug("TableProfileManager.asynchCreateProfiles(): populate started");
                         tpr.populate();
                         logger.debug("populated: " + tpr);
