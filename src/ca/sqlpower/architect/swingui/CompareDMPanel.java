@@ -766,6 +766,7 @@ public class CompareDMPanel extends JPanel {
 		sqlTypeDropdown = new JComboBox(DDLUtils.getDDLTypes());
 		sqlTypeDropdown.setName("sqlTypeDropDown");
 		OutputChoiceListener listener = new OutputChoiceListener(sqlTypeDropdown);
+        sqlTypeDropdown.setEnabled(false);
 		sqlButton = new JRadioButton();
 		sqlButton.setName(OUTPUT_SQL);
 		sqlButton.setActionCommand(OUTPUT_SQL);
