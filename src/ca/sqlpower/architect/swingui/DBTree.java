@@ -45,7 +45,6 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.action.DBCSOkAction;
-import ca.sqlpower.architect.swingui.action.SetDataSourceAction;
 
 public class DBTree extends JTree implements DragSourceListener, DBConnectionCallBack {
 	static Logger logger = Logger.getLogger(DBTree.class);
@@ -316,24 +315,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 		}
 		ASUtils.breakLongMenu(ArchitectFrame.getMainInstance(),connectionsMenu);
 
-		if (isTargetDatabaseNode(p)) {
-			newMenu.addSeparator();
-			// two menu items: "Set Target Database" and "Connection Properties
-			newMenu.add(connectionsMenu = new JMenu("Set Target Database"));
-			if (ArchitectFrame.getMainInstance().getUserSettings().getConnections().size() == 0) {
-				// disable if there's no connections in user settings yet (annoying, but less confusing)
-				connectionsMenu.setEnabled(false);
-			} else {
-				SQLDatabase ppdb = ArchitectFrame.getMainInstance().getProject().getPlayPen().getDatabase();
-				// populate
-				for (ArchitectDataSource dbcs : ArchitectFrame.getMainInstance().getUserSettings().getConnections()) {
-					connectionsMenu.add(new JMenuItem(new SetDataSourceAction(ppdb, dbcs)));
-				}
-				ASUtils.breakLongMenu(ArchitectFrame.getMainInstance(),connectionsMenu);
-			}
-			JMenuItem popupProperties = new JMenuItem(dbcsPropertiesAction);
-			newMenu.add(popupProperties);
-		} else if (isTargetDatabaseChild(p)) {
+		if (!isTargetDatabaseNode(p) && isTargetDatabaseChild(p)) {
 			newMenu.addSeparator();
 			ArchitectFrame af = ArchitectFrame.getMainInstance();
 			JMenuItem mi;
@@ -419,7 +401,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 			} else {
 				mi.setEnabled(false);
 			}
-		} else if (p != null) { // clicked on DBCS item in DBTree
+		} else if (!isTargetDatabaseNode(p) && p != null) { // clicked on DBCS item in DBTree
 			newMenu.addSeparator();
 			if (p.getLastPathComponent() instanceof SQLDatabase) {
 				newMenu.add(new JMenuItem(removeDBCSAction));
