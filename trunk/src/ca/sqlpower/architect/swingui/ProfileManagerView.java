@@ -25,6 +25,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
@@ -71,6 +72,8 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
 
     final JTextField searchText;
     
+    final PageListener pageListener;
+    
     /**
      * This is the sort order to show the profile results in. It will change
      * when you click on the radio buttons to change how the results will
@@ -109,8 +112,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         }
 
         public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
-            // TODO Auto-generated method stub
-            return 0;
+            return resultListPanel.getPreferredScrollableViewportSize().height;
         }
 
         public boolean getScrollableTracksViewportHeight() {
@@ -166,7 +168,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
             ignoreSelectionEvents = false;
         }
     }
-    
+        
     private class TableProfileNameComparator implements Comparator<ProfileRowComponent> {
 
         public int compare(ProfileRowComponent o1, ProfileRowComponent o2) {
@@ -199,36 +201,54 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         }
         
     }
+    
+    
+    // A listener to detect page up/down request
+    private class PageListener implements KeyListener {
+        public void keyPressed(KeyEvent e) {
+            if (scrollPane != null && resultListPanel != null) {
+                if (e.getKeyCode() == KeyEvent.VK_PAGE_DOWN) {
+                    JScrollBar sb = scrollPane.getVerticalScrollBar();
+                    sb.setValue(sb.getValue() + resultListPanel.getPreferredScrollableViewportSize().height);
+                } else if (e.getKeyCode() == KeyEvent.VK_PAGE_UP) {
+                    JScrollBar sb = scrollPane.getVerticalScrollBar();
+                    sb.setValue(sb.getValue() - resultListPanel.getPreferredScrollableViewportSize().height);
+                }
+            }
+        }
+        public void keyTyped(KeyEvent e) {}
+        public void keyReleased(KeyEvent e) {}
+    }
 
     public ProfileManagerView(final ProfileManager pm) {
         super();
         this.pm = pm;
-
+        pageListener = new PageListener();
+        addKeyListener(pageListener);
+        
         setLayout(new BorderLayout());
         JPanel topPanel = new JPanel();
         add(topPanel, BorderLayout.NORTH);
         
         topPanel.add(new JLabel("Search"));
         searchText = new JTextField(10);
+        searchText.addKeyListener(pageListener);
         searchText.addKeyListener(new KeyListener() {
 
-            public void keyPressed(KeyEvent e) {
-                // nothing
-            }
+            public void keyPressed(KeyEvent e) {}
 
             public void keyReleased(KeyEvent e) {
                 doSearch(searchText.getText());
             }
 
-            public void keyTyped(KeyEvent e) {
-                // nothing
-            }
+            public void keyTyped(KeyEvent e) {}
         });
         topPanel.add(searchText);
         ImageIcon clearSearchIcon = ASUtils.createIcon("delete", "Clear Search", ArchitectFrame.getMainInstance().getSprefs()
                     .getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE));
 
         JButton clearSearchButton = new JButton(clearSearchIcon);
+        clearSearchButton.addKeyListener(pageListener);
         clearSearchButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 searchText.setText("");
@@ -242,8 +262,10 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         topPanel.add(orderByLabel);
         final JRadioButton nameRadioButton = new JRadioButton("Name");
         topPanel.add(nameRadioButton);
+        nameRadioButton.addKeyListener(pageListener);
         final JRadioButton dateRadioButton = new JRadioButton("Date");
         topPanel.add(dateRadioButton);
+        dateRadioButton.addKeyListener(pageListener);
         ActionListener radioListener = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if(nameRadioButton.isSelected()) {
@@ -260,6 +282,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         group.add(dateRadioButton);
         nameRadioButton.setSelected(true);
         resultListPanel = new ResultListPanel();
+        resultListPanel.addKeyListener(pageListener);
         resultListPanel.setBackground(UIManager.getColor("List.background"));
         resultListPanel.setLayout(new GridLayout(0, 1));
 
@@ -276,9 +299,10 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         scrollPane.getViewport().setBackground(Color.WHITE);
         scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         add(scrollPane, BorderLayout.CENTER);
-
+        
         JPanel bottomPanel = new JPanel();
         add(bottomPanel, BorderLayout.SOUTH);
+        
  
         Action viewAllAction = new AbstractAction("View All") {
             public void actionPerformed(ActionEvent e) {
@@ -358,9 +382,12 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
     
     private void updateResultListPanel() {
         resultListPanel.removeAll();
+        List<TableProfileResult> tableProfileResults = new ArrayList<TableProfileResult>();
         for (ProfileRowComponent r : showingRows) {
             resultListPanel.add(r);
+            tableProfileResults.add(r.getResult());
         }
+        ((TableProfileManager) pm).setProcessOrder(tableProfileResults);
         resultListPanel.revalidate();
     }
     
@@ -434,5 +461,5 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
 
     public void profileListChanged(ProfileChangeEvent e) {
         logger.debug("ProfileChanged method not yet implemented.");
-    }
+    }    
 }
