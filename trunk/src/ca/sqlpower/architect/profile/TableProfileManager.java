@@ -18,7 +18,8 @@ public class TableProfileManager implements ProfileManager {
     private static final Logger logger = Logger.getLogger(TableProfileManager.class);
     private TableProfileResult lastTableProfileResult= null;
     
-    private List<TableProfileResult> processOrder;
+    private WorkerThread updateThread = new WorkerThread();
+    private List<TableProfileResult> processOrder = new ArrayList<TableProfileResult>();
     private final List<TableProfileResult> tableResults =
         new ArrayList<TableProfileResult>();
     private final Map<SQLTable,Integer> profileCounts = 
@@ -55,6 +56,22 @@ public class TableProfileManager implements ProfileManager {
             profileCounts.remove(profileResult.getProfiledObject());
         }
         logger.debug("Decrementing to "+profileCounts.get(profileResult.getProfiledObject()));
+    }
+    
+    private class WorkerThread extends Thread {
+        public void run() {
+            try {
+                TableProfileResult tpr = getNextProfileToProcess();
+                while (tpr != null) {
+                    logger.debug("TableProfileManager.asynchCreateProfiles(): populate started");
+                    tpr.populate();
+                    tpr = getNextProfileToProcess();
+                    logger.debug("populated: " + tpr);
+                }
+            } catch (Exception e) {
+                e.printStackTrace(); // XXX save me
+            }
+        }
     }
     
     /**
@@ -116,9 +133,15 @@ public class TableProfileManager implements ProfileManager {
     }
 
     public void setProcessOrder(List<TableProfileResult> list) {
-        processOrder = list;
+            for (int i = list.size()-1; i >= 0; i--) {
+                if (processOrder.contains(list.get(i))) {
+                    processOrder.remove(list.get(i));
+                }
+                processOrder.add(0,list.get(i));
+                
+            }
     }
-    
+
     private TableProfileResult getNextProfileToProcess()
     {
         TableProfileResult ret = null;
@@ -130,7 +153,7 @@ public class TableProfileManager implements ProfileManager {
         }
         return ret;
     }
-    
+
     /**
      * Creates TableProfileResult objects for each of the tables in the
      * given list, then adds them to this ProfileManager in an unpopulated
@@ -156,22 +179,9 @@ public class TableProfileManager implements ProfileManager {
         // Now, populate them one after the other on a separate worker thread
         // (Please don't change this to do them all in parallel.. it will reduce
         // performance, plus it will make a tonne of connections to the database)
-        new Thread() {
-            public void run() {
-                try {
-                    TableProfileResult tpr;
-                    while ((tpr = getNextProfileToProcess()) != null) {
-                        logger.debug("TableProfileManager.asynchCreateProfiles(): populate started");
-                        tpr.populate();
-                        logger.debug("populated: " + tpr);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace(); // XXX save me
-                }
-            }
-        }.start();
+        updateThread.start();
     }
-
+    
     /**
      * Creates a new profile result for the given table, and adds it to
      * this ProfileManager.  The act of adding a profile causes this
