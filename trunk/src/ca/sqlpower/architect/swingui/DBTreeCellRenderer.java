@@ -70,11 +70,7 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
 			SQLDatabase db = (SQLDatabase) value;
 			if (db.isPlayPenDatabase()) {
 				setIcon(targetIcon);
-				if (db.getName() == null || db.getName().length() == 0) {
-					setText("Project");
-				} else {
-					setText("Project ("+db.getName()+")");
-				}
+                setText("Project");
 			} else {
 				setIcon(dbIcon);
 			}

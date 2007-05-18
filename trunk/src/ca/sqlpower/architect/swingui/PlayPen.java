@@ -57,7 +57,6 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -90,8 +89,6 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
 import ca.sqlpower.architect.swingui.Relationship.RelationshipDecorationMover;
 import ca.sqlpower.architect.swingui.action.CancelAction;
-import ca.sqlpower.architect.swingui.action.DBCSOkAction;
-import ca.sqlpower.architect.swingui.action.SetDataSourceAction;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
@@ -934,17 +931,7 @@ public class PlayPen extends JPanel
 		ArchitectFrame af = ArchitectFrame.getMainInstance();
 		playPenPopup = new JPopupMenu();
 
- 		JMenuItem mi = new JMenuItem();
-		mi.setAction(chooseDBCSAction);
-		playPenPopup.add(mi);
-
-		JMenu connectionsMenu = new JMenu("Set Target Database");
-		for(ArchitectDataSource dbcs :ArchitectFrame.getMainInstance().getUserSettings().getConnections()) {
-			connectionsMenu.add(new JMenuItem(new SetDataSourceAction(db, dbcs)));
-		}
-		playPenPopup.add(connectionsMenu);
-
-		mi = new JMenuItem();
+		JMenuItem mi = new JMenuItem();
 		mi.setAction(af.createTableAction);
 		playPenPopup.add(mi);
 
@@ -981,45 +968,6 @@ public class PlayPen extends JPanel
 				});
 			playPenPopup.add(mi);
 		}
-	}
-
-	public Action chooseDBCSAction = new AbstractAction("Target Database Properties...") {
-			public void actionPerformed(ActionEvent e) {
-				showDbcsDialog();
-			}
-		};
-
-	/**
-	 * Pops up a dialog box that lets the user inspect and change the
-	 * target db's connection spec.  Create from scratch every time
-     * just in case the user changed the Target Database from the DBTree.
-	 */
-	public void showDbcsDialog() {
-		final DBCSPanel dbcsPanel = new DBCSPanel(
-                ArchitectFrame.getMainInstance().getArchitectSession()
-                .getUserSettings().getPlDotIni());
-
-
-		dbcsPanel.setDbcs(db.getDataSource());
-		DBCSOkAction okAction = new DBCSOkAction(dbcsPanel, false);
-
-		Action cancelAction = new AbstractAction() {
-			public void actionPerformed(ActionEvent e) {
-				dbcsPanel.discardChanges();
-			}
-		};
-
-		JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
-				dbcsPanel, ArchitectFrame.getMainInstance(),
-				"Target Database Connection", ArchitectPanelBuilder.OK_BUTTON_LABEL,
-				okAction, cancelAction);
-
-		okAction.setConnectionDialog(d);
-		d.pack();
-		d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
-		dbcsDialog = d;
-
-		dbcsDialog.setVisible(true);
 	}
 
 	/**

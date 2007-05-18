@@ -75,7 +75,7 @@ public class ExportDDLAction extends AbstractAction {
 
                         GenericDDLGenerator ddlg = architectFrame.getProject().getDDLGenerator();
                         ddlg.setTargetSchema(ddlPanel.getSchemaField().getText());
-
+                        
                         boolean done = false;
                         while (!done) {
                             // generate DDL in order to come up with a list of warnings
@@ -154,8 +154,8 @@ public class ExportDDLAction extends AbstractAction {
                                 }
                             }
                         }
-
-                        SQLDatabase ppdb = ArchitectFrame.getMainInstance().getProject().getPlayPen().getDatabase();
+                        
+                        SQLDatabase ppdb = new SQLDatabase(ddlPanel.getTargetDB());
                         SQLScriptDialog ssd =
                             new SQLScriptDialog(d, "Preview SQL Script", "", false,
                                     ddlg,
