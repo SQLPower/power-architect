@@ -27,9 +27,9 @@ public class CreateTableAction extends AbstractAction {
 
 	public CreateTableAction() {
 		super("New Table",
-			  ASUtils.createIcon("NewTable",
+			  ASUtils.createIcon("new_table",
 								 "New Table",
-								 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
+								 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE)));
 		putValue(SHORT_DESCRIPTION, "New Table");
 		putValue(ACCELERATOR_KEY,KeyStroke.getKeyStroke(KeyEvent.VK_T,0));
 	}

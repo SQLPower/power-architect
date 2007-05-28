@@ -39,6 +39,7 @@ public class EditTableAction extends AbstractAction {
 	
 	public EditTableAction() {
 		super("Table Properties...",
+                // FIXME: This is not a 16 by 16 icon. We need to replace the icon or remove it.
 			  ASUtils.createIcon("TableProperties",
 								 "Table Properties",
 								 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));

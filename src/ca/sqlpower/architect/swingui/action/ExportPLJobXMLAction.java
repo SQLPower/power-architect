@@ -53,6 +53,7 @@ public class ExportPLJobXMLAction extends AbstractAction {
 
     public ExportPLJobXMLAction() {
         super("PL XML Script Export...",
+                // FIXME: This is not a 16 by 16 icon. We need to get a new one, or remove this icon.
               ASUtils.createIcon("PLTransExport",
                                  "PL XML Script Export",
                                  ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));

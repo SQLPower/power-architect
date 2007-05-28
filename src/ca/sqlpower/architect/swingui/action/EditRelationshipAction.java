@@ -41,9 +41,9 @@ public class EditRelationshipAction extends AbstractAction implements SelectionL
 	
 	public EditRelationshipAction() {
 		super("Relationship Properties",
-			  ASUtils.createIcon("RelationshipProperties",
+			  ASUtils.createIcon("edit_relationship",
 								 "Relationship Properties",
-								 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
+								 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE)));
 		putValue(SHORT_DESCRIPTION, "Relationship Properties");
 		setEnabled(false);
 	}

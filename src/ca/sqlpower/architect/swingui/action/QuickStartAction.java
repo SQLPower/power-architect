@@ -20,6 +20,7 @@ public class QuickStartAction extends AbstractAction {
 
 	public QuickStartAction() {
 		super("Quick Start Wizard...",
+                // FIXME: Not a 16 by 16 icon, need a new icon or (since deprecited) remove menu
 			  ASUtils.createIcon("PLTransExport",
 								 "PL Export Wizard",
 								 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));

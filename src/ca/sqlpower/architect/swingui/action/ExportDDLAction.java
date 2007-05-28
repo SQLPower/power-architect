@@ -54,9 +54,9 @@ public class ExportDDLAction extends AbstractAction {
 
 	public ExportDDLAction() {
 		super("Forward Engineer...",
-			  ASUtils.createIcon("ForwardEngineer",
+			  ASUtils.createIcon("fwdSQL",
 								 "Forward Engineer",
-								 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
+								 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE)));
 		architectFrame = ArchitectFrame.getMainInstance();
 		putValue(SHORT_DESCRIPTION, "Forward Engineer SQL Script");
 	}

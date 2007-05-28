@@ -25,9 +25,9 @@ public class CompareDMAction extends AbstractAction {
 
 	public CompareDMAction() {		
 		super("Compare DM...",
-				  ASUtils.createIcon("CompareDatabases",
+				  ASUtils.createIcon("compare_DM",
 										"Compare DM",
-										ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
+										ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE)));
 		architectFrame = ArchitectFrame.getMainInstance();
 		putValue(SHORT_DESCRIPTION, "Compare Data Models");
 	}

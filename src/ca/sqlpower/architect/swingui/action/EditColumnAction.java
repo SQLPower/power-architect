@@ -49,9 +49,9 @@ public class EditColumnAction extends AbstractAction implements SelectionListene
 
 	public EditColumnAction() {
 		super("Column Properties...",
-			  ASUtils.createIcon("ColumnProperties",
+			  ASUtils.createIcon("edit_column",
 								 "Column Properties",
-								 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
+								 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE)));
 		putValue(SHORT_DESCRIPTION, "Column Properties");
 		putValue(ACTION_COMMAND_KEY, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		setEnabled(false);

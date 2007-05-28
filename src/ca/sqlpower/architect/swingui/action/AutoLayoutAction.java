@@ -35,9 +35,9 @@ public class AutoLayoutAction extends AbstractAction {
 
 	public AutoLayoutAction() {
 		super("Auto Layout",
-				  ASUtils.createIcon("AutoLayout",
+				  ASUtils.createIcon("auto_layout",
 									"Automatic Table Layout",
-									ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
+									ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE)));
 		putValue(SHORT_DESCRIPTION, "Automatic Layout");
 	}
 
