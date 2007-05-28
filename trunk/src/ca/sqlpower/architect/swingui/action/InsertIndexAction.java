@@ -22,9 +22,9 @@ public class InsertIndexAction extends AbstractTableTargetedAction {
     
     public InsertIndexAction() {
         super("New Index",
-                  ASUtils.createIcon("NewIndex",
+                  ASUtils.createIcon("new_index",
                                      "New Index",
-                                     ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
+                                     ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE)));
         putValue(ACTION_COMMAND_KEY, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
         setEnabled(false);
     }

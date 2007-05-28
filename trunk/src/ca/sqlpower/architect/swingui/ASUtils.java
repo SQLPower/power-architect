@@ -842,7 +842,7 @@ public class ASUtils {
      * in the Architect.
      */
     public static Image getFrameIconImage() {
-        return createIcon("Architect", "Architect Logo", 16).getImage();
+        return createIcon("Architect", "Architect Logo", ArchitectFrame.DEFAULT_ICON_SIZE).getImage();
     }
 
 }

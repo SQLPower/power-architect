@@ -38,6 +38,7 @@ public class EditIndexAction extends AbstractAction {
     
     public EditIndexAction() {
         super("Index Properties...",
+                // FIXME: This is not a 16 by 16 icon. We need to replace or remove it.
               ASUtils.createIcon("IndexProperties",
                                  "Index Properties",
                                  ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));

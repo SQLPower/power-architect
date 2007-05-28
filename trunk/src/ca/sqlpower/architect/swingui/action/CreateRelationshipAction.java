@@ -46,9 +46,9 @@ public class CreateRelationshipAction extends AbstractAction
 	public CreateRelationshipAction(boolean identifying) {
 		super(identifying ? "New Identifying Relationship" : "New Non-Identifying Relationship",
 			  ASUtils.createIcon
-			  (identifying ? "NewIdentifyingRelationship" : "NewNonIdentifyingRelationship",
+			  (identifying ? "new_id_relationship" : "new_nonid_relationship",
 			   "New Relationship",
-			   ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
+			   ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE)));
 		if (identifying) {
 			putValue(SHORT_DESCRIPTION, "New Identifying Relationship");
 			putValue(ACCELERATOR_KEY,KeyStroke.getKeyStroke(KeyEvent.VK_R,0));

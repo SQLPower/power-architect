@@ -17,9 +17,9 @@ public class InsertColumnAction extends AbstractTableTargetedAction {
 	
 	public InsertColumnAction() {
 		super("New Column",
-			  ASUtils.createIcon("NewColumn",
+			  ASUtils.createIcon("new_column",
 								 "New Column",
-								 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
+								 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE)));
 		putValue(SHORT_DESCRIPTION, "New Column");
 		putValue(ACTION_COMMAND_KEY, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		setEnabled(false);

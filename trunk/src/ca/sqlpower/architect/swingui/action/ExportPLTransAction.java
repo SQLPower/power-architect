@@ -80,6 +80,7 @@ public class ExportPLTransAction extends AbstractAction {
      */
 	public ExportPLTransAction(JFrame owner) {
 		super("PL Transaction Export...",
+                // FIXME: This is not a 16 by 16 icon. We need a new icon to use, or remove this one.
 			  ASUtils.createIcon("PLTransExport",
 								 "PL Transaction Export",
 								 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
