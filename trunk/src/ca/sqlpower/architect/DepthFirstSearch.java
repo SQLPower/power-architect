@@ -42,7 +42,7 @@ public class DepthFirstSearch {
      * in the graph.  The last vertex finished is at the head of the list.
      * This list constitutes a topological sort of the graph.
      */
-    private LinkedList finishOrder;
+    private LinkedList<SQLTable> finishOrder;
 
     /**
      * The VertexInfo class contains visit information related to the DFS
@@ -203,7 +203,7 @@ public class DepthFirstSearch {
      * 
      * <p>See {@link #finishOrder}.
      */
-    public LinkedList getFinishOrder() {
+    public List<SQLTable> getFinishOrder() {
         return finishOrder;
     }
 }
