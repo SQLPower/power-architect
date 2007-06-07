@@ -28,6 +28,7 @@ import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.DepthFirstSearch;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
@@ -135,8 +136,15 @@ public class DataMoverPanel {
         final TreePath[] sourcePaths = sourceTree.getSelectionPaths();
         int tableCount = 0;
         int rowCount = 0;
+        
+        List<SQLTable> sourceTables = new ArrayList<SQLTable>();
         for (TreePath sourcePath : sourcePaths) {
-            final SQLTable sourceTable = (SQLTable) sourcePath.getLastPathComponent();
+            sourceTables.add((SQLTable) sourcePath.getLastPathComponent());
+        }
+        
+        DepthFirstSearch dfs = new DepthFirstSearch(sourceTables);
+        
+        for (SQLTable sourceTable : dfs.getFinishOrder()) {
             int thisCount = moveSingleTable(sourceTable);
             if (thisCount == -1) {
                 int choice = JOptionPane.showConfirmDialog(panel, "Continue copying remaining tables?");
@@ -226,8 +234,8 @@ public class DataMoverPanel {
             mover.setTruncatingDestinationTable(truncateDestinationTableBox.isSelected());
             mover.setDebug(true);  // when true, debug data goes to System.out
 
-            JOptionPane.showMessageDialog(panel,
-                    "About to copy\n"+sourceQualifiedName+"\nto\n"+destQualifiedName);
+//            JOptionPane.showMessageDialog(panel,
+//                    "About to copy\n"+sourceQualifiedName+"\nto\n"+destQualifiedName);
             
             int count = mover.copyTable(destQualifiedName, sourceQualifiedName);
             
