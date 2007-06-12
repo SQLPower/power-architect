@@ -28,9 +28,8 @@ public class SQLRunnerAction extends AbstractAction {
 
     public SQLRunnerAction(JFrame owner) {
         super("SQL Runner...",
-                // FIXME: Not a 16 by 16 icon. Need a new icon or remove.
-                ASUtils.createIcon("SQLRunner", "SQL Runner", ArchitectFrame.getMainInstance()
-                .getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
+                ASUtils.createIcon("query", "SQL Runner", ArchitectFrame.getMainInstance()
+                .getSprefs().getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE)));
         logger.debug("Creating SQLRunnerAction");
         architectFrame = ArchitectFrame.getMainInstance();
         putValue(SHORT_DESCRIPTION, "Run SQL directly");

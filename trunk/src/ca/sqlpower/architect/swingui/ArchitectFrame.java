@@ -405,7 +405,7 @@ public class ArchitectFrame extends JFrame {
 
 		zoomNormalAction
 			= new AbstractAction("Reset Zoom",
-								 ASUtils.createIcon("zoom_general",
+								 ASUtils.createIcon("zoom_reset",
 													   "Reset Zoom",
 													   sprefs.getInt(SwingUserSettings.ICON_SIZE, DEFAULT_ICON_SIZE))) {
 					public void actionPerformed(ActionEvent e) {
@@ -416,7 +416,7 @@ public class ArchitectFrame extends JFrame {
 
 
 		zoomAllAction = new AbstractAction("Zoom to fit",
-							 ASUtils.createIcon("zoom_general",
+							 ASUtils.createIcon("zoom_fit",
 												   "Reset Zoom",
 												   sprefs.getInt(SwingUserSettings.ICON_SIZE, DEFAULT_ICON_SIZE))) {
 				public void actionPerformed(ActionEvent e) {
