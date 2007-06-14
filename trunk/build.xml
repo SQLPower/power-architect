@@ -351,6 +351,11 @@
     		<fileset dir="${build}" includes="architecthelp.jar" />
     	</copy>
 
+    	<!-- This is an Ant 1.7 feature. To upgrade if using Eclipse 3.x,
+    	     1. Download the latest Ant from http://ant.apache.org/bindownload.cgi
+    	     2. Extract it somewhere
+    	     3. Under window, preferences select Ant runtime in the tree
+    	     4. Set the Ant home to be the folder that Ant was extracted to -->
     	<manifestclasspath property="architect.jar.classpath"
     	    	                       jarfile="${staging.dir}/architect.jar">
     	    		<classpath>
