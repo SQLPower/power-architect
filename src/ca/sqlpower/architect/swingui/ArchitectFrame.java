@@ -69,6 +69,7 @@ import ca.sqlpower.architect.qfa.ExceptionHandler;
 import ca.sqlpower.architect.swingui.action.AboutAction;
 import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
 import ca.sqlpower.architect.swingui.action.CompareDMAction;
+import ca.sqlpower.architect.swingui.action.CreateKettleJobAction;
 import ca.sqlpower.architect.swingui.action.CreateRelationshipAction;
 import ca.sqlpower.architect.swingui.action.CreateTableAction;
 import ca.sqlpower.architect.swingui.action.DataMoverAction;
@@ -194,6 +195,7 @@ public class ArchitectFrame extends JFrame {
 
 	protected Action exitAction = new AbstractAction("Exit") {
 	    public void actionPerformed(ActionEvent e) {
+            exit();
 	    }
 	};
 
@@ -617,6 +619,8 @@ public class ArchitectFrame extends JFrame {
                 }
             }
         };
+        
+        Action kettleETL = new CreateKettleJobAction();
 		deleteSelectedAction = new DeleteSelectedAction();
 		createIdentifyingRelationshipAction = new CreateRelationshipAction(true);
 		createNonIdentifyingRelationshipAction = new CreateRelationshipAction(false);
@@ -695,6 +699,7 @@ public class ArchitectFrame extends JFrame {
 		etlMenu.add(etlSubmenuOne);
         etlMenu.add(exportCSVAction);
         etlMenu.add(mappingReportAction);
+        etlMenu.add(kettleETL);
 		menuBar.add(etlMenu);
 
 		JMenu toolsMenu = new JMenu("Tools");

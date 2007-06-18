@@ -35,15 +35,18 @@ public class ArchitectDataSourceTypePanel implements ArchitectPanel {
         connectionStringTemplate.getDocument().addDocumentListener(new DocumentListener() {
 
             public void changedUpdate(DocumentEvent e) {
-                template.setTemplate(connectionStringTemplate.getText());
+                dsType.setJdbcUrl(connectionStringTemplate.getText());
+                template.setTemplate(dsType);
             }
 
             public void insertUpdate(DocumentEvent e) {
-                template.setTemplate(connectionStringTemplate.getText());                
+                dsType.setJdbcUrl(connectionStringTemplate.getText());
+                template.setTemplate(dsType);                
             }
 
             public void removeUpdate(DocumentEvent e) {
-                template.setTemplate(connectionStringTemplate.getText());                
+                dsType.setJdbcUrl(connectionStringTemplate.getText());
+                template.setTemplate(dsType);                
             }
             
         });
