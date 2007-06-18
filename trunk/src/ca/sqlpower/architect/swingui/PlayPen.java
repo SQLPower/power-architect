@@ -300,6 +300,10 @@ public class PlayPen extends JPanel
 		return db;
 	}
 
+    /**
+     * Returns a new list of all tables in this play pen. The list returned will
+     * be your own private (shallow) copy, so you are free to modify it.
+     */
     public List<SQLTable> getTables() throws ArchitectException {
         List<SQLTable> tables = new ArrayList();
         ArchitectUtils.extractTables(db,tables);

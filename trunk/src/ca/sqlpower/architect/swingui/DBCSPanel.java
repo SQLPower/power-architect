@@ -83,7 +83,7 @@ public class DBCSPanel extends JPanel implements ArchitectPanel {
             public void itemStateChanged(ItemEvent e) {
                 ArchitectDataSourceType parentType
                 = (ArchitectDataSourceType) dataSourceTypeBox.getSelectedItem();
-            platformSpecificOptions.setTemplate(parentType.getJdbcUrl());
+            platformSpecificOptions.setTemplate(parentType);
             plDbTypeField.setText(parentType.getPlDbType());
             }
 		});

@@ -6,6 +6,7 @@ import java.awt.Dimension;
 import java.awt.LayoutManager;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,6 +18,8 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.apache.log4j.Logger;
+
+import ca.sqlpower.architect.ArchitectDataSourceType;
 
 public class PlatformSpecificConnectionOptionPanel {
 
@@ -123,7 +126,7 @@ public class PlatformSpecificConnectionOptionPanel {
     private boolean updatingFieldsFromUrl = false;
     private JTextField dbUrlField;
     private JPanel platformSpecificOptionPanel;
-    private String template;
+    private ArchitectDataSourceType template;
     
     public PlatformSpecificConnectionOptionPanel(JTextField dbUrlField) {
         platformSpecificOptionPanel = new JPanel();
@@ -162,7 +165,7 @@ public class PlatformSpecificConnectionOptionPanel {
             updatingUrlFromFields = true;
             StringBuffer newUrl = new StringBuffer();
             Pattern p = Pattern.compile("<(.*?)>");
-            Matcher m = p.matcher(template);
+            Matcher m = p.matcher(template.getJdbcUrl());  //FIXME we need to rely on ArchitectDataSourceType
             while (m.find()) {
                 String varName = m.group(1);
                 if (varName.indexOf(':') != -1) {
@@ -209,16 +212,11 @@ public class PlatformSpecificConnectionOptionPanel {
                 platformSpecificOptionPanel.getComponent(i).setEnabled(true);
             }
 
-            logger.debug("Updating based on template "+template);
-            if (template == null) return;
-            String reTemplate = template.replaceAll("<.*?>", "(.*)");
-            logger.debug("Regex of template is "+reTemplate);
-            Pattern p = Pattern.compile(reTemplate);
-            Matcher m = p.matcher(dbUrlField.getText());
-            if (m.find()) {
+            Map<String, String> map = template.retrieveURLParsing(dbUrlField.getText());
+            if (!map.isEmpty()) {
                 platformSpecificOptionPanel.setEnabled(true);
-                for (int g = 1; g <= m.groupCount(); g++) {
-                    ((JTextField) platformSpecificOptionPanel.getComponent(2*g-1)).setText(m.group(g));
+                for (int g = 0; g < map.size(); g++) {
+                    ((JTextField) platformSpecificOptionPanel.getComponent(2*g+1)).setText((String)map.values().toArray()[g]);
                 }
             } else {
                 for (int i = 0; i < platformSpecificOptionPanel.getComponentCount(); i++) {
@@ -251,7 +249,7 @@ public class PlatformSpecificConnectionOptionPanel {
        
         if (template != null) {
             Pattern varPattern = Pattern.compile("<(.*?)>");
-            Matcher varMatcher = varPattern.matcher(template);
+            Matcher varMatcher = varPattern.matcher(template.getJdbcUrl()); //FIXME we should use ArchitectDataSourceType
             List<String> templateVars = new ArrayList<String>();
             while (varMatcher.find()) {
                 templateVars.add(varMatcher.group(1));
@@ -285,11 +283,11 @@ public class PlatformSpecificConnectionOptionPanel {
         return platformSpecificOptionPanel;
     }
 
-    public String getTemplate() {
+    public ArchitectDataSourceType getTemplate() {
         return template;
     }
 
-    public void setTemplate(String template) {
+    public void setTemplate(ArchitectDataSourceType template) {
         this.template = template;
         createFieldsFromTemplate();
         updateUrlFromFields();

@@ -2,12 +2,8 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.util.Vector;
 
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -22,7 +18,6 @@ import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
-import ca.sqlpower.architect.swingui.action.DBCSOkAction;
 
 
 public class DDLExportPanel implements ArchitectPanel {
@@ -60,22 +55,12 @@ public class DDLExportPanel implements ArchitectPanel {
 
         panelProperties.add(targetDB = new JComboBox());
         targetDB.setPrototypeDisplayValue("(Target Database)");
-        setupTargetDBComboBox();
-        targetDB.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    ArchitectDataSource projectDS = project.getTargetDatabase().getDataSource();
-                    ArchitectDataSource comboBoxDS = (ArchitectDataSource)((JComboBox)e.getSource()).getSelectedItem();
-                    if(!projectDS.equals(comboBoxDS)) {
-                        projectDS.copyFrom(comboBoxDS);
-                    }
-                    setupTargetDBComboBox();
-                }
-            });
+        ASUtils.setupTargetDBComboBox(project, targetDB);
         
         newTargetDB = new JButton("Properties");
         newTargetDB.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
-                    showDbcsDialog();
+                    ASUtils.showDbcsDialog(dbcsDialog, project, targetDB);
                 }
             });
         
@@ -113,64 +98,6 @@ public class DDLExportPanel implements ArchitectPanel {
 	}
     
     /**
-     * Pops up a dialog box that lets the user inspect and change the
-     * target db's connection spec.  Create from scratch every time
-     * just in case the user changed the Target Database from the DBTree.
-     */
-    public void showDbcsDialog() {
-        final DBCSPanel dbcsPanel = new DBCSPanel(
-                ArchitectFrame.getMainInstance().getArchitectSession()
-                .getUserSettings().getPlDotIni());
-
-
-        dbcsPanel.setDbcs(ArchitectFrame.getMainInstance().playpen.db.getDataSource());
-        DBCSOkAction okAction = new DBCSOkAction(dbcsPanel, false);
-
-        Action cancelAction = new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
-                dbcsPanel.discardChanges();
-            }
-        };
-
-        JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
-                dbcsPanel, ArchitectFrame.getMainInstance(),
-                "Target Database Connection", ArchitectPanelBuilder.OK_BUTTON_LABEL,
-                okAction, cancelAction);
-
-        okAction.setConnectionDialog(d);
-        d.pack();
-        d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
-        dbcsDialog = d;
-
-        dbcsDialog.setVisible(true);
-        dbcsDialog.addWindowListener(new WindowListener(){
-                public void windowClosing(WindowEvent e) {}
-                public void windowOpened(WindowEvent e) {}
-                public void windowIconified(WindowEvent e) {}
-                public void windowDeiconified(WindowEvent e) {}
-                public void windowActivated(WindowEvent e) {}
-                public void windowDeactivated(WindowEvent e) {}
-                public void windowClosed(WindowEvent e){
-                    project.getTargetDatabase().getDataSource().setName("(Target Database)");
-                    setupTargetDBComboBox();
-                }
-            });
-    }
-    
-    protected void setupTargetDBComboBox() {
-        JComboBox newTargetDB = new JComboBox();
-        ArchitectDataSource currentTarget = project.getTargetDatabase().getDataSource();
-        newTargetDB.addItem(currentTarget);
-        for (ArchitectDataSource dbcs : ArchitectFrame.getMainInstance().getUserSettings().getConnections()) {
-            if(!dbcs.equals(currentTarget)) {
-                newTargetDB.addItem(dbcs);
-            }
-        }
-        newTargetDB.setSelectedIndex(0);
-        targetDB.setModel(newTargetDB.getModel());
-    }
-
-	/**
 	 * This method sets up the labels and enabledness of the catalog
 	 * and schema text fields.  It should be called every time a new
 	 * database type is chosen, and when this panel is set up for the
@@ -236,7 +163,7 @@ public class DDLExportPanel implements ArchitectPanel {
 				(panel, "You can't use the Generic JDBC Generator\n"
 						+"until you set up the target database connection.");
 								
-				showDbcsDialog();
+				ASUtils.showDbcsDialog(dbcsDialog, project, targetDB);
 				
 				return false;
 			}

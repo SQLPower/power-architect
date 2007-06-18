@@ -21,6 +21,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.jar.JarFile;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 
 import org.apache.log4j.Logger;
@@ -304,6 +306,56 @@ public class ArchitectDataSourceType {
     
     public void setJdbcUrl(String jdbcUrl) {
         putPropertyImpl("jdbcUrl", JDBC_URL, jdbcUrl);
+    }
+    
+    public Map<String, String> retrieveURLDefaults() {
+        String template = getProperty(JDBC_URL);
+        Map<String, String> map = new LinkedHashMap<String, String>();
+        if (template == null) return map;
+        
+        int searchFrom = 0;
+        while (template.indexOf('<', searchFrom) >= 0) {
+            int openBrace = template.indexOf('<', searchFrom);
+            searchFrom = openBrace + 1;
+            int colon = template.indexOf(':', searchFrom);
+            int closeBrace = template.indexOf('>', searchFrom);
+            if (colon >= 0 && colon < closeBrace) {
+                map.put(template.substring(openBrace+1, colon), template.substring(colon+1, closeBrace));
+            } else if (closeBrace >=0) {
+                map.put(template.substring(openBrace+1, closeBrace), "");
+            }
+            searchFrom = closeBrace++;
+        }
+        return map;
+    }
+    
+    public Map<String, String> retrieveURLParsing(String url) {
+        String template = getProperty(JDBC_URL);
+        Map<String, String> map = new LinkedHashMap<String, String>();
+        if (template == null) return map;
+        String reTemplate = template.replaceAll("<.*?>", "(.*)");
+        logger.debug("Regex of template is "+reTemplate);
+        Pattern p = Pattern.compile(reTemplate);
+        Matcher m = p.matcher(url);
+        if (m.find()) {
+            int searchFrom = 0;
+            for (int g = 1; g <= m.groupCount(); g++) {
+                int openBrace = template.indexOf('<', searchFrom);
+                searchFrom = openBrace + 1;
+                int colon = template.indexOf(':', searchFrom);
+                int closeBrace = template.indexOf('>', searchFrom);
+                if (colon >= 0 && colon < closeBrace) {
+                    map.put(template.substring(openBrace+1, colon), m.group(g));
+                } else if (closeBrace >=0) {
+                    map.put(template.substring(openBrace+1, closeBrace), m.group(g));
+                }
+                searchFrom = closeBrace++;
+            }
+        }
+        
+        logger.debug("The map! dun dun dun: " + map.toString());
+
+        return map;
     }
     
     public String getName() {
