@@ -70,7 +70,7 @@ public class DBCSPanel implements ArchitectPanel {
         dbNameField.setName("dbNameField");
         platformSpecificOptions = new PlatformSpecificConnectionOptionPanel(dbUrlField = new JTextField());
 
-        DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref, 4dlu, pref:grow"));
+        DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref, 4dlu, 0:grow"));
         builder.append("Connection &Name", dbNameField);
         builder.append("&Database Type", dataSourceTypeBox);
         builder.append("Connect &Options", platformSpecificOptions.getPanel());
