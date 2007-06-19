@@ -19,6 +19,7 @@ import javax.swing.JPanel;
 import org.apache.log4j.Logger;
 
 import be.ibridge.kettle.core.LogWriter;
+import be.ibridge.kettle.core.NotePadMeta;
 import be.ibridge.kettle.core.database.DatabaseMeta;
 import be.ibridge.kettle.core.util.EnvUtil;
 import be.ibridge.kettle.job.JobHopMeta;
@@ -54,9 +55,10 @@ public class CreateKettleJobAction extends AbstractAction {
     
     public CreateKettleJobAction() {
         super("Create Kettle Job...",
-              ASUtils.createIcon("",
-                                 "Create a new Kettle job",
-                                 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE)));
+              ASUtils.createIcon(""
+                                 , "Create a new Kettle job"
+                                 , ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE
+                                 , ArchitectFrame.DEFAULT_ICON_SIZE)));
         architectFrame = ArchitectFrame.getMainInstance();
         putValue(SHORT_DESCRIPTION, "Create a Kettle Job");
     }
@@ -72,7 +74,10 @@ public class CreateKettleJobAction extends AbstractAction {
         okAction = new AbstractAction() {
             public void actionPerformed(ActionEvent evt) {
                 
-                kettleETLPanel.applyChanges();
+                if (!kettleETLPanel.applyChanges()) {
+                    return;
+                }
+                
                 EnvUtil.environmentInit();
                 LogWriter lw = LogWriter.getInstance();
                 JobMeta jm = new JobMeta(lw);
@@ -84,26 +89,47 @@ public class CreateKettleJobAction extends AbstractAction {
                     // The depth-first search will do a topological sort of
                     // the target table graph, so parent tables will come before
                     // their children.
-                    List<SQLTable> tableList = new DepthFirstSearch(architectFrame.getProject().getPlayPen().getTables()).getFinishOrder();
+                    List<SQLTable> tableList = 
+                        new DepthFirstSearch(architectFrame.getProject().getPlayPen().getTables()).getFinishOrder();
                     
                     int j = 0;
+                    
+                    Map<String, DatabaseMeta> databaseNames = new LinkedHashMap<String, DatabaseMeta>();
                     
                     TransMeta transMeta = new TransMeta();
                     ArchitectDataSource target = architectFrame.getProject().getPlayPen().getDatabase().getDataSource();
                     String targetName = target.getName();
-                    String driverClass = target.getParentType().getName();  //TESTME this may crash
                     String username = target.getUser();
                     String password = target.getPass();
                     ArchitectDataSourceType targetType = target.getParentType();
+                    String connectionType = targetType.getProperty(KettleOptions.KETTLE_CONNECTION_TYPE_KEY); 
                     Map<String, String> map = targetType.retrieveURLParsing(target.getUrl());
                     String hostname = map.get("Hostname");
                     String port = map.get("Port");
                     String database = map.get("Database");
-                    DatabaseMeta targetDatabaseMeta = new DatabaseMeta(targetName, driverClass, "Native", hostname==null?"":hostname, database==null?"":database, port==null?"":port, username, password);
+                    DatabaseMeta targetDatabaseMeta;
+                    try {
+                        targetDatabaseMeta = new DatabaseMeta(targetName
+                                                              , connectionType
+                                                              , "Native"
+                                                              , hostname==null?"":hostname
+                                                              , database==null?"":database
+                                                              , port==null?"":port, username
+                                                              , password);
+                    } catch (RuntimeException re) {
+                        logger.error("Could not connect to the database " + targetName + ".");
+                        re.printStackTrace();
+                        ASUtils.showExceptionDialog
+                                        ("Could not create the database " + targetName + "." +
+                                         "\nThe Kettle connection type was not set in User Preferences."
+                                         , re);
+                        return;
+                    }
                     if (!KettleOptions.connectToDB(cp, targetDatabaseMeta)) {
                         return;
                     }
                     transMeta.addDatabase(targetDatabaseMeta); 
+                    databaseNames.put(targetName, targetDatabaseMeta);
                     
                     for (SQLTable table: tableList) {
                         transMeta = new TransMeta();
@@ -133,24 +159,50 @@ public class CreateKettleJobAction extends AbstractAction {
 
                         List<StepMeta> inputSteps = new ArrayList<StepMeta>();
                         int i = 200;
-                        for (SQLTable sourceTable: tableMapping.keySet()) { 
+                        for (SQLTable sourceTable: tableMapping.keySet()) {
                             ArchitectDataSource source = sourceTable.getParentDatabase().getDataSource();
                             String sourceName = source.getName();
+                            DatabaseMeta databaseMeta;
                             String hostName = "";
                             String databaseName = "";
                             username = source.getUser();
                             password = source.getPass();
                             ArchitectDataSourceType sourceType = source.getParentType();
+                            connectionType = targetType.getProperty(KettleOptions.KETTLE_CONNECTION_TYPE_KEY); 
                             map = sourceType.retrieveURLParsing(source.getUrl());
                             hostname = map.get("Hostname");
                             port = map.get("Port");
                             database = map.get("Database");
-                            DatabaseMeta databaseMeta = new DatabaseMeta(sourceName, "ms sql server", "Native", hostname==null?"":hostname, database==null?"":database, port==null?"":port, username, password);
-                            logger.debug("The database metadata is: " + databaseMeta.getDatabaseTypeDesc() + " " + databaseMeta.getHostname() + " " + databaseMeta.getDatabaseName() + " " + databaseMeta.getUsername() + " " + databaseMeta.getPassword());
-                            if (!KettleOptions.connectToDB(cp, databaseMeta)) {
-                                return;
+                            if (!databaseNames.containsKey(sourceName)) {
+                                try {
+                                    databaseMeta = new DatabaseMeta(sourceName 
+                                            , connectionType
+                                            , "Native" 
+                                            , hostname==null?"":hostname 
+                                                    , database==null?"":database 
+                                                            , port==null?"":port
+                                                                    , username
+                                                                    , password);
+                                } catch (RuntimeException re) {
+                                    logger.error("Could not connect to the database.");
+                                    re.printStackTrace();
+                                    ASUtils.showExceptionDialog
+                                    ("Could not create the database " + targetName + "." +
+                                            "\nThe Kettle connection type was not set in User Preferences."
+                                            , re);
+                                    return;
+                                }
+                                logger.debug("The database metadata is: " + databaseMeta.getDatabaseTypeDesc() +
+                                        " " + databaseMeta.getHostname() + " " + databaseMeta.getDatabaseName() + 
+                                        " " + databaseMeta.getUsername() + " " + databaseMeta.getPassword());
+                                if (!KettleOptions.connectToDB(cp, databaseMeta)) {
+                                    return;
+                                }
+                                transMeta.addDatabase(databaseMeta);
+                                databaseNames.put(sourceName, databaseMeta);
+                            } else {
+                                databaseMeta = databaseNames.get(sourceName);
                             }
-                            transMeta.addDatabase(databaseMeta);
                             
                             TableInputMeta tableInputMeta = new TableInputMeta();
                             String stepName = "Table " + sourceTable.getName() + " from " + hostName + ":" + databaseName;
@@ -174,7 +226,9 @@ public class CreateKettleJobAction extends AbstractAction {
                             mergeJoinMeta.setStepMeta2(inputSteps.get(1));
                             mergeJoinMeta.setKeyFields1(new String[]{});
                             mergeJoinMeta.setKeyFields2(new String[]{});
-                            StepMeta stepMeta = new StepMeta("MergeJoin", "Join tables " + inputSteps.get(0).getName() + " and " + inputSteps.get(1).getName(), mergeJoinMeta);
+                            StepMeta stepMeta = new StepMeta("MergeJoin", "Join tables " +
+                                    inputSteps.get(0).getName() + " and " + 
+                                    inputSteps.get(1).getName(), mergeJoinMeta);
                             stepMeta.setDraw(true);
                             stepMeta.setLocation(600, 300+j);
                             transMeta.addStep(stepMeta);
@@ -219,15 +273,19 @@ public class CreateKettleJobAction extends AbstractAction {
                         }
                         stepMeta.setLocation(i*200+k, i*200+500+j);
                         transMeta.addStep(stepMeta);
-                        TransHopMeta transHopMeta = new TransHopMeta(mergeSteps.isEmpty()?inputSteps.get(0):mergeSteps.get(mergeSteps.size()-1), stepMeta);
-                        if (!mergeSteps.isEmpty())
+                        TransHopMeta transHopMeta = 
+                            new TransHopMeta(mergeSteps.isEmpty()?inputSteps.get(0):mergeSteps.get(mergeSteps.size()-1), stepMeta);
+                        if (!mergeSteps.isEmpty()) {
+                            transMeta.addNote(new NotePadMeta("The final hop is disabled because the join types may need to be updated.",0,0,125,125));
                             transHopMeta.setEnabled(false);
+                        }
                         transMeta.addTransHop(transHopMeta);
                         
                         tableMapping = new LinkedHashMap<SQLTable, StringBuffer>();
                         
                         String xml = transMeta.getXML();
-                        String fileName = kettleETLPanel.getParentPath() + File.separator + "transformation_for_table_" + table.getName() + ".xml";
+                        String fileName = kettleETLPanel.getParentPath() + File.separator + 
+                            "transformation_for_table_" + table.getName() + ".xml";
                         transMeta.setFilename(fileName);
                         transMeta.setName(table.getName());
                         try {
@@ -235,12 +293,12 @@ public class CreateKettleJobAction extends AbstractAction {
                             dos.write(xml.getBytes("UTF-8"));
                             dos.close();
                         } catch (Exception er) {
-                            ASUtils.showExceptionDialog("File was not created", er);
+                            ASUtils.showExceptionDialog("File " + fileName + " was not created", er);
                         }
-                        System.out.println("Saved transformation to file: " + fileName);
+                        logger.debug("Saved transformation to file: " + fileName);
                     }
                 } catch (ArchitectException ex) {
-                    ASUtils.showExceptionDialog("an error occurred reading from the tables for kettle", ex);
+                    ASUtils.showExceptionDialog("An error occurred reading from the tables for kettle", ex);
                 }
                 
                 JobEntryCopy startEntry = new JobEntryCopy();
@@ -283,9 +341,9 @@ public class CreateKettleJobAction extends AbstractAction {
                     dos.write(xml.getBytes("UTF-8"));
                     dos.close();
                 } catch (Exception er) {
-                    ASUtils.showExceptionDialog("File was not created", er);
+                    ASUtils.showExceptionDialog("File " + fileName + " was not created", er);
                 }
-                System.out.println("Saved transformation to file: " + fileName);
+                logger.debug("Saved transformation to file: " + fileName);
             }
         };
         
