@@ -27,6 +27,11 @@ public class KettleOptions {
      */
     public static final String KETTLE_REPOS_PASSWORD_KEY = "ca.sqlpower.architect.etl.kettle.repos.password";
     
+    /**
+     * The key to use in an ArchitectDataSource for the connection type.
+     */
+    public static final String KETTLE_CONNECTION_TYPE_KEY = "ca.sqlpower.architect.etl.kettle.connectionType";
+    
     public static boolean connectToDB(JPanel panel, DatabaseMeta dbMeta) {
         
         

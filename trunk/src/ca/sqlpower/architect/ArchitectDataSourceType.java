@@ -398,7 +398,7 @@ public class ArchitectDataSourceType {
     /**
      * Adds or replaces a value in the property map.
      */
-    void putProperty(String key, String value) {
+    public void putProperty(String key, String value) {
         properties.put(key, value);
     }
 

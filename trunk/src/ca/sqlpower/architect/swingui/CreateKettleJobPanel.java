@@ -10,9 +10,9 @@ import java.io.File;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
@@ -38,10 +38,8 @@ public class CreateKettleJobPanel implements ArchitectPanel {
     private JLabel transformationPath;
     private JLabel transformationPath2;
     
-    private JDialog dbcsDialog;
-    
     private SwingUIProject project;
-    private File parentFile;
+    private File parentFile = new File("");
     
     public CreateKettleJobPanel(SwingUIProject project) {
         this.project = project;
@@ -77,7 +75,10 @@ public class CreateKettleJobPanel implements ArchitectPanel {
            public void keyTyped(KeyEvent arg0) {}
            private void copyFilePath() {
                File file = new File(filePath.getText());
-               transformationPath2.setText("     " + ((file==null || file.getParentFile()==null)?"":file.getParentFile().getPath()));
+               if (file != null) { 
+                   parentFile = file.getParentFile();
+                   transformationPath2.setText("     " + ((parentFile == null || parentFile.getPath() == null)?"":parentFile.getPath()));
+               }
            }
         });
         browseFilePath = new JButton();
@@ -100,8 +101,11 @@ public class CreateKettleJobPanel implements ArchitectPanel {
             }
         });
         transformationPath = new JLabel("The transformations will be stored in:");
-        transformationPath2 = new JLabel("     " + settings.getParentFile()==null?"":settings.getParentFile().getPath());
-
+        if (settings == null || settings.getParentFile() == null || settings.getParentFile().getPath() == null) {
+            transformationPath2 = new JLabel("");
+        } else {
+            transformationPath2 = new JLabel("     " + settings.getParentFile().getPath());
+        }
         defaultJoinType = new JComboBox();
         for (int joinType = 0; joinType < MergeJoinMeta.join_types.length; joinType++) {
             defaultJoinType.addItem(MergeJoinMeta.join_types[joinType]);
@@ -149,7 +153,14 @@ public class CreateKettleJobPanel implements ArchitectPanel {
    
     public boolean applyChanges() {
         copySettingsToProject();
-        return false;
+        if (nameField.getText().equals("")) {
+            JOptionPane.showMessageDialog(panel, "The job name was not set.\nThe Kettle job was not created.");
+            return false;
+        } else if (filePath.getText().equals("")) {
+            JOptionPane.showMessageDialog(panel, "The job path was not set.\n The Kettle job was not created.");
+            return false;
+        }
+        return true;
     }
     
     public void discardChanges() {
