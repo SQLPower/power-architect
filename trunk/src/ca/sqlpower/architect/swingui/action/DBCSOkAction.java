@@ -1,12 +1,10 @@
 package ca.sqlpower.architect.swingui.action;
 
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
-import javax.swing.JTextField;
 
 import org.apache.log4j.Logger;
 
@@ -17,7 +15,6 @@ import ca.sqlpower.architect.DataSourceCollection;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.DBCSPanel;
 import ca.sqlpower.architect.swingui.DBConnectionCallBack;
-import ca.sqlpower.architect.swingui.TextPanel;
 
 /**
  * XXX Somebody should document what this class is useful for.
@@ -67,14 +64,8 @@ public final class DBCSOkAction extends AbstractAction {
     public void actionPerformed(ActionEvent e)  {
 		logger.debug("DBCS Action invoked");
 		ArchitectDataSource newDS = dbcsPanel.getDbcs();
-		String curName = null;
-		for (Component c : ((TextPanel)dbcsPanel.getComponents()[0]).getComponents()) {
-			if ("dbNameField".equals(c.getName())){
-				curName = ((JTextField) c).getText();
-			}
-		}
-
-		if (curName == null ) {
+		String curName = dbcsPanel.getDbNameFieldContents();
+		if (curName == null) {
 			throw new ArchitectRuntimeException(new ArchitectException("DBCS Panel improperly intialized"));
 		}
 
@@ -126,7 +117,6 @@ public final class DBCSOkAction extends AbstractAction {
 	public DBConnectionCallBack getConnectionSelectionCallBack() {
 	    return connectionSelectionCallBack;
 	}
-
 
 	public void setConnectionSelectionCallBack(DBConnectionCallBack callBack) {
 	    this.connectionSelectionCallBack = callBack;

@@ -2,7 +2,6 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
@@ -18,7 +17,6 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.etl.PLExport;
 import ca.sqlpower.architect.etl.PLUtils;
-import ca.sqlpower.architect.swingui.event.DatabaseComboBoxListener;
 
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -32,27 +30,19 @@ public class PLExportXMLPanel extends JPanel implements ArchitectPanel {
     /**
      * This is the PLExport whose properties this panel edits.
      */
-    protected PLExport plexp;
+    private PLExport plexp;
 
     private JProgressBar progressBar;
     private JLabel label;
     
-    protected JTextField xmlFileName;
+    private JTextField xmlFileName;
     
-    protected JTextField plFolderName;
-    protected JTextField plJobId;
-    protected JTextField plJobDescription;
-    protected JTextField plJobComment;
+    private JTextField plFolderName;
+    private JTextField plJobId;
+    private JTextField plJobDescription;
+    private JTextField plJobComment;
 
-    protected DatabaseComboBoxListener dcl;
-    protected DatabaseSelector repository;
-    
-    // Watch PL.INI for changes
-    protected javax.swing.Timer timer;
-    protected String plDotIniPath;
-    
-    protected Map ddlGeneratorMap;
-    protected TextPanel mainForm;
+    private DatabaseSelector repository;
     
     public PLExportXMLPanel() {
 

@@ -22,7 +22,6 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.etl.ETLUserSettings;
 import ca.sqlpower.architect.etl.PLExport;
 import ca.sqlpower.architect.etl.PLUtils;
-import ca.sqlpower.architect.swingui.event.DatabaseComboBoxListener;
 import ca.sqlpower.sql.SQL;
 
 import com.jgoodies.forms.builder.PanelBuilder;
@@ -56,33 +55,22 @@ public class PLExportPanel extends JPanel implements ArchitectPanel {
 	/**
 	 * This is the PLExport whose properties this panel edits.
 	 */
-	protected PLExport plexp;
+	private PLExport plexp;
 
-	protected DatabaseComboBoxListener dcl;
-	protected DatabaseSelector target;
-	protected DatabaseSelector repository;
+	private DatabaseSelector target;
+	private DatabaseSelector repository;
 	
 	private JProgressBar progressBar;
 	private JLabel label;
 	
-	protected JTextField plFolderName;
-	protected JTextField plJobId;
-	protected JTextField plJobDescription;
-	protected JTextField plJobComment;
+	private JTextField plFolderName;
+	private JTextField plJobId;
+	private JTextField plJobDescription;
+	private JTextField plJobComment;
 
-	
-	// private JButton editRepositoryButton;
 	private JCheckBox runPLEngine;
-
-	// Watch PL.INI for changes
-	protected javax.swing.Timer timer;
-	protected String plDotIniPath;
-	
-	protected TextPanel mainForm;
 	
 	public PLExportPanel() {
-		ArchitectFrame af = ArchitectFrame.getMainInstance();
-		plDotIniPath = af.getUserSettings().getPlDotIniPath(); // is this bad?
 
 		progressBar = new JProgressBar();
 		label = new JLabel();
