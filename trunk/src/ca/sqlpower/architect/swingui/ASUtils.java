@@ -320,6 +320,12 @@ public class ASUtils {
 		focusDebuggerThread.start();
 	}
 
+    /**
+     * This method sets up the combo box passed as targetDB to contain all of the 
+     * source connections. The combo box will also contain the additional connection
+     * of "(Target Database)" if it is customized or it will make sure that only one
+     * copy of the target's connection is in the list
+     */
 	public static void setupTargetDBComboBox(final SwingUIProject project, final JComboBox targetDB) {
         JComboBox newTargetDB = new JComboBox();
         ArchitectDataSource currentTarget = project.getTargetDatabase().getDataSource();
