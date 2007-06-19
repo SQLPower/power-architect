@@ -4,8 +4,6 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.LayoutManager;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -160,12 +158,12 @@ public class PlatformSpecificConnectionOptionPanel {
     private void updateUrlFromFields() {
         if (updatingFieldsFromUrl) return;
 
-        if (template == null) return;
+        if (template == null || template.getJdbcUrl() == null) return;
         try {
             updatingUrlFromFields = true;
             StringBuffer newUrl = new StringBuffer();
             Pattern p = Pattern.compile("<(.*?)>");
-            Matcher m = p.matcher(template.getJdbcUrl());  //FIXME we need to rely on ArchitectDataSourceType
+            Matcher m = p.matcher(template.getJdbcUrl());
             while (m.find()) {
                 String varName = m.group(1);
                 if (varName.indexOf(':') != -1) {
@@ -245,28 +243,18 @@ public class PlatformSpecificConnectionOptionPanel {
         }
         platformSpecificOptionPanel.removeAll();
 
-        
-       
         if (template != null) {
-            Pattern varPattern = Pattern.compile("<(.*?)>");
-            Matcher varMatcher = varPattern.matcher(template.getJdbcUrl()); //FIXME we should use ArchitectDataSourceType
-            List<String> templateVars = new ArrayList<String>();
-            while (varMatcher.find()) {
-                templateVars.add(varMatcher.group(1));
-            }
-         
-            for(String var : templateVars) {
-                String def = "";
-                if (var.indexOf(':') != -1) {
-                    int i = var.indexOf(':');
-                    def = var.substring(i+1);
-                    var = var.substring(0, i);
-                }
+            Map<String, String> map = template.retrieveURLDefaults();
+
+            for(String key : map.keySet()) {
+                String var = key;
+                String def = map.get(key);
 
                 platformSpecificOptionPanel.add(new JLabel(var));
                 JTextField field = new JTextField(def);
                 platformSpecificOptionPanel.add(field);
                 field.getDocument().addDocumentListener(urlUpdater);
+                logger.debug("The default value is: " + def);
             }
 
 

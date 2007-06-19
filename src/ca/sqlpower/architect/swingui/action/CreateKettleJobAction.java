@@ -16,6 +16,8 @@ import javax.swing.BorderFactory;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 
+import org.apache.log4j.Logger;
+
 import be.ibridge.kettle.core.LogWriter;
 import be.ibridge.kettle.core.database.DatabaseMeta;
 import be.ibridge.kettle.core.util.EnvUtil;
@@ -32,10 +34,12 @@ import be.ibridge.kettle.trans.step.mergejoin.MergeJoinMeta;
 import be.ibridge.kettle.trans.step.tableinput.TableInputMeta;
 import be.ibridge.kettle.trans.step.tableoutput.TableOutputMeta;
 import ca.sqlpower.architect.ArchitectDataSource;
+import ca.sqlpower.architect.ArchitectDataSourceType;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.DepthFirstSearch;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.etl.kettle.KettleOptions;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
@@ -44,7 +48,9 @@ import ca.sqlpower.architect.swingui.SwingUserSettings;
 
 public class CreateKettleJobAction extends AbstractAction {
 
-    protected ArchitectFrame architectFrame;
+    private static final Logger logger = Logger.getLogger(CreateKettleJobAction.class);
+    
+    private ArchitectFrame architectFrame;
     
     public CreateKettleJobAction() {
         super("Create Kettle Job...",
@@ -58,7 +64,7 @@ public class CreateKettleJobAction extends AbstractAction {
     public void actionPerformed(ActionEvent arg0) {
         
         JDialog d;
-        JPanel cp = new JPanel(new BorderLayout(12,12));
+        final JPanel cp = new JPanel(new BorderLayout(12,12));
         cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
         final CreateKettleJobPanel kettleETLPanel = new CreateKettleJobPanel(architectFrame.getProject());
 
@@ -66,6 +72,7 @@ public class CreateKettleJobAction extends AbstractAction {
         okAction = new AbstractAction() {
             public void actionPerformed(ActionEvent evt) {
                 
+                kettleETLPanel.applyChanges();
                 EnvUtil.environmentInit();
                 LogWriter lw = LogWriter.getInstance();
                 JobMeta jm = new JobMeta(lw);
@@ -87,7 +94,15 @@ public class CreateKettleJobAction extends AbstractAction {
                     String driverClass = target.getParentType().getName();  //TESTME this may crash
                     String username = target.getUser();
                     String password = target.getPass();
-                    DatabaseMeta targetDatabaseMeta = new DatabaseMeta(targetName, driverClass, "Native", "localhost", "kettle_test", "5432", username, password);
+                    ArchitectDataSourceType targetType = target.getParentType();
+                    Map<String, String> map = targetType.retrieveURLParsing(target.getUrl());
+                    String hostname = map.get("Hostname");
+                    String port = map.get("Port");
+                    String database = map.get("Database");
+                    DatabaseMeta targetDatabaseMeta = new DatabaseMeta(targetName, driverClass, "Native", hostname==null?"":hostname, database==null?"":database, port==null?"":port, username, password);
+                    if (!KettleOptions.connectToDB(cp, targetDatabaseMeta)) {
+                        return;
+                    }
                     transMeta.addDatabase(targetDatabaseMeta); 
                     
                     for (SQLTable table: tableList) {
@@ -125,7 +140,16 @@ public class CreateKettleJobAction extends AbstractAction {
                             String databaseName = "";
                             username = source.getUser();
                             password = source.getPass();
-                            DatabaseMeta databaseMeta = new DatabaseMeta(sourceName, "ms sql server", "Native", "deepthought", "test_5028", "1433", username, password);
+                            ArchitectDataSourceType sourceType = source.getParentType();
+                            map = sourceType.retrieveURLParsing(source.getUrl());
+                            hostname = map.get("Hostname");
+                            port = map.get("Port");
+                            database = map.get("Database");
+                            DatabaseMeta databaseMeta = new DatabaseMeta(sourceName, "ms sql server", "Native", hostname==null?"":hostname, database==null?"":database, port==null?"":port, username, password);
+                            logger.debug("The database metadata is: " + databaseMeta.getDatabaseTypeDesc() + " " + databaseMeta.getHostname() + " " + databaseMeta.getDatabaseName() + " " + databaseMeta.getUsername() + " " + databaseMeta.getPassword());
+                            if (!KettleOptions.connectToDB(cp, databaseMeta)) {
+                                return;
+                            }
                             transMeta.addDatabase(databaseMeta);
                             
                             TableInputMeta tableInputMeta = new TableInputMeta();
@@ -196,6 +220,8 @@ public class CreateKettleJobAction extends AbstractAction {
                         stepMeta.setLocation(i*200+k, i*200+500+j);
                         transMeta.addStep(stepMeta);
                         TransHopMeta transHopMeta = new TransHopMeta(mergeSteps.isEmpty()?inputSteps.get(0):mergeSteps.get(mergeSteps.size()-1), stepMeta);
+                        if (!mergeSteps.isEmpty())
+                            transHopMeta.setEnabled(false);
                         transMeta.addTransHop(transHopMeta);
                         
                         tableMapping = new LinkedHashMap<SQLTable, StringBuffer>();
