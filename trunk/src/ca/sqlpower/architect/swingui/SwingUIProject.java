@@ -92,6 +92,7 @@ public class SwingUIProject {
     private boolean savingEntireSource;
     private PLExport plExport;
     private CompareDMSettings compareDMSettings;
+    private CreateKettleJobSettings createKettleJobSettings;
     
     /** the small dialog that lists the profiles */
     private ProfileManagerView profileManagerView;
@@ -179,6 +180,7 @@ public class SwingUIProject {
         }
         plExport = new PLExport();
         compareDMSettings = new CompareDMSettings();
+        createKettleJobSettings = new CreateKettleJobSettings();
         undoManager = new UndoManager(pp);
     }
     
@@ -1764,5 +1766,11 @@ public class SwingUIProject {
         // Do the pack here in case this is the first time ever.
         profileDialog.pack();
         return profileDialog;
+    }
+    public CreateKettleJobSettings getCreateKettleJobSettings() {
+        return createKettleJobSettings;
+    }
+    public void setCreateKettleJobSettings(CreateKettleJobSettings createKettleJobSettings) {
+        this.createKettleJobSettings = createKettleJobSettings;
     }
 }

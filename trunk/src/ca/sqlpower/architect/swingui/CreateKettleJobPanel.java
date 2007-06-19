@@ -3,6 +3,8 @@ package ca.sqlpower.architect.swingui;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.File;
 
 import javax.swing.JButton;
@@ -49,50 +51,62 @@ public class CreateKettleJobPanel implements ArchitectPanel {
     
     private void buildUI(){
         
+        CreateKettleJobSettings settings = project.getCreateKettleJobSettings();
         panel.setLayout(new FormLayout());
         panel.setPreferredSize(new Dimension(450,200));
         
-        nameField = new JTextField();
+        nameField = new JTextField(settings.getJobName());
         databaseComboBox = new JComboBox();
         ASUtils.setupTargetDBComboBox(project, databaseComboBox);
         newDatabaseButton = new JButton();
         newDatabaseButton.setText("Properties...");
         newDatabaseButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                ASUtils.showDbcsDialog(dbcsDialog, project, databaseComboBox);
+                ASUtils.showDbcsDialog(project, databaseComboBox);
             }
         });
         
-        schemaName = new JTextField();
+        schemaName = new JTextField(settings.getSchemaName());
         
-        filePath = new JTextField();
+        filePath = new JTextField(settings.getFilePath());
+        filePath.addKeyListener(new KeyListener(){
+           public void keyPressed(KeyEvent arg0) {}
+           public void keyReleased(KeyEvent arg0) {
+               copyFilePath();
+           }
+           public void keyTyped(KeyEvent arg0) {}
+           private void copyFilePath() {
+               File file = new File(filePath.getText());
+               transformationPath2.setText("     " + ((file==null || file.getParentFile()==null)?"":file.getParentFile().getPath()));
+           }
+        });
         browseFilePath = new JButton();
         browseFilePath.setText("Browse...");
         browseFilePath.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 JFileChooser chooser = new JFileChooser(project.getFile());
+                chooser.addChoosableFileFilter(ASUtils.XML_FILE_FILTER);
                 int response = chooser.showSaveDialog(panel);
                 if (response != JFileChooser.APPROVE_OPTION) {
                     return;
                 } else {
                     File file = chooser.getSelectedFile();
-                    chooser.addChoosableFileFilter(ASUtils.XML_FILE_FILTER);
-                    File parentFile = file.getParentFile();
+                    parentFile = file.getParentFile();
                     filePath.setText(file.getPath());
                     if (parentFile != null) {
-                        transformationPath.setText("The transformations will be stored in:");
                         transformationPath2.setText("     " + parentFile.getPath());
                     }
                 }
             }
         });
-        transformationPath = new JLabel();
-        transformationPath2 = new JLabel();
-        
+        transformationPath = new JLabel("The transformations will be stored in:");
+        transformationPath2 = new JLabel("     " + settings.getParentFile()==null?"":settings.getParentFile().getPath());
+
         defaultJoinType = new JComboBox();
         for (int joinType = 0; joinType < MergeJoinMeta.join_types.length; joinType++) {
             defaultJoinType.addItem(MergeJoinMeta.join_types[joinType]);
         }
+        defaultJoinType.setSelectedIndex(settings.getKettleJoinType());
         
         FormLayout formLayout = new FormLayout("10dlu, 2dlu, pref, 4dlu," + //1-4
                 "0:grow, 4dlu, pref", //5-7
@@ -134,6 +148,7 @@ public class CreateKettleJobPanel implements ArchitectPanel {
     }
    
     public boolean applyChanges() {
+        copySettingsToProject();
         return false;
     }
     
@@ -159,4 +174,14 @@ public class CreateKettleJobPanel implements ArchitectPanel {
     public String getSchemaName() {
         return schemaName.getText();
     }
+    
+    private void copySettingsToProject() {
+        CreateKettleJobSettings settings = project.getCreateKettleJobSettings();
+        settings.setJobName(nameField.getText());
+        settings.setSchemaName(schemaName.getText());
+        settings.setKettleJoinType(defaultJoinType.getSelectedIndex());
+        settings.setFilePath(filePath.getText());
+        settings.setParentFile(parentFile);
+    }
+    
 }
