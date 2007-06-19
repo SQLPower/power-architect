@@ -13,8 +13,8 @@ import java.awt.Shape;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.awt.geom.Line2D;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
@@ -348,7 +348,7 @@ public class ASUtils {
      * target db's connection spec.  Create from scratch every time
      * just in case the user changed the Target Database from the DBTree.
      */
-    public static void showDbcsDialog(JDialog dbcsDialog, final SwingUIProject project, final JComboBox targetDB) {
+    public static void showDbcsDialog(final SwingUIProject project, final JComboBox targetDB) {
         final DBCSPanel dbcsPanel = new DBCSPanel(
                 ArchitectFrame.getMainInstance().getArchitectSession()
                 .getUserSettings().getPlDotIni());
@@ -371,16 +371,9 @@ public class ASUtils {
         okAction.setConnectionDialog(d);
         d.pack();
         d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
-        dbcsDialog = d;
     
-        dbcsDialog.setVisible(true);
-        dbcsDialog.addWindowListener(new WindowListener(){
-                public void windowClosing(WindowEvent e) {}
-                public void windowOpened(WindowEvent e) {}
-                public void windowIconified(WindowEvent e) {}
-                public void windowDeiconified(WindowEvent e) {}
-                public void windowActivated(WindowEvent e) {}
-                public void windowDeactivated(WindowEvent e) {}
+        d.setVisible(true);
+        d.addWindowListener(new WindowAdapter(){
                 public void windowClosed(WindowEvent e){
                     project.getTargetDatabase().getDataSource().setName("(Target Database)");
                     ASUtils.setupTargetDBComboBox(project, targetDB);

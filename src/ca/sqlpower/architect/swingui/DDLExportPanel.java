@@ -6,7 +6,6 @@ import java.util.Vector;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -27,10 +26,6 @@ public class DDLExportPanel implements ArchitectPanel {
     
 	private SwingUIProject project;
 
-    /**
-     * This dialog box is for editting the PlayPen's DB Connection spec.
-     */
-    protected JDialog dbcsDialog;
     private JComboBox targetDB;
     private JButton newTargetDB;
     private JComboBox dbType;
@@ -60,7 +55,7 @@ public class DDLExportPanel implements ArchitectPanel {
         newTargetDB = new JButton("Properties");
         newTargetDB.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
-                    ASUtils.showDbcsDialog(dbcsDialog, project, targetDB);
+                    ASUtils.showDbcsDialog(project, targetDB);
                 }
             });
         
@@ -163,7 +158,7 @@ public class DDLExportPanel implements ArchitectPanel {
 				(panel, "You can't use the Generic JDBC Generator\n"
 						+"until you set up the target database connection.");
 								
-				ASUtils.showDbcsDialog(dbcsDialog, project, targetDB);
+				ASUtils.showDbcsDialog(project, targetDB);
 				
 				return false;
 			}
