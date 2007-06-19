@@ -134,16 +134,16 @@ public class ArchitectFrame extends JFrame {
 	 */
 	private boolean lastSaveOpSuccessful;
 
-	protected ArchitectSession architectSession = null;
-	protected SwingUIProject project = null;
-	protected ConfigFile configFile = null;
-	protected UserSettings sprefs = null;
-	protected JToolBar projectBar = null;
-	protected JToolBar ppBar = null;
-	protected JMenuBar menuBar = null;
-	protected JSplitPane splitPane = null;
-	protected PlayPen playpen = null;
-	protected DBTree dbTree = null;
+	private ArchitectSession architectSession = null;
+	SwingUIProject project = null;
+	private ConfigFile configFile = null;
+	private UserSettings sprefs = null;
+	private JToolBar projectBar = null;
+	private JToolBar ppBar = null;
+	private JMenuBar menuBar = null;
+	JSplitPane splitPane = null;
+	PlayPen playpen = null;
+	DBTree dbTree = null;
 
 	private UndoAction undoAction;
 	private RedoAction redoAction;
@@ -151,47 +151,47 @@ public class ArchitectFrame extends JFrame {
     private JMenu connectionsMenu;
 
     private RecentMenu recent;
-	protected AboutAction aboutAction;
-    protected Action newProjectAction;
-	protected OpenProjectAction openProjectAction;
-	protected Action saveProjectAction;
-	protected Action saveProjectAsAction;
-	protected PreferencesAction prefAction;
-	protected ProjectSettingsAction projectSettingsAction;
-	protected PrintAction printAction;
-    protected ExportPlaypenToPDFAction exportPlaypenToPDFAction;
-    protected ProfilePanelAction profileAction;
-    protected ViewProfileAction viewProfileAction; //not being used for second architect release
- 	protected ZoomAction zoomInAction;
- 	protected ZoomAction zoomOutAction;
- 	protected Action zoomNormalAction;
- 	protected Action zoomAllAction;
- 	protected JComponent contentPane;
+	private AboutAction aboutAction;
+    Action newProjectAction;
+	private OpenProjectAction openProjectAction;
+	private Action saveProjectAction;
+	private Action saveProjectAsAction;
+	PreferencesAction prefAction;
+	private ProjectSettingsAction projectSettingsAction;
+	private PrintAction printAction;
+    private ExportPlaypenToPDFAction exportPlaypenToPDFAction;
+    private ProfilePanelAction profileAction;
+    private ViewProfileAction viewProfileAction; //not being used for second architect release
+ 	private ZoomAction zoomInAction;
+ 	private ZoomAction zoomOutAction;
+ 	private Action zoomNormalAction;
+ 	private Action zoomAllAction;
+ 	private JComponent contentPane;
 	private AutoLayoutAction autoLayoutAction;
 
 	private ArchitectLayout autoLayout;
 	// playpen edit actions
-	protected EditColumnAction editColumnAction;
-	protected InsertColumnAction insertColumnAction;
-    protected InsertIndexAction insertIndexAction;
-	protected EditTableAction editTableAction;
-    protected EditIndexAction editIndexAction;
-	protected DeleteSelectedAction deleteSelectedAction;
-	protected CreateTableAction createTableAction;
-	protected CreateRelationshipAction createIdentifyingRelationshipAction;
-	protected CreateRelationshipAction createNonIdentifyingRelationshipAction;
-	protected EditRelationshipAction editRelationshipAction;
-	protected SearchReplaceAction searchReplaceAction;
-	protected SelectAllAction selectAllAction;
+	EditColumnAction editColumnAction;
+	InsertColumnAction insertColumnAction;
+    InsertIndexAction insertIndexAction;
+	EditTableAction editTableAction;
+    EditIndexAction editIndexAction;
+	DeleteSelectedAction deleteSelectedAction;
+	CreateTableAction createTableAction;
+	CreateRelationshipAction createIdentifyingRelationshipAction;
+	CreateRelationshipAction createNonIdentifyingRelationshipAction;
+	EditRelationshipAction editRelationshipAction;
+	private SearchReplaceAction searchReplaceAction;
+	private SelectAllAction selectAllAction;
 
-	protected Action exportDDLAction;
-	protected Action compareDMAction;
-    protected Action dataMoverAction;
-	protected ExportPLTransAction exportPLTransAction;
-    protected ExportPLJobXMLAction exportPLJobXMLAction;
+	Action exportDDLAction;
+	private Action compareDMAction;
+    private Action dataMoverAction;
+	ExportPLTransAction exportPLTransAction;
+    private ExportPLJobXMLAction exportPLJobXMLAction;
 
-	protected QuickStartAction quickStartAction;
-	protected ArchitectFrameWindowListener afWindowListener;
+	private QuickStartAction quickStartAction;
+	private ArchitectFrameWindowListener afWindowListener;
 
 	protected Action exitAction = new AbstractAction("Exit") {
 	    public void actionPerformed(ActionEvent e) {
@@ -471,7 +471,7 @@ public class ArchitectFrame extends JFrame {
 		    }
         };
         exportPLJobXMLAction = new ExportPLJobXMLAction();
-		quickStartAction = new QuickStartAction();
+        quickStartAction = new QuickStartAction();
         Action exportCSVAction = new AbstractAction("Export CSV File") {
 
             public void actionPerformed(ActionEvent e) {
@@ -1208,6 +1208,12 @@ public class ArchitectFrame extends JFrame {
      * <p>This code came from Apple's "OS X Java Adapter" example.
      */
     private void macOSXRegistration() {
+        
+        // Whether or not this is OS X, the three actions we're referencing must have been initialized by now.
+        if (exitAction == null) throw new IllegalStateException("Exit action has not been initialized");
+        if (prefAction == null) throw new IllegalStateException("Prefs action has not been initialized");
+        if (aboutAction == null) throw new IllegalStateException("About action has not been initialized");
+        
         if (MAC_OS_X) {
             try {
                 Class osxAdapter = ClassLoader.getSystemClassLoader().loadClass("ca.sqlpower.architect.swingui.OSXAdapter");
@@ -1215,18 +1221,14 @@ public class ArchitectFrame extends JFrame {
                 // The main registration method.  Takes quitAction, prefsAction, aboutAction.
                 Class[] defArgs = { Action.class, Action.class, Action.class };
                 Method registerMethod = osxAdapter.getDeclaredMethod("registerMacOSXApplication", defArgs);
-                if (registerMethod != null) {
-                    Object[] args = { exitAction, prefAction, aboutAction };
-                    registerMethod.invoke(osxAdapter, args);
-                }
+                Object[] args = { exitAction, prefAction, aboutAction };
+                registerMethod.invoke(osxAdapter, args);
 
                 // The enable prefs method.  Takes a boolean.
                 defArgs = new Class[] { boolean.class };
                 Method prefsEnableMethod =  osxAdapter.getDeclaredMethod("enablePrefs", defArgs);
-                if (prefsEnableMethod != null) {
-                    Object args[] = {Boolean.TRUE};
-                    prefsEnableMethod.invoke(osxAdapter, args);
-                }
+                args = new Object[] {Boolean.TRUE};
+                prefsEnableMethod.invoke(osxAdapter, args);
             } catch (NoClassDefFoundError e) {
                 // This will be thrown first if the OSXAdapter is loaded on a system without the EAWT
                 // because OSXAdapter extends ApplicationAdapter in its def
