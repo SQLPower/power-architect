@@ -7,10 +7,31 @@ import java.io.File;
  */
 public class CreateKettleJobSettings {
     
+    /**
+     * The name of the Kettle job
+     */
     private String jobName;
+    
+    /**
+     * The name of the target schema
+     */
     private String schemaName;
+    
+    /**
+     * The default join type for Kettle. The join types are stored as int as the values
+     * are in an array in Kettle.
+     */
     private int kettleJoinType;
+    
+    /**
+     * The path to store the Kettle job at
+     */
     private String filePath;
+    
+    /**
+     * The file that represents the directory of the new Kettle job. This is set to 
+     * prevent null pointer exceptions when first opening the Create Kettle Job window.
+     */
     private File parentFile = new File("");
     
     
