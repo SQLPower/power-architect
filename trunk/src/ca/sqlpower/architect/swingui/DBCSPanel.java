@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
@@ -39,6 +40,9 @@ public class DBCSPanel implements ArchitectPanel {
 	private JTextField dbUserField;
 	private JPasswordField dbPassField;
 
+    private JTextField kettleHostName;
+    private JTextField kettlePort;
+    private JTextField kettleDatabase;
     private JTextField kettleLogin;
     private JPasswordField kettlePassword;
 
@@ -70,7 +74,9 @@ public class DBCSPanel implements ArchitectPanel {
         dbNameField.setName("dbNameField");
         platformSpecificOptions = new PlatformSpecificConnectionOptionPanel(dbUrlField = new JTextField());
 
-        DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref, 4dlu, 0:grow"));
+        //we know this should be set to pref but one of the components seems to be updating the
+        //preferred size
+        DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref, 4dlu, 0:grow")); 
         builder.append("Connection &Name", dbNameField);
         builder.append("&Database Type", dataSourceTypeBox);
         builder.append("Connect &Options", platformSpecificOptions.getPanel());
@@ -84,6 +90,7 @@ public class DBCSPanel implements ArchitectPanel {
                 ArchitectDataSourceType parentType =
                     (ArchitectDataSourceType) dataSourceTypeBox.getSelectedItem();
                 platformSpecificOptions.setTemplate(parentType);
+                setKettleDBOptions(parentType);
             }
         });
         
@@ -100,6 +107,9 @@ public class DBCSPanel implements ArchitectPanel {
      */
     private JPanel buildKettleOptionsPanel() {
         DefaultFormBuilder builder = new DefaultFormBuilder(new FormLayout("pref, 4dlu, pref:grow"));
+        builder.append("Hostname", kettleHostName = new JTextField());
+        builder.append("Port", kettlePort = new JTextField());
+        builder.append("Database", kettleDatabase = new JTextField());
         builder.append("Repository Login &Name", kettleLogin = new JTextField());
         builder.append("Repository &Password", kettlePassword = new JPasswordField());
         return builder.getPanel();
@@ -124,10 +134,36 @@ public class DBCSPanel implements ArchitectPanel {
         dbUserField.setText(dbcs.getUser());
         dbPassField.setText(dbcs.getPass());
         
+        setKettleDBOptions(dbcs.getParentType());
+        
         kettleLogin.setText(dbcs.get(KettleOptions.KETTLE_REPOS_LOGIN_KEY));
         kettlePassword.setText(dbcs.get(KettleOptions.KETTLE_REPOS_PASSWORD_KEY));
         
         this.dbcs = dbcs;
+    }
+    
+    /**
+     * Sets the database fields to be visible on the kettle tab only if it doesn't
+     * exist in the url.
+     */
+    private void setKettleDBOptions(ArchitectDataSourceType dsType) {
+        Map<String, String> map = dsType.retrieveURLDefaults();
+        logger.error(" The map is: " + map);
+        if (map.containsKey(KettleOptions.KETTLE_HOSTNAME)) {
+            kettleHostName.setEnabled(false);
+        } else {
+            kettleHostName.setEnabled(true);
+        }
+        if (map.containsKey(KettleOptions.KETTLE_PORT)) {
+            kettlePort.setEnabled(false);
+        } else {
+            kettlePort.setEnabled(true);
+        }
+        if (map.containsKey(KettleOptions.KETTLE_DATABASE)) {
+            kettleDatabase.setEnabled(false);
+        } else {
+            kettleDatabase.setEnabled(true);
+        }
     }
 
     /**
@@ -168,6 +204,9 @@ public class DBCSPanel implements ArchitectPanel {
 		dbcs.setUser(dbUserField.getText());
 		dbcs.setPass(new String(dbPassField.getPassword())); // completely defeats the purpose for JPasswordField.getText() being deprecated, but we're saving passwords to the config file so it hardly matters.
 
+        dbcs.put(KettleOptions.KETTLE_DATABASE_KEY, kettleDatabase.getText());
+        dbcs.put(KettleOptions.KETTLE_PORT_KEY, kettlePort.getText());
+        dbcs.put(KettleOptions.KETTLE_HOSTNAME_KEY, kettleHostName.getText());
         dbcs.put(KettleOptions.KETTLE_REPOS_LOGIN_KEY, kettleLogin.getText());
         dbcs.put(KettleOptions.KETTLE_REPOS_PASSWORD_KEY, new String(kettlePassword.getPassword()));
 

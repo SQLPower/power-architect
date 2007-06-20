@@ -1,7 +1,7 @@
 package ca.sqlpower.architect.etl.kettle;
 
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 
 import org.apache.log4j.Logger;
 
@@ -32,19 +32,47 @@ public class KettleOptions {
      */
     public static final String KETTLE_CONNECTION_TYPE_KEY = "ca.sqlpower.architect.etl.kettle.connectionType";
     
-    public static boolean connectToDB(JPanel panel, DatabaseMeta dbMeta) {
+    /**
+     * The string of the url parameter that defines the database name
+     */
+    public static final String KETTLE_DATABASE = "Database";
+    
+    /**
+     * The key to use in an ArchitectDataSource for the database name.
+     */
+    public static final String KETTLE_DATABASE_KEY = "ca.sqlpower.architect.etl.kettle.database";
+
+    /**
+     * The string of the url parameter that defines the port
+     */
+    public static final String KETTLE_PORT = "Port";
+
+    /**
+     * The key to use in an ArchitectDataSource for the port value.
+     */
+    public static final String KETTLE_PORT_KEY = "ca.sqlpower.architect.etl.kettle.port";
+    
+    /**
+     * The string of the url parameter that defines the host name
+     */
+    public static final String KETTLE_HOSTNAME = "Hostname";
+
+    /**
+     * The key to use in an ArchitectDataSource for the host name.
+     */
+    public static final String KETTLE_HOSTNAME_KEY = "ca.sqlpower.architect.etl.kettle.hostname";
         
-        
+    
+    public static boolean testKettleDBConnection(JFrame frame, DatabaseMeta dbMeta) {
         Database db = new Database(dbMeta);
         try {
             db.connect();
             return true;
         } catch (KettleDatabaseException e) {
-            logger.error("Could not connect to the database.");
+            logger.error("Could not connect to the database " + dbMeta.getName() + ".");
             e.printStackTrace();
             int response = JOptionPane.showConfirmDialog
-                            (panel, "Could not connect to the database " + dbMeta.getName() + "." +
-                                    "\nThe properties Hostname, Database, and Port must be defined in the URL." +
+                            (frame, "Could not connect to the database " + dbMeta.getName() + "." +
                                     "\nWould you like to continue?");
             return response == JOptionPane.OK_OPTION;
         } finally {
