@@ -3,8 +3,6 @@ package ca.sqlpower.architect.swingui;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.io.File;
 
 import javax.swing.JButton;
@@ -15,6 +13,8 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import org.apache.log4j.Logger;
 
@@ -67,12 +67,16 @@ public class CreateKettleJobPanel implements ArchitectPanel {
         schemaName = new JTextField(settings.getSchemaName());
         
         filePath = new JTextField(settings.getFilePath());
-        filePath.addKeyListener(new KeyListener(){
-           public void keyPressed(KeyEvent arg0) {}
-           public void keyReleased(KeyEvent arg0) {
+        filePath.getDocument().addDocumentListener(new DocumentListener(){
+           public void changedUpdate(DocumentEvent e) {
                copyFilePath();
            }
-           public void keyTyped(KeyEvent arg0) {}
+           public void insertUpdate(DocumentEvent e) {
+               copyFilePath();
+           }
+           public void removeUpdate(DocumentEvent e) {
+               copyFilePath();
+           }
            private void copyFilePath() {
                File file = new File(filePath.getText());
                if (file != null) { 
