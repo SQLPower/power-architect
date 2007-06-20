@@ -293,7 +293,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 	 * @return A Map describing the new values of all the non-ignored, readable 
 	 * properties in target.
 	 */
-	private static Map<String,Object> setAllInterestingProperties(SQLObject target,
+	private static Map<String,Object> setAllInterestingProperties(Object target,
 			Set<String> propertiesToIgnore) throws Exception {
 		
 		PropertyDescriptor props[] = PropertyUtils.getPropertyDescriptors(target);
@@ -337,6 +337,8 @@ public class TestSwingUIProject extends ArchitectTestCase {
                 } else if (props[i].getPropertyType() == SQLIndex.class) {
                     newVal = new SQLIndex();
                     ((SQLIndex) newVal).setName("a new index");
+                } else if (props[i].getPropertyType() == File.class) {
+                    newVal = new File("temp" + System.currentTimeMillis());
 				} else {
 					throw new RuntimeException("This test case lacks a value for "+
 							props[i].getName()+
@@ -359,7 +361,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 	 * @param propertiesToIgnore The properties of target not to modify or read
 	 * @return The aforementioned stuffed map
 	 */
-	private static Map<String, Object> getAllInterestingProperties(SQLObject target, Set<String> propertiesToIgnore) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+	private static Map<String, Object> getAllInterestingProperties(Object target, Set<String> propertiesToIgnore) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		Map<String,Object> newDescription = new HashMap<String,Object>();
 		PropertyDescriptor[] props = PropertyUtils.getPropertyDescriptors(target);
 		for (int i = 0; i < props.length; i++) {
@@ -885,27 +887,49 @@ public class TestSwingUIProject extends ArchitectTestCase {
 				project.isModified());
 	}
 	
-	public void testSaveCoversCompareDMSettings() throws Exception {
-		testLoad();
-		CompareDMSettings cds = project.getCompareDMSettings();		
-		File tmp = File.createTempFile("test", ".architect");
-		assertFalse (cds.getSaveFlag());
-		if (deleteOnExit) {
-			tmp.deleteOnExit();
-		}
-		PrintWriter out = new PrintWriter(tmp,ENCODING);
-		assertNotNull(out);
-		project.save(out,ENCODING);
-		assertFalse (cds.getSaveFlag());
-		assertEquals("SQLServer 2000", cds.getSqlScriptFormat());
-		assertEquals("ENGLISH", cds.getOutputFormatAsString());
-		assertEquals("PROJECT", cds.getSourceSettings().getDatastoreType().toString());
-		assertEquals("Arthur_test", cds.getSourceSettings().getConnectName());
-		assertEquals("ARCHITECT_REGRESS", cds.getSourceSettings().getSchema());
-		assertEquals("FILE", cds.getTargetSettings().getDatastoreType().toString());
-		assertEquals("Testpath", cds.getTargetSettings().getFilePath());				
-	}
-    
+    public void testSaveCoversCompareDMSettings() throws Exception {
+        testLoad();
+        CompareDMSettings cds = project.getCompareDMSettings();     
+        File tmp = File.createTempFile("test", ".architect");
+        assertFalse (cds.getSaveFlag());
+        if (deleteOnExit) {
+            tmp.deleteOnExit();
+        }
+        PrintWriter out = new PrintWriter(tmp,ENCODING);
+        assertNotNull(out);
+        project.save(out,ENCODING);
+        assertFalse (cds.getSaveFlag());
+        assertEquals("SQLServer 2000", cds.getSqlScriptFormat());
+        assertEquals("ENGLISH", cds.getOutputFormatAsString());
+        assertEquals("PROJECT", cds.getSourceSettings().getDatastoreType().toString());
+        assertEquals("Arthur_test", cds.getSourceSettings().getConnectName());
+        assertEquals("ARCHITECT_REGRESS", cds.getSourceSettings().getSchema());
+        assertEquals("FILE", cds.getTargetSettings().getDatastoreType().toString());
+        assertEquals("Testpath", cds.getTargetSettings().getFilePath());                
+    }
+
+    public void testSaveCoversCreateKettleJobSettings() throws Exception {
+        testLoad();
+        
+        Set<String> propertiesToIgnore = new HashSet<String>();
+        propertiesToIgnore.add("class");
+
+        Map<String,Object> oldDescription =
+            setAllInterestingProperties(project.getCreateKettleJobSettings(), propertiesToIgnore);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        project.save(byteArrayOutputStream, ENCODING);
+
+        System.out.println(byteArrayOutputStream.toString());
+
+        SwingUIProject project2 = new SwingUIProject("new test project");
+        project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), plIni);
+        
+        Map<String, Object> newDescription =
+            getAllInterestingProperties(project2.getCreateKettleJobSettings(), propertiesToIgnore);
+        
+        assertMapsEqual(oldDescription, newDescription);
+    }
+
     /**
      * Test for regression of bug 1288. This version has catalogs and schemas.
      */
