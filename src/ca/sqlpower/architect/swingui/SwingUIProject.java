@@ -434,6 +434,10 @@ public class SwingUIProject {
         d.addFactoryCreate("architect-project/ddl-generator", ddlgFactory);
         d.addSetProperties("architect-project/ddl-generator");
 
+        CreateKettleJobSettingsFactory ckjsFactory = new CreateKettleJobSettingsFactory();
+        d.addFactoryCreate("architect-project/create-kettle-job-settings", ckjsFactory);
+        d.addSetProperties("architect-project/create-kettle-job-settings");
+
         CompareDMSettingFactory settingFactory = new CompareDMSettingFactory();
         d.addFactoryCreate("architect-project/compare-dm-settings", settingFactory);
         d.addSetProperties("architect-project/compare-dm-settings");
@@ -842,6 +846,12 @@ public class SwingUIProject {
         }
     }
 
+    private class CreateKettleJobSettingsFactory extends AbstractObjectCreationFactory {
+        public Object createObject(Attributes attributes) throws SQLException {
+            return getCreateKettleJobSettings();
+        }
+    }
+
     private class FileFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) {
             return new File(attributes.getValue("path"));
@@ -1061,6 +1071,7 @@ public class SwingUIProject {
             saveTargetDatabase(out);
             saveDDLGenerator(out);
             saveCompareDMSettings(out);
+            saveCreateKettleJobSettings(out);
             savePlayPen(out);
             saveProfiles(out);
             ioo.indent--;
@@ -1132,6 +1143,16 @@ public class SwingUIProject {
         }
         ioo.indent--;
         ioo.println(out, "</ddl-generator>");
+    }
+    
+    private void saveCreateKettleJobSettings(PrintWriter out) throws IOException {
+        ioo.print(out, "<create-kettle-job-settings");
+        ioo.niprint(out, " parentFile=\"" + ArchitectUtils.escapeXML(createKettleJobSettings.getParentFile().getPath()) + "\"");
+        ioo.niprint(out, " filePath=\"" + ArchitectUtils.escapeXML(createKettleJobSettings.getFilePath()) + "\"");
+        ioo.niprint(out, " jobName=\"" + ArchitectUtils.escapeXML(createKettleJobSettings.getJobName()) + "\"");
+        ioo.niprint(out, " schemaName=\"" + ArchitectUtils.escapeXML(createKettleJobSettings.getSchemaName()) + "\"");
+        ioo.niprint(out, " kettleJoinType=\"" + createKettleJobSettings.getKettleJoinType() + "\"");
+        ioo.niprintln(out, " />");
     }
 
     /**
