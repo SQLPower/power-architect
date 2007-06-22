@@ -136,6 +136,9 @@ public class DBCSPanel implements ArchitectPanel {
         
         setKettleDBOptions(dbcs.getParentType());
         
+        kettleHostName.setText(dbcs.get(KettleOptions.KETTLE_HOSTNAME_KEY));
+        kettlePort.setText(dbcs.get(KettleOptions.KETTLE_PORT_KEY));
+        kettleDatabase.setText(dbcs.get(KettleOptions.KETTLE_DATABASE_KEY));
         kettleLogin.setText(dbcs.get(KettleOptions.KETTLE_REPOS_LOGIN_KEY));
         kettlePassword.setText(dbcs.get(KettleOptions.KETTLE_REPOS_PASSWORD_KEY));
         
