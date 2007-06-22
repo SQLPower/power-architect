@@ -1,7 +1,9 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.BorderLayout;
+import java.util.List;
 
+import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
@@ -12,6 +14,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectDataSourceType;
 import ca.sqlpower.architect.etl.kettle.KettleOptions;
+import ca.sqlpower.architect.etl.kettle.KettleUtils;
 
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -29,7 +32,7 @@ public class ArchitectDataSourceTypePanel implements ArchitectPanel {
     final private JTextField driverClass = new JTextField();
     final private PlatformSpecificConnectionOptionPanel template =
         new PlatformSpecificConnectionOptionPanel(new JTextField());
-    final private JTextField kettleConnectionType = new JTextField();
+    final private JComboBox kettleConnectionType = new JComboBox();
     
     public ArchitectDataSourceTypePanel() {
         buildPanel();
@@ -87,6 +90,11 @@ public class ArchitectDataSourceTypePanel implements ArchitectPanel {
         cl = new CellConstraints();
         row = 2;
         pb.addLabel("Kettle Connection Type", cl.xy(2, row), kettleConnectionType, cc.xy(4, row));
+        List<String> dbConnectionNames = KettleUtils.retrieveKettleConnectionTypes();
+        for (String dbConnectionName: dbConnectionNames) {
+            kettleConnectionType.addItem(dbConnectionName);
+        }
+        kettleConnectionType.setSelectedIndex(-1);
         
         tabbedPane.addTab("Kettle", pb.getPanel());
         
@@ -104,7 +112,7 @@ public class ArchitectDataSourceTypePanel implements ArchitectPanel {
             driverClass.setEnabled(false);
             
             connectionStringTemplate.setText("");
-            kettleConnectionType.setText("");
+            kettleConnectionType.setSelectedItem("");
 
             // template will get updated by document listener
         } else {
@@ -117,7 +125,7 @@ public class ArchitectDataSourceTypePanel implements ArchitectPanel {
             connectionStringTemplate.setText(dst.getJdbcUrl());
             connectionStringTemplate.setEnabled(true);
             
-            kettleConnectionType.setText
+            kettleConnectionType.setSelectedItem
                 (dst.getProperty(KettleOptions.KETTLE_CONNECTION_TYPE_KEY));
             
             // template will get updated by document listener
@@ -131,7 +139,7 @@ public class ArchitectDataSourceTypePanel implements ArchitectPanel {
             dsType.setJdbcDriver(driverClass.getText());
             dsType.setJdbcUrl(connectionStringTemplate.getText());
             dsType.putProperty(KettleOptions.KETTLE_CONNECTION_TYPE_KEY, 
-                               kettleConnectionType.getText());
+                               (String)kettleConnectionType.getSelectedItem());
         }
         return true;
     }

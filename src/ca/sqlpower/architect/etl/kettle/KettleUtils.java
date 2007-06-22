@@ -1,19 +1,28 @@
 package ca.sqlpower.architect.etl.kettle;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-
-import javax.swing.JFrame;
 
 import org.apache.log4j.Logger;
 
+import be.ibridge.kettle.core.database.DatabaseInterface;
 import be.ibridge.kettle.core.database.DatabaseMeta;
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectDataSourceType;
-import ca.sqlpower.architect.swingui.ASUtils;
 
 public class KettleUtils {
 
     private static final Logger logger = Logger.getLogger(KettleUtils.class);
+    
+    public static List<String> retrieveKettleConnectionTypes() {
+        List<String> list = new ArrayList<String>();
+        DatabaseInterface[] dbConnectionArray = DatabaseMeta.getDatabaseInterfaces();
+        for (int i = 0; i < dbConnectionArray.length; i++) {
+            list.add(dbConnectionArray[i].getDatabaseTypeDescLong());
+        }
+        return list;
+    }
     
     /**
      * Creates a DatabaseMeta object based on the ArchitectDataSource given to it.
@@ -21,7 +30,7 @@ public class KettleUtils {
      * 
      * @param parent The parent JFrame used for showing dialog windows.
      */
-    public static DatabaseMeta createDatabaseMeta(ArchitectDataSource target, JFrame parent) {
+    public static DatabaseMeta createDatabaseMeta(ArchitectDataSource target) throws RuntimeException {
         DatabaseMeta databaseMeta;
         
         String databaseName = target.getName();
@@ -43,43 +52,16 @@ public class KettleUtils {
             database = target.get(KettleOptions.KETTLE_DATABASE_KEY);
         }
         
-        try {
-            databaseMeta = new DatabaseMeta(databaseName
-                                                  , connectionType
-                                                  , "Native"
-                                                  , hostname==null?"":hostname
-                                                  , database==null?"":database
-                                                  , port==null?"":port
-                                                  , username
-                                                  , password);
-        } catch (RuntimeException re) {
-            StringBuffer buffer = new StringBuffer();
-            if (connectionType == null || connectionType.equals("")) {
-                buffer.append("The Kettle connection type was not set in User Preferences.\n");
-            }
-            if (hostname == null || hostname.equals("")) {
-                buffer.append("The host name was not set.\n");
-            }
-            if (database == null || database.equals("")) {
-                buffer.append("The database name was not set.\n");
-            }
-            if (port == null || port.equals("")) {
-                buffer.append("The port number was not set.\n");
-            }
-            if (username == null || username.equals("")) {
-                buffer.append("The user name was not set.\n");
-            }
-            logger.error("Could not connect to the database " + databaseName + ".");
-            re.printStackTrace();
-            ASUtils.showExceptionDialog
-                            ("Could not create the database connection for " + databaseName + "." +
-                                    "\n" + buffer.toString()
-                             , re);
-            return null;
-        }
-        if (!KettleOptions.testKettleDBConnection(parent, databaseMeta)) {
-            return null;
-        }
+        databaseMeta = new DatabaseMeta(databaseName
+                                              , connectionType
+                                              , "Native"
+                                              , hostname==null?"":hostname
+                                              , database==null?"":database
+                                              , port==null?"":port
+                                              , username
+                                              , password);
+        
+
         return databaseMeta;
     }
 }

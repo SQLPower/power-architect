@@ -109,6 +109,7 @@ public class CreateKettleJobPanel implements ArchitectPanel {
             transformationPath2 = new JLabel("");
         } else {
             transformationPath2 = new JLabel("     " + settings.getParentFile().getPath());
+            parentFile = settings.getParentFile();
         }
         defaultJoinType = new JComboBox();
         for (int joinType = 0; joinType < MergeJoinMeta.join_types.length; joinType++) {
@@ -188,6 +189,14 @@ public class CreateKettleJobPanel implements ArchitectPanel {
     
     public String getSchemaName() {
         return schemaName.getText();
+    }
+    
+    public int getDefaultJoinType() {
+        return defaultJoinType.getSelectedIndex();
+    }
+    
+    public String getJobName() {
+        return nameField.getText();
     }
     
     private void copySettingsToProject() {
