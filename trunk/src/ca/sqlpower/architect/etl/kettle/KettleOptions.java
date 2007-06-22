@@ -1,8 +1,5 @@
 package ca.sqlpower.architect.etl.kettle;
 
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-
 import org.apache.log4j.Logger;
 
 import be.ibridge.kettle.core.database.Database;
@@ -63,18 +60,10 @@ public class KettleOptions {
     public static final String KETTLE_HOSTNAME_KEY = "ca.sqlpower.architect.etl.kettle.hostname";
         
     
-    public static boolean testKettleDBConnection(JFrame frame, DatabaseMeta dbMeta) {
+    public static void testKettleDBConnection(DatabaseMeta dbMeta) throws KettleDatabaseException {
         Database db = new Database(dbMeta);
         try {
             db.connect();
-            return true;
-        } catch (KettleDatabaseException e) {
-            logger.error("Could not connect to the database " + dbMeta.getName() + ".");
-            e.printStackTrace();
-            int response = JOptionPane.showConfirmDialog
-                            (frame, "Could not connect to the database " + dbMeta.getName() + "." +
-                                    "\nWould you like to continue?");
-            return response == JOptionPane.OK_OPTION;
         } finally {
             db.disconnect();
         }
