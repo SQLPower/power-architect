@@ -295,7 +295,12 @@ public class CreateKettleJob {
         }
     }
     
-    private DatabaseMeta addDatabaseConnection(Map<String, DatabaseMeta> databaseNames, ArchitectDataSource dataSource) throws RuntimeException {
+    /**
+     * This method adds the given data source to the returned database metadata and
+     * the databaseNames mapping if it does not already exist in the databaseNames.
+     * This method is package private for testing
+     */
+    DatabaseMeta addDatabaseConnection(Map<String, DatabaseMeta> databaseNames, ArchitectDataSource dataSource) throws RuntimeException {
         DatabaseMeta databaseMeta;
         if (!databaseNames.containsKey(dataSource.getName())) {
             try {
@@ -322,7 +327,12 @@ public class CreateKettleJob {
         return databaseMeta;
     }
     
-    private void outputToXML(String xml, File f) throws IOException {
+    /**
+     * This method outputs the given xml to the given file. The file is overwritten
+     * or not depending on the file validator. This method is package private for 
+     * testing purposes.
+     */
+    void outputToXML(String xml, File f) throws IOException {
         try {
             if (overwriteOption == FileValidationResponse.WRITE_NOT_OK_ALWAYS) {
                 return;
@@ -357,9 +367,9 @@ public class CreateKettleJob {
     /**
      * This creates all of the MergeJoin kettle steps as well as their hops from
      * the steps in the inputSteps list. The MergeJoin steps are also put into the 
-     * TransMeta.
+     * TransMeta. This method is package private for testing purposes.
      */
-    private List<StepMeta> createMergeJoins(int defaultJoinType, TransMeta transMeta, List<StepMeta> inputSteps) {
+    List<StepMeta> createMergeJoins(int defaultJoinType, TransMeta transMeta, List<StepMeta> inputSteps) {
         List<StepMeta> mergeSteps = new ArrayList<StepMeta>();
         if (inputSteps.size() > 1) {
             MergeJoinMeta mergeJoinMeta = new MergeJoinMeta();
@@ -444,5 +454,12 @@ public class CreateKettleJob {
 
     public void setFileValidator(FileValidator fileValidator) {
         this.fileValidator = fileValidator;
+    }
+    
+    /**
+     * This method is package private as it is only used for testing.
+     */
+    void setOverwriteOption(FileValidationResponse fileValidationType) {
+        overwriteOption = fileValidationType;
     }
 }
