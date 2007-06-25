@@ -20,6 +20,8 @@ import org.apache.log4j.Logger;
 
 import be.ibridge.kettle.trans.step.mergejoin.MergeJoinMeta;
 
+import ca.sqlpower.architect.etl.kettle.CreateKettleJob;
+
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
 
@@ -49,7 +51,7 @@ public class CreateKettleJobPanel implements ArchitectPanel {
     
     private void buildUI(){
         
-        CreateKettleJobSettings settings = project.getCreateKettleJobSettings();
+        CreateKettleJob settings = project.getCreateKettleJob();
         panel.setLayout(new FormLayout());
         panel.setPreferredSize(new Dimension(450,200));
         
@@ -200,7 +202,7 @@ public class CreateKettleJobPanel implements ArchitectPanel {
     }
     
     private void copySettingsToProject() {
-        CreateKettleJobSettings settings = project.getCreateKettleJobSettings();
+        CreateKettleJob settings = project.getCreateKettleJob();
         settings.setJobName(nameField.getText());
         settings.setSchemaName(schemaName.getText());
         settings.setKettleJoinType(defaultJoinType.getSelectedIndex());

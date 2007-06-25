@@ -54,6 +54,7 @@ import ca.sqlpower.architect.SQLIndex.Column;
 import ca.sqlpower.architect.SQLTable.Folder;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.PLExport;
+import ca.sqlpower.architect.etl.kettle.CreateKettleJob;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ColumnValueCount;
 import ca.sqlpower.architect.profile.ProfileManager;
@@ -92,7 +93,7 @@ public class SwingUIProject {
     private boolean savingEntireSource;
     private PLExport plExport;
     private CompareDMSettings compareDMSettings;
-    private CreateKettleJobSettings createKettleJobSettings;
+    private CreateKettleJob createKettleJob;
     
     /** the small dialog that lists the profiles */
     private ProfileManagerView profileManagerView;
@@ -180,7 +181,7 @@ public class SwingUIProject {
         }
         plExport = new PLExport();
         compareDMSettings = new CompareDMSettings();
-        createKettleJobSettings = new CreateKettleJobSettings();
+        createKettleJob = new CreateKettleJob();
         undoManager = new UndoManager(pp);
     }
     
@@ -848,7 +849,7 @@ public class SwingUIProject {
 
     private class CreateKettleJobSettingsFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) throws SQLException {
-            return getCreateKettleJobSettings();
+            return getCreateKettleJob();
         }
     }
 
@@ -1147,11 +1148,11 @@ public class SwingUIProject {
     
     private void saveCreateKettleJobSettings(PrintWriter out) throws IOException {
         ioo.print(out, "<create-kettle-job-settings");
-        ioo.niprint(out, " parentFile=\"" + ArchitectUtils.escapeXML(createKettleJobSettings.getParentFile().getPath()) + "\"");
-        ioo.niprint(out, " filePath=\"" + ArchitectUtils.escapeXML(createKettleJobSettings.getFilePath()) + "\"");
-        ioo.niprint(out, " jobName=\"" + ArchitectUtils.escapeXML(createKettleJobSettings.getJobName()) + "\"");
-        ioo.niprint(out, " schemaName=\"" + ArchitectUtils.escapeXML(createKettleJobSettings.getSchemaName()) + "\"");
-        ioo.niprint(out, " kettleJoinType=\"" + createKettleJobSettings.getKettleJoinType() + "\"");
+        ioo.niprint(out, " parentFile=\"" + ArchitectUtils.escapeXML(createKettleJob.getParentFile().getPath()) + "\"");
+        ioo.niprint(out, " filePath=\"" + ArchitectUtils.escapeXML(createKettleJob.getFilePath()) + "\"");
+        ioo.niprint(out, " jobName=\"" + ArchitectUtils.escapeXML(createKettleJob.getJobName()) + "\"");
+        ioo.niprint(out, " schemaName=\"" + ArchitectUtils.escapeXML(createKettleJob.getSchemaName()) + "\"");
+        ioo.niprint(out, " kettleJoinType=\"" + createKettleJob.getKettleJoinType() + "\"");
         ioo.niprintln(out, " />");
     }
 
@@ -1788,10 +1789,10 @@ public class SwingUIProject {
         profileDialog.pack();
         return profileDialog;
     }
-    public CreateKettleJobSettings getCreateKettleJobSettings() {
-        return createKettleJobSettings;
+    public CreateKettleJob getCreateKettleJob() {
+        return createKettleJob;
     }
-    public void setCreateKettleJobSettings(CreateKettleJobSettings createKettleJobSettings) {
-        this.createKettleJobSettings = createKettleJobSettings;
+    public void setCreateKettleJobSettings(CreateKettleJob createKettleJobSettings) {
+        this.createKettleJob = createKettleJobSettings;
     }
 }
