@@ -23,9 +23,11 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.apache.commons.beanutils.PropertyUtils;
 
 import ca.sqlpower.ArchitectTestCase;
+import ca.sqlpower.architect.AlwaysAcceptFileValidator;
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectDataSourceType;
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.FileValidator;
 import ca.sqlpower.architect.PlDotIni;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
@@ -339,6 +341,8 @@ public class TestSwingUIProject extends ArchitectTestCase {
                     ((SQLIndex) newVal).setName("a new index");
                 } else if (props[i].getPropertyType() == File.class) {
                     newVal = new File("temp" + System.currentTimeMillis());
+                } else if (props[i].getPropertyType() == FileValidator.class) {
+                    newVal = new AlwaysAcceptFileValidator();
 				} else {
 					throw new RuntimeException("This test case lacks a value for "+
 							props[i].getName()+
@@ -908,14 +912,14 @@ public class TestSwingUIProject extends ArchitectTestCase {
         assertEquals("Testpath", cds.getTargetSettings().getFilePath());                
     }
 
-    public void testSaveCoversCreateKettleJobSettings() throws Exception {
+    public void testSaveCoversCreateKettleJob() throws Exception {
         testLoad();
         
         Set<String> propertiesToIgnore = new HashSet<String>();
         propertiesToIgnore.add("class");
 
         Map<String,Object> oldDescription =
-            setAllInterestingProperties(project.getCreateKettleJobSettings(), propertiesToIgnore);
+            setAllInterestingProperties(project.getCreateKettleJob(), propertiesToIgnore);
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         project.save(byteArrayOutputStream, ENCODING);
 
@@ -925,7 +929,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), plIni);
         
         Map<String, Object> newDescription =
-            getAllInterestingProperties(project2.getCreateKettleJobSettings(), propertiesToIgnore);
+            getAllInterestingProperties(project2.getCreateKettleJob(), propertiesToIgnore);
         
         assertMapsEqual(oldDescription, newDescription);
     }
