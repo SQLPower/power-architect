@@ -6,6 +6,7 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -24,22 +25,29 @@ public class PromptingFileValidator implements FileValidator {
     /**
      * The dialog for the overwrite/don't overwrite window
      */
-    JDialog confirmDialog;
+    private JDialog confirmDialog;
     
     /**
      * The parent component that the modal dialog will always be above
      */
-    JFrame parent;
+    private JFrame parent;
     
     /**
      * The response that will be sent back to the user
      */
-    FileValidationResponse response;
+    private FileValidationResponse response;
+    
+    /**
+     * The check box that decides if the decision should be applied to all of the
+     * files that may need to be overwritten.
+     */
+    private final JCheckBox applyToAll;
     
     private static Logger logger = Logger.getLogger(PromptingFileValidator.class);
    
     public PromptingFileValidator(JFrame parent) {
         this.parent = parent;
+        applyToAll = new JCheckBox("Apply my choice to all files.");
     }
     
     public FileValidationResponse acceptFile(File f) {
@@ -52,52 +60,53 @@ public class PromptingFileValidator implements FileValidator {
                                                 , "");
         DefaultFormBuilder builder = new DefaultFormBuilder(formLayout, confirmPanel);
         builder.setDefaultDialogBorder();
-        String message1 = "The file " + fileName + " already exists";
-        String message2 ="Do you wish to overwrite it?";
+        String fileNameMessage = "The file " + fileName;
+        String filePathMessage = "at " + f.getParentFile().getAbsolutePath();
+        String questionMessage = "already exists. Do you wish to overwrite it?";
+        
         builder.nextColumn(2);
-        builder.append(message1);
+        builder.append(fileNameMessage);
         builder.nextLine();
         builder.append("");
-        builder.append(message2);
+        builder.append(filePathMessage);
         builder.nextLine();
+        builder.append("");
+        builder.append(questionMessage);
+        builder.nextLine();
+        
+        builder.append("");
+        builder.append(applyToAll);
+        builder.nextLine();
+        
         ButtonBarBuilder buttonBar = new ButtonBarBuilder();
         JButton overwrite = new JButton("Overwrite");
-        JButton overwriteAll = new JButton("Overwrite All");
         JButton dontOverwrite = new JButton("Don't Overwrite");
-        JButton dontOverwriteAll = new JButton("Don't Overwrite Any");
         JButton cancel = new JButton("Cancel");
         buttonBar.addGlue();
         buttonBar.addGridded(overwrite);
         buttonBar.addRelatedGap();
-        buttonBar.addGridded(overwriteAll);
-        buttonBar.addRelatedGap();
         buttonBar.addGridded(dontOverwrite);
-        buttonBar.addRelatedGap();
-        buttonBar.addGridded(dontOverwriteAll);
         buttonBar.addRelatedGap();
         buttonBar.addGridded(cancel);
         buttonBar.addGlue();
+        
         overwrite.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e) {
-                response = FileValidationResponse.WRITE_OK;
-                confirmDialog.dispose();
-            }
-        });
-        overwriteAll.addActionListener(new ActionListener(){
-            public void actionPerformed(ActionEvent e) {
-                response = FileValidationResponse.WRITE_OK_ALWAYS;
+                if (applyToAll.isSelected()) {
+                    response = FileValidationResponse.WRITE_OK_ALWAYS;
+                } else {
+                    response = FileValidationResponse.WRITE_OK;
+                }
                 confirmDialog.dispose();
             }
         });
         dontOverwrite.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e) {
-                response = FileValidationResponse.WRITE_NOT_OK;
-                confirmDialog.dispose();
-            }
-        });
-        dontOverwriteAll.addActionListener(new ActionListener(){
-            public void actionPerformed(ActionEvent e) {
-                response = FileValidationResponse.WRITE_NOT_OK_ALWAYS;
+                if (applyToAll.isSelected()) {
+                    response = FileValidationResponse.WRITE_NOT_OK_ALWAYS;
+                } else {
+                    response = FileValidationResponse.WRITE_NOT_OK;
+                }
                 confirmDialog.dispose();
             }
         });
