@@ -917,6 +917,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         
         Set<String> propertiesToIgnore = new HashSet<String>();
         propertiesToIgnore.add("class");
+        propertiesToIgnore.add("cancelled");
 
         Map<String,Object> oldDescription =
             setAllInterestingProperties(project.getCreateKettleJob(), propertiesToIgnore);
