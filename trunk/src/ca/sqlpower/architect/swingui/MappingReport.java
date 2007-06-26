@@ -26,8 +26,8 @@ public class MappingReport {
     int maxSourceWidth = 0;
     int maxTargetWidth = 0;
 
-    public MappingReport(Collection<SQLTable> targetTables) throws ArchitectException {
-        PlayPen pp = new PlayPen();
+    public MappingReport(ArchitectSwingSession session, Collection<SQLTable> targetTables) throws ArchitectException {
+        PlayPen pp = new PlayPen(session);
         mappings = ETLUtils.findTableLevelMappings(targetTables);
         for (SQLTable sourceTable : mappings.keySet()) {
             if (sourceTable == null) continue;

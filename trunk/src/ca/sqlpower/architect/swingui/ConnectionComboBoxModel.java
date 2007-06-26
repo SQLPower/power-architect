@@ -27,14 +27,6 @@ public class ConnectionComboBoxModel implements ComboBoxModel, DatabaseListChang
 
     /**
      * Setup a new connection combo box model with the conections found in the
-     * PPLDotIni.
-     */
-    public ConnectionComboBoxModel() {
-        this(ArchitectFrame.getMainInstance().getUserSettings().getPlDotIni());
-    }
-
-    /**
-     * Setup a new connection combo box model with the conections found in the
      * PPLDotIni
      */
     public ConnectionComboBoxModel(DataSourceCollection plini) {

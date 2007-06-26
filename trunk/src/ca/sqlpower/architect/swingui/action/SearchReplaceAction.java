@@ -2,50 +2,28 @@ package ca.sqlpower.architect.swingui.action;
 
 import java.awt.event.ActionEvent;
 
-import javax.swing.AbstractAction;
-
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.swingui.ASUtils;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
-import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.SearchReplace;
-import ca.sqlpower.architect.swingui.SwingUserSettings;
 
-public class SearchReplaceAction extends AbstractAction {
+public class SearchReplaceAction extends AbstractArchitectAction {
     private static final Logger logger = Logger.getLogger(SearchReplaceAction.class);
-    
-    /**
-     * The PlayPen instance that owns this Action.
-     */
-    protected PlayPen pp;
     
     /**
      * The DBTree instance that is associated with this Action.
      */
-    protected DBTree dbt;
+    protected final DBTree dbt;
     
-    public SearchReplaceAction() {
-        super("Find/Replace...",
-                ASUtils.createIcon("search_replace",
-                        "Find/Replace",
-                        ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE)));
-        putValue(SHORT_DESCRIPTION, "Find/Replace");
+    public SearchReplaceAction(ArchitectSwingSession session) {
+        super(session, "Find/Replace...", "Fine/Replace", "search_replace");
+        dbt = frame.getDbTree();
     }
     
     public void actionPerformed(ActionEvent evt) {
     	logger.debug(getValue(SHORT_DESCRIPTION) + ": started");
         SearchReplace sr = new SearchReplace();
-        sr.showSearchDialog(pp);
+        sr.showSearchDialog(playpen);
     }
-    
-    public void setPlayPen(PlayPen playpen) {
-        pp = playpen;
-    }
-    
-    public void setDBTree(DBTree dbTree) {
-        dbt = dbTree;
-    }
-    
 }

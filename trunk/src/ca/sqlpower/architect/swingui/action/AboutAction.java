@@ -12,32 +12,21 @@ import javax.swing.JPanel;
 
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.AboutPanel;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.CommonCloseAction;
 import ca.sqlpower.architect.swingui.JDefaultButton;
-import ca.sqlpower.architect.swingui.PlayPen;
-import ca.sqlpower.architect.swingui.SwingUserSettings;
 
-public class AboutAction extends AbstractAction {
-	
-	/**
-	 * The PlayPen instance that owns this Action.
-	 */
-	protected PlayPen pp;
-	
-	public AboutAction() {
-		super("About Power*Architect...", 
-			ASUtils.createIcon("Architect",
-                        "About", 
-                        ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE)));
-		putValue(SHORT_DESCRIPTION, "About the Power*Architect");
+public class AboutAction extends AbstractArchitectAction {
+
+    public AboutAction(ArchitectSwingSession session) {
+		super(session, "About Power*Architect...", "About the Power*Architect", "Architect");
 	}
 
 	public void actionPerformed(ActionEvent evt) {
 		// This is one of the few JDIalogs that can not get replaced
 		// with a call to ArchitectPanelBuilder, because an About
 		// box must have only ONE button...
-		final JDialog d = new JDialog(ArchitectFrame.getMainInstance(),
+		final JDialog d = new JDialog(frame,
 									  "About the Power*Architect");
 		JPanel cp = new JPanel(new BorderLayout(12,12));
 		cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
@@ -62,12 +51,8 @@ public class AboutAction extends AbstractAction {
 		d.getRootPane().setDefaultButton(okButton);
 		d.setContentPane(cp);
 		d.pack();
-		d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
+		d.setLocationRelativeTo(frame);
 		d.setVisible(true);
 		
-	}
-
-	public void setPlayPen(PlayPen pp) {
-		this.pp = pp;
 	}
 }

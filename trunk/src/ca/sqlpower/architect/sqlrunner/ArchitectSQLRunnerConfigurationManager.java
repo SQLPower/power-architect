@@ -6,7 +6,7 @@ import java.util.List;
 
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 
 import com.darwinsys.database.DataBaseException;
 import com.darwinsys.sql.Configuration;
@@ -14,6 +14,8 @@ import com.darwinsys.sql.ConfigurationManager;
 
 public class ArchitectSQLRunnerConfigurationManager implements ConfigurationManager {
 
+    private final ArchitectSwingSession session;
+    
     static class ArchitectDataSourceConfiguration implements Configuration {
 
         private ArchitectDataSource ds;
@@ -75,9 +77,14 @@ public class ArchitectSQLRunnerConfigurationManager implements ConfigurationMana
             ds.setUser(arg0);
         }
     }
+    
+    public ArchitectSQLRunnerConfigurationManager(ArchitectSwingSession session) {
+        this.session = session;
+    }
+    
     public List<Configuration> getConfigurations() {
         List<ArchitectDataSource> connections =
-            ArchitectFrame.getMainInstance().getUserSettings().getConnections();
+            session.getUserSettings().getConnections();
         List<Configuration> results = new ArrayList<Configuration>();
         for (ArchitectDataSource ds : connections) {
             results.add(new ArchitectDataSourceConfiguration(ds));

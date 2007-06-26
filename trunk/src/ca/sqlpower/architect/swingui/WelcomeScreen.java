@@ -34,13 +34,13 @@ public class WelcomeScreen {
         "<body>" +
         "<h1 align=\"center\">Power*Architect " + ArchitectVersion.APP_VERSION + "</h1>" +
         "<br><br><br>" +
-        "<p>Please visit our <a href=\"" + ArchitectFrame.FORUM_URL + "\">support forum</a>" +
+        "<p>Please visit our <a href=\"" + ArchitectSwingSessionContext.FORUM_URL + "\">support forum</a>" +
         "   if you have any questions, comments, suggestions, or if you just need a friend." +
         "<br><br>" +
         "<p>Check out the JDBC drivers section under <i>How to Use Power*Architect</i> in the " +
         "help for configuring JDBC drivers." +
         "<br>" +
-        "<p>Need help finding the JDBC drivers? Visit our <a href=\"" + ArchitectFrame.DRIVERS_URL + "\">forum thread</a>.";
+        "<p>Need help finding the JDBC drivers? Visit our <a href=\"" + ArchitectSwingSessionContext.DRIVERS_URL + "\">forum thread</a>.";
 
     /**
      * Creates and returns the welcome panel.

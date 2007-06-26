@@ -67,16 +67,13 @@ public class ProfileRowComponent extends JPanel implements Selectable {
     final JLabel statusLabel = new JLabel(String.format(TableProfileResult.TOSTRING_FORMAT, 500, "Mar 9, 2007", 15000));
 
     static {
-        tableIcon = ASUtils.createIcon("Table", "Table Result", ArchitectFrame.DEFAULT_ICON_SIZE);
+        tableIcon = ASUtils.createIcon("Table", "Table Result", ArchitectSwingSessionContext.ICON_SIZE);
 
-        refreshIcon = ASUtils.createIcon("arrow_refresh", "Re-Profile", ArchitectFrame.getMainInstance().getSprefs()
-                .getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE));
+        refreshIcon = ASUtils.createIcon("arrow_refresh", "Re-Profile", ArchitectSwingSessionContext.ICON_SIZE);
 
-        stopIcon = ASUtils.createIcon("stop", "Stop Profile", ArchitectFrame.getMainInstance().getSprefs()
-                .getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE));
+        stopIcon = ASUtils.createIcon("stop", "Stop Profile", ArchitectSwingSessionContext.ICON_SIZE);
 
-        deleteIcon = ASUtils.createIcon("delete", "Delete Profile", ArchitectFrame.getMainInstance().getSprefs()
-                .getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE));
+        deleteIcon = ASUtils.createIcon("delete", "Delete Profile", ArchitectSwingSessionContext.ICON_SIZE);
     }
 
     final TableProfileResult result;

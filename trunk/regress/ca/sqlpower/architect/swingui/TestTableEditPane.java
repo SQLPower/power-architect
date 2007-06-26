@@ -13,12 +13,14 @@ public class TestTableEditPane extends TestCase {
 	
 	protected void setUp() throws Exception {
 		super.setUp();
-		t = new SQLTable(ArchitectFrame.getMainInstance().getProject().getTargetDatabase(), true);
+        TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
+        ArchitectSwingSession session = context.createSession();
+		t = new SQLTable(session.getPlayPen().getDatabase(), true);
 		t.setName("Test Table");
 		SQLColumn pk1 = new SQLColumn(t, "PKColumn1", Types.INTEGER, 10,0);
 		
 		t.addColumn(0,pk1);						
-		tep = new TableEditPanel(t);
+		tep = new TableEditPanel(session, t);
 		
 		pk1.setPrimaryKeySeq(1);		
 	}

@@ -244,8 +244,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
             public void keyTyped(KeyEvent e) {}
         });
         topPanel.add(searchText);
-        ImageIcon clearSearchIcon = ASUtils.createIcon("delete", "Clear Search", ArchitectFrame.getMainInstance().getSprefs()
-                    .getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE));
+        ImageIcon clearSearchIcon = ASUtils.createIcon("delete", "Clear Search", ArchitectSwingSessionContext.ICON_SIZE);
 
         JButton clearSearchButton = new JButton(clearSearchIcon);
         clearSearchButton.addKeyListener(pageListener);
@@ -343,7 +342,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
 
         Action deleteAllAction = new AbstractAction("Delete All") {
             public void actionPerformed(ActionEvent e) {
-                int confirm = JOptionPane.showConfirmDialog(ArchitectFrame.getMainInstance(),
+                int confirm = JOptionPane.showConfirmDialog(scrollPane,
                         "Are you sure you want to delete all your profile data?\n" +
                         "(this cannot be undone)", "Delete All?" , JOptionPane.YES_NO_OPTION);
                 if (confirm == 0) { // 0 == the first Option, which is Yes

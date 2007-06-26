@@ -22,8 +22,11 @@ public class TestPlayPenContentPane extends TestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		
-		super.setUp();
-		pp = ArchitectFrame.getMainInstance().getProject().getPlayPen();
+		super.setUp(); // Is this REALLY necessary??
+        
+        TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
+        ArchitectSwingSession session = context.createSession();
+		pp = session.getPlayPen();
 		SQLTable t1 = new SQLTable(pp.getDatabase(), true);
 		pp.getDatabase().addChild(t1);
 		tp1 = new TablePane(t1,pp);

@@ -26,7 +26,7 @@ public abstract class StatusIcon implements Icon {
 
     /** An error icon */
     private static final Icon FAIL_ICON = new StatusIcon() {
-        final Image myImage = ASUtils.createIcon("stat_err_", "Failure", ArchitectFrame.DEFAULT_ICON_SIZE).getImage();
+        final Image myImage = ASUtils.createIcon("stat_err_", "Failure", ArchitectSwingSessionContext.ICON_SIZE).getImage();
         public void paintIcon(Component c, Graphics g, int x, int y) {
             g.drawImage(myImage, x, y, dummyObserver);
         }
@@ -34,7 +34,7 @@ public abstract class StatusIcon implements Icon {
 
     /** A Warning Icon */
     private static final Icon WARN_ICON = new StatusIcon() {
-        Image myImage = ASUtils.createIcon("stat_warn_", "Failure", ArchitectFrame.DEFAULT_ICON_SIZE).getImage();
+        Image myImage = ASUtils.createIcon("stat_warn_", "Failure", ArchitectSwingSessionContext.ICON_SIZE).getImage();
         public void paintIcon(Component c, Graphics g, int x, int y) {
             g.drawImage(myImage, x, y, dummyObserver);
         }

@@ -51,8 +51,15 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 	 */
     private Color columnHighlightColour = Color.red;
  
-       
-	public Relationship(Relationship r, PlayPenContentPane contentPane, TablePane pkTable, TablePane fkTable) {
+    /**
+     * This constructor is only for making a copy of an existing relationship component.
+     * It is not useful in general, and it doesn't even produce a fully-functional copy.
+     * For instance, the copy won't have a working popup menu.
+     * 
+     * @param r The relationship to copy
+     * @param contentPane The content pane this copy will live in
+     */
+	Relationship(Relationship r, PlayPenContentPane contentPane) {
 		super(contentPane);
 		this.model = r.model;
 		this.pkTable = r.pkTable;
@@ -104,16 +111,16 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 	}
 
 	protected void createPopup() {
-		ArchitectFrame af = ArchitectFrame.getMainInstance();
+		ArchitectFrame af = getPlayPen().getSession().getArchitectFrame();
 		popup = new JPopupMenu();
 
 		JMenuItem mi;
 
-		mi = new JMenuItem(af.editRelationshipAction);
+		mi = new JMenuItem(af.getEditRelationshipAction());
 		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		popup.add(mi);
 
-		mi = new JMenuItem(af.deleteSelectedAction);
+		mi = new JMenuItem(af.getDeleteSelectedAction());
 		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		popup.add(mi);
         
@@ -126,7 +133,7 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
                         
                         componentList.append(columnMap).append("\n");
                     }
-                    JOptionPane.showMessageDialog(ArchitectFrame.getMainInstance(), new JScrollPane(new JTextArea(componentList.toString())));
+                    JOptionPane.showMessageDialog(getPlayPen(), new JScrollPane(new JTextArea(componentList.toString())));
                 }
                 
             });

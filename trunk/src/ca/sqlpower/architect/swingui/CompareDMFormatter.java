@@ -1,8 +1,8 @@
 package ca.sqlpower.architect.swingui;
 
-import org.apache.log4j.Logger;
-
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dialog;
 import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -10,12 +10,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.SwingUtilities;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
+
+import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectUtils;
@@ -37,10 +40,18 @@ public class CompareDMFormatter {
 
     private static final Logger logger = Logger.getLogger(CompareDMFormatter.class);
     
+    private final ArchitectSwingSession session;
     private CompareDMSettings dmSetting;
 
-    public CompareDMFormatter(CompareDMSettings compDMSet) {
+    /**
+     * The dialog that owns any additional dialogs popped up by this formatter.
+     */
+    private final Component dialogOwner;
+
+    public CompareDMFormatter(ArchitectSwingSession session, Component dialogOwner, CompareDMSettings compDMSet) {
         super();
+        this.session = session;
+        this.dialogOwner = dialogOwner;
         dmSetting = compDMSet;
     }
 
@@ -111,6 +122,11 @@ public class CompareDMFormatter {
                 throw new IllegalStateException(
                 "Don't know what type of output to make");
             }
+           
+            // This is a little error-prone because the ancestor could be a frame,
+            // So we just hope this is only ever used from the comparedmpanel's dialog
+            Dialog owner = (Dialog) SwingUtilities.getWindowAncestor(dialogOwner);
+           
             // get the title string for the compareDMFrame
             if (dmSetting.getOutputFormat().equals(CompareDMSettings.OutputFormat.SQL)) {
                 String titleString = "Generated SQL Script to turn "+ toTitleText(true, left)
@@ -121,12 +137,12 @@ public class CompareDMFormatter {
                 if ( dmSetting.getSourceSettings().getDatastoreType().equals(CompareDMSettings.DatastoreType.FILE) )
                     db = null;
                 else if (dmSetting.getSourceSettings().getDatastoreType().equals(CompareDMSettings.DatastoreType.PROJECT) )
-                    db = ArchitectFrame.getMainInstance().playpen.getDatabase();
+                    db = session.getPlayPen().getDatabase();
                 else
                     db = source.getDatabase();
                 logger.debug("We got to place #2");
 
-                SQLScriptDialog ssd = new SQLScriptDialog(ArchitectFrame.getMainInstance(),
+                SQLScriptDialog ssd = new SQLScriptDialog(owner,
                         "Compare DM",
                         titleString,
                         false,
@@ -141,7 +157,7 @@ public class CompareDMFormatter {
                 String rightTitle = toTitleText(false, right);
 
                 CompareDMFrame cf =
-                    new CompareDMFrame(sourceDoc, targetDoc, leftTitle,rightTitle);
+                    new CompareDMFrame(owner, sourceDoc, targetDoc, leftTitle,rightTitle);
 
                 cf.pack();
                 cf.setVisible(true);
@@ -360,7 +376,7 @@ public class CompareDMFormatter {
             }
             needBrackets = true;
         } else if (settings.getDatastoreType().equals(CompareDMSettings.DatastoreType.PROJECT)) {
-            SwingUIProject swingUIProject = ArchitectFrame.getMainInstance().project;
+            SwingUIProject swingUIProject = session.getProject();
             String tempName;
             if (swingUIProject.getFile() != null) {
                 tempName = swingUIProject.getFile().getName();

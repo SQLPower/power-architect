@@ -16,7 +16,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.UserSettings;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.ArchitectSwingSessionContext;
 
 /**
  * Implements a "call home, we're broken" functionality - does not report
@@ -124,7 +124,7 @@ public class ExceptionReport {
      * Attempt to send this exception report, in XML form, to the official SQL
      * Power error reporting URL for the Architect.
      */
-    public void postReport() {
+    public void postReport(ArchitectSwingSessionContext context) {
         logger.debug("posting report: "+toString());
         if (numReportsThisRun++ > MAX_REPORT_TRIES) {
             logger.info(
@@ -138,7 +138,7 @@ public class ExceptionReport {
             url = reportUrl;
         }
         // TODO decouple this from the main frame
-        UserSettings settings = ArchitectFrame.getMainInstance().getUserSettings().getQfaUserSettings();
+        UserSettings settings = context.getUserSettings().getQfaUserSettings();
         if(!settings.getBoolean(QFAUserSettings.EXCEPTION_REPORTING,true)) return;
         logger.info("Posting error report to SQL Power at URL <"+url+">");
         try {

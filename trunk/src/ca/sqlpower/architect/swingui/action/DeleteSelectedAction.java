@@ -7,7 +7,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
@@ -25,40 +24,34 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
 import ca.sqlpower.architect.swingui.ASUtils;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
-import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.Selectable;
-import ca.sqlpower.architect.swingui.SwingUserSettings;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 
-public class DeleteSelectedAction extends AbstractAction implements SelectionListener {
+public class DeleteSelectedAction extends AbstractArchitectAction implements SelectionListener {
 	private static final Logger logger = Logger.getLogger(DeleteSelectedAction.class);
-
-	/**
-	 * The PlayPen instance that is associated with this Action.
-	 */
-	protected PlayPen pp;
 
 	/**
 	 * The DBTree instance that is associated with this Action.
 	 */
-	protected DBTree dbt;
+	protected final DBTree dbt;
 
-	public DeleteSelectedAction() {
-		super("Delete Selected",
-			  ASUtils.createIcon("delete",
-								 "Delete Selected",
-								 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE)));
-		putValue(SHORT_DESCRIPTION, "Delete Selected");
+	public DeleteSelectedAction(ArchitectSwingSession session) throws ArchitectException {
+		super(session, "Delete Selected", "Delete Selected", "delete");
 		putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0));
 		putValue(ACTION_COMMAND_KEY, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		setEnabled(false);
+        
+        playpen.addSelectionListener(this);
+        setupAction(playpen.getSelectedItems());
+        
+        dbt = frame.getDbTree();
 	}
 
 
@@ -80,18 +73,18 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 		if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN)) {
 
 			logger.debug("delete action came from playpen");
-			List <PlayPenComponent>items = pp.getSelectedItems();
+			List <PlayPenComponent>items = playpen.getSelectedItems();
 
 			if (items.size() < 1) {
-				JOptionPane.showMessageDialog(pp, "No items to delete!");
+				JOptionPane.showMessageDialog(playpen, "No items to delete!");
 			}
 
 			if (items.size() > 1) {
 				// count how many relationships and tables there are
-				int tCount = pp.getSelectedTables().size();
-				int rCount = pp.getSelectedRelationShips().size();
+				int tCount = playpen.getSelectedTables().size();
+				int rCount = playpen.getSelectedRelationShips().size();
 
-				int decision = JOptionPane.showConfirmDialog(pp,
+				int decision = JOptionPane.showConfirmDialog(playpen,
 															 "Are you sure you want to delete these "
 															 +tCount+" tables and "+rCount+" relationships?",
 															 "Multiple Delete",
@@ -113,13 +106,13 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 							deletingColumns = true;
 						}
 					} catch (ArchitectException ae) {
-						JOptionPane.showMessageDialog(pp, ae.getMessage());
+						JOptionPane.showMessageDialog(playpen, ae.getMessage());
 						return;
 					}
 
 					try {
 
-                        pp.startCompoundEdit("Delete");
+                        playpen.startCompoundEdit("Delete");
 
 						// now, delete the columns
 						Iterator it2 = selectedColumns.iterator();
@@ -128,7 +121,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 							try {
 								tp.getModel().removeColumn(sc);
 							} catch (LockedColumnException ex) {
-								int decision = JOptionPane.showConfirmDialog(pp,
+								int decision = JOptionPane.showConfirmDialog(playpen,
 										"Could not delete the column " + sc.getName() + " because it is part of\n" +
 										"the relationship \""+ex.getLockingRelationship()+"\".\n\n" +
 										"Continue deleting remaining selected columns?",
@@ -140,11 +133,11 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 							} catch (ArchitectException e) {
 								logger.error("Unexpected exception encountered when attempting to delete column '"+
 										sc+"' of table '"+sc.getParentTable()+"'");
-								ASUtils.showExceptionDialog(pp, "Could not delete the column", e, new ArchitectExceptionReportFactory());
+								ASUtils.showExceptionDialog(playpen, "Could not delete the column", e, new ArchitectExceptionReportFactory());
 							}
 						}
 					} finally {
-						pp.endCompoundEdit("Ending multi-select");
+						playpen.endCompoundEdit("Ending multi-select");
 					}
 
 				}
@@ -154,7 +147,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 			}
 
 
-			pp.startCompoundEdit("Delete");
+			playpen.startCompoundEdit("Delete");
 			try {
 
 				// items.size() > 0, user has OK'ed the delete
@@ -173,8 +166,8 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 					logger.debug("next item for delete is: " + item.getClass().getName());
 					if (item instanceof TablePane) {
 						TablePane tp = (TablePane) item;
-						pp.getDatabase().removeChild(tp.getModel());
-                        HashSet tableNames = pp.getTableNames();
+						playpen.getDatabase().removeChild(tp.getModel());
+                        HashSet tableNames = playpen.getTableNames();
                         String remove = tp.getName().substring(11,tp.getName().length()-8);
                         tableNames.remove(remove.toLowerCase());
 					} else if (item instanceof Relationship) {
@@ -188,7 +181,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 					}
 				}
 			} finally {
-				pp.endCompoundEdit("Ending multi-select");
+				playpen.endCompoundEdit("Ending multi-select");
 			}
 
 		} else if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE)) {
@@ -205,7 +198,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 				}
 			}
 
-			pp.startCompoundEdit("Delete");
+			playpen.startCompoundEdit("Delete");
 			try {
 				// FIXME: parts of the following code look like they were cut'n'pasted from above... PURE EVIL!
 				Iterator it = Arrays.asList(selections).iterator();
@@ -214,8 +207,8 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 					SQLObject so = (SQLObject) tp.getLastPathComponent();
 					if (so instanceof SQLTable) {
 						SQLTable st = (SQLTable) so;
-						pp.getDatabase().removeChild(st);
-						pp.getTablePanes().remove(st.getName().toLowerCase());
+						playpen.getDatabase().removeChild(st);
+						playpen.getTablePanes().remove(st.getName().toLowerCase());
 					} else if (so instanceof SQLColumn) {
 						SQLColumn sc = (SQLColumn)so;
 						SQLTable st = sc.getParentTable();
@@ -234,7 +227,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 						} catch (ArchitectException e) {
 							logger.error("Unexpected exception encountered when attempting to delete column '"+
 									sc+"' of table '"+sc.getParentTable()+"'");
-							ASUtils.showExceptionDialog(pp, "Encountered a Problem Deleting the column", e, new ArchitectExceptionReportFactory());
+							ASUtils.showExceptionDialog(playpen, "Encountered a Problem Deleting the column", e, new ArchitectExceptionReportFactory());
 						}
 					} else if (so instanceof SQLRelationship) {
 						SQLRelationship sr = (SQLRelationship) so;
@@ -248,7 +241,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 					}
 				}
 			} finally {
-				pp.endCompoundEdit("Ending multi-select");
+				playpen.endCompoundEdit("Ending multi-select");
 
                 /*
                  * We need to disable the delete function right after
@@ -267,23 +260,9 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 		}
 	}
 
-	public void setPlayPen(PlayPen newPP) throws ArchitectException {
-		if (pp != null) {
-			pp.removeSelectionListener(this);
-		}
-		pp = newPP;
-		pp.addSelectionListener(this);
-
-		setupAction(pp.getSelectedItems());
-	}
-
-	public void setDBTree(DBTree newDBT) {
-		this.dbt = newDBT;
-	}
-
 	public void itemSelected(SelectionEvent e) {
 		try {
-			setupAction(pp.getSelectedItems());
+			setupAction(playpen.getSelectedItems());
 		} catch (ArchitectException e1) {
 			throw new ArchitectRuntimeException(e1);
 		}
@@ -291,7 +270,7 @@ public class DeleteSelectedAction extends AbstractAction implements SelectionLis
 
 	public void itemDeselected(SelectionEvent e) {
 		try {
-			setupAction(pp.getSelectedItems());
+			setupAction(playpen.getSelectedItems());
 		} catch (ArchitectException e1) {
 			throw new ArchitectRuntimeException(e1);
 		}

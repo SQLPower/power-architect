@@ -1,5 +1,6 @@
 package ca.sqlpower.architect.swingui.action;
 
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -15,7 +16,6 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import javax.swing.AbstractAction;
-import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
@@ -26,7 +26,6 @@ import ca.sqlpower.architect.profile.ProfileFormat;
 import ca.sqlpower.architect.profile.ProfileHTMLFormat;
 import ca.sqlpower.architect.profile.ProfilePDFFormat;
 import ca.sqlpower.architect.profile.ProfileResult;
-import ca.sqlpower.architect.profile.TableProfileManager;
 import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
 import ca.sqlpower.architect.swingui.ASUtils;
@@ -66,12 +65,24 @@ public class SaveProfileAction extends AbstractAction {
     /** The set of valid file types for saving the report in */
     private enum SaveableFileType { HTML, PDF, CSV }
 
-    private JDialog parent;
+    /**
+     * The component whose window ancestor will own dialogs created by this action.
+     */
+    private Component dialogOwner;
+
     private ProfileJTable viewTable;
 
-    public SaveProfileAction(JDialog parent, ProfileJTable viewTable, TableProfileManager pm) {
+    /**
+     * Creates a new action which will, when invoked, offer to save profile results
+     * in one of several deluxe file formats.
+     * 
+     * @param dialogOwner The component whose window ancestor will own dialogs created by this action.
+     * @param viewTable The (eww) jtable which contains the profile results to be exported.
+     * XXX this should be a collection of TableProfileResult objects, not a view component that houses them
+     */
+    public SaveProfileAction(Component dialogOwner, ProfileJTable viewTable) {
         super("Save...");
-        this.parent = parent;
+        this.dialogOwner = dialogOwner;
         this.viewTable = viewTable;
     }
 
@@ -104,7 +115,7 @@ public class SaveProfileAction extends AbstractAction {
             int response = 0;
             if ( !fullSelection ) {
                 response = JOptionPane.showOptionDialog(
-                        parent,
+                        dialogOwner,
                         "You have selected only part of a table.\nDo you want to save only this portion?",
                         "Your selection contains partial table(s)",
                         0,
@@ -147,7 +158,7 @@ public class SaveProfileAction extends AbstractAction {
         SaveableFileType type;
         while ( true ) {
             // Ask the user to pick a file
-            int response = chooser.showSaveDialog(parent);
+            int response = chooser.showSaveDialog(dialogOwner);
 
             if (response != JFileChooser.APPROVE_OPTION) {
                 return;
@@ -194,7 +205,7 @@ public class SaveProfileAction extends AbstractAction {
             }
             if (file.exists()) {
                 response = JOptionPane.showConfirmDialog(
-                        parent,
+                        dialogOwner,
                         "The file\n" + file.getPath() + "\nalready exists. Do you want to overwrite it?",
                         "File Exists", JOptionPane.YES_NO_OPTION);
                 if (response != JOptionPane.NO_OPTION) {
@@ -231,7 +242,7 @@ public class SaveProfileAction extends AbstractAction {
                     }
                     prf.format(out, objectToSave.getDepthFirstList());
                 } catch (Exception ex) {
-                    ASUtils.showExceptionDialog(parent,
+                    ASUtils.showExceptionDialog(dialogOwner,
                         "Could not generate/save report file", ex, new ArchitectExceptionReportFactory());
                 } finally {
                     if ( out != null ) {
@@ -239,7 +250,7 @@ public class SaveProfileAction extends AbstractAction {
                             out.flush();
                             out.close();
                         } catch (IOException ex) {
-                            ASUtils.showExceptionDialog(parent,
+                            ASUtils.showExceptionDialog(dialogOwner,
                                 "Could not close report file", ex, new ArchitectExceptionReportFactory());
                         }
                     }

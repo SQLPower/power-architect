@@ -17,7 +17,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
 import ca.sqlpower.architect.swingui.ASUtils;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
@@ -33,12 +33,9 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
     private static final String FILE_KEY = "FILE_KEY";
     
     private static int OUTSIDE_PADDING = 10; 
-    private PlayPen pp;
 
-    public ExportPlaypenToPDFAction() {
-        // TODO: when we have an icon for this, use one.
-        super("Export Playpen to PDF", null);
-        putValue(SHORT_DESCRIPTION, "Export Playpen to PDF");
+    public ExportPlaypenToPDFAction(ArchitectSwingSession session) {
+        super(session, "Export Playpen to PDF", "Export Playpen to PDF");
     }
 
     /**
@@ -50,7 +47,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
         monitor.started = true;
         JFileChooser chooser = new JFileChooser();
         chooser.addChoosableFileFilter(ASUtils.PDF_FILE_FILTER);
-        monitor.setJobSize(pp.getPlayPenContentPane().getComponentCount());
+        monitor.setJobSize(playpen.getPlayPenContentPane().getComponentCount());
         
         File file = null;
         while (true) {
@@ -85,12 +82,6 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
         return true;
     }
     
-    
-    
-    public void setPlayPen(PlayPen pp) {
-        this.pp = pp;
-    }
-
     @Override
     public void cleanUp(ActionMonitor monitor) {
         // TODO Auto-generated method stub
@@ -99,7 +90,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
 
     @Override
     public void doStuff(ActionMonitor monitor, Map<String, Object> properties) {
-        PlayPen playPen = new PlayPen(pp);
+        PlayPen playPen = new PlayPen(session, playpen);
         /* We translate the graphics to (OUTSIDE_PADDING, OUTSIDE_PADDING) 
          * so nothing is drawn right on the edge of the document. So
          * we multiply by 2 so we can accomodate the translate and ensure
@@ -111,7 +102,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
         
         OutputStream out = null;
         Document d = null;
-        Component c = ArchitectFrame.getMainInstance();
+        Component c = frame;
         try {
             out = new BufferedOutputStream(new FileOutputStream((File)properties.get(FILE_KEY)));
             d = new Document(ppSize);

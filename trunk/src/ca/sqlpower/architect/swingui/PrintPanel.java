@@ -55,32 +55,35 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 	/**
 	 * This is the playpen we're printing.
 	 */
-	protected PlayPen pp;
+	private PlayPen pp;
 
-	protected JComboBox printerBox;
+	private JComboBox printerBox;
 
-	protected PrinterJob job;
-	protected PrintRequestAttributeSet jobAttributes;
-	protected PageFormat pageFormat;
-	protected JLabel pageFormatLabel;
-	protected JButton pageFormatButton;
-	protected JLabel zoomLabel;
-	protected JSlider zoomSlider;
-	protected JLabel pageCountLabel;
-	protected JCheckBox printPageNumbersBox;
+	private PrinterJob job;
+	private PrintRequestAttributeSet jobAttributes;
+	private PageFormat pageFormat;
+	private JLabel pageFormatLabel;
+	private JButton pageFormatButton;
+	private JLabel zoomLabel;
+	private JSlider zoomSlider;
+	private JLabel pageCountLabel;
+	private JCheckBox printPageNumbersBox;
 	
-	protected PrintPreviewPanel previewPanel;
+	private PrintPreviewPanel previewPanel;
 	
-	protected int pagesAcross;
-	protected int pagesDown;
+	private int pagesAcross;
+	private int pagesDown;
 
-	protected double zoom;
+	private double zoom;
+    
+    private final ArchitectSwingSession session;
 
-	public PrintPanel(PlayPen pp) {
+	public PrintPanel(ArchitectSwingSession session) {
 		super();
 		setOpaque(true);
 		setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-		this.pp = new PlayPen(pp);
+        this.session = session;
+		this.pp = new PlayPen(session, session.getPlayPen());
 		
 		add(new PrintPreviewPanel());
 		
@@ -94,7 +97,7 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 		JPanel formPanel = new JPanel(new FormLayout());
 		formPanel.add(new JLabel("Printer"));
 		formPanel.add(printerBox = new JComboBox(PrinterJob.lookupPrintServices()));
-		printerBox.setSelectedItem(getPreferredPrinter());				
+		printerBox.setSelectedItem(getPreferredPrinter(session));				
 
 		formPanel.add(new JLabel("Page Format"));
 		String pf = paperToPrintable(pageFormat);
@@ -145,8 +148,8 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 	/**
 	 * Called to determine what this user last printed from.
 	 */
-	PrintService getPreferredPrinter() {
-		String defaultPrinterName = ArchitectFrame.getMainInstance().getUserSettings().getPrintUserSettings().getDefaultPrinterName();
+	PrintService getPreferredPrinter(ArchitectSwingSession session) {
+		String defaultPrinterName = session.getUserSettings().getPrintUserSettings().getDefaultPrinterName();
 		PrintService psRetVal = null;
 		Iterator it = Arrays.asList( PrinterJob.lookupPrintServices() ).iterator();
 		while (it.hasNext() && psRetVal == null) {
@@ -268,7 +271,7 @@ public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Prin
 		try {
 			// set current printer as default
 			if (printerBox.getItemCount() > 0 && printerBox.getSelectedItem() instanceof PrintService) {
-				ArchitectFrame.getMainInstance().getUserSettings().getPrintUserSettings().setDefaultPrinterName( ((PrintService)printerBox.getSelectedItem()).getName() );
+				session.getUserSettings().getPrintUserSettings().setDefaultPrinterName( ((PrintService)printerBox.getSelectedItem()).getName() );
 			} 		
 			validateLayout();
 			job.setPrintService((PrintService) printerBox.getSelectedItem());

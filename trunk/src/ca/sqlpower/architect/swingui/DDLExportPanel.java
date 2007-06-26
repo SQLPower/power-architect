@@ -24,7 +24,7 @@ public class DDLExportPanel implements ArchitectPanel {
 
     private JPanel panel = new JPanel();
     
-	private SwingUIProject project;
+	private final ArchitectSwingSession session;
 
     private JComboBox targetDB;
     private JButton newTargetDB;
@@ -36,26 +36,26 @@ public class DDLExportPanel implements ArchitectPanel {
 	private JLabel schemaLabel;
 	private JTextField schemaField;
 
-	public DDLExportPanel(SwingUIProject project) {
-		this.project = project;
+	public DDLExportPanel(ArchitectSwingSession session) {
+		this.session = session;
 		setup();
 		panel.setVisible(true);
 	}
 
 	private void setup() {		
-		GenericDDLGenerator ddlg = project.getDDLGenerator();		
+		GenericDDLGenerator ddlg = session.getDDLGenerator();		
         panel.setLayout(new FormLayout());
         JPanel panelProperties = new JPanel(new FormLayout());
         panelProperties.add(new JLabel("Create in:"));
 
         panelProperties.add(targetDB = new JComboBox());
         targetDB.setPrototypeDisplayValue("(Target Database)");
-        ASUtils.setupTargetDBComboBox(project, targetDB);
+        ASUtils.setupTargetDBComboBox(session, targetDB);
         
         newTargetDB = new JButton("Properties");
         newTargetDB.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
-                    ASUtils.showDbcsDialog(project, targetDB);
+                    ASUtils.showDbcsDialog(session.getArchitectFrame(), session, targetDB);
                 }
             });
         
@@ -136,12 +136,12 @@ public class DDLExportPanel implements ArchitectPanel {
 
 	// ------------------------ Architect Panel Stuff -------------------------
 	public boolean applyChanges() {
-		GenericDDLGenerator ddlg = project.getDDLGenerator();
+		GenericDDLGenerator ddlg = session.getDDLGenerator();
 		Class selectedGeneratorClass = (Class) ((ASUtils.LabelValueBean) dbType.getSelectedItem()).getValue();
 		if (ddlg.getClass() != selectedGeneratorClass) {
 			try {
 				ddlg = (GenericDDLGenerator) selectedGeneratorClass.newInstance();
-				project.setDDLGenerator(ddlg);
+				session.setDDLGenerator(ddlg);
 			} catch (Exception ex) {
 				logger.error("Problem creating user-selected DDL generator", ex);
 				throw new RuntimeException("Couldn't create a DDL generator of the selected type");
@@ -158,7 +158,7 @@ public class DDLExportPanel implements ArchitectPanel {
 				(panel, "You can't use the Generic JDBC Generator\n"
 						+"until you set up the target database connection.");
 								
-				ASUtils.showDbcsDialog(project, targetDB);
+				ASUtils.showDbcsDialog(session.getArchitectFrame(), session, targetDB);
 				
 				return false;
 			}

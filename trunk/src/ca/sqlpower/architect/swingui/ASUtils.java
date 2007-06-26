@@ -45,11 +45,13 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileFilter;
 
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectDataSource;
+import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
 import ca.sqlpower.architect.qfa.ExceptionReport;
 import ca.sqlpower.architect.qfa.QFAFactory;
@@ -62,6 +64,8 @@ import ca.sqlpower.architect.swingui.action.DBCSOkAction;
  */
 public class ASUtils {
 	private static final Logger logger = Logger.getLogger(ASUtils.class);
+    
+    private static ArchitectSwingSessionContext context;
 
 	private ASUtils() {
         // this constructor never gets called
@@ -251,11 +255,11 @@ public class ASUtils {
 	}
 
 	/**
-	 * Returns an ImageIcon with an image from our own collection of
-	 * icons, or null if the path was invalid.  Copied from the Swing
+	 * Returns an ImageIcon with an image from the collection of
+	 * icons in the classpath, or null if the path was invalid.  Copied from the Swing
 	 * Tutorial.
 	 *
-	 * @param name The name from our graphics repository, such as
+	 * @param name The base of the filename from our graphics repository, such as
 	 * "NewTable".  See the icons directory.
 	 * @param size Either 16 or 24.
 	 */
@@ -265,6 +269,16 @@ public class ASUtils {
         return createIcon(name+size, description);
     }
 
+    /**
+     * Returns an ImageIcon with an image from the collection of
+     * icons in the classpath, or null if the path was invalid.  Copied from the Swing
+     * Tutorial.
+     *  
+     * @param name The base of the filename from our graphics repository, such as
+     * "NewTable".  See the icons directory.
+     * @param description The description of the icon (maybe not used for anything).
+     * @return
+     */
     public static ImageIcon createIcon(String name,
                                        String description) {
         String realPath = "/icons/"+name+".png";
@@ -326,11 +340,12 @@ public class ASUtils {
      * of "(Target Database)" if it is customized or it will make sure that only one
      * copy of the target's connection is in the list
      */
-	public static void setupTargetDBComboBox(final SwingUIProject project, final JComboBox targetDB) {
+	public static void setupTargetDBComboBox(final ArchitectSwingSession session, final JComboBox targetDB) {
         JComboBox newTargetDB = new JComboBox();
-        ArchitectDataSource currentTarget = project.getTargetDatabase().getDataSource();
+        final SwingUIProject project = session.getProject();
+        ArchitectDataSource currentTarget = session.getPlayPen().getDatabase().getDataSource();
         newTargetDB.addItem(currentTarget);
-        for (ArchitectDataSource dbcs : ArchitectFrame.getMainInstance().getUserSettings().getConnections()) {
+        for (ArchitectDataSource dbcs : session.getUserSettings().getConnections()) {
             if(!dbcs.equals(currentTarget)) {
                 newTargetDB.addItem(dbcs);
             }
@@ -339,12 +354,12 @@ public class ASUtils {
         targetDB.setModel(newTargetDB.getModel());
         targetDB.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                ArchitectDataSource projectDS = project.getTargetDatabase().getDataSource();
+                ArchitectDataSource projectDS = session.getPlayPen().getDatabase().getDataSource();
                 ArchitectDataSource comboBoxDS = (ArchitectDataSource)((JComboBox)e.getSource()).getSelectedItem();
                 if(!projectDS.equals(comboBoxDS)) {
                     projectDS.copyFrom(comboBoxDS);
                 }
-                setupTargetDBComboBox(project, targetDB);
+                setupTargetDBComboBox(session, targetDB);
             }
         });
     }
@@ -354,14 +369,14 @@ public class ASUtils {
      * target db's connection spec.  Create from scratch every time
      * just in case the user changed the Target Database from the DBTree.
      */
-    public static void showDbcsDialog(final SwingUIProject project, final JComboBox targetDB) {
+    public static void showDbcsDialog(Window parentWindow, final ArchitectSwingSession session, final JComboBox targetDB) {
+        final SwingUIProject project = session.getProject();
         final DBCSPanel dbcsPanel = new DBCSPanel(
-                ArchitectFrame.getMainInstance().getArchitectSession()
-                .getUserSettings().getPlDotIni());
+                session.getUserSettings().getPlDotIni());
     
     
-        dbcsPanel.setDbcs(ArchitectFrame.getMainInstance().playpen.db.getDataSource());
-        DBCSOkAction okAction = new DBCSOkAction(dbcsPanel, false);
+        dbcsPanel.setDbcs(session.getPlayPen().db.getDataSource());
+        DBCSOkAction okAction = new DBCSOkAction(dbcsPanel, session, false);
     
         Action cancelAction = new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
@@ -370,19 +385,19 @@ public class ASUtils {
         };
     
         JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
-                dbcsPanel, ArchitectFrame.getMainInstance(),
+                dbcsPanel, parentWindow,
                 "Target Database Connection", ArchitectPanelBuilder.OK_BUTTON_LABEL,
                 okAction, cancelAction);
     
         okAction.setConnectionDialog(d);
         d.pack();
-        d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
+        d.setLocationRelativeTo(parentWindow);
     
         d.setVisible(true);
         d.addWindowListener(new WindowAdapter(){
                 public void windowClosed(WindowEvent e){
-                    project.getTargetDatabase().getDataSource().setName("(Target Database)");
-                    ASUtils.setupTargetDBComboBox(project, targetDB);
+                    session.getPlayPen().getDatabase().getDataSource().setName("(Target Database)");
+                    ASUtils.setupTargetDBComboBox(session, targetDB);
                 }
             });
     }
@@ -448,16 +463,76 @@ public class ASUtils {
         makeJDialogCancellable(w, cancelAction, true);
     }
 
-
     /**
 	 * Displays a dialog box with the given message and exception,
-	 * allowing the user to examine the stack trace.  The dialog's
-	 * parent component will be the ArchitectFrame's main instance.
+	 * allowing the user to examine the stack trace.  The dialog will
+     * not have a parent component.
+     * 
+     * @deprecated This method does not properly parent the dialog it
+     * shows, and also cannot report statistics about the current
+     * session to the Quality Feedback Agent.  Use the
+     * {@link #showExceptionDialog(Component, String, Throwable)}
+     * or {@link #showExceptionDialog(ArchitectSwingSession, String, Throwable)}.
 	 */
 	public static void showExceptionDialog(String message, Throwable throwable) {
-		showExceptionDialog(ArchitectFrame.getMainInstance(), message, throwable, new ArchitectExceptionReportFactory());
+		showExceptionDialog(null, message, throwable, new ArchitectExceptionReportFactory());
 	}
 
+    /**
+     * Displays a dialog box with the given message and exception,
+     * allowing the user to examine the stack trace.  Also attempts
+     * to post an anonymous description of the error to a central reporting
+     * server.
+     * 
+     * @param parent Frame or window to own the display
+     * @param message Message text
+     * @param throwable The cause of the problem
+     */
+	public static void showExceptionDialog(Component parent, String message, Throwable throwable) {
+        showExceptionDialog(parent, message, throwable, new ArchitectExceptionReportFactory());
+    }
+    
+    /**
+     * Displays a dialog box with the given message and exception, allowing the
+     * user to examine the stack trace. Also attempts to post an anonymous
+     * description of the error to a central reporting server.
+     * <p>
+     * The given session's ArchitectFrame will be the error dialog's parent,
+     * <b>which means when the user dismisses the dialog, the ArchitectFrame
+     * will be given focus</b>. If you are showing an exception in the context
+     * of another frame or dialog, use the
+     * {@link #showExceptionDialog(ArchitectSwingSession, Component, String, Throwable)}
+     * method instead.
+     * 
+     * @param session
+     *            The session in which the error occurred.
+     * @param message
+     *            Message text
+     * @param throwable
+     *            The cause of the problem
+     */
+    public static void showExceptionDialog(ArchitectSwingSession session, String message, Throwable throwable) {
+        showExceptionDialog(session, session.getArchitectFrame(), message, throwable);
+    }
+    
+    /**
+     * Displays a dialog box with the given message and exception, allowing the
+     * user to examine the stack trace. Also attempts to post an anonymous
+     * description of the error to a central reporting server.
+     * 
+     * @param session
+     *            The session in which the error occurred.
+     * @param parent
+     *            Frame or window to own the display
+     * @param message
+     *            Message text
+     * @param throwable
+     *            The cause of the problem
+     */
+    public static void showExceptionDialog(ArchitectSwingSession session, Component parent, String message, Throwable throwable) {
+        showExceptionDialog(session, parent, message, null, throwable, new ArchitectExceptionReportFactory());
+    }
+    
     /** Displays a dialog box with the given message and exception,
      * returning focus to the given component. Intended for use
      * on panels like the CompareDMPanel, so focus works better.
@@ -484,15 +559,18 @@ public class ASUtils {
      * @param qfaFactory The error report generator; may not be null.
      */
     public static void showExceptionDialog(Component parent, String message, String subMessage, Throwable throwable, QFAFactory qfaFactory) {
-        showExceptionDialog(ArchitectFrame.getMainInstance(), parent, message, subMessage, throwable, qfaFactory);
+        showExceptionDialog(null, parent, message, subMessage, throwable, qfaFactory);
 	}
     
     /**
+     * This is the version of showExceptionDialog that all of the overloaded methods
+     * delegate to.
+     * <p>
      * Displays a modal dialog box with the given messages and exception stack trace.  This method won't
      * try to look for any singletons in the application.  It is the only safe version of show exception dialog 
      * during early startup.
      *
-     * @param architectFrame An initialized instance of ArchitectFrame.  Used to gather statistics.
+     * @param session The session in which the error occurred.  Used to gather statistics.
      *                  It is safe to pass in null, but that will disable statistic gathering.
      * @param parent The component that should own the dialog.  Used for positioning
      * and proper iconification behaviour.
@@ -504,17 +582,21 @@ public class ASUtils {
      * @param throwable The cause of it all
      * @param qfaFactory The error report generator; may not be null.
      */
-    public static void showExceptionDialog(ArchitectFrame architectFrame, Component parent, String message, String subMessage, Throwable throwable, QFAFactory qfaFactory) {
+    public static void showExceptionDialog(ArchitectSwingSession session, Component parent, String message, String subMessage, Throwable throwable, QFAFactory qfaFactory) {
         try {
             ExceptionReport er = qfaFactory.createExceptionReport(throwable);
-            if (architectFrame != null) {
-                er.setNumObjectsInPlayPen(architectFrame.playpen.getTablePanes().size()
-                                      + architectFrame.playpen.getRelationships().size());
-                er.setNumSourceConnections(architectFrame.dbTree.getDatabaseList().size());
+            
+            if (session != null &&
+                    session.getProject() != null &&
+                    session.getPlayPen() != null &&
+                    session.getSourceDatabases() != null) {
+                PlayPen pp = session.getPlayPen();
+                er.setNumObjectsInPlayPen(pp.getTablePanes().size() + pp.getRelationships().size());
+                er.setNumSourceConnections(session.getSourceDatabases().getDatabaseList().size());
             }
             er.setUserActivityDescription("");
             logger.debug(er.toString());
-            er.postReport();
+            er.postReport(session.getContext());
         } catch (Throwable seriousProblem) {
             logger.error("Couldn't generate and send exception report!  Note that this is not the primary problem; it's a side effect of trying to report the real problem.", seriousProblem);
             JOptionPane.showMessageDialog(null, "Error reporting failed: "+seriousProblem.getMessage()+"\nAdditional information is available in the application log.");
@@ -529,9 +611,12 @@ public class ASUtils {
      * allowing the user to examine the stack trace, but do NOT generate
      * a report back to SQLPower web site.  The dialog's
      * parent component will be the ArchitectFrame's main instance.
+     * 
+     * @deprecated This method will display a dialog box that is not properly
+     * parented. Use {@link #showExceptionDialogNoReport(Component, String, Throwable)} instead.
      */
 	public static void showExceptionDialogNoReport(String string, Throwable ex) {
-        displayExceptionDialog(ArchitectFrame.getMainInstance(), string, null, ex);
+        displayExceptionDialog(null, string, null, ex);
 	}
 
     /**
@@ -914,7 +999,64 @@ public class ASUtils {
      * in the Architect.
      */
     public static Image getFrameIconImage() {
-        return createIcon("Architect", "Architect Logo", ArchitectFrame.DEFAULT_ICON_SIZE).getImage();
+        return createIcon("Architect", "Architect Logo", ArchitectSwingSessionContext.ICON_SIZE).getImage();
     }
 
+    /**
+     * Returns the single instance of the swing session context for this app.
+     * The reason we need a singleton is because the error reporting mechanism
+     * needs to be able to pick up the pieces, even for an uncaught exception.
+     * <p>
+     * Under all other circumstances, you should be extremely hesitant to treat
+     * the session context as a singleton.  We don't really want it to be a
+     * singleton. It's more of a dirty little secret that we've let you in on here.
+     * If you need the session context for the current session, always always use
+     * Session.getContext(), which will give you the context in a much better way.
+     * 
+     * @deprecated Use {@link ArchitectSwingSession#getContext()} to get your session
+     * context.  This method should only be called when launching the app (in main()),
+     * and when picking up the pieces while handling an uncaught exception.
+     */
+    public static ArchitectSwingSessionContext getContext() {
+        if (context == null) {
+            try {
+                context = new ArchitectSwingSessionContextImpl();
+            } catch (ArchitectException e) {
+                JOptionPane.showMessageDialog(null, "Could not launch the Power*Architect.\n"
+                        + "Stacktrace is available on the Java Console");
+                e.printStackTrace();
+                System.exit(1);
+            }
+        }        
+        return context;
+    }
+
+    /**
+     * Tries very hard to create a JDialog which is owned by the parent
+     * Window of the given component.  However, if the component does not
+     * have a Window ancestor, or the component has a Window ancestor that
+     * is not a Frame or Dialog, this method instead creates an unparented
+     * JDialog which is always-on-top.
+     * <P>
+     * This method was shamelessly stolen from the grodbots project,
+     * http://grodbots.googlecode.com/svn/trunk/src/net/bluecow/robot/RobotUtils.java
+     * 
+     * @param owningComponent The component that should own this dialog.
+     * @param title The title for the dialog.
+     * @return A JDialog that is either owned by the Frame or Dialog ancestor of
+     * owningComponent, or not owned but set to be alwaysOnTop.
+     */
+    public static JDialog makeOwnedDialog(Component owningComponent, String title) {
+        Window owner = SwingUtilities.getWindowAncestor(owningComponent);
+        if (owner instanceof Frame) {
+            return new JDialog((Frame) owner, title);
+        } else if (owner instanceof Dialog) {
+            return new JDialog((Dialog) owner, title);
+        } else {
+            JDialog d = new JDialog();
+            d.setTitle(title);
+            d.setAlwaysOnTop(true);
+            return d;
+        }
+    }
 }

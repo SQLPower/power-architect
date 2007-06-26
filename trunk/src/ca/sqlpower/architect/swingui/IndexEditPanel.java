@@ -44,19 +44,19 @@ public class IndexEditPanel extends JPanel implements ArchitectPanel {
     JTextField filterCondition;
     EditableJTable columnsList;
     
-    public IndexEditPanel(SQLIndex index) throws ArchitectException{
+    public IndexEditPanel(SQLIndex index, ArchitectSwingSession session) throws ArchitectException{
         super(new FormLayout("pref,4dlu,pref,4dlu,pref:grow,4dlu,pref","pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref:grow,4dlu,pref,4dlu"));
-        createGUI(index, index.getParentTable());
+        createGUI(index, index.getParentTable(), session);
     }
     
-    public IndexEditPanel(SQLIndex index, SQLTable parent) throws ArchitectException {
+    public IndexEditPanel(SQLIndex index, SQLTable parent, ArchitectSwingSession session) throws ArchitectException {
         super(new FormLayout("pref,4dlu,pref,4dlu,pref:grow,4dlu,pref","pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref,4dlu,pref:grow,4dlu,pref,4dlu"));
-        createGUI(index, parent);
+        createGUI(index, parent, session);
     }
 
-    private void createGUI(SQLIndex index, SQLTable parent) throws ArchitectException {
+    private void createGUI(SQLIndex index, SQLTable parent, ArchitectSwingSession session) throws ArchitectException {
         this.parent = parent;
-        addUndoEventListener(ArchitectFrame.getMainInstance().getProject().getUndoManager().getEventAdapter());
+        addUndoEventListener(session.getUndoManager().getEventAdapter());
         PanelBuilder pb = new PanelBuilder((FormLayout)this.getLayout(),this);
         CellConstraints cc = new CellConstraints();
         pb.add(new JLabel("Index Name"),cc.xy(1, 1));

@@ -24,9 +24,9 @@ public class TableEditPanel extends JPanel implements ArchitectPanel {
 	JTextField pkName;
 	JTextArea remarks;
 
-	public TableEditPanel(SQLTable t) {
+	public TableEditPanel(ArchitectSwingSession session, SQLTable t) {
 		super(new FormLayout());
-		addUndoEventListener(ArchitectFrame.getMainInstance().getProject().getUndoManager().getEventAdapter());
+		addUndoEventListener(session.getUndoManager().getEventAdapter());
 		add(new JLabel("Table Name"));
 		add(name = new JTextField("", 30));
 		add(new JLabel("Primary Key Name"));

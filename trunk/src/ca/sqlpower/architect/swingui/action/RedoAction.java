@@ -5,7 +5,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
 import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
@@ -13,12 +12,10 @@ import javax.swing.event.ChangeListener;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.swingui.ASUtils;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
-import ca.sqlpower.architect.swingui.SwingUserSettings;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.undo.UndoManager;
 
-public class RedoAction extends AbstractAction {
+public class RedoAction extends AbstractArchitectAction {
 
     private static final Logger logger = Logger.getLogger(UndoAction.class);
 
@@ -28,16 +25,15 @@ public class RedoAction extends AbstractAction {
 		}
 	}
 
-	private UndoManager manager;
+	private final UndoManager manager;
 	private ChangeListener managerListener = new ManagerListener();
 
-	public RedoAction() {
-		putValue(Action.SMALL_ICON, ASUtils.createIcon("redo_arrow",
-				"Redo",
-				ArchitectFrame.getMainInstance().getSwingUserSettings().getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE)));
-		putValue(Action.NAME,"Redo");
+	public RedoAction(ArchitectSwingSession session, UndoManager manager) {
+        super(session, "Redo", "Redo", "redo_arrow");
 		putValue(AbstractAction.ACCELERATOR_KEY,
 				KeyStroke.getKeyStroke(KeyEvent.VK_Y, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+        this.manager = manager;
+        this.manager.addChangeListener(managerListener);
 		updateSettingsFromManager();
 	}
 	
@@ -56,31 +52,8 @@ public class RedoAction extends AbstractAction {
         }
 	}
 	
-	/**
-	 * Attaches this action to the given undo manager.
-	 * 
-	 * @param manager The manager to attach to, or <code>null</code> for no manager.
-	 */
-	public void setManager(UndoManager manager) {
-		if (this.manager != null) {
-			this.manager.removeChangeListener(managerListener);
-		}
-		
-		this.manager = manager;
-		
-		if (this.manager != null) {
-			this.manager.addChangeListener(managerListener);
-		}
-		updateSettingsFromManager();
-	}
-
 	private void updateSettingsFromManager() {
-		if (manager == null) {
-			putValue(SHORT_DESCRIPTION, "Can't Redo");
-			setEnabled(false);
-		} else {
-			putValue(SHORT_DESCRIPTION, manager.getRedoPresentationName());
-			setEnabled(manager.canRedo());
-		}
+		putValue(SHORT_DESCRIPTION, manager.getRedoPresentationName());
+		setEnabled(manager.canRedo());
 	}
 }

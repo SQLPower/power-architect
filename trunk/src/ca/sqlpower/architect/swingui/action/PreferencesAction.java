@@ -16,24 +16,18 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectDataSourceTypeEditor;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.JDefaultButton;
 import ca.sqlpower.architect.swingui.PreferencesPanel;
 
 import com.jgoodies.forms.factories.ButtonBarFactory;
 
-public class PreferencesAction extends AbstractAction {
+public class PreferencesAction extends AbstractArchitectAction {
 	private static final Logger logger = Logger.getLogger(EditTableAction.class);
 
-	/**
-	 * The ArchitectFrame instance that owns this Action.
-	 */
-	protected ArchitectFrame af;
-	
-	public PreferencesAction() {
-		super("User Preferences...");
-		putValue(SHORT_DESCRIPTION, "User Preferences");
+	public PreferencesAction(ArchitectSwingSession session) {
+        super(session, "User Preferences...", "User Preferences");
 	}
 
 	public void actionPerformed(ActionEvent evt) {
@@ -45,18 +39,18 @@ public class PreferencesAction extends AbstractAction {
 		
 		// XXX Can't easily use ArchitectPanelBuilder since this
 		// contains a JTabbedPane which is not an ArchitectPanel.
-		final JDialog d = new JDialog(af, "User Preferences");
+		final JDialog d = new JDialog(frame, "User Preferences");
 		
 		JPanel cp = new JPanel(new BorderLayout(12,12));
 		JTabbedPane tp = new JTabbedPane();
 		cp.add(tp, BorderLayout.CENTER);
 		cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
 
-		final PreferencesPanel prefPanel = new PreferencesPanel(af.getUserSettings());
+		final PreferencesPanel prefPanel = new PreferencesPanel(session);
 		tp.add("General", prefPanel);
 
         final ArchitectDataSourceTypeEditor dsTypeEditor =
-            new ArchitectDataSourceTypeEditor(af.getArchitectSession().getUserSettings().getPlDotIni());
+            new ArchitectDataSourceTypeEditor(session.getUserSettings().getPlDotIni());
  		tp.add("JDBC Drivers", dsTypeEditor.getPanel());
 
 	
@@ -86,11 +80,7 @@ public class PreferencesAction extends AbstractAction {
 		cp.add(buttonPanel, BorderLayout.SOUTH);
 		d.setContentPane(cp);
 		d.pack();
-		d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
+		d.setLocationRelativeTo(frame);
 		d.setVisible(true);		
-	}
-	
-	public void setArchitectFrame(ArchitectFrame af) {
-		this.af = af;
 	}
 }

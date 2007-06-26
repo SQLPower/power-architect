@@ -25,32 +25,35 @@ public class PreferencesPanel extends JPanel implements ArchitectPanel {
 	/**
 	 * The settings we're editing
 	 */
-	protected CoreUserSettings us;
+	private CoreUserSettings us;
 
-	protected JTextField plIniName;
-	protected JButton plIniButton;
+	private JTextField plIniName;
+	private JButton plIniButton;
 
-	protected JTextField powerLoaderEngine;
-	protected JButton powerLoaderEngineButton;
+	private JTextField powerLoaderEngine;
+	private JButton powerLoaderEngineButton;
 
-	protected JTextField etlLogFileName;
-	protected JButton etlLogFileButton;
+	private JTextField etlLogFileName;
+	private JButton etlLogFileButton;
 
-	protected JTextField ddlLogFileName;
-	protected JButton ddlLogFileButton;
+	private JTextField ddlLogFileName;
+	private JButton ddlLogFileButton;
 
-	protected JRadioButton playPenAntialiasOn;
-	protected JRadioButton playPenAntialiasOff;
+	private JRadioButton playPenAntialiasOn;
+	private JRadioButton playPenAntialiasOff;
 
-    protected JRadioButton exceptionReportOn;
-    protected JRadioButton exceptionReportOff;
+    private JRadioButton exceptionReportOn;
+    private JRadioButton exceptionReportOff;
 
-    protected JRadioButton showWelcomeOn;
-    protected JRadioButton showWelcomeOff;
+    private JRadioButton showWelcomeOn;
+    private JRadioButton showWelcomeOff;
 
+    private final ArchitectSwingSession session;
 
-	public PreferencesPanel(CoreUserSettings us) {
-		this.us = us;
+	public PreferencesPanel(ArchitectSwingSession session) {
+		this.session = session;
+        this.us = session.getUserSettings();
+        
 		setup();
 		revertToUserSettings();
 	}
@@ -154,7 +157,7 @@ public class PreferencesPanel extends JPanel implements ArchitectPanel {
 		us.getSwingSettings().setBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, playPenAntialiasOn.isSelected());
         us.getSwingSettings().setBoolean(SwingUserSettings.SHOW_WELCOMESCREEN, showWelcomeOn.isSelected());
         us.getQfaUserSettings().setBoolean(QFAUserSettings.EXCEPTION_REPORTING, exceptionReportOn.isSelected());
-		ArchitectFrame.getMainInstance().getProject().getPlayPen().setRenderingAntialiased(playPenAntialiasOn.isSelected());
+		session.getPlayPen().setRenderingAntialiased(playPenAntialiasOn.isSelected());
 		return true;
 	}
 

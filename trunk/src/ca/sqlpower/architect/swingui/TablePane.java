@@ -771,14 +771,14 @@ public class TablePane
 				tp.setInsertionPoint(COLUMN_INDEX_NONE);
 			} else {
 				try {
-					DBTree dbtree = ArchitectFrame.getMainInstance().dbTree;  // XXX: bad
+					DBTree dbtree = pp.getSession().getSourceDatabases();  // XXX: bad
 					int insertionPoint = tp.pointToColumnIndex(loc);
 
 					ArrayList<int[]> paths = (ArrayList<int[]>) t.getTransferData(importFlavor);
 					logger.debug("Importing items from tree: "+paths);
 
 					// put the undo event adapter into a drag and drop state
-					ArchitectFrame.getMainInstance().playpen.startCompoundEdit("Drag and Drop");
+					pp.startCompoundEdit("Drag and Drop");
 
 					ArrayList<SQLObject> droppedItems = new ArrayList<SQLObject>();
 					for (int[] path : paths) {
@@ -821,7 +821,7 @@ public class TablePane
                     }
 
 					// put the undo event adapter into a regular state
-					ArchitectFrame.getMainInstance().playpen.endCompoundEdit("End drag and drop");
+					pp.endCompoundEdit("End drag and drop");
 				}
 			}
 		}

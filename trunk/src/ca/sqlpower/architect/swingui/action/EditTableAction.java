@@ -13,51 +13,38 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.ASUtils;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
-import ca.sqlpower.architect.swingui.PlayPen;
-import ca.sqlpower.architect.swingui.SwingUserSettings;
 import ca.sqlpower.architect.swingui.TableEditPanel;
 import ca.sqlpower.architect.swingui.TablePane;
 
-public class EditTableAction extends AbstractAction {
+public class EditTableAction extends AbstractArchitectAction {
 	private static final Logger logger = Logger.getLogger(EditTableAction.class);
-
-	/**
-	 * The PlayPen instance that owns this Action.
-	 */
-	protected PlayPen pp;
 
 	/**
 	 * The DBTree instance that is associated with this Action.
 	 */
-	protected DBTree dbt; 
-
+	protected final DBTree dbt; 
 	
-	public EditTableAction() {
-		super("Table Properties...",
-                // FIXME: This is not a 16 by 16 icon. We need to replace the icon or remove it.
-			  ASUtils.createIcon("TableProperties",
-								 "Table Properties",
-								 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
-		putValue(SHORT_DESCRIPTION, "Table Properties");
+	public EditTableAction(ArchitectSwingSession session) {
+	    super(session, "Table Properties...", "Table Properties", "TableProperties");
+        dbt = frame.getDbTree();
 	}
 
 	public void actionPerformed(ActionEvent evt) {
 		if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN)) {
-			List selection = pp.getSelectedItems();
+			List selection = playpen.getSelectedItems();
 			if (selection.size() < 1) {
-				JOptionPane.showMessageDialog(pp, "Select a table (by clicking on it) and try again.");
+				JOptionPane.showMessageDialog(playpen, "Select a table (by clicking on it) and try again.");
 			} else if (selection.size() > 1) {
-				JOptionPane.showMessageDialog(pp, "You have selected multiple items, but you can only edit one at a time.");
+				JOptionPane.showMessageDialog(playpen, "You have selected multiple items, but you can only edit one at a time.");
 			} else if (selection.get(0) instanceof TablePane) {
 				TablePane tp = (TablePane) selection.get(0);
 				makeDialog(tp.getModel());				
 			} else {
-				JOptionPane.showMessageDialog(pp, "The selected item type is not recognised");
+				JOptionPane.showMessageDialog(playpen, "The selected item type is not recognised");
 			}
 
 		} else if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE)) {
@@ -86,7 +73,7 @@ public class EditTableAction extends AbstractAction {
 	private JDialog d;
 	
 	private void makeDialog(SQLTable table) {
-		final TableEditPanel editPanel = new TableEditPanel(table);
+		final TableEditPanel editPanel = new TableEditPanel(session, table);
 
 		Action okAction = new AbstractAction() {
 			public void actionPerformed(ActionEvent evt) {
@@ -108,21 +95,11 @@ public class EditTableAction extends AbstractAction {
 		};
 
 		d = ArchitectPanelBuilder.createArchitectPanelDialog(
-				editPanel, ArchitectFrame.getMainInstance(),
+				editPanel, frame,
 				"Table Properties", "OK", okAction, cancelAction);
 
 		d.pack();
-		d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
+		d.setLocationRelativeTo(frame);
 		d.setVisible(true);
 	}
-
-	public void setPlayPen(PlayPen pp) {
-		this.pp = pp;
-	}
-
-	public void setDBTree(DBTree newDBT) {
-		this.dbt = newDBT;
-		// do I need to add a selection listener here?
-	}
-
 }

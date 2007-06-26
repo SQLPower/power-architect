@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.swing.AbstractAction;
-import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -13,7 +12,7 @@ import javax.swing.JProgressBar;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.Monitorable;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ArchitectSwingWorker;
 import ca.sqlpower.architect.swingui.ProgressWatcher;
 import ca.sqlpower.architect.swingui.event.TaskTerminationEvent;
@@ -28,7 +27,7 @@ import com.jgoodies.forms.layout.FormLayout;
  * By default this class sets up a dialog with an indeterminate progress
  * bar.  The dialog automatically closes when the job finishes.
  */
-public abstract class ProgressAction extends AbstractAction {
+public abstract class ProgressAction extends AbstractArchitectAction {
     /**
      * A simple bean monitor.  Used to allow the classes extending
      * ProgressAction to manipulate the progressbar.
@@ -90,18 +89,22 @@ public abstract class ProgressAction extends AbstractAction {
         }
 
     }
-    public ProgressAction() {
-        super();
+    
+    public ProgressAction(
+            ArchitectSwingSession session,
+            String actionName,
+            String actionDescription,
+            String iconResourceName) {
+        super(session, actionName, actionDescription, iconResourceName);
+    }
+
+    public ProgressAction(
+            ArchitectSwingSession session,
+            String actionName,
+            String actionDescription) {
+        super(session, actionName, actionDescription);
     }
     
-    public ProgressAction(String name, Icon icon) {
-        super(name, icon);
-    }
-
-    public ProgressAction(String name) {
-        super(name);
-    }
-
     /**
      * Setup the dialog, monitors and worker.  Classes that extend this class
      * should use doStuff() and cleanUp()
@@ -109,8 +112,8 @@ public abstract class ProgressAction extends AbstractAction {
     public void actionPerformed(ActionEvent e) {
         final JDialog progressDialog;
         final Map<String,Object> properties = new HashMap<String, Object>();
-        progressDialog = new JDialog(ArchitectFrame.getMainInstance(), "Progress...", false);  
-        progressDialog.setLocationRelativeTo(ArchitectFrame.getMainInstance());
+        progressDialog = new JDialog(frame, "Progress...", false);  
+        progressDialog.setLocationRelativeTo(frame);
         progressDialog.setTitle(getDialogMessage());
         
         PanelBuilder pb = new PanelBuilder(new FormLayout("4dlu,fill:min(100dlu;default):grow, pref, fill:min(100dlu;default):grow,4dlu",

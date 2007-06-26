@@ -17,80 +17,73 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.ASUtils;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ColumnEditPanel;
 import ca.sqlpower.architect.swingui.DBTree;
-import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.Selectable;
-import ca.sqlpower.architect.swingui.SwingUserSettings;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 
-public class EditColumnAction extends AbstractAction implements SelectionListener {
+public class EditColumnAction extends AbstractArchitectAction implements SelectionListener {
 	private static final Logger logger = Logger.getLogger(EditColumnAction.class);
-
-	/**
-	 * The PlayPen instance that owns this Action.
-	 */
-	protected PlayPen pp;
 
 	/**
 	 * The DBTree instance that is associated with this Action.
 	 */
-	protected DBTree dbt; 
+	protected final DBTree dbt; 
 
 
 	protected JDialog editDialog;			
 	protected ColumnEditPanel columnEditPanel;
 
-	public EditColumnAction() {
-		super("Column Properties...",
-			  ASUtils.createIcon("edit_column",
-								 "Column Properties",
-								 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE)));
-		putValue(SHORT_DESCRIPTION, "Column Properties");
+	public EditColumnAction(ArchitectSwingSession session) {
+        super(session, "Column Properties...", "Column Properties", "edit_column");
 		putValue(ACTION_COMMAND_KEY, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		setEnabled(false);
+        
+        playpen.addSelectionListener(this);
+        setupAction(playpen.getSelectedItems());
+        
+        dbt = frame.getDbTree();
 	}
 
 	public void actionPerformed(ActionEvent evt) {
 		if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN)) {
-			List selection = pp.getSelectedItems();
+			List selection = playpen.getSelectedItems();
 			logger.debug("selections length is: " + selection.size());			
 			if (selection.size() < 1) {
 				setEnabled(false);
-				JOptionPane.showMessageDialog(pp, "Select a column (by clicking on it) and try again.");
+				JOptionPane.showMessageDialog(playpen, "Select a column (by clicking on it) and try again.");
 			} else if (selection.size() > 1) {
-				JOptionPane.showMessageDialog(pp, "You have selected multiple items, but you can only edit one at a time.");
+				JOptionPane.showMessageDialog(playpen, "You have selected multiple items, but you can only edit one at a time.");
 			} else if (selection.get(0) instanceof TablePane) {
 				setEnabled(true);
 				TablePane tp = (TablePane) selection.get(0);
 				try {
 					List<SQLColumn> selectedCols = tp.getSelectedColumns();
 					if (selectedCols.size() != 1) {
-						JOptionPane.showMessageDialog(pp, "Please select one and only one column");
+						JOptionPane.showMessageDialog(playpen, "Please select one and only one column");
 						logger.error("Please select one and only one column");
 						cleanup();
 						return;
 					}
 					int idx = tp.getSelectedColumnIndex();
 					if (idx < 0) { // header must have been selected
-						logger.error("CantHappen: idx < 0");
-						JOptionPane.showMessageDialog(pp, "Please select the column you would like to edit.");						
+						logger.error("CantHaplaypenen: idx < 0");
+						JOptionPane.showMessageDialog(playpen, "Please select the column you would like to edit.");						
 					} else {				
 						makeDialog(tp.getModel(),idx);
 					}
 				} catch (ArchitectException e) {
-					JOptionPane.showMessageDialog(pp, "Error finding the selected column");
+					JOptionPane.showMessageDialog(playpen, "Error finding the selected column");
 					logger.error("Error finding the selected column", e);
 					cleanup();
 				}
 			} else {
-				JOptionPane.showMessageDialog(pp, "Please select the column you would like to edit.");
+				JOptionPane.showMessageDialog(playpen, "Please select the column you would like to edit.");
 				cleanup();
 			}
 		} else if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE)) {
@@ -141,7 +134,7 @@ public class EditColumnAction extends AbstractAction implements SelectionListene
 			
 			editDialog = ArchitectPanelBuilder.createArchitectPanelDialog(
 					columnEditPanel,
-					ArchitectFrame.getMainInstance(),
+					frame,
 					 "Column Properties of "+st.getName(),
 					 "OK",
 					 new AbstractAction(){
@@ -157,7 +150,7 @@ public class EditColumnAction extends AbstractAction implements SelectionListene
 					});
 			panel.setOpaque(true);
 			editDialog.pack();
-			editDialog.setLocationRelativeTo(ArchitectFrame.getMainInstance());
+			editDialog.setLocationRelativeTo(frame);
 			editDialog.setVisible(true);
 		}		
 	}
@@ -173,22 +166,6 @@ public class EditColumnAction extends AbstractAction implements SelectionListene
 		}
 	}
 
-	public void setPlayPen(PlayPen newPP) {
-		if (pp != null) {
-			pp.removeSelectionListener(this);
-		} 
-		pp = newPP;
-		pp.addSelectionListener(this);
-		
-		setupAction(pp.getSelectedItems());
-	}
-
-	
-	public void setDBTree(DBTree newDBT) {
-		this.dbt = newDBT;
-		// do I need to add a selection listener here?
-	}
-	
 	private void setupAction(List selectedItems) {
 		if (selectedItems.size() == 0) {
 			setEnabled(false);
@@ -220,12 +197,12 @@ public class EditColumnAction extends AbstractAction implements SelectionListene
 	}
 		
 	public void itemSelected(SelectionEvent e) {
-		setupAction(pp.getSelectedItems());
+		setupAction(playpen.getSelectedItems());
 		
 	}
 
 	public void itemDeselected(SelectionEvent e) {
-		setupAction(pp.getSelectedItems());
+		setupAction(playpen.getSelectedItems());
 	}
 	
 	

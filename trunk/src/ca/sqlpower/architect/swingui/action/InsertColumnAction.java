@@ -6,21 +6,15 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.ASUtils;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
-import ca.sqlpower.architect.swingui.SwingUserSettings;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.TablePane;
 
 public class InsertColumnAction extends AbstractTableTargetedAction {
 	private static final Logger logger = Logger.getLogger(InsertColumnAction.class);
 	
-	public InsertColumnAction() {
-		super("New Column",
-			  ASUtils.createIcon("new_column",
-								 "New Column",
-								 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE)));
-		putValue(SHORT_DESCRIPTION, "New Column");
+	public InsertColumnAction(ArchitectSwingSession session) {
+        super(session, "New Column", "New Column", "new_column");
 		putValue(ACTION_COMMAND_KEY, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		setEnabled(false);
 	}
@@ -50,7 +44,7 @@ public class InsertColumnAction extends AbstractTableTargetedAction {
         	idx = 0;
         }
         st.addColumn(idx, new SQLColumn());
-        EditColumnAction editColumnAction = new EditColumnAction();
+        EditColumnAction editColumnAction = new EditColumnAction(session);
         editColumnAction.makeDialog(st, idx);
         
     }
@@ -61,7 +55,7 @@ public class InsertColumnAction extends AbstractTableTargetedAction {
         if (idx < 0) idx = tp.getModel().getColumnsFolder().getChildCount();
         
         tp.getModel().addColumn(idx, new SQLColumn());
-        EditColumnAction editColumnAction = new EditColumnAction();
+        EditColumnAction editColumnAction = new EditColumnAction(session);
         editColumnAction.makeDialog(tp.getModel(), idx);
     }
 

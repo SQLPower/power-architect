@@ -3,6 +3,8 @@ package ca.sqlpower.architect;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 
 import org.apache.log4j.Logger;
 
@@ -11,9 +13,21 @@ import ca.sqlpower.architect.etl.ETLUserSettings;
 import ca.sqlpower.architect.qfa.QFAUserSettings;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
 
+/**
+ * This class is ill-conceived. It's part of the core API, but it has direct references
+ * to all the various subsystems of the Architect.  We should change it so that the
+ * subsystems can register themselves somehow, or even just get the subsystems to use
+ * the java prefs API directly.  Either way, the knowledge that this class has of the
+ * other parts of the API is highly undersirable.
+ */
 public class CoreUserSettings {
     private static final Logger logger = Logger.getLogger(CoreUserSettings.class);
 
+    /**
+     * The prefs node we read and write all the settings in.
+     */
+    private final Preferences prefs;
+    
     /**
      * The parsed list of connections.
      */
@@ -51,15 +65,81 @@ public class CoreUserSettings {
 
     private QFAUserSettings qfaUserSettings;
 	
-	public CoreUserSettings() {
+	public CoreUserSettings(Preferences prefs) {
 		super();
 		printUserSettings = new PrintUserSettings();
 		swingSettings = new SwingUserSettings();
 		etlUserSettings = new ETLUserSettings();
 		ddlUserSettings = new DDLUserSettings();
         qfaUserSettings = new QFAUserSettings();
+        this.prefs = prefs;
+        loadFromPrefs();
 	}
 	
+    /**
+     * Sets up the various prefs objects based on values stored in the java.util.prefs
+     * preferences node.
+     */
+    private final void loadFromPrefs() {
+        logger.debug("loading UserSettings from java.util.prefs.");
+        logger.debug("Preferences class = " + prefs.getClass());
+
+        setPlDotIniPath(prefs.get(ArchitectSession.PREFS_PL_INI_PATH, null));
+
+        swingSettings.setBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED,
+            prefs.getBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
+
+        etlUserSettings.setString(ETLUserSettings.PROP_PL_ENGINE_PATH,
+            prefs.get(ETLUserSettings.PROP_PL_ENGINE_PATH, ""));
+        etlUserSettings.setString(ETLUserSettings.PROP_ETL_LOG_PATH,
+            prefs.get(ETLUserSettings.PROP_ETL_LOG_PATH, defaultHomeFile("etl.log")));
+
+        ddlUserSettings.setString(DDLUserSettings.PROP_DDL_LOG_PATH,prefs.get(DDLUserSettings.PROP_DDL_LOG_PATH, defaultHomeFile("ddl.log")));
+
+        qfaUserSettings.setBoolean(QFAUserSettings.EXCEPTION_REPORTING,prefs.getBoolean(QFAUserSettings.EXCEPTION_REPORTING,true));
+
+        printUserSettings.setDefaultPrinterName(
+                prefs.get(PrintUserSettings.DEFAULT_PRINTER_NAME, ""));
+    }
+    
+    /**
+     * Saves all the preferences that this class knows about back into the
+     * prefs node.
+     */
+    public void write() throws ArchitectException {
+        logger.debug("Saving user settings to java.util.prefs");
+
+        prefs.put(ArchitectSession.PREFS_PL_INI_PATH, getPlDotIniPath());
+
+        prefs.putBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED,
+                swingSettings.getBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
+
+        prefs.put(ETLUserSettings.PROP_PL_ENGINE_PATH, etlUserSettings.getString(ETLUserSettings.PROP_PL_ENGINE_PATH,""));
+        prefs.put(ETLUserSettings.PROP_ETL_LOG_PATH, etlUserSettings.getString(ETLUserSettings.PROP_ETL_LOG_PATH,""));
+
+        prefs.put(DDLUserSettings.PROP_DDL_LOG_PATH, ddlUserSettings.getString(DDLUserSettings.PROP_DDL_LOG_PATH,""));
+
+        prefs.putBoolean(QFAUserSettings.EXCEPTION_REPORTING,qfaUserSettings.getBoolean(QFAUserSettings.EXCEPTION_REPORTING,true));
+
+        prefs.put(PrintUserSettings.DEFAULT_PRINTER_NAME, printUserSettings.getDefaultPrinterName());
+
+        try {
+            prefs.flush();
+        } catch (BackingStoreException e) {
+            throw new ArchitectException("Unable to flush Java preferences", e);
+        }
+    }
+    
+    /**
+     * Creates a full pathname for a file of the given name inside the user's
+     * home directory.
+     *  
+     * @param name The file name.
+     */
+    private String defaultHomeFile(String name) {
+        return System.getProperty("user.home") + System.getProperty("file.separator") + name;
+    }
+    
 	public void setPrintUserSettings (PrintUserSettings printUserSettings) {
 		this.printUserSettings = printUserSettings;
 	}

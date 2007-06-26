@@ -18,25 +18,24 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLTable.Folder;
-import ca.sqlpower.architect.profile.TableProfileManager;
+import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
 import ca.sqlpower.architect.swingui.ASUtils;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
-//import ca.sqlpower.architect.swingui.SwingUserSettings;
 
 
 public class ProfilePanelAction extends ProgressAction {
     private static final Logger logger = Logger.getLogger(ProfilePanelAction.class);
 
-    protected DBTree dbTree;
-    protected TableProfileManager profileManager;
+    private final DBTree dbTree;
+    private final ProfileManager profileManager;
     private JDialog dialog;
 
-    public ProfilePanelAction() {
-        super("Profile...", ASUtils.createIcon("Table_profiled", "Profile", ArchitectFrame.DEFAULT_ICON_SIZE));
-
-        putValue(SHORT_DESCRIPTION, "Profile Tables");
+    public ProfilePanelAction(ArchitectSwingSession session, ProfileManager profileManager) {
+        super(session, "Profile...", "Profile Tables", "Table_profiled");
+        dbTree = frame.getDbTree();
+        this.profileManager = profileManager; 
     }
 
     private void profileItemsFromDBTree(ActionMonitor monitor) {
@@ -161,7 +160,7 @@ public class ProfilePanelAction extends ProgressAction {
 
             logger.debug("Calling profileManager.asynchCreateProfiles(tables)");
             profileManager.asynchCreateProfiles(tables);
-            JDialog profileDialog = ArchitectFrame.getMainInstance().getProject().getProfileDialog();
+            JDialog profileDialog = session.getProfileDialog();
             profileDialog.pack();
             profileDialog.setVisible(true);
 
@@ -171,16 +170,8 @@ public class ProfilePanelAction extends ProgressAction {
         }
     }
 
-    public void setDBTree(DBTree dbTree) {
-        this.dbTree = dbTree;
-    }
-
-    public TableProfileManager getProfileManager() {
+    public ProfileManager getProfileManager() {
         return profileManager;
-    }
-
-    public void setProfileManager(TableProfileManager profileManager) {
-        this.profileManager = profileManager;
     }
 
     public JDialog getDialog() {

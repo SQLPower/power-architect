@@ -21,7 +21,10 @@ public class TestDBTree extends TestCase {
 		List dbList = new ArrayList();
 		dbList.add(0,ppdb);
 		dbList.add(1,new SQLDatabase(db2ds));
-		dbTree = new DBTree(dbList);
+        
+        TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
+        ArchitectSwingSession session = context.createSession();
+		dbTree = new DBTree(session, dbList);
 	}
 	
 	public void testdbcsAlreadyExists() throws ArchitectException {

@@ -3,7 +3,6 @@ package ca.sqlpower.architect.swingui.action;
 import java.awt.event.ActionEvent;
 import java.util.List;
 
-import javax.swing.AbstractAction;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.tree.TreePath;
@@ -12,54 +11,44 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.swingui.ASUtils;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
-import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.RelationshipEditPanel;
 import ca.sqlpower.architect.swingui.Selectable;
-import ca.sqlpower.architect.swingui.SwingUserSettings;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 
-public class EditRelationshipAction extends AbstractAction implements SelectionListener {
+public class EditRelationshipAction extends AbstractArchitectAction implements SelectionListener {
 	private static final Logger logger = Logger.getLogger(EditRelationshipAction.class);
-
-	/**
-	 * The PlayPen instance that owns this Action.
-	 */
-	protected PlayPen pp;
 
 	/**
 	 * The DBTree instance that is associated with this Action.
 	 */
-	protected DBTree dbt; 
-
+	protected final DBTree dbt; 
 	
-	public EditRelationshipAction() {
-		super("Relationship Properties",
-			  ASUtils.createIcon("edit_relationship",
-								 "Relationship Properties",
-								 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE)));
-		putValue(SHORT_DESCRIPTION, "Relationship Properties");
+	public EditRelationshipAction(ArchitectSwingSession session) {
+		super(session, "Relationship Properties", "Relationship Properties", "edit_relationship");
 		setEnabled(false);
+        playpen.addSelectionListener(this);
+        setupAction(playpen.getSelectedItems());
+        dbt = frame.getDbTree();
 	}
 
 	public void actionPerformed(ActionEvent evt) {
 		if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN)) {
-			List selection = pp.getSelectedItems();
+			List selection = playpen.getSelectedItems();
 			if (selection.size() < 1) {
-				JOptionPane.showMessageDialog(pp, "Select a relationship (by clicking on it) and try again.");
+				JOptionPane.showMessageDialog(playpen, "Select a relationship (by clicking on it) and try again.");
 			} else if (selection.size() > 1) {
-				JOptionPane.showMessageDialog(pp, "You have selected multiple items, but you can only edit one at a time.");
+				JOptionPane.showMessageDialog(playpen, "You have selected multiple items, but you can only edit one at a time.");
 			} else if (selection.get(0) instanceof Relationship) {
 				Relationship r = (Relationship) selection.get(0);
 				makeDialog(r.getModel());
 			} else {
-				JOptionPane.showMessageDialog(pp, "Please select the relationship you would like to edit.");
+				JOptionPane.showMessageDialog(playpen, "Please select the relationship you would like to edit.");
 			}
 		} else if (evt.getActionCommand().equals(ArchitectSwingConstants.ACTION_COMMAND_SRC_DBTREE)) {
 			TreePath [] selections = dbt.getSelectionPaths();
@@ -82,31 +71,16 @@ public class EditRelationshipAction extends AbstractAction implements SelectionL
 
 	private void makeDialog(SQLRelationship sqr) {
 		logger.debug ("making edit relationship dialog");
-		final RelationshipEditPanel editPanel = new RelationshipEditPanel();
+		final RelationshipEditPanel editPanel = new RelationshipEditPanel(session);
 		final JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
 				editPanel,
-				ArchitectFrame.getMainInstance(), 
+				frame, 
 				"Relationship Properties", "OK");
 		editPanel.setRelationship(sqr);
 				
 		d.pack();
-		d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
+		d.setLocationRelativeTo(frame);
 		d.setVisible(true);
-	}
-
-	public void setPlayPen(PlayPen pp) {
-		if (this.pp != null) {
-			this.pp.removeSelectionListener(this);
-		} 
-		this.pp=pp;
-		pp.addSelectionListener(this);
-		
-		setupAction(pp.getSelectedItems());
-	}
-
-	public void setDBTree(DBTree newDBT) {
-		this.dbt = newDBT;
-		// do I need to add a selection listener here?
 	}
 
 	public void setupAction(List selectedItems) {
@@ -122,12 +96,12 @@ public class EditRelationshipAction extends AbstractAction implements SelectionL
 	}
 		
 	public void itemSelected(SelectionEvent e) {
-		setupAction(pp.getSelectedItems());
+		setupAction(playpen.getSelectedItems());
 		
 	}
 
 	public void itemDeselected(SelectionEvent e) {
-		setupAction(pp.getSelectedItems());
+		setupAction(playpen.getSelectedItems());
 	}
 	
 }

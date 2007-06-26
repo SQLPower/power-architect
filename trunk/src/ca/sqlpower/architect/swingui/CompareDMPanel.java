@@ -1,7 +1,6 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.BorderLayout;
-
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
@@ -40,7 +39,6 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
@@ -60,6 +58,14 @@ import com.jgoodies.forms.debug.FormDebugPanel;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
+/**
+ * The user interface for setting up the comparison between two databases,
+ * whether they are housed in Architect project files, SQL databases, or
+ * just the current project in the session.
+ * <p>
+ * This class should not actually extend JPanel.. it should have a JPanel
+ * member instead.
+ */
 public class CompareDMPanel extends JPanel {
 
 	/**
@@ -141,17 +147,11 @@ public class CompareDMPanel extends JPanel {
 
 	private SourceOrTargetStuff target = new SourceOrTargetStuff();
 
-	/**
-	 * The project this panel works with (it's used for saving and restoring
-	 * the settings).
-	 */
-	private SwingUIProject project;
-
     /**
      * Since we can create new DB connections from this panel, we need a reference
      * to the session so we can retrieve the datasource collection.
      */
-    private ArchitectSession session;
+    private ArchitectSwingSession session;
     
 	/**
 	 * Contains all of the properties and GUI components that relate to the
@@ -206,7 +206,7 @@ public class CompareDMPanel extends JPanel {
 				final DBCSPanel dbcsPanel = new DBCSPanel(session.getUserSettings().getPlDotIni());
 				dbcsPanel.setDbcs(new ArchitectDataSource());
 
-				DBCSOkAction okAction = new DBCSOkAction(dbcsPanel, true);
+				DBCSOkAction okAction = new DBCSOkAction(dbcsPanel, session, true);
 				okAction.setConnectionSelectionCallBack(SourceOrTargetStuff.this);
 				Action cancelAction = new AbstractAction() {
 					public void actionPerformed(ActionEvent e) {
@@ -495,8 +495,7 @@ public class CompareDMPanel extends JPanel {
 		 * Creates the GUI components associated with this object, and appends
 		 * them to the given builder.
 		 */
-		private void buildPartialUI(DefaultFormBuilder builder,
-				boolean defaultPlayPen) {
+		private void buildPartialUI(DefaultFormBuilder builder,	boolean defaultPlayPen) {
 
 			String prefix;
 			if (defaultPlayPen == true) {
@@ -505,9 +504,6 @@ public class CompareDMPanel extends JPanel {
 				prefix = "target";
 			}
 			CellConstraints cc = new CellConstraints();
-
-			ArchitectFrame af = ArchitectFrame.getMainInstance();
-			SwingUIProject project = af.getProject();
 			
 			playPenRadio = new JRadioButton();
 			playPenRadio.setName(prefix + "PlayPenRadio");
@@ -530,7 +526,7 @@ public class CompareDMPanel extends JPanel {
 
 			databaseDropdown = new JComboBox();
 			databaseDropdown.setName(prefix + "DatabaseDropdown");
-			databaseDropdown.setModel(new ConnectionComboBoxModel());
+			databaseDropdown.setModel(new ConnectionComboBoxModel(session.getUserSettings().getPlDotIni()));
 			databaseDropdown.setEnabled(false);
 			databaseDropdown.setRenderer(dataSourceRenderer);
 
@@ -578,7 +574,7 @@ public class CompareDMPanel extends JPanel {
 
 			// now give all our shiny new components to the builder
 			builder.append(playPenRadio);
-			builder.append("Current Project [" + project.getName() + "]");
+			builder.append("Current Project [" + session.getName() + "]");
 			builder.nextLine();
 
 			builder.append(""); // takes up blank space
@@ -619,7 +615,7 @@ public class CompareDMPanel extends JPanel {
 				IOException {
 			SQLObject o;
 			if (playPenRadio.isSelected()) {
-				o = ArchitectFrame.getMainInstance().playpen.getDatabase();
+				o = session.getPlayPen().getDatabase();
 			} else if (physicalRadio.isSelected()) {
 				if (schemaDropdown.getSelectedItem() != null) {
 					o = (SQLObject) schemaDropdown.getSelectedItem();
@@ -635,10 +631,11 @@ public class CompareDMPanel extends JPanel {
 				}
 
 			} else if (loadRadio.isSelected()) {
-				SwingUIProject project = new SwingUIProject("Source");
+                // FIXME: I don't think this will work properly after the merging of session and project
+				SwingUIProject project = new SwingUIProject(session);
 				File f = new File(loadFilePath.getText());
 				project.load(new BufferedInputStream(new FileInputStream(f)), session.getUserSettings().getPlDotIni());
-				o = project.getTargetDatabase();
+				o = session.getPlayPen().getDatabase();
 			} else {
 				throw new IllegalStateException(
 						"Do not know which source to compare from");
@@ -751,8 +748,7 @@ public class CompareDMPanel extends JPanel {
 		return buttonPanel;
 	}
 
-	public CompareDMPanel(SwingUIProject project, ArchitectSession session) {
-		this.project = project;
+	public CompareDMPanel(ArchitectSwingSession session) {
         this.session = session;
 		buildUI();
 	}
@@ -948,13 +944,13 @@ public class CompareDMPanel extends JPanel {
 						sourceTables);
 			} catch (FileNotFoundException ex) {
                 JOptionPane.showMessageDialog(
-                        ArchitectFrame.getMainInstance(),
+                        CompareDMPanel.this,
                         "File not found: "+ex.getMessage());
 				logger.error("File could not be found.", ex);
 				return;
 			} catch (IOException ex) {
                 JOptionPane.showMessageDialog(
-                        ArchitectFrame.getMainInstance(),
+                        CompareDMPanel.this,
                         "Could not read file: "+ex.getMessage());
 				logger.error("Could not read file", ex);
 				return;
@@ -983,7 +979,7 @@ public class CompareDMPanel extends JPanel {
                         return;
                     }
 					logger.debug("cleanup starts");
-                    CompareDMFormatter dmFormat = new CompareDMFormatter(project.getCompareDMSettings());
+                    CompareDMFormatter dmFormat = new CompareDMFormatter(session, CompareDMPanel.this, session.getCompareDMSettings());
                     dmFormat.format(diff, diff1, left, right);
                     startCompareAction.setEnabled(isStartable());
                     logger.debug("cleanup finished");
@@ -1002,7 +998,7 @@ public class CompareDMPanel extends JPanel {
 	}
 
 	public void copySettingsToProject() {
-		CompareDMSettings s = project.getCompareDMSettings();
+		CompareDMSettings s = session.getCompareDMSettings();
 		s.setSaveFlag(true);
 		s.setOutputFormat(englishButton.isSelected()?CompareDMSettings.OutputFormat.ENGLISH:CompareDMSettings.OutputFormat.SQL);
 		s.setSqlScriptFormat( ((LabelValueBean)sqlTypeDropdown.getSelectedItem()).getLabel() );
@@ -1054,7 +1050,7 @@ public class CompareDMPanel extends JPanel {
 	}
 
 	private void restoreSettingsFromProject() throws ArchitectException {
-		CompareDMSettings s = project.getCompareDMSettings();
+		CompareDMSettings s = session.getCompareDMSettings();
 
 		restoreSourceOrTargetSettingsFromProject(source,s.getSourceSettings());
 		restoreSourceOrTargetSettingsFromProject(target,s.getTargetSettings());
@@ -1090,7 +1086,7 @@ public class CompareDMPanel extends JPanel {
 		else if ( rbs == CompareDMSettings.DatastoreType.FILE )
 			stuff.loadRadio.doClick();
 
-		List<ArchitectDataSource> lds = ArchitectFrame.getMainInstance().getUserSettings().getConnections();
+		List<ArchitectDataSource> lds = session.getUserSettings().getConnections();
 		for (ArchitectDataSource ds : lds){
 			if (ds.getDisplayName().equals(set.getConnectName())){
 				stuff.databaseDropdown.setSelectedItem(ds);

@@ -9,12 +9,6 @@ import ca.sqlpower.architect.profile.TableProfileManager;
  * option, but that is subject to change), the ArchitectFrame has a
  * 1:1 relationship with an ArchitectSession.
  *
- * <p>The ArchitectSession is currently a singleton, but that is
- * subject to change if the Architect moves to an embeddable API
- * interface.  In that case, the getInstance method will change or
- * disappear, and more classes will require an ArchitectSession
- * argument in their constructors.
- *
  * @version $Id$
  * @author fuerth
  */

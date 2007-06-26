@@ -10,7 +10,6 @@ import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -18,10 +17,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.ProgressMonitor;
-import javax.swing.ToolTipManager;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.digester.AbstractObjectCreationFactory;
@@ -34,7 +31,6 @@ import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectDataSourceType;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectRuntimeException;
-import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.architect.DataSourceCollection;
@@ -44,27 +40,18 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLExceptionNode;
 import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLObjectEvent;
-import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.SQLIndex.Column;
 import ca.sqlpower.architect.SQLTable.Folder;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
-import ca.sqlpower.architect.etl.PLExport;
-import ca.sqlpower.architect.etl.kettle.CreateKettleJob;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ColumnValueCount;
-import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileResult;
 import ca.sqlpower.architect.profile.TableProfileManager;
 import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
-import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
-import ca.sqlpower.architect.swingui.event.PlayPenComponentListener;
-import ca.sqlpower.architect.undo.UndoManager;
 import ca.sqlpower.architect.xml.UnescapingSaxParser;
 import ca.sqlpower.architect.xml.XMLHelper;
 
@@ -82,25 +69,9 @@ public class SwingUIProject {
     private static final Logger logger = Logger.getLogger(SwingUIProject.class);
 
     //  ---------------- persistent properties -------------------
-    // XXX This should be passed in
-    private ArchitectSession session = ArchitectFrame.getMainInstance().getArchitectSession();
-    private String name;
-    private DBTree sourceDatabases;
-    private PlayPen playPen;
-    private UndoManager undoManager;
-    private File file;
-    private GenericDDLGenerator ddlGenerator;
-    private boolean savingEntireSource;
-    private PLExport plExport;
-    private CompareDMSettings compareDMSettings;
-    private CreateKettleJob createKettleJob;
-    
-    /** the small dialog that lists the profiles */
-    private ProfileManagerView profileManagerView;
-    /** the dialog that contains the small ProfileManagerView */
-    final JDialog profileDialog = 
-        new JDialog(ArchitectFrame.getMainInstance(), "Table Profiles");
 
+    private File file;
+    
     // ------------------ load and save support -------------------
 
     /**
@@ -154,56 +125,21 @@ public class SwingUIProject {
      * The last value we sent to the progress monitor.
      */
     private int progress = 0;
-
-    /**
-     * Sets up a new project with the given name.
-     * @throws
-     */
-    public SwingUIProject(String name) throws ArchitectException {
-        this.name = name;
-
-        SQLDatabase ppdb = new SQLDatabase();
-
-        PlayPen pp = new PlayPen(ppdb);
-        ToolTipManager.sharedInstance().registerComponent(pp);
-        setPlayPen(pp);
-        List initialDBList = new ArrayList();
-        initialDBList.add(playPen.getDatabase());
-        profileManagerView = new ProfileManagerView(session.getProfileManager());
-        session.getProfileManager().addProfileChangeListener(profileManagerView);
-        profileDialog.add(profileManagerView);
-        profileDialog.setLocationRelativeTo(ArchitectFrame.getMainInstance());
-        this.sourceDatabases = new DBTree(initialDBList);
-        try {
-            ddlGenerator = new GenericDDLGenerator();
-        } catch (SQLException e) {
-            throw new ArchitectException("SQL Error in ddlGenerator",e);
-        }
-        plExport = new PLExport();
-        compareDMSettings = new CompareDMSettings();
-        createKettleJob = new CreateKettleJob();
-        undoManager = new UndoManager(pp);
-    }
+    
+    private final ArchitectSwingSession session;
     
     /**
-     * This is a common handler for all actions that must
-     * occur when switching projects, e.g., dispose dialogs, 
-     * shut down running threads, etc. 
-     * <p>
-     * currently mostly a placeholder
+     * Sets up a new project file load/save object for the given session.
+     * 
+     * @param session the session that this instance will be responsible for
+     * loading into and saving out from.
+     * @throws NullPointerException if the given session is null
      */
-    public void close() {
-        // close connections
-        Iterator it = getSourceDatabases().getDatabaseList().iterator();
-        while (it.hasNext()) {
-            SQLDatabase db = (SQLDatabase) it.next();
-            logger.debug ("closing connection: " + db.getName());
-            db.disconnect();
+    public SwingUIProject(ArchitectSwingSession session) throws ArchitectException {
+        if (session == null) {
+            throw new NullPointerException("Null session is not allowed!");
         }
-        //Clear the profile manager
-        session.getProfileManager().clear();
-        // Close dialogs
-        profileDialog.dispose();
+        this.session = session;
     }
 
     // ------------- READING THE PROJECT FILE ---------------
@@ -238,8 +174,8 @@ public class SwingUIProject {
             throw new ArchitectException("Unexpected Exception", ex);
         }
 
-        SQLObject dbConnectionContainer = ((SQLObject) sourceDatabases.getModel().getRoot());
-        dbConnectionContainer.addChild(0, playPen.getDatabase());
+        SQLObject dbConnectionContainer = ((SQLObject) session.getSourceDatabases().getModel().getRoot());
+        dbConnectionContainer.addChild(0, session.getPlayPen().getDatabase());
 
         // hook up data source parent types
         for (SQLDatabase db : (List<SQLDatabase>) dbConnectionContainer.getChildren()) {
@@ -272,7 +208,7 @@ public class SwingUIProject {
          * if the index name == table.primaryKeyName after load the project,
          * table.primaryKeyName is save in the map now, not in the table object
          */
-        for (SQLTable table : (List<SQLTable>)playPen.getDatabase().getTables()) {
+        for (SQLTable table : (List<SQLTable>)session.getPlayPen().getDatabase().getTables()) {
 
             if (logger.isDebugEnabled()) {
                 if (!table.isPopulated()) {
@@ -318,7 +254,7 @@ public class SwingUIProject {
 
         setModified(false);
         // TODO change this to load the undo history from a file
-        undoManager.discardAllEdits();
+        session.getUndoManager().discardAllEdits();
     }
 
 
@@ -326,7 +262,7 @@ public class SwingUIProject {
     private Digester setupDigester() throws ParserConfigurationException, SAXException {
         Digester d = new Digester(new UnescapingSaxParser());
         d.setValidating(false);
-        d.push(this);
+        d.push(session);
 
         // project name
         d.addCallMethod("architect-project/project-name", "setName", 0); // argument is element body text
@@ -507,7 +443,7 @@ public class SwingUIProject {
 
         @Override
         public Object createObject(Attributes attributes) throws Exception {
-            SQLDatabase ppdb = playPen.getDatabase();
+            SQLDatabase ppdb = session.getPlayPen().getDatabase();
 
             String dbcsid = attributes.getValue("dbcs-ref");
             if (dbcsid != null) {
@@ -799,8 +735,8 @@ public class SwingUIProject {
             int x = Integer.parseInt(attributes.getValue("x"));
             int y = Integer.parseInt(attributes.getValue("y"));
             SQLTable tab = (SQLTable) objectIdMap.get(attributes.getValue("table-ref"));
-            TablePane tp = new TablePane(tab, playPen);
-            playPen.addTablePane(tp, new Point(x, y));
+            TablePane tp = new TablePane(tab, session.getPlayPen());
+            session.getPlayPen().addTablePane(tp, new Point(x, y));
             return tp;
         }
     }
@@ -811,8 +747,8 @@ public class SwingUIProject {
             try {
                 SQLRelationship rel =
                     (SQLRelationship) objectIdMap.get(attributes.getValue("relationship-ref"));
-                r = new Relationship(playPen, rel);
-                playPen.addRelationship(r);
+                r = new Relationship(session.getPlayPen(), rel);
+                session.getPlayPen().addRelationship(r);
 
                 int pkx = Integer.parseInt(attributes.getValue("pk-x"));
                 int pky = Integer.parseInt(attributes.getValue("pk-y"));
@@ -849,7 +785,7 @@ public class SwingUIProject {
 
     private class CreateKettleJobSettingsFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) throws SQLException {
-            return getCreateKettleJob();
+            return session.getCreateKettleJob();
         }
     }
 
@@ -865,7 +801,7 @@ public class SwingUIProject {
     private class CompareDMSettingFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) {
 
-            return getCompareDMSettings();
+            return session.getCompareDMSettings();
         }
     }
 
@@ -876,9 +812,9 @@ public class SwingUIProject {
         }
         public Object createObject(Attributes attributes) {
             if ( source )
-                return getCompareDMSettings().getSourceSettings();
+                return session.getCompareDMSettings().getSourceSettings();
             else
-                return getCompareDMSettings().getTargetSettings();
+                return session.getCompareDMSettings().getTargetSettings();
         }
     }
 
@@ -1004,10 +940,10 @@ public class SwingUIProject {
         if (pm != null) {
             int pmMax = 0;
             pm.setMinimum(0);
-            if (savingEntireSource) {
-                pmMax = ArchitectUtils.countTablesSnapshot((SQLObject) sourceDatabases.getModel().getRoot());
+            if (session.isSavingEntireSource()) {
+                pmMax = ArchitectUtils.countTablesSnapshot((SQLObject) session.getSourceDatabases().getModel().getRoot());
             } else {
-                pmMax = ArchitectUtils.countTables((SQLObject) sourceDatabases.getModel().getRoot());
+                pmMax = ArchitectUtils.countTables((SQLObject) session.getSourceDatabases().getModel().getRoot());
             }
             logger.error("Setting progress monitor maximum to "+pmMax);
             pm.setMaximum(pmMax);
@@ -1066,7 +1002,7 @@ public class SwingUIProject {
             ioo.println(out, "<?xml version=\"1.0\" encoding=\""+encoding+"\"?>");
             ioo.println(out, "<architect-project version=\"1.0\" appversion=\""+ArchitectVersion.APP_VERSION+"\">");
             ioo.indent++;
-            ioo.println(out, "<project-name>"+ArchitectUtils.escapeXML(name)+"</project-name>");
+            ioo.println(out, "<project-name>"+ArchitectUtils.escapeXML(session.getName())+"</project-name>");
             saveDataSources(out);
             saveSourceDatabases(out);
             saveTargetDatabase(out);
@@ -1096,7 +1032,7 @@ public class SwingUIProject {
         ioo.println(out, "<project-data-sources>");
         ioo.indent++;
         int dsNum = 0;
-        SQLObject dbTreeRoot = (SQLObject) sourceDatabases.getModel().getRoot();
+        SQLObject dbTreeRoot = (SQLObject) session.getSourceDatabases().getModel().getRoot();
         Iterator it = dbTreeRoot.getChildren().iterator();
         while (it.hasNext()) {
             SQLObject o = (SQLObject) it.next();
@@ -1129,18 +1065,18 @@ public class SwingUIProject {
 
     private void saveDDLGenerator(PrintWriter out) throws IOException {
         ioo.print(out, "<ddl-generator"
-                +" type=\""+ddlGenerator.getClass().getName()+"\""
-                +" allow-connection=\""+ddlGenerator.getAllowConnection()+"\"");
-        if (ddlGenerator.getTargetCatalog() != null) {
-            ioo.niprint(out, " target-catalog=\""+ArchitectUtils.escapeXML(ddlGenerator.getTargetCatalog())+"\"");
+                +" type=\""+ session.getDDLGenerator().getClass().getName()+"\""
+                +" allow-connection=\""+session.getDDLGenerator().getAllowConnection()+"\"");
+        if (session.getDDLGenerator().getTargetCatalog() != null) {
+            ioo.niprint(out, " target-catalog=\""+ArchitectUtils.escapeXML(session.getDDLGenerator().getTargetCatalog())+"\"");
         }
-        if (ddlGenerator.getTargetSchema() != null) {
-            ioo.niprint(out, " target-schema=\""+ArchitectUtils.escapeXML(ddlGenerator.getTargetSchema())+"\"");
+        if (session.getDDLGenerator().getTargetSchema() != null) {
+            ioo.niprint(out, " target-schema=\""+ArchitectUtils.escapeXML(session.getDDLGenerator().getTargetSchema())+"\"");
         }
         ioo.niprint(out, ">");
         ioo.indent++;
-        if (ddlGenerator.getFile() != null) {
-            ioo.println(out, "<file path=\""+ArchitectUtils.escapeXML(ddlGenerator.getFile().getPath())+"\" />");
+        if (session.getDDLGenerator().getFile() != null) {
+            ioo.println(out, "<file path=\""+ArchitectUtils.escapeXML(session.getDDLGenerator().getFile().getPath())+"\" />");
         }
         ioo.indent--;
         ioo.println(out, "</ddl-generator>");
@@ -1148,11 +1084,11 @@ public class SwingUIProject {
     
     private void saveCreateKettleJobSettings(PrintWriter out) throws IOException {
         ioo.print(out, "<create-kettle-job-settings");
-        ioo.niprint(out, " parentFile=\"" + ArchitectUtils.escapeXML(createKettleJob.getParentFile().getPath()) + "\"");
-        ioo.niprint(out, " filePath=\"" + ArchitectUtils.escapeXML(createKettleJob.getFilePath()) + "\"");
-        ioo.niprint(out, " jobName=\"" + ArchitectUtils.escapeXML(createKettleJob.getJobName()) + "\"");
-        ioo.niprint(out, " schemaName=\"" + ArchitectUtils.escapeXML(createKettleJob.getSchemaName()) + "\"");
-        ioo.niprint(out, " kettleJoinType=\"" + createKettleJob.getKettleJoinType() + "\"");
+        ioo.niprint(out, " parentFile=\"" + ArchitectUtils.escapeXML(session.getCreateKettleJob().getParentFile().getPath()) + "\"");
+        ioo.niprint(out, " filePath=\"" + ArchitectUtils.escapeXML(session.getCreateKettleJob().getFilePath()) + "\"");
+        ioo.niprint(out, " jobName=\"" + ArchitectUtils.escapeXML(session.getCreateKettleJob().getJobName()) + "\"");
+        ioo.niprint(out, " schemaName=\"" + ArchitectUtils.escapeXML(session.getCreateKettleJob().getSchemaName()) + "\"");
+        ioo.niprint(out, " kettleJoinType=\"" + session.getCreateKettleJob().getKettleJoinType() + "\"");
         ioo.niprintln(out, " />");
     }
 
@@ -1165,18 +1101,18 @@ public class SwingUIProject {
      */
     private void saveCompareDMSettings(PrintWriter out) throws IOException {
 
-        if ( !compareDMSettings.getSaveFlag() )
+        if ( !session.getCompareDMSettings().getSaveFlag() )
             return;
         ioo.print(out, "<compare-dm-settings");
-        ioo.print(out, " sqlScriptFormat=\""+ArchitectUtils.escapeXML(compareDMSettings.getSqlScriptFormat())+"\"");
-        ioo.print(out, " outputFormatAsString=\""+ArchitectUtils.escapeXML(compareDMSettings.getOutputFormatAsString())+"\"");
+        ioo.print(out, " sqlScriptFormat=\""+ArchitectUtils.escapeXML(session.getCompareDMSettings().getSqlScriptFormat())+"\"");
+        ioo.print(out, " outputFormatAsString=\""+ArchitectUtils.escapeXML(session.getCompareDMSettings().getOutputFormatAsString())+"\"");
         ioo.println(out, ">");
         ioo.indent++;
         ioo.print(out, "<source-stuff");
-        saveSourceOrTargetAttributes(out, compareDMSettings.getSourceSettings());
+        saveSourceOrTargetAttributes(out, session.getCompareDMSettings().getSourceSettings());
         ioo.print(out, "/>");
         ioo.print(out, "<target-stuff");
-        saveSourceOrTargetAttributes(out, compareDMSettings.getTargetSettings());
+        saveSourceOrTargetAttributes(out, session.getCompareDMSettings().getTargetSettings());
         ioo.print(out, "/>");
         ioo.indent--;
         ioo.println(out, "</compare-dm-settings>");
@@ -1203,11 +1139,11 @@ public class SwingUIProject {
     private void saveSourceDatabases(PrintWriter out) throws IOException, ArchitectException {
         ioo.println(out, "<source-databases>");
         ioo.indent++;
-        SQLObject dbTreeRoot = (SQLObject) sourceDatabases.getModel().getRoot();
+        SQLObject dbTreeRoot = (SQLObject) session.getSourceDatabases().getModel().getRoot();
         Iterator it = dbTreeRoot.getChildren().iterator();
         while (it.hasNext()) {
             SQLObject o = (SQLObject) it.next();
-            if (o != playPen.getDatabase()) {
+            if (o != session.getPlayPen().getDatabase()) {
                 saveSQLObject(out, o);
             }
         }
@@ -1234,7 +1170,7 @@ public class SwingUIProject {
      * The recursive subroutine of saveRelationships.
      */
     private void saveRelationshipsRecurse(PrintWriter out, SQLObject o) throws ArchitectException, IOException {
-        if ( (!savingEntireSource) && (!o.isPopulated()) ) {
+        if ( (!session.isSavingEntireSource()) && (!o.isPopulated()) ) {
             return;
         } else if (o instanceof SQLRelationship) {
             saveSQLObject(out, o);
@@ -1247,7 +1183,7 @@ public class SwingUIProject {
     }
 
     private void saveTargetDatabase(PrintWriter out) throws IOException, ArchitectException {
-        SQLDatabase db = (SQLDatabase) playPen.getDatabase();
+        SQLDatabase db = (SQLDatabase) session.getPlayPen().getDatabase();
         ioo.println(out, "<target-database dbcs-ref="+
                 quote(dbcsIdMap.get(db.getDataSource()).toString())+ ">");
         ioo.indent++;
@@ -1263,8 +1199,8 @@ public class SwingUIProject {
     private void savePlayPen(PrintWriter out) throws IOException, ArchitectException {
         ioo.println(out, "<play-pen>");
         ioo.indent++;
-        for(int i = playPen.getTablePanes().size()-1; i>= 0; i--) {
-            TablePane tp = playPen.getTablePanes().get(i);
+        for(int i = session.getPlayPen().getTablePanes().size()-1; i>= 0; i--) {
+            TablePane tp = session.getPlayPen().getTablePanes().get(i);
             Point p = tp.getLocation();
             ioo.println(out, "<table-pane table-ref="+quote(objectIdMap.get(tp.getModel()).toString())+""
                     +" x=\""+p.x+"\" y=\""+p.y+"\" />");
@@ -1273,7 +1209,7 @@ public class SwingUIProject {
             }
         }
 
-        Iterator it = playPen.getRelationships().iterator();
+        Iterator it = session.getPlayPen().getRelationships().iterator();
         while (it.hasNext()) {
             Relationship r = (Relationship) it.next();
             ioo.println(out, "<table-link relationship-ref="+quote(objectIdMap.get(r.getModel()).toString())
@@ -1292,8 +1228,8 @@ public class SwingUIProject {
      */
     private void saveProfiles(PrintWriter out) {
         TableProfileManager profmgr;
-        if (getProfileManager() instanceof TableProfileManager) {
-            profmgr = (TableProfileManager) getProfileManager();
+        if (session.getProfileManager() instanceof TableProfileManager) {
+            profmgr = (TableProfileManager) session.getProfileManager();
         } else {
             throw new ArchitectRuntimeException(new ArchitectException("Session.getProfileManager should be a TableProfileManager"));
         }
@@ -1501,7 +1437,7 @@ public class SwingUIProject {
             // if the only child is an exception node, just save the parent as non-populated
             ioo.niprint(out, "populated=\"false\" ");
             skipChildren = true;
-        } else if ( (!savingEntireSource) && (!o.isPopulated()) ) {
+        } else if ( (!session.isSavingEntireSource()) && (!o.isPopulated()) ) {
             ioo.niprint(out, "populated=\"false\" ");
         } else {
             ioo.niprint(out, "populated=\"true\" ");
@@ -1515,7 +1451,7 @@ public class SwingUIProject {
                 ioo.niprint(out, key+"="+quote(value.toString())+" ");
             }
         }
-        if ( (!skipChildren) && o.allowsChildren() && (savingEntireSource || o.isPopulated()) ) {
+        if ( (!skipChildren) && o.allowsChildren() && (session.isSavingEntireSource() || o.isPopulated()) ) {
             ioo.niprintln(out, ">");
             Iterator children = o.getChildren().iterator();
             ioo.indent++;
@@ -1540,52 +1476,7 @@ public class SwingUIProject {
     }
     // ------------------- accessors and mutators ---------------------
 
-    /**
-     * Gets the value of name
-     *
-     * @return the value of name
-     */
-    public String getName()  {
-        return this.name;
-    }
-
-    /**
-     * Sets the value of name
-     *
-     * @param argName Value to assign to this.name
-     */
-    public void setName(String argName) {
-        this.name = argName;
-    }
-
-    /**
-     * Gets the value of sourceDatabases
-     *
-     * @return the value of sourceDatabases
-     */
-    public DBTree getSourceDatabases()  {
-        return this.sourceDatabases;
-    }
-
-    /**
-     * Sets the value of sourceDatabases
-     *
-     * @param argSourceDatabases Value to assign to this.sourceDatabases
-     */
-    public void setSourceDatabases(DBTree argSourceDatabases) {
-        this.sourceDatabases = argSourceDatabases;
-    }
-
-    public void setSourceDatabaseList(List databases) throws ArchitectException {
-        this.sourceDatabases.setModel(new DBTreeModel(databases,session));
-    }
-
-    /**
-     * Gets the target database in the playPen.
-     */
-    public SQLDatabase getTargetDatabase()  {
-        return playPen.getDatabase();
-    }
+  
 
     /**
      * Gets the value of file
@@ -1605,15 +1496,7 @@ public class SwingUIProject {
         this.file = argFile;
     }
 
-    /**
-     * Gets the value of playPen
-     *
-     * @return the value of playPen
-     */
-    public PlayPen getPlayPen()  {
-        return this.playPen;
-    }
-
+   
     /**
      * Adds all the tables in the given database into the playpen database.  This is really only
      * for loading projects, so please think twice about using it for other stuff.
@@ -1622,144 +1505,10 @@ public class SwingUIProject {
      * @throws ArchitectException If adding the tables of db fails
      */
     public void addAllTablesFrom(SQLDatabase db) throws ArchitectException {
-        SQLDatabase ppdb = playPen.getDatabase();
+        SQLDatabase ppdb = session.getPlayPen().getDatabase();
         for (SQLObject table : (List<SQLObject>) db.getChildren()) {
             ppdb.addChild(table);
         }
-    }
-
-    /**
-     * Sets the value of playPen
-     *
-     * @param argPlayPen Value to assign to this.playPen
-     */
-    public void setPlayPen(PlayPen argPlayPen) {
-        this.playPen = argPlayPen;
-        UserSettings sprefs = ArchitectFrame.getMainInstance().getSprefs();
-        if (sprefs != null) {
-            playPen.setRenderingAntialiased(sprefs.getBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
-        }
-        new ProjectModificationWatcher(playPen);
-    }
-
-    public GenericDDLGenerator getDDLGenerator() {
-        return ddlGenerator;
-    }
-
-    public void setDDLGenerator(GenericDDLGenerator generator) {
-        ddlGenerator = generator;
-    }
-
-    public CompareDMSettings getCompareDMSettings() {
-        return compareDMSettings;
-    }
-    public void setCompareDMSettings(CompareDMSettings compareDMSettings) {
-        this.compareDMSettings = compareDMSettings;
-    }
-
-    /**
-     * See {@link #savingEntireSource}.
-     *
-     * @return the value of savingEntireSource
-     */
-    public boolean isSavingEntireSource()  {
-        return this.savingEntireSource;
-    }
-
-    /**
-     * See {@link #savingEntireSource}.
-     *
-     * @param argSavingEntireSource Value to assign to this.savingEntireSource
-     */
-    public void setSavingEntireSource(boolean argSavingEntireSource) {
-        this.savingEntireSource = argSavingEntireSource;
-    }
-
-    public PLExport getPLExport() {
-        return plExport;
-    }
-
-    public void setPLExport(PLExport v) {
-        plExport = v;
-    }
-
-
-
-    /**
-     * The ProjectModificationWatcher watches a PlayPen's components and
-     * business model for changes.  When it detects any, it marks the
-     * project dirty.
-     *
-     * <p>Note: when we implement proper undo/redo support, this class should
-     * be replaced with a hook into that system.
-     */
-    private class ProjectModificationWatcher implements SQLObjectListener, PlayPenComponentListener {
-
-        /**
-         * Sets up a new modification watcher on the given playpen.
-         */
-        public ProjectModificationWatcher(PlayPen pp) {
-            try {
-                ArchitectUtils.listenToHierarchy(this, pp.getDatabase());
-            } catch (ArchitectException e) {
-                logger.error("Can't listen to business model for changes", e);
-            }
-            PlayPenContentPane ppcp = pp.contentPane;
-            ppcp.addPlayPenComponentListener(this);
-        }
-
-        /** Marks project dirty, and starts listening to new kids. */
-        public void dbChildrenInserted(SQLObjectEvent e) {
-            setModified(true);
-            SQLObject[] newKids = e.getChildren();
-            for (int i = 0; i < newKids.length; i++) {
-                try {
-                    ArchitectUtils.listenToHierarchy(this, newKids[i]);
-                } catch (ArchitectException e1) {
-                    logger.error("Couldn't listen to SQLObject hierarchy rooted at "+newKids[i], e1);
-                }
-            }
-        }
-
-        /** Marks project dirty, and stops listening to removed kids. */
-        public void dbChildrenRemoved(SQLObjectEvent e) {
-            setModified(true);
-            SQLObject[] oldKids = e.getChildren();
-            for (int i = 0; i < oldKids.length; i++) {
-                oldKids[i].removeSQLObjectListener(this);
-            }
-        }
-
-        /** Marks project dirty. */
-        public void dbObjectChanged(SQLObjectEvent e) {
-            setModified(true);
-        }
-
-        /** Marks project dirty and listens to new hierarchy. */
-        public void dbStructureChanged(SQLObjectEvent e) {
-            try {
-                ArchitectUtils.listenToHierarchy(this, e.getSQLSource());
-            } catch (ArchitectException e1) {
-                logger.error("dbStructureChanged listener: Failed to listen to new project hierarchy", e1);
-            }
-        }
-
-        public void componentMoved(PlayPenComponentEvent e) {
-
-        }
-
-        public void componentResized(PlayPenComponentEvent e) {
-            setModified(true);
-        }
-
-        public void componentMoveStart(PlayPenComponentEvent e) {
-            setModified(true);
-        }
-
-        public void componentMoveEnd(PlayPenComponentEvent e) {
-            setModified(true);
-        }
-
     }
 
     /**
@@ -1775,24 +1524,5 @@ public class SwingUIProject {
     public void setModified(boolean modified) {
         if (logger.isDebugEnabled()) logger.debug("Project modified: "+modified);
         this.modified = modified;
-    }
-
-    public UndoManager getUndoManager() {
-        return undoManager;
-    }
-
-    public ProfileManager getProfileManager() {
-        return session.getProfileManager();
-    }
-    public JDialog getProfileDialog() {
-        // Do the pack here in case this is the first time ever.
-        profileDialog.pack();
-        return profileDialog;
-    }
-    public CreateKettleJob getCreateKettleJob() {
-        return createKettleJob;
-    }
-    public void setCreateKettleJobSettings(CreateKettleJob createKettleJobSettings) {
-        this.createKettleJob = createKettleJobSettings;
     }
 }

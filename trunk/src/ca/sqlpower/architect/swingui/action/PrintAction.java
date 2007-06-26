@@ -2,50 +2,33 @@ package ca.sqlpower.architect.swingui.action;
 
 import java.awt.event.ActionEvent;
 
-import javax.swing.AbstractAction;
 import javax.swing.JDialog;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.swingui.ASUtils;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
-import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PrintPanel;
-import ca.sqlpower.architect.swingui.SwingUserSettings;
 
-public class PrintAction extends AbstractAction {
+public class PrintAction extends AbstractArchitectAction {
 	private static final Logger logger = Logger.getLogger(PrintAction.class);
 
-	/**
-	 * The PlayPen instance that this Action operates on.
-	 */
-	protected PlayPen pp;
-
-	public PrintAction() {
-		super("Print...",
-			  ASUtils.createIcon("printer",
-									"Print",
-									ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE)));
-		putValue(SHORT_DESCRIPTION, "Print");
+	public PrintAction(ArchitectSwingSession session) {
+		super(session, "Print...", "Print", "printer");
 	}
 
 	public void actionPerformed(ActionEvent evt) {
 		logger.debug(getValue(SHORT_DESCRIPTION) + ": started");
 		
-		final PrintPanel printPanel = new PrintPanel(pp);
+		final PrintPanel printPanel = new PrintPanel(session);
 		
 		final JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
 				printPanel, 
-				ArchitectFrame.getMainInstance(),
+				frame,
 				"Print", "Print");
 		
 		d.pack();
-		d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
+		d.setLocationRelativeTo(frame);
 		d.setVisible(true);
-	}
-	
-	public void setPlayPen(PlayPen pp) {
-		this.pp = pp;
 	}
 }

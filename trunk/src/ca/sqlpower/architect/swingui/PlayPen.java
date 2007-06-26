@@ -239,8 +239,14 @@ public class PlayPen extends JPanel
 
 	private boolean normalizing;
 
-	public PlayPen() {
-		zoom = 1.0;
+    /**
+     * The session that contains this playpen
+     */
+	private final ArchitectSwingSession session;
+    
+	public PlayPen(ArchitectSwingSession session) {
+		this.session = session;
+        zoom = 1.0;
 		setBackground(java.awt.Color.white);
 		contentPane = new PlayPenContentPane(this);
 		setName("Play Pen");
@@ -248,7 +254,7 @@ public class PlayPen extends JPanel
 		dt = new DropTarget(this, new PlayPenDropListener());
 		bringToFrontAction = new BringToFrontAction(this);
 		sendToBackAction = new SendToBackAction(this);
-		setupKeyboardActions();
+		//setupKeyboardActions(); //This may not work as the ArchitectFrame may not have been initialized yet
 		ppMouseListener = new PPMouseListener();
 		addMouseListener(ppMouseListener);
 		addMouseMotionListener(ppMouseListener);
@@ -266,10 +272,13 @@ public class PlayPen extends JPanel
 	 * play pen.  This was originally intended for use by the print preview panel, but it may end
 	 * up useful for other things too.
 	 *
+     * @param session The session that this new copy should live in.  If you specify a session other
+     * than the session that the given playpen lives in, it should still produce a usable copy, however
+     * be aware that the underlying SQLObjects will be shared between the two sessions.
 	 * @param pp The playpen to duplicate.
 	 */
-	public PlayPen(PlayPen pp) {
-		this();
+	public PlayPen(ArchitectSwingSession session, PlayPen pp) {
+		this(session);
 
 		for (int i = 0; i < pp.getContentPane().getComponentCount(); i++) {
 			PlayPenComponent ppc = pp.getContentPane().getComponent(i);
@@ -283,16 +292,14 @@ public class PlayPen extends JPanel
 			PlayPenComponent ppc = pp.getContentPane().getComponent(i);
 			if (ppc instanceof Relationship) {
 				Relationship rel = (Relationship) ppc;
-				TablePane pkTable = findTablePane(rel.getModel().getPkTable());
-				TablePane fkTable = findTablePane(rel.getModel().getFkTable());
-				addImpl(new Relationship(rel, contentPane, pkTable, fkTable), ppc.getPreferredLocation(), contentPane.getComponentCount());
+				addImpl(new Relationship(rel, contentPane), ppc.getPreferredLocation(), contentPane.getComponentCount());
 			}
 		}
 		setSize(getPreferredSize());
 	}
 
-	public PlayPen(SQLDatabase db) {
-		this();
+	public PlayPen(ArchitectSwingSession session, SQLDatabase db) {
+		this(session);
 		setDatabase(db);
 	}
 
@@ -352,32 +359,32 @@ public class PlayPen extends JPanel
      * action can figure out what the source of the Action was.
 	 */
 	void setupTablePanePopup() {
-		ArchitectFrame af = ArchitectFrame.getMainInstance();
+		ArchitectFrame af = session.getArchitectFrame();
 		tablePanePopup = new JPopupMenu();
 
 		JMenuItem mi;
         
         mi = new JMenuItem();
-        mi.setAction(af.insertIndexAction);
+        mi.setAction(af.getInsertIndexAction());
         mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
         tablePanePopup.add(mi);
 
         tablePanePopup.addSeparator();
         
 		mi = new JMenuItem();
-		mi.setAction(af.editColumnAction);
+		mi.setAction(af.getEditColumnAction());
 		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		tablePanePopup.add(mi);
 
 		mi = new JMenuItem();
-		mi.setAction(af.insertColumnAction);
+		mi.setAction(af.getInsertColumnAction());
 		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		tablePanePopup.add(mi);
 
 		tablePanePopup.addSeparator();
 
 		mi = new JMenuItem();
-		mi.setAction(af.editTableAction);
+		mi.setAction(af.getEditTableAction());
 		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		tablePanePopup.add(mi);
 
@@ -394,7 +401,7 @@ public class PlayPen extends JPanel
 		tablePanePopup.addSeparator();
 
 		mi = new JMenuItem();
-		mi.setAction(af.deleteSelectedAction);
+		mi.setAction(af.getDeleteSelectedAction());
 		mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 		tablePanePopup.add(mi);
 
@@ -433,25 +440,25 @@ public class PlayPen extends JPanel
 	}
 
 	void setupKeyboardActions() {
-		ArchitectFrame af = ArchitectFrame.getMainInstance();
+		ArchitectFrame af = session.getArchitectFrame();
 
 		InputMap inputMap = getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), KEY_DELETE_SELECTED);
-		getActionMap().put(KEY_DELETE_SELECTED, af.deleteSelectedAction);
-		if (af.deleteSelectedAction == null) logger.warn("af.deleteSelectedAction is null!");
+		getActionMap().put(KEY_DELETE_SELECTED, af.getDeleteSelectedAction());
+		if (af.getDeleteSelectedAction() == null) logger.warn("af.deleteSelectedAction is null!");
 
 		getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "CANCEL");
 		getActionMap().put("CANCEL", new CancelAction(this));
 
-		getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.createTableAction.getValue(Action.ACCELERATOR_KEY), "NEW TABLE");
-		getActionMap().put("NEW TABLE", af.createTableAction);
+		getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getCreateTableAction().getValue(Action.ACCELERATOR_KEY), "NEW TABLE");
+		getActionMap().put("NEW TABLE", af.getCreateTableAction());
 
-		getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.createIdentifyingRelationshipAction.getValue(Action.ACCELERATOR_KEY), "NEW IDENTIFYING RELATION");
-		getActionMap().put("NEW IDENTIFYING RELATION", af.createIdentifyingRelationshipAction);
+		getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getCreateIdentifyingRelationshipAction().getValue(Action.ACCELERATOR_KEY), "NEW IDENTIFYING RELATION");
+		getActionMap().put("NEW IDENTIFYING RELATION", af.getCreateIdentifyingRelationshipAction());
 
-		getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.createNonIdentifyingRelationshipAction.getValue(Action.ACCELERATOR_KEY), "NEW NON IDENTIFYING RELATION");
-		getActionMap().put("NEW NON IDENTIFYING RELATION", af.createNonIdentifyingRelationshipAction);
+		getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getCreateNonIdentifyingRelationshipAction().getValue(Action.ACCELERATOR_KEY), "NEW NON IDENTIFYING RELATION");
+		getActionMap().put("NEW NON IDENTIFYING RELATION", af.getCreateNonIdentifyingRelationshipAction());
 
 		final Object KEY_SELECT_UPWARD = "ca.sqlpower.architect.PlayPen.KEY_SELECT_UPWARD";
 		final Object KEY_SELECT_DOWNWARD = "ca.sqlpower.architect.PlayPen.KEY_SELECT_DOWNWARD";
@@ -505,7 +512,7 @@ public class PlayPen extends JPanel
 				ActionEvent ev = new ActionEvent(e.getSource(), e.getID(),
 								ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN,
 								e.getWhen(), e.getModifiers());
-				ArchitectFrame.mainInstance.editColumnAction.actionPerformed(ev);
+				session.getArchitectFrame().getEditColumnAction().actionPerformed(ev);
 			}
 		});
 	}
@@ -932,11 +939,11 @@ public class PlayPen extends JPanel
 
 	// ------------------- Right-click popup menu for playpen -----------------------
 	protected void setupPlayPenPopup() {
-		ArchitectFrame af = ArchitectFrame.getMainInstance();
+		ArchitectFrame af = session.getArchitectFrame();
 		playPenPopup = new JPopupMenu();
 
 		JMenuItem mi = new JMenuItem();
-		mi.setAction(af.createTableAction);
+		mi.setAction(af.getCreateTableAction());
 		playPenPopup.add(mi);
 
 		if (logger.isDebugEnabled()) {
@@ -967,7 +974,7 @@ public class PlayPen extends JPanel
 			mi.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
 			mi.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent evt) {
-						JOptionPane.showMessageDialog(PlayPen.this, new JScrollPane(new JTextArea(ArchitectFrame.getMainInstance().getProject().getUndoManager().printUndoVector())));
+						JOptionPane.showMessageDialog(PlayPen.this, new JScrollPane(new JTextArea(session.getUndoManager().printUndoVector())));
 					}
 				});
 			playPenPopup.add(mi);
@@ -1330,7 +1337,7 @@ public class PlayPen extends JPanel
 				}
 			}
 
-			ArchitectFrame.getMainInstance().getProject().getPlayPen().startCompoundEdit("Drag to Playpen");
+			session.getPlayPen().startCompoundEdit("Drag to Playpen");
 
 			try {
 
@@ -1395,7 +1402,7 @@ public class PlayPen extends JPanel
 			} finally {
 				finished = true;
 				hasStarted = false;
-				ArchitectFrame.getMainInstance().getProject().getPlayPen().endCompoundEdit("Ending multi-select");
+				session.getPlayPen().endCompoundEdit("Ending multi-select");
 			}
 		}
 
@@ -1737,7 +1744,7 @@ public class PlayPen extends JPanel
 	 * at the current mouse position.  Also retargets drops to the
 	 * TablePanes when necessary.
 	 */
-	public static class PlayPenDropListener implements DropTargetListener {
+	public class PlayPenDropListener implements DropTargetListener {
 
 		/**
 		 * When the user moves over a table pane, its drop target's
@@ -1823,7 +1830,7 @@ public class PlayPen extends JPanel
 					ArrayList paths = (ArrayList) t.getTransferData(importFlavor);
 					// turn into a Collection of SQLObjects to make this more generic
 					Iterator it = paths.iterator();
-					DBTree dbtree = ArchitectFrame.getMainInstance().dbTree;
+					DBTree dbtree = session.getSourceDatabases();
 					List sqlObjects = new ArrayList();
 					while(it.hasNext()) {
 						Object oo = dbtree.getNodeForDnDPath((int[])it.next());
@@ -1935,7 +1942,7 @@ public class PlayPen extends JPanel
 					return;
 
 				// ignore drag events if we're in the middle of a createRelationship
-				if (ArchitectFrame.getMainInstance().createRelationshipIsActive()) {
+				if (session.getArchitectFrame().createRelationshipIsActive()) {
 					logger.debug("CreateRelationship() is active, short circuiting DnD.");
 					return;
 				}
@@ -1963,7 +1970,7 @@ public class PlayPen extends JPanel
 						}
 
 						tp.draggingColumn = tp.getModel().getColumn(colIndex);
-						DBTree tree = ArchitectFrame.getMainInstance().dbTree;
+						DBTree tree = session.getSourceDatabases();
 						ArrayList paths = new ArrayList();
                         for (SQLColumn column: tp.getSelectedColumns()) {
 
@@ -2036,7 +2043,7 @@ public class PlayPen extends JPanel
 			if (c != null) p.translate(-c.getX(), -c.getY());
 			if ( c instanceof Relationship) {
 			    if (evt.getClickCount() == 2) {
-					ArchitectFrame.getMainInstance().editRelationshipAction.actionPerformed
+					session.getArchitectFrame().getEditRelationshipAction().actionPerformed
 					(new ActionEvent(evt.getSource(),
 							ActionEvent.ACTION_PERFORMED,
 							ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
@@ -2050,12 +2057,12 @@ public class PlayPen extends JPanel
 				        int selectedColIndex = tp.pointToColumnIndex(p);
 				        if (evt.getClickCount() == 2) { // double click
 				            if (tp.isSelected()) {
-				                ArchitectFrame af = ArchitectFrame.getMainInstance();
+				                ArchitectFrame af = session.getArchitectFrame();
 				                if (selectedColIndex == TablePane.COLUMN_INDEX_TITLE) {
-				                    af.editTableAction.actionPerformed
+				                    af.getEditTableAction().actionPerformed
 				                    (new ActionEvent(tp, ActionEvent.ACTION_PERFORMED, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
 				                } else if (selectedColIndex >= 0) {
-				                    af.editColumnAction.actionPerformed
+				                    af.getEditColumnAction().actionPerformed
 				                    (new ActionEvent(tp, ActionEvent.ACTION_PERFORMED, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
 				                }
 				            }
@@ -2167,7 +2174,7 @@ public class PlayPen extends JPanel
 
 
 
-					if (clickCol == TablePane.COLUMN_INDEX_TITLE && !ArchitectFrame.getMainInstance().createRelationshipIsActive()) {
+					if (clickCol == TablePane.COLUMN_INDEX_TITLE && !session.getArchitectFrame().createRelationshipIsActive()) {
 						Iterator it = pp.getSelectedTables().iterator();
 						logger.debug("event point: " + p);
 						logger.debug("zoomed event point: " + pp.zoomPoint(new Point(p)));
@@ -2331,12 +2338,12 @@ public class PlayPen extends JPanel
 		public void mouseWheelMoved(MouseWheelEvent e) {
 			if ( (e.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) != 0 ) {
 				if ( e.getWheelRotation() > 0 )
-					ArchitectFrame.getMainInstance().getZoomInAction().actionPerformed(null);
+					session.getArchitectFrame().getZoomInAction().actionPerformed(null);
 				else
-					ArchitectFrame.getMainInstance().getZoomOutAction().actionPerformed(null);
+					session.getArchitectFrame().getZoomOutAction().actionPerformed(null);
 			}
 			else {
-				MouseWheelListener[] ml = ArchitectFrame.getMainInstance().splitPane.getRightComponent().getMouseWheelListeners();
+				MouseWheelListener[] ml = session.getArchitectFrame().splitPane.getRightComponent().getMouseWheelListeners();
 				for ( MouseWheelListener m : ml )
 					m.mouseWheelMoved(e);
 			}
@@ -2578,5 +2585,9 @@ public class PlayPen extends JPanel
 	public static void setMouseMode(MouseModeType mouseMode) {
 		PlayPen.mouseMode = mouseMode;
 	}
+
+    public ArchitectSwingSession getSession() {
+        return session;
+    }
 
 }

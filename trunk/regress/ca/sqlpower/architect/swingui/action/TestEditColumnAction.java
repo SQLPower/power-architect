@@ -8,8 +8,10 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.Relationship;
+import ca.sqlpower.architect.swingui.TestingArchitectSwingSessionContext;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 
@@ -23,9 +25,10 @@ public class TestEditColumnAction extends TestCase {
 	
 	protected void setUp() throws Exception {
 		super.setUp();
-		editColumn = new EditColumnAction();
-		pp = new PlayPen();
-		editColumn.setPlayPen(pp);
+        TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
+        ArchitectSwingSession session = context.createSession();
+		editColumn = new EditColumnAction(session);
+		pp = new PlayPen(session);
 		tp = new TablePane(new SQLTable(pp.getDatabase(),true),pp);
 		tp.getModel().setName("Table1");
 		tp.getModel().addColumn(new SQLColumn(tp.getModel(),"col1",Types.INTEGER,1,1));

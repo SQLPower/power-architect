@@ -1,6 +1,7 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Color;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
@@ -46,10 +47,10 @@ public class CompareDMFrame extends JDialog {
     private String whatTheHeckIsGoingOn;
 	private JComponent panel;
 			
-	public CompareDMFrame(AbstractDocument sourceOutputText, AbstractDocument targetOutputText, 
+	public CompareDMFrame(Dialog owner, AbstractDocument sourceOutputText, AbstractDocument targetOutputText, 
 						String leftTitle, String rightTitle)
 	{
-		super(ArchitectFrame.getMainInstance());	
+		super(owner);	
 		
 		setTitle("Data Model comparison");
 		this.sourceOutputText = sourceOutputText;

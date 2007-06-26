@@ -18,9 +18,10 @@ public class TestPlayPen extends TestCase {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		af = ArchitectFrame.getMainInstance();
-		af.setProject(new SwingUIProject( "Undo Project"), false);
-		pp = af.getProject().getPlayPen();
+        TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
+        ArchitectSwingSession session = context.createSession("Undo Project");
+		af = session.getArchitectFrame();
+		pp = session.getPlayPen();
 		ppdb = pp.getDatabase();
 
 	}
