@@ -2,7 +2,6 @@ package ca.sqlpower.architect.swingui.action;
 
 import java.awt.event.ActionEvent;
 
-import javax.swing.AbstractAction;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.tree.TreePath;
@@ -13,36 +12,24 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.swingui.ASUtils;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.IndexEditPanel;
-import ca.sqlpower.architect.swingui.PlayPen;
-import ca.sqlpower.architect.swingui.SwingUserSettings;
 
-public class EditIndexAction extends AbstractAction {
+public class EditIndexAction extends AbstractArchitectAction {
     private static final Logger logger = Logger.getLogger(EditIndexAction.class);
-
-    /**
-     * The PlayPen instance that owns this Action.
-     */
-    protected PlayPen pp;
 
     /**
      * The DBTree instance that is associated with this Action.
      */
-    protected DBTree dbt; 
+    protected final DBTree dbt; 
 
     
-    public EditIndexAction() {
-        super("Index Properties...",
-                // FIXME: This is not a 16 by 16 icon. We need to replace or remove it.
-              ASUtils.createIcon("IndexProperties",
-                                 "Index Properties",
-                                 ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, 24)));
-        putValue(SHORT_DESCRIPTION, "Index Properties");
+    public EditIndexAction(ArchitectSwingSession session) {
+        super(session, "Index Properties...", "Index Properties", "IndexProperties");
+        dbt = frame.getDbTree();
     }
 
     public void actionPerformed(ActionEvent evt) {
@@ -76,21 +63,13 @@ public class EditIndexAction extends AbstractAction {
     
     private void makeDialog(SQLIndex index) throws ArchitectException {
         final JDialog d;
-        final IndexEditPanel editPanel = new IndexEditPanel(index);
+        final IndexEditPanel editPanel = new IndexEditPanel(index, session);
   
         d = ArchitectPanelBuilder.createArchitectPanelDialog(
-                editPanel, ArchitectFrame.getMainInstance(),
+                editPanel, frame,
                 "Index Properties", "OK");
         d.pack();
-        d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
+        d.setLocationRelativeTo(frame);
         d.setVisible(true);
-    }
-
-    public void setPlayPen(PlayPen pp) {
-        this.pp = pp;
-    }
-
-    public void setDBTree(DBTree newDBT) {
-        this.dbt = newDBT;
     }
 }

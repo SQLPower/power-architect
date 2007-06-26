@@ -45,9 +45,9 @@ public class RelationshipEditPanel extends JPanel
 	protected JRadioButton fkTypeOneToMany;
 	protected JRadioButton fkTypeZeroOne;
 
-	public RelationshipEditPanel() {
+	public RelationshipEditPanel(ArchitectSwingSession session) {
 		super(new BorderLayout());
-		addUndoEventListener(ArchitectFrame.getMainInstance().getUndoManager().getEventAdapter());
+		addUndoEventListener(session.getArchitectFrame().getUndoManager().getEventAdapter());
 		JPanel topPanel = new JPanel(new FormLayout());
 		topPanel.add(new JLabel("Relationship Name"));
 		topPanel.add(relationshipName = new JTextField());

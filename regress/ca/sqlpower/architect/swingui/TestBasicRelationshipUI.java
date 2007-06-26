@@ -15,7 +15,9 @@ public class TestBasicRelationshipUI extends TestCase {
 	
 	protected void setUp() throws Exception {
 		super.setUp();
-		pp = ArchitectFrame.getMainInstance().getProject().getPlayPen();
+        TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
+        ArchitectSwingSession session = context.createSession();
+		pp = session.getPlayPen();
 		SQLTable t1 = new SQLTable(pp.getDatabase(), true);
 		pp.getDatabase().addChild(t1);
 		TablePane tp1 =new TablePane(t1, pp);

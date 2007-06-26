@@ -5,7 +5,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
-import javax.swing.AbstractAction;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
@@ -14,24 +13,21 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.ASUtils;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.Selectable;
-import ca.sqlpower.architect.swingui.SwingUserSettings;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.PlayPen.CancelableListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 
-public class CreateRelationshipAction extends AbstractAction
+public class CreateRelationshipAction extends AbstractArchitectAction
 	implements ActionListener, SelectionListener, CancelableListener {
 
 	private static final Logger logger = Logger.getLogger(CreateRelationshipAction.class);
 
 	protected boolean identifying;
-	protected PlayPen pp;
 	protected TablePane pkTable;
 	protected TablePane fkTable;
 
@@ -43,33 +39,38 @@ public class CreateRelationshipAction extends AbstractAction
 	 */
 	protected boolean active;
 
-	public CreateRelationshipAction(boolean identifying) {
-		super(identifying ? "New Identifying Relationship" : "New Non-Identifying Relationship",
-			  ASUtils.createIcon
-			  (identifying ? "new_id_relationship" : "new_nonid_relationship",
-			   "New Relationship",
-			   ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE)));
+	public CreateRelationshipAction(ArchitectSwingSession session, boolean identifying) {
+        super(session, 
+              identifying ? "New Identifying Relationship" : "New Non-Identifying Relationship",
+              identifying ? "New Identifying Relationship": "New Non-Identifying Relationship",
+              identifying ? "new_id_relationship" : "new_nonid_relationship");
+        
 		if (identifying) {
-			putValue(SHORT_DESCRIPTION, "New Identifying Relationship");
 			putValue(ACCELERATOR_KEY,KeyStroke.getKeyStroke(KeyEvent.VK_R,0));
 		} else {
-			putValue(SHORT_DESCRIPTION, "New Non-Identifying Relationship");
 			putValue(ACCELERATOR_KEY,KeyStroke.getKeyStroke(KeyEvent.VK_R,KeyEvent.SHIFT_MASK));
 		}
 		this.identifying = identifying;
-		setEnabled(false);
 		logger.debug("(constructor) hashcode is: " + super.hashCode());
+        
+        if (this.playpen != null) {
+            this.playpen.addSelectionListener(this);
+            this.playpen.addCancelableListener(this);
+            setEnabled(true);
+        } else {
+            setEnabled(false);
+        }
 	}
 
 	public void actionPerformed(ActionEvent evt) {
-		pp.fireCancel();
+		playpen.fireCancel();
 		pkTable = null;
 		fkTable = null;
 		logger.debug("Starting to create relationship, setting active to TRUE!");
 		active = true;
-		pp.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+		playpen.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 		// gets over the "can't select a selected item"
-		pp.selectNone();
+		playpen.selectNone();
 	}
 
 	static public void doCreateRelationship(SQLTable pkTable, SQLTable fkTable, PlayPen pp, boolean identifying) {
@@ -94,23 +95,6 @@ public class CreateRelationshipAction extends AbstractAction
 			pp.endCompoundEdit("Ending the creation of a relationship");
 		}
 	}
-	
-	
-	
-	public void setPlayPen(PlayPen playpen) {
-		if (pp != null) {
-			pp.removeSelectionListener(this);
-			pp.removeCancelableListener(this);
-		}
-		pp = playpen;
-		if (pp != null) {
-			pp.addSelectionListener(this);
-			pp.addCancelableListener(this);
-			setEnabled(true);
-		} else {
-			setEnabled(false);
-		}
-	}
 
 	// -------------------- SELECTION EVENTS --------------------
 	
@@ -131,7 +115,7 @@ public class CreateRelationshipAction extends AbstractAction
 				fkTable = (TablePane) s;
 				logger.debug("Creating relationship: FK Table is "+fkTable);
 				try {
-					doCreateRelationship(pkTable.getModel(),fkTable.getModel(),pp,identifying);  // this might fail, but still set things back to "normal"
+					doCreateRelationship(pkTable.getModel(),fkTable.getModel(),playpen,identifying);  // this might fail, but still set things back to "normal"
 				} finally {
 					resetAction();
 				}
@@ -145,7 +129,7 @@ public class CreateRelationshipAction extends AbstractAction
 	private void resetAction() {
 		pkTable = null;
 		fkTable = null;
-		pp.setCursor(null);
+		playpen.setCursor(null);
 		active = false;
 	}
 

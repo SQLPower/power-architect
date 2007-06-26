@@ -16,7 +16,6 @@ import ca.sqlpower.architect.PlDotIni;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
 
 /**
  * Synthetic base class for various tests on profiling.
@@ -24,9 +23,15 @@ import ca.sqlpower.architect.swingui.ArchitectFrame;
  */
 public abstract class TestProfileBase extends TestCase {
 
-    static {
-        ArchitectFrame.getMainInstance();  // creates an ArchitectFrame, which loads settings
-    }
+//    static {
+//        TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
+//        try {
+//            context.createSession();
+//        } catch (ArchitectException e) {
+//            e.printStackTrace();
+//        }
+//        //ArchitectFrame.getMainInstance();  // creates an ArchitectFrame, which loads settings
+//    }
 
     SQLDatabase mydb;
     TableProfileManager pm;

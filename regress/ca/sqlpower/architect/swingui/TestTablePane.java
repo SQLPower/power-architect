@@ -18,10 +18,13 @@ public class TestTablePane extends TestCase {
 	private SQLTable t;
 	private TablePane tp;
 	private PlayPen pp;
+	ArchitectSwingSession session;
 	
 	protected void setUp() throws Exception {
 		super.setUp();
-		t = new SQLTable(ArchitectFrame.getMainInstance().getProject().getTargetDatabase(), true);
+        TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
+        session = context.createSession();
+		t = new SQLTable(session.getPlayPen().getDatabase(), true);
 		t.setName("Test Table");
 		SQLColumn pk1 = new SQLColumn(t, "PKColumn1", Types.INTEGER, 10,0);
 		SQLColumn pk2 = new SQLColumn(t, "PKColumn2", Types.INTEGER, 10,0);
@@ -36,8 +39,8 @@ public class TestTablePane extends TestCase {
 		t.addColumn(3,at1);
 		t.addColumn(4,at2);
 		t.addColumn(5,at3);
-		
-		pp = ArchitectFrame.getMainInstance().getProject().getPlayPen();
+        
+		pp = session.getPlayPen();
 		tp = new TablePane(t, pp);
 		
 		pk1.setPrimaryKeySeq(1);
@@ -144,7 +147,7 @@ public class TestTablePane extends TestCase {
 				}
 			}
 			public MySQLTable(String name) throws ArchitectException {
-				super(ArchitectFrame.getMainInstance().getProject().getTargetDatabase(), true);
+				super(session.getPlayPen().getDatabase(), true);
 				setName(name);
 				children.set(0, new MyFolder());
 				columnsFolder = (Folder) children.get(0);

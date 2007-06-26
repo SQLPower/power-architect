@@ -9,7 +9,9 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.TestingArchitectSwingSessionContext;
 import ca.sqlpower.architect.swingui.TablePane;
 
 public class TestCreateRelationshipAction extends TestCase {
@@ -21,7 +23,9 @@ public class TestCreateRelationshipAction extends TestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		SQLDatabase db = new SQLDatabase();
-		pp = new PlayPen();
+        TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
+        ArchitectSwingSession session = context.createSession();
+		pp = new PlayPen(session);
 		fkTable = new SQLTable(db,true);
 		TablePane tp = new TablePane(fkTable,pp);
 		pp.addTablePane(tp,new Point(1,1));

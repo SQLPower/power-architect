@@ -2,6 +2,7 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.Color;
 import java.awt.Point;
+import java.io.IOException;
 import java.sql.Types;
 
 import junit.framework.TestCase;
@@ -21,7 +22,9 @@ public class TestRelationship extends TestCase {
 	
 	protected void setUp() throws Exception {
 		super.setUp();
-		pp = ArchitectFrame.getMainInstance().getProject().getPlayPen();
+        TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
+        ArchitectSwingSession session = context.createSession();
+		pp = session.getPlayPen();
 		SQLTable t1 = new SQLTable(pp.getDatabase(), true);
         t1.addColumn(new SQLColumn(t1, "pkcol_1", Types.INTEGER, 10,0));
         t1.addColumn(new SQLColumn(t1, "fkcol_1", Types.INTEGER, 10,0));
@@ -42,9 +45,11 @@ public class TestRelationship extends TestCase {
 		rel = new Relationship(pp, sqlrel);
 	}
 	
-	public void testCopyConstructor() {
-		PlayPen newpp = new PlayPen(pp.getDatabase());
-		Relationship rel2 = new Relationship(rel, newpp.getContentPane(), null, null);
+	public void testCopyConstructor() throws ArchitectException, IOException {
+        TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
+        ArchitectSwingSession session = context.createSession();
+		PlayPen newpp = new PlayPen(session, pp.getDatabase());
+		Relationship rel2 = new Relationship(rel, newpp.getContentPane());
 		assertNotSame("The new relationship component has the same UI delegate as the original", rel.getUI(), rel2.getUI());
 	}
 

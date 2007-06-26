@@ -6,34 +6,28 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Iterator;
 
-import javax.swing.AbstractAction;
-
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.swingui.ASUtils;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
-import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
-import ca.sqlpower.architect.swingui.SwingUserSettings;
 
 
-public class ZoomAction extends AbstractAction implements PropertyChangeListener {
+public class ZoomAction extends AbstractArchitectAction implements PropertyChangeListener {
 	private static final Logger logger = Logger.getLogger(ZoomAction.class);
 
-	protected PlayPen playpen;
 	protected double zoomStep;
 
 	public static final String ZOOM_IN = "ca.sqlpower.architect.swingui.ZoomAction.ZOOM_IN";
 	public static final String ZOOM_OUT = "ca.sqlpower.architect.swingui.ZoomAction.ZOOM_OUT";
 	public static final String ZOOM_ALL = "ca.sqlpower.architect.swingui.ZoomAction.ZOOM_ALL";
 
-	public ZoomAction(double amount) {
-		super(amount > 0.0 ? "Zoom In" : "Zoom Out",
-			  ASUtils.createIcon(amount > 0.0 ? "zoom_in" : "zoom_out",
-									amount > 0.0 ? "Zoom In" : "Zoom Out",
-									ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE)));
-		putValue(AbstractAction.SHORT_DESCRIPTION, amount > 0.0 ? "Zoom In" : "Zoom Out");
+	public ZoomAction(ArchitectSwingSession session, double amount) {
+        super(session,
+              amount > 0.0 ? "Zoom In" : "Zoom Out",
+              amount > 0.0 ? "Zoom In" : "Zoom Out",
+              amount > 0.0 ? "zoom_in" : "zoom_out");        
 		this.zoomStep = amount;
+        playpen.addPropertyChangeListener(this);
 	}
 		
 	public void actionPerformed(ActionEvent e) {
@@ -59,14 +53,6 @@ public class ZoomAction extends AbstractAction implements PropertyChangeListener
 			playpen.zoomRect(scrollTo);
 			playpen.scrollRectToVisible(scrollTo);
 		}
-	}
-
-	public void setPlayPen(PlayPen pp) {
-		if (playpen != null) {
-			playpen.removePropertyChangeListener(this);
-		}
-		playpen = pp;
-		playpen.addPropertyChangeListener(this);
 	}
 
 	public void propertyChange(PropertyChangeEvent e) {

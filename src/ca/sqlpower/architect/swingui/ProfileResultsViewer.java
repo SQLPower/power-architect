@@ -13,6 +13,7 @@ import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -56,12 +57,11 @@ public class ProfileResultsViewer {
     private final Collection<TableProfileResult> results;
 
     /**
-     * The dialog all the viewer stuff lives in.  Gets disposed automatically
+     * The frame all the viewer stuff lives in.  Gets disposed automatically
      * when (and if) all the profiles this component is displaying are removed
      * from the profile manager.
      */
-    private final JDialog dialog  = 
-        new JDialog(ArchitectFrame.getMainInstance(), "Table Profiles");
+    private final JFrame frame;
     
     private final ProfileTableModel tm;
     
@@ -100,7 +100,7 @@ public class ProfileResultsViewer {
             }
             
             // we made it this far, so none of our profiles are in the manager anymore
-            dialog.dispose();
+            frame.dispose();
         }
     };
 
@@ -152,6 +152,8 @@ public class ProfileResultsViewer {
     public ProfileResultsViewer(TableProfileManager profileManager) {
         this.profileManager = profileManager;
         this.results = new ArrayList<TableProfileResult>();
+        this.frame = new JFrame("Table Profiles");
+        frame.setIconImage(ASUtils.getFrameIconImage());
         
         JTabbedPane tabPane = new JTabbedPane();
 
@@ -213,24 +215,24 @@ public class ProfileResultsViewer {
             p.getColumnSelector().setSelectedValue(col,true);
         }
  
-        dialog.add(tabPane, BorderLayout.CENTER);
+        frame.add(tabPane, BorderLayout.CENTER);
         
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton save = new JButton(
-                new SaveProfileAction(dialog, viewTable, profileManager));
+                new SaveProfileAction(frame, viewTable));
         bottomPanel.add(save);
         JButton closeButton = new JButton("Close");
         bottomPanel.add(closeButton);
-        dialog.add(bottomPanel,BorderLayout.SOUTH);
-        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        frame.add(bottomPanel,BorderLayout.SOUTH);
+        frame.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         closeButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                dialog.dispose(); 
+                frame.dispose(); 
             }
         });
-        dialog.pack();
-        dialog.setLocationRelativeTo(ArchitectFrame.getMainInstance());
-        ASUtils.makeJDialogCancellable(dialog, null);
+        frame.pack();
+        frame.setLocationRelativeTo(null);
+        ASUtils.makeJDialogCancellable(frame, null);
     }
     
     public void addTableProfileResult(TableProfileResult result) {
@@ -250,8 +252,8 @@ public class ProfileResultsViewer {
         tm.clearScanList();
     }
 
-    public JDialog getDialog() {
-        return dialog;
+    public JFrame getDialog() {
+        return frame;
     }
 
 }

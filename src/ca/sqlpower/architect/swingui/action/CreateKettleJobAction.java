@@ -25,29 +25,25 @@ import ca.sqlpower.architect.etl.kettle.CreateKettleJob;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ArchitectSwingWorker;
 import ca.sqlpower.architect.swingui.CreateKettleJobPanel;
 import ca.sqlpower.architect.swingui.ProgressWatcher;
 import ca.sqlpower.architect.swingui.PromptingFileValidator;
-import ca.sqlpower.architect.swingui.SwingUserSettings;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class CreateKettleJobAction extends AbstractAction {
+public class CreateKettleJobAction extends AbstractArchitectAction {
 
     private static final Logger logger = Logger.getLogger(CreateKettleJobAction.class);
     
     private ArchitectFrame architectFrame;
     
-    public CreateKettleJobAction() {
-        super("Create Kettle Job...",
-              ASUtils.createIcon(""
-                                 , "Create a new Kettle job"
-                                 , ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE
-                                 , ArchitectFrame.DEFAULT_ICON_SIZE)));
-        architectFrame = ArchitectFrame.getMainInstance();
+    public CreateKettleJobAction(ArchitectSwingSession session) {
+        super(session, "Create Kettle Job...", "Create a new Kettle job");
+        architectFrame = session.getArchitectFrame();
         putValue(SHORT_DESCRIPTION, "Create a Kettle Job");
     }
     
@@ -56,7 +52,7 @@ public class CreateKettleJobAction extends AbstractAction {
         JDialog d;
         final JPanel cp = new JPanel(new BorderLayout(12,12));
         cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
-        final CreateKettleJobPanel kettleETLPanel = new CreateKettleJobPanel(architectFrame.getProject());
+        final CreateKettleJobPanel kettleETLPanel = new CreateKettleJobPanel(session);
 
         Action okAction, cancelAction;
         okAction = new AbstractAction() {
@@ -66,7 +62,7 @@ public class CreateKettleJobAction extends AbstractAction {
                     return;
                 }
                 FileValidator validator = new PromptingFileValidator(architectFrame);
-                final CreateKettleJob kettleJob = architectFrame.getProject().getCreateKettleJob();
+                final CreateKettleJob kettleJob = session.getCreateKettleJob();
                 kettleJob.setFileValidator(validator);
                 
                 final JDialog createKettleJobMonitor = new JDialog(architectFrame);
@@ -95,8 +91,8 @@ public class CreateKettleJobAction extends AbstractAction {
                         createKettleJobMonitor.pack();
                         createKettleJobMonitor.setLocationRelativeTo(architectFrame);
                         createKettleJobMonitor.setVisible(true);
-                        List<SQLTable> tableList = architectFrame.getProject().getPlayPen().getTables();
-                        kettleJob.doExport(tableList, architectFrame.getProject().getPlayPen().getDatabase());
+                        List<SQLTable> tableList = session.getPlayPen().getTables();
+                        kettleJob.doExport(tableList, session.getPlayPen().getDatabase());
                     }
 
                     @Override
@@ -162,11 +158,11 @@ public class CreateKettleJobAction extends AbstractAction {
         
         d = ArchitectPanelBuilder.createArchitectPanelDialog(
                 kettleETLPanel,
-                ArchitectFrame.getMainInstance(),
+                session.getArchitectFrame(),
                 "Create a Kettle Job", "OK",
                 okAction, cancelAction);
         d.pack();
-        d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
+        d.setLocationRelativeTo(session.getArchitectFrame());
         d.setVisible(true);
     }
 }

@@ -23,6 +23,9 @@ import ca.sqlpower.architect.SQLObject;
 
 public class TestCompareDMPanel extends JFCTestCase {
 
+    TestingArchitectSwingSessionContext context;
+    ArchitectSwingSession session;
+    
 	CompareDMPanel panel;
 	Robot robot;
 
@@ -46,13 +49,15 @@ public class TestCompareDMPanel extends JFCTestCase {
 	JRadioButton targetLoadRadio = null;
 	JTextField targetLoadFilePath = null;
 	JButton targetLoadFileButton = null;
-    DataSourceCollection plDotIni = ArchitectFrame.getMainInstance().getUserSettings().getPlDotIni();
+    DataSourceCollection plDotIni;
 
 	protected void setUp() throws Exception {
 		super.setUp();
-
+        context = new TestingArchitectSwingSessionContext();
+        plDotIni = context.getUserSettings().getPlDotIni();
+        session = context.createSession();
 		setHelper(new JFCTestHelper());
-		panel = new CompareDMPanel(new SwingUIProject("test"), ArchitectFrame.getMainInstance().getArchitectSession());
+		panel = new CompareDMPanel(session);
 		robot = new Robot();
 
 		Component comps[] = ((Container) panel.getComponent(0)).getComponents();

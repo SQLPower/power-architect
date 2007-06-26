@@ -1,6 +1,7 @@
 package ca.sqlpower.architect.undo;
 
 import java.awt.Point;
+import java.io.IOException;
 
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -9,7 +10,9 @@ import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.TestingArchitectSwingSessionContext;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 
@@ -24,6 +27,8 @@ public class TestSQLObjectUndoableEventAdapter extends TestCase {
         }
     }
 
+    ArchitectSwingSession session;
+    
     @Override
 	protected void setUp() throws Exception {
 		super.setUp();
@@ -36,9 +41,10 @@ public class TestSQLObjectUndoableEventAdapter extends TestCase {
 		eAdapter.dbChildrenInserted(new SQLObjectEvent(new SQLTable(),index,children));			
 	}*/
 	
-	public void testMove() throws ArchitectException
-	{
-		PlayPen pp = new PlayPen(new SQLDatabase());
+	public void testMove() throws ArchitectException, IOException {
+        TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
+        session = context.createSession();
+		PlayPen pp = new PlayPen(session, new SQLDatabase());
 		SQLTable table = new SQLTable(pp.getDatabase(),true);
 		TablePane tp = new TablePane(table,pp);
 		pp.addTablePane(tp, new Point());
@@ -63,7 +69,7 @@ public class TestSQLObjectUndoableEventAdapter extends TestCase {
 	public void testMultiMove() throws ArchitectException 
 	{
 		SQLDatabase db = new SQLDatabase();
-		PlayPen pp = new PlayPen(db);
+		PlayPen pp = new PlayPen(session, db);
 		SQLTable table = new SQLTable(db,true);
 		TablePane tp = new TablePane(table,pp);
 		SQLTable table2 = new SQLTable(db,true);
@@ -102,7 +108,7 @@ public class TestSQLObjectUndoableEventAdapter extends TestCase {
     
     public void testCompoundEditEvent() throws ArchitectException{
         SQLDatabase db = new SQLDatabase();
-        PlayPen pp = new PlayPen(db);
+        PlayPen pp = new PlayPen(session, db);
         UndoManager manager = new UndoManager(pp);
         StateChangeTestListner listner = new StateChangeTestListner();
         manager.addChangeListener(listner);

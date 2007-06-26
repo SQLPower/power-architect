@@ -35,20 +35,20 @@ import ca.sqlpower.architect.profile.TableProfileManager;
  * @version $Id$
  */
 public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
-	public static final ImageIcon dbIcon = ASUtils.createIcon("Database", "SQL Database", ArchitectFrame.DEFAULT_ICON_SIZE);
-    public static final ImageIcon dbProfiledIcon = ASUtils.createIcon("Database_profiled", "SQL Database", ArchitectFrame.DEFAULT_ICON_SIZE);
-	public static final ImageIcon targetIcon = ASUtils.createIcon("Database_target", "SQL Database", ArchitectFrame.DEFAULT_ICON_SIZE);
-	public static final ImageIcon cataIcon = ASUtils.createIcon("Catalog", "SQL Catalog", ArchitectFrame.DEFAULT_ICON_SIZE);
-	public static final ImageIcon schemaIcon = ASUtils.createIcon("Schema", "SQL Schema", ArchitectFrame.DEFAULT_ICON_SIZE);
-	public static final ImageIcon tableIcon = ASUtils.createIcon("Table", "SQL Table", ArchitectFrame.DEFAULT_ICON_SIZE);
-    public static final ImageIcon tableProfiledIcon = ASUtils.createIcon("Table_profiled", "SQL Table", ArchitectFrame.DEFAULT_ICON_SIZE);
-	public static final ImageIcon exportedKeyIcon = ASUtils.createIcon("ExportedKey", "Exported key", ArchitectFrame.DEFAULT_ICON_SIZE);
-    public static final ImageIcon importedKeyIcon = ASUtils.createIcon("ImportedKey", "Imported key", ArchitectFrame.DEFAULT_ICON_SIZE);
-	public static final ImageIcon ownerIcon = ASUtils.createIcon("Owner", "Owner", ArchitectFrame.DEFAULT_ICON_SIZE);
-    public static final ImageIcon indexIcon = ASUtils.createIcon("Index", "Index", ArchitectFrame.DEFAULT_ICON_SIZE);
-    public static final ImageIcon pkIndexIcon = ASUtils.createIcon("Index_key", "Primary Key Index", ArchitectFrame.DEFAULT_ICON_SIZE);
-    public static final ImageIcon uniqueIndexIcon = ASUtils.createIcon("Index_unique", "Unique Index", ArchitectFrame.DEFAULT_ICON_SIZE);
-    public static final ImageIcon columnIcon = ASUtils.createIcon("Column", "Column", ArchitectFrame.DEFAULT_ICON_SIZE);
+	public static final ImageIcon dbIcon = ASUtils.createIcon("Database", "SQL Database", ArchitectSwingSessionContext.ICON_SIZE);
+    public static final ImageIcon dbProfiledIcon = ASUtils.createIcon("Database_profiled", "SQL Database", ArchitectSwingSessionContext.ICON_SIZE);
+	public static final ImageIcon targetIcon = ASUtils.createIcon("Database_target", "SQL Database", ArchitectSwingSessionContext.ICON_SIZE);
+	public static final ImageIcon cataIcon = ASUtils.createIcon("Catalog", "SQL Catalog", ArchitectSwingSessionContext.ICON_SIZE);
+	public static final ImageIcon schemaIcon = ASUtils.createIcon("Schema", "SQL Schema", ArchitectSwingSessionContext.ICON_SIZE);
+	public static final ImageIcon tableIcon = ASUtils.createIcon("Table", "SQL Table", ArchitectSwingSessionContext.ICON_SIZE);
+    public static final ImageIcon tableProfiledIcon = ASUtils.createIcon("Table_profiled", "SQL Table", ArchitectSwingSessionContext.ICON_SIZE);
+	public static final ImageIcon exportedKeyIcon = ASUtils.createIcon("ExportedKey", "Exported key", ArchitectSwingSessionContext.ICON_SIZE);
+    public static final ImageIcon importedKeyIcon = ASUtils.createIcon("ImportedKey", "Imported key", ArchitectSwingSessionContext.ICON_SIZE);
+	public static final ImageIcon ownerIcon = ASUtils.createIcon("Owner", "Owner", ArchitectSwingSessionContext.ICON_SIZE);
+    public static final ImageIcon indexIcon = ASUtils.createIcon("Index", "Index", ArchitectSwingSessionContext.ICON_SIZE);
+    public static final ImageIcon pkIndexIcon = ASUtils.createIcon("Index_key", "Primary Key Index", ArchitectSwingSessionContext.ICON_SIZE);
+    public static final ImageIcon uniqueIndexIcon = ASUtils.createIcon("Index_unique", "Unique Index", ArchitectSwingSessionContext.ICON_SIZE);
+    public static final ImageIcon columnIcon = ASUtils.createIcon("Column", "Column", ArchitectSwingSessionContext.ICON_SIZE);
     private final ArchitectSession session;
    
     

@@ -12,14 +12,14 @@ public class ProjectSettingsPanel extends JPanel implements ArchitectPanel {
 	/**
 	 * The project whose settings we're editting.
 	 */
-	private SwingUIProject proj;
+	private ArchitectSwingSession session;
 
 	private JCheckBox saveEntireSource;
     private JCheckBox clearProfile;
     private JTextField numberOfFreqValue;
 
-	public ProjectSettingsPanel(SwingUIProject proj) {
-		this.proj = proj;
+	public ProjectSettingsPanel(ArchitectSwingSession session) {
+		this.session = session;
 		setup();
 		revertToProjectSettings();
 	}
@@ -35,29 +35,29 @@ public class ProjectSettingsPanel extends JPanel implements ArchitectPanel {
                "Warning: this only removes current profiles");
 
         add(new JLabel("Number of Most Frequent Value in Profile:"));
-        add( numberOfFreqValue=new JTextField(String.valueOf(proj.getProfileManager().getProfileSettings().getTopNCount()),6));
+        add( numberOfFreqValue=new JTextField(String.valueOf(session.getProfileManager().getProfileSettings().getTopNCount()),6));
 	}
 
 	protected void revertToProjectSettings() {
         logger.debug("Reverting project options");
-		saveEntireSource.setSelected(proj.isSavingEntireSource());
+		saveEntireSource.setSelected(session.isSavingEntireSource());
 	}
 
 	public boolean applyChanges() {
         logger.debug("Setting snapshot option to:"+saveEntireSource.isSelected());
-		proj.setSavingEntireSource(saveEntireSource.isSelected());
-        logger.debug("Project "+proj.getName() +" snapshot option is:"+proj.isSavingEntireSource());
+		session.setSavingEntireSource(saveEntireSource.isSelected());
+        logger.debug("Project "+session.getName() +" snapshot option is:"+session.isSavingEntireSource());
 
         // This is a mistake! This is an action, not a project setting.
         // It should be changed to a setting, and the Save code changed
         // to honor it.
         if ( clearProfile.isSelected() ) {
-            proj.getProfileManager().clear();
+            session.getProfileManager().clear();
         }
 
         if ( numberOfFreqValue.getText().length() > 0 ) {
             try {
-                proj.getProfileManager().getProfileSettings().setTopNCount(Integer.valueOf(numberOfFreqValue.getText()));
+                session.getProfileManager().getProfileSettings().setTopNCount(Integer.valueOf(numberOfFreqValue.getText()));
             } catch ( NumberFormatException e ) {
                 ASUtils.showExceptionDialogNoReport(this,
                         "Number Format Error", e);

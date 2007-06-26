@@ -1,10 +1,12 @@
-package ca.sqlpower.architect.swingui;
+    package ca.sqlpower.architect.swingui;
 
 import java.awt.Dimension;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -12,7 +14,9 @@ import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -39,34 +43,43 @@ public class CreateKettleJobPanel implements ArchitectPanel {
     private JComboBox defaultJoinType;
     private JLabel transformationPath;
     private JLabel transformationPath2;
+    private JRadioButton saveFileRadioButton;
+    private JRadioButton saveReposRadioButton;
+    private ButtonGroup saveByButtonGroup;
+    private JButton reposPropertiesButton;
     
-    private SwingUIProject project;
+    private final SwingUIProject project;
+    private final ArchitectSwingSession session;
     private File parentFile = new File("");
     
-    public CreateKettleJobPanel(SwingUIProject project) {
-        this.project = project;
+    public CreateKettleJobPanel(ArchitectSwingSession session) {
+        this.project = session.getProject();
+        this.session = session;
         buildUI();
         panel.setVisible(true);
     }
     
     private void buildUI(){
         
-        CreateKettleJob settings = project.getCreateKettleJob();
+        CreateKettleJob settings = session.getCreateKettleJob();
         panel.setLayout(new FormLayout());
-        panel.setPreferredSize(new Dimension(450,200));
+        panel.setPreferredSize(new Dimension(450,300));
         
         nameField = new JTextField(settings.getJobName());
         databaseComboBox = new JComboBox();
-        ASUtils.setupTargetDBComboBox(project, databaseComboBox);
+        ASUtils.setupTargetDBComboBox(session, databaseComboBox);
         newDatabaseButton = new JButton();
         newDatabaseButton.setText("Properties...");
         newDatabaseButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                ASUtils.showDbcsDialog(project, databaseComboBox);
+                Window parentWindow = SwingUtilities.getWindowAncestor(panel);
+                ASUtils.showDbcsDialog(parentWindow, session, databaseComboBox);
             }
         });
         
         schemaName = new JTextField(settings.getSchemaName());
+        
+        saveFileRadioButton = new JRadioButton("Save Job to File", true);
         
         filePath = new JTextField(settings.getFilePath());
         filePath.getDocument().addDocumentListener(new DocumentListener(){
@@ -113,6 +126,23 @@ public class CreateKettleJobPanel implements ArchitectPanel {
             transformationPath2 = new JLabel("     " + settings.getParentFile().getPath());
             parentFile = settings.getParentFile();
         }
+        
+        saveReposRadioButton = new JRadioButton("Save Job to Repository");
+
+        JComboBox reposDB = new JComboBox(session.getUserSettings().getConnections().toArray());
+        reposDB.setSelectedIndex(0);
+        reposPropertiesButton = new JButton();
+        reposPropertiesButton.setText("Properties...");
+        reposPropertiesButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                //ASUtils.showDbcsDialog(dbcsDialog, project, reposDB);
+            }
+        });
+        
+        saveByButtonGroup = new ButtonGroup();
+        saveByButtonGroup.add(saveFileRadioButton);
+        saveByButtonGroup.add(saveReposRadioButton);
+        
         defaultJoinType = new JComboBox();
         for (int joinType = 0; joinType < MergeJoinMeta.join_types.length; joinType++) {
             defaultJoinType.addItem(MergeJoinMeta.join_types[joinType]);
@@ -141,7 +171,7 @@ public class CreateKettleJobPanel implements ArchitectPanel {
         builder.append(defaultJoinType);
         builder.nextLine();
         builder.append("");
-        builder.appendSeparator("Save Job to File");
+        builder.append(saveFileRadioButton, 3);
         builder.nextLine();
         builder.append("");
         builder.append("Path: ");
@@ -155,6 +185,14 @@ public class CreateKettleJobPanel implements ArchitectPanel {
         builder.append("");
         builder.append("");
         builder.append(transformationPath2, 3);
+        builder.nextLine();
+        builder.append("");
+        builder.append(saveReposRadioButton, 3);
+        builder.nextLine();
+        builder.append("");
+        builder.append("Repository: ");
+        builder.append(reposDB);
+        builder.append(reposPropertiesButton);
         
     }
    
@@ -193,6 +231,14 @@ public class CreateKettleJobPanel implements ArchitectPanel {
         return schemaName.getText();
     }
     
+    public boolean isSaveFile() {
+        return saveFileRadioButton.isSelected();
+    }
+    
+    public boolean isSaveRepository() {
+        return saveReposRadioButton.isSelected();
+    }
+        
     public int getDefaultJoinType() {
         return defaultJoinType.getSelectedIndex();
     }
@@ -202,12 +248,11 @@ public class CreateKettleJobPanel implements ArchitectPanel {
     }
     
     private void copySettingsToProject() {
-        CreateKettleJob settings = project.getCreateKettleJob();
+        CreateKettleJob settings = session.getCreateKettleJob();
         settings.setJobName(nameField.getText());
         settings.setSchemaName(schemaName.getText());
         settings.setKettleJoinType(defaultJoinType.getSelectedIndex());
         settings.setFilePath(filePath.getText());
         settings.setParentFile(parentFile);
     }
-    
 }

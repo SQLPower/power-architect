@@ -2,12 +2,14 @@ package ca.sqlpower.architect.layout;
 
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.io.IOException;
 
 import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.swingui.TestingArchitectSwingSessionContext;
 import ca.sqlpower.architect.swingui.TablePane;
 
 public class TestFruchtermanReingoldForceLayout extends TestCase {
@@ -18,11 +20,12 @@ public class TestFruchtermanReingoldForceLayout extends TestCase {
 	private SQLDatabase db;
 	private Rectangle frame;
 	private FruchtermanReingoldForceLayout layout;
+    private TestingArchitectSwingSessionContext context;
 	
-	public void setUp() throws ArchitectException {
-	
+	public void setUp() throws ArchitectException, IOException {
+	    context = new TestingArchitectSwingSessionContext();
 		db = new SQLDatabase();
-		pp = new PlayPen();
+		pp = new PlayPen(context.createSession());
 		table1= new SQLTable(db,true);
 		tp = new TablePane(table1,pp);
 		pp.addTablePane(tp,new Point(10,10));
@@ -35,8 +38,8 @@ public class TestFruchtermanReingoldForceLayout extends TestCase {
 		assertEquals("Incorrect magnitude",13.0,layout.magnitude(new Point(12,5)));
 	}
 
-	public void testIsDoneNoElem() {
-		PlayPen p = new PlayPen();
+	public void testIsDoneNoElem() throws ArchitectException {
+		PlayPen p = new PlayPen(context.createSession());
 		layout.setup(p.getTablePanes(),p.getRelationships(),frame);
 		assertTrue(layout.isDone());
 	}

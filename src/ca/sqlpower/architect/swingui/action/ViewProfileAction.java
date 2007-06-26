@@ -2,40 +2,20 @@ package ca.sqlpower.architect.swingui.action;
 
 import java.awt.event.ActionEvent;
 
-import javax.swing.AbstractAction;
-
 import ca.sqlpower.architect.profile.TableProfileManager;
-import ca.sqlpower.architect.swingui.ASUtils;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
-import ca.sqlpower.architect.swingui.PlayPen;
-import ca.sqlpower.architect.swingui.SwingUserSettings;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 
-public class ViewProfileAction extends AbstractAction {
+public class ViewProfileAction extends AbstractArchitectAction {
 
-
-    private PlayPen pp;
     private TableProfileManager profileManager;
 
-    public ViewProfileAction() {
-        super("View Profile...", ASUtils.createJLFIcon( "general/History",
-                        "View Profiles",
-                        ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE)));
-
-        putValue(SHORT_DESCRIPTION, "View Profiled Tables");
-
+    public ViewProfileAction(ArchitectSwingSession session) {
+        super(session, "View Profile...", "View Profiled Tables", "general/History");
     }
 
     public void actionPerformed(ActionEvent e) {
         // TODO Auto-generated method stub
 
-    }
-
-    public PlayPen getPlayPen() {
-        return pp;
-    }
-
-    public void setPlayPen(PlayPen pp) {
-        this.pp = pp;
     }
 
     public TableProfileManager getProfileManager() {

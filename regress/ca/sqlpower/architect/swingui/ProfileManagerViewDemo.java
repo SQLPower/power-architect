@@ -2,6 +2,7 @@ package ca.sqlpower.architect.swingui;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.swing.*;
@@ -31,6 +32,9 @@ public class ProfileManagerViewDemo {
         final List<TableProfileResult> mockData = new ArrayList<TableProfileResult>();
         ProfileManager mock = new ProfileManager() {
 
+            public void asynchCreateProfiles(Collection<SQLTable> tables) throws SQLException, ArchitectException {
+            }
+            
             public List<TableProfileResult> getTableResults() {
                 return mockData;
             }

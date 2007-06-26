@@ -24,12 +24,14 @@ public class TestAutoLayoutAction extends TestCase {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		PlayPen pp = ArchitectFrame.getMainInstance().getProject().getPlayPen();
-		layoutAction = new AutoLayoutAction();
+        TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
+		ArchitectSwingSession session = context.createSession();
+        PlayPen pp = session.getPlayPen();
+		layoutAction = new AutoLayoutAction(session);
 		layout = new BasicTreeAutoLayout();
 		pp.repaint();
 		//action = af.getAutoLayoutAction();
-		layoutAction.setPlayPen(pp);
+		//layoutAction.setPlayPen(pp); Shouldn't have to do this anymore
 		layoutAction.setLayout(layout);
 		layoutAction.setAnimationEnabled(false);
 	}

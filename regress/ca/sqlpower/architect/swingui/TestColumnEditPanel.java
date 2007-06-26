@@ -1,5 +1,6 @@
 package ca.sqlpower.architect.swingui;
 
+import java.io.IOException;
 import java.sql.DatabaseMetaData;
 
 import junit.framework.TestCase;
@@ -145,9 +146,12 @@ public class TestColumnEditPanel extends TestCase {
      * This test makes sure that if a column is put into pk via
      * the ColumnEditPanel that after the modification, it is still
      * being selected.
+     * @throws IOException 
      */
-    public void testColumnStaysSelectedWhenMovedToPK() throws ArchitectException{        
-        PlayPen pp = new PlayPen(db);        
+    public void testColumnStaysSelectedWhenMovedToPK() throws ArchitectException, IOException{        
+        TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
+        ArchitectSwingSession session = context.createSession();
+        PlayPen pp = new PlayPen(session, db);        
         TablePane tp = new TablePane(table, pp);
         tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
         tp.selectColumn(table.getColumnIndex(col3));        

@@ -26,7 +26,6 @@ import ca.sqlpower.architect.SQLIndex.IndexType;
 import ca.sqlpower.architect.SQLTable.Folder;
 import ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
 import ca.sqlpower.architect.TestSQLTable.EventLogger.SQLObjectSnapshot;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 
 public class TestSQLTable extends SQLTestCase {
@@ -252,7 +251,7 @@ public class TestSQLTable extends SQLTestCase {
     
     /** this tests for a real bug.. the column was showing up one index above the end of the pk  */
     public void testAddColumnAtEndOfPK() throws ArchitectException {
-        SQLTable t = new SQLTable(ArchitectFrame.getMainInstance().getProject().getTargetDatabase(), true);
+        SQLTable t = new SQLTable(null, true);
         t.setName("Test Table");
         SQLColumn pk1 = new SQLColumn(t, "PKColumn1", Types.INTEGER, 10, 0);
         SQLColumn pk2 = new SQLColumn(t, "PKColumn2", Types.INTEGER, 10, 0);
@@ -453,13 +452,12 @@ public class TestSQLTable extends SQLTestCase {
     }
     
     public void testDeleteLockedColumn() throws ArchitectException {
-        ArchitectFrame af = ArchitectFrame.getMainInstance();
-        SQLTable parentTable = new SQLTable(af.getProject().getPlayPen().getDatabase(), "parent", null, "TABLE", true);
+        SQLTable parentTable = new SQLTable(null, "parent", null, "TABLE", true);
         parentTable.addColumn(new SQLColumn(parentTable, "pkcol_1", Types.INTEGER, 10, 0));
         parentTable.addColumn(new SQLColumn(parentTable, "pkcol_2", Types.INTEGER, 10, 0));
         parentTable.addColumn(new SQLColumn(parentTable, "attribute_1", Types.INTEGER, 10, 0));
         
-        SQLTable childTable1 = new SQLTable(af.getProject().getPlayPen().getDatabase(), "child_1", null, "TABLE", true);
+        SQLTable childTable1 = new SQLTable(null, "child_1", null, "TABLE", true);
         childTable1.addColumn(new SQLColumn(childTable1, "child_pkcol_1", Types.INTEGER, 10, 0));
         childTable1.addColumn(new SQLColumn(childTable1, "child_pkcol_2", Types.INTEGER, 10, 0));
         childTable1.addColumn(new SQLColumn(childTable1, "child_attribute", Types.INTEGER, 10, 0));
@@ -476,6 +474,8 @@ public class TestSQLTable extends SQLTestCase {
             fail("Remove should have thrown LockedColumnException");
         } catch (LockedColumnException ex) {
             // good
+        } catch (Exception ex) {
+            fail("Didn't get the exception we were expecting: " + ex);
         }
     }
     

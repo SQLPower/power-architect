@@ -12,7 +12,7 @@ import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.DataSourceCollection;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBCSPanel;
 import ca.sqlpower.architect.swingui.DBConnectionCallBack;
 
@@ -34,10 +34,10 @@ public final class DBCSOkAction extends AbstractAction {
      * @param dbcsPanel
      * @param isNew
      */
-    public DBCSOkAction(DBCSPanel dbcsPanel, boolean isNew) {
+    public DBCSOkAction(DBCSPanel dbcsPanel, ArchitectSwingSession session, boolean isNew) {
         this(dbcsPanel,
                 isNew,
-                ArchitectFrame.getMainInstance().getUserSettings().getPlDotIni());
+                session.getUserSettings().getPlDotIni());
 	}
 
 

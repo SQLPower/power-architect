@@ -39,7 +39,7 @@ public class NewDatabaseListener implements ActionListener {
 		
 		dbcsPanel.setDbcs(new ArchitectDataSource());
 
-		DBCSOkAction okButton = new DBCSOkAction(dbcsPanel,true);
+		DBCSOkAction okButton = new DBCSOkAction(dbcsPanel, frame.getArchitectSession(), true);
 		
 		Action cancelAction = new AbstractAction() {
 			public void actionPerformed(ActionEvent evt) {

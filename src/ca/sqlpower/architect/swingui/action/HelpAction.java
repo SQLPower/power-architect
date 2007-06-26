@@ -8,20 +8,14 @@ import java.net.URL;
 import javax.help.CSH;
 import javax.help.HelpBroker;
 import javax.help.HelpSet;
-import javax.swing.AbstractAction;
 import javax.swing.JOptionPane;
 
-import ca.sqlpower.architect.swingui.ASUtils;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
-import ca.sqlpower.architect.swingui.SwingUserSettings;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 
-public class HelpAction extends AbstractAction {
+public class HelpAction extends AbstractArchitectAction {
     
-    public HelpAction() {
-        super("Help",      
-                ASUtils.createIcon( "help",
-                        "Help", 
-                        ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE)));
+    public HelpAction(ArchitectSwingSession session) {
+        super(session, "Help", "Help", "help");     
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -44,7 +38,7 @@ public class HelpAction extends AbstractAction {
 
         } catch (Exception ev) {
             setEnabled(false);
-            JOptionPane.showMessageDialog(ArchitectFrame.getMainInstance(), 
+            JOptionPane.showMessageDialog(frame, 
                     "Could not load Help File\n" + e + "\n" +
                     "Help function disabled",
                     "Error", JOptionPane.ERROR_MESSAGE);

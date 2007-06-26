@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dialog;
-import java.awt.Frame;
 import java.awt.HeadlessException;
 import java.awt.Insets;
 import java.awt.Toolkit;
@@ -77,27 +76,6 @@ public class SQLScriptDialog extends JDialog {
 	private boolean closeParent;
 
 	private MonitorableWorker executeTask = new ExecuteSQLScriptWorker();
-
-	public SQLScriptDialog(Frame owner, String title, String header, boolean modal,
-			DDLGenerator gen, ArchitectDataSource targetDataSource,
-			boolean closeParent )
-			throws HeadlessException {
-		super(owner, title, modal);
-        if (modal && owner == null) {
-            JOptionPane.showMessageDialog(null,
-                "Debug: This action tried to create a null-parented modal dialog");
-        }
-		statementResultList = new ArrayList();
-		statusLabel = new JLabel();
-		parent = owner;
-		this.header = header;
-		this.statements = gen.getDdlStatements();
-		this.targetDataSource = targetDataSource;
-		this.closeParent = closeParent;
-		add(buildPanel());
-		pack();
-		setLocationRelativeTo(parent);
-	}
 
 	public SQLScriptDialog(Dialog owner, String title, String header, boolean modal,
 			DDLGenerator gen, ArchitectDataSource targetDataSource,

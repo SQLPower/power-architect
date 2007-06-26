@@ -47,12 +47,16 @@ public class TestSwingUIProject extends ArchitectTestCase {
 	private static final String ENCODING="UTF-8";
 	private boolean deleteOnExit = false;
 	private PlDotIni plIni;
+    private ArchitectSwingSession session;
+    private TestingArchitectSwingSessionContext context;
     
 	/*
 	 * Test method for 'ca.sqlpower.architect.swingui.SwingUIProject.SwingUIProject(String)'
 	 */
 	public void setUp() throws Exception {
-		project = new SwingUIProject("test");
+        context = new TestingArchitectSwingSessionContext();
+        session = context.createSession("test");
+		project = new SwingUIProject(session);
         plIni = new PlDotIni();
         // TODO add some database types and a test that loading the project finds them
 	}
@@ -116,13 +120,13 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		// StringReader r = new StringReader(testData);
 		ByteArrayInputStream r = new ByteArrayInputStream(testData.getBytes());
 		project.load(r, plIni);
-		assertFalse("Project starts out with undo history",project.getUndoManager().canUndoOrRedo());
+		assertFalse("Project starts out with undo history",session.getUndoManager().canUndoOrRedo());
 
-		DBTree tree = project.getSourceDatabases();
+		DBTree tree = session.getSourceDatabases();
 		assertNotNull(tree);
 		assertEquals(tree.getComponentCount(), 1 );
 		
-		SQLDatabase target = project.getTargetDatabase(); 
+		SQLDatabase target = session.getPlayPen().getDatabase(); 
 		assertNotNull(target);
 		
 		assertEquals(target.getName(), "Not Configured");
@@ -135,7 +139,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
     public void testLoadPK() throws Exception {
         testLoad();
         
-        SQLDatabase target = project.getTargetDatabase();
+        SQLDatabase target = session.getPlayPen().getDatabase();
         
         SQLTable t1 = (SQLTable) target.getChild(0);
         assertEquals(1, t1.getPkSize());
@@ -160,7 +164,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
      */
     public void testSaveLoadPK() throws Exception {
         // make a table with a pksize of 2
-        SQLDatabase target = project.getTargetDatabase();
+        SQLDatabase target = session.getPlayPen().getDatabase();
         SQLTable t = new SQLTable(null, "test_pk", null, "TABLE", true);
         t.addColumn(new SQLColumn(t, "pk1", Types.CHAR, 10, 0));
         t.addColumn(new SQLColumn(t, "pk2", Types.CHAR, 10, 0));
@@ -183,10 +187,12 @@ public class TestSwingUIProject extends ArchitectTestCase {
         project.save(out,ENCODING);
         
         // load it back and check
-        SwingUIProject project2 = new SwingUIProject("new test project");
+        ArchitectSwingSessionContext context = session.getContext();
+        ArchitectSwingSession session2 = context.createSession("new test project");
+        SwingUIProject project2 = new SwingUIProject(session2);
         project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
         
-        target = project2.getTargetDatabase();
+        target = session2.getPlayPen().getDatabase();
         t = target.getTableByName("test_pk");
         subroutineForTestSaveLoadPK(t);
     }
@@ -201,7 +207,9 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		project.setFile(file);
 		project.save(mockProgressMonitor);
 		
-		SwingUIProject p2 = new SwingUIProject("test2");
+        ArchitectSwingSessionContext context = session.getContext();
+        ArchitectSwingSession session2 = context.createSession("test2");
+		SwingUIProject p2 = new SwingUIProject(session2);
 		p2.load(new FileInputStream(file), plIni);
 		File tmp2 = File.createTempFile("test2", ".architect");
 		if (deleteOnExit) {
@@ -224,7 +232,9 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		assertNotNull(byteArrayOutputStream);
 		project.save(byteArrayOutputStream,ENCODING);
 
-        SwingUIProject p2 = new SwingUIProject("test2");
+        ArchitectSwingSessionContext context = session.getContext();
+        ArchitectSwingSession session2 = context.createSession("test2");
+        SwingUIProject p2 = new SwingUIProject(session2);
 		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toString().getBytes(ENCODING));
         p2.load(byteArrayInputStream, plIni);
 		p2.save(byteArrayOutputStream2,ENCODING);
@@ -243,11 +253,13 @@ public class TestSwingUIProject extends ArchitectTestCase {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         project.save(byteArrayOutputStream,ENCODING);
         System.out.println(byteArrayOutputStream.toString());
-        SwingUIProject p2 = new SwingUIProject("test2");
+        ArchitectSwingSessionContext context = session.getContext();
+        ArchitectSwingSession session2 = context.createSession("test2");
+        SwingUIProject p2 = new SwingUIProject(session2);
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toString().getBytes(ENCODING));
         p2.load(byteArrayInputStream, plIni);
-        List<TablePane> projectTablePanes = project.getPlayPen().getTablePanes();
-        List<TablePane> p2TablePanes = p2.getPlayPen().getTablePanes();
+        List<TablePane> projectTablePanes = session2.getPlayPen().getTablePanes();
+        List<TablePane> p2TablePanes = session2.getPlayPen().getTablePanes();
         assertEquals(projectTablePanes.size(),p2TablePanes.size());
         for (int i=0; i<projectTablePanes.size();i++){
             TablePane tp1 = projectTablePanes.get(i);
@@ -269,7 +281,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		PrintWriter out = new PrintWriter(tmp,ENCODING);
 		assertNotNull(out);
 		
-		project.setName("FOO<BAR");		// Implicitly testing sanitizeXML method here!
+		session.setName("FOO<BAR");		// Implicitly testing sanitizeXML method here!
 		
 		project.save(out,ENCODING);
 		
@@ -381,7 +393,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 	
 	public void testSaveCoversAllDatabaseProperties() throws Exception {
 		testLoad();
-		DBTree dbTree = project.getSourceDatabases();
+		DBTree dbTree = session.getSourceDatabases();
 		DBTreeModel dbTreeModel = (DBTreeModel) dbTree.getModel();
 		
 		ArchitectDataSource fakeDataSource = new ArchitectDataSource();
@@ -425,11 +437,13 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		assertNotNull(out);
 		project.save(out,ENCODING);
 		
-		SwingUIProject project2 = new SwingUIProject("new test project");
+        ArchitectSwingSessionContext context = session.getContext();
+        ArchitectSwingSession session2 = context.createSession("new test project");
+		SwingUIProject project2 = new SwingUIProject(session2);
 		project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
 		
 		// grab the second database in the dbtree's model (the first is the play pen)
-		db = (SQLDatabase) project2.getSourceDatabases().getDatabaseList().get(1);
+		db = (SQLDatabase) session2.getSourceDatabases().getDatabaseList().get(1);
 		
 		Map<String, Object> newDescription =
 			getAllInterestingProperties(db, propertiesToIgnore);
@@ -454,7 +468,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		DBTreeModel dbTreeModel = null;
 		
 		testLoad();
-		dbTree = project.getSourceDatabases();
+		dbTree = session.getSourceDatabases();
 		dbTreeModel = (DBTreeModel) dbTree.getModel();
 		
 		SQLDatabase db = new SQLDatabase();
@@ -490,11 +504,13 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		assertNotNull(out);
 		project.save(out,ENCODING);
 		
-		SwingUIProject project2 = new SwingUIProject("new test project");
+        ArchitectSwingSessionContext context = session.getContext();
+        ArchitectSwingSession session2 = context.createSession("new test project");
+		SwingUIProject project2 = new SwingUIProject(session2);
 		project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
 		
 		// grab the second database in the dbtree's model (the first is the play pen)
-		db = (SQLDatabase) project2.getSourceDatabases().getDatabaseList().get(1);
+		db = (SQLDatabase) session2.getSourceDatabases().getDatabaseList().get(1);
 		
 		target = (SQLCatalog) db.getChild(0);
 		
@@ -506,7 +522,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 
 	public void testSaveCoversAllSchemaProperties() throws Exception {
 		testLoad();
-		DBTree dbTree = project.getSourceDatabases();
+		DBTree dbTree = session.getSourceDatabases();
 		DBTreeModel dbTreeModel = (DBTreeModel) dbTree.getModel();
 		
 		ArchitectDataSource fakeDataSource = new ArchitectDataSource();
@@ -541,11 +557,13 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		assertNotNull(out);
 		project.save(out,ENCODING);
 		
-		SwingUIProject project2 = new SwingUIProject("new test project");
+        ArchitectSwingSessionContext context = session.getContext();
+        ArchitectSwingSession session2 = context.createSession("new test project");
+		SwingUIProject project2 = new SwingUIProject(session2);
 		project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
 		
 		// grab the second database in the dbtree's model (the first is the play pen)
-		db = (SQLDatabase) project2.getSourceDatabases().getDatabaseList().get(1);
+		db = (SQLDatabase) session2.getSourceDatabases().getDatabaseList().get(1);
 		
 		target = (SQLSchema) db.getChild(0);
 		
@@ -557,7 +575,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 
 	public void testSaveCoversAllTableProperties() throws Exception {
 		testLoad();
-		DBTree dbTree = project.getSourceDatabases();
+		DBTree dbTree = session.getSourceDatabases();
 		DBTreeModel dbTreeModel = (DBTreeModel) dbTree.getModel();
 		
 		ArchitectDataSource fakeDataSource = new ArchitectDataSource();
@@ -593,11 +611,13 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		assertNotNull(out);
 		project.save(out,ENCODING);
 		
-		SwingUIProject project2 = new SwingUIProject("new test project");
+        ArchitectSwingSessionContext context = session.getContext();
+        ArchitectSwingSession session2 = context.createSession("new test project");
+		SwingUIProject project2 = new SwingUIProject(session2);
 		project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
 		
 		// grab the second database in the dbtree's model (the first is the play pen)
-		db = (SQLDatabase) project2.getSourceDatabases().getDatabaseList().get(1);
+		db = (SQLDatabase) session2.getSourceDatabases().getDatabaseList().get(1);
 		
 		target = (SQLTable) db.getChild(0);
 		
@@ -611,7 +631,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		final String tableName = "harry";
 		testLoad();
 		
-		SQLDatabase ppdb = project.getPlayPen().getDatabase();
+		SQLDatabase ppdb = session.getPlayPen().getDatabase();
 		SQLTable table = new SQLTable(ppdb, true);
 		table.setName(tableName);
 		SQLColumn target = new SQLColumn(table, "my cool test column", Types.INTEGER, 10, 10);
@@ -636,7 +656,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		// need to set sourceColumn manually because it has to exist in the database.
 		{
 			// different variable scope
-			DBTree dbTree = project.getSourceDatabases();
+			DBTree dbTree = session.getSourceDatabases();
 			DBTreeModel dbTreeModel = (DBTreeModel) dbTree.getModel();
 			
 			ArchitectDataSource fakeDataSource = new ArchitectDataSource();
@@ -665,11 +685,13 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		assertNotNull(out);
 		project.save(out,ENCODING);
 		
-		SwingUIProject project2 = new SwingUIProject("new test project");
+        ArchitectSwingSessionContext context = session.getContext();
+        ArchitectSwingSession session2 = context.createSession("new test project");
+		SwingUIProject project2 = new SwingUIProject(session2);
 		project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
 		
 		// grab the second database in the dbtree's model (the first is the play pen)
-		ppdb = (SQLDatabase) project2.getPlayPen().getDatabase();
+		ppdb = (SQLDatabase) session2.getPlayPen().getDatabase();
 		
 		target = ((SQLTable) ppdb.getTableByName(tableName)).getColumn(0);
 		
@@ -683,7 +705,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         final String tableName = "rama_llama_dingdong";  // the power of the llama will save you
         testLoad();
         
-        SQLDatabase ppdb = project.getPlayPen().getDatabase();
+        SQLDatabase ppdb = session.getPlayPen().getDatabase();
         SQLTable table = new SQLTable(ppdb, true);
         table.setName(tableName);
         SQLColumn col = new SQLColumn(table, "first", Types.VARCHAR, 10, 0);
@@ -726,11 +748,12 @@ public class TestSwingUIProject extends ArchitectTestCase {
         in.close();
 
         
-        
-        SwingUIProject project2 = new SwingUIProject("new test project");
+        ArchitectSwingSessionContext context = session.getContext();
+        ArchitectSwingSession session2 = context.createSession("new test project");
+        SwingUIProject project2 = new SwingUIProject(session2);
         project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
         
-        ppdb = (SQLDatabase) project2.getPlayPen().getDatabase();
+        ppdb = (SQLDatabase) session2.getPlayPen().getDatabase();
         
         SQLTable targetTable = (SQLTable) ppdb.getTableByName(tableName);
         System.out.println("target table=["+targetTable.getName()+"]");
@@ -749,7 +772,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         final String tableName = "delicatessen";
         testLoad();
         
-        SQLDatabase ppdb = project.getPlayPen().getDatabase();
+        SQLDatabase ppdb = session.getPlayPen().getDatabase();
         SQLTable table = new SQLTable(ppdb, true);
         table.setName(tableName);
         SQLIndex index = new SQLIndex("tasty index", false, null, null, null);
@@ -773,11 +796,14 @@ public class TestSwingUIProject extends ArchitectTestCase {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         project.save(byteArrayOutputStream,ENCODING);
         System.out.println(byteArrayOutputStream.toString());
-        SwingUIProject project2 = new SwingUIProject("new test project");
+        
+        ArchitectSwingSessionContext context = session.getContext();
+        ArchitectSwingSession session2 = context.createSession("new test project");
+        SwingUIProject project2 = new SwingUIProject(session2);
         project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), plIni);
         
         // grab the second database in the dbtree's model (the first is the play pen)
-        ppdb = (SQLDatabase) project2.getPlayPen().getDatabase();
+        ppdb = (SQLDatabase) session2.getPlayPen().getDatabase();
         
         index = (SQLIndex) ((SQLTable) ppdb.getTableByName(tableName)).getIndicesFolder().getChild(0);
         
@@ -791,7 +817,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         final String tableName = "delicatessen";
         testLoad();
         
-        SQLDatabase ppdb = project.getPlayPen().getDatabase();
+        SQLDatabase ppdb = session.getPlayPen().getDatabase();
         SQLTable table = new SQLTable(ppdb, true);
         SQLColumn col = new SQLColumn(table,"col",1,0,0);
         table.setName(tableName);
@@ -819,11 +845,13 @@ public class TestSwingUIProject extends ArchitectTestCase {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         project.save(byteArrayOutputStream,ENCODING);
         System.out.println(byteArrayOutputStream.toString());
-        SwingUIProject project2 = new SwingUIProject("new test project");
+        ArchitectSwingSessionContext context = session.getContext();
+        ArchitectSwingSession session2 = context.createSession("new test project");
+        SwingUIProject project2 = new SwingUIProject(session2);
         project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), plIni);
         
         // grab the second database in the dbtree's model (the first is the play pen)
-        ppdb = (SQLDatabase) project2.getPlayPen().getDatabase();
+        ppdb = (SQLDatabase) session2.getPlayPen().getDatabase();
         System.out.println(ppdb.getTableByName(tableName));
         index = (SQLIndex) ((SQLTable) ppdb.getTableByName(tableName)).getIndicesFolder().getChild(0);
         
@@ -837,7 +865,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         final String tableName = "delicatessen";
         testLoad();
         
-        SQLDatabase ppdb = project.getPlayPen().getDatabase();
+        SQLDatabase ppdb = session.getPlayPen().getDatabase();
         SQLTable table = new SQLTable(ppdb, true);
         SQLColumn col = new SQLColumn(table,"Column 1",1,1,1);
         table.addColumn(col);
@@ -868,11 +896,13 @@ public class TestSwingUIProject extends ArchitectTestCase {
         assertNotNull(out);
         project.save(out,ENCODING);
         
-        SwingUIProject project2 = new SwingUIProject("new test project");
+        ArchitectSwingSessionContext context = session.getContext();
+        ArchitectSwingSession session2 = context.createSession("new test project");
+        SwingUIProject project2 = new SwingUIProject(session2);
         project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
         
         // grab the second database in the dbtree's model (the first is the play pen)
-        ppdb = (SQLDatabase) project2.getPlayPen().getDatabase();
+        ppdb = (SQLDatabase) session2.getPlayPen().getDatabase();
         
         // child 1 because setPrimaryKeySeq calls normalizePrimaryKey which creates
         // a primary key is there is none made. The primary key is placed as child 0
@@ -891,27 +921,27 @@ public class TestSwingUIProject extends ArchitectTestCase {
 				project.isModified());
 	}
 	
-    public void testSaveCoversCompareDMSettings() throws Exception {
-        testLoad();
-        CompareDMSettings cds = project.getCompareDMSettings();     
-        File tmp = File.createTempFile("test", ".architect");
-        assertFalse (cds.getSaveFlag());
-        if (deleteOnExit) {
-            tmp.deleteOnExit();
-        }
-        PrintWriter out = new PrintWriter(tmp,ENCODING);
-        assertNotNull(out);
-        project.save(out,ENCODING);
-        assertFalse (cds.getSaveFlag());
-        assertEquals("SQLServer 2000", cds.getSqlScriptFormat());
-        assertEquals("ENGLISH", cds.getOutputFormatAsString());
-        assertEquals("PROJECT", cds.getSourceSettings().getDatastoreType().toString());
-        assertEquals("Arthur_test", cds.getSourceSettings().getConnectName());
-        assertEquals("ARCHITECT_REGRESS", cds.getSourceSettings().getSchema());
-        assertEquals("FILE", cds.getTargetSettings().getDatastoreType().toString());
-        assertEquals("Testpath", cds.getTargetSettings().getFilePath());                
-    }
-
+	public void testSaveCoversCompareDMSettings() throws Exception {
+		testLoad();
+		CompareDMSettings cds = session.getCompareDMSettings();		
+		File tmp = File.createTempFile("test", ".architect");
+		assertFalse (cds.getSaveFlag());
+		if (deleteOnExit) {
+			tmp.deleteOnExit();
+		}
+		PrintWriter out = new PrintWriter(tmp,ENCODING);
+		assertNotNull(out);
+		project.save(out,ENCODING);
+		assertFalse (cds.getSaveFlag());
+		assertEquals("SQLServer 2000", cds.getSqlScriptFormat());
+		assertEquals("ENGLISH", cds.getOutputFormatAsString());
+		assertEquals("PROJECT", cds.getSourceSettings().getDatastoreType().toString());
+		assertEquals("Arthur_test", cds.getSourceSettings().getConnectName());
+		assertEquals("ARCHITECT_REGRESS", cds.getSourceSettings().getSchema());
+		assertEquals("FILE", cds.getTargetSettings().getDatastoreType().toString());
+		assertEquals("Testpath", cds.getTargetSettings().getFilePath());				
+	}
+    
     public void testSaveCoversCreateKettleJob() throws Exception {
         testLoad();
         
@@ -920,27 +950,27 @@ public class TestSwingUIProject extends ArchitectTestCase {
         propertiesToIgnore.add("cancelled");
 
         Map<String,Object> oldDescription =
-            setAllInterestingProperties(project.getCreateKettleJob(), propertiesToIgnore);
+            setAllInterestingProperties(session.getCreateKettleJob(), propertiesToIgnore);
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         project.save(byteArrayOutputStream, ENCODING);
 
         System.out.println(byteArrayOutputStream.toString());
 
-        SwingUIProject project2 = new SwingUIProject("new test project");
+        SwingUIProject project2 = new SwingUIProject(session);
         project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), plIni);
         
         Map<String, Object> newDescription =
-            getAllInterestingProperties(project2.getCreateKettleJob(), propertiesToIgnore);
+            getAllInterestingProperties(session.getCreateKettleJob(), propertiesToIgnore);
         
         assertMapsEqual(oldDescription, newDescription);
     }
-
+    
     /**
      * Test for regression of bug 1288. This version has catalogs and schemas.
      */
     public void testSaveDoesntCausePopulateCatalogSchema() throws Exception {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        SQLObject dbtreeRoot = (SQLObject) project.getSourceDatabases().getModel().getRoot();
+        SQLObject dbtreeRoot = (SQLObject) session.getSourceDatabases().getModel().getRoot();
 
         ArchitectDataSource ds = new ArchitectDataSource();
         ds.setDisplayName("test_database");
@@ -966,7 +996,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
      */
     public void testSaveDoesntCausePopulateSchema() throws Exception {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        SQLObject dbtreeRoot = (SQLObject) project.getSourceDatabases().getModel().getRoot();
+        SQLObject dbtreeRoot = (SQLObject) session.getSourceDatabases().getModel().getRoot();
 
         ArchitectDataSource ds = new ArchitectDataSource();
         ds.setDisplayName("test_database");
@@ -995,7 +1025,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 
     public void testSaveThrowsExceptionForUnknownSQLObjectSubclass() throws Exception {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        SQLObject dbtreeRoot = (SQLObject) project.getSourceDatabases().getModel().getRoot();
+        SQLObject dbtreeRoot = (SQLObject) session.getSourceDatabases().getModel().getRoot();
 
         SQLDatabase db = new SQLDatabase();
         dbtreeRoot.addChild(db);

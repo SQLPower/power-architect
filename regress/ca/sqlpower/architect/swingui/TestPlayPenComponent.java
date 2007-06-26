@@ -10,7 +10,9 @@ public class TestPlayPenComponent extends TestCase {
 
 	protected void setUp() throws Exception {
 		super.setUp();
-		pp = new PlayPen();
+        TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
+        ArchitectSwingSession session = context.createSession();
+		pp = new PlayPen(session);
 		component = new PlayPenComponentImpl(pp.getPlayPenContentPane() );
 		eventCounter = new PlayPenComponentEventCounter();
 	}

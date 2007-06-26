@@ -73,8 +73,6 @@ public class SearchReplace {
 
         public SearchResultsTableModel(List results) {
             this.results = results;
-            //Ignores the PlayPen Database in the search result
-            this.results.remove(ArchitectFrame.getMainInstance().playpen.getDatabase());
         }
 
         public int getRowCount() {
@@ -254,6 +252,9 @@ public class SearchReplace {
     	try {
 	        final List results = doSearch(pp.getDatabase());
 
+            // The PlayPen Database is more of an implementation detail, so we don't count it as a hit
+            results.remove(pp.getDatabase());
+            
 	        // XXX This JDialog has three buttons so we cannot use
 	        // ArchitectPanelBuilder to create it...
 	        final JDialog d = new JDialog(parent, "Search Results");

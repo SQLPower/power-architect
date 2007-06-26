@@ -1,6 +1,7 @@
 package ca.sqlpower.architect.profile;
 
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.List;
 
 import ca.sqlpower.architect.ArchitectException;
@@ -32,6 +33,15 @@ public interface ProfileManager {
      */
      public TableProfileResult createProfile(SQLTable table) throws SQLException, ArchitectException;
     
+     /**
+      * Creates TableProfileResult objects for each of the tables in the
+      * given list, then adds them to this ProfileManager in an unpopulated
+      * state.  Then starts a new worker thread which will populate the results
+      * one after the other.  It is likely that none of the profiles will be
+      * populated yet by the time this method returns.
+      */
+     public void asynchCreateProfiles(Collection<SQLTable> tables) throws SQLException, ArchitectException;
+     
     /**
      * Removes a single TableProfileResult from the List of TableProfileResults
      * that this ProfileManager keeps track of. If the remove was sucessful then

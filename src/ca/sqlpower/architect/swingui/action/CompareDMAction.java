@@ -3,7 +3,6 @@ package ca.sqlpower.architect.swingui.action;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 
-import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -12,24 +11,16 @@ import javax.swing.JPanel;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ASUtils;
-import ca.sqlpower.architect.swingui.ArchitectFrame;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.CommonCloseAction;
 import ca.sqlpower.architect.swingui.CompareDMPanel;
 import ca.sqlpower.architect.swingui.JDefaultButton;
-import ca.sqlpower.architect.swingui.SwingUserSettings;
 
-public class CompareDMAction extends AbstractAction {
+public class CompareDMAction extends AbstractArchitectAction {
 	private static final Logger logger = Logger.getLogger(CompareDMAction.class);
 
-	private ArchitectFrame architectFrame;
-
-	public CompareDMAction() {		
-		super("Compare DM...",
-				  ASUtils.createIcon("compare_DM",
-										"Compare DM",
-										ArchitectFrame.getMainInstance().getSprefs().getInt(SwingUserSettings.ICON_SIZE, ArchitectFrame.DEFAULT_ICON_SIZE)));
-		architectFrame = ArchitectFrame.getMainInstance();
-		putValue(SHORT_DESCRIPTION, "Compare Data Models");
+	public CompareDMAction(ArchitectSwingSession session) {		
+		super(session, "Compare DM...","Compare Data Models", "compare_DM");
 	}
 
 	public void actionPerformed(ActionEvent e) {
@@ -40,13 +31,12 @@ public class CompareDMAction extends AbstractAction {
 		// because the current CompareDMPanel is not an ArchitectPanel
 		// (and has no intention of becoming one, without some work).
 		
-		final JDialog d = new JDialog(ArchitectFrame.getMainInstance(),
+		final JDialog d = new JDialog(frame,
 									  "Compare Data Models");
 		JPanel cp = new JPanel(new BorderLayout(12,12));
 		cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
 		
-		final CompareDMPanel compareDMPanel = new CompareDMPanel(
-                architectFrame.getProject(), architectFrame.getArchitectSession());
+		final CompareDMPanel compareDMPanel = new CompareDMPanel(frame.getArchitectSession());
 		cp.add(compareDMPanel, BorderLayout.CENTER);
 
 //		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -62,7 +52,7 @@ public class CompareDMAction extends AbstractAction {
 		d.getRootPane().setDefaultButton(okButton);
 		d.setContentPane(cp);
 		d.pack();
-		d.setLocationRelativeTo(ArchitectFrame.getMainInstance());
+		d.setLocationRelativeTo(frame);
 		d.setVisible(true);
 	}
 
