@@ -12,6 +12,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
@@ -24,7 +25,9 @@ import ca.sqlpower.architect.etl.kettle.CreateKettleJob;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
+import ca.sqlpower.architect.swingui.ArchitectSwingWorker;
 import ca.sqlpower.architect.swingui.CreateKettleJobPanel;
+import ca.sqlpower.architect.swingui.ProgressWatcher;
 import ca.sqlpower.architect.swingui.PromptingFileValidator;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
 
@@ -63,51 +66,92 @@ public class CreateKettleJobAction extends AbstractAction {
                     return;
                 }
                 FileValidator validator = new PromptingFileValidator(architectFrame);
-                CreateKettleJob kettleJob = architectFrame.getProject().getCreateKettleJob();
+                final CreateKettleJob kettleJob = architectFrame.getProject().getCreateKettleJob();
                 kettleJob.setFileValidator(validator);
-                try {
-                    List<SQLTable> tableList = architectFrame.getProject().getPlayPen().getTables();
-                    kettleJob.doExport(tableList, architectFrame.getProject().getPlayPen().getDatabase());
-                } catch (ArchitectException ex) {
-                    ASUtils.showExceptionDialog("An error occurred reading from the tables for kettle", ex);
-                } catch (RuntimeException re) {
-                    ASUtils.showExceptionDialog(kettleJob.getTasksToDo().toString(), re);
-                } catch (IOException e) {
-                    ASUtils.showExceptionDialog(kettleJob.getTasksToDo().toString(), e);
-                }
-                final JDialog toDoListDialog = new JDialog(architectFrame);
-                toDoListDialog.setTitle("Kettle Job Tasks");
-                FormLayout layout = new FormLayout("10dlu, 2dlu, fill:pref:grow, 12dlu", "pref, fill:pref:grow, pref");
+                
+                final JDialog createKettleJobMonitor = new JDialog(architectFrame);
+                createKettleJobMonitor.setTitle("Creating Kettle Job");
+                FormLayout layout = new FormLayout("pref", "");
                 DefaultFormBuilder builder = new DefaultFormBuilder(layout);
                 builder.setDefaultDialogBorder();
-                ButtonBarBuilder buttonBarBuilder = new ButtonBarBuilder();
-                JTextArea toDoList = new JTextArea(10, 60);
-                toDoList.setEditable(false);
-                List<String> tasksToDo = kettleJob.getTasksToDo();
-                for (String task: tasksToDo) {
-                    toDoList.append(task + "\n");
-                }
-                JButton close = new JButton("Close");
-                close.addActionListener(new ActionListener(){
-                    public void actionPerformed(ActionEvent arg0) {
-                        toDoListDialog.dispose();
+                builder.append("Creating Kettle Job");
+                builder.nextLine();
+                JProgressBar progressBar = new JProgressBar();
+                builder.append(progressBar);
+                builder.nextLine();
+                JButton cancel = new JButton("Cancel");
+                cancel.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        kettleJob.setCancelled(true);
                     }
                 });
-                builder.nextColumn(2);
-                builder.append("These items must be done before the Kettle job can be executed.");
-                builder.nextLine();
-                builder.append("");
-                builder.append(new JScrollPane(toDoList));
-                builder.nextLine();
-                builder.append("");
-                buttonBarBuilder.addGlue();
-                buttonBarBuilder.addGridded(close);
-                buttonBarBuilder.addGlue();
-                builder.append(buttonBarBuilder.getPanel());
-                toDoListDialog.add(builder.getPanel());
-                toDoListDialog.pack();
-                toDoListDialog.setLocationRelativeTo(architectFrame);
-                toDoListDialog.setVisible(true);
+                builder.append(cancel);
+                createKettleJobMonitor.add(builder.getPanel());
+                
+                ArchitectSwingWorker compareWorker = new ArchitectSwingWorker() {
+
+                    @Override
+                    public void doStuff() throws Exception {
+                        createKettleJobMonitor.pack();
+                        createKettleJobMonitor.setLocationRelativeTo(architectFrame);
+                        createKettleJobMonitor.setVisible(true);
+                        List<SQLTable> tableList = architectFrame.getProject().getPlayPen().getTables();
+                        kettleJob.doExport(tableList, architectFrame.getProject().getPlayPen().getDatabase());
+                    }
+
+                    @Override
+                    public void cleanup() throws Exception {
+                        createKettleJobMonitor.dispose();
+                        if (getDoStuffException() != null) {
+                            Exception ex = getDoStuffException();
+                            if (ex instanceof ArchitectException) {
+                                ASUtils.showExceptionDialog("An error occurred reading from the tables for kettle", ex);
+                            } else if (ex instanceof RuntimeException || ex instanceof IOException) {
+                                ASUtils.showExceptionDialog(kettleJob.getTasksToDo().toString(), ex);
+                            } else {
+                                ASUtils.showExceptionDialog("An unexpected error occurred during the export process", ex);
+                            }
+                            return;
+                        }
+                        final JDialog toDoListDialog = new JDialog(architectFrame);
+                        toDoListDialog.setTitle("Kettle Job Tasks");
+                        FormLayout layout = new FormLayout("10dlu, 2dlu, fill:pref:grow, 12dlu", "pref, fill:pref:grow, pref");
+                        DefaultFormBuilder builder = new DefaultFormBuilder(layout);
+                        builder.setDefaultDialogBorder();
+                        ButtonBarBuilder buttonBarBuilder = new ButtonBarBuilder();
+                        JTextArea toDoList = new JTextArea(10, 60);
+                        toDoList.setEditable(false);
+                        List<String> tasksToDo = kettleJob.getTasksToDo();
+                        for (String task: tasksToDo) {
+                            toDoList.append(task + "\n");
+                        }
+                        JButton close = new JButton("Close");
+                        close.addActionListener(new ActionListener(){
+                            public void actionPerformed(ActionEvent arg0) {
+                                toDoListDialog.dispose();
+                            }
+                        });
+                        builder.nextColumn(2);
+                        builder.append("These items must be done before the Kettle job can be executed.");
+                        builder.nextLine();
+                        builder.append("");
+                        builder.append(new JScrollPane(toDoList));
+                        builder.nextLine();
+                        builder.append("");
+                        buttonBarBuilder.addGlue();
+                        buttonBarBuilder.addGridded(close);
+                        buttonBarBuilder.addGlue();
+                        builder.append(buttonBarBuilder.getPanel());
+                        toDoListDialog.add(builder.getPanel());
+                        toDoListDialog.pack();
+                        toDoListDialog.setLocationRelativeTo(architectFrame);
+                        toDoListDialog.setVisible(true);
+                    }
+                };
+                
+                
+                new Thread(compareWorker).start();
+                new ProgressWatcher(progressBar, kettleJob);
             }
         };
         

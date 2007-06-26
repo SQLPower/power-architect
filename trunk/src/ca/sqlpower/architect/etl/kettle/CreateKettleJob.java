@@ -34,6 +34,8 @@ import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.DepthFirstSearch;
 import ca.sqlpower.architect.FileValidator;
+import ca.sqlpower.architect.Monitorable;
+import ca.sqlpower.architect.MonitorableImpl;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
@@ -43,7 +45,7 @@ import ca.sqlpower.architect.ddl.DDLUtils;
 /**
  * This class stores the settings for and creates a new Kettle job
  */
-public class CreateKettleJob {
+public class CreateKettleJob implements Monitorable {
     
     private static final Logger logger = Logger.getLogger(CreateKettleJob.class);
     
@@ -89,13 +91,15 @@ public class CreateKettleJob {
      * The file overwrite option to store if we should always overwrite or never
      * overwrite.
      */
-    FileValidationResponse overwriteOption;
+    private FileValidationResponse overwriteOption;
     
     /**
      * The file validator allows the selection for overwriting a file or not when saving
      * the XML.
      */
-    FileValidator fileValidator;
+    private FileValidator fileValidator;
+    
+    private MonitorableImpl monitor;
     
     public CreateKettleJob(FileValidator validator) {
         this();
@@ -106,200 +110,231 @@ public class CreateKettleJob {
         super();
         tasksToDo = new ArrayList<String>();
         fileValidator = new AlwaysAcceptFileValidator();
+        monitor = new MonitorableImpl();
+        monitor.setMessage("");
     }
     
     /**
      * This method translates the list of SQLTables to a Kettle Job and Transformations.
      */
     public void doExport(List<SQLTable> tableList, SQLDatabase targetDB ) throws ArchitectException, RuntimeException, IOException {
-        
-        //If the overwrite option is set to WRITE_OK_ALWAYS, or WRITE_NOT_OK_ALWAYS then
-        //it will always be that way for every other job creation unless we reset it here
-        overwriteOption = FileValidationResponse.WRITE_OK;
-        
-        EnvUtil.environmentInit();
-        LogWriter lw = LogWriter.getInstance();
-        JobMeta jm = new JobMeta(lw);
-        
-        Map<SQLTable, StringBuffer> tableMapping;
-        List<TransMeta> transformations = new ArrayList<TransMeta>();
-        List<String> noTransTables = new ArrayList<String>();
-        tasksToDo = new ArrayList<String>();
+
+        monitor.setCancelled(false);
+        monitor.setProgress(0);
+        monitor.setJobSize(new Integer(tableList.size()+1));
+        monitor.setFinished(false);
+        monitor.setStarted(true);
+
+        try {
+            //If the overwrite option is set to WRITE_OK_ALWAYS, or WRITE_NOT_OK_ALWAYS then
+            //it will always be that way for every other job creation unless we reset it here
+            overwriteOption = FileValidationResponse.WRITE_OK;
+
+            EnvUtil.environmentInit();
+            LogWriter lw = LogWriter.getInstance();
+            JobMeta jm = new JobMeta(lw);
+
+            Map<SQLTable, StringBuffer> tableMapping;
+            List<TransMeta> transformations = new ArrayList<TransMeta>();
+            List<String> noTransTables = new ArrayList<String>();
+            tasksToDo = new ArrayList<String>();
 
 
-        // The depth-first search will do a topological sort of
-        // the target table graph, so parent tables will come before
-        // their children.
-        tableList = new DepthFirstSearch(tableList).getFinishOrder();
+            // The depth-first search will do a topological sort of
+            // the target table graph, so parent tables will come before
+            // their children.
+            tableList = new DepthFirstSearch(tableList).getFinishOrder();
 
-        Map<String, DatabaseMeta> databaseNames = new LinkedHashMap<String, DatabaseMeta>();
+            Map<String, DatabaseMeta> databaseNames = new LinkedHashMap<String, DatabaseMeta>();
 
-        for (SQLTable table: tableList) {
+            for (SQLTable table: tableList) {
 
-            TransMeta transMeta = new TransMeta();
-            transMeta.setName(table.getName());
-            tableMapping = new LinkedHashMap<SQLTable, StringBuffer>();
+                TransMeta transMeta = new TransMeta();
+                transMeta.setName(table.getName());
+                tableMapping = new LinkedHashMap<SQLTable, StringBuffer>();
 
-            ArchitectDataSource target = targetDB.getDataSource();
-            DatabaseMeta targetDatabaseMeta = addDatabaseConnection(databaseNames, target);
-            transMeta.addDatabase(targetDatabaseMeta);
+                ArchitectDataSource target = targetDB.getDataSource();
+                DatabaseMeta targetDatabaseMeta = addDatabaseConnection(databaseNames, target);
+                transMeta.addDatabase(targetDatabaseMeta);
 
-            List<SQLColumn> columnList = table.getColumns();
-            List<String> noMappingForColumn = new ArrayList<String>();
-            List<StepMeta> inputSteps = new ArrayList<StepMeta>();
+                List<SQLColumn> columnList = table.getColumns();
+                List<String> noMappingForColumn = new ArrayList<String>();
+                List<StepMeta> inputSteps = new ArrayList<StepMeta>();
 
-            for (SQLColumn column: columnList) {
-                SQLTable sourceTable;
-                String sourceColumn;
-                if (column.getSourceColumn() == null) {
-                    // if we have no source table then we will get nulls as 
-                    // placeholders from the target table.
-                    sourceTable = table;
-                    sourceColumn = "null";
-                    noMappingForColumn.add(column.getName());
-                } else {
-                    sourceTable = column.getSourceColumn().getParentTable();
-                    sourceColumn = column.getSourceColumn().getName();
-                }
-                if (!tableMapping.containsKey(sourceTable)) {
-                    StringBuffer buffer = new StringBuffer();
-                    buffer.append("SELECT ");
-                    buffer.append(sourceColumn);
-                    buffer.append(" AS ").append(column.getName());
-                    tableMapping.put(sourceTable, buffer);
-                } else {
-                    tableMapping.get(sourceTable).append(", ").append
-                    (sourceColumn).append(" AS ").append(column.getName());
-                }
-            }
-
-            if (tableMapping.containsKey(table)) {
-                if (tableMapping.size() == 1) {
-                    noTransTables.add(table.getName());
-                    tasksToDo.add("Update table " + table.getName() + " as no source data was found");
-                    continue;
-                } else {
-                    StringBuffer buffer = new StringBuffer();
-                    buffer.append("There is no source for the column(s): ");
-                    for (String noMapForCol: noMappingForColumn) {
-                        buffer.append(noMapForCol).append(" ");
+                for (SQLColumn column: columnList) {
+                    SQLTable sourceTable;
+                    String sourceColumn;
+                    if (column.getSourceColumn() == null) {
+                        // if we have no source table then we will get nulls as 
+                        // placeholders from the target table.
+                        sourceTable = table;
+                        sourceColumn = "null";
+                        noMappingForColumn.add(column.getName());
+                    } else {
+                        sourceTable = column.getSourceColumn().getParentTable();
+                        sourceColumn = column.getSourceColumn().getName();
                     }
-                    tasksToDo.add(buffer.toString() + " for the table " + table.getName());
-                    transMeta.addNote(new NotePadMeta(buffer.toString(), 0, 150, 125, 125));
+                    if (!tableMapping.containsKey(sourceTable)) {
+                        StringBuffer buffer = new StringBuffer();
+                        buffer.append("SELECT ");
+                        buffer.append(sourceColumn);
+                        buffer.append(" AS ").append(column.getName());
+                        tableMapping.put(sourceTable, buffer);
+                    } else {
+                        tableMapping.get(sourceTable).append(", ").append
+                        (sourceColumn).append(" AS ").append(column.getName());
+                    }
                 }
-            }
 
-            for (SQLTable sourceTable: tableMapping.keySet()) {
-                StringBuffer buffer = tableMapping.get(sourceTable);
-                buffer.append(" FROM " + DDLUtils.toQualifiedName(sourceTable));
-            }
+                if (tableMapping.containsKey(table)) {
+                    if (tableMapping.size() == 1) {
+                        noTransTables.add(table.getName());
+                        tasksToDo.add("Update table " + table.getName() + " as no source data was found");
+                        continue;
+                    } else {
+                        StringBuffer buffer = new StringBuffer();
+                        buffer.append("There is no source for the column(s): ");
+                        for (String noMapForCol: noMappingForColumn) {
+                            buffer.append(noMapForCol).append(" ");
+                        }
+                        tasksToDo.add(buffer.toString() + " for the table " + table.getName());
+                        transMeta.addNote(new NotePadMeta(buffer.toString(), 0, 150, 125, 125));
+                    }
+                }
 
-            for (SQLTable sourceTable: tableMapping.keySet()) {
-                ArchitectDataSource source = sourceTable.getParentDatabase().getDataSource();
-                DatabaseMeta databaseMeta = addDatabaseConnection(databaseNames, source);
-                transMeta.addDatabase(databaseMeta);
+                for (SQLTable sourceTable: tableMapping.keySet()) {
+                    StringBuffer buffer = tableMapping.get(sourceTable);
+                    buffer.append(" FROM " + DDLUtils.toQualifiedName(sourceTable));
+                }
 
-                TableInputMeta tableInputMeta = new TableInputMeta();
-                String stepName = databaseMeta.getName() + ":" + DDLUtils.toQualifiedName(sourceTable);
-                StepMeta stepMeta = new StepMeta("TableInput", stepName, tableInputMeta);
+                for (SQLTable sourceTable: tableMapping.keySet()) {
+                    ArchitectDataSource source = sourceTable.getParentDatabase().getDataSource();
+                    DatabaseMeta databaseMeta = addDatabaseConnection(databaseNames, source);
+                    transMeta.addDatabase(databaseMeta);
+
+                    TableInputMeta tableInputMeta = new TableInputMeta();
+                    String stepName = databaseMeta.getName() + ":" + DDLUtils.toQualifiedName(sourceTable);
+                    StepMeta stepMeta = new StepMeta("TableInput", stepName, tableInputMeta);
+                    stepMeta.setDraw(true);
+                    stepMeta.setLocation(inputSteps.size()==0?spacing:(inputSteps.size())*spacing, (inputSteps.size()+1)*spacing);
+                    tableInputMeta.setDatabaseMeta(databaseMeta);
+                    tableInputMeta.setSQL(tableMapping.get(sourceTable).toString());
+                    transMeta.addStep(stepMeta);
+                    inputSteps.add(stepMeta);
+                }
+
+                List<StepMeta> mergeSteps;
+                mergeSteps = createMergeJoins(kettleJoinType, transMeta, inputSteps);
+
+                TableOutputMeta tableOutputMeta = new TableOutputMeta();
+                tableOutputMeta.setDatabaseMeta(targetDatabaseMeta);
+                tableOutputMeta.setTablename(table.getName());
+                tableOutputMeta.setSchemaName(schemaName);
+                StepMeta stepMeta = new StepMeta("TableOutput", "Output to " + table.getName(), tableOutputMeta);
                 stepMeta.setDraw(true);
-                stepMeta.setLocation(inputSteps.size()==0?spacing:(inputSteps.size())*spacing, (inputSteps.size()+1)*spacing);
-                tableInputMeta.setDatabaseMeta(databaseMeta);
-                tableInputMeta.setSQL(tableMapping.get(sourceTable).toString());
+                stepMeta.setLocation((inputSteps.size()+1)*spacing, inputSteps.size()*spacing);
                 transMeta.addStep(stepMeta);
-                inputSteps.add(stepMeta);
+                TransHopMeta transHopMeta = 
+                    new TransHopMeta(mergeSteps.isEmpty()?inputSteps.get(0):mergeSteps.get(mergeSteps.size()-1), stepMeta);
+                if (!mergeSteps.isEmpty()) {
+                    transMeta.addNote(new NotePadMeta("The final hop is disabled because the join types may need to be updated.",0,0,125,125));
+                    tasksToDo.add("Enable the final hop in " + transMeta.getName() + " after correcting the merge joins.");
+                    transHopMeta.setEnabled(false);
+                }
+                transMeta.addTransHop(transHopMeta);
+
+                transformations.add(transMeta);
+
+                if (monitor.isCancelled()) {
+                    cancelled();
+                    return;
+                }
+                logger.debug("Parent file path is " + parentFile.getPath());
+                File file = new File(parentFile.getPath() + File.separator + 
+                        "transformation_for_table_" + table.getName() + ".KTR");
+                transMeta.setFilename(file.getName());
+                outputToXML(transMeta.getXML(), file);
+                if (overwriteOption == FileValidationResponse.CANCEL) {
+                    cancelled();
+                    return;
+                }
+                logger.debug("Saved transformation to file: " + file.getName());
+                monitor.setProgress(monitor.getProgress() + 1);
             }
 
-            List<StepMeta> mergeSteps;
-            mergeSteps = createMergeJoins(kettleJoinType, transMeta, inputSteps);
-
-            TableOutputMeta tableOutputMeta = new TableOutputMeta();
-            tableOutputMeta.setDatabaseMeta(targetDatabaseMeta);
-            tableOutputMeta.setTablename(table.getName());
-            tableOutputMeta.setSchemaName(schemaName);
-            StepMeta stepMeta = new StepMeta("TableOutput", "Output to " + table.getName(), tableOutputMeta);
-            stepMeta.setDraw(true);
-            stepMeta.setLocation((inputSteps.size()+1)*spacing, inputSteps.size()*spacing);
-            transMeta.addStep(stepMeta);
-            TransHopMeta transHopMeta = 
-                new TransHopMeta(mergeSteps.isEmpty()?inputSteps.get(0):mergeSteps.get(mergeSteps.size()-1), stepMeta);
-            if (!mergeSteps.isEmpty()) {
-                transMeta.addNote(new NotePadMeta("The final hop is disabled because the join types may need to be updated.",0,0,125,125));
-                tasksToDo.add("Enable the final hop in " + transMeta.getName() + " after correcting the merge joins.");
-                transHopMeta.setEnabled(false);
+            if (!noTransTables.isEmpty()) {
+                StringBuffer buffer = new StringBuffer();
+                buffer.append("Transformations were not created for ");
+                for (String tableName : noTransTables) {
+                    buffer.append(tableName).append(" ");
+                }
+                buffer.append(" as the tables had no source information.");
+                jm.addNote(new NotePadMeta(buffer.toString(), 0, 0, 125, 125));
             }
-            transMeta.addTransHop(transHopMeta);
 
-            transformations.add(transMeta);
+            JobEntryCopy startEntry = new JobEntryCopy();
+            JobEntrySpecial start = new JobEntrySpecial();
+            start.setName("Start");
+            start.setType(JobEntryInterface.TYPE_JOBENTRY_SPECIAL);
+            start.setStart(true);
+            startEntry.setEntry(start);
+            startEntry.setLocation(10, spacing);
+            startEntry.setDrawn();
+            jm.addJobEntry(startEntry);
 
-            logger.debug("Parent file path is " + parentFile.getPath());
-            File file = new File(parentFile.getPath() + File.separator + 
-                    "transformation_for_table_" + table.getName() + ".KTR");
-            transMeta.setFilename(file.getName());
-            outputToXML(transMeta.getXML(), file);
-            if (overwriteOption == FileValidationResponse.CANCEL) {
-                tasksToDo.clear();
-                tasksToDo.add("The Kettle job was cancelled. Some files may be missing.");
+            JobEntryCopy oldJobEntry = null;
+            int i = 1;
+            for (TransMeta transformation : transformations) {
+                JobEntryCopy entry = new JobEntryCopy();
+                JobEntryTrans trans = new JobEntryTrans();
+                trans.setFileName(transformation.getFilename());
+                trans.setName(transformation.getName());
+                trans.setType(JobEntryInterface.TYPE_JOBENTRY_TRANSFORMATION);
+                entry.setEntry(trans);
+                entry.setLocation(i*spacing, spacing);
+                entry.setDrawn();
+                jm.addJobEntry(entry);
+                if (oldJobEntry != null) {
+                    JobHopMeta hop = new JobHopMeta(oldJobEntry, entry);
+                    jm.addJobHop(hop);
+                } else {
+                    JobHopMeta hop = new JobHopMeta(startEntry, entry);
+                    jm.addJobHop(hop);
+                }
+                oldJobEntry = entry;
+                i++;
+            }
+
+            if (monitor.isCancelled()) {
+                cancelled();
                 return;
             }
-            logger.debug("Saved transformation to file: " + file.getName());
-        }
-        
-        if (!noTransTables.isEmpty()) {
-            StringBuffer buffer = new StringBuffer();
-            buffer.append("Transformations were not created for ");
-            for (String tableName : noTransTables) {
-                buffer.append(tableName).append(" ");
+            String fileName = filePath;
+            if (!fileName.toUpperCase().endsWith(".KJB")) {
+                fileName += ".KJB";
             }
-            buffer.append(" as the tables had no source information.");
-            jm.addNote(new NotePadMeta(buffer.toString(), 0, 0, 125, 125));
-        }
-        
-        JobEntryCopy startEntry = new JobEntryCopy();
-        JobEntrySpecial start = new JobEntrySpecial();
-        start.setName("Start");
-        start.setType(JobEntryInterface.TYPE_JOBENTRY_SPECIAL);
-        start.setStart(true);
-        startEntry.setEntry(start);
-        startEntry.setLocation(10, spacing);
-        startEntry.setDrawn();
-        jm.addJobEntry(startEntry);
-        
-        JobEntryCopy oldJobEntry = null;
-        int i = 1;
-        for (TransMeta transformation : transformations) {
-            JobEntryCopy entry = new JobEntryCopy();
-            JobEntryTrans trans = new JobEntryTrans();
-            trans.setFileName(transformation.getFilename());
-            trans.setName(transformation.getName());
-            trans.setType(JobEntryInterface.TYPE_JOBENTRY_TRANSFORMATION);
-            entry.setEntry(trans);
-            entry.setLocation(i*spacing, spacing);
-            entry.setDrawn();
-            jm.addJobEntry(entry);
-            if (oldJobEntry != null) {
-                JobHopMeta hop = new JobHopMeta(oldJobEntry, entry);
-                jm.addJobHop(hop);
-            } else {
-                JobHopMeta hop = new JobHopMeta(startEntry, entry);
-                jm.addJobHop(hop);
+            jm.setName(jobName);
+            jm.setFilename(fileName);
+            outputToXML(jm.getXML(), new File(fileName));
+            if (overwriteOption == FileValidationResponse.CANCEL) {
+                cancelled();
+                return;
             }
-            oldJobEntry = entry;
-            i++;
+            monitor.setProgress(monitor.getProgress() + 1);
+        } finally {
+            monitor.setFinished(true);
+            monitor.setJobSize(null);
+            monitor.setStarted(false);
         }
-        
-        String fileName = filePath;
-        if (!fileName.toUpperCase().endsWith(".KJB")) {
-            fileName += ".KJB";
-        }
-        jm.setName(jobName);
-        jm.setFilename(fileName);
-        outputToXML(jm.getXML(), new File(fileName));
-        if (overwriteOption == FileValidationResponse.CANCEL) {
-            tasksToDo.clear();
-            tasksToDo.add("The Kettle job was cancelled so some files may be missing.");
-            return;
-        }
+    }
+    
+    /**
+     * This is a helper method that sets the taskToDo list with
+     * the correct message to display.
+     */
+    private void cancelled() {
+        tasksToDo.clear();
+        tasksToDo.add("The Kettle job was cancelled so some files may be missing.");
     }
     
     /**
@@ -468,5 +503,29 @@ public class CreateKettleJob {
      */
     void setOverwriteOption(FileValidationResponse fileValidationType) {
         overwriteOption = fileValidationType;
+    }
+
+    public Integer getJobSize() throws ArchitectException {
+        return monitor.getJobSize();
+    }
+
+    public String getMessage() {
+        return monitor.getMessage();
+    }
+
+    public int getProgress() throws ArchitectException {
+        return monitor.getProgress();
+    }
+
+    public boolean hasStarted() throws ArchitectException {
+        return monitor.hasStarted();
+    }
+
+    public boolean isFinished() throws ArchitectException {
+        return monitor.isFinished();
+    }
+
+    public void setCancelled(boolean cancelled) {
+        monitor.setCancelled(cancelled);
     }
 }
