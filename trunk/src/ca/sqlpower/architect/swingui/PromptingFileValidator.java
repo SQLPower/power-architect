@@ -3,11 +3,15 @@ package ca.sqlpower.architect.swingui;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+
+import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.FileValidator;
 
@@ -32,6 +36,8 @@ public class PromptingFileValidator implements FileValidator {
      */
     FileValidationResponse response;
     
+    private static Logger logger = Logger.getLogger(PromptingFileValidator.class);
+   
     public PromptingFileValidator(JFrame parent) {
         this.parent = parent;
     }
@@ -105,10 +111,26 @@ public class PromptingFileValidator implements FileValidator {
         builder.append(buttonBar.getPanel());
         confirmDialog.setModal(true);
         confirmDialog.add(builder.getPanel());
-        confirmDialog.pack();
-        confirmDialog.setLocationRelativeTo(parent);
-        confirmDialog.setVisible(true);
-        
+
+        Runnable promptUser = new Runnable() {
+          public void run() {
+            confirmDialog.pack();
+            confirmDialog.setLocationRelativeTo(parent);
+            confirmDialog.setVisible(true);
+          }
+        };
+
+        if (SwingUtilities.isEventDispatchThread ()) {
+          promptUser.run();
+        } else {
+            try {
+                SwingUtilities.invokeAndWait(promptUser);
+            } catch (InterruptedException e) {
+                ASUtils.showExceptionDialog("While queing the dialog's pack, setVisible and setLocation, we were interrupted", e);
+            } catch (InvocationTargetException e) {
+                ASUtils.showExceptionDialog("While queing the dialog's pack, setVisible and setLocation, an InvocationTargetException was thrown", e);
+            }
+        }        
         return response;
         
     }
