@@ -308,6 +308,11 @@ public class ArchitectDataSourceType {
         putPropertyImpl("jdbcUrl", JDBC_URL, jdbcUrl);
     }
     
+    /**
+     * For each property in the template, if the property has a default value
+     * its property name and the default value will be put into the map otherwise
+     * the property name and an empty string will be stored.
+     */
     public Map<String, String> retrieveURLDefaults() {
         String template = getProperty(JDBC_URL);
         Map<String, String> map = new LinkedHashMap<String, String>();
@@ -329,6 +334,11 @@ public class ArchitectDataSourceType {
         return map;
     }
     
+    /**
+     * This method takes a url and matches it to the template pattern that is stored.
+     * The returned map contains a key, value pair for each property in the template 
+     * and the value itself.
+     */
     public Map<String, String> retrieveURLParsing(String url) {
         String template = getProperty(JDBC_URL);
         Map<String, String> map = new LinkedHashMap<String, String>();
