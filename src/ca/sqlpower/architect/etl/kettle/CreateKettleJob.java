@@ -238,6 +238,8 @@ public class CreateKettleJob {
             transMeta.setFilename(file.getName());
             outputToXML(transMeta.getXML(), file);
             if (overwriteOption == FileValidationResponse.CANCEL) {
+                tasksToDo.clear();
+                tasksToDo.add("The Kettle job was cancelled. Some files may be missing.");
                 return;
             }
             logger.debug("Saved transformation to file: " + file.getName());
@@ -294,6 +296,8 @@ public class CreateKettleJob {
         jm.setFilename(fileName);
         outputToXML(jm.getXML(), new File(fileName));
         if (overwriteOption == FileValidationResponse.CANCEL) {
+            tasksToDo.clear();
+            tasksToDo.add("The Kettle job was cancelled so some files may be missing.");
             return;
         }
     }
