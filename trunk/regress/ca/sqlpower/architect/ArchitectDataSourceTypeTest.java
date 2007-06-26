@@ -2,6 +2,7 @@ package ca.sqlpower.architect;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import junit.framework.TestCase;
 
@@ -149,5 +150,53 @@ public class ArchitectDataSourceTypeTest extends TestCase {
         superType.removeJdbcJar("your.jar");
         assertEquals(jarCount - 1, superType.getJdbcJarList().size());
         superType.removeJdbcJar("your.jar");
+    }
+    
+    public void testRetrieveURLParsing() {
+        ArchitectDataSourceType dsType = new ArchitectDataSourceType();
+        dsType.setJdbcUrl("<Database>:<Port>:<Hostname>");
+        Map<String, String> map = dsType.retrieveURLParsing("data:1234:");
+        assertEquals("data", map.get("Database"));
+        assertEquals("1234", map.get("Port"));
+        assertEquals("", map.get("Hostname") );
+    }
+    
+    public void testRetrieveURLParsingWithDefaults() {
+        ArchitectDataSourceType dsType = new ArchitectDataSourceType();
+        dsType.setJdbcUrl("<Database:db>:<Port:2222>:<Hostname:home>");
+        Map<String, String> map = dsType.retrieveURLParsing("data:1234:");
+        assertEquals("data", map.get("Database"));
+        assertEquals("1234", map.get("Port"));
+        assertEquals("", map.get("Hostname"));
+    }
+    
+    public void testRetrieveURLParsingNullTemplateURL() {
+        ArchitectDataSourceType dsType = new ArchitectDataSourceType();
+        dsType.setJdbcUrl(null);
+        Map<String, String> map = dsType.retrieveURLParsing("data:1234:");
+        assertEquals(0, map.size());
+    }
+    
+    public void testRetrieveURLParsingURLDoesntmMatchTemplate() {
+        ArchitectDataSourceType dsType = new ArchitectDataSourceType();
+        dsType.setJdbcUrl("hello:<Database:db>:<Port:2222>:<Hostname:home>");
+        Map<String, String> map = dsType.retrieveURLParsing("hello");
+        assertEquals(0, map.size());
+    }
+    
+    public void testRetrieveURLDefaults(){
+        ArchitectDataSourceType dsType = new ArchitectDataSourceType();
+        dsType.setJdbcUrl("<Database>:<Port:1234>:<Hostname:home>");
+        Map<String, String> map = dsType.retrieveURLDefaults();
+        assertEquals("", map.get("Database"));
+        assertEquals("1234", map.get("Port"));
+        assertEquals("home", map.get("Hostname"));
+    }
+    
+    public void testRetrieveURLDefaultsNoTemplate(){
+        ArchitectDataSourceType dsType = new ArchitectDataSourceType();
+        dsType.setJdbcUrl(null);
+        Map<String, String> map = dsType.retrieveURLDefaults();
+        assertEquals(0, map.size());
     }
 }
