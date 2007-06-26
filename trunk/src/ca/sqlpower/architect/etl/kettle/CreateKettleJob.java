@@ -41,7 +41,7 @@ import ca.sqlpower.architect.FileValidator.FileValidationResponse;
 import ca.sqlpower.architect.ddl.DDLUtils;
 
 /**
- * This class stores the settings for creating a new Kettle job 
+ * This class stores the settings for and creates a new Kettle job
  */
 public class CreateKettleJob {
     
@@ -108,6 +108,9 @@ public class CreateKettleJob {
         fileValidator = new AlwaysAcceptFileValidator();
     }
     
+    /**
+     * This method translates the list of SQLTables to a Kettle Job and Transformations.
+     */
     public void doExport(List<SQLTable> tableList, SQLDatabase targetDB ) throws ArchitectException, RuntimeException, IOException {
         
         //If the overwrite option is set to WRITE_OK_ALWAYS, or WRITE_NOT_OK_ALWAYS then
