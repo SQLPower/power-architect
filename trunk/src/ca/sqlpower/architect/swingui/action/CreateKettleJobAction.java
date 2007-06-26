@@ -94,7 +94,7 @@ public class CreateKettleJobAction extends AbstractAction {
                     }
                 });
                 builder.nextColumn(2);
-                builder.append("The Kettle job was created but these steps must still be completed manually.");
+                builder.append("These items must be done before the Kettle job can be executed.");
                 builder.nextLine();
                 builder.append("");
                 builder.append(new JScrollPane(toDoList));
