@@ -1,38 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+ Power*Architect Ant build file
+
+To do:
+
+-check for and warn about spaces in the absolute path to the current
+  directory (it screws up the documentation XSLT thing)
+-make the init step fail outright if not running under ant 1.7 or newer
+
+-->
 <project name="architect" default="dist" basedir=".">
 
 	<!-- $Id$ -->
 
 	<!-- Optional per-user customization -->
 	<property file="${user.home}/build.properties" />
+
 	<!-- Optional directory customization -->
 	<property file="build.properties" />
 
+	<!-- The directory where the Java source files are -->
 	<property name="src" value="src"/>
+	
+	<!-- The directory with all the JAR files that are required
+	     by the Architect at runtime -->
 	<property name="lib" value="lib"/>
+	
+	<!-- The target build directory for compiled classes, docs,
+	     tests, and more. The contents of this dir will eventually
+	     get added to the architect.jar file. -->
 	<property name="build" value="build"/>
+	
+	<!-- The java compiler to use. See Ant docs for details. -->
 	<property name="build.compiler" value="modern"/>
-	<property name="installer.dir" value="installer"/>
-	<!-- The staging directory is a temp dir that is used as a base for all the distributions -->
+
+	<!-- The staging directory is a temp dir that is used as a base for all
+	     the OS-dependant distributions -->
 	<property name="staging.dir" value="staging" />
 
-	<!-- findbugs -->
+	<!-- Windows installer tool: izpack (needs both a jar and its own
+	     directory to run properly) -->
+	<property name="izpack.dir" value="ext-tools-home/izpack"/>
+	<taskdef name="izpack" classpath="${izpack.dir}/lib/compiler.jar"
+		     classname="com.izforge.izpack.ant.IzPackTask"/>
+
+	<!-- Base directory for the izpack (Windows) installer output -->
+	<property name="installer.dir" value="installer"/>
+
+	<!-- OS X .app bundling tool: jarbundler -->
+	<taskdef name="jarbundler" 
+		classpath="osx_packaging_utils/jarbundler.jar:osx_packaging_utils/xercesImpl.jar:osx_packaging_utils/xml-apis.jar"
+		classname="net.sourceforge.jarbundler.JarBundler"/>
+
+	<!-- findbugs code checking tool -->
 	<property name="findbugs.home" value="ext-tools-home/findbugs"/>
 	<property name="findbugs-ant.jar" value="${findbugs.home}/lib/findbugs-ant.jar"/>
 
-	<!-- pmd and its helper jar files -->
+	<!-- pmd code checking tool and its helper jar files -->
 	<property name="pmd.home" value="ext-tools-home/pmd"/>
 	<property name="pmd.jar" value="${pmd.home}/lib/pmd-3.9.jar"/>
 
-	<!-- izpack needs both a jar and its own directory	-->
-	<property name="izpack.dir" value="ext-tools-home/izpack"/>
-	<taskdef name="izpack" classpath="${izpack.dir}/lib/compiler.jar" classname="com.izforge.izpack.ant.IzPackTask"/>
-
-	<!-- clover -->
+	<!-- clover test coverage tool -->
 	<property name="clover.home" value="ext-tools-home/clover"/>
 
-	<!-- os x utils -->
-	<taskdef name="jarbundler" classpath="osx_packaging_utils/jarbundler.jar:osx_packaging_utils/xercesImpl.jar:osx_packaging_utils/xml-apis.jar" classname="net.sourceforge.jarbundler.JarBundler"/>
-
+	<!-- When the build runs on a Mac, we can create the .dmg disk image
+	     using the native hdiutil program.  Otherwise, we just make a .tar.gz.
+	-->
 	<condition property="isMac">
 		<os family="mac"/>
 	</condition>
@@ -43,7 +77,10 @@
 		</not>
 	</condition>
 
-	<target name="init">
+	<target name="init"
+		description="Checks build prereqs, creates output dir, and determines product version"
+		>
+		<!-- TODO enforce the version checking -->
 		<echo message="Note, this build script requires Ant 1.7 or newer"/>
 		<tstamp/>
 		<mkdir dir="${build}"/>
@@ -61,15 +98,21 @@
 	<!-- The routine tests that work can get listed here.
 	*** Right now findbugs runs out of memory
 	-->
-	<target name="alltests" depends="junit,pmd"/>
+	<target name="alltests" depends="junit,pmd"
+		description="Runs all working test targets"
+	/>
 
-	<target name="with.clover">
+	<target name="with.clover"
+		description="Sets up the clover environment"
+		>
 	    <clover-setup initString="mycoverage.db" source="1.5">
 	    <statementContext name="iflog" regexp="^if ?\( ?logger.is.*"/>
 	    </clover-setup>
 	</target>
 
-	<target name="clover.html" depends="with.clover">
+	<target name="clover.html" depends="with.clover"
+		description="Generates HTML coverage report based on previous clover-enabled test run"
+		>
 	    <clover-report>
 	        <current outfile="/Users/fuerth/Sites/architect_clover_html">
 	            <format type="html" filter="iflog" />
@@ -77,23 +120,13 @@
 	    </clover-report>
 	</target>
 
-	<target name="clover.swing" depends="with.clover">
-	    <clover-view/>
-	</target>
-
-	<target name="clover.summary" depends="with.clover">
-	    <clover-report>
-	    	<current summary="yes" outfile="coverage.pdf">
-		    <format type="pdf"/>
-		</current>
-	    </clover-report>
-	</target>
-
-	<target name="pmd">
+	<target name="pmd"
+		description="Runs the PMD code checking tool, saving results to a file"
+		>
 		<taskdef name="pmd" classname="net.sourceforge.pmd.ant.PMDTask"
 			classpath="${pmd.jar}"/>
 		<property name="pmd-results" value="pmd-ant-results.txt"/>
-		<pmd shortFilenames="true">
+		<pmd shortFilenames="true" targetjdk="1.5">
 			<ruleset>basic,imports</ruleset>
 			<formatter type="text" toFile="${pmd-results}"/>
 			<fileset dir="${src}">
