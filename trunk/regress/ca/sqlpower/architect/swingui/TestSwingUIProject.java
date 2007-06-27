@@ -55,8 +55,8 @@ public class TestSwingUIProject extends ArchitectTestCase {
 	 */
 	public void setUp() throws Exception {
         context = new TestingArchitectSwingSessionContext();
-        session = context.createSession("test");
-		project = new SwingUIProject(session);
+        session = context.createSession(false);
+		project = new SwingUIProject(session); // shouldn't this be session.getProject()?
         plIni = new PlDotIni();
         // TODO add some database types and a test that loading the project finds them
 	}
@@ -188,7 +188,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         
         // load it back and check
         ArchitectSwingSessionContext context = session.getContext();
-        ArchitectSwingSession session2 = context.createSession("new test project");
+        ArchitectSwingSession session2 = context.createSession(false);
         SwingUIProject project2 = new SwingUIProject(session2);
         project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
         
@@ -208,7 +208,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		project.save(mockProgressMonitor);
 		
         ArchitectSwingSessionContext context = session.getContext();
-        ArchitectSwingSession session2 = context.createSession("test2");
+        ArchitectSwingSession session2 = context.createSession(false);
 		SwingUIProject p2 = new SwingUIProject(session2);
 		p2.load(new FileInputStream(file), plIni);
 		File tmp2 = File.createTempFile("test2", ".architect");
@@ -233,7 +233,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		project.save(byteArrayOutputStream,ENCODING);
 
         ArchitectSwingSessionContext context = session.getContext();
-        ArchitectSwingSession session2 = context.createSession("test2");
+        ArchitectSwingSession session2 = context.createSession(false);
         SwingUIProject p2 = new SwingUIProject(session2);
 		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toString().getBytes(ENCODING));
         p2.load(byteArrayInputStream, plIni);
@@ -254,7 +254,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         project.save(byteArrayOutputStream,ENCODING);
         System.out.println(byteArrayOutputStream.toString());
         ArchitectSwingSessionContext context = session.getContext();
-        ArchitectSwingSession session2 = context.createSession("test2");
+        ArchitectSwingSession session2 = context.createSession(false);
         SwingUIProject p2 = new SwingUIProject(session2);
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toString().getBytes(ENCODING));
         p2.load(byteArrayInputStream, plIni);
@@ -438,7 +438,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		project.save(out,ENCODING);
 		
         ArchitectSwingSessionContext context = session.getContext();
-        ArchitectSwingSession session2 = context.createSession("new test project");
+        ArchitectSwingSession session2 = context.createSession(false);
 		SwingUIProject project2 = new SwingUIProject(session2);
 		project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
 		
@@ -505,7 +505,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		project.save(out,ENCODING);
 		
         ArchitectSwingSessionContext context = session.getContext();
-        ArchitectSwingSession session2 = context.createSession("new test project");
+        ArchitectSwingSession session2 = context.createSession(false);
 		SwingUIProject project2 = new SwingUIProject(session2);
 		project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
 		
@@ -558,7 +558,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		project.save(out,ENCODING);
 		
         ArchitectSwingSessionContext context = session.getContext();
-        ArchitectSwingSession session2 = context.createSession("new test project");
+        ArchitectSwingSession session2 = context.createSession(false);
 		SwingUIProject project2 = new SwingUIProject(session2);
 		project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
 		
@@ -612,7 +612,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		project.save(out,ENCODING);
 		
         ArchitectSwingSessionContext context = session.getContext();
-        ArchitectSwingSession session2 = context.createSession("new test project");
+        ArchitectSwingSession session2 = context.createSession(false);
 		SwingUIProject project2 = new SwingUIProject(session2);
 		project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
 		
@@ -686,7 +686,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		project.save(out,ENCODING);
 		
         ArchitectSwingSessionContext context = session.getContext();
-        ArchitectSwingSession session2 = context.createSession("new test project");
+        ArchitectSwingSession session2 = context.createSession(false);
 		SwingUIProject project2 = new SwingUIProject(session2);
 		project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
 		
@@ -749,7 +749,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 
         
         ArchitectSwingSessionContext context = session.getContext();
-        ArchitectSwingSession session2 = context.createSession("new test project");
+        ArchitectSwingSession session2 = context.createSession(false);
         SwingUIProject project2 = new SwingUIProject(session2);
         project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
         
@@ -798,7 +798,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         System.out.println(byteArrayOutputStream.toString());
         
         ArchitectSwingSessionContext context = session.getContext();
-        ArchitectSwingSession session2 = context.createSession("new test project");
+        ArchitectSwingSession session2 = context.createSession(false);
         SwingUIProject project2 = new SwingUIProject(session2);
         project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), plIni);
         
@@ -846,7 +846,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         project.save(byteArrayOutputStream,ENCODING);
         System.out.println(byteArrayOutputStream.toString());
         ArchitectSwingSessionContext context = session.getContext();
-        ArchitectSwingSession session2 = context.createSession("new test project");
+        ArchitectSwingSession session2 = context.createSession(false);
         SwingUIProject project2 = new SwingUIProject(session2);
         project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), plIni);
         
@@ -897,7 +897,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         project.save(out,ENCODING);
         
         ArchitectSwingSessionContext context = session.getContext();
-        ArchitectSwingSession session2 = context.createSession("new test project");
+        ArchitectSwingSession session2 = context.createSession(false);
         SwingUIProject project2 = new SwingUIProject(session2);
         project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
         

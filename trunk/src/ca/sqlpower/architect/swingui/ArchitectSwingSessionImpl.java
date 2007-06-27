@@ -1,6 +1,5 @@
 package ca.sqlpower.architect.swingui;
 
-import java.awt.Toolkit;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -9,6 +8,7 @@ import java.util.List;
 
 import javax.swing.Action;
 import javax.swing.JDialog;
+import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 
 import org.apache.log4j.Logger;
@@ -94,20 +94,19 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     throws ArchitectException {
 
         this.context = context;
+        this.name = name;
 
-        int accelMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
-        
         userSettings = context.getUserSettings();
         sprefs = userSettings.getSwingSettings();
         
         // Make sure we can load the pl.ini file so we can handle exceptions
+        // XXX this is probably redundant now, since the context owns the pl.ini
         userSettings.getPlDotIni();
 
-        this.project = new SwingUIProject(this);
+        project = new SwingUIProject(this);
 
         profileManager = new TableProfileManager();
 
-        this.name = name;
 
         try {
             ddlGenerator = new GenericDDLGenerator();
@@ -117,33 +116,41 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         compareDMSettings = new CompareDMSettings();
         
         createKettleJob = new CreateKettleJob();
-    }
-
-    /**
-     * Initializes the GUI components for this session. Call this only if you need a GUI.
-     * @throws ArchitectException
-     */
-    void init() throws ArchitectException {
+        
         SQLDatabase ppdb = new SQLDatabase();
-        PlayPen pp = new PlayPen(this, ppdb);
-        playPen = pp;
+        playPen = new PlayPen(this, ppdb);
+
         List initialDBList = new ArrayList();
         initialDBList.add(playPen.getDatabase());
         this.sourceDatabases = new DBTree(this, initialDBList);
-        ToolTipManager.sharedInstance().registerComponent(pp);
-        undoManager = new UndoManager(pp);
-        this.profileDialog = new JDialog(frame, "Table Profiles");
+        
+        undoManager = new UndoManager(playPen);
+    }
+
+    public void initGUI() throws ArchitectException {
+        if (!SwingUtilities.isEventDispatchThread()) {
+            throw new IllegalStateException("This method must be called on the Swing Event Dispatch Thread.");
+        }
+
+        ToolTipManager.sharedInstance().registerComponent(playPen);
+        
+        profileDialog = new JDialog(frame, "Table Profiles");
         profileManagerView = new ProfileManagerView(profileManager);
         profileManager.addProfileChangeListener(profileManagerView);
         profileDialog.add(profileManagerView);
+
         frame = new ArchitectFrame(this, project);
+        
         // MUST be called after constructed to set up the actions
         frame.init(); 
         frame.setVisible(true);
-        // This has to be called after frame.init() because pp gets the keyboard actions from frame,
+        
+        // This has to be called after frame.init() because playPen gets the keyboard actions from frame,
         // which only get set up after calling frame.init().
-        pp.setupKeyboardActions();
+        playPen.setupKeyboardActions();
+        
         macOSXRegistration(frame);
+        
         profileDialog.setLocationRelativeTo(frame);
     }
 

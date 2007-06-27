@@ -113,4 +113,14 @@ public interface ArchitectSwingSession extends ArchitectSession {
     public CreateKettleJob getCreateKettleJob();
 
     public void setCreateKettleJobSettings(CreateKettleJob createKettleJobSettings);
+
+    /**
+     * Initializes the GUI components for this session. Call this only if you need a GUI.
+     * This method must be called on the Swing Event Dispatch Thread.
+     * 
+     * @throws ArchitectException
+     * @throws IllegalStateException if showGUI==true and this method was
+     * not called on the Event Dispatch Thread.
+     */
+    public void initGUI() throws ArchitectException;
 }
