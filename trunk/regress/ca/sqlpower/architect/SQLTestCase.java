@@ -14,7 +14,6 @@ import org.apache.commons.beanutils.PropertyUtils;
 
 import ca.sqlpower.ArchitectTestCase;
 import ca.sqlpower.architect.SQLIndex.IndexType;
-import ca.sqlpower.architect.swingui.TestingArchitectSwingSessionContext;
 import ca.sqlpower.architect.undo.UndoManager;
 
 /**
@@ -50,11 +49,6 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 	 * @throws ArchitectException 
 	 */
 	static ArchitectDataSource getDataSource() throws IOException, ArchitectException {
-	    TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
-        //ArchitectFrame.getMainInstance();  // creates an ArchitectFrame, which loads settings
-		//FIXME: a better approach would be to have an initialsation method
-		// in the business model, which does not depend on the init routine in ArchitectFrame.
-		
 		plini.read(new File("pl.regression.ini"));
 		return plini.getDataSource("regression_test");
 	}
