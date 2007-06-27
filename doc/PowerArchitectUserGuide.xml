@@ -249,7 +249,15 @@
 				software installed on your computer; if not, please
 				refer to the Installation Guide below.
 			</para>
-
+			
+			<para>
+				For the section on creating a Kettle job we assume that 
+				the reader has some basic knowledge about ETL. For more 
+				information about ETL look for "Building the Data Warehouse" 
+				by W. H. Inmon or "The Data Warehouse Toolkit: The Complete 
+				Dimensional Modeling" by Ralph Kimball and Margy Ross.
+			</para>
+			
 		</sect1>
 
 	</chapter>
@@ -2332,6 +2340,93 @@
 
 			</section>
 
+		</section>
+		
+		<section id="creating_a_kettle_job">
+		
+			<title>How to Create a Kettle Job</title>
+			
+			<section id="creating_a_kettle_job.what">
+			
+				<title>What it Does</title>
+				
+				<para>
+					This feature allows a user to create a Kettle job
+					and multiple transformations based on the information
+					in the play pen. The Kettle job is used to take the data
+					from the sources of the tables in the play pen and place
+					them in the new tables of the target database.
+				</para>
+			
+			</section>
+			
+			<section id="creating_a_kettle_job.how">
+			
+				<title>How to Use the Create Kettle Job Feature</title>
+			
+				<para>
+					Before you start creating jobs, some settings need to be
+					configured. Go to the User Preferences and select the JDBC 
+					Drivers tab. For each driver that you use in a database 
+					connection, set the Kettle Connection Type on the Kettle
+					sub-tab.
+				</para>
+			
+				<para>
+					To start creating a Kettle job go to the ETL menu and
+					select the "Create Kettle Job" menu item. You should
+					see the following window.
+				</para>
+			
+				<mediaobject>
+					<imageobject>
+						<imagedata
+							fileref="doc/images/etl.png" format="PNG" width="4in" />
+					</imageobject>
+				</mediaobject>
+			
+				<para>
+					Each Kettle job requires a name, a target database and a
+					file path to save to. To set the target database, click 
+					the "Properties" button. The default join type is used to
+					define what join type will be used in all merge-joins.
+					Merge-joins are used to create tables with multiple
+					sources.
+				</para>
+
+				<para>
+					When setting the target database, a hostname, port 
+					value and databse name need to be specified. The
+					URL template may contain properties for the database,
+					host and/or port. If the template contains properties 
+					for Kettle, the values given in the URL will
+					be used for the target connection in Kettle.
+					If the template does not contain Kettle properties
+					then they can be set on the Kettle tab.
+				</para>
+			
+				<mediaobject>
+					<imageobject>
+						<imagedata
+							fileref="doc/images/etl_database_connection.png" format="PNG" width="4in" />
+					</imageobject>
+				</mediaobject>
+			
+				<para>
+					To start creating the Kettle job and transformation files,
+					click the "OK" button. Once the job has been created, a 
+					window will display	additional steps that need to be 
+					completed before running the job.
+				</para>
+				
+				<para>
+					Note: The transformation files will be stored in the 
+					same location as the Kettle job. You must use Kettle 
+					to run the job.
+				</para>
+				
+			</section>
+		
 		</section>
 
 	</chapter>
