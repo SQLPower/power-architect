@@ -593,10 +593,10 @@ public class ASUtils {
                 PlayPen pp = session.getPlayPen();
                 er.setNumObjectsInPlayPen(pp.getTablePanes().size() + pp.getRelationships().size());
                 er.setNumSourceConnections(session.getSourceDatabases().getDatabaseList().size());
+                er.setUserActivityDescription("");
+                logger.debug(er.toString());
+                er.postReport(session.getContext());
             }
-            er.setUserActivityDescription("");
-            logger.debug(er.toString());
-            er.postReport(session.getContext());
         } catch (Throwable seriousProblem) {
             logger.error("Couldn't generate and send exception report!  Note that this is not the primary problem; it's a side effect of trying to report the real problem.", seriousProblem);
             JOptionPane.showMessageDialog(null, "Error reporting failed: "+seriousProblem.getMessage()+"\nAdditional information is available in the application log.");
