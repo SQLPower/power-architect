@@ -3,12 +3,15 @@ package ca.sqlpower.architect.swingui.action;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.io.File;
 
 import javax.swing.AbstractAction;
+import javax.swing.JFileChooser;
 import javax.swing.KeyStroke;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.RecentMenu;
 
@@ -27,27 +30,24 @@ public class OpenProjectAction extends AbstractArchitectAction {
     }
 
     public void actionPerformed(ActionEvent e) {
-        /*if (promptForUnsavedModifications()) {
-            prefs.putInt(SwingUserSettings.DIVIDER_LOCATION, splitPane.getDividerLocation());
-            JFileChooser chooser = new JFileChooser();
-            chooser.addChoosableFileFilter(ASUtils.ARCHITECT_FILE_FILTER);
-            int returnVal = chooser.showOpenDialog(frame);
-            if (returnVal == JFileChooser.APPROVE_OPTION) {
-                File f = chooser.getSelectedFile();
-                LoadFileWorker worker;
-                try {
-                    worker = new LoadFileWorker(f,recent);
-                    new Thread(worker).start();
-                } catch (FileNotFoundException e1) {
-                    JOptionPane.showMessageDialog(
-                            frame,
-                            "File not found: "+f.getPath());
-                } catch (Exception e1) {
-                    ASUtils.showExceptionDialog(
-                            "Error loading file", e1);
-                }
+        JFileChooser chooser = new JFileChooser();
+        chooser.addChoosableFileFilter(ASUtils.ARCHITECT_FILE_FILTER);
+        int returnVal = chooser.showOpenDialog(frame);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            File f = chooser.getSelectedFile();
+//            LoadFileWorker worker;
+            try {
+                session.getContext().createSession(f, true);
+//                worker = new LoadFileWorker(f,recent);
+//                new Thread(worker).start();
+//            } catch (FileNotFoundException e1) {
+//                JOptionPane.showMessageDialog(
+//                        frame,
+//                        "File not found: "+f.getPath());
+            } catch (Exception e1) {
+                ASUtils.showExceptionDialog(session, "Error loading file", e1);
             }
-        }*/
+        }
         logger.info("Opening a Project doesn't work yet ;)");
     }
 }
