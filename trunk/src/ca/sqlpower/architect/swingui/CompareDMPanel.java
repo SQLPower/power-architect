@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -631,11 +632,16 @@ public class CompareDMPanel extends JPanel {
 				}
 
 			} else if (loadRadio.isSelected()) {
-                // FIXME: I don't think this will work properly after the merging of session and project
-				SwingUIProject project = new SwingUIProject(session);
 				File f = new File(loadFilePath.getText());
-				project.load(new BufferedInputStream(new FileInputStream(f)), session.getUserSettings().getPlDotIni());
-				o = session.getPlayPen().getDatabase();
+				InputStream in = new BufferedInputStream(new FileInputStream(f));
+                
+                // XXX: this will take a non-trivial amount of time, so ideally would be done with a progress bar.
+                // we might be able to use OpenProjectAction.loadAsynchronously() for this, but it would need a flag for not showing the GUI
+                // or better yet, set o=f, and do the load itself in the compare worker, because this approach would share the progress bar with the comparison activity itself
+				ArchitectSwingSession newSession = session.getContext().createSession(in, false);
+				
+                o = newSession.getPlayPen().getDatabase();
+                
 			} else {
 				throw new IllegalStateException(
 						"Do not know which source to compare from");
