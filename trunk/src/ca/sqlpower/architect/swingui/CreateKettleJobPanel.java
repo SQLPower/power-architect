@@ -129,8 +129,11 @@ public class CreateKettleJobPanel implements ArchitectPanel {
         
         saveReposRadioButton = new JRadioButton("Save Job to Repository");
 
-        JComboBox reposDB = new JComboBox(session.getUserSettings().getConnections().toArray());
-        reposDB.setSelectedIndex(0);
+        Object[] connectionArray = session.getUserSettings().getConnections().toArray();
+        JComboBox reposDB = new JComboBox(connectionArray);
+        if (connectionArray.length > 0) {
+            reposDB.setSelectedIndex(0);
+        }
         reposPropertiesButton = new JButton();
         reposPropertiesButton.setText("Properties...");
         reposPropertiesButton.addActionListener(new ActionListener() {
