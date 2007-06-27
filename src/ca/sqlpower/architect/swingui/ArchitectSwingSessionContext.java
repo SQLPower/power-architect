@@ -1,14 +1,21 @@
 package ca.sqlpower.architect.swingui;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.prefs.Preferences;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.CoreUserSettings;
 
+/**
+ * The ArchitectSwingSessionContext interface specifies a set of
+ * properties and methods for creating new Architect Swing Sessions.
+ * Additionally, the session context is the gateway to information
+ * that is specific to the current user's environment (as opposed
+ * to information that is attached to specific projects, which is
+ * stored in the session).
+ */
 public interface ArchitectSwingSessionContext {
 
     /**
@@ -17,7 +24,6 @@ public interface ArchitectSwingSessionContext {
      * sizes.
      */
     public static final int ICON_SIZE = 16;
-
 
     /**
      * The URL where the Architect support forum is available.
@@ -41,28 +47,32 @@ public interface ArchitectSwingSessionContext {
      * @throws ArchitectException 
      */
     public abstract ArchitectSwingSession createSession() throws ArchitectException;
-
+    
     /**
-     * Reads the given file, then creates a new session. Uses the showGUI parameter to 
-     * determine whether or not to show a new ArchitectFrame for this session
+     * Creates a new session within this parent context.  This will cause an
+     * Architect Frame to appear on the user's desktop with a new empty project
+     * in it.
+     * <p>
+     * <b>Important note:</b> If showGUI is true, this method must be called on
+     * the Swing Event Dispatch Thread.  See SwingUtilities.invokeLater() for a
+     * way of ensuring this method is called on the proper thread.
      * 
-     * @param projectFile
-     * @param showGUI
-     * @return
-     * @throws ArchitectException
-     * @throws FileNotFoundException 
+     * @param showGUI True if you want this session to have its own (visible)\
+     * ArchitectFrame instance; false for an invisible session.
+     * @return The new session
      */
-    public abstract void createSession(File projectFile, boolean showGUI) throws ArchitectException, FileNotFoundException,  IOException;
-
+    public abstract ArchitectSwingSession createSession(boolean showGUI) throws ArchitectException;
+    
     /**
-     * Creates a new session which houses the given project.  This is the createSession()
-     * method that all the others delegate to.
+     * Creates a new session by loading the Architect XML project description
+     * from the given input stream.
      * 
-     * @param project
-     * @return
-     * @throws ArchitectException
+     * @param in The input stream to read the XML data from
+     * @param showGUI True if you want this session to have its own (visible)\
+     * ArchitectFrame instance; false for an invisible session.
+     * @return The new session
      */
-    public abstract ArchitectSwingSession createSession(String projectName) throws ArchitectException;
+    public abstract ArchitectSwingSession createSession(InputStream in, boolean showGUI) throws ArchitectException, IOException;
 
     /**
      * Returns true iff this context is running on a Mac OS X machine.  Some
@@ -90,4 +100,5 @@ public interface ArchitectSwingSessionContext {
      * Returns a collection containing all the sessions from this context. 
      */
     public Collection<ArchitectSwingSession> getSessions();
+
 }

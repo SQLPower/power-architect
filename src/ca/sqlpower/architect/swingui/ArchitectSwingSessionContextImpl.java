@@ -4,10 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
@@ -22,7 +19,6 @@ import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
 
@@ -30,6 +26,7 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.qfa.ExceptionHandler;
+import ca.sqlpower.architect.swingui.action.OpenProjectAction;
 
 import com.jgoodies.forms.factories.Borders;
 
@@ -46,64 +43,6 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     private static final Logger logger = Logger.getLogger(ArchitectSwingSessionContextImpl.class);
     
     private static final boolean MAC_OS_X = (System.getProperty("os.name").toLowerCase().startsWith("mac os x"));
-
-    /**
-     *  FIXME: Fix LoadFileWorker class
-     */
-    private class LoadFileWorker extends ArchitectSwingWorker {
-        InputStream in;
-        SwingUIProject project;
-        File file;
-        RecentMenu recent;
-        
-        /**
-         * Load file worker creates a new worker and opens the given file.
-         *
-         * @param file  this file gets opened in the constructor
-         * @param recent optional recent menu in which to add the file
-         * @throws ArchitectException when the project creation fails.
-         * @throws FileNotFoundException if file doesn't exist
-         */
-        public LoadFileWorker(File file, RecentMenu recent) throws ArchitectException, FileNotFoundException {
-                /*project = new SwingUIProject("Loading...");
-                project.setFile(file);
-                this.file = file;
-                this.recent = recent;
-                in = new BufferedInputStream(
-                    new ProgressMonitorInputStream(
-                         null,
-                         "Reading " + file.getName(),
-                         new FileInputStream(file)));*/
-        }
-
-        @Override
-        public void doStuff() throws IOException, ArchitectException {
-            /*project.load(in, userSettings.getPlDotIni());
-            if (recent != null) {
-                recent.putRecentFileName(file.getAbsolutePath());
-            }*/
-        }
-
-        @Override
-        public void cleanup() throws ArchitectException {
-            /*if (getDoStuffException() != null) {
-                JOptionPane.showMessageDialog(null,
-                        "Cannot open project file '" + project.getName() + ".architect': \n" + getDoStuffException().getMessage());
-                logger.error("Got exception while opening a project", getDoStuffException());
-            } else {
-                createSession(project);
-                ((SQLObject) project.getSourceDatabases().getModel().getRoot()).fireDbStructureChanged();
-            }
-            
-            try {
-                if (in != null) {
-                    in.close();
-                }
-            } catch (IOException ie) {
-                logger.error("got exception while closing project file", ie);
-            }*/
-        }
-    }
 
     /**
      * The preferences node that user-specific preferences are stored in.
@@ -157,19 +96,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
             @Override
             public void loadFile(String fileName) throws IOException {
                 File f = new File(fileName);
-
-                LoadFileWorker worker;
-                try {
-                    worker = new LoadFileWorker(f,null);
-                    new Thread(worker).start();
-                } catch (FileNotFoundException e1) {
-                    JOptionPane.showMessageDialog(
-                            null,
-                            "File not found: "+f.getPath());
-                } catch (Exception e1) {
-                    ASUtils.showExceptionDialog(
-                            "Error loading file", e1);
-                }
+                OpenProjectAction.openAsynchronously(ArchitectSwingSessionContextImpl.this, f);
             }
         };
         
@@ -224,40 +151,40 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     }
     
     /**
-     * Creates a new session with an empty project.
+     * Loads the XML project description from the input stream,
+     * optionally creating the GUI for you.
+     * <p>
+     * <b>Important Note:</b> If you set showGUI to true, this method
+     * must be called on the Swing Event Dispatch Thread.  If this is
+     * not possible or practical, call this method with showGUI false,
+     * then call {@link ArchitectSwingSession#initGUI()} on the returned
+     * session using the event dispatch thread some time later on.
+     * @throws IOException If the file is not found or can't be read.
+     * @throws ArchitectException if there is some problem with the file
+     * @throws IllegalStateException if showGUI==true and this method was
+     * not called on the Event Dispatch Thread.
      */
-    public ArchitectSwingSession createSession() throws ArchitectException {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            throw new IllegalStateException("This method must be called on the Swing Event Dispatch Thread.");
+    public ArchitectSwingSession createSession(InputStream in, boolean showGUI) throws ArchitectException, IOException {
+
+        ArchitectSwingSession session = createSessionImpl("Loading...", false);
+        
+        session.getProject().load(in, session.getUserSettings().getPlDotIni());
+        
+        if (showGUI) {
+            session.initGUI();
         }
-        ArchitectSwingSession session = createSessionImpl("New Project");
+        
         return session;
     }
     
-    /**
-     * Launches a worker thread to do the actual loading, which ultimately
-     * calls {@link #createSessionImpl(String)} to create the session.
-     * @throws IOException 
-     */
-    public void createSession(File projectFile, boolean showGUI) throws ArchitectException, IOException {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            throw new IllegalStateException("This method must be called on the Swing Event Dispatch Thread.");
-        }
-        
-        ArchitectSwingSession session = createSession();
-        
-        SwingUIProject project = new SwingUIProject(session); 
-        project.load(new BufferedInputStream(new FileInputStream(projectFile)), session.getUserSettings().getPlDotIni());    
-        
-//        LoadFileWorker worker = new LoadFileWorker(projectFile, recent);
-//        new Thread(worker).start();
+    /* javadoc inherited from interface */
+    public ArchitectSwingSession createSession() throws ArchitectException {
+        return createSession(true);
     }
-    
-    /* (non-Javadoc)
-     * @see ca.sqlpower.architect.swingui.ArchitectSwingSessionContext#createSession(ca.sqlpower.architect.swingui.SwingUIProject)
-     */
-    public ArchitectSwingSession createSession(String projectName) throws ArchitectException {
-        return createSessionImpl(projectName);
+
+    /* javadoc inherited from interface */
+    public ArchitectSwingSession createSession(boolean showGUI) throws ArchitectException {
+        return createSessionImpl("New Project", showGUI);
     }
 
     /**
@@ -270,18 +197,22 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      * @param projectName
      * @return
      * @throws ArchitectException
+     * @throws IllegalStateException if showGUI==true and this method was
+     * not called on the Event Dispatch Thread.
      */
-    private ArchitectSwingSession createSessionImpl(String projectName) throws ArchitectException {
+    private ArchitectSwingSession createSessionImpl(String projectName, boolean showGUI) throws ArchitectException {
         logger.debug("About to create a new session for project \"" + projectName + "\"");
         ArchitectSwingSessionImpl session = new ArchitectSwingSessionImpl(this, projectName);
         sessions.add(session);
         session.addSessionLifecycleListener(this);
         
-        logger.debug("Creating the Architect frame...");
-        session.init();
+        if (showGUI) {
+            logger.debug("Creating the Architect frame...");
+            session.initGUI();
         
-        if (sessions.size() == 1) {
-            showWelcomeScreen(session.getArchitectFrame());
+            if (sessions.size() == 1) {
+                showWelcomeScreen(session.getArchitectFrame());
+            }
         }
         
         return session;

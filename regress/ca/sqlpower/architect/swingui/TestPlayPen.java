@@ -19,7 +19,7 @@ public class TestPlayPen extends TestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
         TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
-        ArchitectSwingSession session = context.createSession("Undo Project");
+        ArchitectSwingSession session = context.createSession(false);
 		af = session.getArchitectFrame();
 		pp = session.getPlayPen();
 		ppdb = pp.getDatabase();

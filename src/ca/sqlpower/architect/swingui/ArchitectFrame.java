@@ -8,8 +8,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
@@ -627,7 +630,8 @@ public class ArchitectFrame extends JFrame {
                     }
 
                     if (openFile != null) {
-                        context.createSession(openFile, true);
+                        InputStream in = new BufferedInputStream(new FileInputStream(openFile));
+                        context.createSession(in, true);
                     } else {
                         context.createSession();
                     }

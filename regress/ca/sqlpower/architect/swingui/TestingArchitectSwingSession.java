@@ -152,4 +152,8 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
 
     public void setCreateKettleJobSettings(CreateKettleJob createKettleJobSettings) {
     }
+
+    public void initGUI() throws ArchitectException {
+        throw new UnsupportedOperationException("Testing session impl doesn't make GUIs");
+    }
 }

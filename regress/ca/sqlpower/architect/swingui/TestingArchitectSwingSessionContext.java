@@ -3,6 +3,7 @@ package ca.sqlpower.architect.swingui;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.prefs.Preferences;
 
@@ -39,7 +40,7 @@ public class TestingArchitectSwingSessionContext implements ArchitectSwingSessio
         return new TestingArchitectSwingSession(this);
     }
 
-    public ArchitectSwingSession createSession(String projectName) throws ArchitectException {
+    public ArchitectSwingSession createSession(boolean showGUI) throws ArchitectException {
         return this.createSession();
     }
     
@@ -64,8 +65,7 @@ public class TestingArchitectSwingSessionContext implements ArchitectSwingSessio
         return MAC_OS_X;
     }
 
-    public void createSession(File projectFile, boolean showGUI) throws ArchitectException, FileNotFoundException, IOException {
-        // TODO Auto-generated method stub
-        
+    public ArchitectSwingSession createSession(InputStream in, boolean showGUI) throws ArchitectException, FileNotFoundException, IOException {
+        return null;
     }
 }
