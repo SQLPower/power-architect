@@ -35,13 +35,13 @@ import ca.sqlpower.architect.swingui.event.SelectionListener;
 public class Relationship extends PlayPenComponent implements Selectable, SQLObjectListener, LayoutEdge {
 	private static final Logger logger = Logger.getLogger(Relationship.class);
 
-	protected SQLRelationship model;
-	protected TablePane pkTable;
-	protected TablePane fkTable;
+	private SQLRelationship model;
+	private TablePane pkTable;
+	private TablePane fkTable;
 
-	protected JPopupMenu popup;
+	private JPopupMenu popup;
 
-	protected boolean selected;
+	private boolean selected;
 	
 	private PlayPenComponentListener ppcListener = new PlayPenComponentListener();
 	private List<SelectionListener> selectionListeners = new LinkedList<SelectionListener>();
@@ -106,8 +106,6 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 		
 		// requires pkTable and fkTable to be initialized
 		//ui.bestConnectionPoints(); // breaks when loading a new project?
-
-		createPopup();
 	}
 
 	protected void createPopup() {
@@ -443,5 +441,15 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 
     public LayoutNode getTailNode() {
         return pkTable;
+    }
+
+    public JPopupMenu getPopup() {
+        // Lazy load popup if it isn't created
+        // We don't create it in the constructor because the
+        // ArchitectFrame instance required won't exist at that time.
+        if (popup == null) {
+            createPopup();
+        }
+        return popup;
     }
 }

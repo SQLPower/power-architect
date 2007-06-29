@@ -2303,7 +2303,7 @@ public class PlayPen extends JPanel
 				if (evt.isPopupTrigger() && !evt.isConsumed()) {
 					Relationship r = (Relationship) c;
 					r.setSelected(true,SelectionEvent.SINGLE_SELECT);
-					r.showPopup(r.popup, p);
+					r.showPopup(r.getPopup(), p);
 					return true;
 				}
 			} else if ( c instanceof TablePane ) {
