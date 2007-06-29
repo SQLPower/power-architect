@@ -16,6 +16,7 @@ import be.ibridge.kettle.core.LogWriter;
 import be.ibridge.kettle.core.NotePadMeta;
 import be.ibridge.kettle.core.database.DatabaseMeta;
 import be.ibridge.kettle.core.exception.KettleDatabaseException;
+import be.ibridge.kettle.core.exception.KettleException;
 import be.ibridge.kettle.core.util.EnvUtil;
 import be.ibridge.kettle.job.JobHopMeta;
 import be.ibridge.kettle.job.JobMeta;
@@ -23,6 +24,10 @@ import be.ibridge.kettle.job.entry.JobEntryCopy;
 import be.ibridge.kettle.job.entry.JobEntryInterface;
 import be.ibridge.kettle.job.entry.special.JobEntrySpecial;
 import be.ibridge.kettle.job.entry.trans.JobEntryTrans;
+import be.ibridge.kettle.repository.Repository;
+import be.ibridge.kettle.repository.RepositoryDirectory;
+import be.ibridge.kettle.repository.RepositoryMeta;
+import be.ibridge.kettle.repository.UserInfo;
 import be.ibridge.kettle.trans.TransHopMeta;
 import be.ibridge.kettle.trans.TransMeta;
 import be.ibridge.kettle.trans.step.StepMeta;
@@ -76,22 +81,10 @@ public class CreateKettleJob implements Monitorable {
     private String filePath;
     
     /**
-     * The file that represents the directory of the new Kettle job. This is set to 
-     * prevent null pointer exceptions when first opening the Create Kettle Job window.
-     */
-    private File parentFile = new File("");
-    
-    /**
      * A list of tasks that an administrator or tech will have to do to the Kettle
      * job to make it run correctly.
      */
     private List<String> tasksToDo;
-    
-    /**
-     * The file overwrite option to store if we should always overwrite or never
-     * overwrite.
-     */
-    private FileValidationResponse overwriteOption;
     
     /**
      * The file validator allows the selection for overwriting a file or not when saving
@@ -99,11 +92,32 @@ public class CreateKettleJob implements Monitorable {
      */
     private FileValidator fileValidator;
     
+    /**
+     * This is the monitor implementation for this class. This is used to handle the progress bar
+     * on the action window.
+     */
     private MonitorableImpl monitor;
     
-    public CreateKettleJob(FileValidator validator) {
+    /**
+     * A flag that determines whether we will save the job to an xml file or a Kettle repository 
+     */
+    private boolean savingToFile = true;
+    
+    /**
+     * The ArchitectDataSource representation of the database with the Kettle repository we want to save to
+     */
+    private ArchitectDataSource repository;
+    
+    /**
+     * The repository directory chooser that will select, or allow the user to select, the directory to save
+     * to.
+     */
+    private KettleRepositoryDirectoryChooser dirChooser;
+    
+    public CreateKettleJob(FileValidator validator, KettleRepositoryDirectoryChooser chooser) {
         this();
         fileValidator = validator;
+        dirChooser = chooser;
     }
     
     public CreateKettleJob() {
@@ -111,24 +125,22 @@ public class CreateKettleJob implements Monitorable {
         tasksToDo = new ArrayList<String>();
         fileValidator = new AlwaysAcceptFileValidator();
         monitor = new MonitorableImpl();
-        monitor.setMessage("");
+        dirChooser = new RootRepositoryDirectoryChooser();
     }
     
     /**
-     * This method translates the list of SQLTables to a Kettle Job and Transformations.
+     * This method translates the list of SQLTables to a Kettle Job and Transformations and saves
+     * them to KJB and KTR files OR a repository.
+     * @throws KettleException 
      */
-    public void doExport(List<SQLTable> tableList, SQLDatabase targetDB ) throws ArchitectException, RuntimeException, IOException {
+    public void doExport(List<SQLTable> tableList, SQLDatabase targetDB ) throws ArchitectException, RuntimeException, IOException, KettleException {
 
-        monitor.setCancelled(false);
-        monitor.setProgress(0);
-        monitor.setJobSize(new Integer(tableList.size()+1));
-        monitor.setFinished(false);
+        monitor = new MonitorableImpl();
+        monitor.setMessage("");
+        monitor.setJobSize(new Integer(tableList.size()+1)); 
         monitor.setStarted(true);
 
         try {
-            //If the overwrite option is set to WRITE_OK_ALWAYS, or WRITE_NOT_OK_ALWAYS then
-            //it will always be that way for every other job creation unless we reset it here
-            overwriteOption = FileValidationResponse.WRITE_OK;
 
             EnvUtil.environmentInit();
             LogWriter lw = LogWriter.getInstance();
@@ -249,17 +261,7 @@ public class CreateKettleJob implements Monitorable {
                     cancelled();
                     return;
                 }
-                logger.debug("Parent file path is " + parentFile.getPath());
-                File file = new File(parentFile.getPath() + File.separator + 
-                        "transformation_for_table_" + table.getName() + ".KTR");
-                transMeta.setFilename(file.getName());
-                outputToXML(transMeta.getXML(), file);
-                if (overwriteOption == FileValidationResponse.CANCEL) {
-                    cancelled();
-                    return;
-                }
-                logger.debug("Saved transformation to file: " + file.getName());
-                monitor.setProgress(monitor.getProgress() + 1);
+                
             }
 
             if (!noTransTables.isEmpty()) {
@@ -309,24 +311,21 @@ public class CreateKettleJob implements Monitorable {
                 cancelled();
                 return;
             }
-            String fileName = filePath;
-            if (!fileName.toUpperCase().endsWith(".KJB")) {
-                fileName += ".KJB";
-            }
+            
             jm.setName(jobName);
-            jm.setFilename(fileName);
-            outputToXML(jm.getXML(), new File(fileName));
-            if (overwriteOption == FileValidationResponse.CANCEL) {
-                cancelled();
-                return;
+            
+            if (savingToFile) {
+                outputToXML(transformations, jm);
+            } else {
+                jm.setDirectory(new RepositoryDirectory());
+                outputToRepository(jm, transformations);
             }
-            monitor.setProgress(monitor.getProgress() + 1);
         } finally {
             monitor.setFinished(true);
-            monitor.setJobSize(null);
-            monitor.setStarted(false);
         }
     }
+    
+
     
     /**
      * This is a helper method that sets the taskToDo list with
@@ -370,42 +369,156 @@ public class CreateKettleJob implements Monitorable {
     }
     
     /**
-     * This method outputs the given xml to the given file. The file is overwritten
-     * or not depending on the file validator. This method is package private for 
-     * testing purposes.
+     * This method outputs the xml for the given transformations and job to files.
+     * The path class variable and parent file must be set before using this method.
+     * The file is overwritten or not depending on the file validator. This method
+     *  is package private for testing purposes.
      */
-    void outputToXML(String xml, File f) throws IOException {
-        try {
-            if (overwriteOption == FileValidationResponse.WRITE_NOT_OK_ALWAYS) {
+    void outputToXML(List<TransMeta> transformations, JobMeta job) throws IOException {
+        Map<File, String> outputs = new LinkedHashMap<File, String>();
+        
+        for (TransMeta transMeta : transformations) {
+            String parentPath = new File(filePath).getParentFile().getPath();
+            logger.debug("Parent file path is " + parentPath);
+            File file = new File(parentPath + File.separator + 
+                "transformation_for_table_" + transMeta.getName() + ".KTR");
+            transMeta.setFilename(file.getName());
+            outputs.put(file, transMeta.getXML());
+            if (monitor.isCancelled()) {
+                cancelled();
                 return;
             }
-            logger.debug("The file to output is " + f.getPath());
-            if (f.exists()) {
-                if (overwriteOption == FileValidationResponse.WRITE_OK_ALWAYS) {
-                    f.delete();
-                } else {
-                        overwriteOption = fileValidator.acceptFile(f);
-                    if (overwriteOption == FileValidationResponse.WRITE_OK ||
-                            overwriteOption == FileValidationResponse.WRITE_OK_ALWAYS) {
+        }
+
+        String fileName = filePath;
+        if (!fileName.toUpperCase().endsWith(".KJB")) {
+            fileName += ".KJB";
+        }
+        job.setFilename(fileName);
+        outputs.put(new File(fileName), job.getXML());
+        
+        FileValidationResponse overwriteOption = FileValidationResponse.WRITE_OK;
+        for (File f : outputs.keySet()) {
+            try {
+                if (overwriteOption == FileValidationResponse.WRITE_NOT_OK_ALWAYS) {
+                    continue;
+                }
+                logger.debug("The file to output is " + f.getPath());
+                if (f.exists()) {
+                    if (overwriteOption == FileValidationResponse.WRITE_OK_ALWAYS) {
                         f.delete();
                     } else {
+                        overwriteOption = fileValidator.acceptFile(f.getName(), f.getParentFile().getPath());
+                        if (overwriteOption == FileValidationResponse.WRITE_OK ||
+                                overwriteOption == FileValidationResponse.WRITE_OK_ALWAYS) {
+                        } else if (overwriteOption == FileValidationResponse.CANCEL) {
+                            cancelled();
+                            return;
+                        } else {
+                            continue;
+                        }
+                    }
+                }
+                f.createNewFile();
+                BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new
+                        FileOutputStream(f), "utf-8"));
+                out.write(outputs.get(f));
+                out.flush();
+                out.close();
+                monitor.setProgress(monitor.getProgress() + 1);
+                
+                if (monitor.isCancelled()) {
+                    cancelled();
+                    return;
+                }
+            } catch (IOException er) {
+                tasksToDo.clear();
+                tasksToDo.add("File " + f.getName() + " was not created");
+                throw er;
+            }
+        }
+    }
+
+    /**
+     * This method translates the list of SQLTables to a Kettle Job and Transformations and saves 
+     * them into a Kettle repository.
+     * @throws KettleException 
+     */
+    void outputToRepository(JobMeta jm, List<TransMeta> transformations) throws KettleException {
+        DatabaseMeta kettleDBMeta = KettleUtils.createDatabaseMeta(repository);
+      
+        RepositoryMeta repoMeta = new RepositoryMeta("", "", kettleDBMeta);
+        UserInfo userInfo = new UserInfo(repository.get(KettleOptions.KETTLE_REPOS_LOGIN_KEY),
+                                         repository.get(KettleOptions.KETTLE_REPOS_PASSWORD_KEY),
+                                         jobName, "", true, null);
+        LogWriter lw = LogWriter.getInstance(); // Repository constructor needs this for some reason
+        Repository repo = new Repository(lw, repoMeta, userInfo);
+        
+        try {
+            repo.connect("MooCow");
+            
+            RepositoryDirectory directory = dirChooser.selectDirectory(repo);
+            if (directory == null) {
+                cancelled();
+                return;
+            }
+            
+            FileValidationResponse overwriteOption = FileValidationResponse.WRITE_OK;
+            for (TransMeta tm: transformations) {
+                if (monitor.isCancelled()) {
+                    cancelled();
+                    return;
+                }
+                tm.setDirectory(directory);
+                if (overwriteOption == FileValidationResponse.WRITE_NOT_OK_ALWAYS) {
+                    monitor.setProgress(monitor.getProgress() + 1);
+                    continue;
+                }
+                if (overwriteOption != FileValidationResponse.WRITE_OK_ALWAYS) {
+                    long id = repo.getTransformationID(tm.getName(), directory.getID());
+                    if (id >= 0) {
+                        logger.debug("We found a transformation with the same name, the id is " + id);
+                        overwriteOption = fileValidator.acceptFile(tm.getName(), directory.getPath());
+                        if (overwriteOption == FileValidationResponse.WRITE_NOT_OK_ALWAYS ||
+                                overwriteOption == FileValidationResponse.WRITE_NOT_OK) {
+                            monitor.setProgress(monitor.getProgress() + 1);
+                            continue;
+                        }
+                    }
+                }
+                tm.saveRep(repo);
+                monitor.setProgress(monitor.getProgress() + 1);
+                logger.debug("Progress is " + monitor.getProgress() + " out of " + monitor.getJobSize());
+            }
+            if (monitor.isCancelled()) {
+                cancelled();
+                return;
+            }
+            jm.setDirectory(directory);
+            if (overwriteOption != FileValidationResponse.WRITE_NOT_OK_ALWAYS) {
+                return;
+            }
+            if (overwriteOption != FileValidationResponse.WRITE_OK_ALWAYS) {
+                if (repo.getTransformationID(jm.getName(), directory.getID()) >= 0) {
+                    overwriteOption = fileValidator.acceptFile(jm.getName(), directory.getPath());
+                    if (overwriteOption == FileValidationResponse.WRITE_NOT_OK_ALWAYS ||
+                            overwriteOption == FileValidationResponse.WRITE_NOT_OK) {
                         return;
                     }
                 }
             }
-            f.createNewFile();
-            BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new
-                                        FileOutputStream(f), "utf-8"));
-            out.write(xml);
-            out.flush();
-            out.close();
-        } catch (IOException er) {
+            jm.saveRep(repo);
+            monitor.setProgress(monitor.getProgress() + 1);
+            logger.debug("Progress is " + monitor.getProgress() + " out of " + monitor.getJobSize());
+        } catch (KettleException e) {
             tasksToDo.clear();
-            tasksToDo.add("File " + f.getName() + " was not created");
-            throw er;
+            tasksToDo.add("Kettle job " + jm.getName() + " failed to save to respitory");
+            throw e;
+        } finally {
+            repo.disconnect();
         }
     }
-
+    
     /**
      * This creates all of the MergeJoin kettle steps as well as their hops from
      * the steps in the inputSteps list. The MergeJoin steps are also put into the 
@@ -483,12 +596,6 @@ public class CreateKettleJob implements Monitorable {
     public void setSchemaName(String schemaName) {
         this.schemaName = schemaName;
     }
-    public File getParentFile() {
-        return parentFile;
-    }
-    public void setParentFile(File parentFile) {
-        this.parentFile = parentFile;
-    }
 
     public List<String> getTasksToDo() {
         return tasksToDo;
@@ -498,13 +605,6 @@ public class CreateKettleJob implements Monitorable {
         this.fileValidator = fileValidator;
     }
     
-    /**
-     * This method is package private as it is only used for testing.
-     */
-    void setOverwriteOption(FileValidationResponse fileValidationType) {
-        overwriteOption = fileValidationType;
-    }
-
     public Integer getJobSize() throws ArchitectException {
         return monitor.getJobSize();
     }
@@ -527,5 +627,24 @@ public class CreateKettleJob implements Monitorable {
 
     public void setCancelled(boolean cancelled) {
         monitor.setCancelled(cancelled);
+    }
+
+    public boolean isSavingToFile() {
+        return savingToFile;
+    }
+    public void setSavingToFile(boolean savingToFile) {
+        this.savingToFile = savingToFile;
+    }
+
+    public void setRepository(ArchitectDataSource source) {
+        this.repository = source;
+    }
+
+    public void setRepositoryDirectoryChooser(KettleRepositoryDirectoryChooser chooser) {
+        dirChooser = chooser;
+    }
+
+    public ArchitectDataSource getRepository() {
+        return repository;
     }
 }

@@ -22,6 +22,7 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.FileValidator;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.etl.kettle.CreateKettleJob;
+import ca.sqlpower.architect.etl.kettle.KettleRepositoryDirectoryChooser;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
@@ -30,6 +31,7 @@ import ca.sqlpower.architect.swingui.ArchitectSwingWorker;
 import ca.sqlpower.architect.swingui.CreateKettleJobPanel;
 import ca.sqlpower.architect.swingui.ProgressWatcher;
 import ca.sqlpower.architect.swingui.PromptingFileValidator;
+import ca.sqlpower.architect.swingui.UserRepositoryDirectoryChooser;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
 import com.jgoodies.forms.builder.DefaultFormBuilder;
@@ -62,8 +64,10 @@ public class CreateKettleJobAction extends AbstractArchitectAction {
                     return;
                 }
                 FileValidator validator = new PromptingFileValidator(architectFrame);
+                KettleRepositoryDirectoryChooser chooser = new UserRepositoryDirectoryChooser(architectFrame);
                 final CreateKettleJob kettleJob = session.getCreateKettleJob();
                 kettleJob.setFileValidator(validator);
+                kettleJob.setRepositoryDirectoryChooser(chooser);
                 
                 final JDialog createKettleJobMonitor = new JDialog(architectFrame);
                 createKettleJobMonitor.setTitle("Creating Kettle Job");
@@ -101,11 +105,11 @@ public class CreateKettleJobAction extends AbstractArchitectAction {
                         if (getDoStuffException() != null) {
                             Exception ex = getDoStuffException();
                             if (ex instanceof ArchitectException) {
-                                ASUtils.showExceptionDialog("An error occurred reading from the tables for kettle", ex);
+                                ASUtils.showExceptionDialog(session, "An error occurred reading from the tables for kettle", ex);
                             } else if (ex instanceof RuntimeException || ex instanceof IOException) {
-                                ASUtils.showExceptionDialog(kettleJob.getTasksToDo().toString(), ex);
+                                ASUtils.showExceptionDialog(session, kettleJob.getTasksToDo().toString(), ex);
                             } else {
-                                ASUtils.showExceptionDialog("An unexpected error occurred during the export process", ex);
+                                ASUtils.showExceptionDialog(session, "An unexpected error occurred during the export process", ex);
                             }
                             return;
                         }

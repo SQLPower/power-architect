@@ -24,6 +24,7 @@ import org.apache.log4j.Logger;
 
 import be.ibridge.kettle.trans.step.mergejoin.MergeJoinMeta;
 
+import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.etl.kettle.CreateKettleJob;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
@@ -47,10 +48,12 @@ public class CreateKettleJobPanel implements ArchitectPanel {
     private JRadioButton saveReposRadioButton;
     private ButtonGroup saveByButtonGroup;
     private JButton reposPropertiesButton;
+    private JComboBox reposDB;
+    
     
     private final SwingUIProject project;
     private final ArchitectSwingSession session;
-    private File parentFile = new File("");
+
     
     public CreateKettleJobPanel(ArchitectSwingSession session) {
         this.project = session.getProject();
@@ -73,13 +76,13 @@ public class CreateKettleJobPanel implements ArchitectPanel {
         newDatabaseButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 Window parentWindow = SwingUtilities.getWindowAncestor(panel);
-                ASUtils.showDbcsDialog(parentWindow, session, databaseComboBox);
+                ASUtils.showTargetDbcsDialog(parentWindow, session, databaseComboBox);
             }
         });
         
         schemaName = new JTextField(settings.getSchemaName());
         
-        saveFileRadioButton = new JRadioButton("Save Job to File", true);
+        saveFileRadioButton = new JRadioButton("Save Job to File", settings.isSavingToFile());
         
         filePath = new JTextField(settings.getFilePath());
         filePath.getDocument().addDocumentListener(new DocumentListener(){
@@ -95,7 +98,7 @@ public class CreateKettleJobPanel implements ArchitectPanel {
            private void copyFilePath() {
                File file = new File(filePath.getText());
                if (file != null) { 
-                   parentFile = file.getParentFile();
+                   File parentFile = file.getParentFile();
                    transformationPath2.setText("     " + ((parentFile == null || parentFile.getPath() == null)?"":parentFile.getPath()));
                }
            }
@@ -111,7 +114,7 @@ public class CreateKettleJobPanel implements ArchitectPanel {
                     return;
                 } else {
                     File file = chooser.getSelectedFile();
-                    parentFile = file.getParentFile();
+                    File parentFile = file.getParentFile();
                     filePath.setText(file.getPath());
                     if (parentFile != null) {
                         transformationPath2.setText("     " + parentFile.getPath());
@@ -120,17 +123,19 @@ public class CreateKettleJobPanel implements ArchitectPanel {
             }
         });
         transformationPath = new JLabel("The transformations will be stored in:");
-        if (settings == null || settings.getParentFile() == null || settings.getParentFile().getPath() == null) {
+        File parentFile = new File(settings.getFilePath()).getParentFile();
+        if (settings == null || parentFile == null || parentFile.getPath() == null) {
             transformationPath2 = new JLabel("");
         } else {
-            transformationPath2 = new JLabel("     " + settings.getParentFile().getPath());
-            parentFile = settings.getParentFile();
+            transformationPath2 = new JLabel("     " + parentFile.getPath());
         }
         
-        saveReposRadioButton = new JRadioButton("Save Job to Repository");
+        saveReposRadioButton = new JRadioButton("Save Job to Repository", !settings.isSavingToFile());
 
+        reposDB = new JComboBox(session.getUserSettings().getConnections().toArray());
+        reposDB.setSelectedIndex(0);
         Object[] connectionArray = session.getUserSettings().getConnections().toArray();
-        JComboBox reposDB = new JComboBox(connectionArray);
+        final JComboBox reposDB = new JComboBox(connectionArray);
         if (connectionArray.length > 0) {
             reposDB.setSelectedIndex(0);
         }
@@ -138,7 +143,8 @@ public class CreateKettleJobPanel implements ArchitectPanel {
         reposPropertiesButton.setText("Properties...");
         reposPropertiesButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                //ASUtils.showDbcsDialog(dbcsDialog, project, reposDB);
+                Window parentWindow = SwingUtilities.getWindowAncestor(panel);
+                ASUtils.showDbcsDialog(parentWindow, session, (ArchitectDataSource)reposDB.getSelectedItem());
             }
         });
         
@@ -204,7 +210,7 @@ public class CreateKettleJobPanel implements ArchitectPanel {
         if (nameField.getText().equals("")) {
             JOptionPane.showMessageDialog(panel, "The job name was not set.\nThe Kettle job was not created.");
             return false;
-        } else if (filePath.getText().equals("")) {
+        } else if (filePath.getText().equals("") && saveFileRadioButton.isSelected()) {
             JOptionPane.showMessageDialog(panel, "The job path was not set.\n The Kettle job was not created.");
             return false;
         }
@@ -221,13 +227,6 @@ public class CreateKettleJobPanel implements ArchitectPanel {
     
     public String getPath() {
         return filePath.getText();
-    }
-    
-    public String getParentPath() {
-        if (parentFile == null) {
-            return "";
-        }
-        return parentFile.getPath();
     }
     
     public String getSchemaName() {
@@ -256,6 +255,7 @@ public class CreateKettleJobPanel implements ArchitectPanel {
         settings.setSchemaName(schemaName.getText());
         settings.setKettleJoinType(defaultJoinType.getSelectedIndex());
         settings.setFilePath(filePath.getText());
-        settings.setParentFile(parentFile);
+        settings.setRepository((ArchitectDataSource)reposDB.getSelectedItem());
+        settings.setSavingToFile(isSaveFile());
     }
 }

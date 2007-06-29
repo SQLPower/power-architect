@@ -2,7 +2,6 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 
 import javax.swing.JButton;
@@ -50,8 +49,7 @@ public class PromptingFileValidator implements FileValidator {
         applyToAll = new JCheckBox("Apply my choice to all files.");
     }
     
-    public FileValidationResponse acceptFile(File f) {
-        String fileName = f.getName();
+    public FileValidationResponse acceptFile(String fileName, String path) {
         confirmDialog = new JDialog(parent);
         confirmDialog.setTitle("Overwrite");
         
@@ -60,8 +58,8 @@ public class PromptingFileValidator implements FileValidator {
                                                 , "");
         DefaultFormBuilder builder = new DefaultFormBuilder(formLayout, confirmPanel);
         builder.setDefaultDialogBorder();
-        String fileNameMessage = "The file " + fileName;
-        String filePathMessage = "at " + f.getParentFile().getAbsolutePath();
+        String fileNameMessage = fileName;
+        String filePathMessage = "at " + path;
         String questionMessage = "already exists. Do you wish to overwrite it?";
         
         builder.nextColumn(2);

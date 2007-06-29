@@ -38,6 +38,8 @@ import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.StubSQLObject;
 import ca.sqlpower.architect.SQLIndex.IndexType;
+import ca.sqlpower.architect.etl.kettle.KettleRepositoryDirectoryChooser;
+import ca.sqlpower.architect.etl.kettle.RootRepositoryDirectoryChooser;
 
 /**
  * Test case, mainly for loading and saving via SwingUIProject.
@@ -356,6 +358,11 @@ public class TestSwingUIProject extends ArchitectTestCase {
                     newVal = new File("temp" + System.currentTimeMillis());
                 } else if (props[i].getPropertyType() == FileValidator.class) {
                     newVal = new AlwaysAcceptFileValidator();
+                } else if (props[i].getPropertyType() == KettleRepositoryDirectoryChooser.class) {
+                    newVal = new RootRepositoryDirectoryChooser();
+                } else if (props[i].getPropertyType() == ArchitectDataSource.class) {
+                    newVal = new ArchitectDataSource();
+                    ((ArchitectDataSource)newVal).setName("Testing data source");
 				} else {
 					throw new RuntimeException("This test case lacks a value for "+
 							props[i].getName()+
@@ -995,6 +1002,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         Set<String> propertiesToIgnore = new HashSet<String>();
         propertiesToIgnore.add("class");
         propertiesToIgnore.add("cancelled");
+        propertiesToIgnore.add("repository"); //TODO add test cases for repository
 
         Map<String,Object> oldDescription =
             setAllInterestingProperties(session.getCreateKettleJob(), propertiesToIgnore);

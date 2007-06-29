@@ -1,6 +1,5 @@
 package ca.sqlpower.architect;
 
-import java.io.File;
 
 /**
  * A simple implementation of FileValidator that will accept any file.
@@ -8,7 +7,7 @@ import java.io.File;
  */
 public class AlwaysAcceptFileValidator implements FileValidator {
 
-    public FileValidationResponse acceptFile(File f) {
+    public FileValidationResponse acceptFile(String name, String path) {
         return FileValidationResponse.WRITE_OK;
     }
 

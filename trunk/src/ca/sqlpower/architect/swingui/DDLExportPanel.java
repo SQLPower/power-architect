@@ -55,7 +55,7 @@ public class DDLExportPanel implements ArchitectPanel {
         newTargetDB = new JButton("Properties");
         newTargetDB.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
-                    ASUtils.showDbcsDialog(session.getArchitectFrame(), session, targetDB);
+                    ASUtils.showTargetDbcsDialog(session.getArchitectFrame(), session, targetDB);
                 }
             });
         
@@ -158,7 +158,7 @@ public class DDLExportPanel implements ArchitectPanel {
 				(panel, "You can't use the Generic JDBC Generator\n"
 						+"until you set up the target database connection.");
 								
-				ASUtils.showDbcsDialog(session.getArchitectFrame(), session, targetDB);
+				ASUtils.showTargetDbcsDialog(session.getArchitectFrame(), session, targetDB);
 				
 				return false;
 			}

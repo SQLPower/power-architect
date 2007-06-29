@@ -268,7 +268,7 @@ public class SwingUIProject {
         // project name
         d.addCallMethod("architect-project/project-name", "setName", 0); // argument is element body text
 
-        // source DB connection specs (deprecated in favour of project-data-sources)
+        // source DB connection specs (deprecated in favour of project-data-sources; this is only here for backward compatibility)
         DBCSFactory dbcsFactory = new DBCSFactory();
         d.addFactoryCreate("architect-project/project-connection-specs/dbcs", dbcsFactory);
         d.addSetProperties
@@ -285,8 +285,11 @@ public class SwingUIProject {
         d.addCallMethod("architect-project/project-data-sources/data-source/property", "put", 2);
         d.addCallParam("architect-project/project-data-sources/data-source/property", 0, "key");
         d.addCallParam("architect-project/project-data-sources/data-source/property", 1, "value");
-        //d.addSetNext("architect-project/project-data-sources/data-source", );
+        // for the project-data-sources, these instances get picked out of the dbcsIdMap by the SQLDatabase factory
 
+        // but for the create kettle job settings, we add them explicitly
+        
+        
         // source database hierarchy
         d.addObjectCreate("architect-project/source-databases", LinkedList.class);
         d.addSetNext("architect-project/source-databases", "setSourceDatabaseList");
@@ -425,6 +428,7 @@ public class SwingUIProject {
     private class DBCSFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) {
             ArchitectDataSource dbcs = new ArchitectDataSource();
+            
             String id = attributes.getValue("id");
             if (id != null) {
                 dbcsIdMap.put(id, dbcs);
@@ -1085,11 +1089,11 @@ public class SwingUIProject {
     
     private void saveCreateKettleJobSettings(PrintWriter out) throws IOException {
         ioo.print(out, "<create-kettle-job-settings");
-        ioo.niprint(out, " parentFile=\"" + ArchitectUtils.escapeXML(session.getCreateKettleJob().getParentFile().getPath()) + "\"");
         ioo.niprint(out, " filePath=\"" + ArchitectUtils.escapeXML(session.getCreateKettleJob().getFilePath()) + "\"");
         ioo.niprint(out, " jobName=\"" + ArchitectUtils.escapeXML(session.getCreateKettleJob().getJobName()) + "\"");
         ioo.niprint(out, " schemaName=\"" + ArchitectUtils.escapeXML(session.getCreateKettleJob().getSchemaName()) + "\"");
         ioo.niprint(out, " kettleJoinType=\"" + session.getCreateKettleJob().getKettleJoinType() + "\"");
+        ioo.niprint(out, " savingToFile=\"" + session.getCreateKettleJob().isSavingToFile() + "\"");
         ioo.niprintln(out, " />");
     }
 
