@@ -474,7 +474,7 @@ public class BasicRelationshipUI extends RelationshipUI
 		if (relationship.getPkTable() == relationship.getFkTable()) {
 			answer = (orientation == (PARENT_FACES_BOTTOM | CHILD_FACES_LEFT));
 		} else {
-			answer = (orientation == getFacingEdges(relationship.pkTable.getBounds(), relationship.fkTable.getBounds()));
+			answer = (orientation == getFacingEdges(relationship.getPkTable().getBounds(), relationship.getFkTable().getBounds()));
 		}
 		if (answer == false) {
 			logger.debug("[31misOrientationLegal() returning false[0m");
@@ -489,8 +489,8 @@ public class BasicRelationshipUI extends RelationshipUI
 	protected Rectangle computeBounds() {
 		// XXX: should check for valid cached bounds before recomputing!
 
-		TablePane pkTable = relationship.pkTable;
-		TablePane fkTable = relationship.fkTable;
+		TablePane pkTable = relationship.getPkTable();
+		TablePane fkTable = relationship.getFkTable();
 
 		if (!isOrientationLegal()) {
 			// bestConnectionPoints also updates orientation as a side effect
@@ -596,8 +596,8 @@ public class BasicRelationshipUI extends RelationshipUI
 	 */
 	public boolean isOverPkDecoration(Point p) {
 		Point pkDec = new Point
-		 (pkConnectionPoint.x + relationship.pkTable.getX() - relationship.getX(),
-		  pkConnectionPoint.y + relationship.pkTable.getY() - relationship.getY());
+		 (pkConnectionPoint.x + relationship.getPkTable().getX() - relationship.getX(),
+		  pkConnectionPoint.y + relationship.getPkTable().getY() - relationship.getY());
 		if (logger.isDebugEnabled()) logger.debug(
 		        "p="+p+"; pkDec = "+pkDec+"; width="+relationship.getWidth()+
 		        "; height="+relationship.getHeight()+"; orientation="+orientation);
@@ -651,8 +651,8 @@ public class BasicRelationshipUI extends RelationshipUI
 	 */
 	public boolean isOverFkDecoration(Point p) {
 		Point fkDec = new Point
-		 (fkConnectionPoint.x + relationship.fkTable.getX() - relationship.getX(),
-		  fkConnectionPoint.y + relationship.fkTable.getY() - relationship.getY());
+		 (fkConnectionPoint.x + relationship.getFkTable().getX() - relationship.getX(),
+		  fkConnectionPoint.y + relationship.getFkTable().getY() - relationship.getY());
 		if ( (orientation & (CHILD_FACES_BOTTOM | CHILD_FACES_TOP)) != 0) {
 		    if (p.x < fkDec.x + 5 && p.x > fkDec.x - 5) {
 		        if ( (orientation & CHILD_FACES_BOTTOM) != 0) {
