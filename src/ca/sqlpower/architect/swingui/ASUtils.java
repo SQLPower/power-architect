@@ -369,13 +369,26 @@ public class ASUtils {
      * target db's connection spec.  Create from scratch every time
      * just in case the user changed the Target Database from the DBTree.
      */
-    public static void showDbcsDialog(Window parentWindow, final ArchitectSwingSession session, final JComboBox targetDB) {
-        final SwingUIProject project = session.getProject();
+    public static void showTargetDbcsDialog(Window parentWindow, final ArchitectSwingSession session, final JComboBox targetDB) {
+        JDialog d = showDbcsDialog(parentWindow, session, session.getPlayPen().db.getDataSource());
+        
+        d.addWindowListener(new WindowAdapter(){
+                public void windowClosed(WindowEvent e){
+                    session.getPlayPen().getDatabase().getDataSource().setName("(Target Database)");
+                    ASUtils.setupTargetDBComboBox(session, targetDB);
+                }
+            });
+    }
+    
+    /**
+     * Pops up a dialog box that lets the user inspect and change the given
+     * db's connection spec.
+     */
+    public static JDialog showDbcsDialog(Window parentWindow, final ArchitectSwingSession session, ArchitectDataSource dataSource) {
         final DBCSPanel dbcsPanel = new DBCSPanel(
                 session.getUserSettings().getPlDotIni());
     
-    
-        dbcsPanel.setDbcs(session.getPlayPen().db.getDataSource());
+        dbcsPanel.setDbcs(dataSource);
         DBCSOkAction okAction = new DBCSOkAction(dbcsPanel, session, false);
     
         Action cancelAction = new AbstractAction() {
@@ -394,12 +407,7 @@ public class ASUtils {
         d.setLocationRelativeTo(parentWindow);
     
         d.setVisible(true);
-        d.addWindowListener(new WindowAdapter(){
-                public void windowClosed(WindowEvent e){
-                    session.getPlayPen().getDatabase().getDataSource().setName("(Target Database)");
-                    ASUtils.setupTargetDBComboBox(session, targetDB);
-                }
-            });
+        return d;
     }
 
     /**

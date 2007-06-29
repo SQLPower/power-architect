@@ -14,7 +14,11 @@ import java.util.List;
 import java.util.Map;
 
 import junit.framework.TestCase;
+import be.ibridge.kettle.core.LogWriter;
+import be.ibridge.kettle.core.NotePadMeta;
 import be.ibridge.kettle.core.database.DatabaseMeta;
+import be.ibridge.kettle.core.exception.KettleException;
+import be.ibridge.kettle.job.JobMeta;
 import be.ibridge.kettle.trans.TransMeta;
 import be.ibridge.kettle.trans.step.StepMeta;
 import ca.sqlpower.architect.ArchitectDataSource;
@@ -28,10 +32,7 @@ import ca.sqlpower.architect.FileValidator.FileValidationResponse;
 
 public class CreateKettleJobTest extends TestCase {
 
-    private final String newText = "This is basic output for testing.";
-    private final String originalText = "Previous text for testing";
     private SQLDatabase target;
-    private SQLDatabase source;
     private SQLTable targetTableNoSource;
     private SQLTable targetTableMixedSource;
     
@@ -100,7 +101,7 @@ public class CreateKettleJobTest extends TestCase {
         targetTableMixedSource.addColumn(new SQLColumn(targetTableMixedSource, "ColumnF", 2, 10, 0));
     }
     
-    public void testCreatingJobsWithTablesWithNoSource() throws ArchitectException, IOException {
+    public void testCreatingJobsWithTablesWithNoSource() throws ArchitectException, IOException, RuntimeException, KettleException {
         new File("TestingJob.KJB").delete();
         new File("transformation_for_table_TargetTable1.KTR").delete();
         CreateKettleJob job = new CreateKettleJob();
@@ -115,7 +116,7 @@ public class CreateKettleJobTest extends TestCase {
         assertFalse(new File("transformation_for_table_TargetTable1.KTR").exists());
     }
     
-    public void testCreatingJobsWithTablesWithSources() throws ArchitectException, IOException {
+    public void testCreatingJobsWithTablesWithSources() throws ArchitectException, IOException, RuntimeException, KettleException {
         new File("TestingJob.KJB").delete();
         new File("transformation_for_table_TargetTable2.KTR").delete();
         CreateKettleJob job = new CreateKettleJob();
@@ -124,7 +125,6 @@ public class CreateKettleJobTest extends TestCase {
         File jobFile = File.createTempFile("TestingJob", null);
         job.setFilePath(jobFile.getPath());
         job.setKettleJoinType(0);
-        job.setParentFile(jobFile.getParentFile());
         List<SQLTable> tableList = new ArrayList<SQLTable>();
         tableList.add(targetTableMixedSource);
         job.doExport(tableList, target);
@@ -167,75 +167,40 @@ public class CreateKettleJobTest extends TestCase {
     }
     
     public void testOutputToXMLWriteNotOKAlways() throws IOException {
-        CreateKettleJob job = new CreateKettleJob();
-        job.setOverwriteOption(FileValidationResponse.WRITE_NOT_OK_ALWAYS);
-        File outputFile = createOutputXMLFile();
-        job.outputToXML(newText, outputFile);
-        assertEquals(originalText, readOutputXMLFile(outputFile));
+        outputToXMLTesting(FileValidationResponse.WRITE_NOT_OK_ALWAYS, true);
     }
-    
+
+
     public void testOutputToXMLWriteOKAlways() throws IOException {
-        CreateKettleJob job = new CreateKettleJob();
-        job.setOverwriteOption(FileValidationResponse.WRITE_OK_ALWAYS);
-        File outputFile = createOutputXMLFile();
-        job.outputToXML(newText, outputFile);
-        assertEquals(newText, readOutputXMLFile(outputFile));
+        outputToXMLTesting(FileValidationResponse.WRITE_OK_ALWAYS, false);
     }
     
     public void testOutputToXMLFileValidatorWriteOk() throws IOException {
-        CreateKettleJob job = new CreateKettleJob(new FileValidator(){
-            public FileValidationResponse acceptFile(File f) {
-                return FileValidationResponse.WRITE_OK;
-            }
-        });
-        job.setOverwriteOption(FileValidationResponse.WRITE_OK);
-        File outputFile = createOutputXMLFile();
-        job.outputToXML(newText, outputFile);
-        assertEquals(newText, readOutputXMLFile(outputFile));
+        outputToXMLTesting(FileValidationResponse.WRITE_OK, false);
     }
     
     public void testOutputToXMLFileValidatorWriteNotOk() throws IOException {
-        CreateKettleJob job = new CreateKettleJob(new FileValidator(){
-            public FileValidationResponse acceptFile(File f) {
-                return FileValidationResponse.WRITE_NOT_OK;
-            }
-        });
-        job.setOverwriteOption(FileValidationResponse.WRITE_OK);
-        File outputFile = createOutputXMLFile();
-        job.outputToXML(newText, outputFile);
-        assertEquals(originalText, readOutputXMLFile(outputFile));
-    }
-    
-    public void testOutputToXMLFileValidatorWriteOkAlways() throws IOException {
-        CreateKettleJob job = new CreateKettleJob(new FileValidator(){
-            public FileValidationResponse acceptFile(File f) {
-                return FileValidationResponse.WRITE_OK_ALWAYS;
-            }
-        });
-        job.setOverwriteOption(FileValidationResponse.WRITE_OK);
-        File outputFile = createOutputXMLFile();
-        job.outputToXML(newText, outputFile);
-        assertEquals(newText, readOutputXMLFile(outputFile));
-    }
-    
-    public void testOutputToXMLFileValidatorWriteNotOkAlways() throws IOException {
-        CreateKettleJob job = new CreateKettleJob(new FileValidator(){
-            public FileValidationResponse acceptFile(File f) {
-                return FileValidationResponse.WRITE_NOT_OK_ALWAYS;
-            }
-        });
-        job.setOverwriteOption(FileValidationResponse.WRITE_OK);
-        File outputFile = createOutputXMLFile();
-        job.outputToXML(newText, outputFile);
-        assertEquals(originalText, readOutputXMLFile(outputFile));
+        outputToXMLTesting(FileValidationResponse.WRITE_NOT_OK, true);
     }
     
     public void testOutputToXMLFileException() throws IOException {
         CreateKettleJob job = new CreateKettleJob();
-        job.setOverwriteOption(FileValidationResponse.WRITE_OK);
-        File outputFile = new File("B:\\garbage!@!@#$!@%^&&*(#$#");
+        
+        LogWriter lw = LogWriter.getInstance();
+        List<TransMeta> transList = new ArrayList<TransMeta>();
+        TransMeta newTransMeta = new TransMeta();
+        newTransMeta.setName("tableName");
+        newTransMeta.addNote(new NotePadMeta("new trans meta note", 0, 150, 125, 125));
+        transList.add(newTransMeta);
+        
+        JobMeta newJob = new JobMeta(lw);
+        newJob.setName("jobName");
+        newJob.addNote(new NotePadMeta("new job note", 0, 150, 125, 125));
+        
+        File outputFile = File.createTempFile("garbage", ".gbg");
+        job.setFilePath(outputFile.getPath() + File.separator + "garbage.gbg.again");
         try {
-            job.outputToXML(newText, outputFile);
+            job.outputToXML(transList, newJob);
             fail("This test was unsuccessful as it did not throw an IOException at " +
                     "the correct location");
         } catch (IOException e) {
@@ -298,21 +263,88 @@ public class CreateKettleJobTest extends TestCase {
         assertEquals(2, transMeta.nrTransHops());
     }
     
-    private File createOutputXMLFile() throws IOException {
-        File outputFile = File.createTempFile("WriteNotOkAlways", null);
+    /**
+     * This method tests the outputToXML method based on different settings.
+     * @param fvr The FileValidationResponse that will always be chosen
+     * @param checkOriginalXML If true then we compare the final file with the
+     * original xml. If false we compare the final file with the xml output from
+     * the outputToXML file.
+     * @throws IOException
+     */
+    private void outputToXMLTesting(final FileValidationResponse fvr, boolean checkOriginalXML) throws IOException {
+        TransMeta transMeta = new TransMeta();
+        transMeta.setName("tableName");
+        transMeta.addNote(new NotePadMeta("original trans meta note", 0, 150, 125, 125));
+        
+        LogWriter lw = LogWriter.getInstance();
+        JobMeta job = new JobMeta(lw);
+        job.setName("jobName");
+        job.addNote(new NotePadMeta("original job note", 0, 150, 125, 125));
+        
+        File jobOutputFile = File.createTempFile("HelperFile", ".KJB");
+        System.out.println(jobOutputFile.getPath());
+        File transOutputFile = getTransOutputXMLFile(jobOutputFile, transMeta.getName());
+        
+        transOutputFile.delete();
+        transOutputFile.createNewFile();
+        createOutputXMLFile(transOutputFile, transMeta.getXML());
+        createOutputXMLFile(jobOutputFile, job.getXML());
+        
+        List<TransMeta> transList = new ArrayList<TransMeta>();
+        TransMeta newTransMeta = new TransMeta();
+        newTransMeta.setName("tableName");
+        newTransMeta.addNote(new NotePadMeta("new trans meta note", 0, 150, 125, 125));
+        transList.add(newTransMeta);
+        
+        JobMeta newJob = new JobMeta(lw);
+        newJob.setName("jobName");
+        newJob.addNote(new NotePadMeta("new job note", 0, 150, 125, 125));
+        
+        CreateKettleJob kettleJob = new CreateKettleJob(new FileValidator(){
+            public FileValidationResponse acceptFile(String name, String path) {
+                return fvr;
+            }
+        }, new RootRepositoryDirectoryChooser());
+        kettleJob.setFilePath(jobOutputFile.getPath());
+        kettleJob.setJobName("jobName");
+        kettleJob.outputToXML(transList, newJob);
+        
+        if (checkOriginalXML) {
+            assertEquals(transMeta.getXML(), readOutputXMLFile(transOutputFile));
+            assertEquals(job.getXML(), readOutputXMLFile(jobOutputFile));
+        } else {
+            assertEquals(newTransMeta.getXML().replaceAll("date.*/.*date", ""),
+                    readOutputXMLFile(transOutputFile).replaceAll("date.*/.*date", ""));
+            assertEquals(newJob.getXML().replaceAll("date.*/.*date", ""),
+                    readOutputXMLFile(jobOutputFile).replaceAll("date.*/.*date", ""));
+        }
+        transOutputFile.delete();
+    }
+    
+    private void createOutputXMLFile(File outputFile, String xml) throws IOException {
         BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new
                 FileOutputStream(outputFile), "utf-8"));
-        out.write(originalText);
+        out.write(xml);
         out.flush();
         out.close();
-        return outputFile;
     }
     
     private String readOutputXMLFile(File outputFile) throws IOException {
         BufferedReader in = new BufferedReader(new InputStreamReader(new 
                 FileInputStream(outputFile), "utf-8"));
+        StringBuffer buffer = new StringBuffer();
         String inputXML = in.readLine();
+        while (inputXML != null) {
+            buffer.append(inputXML).append("\n");
+            inputXML = in.readLine();
+        }
         in.close();
-        return inputXML;
+        return buffer.toString();
     }
+    
+    private File getTransOutputXMLFile(File outputFile, String name) throws IOException {
+        return new File(outputFile.getParentFile().getPath() + File.separator + 
+                "transformation_for_table_" + name + ".KTR");
+    }
+    
 }
