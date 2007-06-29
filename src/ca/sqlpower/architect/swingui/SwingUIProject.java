@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -994,7 +995,7 @@ public class SwingUIProject {
      * @throws ArchitectException
      */
     public void save(PrintWriter out, String encoding) throws IOException, ArchitectException {
-        objectIdMap = new HashMap();
+        objectIdMap = new IdentityHashMap();
         dbcsIdMap = new HashMap();
         ioo.indent = 0;
 

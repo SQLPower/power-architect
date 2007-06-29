@@ -37,6 +37,7 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.StubSQLObject;
+import ca.sqlpower.architect.SQLIndex.IndexType;
 
 /**
  * Test case, mainly for loading and saving via SwingUIProject.
@@ -915,6 +916,52 @@ public class TestSwingUIProject extends ArchitectTestCase {
         assertMapsEqual(oldDescription, newDescription);
     }
 
+    public void testSaveMultipleIndexColumns() throws Exception {
+        final String tableName = "delicatessen";
+        testLoad();
+        
+        SQLDatabase ppdb = session.getPlayPen().getDatabase();
+        SQLTable table = new SQLTable(ppdb, true);
+        SQLColumn col = new SQLColumn(table,"Column 1",1,1,1);
+        table.addColumn(col);
+        table.setName(tableName);
+        ppdb.addChild(table);
+
+        SQLIndex origIndex1 = new SQLIndex("tasty index", false, null, IndexType.HASHED, null);
+        origIndex1.addIndexColumn(col, false, true);
+        table.getIndicesFolder().addChild(origIndex1);
+        col.setPrimaryKeySeq(new Integer(0));
+
+        // second index references same column as first index, so
+        // origIndex1.getChild(0).equals(origIndex2.getChild(0)) even though
+        // they are not the same object
+        SQLIndex origIndex2 = new SQLIndex("nasty index", false, null, IndexType.HASHED, null);
+        origIndex2.addIndexColumn(col, false, true);
+        table.getIndicesFolder().addChild(origIndex2);
+
+        ByteArrayOutputStream tempFile = new ByteArrayOutputStream();
+        PrintWriter out = new PrintWriter(tempFile);
+        project.save(out, ENCODING);
+        
+        ArchitectSwingSessionContext context = session.getContext();
+        ArchitectSwingSession session2 = context.createSession(false);
+        SwingUIProject p = new SwingUIProject(session2);
+        p.load(new ByteArrayInputStream(tempFile.toByteArray()), context.getUserSettings().getPlDotIni());
+        
+        PlayPen pp = session2.getPlayPen();
+        ppdb = (SQLDatabase) pp.getDatabase();
+        
+        // child 1 because setPrimaryKeySeq calls normalizePrimaryKey which creates
+        // a primary key is there is none made. The primary key is placed as child 0
+        // in the list so it shows up first in the DBTree.
+        SQLIndex reloadedIndex1 = (SQLIndex) ppdb.getTableByName(tableName).getIndicesFolder().getChild(1);
+        SQLIndex reloadedIndex2 = (SQLIndex) ppdb.getTableByName(tableName).getIndicesFolder().getChild(2);
+        
+        assertEquals(origIndex1.getChildCount(), reloadedIndex1.getChildCount());
+        assertEquals(origIndex2.getChildCount(), reloadedIndex2.getChildCount());
+
+    }
+    
 	public void testNotModifiedWhenFreshlyLoaded() throws Exception {
 		testLoad();
 		assertFalse("Freshly loaded project should not be marked dirty",
