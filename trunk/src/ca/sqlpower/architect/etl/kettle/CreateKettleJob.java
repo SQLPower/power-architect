@@ -122,6 +122,7 @@ public class CreateKettleJob implements Monitorable {
     
     public CreateKettleJob() {
         super();
+        filePath = "";
         tasksToDo = new ArrayList<String>();
         fileValidator = new AlwaysAcceptFileValidator();
         monitor = new MonitorableImpl();
