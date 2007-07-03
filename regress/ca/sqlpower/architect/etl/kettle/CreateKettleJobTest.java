@@ -335,7 +335,7 @@ public class CreateKettleJobTest extends TestCase {
         StringBuffer buffer = new StringBuffer();
         String inputXML = in.readLine();
         while (inputXML != null) {
-            buffer.append(inputXML).append("\n");
+            buffer.append(inputXML).append(System.getProperty("line.separator"));
             inputXML = in.readLine();
         }
         in.close();
