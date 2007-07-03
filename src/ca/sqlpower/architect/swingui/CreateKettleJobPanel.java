@@ -200,6 +200,11 @@ public class CreateKettleJobPanel implements ArchitectPanel {
         builder.append("Repository: ");
         builder.append(reposDB);
         builder.append(reposPropertiesButton);
+        builder.nextLine();
+        builder.append("");
+        //TODO use CompareDM to check if the target database and the playpen are the same
+        JLabel check = new JLabel("Check that the target database is the same as the play pen.");
+        builder.append(check, 5);
         
     }
    
