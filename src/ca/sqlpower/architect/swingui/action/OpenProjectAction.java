@@ -9,6 +9,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 
 import javax.swing.AbstractAction;
 import javax.swing.JFileChooser;
@@ -119,8 +120,12 @@ public class OpenProjectAction extends AbstractArchitectAction {
         }
 
         @Override
-        public void doStuff() throws IOException, ArchitectException {
-            newSession = context.createSession(in, false);
+        public void doStuff() throws IOException {
+            try {
+                newSession = context.createSession(in, false);
+            } catch (ArchitectException e) {
+                setDoStuffException(e);
+            }
             if (recent != null) {
                 recent.putRecentFileName(file.getAbsolutePath());
             }
@@ -129,13 +134,17 @@ public class OpenProjectAction extends AbstractArchitectAction {
         @Override
         public void cleanup() throws ArchitectException {
             if (getDoStuffException() != null) {
-                
-                // We have to use the non-session exception dialogue here,
-                // because there is no session available (we just failed to create one!)
-                ASUtils.showExceptionDialog(
-                        "Cannot open project file '" + file.getAbsolutePath() + "'",
-                        getDoStuffException());
-                logger.error("Got exception while opening a project", getDoStuffException());
+                Throwable cause = getDoStuffException().getCause();
+                // This if clause is to prevent an error from being thrown if the user cancelled the file load, 
+                // in which ProgressMonitorInputStream throws an InterruptedIOException with message "progress"
+                if (!(cause instanceof InterruptedIOException) || !(cause.getMessage().equals("progress"))) {
+                    // We have to use the non-session exception dialogue here,
+                    // because there is no session available (we just failed to create one!)
+                    ASUtils.showExceptionDialog(
+                            "Cannot open project file '" + file.getAbsolutePath() + "'",
+                            getDoStuffException());
+                    logger.error("Got exception while opening a project", getDoStuffException());
+                }
             } else {
                 newSession.initGUI();
                 ((SQLObject) newSession.getSourceDatabases().getModel().getRoot()).fireDbStructureChanged();
