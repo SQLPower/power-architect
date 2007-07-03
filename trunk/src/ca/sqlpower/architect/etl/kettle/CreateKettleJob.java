@@ -319,7 +319,7 @@ public class CreateKettleJob implements Monitorable {
                 outputToXML(transformations, jm);
             } else {
                 jm.setDirectory(new RepositoryDirectory());
-                outputToRepository(jm, transformations);
+                outputToRepository(jm, transformations, createRepository());
             }
         } finally {
             monitor.setFinished(true);
@@ -445,15 +445,7 @@ public class CreateKettleJob implements Monitorable {
      * them into a Kettle repository.
      * @throws KettleException 
      */
-    void outputToRepository(JobMeta jm, List<TransMeta> transformations) throws KettleException {
-        DatabaseMeta kettleDBMeta = KettleUtils.createDatabaseMeta(repository);
-      
-        RepositoryMeta repoMeta = new RepositoryMeta("", "", kettleDBMeta);
-        UserInfo userInfo = new UserInfo(repository.get(KettleOptions.KETTLE_REPOS_LOGIN_KEY),
-                                         repository.get(KettleOptions.KETTLE_REPOS_PASSWORD_KEY),
-                                         jobName, "", true, null);
-        LogWriter lw = LogWriter.getInstance(); // Repository constructor needs this for some reason
-        Repository repo = new Repository(lw, repoMeta, userInfo);
+    void outputToRepository(JobMeta jm, List<TransMeta> transformations, Repository repo) throws KettleException {
         
         try {
             repo.connect("MooCow");
@@ -520,6 +512,21 @@ public class CreateKettleJob implements Monitorable {
         }
     }
     
+    /**
+     * This method creates a repository for the outputToRepository method
+     */
+    private Repository createRepository() {
+        DatabaseMeta kettleDBMeta = KettleUtils.createDatabaseMeta(repository);
+        
+        RepositoryMeta repoMeta = new RepositoryMeta("", "", kettleDBMeta);
+        UserInfo userInfo = new UserInfo(repository.get(KettleOptions.KETTLE_REPOS_LOGIN_KEY),
+                                         repository.get(KettleOptions.KETTLE_REPOS_PASSWORD_KEY),
+                                         jobName, "", true, null);
+        LogWriter lw = LogWriter.getInstance(); // Repository constructor needs this for some reason
+        Repository repo = new Repository(lw, repoMeta, userInfo);
+        return repo;
+    }
+
     /**
      * This creates all of the MergeJoin kettle steps as well as their hops from
      * the steps in the inputSteps list. The MergeJoin steps are also put into the 
