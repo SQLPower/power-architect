@@ -136,7 +136,8 @@ To do:
 		<echo message="PMD completed, output is in  ${pmd-results}."/>
 	</target>
 
-	<target name="pmd-cpd">
+	<target name="pmd-cpd"
+		description="Runs the PMD Copy/Paste Detection tool, and saves results to a file">
 		<taskdef name="cpd" classname="net.sourceforge.pmd.cpd.CPDTask"
 			classpath="${pmd.jar}"/>
 		<property name="cpd-results" value="cpd-ant-results.txt"/>
@@ -149,7 +150,9 @@ To do:
 		<echo message="CPD completed, output is in  ${cpd-results}."/>
 	</target>
 
-	<target name="findbugs" depends="compile">
+	<target name="findbugs"
+		description="Runs the Findbugs tool, outputs results to a text file"
+		depends="compile">
 		<taskdef name="findbugs" classname="edu.umd.cs.findbugs.anttask.FindBugsTask"
 			classpath="${findbugs-ant.jar}"/>
 		<findbugs home="${findbugs.home}"
@@ -164,7 +167,10 @@ To do:
 		</findbugs>
 	</target>
 
+	<!-- Runs the Business and Auto test suites. The Swing UI test suite is
+	 	 not run because it fails randomly -->
 	<target name="junit" depends="compile,compile-tests">
+		<!-- Output all System.out and System.err messages -->
 	   <junit printsummary="withOutAndErr">
 	       <classpath><path refid="test.classpath"/></classpath>
 	       <test name="ca.sqlpower.ArchitectBusinessTestSuite"/>
@@ -200,6 +206,8 @@ To do:
 		<!-- copies the template log4j config file into the build dir -->
 		<copy tofile="${build}/log4j.properties"
 			file="src/log4j.properties.example"/>
+		<copy tofile="${build}/default_database_types.ini"
+					file="src/default_database_types.ini"/>
     </target>
 
 	<!-- DOCUMENTATION
@@ -429,6 +437,7 @@ To do:
     	-->
 	</target>
 
+	<!-- Compiles the source and starts the Architect application with UI 
 	<target name="run" depends="compile">
 		<java fork="true" classname="ca.sqlpower.architect.swingui.ArchitectFrame" classpathref="test.classpath">
 			<jvmarg value="-Dlog4j.configuration=log4j.properties"/>
