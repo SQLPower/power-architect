@@ -157,7 +157,7 @@ public class SwingUIProject {
             digester = setupDigester();
             digester.parse(in);
         } catch (SAXException ex) {
-            logger.error("SAX Exception in config file parse!", ex);
+            logger.error("SAX Exception in project file parse!", ex);
             String message;
             if (digester == null) {
                 message = "Couldn't create an XML parser";
@@ -168,10 +168,10 @@ public class SwingUIProject {
             }
             throw new ArchitectException(message, ex);
         } catch (IOException ex) {
-            logger.error("IO Exception in config file parse!", ex);
+            logger.error("IO Exception in project file parse!", ex);
             throw new ArchitectException("There was an I/O error while reading the file", ex);
         } catch (Exception ex) {
-            logger.error("General Exception in config file parse!", ex);
+            logger.error("General Exception in project file parse!", ex);
             throw new ArchitectException("Unexpected Exception", ex);
         }
 
