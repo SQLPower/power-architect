@@ -263,6 +263,8 @@ public class CreateKettleJobTest extends TestCase {
         assertEquals(2, transMeta.nrTransHops());
     }
     
+    //TODO test outputToRepository
+    
     /**
      * This method tests the outputToXML method based on different settings.
      * @param fvr The FileValidationResponse that will always be chosen
@@ -272,14 +274,8 @@ public class CreateKettleJobTest extends TestCase {
      * @throws IOException
      */
     private void outputToXMLTesting(final FileValidationResponse fvr, boolean checkOriginalXML) throws IOException {
-        TransMeta transMeta = new TransMeta();
-        transMeta.setName("tableName");
-        transMeta.addNote(new NotePadMeta("original trans meta note", 0, 150, 125, 125));
-        
-        LogWriter lw = LogWriter.getInstance();
-        JobMeta job = new JobMeta(lw);
-        job.setName("jobName");
-        job.addNote(new NotePadMeta("original job note", 0, 150, 125, 125));
+        TransMeta transMeta = createTransMeta();
+        JobMeta job = createJobMeta();
         
         File jobOutputFile = File.createTempFile("HelperFile", ".KJB");
         System.out.println(jobOutputFile.getPath());
@@ -296,6 +292,7 @@ public class CreateKettleJobTest extends TestCase {
         newTransMeta.addNote(new NotePadMeta("new trans meta note", 0, 150, 125, 125));
         transList.add(newTransMeta);
         
+        LogWriter lw = LogWriter.getInstance();
         JobMeta newJob = new JobMeta(lw);
         newJob.setName("jobName");
         newJob.addNote(new NotePadMeta("new job note", 0, 150, 125, 125));
@@ -319,6 +316,21 @@ public class CreateKettleJobTest extends TestCase {
                     readOutputXMLFile(jobOutputFile).replaceAll("date.*/.*date", ""));
         }
         transOutputFile.delete();
+    }
+    
+    private JobMeta createJobMeta() {
+        LogWriter lw = LogWriter.getInstance();
+        JobMeta job = new JobMeta(lw);
+        job.setName("jobName");
+        job.addNote(new NotePadMeta("original job note", 0, 150, 125, 125));
+        return job;
+    }
+
+    private TransMeta createTransMeta() {
+        TransMeta transMeta = new TransMeta();
+        transMeta.setName("tableName");
+        transMeta.addNote(new NotePadMeta("original trans meta note", 0, 150, 125, 125));
+        return transMeta;
     }
     
     private void createOutputXMLFile(File outputFile, String xml) throws IOException {
