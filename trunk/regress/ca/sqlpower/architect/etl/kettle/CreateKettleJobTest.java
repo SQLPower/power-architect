@@ -102,8 +102,8 @@ public class CreateKettleJobTest extends TestCase {
     }
     
     public void testCreatingJobsWithTablesWithNoSource() throws ArchitectException, IOException, RuntimeException, KettleException {
-        new File("TestingJob.KJB").delete();
-        new File("transformation_for_table_TargetTable1.KTR").delete();
+        new File("TestingJob.kjb").delete();
+        new File("transformation_for_table_TargetTable1.ktr").delete();
         CreateKettleJob job = new CreateKettleJob();
         job.setJobName("Testing Job");
         job.setSchemaName("Schema");
@@ -112,13 +112,13 @@ public class CreateKettleJobTest extends TestCase {
         List<SQLTable> tableList = new ArrayList<SQLTable>();
         tableList.add(targetTableNoSource);
         job.doExport(tableList, target);
-        assertTrue(new File("TestingJob.KJB").exists());
-        assertFalse(new File("transformation_for_table_TargetTable1.KTR").exists());
+        assertTrue(new File("TestingJob.kjb").exists());
+        assertFalse(new File("transformation_for_table_TargetTable1.ktr").exists());
     }
     
     public void testCreatingJobsWithTablesWithSources() throws ArchitectException, IOException, RuntimeException, KettleException {
-        new File("TestingJob.KJB").delete();
-        new File("transformation_for_table_TargetTable2.KTR").delete();
+        new File("TestingJob.kjb").delete();
+        new File("transformation_for_table_TargetTable2.ktr").delete();
         CreateKettleJob job = new CreateKettleJob();
         job.setJobName("Testing Job");
         job.setSchemaName("Schema");
@@ -128,8 +128,8 @@ public class CreateKettleJobTest extends TestCase {
         List<SQLTable> tableList = new ArrayList<SQLTable>();
         tableList.add(targetTableMixedSource);
         job.doExport(tableList, target);
-        assertTrue(new File(jobFile.getPath() + ".KJB").exists());
-        assertFalse(new File(jobFile.getParentFile().getPath() + "transformation_for_table_TargetTable2.KTR").exists());
+        assertTrue(new File(jobFile.getPath() + ".kjb").exists());
+        assertFalse(new File(jobFile.getParentFile().getPath() + "transformation_for_table_TargetTable2.ktr").exists());
     }
 
     public void testAddDatabaseConnection() {
@@ -277,7 +277,7 @@ public class CreateKettleJobTest extends TestCase {
         TransMeta transMeta = createTransMeta();
         JobMeta job = createJobMeta();
         
-        File jobOutputFile = File.createTempFile("HelperFile", ".KJB");
+        File jobOutputFile = File.createTempFile("HelperFile", ".kjb");
         System.out.println(jobOutputFile.getPath());
         File transOutputFile = getTransOutputXMLFile(jobOutputFile, transMeta.getName());
         
@@ -356,7 +356,7 @@ public class CreateKettleJobTest extends TestCase {
     
     private File getTransOutputXMLFile(File outputFile, String name) throws IOException {
         return new File(outputFile.getParentFile().getPath() + File.separator + 
-                "transformation_for_table_" + name + ".KTR");
+                "transformation_for_table_" + name + ".ktr");
     }
     
 }

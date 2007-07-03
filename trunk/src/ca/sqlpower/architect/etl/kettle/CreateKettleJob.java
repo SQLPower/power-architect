@@ -381,8 +381,7 @@ public class CreateKettleJob implements Monitorable {
         for (TransMeta transMeta : transformations) {
             String parentPath = new File(filePath).getParentFile().getPath();
             logger.debug("Parent file path is " + parentPath);
-            File file = new File(parentPath + File.separator + 
-                "transformation_for_table_" + transMeta.getName() + ".KTR");
+            File file = new File(parentPath, "transformation_for_table_" + transMeta.getName() + ".ktr");
             transMeta.setFilename(file.getName());
             outputs.put(file, transMeta.getXML());
             if (monitor.isCancelled()) {
@@ -393,7 +392,7 @@ public class CreateKettleJob implements Monitorable {
 
         String fileName = filePath;
         if (!fileName.toUpperCase().endsWith(".KJB")) {
-            fileName += ".KJB";
+            fileName += ".kjb";
         }
         job.setFilename(fileName);
         outputs.put(new File(fileName), job.getXML());
