@@ -203,6 +203,12 @@ To do:
 				<include name="*.png"/>
 			</fileset>
 		</copy>
+        <copy todir="${build}/icons/famfamfam">
+			<fileset dir="src/icons/famfamfam">
+				<include name="*.gif"/>
+				<include name="*.png"/>
+			</fileset>
+		</copy>
 		<!-- copies the template log4j config file into the build dir -->
 		<copy tofile="${build}/log4j.properties"
 			file="src/log4j.properties.example"/>
