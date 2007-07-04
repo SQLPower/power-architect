@@ -39,7 +39,6 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.LogWriter;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.ddl.DDLGenerator;
@@ -74,12 +73,14 @@ public class SQLScriptDialog extends JDialog {
 	private AbstractDocument sqlDoc;
 
 	private boolean closeParent;
+    
+    private ArchitectSwingSession session;
 
 	private MonitorableWorker executeTask = new ExecuteSQLScriptWorker();
 
 	public SQLScriptDialog(Dialog owner, String title, String header, boolean modal,
 			DDLGenerator gen, ArchitectDataSource targetDataSource,
-			boolean closeParent )
+			boolean closeParent, ArchitectSwingSession session )
 			throws HeadlessException {
 		super(owner, title, modal);
         if (modal && owner == null) {
@@ -93,6 +94,7 @@ public class SQLScriptDialog extends JDialog {
 		this.statements = gen.getDdlStatements();
 		this.targetDataSource = targetDataSource;
 		this.closeParent = closeParent;
+        this.session = session;
 		logger.info("The list size is :" + statements.size());
 		add(buildPanel());
 		pack();
@@ -304,7 +306,7 @@ public class SQLScriptDialog extends JDialog {
 			LogWriter logWriter = null;
 
 			try {
-				logWriter = new LogWriter(ArchitectSessionImpl.getInstance().getUserSettings().getDDLUserSettings().getString(DDLUserSettings.PROP_DDL_LOG_PATH,""));
+				logWriter = new LogWriter(session.getUserSettings().getDDLUserSettings().getString(DDLUserSettings.PROP_DDL_LOG_PATH,""));
 			} catch (ArchitectException ex) {
 				finished = true;
 				final Exception fex = ex;

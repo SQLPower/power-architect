@@ -151,7 +151,8 @@ public class ExportDDLAction extends AbstractArchitectAction {
                             new SQLScriptDialog(d, "Preview SQL Script", "", false,
                                     ddlg,
                                     ppdb.getDataSource(),
-                                    true);
+                                    true,
+                                    session);
                         MonitorableWorker scriptWorker = ssd.getExecuteTask();
                         ConflictFinderProcess cfp = new ConflictFinderProcess(ssd, ppdb, ddlg, ddlg.getDdlStatements());
                         ConflictResolverProcess crp = new ConflictResolverProcess(ssd, cfp);
