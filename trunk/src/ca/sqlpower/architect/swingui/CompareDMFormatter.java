@@ -148,7 +148,8 @@ public class CompareDMFormatter {
                         false,
                         gen,
                         db == null?null:db.getDataSource(),
-                                false);
+                        false,
+                        session);
                 ssd.setVisible(true);
                 logger.debug("We got to place #3");
 
