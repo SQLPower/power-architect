@@ -30,9 +30,6 @@ public class PreferencesPanel extends JPanel implements ArchitectPanel {
 	private JTextField plIniName;
 	private JButton plIniButton;
 
-	private JTextField powerLoaderEngine;
-	private JButton powerLoaderEngineButton;
-
 	private JTextField etlLogFileName;
 	private JButton etlLogFileButton;
 
@@ -61,7 +58,7 @@ public class PreferencesPanel extends JPanel implements ArchitectPanel {
 	public void setup() {
 		setLayout(new FormLayout(5,5));
 		// line 1
-		add(new JLabel("Power*Loader PL.INI File"));
+		add(new JLabel("PL.INI File"));
 		JPanel plIniPanel = new JPanel();
 		plIniPanel.setLayout(new BorderLayout());
 		plIniPanel.add(plIniName = new JTextField("",35), BorderLayout.WEST);
@@ -69,14 +66,6 @@ public class PreferencesPanel extends JPanel implements ArchitectPanel {
 		plIniButton.setAction(new ChooseFileAction(plIniName,ASUtils.INI_FILE_FILTER,"Browse..."));
 		add(plIniPanel);
 		// line 2
-		add(new JLabel("Power*Loader Engine"));
-		JPanel plEnginePanel = new JPanel();
-		plEnginePanel.setLayout(new BorderLayout());
-		plEnginePanel.add(powerLoaderEngine = new JTextField("",35), BorderLayout.WEST);
-		plEnginePanel.add(powerLoaderEngineButton = new JButton(), BorderLayout.EAST);
-		powerLoaderEngineButton.setAction(new ChooseFileAction(powerLoaderEngine,ASUtils.EXE_FILE_FILTER,"Browse..."));
-		add(plEnginePanel);
-		// line 3
 		add(new JLabel("ETL Log File"));
 		JPanel etlLogFilePanel = new JPanel();
 		etlLogFilePanel.setLayout(new BorderLayout());
@@ -85,7 +74,7 @@ public class PreferencesPanel extends JPanel implements ArchitectPanel {
 		etlLogFileButton.setAction(new ChooseFileAction(etlLogFileName,ASUtils.LOG_FILE_FILTER,"Browse..."));
 		add(etlLogFilePanel);
 
-		// line 4
+		// line 3
 		add(new JLabel("Forward Engineering Log File"));
 		JPanel ddlLogFilePanel = new JPanel();
 		ddlLogFilePanel.setLayout(new BorderLayout());
@@ -94,7 +83,7 @@ public class PreferencesPanel extends JPanel implements ArchitectPanel {
 		ddlLogFileButton.setAction(new ChooseFileAction(ddlLogFileName,ASUtils.LOG_FILE_FILTER,"Browse..."));
 		add(ddlLogFilePanel);
 
-		// line 5
+		// line 4
 		add(new JLabel("Antialiased Rendering in PlayPen"));
 		JPanel playPenAntialiasPanel = new JPanel();
 		playPenAntialiasPanel.setLayout(new FlowLayout());
@@ -105,7 +94,7 @@ public class PreferencesPanel extends JPanel implements ArchitectPanel {
 		playPenAntialiasPanel.add(playPenAntialiasOff);
 		add(playPenAntialiasPanel);
 
-        //line 6
+        //line 5
         add(new JLabel("Error Reporting"));
         JPanel exceptionReportPanel = new JPanel();
         exceptionReportPanel.setLayout(new FlowLayout());
@@ -115,7 +104,7 @@ public class PreferencesPanel extends JPanel implements ArchitectPanel {
         exceptionReportPanel.add(exceptionReportOn);
         exceptionReportPanel.add(exceptionReportOff);
         add(exceptionReportPanel);
-        //line 7
+        //line 6
         add(new JLabel("Show Welcome Screen"));
         JPanel showWelcomePanel = new JPanel();
         showWelcomePanel.setLayout(new FlowLayout());
@@ -129,7 +118,6 @@ public class PreferencesPanel extends JPanel implements ArchitectPanel {
 
 	protected void revertToUserSettings() {
 		plIniName.setText(us.getPlDotIniPath());
-		powerLoaderEngine.setText(us.getETLUserSettings().getString(ETLUserSettings.PROP_PL_ENGINE_PATH,""));
 		etlLogFileName.setText(us.getETLUserSettings().getString(ETLUserSettings.PROP_ETL_LOG_PATH,""));
 		ddlLogFileName.setText(us.getDDLUserSettings().getString(DDLUserSettings.PROP_DDL_LOG_PATH,""));
 		if (us.getSwingSettings().getBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false)) {
@@ -151,7 +139,6 @@ public class PreferencesPanel extends JPanel implements ArchitectPanel {
 
 	public boolean applyChanges() {
 		us.setPlDotIniPath(plIniName.getText());
-	    us.getETLUserSettings().setString(ETLUserSettings.PROP_PL_ENGINE_PATH,powerLoaderEngine.getText());
 		us.getETLUserSettings().setString(ETLUserSettings.PROP_ETL_LOG_PATH,etlLogFileName.getText());
 		us.getDDLUserSettings().setString(DDLUserSettings.PROP_DDL_LOG_PATH,ddlLogFileName.getText());
 		us.getSwingSettings().setBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, playPenAntialiasOn.isSelected());
