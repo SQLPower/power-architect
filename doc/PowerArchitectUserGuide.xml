@@ -25,7 +25,7 @@
 		<date>Last Modified</date>
 
 		<copyright>
-			<year>2006</year>
+			<year>2007</year>
 			<holder>SQL Power Group Inc.</holder>
 		</copyright>
 	</bookinfo>
@@ -549,15 +549,125 @@
 				Note: The tie-in between Drivers and Connections might
 				seem a bit indirect if you are not used to using Java
 				JDBC. In this section of the User Preferences you are
-				simply telling the Power*Architect to load these drivers
-				into memory when it starts up. When you set up an actual
-				Connection, you implicitly tell the software which
-				driver to use by the second field of the "db URL" as
-				described on page 21. If you need more information on
-				JDBC drivers, please refer to the Basic Concepts section
-				of this manual on page 3.
+				telling the Power*Architect where the drivers are so
+				that they can be used when nescessary.
 			</para>
 
+			<itemizedlist>
+				<listitem>
+					<para>
+						On the left, there is a list of drivers. By
+						clicking on an item in the list, you can edit
+						its properties in the text fields to the right.
+					</para>
+				</listitem>
+
+				<listitem>
+					<para>
+						The "Name" field is used to assign a name to the
+						item in the list. These names will also be used
+						to assign a type to a new connection that you
+						are defining.
+					</para>
+				</listitem>
+
+				<listitem>
+					<para>
+						The "Driver Class" field is the class name of
+						the driver.
+					</para>
+				</listitem>
+
+				<listitem>
+					<para>
+						The "Connection String Template" field is used
+						to define a URL template. The URL template is
+						used by the Power*Architect to create a URL that
+						is used to attempt a database connection. The
+						pattern that the string must conform to is not
+						trivial but is made up of two simpler parts,
+						literals and variables.
+					</para>
+
+					<para>
+						Literals are enterd like normal text but may not
+						contain angle brackets (&lt; or &gt;) because
+						they are reserved for defining variables.
+						As their name implies, literals appear in the
+						URL in the same position and way they appear in
+						the template.
+					</para>
+
+					<para>
+						Variables are used to make it easier for things
+						that change often to be changed, such as the
+						schema or datbase name you wish to connect to.
+						They are defined in the template by
+						&lt;variable_name
+						:default_value&gt;. Once a variable is defined
+						in the template, a field labeled with the
+						variable's name will appear below with the
+						default value in it just below the template as a
+						preview to what you will later be able to modify
+						in "Connection Properties".
+					</para>
+					
+					<para>
+						Note: Default values are often useful,
+						but are optional. If you do not want a
+						variable to have a default value, define
+						it as &lt;variable_name&gt;. The default
+						value for these variables is blank.
+					</para>
+
+					<para>
+						For example, if we wanted to connect to a
+						Microsoft SQL Server database, the URL template
+						might look like
+						"jdbc:sqlserver://&lt;Hostname&gt;:&lt;Port:1433&gt;".
+						The URL this template will output is
+						"jdbc:sqlserver://:1433" where the 1433 was a
+						default value. If we were to enter "localhost"
+						in the Hostname field, we would get the URL
+						"jdbc:sqlserver://localhost:1433". By defining
+						the "Hostname" variable, we make it easier and
+						quicker to connect to a generic SQL Server
+						instance. SQL Server databases listen to port
+						1433 by default but can be configured to listen
+						to others so, by giving the variable this
+						default, we can have the most common value
+						inserted automatically while allowing us to
+						modify what is in the field to change the port
+						in specific cases.
+					</para>
+				</listitem>
+
+				<listitem>
+					<para>
+						If you click on the "Kettle" tab, there will be
+						a drop-down menu where you can specify the type
+						of Kettle connection to associate with the
+						selected item. If you do not use Kettle, do not
+						worry about this setting because it is only
+						nescessary when you wish to create a Kettle job
+						for ETL.
+					</para>
+				</listitem>
+
+				<listitem>
+					<para>
+						The "Add JAR..." and "Remove JAR" buttons are
+						used to point the Power*Architect to the actual
+						locations of the JAR files that contain the
+						proper JDBC Driver. Once, you select a JAR file,
+						if there is a valid driver in it, a file tree
+						will appear in the area below the buttons. This
+						is a representation of the JAR file and its JDBC
+						contents. Select the driver you wish to use and
+						click the "OK" button at the bottom.
+					</para>
+				</listitem>
+			</itemizedlist>
 		</section>
 
 		<section id="example">
@@ -929,7 +1039,7 @@
 					<inlinemediaobject>
 						<imageobject>
 							<imagedata
-								fileref="src/icons/NewTable24.gif" format="GIF" />
+								fileref="src/icons/new_table16.png" format="PNG" />
 						</imageobject>
 					</inlinemediaobject>
 					There are several ways to create new tables in
@@ -952,12 +1062,6 @@
 				<title>Editing Tables</title>
 
 				<para>
-					<inlinemediaobject>
-						<imageobject>
-							<imagedata
-								fileref="src/icons/TableProperties24.gif" format="GIF" />
-						</imageobject>
-					</inlinemediaobject>
 					To edit a table, right click on the table title and
 					select "Table Properties". This pops up the Table
 					Properties dialog.
@@ -1006,14 +1110,14 @@
 					<inlinemediaobject>
 						<imageobject>
 							<imagedata
-								fileref="src/icons/NewColumn24.gif" format="GIF" />
+								fileref="src/icons/new_column16.png" format="PNG" />
 						</imageobject>
 					</inlinemediaobject>
 					First select the table the new column will be placed
 					in. Click on the "Insert Column" button and a column
 					is created in the selected table. Another way to add
 					a new column is to right click on a table and select
-					the "New Column..." option. The new column will be
+					the "New Column" option. The new column will be
 					added to the table below the selected column. It
 					will be placed at the bottom of the table if no
 					columns are selected. If a table has existing
@@ -1034,11 +1138,11 @@
 					<inlinemediaobject>
 						<imageobject>
 							<imagedata
-								fileref="src/icons/ColumnProperties24.gif" format="GIF" />
+								fileref="src/icons/edit_column16.gif" format="PNG" />
 						</imageobject>
 					</inlinemediaobject>
 					Select the desired column, right click and select
-					"Column Properties". The Edit Column Properties
+					"Column Properties...". The Edit Column Properties
 					dialog pops up. Or you can select the column and
 					click the "Edit Column" button on the Playpen
 					toolbar.
@@ -1157,15 +1261,15 @@
 					<inlinemediaobject>
 						<imageobject>
 							<imagedata
-								fileref="src/icons/NewIdentifyingRelationship24.gif"
-								format="GIF" />
+								fileref="src/icons/new_id_relationship16.png"
+								format="PNG" />
 						</imageobject>
 					</inlinemediaobject>
 					<inlinemediaobject>
 						<imageobject>
 							<imagedata
-								fileref="src/icons/NewNonIdentifyingRelationship24.gif"
-								format="GIF" />
+								fileref="src/icons/new_nonid_relationship16.png"
+								format="PNG" />
 						</imageobject>
 					</inlinemediaobject>
 					To create a relationship, select the desired type of
@@ -1174,17 +1278,17 @@
 					<inlinemediaobject>
 						<imageobject>
 							<imagedata
-								fileref="src/icons/NewNonIdentifyingRelationship24.gif"
-								format="GIF" />
+								fileref="src/icons/new_nonid_relationship16.png"
+								format="PNG" />
 						</imageobject>
 					</inlinemediaobject>
 					(keyboard shortcut is shift+R). The identifying
-					relationship icon is identified by
+					relationship icon is
 					<inlinemediaobject>
 						<imageobject>
 							<imagedata
-								fileref="src/icons/NewIdentifyingRelationship24.gif"
-								format="GIF" />
+								fileref="src/icons/new_id_relationship16.png"
+								format="PNG" />
 						</imageobject>
 					</inlinemediaobject>
 					(shortcut key is R). The cursor changes to the "+"
@@ -1202,7 +1306,8 @@
 						<imageobject>
 							<imagedata
 								fileref="doc/images/Hijacked_Column_Relation.PNG"
-								format="PNG" />
+								format="PNG" 
+								width="5in" />
 						</imageobject>
 					</inlinemediaobject>
 				</para>
@@ -1215,7 +1320,8 @@
 						<imageobject>
 							<imagedata
 								fileref="doc/images/New_Column_Relation.PNG"
-								format="PNG" />
+								format="PNG"
+								width="5in" />
 						</imageobject>
 					</inlinemediaobject>
 				</para>
@@ -1230,15 +1336,15 @@
 					<inlinemediaobject>
 						<imageobject>
 							<imagedata
-								fileref="src/icons/RelationshipProperties24.gif" format="GIF" />
+								fileref="src/icons/edit_relationship16.png" format="PNG" />
 						</imageobject>
 					</inlinemediaobject>
-					Select the desired relationship and right click on
-					the relationship. Choose the "Relationship
-					Properties" options. This can also be done by
-					selecting the relationship and clicking on the
-					relationship properties button. In both cases, the
-					Relationship Properties dialog will appear.
+					Right click on the relationship you wish to edit.
+					Choose the "Relationship Properties" options. This
+					can also be done by selecting the relationship and
+					clicking on the relationship properties button. In
+					both cases, the Relationship Properties dialog will
+					appear.
 				</para>
 
 				<mediaobject>
@@ -1320,7 +1426,8 @@
 					and click on the delete items button on the Playpen
 					Toolbar. It is also possible to delete the selected
 					items by right clicking on one of the components and
-					selecting "Delete Selected".
+					selecting "Delete Selected" or simply pressing the
+					delete keys with the unwanted items selected.
 				</para>
 
 			</section>
@@ -1425,9 +1532,9 @@
 				<para>
 					Select the database connection you wish to change
 					and go to "Connections" and select the option
-					"Remove Connection..". Right clicking on the
+					"Remove Connection". Right clicking on the
 					database connection and selecting "Remove
-					Connection.." will perform the same action.
+					Connection" will perform the same action.
 				</para>
 
 			</section>
@@ -1440,18 +1547,16 @@
 					<inlinemediaobject>
 						<imageobject>
 							<imagedata
-								fileref="src/icons/TargetDatabaseArrow16.gif" format="GIF" />
+								fileref="src/icons/Database_target16.png" format="PNG" />
 						</imageobject>
 					</inlinemediaobject>
 					The project database can be set to an existing
-					database connection or the user can create a new
-					connection for it as well. Setting the project
-					database can be achieved in one of several ways. The
-					first method is to right click on any empty space on
-					the Playpen and go to "Set Target Database". Another
-					option is to right-click on the Target Database (the
-					target database can always be identified by this
-					icon: ) and choose "Set Target Database" from there.
+					database connection by right-clicking on the target
+					database's connection in the datbase tree and 
+					choosing "Set Target Database" from there. To set
+					the target database to a new connection, make the
+					new connection in the database tree and then
+					select "Set Target Database" on it.
 				</para>
 
 			</section>
