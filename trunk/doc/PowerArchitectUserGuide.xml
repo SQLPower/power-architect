@@ -91,10 +91,17 @@
 
 				<para>
 					Compare the Data Model data structures to an
-					existing target database; Save a snapshot of all
-					source systems' data structures in the project file,
-					allowing data warehouse designers to evolve their
-					target data model remotely;
+					existing target database; 
+				</para>
+
+			</listitem>
+
+			<listitem>
+
+				<para>
+					Save a snapshot of all source systems' data structures 
+					in the project file, allowing data warehouse designers
+					 to evolve their target data model remotely;
 				</para>
 
 			</listitem>
@@ -189,7 +196,7 @@
 			<para>
 				<emphasis>Driver</emphasis>
 				- Most programs need a distinct driver program to
-				communicated with each different type of database.
+				communicate with each different type of database.
 				Power*Architect uses Java-based drivers, which normally
 				come from the database vendor in the form of "JAR"
 				<footnote>
@@ -445,18 +452,18 @@
 
 			<para>
 				<emphasis>Zoom Tools</emphasis>
-				allow you to control the magnification level of
-				components display
+				- These tools allow you to control the magnification 
+				level of components display.
 			</para>
 
 			<para>
 				<emphasis>Delete</emphasis>
-				will delete the selected component(s).
+				- This will delete the selected component(s).
 			</para>
 
 			<para>
 				<emphasis>Create/Maintain Playpen Components</emphasis>
-				is discussed in
+				- This is discussed in
 				<link linkend="diagram_components">
 					Using Components
 				</link>
@@ -496,18 +503,17 @@
 				a pl.ini file from other SQL Power applications you
 				should generally use the same file, as doing so will
 				save you from having to re-enter all your database
-				connection information. The Power*Loader Engine setting
-				is optional; if you are not using the Power*Loader
-				engine you can leave this blank; if you are, you should
-				set it to the location where the Power*Loader Engine
-				program is installed on your system. The next two
-				settings are for log files that will be written when you
-				use the ETL and Forward Engineering functions of the
-				application. The final setting controls the operations
-				of graphics in the PlayPen. Turning "antialiased
-				rendering" on may give better display of the graphical
-				database layouts shown in the PlayPen, but may use more
-				CPU time in the process.
+				connection information. The next two settings are for log
+				files that will be written when you	use the ETL and 
+				Forward Engineering functions of the application. The 
+				next setting controls the operations of graphics in the 
+				PlayPen. Turning "antialiased rendering" on may give 
+				better display of the graphical	database layouts shown 
+				in the PlayPen, but may use more CPU time in the process.
+				The error reporting setting can be turned on to send 
+				SQL Power error reports when they occur. The last setting,
+				Show Welcome Screen, can be set to turn the welcome screen
+				on or off when starting Power*Architect.
 			</para>
 
 		</section>
@@ -556,7 +562,7 @@
 
 		<section id="example">
 
-			<title>A Brief Example</title>
+			<title>A Basic Example</title>
 
 			<para>
 				This section will show you how to set up
@@ -572,302 +578,343 @@
 				create a trivial "customer and orders database".
 			</para>
 
-			<orderedlist>
+			<section id="example_setting_up_databases">
+			
+				<title>Setting Up Databases</title>
 
-				<listitem>
+				<orderedlist>
 
-					<para>
-						Setup Driver. Select File-&gt;User Preferences
-						and select the JDBC Drivers tab. If there is
-						already an entry for the driver you wish to
-						use,, click OK and go on to the next step.
-						Otherwise, click the Add button, navigate to
-						where you have the driver Jar file installed,
-						and click OK.
-					</para>
+					<listitem>
 
-				</listitem>
+						<para>
+							Setup Driver. Select File-&gt;User
+							Preferences and select the JDBC Drivers tab.
+							Select the database connection type you wish
+							to use from the list on the left. If there
+							is already a driver for the connection type
+							you wish to use, click OK and go on to the
+							next step. Otherwise, click the Add button,
+							navigate to where you have the driver Jar
+							file installed, and click OK.
+						</para>
 
-				<listitem>
+					</listitem>
 
-					<para>
-						Create a Connection. In the Database Tree
-						section of the main window, right click and
-						choose Add Source Connection-&gt;New Connection.
-						For this example you can use a name like
-						SampleDB, for both the Connection Name and the
-						Database name (these names do not have to be the
-						same, but we&apos;ll keep them the same for
-						simplicity). If you select the JDBC Driver
-						before you type the database name, then as you
-						type the Database name, it will be added to the
-						DB URL, so you don&apos;t have to type it an
-						extra time. Fill in all the fields and click OK.
-					</para>
+					<listitem>
 
-				</listitem>
+						<para>
+							Create a Connection. In the Database Tree
+							section of the main window, right click and
+							choose Add Source Connection-&gt;New
+							Connection. For this example you can use a
+							name like SampleDB, for both the Connection
+							Name and the Database name (these names do
+							not have to be the same, but we&apos;ll keep
+							them the same for simplicity). If you select
+							the JDBC Driver before you type the database
+							name, then as you type the Database name, it
+							will be added to the DB URL, so you
+							don&apos;t have to type it an extra time.
+							Fill in all the fields and click OK.
+						</para>
 
-				<listitem>
+					</listitem>
 
-					<para>
-						Now right click on the Project in the Database
-						tree, and select Set Target Database, then
-						choose the Database connection you just created
-						(e.g., SampleHSQLDB). Note that Add Source
-						Connection makes a database available to copy
-						tables from, whereas Set Target Database
-						specifies where SQL commands will get executed
-						to create the structure you are building in your
-						project.
-					</para>
+				</orderedlist>
+				 
+			</section>
+			 
+			<section id="example_designing_a_database">
+			
+				<title>Designing a Database</title>
 
-				</listitem>
+				<para>
+					You are now ready to design some tables. For this
+					example, we will create the Customer and Orders
+					table shown here.
+				</para>
 
-				<listitem>
+				<orderedlist>
 
-					<para>
-						You are now ready to design some tables. For
-						this example, we will create the Customer and
-						Orders table shown here.
-					</para>
+					<listitem>
 
-					<orderedlist>
+						<para>
+							Click on the New Table icon at the right
+							side. The cursor will change to a crosshair.
+							Move the cursor near the left of the Playpen
+							area, and click. A "New Table" will appear.
+						</para>
 
-						<listitem>
+					</listitem>
 
-							<para>
-								Click on the New Table icon at the right
-								side. The cursor will change to a
-								crosshair. Move the cursor near the left
-								of the Playpen area, and click. A "New
-								Table" will appear.
-							</para>
+					<listitem>
 
-						</listitem>
+						<para>
+							Double click on the title, and the Table
+							Properties Dialog will appear. Rename this
+							table to Customer, and the Primary Key to
+							Customer_PK.
+						</para>
 
-						<listitem>
+					</listitem>
 
-							<para>
-								Double click on the title, and the Table
-								Properties Dialog will appear. Rename
-								this table to Customer, and the Primary
-								Key to Customer_PK.
-							</para>
+					<listitem>
 
-						</listitem>
+						<para>
+							Click on the Insert Column icon, and a "New
+							Column" will appear. When the new column is
+							created a property window will appear for
+							it. Rename the column to ID and make it part
+							of the primary key.
+						</para>
 
-						<listitem>
+					</listitem>
 
-							<para>
-								Click on the Insert Column icon, and a
-								"New Column" will appear. Double-click
-								on the column, or click on the Column
-								Properties, and the Column Properties
-								Dialog will appear. Rename the column to
-								ID and make it part of the primary key.
-							</para>
+					<listitem>
 
-						</listitem>
+						<para>
+							Insert additional columns for Firstname,
+							Lastname, Address, City, Province, Country
+							Code
+							<footnote>
+								<para>
+									There is an ISO standard, ISO-3166,
+									which specifies a two-letter code
+									(and a rarely-used three letter
+									code) for every country of the
+									world: us for the United States, ca
+									for Canada, and so on. Some
+									developers like to use these in the
+									Country field of a database, as we
+									are doing here.
+								</para>
+							</footnote>
+							and Postal Code. The table should look
+							something like the following:
+						</para>
+						
+						<mediaobject>
+							<imageobject>
+								<imagedata
+									fileref="doc/images/SimpleExample1.png" format="PNG"
+									width="4in" />
+							</imageobject>
+						</mediaobject>
 
-						<listitem>
+					</listitem>
 
-							<para>
-								Insert additional columns for Firstname,
-								Lastname, Address, City, Province,
-								Country Code
-								<footnote>
-									<para>
-										There is an ISO standard,
-										ISO-3166, which specifies a
-										two-letter code (and a
-										rarely-used three letter code)
-										for every country of the world:
-										us for the United States, ca for
-										Canada, and so on. Some
-										developers like to use these in
-										the Country field of a database,
-										as we are doing here.
-									</para>
-								</footnote>
-								and Postal Code. The table should look
-								something like the following:
-							</para>
+					<listitem>
 
-							<mediaobject>
-								<imageobject>
-									<imagedata
-										fileref="doc/images/example_4_4.png" format="PNG" width="4in" />
-								</imageobject>
-							</mediaobject>
-						</listitem>
+						<para>
+							Create a second table, and name it Orders.
+						</para>
 
-						<listitem>
+					</listitem>
 
-							<para>
-								Create a second table, and name it
-								Orders.
-							</para>
+					<listitem>
 
-						</listitem>
+						<para>
+							Create columns named Id (in the primary
+							key), Quantity, and Total Amount. Your
+							project should now look something like the
+							following:
+						</para>
 
-						<listitem>
+						<mediaobject>
+							<imageobject>
+								<imagedata
+									fileref="doc/images/SimpleExample2.png" format="PNG"
+									width="4in" />
+							</imageobject>
+						</mediaobject>
+					</listitem>
 
-							<para>
-								Create columns named Id (in the primary
-								key), Quantity, and Total Amount. Your
-								project should now look something like
-								the following:
-							</para>
+					<listitem>
 
-							<mediaobject>
-								<imageobject>
-									<imagedata
-										fileref="doc/images/example_4_6.png" format="PNG" width="4in" />
-								</imageobject>
-							</mediaobject>
-						</listitem>
+						<para>
+							We need a relationship between these tables.
+							An order should have a foreign key that
+							refers to the customer. Click the "New
+							Non-Identifying Relationship" icon. Select
+							the Order table, then the Customer table,
+							and a link will be drawn as shown. Click on
+							this link and the keys that take part in the
+							relationship will be highlighted in red.
+						</para>
 
-						<listitem>
+						<mediaobject>
+							<imageobject>
+								<imagedata
+									fileref="doc/images/SimpleExample3.png" format="PNG"
+									width="4in" />
+							</imageobject>
+						</mediaobject>
+					</listitem>
 
-							<para>
-								We need a relationship between these
-								tables. An order should have a foreign
-								key that refers to the customer. Click
-								the "New Non-Identifying Relationship"
-								icon. Select the Order table, then the
-								Customer table, and a link will be drawn
-								as shown. Click on this link and the
-								keys that take part in the relationship
-								will be highlighted in red.
-							</para>
+				</orderedlist>
+				
+			</section>
+			
+			<section id="example_forward_engineer">
+			
+				<title>Forward Engineer</title>
 
-							<mediaobject>
-								<imageobject>
-									<imagedata
-										fileref="doc/images/example_4_7.png" format="PNG" width="4in" />
-								</imageobject>
-							</mediaobject>
-						</listitem>
+				<orderedlist>
 
-					</orderedlist>
+					<listitem>
 
-				</listitem>
+						<para>
+							If you&apos;re happy with the database
+							layout (you can always change it later),
+							it&apos;s time to create the database. Click
+							on the Forward Engineer button. You should
+							see a window similar to the following:
+						</para>
 
-				<listitem>
+						<mediaobject>
+							<imageobject>
+								<imagedata
+									fileref="doc/images/SimpleExample4.png" format="PNG"
+									width="4in" />
+							</imageobject>
+						</mediaobject>
+					</listitem>
 
-					<para>
-						If you&apos;re happy with the database layout
-						(you can always change it later), it&apos;s time
-						to create the database. Click on the Forward
-						Engineer button. You should see a window similar
-						to the following:
-					</para>
+					<listitem>
+						<para>
+							Set the "Create in" database to be the
+							source connection we defined earlier. Set
+							the database type to be the type that was
+							set in the user preferences. Fill in the
+							remaining fields based on the database type
+							that was selected and press ok. You should
+							see a window similar to:
+						</para>
 
-					<mediaobject>
-						<imageobject>
-							<imagedata
-								fileref="doc/images/example_5.png" format="PNG" width="4in" />
-						</imageobject>
-					</mediaobject>
-				</listitem>
+						<mediaobject>
+							<imageobject>
+								<imagedata
+									fileref="doc/images/SimpleExample5.png" format="PNG"
+									width="4in" />
+							</imageobject>
+						</mediaobject>
+					</listitem>
 
-				<listitem>
+					<listitem>
 
-					<para>
-						If this looks plausible, click Execute, and the
-						tables and their relationship will be created.
-						Congratulations! You have now created a simple
-						database using the visual tools in
-						Power*Architect. But let&apos;s not stop here.
-						Suppose that after using this database, you
-						realize that there should be a "shipping amount"
-						field in the Order table (we never promised this
-						would be completely realistic example).
-					</para>
+						<para>
+							If this looks plausible, click Execute, and
+							the tables and their relationship will be
+							created. Congratulations! You have now
+							created a simple database using the visual
+							tools in Power*Architect.
+						</para>
 
-				</listitem>
+					</listitem>
 
-				<listitem>
+				</orderedlist>
+				
+			</section>
+			
+			<section id="example_comparing_data_models">
+			
+				<title>Comparing Data Models</title>
 
-					<para>
-						Select the Order table by clicking on its title.
-					</para>
+				<para>
+					Suppose that after using this database, you realize
+					that there should be a "shipping amount" field in
+					the Order table (we never promised this would be
+					completely realistic example).
+				</para>
 
-				</listitem>
+				<orderedlist>
 
-				<listitem>
+					<listitem>
 
-					<para>
-						Click the Insert Column field and, as before,
-						rename the New Column, this time to
-						Shipping_Amount. Change its type to
-						Decimal(10,2).
-					</para>
+						<para>
+							Select the Order table by clicking on its
+							title.
+						</para>
 
-				</listitem>
+					</listitem>
 
-				<listitem>
+					<listitem>
 
-					<para>
-						Now we need to compare two different Data
-						Models, the original database and the current
-						project. Click the Compare DM icon. Set the
-						"Older" to Physical Database SampleDB (you may
-						need to change the Schema to Public). Set the
-						"Newer" to "Current Project" (since it is now
-						newer than the database you created in Step 6).
-						Set the output format to SQL.
-					</para>
+						<para>
+							Click the Insert Column field and, as
+							before, rename the New Column, this time to
+							Shipping_Amount. Change its type to
+							Decimal(10,2).
+						</para>
 
-					<mediaobject>
-						<imageobject>
-							<imagedata
-								fileref="doc/images/example_9.png" format="PNG" width="4in" />
-						</imageobject>
-					</mediaobject>
-				</listitem>
+					</listitem>
 
-				<listitem>
+					<listitem>
 
-					<para>
-						Click Start. You should see the SQL Preview
-						window again, but this time with just an ADD for
-						the column you just added:
-					</para>
+						<para>
+							Now we need to compare two different Data
+							Models, the original database and the
+							current project. Click the Compare DM icon.
+							Set the "Older" to Physical Database
+							SampleDB (you may need to change the Schema
+							to Public). Set the "Newer" to "Current
+							Project" (since it is now newer than the
+							database you created in Step 6). Set the
+							output format to SQL.
+						</para>
 
-					<mediaobject>
-						<imageobject>
-							<imagedata
-								fileref="doc/images/example_10.png" format="PNG" width="4in" />
-						</imageobject>
-					</mediaobject>
-				</listitem>
+						<mediaobject>
+							<imageobject>
+								<imagedata
+									fileref="doc/images/SimpleExample6.png" format="PNG"
+									width="4in" />
+							</imageobject>
+						</mediaobject>
+					</listitem>
 
-				<listitem>
+					<listitem>
 
-					<para>
-						Click Execute, and the new column will be added
-						to your database table.
-					</para>
+						<para>
+							Click Start. You should see the SQL Preview
+							window again, but this time with just an ADD
+							for the column you just added:
+						</para>
 
-				</listitem>
+						<mediaobject>
+							<imageobject>
+								<imagedata
+									fileref="doc/images/example_10.png" format="PNG" width="4in" />
+							</imageobject>
+						</mediaobject>
+					</listitem>
 
-			</orderedlist>
+					<listitem>
 
-			<para>
-				When you exit the program, it will ask to save your
-				project. Since you might want to alter this in future,
-				to experiment with some of the other tools without
-				damaging any live data, you may wish to save the Project
-				file.
-			</para>
+						<para>
+							Click Execute, and the new column will be
+							added to your database table.
+						</para>
 
-			<para>
-				The remainder of this document provides a more
-				comprehensive explanation of the various functions that
-				Power*Architect offers.
-			</para>
+					</listitem>
 
+				</orderedlist>
+
+				<para>
+					When you exit the program, it will ask to save your
+					project. Since you might want to alter this in
+					future, to experiment with some of the other tools
+					without damaging any live data, you may wish to save
+					the Project file.
+				</para>
+
+				<para>
+					The remainder of this document provides a more
+					comprehensive explanation of the various functions
+					that Power*Architect offers.
+				</para>
+				
+			</section>
+			
 		</section>
 
 		<section id="diagram_components">
@@ -1444,7 +1491,7 @@
 									<inlinemediaobject>
 										<imageobject>
 											<imagedata
-												fileref="src/icons/Database16.png" format="png" />
+												fileref="src/icons/Database16.png" format="PNG" />
 										</imageobject>
 									</inlinemediaobject>
 								</entry>
@@ -1456,7 +1503,7 @@
 									<inlinemediaobject>
 										<imageobject>
 											<imagedata
-												fileref="src/icons/Catalog16.png" format="png" />
+												fileref="src/icons/Catalog16.png" format="PNG" />
 										</imageobject>
 									</inlinemediaobject>
 								</entry>
@@ -1468,7 +1515,7 @@
 									<inlinemediaobject>
 										<imageobject>
 											<imagedata
-												fileref="src/icons/Schema16.png" format="png" />
+												fileref="src/icons/Schema16.png" format="PNG" />
 										</imageobject>
 									</inlinemediaobject>
 								</entry>
@@ -1480,7 +1527,7 @@
 									<inlinemediaobject>
 										<imageobject>
 											<imagedata
-												fileref="src/icons/Owner16.png" format="png" />
+												fileref="src/icons/Owner16.png" format="PNG" />
 										</imageobject>
 									</inlinemediaobject>
 								</entry>
@@ -1492,7 +1539,7 @@
 									<inlinemediaobject>
 										<imageobject>
 											<imagedata
-												fileref="src/icons/Table16.png" format="png" />
+												fileref="src/icons/Table16.png" format="PNG" />
 										</imageobject>
 									</inlinemediaobject>
 								</entry>
@@ -1504,7 +1551,7 @@
 									<inlinemediaobject>
 										<imageobject>
 											<imagedata
-												fileref="src/icons/ExportedKey16.png" format="png" />
+												fileref="src/icons/ExportedKey16.png" format="PNG" />
 										</imageobject>
 									</inlinemediaobject>
 								</entry>
@@ -1516,7 +1563,7 @@
 									<inlinemediaobject>
 										<imageobject>
 											<imagedata
-												fileref="src/icons/ImportedKey16.png" format="png" />
+												fileref="src/icons/ImportedKey16.png" format="PNG" />
 										</imageobject>
 									</inlinemediaobject>
 								</entry>
