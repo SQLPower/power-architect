@@ -437,7 +437,7 @@ To do:
     	-->
 	</target>
 
-	<!-- Compiles the source and starts the Architect application with UI 
+	<!-- Compiles the source and starts the Architect application with UI -->
 	<target name="run" depends="compile">
 		<java fork="true" classname="ca.sqlpower.architect.swingui.ArchitectFrame" classpathref="test.classpath">
 			<jvmarg value="-Dlog4j.configuration=log4j.properties"/>
