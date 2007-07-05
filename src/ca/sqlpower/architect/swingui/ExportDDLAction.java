@@ -121,7 +121,7 @@ public class ExportDDLAction extends AbstractAction {
 	 * 
 	 * @author fuerth
 	 */
-	private class ConflictFinderProcess extends MonitorableWorker {
+	public class ConflictFinderProcess extends MonitorableWorker {
 
 		JDialog parentDialog;
 		SQLDatabase target;
@@ -280,7 +280,7 @@ public class ExportDDLAction extends AbstractAction {
 	 * @author fuerth
 	 * @version $Id$
 	 */
-	private class ConflictResolverProcess extends MonitorableWorker {
+	public class ConflictResolverProcess extends MonitorableWorker {
 
 		private JDialog parentDialog;
 		private ConflictFinderProcess conflictFinder;

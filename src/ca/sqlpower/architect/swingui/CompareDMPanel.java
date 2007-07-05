@@ -3,9 +3,7 @@ package ca.sqlpower.architect.swingui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedInputStream;
@@ -13,7 +11,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.sql.SQLData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,9 +33,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
-import javax.swing.JScrollPane;
 import javax.swing.JTextField;
-import javax.swing.JTextPane;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
@@ -58,7 +53,6 @@ import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
@@ -67,7 +61,6 @@ import ca.sqlpower.architect.diff.CompareSQL;
 import ca.sqlpower.architect.diff.DiffChunk;
 import ca.sqlpower.architect.diff.DiffType;
 import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
-import ca.sqlpower.architect.swingui.CompareDMPanel.SourceOrTargetStuff.CatalogPopulator;
 import ca.sqlpower.architect.swingui.CompareDMSettings.RadioButtonSelection;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
 
@@ -91,9 +84,7 @@ public class CompareDMPanel extends JPanel {
 	private JPanel buttonPanel;
 
 	private JComboBox sqlTypeDropdown;
-
-	private JTextPane outputTextPane; // XXX: maybe unused?
-
+	
 	private JRadioButton sqlButton;
 
 	private JRadioButton englishButton;
@@ -746,16 +737,7 @@ public class CompareDMPanel extends JPanel {
 		// Group the radio buttons.
 		ButtonGroup outputGroup = new ButtonGroup();
 		outputGroup.add(sqlButton);
-		outputGroup.add(englishButton);
-
-		// outputDoc outputTextPane
-
-		outputTextPane = new JTextPane();
-		outputTextPane.setCaretPosition(0);
-		outputTextPane.setMargin(new Insets(5, 5, 5, 5));
-
-		JScrollPane scrollPane = new JScrollPane(outputTextPane);
-		scrollPane.setPreferredSize(new Dimension(300, 300));
+		outputGroup.add(englishButton);	
 
 		startCompareAction = new StartCompareAction();
 		startCompareAction.setEnabled(false);
@@ -836,8 +818,7 @@ public class CompareDMPanel extends JPanel {
 		try {
 			restoreSettingsFromProject();
 		} catch (ArchitectException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			logger.warn("Failed to save user CompareDM preferences!");
 		}
 	}
 
@@ -1021,8 +1002,7 @@ public class CompareDMPanel extends JPanel {
 					List<DiffChunk<SQLObject>> dropRelationships = new ArrayList();
 					List<DiffChunk<SQLObject>> nonRelationship = new ArrayList();
 					for(DiffChunk d : diff)
-					{
-						System.out.println("xxx d:"+d.getData());
+					{						
 						if ( d.getData() instanceof SQLRelationship)
 						{
 							if (d.getType() == DiffType.LEFTONLY)
@@ -1238,10 +1218,8 @@ public class CompareDMPanel extends JPanel {
 						}
 						if (hasKey) {
 							gen.addPrimaryKey(t,t.getPrimaryKeyName());
-						} else {
-							
-							gen.dropPrimaryKey(t,t.getPrimaryKeyName());
-							
+						} else {						
+							gen.dropPrimaryKey(t,t.getPrimaryKeyName());	
 						}
 					}
 					
@@ -1262,9 +1240,7 @@ public class CompareDMPanel extends JPanel {
 						throw new IllegalStateException("DiffChunk is an unexpected type.");
 					}
 					
-				} 
-				else if (chunk.getType() == DiffType.RIGHTONLY)
-				{
+				} else if (chunk.getType() == DiffType.RIGHTONLY){
 					if (chunk.getData() instanceof SQLTable)
 					{
 						SQLTable t = (SQLTable) chunk.getData();
@@ -1288,15 +1264,9 @@ public class CompareDMPanel extends JPanel {
 					} else {
 						throw new IllegalStateException("DiffChunk is an unexpected type.");
 					}
-				} 
-				else if (chunk.getType() == DiffType.KEY_CHANGED){
-					//TODO:addSQLScript statement for KEY_CHANGED
-					System.out.println("Program recognize KEY_CHANGED");
-				}
-				else {
+				} else {
 					
 				}
-				// TODO add Modify columns
 			}
 		}
 	}
@@ -1306,64 +1276,132 @@ public class CompareDMPanel extends JPanel {
 	}
 
 	public void copySettingsToProject() {
+		CompareDMSettings s = project.getCompareDMSettings();
+		s.setSaveFlag(true);
+		s.setOutputFormat(englishButton.isSelected()?CompareDMSettings.OutputFormat.ENGLISH:CompareDMSettings.OutputFormat.SQL);
+		s.setSqlScriptFormat( ((LabelValueBean)sqlTypeDropdown.getSelectedItem()).getLabel() );
+		
+		SourceOrTargetSettings sourceSetting = s.getSourceSettings();
+		copySourceOrTargetSettingsToProject(sourceSetting,source);
+
+		SourceOrTargetSettings targetSetting = s.getTargetSettings();
+		copySourceOrTargetSettingsToProject(targetSetting,target);
+
+	}
+	
+	public void copySourceOrTargetSettingsToProject(SourceOrTargetSettings setting,
+													SourceOrTargetStuff stuff) {
+
+		if ( stuff.databaseDropdown.getItemCount() > 0 &&
+			 stuff.databaseDropdown.getSelectedIndex() >= 0 &&
+			 stuff.databaseDropdown.getSelectedItem() != null )			
+			setting.setConnectName( ((ArchitectDataSource)stuff.databaseDropdown.getSelectedItem()).getName() );
+		else
+			setting.setConnectName( null );
+		
+System.out.println ("Selected database index" + stuff.databaseDropdown.getSelectedIndex());
+		
+		if ( stuff.catalogDropdown.getItemCount() > 0 &&
+				 stuff.catalogDropdown.getSelectedIndex() >= 0 &&
+				 stuff.catalogDropdown.getSelectedItem() != null )			
+			setting.setCatalog( ((SQLObject)stuff.catalogDropdown.getSelectedItem()).getName() );
+		else setting.setCatalog(null);
+System.out.println ("Selected catalog index" + stuff.catalogDropdown.getSelectedIndex());
+		
+		if ( stuff.schemaDropdown.getItemCount() > 0 &&
+				 stuff.schemaDropdown.getSelectedIndex() >= 0 &&
+				 stuff.schemaDropdown.getSelectedItem() != null )
+			setting.setSchema( ((SQLObject)stuff.schemaDropdown.getSelectedItem()).getName() );
+		else
+			setting.setSchema(null);
+System.out.println ("Selected schema index" + stuff.schemaDropdown.getSelectedIndex());
+		
+		setting.setFilePath(stuff.loadFilePath.getText());
+		
+		if ( stuff.loadRadio.isSelected() )
+			setting.setButtonSelection(CompareDMSettings.RadioButtonSelection.FILE);
+		if ( stuff.physicalRadio.isSelected() )
+			setting.setButtonSelection(CompareDMSettings.RadioButtonSelection.DATABASE);
+		if ( stuff.playPenRadio.isSelected() )
+			setting.setButtonSelection(CompareDMSettings.RadioButtonSelection.PROJECT);
 	}
 	
 	private void restoreSettingsFromProject() throws ArchitectException {
-		
 		CompareDMSettings s = project.getCompareDMSettings();
+		
 		restoreSourceOrTargetSettingsFromProject(source,s.getSourceSettings());
 		restoreSourceOrTargetSettingsFromProject(target,s.getTargetSettings());
+		if ( s.getOutputFormat() == CompareDMSettings.OutputFormat.ENGLISH )
+			englishButton.doClick();
+
+		if ( s.getOutputFormat() == CompareDMSettings.OutputFormat.SQL)
+			sqlButton.doClick();
+
+		if ( s.getSqlScriptFormat() != null && s.getSqlScriptFormat().length() > 0 ) {
+			
+			for ( int i=0; i<sqlTypeDropdown.getItemCount(); i++ ) {
+				LabelValueBean lvb = (LabelValueBean)sqlTypeDropdown.getItemAt(i);
+				if ( lvb.getLabel().equals(s.getSqlScriptFormat())) {
+					sqlTypeDropdown.setSelectedItem(lvb);
+					break;
+				}
+			}
+		}
 	}
 	
 	
-	private void restoreSourceOrTargetSettingsFromProject(SourceOrTargetStuff source,
+	private void restoreSourceOrTargetSettingsFromProject(SourceOrTargetStuff stuff,
 			SourceOrTargetSettings set) throws ArchitectException {
-		
-		
 		
 		RadioButtonSelection rbs = set.getButtonSelection();
 		if ( rbs == CompareDMSettings.RadioButtonSelection.PROJECT )
-			source.playPenRadio.setSelected(true);
+			stuff.playPenRadio.doClick();
 		else if ( rbs == CompareDMSettings.RadioButtonSelection.DATABASE )
-			source.physicalRadio.setSelected(true);
+			stuff.physicalRadio.doClick();
 		else if ( rbs == CompareDMSettings.RadioButtonSelection.FILE )
-			source.loadRadio.setSelected(true);
-				
+			stuff.loadRadio.doClick();
+
 		List<ArchitectDataSource> lds = ArchitectFrame.getMainInstance().getUserSettings().getConnections();		
 		for (ArchitectDataSource ds : lds){
 			if (ds.getDisplayName().equals(set.getConnectName())){
-				source.databaseDropdown.setSelectedItem(ds);
-				SQLDatabase db = new SQLDatabase(ds);
-				if ( db.isCatalogContainer() &&
-					set.getCatalog() != null &&
-					set.getCatalog().length() > 0 ) {
-					SQLCatalog cat = db.getCatalogByName(set.getCatalog());
-					if ( cat != null ) {
-						source.catalogDropdown.setSelectedItem(cat);
-						if ( cat.isSchemaContainer() &&
-							set.getSchema() != null &&
-							set.getSchema().length() > 0 ) {
-							SQLSchema schema = cat.getSchemaByName(set.getSchema());
-							if ( schema != null )
-								source.schemaDropdown.setSelectedItem(schema);
+				stuff.databaseDropdown.setSelectedItem(ds);				
+				//FIXME: Call the listener of the database dropdown manually
+				//		 so both catalog and schema dropdown would be updated
+				for ( int i=0; set.getCatalog() != null &&
+							set.getCatalog().length() > 0 &&
+							i<stuff.catalogDropdown.getItemCount(); i++ ) {
+					SQLObject o = (SQLObject)stuff.catalogDropdown.getItemAt(i);
+					if ( o.getName().equals(set.getCatalog())) {
+						stuff.catalogDropdown.setSelectedIndex(i);
+						for ( int j=0; set.getSchema() != null &&
+										set.getSchema().length() > 0 &&
+										j<stuff.schemaDropdown.getItemCount(); j++ ) {
+							SQLObject o2 = (SQLObject)stuff.schemaDropdown.getItemAt(j);
+							if ( o2.getName().equals(set.getSchema())) {
+								stuff.schemaDropdown.setSelectedIndex(j);
+								break;
+							}
+						}
+						break;
+					}
+				}
+				if ( stuff.catalogDropdown.getItemCount() == 0 &&
+					 stuff.schemaDropdown.getItemCount() > 0 &&
+					 set.getSchema() != null &&
+					set.getSchema().length() > 0 ) {
+					for ( int j=0; j<stuff.schemaDropdown.getItemCount(); j++ ) {
+						SQLObject o2 = (SQLObject)stuff.schemaDropdown.getItemAt(j);
+						if ( o2.getName().equals(set.getSchema())) {
+							stuff.schemaDropdown.setSelectedIndex(j);
+							break;
 						}
 					}
 				}
-				else if ( db.isSchemaContainer() &&
-						set.getSchema() != null &&
-						set.getSchema().length() > 0 ) {
-						SQLSchema schema = db.getSchemaByName(set.getSchema());
-					if ( schema != null )
-						source.schemaDropdown.setSelectedItem(schema);
-				}
-				
 				break;
-			}
-		}		
-		
-		
-		
-		
+			}			
+		}
+		if (set.getFilePath() != null)
+			stuff.loadFilePath.setText(set.getFilePath());
 	}
 
 	public SourceOrTargetStuff getTargetStuff() {

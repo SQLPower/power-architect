@@ -4,7 +4,11 @@ public class CompareDMSettings {
 	
 	public enum RadioButtonSelection { PROJECT, DATABASE, FILE; }
 	public enum OutputFormat { SQL, ENGLISH; }
-
+	
+	private OutputFormat outputFormat;
+	private String sqlScriptFormat;
+	private boolean saveFlag = false;	//Checks if the user has been on compareDM
+	
 	public static class SourceOrTargetSettings {
 		private RadioButtonSelection buttonSelection;
 		private String connectName;
@@ -12,8 +16,8 @@ public class CompareDMSettings {
 		private String connectUserName;
 		private String catalog;
 		private String schema;
-		private String fileName;
-		
+		private String filePath;
+
 		public RadioButtonSelection getButtonSelection() {
 			return buttonSelection;
 		}
@@ -32,11 +36,11 @@ public class CompareDMSettings {
 		public void setConnectName(String connectName) {
 			this.connectName = connectName;
 		}
-		public String getFileName() {
-			return fileName;
+		public String getFilePath() {
+			return filePath;
 		}
-		public void setFileName(String fileName) {
-			this.fileName = fileName;
+		public void setFilePath(String filePath) {
+			this.filePath = filePath;
 		}
 		public String getSchema() {
 			return schema;
@@ -53,6 +57,15 @@ public class CompareDMSettings {
 		public void setConnectUserName(String connectUserName) {
 			this.connectUserName = connectUserName;
 		}
+		
+		public String getRadioButtonSelectionAsString() {
+			return buttonSelection.toString();
+		}
+
+		public void setRadioButtonSelectionAsString(String v) {
+			buttonSelection = RadioButtonSelection.valueOf(v);
+		}
+		
 	}
 	
 	private SourceOrTargetSettings sourceSettings = new SourceOrTargetSettings();
@@ -64,6 +77,31 @@ public class CompareDMSettings {
 	public SourceOrTargetSettings getTargetSettings() {
 		return targetSettings;
 	}
+	public String getSqlScriptFormat() {
+		return sqlScriptFormat;
+	}
+	public void setSqlScriptFormat(String scriptFormat) {
+		sqlScriptFormat = scriptFormat;
+	}
 	
+	public OutputFormat getOutputFormat() {
+		return outputFormat;
+	}
+	public void setOutputFormat(OutputFormat outputFormat) {
+		this.outputFormat = outputFormat;
+	}
 	
+	public String getOutputFormatAsString() {
+		return outputFormat.toString();
+	}
+
+	public void setOutputFormatAsString(String v) {
+		outputFormat = OutputFormat.valueOf(v);
+	}
+	public boolean getSaveFlag() {
+		return saveFlag;
+	}
+	public void setSaveFlag(boolean saveFlag) {
+		this.saveFlag = saveFlag;
+	}
 }
