@@ -24,6 +24,7 @@ and other development bootstrapping information.
 
 Now, on to the list:
 
+
 Code Cleanup and Refactoring
 
 * CPD (the copy-paste detector) reveals a number of places
@@ -36,16 +37,58 @@ Code Cleanup and Refactoring
   and propose a fix on the developers list.  Run the pmd
   target in build.xml to generate a current copy of the report.
 
+* The DDL generator package is itching for a refactoring.
+  The current approach requires a concrete class per supported
+  database platform, and most of the code in each class is
+  just String literals.  Something else that's tempting to
+  look at is the DDL generator from the Jakarta project (part
+  of DBUtils, iirc).  If you're interested in tackling this
+  one, post to the list and we'll hash out a plan.
+
+* As much fun as the spring layout in the Architect is (and
+  we certainly wouldn't want to dump it completely.. BOOOIINNG)
+  there are some other, more advanced, layout algorithms out
+  there that we'd like to support as well.  If graph theory
+  and general all-around hard core math is something you love,
+  drop us a note. We even know of a few papers we can point you
+  to as a starting point. :)
+
 
 Bugs, bugs, bugs
 
-* There is no shortage of stuff in our bug repository.  Take
-  a gander and see if there's anything in there (be it a
-  bug or an enhancement request) you're interested in
-  tackling.
+* Even if you're not up for contributing code (or you simply
+  don't have time), high-quality bug reports are one of the
+  best contributions you can make to the project.  What makes
+  a high-quality bug report? In brief, the best bug reports
+  involve a simple, detailed set of instructions that anyone
+  can follow to reproduce a bug reliably. Such a bug report
+  will necessarily include information such as the specific
+  version of the Architect the bug is reported against, your
+  JVM vendor and version number, and your operating system
+  version.
+
+* For those inclined to dig in and contribute code, there is
+  no shortage of stuff in our bug repository.  Take a gander
+  and see if there's anything in there that you're interested
+  in tackling.  For bugs, the best way to start is to create
+  a new test case which exposes the bug, and post it to the
+  developers list.
 
 * Ad-hoc testing is a really important part of quality
   control, too.  If you just don't think there's anything
   interesting in the bug database already, please tell us
   what you're smoking, and where to get some. Then, you can
   always try to find new issues by using the app yourself.
+
+
+New Features
+
+* We're always interested in supporting new database
+  platforms, and in improving support for the ones we already
+  handle.  If the Architect's support for your favourite
+  database isn't up to par (or doesn't exist at all...), we
+  can show you how to jump in and make things better.
+
+* Is there something you'd like the Architect to do that it
+  doesn't do already? Bring it up on the developers mailing
+  list, and we'll be happy to discuss it with you.
