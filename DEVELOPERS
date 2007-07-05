@@ -6,8 +6,10 @@ Outline:
  -commit log list
  -developers discussion list
  -support web forum
+-learn the coding standards
 -how to use the build file
  -how to upgrade Ant to 1.7+ in eclipse
+-read the WISHLIST
 -how to create a patch
 -how to submit a patch
 -how to become a committer
