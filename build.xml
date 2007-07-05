@@ -3,12 +3,6 @@
 
  Power*Architect Ant build file
 
-To do:
-
--check for and warn about spaces in the absolute path to the current
-  directory (it screws up the documentation XSLT thing)
--make the init step fail outright if not running under ant 1.7 or newer
-
 -->
 <project name="architect" default="dist" basedir=".">
 
@@ -77,11 +71,9 @@ To do:
 		</not>
 	</condition>
 
-	<target name="init"
+	<target name="init" depends="checkAntVersion, checkBuildPath"
 		description="Checks build prereqs, creates output dir, and determines product version"
 		>
-		<!-- TODO enforce the version checking -->
-		<echo message="Note, this build script requires Ant 1.7 or newer"/>
 		<tstamp/>
 		<mkdir dir="${build}"/>
 		<!-- get the version number from source code ArchitectUtils -->
@@ -252,8 +244,11 @@ To do:
 	 ** path (e.g., an Eclipse Workspace under "Documents and Settings"
 	 ** will fail out because it changes spaces in filenames to %20.
 	 -->
-	<target name="help" depends="xslt-stripwidths" description="Create JavaHelp">
+	<target name="help" depends="checkBuildPath, xslt-stripwidths" description="Create JavaHelp">
 		<mkdir dir="${build}/help"/>
+		<!-- This XSLT element is what's causing the problem with the
+			directories with spaces not working. It outputs the results
+			to a new directory with spaces replaced with '%20'-->
 		<xslt
 			style="doc/tools/xslt/javahelp/javahelp.xsl"
 			in="${java.io.tmpdir}/PowerArchitectUserGuide-nowidth.xml"
@@ -313,7 +308,7 @@ To do:
 	</target>
 
 	<!-- Build the HTML -->
-	<target name="html" depends="xslt-stripwidths" description="Create user guide in HTML">
+	<target name="html" depends="checkBuildPath, xslt-stripwidths" description="Create user guide in HTML">
 		<mkdir dir="${build}/ca/sqlpower/architect/doc/" />
 
 		<xslt
@@ -386,7 +381,7 @@ To do:
     <!-- Create the Architect jar file.
      *** Copy the Architect Jar file, and dependent libs, to the deploy dir.
      -->
-    <target name="stage" depends="compile,userguide">
+    <target name="stage" depends="checkAntVersion,compile,userguide">
     	<mkdir dir="${dist.dir}" />
         <mkdir dir="${staging.dir}"/>
         <mkdir dir="${staging.dir}/lib"/>
@@ -672,7 +667,7 @@ To do:
 			</izpack>
 		</target>
 
-	<target name="osx_adapter_jar"
+	<target name="osx_adapter_jar" depends="checkBuildPath"
 			description="Creates the osx_packaging_utils/osx_adapter.jar file (only works on OSX)">
 		<javac srcdir="osx_packaging_utils"
    			   destdir="${build}"
@@ -900,5 +895,55 @@ To do:
 			<replacefilter token="@@app_ver_tiny" value="${app_ver_tiny}"/>
 		</replace>
 		<echo>Did you forget to turn off all the debugging in log4j.properties?!</echo>
+	</target>
+	
+	<!-- Some of the Ant targets in this build.xml require Ant 1.7. 
+		 To upgrade if using Eclipse 3.x,
+	     1. Download the latest Ant from http://ant.apache.org/bindownload.cgi
+	     2. Extract it somewhere
+	     3. Under window, preferences select Ant runtime in the tree
+	     4. Set the Ant home to be the folder that Ant was extracted to -->
+	<target name="checkAntVersion" description="Ensure that we're running ant 1.7">
+		<echo message="Checking Ant version. Using ${ant.version}"/>
+		<echo message="Note: This build script requires Ant 1.7 or newer."/>
+		<fail message="This build script requires Ant 1.7 or newer">
+			<condition>
+				<not>
+					<antversion atleast="1.7.0"/>
+				</not>
+			</condition>
+		</fail>
+	</target>
+	
+	<!-- This is needed to prevent a problem with DocBook help file generation 
+		 in which the XSLT replaces the spaces in the path name with '%20', and
+		 doesn't convert it back when saving the files. It looks like this is
+		 related to the DocBook chunking functionality.
+		 We don't know of any good way to fix this yet, so we have this
+		 check for the time being.-->
+	<target name="checkBuildPath" 
+		description="Ensure the build path contains no spaces.">
+		<echo message="Note: Your build path cannot contain any spaces because of a problem with help file generation."/>
+		<echo message="Checking build path..."/>
+		<!-- Check if the build path is absolute. If so, set buildPath -->
+		<condition property="buildPath" value="${build}">
+			<or>
+				<matches string="${build}" pattern="\\{1}.*"/>
+				<matches string="${build}" pattern=".*:\\.*"/>
+			</or>
+		</condition>
+		<!-- Check if buildPath is set. If not, then it's a relative buildpath-->
+		<condition property="buildPath" value="${basedir}\${build}">
+			<not>
+				<isset property="buildPath"/>
+			</not>
+		</condition>
+		<echo message="Your build path is ${buildPath}"/>
+		<!-- Now check the build path for spaces -->
+	    <fail message="Your build path MUST NOT contain any spaces. Set property 'build' to an absolute pathname that does not contain any spaces">
+	    	<condition>
+				<contains string="${buildPath}" substring=" "/>
+	    	</condition>
+		</fail>
 	</target>
 </project>
