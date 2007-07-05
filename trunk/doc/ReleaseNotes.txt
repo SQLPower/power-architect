@@ -1,6 +1,6 @@
 Power*Architect Release Notes
 
-IMPORTANT NOTE to users upgrading from 0.0.x versions of the Architect:
+IMPORTANT NOTE to users upgrading from pre-0.9.x versions of the Architect:
  We have made incompatible modifications to the PL.INI file which specifies
  your database connections.  After upgrading to this version, you will need
  to set up database connection types for all your databases in the user
@@ -10,7 +10,7 @@ IMPORTANT NOTE to users upgrading from 0.0.x versions of the Architect:
  of the Architect.  We apologize for the inconvenience, but the benefits will
  outweigh the costs!
 
-1.0.0 rc1
+0.9.4
 
 *Added PDF Export feature under File menu
 *Added MySQL compatibility
