@@ -929,14 +929,35 @@
 		<condition property="buildPath" value="${build}">
 			<or>
 				<!-- Check for Windows style absolute pathnames-->
-				<matches string="${build}" pattern="^\\{1}.*"/>
-				<matches string="${build}" pattern=".*:\\.*"/>
+				<and>
+					<or>
+						<!-- pathname with backslash only -->
+						<matches string="${build}" pattern="^\\{1}.*"/>
+						<!-- pathname with drive letter -->
+						<matches string="${build}" pattern="^[a-zA-Z]{1}:\\.*"/>
+					</or>
+					<os family="windows"/>
+				</and>
 				<!-- Check for Unix style absolute pathnames -->
-				<matches string="${build}" pattern="^//{1}.*"/>
+				<and>
+					<matches string="${build}" pattern="^//{1}.*"/>
+					<not>
+						<os family="windows"/>
+					</not>
+				</and>
 			</or>
 		</condition>
 		<!-- Check if buildPath is set. If not, then it's a relative buildpath-->
 		<condition property="buildPath" value="${basedir}\${build}">
+			<and>
+				<not>
+					<isset property="buildPath"/>
+				</not>
+				<os family="windows"/>
+			</and>
+		</condition>
+		<!-- Check if buildPath is set. If not, then it's not a windows buildpath (i.e. doesn't use '\')-->
+		<condition property="buildPath" value="${basedir}/${build}">
 			<not>
 				<isset property="buildPath"/>
 			</not>
