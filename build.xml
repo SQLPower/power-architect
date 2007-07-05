@@ -429,7 +429,7 @@
     	<!-- The src for libraries that we are required to redistribute src -->
     	<copy file="libsrc/itext-src-1.4.8.zip" todir="${staging.dir}/libsrc"/>
 
-    	<copy todir="${staging.dir}" file="Architect License.txt"/>
+    	<copy todir="${staging.dir}" file="LICENSE"/>
 
     	<!-- No point in signing until we have a certificate that's signed by a CA
     	<signjar alias="sqlpower" keystore="keystore" storepass="low_security" keypass="low_security">
@@ -523,7 +523,7 @@
 				<resources>
 					<res id="Installer.image" src="../src/icons/architect.png"/>
 					<res src="ArchitectShortcut.xml" id="shortcutSpec.xml"/>
-					<res id="LicencePanel.licence" src="../Architect License.txt" />
+					<res id="LicencePanel.licence" src="../LICENSE" />
 				</resources>
 				<panels>
 					<panel classname="HelloPanel"/>
@@ -550,7 +550,7 @@
 							<include name="*.ini"/>
 						</fileset>
 						<fileset dir=".." targetdir="$INSTALL_PATH">
-							<include name="../staging/Architect License.txt"/>
+							<include name="../staging/LICENSE"/>
 						</fileset>
 						<fileset dir="." targetdir="$INSTALL_PATH">
 							<include name="*.reg"/>
@@ -607,7 +607,7 @@
 					<resources>
 						<res id="Installer.image" src="../src/icons/architect.png"/>
 						<res src="ArchitectShortcut.xml" id="shortcutSpec.xml"/>
-						<res id="LicencePanel.licence" src="../Architect License.txt" />
+						<res id="LicencePanel.licence" src="../LICENSE" />
 					</resources>
 					<panels>
 						<panel classname="HelloPanel"/>
@@ -637,7 +637,7 @@
 								<include name="*.txt"/>
 							</fileset>
 							<fileset dir="../staging/" targetdir="$INSTALL_PATH">
-								<include name="Architect License.txt"/>
+								<include name="LICENSE"/>
 							</fileset>
 							<fileset dir="." targetdir="$INSTALL_PATH">
 								<include name="*.reg"/>
@@ -780,7 +780,7 @@
 			     classpath="build"/>
 		<addLicenseToDMG
 				dmgFile="${dist.dir}/Architect-OSX-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.dmg"
-                licenseFile="${staging.dir}/Architect License.txt"
+                licenseFile="${staging.dir}/LICENSE"
 		        resourceTemplateFile="osx_packaging_utils/sla_template.r"/>
     </target>
 
@@ -829,7 +829,7 @@
 				     classpath="build"/>
 			<addLicenseToDMG
 					dmgFile="${dist.dir}/Architect-OSX-jdbc-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.dmg"
-	                licenseFile="${staging.dir}/Architect License.txt"
+	                licenseFile="${staging.dir}/LICENSE"
 			        resourceTemplateFile="osx_packaging_utils/sla_template.r"/>
 	    </target>
 
@@ -857,7 +857,7 @@
     <target name="generic_install" depends="stage">
 		<tar destfile="${dist.dir}/Architect-generic-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.tar.gz"
 			compression="gzip">
-			<tarfileset dir="${staging.dir}" includes="Architect License.txt"/>
+			<tarfileset dir="${staging.dir}" includes="LICENSE"/>
 			<tarfileset dir="${staging.dir}" includes="lib/*.jar"/>
 			<tarfileset dir="${staging.dir}" includes="architect.jar"/>
 			<tarfileset dir="${staging.dir}/doc" includes="*.pdf"/>
@@ -869,7 +869,7 @@
     <target name="generic_jdbc_install" depends="stage">
 		<tar destfile="${dist.dir}/Architect-generic-jdbc-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.tar.gz"
 			compression="gzip">
-			<tarfileset dir="${staging.dir}" includes="Architect License.txt"/>
+			<tarfileset dir="${staging.dir}" includes="LICENSE"/>
 			<tarfileset dir="${staging.dir}" includes="lib/*.jar"/>
 			<tarfileset dir="${staging.dir}" includes="architect.jar"/>
 			<tarfileset dir="${staging.dir}/doc" includes="*.pdf"/>
