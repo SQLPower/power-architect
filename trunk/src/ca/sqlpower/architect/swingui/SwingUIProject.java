@@ -41,6 +41,7 @@ import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.PLExport;
+import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
 import ca.sqlpower.architect.undo.UndoManager;
 
 /** Used to load and store Projects.
@@ -266,9 +267,19 @@ public class SwingUIProject {
 		d.addFactoryCreate("architect-project/ddl-generator", ddlgFactory);
 		d.addSetProperties("architect-project/ddl-generator");
 
-		d.addObjectCreate("architect-project/compare-dm-settings", CompareDMSettings.class);
+		CompareDMSettingFactory settingFactory = new CompareDMSettingFactory();
+		d.addFactoryCreate("architect-project/compare-dm-settings", settingFactory);
 		d.addSetProperties("architect-project/compare-dm-settings");
-		d.addSetNext("architect-project/compare-dm-settings", "setCompareDMSettings");
+//		d.addSetNext("architect-project/compare-dm-settings", "setCompareDMSettings");
+		
+		CompareDMStuffSettingFactory sourceStuffFactory = new CompareDMStuffSettingFactory(true);
+		d.addFactoryCreate("architect-project/compare-dm-settings/source-stuff", sourceStuffFactory);
+		d.addSetProperties("architect-project/compare-dm-settings/source-stuff");
+		
+		CompareDMStuffSettingFactory targetStuffFactory = new CompareDMStuffSettingFactory(false);
+		d.addFactoryCreate("architect-project/compare-dm-settings/target-stuff", targetStuffFactory);
+		d.addSetProperties("architect-project/compare-dm-settings/target-stuff");
+		
 		
 		FileFactory fileFactory = new FileFactory();
 		d.addFactoryCreate("*/file", fileFactory);
@@ -580,6 +591,29 @@ public class SwingUIProject {
 		}
 	}
 
+	/**
+	 * Creates a compareDM instance and adds it to the objectIdMap.
+	 */
+	protected class CompareDMSettingFactory extends AbstractObjectCreationFactory {
+		public Object createObject(Attributes attributes) {
+
+			return getCompareDMSettings();
+		}
+	}
+
+	protected class CompareDMStuffSettingFactory extends AbstractObjectCreationFactory {
+		private boolean source;
+		public CompareDMStuffSettingFactory(boolean source) {
+			this.source = source;
+		}
+		public Object createObject(Attributes attributes) {
+			if ( source )
+				return getCompareDMSettings().getSourceSettings();
+			else
+				return getCompareDMSettings().getTargetSettings(); 
+		}
+	}	
+	
 	// ------------- WRITING THE PROJECT FILE ---------------
 	
 	/**
@@ -773,11 +807,43 @@ public class SwingUIProject {
 		println(out, "</ddl-generator>");
 	}
 
+
 	protected void saveCompareDMSettings(PrintWriter out) throws IOException {
+
+		//If the user never uses compareDM function, the saving process 
+		//would fail since some of the return values of saving compareDM 
+		//settings would be null.  Therefore the saveFlag is used as an 
+		//indicator to tell if the user went into compareDM or not.
+		if ( !compareDMSettings.getSaveFlag() )
+			return;
 		print(out, "<compare-dm-settings");
-		println(out, "/>");
+		print(out, " sqlScriptFormat=\""+ArchitectUtils.escapeXML(compareDMSettings.getSqlScriptFormat())+"\"");
+		print(out, " outputFormatAsString=\""+ArchitectUtils.escapeXML(compareDMSettings.getOutputFormatAsString())+"\"");
+		println(out, ">");
+		indent++;
+		print(out, "<source-stuff");
+		saveSourceOrTargetAttributes(out, compareDMSettings.getSourceSettings());
+		print(out, "/>");
+		print(out, "<target-stuff");
+		saveSourceOrTargetAttributes(out, compareDMSettings.getTargetSettings());
+		print(out, "/>");
+		indent--;
+		println(out, "</compare-dm-settings>");
 	}
 	
+	
+	private void saveSourceOrTargetAttributes(PrintWriter out, SourceOrTargetSettings sourceSettings) {
+		print(out, " radioButtonSelectionAsString=\""+ArchitectUtils.escapeXML(sourceSettings.getRadioButtonSelectionAsString())+"\"");
+		if (sourceSettings.getConnectName() != null)
+		print(out, " connectName=\""+ArchitectUtils.escapeXML(sourceSettings.getConnectName())+"\"");
+		
+		if (sourceSettings.getCatalog() != null)
+		print(out, " catalog=\""+ArchitectUtils.escapeXML(sourceSettings.getCatalog())+"\"");
+		if (sourceSettings.getSchema() != null)
+		print(out, " schema=\""+ArchitectUtils.escapeXML(sourceSettings.getSchema())+"\"");
+		print(out, " filePath=\""+ArchitectUtils.escapeXML(sourceSettings.getFilePath())+"\"");
+		
+	}
 	/**
 	 * Creates a &lt;source-databases&gt; element which contains zero
 	 * or more &lt;database&gt; elements.

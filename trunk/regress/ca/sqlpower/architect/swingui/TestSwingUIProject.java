@@ -90,7 +90,11 @@ public class TestSwingUIProject extends ArchitectTestCase {
         "   <reference ref-id='REL12' />" +
         "  </relationships>" +
         " </target-database>" +
-        " <ddl-generator type='ca.sqlpower.architect.ddl.GenericDDLGenerator' allow-connection='true'> </ddl-generator>" +
+        " <ddl-generator type='ca.sqlpower.architect.ddl.GenericDDLGenerator' allow-connection='true'> </ddl-generator>" + 
+        " <compare-dm-settings sqlScriptFormat='SQLServer 2000' outputFormatAsString='ENGLISH'>" +        
+        " <source-stuff radioButtonSelectionAsString='PROJECT' connectName='Arthur_test' " +
+        " schema='ARCHITECT_REGRESS' filepath='' />"+
+        "<target-stuff radioButtonSelectionAsString='FILE' filePath='Testpath' /> </compare-dm-settings>"+
         " <play-pen>" +
         "  <table-pane table-ref='TAB0' x='85' y='101' />" +
         "  <table-pane table-ref='TAB6' x='196' y='38' />" +
@@ -562,18 +566,22 @@ public class TestSwingUIProject extends ArchitectTestCase {
 	
 	public void testSaveCoversCompareDMSettings() throws Exception {
 		testLoad();
-		CompareDMSettings cds = project.getCompareDMSettings();
-		
+		CompareDMSettings cds = project.getCompareDMSettings();		
 		File tmp = File.createTempFile("test", ".architect");
+		assertFalse (cds.getSaveFlag());
 		if (deleteOnExit) {
 			tmp.deleteOnExit();
 		}
 		PrintWriter out = new PrintWriter(tmp);
 		assertNotNull(out);
 		project.save(out);
-		
-		SwingUIProject project2 = new SwingUIProject("new test project");
-		project2.load(new BufferedInputStream(new FileInputStream(tmp)));
-		
+		assertFalse (cds.getSaveFlag());		
+		assertEquals("SQLServer 2000", cds.getSqlScriptFormat());
+		assertEquals("ENGLISH", cds.getOutputFormatAsString());
+		assertEquals("PROJECT", cds.getSourceSettings().getButtonSelection().toString());
+		assertEquals("Arthur_test", cds.getSourceSettings().getConnectName());
+		assertEquals("ARCHITECT_REGRESS", cds.getSourceSettings().getSchema());
+		assertEquals("FILE", cds.getTargetSettings().getButtonSelection().toString());
+		assertEquals("Testpath", cds.getTargetSettings().getFilePath());				
 	}
 }
