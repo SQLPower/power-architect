@@ -964,7 +964,7 @@
 		</condition>
 		<echo message="Your build path is ${buildPath}"/>
 		<!-- Now check the build path for spaces -->
-	    <fail message="Your build path MUST NOT contain any spaces. Set property 'build' to an absolute pathname that does not contain any spaces">
+	    <fail message="Your build path MUST NOT contain any spaces. See the file 'build.properties.example' to see how to set property 'build' to an absolute pathname that does not contain any spaces">
 	    	<condition>
 				<contains string="${buildPath}" substring=" "/>
 	    	</condition>
