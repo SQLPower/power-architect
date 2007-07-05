@@ -1079,16 +1079,18 @@ public class CompareDMPanel extends JPanel {
 //				}
 
 			} catch ( ArchitectException exp) {
+				ASUtils.showExceptionDialog("SchemaListerProgressWatcher failt2", exp);
 				logger.error("SchemaListerProgressWatcher failt2", exp);
 			} catch (InstantiationException ie) {
+				ASUtils.showExceptionDialog("Internal error: non GenericDDLGenerator class in lvb", ie);
 				logger.error("Someone put a non GenericDDLGenerator class into the lvb contained in the source pulldown menu",ie);
 			} catch (IllegalAccessException iae) {
+				ASUtils.showExceptionDialog("Cannot access the classes's constructor ", iae);
 				logger.error("Cannot access the classes's constructor ",iae);
 			} catch (SQLException sqle) {
+				ASUtils.showExceptionDialog("Database error", sqle);
 				logger.error("Database error ",sqle);
 			}
-		
-			
 			
 			cf.pack();
 			cf.setVisible(true);
