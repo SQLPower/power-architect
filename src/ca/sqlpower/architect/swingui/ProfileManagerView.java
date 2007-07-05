@@ -52,7 +52,6 @@ import ca.sqlpower.architect.swingui.event.SelectionListener;
  * and a "delete this profile" button
  * <li>a progressbar and a Stop button.
  * <p>
- * TODO make sorting work! (maintain separate list??)
  */
 public class ProfileManagerView extends JPanel implements ProfileChangeListener {
     
