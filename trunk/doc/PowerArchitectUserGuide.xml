@@ -2447,9 +2447,9 @@
 			
 			</section>
 			
-			<section id="creating_a_kettle_job.how">
+			<section id="Setting_up_kettle">
 			
-				<title>How to Use the Create Kettle Job Feature</title>
+				<title>Setup for Kettle</title>
 			
 				<para>
 					Before you start creating jobs, some settings need to be
@@ -2458,7 +2458,23 @@
 					connection, set the Kettle Connection Type on the Kettle
 					sub-tab.
 				</para>
+				
+			</section>
 			
+			<section id="creating_a_kettle_job.how">
+				
+				<title>Creating a Kettle Job</title>
+	
+				<para>
+					Before creating a Kettle job we need to create the new
+					database schema in the play pen. This includes creating
+					new source connections, dragging tables into the play 
+					pen and modifying the play pen to have the desired
+					layout. Once the play pen has the correct layout use 
+					the forward engineering tool to create the tables and
+					relationships in the target database.
+				</para>
+				
 				<para>
 					To start creating a Kettle job go to the ETL menu and
 					select the "Create Kettle Job" menu item. You should
@@ -2468,44 +2484,78 @@
 				<mediaobject>
 					<imageobject>
 						<imagedata
-							fileref="doc/images/etl.png" format="PNG" width="4in" />
+							fileref="doc/images/create_kettle_job.png" format="PNG" width="4in" />
 					</imageobject>
 				</mediaobject>
 			
 				<para>
-					Each Kettle job requires a name, a target database and a
-					file path to save to. To set the target database, click 
-					the "Properties" button. The default join type is used to
-					define what join type will be used in all merge-joins.
+					Each Kettle job requires a name, a target database
+					and either a file path or a repository to save to.
+					To set the target database, click the "Properties"
+					button. The default join type is used to define what
+					join type will be used in all merge-joins.
 					Merge-joins are used to create tables with multiple
 					sources.
 				</para>
+				
+				<para>
+					Note: Merge-joins that are created in
+					transformations from Power*Architect will usually
+					have to be updated manually. A manual update is
+					required as Power*Architect cannot tell which fields
+					to compare during the join.
+				</para>
 
 				<para>
-					When setting the target database, a hostname, port 
-					value and databse name need to be specified. The
-					URL template may contain properties for the database,
-					host and/or port. If the template contains properties 
-					for Kettle, the values given in the URL will
-					be used for the target connection in Kettle.
-					If the template does not contain Kettle properties
-					then they can be set on the Kettle tab.
+					When setting the target database, a hostname, port
+					number and database name need to be specified. The
+					URL template may contain properties for the
+					database, host and/or port. If the template contains
+					properties for Kettle, the values given in the URL
+					will be used for the target connection in Kettle. If
+					the template does not contain Kettle properties then
+					they can be set on the Kettle tab.
 				</para>
-			
+
 				<mediaobject>
 					<imageobject>
 						<imagedata
-							fileref="doc/images/etl_database_connection.png" format="PNG" width="4in" />
+							fileref="doc/images/create_kettle_db.png" format="PNG" width="4in" />
 					</imageobject>
 				</mediaobject>
-			
+				
 				<para>
-					To start creating the Kettle job and transformation files,
-					click the "OK" button. Once the job has been created, a 
-					window will display	additional steps that need to be 
-					completed before running the job.
+					To save the Kettle job and transformations to a
+					repository you must first choose the repository
+					option. Then, any of the source connections can be
+					used as a repository provided they have a repository
+					set up. If the desired repository is not one of the
+					source databases the properties can be set manually.
+					When setting up a database connection for use as a
+					repository the login name and password can be set on
+					the Kettle tab.
+				</para>
+
+				<para>
+					To start creating the Kettle job and transformation
+					files, click the "OK" button. If a repository is
+					being used a window will appear to choose the
+					directory location in the repository to save to.
 				</para>
 				
+				<mediaobject>
+					<imageobject>
+						<imagedata
+							fileref="doc/images/create_kettle_repository.png" format="PNG" width="4in" />
+					</imageobject>
+				</mediaobject>
+
+				<para>
+					Once the job has been created, a window will display
+					additional steps that need to be completed before
+					running the job.
+				</para>
+
 				<para>
 					Note: The transformation files will be stored in the 
 					same location as the Kettle job. You must use Kettle 
