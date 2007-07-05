@@ -106,14 +106,14 @@
 		description="Generates HTML coverage report based on previous clover-enabled test run"
 		>
 	    <clover-report>
-	        <current outfile="/Users/fuerth/Sites/architect_clover_html">
+	        <current outfile="architect_clover_html">
 	            <format type="html" filter="iflog" />
 	        </current>
 	    </clover-report>
 	</target>
 
 	<target name="pmd"
-		description="Runs the PMD code checking tool, saving results to a file"
+		description="Runs the PMD code checking tool, saving results to a file."
 		>
 		<taskdef name="pmd" classname="net.sourceforge.pmd.ant.PMDTask"
 			classpath="${pmd.jar}"/>
@@ -125,7 +125,7 @@
 				<include name="**/*.java"/>
 			</fileset>
 		</pmd>
-		<echo message="PMD completed, output is in  ${pmd-results}."/>
+		<echo message="PMD completed, output is in ${pmd-results}."/>
 	</target>
 
 	<target name="pmd-cpd"
@@ -143,14 +143,15 @@
 	</target>
 
 	<target name="findbugs"
-		description="Runs the Findbugs tool, outputs results to a text file"
+		description="Runs the FindBugs tool, outputs results to a text file"
 		depends="compile">
 		<taskdef name="findbugs" classname="edu.umd.cs.findbugs.anttask.FindBugsTask"
 			classpath="${findbugs-ant.jar}"/>
 		<findbugs home="${findbugs.home}"
 			output="text"
 			outputFile="findbugs-ant-results.txt"
-			reportLevel="low">
+			reportLevel="low"
+			jvmargs="-Xmx256m">  <!-- FindBugs can use up a lot of memory, so adjust the JVM memory here-->
 			<class location="${build}" />
 			<sourcePath path="${src}" />
 			<!-- Classes needed by our code but that we don't want tested -->
@@ -170,6 +171,7 @@
 	   </junit>
 	</target>
 
+	<!-- Compiles the application source files -->
 	<target name="compile" depends="init,copyfiles">
 		<javac srcdir="${src}" destdir="${build}"
 			classpathref="compile.classpath"
@@ -178,6 +180,7 @@
          </javac>
 	</target>
 
+	<!-- Compiles the regression test suite -->
 	<target name="compile-tests" depends="compile">
 		<javac srcdir="regress" destdir="${build}"
 			classpathref="test.classpath"
@@ -357,7 +360,7 @@
 			</fileset>
 		</path>
 		<taskdef name="fop" classname="org.apache.fop.tools.anttasks.Fop" classpathref="fop-classpath"/>
-        <fop format="application/pdf" messagelevel="info" relativebase="true" >
+        <fop format="application/pdf" messagelevel="verbose" relativebase="true" >
 			<fileset dir=".">
 				<include name="${build}/doc/*.fo"/>
 			</fileset>
@@ -370,7 +373,7 @@
         <mkdir dir="webstart/lib"/>
 		<jar destfile="webstart/lib/architect.jar" update="no"
 			basedir="${build}" includes="ca/** icons/** log4j.properties"
-			manifest="manifest">
+			manifest="${build}/manifest">
 		</jar>
         <copy todir="webstart/">
             <fileset dir="lib" includes="*.jar"/>
@@ -438,8 +441,10 @@
     	-->
 	</target>
 
-	<!-- Compiles the source and starts the Architect application with UI -->
-	<target name="run" depends="compile">
+
+	<target name="run" 
+		description="Runs the Architect application with the Swing UI"
+		depends="compile">
 		<java fork="true" classname="ca.sqlpower.architect.swingui.ArchitectFrame" classpathref="test.classpath">
 			<jvmarg value="-Dlog4j.configuration=log4j.properties"/>
 		</java>
@@ -466,7 +471,7 @@
 	</path>
 
 	<path id="test.classpath">
-		<pathelement location="build"/>
+		<pathelement location="${build}"/>
 		<fileset dir="lib">
 			<include name="*.jar"/>
 		</fileset>
@@ -475,9 +480,12 @@
 		</fileset>
 	</path>
 
-	<target name="javadoc" depends="compile">
-		<mkdir dir="${build}/docs/api"/>
-		<javadoc sourcepath="${src}" destdir="${build}/docs/api"
+	<target name="javadoc" 
+		description="Generate the Javadoc documentation for the Architect API in the build directory"
+		depends="compile">
+		<mkdir dir="${build}/doc/api"/>
+		<echo message="NOTE: If the javadoc command is not accessible from your PATH variable, then this target WILL fail."/>
+		<javadoc sourcepath="${src}" destdir="${build}/doc/api"
 			packagenames="ca.sqlpower.*"
 			maxmemory="100m"
 			windowtitle="ca.sqlpower.architect.* Power*Architect"
@@ -491,7 +499,7 @@
 			</packageset>
 			<bottom><![CDATA[<i>Copyright &#169; 2003-2007 SQL Power Group Inc. <a href="http://www.sqlpower.ca/">www.sqlpower.ca</a>]]></bottom>
 		</javadoc>
-		<copy file="html/index.html" todir="${build}/docs"/>
+		<copy file="html/index.html" todir="${build}/doc"/>
 
 	</target>
 
@@ -923,7 +931,7 @@
 		 check for the time being.-->
 	<target name="checkBuildPath" 
 		description="Ensure the build path contains no spaces.">
-		<echo message="Note: Your build path cannot contain any spaces because of a problem with help file generation."/>
+		<echo message="Note: Your build path cannot contain any spaces at this point because of a problem with help file generation."/>
 		<echo message="Checking build path..."/>
 		<!-- Check if the build path is absolute. If so, set buildPath -->
 		<condition property="buildPath" value="${build}">
