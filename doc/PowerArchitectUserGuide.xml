@@ -1904,7 +1904,7 @@
 						<inlinemediaobject>
 							<imageobject>
 								<imagedata
-									fileref="src/icons/ForwardEngineer24.gif" format="GIF" />
+									fileref="src/icons/fwdSQL16.png" format="PNG" />
 							</imageobject>
 						</inlinemediaobject>
 						First set the target connection to the database
@@ -1975,7 +1975,7 @@
 							<inlinemediaobject>
 								<imageobject>
 									<imagedata
-										fileref="src/icons/CompareDatabases24.gif" format="GIF" />
+										fileref="src/icons/compare_DM16.png" format="PNG" />
 								</imageobject>
 							</inlinemediaobject>
 							To start the Compare Data Model Function,
@@ -2015,15 +2015,18 @@
 								side-by-side document will be displayed
 								stating the similarlities and
 								differences of the source and target in
-								plain English. The left text gives
-								English descriptions to make the source
-								database look like the target database.
-								In addition to the text, they are also
-								colour coded. You can copy the text to
-								the clipboard by pressing the copy
-								button, or save the results to a text
-								file. The table below explains what each
-								colour means.
+								plain English. If the "Suppress
+								Similarities" checkbox is selected then
+								similarities will not be shown and only
+								the differences will be displayed. The
+								left text gives English descriptions to
+								make the source database look like the
+								target database. In addition to the
+								text, they are also colour coded. You
+								can copy the text to the clipboard by
+								pressing the copy button, or save the
+								results to a text file. The table below
+								explains what each colour means.
 							</para>
 
 							<table
@@ -4094,7 +4097,6 @@
 	</chapter>
 
 </book>
-
 
 
 
