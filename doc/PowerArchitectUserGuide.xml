@@ -489,7 +489,7 @@
 			<para>
 				<inlinemediaobject>
 					<imageobject>
-						<imagedata fileref="doc/images/user_prefs.png"
+						<imagedata fileref="doc/images/UserPref-General.png"
 							format="PNG" width="4in" />
 					</imageobject>
 				</inlinemediaobject>
@@ -539,7 +539,7 @@
 				<inlinemediaobject>
 					<imageobject>
 						<imagedata
-							fileref="doc/images/jdbc_user_prefs.png" format="PNG"
+							fileref="doc/images/UserPref-JDBC.png" format="PNG"
 							width="4in" />
 					</imageobject>
 				</inlinemediaobject>
@@ -653,6 +653,16 @@
 						for ETL.
 					</para>
 				</listitem>
+
+				<para>
+					<inlinemediaobject>
+						<imageobject>
+							<imagedata
+								fileref="doc/images/UserPref-Kettle.png" format="PNG"
+								width="4in" />
+						</imageobject>
+					</inlinemediaobject>
+				</para>
 
 				<listitem>
 					<para>
