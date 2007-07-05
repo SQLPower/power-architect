@@ -1446,9 +1446,9 @@
 
 				<para>
 					To add a new connection, go to "Add Connections"
-					under "Connections" and select "New Connection.." at
-					the top. The other method is to right click a white
-					space on the Database Tree and select "New
+					under "Connections" menu and select "New
+					Connection..". The other method is to right click a
+					white space on the Database Tree and select "New
 					Connection" under "Add Connections". Both ways open
 					up this dialog:
 				</para>
@@ -1456,44 +1456,40 @@
 				<mediaobject>
 					<imageobject>
 						<imagedata
-							fileref="doc/images/db_connection_properties.png" format="PNG"
+							fileref="doc/images/database_conn_window.png" format="PNG"
 							width="4in" />
 					</imageobject>
 				</mediaobject>
 				<para>
-					You must know which JDBC driver to use before you
-					can connect to a database. When you have selected
-					the JDBC Driver, the Connect Options will change to
-					allow you to enter the particular parameters that
-					the given database driver needs. If you are using
-					one of the fully-supported drivers, then as you
-					enter these parameters, they will be added into the
-					"JDBC URL" field in the order that the Java driver
-					expects to see them (this string is sometimes called
-					a "db URL" in Java terminology). In the example
-					below, we&apos;ve selected the PostgreSQL driver and
-					entered the hostname and database name (the "port
-					number" was already filled in; do not change this
-					unless the database server software has been
-					reconfigured to use a different value).
+					You must know which type of database you wish to use
+					before you can connect to a database. When you have
+					selected the database type, the Connect Options will
+					change to allow you to enter the particular
+					parameters that the given database driver needs. If
+					you are using one of the fully-supported drivers,
+					then as you enter these parameters, they will be
+					added into the "JDBC URL" field in the order that
+					the Java driver expects to see them (this string is
+					sometimes called a "db URL" in Java terminology). In
+					the example below, we&apos;ve selected the
+					PostgreSQL driver and entered the hostname and
+					database name (the "port number" was already filled
+					in; do not change this unless the database server
+					software has been reconfigured to use a different
+					value).
 				</para>
+				
+				<mediaobject>
+					<imageobject>
+						<imagedata
+							fileref="doc/images/database_conn_window_setup.png" format="PNG" width="4in" />
+					</imageobject>
+				</mediaobject>
 
 				<para>
 					When you are finished, press the OK button. Any new
 					connection will automatically be added in the
 					user-preference.
-				</para>
-
-				<mediaobject>
-					<imageobject>
-						<imagedata
-							fileref="doc/images/new_connection.png" format="PNG" width="4in" />
-					</imageobject>
-				</mediaobject>
-				<para>
-					Note: if you have too many connections (more than
-					the height of the Architect window), the Architect
-					does not have the ability to show all of them.
 				</para>
 
 			</section>
@@ -1504,8 +1500,9 @@
 
 				<para>
 					Right click on empty space in the Database Tree and
-					go to "Add Connection", there it shows all databases
-					that were previously stored on the Architect
+					go to "Add Connection" to see a list of all database
+					connections that were previously stored on the
+					Architect.
 				</para>
 
 			</section>
@@ -1516,8 +1513,8 @@
 
 				<para>
 					Select the database connection you wish to change
-					and go to "Connections" and select the option
-					"Connection Properties..", this leads you to the
+					and go to "Connections" menu and select the option
+					"Connection Properties.." which leads you to the
 					Connection Setting dialog. An alternate solution is
 					to right click on the database and select
 					"Connection Properties..." option.
@@ -1534,29 +1531,9 @@
 					and go to "Connections" and select the option
 					"Remove Connection". Right clicking on the
 					database connection and selecting "Remove
-					Connection" will perform the same action.
-				</para>
-
-			</section>
-
-			<section id="project_database">
-
-				<title>Setting the Current Project Database</title>
-
-				<para>
-					<inlinemediaobject>
-						<imageobject>
-							<imagedata
-								fileref="src/icons/Database_target16.png" format="PNG" />
-						</imageobject>
-					</inlinemediaobject>
-					The project database can be set to an existing
-					database connection by right-clicking on the target
-					database's connection in the datbase tree and 
-					choosing "Set Target Database" from there. To set
-					the target database to a new connection, make the
-					new connection in the database tree and then
-					select "Set Target Database" on it.
+					Connection" will perform the same action. 
+					Connections can only be removed if they are
+					not being used as sources in the play pen.
 				</para>
 
 			</section>
@@ -1656,6 +1633,18 @@
 									<inlinemediaobject>
 										<imageobject>
 											<imagedata
+												fileref="src/icons/Column16.png" format="PNG" />
+										</imageobject>
+									</inlinemediaobject>
+								</entry>
+								<entry>Column</entry>
+							</row>
+							
+							<row>
+								<entry>
+									<inlinemediaobject>
+										<imageobject>
+											<imagedata
 												fileref="src/icons/ExportedKey16.png" format="PNG" />
 										</imageobject>
 									</inlinemediaobject>
@@ -1673,6 +1662,42 @@
 									</inlinemediaobject>
 								</entry>
 								<entry>Imported Key</entry>
+							</row>
+							
+							<row>
+								<entry>
+									<inlinemediaobject>
+										<imageobject>
+											<imagedata
+												fileref="src/icons/Index16.png" format="PNG" />
+										</imageobject>
+									</inlinemediaobject>
+								</entry>
+								<entry>Index</entry>
+							</row>
+							
+							<row>
+								<entry>
+									<inlinemediaobject>
+										<imageobject>
+											<imagedata
+												fileref="src/icons/Index_key16.png" format="PNG" />
+										</imageobject>
+									</inlinemediaobject>
+								</entry>
+								<entry>Index Key</entry>
+							</row>
+							
+							<row>
+								<entry>
+									<inlinemediaobject>
+										<imageobject>
+											<imagedata
+												fileref="src/icons/Index_unique16.png" format="PNG" />
+										</imageobject>
+									</inlinemediaobject>
+								</entry>
+								<entry>Unique Index</entry>
 							</row>
 
 						</tbody>
