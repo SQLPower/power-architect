@@ -2153,7 +2153,7 @@
 					<inlinemediaobject>
 						<imageobject>
 							<imagedata
-								fileref="src/icons/AutoLayout24.gif" format="GIF" />
+								fileref="src/icons/auto_layout16.gif" format="GIF" />
 						</imageobject>
 					</inlinemediaobject>
 					Select the tables on the playpen that you want to
@@ -2426,99 +2426,6 @@
 
 		</section>
 
-		<section id="quick_start_wizard">
-
-			<title>Quick Start Wizard</title>
-
-			<section id="quick_start_wizard.what">
-
-				<title>What It Does</title>
-
-				<para>
-					The QuickStart Wizard is a simple five-step process
-					to set up a database using the Power*Loader.
-				</para>
-
-			</section>
-
-			<section id="quick_start_wizard.how">
-
-				<title>How to Use The Quick Start Wizard</title>
-
-				<para>
-					To run the QuickStart Wizard, go to ETL and click
-					QuickStart Wizard button under Power*Loader.
-				</para>
-
-				<section id="quick_start_wizard.how.1">
-
-					<title>Step 1</title>
-
-					<para>
-						Select the source playpen components you want
-						and click next.
-					</para>
-
-				</section>
-
-				<section id="quick_start_wizard.how.2">
-
-					<title>Step 2</title>
-
-					<para>Select or create the target database.</para>
-
-					<mediaobject>
-						<imageobject>
-							<imagedata
-								fileref="doc/images/quick_start_2.png" format="PNG" width="4in" />
-						</imageobject>
-					</mediaobject>
-				</section>
-
-				<section id="quick_start_wizard.how.3">
-
-					<title>Step 3</title>
-
-					<para>
-						Select or create the repository database and
-						fill in any additional information. The JobID
-						must be filled in order to continue.
-					</para>
-
-					<mediaobject>
-						<imageobject>
-							<imagedata
-								fileref="doc/images/quick_start_3.png" format="PNG" width="4in" />
-						</imageobject>
-					</mediaobject>
-				</section>
-
-				<section id="quick_start_wizard.how.4">
-
-					<title>Step 4</title>
-
-					<para>
-						A SQL Script will be created; you can review the
-						script and if you wish to execute it, press
-						"Execute"
-					</para>
-
-				</section>
-
-				<section id="quick_start_wizard.how.5">
-
-					<title>Step 5</title>
-
-					<para>
-						A summary report of the process will be shown.
-					</para>
-
-				</section>
-
-			</section>
-
-		</section>
-		
 		<section id="creating_a_kettle_job">
 		
 			<title>How to Create a Kettle Job</title>
