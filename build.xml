@@ -928,8 +928,11 @@
 		<!-- Check if the build path is absolute. If so, set buildPath -->
 		<condition property="buildPath" value="${build}">
 			<or>
-				<matches string="${build}" pattern="\\{1}.*"/>
+				<!-- Check for Windows style absolute pathnames-->
+				<matches string="${build}" pattern="^\\{1}.*"/>
 				<matches string="${build}" pattern=".*:\\.*"/>
+				<!-- Check for Unix style absolute pathnames -->
+				<matches string="${build}" pattern="^//{1}.*"/>
 			</or>
 		</condition>
 		<!-- Check if buildPath is set. If not, then it's a relative buildpath-->
