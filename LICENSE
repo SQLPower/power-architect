@@ -51,7 +51,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-Additional Restrictions for Bundled JDBC Drivers
+Additional Restrictions for the Bundled SQL Server 2005 JDBC Driver
 
 Some versions of the Architect include 3rd party JDBC drivers.  Those
 drivers are distributed under these additional restrictions:
@@ -74,5 +74,17 @@ drivers are distributed under these additional restrictions:
    party bundled drivers to be exported to a country on one of the
    export-controlled countries lists.
    
-   For details, see http://www.microsoft.com/exporting and
-   http://www.oracle.com/products/export/index.html?content.html
+   For details, see http://www.microsoft.com/exporting
+
+
+The source distribution comes with a number of bundled third-party tools
+for testing, code analysis, packaging, and so on.  Acknowledgements and
+license terms for those tools are together with the copies we redistribute.
+See the ext-tools-home, doc/tools, and osx_packaging_utils directories for
+details.
+
+For PMD, we include this specific acknowledgement here to satisfy the
+license:
+
+This product includes software developed in part by support from
+the Defense Advanced Research Project Agency (DARPA)
