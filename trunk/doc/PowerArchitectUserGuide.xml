@@ -652,17 +652,16 @@
 						nescessary when you wish to create a Kettle job
 						for ETL.
 					</para>
+					<para>
+						<inlinemediaobject>
+							<imageobject>
+								<imagedata
+									fileref="doc/images/UserPref-Kettle.png" format="PNG"
+									width="4in" />
+							</imageobject>
+						</inlinemediaobject>
+					</para>
 				</listitem>
-
-				<para>
-					<inlinemediaobject>
-						<imageobject>
-							<imagedata
-								fileref="doc/images/UserPref-Kettle.png" format="PNG"
-								width="4in" />
-						</imageobject>
-					</inlinemediaobject>
-				</para>
 
 				<listitem>
 					<para>
