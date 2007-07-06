@@ -476,9 +476,7 @@
         	<fileset dir="${build}/doc" includes="*.pdf"/>
     	   	<fileset dir="${build}/doc" includes="*.txt"/>
     	</copy>
-
-    	<!-- The src for libraries that we are required to redistribute src -->
-    	<copy file="libsrc/itext-src-1.4.8.zip" todir="${staging.dir}/libsrc"/>
+    	<copy todir="${staging.dir}/doc" file="doc/ReleaseNotes.txt"/>
 
     	<copy todir="${staging.dir}" file="LICENSE"/>
 
@@ -922,13 +920,13 @@
 	<target name="jdbc_dist" depends="windows_jdbc_installer,generic_jdbc_install,osx_jdbc_tgz,osx_jdbc_dmg" />
 	<target name="no_jdbc_dist" depends="windows_installer,generic_install,osx_tgz,osx_dmg" />
 
-	<target name="dist" depends="jdbc_dist,no_jdbc_dist"
+	<target name="dist" depends="jdbc_dist,no_jdbc_dist,javadoc,junit"
 	        description="Builds Architect Distribution for all supported platforms to dist/architect-version/*">
 		<echo>Don't forget to turn off all the debugging in log4j.properties!</echo>
 		<mkdir dir="${dist.dir}/doc"/>
 		<copy todir="${dist.dir}/doc" overwrite="true">
 			<fileset dir="${staging.dir}/doc">
-				<include name="*.pdf"/>
+				<include name="*"/>
 			</fileset>
 		</copy>
 	    <get dest="${dist.dir}/index.html" src="http://www.sqlpower.ca/page/architect_download_template"/>
