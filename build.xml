@@ -26,10 +26,6 @@
 	     get added to the architect.jar file. -->
 	<property name="build" value="build"/>
 	
-	<!-- The directory where junit HTML reports are generated.
-		 Other report files could eventually be placed here too. -->
-	<property name="reports" value="reports"/>
-	
 	<!-- The java compiler to use. See Ant docs for details. -->
 	<property name="build.compiler" value="modern"/>
 
@@ -89,6 +85,10 @@
 		<echo message="Building Architect version: ${app_ver_major}.${app_ver_minor}.${app_ver_tiny}"> </echo>
 		<property name="dist.dir" value="dist/architect-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}"/>
 		<mkdir dir="${dist.dir}"/>
+		<!-- The directory where junit HTML reports are generated.
+			 Other report files could eventually be placed here too. -->
+		<property name="reports" value="${dist.dir}/reports"/>
+	 	<mkdir dir="${reports}"/>
 	</target>
 
 	<!-- The routine tests that work can get listed here.
@@ -167,7 +167,6 @@
 	<!-- Runs the Business and Auto test suites. The Swing UI test suite is
 	 	 not run because it fails randomly -->
 	<target name="junit" depends="compile,compile-tests">
-	 	<mkdir dir="${reports}"/>
 		<!-- Output all System.out and System.err messages -->
 	   <junit printsummary="withOutAndErr">
 	       <classpath><path refid="test.classpath"/></classpath>
