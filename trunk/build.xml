@@ -57,6 +57,8 @@
 
 	<!-- clover test coverage tool -->
 	<property name="clover.home" value="ext-tools-home/clover"/>
+	<taskdef resource="clovertasks"/>
+	<typedef resource="clovertypes"/>
 
 	<!-- When the build runs on a Mac, we can create the .dmg disk image
 	     using the native hdiutil program.  Otherwise, we just make a .tar.gz.
@@ -98,19 +100,54 @@
 		description="Runs all working test targets"
 	/>
 
+	<!-- A target to configure the Clover environment. This
+		needs to be executed if any Clover features are to
+		be used.
+		
+		To setup Clover:
+		1) Download "Clover for Ant" from Cenqua at 
+				http://www.cenqua.com/download.jspa
+		2) Extract Clover to any directory you wish
+		3) Download a liscense file from Cenqua and
+				place it in the (CLOVER_HOME)/lib
+				directory with the clover.jar file
+		4) Add the clover.jar file to the classpath
+			for the ant build
+			
+		To generate an HTML report run the clover.report
+		target.
+		
+		Reports are sent to the reports directory but you can 
+		choose your own directory by changing the 'outfile' 
+		attribute of the 'current' tage in the clover.html 
+		target.-->
 	<target name="with.clover"
-		description="Sets up the clover environment"
+		description="Activates Clover"
 		>
 	    <clover-setup initString="mycoverage.db" source="1.5">
 	    <statementContext name="iflog" regexp="^if ?\( ?logger.is.*"/>
 	    </clover-setup>
 	</target>
 
-	<target name="clover.html" depends="with.clover"
-		description="Generates HTML coverage report based on previous clover-enabled test run"
+	<!-- A target to run the junit tests with clover report
+		generation enabled -->
+	<target name="clover.junit" depends="with.clover,junit" 
+		description="Run the tests with Clover report generation">
+	</target>
+	
+	<!-- A target that generates a Clover report in html
+		format. 
+		Note: The test suite must be run with clover
+		enabled BEFORE this is run. They CANNOT be run in the
+		same Ant session.
+		Also, the ouput directory is specified by the value of
+		-->
+	<target name="clover.html" depends="init, with.clover"
+		description="Generates HTML coverage report based on previous 
+		Clover-enabled test run (clover.junit)"
 		>
 	    <clover-report>
-	        <current outfile="architect_clover_html">
+	        <current outfile="${reports}/clover">
 	            <format type="html" filter="iflog" />
 	        </current>
 	    </clover-report>
@@ -167,22 +204,24 @@
 	<!-- Runs the Business and Auto test suites. The Swing UI test suite is
 	 	 not run because it fails randomly -->
 	<target name="junit" depends="compile,compile-tests">
+		<property name="reports.junit" value="${reports}/junit"/>
+		<mkdir dir="${reports.junit}"/>
 		<!-- Output all System.out and System.err messages -->
 	   <junit printsummary="withOutAndErr">
 	       <classpath><path refid="test.classpath"/></classpath>
-	       <test name="ca.sqlpower.ArchitectBusinessTestSuite" todir="${reports}"/>
-           <test name="ca.sqlpower.ArchitectAutoTests" todir="${reports}"/>
+	       <test name="ca.sqlpower.ArchitectBusinessTestSuite" todir="${reports.junit}"/>
+           <test name="ca.sqlpower.ArchitectAutoTests" todir="${reports.junit}"/>
 	   	   <formatter type="xml"/>
 	   </junit>
 		<!-- Generate HTML report -->
-		<junitreport todir="${reports}">
-		  <fileset dir="${reports}">
+		<junitreport todir="${reports.junit}">
+		  <fileset dir="${reports.junit}">
 		    <include name="TEST-*.xml" />
 		  </fileset>
-		  <report todir="${reports}" />
+		  <report todir="${reports.junit}" />
 		</junitreport>
 	</target>
-
+	
 	<!-- Compiles the application source files -->
 	<target name="compile" depends="init,copyfiles">
 		<javac srcdir="${src}" destdir="${build}"
@@ -495,9 +534,9 @@
 	<target name="javadoc" 
 		description="Generate the Javadoc documentation for the Architect API in the build directory"
 		depends="compile">
-		<mkdir dir="${build}/doc/api"/>
+		<mkdir dir="${dist.dir}/doc/api"/>
 		<echo message="NOTE: If the javadoc command is not accessible from your PATH variable, then this target WILL fail."/>
-		<javadoc sourcepath="${src}" destdir="${build}/doc/api"
+		<javadoc sourcepath="${src}" destdir="${dist.dir}/doc/api"
 			packagenames="ca.sqlpower.*"
 			maxmemory="100m"
 			windowtitle="ca.sqlpower.architect.* Power*Architect"
@@ -511,8 +550,6 @@
 			</packageset>
 			<bottom><![CDATA[<i>Copyright &#169; 2003-2007 SQL Power Group Inc. <a href="http://www.sqlpower.ca/">www.sqlpower.ca</a>]]></bottom>
 		</javadoc>
-		<copy file="html/index.html" todir="${build}/doc"/>
-
 	</target>
 
 
