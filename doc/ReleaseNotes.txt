@@ -10,34 +10,67 @@ IMPORTANT NOTE to users upgrading from pre-0.9.x versions of the Architect:
  of the Architect.  We apologize for the inconvenience, but the benefits will
  outweigh the costs!
 
+0.9.6
+
+Initial open-source release!
+
+*Added the ability to create ETL jobs for Pentaho Data Integration (formerly
+ Kettle)
+*A number of bug fixes
+*Replaced the icon set with the free FAMFAMFAM icon set, which looks much
+ nicer than the Java Look-and-feel Graphics Repository we were using before.
+
+
+0.9.5
+
+Internal release, not publically promoted.
+
+*Major bugfix: We now escape all characters in the project file which are
+ impossible to represent in XML.  It is entirely possible for these characters
+ to sneak into a profile result.
+
+
 0.9.4
 
 *Added PDF Export feature under File menu
 *Added MySQL compatibility
-*Improved DDL Generator Warnings interface to include a better UI and a "quick fix" feature which guesses the new value
-*Improved Profiling GUI to include a profile manager for browsing, searching, and deleting existing profile data in the project
-*Added index support for tables, forward engineering, and reverse engineering (supports unique and non-unique indices)
-*Completely reworked the strategy for loading JDBC driver classes.  New features include:
- +A better GUI for configuring database connections
- +Users can create new database connection types within the Architect (previously this required editing PL.INI by hand)
- +Can have multiple versions of the same driver in use at the same time (required for Oracle 8i/9i/10g)
- +It is now possible to ship Architect distributions with JDBC drivers built in
- +There is now a place where we will be able to allow much more user configuration per database type in the future
- +Unfortunately, this change is not backward compatible with the 0.0.x versions of the Architect PL.INI file.
+*Improved DDL Generator Warnings interface to include a better UI and a "quick
+ fix" feature which guesses the new value
+*Improved Profiling GUI to include a profile manager for browsing, searching,
+ and deleting existing profile data in the project
+*Added index support for tables, forward engineering, and reverse engineering
+ (supports unique and non-unique indices)
+*Completely reworked the strategy for loading JDBC driver classes.  New features
+ include:
+  +A better GUI for configuring database connections
+  +Users can create new database connection types within the Architect (previously
+   this required editing PL.INI by hand)
+  +Can have multiple versions of the same driver in use at the same time (required
+   for Oracle 8i/9i/10g)
+  +It is now possible to ship Architect distributions with JDBC drivers built in
+  +There is now a place where we will be able to allow much more user configuration
+   per database type in the future
+  +Unfortunately, this change is not backward compatible with the 0.0.x versions
+   of the Architect PL.INI file.
 *Replaced the old tree icons with much nicer-looking new ones
 
 0.0.91
 
 *Added in a new function: Profiling
 	-Displays the distrobution of a column's data in a pie chart 
-	-Displays useful profiling information such as maximum and minimum values of a column
-	-Shows the most frequent n values within the column (the number of results to display is configurable 		within project settings)
+	-Displays useful profiling information such as maximum and minimum values
+	 of a column
+	-Shows the most frequent n values within the column (the number of results
+	 to display is configurable within project settings)
 	-Ability to sort the information by column attribute 
 	-Easy to use search function to narrow down results 
 	-Save profiling data in csv, pdf or html formats 
-*Rectify "Save" filename handling: the file suffix is used in preference to the selected File Selection Filter. 
-*Fixed the "Locked Column throwing silent exceptions" bug.  When moving a imported column to another table, it did *not show the warning error.
+*Rectify "Save" filename handling: the file suffix is used in preference to the
+ selected File Selection Filter. 
+*Fixed the "Locked Column throwing silent exceptions" bug.  When moving a
+ imported column to another table, it did *not show the warning error.
 *Fixed null count problem in sql server
 *Fixed minor type mapping problem in the oracle ddl generator
-*Change from directly using the Swing Browser to display the manual as a form of Help, to using Sun's JavaHelp API. 
+*Change from directly using the Swing Browser to display the manual as a form of
+ Help, to using Sun's JavaHelp API. 
 *Added an Index file to the help file.
