@@ -4,17 +4,16 @@
 	<classpathentry kind="src" path="regress"/>
 	<classpathentry kind="src" path="jdbc_drivers"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="lib/commons-beanutils.jar" sourcepath="libsrc/commons-beanutils-1.7.0-src.jar"/>
-	<classpathentry kind="lib" path="lib/commons-digester.jar" sourcepath="libsrc/commons-digester-1.5-src.zip"/>
+	<classpathentry sourcepath="libsrc/commons-beanutils-1.7.0-src.jar" kind="lib" path="lib/commons-beanutils.jar"/>
+	<classpathentry sourcepath="libsrc/commons-digester-1.5-src.zip" kind="lib" path="lib/commons-digester.jar"/>
 	<classpathentry kind="lib" path="lib/commons-logging.jar"/>
-	<classpathentry kind="lib" path="lib/jlfgr-1_0.jar"/>
 	<classpathentry kind="lib" path="lib/log4j.jar"/>
 	<classpathentry kind="lib" path="lib/commons-beanutils-bean-collections.jar"/>
 	<classpathentry kind="lib" path="lib/commons-beanutils-core.jar"/>
 	<classpathentry kind="lib" path="lib/jakarta-regexp-1.2.jar"/>
 	<classpathentry kind="lib" path="lib/commons-collections-3.1.jar"/>
-	<classpathentry kind="lib" path="lib/commons-dbcp-1.2.1.jar" sourcepath="libsrc/commons-dbcp-1.2.1-src.zip"/>
-	<classpathentry kind="lib" path="lib/commons-pool-1.3.jar" sourcepath="libsrc/commons-pool-1.3-src.zip"/>
+	<classpathentry sourcepath="libsrc/commons-dbcp-1.2.1-src.zip" kind="lib" path="lib/commons-dbcp-1.2.1.jar"/>
+	<classpathentry sourcepath="libsrc/commons-pool-1.3-src.zip" kind="lib" path="lib/commons-pool-1.3.jar"/>
 	<classpathentry kind="lib" path="osx_packaging_utils/osx_adapter.jar"/>
 	<classpathentry kind="lib" path="buildlib/junit.jar"/>
 	<classpathentry kind="lib" path="buildlib/jfcunit.jar"/>
