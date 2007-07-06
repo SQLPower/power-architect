@@ -26,6 +26,10 @@
 	     get added to the architect.jar file. -->
 	<property name="build" value="build"/>
 	
+	<!-- The directory where junit HTML reports are generated.
+		 Other report files could eventually be placed here too. -->
+	<property name="reports" value="reports"/>
+	
 	<!-- The java compiler to use. See Ant docs for details. -->
 	<property name="build.compiler" value="modern"/>
 
@@ -163,12 +167,21 @@
 	<!-- Runs the Business and Auto test suites. The Swing UI test suite is
 	 	 not run because it fails randomly -->
 	<target name="junit" depends="compile,compile-tests">
+	 	<mkdir dir="${reports}"/>
 		<!-- Output all System.out and System.err messages -->
 	   <junit printsummary="withOutAndErr">
 	       <classpath><path refid="test.classpath"/></classpath>
-	       <test name="ca.sqlpower.ArchitectBusinessTestSuite"/>
-           <test name="ca.sqlpower.ArchitectAutoTests"/>
+	       <test name="ca.sqlpower.ArchitectBusinessTestSuite" todir="${reports}"/>
+           <test name="ca.sqlpower.ArchitectAutoTests" todir="${reports}"/>
+	   	   <formatter type="xml"/>
 	   </junit>
+		<!-- Generate HTML report -->
+		<junitreport todir="${reports}">
+		  <fileset dir="${reports}">
+		    <include name="TEST-*.xml" />
+		  </fileset>
+		  <report todir="${reports}" />
+		</junitreport>
 	</target>
 
 	<!-- Compiles the application source files -->
@@ -361,8 +374,8 @@
 		</path>
 		<taskdef name="fop" classname="org.apache.fop.tools.anttasks.Fop" classpathref="fop-classpath"/>
         <fop format="application/pdf" messagelevel="verbose" relativebase="true" >
-			<fileset dir=".">
-				<include name="${build}/doc/*.fo"/>
+			<fileset dir="${build}/doc/">
+				<include name="*.fo"/>
 			</fileset>
 		</fop>
 
