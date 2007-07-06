@@ -432,9 +432,6 @@
 
 	</target>
 
-    <!-- Create the Architect jar file.
-     *** Copy the Architect Jar file, and dependent libs, to the deploy dir.
-     -->
     <target name="stage" depends="checkAntVersion,compile,userguide">
     	<mkdir dir="${dist.dir}" />
         <mkdir dir="${staging.dir}"/>
@@ -599,10 +596,6 @@
 						<fileset dir="../staging/lib" targetdir="$INSTALL_PATH/lib">
 							<include name="*.jar"/>
 						</fileset>
-						<fileset dir="../staging/doc" targetdir="$INSTALL_PATH/doc">
-							<include name="*.pdf"/>
-							<include name="*.txt"/>
-						</fileset>
 						<fileset dir="../staging/jdbc" targetdir="$INSTALL_PATH/jdbc">
 							<include name="*.ini"/>
 						</fileset>
@@ -688,10 +681,6 @@
 							<fileset dir="../staging/jdbc" targetdir="$INSTALL_PATH/jdbc">
 								<include name="*.jar"/>
 								<include name="*.ini"/>
-							</fileset>
-							<fileset dir="../staging/doc" targetdir="$INSTALL_PATH/doc">
-								<include name="*.pdf"/>
-								<include name="*.txt"/>
 							</fileset>
 							<fileset dir="../staging/" targetdir="$INSTALL_PATH">
 								<include name="LICENSE"/>
@@ -894,8 +883,6 @@
 		<tar destfile="${dist.dir}/Architect-OSX-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.tar.gz"
 					compression="gzip">
 			<tarfileset dir="${staging.dir}" includes="Power Architect.app/**"/>
-			<tarfileset dir="${staging.dir}/doc" includes="*.pdf"/>
-			<tarfileset dir="${staging.dir}/doc" includes="*.txt"/>
 			<tarfileset dir="${staging.dir}" includes="jdbc/*.ini"/>
 		</tar>
 	</target>
@@ -904,9 +891,7 @@
 		<tar destfile="${dist.dir}/Architect-OSX-jdbc-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.tar.gz"
 					compression="gzip">
 			<tarfileset dir="${staging.dir}" includes="Power Architect JDBC.app/**"/>
-			<tarfileset dir="${staging.dir}/doc" includes="*.pdf"/>
-			<tarfileset dir="${staging.dir}/doc" includes="*.txt"/>
-			<tarfileset dir="${staging.dir}" includes="jdbc/*.ini jdbc/*.jdbc"/>
+			<tarfileset dir="${staging.dir}" includes="jdbc/*"/>
 		</tar>
 	</target>
 
@@ -917,8 +902,6 @@
 			<tarfileset dir="${staging.dir}" includes="LICENSE"/>
 			<tarfileset dir="${staging.dir}" includes="lib/*.jar"/>
 			<tarfileset dir="${staging.dir}" includes="architect.jar"/>
-			<tarfileset dir="${staging.dir}/doc" includes="*.pdf"/>
-			<tarfileset dir="${staging.dir}/doc" includes="*.txt"/>
 			<tarfileset dir="${staging.dir}" includes="jdbc/*.ini"/>
 		</tar>
     </target>
@@ -929,8 +912,6 @@
 			<tarfileset dir="${staging.dir}" includes="LICENSE"/>
 			<tarfileset dir="${staging.dir}" includes="lib/*.jar"/>
 			<tarfileset dir="${staging.dir}" includes="architect.jar"/>
-			<tarfileset dir="${staging.dir}/doc" includes="*.pdf"/>
-			<tarfileset dir="${staging.dir}/doc" includes="*.txt"/>
 			<!-- the directory jdbc is referenced in the manifest as well as
 											various targets. -->
 			<tarfileset dir="${staging.dir}" includes="jdbc/*.jar"/>
@@ -944,6 +925,12 @@
 	<target name="dist" depends="jdbc_dist,no_jdbc_dist"
 	        description="Builds Architect Distribution for all supported platforms to dist/architect-version/*">
 		<echo>Don't forget to turn off all the debugging in log4j.properties!</echo>
+		<mkdir dir="${dist.dir}/doc"/>
+		<copy todir="${dist.dir}/doc" overwrite="true">
+			<fileset dir="${staging.dir}/doc">
+				<include name="*.pdf"/>
+			</fileset>
+		</copy>
 	    <get dest="${dist.dir}/index.html" src="http://www.sqlpower.ca/page/architect_download_template"/>
 		<replace file="${dist.dir}/index.html">
 			<replacefilter token="&lt;head&gt;" value="&lt;head&gt;&lt;base href=&quot;http://www.sqlpower.ca/&quot;/&gt;"/>
