@@ -1,8 +1,0 @@
-TODO list for Profiling.
-
-Have a "Don't Save Profiles" option in Architect User Settings.
-
-More unit tests!!
-
------
-Have Project Close shut down running threads.
