@@ -4,14 +4,16 @@ import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-public class ProjectSettingsPanel extends JPanel implements ArchitectPanel {
+import org.apache.log4j.Logger;
 
+public class ProjectSettingsPanel extends JPanel implements ArchitectPanel {
+    private static final Logger logger = Logger.getLogger(ProjectSettingsPanel.class);
 	/**
 	 * The project whose settings we're editting.
 	 */
-	protected SwingUIProject proj;
-
-	protected JCheckBox saveEntireSource;
+	private SwingUIProject proj;
+	
+	private JCheckBox saveEntireSource;
 
 	public ProjectSettingsPanel(SwingUIProject proj) {
 		this.proj = proj;
@@ -26,16 +28,19 @@ public class ProjectSettingsPanel extends JPanel implements ArchitectPanel {
 	}
 
 	protected void revertToProjectSettings() {
+        logger.debug("Reverting project options");
 		saveEntireSource.setSelected(proj.isSavingEntireSource());
 	}
 
 	public boolean applyChanges() {
+        logger.debug("Setting snapshot option to:"+saveEntireSource.isSelected());
 		proj.setSavingEntireSource(saveEntireSource.isSelected());
+        logger.debug("Project "+proj.getName() +" snapshot option is:"+proj.isSavingEntireSource());
 		return true;
 	}
 
 	public void discardChanges() {
-		revertToProjectSettings();
+	
 	}
 
 	public JPanel getPanel() {
