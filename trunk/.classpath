@@ -30,7 +30,7 @@
 	<classpathentry kind="lib" path="lib/activation.jar"/>
 	<classpathentry kind="lib" path="lib/edtftpj-1.5.4.jar"/>
 	<classpathentry kind="lib" path="lib/forms-1.1.0.jar"/>
-	<classpathentry kind="lib" path="lib/gsbase-2.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/kettle.jar"/>
+	<classpathentry kind="lib" path="buildlib/gsbase-2.0.1.jar"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>
