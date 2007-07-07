@@ -897,26 +897,41 @@
     <target name="generic_install" depends="stage">
 		<tar destfile="${dist.dir}/Architect-generic-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.tar.gz"
 			compression="gzip">
-			<tarfileset dir="${staging.dir}" includes="LICENSE"/>
-			<tarfileset dir="${staging.dir}" includes="lib/*.jar"/>
-			<tarfileset dir="${staging.dir}" includes="architect.jar"/>
-			<tarfileset dir="${staging.dir}" includes="jdbc/*.ini"/>
+			<tarfileset
+			    prefix="architect-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}"
+				dir="${staging.dir}"
+				includes="LICENSE, lib/*.jar, architect.jar, jdbc/*.ini" />
+			<tarfileset
+			    prefix="architect-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}"
+				dir="doc"
+				includes="README.generic" />
 		</tar>
     </target>
 
     <target name="generic_jdbc_install" depends="stage">
 		<tar destfile="${dist.dir}/Architect-generic-jdbc-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.tar.gz"
 			compression="gzip">
-			<tarfileset dir="${staging.dir}" includes="LICENSE"/>
-			<tarfileset dir="${staging.dir}" includes="lib/*.jar"/>
-			<tarfileset dir="${staging.dir}" includes="architect.jar"/>
-			<!-- the directory jdbc is referenced in the manifest as well as
-											various targets. -->
-			<tarfileset dir="${staging.dir}" includes="jdbc/*.jar"/>
-			<tarfileset dir="${staging.dir}" includes="jdbc/*.ini"/>
+			<tarfileset
+			    prefix="architect-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}"
+				dir="${staging.dir}"
+				includes="LICENSE, lib/*.jar, architect.jar, jdbc/*.ini, jdbc/*.jar" />
+			<tarfileset
+			    prefix="architect-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}"
+				dir="doc"
+				includes="README.generic" />
 		</tar>
     </target>
 
+	<target name="source_tgz" depends="init"
+		description="Builds a source tarball of the Architect">
+		<tar destfile="${dist.dir}/Architect-src-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.tar.gz"
+			 compression="gzip" longfile="gnu">
+			<tarfileset dir="."
+				prefix="architect-src-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}"
+				excludes="log4j.properties,build.properties,user.properties,build/**,**/*.bak,**/*~,**/TEST*,architect.log*,**/.fbwarnings,deploy/**,.fbprefs,staging/**,antbuild/**,dist/**,findbugs-ant-results.txt,pmd-ant-results.txt,cpd-ant-results.txt"/>
+		</tar>
+	</target>
+	
 	<target name="jdbc_dist" depends="windows_jdbc_installer,generic_jdbc_install,osx_jdbc_tgz,osx_jdbc_dmg" />
 	<target name="no_jdbc_dist" depends="windows_installer,generic_install,osx_tgz,osx_dmg" />
 
