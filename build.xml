@@ -395,7 +395,7 @@
         <xslt
 			style="doc/tools/xslt/fo/docbook.xsl"
 			in="doc/PowerArchitectUserGuide.xml"
-			out="${build}/doc/PowerArchitectUserGuide.fo"
+			out="${build}/doc/PowerArchitectUserGuide-${app_ver_major}.${app_ver_minor}.${app_ver_tiny}.fo"
 			classpathref="docbookclasspath">
 		</xslt>
 	</target>
@@ -486,7 +486,6 @@
     	</signjar>
     	-->
 	</target>
-
 
 	<target name="run" 
 		description="Runs the Architect application with the Swing UI"
