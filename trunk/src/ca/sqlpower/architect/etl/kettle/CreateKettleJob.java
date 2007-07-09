@@ -321,9 +321,9 @@ public class CreateKettleJob implements Monitorable {
             for (TransMeta transformation : transformations) {
                 JobEntryCopy entry = new JobEntryCopy();
                 JobEntryTrans trans = new JobEntryTrans();
-                trans.setFileName(transformation.getFilename());
                 trans.setName(transformation.getName());
                 trans.setType(JobEntryInterface.TYPE_JOBENTRY_TRANSFORMATION);
+                trans.setTransname(transformation.getName());
                 entry.setEntry(trans);
                 entry.setLocation(i*spacing, spacing);
                 entry.setDrawn();
@@ -410,15 +410,21 @@ public class CreateKettleJob implements Monitorable {
         Map<File, String> outputs = new LinkedHashMap<File, String>();
         
         for (TransMeta transMeta : transformations) {
-            String parentPath = new File(filePath).getParentFile().getPath();
-            logger.debug("Parent file path is " + parentPath);
-            File file = new File(parentPath, "transformation_for_table_" + transMeta.getName() + ".ktr");
+            File file = new File(getTransFilePath(transMeta.getName()));
             transMeta.setFilename(file.getName());
             outputs.put(file, transMeta.getXML());
             if (monitor.isCancelled()) {
                 cancelled();
                 return;
             }
+        }
+        
+        //This sets the location of the transformations in the job
+        //The first entry is not a transformation so skip it
+        //This is done here so we know where the files are being saved and that they are saved
+        for (int i = 1; i < job.nrJobEntries(); i++) {
+            JobEntryTrans trans = (JobEntryTrans)(job.getJobEntry(i).getEntry());
+            trans.setFileName(getTransFilePath(trans.getName()));
         }
 
         String fileName = filePath;
@@ -439,7 +445,8 @@ public class CreateKettleJob implements Monitorable {
                     if (overwriteOption == FileValidationResponse.WRITE_OK_ALWAYS) {
                         f.delete();
                     } else {
-                        overwriteOption = fileValidator.acceptFile(f.getName(), f.getParentFile().getPath());
+                        String parentFilePath = f.getParentFile().getPath();
+                        overwriteOption = fileValidator.acceptFile(f.getName(), parentFilePath);
                         if (overwriteOption == FileValidationResponse.WRITE_OK ||
                                 overwriteOption == FileValidationResponse.WRITE_OK_ALWAYS) {
                         } else if (overwriteOption == FileValidationResponse.CANCEL) {
@@ -468,6 +475,16 @@ public class CreateKettleJob implements Monitorable {
                 throw er;
             }
         }
+    }
+    
+    /**
+     * This returns the full path and file name for the given transformation name.
+     * The file location of the transformations is based on the location of the job.
+     */
+    String getTransFilePath(String transName) {
+        String parentPath = new File(filePath).getParentFile().getPath();
+        logger.debug("Parent file path is " + parentPath);
+        return new File(parentPath, "transformation_for_table_" + transName + ".ktr").getPath();
     }
 
     /**
@@ -517,8 +534,17 @@ public class CreateKettleJob implements Monitorable {
                 cancelled();
                 return;
             }
+            
+            //This sets the location of the transformations in the job
+            //The first entry is not a transformation so skip it
+            //This is done here so we know where the files are being saved and that they are saved
+            for (int i = 1; i < jm.nrJobEntries(); i++) {
+                JobEntryTrans trans = (JobEntryTrans)(jm.getJobEntry(i).getEntry());
+                trans.setDirectory(directory);
+            }
+            
             jm.setDirectory(directory);
-            if (overwriteOption != FileValidationResponse.WRITE_NOT_OK_ALWAYS) {
+            if (overwriteOption == FileValidationResponse.WRITE_NOT_OK_ALWAYS) {
                 return;
             }
             if (overwriteOption != FileValidationResponse.WRITE_OK_ALWAYS) {
