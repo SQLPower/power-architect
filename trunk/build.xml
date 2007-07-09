@@ -108,7 +108,9 @@
 		1) Download "Clover for Ant" from Cenqua at 
 				http://www.cenqua.com/download.jspa
 		2) Extract Clover to any directory you wish
-		3) Download a liscense file from Cenqua and
+			(NOTE: There is a directory set aside for Clover
+				it is ext-tools-home/clover)
+		3) Obtain a liscense file from Cenqua and
 				place it in the (CLOVER_HOME)/lib
 				directory with the clover.jar file
 		4) Add the clover.jar file to the classpath
@@ -121,14 +123,24 @@
 		choose your own directory by changing the 'outfile' 
 		attribute of the 'current' tage in the clover.html 
 		target.-->
-	<target name="with.clover"
-		description="Activates Clover"
-		>
-	    <clover-setup initString="mycoverage.db" source="1.5">
-	    <statementContext name="iflog" regexp="^if ?\( ?logger.is.*"/>
+	<target name="with.clover" description="Activates Clover">
+	    <clover-setup initString="mycoverage.db" source="1.5"
+	    	flushpolicy="threaded" flushinterval="500">
+	    	<!-- This fileset includes all source files that are not
+	    	tests because we do not want to see the coverage results
+	    	of files in the test suite. -->
+	    	<fileset dir="${src}" casesensitive="yes">
+	    	    <include name="**/*.java"/>
+	    	    <exclude name="**/*Test*"/>
+	    	</fileset>
 	    </clover-setup>
 	</target>
 
+	<target name="clover.test.and.report" depends="with.clover, clover.junit, clover.html"
+		description="A simple target to initialize Clover, run the test suite
+		and generate an HTML report">
+	</target>
+	
 	<!-- A target to run the junit tests with clover report
 		generation enabled -->
 	<target name="clover.junit" depends="with.clover,junit" 
@@ -148,7 +160,11 @@
 		>
 	    <clover-report>
 	        <current outfile="${reports}/clover">
-	            <format type="html" filter="iflog" />
+	            <format type="html"/>
+		    	<fileset dir="${src}" casesensitive="yes">
+		    	    <include name="**/*.java"/>
+		    	    <exclude name="**/*Test*"/>
+		    	</fileset>
 	        </current>
 	    </clover-report>
 	</target>
