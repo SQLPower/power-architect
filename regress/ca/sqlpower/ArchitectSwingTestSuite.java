@@ -39,7 +39,6 @@ import ca.sqlpower.architect.swingui.TestArchitectFrame;
 import ca.sqlpower.architect.swingui.TestAutoLayoutAction;
 import ca.sqlpower.architect.swingui.TestBasicRelationshipUI;
 import ca.sqlpower.architect.swingui.TestColumnEditPanel;
-import ca.sqlpower.architect.swingui.TestCompareDMPanel;
 import ca.sqlpower.architect.swingui.TestDBTree;
 import ca.sqlpower.architect.swingui.TestPlayPen;
 import ca.sqlpower.architect.swingui.TestPlayPenComponent;
@@ -67,7 +66,6 @@ public class ArchitectSwingTestSuite extends TestCase {
 		suite.addTestSuite(TestDBTree.class);
 		suite.addTestSuite(TestColumnEditPanel.class);
 		suite.addTestSuite(TestDeleteSelectedAction.class);
-		suite.addTestSuite(TestCompareDMPanel.class);
 		suite.addTestSuite(TestFruchtermanReingoldForceLayout.class);
 		suite.addTestSuite(TestRelationship.class);
 		suite.addTestSuite(TestPlayPen.class);
