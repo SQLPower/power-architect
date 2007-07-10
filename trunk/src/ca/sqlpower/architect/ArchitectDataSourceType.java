@@ -81,7 +81,7 @@ public class ArchitectDataSourceType {
     
     /**
      * A special ClassLoader that searches the classpath associated with this
-     * type of data source only. Each type of ArchitectDataSource should have
+     * type of data source only. Each ArchitectDataSourceType should have
      * one of these class loaders, configured to search the database vendor's
      * jar/zip files.
      */
