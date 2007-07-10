@@ -47,6 +47,7 @@ public class ArchitectVersionTask extends Task {
         getProject().setNewProperty("app_ver_major", ArchitectVersion.APP_VERSION_MAJOR );
         getProject().setNewProperty("app_ver_minor", ArchitectVersion.APP_VERSION_MINOR );
         getProject().setNewProperty("app_ver_tiny", ArchitectVersion.APP_VERSION_TINY );
+        getProject().setNewProperty("app_ver_suffix", ArchitectVersion.APP_VERSION_SUFFIX);
     }
 
 }
