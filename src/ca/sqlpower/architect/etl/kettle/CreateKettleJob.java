@@ -36,6 +36,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -569,18 +571,46 @@ public class CreateKettleJob implements Monitorable {
     }
     
     /**
-     * This method creates a repository for the outputToRepository method
+     * This method creates a Kettle Repository instance that refers to the
+     * existing Kettle repository schema referred to by the {@link #repository}
+     * database connection.  This method does not attempt to actually make
+     * a database connection itself; the returned Repository will attempt
+     * the connection by itself later on.
+     * 
+     * @throws ArchitectException If the kettle repository connection fails
+     * for any reason (usually related to classloading problems)
      */
-    private Repository createRepository() {
-        DatabaseMeta kettleDBMeta = KettleUtils.createDatabaseMeta(repository);
+    private Repository createRepository() throws ArchitectException {
         
-        RepositoryMeta repoMeta = new RepositoryMeta("", "", kettleDBMeta);
-        UserInfo userInfo = new UserInfo(repository.get(KettleOptions.KETTLE_REPOS_LOGIN_KEY),
-                                         repository.get(KettleOptions.KETTLE_REPOS_PASSWORD_KEY),
-                                         jobName, "", true, null);
-        LogWriter lw = LogWriter.getInstance(); // Repository constructor needs this for some reason
-        Repository repo = new Repository(lw, repoMeta, userInfo);
-        return repo;
+        try {
+            DatabaseMeta kettleDBMeta = KettleUtils.createDatabaseMeta(repository);
+
+            // Reflection is evil. Sorry.
+            Class<RepositoryMeta> rmClass = (Class<RepositoryMeta>) Class.forName("be.ibridge.kettle.RepositoryMeta", true, repository.getParentType().getJdbcClassLoader());
+
+            // These two lines could just be repoMeta = rmClass.newInstance() if we can use the no-args constructor.
+            Constructor<RepositoryMeta> rmConst = rmClass.getConstructor(new Class[] {String.class, String.class, DatabaseMeta.class});
+            RepositoryMeta repoMeta = rmConst.newInstance(new Object[] {"", "", kettleDBMeta});
+
+            UserInfo userInfo = new UserInfo(repository.get(KettleOptions.KETTLE_REPOS_LOGIN_KEY),
+                    repository.get(KettleOptions.KETTLE_REPOS_PASSWORD_KEY),
+                    jobName, "", true, null);
+            LogWriter lw = LogWriter.getInstance(); // Repository constructor needs this for some reason
+            Repository repo = new Repository(lw, repoMeta, userInfo);
+            
+            return repo;
+            
+        } catch (ClassNotFoundException e) {
+            throw new ArchitectException("Couldn't create Kettle repository connection", e);
+        } catch (NoSuchMethodException e) {
+            throw new ArchitectException("Couldn't create Kettle repository connection", e);
+        } catch (InstantiationException e) {
+            throw new ArchitectException("Couldn't create Kettle repository connection", e);
+        } catch (IllegalAccessException e) {
+            throw new ArchitectException("Couldn't create Kettle repository connection", e);
+        } catch (InvocationTargetException e) {
+            throw new ArchitectException("Couldn't create Kettle repository connection", e);
+        }
     }
 
     /**
