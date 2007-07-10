@@ -87,19 +87,40 @@
 		<tstamp>
 			<format property="date" pattern="yyyyMMdd"/>
 		</tstamp>
-		<!-- If the nightly build property is set, then version number uses the date as the suffix -->
+		<!-- If the nightly build property is set, then version number uses the date as the suffix 
+			 Would be REALLY nice if Ant conditions support setting multiple properties, but doesn't as of 1.7.0 -->
 		<condition property="app.ver.suffix" value="-${date}">
 			<isset property="nightly"/>
 		</condition>
+		<condition property="downloadLinkBase" 
+			value="http://nightlybuild.sqlpower.ca/architect/${app_ver_major}.${app_ver_minor}.${app_ver_tiny}-${date}">
+			<isset property="nightly"/>
+		</condition>
+		<condition property="docLinkBase" value="http://nightlybuild.sqlpower.ca/architect">
+			<isset property="nightly"/>		
+		</condition>
 		<!-- Else, if app_ver_suffix is empty, then don't use a suffix -->
 		<condition property="app.ver.suffix" value="">
-			<equals arg1="${app_ver_suffix}" arg2=""/>
+			<and>
+				<equals arg1="${app_ver_suffix}" arg2=""/>
+				<not><isset property="app.ver.suffix"/></not>
+			</and>
 		</condition>
-		<!-- Else, use the normal app_ver_suffix as the suffix -->
+		<condition property="downloadLinkBase"
+			value="http://power-architect.googlecode.com/files">
+			<not><isset property="downloadLinkBase"/></not>
+		</condition>
+		<condition property="docLinkBase" 
+			value="http://download.sqlpower.ca/architect">
+			<not><isset property="docLinkBase"/></not>
+		</condition>
+		<!-- otherwise, use the normal app_ver_suffix as the suffix -->
 		<condition property="app.ver.suffix" value="-${app_ver_suffix}">
 			<not><isset property="app.ver.suffix"/></not>
 		</condition>
+
 		<property name="app.version" value="${app_ver_major}.${app_ver_minor}.${app_ver_tiny}${app.ver.suffix}"/>
+
 		<echo message="Building Architect version: ${app.version}"> </echo>
 		<property name="dist.dir" value="dist/architect-${app.version}"/>
 		<mkdir dir="${dist.dir}"/>
@@ -980,6 +1001,8 @@
 		<replace file="${dist.dir}/index.html">
 			<replacefilter token="&lt;head&gt;" value="&lt;head&gt;&lt;base href=&quot;http://www.sqlpower.ca/&quot;/&gt;"/>
 			<replacefilter token="@@app_version" value="${app.version}"/>
+			<replacefilter token="@@downloadLinkBase" value="${downloadLinkBase}"/>
+			<replacefilter token="@@docLinkBase" value="${docLinkBase}"/>
 		</replace>
 		<echo>Did you forget to turn off all the debugging in log4j.properties?!</echo>
 	</target>
