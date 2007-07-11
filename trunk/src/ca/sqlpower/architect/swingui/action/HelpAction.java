@@ -39,14 +39,17 @@ import java.net.URL;
 import javax.help.CSH;
 import javax.help.HelpBroker;
 import javax.help.HelpSet;
-import javax.swing.JOptionPane;
 
+import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 
 public class HelpAction extends AbstractArchitectAction {
     
+    ArchitectSwingSession session;
+    
     public HelpAction(ArchitectSwingSession session) {
-        super(session, "Help", "Help", "help");     
+        super(session, "Help", "Help", "help");
+        this.session = session;
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -69,10 +72,10 @@ public class HelpAction extends AbstractArchitectAction {
 
         } catch (Exception ev) {
             setEnabled(false);
-            JOptionPane.showMessageDialog(frame, 
-                    "Could not load Help File\n" + e + "\n" +
+            ASUtils.showExceptionDialog(session,
+                    "Could not load Help File\n" +
                     "Help function disabled",
-                    "Error", JOptionPane.ERROR_MESSAGE);
+                    ev);
         }         
     }
 }

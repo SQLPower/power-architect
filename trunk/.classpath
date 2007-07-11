@@ -17,7 +17,6 @@
 	<classpathentry kind="lib" path="osx_packaging_utils/osx_adapter.jar"/>
 	<classpathentry kind="lib" path="buildlib/junit.jar"/>
 	<classpathentry kind="lib" path="lib/jhall.jar"/>
-	<classpathentry kind="lib" path="lib/architecthelp.jar"/>
 	<classpathentry kind="lib" path="buildlib/ant.jar"/>
 	<classpathentry kind="lib" path="lib/jcommon-1.0.0.jar"/>
 	<classpathentry kind="lib" path="lib/jfreechart-1.0.1.jar"/>
