@@ -130,6 +130,11 @@
 	 	<mkdir dir="${reports}"/>
 	</target>
 	
+	<!-- Echos the version number of the current build. -->
+	<target name="showVersion" depends="init">
+		<echo message="${app.version}"/>
+	</target>
+	
 	<!-- The routine tests that work can get listed here.
 	*** Right now findbugs runs out of memory
 	-->
@@ -980,7 +985,18 @@
 			 compression="gzip" longfile="gnu">
 			<tarfileset dir="."
 				prefix="architect-src-${app.version}"
-				excludes="log4j.properties,build.properties,user.properties,build/**,**/*.bak,**/*~,**/TEST*,architect.log*,**/.fbwarnings,deploy/**,.fbprefs,staging/**,antbuild/**,dist/**,findbugs-ant-results.txt,pmd-ant-results.txt,cpd-ant-results.txt"/>
+				excludes="log4j.properties,build.properties,user.properties,build/**,**/*.bak,**/*~,**/TEST*,architect.log*,**/.fbwarnings,deploy/**,.fbprefs,staging/**,antbuild/**,dist/**,findbugs-ant-results.txt,pmd-ant-results.txt,cpd-ant-results.txt,build.log"/>
+		</tar>
+	</target>
+
+	<!-- Creates a tarball containing only the Java source files -->
+	<target name="source_only_tgz" depends="init"
+		description="Builds a source only tarball of the Architect">
+		<tar destfile="${dist.dir}/Architect-src-only-${app.version}.tar.gz"
+			 compression="gzip" longfile="gnu">
+			<tarfileset dir="."
+				prefix="architect-src-only-${app.version}"
+				includes="${src}/**/*.java, regress/**/*.java"/>
 		</tar>
 	</target>
 	
