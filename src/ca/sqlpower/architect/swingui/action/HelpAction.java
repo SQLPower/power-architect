@@ -73,8 +73,10 @@ public class HelpAction extends AbstractArchitectAction {
         } catch (Exception ev) {
             setEnabled(false);
             ASUtils.showExceptionDialog(session,
-                    "Could not load Help File\n" +
-                    "Help function disabled",
+                    "Could not load the help file. The ArchitectHelp.jar file either " +
+                    "doesn't exist or isn't in your classpath.\nThis error usually " +
+                    "occurrs because you are running the Architect within an IDE.\n" +
+                    "The Help function is now disabled",
                     ev);
         }         
     }
