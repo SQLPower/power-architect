@@ -1,5 +1,5 @@
 <shortcuts>
-	<programGroup defaultName="Power Loader Suite"
+	<programGroup defaultName="SQL Power Suite"
 		location="applications"/>
 	<shortcut name="Power Architect" target="javaw.exe"
 		programGroup="yes"
