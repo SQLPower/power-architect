@@ -121,18 +121,13 @@
 
 		<property name="app.version" value="${app_ver_major}.${app_ver_minor}.${app_ver_tiny}${app.ver.suffix}"/>
 
-		<echo message="Building Architect version: ${app.version}"> </echo>
+		<echo message="Building Architect version: ${app.version}"/>
 		<property name="dist.dir" value="dist/architect-${app.version}"/>
 		<mkdir dir="${dist.dir}"/>
 		<!-- The directory where junit HTML reports are generated.
 			 Other report files could eventually be placed here too. -->
 		<property name="reports" value="${dist.dir}/reports"/>
 	 	<mkdir dir="${reports}"/>
-	</target>
-	
-	<!-- Echos the version number of the current build. -->
-	<target name="showVersion" depends="init">
-		<echo message="${app.version}"/>
 	</target>
 	
 	<!-- The routine tests that work can get listed here.
