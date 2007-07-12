@@ -1,20 +1,25 @@
 #summary Starter documentation for developers new to Power*Architect
 #labels Phase-Implementation
-= How To Check Out Sources =
 
-To check out the Power*Architect source from SVN to Eclipse start Eclipse and 
-create a new project. Select the SVN wizard and click next. If you don't
-have SVN available on your version of Eclipse you can get [http://subclipse.tigris.org/install.html Subclipse].
-Create a new repository to check out Power*Architect from. The URL for the new
-repository is http://power-architect.googlecode.com/svn/trunk/. Once the URL 
-has been entered press next. To check out all of the source files for Power*Architect
-select the root of the tree and press next. Set the name of the project if you
-want it to have a unique name, the default is architect, and select to check 
-out the head revision for the most recent changes and click finish.
+= Get the Source Code =
 
-For users who wish to check out the source using a command line version of SVN 
-you can use the command:
-svn checkout http://power-architect.googlecode.com/svn/trunk power-architect
+== If you are using Eclipse ==
+To check out the Power*Architect source into an Eclipse project:
+ # If you don't yet have the Subversion feature available on your version of Eclipse, get [http://subclipse.tigris.org/install.html Subclipse]
+ # Start Eclipse and create a new project (File -> New -> Project...)
+ # Under the SVN folder, select *Checkout Projects from SVN*. If you don't see the SVN folder, go back to step 1. ;)
+ # Create a new repository location to check out Power*Architect from. The URL for the new repository is http://power-architect.googlecode.com/svn/
+ # To check out all of the latest source files for Power*Architect, select the *trunk* directory, then press next
+ # Ensure that the "Check out as a project in the workspace" and "Head Revision" options are selected (they are the defaults), then click *Finish*.
+
+== Other Development Environments ==
+Currently, everyone on the Architect team has chosen to use Eclipse.  If you have a different favourite Java IDE, we'd be happy to post your instructions for checking out the Architect code here.  Just post to the architect-developers list!
+
+== Command-line svn ==
+If you just want to check out the source into a local directory or your development environment does not integrate with Subversion, use the command line *svn* tool:
+
+ `svn checkout http://power-architect.googlecode.com/svn/trunk power-architect`
+
 
 = Subscribe To Power*Architect Mailing Lists =
 
@@ -126,5 +131,9 @@ the Ant Build from the Run As menu option.
 
 For developers new to Power*Architect that want to start making contributions to Power*Architect there is a wishlist included with the source code that the developers
 have put together.
+
+
+
+
 
 
