@@ -1,6 +1,39 @@
 #summary Starter documentation for developers new to Power*Architect
 #labels Phase-Implementation
 
+Welcome to the Power*Architect development community!  This document is your starting point for getting involved in contributing to the Architect's day-to-day development, and for how to have your say in the Architect's future direction.
+
+We've organized the sections in relative order of importance, so the most important items should be near the top.  Don't be intimidated by the length of this document--you don't have to do everything listed here all at once!
+
+= Subscribe To the Power*Architect Mailing Lists =
+
+There are three mailing lists associated with the Power*Architect. All are are hosted 
+on Google Groups.  We strongly recommend that you subscribe to all three if you are interested in getting involved in Architect development.
+
+== Development discussion ==
+First, the *architect-developers* mailing list. This list is for discussion about specific design decisions, the future direction of the Architect, giving comments and suggestions, or any other concerns that you may have while making modifications.  For end-user support, your best bet is the Architect web forum, which is a separate venue.  We'll cover that later in this document.
+
+You can subscribe to the *architect-developers* 
+mailing list at http://groups.google.com/group/architect-developers.
+
+== Major Announcements ==
+Next, *architect-announce* is a read-only list that we use to announce major
+news about the Power*Architect project.  We recommend all developers and end users
+subscribe to this list so they don't miss any important news about the Architect.  Expect
+less than one message per week from this list.
+
+You can subscribe to the *architect-announce* 
+mailing list at http://groups.google.com/group/architect-announce.
+
+== Commit log ==
+Finally, *architect-commits* is a read-only list for commits to Power*Architect. If you subscribe to this list, you'll be able to stay current on all the latest changes to the
+Architect code base. This list gets an automatic email every time someone commits a change 
+to the Power*Architect repository. Each email includes the commit comment (a short summary
+of the change written by the developer who committed it), and a list of the modifications--including line-by-line diffs for changes to textual files.
+
+You can subscribe to the *architect-commits* mailing list at http://groups.google.com/group/architect-commits.
+
+
 = Get the Source Code =
 
 == If you are using Eclipse ==
@@ -19,24 +52,6 @@ Currently, everyone on the Architect team has chosen to use Eclipse.  If you hav
 If you just want to check out the source into a local directory or your development environment does not integrate with Subversion, use the command line *svn* tool:
 
  `svn checkout http://power-architect.googlecode.com/svn/trunk power-architect`
-
-
-= Subscribe To the Power*Architect Mailing Lists =
-
-There are two mailing lists for developers for Power*Architect which are hosted 
-on Google Groups. The first mailing list is the *architect-developers* mailing list. The
-developers list is for asking questions about the future direction of the Architect, giving comments and suggestions, or any other concerns that you may have while making modifications.
-
-You can subscribe to the *architect-developers* 
-mailing list at http://groups.google.com/group/architect-developers.
-
-The other mailing list is for commits to Power*Architect. The *architect-commits* 
-list gets an email every time someone commits a change to the Power*Architect repository.
-Each email includes the commit comment (a short summary of the change written by the
-developer who committed it), and a list of the modifications--including line-by-line
-diffs for changes to textual files.
-
-You can subscribe to the *architect-commits* mailing list at http://groups.google.com/group/architect-commits.
 
 
 = Support Web Forum =
@@ -137,6 +152,9 @@ the Ant Build from the Run As menu option.
 
 For developers new to Power*Architect that want to start making contributions to Power*Architect there is a wishlist included with the source code that the developers
 have put together.
+
+
+
 
 
 
