@@ -190,6 +190,7 @@
 		enabled BEFORE this is run. They CANNOT be run in the
 		same Ant session.
 		Also, the ouput directory is specified by the value of
+		the outfile attribute
 		-->
 	<target name="clover.html" depends="init, with.clover"
 		description="Generates HTML coverage report based on previous 
