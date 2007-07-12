@@ -21,17 +21,23 @@ If you just want to check out the source into a local directory or your developm
  `svn checkout http://power-architect.googlecode.com/svn/trunk power-architect`
 
 
-= Subscribe To Power*Architect Mailing Lists =
+= Subscribe To the Power*Architect Mailing Lists =
 
 There are two mailing lists for developers for Power*Architect which are hosted 
-on Google Groups. The first mailing list is the developers mailing list. The
-developers list is for asking questions, giving comments and suggestions, or 
-any other concers that you may have while making modifications. The developer 
-mailing list is at http://groups.google.com/group/architect-developers. The 
-second mailing list is for commits to Power*Architect. The commits mailing 
-list is emailed every time a commit is done to the Power*Architect repository 
-with a comment about what was changed and a list of the modifications. The 
-commits mailing list is at http://groups.google.com/group/architect-commits.
+on Google Groups. The first mailing list is the *architect-developers* mailing list. The
+developers list is for asking questions about the future direction of the Architect, giving comments and suggestions, or any other concerns that you may have while making modifications.
+
+You can subscribe to the *architect-developers* 
+mailing list at http://groups.google.com/group/architect-developers.
+
+The other mailing list is for commits to Power*Architect. The *architect-commits* 
+list gets an email every time someone commits a change to the Power*Architect repository.
+Each email includes the commit comment (a short summary of the change written by the
+developer who committed it), and a list of the modifications--including line-by-line
+diffs for changes to textual files.
+
+You can subscribe to the *architect-commits* mailing list at http://groups.google.com/group/architect-commits.
+
 
 = Support Web Forum =
 
