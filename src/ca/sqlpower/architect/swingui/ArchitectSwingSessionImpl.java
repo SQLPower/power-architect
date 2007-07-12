@@ -71,7 +71,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     /**
      * The project associated with this session.  The project provides save
      * and load functionality, and houses the source database connections.
-     * FIXME: MAKE THIS FINAL after merging ArchitectSwingSession and SwingUIProject
      */
     private final SwingUIProject project;
 
