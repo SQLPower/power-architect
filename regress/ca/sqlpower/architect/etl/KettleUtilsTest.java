@@ -34,8 +34,10 @@ package ca.sqlpower.architect.etl;
 import java.util.List;
 
 import junit.framework.TestCase;
-import be.ibridge.kettle.core.database.DatabaseInterface;
-import be.ibridge.kettle.core.database.DatabaseMeta;
+
+import org.pentaho.di.core.database.DatabaseInterface;
+import org.pentaho.di.core.database.DatabaseMeta;
+
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectDataSourceType;
 import ca.sqlpower.architect.etl.kettle.KettleOptions;

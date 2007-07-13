@@ -36,9 +36,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.pentaho.di.core.database.DatabaseInterface;
+import org.pentaho.di.core.database.DatabaseMeta;
 
-import be.ibridge.kettle.core.database.DatabaseInterface;
-import be.ibridge.kettle.core.database.DatabaseMeta;
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectDataSourceType;
 

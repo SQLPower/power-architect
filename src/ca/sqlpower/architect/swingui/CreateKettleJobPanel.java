@@ -52,8 +52,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.apache.log4j.Logger;
-
-import be.ibridge.kettle.trans.step.mergejoin.MergeJoinMeta;
+import org.pentaho.di.trans.steps.mergejoin.MergeJoinMeta;
 
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.etl.kettle.CreateKettleJob;

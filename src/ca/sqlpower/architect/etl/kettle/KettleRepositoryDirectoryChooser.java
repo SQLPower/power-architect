@@ -31,8 +31,8 @@
  */
 package ca.sqlpower.architect.etl.kettle;
 
-import be.ibridge.kettle.repository.Repository;
-import be.ibridge.kettle.repository.RepositoryDirectory;
+import org.pentaho.di.repository.Repository;
+import org.pentaho.di.repository.RepositoryDirectory;
 
 /**
  * This interface defines how a repository directory should be selected.
