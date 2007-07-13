@@ -56,11 +56,13 @@ If you just want to check out the source into a local directory or your developm
 
 = Support Web Forum =
 
-For additional support you can visit the SQL Power forums at 
-http://www.sqlpower.ca/forum/forums/list.page. 
+For end-user support, visit the SQL Power forums at 
+http://www.sqlpower.ca/forum/. You've probably already noticed that we
+want to encourage all Architect users to hang out on the forum so they can ask questions,
+get answers, trade tips and advice, and so on.
+
 
 = Coding Standards =
-
 
 We mainly use Sun's conventions for coding standards which are described here:
 http://java.sun.com/docs/codeconv/
