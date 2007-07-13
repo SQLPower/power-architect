@@ -33,10 +33,6 @@ package ca.sqlpower.architect.etl.kettle;
 
 import org.apache.log4j.Logger;
 
-import be.ibridge.kettle.core.database.Database;
-import be.ibridge.kettle.core.database.DatabaseMeta;
-import be.ibridge.kettle.core.exception.KettleDatabaseException;
-
 /**
  * A container for Kettle-related options.
  */
@@ -89,15 +85,5 @@ public class KettleOptions {
      * The key to use in an ArchitectDataSource for the host name.
      */
     public static final String KETTLE_HOSTNAME_KEY = "ca.sqlpower.architect.etl.kettle.hostname";
-        
-    
-    public static void testKettleDBConnection(DatabaseMeta dbMeta) throws KettleDatabaseException {
-        Database db = new Database(dbMeta);
-        try {
-            db.connect();
-        } finally {
-            db.disconnect();
-        }
-    }
 
 }

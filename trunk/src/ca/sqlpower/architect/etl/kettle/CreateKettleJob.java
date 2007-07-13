@@ -36,37 +36,35 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.pentaho.di.core.NotePadMeta;
+import org.pentaho.di.core.database.DatabaseMeta;
+import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.logging.LogWriter;
+import org.pentaho.di.core.util.EnvUtil;
+import org.pentaho.di.job.JobHopMeta;
+import org.pentaho.di.job.JobMeta;
+import org.pentaho.di.job.entries.special.JobEntrySpecial;
+import org.pentaho.di.job.entries.trans.JobEntryTrans;
+import org.pentaho.di.job.entry.JobEntryCopy;
+import org.pentaho.di.repository.Repository;
+import org.pentaho.di.repository.RepositoryDirectory;
+import org.pentaho.di.repository.RepositoryMeta;
+import org.pentaho.di.repository.UserInfo;
+import org.pentaho.di.trans.TransHopMeta;
+import org.pentaho.di.trans.TransMeta;
+import org.pentaho.di.trans.step.StepMeta;
+import org.pentaho.di.trans.steps.mergejoin.MergeJoinMeta;
+import org.pentaho.di.trans.steps.tableinput.TableInputMeta;
+import org.pentaho.di.trans.steps.tableoutput.TableOutputMeta;
 
-import be.ibridge.kettle.core.LogWriter;
-import be.ibridge.kettle.core.NotePadMeta;
-import be.ibridge.kettle.core.database.DatabaseMeta;
-import be.ibridge.kettle.core.exception.KettleDatabaseException;
-import be.ibridge.kettle.core.exception.KettleException;
-import be.ibridge.kettle.core.util.EnvUtil;
-import be.ibridge.kettle.job.JobHopMeta;
-import be.ibridge.kettle.job.JobMeta;
-import be.ibridge.kettle.job.entry.JobEntryCopy;
-import be.ibridge.kettle.job.entry.JobEntryInterface;
-import be.ibridge.kettle.job.entry.special.JobEntrySpecial;
-import be.ibridge.kettle.job.entry.trans.JobEntryTrans;
-import be.ibridge.kettle.repository.Repository;
-import be.ibridge.kettle.repository.RepositoryDirectory;
-import be.ibridge.kettle.repository.RepositoryMeta;
-import be.ibridge.kettle.repository.UserInfo;
-import be.ibridge.kettle.trans.TransHopMeta;
-import be.ibridge.kettle.trans.TransMeta;
-import be.ibridge.kettle.trans.step.StepMeta;
-import be.ibridge.kettle.trans.step.mergejoin.MergeJoinMeta;
-import be.ibridge.kettle.trans.step.tableinput.TableInputMeta;
-import be.ibridge.kettle.trans.step.tableoutput.TableOutputMeta;
 import ca.sqlpower.architect.AlwaysAcceptFileValidator;
 import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
@@ -167,7 +165,7 @@ public class CreateKettleJob implements Monitorable {
      * them to KJB and KTR files OR a repository.
      * @throws KettleException 
      */
-    public void doExport(List<SQLTable> tableList, SQLDatabase targetDB ) throws ArchitectException, RuntimeException, IOException, KettleException {
+    public void doExport(List<SQLTable> tableList, SQLDatabase targetDB ) throws ArchitectException, RuntimeException, IOException, KettleException, SQLException {
 
         monitor = new MonitorableImpl();
         monitor.setMessage("");
@@ -309,10 +307,7 @@ public class CreateKettleJob implements Monitorable {
             }
 
             JobEntryCopy startEntry = new JobEntryCopy();
-            JobEntrySpecial start = new JobEntrySpecial();
-            start.setName("Start");
-            start.setType(JobEntryInterface.TYPE_JOBENTRY_SPECIAL);
-            start.setStart(true);
+            JobEntrySpecial start = new JobEntrySpecial("Start", true, false);
             startEntry.setEntry(start);
             startEntry.setLocation(10, spacing);
             startEntry.setDrawn();
@@ -322,9 +317,8 @@ public class CreateKettleJob implements Monitorable {
             int i = 1;
             for (TransMeta transformation : transformations) {
                 JobEntryCopy entry = new JobEntryCopy();
-                JobEntryTrans trans = new JobEntryTrans();
-                trans.setName(transformation.getName());
-                trans.setType(JobEntryInterface.TYPE_JOBENTRY_TRANSFORMATION);
+                JobEntryTrans trans = new JobEntryTrans(transformation.getName());
+                //trans.setJobEntryType(JobEntryType.TRANSFORMATION);
                 trans.setTransname(transformation.getName());
                 entry.setEntry(trans);
                 entry.setLocation(i*spacing, spacing);
@@ -381,10 +375,10 @@ public class CreateKettleJob implements Monitorable {
             try {
                 databaseMeta = KettleUtils.createDatabaseMeta(dataSource);
                 try {
-                    KettleOptions.testKettleDBConnection(databaseMeta);
-                } catch (KettleDatabaseException e) {
+                    Connection conn = dataSource.createConnection();
+                    conn.close();
+                } catch (SQLException e) {
                     logger.info("Could not connect to the database " + dataSource.getName() + ".");
-                    e.printStackTrace();
                     tasksToDo.add("Check that the database " + dataSource.getName() + " can be connected to.");
                 }
             } catch (RuntimeException re) {
@@ -494,76 +488,97 @@ public class CreateKettleJob implements Monitorable {
      * them into a Kettle repository.
      * @throws KettleException 
      */
-    void outputToRepository(JobMeta jm, List<TransMeta> transformations, Repository repo) throws KettleException {
+    void outputToRepository(JobMeta jm, List<TransMeta> transformations, Repository repo) throws KettleException, SQLException {
         
         try {
-            repo.connect("MooCow");
+            // Pass the repository a connection straight as the Repository
+            // connect method loads its own drivers and we don't want to
+            // include them.
+            repo.getDatabase().setConnection(repository.createConnection());
             
-            RepositoryDirectory directory = dirChooser.selectDirectory(repo);
-            if (directory == null) {
-                cancelled();
-                return;
-            }
+            RepositoryDirectory directory;
             
-            FileValidationResponse overwriteOption = FileValidationResponse.WRITE_OK;
-            for (TransMeta tm: transformations) {
+            try {
+                // We refresh the repository tree as we are passing a connection
+                // straight. The Repository connect method does this automatically
+                // but we now need to do it manually.
+                repo.refreshRepositoryDirectoryTree();
+
+                directory = dirChooser.selectDirectory(repo);
+                if (directory == null) {
+                    throw new KettleException("The directory of the repository was not available.");
+                }
+            } catch (KettleException e) {
+                tasksToDo.clear();
+                tasksToDo.add("The directory of the repository was not available.");
+                throw e;
+            } 
+
+            try {
+                FileValidationResponse overwriteOption = FileValidationResponse.WRITE_OK;
+                for (TransMeta tm: transformations) {
+                    if (monitor.isCancelled()) {
+                        cancelled();
+                        return;
+                    }
+                    tm.setDirectory(directory);
+                    if (overwriteOption == FileValidationResponse.WRITE_NOT_OK_ALWAYS) {
+                        monitor.setProgress(monitor.getProgress() + 1);
+                        continue;
+                    }
+                    if (overwriteOption != FileValidationResponse.WRITE_OK_ALWAYS) {
+                        long id = repo.getTransformationID(tm.getName(), directory.getID());
+                        if (id >= 0) {
+                            logger.debug("We found a transformation with the same name, the id is " + id);
+                            overwriteOption = fileValidator.acceptFile(tm.getName(), directory.getPath());
+                            if (overwriteOption == FileValidationResponse.WRITE_NOT_OK_ALWAYS ||
+                                    overwriteOption == FileValidationResponse.WRITE_NOT_OK) {
+                                monitor.setProgress(monitor.getProgress() + 1);
+                                continue;
+                            }
+                        }
+                    }
+                    tm.saveRep(repo);
+                    monitor.setProgress(monitor.getProgress() + 1);
+                    logger.debug("Progress is " + monitor.getProgress() + " out of " + monitor.getJobSize());
+                }
                 if (monitor.isCancelled()) {
                     cancelled();
                     return;
                 }
-                tm.setDirectory(directory);
+
+                //This sets the location of the transformations in the job
+                //The first entry is not a transformation so skip it
+                //This is done here so we know where the files are being saved and that they are saved
+                for (int i = 1; i < jm.nrJobEntries(); i++) {
+                    JobEntryTrans trans = (JobEntryTrans)(jm.getJobEntry(i).getEntry());
+                    trans.setDirectory(directory);
+                }
+
+                jm.setDirectory(directory);
                 if (overwriteOption == FileValidationResponse.WRITE_NOT_OK_ALWAYS) {
-                    monitor.setProgress(monitor.getProgress() + 1);
-                    continue;
+                    return;
                 }
                 if (overwriteOption != FileValidationResponse.WRITE_OK_ALWAYS) {
-                    long id = repo.getTransformationID(tm.getName(), directory.getID());
-                    if (id >= 0) {
-                        logger.debug("We found a transformation with the same name, the id is " + id);
-                        overwriteOption = fileValidator.acceptFile(tm.getName(), directory.getPath());
+                    if (repo.getTransformationID(jm.getName(), directory.getID()) >= 0) {
+                        overwriteOption = fileValidator.acceptFile(jm.getName(), directory.getPath());
                         if (overwriteOption == FileValidationResponse.WRITE_NOT_OK_ALWAYS ||
                                 overwriteOption == FileValidationResponse.WRITE_NOT_OK) {
-                            monitor.setProgress(monitor.getProgress() + 1);
-                            continue;
+                            return;
                         }
                     }
                 }
-                tm.saveRep(repo);
+                jm.saveRep(repo);
                 monitor.setProgress(monitor.getProgress() + 1);
                 logger.debug("Progress is " + monitor.getProgress() + " out of " + monitor.getJobSize());
+            } catch (KettleException e) {
+                tasksToDo.clear();
+                tasksToDo.add("Kettle job " + jm.getName() + " failed to save to respitory due to a Kettle error.");
+                throw e;
             }
-            if (monitor.isCancelled()) {
-                cancelled();
-                return;
-            }
-            
-            //This sets the location of the transformations in the job
-            //The first entry is not a transformation so skip it
-            //This is done here so we know where the files are being saved and that they are saved
-            for (int i = 1; i < jm.nrJobEntries(); i++) {
-                JobEntryTrans trans = (JobEntryTrans)(jm.getJobEntry(i).getEntry());
-                trans.setDirectory(directory);
-            }
-            
-            jm.setDirectory(directory);
-            if (overwriteOption == FileValidationResponse.WRITE_NOT_OK_ALWAYS) {
-                return;
-            }
-            if (overwriteOption != FileValidationResponse.WRITE_OK_ALWAYS) {
-                if (repo.getTransformationID(jm.getName(), directory.getID()) >= 0) {
-                    overwriteOption = fileValidator.acceptFile(jm.getName(), directory.getPath());
-                    if (overwriteOption == FileValidationResponse.WRITE_NOT_OK_ALWAYS ||
-                            overwriteOption == FileValidationResponse.WRITE_NOT_OK) {
-                        return;
-                    }
-                }
-            }
-            jm.saveRep(repo);
-            monitor.setProgress(monitor.getProgress() + 1);
-            logger.debug("Progress is " + monitor.getProgress() + " out of " + monitor.getJobSize());
-        } catch (KettleException e) {
+        }catch (SQLException e) {
             tasksToDo.clear();
-            tasksToDo.add("Kettle job " + jm.getName() + " failed to save to respitory");
+            tasksToDo.add("Kettle job " + jm.getName() + " failed to save to respitory due to a SQL error.");
             throw e;
         } finally {
             repo.disconnect();
@@ -576,41 +591,20 @@ public class CreateKettleJob implements Monitorable {
      * database connection.  This method does not attempt to actually make
      * a database connection itself; the returned Repository will attempt
      * the connection by itself later on.
-     * 
-     * @throws ArchitectException If the kettle repository connection fails
-     * for any reason (usually related to classloading problems)
      */
-    private Repository createRepository() throws ArchitectException {
-        
-        try {
-            DatabaseMeta kettleDBMeta = KettleUtils.createDatabaseMeta(repository);
+    Repository createRepository() {
 
-            // Reflection is evil. Sorry.
-            Class<RepositoryMeta> rmClass = (Class<RepositoryMeta>) Class.forName("be.ibridge.kettle.RepositoryMeta", true, repository.getParentType().getJdbcClassLoader());
+        DatabaseMeta kettleDBMeta = KettleUtils.createDatabaseMeta(repository);
+        RepositoryMeta repoMeta = new RepositoryMeta("", "", kettleDBMeta);
 
-            // These two lines could just be repoMeta = rmClass.newInstance() if we can use the no-args constructor.
-            Constructor<RepositoryMeta> rmConst = rmClass.getConstructor(new Class[] {String.class, String.class, DatabaseMeta.class});
-            RepositoryMeta repoMeta = rmConst.newInstance(new Object[] {"", "", kettleDBMeta});
+        UserInfo userInfo = new UserInfo(repository.get(KettleOptions.KETTLE_REPOS_LOGIN_KEY),
+                repository.get(KettleOptions.KETTLE_REPOS_PASSWORD_KEY),
+                jobName, "", true, null);
+        LogWriter lw = LogWriter.getInstance(); // Repository constructor needs this for some reason
 
-            UserInfo userInfo = new UserInfo(repository.get(KettleOptions.KETTLE_REPOS_LOGIN_KEY),
-                    repository.get(KettleOptions.KETTLE_REPOS_PASSWORD_KEY),
-                    jobName, "", true, null);
-            LogWriter lw = LogWriter.getInstance(); // Repository constructor needs this for some reason
-            Repository repo = new Repository(lw, repoMeta, userInfo);
-            
-            return repo;
-            
-        } catch (ClassNotFoundException e) {
-            throw new ArchitectException("Couldn't create Kettle repository connection", e);
-        } catch (NoSuchMethodException e) {
-            throw new ArchitectException("Couldn't create Kettle repository connection", e);
-        } catch (InstantiationException e) {
-            throw new ArchitectException("Couldn't create Kettle repository connection", e);
-        } catch (IllegalAccessException e) {
-            throw new ArchitectException("Couldn't create Kettle repository connection", e);
-        } catch (InvocationTargetException e) {
-            throw new ArchitectException("Couldn't create Kettle repository connection", e);
-        }
+        Repository repo = new Repository(lw, repoMeta, userInfo);
+        return repo;
+
     }
 
     /**

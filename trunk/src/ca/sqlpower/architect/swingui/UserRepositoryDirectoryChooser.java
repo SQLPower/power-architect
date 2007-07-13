@@ -44,8 +44,11 @@ import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.DefaultMutableTreeNode;
 
-import be.ibridge.kettle.repository.Repository;
-import be.ibridge.kettle.repository.RepositoryDirectory;
+import org.apache.log4j.Logger;
+import org.pentaho.di.repository.Repository;
+import org.pentaho.di.repository.RepositoryDirectory;
+
+import ca.sqlpower.architect.etl.kettle.CreateKettleJob;
 import ca.sqlpower.architect.etl.kettle.KettleRepositoryDirectoryChooser;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
@@ -57,6 +60,8 @@ import com.jgoodies.forms.layout.FormLayout;
  */
 public class UserRepositoryDirectoryChooser implements KettleRepositoryDirectoryChooser {
 
+    private static final Logger logger = Logger.getLogger(CreateKettleJob.class);
+    
     /**
      * This is the parent frame to know which frame to make this dialog on top of.
      */
@@ -83,8 +88,7 @@ public class UserRepositoryDirectoryChooser implements KettleRepositoryDirectory
         builder.nextColumn(2);
         builder.append("Choose the directory to save in");
         builder.nextLine();
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode(repo.getDirectoryTree());
-        populateTree(root);
+        DefaultMutableTreeNode root = populateTree(repo.getDirectoryTree());
         final JTree tree = new JTree(root);
         builder.append("");
         JScrollPane scrollPane = new JScrollPane(tree);
@@ -143,14 +147,19 @@ public class UserRepositoryDirectoryChooser implements KettleRepositoryDirectory
 
     /**
      * This is a recursive helper method to create the tree to show the user for directory selection
+     * 
+     * @return The root tree node of the tree made from the repository directory
      */
-    private void populateTree(DefaultMutableTreeNode root) {
-        for (int i = 0; i < ((RepositoryDirectory)root.getUserObject()).getNrSubdirectories(); i++) {
-            DefaultMutableTreeNode child = new 
-                DefaultMutableTreeNode(((RepositoryDirectory)root.getUserObject()).getSubdirectory(i));
-            populateTree(child);
+    private DefaultMutableTreeNode populateTree(RepositoryDirectory rootDir) {
+        DefaultMutableTreeNode root = new DefaultMutableTreeNode(rootDir);
+        int numIterations = rootDir.getNrSubdirectories();
+        for (int i = 0; i < numIterations; i++) {
+            logger.debug("Populating the tree: on iteration " + i + " of " + numIterations);
+            RepositoryDirectory childDir = rootDir.getSubdirectory(i);
+            DefaultMutableTreeNode child = populateTree(childDir);
             root.add(child);
         }
+        return root;
     }
 
 }

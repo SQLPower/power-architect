@@ -35,6 +35,7 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -48,6 +49,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
 import org.apache.log4j.Logger;
+import org.pentaho.di.core.exception.KettleException;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.FileValidator;
@@ -137,8 +139,16 @@ public class CreateKettleJobAction extends AbstractArchitectAction {
                             Exception ex = getDoStuffException();
                             if (ex instanceof ArchitectException) {
                                 ASUtils.showExceptionDialog(session, "An error occurred reading from the tables for kettle", ex);
-                            } else if (ex instanceof RuntimeException || ex instanceof IOException) {
-                                ASUtils.showExceptionDialog(session, kettleJob.getTasksToDo().toString(), ex);
+                            } else if (ex instanceof RuntimeException || ex instanceof IOException || ex instanceof SQLException) {
+                                StringBuffer buffer = new StringBuffer();
+                                buffer.append("An error occurred at runtime.").append("\n");
+                                for(String task: kettleJob.getTasksToDo()) {
+                                    buffer.append(task).append("\n");
+                                }
+                                ASUtils.showExceptionDialog(session, buffer.toString(), ex);
+                            } else if (ex instanceof KettleException) {
+                                ASUtils.showExceptionDialog(session, "An exception in Kettle occurred during the export process" +
+                                        "\n" + ex.getMessage().trim(), ex);
                             } else {
                                 ASUtils.showExceptionDialog(session, "An unexpected error occurred during the export process", ex);
                             }
