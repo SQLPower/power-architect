@@ -1,0 +1,47 @@
+# This is a copy of the nightly build script for Power*Architect that 
+# we're running at SQL Power. If you would like to set up a nightly build,
+# you could use this script as an example, or you could suggest improvements 
+# to our nightly build process as well
+
+#!/bin/bash
+
+export PATH=$PATH:/usr/local/bin
+
+# Checkout the latest Power*Architect source from Subversion
+svn checkout http://power-architect.googlecode.com/svn/trunk/ power-architect
+
+cd power-architect
+
+# Get version string
+VERSION=`ant -Dnightly=true init | grep 'Building Architect version:' | awk -F 'Building Architect version: ' '{print $2}'`
+
+export ANT_OPTS="-Xmx1024m -Djava.awt.headless=true"
+
+# Run the Power*Architect nightly build
+ant -Dnightly=true dist >dist/architect-$VERSION/build.log
+
+# Mail out the build log
+cd dist
+mail -s "Nightly build report for Power*Architect v$VERSION" architect-commits@googlegroups.com < architect-$VERSION/build.log
+
+# Copy stuff to the web server to make it accessible
+ditto architect-$VERSION /Users/nightly/Sites/architect/$VERSION
+
+# Delete extra nightly builds in the dist (determined by MAX_NUM_BUILDS)
+# defined below. For now, we set it to 7 (1 week) nightly builds
+# grab the number of builds in the dist
+NUM_BUILDS=`ls | grep --count ''` 
+MAX_NUM_BUILDS=7
+if [ $NUM_BUILDS -gt $MAX_NUM_BUILDS ]; then
+  NUMDELETES=`expr $NUM_BUILDS - $MAX_NUM_BUILDS`
+  ls | head -$NUMDELETES | xargs rm -rf
+fi
+
+# Delete extra nightly builds in the web server (determined by MAX_NUM_BUILDS)
+cd /Users/nightly/Sites/architect 
+# grab the number of builds in the dist
+NUM_BUILDS=`ls | grep --count ''` 
+if [ $NUM_BUILDS -gt $MAX_NUM_BUILDS ]; then
+  NUMDELETES=`expr $NUM_BUILDS - $MAX_NUM_BUILDS`
+  ls | head -$NUMDELETES | xargs rm -rf
+fi
