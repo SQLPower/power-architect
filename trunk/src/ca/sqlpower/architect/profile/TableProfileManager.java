@@ -177,7 +177,7 @@ public class TableProfileManager implements ProfileManager {
     {
         TableProfileResult ret = null;
         for (TableProfileResult temp : processOrder) {
-            if (temp.getProgress() < temp.getJobSize().intValue()) {
+            if (temp.getProgress() < temp.getJobSize().intValue() && !temp.isCancelled()) {
                 ret = temp;
                 break;
             }
@@ -232,6 +232,9 @@ public class TableProfileManager implements ProfileManager {
       * the TableProfileManager
       */
      public void clear() {
+         for (TableProfileResult tpr: processOrder) {
+             tpr.setCancelled(true);
+         }
          for (TableProfileResult tpr: tableResults){
              tpr.setCancelled(true);
          }

@@ -235,7 +235,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         logger.debug("About to create a new session for project \"" + projectName + "\"");
         ArchitectSwingSessionImpl session = new ArchitectSwingSessionImpl(this, projectName);
         sessions.add(session);
-        session.addSessionLifecycleListener(this);
+        session.addSessionLifecycleListener(new SessionLifecycleListenerImpl(session));
         
         if (showGUI) {
             logger.debug("Creating the Architect frame...");
@@ -247,6 +247,19 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         }
         
         return session;
+    }
+    
+    private class SessionLifecycleListenerImpl implements SessionLifecycleListener {
+        
+        ArchitectSwingSession session;
+        
+        public SessionLifecycleListenerImpl(ArchitectSwingSession session) {
+            this.session = session;
+        }
+
+        public void sessionClosing() {
+            sessions.remove(session);
+        }
     }
     
     /* (non-Javadoc)
