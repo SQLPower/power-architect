@@ -1,0 +1,16 @@
+This README refers to the Power*Architect source-only package.
+
+The source-only package is intended to be a bare-bones distribution
+intended only for automatic packaging systems that manage their own
+library dependencies.
+
+If you are looking for the source code with the dependencies included,
+you can check out a copy of the project using Subversion.
+
+You can anonymously check out a read-only copy using Subversion with 
+the following command:
+svn checkout http://power-architect.googlecode.com/svn/trunk/ power-architect
+
+If you are interested in commiting changes to the project source, you can
+visit our project website at http://code.google.com/p/power-architect/
+
