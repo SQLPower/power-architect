@@ -112,6 +112,8 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     private CreateKettleJob createKettleJob;
     // END STUFF BROUGHT IN FROM SwingUIProject
     
+    private List<SessionLifecycleListener> lifecycleListener;
+    
     /**
      * Creates a new swing session, including a new visible architect frame, with
      * the given parent context and the given name.
@@ -155,6 +157,8 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         this.sourceDatabases = new DBTree(this, initialDBList);
         
         undoManager = new UndoManager(playPen);
+        
+        lifecycleListener = new ArrayList<SessionLifecycleListener>();
     }
 
     public void initGUI() throws ArchitectException {
@@ -268,6 +272,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             logger.debug ("closing connection: " + db.getName());
             db.disconnect();
         }
+        fireSessionClosing();
         //Clear the profile manager
         profileManager.clear();
         // Close dialogs
@@ -476,7 +481,13 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     }
     // END STUFF BROUGHT IN FROM SwingUIProject
 
-    public void addSessionLifecycleListener(ArchitectSwingSessionContext context) {
-        logger.error("TODO addSessionLifecycleListener not implemented");
+    public void addSessionLifecycleListener(SessionLifecycleListener listener) {
+        lifecycleListener.add(listener);
+    }
+    
+    public void fireSessionClosing() {
+        for (SessionLifecycleListener listener: lifecycleListener) {
+            listener.sessionClosing();
+        }
     }
 }

@@ -627,6 +627,8 @@ public class ArchitectFrame extends JFrame {
 	                "Warning", JOptionPane.WARNING_MESSAGE);
 	        return;
 		}
+        
+        ArchitectSwingSessionContext context = session.getContext();
 
 	    if (promptForUnsavedModifications()) {
 	        try {
@@ -635,8 +637,13 @@ public class ArchitectFrame extends JFrame {
 	        } catch (ArchitectException e) {
 	            logger.error("Couldn't save settings: "+e);
 	        }
-	        System.exit(0);
+	        this.dispose();
 	    }
+        
+        if (context.getSessions().isEmpty()) {
+            System.exit(0);
+        }
+        
 	}
 
 	/**
