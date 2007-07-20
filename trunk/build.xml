@@ -992,7 +992,13 @@
 			 compression="gzip" longfile="gnu">
 			<tarfileset dir="."
 				prefix="architect-src-only-${app.version}"
-				includes="${src}/**/*.java, regress/**/*.java"/>
+				includes="${src}/**/*.java, 
+					  regress/**/*.java,
+					  build.xml,
+					  build.properties.example,
+					  LICENSE,
+					  README.sourceonly
+					  "/>
 		</tar>
 	</target>
 	
