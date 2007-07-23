@@ -742,7 +742,6 @@ public class ASUtils {
             labelText.append(subMessage);
         }
         JLabel messageLabel = new JLabel(labelText.toString());
-        messageLabel.setIcon(StatusIcon.getFailIcon());
         top.add(messageLabel);
 
         JLabel errClassLabel =
