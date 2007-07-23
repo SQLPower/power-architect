@@ -39,11 +39,11 @@ import javax.swing.Action;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 
-import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.DBCSPanel;
 import ca.sqlpower.architect.swingui.action.DBCSOkAction;
+import ca.sqlpower.sql.SPDataSource;
 
 /**
  * When a new database connection has been established, this listener
@@ -68,7 +68,7 @@ public class NewDatabaseListener implements ActionListener {
 		final DBCSPanel dbcsPanel = new DBCSPanel(
                 frame.getArchitectSession().getUserSettings().getPlDotIni());
 		
-		dbcsPanel.setDbcs(new ArchitectDataSource());
+		dbcsPanel.setDbcs(new SPDataSource());
 
 		DBCSOkAction okButton = new DBCSOkAction(dbcsPanel, frame.getArchitectSession(), true);
 		

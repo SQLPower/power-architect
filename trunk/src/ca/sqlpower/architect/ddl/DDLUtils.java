@@ -35,10 +35,10 @@ import java.util.Vector;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
+import ca.sqlpower.sql.SPDataSource;
 
 /**
  * DDLUtils is a collection of utilities related to creating and
@@ -170,7 +170,7 @@ public class DDLUtils {
 		return dbTypeList;
     }
 
-    public static DDLGenerator createDDLGenerator(ArchitectDataSource ads)
+    public static DDLGenerator createDDLGenerator(SPDataSource ads)
                         throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 
         Class generatorClass;

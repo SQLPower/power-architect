@@ -46,6 +46,9 @@ import org.apache.commons.beanutils.PropertyUtils;
 import ca.sqlpower.ArchitectTestCase;
 import ca.sqlpower.architect.SQLIndex.IndexType;
 import ca.sqlpower.architect.undo.UndoManager;
+import ca.sqlpower.sql.DataSourceCollection;
+import ca.sqlpower.sql.PlDotIni;
+import ca.sqlpower.sql.SPDataSource;
 
 /**
  * SQLTestCase is an abstract base class for test cases that require a
@@ -70,7 +73,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 	}
 	
 	/**
-	 * Looks up and returns an ArchitectDataSource that represents the testing
+	 * Looks up and returns an SPDataSource that represents the testing
 	 * database. Uses a PL.INI file located in the current working directory, 
 	 * called "pl.regression.ini" and creates a connection to the database called
 	 * "regression_test".
@@ -79,7 +82,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 	 * database platform!
 	 * @throws ArchitectException 
 	 */
-	static ArchitectDataSource getDataSource() throws IOException, ArchitectException {
+	static SPDataSource getDataSource() throws IOException, ArchitectException {
 		plini.read(new File("pl.regression.ini"));
 		return plini.getDataSource("regression_test");
 	}
@@ -88,7 +91,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 	 * Sets up the instance variable <code>db</code> using the getDatabase() method.
 	 */
 	protected void setUp() throws Exception {
-		db = new SQLDatabase(new ArchitectDataSource(getDataSource()));
+		db = new SQLDatabase(new SPDataSource(getDataSource()));
         assertNotNull(db.getDataSource().getParentType());
 	}
 	
@@ -161,14 +164,14 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 				newVal = new Boolean(! ((Boolean) oldVal).booleanValue());
 			} else if (property.getPropertyType() == SQLCatalog.class) {
 				newVal = new SQLCatalog(new SQLDatabase(),"This is a new catalog");
-			} else if (property.getPropertyType() == ArchitectDataSource.class) {
-				newVal = new ArchitectDataSource();
-				((ArchitectDataSource)newVal).setName("test");
-				((ArchitectDataSource)newVal).setDisplayName("test");
-				((ArchitectDataSource)newVal).setUser("a");
-				((ArchitectDataSource)newVal).setPass("b");
-				((ArchitectDataSource)newVal).getParentType().setJdbcDriver(MockJDBCDriver.class.getName());
-				((ArchitectDataSource)newVal).setUrl("jdbc:mock:tables=tab1");
+			} else if (property.getPropertyType() == SPDataSource.class) {
+				newVal = new SPDataSource();
+				((SPDataSource)newVal).setName("test");
+				((SPDataSource)newVal).setDisplayName("test");
+				((SPDataSource)newVal).setUser("a");
+				((SPDataSource)newVal).setPass("b");
+				((SPDataSource)newVal).getParentType().setJdbcDriver(MockJDBCDriver.class.getName());
+				((SPDataSource)newVal).setUrl("jdbc:mock:tables=tab1");
 			} else if (property.getPropertyType() == SQLTable.class) {
 				newVal = new SQLTable();
             } else if ( property.getPropertyType() == SQLColumn.class){
@@ -275,14 +278,14 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 				newVal = new Boolean(! ((Boolean) oldVal).booleanValue());
 			} else if (property.getPropertyType() == SQLCatalog.class) {
 				newVal = new SQLCatalog(new SQLDatabase(),"This is a new catalog");
-			} else if (property.getPropertyType() == ArchitectDataSource.class) {
-				newVal = new ArchitectDataSource();
-				((ArchitectDataSource)newVal).setName("test");
-				((ArchitectDataSource)newVal).setDisplayName("test");
-				((ArchitectDataSource)newVal).setUser("a");
-				((ArchitectDataSource)newVal).setPass("b");
-				((ArchitectDataSource)newVal).getParentType().setJdbcDriver(MockJDBCDriver.class.getName());
-				((ArchitectDataSource)newVal).setUrl("jdbc:mock:tables=tab1,tab2");
+			} else if (property.getPropertyType() == SPDataSource.class) {
+				newVal = new SPDataSource();
+				((SPDataSource)newVal).setName("test");
+				((SPDataSource)newVal).setDisplayName("test");
+				((SPDataSource)newVal).setUser("a");
+				((SPDataSource)newVal).setPass("b");
+				((SPDataSource)newVal).getParentType().setJdbcDriver(MockJDBCDriver.class.getName());
+				((SPDataSource)newVal).setUrl("jdbc:mock:tables=tab1,tab2");
 			} else if (property.getPropertyType() == SQLTable.class) {
 				newVal = new SQLTable();
             } else if (property.getPropertyType() == SQLColumn.class) {
@@ -323,7 +326,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
     }
 
     public SQLDatabase getDb() {
-        return new SQLDatabase(new ArchitectDataSource(db.getDataSource()));
+        return new SQLDatabase(new SPDataSource(db.getDataSource()));
     }
 
 }

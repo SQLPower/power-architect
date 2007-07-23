@@ -54,8 +54,8 @@ import javax.swing.event.DocumentListener;
 import org.apache.log4j.Logger;
 import org.pentaho.di.trans.steps.mergejoin.MergeJoinMeta;
 
-import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.etl.kettle.CreateKettleJob;
+import ca.sqlpower.sql.SPDataSource;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
@@ -172,7 +172,7 @@ public class CreateKettleJobPanel implements ArchitectPanel {
         reposPropertiesButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 Window parentWindow = SwingUtilities.getWindowAncestor(panel);
-                ASUtils.showDbcsDialog(parentWindow, session, (ArchitectDataSource)reposDB.getSelectedItem());
+                ASUtils.showDbcsDialog(parentWindow, session, (SPDataSource)reposDB.getSelectedItem());
             }
         });
         
@@ -288,7 +288,7 @@ public class CreateKettleJobPanel implements ArchitectPanel {
         settings.setSchemaName(schemaName.getText());
         settings.setKettleJoinType(defaultJoinType.getSelectedIndex());
         settings.setFilePath(filePath.getText());
-        settings.setRepository((ArchitectDataSource)reposDB.getSelectedItem());
+        settings.setRepository((SPDataSource)reposDB.getSelectedItem());
         settings.setSavingToFile(isSaveFile());
     }
 }

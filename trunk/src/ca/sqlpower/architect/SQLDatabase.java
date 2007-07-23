@@ -50,14 +50,17 @@ import org.apache.commons.pool.impl.GenericObjectPool;
 import org.apache.commons.pool.impl.GenericObjectPool.Config;
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.sql.SPDSConnectionFactory;
+import ca.sqlpower.sql.SPDataSource;
+
 public class SQLDatabase extends SQLObject implements java.io.Serializable, PropertyChangeListener {
 	private static Logger logger = Logger.getLogger(SQLDatabase.class);
 
 	/**
-	 * This ArchitectDataSource describes how to connect to the 
+	 * This SPDataSource describes how to connect to the 
 	 * physical database that backs this SQLDatabase object.
 	 */
-	private ArchitectDataSource dataSource;
+	private SPDataSource dataSource;
 
 	/**
 	 * A pool of JDBC connections backed by a Jakarta Commons DBCP pool.
@@ -75,7 +78,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	/**
 	 * Constructor for instances that connect to a real database by JDBC.
 	 */
-	public SQLDatabase(ArchitectDataSource dataSource) {
+	public SQLDatabase(SPDataSource dataSource) {
 		setDataSource(dataSource);
 		children = new ArrayList();
 	}
@@ -438,7 +441,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	 *
 	 * @return the value of dataSource
 	 */
-	public ArchitectDataSource getDataSource()  {
+	public SPDataSource getDataSource()  {
 		return this.dataSource;
 	}
 
@@ -447,8 +450,8 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	 *
 	 * @param argDataSource Value to assign to this.dataSource
 	 */
-	public void setDataSource(ArchitectDataSource argDataSource) {
-		ArchitectDataSource oldDataSource = this.dataSource;
+	public void setDataSource(SPDataSource argDataSource) {
+		SPDataSource oldDataSource = this.dataSource;
 		if (dataSource != null) {
 			dataSource.removePropertyChangeListener(this);
 			reset();
@@ -608,7 +611,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
             poolConfig.maxActive = 5;
             poolConfig.whenExhaustedAction = GenericObjectPool.WHEN_EXHAUSTED_FAIL;
 			connectionPool = new GenericObjectPool(null, poolConfig);
-			ConnectionFactory cf = new ArchitectConnectionFactory(dataSource);			
+			ConnectionFactory cf = new SPDSConnectionFactory(dataSource);			
 			new PoolableConnectionFactory(cf, connectionPool, null,
 					null, false, true);
 		}

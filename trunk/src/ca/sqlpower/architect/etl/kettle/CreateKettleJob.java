@@ -66,7 +66,6 @@ import org.pentaho.di.trans.steps.tableinput.TableInputMeta;
 import org.pentaho.di.trans.steps.tableoutput.TableOutputMeta;
 
 import ca.sqlpower.architect.AlwaysAcceptFileValidator;
-import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.DepthFirstSearch;
 import ca.sqlpower.architect.FileValidator;
@@ -77,6 +76,7 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.FileValidator.FileValidationResponse;
 import ca.sqlpower.architect.ddl.DDLUtils;
+import ca.sqlpower.sql.SPDataSource;
 
 /**
  * This class stores the settings for and creates a new Kettle job
@@ -135,9 +135,9 @@ public class CreateKettleJob implements Monitorable {
     private boolean savingToFile = true;
     
     /**
-     * The ArchitectDataSource representation of the database with the Kettle repository we want to save to
+     * The SPDataSource representation of the database with the Kettle repository we want to save to
      */
-    private ArchitectDataSource repository;
+    private SPDataSource repository;
     
     /**
      * The repository directory chooser that will select, or allow the user to select, the directory to save
@@ -197,7 +197,7 @@ public class CreateKettleJob implements Monitorable {
                 transMeta.setName(table.getName());
                 tableMapping = new LinkedHashMap<SQLTable, StringBuffer>();
 
-                ArchitectDataSource target = targetDB.getDataSource();
+                SPDataSource target = targetDB.getDataSource();
                 DatabaseMeta targetDatabaseMeta = addDatabaseConnection(databaseNames, target);
                 transMeta.addDatabase(targetDatabaseMeta);
 
@@ -252,7 +252,7 @@ public class CreateKettleJob implements Monitorable {
                 }
 
                 for (SQLTable sourceTable: tableMapping.keySet()) {
-                    ArchitectDataSource source = sourceTable.getParentDatabase().getDataSource();
+                    SPDataSource source = sourceTable.getParentDatabase().getDataSource();
                     DatabaseMeta databaseMeta = addDatabaseConnection(databaseNames, source);
                     transMeta.addDatabase(databaseMeta);
 
@@ -369,7 +369,7 @@ public class CreateKettleJob implements Monitorable {
      * the databaseNames mapping if it does not already exist in the databaseNames.
      * This method is package private for testing
      */
-    DatabaseMeta addDatabaseConnection(Map<String, DatabaseMeta> databaseNames, ArchitectDataSource dataSource) throws RuntimeException {
+    DatabaseMeta addDatabaseConnection(Map<String, DatabaseMeta> databaseNames, SPDataSource dataSource) throws RuntimeException {
         DatabaseMeta databaseMeta;
         if (!databaseNames.containsKey(dataSource.getName())) {
             try {
@@ -724,7 +724,7 @@ public class CreateKettleJob implements Monitorable {
         this.savingToFile = savingToFile;
     }
 
-    public void setRepository(ArchitectDataSource source) {
+    public void setRepository(SPDataSource source) {
         this.repository = source;
     }
 
@@ -732,7 +732,7 @@ public class CreateKettleJob implements Monitorable {
         dirChooser = chooser;
     }
 
-    public ArchitectDataSource getRepository() {
+    public SPDataSource getRepository() {
         return repository;
     }
 }

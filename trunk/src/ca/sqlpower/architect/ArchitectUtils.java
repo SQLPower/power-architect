@@ -31,10 +31,7 @@
  */
 package ca.sqlpower.architect;
 
-import java.io.File;
-import java.io.UnsupportedEncodingException;
 import java.net.URL;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -666,41 +663,6 @@ public class ArchitectUtils {
         tableContainer.addChild(newTable);
 
         return newTable;
-    }
-
-    /**
-     * The custom JDBC classloaders in this app support a special "builtin:" filename
-     * prefix, which means a JAR file on the classpath rather than an absolute
-     * local path name.  This method will take a string that might be a builtin reference
-     * and return the java.io.File object that points to the builtin file's real location
-     * in the filesystem.  If the given string doesn't start with builtin:, it will
-     * be treated as a normal (absolute or relative) file pathname.
-     * 
-     * @param jarFileName The builtin: file spec or a normal path name
-     * @param classLoader The classloader against which to resolve the builtin resource names.
-     * @return a File object that refers to the given filespec.
-     */
-    public static File jarSpecToFile(String jarFileName, ClassLoader classLoader) {
-        File listedFile;
-        String builtIn = "builtin:";
-        if (jarFileName.startsWith(builtIn)) {
-            String jarName = jarFileName.substring(builtIn.length());
-            URL resource = classLoader.getResource(jarName);
-            if (resource == null) {
-                logger.warn("Couldn't find built-in system resource \""+jarName+"\". Skipping it.");
-                listedFile = null;
-            } else {
-                ArchitectDataSourceType.logger.debug(resource + " path = " + resource.getPath());
-                try {
-                    listedFile = new File(URLDecoder.decode(resource.getPath(),"iso8859-1"));
-                } catch (UnsupportedEncodingException ex) {
-                    throw new RuntimeException("couldn't decode url with iso8859-1", ex);
-                }
-            }
-        } else {
-            listedFile = new File(jarFileName);
-        }
-        return listedFile;
     }
 
     /**

@@ -70,10 +70,10 @@ import javax.swing.tree.TreeSelectionModel;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectDataSourceType;
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.Monitorable;
+import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sql.SPDataSourceType;
 
 public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 
@@ -123,7 +123,7 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 	 * The current data source type (whose JDBC driver search path we're editting).
      * This value will be null when there is no "current" data source type to edit.
 	 */
-	private ArchitectDataSourceType dataSourceType;
+	private SPDataSourceType dataSourceType;
 
 	/**
 	 * This view shows the driver JAR files and the JDBC drivers they
@@ -216,7 +216,7 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
     /**
      * Switches to edit the given data source type.
      */
-	public void editDsType(ArchitectDataSourceType dst) throws ArchitectException {
+	public void editDsType(SPDataSourceType dst) throws ArchitectException {
         dataSourceType = dst;
 	    dtm.setRoot(new DefaultMutableTreeNode());
         if (dst != null) {
@@ -353,7 +353,7 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 					jarCount++;
 					logger.debug("**************** processing file #" + jarCount + " of " + driverJarList.size());
 					String path = (String) it.next();
-                    File file = ArchitectUtils.jarSpecToFile(path, getClass().getClassLoader());
+                    File file = SPDataSource.jarSpecToFile(path, getClass().getClassLoader());
 					if (file != null) {
                         addJarFile(file);
                     }

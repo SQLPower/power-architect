@@ -37,8 +37,8 @@ import javax.swing.AbstractAction;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.sql.SPDataSource;
 
 
 /**
@@ -52,7 +52,7 @@ public class SetDataSourceAction extends AbstractAction {
     /**
      * The source of the database connection parameters.
      */
-	private final ArchitectDataSource dbcs;
+	private final SPDataSource dbcs;
     
     /**
      * The target for the database connection parameters.
@@ -67,7 +67,7 @@ public class SetDataSourceAction extends AbstractAction {
 	 * @param dbcs The settings to set on db.
 	 * @throws NullPointerException if db or dbcs are null. (Comes with free insult).
 	 */
-	public SetDataSourceAction(SQLDatabase db, ArchitectDataSource dbcs) {
+	public SetDataSourceAction(SQLDatabase db, SPDataSource dbcs) {
 		super(dbcs.getName());
 		if (dbcs == null) throw new NullPointerException("Null DBCS is not allowed, doofus");
 		this.dbcs = dbcs;
@@ -77,7 +77,7 @@ public class SetDataSourceAction extends AbstractAction {
 
 	public void actionPerformed(ActionEvent e) {
 		logger.debug("Setting data source of "+db+" to "+dbcs);
-        ArchitectDataSource tSpec = db.getDataSource();
+        SPDataSource tSpec = db.getDataSource();
         tSpec.copyFrom(dbcs);
 	}
 }

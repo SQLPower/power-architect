@@ -64,7 +64,6 @@ import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLColumn;
@@ -75,6 +74,7 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.action.DBCSOkAction;
+import ca.sqlpower.sql.SPDataSource;
 
 public class DBTree extends JTree implements DragSourceListener, DBConnectionCallBack {
 	static Logger logger = Logger.getLogger(DBTree.class);
@@ -159,13 +159,13 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
      * if it exists as a connection in the project (which means they're in this
      * tree's model).
 	 */
-	public boolean dbcsAlreadyExists(ArchitectDataSource spec) throws ArchitectException {
+	public boolean dbcsAlreadyExists(SPDataSource spec) throws ArchitectException {
 		SQLObject so = (SQLObject) getModel().getRoot();
 		// the children of the root, if they exists, are always SQLDatabase objects
 		Iterator it = so.getChildren().iterator();
 		boolean found = false;
 		while (it.hasNext() && found == false) {
-			ArchitectDataSource dbcs = ((SQLDatabase) it.next()).getDataSource();
+			SPDataSource dbcs = ((SQLDatabase) it.next()).getDataSource();
 			if (spec==dbcs) {
 				found = true;
 			}
@@ -178,12 +178,12 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
      * User Settings.  If we find one, return a handle to it.  If we don't find
      * one, return null.
 	 */
-	public ArchitectDataSource getDuplicateDbcs(ArchitectDataSource spec) {
-		ArchitectDataSource dup = null;
+	public SPDataSource getDuplicateDbcs(SPDataSource spec) {
+		SPDataSource dup = null;
 		boolean found = false;
 		Iterator it = session.getUserSettings().getConnections().iterator();
 		while (it.hasNext() && found == false) {
-			ArchitectDataSource dbcs = (ArchitectDataSource) it.next();
+			SPDataSource dbcs = (SPDataSource) it.next();
 			if (spec.equals(dbcs)) {
 				dup = dbcs;
 				found = true;
@@ -341,7 +341,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 
 		// populate
 
-		for (ArchitectDataSource dbcs : session.getUserSettings().getConnections()) {
+		for (SPDataSource dbcs : session.getUserSettings().getConnections()) {
 			connectionsMenu.add(new JMenuItem(new AddDBCSAction(dbcs)));
 		}
 		ASUtils.breakLongMenu(session.getArchitectFrame(),connectionsMenu);
@@ -541,9 +541,9 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 	 * menu.
 	 */
 	protected class AddDBCSAction extends AbstractAction {
-		protected ArchitectDataSource dbcs;
+		protected SPDataSource dbcs;
 
-		public AddDBCSAction(ArchitectDataSource dbcs) {
+		public AddDBCSAction(SPDataSource dbcs) {
 			super(dbcs.getName());
 			this.dbcs = dbcs;
 		}
@@ -575,9 +575,9 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 	}
 
     protected class SetConnAsTargetDB extends AbstractAction{
-        ArchitectDataSource dbcs;
+        SPDataSource dbcs;
 
-        public SetConnAsTargetDB(ArchitectDataSource dbcs){
+        public SetConnAsTargetDB(SPDataSource dbcs){
             super("Set As Target Database");
             this.dbcs  = dbcs;
         }
@@ -603,9 +603,9 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 		public void actionPerformed(ActionEvent e) {
 
 			final DBCSPanel dbcsPanel = new DBCSPanel(session.getUserSettings().getPlDotIni());
-			ArchitectDataSource dbcs = new ArchitectDataSource();
+			SPDataSource dbcs = new SPDataSource();
 
-			dbcsPanel.setDbcs(new ArchitectDataSource());
+			dbcsPanel.setDbcs(new SPDataSource());
 
 
 			DBCSOkAction okButton = new DBCSOkAction(dbcsPanel, session, true);
@@ -728,7 +728,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 			if (sd != null) {
 
 				final DBCSPanel dbcsPanel = new DBCSPanel(session.getUserSettings().getPlDotIni());
-				ArchitectDataSource dbcs = sd.getDataSource();
+				SPDataSource dbcs = sd.getDataSource();
 
 				dbcsPanel.setDbcs(dbcs);
 
@@ -844,7 +844,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 	/**
      *  Adds the datasource to the dbtree
      */
-    public void selectDBConnection(ArchitectDataSource ds) {
+    public void selectDBConnection(SPDataSource ds) {
         Action act = new AddDBCSAction(ds);
         act.actionPerformed(null);
     }

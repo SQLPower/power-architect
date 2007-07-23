@@ -69,7 +69,6 @@ import javax.swing.event.ListDataListener;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLDatabase;
@@ -84,6 +83,7 @@ import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
 import ca.sqlpower.architect.swingui.CompareDMSettings.DatastoreType;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
 import ca.sqlpower.architect.swingui.action.DBCSOkAction;
+import ca.sqlpower.sql.SPDataSource;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.debug.FormDebugPanel;
@@ -236,7 +236,7 @@ public class CompareDMPanel extends JPanel {
 					return;
 				}
 				final DBCSPanel dbcsPanel = new DBCSPanel(session.getUserSettings().getPlDotIni());
-				dbcsPanel.setDbcs(new ArchitectDataSource());
+				dbcsPanel.setDbcs(new SPDataSource());
 
 				DBCSOkAction okAction = new DBCSOkAction(dbcsPanel, session, true);
 				okAction.setConnectionSelectionCallBack(SourceOrTargetStuff.this);
@@ -706,7 +706,7 @@ public class CompareDMPanel extends JPanel {
 		 * SQLDatabase instance if necessary.
 		 */
 		public synchronized SQLDatabase getDatabase() {
-			ArchitectDataSource ds = (ArchitectDataSource) databaseDropdown
+			SPDataSource ds = (SPDataSource) databaseDropdown
 					.getSelectedItem();
 			if (ds == null) {
 				cachedDatabase = null;
@@ -757,14 +757,14 @@ public class CompareDMPanel extends JPanel {
 			newConnectionAction.setEnabled(enable);
 		}
 
-        public void selectDBConnection(ArchitectDataSource ds) {
+        public void selectDBConnection(SPDataSource ds) {
            databaseDropdown.setSelectedItem(ds);
 
         }
 	}
 
 	/**
-	 * Renders list cells which have a value that is an ArchitectDataSource.
+	 * Renders list cells which have a value that is an SPDataSource.
 	 */
 	private ListCellRenderer dataSourceRenderer = new DataSourceRenderer();
 
@@ -1058,7 +1058,7 @@ public class CompareDMPanel extends JPanel {
 		if ( stuff.databaseDropdown.getItemCount() > 0 &&
 			 stuff.databaseDropdown.getSelectedIndex() >= 0 &&
 			 stuff.databaseDropdown.getSelectedItem() != null )
-			setting.setConnectName( ((ArchitectDataSource)stuff.databaseDropdown.getSelectedItem()).getName() );
+			setting.setConnectName( ((SPDataSource)stuff.databaseDropdown.getSelectedItem()).getName() );
 		else
 			setting.setConnectName( null );
 
@@ -1123,8 +1123,8 @@ public class CompareDMPanel extends JPanel {
 		else if ( rbs == CompareDMSettings.DatastoreType.FILE )
 			stuff.loadRadio.doClick();
 
-		List<ArchitectDataSource> lds = session.getUserSettings().getConnections();
-		for (ArchitectDataSource ds : lds){
+		List<SPDataSource> lds = session.getUserSettings().getConnections();
+		for (SPDataSource ds : lds){
 			if (ds.getDisplayName().equals(set.getConnectName())){
 				stuff.databaseDropdown.setSelectedItem(ds);
 				if (set.getCatalog() != null) {

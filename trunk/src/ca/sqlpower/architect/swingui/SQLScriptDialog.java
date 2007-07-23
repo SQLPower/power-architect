@@ -68,7 +68,6 @@ import javax.swing.text.StyleConstants;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.LogWriter;
 import ca.sqlpower.architect.SQLDatabase;
@@ -78,6 +77,7 @@ import ca.sqlpower.architect.ddl.DDLUserSettings;
 import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
 import ca.sqlpower.architect.swingui.ASUtils.FileExtensionFilter;
 import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
+import ca.sqlpower.sql.SPDataSource;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
 import com.jgoodies.forms.builder.PanelBuilder;
@@ -98,7 +98,7 @@ public class SQLScriptDialog extends JDialog {
 
 	private JLabel statusLabel;
 
-	private ArchitectDataSource targetDataSource;
+	private SPDataSource targetDataSource;
 
 	private JTextPane sqlScriptArea;
 	private AbstractDocument sqlDoc;
@@ -110,7 +110,7 @@ public class SQLScriptDialog extends JDialog {
 	private MonitorableWorker executeTask = new ExecuteSQLScriptWorker();
 
 	public SQLScriptDialog(Dialog owner, String title, String header, boolean modal,
-			DDLGenerator gen, ArchitectDataSource targetDataSource,
+			DDLGenerator gen, SPDataSource targetDataSource,
 			boolean closeParent, ArchitectSwingSession session )
 			throws HeadlessException {
 		super(owner, title, modal);

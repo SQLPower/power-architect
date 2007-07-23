@@ -39,12 +39,12 @@ import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
-import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLSchema;
+import ca.sqlpower.sql.SPDataSource;
 
 /*
  * Updates schema field when there has been a change in the
@@ -77,7 +77,7 @@ public class CatalogComboBoxListener implements ActionListener {
 			return;
 		}
 
-		SQLDatabase database = new SQLDatabase((ArchitectDataSource) (databaseDropdown
+		SQLDatabase database = new SQLDatabase((SPDataSource) (databaseDropdown
 				.getSelectedItem()));
 
 		SQLCatalog catalog;

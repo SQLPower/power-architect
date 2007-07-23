@@ -48,6 +48,7 @@ import junit.framework.TestSuite;
 
 import org.apache.commons.beanutils.BeanUtils;
 
+
 public class TestSQLColumn extends SQLTestCase {
 
 	/**

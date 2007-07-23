@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
@@ -43,6 +42,7 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.sql.SPDataSource;
 
 public class ExportCSV {
     private Collection<SQLTable> exportList;
@@ -148,7 +148,7 @@ public class ExportCSV {
      * With the headers
      * DISPLAY_NAME,DRIVER_CLASS,JDBC_URL,USERNAME,PASSWORD,DATABASE_TYPE,ODBC_DSN
      */
-    private StringBuffer dsToCSV(ArchitectDataSource ds) {
+    private StringBuffer dsToCSV(SPDataSource ds) {
         StringBuffer buf = new StringBuffer();
       
         if (ds != null && ds.getDisplayName() != null) { 

@@ -31,10 +31,10 @@
  */
 package ca.sqlpower.architect.swingui;
 
-import ca.sqlpower.architect.ArchitectDataSource;
+import ca.sqlpower.sql.SPDataSource;
 
 public interface DBConnectionCallBack {
 
-    public void selectDBConnection(ArchitectDataSource ds);
+    public void selectDBConnection(SPDataSource ds);
 
 }

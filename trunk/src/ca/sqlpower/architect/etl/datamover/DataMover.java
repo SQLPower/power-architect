@@ -53,17 +53,17 @@ import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectUtils;
-import ca.sqlpower.architect.DataSourceCollection;
 import ca.sqlpower.architect.DepthFirstSearch;
-import ca.sqlpower.architect.PlDotIni;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLUtils;
+import ca.sqlpower.sql.DataSourceCollection;
+import ca.sqlpower.sql.PlDotIni;
+import ca.sqlpower.sql.SPDataSource;
 
 
 public class DataMover {
@@ -401,7 +401,7 @@ public class DataMover {
             System.out.println("The source-db argument is required.");
             return;
         }
-        final ArchitectDataSource sourceConnectionSpec = dataSources.getDataSource(sourceConnectionName);
+        final SPDataSource sourceConnectionSpec = dataSources.getDataSource(sourceConnectionName);
         if (sourceConnectionSpec == null) {
             System.out.println("Couldn't find connection \""+sourceConnectionName+"\" in the pl.ini. Available connections:");
             System.out.println(dataSources.getConnections());
@@ -413,7 +413,7 @@ public class DataMover {
             System.out.println("The target-db argument is required.");
             return;
         }
-        final ArchitectDataSource destConnectionSpec = dataSources.getDataSource(destConnectionName);
+        final SPDataSource destConnectionSpec = dataSources.getDataSource(destConnectionName);
         if (destConnectionSpec == null) {
             System.out.println("Couldn't find connection \""+destConnectionName+"\" in the pl.ini. Available connections:");
             System.out.println(dataSources.getConnections());

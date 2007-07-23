@@ -38,6 +38,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class TestSQLRelationship extends SQLTestCase {
 
 	private SQLTable parentTable;

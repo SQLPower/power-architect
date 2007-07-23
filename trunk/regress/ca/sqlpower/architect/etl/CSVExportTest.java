@@ -35,13 +35,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.sql.SPDataSource;
 
 public class CSVExportTest extends TestCase {
 
@@ -50,14 +50,14 @@ public class CSVExportTest extends TestCase {
     
     protected void setUp() throws Exception {
         super.setUp();
-        ArchitectDataSource ds = new ArchitectDataSource();
+        SPDataSource ds = new SPDataSource();
         SQLDatabase db1 = new SQLDatabase(ds);
         db1.setPhysicalName("db1");
         SQLCatalog catalog1 = new SQLCatalog(db1,"catalog1");
         SQLSchema schema1 = new SQLSchema(catalog1,"schema1",true);
         SQLTable table1 = new SQLTable(schema1,"table1","","",true);
         SQLColumn column1 = new SQLColumn(table1,"column1",1,1,1);
-        ArchitectDataSource ppds = new ArchitectDataSource();
+        SPDataSource ppds = new SPDataSource();
         SQLDatabase playpenDB = new SQLDatabase(ppds);
         SQLTable ppTable1 = new SQLTable(playpenDB,true);
         SQLColumn ppColumn1 = new SQLColumn(ppTable1,"ppColumn1",1,1,1);

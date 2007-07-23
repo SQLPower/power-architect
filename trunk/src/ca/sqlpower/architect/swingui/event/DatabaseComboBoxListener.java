@@ -43,13 +43,13 @@ import javax.swing.JProgressBar;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.swingui.ArchitectSwingWorker;
 import ca.sqlpower.architect.swingui.Lister;
 import ca.sqlpower.architect.swingui.ListerProgressBarUpdater;
+import ca.sqlpower.sql.SPDataSource;
 
 public class DatabaseComboBoxListener 
 					extends ArchitectSwingWorker 
@@ -96,7 +96,7 @@ public class DatabaseComboBoxListener
 		if (databaseComboBox.getSelectedItem() == null) {
 			return;
 		}
-		database = new SQLDatabase((ArchitectDataSource) 
+		database = new SQLDatabase((SPDataSource) 
 				(databaseComboBox.getSelectedItem()));
 
 		try {

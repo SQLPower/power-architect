@@ -35,9 +35,9 @@ import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 
-import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.sql.SPDataSource;
 
 import com.darwinsys.database.DataBaseException;
 import com.darwinsys.sql.Configuration;
@@ -49,13 +49,13 @@ public class ArchitectSQLRunnerConfigurationManager implements ConfigurationMana
     
     static class ArchitectDataSourceConfiguration implements Configuration {
 
-        private ArchitectDataSource ds;
+        private SPDataSource ds;
 
-        public ArchitectDataSourceConfiguration(ArchitectDataSource ds) {
+        public ArchitectDataSourceConfiguration(SPDataSource ds) {
             this.ds = ds;
         }
 
-        public ArchitectDataSource getArchitectDataSource() {
+        public SPDataSource getArchitectDataSource() {
             return ds;
         }
 
@@ -114,10 +114,10 @@ public class ArchitectSQLRunnerConfigurationManager implements ConfigurationMana
     }
     
     public List<Configuration> getConfigurations() {
-        List<ArchitectDataSource> connections =
+        List<SPDataSource> connections =
             session.getUserSettings().getConnections();
         List<Configuration> results = new ArrayList<Configuration>();
-        for (ArchitectDataSource ds : connections) {
+        for (SPDataSource ds : connections) {
             results.add(new ArchitectDataSourceConfiguration(ds));
         }
         return results;

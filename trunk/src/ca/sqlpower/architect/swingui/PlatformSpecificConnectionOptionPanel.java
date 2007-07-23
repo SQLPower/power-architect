@@ -48,7 +48,7 @@ import javax.swing.event.DocumentListener;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectDataSourceType;
+import ca.sqlpower.sql.SPDataSourceType;
 
 public class PlatformSpecificConnectionOptionPanel {
 
@@ -155,7 +155,7 @@ public class PlatformSpecificConnectionOptionPanel {
     private boolean updatingFieldsFromUrl = false;
     private JTextField dbUrlField;
     private JPanel platformSpecificOptionPanel;
-    private ArchitectDataSourceType template;
+    private SPDataSourceType template;
     
     public PlatformSpecificConnectionOptionPanel(JTextField dbUrlField) {
         platformSpecificOptionPanel = new JPanel();
@@ -302,11 +302,11 @@ public class PlatformSpecificConnectionOptionPanel {
         return platformSpecificOptionPanel;
     }
 
-    public ArchitectDataSourceType getTemplate() {
+    public SPDataSourceType getTemplate() {
         return template;
     }
 
-    public void setTemplate(ArchitectDataSourceType template) {
+    public void setTemplate(SPDataSourceType template) {
         this.template = template;
         createFieldsFromTemplate();
         updateUrlFromFields();

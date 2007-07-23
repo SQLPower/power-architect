@@ -36,7 +36,7 @@ import java.util.Date;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectDataSource;
+import ca.sqlpower.sql.SPDataSource;
 
 /**
  * PLUtils is a collection of utility methods for interfacing with the Power*Loader.
@@ -94,8 +94,8 @@ public class PLUtils {
 		return retVal;
 	}
 	
-	public static String getEngineExecutableName(ArchitectDataSource dataSource) throws UnknownDatabaseTypeException {
-		String type = dataSource.get(ArchitectDataSource.PL_TYPE);
+	public static String getEngineExecutableName(SPDataSource dataSource) throws UnknownDatabaseTypeException {
+		String type = dataSource.get(SPDataSource.PL_TYPE);
 		if (type == null) {
 			throw new UnknownDatabaseTypeException("<unspecified>");
 		} else if (type.equalsIgnoreCase(CONNECTION_TYPE_SQLSERVER)
@@ -116,9 +116,9 @@ public class PLUtils {
 	 * Use the same rules as engine executable name to decide what 
 	 * kind of connection string to return.
 	 */
-	public static String getEngineConnectString(ArchitectDataSource dataSource) throws UnknownDatabaseTypeException {
-		logger.debug("get engine connect String PWD: " + dataSource.get(ArchitectDataSource.PL_PWD));
-		String type = dataSource.get(ArchitectDataSource.PL_TYPE);
+	public static String getEngineConnectString(SPDataSource dataSource) throws UnknownDatabaseTypeException {
+		logger.debug("get engine connect String PWD: " + dataSource.get(SPDataSource.PL_PWD));
+		String type = dataSource.get(SPDataSource.PL_TYPE);
 		if (type == null) {
 			throw new UnknownDatabaseTypeException("<unspecified>");
 		}
@@ -126,13 +126,13 @@ public class PLUtils {
 		    || type.equalsIgnoreCase(CONNECTION_TYPE_ACCESS)
 		    || type.equalsIgnoreCase(CONNECTION_TYPE_DB2)
 		    || type.equalsIgnoreCase(CONNECTION_TYPE_POSTGRES)) {
-			return dataSource.get(ArchitectDataSource.PL_UID)+"/"
-				      +dataSource.get(ArchitectDataSource.PL_PWD)+"@"
-					  +dataSource.get(ArchitectDataSource.PL_LOGICAL);
+			return dataSource.get(SPDataSource.PL_UID)+"/"
+				      +dataSource.get(SPDataSource.PL_PWD)+"@"
+					  +dataSource.get(SPDataSource.PL_LOGICAL);
 		} else if (type.equalsIgnoreCase(CONNECTION_TYPE_ORACLE)) {
-				return dataSource.get(ArchitectDataSource.PL_UID)+"/"
-				      +dataSource.get(ArchitectDataSource.PL_PWD)+"@"
-					  +dataSource.get(ArchitectDataSource.PL_TNS);
+				return dataSource.get(SPDataSource.PL_UID)+"/"
+				      +dataSource.get(SPDataSource.PL_PWD)+"@"
+					  +dataSource.get(SPDataSource.PL_TNS);
 		} else {
 			throw new UnknownDatabaseTypeException(type);
 		}

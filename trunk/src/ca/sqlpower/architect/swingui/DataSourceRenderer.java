@@ -39,12 +39,12 @@ import java.awt.Component;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
 
-import ca.sqlpower.architect.ArchitectDataSource;
+import ca.sqlpower.sql.SPDataSource;
 
 public final class DataSourceRenderer extends DefaultListCellRenderer {
 	public Component getListCellRendererComponent(JList list, Object value,
 			int index, boolean isSelected, boolean cellHasFocus) {
-		ArchitectDataSource ds = (ArchitectDataSource) value;
+		SPDataSource ds = (SPDataSource) value;
 		String label;
 		if (ds == null) {
 			label = "(Choose a Connection)";

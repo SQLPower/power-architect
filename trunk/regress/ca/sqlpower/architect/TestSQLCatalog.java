@@ -36,6 +36,7 @@ import java.sql.DatabaseMetaData;
 import java.util.Iterator;
 
 import ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
+import ca.sqlpower.sql.SPDataSource;
 
 public class TestSQLCatalog extends SQLTestCase {
 
@@ -163,7 +164,7 @@ public class TestSQLCatalog extends SQLTestCase {
 	}
 	
 	public void testIsPopulateWithCatalogs() throws Exception {		
-		ArchitectDataSource dataSource = getDb().getDataSource();
+		SPDataSource dataSource = getDb().getDataSource();
 		Connection conn = getDb().getConnection();
 		DatabaseMetaData meta = conn.getMetaData();
 		conn.close();

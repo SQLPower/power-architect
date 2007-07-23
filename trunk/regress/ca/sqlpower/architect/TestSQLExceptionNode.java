@@ -31,6 +31,7 @@
  */
 package ca.sqlpower.architect;
 
+
 public class TestSQLExceptionNode extends SQLTestCase {
 
     public TestSQLExceptionNode(String name) throws Exception {

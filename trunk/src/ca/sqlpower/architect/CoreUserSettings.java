@@ -43,6 +43,9 @@ import ca.sqlpower.architect.ddl.DDLUserSettings;
 import ca.sqlpower.architect.etl.ETLUserSettings;
 import ca.sqlpower.architect.qfa.QFAUserSettings;
 import ca.sqlpower.architect.swingui.SwingUserSettings;
+import ca.sqlpower.sql.DataSourceCollection;
+import ca.sqlpower.sql.PlDotIni;
+import ca.sqlpower.sql.SPDataSource;
 
 /**
  * This class is ill-conceived. It's part of the core API, but it has direct references
@@ -279,7 +282,7 @@ public class CoreUserSettings {
         this.plDotIni = null;
     }
     
-    public List<ArchitectDataSource> getConnections() {
+    public List<SPDataSource> getConnections() {
         return getPlDotIni().getConnections();
     }
 }
