@@ -762,10 +762,7 @@ public class ArchitectFrame extends JFrame {
 					JOptionPane.showMessageDialog(ArchitectFrame.this, "Save successful");
 				} catch (Exception ex) {
 					lastSaveOpSuccessful = false;
-					JOptionPane.showMessageDialog
-						(ArchitectFrame.this,
-						 "Can't save project: "+ex.getMessage());
-					logger.error("Got exception while saving project", ex);
+					ASUtils.showExceptionDialog(session, "Can't save project: "+ex.getMessage(), ex);
 				} finally {
 					project.setSaveInProgress(false);
 				}
