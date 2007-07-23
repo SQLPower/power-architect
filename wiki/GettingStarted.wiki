@@ -88,12 +88,17 @@ the Ant Build from the Run As menu option.
 	== How To Install Apache Ant For Eclipse ==
 	
 	Apache Ant is available at http://ant.apache.org/bindownload.cgi. To install Ant 1.7 into Eclipse first unzip and install Ant to your local machine. Then under Eclipse's user preferences select the Ant runtime item in the list of preferences	on the left. Click on the Ant Home button and select the folder that you installed	Ant 1.7 into. Then click ok and Eclipse will use the new Ant.
+
+= Bugs, Bugs, and More Bugs! =
+
+We recently made our Bugzilla database for Power*Architect open to the public at http://trillian.sqlpower.ca/bugzilla
 	
+You can browse through existing bugs and pick something to investigate, or if you've found any new bugs, you can sign up for a Bugzilla account and report them.
+
 = The Wishlist =
 
 For developers new to Power*Architect that want to start making contributions to Power*Architect there is a wishlist included with the source code that the developers
 have put together.
-
 
 
 
