@@ -349,7 +349,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
 
 
 
-		public Integer getJobSize() throws ArchitectException {
+		public Integer getJobSize() {
 			return cr.getJobSize();
 		}
 
@@ -357,7 +357,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
 			return cr.getMessage();
 		}
 
-		public int getProgress() throws ArchitectException {
+		public int getProgress() {
 			return cr.getProgress();
 		}
 
@@ -365,7 +365,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
 			return cr.hasStarted();
 		}
 
-		public boolean isFinished() throws ArchitectException {
+		public boolean isFinished() {
 			return cr.isFinished();
 		}
 
@@ -429,7 +429,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
 			}
 		}
 
-		public Integer getJobSize() throws ArchitectException {
+		public Integer getJobSize() {
 			return cr.getJobSize();
 		}
 
@@ -437,7 +437,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
 			return cr.getMessage();
 		}
 
-		public int getProgress() throws ArchitectException {
+		public int getProgress() {
 			return cr.getProgress();
 		}
 
@@ -445,7 +445,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
 			return cr.hasStarted();
 		}
 
-		public boolean isFinished() throws ArchitectException {
+		public boolean isFinished() {
 			return cr.isFinished();
 		}
 

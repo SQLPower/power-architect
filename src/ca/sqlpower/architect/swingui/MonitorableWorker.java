@@ -31,7 +31,7 @@
  */
 package ca.sqlpower.architect.swingui;
 
-import ca.sqlpower.architect.Monitorable;
+import ca.sqlpower.util.Monitorable;
 
 
 /**

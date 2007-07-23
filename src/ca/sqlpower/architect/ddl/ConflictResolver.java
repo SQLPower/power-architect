@@ -51,12 +51,12 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectUtils;
-import ca.sqlpower.architect.Monitorable;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.util.Monitorable;
 
 /**
  * A ConflictResolver performs "seek" and "destroy" operations on objects in
@@ -430,14 +430,14 @@ public class ConflictResolver implements Monitorable {
 	/* (non-Javadoc)
 	 * @see ca.sqlpower.architect.swingui.Monitorable#getProgress()
 	 */
-	public int getProgress() throws ArchitectException {
+	public int getProgress() {
 		return monitorableProgress;
 	}
 
 	/* (non-Javadoc)
 	 * @see ca.sqlpower.architect.swingui.Monitorable#getJobSize()
 	 */
-	public Integer getJobSize() throws ArchitectException {
+	public Integer getJobSize() {
 		if (doingFindConflicting) {
 			if (ddlStatements == null) return null;
 			else return new Integer(ddlStatements.size());
@@ -452,7 +452,7 @@ public class ConflictResolver implements Monitorable {
 	/* (non-Javadoc)
 	 * @see ca.sqlpower.architect.swingui.Monitorable#isFinished()
 	 */
-	public boolean isFinished() throws ArchitectException {
+	public boolean isFinished() {
 		if (doingDropConflicting || doingFindConflicting) return false;
 		else if (dropConflictingStarted) return dropConflictingFinished;
 		else return findConflictingFinished;

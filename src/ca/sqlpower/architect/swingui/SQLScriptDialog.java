@@ -458,7 +458,7 @@ public class SQLScriptDialog extends JDialog {
 
 		// ============= Monitorable Interface =============
 
-		public Integer getJobSize() throws ArchitectException {
+		public Integer getJobSize() {
 			if (statements != null) {
 				return new Integer(statements.size());
 			} else {
@@ -466,11 +466,11 @@ public class SQLScriptDialog extends JDialog {
 			}
 		}
 
-		public int getProgress() throws ArchitectException {
+		public int getProgress() {
 			return stmtsTried;
 		}
 
-		public boolean isFinished() throws ArchitectException {
+		public boolean isFinished() {
 			return finished;
 		}
 

@@ -41,13 +41,12 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JProgressBar;
 
-import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.Monitorable;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ArchitectSwingWorker;
-import ca.sqlpower.architect.swingui.ProgressWatcher;
-import ca.sqlpower.architect.swingui.event.TaskTerminationEvent;
-import ca.sqlpower.architect.swingui.event.TaskTerminationListener;
+import ca.sqlpower.swingui.ProgressWatcher;
+import ca.sqlpower.swingui.event.TaskTerminationEvent;
+import ca.sqlpower.swingui.event.TaskTerminationListener;
+import ca.sqlpower.util.Monitorable;
 
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -79,7 +78,7 @@ public abstract class ProgressAction extends AbstractArchitectAction {
             this.cancelled = cancelled;
         }
 
-        public boolean hasStarted() throws ArchitectException {
+        public boolean hasStarted() {
             return started;
         }
 

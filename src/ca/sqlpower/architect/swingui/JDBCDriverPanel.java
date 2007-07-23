@@ -71,9 +71,10 @@ import javax.swing.tree.TreeSelectionModel;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.Monitorable;
+import ca.sqlpower.util.Monitorable;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SPDataSourceType;
+import ca.sqlpower.swingui.ProgressWatcher;
 
 public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 
@@ -314,11 +315,11 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 			finished = false;
 		}
 
-		public Integer getJobSize() throws ArchitectException {
+		public Integer getJobSize() {
 			return new Integer(driverJarList.size() * 1000);
 		}
 
-		public int getProgress() throws ArchitectException {
+		public int getProgress() {
 			double fraction = 0.0;
 			if (cl != null) {
 				fraction = cl.getFraction();
@@ -328,7 +329,7 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 			return progress;
 		}
 
-		public boolean isFinished() throws ArchitectException {
+		public boolean isFinished() {
 			return finished;
 		}
 
@@ -336,7 +337,7 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 			// job not cancellable, do nothing
 		}
 
-		public boolean hasStarted() throws ArchitectException {
+		public boolean hasStarted() {
 			return hasStarted;
 		}
 

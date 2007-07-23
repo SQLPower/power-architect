@@ -84,6 +84,7 @@ import ca.sqlpower.architect.swingui.CompareDMSettings.DatastoreType;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
 import ca.sqlpower.architect.swingui.action.DBCSOkAction;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.swingui.ProgressWatcher;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.debug.FormDebugPanel;
