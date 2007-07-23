@@ -44,13 +44,13 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
+import ca.sqlpower.sql.SPDataSource;
 
 public class TableProfileResult extends AbstractProfileResult<SQLTable> {
 
@@ -206,7 +206,7 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
      * @throws ArchitectException
      */
     public DDLGenerator getDDLGenerator() throws ArchitectException {
-        ArchitectDataSource ds = getProfiledObject().getParentDatabase().getDataSource();
+        SPDataSource ds = getProfiledObject().getParentDatabase().getDataSource();
         try {
             return DDLUtils.createDDLGenerator(ds);
         } catch (InstantiationException ex) {

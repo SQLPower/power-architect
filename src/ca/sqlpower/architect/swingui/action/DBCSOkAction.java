@@ -39,13 +39,13 @@ import javax.swing.JOptionPane;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectRuntimeException;
-import ca.sqlpower.architect.DataSourceCollection;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBCSPanel;
 import ca.sqlpower.architect.swingui.DBConnectionCallBack;
+import ca.sqlpower.sql.DataSourceCollection;
+import ca.sqlpower.sql.SPDataSource;
 
 /**
  * XXX Somebody should document what this class is useful for.
@@ -94,7 +94,7 @@ public final class DBCSOkAction extends AbstractAction {
 
     public void actionPerformed(ActionEvent e)  {
 		logger.debug("DBCS Action invoked");
-		ArchitectDataSource newDS = dbcsPanel.getDbcs();
+		SPDataSource newDS = dbcsPanel.getDbcs();
 		String curName = dbcsPanel.getDbNameFieldContents();
 		if (curName == null) {
 			throw new ArchitectRuntimeException(new ArchitectException("DBCS Panel improperly intialized"));
@@ -125,7 +125,7 @@ public final class DBCSOkAction extends AbstractAction {
 			logger.debug("The current Name is the same as the old name");
 			dbcsPanel.applyChanges();
 		} else {
-			ArchitectDataSource dataSource = plDotIni.getDataSource(curName);
+			SPDataSource dataSource = plDotIni.getDataSource(curName);
 			if (dataSource == null )  {
 				dbcsPanel.applyChanges();
 

@@ -81,12 +81,12 @@ import javax.swing.filechooser.FileFilter;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
 import ca.sqlpower.architect.qfa.ExceptionReport;
 import ca.sqlpower.architect.qfa.QFAFactory;
 import ca.sqlpower.architect.swingui.action.DBCSOkAction;
+import ca.sqlpower.sql.SPDataSource;
 
 /**
  * ASUtils is a container class for static utility methods used
@@ -374,9 +374,9 @@ public class ASUtils {
 	public static void setupTargetDBComboBox(final ArchitectSwingSession session, final JComboBox targetDB) {
         JComboBox newTargetDB = new JComboBox();
         final SwingUIProject project = session.getProject();
-        ArchitectDataSource currentTarget = session.getPlayPen().getDatabase().getDataSource();
+        SPDataSource currentTarget = session.getPlayPen().getDatabase().getDataSource();
         newTargetDB.addItem(currentTarget);
-        for (ArchitectDataSource dbcs : session.getUserSettings().getConnections()) {
+        for (SPDataSource dbcs : session.getUserSettings().getConnections()) {
             if(!dbcs.equals(currentTarget)) {
                 newTargetDB.addItem(dbcs);
             }
@@ -385,8 +385,8 @@ public class ASUtils {
         targetDB.setModel(newTargetDB.getModel());
         targetDB.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                ArchitectDataSource projectDS = session.getPlayPen().getDatabase().getDataSource();
-                ArchitectDataSource comboBoxDS = (ArchitectDataSource)((JComboBox)e.getSource()).getSelectedItem();
+                SPDataSource projectDS = session.getPlayPen().getDatabase().getDataSource();
+                SPDataSource comboBoxDS = (SPDataSource)((JComboBox)e.getSource()).getSelectedItem();
                 if(!projectDS.equals(comboBoxDS)) {
                     projectDS.copyFrom(comboBoxDS);
                 }
@@ -415,7 +415,7 @@ public class ASUtils {
      * Pops up a dialog box that lets the user inspect and change the given
      * db's connection spec.
      */
-    public static JDialog showDbcsDialog(Window parentWindow, final ArchitectSwingSession session, ArchitectDataSource dataSource) {
+    public static JDialog showDbcsDialog(Window parentWindow, final ArchitectSwingSession session, SPDataSource dataSource) {
         final DBCSPanel dbcsPanel = new DBCSPanel(
                 session.getUserSettings().getPlDotIni());
     

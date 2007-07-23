@@ -41,6 +41,8 @@ import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
+import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sql.SPDataSourceType;
 
 public class TestSQLDatabase extends SQLTestCase {
 	
@@ -174,7 +176,7 @@ public class TestSQLDatabase extends SQLTestCase {
 	}
     
     public void testPopulateTablesOnly() throws Exception {
-        ArchitectDataSource ds = new ArchitectDataSource();
+        SPDataSource ds = new SPDataSource();
         ds.setDisplayName("tablesOnly");
         ds.getParentType().setJdbcDriver("ca.sqlpower.architect.MockJDBCDriver");
         ds.setUser("fake");
@@ -188,7 +190,7 @@ public class TestSQLDatabase extends SQLTestCase {
     }
 
     public void testPopulateSchemasAndTables() throws Exception {
-        ArchitectDataSource ds = new ArchitectDataSource();
+        SPDataSource ds = new SPDataSource();
         ds.setDisplayName("schemasAndTables");
         ds.getParentType().setJdbcDriver("ca.sqlpower.architect.MockJDBCDriver");
         ds.setUser("fake");
@@ -202,7 +204,7 @@ public class TestSQLDatabase extends SQLTestCase {
     }
 
     public void testPopulateCatalogsAndTables() throws Exception {
-        ArchitectDataSource ds = new ArchitectDataSource();
+        SPDataSource ds = new SPDataSource();
         ds.setDisplayName("catalogsAndTables");
         ds.getParentType().setJdbcDriver("ca.sqlpower.architect.MockJDBCDriver");
         ds.setUser("fake");
@@ -216,7 +218,7 @@ public class TestSQLDatabase extends SQLTestCase {
     }
 
     public void testPopulateCatalogsSchemasAndTables() throws Exception {
-        ArchitectDataSource ds = new ArchitectDataSource();
+        SPDataSource ds = new SPDataSource();
         ds.setDisplayName("catalogsSchemasAndTables");
         ds.getParentType().setJdbcDriver("ca.sqlpower.architect.MockJDBCDriver");
         ds.setUser("fake");
@@ -321,7 +323,7 @@ public class TestSQLDatabase extends SQLTestCase {
 	public void testGetDataSource() {
 		SQLDatabase db1 = new SQLDatabase();
 		assertNull (db1.getDataSource());
-		ArchitectDataSource data = db.getDataSource();
+		SPDataSource data = db.getDataSource();
 		db1.setDataSource(data);
 		assertEquals (db.getDataSource(), db1.getDataSource());
 		db1 = new SQLDatabase(data);
@@ -513,7 +515,7 @@ public class TestSQLDatabase extends SQLTestCase {
 		assertEquals(test1.getChangedCount(),1);
 		assertEquals(test1.getStructureChangedCount(),0);
 		
-		db1.setDataSource(new ArchitectDataSource());
+		db1.setDataSource(new SPDataSource());
 		
 		assertEquals(test1.getInsertedCount(),1);
 		assertEquals(test1.getRemovedCount(),1);
@@ -551,7 +553,7 @@ public class TestSQLDatabase extends SQLTestCase {
 	}
 
 	public void testMissingDriverConnect() throws SQLException {
-		ArchitectDataSource ds = db.getDataSource();
+		SPDataSource ds = db.getDataSource();
 		ds.getParentType().setJdbcDriver("ca.sqlpower.xxx.does.not.exist");
 		
 		SQLDatabase mydb = new SQLDatabase(ds);
@@ -571,7 +573,7 @@ public class TestSQLDatabase extends SQLTestCase {
 	}
 
 	public void testBadURLConnect() throws Exception {
-		ArchitectDataSource ds = db.getDataSource();
+		SPDataSource ds = db.getDataSource();
 		ds.setUrl("jdbc:bad:moo");
 		
 		SQLDatabase mydb = new SQLDatabase(ds);
@@ -591,7 +593,7 @@ public class TestSQLDatabase extends SQLTestCase {
 	}
 
 	public void testBadPasswordConnect() throws SQLException {
-		ArchitectDataSource ds = db.getDataSource();
+		SPDataSource ds = db.getDataSource();
 		ds.setPass("foofoofoofoofooSDFGHJK");  // XXX: if this is the password, we lose.
 		
 		SQLDatabase mydb = new SQLDatabase(ds);
@@ -661,8 +663,8 @@ public class TestSQLDatabase extends SQLTestCase {
     }
     
 	public void testConnectionsPerThreadAreUnique() throws Exception{
-		ArchitectDataSource ads = new ArchitectDataSource();
-        ads.setParentType(new ArchitectDataSourceType());
+		SPDataSource ads = new SPDataSource();
+        ads.setParentType(new SPDataSourceType());
 		ads.getParentType().setJdbcDriver("ca.sqlpower.architect.MockJDBCDriver");
 		ads.setUrl("jdbc:mock:dbmd.catalogTerm=Catalog&dbmd.schemaTerm=Schema&catalogs=farm,yard,zoo&schemas.farm=cow,pig&schemas.yard=cat,robin&schemas.zoo=lion,giraffe&tables.farm.cow=moo&tables.farm.pig=oink&tables.yard.cat=meow&tables.yard.robin=tweet&tables.zoo.lion=roar&tables.zoo.giraffe=***,^%%");
 		ads.setUser("fake");

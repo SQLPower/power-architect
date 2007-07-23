@@ -44,10 +44,10 @@ import javax.swing.JTextField;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
+import ca.sqlpower.sql.SPDataSource;
 
 
 public class DDLExportPanel implements ArchitectPanel {
@@ -180,7 +180,7 @@ public class DDLExportPanel implements ArchitectPanel {
 		}
 		if (selectedGeneratorClass == GenericDDLGenerator.class) {
 			ddlg.setAllowConnection(true);
-			ArchitectDataSource dbcs = (ArchitectDataSource)targetDB.getSelectedItem();
+			SPDataSource dbcs = (SPDataSource)targetDB.getSelectedItem();
 			if (dbcs == null
 				|| dbcs.getDriverClass() == null
 				|| dbcs.getDriverClass().length() == 0) {
@@ -237,7 +237,7 @@ public class DDLExportPanel implements ArchitectPanel {
 		return panel;
 	}
     
-    public ArchitectDataSource getTargetDB(){
-        return (ArchitectDataSource)targetDB.getSelectedItem();
+    public SPDataSource getTargetDB(){
+        return (SPDataSource)targetDB.getSelectedItem();
     }
 }

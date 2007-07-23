@@ -62,14 +62,14 @@ import org.pentaho.di.repository.RepositoryMeta;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepMeta;
 
-import ca.sqlpower.architect.ArchitectDataSource;
-import ca.sqlpower.architect.ArchitectDataSourceType;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.FileValidator;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.FileValidator.FileValidationResponse;
+import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sql.SPDataSourceType;
 
 public class CreateKettleJobTest extends TestCase {
 
@@ -82,24 +82,24 @@ public class CreateKettleJobTest extends TestCase {
         super.setUp();
         target = new SQLDatabase();
         target.setName("Target for Testing");
-        ArchitectDataSource ds = new ArchitectDataSource();
+        SPDataSource ds = new SPDataSource();
         target.setDataSource(ds);
         ds.setName("Target Data Source for Testing");
         ds.setUser("Guest");
         ds.setPass("Guest");
-        ArchitectDataSourceType dsType = ds.getParentType();
+        SPDataSourceType dsType = ds.getParentType();
         dsType.setJdbcUrl("<Hostname>:<Port>:<Database>");
         dsType.putProperty(KettleOptions.KETTLE_CONNECTION_TYPE_KEY, "oracle");
         ds.setUrl("hostname:1234:database");
         
         SQLDatabase source = new SQLDatabase();
         source.setName("Source for Testing");
-        ArchitectDataSource sourceDS = new ArchitectDataSource();
+        SPDataSource sourceDS = new SPDataSource();
         source.setDataSource(sourceDS);
         sourceDS.setName("Source Data Source for Testing");
         sourceDS.setUser("Guest");
         sourceDS.setPass("Guest");
-        ArchitectDataSourceType sourceDSType = sourceDS.getParentType();
+        SPDataSourceType sourceDSType = sourceDS.getParentType();
         sourceDSType.setJdbcUrl("<Hostname>:<Port>:<Database>");
         sourceDSType.putProperty(KettleOptions.KETTLE_CONNECTION_TYPE_KEY, "oracle");
         sourceDS.setUrl("hostname:1234:database");
@@ -200,7 +200,7 @@ public class CreateKettleJobTest extends TestCase {
         Map<String, DatabaseMeta> databaseNames = new LinkedHashMap<String, DatabaseMeta>();
         CreateKettleJob job = new CreateKettleJob();
         try {
-            job.addDatabaseConnection(databaseNames, new ArchitectDataSource());
+            job.addDatabaseConnection(databaseNames, new SPDataSource());
             fail("A runtime exception was not thrown when an invalid data source was passed in");
         } catch (RuntimeException re) {
             assertEquals(1, job.getTasksToDo().size());
@@ -306,7 +306,7 @@ public class CreateKettleJobTest extends TestCase {
     
     public void testCreateRepository() {
         CreateKettleJob job = new CreateKettleJob();
-        ArchitectDataSource architectDS = target.getDataSource();
+        SPDataSource architectDS = target.getDataSource();
         job.setRepository(architectDS);
         Repository rep = job.createRepository();
         DatabaseMeta dbMeta = rep.getDatabase().getDatabaseMeta();
@@ -637,7 +637,7 @@ public class CreateKettleJobTest extends TestCase {
         }
     }
     
-    private class ArchitectDataSourceStub extends ArchitectDataSource {
+    private class ArchitectDataSourceStub extends SPDataSource {
         
         public Connection createConnection() {
             return null;

@@ -104,7 +104,6 @@ import javax.swing.event.MouseInputAdapter;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLCatalog;
@@ -125,6 +124,7 @@ import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
+import ca.sqlpower.sql.SPDataSource;
 
 
 /**
@@ -354,7 +354,7 @@ public class PlayPen extends JPanel
 		this.db = newdb;
 		db.setPlayPenDatabase(true);
 		if (db.getDataSource() == null) {
-			ArchitectDataSource dbcs = new ArchitectDataSource();
+			SPDataSource dbcs = new SPDataSource();
 			dbcs.setName("Not Configured");
 			dbcs.setDisplayName("Not Configured");
 			db.setDataSource(dbcs);
@@ -368,8 +368,8 @@ public class PlayPen extends JPanel
 		tableNames = new HashSet();
 	}
 
-    protected void setDatabaseConnection(ArchitectDataSource dbcs){
-        ArchitectDataSource tSpec = db.getDataSource();
+    protected void setDatabaseConnection(SPDataSource dbcs){
+        SPDataSource tSpec = db.getDataSource();
         tSpec.setDisplayName(dbcs.getDisplayName());
         tSpec.getParentType().setJdbcDriver(dbcs.getDriverClass());
         tSpec.setUrl(dbcs.getUrl());

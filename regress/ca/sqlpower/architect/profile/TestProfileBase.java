@@ -40,13 +40,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import junit.framework.TestCase;
-import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.DataSourceCollection;
-import ca.sqlpower.architect.PlDotIni;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.sql.DataSourceCollection;
+import ca.sqlpower.sql.PlDotIni;
+import ca.sqlpower.sql.SPDataSource;
 
 /**
  * Synthetic base class for various tests on profiling.
@@ -76,7 +76,7 @@ public abstract class TestProfileBase extends TestCase {
         DataSourceCollection plini = new PlDotIni();
         plini.read(new File("pl.regression.ini"));
 
-        ArchitectDataSource ds = plini.getDataSource("regression_test");
+        SPDataSource ds = plini.getDataSource("regression_test");
 
         mydb = new SQLDatabase(ds);
         Connection conn = null;

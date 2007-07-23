@@ -35,7 +35,6 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import prefs.AllPrefsTests;
-import ca.sqlpower.architect.TestArchitectDataSource;
 import ca.sqlpower.architect.TestFolder;
 import ca.sqlpower.architect.TestSQLCatalog;
 import ca.sqlpower.architect.TestSQLColumn;
@@ -70,7 +69,6 @@ public class ArchitectBusinessTestSuite extends TestCase {
         suite.addTestSuite(TestSQLIndexColumn.class);
 		suite.addTestSuite(TestSQLRelationship.class);
 		suite.addTestSuite(TestDDLUtils.class);
-		suite.addTestSuite(TestArchitectDataSource.class);
 		suite.addTestSuite(TestSQLObjectChildrenInsert.class);
         
 

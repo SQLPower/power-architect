@@ -33,16 +33,16 @@ package ca.sqlpower.architect.swingui.table;
 
 import javax.swing.JLabel;
 
-import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.sql.SPDataSource;
 
 public class SQLObjectRendererTest extends BaseRendererTest {
 
     /* Test rendering of SQLObjects  */
     public void test5() {
         SQLDatabase db = new SQLDatabase();
-        db.setDataSource(new ArchitectDataSource());
+        db.setDataSource(new SPDataSource());
         db.setName("MyName");
 
         // Test with SQLDatabase

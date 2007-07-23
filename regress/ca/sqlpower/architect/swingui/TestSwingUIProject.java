@@ -55,11 +55,8 @@ import org.apache.commons.beanutils.PropertyUtils;
 
 import ca.sqlpower.ArchitectTestCase;
 import ca.sqlpower.architect.AlwaysAcceptFileValidator;
-import ca.sqlpower.architect.ArchitectDataSource;
-import ca.sqlpower.architect.ArchitectDataSourceType;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.FileValidator;
-import ca.sqlpower.architect.PlDotIni;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
@@ -71,6 +68,9 @@ import ca.sqlpower.architect.StubSQLObject;
 import ca.sqlpower.architect.SQLIndex.IndexType;
 import ca.sqlpower.architect.etl.kettle.KettleRepositoryDirectoryChooser;
 import ca.sqlpower.architect.etl.kettle.RootRepositoryDirectoryChooser;
+import ca.sqlpower.sql.PlDotIni;
+import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sql.SPDataSourceType;
 
 /**
  * Test case, mainly for loading and saving via SwingUIProject.
@@ -391,9 +391,9 @@ public class TestSwingUIProject extends ArchitectTestCase {
                     newVal = new AlwaysAcceptFileValidator();
                 } else if (props[i].getPropertyType() == KettleRepositoryDirectoryChooser.class) {
                     newVal = new RootRepositoryDirectoryChooser();
-                } else if (props[i].getPropertyType() == ArchitectDataSource.class) {
-                    newVal = new ArchitectDataSource();
-                    ((ArchitectDataSource)newVal).setName("Testing data source");
+                } else if (props[i].getPropertyType() == SPDataSource.class) {
+                    newVal = new SPDataSource();
+                    ((SPDataSource)newVal).setName("Testing data source");
 				} else {
 					throw new RuntimeException("This test case lacks a value for "+
 							props[i].getName()+
@@ -435,7 +435,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		DBTree dbTree = session.getSourceDatabases();
 		DBTreeModel dbTreeModel = (DBTreeModel) dbTree.getModel();
 		
-		ArchitectDataSource fakeDataSource = new ArchitectDataSource();
+		SPDataSource fakeDataSource = new SPDataSource();
 		SQLDatabase db = new SQLDatabase() {
 			@Override
 			public Connection getConnection() throws ArchitectException {
@@ -493,8 +493,8 @@ public class TestSwingUIProject extends ArchitectTestCase {
 	
 
 	public void testSaveCoversAllCatalogProperties() throws Exception {
-		ArchitectDataSourceType mockType = new ArchitectDataSourceType();
-		ArchitectDataSource ds = new ArchitectDataSource();
+		SPDataSourceType mockType = new SPDataSourceType();
+		SPDataSource ds = new SPDataSource();
         ds.setParentType(mockType);
 		ds.setDisplayName("Schemaless Database");
 		ds.getParentType().setJdbcDriver("ca.sqlpower.architect.MockJDBCDriver");
@@ -564,7 +564,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		DBTree dbTree = session.getSourceDatabases();
 		DBTreeModel dbTreeModel = (DBTreeModel) dbTree.getModel();
 		
-		ArchitectDataSource fakeDataSource = new ArchitectDataSource();
+		SPDataSource fakeDataSource = new SPDataSource();
 		SQLDatabase db = new SQLDatabase();
 		db.setDataSource(fakeDataSource);
 		db.setPopulated(true);
@@ -617,7 +617,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		DBTree dbTree = session.getSourceDatabases();
 		DBTreeModel dbTreeModel = (DBTreeModel) dbTree.getModel();
 		
-		ArchitectDataSource fakeDataSource = new ArchitectDataSource();
+		SPDataSource fakeDataSource = new SPDataSource();
 		SQLDatabase db = new SQLDatabase();
 		db.setDataSource(fakeDataSource);
 		db.setPopulated(true);
@@ -698,7 +698,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 			DBTree dbTree = session.getSourceDatabases();
 			DBTreeModel dbTreeModel = (DBTreeModel) dbTree.getModel();
 			
-			ArchitectDataSource fakeDataSource = new ArchitectDataSource();
+			SPDataSource fakeDataSource = new SPDataSource();
 			SQLDatabase db = new SQLDatabase();
 			db.setDataSource(fakeDataSource);
 			db.setPopulated(true);
@@ -1058,7 +1058,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         SQLObject dbtreeRoot = (SQLObject) session.getSourceDatabases().getModel().getRoot();
 
-        ArchitectDataSource ds = new ArchitectDataSource();
+        SPDataSource ds = new SPDataSource();
         ds.setDisplayName("test_database");
         ds.getParentType().setJdbcDriver("ca.sqlpower.architect.MockJDBCDriver");
         ds.setUser("fake");
@@ -1084,7 +1084,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         SQLObject dbtreeRoot = (SQLObject) session.getSourceDatabases().getModel().getRoot();
 
-        ArchitectDataSource ds = new ArchitectDataSource();
+        SPDataSource ds = new SPDataSource();
         ds.setDisplayName("test_database");
         ds.getParentType().setJdbcDriver("ca.sqlpower.architect.MockJDBCDriver");
         ds.setUser("fake");

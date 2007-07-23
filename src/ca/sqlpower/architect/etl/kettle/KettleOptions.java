@@ -41,18 +41,18 @@ public class KettleOptions {
     private static final Logger logger = Logger.getLogger(KettleOptions.class);
     
     /**
-     * The key to use in an ArchitectDataSource for the repository login
+     * The key to use in an SPDataSource for the repository login
      * name.
      */
     public static final String KETTLE_REPOS_LOGIN_KEY = "ca.sqlpower.architect.etl.kettle.repos.login";
 
     /**
-     * The key to use in an ArchitectDataSource for the repository password.
+     * The key to use in an SPDataSource for the repository password.
      */
     public static final String KETTLE_REPOS_PASSWORD_KEY = "ca.sqlpower.architect.etl.kettle.repos.password";
     
     /**
-     * The key to use in an ArchitectDataSource for the connection type.
+     * The key to use in an SPDataSource for the connection type.
      */
     public static final String KETTLE_CONNECTION_TYPE_KEY = "ca.sqlpower.architect.etl.kettle.connectionType";
     
@@ -62,7 +62,7 @@ public class KettleOptions {
     public static final String KETTLE_DATABASE = "Database";
     
     /**
-     * The key to use in an ArchitectDataSource for the database name.
+     * The key to use in an SPDataSource for the database name.
      */
     public static final String KETTLE_DATABASE_KEY = "ca.sqlpower.architect.etl.kettle.database";
 
@@ -72,7 +72,7 @@ public class KettleOptions {
     public static final String KETTLE_PORT = "Port";
 
     /**
-     * The key to use in an ArchitectDataSource for the port value.
+     * The key to use in an SPDataSource for the port value.
      */
     public static final String KETTLE_PORT_KEY = "ca.sqlpower.architect.etl.kettle.port";
     
@@ -82,7 +82,7 @@ public class KettleOptions {
     public static final String KETTLE_HOSTNAME = "Hostname";
 
     /**
-     * The key to use in an ArchitectDataSource for the host name.
+     * The key to use in an SPDataSource for the host name.
      */
     public static final String KETTLE_HOSTNAME_KEY = "ca.sqlpower.architect.etl.kettle.hostname";
 

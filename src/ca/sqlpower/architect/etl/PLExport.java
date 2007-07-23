@@ -50,7 +50,6 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.DepthFirstSearch;
@@ -69,6 +68,7 @@ import ca.sqlpower.sql.DBConnection;
 import ca.sqlpower.sql.DatabaseObject;
 import ca.sqlpower.sql.DefaultParameters;
 import ca.sqlpower.sql.PLSchemaException;
+import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SQL;
 
 public class PLExport implements Monitorable {
@@ -95,9 +95,9 @@ public class PLExport implements Monitorable {
 
     private PLSecurityManager sm;
 
-    private ArchitectDataSource repositoryDataSource;
+    private SPDataSource repositoryDataSource;
 
-    private ArchitectDataSource targetDataSource;
+    private SPDataSource targetDataSource;
 
     private String targetSchema;
 
@@ -589,7 +589,7 @@ public class PLExport implements Monitorable {
 
         String type;
         String dbConnectName;
-        ArchitectDataSource dataSource;
+        SPDataSource dataSource;
 
         if (isOutput) {
             dataSource = targetDataSource; // target table
@@ -597,7 +597,7 @@ public class PLExport implements Monitorable {
             dataSource = table.getParentDatabase().getDataSource(); // input
                                                                     // table
         }
-        dbConnectName = dataSource.get(ArchitectDataSource.PL_LOGICAL);
+        dbConnectName = dataSource.get(SPDataSource.PL_LOGICAL);
 
         if (isOracle(dataSource)) {
             type = "ORACLE";
@@ -916,16 +916,16 @@ public class PLExport implements Monitorable {
             for (int tryNum = 0; tryNum < 3 && sm == null; tryNum++) {
                 String username;
                 if (tryNum == 1) {
-                    username = repositoryDataSource.get(ArchitectDataSource.PL_UID).toUpperCase();
+                    username = repositoryDataSource.get(SPDataSource.PL_UID).toUpperCase();
                 } else if (tryNum == 2) {
-                    username = repositoryDataSource.get(ArchitectDataSource.PL_UID).toLowerCase();
+                    username = repositoryDataSource.get(SPDataSource.PL_UID).toLowerCase();
                 } else {
-                    username = repositoryDataSource.get(ArchitectDataSource.PL_UID);
+                    username = repositoryDataSource.get(SPDataSource.PL_UID);
                 }
                 try {
                     // don't need to verify passwords in client apps (as opposed
                     // to webapps)
-                    sm = new PLSecurityManager(con, username, repositoryDataSource.get(ArchitectDataSource.PL_PWD),
+                    sm = new PLSecurityManager(con, username, repositoryDataSource.get(SPDataSource.PL_PWD),
                             false);
                 } catch (PLSecurityException se) {
                     logger.debug("Couldn't find pl user " + username, se);
@@ -933,7 +933,7 @@ public class PLExport implements Monitorable {
             }
             if (sm == null) {
                 throw new ArchitectException("There is no entry for \""
-                        + repositoryDataSource.get(ArchitectDataSource.PL_UID)
+                        + repositoryDataSource.get(SPDataSource.PL_UID)
                         + "\" in the PL_USER table");
             }
             logWriter.info("Starting creation of job <" + jobId + "> at "
@@ -1145,7 +1145,7 @@ public class PLExport implements Monitorable {
         return retString;
     }
 
-    private boolean isOracle(ArchitectDataSource dbcs) {
+    private boolean isOracle(SPDataSource dbcs) {
         if (dbcs.getDriverClass().toLowerCase().indexOf("oracledriver") >= 0) {
             return true;
         } else {
@@ -1153,7 +1153,7 @@ public class PLExport implements Monitorable {
         }
     }
 
-    private boolean isSQLServer(ArchitectDataSource dbcs) {
+    private boolean isSQLServer(SPDataSource dbcs) {
         if (dbcs.getDriverClass().toLowerCase().indexOf("sqlserver") >= 0) {
             return true;
         } else {
@@ -1161,7 +1161,7 @@ public class PLExport implements Monitorable {
         }
     }
 
-    private boolean isDB2(ArchitectDataSource dbcs) {
+    private boolean isDB2(SPDataSource dbcs) {
         if (dbcs.getDriverClass().toLowerCase().indexOf("db2") >= 0) {
             return true;
         } else {
@@ -1169,7 +1169,7 @@ public class PLExport implements Monitorable {
         }
     }
 
-    private boolean isPostgres(ArchitectDataSource dbcs) {
+    private boolean isPostgres(SPDataSource dbcs) {
         if (dbcs.getDriverClass().toLowerCase().indexOf("postgres") >= 0) {
             return true;
         } else {
@@ -1245,11 +1245,11 @@ public class PLExport implements Monitorable {
         return jobComment;
     }
 
-    public void setRepositoryDataSource(ArchitectDataSource dbcs) {
+    public void setRepositoryDataSource(SPDataSource dbcs) {
         this.repositoryDataSource = dbcs;
     }
 
-    public ArchitectDataSource getRepositoryDataSource() {
+    public SPDataSource getRepositoryDataSource() {
         return repositoryDataSource;
     }
 
@@ -1272,7 +1272,7 @@ public class PLExport implements Monitorable {
     /**
      * @return Returns the targetDataSource.
      */
-    public ArchitectDataSource getTargetDataSource() {
+    public SPDataSource getTargetDataSource() {
         return targetDataSource;
     }
 
@@ -1280,7 +1280,7 @@ public class PLExport implements Monitorable {
      * @param targetDataSource
      *            The targetDataSource to set.
      */
-    public void setTargetDataSource(ArchitectDataSource targetDataSource) {
+    public void setTargetDataSource(SPDataSource targetDataSource) {
         this.targetDataSource = targetDataSource;
     }
 
@@ -1390,16 +1390,16 @@ public class PLExport implements Monitorable {
             for (int tryNum = 0; tryNum < 3 && sm == null; tryNum++) {
                 String username;
                 if (tryNum == 1) {
-                    username = repositoryDataSource.get(ArchitectDataSource.PL_UID).toUpperCase();
+                    username = repositoryDataSource.get(SPDataSource.PL_UID).toUpperCase();
                 } else if (tryNum == 2) {
-                    username = repositoryDataSource.get(ArchitectDataSource.PL_UID).toLowerCase();
+                    username = repositoryDataSource.get(SPDataSource.PL_UID).toLowerCase();
                 } else {
-                    username = repositoryDataSource.get(ArchitectDataSource.PL_UID);
+                    username = repositoryDataSource.get(SPDataSource.PL_UID);
                 }
                 try {
                     // don't need to verify passwords in client apps (as opposed
                     // to webapps)
-                    sm = new PLSecurityManager(con, username, repositoryDataSource.get(ArchitectDataSource.PL_PWD),
+                    sm = new PLSecurityManager(con, username, repositoryDataSource.get(SPDataSource.PL_PWD),
                             false);
                 } catch (PLSecurityException se) {
                     logger.debug("Couldn't find pl user " + username, se);
@@ -1407,7 +1407,7 @@ public class PLExport implements Monitorable {
             }
             if (sm == null) {
                 throw new ArchitectException("Could not find login for: "
-                        + repositoryDataSource.get(ArchitectDataSource.PL_UID));
+                        + repositoryDataSource.get(SPDataSource.PL_UID));
             }
 
             println(out, indent, "<?xml version=\"1.0\" encoding=\"" + encoding + "\"?>");
@@ -1759,12 +1759,12 @@ public class PLExport implements Monitorable {
 
         String type;
         String dbConnectName;
-        ArchitectDataSource dataSource;
+        SPDataSource dataSource;
         SQLDatabase database = table.getParentDatabase();
 
         if (database != null) {
             dataSource = database.getDataSource(); // input table
-            dbConnectName = dataSource.get(ArchitectDataSource.PL_LOGICAL);
+            dbConnectName = dataSource.get(SPDataSource.PL_LOGICAL);
 
             try {
                 if (dataSource != null && isOracle(dataSource)) {

@@ -46,10 +46,10 @@ import javax.swing.JTextField;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectDataSource;
-import ca.sqlpower.architect.ArchitectDataSourceType;
-import ca.sqlpower.architect.DataSourceCollection;
 import ca.sqlpower.architect.etl.kettle.KettleOptions;
+import ca.sqlpower.sql.DataSourceCollection;
+import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sql.SPDataSourceType;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
@@ -62,7 +62,7 @@ public class DBCSPanel implements ArchitectPanel {
     
     private JTabbedPane tabbedPane;
     
-	private ArchitectDataSource dbcs;
+	private SPDataSource dbcs;
     
 	private JTextField dbNameField;
 	private JComboBox dataSourceTypeBox;
@@ -95,8 +95,8 @@ public class DBCSPanel implements ArchitectPanel {
      * use this connection for).
      */
     private JPanel buildGeneralPanel(DataSourceCollection dsCollection) {
-        List<ArchitectDataSourceType> dataSourceTypes = dsCollection.getDataSourceTypes();
-        dataSourceTypes.add(0, new ArchitectDataSourceType());
+        List<SPDataSourceType> dataSourceTypes = dsCollection.getDataSourceTypes();
+        dataSourceTypes.add(0, new SPDataSourceType());
         dataSourceTypeBox = new JComboBox(dataSourceTypes.toArray());
         dataSourceTypeBox.setRenderer(new ArchitectDataSourceTypeListCellRenderer());
         dataSourceTypeBox.setSelectedIndex(0);
@@ -118,8 +118,8 @@ public class DBCSPanel implements ArchitectPanel {
         // update fields when user picks new driver
         dataSourceTypeBox.addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent e) {
-                ArchitectDataSourceType parentType =
-                    (ArchitectDataSourceType) dataSourceTypeBox.getSelectedItem();
+                SPDataSourceType parentType =
+                    (SPDataSourceType) dataSourceTypeBox.getSelectedItem();
                 platformSpecificOptions.setTemplate(parentType);
                 setKettleDBOptions(parentType);
             }
@@ -151,7 +151,7 @@ public class DBCSPanel implements ArchitectPanel {
      * and stores a reference to the given dbcs so it can be updated
      * when the applyChanges() method is called.
      */
-    public void setDbcs(ArchitectDataSource dbcs) {
+    public void setDbcs(SPDataSource dbcs) {
         dbNameField.setText(dbcs.getName());
         // if this data source has no parent, it is a root data source
         if (dbcs.isParentSet()) {
@@ -180,7 +180,7 @@ public class DBCSPanel implements ArchitectPanel {
      * Sets the database fields to be visible on the kettle tab only if it doesn't
      * exist in the url.
      */
-    private void setKettleDBOptions(ArchitectDataSourceType dsType) {
+    private void setKettleDBOptions(SPDataSourceType dsType) {
         Map<String, String> map = dsType.retrieveURLDefaults();
         logger.error(" The map is: " + map);
         if (map.containsKey(KettleOptions.KETTLE_HOSTNAME)) {
@@ -201,10 +201,10 @@ public class DBCSPanel implements ArchitectPanel {
     }
 
     /**
-     * Returns a reference to the current ArchitectDataSource (that is,
+     * Returns a reference to the current SPDataSource (that is,
      * the one that will be updated when apply() is called).
      */
-    public ArchitectDataSource getDbcs() {
+    public SPDataSource getDbcs() {
         return dbcs;
     }
 
@@ -223,7 +223,7 @@ public class DBCSPanel implements ArchitectPanel {
 
 	/**
 	 * Copies the properties displayed in the various fields back into
-	 * the current ArchitectDataSource.  You still need to call getDbcs()
+	 * the current SPDataSource.  You still need to call getDbcs()
 	 * and save the connection spec yourself.
 	 */
 	public boolean applyChanges() {
@@ -233,7 +233,7 @@ public class DBCSPanel implements ArchitectPanel {
 		String name = dbNameField.getText();
 		dbcs.setName(name);
 		dbcs.setDisplayName(name);
-		dbcs.setParentType((ArchitectDataSourceType) dataSourceTypeBox.getSelectedItem());
+		dbcs.setParentType((SPDataSourceType) dataSourceTypeBox.getSelectedItem());
 		dbcs.setUrl(dbUrlField.getText());
 		dbcs.setUser(dbUserField.getText());
 		dbcs.setPass(new String(dbPassField.getPassword())); // completely defeats the purpose for JPasswordField.getText() being deprecated, but we're saving passwords to the config file so it hardly matters.

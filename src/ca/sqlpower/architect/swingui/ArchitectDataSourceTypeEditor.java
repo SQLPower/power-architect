@@ -40,9 +40,9 @@ import javax.swing.event.ListSelectionListener;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectDataSourceType;
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.DataSourceCollection;
+import ca.sqlpower.sql.DataSourceCollection;
+import ca.sqlpower.sql.SPDataSourceType;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
@@ -88,8 +88,8 @@ public class ArchitectDataSourceTypeEditor implements ArchitectPanel {
             public void valueChanged(ListSelectionEvent e) {
                 try {
                     if (!e.getValueIsAdjusting()) {
-                        ArchitectDataSourceType dst =
-                            (ArchitectDataSourceType) dsTypeList.getSelectedValue();
+                        SPDataSourceType dst =
+                            (SPDataSourceType) dsTypeList.getSelectedValue();
                         switchToDsType(dst);
                     }
                 } catch (ArchitectException ex) {
@@ -134,7 +134,7 @@ public class ArchitectDataSourceTypeEditor implements ArchitectPanel {
         applyCurrentChanges();
         ListModel lm = dsTypeList.getModel();
         for (int i = 0; i < lm.getSize(); i++) {
-            ArchitectDataSourceType dst = (ArchitectDataSourceType) lm.getElementAt(i);
+            SPDataSourceType dst = (SPDataSourceType) lm.getElementAt(i);
             dataSourceCollection.mergeDataSourceType(dst);
         }
         return true;
@@ -152,7 +152,7 @@ public class ArchitectDataSourceTypeEditor implements ArchitectPanel {
      * Causes this editor to set up all its GUI components to edit the given data source type.
      * Null is an acceptable value, and means to make no DS Type the current type.
      */
-    public void switchToDsType(ArchitectDataSourceType dst) throws ArchitectException {
+    public void switchToDsType(SPDataSourceType dst) throws ArchitectException {
         applyCurrentChanges();
         dsTypeList.setSelectedValue(dst, true);
         dsTypePanel.editDsType(dst);

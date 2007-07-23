@@ -59,13 +59,10 @@ import org.apache.log4j.Logger;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
-import ca.sqlpower.architect.ArchitectDataSource;
-import ca.sqlpower.architect.ArchitectDataSourceType;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.ArchitectVersion;
-import ca.sqlpower.architect.DataSourceCollection;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
@@ -86,6 +83,9 @@ import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
 import ca.sqlpower.architect.xml.UnescapingSaxParser;
 import ca.sqlpower.architect.xml.XMLHelper;
+import ca.sqlpower.sql.DataSourceCollection;
+import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sql.SPDataSourceType;
 
 /**
  * The SwingUIProject class is a container that holds all information pertaining
@@ -211,10 +211,10 @@ public class SwingUIProject {
 
         // hook up data source parent types
         for (SQLDatabase db : (List<SQLDatabase>) dbConnectionContainer.getChildren()) {
-            ArchitectDataSource ds = db.getDataSource();
-            String parentTypeId = ds.getPropertiesMap().get(ArchitectDataSource.DBCS_CONNECTION_TYPE);
+            SPDataSource ds = db.getDataSource();
+            String parentTypeId = ds.getPropertiesMap().get(SPDataSource.DBCS_CONNECTION_TYPE);
             if (parentTypeId != null) {
-                for (ArchitectDataSourceType dstype : dataSources.getDataSourceTypes()) {
+                for (SPDataSourceType dstype : dataSources.getDataSourceTypes()) {
                     if (dstype.getName().equals(parentTypeId)) {
                         ds.setParentType(dstype);
                         // TODO unit test that this works
@@ -453,12 +453,12 @@ public class SwingUIProject {
     }
 
     /**
-     * Creates a ArchitectDataSource object and puts a mapping from its
+     * Creates a SPDataSource object and puts a mapping from its
      * id (in the attributes) to the new instance into the dbcsIdMap.
      */
     private class DBCSFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) {
-            ArchitectDataSource dbcs = new ArchitectDataSource();
+            SPDataSource dbcs = new SPDataSource();
             
             String id = attributes.getValue("id");
             if (id != null) {
@@ -483,7 +483,7 @@ public class SwingUIProject {
 
             String dbcsid = attributes.getValue("dbcs-ref");
             if (dbcsid != null) {
-                ppdb.setDataSource((ArchitectDataSource) dbcsIdMap.get(dbcsid));
+                ppdb.setDataSource((SPDataSource) dbcsIdMap.get(dbcsid));
             }
             return ppdb;
         }
@@ -509,7 +509,7 @@ public class SwingUIProject {
 
             String dbcsid = attributes.getValue("dbcs-ref");
             if (dbcsid != null) {
-                db.setDataSource((ArchitectDataSource) dbcsIdMap.get(dbcsid));
+                db.setDataSource((SPDataSource) dbcsIdMap.get(dbcsid));
             }
 
             String populated = attributes.getValue("populated");
@@ -1072,7 +1072,7 @@ public class SwingUIProject {
         Iterator it = dbTreeRoot.getChildren().iterator();
         while (it.hasNext()) {
             SQLObject o = (SQLObject) it.next();
-            ArchitectDataSource ds = ((SQLDatabase) o).getDataSource();
+            SPDataSource ds = ((SQLDatabase) o).getDataSource();
             if (ds != null) {
                 String id = (String) dbcsIdMap.get(ds);
                 if (id == null) {

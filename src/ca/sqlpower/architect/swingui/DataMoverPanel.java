@@ -55,7 +55,6 @@ import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.TreePath;
 
-import ca.sqlpower.architect.ArchitectDataSource;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectUtils;
@@ -69,6 +68,7 @@ import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLStatement;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.sql.DataMover;
+import ca.sqlpower.sql.SPDataSource;
 
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.ButtonBarFactory;
@@ -100,7 +100,7 @@ public class DataMoverPanel {
     
     public DataMoverPanel(ArchitectSession session) throws ArchitectException {
         List<SQLDatabase> dblist = new ArrayList<SQLDatabase>();
-        for (ArchitectDataSource ds : session.getUserSettings().getConnections()) {
+        for (SPDataSource ds : session.getUserSettings().getConnections()) {
             dblist.add(new SQLDatabase(ds));
         }
         

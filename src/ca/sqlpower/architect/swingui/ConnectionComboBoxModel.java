@@ -40,17 +40,17 @@ import javax.swing.event.ListDataListener;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectDataSource;
-import ca.sqlpower.architect.DataSourceCollection;
-import ca.sqlpower.architect.DatabaseListChangeEvent;
-import ca.sqlpower.architect.DatabaseListChangeListener;
+import ca.sqlpower.sql.DataSourceCollection;
+import ca.sqlpower.sql.DatabaseListChangeEvent;
+import ca.sqlpower.sql.DatabaseListChangeListener;
+import ca.sqlpower.sql.SPDataSource;
 
 public class ConnectionComboBoxModel implements ComboBoxModel, DatabaseListChangeListener {
 
     private static final Logger logger = Logger.getLogger(ConnectionComboBoxModel.class); 
-    ArchitectDataSource selectedItem;
+    SPDataSource selectedItem;
 
-    List<ArchitectDataSource> connections;
+    List<SPDataSource> connections;
 
     List<ListDataListener> listenerList;
 
@@ -74,8 +74,8 @@ public class ConnectionComboBoxModel implements ComboBoxModel, DatabaseListChang
     public void setSelectedItem(Object anItem) {
         int selectedIndex = connections.indexOf(anItem);
         if (selectedIndex >= 0) {
-            if (anItem instanceof ArchitectDataSource) {
-                selectedItem = (ArchitectDataSource) anItem;
+            if (anItem instanceof SPDataSource) {
+                selectedItem = (SPDataSource) anItem;
             } else if (anItem == null) {
                 selectedItem = null;
             }
@@ -84,7 +84,7 @@ public class ConnectionComboBoxModel implements ComboBoxModel, DatabaseListChang
     }
 
     public void setSelectedItem(String anItem) {
-        for (ArchitectDataSource ds : connections) {
+        for (SPDataSource ds : connections) {
             if (ds.getName().equals(anItem)) {
                 selectedItem = ds;
                 setSelectedItem(selectedItem);

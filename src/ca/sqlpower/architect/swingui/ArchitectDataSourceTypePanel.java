@@ -43,9 +43,9 @@ import javax.swing.event.DocumentListener;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectDataSourceType;
 import ca.sqlpower.architect.etl.kettle.KettleOptions;
 import ca.sqlpower.architect.etl.kettle.KettleUtils;
+import ca.sqlpower.sql.SPDataSourceType;
 
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -55,7 +55,7 @@ public class ArchitectDataSourceTypePanel implements ArchitectPanel {
 
     private static final Logger logger = Logger.getLogger(ArchitectDataSourceTypePanel.class);
     
-    private ArchitectDataSourceType dsType;
+    private SPDataSourceType dsType;
     private JPanel panel;
     private JTabbedPane tabbedPane;
     final private JTextField name = new JTextField();
@@ -133,7 +133,7 @@ public class ArchitectDataSourceTypePanel implements ArchitectPanel {
         panel.add(tabbedPane, BorderLayout.CENTER);
     }
     
-    public void editDsType(ArchitectDataSourceType dst) {
+    public void editDsType(SPDataSourceType dst) {
         dsType = dst;
         if (dst == null) {
             name.setText("");

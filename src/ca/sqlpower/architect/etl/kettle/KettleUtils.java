@@ -39,8 +39,8 @@ import org.apache.log4j.Logger;
 import org.pentaho.di.core.database.DatabaseInterface;
 import org.pentaho.di.core.database.DatabaseMeta;
 
-import ca.sqlpower.architect.ArchitectDataSource;
-import ca.sqlpower.architect.ArchitectDataSourceType;
+import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sql.SPDataSourceType;
 
 public class KettleUtils {
 
@@ -56,18 +56,18 @@ public class KettleUtils {
     }
     
     /**
-     * Creates a DatabaseMeta object based on the ArchitectDataSource given to it.
+     * Creates a DatabaseMeta object based on the SPDataSource given to it.
      * This will return null if an error occurred and execution should stop. 
      * 
      * @param parent The parent JFrame used for showing dialog windows.
      */
-    public static DatabaseMeta createDatabaseMeta(ArchitectDataSource target) throws RuntimeException {
+    public static DatabaseMeta createDatabaseMeta(SPDataSource target) throws RuntimeException {
         DatabaseMeta databaseMeta;
         
         String databaseName = target.getName();
         String username = target.getUser();
         String password = target.getPass();
-        ArchitectDataSourceType targetType = target.getParentType();
+        SPDataSourceType targetType = target.getParentType();
         String connectionType = targetType.getProperty(KettleOptions.KETTLE_CONNECTION_TYPE_KEY); 
         Map<String, String> map = targetType.retrieveURLParsing(target.getUrl());
         String hostname = map.get(KettleOptions.KETTLE_HOSTNAME);

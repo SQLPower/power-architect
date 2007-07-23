@@ -36,17 +36,17 @@ import java.awt.Component;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
 
-import ca.sqlpower.architect.ArchitectDataSourceType;
+import ca.sqlpower.sql.SPDataSourceType;
 
 public class ArchitectDataSourceTypeListCellRenderer extends DefaultListCellRenderer {
     
     @Override
     public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-        if (value instanceof ArchitectDataSourceType) {
-            return super.getListCellRendererComponent(list, ((ArchitectDataSourceType) value).getName(), index, isSelected,
+        if (value instanceof SPDataSourceType) {
+            return super.getListCellRendererComponent(list, ((SPDataSourceType) value).getName(), index, isSelected,
                 cellHasFocus);
         } else {
-            throw new IllegalArgumentException("Value should only be of type ArchitectDataSourceType not "+value.getClass());
+            throw new IllegalArgumentException("Value should only be of type SPDataSourceType not "+value.getClass());
         }
     }
 

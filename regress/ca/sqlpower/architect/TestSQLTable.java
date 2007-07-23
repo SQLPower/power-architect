@@ -58,6 +58,7 @@ import ca.sqlpower.architect.SQLTable.Folder;
 import ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
 import ca.sqlpower.architect.TestSQLTable.EventLogger.SQLObjectSnapshot;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
+import ca.sqlpower.sql.SPDataSource;
 
 public class TestSQLTable extends SQLTestCase {
     
@@ -793,7 +794,7 @@ public class TestSQLTable extends SQLTestCase {
     }
     
     public void testPopulateColumnsCaseSensitive() throws Exception {
-        ArchitectDataSource ds = new ArchitectDataSource();
+        SPDataSource ds = new SPDataSource();
         ds.setDisplayName("tableWithMixedColumnCase");
         ds.getParentType().setJdbcDriver("ca.sqlpower.architect.MockJDBCDriver");
         ds.setUser("fake");
@@ -810,7 +811,7 @@ public class TestSQLTable extends SQLTestCase {
     
     //TODO: Convert this test to work on a local Hypersonic DB
     public void testPopulateViewIndices() throws Exception {
-        ArchitectDataSource ds = getDataSource();
+        SPDataSource ds = getDataSource();
         
         SQLDatabase db = new SQLDatabase(ds);
           
