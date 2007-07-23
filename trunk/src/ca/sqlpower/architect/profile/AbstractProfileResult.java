@@ -35,13 +35,13 @@ import java.sql.SQLException;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectUtils;
-import ca.sqlpower.architect.MonitorableImpl;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.util.MonitorableImpl;
 
 public abstract class AbstractProfileResult<T extends SQLObject>
     implements Comparable<AbstractProfileResult>, ProfileResult<T> {

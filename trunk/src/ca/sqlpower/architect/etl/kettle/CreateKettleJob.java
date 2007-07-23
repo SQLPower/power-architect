@@ -69,13 +69,13 @@ import ca.sqlpower.architect.AlwaysAcceptFileValidator;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.DepthFirstSearch;
 import ca.sqlpower.architect.FileValidator;
-import ca.sqlpower.architect.Monitorable;
-import ca.sqlpower.architect.MonitorableImpl;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.FileValidator.FileValidationResponse;
 import ca.sqlpower.architect.ddl.DDLUtils;
+import ca.sqlpower.util.Monitorable;
+import ca.sqlpower.util.MonitorableImpl;
 import ca.sqlpower.sql.SPDataSource;
 
 /**
@@ -693,7 +693,7 @@ public class CreateKettleJob implements Monitorable {
         this.fileValidator = fileValidator;
     }
     
-    public Integer getJobSize() throws ArchitectException {
+    public Integer getJobSize() {
         return monitor.getJobSize();
     }
 
@@ -701,15 +701,15 @@ public class CreateKettleJob implements Monitorable {
         return monitor.getMessage();
     }
 
-    public int getProgress() throws ArchitectException {
+    public int getProgress() {
         return monitor.getProgress();
     }
 
-    public boolean hasStarted() throws ArchitectException {
+    public boolean hasStarted() {
         return monitor.hasStarted();
     }
 
-    public boolean isFinished() throws ArchitectException {
+    public boolean isFinished() {
         return monitor.isFinished();
     }
 

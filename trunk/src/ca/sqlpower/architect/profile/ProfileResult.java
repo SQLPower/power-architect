@@ -31,8 +31,8 @@
  */
 package ca.sqlpower.architect.profile;
 
-import ca.sqlpower.architect.Monitorable;
 import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.util.Monitorable;
 
 /**
  * A ProfileResult is an interface for populating profile data about

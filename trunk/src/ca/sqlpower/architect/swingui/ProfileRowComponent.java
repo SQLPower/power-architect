@@ -61,8 +61,9 @@ import ca.sqlpower.architect.profile.TableProfileManager;
 import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
-import ca.sqlpower.architect.swingui.event.TaskTerminationEvent;
-import ca.sqlpower.architect.swingui.event.TaskTerminationListener;
+import ca.sqlpower.swingui.ProgressWatcher;
+import ca.sqlpower.swingui.event.TaskTerminationEvent;
+import ca.sqlpower.swingui.event.TaskTerminationListener;
 
 /**
  * A component that displays the status and either rowcount or progressbar

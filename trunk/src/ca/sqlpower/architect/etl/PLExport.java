@@ -54,7 +54,6 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.DepthFirstSearch;
 import ca.sqlpower.architect.LogWriter;
-import ca.sqlpower.architect.Monitorable;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
@@ -70,6 +69,7 @@ import ca.sqlpower.sql.DefaultParameters;
 import ca.sqlpower.sql.PLSchemaException;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SQL;
+import ca.sqlpower.util.Monitorable;
 
 public class PLExport implements Monitorable {
 
@@ -127,7 +127,7 @@ public class PLExport implements Monitorable {
 
     int tableCount = 0; // only has meaning when an export job is running
 
-    public Integer getJobSize() throws ArchitectException {
+    public Integer getJobSize() {
         if (currentDB != null) {
             return new Integer(currentDB.size());
         } else {
@@ -135,7 +135,7 @@ public class PLExport implements Monitorable {
         }
     }
 
-    public int getProgress() throws ArchitectException {
+    public int getProgress() {
         if (currentDB != null) {
             return tableCount;
         } else {
@@ -143,7 +143,7 @@ public class PLExport implements Monitorable {
         }
     }
 
-    public boolean isFinished() throws ArchitectException {
+    public boolean isFinished() {
         return finished;
     }
 

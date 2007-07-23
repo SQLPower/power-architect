@@ -42,11 +42,11 @@ import java.util.TreeSet;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.Monitorable;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.util.Monitorable;
 
 public class CompareSQL implements Monitorable {
 
@@ -549,11 +549,11 @@ public class CompareSQL implements Monitorable {
 		return progress;
 	}
 
-	public synchronized boolean hasStarted() throws ArchitectException {
+	public synchronized boolean hasStarted() {
 		return true;
 	}
 
-	public synchronized boolean isFinished() throws ArchitectException {
+	public synchronized boolean isFinished() {
 		return finished;
 	}
 
