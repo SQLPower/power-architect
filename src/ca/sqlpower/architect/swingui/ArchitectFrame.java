@@ -44,6 +44,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
@@ -145,6 +147,7 @@ public class ArchitectFrame extends JFrame {
     private OpenProjectAction openProjectAction;
     private Action saveProjectAction;
     private Action saveProjectAsAction;
+    private Action closeProjectAction;
     private PreferencesAction prefAction;
     private ProjectSettingsAction projectSettingsAction;
     private PrintAction printAction;
@@ -176,7 +179,17 @@ public class ArchitectFrame extends JFrame {
 
     private Action exitAction = new AbstractAction("Exit") {
         public void actionPerformed(ActionEvent e) {
-            exit();
+            Collection<ArchitectSwingSession> sessions = session.getContext().getSessions();
+            // the mac has a unique way of closing the frames which calls the exitAction
+            // each time a frame closes. This will correctly close all of the frames
+            if (session.getContext().isMacOSX()) {
+                Iterator<ArchitectSwingSession> iter = sessions.iterator();
+                iter.next().getArchitectFrame().closeProject();
+            } else {
+                for (ArchitectSwingSession loopSession: sessions) {
+                    loopSession.getArchitectFrame().closeProject();
+                }
+            }
         }
     };
 
@@ -306,6 +319,13 @@ public class ArchitectFrame extends JFrame {
             }
         };
         saveProjectAsAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Save As");
+        
+        closeProjectAction 
+        = new AbstractAction("Close Project") {
+            public void actionPerformed(ActionEvent e) {
+                closeProject();
+            }
+        };
 
         prefAction = new PreferencesAction(session);
         projectSettingsAction = new ProjectSettingsAction(session);
@@ -371,6 +391,7 @@ public class ArchitectFrame extends JFrame {
         fileMenu.add(newProjectAction);
         fileMenu.add(openProjectAction);
         fileMenu.add(session.getContext().getRecentMenu());
+        fileMenu.add(closeProjectAction);
         fileMenu.addSeparator();
         fileMenu.add(saveProjectAction);
         fileMenu.add(saveProjectAsAction);
@@ -586,7 +607,7 @@ public class ArchitectFrame extends JFrame {
 
 	class ArchitectFrameWindowListener extends WindowAdapter {
 		public void windowClosing(WindowEvent e) {
-			exit();
+			closeProject();
 		}
 	}
 
@@ -617,10 +638,10 @@ public class ArchitectFrame extends JFrame {
 	}
 
 	/**
-	 * Calling this method quits the application and terminates the
-	 * JVM.
+	 * Calling this method closes the current project and quits the JVM if it is the last
+     * project open.
 	 */
-	public void exit() {
+	public void closeProject() {
 		if (getProject().isSaveInProgress()) {
 			// project save is in progress, don't allow exit
 	        JOptionPane.showMessageDialog(this, "Project is saving, cannot exit the Power Architect.  Please wait for the save to finish, and then try again.",
@@ -629,6 +650,7 @@ public class ArchitectFrame extends JFrame {
 		}
         
         ArchitectSwingSessionContext context = session.getContext();
+        logger.debug("We are closing");
 
 	    if (promptForUnsavedModifications()) {
 	        try {
