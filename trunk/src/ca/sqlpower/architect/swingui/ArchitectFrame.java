@@ -45,7 +45,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
@@ -180,15 +179,16 @@ public class ArchitectFrame extends JFrame {
     private Action exitAction = new AbstractAction("Exit") {
         public void actionPerformed(ActionEvent e) {
             Collection<ArchitectSwingSession> sessions = session.getContext().getSessions();
-            // the mac has a unique way of closing the frames which calls the exitAction
-            // each time a frame closes. This will correctly close all of the frames
+            ArchitectFrame frameToExit = sessions.iterator().next().getArchitectFrame();
+            // The mac closes the frames by closing the first frame in the list which calls
+            // this method on the close. Otherwise we will do a similar action of closing the
+            // current frame and using that frame to close the next. This is done rather than 
+            // a loop as it causes a ConcurrentModificationException.
             if (session.getContext().isMacOSX()) {
-                Iterator<ArchitectSwingSession> iter = sessions.iterator();
-                iter.next().getArchitectFrame().closeProject();
+                frameToExit.closeProject();
             } else {
-                for (ArchitectSwingSession loopSession: sessions) {
-                    loopSession.getArchitectFrame().closeProject();
-                }
+                frameToExit.closeProject();
+                frameToExit.getExitAction().actionPerformed(e);
             }
         }
     };
