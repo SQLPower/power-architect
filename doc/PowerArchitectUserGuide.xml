@@ -771,8 +771,8 @@
 						<para>
 							Double click on the title, and the Table
 							Properties Dialog will appear. Rename this
-							table to Customer, and the Primary Key to
-							Customer_PK.
+							table to Customers, and the Primary Key to
+							Customers_PK.
 						</para>
 
 					</listitem>
@@ -783,8 +783,8 @@
 							Click on the Insert Column icon, and a "New
 							Column" will appear. When the new column is
 							created a property window will appear for
-							it. Rename the column to ID and make it part
-							of the primary key.
+							it. Rename the column to customer_id and
+							make it part of the primary key.
 						</para>
 
 					</listitem>
@@ -833,10 +833,10 @@
 					<listitem>
 
 						<para>
-							Create columns named Id (in the primary
-							key), Quantity, and Total Amount. Your
-							project should now look something like the
-							following:
+							Create columns named order_id (in the
+							primary key), Quantity, Total Amount, and
+							customer_id. Your project should now look
+							something like the following:
 						</para>
 
 						<mediaobject>
@@ -855,7 +855,7 @@
 							An order should have a foreign key that
 							refers to the customer. Click the "New
 							Non-Identifying Relationship" icon. Select
-							the Order table, then the Customer table,
+							the Customers table, then the Orders table,
 							and a link will be drawn as shown. Click on
 							this link and the keys that take part in the
 							relationship will be highlighted in red.
