@@ -263,29 +263,6 @@ public class ASUtils {
 	}
 
 	/**
-	 * Returns an ImageIcon with a graphic from the JLF Graphics
-	 * Repository, or null if the path was invalid.  Copied from the
-	 * Swing Tutorial.
-	 *
-	 * @param name The icon category and name from the JLF graphics
-	 * repository, such as "general/Help".  See jlfgr_1.0.jar for details.
-	 * @param size Either 16 or 24.
-	 */
-	public static ImageIcon createJLFIcon(String name,
-										  String description,
-										  int size) {
-		String realPath = "/toolbarButtonGraphics/"+name+size+".gif";
-		logger.debug("Loading resource "+realPath);
-		java.net.URL imgURL = ASUtils.class.getResource(realPath);
-		if (imgURL != null) {
-			return new ImageIcon(imgURL, description);
-		} else {
-			logger.debug("Couldn't find file: " + realPath);
-			return null;
-		}
-	}
-
-	/**
 	 * Returns an ImageIcon with an image from the collection of
 	 * icons in the classpath, or null if the path was invalid.  Copied from the Swing
 	 * Tutorial.
