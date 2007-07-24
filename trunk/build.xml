@@ -316,6 +316,16 @@
 					file="src/default_database_types.ini"/>
     </target>
 
+	<!-- This target is used to make a architect library jar to embed
+	in other applications -->
+	<target name="library.jar" depends="compile">
+		<jar jarfile="${build}/architect_lib.jar" basedir="${build}"
+			includes="ca/sqlpower/architect/*.class,
+						ca/sqlpower/architect/ddl/*.class,
+						ca/sqlpower/architect/diff/*.class">
+		</jar>
+	</target>
+	
 	<!-- DOCUMENTATION
 		There are THREE main documentation targets, all built from the
 		docbook XML file docs/PowerArchitectUsersGuide:
