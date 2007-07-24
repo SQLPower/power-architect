@@ -1011,8 +1011,12 @@
 		<mkdir dir="${dist.dir}/doc"/>
 		<copy todir="${dist.dir}/doc" overwrite="true">
 			<fileset dir="${staging.dir}/doc">
-				<include name="*-${app.version}.pdf"/>
 				<include name="*.txt"/>
+			</fileset>
+		</copy>
+		<copy todir="${dist.dir}" overwrite="true">
+			<fileset dir="${staging.dir}/doc">
+				<include name="*-${app.version}.pdf"/>
 			</fileset>
 		</copy>
 	    <get dest="${dist.dir}/index.html" src="http://www.sqlpower.ca/page/architect_download_template"/>
