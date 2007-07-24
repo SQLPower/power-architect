@@ -1,5 +1,5 @@
 #summary Starter documentation for developers new to Power*Architect
-#labels Phase-Implementation
+#labels Phase-Implementation,Featured
 
 Welcome to the Power*Architect development community!  This document is your starting point for getting involved in contributing to the Architect's day-to-day development, and for how to have your say in the Architect's future direction.
 
@@ -99,7 +99,6 @@ You can browse through existing bugs and pick something to investigate, or if yo
 
 For developers new to Power*Architect that want to start making contributions to Power*Architect there is a wishlist included with the source code that the developers
 have put together.
-
 
 
 
