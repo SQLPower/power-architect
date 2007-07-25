@@ -578,5 +578,51 @@ public class TestSQLRelationship extends SQLTestCase {
         parentTable.removeColumn(0);
         assertEquals(1, l.getRemovedCount());
     }
+    
+    /**
+     * This test comes from the post in the forums (post 1670) that foreign keys
+     * get left behind when an identifying relationship is removed.
+     *
+     */
+    public void testDeletingIdentifyingRelationshipDoesntStrandKeys() throws ArchitectException {
+        database = new SQLDatabase();
+        
+        SQLTable table1 = new SQLTable(database, "table1", null, "TABLE", true);
+        SQLColumn table1PK = new SQLColumn(table1, "pkcol_1", Types.INTEGER, 10, 0);
+        table1PK.setPrimaryKeySeq(0);
+        table1.addColumn(table1PK);
+        
+        SQLTable table2 = new SQLTable(database, "table2", null, "TABLE", true);
+        SQLColumn table2PK = new SQLColumn(table2, "pkcol_2", Types.INTEGER, 10, 0);
+        table2PK.setPrimaryKeySeq(0);
+        table2.addColumn(table2PK);
+        
+        SQLTable table3 = new SQLTable(database, "table3", null, "TABLE", true);
+        SQLColumn table3PK = new SQLColumn(table3, "pkcol_3", Types.INTEGER, 10, 0);
+        table3PK.setPrimaryKeySeq(0);
+        table3.addColumn(table3PK);
+        
+        SQLRelationship relTable3to2 = new SQLRelationship();
+        relTable3to2.setIdentifying(true);
+        relTable3to2.attachRelationship(table3,table2,true);
+        relTable3to2.setName("relTable3to2");
+    
+        SQLRelationship relTable2to1 = new SQLRelationship();
+        relTable2to1.setName("relTable2to1");
+        relTable2to1.attachRelationship(table2,table1,true);
+        
+        System.out.println(table1.getColumns().toString());
+        System.out.println(table2.getColumns().toString());
+        System.out.println(table3.getColumns().toString());
+        
+        assertTrue("The column pkcol_3 was not added to table1 by the relations correctly", 
+                table1.getColumnByName("pkcol_3") != null);
+        
+        relTable3to2.getPkTable().removeExportedKey(relTable3to2);
+        
+        //This is what we really want to test
+        assertNull("The column created by the relations was not " +
+                "removed when the relation was removed", table1.getColumnByName("pkcol_3"));
+    }
 
 }
