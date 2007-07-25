@@ -31,6 +31,7 @@
  */
 package ca.sqlpower.architect.swingui;
 
+import java.io.File;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -39,6 +40,9 @@ import java.util.List;
 
 import javax.swing.Action;
 import javax.swing.JDialog;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import javax.swing.ProgressMonitor;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 
@@ -60,6 +64,7 @@ import ca.sqlpower.architect.swingui.action.AboutAction;
 import ca.sqlpower.architect.swingui.action.PreferencesAction;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentListener;
+import ca.sqlpower.architect.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.architect.undo.UndoManager;
 
 public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
@@ -78,11 +83,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * The Frame where the main part of the GUI for this session appears.
      */
     private ArchitectFrame frame;
-
-    /**
-     * The user swing settings
-     */
-    private UserSettings sprefs;
 
     private CoreUserSettings userSettings;
     
@@ -129,7 +129,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         this.name = name;
 
         userSettings = context.getUserSettings();
-        sprefs = userSettings.getSwingSettings();
         
         // Make sure we can load the pl.ini file so we can handle exceptions
         // XXX this is probably redundant now, since the context owns the pl.ini
@@ -254,17 +253,156 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             }
         }
     }
+    
+    /**
+     * Checks if the project is modified, and if so presents the user with the option to save
+     * the existing project.  This is useful to use in actions that are about to get rid of
+     * the currently open project.
+     *
+     * @return True if the project can be closed; false if the project should remain open.
+     */
+    protected boolean promptForUnsavedModifications() {
+        if (getProject().isModified()) {
+            int response = JOptionPane.showOptionDialog(frame,
+                    "Your project has unsaved changes", "Unsaved Changes",
+                    JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null,
+                    new Object[] {"Don't Save", "Cancel", "Save"}, "Save");
+            if (response == 0) {
+                return true;
+            } else if (response == JOptionPane.CLOSED_OPTION || response == 1) {
+                return false;
+            } else {
+                return saveOrSaveAs(false, false);
+            }
+        } else {
+            return true;
+        }
+    }
+
+    /**
+     * Condition the Model to save the project, showing a file chooser when appropriate.
+     *
+     * @param showChooser If true, a chooser will always be shown; otherwise a
+     * chooser will only be shown if the project has no file associated with it
+     * (this is usually because it has never been saved before).
+     * @param separateThread If true, the (possibly lengthy) save operation
+     * will be executed in a separate thread and this method will return immediately.
+     * Otherwise, the save operation will proceed on the current thread.
+     * @return True if the project was saved successfully; false otherwise.  If saving
+     * on a separate thread, a result of <code>true</code> is just an optimistic guess,
+     * and there is no way to discover if the save operation has eventually succeeded or
+     * failed.
+     */
+    public boolean saveOrSaveAs(boolean showChooser, boolean separateThread) {
+        SwingUIProject project = getProject();
+        
+        if (project.getFile() == null || showChooser) {
+            JFileChooser chooser = new JFileChooser(project.getFile());
+            chooser.addChoosableFileFilter(ASUtils.ARCHITECT_FILE_FILTER);
+            int response = chooser.showSaveDialog(frame);
+            if (response != JFileChooser.APPROVE_OPTION) {
+                return false;
+            } else {
+                File file = chooser.getSelectedFile();
+                if (!file.getPath().endsWith(".architect")) {
+                    file = new File(file.getPath()+".architect");
+                }
+                if (file.exists()) {
+                    response = JOptionPane.showConfirmDialog(
+                            frame,
+                            "The file\n\n"+file.getPath()+"\n\nalready exists. Do you want to overwrite it?",
+                            "File Exists", JOptionPane.YES_NO_OPTION);
+                    if (response == JOptionPane.NO_OPTION) {
+                        return saveOrSaveAs(true, separateThread);
+                    }
+                }
+                project.setFile(file);
+                String projName = file.getName().substring(0, file.getName().length()-".architect".length());
+                setName(projName);
+                frame.setTitle(projName);
+            }
+        }
+        final boolean finalSeparateThread = separateThread;
+        final ProgressMonitor pm = new ProgressMonitor
+            (frame, "Saving Project", "", 0, 100);
+
+        class SaverTask implements Runnable {
+            boolean success;
+
+            public void run() {
+                SwingUIProject project = getProject();
+                try {
+                    success = false;
+                    project.setSaveInProgress(true);
+                    project.save(finalSeparateThread ? pm : null);
+                    success = true;
+                    JOptionPane.showMessageDialog(frame, "Save successful");
+                } catch (Exception ex) {
+                    success = false;
+                    ASUtils.showExceptionDialog(
+                            ArchitectSwingSessionImpl.this,
+                            "Can't save project: "+ex.getMessage(), ex);
+                } finally {
+                    project.setSaveInProgress(false);
+                }
+            }
+        }
+        SaverTask saveTask = new SaverTask();
+        if (separateThread) {
+            new Thread(saveTask).start();
+            return true; // this is an optimistic lie
+        } else {
+            saveTask.run();
+            return saveTask.success;
+        }
+    }
 
     // STUFF BROUGHT IN FROM SwingUIProject
     
     /**
-     * This is a common handler for all actions that must
-     * occur when switching projects, e.g., dispose dialogs, 
-     * shut down running threads, etc. 
-     * <p>
-     * currently mostly a placeholder
+     * This is a common handler for all actions that must occur when switching
+     * projects, e.g., prompting to save any unsaved changes, disposing dialogs,
+     * shutting down running threads, and so on.
      */
     public void close() {
+
+        // IMPORTANT NOTE: If the GUI hasn't been initialized, frame will be null.
+        
+        if (getProject().isSaveInProgress()) {
+            // project save is in progress, don't allow exit
+            JOptionPane.showMessageDialog(frame,
+                    "Project is saving, cannot exit the Power Architect.\n" +
+                    "Please wait for the save to finish, and then try again.",
+                    "Warning", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        if (!promptForUnsavedModifications()) {
+            return;
+        }
+        
+        try {
+            if (frame != null) {
+                // XXX this could/should be done by the frame with a session closing listener
+                frame.saveSettings();
+            }
+        } catch (ArchitectException e) {
+            logger.error("Couldn't save settings: "+e);
+        }
+
+        if (profileDialog != null) {
+            // XXX this could/should be done by the profile dialog with a session closing listener
+            profileDialog.dispose();
+        }
+        
+        // It is possible this method will be called again via indirect recursion
+        // because the frame has a windowClosing listener that calls session.close().
+        // It should be harmless to have this close() method invoked a second time.
+        if (frame != null) {
+            // XXX this could/should be done by the frame with a session closing listener
+            frame.dispose();
+        }
+
         // close connections
         Iterator it = getSourceDatabases().getDatabaseList().iterator();
         while (it.hasNext()) {
@@ -272,11 +410,12 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             logger.debug ("closing connection: " + db.getName());
             db.disconnect();
         }
-        fireSessionClosing();
-        //Clear the profile manager
+        
+        // Clear the profile manager (the effect we want is just to cancel running profiles.. clearing is a harmless side effect)
+        // XXX this could/should be done by the profile manager with a session closing listener
         profileManager.clear();
-        // Close dialogs
-        profileDialog.dispose();
+        
+        fireSessionClosing();
     }
     
     /**
@@ -486,8 +625,9 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     }
     
     public void fireSessionClosing() {
+        SessionLifecycleEvent evt = new SessionLifecycleEvent(this);
         for (SessionLifecycleListener listener: lifecycleListener) {
-            listener.sessionClosing();
+            listener.sessionClosing(evt);
         }
     }
 }

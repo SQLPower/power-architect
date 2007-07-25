@@ -187,4 +187,11 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     public void initGUI() throws ArchitectException {
         throw new UnsupportedOperationException("Testing session impl doesn't make GUIs");
     }
+
+    /**
+     * Doesn't actually save the project!
+     */
+    public boolean saveOrSaveAs(boolean showChooser, boolean separateThread) {
+        return false;
+    }
 }

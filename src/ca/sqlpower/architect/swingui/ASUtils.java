@@ -1036,6 +1036,7 @@ public class ASUtils {
         if (context == null) {
             try {
                 context = new ArchitectSwingSessionContextImpl();
+                context.setExitAfterAllSessionsClosed(true);
             } catch (ArchitectException e) {
                 JOptionPane.showMessageDialog(null, "Could not launch the Power*Architect.\n"
                         + "Stacktrace is available on the Java Console");

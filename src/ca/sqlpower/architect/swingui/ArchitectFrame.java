@@ -44,7 +44,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collection;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
@@ -52,7 +51,6 @@ import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JDialog;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -63,7 +61,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
-import javax.swing.ProgressMonitor;
 import javax.swing.SwingUtilities;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
@@ -120,12 +117,6 @@ public class ArchitectFrame extends JFrame {
 
 
 	public static final double ZOOM_STEP = 0.25;
-    
-    /**
-	 * Tracks whether or not the most recent "save project" operation was
-	 * successful.
-	 */
-	private boolean lastSaveOpSuccessful;
 
 	private ArchitectSwingSession session = null;
 	private JToolBar projectBar = null;
@@ -137,7 +128,6 @@ public class ArchitectFrame extends JFrame {
 
     private JMenu connectionsMenu;
 	private ArchitectLayout autoLayout;
-	private ArchitectFrameWindowListener afWindowListener;
     private UndoAction undoAction;
     private RedoAction redoAction;
     
@@ -176,20 +166,12 @@ public class ArchitectFrame extends JFrame {
     private Action compareDMAction;
     private Action dataMoverAction;
 
+    /**
+     * Closes all sessions and terminates the JVM.
+     */
     private Action exitAction = new AbstractAction("Exit") {
         public void actionPerformed(ActionEvent e) {
-            Collection<ArchitectSwingSession> sessions = session.getContext().getSessions();
-            ArchitectFrame frameToExit = sessions.iterator().next().getArchitectFrame();
-            // The mac closes the frames by closing the first frame in the list which calls
-            // this method on the close. Otherwise we will do a similar action of closing the
-            // current frame and using that frame to close the next. This is done rather than 
-            // a loop as it causes a ConcurrentModificationException.
-            if (session.getContext().isMacOSX()) {
-                frameToExit.closeProject();
-            } else {
-                frameToExit.closeProject();
-                frameToExit.getExitAction().actionPerformed(e);
-            }
+            session.getContext().closeAll();
         }
     };
 
@@ -244,7 +226,7 @@ public class ArchitectFrame extends JFrame {
         bounds.width = prefs.getInt(SwingUserSettings.MAIN_FRAME_WIDTH, 600);
         bounds.height = prefs.getInt(SwingUserSettings.MAIN_FRAME_HEIGHT, 440);
         setBounds(bounds);
-        addWindowListener(afWindowListener = new ArchitectFrameWindowListener());
+        addWindowListener(new ArchitectFrameWindowListener());
         session.getUserSettings().getSwingSettings().setBoolean(SwingUserSettings.SHOW_WELCOMESCREEN,
                 prefs.getBoolean(SwingUserSettings.SHOW_WELCOMESCREEN, true));
 	}
@@ -272,22 +254,17 @@ public class ArchitectFrame extends JFrame {
         Action helpAction = new HelpAction(session);
         helpAction.putValue(AbstractAction.SHORT_DESCRIPTION, "User Guide");
 
-        newProjectAction
-        = new AbstractAction("New Project",
+        newProjectAction = new AbstractAction("New Project",
                 ASUtils.createIcon("new_project","New Project",sprefs.getInt(SwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) {
             public void actionPerformed(ActionEvent e) {
-                if (promptForUnsavedModifications()) {
-                    try {
-                        createNewProject();
-                    } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(ArchitectFrame.this,
-                                "Can't create new project: "+ex.getMessage());
-                        logger.error("Got exception while creating new project", ex);
-                    }
+                try {
+                    createNewProject();
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(ArchitectFrame.this,
+                            "Can't create new project: "+ex.getMessage());
+                    logger.error("Got exception while creating new project", ex);
                 }
             }
-
-
         };
         newProjectAction.putValue(AbstractAction.SHORT_DESCRIPTION, "New");
         newProjectAction.putValue(AbstractAction.ACCELERATOR_KEY,
@@ -296,34 +273,31 @@ public class ArchitectFrame extends JFrame {
 
         openProjectAction = new OpenProjectAction(session);
 
-        saveProjectAction
-        = new AbstractAction("Save Project",
+        saveProjectAction = new AbstractAction("Save Project",
                 ASUtils.createIcon("disk",
                         "Save Project",
                         sprefs.getInt(SwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) {
             public void actionPerformed(ActionEvent e) {
-                saveOrSaveAs(false, true);
+                session.saveOrSaveAs(false, true);
             }
         };
         saveProjectAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Save");
         saveProjectAction.putValue(AbstractAction.ACCELERATOR_KEY,
                 KeyStroke.getKeyStroke(KeyEvent.VK_S, accelMask));
 
-        saveProjectAsAction
-        = new AbstractAction("Save Project As...",
+        saveProjectAsAction = new AbstractAction("Save Project As...",
                 ASUtils.createIcon("save_as",
                         "Save Project As...",
                         sprefs.getInt(SwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) {
             public void actionPerformed(ActionEvent e) {
-                saveOrSaveAs(true, true);
+                session.saveOrSaveAs(true, true);
             }
         };
         saveProjectAsAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Save As");
         
-        closeProjectAction 
-        = new AbstractAction("Close Project") {
+        closeProjectAction = new AbstractAction("Close Project") {
             public void actionPerformed(ActionEvent e) {
-                closeProject();
+                session.close();
             }
         };
 
@@ -551,31 +525,6 @@ public class ArchitectFrame extends JFrame {
         logger.debug("Added splitpane to content pane");
     }
 
-	/**
-	 * Checks if the project is modified, and if so presents the user with the option to save
-	 * the existing project.  This is useful to use in actions that are about to get rid of
-	 * the currently open project.
-	 *
-	 * @return True if the project can be closed; false if the project should remain open.
-	 */
-    protected boolean promptForUnsavedModifications() {
-        if (session.getProject().isModified()) {
-            int response = JOptionPane.showOptionDialog(ArchitectFrame.this,
-                    "Your project has unsaved changes", "Unsaved Changes",
-                    JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null,
-                    new Object[] {"Don't Save", "Cancel", "Save"}, "Save");
-            if (response == 0) {
-                return true;
-            } else if (response == JOptionPane.CLOSED_OPTION || response == 1) {
-                return false;
-            } else {
-                return saveOrSaveAs(false, false);
-            }
-        } else {
-            return true;
-        }
-    }
-
     /**
      * Creates a new project in the same session context as this one, 
      * and opens it in a new ArchitectFrame instance.
@@ -607,10 +556,14 @@ public class ArchitectFrame extends JFrame {
 
 	class ArchitectFrameWindowListener extends WindowAdapter {
 		public void windowClosing(WindowEvent e) {
-			closeProject();
+			session.close();
 		}
 	}
 
+    /**
+     * Saves this frame's settings as user prefs.  Settings are frame location,
+     * divider location, that kind of stuff.
+     */
 	public void saveSettings() throws ArchitectException {
 
 	    CoreUserSettings us = session.getUserSettings();
@@ -635,37 +588,6 @@ public class ArchitectFrame extends JFrame {
         } catch (IOException e) {
             logger.error("Couldn't save PL.INI file!", e);
         }
-	}
-
-	/**
-	 * Calling this method closes the current project and quits the JVM if it is the last
-     * project open.
-	 */
-	public void closeProject() {
-		if (getProject().isSaveInProgress()) {
-			// project save is in progress, don't allow exit
-	        JOptionPane.showMessageDialog(this, "Project is saving, cannot exit the Power Architect.  Please wait for the save to finish, and then try again.",
-	                "Warning", JOptionPane.WARNING_MESSAGE);
-	        return;
-		}
-        
-        ArchitectSwingSessionContext context = session.getContext();
-        logger.debug("We are closing");
-
-	    if (promptForUnsavedModifications()) {
-	        try {
-	        	session.close();
-	            saveSettings();
-	        } catch (ArchitectException e) {
-	            logger.error("Couldn't save settings: "+e);
-	        }
-	        this.dispose();
-	    }
-        
-        if (context.getSessions().isEmpty()) {
-            System.exit(0);
-        }
-        
 	}
 
 	/**
@@ -701,80 +623,6 @@ public class ArchitectFrame extends JFrame {
                 }
 		    }
 		});
-	}
-
-
-	/**
-	 * Condition the Model to save the project, showing a file chooser when appropriate.
-	 *
-	 * @param showChooser If true, a chooser will always be shown; otherwise a
-	 * chooser will only be shown if the project has no file associated with it
-	 * (this is usually because it has never been saved before).
-	 * @param separateThread If true, the (possibly lengthy) save operation
-	 * will be executed in a separate thread and this method will return immediately.
-	 * Otherwise, the save operation will proceed on the current thread.
-	 * @return True if the project was saved successfully; false otherwise.  If saving
-	 * on a separate thread, a result of <code>true</code> is just an optimistic guess,
-	 * and there is no way to discover if the save operation has eventually succeeded or
-	 * failed.
-	 */
-	public boolean saveOrSaveAs(boolean showChooser, boolean separateThread) {
-		SwingUIProject project = session.getProject();
-        
-        if (project.getFile() == null || showChooser) {
-			JFileChooser chooser = new JFileChooser(project.getFile());
-			chooser.addChoosableFileFilter(ASUtils.ARCHITECT_FILE_FILTER);
-			int response = chooser.showSaveDialog(ArchitectFrame.this);
-			if (response != JFileChooser.APPROVE_OPTION) {
-				return false;
-			} else {
-				File file = chooser.getSelectedFile();
-				if (!file.getPath().endsWith(".architect")) {
-					file = new File(file.getPath()+".architect");
-				}
-				if (file.exists()) {
-				    response = JOptionPane.showConfirmDialog(
-				            ArchitectFrame.this,
-				            "The file\n\n"+file.getPath()+"\n\nalready exists. Do you want to overwrite it?",
-				            "File Exists", JOptionPane.YES_NO_OPTION);
-				    if (response == JOptionPane.NO_OPTION) {
-				        return saveOrSaveAs(true, separateThread);
-				    }
-				}
-				project.setFile(file);
-				String projName = file.getName().substring(0, file.getName().length()-".architect".length());
-				session.setName(projName);
-				setTitle(projName);
-			}
-		}
-		final boolean finalSeparateThread = separateThread;
-		final ProgressMonitor pm = new ProgressMonitor
-			(ArchitectFrame.this, "Saving Project", "", 0, 100);
-
-		Runnable saveTask = new Runnable() {
-			public void run() {
-                SwingUIProject project = session.getProject();
-                try {
-                    lastSaveOpSuccessful = false;
-					project.setSaveInProgress(true);
-					project.save(finalSeparateThread ? pm : null);
-					lastSaveOpSuccessful = true;
-					JOptionPane.showMessageDialog(ArchitectFrame.this, "Save successful");
-				} catch (Exception ex) {
-					lastSaveOpSuccessful = false;
-					ASUtils.showExceptionDialog(session, "Can't save project: "+ex.getMessage(), ex);
-				} finally {
-					project.setSaveInProgress(false);
-				}
-			}
-		};
-		if (separateThread) {
-		    new Thread(saveTask).start();
-		    return true; // this is an optimistic lie
-		} else {
-		    saveTask.run();
-		    return lastSaveOpSuccessful;
-		}
 	}
 
 	public AutoLayoutAction getAutoLayoutAction() {
