@@ -477,25 +477,12 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 							if (r == SQLRelationship.this) {
 								try {
 									startCompoundEdit("Children removed secondary effect");
-									try {
-
-										r.getFkTable().getImportedKeysFolder().setMagicEnabled(false);
-										r.getFkTable().removeImportedKey(r);
-									} finally {
-										r.getFkTable().getImportedKeysFolder().setMagicEnabled(true);
-									}
+									r.getFkTable().removeImportedKey(r);
 									logger.debug("Removing references for mappings: "+getMappings());
 
 									for (ColumnMapping cm : r.getMappings()) {
 										logger.debug("Removing reference to fkcol "+ cm.getFkColumn());
-										try {
-											fkTable.getColumnsFolder().setMagicEnabled(false);
-											cm.getFkColumn().setMagicEnabled(false);
-											cm.getFkColumn().removeReference();
-										} finally {
-											cm.getFkColumn().setMagicEnabled(true);
-											fkTable.getColumnsFolder().setMagicEnabled(true);
-										}
+										cm.getFkColumn().removeReference();
 									}
 								} finally {
 									endCompoundEdit("End children removed handler");
