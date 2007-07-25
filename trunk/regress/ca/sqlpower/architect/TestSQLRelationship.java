@@ -611,10 +611,6 @@ public class TestSQLRelationship extends SQLTestCase {
         relTable2to1.setName("relTable2to1");
         relTable2to1.attachRelationship(table2,table1,true);
         
-        System.out.println(table1.getColumns().toString());
-        System.out.println(table2.getColumns().toString());
-        System.out.println(table3.getColumns().toString());
-        
         assertTrue("The column pkcol_3 was not added to table1 by the relations correctly", 
                 table1.getColumnByName("pkcol_3") != null);
         
