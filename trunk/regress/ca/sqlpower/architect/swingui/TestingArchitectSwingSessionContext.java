@@ -99,4 +99,25 @@ public class TestingArchitectSwingSessionContext implements ArchitectSwingSessio
     public ArchitectSwingSession createSession(InputStream in, boolean showGUI) throws ArchitectException, FileNotFoundException, IOException {
         return null;
     }
+
+    /**
+     * Doesn't actually do anything!
+     */
+    public void closeAll() {
+        // no op
+    }
+
+    /**
+     * Always returns false.
+     */
+    public boolean getExitAfterAllSessionsClosed() {
+        return false;
+    }
+
+    /**
+     * Doesn't actually do anything!
+     */
+    public void setExitAfterAllSessionsClosed(boolean allowExit) {
+        // no op
+    }
 }

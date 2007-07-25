@@ -102,8 +102,6 @@ public interface ArchitectSwingSession extends ArchitectSession {
      * This is a common handler for all actions that must
      * occur when switching projects, e.g., dispose dialogs, 
      * shut down running threads, etc. 
-     * <p>
-     * currently mostly a placeholder
      */
     public void close();
     
@@ -116,6 +114,18 @@ public interface ArchitectSwingSession extends ArchitectSession {
      */
     public void setName(String argName);
     
+    /**
+     * Saves the project associated with this session, optionally showing a file
+     * chooser, and optionally doing the work in a separate worker thread.
+     * 
+     * @param showChooser If true, a file chooser will always be presented.  If
+     * false, a file chooser will only be presented if the project save location
+     * has not yet been set.
+     * @param separateThread If true, the work will be done in a separate thread
+     * and this method will return in a shorter amount of time.
+     * @return True if the save operation was not cancelled by the user.
+     */
+    public boolean saveOrSaveAs(boolean showChooser, boolean separateThread);
 
     /**
      * See {@link #savingEntireSource}.

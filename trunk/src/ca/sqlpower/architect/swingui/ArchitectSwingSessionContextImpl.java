@@ -38,9 +38,11 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.prefs.Preferences;
 
 import javax.swing.JButton;
@@ -58,6 +60,7 @@ import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.qfa.ExceptionHandler;
 import ca.sqlpower.architect.swingui.action.OpenProjectAction;
+import ca.sqlpower.architect.swingui.event.SessionLifecycleEvent;
 
 import com.jgoodies.forms.factories.Borders;
 
@@ -199,13 +202,36 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
 
         ArchitectSwingSession session = createSessionImpl("Loading...", false);
         
-        session.getProject().load(in, session.getUserSettings().getPlDotIni());
+        try {
+            session.getProject().load(in, session.getUserSettings().getPlDotIni());
+
+            if (showGUI) {
+                session.initGUI();
+            }
         
-        if (showGUI) {
-            session.initGUI();
+            return session;
+        } catch (ArchitectException ex) {
+            try {
+                session.close();
+            } catch (Exception e) {
+                logger.error("Session cleanup failed after botched read. Eating this secondary exception:", e);
+            }
+            throw ex;
+        } catch (IOException ex) {
+            try {
+                session.close();
+            } catch (Exception e) {
+                logger.error("Session cleanup failed after botched read. Eating this secondary exception:", e);
+            }
+            throw ex;
+        } catch (Exception ex) {
+            try {
+                session.close();
+            } catch (Exception e) {
+                logger.error("Session cleanup failed after botched read. Eating this secondary exception:", e);
+            }
+            throw new RuntimeException(ex);
         }
-        
-        return session;
     }
     
     /* javadoc inherited from interface */
@@ -235,7 +261,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         logger.debug("About to create a new session for project \"" + projectName + "\"");
         ArchitectSwingSessionImpl session = new ArchitectSwingSessionImpl(this, projectName);
         sessions.add(session);
-        session.addSessionLifecycleListener(new SessionLifecycleListenerImpl(session));
+        session.addSessionLifecycleListener(sessionLifecycleListener);
         
         if (showGUI) {
             logger.debug("Creating the Architect frame...");
@@ -249,18 +275,23 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         return session;
     }
     
-    private class SessionLifecycleListenerImpl implements SessionLifecycleListener {
-        
-        ArchitectSwingSession session;
-        
-        public SessionLifecycleListenerImpl(ArchitectSwingSession session) {
-            this.session = session;
+    /**
+     * Removes the closed session from the list, and terminates the VM
+     * if there are no more sessions.
+     */
+    private SessionLifecycleListener sessionLifecycleListener = new SessionLifecycleListener() {
+        public void sessionClosing(SessionLifecycleEvent e) {
+            sessions.remove(e.getSource());
+            if (sessions.isEmpty() && exitAfterAllSessionsClosed) {
+                System.exit(0);
+            }
         }
+    };
 
-        public void sessionClosing() {
-            sessions.remove(session);
-        }
-    }
+    /**
+     * Defaults to false, which is required by the interface spec.
+     */
+    private boolean exitAfterAllSessionsClosed = false;
     
     /* (non-Javadoc)
      * @see ca.sqlpower.architect.swingui.ArchitectSwingSessionContext#isMacOSX()
@@ -326,5 +357,27 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
             d.setLocationRelativeTo(dialogOwner);
             d.setVisible(true);
         }
+    }
+
+    /**
+     * Attempts to close all sessions that were created by this context.  The
+     * user might abort some or all of the session closes by choosing to cancel
+     * when the "prompt for unsaved modifications" step happens.
+     */
+    public void closeAll() {
+        List<ArchitectSwingSession> doomedSessions =
+            new ArrayList<ArchitectSwingSession>(sessions);
+        
+        for (ArchitectSwingSession s : doomedSessions) {
+            s.close();
+        }
+    }
+
+    public boolean getExitAfterAllSessionsClosed() {
+        return exitAfterAllSessionsClosed;
+    }
+
+    public void setExitAfterAllSessionsClosed(boolean allowExit) {
+        exitAfterAllSessionsClosed = allowExit;
     }
 }

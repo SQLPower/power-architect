@@ -132,4 +132,30 @@ public interface ArchitectSwingSessionContext {
      */
     public Collection<ArchitectSwingSession> getSessions();
 
+    /**
+     * Closes all sessions and terminates the VM.  This is the typical "exit"
+     * action for a project.
+     */
+    public void closeAll();
+
+    /**
+     * Optional setting which will have the context call System.exit() after there
+     * are no open sessions remaining.  This option is useful for a full single-user
+     * Architect application, but not a good idea for embedded use of the Architect,
+     * since it will quit your app when you're finished with the Architect API.
+     * <p>
+     * The default behaviour for all context implementations must be <b>not</b> to
+     * terminate the VM.
+     * 
+     * @param allowExit True will allow the context to terminate the VM; false
+     * means the context will never call System.exit().
+     */
+    public abstract void setExitAfterAllSessionsClosed(boolean allowExit);
+    
+    /**
+     * Returns the current session for exiting after all sessions are closed.
+     * See {@link #setExitAfterAllSessionsClosed(boolean)} for details.
+     */
+    public boolean getExitAfterAllSessionsClosed();
+
 }
