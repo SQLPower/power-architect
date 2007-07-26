@@ -152,15 +152,9 @@ public class OpenProjectAction extends AbstractArchitectAction {
         }
 
         @Override
-        public void doStuff() throws IOException {
-            try {
-                newSession = context.createSession(in, false);
-            } catch (ArchitectException e) {
-                setDoStuffException(e);
-            }
-            if (recent != null) {
-                recent.putRecentFileName(file.getAbsolutePath());
-            }
+        public void doStuff() throws IOException, ArchitectException {
+            recent.putRecentFileName(file.getAbsolutePath());
+            newSession = context.createSession(in, false);
         }
 
         @Override
