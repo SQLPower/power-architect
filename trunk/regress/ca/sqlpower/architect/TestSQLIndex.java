@@ -34,6 +34,7 @@ package ca.sqlpower.architect;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 
 import junit.extensions.TestSetup;
 import junit.framework.Test;
@@ -211,6 +212,26 @@ public class TestSQLIndex extends SQLTestCase {
         index.removeChild(0);
         System.out.println("Post-remove listeners: "+col1.getSQLObjectListeners());
         assertEquals(origListeners - 1, col1.getSQLObjectListeners().size());
+    }
+    
+    /**
+     * This functional test case comes from a post in the forum (#1670).
+     */
+    public void testIndexRemovedWithPK() throws ArchitectException {
+        SQLTable testTable = new SQLTable(null,true);
+        testTable.setName("Test Table");
+        SQLColumn col = new SQLColumn(testTable, "pk", Types.INTEGER, 10, 0);
+        col.setPrimaryKeySeq(0);
+        testTable.addColumn(col);
+        
+        SQLIndex ind = testTable.getPrimaryKeyIndex();
+        
+        assertTrue("The column should be added to the index", ind.getChildByName("pk") != null);
+        
+        testTable.removeColumn(col);
+        
+        assertNull("The column was not removed from the index", ind.getChildByName("pk"));
+        assertNull("The table should not have a PK index", testTable.getPrimaryKeyIndex());
     }
     
     public void testCopyConstructor() throws ArchitectException{

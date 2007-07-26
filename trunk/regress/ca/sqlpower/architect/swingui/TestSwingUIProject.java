@@ -400,6 +400,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 							" (type "+props[i].getPropertyType().getName()+")");
 				}
 
+                System.out.println("Changing property \""+props[i].getName()+"\" to \""+newVal+"\"");
 				PropertyUtils.setProperty(target, props[i].getName(), newVal);
 			}
 		}
@@ -866,8 +867,17 @@ public class TestSwingUIProject extends ArchitectTestCase {
         index.setPrimaryKeyIndex(true);
         ppdb.addChild(table);
         table.getIndicesFolder().addChild(index);
+        
+        assertNotNull(table.getPrimaryKeyIndex());
+        assertEquals(1, table.getIndicesFolder().getChildCount());
+        assertSame(index, table.getPrimaryKeyIndex());
+
         index.addChild(indexCol);
+        assertEquals(1, table.getIndicesFolder().getChildCount());
+        assertSame(index, table.getPrimaryKeyIndex());
         col.setPrimaryKeySeq(new Integer(0));
+        assertEquals(1, table.getIndicesFolder().getChildCount());
+        assertSame(index, table.getPrimaryKeyIndex());
         
         Set<String> propertiesToIgnore = new HashSet<String>();
         propertiesToIgnore.add("SQLObjectListeners");
@@ -877,9 +887,15 @@ public class TestSwingUIProject extends ArchitectTestCase {
         propertiesToIgnore.add("parent");
         propertiesToIgnore.add("primaryKeyIndex");
         propertiesToIgnore.add("class");
+        propertiesToIgnore.add("populated");
+
+        assertSame(index, table.getPrimaryKeyIndex());
 
         Map<String,Object> oldDescription =
             setAllInterestingProperties(index, propertiesToIgnore);
+        
+        assertSame(index, table.getPrimaryKeyIndex());
+        
         propertiesToIgnore.remove("primaryKeyIndex");
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         project.save(byteArrayOutputStream,ENCODING);
@@ -889,7 +905,6 @@ public class TestSwingUIProject extends ArchitectTestCase {
         SwingUIProject project2 = new SwingUIProject(session2);
         project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), plIni);
         
-        // grab the second database in the dbtree's model (the first is the play pen)
         ppdb = (SQLDatabase) session2.getPlayPen().getDatabase();
         System.out.println(ppdb.getTableByName(tableName));
         index = (SQLIndex) ((SQLTable) ppdb.getTableByName(tableName)).getIndicesFolder().getChild(0);
