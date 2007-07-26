@@ -185,8 +185,8 @@ public class ExportDDLAction extends AbstractArchitectAction {
                                     true,
                                     session);
                         MonitorableWorker scriptWorker = ssd.getExecuteTask();
-                        ConflictFinderProcess cfp = new ConflictFinderProcess(ssd, ppdb, ddlg, ddlg.getDdlStatements());
-                        ConflictResolverProcess crp = new ConflictResolverProcess(ssd, cfp);
+                        ConflictFinderProcess cfp = new ConflictFinderProcess(ssd, ppdb, ddlg, ddlg.getDdlStatements(), session);
+                        ConflictResolverProcess crp = new ConflictResolverProcess(ssd, cfp, session);
                         cfp.setNextProcess(crp);
                         crp.setNextProcess(scriptWorker);
                         ssd.setExecuteTask(cfp);
@@ -268,9 +268,9 @@ public class ExportDDLAction extends AbstractArchitectAction {
 		 * @throws SQLException If the conflict resolver chokes
 		 */
 		public ConflictFinderProcess(JDialog parentDialog, SQLDatabase target,
-				DDLGenerator ddlg, List statements)
+				DDLGenerator ddlg, List statements, ArchitectSwingSession session)
 			throws ArchitectException, SQLException {
-			super();
+			super(session);
 			this.parentDialog = parentDialog;
 			this.target = target;
 			this.ddlg = ddlg;
@@ -396,8 +396,9 @@ public class ExportDDLAction extends AbstractArchitectAction {
 		 * @param progressBar The progress bar we show our progress in
 		 * @param progressLabel The label where we say what we're doing
 		 */
-		public ConflictResolverProcess(JDialog d, ConflictFinderProcess cfp) {
-			this.parentDialog = d;
+		public ConflictResolverProcess(JDialog d, ConflictFinderProcess cfp, ArchitectSwingSession session) {
+			super(session);
+            this.parentDialog = d;
 			this.conflictFinder = cfp;
 		}
 
@@ -423,7 +424,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
 		 */
 		public void cleanup() {
 			if (errorMessage != null) {
-				ASUtils.showExceptionDialog(parentDialog,
+				ASUtils.showExceptionDialog(session,
                     "Error Dropping Conflicts: "+errorMessage, error, new ArchitectExceptionReportFactory());
 				setCancelled(true);
 			}

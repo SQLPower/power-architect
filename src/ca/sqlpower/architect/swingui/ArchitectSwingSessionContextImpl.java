@@ -59,7 +59,7 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.qfa.ExceptionHandler;
-import ca.sqlpower.architect.swingui.action.OpenProjectAction;
+import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.architect.swingui.event.SessionLifecycleEvent;
 
 import com.jgoodies.forms.factories.Borders;
@@ -88,11 +88,6 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      */
     CoreUserSettings userSettings;
     
-    /**
-     * The menu of recently-opened project files on this system.
-     */
-    private final RecentMenu recent;
-
     /**
      * All live sessions that exist in (and were created by) this conext.  Sessions
      * will be removed from this list when they fire their sessionClosing lifecycle
@@ -126,14 +121,6 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
 
         Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());
 
-        recent = new RecentMenu(this) {
-            @Override
-            public void loadFile(String fileName) throws IOException {
-                File f = new File(fileName);
-                OpenProjectAction.openAsynchronously(ArchitectSwingSessionContextImpl.this, f);
-            }
-        };
-        
         userSettings = new CoreUserSettings(getPrefs());
 
         while (!userSettings.isPlDotIniPathValid()) {
@@ -159,7 +146,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
                 throw new ArchitectException("Can't start without a pl.ini file");
             } else if (choice == 0) {
                 JFileChooser fc = new JFileChooser();
-                fc.setFileFilter(ASUtils.INI_FILE_FILTER);
+                fc.setFileFilter(SPSUtils.INI_FILE_FILTER);
                 fc.setDialogTitle("Locate your PL.INI file");
                 int fcChoice = fc.showOpenDialog(null);       // blocking wait
                 if (fcChoice == JFileChooser.APPROVE_OPTION) {
@@ -301,13 +288,6 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     }
 
     /* (non-Javadoc)
-     * @see ca.sqlpower.architect.swingui.ArchitectSwingSessionContext#getRecentMenu()
-     */
-    public RecentMenu getRecentMenu() {
-        return recent;
-    }
-    
-    /* (non-Javadoc)
      * @see ca.sqlpower.architect.swingui.ArchitectSwingSessionContext#getPrefs()
      */
     public Preferences getPrefs() {
@@ -330,7 +310,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         final JCheckBox showPrefsAgain;
         if (getUserSettings().getSwingSettings().getBoolean(SwingUserSettings.SHOW_WELCOMESCREEN, true)) {
             JComponent welcomePanel = WelcomeScreen.getPanel();
-            final JDialog d = ASUtils.makeOwnedDialog(dialogOwner, "Welcome to the Power*Architect");
+            final JDialog d = SPSUtils.makeOwnedDialog(dialogOwner, "Welcome to the Power*Architect");
             d.setLayout(new BorderLayout(12, 12));
             ((JComponent) d.getContentPane()).setBorder(Borders.DIALOG_BORDER);
 

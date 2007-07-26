@@ -40,4 +40,8 @@ import ca.sqlpower.util.Monitorable;
  */
 public abstract class MonitorableWorker extends ArchitectSwingWorker implements Monitorable {
 
+    public MonitorableWorker(ArchitectSwingSession session) {
+        super(session);
+    }
+    
 }

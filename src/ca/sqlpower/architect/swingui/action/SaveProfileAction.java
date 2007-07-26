@@ -58,9 +58,9 @@ import ca.sqlpower.architect.profile.ProfileHTMLFormat;
 import ca.sqlpower.architect.profile.ProfilePDFFormat;
 import ca.sqlpower.architect.profile.ProfileResult;
 import ca.sqlpower.architect.profile.TableProfileResult;
-import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.table.ProfileJTable;
+import ca.sqlpower.swingui.SPSUtils;
 
 public class SaveProfileAction extends AbstractAction {
 
@@ -180,9 +180,9 @@ public class SaveProfileAction extends AbstractAction {
 
         JFileChooser chooser = new JFileChooser();
 
-        chooser.addChoosableFileFilter(ASUtils.HTML_FILE_FILTER);
-        chooser.addChoosableFileFilter(ASUtils.PDF_FILE_FILTER);
-        chooser.addChoosableFileFilter(ASUtils.CSV_FILE_FILTER);
+        chooser.addChoosableFileFilter(SPSUtils.HTML_FILE_FILTER);
+        chooser.addChoosableFileFilter(SPSUtils.PDF_FILE_FILTER);
+        chooser.addChoosableFileFilter(SPSUtils.CSV_FILE_FILTER);
         chooser.removeChoosableFileFilter(chooser.getAcceptAllFileFilter());
 
         File file = null;
@@ -215,17 +215,17 @@ public class SaveProfileAction extends AbstractAction {
                 type = ntype;
             } else {
                 // force filename to end with correct extention
-                if (fileFilter == ASUtils.HTML_FILE_FILTER) {
+                if (fileFilter == SPSUtils.HTML_FILE_FILTER) {
                     if (!fileName.endsWith(".html")) {
                         file = new File(file.getPath()+".html");
                     }
                     type = SaveableFileType.HTML;
-                } else if (fileFilter == ASUtils.PDF_FILE_FILTER){
+                } else if (fileFilter == SPSUtils.PDF_FILE_FILTER){
                     if (!fileName.endsWith(".pdf")) {
                         file = new File(file.getPath()+".pdf");
                     }
                     type = SaveableFileType.PDF;
-                } else if (fileFilter == ASUtils.CSV_FILE_FILTER){
+                } else if (fileFilter == SPSUtils.CSV_FILE_FILTER){
                     if (!fileName.endsWith(".csv")) {
                         file = new File(file.getPath()+".csv");
                     }
@@ -273,16 +273,18 @@ public class SaveProfileAction extends AbstractAction {
                     }
                     prf.format(out, objectToSave.getDepthFirstList());
                 } catch (Exception ex) {
-                    ASUtils.showExceptionDialog(dialogOwner,
-                        "Could not generate/save report file", ex, new ArchitectExceptionReportFactory());
+                    //FIXME: This should generate and send an error report
+                    ASUtils.showExceptionDialogNoReport(dialogOwner,
+                        "Could not generate/save report file", ex);
                 } finally {
                     if ( out != null ) {
                         try {
                             out.flush();
                             out.close();
                         } catch (IOException ex) {
-                            ASUtils.showExceptionDialog(dialogOwner,
-                                "Could not close report file", ex, new ArchitectExceptionReportFactory());
+                            //FIXME: This should generate and send an error report
+                            ASUtils.showExceptionDialogNoReport(dialogOwner,
+                                "Could not close report file", ex);
                         }
                     }
                 }

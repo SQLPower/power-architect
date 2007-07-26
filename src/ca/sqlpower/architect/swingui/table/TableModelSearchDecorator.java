@@ -78,7 +78,7 @@ public class TableModelSearchDecorator extends AbstractTableModel {
             try {
                 searchText = e.getDocument().getText(0,e.getDocument().getLength());
             } catch (BadLocationException e1) {
-                ASUtils.showExceptionDialog("Internal Error (search profile)!", e1);
+                ASUtils.showExceptionDialogNoReport("Internal Error (search profile)!", e1);
             }
             return searchText;
         }

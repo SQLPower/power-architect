@@ -100,7 +100,7 @@ public abstract class AbstractTableTargetedAction extends AbstractArchitectActio
                         "Internal Architect Error", JOptionPane.ERROR_MESSAGE);
             }
         } catch (ArchitectException ex) {
-            ASUtils.showExceptionDialog("Column could not be inserted:\n" + ex.getMessage(), ex);
+            ASUtils.showExceptionDialog(session, "Column could not be inserted:\n" + ex.getMessage(), ex);
         }
     }
     

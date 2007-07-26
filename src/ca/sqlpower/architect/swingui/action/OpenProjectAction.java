@@ -57,6 +57,7 @@ import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionContext;
 import ca.sqlpower.architect.swingui.ArchitectSwingWorker;
 import ca.sqlpower.architect.swingui.RecentMenu;
+import ca.sqlpower.swingui.SPSUtils;
 
 public class OpenProjectAction extends AbstractArchitectAction {
     
@@ -66,7 +67,7 @@ public class OpenProjectAction extends AbstractArchitectAction {
     
     public OpenProjectAction(ArchitectSwingSession session) {
         super(session, "Open Project...", "Open", "folder");
-        this.recent = session.getContext().getRecentMenu();
+        this.recent = session.getRecentMenu();
         putValue(AbstractAction.ACCELERATOR_KEY,
                 KeyStroke.getKeyStroke(KeyEvent.VK_O,
                         Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
@@ -74,13 +75,12 @@ public class OpenProjectAction extends AbstractArchitectAction {
 
     public void actionPerformed(ActionEvent e) {
         JFileChooser chooser = new JFileChooser();
-        chooser.addChoosableFileFilter(ASUtils.ARCHITECT_FILE_FILTER);
+        chooser.addChoosableFileFilter(SPSUtils.ARCHITECT_FILE_FILTER);
         int returnVal = chooser.showOpenDialog(frame);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File f = chooser.getSelectedFile();
-            openAsynchronously(session.getContext(), f);
+            openAsynchronously(session, f);
         }
-        logger.info("Opening a Project doesn't work yet ;)");
     }
 
     /**
@@ -95,17 +95,17 @@ public class OpenProjectAction extends AbstractArchitectAction {
      * @param context The context with which to create the session.
      * @param f The project file to load.
      */
-    public static void openAsynchronously(ArchitectSwingSessionContext context, File f) {
+    public static void openAsynchronously(ArchitectSwingSession session, File f) {
       LoadFileWorker worker;
         try {
-            worker = new LoadFileWorker(f, context);
+            worker = new LoadFileWorker(f, session);
             new Thread(worker).start();
         } catch (FileNotFoundException e1) {
             JOptionPane.showMessageDialog(
                     null,
                     "File not found: "+f.getPath());
         } catch (Exception e1) {
-            ASUtils.showExceptionDialog("Error loading file", e1);
+            ASUtils.showExceptionDialogNoReport("Error loading file", e1);
         }
 
     }
@@ -133,10 +133,11 @@ public class OpenProjectAction extends AbstractArchitectAction {
          * @throws ArchitectException when the project creation fails.
          * @throws FileNotFoundException if file doesn't exist
          */
-        public LoadFileWorker(File file, ArchitectSwingSessionContext context) throws ArchitectException, FileNotFoundException {
-                this.context = context;
+        public LoadFileWorker(File file, ArchitectSwingSession session) throws ArchitectException, FileNotFoundException {
+                super(session);
+                this.context = session.getContext();
                 this.file = file;
-                this.recent = context.getRecentMenu();
+                this.recent = session.getRecentMenu();
                 
                 // XXX this progress dialog has the coffee cup icon instead
                 // of the architect icon. To fix this, we need to create an
@@ -171,7 +172,7 @@ public class OpenProjectAction extends AbstractArchitectAction {
                 if (!(cause instanceof InterruptedIOException) || !(cause.getMessage().equals("progress"))) {
                     // We have to use the non-session exception dialogue here,
                     // because there is no session available (we just failed to create one!)
-                    ASUtils.showExceptionDialog(
+                    ASUtils.showExceptionDialogNoReport(
                             "Cannot open project file '" + file.getAbsolutePath() + "'",
                             getDoStuffException());
                     logger.error("Got exception while opening a project", getDoStuffException());

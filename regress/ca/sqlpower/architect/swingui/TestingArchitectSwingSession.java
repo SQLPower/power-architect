@@ -31,6 +31,7 @@
  */
 package ca.sqlpower.architect.swingui;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,6 +64,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     private CompareDMSettings compareDMSettings;
     private GenericDDLGenerator ddlGenerator;
     private CreateKettleJob createKettleJob;
+    private RecentMenu recentMenu;
     
     public TestingArchitectSwingSession(ArchitectSwingSessionContext context) throws ArchitectException {
         this.context = context;
@@ -75,6 +77,11 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         initialDBList.add(playpen.getDatabase());
         sourceDatabases = new DBTree(this, initialDBList);
         undoManager = new UndoManager(playpen);
+        recentMenu = new RecentMenu(context) {
+            @Override
+            public void loadFile(String fileName) throws IOException {
+            }
+        };
         frame = new ArchitectFrame(this, project);
         frame.init();
         compareDMSettings = new CompareDMSettings();
@@ -84,6 +91,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
             throw new ArchitectException("SQL Error in ddlGenerator",e);
         }
         createKettleJob = new CreateKettleJob();
+        
     }
     
     public TestingArchitectSwingSession(ArchitectSwingSessionContext context, SwingUIProject project) throws ArchitectException {
@@ -186,6 +194,19 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
 
     public void initGUI() throws ArchitectException {
         throw new UnsupportedOperationException("Testing session impl doesn't make GUIs");
+    }
+
+    public RecentMenu getRecentMenu() {
+        
+        return recentMenu;
+    }
+
+    public void registerSwingWorker(ArchitectSwingWorker worker) {
+        
+    }
+
+    public void removeSwingWorker(ArchitectSwingWorker worker) {
+        
     }
 
     /**

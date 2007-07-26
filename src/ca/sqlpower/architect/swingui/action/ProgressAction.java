@@ -166,7 +166,7 @@ public abstract class ProgressAction extends AbstractArchitectAction {
         }),c.xy(3,6));
         progressDialog.add(pb.getPanel());
         
-        ArchitectSwingWorker worker = new ArchitectSwingWorker() {
+        ArchitectSwingWorker worker = new ArchitectSwingWorker(session) {
             @Override
             public void cleanup() throws Exception {
                 ProgressAction.this.cleanUp(monitor);

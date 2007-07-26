@@ -60,7 +60,6 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLUtils;
-import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
 import ca.sqlpower.security.PLSecurityException;
 import ca.sqlpower.security.PLSecurityManager;
 import ca.sqlpower.sql.DBConnection;
@@ -69,6 +68,7 @@ import ca.sqlpower.sql.DefaultParameters;
 import ca.sqlpower.sql.PLSchemaException;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SQL;
+import ca.sqlpower.util.LabelValueBean;
 import ca.sqlpower.util.Monitorable;
 
 public class PLExport implements Monitorable {

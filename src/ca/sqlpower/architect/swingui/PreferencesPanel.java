@@ -50,6 +50,7 @@ import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.ddl.DDLUserSettings;
 import ca.sqlpower.architect.etl.ETLUserSettings;
 import ca.sqlpower.architect.qfa.QFAUserSettings;
+import ca.sqlpower.swingui.SPSUtils;
 
 public class PreferencesPanel extends JPanel implements ArchitectPanel {
 
@@ -94,7 +95,7 @@ public class PreferencesPanel extends JPanel implements ArchitectPanel {
 		plIniPanel.setLayout(new BorderLayout());
 		plIniPanel.add(plIniName = new JTextField("",35), BorderLayout.WEST);
 		plIniPanel.add(plIniButton = new JButton(), BorderLayout.EAST);
-		plIniButton.setAction(new ChooseFileAction(plIniName,ASUtils.INI_FILE_FILTER,"Browse..."));
+		plIniButton.setAction(new ChooseFileAction(plIniName,SPSUtils.INI_FILE_FILTER,"Browse..."));
 		add(plIniPanel);
 		// line 2
 		add(new JLabel("ETL Log File"));
@@ -102,7 +103,7 @@ public class PreferencesPanel extends JPanel implements ArchitectPanel {
 		etlLogFilePanel.setLayout(new BorderLayout());
 		etlLogFilePanel.add(etlLogFileName = new JTextField("",35), BorderLayout.WEST);
 		etlLogFilePanel.add(etlLogFileButton = new JButton(), BorderLayout.EAST);
-		etlLogFileButton.setAction(new ChooseFileAction(etlLogFileName,ASUtils.LOG_FILE_FILTER,"Browse..."));
+		etlLogFileButton.setAction(new ChooseFileAction(etlLogFileName,SPSUtils.LOG_FILE_FILTER,"Browse..."));
 		add(etlLogFilePanel);
 
 		// line 3
@@ -111,7 +112,7 @@ public class PreferencesPanel extends JPanel implements ArchitectPanel {
 		ddlLogFilePanel.setLayout(new BorderLayout());
 		ddlLogFilePanel.add(ddlLogFileName = new JTextField("",35), BorderLayout.WEST);
 		ddlLogFilePanel.add(ddlLogFileButton = new JButton(), BorderLayout.EAST);
-		ddlLogFileButton.setAction(new ChooseFileAction(ddlLogFileName,ASUtils.LOG_FILE_FILTER,"Browse..."));
+		ddlLogFileButton.setAction(new ChooseFileAction(ddlLogFileName,SPSUtils.LOG_FILE_FILTER,"Browse..."));
 		add(ddlLogFilePanel);
 
 		// line 4

@@ -48,6 +48,7 @@ import javax.swing.text.html.HTMLEditorKit;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectVersion;
+import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.util.BrowserUtil;
 
 /**
@@ -65,7 +66,7 @@ public class WelcomeScreen {
         "<body>" +
         "<h1 align=\"center\">Power*Architect " + ArchitectVersion.APP_VERSION + "</h1>" +
         "<br><br><br>" +
-        "<p>Please visit our <a href=\"" + ArchitectSwingSessionContext.FORUM_URL + "\">support forum</a>" +
+        "<p>Please visit our <a href=\"" + SPSUtils.FORUM_URL + "\">support forum</a>" +
         "   if you have any questions, comments, suggestions, or if you just need a friend." +
         "<br><br>" +
         "<p>Check out the JDBC drivers section under <i>How to Use Power*Architect</i> in the " +
@@ -82,8 +83,8 @@ public class WelcomeScreen {
         JPanel iconPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         iconPanel.setBorder(BorderFactory.createEmptyBorder(25, 0, 25, 0));
 
-        iconPanel.add(new JLabel(ASUtils.createIcon("sqlpower_transparent", "Large SQL*Power Logo")));
-        iconPanel.add(new JLabel(ASUtils.createIcon("architect", "Large Architect Logo")));
+        iconPanel.add(new JLabel(SPSUtils.createIcon("sqlpower_transparent", "Large SQL*Power Logo")));
+        iconPanel.add(new JLabel(SPSUtils.createIcon("architect", "Large Architect Logo")));
         b.add(iconPanel);
 
         HTMLEditorKit htmlKit = new HTMLEditorKit();

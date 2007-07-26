@@ -54,6 +54,7 @@ import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLIndex.Column;
 import ca.sqlpower.architect.profile.TableProfileManager;
+import ca.sqlpower.swingui.SPSUtils;
 
 /**
  * The DBTreeCellRenderer renders nodes of a JTree which are of
@@ -66,20 +67,20 @@ import ca.sqlpower.architect.profile.TableProfileManager;
  * @version $Id$
  */
 public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
-	public static final ImageIcon dbIcon = ASUtils.createIcon("Database", "SQL Database", ArchitectSwingSessionContext.ICON_SIZE);
-    public static final ImageIcon dbProfiledIcon = ASUtils.createIcon("Database_profiled", "SQL Database", ArchitectSwingSessionContext.ICON_SIZE);
-	public static final ImageIcon targetIcon = ASUtils.createIcon("Database_target", "SQL Database", ArchitectSwingSessionContext.ICON_SIZE);
-	public static final ImageIcon cataIcon = ASUtils.createIcon("Catalog", "SQL Catalog", ArchitectSwingSessionContext.ICON_SIZE);
-	public static final ImageIcon schemaIcon = ASUtils.createIcon("Schema", "SQL Schema", ArchitectSwingSessionContext.ICON_SIZE);
-	public static final ImageIcon tableIcon = ASUtils.createIcon("Table", "SQL Table", ArchitectSwingSessionContext.ICON_SIZE);
-    public static final ImageIcon tableProfiledIcon = ASUtils.createIcon("Table_profiled", "SQL Table", ArchitectSwingSessionContext.ICON_SIZE);
-	public static final ImageIcon exportedKeyIcon = ASUtils.createIcon("ExportedKey", "Exported key", ArchitectSwingSessionContext.ICON_SIZE);
-    public static final ImageIcon importedKeyIcon = ASUtils.createIcon("ImportedKey", "Imported key", ArchitectSwingSessionContext.ICON_SIZE);
-	public static final ImageIcon ownerIcon = ASUtils.createIcon("Owner", "Owner", ArchitectSwingSessionContext.ICON_SIZE);
-    public static final ImageIcon indexIcon = ASUtils.createIcon("Index", "Index", ArchitectSwingSessionContext.ICON_SIZE);
-    public static final ImageIcon pkIndexIcon = ASUtils.createIcon("Index_key", "Primary Key Index", ArchitectSwingSessionContext.ICON_SIZE);
-    public static final ImageIcon uniqueIndexIcon = ASUtils.createIcon("Index_unique", "Unique Index", ArchitectSwingSessionContext.ICON_SIZE);
-    public static final ImageIcon columnIcon = ASUtils.createIcon("Column", "Column", ArchitectSwingSessionContext.ICON_SIZE);
+	public static final ImageIcon dbIcon = SPSUtils.createIcon("Database", "SQL Database", ArchitectSwingSessionContext.ICON_SIZE);
+    public static final ImageIcon dbProfiledIcon = SPSUtils.createIcon("Database_profiled", "SQL Database", ArchitectSwingSessionContext.ICON_SIZE);
+	public static final ImageIcon targetIcon = SPSUtils.createIcon("Database_target", "SQL Database", ArchitectSwingSessionContext.ICON_SIZE);
+	public static final ImageIcon cataIcon = SPSUtils.createIcon("Catalog", "SQL Catalog", ArchitectSwingSessionContext.ICON_SIZE);
+	public static final ImageIcon schemaIcon = SPSUtils.createIcon("Schema", "SQL Schema", ArchitectSwingSessionContext.ICON_SIZE);
+	public static final ImageIcon tableIcon = SPSUtils.createIcon("Table", "SQL Table", ArchitectSwingSessionContext.ICON_SIZE);
+    public static final ImageIcon tableProfiledIcon = SPSUtils.createIcon("Table_profiled", "SQL Table", ArchitectSwingSessionContext.ICON_SIZE);
+	public static final ImageIcon exportedKeyIcon = SPSUtils.createIcon("ExportedKey", "Exported key", ArchitectSwingSessionContext.ICON_SIZE);
+    public static final ImageIcon importedKeyIcon = SPSUtils.createIcon("ImportedKey", "Imported key", ArchitectSwingSessionContext.ICON_SIZE);
+	public static final ImageIcon ownerIcon = SPSUtils.createIcon("Owner", "Owner", ArchitectSwingSessionContext.ICON_SIZE);
+    public static final ImageIcon indexIcon = SPSUtils.createIcon("Index", "Index", ArchitectSwingSessionContext.ICON_SIZE);
+    public static final ImageIcon pkIndexIcon = SPSUtils.createIcon("Index_key", "Primary Key Index", ArchitectSwingSessionContext.ICON_SIZE);
+    public static final ImageIcon uniqueIndexIcon = SPSUtils.createIcon("Index_unique", "Unique Index", ArchitectSwingSessionContext.ICON_SIZE);
+    public static final ImageIcon columnIcon = SPSUtils.createIcon("Column", "Column", ArchitectSwingSessionContext.ICON_SIZE);
     private final ArchitectSession session;
    
     

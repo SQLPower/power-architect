@@ -69,6 +69,7 @@ import ca.sqlpower.architect.swingui.table.ProfileTableModel;
 import ca.sqlpower.architect.swingui.table.TableModelColumnAutofit;
 import ca.sqlpower.architect.swingui.table.TableModelSearchDecorator;
 import ca.sqlpower.architect.swingui.table.TableModelSortDecorator;
+import ca.sqlpower.swingui.SPSUtils;
 
 /**
  * A class that manages a viewer component for a set of Profile Results.
@@ -263,7 +264,7 @@ public class ProfileResultsViewer {
         });
         frame.pack();
         frame.setLocationRelativeTo(null);
-        ASUtils.makeJDialogCancellable(frame, null);
+        SPSUtils.makeJDialogCancellable(frame, null);
     }
     
     public void addTableProfileResult(TableProfileResult result) {

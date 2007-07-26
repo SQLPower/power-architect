@@ -46,8 +46,8 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
-import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.swingui.SPSUtils;
 
 
 public class DDLExportPanel implements ArchitectPanel {
@@ -91,12 +91,12 @@ public class DDLExportPanel implements ArchitectPanel {
             });
         
         panelProperties.add(new JLabel("Generate DDL for Database Type:"));
-		Vector<LabelValueBean> ddlTypes =DDLUtils.getDDLTypes();
+		Vector<SPSUtils.LabelValueBean> ddlTypes =DDLUtils.getDDLTypes();
         panelProperties.add(dbType = new JComboBox(ddlTypes));
-		LabelValueBean unknownGenerator = ASUtils.lvb("Unknown Generator", ddlg.getClass());
+		SPSUtils.LabelValueBean unknownGenerator = SPSUtils.lvb("Unknown Generator", ddlg.getClass());
 		dbType.addItem(unknownGenerator);
 		dbType.setSelectedItem(unknownGenerator);
-		for (LabelValueBean lvb : ddlTypes) {
+		for (SPSUtils.LabelValueBean lvb : ddlTypes) {
             if (ddlg.getClass() == lvb.getValue() && lvb != unknownGenerator) {
                 dbType.setSelectedItem(lvb);
             }
@@ -132,7 +132,7 @@ public class DDLExportPanel implements ArchitectPanel {
 	private void setUpCatalogAndSchemaFields() {
 		Class selectedGeneratorClass = null;
 		try {
-			selectedGeneratorClass = (Class) ((ASUtils.LabelValueBean) dbType.getSelectedItem()).getValue();
+			selectedGeneratorClass = (Class) ((SPSUtils.LabelValueBean) dbType.getSelectedItem()).getValue();
 			GenericDDLGenerator newGen = (GenericDDLGenerator) selectedGeneratorClass.newInstance();
 			if (newGen.getCatalogTerm() != null) {
 				catalogLabel.setText(newGen.getCatalogTerm());
@@ -168,7 +168,7 @@ public class DDLExportPanel implements ArchitectPanel {
 	// ------------------------ Architect Panel Stuff -------------------------
 	public boolean applyChanges() {
 		GenericDDLGenerator ddlg = session.getDDLGenerator();
-		Class selectedGeneratorClass = (Class) ((ASUtils.LabelValueBean) dbType.getSelectedItem()).getValue();
+		Class selectedGeneratorClass = (Class) ((SPSUtils.LabelValueBean) dbType.getSelectedItem()).getValue();
 		if (ddlg.getClass() != selectedGeneratorClass) {
 			try {
 				ddlg = (GenericDDLGenerator) selectedGeneratorClass.newInstance();

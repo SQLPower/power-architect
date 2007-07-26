@@ -195,17 +195,17 @@ public class CompareDMFormatter {
                 cf.setVisible(true);
             }
         } catch (ArchitectDiffException ex) {
-            ASUtils.showExceptionDialog("Could not perform the diff", ex);
+            ASUtils.showExceptionDialog(session, "Could not perform the diff", ex);
             logger.error("Couldn't do diff", ex);
         } catch (ArchitectException exp) {
-            ASUtils.showExceptionDialog("StartCompareAction failed", exp);
+            ASUtils.showExceptionDialog(session, "StartCompareAction failed", exp);
             logger.error("StartCompareAction failed", exp);
         } catch (BadLocationException ex) {
-            ASUtils.showExceptionDialog(
+            ASUtils.showExceptionDialog(session,
                     "Could not create document for results", ex);
             logger.error("Could not create document for results", ex);
         } catch (Exception ex) {
-            ASUtils.showExceptionDialog("Unxepected Exception!", ex);
+            ASUtils.showExceptionDialog(session, "Unxepected Exception!", ex);
             logger.error("Unxepected Exception!", ex);
         } 
 

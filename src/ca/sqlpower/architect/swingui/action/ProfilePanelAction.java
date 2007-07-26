@@ -197,7 +197,7 @@ public class ProfilePanelAction extends ProgressAction {
 
         } catch (Exception ex) {
             logger.error("Error in Profile Action ", ex);
-            ASUtils.showExceptionDialog(dbTree, "Error during profile run", ex, new ArchitectExceptionReportFactory());
+            ASUtils.showExceptionDialog(session, "Error during profile run", ex, new ArchitectExceptionReportFactory());
         }
     }
 

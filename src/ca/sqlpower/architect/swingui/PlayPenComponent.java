@@ -434,5 +434,9 @@ public abstract class PlayPenComponent implements Selectable {
 	}
 
 	public abstract Object getModel();
+
+    public PlayPenContentPane getParent() {
+        return parent;
+    }
 	
 }

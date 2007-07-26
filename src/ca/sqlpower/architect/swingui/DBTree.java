@@ -789,7 +789,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
                 try {
                     tp.columnSelection.set(table.getColumnIndex(col), Boolean.TRUE);
                 } catch (ArchitectException e1) {
-                  ASUtils.showExceptionDialog("Error in selecting the column!", e1);
+                  ASUtils.showExceptionDialog(session, "Error in selecting the column!", e1);
                 }
             } else
                 pp.selectAndShow(selection);
