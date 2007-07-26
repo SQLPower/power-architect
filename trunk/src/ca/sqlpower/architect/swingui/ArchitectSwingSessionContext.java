@@ -108,6 +108,11 @@ public interface ArchitectSwingSessionContext {
     public abstract boolean isMacOSX();
 
     /**
+     * Returns the recent files menu.
+     */
+    public abstract RecentMenu getRecentMenu();
+    
+    /**
      * Returns the user preferences node associated with this context.
      */
     public abstract Preferences getPrefs();

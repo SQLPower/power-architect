@@ -176,7 +176,6 @@ public class SwingUIProject {
 
     // ------------- READING THE PROJECT FILE ---------------
 
-    // FIXME: this should static and return a new instance of SwingUIProject
     public void load(InputStream in, DataSourceCollection dataSources) throws IOException, ArchitectException {
         dbcsIdMap = new HashMap();
         objectIdMap = new HashMap();
@@ -193,7 +192,7 @@ public class SwingUIProject {
             if (digester == null) {
                 message = "Couldn't create an XML parser";
             } else {
-                message = "There is an XML syntax error in project file at Line:" + 
+                message = "There is an XML parsing error in project file at Line:" + 
                 digester.getDocumentLocator().getLineNumber() + " Column:" +
                 digester.getDocumentLocator().getColumnNumber();
             }

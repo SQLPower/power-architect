@@ -60,6 +60,7 @@ import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.qfa.ExceptionHandler;
 import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.architect.swingui.action.OpenProjectAction;
 import ca.sqlpower.architect.swingui.event.SessionLifecycleEvent;
 
 import com.jgoodies.forms.factories.Borders;
@@ -96,6 +97,11 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     private final Collection<ArchitectSwingSession> sessions;
 
     /**
+     * The menu of recently-opened project files on this system.
+     */
+    private final RecentMenu recent;
+
+    /**
      * Creates a new session context.  You will normally only need one of these
      * per JVM, but there is no technical barrier to creating multiple contexts.
      * <p>
@@ -121,6 +127,14 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
 
         Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());
 
+        recent = new RecentMenu(this) {
+            @Override
+            public void loadFile(String fileName) throws IOException {
+                File f = new File(fileName);
+                OpenProjectAction.openAsynchronously(ArchitectSwingSessionContextImpl.this, f);
+            }
+        };
+        
         userSettings = new CoreUserSettings(getPrefs());
 
         while (!userSettings.isPlDotIniPathValid()) {
@@ -287,6 +301,13 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         return MAC_OS_X;
     }
 
+    /* (non-Javadoc)
+     * @see ca.sqlpower.architect.swingui.ArchitectSwingSessionContext#getRecentMenu()
+     */
+    public RecentMenu getRecentMenu() {
+        return recent;
+    }
+    
     /* (non-Javadoc)
      * @see ca.sqlpower.architect.swingui.ArchitectSwingSessionContext#getPrefs()
      */

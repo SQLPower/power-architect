@@ -67,7 +67,7 @@ public class OpenProjectAction extends AbstractArchitectAction {
     
     public OpenProjectAction(ArchitectSwingSession session) {
         super(session, "Open Project...", "Open", "folder");
-        this.recent = session.getRecentMenu();
+        this.recent = session.getContext().getRecentMenu();
         putValue(AbstractAction.ACCELERATOR_KEY,
                 KeyStroke.getKeyStroke(KeyEvent.VK_O,
                         Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
@@ -79,7 +79,7 @@ public class OpenProjectAction extends AbstractArchitectAction {
         int returnVal = chooser.showOpenDialog(frame);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File f = chooser.getSelectedFile();
-            openAsynchronously(session, f);
+            openAsynchronously(session.getContext(), f);
         }
     }
 
@@ -95,10 +95,10 @@ public class OpenProjectAction extends AbstractArchitectAction {
      * @param context The context with which to create the session.
      * @param f The project file to load.
      */
-    public static void openAsynchronously(ArchitectSwingSession session, File f) {
+    public static void openAsynchronously(ArchitectSwingSessionContext context, File f) {
       LoadFileWorker worker;
         try {
-            worker = new LoadFileWorker(f, session);
+            worker = new LoadFileWorker(f, context.createSession(false));
             new Thread(worker).start();
         } catch (FileNotFoundException e1) {
             JOptionPane.showMessageDialog(
@@ -129,15 +129,17 @@ public class OpenProjectAction extends AbstractArchitectAction {
          * Load file worker creates a new worker and opens the given file.
          *
          * @param file  this file gets opened in the constructor
-         * @param recent optional recent menu in which to add the file
+         * @param session The session in which the project file should be opened
          * @throws ArchitectException when the project creation fails.
          * @throws FileNotFoundException if file doesn't exist
          */
         public LoadFileWorker(File file, ArchitectSwingSession session) throws ArchitectException, FileNotFoundException {
+                // The super constructor registers the LoadFileWorker with the session.
                 super(session);
                 this.context = session.getContext();
                 this.file = file;
-                this.recent = session.getRecentMenu();
+                this.recent = session.getContext().getRecentMenu();
+                this.newSession = session;
                 
                 // XXX this progress dialog has the coffee cup icon instead
                 // of the architect icon. To fix this, we need to create an
@@ -152,9 +154,9 @@ public class OpenProjectAction extends AbstractArchitectAction {
         }
 
         @Override
-        public void doStuff() throws IOException, ArchitectException {
+        public void doStuff() throws Exception {
             recent.putRecentFileName(file.getAbsolutePath());
-            newSession = context.createSession(in, false);
+            newSession.getProject().load(in, newSession.getUserSettings().getPlDotIni());            
         }
 
         @Override
@@ -171,6 +173,8 @@ public class OpenProjectAction extends AbstractArchitectAction {
                             getDoStuffException());
                     logger.error("Got exception while opening a project", getDoStuffException());
                 }
+                newSession.removeSwingWorker(this);
+                newSession.close();
             } else {
                 newSession.initGUI();
                 ((SQLObject) newSession.getSourceDatabases().getModel().getRoot()).fireDbStructureChanged();

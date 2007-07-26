@@ -411,7 +411,7 @@ public class ASUtils {
      * @param t The exception that warranted a dialog
      */
     public static void showExceptionDialogNoReport(String message, Throwable t) {
-        showExceptionDialog(null, message, t);
+        SPSUtils.showExceptionDialogNoReport(message, t);
     }
     
     /**
