@@ -38,6 +38,7 @@ import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionContext;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.swingui.SPSUtils;
 
 /**
  * A set of basic functionality that all actions in the Architect
@@ -69,7 +70,7 @@ public abstract class AbstractArchitectAction extends AbstractAction {
         super(actionName,
                 iconResourceName == null ?
                         null :
-                        ASUtils.createIcon(iconResourceName, actionName, ArchitectSwingSessionContext.ICON_SIZE));
+                        SPSUtils.createIcon(iconResourceName, actionName, ArchitectSwingSessionContext.ICON_SIZE));
         putValue(SHORT_DESCRIPTION, actionDescription);
 
         this.session = session;

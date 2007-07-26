@@ -64,7 +64,7 @@ public class ExceptionReport {
     private Throwable exception;
     private String reportUrlSysProp;
     private String reportUrl;
-    private String architectVersion;
+    private String applicationVersion;
     private long applicationUptime;
     private long totalMem;
     private long freeMem;
@@ -95,12 +95,12 @@ public class ExceptionReport {
         osVersion = System.getProperty("os.version");
     }
     
-    public ExceptionReport(Throwable exception, String reportUrlSysProp, String reportUrl, String architectVersion, long applicationUptime) {
+    public ExceptionReport(Throwable exception, String reportUrlSysProp, String reportUrl, String applicationVersion, long applicationUptime) {
         this();
         this.exception = exception;
         this.reportUrlSysProp = reportUrlSysProp;
         this.reportUrl = reportUrl;
-        this.architectVersion = architectVersion;
+        this.applicationVersion = applicationVersion;
         this.applicationUptime = applicationUptime;
     }
 
@@ -109,7 +109,7 @@ public class ExceptionReport {
         xml.append("<?xml version=\"1.0\" encoding=\"ISO-8859-1\" ?>");
         xml.append("\n<architect-exception-report version=\"1.0\">");
         appendNestedExceptions(xml,exception);
-        xml.append("\n <architect-version>").append(ArchitectUtils.escapeXML(architectVersion)).append("</architect-version>");
+        xml.append("\n <architect-version>").append(ArchitectUtils.escapeXML(applicationVersion)).append("</architect-version>");
         xml.append("\n <architect-uptime>").append(applicationUptime).append("</architect-uptime>");
         xml.append("\n <total-mem>").append(totalMem).append("</total-mem>");
         xml.append("\n <free-mem>").append(freeMem).append("</free-mem>");
@@ -277,11 +277,11 @@ public class ExceptionReport {
     }
 
     public String getArchitectVersion() {
-        return architectVersion;
+        return applicationVersion;
     }
 
     public void setArchitectVersion(String architectVersion) {
-        this.architectVersion = architectVersion;
+        this.applicationVersion = architectVersion;
     }
 
     public void setRemarks(String v) {

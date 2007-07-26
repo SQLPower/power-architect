@@ -841,7 +841,7 @@ public class TablePane
 					logger.error("Error processing drop operation", ex);
 					dtde.rejectDrop();
 					dtde.dropComplete(false);
-					ASUtils.showExceptionDialog(
+					ASUtils.showExceptionDialogNoReport(tp.getParent().getOwner(),
                         "Error processing drop operation", ex);
                 } finally {
 					tp.setInsertionPoint(COLUMN_INDEX_NONE);

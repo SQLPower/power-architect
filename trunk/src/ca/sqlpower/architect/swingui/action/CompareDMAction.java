@@ -41,11 +41,11 @@ import javax.swing.JPanel;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.CommonCloseAction;
 import ca.sqlpower.architect.swingui.CompareDMPanel;
 import ca.sqlpower.architect.swingui.JDefaultButton;
+import ca.sqlpower.swingui.SPSUtils;
 
 public class CompareDMAction extends AbstractArchitectAction {
 	private static final Logger logger = Logger.getLogger(CompareDMAction.class);
@@ -79,7 +79,7 @@ public class CompareDMAction extends AbstractArchitectAction {
 		JButton cancelButton = new JButton(new CommonCloseAction(d));	
 		buttonPanel.add(cancelButton);
 		cp.add(buttonPanel, BorderLayout.SOUTH);
-		ASUtils.makeJDialogCancellable(d, cancelButton.getAction());
+		SPSUtils.makeJDialogCancellable(d, cancelButton.getAction());
 		d.getRootPane().setDefaultButton(okButton);
 		d.setContentPane(cp);
 		d.pack();

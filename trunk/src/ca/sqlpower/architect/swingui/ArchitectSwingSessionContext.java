@@ -57,11 +57,6 @@ public interface ArchitectSwingSessionContext {
     public static final int ICON_SIZE = 16;
 
     /**
-     * The URL where the Architect support forum is available.
-     */
-    static final String FORUM_URL = "http://www.sqlpower.ca/forum/";
-    
-    /**
      * The URL where there is more information about finding and configuring
      * JDBC drivers.
      */
@@ -111,11 +106,6 @@ public interface ArchitectSwingSessionContext {
      * that the Architect is a native application.
      */
     public abstract boolean isMacOSX();
-
-    /**
-     * Returns the recent files menu.
-     */
-    public abstract RecentMenu getRecentMenu();
 
     /**
      * Returns the user preferences node associated with this context.

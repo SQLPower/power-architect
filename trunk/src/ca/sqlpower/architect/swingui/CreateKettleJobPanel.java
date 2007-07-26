@@ -56,6 +56,7 @@ import org.pentaho.di.trans.steps.mergejoin.MergeJoinMeta;
 
 import ca.sqlpower.architect.etl.kettle.CreateKettleJob;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.swingui.SPSUtils;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
@@ -138,7 +139,7 @@ public class CreateKettleJobPanel implements ArchitectPanel {
         browseFilePath.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 JFileChooser chooser = new JFileChooser(project.getFile());
-                chooser.addChoosableFileFilter(ASUtils.XML_FILE_FILTER);
+                chooser.addChoosableFileFilter(SPSUtils.XML_FILE_FILTER);
                 int response = chooser.showSaveDialog(panel);
                 if (response != JFileChooser.APPROVE_OPTION) {
                     return;

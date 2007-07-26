@@ -71,10 +71,11 @@ import javax.swing.tree.TreeSelectionModel;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.util.Monitorable;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SPDataSourceType;
 import ca.sqlpower.swingui.ProgressWatcher;
+import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.util.Monitorable;
 
 public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 
@@ -232,7 +233,7 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
 
 		public void actionPerformed(ActionEvent e) {
 			try {
-				fileChooser.addChoosableFileFilter(ASUtils.JAR_ZIP_FILE_FILTER);
+				fileChooser.addChoosableFileFilter(SPSUtils.JAR_ZIP_FILE_FILTER);
 				fileChooser.setMultiSelectionEnabled(true);
 				int returnVal = fileChooser.showOpenDialog(JDBCDriverPanel.this);
 				if(returnVal == JFileChooser.APPROVE_OPTION) {

@@ -45,12 +45,12 @@ import javax.swing.JTabbedPane;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectDataSourceTypeEditor;
 import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.JDefaultButton;
 import ca.sqlpower.architect.swingui.PreferencesPanel;
+import ca.sqlpower.swingui.SPSUtils;
 
 import com.jgoodies.forms.factories.ButtonBarFactory;
 
@@ -106,7 +106,7 @@ public class PreferencesAction extends AbstractArchitectAction {
 
         JPanel buttonPanel = ButtonBarFactory.buildOKCancelBar(okButton, cancelButton);
 
-		ASUtils.makeJDialogCancellable(d, cancelAction);
+		SPSUtils.makeJDialogCancellable(d, cancelAction);
 		d.getRootPane().setDefaultButton(okButton);
 		cp.add(buttonPanel, BorderLayout.SOUTH);
 		d.setContentPane(cp);

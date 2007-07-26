@@ -50,6 +50,8 @@ import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.swingui.SPSUtils;
+
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.factories.ButtonBarFactory;
 
@@ -144,7 +146,7 @@ public class ArchitectPanelBuilder {
 		}
 
 		okButton.addActionListener(closeAction);
-		ASUtils.makeJDialogCancellable(d, closeAction);
+		SPSUtils.makeJDialogCancellable(d, closeAction);
 		okButton.addActionListener(new CommonCloseAction(d));
 		JButton cancelButton = new JDefaultButton(cancelAction);
 		cancelButton.setText(CANCEL_BUTTON_LABEL);
@@ -295,7 +297,7 @@ public class ArchitectPanelBuilder {
         // In all cases we have to close the dialog.
         Action closeAction = new CommonCloseAction(d);
         okButton.addActionListener(closeAction);
-        ASUtils.makeJDialogCancellable(d, closeAction);
+        SPSUtils.makeJDialogCancellable(d, closeAction);
         okButton.addActionListener(new CommonCloseAction(d));
 
         // Handle if the user presses Enter in the dialog - do OK action

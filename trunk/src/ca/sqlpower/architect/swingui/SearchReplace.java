@@ -81,6 +81,7 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.swingui.SPSUtils;
 
 /**
  * SearchReplace is a GUI facility for searching for named items in the
@@ -231,7 +232,7 @@ public class SearchReplace {
                 try {
                     showResults(d, pp);
                 } catch (ArchitectException ex) {
-                    ASUtils.showExceptionDialog(
+                    ASUtils.showExceptionDialogNoReport(
                         "Encountered a problem during search", ex);
                 }
             }
@@ -246,7 +247,7 @@ public class SearchReplace {
         cancelAction.putValue(Action.NAME, ArchitectPanelBuilder.CANCEL_BUTTON_LABEL);
         JButton cancelButton = new JButton(cancelAction);
 
-        ASUtils.makeJDialogCancellable(d, cancelAction);
+        SPSUtils.makeJDialogCancellable(d, cancelAction);
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.add(searchButton);
@@ -366,7 +367,7 @@ public class SearchReplace {
 
 	        Action closeAction = new CommonCloseAction(d);
 	        JButton closeButton = new JButton(closeAction);
-	        ASUtils.makeJDialogCancellable(d, closeAction);
+	        SPSUtils.makeJDialogCancellable(d, closeAction);
 
 	        ListSelectionListener buttonActivator = new ListSelectionListener() {
 	            public void valueChanged(ListSelectionEvent e) {

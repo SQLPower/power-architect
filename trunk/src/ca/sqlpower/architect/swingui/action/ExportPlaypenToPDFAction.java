@@ -52,6 +52,7 @@ import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.PlayPenComponent;
 import ca.sqlpower.architect.swingui.PlayPenContentPane;
+import ca.sqlpower.swingui.SPSUtils;
 
 import com.lowagie.text.Document;
 import com.lowagie.text.Rectangle;
@@ -77,7 +78,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
     public boolean setup(ActionMonitor monitor, Map<String,Object> properties) {
         monitor.started = true;
         JFileChooser chooser = new JFileChooser();
-        chooser.addChoosableFileFilter(ASUtils.PDF_FILE_FILTER);
+        chooser.addChoosableFileFilter(SPSUtils.PDF_FILE_FILTER);
         monitor.setJobSize(playpen.getPlayPenContentPane().getComponentCount());
         
         File file = null;
@@ -161,7 +162,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
             playPen.paintComponent(g);
             g.dispose();
         } catch (Exception ex) {
-            ASUtils.showExceptionDialog(c, 
+            ASUtils.showExceptionDialog(session, 
                     "Could not export the playpen", 
                     ex, 
                     new ArchitectExceptionReportFactory());
@@ -170,7 +171,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
                 try {
                     d.close();
                 } catch (Exception ex) {
-                    ASUtils.showExceptionDialog(c,
+                    ASUtils.showExceptionDialog(session,
                             "Could not close document for exporting playpen", 
                             ex, 
                             new ArchitectExceptionReportFactory());
@@ -181,7 +182,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
                     out.flush();
                     out.close();
                 } catch (IOException ex) {
-                    ASUtils.showExceptionDialog(null,
+                    ASUtils.showExceptionDialog(session,
                         "Could not close pdf file for exporting playpen", 
                         ex, 
                         new ArchitectExceptionReportFactory());

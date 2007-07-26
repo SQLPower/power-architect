@@ -105,7 +105,7 @@ import ca.sqlpower.architect.swingui.action.VisualMappingReportAction;
 import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.swingui.action.ZoomAllAction;
 import ca.sqlpower.architect.undo.UndoManager;
-import ca.sqlpower.util.BrowserUtil;
+import ca.sqlpower.swingui.SPSUtils;
 
 /**
  * The Main Window for the Architect Application; contains a main() method that is
@@ -114,7 +114,6 @@ import ca.sqlpower.util.BrowserUtil;
 public class ArchitectFrame extends JFrame {
 
 	private static Logger logger = Logger.getLogger(ArchitectFrame.class);
-
 
 	public static final double ZOOM_STEP = 0.25;
 
@@ -175,22 +174,6 @@ public class ArchitectFrame extends JFrame {
         }
     };
 
-    /**
-     * XXX this is static because it's referenced from the exception dialog thing in asutils. we should unstaticize it when we handle exceptions in the session itself
-     */
-    protected static Action forumAction = new AbstractAction("Support on the Web",
-            // Alas this is now static so the size can't be gotten from sprefs...
-            ASUtils.createIcon("world","New Project", ArchitectSwingSessionContext.ICON_SIZE)) {
-        public void actionPerformed(ActionEvent evt) {
-            try {
-                BrowserUtil.launch(ArchitectSwingSessionContext.FORUM_URL);
-            } catch (IOException e) {
-                ASUtils.showExceptionDialog(
-                        "Could not launch browser for Forum View", e);
-            }
-        }
-    };
-    
     /**
 	 * This constructor is used by the session implementation.  To obtain an Architect
      * Frame, you have to create an {@link ArchitectSwingSessionContext} and then call
@@ -255,7 +238,7 @@ public class ArchitectFrame extends JFrame {
         helpAction.putValue(AbstractAction.SHORT_DESCRIPTION, "User Guide");
 
         newProjectAction = new AbstractAction("New Project",
-                ASUtils.createIcon("new_project","New Project",sprefs.getInt(SwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) {
+                SPSUtils.createIcon("new_project","New Project",sprefs.getInt(SwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) {
             public void actionPerformed(ActionEvent e) {
                 try {
                     createNewProject();
@@ -274,7 +257,7 @@ public class ArchitectFrame extends JFrame {
         openProjectAction = new OpenProjectAction(session);
 
         saveProjectAction = new AbstractAction("Save Project",
-                ASUtils.createIcon("disk",
+                SPSUtils.createIcon("disk",
                         "Save Project",
                         sprefs.getInt(SwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) {
             public void actionPerformed(ActionEvent e) {
@@ -286,7 +269,7 @@ public class ArchitectFrame extends JFrame {
                 KeyStroke.getKeyStroke(KeyEvent.VK_S, accelMask));
 
         saveProjectAsAction = new AbstractAction("Save Project As...",
-                ASUtils.createIcon("save_as",
+                SPSUtils.createIcon("save_as",
                         "Save Project As...",
                         sprefs.getInt(SwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) {
             public void actionPerformed(ActionEvent e) {
@@ -314,7 +297,7 @@ public class ArchitectFrame extends JFrame {
 
         zoomNormalAction
         = new AbstractAction("Reset Zoom",
-                ASUtils.createIcon("zoom_reset",
+                SPSUtils.createIcon("zoom_reset",
                         "Reset Zoom",
                         sprefs.getInt(SwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) {
             public void actionPerformed(ActionEvent e) {
@@ -364,7 +347,7 @@ public class ArchitectFrame extends JFrame {
         fileMenu.setMnemonic('f');
         fileMenu.add(newProjectAction);
         fileMenu.add(openProjectAction);
-        fileMenu.add(session.getContext().getRecentMenu());
+        fileMenu.add(session.getRecentMenu());
         fileMenu.add(closeProjectAction);
         fileMenu.addSeparator();
         fileMenu.add(saveProjectAction);
@@ -457,7 +440,7 @@ public class ArchitectFrame extends JFrame {
             helpMenu.addSeparator();
         }
         helpMenu.add(helpAction);
-        helpMenu.add(forumAction);
+        helpMenu.add(SPSUtils.forumAction);
         menuBar.add(helpMenu);
 
         setJMenuBar(menuBar);
@@ -619,7 +602,10 @@ public class ArchitectFrame extends JFrame {
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
-                    ASUtils.showExceptionDialog("Could not launch the Power*Architect", e);
+                    //We wish we had a parent component to direct the dialog to
+                    //instead of passing a null, but this is being invoked, so 
+                    //everything else blew up.
+                    ASUtils.showExceptionDialog(null, "Could not launch the Power*Architect", e);
                 }
 		    }
 		});

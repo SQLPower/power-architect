@@ -41,11 +41,11 @@ import javax.swing.BorderFactory;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 
-import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.AboutPanel;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.CommonCloseAction;
 import ca.sqlpower.architect.swingui.JDefaultButton;
+import ca.sqlpower.swingui.SPSUtils;
 
 public class AboutAction extends AbstractArchitectAction {
 
@@ -77,7 +77,7 @@ public class AboutAction extends AbstractArchitectAction {
 		buttonPanel.add(okButton);
 			
 		cp.add(buttonPanel, BorderLayout.SOUTH);
-		ASUtils.makeJDialogCancellable(
+		SPSUtils.makeJDialogCancellable(
 				d, new CommonCloseAction(d));
 		d.getRootPane().setDefaultButton(okButton);
 		d.setContentPane(cp);

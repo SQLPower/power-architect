@@ -40,6 +40,10 @@ import ca.sqlpower.architect.SQLDatabase;
 public abstract class Populator extends ArchitectSwingWorker implements
 		Lister {
 
+    public Populator(ArchitectSwingSession session) {
+        super(session);
+    }
+    
 	protected SQLDatabase.PopulateProgressMonitor progressMonitor;
 
 	public Integer getJobSize() throws ArchitectException {

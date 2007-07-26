@@ -30,5 +30,6 @@
 	<classpathentry kind="lib" path="buildlib/gsbase-2.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/kettle3.jar"/>
 	<classpathentry kind="lib" path="lib/darwinsys.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/sqlpower_library"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>

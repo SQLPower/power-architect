@@ -121,7 +121,7 @@ public class CreateKettleJobAction extends AbstractArchitectAction {
                 builder.append(cancel);
                 createKettleJobMonitor.add(builder.getPanel());
                 
-                ArchitectSwingWorker compareWorker = new ArchitectSwingWorker() {
+                ArchitectSwingWorker compareWorker = new ArchitectSwingWorker(session) {
 
                     @Override
                     public void doStuff() throws Exception {

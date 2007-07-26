@@ -36,9 +36,8 @@ import java.util.Vector;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.ASUtils;
-import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.swingui.SPSUtils;
 
 /**
  * DDLUtils is a collection of utilities related to creating and
@@ -157,16 +156,15 @@ public class DDLUtils {
         return toQualifiedName(newCatalog,newSchema,newName);
     }
 
-    public static Vector<LabelValueBean> getDDLTypes()
+    public static Vector<SPSUtils.LabelValueBean> getDDLTypes()
     {
-
-    		Vector<LabelValueBean> dbTypeList = new Vector();
-		dbTypeList.add(ASUtils.lvb("SQL 92", GenericDDLGenerator.class));
-		dbTypeList.add(ASUtils.lvb("DB2", DB2DDLGenerator.class));
-		dbTypeList.add(ASUtils.lvb("Oracle 8i/9i", OracleDDLGenerator.class));
-		dbTypeList.add(ASUtils.lvb("PostgreSQL", PostgresDDLGenerator.class));
-		dbTypeList.add(ASUtils.lvb("SQLServer 2000", SQLServerDDLGenerator.class));
-        dbTypeList.add(ASUtils.lvb("MySql", MySqlDDLGenerator.class));
+        Vector<SPSUtils.LabelValueBean> dbTypeList = new Vector();
+		dbTypeList.add(SPSUtils.lvb("SQL 92", GenericDDLGenerator.class));
+		dbTypeList.add(SPSUtils.lvb("DB2", DB2DDLGenerator.class));
+		dbTypeList.add(SPSUtils.lvb("Oracle 8i/9i", OracleDDLGenerator.class));
+		dbTypeList.add(SPSUtils.lvb("PostgreSQL", PostgresDDLGenerator.class));
+		dbTypeList.add(SPSUtils.lvb("SQLServer 2000", SQLServerDDLGenerator.class));
+        dbTypeList.add(SPSUtils.lvb("MySql", MySqlDDLGenerator.class));
 		return dbTypeList;
     }
 

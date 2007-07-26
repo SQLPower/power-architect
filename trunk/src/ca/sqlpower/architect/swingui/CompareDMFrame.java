@@ -57,7 +57,8 @@ import javax.swing.text.StyleConstants;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.swingui.ASUtils.FileExtensionFilter;
+import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.swingui.SPSUtils.FileExtensionFilter;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
 import com.jgoodies.forms.builder.PanelBuilder;
@@ -133,7 +134,7 @@ public class CompareDMFrame extends JDialog {
 			public void actionPerformed(ActionEvent e) {
 				new SaveDocument(CompareDMFrame.this,
 						sourceOutputText,
-						(FileExtensionFilter) ASUtils.TEXT_FILE_FILTER );
+						(FileExtensionFilter) SPSUtils.TEXT_FILE_FILTER );
 			}
 		};
 		CloseAction close = new CloseAction();
@@ -189,7 +190,7 @@ public class CompareDMFrame extends JDialog {
 			public void actionPerformed(ActionEvent e) {
 				new SaveDocument(CompareDMFrame.this,
 						targetOutputText,
-						(FileExtensionFilter) ASUtils.TEXT_FILE_FILTER );
+						(FileExtensionFilter) SPSUtils.TEXT_FILE_FILTER );
 			}
 		};
 		

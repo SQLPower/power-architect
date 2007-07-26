@@ -43,7 +43,8 @@ import javax.swing.JOptionPane;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
 
-import ca.sqlpower.architect.swingui.ASUtils.FileExtensionFilter;
+import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.swingui.SPSUtils.FileExtensionFilter;
 
 /** A JFileChooser that includes code to save the Document.
  */
@@ -68,7 +69,7 @@ public class SaveDocument extends JFileChooser {
 
 				File file = getSelectedFile();
 				String fileName = file.getPath();
-				String fileExt = ASUtils.FileExtensionFilter.getExtension(file);
+				String fileExt = SPSUtils.FileExtensionFilter.getExtension(file);
 				if ( fileExt.length() == 0 ) {
 					file = new File(fileName + "." +
 								fef.getFilterExtension(new Integer(0)));
@@ -100,9 +101,9 @@ public class SaveDocument extends JFileChooser {
 			}
 			out.close();
 		} catch (IOException e1) {
-			ASUtils.showExceptionDialog("Save file Error!", e1);
+			ASUtils.showExceptionDialogNoReport("Save file Error!", e1);
 		} catch (BadLocationException e1) {
-			ASUtils.showExceptionDialog("Open file Error!", e1);
+			ASUtils.showExceptionDialogNoReport("Open file Error!", e1);
 		}
 	}
 }

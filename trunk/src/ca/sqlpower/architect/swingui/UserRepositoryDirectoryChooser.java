@@ -137,9 +137,9 @@ public class UserRepositoryDirectoryChooser implements KettleRepositoryDirectory
             try {
                 SwingUtilities.invokeAndWait(promptUser);
             } catch (InterruptedException e) {
-                ASUtils.showExceptionDialog("While queing the dialog's pack, setVisible and setLocation, we were interrupted", e);
+                ASUtils.showExceptionDialogNoReport(parent, "While queing the dialog's pack, setVisible and setLocation, we were interrupted", e);
             } catch (InvocationTargetException e) {
-                ASUtils.showExceptionDialog("While queing the dialog's pack, setVisible and setLocation, an InvocationTargetException was thrown", e);
+                ASUtils.showExceptionDialogNoReport(parent, "While queing the dialog's pack, setVisible and setLocation, an InvocationTargetException was thrown", e);
             }
         }  
         return directory;

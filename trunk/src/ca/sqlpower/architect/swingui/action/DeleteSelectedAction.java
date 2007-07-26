@@ -164,7 +164,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
 							} catch (ArchitectException e) {
 								logger.error("Unexpected exception encountered when attempting to delete column '"+
 										sc+"' of table '"+sc.getParentTable()+"'");
-								ASUtils.showExceptionDialog(playpen, "Could not delete the column", e, new ArchitectExceptionReportFactory());
+								ASUtils.showExceptionDialog(session, "Could not delete the column", e, new ArchitectExceptionReportFactory());
 							}
 						}
 					} finally {
@@ -258,7 +258,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
 						} catch (ArchitectException e) {
 							logger.error("Unexpected exception encountered when attempting to delete column '"+
 									sc+"' of table '"+sc.getParentTable()+"'");
-							ASUtils.showExceptionDialog(playpen, "Encountered a Problem Deleting the column", e, new ArchitectExceptionReportFactory());
+							ASUtils.showExceptionDialog(session, "Encountered a Problem Deleting the column", e, new ArchitectExceptionReportFactory());
 						}
 					} else if (so instanceof SQLRelationship) {
 						SQLRelationship sr = (SQLRelationship) so;

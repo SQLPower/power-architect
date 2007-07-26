@@ -1253,7 +1253,7 @@ public class PlayPen extends JPanel
 		                      0,
 			                  100);
 		AddObjectsTask t = new AddObjectsTask(list,
-				preferredLocation, pm, null);
+				preferredLocation, pm, null, session);
 		t.setNextProcess(nextProcess);
 		new Thread(t, "Objects-Adder").start();
 	}
@@ -1273,7 +1273,9 @@ public class PlayPen extends JPanel
 		public AddObjectsTask(List<SQLObject> sqlObjects,
 				Point preferredLocation,
 				ProgressMonitor pm,
-				JDialog parentDialog) {
+				JDialog parentDialog, 
+                ArchitectSwingSession session) {
+            super(session);
 			this.sqlObjects = sqlObjects;
 			this.preferredLocation = preferredLocation;
 			this.parentDialog = parentDialog;
@@ -1429,7 +1431,7 @@ public class PlayPen extends JPanel
 					}
 				}
 			} catch (ArchitectException e) {
-				ASUtils.showExceptionDialog(parentDialog,
+				ASUtils.showExceptionDialog(session,
                     "Unexpected Exception During Import", e, new ArchitectExceptionReportFactory());
 			} finally {
 				finished = true;

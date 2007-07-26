@@ -93,7 +93,9 @@ public class ArchitectDataSourceTypeEditor implements ArchitectPanel {
                         switchToDsType(dst);
                     }
                 } catch (ArchitectException ex) {
-                    ASUtils.showExceptionDialogNoReport(
+                    // XXX: DANGER!!! we aren't sure if this is the best parent component
+                    // for the dialog.
+                    ASUtils.showExceptionDialogNoReport(jdbcPanel,
                             "Can't edit this database type due to an unexpected error", ex);
                 }
             }

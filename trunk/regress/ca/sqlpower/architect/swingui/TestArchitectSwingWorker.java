@@ -40,7 +40,7 @@ public class TestArchitectSwingWorker extends TestCase {
 	ArchitectSwingWorker w3;
 	@Override
 	protected void setUp() throws Exception {
-		setCancelled = new ArchitectSwingWorker(){
+		setCancelled = new ArchitectSwingWorker(null){
 
 			@Override
 			public void cleanup() throws Exception {
@@ -55,7 +55,7 @@ public class TestArchitectSwingWorker extends TestCase {
 			}
 			
 		};
-		w2 = new ArchitectSwingWorker(){
+		w2 = new ArchitectSwingWorker(null){
 
 			@Override
 			public void cleanup() throws Exception {
@@ -70,7 +70,7 @@ public class TestArchitectSwingWorker extends TestCase {
 			}
 			
 		};
-		w3 = new ArchitectSwingWorker(){
+		w3 = new ArchitectSwingWorker(null){
 
 			@Override
 			public void cleanup() throws Exception {

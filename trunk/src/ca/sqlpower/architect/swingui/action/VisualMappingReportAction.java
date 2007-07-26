@@ -125,7 +125,7 @@ public class VisualMappingReportAction extends AbstractArchitectAction {
                         mr.drawHighLevelReport((Graphics2D) g,null);
                     } catch (ArchitectException e1) {
                         logger.error("ArchitectException while generating mapping diagram", e1);
-                        ASUtils.showExceptionDialog(
+                        ASUtils.showExceptionDialogNoReport(
                                 "Couldn't generate mapping diagram", e1);
                     }
                 }

@@ -75,9 +75,10 @@ import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLStatement;
 import ca.sqlpower.architect.ddl.DDLUserSettings;
 import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
-import ca.sqlpower.architect.swingui.ASUtils.FileExtensionFilter;
-import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.swingui.SPSUtils.FileExtensionFilter;
+import ca.sqlpower.util.LabelValueBean;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
 import com.jgoodies.forms.builder.PanelBuilder;
@@ -107,7 +108,7 @@ public class SQLScriptDialog extends JDialog {
     
     private ArchitectSwingSession session;
 
-	private MonitorableWorker executeTask = new ExecuteSQLScriptWorker();
+	private MonitorableWorker executeTask;
 
 	public SQLScriptDialog(Dialog owner, String title, String header, boolean modal,
 			DDLGenerator gen, SPDataSource targetDataSource,
@@ -126,6 +127,7 @@ public class SQLScriptDialog extends JDialog {
 		this.targetDataSource = targetDataSource;
 		this.closeParent = closeParent;
         this.session = session;
+        this.executeTask = new ExecuteSQLScriptWorker(session);
 		logger.info("The list size is :" + statements.size());
 		add(buildPanel());
 		pack();
@@ -148,7 +150,7 @@ public class SQLScriptDialog extends JDialog {
 			try {
 				sqlDoc.insertString(sqlDoc.getLength(), ddl.getSQLText()+ddl.getSqlTerminator(), att);
 			} catch(BadLocationException e) {
-				ASUtils.showExceptionDialog(
+				ASUtils.showExceptionDialogNoReport(parent,
 						"Could not create document for results", e);
 				logger.error("Could not create document for results", e);
 			}
@@ -174,10 +176,10 @@ public class SQLScriptDialog extends JDialog {
 		Action save = new AbstractAction() {
 			public void actionPerformed(ActionEvent e) {
 
-				logger.info( "SQL_FILE_FILTER:"+ ((FileExtensionFilter) ASUtils.SQL_FILE_FILTER).toString());
+				logger.info( "SQL_FILE_FILTER:"+ ((FileExtensionFilter) SPSUtils.SQL_FILE_FILTER).toString());
 
 				new SaveDocument(parent,sqlDoc,
-						(FileExtensionFilter) ASUtils.SQL_FILE_FILTER );
+						(FileExtensionFilter) SPSUtils.SQL_FILE_FILTER );
 			}
 		};
 		CloseAction close = new CloseAction();
@@ -281,11 +283,14 @@ public class SQLScriptDialog extends JDialog {
 
 	private class ExecuteSQLScriptWorker extends MonitorableWorker {
 
-
-		private int stmtsTried = 0;
+        private int stmtsTried = 0;
 		private int stmtsCompleted = 0;
 		private boolean finished = false;
 		private boolean hasStarted = false;
+
+        public ExecuteSQLScriptWorker(ArchitectSwingSession session) {
+		    super(session);
+		}
 
 		/**
 		 * This method runs on a separate worker thread.
@@ -415,7 +420,7 @@ public class SQLScriptDialog extends JDialog {
 			} catch (Exception exc){
 				logWriter.info("Caught Unexpected Exception " + exc);
 				ASUtils.showExceptionDialog(
-						SQLScriptDialog.this,
+						session,
 						"Couldn't finish running this SQL Script",
 						exc,
                         new ArchitectExceptionReportFactory());

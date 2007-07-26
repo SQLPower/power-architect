@@ -62,6 +62,7 @@ import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.swingui.ProgressWatcher;
+import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.event.TaskTerminationEvent;
 import ca.sqlpower.swingui.event.TaskTerminationListener;
 
@@ -99,13 +100,13 @@ public class ProfileRowComponent extends JPanel implements Selectable {
     final JLabel statusLabel = new JLabel(String.format(TableProfileResult.TOSTRING_FORMAT, 500, "Mar 9, 2007", 15000));
 
     static {
-        tableIcon = ASUtils.createIcon("Table", "Table Result", ArchitectSwingSessionContext.ICON_SIZE);
+        tableIcon = SPSUtils.createIcon("Table", "Table Result", ArchitectSwingSessionContext.ICON_SIZE);
 
-        refreshIcon = ASUtils.createIcon("arrow_refresh", "Re-Profile", ArchitectSwingSessionContext.ICON_SIZE);
+        refreshIcon = SPSUtils.createIcon("arrow_refresh", "Re-Profile", ArchitectSwingSessionContext.ICON_SIZE);
 
-        stopIcon = ASUtils.createIcon("stop", "Stop Profile", ArchitectSwingSessionContext.ICON_SIZE);
+        stopIcon = SPSUtils.createIcon("stop", "Stop Profile", ArchitectSwingSessionContext.ICON_SIZE);
 
-        deleteIcon = ASUtils.createIcon("delete", "Delete Profile", ArchitectSwingSessionContext.ICON_SIZE);
+        deleteIcon = SPSUtils.createIcon("delete", "Delete Profile", ArchitectSwingSessionContext.ICON_SIZE);
     }
 
     final TableProfileResult result;

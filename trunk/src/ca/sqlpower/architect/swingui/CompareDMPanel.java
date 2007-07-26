@@ -79,12 +79,13 @@ import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.diff.CompareSQL;
 import ca.sqlpower.architect.diff.DiffChunk;
 import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
-import ca.sqlpower.architect.swingui.ASUtils.LabelValueBean;
 import ca.sqlpower.architect.swingui.CompareDMSettings.DatastoreType;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
 import ca.sqlpower.architect.swingui.action.DBCSOkAction;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.ProgressWatcher;
+import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.util.LabelValueBean;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.debug.FormDebugPanel;
@@ -262,7 +263,7 @@ public class CompareDMPanel extends JPanel {
 		private Action chooseFileAction = new AbstractAction("Choose...") {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser chooser = new JFileChooser();
-				chooser.addChoosableFileFilter(ASUtils.ARCHITECT_FILE_FILTER);
+				chooser.addChoosableFileFilter(SPSUtils.ARCHITECT_FILE_FILTER);
 				int returnVal = chooser.showOpenDialog(CompareDMPanel.this);
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
 					final File file = chooser.getSelectedFile();
@@ -279,6 +280,10 @@ public class CompareDMPanel extends JPanel {
 
 			private SQLDatabase db;
 
+            public CatalogPopulator(ArchitectSwingSession session) {
+                super(session);
+            }
+            
 			/**
 			 * Checks the datasource selected in the databaseDropdown, and
 			 * starts a worker thread to read its contents if it exists.
@@ -406,7 +411,7 @@ public class CompareDMPanel extends JPanel {
 
 					final SQLObject finalSchemaParent = schemaParent;
 
-					new Thread(new Populator() {
+					new Thread(new Populator(session) {
 
 						@Override
 						public void doStuff() throws Exception {
@@ -454,7 +459,11 @@ public class CompareDMPanel extends JPanel {
 		public class SchemaPopulator extends Populator implements
 				ActionListener {
 
-			/**
+			public SchemaPopulator(ArchitectSwingSession session) {
+                super(session);
+            }
+
+            /**
 			 * Clears the schema dropdown, and starts a worker thread to
 			 * repopulate it (if possible).
 			 */
@@ -591,8 +600,8 @@ public class CompareDMPanel extends JPanel {
 			loadFileButton.setAction(chooseFileAction);
 			chooseFileAction.setEnabled(false);
 
-			catalogDropdown.addActionListener(new SchemaPopulator());
-			databaseDropdown.addActionListener(new CatalogPopulator());
+			catalogDropdown.addActionListener(new SchemaPopulator(session));
+			databaseDropdown.addActionListener(new CatalogPopulator(session));
 
 			ActionListener listener = new OptionGroupListener();
 			playPenRadio.addActionListener(listener);
@@ -993,12 +1002,12 @@ public class CompareDMPanel extends JPanel {
 				logger.error("Could not read file", ex);
 				return;
 			} catch (ArchitectException ex) {
-				ASUtils.showExceptionDialog(CompareDMPanel.this,
+				ASUtils.showExceptionDialog(session,
                         "Could not begin diff process", ex, new ArchitectExceptionReportFactory());
 				return;
 			}
 
-			ArchitectSwingWorker compareWorker = new ArchitectSwingWorker() {
+			ArchitectSwingWorker compareWorker = new ArchitectSwingWorker(session) {
 
 				private List<DiffChunk<SQLObject>> diff;
 				private List<DiffChunk<SQLObject>> diff1;
@@ -1012,7 +1021,7 @@ public class CompareDMPanel extends JPanel {
                     if (getDoStuffException() != null) {
                         Throwable exc = getDoStuffException();
                         logger.error("Error in doStuff()", exc);
-                        ASUtils.showExceptionDialog(CompareDMPanel.this,
+                        ASUtils.showExceptionDialog(session,
                                 "Database Comparison Failed!", exc, new ArchitectExceptionReportFactory());
                         return;
                     }

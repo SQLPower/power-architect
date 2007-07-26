@@ -98,6 +98,11 @@ public class DataMoverPanel {
      */
     private JCheckBox truncateDestinationTableBox;
     
+    /**
+     * The session that this Data Mover belongs to. 
+     */
+    private ArchitectSwingSession session;
+    
     public DataMoverPanel(ArchitectSession session) throws ArchitectException {
         List<SQLDatabase> dblist = new ArrayList<SQLDatabase>();
         for (SPDataSource ds : session.getUserSettings().getConnections()) {
@@ -143,7 +148,7 @@ public class DataMoverPanel {
             try {
                 doDataMove();
             } catch (Exception ex) {
-                ASUtils.showExceptionDialog("Failed to move data", ex);
+                ASUtils.showExceptionDialog(session, "Failed to move data", ex);
             }
         }
     };
@@ -154,7 +159,7 @@ public class DataMoverPanel {
                 Window w = SwingUtilities.getWindowAncestor(panel);
                 if (w != null) w.dispose();
             } catch (Exception ex) {
-                ASUtils.showExceptionDialog("Failed to move data", ex);
+                ASUtils.showExceptionDialog(session, "Failed to move data", ex);
             }
         }
     };
