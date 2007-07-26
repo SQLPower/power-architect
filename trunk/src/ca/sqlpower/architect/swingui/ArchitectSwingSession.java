@@ -164,4 +164,25 @@ public interface ArchitectSwingSession extends ArchitectSession {
      * not called on the Event Dispatch Thread.
      */
     public void initGUI() throws ArchitectException;
+
+    /**
+     * Makes the session aware of the given ArchitectSwingWorker instance.
+     * When the session dies, it can then tell the ArchitectSwingWorker
+     * instances it keeps track of to stop running. 
+     */
+    public void registerSwingWorker(ArchitectSwingWorker worker);
+
+    /**
+     * Removes knowledge of this ArchitectSwingWorker from this session.
+     * This should only happen when the ArchitectSwingWorker is finished
+     * before the session is closed.
+     */
+    public void removeSwingWorker(ArchitectSwingWorker worker);
+ 
+    /**
+     * Returns a menu that allows the user to select files that have
+     * recently been worked on.
+     */
+    public RecentMenu getRecentMenu();
+    
 }
