@@ -177,12 +177,5 @@ public interface ArchitectSwingSession extends ArchitectSession {
      * This should only happen when the ArchitectSwingWorker is finished
      * before the session is closed.
      */
-    public void removeSwingWorker(ArchitectSwingWorker worker);
- 
-    /**
-     * Returns a menu that allows the user to select files that have
-     * recently been worked on.
-     */
-    public RecentMenu getRecentMenu();
-    
+    public void removeSwingWorker(ArchitectSwingWorker worker);    
 }

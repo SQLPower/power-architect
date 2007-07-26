@@ -347,7 +347,7 @@ public class ArchitectFrame extends JFrame {
         fileMenu.setMnemonic('f');
         fileMenu.add(newProjectAction);
         fileMenu.add(openProjectAction);
-        fileMenu.add(session.getRecentMenu());
+        fileMenu.add(session.getContext().getRecentMenu());
         fileMenu.add(closeProjectAction);
         fileMenu.addSeparator();
         fileMenu.add(saveProjectAction);

@@ -32,7 +32,6 @@
 package ca.sqlpower.architect.swingui;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -64,7 +63,6 @@ import ca.sqlpower.architect.etl.kettle.CreateKettleJob;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.TableProfileManager;
 import ca.sqlpower.architect.swingui.action.AboutAction;
-import ca.sqlpower.architect.swingui.action.OpenProjectAction;
 import ca.sqlpower.architect.swingui.action.PreferencesAction;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentListener;
@@ -169,14 +167,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         lifecycleListener = new ArrayList<SessionLifecycleListener>();
         
         swingWorkers = new HashSet<ArchitectSwingWorker>();
-        
-        recentMenu = new RecentMenu(context) {
-            @Override
-            public void loadFile(String fileName) throws IOException {
-                File f = new File(fileName);
-                OpenProjectAction.openAsynchronously(ArchitectSwingSessionImpl.this, f);
-            }
-        };
     }
 
     public void initGUI() throws ArchitectException {
@@ -672,13 +662,5 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
     public void removeSwingWorker(ArchitectSwingWorker worker) {
         swingWorkers.remove(worker);
-    }
-
-    public RecentMenu getRecentMenu() {
-        return recentMenu;
-    }
-
-    public void setRecentMenu(RecentMenu recentMenu) {
-        this.recentMenu = recentMenu;
     }
 }
