@@ -606,20 +606,25 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 
             SQLObject p = parent;
             if (p != null) {
-	            p.removeChild(this);
-	            int idx = 0;
-	            int targetPKS = primaryKeySeq == null ? Integer.MAX_VALUE : primaryKeySeq.intValue();
-                logger.debug("Parent = "+p);
-                logger.debug("Parent.children = "+p.children);
-	            for (SQLColumn col : (List<SQLColumn>) p.children) {
-	                if (col.getPrimaryKeySeq() == null ||
-	                        col.getPrimaryKeySeq() > targetPKS) {
-                        logger.debug("idx is " + idx);
-	                    break;
-	                }
-	                idx++;
-	            }                
-	            p.addChild(idx, this);
+                try {
+                    p.setMagicEnabled(false);
+                    p.removeChild(this);
+                    int idx = 0;
+                    int targetPKS = primaryKeySeq == null ? Integer.MAX_VALUE : primaryKeySeq.intValue();
+                    logger.debug("Parent = "+p);
+                    logger.debug("Parent.children = "+p.children);
+                    for (SQLColumn col : (List<SQLColumn>) p.children) {
+                        if (col.getPrimaryKeySeq() == null ||
+                                col.getPrimaryKeySeq() > targetPKS) {
+                            logger.debug("idx is " + idx);
+                            break;
+                        }
+                        idx++;
+                    }                
+                    p.addChild(idx, this);
+                } finally {
+                    p.setMagicEnabled(true);
+                }
 	            getParentTable().normalizePrimaryKey();
             }
         } catch (ArchitectException e) {

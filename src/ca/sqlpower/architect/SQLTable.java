@@ -271,7 +271,10 @@ public class SQLTable extends SQLObject {
             throw new ArchitectException("Failed to populate indices of table "+getName(), e);
         } finally {
             indicesFolder.populated = true;
+
+            // FIXME this might change the order of columns without firing an event
             Collections.sort(columnsFolder.children, new SQLColumn.CompareByPKSeq());
+            
             int newSize = indicesFolder.children.size();
             int[] changedIndices = new int[newSize];
             for (int i = 0; i < newSize; i++) {
@@ -654,70 +657,93 @@ public class SQLTable extends SQLObject {
 	}
 
 	/**
-	 * Sets the primaryKeySeq on each child column currently in the
-	 * primary key to its index in this table.
-     * 
-     * Assumptions:  All child columns in the primary key are sequential starting
-     *                      from child 0.
-     *               All child columns that are in the primary key have a nnon-null primary key seq
-     *               
-	 * @throws ArchitectException
-	 */
+     * Renumbers the PrimaryKeySeq values of all columns in this table, then
+     * rebuilds this table's Primary Key Index so it correctly reflects the
+     * new PrimaryKeySeq column properties.
+     * <p>
+     * The process happens in three phases:
+     * <ol>
+     *  <li>Columns are assigned PrimaryKeySeq values starting with 0 and
+     *      increasing by 1 with each successive column. This phase ends when a
+     *      column with a null PrimaryKeySeq is encountered (of course, this could be
+     *      the very first column).
+     *  <li>The remaining columns all have their PrimaryKeySeq set to null.
+     *  <li>This table's PrimaryKeyIndex is rebuilt from scratch, created if
+     *      it did not previously exist, or deleted if there are no primary
+     *      key columns left after phases 1 and 2. The Primary Key index will
+     *      agree with the new set of columns that have a non-null PrimaryKeySeq.
+     * </ol>
+     * <p>
+     * Assumptions:
+     * <ul>
+     *  <li>The correct primary key information is the current column order,
+     *      <i>not</i> the contents of this table's PrimaryKey Index object.
+     *  <li>All columns that you want to keep in the primary key are already
+     *      contiguous starting from column 0, and they all have non-null
+     *      PrimaryKeySeq values. The actual numeric PrimaryKeySeq value is not
+     *      important.
+     *  <li>The first column that should not be in the Primary Key has a null
+     *      PrimaryKeySeq value.  For all successive columns, the nullity of
+     *      PrimaryKeySeq is not important. 
+     * </ul>
+     */
 	public void normalizePrimaryKey() throws ArchitectException {
 		try {
             startCompoundEdit("Normalizing Primary Key");
-            if (getColumns().isEmpty()) return;
+
+            // Phase 1 and 2 (see doc comment)
+            boolean donePk = false;
+            int i = 0;
+            for (SQLColumn col : getColumns()) {
+                if (col.getPrimaryKeySeq() == null) donePk = true;
+                Integer oldPkSeq = col.getPrimaryKeySeq();
+                Integer newPkSeq;
+                if (!donePk) {
+                    newPkSeq = new Integer(i);
+                } else {
+                    newPkSeq = null;
+                }
+                col.primaryKeySeq = newPkSeq;
+                col.fireDbObjectChanged("primaryKeySeq", oldPkSeq, newPkSeq);
+                i++;
+            }
             
+            // Phase 3 (see doc comment)
+
             if (getPrimaryKeyIndex() == null) {
                 SQLIndex pkIndex = new SQLIndex(getName()+"_pk", true, null, SQLIndex.IndexType.CLUSTERED,null);
                 pkIndex.setPrimaryKeyIndex(true);
                 addIndex(pkIndex);
                 logger.debug("new pkIndex.getChildCount()="+pkIndex.getChildCount());
             }
-            
-            boolean donePk = false;
-            int i = 0;
-            Iterator it = getColumns().iterator();
-            while (it.hasNext()) {
-                SQLColumn col = (SQLColumn) it.next();
-                if (col.getPrimaryKeySeq() == null) donePk = true;
-                Integer oldValue = col.getPrimaryKeySeq();
-                Integer newValue;
-                if (!donePk) {
-                    newValue = new Integer(i);
-                } else {
-                    newValue = null;
-                }
-                col.primaryKeySeq = newValue;
-                col.fireDbObjectChanged("primaryKeySeq", oldValue, newValue);
-                i++;
-            }
-		} catch (ArchitectException e) {
-		    logger.warn("Unexpected ArchitectException in normalizePrimaryKey "+ e);
-		    throw e;
-        } finally {
-		    SQLIndex pkIndex = getPrimaryKeyIndex();
-		    if (pkIndex != null ) {
-                Map<SQLColumn, Column> oldColumnInstances = new HashMap<SQLColumn, Column>();
-		        while (pkIndex.getChildCount() > 0) {
-		            Column child = (Column) pkIndex.removeChild(0);
-                    oldColumnInstances.put(child.getColumn(),child);
-		        }
-		        Iterator it = getColumns().iterator();
-		        while (it.hasNext()) {
-		            SQLColumn col = (SQLColumn) it.next();
-		            if (col.getPrimaryKeySeq() == null) break;
-                    if (oldColumnInstances.get(col) != null){
-                        pkIndex.addChild(oldColumnInstances.get(col));
-                    } else {
-                        pkIndex.addIndexColumn(col,false,false);
-                    }
-		        }
-		        if (pkIndex.getChildCount() == 0) {
-		            getIndicesFolder().removeChild(pkIndex);
 
-		        }
+            SQLIndex pkIndex = getPrimaryKeyIndex();
+            Map<SQLColumn, Column> oldColumnInstances = new HashMap<SQLColumn, Column>();
+            while (pkIndex.getChildCount() > 0) {
+                Column child = (Column) pkIndex.removeChild(0);
+                if (child.getColumn() == null) {
+                    throw new IllegalStateException(
+                            "Found a functional index column in PK." +
+                            " PK Name: " + pkIndex.getName() +
+                            ", Index Column name: " + child.getName());
+                }
+                oldColumnInstances.put(child.getColumn(),child);
             }
+            
+            assert pkIndex.getChildCount() == 0;
+            
+            for (SQLColumn col : getColumns()) {
+                if (col.getPrimaryKeySeq() == null) break;
+                if (oldColumnInstances.get(col) != null) {
+                    pkIndex.addChild(oldColumnInstances.get(col));
+                } else {
+                    pkIndex.addIndexColumn(col,false,false);
+                }
+            }
+            if (pkIndex.getChildCount() == 0) {
+                getIndicesFolder().removeChild(pkIndex);
+            }
+        } finally {
 		    endCompoundEdit("Normalizing Primary Key");
 		}
         if (logger.isDebugEnabled()) {
@@ -919,12 +945,30 @@ public class SQLTable extends SQLObject {
 			logger.debug("SQLTable.Folder["+getName()+"]: populate finished");
 
 		}
-
+		
+        @Override
 		protected void addChildImpl(int index, SQLObject child) throws ArchitectException {
-			logger.debug("[31mAdding child "+child.getName()+" to folder "+getName()+"[0m" );
+			logger.debug("Adding child "+child.getName()+" to folder "+getName());
 			super.addChildImpl(index, child);
 		}
 
+        /**
+         * Overrides default remove behaviour to normalize the primary key
+         * in the case of a removed SQLColumn.
+         */
+        @Override
+        protected SQLObject removeImpl(int index) {
+            SQLObject removed = super.removeImpl(index);
+            if (isMagicEnabled() && type == COLUMNS && removed != null && getParent() != null) {
+                try {
+                    getParent().normalizePrimaryKey();
+                } catch (ArchitectException e) {
+                    throw new ArchitectRuntimeException(e);
+                }
+            }
+            return removed;
+        }
+        
 		public String getShortDisplayName() {
 			return name;
 		}
