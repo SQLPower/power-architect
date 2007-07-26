@@ -43,7 +43,12 @@ public abstract class ArchitectSwingWorker implements Runnable {
 	
 	private ArchitectSwingWorker nextProcess;
 	private boolean cancelled; 
+    private ArchitectSwingSession session;
 	
+    public ArchitectSwingWorker(ArchitectSwingSession session) {
+        this.session = session;
+    }
+    
 	/**
 	 * The message that will be displayed in a dialog box if
 	 * cleanup() throws an exception. Should be changed by the
@@ -53,26 +58,32 @@ public abstract class ArchitectSwingWorker implements Runnable {
 	
 	public final void run() {
 		try {
-			doStuff();
-		} catch (Exception e) {
-			doStuffException = e;
-			logger.debug(e.getStackTrace());
-		}
-		// Do not move into try block above, and too long to be a finally :-)
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					cleanup();
-					
-					if (nextProcess != null) {
-						nextProcess.setCancelled(cancelled);
-						new Thread(nextProcess).start();
-					}
-				} catch (Exception e) {
-					ASUtils.showExceptionDialog(cleanupExceptionMessage, e);
-				}
-			}
-		});
+            session.registerSwingWorker(this);
+            try {
+            	doStuff();
+            } catch (Exception e) {
+            	doStuffException = e;
+            	logger.debug(e.getStackTrace());
+            }
+            // Do not move into try block above, and too long to be a finally :-)
+            SwingUtilities.invokeLater(new Runnable() {
+            	public void run() {
+            		try {
+            			cleanup();
+            			
+            			if (nextProcess != null) {
+            				nextProcess.setCancelled(cancelled);
+            				new Thread(nextProcess).start();
+            			}
+            		} catch (Exception e) {
+            			ASUtils.showExceptionDialogNoReport(session.getArchitectFrame(), cleanupExceptionMessage, e);
+            		}
+            	}
+            });
+        } finally {
+            session.removeSwingWorker(this);
+        }
+    
 	}
 
 	/**

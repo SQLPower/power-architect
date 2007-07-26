@@ -32,11 +32,14 @@
 package ca.sqlpower.architect.swingui;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.Action;
 import javax.swing.JDialog;
@@ -61,11 +64,13 @@ import ca.sqlpower.architect.etl.kettle.CreateKettleJob;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.TableProfileManager;
 import ca.sqlpower.architect.swingui.action.AboutAction;
+import ca.sqlpower.architect.swingui.action.OpenProjectAction;
 import ca.sqlpower.architect.swingui.action.PreferencesAction;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentListener;
 import ca.sqlpower.architect.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.architect.undo.UndoManager;
+import ca.sqlpower.swingui.SPSUtils;
 
 public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
@@ -99,6 +104,8 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     
     private DBTree sourceDatabases;
     
+    private RecentMenu recentMenu;
+    
     private String name;
     
     private GenericDDLGenerator ddlGenerator;
@@ -114,6 +121,8 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     
     private List<SessionLifecycleListener> lifecycleListener;
     
+    private Set<ArchitectSwingWorker> swingWorkers;
+    
     /**
      * Creates a new swing session, including a new visible architect frame, with
      * the given parent context and the given name.
@@ -122,7 +131,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * @param name
      * @throws ArchitectException
      */
-    ArchitectSwingSessionImpl(ArchitectSwingSessionContext context, String name)
+    ArchitectSwingSessionImpl(final ArchitectSwingSessionContext context, String name)
     throws ArchitectException {
 
         this.context = context;
@@ -158,6 +167,16 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         undoManager = new UndoManager(playPen);
         
         lifecycleListener = new ArrayList<SessionLifecycleListener>();
+        
+        swingWorkers = new HashSet<ArchitectSwingWorker>();
+        
+        recentMenu = new RecentMenu(context) {
+            @Override
+            public void loadFile(String fileName) throws IOException {
+                File f = new File(fileName);
+                OpenProjectAction.openAsynchronously(ArchitectSwingSessionImpl.this, f);
+            }
+        };
     }
 
     public void initGUI() throws ArchitectException {
@@ -298,7 +317,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         
         if (project.getFile() == null || showChooser) {
             JFileChooser chooser = new JFileChooser(project.getFile());
-            chooser.addChoosableFileFilter(ASUtils.ARCHITECT_FILE_FILTER);
+            chooser.addChoosableFileFilter(SPSUtils.ARCHITECT_FILE_FILTER);
             int response = chooser.showSaveDialog(frame);
             if (response != JFileChooser.APPROVE_OPTION) {
                 return false;
@@ -378,6 +397,22 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         }
 
         if (!promptForUnsavedModifications()) {
+            return;
+        }
+        
+        // If we still have ArchitectSwingWorker threads running, 
+        // tell them to cancel, and then ask the user to try again later.
+        // Note that it is not safe to force threads to stop, so we will
+        // have to wait until the threads stop themselves.
+        if (swingWorkers.size() > 0) {
+            for (ArchitectSwingWorker currentWorker : swingWorkers) {
+                currentWorker.setCancelled(true);
+            }
+            
+            JOptionPane.showMessageDialog(frame,
+                    "There are still unfinished tasks running on this project.\n" +
+                    "Please wait for them to finish, and then try again.",
+                    "Warning", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
@@ -629,5 +664,21 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         for (SessionLifecycleListener listener: lifecycleListener) {
             listener.sessionClosing(evt);
         }
+    }
+
+    public void registerSwingWorker(ArchitectSwingWorker worker) {
+        swingWorkers.add(worker);
+    }
+
+    public void removeSwingWorker(ArchitectSwingWorker worker) {
+        swingWorkers.remove(worker);
+    }
+
+    public RecentMenu getRecentMenu() {
+        return recentMenu;
+    }
+
+    public void setRecentMenu(RecentMenu recentMenu) {
+        this.recentMenu = recentMenu;
     }
 }
