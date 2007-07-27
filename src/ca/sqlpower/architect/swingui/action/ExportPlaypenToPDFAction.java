@@ -77,7 +77,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
      */
     public boolean setup(ActionMonitor monitor, Map<String,Object> properties) {
         monitor.started = true;
-        JFileChooser chooser = new JFileChooser();
+        JFileChooser chooser = new JFileChooser(session.getContext().getRecentMenu().getMostRecentFile());
         chooser.addChoosableFileFilter(SPSUtils.PDF_FILE_FILTER);
         monitor.setJobSize(playpen.getPlayPenContentPane().getComponentCount());
         

@@ -74,7 +74,7 @@ public class OpenProjectAction extends AbstractArchitectAction {
     }
 
     public void actionPerformed(ActionEvent e) {
-        JFileChooser chooser = new JFileChooser();
+        JFileChooser chooser = new JFileChooser(recent.getMostRecentFile());
         chooser.addChoosableFileFilter(SPSUtils.ARCHITECT_FILE_FILTER);
         int returnVal = chooser.showOpenDialog(frame);
         if (returnVal == JFileChooser.APPROVE_OPTION) {

@@ -154,6 +154,8 @@ public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
     private DefaultMutableTreeNode rootNode;
 
 	public JDBCDriverPanel() {
+        
+	    // TODO default to most recent JDBC driver location
 		fileChooser = new JFileChooser();
 
 		setLayout(new BorderLayout());
