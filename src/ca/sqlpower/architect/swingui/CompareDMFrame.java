@@ -132,8 +132,8 @@ public class CompareDMFrame extends JDialog {
 	
 		Action sourceSave = new AbstractAction(){
 			public void actionPerformed(ActionEvent e) {
-				new SaveDocument(CompareDMFrame.this,
-						sourceOutputText,
+				SPSUtils.saveDocument(CompareDMFrame.this,
+				        sourceOutputText,
 						(FileExtensionFilter) SPSUtils.TEXT_FILE_FILTER );
 			}
 		};
@@ -188,7 +188,7 @@ public class CompareDMFrame extends JDialog {
 		
 		Action targetSaveAction = new AbstractAction(){
 			public void actionPerformed(ActionEvent e) {
-				new SaveDocument(CompareDMFrame.this,
+				SPSUtils.saveDocument(CompareDMFrame.this,
 						targetOutputText,
 						(FileExtensionFilter) SPSUtils.TEXT_FILE_FILTER );
 			}

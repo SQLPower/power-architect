@@ -176,7 +176,7 @@ public class SQLScriptDialog extends JDialog {
 
 				logger.info( "SQL_FILE_FILTER:"+ ((FileExtensionFilter) SPSUtils.SQL_FILE_FILTER).toString());
 
-				new SaveDocument(parent,sqlDoc,
+				SPSUtils.saveDocument(parent,sqlDoc,
 						(FileExtensionFilter) SPSUtils.SQL_FILE_FILTER );
 			}
 		};
