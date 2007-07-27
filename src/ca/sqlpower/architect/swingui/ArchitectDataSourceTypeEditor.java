@@ -31,6 +31,13 @@
  */
 package ca.sqlpower.architect.swingui;
 
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -43,6 +50,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSourceType;
+import ca.sqlpower.swingui.AddRemoveIcon;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
@@ -65,6 +73,16 @@ public class ArchitectDataSourceTypeEditor implements DataEntryPanel {
     private final JList dsTypeList;
     
     /**
+     * Button for adding a new data source type.
+     */
+    private final JButton addDsTypeButton;
+    
+    /**
+     * Button for deleting the selected data source type.
+     */
+    private final JButton removeDsTypeButton;
+    
+    /**
      * The panel that edits the currently-selected data source type.
      */
     private final ArchitectDataSourceTypePanel dsTypePanel;
@@ -78,8 +96,26 @@ public class ArchitectDataSourceTypeEditor implements DataEntryPanel {
     public ArchitectDataSourceTypeEditor(DataSourceCollection dataSourceCollection) {
         this.dataSourceCollection = dataSourceCollection;
         
-        dsTypeList = new JList(dataSourceCollection.getDataSourceTypes().toArray());
+        DefaultListModel dsTypeListModel = new DefaultListModel();
+        for (SPDataSourceType type : dataSourceCollection.getDataSourceTypes()) {
+            dsTypeListModel.addElement(type);
+        }
+        dsTypeList = new JList(dsTypeListModel);
         dsTypeList.setCellRenderer(new ArchitectDataSourceTypeListCellRenderer());
+        
+        addDsTypeButton = new JButton(new AddRemoveIcon(AddRemoveIcon.Type.ADD));
+        addDsTypeButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                addDsType(new SPDataSourceType());
+            }
+        });
+        
+        removeDsTypeButton = new JButton(new AddRemoveIcon(AddRemoveIcon.Type.REMOVE));
+        removeDsTypeButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                removeSelectedDsType();
+            }
+        });
         
         dsTypePanel = new ArchitectDataSourceTypePanel();
         
@@ -105,18 +141,44 @@ public class ArchitectDataSourceTypeEditor implements DataEntryPanel {
     }
     
     /**
+     * Removes the selected data source type from the list.  If there is
+     * no selected type, does nothing.
+     */
+    private void removeSelectedDsType() {
+        SPDataSourceType type = (SPDataSourceType) dsTypeList.getSelectedValue();
+        if (type != null) {
+            ((DefaultListModel) dsTypeList.getModel()).removeElement(type);
+            dataSourceCollection.removeDataSourceType(type);
+        }
+    }
+
+    private void addDsType(SPDataSourceType type) {
+        if (type == null) {
+            throw new NullPointerException("Don't add null data source types, silly!");
+        }
+        dataSourceCollection.addDataSourceType(type);
+        ((DefaultListModel) dsTypeList.getModel()).addElement(type);
+        dsTypeList.setSelectedValue(type, true);
+    }
+
+    /**
      * Creates the panel layout. Requires that the GUI components have already
      * been created. Does not fill in any values into the components. See
      * {@link #switchToDsType()} for that.
      */
     private JPanel createPanel() {
-        FormLayout layout = new FormLayout("60dlu, 6dlu, pref:grow", "pref, 6dlu, pref:grow");
+        FormLayout layout = new FormLayout("60dlu, 6dlu, pref:grow", "pref, 6dlu, pref:grow, 3dlu, pref");
         DefaultFormBuilder fb = new DefaultFormBuilder(layout);
         fb.setDefaultDialogBorder();
         
+        JComponent addRemoveBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        addRemoveBar.add(addDsTypeButton);
+        addRemoveBar.add(removeDsTypeButton);
+        
         fb.add(new JScrollPane(dsTypeList), "1, 1, 1, 3");
+        fb.add(addRemoveBar,                "1, 5");
         fb.add(dsTypePanel.getPanel(),      "3, 1");
-        fb.add(jdbcPanel,                   "3, 3");
+        fb.add(jdbcPanel,                   "3, 3, 1, 3");
         
         return fb.getPanel();
     }
