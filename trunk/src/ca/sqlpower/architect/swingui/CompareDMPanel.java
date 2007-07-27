@@ -83,6 +83,7 @@ import ca.sqlpower.architect.swingui.CompareDMSettings.DatastoreType;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
 import ca.sqlpower.architect.swingui.action.DBCSOkAction;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.swingui.ConnectionComboBoxModel;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 import ca.sqlpower.swingui.ProgressWatcher;
 import ca.sqlpower.swingui.SPSUtils;
