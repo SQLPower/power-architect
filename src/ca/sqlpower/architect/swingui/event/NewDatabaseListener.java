@@ -40,10 +40,10 @@ import javax.swing.JComboBox;
 import javax.swing.JDialog;
 
 import ca.sqlpower.architect.swingui.ArchitectFrame;
-import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.DBCSPanel;
 import ca.sqlpower.architect.swingui.action.DBCSOkAction;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
 /**
  * When a new database connection has been established, this listener
@@ -78,9 +78,9 @@ public class NewDatabaseListener implements ActionListener {
 			}
 		};
 		
-		JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
+		JDialog d = DataEntryPanelBuilder.createDataEntryPanelDialog(
 				dbcsPanel,frame,
-				title, ArchitectPanelBuilder.OK_BUTTON_LABEL,
+				title, DataEntryPanelBuilder.OK_BUTTON_LABEL,
 				okButton, cancelAction);
 		
 		okButton.setConnectionDialog(d);
