@@ -68,7 +68,7 @@ import ca.sqlpower.sql.DefaultParameters;
 import ca.sqlpower.sql.PLSchemaException;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SQL;
-import ca.sqlpower.util.LabelValueBean;
+import ca.sqlpower.swingui.SPSUtils.LabelValueBean;
 import ca.sqlpower.util.Monitorable;
 
 public class PLExport implements Monitorable {
