@@ -31,10 +31,7 @@
  */
 package ca.sqlpower.architect.swingui;
 
-import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,13 +42,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.prefs.Preferences;
 
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 
 import org.apache.log4j.Logger;
 
@@ -59,11 +51,9 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.qfa.ExceptionHandler;
-import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.architect.swingui.action.OpenProjectAction;
 import ca.sqlpower.architect.swingui.event.SessionLifecycleEvent;
-
-import com.jgoodies.forms.factories.Borders;
+import ca.sqlpower.swingui.SPSUtils;
 
 /**
  * Instances of this class provide the basic global (non-project-specific) settings
@@ -331,35 +321,9 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     
     private void showWelcomeScreen(Component dialogOwner) {
         // should almost certainly move this into the swing context
-        final JCheckBox showPrefsAgain;
         if (getUserSettings().getSwingSettings().getBoolean(SwingUserSettings.SHOW_WELCOMESCREEN, true)) {
-            JComponent welcomePanel = WelcomeScreen.getPanel();
-            final JDialog d = SPSUtils.makeOwnedDialog(dialogOwner, "Welcome to the Power*Architect");
-            d.setLayout(new BorderLayout(12, 12));
-            ((JComponent) d.getContentPane()).setBorder(Borders.DIALOG_BORDER);
-
-            showPrefsAgain = new JCheckBox("Show this Welcome Screen in future");
-            showPrefsAgain.setSelected(true);
-
-            JButton closeButton = new JButton("Close");
-            closeButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    getUserSettings().getSwingSettings().setBoolean(SwingUserSettings.SHOW_WELCOMESCREEN,
-                        showPrefsAgain.isSelected());
-                    d.dispose();
-                }
-            });
-
-            d.add(welcomePanel, BorderLayout.CENTER);
-            JPanel bottomPanel = new JPanel();
-            bottomPanel.setLayout(new BorderLayout());
-            bottomPanel.add(showPrefsAgain, BorderLayout.WEST);
-            bottomPanel.add(closeButton, BorderLayout.EAST);
-            d.add(bottomPanel, BorderLayout.SOUTH);
-            d.getRootPane().setDefaultButton(closeButton);
-            d.pack();
-            d.setLocationRelativeTo(dialogOwner);
-            d.setVisible(true);
+            WelcomeScreen ws = new WelcomeScreen(this);
+            ws.showWelcomeDialog(dialogOwner);
         }
     }
 

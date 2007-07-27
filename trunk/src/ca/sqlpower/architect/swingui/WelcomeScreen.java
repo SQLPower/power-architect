@@ -31,21 +31,23 @@
  */
 package ca.sqlpower.architect.swingui;
 
-import java.awt.FlowLayout;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.URL;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.JComponent;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.HTMLEditorKit;
-
-import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.swingui.SPSUtils;
@@ -56,8 +58,17 @@ import ca.sqlpower.util.BrowserUtil;
  */
 public class WelcomeScreen {
 
-    private static final Logger logger = Logger.getLogger(WelcomeScreen.class);
+    private final ArchitectSwingSessionContext context;
+    
+    private final JLabel imageLabel;
 
+    private JCheckBox showPrefsAgain;
+
+    public WelcomeScreen(ArchitectSwingSessionContext context) {
+        this.context = context;
+        imageLabel = new JLabel(SPSUtils.createIcon("architect_welcome_heading", "Large Architect Logo"));
+    }
+    
     /**
      * The contents of the Welcome Screen text.
      */
@@ -72,28 +83,22 @@ public class WelcomeScreen {
         "<p>Check out the JDBC drivers section under <i>How to Use Power*Architect</i> in the " +
         "help for configuring JDBC drivers." +
         "<br>" +
-        "<p>Need help finding the JDBC drivers? Visit our <a href=\"" + ArchitectSwingSessionContext.DRIVERS_URL + "\">forum thread</a>.";
+        "<p>Need help finding the JDBC drivers? Visit our <a href=\"" + ArchitectSwingSessionContext.DRIVERS_URL + "\">forum thread</a>." +
+        "<br><br><br>";
 
-    /**
-     * Creates and returns the welcome panel.
-     */
-    public static JComponent getPanel() {
-        Box b = Box.createVerticalBox();
-
-        JPanel iconPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        iconPanel.setBorder(BorderFactory.createEmptyBorder(25, 0, 25, 0));
-
-        iconPanel.add(new JLabel(SPSUtils.createIcon("sqlpower_transparent", "Large SQL*Power Logo")));
-        iconPanel.add(new JLabel(SPSUtils.createIcon("architect", "Large Architect Logo")));
-        b.add(iconPanel);
-
+    public void showWelcomeDialog(Component dialogOwner) {
+        final JDialog d = SPSUtils.makeOwnedDialog(dialogOwner, "Welcome to the Power*Architect");
+        d.setLayout(new BorderLayout(0, 12));
+        
+        d.add(imageLabel, BorderLayout.NORTH);
+        
         HTMLEditorKit htmlKit = new HTMLEditorKit();
         final JEditorPane htmlComponent = new JEditorPane();
         htmlComponent.setEditorKit(htmlKit);
         htmlComponent.setText(welcomeHTMLstuff);
         htmlComponent.setEditable(false);
         htmlComponent.setBackground(null);
-
+        
         /** Jump to the URL (in the user's configured browser)
          * when a link is clicked.
          */
@@ -109,8 +114,35 @@ public class WelcomeScreen {
                 }
             }
         });
-        b.add(htmlComponent);
+        d.add(htmlComponent, BorderLayout.CENTER);
+        
+        showPrefsAgain = new JCheckBox("Show this Welcome Screen in future");
+        showPrefsAgain.setSelected(true);
 
-        return b;
+        JButton closeButton = new JButton("Close");
+        closeButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                context.getUserSettings().getSwingSettings().setBoolean(
+                        SwingUserSettings.SHOW_WELCOMESCREEN,
+                        showPrefsAgain.isSelected());
+                d.dispose();
+            }
+        });
+
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.setLayout(new BorderLayout());
+        bottomPanel.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+        bottomPanel.add(showPrefsAgain, BorderLayout.WEST);
+        bottomPanel.add(closeButton, BorderLayout.EAST);
+        d.add(bottomPanel, BorderLayout.SOUTH);
+
+        d.getRootPane().setDefaultButton(closeButton);
+        d.pack();
+        
+        // The dialog is just a few pixels too wide after packing.
+        d.setSize(d.getSize().width - 4, d.getSize().height);
+        
+        d.setLocationRelativeTo(dialogOwner);
+        d.setVisible(true);
     }
 }
