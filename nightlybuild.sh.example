@@ -7,18 +7,30 @@
 
 export PATH=$PATH:/usr/local/bin
 
-# Checkout the latest Power*Architect source from Subversion
+# Checkout the latest Power*Architect source from Google Code Subversion
 svn checkout http://power-architect.googlecode.com/svn/trunk/ power-architect
 
-cd power-architect
+# Checkout the latest SQL Power Library source from Google Code Subversion
+svn checkout http://sqlpower-library.googlecode.com/svn/trunk/ sqlpower-library
+
+# Build the SQL Power Library distributable JAR file and copy it to power-architect
+cd sqlpower-library
+ant
+cp deploy/sqlpower_library.jar ../power-architect/lib
+
+# Build the Power*Architect
+cd ../power-architect
 
 # Get version string
 VERSION=`ant -Dnightly=true init | grep 'Building Architect version:' | awk -F 'Building Architect version: ' '{print $2}'`
 
+echo "Building Architect version: $VERSION"
+
 export ANT_OPTS="-Xmx1024m -Djava.awt.headless=true"
 
 # Run the Power*Architect nightly build
-ant -Dnightly=true dist >dist/architect-$VERSION/build.log
+ant -Dnightly=true clean dist >dist/architect-$VERSION/build.log
+
 
 # Mail out the build log
 cd dist
