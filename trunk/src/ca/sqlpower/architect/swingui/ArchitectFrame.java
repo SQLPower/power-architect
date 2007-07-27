@@ -74,6 +74,7 @@ import ca.sqlpower.architect.layout.ArchitectLayout;
 import ca.sqlpower.architect.layout.FruchtermanReingoldForceLayout;
 import ca.sqlpower.architect.swingui.action.AboutAction;
 import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
+import ca.sqlpower.architect.swingui.action.CloseProjectAction;
 import ca.sqlpower.architect.swingui.action.CompareDMAction;
 import ca.sqlpower.architect.swingui.action.CreateKettleJobAction;
 import ca.sqlpower.architect.swingui.action.CreateRelationshipAction;
@@ -135,7 +136,7 @@ public class ArchitectFrame extends JFrame {
     private OpenProjectAction openProjectAction;
     private Action saveProjectAction;
     private Action saveProjectAsAction;
-    private Action closeProjectAction;
+    private CloseProjectAction closeProjectAction;
     private PreferencesAction prefAction;
     private ProjectSettingsAction projectSettingsAction;
     private PrintAction printAction;
@@ -278,11 +279,7 @@ public class ArchitectFrame extends JFrame {
         };
         saveProjectAsAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Save As");
         
-        closeProjectAction = new AbstractAction("Close Project") {
-            public void actionPerformed(ActionEvent e) {
-                session.close();
-            }
-        };
+        closeProjectAction = new CloseProjectAction(session);
 
         prefAction = new PreferencesAction(session);
         projectSettingsAction = new ProjectSettingsAction(session);
