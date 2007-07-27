@@ -43,11 +43,12 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSourceType;
+import ca.sqlpower.swingui.DataEntryPanel;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class ArchitectDataSourceTypeEditor implements ArchitectPanel {
+public class ArchitectDataSourceTypeEditor implements DataEntryPanel {
     
     private static final Logger logger = Logger.getLogger(ArchitectDataSourceTypeEditor.class);
     

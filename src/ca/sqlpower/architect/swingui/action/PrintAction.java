@@ -37,9 +37,9 @@ import javax.swing.JDialog;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PrintPanel;
+import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
 public class PrintAction extends AbstractArchitectAction {
 	private static final Logger logger = Logger.getLogger(PrintAction.class);
@@ -53,7 +53,7 @@ public class PrintAction extends AbstractArchitectAction {
 		
 		final PrintPanel printPanel = new PrintPanel(session);
 		
-		final JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
+		final JDialog d = DataEntryPanelBuilder.createDataEntryPanelDialog(
 				printPanel, 
 				frame,
 				"Print", "Print");

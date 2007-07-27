@@ -43,8 +43,8 @@ import javax.swing.JPanel;
 
 import ca.sqlpower.architect.swingui.AboutPanel;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.swingui.CommonCloseAction;
-import ca.sqlpower.architect.swingui.JDefaultButton;
+import ca.sqlpower.swingui.CommonCloseAction;
+import ca.sqlpower.swingui.JDefaultButton;
 import ca.sqlpower.swingui.SPSUtils;
 
 public class AboutAction extends AbstractArchitectAction {

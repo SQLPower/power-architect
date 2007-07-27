@@ -47,8 +47,9 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
+import ca.sqlpower.swingui.DataEntryPanel;
 
-public class TableEditPanel extends JPanel implements ArchitectPanel {
+public class TableEditPanel extends JPanel implements DataEntryPanel {
 
 	protected SQLTable table;
 	JTextField name;

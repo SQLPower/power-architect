@@ -83,6 +83,7 @@ import ca.sqlpower.architect.swingui.CompareDMSettings.DatastoreType;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
 import ca.sqlpower.architect.swingui.action.DBCSOkAction;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.swingui.DataEntryPanelBuilder;
 import ca.sqlpower.swingui.ProgressWatcher;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.SPSUtils.LabelValueBean;
@@ -249,9 +250,9 @@ public class CompareDMPanel extends JPanel {
 					}
 				};
 
-				JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
+				JDialog d = DataEntryPanelBuilder.createDataEntryPanelDialog(
 						dbcsPanel, SwingUtilities.getWindowAncestor(CompareDMPanel.this),
-						DBCS_DIALOG_TITLE, ArchitectPanelBuilder.OK_BUTTON_LABEL,
+						DBCS_DIALOG_TITLE, DataEntryPanelBuilder.OK_BUTTON_LABEL,
 						okAction, cancelAction);
 
 				okAction.setConnectionDialog(d);

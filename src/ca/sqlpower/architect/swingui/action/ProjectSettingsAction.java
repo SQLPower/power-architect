@@ -37,9 +37,9 @@ import javax.swing.JDialog;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ProjectSettingsPanel;
+import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
 public class ProjectSettingsAction extends AbstractArchitectAction {
 	private static final Logger logger = Logger.getLogger(EditTableAction.class);
@@ -53,11 +53,11 @@ public class ProjectSettingsAction extends AbstractArchitectAction {
 		
 		final ProjectSettingsPanel settingsPanel = new ProjectSettingsPanel(session);
 
-		final JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
+		final JDialog d = DataEntryPanelBuilder.createDataEntryPanelDialog(
 				settingsPanel,
 				frame,
 				"Project Settings",
-				ArchitectPanelBuilder.OK_BUTTON_LABEL );		
+				DataEntryPanelBuilder.OK_BUTTON_LABEL );		
 
 		d.pack();
 		d.setLocationRelativeTo(frame);

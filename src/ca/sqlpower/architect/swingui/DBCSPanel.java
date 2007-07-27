@@ -50,11 +50,12 @@ import ca.sqlpower.architect.etl.kettle.KettleOptions;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SPDataSourceType;
+import ca.sqlpower.swingui.DataEntryPanel;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class DBCSPanel implements ArchitectPanel {
+public class DBCSPanel implements DataEntryPanel {
 
 	private static final Logger logger = Logger.getLogger(DBCSPanel.class);
 

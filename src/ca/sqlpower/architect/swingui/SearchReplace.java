@@ -81,6 +81,9 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
+import ca.sqlpower.swingui.CommonCloseAction;
+import ca.sqlpower.swingui.DataEntryPanelBuilder;
+import ca.sqlpower.swingui.JDefaultButton;
 import ca.sqlpower.swingui.SPSUtils;
 
 /**
@@ -244,7 +247,7 @@ public class SearchReplace {
                 d.dispose();
             }
         };
-        cancelAction.putValue(Action.NAME, ArchitectPanelBuilder.CANCEL_BUTTON_LABEL);
+        cancelAction.putValue(Action.NAME, DataEntryPanelBuilder.CANCEL_BUTTON_LABEL);
         JButton cancelButton = new JButton(cancelAction);
 
         SPSUtils.makeJDialogCancellable(d, cancelAction);

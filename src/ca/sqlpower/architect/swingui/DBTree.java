@@ -75,6 +75,7 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.action.DBCSOkAction;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
 public class DBTree extends JTree implements DragSourceListener, DBConnectionCallBack {
 	static Logger logger = Logger.getLogger(DBTree.class);
@@ -617,9 +618,9 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 				}
 			};
 
-			JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
+			JDialog d = DataEntryPanelBuilder.createDataEntryPanelDialog(
 					dbcsPanel,session.getArchitectFrame(),
-					"New Connection", ArchitectPanelBuilder.OK_BUTTON_LABEL,
+					"New Connection", DataEntryPanelBuilder.OK_BUTTON_LABEL,
 					okButton, cancelAction);
 
 			okButton.setConnectionDialog(d);
@@ -742,9 +743,9 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 					}
 				};
 
-				JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
+				JDialog d = DataEntryPanelBuilder.createDataEntryPanelDialog(
 						dbcsPanel,session.getArchitectFrame(),
-						"Connection Properties", ArchitectPanelBuilder.OK_BUTTON_LABEL,
+						"Connection Properties", DataEntryPanelBuilder.OK_BUTTON_LABEL,
 						okButton, cancelAction);
 
 				okButton.setConnectionDialog(d);

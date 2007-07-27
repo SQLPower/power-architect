@@ -46,10 +46,10 @@ import javax.swing.JTabbedPane;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ArchitectDataSourceTypeEditor;
-import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.swingui.JDefaultButton;
 import ca.sqlpower.architect.swingui.PreferencesPanel;
+import ca.sqlpower.swingui.DataEntryPanelBuilder;
+import ca.sqlpower.swingui.JDefaultButton;
 import ca.sqlpower.swingui.SPSUtils;
 
 import com.jgoodies.forms.factories.ButtonBarFactory;
@@ -85,7 +85,7 @@ public class PreferencesAction extends AbstractArchitectAction {
  		tp.add("JDBC Drivers", dsTypeEditor.getPanel());
 
 	
-		JDefaultButton okButton = new JDefaultButton(ArchitectPanelBuilder.OK_BUTTON_LABEL);
+		JDefaultButton okButton = new JDefaultButton(DataEntryPanelBuilder.OK_BUTTON_LABEL);
 		okButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent evt) {
 					prefPanel.applyChanges();
@@ -101,7 +101,7 @@ public class PreferencesAction extends AbstractArchitectAction {
 					d.setVisible(false);
 				}
 		};
-		cancelAction.putValue(Action.NAME, ArchitectPanelBuilder.CANCEL_BUTTON_LABEL);
+		cancelAction.putValue(Action.NAME, DataEntryPanelBuilder.CANCEL_BUTTON_LABEL);
 		JButton cancelButton = new JButton(cancelAction);
 
         JPanel buttonPanel = ButtonBarFactory.buildOKCancelBar(okButton, cancelButton);

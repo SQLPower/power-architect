@@ -49,9 +49,10 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
+import ca.sqlpower.swingui.DataEntryPanel;
 
 public class RelationshipEditPanel extends JPanel
-	implements ArchitectPanel {
+	implements DataEntryPanel {
 
 	private static final Logger logger = Logger.getLogger(RelationshipEditPanel.class);
 

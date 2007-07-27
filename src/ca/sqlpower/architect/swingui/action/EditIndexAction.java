@@ -43,11 +43,11 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.IndexEditPanel;
+import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
 public class EditIndexAction extends AbstractArchitectAction {
     private static final Logger logger = Logger.getLogger(EditIndexAction.class);
@@ -96,7 +96,7 @@ public class EditIndexAction extends AbstractArchitectAction {
         final JDialog d;
         final IndexEditPanel editPanel = new IndexEditPanel(index, session);
   
-        d = ArchitectPanelBuilder.createArchitectPanelDialog(
+        d = DataEntryPanelBuilder.createDataEntryPanelDialog(
                 editPanel, frame,
                 "Index Properties", "OK");
         d.pack();

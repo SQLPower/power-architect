@@ -48,7 +48,6 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ColumnEditPanel;
@@ -57,6 +56,7 @@ import ca.sqlpower.architect.swingui.Selectable;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
+import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
 public class EditColumnAction extends AbstractArchitectAction implements SelectionListener {
 	private static final Logger logger = Logger.getLogger(EditColumnAction.class);
@@ -163,7 +163,7 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 			columnEditPanel = new ColumnEditPanel(st.getColumn(colIdx));
 			panel.add(columnEditPanel, BorderLayout.CENTER);
 			
-			editDialog = ArchitectPanelBuilder.createArchitectPanelDialog(
+			editDialog = DataEntryPanelBuilder.createDataEntryPanelDialog(
 					columnEditPanel,
 					frame,
 					 "Column Properties of "+st.getName(),

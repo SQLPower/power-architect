@@ -57,9 +57,10 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.swingui.DataEntryPanel;
 
 public class ColumnEditPanel extends JPanel
-	implements ActionListener, ArchitectPanel {
+	implements ActionListener, DataEntryPanel {
 
 	private static final Logger logger = Logger.getLogger(ColumnEditPanel.class);
 

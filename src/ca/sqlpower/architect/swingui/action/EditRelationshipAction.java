@@ -42,7 +42,6 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
@@ -51,6 +50,7 @@ import ca.sqlpower.architect.swingui.RelationshipEditPanel;
 import ca.sqlpower.architect.swingui.Selectable;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
+import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
 public class EditRelationshipAction extends AbstractArchitectAction implements SelectionListener {
 	private static final Logger logger = Logger.getLogger(EditRelationshipAction.class);
@@ -103,7 +103,7 @@ public class EditRelationshipAction extends AbstractArchitectAction implements S
 	private void makeDialog(SQLRelationship sqr) {
 		logger.debug ("making edit relationship dialog");
 		final RelationshipEditPanel editPanel = new RelationshipEditPanel(session);
-		final JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
+		final JDialog d = DataEntryPanelBuilder.createDataEntryPanelDialog(
 				editPanel,
 				frame, 
 				"Relationship Properties", "OK");

@@ -44,12 +44,12 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.TableEditPanel;
 import ca.sqlpower.architect.swingui.TablePane;
+import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
 public class EditTableAction extends AbstractArchitectAction {
 	private static final Logger logger = Logger.getLogger(EditTableAction.class);
@@ -125,7 +125,7 @@ public class EditTableAction extends AbstractArchitectAction {
 			}
 		};
 
-		d = ArchitectPanelBuilder.createArchitectPanelDialog(
+		d = DataEntryPanelBuilder.createDataEntryPanelDialog(
 				editPanel, frame,
 				"Table Properties", "OK", okAction, cancelAction);
 
