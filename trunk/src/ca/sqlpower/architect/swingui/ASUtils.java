@@ -61,6 +61,7 @@ import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
 import ca.sqlpower.architect.qfa.ExceptionReport;
 import ca.sqlpower.architect.swingui.action.DBCSOkAction;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.swingui.DataEntryPanelBuilder;
 import ca.sqlpower.swingui.SPSUtils;
 
 /**
@@ -187,9 +188,9 @@ public class ASUtils {
             }
         };
     
-        JDialog d = ArchitectPanelBuilder.createArchitectPanelDialog(
+        JDialog d = DataEntryPanelBuilder.createDataEntryPanelDialog(
                 dbcsPanel, parentWindow,
-                "Target Database Connection", ArchitectPanelBuilder.OK_BUTTON_LABEL,
+                "Target Database Connection", DataEntryPanelBuilder.OK_BUTTON_LABEL,
                 okAction, cancelAction);
     
         okAction.setConnectionDialog(d);

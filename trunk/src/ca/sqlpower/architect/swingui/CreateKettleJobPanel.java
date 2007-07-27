@@ -56,12 +56,13 @@ import org.pentaho.di.trans.steps.mergejoin.MergeJoinMeta;
 
 import ca.sqlpower.architect.etl.kettle.CreateKettleJob;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.SPSUtils;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class CreateKettleJobPanel implements ArchitectPanel {
+public class CreateKettleJobPanel implements DataEntryPanel {
     
     private static Logger logger = Logger.getLogger(CreateKettleJobPanel.class);
 

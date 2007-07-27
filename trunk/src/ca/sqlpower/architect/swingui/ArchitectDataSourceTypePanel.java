@@ -46,12 +46,13 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.etl.kettle.KettleOptions;
 import ca.sqlpower.architect.etl.kettle.KettleUtils;
 import ca.sqlpower.sql.SPDataSourceType;
+import ca.sqlpower.swingui.DataEntryPanel;
 
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class ArchitectDataSourceTypePanel implements ArchitectPanel {
+public class ArchitectDataSourceTypePanel implements DataEntryPanel {
 
     private static final Logger logger = Logger.getLogger(ArchitectDataSourceTypePanel.class);
     

@@ -45,8 +45,9 @@ import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 
 import ca.sqlpower.architect.ArchitectVersion;
+import ca.sqlpower.swingui.DataEntryPanel;
 
-public class AboutPanel extends JPanel implements ArchitectPanel {
+public class AboutPanel extends JPanel implements DataEntryPanel {
 
 	public JLabel content;
 

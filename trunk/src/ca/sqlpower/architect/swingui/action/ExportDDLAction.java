@@ -60,12 +60,12 @@ import ca.sqlpower.architect.ddl.DDLWarningComponentFactory;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
 import ca.sqlpower.architect.swingui.ASUtils;
-import ca.sqlpower.architect.swingui.ArchitectPanel;
-import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DDLExportPanel;
 import ca.sqlpower.architect.swingui.MonitorableWorker;
 import ca.sqlpower.architect.swingui.SQLScriptDialog;
+import ca.sqlpower.swingui.DataEntryPanel;
+import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
 public class ExportDDLAction extends AbstractArchitectAction {
 
@@ -108,7 +108,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
                                 done = true;
                             } else {
                                 final List<DDLWarningComponent> warningComponents = new ArrayList<DDLWarningComponent>();
-                                ArchitectPanel dialogPanel = new ArchitectPanel() {
+                                DataEntryPanel dialogPanel = new DataEntryPanel() {
                                     
                                     public boolean applyChanges() {
                                         return false;
@@ -216,7 +216,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
                 d.setVisible(false);
             }
         };
-        d = ArchitectPanelBuilder.createArchitectPanelDialog(
+        d = DataEntryPanelBuilder.createDataEntryPanelDialog(
                 ddlPanel,
                 frame,
                 "Forward Engineer SQL Script", "OK",

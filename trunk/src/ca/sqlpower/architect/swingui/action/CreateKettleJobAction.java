@@ -58,12 +58,12 @@ import ca.sqlpower.architect.etl.kettle.CreateKettleJob;
 import ca.sqlpower.architect.etl.kettle.KettleRepositoryDirectoryChooser;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
-import ca.sqlpower.architect.swingui.ArchitectPanelBuilder;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ArchitectSwingWorker;
 import ca.sqlpower.architect.swingui.CreateKettleJobPanel;
 import ca.sqlpower.architect.swingui.PromptingFileValidator;
 import ca.sqlpower.architect.swingui.UserRepositoryDirectoryChooser;
+import ca.sqlpower.swingui.DataEntryPanelBuilder;
 import ca.sqlpower.swingui.ProgressWatcher;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
@@ -201,7 +201,7 @@ public class CreateKettleJobAction extends AbstractArchitectAction {
             }
         };
         
-        d = ArchitectPanelBuilder.createArchitectPanelDialog(
+        d = DataEntryPanelBuilder.createDataEntryPanelDialog(
                 kettleETLPanel,
                 session.getArchitectFrame(),
                 "Create a Kettle Job", "OK",

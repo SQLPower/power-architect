@@ -57,6 +57,7 @@ import ca.sqlpower.architect.SQLTable.Folder;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
+import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.table.EditableJTable;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
@@ -64,7 +65,7 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class IndexEditPanel extends JPanel implements ArchitectPanel {
+public class IndexEditPanel extends JPanel implements DataEntryPanel {
     protected SQLIndex index;
     protected SQLTable parent;
     protected SQLIndex indexCopy;

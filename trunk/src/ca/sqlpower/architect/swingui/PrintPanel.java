@@ -70,6 +70,8 @@ import javax.swing.event.MouseInputAdapter;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.swingui.DataEntryPanel;
+
 /**
  * The PrintDialogFrame lets the user specify multi-page printouts by
  * scaling the work area to any size.
@@ -80,7 +82,7 @@ import org.apache.log4j.Logger;
  *  <li>real-time preview of what the printout will look like, whether or not it spans pages
  * </ul>
  */
-public class PrintPanel extends JPanel implements ArchitectPanel, Pageable, Printable, ChangeListener {
+public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Printable, ChangeListener {
 	private static final Logger logger = Logger.getLogger(PrintPanel.class);
 
 	/**

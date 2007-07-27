@@ -38,7 +38,9 @@ import javax.swing.JTextField;
 
 import org.apache.log4j.Logger;
 
-public class ProjectSettingsPanel extends JPanel implements ArchitectPanel {
+import ca.sqlpower.swingui.DataEntryPanel;
+
+public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
     private static final Logger logger = Logger.getLogger(ProjectSettingsPanel.class);
 	/**
 	 * The project whose settings we're editting.

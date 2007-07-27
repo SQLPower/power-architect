@@ -47,10 +47,11 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.SPSUtils;
 
 
-public class DDLExportPanel implements ArchitectPanel {
+public class DDLExportPanel implements DataEntryPanel {
 	private static final Logger logger = Logger.getLogger(DDLExportPanel.class);
 
     private JPanel panel = new JPanel();

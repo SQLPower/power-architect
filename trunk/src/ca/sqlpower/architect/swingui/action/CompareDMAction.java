@@ -42,9 +42,9 @@ import javax.swing.JPanel;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.swingui.CommonCloseAction;
 import ca.sqlpower.architect.swingui.CompareDMPanel;
-import ca.sqlpower.architect.swingui.JDefaultButton;
+import ca.sqlpower.swingui.CommonCloseAction;
+import ca.sqlpower.swingui.JDefaultButton;
 import ca.sqlpower.swingui.SPSUtils;
 
 public class CompareDMAction extends AbstractArchitectAction {

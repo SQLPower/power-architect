@@ -73,11 +73,12 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SPDataSourceType;
+import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.ProgressWatcher;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.util.Monitorable;
 
-public class JDBCDriverPanel extends JPanel implements ArchitectPanel {
+public class JDBCDriverPanel extends JPanel implements DataEntryPanel {
 
 	private static class DriverTreeCellRenderer extends DefaultTreeCellRenderer implements TreeCellRenderer {
         
