@@ -76,18 +76,25 @@ public class ArchitectDataSourceTypePanel implements DataEntryPanel {
         connectionStringTemplate.getDocument().addDocumentListener(new DocumentListener() {
 
             public void changedUpdate(DocumentEvent e) {
-                dsType.setJdbcUrl(connectionStringTemplate.getText());
-                template.setTemplate(dsType);
+                updateTemplate();
             }
 
             public void insertUpdate(DocumentEvent e) {
-                dsType.setJdbcUrl(connectionStringTemplate.getText());
-                template.setTemplate(dsType);                
+                updateTemplate();
             }
 
             public void removeUpdate(DocumentEvent e) {
-                dsType.setJdbcUrl(connectionStringTemplate.getText());
-                template.setTemplate(dsType);                
+                updateTemplate();
+            }
+
+            /**
+             * Updates the template if dsType is not currently null.
+             */
+            private void updateTemplate() {
+                if (dsType != null) {
+                    dsType.setJdbcUrl(connectionStringTemplate.getText());
+                    template.setTemplate(dsType);
+                }
             }
             
         });
