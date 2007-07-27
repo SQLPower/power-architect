@@ -239,4 +239,17 @@ public abstract class RecentMenu extends JMenu {
 		}
 		loadRecentMenu();
 	}
+
+    /**
+     * Returns the most recent path in this recent menu as a File object.
+     * If there are no recent files in this menu, returns null.
+     */
+    public File getMostRecentFile() {
+        if (recentFileNames.size() > 0) {
+            String mostRecentPath = recentFileNames.get(0);
+            return new File(mostRecentPath);
+        } else {
+            return null;
+        }
+    }
 }

@@ -262,7 +262,7 @@ public class CompareDMPanel extends JPanel {
 
 		private Action chooseFileAction = new AbstractAction("Choose...") {
 			public void actionPerformed(ActionEvent e) {
-				JFileChooser chooser = new JFileChooser();
+				JFileChooser chooser = new JFileChooser(session.getContext().getRecentMenu().getMostRecentFile());
 				chooser.addChoosableFileFilter(SPSUtils.ARCHITECT_FILE_FILTER);
 				int returnVal = chooser.showOpenDialog(CompareDMPanel.this);
 				if (returnVal == JFileChooser.APPROVE_OPTION) {

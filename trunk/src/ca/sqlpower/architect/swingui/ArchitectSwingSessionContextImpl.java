@@ -159,7 +159,10 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
             if (choice == JOptionPane.CLOSED_OPTION) {
                 throw new ArchitectException("Can't start without a pl.ini file");
             } else if (choice == 0) {
+                
+                // Don't use recent files menu for default dir here.. we're looking for PL.INI
                 JFileChooser fc = new JFileChooser();
+                
                 fc.setFileFilter(SPSUtils.INI_FILE_FILTER);
                 fc.setDialogTitle("Locate your PL.INI file");
                 int fcChoice = fc.showOpenDialog(null);       // blocking wait
