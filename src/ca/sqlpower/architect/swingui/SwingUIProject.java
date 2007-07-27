@@ -81,11 +81,11 @@ import ca.sqlpower.architect.profile.ProfileResult;
 import ca.sqlpower.architect.profile.TableProfileManager;
 import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
-import ca.sqlpower.architect.xml.UnescapingSaxParser;
-import ca.sqlpower.architect.xml.XMLHelper;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SPDataSourceType;
+import ca.sqlpower.xml.UnescapingSaxParser;
+import ca.sqlpower.xml.XMLHelper;
 
 /**
  * The SwingUIProject class is a container that holds all information pertaining
