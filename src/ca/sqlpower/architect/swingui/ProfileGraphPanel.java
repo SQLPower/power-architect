@@ -62,7 +62,7 @@ import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.swingui.ProfilePanel.ChartTypes;
 import ca.sqlpower.architect.swingui.table.FreqValueCountTableModel;
 import ca.sqlpower.architect.swingui.table.FreqValueTable;
-import ca.sqlpower.architect.swingui.table.TableModelSortDecorator;
+import ca.sqlpower.swingui.table.TableModelSortDecorator;
 
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.debug.FormDebugPanel;

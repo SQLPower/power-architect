@@ -41,6 +41,7 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 
 import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.swingui.table.FormatFactory;
 
 public class SQLObjectTableCellRenderer extends DefaultTableCellRenderer implements FormatFactory {
 

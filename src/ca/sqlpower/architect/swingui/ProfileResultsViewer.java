@@ -66,10 +66,10 @@ import ca.sqlpower.architect.swingui.ProfilePanel.ChartTypes;
 import ca.sqlpower.architect.swingui.action.SaveProfileAction;
 import ca.sqlpower.architect.swingui.table.ProfileJTable;
 import ca.sqlpower.architect.swingui.table.ProfileTableModel;
-import ca.sqlpower.architect.swingui.table.TableModelColumnAutofit;
-import ca.sqlpower.architect.swingui.table.TableModelSearchDecorator;
-import ca.sqlpower.architect.swingui.table.TableModelSortDecorator;
 import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.swingui.table.TableModelColumnAutofit;
+import ca.sqlpower.swingui.table.TableModelSearchDecorator;
+import ca.sqlpower.swingui.table.TableModelSortDecorator;
 
 /**
  * A class that manages a viewer component for a set of Profile Results.
