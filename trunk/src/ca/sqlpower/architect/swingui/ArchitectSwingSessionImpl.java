@@ -102,8 +102,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     
     private DBTree sourceDatabases;
     
-    private RecentMenu recentMenu;
-    
     private String name;
     
     private GenericDDLGenerator ddlGenerator;
@@ -157,6 +155,11 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         
         SQLDatabase ppdb = new SQLDatabase();
         playPen = new PlayPen(this, ppdb);
+        UserSettings sprefs = userSettings.getSwingSettings();
+        if (sprefs != null) {
+            playPen.setRenderingAntialiased(sprefs.getBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
+        }
+        new ProjectModificationWatcher(playPen);
 
         List initialDBList = new ArrayList();
         initialDBList.add(playPen.getDatabase());
@@ -471,20 +474,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      */
     public SQLDatabase getTargetDatabase()  {
         return playPen.getDatabase();
-    }
-    
-    /**
-     * Sets the value of playPen
-     *
-     * @param argPlayPen Value to assign to this.playPen
-     */
-    public void setPlayPen(PlayPen argPlayPen) {
-        this.playPen = argPlayPen;
-        UserSettings sprefs = userSettings.getSwingSettings();
-        if (sprefs != null) {
-            playPen.setRenderingAntialiased(sprefs.getBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
-        }
-        new ProjectModificationWatcher(playPen);
     }
     
     /**
