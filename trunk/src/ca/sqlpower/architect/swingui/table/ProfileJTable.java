@@ -39,6 +39,11 @@ import javax.swing.table.TableModel;
 
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ProfileColumn;
+import ca.sqlpower.swingui.table.DateTableCellRenderer;
+import ca.sqlpower.swingui.table.DecimalTableCellRenderer;
+import ca.sqlpower.swingui.table.PercentTableCellRenderer;
+import ca.sqlpower.swingui.table.TableModelSearchDecorator;
+import ca.sqlpower.swingui.table.TableModelSortDecorator;
 import ca.sqlpower.swingui.table.TableTextConverter;
 
 /**

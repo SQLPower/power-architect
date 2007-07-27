@@ -41,9 +41,9 @@ import java.util.List;
 
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.table.DateTableCellRenderer;
-import ca.sqlpower.architect.swingui.table.DecimalTableCellRenderer;
-import ca.sqlpower.architect.swingui.table.PercentTableCellRenderer;
+import ca.sqlpower.swingui.table.DateTableCellRenderer;
+import ca.sqlpower.swingui.table.DecimalTableCellRenderer;
+import ca.sqlpower.swingui.table.PercentTableCellRenderer;
 
 import com.darwinsys.csv.CSVExport;
 
