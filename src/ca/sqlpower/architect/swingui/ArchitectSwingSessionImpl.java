@@ -325,6 +325,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                         return saveOrSaveAs(true, separateThread);
                     }
                 }
+                context.getRecentMenu().putRecentFileName(file.getAbsolutePath());
                 project.setFile(file);
                 String projName = file.getName().substring(0, file.getName().length()-".architect".length());
                 setName(projName);
