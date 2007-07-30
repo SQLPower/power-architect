@@ -57,9 +57,25 @@ public class ArchitectAutoTests {
 
 	public static Test suite() throws IOException {
 
-		// Point this at the top-level of the output folder
-        // XXX This path should not be baked into the code like this.
-		File file = new File("build");
+		// Point this at the top-level of the output folder when running JUnit
+	    // (i.e. java -Dca.sqlpower.architect.test.dir=/path/to/tests)
+	    String compiledTestPath = System.getProperty("ca.sqlpower.architect.test.dir");
+	    if (compiledTestPath == null) {
+	        throw new RuntimeException(
+	                "Please define the system property ca.sqlpower.architect.test.dir" +
+	                " to point to the directory where your test classes were compiled" +
+	                " to (the directory you specify must contain the \"ca\" directory)");
+	    }
+		File file = new File(compiledTestPath);
+		if (!file.exists()) {
+		    throw new RuntimeException("Given test root dir doesn't exist: " + 
+		            compiledTestPath);
+		}
+		if (!new File(file, "ca").exists()) {
+            throw new RuntimeException("Given test root dir is not valid: " + 
+                    compiledTestPath + " (it doesn't contain a directory " +
+                    		"called \"ca\")");
+		}
 
         TestFilter filt = new TestFilter() {
             
