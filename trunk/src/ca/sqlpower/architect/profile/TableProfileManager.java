@@ -200,6 +200,36 @@ public class TableProfileManager implements ProfileManager {
     }
 
     /**
+     * This is a hook designed so the SwingUIProject can insert profile results
+     * into this profile manager as it is reading in a project file.  It is
+     * not appropriate to use otherwise.
+     * <p>
+     * This method does not fire any events, beause it is only intended to be used
+     * while the project is still being loaded from a file.
+     * <p>
+     * The idea is, the SwingUIProject stores all profile results in a flat space
+     * (table and column results are sibling elements) so it needs our help to
+     * put everything back together into the original hierarchy.  This method hangs
+     * onto all TableProfileResult objects given to it, and ignores all other result
+     * types, assuming the client code will do the appropriate hookups.
+     * <p>
+     * You might be asking yourself, "why not store the profile results in the
+     * same hierarchy as they had when they were originally created, so we don't
+     * need any more error-prone code to recreate what we already had and then
+     * threw away?  Beside reducing bugs, it would eliminate the need for this public
+     * method and accompanying docs that warn you against using it."  If so, please
+     * apply to SQL Power at hr (@) sqlpower.ca. 
+     */
+    public void loadResult(ProfileResult pr) {
+        if (pr instanceof TableProfileResult) {
+            TableProfileResult tpr = (TableProfileResult) pr;
+            results.add(tpr);
+        }
+        // the column results will get added to the table result by
+        // the project's profile result factory class
+    }
+    
+    /**
      * Adds the given listener to this profile manager.  The listener will be notified
      * of additions and removals of results in this profile manager.
      */

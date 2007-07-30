@@ -865,6 +865,10 @@ public class SwingUIProject {
     }
 
     private class ProfileResultFactory extends AbstractObjectCreationFactory {
+
+        /**
+         * The most recent table result encountered.
+         */
         TableProfileResult tableProfileResult;
     
         @Override
@@ -891,7 +895,9 @@ public class SwingUIProject {
                 if (tableProfileResult == null) {
                     throw new IllegalArgumentException("Column result does not have a parent");
                 }
-                return new ColumnProfileResult(c, tableProfileResult);
+                ColumnProfileResult cpr = new ColumnProfileResult(c, tableProfileResult);
+                tableProfileResult.addColumnProfileResult(cpr);
+                return cpr;
             } else {
                 throw new ArchitectException("Profile result type \""+className+"\" not recognised");
             }
@@ -1277,13 +1283,13 @@ public class SwingUIProject {
         List<TableProfileResult> tableResults = profmgr.getResults();
         
         for (TableProfileResult tableResult : tableResults) {
-            printCommonItems(tableResult);
+            printCommonItems(out, tableResult);
             ioo.print(out, " rowCount=\"" + tableResult.getRowCount() + "\"");
             ioo.niprintln(out, "/>");
             
             List<ColumnProfileResult> columnProfileResults = tableResult.getColumnProfileResults();
             for (ColumnProfileResult cpr : columnProfileResults) {
-                printCommonItems(cpr);
+                printCommonItems(out, cpr);
                 ioo.niprint(out, " avgLength=\"" + cpr.getAvgLength() + "\"");
 
                 ioo.niprint(out, " minLength=\"" + cpr.getMinLength() + "\"");
@@ -1337,7 +1343,7 @@ public class SwingUIProject {
         ioo.indent--;
     }
 
-    private void printCommonItems(ProfileResult profileResult) {
+    private void printCommonItems(PrintWriter out, ProfileResult profileResult) {
         SQLObject profiledObject = profileResult.getProfiledObject();
         ioo.print(out, "<profile-result ref-id=\""+objectIdMap.get(profiledObject)+"\"" +
                 " type=\"" + profileResult.getClass().getName() + "\"" +
