@@ -218,7 +218,7 @@ public class ConflictResolver implements Monitorable {
      * Creates a new ConflictResolver.  You should call findConflicting() after you get
      * this new object.
      */
-    public ConflictResolver(SQLDatabase target, DDLGenerator ddlg, List ddlStatements) throws SQLException {
+    public ConflictResolver(SQLDatabase target, DDLGenerator ddlg, List ddlStatements) {
     	this.targetDatabase = target;
         this.ddlg = ddlg;
         this.ddlStatements = ddlStatements;
