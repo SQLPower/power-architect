@@ -123,7 +123,7 @@ public class WelcomeScreen {
         closeButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 context.getUserSettings().getSwingSettings().setBoolean(
-                        SwingUserSettings.SHOW_WELCOMESCREEN,
+                        ArchitectSwingUserSettings.SHOW_WELCOMESCREEN,
                         showPrefsAgain.isSelected());
                 d.dispose();
             }

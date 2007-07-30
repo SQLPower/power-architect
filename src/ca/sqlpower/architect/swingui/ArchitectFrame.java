@@ -202,17 +202,17 @@ public class ArchitectFrame extends JFrame {
 
         Preferences prefs = context.getPrefs();
         
-        splitPane.setDividerLocation(prefs.getInt(SwingUserSettings.DIVIDER_LOCATION,150));
+        splitPane.setDividerLocation(prefs.getInt(ArchitectSwingUserSettings.DIVIDER_LOCATION,150));
 
         Rectangle bounds = new Rectangle();
-        bounds.x = prefs.getInt(SwingUserSettings.MAIN_FRAME_X, 40);
-        bounds.y = prefs.getInt(SwingUserSettings.MAIN_FRAME_Y, 40);
-        bounds.width = prefs.getInt(SwingUserSettings.MAIN_FRAME_WIDTH, 600);
-        bounds.height = prefs.getInt(SwingUserSettings.MAIN_FRAME_HEIGHT, 440);
+        bounds.x = prefs.getInt(ArchitectSwingUserSettings.MAIN_FRAME_X, 40);
+        bounds.y = prefs.getInt(ArchitectSwingUserSettings.MAIN_FRAME_Y, 40);
+        bounds.width = prefs.getInt(ArchitectSwingUserSettings.MAIN_FRAME_WIDTH, 600);
+        bounds.height = prefs.getInt(ArchitectSwingUserSettings.MAIN_FRAME_HEIGHT, 440);
         setBounds(bounds);
         addWindowListener(new ArchitectFrameWindowListener());
-        session.getUserSettings().getSwingSettings().setBoolean(SwingUserSettings.SHOW_WELCOMESCREEN,
-                prefs.getBoolean(SwingUserSettings.SHOW_WELCOMESCREEN, true));
+        session.getUserSettings().getSwingSettings().setBoolean(ArchitectSwingUserSettings.SHOW_WELCOMESCREEN,
+                prefs.getBoolean(ArchitectSwingUserSettings.SHOW_WELCOMESCREEN, true));
 	}
 
     /**
@@ -239,7 +239,7 @@ public class ArchitectFrame extends JFrame {
         helpAction.putValue(AbstractAction.SHORT_DESCRIPTION, "User Guide");
 
         newProjectAction = new AbstractAction("New Project",
-                SPSUtils.createIcon("new_project","New Project",sprefs.getInt(SwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) {
+                SPSUtils.createIcon("new_project","New Project",sprefs.getInt(ArchitectSwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) {
             public void actionPerformed(ActionEvent e) {
                 try {
                     createNewProject();
@@ -260,7 +260,7 @@ public class ArchitectFrame extends JFrame {
         saveProjectAction = new AbstractAction("Save Project",
                 SPSUtils.createIcon("disk",
                         "Save Project",
-                        sprefs.getInt(SwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) {
+                        sprefs.getInt(ArchitectSwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) {
             public void actionPerformed(ActionEvent e) {
                 session.saveOrSaveAs(false, true);
             }
@@ -272,7 +272,7 @@ public class ArchitectFrame extends JFrame {
         saveProjectAsAction = new AbstractAction("Save Project As...",
                 SPSUtils.createIcon("save_as",
                         "Save Project As...",
-                        sprefs.getInt(SwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) {
+                        sprefs.getInt(ArchitectSwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) {
             public void actionPerformed(ActionEvent e) {
                 session.saveOrSaveAs(true, true);
             }
@@ -296,7 +296,7 @@ public class ArchitectFrame extends JFrame {
         = new AbstractAction("Reset Zoom",
                 SPSUtils.createIcon("zoom_reset",
                         "Reset Zoom",
-                        sprefs.getInt(SwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) {
+                        sprefs.getInt(ArchitectSwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) {
             public void actionPerformed(ActionEvent e) {
                 playpen.setZoom(1.0);
             }
@@ -553,13 +553,13 @@ public class ArchitectFrame extends JFrame {
          * the PL.INI contents that must be shared with other non-Java programs.
          */
 	    Preferences prefs = session.getContext().getPrefs();
-		prefs.putInt(SwingUserSettings.DIVIDER_LOCATION, splitPane.getDividerLocation());
-		prefs.putInt(SwingUserSettings.MAIN_FRAME_X, getLocation().x);
-		prefs.putInt(SwingUserSettings.MAIN_FRAME_Y, getLocation().y);
-		prefs.putInt(SwingUserSettings.MAIN_FRAME_WIDTH, getWidth());
-		prefs.putInt(SwingUserSettings.MAIN_FRAME_HEIGHT, getHeight());
-        prefs.putBoolean(SwingUserSettings.SHOW_WELCOMESCREEN,
-                us.getSwingSettings().getBoolean(SwingUserSettings.SHOW_WELCOMESCREEN, true));
+		prefs.putInt(ArchitectSwingUserSettings.DIVIDER_LOCATION, splitPane.getDividerLocation());
+		prefs.putInt(ArchitectSwingUserSettings.MAIN_FRAME_X, getLocation().x);
+		prefs.putInt(ArchitectSwingUserSettings.MAIN_FRAME_Y, getLocation().y);
+		prefs.putInt(ArchitectSwingUserSettings.MAIN_FRAME_WIDTH, getWidth());
+		prefs.putInt(ArchitectSwingUserSettings.MAIN_FRAME_HEIGHT, getHeight());
+        prefs.putBoolean(ArchitectSwingUserSettings.SHOW_WELCOMESCREEN,
+                us.getSwingSettings().getBoolean(ArchitectSwingUserSettings.SHOW_WELCOMESCREEN, true));
 
 		us.write();
 

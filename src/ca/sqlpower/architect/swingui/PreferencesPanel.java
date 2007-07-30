@@ -153,12 +153,12 @@ public class PreferencesPanel extends JPanel implements DataEntryPanel {
 		plIniName.setText(us.getPlDotIniPath());
 		etlLogFileName.setText(us.getETLUserSettings().getString(ETLUserSettings.PROP_ETL_LOG_PATH,""));
 		ddlLogFileName.setText(us.getDDLUserSettings().getString(DDLUserSettings.PROP_DDL_LOG_PATH,""));
-		if (us.getSwingSettings().getBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false)) {
+		if (us.getSwingSettings().getBoolean(ArchitectSwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false)) {
 		    playPenAntialiasOn.setSelected(true);
 		} else {
 		    playPenAntialiasOff.setSelected(true);
 		}
-        if (us.getSwingSettings().getBoolean(SwingUserSettings.SHOW_WELCOMESCREEN, true)) {
+        if (us.getSwingSettings().getBoolean(ArchitectSwingUserSettings.SHOW_WELCOMESCREEN, true)) {
             showWelcomeOn.setSelected(true);
         } else {
             showWelcomeOff.setSelected(true);
@@ -174,8 +174,8 @@ public class PreferencesPanel extends JPanel implements DataEntryPanel {
 		us.setPlDotIniPath(plIniName.getText());
 		us.getETLUserSettings().setString(ETLUserSettings.PROP_ETL_LOG_PATH,etlLogFileName.getText());
 		us.getDDLUserSettings().setString(DDLUserSettings.PROP_DDL_LOG_PATH,ddlLogFileName.getText());
-		us.getSwingSettings().setBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, playPenAntialiasOn.isSelected());
-        us.getSwingSettings().setBoolean(SwingUserSettings.SHOW_WELCOMESCREEN, showWelcomeOn.isSelected());
+		us.getSwingSettings().setBoolean(ArchitectSwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, playPenAntialiasOn.isSelected());
+        us.getSwingSettings().setBoolean(ArchitectSwingUserSettings.SHOW_WELCOMESCREEN, showWelcomeOn.isSelected());
         us.getQfaUserSettings().setBoolean(QFAUserSettings.EXCEPTION_REPORTING, exceptionReportOn.isSelected());
 		session.getPlayPen().setRenderingAntialiased(playPenAntialiasOn.isSelected());
 		return true;

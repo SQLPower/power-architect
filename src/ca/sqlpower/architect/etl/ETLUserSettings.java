@@ -39,7 +39,7 @@ import ca.sqlpower.architect.AbstractUserSetting;
  * project-to-project.
  *
  * @see ca.sqlpower.architect.CoreUserSettings
- * @see ca.sqlpower.architect.swingui.SwingUserSettings
+ * @see ca.sqlpower.architect.swingui.ArchitectSwingUserSettings
  */
 public class ETLUserSettings extends AbstractUserSetting {
 
