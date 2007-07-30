@@ -13,11 +13,6 @@ svn checkout http://power-architect.googlecode.com/svn/trunk/ power-architect
 # Checkout the latest SQL Power Library source from Google Code Subversion
 svn checkout http://sqlpower-library.googlecode.com/svn/trunk/ sqlpower-library
 
-# Build the SQL Power Library distributable JAR file and copy it to power-architect
-cd sqlpower-library
-ant
-cp deploy/sqlpower_library.jar ../power-architect/lib
-
 # Build the Power*Architect
 cd ../power-architect
 
