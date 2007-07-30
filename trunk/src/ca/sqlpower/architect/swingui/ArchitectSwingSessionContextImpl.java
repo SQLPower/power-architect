@@ -321,7 +321,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     
     private void showWelcomeScreen(Component dialogOwner) {
         // should almost certainly move this into the swing context
-        if (getUserSettings().getSwingSettings().getBoolean(SwingUserSettings.SHOW_WELCOMESCREEN, true)) {
+        if (getUserSettings().getSwingSettings().getBoolean(ArchitectSwingUserSettings.SHOW_WELCOMESCREEN, true)) {
             WelcomeScreen ws = new WelcomeScreen(this);
             ws.showWelcomeDialog(dialogOwner);
         }

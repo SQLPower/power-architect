@@ -42,7 +42,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ddl.DDLUserSettings;
 import ca.sqlpower.architect.etl.ETLUserSettings;
 import ca.sqlpower.architect.qfa.QFAUserSettings;
-import ca.sqlpower.architect.swingui.SwingUserSettings;
+import ca.sqlpower.architect.swingui.ArchitectSwingUserSettings;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
@@ -102,7 +102,7 @@ public class CoreUserSettings {
 	public CoreUserSettings(Preferences prefs) {
 		super();
 		printUserSettings = new PrintUserSettings();
-		swingSettings = new SwingUserSettings();
+		swingSettings = new ArchitectSwingUserSettings();
 		etlUserSettings = new ETLUserSettings();
 		ddlUserSettings = new DDLUserSettings();
         qfaUserSettings = new QFAUserSettings();
@@ -120,8 +120,8 @@ public class CoreUserSettings {
 
         setPlDotIniPath(prefs.get(ArchitectSession.PREFS_PL_INI_PATH, null));
 
-        swingSettings.setBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED,
-            prefs.getBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
+        swingSettings.setBoolean(ArchitectSwingUserSettings.PLAYPEN_RENDER_ANTIALIASED,
+            prefs.getBoolean(ArchitectSwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
 
         etlUserSettings.setString(ETLUserSettings.PROP_PL_ENGINE_PATH,
             prefs.get(ETLUserSettings.PROP_PL_ENGINE_PATH, ""));
@@ -145,8 +145,8 @@ public class CoreUserSettings {
 
         prefs.put(ArchitectSession.PREFS_PL_INI_PATH, getPlDotIniPath());
 
-        prefs.putBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED,
-                swingSettings.getBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
+        prefs.putBoolean(ArchitectSwingUserSettings.PLAYPEN_RENDER_ANTIALIASED,
+                swingSettings.getBoolean(ArchitectSwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
 
         prefs.put(ETLUserSettings.PROP_PL_ENGINE_PATH, etlUserSettings.getString(ETLUserSettings.PROP_PL_ENGINE_PATH,""));
         prefs.put(ETLUserSettings.PROP_ETL_LOG_PATH, etlUserSettings.getString(ETLUserSettings.PROP_ETL_LOG_PATH,""));

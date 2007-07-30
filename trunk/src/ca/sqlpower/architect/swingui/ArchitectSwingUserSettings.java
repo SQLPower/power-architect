@@ -36,7 +36,7 @@ import ca.sqlpower.architect.AbstractUserSetting;
 /**
  * These are constantized Strings used in Preferences
  */
-public class SwingUserSettings extends AbstractUserSetting {
+public class ArchitectSwingUserSettings extends AbstractUserSetting {
 
 	public static final String DIVIDER_LOCATION
 		= "SwingUserSettings.DIVIDER_LOCATION";

@@ -39,7 +39,7 @@ import java.util.Properties;
  * @see ca.sqlpower.architect.CoreUserSettings
  * @see ca.sqlpower.architect.etl.ETLUserSettings
  * @see ca.sqlpower.architect.ddl.DDLUserSettings
- * @see ca.sqlpower.architect.swingui.SwingUserSettings
+ * @see ca.sqlpower.architect.swingui.ArchitectSwingUserSettings
  */
 public class PrintUserSettings {
 

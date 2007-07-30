@@ -157,7 +157,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         playPen = new PlayPen(this, ppdb);
         UserSettings sprefs = userSettings.getSwingSettings();
         if (sprefs != null) {
-            playPen.setRenderingAntialiased(sprefs.getBoolean(SwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
+            playPen.setRenderingAntialiased(sprefs.getBoolean(ArchitectSwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
         }
         new ProjectModificationWatcher(playPen);
 
