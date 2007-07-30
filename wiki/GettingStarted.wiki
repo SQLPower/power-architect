@@ -41,9 +41,10 @@ To check out the Power*Architect source into an Eclipse project:
  # If you don't yet have the Subversion feature available on your version of Eclipse, get [http://subclipse.tigris.org/install.html Subclipse]
  # Start Eclipse and create a new project (File -> New -> Project...)
  # Under the SVN folder, select *Checkout Projects from SVN*. If you don't see the SVN folder, go back to step 1. ;)
- # Create a new repository location to check out Power*Architect from. The URL for the new repository is http://power-architect.googlecode.com/svn/
- # To check out all of the latest source files for Power*Architect, select the *trunk* directory, then press next
+ # Create a new repository location to check out the SQL Power Library from. Power*Architect requires this project to build. The URL for the new repository is http://sqlpower-library.googlecode.com/svn/
+ # To check out all of the latest source files for the SQL Power Library, select the *trunk* directory, then press next
  # Ensure that the "Check out as a project in the workspace" and "Head Revision" options are selected (they are the defaults), then click *Finish*.
+ # Repeat steps 4-6 for Power*Architect, except use the following repository URL: http://power-architect.googlecode.com/svn/
 
 == Other Development Environments ==
 Currently, everyone on the Architect team has chosen to use Eclipse.  If you have a different favourite Java IDE, we'd be happy to post your instructions for checking out the Architect code here.  Just post to the architect-developers list!
@@ -99,6 +100,7 @@ You can browse through existing bugs and pick something to investigate, or if yo
 
 For developers new to Power*Architect that want to start making contributions to Power*Architect there is a wishlist included with the source code that the developers
 have put together.
+
 
 
 
