@@ -192,12 +192,16 @@ public class ExportDDLAction extends AbstractArchitectAction {
                         ssd.setExecuteTask(cfp);
                         ssd.setVisible(true);
                     }
-                } catch (Exception ex) {
-                    JOptionPane.showMessageDialog
-                    (frame,
-                            "Can't export DDL: " + ex);
+                } catch (ArchitectException ex) {
+                    ASUtils.showExceptionDialog
+                    (session,
+                            "An error occurred while generating the script.", ex);
                     logger.error("Got exception while exporting DDL", ex);
-
+                } catch (SQLException ex2) {
+                    ASUtils.showExceptionDialog
+                    (session, 
+                            "An error ocurred while trying to generate" +
+                            " the DDL script.", ex2);
                 }
             }
 
@@ -269,7 +273,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
 		 */
 		public ConflictFinderProcess(JDialog parentDialog, SQLDatabase target,
 				DDLGenerator ddlg, List statements, ArchitectSwingSession session)
-			throws ArchitectException, SQLException {
+			throws ArchitectException {
 			super(session);
 			this.parentDialog = parentDialog;
 			this.target = target;
