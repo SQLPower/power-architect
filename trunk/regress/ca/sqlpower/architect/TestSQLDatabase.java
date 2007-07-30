@@ -178,7 +178,7 @@ public class TestSQLDatabase extends SQLTestCase {
     public void testPopulateTablesOnly() throws Exception {
         SPDataSource ds = new SPDataSource();
         ds.setDisplayName("tablesOnly");
-        ds.getParentType().setJdbcDriver("ca.sqlpower.architect.MockJDBCDriver");
+        ds.getParentType().setJdbcDriver("ca.sqlpower.util.MockJDBCDriver");
         ds.setUser("fake");
         ds.setPass("fake");
         ds.setUrl("jdbc:mock:tables=tab1");
@@ -192,7 +192,7 @@ public class TestSQLDatabase extends SQLTestCase {
     public void testPopulateSchemasAndTables() throws Exception {
         SPDataSource ds = new SPDataSource();
         ds.setDisplayName("schemasAndTables");
-        ds.getParentType().setJdbcDriver("ca.sqlpower.architect.MockJDBCDriver");
+        ds.getParentType().setJdbcDriver("ca.sqlpower.util.MockJDBCDriver");
         ds.setUser("fake");
         ds.setPass("fake");
         ds.setUrl("jdbc:mock:dbmd.schemaTerm=Schema&schemas=sch1&tables.sch1=tab1");
@@ -206,7 +206,7 @@ public class TestSQLDatabase extends SQLTestCase {
     public void testPopulateCatalogsAndTables() throws Exception {
         SPDataSource ds = new SPDataSource();
         ds.setDisplayName("catalogsAndTables");
-        ds.getParentType().setJdbcDriver("ca.sqlpower.architect.MockJDBCDriver");
+        ds.getParentType().setJdbcDriver("ca.sqlpower.util.MockJDBCDriver");
         ds.setUser("fake");
         ds.setPass("fake");
         ds.setUrl("jdbc:mock:dbmd.catalogTerm=Catalog&catalogs=cat1&tables.cat1=tab1");
@@ -220,7 +220,7 @@ public class TestSQLDatabase extends SQLTestCase {
     public void testPopulateCatalogsSchemasAndTables() throws Exception {
         SPDataSource ds = new SPDataSource();
         ds.setDisplayName("catalogsSchemasAndTables");
-        ds.getParentType().setJdbcDriver("ca.sqlpower.architect.MockJDBCDriver");
+        ds.getParentType().setJdbcDriver("ca.sqlpower.util.MockJDBCDriver");
         ds.setUser("fake");
         ds.setPass("fake");
         ds.setUrl("jdbc:mock:dbmd.catalogTerm=Catalog&dbmd.schemaTerm=Schema" +
@@ -665,7 +665,7 @@ public class TestSQLDatabase extends SQLTestCase {
 	public void testConnectionsPerThreadAreUnique() throws Exception{
 		SPDataSource ads = new SPDataSource();
         ads.setParentType(new SPDataSourceType());
-		ads.getParentType().setJdbcDriver("ca.sqlpower.architect.MockJDBCDriver");
+		ads.getParentType().setJdbcDriver("ca.sqlpower.util.MockJDBCDriver");
 		ads.setUrl("jdbc:mock:dbmd.catalogTerm=Catalog&dbmd.schemaTerm=Schema&catalogs=farm,yard,zoo&schemas.farm=cow,pig&schemas.yard=cat,robin&schemas.zoo=lion,giraffe&tables.farm.cow=moo&tables.farm.pig=oink&tables.yard.cat=meow&tables.yard.robin=tweet&tables.zoo.lion=roar&tables.zoo.giraffe=***,^%%");
 		ads.setUser("fake");
 		ads.setPass("fake");

@@ -796,7 +796,7 @@ public class TestSQLTable extends SQLTestCase {
     public void testPopulateColumnsCaseSensitive() throws Exception {
         SPDataSource ds = new SPDataSource();
         ds.setDisplayName("tableWithMixedColumnCase");
-        ds.getParentType().setJdbcDriver("ca.sqlpower.architect.MockJDBCDriver");
+        ds.getParentType().setJdbcDriver("ca.sqlpower.util.MockJDBCDriver");
         ds.setUser("fake");
         ds.setPass("fake");
         ds.setUrl("jdbc:mock:" +
