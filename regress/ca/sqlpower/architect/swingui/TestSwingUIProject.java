@@ -68,6 +68,9 @@ import ca.sqlpower.architect.StubSQLObject;
 import ca.sqlpower.architect.SQLIndex.IndexType;
 import ca.sqlpower.architect.etl.kettle.KettleRepositoryDirectoryChooser;
 import ca.sqlpower.architect.etl.kettle.RootRepositoryDirectoryChooser;
+import ca.sqlpower.architect.profile.ColumnProfileResult;
+import ca.sqlpower.architect.profile.ProfileManager;
+import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SPDataSourceType;
@@ -145,6 +148,24 @@ public class TestSwingUIProject extends ArchitectTestCase {
         "  <table-pane table-ref='TAB6' x='196' y='38' />" +
         "  <table-link relationship-ref='REL12' pk-x='76' pk-y='60' fk-x='114' fk-y='30' />" +
         " </play-pen>" +
+        " <profiles topNCount=\"10\">" +
+        "  <profile-result ref-id=\"TAB0\" type=\"ca.sqlpower.architect.profile.TableProfileResult\" createStartTime=\"1185828799320\" createEndTime=\"1185828807187\" exception=\"false\"   rowCount=\"234937\"/>" +
+        "  <profile-result ref-id=\"COL2\" type=\"ca.sqlpower.architect.profile.ColumnProfileResult\" createStartTime=\"1185828799479\" createEndTime=\"1185828801322\" exception=\"false\" avgLength=\"5.6169228346322635\" minLength=\"5\" maxLength=\"6\" nullCount=\"0\" distinctValueCount=\"234937\">" +
+        "   <avgValue type=\"java.math.BigDecimal\" value=\"127470.085669775301\"/>" +
+        "   <maxValue type=\"java.lang.Integer\" value=\"500001\"/>" +
+        "   <minValue type=\"java.lang.Integer\" value=\"10001\"/>" +
+        "   <topNvalue count=\"1\" type=\"java.lang.Integer\" value=\"10001\"/>" +
+        "   <topNvalue count=\"1\" type=\"java.lang.Integer\" value=\"26384\"/>" +
+        "   <topNvalue count=\"1\" type=\"java.lang.Integer\" value=\"26383\"/>" +
+        "   <topNvalue count=\"1\" type=\"java.lang.Integer\" value=\"26382\"/>" +
+        "   <topNvalue count=\"1\" type=\"java.lang.Integer\" value=\"26381\"/>" +
+        "   <topNvalue count=\"1\" type=\"java.lang.Integer\" value=\"26380\"/>" +
+        "   <topNvalue count=\"1\" type=\"java.lang.Integer\" value=\"26379\"/>" +
+        "   <topNvalue count=\"1\" type=\"java.lang.Integer\" value=\"26378\"/>" +
+        "   <topNvalue count=\"1\" type=\"java.lang.Integer\" value=\"26377\"/>" +
+        "   <topNvalue count=\"1\" type=\"java.lang.Integer\" value=\"26376\"/>" +
+        "  </profile-result>" +
+        " </profiles>" +
         "</architect-project>";
 	
 	/*
@@ -1140,5 +1161,23 @@ public class TestSwingUIProject extends ArchitectTestCase {
         } catch (UnsupportedOperationException ex) {
             // expected result
         }
+    }
+    
+    /**
+     * Ensures the profile results in the sample project file get read in properly.
+     */
+    public void testLoadProfileResults() throws Exception {
+        testLoad();
+        ProfileManager pm = session.getProfileManager();
+        
+        assertEquals(1, pm.getResults().size());
+        TableProfileResult tpr = pm.getResults().get(0);
+        assertEquals("Customers", tpr.getProfiledObject().getName());
+
+        assertEquals(1, tpr.getColumnProfileResults().size());
+        ColumnProfileResult cpr = tpr.getColumnProfileResults().get(0);
+        assertEquals("id", cpr.getProfiledObject().getName());
+        assertEquals(5, cpr.getMinLength());
+        assertEquals(6, cpr.getMaxLength());
     }
 }
