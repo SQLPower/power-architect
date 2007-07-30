@@ -45,11 +45,12 @@ public class TestProfileCSV extends TestProfileBase {
     public void test1() throws Exception {
         ProfileFormat fmt = new ProfileCSVFormat();
         ByteArrayOutputStream  out = new ByteArrayOutputStream();
-        List<ProfileResult> profileResults = new ArrayList<ProfileResult>();
         SQLTable t = mydb.getTableByName("PROFILE_TEST1");
 
-        Collection<TableProfileResult> tableResults = pm.getTableResult(t);
+        Collection<TableProfileResult> tableResults = pm.getResults(t);
         
+        List<ProfileResult> profileResults = new ArrayList<ProfileResult>();
+
         // Add results for table
         for (TableProfileResult tpr : tableResults) {
             profileResults.add(tpr);
@@ -69,7 +70,7 @@ public class TestProfileCSV extends TestProfileBase {
         assertNotNull(line = rdr.readLine());   // Header line
         assertTrue(line.startsWith("DATABASE,CATALOG,SCHEMA"));
         assertNotNull(line = rdr.readLine());   // first results line
-        assertTrue(line.endsWith("12345678901234567890a"));
+        assertTrue("Incorrect line: " + line, line.endsWith("12345678901234567890a"));
     }
 
 }

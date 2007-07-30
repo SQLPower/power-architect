@@ -53,7 +53,6 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLIndex.Column;
-import ca.sqlpower.architect.profile.TableProfileManager;
 import ca.sqlpower.swingui.SPSUtils;
 
 /**
@@ -125,7 +124,7 @@ public class DBTreeCellRenderer extends DefaultTreeCellRenderer {
 		} else if (value instanceof SQLTable) {
             
 			SQLTable table = (SQLTable) value;
-            if (((TableProfileManager)session.getProfileManager()).isTableProfiled(table)) {
+            if (session.getProfileManager().getResults(table).size() > 0) {
                 setIcon(tableProfiledIcon);
             } else {
                 setIcon(tableIcon);

@@ -47,21 +47,7 @@ public class TestProfileManagerListeners extends TestProfileBase {
     private int changedEvents;
 
     public void testListeners() throws Exception {
-        ProfileChangeListener listener = new ProfileChangeListener() {
-
-
-            public void profilesAdded(ProfileChangeEvent e) {
-                addedEvents++;
-            }
-
-            public void profilesRemoved(ProfileChangeEvent e) {
-                removedEvents++;
-            }
-
-            public void profileListChanged(ProfileChangeEvent event) {
-                ++changedEvents;
-            }
-        };
+        ProfileChangeListener listener = new CountingProfileChangeListener();
         pm.addProfileChangeListener(listener);
         assertEquals(0, addedEvents);
         assertEquals(0, removedEvents);
@@ -93,7 +79,7 @@ public class TestProfileManagerListeners extends TestProfileBase {
         }
         
         assertEquals("Table added", tableList.size() + 2, addedEvents);
-        Collection<TableProfileResult> tableResults = pm.getTableResult(t);
+        Collection<TableProfileResult> tableResults = pm.getResults(t);
         for (TableProfileResult tpr : tableResults) {
             pm.removeProfile(tpr);
         }

@@ -113,7 +113,7 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
              */
             
             public void profilesAdded(ProfileChangeEvent e) {
-                for (ProfileResult pr : e.getProfileResult()) {
+                for (ProfileResult pr : e.getProfileResults()) {
                     if (logger.isDebugEnabled()) logger.debug("Removing profile "+pr);
                     SQLObjectEvent soe = new SQLObjectEvent(pr.getProfiledObject(),"profile");
                     processSQLObjectChanged(soe);
@@ -121,9 +121,13 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
             }
 
             public void profilesRemoved(ProfileChangeEvent e) {
-                for (ProfileResult pr : e.getProfileResult()) {
+                for (ProfileResult pr : e.getProfileResults()) {
                     if (logger.isDebugEnabled()) logger.debug("Removing profile "+pr);
+                    
+                    // FIXME here's a crazy idea: if you want something to be a bound property of
+                    //       SQLTable, why not make it one?
                     SQLObjectEvent soe = new SQLObjectEvent(pr.getProfiledObject(),"profile");
+                    
                     processSQLObjectChanged(soe);
                 }
             }
