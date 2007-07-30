@@ -498,7 +498,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		SPDataSource ds = new SPDataSource();
         ds.setParentType(mockType);
 		ds.setDisplayName("Schemaless Database");
-		ds.getParentType().setJdbcDriver("ca.sqlpower.architect.MockJDBCDriver");
+		ds.getParentType().setJdbcDriver("ca.sqlpower.util.MockJDBCDriver");
 		ds.setUser("fake");
 		ds.setPass("fake");
 		//this creates a mock jdbc database with only catalogs
@@ -1075,7 +1075,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 
         SPDataSource ds = new SPDataSource();
         ds.setDisplayName("test_database");
-        ds.getParentType().setJdbcDriver("ca.sqlpower.architect.MockJDBCDriver");
+        ds.getParentType().setJdbcDriver("ca.sqlpower.util.MockJDBCDriver");
         ds.setUser("fake");
         ds.setPass("fake");
         //this creates a mock jdbc database with catalogs and schemas
@@ -1101,7 +1101,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 
         SPDataSource ds = new SPDataSource();
         ds.setDisplayName("test_database");
-        ds.getParentType().setJdbcDriver("ca.sqlpower.architect.MockJDBCDriver");
+        ds.getParentType().setJdbcDriver("ca.sqlpower.util.MockJDBCDriver");
         ds.setUser("fake");
         ds.setPass("fake");
         //this creates a mock jdbc database with catalogs and schemas
