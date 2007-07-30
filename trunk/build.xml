@@ -86,7 +86,7 @@
 		<javac srcdir="${src}" destdir="${build}" classpathref="compile.classpath" includes="ca/sqlpower/architect/antbuild/ArchitectVersionTask.java" debug="true" deprecation="true" />
 		<taskdef name="genVersion"
 					classname="ca.sqlpower.architect.antbuild.ArchitectVersionTask"
-			        classpath="build"/>
+			        classpath="${build}"/>
 		<genVersion/>
 		<tstamp>
 			<format property="date" pattern="yyyyMMdd"/>
@@ -266,6 +266,7 @@
 		<mkdir dir="${reports.junit}"/>
 		<!-- Output all System.out and System.err messages -->
 	   <junit printsummary="withOutAndErr">
+	   	   <sysproperty key="ca.sqlpower.architect.test.dir" value="${build.tests}"/>
 	       <classpath>
 	       		<path refid="test.classpath"/>
 	       		<path path="${build.tests}"/>
@@ -583,7 +584,6 @@
 	</target>
 
 	<path id="compile.classpath">
-		<pathelement location="${sqlpower.library.home}/build"/>
 		<fileset dir="lib">
 			<include name="*.jar"/>
 		</fileset>
@@ -594,7 +594,6 @@
 
 	<path id="test.classpath">
 		<pathelement location="${build}"/>
-		<pathelement location="${sqlpower.library.home}/build"/>
 		<pathelement location="${sqlpower.library.home}/build/tests"/>
 		<fileset dir="lib">
 			<include name="*.jar"/>
