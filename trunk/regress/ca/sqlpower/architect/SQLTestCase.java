@@ -49,6 +49,7 @@ import ca.sqlpower.architect.undo.UndoManager;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.util.MockJDBCDriver;
 
 /**
  * SQLTestCase is an abstract base class for test cases that require a
