@@ -1,21 +1,64 @@
 TODO make this file better. Finish the outline given at the bottom of this doc.
 
-How To Check Out Sources
+How To Check Out The Source Code
 
-To check out the Power*Architect source from SVN to Eclipse start Eclipse and 
-create a new project. Select the SVN wizard and click next. If you don't
-have SVN available on your version of Eclipse you can get Subclipse. For 
-installation instructions for Subclipse see http://subclipse.tigris.org/install.html. 
-Create a new repository to check out Power*Architect from. The URL for the new
-repository is http://power-architect.googlecode.com/svn/trunk/. Once the URL 
-has been entered press next. To check out all of the source files for Power*Architect
-select the root of the tree and press next. Set the name of the project if you
-want it to have a unique name, the default is architect, and select to check 
-out the head revision for the most recent changes and click finish.
+If you are using Eclipse
 
-For users who wish to check out the source using a command line version of SVN 
-you can use the command:
-svn checkout http://power-architect.googlecode.com/svn/trunk power-architect
+To check out the SQL Power Library and Power*Architect source into an Eclipse project:
+
+   1. If you don't yet have the Subversion feature available on your version of Eclipse, get Subclipse
+   2. Start Eclipse and create a new project (File -> New -> Project...)
+   3. Under the SVN folder, select Checkout Projects from SVN. If you don't see the SVN folder, go back to step 1. ;)
+   4. Create a new repository location to check out the SQL Power Library from. Power*Architect requires this project to build. The URL for the new repository is http://sqlpower-library.googlecode.com/svn/
+   5. To check out all of the latest source files for the SQL Power Library, select the trunk directory, then press next
+   6. Ensure that the "Check out as a project in the workspace" and "Head Revision" options are selected (they are the defaults), then click Finish.
+   7. Repeat steps 2-6 for Power*Architect, except use the following repository URL at step 4: http://power-architect.googlecode.com/svn/ 
+
+Other Development Environments
+
+Currently, everyone on the Architect team has chosen to use Eclipse. If you have a different favourite Java IDE, we'd be happy to post your instructions for checking out the Architect code here. Just post to the architect-developers list!
+Command-line svn
+
+If you just want to check out the source into a local directory or your development environment does not integrate with Subversion, use the command line svn tool:
+
+For the SQL Power Library:
+	svn checkout http://sqlpower-library.googlecode.com/svn/trunk sqlpower-library 
+
+For Power*Architect:
+    svn checkout http://power-architect.googlecode.com/svn/trunk power-architect 
+
+
+How To Use The Ant Build File (build.xml)
+
+Setting the build properties:
+
+	1. Create a copy the build.properties.example file in the same directory and rename it
+to build.properties.
+	2. Set the sqlpower.library.home property to the directory where you have
+	   the sqlpower-library project. The Power*Architect needs this to compile. 
+	3. Set the build property to the directory where you would like
+the architect to be compiled to. 
+
+The following section assumes that Eclipse is being used for development.
+
+To build Power*Architect from the source files Apache Ant version 1.7 or higher
+is required. See the following sub-section on how to install Apache Ant version 1.7 for 
+Eclipse. Once Ant 1.7 is installed Power*Architect can be run by using the
+build.xml file. To run Power*Architect open the build.xml file and select the
+target named run in the outline. Right click on the run target and select 
+Ant Build from the Run As menu option. Another target of interest is the alltest
+target. This target will run the different test suites available with Power*Architect.
+The alltest target can be run by right clicking on the alltest target and selecting
+the Ant Build from the Run As menu option.
+
+	How To Install Apache Ant For Eclipse
+	
+	Apache Ant is available at http://ant.apache.org/bindownload.cgi. To install Ant
+	1.7 into Eclipse first unzip and install Ant to your local machine. Then under
+	Eclipse's user preferences select the Ant runtime item in the list of preferences
+	on the left. Click on the Ant Home button and select the folder that you installed
+	Ant 1.7 into. Then click ok and Eclipse will use the new Ant.
+
 
 Subscribe To Power*Architect Mailing Lists
 
@@ -132,29 +175,7 @@ Our exceptions to Sun's rules, and some notes:
 	interface, then create an abstract class AbstractBeverageFrobber, and extend 
 	it to the concrete classes named for their particular purpose 
 	(BlendingBeverageFrobber, SippingBeverageFrobber, PouringBeverageFrobber, and so on). 
-	
-How To Use The Build File
-
-The following section assumes that Eclipse is being used for development.
-
-To build Power*Architect from the source files Apache Ant version 1.7 or higher
-is required. See the following sub-section on how to install Apache Ant version 1.7 for 
-Eclipse. Once Ant 1.7 is installed Power*Architect can be run by using the
-build.xml file. To run Power*Architect open the build.xml file and select the
-target named run in the outline. Right click on the run target and select 
-Ant Build from the Run As menu option. Another target of interest is the alltest
-target. This target will run the different test suites available with Power*Architect.
-The alltest target can be run by right clicking on the alltest target and selecting
-the Ant Build from the Run As menu option.
-
-	How To Install Apache Ant For Eclipse
-	
-	Apache Ant is available at http://ant.apache.org/bindownload.cgi. To install Ant
-	1.7 into Eclipse first unzip and install Ant to your local machine. Then under
-	Eclipse's user preferences select the Ant runtime item in the list of preferences
-	on the left. Click on the Ant Home button and select the folder that you installed
-	Ant 1.7 into. Then click ok and Eclipse will use the new Ant.
-	
+		
 The Wishlist
 
 For developers new to Power*Architect that want to start making contributions to 

@@ -26,6 +26,10 @@
 	     get added to the architect.jar file. -->
 	<property name="build" value="build"/>
 	
+	<!-- The target build directory for compiled test classes.
+		 The contents of this directory will get excluded form the architect.jar. -->
+	<property name="build.tests" value="${build}/tests"/>
+	
 	<!-- The java compiler to use. See Ant docs for details. -->
 	<property name="build.compiler" value="modern"/>
 
@@ -262,7 +266,10 @@
 		<mkdir dir="${reports.junit}"/>
 		<!-- Output all System.out and System.err messages -->
 	   <junit printsummary="withOutAndErr">
-	       <classpath><path refid="test.classpath"/></classpath>
+	       <classpath>
+	       		<path refid="test.classpath"/>
+	       		<path path="${build.tests}"/>
+	       </classpath>
 	       <test name="ca.sqlpower.ArchitectBusinessTestSuite" todir="${reports.junit}"/>
            <test name="ca.sqlpower.ArchitectAutoTests" todir="${reports.junit}"/>
 	   	   <formatter type="xml"/>
@@ -277,7 +284,7 @@
 	</target>
 	
 	<!-- Compiles the application source files -->
-	<target name="compile" depends="init,copyfiles">
+	<target name="compile" depends="init,copyfiles, sqlpower.library">
 		<javac srcdir="${src}" destdir="${build}"
 			classpathref="compile.classpath"
 			debug="true" deprecation="true"
@@ -287,7 +294,11 @@
 
 	<!-- Compiles the regression test suite -->
 	<target name="compile-tests" depends="compile">
-		<javac srcdir="regress" destdir="${build}"
+		<ant dir="${sqlpower.library.home}" target="compile-tests">
+			<property name="build" value="${sqlpower.library.home}/build"/>
+		</ant>
+		<mkdir dir="${build.tests}"/>
+		<javac srcdir="regress" destdir="${build.tests}"
 			classpathref="test.classpath"
 			debug="true" deprecation="true"
 			>
@@ -529,7 +540,8 @@
     	</manifest>
 
     	<jar destfile="${staging.dir}/architect.jar" update="no"
-    				basedir="${build}" includes="ca/** icons/** log4j.properties default_database_types.ini"
+    				basedir="${build}" 
+    				includes="ca/** icons/** log4j.properties default_database_types.ini"
     				manifest="${build}/manifest">
     	</jar>
 		<copy todir="${staging.dir}/jdbc">
@@ -571,6 +583,7 @@
 	</target>
 
 	<path id="compile.classpath">
+		<pathelement location="${sqlpower.library.home}/build"/>
 		<fileset dir="lib">
 			<include name="*.jar"/>
 		</fileset>
@@ -581,6 +594,8 @@
 
 	<path id="test.classpath">
 		<pathelement location="${build}"/>
+		<pathelement location="${sqlpower.library.home}/build"/>
+		<pathelement location="${sqlpower.library.home}/build/tests"/>
 		<fileset dir="lib">
 			<include name="*.jar"/>
 		</fileset>
@@ -1111,5 +1126,25 @@
 				<contains string="${buildPath}" substring=" "/>
 	    	</condition>
 		</fail>
+	</target>
+	
+	<!-- 
+		This build target checks for the sqlpower-library project, which is
+		required by the Power*Architect to build. 
+	-->
+	<target name="sqlpower.library">
+		<echo message="Checking for sqlpower-library project..."/>
+		<fail message="Can't find sqlpower-library project! Please read the DEVELOPERS file to see how to get and set up the sqlpower-library project">
+			<condition>
+				<not>
+					<isset property="sqlpower.library.home"/>
+				</not>
+			</condition>
+		</fail>
+		<echo message="Attempting to build sqlpower-library project..."/>
+		<ant dir="${sqlpower.library.home}">
+			<property name="build" value="${sqlpower.library.home}/build"/>
+		</ant>
+	<!--	<copy file="${sqlpower.library.home}/deploy/sqlpower_library.jar" todir="${lib}"/> -->
 	</target>
 </project>
