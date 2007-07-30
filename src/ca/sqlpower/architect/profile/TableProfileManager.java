@@ -96,8 +96,8 @@ public class TableProfileManager implements ProfileManager {
                 while (tpr != null) {
                     logger.debug("TableProfileManager.asynchCreateProfiles(): populate started");
                     tpr.populate();
-                    tpr = getNextProfileToProcess();
                     logger.debug("populated: " + tpr);
+                    tpr = getNextProfileToProcess();
                 }
             } catch (Exception e) {
                 e.printStackTrace(); // XXX save me
