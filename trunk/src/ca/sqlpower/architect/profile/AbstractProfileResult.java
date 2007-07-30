@@ -33,6 +33,8 @@ package ca.sqlpower.architect.profile;
 
 import java.sql.SQLException;
 
+import org.apache.log4j.Logger;
+
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLCatalog;
@@ -46,6 +48,8 @@ import ca.sqlpower.util.MonitorableImpl;
 public abstract class AbstractProfileResult<T extends SQLObject>
     implements Comparable<AbstractProfileResult>, ProfileResult<T> {
 
+    private static final Logger logger = Logger.getLogger(AbstractProfileResult.class);
+    
     private T profiledObject;
     private long createEndTime = -1L;
     private long createStartTime = -1L;
@@ -78,11 +82,11 @@ public abstract class AbstractProfileResult<T extends SQLObject>
             message = getProfiledObject().getName();
             if (!cancelled) {
                 initialize();
-                doProfile();    // template method
+                doProfile();
             }
         } catch (Exception ex) {
             setException(ex);
-            ex.printStackTrace();
+            logger.error("Profile failed. Saving exception:", ex);
         } finally {
             finish();
             progress++;
@@ -94,7 +98,7 @@ public abstract class AbstractProfileResult<T extends SQLObject>
      * profiling activity.  The template method {@link #populate(MonitorableImpl)}
      * calls this method at the appropriate time.
      */
-    public abstract void doProfile() throws SQLException, ArchitectException;
+    protected abstract void doProfile() throws SQLException, ArchitectException;
     
     void initialize() {
         started = true;

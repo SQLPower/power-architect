@@ -35,6 +35,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.Future;
 
 import javax.swing.*;
 
@@ -63,11 +64,17 @@ public class ProfileManagerViewDemo {
         final List<TableProfileResult> mockData = new ArrayList<TableProfileResult>();
         ProfileManager mock = new ProfileManager() {
 
-            public void asynchCreateProfiles(Collection<SQLTable> tables) throws SQLException, ArchitectException {
+            public Collection<Future<TableProfileResult>> asynchCreateProfiles(Collection<SQLTable> tables) {
+                return null;
             }
             
-            public List<TableProfileResult> getTableResults() {
+            public List<TableProfileResult> getResults() {
                 return mockData;
+            }
+
+            public List<TableProfileResult> getResults(SQLTable t) {
+                // TODO Auto-generated method stub
+                return null;
             }
 
             public boolean removeProfile(TableProfileResult victim) {
@@ -75,7 +82,7 @@ public class ProfileManagerViewDemo {
                 System.out.println("before remove: " + mockData);
                 boolean b = mockData.remove(victim);
                 System.out.println("after remove: " + mockData);
-                view.profilesRemoved(new ProfileChangeEvent(mockTable, tableProfileResult));
+                view.profilesRemoved(new ProfileChangeEvent(this, tableProfileResult));
                 return b;
             }
 
@@ -99,18 +106,22 @@ public class ProfileManagerViewDemo {
 
             ProfileSettings settings;
             
-            public ProfileSettings getProfileSettings() {
+            public void setDefaultProfileSettings(ProfileSettings settings) {
+                this.settings = settings;
+            }
+
+            public ProfileSettings getDefaultProfileSettings() {
                 return settings;
             }
 
-            public void setProfileSettings(ProfileSettings settings) {
-                this.settings = settings;
+            public void setProcessingOrder(List<TableProfileResult> tpr) {
+                // no op
             }
         };
         
         mockTable = new SQLTable();
         mockTable.setName("Customers");
-        tableProfileResult = new TableProfileResult(mockTable, mock) {
+        tableProfileResult = new TableProfileResult(mockTable, mock, mock.getDefaultProfileSettings()) {
             @Override
             public boolean isFinished() {
                 return true;
@@ -121,7 +132,7 @@ public class ProfileManagerViewDemo {
 
         mockTable = new SQLTable();
         mockTable.setName("Suppliers");
-        tableProfileResult = new TableProfileResult(mockTable, mock);
+        tableProfileResult = new TableProfileResult(mockTable, mock, mock.getDefaultProfileSettings());
         tableProfileResult.setCreateStartTime(System.currentTimeMillis());
         mockData.add(tableProfileResult);
 
@@ -134,11 +145,11 @@ public class ProfileManagerViewDemo {
         System.out.println("Adding another table");
         mockTable = new SQLTable();
         mockTable.setName("Yet Another Table");
-        tableProfileResult = new TableProfileResult(mockTable, mock);
+        tableProfileResult = new TableProfileResult(mockTable, mock, mock.getDefaultProfileSettings());
         tableProfileResult.setCreateStartTime(System.currentTimeMillis());
         mockData.add(tableProfileResult);
 
-        view.profilesAdded(new ProfileChangeEvent(mockTable, tableProfileResult));
+        view.profilesAdded(new ProfileChangeEvent(mock, tableProfileResult));
     }
 
 }

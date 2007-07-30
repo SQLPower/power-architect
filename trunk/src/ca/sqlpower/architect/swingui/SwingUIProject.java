@@ -880,7 +880,10 @@ public class SwingUIProject {
                 throw new ArchitectException("Missing mandatory attribute \"type\" in <profile-result> element");
             } else if (className.equals(TableProfileResult.class.getName())) {
                 SQLTable t = (SQLTable) objectIdMap.get(refid);
-                tableProfileResult = new TableProfileResult(t,session.getProfileManager());
+                
+                // XXX we should actually store the settings together with each profile result, not rehash the current defaults
+                tableProfileResult = new TableProfileResult(t, session.getProfileManager(), session.getProfileManager().getDefaultProfileSettings());
+                
                 tableProfileResult.finish(tableProfileResult.getCreateEndTime());
                 return tableProfileResult;
             } else if (className.equals(ColumnProfileResult.class.getName())) {
@@ -1268,10 +1271,10 @@ public class SwingUIProject {
         } else {
             throw new ArchitectRuntimeException(new ArchitectException("Session.getProfileManager should be a TableProfileManager"));
         }
-        ioo.println(out, "<profiles topNCount=\""+profmgr.getProfileSettings().getTopNCount()+"\">");
+        ioo.println(out, "<profiles topNCount=\""+profmgr.getDefaultProfileSettings().getTopNCount()+"\">");
         ioo.indent++;
 
-        List<TableProfileResult> tableResults = profmgr.getTableResults();
+        List<TableProfileResult> tableResults = profmgr.getResults();
         
         for (TableProfileResult tableResult : tableResults) {
             printCommonItems(tableResult);

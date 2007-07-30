@@ -41,7 +41,7 @@ public class TestProfileManager extends TestProfileBase {
 
     public void test1() throws Exception {
         SQLTable t = mydb.getTableByName("PROFILE_TEST1");
-        Collection<TableProfileResult> tableResults = pm.getTableResult(t);
+        Collection<TableProfileResult> tableResults = pm.getResults(t);
         
         for (TableProfileResult tpr : tableResults) {
             System.out.println(t.getName() + "  " + tpr.toString());      
@@ -64,7 +64,7 @@ public class TestProfileManager extends TestProfileBase {
 
     public void test2() throws Exception {
         SQLTable t = mydb.getTableByName("PROFILE_TEST2");
-        Collection<TableProfileResult> tableResults = pm.getTableResult(t);
+        Collection<TableProfileResult> tableResults = pm.getResults(t);
         
         for (TableProfileResult tpr : tableResults) {
             System.out.println(t.getName() + "  " + tpr.toString());
@@ -80,7 +80,7 @@ public class TestProfileManager extends TestProfileBase {
 
     public void test3() throws Exception {
         SQLTable t = mydb.getTableByName("PROFILE_TEST3");
-        Collection<TableProfileResult> tableResults = pm.getTableResult(t);
+        Collection<TableProfileResult> tableResults = pm.getResults(t);
         
         for (TableProfileResult tpr : tableResults) {
             System.out.println(t.getName() + "  " + tpr.toString());

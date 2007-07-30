@@ -64,12 +64,32 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
      */
     private ProfileManager manager;
 
+    /**
+     * The progress so far. Row count is the first chunk of progress, then each column
+     * counts as one more chunk.
+     */
     private int progress;
     
-    public TableProfileResult(SQLTable profiledObject, ProfileManager manager) {
+    /**
+     * Creates a profile result which is not yet populated.  Normally, profile results
+     * are created by the ProfileManager's createProfile() or asynchCreateProfiles()
+     * method, so users will not use this constructor directly.
+     * <p>
+     * Note that the profile result will be empty until its populate() method is called
+     * (also taken care of by the ProfileManager that creates this result).
+     * <p>
+     * The only reason this method is public is because the SwingUIProject class needs
+     * to create profiles directly when reading in a project file.  It would be nice
+     * to come up with a better API and make this constructor protected.
+     * 
+     * @param profiledObject
+     * @param manager
+     * @param settings
+     */
+    public TableProfileResult(SQLTable profiledObject, ProfileManager manager, ProfileSettings settings) {
         super(profiledObject);
         this.manager = manager;
-        setSettings(manager.getProfileSettings());
+        setSettings(settings);
     }
 
     public int getRowCount() {
@@ -92,7 +112,8 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
         return String.format(TOSTRING_FORMAT, rowCount, df.format(date), getTimeToCreate());
     }
 
-    public void doProfile() throws SQLException, ArchitectException {
+    protected void doProfile() throws SQLException, ArchitectException {
+        progress = 0;
         Connection conn = null;
         Statement stmt = null;
         ResultSet rs = null;
@@ -116,6 +137,8 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
             stmt.setEscapeProcessing(false);
             String lastSQL = sql.toString();
 
+            progress += 1;
+            
             rs = stmt.executeQuery(lastSQL);
 
             if ( rs.next() ) {
@@ -127,12 +150,11 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
                 return;
             }
             DDLGenerator ddlg = getDDLGenerator();
-            progress = 0;
             for (SQLColumn col : columns ) {
                 ColumnProfileResult columnResult = new ColumnProfileResult(col, manager, ddlg, this);
                 columnResult.populate();
                 columnProfileResults.add(columnResult);
-                ++progress;
+                progress += 1;
             }
 
             // XXX: add where filter later
@@ -153,26 +175,28 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
         }
     }
 
-    /* Return null instead of the expected real jobsize so that the
-     * progress bar will go into indeterminate mode which seems to make
-     * it start sooner & move more often than per-column increment of progress.
-     * @see ca.sqlpower.architect.profile.AbstractProfileResult#getJobSize()
+    /**
+     * Returns the number of columns plus 1. This allows the progress bar to
+     * move before each column gets profiled, which makes it appear to be doing
+     * something right away.
      */
     @Override
     public synchronized Integer getJobSize() {
         SQLTable temp = getProfiledObject();
         Integer ret = null;
         try {
-            ret = new Integer(temp.getColumns().size());
+            ret = new Integer(temp.getColumns().size() + 1);
         } catch (ArchitectException e) {
             throw new IllegalStateException("Failed to populate necessary columns.");
         }
         return ret;
     }
+    
     @Override
     public synchronized int getProgress() {
         return progress;
     }
+    
     /**
      * Returns an unmodifiable list of columnProfileResults that
      * belong to this table.

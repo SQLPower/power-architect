@@ -106,7 +106,7 @@ public class ProfileResultsViewer {
      */
     private final ProfileChangeListener profileChangeListener = new ProfileChangeListener() {
         public void profilesAdded(ProfileChangeEvent e) {
-            List<ProfileResult> profileResult = e.getProfileResult();
+            List<ProfileResult> profileResult = e.getProfileResults();
             logger.debug("ProfileResultsViewer.inner.profileAdded()"  + profileResult);
             // XXX this doesn't get invoked!?
         }
@@ -125,7 +125,7 @@ public class ProfileResultsViewer {
          */
         private void disposeIfEmpty() {
             for (TableProfileResult tpr : results) {
-                if (profileManager.getTableResults().contains(tpr)) {
+                if (profileManager.getResults().contains(tpr)) {
                     // there's still a use for this viewer!
                     return;
                 }

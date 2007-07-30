@@ -31,286 +31,232 @@
  */
 package ca.sqlpower.architect.profile;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLTable;
 
+/**
+ * The profile manager implementation for tables. Provides a simple
+ * implementation of the API for properly creating profiles using a separate
+ * worker thread.
+ * <p>
+ * As of this writing, this is the only non-stub profile manager in the
+ * Architect. When and if we make more kinds of profile managers, there will be
+ * large swaths of code in this class that could be moved into an abstract base
+ * profile manager.
+ * 
+ * @version $Id$
+ */
 public class TableProfileManager implements ProfileManager {
 
     private static final Logger logger = Logger.getLogger(TableProfileManager.class);
-    private TableProfileResult lastTableProfileResult= null;
     
-    private WorkerThread updateThread = new WorkerThread();
-    private List<TableProfileResult> processOrder = new ArrayList<TableProfileResult>();
-    private final List<TableProfileResult> tableResults =
-        new ArrayList<TableProfileResult>();
-    private final Map<SQLTable,Integer> profileCounts = 
-        new HashMap<SQLTable, Integer>();
+    /**
+     * The current list of listeners who want to know when the contents
+     * of this profile manager change.
+     */
+    private final List<ProfileChangeListener> profileChangeListeners = new ArrayList<ProfileChangeListener>();
 
-    private ProfileSettings settings = new ProfileSettings();
+    /**
+     * All profile results in this profile manager.
+     */
+    private final List<TableProfileResult> results = new ArrayList<TableProfileResult>();
+    
+    /**
+     * The defaults that new profile results will be created with.
+     */
+    private ProfileSettings defaultProfileSettings = new ProfileSettings();
+    
+    /**
+     * The Profile Executor manages the thread that actually does the work
+     * of creating the profiles.
+     */
+    private ExecutorService profileExecutor = Executors.newSingleThreadExecutor();
 
-    private void putResult(TableProfileResult profileResult) {
-        tableResults.add(profileResult);
-        fireProfileAdded(profileResult);
-        incrementTableProfileCountCache(profileResult);
-    }
-    private void incrementTableProfileCountCache(TableProfileResult profileResult) {
-        Integer profileCount = profileCounts.get(profileResult.getProfiledObject());
-        if (profileCount == null) {
-            profileCount = Integer.valueOf(1);
-        } else {
-            profileCount = Integer.valueOf(profileCount.intValue() +1);
-        }
-        profileCounts.put(profileResult.getProfiledObject(),profileCount);
-    }
-    
-    private void decrementTableProfileCountCache(TableProfileResult profileResult) {
-        Integer profileCount = profileCounts.get(profileResult.getProfiledObject());
-        logger.debug("Decrementing from "+profileCount);
-        if (profileCount == null) {
-            throw new IllegalStateException("Cannot remove a table from our cache, it's not there!");
-        } else {
-            profileCount = Integer.valueOf(profileCount.intValue() -1);
-        }
-        if (profileCount > 0 ) {
-            profileCounts.put(profileResult.getProfiledObject(),profileCount);
-        } else {
-            profileCounts.remove(profileResult.getProfiledObject());
-        }
-        logger.debug("Decrementing to "+profileCounts.get(profileResult.getProfiledObject()));
-    }
-    
-    private class WorkerThread extends Thread {
-        public void run() {
-            try {
-                TableProfileResult tpr = getNextProfileToProcess();
-                while (tpr != null) {
-                    logger.debug("TableProfileManager.asynchCreateProfiles(): populate started");
-                    tpr.populate();
-                    logger.debug("populated: " + tpr);
-                    tpr = getNextProfileToProcess();
-                }
-            } catch (Exception e) {
-                e.printStackTrace(); // XXX save me
-            }
-        }
-    }
-    
     /**
-     * Add profileResult to the most recent table profile result that was passed
-     * to loadResult
-     * 
-     * NOTE: this is intended to be used only to load results this fires no events
-     * @param profileResult
+     * A Callable interface which populates a single profile result then returns it.
+     * Profile results don't throw the exceptions their populate() methods encounter,
+     * but this callable wrapper knows about that, and digs up and rethrows the
+     * exceptions encountered by populate().  This is more normal, and is also
+     * compatible with the ExecutorService implementation provided in the standard
+     * Java library (it handles exceptions and restarts the work queue properly).
      */
-    public void loadResult(ColumnProfileResult profileResult){
-        lastTableProfileResult.addColumnProfileResult(profileResult);
-    }
-    
-    /**
-     * Adds profileResult to the listof table results.  It stores the profile result
-     * so that column results can be attached later.
-     * 
-     * Note: this is intended for loading and is really not thread safe
-     */
-    public void loadResult(TableProfileResult profileResult){
-        putResult(profileResult);
-        lastTableProfileResult = profileResult;
-    }
-    
-    public void loadManyResults(List results){
-        tableResults.addAll(results);
-        profileCounts.clear();
-        for (TableProfileResult result:tableResults){
-            incrementTableProfileCountCache(result);
-        }
-        fireProfilesAdded(results);
-    }
+    private class ProfileResultCallable implements Callable<TableProfileResult> {
+        
+        /**
+         * The table profile result this Callable populates.
+         */
+        private TableProfileResult tpr;
 
-    public List<TableProfileResult> getTableResults() {
-        return Collections.unmodifiableList(tableResults);
-    }
-    /**
-     * Checks if the table has at least 1 profile
-     */
-    public boolean isTableProfiled(SQLTable table) {
-        return profileCounts.containsKey(table);
-    }
-    
-    /**
-     * Returns a collection of table profile results associated with the
-     * given table. These profile results will probably differ by the
-     * date that they were created. If there are no results found for the
-     * given table, an empty collection will be returned.
-     */
-    public Collection<TableProfileResult> getTableResult(SQLTable t) {
-        Collection<TableProfileResult> retCollection = new ArrayList<TableProfileResult>();
-        for (TableProfileResult result : tableResults) {
-            if (t == result.getProfiledObject()) {
-                retCollection.add(result);
-            }
+        ProfileResultCallable(TableProfileResult tpr) {
+            if (tpr == null) throw new NullPointerException("Can't populate a null profile result!");
+            this.tpr = tpr;
         }
         
-        return retCollection;
-    }
-
-    public void setProcessOrder(List<TableProfileResult> list) {
-            for (int i = list.size()-1; i >= 0; i--) {
-                if (processOrder.contains(list.get(i))) {
-                    processOrder.remove(list.get(i));
-                }
-                processOrder.add(0,list.get(i));
-                
+        /**
+         * Populates the profile result, throwing any exceptions encountered.
+         */
+        public TableProfileResult call() throws Exception {
+            tpr.populate();
+            if (tpr.getException() != null) {
+                throw tpr.getException();
             }
-    }
-
-    private TableProfileResult getNextProfileToProcess()
-    {
-        TableProfileResult ret = null;
-        for (TableProfileResult temp : processOrder) {
-            if (temp.getProgress() < temp.getJobSize().intValue() && !temp.isCancelled()) {
-                ret = temp;
-                break;
-            }
+            return tpr;
         }
-        return ret;
+    }
+    
+    /* docs inherited from interface */
+    public TableProfileResult createProfile(SQLTable table) throws ArchitectException {
+        TableProfileResult tpr = new TableProfileResult(table, this, getDefaultProfileSettings());
+        results.add(tpr);
+        fireProfileAdded(tpr);
+        
+        try {
+            profileExecutor.submit(new ProfileResultCallable(tpr)).get();
+            assert (tpr.isFinished());
+        } catch (InterruptedException ex) {
+            logger.info("Profiling was interrupted (likely because this manager is being shut down)");
+        } catch (ExecutionException ex) {
+            throw new ArchitectException("Profile execution failed", ex);
+        }
+        
+        return tpr;
     }
 
-    /**
-     * Creates TableProfileResult objects for each of the tables in the
-     * given list, then adds them to this ProfileManager in an unpopulated
-     * state.  Then starts a new worker thread which will populate the results
-     * one after the other.  It is likely that none of the profiles will be
-     * populated yet by the time this method returns.
-     *
-     * @param obj The database object you want to profile.
-     * @throws ArchitectException
-     * @throws SQLException
-     */
-    public void asynchCreateProfiles(Collection<SQLTable> tables) throws SQLException, ArchitectException {
-
-        // First, create all the result objects and add them to this manager
-        // (so that they are visible and cancelable to the user)
-        final List results = new ArrayList<TableProfileResult>();
+    public Collection<Future<TableProfileResult>> asynchCreateProfiles(Collection<SQLTable> tables) {
+        
+        List<TableProfileResult> profiles = new ArrayList<TableProfileResult>();
         for (SQLTable t : tables) {
-            TableProfileResult tpr = new TableProfileResult(t, this);
-            results.add(tpr);
+            profiles.add(new TableProfileResult(t, this, getDefaultProfileSettings()));
         }
-        loadManyResults(results);
         
-        // Now, populate them one after the other on a separate worker thread
-        // (Please don't change this to do them all in parallel.. it will reduce
-        // performance, plus it will make a tonne of connections to the database)
-        updateThread.start();
+        results.addAll(profiles);
+        fireProfilesAdded(profiles);
+        
+        List<Future<TableProfileResult>> results = new ArrayList<Future<TableProfileResult>>();
+        for (TableProfileResult tpr : profiles) {
+            results.add(profileExecutor.submit(
+                    new ProfileResultCallable(tpr)));
+        }
+        return results;
     }
-    
+
+    public void clear() {
+        List<TableProfileResult> oldResults = new ArrayList<TableProfileResult>(results);
+        results.clear();
+        fireProfilesRemoved(oldResults);
+    }
+
+    /* docs inherited from interface */
+    public List<TableProfileResult> getResults() {
+        // this could be optimized by caching the current result list snapshot, but enh.
+        return Collections.unmodifiableList(new ArrayList<TableProfileResult>(results));
+    }
+
+    /* docs inherited from interface */
+    public List<TableProfileResult> getResults(SQLTable t) {
+        List<TableProfileResult> someResults = new ArrayList<TableProfileResult>();
+        for (TableProfileResult tpr : results) {
+            if (tpr.getProfiledObject().equals(t)) {
+                someResults.add(tpr);
+            }
+        }
+        return Collections.unmodifiableList(someResults);
+    }
+
+    /* docs inherited from interface */
+    public boolean removeProfile(TableProfileResult victim) {
+        boolean removed = results.remove(victim);
+        if (removed) {
+            fireProfileRemoved(victim);
+        }
+        return removed;
+    }
+
+    /* docs inherited from interface */
+    public ProfileSettings getDefaultProfileSettings() {
+        return defaultProfileSettings;
+    }
+
+    /* docs inherited from interface */
+    public void setDefaultProfileSettings(ProfileSettings settings) {
+        defaultProfileSettings = settings;
+    }
+
+    /* docs inherited from interface */
+    public void setProcessingOrder(List<TableProfileResult> tpr) {
+        
+    }
+
     /**
-     * Creates a new profile result for the given table, and adds it to
-     * this ProfileManager.  The act of adding a profile causes this
-     * ProfileManager to fire a profileAdded event.
-     *
-     * @param tables The database table(s) you want to profile.
+     * Adds the given listener to this profile manager.  The listener will be notified
+     * of additions and removals of results in this profile manager.
      */
-     public TableProfileResult createProfile(SQLTable table) throws SQLException, ArchitectException {
-         TableProfileResult tableResult = new TableProfileResult(table, this);
-         putResult(tableResult);
-         tableResult.populate();
-         return tableResult;
+    public void addProfileChangeListener(ProfileChangeListener listener) {
+        profileChangeListeners.add(listener);
     }
 
-     /**
-      * Cancel any running profiles and remove all profiles from
-      * the TableProfileManager
-      */
-     public void clear() {
-         for (TableProfileResult tpr: processOrder) {
-             tpr.setCancelled(true);
-         }
-         for (TableProfileResult tpr: tableResults){
-             tpr.setCancelled(true);
-         }
-         tableResults.clear();
-         profileCounts.clear();
-         fireProfileChanged();
-     }
-
-    public boolean removeProfile(TableProfileResult result) {
-        logger.debug("ProfileManager: removing profiling for object: " + result.getProfiledObject());
-        if (tableResults.remove(result)) {
-            result.setCancelled(true);
-            decrementTableProfileCountCache(result);
-            fireProfileRemoved(result);
-            return true;
-        }
-        
-        return false;
+    /**
+     * Removes the given listener.  After removal, the listener will no longer be notified
+     * of changes to this profile manager.
+     */
+    public void removeProfileChangeListener(ProfileChangeListener listener) {
+        profileChangeListeners.remove(listener);
     }
 
-    public ProfileSettings getProfileSettings() {
-        return settings;
-    }
-    
-    public void setProfileSettings(ProfileSettings settings) {
-        this.settings = settings;
-    }
-    
-    //==================================
-    // ProfileManagerListeners
-    //==================================
-    List<ProfileChangeListener> listeners = new ArrayList<ProfileChangeListener>();
-
-    public void addProfileChangeListener(ProfileChangeListener listener){
-        listeners.add(listener);
-    }
-
-    public void removeProfileChangeListener(ProfileChangeListener listener){
-        listeners.remove(listener);
-    }
-
-    private void fireProfileAdded(ProfileResult result){
-        ProfileChangeEvent event = new ProfileChangeEvent(this, result);
-        for (ProfileChangeListener listener: listeners){
-            listener.profilesAdded(event);
-        }
-    }
-    
-    private void fireProfilesAdded(List<ProfileResult> addedResultsList) {
-        ProfileChangeEvent event = new ProfileChangeEvent(this, addedResultsList);
-        for (ProfileChangeListener listener: listeners){
-            listener.profilesAdded(event);
+    /**
+     * Creates and fires a "profilesAdded" event for the given profile result.
+     */
+    private void fireProfileAdded(TableProfileResult tpr) {
+        if (tpr == null) throw new NullPointerException("Can't fire event for adding null profile");
+        ProfileChangeEvent e = new ProfileChangeEvent(this, tpr);
+        for (int i = profileChangeListeners.size() - 1; i >= 0; i--) {
+            profileChangeListeners.get(i).profilesAdded(e);
         }
     }
 
-    private void fireProfilesRemoved(List<ProfileResult> removedResultsList) {
-        ProfileChangeEvent event = new ProfileChangeEvent(this, removedResultsList);
-        for (ProfileChangeListener listener: listeners) {
-            listener.profilesRemoved(event);
-        }
-    }    
-    
-    private void fireProfileRemoved(ProfileResult removed) {
-        ProfileChangeEvent event = new ProfileChangeEvent(this, removed);
-        for (ProfileChangeListener listener: listeners) {
-            listener.profilesRemoved(event);
+    /**
+     * Creates and fires a "profilesAdded" event for the given profile results.
+     */
+    private void fireProfilesAdded(List<TableProfileResult> results) {
+        if (results == null) throw new NullPointerException("Can't fire event for null profile list");
+        ProfileChangeEvent e = new ProfileChangeEvent(this, results);
+        for (int i = profileChangeListeners.size() - 1; i >= 0; i--) {
+            profileChangeListeners.get(i).profilesAdded(e);
         }
     }
 
-    private void fireProfileChanged(){
-        List<ProfileResult> profileResultList = Collections.emptyList();
-        ProfileChangeEvent event = new ProfileChangeEvent(this, profileResultList);
-        for (ProfileChangeListener listener: listeners){
-            listener.profileListChanged(event);
+    /**
+     * Creates and fires a "profilesRemoved" event for the given profile result.
+     */
+    private void fireProfileRemoved(TableProfileResult victim) {
+        if (victim == null) throw new NullPointerException("Can't fire event for removing null profile");
+        ProfileChangeEvent e = new ProfileChangeEvent(this, victim);
+        for (int i = profileChangeListeners.size() - 1; i >= 0; i--) {
+            profileChangeListeners.get(i).profilesRemoved(e);
         }
     }
 
+    /**
+     * Creates and fires a "profilesRemoved" event for the given list of profile results.
+     */
+    private void fireProfilesRemoved(List<TableProfileResult> removedList) {
+        if (removedList == null) throw new NullPointerException("Null list not allowed");
+        ProfileChangeEvent e = new ProfileChangeEvent(this, removedList);
+        for (int i = profileChangeListeners.size() - 1; i >= 0; i--) {
+            profileChangeListeners.get(i).profilesRemoved(e);
+        }
+    }
 
 }

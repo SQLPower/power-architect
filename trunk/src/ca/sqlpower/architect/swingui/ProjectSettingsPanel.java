@@ -68,7 +68,7 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
                "Warning: this only removes current profiles");
 
         add(new JLabel("Number of Most Frequent Value in Profile:"));
-        add( numberOfFreqValue=new JTextField(String.valueOf(session.getProfileManager().getProfileSettings().getTopNCount()),6));
+        add( numberOfFreqValue=new JTextField(String.valueOf(session.getProfileManager().getDefaultProfileSettings().getTopNCount()),6));
 	}
 
 	protected void revertToProjectSettings() {
@@ -90,7 +90,7 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
 
         if ( numberOfFreqValue.getText().length() > 0 ) {
             try {
-                session.getProfileManager().getProfileSettings().setTopNCount(Integer.valueOf(numberOfFreqValue.getText()));
+                session.getProfileManager().getDefaultProfileSettings().setTopNCount(Integer.valueOf(numberOfFreqValue.getText()));
             } catch ( NumberFormatException e ) {
                 ASUtils.showExceptionDialogNoReport(this,
                         "Number Format Error", e);

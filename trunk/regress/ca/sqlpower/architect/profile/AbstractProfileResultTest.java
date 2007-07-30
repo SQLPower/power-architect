@@ -47,9 +47,8 @@ public class AbstractProfileResultTest extends TestCase {
         }
         
         @Override
-        public void doProfile() throws SQLException, ArchitectException {
-            // TODO Auto-generated method stub
-            
+        protected void doProfile() throws SQLException, ArchitectException {
+            // nothing to do for stub profile
         }
     }
     
