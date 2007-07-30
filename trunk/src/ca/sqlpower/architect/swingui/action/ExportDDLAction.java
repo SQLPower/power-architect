@@ -192,16 +192,15 @@ public class ExportDDLAction extends AbstractArchitectAction {
                         ssd.setExecuteTask(cfp);
                         ssd.setVisible(true);
                     }
-                } catch (ArchitectException ex) {
+                } catch (SQLException ex) {
                     ASUtils.showExceptionDialog
-                    (session,
-                            "An error occurred while generating the script.", ex);
-                    logger.error("Got exception while exporting DDL", ex);
-                } catch (SQLException ex2) {
+                        (session, 
+                         "An error ocurred while trying to generate" +
+                         " the DDL script.", ex);
+                } catch (Exception ex) {
                     ASUtils.showExceptionDialog
-                    (session, 
-                            "An error ocurred while trying to generate" +
-                            " the DDL script.", ex2);
+                        (session,
+                         "An error occurred while generating the script.", ex);
                 }
             }
 
