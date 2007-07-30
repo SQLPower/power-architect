@@ -12,3 +12,6 @@
 
 # Windows-based build pathname example 
 # build=C:\\absolute\\path
+
+# SQL Power Library project directory (set this to the sqlpower-library project directory)
+# sqlpower.library.home=../sqlpower_library
