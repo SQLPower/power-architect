@@ -621,4 +621,30 @@ public class TestSQLRelationship extends SQLTestCase {
                 "removed when the relation was removed", table1.getColumnByName("pkcol_3"));
     }
 
+    /**
+     * This is a regression test for the problem where a table's only primary
+     * key column has been inherited via a relationship.  The primary key name
+     * was coming up null in that case.
+     */
+    public void testNonNullPrimaryKeyNameWhenInheritingOnlyPKColumn() throws Exception {
+        database = new SQLDatabase();
+        
+        SQLTable table1 = new SQLTable(database, "table1", null, "TABLE", true);
+        SQLColumn table1PK = new SQLColumn(table1, "pkcol_1", Types.INTEGER, 10, 0);
+        table1PK.setPrimaryKeySeq(0);
+        table1.addColumn(table1PK);
+        
+        SQLTable table2 = new SQLTable(database, "table2", null, "TABLE", true);
+        SQLRelationship relTable1to2 = new SQLRelationship();
+        relTable1to2.setIdentifying(true);
+        relTable1to2.setName("one_to_two_fk");
+        relTable1to2.attachRelationship(table1, table2, true);
+
+        assertEquals("pkcol_1", table2.getColumn(0).getName());
+        assertTrue(table2.getColumn(0).isPrimaryKey());
+        assertNotNull(table2.getColumn(0).getPrimaryKeySeq());
+
+        assertNotNull(table2.getPrimaryKeyIndex());
+        assertNotNull(table2.getPrimaryKeyName());
+    }
 }

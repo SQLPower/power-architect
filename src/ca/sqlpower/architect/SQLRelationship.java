@@ -167,6 +167,17 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 
 			realizeMapping();
 
+            // normally, it wouldn't hurt to normalize anyway, but in order to remain
+            // backward compatible with older project files that don't have an indicesFolder
+            // for each table, we will only do this when asked to auto-generate mappings.
+            // If we ever have time (or more likely, it turns out that there are cases where
+            // normalizing the PK is required even when autoGenerateMapping is false), we
+            // could modify the SwingUIProject to fix up old tables with no PK folder as soon
+            // as they're created, then this normalize could happen unconditionally.
+            if (autoGenerateMapping) {
+                fkTable.normalizePrimaryKey();
+            }
+            
 			this.attachListeners();
 		} finally {
 			if ( fkTable != null ) {
