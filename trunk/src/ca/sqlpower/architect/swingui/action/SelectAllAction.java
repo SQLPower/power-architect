@@ -37,6 +37,7 @@ import javax.swing.AbstractAction;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 
 public class SelectAllAction extends AbstractAction {
@@ -46,11 +47,12 @@ public class SelectAllAction extends AbstractAction {
 	/**
 	 * The PlayPen instance that this Action operates on.
 	 */
-	protected PlayPen pp;
+	private final PlayPen pp;
 
-	public SelectAllAction() {
+	public SelectAllAction(ArchitectSwingSession session) {
 		super("Select All");
 		putValue(SHORT_DESCRIPTION, "Select All");
+        pp = session.getPlayPen();
 	}
 
 	public void actionPerformed(ActionEvent evt) {
@@ -58,8 +60,4 @@ public class SelectAllAction extends AbstractAction {
 		pp.selectAll();
 	}
 	
-	public void setPlayPen(PlayPen pp) {
-		this.pp = pp;
-	}
-
 }
