@@ -10,6 +10,22 @@ IMPORTANT NOTE to users upgrading from pre-0.9.x versions of the Architect:
  of the Architect.  We apologize for the inconvenience, but the benefits will
  outweigh the costs!
 
+0.9.7
+
+*Fixed a bug with handling of automatic cascading primary keys in multi-level
+ identifying relationships.
+*Fixed a bug which was causing the Architect to save corrupt project files.
+ This bug was triggered by adding and removing a column from the primary key.
+*Further enhanced the profile manager so it is possible to run profiles
+ multiple times per session.
+*Made it possible to add new database connection types from within the GUI.
+*Corrected the JDBC URL template for IBM DB2.  If upgrading, to obtain this fix,
+ you have to remove the DB2 database type from the user preferences dialog,
+ then restart the Architect.
+*Corrected an error in the user guide relating to the creation of FK
+ relationships.
+*And more!
+
 0.9.6
 
 Initial open-source release!
