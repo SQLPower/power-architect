@@ -37,6 +37,7 @@ import java.util.List;
 import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
 
 public class TestDBTree extends TestCase {
@@ -45,8 +46,8 @@ public class TestDBTree extends TestCase {
 	SPDataSource ds;
 	SPDataSource db2ds;
 	protected void setUp() throws Exception {
-		ds = new SPDataSource();
-		db2ds = new SPDataSource();
+		ds = new SPDataSource(new PlDotIni());
+		db2ds = new SPDataSource(new PlDotIni());
 		SQLDatabase ppdb = new SQLDatabase(ds);
 		
 		List dbList = new ArrayList();
@@ -59,7 +60,7 @@ public class TestDBTree extends TestCase {
 	}
 	
 	public void testdbcsAlreadyExists() throws ArchitectException {
-		SPDataSource ds2 = new SPDataSource();
+		SPDataSource ds2 = new SPDataSource(new PlDotIni());
 		assertTrue("ds2 must .equals ds for this test to work", ds.equals(ds2));
 		assertFalse("dbcsAlreadyExists Should not find ds2", dbTree.dbcsAlreadyExists(ds2));
 		assertTrue("db2ds should be in the list",dbTree.dbcsAlreadyExists(db2ds));

@@ -74,6 +74,7 @@ import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SPDataSourceType;
+import ca.sqlpower.testutil.MockJDBCDriver;
 
 /**
  * Test case, mainly for loading and saving via SwingUIProject.
@@ -413,7 +414,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
                 } else if (props[i].getPropertyType() == KettleRepositoryDirectoryChooser.class) {
                     newVal = new RootRepositoryDirectoryChooser();
                 } else if (props[i].getPropertyType() == SPDataSource.class) {
-                    newVal = new SPDataSource();
+                    newVal = new SPDataSource(new PlDotIni());
                     ((SPDataSource)newVal).setName("Testing data source");
 				} else {
 					throw new RuntimeException("This test case lacks a value for "+
@@ -457,7 +458,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		DBTree dbTree = session.getSourceDatabases();
 		DBTreeModel dbTreeModel = (DBTreeModel) dbTree.getModel();
 		
-		SPDataSource fakeDataSource = new SPDataSource();
+		SPDataSource fakeDataSource = new SPDataSource(new PlDotIni());
 		SQLDatabase db = new SQLDatabase() {
 			@Override
 			public Connection getConnection() throws ArchitectException {
@@ -516,10 +517,10 @@ public class TestSwingUIProject extends ArchitectTestCase {
 
 	public void testSaveCoversAllCatalogProperties() throws Exception {
 		SPDataSourceType mockType = new SPDataSourceType();
-		SPDataSource ds = new SPDataSource();
+		SPDataSource ds = new SPDataSource(new PlDotIni());
         ds.setParentType(mockType);
 		ds.setDisplayName("Schemaless Database");
-		ds.getParentType().setJdbcDriver("ca.sqlpower.util.MockJDBCDriver");
+		ds.getParentType().setJdbcDriver(MockJDBCDriver.class.getName());
 		ds.setUser("fake");
 		ds.setPass("fake");
 		//this creates a mock jdbc database with only catalogs
@@ -586,7 +587,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		DBTree dbTree = session.getSourceDatabases();
 		DBTreeModel dbTreeModel = (DBTreeModel) dbTree.getModel();
 		
-		SPDataSource fakeDataSource = new SPDataSource();
+		SPDataSource fakeDataSource = new SPDataSource(new PlDotIni());
 		SQLDatabase db = new SQLDatabase();
 		db.setDataSource(fakeDataSource);
 		db.setPopulated(true);
@@ -639,7 +640,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		DBTree dbTree = session.getSourceDatabases();
 		DBTreeModel dbTreeModel = (DBTreeModel) dbTree.getModel();
 		
-		SPDataSource fakeDataSource = new SPDataSource();
+		SPDataSource fakeDataSource = new SPDataSource(new PlDotIni());
 		SQLDatabase db = new SQLDatabase();
 		db.setDataSource(fakeDataSource);
 		db.setPopulated(true);
@@ -720,7 +721,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 			DBTree dbTree = session.getSourceDatabases();
 			DBTreeModel dbTreeModel = (DBTreeModel) dbTree.getModel();
 			
-			SPDataSource fakeDataSource = new SPDataSource();
+			SPDataSource fakeDataSource = new SPDataSource(new PlDotIni());
 			SQLDatabase db = new SQLDatabase();
 			db.setDataSource(fakeDataSource);
 			db.setPopulated(true);
@@ -1094,9 +1095,9 @@ public class TestSwingUIProject extends ArchitectTestCase {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         SQLObject dbtreeRoot = (SQLObject) session.getSourceDatabases().getModel().getRoot();
 
-        SPDataSource ds = new SPDataSource();
+        SPDataSource ds = new SPDataSource(new PlDotIni());
         ds.setDisplayName("test_database");
-        ds.getParentType().setJdbcDriver("ca.sqlpower.util.MockJDBCDriver");
+        ds.getParentType().setJdbcDriver(MockJDBCDriver.class.getName());
         ds.setUser("fake");
         ds.setPass("fake");
         //this creates a mock jdbc database with catalogs and schemas
@@ -1120,9 +1121,9 @@ public class TestSwingUIProject extends ArchitectTestCase {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         SQLObject dbtreeRoot = (SQLObject) session.getSourceDatabases().getModel().getRoot();
 
-        SPDataSource ds = new SPDataSource();
+        SPDataSource ds = new SPDataSource(new PlDotIni());
         ds.setDisplayName("test_database");
-        ds.getParentType().setJdbcDriver("ca.sqlpower.util.MockJDBCDriver");
+        ds.getParentType().setJdbcDriver(MockJDBCDriver.class.getName());
         ds.setUser("fake");
         ds.setPass("fake");
         //this creates a mock jdbc database with catalogs and schemas

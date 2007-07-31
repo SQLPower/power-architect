@@ -81,10 +81,9 @@ import ca.sqlpower.architect.diff.DiffChunk;
 import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
 import ca.sqlpower.architect.swingui.CompareDMSettings.DatastoreType;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
-import ca.sqlpower.architect.swingui.action.DBCSOkAction;
+import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.ConnectionComboBoxModel;
-import ca.sqlpower.swingui.DataEntryPanelBuilder;
 import ca.sqlpower.swingui.ProgressWatcher;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.SPSUtils.LabelValueBean;
@@ -198,7 +197,7 @@ public class CompareDMPanel extends JPanel {
 	 * <p>
 	 * Note: this class is not private because the test needs to refer to it. :(
 	 */
-	public class SourceOrTargetStuff implements DBConnectionCallBack{
+	public class SourceOrTargetStuff {
 
 		private JComboBox databaseDropdown;
 
@@ -235,30 +234,16 @@ public class CompareDMPanel extends JPanel {
 
 		private Action newConnectionAction = new AbstractAction("New...") {
 			public void actionPerformed(ActionEvent e) {
-				if (getNewConnectionDialog() != null) {
-					getNewConnectionDialog().requestFocus();
-					return;
-				}
-				final DBCSPanel dbcsPanel = new DBCSPanel(session.getUserSettings().getPlDotIni());
-				dbcsPanel.setDbcs(new SPDataSource());
 
-				DBCSOkAction okAction = new DBCSOkAction(dbcsPanel, session, true);
-				okAction.setConnectionSelectionCallBack(SourceOrTargetStuff.this);
-				Action cancelAction = new AbstractAction() {
-					public void actionPerformed(ActionEvent e) {
-						dbcsPanel.discardChanges();
-						setNewConnectionDialog(null);
-					}
-				};
-
-				JDialog d = DataEntryPanelBuilder.createDataEntryPanelDialog(
-						dbcsPanel, SwingUtilities.getWindowAncestor(CompareDMPanel.this),
-						DBCS_DIALOG_TITLE, DataEntryPanelBuilder.OK_BUTTON_LABEL,
-						okAction, cancelAction);
-
-				okAction.setConnectionDialog(d);
-				setNewConnectionDialog(d);
-				d.setVisible(true);
+                final DataSourceCollection plDotIni = session.getContext().getUserSettings().getPlDotIni();
+                final SPDataSource dataSource = new SPDataSource(plDotIni);
+                Runnable onAccept = new Runnable() {
+                    public void run() {
+                        plDotIni.addDataSource(dataSource);
+                        databaseDropdown.setSelectedItem(dataSource);
+                    }
+                };
+                ASUtils.showDbcsDialog(SwingUtilities.getWindowAncestor(CompareDMPanel.this), session, dataSource, onAccept);
 			}
 		};
 
@@ -769,10 +754,6 @@ public class CompareDMPanel extends JPanel {
 			newConnectionAction.setEnabled(enable);
 		}
 
-        public void selectDBConnection(SPDataSource ds) {
-           databaseDropdown.setSelectedItem(ds);
-
-        }
 	}
 
 	/**

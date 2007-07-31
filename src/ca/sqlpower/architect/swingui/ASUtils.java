@@ -38,6 +38,8 @@ import java.awt.Shape;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.geom.Line2D;
@@ -59,8 +61,9 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
 import ca.sqlpower.architect.qfa.ExceptionReport;
-import ca.sqlpower.architect.swingui.action.DBCSOkAction;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.sql.SPDataSourceType;
+import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 import ca.sqlpower.swingui.SPSUtils;
 
@@ -160,8 +163,12 @@ public class ASUtils {
      * target db's connection spec.  Create from scratch every time
      * just in case the user changed the Target Database from the DBTree.
      */
-    public static void showTargetDbcsDialog(Window parentWindow, final ArchitectSwingSession session, final JComboBox targetDB) {
-        JDialog d = showDbcsDialog(parentWindow, session, session.getPlayPen().db.getDataSource());
+    public static void showTargetDbcsDialog(
+            Window parentWindow,
+            final ArchitectSwingSession session,
+            final JComboBox targetDB) {
+        
+        JDialog d = showDbcsDialog(parentWindow, session, session.getPlayPen().db.getDataSource(), null);
         
         d.addWindowListener(new WindowAdapter(){
                 public void windowClosed(WindowEvent e){
@@ -172,15 +179,37 @@ public class ASUtils {
     }
     
     /**
-     * Pops up a dialog box that lets the user inspect and change the given
-     * db's connection spec.
+     * Pops up a dialog box that lets the user inspect and change the given db's
+     * connection spec.
+     * 
+     * @param parentWindow
+     *            The window that owns the dialog
+     * @param session
+     *            the current session
+     * @param dataSource
+     *            the data source to edit (null not allowed)
+     * @param onAccept
+     *            this runnable will be invoked if the user OKs the dialog and
+     *            validation succeeds. If you don't need to do anything in this
+     *            situation, just pass in null for this parameter.
      */
-    public static JDialog showDbcsDialog(Window parentWindow, final ArchitectSwingSession session, SPDataSource dataSource) {
-        final DBCSPanel dbcsPanel = new DBCSPanel(
-                session.getUserSettings().getPlDotIni());
-    
-        dbcsPanel.setDbcs(dataSource);
-        DBCSOkAction okAction = new DBCSOkAction(dbcsPanel, session, false);
+    public static JDialog showDbcsDialog(
+            Window parentWindow,
+            final ArchitectSwingSession session,
+            SPDataSource dataSource,
+            final Runnable onAccept) {
+        
+        final DataEntryPanel dbcsPanel = createDataSourceOptionsPanel(dataSource);
+        
+        Action okAction = new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                if (dbcsPanel.applyChanges()) {
+                    if (onAccept != null) {
+                        onAccept.run();
+                    }
+                }
+            }
+        };
     
         Action cancelAction = new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
@@ -190,15 +219,41 @@ public class ASUtils {
     
         JDialog d = DataEntryPanelBuilder.createDataEntryPanelDialog(
                 dbcsPanel, parentWindow,
-                "Target Database Connection", DataEntryPanelBuilder.OK_BUTTON_LABEL,
+                "Database Connection: " + dataSource.getDisplayName(),
+                DataEntryPanelBuilder.OK_BUTTON_LABEL,
                 okAction, cancelAction);
     
-        okAction.setConnectionDialog(d);
         d.pack();
         d.setLocationRelativeTo(parentWindow);
     
         d.setVisible(true);
         return d;
+    }
+
+    /**
+     * Creates a tabbed panel for editing various aspects of the given data source.
+     * Currently, the tabs are for General Options and Kettle Options.
+     * 
+     * @param ds The data source to edit
+     */
+    public static DataEntryPanel createDataSourceOptionsPanel(SPDataSource ds) {
+        final DBCSPanel generalPanel = new DBCSPanel(ds);
+        final KettleDataSourceOptionsPanel kettlePanel = new KettleDataSourceOptionsPanel(ds);
+
+        TabbedDataEntryPanel p = new TabbedDataEntryPanel();
+        p.addTab("General", generalPanel);
+        p.addTab("Kettle", kettlePanel);
+        
+        // update kettle fields if/when user picks new driver
+        generalPanel.getDataSourceTypeBox().addItemListener(new ItemListener() {
+            public void itemStateChanged(ItemEvent e) {
+                JComboBox cb = (JComboBox) e.getSource();
+                SPDataSourceType parentType = (SPDataSourceType) cb.getSelectedItem();
+                kettlePanel.parentTypeChanged(parentType);
+            }
+        });
+
+        return p;
     }
 
     public static String lineToString(Line2D.Double l) {

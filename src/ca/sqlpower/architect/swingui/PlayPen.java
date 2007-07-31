@@ -276,7 +276,14 @@ public class PlayPen extends JPanel
      */
 	private final ArchitectSwingSession session;
     
+	/**
+     * Creates a play pen with reasonable defaults.
+     * 
+     * @param session
+     *            The session this play pen belongs to. Null is not allowed.
+     */
 	public PlayPen(ArchitectSwingSession session) {
+        if (session == null) throw new NullPointerException("A null session is not allowed here.");
 		this.session = session;
         zoom = 1.0;
 		setBackground(java.awt.Color.white);
@@ -355,7 +362,7 @@ public class PlayPen extends JPanel
 		this.db = newdb;
 		db.setPlayPenDatabase(true);
 		if (db.getDataSource() == null) {
-			SPDataSource dbcs = new SPDataSource();
+			SPDataSource dbcs = new SPDataSource(session.getContext().getUserSettings().getPlDotIni());
 			dbcs.setName("Not Configured");
 			dbcs.setDisplayName("Not Configured");
 			db.setDataSource(dbcs);

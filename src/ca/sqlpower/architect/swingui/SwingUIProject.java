@@ -457,7 +457,7 @@ public class SwingUIProject {
      */
     private class DBCSFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) {
-            SPDataSource dbcs = new SPDataSource();
+            SPDataSource dbcs = new SPDataSource(session.getContext().getUserSettings().getPlDotIni());
             
             String id = attributes.getValue("id");
             if (id != null) {

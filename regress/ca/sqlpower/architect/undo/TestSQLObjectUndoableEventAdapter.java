@@ -63,6 +63,8 @@ public class TestSQLObjectUndoableEventAdapter extends TestCase {
     @Override
 	protected void setUp() throws Exception {
 		super.setUp();
+		TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
+		session = context.createSession();
 	}
 	/*
 	private void testStateSwap() {
@@ -73,8 +75,6 @@ public class TestSQLObjectUndoableEventAdapter extends TestCase {
 	}*/
 	
 	public void testMove() throws ArchitectException, IOException {
-        TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
-        session = context.createSession();
 		PlayPen pp = new PlayPen(session, new SQLDatabase());
 		SQLTable table = new SQLTable(pp.getDatabase(),true);
 		TablePane tp = new TablePane(table,pp);

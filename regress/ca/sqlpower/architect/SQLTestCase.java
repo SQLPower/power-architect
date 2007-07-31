@@ -64,7 +64,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 	 * @see #setup()
 	 */
 	SQLDatabase db;
-    private static DataSourceCollection plini = new PlDotIni();
+    private static final DataSourceCollection plini = new PlDotIni();
     
     Set<String>propertiesToIgnoreForUndo = new HashSet<String>();
     Set<String>propertiesToIgnoreForEventGeneration = new HashSet<String>();
@@ -166,7 +166,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 			} else if (property.getPropertyType() == SQLCatalog.class) {
 				newVal = new SQLCatalog(new SQLDatabase(),"This is a new catalog");
 			} else if (property.getPropertyType() == SPDataSource.class) {
-				newVal = new SPDataSource();
+				newVal = new SPDataSource(plini);
 				((SPDataSource)newVal).setName("test");
 				((SPDataSource)newVal).setDisplayName("test");
 				((SPDataSource)newVal).setUser("a");
@@ -280,7 +280,7 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 			} else if (property.getPropertyType() == SQLCatalog.class) {
 				newVal = new SQLCatalog(new SQLDatabase(),"This is a new catalog");
 			} else if (property.getPropertyType() == SPDataSource.class) {
-				newVal = new SPDataSource();
+				newVal = new SPDataSource(plini);
 				((SPDataSource)newVal).setName("test");
 				((SPDataSource)newVal).setDisplayName("test");
 				((SPDataSource)newVal).setUser("a");
@@ -328,6 +328,10 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 
     public SQLDatabase getDb() {
         return new SQLDatabase(new SPDataSource(db.getDataSource()));
+    }
+    
+    public DataSourceCollection getPLIni() {
+        return plini;
     }
 
 }

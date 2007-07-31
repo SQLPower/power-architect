@@ -59,6 +59,7 @@ import ca.sqlpower.architect.TestSQLColumn.TestSQLObjectListener;
 import ca.sqlpower.architect.TestSQLTable.EventLogger.SQLObjectSnapshot;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.testutil.MockJDBCDriver;
 
 public class TestSQLTable extends SQLTestCase {
     
@@ -794,9 +795,9 @@ public class TestSQLTable extends SQLTestCase {
     }
     
     public void testPopulateColumnsCaseSensitive() throws Exception {
-        SPDataSource ds = new SPDataSource();
+        SPDataSource ds = new SPDataSource(getPLIni());
         ds.setDisplayName("tableWithMixedColumnCase");
-        ds.getParentType().setJdbcDriver("ca.sqlpower.util.MockJDBCDriver");
+        ds.getParentType().setJdbcDriver(MockJDBCDriver.class.getName());
         ds.setUser("fake");
         ds.setPass("fake");
         ds.setUrl("jdbc:mock:" +
