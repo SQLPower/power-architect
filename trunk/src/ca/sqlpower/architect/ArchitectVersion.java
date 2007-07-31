@@ -55,7 +55,7 @@ public class ArchitectVersion {
      * back to 0 when the minor version changes.  All versions under the same
      * minor version number are fully compatible with each other.
      */
-    public static final String APP_VERSION_TINY   = "7";
+    public static final String APP_VERSION_TINY   = "8";
     
     /**
      * Suffixes indicate pre-release builds.  They normally progress from "alpha"
@@ -66,7 +66,7 @@ public class ArchitectVersion {
      * Full releases do not have a suffix.  In that case, the suffix is the empty
      * string (not null).
      */
-    public static final String APP_VERSION_SUFFIX = "";
+    public static final String APP_VERSION_SUFFIX = "alpha";
     
     /**
      * The full version number, formatted as Major.Minor.Tiny[-Suffix].  Note the square
