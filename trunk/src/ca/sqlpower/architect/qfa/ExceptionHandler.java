@@ -48,6 +48,7 @@ import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionContext;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.swingui.SPSUtils;
 
 
 public class ExceptionHandler implements UncaughtExceptionHandler {
@@ -55,6 +56,7 @@ public class ExceptionHandler implements UncaughtExceptionHandler {
     private static final Logger logger = Logger.getLogger(ExceptionHandler.class);
 
     public void uncaughtException(Thread t, Throwable e) {
+        SPSUtils.showExceptionDialogNoReport("An unexpected exception has occured: ", e);
         QFAFactory qfaFactory = new ArchitectExceptionReportFactory();
         ArchitectSwingSessionContext context = ASUtils.getContext();
         ExceptionReport r = qfaFactory.createExceptionReport(e);
