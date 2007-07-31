@@ -68,6 +68,7 @@ import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.FileValidator.FileValidationResponse;
+import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SPDataSourceType;
 
@@ -82,7 +83,7 @@ public class CreateKettleJobTest extends TestCase {
         super.setUp();
         target = new SQLDatabase();
         target.setName("Target for Testing");
-        SPDataSource ds = new SPDataSource();
+        SPDataSource ds = new SPDataSource(new PlDotIni());
         target.setDataSource(ds);
         ds.setName("Target Data Source for Testing");
         ds.setUser("Guest");
@@ -94,7 +95,7 @@ public class CreateKettleJobTest extends TestCase {
         
         SQLDatabase source = new SQLDatabase();
         source.setName("Source for Testing");
-        SPDataSource sourceDS = new SPDataSource();
+        SPDataSource sourceDS = new SPDataSource(new PlDotIni());
         source.setDataSource(sourceDS);
         sourceDS.setName("Source Data Source for Testing");
         sourceDS.setUser("Guest");
@@ -200,7 +201,7 @@ public class CreateKettleJobTest extends TestCase {
         Map<String, DatabaseMeta> databaseNames = new LinkedHashMap<String, DatabaseMeta>();
         CreateKettleJob job = new CreateKettleJob();
         try {
-            job.addDatabaseConnection(databaseNames, new SPDataSource());
+            job.addDatabaseConnection(databaseNames, new SPDataSource(new PlDotIni()));
             fail("A runtime exception was not thrown when an invalid data source was passed in");
         } catch (RuntimeException re) {
             assertEquals(1, job.getTasksToDo().size());
@@ -637,8 +638,16 @@ public class CreateKettleJobTest extends TestCase {
         }
     }
     
+    /**
+     * This is a data source that will always return null when it 
+     * tries to create a connection. Otherwise it is fully functional.
+     */
     private class ArchitectDataSourceStub extends SPDataSource {
         
+        public ArchitectDataSourceStub() {
+            super(new PlDotIni());
+        }
+
         public Connection createConnection() {
             return null;
         }

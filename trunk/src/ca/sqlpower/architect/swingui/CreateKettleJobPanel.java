@@ -174,7 +174,7 @@ public class CreateKettleJobPanel implements DataEntryPanel {
         reposPropertiesButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 Window parentWindow = SwingUtilities.getWindowAncestor(panel);
-                ASUtils.showDbcsDialog(parentWindow, session, (SPDataSource)reposDB.getSelectedItem());
+                ASUtils.showDbcsDialog(parentWindow, session, (SPDataSource)reposDB.getSelectedItem(), null);
             }
         });
         

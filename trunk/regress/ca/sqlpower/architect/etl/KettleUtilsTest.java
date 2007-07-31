@@ -40,6 +40,7 @@ import org.pentaho.di.core.database.DatabaseMeta;
 
 import ca.sqlpower.architect.etl.kettle.KettleOptions;
 import ca.sqlpower.architect.etl.kettle.KettleUtils;
+import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SPDataSourceType;
 
@@ -59,7 +60,7 @@ public class KettleUtilsTest extends TestCase {
     }
     
     public void testCreateDatabaseMetaUsingURL() {
-        SPDataSource ds = new SPDataSource();
+        SPDataSource ds = new SPDataSource(new PlDotIni());
         ds.setName("DataSource for Testing");
         ds.setUser("Guest");
         ds.setPass("Guest");
@@ -80,7 +81,7 @@ public class KettleUtilsTest extends TestCase {
     }
     
     public void testCreateDatabaseMetaUsingProperties() {
-        SPDataSource ds = new SPDataSource();
+        SPDataSource ds = new SPDataSource(new PlDotIni());
         ds.setName("DataSource for Testing");
         ds.setUser("Guest");
         ds.setPass("Guest");
@@ -102,7 +103,7 @@ public class KettleUtilsTest extends TestCase {
     }
     
     public void testCreateDatabaseMetaUsingNulls() {
-        SPDataSource ds = new SPDataSource();
+        SPDataSource ds = new SPDataSource(new PlDotIni());
         ds.setName("DataSource for Testing");
         ds.setUser("Guest");
         ds.setPass("Guest");

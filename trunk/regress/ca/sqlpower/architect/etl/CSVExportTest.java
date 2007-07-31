@@ -41,6 +41,8 @@ import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.sql.DataSourceCollection;
+import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
 
 public class CSVExportTest extends TestCase {
@@ -50,14 +52,15 @@ public class CSVExportTest extends TestCase {
     
     protected void setUp() throws Exception {
         super.setUp();
-        SPDataSource ds = new SPDataSource();
+        DataSourceCollection plIni = new PlDotIni();
+        SPDataSource ds = new SPDataSource(plIni);
         SQLDatabase db1 = new SQLDatabase(ds);
         db1.setPhysicalName("db1");
         SQLCatalog catalog1 = new SQLCatalog(db1,"catalog1");
         SQLSchema schema1 = new SQLSchema(catalog1,"schema1",true);
         SQLTable table1 = new SQLTable(schema1,"table1","","",true);
         SQLColumn column1 = new SQLColumn(table1,"column1",1,1,1);
-        SPDataSource ppds = new SPDataSource();
+        SPDataSource ppds = new SPDataSource(plIni);
         SQLDatabase playpenDB = new SQLDatabase(ppds);
         SQLTable ppTable1 = new SQLTable(playpenDB,true);
         SQLColumn ppColumn1 = new SQLColumn(ppTable1,"ppColumn1",1,1,1);

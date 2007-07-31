@@ -50,8 +50,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.JDialog;
 import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -73,11 +71,10 @@ import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.swingui.action.DBCSOkAction;
+import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
-import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
-public class DBTree extends JTree implements DragSourceListener, DBConnectionCallBack {
+public class DBTree extends JTree implements DragSourceListener {
 	static Logger logger = Logger.getLogger(DBTree.class);
 	
 	protected DragSource ds;
@@ -94,11 +91,6 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
      * The architect session, so we can access common objects
      */
     private final ArchitectSwingSession session;
-	/**
-	 * This is the database whose DBCS is currently being editted in
-	 * the DBCS Panel.
-	 */
-	protected SQLDatabase edittingDB;
 
 	/**
 	 * This is set to true when the DBCSPanel is editting a new
@@ -550,31 +542,42 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 		}
 
 		public void actionPerformed(ActionEvent e) {
-			SQLObject root = (SQLObject) getModel().getRoot();
-			try {
-				// check to see if we've already seen this one
-				if (dbcsAlreadyExists(dbcs)) {
-					logger.warn("database already exists in this project.");
-					JOptionPane.showMessageDialog(DBTree.this, "Can't set connection "
-							                                   + dbcs.getDisplayName()
-															   + ".  It already exists in the current project.",
-												  "Warning", JOptionPane.WARNING_MESSAGE);
-				} else {
-					SQLDatabase newDB = new SQLDatabase(dbcs);
-					root.addChild(root.getChildCount(), newDB);
-					session.getProject().setModified(true);
-					// start a thread to poke the new SQLDatabase object...
-					logger.debug("start poking database " + newDB.getName());
-					Thread thread = new PokeDBThread(newDB);
-					thread.start();
-				}
-			} catch (ArchitectException ex) {
-				logger.warn("Couldn't add new database to tree", ex);
-				JOptionPane.showMessageDialog(DBTree.this, "Couldn't add new connection:\n"+ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-			}
+			addSourceConnection(dbcs);
 		}
+
 	}
 
+    /**
+     * Adds the given data source to the db tree as a source database
+     * connection.
+     * 
+     * @param dbcs The data source to be added to the db tree.
+     */
+	private void addSourceConnection(SPDataSource dbcs) {
+	    SQLObject root = (SQLObject) getModel().getRoot();
+	    try {
+	        // check to see if we've already seen this one
+	        if (dbcsAlreadyExists(dbcs)) {
+	            logger.warn("database already exists in this project.");
+	            JOptionPane.showMessageDialog(DBTree.this, "Can't set connection "
+	                    + dbcs.getDisplayName()
+	                    + ".  It already exists in the current project.",
+	                    "Warning", JOptionPane.WARNING_MESSAGE);
+	        } else {
+	            SQLDatabase newDB = new SQLDatabase(dbcs);
+	            root.addChild(root.getChildCount(), newDB);
+	            session.getProject().setModified(true);
+	            // start a thread to poke the new SQLDatabase object...
+	            logger.debug("start poking database " + newDB.getName());
+	            Thread thread = new PokeDBThread(newDB);
+	            thread.start();
+	        }
+	    } catch (ArchitectException ex) {
+	        logger.warn("Couldn't add new database to tree", ex);
+	        JOptionPane.showMessageDialog(DBTree.this, "Couldn't add new connection:\n"+ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+	    }
+	}
+    
     protected class SetConnAsTargetDB extends AbstractAction{
         SPDataSource dbcs;
 
@@ -592,8 +595,9 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 	 * When invoked, this action creates a new DBCS, sets the
 	 * panelHoldsNewDBCS flag, and pops up the propDialog to edit the
 	 * new DBCS.
-     *
-     * Calls selectDBConnection() to add the connection to the db tree
+     * <p>
+     * If the database connection is created it will be added to the
+     * db tree as well as the PL.ini.
 	 */
 	protected class NewDBCSAction extends AbstractAction {
 
@@ -603,32 +607,15 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 
 		public void actionPerformed(ActionEvent e) {
 
-			final DBCSPanel dbcsPanel = new DBCSPanel(session.getUserSettings().getPlDotIni());
-			SPDataSource dbcs = new SPDataSource();
-
-			dbcsPanel.setDbcs(new SPDataSource());
-
-
-			DBCSOkAction okButton = new DBCSOkAction(dbcsPanel, session, true);
-			okButton.setConnectionSelectionCallBack(DBTree.this);
-			Action cancelAction = new AbstractAction() {
-				public void actionPerformed(ActionEvent evt) {
-					dbcsPanel.discardChanges();
-
-				}
-			};
-
-			JDialog d = DataEntryPanelBuilder.createDataEntryPanelDialog(
-					dbcsPanel,session.getArchitectFrame(),
-					"New Connection", DataEntryPanelBuilder.OK_BUTTON_LABEL,
-					okButton, cancelAction);
-
-			okButton.setConnectionDialog(d);
-
-			d.pack();
-			d.setLocationRelativeTo(session.getArchitectFrame());
-			d.setVisible(true);
-			edittingDB = new SQLDatabase(dbcs);
+            final DataSourceCollection plDotIni = session.getContext().getUserSettings().getPlDotIni();
+            final SPDataSource dataSource = new SPDataSource(plDotIni);
+            Runnable onAccept = new Runnable() {
+                public void run() {
+                    addSourceConnection(dataSource);
+                }
+            };
+            ASUtils.showDbcsDialog(session.getArchitectFrame(), session, dataSource, onAccept);
+            
 			panelHoldsNewDBCS = true;
 		}
 	}
@@ -704,7 +691,7 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 	/**
 	 * The DBCSPropertiesAction responds to the "Properties" item in
 	 * the popup menu.  It determines which item in the tree is
-	 * currently selected, then (creates and) shows its properties
+	 * currently selected, then shows its properties
 	 * window.
 	 */
 	protected class DBCSPropertiesAction extends AbstractAction {
@@ -727,36 +714,8 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 				ii++;
 			}
 			if (sd != null) {
-
-				final DBCSPanel dbcsPanel = new DBCSPanel(session.getUserSettings().getPlDotIni());
-				SPDataSource dbcs = sd.getDataSource();
-
-				dbcsPanel.setDbcs(dbcs);
-
-
-				DBCSOkAction okButton = new DBCSOkAction(dbcsPanel, session, false);
-
-				Action cancelAction = new AbstractAction() {
-					public void actionPerformed(ActionEvent evt) {
-						dbcsPanel.discardChanges();
-
-					}
-				};
-
-				JDialog d = DataEntryPanelBuilder.createDataEntryPanelDialog(
-						dbcsPanel,session.getArchitectFrame(),
-						"Connection Properties", DataEntryPanelBuilder.OK_BUTTON_LABEL,
-						okButton, cancelAction);
-
-				okButton.setConnectionDialog(d);
-
-				d.pack();
-				d.setLocationRelativeTo(session.getArchitectFrame());
-				d.setVisible(true);
-				logger.debug("Setting existing DBCS on panel: "+dbcs);
-				edittingDB = sd;
-				dbcsPanel.setDbcs(dbcs);
-
+                ASUtils.showDbcsDialog(session.getArchitectFrame(), session, sd.getDataSource(), null);
+                logger.debug("Setting existing DBCS on panel");
 			}
 		}
 	}
@@ -841,12 +800,4 @@ public class DBTree extends JTree implements DragSourceListener, DBConnectionCal
 			}
  		}
 	}
-
-	/**
-     *  Adds the datasource to the dbtree
-     */
-    public void selectDBConnection(SPDataSource ds) {
-        Action act = new AddDBCSAction(ds);
-        act.actionPerformed(null);
-    }
 }

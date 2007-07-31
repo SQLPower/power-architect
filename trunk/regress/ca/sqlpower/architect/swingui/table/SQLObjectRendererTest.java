@@ -35,6 +35,7 @@ import javax.swing.JLabel;
 
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.table.BaseRendererTest;
 
@@ -43,7 +44,7 @@ public class SQLObjectRendererTest extends BaseRendererTest {
     /* Test rendering of SQLObjects  */
     public void test5() {
         SQLDatabase db = new SQLDatabase();
-        db.setDataSource(new SPDataSource());
+        db.setDataSource(new SPDataSource(new PlDotIni()));
         db.setName("MyName");
 
         // Test with SQLDatabase
