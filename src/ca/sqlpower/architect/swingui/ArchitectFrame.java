@@ -332,7 +332,7 @@ public class ArchitectFrame extends JFrame {
         searchReplaceAction = new SearchReplaceAction(session);
         searchReplaceAction.putValue(AbstractAction.ACCELERATOR_KEY,
                 KeyStroke.getKeyStroke(KeyEvent.VK_F, accelMask));
-        selectAllAction = new SelectAllAction();
+        selectAllAction = new SelectAllAction(session);
         selectAllAction.putValue(AbstractAction.ACCELERATOR_KEY,
                 KeyStroke.getKeyStroke(KeyEvent.VK_A, accelMask));
 
