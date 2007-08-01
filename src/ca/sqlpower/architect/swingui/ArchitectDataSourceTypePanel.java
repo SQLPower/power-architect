@@ -47,6 +47,7 @@ import ca.sqlpower.architect.etl.kettle.KettleOptions;
 import ca.sqlpower.architect.etl.kettle.KettleUtils;
 import ca.sqlpower.sql.SPDataSourceType;
 import ca.sqlpower.swingui.DataEntryPanel;
+import ca.sqlpower.swingui.PlatformSpecificConnectionOptionPanel;
 
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
