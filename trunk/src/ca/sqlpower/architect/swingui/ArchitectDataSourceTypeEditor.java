@@ -52,6 +52,7 @@ import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSourceType;
 import ca.sqlpower.swingui.AddRemoveIcon;
 import ca.sqlpower.swingui.DataEntryPanel;
+import ca.sqlpower.swingui.SPDataSourceTypeListCellRenderer;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
@@ -101,7 +102,7 @@ public class ArchitectDataSourceTypeEditor implements DataEntryPanel {
             dsTypeListModel.addElement(type);
         }
         dsTypeList = new JList(dsTypeListModel);
-        dsTypeList.setCellRenderer(new ArchitectDataSourceTypeListCellRenderer());
+        dsTypeList.setCellRenderer(new SPDataSourceTypeListCellRenderer());
         
         addDsTypeButton = new JButton(new AddRemoveIcon(AddRemoveIcon.Type.ADD));
         addDsTypeButton.addActionListener(new ActionListener() {

@@ -73,6 +73,7 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.swingui.SPDataSourcePanel;
 
 public class DBTree extends JTree implements DragSourceListener {
 	static Logger logger = Logger.getLogger(DBTree.class);
@@ -80,7 +81,7 @@ public class DBTree extends JTree implements DragSourceListener {
 	protected DragSource ds;
 	protected JPopupMenu popup;
 	protected JMenu connectionsMenu;
-	protected DBCSPanel dbcsPanel;
+	protected SPDataSourcePanel spDataSourcePanel;
 	protected NewDBCSAction newDBCSAction;
 	protected DBCSPropertiesAction dbcsPropertiesAction;
 	protected RemoveDBCSAction removeDBCSAction;
@@ -93,7 +94,7 @@ public class DBTree extends JTree implements DragSourceListener {
     private final ArchitectSwingSession session;
 
 	/**
-	 * This is set to true when the DBCSPanel is editting a new
+	 * This is set to true when the SPDataSourcePanel is editting a new
 	 * connection spec.  The dialog's "ok" and "cancel" button
 	 * handlers need to do different things for new and existing
 	 * specs.

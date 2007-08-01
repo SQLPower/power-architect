@@ -65,6 +65,7 @@ import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SPDataSourceType;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
+import ca.sqlpower.swingui.SPDataSourcePanel;
 import ca.sqlpower.swingui.SPSUtils;
 
 /**
@@ -237,7 +238,7 @@ public class ASUtils {
      * @param ds The data source to edit
      */
     public static DataEntryPanel createDataSourceOptionsPanel(SPDataSource ds) {
-        final DBCSPanel generalPanel = new DBCSPanel(ds);
+        final SPDataSourcePanel generalPanel = new SPDataSourcePanel(ds);
         final KettleDataSourceOptionsPanel kettlePanel = new KettleDataSourceOptionsPanel(ds);
 
         TabbedDataEntryPanel p = new TabbedDataEntryPanel();
