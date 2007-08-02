@@ -45,6 +45,7 @@ import ca.sqlpower.architect.etl.kettle.CreateKettleJob;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.TableProfileManager;
 import ca.sqlpower.architect.undo.UndoManager;
+import ca.sqlpower.swingui.SPSwingWorker;
 
 /**
  * Minimally functional session implementation that creates but does
@@ -189,11 +190,11 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         throw new UnsupportedOperationException("Testing session impl doesn't make GUIs");
     }
 
-    public void registerSwingWorker(ArchitectSwingWorker worker) {
+    public void registerSwingWorker(SPSwingWorker worker) {
         
     }
 
-    public void removeSwingWorker(ArchitectSwingWorker worker) {
+    public void removeSwingWorker(SPSwingWorker worker) {
         
     }
 

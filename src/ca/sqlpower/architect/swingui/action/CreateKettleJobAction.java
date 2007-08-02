@@ -59,12 +59,12 @@ import ca.sqlpower.architect.etl.kettle.KettleRepositoryDirectoryChooser;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.swingui.ArchitectSwingWorker;
 import ca.sqlpower.architect.swingui.CreateKettleJobPanel;
 import ca.sqlpower.architect.swingui.PromptingFileValidator;
 import ca.sqlpower.architect.swingui.UserRepositoryDirectoryChooser;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 import ca.sqlpower.swingui.ProgressWatcher;
+import ca.sqlpower.swingui.SPSwingWorker;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
 import com.jgoodies.forms.builder.DefaultFormBuilder;
@@ -121,7 +121,7 @@ public class CreateKettleJobAction extends AbstractArchitectAction {
                 builder.append(cancel);
                 createKettleJobMonitor.add(builder.getPanel());
                 
-                ArchitectSwingWorker compareWorker = new ArchitectSwingWorker(session) {
+                SPSwingWorker compareWorker = new SPSwingWorker(session) {
 
                     @Override
                     public void doStuff() throws Exception {

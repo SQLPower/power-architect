@@ -32,15 +32,16 @@
 package ca.sqlpower.architect.swingui;
 
 import junit.framework.TestCase;
+import ca.sqlpower.swingui.SPSwingWorker;
 
 public class TestArchitectSwingWorker extends TestCase {
 
-	ArchitectSwingWorker setCancelled;
-	ArchitectSwingWorker w2;
-	ArchitectSwingWorker w3;
+	SPSwingWorker setCancelled;
+	SPSwingWorker w2;
+	SPSwingWorker w3;
 	@Override
 	protected void setUp() throws Exception {
-		setCancelled = new ArchitectSwingWorker(null){
+		setCancelled = new SPSwingWorker(null){
 
 			@Override
 			public void cleanup() throws Exception {
@@ -55,7 +56,7 @@ public class TestArchitectSwingWorker extends TestCase {
 			}
 			
 		};
-		w2 = new ArchitectSwingWorker(null){
+		w2 = new SPSwingWorker(null){
 
 			@Override
 			public void cleanup() throws Exception {
@@ -70,7 +71,7 @@ public class TestArchitectSwingWorker extends TestCase {
 			}
 			
 		};
-		w3 = new ArchitectSwingWorker(null){
+		w3 = new SPSwingWorker(null){
 
 			@Override
 			public void cleanup() throws Exception {

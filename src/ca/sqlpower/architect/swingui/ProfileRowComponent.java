@@ -57,14 +57,14 @@ import javax.swing.UIManager;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.profile.ProfileManager;
+import ca.sqlpower.architect.profile.ProfileResultEvent;
+import ca.sqlpower.architect.profile.ProfileResultListener;
 import ca.sqlpower.architect.profile.TableProfileManager;
 import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.swingui.ProgressWatcher;
 import ca.sqlpower.swingui.SPSUtils;
-import ca.sqlpower.swingui.event.TaskTerminationEvent;
-import ca.sqlpower.swingui.event.TaskTerminationListener;
 
 /**
  * A component that displays the status and either rowcount or progressbar
@@ -87,34 +87,48 @@ public class ProfileRowComponent extends JPanel implements Selectable {
     }
 
     /** The icon for all the rows (shared) */
-    private static ImageIcon tableIcon;
-    /** The Stop Sign icon for all the rows (shared) */
-    private static ImageIcon stopIcon;
-    /** The reload icon for all the rows (shared) */
-    private static ImageIcon refreshIcon;
-    /** shared delete icon */
-    private static ImageIcon deleteIcon;
+    private static ImageIcon tableIcon =
+        SPSUtils.createIcon("Table", "Table Result", ArchitectSwingSessionContext.ICON_SIZE);
     
-    /* Bogus numbers filled in just to have a feel of how big
-     * the status label should be when creating the dialog */
-    final JLabel statusLabel = new JLabel(String.format(TableProfileResult.TOSTRING_FORMAT, 500, "Mar 9, 2007", 15000));
+    /** The Stop Sign icon for all the rows (shared) */
+    private static ImageIcon stopIcon =
+        SPSUtils.createIcon("stop", "Stop Profile", ArchitectSwingSessionContext.ICON_SIZE);;
+    
+    /** The reload icon for all the rows (shared) */
+    private static ImageIcon refreshIcon =
+        SPSUtils.createIcon("arrow_refresh", "Re-Profile", ArchitectSwingSessionContext.ICON_SIZE);;
 
-    static {
-        tableIcon = SPSUtils.createIcon("Table", "Table Result", ArchitectSwingSessionContext.ICON_SIZE);
+    /** shared delete icon */
+    private static ImageIcon deleteIcon =
+        SPSUtils.createIcon("delete", "Delete Profile", ArchitectSwingSessionContext.ICON_SIZE);;
+    
+    /**
+     * The profile result that this component visualizes. This should be
+     * considered the "model" of this component.
+     */
+    private final TableProfileResult result;
 
-        refreshIcon = SPSUtils.createIcon("arrow_refresh", "Re-Profile", ArchitectSwingSessionContext.ICON_SIZE);
+    /**
+     * The profile manager that owns the result we're visualizing.
+     */
+    private final ProfileManager pm;
 
-        stopIcon = SPSUtils.createIcon("stop", "Stop Profile", ArchitectSwingSessionContext.ICON_SIZE);
+    /**
+     * The label component for this profile result row.  Its contents
+     * are originally set to bogus but plausible numbers just to have
+     * a feel of how big the status label should be when creating the
+     * dialog.
+     */
+    private final JLabel statusLabel =
+        new JLabel(String.format(TableProfileResult.TOSTRING_FORMAT, 500, "Mar 9, 2007", 15000));
 
-        deleteIcon = SPSUtils.createIcon("delete", "Delete Profile", ArchitectSwingSessionContext.ICON_SIZE);
-    }
+    private final JButton reProfileButton, cancelButton, deleteButton;
 
-    final TableProfileResult result;
-
-    final JButton reProfileButton, cancelButton, deleteButton;
-    private ProfileManager pm;
-
-
+    /**
+     * Performs the custom layout for this row.  The layout
+     * changes drastically when the profile results switch states
+     * between populating and populated or canceled.
+     */
     private static class RowComponentLayout implements LayoutManager2 {
         private int xGap;
         private int yGap;
@@ -303,56 +317,79 @@ public class ProfileRowComponent extends JPanel implements Selectable {
         }
     }
     
-    private class ResultTaskTerminationListener implements TaskTerminationListener {
-
-        public void taskFinished(TaskTerminationEvent e) {
+    /**
+     * Listens for changes in the profile's state (started, cancelled, finished)
+     * and makes the appropriate UI updates on this component.
+     */
+    private final ProfileResultListener profileResultListener = new ProfileResultListener() {
+        public void profileCancelled(ProfileResultEvent event) {
+            statusLabel.setVisible(true);
+            statusLabel.setText("Cancelled");
+            cancelButton.setVisible(false);
+            deleteButton.setVisible(true);
+            progressBar.setVisible(false);
             reProfileButton.setVisible(true);
-            ProfileRowComponent.this.remove(cancelButton);
-            ProfileRowComponent.this.add(deleteButton, ComponentType.DELETE);
-            if (!result.isCancelled()) {
-                statusLabel.setVisible(true);
-                statusLabel.setText(result.toString());
-            }
-        }           
-    }
+        }
 
+        public void profileFinished(ProfileResultEvent event) {
+            reProfileButton.setVisible(true);
+            cancelButton.setVisible(false);
+            deleteButton.setVisible(true);
+            statusLabel.setVisible(true);
+            statusLabel.setText(result.toString());
+        }
+
+        public void profileStarted(ProfileResultEvent event) {
+
+        }
+    };
+
+    /**
+     * Creates a profile row component that visualizes the given profile
+     * result and provides a user interface for stopping, restarting,
+     * deleting, and viewing the profile result.
+     * 
+     * @param result The profile result object to visualize.  Note that
+     * the result will not normally be populated by the time it is given
+     * to this component, but it should have already been added to the
+     * profile manager.
+     * @param pm The profile manager that the result belongs to.  It
+     * would be better if the result object exposed a parent pointer back
+     * to its manager, so this constructor could just take the result arg.
+     */
     public ProfileRowComponent(final TableProfileResult result, final ProfileManager pm) {
         super(new RowComponentLayout(5, 5));
         this.result = result;
         this.pm = pm;
         setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
-        final JProgressBar progressBar = new JProgressBar();
         setBackground(Color.WHITE);
 
         add(new JLabel(tableIcon), ComponentType.ICON);
+        
         this.reProfileButton = new JButton(refreshIcon);
         reProfileButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (result.isCancelled()) {
                     result.setCancelled(false);
+                    cancelButton.setVisible(true);
+                    deleteButton.setVisible(false);
                     progressBar.setVisible(true);
                     ProgressWatcher watcher = new ProgressWatcher(progressBar, result);
                     add(progressBar, ComponentType.PROGRESS_BAR);
-                    revalidate();
-                    watcher.addTaskTerminationListener(new ResultTaskTerminationListener());
-                    result.populate();
+                    pm.scheduleProfile(result);
                 }
                 logger.debug("REFRESH");
             }
         });
+        
         this.cancelButton = new JButton(stopIcon);
         cancelButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 result.setCancelled(true);
-                statusLabel.setVisible(true);
-                statusLabel.setText("Cancelled");
-                ProfileRowComponent.this.remove(cancelButton);
-                ProfileRowComponent.this.add(deleteButton, ComponentType.DELETE);
-                progressBar.setVisible(false);
-                reProfileButton.setVisible(true);
                 logger.debug("STOP");
             }
         });
+        
         this.deleteButton = new JButton(deleteIcon);
         deleteButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -360,13 +397,19 @@ public class ProfileRowComponent extends JPanel implements Selectable {
                 pm.removeProfile(result);
             }
         });
+        add(deleteButton, ComponentType.DELETE);
+        deleteButton.setVisible(false);
+        
         add(new JLabel(result.getProfiledObject().getName()), ComponentType.TABLE_NAME);
+        
         add(reProfileButton, ComponentType.RELOAD);
         reProfileButton.setVisible(false);
         
         ProgressWatcher watcher = new ProgressWatcher(progressBar, result);
+        
+        result.addProfileResultListener(profileResultListener);
+        
         add(progressBar, ComponentType.PROGRESS_BAR);
-        watcher.addTaskTerminationListener(new ResultTaskTerminationListener());
         statusLabel.setVisible(false);
         add(statusLabel, ComponentType.TABLE_INFO);      
         add(cancelButton, ComponentType.CANCEL);  
@@ -377,8 +420,10 @@ public class ProfileRowComponent extends JPanel implements Selectable {
         return result;
     }
     
-    boolean selected = false;
-    List<SelectionListener> listeners = new ArrayList<SelectionListener>();
+    private boolean selected = false;
+    private List<SelectionListener> listeners = new ArrayList<SelectionListener>();
+
+    private final JProgressBar progressBar = new JProgressBar();
     
     public void setSelected(boolean v,int selectionType) {
         selected = v;

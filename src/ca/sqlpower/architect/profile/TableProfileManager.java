@@ -134,6 +134,7 @@ public class TableProfileManager implements ProfileManager {
         return tpr;
     }
 
+    /* docs inherited from interface */
     public Collection<Future<TableProfileResult>> asynchCreateProfiles(Collection<SQLTable> tables) {
         
         List<TableProfileResult> profiles = new ArrayList<TableProfileResult>();
@@ -146,12 +147,17 @@ public class TableProfileManager implements ProfileManager {
         
         List<Future<TableProfileResult>> results = new ArrayList<Future<TableProfileResult>>();
         for (TableProfileResult tpr : profiles) {
-            results.add(profileExecutor.submit(
-                    new ProfileResultCallable(tpr)));
+            results.add(scheduleProfile(tpr));
         }
         return results;
     }
 
+    /* docs inherited from interface */
+    public Future<TableProfileResult> scheduleProfile(TableProfileResult result) {
+        return profileExecutor.submit(new ProfileResultCallable(result));
+    }
+    
+    /* docs inherited from interface */
     public void clear() {
         List<TableProfileResult> oldResults = new ArrayList<TableProfileResult>(results);
         results.clear();

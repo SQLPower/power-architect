@@ -125,6 +125,7 @@ import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.ProgressWatcher;
+import ca.sqlpower.swingui.SPSwingWorker;
 
 
 /**
@@ -1251,7 +1252,7 @@ public class PlayPen extends JPanel
 	/**
 	 * Calls {@link #importTableCopy} for each table contained in the given schema.
 	 */
-	public synchronized void addObjects(List list, Point preferredLocation, ArchitectSwingWorker nextProcess) throws ArchitectException {
+	public synchronized void addObjects(List list, Point preferredLocation, SPSwingWorker nextProcess) throws ArchitectException {
 		ProgressMonitor pm
 		 = new ProgressMonitor(this,
 		                      "Copying objects to the playpen",

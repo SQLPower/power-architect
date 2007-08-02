@@ -69,6 +69,7 @@ import ca.sqlpower.architect.swingui.event.PlayPenComponentListener;
 import ca.sqlpower.architect.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.architect.undo.UndoManager;
 import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.swingui.SPSwingWorker;
 
 public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
@@ -117,7 +118,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     
     private List<SessionLifecycleListener> lifecycleListener;
     
-    private Set<ArchitectSwingWorker> swingWorkers;
+    private Set<SPSwingWorker> swingWorkers;
     
     /**
      * Creates a new swing session, including a new visible architect frame, with
@@ -169,7 +170,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         
         lifecycleListener = new ArrayList<SessionLifecycleListener>();
         
-        swingWorkers = new HashSet<ArchitectSwingWorker>();
+        swingWorkers = new HashSet<SPSwingWorker>();
     }
 
     public void initGUI() throws ArchitectException {
@@ -399,7 +400,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         // Note that it is not safe to force threads to stop, so we will
         // have to wait until the threads stop themselves.
         if (swingWorkers.size() > 0) {
-            for (ArchitectSwingWorker currentWorker : swingWorkers) {
+            for (SPSwingWorker currentWorker : swingWorkers) {
                 currentWorker.setCancelled(true);
             }
             
@@ -603,8 +604,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     }
     
     public JDialog getProfileDialog() {
-        // Do the pack here in case this is the first time ever.
-        profileDialog.pack();
         return profileDialog;
     }
     
@@ -646,11 +645,11 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         }
     }
 
-    public void registerSwingWorker(ArchitectSwingWorker worker) {
+    public void registerSwingWorker(SPSwingWorker worker) {
         swingWorkers.add(worker);
     }
 
-    public void removeSwingWorker(ArchitectSwingWorker worker) {
+    public void removeSwingWorker(SPSwingWorker worker) {
         swingWorkers.remove(worker);
     }
 }
