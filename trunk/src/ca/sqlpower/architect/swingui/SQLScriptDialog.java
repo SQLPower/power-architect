@@ -73,7 +73,6 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLStatement;
 import ca.sqlpower.architect.ddl.DDLUserSettings;
-import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.ProgressWatcher;
 import ca.sqlpower.swingui.SPSUtils;
@@ -400,8 +399,7 @@ public class SQLScriptDialog extends JDialog {
 				ASUtils.showExceptionDialog(
 						session,
 						"Couldn't finish running this SQL Script",
-						exc,
-                        new ArchitectExceptionReportFactory());
+						exc);
 			} finally {
 				final String resultsMessage =
 					(stmtsCompleted == 0 ? "Did not execute any out of " :

@@ -34,7 +34,7 @@
  *
  * This code belongs to SQL Power Group Inc.
  */
-package ca.sqlpower.architect.qfa;
+package ca.sqlpower.architect.swingui;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.Collection;
@@ -43,31 +43,63 @@ import javax.swing.tree.TreeModel;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.swingui.ASUtils;
-import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.swingui.ArchitectSwingSessionContext;
-import ca.sqlpower.architect.swingui.DBTree;
-import ca.sqlpower.architect.swingui.PlayPen;
+import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.ArchitectVersion;
+import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.util.ExceptionReport;
 
-
+/**
+ * The ExceptionHandler catches uncaught exceptions and handles
+ * them gracefully by showing an error message dialog and posting
+ * a report to SQL Power.
+ */
 public class ExceptionHandler implements UncaughtExceptionHandler {
 
     private static final Logger logger = Logger.getLogger(ExceptionHandler.class);
-
+    
+    /**
+     * The URL to post the error report to if the system property
+     * that overrides it isn't defined.
+     */
+    public static final String DEFAULT_REPORT_URL = "http://bugs.sqlpower.ca/architect/postReport";
+    
+    /**
+     * The session that this exception was caused in.
+     */
+    private ArchitectSwingSessionContext context;
+    
+    /**
+     * The exception handler is used for handling uncaught exceptions.
+     * 
+     * @param context
+     *            The context is used to get additional information about the
+     *            state of the Architect when an uncaught exception is caught
+     *            here.
+     */
+    public ExceptionHandler (ArchitectSwingSessionContext context) {
+        super();
+        this.context = context;
+    }
+    
+    /**
+     * The uncaughtException method displays an exception dialog to the user
+     * and posts a report to SQL Power at the url specified in the system
+     * properties (or the default if not specified).
+     */
     public void uncaughtException(Thread t, Throwable e) {
         SPSUtils.showExceptionDialogNoReport("An unexpected exception has occured: ", e);
-        QFAFactory qfaFactory = new ArchitectExceptionReportFactory();
-        ArchitectSwingSessionContext context = ASUtils.getContext();
-        ExceptionReport r = qfaFactory.createExceptionReport(e);
-        StringBuffer remarks = new StringBuffer();
+        UserSettings settings = context.getUserSettings().getQfaUserSettings();
+        if (!settings.getBoolean(QFAUserSettings.EXCEPTION_REPORTING,true)) return;
+        ExceptionReport report = new ExceptionReport(e, DEFAULT_REPORT_URL, ArchitectVersion.APP_VERSION, ArchitectUtils.getAppUptime(), "Architect");
         
+        StringBuffer remarks = new StringBuffer();
         Collection<ArchitectSwingSession> sessions = context.getSessions();
         for (ArchitectSwingSession session: sessions) {
             if (session != null) {
                 PlayPen pp = session.getPlayPen();
                 if (pp != null) {
-                    r.setNumObjectsInPlayPen(pp.getPPComponentCount());
+                    report.addAdditionalInfo("Number of objects in the play pen", "" + pp.getPPComponentCount());
                 } else {
                     remarks.append("[playpen was null]");
                 }
@@ -75,7 +107,7 @@ public class ExceptionHandler implements UncaughtExceptionHandler {
                 if (dbt != null) {
                     TreeModel dbtm = dbt.getModel();
                     if (dbtm != null) {
-                        r.setNumSourceConnections(dbtm.getChildCount(dbtm.getRoot()));
+                        report.addAdditionalInfo("Number of source connections", "" + dbtm.getChildCount(dbtm.getRoot()));
                     } else {
                         remarks.append("[dbtree's model was null]");
                     }
@@ -85,9 +117,10 @@ public class ExceptionHandler implements UncaughtExceptionHandler {
             } else {
                 remarks.append("[architect session instance was null]");
             }
-        }            
-
-        r.setRemarks(remarks.toString());
-        r.postReport(context);
+        }
+        report.setRemarks(remarks.toString());
+        
+        report.send();
     }
+    
 }

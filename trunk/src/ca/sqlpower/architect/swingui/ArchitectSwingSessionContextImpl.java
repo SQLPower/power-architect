@@ -50,7 +50,6 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.CoreUserSettings;
-import ca.sqlpower.architect.qfa.ExceptionHandler;
 import ca.sqlpower.architect.swingui.action.OpenProjectAction;
 import ca.sqlpower.architect.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.swingui.SPSUtils;
@@ -115,7 +114,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         System.setProperty("awt.dnd.drag.threshold","10");
         logger.debug("new motion threshold is: " + System.getProperty("awt.dnd.drag.threshold"));
 
-        Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());
+        Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler(this));
 
         recent = new RecentMenu(this) {
             @Override
@@ -348,4 +347,5 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     public void setExitAfterAllSessionsClosed(boolean allowExit) {
         exitAfterAllSessionsClosed = allowExit;
     }
+
 }

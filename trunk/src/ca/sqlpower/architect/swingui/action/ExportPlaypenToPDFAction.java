@@ -46,7 +46,6 @@ import javax.swing.JOptionPane;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectVersion;
-import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
@@ -164,8 +163,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
         } catch (Exception ex) {
             ASUtils.showExceptionDialog(session, 
                     "Could not export the playpen", 
-                    ex, 
-                    new ArchitectExceptionReportFactory());
+                    ex);
         } finally {
             if (d != null) {
                 try {
@@ -173,8 +171,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
                 } catch (Exception ex) {
                     ASUtils.showExceptionDialog(session,
                             "Could not close document for exporting playpen", 
-                            ex, 
-                            new ArchitectExceptionReportFactory());
+                            ex);
                 }
             }
             if (out != null) {
@@ -184,8 +181,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
                 } catch (IOException ex) {
                     ASUtils.showExceptionDialog(session,
                         "Could not close pdf file for exporting playpen", 
-                        ex, 
-                        new ArchitectExceptionReportFactory());
+                        ex);
                 }
             }
         }

@@ -53,7 +53,6 @@ import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
@@ -164,7 +163,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
 							} catch (ArchitectException e) {
 								logger.error("Unexpected exception encountered when attempting to delete column '"+
 										sc+"' of table '"+sc.getParentTable()+"'");
-								ASUtils.showExceptionDialog(session, "Could not delete the column", e, new ArchitectExceptionReportFactory());
+								ASUtils.showExceptionDialog(session, "Could not delete the column", e);
 							}
 						}
 					} finally {
@@ -258,7 +257,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
 						} catch (ArchitectException e) {
 							logger.error("Unexpected exception encountered when attempting to delete column '"+
 									sc+"' of table '"+sc.getParentTable()+"'");
-							ASUtils.showExceptionDialog(session, "Encountered a Problem Deleting the column", e, new ArchitectExceptionReportFactory());
+							ASUtils.showExceptionDialog(session, "Encountered a Problem Deleting the column", e);
 						}
 					} else if (so instanceof SQLRelationship) {
 						SQLRelationship sr = (SQLRelationship) so;
