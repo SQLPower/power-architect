@@ -34,6 +34,7 @@ package ca.sqlpower.architect;
 import junit.framework.TestCase;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
+import ca.sqlpower.util.SQLPowerUtils;
 
 public class ArchitectUtilsTest extends TestCase {
 
@@ -217,7 +218,7 @@ public class ArchitectUtilsTest extends TestCase {
 	 */
 	public void testEscapeXML() throws Exception {
         for (String[] td : sanitizeData) {
-			assertEquals(td[1], ArchitectUtils.escapeXML(td[0]));
+			assertEquals(td[1], SQLPowerUtils.escapeXML(td[0]));
 		}
 		
 	}

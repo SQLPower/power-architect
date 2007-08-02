@@ -78,7 +78,6 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.diff.CompareSQL;
 import ca.sqlpower.architect.diff.DiffChunk;
-import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
 import ca.sqlpower.architect.swingui.CompareDMSettings.DatastoreType;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
 import ca.sqlpower.sql.DataSourceCollection;
@@ -1023,7 +1022,7 @@ public class CompareDMPanel extends JPanel {
 				return;
 			} catch (ArchitectException ex) {
 				ASUtils.showExceptionDialog(session,
-                        "Could not begin diff process", ex, new ArchitectExceptionReportFactory());
+                        "Could not begin diff process", ex);
 				return;
 			}
 
@@ -1042,7 +1041,7 @@ public class CompareDMPanel extends JPanel {
                         Throwable exc = getDoStuffException();
                         logger.error("Error in doStuff()", exc);
                         ASUtils.showExceptionDialog(session,
-                                "Database Comparison Failed!", exc, new ArchitectExceptionReportFactory());
+                                "Database Comparison Failed!", exc);
                         return;
                     }
 					logger.debug("cleanup starts");

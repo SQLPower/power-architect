@@ -84,6 +84,7 @@ import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SPDataSourceType;
+import ca.sqlpower.util.SQLPowerUtils;
 import ca.sqlpower.xml.UnescapingSaxParser;
 import ca.sqlpower.xml.XMLHelper;
 
@@ -1046,7 +1047,7 @@ public class SwingUIProject {
             ioo.println(out, "<?xml version=\"1.0\" encoding=\""+encoding+"\"?>");
             ioo.println(out, "<architect-project version=\"1.0\" appversion=\""+ArchitectVersion.APP_VERSION+"\">");
             ioo.indent++;
-            ioo.println(out, "<project-name>"+ArchitectUtils.escapeXML(session.getName())+"</project-name>");
+            ioo.println(out, "<project-name>"+SQLPowerUtils.escapeXML(session.getName())+"</project-name>");
             saveDataSources(out);
             saveSourceDatabases(out);
             saveTargetDatabase(out);
@@ -1087,7 +1088,7 @@ public class SwingUIProject {
                     id = "DS"+dsNum;
                     dbcsIdMap.put(ds, id);
                 }
-                ioo.println(out, "<data-source id=\""+ArchitectUtils.escapeXML(id)+"\">");
+                ioo.println(out, "<data-source id=\""+SQLPowerUtils.escapeXML(id)+"\">");
                 ioo.indent++;
                 Iterator pit = ds.getPropertiesMap().entrySet().iterator();
                 while (pit.hasNext()) {
@@ -1112,15 +1113,15 @@ public class SwingUIProject {
                 +" type=\""+ session.getDDLGenerator().getClass().getName()+"\""
                 +" allow-connection=\""+session.getDDLGenerator().getAllowConnection()+"\"");
         if (session.getDDLGenerator().getTargetCatalog() != null) {
-            ioo.niprint(out, " target-catalog=\""+ArchitectUtils.escapeXML(session.getDDLGenerator().getTargetCatalog())+"\"");
+            ioo.niprint(out, " target-catalog=\""+SQLPowerUtils.escapeXML(session.getDDLGenerator().getTargetCatalog())+"\"");
         }
         if (session.getDDLGenerator().getTargetSchema() != null) {
-            ioo.niprint(out, " target-schema=\""+ArchitectUtils.escapeXML(session.getDDLGenerator().getTargetSchema())+"\"");
+            ioo.niprint(out, " target-schema=\""+SQLPowerUtils.escapeXML(session.getDDLGenerator().getTargetSchema())+"\"");
         }
         ioo.niprint(out, ">");
         ioo.indent++;
         if (session.getDDLGenerator().getFile() != null) {
-            ioo.println(out, "<file path=\""+ArchitectUtils.escapeXML(session.getDDLGenerator().getFile().getPath())+"\" />");
+            ioo.println(out, "<file path=\""+SQLPowerUtils.escapeXML(session.getDDLGenerator().getFile().getPath())+"\" />");
         }
         ioo.indent--;
         ioo.println(out, "</ddl-generator>");
@@ -1128,9 +1129,9 @@ public class SwingUIProject {
     
     private void saveCreateKettleJobSettings(PrintWriter out) throws IOException {
         ioo.print(out, "<create-kettle-job-settings");
-        ioo.niprint(out, " filePath=\"" + ArchitectUtils.escapeXML(session.getCreateKettleJob().getFilePath()) + "\"");
-        ioo.niprint(out, " jobName=\"" + ArchitectUtils.escapeXML(session.getCreateKettleJob().getJobName()) + "\"");
-        ioo.niprint(out, " schemaName=\"" + ArchitectUtils.escapeXML(session.getCreateKettleJob().getSchemaName()) + "\"");
+        ioo.niprint(out, " filePath=\"" + SQLPowerUtils.escapeXML(session.getCreateKettleJob().getFilePath()) + "\"");
+        ioo.niprint(out, " jobName=\"" + SQLPowerUtils.escapeXML(session.getCreateKettleJob().getJobName()) + "\"");
+        ioo.niprint(out, " schemaName=\"" + SQLPowerUtils.escapeXML(session.getCreateKettleJob().getSchemaName()) + "\"");
         ioo.niprint(out, " kettleJoinType=\"" + session.getCreateKettleJob().getKettleJoinType() + "\"");
         ioo.niprint(out, " savingToFile=\"" + session.getCreateKettleJob().isSavingToFile() + "\"");
         ioo.niprintln(out, " />");
@@ -1148,8 +1149,8 @@ public class SwingUIProject {
         if ( !session.getCompareDMSettings().getSaveFlag() )
             return;
         ioo.print(out, "<compare-dm-settings");
-        ioo.print(out, " sqlScriptFormat=\""+ArchitectUtils.escapeXML(session.getCompareDMSettings().getSqlScriptFormat())+"\"");
-        ioo.print(out, " outputFormatAsString=\""+ArchitectUtils.escapeXML(session.getCompareDMSettings().getOutputFormatAsString())+"\"");
+        ioo.print(out, " sqlScriptFormat=\""+SQLPowerUtils.escapeXML(session.getCompareDMSettings().getSqlScriptFormat())+"\"");
+        ioo.print(out, " outputFormatAsString=\""+SQLPowerUtils.escapeXML(session.getCompareDMSettings().getOutputFormatAsString())+"\"");
         ioo.println(out, ">");
         ioo.indent++;
         ioo.print(out, "<source-stuff");
@@ -1164,15 +1165,15 @@ public class SwingUIProject {
 
 
     private void saveSourceOrTargetAttributes(PrintWriter out, SourceOrTargetSettings sourceSettings) {
-        ioo.print(out, " datastoreTypeAsString=\""+ArchitectUtils.escapeXML(sourceSettings.getDatastoreTypeAsString())+"\"");
+        ioo.print(out, " datastoreTypeAsString=\""+SQLPowerUtils.escapeXML(sourceSettings.getDatastoreTypeAsString())+"\"");
         if (sourceSettings.getConnectName() != null)
-            ioo.print(out, " connectName=\""+ArchitectUtils.escapeXML(sourceSettings.getConnectName())+"\"");
+            ioo.print(out, " connectName=\""+SQLPowerUtils.escapeXML(sourceSettings.getConnectName())+"\"");
 
         if (sourceSettings.getCatalog() != null)
-            ioo.print(out, " catalog=\""+ArchitectUtils.escapeXML(sourceSettings.getCatalog())+"\"");
+            ioo.print(out, " catalog=\""+SQLPowerUtils.escapeXML(sourceSettings.getCatalog())+"\"");
         if (sourceSettings.getSchema() != null)
-            ioo.print(out, " schema=\""+ArchitectUtils.escapeXML(sourceSettings.getSchema())+"\"");
-        ioo.print(out, " filePath=\""+ArchitectUtils.escapeXML(sourceSettings.getFilePath())+"\"");
+            ioo.print(out, " schema=\""+SQLPowerUtils.escapeXML(sourceSettings.getSchema())+"\"");
+        ioo.print(out, " filePath=\""+SQLPowerUtils.escapeXML(sourceSettings.getFilePath())+"\"");
 
     }
     /**
@@ -1304,21 +1305,21 @@ public class SwingUIProject {
                     ioo.println(out, "<avgValue type=\"" +
                             cpr.getAvgValue().getClass().getName() +
                             "\" value=\""+
-                            ArchitectUtils.escapeXML(String.valueOf(cpr.getAvgValue())) +
+                            SQLPowerUtils.escapeXML(String.valueOf(cpr.getAvgValue())) +
                             "\"/>" );
                 }
                 if ( cpr.getMaxValue() != null ) {
                     ioo.println(out, "<maxValue type=\"" +
                             cpr.getMaxValue().getClass().getName() +
                             "\" value=\""+
-                            ArchitectUtils.escapeXML(String.valueOf(cpr.getMaxValue())) +
+                            SQLPowerUtils.escapeXML(String.valueOf(cpr.getMaxValue())) +
                             "\"/>" );
                 }
                 if ( cpr.getMinValue() != null ) {
                     ioo.println(out, "<minValue type=\"" +
                             cpr.getMinValue().getClass().getName() +
                             "\" value=\""+
-                            ArchitectUtils.escapeXML(String.valueOf(cpr.getMinValue())) +
+                            SQLPowerUtils.escapeXML(String.valueOf(cpr.getMinValue())) +
                             "\"/>" );
                 }
 
@@ -1330,7 +1331,7 @@ public class SwingUIProject {
                                 "\" type=\"" +
                                 (count.getValue() == null ? "" : count.getValue().getClass().getName()) +
                                 "\" value=\""+
-                                ArchitectUtils.escapeXML(String.valueOf(count.getValue()))+
+                                SQLPowerUtils.escapeXML(String.valueOf(count.getValue()))+
                                 "\"/>" );
                     }
                 }
@@ -1351,8 +1352,8 @@ public class SwingUIProject {
                 " createEndTime=\""+profileResult.getCreateEndTime()+"\"" +
                 " exception=\""+(profileResult.getException() == null ? "false" : "true")+"\"");
         if (profileResult.getException() != null) {
-            ioo.niprint(out, " exception-type=\""+ArchitectUtils.escapeXML(profileResult.getException().getClass().getName())+"\"");
-            ioo.niprint(out, " exception-message=\""+ArchitectUtils.escapeXML(profileResult.getException().getMessage())+"\"");
+            ioo.niprint(out, " exception-type=\""+SQLPowerUtils.escapeXML(profileResult.getException().getClass().getName())+"\"");
+            ioo.niprint(out, " exception-message=\""+SQLPowerUtils.escapeXML(profileResult.getException().getMessage())+"\"");
         }
     }
     
@@ -1374,7 +1375,7 @@ public class SwingUIProject {
     private void saveSQLObject(PrintWriter out, SQLObject o) throws IOException, ArchitectException {
         String id = (String) objectIdMap.get(o);
         if (id != null) {
-            ioo.println(out, "<reference ref-id=\""+ArchitectUtils.escapeXML(id)+"\" />");
+            ioo.println(out, "<reference ref-id=\""+SQLPowerUtils.escapeXML(id)+"\" />");
             return;
         }
 
@@ -1516,7 +1517,7 @@ public class SwingUIProject {
     }
 
     private String quote(String str) {
-        return "\""+ArchitectUtils.escapeXML(str)+"\"";
+        return "\""+SQLPowerUtils.escapeXML(str)+"\"";
     }
     // ------------------- accessors and mutators ---------------------
 

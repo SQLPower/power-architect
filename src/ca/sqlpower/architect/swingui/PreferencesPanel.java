@@ -49,7 +49,6 @@ import javax.swing.filechooser.FileFilter;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.ddl.DDLUserSettings;
 import ca.sqlpower.architect.etl.ETLUserSettings;
-import ca.sqlpower.architect.qfa.QFAUserSettings;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.SPSUtils;
 

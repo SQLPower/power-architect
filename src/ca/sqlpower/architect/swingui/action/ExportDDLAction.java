@@ -58,7 +58,6 @@ import ca.sqlpower.architect.ddl.DDLWarning;
 import ca.sqlpower.architect.ddl.DDLWarningComponent;
 import ca.sqlpower.architect.ddl.DDLWarningComponentFactory;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
-import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DDLExportPanel;
@@ -428,7 +427,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
 		public void cleanup() {
 			if (errorMessage != null) {
 				ASUtils.showExceptionDialog(session,
-                    "Error Dropping Conflicts: "+errorMessage, error, new ArchitectExceptionReportFactory());
+                    "Error Dropping Conflicts: "+errorMessage, error);
 				setCancelled(true);
 			}
 		}

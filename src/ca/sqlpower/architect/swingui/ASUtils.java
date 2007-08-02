@@ -59,14 +59,16 @@ import javax.swing.JOptionPane;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
-import ca.sqlpower.architect.qfa.ExceptionReport;
+import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.ArchitectVersion;
+import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SPDataSourceType;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 import ca.sqlpower.swingui.SPDataSourcePanel;
 import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.util.ExceptionReport;
 
 /**
  * ASUtils is a container class for static utility methods used
@@ -137,7 +139,6 @@ public class ASUtils {
      */
 	public static void setupTargetDBComboBox(final ArchitectSwingSession session, final JComboBox targetDB) {
         JComboBox newTargetDB = new JComboBox();
-        final SwingUIProject project = session.getProject();
         SPDataSource currentTarget = session.getPlayPen().getDatabase().getDataSource();
         newTargetDB.addItem(currentTarget);
         for (SPDataSource dbcs : session.getUserSettings().getConnections()) {
@@ -474,22 +475,6 @@ public class ASUtils {
     /**
      * Displays a dialog box with the given message and exception,
      * allowing the user to examine the stack trace.  The dialog will
-     * use the architect frame in the provided session as its parent.
-     * <p>
-     * Also attempts to post an anonymous description of the error to
-     * a central reporting server.
-     * 
-     * @param session The session that the exception occurred in
-     * @param message A user-visible message that describes what went wrong
-     * @param t The exception that warranted a dialog
-     */
-    public static void showExceptionDialog(ArchitectSwingSession session, String message, Throwable t) {
-        showExceptionDialog(session, message, t, new ArchitectExceptionReportFactory());
-    }
-    
-    /**
-     * Displays a dialog box with the given message and exception,
-     * allowing the user to examine the stack trace.  The dialog will
      * use the provided component as its parent.
      * 
      * @param parent The parent component that will own the dialog
@@ -511,23 +496,22 @@ public class ASUtils {
      * @param session The session that the exception occurred in
      * @param message A user visible string that should describe the problem
      * @param t The exception that warranted a dialog
-     * @param factory An ErrorReportFactory that will be used to format and
-     *                  send an error report
      */
-    public static void showExceptionDialog(ArchitectSwingSession session, String message, Throwable t, ArchitectExceptionReportFactory factory) {
+    public static void showExceptionDialog(ArchitectSwingSession session, String message, Throwable t) {
         try {
-            ExceptionReport er = factory.createExceptionReport(t);
+            UserSettings settings = context.getUserSettings().getQfaUserSettings();
+            if (!settings.getBoolean(QFAUserSettings.EXCEPTION_REPORTING,true)) return;
+            ExceptionReport report = new ExceptionReport(t, ExceptionHandler.DEFAULT_REPORT_URL, ArchitectVersion.APP_VERSION, ArchitectUtils.getAppUptime(), "Architect");
             
             if (session != null &&
                     session.getProject() != null &&
                     session.getPlayPen() != null &&
                     session.getSourceDatabases() != null) {
                 PlayPen pp = session.getPlayPen();
-                er.setNumObjectsInPlayPen(pp.getTablePanes().size() + pp.getRelationships().size());
-                er.setNumSourceConnections(session.getSourceDatabases().getDatabaseList().size());
-                er.setUserActivityDescription("");
-                logger.debug(er.toString());
-                er.postReport(session.getContext());
+                report.addAdditionalInfo("Number of objects in the play pen", "" + pp.getTablePanes().size() + pp.getRelationships().size());
+                report.addAdditionalInfo("Number of source connections", "" + session.getSourceDatabases().getDatabaseList().size()); 
+                logger.debug(report.toString());
+                report.send();
             }
         } catch (Throwable seriousProblem) {
             logger.error("Couldn't generate and send exception report!  Note that this is not the primary problem; it's a side effect of trying to report the real problem.", seriousProblem);

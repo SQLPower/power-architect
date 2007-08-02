@@ -50,7 +50,6 @@ import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLTable.Folder;
 import ca.sqlpower.architect.profile.ProfileManager;
-import ca.sqlpower.architect.qfa.ArchitectExceptionReportFactory;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DBTree;
@@ -197,7 +196,7 @@ public class ProfilePanelAction extends ProgressAction {
 
         } catch (Exception ex) {
             logger.error("Error in Profile Action ", ex);
-            ASUtils.showExceptionDialog(session, "Error during profile run", ex, new ArchitectExceptionReportFactory());
+            ASUtils.showExceptionDialog(session, "Error during profile run", ex);
         }
     }
 

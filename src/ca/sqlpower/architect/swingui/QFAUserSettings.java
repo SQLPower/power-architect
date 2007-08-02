@@ -29,7 +29,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package ca.sqlpower.architect.qfa;
+package ca.sqlpower.architect.swingui;
 
 import ca.sqlpower.architect.AbstractUserSetting;
 
