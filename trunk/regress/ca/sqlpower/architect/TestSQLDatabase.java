@@ -483,16 +483,6 @@ public class TestSQLDatabase extends SQLTestCase {
 	}
 
 	/*
-	 * Test method for 'ca.sqlpower.architect.SQLDatabase.getProgressMonitor()'
-	 */
-	public void testGetProgressMonitor() throws ArchitectException {
-		SQLDatabase db1 = new SQLDatabase();
-		assertNotNull (db1.getProgressMonitor());
-		assertNotNull (db.getProgressMonitor());
-	}
-
-
-	/*
 	 * Test method for 'ca.sqlpower.architect.SQLObject.fireDbChildrenInserted(int[], List)'
 	 */
 	public void testFireDbChildrenInserted() throws ArchitectException {

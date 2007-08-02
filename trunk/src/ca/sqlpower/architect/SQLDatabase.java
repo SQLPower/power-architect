@@ -559,36 +559,6 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 		return getName();
 	}
 	
-	private PopulateProgressMonitor progressMonitor;
-
-
-	public synchronized PopulateProgressMonitor getProgressMonitor() throws ArchitectException {
-		if (progressMonitor == null) {
-			progressMonitor = new PopulateProgressMonitor();
-		}
-		return progressMonitor;
-	}
-	
-	// -------------- Small class for monitoring populate progress -----------------
-	
-	public class PopulateProgressMonitor {
-		
-		/**
-		 * Returns null, which will keep the monitor in indeterminate mode.
-		 */
-		public Integer getJobSize() throws ArchitectException {
-			return null;
-		}
-		
-		public int getProgress() {
-			return 0;
-		}
-		
-		public boolean isFinished() {
-			return isPopulated();
-		}
-	}
-
 	/**
 	 * Closes all connections and other resources that were allocated
 	 * by the connect() method.  Logs, but does not propogate, SQL exceptions.
