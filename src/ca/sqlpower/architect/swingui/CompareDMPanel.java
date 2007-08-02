@@ -262,11 +262,11 @@ public class CompareDMPanel extends JPanel {
 		/**
 		 * Finds all the children of a database and puts them in the GUI.
 		 */
-		public class CatalogPopulator extends Populator implements
+		public class CatalogPopulator extends PopulateProgressMonitorableWorker implements
 				ActionListener {
 
-			private SQLDatabase db;
-
+		    private SQLDatabase db;
+		    
             public CatalogPopulator(ArchitectSwingSession session) {
                 super(session);
             }
@@ -283,19 +283,11 @@ public class CompareDMPanel extends JPanel {
 				startCompareAction.setEnabled(false);
 				db = getDatabase();
 				if (db != null) {
-
-					try {
-						progressMonitor = db.getProgressMonitor();
-					} catch (ArchitectException e1) {
-						logger.debug("Error getting progressMonitor", e1);
-					}
-
 					// disable start button (listers will reenable it when
 					// finished)
 					if (((JComboBox) (e.getSource())).getSelectedIndex() == 0) {
 						startCompareAction.setEnabled(false);
 					}
-
 					new Thread(this).start();
 
 				} else {
@@ -315,10 +307,10 @@ public class CompareDMPanel extends JPanel {
 			public void doStuff() throws Exception {
 
 				try {
-					ListerProgressBarUpdater progressBarUpdater =
-						new ListerProgressBarUpdater(progressBar, this);
-					new javax.swing.Timer(100, progressBarUpdater).start();
+					ProgressWatcher progressBarUpdater =
+						new ProgressWatcher(progressBar, this);
 
+					started = true;
 					db.populate();
 
 				} catch (ArchitectException e) {
@@ -344,7 +336,7 @@ public class CompareDMPanel extends JPanel {
 			 */
 			@Override
 			public void cleanup() throws ArchitectException {
-				setCleanupExceptionMessage("Could not populate catalog dropdown!");
+			    setCleanupExceptionMessage("Could not populate catalog dropdown!");
 
 				catalogDropdown.removeAllItems();
 				catalogDropdown.setEnabled(false);
@@ -398,17 +390,17 @@ public class CompareDMPanel extends JPanel {
 
 					final SQLObject finalSchemaParent = schemaParent;
 
-					new Thread(new Populator(session) {
+					new Thread(new PopulateProgressMonitorableWorker(session) {
 
 						@Override
 						public void doStuff() throws Exception {
-							ListerProgressBarUpdater progressBarUpdater =
-								new ListerProgressBarUpdater(progressBar, this);
-							new javax.swing.Timer(100, progressBarUpdater)
-									.start();
+							ProgressWatcher progressBarUpdater = 
+							    new ProgressWatcher(progressBar, this);
 							// this populates the schema parent (populate is not
 							// visible here)
+							started = true;
 							finalSchemaParent.getChildren();
+							finished = true;
 						}
 
 						/**
@@ -438,12 +430,20 @@ public class CompareDMPanel extends JPanel {
 					}).start();
 				}
 			}
+
+			// Overriding isFinished to be based on the state of db.
+            public boolean isFinished() {
+                if (db != null) {
+                    return db.isPopulated();
+                }
+                return true;
+            }
 		}
 
 		/**
 		 * Finds all the children of a catalog and puts them in the GUI.
 		 */
-		public class SchemaPopulator extends Populator implements
+		public class SchemaPopulator extends PopulateProgressMonitorableWorker implements
 				ActionListener {
 
 			public SchemaPopulator(ArchitectSwingSession session) {
@@ -472,13 +472,13 @@ public class CompareDMPanel extends JPanel {
 			@Override
 			public void doStuff() throws ArchitectException {
 				logger.debug("SCHEMA POPULATOR IS STARTED...");
-				ListerProgressBarUpdater progressBarUpdater =
-					new ListerProgressBarUpdater(progressBar, this);
-				new javax.swing.Timer(100, progressBarUpdater).start();
-
+				ProgressWatcher progressBarUpdater =
+					new ProgressWatcher(progressBar, this);
+				started = true;
 				SQLCatalog catToPopulate = (SQLCatalog) catalogDropdown
 						.getSelectedItem();
 				catToPopulate.getChildren(); // this might take a while
+				finished = true;
 			}
 
 			/**
@@ -490,7 +490,7 @@ public class CompareDMPanel extends JPanel {
 			 */
 			@Override
 			public void cleanup() throws ArchitectException {
-				logger.debug("SCHEMA POPULATOR IS ABOUT TO CLEAN UP...");
+			    logger.debug("SCHEMA POPULATOR IS ABOUT TO CLEAN UP...");
 				schemaLabel.setText("");
 				SQLCatalog populatedCat = (SQLCatalog) catalogDropdown
 						.getSelectedItem();
@@ -509,9 +509,46 @@ public class CompareDMPanel extends JPanel {
 				}
 				startCompareAction.setEnabled(isStartable());
 			}
-
 		}
+		    
+	    // -------------- Small class for monitoring populate progress -----------------
+	    // TODO Document this class!!!!
+	    private abstract class PopulateProgressMonitorableWorker extends MonitorableWorker {
+	        
+	        boolean started = false;
+	        boolean finished = false;
+	        
+	        public PopulateProgressMonitorableWorker(ArchitectSwingSession session) {
+                super(session);
+            }
+	        	        
+	        /**
+	         * Returns null, which will keep the monitor in indeterminate mode.
+	         */
+	        public Integer getJobSize() {
+	            return null;
+	        }
+	        
+	        /**
+	         * Cannot measure progress of connecting to the database, so always return 0
+	         */
+	        public int getProgress() {
+	            return 0;
+	        }
+	        
+	        public boolean isFinished() {
+	            return finished;
+	        }
 
+	        public String getMessage() {
+	            return "Connecting to database...";
+	        }
+
+	        public boolean hasStarted() {
+	            return started;
+	        }
+	    }
+		
 		public synchronized JDialog getNewConnectionDialog() {
 			return newConnectionDialog;
 		}

@@ -143,8 +143,8 @@ public class CompareSQL implements Monitorable {
 	
 	public List<DiffChunk<SQLObject>> generateTableDiffs() throws ArchitectException {
 		try {
-			Iterator sourceIter = sourceTableSet.iterator();
-			Iterator targetIter = targetTableSet.iterator();
+			Iterator<SQLTable> sourceIter = sourceTableSet.iterator();
+			Iterator<SQLTable> targetIter = targetTableSet.iterator();
 			SQLTable targetTable;
 			SQLTable sourceTable;
 			boolean sourceContinue;
@@ -155,7 +155,7 @@ public class CompareSQL implements Monitorable {
 			if (sourceIter.hasNext()) {
 
 				sourceContinue = true;
-				sourceTable = (SQLTable) sourceIter.next();
+				sourceTable = sourceIter.next();
 			} else {
 				sourceContinue = false;
 				sourceTable = null;
@@ -163,7 +163,7 @@ public class CompareSQL implements Monitorable {
 
 			if (targetIter.hasNext()) {
 				targetContinue = true;
-				targetTable = (SQLTable) targetIter.next();
+				targetTable = targetIter.next();
 			} else {
 				targetContinue = false;
 				targetTable = null;
