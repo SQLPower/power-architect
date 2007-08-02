@@ -32,6 +32,8 @@
 package ca.sqlpower.architect.profile;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 
@@ -64,6 +66,13 @@ public abstract class AbstractProfileResult<T extends SQLObject>
     private boolean finished = false;
 
     /**
+     * A list of ProfileResultListeners that should be notified of the
+     * status of the progress of the profiling operation on this profile result
+     */
+    private final List<ProfileResultListener> profileResultListeners
+    = new ArrayList<ProfileResultListener>();
+    
+    /**
      * Creates a new ProfileResult which will hold profile data about the given SQL Object.
      *
      * @param profiledObject The object that this profile data refers to.  Must not be null.
@@ -76,9 +85,15 @@ public abstract class AbstractProfileResult<T extends SQLObject>
     /**
      * A generic template for populating a profile result.  Calls {@link #doProfile()}
      * to perform the actual work of populating this profile result.
+     * <p>
+     * This method will fire a profileStarted event before calling the subclass's
+     * doProfile, then fire a profileFinished event after doProfile exits (with
+     * or without success) unless this profile population has been cancelled,
+     * in which case it fires a profileCancelled event.
      */
     public void populate() {
         try {
+            fireProfileStarted();
             message = getProfiledObject().getName();
             if (!cancelled) {
                 initialize();
@@ -90,6 +105,11 @@ public abstract class AbstractProfileResult<T extends SQLObject>
         } finally {
             finish();
             progress++;
+            if (isCancelled()) {
+                fireProfileCancelled();
+            } else {
+                fireProfileFinished();
+            }
         }
     }
 
@@ -365,4 +385,32 @@ public abstract class AbstractProfileResult<T extends SQLObject>
         this.settings = settings;
     }
 
+    public void addProfileResultListener(ProfileResultListener listener) {
+        profileResultListeners.add(listener);
+    }
+    
+    public void removeProfileResultListener(ProfileResultListener listener) {
+        profileResultListeners.remove(listener);
+    }
+    
+    protected final void fireProfileStarted() {
+        ProfileResultEvent event = new ProfileResultEvent(this);
+        for (int i = profileResultListeners.size() - 1; i >= 0; i--) {
+            profileResultListeners.get(i).profileStarted(event);
+        }
+    }
+    
+    protected final void fireProfileFinished() {
+        ProfileResultEvent event = new ProfileResultEvent(this);
+        for (int i = profileResultListeners.size() - 1; i >= 0; i--) {
+            profileResultListeners.get(i).profileFinished(event);
+        }
+    }
+    
+    protected final void fireProfileCancelled() {
+        ProfileResultEvent event = new ProfileResultEvent(this);
+        for (int i = profileResultListeners.size() - 1; i >= 0; i--) {
+            profileResultListeners.get(i).profileCancelled(event);
+        }
+    }
 }

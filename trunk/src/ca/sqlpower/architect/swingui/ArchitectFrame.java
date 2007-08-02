@@ -94,7 +94,7 @@ import ca.sqlpower.architect.swingui.action.InsertIndexAction;
 import ca.sqlpower.architect.swingui.action.OpenProjectAction;
 import ca.sqlpower.architect.swingui.action.PreferencesAction;
 import ca.sqlpower.architect.swingui.action.PrintAction;
-import ca.sqlpower.architect.swingui.action.ProfilePanelAction;
+import ca.sqlpower.architect.swingui.action.ProfileAction;
 import ca.sqlpower.architect.swingui.action.ProjectSettingsAction;
 import ca.sqlpower.architect.swingui.action.RedoAction;
 import ca.sqlpower.architect.swingui.action.SQLRunnerAction;
@@ -141,7 +141,7 @@ public class ArchitectFrame extends JFrame {
     private ProjectSettingsAction projectSettingsAction;
     private PrintAction printAction;
     private ExportPlaypenToPDFAction exportPlaypenToPDFAction;
-    private ProfilePanelAction profileAction;
+    private ProfileAction profileAction;
     private ViewProfileAction viewProfileAction;
     private ZoomAction zoomInAction;
     private ZoomAction zoomOutAction;
@@ -336,7 +336,7 @@ public class ArchitectFrame extends JFrame {
         selectAllAction.putValue(AbstractAction.ACCELERATOR_KEY,
                 KeyStroke.getKeyStroke(KeyEvent.VK_A, accelMask));
 
-        profileAction = new ProfilePanelAction(session, session.getProfileManager());
+        profileAction = new ProfileAction(session, session.getProfileManager());
 
         menuBar = new JMenuBar();
 

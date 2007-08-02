@@ -55,9 +55,9 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ArchitectSwingSessionContext;
-import ca.sqlpower.architect.swingui.ArchitectSwingWorker;
 import ca.sqlpower.architect.swingui.RecentMenu;
 import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.swingui.SPSwingWorker;
 
 public class OpenProjectAction extends AbstractArchitectAction {
     
@@ -113,7 +113,7 @@ public class OpenProjectAction extends AbstractArchitectAction {
     /**
      * A worker for asynchronously loading a new project file.
      */
-    private static class LoadFileWorker extends ArchitectSwingWorker {
+    private static class LoadFileWorker extends SPSwingWorker {
         private final ArchitectSwingSessionContext context;
         private final InputStream in;
         private final File file;

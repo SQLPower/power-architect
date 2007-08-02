@@ -31,6 +31,7 @@
  */
 package ca.sqlpower.architect.swingui;
 
+import ca.sqlpower.swingui.SPSwingWorker;
 import ca.sqlpower.util.Monitorable;
 
 
@@ -38,7 +39,7 @@ import ca.sqlpower.util.Monitorable;
  * The MonitorableWorker is an ArchitectSwingWorker that also
  * implements the Monitorable interface.
  */
-public abstract class MonitorableWorker extends ArchitectSwingWorker implements Monitorable {
+public abstract class MonitorableWorker extends SPSwingWorker implements Monitorable {
 
     public MonitorableWorker(ArchitectSwingSession session) {
         super(session);

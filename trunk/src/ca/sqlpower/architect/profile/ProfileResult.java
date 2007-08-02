@@ -83,4 +83,15 @@ public interface ProfileResult<T extends SQLObject> extends Monitorable {
      */
     public void populate();
 
+    /**
+     * Add a ProfileResultListener that should be notified of changes in the
+     * status of this ProfileResult's progress during a profile operation 
+     */
+    public void addProfileResultListener(ProfileResultListener listener);
+
+    /**
+     * Remove a ProfileResultListener from this ProfileResult's 
+     * collection of ProfileResultListeners
+     */
+    public void removeProfileResultListener(ProfileResultListener listener);
 }

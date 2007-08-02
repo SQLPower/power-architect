@@ -42,8 +42,8 @@ import javax.swing.JLabel;
 import javax.swing.JProgressBar;
 
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.swingui.ArchitectSwingWorker;
 import ca.sqlpower.swingui.ProgressWatcher;
+import ca.sqlpower.swingui.SPSwingWorker;
 import ca.sqlpower.swingui.event.TaskTerminationEvent;
 import ca.sqlpower.swingui.event.TaskTerminationListener;
 import ca.sqlpower.util.Monitorable;
@@ -53,7 +53,7 @@ import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 /**
  * This class creates an action with a built in progress dialog.  
- * 
+ * <p>
  * By default this class sets up a dialog with an indeterminate progress
  * bar.  The dialog automatically closes when the job finishes.
  */
@@ -166,7 +166,7 @@ public abstract class ProgressAction extends AbstractArchitectAction {
         }),c.xy(3,6));
         progressDialog.add(pb.getPanel());
         
-        ArchitectSwingWorker worker = new ArchitectSwingWorker(session) {
+        SPSwingWorker worker = new SPSwingWorker(session) {
             @Override
             public void cleanup() throws Exception {
                 ProgressAction.this.cleanUp(monitor);
@@ -179,7 +179,7 @@ public abstract class ProgressAction extends AbstractArchitectAction {
             }
         };
         ProgressWatcher pw = new ProgressWatcher(progressBar,monitor);
-        pw.addTaskTerminationListener(new TaskTerminationListener() {
+        worker.addTaskTerminationListener(new TaskTerminationListener() {
             public void taskFinished(TaskTerminationEvent e) {
                 progressDialog.dispose();
             }

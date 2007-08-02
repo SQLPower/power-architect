@@ -87,8 +87,22 @@ public interface ProfileManager {
     public Collection<Future<TableProfileResult>> asynchCreateProfiles(Collection<SQLTable> tables);
 
     /**
+     * Schedules a profile to be populated on a separate worker thread. You will
+     * not normally need to call this method, since it is done for you by
+     * {@link #asynchCreateProfiles(Collection)}. The use case is for re-trying
+     * profile results that have been canceled by the user before they managed
+     * to fully populate.
+     * 
+     * @param result
+     *            The result object to reschedule for profiling. It must already
+     *            be owned by this profile manager, and must not be in the
+     *            process of profiling, and also not already finished profiling.
+     */
+    public Future<TableProfileResult> scheduleProfile(TableProfileResult result);
+    
+    /**
      * Removes a single TableProfileResult from the List of TableProfileResults
-     * that this ProfileManager keeps track of. If the remove was sucessful then
+     * that this ProfileManager keeps track of. If the remove was successful then
      * this method will fire a ProfileRemoved event and return true.
      */
     public boolean removeProfile(TableProfileResult victim);
@@ -126,4 +140,5 @@ public interface ProfileManager {
      * part of this profile manager, but have not been calculated yet.
      */
     public void setProcessingOrder(List<TableProfileResult> tpr);
+
 }

@@ -252,6 +252,4 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
     public void setRowCount(int rowCount) {
         this.rowCount = rowCount;
     }
-    
-    
 }

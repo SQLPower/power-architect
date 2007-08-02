@@ -40,6 +40,7 @@ import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.kettle.CreateKettleJob;
 import ca.sqlpower.architect.undo.UndoManager;
+import ca.sqlpower.swingui.SwingWorkerRegistry;
 
 /**
  * The ArchitectSwingSession interface provides methods that are applicable
@@ -47,7 +48,7 @@ import ca.sqlpower.architect.undo.UndoManager;
  * interface, which provides information about a session with the core (non-UI specific)
  * objects.
  */
-public interface ArchitectSwingSession extends ArchitectSession {
+public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegistry {
 
     /**
      * Returns the project associated with this session.  The project
@@ -96,6 +97,9 @@ public interface ArchitectSwingSession extends ArchitectSession {
     
     public GenericDDLGenerator getDDLGenerator();
     
+    /**
+     * Returns the JDialog containing the ProfileManagerView
+     */
     public JDialog getProfileDialog();
     
     /**
@@ -163,19 +167,5 @@ public interface ArchitectSwingSession extends ArchitectSession {
      * @throws IllegalStateException if showGUI==true and this method was
      * not called on the Event Dispatch Thread.
      */
-    public void initGUI() throws ArchitectException;
-
-    /**
-     * Makes the session aware of the given ArchitectSwingWorker instance.
-     * When the session dies, it can then tell the ArchitectSwingWorker
-     * instances it keeps track of to stop running. 
-     */
-    public void registerSwingWorker(ArchitectSwingWorker worker);
-
-    /**
-     * Removes knowledge of this ArchitectSwingWorker from this session.
-     * This should only happen when the ArchitectSwingWorker is finished
-     * before the session is closed.
-     */
-    public void removeSwingWorker(ArchitectSwingWorker worker);    
+    public void initGUI() throws ArchitectException;   
 }

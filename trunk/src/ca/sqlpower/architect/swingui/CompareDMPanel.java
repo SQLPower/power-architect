@@ -85,6 +85,7 @@ import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.ConnectionComboBoxModel;
 import ca.sqlpower.swingui.ProgressWatcher;
 import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.swingui.SPSwingWorker;
 import ca.sqlpower.swingui.SPSUtils.LabelValueBean;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
@@ -552,10 +553,6 @@ public class CompareDMPanel extends JPanel {
 			return newConnectionDialog;
 		}
 
-		private synchronized void setNewConnectionDialog(JDialog d) {
-			newConnectionDialog = d;
-		}
-
 		/**
 		 * Creates the GUI components associated with this object, and appends
 		 * them to the given builder.
@@ -994,14 +991,14 @@ public class CompareDMPanel extends JPanel {
 				if (left.getChildType() == SQLTable.class) {
 					sourceTables = left.getChildren();
 				} else {
-					sourceTables = new ArrayList();
+					sourceTables = new ArrayList<SQLTable>();
 				}
 
 				right = target.getObjectToCompare();
 				if (right.getChildType() == SQLTable.class) {
 					targetTables = right.getChildren();
 				} else {
-					targetTables = new ArrayList();
+					targetTables = new ArrayList<SQLTable>();
 				}
 
 				sourceComp = new CompareSQL(sourceTables,
@@ -1026,7 +1023,7 @@ public class CompareDMPanel extends JPanel {
 				return;
 			}
 
-			ArchitectSwingWorker compareWorker = new ArchitectSwingWorker(session) {
+			SPSwingWorker compareWorker = new SPSwingWorker(session) {
 
 				private List<DiffChunk<SQLObject>> diff;
 				private List<DiffChunk<SQLObject>> diff1;
