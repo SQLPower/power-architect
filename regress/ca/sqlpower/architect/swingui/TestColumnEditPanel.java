@@ -39,6 +39,7 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.SQLType;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 
 public class TestColumnEditPanel extends TestCase {

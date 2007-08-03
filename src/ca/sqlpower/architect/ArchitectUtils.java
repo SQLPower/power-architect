@@ -37,9 +37,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.swing.JTree;
-import javax.swing.tree.TreePath;
-
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
@@ -503,26 +500,6 @@ public class ArchitectUtils {
         } else {
             throw new IllegalStateException("Unknown database child type: " + db.getChildType());
         }
-    }
-    
-    /**
-     * Returns the first object of given type on JTree if there is any
-     * on the selected path
-     *
-     * @param so The object for whose ancestor to look. (Thanks, Winston).
-     * @return The nearest ancestor of type ancestorType, or null if no such ancestor exists.
-     */
-    public static <T extends Object> T getTreeObject(JTree tree, Class<T> type) {
-        TreePath [] paths = tree.getSelectionPaths();
-        if ( paths == null || paths.length == 0 )
-            return null;
-        for ( int i=0; i<paths.length; i++ ) {
-            TreePath path = paths[i];
-            for ( Object o : path.getPath() ) {
-                if (o.getClass().equals(type)) return (T) o;
-            }
-        }
-        return null;
     }
 
     /**

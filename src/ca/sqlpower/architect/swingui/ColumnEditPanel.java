@@ -57,6 +57,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLType;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 public class ColumnEditPanel extends JPanel
@@ -276,7 +277,7 @@ public class ColumnEditPanel extends JPanel
             } else {
                 column.setName(colName.getText());
             }
-            column.setType(((SQLType) colType.getSelectedItem()).type);
+            column.setType(((SQLType) colType.getSelectedItem()).getType());
             column.setScale(((Integer) colScale.getValue()).intValue());
             column.setPrecision(((Integer) colPrec.getValue()).intValue());
             column.setNullable(colNullable.isSelected()
