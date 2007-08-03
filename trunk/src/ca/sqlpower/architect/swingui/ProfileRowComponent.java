@@ -92,15 +92,15 @@ public class ProfileRowComponent extends JPanel implements Selectable {
     
     /** The Stop Sign icon for all the rows (shared) */
     private static ImageIcon stopIcon =
-        SPSUtils.createIcon("stop", "Stop Profile", ArchitectSwingSessionContext.ICON_SIZE);;
+        SPSUtils.createIcon("stop", "Stop Profile", ArchitectSwingSessionContext.ICON_SIZE);
     
     /** The reload icon for all the rows (shared) */
     private static ImageIcon refreshIcon =
-        SPSUtils.createIcon("arrow_refresh", "Re-Profile", ArchitectSwingSessionContext.ICON_SIZE);;
+        SPSUtils.createIcon("arrow_refresh", "Re-Profile", ArchitectSwingSessionContext.ICON_SIZE);
 
     /** shared delete icon */
     private static ImageIcon deleteIcon =
-        SPSUtils.createIcon("delete", "Delete Profile", ArchitectSwingSessionContext.ICON_SIZE);;
+        SPSUtils.createIcon("delete", "Delete Profile", ArchitectSwingSessionContext.ICON_SIZE);
     
     /**
      * The profile result that this component visualizes. This should be
@@ -374,7 +374,7 @@ public class ProfileRowComponent extends JPanel implements Selectable {
                     cancelButton.setVisible(true);
                     deleteButton.setVisible(false);
                     progressBar.setVisible(true);
-                    ProgressWatcher watcher = new ProgressWatcher(progressBar, result);
+                    new ProgressWatcher(progressBar, result);
                     add(progressBar, ComponentType.PROGRESS_BAR);
                     pm.scheduleProfile(result);
                 }
@@ -405,7 +405,7 @@ public class ProfileRowComponent extends JPanel implements Selectable {
         add(reProfileButton, ComponentType.RELOAD);
         reProfileButton.setVisible(false);
         
-        ProgressWatcher watcher = new ProgressWatcher(progressBar, result);
+        new ProgressWatcher(progressBar, result);
         
         result.addProfileResultListener(profileResultListener);
         
