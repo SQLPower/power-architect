@@ -43,6 +43,7 @@ import javax.swing.tree.TreePath;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
+import ca.sqlpower.util.ExceptionReport;
 
 /**
  * Collection of static utility methods for Architect.
@@ -50,11 +51,6 @@ import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 public class ArchitectUtils {
 
 	private static final Logger logger = Logger.getLogger(ArchitectUtils.class);
-
-    /**
-     * The System.currentTimeMillis when this class was loaded.
-     */
-    private static final long startupTimeMillis = System.currentTimeMillis();
 
 	/**
 	 * This class is just a container for utility routines; you do not
@@ -69,10 +65,7 @@ public class ArchitectUtils {
      * this when starting the Architect.
      */
     public static void startup() {
-        // By virtue of referencing this class, calling this method early in the app's
-        // startup sequence will cause the startupTimeMillis to init itself.
-
-        // there's nothing else to do, really.
+        ExceptionReport.init();
     }
 
 	/**
@@ -411,15 +404,6 @@ public class ArchitectUtils {
             }
         }
         return addTo;
-    }
-
-    /**
-     * Returns the number of milliseconds since the Architect was launched.  This count
-     * will only be accurate if the Architect's startup mechanism called {@link #startup()}
-     * (The Swing UI startup mechanism does this).
-     */
-    public static long getAppUptime() {
-        return System.currentTimeMillis() - startupTimeMillis;
     }
 
     /**

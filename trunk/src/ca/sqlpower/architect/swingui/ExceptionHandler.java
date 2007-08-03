@@ -43,7 +43,6 @@ import javax.swing.tree.TreeModel;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.swingui.SPSUtils;
@@ -91,7 +90,7 @@ public class ExceptionHandler implements UncaughtExceptionHandler {
         SPSUtils.showExceptionDialogNoReport("An unexpected exception has occured: ", e);
         UserSettings settings = context.getUserSettings().getQfaUserSettings();
         if (!settings.getBoolean(QFAUserSettings.EXCEPTION_REPORTING,true)) return;
-        ExceptionReport report = new ExceptionReport(e, DEFAULT_REPORT_URL, ArchitectVersion.APP_VERSION, ArchitectUtils.getAppUptime(), "Architect");
+        ExceptionReport report = new ExceptionReport(e, DEFAULT_REPORT_URL, ArchitectVersion.APP_VERSION, "Architect");
         
         StringBuffer remarks = new StringBuffer();
         Collection<ArchitectSwingSession> sessions = context.getSessions();
