@@ -410,25 +410,25 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	 *
 	 * @return the value of tables
 	 */
-	public List getTables() throws ArchitectException {
+	public List<SQLTable> getTables() throws ArchitectException {
 		return getTableDescendants(this);
 	}
 
 	/**
 	 * This is the recursive subroutine used by {@link #getTables}.
 	 */
-	private static List getTableDescendants(SQLObject o) throws ArchitectException {
+	private static List<SQLTable> getTableDescendants(SQLObject o) throws ArchitectException {
 
 		// this seemingly redundant short-circuit is required because
 		// we don't want o.getChildren() to be null
-		if (!o.allowsChildren()) return Collections.EMPTY_LIST;
+		if (!o.allowsChildren()) return Collections.emptyList();
 
-		LinkedList tables = new LinkedList();
+		List<SQLTable> tables = new LinkedList<SQLTable>();
 		Iterator it = o.getChildren().iterator();
 		while (it.hasNext()) {
 			SQLObject c = (SQLObject) it.next();
 			if (c instanceof SQLTable) {
-				tables.add(c);
+				tables.add((SQLTable) c);
 			} else {
 				tables.addAll(getTableDescendants(c));
 			}
