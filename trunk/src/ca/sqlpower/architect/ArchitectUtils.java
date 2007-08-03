@@ -525,6 +525,13 @@ public class ArchitectUtils {
         return null;
     }
 
+    /**
+     * Returns true if and only if the given set of arguments would result in a
+     * successful call to {@link #addSimulatedTable(SQLDatabase, String, String, String)}.
+     * See that method's documentation for the meaning of the arguments.
+     * 
+     * @throws ArchitectException if populating any of the relevant SQLObjects fails.
+     */
     public static boolean isCompatibleWithHierarchy(SQLDatabase db, String catalog, String schema, String name) throws ArchitectException {
         SQLObject schemaContainer;
         if ( catalog != null){
@@ -567,6 +574,20 @@ public class ArchitectUtils {
         }
     }
 
+    /**
+     * Creates a SQLTable in the given database, optionally under a catalog and/or schema.
+     * 
+     * @param db The database to create the table in.
+     * @param catalog The catalog that the table (or the table's schema) should be in.
+     * If null, it is assumed the given database doesn't have catalogs.
+     * @param schema The schema that the table should be in.  If null, it is assumed the
+     * given database doesn't have schemas.
+     * @param name The name of the table to create.
+     * @return The table that was created
+     * @throws ArchitectException If you specify catalog or schema for a database that doesn't
+     * support catalogs or schemas; also if the database uses catalogs and schemas but you
+     * fail to provide them.
+     */
     public static SQLTable addSimulatedTable(SQLDatabase db, String catalog, String schema, String name) throws ArchitectException {
         if (db.getTableByName(catalog, schema, name) != null) {
             throw new ArchitectException("The table "+catalog+"."+schema+"."+name+" already exists");
