@@ -59,7 +59,6 @@ import javax.swing.JOptionPane;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.sql.SPDataSource;
@@ -501,7 +500,7 @@ public class ASUtils {
         try {
             UserSettings settings = context.getUserSettings().getQfaUserSettings();
             if (!settings.getBoolean(QFAUserSettings.EXCEPTION_REPORTING,true)) return;
-            ExceptionReport report = new ExceptionReport(t, ExceptionHandler.DEFAULT_REPORT_URL, ArchitectVersion.APP_VERSION, ArchitectUtils.getAppUptime(), "Architect");
+            ExceptionReport report = new ExceptionReport(t, ExceptionHandler.DEFAULT_REPORT_URL, ArchitectVersion.APP_VERSION, "Architect");
             
             if (session != null &&
                     session.getProject() != null &&
