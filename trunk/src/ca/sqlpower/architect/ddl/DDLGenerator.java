@@ -164,14 +164,7 @@ public interface DDLGenerator {
      */
     public String makeDropForeignKeySQL(String fkTable, String fkName);
 
-    /**
-     * This is not a ddl statement, but we need a simple generator for select statement
-     * @param t            SQLTable
-     * @param selectList   select list or null=*
-     * @param whereClause  where clause or null=nothing
-     * @return a Select statement
-     */
-    public void selectTable(SQLTable t, String selectList, String whereClause );
+
     // ---------------------- accessors and mutators ----------------------
 
     /**
