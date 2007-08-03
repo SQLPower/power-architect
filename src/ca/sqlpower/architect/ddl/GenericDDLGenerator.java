@@ -571,29 +571,6 @@ public class GenericDDLGenerator implements DDLGenerator {
 		}
 	}
 
-
-    public void selectTable(SQLTable t,
-            String selectList,
-            String whereClause ) {
-
-        setTargetCatalog(t.getCatalogName());
-        setTargetSchema(t.getSchemaName());
-        print("SELECT ");
-        if ( selectList != null && selectList.length() > 0 ) {
-            print(selectList);
-        } else {
-            print("*");
-        }
-        print(" FROM ");
-        print( toQualifiedName(t) );
-        if ( whereClause != null && whereClause.length() > 0 ) {
-            print(" WHERE ");
-            print(whereClause);
-
-        }
-        endStatement(DDLStatement.StatementType.SELECT, t);
-    }
-
 	/**
 	 * Creates and populates <code>typeMap</code> using
 	 * DatabaseMetaData.  Subclasses for specific DB platforms will be
