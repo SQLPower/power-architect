@@ -366,7 +366,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 			}			
 		} else {
 			return  getName()+": "
-				+ca.sqlpower.architect.swingui.SQLType.getTypeName(type) // XXX: replace with TypeDescriptor
+				+ca.sqlpower.architect.SQLType.getTypeName(type) // XXX: replace with TypeDescriptor
 				+"("+precision+")";
 		}
 	}
