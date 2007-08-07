@@ -258,10 +258,8 @@ public class SQLTable extends SQLObject {
                                       getName());
             
             logger.debug("found "+indicesFolder.children.size()+" indices.");
-            boolean foundPKColumn = false;
             for (SQLColumn column : getColumns()) {
                 if (column.getPrimaryKeySeq() != null) {
-                    foundPKColumn = true;
                     break;
                 }
             }

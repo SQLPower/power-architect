@@ -202,12 +202,6 @@ public class ExportDDLAction extends AbstractArchitectAction {
                          "An error occurred while generating the script.", ex);
                 }
             }
-
-            private void generateAnyway() {
-                logger.debug("generateAnyway()");
-            }
-
-
         };
 
 

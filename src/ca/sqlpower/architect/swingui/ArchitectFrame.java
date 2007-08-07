@@ -101,7 +101,6 @@ import ca.sqlpower.architect.swingui.action.SQLRunnerAction;
 import ca.sqlpower.architect.swingui.action.SearchReplaceAction;
 import ca.sqlpower.architect.swingui.action.SelectAllAction;
 import ca.sqlpower.architect.swingui.action.UndoAction;
-import ca.sqlpower.architect.swingui.action.ViewProfileAction;
 import ca.sqlpower.architect.swingui.action.VisualMappingReportAction;
 import ca.sqlpower.architect.swingui.action.ZoomAction;
 import ca.sqlpower.architect.swingui.action.ZoomAllAction;
@@ -142,7 +141,6 @@ public class ArchitectFrame extends JFrame {
     private PrintAction printAction;
     private ExportPlaypenToPDFAction exportPlaypenToPDFAction;
     private ProfileAction profileAction;
-    private ViewProfileAction viewProfileAction;
     private ZoomAction zoomInAction;
     private ZoomAction zoomOutAction;
     private Action zoomNormalAction;

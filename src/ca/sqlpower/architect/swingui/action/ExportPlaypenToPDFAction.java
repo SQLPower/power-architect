@@ -31,7 +31,6 @@
  */
 package ca.sqlpower.architect.swingui.action;
 
-import java.awt.Component;
 import java.awt.Graphics2D;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -133,7 +132,6 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
         
         OutputStream out = null;
         Document d = null;
-        Component c = frame;
         try {
             out = new BufferedOutputStream(new FileOutputStream((File)properties.get(FILE_KEY)));
             d = new Document(ppSize);
