@@ -307,8 +307,7 @@ public class CompareDMPanel extends JPanel {
 			public void doStuff() throws Exception {
 
 				try {
-					ProgressWatcher progressBarUpdater =
-						new ProgressWatcher(progressBar, this);
+					ProgressWatcher.watchProgress(progressBar, this);
 
 					started = true;
 					db.populate();
@@ -394,8 +393,7 @@ public class CompareDMPanel extends JPanel {
 
 						@Override
 						public void doStuff() throws Exception {
-							ProgressWatcher progressBarUpdater = 
-							    new ProgressWatcher(progressBar, this);
+							ProgressWatcher.watchProgress(progressBar, this);
 							// this populates the schema parent (populate is not
 							// visible here)
 							started = true;
@@ -472,8 +470,7 @@ public class CompareDMPanel extends JPanel {
 			@Override
 			public void doStuff() throws ArchitectException {
 				logger.debug("SCHEMA POPULATOR IS STARTED...");
-				ProgressWatcher progressBarUpdater =
-					new ProgressWatcher(progressBar, this);
+				ProgressWatcher.watchProgress(progressBar, this);
 				started = true;
 				SQLCatalog catToPopulate = (SQLCatalog) catalogDropdown
 						.getSelectedItem();
@@ -1051,7 +1048,7 @@ public class CompareDMPanel extends JPanel {
 			};
 
 			new Thread(compareWorker).start();
-			new ProgressWatcher(progressBar,sourceComp);
+			ProgressWatcher.watchProgress(progressBar,sourceComp);
 		}
 
 	}

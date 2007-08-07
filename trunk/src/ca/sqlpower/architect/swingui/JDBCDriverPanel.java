@@ -270,7 +270,12 @@ public class JDBCDriverPanel extends JPanel implements DataEntryPanel {
         logger.debug("about to start a worker", new Exception());
 		LoadJDBCDrivers ljd = new LoadJDBCDrivers(list);
 		LoadJDBCDriversWorker worker = new LoadJDBCDriversWorker(ljd);
-		new ProgressWatcher(progressBar,ljd,progressLabel);
+		
+		// Create a progress bar to show JDBC driver load progress, and hide when finished
+		ProgressWatcher pw = new ProgressWatcher(progressBar,ljd,progressLabel);
+		pw.setHideLabelWhenFinished(true);
+		pw.start();
+		
 		new Thread(worker).start();
 	}
 

@@ -192,7 +192,7 @@ public class CreateKettleJobAction extends AbstractArchitectAction {
                 
                 
                 new Thread(compareWorker).start();
-                new ProgressWatcher(progressBar, kettleJob);
+                ProgressWatcher.watchProgress(progressBar, kettleJob);
             }
         };
         
