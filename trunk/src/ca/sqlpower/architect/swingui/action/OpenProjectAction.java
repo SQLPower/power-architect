@@ -156,7 +156,8 @@ public class OpenProjectAction extends AbstractArchitectAction {
         @Override
         public void doStuff() throws Exception {
             recent.putRecentFileName(file.getAbsolutePath());
-            newSession.getProject().load(in, newSession.getUserSettings().getPlDotIni());            
+            newSession.getProject().load(in, newSession.getUserSettings().getPlDotIni());
+            newSession.getProject().setFile(file);
         }
 
         @Override

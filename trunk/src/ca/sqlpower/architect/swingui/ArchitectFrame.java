@@ -591,7 +591,9 @@ public class ArchitectFrame extends JFrame {
 
                     if (openFile != null) {
                         InputStream in = new BufferedInputStream(new FileInputStream(openFile));
-                        context.createSession(in, true);
+                        ArchitectSwingSession session = context.createSession(in, true);
+                        context.getRecentMenu().putRecentFileName(openFile.getAbsolutePath());
+                        session.getProject().setFile(openFile);
                     } else {
                         context.createSession();
                     }
