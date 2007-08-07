@@ -179,17 +179,18 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         }
 
         ToolTipManager.sharedInstance().registerComponent(playPen);
-        
-        profileDialog = new JDialog(frame, "Table Profiles");
-        profileManagerView = new ProfileManagerView(profileManager);
-        profileManager.addProfileChangeListener(profileManagerView);
-        profileDialog.add(profileManagerView);
 
         frame = new ArchitectFrame(this, project);
         
         // MUST be called after constructed to set up the actions
         frame.init(); 
         frame.setVisible(true);
+
+        profileDialog = new JDialog(frame, "Table Profiles");
+        profileManagerView = new ProfileManagerView(profileManager);
+        profileManager.addProfileChangeListener(profileManagerView);
+        profileDialog.add(profileManagerView);
+        
         
         // This has to be called after frame.init() because playPen gets the keyboard actions from frame,
         // which only get set up after calling frame.init().
