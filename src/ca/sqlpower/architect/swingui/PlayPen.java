@@ -1287,7 +1287,7 @@ public class PlayPen extends JPanel
 			this.preferredLocation = preferredLocation;
 			this.parentDialog = parentDialog;
 			finished = false;
-			new ProgressWatcher(pm, this);
+			ProgressWatcher.watchProgress(pm, this);
 			this.pm = pm;
 		}
 

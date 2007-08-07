@@ -165,7 +165,7 @@ public class SQLScriptDialog extends JDialog {
 			execute = new AbstractAction(){
 				public void actionPerformed(ActionEvent e) {
 					new Thread(executeTask).start();
-					new ProgressWatcher(progressBar, executeTask, statusLabel);
+					ProgressWatcher.watchProgress(progressBar, executeTask, statusLabel);
 				}
 			};
 		}

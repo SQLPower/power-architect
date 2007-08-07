@@ -44,8 +44,6 @@ import javax.swing.JProgressBar;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.swingui.ProgressWatcher;
 import ca.sqlpower.swingui.SPSwingWorker;
-import ca.sqlpower.swingui.event.TaskTerminationEvent;
-import ca.sqlpower.swingui.event.TaskTerminationListener;
 import ca.sqlpower.util.Monitorable;
 
 import com.jgoodies.forms.builder.PanelBuilder;
@@ -170,6 +168,7 @@ public abstract class ProgressAction extends AbstractArchitectAction {
             @Override
             public void cleanup() throws Exception {
                 ProgressAction.this.cleanUp(monitor);
+                monitor.setFinished(true);
                 progressDialog.dispose();
             }
 
@@ -178,12 +177,7 @@ public abstract class ProgressAction extends AbstractArchitectAction {
                 ProgressAction.this.doStuff(monitor,properties);
             }
         };
-        ProgressWatcher pw = new ProgressWatcher(progressBar,monitor);
-        worker.addTaskTerminationListener(new TaskTerminationListener() {
-            public void taskFinished(TaskTerminationEvent e) {
-                progressDialog.dispose();
-            }
-        });
+        ProgressWatcher.watchProgress(progressBar,monitor);
         progressDialog.pack();
         progressDialog.setVisible(true);
         
