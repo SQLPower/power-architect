@@ -43,7 +43,6 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLIndex.IndexType;
-import ca.sqlpower.architect.profile.ProfileFunctionDescriptor;
 
 
 public class SQLServerDDLGenerator extends GenericDDLGenerator {
@@ -293,50 +292,6 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
 		typeMap.put(Integer.valueOf(Types.VARCHAR), new GenericTypeDescriptor("VARCHAR", Types.VARCHAR, 8000, "'", "'", DatabaseMetaData.columnNullable, true, false));
 	}
 
-    @Override
-    protected void createProfileFunctionMap() {
-        profileFunctionMap = new HashMap();
-        profileFunctionMap.put("bit", new ProfileFunctionDescriptor("bit", Types.BIT,                   true,false,false,false,false,false,false,true));
-
-        profileFunctionMap.put("tinyint", new ProfileFunctionDescriptor("INTEGER", Types.TINYINT,    true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("tinyint identity", new ProfileFunctionDescriptor("INTEGER", Types.TINYINT,    true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("bigint", new ProfileFunctionDescriptor("INTEGER", Types.BIGINT,    true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("bigint identity", new ProfileFunctionDescriptor("INTEGER", Types.BIGINT,    true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("numeric", new ProfileFunctionDescriptor("numeric", Types.NUMERIC,    true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("numeric()", new ProfileFunctionDescriptor("numeric", Types.NUMERIC,    true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("decimal", new ProfileFunctionDescriptor("decimal", Types.NUMERIC,    true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("decimal()", new ProfileFunctionDescriptor("decimal", Types.NUMERIC,    true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("int", new ProfileFunctionDescriptor("INTEGER", Types.INTEGER,    true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("int identity", new ProfileFunctionDescriptor("INTEGER", Types.INTEGER,    true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("smallint", new ProfileFunctionDescriptor("INTEGER", Types.INTEGER,    true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("smallint identity", new ProfileFunctionDescriptor("INTEGER", Types.INTEGER,    true,true,true,true,true,true,true,true));
-
-        profileFunctionMap.put("float", new ProfileFunctionDescriptor("float", Types.FLOAT,    true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("real", new ProfileFunctionDescriptor("real", Types.REAL,    true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("money", new ProfileFunctionDescriptor("money", Types.NUMERIC,    true,true,true,true,false,false,false,true));
-        profileFunctionMap.put("smallmoney", new ProfileFunctionDescriptor("smallmoney", Types.REAL,    true,true,true,true,true,true,true,true));
-
-        profileFunctionMap.put("text", new ProfileFunctionDescriptor("text", Types.CLOB, false,false,false,false,false,false,false,false));
-        profileFunctionMap.put("ntext", new ProfileFunctionDescriptor("ntext", Types.CLOB, false,false,false,false,false,false,false,false));
-        profileFunctionMap.put("image", new ProfileFunctionDescriptor("image", Types.BLOB, false,false,false,false,false,false,false,false));
-
-        profileFunctionMap.put("datetime",      new ProfileFunctionDescriptor("datetime", Types.TIMESTAMP,           true,true,true,false,true,true,true,true));
-        profileFunctionMap.put("smalldatetime",      new ProfileFunctionDescriptor("smalldatetime", Types.TIMESTAMP,           true,true,true,false,true,true,true,true));
-
-        profileFunctionMap.put("varbinary", new ProfileFunctionDescriptor("varbinary", Types.VARBINARY,                true,true,true,false,true,true,true,true));
-        profileFunctionMap.put("binary", new ProfileFunctionDescriptor("binary", Types.BINARY,                true,true,true,false,true,true,true,true));
-        profileFunctionMap.put("char", new ProfileFunctionDescriptor("char", Types.CHAR,                true,true,true,false,true,true,true,true));
-        profileFunctionMap.put("nchar", new ProfileFunctionDescriptor("nchar", Types.CHAR,                true,true,true,false,true,true,true,true));
-        profileFunctionMap.put("varchar", new ProfileFunctionDescriptor("varchar", Types.VARCHAR,                true,true,true,false,true,true,true,true));
-        profileFunctionMap.put("nvarchar", new ProfileFunctionDescriptor("nvarchar", Types.VARCHAR,                true,true,true,false,true,true,true,true));
-        profileFunctionMap.put("sysname", new ProfileFunctionDescriptor("sysname", Types.VARCHAR,                true,true,true,false,true,true,true,true));
-
-        profileFunctionMap.put("timestamp", new ProfileFunctionDescriptor("timestamp", Types.REF,                   true,true,true,false,true,true,true,true));
-        profileFunctionMap.put("uniqueidentifier", new ProfileFunctionDescriptor("uniqueidentifier", Types.REF,                   true,true,true,false,true,true,true,true));
-        profileFunctionMap.put("sql_variant", new ProfileFunctionDescriptor("sql_variant", Types.REF,                   true,true,true,false,true,true,true,true));
-
-    }
-
     /**
 	 * Returns the string "Database".
 	 */
@@ -417,16 +372,6 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
 	public String toIdentifier(String name) {
 		return toIdentifier(name,null);
 	}
-
-    @Override
-    public String getStringLengthSQLFunctionName(String expression) {
-        return "LEN("+expression+")";
-    }
-
-    @Override
-    public String getAverageSQLFunctionName(String expression) {
-        return "AVG(CONVERT(DECIMAL,"+expression+"))";
-    }
 
     @Override
     public void addIndex(SQLIndex index) throws ArchitectException {

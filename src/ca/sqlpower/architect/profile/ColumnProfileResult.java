@@ -36,7 +36,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -44,8 +46,8 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
+import ca.sqlpower.sql.SPDataSourceType;
 
 public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
 
@@ -69,24 +71,199 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
      */
     private ProfileManager manager;
 
-    private DDLGenerator ddlg;
-
     private final TableProfileResult parentResult;
+    
+    /**
+     * A map from data type names used in Architect to the database's actual
+     * data type stored in a profile function descriptor.
+     */
+    protected Map<String, ProfileFunctionDescriptor> profileFunctionMap;
+    
+    /**
+     * This class is used to hold the specific start and end to a LENGTH
+     * SQL command based on the database in use.
+     */
+    private class StringLengthSQLFunction {
+        
+        /**
+         * The part of the LENGTH SQL command that comes before the argument
+         */
+        private String startOfLength;
+        
+        /**
+         * The part of the LENGTH SQL command that comes after the argument
+         */
+        private String endOfLength;
+        
+        public StringLengthSQLFunction(String startOfLength, String endOfLength) {
+            this.startOfLength = startOfLength;
+            this.endOfLength = endOfLength;
+        }
+        
+        /**
+         * Returns a string of the expression wrapped in the database specific 
+         * LENGTH function
+         */
+        public String getStringLengthSQLFunction(String expression) {
+            return startOfLength + expression + endOfLength;
+        }
+    }
+    
+    /**
+     * This class is used to hold the specific start and end to a AVERAGE
+     * SQL command based on the database in use.
+     */
+    private class AverageSQLFunction {
+        
+        /**
+         * The part of the AVERAGE SQL command that comes before the argument
+         */
+        private String startOfAverage;
+        
+        /**
+         * The part of the AVERAGE SQL command that comes after the argument
+         */
+        private String endOfAverage;
+        
+        public AverageSQLFunction(String startOfAverage, String endOfAverage) {
+            this.startOfAverage = startOfAverage;
+            this.endOfAverage = endOfAverage;
+        }
+        
+        /**
+         * Returns a string of the expression wrapped in the database specific 
+         * AVERAGE function
+         */
+        public String getAverageSQLFunction(String expression) {
+            return startOfAverage + expression + endOfAverage;
+        }
+    }
+    
+    /**
+     * A class that can create a SQL CASE statement that will evaluates the
+     * given expression is null and return a particular value based on the value
+     * of that expression.
+     * <p>
+     * In ANSI SQL, this method will return something like:
+     * <code>CASE WHEN <i>expression IS NULL</i> THEN <i>then</i> END</code>.
+     * Some platforms don't support ANSI case statements, so the DDL Generators
+     * for those platforms (i.e. Oracle) will be different, but should have the
+     * same meaning.
+     */
+    private class CaseWhenNullSQLFunction {
+        
+        /**
+         * The part of the CASE statement for evaluating a null expression in SQL that
+         * comes before the <i>expression</i>.
+         */
+        private String startOfNullCase;
+        
+        /**
+         * The part of the CASE statement for evaluating a null expression in SQL that
+         * comes after the <i>expression</i> but before the <i>then</i> part.
+         */
+        private String middleOfNullCase;
+        
+        /**
+         * The part of the CASE statement for evaluating a null expression in SQL that
+         * comes after the <i>then</i> part.
+         */
+        private String endOfNullCase;
+        
+        public CaseWhenNullSQLFunction(String startOfNullCase, String middleOfNullCase, String endOfNullCase) {
+            this.startOfNullCase = startOfNullCase;
+            this.middleOfNullCase = middleOfNullCase;
+            this.endOfNullCase = endOfNullCase;
+        }
+        
+        /**
+         * Creates a SQL CASE statement that will evaluates the given expression is null
+         *  and return a particular value based on the value of that expression.
+         * <p>
+         * In ANSI SQL, this method will return something like:
+         * <code>CASE WHEN <i>expression IS NULL</i> THEN <i>then</i> END</code>.  Some
+         * platforms don't support ANSI case statements, so the DDL Generators for those platforms
+         * (i.e. Oracle) will be different, but should have the same meaning.
+         */
+        public String getCaseWhenNullSQLFunction(String expression, String then) {
+            return startOfNullCase + expression + middleOfNullCase + then + endOfNullCase;
+        }
+    }
+    
+    /**
+     * An object to store the string length function for the database.
+     */
+    private StringLengthSQLFunction stringLengthSQLFunction;
+    
+    /**
+     * An object to store the average function for the database.
+     */
+    private AverageSQLFunction averageSQLFunction;
+    
+    /**
+     * An object to store the case when null function for the database.
+     */
+    private CaseWhenNullSQLFunction caseWhenNullSQLFunction;
 
     public ColumnProfileResult(SQLColumn profiledObject, 
             ProfileManager manager, 
-            DDLGenerator ddlg, 
             TableProfileResult parentResult) {
         super(profiledObject);
         this.manager = manager;
-        this.ddlg = ddlg;
         this.parentResult = parentResult;
+        createProfileFunctions();
     }
 
     public ColumnProfileResult(SQLColumn profiledObject, 
             TableProfileResult parentResult) {
         super(profiledObject);
         this.parentResult = parentResult;
+        createProfileFunctions();
+    }
+
+    /**
+     * This creates and sets up the map from data type names used in Architect
+     * to the database's actual data type stored in a profile function
+     * descriptor. The data for the mapping comes from the pl.ini file so it can
+     * be specified by the user. This is the method that parses the strings from
+     * the pl.ini file. The java.sql.Types class defines what the integer values
+     * represent for the data types.
+     * <p>
+     * This class also sets up the string length SQL function, average SQL function, 
+     * and case when null SQL function as they are also database specific.
+     */
+    private void createProfileFunctions() {
+        profileFunctionMap = new HashMap<String, ProfileFunctionDescriptor>();
+        logger.debug("The property to retrieve is " + ProfileFunctionDescriptor.class.getName() + "_(number)");
+        SPDataSourceType dsType = getProfiledObject().getParentTable().getParentDatabase().getDataSource().getParentType();
+        
+        for (int dataTypeCount = 0;; dataTypeCount += 1) {
+            String dataTypeToParse = dsType.getProperty(ProfileFunctionDescriptor.class.getName() + "_" + dataTypeCount);
+            if (dataTypeToParse == null) break;
+            
+            String[] dataTypeParts = dataTypeToParse.split(",");
+            int dataTypeValue = Integer.parseInt(dataTypeParts[2].trim());
+            
+            profileFunctionMap.put(dataTypeParts[0].trim(), new ProfileFunctionDescriptor(dataTypeParts[1].trim(), 
+                    dataTypeValue, dataTypeParts[3].trim().startsWith("t"), dataTypeParts[4].trim().startsWith("t"),
+                    dataTypeParts[5].trim().startsWith("t"), dataTypeParts[6].trim().startsWith("t"),
+                    dataTypeParts[7].trim().startsWith("t"), dataTypeParts[8].trim().startsWith("t"),
+                    dataTypeParts[9].trim().startsWith("t"), dataTypeParts[10].trim().startsWith("t")));
+        }
+        
+        logger.debug("The property to retrieve is " + StringLengthSQLFunction.class.getName());
+        String function = dsType.getProperty(StringLengthSQLFunction.class.getName());
+        String[] functionParts = function.split(":");
+        stringLengthSQLFunction = new StringLengthSQLFunction(functionParts[0], functionParts[1]);
+        
+        function = dsType.getProperty(AverageSQLFunction.class.getName());
+        functionParts = function.split(":");
+        averageSQLFunction = new AverageSQLFunction(functionParts[0], functionParts[1]);
+        
+        function = dsType.getProperty(CaseWhenNullSQLFunction.class.getName());
+        functionParts = function.split(":");
+        caseWhenNullSQLFunction = new CaseWhenNullSQLFunction(functionParts[0], functionParts[1], functionParts[2]);
+        
     }
 
     public double getAvgLength() {
@@ -192,11 +369,12 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
     }
 
     protected void doProfile() throws SQLException, ArchitectException {
+        logger.debug("Starting to profile " + getProfiledObject().getName());
         if (parentResult.isCancelled()) {
             return;
         }
         
-        if (manager == null || ddlg == null) {
+        if (manager == null) {
             // Either:
             // This is being created by the Digester, or,
             // this is a "dummy" ColumnProfileResult used in graphing.
@@ -214,18 +392,18 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
             conn = db.getConnection();
             stmt = conn.createStatement();
             stmt.setEscapeProcessing(false);
-
-            ProfileFunctionDescriptor pfd = ddlg.getProfileFunctionMap().get(col.getSourceDataTypeName());
+            
+            ProfileFunctionDescriptor pfd = profileFunctionMap.get(col.getSourceDataTypeName());
             long profileStartTime = System.currentTimeMillis();
 
             if (pfd == null) {
                 logger.debug(col.getName()+ " Unknown DataType:(" +
                         col.getSourceDataTypeName() + ").");
-                pfd = discoverProfileFunctionDescriptor(col, ddlg, conn);
+                pfd = discoverProfileFunctionDescriptor(col, conn);
             }
 
             try {
-                execProfileFunction(pfd, col, ddlg, conn);
+                execProfileFunction(pfd, col, conn);
             } catch ( Exception ex ) {
                 setCreateStartTime(profileStartTime);
                 setException(ex);
@@ -262,7 +440,7 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
      * @return A ProfileFunctionDescriptor that is properly configured for the data
      * type of col.
      */
-    private ProfileFunctionDescriptor discoverProfileFunctionDescriptor(SQLColumn col, DDLGenerator ddlg, Connection conn) {
+    private ProfileFunctionDescriptor discoverProfileFunctionDescriptor(SQLColumn col, Connection conn) {
         ProfileFunctionDescriptor pfd = new ProfileFunctionDescriptor(col.getSourceDataTypeName(),
                 col.getType(),false,false,false,false,false,false,false,false);
 
@@ -270,7 +448,7 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
 
         try {
             pfd.setCountDist(true);
-            execProfileFunction(pfd, col, ddlg, conn);
+            execProfileFunction(pfd, col, conn);
             logger.debug("countDist worked");
         } catch (Exception e) {
             logger.debug("countDist failed", e);
@@ -280,7 +458,7 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
         try {
             pfd.setMaxValue(true);
             pfd.setMinValue(true);
-            execProfileFunction(pfd, col, ddlg, conn);
+            execProfileFunction(pfd, col, conn);
             logger.debug("min/max worked");
         } catch (Exception e) {
             logger.debug("min/max failed", e);
@@ -290,7 +468,7 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
 
         try {
             pfd.setAvgValue(true);
-            execProfileFunction(pfd, col, ddlg, conn);
+            execProfileFunction(pfd, col, conn);
             logger.debug("avg worked");
         } catch (Exception e) {
             logger.debug("avg failed", e);
@@ -301,7 +479,7 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
             pfd.setMaxLength(true);
             pfd.setMinLength(true);
             pfd.setAvgLength(true);
-            execProfileFunction(pfd, col, ddlg, conn);
+            execProfileFunction(pfd, col, conn);
             logger.debug("min/max/avg length worked");
         } catch (Exception e) {
             logger.debug("min/max/avg length failed", e);
@@ -312,7 +490,7 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
 
         try {
             pfd.setSumDecode(true);
-            execProfileFunction(pfd, col, ddlg, conn);
+            execProfileFunction(pfd, col, conn);
             logger.debug("sumDecode worked");
         } catch (Exception e) {
             logger.debug("sumDecode failed", e);
@@ -324,9 +502,9 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
     }
 
     private void execProfileFunction(ProfileFunctionDescriptor pfd,
-            SQLColumn col, DDLGenerator ddlg,
-            Connection conn) throws SQLException {
+            SQLColumn col, Connection conn) throws SQLException {
 
+        logger.debug("Starting execProfileFunction, if only it was documented.");
         long createStartTime = System.currentTimeMillis();
         final int i = 0;
         StringBuffer sql = new StringBuffer();
@@ -369,7 +547,7 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
             }
             if (manager.getDefaultProfileSettings().isFindingAvg() && pfd.isAvgValue() ) {
                 sql.append(",\n ");
-                sql.append(ddlg.getAverageSQLFunctionName(databaseIdentifierQuoteString+
+                sql.append(averageSQLFunction.getAverageSQLFunction(databaseIdentifierQuoteString+
                         col.getName()+
                         databaseIdentifierQuoteString));
                 sql.append(" AS AVGVALUE_"+i);
@@ -377,21 +555,21 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
             }
             if (manager.getDefaultProfileSettings().isFindingMinLength() && pfd.isMinLength() ) {
                 sql.append(",\n MIN(");
-                sql.append(ddlg.getStringLengthSQLFunctionName(databaseIdentifierQuoteString+
+                sql.append(stringLengthSQLFunction.getStringLengthSQLFunction(databaseIdentifierQuoteString+
                         col.getName()+databaseIdentifierQuoteString));
                 sql.append(") AS MINLENGTH_"+i);
                 tryCount++;
             }
             if (manager.getDefaultProfileSettings().isFindingMaxLength() && pfd.isMaxLength() ) {
                 sql.append(",\n MAX(");
-                sql.append(ddlg.getStringLengthSQLFunctionName(databaseIdentifierQuoteString+
+                sql.append(stringLengthSQLFunction.getStringLengthSQLFunction(databaseIdentifierQuoteString+
                         col.getName()+databaseIdentifierQuoteString));
                 sql.append(") AS MAXLENGTH_"+i);
                 tryCount++;
             }
             if (manager.getDefaultProfileSettings().isFindingAvgLength() && pfd.isAvgLength() ) {
                 sql.append(",\n AVG(");
-                sql.append(ddlg.getStringLengthSQLFunctionName(databaseIdentifierQuoteString+
+                sql.append(stringLengthSQLFunction.getStringLengthSQLFunction(databaseIdentifierQuoteString+
                         col.getName()+databaseIdentifierQuoteString));
                 sql.append(") AS AVGLENGTH_"+i);
                 tryCount++;
@@ -399,7 +577,7 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
 
             if (manager.getDefaultProfileSettings().isFindingNullCount() && pfd.isSumDecode() ) {
                 sql.append(",\n SUM(");
-                sql.append(ddlg.caseWhenNull(
+                sql.append(caseWhenNullSQLFunction.getCaseWhenNullSQLFunction(
                         databaseIdentifierQuoteString+
                         col.getName()+
                         databaseIdentifierQuoteString,
