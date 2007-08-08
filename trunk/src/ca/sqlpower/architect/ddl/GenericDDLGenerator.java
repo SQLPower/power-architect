@@ -170,7 +170,6 @@ public class GenericDDLGenerator implements DDLGenerator {
 		println("");
 		topLevelNames = new CaseInsensitiveHashMap();  // for tracking dup table/relationship names
 		createTypeMap();
-        createProfileFunctionMap();
 	}
 
 
@@ -615,32 +614,6 @@ public class GenericDDLGenerator implements DDLGenerator {
 		}
 	}
 
-    protected void createProfileFunctionMap() {
-        profileFunctionMap = new HashMap<String, ProfileFunctionDescriptor>();
-        profileFunctionMap.put("BIGINT", new ProfileFunctionDescriptor("BIGINT", Types.BIGINT, true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("BINARY", new ProfileFunctionDescriptor("BINARY", Types.BINARY, true,false,false,false,true,true,true,true));
-        profileFunctionMap.put("BIT", new ProfileFunctionDescriptor("BIT", Types.BIT, true,false,false,false,true,true,true,true));
-        profileFunctionMap.put("BLOB", new ProfileFunctionDescriptor("BLOB", Types.BLOB, true,false,false,false,true,true,true,true));
-        profileFunctionMap.put("CHAR", new ProfileFunctionDescriptor("CHAR", Types.CHAR, true,false,false,false,true,true,true,true));
-        profileFunctionMap.put("CLOB", new ProfileFunctionDescriptor("CLOB", Types.CLOB, true,false,false,false,true,true,true,true));
-        profileFunctionMap.put("DATE", new ProfileFunctionDescriptor("DATE", Types.DATE, true,true,true,false,true,true,true,true));
-        profileFunctionMap.put("DECIMAL", new ProfileFunctionDescriptor("DECIMAL", Types.DECIMAL, true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("DOUBLE", new ProfileFunctionDescriptor("DOUBLE", Types.DOUBLE, true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("FLOAT", new ProfileFunctionDescriptor("FLOAT", Types.FLOAT, true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("INTEGER", new ProfileFunctionDescriptor("INTEGER", Types.INTEGER, true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("LONGVARBINARY", new ProfileFunctionDescriptor("LONGVARBINARY", Types.LONGVARBINARY, false,false,false,false,true,true,true,true));
-        profileFunctionMap.put("LONGVARCHAR", new ProfileFunctionDescriptor("LONGVARCHAR", Types.LONGVARCHAR, false,false,false,false,true,true,true,true));
-        profileFunctionMap.put("NUMERIC", new ProfileFunctionDescriptor("NUMERIC", Types.NUMERIC, true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("REAL", new ProfileFunctionDescriptor("REAL", Types.REAL, true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("SMALLINT", new ProfileFunctionDescriptor("SMALLINT", Types.SMALLINT, true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("TIME", new ProfileFunctionDescriptor("TIME", Types.TIME, true,true,true,false,true,true,true,true));
-        profileFunctionMap.put("TIMESTAMP", new ProfileFunctionDescriptor("TIMESTAMP", Types.TIMESTAMP, true,true,true,false,true,true,true,true));
-        profileFunctionMap.put("TINYINT", new ProfileFunctionDescriptor("TINYINT", Types.TINYINT, true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("VARBINARY", new ProfileFunctionDescriptor("VARBINARY", Types.VARBINARY, true,true,true,false,true,true,true,true));
-        profileFunctionMap.put("VARCHAR", new ProfileFunctionDescriptor("VARCHAR", Types.VARCHAR, true,true,true,false,true,true,true,true));
-    }
-
-
 	protected void println(String text) {
 		ddl.append(text).append(EOL);
 	}
@@ -971,29 +944,6 @@ public class GenericDDLGenerator implements DDLGenerator {
 			endStatement(DDLStatement.StatementType.CREATE,t);
 		}
 	}
-
-
-
-    public String caseWhenNull(String expression, String then) {
-
-        StringBuffer sql = new StringBuffer();
-        sql.append("CASE WHEN ");
-        sql.append(expression);
-        sql.append(" IS NULL THEN ");
-        sql.append(then);
-        sql.append(" END");
-
-        return sql.toString();
-    }
-
-    public String getStringLengthSQLFunctionName(String expression) {
-        return "LENGTH("+expression+")";
-    }
-
-    public String getAverageSQLFunctionName(String expression) {
-        return "AVG("+expression+")";
-    }
-
 
     protected final void checkDupIndexname(SQLIndex index) {
         String name = index.getName();

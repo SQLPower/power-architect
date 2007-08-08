@@ -47,7 +47,6 @@ import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLIndex.IndexType;
-import ca.sqlpower.architect.profile.ProfileFunctionDescriptor;
 
 public class MySqlDDLGenerator extends GenericDDLGenerator {
 
@@ -314,32 +313,6 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         typeMap.put(Integer.valueOf(Types.VARCHAR), new GenericTypeDescriptor("VARCHAR", Types.VARCHAR, 65535, "'", "'", DatabaseMetaData.columnNullable, true, false));
     }
 
-    @Override
-    protected void createProfileFunctionMap() {
-        profileFunctionMap = new HashMap<String, ProfileFunctionDescriptor>();
-        profileFunctionMap.put("BIGINT", new ProfileFunctionDescriptor("BIGINT", Types.BIGINT, true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("BINARY", new ProfileFunctionDescriptor("BINARY", Types.BINARY, true,false,false,false,true,true,true,true));
-        profileFunctionMap.put("BIT", new ProfileFunctionDescriptor("TINYINT", Types.BIT, true,false,false,false,true,true,true,true));
-        profileFunctionMap.put("BLOB", new ProfileFunctionDescriptor("LONGBLOB", Types.BLOB, true,false,false,false,true,true,true,true));
-        profileFunctionMap.put("CHAR", new ProfileFunctionDescriptor("CHAR", Types.CHAR, true,false,false,false,true,true,true,true));
-        profileFunctionMap.put("CLOB", new ProfileFunctionDescriptor("LONGTEXT", Types.CLOB, true,false,false,false,true,true,true,true));
-        profileFunctionMap.put("DATE", new ProfileFunctionDescriptor("DATE", Types.DATE, true,true,true,false,true,true,true,true));
-        profileFunctionMap.put("DECIMAL", new ProfileFunctionDescriptor("DECIMAL", Types.DECIMAL, true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("DOUBLE", new ProfileFunctionDescriptor("DOUBLE PRECISION", Types.DOUBLE, true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("FLOAT", new ProfileFunctionDescriptor("DOUBLE PRECISION", Types.FLOAT, true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("INTEGER", new ProfileFunctionDescriptor("INT", Types.INTEGER, true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("LONGVARBINARY", new ProfileFunctionDescriptor("VARBINARY", Types.LONGVARBINARY, false,false,false,false,true,true,true,true));
-        profileFunctionMap.put("LONGVARCHAR", new ProfileFunctionDescriptor("VARCHAR", Types.LONGVARCHAR, false,false,false,false,true,true,true,true));
-        profileFunctionMap.put("NUMERIC", new ProfileFunctionDescriptor("NUMERIC", Types.NUMERIC, true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("REAL", new ProfileFunctionDescriptor("DOUBLE PRECISION", Types.REAL, true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("SMALLINT", new ProfileFunctionDescriptor("SMALLINT", Types.SMALLINT, true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("TIME", new ProfileFunctionDescriptor("TIME", Types.TIME, true,true,true,false,true,true,true,true));
-        profileFunctionMap.put("TIMESTAMP", new ProfileFunctionDescriptor("TIMESTAMP", Types.TIMESTAMP, true,true,true,false,true,true,true,true));
-        profileFunctionMap.put("TINYINT", new ProfileFunctionDescriptor("TINYINT", Types.TINYINT, true,true,true,true,true,true,true,true));
-        profileFunctionMap.put("VARBINARY", new ProfileFunctionDescriptor("VARBINARY", Types.VARBINARY, true,true,true,false,true,true,true,true));
-        profileFunctionMap.put("VARCHAR", new ProfileFunctionDescriptor("VARCHAR", Types.VARCHAR, true,true,true,false,true,true,true,true));
-    }
-
     /**
      * Subroutine for toIdentifier().  Probably a generally useful feature that we
      * should pull up to the GenericDDLGenerator.
@@ -376,6 +349,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
      */
     @Override
     protected void writePrimaryKey(SQLTable t) throws ArchitectException {
+        logger.debug("Writing the primary key of " + t.getName());
         boolean firstCol = true;
         Iterator it = t.getColumns().iterator();
         while (it.hasNext()) {

@@ -46,7 +46,6 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.profile.ProfileFunctionDescriptor;
 
 /**
  * The DDLGenerator interface is a generic API for turning a SQLObject
@@ -254,39 +253,6 @@ public interface DDLGenerator {
      * @return
      */
     public boolean isReservedWord(String word);
-
-    /**
-     * Creates a SQL CASE statement that will evaluates the given expression is null
-     *  and return a particular value based on the value of that expression.
-     * <p>
-     * In ANSI SQL, this method will return something like:
-     * <code>CASE WHEN <i>expression IS NULL</i> THEN <i>then</i> END</code>.  Some
-     * platforms don't support ANSI case statements, so the DDL Generators for those platforms
-     * (i.e. Oracle) will be different, but should have the same meaning.
-     */
-    public String caseWhenNull(String expression, String then);
-
-    /**
-     * Returns the mapping from SQL type names to a description of which profiling functions
-     * apply to them for this database platform.
-     *
-     * @return A map where the keys are the native type names for this DDL generator's platform,
-     * and the values are {@link ca.sqlpower.architect.profile.ProfileFunctionDescriptor} objects.
-     */
-    public Map<String, ProfileFunctionDescriptor> getProfileFunctionMap();
-
-    /**
-     * get the SQL Function name of string length for this database platform.
-     * @return String
-     */
-    public String getStringLengthSQLFunctionName(String expression);
-
-    /**
-     * get the SQL function name of average for this database platform.
-     * <p>In SQL Server, we want to convert the input datatype to decimal first to avoid overflow
-     * @return String
-     */
-    public String getAverageSQLFunctionName(String expression);
 
     /**
      * get the datatype with scale and percision of the column, example: "decimal(10,5)"

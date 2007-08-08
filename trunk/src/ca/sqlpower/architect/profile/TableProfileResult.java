@@ -149,9 +149,8 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
             if ( columns.size() == 0 ) {
                 return;
             }
-            DDLGenerator ddlg = getDDLGenerator();
             for (SQLColumn col : columns ) {
-                ColumnProfileResult columnResult = new ColumnProfileResult(col, manager, ddlg, this);
+                ColumnProfileResult columnResult = new ColumnProfileResult(col, manager, this);
                 columnResult.populate();
                 columnProfileResults.add(columnResult);
                 progress += 1;

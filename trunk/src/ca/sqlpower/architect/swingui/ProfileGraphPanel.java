@@ -191,7 +191,7 @@ public class ProfileGraphPanel {
 
             // XXX the following code should instead replace chartPanel with a JLabel that contains the error message
             //     (and also not create a dummy profile result)
-            cr = new ColumnProfileResult(c, null, null, null);
+            cr = new ColumnProfileResult(c, null, null);
             cr.setCreateStartTime(0);
             chartPanel.setChart(ChartFactory.createPieChart("", new DefaultPieDataset(), false, false, false));
         } else {
