@@ -334,7 +334,8 @@
 		<jar jarfile="${build}/architect_lib.jar" basedir="${build}"
 			includes="ca/sqlpower/architect/*.class,
 						ca/sqlpower/architect/ddl/*.class,
-						ca/sqlpower/architect/diff/*.class">
+						ca/sqlpower/architect/diff/*.class,
+						ca/sqlpower/architect/undo/*.class">
 		</jar>
 	</target>
 	
