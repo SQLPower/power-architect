@@ -52,6 +52,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -516,7 +517,13 @@ public class ASUtils {
             logger.error("Couldn't generate and send exception report!  Note that this is not the primary problem; it's a side effect of trying to report the real problem.", seriousProblem);
             JOptionPane.showMessageDialog(null, "Error reporting failed: "+seriousProblem.getMessage()+"\nAdditional information is available in the application log.");
         } finally {
-            SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(), message, t);
+            JFrame owner = null;
+            if (session != null) {
+                owner = session.getArchitectFrame();
+            } else {
+                logger.error("got a null session in showExceptionDialog()");
+            }
+            SPSUtils.showExceptionDialogNoReport(owner, message, t);
         }
     }
 }
