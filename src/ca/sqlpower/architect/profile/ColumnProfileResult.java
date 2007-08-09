@@ -69,7 +69,7 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
      * these settings out into a ProfileSettings interface, and then change the
      * type of this field to that.
      */
-    private ProfileManager manager;
+    private ProfileManager manager = null;
 
     private final TableProfileResult parentResult;
     
@@ -205,6 +205,13 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
      */
     private CaseWhenNullSQLFunction caseWhenNullSQLFunction;
 
+    /**
+     * This creates a column profile result which stores information about a profiled column.
+     * <p>
+     * Note that if the manager is set to null the SQL functions will not be set up as this
+     * profiled column will not connect to the database. The null manager is normally used 
+     * for loading through the digester or a dummy ColumnProfileResult used in graphing.
+     */
     public ColumnProfileResult(SQLColumn profiledObject, 
             ProfileManager manager, 
             TableProfileResult parentResult) {
@@ -214,25 +221,36 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
         createProfileFunctions();
     }
 
+    /**
+     * This creates a column profile result which stores information about a profiled column.
+     * <p>
+     * Note that the manager is set to null so the SQL functions will not be set up as this
+     * profiled column will not connect to the database. The null manager is normally used 
+     * for loading through the digester or a dummy ColumnProfileResult used in graphing.
+     */
     public ColumnProfileResult(SQLColumn profiledObject, 
             TableProfileResult parentResult) {
         super(profiledObject);
         this.parentResult = parentResult;
-        createProfileFunctions();
     }
 
     /**
      * This creates and sets up the map from data type names used in Architect
      * to the database's actual data type stored in a profile function
-     * descriptor. The data for the mapping comes from the pl.ini file so it can
-     * be specified by the user. This is the method that parses the strings from
-     * the pl.ini file. The java.sql.Types class defines what the integer values
-     * represent for the data types.
+     * descriptor. The data mapping and SQL functions are only set up if the
+     * manager is not null. A null manager means that we will not be connecting
+     * to the database. The data for the mapping comes from the pl.ini file so
+     * it can be specified by the user. This is the method that parses the
+     * strings from the pl.ini file. The java.sql.Types class defines what the
+     * integer values represent for the data types.
      * <p>
-     * This class also sets up the string length SQL function, average SQL function, 
-     * and case when null SQL function as they are also database specific.
+     * This method also sets up the string length SQL function, average SQL
+     * function, and case when null SQL function as they are also database
+     * specific.
      */
     private void createProfileFunctions() {
+        if (manager == null) return;
+        
         profileFunctionMap = new HashMap<String, ProfileFunctionDescriptor>();
         logger.debug("The property to retrieve is " + ProfileFunctionDescriptor.class.getName() + "_(number)");
         SPDataSourceType dsType = getProfiledObject().getParentTable().getParentDatabase().getDataSource().getParentType();
