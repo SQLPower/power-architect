@@ -1073,7 +1073,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         propertiesToIgnore.add("repository"); //TODO add test cases for repository
 
         Map<String,Object> oldDescription =
-            setAllInterestingProperties(session.getCreateKettleJob(), propertiesToIgnore);
+            setAllInterestingProperties(session.getKettleJob(), propertiesToIgnore);
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         project.save(byteArrayOutputStream, ENCODING);
 
@@ -1083,7 +1083,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), plIni);
         
         Map<String, Object> newDescription =
-            getAllInterestingProperties(session.getCreateKettleJob(), propertiesToIgnore);
+            getAllInterestingProperties(session.getKettleJob(), propertiesToIgnore);
         
         assertMapsEqual(oldDescription, newDescription);
     }

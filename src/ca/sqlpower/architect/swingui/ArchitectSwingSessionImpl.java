@@ -59,7 +59,7 @@ import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
-import ca.sqlpower.architect.etl.kettle.CreateKettleJob;
+import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.TableProfileManager;
 import ca.sqlpower.architect.swingui.action.AboutAction;
@@ -113,7 +113,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     
     private boolean savingEntireSource;
     
-    private CreateKettleJob createKettleJob;
+    private KettleJob kettleJob;
     // END STUFF BROUGHT IN FROM SwingUIProject
     
     private List<SessionLifecycleListener> lifecycleListener;
@@ -152,7 +152,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         }
         compareDMSettings = new CompareDMSettings();
         
-        createKettleJob = new CreateKettleJob();
+        kettleJob = new KettleJob();
         
         SQLDatabase ppdb = new SQLDatabase();
         playPen = new PlayPen(this, ppdb);
@@ -627,11 +627,12 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         this.savingEntireSource = argSavingEntireSource;
     }
     
-    public CreateKettleJob getCreateKettleJob() {
-        return createKettleJob;
+    public KettleJob getKettleJob() {
+        return kettleJob;
     }
-    public void setCreateKettleJobSettings(CreateKettleJob createKettleJobSettings) {
-        this.createKettleJob = createKettleJobSettings;
+    
+    public void setKettleJob(KettleJob kettleJob) {
+        this.kettleJob = kettleJob;
     }
     // END STUFF BROUGHT IN FROM SwingUIProject
 

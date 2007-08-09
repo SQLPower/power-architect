@@ -146,7 +146,7 @@ public class CreateKettleJobTest extends TestCase {
     public void testCreatingJobsWithTablesWithNoSource() throws ArchitectException, IOException, RuntimeException, KettleException, SQLException {
         new File("TestingJob.kjb").delete();
         new File("transformation_for_table_TargetTable1.ktr").delete();
-        CreateKettleJob job = new CreateKettleJob();
+        KettleJob job = new KettleJob();
         job.setJobName("Testing Job");
         job.setSchemaName("Schema");
         job.setFilePath("TestingJob");
@@ -161,7 +161,7 @@ public class CreateKettleJobTest extends TestCase {
     public void testCreatingJobsWithTablesWithSources() throws ArchitectException, IOException, RuntimeException, KettleException, SQLException {
         new File("TestingJob.kjb").delete();
         new File("transformation_for_table_TargetTable2.ktr").delete();
-        CreateKettleJob job = new CreateKettleJob();
+        KettleJob job = new KettleJob();
         job.setJobName("Testing Job");
         job.setSchemaName("Schema");
         File jobFile = File.createTempFile("TestingJob", null);
@@ -176,7 +176,7 @@ public class CreateKettleJobTest extends TestCase {
 
     public void testAddDatabaseConnection() {
        Map<String, DatabaseMeta> databaseNames = new LinkedHashMap<String, DatabaseMeta>();
-       CreateKettleJob job = new CreateKettleJob();
+       KettleJob job = new KettleJob();
        DatabaseMeta dbMeta = job.addDatabaseConnection(databaseNames, target.getDataSource());
        assertEquals(dbMeta.getName(), target.getDataSource().getName());
        assertTrue(databaseNames.containsKey(target.getDataSource().getName()));
@@ -189,7 +189,7 @@ public class CreateKettleJobTest extends TestCase {
         DatabaseMeta dbMetaBean = new DatabaseMeta();
         dbMetaBean.setName("Meta Bean");
         databaseNames.put(target.getDataSource().getName(), dbMetaBean);
-        CreateKettleJob job = new CreateKettleJob();
+        KettleJob job = new KettleJob();
         DatabaseMeta dbMeta = job.addDatabaseConnection(databaseNames, target.getDataSource());
         assertEquals(dbMeta.getName(), dbMetaBean.getName());
         assertTrue(databaseNames.containsKey(target.getDataSource().getName()));
@@ -199,7 +199,7 @@ public class CreateKettleJobTest extends TestCase {
     
     public void testAddDatabaseConnectionThrowsRuntimeException() {
         Map<String, DatabaseMeta> databaseNames = new LinkedHashMap<String, DatabaseMeta>();
-        CreateKettleJob job = new CreateKettleJob();
+        KettleJob job = new KettleJob();
         try {
             job.addDatabaseConnection(databaseNames, new SPDataSource(new PlDotIni()));
             fail("A runtime exception was not thrown when an invalid data source was passed in");
@@ -226,7 +226,7 @@ public class CreateKettleJobTest extends TestCase {
     }
     
     public void testOutputToXMLFileException() throws IOException {
-        CreateKettleJob job = new CreateKettleJob();
+        KettleJob job = new KettleJob();
         
         LogWriter lw = LogWriter.getInstance();
         List<TransMeta> transList = new ArrayList<TransMeta>();
@@ -251,7 +251,7 @@ public class CreateKettleJobTest extends TestCase {
     }
     
     public void testCreateMergeJoinsNoInputs() {
-        CreateKettleJob job = new CreateKettleJob();
+        KettleJob job = new KettleJob();
         TransMeta transMeta = new TransMeta();
         List<StepMeta> mergeSteps = job.createMergeJoins(0, transMeta, new ArrayList<StepMeta>());
         assertEquals(0, mergeSteps.size());
@@ -259,7 +259,7 @@ public class CreateKettleJobTest extends TestCase {
     }
     
     public void testCreateMergeJoinsOneInput() {
-        CreateKettleJob job = new CreateKettleJob();
+        KettleJob job = new KettleJob();
         TransMeta transMeta = new TransMeta();
         List<StepMeta> inputSteps = new ArrayList<StepMeta>();
         inputSteps.add(new StepMeta());
@@ -270,7 +270,7 @@ public class CreateKettleJobTest extends TestCase {
     }
     
     public void testCreateMergeJoinsTwoInputs() {
-        CreateKettleJob job = new CreateKettleJob();
+        KettleJob job = new KettleJob();
         TransMeta transMeta = new TransMeta();
         List<StepMeta> inputSteps = new ArrayList<StepMeta>();
         StepMeta input1 = new StepMeta();
@@ -288,7 +288,7 @@ public class CreateKettleJobTest extends TestCase {
     }
     
     public void testCreateMergeJoinsThreeInputs() {
-        CreateKettleJob job = new CreateKettleJob();
+        KettleJob job = new KettleJob();
         TransMeta transMeta = new TransMeta();
         List<StepMeta> inputSteps = new ArrayList<StepMeta>();
         StepMeta input1 = new StepMeta();
@@ -306,7 +306,7 @@ public class CreateKettleJobTest extends TestCase {
     }
     
     public void testCreateRepository() {
-        CreateKettleJob job = new CreateKettleJob();
+        KettleJob job = new KettleJob();
         SPDataSource architectDS = target.getDataSource();
         job.setRepository(architectDS);
         Repository rep = job.createRepository();
@@ -339,7 +339,7 @@ public class CreateKettleJobTest extends TestCase {
         List<TransMeta> transList = new ArrayList<TransMeta>();
         transList.add(transMeta);
 
-        CreateKettleJob kettleJob = new CreateKettleJob(new FileValidator(){
+        KettleJob kettleJob = new KettleJob(new FileValidator(){
             public FileValidationResponse acceptFile(String name, String path) {
                 return fvr;
             }
@@ -395,7 +395,7 @@ public class CreateKettleJobTest extends TestCase {
         newJob.setName("jobName");
         newJob.addNote(new NotePadMeta("new job note", 0, 150, 125, 125));
         
-        CreateKettleJob kettleJob = new CreateKettleJob(new FileValidator(){
+        KettleJob kettleJob = new KettleJob(new FileValidator(){
             public FileValidationResponse acceptFile(String name, String path) {
                 return fvr;
             }

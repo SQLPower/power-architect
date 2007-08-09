@@ -79,11 +79,13 @@ import ca.sqlpower.util.MonitorableImpl;
 import ca.sqlpower.sql.SPDataSource;
 
 /**
- * This class stores the settings for and creates a new Kettle job
+ * This class stores the settings for creating Kettle jobs. This class also creates
+ * Kettle jobs based on a given session's play pen. The jobs and transformations created
+ * by this class can be stored in either a file or repository.
  */
-public class CreateKettleJob implements Monitorable {
+public class KettleJob implements Monitorable {
     
-    private static final Logger logger = Logger.getLogger(CreateKettleJob.class);
+    private static final Logger logger = Logger.getLogger(KettleJob.class);
     
     /**
      * The spacing between nodes in Kettle jobs and transformations
@@ -145,13 +147,13 @@ public class CreateKettleJob implements Monitorable {
      */
     private KettleRepositoryDirectoryChooser dirChooser;
     
-    public CreateKettleJob(FileValidator validator, KettleRepositoryDirectoryChooser chooser) {
+    public KettleJob(FileValidator validator, KettleRepositoryDirectoryChooser chooser) {
         this();
         fileValidator = validator;
         dirChooser = chooser;
     }
     
-    public CreateKettleJob() {
+    public KettleJob() {
         super();
         filePath = "";
         tasksToDo = new ArrayList<String>();
