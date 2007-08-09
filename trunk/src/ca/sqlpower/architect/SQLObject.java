@@ -33,7 +33,6 @@ package ca.sqlpower.architect;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -328,12 +327,10 @@ public abstract class SQLObject implements java.io.Serializable {
 			 newIndices,
 			 (SQLObject[]) newChildren.toArray(new SQLObject[newChildren.size()]));
 		synchronized(sqlObjectListeners) {
-			Iterator<SQLObjectListener> it = sqlObjectListeners.iterator();
-			int count = 0;
-			while (it.hasNext()) {
-				count ++;
-				SQLObjectListener nextListener = it.next();
-				(nextListener).dbChildrenInserted(e);
+		    int count = 0;
+            for (SQLObjectListener l : new ArrayList<SQLObjectListener>(sqlObjectListeners)) {
+				count++;
+				l.dbChildrenInserted(e);
 			}
 			logger.debug(getClass().getName()+": notified "+count+" listeners");
 		}
