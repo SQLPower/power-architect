@@ -613,6 +613,7 @@ public class DBTree extends JTree implements DragSourceListener {
             Runnable onAccept = new Runnable() {
                 public void run() {
                     addSourceConnection(dataSource);
+                    plDotIni.addDataSource(dataSource);
                 }
             };
             ASUtils.showDbcsDialog(session.getArchitectFrame(), session, dataSource, onAccept);
