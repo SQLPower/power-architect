@@ -38,7 +38,7 @@ import javax.swing.JDialog;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
-import ca.sqlpower.architect.etl.kettle.CreateKettleJob;
+import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.architect.undo.UndoManager;
 import ca.sqlpower.swingui.SwingWorkerRegistry;
 
@@ -155,9 +155,9 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
      */
     public void setSourceDatabaseList(List databases) throws ArchitectException;
     
-    public CreateKettleJob getCreateKettleJob();
+    public KettleJob getKettleJob();
 
-    public void setCreateKettleJobSettings(CreateKettleJob createKettleJobSettings);
+    public void setKettleJob(KettleJob kettleJob);
 
     /**
      * Initializes the GUI components for this session. Call this only if you need a GUI.

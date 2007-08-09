@@ -76,7 +76,7 @@ import ca.sqlpower.architect.swingui.action.AboutAction;
 import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
 import ca.sqlpower.architect.swingui.action.CloseProjectAction;
 import ca.sqlpower.architect.swingui.action.CompareDMAction;
-import ca.sqlpower.architect.swingui.action.CreateKettleJobAction;
+import ca.sqlpower.architect.swingui.action.KettleJobAction;
 import ca.sqlpower.architect.swingui.action.CreateRelationshipAction;
 import ca.sqlpower.architect.swingui.action.CreateTableAction;
 import ca.sqlpower.architect.swingui.action.DataMoverAction;
@@ -316,7 +316,7 @@ public class ArchitectFrame extends JFrame {
         Action exportCSVAction = new ExportCSVAction(this, playpen);
         Action mappingReportAction = new VisualMappingReportAction(this, session);
 
-        Action kettleETL = new CreateKettleJobAction(session);
+        Action kettleETL = new KettleJobAction(session);
         deleteSelectedAction = new DeleteSelectedAction(session);
         createIdentifyingRelationshipAction = new CreateRelationshipAction(session, true);
         createNonIdentifyingRelationshipAction = new CreateRelationshipAction(session, false);

@@ -821,7 +821,7 @@ public class SwingUIProject {
 
     private class CreateKettleJobSettingsFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) throws SQLException {
-            return session.getCreateKettleJob();
+            return session.getKettleJob();
         }
     }
 
@@ -1129,11 +1129,11 @@ public class SwingUIProject {
     
     private void saveCreateKettleJobSettings(PrintWriter out) throws IOException {
         ioo.print(out, "<create-kettle-job-settings");
-        ioo.niprint(out, " filePath=\"" + SQLPowerUtils.escapeXML(session.getCreateKettleJob().getFilePath()) + "\"");
-        ioo.niprint(out, " jobName=\"" + SQLPowerUtils.escapeXML(session.getCreateKettleJob().getJobName()) + "\"");
-        ioo.niprint(out, " schemaName=\"" + SQLPowerUtils.escapeXML(session.getCreateKettleJob().getSchemaName()) + "\"");
-        ioo.niprint(out, " kettleJoinType=\"" + session.getCreateKettleJob().getKettleJoinType() + "\"");
-        ioo.niprint(out, " savingToFile=\"" + session.getCreateKettleJob().isSavingToFile() + "\"");
+        ioo.niprint(out, " filePath=\"" + SQLPowerUtils.escapeXML(session.getKettleJob().getFilePath()) + "\"");
+        ioo.niprint(out, " jobName=\"" + SQLPowerUtils.escapeXML(session.getKettleJob().getJobName()) + "\"");
+        ioo.niprint(out, " schemaName=\"" + SQLPowerUtils.escapeXML(session.getKettleJob().getSchemaName()) + "\"");
+        ioo.niprint(out, " kettleJoinType=\"" + session.getKettleJob().getKettleJoinType() + "\"");
+        ioo.niprint(out, " savingToFile=\"" + session.getKettleJob().isSavingToFile() + "\"");
         ioo.niprintln(out, " />");
     }
 

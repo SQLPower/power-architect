@@ -48,7 +48,6 @@ import org.apache.log4j.Logger;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.repository.RepositoryDirectory;
 
-import ca.sqlpower.architect.etl.kettle.CreateKettleJob;
 import ca.sqlpower.architect.etl.kettle.KettleRepositoryDirectoryChooser;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
@@ -60,7 +59,7 @@ import com.jgoodies.forms.layout.FormLayout;
  */
 public class UserRepositoryDirectoryChooser implements KettleRepositoryDirectoryChooser {
 
-    private static final Logger logger = Logger.getLogger(CreateKettleJob.class);
+    private static final Logger logger = Logger.getLogger(UserRepositoryDirectoryChooser.class);
     
     /**
      * This is the parent frame to know which frame to make this dialog on top of.

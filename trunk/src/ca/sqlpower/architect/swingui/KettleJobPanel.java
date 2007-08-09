@@ -54,7 +54,7 @@ import javax.swing.event.DocumentListener;
 import org.apache.log4j.Logger;
 import org.pentaho.di.trans.steps.mergejoin.MergeJoinMeta;
 
-import ca.sqlpower.architect.etl.kettle.CreateKettleJob;
+import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.SPSUtils;
@@ -62,41 +62,112 @@ import ca.sqlpower.swingui.SPSUtils;
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class CreateKettleJobPanel implements DataEntryPanel {
+/**
+ * The KettleJobPanel class created a panel for user input to set properties
+ * required in creating a Kettle job. The settings on the panel are saved in the 
+ * session's KettleJob object.
+ */
+public class KettleJobPanel implements DataEntryPanel {
     
-    private static Logger logger = Logger.getLogger(CreateKettleJobPanel.class);
+    private static Logger logger = Logger.getLogger(KettleJobPanel.class);
 
+    /**
+     * The panel that this class will create for user input of Kettle settings.
+     */
     private JPanel panel = new JPanel();
+    
+    /**
+     * The field to allow users to specify a name for the Kettle job.
+     */
     private JTextField nameField;
+    
+    /**
+     * The combo box that lists all of the target databases. This is used to
+     * select the database to copy all of the data to.
+     */
     private JComboBox databaseComboBox;
+    
+    /**
+     * This button brings up a new DBCS panel to make a new connection to select
+     * for the target database.
+     */
     private JButton newDatabaseButton;
+    
+    /**
+     * This field allows the user to specify a schema if it is required for the database.
+     */
     private JTextField schemaName;
+    
+    /**
+     * This field allows the user to specify an absolute path to where the file should be
+     * saved if the kettle job is to be saved as a file in XML format.
+     */
     private JTextField filePath;
+    
+    /**
+     * This button brings up a JFileChooser to allow the user to select a location to save
+     * the XML file output to.
+     */
     private JButton browseFilePath;
+    
+    /**
+     * The default join type to set Kettle joins to if they are required in a transformation.
+     */
     private JComboBox defaultJoinType;
+    
+    /**
+     * The label that shows the user the path to the Job file to let them know that the 
+     * transformations will be stored in the same place. This label is defined here as it
+     * is updated by inline classes.
+     */
     private JLabel transformationPath;
-    private JLabel transformationPath2;
+    
+    /**
+     * The radio button that denoted the Job will be saved to a file.
+     */
     private JRadioButton saveFileRadioButton;
+    
+    /**
+     * The radio button that denoted the Job will be saved to a repository.
+     */
     private JRadioButton saveReposRadioButton;
-    private ButtonGroup saveByButtonGroup;
+    
+    /**
+     * This button opens a JDBC panel for editing the connection that will be used to
+     * connect to the repository.
+     */
     private JButton reposPropertiesButton;
+    
+    /**
+     * This combo box holds all of the connections defined in the Architect so they can
+     * be used as a repository connection.
+     */
     private JComboBox reposDB;
     
-    
-    private final SwingUIProject project;
+    /**
+     * The session that we will get the play pen from to create a Kettle job and transformations
+     * for.
+     */
     private final ArchitectSwingSession session;
-
     
-    public CreateKettleJobPanel(ArchitectSwingSession session) {
-        this.project = session.getProject();
+    /**
+     * This constructor creates a Kettle job panel and displays it to the user.
+     * 
+     * @param session
+     *            The session we will be making a Kettle job for.
+     */
+    public KettleJobPanel(ArchitectSwingSession session) {
         this.session = session;
         buildUI();
         panel.setVisible(true);
     }
     
+    /**
+     * Sets the {@link #panel} to be a new panel that can be used by the user to define
+     * Kettle job properties.
+     */
     private void buildUI(){
-        
-        CreateKettleJob settings = session.getCreateKettleJob();
+        KettleJob settings = session.getKettleJob();
         panel.setLayout(new FormLayout());
         panel.setPreferredSize(new Dimension(450,300));
         
@@ -131,7 +202,7 @@ public class CreateKettleJobPanel implements DataEntryPanel {
                File file = new File(filePath.getText());
                if (file != null) { 
                    File parentFile = file.getParentFile();
-                   transformationPath2.setText("     " + ((parentFile == null || parentFile.getPath() == null)?"":parentFile.getPath()));
+                   transformationPath.setText("     " + ((parentFile == null || parentFile.getPath() == null)?"":parentFile.getPath()));
                }
            }
         });
@@ -139,7 +210,7 @@ public class CreateKettleJobPanel implements DataEntryPanel {
         browseFilePath.setText("Browse...");
         browseFilePath.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                JFileChooser chooser = new JFileChooser(project.getFile());
+                JFileChooser chooser = new JFileChooser(session.getProject().getFile());
                 chooser.addChoosableFileFilter(SPSUtils.XML_FILE_FILTER);
                 int response = chooser.showSaveDialog(panel);
                 if (response != JFileChooser.APPROVE_OPTION) {
@@ -149,17 +220,17 @@ public class CreateKettleJobPanel implements DataEntryPanel {
                     File parentFile = file.getParentFile();
                     filePath.setText(file.getPath());
                     if (parentFile != null) {
-                        transformationPath2.setText("     " + parentFile.getPath());
+                        transformationPath.setText("     " + parentFile.getPath());
                     }
                 }
             }
         });
-        transformationPath = new JLabel("The transformations will be stored in:");
+        
         File parentFile = new File(settings.getFilePath()).getParentFile();
         if (settings == null || parentFile == null || parentFile.getPath() == null) {
-            transformationPath2 = new JLabel("");
+            transformationPath = new JLabel("");
         } else {
-            transformationPath2 = new JLabel("     " + parentFile.getPath());
+            transformationPath = new JLabel("     " + parentFile.getPath());
         }
         
         saveReposRadioButton = new JRadioButton("Save Job to Repository", !settings.isSavingToFile());
@@ -178,7 +249,7 @@ public class CreateKettleJobPanel implements DataEntryPanel {
             }
         });
         
-        saveByButtonGroup = new ButtonGroup();
+        ButtonGroup saveByButtonGroup = new ButtonGroup();
         saveByButtonGroup.add(saveFileRadioButton);
         saveByButtonGroup.add(saveReposRadioButton);
         
@@ -219,11 +290,12 @@ public class CreateKettleJobPanel implements DataEntryPanel {
         builder.nextLine();
         builder.append("");
         builder.append("");
-        builder.append(transformationPath, 3);
+        JLabel transPathLabel = new JLabel("The transformations will be stored in:");
+        builder.append(transPathLabel, 3);
         builder.nextLine();
         builder.append("");
         builder.append("");
-        builder.append(transformationPath2, 3);
+        builder.append(transformationPath, 3);
         builder.nextLine();
         builder.append("");
         builder.append(saveReposRadioButton, 3);
@@ -240,6 +312,10 @@ public class CreateKettleJobPanel implements DataEntryPanel {
         
     }
    
+    /**
+     * Copies the settings to the project and verifies that the Job name is not empty and the file path is not
+     * empty if the job is to be saved to a file.
+     */
     public boolean applyChanges() {
         copySettingsToProject();
         if (nameField.getText().equals("")) {
@@ -284,8 +360,12 @@ public class CreateKettleJobPanel implements DataEntryPanel {
         return nameField.getText();
     }
     
+    /**
+     * Copies the settings to the project by storing them in the KettleJob instance.
+     */
     private void copySettingsToProject() {
-        CreateKettleJob settings = session.getCreateKettleJob();
+        logger.debug("Saving settings to the project...");
+        KettleJob settings = session.getKettleJob();
         settings.setJobName(nameField.getText());
         settings.setSchemaName(schemaName.getText());
         settings.setKettleJoinType(defaultJoinType.getSelectedIndex());

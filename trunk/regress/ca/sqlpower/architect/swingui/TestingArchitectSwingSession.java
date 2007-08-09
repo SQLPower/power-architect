@@ -41,7 +41,7 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
-import ca.sqlpower.architect.etl.kettle.CreateKettleJob;
+import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.TableProfileManager;
 import ca.sqlpower.architect.undo.UndoManager;
@@ -63,7 +63,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     private TableProfileManager profileManager;
     private CompareDMSettings compareDMSettings;
     private GenericDDLGenerator ddlGenerator;
-    private CreateKettleJob createKettleJob;
+    private KettleJob kettleJob;
     
     public TestingArchitectSwingSession(ArchitectSwingSessionContext context) throws ArchitectException {
         this.context = context;
@@ -84,7 +84,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         } catch (SQLException e) {
             throw new ArchitectException("SQL Error in ddlGenerator",e);
         }
-        createKettleJob = new CreateKettleJob();
+        kettleJob = new KettleJob();
         
     }
     
@@ -179,11 +179,11 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         this.sourceDatabases.setModel(new DBTreeModel(databases,this));
     }
 
-    public CreateKettleJob getCreateKettleJob() {
-        return createKettleJob;
+    public KettleJob getKettleJob() {
+        return kettleJob;
     }
 
-    public void setCreateKettleJobSettings(CreateKettleJob createKettleJobSettings) {
+    public void setKettleJob(KettleJob kettleJob) {
     }
 
     public void initGUI() throws ArchitectException {

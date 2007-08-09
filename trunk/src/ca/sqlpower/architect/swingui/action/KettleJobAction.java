@@ -54,12 +54,12 @@ import org.pentaho.di.core.exception.KettleException;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.FileValidator;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.etl.kettle.CreateKettleJob;
+import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.architect.etl.kettle.KettleRepositoryDirectoryChooser;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.swingui.CreateKettleJobPanel;
+import ca.sqlpower.architect.swingui.KettleJobPanel;
 import ca.sqlpower.architect.swingui.PromptingFileValidator;
 import ca.sqlpower.architect.swingui.UserRepositoryDirectoryChooser;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
@@ -70,24 +70,25 @@ import com.jgoodies.forms.builder.ButtonBarBuilder;
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class CreateKettleJobAction extends AbstractArchitectAction {
+public class KettleJobAction extends AbstractArchitectAction {
 
-    private static final Logger logger = Logger.getLogger(CreateKettleJobAction.class);
+    private static final Logger logger = Logger.getLogger(KettleJobAction.class);
     
     private ArchitectFrame architectFrame;
     
-    public CreateKettleJobAction(ArchitectSwingSession session) {
+    public KettleJobAction(ArchitectSwingSession session) {
         super(session, "Create Kettle Job...", "Create a new Kettle job");
         architectFrame = session.getArchitectFrame();
         putValue(SHORT_DESCRIPTION, "Create a Kettle Job");
     }
     
     public void actionPerformed(ActionEvent arg0) {
+        logger.debug("Starting to create a Kettle job.");
         
         JDialog d;
         final JPanel cp = new JPanel(new BorderLayout(12,12));
         cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
-        final CreateKettleJobPanel kettleETLPanel = new CreateKettleJobPanel(session);
+        final KettleJobPanel kettleETLPanel = new KettleJobPanel(session);
 
         Action okAction, cancelAction;
         okAction = new AbstractAction() {
@@ -98,7 +99,7 @@ public class CreateKettleJobAction extends AbstractArchitectAction {
                 }
                 FileValidator validator = new PromptingFileValidator(architectFrame);
                 KettleRepositoryDirectoryChooser chooser = new UserRepositoryDirectoryChooser(architectFrame);
-                final CreateKettleJob kettleJob = session.getCreateKettleJob();
+                final KettleJob kettleJob = session.getKettleJob();
                 kettleJob.setFileValidator(validator);
                 kettleJob.setRepositoryDirectoryChooser(chooser);
                 
