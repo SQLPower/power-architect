@@ -38,10 +38,11 @@ package ca.sqlpower.architect;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.log4j.Logger;
 
 /**
  * The DepthFirstSearch class performs a depth-first search on a
@@ -54,13 +55,15 @@ import java.util.Map;
  */
 public class DepthFirstSearch {
     
+    private static final Logger logger = Logger.getLogger(DepthFirstSearch.class);
+    
     /**
      * Maps individual SQLTable objects (the vertices of our graph)
      * to their associated VertexInfo instances.  VertexInfo objects
      * store information about the DFS execution which will be of interest
      * to users of the class. 
      */
-    private Map vertexInfo;
+    private Map<SQLTable, VertexInfo> vertexInfo;
     
     /**
      * Tracks the current visit time.  This variable is only useful
@@ -72,6 +75,9 @@ public class DepthFirstSearch {
      * Keeps track of the order the DFS finished with each of the vertices
      * in the graph.  The last vertex finished is at the head of the list.
      * This list constitutes a topological sort of the graph.
+     * <p>
+     * This is declared as a LinkedList so we can use the special addFirst()
+     * method of LinkedList.
      */
     private LinkedList<SQLTable> finishOrder;
 
@@ -162,7 +168,7 @@ public class DepthFirstSearch {
     }
     
     public DepthFirstSearch(SQLDatabase db) throws ArchitectException {
-        List tables = new ArrayList();
+        List<SQLTable> tables = new ArrayList<SQLTable>();
         ArchitectUtils.extractTables(db, tables);
         performSearch(tables);
     }
@@ -181,19 +187,18 @@ public class DepthFirstSearch {
      * @param tables
      * @throws ArchitectException
      */
-    private void performSearch(List tables) throws ArchitectException {
+    private void performSearch(List<SQLTable> tables) throws ArchitectException {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Performing Search on: " + tables);
+        }
         vertexInfo = new HashMap();
         finishOrder = new LinkedList();
-        Iterator it = tables.iterator();
-        while (it.hasNext()) {
-            SQLTable u = (SQLTable) it.next();
+        for (SQLTable u : tables) {
             vertexInfo.put(u, new VertexInfo());
         }
         visitTime = 0;
-        it = tables.iterator();
-        while (it.hasNext()) {
-            SQLTable u = (SQLTable) it.next();
-            VertexInfo vi = (VertexInfo) vertexInfo.get(u);
+        for (SQLTable u : tables) {
+            VertexInfo vi = vertexInfo.get(u);
             if (vi.isWhite()) visit(u);
         }
     }
@@ -210,16 +215,18 @@ public class DepthFirstSearch {
      * @throws ArchitectException
      */
     private void visit(SQLTable u) throws ArchitectException {
-        VertexInfo vi = (VertexInfo) vertexInfo.get(u);
+        VertexInfo vi = vertexInfo.get(u);
         vi.setDiscoveryTime(++visitTime);
-        Iterator it = u.getExportedKeys().iterator();
-        while (it.hasNext()) {
-            SQLRelationship r = (SQLRelationship) it.next();
+        for (SQLRelationship r : u.getExportedKeys()) {
             SQLTable v = r.getFkTable();
-            VertexInfo vi2 = (VertexInfo) vertexInfo.get(v);
-            if (vi2.isWhite()) {
-                vi2.setPredecessor(u);
-                visit(v);
+            VertexInfo vi2 = vertexInfo.get(v);
+            if (vi2 == null) {
+                logger.debug("Skipping vertex " + v + " because it is not in the set of tables to search");
+            } else {
+                if (vi2.isWhite()) {
+                    vi2.setPredecessor(u);
+                    visit(v);
+                }
             }
         }
         vi.setFinishTime(++visitTime);
