@@ -1030,7 +1030,7 @@
 	<target name="jdbc_dist" depends="windows_jdbc_installer,generic_jdbc_install,osx_jdbc_tgz,osx_jdbc_dmg" />
 	<target name="no_jdbc_dist" depends="windows_installer,generic_install,osx_tgz,osx_dmg" />
 
-	<target name="dist" depends="jdbc_dist,no_jdbc_dist,javadoc,junit"
+	<target name="dist" depends="jdbc_dist,no_jdbc_dist,source_only_tgz,javadoc"
 	        description="Builds Architect Distribution for all supported platforms to dist/architect-version/*">
 		<echo>Don't forget to turn off all the debugging in log4j.properties!</echo>
 		<mkdir dir="${dist.dir}/doc"/>
@@ -1142,6 +1142,7 @@
 			</condition>
 		</fail>
 		<echo message="Attempting to build sqlpower-library project..."/>
+		<ant dir="${sqlpower.library.home}" target="clean"/>
 		<ant dir="${sqlpower.library.home}">
 			<property name="build" value="${sqlpower.library.home}/build"/>
 		</ant>
