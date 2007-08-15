@@ -14,7 +14,7 @@ svn checkout http://power-architect.googlecode.com/svn/trunk/ power-architect
 svn checkout http://sqlpower-library.googlecode.com/svn/trunk/ sqlpower-library
 
 # Build the Power*Architect
-cd ../power-architect
+cd power-architect
 
 # Get version string
 VERSION=`ant -Dnightly=true init | grep 'Building Architect version:' | awk -F 'Building Architect version: ' '{print $2}'`
@@ -23,9 +23,12 @@ echo "Building Architect version: $VERSION"
 
 export ANT_OPTS="-Xmx1024m -Djava.awt.headless=true"
 
-# Run the Power*Architect nightly build
-ant -Dnightly=true clean dist >dist/architect-$VERSION/build.log
+# Run the Power*Architect Clover test coverage report generation
+ant -Dnightly=true clean clover.test.and.report >dist/architect-$VERSION/build.log
 
+# Run the Power*Architect nightly build (This has to be done separate from the
+# Clover report build. Otherwise, the distributables will need Clover to run)
+ant -Dnightly=true clean dist >>dist/architect-$VERSION/build.log
 
 # Mail out the build log
 cd dist
