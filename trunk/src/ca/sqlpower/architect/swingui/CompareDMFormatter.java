@@ -327,7 +327,7 @@ public class CompareDMFormatter {
                         boldAttributes);
             } else if (o instanceof SQLColumn) {
                 if (dmSetting.getSuppressSimilarities() && !currentTableName.equals("")) {
-                    attributes = styles.get(DiffType.MODIFIED);
+                    attributes = styles.get(DiffType.SAME);
                     boldAttributes = new SimpleAttributeSet(attributes);
                     StyleConstants.setBold(boldAttributes, true);
                     sourceDoc.insertString(
@@ -340,7 +340,7 @@ public class CompareDMFormatter {
                             boldAttributes);
                     sourceDoc.insertString(
                             sourceDoc.getLength(), 
-                            " should be modified\n", 
+                            " needs no changes\n", 
                             attributes);
                     currentTableName = "";
                 }
