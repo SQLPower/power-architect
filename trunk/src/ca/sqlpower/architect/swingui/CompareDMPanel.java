@@ -243,7 +243,7 @@ public class CompareDMPanel extends JPanel {
                         databaseDropdown.setSelectedItem(dataSource);
                     }
                 };
-                ASUtils.showDbcsDialog(SwingUtilities.getWindowAncestor(CompareDMPanel.this), session, dataSource, onAccept);
+                ASUtils.showDbcsDialog(SwingUtilities.getWindowAncestor(CompareDMPanel.this), dataSource, onAccept);
 			}
 		};
 
