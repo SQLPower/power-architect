@@ -1062,7 +1062,7 @@ public class CompareDMPanel extends JPanel {
 		s.setSaveFlag(true);
 		s.setOutputFormat(englishButton.isSelected()?CompareDMSettings.OutputFormat.ENGLISH:CompareDMSettings.OutputFormat.SQL);
 		s.setSqlScriptFormat( ((LabelValueBean)sqlTypeDropdown.getSelectedItem()).getLabel() );
-        s.setShowNoChanges(showNoChanges.isSelected());
+        s.setSuppressSimilarities(showNoChanges.isSelected());
         s.setSqlScriptFormatValue( ((LabelValueBean)sqlTypeDropdown.getSelectedItem()).getValue() );
         
 		SourceOrTargetSettings sourceSetting = s.getSourceSettings();
@@ -1120,7 +1120,7 @@ public class CompareDMPanel extends JPanel {
 		if ( s.getOutputFormat() == CompareDMSettings.OutputFormat.SQL)
 			sqlButton.doClick();
         
-        showNoChanges.setSelected(s.getShowNoChanges());
+        showNoChanges.setSelected(s.getSuppressSimilarities());
 
 		if ( s.getSqlScriptFormat() != null && s.getSqlScriptFormat().length() > 0 ) {
 
