@@ -40,7 +40,7 @@ public class CompareDMSettings {
 	
 	private OutputFormat outputFormat;
 	private String sqlScriptFormat;
-    private boolean showNoChanges;
+    private boolean suppressSimilarities;
     private SourceOrTargetStuff targetStuff;
     private SourceOrTargetStuff sourceStuff;
     private Object sqlScriptFormatValue;
@@ -156,12 +156,12 @@ public class CompareDMSettings {
 		outputFormat = OutputFormat.valueOf(v);
 	}
     
-    public void setShowNoChanges (boolean b) {
-        showNoChanges = b;
+    public void setSuppressSimilarities (boolean b) {
+        suppressSimilarities = b;
     }
     
-    public boolean getShowNoChanges () {
-        return showNoChanges;
+    public boolean getSuppressSimilarities () {
+        return suppressSimilarities;
     }
     
     public void setTargetStuff(SourceOrTargetStuff target) {
