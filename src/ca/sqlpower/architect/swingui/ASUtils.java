@@ -170,7 +170,7 @@ public class ASUtils {
             final ArchitectSwingSession session,
             final JComboBox targetDB) {
         
-        JDialog d = showDbcsDialog(parentWindow, session, session.getPlayPen().db.getDataSource(), null);
+        JDialog d = showDbcsDialog(parentWindow, session.getPlayPen().db.getDataSource(), null);
         
         d.addWindowListener(new WindowAdapter(){
                 public void windowClosed(WindowEvent e){
@@ -197,7 +197,6 @@ public class ASUtils {
      */
     public static JDialog showDbcsDialog(
             Window parentWindow,
-            final ArchitectSwingSession session,
             SPDataSource dataSource,
             final Runnable onAccept) {
         

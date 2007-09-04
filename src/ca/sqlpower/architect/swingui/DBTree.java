@@ -616,7 +616,7 @@ public class DBTree extends JTree implements DragSourceListener {
                     plDotIni.addDataSource(dataSource);
                 }
             };
-            ASUtils.showDbcsDialog(session.getArchitectFrame(), session, dataSource, onAccept);
+            ASUtils.showDbcsDialog(session.getArchitectFrame(), dataSource, onAccept);
             
 			panelHoldsNewDBCS = true;
 		}
@@ -716,7 +716,7 @@ public class DBTree extends JTree implements DragSourceListener {
 				ii++;
 			}
 			if (sd != null) {
-                ASUtils.showDbcsDialog(session.getArchitectFrame(), session, sd.getDataSource(), null);
+                ASUtils.showDbcsDialog(session.getArchitectFrame(), sd.getDataSource(), null);
                 logger.debug("Setting existing DBCS on panel");
 			}
 		}
