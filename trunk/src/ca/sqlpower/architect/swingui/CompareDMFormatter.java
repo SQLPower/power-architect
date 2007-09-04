@@ -296,15 +296,21 @@ public class CompareDMFormatter {
             List<DiffChunk<SQLObject>> diff, DefaultStyledDocument sourceDoc)
             throws BadLocationException, ArchitectException {
 
+        String currentTableName = "";
+        
         for (DiffChunk<SQLObject> chunk : diff) {
-            if (dmSetting.getShowNoChanges() && chunk.getType().equals(DiffType.SAME)) {
+            SQLObject o = chunk.getData();
+            if (dmSetting.getSuppressSimilarities() && chunk.getType().equals(DiffType.SAME)) {
+                if (o instanceof SQLTable) {
+                    currentTableName = o.getName();
+                }
+                    
                 continue;
             }
             AttributeSet attributes = styles.get(chunk.getType());
             MutableAttributeSet boldAttributes = new SimpleAttributeSet(attributes);
             StyleConstants.setBold(boldAttributes, true);
 
-            SQLObject o = chunk.getData();
             if (o == null) {
                 sourceDoc.insertString(
                         sourceDoc.getLength(),
@@ -320,6 +326,27 @@ public class CompareDMFormatter {
                         o.getName() + " ",
                         boldAttributes);
             } else if (o instanceof SQLColumn) {
+                if (dmSetting.getSuppressSimilarities() && !currentTableName.equals("")) {
+                    attributes = styles.get(DiffType.MODIFIED);
+                    boldAttributes = new SimpleAttributeSet(attributes);
+                    StyleConstants.setBold(boldAttributes, true);
+                    sourceDoc.insertString(
+                            sourceDoc.getLength(), 
+                            "Table ", 
+                            attributes);
+                    sourceDoc.insertString(
+                            sourceDoc.getLength(), 
+                            currentTableName, 
+                            boldAttributes);
+                    sourceDoc.insertString(
+                            sourceDoc.getLength(), 
+                            " should be modified\n", 
+                            attributes);
+                    currentTableName = "";
+                }
+                attributes = styles.get(chunk.getType());
+                boldAttributes = new SimpleAttributeSet(attributes);
+                StyleConstants.setBold(boldAttributes, true);
                 sourceDoc.insertString(
                         sourceDoc.getLength(),
                         "\tColumn ",
