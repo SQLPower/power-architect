@@ -49,8 +49,6 @@ import java.util.prefs.Preferences;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -62,8 +60,6 @@ import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
-import javax.swing.event.MenuEvent;
-import javax.swing.event.MenuListener;
 
 import org.apache.log4j.Logger;
 
@@ -76,10 +72,10 @@ import ca.sqlpower.architect.swingui.action.AboutAction;
 import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
 import ca.sqlpower.architect.swingui.action.CloseProjectAction;
 import ca.sqlpower.architect.swingui.action.CompareDMAction;
-import ca.sqlpower.architect.swingui.action.KettleJobAction;
 import ca.sqlpower.architect.swingui.action.CreateRelationshipAction;
 import ca.sqlpower.architect.swingui.action.CreateTableAction;
 import ca.sqlpower.architect.swingui.action.DataMoverAction;
+import ca.sqlpower.architect.swingui.action.DatabaseConnectionManagerAction;
 import ca.sqlpower.architect.swingui.action.DeleteSelectedAction;
 import ca.sqlpower.architect.swingui.action.EditColumnAction;
 import ca.sqlpower.architect.swingui.action.EditIndexAction;
@@ -91,6 +87,7 @@ import ca.sqlpower.architect.swingui.action.ExportPlaypenToPDFAction;
 import ca.sqlpower.architect.swingui.action.HelpAction;
 import ca.sqlpower.architect.swingui.action.InsertColumnAction;
 import ca.sqlpower.architect.swingui.action.InsertIndexAction;
+import ca.sqlpower.architect.swingui.action.KettleJobAction;
 import ca.sqlpower.architect.swingui.action.OpenProjectAction;
 import ca.sqlpower.architect.swingui.action.PreferencesAction;
 import ca.sqlpower.architect.swingui.action.PrintAction;
@@ -379,6 +376,8 @@ public class ArchitectFrame extends JFrame {
         connectionsMenu.add(dbTree.connectionsMenu);
         connectionsMenu.add(new JMenuItem(dbTree.dbcsPropertiesAction));
         connectionsMenu.add(new JMenuItem(dbTree.removeDBCSAction));
+        connectionsMenu.addSeparator();
+        connectionsMenu.add(new DatabaseConnectionManagerAction(session));
         
         JMenu etlMenu = new JMenu("ETL");
         etlMenu.setMnemonic('l');
@@ -404,28 +403,13 @@ public class ArchitectFrame extends JFrame {
         menuBar.add(profileMenu);
 
         JMenu windowMenu = new JMenu("Window");
-        final JCheckBoxMenuItem profileManagerViewCheckbox = 
-            new JCheckBoxMenuItem(new AbstractAction("Show Profile Manager") {
-                public void actionPerformed(ActionEvent e) {
-                    JDialog view = session.getProfileDialog();
-                    view.pack();
-                    view.setVisible(!view.isVisible());            
-                }        
-            });
-        windowMenu.addMenuListener(new MenuListener() {
-
-            public void menuCanceled(MenuEvent e) {
-                // don't care
+        windowMenu.add(new DatabaseConnectionManagerAction(session));
+        windowMenu.add(new AbstractAction("Profile Manager") {
+            public void actionPerformed(ActionEvent e) {
+                session.getProfileDialog().setVisible(true);
             }
-            public void menuDeselected(MenuEvent e) {
-                // don't care
-            }
-            public void menuSelected(MenuEvent e) {
-                profileManagerViewCheckbox.setSelected(
-                        session.getProfileDialog().isVisible()); 
-            }           
         });
-        windowMenu.add(profileManagerViewCheckbox);
+        
         menuBar.add(windowMenu);
 
         JMenu helpMenu = new JMenu("Help");

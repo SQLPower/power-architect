@@ -71,6 +71,7 @@ import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.swingui.action.DatabaseConnectionManagerAction;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.SPDataSourcePanel;
@@ -332,6 +333,8 @@ public class DBTree extends JTree implements DragSourceListener {
 		newMenu.add(connectionsMenu = new JMenu("Add Source Connection"));
 		connectionsMenu.add(new JMenuItem(newDBCSAction));
 		connectionsMenu.addSeparator();
+		
+		newMenu.add(new DatabaseConnectionManagerAction(session));
 
 		// populate
 

@@ -32,6 +32,7 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Component;
+import java.awt.Window;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,6 +43,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.prefs.Preferences;
 
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
@@ -52,7 +54,10 @@ import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.swingui.action.OpenProjectAction;
 import ca.sqlpower.architect.swingui.event.SessionLifecycleEvent;
+import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.swingui.db.DataSourceDialogFactory;
+import ca.sqlpower.swingui.db.DatabaseConnectionManager;
 
 /**
  * Instances of this class provide the basic global (non-project-specific) settings
@@ -89,6 +94,24 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      * The menu of recently-opened project files on this system.
      */
     private final RecentMenu recent;
+    
+    /**
+     * The database connection manager GUI for this session context (because all sessions
+     * share the same set of database connections).
+     */
+    private final DatabaseConnectionManager dbConnectionManager;
+
+    /**
+     * This factory just passes the request through to the {@link ASUtils#showDbcsDialog(Window, SPDataSource, Runnable)}
+     * method.
+     */
+    private final DataSourceDialogFactory dsDialogFactory = new DataSourceDialogFactory() {
+
+        public JDialog showDialog(Window parentWindow, SPDataSource dataSource, Runnable onAccept) {
+            return ASUtils.showDbcsDialog(parentWindow, dataSource, onAccept);
+        }
+        
+    };
 
     /**
      * Creates a new session context.  You will normally only need one of these
@@ -175,6 +198,8 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
                         "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
+        
+        dbConnectionManager = new DatabaseConnectionManager(userSettings.getPlDotIni(), dsDialogFactory);
     }
     
     /**
@@ -324,6 +349,11 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
             WelcomeScreen ws = new WelcomeScreen(this);
             ws.showWelcomeDialog(dialogOwner);
         }
+    }
+    
+
+    public void  showConnectionManager(Window owner) {
+        dbConnectionManager.showDialog(owner);
     }
 
     /**
