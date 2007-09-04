@@ -92,9 +92,15 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     
     private TableProfileManager profileManager;
     
-    // STUFF BROUGHT IN FROM SwingUIProject
     /** the dialog that contains the small ProfileManagerView */
     private JDialog profileDialog;
+    
+    /**
+     * Keeps track of whether or not the profile manager dialog has been packed yet.
+     * We only want to do this the first time we make it visible, since doing it over
+     * and over will annoy users.
+     */
+    private boolean profileDialogPacked = false;
     
     private PlayPen playPen;
     
@@ -605,6 +611,10 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     }
     
     public JDialog getProfileDialog() {
+        if (!profileDialogPacked) {
+            profileDialog.pack();
+            profileDialogPacked = true;
+        }
         return profileDialog;
     }
     

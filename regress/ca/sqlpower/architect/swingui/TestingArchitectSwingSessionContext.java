@@ -31,6 +31,7 @@
  */
 package ca.sqlpower.architect.swingui;
 
+import java.awt.Window;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -118,6 +119,13 @@ public class TestingArchitectSwingSessionContext implements ArchitectSwingSessio
      * Doesn't actually do anything!
      */
     public void setExitAfterAllSessionsClosed(boolean allowExit) {
+        // no op
+    }
+
+    /**
+     * Doesn't actually do anything!
+     */
+    public void showConnectionManager(Window owner) {
         // no op
     }
 }

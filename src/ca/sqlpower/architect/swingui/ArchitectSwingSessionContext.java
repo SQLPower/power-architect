@@ -31,6 +31,7 @@
  */
 package ca.sqlpower.architect.swingui;
 
+import java.awt.Window;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
@@ -152,5 +153,12 @@ public interface ArchitectSwingSessionContext {
      * See {@link #setExitAfterAllSessionsClosed(boolean)} for details.
      */
     public boolean getExitAfterAllSessionsClosed();
+
+    /**
+     * Shows the connection manager dialog for this context's data source collection. 
+     * 
+     * @param owner The owner of the dialog.
+     */
+    public abstract void showConnectionManager(Window owner);
 
 }
