@@ -45,12 +45,13 @@ import javax.swing.JTabbedPane;
 
 import org.apache.log4j.Logger;
 
-import ca.sqlpower.architect.swingui.ArchitectDataSourceTypeEditor;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.KettleDataSourceTypeOptionPanel;
 import ca.sqlpower.architect.swingui.PreferencesPanel;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 import ca.sqlpower.swingui.JDefaultButton;
 import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.swingui.db.DataSourceTypeEditor;
 
 import com.jgoodies.forms.factories.ButtonBarFactory;
 
@@ -80,9 +81,16 @@ public class PreferencesAction extends AbstractArchitectAction {
 		final PreferencesPanel prefPanel = new PreferencesPanel(session);
 		tp.add("General", prefPanel);
 
-        final ArchitectDataSourceTypeEditor dsTypeEditor =
-            new ArchitectDataSourceTypeEditor(session.getUserSettings().getPlDotIni());
- 		tp.add("JDBC Drivers", dsTypeEditor.getPanel());
+        final DataSourceTypeEditor dsTypeEditor =
+            new DataSourceTypeEditor(session.getUserSettings().getPlDotIni());
+
+        // Add the Kettle Options Panel as a tab to the SPDataSourceTypePanel
+        
+        final KettleDataSourceTypeOptionPanel kettleOptsPanel = new KettleDataSourceTypeOptionPanel();
+        
+        dsTypeEditor.addTab("Kettle", kettleOptsPanel);
+        
+        tp.add("JDBC Drivers", dsTypeEditor.getPanel());
 
 	
 		JDefaultButton okButton = new JDefaultButton(DataEntryPanelBuilder.OK_BUTTON_LABEL);
