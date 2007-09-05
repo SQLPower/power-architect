@@ -52,6 +52,7 @@ public abstract class GenericDDLWarningComponent implements DDLWarningComponent 
                 public void actionPerformed(ActionEvent e) {
                     boolean fixed = warning.quickFix();
                     warning.setFixed(fixed);
+                    quickFixButton.setEnabled(false);
                 }
             });
         } else {

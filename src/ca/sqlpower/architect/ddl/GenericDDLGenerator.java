@@ -815,7 +815,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		so.setPhysicalName(toIdentifier(so.getName()));
         String physicalName = so.getPhysicalName();
         if(isReservedWord(physicalName)) {
-            String renameTo = physicalName   + "2";
+            String renameTo = physicalName   + "_1";
             warnings.add(new DuplicateNameDDLWarning(
                     String.format("%s is a reserved word", physicalName),
                     Arrays.asList(new SQLObject[] { so }),
@@ -852,7 +852,17 @@ public class GenericDDLGenerator implements DDLGenerator {
         if (object == null) {
 			dupCheck.put(physicalName2, so);
         } else {
-            String renameTo2 = physicalName2 + "2";
+            
+            int count = 1;
+            String renameTo2;
+            SQLObject object2;
+            do {
+                renameTo2 = physicalName2 + "_" + count;
+                object2 = dupCheck.get(renameTo2);
+                count++;
+            } while (object2 != null);
+            
+            //String renameTo2 = physicalName2 + "_" + "2";
             String message;
             if (so instanceof SQLColumn) {
                 message = String.format("Column name %s in table %s already in use", 
@@ -861,11 +871,21 @@ public class GenericDDLGenerator implements DDLGenerator {
             } else {
                 message = String.format("Global name %s already in use", physicalName);
             }
-                    warnings.add(new DuplicateNameDDLWarning(
-                            message,
-                            Arrays.asList(new SQLObject[] { so, object }),
-                            String.format("Rename %s to %s", physicalName, renameTo2),
-                            so, renameTo2));
+            logger.debug("Rename to : " + renameTo2);
+            /*warnings.add(new DuplicateNameDDLWarning(
+                        message,
+                        Arrays.asList(new SQLObject[] { so, object }),
+                        String.format("Rename %s to %s", physicalName, renameTo2),
+                        so, renameTo2));
+            */
+            warnings.add(new DuplicateNameDDLWarning(
+                    message,
+                    Arrays.asList(new SQLObject[] { so }),
+                    String.format("Rename %s to %s", physicalName, renameTo2),
+                    so, renameTo2));
+            
+            dupCheck.put(renameTo2, so);
+                    
 		}
 
 		return so.getPhysicalName();
@@ -961,19 +981,28 @@ public class GenericDDLGenerator implements DDLGenerator {
             SQLObject obj,
             String warning,
             String name2) {
+        
         if (name.equals(name2)) {
             System.err.println("Error: checkDupName called with newname == oldname");
         }
-        final SQLObject object = topLevelNames.get(name);
+        SQLObject object = topLevelNames.get(name);
         if (object == null) {
             topLevelNames.put(name, obj);
         } else {
+            int count = 1;
+            String newName;
+            do {
+                newName = name + "_" + count;
+                object = topLevelNames.get(newName);
+                count++;
+            } while (object != null);
+
             warnings.add(
                     new DuplicateNameDDLWarning(
                             String.format("Global name %s already in use", name),
                             Arrays.asList(new SQLObject[] { obj, object }),
-                            String.format("Rename %s to %s", name, name + "2"),
-                            obj, name + "2"));
+                            String.format("Rename %s to %s", name, newName),
+                            obj, newName));
         }
     }
     

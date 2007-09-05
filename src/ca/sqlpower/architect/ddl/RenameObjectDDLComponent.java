@@ -59,17 +59,18 @@ public class RenameObjectDDLComponent extends GenericDDLWarningComponent {
         this.changeApplicator = new Runnable() {
 
             public void run() {
-                for (int i = 0; i < textFields.size(); i++) {
+                /*for (int i = 0; i < textFields.size(); i++) {
                     SQLObject obj = 
                         RenameObjectDDLComponent.this.warning.getInvolvedObjects().get(i);
                     obj.setName(textFields.get(i).getText());
-                }
+                }*/
             }
             
         };
-        component = new JPanel();
+        component = new JPanel();        
         component.add(getQuickFixButton());                 // XXX anti-pattern
         component.add(new JLabel(warning.getMessage()));
+        component.add(new JLabel(" Rename component to: "));
         List<SQLObject> list = warning.getInvolvedObjects();
         for (SQLObject obj : list) {
             JTextField jtf = new JTextField(obj.getName());
