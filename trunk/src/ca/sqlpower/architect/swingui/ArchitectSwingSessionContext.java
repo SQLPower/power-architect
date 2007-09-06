@@ -161,4 +161,10 @@ public interface ArchitectSwingSessionContext {
      */
     public abstract void showConnectionManager(Window owner);
 
+    /**
+     * Shows the user preferences dialog for this application context.
+     * 
+     * @param owner The owner of the dialog
+     */
+    public void showPreferenceDialog(Window owner);
 }

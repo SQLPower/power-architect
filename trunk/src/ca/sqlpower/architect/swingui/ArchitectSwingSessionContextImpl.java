@@ -57,6 +57,7 @@ import ca.sqlpower.architect.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.db.DataSourceDialogFactory;
+import ca.sqlpower.swingui.db.DataSourceTypeDialogFactory;
 import ca.sqlpower.swingui.db.DatabaseConnectionManager;
 
 /**
@@ -102,6 +103,11 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     private final DatabaseConnectionManager dbConnectionManager;
 
     /**
+     * The Preferences editor for this application context.
+     */
+    private final PreferencesEditor prefsEditor;
+    
+    /**
      * This factory just passes the request through to the {@link ASUtils#showDbcsDialog(Window, SPDataSource, Runnable)}
      * method.
      */
@@ -111,6 +117,16 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
             return ASUtils.showDbcsDialog(parentWindow, dataSource, onAccept);
         }
         
+    };
+    
+    /**
+     * This factory just passes the request through to the {@link ASUtils#showDbcsDialog(Window, SPDataSource, Runnable)}
+     * method.
+     */
+    private final DataSourceTypeDialogFactory dsTypeDialogFactory = new DataSourceTypeDialogFactory() {
+        public Window showDialog(Window owner) {
+            return prefsEditor.showJDBCDriverPreferences(owner, ArchitectSwingSessionContextImpl.this);
+        }
     };
 
     /**
@@ -198,8 +214,8 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
                         "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
-        
-        dbConnectionManager = new DatabaseConnectionManager(userSettings.getPlDotIni(), dsDialogFactory);
+        dbConnectionManager = new DatabaseConnectionManager(userSettings.getPlDotIni(), dsDialogFactory,dsTypeDialogFactory);
+        prefsEditor = new PreferencesEditor();
     }
     
     /**
@@ -356,6 +372,10 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         dbConnectionManager.showDialog(owner);
     }
 
+    public void showPreferenceDialog(Window owner) {
+        prefsEditor.showPreferencesDialog(owner, ArchitectSwingSessionContextImpl.this);
+    }
+    
     /**
      * Attempts to close all sessions that were created by this context.  The
      * user might abort some or all of the session closes by choosing to cancel
