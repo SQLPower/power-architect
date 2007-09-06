@@ -52,7 +52,6 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.CoreUserSettings;
-import ca.sqlpower.architect.swingui.action.OpenProjectAction;
 import ca.sqlpower.architect.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.SPSUtils;
@@ -90,12 +89,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      * event.
      */
     private final Collection<ArchitectSwingSession> sessions;
-
-    /**
-     * The menu of recently-opened project files on this system.
-     */
-    private final RecentMenu recent;
-    
+   
     /**
      * The database connection manager GUI for this session context (because all sessions
      * share the same set of database connections).
@@ -154,14 +148,6 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         logger.debug("new motion threshold is: " + System.getProperty("awt.dnd.drag.threshold"));
 
         Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler(this));
-
-        recent = new RecentMenu(this) {
-            @Override
-            public void loadFile(String fileName) throws IOException {
-                File f = new File(fileName);
-                OpenProjectAction.openAsynchronously(ArchitectSwingSessionContextImpl.this, f);
-            }
-        };
         
         userSettings = new CoreUserSettings(getPrefs());
 
@@ -334,13 +320,6 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         return MAC_OS_X;
     }
 
-    /* (non-Javadoc)
-     * @see ca.sqlpower.architect.swingui.ArchitectSwingSessionContext#getRecentMenu()
-     */
-    public RecentMenu getRecentMenu() {
-        return recent;
-    }
-    
     /* (non-Javadoc)
      * @see ca.sqlpower.architect.swingui.ArchitectSwingSessionContext#getPrefs()
      */

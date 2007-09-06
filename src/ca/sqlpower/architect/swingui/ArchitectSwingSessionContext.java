@@ -107,11 +107,6 @@ public interface ArchitectSwingSessionContext {
      * that the Architect is a native application.
      */
     public abstract boolean isMacOSX();
-
-    /**
-     * Returns the recent files menu.
-     */
-    public abstract RecentMenu getRecentMenu();
     
     /**
      * Returns the user preferences node associated with this context.

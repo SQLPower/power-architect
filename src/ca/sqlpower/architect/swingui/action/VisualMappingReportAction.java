@@ -145,7 +145,7 @@ public class VisualMappingReportAction extends AbstractArchitectAction {
 
                         File file = null;
 
-                        JFileChooser fileDialog = new JFileChooser(session.getContext().getRecentMenu().getMostRecentFile());
+                        JFileChooser fileDialog = new JFileChooser(session.getRecentMenu().getMostRecentFile());
                         fileDialog.setSelectedFile(new File("map.csv"));
 
                         if (fileDialog.showSaveDialog(f) == JFileChooser.APPROVE_OPTION){

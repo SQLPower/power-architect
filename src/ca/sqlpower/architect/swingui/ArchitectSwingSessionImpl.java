@@ -32,6 +32,7 @@
 package ca.sqlpower.architect.swingui;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -63,6 +64,7 @@ import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.TableProfileManager;
 import ca.sqlpower.architect.swingui.action.AboutAction;
+import ca.sqlpower.architect.swingui.action.OpenProjectAction;
 import ca.sqlpower.architect.swingui.action.PreferencesAction;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentEvent;
 import ca.sqlpower.architect.swingui.event.PlayPenComponentListener;
@@ -89,6 +91,11 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     private ArchitectFrame frame;
 
     private CoreUserSettings userSettings;
+    
+    /**
+     * The menu of recently-opened project files on this system.
+     */
+    private RecentMenu recent;
     
     private TableProfileManager profileManager;
     
@@ -139,7 +146,14 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
         this.context = context;
         this.name = name;
-
+        this.recent = new RecentMenu(this.getClass()) {
+            @Override
+            public void loadFile(String fileName) throws IOException {
+                File f = new File(fileName);
+                OpenProjectAction.openAsynchronously(context, f);
+            }
+        };
+        
         userSettings = context.getUserSettings();
         
         // Make sure we can load the pl.ini file so we can handle exceptions
@@ -336,7 +350,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                         return saveOrSaveAs(true, separateThread);
                     }
                 }
-                context.getRecentMenu().putRecentFileName(file.getAbsolutePath());
+                getRecentMenu().putRecentFileName(file.getAbsolutePath());
                 project.setFile(file);
                 String projName = file.getName().substring(0, file.getName().length()-".architect".length());
                 setName(projName);
@@ -587,6 +601,15 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         return this.playPen;
     }
 
+    /**
+     * Gets the recent menu list
+     * 
+     * @return the recent menu
+     */
+    public RecentMenu getRecentMenu()  {
+        return this.recent;    
+    }
+    
     public GenericDDLGenerator getDDLGenerator() {
         return ddlGenerator;
     }

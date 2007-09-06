@@ -67,7 +67,7 @@ public class OpenProjectAction extends AbstractArchitectAction {
     
     public OpenProjectAction(ArchitectSwingSession session) {
         super(session, "Open Project...", "Open", "folder");
-        this.recent = session.getContext().getRecentMenu();
+        this.recent = session.getRecentMenu();
         putValue(AbstractAction.ACCELERATOR_KEY,
                 KeyStroke.getKeyStroke(KeyEvent.VK_O,
                         Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
@@ -138,7 +138,13 @@ public class OpenProjectAction extends AbstractArchitectAction {
                 super(session);
                 this.context = session.getContext();
                 this.file = file;
-                this.recent = session.getContext().getRecentMenu();
+                this.recent = new RecentMenu(this.getClass()) {
+                    @Override
+                    public void loadFile(String fileName) throws IOException {
+                        File f = new File(fileName);
+                        OpenProjectAction.openAsynchronously(context, f);
+                    }
+                };
                 this.newSession = session;
                 
                 // XXX this progress dialog has the coffee cup icon instead
