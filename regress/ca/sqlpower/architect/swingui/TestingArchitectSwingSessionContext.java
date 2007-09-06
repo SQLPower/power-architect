@@ -128,4 +128,11 @@ public class TestingArchitectSwingSessionContext implements ArchitectSwingSessio
     public void showConnectionManager(Window owner) {
         // no op
     }
+
+    /**
+     * Doesn't actually do anything!
+     */    
+    public void showPreferenceDialog(Window owner) {
+        // no op
+    }
 }

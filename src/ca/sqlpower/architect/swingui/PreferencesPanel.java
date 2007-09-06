@@ -77,11 +77,11 @@ public class PreferencesPanel extends JPanel implements DataEntryPanel {
     private JRadioButton showWelcomeOn;
     private JRadioButton showWelcomeOff;
 
-    private final ArchitectSwingSession session;
+    private final ArchitectSwingSessionContext context;
 
-	public PreferencesPanel(ArchitectSwingSession session) {
-		this.session = session;
-        this.us = session.getUserSettings();
+	public PreferencesPanel(ArchitectSwingSessionContext context) {
+		this.context = context;
+        this.us = context.getUserSettings();
         
 		setup();
 		revertToUserSettings();
@@ -176,7 +176,9 @@ public class PreferencesPanel extends JPanel implements DataEntryPanel {
 		us.getSwingSettings().setBoolean(ArchitectSwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, playPenAntialiasOn.isSelected());
         us.getSwingSettings().setBoolean(ArchitectSwingUserSettings.SHOW_WELCOMESCREEN, showWelcomeOn.isSelected());
         us.getQfaUserSettings().setBoolean(QFAUserSettings.EXCEPTION_REPORTING, exceptionReportOn.isSelected());
-		session.getPlayPen().setRenderingAntialiased(playPenAntialiasOn.isSelected());
+        for (ArchitectSwingSession session: context.getSessions()) {
+            session.getPlayPen().setRenderingAntialiased(playPenAntialiasOn.isSelected());
+        }
 		return true;
 	}
 
