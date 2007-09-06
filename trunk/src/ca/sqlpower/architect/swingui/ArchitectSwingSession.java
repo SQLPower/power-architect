@@ -61,6 +61,13 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
      * Returns the context that created this session.
      */
     public ArchitectSwingSessionContext getContext();
+    
+    /**
+     * Gets the recent menu list
+     * 
+     * @return the recent menu
+     */
+    public RecentMenu getRecentMenu();
 
     /**
      * Returns the ArchitectFrame created in this session. 

@@ -31,6 +31,7 @@
  */
 package ca.sqlpower.architect.swingui;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -64,9 +65,16 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     private CompareDMSettings compareDMSettings;
     private GenericDDLGenerator ddlGenerator;
     private KettleJob kettleJob;
+    private RecentMenu recent;
     
     public TestingArchitectSwingSession(ArchitectSwingSessionContext context) throws ArchitectException {
         this.context = context;
+        this.recent = new RecentMenu(this.getClass()) {
+            @Override
+            public void loadFile(String fileName) throws IOException {
+                System.out.println("Fake load file for recent menu");
+            }
+        };
         profileManager = new TableProfileManager();
         project = new SwingUIProject(this);
         userSettings = context.getUserSettings();
@@ -100,6 +108,10 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         return context;
     }
 
+    public RecentMenu getRecentMenu() {
+        return recent;
+    }
+    
     public SwingUIProject getProject() {
         return project;
     }

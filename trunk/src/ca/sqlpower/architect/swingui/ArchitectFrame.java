@@ -339,7 +339,7 @@ public class ArchitectFrame extends JFrame {
         fileMenu.setMnemonic('f');
         fileMenu.add(newProjectAction);
         fileMenu.add(openProjectAction);
-        fileMenu.add(session.getContext().getRecentMenu());
+        fileMenu.add(session.getRecentMenu());
         fileMenu.add(closeProjectAction);
         fileMenu.addSeparator();
         fileMenu.add(saveProjectAction);
@@ -576,7 +576,7 @@ public class ArchitectFrame extends JFrame {
                     if (openFile != null) {
                         InputStream in = new BufferedInputStream(new FileInputStream(openFile));
                         ArchitectSwingSession session = context.createSession(in, true);
-                        context.getRecentMenu().putRecentFileName(openFile.getAbsolutePath());
+                        session.getRecentMenu().putRecentFileName(openFile.getAbsolutePath());
                         session.getProject().setFile(openFile);
                     } else {
                         context.createSession();

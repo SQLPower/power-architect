@@ -57,7 +57,7 @@ public class TestingArchitectSwingSessionContext implements ArchitectSwingSessio
     public TestingArchitectSwingSessionContext() throws IOException {
         prefs = Preferences.userNodeForPackage(ArchitectSwingSessionContextImpl.class);
         userSettings = new CoreUserSettings(prefs);
-        recent = new RecentMenu(this) {
+        recent = new RecentMenu(this.getClass()) {
             @Override
             public void loadFile(String fileName) throws IOException {
             }

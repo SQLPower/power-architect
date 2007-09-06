@@ -37,6 +37,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.prefs.PreferenceChangeEvent;
+import java.util.prefs.PreferenceChangeListener;
 import java.util.prefs.Preferences;
 
 import javax.swing.JMenu;
@@ -59,7 +61,7 @@ import javax.swing.JOptionPane;
  * 		JMenuItem open = new JMenuItem("Open");
  * 		fileMenu.add(open);
  * 		final RecentMenu recent;
- *		recent = new RecentMenu(this) {
+ *		recent = new RecentMenu(this.getClass()) {
  *			@Override
  *			public void loadFile(String fileName) throws IOException {
  *				myModel.openFile(fileName);
@@ -99,36 +101,33 @@ public abstract class RecentMenu extends JMenu {
 	final Preferences prefs;
 	
 	/** Construct a RecentMenu with a given class and the number of items to hold
-	 * @param mainClassInstance
+	 * The class is used to for UserPrefsNode to determine where to save the list.
+	 * @param mainClass
 	 * @param max
 	 */
-	public RecentMenu(Object mainClassInstance, int max) {
+	public RecentMenu(Class <?> mainClass, int max) {
 		super("Recent Items");		
 
-		prefs = getUserPrefsNode(mainClassInstance);
-
+		prefs = getUserPrefsNode(mainClass);
+		prefs.addPreferenceChangeListener(recentListener);
 		maxRecentFiles = max;
 		
 		loadRecentMenu();
 	}
 
 	/**
-	 * @param mainClassInstance
+	 * @param mainClass
 	 */
-	public static Preferences getUserPrefsNode(Object mainClassInstance) {
-		Class clazz;
-		if (mainClassInstance instanceof Class)
-			clazz = (Class)mainClassInstance;
-		else
-			clazz = mainClassInstance.getClass();
-		return Preferences.userNodeForPackage(clazz);
+	public static Preferences getUserPrefsNode(Class <?> mainClass) {
+		return Preferences.userNodeForPackage(mainClass);
 	}
 	
 	/** Construct a RecentMenu with a given class.
-	 * @param mainClassInstance
+	 * The class is used to for UserPrefsNode to determine where to save the list.
+	 * @param mainClass
 	 */
-	public RecentMenu(Object mainClassInstance) {
-		this(mainClassInstance, DEFAULT_MAX_RECENT_FILES);
+	public RecentMenu(Class <?> mainClass) {
+		this(mainClass, DEFAULT_MAX_RECENT_FILES);
 	}
 
 	/**
@@ -163,6 +162,16 @@ public abstract class RecentMenu extends JMenu {
 	};
 	
 	/**
+     * PreferenceChangeListener that is used by all the sessions;
+     * updates the recent file lists of each session if one is changed.
+     */
+    private PreferenceChangeListener recentListener = new PreferenceChangeListener() {
+        public void preferenceChange(PreferenceChangeEvent evt) {
+            loadRecentMenu();
+        }
+    };
+	
+	/**
 	 * Add the given filename to the top of the recent list in Prefs and in menu.
 	 * It is generally <b>not</b> necessary for user code to call this method!
 	 */
@@ -190,7 +199,7 @@ public abstract class RecentMenu extends JMenu {
 	/**
 	 * Lodd or re-load the recentFileMenu
 	 */
-	private void loadRecentMenu() {
+	public void loadRecentMenu() {
 		setEnabled(false);
 		// Clear out both all menu items and List in memory
 		for (int i = getMenuComponentCount() - 1; i >= 0; i--) {
