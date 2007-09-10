@@ -138,13 +138,8 @@ public class OpenProjectAction extends AbstractArchitectAction {
                 super(session);
                 this.context = session.getContext();
                 this.file = file;
-                this.recent = new RecentMenu(this.getClass()) {
-                    @Override
-                    public void loadFile(String fileName) throws IOException {
-                        File f = new File(fileName);
-                        OpenProjectAction.openAsynchronously(context, f);
-                    }
-                };
+                this.recent = session.getRecentMenu();
+                
                 this.newSession = session;
                 
                 // XXX this progress dialog has the coffee cup icon instead
@@ -161,7 +156,6 @@ public class OpenProjectAction extends AbstractArchitectAction {
 
         @Override
         public void doStuff() throws Exception {
-            recent.putRecentFileName(file.getAbsolutePath());
             newSession.getProject().load(in, newSession.getUserSettings().getPlDotIni());
             newSession.getProject().setFile(file);
         }
@@ -183,6 +177,7 @@ public class OpenProjectAction extends AbstractArchitectAction {
                 newSession.removeSwingWorker(this);
                 newSession.close();
             } else {
+                recent.putRecentFileName(file.getAbsolutePath());
                 newSession.initGUI();
                 ((SQLObject) newSession.getSourceDatabases().getModel().getRoot()).fireDbStructureChanged();
             }
@@ -194,6 +189,8 @@ public class OpenProjectAction extends AbstractArchitectAction {
             } catch (IOException ie) {
                 logger.error("got exception while closing project file", ie);
             }
+            
+           
         }
     }
 }

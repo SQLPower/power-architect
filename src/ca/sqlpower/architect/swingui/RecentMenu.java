@@ -44,6 +44,9 @@ import java.util.prefs.Preferences;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+
+import org.apache.log4j.Logger;
 
 /**
  * Maintain a "Recent Items" menu component. The caller must override a "template method"
@@ -91,9 +94,11 @@ import javax.swing.JOptionPane;
  */
 public abstract class RecentMenu extends JMenu {
 	
+    private final Logger logger = Logger.getLogger(RecentMenu.class);
+    
 	public final static int DEFAULT_MAX_RECENT_FILES = 5;
 	private final int maxRecentFiles;
-	private static final String PREFS_KEY = "recentFile";	
+	private static final String PREFS_KEY = "recentFile";
 	
 	/** The List of recent files */
 	private List<String> recentFileNames = new ArrayList<String>();
@@ -111,7 +116,7 @@ public abstract class RecentMenu extends JMenu {
 		prefs = getUserPrefsNode(mainClass);
 		prefs.addPreferenceChangeListener(recentListener);
 		maxRecentFiles = max;
-		
+		logger.debug("Called from Recent menu constructor");
 		loadRecentMenu();
 	}
 
@@ -167,7 +172,15 @@ public abstract class RecentMenu extends JMenu {
      */
     private PreferenceChangeListener recentListener = new PreferenceChangeListener() {
         public void preferenceChange(PreferenceChangeEvent evt) {
-            loadRecentMenu();
+           RecentMenu.this.logger.debug("Called from pref change");
+           
+           //Invoke later is used because the preference change events
+           //are called on a separate thread (at least in Windows)
+           SwingUtilities.invokeLater(new Runnable() {
+               public void run() {
+                   loadRecentMenu();
+               }
+           });
         }
     };
 	
@@ -176,36 +189,56 @@ public abstract class RecentMenu extends JMenu {
 	 * It is generally <b>not</b> necessary for user code to call this method!
 	 */
 	public void putRecentFileName(String f) {
+        
+	    recentFileNames.clear();
+	    for (int i = 0; i < maxRecentFiles; i++) {
+            String file = prefs.get(PREFS_KEY + i, null);
+            if (file == null) {    // Stop on first missing
+                break;
+            }
+            if (file.equals("Clear Recent Items")) {
+                break;
+            }
+            if (new File(file).exists()) {
+                if (recentFileNames.contains(file)) {
+                    recentFileNames.remove(file);
+                }
+                recentFileNames.add(file);
+            }
+        }
+	    
+	    // Move filename to front: Remove if present, add at front.
+	    if (recentFileNames.contains(f)) {
+            recentFileNames.remove(f);
+        }
+	    
 		// Trim from back end if too long
 		while (recentFileNames.size() > maxRecentFiles - 1) {
 			recentFileNames.remove(recentFileNames.size()-1);
 		}
-		// Move filename to front: Remove if present, add at front.
-		if (recentFileNames.contains(f)) {
-			recentFileNames.remove(f);
-		}
+	
 		recentFileNames.add(0, f);
-
+				
 		// Now save from List into Prefs
 		for (int i = 0; i < recentFileNames.size(); i++) {
-			String t = recentFileNames.get(i);
+		    String t = recentFileNames.get(i);
+		    logger.debug("put " + t);
 			prefs.put(PREFS_KEY + i, t);
 		}
-
+		
+		logger.debug("Called from putFileName");
 		// Finally, load menu again.
 		loadRecentMenu();
 	}
 
 	/**
-	 * Lodd or re-load the recentFileMenu
+	 * Load or re-load the recentFileMenu
 	 */
 	public void loadRecentMenu() {
+	    logger.debug("Load menu", new Exception());
+	    recentFileNames.clear();
 		setEnabled(false);
-		// Clear out both all menu items and List in memory
-		for (int i = getMenuComponentCount() - 1; i >= 0; i--) {
-			remove(0);
-		}
-		recentFileNames.clear();
+		removeAll();
 
 		// Copy from Prefs into Menu
 		JMenuItem mi;
@@ -214,15 +247,23 @@ public abstract class RecentMenu extends JMenu {
 			if (f == null) {	// Stop on first missing
 				break;
 			}
+			
+			//stops the loop if it passes the end
+			if (f.equals("Clear Recent Items")) {
+			    break;
+			}
+			
 			// Drop from list if file has been deleted.
 			if (new File(f).exists()) {
-				// Add to List in memory
-				recentFileNames.add(f);
 				// If at least one item, enable menu
 				setEnabled(true);
 				// And add to Menu
 				this.add(mi = new JMenuItem(f));
 				mi.addActionListener(recentOpener);
+				
+				//add to the list for to be used by
+				//getMostRecentFile()
+				recentFileNames.add(f);
 			}
 		}
         

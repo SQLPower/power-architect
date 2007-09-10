@@ -350,11 +350,23 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                         return saveOrSaveAs(true, separateThread);
                     }
                 }
+                
+                
+                //creates an empty file if "file" does not exist 
+                //so that the new file can be found by the recent menu
+                try {
+                    file.createNewFile();
+                }
+                catch (Exception e) {
+                    ASUtils.showExceptionDialog(this, "Could not create file", e);
+                    return false;
+                }
+                
                 getRecentMenu().putRecentFileName(file.getAbsolutePath());
                 project.setFile(file);
                 String projName = file.getName().substring(0, file.getName().length()-".architect".length());
                 setName(projName);
-                frame.setTitle(projName);
+                frame.setTitle(projName + " - Power*Architect");
             }
         }
         final boolean finalSeparateThread = separateThread;
