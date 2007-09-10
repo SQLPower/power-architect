@@ -42,6 +42,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -252,8 +253,7 @@ public class DataMoverPanel {
                 if (choice != JOptionPane.YES_OPTION) return -1;
                 
                 DDLGenerator ddlg = DDLUtils.createDDLGenerator(destDB.getDataSource());
-                ddlg.addTable(destTable);
-                ddlg.generateDDLStatements(destDB);
+                ddlg.generateDDLStatements(Collections.singletonList(destTable));
                 Statement stmt = null;
                 try {
                     stmt = destCon.createStatement();
