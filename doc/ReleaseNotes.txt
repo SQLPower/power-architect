@@ -13,6 +13,7 @@ IMPORTANT NOTE to users upgrading from pre-0.9.x versions of the Architect:
 0.9.8
 *Fixed a bug where re-profiling a cancelled profile would freeze the GUI until
 the profiling was finished.
+*Fixed recent menu, it now works as expected
 
 0.9.7
 
