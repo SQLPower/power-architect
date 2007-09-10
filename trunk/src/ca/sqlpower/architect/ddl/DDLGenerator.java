@@ -37,6 +37,7 @@
 package ca.sqlpower.architect.ddl;
 
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -68,7 +69,7 @@ public interface DDLGenerator {
      * @throws SQLException If there is a problem getting type info from the target DB.
      * @throws ArchitectException If there are problems with the Architect objects.
      */
-    public List<DDLStatement> generateDDLStatements(SQLDatabase source)
+    public List<DDLStatement> generateDDLStatements(Collection<SQLTable> tables)
     throws SQLException, ArchitectException;
 
     /**

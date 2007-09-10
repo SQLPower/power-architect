@@ -39,6 +39,7 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -48,6 +49,7 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectRuntimeException;
+import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLIndex;
@@ -175,7 +177,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 
     public StringBuffer generateDDL(SQLDatabase source) throws SQLException, ArchitectException {
-        List statements = generateDDLStatements(source);
+        List statements = generateDDLStatements(source.getChildren());
 
 		ddl = new StringBuffer(4000);
 		writeHeader();
@@ -195,28 +197,33 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 
 	/**
-     *  This is the main entry point from the rest of the application to generate DDL.
+     * Creates a series of SQL DDL statements which will create the given list of
+     * tables in a target database.  The script will include commands for defining
+     * the tables, their primary keys, other indices, and the foreign key relationships
+     * between them.
+     * 
+     * @param tables the tables the generated script should create.
+     * @return the list of DDL statements in the order they should be executed
 	 * @see ca.sqlpower.architect.ddl.DDLGenerator#generateDDLStatements(ca.sqlpower.architect.SQLDatabase)
 	 */
-	public final List<DDLStatement> generateDDLStatements(SQLDatabase source) throws SQLException, ArchitectException {
+	public final List<DDLStatement> generateDDLStatements(Collection<SQLTable> tables) throws SQLException, ArchitectException {
         warnings = new ArrayList();
 		ddlStatements = new ArrayList<DDLStatement>();
 		ddl = new StringBuffer(500);
         topLevelNames = new CaseInsensitiveHashMap();
 
 		try {
-			if (allowConnection) {
-				con = source.getConnection();
+			if (allowConnection && tables.size() > 0) {
+                SQLDatabase parentDb = ArchitectUtils.getAncestor(tables.iterator().next(), SQLDatabase.class);
+				con = parentDb.getConnection();
 			} else {
 				con = null;
 			}
 
 			createTypeMap();
 
-			Iterator it = source.getChildren().iterator();
-			while (it.hasNext()) {
+			for (SQLTable t : tables) {
 
-				SQLTable t = (SQLTable) it.next();
 				addTable(t);
                 
 				writePrimaryKey(t);
@@ -225,9 +232,8 @@ public class GenericDDLGenerator implements DDLGenerator {
                     addIndex(index);
                 }
 			}
-			it = source.getChildren().iterator();
-			while (it.hasNext()) {
-				SQLTable t = (SQLTable) it.next();
+            
+            for (SQLTable t : tables) {
 				writeExportedRelationships(t);
 			}
 
