@@ -232,7 +232,7 @@ public class ArchitectUtils {
 					Object next = cit.next();
 					if (logger.isDebugEnabled()) logger.debug("---->Next item in columns list is a "+next.getClass().getName());
 					SQLColumn col = (SQLColumn) next;
-					if (source.equals(col.getSourceColumn().getParentTable().getParentDatabase())) {
+					if (col.getSourceColumn() != null && source.equals(col.getSourceColumn().getParentTable().getParentDatabase())) {
 						matches.add(col);
 					}
 				}
