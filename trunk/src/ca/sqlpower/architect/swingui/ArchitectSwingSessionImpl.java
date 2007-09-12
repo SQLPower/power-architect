@@ -357,8 +357,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                 //so that the new file can be found by the recent menu
                 try {
                     file.createNewFile();
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     ASUtils.showExceptionDialog(this, "Could not create file", e);
                     return false;
                 }

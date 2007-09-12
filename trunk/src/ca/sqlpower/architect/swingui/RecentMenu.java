@@ -94,7 +94,7 @@ import org.apache.log4j.Logger;
  */
 public abstract class RecentMenu extends JMenu {
 	
-    private final Logger logger = Logger.getLogger(RecentMenu.class);
+    private static final Logger logger = Logger.getLogger(RecentMenu.class);
     
 	public final static int DEFAULT_MAX_RECENT_FILES = 5;
 	private final int maxRecentFiles;
@@ -172,7 +172,7 @@ public abstract class RecentMenu extends JMenu {
      */
     private PreferenceChangeListener recentListener = new PreferenceChangeListener() {
         public void preferenceChange(PreferenceChangeEvent evt) {
-           RecentMenu.this.logger.debug("Called from pref change");
+           logger.debug("Called from pref change");
            
            //Invoke later is used because the preference change events
            //are called on a separate thread (at least in Windows)
