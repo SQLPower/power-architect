@@ -170,6 +170,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         } catch (SQLException e) {
             throw new ArchitectException("SQL Error in ddlGenerator",e);
         }
+        
         compareDMSettings = new CompareDMSettings();
         
         kettleJob = new KettleJob();

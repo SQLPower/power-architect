@@ -31,59 +31,28 @@
  */
 package ca.sqlpower.architect.swingui.action;
 
-import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JPanel;
 
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.swingui.CompareDMPanel;
-import ca.sqlpower.swingui.CommonCloseAction;
-import ca.sqlpower.swingui.JDefaultButton;
-import ca.sqlpower.swingui.SPSUtils;
 
 public class CompareDMAction extends AbstractArchitectAction {
 	private static final Logger logger = Logger.getLogger(CompareDMAction.class);
-
-	public CompareDMAction(ArchitectSwingSession session) {		
+	private JDialog d = null;
+	
+	public CompareDMAction(ArchitectSwingSession session, JDialog d) {		
 		super(session, "Compare DM...","Compare Data Models", "compare_DM");
+		this.d = d;
 	}
 
 	public void actionPerformed(ActionEvent e) {
 		
 		logger.debug("Compare Action started");
-		
-		// This can not easily be replaced with ArchitectPanelBuilder
-		// because the current CompareDMPanel is not an ArchitectPanel
-		// (and has no intention of becoming one, without some work).
-		
-		final JDialog d = new JDialog(frame,
-									  "Compare Data Models");
-		JPanel cp = new JPanel(new BorderLayout(12,12));
-		cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
-		
-		final CompareDMPanel compareDMPanel = new CompareDMPanel(frame.getArchitectSession());
-		cp.add(compareDMPanel, BorderLayout.CENTER);
-
-//		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		JPanel buttonPanel = compareDMPanel.getButtonPanel();
-		
-		JDefaultButton okButton = new JDefaultButton(compareDMPanel.getStartCompareAction());
-		buttonPanel.add(okButton);
-		
-		JButton cancelButton = new JButton(new CommonCloseAction(d));	
-		buttonPanel.add(cancelButton);
-		cp.add(buttonPanel, BorderLayout.SOUTH);
-		SPSUtils.makeJDialogCancellable(d, cancelButton.getAction());
-		d.getRootPane().setDefaultButton(okButton);
-		d.setContentPane(cp);
-		d.pack();
-		d.setLocationRelativeTo(frame);
+				
+		// shows the dialog
 		d.setVisible(true);
 	}
 

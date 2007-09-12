@@ -34,9 +34,16 @@ package ca.sqlpower.architect.swingui;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.tree.TreePath;
+
 import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLSchema;
+import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
 
@@ -65,5 +72,125 @@ public class TestDBTree extends TestCase {
 		assertFalse("dbcsAlreadyExists Should not find ds2", dbTree.dbcsAlreadyExists(ds2));
 		assertTrue("db2ds should be in the list",dbTree.dbcsAlreadyExists(db2ds));
 	}
-
+	
+	//The next set of test check that the Compare To Current menu item only appears when
+	//it is needed
+	
+	public void testCompareDMOnlyTables() throws Exception {
+        //this only looks for menu options
+        SQLDatabase db = new SQLDatabase();
+        db.addChild(new SQLTable());
+        TreePath p = new TreePath(db);
+        JPopupMenu pop = dbTree.refreshMenu(p);
+        
+        for (int x = 0; x< pop.getComponentCount(); x++) {
+            if (pop.getComponent(x) instanceof JMenuItem) {
+                JMenuItem m = (JMenuItem)pop.getComponent(x);
+                if (m.getText().equals("Compare to Current")) {
+                    return;
+                }   
+            }
+        }   
+        fail("The compare to current menu was not included");
+	}
+	
+	public void testCompareDMSchema() throws Exception {
+        //this only looks for menu options    
+        
+        SQLSchema schema = new SQLSchema(false);
+        schema.addChild(new SQLTable());
+        TreePath p = new TreePath(schema);
+        JPopupMenu pop = dbTree.refreshMenu(p);
+        
+        for (int x = 0; x< pop.getComponentCount(); x++) {
+            if (pop.getComponent(x) instanceof JMenuItem) {
+                JMenuItem m = (JMenuItem)pop.getComponent(x);
+                if (m.getText().equals("Compare to Current")) {
+                    return;
+                }   
+            }
+        }   
+        fail("The compare to current menu was not included");
+    }
+	
+	   public void testCompareDMCatalog() throws Exception {
+	        //this only looks for menu options
+       
+	        
+	        SQLCatalog catalog = new SQLCatalog();
+	        catalog.addChild(new SQLTable());
+	        TreePath p = new TreePath(catalog);
+	        JPopupMenu pop = dbTree.refreshMenu(p);
+	        
+	        for (int x = 0; x< pop.getComponentCount(); x++) {
+	            if (pop.getComponent(x) instanceof JMenuItem) {
+	                JMenuItem m = (JMenuItem)pop.getComponent(x);
+	                if (m.getText().equals("Compare to Current")) {
+	                    return;
+	                }   
+	            }
+	        }   
+	        fail("The compare to current menu was not included");
+	    }
+	   
+	   public void testCompareDMScheamCatalog() throws Exception {
+           //this only looks for menu options           
+           
+           SQLCatalog catalog = new SQLCatalog();
+           SQLSchema schema = new SQLSchema(catalog,"s1",false);
+           catalog.addChild(schema);
+           schema.addChild(new SQLTable());
+           
+           TreePath p = new TreePath(catalog);
+           JPopupMenu pop = dbTree.refreshMenu(p);
+           
+           for (int x = 0; x< pop.getComponentCount(); x++) {
+               if (pop.getComponent(x) instanceof JMenuItem) {
+                   JMenuItem m = (JMenuItem)pop.getComponent(x);
+                   if (m.getText().equals("Compare to Current")) {
+                       fail("The compare to current menu found in the menu");
+                   }   
+               }
+           }   
+       }
+	   
+	    public void testCompareDMOnlyDatabaseSchemas() throws Exception {
+	        //this only looks for menu options
+	        SQLDatabase db = new SQLDatabase();
+	        SQLSchema s = new SQLSchema(false);
+	        db.addChild(s);
+	        s.addChild(new SQLTable());
+	        
+	        TreePath p = new TreePath(db);
+	        JPopupMenu pop = dbTree.refreshMenu(p);
+	        
+	        for (int x = 0; x< pop.getComponentCount(); x++) {
+	            if (pop.getComponent(x) instanceof JMenuItem) {
+	                JMenuItem m = (JMenuItem)pop.getComponent(x);
+	                if (m.getText().equals("Compare to Current")) {
+	                    fail("The compare to current menu found in the menu");
+	                }   
+	            }
+	        }
+	    }
+	    
+	       public void testCompareDMOnlyDatabaseCatalogs() throws Exception {
+	            //this only looks for menu options
+	            SQLDatabase db = new SQLDatabase();
+	            SQLCatalog cat = new SQLCatalog();
+	            db.addChild(cat);
+	            cat.addChild(new SQLTable());
+	            
+	            TreePath p = new TreePath(db);
+	            JPopupMenu pop = dbTree.refreshMenu(p);
+	            
+	            for (int x = 0; x< pop.getComponentCount(); x++) {
+	                if (pop.getComponent(x) instanceof JMenuItem) {
+	                    JMenuItem m = (JMenuItem)pop.getComponent(x);
+	                    if (m.getText().equals("Compare to Current")) {
+	                        fail("The compare to current menu found in the menu");
+	                    }   
+	                }
+	            }
+	        }
 }

@@ -64,12 +64,14 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLExceptionNode;
 import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
+import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.action.DatabaseConnectionManagerAction;
 import ca.sqlpower.sql.DataSourceCollection;
@@ -88,7 +90,7 @@ public class DBTree extends JTree implements DragSourceListener {
 	protected RemoveDBCSAction removeDBCSAction;
 	protected ShowInPlayPenAction showInPlayPenAction;
     protected SetConnAsTargetDB setConnAsTargetDB;
-
+    
     /**
      * The architect session, so we can access common objects
      */
@@ -116,7 +118,7 @@ public class DBTree extends JTree implements DragSourceListener {
 
         setConnAsTargetDB = new SetConnAsTargetDB(null);
 		newDBCSAction = new NewDBCSAction();
-		dbcsPropertiesAction = new DBCSPropertiesAction();
+		dbcsPropertiesAction = new DBCSPropertiesAction();	
 		removeDBCSAction = new RemoveDBCSAction();
 		showInPlayPenAction = new ShowInPlayPenAction();
 		addMouseListener(new PopupListener());
@@ -322,6 +324,9 @@ public class DBTree extends JTree implements DragSourceListener {
      *  <li>click on the background of the DBTree.  Allow the user to select DBCS
      * from a list, or create a new DBCS from scratch (which will be added to the
      * User Settings list of DBCS objects).
+     * 
+     * <li> click on a schema in the tree. Allow the user to quickly compare the 
+     * contents of the playpen with the selected schema. 
 	 * </ol>
      *
      * <p>FIXME: add in column, table, exported key, imported keys menus; you can figure
@@ -434,12 +439,57 @@ public class DBTree extends JTree implements DragSourceListener {
 			if (p.getLastPathComponent() instanceof SQLDatabase) {
 				newMenu.add(new JMenuItem(removeDBCSAction));
 			}
+			
 			JMenuItem popupProperties = new JMenuItem(dbcsPropertiesAction);
 			newMenu.add(popupProperties);
+			
             if (p.getLastPathComponent() instanceof SQLDatabase){
                 SQLDatabase tempDB=(SQLDatabase)(p.getLastPathComponent());
                 JMenuItem setAsDB = new JMenuItem(new SetConnAsTargetDB(tempDB.getDataSource()));
                 newMenu.add(setAsDB);
+                
+                
+                
+                try {
+                    //this if is looking for a database with only tables in it
+                    //it checks first that it does not hold schemas of catalogs
+                    //then it looks if it contains error nodes, which will occur if the 
+                    //tree only has one child
+                    if (!tempDB.isCatalogContainer() && !tempDB.isSchemaContainer() && 
+                            (!(tempDB.getChildCount() == 1) || 
+                            !tempDB.getChild(0).getClass().equals(SQLExceptionNode.class)))
+                    {
+                        //a new action is needed to maintain the database variable
+                        CompareToCurrentAction compareToCurrentAction = new CompareToCurrentAction();
+                        compareToCurrentAction.putValue(CompareToCurrentAction.DATABASE,tempDB);
+                        JMenuItem popupCompareToCurrent = new JMenuItem(compareToCurrentAction);            
+                        newMenu.add(popupCompareToCurrent);
+                    }
+                } catch (ArchitectException e) {
+                    ASUtils.showExceptionDialog(session, "Error Communicating with database", e);
+                }
+                
+            } else if (p.getLastPathComponent() instanceof SQLSchema){
+                //a new action is needed to maintain the schema variable
+                CompareToCurrentAction compareToCurrentAction = new CompareToCurrentAction();
+                compareToCurrentAction.putValue(CompareToCurrentAction.SCHEMA, p.getLastPathComponent());
+                JMenuItem popupCompareToCurrent = new JMenuItem(compareToCurrentAction);            
+                newMenu.add(popupCompareToCurrent);
+            } else if (p.getLastPathComponent() instanceof SQLCatalog) {
+                SQLCatalog catalog = (SQLCatalog)p.getLastPathComponent();
+                try {
+                    //this is only needed if the database type does not have schemas
+                    //like in MYSQL
+                    if (!catalog.isSchemaContainer()) {
+                        //a new action is needed to maintain the catalog variable
+                        CompareToCurrentAction compareToCurrentAction = new CompareToCurrentAction();
+                        compareToCurrentAction.putValue(CompareToCurrentAction.CATALOG,catalog);
+                        JMenuItem popupCompareToCurrent = new JMenuItem(compareToCurrentAction);            
+                        newMenu.add(popupCompareToCurrent);
+                    }
+                } catch (ArchitectException e) {
+                    ASUtils.showExceptionDialog(session, "Error Communicating with database", e);
+                }
             }
 		}
 
@@ -724,6 +774,45 @@ public class DBTree extends JTree implements DragSourceListener {
 			}
 		}
 	}
+	
+	
+	//the action for clicking on "Compare to current"
+	protected class CompareToCurrentAction extends AbstractAction {
+	    public static final String SCHEMA = "SCHEMA";
+	    public static final String CATALOG = "CATALOG";
+	    public static final String DATABASE = "DATABASE";
+	    
+        public CompareToCurrentAction() {
+            super("Compare to Current");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            //gets the database and catalog from the tree
+            SQLSchema schema = null;
+            SQLDatabase db = null;
+            SQLCatalog catalog = null;
+            
+            if (getValue(SCHEMA)!= null) {
+                schema = (SQLSchema)getValue(SCHEMA);
+                //oracle does not have catalogs so a check is needed
+                if (schema.getParent().getParent() == null) {
+                    db = (SQLDatabase)schema.getParent();
+                } else {
+                    db = (SQLDatabase)schema.getParent().getParent();
+                    catalog = (SQLCatalog)schema.getParent();
+                }
+            } else if (getValue(CATALOG) != null) {
+                catalog = (SQLCatalog)getValue(CATALOG);
+                db = (SQLDatabase)catalog.getParent();
+            } else if (getValue(DATABASE) != null) {
+                db = (SQLDatabase)getValue(DATABASE);
+            }
+            
+            session.getArchitectFrame().getCompareDMDialog().setVisible(true);
+            //sets to the right settings
+            session.getArchitectFrame().getCompareDMDialog().compareCurrentWithOrig(schema,catalog, db);
+        }
+    }
 
 
 	/**
@@ -770,7 +859,7 @@ public class DBTree extends JTree implements DragSourceListener {
 	 */
  	public static class DBTreeDragGestureListener implements DragGestureListener {
 		public void dragGestureRecognized(DragGestureEvent dge) {
-			logger.info("Drag gesture event: "+dge);
+			logger.info("Drag gesture event: " + dge);
 
 			// we only start drags on left-click drags
 			InputEvent ie = dge.getTriggerEvent();

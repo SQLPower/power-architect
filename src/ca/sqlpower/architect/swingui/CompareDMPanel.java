@@ -78,6 +78,8 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.diff.CompareSQL;
 import ca.sqlpower.architect.diff.DiffChunk;
+import ca.sqlpower.architect.swingui.CompareDMPanel.SourceOrTargetStuff.CatalogPopulator;
+import ca.sqlpower.architect.swingui.CompareDMPanel.SourceOrTargetStuff.SchemaPopulator;
 import ca.sqlpower.architect.swingui.CompareDMSettings.DatastoreType;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
 import ca.sqlpower.sql.DataSourceCollection;
@@ -179,9 +181,9 @@ public class CompareDMPanel extends JPanel {
 	private StartCompareAction startCompareAction;
 
 	private SourceOrTargetStuff source = new SourceOrTargetStuff();
-
+	
 	private SourceOrTargetStuff target = new SourceOrTargetStuff();
-
+	
     /**
      * Since we can create new DB connections from this panel, we need a reference
      * to the session so we can retrieve the datasource collection.
@@ -224,6 +226,9 @@ public class CompareDMPanel extends JPanel {
 
 		private JLabel catalogLabel;
 		private JLabel schemaLabel;
+		
+		private SchemaPopulator schemaPop;
+		private CatalogPopulator catalogPop;
 
 
 		/**
@@ -264,11 +269,45 @@ public class CompareDMPanel extends JPanel {
 		 */
 		public class CatalogPopulator extends PopulateProgressMonitorableWorker implements
 				ActionListener {
-
+		    
+		    String catalogSelect;
+		    String schemaSelect;
+		    
 		    private SQLDatabase db;
 		    
             public CatalogPopulator(ArchitectSwingSession session) {
                 super(session);
+                catalogSelect = null;
+                schemaSelect = null;
+            }
+            
+            /**
+             * If select is a valid catalog of the database this sets a 
+             * string that will be used as a default item to select 
+             * for the catalog next time the list will be redrawn, (this 
+             * will happen only once).
+             * 
+             *  Else does nothing
+             *  
+             * @param select The name of the item to select
+             */
+            public void setDefaultCatalog(String def) {
+                this.catalogSelect = def;
+            }
+            
+            /**
+             * If select is a valid schema of the database and there is 
+             * no catalogs for this database this sets a 
+             * string that will be used as a default item to select 
+             * for the schema next time the list will be redrawn, (this 
+             * will happen only once).
+             *  
+             *  Else does nothing
+             *  
+             * @param select The name of the item to select
+             */
+            public void setDefaultSchema(String def) {
+                this.schemaSelect = def;
             }
             
 			/**
@@ -322,6 +361,7 @@ public class CompareDMPanel extends JPanel {
 				}
 			}
 
+			
 			/**
 			 * Does GUI cleanup work on the Swing EDT once the worker is done.
 			 *
@@ -424,9 +464,37 @@ public class CompareDMPanel extends JPanel {
 							}
 
 							startCompareAction.setEnabled(isStartable());
+							
+				             //sets to the default schema, iff catalog is null
+			                logger.debug("default schema is: " + schemaSelect);
+			                if ( CatalogPopulator.this.schemaSelect != null) {      
+			                    for (int x = 0; x < schemaDropdown.getItemCount(); x++) {
+			                        SQLObject curr = (SQLObject)(schemaDropdown.getItemAt(x));
+			                        if (curr != null && curr.getName().equals(schemaSelect)) {
+			                            schemaDropdown.setSelectedIndex(x);
+			                            break;
+			                        }
+			                    }
+			                }
+			                schemaSelect = null;
+							
+							
 						}
 					}).start();
 				}
+				
+				//sets to the default catalog
+				logger.debug("default catalog selected " + catalogSelect);
+		        if (catalogSelect != null) {      
+		            for (int x = 0; x < catalogDropdown.getItemCount(); x++) {
+		                SQLObject curr = (SQLObject)(catalogDropdown.getItemAt(x));
+		                if (curr != null && curr.getName().equals(catalogSelect)) {
+		                    catalogDropdown.setSelectedIndex(x);
+		                    break;
+		                }
+		            }
+		        }
+		        catalogSelect = null;
 			}
 
 			// Overriding isFinished to be based on the state of db.
@@ -443,11 +511,30 @@ public class CompareDMPanel extends JPanel {
 		 */
 		public class SchemaPopulator extends PopulateProgressMonitorableWorker implements
 				ActionListener {
+		    
+		    String select;
 
 			public SchemaPopulator(ArchitectSwingSession session) {
                 super(session);
+                select = null;
             }
 
+			
+            /**
+             * If select is a valid schema of the catalog this sets a 
+             * string that will be used as a default item to select 
+             * for the schema next time the list will be redrawn, (this 
+             * will happen only once).
+             *  
+             *  Else does nothing
+             *  
+             * @param select The name of the item to select
+             */
+            public void setDefaultSelect(String select) {
+                this.select = select;
+            }
+			
+			
             /**
 			 * Clears the schema dropdown, and starts a worker thread to
 			 * repopulate it (if possible).
@@ -505,7 +592,22 @@ public class CompareDMPanel extends JPanel {
 					}
 				}
 				startCompareAction.setEnabled(isStartable());
+				
+				//sets the default schema
+                logger.debug("Default Schema: " + select);
+                if (select != null) {      
+                    for (int x = 0; x < schemaDropdown.getItemCount(); x++) {
+                        SQLObject curr = (SQLObject)(schemaDropdown.getItemAt(x));
+                        if (curr != null && curr.getName().equals(select)) {
+                            schemaDropdown.setSelectedIndex(x);
+                            break;
+                        }
+                    }
+                }
+                select = null;
 			}
+			
+			
 		}
 		    
 	    // -------------- Small class for monitoring populate progress -----------------
@@ -554,14 +656,17 @@ public class CompareDMPanel extends JPanel {
 		 * Creates the GUI components associated with this object, and appends
 		 * them to the given builder.
 		 */
-		private void buildPartialUI(DefaultFormBuilder builder,	boolean defaultPlayPen) {
-
+		private void buildPartialUI(DefaultFormBuilder builder,	boolean defaultPlayPen, SchemaPopulator schemaPop, CatalogPopulator catalogPop) {
 			String prefix;
 			if (defaultPlayPen == true) {
 				prefix = "source";
 			} else {
 				prefix = "target";
 			}
+			
+			this.schemaPop = schemaPop;
+			this.catalogPop = catalogPop;
+			
 			CellConstraints cc = new CellConstraints();
 			
 			playPenRadio = new JRadioButton();
@@ -617,9 +722,9 @@ public class CompareDMPanel extends JPanel {
 			loadFileButton.setAction(chooseFileAction);
 			chooseFileAction.setEnabled(false);
 
-			catalogDropdown.addActionListener(new SchemaPopulator(session));
-			databaseDropdown.addActionListener(new CatalogPopulator(session));
-
+            catalogDropdown.addActionListener(schemaPop);
+            databaseDropdown.addActionListener(catalogPop);
+            
 			ActionListener listener = new OptionGroupListener();
 			playPenRadio.addActionListener(listener);
 			physicalRadio.addActionListener(listener);
@@ -810,10 +915,14 @@ public class CompareDMPanel extends JPanel {
 
 	public CompareDMPanel(ArchitectSwingSession session) {
         this.session = session;
-		buildUI();
+        SchemaPopulator schemaPop =  source.new SchemaPopulator(session);
+        CatalogPopulator catalogPop = source.new CatalogPopulator(session);
+		buildUI(schemaPop, catalogPop);
 	}
+	
+	
 
-	private void buildUI() {
+	private void buildUI(SchemaPopulator schemaPop, CatalogPopulator catalogPop) {
 
 		progressBar = new JProgressBar();
 		progressBar.setIndeterminate(true);
@@ -865,7 +974,7 @@ public class CompareDMPanel extends JPanel {
 		builder.nextLine();
 		builder.append(""); // takes up blank space
 
-		source.buildPartialUI(builder, true);
+		source.buildPartialUI(builder, true, schemaPop, catalogPop);
 
 		builder.appendSeparator("With Newer");
 		builder.appendRow(builder.getLineGapSpec());
@@ -873,7 +982,8 @@ public class CompareDMPanel extends JPanel {
 		builder.nextLine(2);
 		builder.append("");
 
-		target.buildPartialUI(builder, false);
+		target.buildPartialUI(builder, false, target.new SchemaPopulator(session),
+		        target.new CatalogPopulator(session));
 
 		ActionListener radioButtonActionEnabler = new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -1180,5 +1290,40 @@ public class CompareDMPanel extends JPanel {
 	public SourceOrTargetStuff getTargetStuff() {
 		return target;
 	}
-
+	
+	
+	/**
+	 * Sets the values for the database, schema and catalog in the panel 
+	 * for the source set, and set the target to look in the play pen
+	 */
+	public void compareCurrentWithOrig(SQLSchema schema, SQLCatalog catalog, SQLDatabase db) {
+	    
+	    
+	    //catalog may be null for some dbs (at least in Oracle)
+	    if (catalog != null) {
+	        source.catalogPop.setDefaultCatalog(catalog.getName());
+	    }
+	    
+	    //schema can be null in a MYSQL Database
+	    if (schema != null) {
+    	    //this needs to be set because if there is no catalog 
+    	    //then the catalog populator is responsible for the schemas
+    	    source.catalogPop.setDefaultSchema(schema.getName());
+    	    source.schemaPop.setDefaultSelect(schema.getName());
+	    }
+	    
+	    source.physicalRadio.doClick();
+	    
+        //selects the correct data base, this only looks at 
+	    for (int x = 1; x < source.databaseDropdown.getItemCount(); x++) {
+            SPDataSource curr = (SPDataSource)(source.databaseDropdown.getItemAt(x));
+            if (curr != null && curr.getName().equals(db.getName())) {
+                source.databaseDropdown.setSelectedIndex(x);
+                break;
+            }
+        }
+        
+        target.playPenRadio.doClick();    
+	    
+	}	
 }
