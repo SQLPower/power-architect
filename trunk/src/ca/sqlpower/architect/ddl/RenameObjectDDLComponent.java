@@ -59,11 +59,10 @@ public class RenameObjectDDLComponent extends GenericDDLWarningComponent {
         this.changeApplicator = new Runnable() {
 
             public void run() {
-                /*for (int i = 0; i < textFields.size(); i++) {
-                    SQLObject obj = 
-                        RenameObjectDDLComponent.this.warning.getInvolvedObjects().get(i);
-                    obj.setName(textFields.get(i).getText());
-                }*/
+                //TODO should set component values according to the textbox,
+                //however, since the quick fix does not change the textbox,
+                //setting component values to textbox value would undo the 
+                //quick fix.
             }
             
         };
