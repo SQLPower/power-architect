@@ -121,6 +121,7 @@ public class ArchitectFrame extends JFrame {
 	JSplitPane splitPane = null;
 	private PlayPen playpen = null;
 	DBTree dbTree = null;
+	private CompareDMDialog comapareDMDialog = null;
 
     private JMenu connectionsMenu;
 	private ArchitectLayout autoLayout;
@@ -308,7 +309,9 @@ public class ArchitectFrame extends JFrame {
         autoLayout = new FruchtermanReingoldForceLayout();
         autoLayoutAction.setLayout(autoLayout);
         exportDDLAction = new ExportDDLAction(session);
-        compareDMAction = new CompareDMAction(session);
+        comapareDMDialog = new CompareDMDialog(this);
+        
+        compareDMAction = new CompareDMAction(session,comapareDMDialog);
         dataMoverAction = new DataMoverAction(this, session);
         Action exportCSVAction = new ExportCSVAction(this, playpen);
         Action mappingReportAction = new VisualMappingReportAction(this, session);
@@ -486,7 +489,7 @@ public class ArchitectFrame extends JFrame {
         cp.add(splitPane, BorderLayout.CENTER);
         logger.debug("Added splitpane to content pane");
     }
-
+    
     /**
      * Creates a new project in the same session context as this one, 
      * and opens it in a new ArchitectFrame instance.
@@ -686,5 +689,9 @@ public class ArchitectFrame extends JFrame {
 
     public CreateRelationshipAction getCreateNonIdentifyingRelationshipAction() {
         return createNonIdentifyingRelationshipAction;
+    }
+    
+    public CompareDMDialog getCompareDMDialog() {
+        return comapareDMDialog;
     }
 }

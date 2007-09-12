@@ -84,9 +84,12 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         initialDBList.add(playpen.getDatabase());
         sourceDatabases = new DBTree(this, initialDBList);
         undoManager = new UndoManager(playpen);
+        
+        compareDMSettings = new CompareDMSettings();
+        
         frame = new ArchitectFrame(this, project);
         frame.init();
-        compareDMSettings = new CompareDMSettings();
+        
         try {
             ddlGenerator = new GenericDDLGenerator();
         } catch (SQLException e) {
