@@ -878,12 +878,7 @@ public class GenericDDLGenerator implements DDLGenerator {
                 message = String.format("Global name %s already in use", physicalName);
             }
             logger.debug("Rename to : " + renameTo2);
-            /*warnings.add(new DuplicateNameDDLWarning(
-                        message,
-                        Arrays.asList(new SQLObject[] { so, object }),
-                        String.format("Rename %s to %s", physicalName, renameTo2),
-                        so, renameTo2));
-            */
+
             warnings.add(new DuplicateNameDDLWarning(
                     message,
                     Arrays.asList(new SQLObject[] { so }),
