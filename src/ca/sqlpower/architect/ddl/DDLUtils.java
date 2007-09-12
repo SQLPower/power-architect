@@ -161,7 +161,7 @@ public class DDLUtils {
         Vector<SPSUtils.LabelValueBean> dbTypeList = new Vector();
 		dbTypeList.add(SPSUtils.lvb("SQL 92", GenericDDLGenerator.class));
 		dbTypeList.add(SPSUtils.lvb("DB2", DB2DDLGenerator.class));
-		dbTypeList.add(SPSUtils.lvb("Oracle 8i/9i", OracleDDLGenerator.class));
+		dbTypeList.add(SPSUtils.lvb("Oracle 8i/9i/10g", OracleDDLGenerator.class));
 		dbTypeList.add(SPSUtils.lvb("PostgreSQL", PostgresDDLGenerator.class));
 		dbTypeList.add(SPSUtils.lvb("SQLServer 2000", SQLServerDDLGenerator.class));
         dbTypeList.add(SPSUtils.lvb("MySql", MySqlDDLGenerator.class));
