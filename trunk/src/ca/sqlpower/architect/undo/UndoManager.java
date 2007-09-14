@@ -190,13 +190,11 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 			}
 			
 			// if we are not in a compound edit
-			if (compoundEditStackCount == 0)
-			{
-				UndoManager.this.addEdit(undoEdit);
-			}
-			else {	
-				ce.addEdit(undoEdit);
-			}
+            if (compoundEditStackCount == 0) {
+                UndoManager.this.addEdit(undoEdit);
+            } else {
+                ce.addEdit(undoEdit);
+            }
 		}
 		
 		public void dbChildrenInserted(SQLObjectEvent e) {
@@ -206,14 +204,12 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 			undoEvent.createEditFromEvent(e);
 			addEdit(undoEvent);
 			
-			try{
-			ArchitectUtils.listenToHierarchy(this,e.getChildren());
-			ArchitectUtils.addUndoListenerToHierarchy(this,e.getChildren());
-			}
-			catch(ArchitectException ex)
-			{
-				logger.error("SQLObjectUndoableEventAdapter cannot attach to new children",ex);
-			}
+			try {
+                ArchitectUtils.listenToHierarchy(this, e.getChildren());
+                ArchitectUtils.addUndoListenerToHierarchy(this, e.getChildren());
+            } catch (ArchitectException ex) {
+                logger.error("SQLObjectUndoableEventAdapter cannot attach to new children", ex);
+            }
 			
 		}
 
@@ -280,10 +276,10 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 
 				newPositions.clear();
 				if (ce.canUndo()) {
-					logger.debug("Adding compound edit " + ce + " to undo manager");
+                    if (logger.isDebugEnabled()) logger.debug("Adding compound edit " + ce + " to undo manager");
 					UndoManager.this.addEdit(ce);
 				} else {
-					logger.debug("Compound edit " + ce + " is not undoable so we are not adding it");
+                    if (logger.isDebugEnabled()) logger.debug("Compound edit " + ce + " is not undoable so we are not adding it");
 				}
 
 				ce = null;
@@ -378,7 +374,7 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 	public synchronized boolean addEdit(UndoableEdit anEdit) {
 		
 		if( !(isUndoing() || isRedoing())){
-			logger.debug("Added new undoableEdit to undo manager "+anEdit);
+            if (logger.isDebugEnabled()) logger.debug("Added new undoableEdit to undo manager "+anEdit);
 			boolean success = super.addEdit(anEdit);
 			fireStateChanged();
 			return success; 
