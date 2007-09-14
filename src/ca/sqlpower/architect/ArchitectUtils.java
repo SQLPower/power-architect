@@ -86,7 +86,7 @@ public class ArchitectUtils {
 	 */
 	public static void listenToHierarchy(SQLObjectListener listener, SQLObject source)
 	throws ArchitectException {
-		logger.debug("Listening to new SQL Object "+source);
+		if (logger.isDebugEnabled()) logger.debug("Listening to new SQL Object "+source);
 		source.addSQLObjectListener(listener);
 		if (source.isPopulated() && source.allowsChildren()) {
 			Iterator it = source.getChildren().iterator();
@@ -103,7 +103,7 @@ public class ArchitectUtils {
 	 */
 	public static void addUndoListenerToHierarchy(UndoCompoundEventListener listener, SQLObject source)
 	throws ArchitectException {
-		logger.debug("Undo Listening to new SQL Object "+source);
+        if (logger.isDebugEnabled()) logger.debug("Undo Listening to new SQL Object "+source);
 		source.addUndoEventListener(listener);
 		if (source.isPopulated() && source.allowsChildren()) {
 			Iterator it = source.getChildren().iterator();
@@ -144,7 +144,7 @@ public class ArchitectUtils {
 	 */
 	public static void undoUnlistenToHierarchy(UndoCompoundEventListener listener, SQLObject source)
 	throws ArchitectException {
-		logger.debug("Unlistening to SQL Object "+source);
+        if (logger.isDebugEnabled()) logger.debug("Unlistening to SQL Object "+source);
 		source.removeUndoEventListener(listener);
 		if (source.isPopulated() && source.allowsChildren()) {
 			Iterator it = source.getChildren().iterator();
@@ -173,10 +173,10 @@ public class ArchitectUtils {
 	 */
 	public static void unlistenToHierarchy(SQLObjectListener listener, SQLObject source)
 	throws ArchitectException {
-		logger.debug("Removing "+listener+" from listener list of "+source);
+        if (logger.isDebugEnabled()) logger.debug("Removing "+listener+" from listener list of "+source);
 		source.removeSQLObjectListener(listener);
 		if (source.isPopulated() && source.allowsChildren()) {
-			logger.debug("        Now removing for children: "+source.getChildren());
+            if (logger.isDebugEnabled()) logger.debug("        Now removing for children: "+source.getChildren());
 			Iterator it = source.getChildren().iterator();
 			while (it.hasNext()) {
 				SQLObject ob = (SQLObject) it.next();
