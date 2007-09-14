@@ -164,7 +164,7 @@ public class DDLUtils {
 		dbTypeList.add(SPSUtils.lvb("Oracle 8i/9i/10g", OracleDDLGenerator.class));
 		dbTypeList.add(SPSUtils.lvb("PostgreSQL", PostgresDDLGenerator.class));
 		dbTypeList.add(SPSUtils.lvb("SQLServer 2000", SQLServerDDLGenerator.class));
-        dbTypeList.add(SPSUtils.lvb("MySql", MySqlDDLGenerator.class));
+        dbTypeList.add(SPSUtils.lvb("MySQL", MySqlDDLGenerator.class));
 		return dbTypeList;
     }
 
