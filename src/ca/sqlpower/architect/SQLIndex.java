@@ -477,7 +477,7 @@ public class SQLIndex extends SQLObject {
         if (newChild instanceof SQLIndex.Column 
                 && primaryKeyIndex
                 && ((Column) newChild).getColumn() == null ) {
-           throw new ArchitectException("Cannot add a \"string\" column to a primary key index");
+           throw new ArchitectException("The primary key index must consist of real columns, not expressions");
         }
         super.addChildImpl(index, newChild);
         Column c = (Column) newChild;

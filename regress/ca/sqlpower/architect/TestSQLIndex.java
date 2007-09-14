@@ -326,7 +326,7 @@ public class TestSQLIndex extends SQLTestCase {
             i.addChild(i.new Column("index column",true,true));
             fail();
         } catch (ArchitectException e) {
-            assertEquals("Cannot add a \"string\" column to a primary key index",e.getMessage());
+            assertEquals("The primary key index must consist of real columns, not expressions",e.getMessage());
             return;
         }
         fail();
