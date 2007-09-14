@@ -309,7 +309,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         typeMap.put(Integer.valueOf(Types.BINARY), new GenericTypeDescriptor("BINARY", Types.BINARY, 65535, null, null, DatabaseMetaData.columnNullable, true, false));
         typeMap.put(Integer.valueOf(Types.LONGVARBINARY), new GenericTypeDescriptor("VARBINARY", Types.LONGVARBINARY, 65535, null, null, DatabaseMetaData.columnNullable, true, false));
         typeMap.put(Integer.valueOf(Types.VARBINARY), new GenericTypeDescriptor("VARBINARY", Types.VARBINARY, 65535, null, null, DatabaseMetaData.columnNullable, true, false));
-        typeMap.put(Integer.valueOf(Types.LONGVARCHAR), new GenericTypeDescriptor("VARCHAR", Types.LONGVARCHAR, 65535, "'", "'", DatabaseMetaData.columnNullable, true, false));
+        typeMap.put(Integer.valueOf(Types.LONGVARCHAR), new GenericTypeDescriptor("TEXT", Types.LONGVARCHAR, 65535, "'", "'", DatabaseMetaData.columnNullable, false, false));
         typeMap.put(Integer.valueOf(Types.VARCHAR), new GenericTypeDescriptor("VARCHAR", Types.VARCHAR, 65535, "'", "'", DatabaseMetaData.columnNullable, true, false));
     }
 
@@ -374,9 +374,6 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         }
     }
     
-    /**
-     * create index ddl in mySql syntax
-     */
     @Override
     public void addIndex(SQLIndex index) throws ArchitectException {
         if (index.getType() == IndexType.STATISTIC )
