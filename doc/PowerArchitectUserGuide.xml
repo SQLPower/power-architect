@@ -2632,7 +2632,7 @@
 							<para>IBM DB2</para>
 						</entry>
 						<entry>
-							<para>Is fully supported.</para>
+							<para>Partial support; needs more testing.</para>
 						</entry>
 					</row>
 
@@ -2665,7 +2665,7 @@
 							<para>MySQL</para>
 						</entry>
 						<entry>
-							<para>Not tested yet.</para>
+							<para>Is fully supported.</para>
 						</entry>
 					</row>
 
