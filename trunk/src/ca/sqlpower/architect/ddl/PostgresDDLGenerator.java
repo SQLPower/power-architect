@@ -301,6 +301,15 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
 
     }
 
+    @Override
+    protected String columnDefinition(SQLColumn c, Map colNameMap) {
+        if (c.isAutoIncrement()) {
+            return createPhysicalName(colNameMap, c) + " SERIAL";
+        } else {
+            return super.columnDefinition(c, colNameMap);
+        }
+    }
+    
 	/**
 	 * Returns null, even though Postgres calls this "Database."  The reason is,
 	 * you can't refer to objects in a different database than the default
