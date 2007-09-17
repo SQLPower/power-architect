@@ -33,6 +33,7 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -198,13 +199,17 @@ public class ArchitectFrame extends JFrame {
 
         Preferences prefs = context.getPrefs();
         
-        splitPane.setDividerLocation(prefs.getInt(ArchitectSwingUserSettings.DIVIDER_LOCATION,150));
+        splitPane.setDividerLocation(prefs.getInt(ArchitectSwingUserSettings.DIVIDER_LOCATION,200));
 
+        // Get the size of the default screen
+        Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+        
         Rectangle bounds = new Rectangle();
         bounds.x = prefs.getInt(ArchitectSwingUserSettings.MAIN_FRAME_X, 40);
         bounds.y = prefs.getInt(ArchitectSwingUserSettings.MAIN_FRAME_Y, 40);
-        bounds.width = prefs.getInt(ArchitectSwingUserSettings.MAIN_FRAME_WIDTH, 600);
-        bounds.height = prefs.getInt(ArchitectSwingUserSettings.MAIN_FRAME_HEIGHT, 440);
+        bounds.width = prefs.getInt(ArchitectSwingUserSettings.MAIN_FRAME_WIDTH, (int) (dim.width * 0.8));
+        bounds.height = prefs.getInt(ArchitectSwingUserSettings.MAIN_FRAME_HEIGHT, (int) (dim.height * 0.8));
+
         setBounds(bounds);
         addWindowListener(new ArchitectFrameWindowListener());
         session.getUserSettings().getSwingSettings().setBoolean(ArchitectSwingUserSettings.SHOW_WELCOMESCREEN,
