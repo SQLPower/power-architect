@@ -254,7 +254,7 @@ public class ColumnEditPanel extends JPanel
 
 		// cleanup inconsistent state
 		if (colAutoInc.isSelected()) {
-			colNullable.setSelected(true);
+			colNullable.setSelected(false);
 		}
 
 		if (colInPK.isSelected() && !colNullable.isSelected()) {
