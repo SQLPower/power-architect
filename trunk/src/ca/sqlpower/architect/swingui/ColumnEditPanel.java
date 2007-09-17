@@ -147,8 +147,8 @@ public class ColumnEditPanel extends JPanel
     }
 
 	private JSpinner createScaleEditor() {
-		return new JSpinner(new SpinnerNumberModel(0, 0, 10000, 1));
-	}
+		return new JSpinner(new SpinnerNumberModel(0, 0, Integer.MAX_VALUE, 1));
+	} 
 
 	private JSpinner createPrecisionEditor() {
 		return createScaleEditor();  // looks better if both spinners are same size
