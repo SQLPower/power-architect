@@ -313,9 +313,10 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
 	 * @throws ArchitectException
 	 */
 	private void setupAction(List selectedItems) throws ArchitectException {
+	    String Description;
 		if (selectedItems.size() == 0) {
 			setEnabled(false);
-			putValue(SHORT_DESCRIPTION, "Delete Selected");
+			Description = "Delete Selected";
 		} else if (selectedItems.size() == 1) {
 			Selectable item = (Selectable) selectedItems.get(0);
 			setEnabled(true);
@@ -339,7 +340,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
 			} else if (item instanceof Relationship) {
 				name = ((Relationship) item).getModel().getName();
 			}
-			putValue(SHORT_DESCRIPTION, "Delete "+name);
+			Description = "Delete "+name;
 		} else {
 			setEnabled(true);
 			int numSelectedItems =0;
@@ -352,7 +353,8 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
 					numSelectedItems += Math.max(((TablePane) item).getSelectedColumns().size()-1, 0);
 				}
 			}
-			putValue(SHORT_DESCRIPTION, "Delete "+numSelectedItems+" items");
+			Description = "Delete "+numSelectedItems+" items";
 		}
+		putValue(SHORT_DESCRIPTION, Description + " (Shortcut delete)");
 	}
 }
