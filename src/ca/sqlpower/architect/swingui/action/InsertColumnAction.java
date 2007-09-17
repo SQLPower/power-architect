@@ -31,6 +31,10 @@
  */
 package ca.sqlpower.architect.swingui.action;
 
+import java.awt.event.KeyEvent;
+
+import javax.swing.KeyStroke;
+
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
@@ -47,6 +51,7 @@ public class InsertColumnAction extends AbstractTableTargetedAction {
 	public InsertColumnAction(ArchitectSwingSession session) {
         super(session, "New Column", "New Column", "new_column");
 		putValue(ACTION_COMMAND_KEY, ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
+		putValue(ACCELERATOR_KEY,KeyStroke.getKeyStroke(KeyEvent.VK_C,0));
 		setEnabled(false);
 	}
 
