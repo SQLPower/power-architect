@@ -32,6 +32,7 @@
 package ca.sqlpower.architect.swingui.action;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.sql.SQLException;
@@ -46,6 +47,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
@@ -126,13 +128,20 @@ public class ExportDDLAction extends AbstractArchitectAction {
                                         outerPanel.add(explanation, BorderLayout.NORTH);
                                         JPanel listBoxPanel = new JPanel();
                                         listBoxPanel.setLayout(new GridLayout(0, 1, 5, 5));
+                                       
                                         for (Object o : warnings) {
                                             DDLWarning ddlwarning = (DDLWarning) o;
                                             DDLWarningComponent ddlWarningComponent = DDLWarningComponentFactory.createComponent(ddlwarning);
                                             listBoxPanel.add(ddlWarningComponent.getComponent());
                                             warningComponents.add(ddlWarningComponent);
                                         }
-                                        outerPanel.add(new JScrollPane(listBoxPanel), BorderLayout.CENTER);
+                                        
+                                        JScrollPane sp = new JScrollPane(listBoxPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+                                        if (warnings.size() > 9) {
+                                            Dimension d = new Dimension(400,400);
+                                            sp.setPreferredSize(d);
+                                        }
+                                        outerPanel.add(sp, BorderLayout.CENTER);
                                         return outerPanel;
                                     }
                                 };
