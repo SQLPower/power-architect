@@ -87,7 +87,7 @@ public class ColumnEditPanel extends JPanel
 		logger.debug("ColumnEditPanel called");
 
         buildUI();
-		editColumn(col);		
+		editColumn(col);
 	}
 
     private void buildUI() {
@@ -193,6 +193,7 @@ public class ColumnEditPanel extends JPanel
 		colAutoInc.setSelected(col.isAutoIncrement());
 		updateComponents();
 		colName.requestFocus();
+		colName.selectAll();
 	}
 
 	/**
