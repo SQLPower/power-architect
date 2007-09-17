@@ -39,7 +39,6 @@ import java.sql.DatabaseMetaData;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
@@ -96,7 +95,6 @@ public class ColumnEditPanel extends JPanel
 		centerBox.add(Box.createVerticalGlue());
 		JPanel centerPanel = new JPanel();
 		centerPanel.setLayout(new FormLayout(5, 5));
-		centerPanel.setBorder(BorderFactory.createTitledBorder("Column Properties"));
 
 		centerPanel.add(new JLabel("Source Database"));
 		centerPanel.add(sourceDB = new JLabel());
