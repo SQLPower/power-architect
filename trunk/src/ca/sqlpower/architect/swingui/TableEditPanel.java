@@ -84,6 +84,7 @@ public class TableEditPanel extends JPanel implements DataEntryPanel {
             throw new ArchitectRuntimeException(e);
         }
 		remarks.setText(t.getRemarks());
+		name.selectAll();
 	}
 
 	// --------------------- ArchitectPanel interface ------------------

@@ -128,7 +128,7 @@ public class RelationshipEditPanel extends JPanel
 		fkPanel.add(fkTypeZeroOne = new JRadioButton("Zero or One"));
 		fkTypeGroup.add(fkTypeZeroOne);
 		add(fkPanel, BorderLayout.EAST);		
-		
+		relationshipName.selectAll();
 	}
 
 
@@ -160,6 +160,7 @@ public class RelationshipEditPanel extends JPanel
 		} else if (fkc == (SQLRelationship.ONE | SQLRelationship.MANY)){
 			fkTypeOneToMany.setSelected(true);
 		}
+		relationshipName.selectAll();
 	}
 
 	// ------------------ ARCHITECT PANEL INTERFACE ---------------------

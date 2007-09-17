@@ -148,6 +148,7 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
         qualifier.setText(index.getQualifier());
         filterCondition.setText(index.getFilterCondition());
         indexType.setSelectedItem(index.getType());
+        name.selectAll();
     }
     
     protected SQLIndex getIndexCopy(){
