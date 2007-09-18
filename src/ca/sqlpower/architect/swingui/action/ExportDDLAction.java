@@ -304,8 +304,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
 
 			} catch (Exception ex) {
 				error = ex;
-				errorMessage = "You have to specify a target database connection"
-					+"\nbefore executing this script.";
+				errorMessage = ex.getMessage();
 				logger.error("Unexpected exception setting up DDL generation", ex);
 
 			}
