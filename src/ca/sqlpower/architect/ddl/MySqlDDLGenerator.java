@@ -374,6 +374,20 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         }
     }
     
+    /**
+     * Adds support for the MySQL auto_increment feature.
+     */
+    @Override
+    public String columnType(SQLColumn c) {
+        // FIXME doesn't work because you have to include the "primary key" clause directly
+        //       in the table definition when creating an AUTO_INCREMENT column
+        String type = super.columnType(c);
+        if (c.isAutoIncrement()) {
+            type += " AUTO_INCREMENT";
+        }
+        return type;
+    }
+    
     @Override
     public void addIndex(SQLIndex index) throws ArchitectException {
         if (index.getType() == IndexType.STATISTIC )
