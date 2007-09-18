@@ -35,6 +35,7 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -293,25 +294,43 @@ public class ExportDDLAction extends AbstractArchitectAction {
 		}
 
 		/**
-		 * This should run on its own thread (not the AWT event dispatch
+		 * This method is called on its own thread (not the AWT event dispatch
 		 * thread). It will take a while.
 		 */
 		public void doStuff() {
 
 			if (this.isCanceled()) return;
+            
+            // First, test if it's possible to connect to the target database
+            Connection con = null;
+            try {
+                con = target.getConnection();
+            } catch (Exception ex) {
+                error = ex;
+                errorMessage = "Failed to connect to target database. Please check your connection settings.";
+                return;
+            } finally {
+                if (con != null) {
+                    try {
+                        con.close();
+                    } catch (SQLException ex) {
+                        logger.error("Failed to close connection. This exception is getting squashed:", ex);
+                    }
+                }
+            }
+            
+            // Now do the actual work
 			try {
 				cr.findConflicting();
-
 			} catch (Exception ex) {
 				error = ex;
-				errorMessage = ex.getMessage();
+				errorMessage = "Unexpected exception while searching for existing database objects";
 				logger.error("Unexpected exception setting up DDL generation", ex);
-
 			}
 		}
 
 		/**
-		 * When the run() method is done, it schedules this method to be invoked on the AWT event
+		 * After the doStuff() method is done, this method will be invoked on the AWT event
 		 * dispatch thread.
 		 */
 		public void cleanup() {
@@ -319,7 +338,11 @@ public class ExportDDLAction extends AbstractArchitectAction {
 				logger.error("runFinished is running on the wrong thread!");
 			}
 			if (errorMessage != null) {
-				JOptionPane.showMessageDialog(parentDialog, errorMessage, "Error", JOptionPane.ERROR_MESSAGE);
+                if (error != null) {
+                    ASUtils.showExceptionDialogNoReport(parentDialog, errorMessage, error);
+                } else {
+                    JOptionPane.showMessageDialog(parentDialog, errorMessage, "Error", JOptionPane.ERROR_MESSAGE);
+                }
 			} else if (!cr.isEmpty()) {
 				Object[] messages = new Object[3];
 				messages[0] = "The following objects in the target database"
