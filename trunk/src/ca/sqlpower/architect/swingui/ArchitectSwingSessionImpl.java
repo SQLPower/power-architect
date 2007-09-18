@@ -383,7 +383,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                     project.setSaveInProgress(true);
                     project.save(finalSeparateThread ? pm : null);
                     success = true;
-                    JOptionPane.showMessageDialog(frame, "Save successful");
                 } catch (Exception ex) {
                     success = false;
                     ASUtils.showExceptionDialog(
