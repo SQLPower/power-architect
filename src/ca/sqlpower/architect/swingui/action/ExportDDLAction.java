@@ -428,7 +428,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
 		 */
 		public void cleanup() {
 			if (errorMessage != null) {
-				ASUtils.showExceptionDialog(session,
+				ASUtils.showExceptionDialogNoReport(parentDialog,
                     "Error Dropping Conflicts: "+errorMessage, error);
 				setCancelled(true);
 			}
