@@ -226,7 +226,6 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 				addTable(t);
                 
-				writePrimaryKey(t);
                 for (SQLIndex index : (List<SQLIndex>)t.getIndicesFolder().getChildren()) {
                    if (index.isPrimaryKeyIndex()) continue;
                     addIndex(index);
@@ -491,19 +490,45 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 			firstCol = false;
 		}
-		println("");
-		print(")");
+		
+		addPrimaryKeysToCreateTable(t);
+		
+		print("\n)");
 		endStatement(DDLStatement.StatementType.CREATE, t);
-
 	}
-
-
+	
 	/**
 	 * Returns the default data type for this platform.  Normally, this can be VARCHAR,
 	 * but if your platform doesn't have a varchar, override this method.
 	 */
 	protected Object getDefaultType() {
 		return Types.VARCHAR;
+	}
+	
+	protected void addPrimaryKeysToCreateTable(SQLTable t) throws ArchitectException {
+	       logger.debug("Adding Primary keys");
+	        
+	        Iterator it = t.getColumns().iterator();
+	        boolean firstCol = true;
+	        while (it.hasNext()) {
+	            SQLColumn col = (SQLColumn) it.next();
+	            if (col.getPrimaryKeySeq() == null) break;
+	            if (firstCol) {
+	                // generate a unique primary key name
+	                createPhysicalPrimaryKeyName(t);
+	                print(",\n");
+	                print("                CONSTRAINT ");
+	                print(t.getPrimaryKeyName());
+	                print(" PRIMARY KEY (");
+	                firstCol = false;
+	            } else {
+	                print(", ");
+	            }
+	            print(col.getPhysicalName());
+	        }
+	        if (!firstCol) {
+	            print(")");
+	        }
 	}
 
 	protected void writePrimaryKey(SQLTable t) throws ArchitectException {
