@@ -331,6 +331,28 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         return null;
     }
     
+    @Override
+    protected void addPrimaryKeysToCreateTable(SQLTable t) throws ArchitectException {
+        logger.debug("Adding Primary keys");
+         
+         Iterator it = t.getColumns().iterator();
+         boolean firstCol = true;
+         while (it.hasNext()) {
+             SQLColumn col = (SQLColumn) it.next();
+             if (col.getPrimaryKeySeq() == null) break;
+             if (firstCol) {
+                 print(",\n                PRIMARY KEY (");
+                 firstCol = false;
+             } else {
+                 print(", ");
+             }
+             print(col.getPhysicalName());
+         }
+         if (!firstCol) {
+             print(")");
+         }
+ }
+    
     public void dropRelationship(SQLRelationship r) {
 
         print("\n ALTER TABLE ");
