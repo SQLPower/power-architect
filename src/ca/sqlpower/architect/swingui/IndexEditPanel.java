@@ -156,6 +156,14 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
     }
 
     // --------------------- ArchitectPanel interface ------------------
+    /**
+     * Applies the changes to the panel if the data is valid
+     * 
+     * the data is valid if it has a name, an index type and all
+     * of the columns contain primary keys
+     * 
+     * returns true if saved, false otherwise
+     */
     public boolean applyChanges() {
         startCompoundEdit("Index Properties Change");       
         try {   
@@ -173,6 +181,10 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
                         break;
                     }
                 }
+            }
+            
+            if (indexType.getSelectedItem() == null) {
+                warnings.append("An index type must be selected\n");
             }
             
             if (warnings.toString().length() == 0){
