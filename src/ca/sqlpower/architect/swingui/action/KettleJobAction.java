@@ -37,9 +37,8 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.concurrent.Callable;
 
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -90,12 +89,12 @@ public class KettleJobAction extends AbstractArchitectAction {
         cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
         final KettleJobPanel kettleETLPanel = new KettleJobPanel(session);
 
-        Action okAction, cancelAction;
-        okAction = new AbstractAction() {
+        Callable<Boolean> okCall, cancelCall;
+        okCall = new Callable<Boolean>() {
             
-            public void actionPerformed(ActionEvent evt) {
+            public Boolean call() {
                 if (!kettleETLPanel.applyChanges()) {
-                    return;
+                    return new Boolean(false);
                 }
                 FileValidator validator = new PromptingFileValidator(architectFrame);
                 KettleRepositoryDirectoryChooser chooser = new UserRepositoryDirectoryChooser(architectFrame);
@@ -194,11 +193,13 @@ public class KettleJobAction extends AbstractArchitectAction {
                 
                 new Thread(compareWorker).start();
                 ProgressWatcher.watchProgress(progressBar, kettleJob);
+                return new Boolean(true);
             }
         };
         
-        cancelAction = new AbstractAction() {
-            public void actionPerformed(ActionEvent evt) {
+        cancelCall = new Callable<Boolean>() {
+            public Boolean call() {
+                return new Boolean(true);
             }
         };
         
@@ -206,7 +207,7 @@ public class KettleJobAction extends AbstractArchitectAction {
                 kettleETLPanel,
                 session.getArchitectFrame(),
                 "Create a Kettle Job", "OK",
-                okAction, cancelAction);
+                okCall, cancelCall);
         d.pack();
         d.setLocationRelativeTo(session.getArchitectFrame());
         d.setVisible(true);

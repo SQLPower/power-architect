@@ -34,8 +34,8 @@ package ca.sqlpower.architect.swingui.action;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.util.List;
+import java.util.concurrent.Callable;
 
-import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
@@ -149,7 +149,7 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 		}	
 	}
 
-	protected void makeDialog(SQLTable st, int colIdx) throws ArchitectException {
+	protected void makeDialog(final SQLTable st, final int colIdx) throws ArchitectException {
 		if (editDialog != null) {
 			columnEditPanel.editColumn(st.getColumn(colIdx));			
 			editDialog.setTitle("Column Properties of "+st.getName());
@@ -157,6 +157,8 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 			//editDialog.requestFocus();
 			
 		} else {
+		    logger.debug("Creating new column editor panel");
+		    
 			JPanel panel = new JPanel();
 			panel.setLayout(new BorderLayout(12,12));
 			panel.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
@@ -168,15 +170,17 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 					frame,
 					 "Column Properties of "+st.getName(),
 					 "OK",
-					 new AbstractAction(){
-						public void actionPerformed(ActionEvent e) {
-							columnEditPanel.applyChanges();
+					 new Callable<Boolean>(){
+						public Boolean call() {
+							Boolean ret = new Boolean(columnEditPanel.applyChanges());
 							EditColumnAction.this.putValue(SHORT_DESCRIPTION, "Editting "+columnEditPanel.getColName().getText() );
+							return ret;
 						}
 					}, 
-					new AbstractAction(){
-						public void actionPerformed(ActionEvent e) {
+					new Callable<Boolean>(){
+                        public Boolean call() {
 							columnEditPanel.discardChanges();
+							return new Boolean(true);
 						}
 					});
 			panel.setOpaque(true);

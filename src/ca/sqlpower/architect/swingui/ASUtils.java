@@ -47,9 +47,8 @@ import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -202,19 +201,22 @@ public class ASUtils {
         
         final DataEntryPanel dbcsPanel = createDataSourceOptionsPanel(dataSource);
         
-        Action okAction = new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
+        Callable<Boolean> okCall = new Callable<Boolean>() {
+            public Boolean call() {
                 if (dbcsPanel.applyChanges()) {
                     if (onAccept != null) {
                         onAccept.run();
                     }
+                    return new Boolean(true);
                 }
+                return new Boolean(false);
             }
         };
     
-        Action cancelAction = new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
+        Callable<Boolean> cancelCall = new Callable<Boolean>() {
+            public Boolean call() {
                 dbcsPanel.discardChanges();
+                return new Boolean(true);
             }
         };
     
@@ -222,7 +224,7 @@ public class ASUtils {
                 dbcsPanel, parentWindow,
                 "Database Connection: " + dataSource.getDisplayName(),
                 DataEntryPanelBuilder.OK_BUTTON_LABEL,
-                okAction, cancelAction);
+                okCall, cancelCall);
     
         d.pack();
         d.setLocationRelativeTo(parentWindow);

@@ -33,9 +33,8 @@ package ca.sqlpower.architect.swingui.action;
 
 import java.awt.event.ActionEvent;
 import java.util.List;
+import java.util.concurrent.Callable;
 
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.tree.TreePath;
@@ -106,28 +105,27 @@ public class EditTableAction extends AbstractArchitectAction {
 	private void makeDialog(SQLTable table) {
 		final TableEditPanel editPanel = new TableEditPanel(session, table);
 
-		Action okAction = new AbstractAction() {
-			public void actionPerformed(ActionEvent evt) {
+		Callable<Boolean> okCall = new Callable<Boolean>() {
+			public Boolean call() {
 				//We need to see if the operation is successful, if
                 //successful, we close down the dialog, if not, we need 
                 //to return the dialog (hence why it is setVisible(!success))
-                boolean success = editPanel.applyChanges();
+                return new Boolean(editPanel.applyChanges());
 				// XXX: also apply changes on mapping tab                
-                d.setVisible(!success);
 			}
 		};
 
-		Action cancelAction = new AbstractAction() {
-			public void actionPerformed(ActionEvent evt) {
+		Callable<Boolean> cancelCall = new Callable<Boolean>() {
+			public Boolean call() {
 				editPanel.discardChanges();
 				// XXX: also discard changes on mapping tab
-				d.setVisible(false);
+				return new Boolean(true);
 			}
 		};
 
 		d = DataEntryPanelBuilder.createDataEntryPanelDialog(
 				editPanel, frame,
-				"Table Properties", "OK", okAction, cancelAction);
+				"Table Properties", "OK", okCall, cancelCall);
 
 		d.pack();
 		d.setLocationRelativeTo(frame);
