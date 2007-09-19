@@ -39,9 +39,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
@@ -91,9 +90,9 @@ public class ExportDDLAction extends AbstractArchitectAction {
 
         final DDLExportPanel ddlPanel = new DDLExportPanel(session);
 
-        Action okAction, cancelAction;
-        okAction = new AbstractAction() {
-            public void actionPerformed(ActionEvent evt) {
+        Callable<Boolean> okCall, cancelCall;
+        okCall = new Callable<Boolean>() {
+            public Boolean call() {
                 try {
                     if (ddlPanel.applyChanges()) {
 
@@ -176,7 +175,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
                                     break;
                                 case 2:     // "Cancel"
                                 case -1:    // Kill dialog
-                                    return;
+                                    return new Boolean(true);
                                 case 3: // apply all changes made
                                     for (DDLWarningComponent warningComponent : warningComponents) {
                                         warningComponent.applyChanges();
@@ -211,22 +210,23 @@ public class ExportDDLAction extends AbstractArchitectAction {
                         (session,
                          "An error occurred while generating the script.", ex);
                 }
+                return new Boolean(true);
             }
         };
 
 
 
-        cancelAction = new AbstractAction() {
-            public void actionPerformed(ActionEvent evt) {
+        cancelCall = new Callable<Boolean>() {
+            public Boolean call() {
                 ddlPanel.discardChanges();
-                d.setVisible(false);
+                return new Boolean(true);
             }
         };
         d = DataEntryPanelBuilder.createDataEntryPanelDialog(
                 ddlPanel,
                 frame,
                 "Forward Engineer SQL Script", "OK",
-                okAction, cancelAction);
+                okCall, cancelCall);
 
         d.pack();
         d.setLocationRelativeTo(frame);
