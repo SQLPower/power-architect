@@ -9,10 +9,11 @@ If you would like to contribute to the source code, there is a Getting Started W
 
 ==Bug Reports==
 If you've found a bug in the Power*Architect, you can contribute a bug report into our [http://trillian.sqlpower.ca/bugzilla Bugzilla database], as well as notifying the development team through the [http://www.sqlpower.ca/forum/forums/show/4.page Support Forum]. We strongly recommend that you include in your report:
-# A step-by-step description of how to reproduce the bug.
-# What outcome you were expecting to see, especially for User Interface glitches.
-# The version of the Power*Architect that you were running.
-# The Operating System you were running the Power*Architect on.
+  # A step-by-step description of how to reproduce the bug.
+  # What outcome you were expecting to see, especially for User Interface glitches.
+  # The version of the Power*Architect that you were running.
+  # The Operating System you were running the Power*Architect on.
+ 
  
  
  
