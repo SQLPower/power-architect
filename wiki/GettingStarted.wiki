@@ -86,7 +86,7 @@ target. This target will run the different test suites available with Power*Arch
 The alltest target can be run by right clicking on the alltest target and selecting
 the Ant Build from the Run As menu option.
 
-	== How To Install Apache Ant For Eclipse ==
+	== How To Install Apache Ant For Eclipse (3.2 and older) ==
 	
 	Apache Ant is available at http://ant.apache.org/bindownload.cgi. To install Ant 1.7 into Eclipse first unzip and install Ant to your local machine. Then under Eclipse's user preferences select the Ant runtime item in the list of preferences	on the left. Click on the Ant Home button and select the folder that you installed	Ant 1.7 into. Then click ok and Eclipse will use the new Ant.
 
@@ -105,4 +105,5 @@ have put together.
 
 
 
+ 
  
