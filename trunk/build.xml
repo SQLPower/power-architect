@@ -83,7 +83,7 @@
 		<tstamp/>
 		<mkdir dir="${build}"/>
 		<!-- get the version number from source code ArchitectUtils -->
-		<javac srcdir="${src}" destdir="${build}" classpathref="compile.classpath" includes="ca/sqlpower/architect/antbuild/ArchitectVersionTask.java" debug="true" deprecation="true" />
+		<javac srcdir="${src}" destdir="${build}" classpathref="compile.classpath" includes="ca/sqlpower/architect/antbuild/ArchitectVersionTask.java" debug="true"/>
 		<taskdef name="genVersion"
 					classname="ca.sqlpower.architect.antbuild.ArchitectVersionTask"
 			        classpath="${build}"/>
@@ -265,7 +265,7 @@
 		<property name="reports.junit" value="${reports}/junit"/>
 		<mkdir dir="${reports.junit}"/>
 		<!-- Output all System.out and System.err messages -->
-	   <junit printsummary="withOutAndErr">
+	   <junit printsummary="on">
 	   	   <sysproperty key="ca.sqlpower.architect.test.dir" value="${build.tests}"/>
 	       <classpath>
 	       		<path refid="test.classpath"/>
@@ -287,10 +287,8 @@
 	<!-- Compiles the application source files -->
 	<target name="compile" depends="init,copyfiles, sqlpower.library">
 		<javac srcdir="${src}" destdir="${build}"
-			classpathref="compile.classpath"
-			debug="true" deprecation="true"
-			>
-         </javac>
+			classpathref="compile.classpath" 
+			debug="true"/>
 	</target>
 
 	<!-- Compiles the regression test suite -->
@@ -301,9 +299,7 @@
 		<mkdir dir="${build.tests}"/>
 		<javac srcdir="regress" destdir="${build.tests}"
 			classpathref="test.classpath"
-			debug="true" deprecation="true"
-			>
-		</javac>
+			debug="true"/>
 	</target>
 
     <!-- copies non-source files that need to be in the architect.jar. -->
