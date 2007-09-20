@@ -69,18 +69,23 @@ public class CompareDMDialog extends JDialog {
         cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
                 
         compareDMPanel = new CompareDMPanel(frame.getArchitectSession());
-        
+
         cp.add(compareDMPanel, BorderLayout.CENTER);
         
-        //      JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JPanel buttonPanel = compareDMPanel.getButtonPanel();
+        JPanel bottomPanel = new JPanel(new BorderLayout());
         
+        JButton swapButton = new JButton (compareDMPanel.getSwapSourceTargetAction());
+        bottomPanel.add(swapButton, BorderLayout.WEST);
+
         JDefaultButton okButton = new JDefaultButton(compareDMPanel.getStartCompareAction());
         buttonPanel.add(okButton);
         
         JButton cancelButton = new JButton(new CommonCloseAction(this));   
         buttonPanel.add(cancelButton);
-        cp.add(buttonPanel, BorderLayout.SOUTH);
+
+        bottomPanel.add(buttonPanel,BorderLayout.EAST);
+        cp.add(bottomPanel, BorderLayout.SOUTH);
         SPSUtils.makeJDialogCancellable(this, cancelButton.getAction());
         getRootPane().setDefaultButton(okButton);
         setContentPane(cp);

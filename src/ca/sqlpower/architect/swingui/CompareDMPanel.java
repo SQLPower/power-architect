@@ -179,6 +179,8 @@ public class CompareDMPanel extends JPanel {
 	private JLabel statusLabel;
 
 	private StartCompareAction startCompareAction;
+	
+	private SwapSourceTargetAction swapSourceTargetAction;
 
 	private SourceOrTargetStuff source = new SourceOrTargetStuff();
 	
@@ -908,6 +910,10 @@ public class CompareDMPanel extends JPanel {
 	public Action getStartCompareAction() {
 		return startCompareAction;
 	}
+	
+	public Action getSwapSourceTargetAction() {
+	    return swapSourceTargetAction;
+	}
 
 	public JPanel getButtonPanel() {
 		return buttonPanel;
@@ -915,14 +921,14 @@ public class CompareDMPanel extends JPanel {
 
 	public CompareDMPanel(ArchitectSwingSession session) {
         this.session = session;
-        SchemaPopulator schemaPop =  source.new SchemaPopulator(session);
-        CatalogPopulator catalogPop = source.new CatalogPopulator(session);
-		buildUI(schemaPop, catalogPop);
+		buildUI(target.new SchemaPopulator(session),target.new CatalogPopulator(session),
+		        source.new SchemaPopulator(session),source.new CatalogPopulator(session));
 	}
 	
 	
 
-	private void buildUI(SchemaPopulator schemaPop, CatalogPopulator catalogPop) {
+	private void buildUI(SchemaPopulator targetSchemaPop, CatalogPopulator targetCatalogPop, 
+	        SchemaPopulator sourceSchemaPop, CatalogPopulator sourceCatalogPop) {
 
 		progressBar = new JProgressBar();
 		progressBar.setIndeterminate(true);
@@ -955,6 +961,9 @@ public class CompareDMPanel extends JPanel {
 
 		startCompareAction = new StartCompareAction();
 		startCompareAction.setEnabled(false);
+		
+		swapSourceTargetAction = new SwapSourceTargetAction();
+		swapSourceTargetAction.setEnabled(true);
 
 		buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
@@ -974,7 +983,7 @@ public class CompareDMPanel extends JPanel {
 		builder.nextLine();
 		builder.append(""); // takes up blank space
 
-		source.buildPartialUI(builder, true, schemaPop, catalogPop);
+		source.buildPartialUI(builder, true, sourceSchemaPop, sourceCatalogPop);
 
 		builder.appendSeparator("With Newer");
 		builder.appendRow(builder.getLineGapSpec());
@@ -982,8 +991,7 @@ public class CompareDMPanel extends JPanel {
 		builder.nextLine(2);
 		builder.append("");
 
-		target.buildPartialUI(builder, false, target.new SchemaPopulator(session),
-		        target.new CatalogPopulator(session));
+		target.buildPartialUI(builder, false, targetSchemaPop, targetCatalogPop);
 
 		ActionListener radioButtonActionEnabler = new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -1326,4 +1334,98 @@ public class CompareDMPanel extends JPanel {
         target.playPenRadio.doClick();    
 	    
 	}	
+	
+	/**
+	 *  A simple action to swap the settings for older and newer. 
+	 */
+	public class SwapSourceTargetAction extends AbstractAction   {
+	    public SwapSourceTargetAction() {
+	        super("Swap");
+	    }
+
+        public void actionPerformed(ActionEvent e) {
+            boolean sourcePlayPen = source.playPenRadio.isSelected();
+            boolean sourcePhysical = source.physicalRadio.isSelected();
+            String sourceLoadFilePath = source.loadFilePath.getText();
+            String targetLoadFilePath = target.loadFilePath.getText();
+            
+            SPDataSource soDBObj = null;
+            SQLObject soCatObj  = null; 
+            SQLObject soSchemaObj = null;
+            
+            SPDataSource taDBObj = null; 
+            SQLObject taCatObj  = null; 
+            SQLObject taSchemaObj = null;
+            
+            //gets the data from the drop down menus
+            //the objects are only loaded as needed because changing an option 
+            //in the DB drop down menu if it is disabled will still enable
+            //the catalog and or schema dropdowns
+            if (source.physicalRadio.isSelected()) {
+                soDBObj = (SPDataSource)source.databaseDropdown.getSelectedItem();
+                soCatObj  = (SQLObject)source.catalogDropdown.getSelectedItem();
+                soSchemaObj = (SQLObject)source.schemaDropdown.getSelectedItem();
+            }
+            
+            if (target.physicalRadio.isSelected()) {
+                taDBObj = (SPDataSource)target.databaseDropdown.getSelectedItem();
+                taCatObj  = (SQLObject)target.catalogDropdown.getSelectedItem();
+                taSchemaObj = (SQLObject)target.schemaDropdown.getSelectedItem();
+                
+            }
+            
+            target.loadFilePath.setText(sourceLoadFilePath);
+            source.loadFilePath.setText(targetLoadFilePath);
+            
+            //select the db connection in the other list
+            //then set the defaults for the catalog and schema so they
+            //will be updated by the db connection dropdown change event
+            if (soDBObj != null) {
+                for (int x = 1; x < target.databaseDropdown.getItemCount(); x++) {
+                    if (target.databaseDropdown.getItemAt(x).equals(soDBObj)) {
+                        target.databaseDropdown.setSelectedIndex(x);
+                    }
+                }
+            }
+            if (soCatObj != null) {
+                target.catalogPop.setDefaultCatalog(soCatObj.getName());
+            }
+            if (soSchemaObj != null) {
+                target.catalogPop.setDefaultSchema(soSchemaObj.getName());
+                target.schemaPop.setDefaultSelect(soSchemaObj.getName());
+            }
+
+            if (taDBObj != null) {
+                for (int x = 1; x < source.databaseDropdown.getItemCount(); x++) {
+                    if (source.databaseDropdown.getItemAt(x).equals(taDBObj)) {
+                        source.databaseDropdown.setSelectedIndex(x);
+                    }
+                }
+            }
+            if (taCatObj != null) {
+                source.catalogPop.setDefaultCatalog(taCatObj.getName());
+            }
+            if (taSchemaObj != null) {
+                source.catalogPop.setDefaultSchema(taSchemaObj.getName());
+                source.schemaPop.setDefaultSelect(taSchemaObj.getName());
+            }
+            
+            if (target.playPenRadio.isSelected()) {
+                source.playPenRadio.doClick();
+            } else if (target.physicalRadio.isSelected()) {
+                source.physicalRadio.doClick();
+            } else {
+                source.loadRadio.doClick();
+            }
+            
+            if (sourcePlayPen) {
+                target.playPenRadio.doClick();
+            } else if (sourcePhysical) {
+                target.physicalRadio.doClick();
+            } else {
+                target.loadRadio.doClick();
+            }
+            
+        }
+	}
 }

@@ -204,8 +204,8 @@ public class CompareDMFrame extends JDialog {
 		
 		pb.add(titleLabel, cc.xyw(2, 1, 3,"c,c"));
         pb.add(subTitleLabel,cc.xyw(2, 3, 3,"c,c"));
-		pb.add(new JLabel("Source"), cc.xy(2,5));
-		pb.add(new JLabel("Target"), cc.xy(4,5));
+		pb.add(new JLabel("Older"), cc.xy(2,5));
+		pb.add(new JLabel("Newer"), cc.xy(4,5));
 		pb.add(sp, cc.xyw(2, 7,3));
 		pb.add(sourcebbBuilder.getPanel(), cc.xy(2, 9, "l,c"));
 		pb.add(targetbbBuilder.getPanel(), cc.xy(4, 9, "r,c"));
