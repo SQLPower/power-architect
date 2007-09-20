@@ -10,6 +10,10 @@ This document provides a starting point for anyone who wishes to contribute to t
 There are many ways that you could contribute to the Power*Architect project, including:
 
 ==Contributing Code==
-If you would like to contribute to the source code, there is a Getting Started Wiki page that should explain everything you need. [http://code.google.com/p/power-architect/wiki/HowToContribute]
+If you would like to contribute to the source code, there is a Getting Started Wiki page that should explain everything you need available [http://code.google.com/p/power-architect/wiki/GettingStarted here]
+
+ 
+ 
+ 
  
  
