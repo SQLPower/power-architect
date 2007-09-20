@@ -1,11 +1,6 @@
 #summary How To Contribute To the Power*Architect Project
 
-= Introduction =
-
 This document provides a starting point for anyone who wishes to contribute to the Power*Architect project, including non-developers.
-
-
-= Details =
 
 There are many ways that you could contribute to the Power*Architect project, including:
 
@@ -13,8 +8,13 @@ There are many ways that you could contribute to the Power*Architect project, in
 If you would like to contribute to the source code, there is a Getting Started Wiki page that should explain everything you need available [http://code.google.com/p/power-architect/wiki/GettingStarted here]
 
 ==Bug Reports==
-If you've found a bug in the Power*Architect, you can contribute a bug report into our [http://trillian.sqlpower.ca/bugzilla Bugzilla database]
+If you've found a bug in the Power*Architect, you can contribute a bug report into our [http://trillian.sqlpower.ca/bugzilla Bugzilla database], as well as notifying the development team through the [http://www.sqlpower.ca/forum/forums/show/4.page Support Forum]. 
 
+==Documentation==
+
+
+ 
+ 
  
  
  
