@@ -77,7 +77,7 @@ with the least amount of hassle, here's the stuff you'll want to know about:
 The following section assumes that Eclipse is being used for development.
 
 To build Power*Architect from the source files Apache Ant version 1.7 or higher
-is required. See the following sub-section on how to install Apache Ant version 1.7 for 
+is required. Ant 1.7 should be included with Eclipse 3.3 (Europa). If you are using an older version of Eclipse, see the following sub-section on how to install Apache Ant version 1.7 for 
 Eclipse. Once Ant 1.7 is installed Power*Architect can be run by using the
 build.xml file. To run Power*Architect open the build.xml file and select the
 target named run in the outline. Right click on the run target and select 
@@ -105,3 +105,4 @@ have put together.
 
 
 
+ 
