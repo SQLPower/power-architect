@@ -90,9 +90,10 @@ public class InsertColumnAction extends AbstractTableTargetedAction {
         
         if (idx < 0) idx = tp.getModel().getColumnsFolder().getChildCount();
         
-        tp.getModel().addColumn(idx, new SQLColumn());
         EditColumnAction editColumnAction = new EditColumnAction(session);
-        editColumnAction.makeDialog(tp.getModel(), idx);
+        
+        //The actual column is added to the table when the user presses OK
+        editColumnAction.makeDialog(tp.getModel(), idx,true, tp);
     }
 
     @Override
