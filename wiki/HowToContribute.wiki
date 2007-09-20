@@ -8,12 +8,11 @@ There are many ways that you could contribute to the Power*Architect project, in
 If you would like to contribute to the source code, there is a Getting Started Wiki page that should explain everything you need available [http://code.google.com/p/power-architect/wiki/GettingStarted here]
 
 ==Bug Reports==
-If you've found a bug in the Power*Architect, you can contribute a bug report into our [http://trillian.sqlpower.ca/bugzilla Bugzilla database], as well as notifying the development team through the [http://www.sqlpower.ca/forum/forums/show/4.page Support Forum]. 
-
-==Documentation==
-
-
- 
+If you've found a bug in the Power*Architect, you can contribute a bug report into our [http://trillian.sqlpower.ca/bugzilla Bugzilla database], as well as notifying the development team through the [http://www.sqlpower.ca/forum/forums/show/4.page Support Forum]. We strongly recommend that you include in your report:
+1. A step-by-step description of how to reproduce the bug.
+2. What outcome you were expecting to see, especially for User Interface glitches.
+3. The version of the Power*Architect that you were running.
+4. The Operating System you were running the Power*Architect on.
  
  
  
