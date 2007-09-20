@@ -12,6 +12,10 @@ There are many ways that you could contribute to the Power*Architect project, in
 ==Contributing Code==
 If you would like to contribute to the source code, there is a Getting Started Wiki page that should explain everything you need available [http://code.google.com/p/power-architect/wiki/GettingStarted here]
 
+==Bug Reports==
+If you've found a bug in the Power*Architect, you can contribute a bug report into our [http://trillian.sqlpower.ca/bugzilla Bugzilla database]
+
+ 
  
  
  
