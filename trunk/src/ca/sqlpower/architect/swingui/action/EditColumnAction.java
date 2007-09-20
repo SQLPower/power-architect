@@ -48,6 +48,7 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.ColumnEditPanel;
@@ -148,8 +149,14 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 	  		// unknown action command source, do nothing
 		}	
 	}
+	
+    protected void makeDialog(final SQLTable st, final int colIdx) throws ArchitectException {
+        makeDialog(st, colIdx, false, null);
+    }
 
-	protected void makeDialog(final SQLTable st, final int colIdx) throws ArchitectException {
+	
+	protected void makeDialog(final SQLTable st, final int colIdx, final boolean addToTable,
+	        final TablePane tp) throws ArchitectException {
 		if (editDialog != null) {
 			columnEditPanel.editColumn(st.getColumn(colIdx));			
 			editDialog.setTitle("Column Properties of "+st.getName());
@@ -157,12 +164,19 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 			//editDialog.requestFocus();
 			
 		} else {
+		    final SQLColumn column =  new SQLColumn();
+				    
 		    logger.debug("Creating new column editor panel");
 		    
 			JPanel panel = new JPanel();
 			panel.setLayout(new BorderLayout(12,12));
 			panel.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
-			columnEditPanel = new ColumnEditPanel(st.getColumn(colIdx));
+			if (!addToTable) {
+			    columnEditPanel = new ColumnEditPanel(st.getColumn(colIdx));
+			} else {
+			    columnEditPanel = new ColumnEditPanel(column);
+			}
+			
 			panel.add(columnEditPanel, BorderLayout.CENTER);
 			
 			editDialog = DataEntryPanelBuilder.createDataEntryPanelDialog(
@@ -174,6 +188,13 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 						public Boolean call() {
 							Boolean ret = new Boolean(columnEditPanel.applyChanges());
 							EditColumnAction.this.putValue(SHORT_DESCRIPTION, "Editting "+columnEditPanel.getColName().getText() );
+							if (addToTable) {
+							    try {
+							        tp.getModel().addColumn(colIdx, column);
+							    } catch (ArchitectException e) {
+							        ASUtils.showExceptionDialog(session, "Error Could not add column to table", e);
+							    }
+							}
 							return ret;
 						}
 					}, 
