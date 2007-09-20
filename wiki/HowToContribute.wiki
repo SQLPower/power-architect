@@ -21,7 +21,8 @@ If no bug report exists, then you can contribute a bug report into our [http://t
 
 == User Documentation ==
 
-If the Power*Architect User Guide is incorrect, out-of-date, or hard to understand, we welcome contributions for improving it! We make our User Guide [http://www.docbook.org/ DocBook] XML source available as part of the project. You can view the [http://code.google.com/p/power-architect/wiki/GettingStarted GettingStarted Wiki] page under the 'Get the Source Code' section to see how to get the project source. The user guide source should be available in the 'doc' directory as PowerArchitectUserGuide.xml. If you need any help understanding the DocBook format, consult the [http://www.docbook.org/tdg5/en/html/docbook.html DocBook 5.0: The Definitive Guide].
+If the Power*Architect User Guide is incorrect, out-of-date, or hard to understand, we welcome contributions for improving it! We make our User Guide [http://www.docbook.org/ DocBook] XML source available as part of the project. You can view the [http://code.google.com/p/power-architect/wiki/GettingStarted GettingStarted Wiki] page under the 'Get the Source Code' section to see how to get the project source. The user guide source should be available in the 'doc' directory as PowerArchitectUserGuide.xml. This file uses the Simplified DocBook format, which you can learn more about [http://www.docbook.org/ here].
+ 
  
  
  
