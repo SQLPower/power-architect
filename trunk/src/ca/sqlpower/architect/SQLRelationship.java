@@ -218,6 +218,8 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
                         insertIdx = fkTable.getColumns().size();
                     }
                 }
+                
+                fkCol.setAutoIncrement(false);
 
                 // This might bump up the reference count (which would be
                 // correct)
@@ -657,6 +659,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
                     logger.debug("ensureInMapping("+getName()+"): adding fkcol at index "+
                             insertIdx+" (rel is identifying? "+identifying+
                             ", pkseq="+fkcol.getPrimaryKeySeq()+")");
+                    fkcol.setAutoIncrement(false);
 					fkTable.addColumn(insertIdx, fkcol);
 				} finally {
 					fkTable.setMagicEnabled(true);

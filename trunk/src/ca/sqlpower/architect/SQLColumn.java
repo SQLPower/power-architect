@@ -649,9 +649,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	 * @param argAutoIncrement Value to assign to this.autoIncrement
 	 */
 	public void setAutoIncrement(boolean argAutoIncrement) {
-		boolean oldAutoIncrement = this.autoIncrement;
 		this.autoIncrement = argAutoIncrement;
-		fireDbObjectChanged("autoIncrement",oldAutoIncrement,argAutoIncrement);
 	}
 
 	/**
