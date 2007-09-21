@@ -172,9 +172,9 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 			panel.setLayout(new BorderLayout(12,12));
 			panel.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
 			if (!addToTable) {
-			    columnEditPanel = new ColumnEditPanel(st.getColumn(colIdx));
+			    columnEditPanel = new ColumnEditPanel(session, st.getColumn(colIdx));
 			} else {
-			    columnEditPanel = new ColumnEditPanel(column);
+			    columnEditPanel = new ColumnEditPanel(session, column);
 			}
 			
 			panel.add(columnEditPanel, BorderLayout.CENTER);

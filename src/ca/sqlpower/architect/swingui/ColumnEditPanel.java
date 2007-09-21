@@ -56,7 +56,9 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLType;
+import ca.sqlpower.architect.SQLRelationship.ColumnMapping;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 public class ColumnEditPanel extends JPanel
@@ -68,6 +70,12 @@ public class ColumnEditPanel extends JPanel
      * The column we're editing.
      */
     private SQLColumn column;
+    
+    /**
+     * The session that contains the frame that will be the parent of
+     * any exception dialogs this panel creates.
+     */
+    private ArchitectSwingSession session;
     
 	private JLabel sourceDB;
 	private JLabel sourceTableCol;
@@ -81,10 +89,10 @@ public class ColumnEditPanel extends JPanel
 	private JCheckBox colInPK;
 	private JCheckBox colAutoInc;
 
-	public ColumnEditPanel(SQLColumn col) throws ArchitectException {
+	public ColumnEditPanel(ArchitectSwingSession session, SQLColumn col) throws ArchitectException {
 		super(new BorderLayout(12,12));
 		logger.debug("ColumnEditPanel called");
-
+		this.session = session;
         buildUI();
 		editColumn(col);
 	}
@@ -127,7 +135,7 @@ public class ColumnEditPanel extends JPanel
 		centerPanel.add(new JLabel("Auto Increment"));
 		centerPanel.add(colAutoInc = new JCheckBox());
 		colAutoInc.addActionListener(this);
-
+		
 		centerPanel.add(new JLabel("Remarks"));
 		centerPanel.add(colRemarks = new JTextField());
 	
@@ -192,6 +200,24 @@ public class ColumnEditPanel extends JPanel
 		updateComponents();
 		colName.requestFocus();
 		colName.selectAll();
+		
+		// This checks if the chosen column is a foreign key for disabling its
+		// auto-incrementing checkbox as auto-incrementating should not be allowed.
+		if (col != null && col.getParentTable() != null) {
+		    try {
+		        List<SQLRelationship> fks = col.getParentTable().getImportedKeys();
+		        for (SQLRelationship r : fks) {
+		            ColumnMapping colMapping = r.getMappingByFkCol(col);
+		            if(colMapping != null && colMapping.getFkColumn() != null && 
+		                    colMapping.getFkColumn().equals(col)) {
+		                colAutoInc.setEnabled(false);
+		                break;
+		            }
+		        }
+		    } catch (ArchitectException e){
+		        ASUtils.showExceptionDialogNoReport(session.getArchitectFrame(), "Error", e);
+		    }
+		}
 	}
 
 	/**
