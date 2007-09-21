@@ -186,7 +186,6 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 					 "OK",
 					 new Callable<Boolean>(){
 						public Boolean call() {
-							Boolean ret = new Boolean(columnEditPanel.applyChanges());
 							EditColumnAction.this.putValue(SHORT_DESCRIPTION, "Editting "+columnEditPanel.getColName().getText() );
 							if (addToTable) {
 							    try {
@@ -195,6 +194,7 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 							        ASUtils.showExceptionDialog(session, "Error Could not add column to table", e);
 							    }
 							}
+	                        Boolean ret = new Boolean(columnEditPanel.applyChanges());
 							return ret;
 						}
 					}, 
