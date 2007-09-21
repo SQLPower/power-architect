@@ -175,7 +175,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
                                     break;
                                 case 2:     // "Cancel"
                                 case -1:    // Kill dialog
-                                    return new Boolean(true);
+                                	break;
                                 case 3: // apply all changes made
                                     for (DDLWarningComponent warningComponent : warningComponents) {
                                         warningComponent.applyChanges();
@@ -210,7 +210,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
                         (session,
                          "An error occurred while generating the script.", ex);
                 }
-                return new Boolean(true);
+                return new Boolean(false);
             }
         };
 

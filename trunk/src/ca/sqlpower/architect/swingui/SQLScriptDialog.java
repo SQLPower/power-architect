@@ -40,6 +40,8 @@ import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -160,8 +162,10 @@ public class SQLScriptDialog extends JDialog {
 
 		Action copy = new CopyAction(sqlDoc);
 		Action execute = null;
-
-		if ( targetDataSource != null ) {
+		
+		logger.debug(targetDataSource.get(SPDataSource.PL_UID) + "");
+		
+		if ( targetDataSource.get(SPDataSource.PL_UID) != null ) {
 			execute = new AbstractAction(){
 				public void actionPerformed(ActionEvent e) {
 					new Thread(executeTask).start();
@@ -196,7 +200,7 @@ public class SQLScriptDialog extends JDialog {
 		barBuilder.addRelatedGap();
 		barBuilder.addGlue();
 
-		if ( execute == null ) {
+		if ( execute == null) {
 			executeButton.setEnabled(false);
 		}
 
@@ -206,6 +210,9 @@ public class SQLScriptDialog extends JDialog {
 		barBuilder.addRelatedGap();
 		barBuilder.addGlue();
 
+		CloseWindowAction closeWindow = new CloseWindowAction();
+		
+		addWindowListener(new CloseWindowAction());
 		JButton closeButton = new JButton(close);
 		closeButton.setText("Close");
 		barBuilder.addGridded(closeButton);
@@ -262,6 +269,13 @@ public class SQLScriptDialog extends JDialog {
 			}
 
 		}
+	}
+	
+	private class CloseWindowAction extends WindowAdapter {
+	        public void windowClosing(WindowEvent e) {
+	            if ( closeParent )
+	                parent.setVisible(false);
+	        }
 	}
 
 	private class CloseAction extends AbstractAction {
