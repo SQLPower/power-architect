@@ -219,4 +219,8 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     public boolean saveOrSaveAs(boolean showChooser, boolean separateThread) {
         return false;
     }
+    
+    public boolean isNew() {
+        return false;
+    }
 }

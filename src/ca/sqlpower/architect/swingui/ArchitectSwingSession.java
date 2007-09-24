@@ -174,5 +174,11 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
      * @throws IllegalStateException if showGUI==true and this method was
      * not called on the Event Dispatch Thread.
      */
-    public void initGUI() throws ArchitectException;   
+    public void initGUI() throws ArchitectException;
+
+    /**
+     * Returns true if the session contains a completely new and unmodified project.
+     * Otherwise, it returns false. 
+     */
+    public boolean isNew();   
 }
