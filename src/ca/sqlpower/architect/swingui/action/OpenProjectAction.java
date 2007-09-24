@@ -83,7 +83,7 @@ public class OpenProjectAction extends AbstractArchitectAction {
                 try {
                     OpenProjectAction.openAsynchronously(session.getContext().createSession(false), f, true);
                 } catch (ArchitectException ex) {
-                    JOptionPane.showMessageDialog(session.getArchitectFrame(), "Could not open file " + ex);
+                    SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(), "An unexpected exception has occured", ex);
                 }
             } else {
                 OpenProjectAction.openAsynchronously(session, f, false);
