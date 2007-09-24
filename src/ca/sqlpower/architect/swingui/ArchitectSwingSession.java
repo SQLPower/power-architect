@@ -178,7 +178,13 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
 
     /**
      * Returns true if the session contains a completely new and unmodified project.
-     * Otherwise, it returns false. 
+     * Otherwise, it returns false.
+     * <p>
+     * Note: that this property is different from the {@link SwingUIProject#isModified()}
+     * property in that the isNew property is persisted when the project is saved, and
+     * refers to whether the project was ever modified since it was first created, 
+     * whereas, the isModified property refers to whether the project was modified ever
+     * since the project was last loaded.  
      */
     public boolean isNew();   
 }
