@@ -79,12 +79,20 @@ public class OpenProjectAction extends AbstractArchitectAction {
         int returnVal = chooser.showOpenDialog(frame);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File f = chooser.getSelectedFile();
-            openAsynchronously(session.getContext(), f);
+            if (!session.isNew()) {
+                try {
+                    OpenProjectAction.openAsynchronously(session.getContext().createSession(false), f, true);
+                } catch (ArchitectException ex) {
+                    JOptionPane.showMessageDialog(session.getArchitectFrame(), "Could not open file " + ex);
+                }
+            } else {
+                OpenProjectAction.openAsynchronously(session, f, false);
+            }
         }
     }
-
+    
     /**
-     * Opens a project file into a new session (created from the given context)
+     * Opens a project file into the given session
      * using a separate worker thread.  A dialog box with a progress bar will
      * be displayed during the load process, and any errors that are encountered
      * during the load will be displayed in additional dialogs.
@@ -92,13 +100,15 @@ public class OpenProjectAction extends AbstractArchitectAction {
      * Note that this method always returns immediately, so as the caller of
      * this method you have no way of knowing if the load has worked/will work.
      * 
-     * @param context The context with which to create the session.
+     * @param session The session in which to load the project into.
      * @param f The project file to load.
+     * @param openInNewSession Set to true if opening the file in a newly created session. 
+     * Otherwise, set to false.
      */
-    public static void openAsynchronously(ArchitectSwingSessionContext context, File f) {
+    public static void openAsynchronously(ArchitectSwingSession session, File f, boolean openInNewSession) {
       LoadFileWorker worker;
         try {
-            worker = new LoadFileWorker(f, context.createSession(false));
+            worker = new LoadFileWorker(f, session, openInNewSession);
             new Thread(worker).start();
         } catch (FileNotFoundException e1) {
             JOptionPane.showMessageDialog(
@@ -118,29 +128,33 @@ public class OpenProjectAction extends AbstractArchitectAction {
         private final InputStream in;
         private final File file;
         private final RecentMenu recent;
+        private final boolean openInNewSession;
         
         /**
          * The session that will get created if loading the file
          * in doStuff() is successful.
          */
-        private ArchitectSwingSession newSession;
+        private ArchitectSwingSession session;
         
         /**
          * Load file worker creates a new worker and opens the given file.
          *
          * @param file  this file gets opened in the constructor
          * @param session The session in which the project file should be opened
+         * @param openInNewSession Set to true if opening the file in a newly created session. 
+         * Otherwise, set to false.
          * @throws ArchitectException when the project creation fails.
          * @throws FileNotFoundException if file doesn't exist
          */
-        public LoadFileWorker(File file, ArchitectSwingSession session) throws ArchitectException, FileNotFoundException {
+        public LoadFileWorker(File file, ArchitectSwingSession session, boolean openInNewSession) throws ArchitectException, FileNotFoundException {
                 // The super constructor registers the LoadFileWorker with the session.
                 super(session);
                 this.context = session.getContext();
                 this.file = file;
                 this.recent = session.getRecentMenu();
+                this.openInNewSession = openInNewSession;
                 
-                this.newSession = session;
+                this.session = session;
                 
                 // XXX this progress dialog has the coffee cup icon instead
                 // of the architect icon. To fix this, we need to create an
@@ -156,8 +170,8 @@ public class OpenProjectAction extends AbstractArchitectAction {
 
         @Override
         public void doStuff() throws Exception {
-            newSession.getProject().load(in, newSession.getUserSettings().getPlDotIni());
-            newSession.getProject().setFile(file);
+            session.getProject().load(in, session.getUserSettings().getPlDotIni());
+            session.getProject().setFile(file);
         }
 
         @Override
@@ -174,12 +188,18 @@ public class OpenProjectAction extends AbstractArchitectAction {
                             getDoStuffException());
                     logger.error("Got exception while opening a project", getDoStuffException());
                 }
-                newSession.removeSwingWorker(this);
-                newSession.close();
+                session.removeSwingWorker(this);
+                if (session.getContext().getSessions().size() > 1) {
+                    session.close();
+                }
             } else {
                 recent.putRecentFileName(file.getAbsolutePath());
-                newSession.initGUI();
-                ((SQLObject) newSession.getSourceDatabases().getModel().getRoot()).fireDbStructureChanged();
+                if (openInNewSession) {
+                    session.initGUI();
+                } else {
+                    session.getArchitectFrame().setTitle(session.getName()+" - Power*Architect");
+                }
+                ((SQLObject) session.getSourceDatabases().getModel().getRoot()).fireDbStructureChanged();
             }
             
             try {
@@ -189,8 +209,6 @@ public class OpenProjectAction extends AbstractArchitectAction {
             } catch (IOException ie) {
                 logger.error("got exception while closing project file", ie);
             }
-            
-           
         }
     }
 }

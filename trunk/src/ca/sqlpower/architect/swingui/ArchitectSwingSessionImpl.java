@@ -126,6 +126,8 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     
     private boolean savingEntireSource;
     
+    private boolean isNew;
+    
     private KettleJob kettleJob;
     // END STUFF BROUGHT IN FROM SwingUIProject
     
@@ -144,13 +146,22 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     ArchitectSwingSessionImpl(final ArchitectSwingSessionContext context, String name)
     throws ArchitectException {
 
+        this.isNew = true;
         this.context = context;
         this.name = name;
         this.recent = new RecentMenu(this.getClass()) {
             @Override
             public void loadFile(String fileName) throws IOException {
                 File f = new File(fileName);
-                OpenProjectAction.openAsynchronously(context, f);
+                if (!isNew()) {
+                    try {
+                        OpenProjectAction.openAsynchronously(getContext().createSession(false), f, true);
+                    } catch (ArchitectException ex) {
+                        JOptionPane.showMessageDialog(getArchitectFrame(), "Could not open file " + ex);
+                    }
+                } else {
+                    OpenProjectAction.openAsynchronously(ArchitectSwingSessionImpl.this, f, false);
+                }
             }
         };
         
@@ -543,6 +554,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                     logger.error("Couldn't listen to SQLObject hierarchy rooted at "+newKids[i], e1);
                 }
             }
+            isNew = false;
         }
 
         /** Marks project dirty, and stops listening to removed kids. */
@@ -552,11 +564,13 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             for (int i = 0; i < oldKids.length; i++) {
                 oldKids[i].removeSQLObjectListener(this);
             }
+            isNew = false;
         }
 
         /** Marks project dirty. */
         public void dbObjectChanged(SQLObjectEvent e) {
             project.setModified(true);
+            isNew = false;
         }
 
         /** Marks project dirty and listens to new hierarchy. */
@@ -566,6 +580,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             } catch (ArchitectException e1) {
                 logger.error("dbStructureChanged listener: Failed to listen to new project hierarchy", e1);
             }
+            isNew = false;
         }
 
         public void componentMoved(PlayPenComponentEvent e) {
@@ -574,14 +589,17 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
         public void componentResized(PlayPenComponentEvent e) {
             project.setModified(true);
+            isNew = false;
         }
 
         public void componentMoveStart(PlayPenComponentEvent e) {
             project.setModified(true);
+            isNew = false;
         }
 
         public void componentMoveEnd(PlayPenComponentEvent e) {
             project.setModified(true);
+            isNew = false;
         }
     }
     
@@ -697,5 +715,9 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
     public void removeSwingWorker(SPSwingWorker worker) {
         swingWorkers.remove(worker);
+    }
+
+    public boolean isNew() {
+        return isNew;
     }
 }
