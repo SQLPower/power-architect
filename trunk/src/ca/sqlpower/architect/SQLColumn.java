@@ -649,7 +649,9 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	 * @param argAutoIncrement Value to assign to this.autoIncrement
 	 */
 	public void setAutoIncrement(boolean argAutoIncrement) {
-		this.autoIncrement = argAutoIncrement;
+	    boolean oldAutoIncrement = autoIncrement;
+	    this.autoIncrement = argAutoIncrement;
+	    fireDbObjectChanged("autoIncrement",oldAutoIncrement,argAutoIncrement);
 	}
 
 	/**
@@ -707,7 +709,6 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 		}
         fireDbObjectChanged("referenceCount", oldReference, referenceCount);
 	}
-
 	
 	/**
 	 * @return Returns the referenceCount.

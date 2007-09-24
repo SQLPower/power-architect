@@ -125,7 +125,6 @@ public abstract class SQLTestCase extends ArchitectTestCase {
 		propertiesToIgnoreForEventGeneration.add("zoomInAction");
 		propertiesToIgnoreForEventGeneration.add("zoomOutAction");
         propertiesToIgnoreForEventGeneration.add("magicEnabled");
-        propertiesToIgnoreForEventGeneration.add("autoIncrement");
 		
 		if (so instanceof SQLDatabase) {
 			// should be handled in the Datasource
@@ -241,7 +240,6 @@ public abstract class SQLTestCase extends ArchitectTestCase {
         propertiesToIgnoreForUndo.add("magicEnabled");
         propertiesToIgnoreForUndo.add("deleteRule");
         propertiesToIgnoreForUndo.add("updateRule");
-        propertiesToIgnoreForUndo.add("autoIncrement");
 
 		if(so instanceof SQLDatabase)
 		{

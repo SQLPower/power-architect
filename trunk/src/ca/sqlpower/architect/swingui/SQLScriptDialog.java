@@ -172,7 +172,8 @@ public class SQLScriptDialog extends JDialog {
 			        ProgressWatcher.watchProgress(progressBar, executeTask, statusLabel);
 			    } else {
 			        JOptionPane.showMessageDialog(SQLScriptDialog.this, 
-			                "Could not execute script because no targert database is configured.");
+			                "Could not execute script because no target database is configured.",
+			                "Could not execute",JOptionPane.ERROR_MESSAGE);
 			    }
 			}
 		};
