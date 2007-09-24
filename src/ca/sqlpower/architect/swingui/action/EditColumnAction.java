@@ -186,7 +186,7 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 					 "OK",
 					 new Callable<Boolean>(){
 						public Boolean call() {
-							EditColumnAction.this.putValue(SHORT_DESCRIPTION, "Editting "+columnEditPanel.getColName().getText() );
+							EditColumnAction.this.putValue(SHORT_DESCRIPTION, "Editing "+columnEditPanel.getColName().getText() );
 							if (addToTable) {
 							    try {
 							        tp.getModel().addColumn(colIdx, column);
