@@ -135,6 +135,8 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     
     private Set<SPSwingWorker> swingWorkers;
     
+    private ProjectModificationWatcher projectModificationWatcher;
+    
     /**
      * Creates a new swing session, including a new visible architect frame, with
      * the given parent context and the given name.
@@ -157,7 +159,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                     try {
                         OpenProjectAction.openAsynchronously(getContext().createSession(false), f, true);
                     } catch (ArchitectException ex) {
-                        JOptionPane.showMessageDialog(getArchitectFrame(), "Could not open file " + ex);
+                        SPSUtils.showExceptionDialogNoReport(getArchitectFrame(), "An unexpected exception has occured ", ex);
                     }
                 } else {
                     OpenProjectAction.openAsynchronously(ArchitectSwingSessionImpl.this, f, false);
@@ -192,9 +194,9 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         if (sprefs != null) {
             playPen.setRenderingAntialiased(sprefs.getBoolean(ArchitectSwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
         }
-        new ProjectModificationWatcher(playPen);
+        projectModificationWatcher = new ProjectModificationWatcher(playPen);
 
-        List initialDBList = new ArrayList();
+        List<SQLDatabase> initialDBList = new ArrayList<SQLDatabase>();
         initialDBList.add(playPen.getDatabase());
         this.sourceDatabases = new DBTree(this, initialDBList);
         
@@ -528,7 +530,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * <p>Note: when we implement proper undo/redo support, this class should
      * be replaced with a hook into that system.
      */
-    private class ProjectModificationWatcher implements SQLObjectListener, PlayPenComponentListener {
+    class ProjectModificationWatcher implements SQLObjectListener, PlayPenComponentListener {
 
         /**
          * Sets up a new modification watcher on the given playpen.
@@ -719,5 +721,14 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
     public boolean isNew() {
         return isNew;
+    }
+
+    /**
+     * A package-private getter for the projectModificationWatcher.
+     * This is currently used to run the event handler methods in
+     * the unit tests.
+     */
+    ProjectModificationWatcher getProjectModificationWatcher() {
+        return projectModificationWatcher;
     }
 }

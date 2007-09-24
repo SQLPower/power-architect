@@ -37,6 +37,8 @@ import java.io.IOException;
 
 import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.sql.PlDotIni;
 
 public class ArchitectSwingSessionImplTest extends TestCase {
@@ -141,13 +143,27 @@ public class ArchitectSwingSessionImplTest extends TestCase {
      * Test to ensure that the isNew property starts off as true, and then
      * ensure that it gets updated to be false after loading a project.
      */
-    public void testIsNew() throws Exception {
+    public void testIsNewFalseAfterProjectLoad() throws Exception {
         ArchitectSwingSessionContext context = new StubContext();
         ArchitectSwingSession session = context.createSession(false);
         assertTrue(session.isNew());
         
         ByteArrayInputStream r = new ByteArrayInputStream(testData.getBytes());
         session.getProject().load(r, new PlDotIni());
+        assertFalse(session.isNew());
+    }
+    
+    /**
+     * Test to ensure that the isNew property starts off as true, and then
+     * ensure that it gets updated to be false after a SQLObject event is fired.
+     */
+    public void testIsNewFalseAfterSQLObjectEvent() throws Exception {
+        ArchitectSwingSessionContext context = new StubContext();
+        ArchitectSwingSessionImpl session = (ArchitectSwingSessionImpl)context.createSession(false);
+        assertTrue(session.isNew());
+        
+        SQLObjectEvent e = new SQLObjectEvent(new SQLDatabase(), "test");
+        session.getProjectModificationWatcher().dbObjectChanged(e);
         assertFalse(session.isNew());
     }
 }
