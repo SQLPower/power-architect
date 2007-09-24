@@ -89,11 +89,11 @@ import ca.sqlpower.xml.UnescapingSaxParser;
 import ca.sqlpower.xml.XMLHelper;
 
 /**
- * The SwingUIProject class is a container that holds all information pertaining
- * to a particular project.  It is capable of writing itself to an output stream,
- * and reading in a previously-written stream to re-create a previous instance of
- * a project at a later date.  Such "project files" are meant to be highly portable,
- * and should remain backward compatible now that the product has been released.
+ * The SwingUIProject class is responsible for saving and loading projects.
+ * It is capable of writing itself to an output stream, and reading in a 
+ * previously-written stream to re-create a previous instance of a project at a 
+ * later date.  Such "project files" are meant to be highly portable, and should 
+ * remain backward compatible now that the product has been released.
  *
  * <p>Anyone who makes a change to the file reading code which causes a failure to
  * read older (release 1.0.19 or later) project files will get Airzooka'ed.
