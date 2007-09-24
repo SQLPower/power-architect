@@ -165,14 +165,17 @@ public class SQLScriptDialog extends JDialog {
 		
 		logger.debug(targetDataSource.get(SPDataSource.PL_UID) + "");
 		
-		if ( targetDataSource.get(SPDataSource.PL_UID) != null ) {
-			execute = new AbstractAction(){
-				public void actionPerformed(ActionEvent e) {
-					new Thread(executeTask).start();
-					ProgressWatcher.watchProgress(progressBar, executeTask, statusLabel);
-				}
-			};
-		}
+		execute = new AbstractAction(){
+			public void actionPerformed(ActionEvent e) {
+			    if (targetDataSource.get(SPDataSource.PL_UID) != null) {
+			        new Thread(executeTask).start();
+			        ProgressWatcher.watchProgress(progressBar, executeTask, statusLabel);
+			    } else {
+			        JOptionPane.showMessageDialog(SQLScriptDialog.this, 
+			                "Could not execute script because no targert database is configured.");
+			    }
+			}
+		};
 
 		Action save = new AbstractAction() {
 			public void actionPerformed(ActionEvent e) {
@@ -200,18 +203,12 @@ public class SQLScriptDialog extends JDialog {
 		barBuilder.addRelatedGap();
 		barBuilder.addGlue();
 
-		if ( execute == null) {
-			executeButton.setEnabled(false);
-		}
-
 		JButton saveButton = new JButton(save);
 		saveButton.setText("Save");
 		barBuilder.addGridded(saveButton);
 		barBuilder.addRelatedGap();
 		barBuilder.addGlue();
 
-		CloseWindowAction closeWindow = new CloseWindowAction();
-		
 		addWindowListener(new CloseWindowAction());
 		JButton closeButton = new JButton(close);
 		closeButton.setText("Close");
@@ -271,10 +268,17 @@ public class SQLScriptDialog extends JDialog {
 		}
 	}
 	
+	/**
+	 * An action that will close the parent dialog when this window
+	 * is closed iff the closeParent variable was set when the dialog 
+	 * was constructed 
+	 *
+	 */
 	private class CloseWindowAction extends WindowAdapter {
 	        public void windowClosing(WindowEvent e) {
-	            if ( closeParent )
+	            if (closeParent) {
 	                parent.setVisible(false);
+	            }
 	        }
 	}
 
