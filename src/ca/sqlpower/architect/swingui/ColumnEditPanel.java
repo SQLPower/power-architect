@@ -56,9 +56,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLType;
-import ca.sqlpower.architect.SQLRelationship.ColumnMapping;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 public class ColumnEditPanel extends JPanel
@@ -70,12 +68,6 @@ public class ColumnEditPanel extends JPanel
      * The column we're editing.
      */
     private SQLColumn column;
-    
-    /**
-     * The session that contains the frame that will be the parent of
-     * any exception dialogs this panel creates.
-     */
-    private ArchitectSwingSession session;
     
 	private JLabel sourceDB;
 	private JLabel sourceTableCol;
@@ -89,10 +81,9 @@ public class ColumnEditPanel extends JPanel
 	private JCheckBox colInPK;
 	private JCheckBox colAutoInc;
 
-	public ColumnEditPanel(ArchitectSwingSession session, SQLColumn col) throws ArchitectException {
+	public ColumnEditPanel(SQLColumn col) throws ArchitectException {
 		super(new BorderLayout(12,12));
 		logger.debug("ColumnEditPanel called");
-		this.session = session;
         buildUI();
 		editColumn(col);
 	}
@@ -200,24 +191,6 @@ public class ColumnEditPanel extends JPanel
 		updateComponents();
 		colName.requestFocus();
 		colName.selectAll();
-		
-		// This checks if the chosen column is a foreign key for disabling its
-		// auto-incrementing checkbox as auto-incrementating should not be allowed.
-		if (col != null && col.getParentTable() != null) {
-		    try {
-		        List<SQLRelationship> fks = col.getParentTable().getImportedKeys();
-		        for (SQLRelationship r : fks) {
-		            ColumnMapping colMapping = r.getMappingByFkCol(col);
-		            if(colMapping != null && colMapping.getFkColumn() != null && 
-		                    colMapping.getFkColumn().equals(col)) {
-		                colAutoInc.setEnabled(false);
-		                break;
-		            }
-		        }
-		    } catch (ArchitectException e){
-		        ASUtils.showExceptionDialogNoReport(session.getArchitectFrame(), "Error", e);
-		    }
-		}
 	}
 
 	/**
@@ -240,49 +213,24 @@ public class ColumnEditPanel extends JPanel
 	 * state (they are legal with respect to the model).
 	 */
 	private void updateComponents() {
-		// allow nulls is free unless column is in PK or is autoincrement
-		if (colInPK.isSelected() || colAutoInc.isSelected()) {
+		// allow nulls is free unless column is in PK 
+		if (colInPK.isSelected()) {
 			colNullable.setEnabled(false);
 		} else {
 			colNullable.setEnabled(true);
 		}
 
-		// primary key is free unless column allows nulls and isn't autoinc
-		if (colNullable.isSelected() && !colAutoInc.isSelected()) {
+		// primary key is free unless column allows nulls
+		if (colNullable.isSelected()) {
 			colInPK.setEnabled(false);
 		} else {
 			colInPK.setEnabled(true);
 		}
 
-		// default value is free unless column is autoinc or the only column in PK
-		if (colAutoInc.isSelected() 
-			|| (colInPK.isSelected()
-              && (column.getParentTable() != null && column.getParentTable().getPkSize() == 1) )) {
-
-			colDefaultValue.setEnabled(false);
-			colDefaultValue.setText(null);
-		} else {
-			colDefaultValue.setEnabled(true);
-		}
-
-		// auto increment is free unless column has default value or disallows nulls
-		// or it's in the PK and allows nulls
-		if ( (colDefaultValue.getText() != null && colDefaultValue.getText().length() > 0)
-			 || !colNullable.isSelected()
-			 || (colInPK.isSelected() && colNullable.isSelected())) {
-
-			colAutoInc.setEnabled(false);
-		} else {
-			colAutoInc.setEnabled(true);
-		}
-
-		// cleanup inconsistent state
-		if (colAutoInc.isSelected()) {
-			colNullable.setSelected(false);
-		}
-
-		if (colInPK.isSelected() && !colNullable.isSelected()) {
-			colAutoInc.setEnabled(true);
+		if (colInPK.isSelected() && colNullable.isSelected()) {
+		    //this should not be physically possible
+		    colNullable.setSelected(false);
+		    colNullable.setEnabled(false);
 		}
 	}
 	

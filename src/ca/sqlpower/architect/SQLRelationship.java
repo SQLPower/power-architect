@@ -592,7 +592,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 						} else if (prop.equals("defaultValue")) {
 							m.getFkColumn().setDefaultValue(m.getPkColumn().getDefaultValue());
 						} else if (prop.equals("autoIncrement")) {
-							m.getFkColumn().setAutoIncrement(m.getPkColumn().isAutoIncrement());
+						    //do nothing
 						} else {
 							logger.warn("Warning: unknown column property "+prop
 									+" changed while monitoring pkTable");
@@ -660,7 +660,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
                             insertIdx+" (rel is identifying? "+identifying+
                             ", pkseq="+fkcol.getPrimaryKeySeq()+")");
                     fkcol.setAutoIncrement(false);
-					fkTable.addColumn(insertIdx, fkcol);
+                    fkTable.addColumn(insertIdx, fkcol);
 				} finally {
 					fkTable.setMagicEnabled(true);
 					fkcol.setMagicEnabled(true);
