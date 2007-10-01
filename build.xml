@@ -211,12 +211,12 @@
 	    </clover-report>
 	</target>
 
-	<target name="pmd"
+	<target name="pmd" depends="init"
 		description="Runs the PMD code checking tool, saving results to a file."
 		>
 		<taskdef name="pmd" classname="net.sourceforge.pmd.ant.PMDTask"
 			classpath="${pmd.jar}"/>
-		<property name="pmd-results" value="pmd-ant-results.txt"/>
+		<property name="pmd-results" value="${reports}/pmd-ant-results.txt"/>
 		<pmd shortFilenames="true" targetjdk="1.5">
 			<ruleset>basic,imports</ruleset>
 			<formatter type="text" toFile="${pmd-results}"/>
@@ -227,12 +227,12 @@
 		<echo message="PMD completed, output is in ${pmd-results}."/>
 	</target>
 
-	<target name="pmd-cpd"
+	<target name="pmd-cpd" depends="init"
 		description="Runs the PMD Copy/Paste Detection tool, and saves results to a file">
 		<taskdef name="cpd" classname="net.sourceforge.pmd.cpd.CPDTask"
 			classpath="${pmd.jar}"/>
-		<property name="cpd-results" value="cpd-ant-results.txt"/>
-		<cpd minimumTokenCount="120" outputFile="cpd-report.txt" outputfile="${cpd-results}">
+		<property name="cpd-results" value="${reports}/cpd-ant-results.txt"/>
+		<cpd minimumTokenCount="120" outputfile="${cpd-results}">
 			<fileset dir="${src}">
 				<include name="**/*.java"/>
 				<exclude name="generated/**.java"/>
