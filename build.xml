@@ -1042,7 +1042,7 @@
 		</copy>
 	    <get dest="${dist.dir}/index.html" src="http://www.sqlpower.ca/page/architect_download_template"/>
 		<replace file="${dist.dir}/index.html">
-			<replacefilter token="&lt;head&gt;" value="&lt;head&gt;&lt;base href=&quot;http://www.sqlpower.ca/&quot;/&gt;"/>
+			<replacefilter token="&lt;head&gt;" value="&lt;head&gt;&lt;base href=&quot;http://www.sqlpower.ca/page/&quot;&gt;"/>
 			<replacefilter token="@@app_version" value="${app.version}"/>
 			<replacefilter token="@@downloadLinkBase" value="${downloadLinkBase}"/>
 			<replacefilter token="@@docLinkBase" value="${docLinkBase}"/>
