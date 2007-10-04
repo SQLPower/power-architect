@@ -103,12 +103,20 @@ public class TableEditPanel extends JPanel implements DataEntryPanel {
                 warnings.append("The primary key cannot be assigned a blank name");                
             }
             
-            if (warnings.toString().length() == 0){
-                //The operation is successful
-                table.setName(name.getText());
+            if (warnings.toString().length() == 0) {
+                
+                // important: set the primary key name first, because if the primary
+                // key was called (for example) new_table_pk, and the table was called
+                // new_table, then the user changes the table name to cow_table, the
+                // table itself will notice this pattern and automatically change its
+                // primary key name to cow_table_pk.  If we set the table name first,
+                // the magic still happens, but then we would overwrite the new pk name
+                // with the old one from the pk name text field in this panel.
                 if (pkName.isEnabled() && table.getPrimaryKeyIndex() != null) {
                     table.getPrimaryKeyIndex().setName(pkName.getText());
                 }
+                
+                table.setName(name.getText());
                 table.setRemarks(remarks.getText());                
                 return true;
             } else{
@@ -167,12 +175,20 @@ public class TableEditPanel extends JPanel implements DataEntryPanel {
 		return this;
 	}
 
-	public String getNameText() {
-		return name.getText();
-	}
+    public String getNameText() {
+        return name.getText();
+    }
 
-	public void setNameText(String newName) {
-		name.setText(newName);
-	}
-	
+    public void setNameText(String newName) {
+        name.setText(newName);
+    }
+
+    public String getPkNameText() {
+        return pkName.getText();
+    }
+
+    public void setPkNameText(String newPkName) {
+        pkName.setText(newPkName);
+    }
+
 }

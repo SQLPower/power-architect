@@ -1082,6 +1082,8 @@ public class SQLTable extends SQLObject {
 	 */
 	public void setName(String argName) {
 
+        logger.debug("About to change table name from \""+getName()+"\" to \""+argName+"\"");
+        
         // this method can be called very early in a SQLTable's life,
         // before its indices folder exists.  Therefore, we have to
         // be careful not to look up the primary key before one exists.
