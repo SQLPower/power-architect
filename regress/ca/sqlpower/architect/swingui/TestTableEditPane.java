@@ -51,15 +51,30 @@ public class TestTableEditPane extends TestCase {
 		SQLColumn pk1 = new SQLColumn(t, "PKColumn1", Types.INTEGER, 10,0);
 		
 		t.addColumn(0,pk1);						
-		tep = new TableEditPanel(session, t);
-		
-		pk1.setPrimaryKeySeq(1);		
+		pk1.setPrimaryKeySeq(1);
+
+        tep = new TableEditPanel(session, t);
 	}
 	
-	public void testChangeName(){			
-		tep.setNameText("New Name");
-		tep.applyChanges();
-		assertEquals ("New Name", t.getName());		
-	}
-	
+    public void testChangeName(){           
+        tep.setNameText("New Name");
+        tep.applyChanges();
+        assertEquals ("New Name", t.getName());     
+    }
+
+    public void testNameChangeUpdatesPk() throws Exception {
+        assertEquals("Test Table_pk", t.getPrimaryKeyName());
+        tep.setNameText("New Name");
+        tep.applyChanges();
+        assertEquals ("New Name_pk", t.getPrimaryKeyName());     
+    }
+
+    public void testNameChangeDoesNotUpdatePkWhenPkNameAlsoChanged() throws Exception {
+        assertEquals("Test Table_pk", t.getPrimaryKeyName());
+        tep.setNameText("New Name");
+        tep.setPkNameText("New PK Name");
+        tep.applyChanges();
+        assertEquals ("New PK Name", t.getPrimaryKeyName());     
+    }
+
 }
