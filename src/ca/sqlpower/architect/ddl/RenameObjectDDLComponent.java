@@ -39,22 +39,31 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import org.apache.log4j.Logger;
+
 import ca.sqlpower.architect.SQLObject;
 
 public class RenameObjectDDLComponent extends GenericDDLWarningComponent {
 
-    final DDLWarning warning;
-    JComponent component;
+    private static final Logger logger = Logger.getLogger(RenameObjectDDLComponent.class);
+    
+    private final DDLWarning warning;
+    private JComponent component;
+    
     /**
      * List of text fields that correspond to the name of each
      * SQLObject in the list of involved objects for the warning
      * this component holds.
      */
     final List<JTextField> textFields = new ArrayList<JTextField>();
-    Runnable changeApplicator;
+    
+    private Runnable changeApplicator;
 
     public RenameObjectDDLComponent(DDLWarning warning, Runnable changeApplicator) {
         super(warning);
+        
+        logger.debug("Creating warning component for " + warning);
+
         this.warning = warning;
         this.changeApplicator = new Runnable() {
 
