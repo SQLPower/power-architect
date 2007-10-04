@@ -928,8 +928,7 @@ public class GenericDDLGenerator implements DDLGenerator {
     private String createPhysicalPrimaryKeyName(SQLTable t) throws ArchitectException {
         String physName = toIdentifier(t.getPrimaryKeyName());
         t.setPhysicalPrimaryKeyName(physName);
-        checkDupName(physName, t,
-                "Duplicate Primary Key Name", physName);
+        checkDupName(physName, t.getPrimaryKeyIndex(), "Duplicate Primary Key Name");
         return physName;
     }
 
@@ -993,7 +992,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 
     protected final void checkDupIndexname(SQLIndex index) {
         String name = index.getName();
-        checkDupName(name, index.getParentTable(), "Index name is not unique", name);
+        checkDupName(name, index, "Index name is not unique");
     }
 
     /**
@@ -1005,12 +1004,12 @@ public class GenericDDLGenerator implements DDLGenerator {
      */
     protected final void checkDupName(String name,
             SQLObject obj,
-            String warning,
-            String name2) {
+            String warning) {
         
-        if (name.equals(name2)) {
-            System.err.println("Error: checkDupName called with newname == oldname");
+        if (obj == null) {
+            throw new NullPointerException("All names must be associated with a SQLObject");
         }
+        
         SQLObject object = topLevelNames.get(name);
         if (object == null) {
             topLevelNames.put(name, obj);
@@ -1019,9 +1018,8 @@ public class GenericDDLGenerator implements DDLGenerator {
             String newName;
             do {
                 newName = name + "_" + count;
-                object = topLevelNames.get(newName);
                 count++;
-            } while (object != null);
+            } while (topLevelNames.get(newName) != null);
 
             warnings.add(
                     new DuplicateNameDDLWarning(

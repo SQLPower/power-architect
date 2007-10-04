@@ -48,6 +48,11 @@ public abstract class AbstractDDLWarning implements DDLWarning {
             String message, boolean isQuickFixable,
             String quickFixMesssage, SQLObject whichObjectQuickFixFixes) {
         super();
+        for (SQLObject so : involvedObjects) {
+            if (so == null) {
+                throw new NullPointerException("None of the objects in the involvedObjects list can be null!");
+            }
+        }
         this.involvedObjects = involvedObjects;
         this.message = message;
         this.isQuickFixable = isQuickFixable;
