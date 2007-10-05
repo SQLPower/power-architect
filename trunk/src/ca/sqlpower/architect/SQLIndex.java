@@ -414,7 +414,15 @@ public class SQLIndex extends SQLObject {
     public Column getChild(int index) throws ArchitectException {
         return (Column) super.getChild(index);
     }
-    
+
+    /**
+     * Overriden to narrow return type.
+     */
+    @Override
+    public List<Column> getChildren() throws ArchitectException {
+        return (List<Column>) super.getChildren();
+    }
+
     /**
      * Returns the table folder that owns this index.
      */
@@ -668,7 +676,7 @@ public class SQLIndex extends SQLObject {
         try {
             startCompoundEdit("Make index a Primary Key");
             if (isPrimaryKey) {
-                for (Column c:(List<Column>)getChildren()) {
+                for (Column c : getChildren()) {
                     if (c.getColumn() == null) {
                         throw new ArchitectException("A PK must only refer to Index.Columns that contain SQLColumns");
                     }
@@ -709,7 +717,7 @@ public class SQLIndex extends SQLObject {
         index.setQualifier(source.getQualifier());
         index.setPrimaryKeyIndex(source.isPrimaryKeyIndex());
         
-        for (Column column : (List<Column>)source.getChildren()) {
+        for (Column column : source.getChildren()) {
             SQLColumn sqlColumn = parenTable.getColumnByName(column.getColumn().getName());
             if ( sqlColumn == null ) {
                 throw new ArchitectException("Can not derive instance, because coulmn " +
@@ -729,17 +737,15 @@ public class SQLIndex extends SQLObject {
      * @throws ArchitectException
      */
     public void makeColumnsLike(SQLIndex index) throws ArchitectException {
-        List columns = index.getChildren();
         for (int i = children.size()-1; i>=0; i--){
-            Column c =(Column) children.get(i);
+            Column c = (Column) children.get(i);
             if (c.column != null) {
                 c.column.removeSQLObjectListener(c.targetColumnListener);
             }
             removeChild(i);
         }
         
-        for (Object o : columns)  {
-            Column c = (Column)o;
+        for (Column c : index.getChildren()) {
             Column newCol = new Column(c.getName(),c.isAscending(),c.isDescending());
             newCol.setColumn(c.getColumn());
             addChild(newCol);
