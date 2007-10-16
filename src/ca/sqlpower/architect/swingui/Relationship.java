@@ -77,7 +77,7 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 	private PlayPenComponentListener ppcListener = new PlayPenComponentListener();
 	private List<SelectionListener> selectionListeners = new LinkedList<SelectionListener>();
 
-	/**
+    /**
 	 * The colour to highlight related columns with when this relationship is selected.
 	 */
     private Color columnHighlightColour = Color.red;
@@ -483,4 +483,16 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
         }
         return popup;
     }
+    
+    public boolean isStraightLine() {
+        PlayPen pp = getPlayPen();
+        if (pp != null) {
+            ArchitectSwingSession session = pp.getSession();
+            if (session != null) {
+                return session.getRelationshipLinesDirect();
+            }
+        }
+        return false;
+    }
+
 }

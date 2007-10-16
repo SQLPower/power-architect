@@ -160,75 +160,116 @@ public class BasicRelationshipUI extends RelationshipUI
 		try {
 			Point pktloc = pkConnectionPoint;
 			Point start = new Point(pktloc.x + r.getPkTable().getLocation().x,
-									pktloc.y + r.getPkTable().getLocation().y);
+			                        pktloc.y + r.getPkTable().getLocation().y);
+            Point lineStart = new Point(start);
+            if ((orientation & PARENT_FACES_LEFT) != 0) {
+                lineStart.x -= getTerminationLength();
+            } else if ((orientation & PARENT_FACES_RIGHT) != 0) {
+                lineStart.x += getTerminationLength();
+            } else if ((orientation & PARENT_FACES_TOP) != 0) {
+                lineStart.y -= getTerminationLength();
+            } else if ((orientation & PARENT_FACES_BOTTOM) != 0) {
+                lineStart.y += getTerminationLength();
+            }
+            
 			Point fktloc = fkConnectionPoint;
 			Point end = new Point(fktloc.x + r.getFkTable().getLocation().x,
-								  fktloc.y + r.getFkTable().getLocation().y);
-			
+			                      fktloc.y + r.getFkTable().getLocation().y);
+            Point lineEnd = new Point(end);
+            if ((orientation & CHILD_FACES_LEFT) != 0) {
+                lineEnd.x -= getTerminationLength();
+            } else if ((orientation & CHILD_FACES_RIGHT) != 0) {
+                lineEnd.x += getTerminationLength();
+            } else if ((orientation & CHILD_FACES_TOP) != 0) {
+                lineEnd.y -= getTerminationLength();
+            } else if ((orientation & CHILD_FACES_BOTTOM) != 0) {
+                lineEnd.y += getTerminationLength();
+            }
+
 			// XXX: could optimise by checking if PK or FK tables have moved
 			containmentPath = new GeneralPath(GeneralPath.WIND_NON_ZERO, 10);
 
-			if (relationship.getPkTable() == relationship.getFkTable()) {
+            if (relationship.getPkTable() == relationship.getFkTable()) {
 				// special case hack for self-referencing table
 				// assume orientation is PARENT_FACES_BOTTOM | CHILD_FACES_LEFT
-				containmentPath.moveTo(start.x, start.y);
-				containmentPath.lineTo(start.x, start.y + getTerminationLength() * 2);
-				containmentPath.lineTo(end.x - getTerminationLength() * 2, start.y + getTerminationLength() * 2);
-				containmentPath.lineTo(end.x - getTerminationLength() * 2, end.y);
-				containmentPath.lineTo(end.x, end.y);
+                containmentPath.moveTo(start.x, start.y);
+                containmentPath.lineTo(lineStart.x, lineStart.y);
+				containmentPath.lineTo(lineStart.x, lineStart.y + getTerminationLength());
+				containmentPath.lineTo(lineEnd.x - getTerminationLength(), lineStart.y + getTerminationLength());
+				containmentPath.lineTo(lineEnd.x - getTerminationLength(), lineEnd.y);
+                containmentPath.lineTo(lineEnd.x, lineEnd.y);
+                containmentPath.lineTo(end.x, end.y);
 				path = new GeneralPath(containmentPath);
 				
-				containmentPath.lineTo(end.x - getTerminationLength() * 2, end.y);
-				containmentPath.lineTo(end.x - getTerminationLength() * 2, start.y + getTerminationLength() * 2);
-				containmentPath.lineTo(start.x, start.y + getTerminationLength() * 2);
-			} else if ( (orientation & (PARENT_FACES_LEFT | PARENT_FACES_RIGHT)) != 0
+				containmentPath.lineTo(lineEnd.x - getTerminationLength(), lineEnd.y);
+				containmentPath.lineTo(lineEnd.x - getTerminationLength(), lineStart.y + getTerminationLength());
+				containmentPath.lineTo(lineStart.x, lineStart.y + getTerminationLength());
+
+            } else if (r.isStraightLine()) {
+                containmentPath.moveTo(start.x, start.y);
+                containmentPath.lineTo(lineStart.x, lineStart.y);
+                containmentPath.lineTo(lineEnd.x, lineEnd.y);
+                containmentPath.lineTo(end.x, end.y);
+                path = new GeneralPath(containmentPath);
+			
+            } else if ( (orientation & (PARENT_FACES_LEFT | PARENT_FACES_RIGHT)) != 0
 				 && (orientation & (CHILD_FACES_LEFT | CHILD_FACES_RIGHT)) != 0) {
-				int midx = (Math.abs(end.x - start.x) / 2) + Math.min(start.x, end.x);
-				containmentPath.moveTo(start.x, start.y);
-				containmentPath.lineTo(midx, start.y);
-				containmentPath.lineTo(midx, end.y);
-				containmentPath.lineTo(end.x, end.y);
+				int midx = (Math.abs(lineEnd.x - lineStart.x) / 2) + Math.min(lineStart.x, lineEnd.x);
+                containmentPath.moveTo(start.x, start.y);
+                containmentPath.lineTo(lineStart.x, lineStart.y);
+				containmentPath.lineTo(midx, lineStart.y);
+				containmentPath.lineTo(midx, lineEnd.y);
+				containmentPath.lineTo(lineEnd.x, lineEnd.y);
+                containmentPath.lineTo(end.x, end.y);
 				path = new GeneralPath(containmentPath);
 
-				containmentPath.lineTo(midx, end.y);
-				containmentPath.lineTo(midx, start.y);
-				containmentPath.moveTo(start.x, start.y);
+				containmentPath.lineTo(midx, lineEnd.y);
+				containmentPath.lineTo(midx, lineStart.y);
+				containmentPath.moveTo(lineStart.x, lineStart.y);
 			} else if ( (orientation & (PARENT_FACES_TOP | PARENT_FACES_BOTTOM)) != 0
 						&& (orientation & (CHILD_FACES_TOP | CHILD_FACES_BOTTOM)) != 0) {
-				int midy = (Math.abs(end.y - start.y) / 2) + Math.min(start.y, end.y);
-				containmentPath.moveTo(start.x, start.y);
-				containmentPath.lineTo(start.x, midy);
-				containmentPath.lineTo(end.x, midy);
-				containmentPath.lineTo(end.x, end.y);
+				int midy = (Math.abs(lineEnd.y - lineStart.y) / 2) + Math.min(lineStart.y, lineEnd.y);
+                containmentPath.moveTo(start.x, start.y);
+                containmentPath.lineTo(lineStart.x, lineStart.y);
+				containmentPath.lineTo(lineStart.x, midy);
+				containmentPath.lineTo(lineEnd.x, midy);
+				containmentPath.lineTo(lineEnd.x, lineEnd.y);
+                containmentPath.lineTo(end.x, end.y);
 				path = new GeneralPath(containmentPath);
 
 				// now retrace our steps so the shape doesn't autoclose with a straight line from finish to start
-				containmentPath.lineTo(end.x, midy);
-				containmentPath.lineTo(start.x, midy);
-				containmentPath.moveTo(start.x, start.y);
+				containmentPath.lineTo(lineEnd.x, midy);
+				containmentPath.lineTo(lineStart.x, midy);
+				containmentPath.moveTo(lineStart.x, lineStart.y);
 			} else if ( (orientation & (PARENT_FACES_LEFT | PARENT_FACES_RIGHT)) != 0) {
-				containmentPath.moveTo(start.x, start.y);
-				containmentPath.lineTo(end.x, start.y);
-				containmentPath.lineTo(end.x, end.y);
+                containmentPath.moveTo(start.x, start.y);
+                containmentPath.lineTo(lineStart.x, lineStart.y);
+				containmentPath.lineTo(lineEnd.x, lineStart.y);
+				containmentPath.lineTo(lineEnd.x, lineEnd.y);
+                containmentPath.lineTo(end.x, end.y);
 				path = new GeneralPath(containmentPath);
 
 				// now retrace our steps so the shape doesn't autoclose with a straight line from finish to start
-				containmentPath.lineTo(end.x, start.y);
-				containmentPath.moveTo(start.x, start.y);
+				containmentPath.lineTo(lineEnd.x, lineStart.y);
+				containmentPath.moveTo(lineStart.x, lineStart.y);
 			} else if ( (orientation & (PARENT_FACES_TOP | PARENT_FACES_BOTTOM)) != 0) {
-				containmentPath.moveTo(start.x, start.y);
-				containmentPath.lineTo(start.x, end.y);
-				containmentPath.lineTo(end.x, end.y);
+                containmentPath.moveTo(start.x, start.y);
+                containmentPath.lineTo(lineStart.x, lineStart.y);
+				containmentPath.lineTo(lineStart.x, lineEnd.y);
+				containmentPath.lineTo(lineEnd.x, lineEnd.y);
+                containmentPath.lineTo(end.x, end.y);
 				path = new GeneralPath(containmentPath);
 
 				// now retrace our steps so the shape doesn't autoclose with a straight line from finish to start
-				containmentPath.lineTo(start.x, end.y);
-				containmentPath.moveTo(start.x, start.y);
+				containmentPath.lineTo(lineStart.x, lineEnd.y);
+				containmentPath.moveTo(lineStart.x, lineStart.y);
 			} else {
 				// unknown case: draw straight line.
-				containmentPath.moveTo(start.x, start.y);
-				containmentPath.lineTo(end.x, end.y);
-				path = new GeneralPath(containmentPath);
+                containmentPath.moveTo(start.x, start.y);
+                containmentPath.lineTo(lineStart.x, lineStart.y);
+                containmentPath.lineTo(lineEnd.x, lineEnd.y);
+                containmentPath.lineTo(end.x, end.y);
+                path = new GeneralPath(containmentPath);
 			}
 			
 			if (r.isSelected()) {

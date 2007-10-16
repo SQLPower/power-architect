@@ -137,6 +137,8 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     
     private ProjectModificationWatcher projectModificationWatcher;
     
+    private boolean relationshipLinesDirect;
+    
     /**
      * Creates a new swing session, including a new visible architect frame, with
      * the given parent context and the given name.
@@ -730,5 +732,18 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      */
     ProjectModificationWatcher getProjectModificationWatcher() {
         return projectModificationWatcher;
+    }
+
+    public boolean isRelationshipLinesDirect() {
+        return relationshipLinesDirect;
+    }
+
+    public void setRelationshipLinesDirect(boolean relationshipLinesDirect) {
+        this.relationshipLinesDirect = relationshipLinesDirect;
+        getPlayPen().repaint();
+    }
+    
+    public boolean getRelationshipLinesDirect() {
+        return relationshipLinesDirect;
     }
 }

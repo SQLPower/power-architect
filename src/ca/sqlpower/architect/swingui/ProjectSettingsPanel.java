@@ -31,9 +31,11 @@
  */
 package ca.sqlpower.architect.swingui;
 
+import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
 import org.apache.log4j.Logger;
@@ -42,15 +44,25 @@ import ca.sqlpower.swingui.DataEntryPanel;
 
 public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
     private static final Logger logger = Logger.getLogger(ProjectSettingsPanel.class);
+    
 	/**
 	 * The project whose settings we're editting.
 	 */
 	private ArchitectSwingSession session;
 
+    /**
+     * 
+     */
 	private JCheckBox saveEntireSource;
-    private JCheckBox clearProfile;
-    private JTextField numberOfFreqValue;
+    
+    /**
+     * A profile manager setting: How many "top n" values to store.
+     */
+    private JTextField numberOfFreqValues;
 
+    private JRadioButton rectilinearRelationships;
+    private JRadioButton directRelationships;
+    
 	public ProjectSettingsPanel(ArchitectSwingSession session) {
 		this.session = session;
 		setup();
@@ -59,43 +71,50 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
 
 	public void setup() {
 		setLayout(new FormLayout());
-		add(new JLabel("Snapshot entire source database in project file?"));
+		add(new JLabel("Snapshot Entire Source Database in Project File?"));
 		add(saveEntireSource = new JCheckBox());
 
-        add(new JLabel("Don't save Profile results in the project?"));
-        add(clearProfile=new JCheckBox());
-        clearProfile.setToolTipText(
-               "Warning: this only removes current profiles");
-
-        add(new JLabel("Number of Most Frequent Value in Profile:"));
-        add( numberOfFreqValue=new JTextField(String.valueOf(session.getProfileManager().getDefaultProfileSettings().getTopNCount()),6));
+        add(new JLabel("Number of Common Values in Profiles:"));
+        add(numberOfFreqValues = new JTextField("",6));
+        
+        add(new JLabel("Draw Relationships Eith:"));
+        add(rectilinearRelationships = new JRadioButton("Rectilinear Lines"));
+        add(new JLabel());
+        add(directRelationships = new JRadioButton("Direct Lines"));
+        ButtonGroup lineStyleGroup = new ButtonGroup();
+        lineStyleGroup.add(rectilinearRelationships);
+        lineStyleGroup.add(directRelationships);
 	}
 
-	protected void revertToProjectSettings() {
+	private void revertToProjectSettings() {
         logger.debug("Reverting project options");
+        numberOfFreqValues.setText(String.valueOf(session.getProfileManager().getDefaultProfileSettings().getTopNCount()));
 		saveEntireSource.setSelected(session.isSavingEntireSource());
+        if (session.getRelationshipLinesDirect()) {
+            directRelationships.setSelected(true);
+        } else {
+            rectilinearRelationships.setSelected(true);
+        }
 	}
 
 	public boolean applyChanges() {
-        logger.debug("Setting snapshot option to:"+saveEntireSource.isSelected());
 		session.setSavingEntireSource(saveEntireSource.isSelected());
-        logger.debug("Project "+session.getName() +" snapshot option is:"+session.isSavingEntireSource());
 
-        // This is a mistake! This is an action, not a project setting.
-        // It should be changed to a setting, and the Save code changed
-        // to honor it.
-        if ( clearProfile.isSelected() ) {
-            session.getProfileManager().clear();
-        }
-
-        if ( numberOfFreqValue.getText().length() > 0 ) {
+        if ( numberOfFreqValues.getText().length() > 0 ) {
             try {
-                session.getProfileManager().getDefaultProfileSettings().setTopNCount(Integer.valueOf(numberOfFreqValue.getText()));
+                session.getProfileManager().getDefaultProfileSettings().setTopNCount(Integer.valueOf(numberOfFreqValues.getText()));
             } catch ( NumberFormatException e ) {
                 ASUtils.showExceptionDialogNoReport(this,
                         "Number Format Error", e);
             }
         }
+        
+        if (directRelationships.isSelected()) {
+            session.setRelationshipLinesDirect(true);
+        } else {
+            session.setRelationshipLinesDirect(false);
+        }
+        
 		return true;
 	}
 

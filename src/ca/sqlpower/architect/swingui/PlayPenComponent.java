@@ -426,7 +426,12 @@ public abstract class PlayPenComponent implements Selectable {
 
 	public void paint(Graphics2D g2) {
 		getUI().paint(g2);
-		
+		if (logger.isDebugEnabled()) {
+            Color oldColor = g2.getColor();
+		    g2.setColor(Color.ORANGE);
+            g2.drawRect(0, 0, getWidth(), getHeight());
+            g2.setColor(oldColor);
+        }
 	}
 
 	public Dimension getPreferredSize() {

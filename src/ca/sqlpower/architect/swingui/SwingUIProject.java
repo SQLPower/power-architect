@@ -99,6 +99,21 @@ import ca.sqlpower.xml.XMLHelper;
  * read older (release 1.0.19 or later) project files will get Airzooka'ed.
  */
 public class SwingUIProject {
+    
+    /**
+     * The constant value within the project file representing a playpen whose
+     * relationships should be drawn using rectilinear paths.
+     */
+    private static final String RELATIONSHIP_STYLE_RECTILINEAR = "rectilinear";
+
+    /**
+     * The constant value within the project file representing a playpen whose
+     * relationships should be drawn using straight lines (often thought of as
+     * diagonal, but that depends on the relative positions of the two tables
+     * the relationship connects).
+     */
+    private static final String RELATIONSHIP_STYLE_DIRECT = "direct";
+
     private static final Logger logger = Logger.getLogger(SwingUIProject.class);
 
     //  ---------------- persistent properties -------------------
@@ -395,6 +410,9 @@ public class SwingUIProject {
         d.addSetProperties("architect-project/target-database");
 
         // the play pen
+        PlayPenFactory ppFactory = new PlayPenFactory();
+        d.addFactoryCreate("architect-project/play-pen", ppFactory);
+
         TablePaneFactory tablePaneFactory = new TablePaneFactory();
         d.addFactoryCreate("architect-project/play-pen/table-pane", tablePaneFactory);
         // factory will add the tablepanes to the playpen
@@ -763,6 +781,25 @@ public class SwingUIProject {
             }
 
             return col;
+        }
+    }
+
+    private class PlayPenFactory extends AbstractObjectCreationFactory {
+        public Object createObject(Attributes attributes) {
+            String relStyle = attributes.getValue("relationship-style");
+            boolean direct;
+            if (relStyle == null) {
+                direct = false;
+            } else if (relStyle.equals(RELATIONSHIP_STYLE_DIRECT)) {
+                direct = true;
+            } else if (relStyle.equals(RELATIONSHIP_STYLE_RECTILINEAR)) {
+                direct = false;
+            } else {
+                logger.warn("Unknown relationship style \"\"; defaulting to rectilinear");
+                direct = false;
+            }
+            session.setRelationshipLinesDirect(direct);
+            return session.getPlayPen();
         }
     }
 
@@ -1242,7 +1279,9 @@ public class SwingUIProject {
     }
 
     private void savePlayPen(PrintWriter out) throws IOException, ArchitectException {
-        ioo.println(out, "<play-pen>");
+        String relStyle = session.getRelationshipLinesDirect() ?
+                RELATIONSHIP_STYLE_DIRECT : RELATIONSHIP_STYLE_RECTILINEAR;
+        ioo.println(out, "<play-pen relationship-style="+quote(relStyle)+">");
         ioo.indent++;
         for(int i = session.getPlayPen().getTablePanes().size()-1; i>= 0; i--) {
             TablePane tp = session.getPlayPen().getTablePanes().get(i);

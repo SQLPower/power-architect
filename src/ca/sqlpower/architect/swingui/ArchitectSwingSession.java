@@ -186,5 +186,18 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
      * whereas, the isModified property refers to whether the project was modified ever
      * since the project was last loaded.  
      */
-    public boolean isNew();   
+    public boolean isNew();
+
+    /**
+     * Relationship line style: True means direct lines; false means only horizontal
+     * and vertical lines.
+     */
+    public boolean getRelationshipLinesDirect();
+
+    /**
+     * Relationship line style: True means direct lines; false means only horizontal
+     * and vertical lines.  Updating this preference will cause all of the relationships
+     * in this session's play pen to have their line style updated.
+     */
+    public void setRelationshipLinesDirect(boolean direct);
 }
