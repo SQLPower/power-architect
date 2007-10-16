@@ -10,6 +10,7 @@
 
 		<title id="book">Power*Architect User Guide</title>
 
+		<XXX>I like to see all the hyper links high-lighted</XXX>
 		<mediaobject>
 			<imageobject id="architect_logo">
 				<imagedata fileref="doc/images/architect_logo.png"
