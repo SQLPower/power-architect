@@ -10,7 +10,6 @@
 
 		<title id="book">Power*Architect User Guide</title>
 
-		<XXX>I like to see all the hyper links high-lighted</XXX>
 		<mediaobject>
 			<imageobject id="architect_logo">
 				<imagedata fileref="doc/images/architect_logo.png"
@@ -29,6 +28,8 @@
 			<year>2007</year>
 			<holder>SQL Power Group Inc.</holder>
 		</copyright>
+		
+		XXX:I like to see all the hyper links high-lighted
 	</bookinfo>
 	<chapter id="intro-chapter">
 		<title>Introduction</title>
@@ -174,6 +175,8 @@
 
 		</sidebar>
 
+		<para> XXX: put in a section for licensing information here</para>
+		
 		<epigraph>
 
 			<para>
@@ -182,6 +185,7 @@
 			</para>
 
 		</epigraph>
+
 
 		<sect1 id="about-this-book">
 
@@ -301,7 +305,7 @@
 			<para>
 				Power*Architect can be obtained from the
 				<ulink url="http://download.sqlpower.ca">
-					download section
+					download section  XXX: The link likes to an empty page  
 				</ulink>
 				of the
 				<ulink url="http://www.sqlpower.ca/">
@@ -420,9 +424,9 @@
 				and starting point for actions.
 			</para>
 
-			<para>
+			<para> XXX: need a new screen shot to show the new button icons, p01.png
 				<inlinemediaobject>
-					<imageobject>
+					<imageobject> 
 						<imagedata fileref="doc/images/basicui.png"
 							format="PNG" width="4in" />
 					</imageobject>
@@ -536,7 +540,7 @@
 				Microsoft&apos;s technology for database access).
 			</para>
 
-			<para>
+			<para> XXX: need new a screen shot to show the new buttons: add and remove database type
 				<inlinemediaobject>
 					<imageobject>
 						<imagedata
@@ -552,6 +556,7 @@
 				JDBC. In this section of the User Preferences you are
 				telling the Power*Architect where the drivers are so
 				that they can be used when nescessary.
+				XXX: need a new item to explain new buttons on the left
 			</para>
 
 			<itemizedlist>
@@ -774,6 +779,7 @@
 							Properties Dialog will appear. Rename this
 							table to Customers, and the Primary Key to
 							Customers_PK.
+							XXX: this is wrong, you can not enter pk name if there is no column in the table
 						</para>
 
 					</listitem>
@@ -1747,6 +1753,7 @@
 					relevant matches with the search constraints and
 					displays the resulting matches. The user can request
 					for those items to be focused on the screen.
+					XXX: need a screen shot here, instead of showing the find result directly
 				</para>
 
 				<mediaobject>
