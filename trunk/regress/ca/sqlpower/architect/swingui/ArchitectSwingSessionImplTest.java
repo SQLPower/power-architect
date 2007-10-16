@@ -32,13 +32,17 @@
 
 package ca.sqlpower.architect.swingui;
 
+import java.awt.Point;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObjectEvent;
+import ca.sqlpower.architect.SQLRelationship;
+import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.sql.PlDotIni;
 
 public class ArchitectSwingSessionImplTest extends TestCase {
@@ -165,5 +169,50 @@ public class ArchitectSwingSessionImplTest extends TestCase {
         SQLObjectEvent e = new SQLObjectEvent(new SQLDatabase(), "test");
         session.getProjectModificationWatcher().dbObjectChanged(e);
         assertFalse(session.isNew());
+    }
+    
+    public void testRelationshipLinePrefUpdatesRelationships() throws Exception {
+        ArchitectSwingSessionContext context = new StubContext();
+        ArchitectSwingSessionImpl session = (ArchitectSwingSessionImpl)context.createSession(false);
+        
+        SQLDatabase db = new SQLDatabase();
+        SQLTable t1 = new SQLTable(db, true);
+        SQLTable t2 = new SQLTable(db, true);
+        db.addChild(t1);
+        db.addChild(t2);
+        SQLRelationship sr = new SQLRelationship();
+        sr.attachRelationship(t1, t2, false);
+        
+        session.getPlayPen().addTablePane(new TablePane(t1, session.getPlayPen()), new Point(0,0));
+        session.getPlayPen().addTablePane(new TablePane(t2, session.getPlayPen()), new Point(0,0));
+        
+        Relationship r = new Relationship(session.getPlayPen(), sr);
+        session.getPlayPen().addRelationship(r);
+        
+        session.setRelationshipLinesDirect(true);
+        assertTrue(r.isStraightLine());
+        
+        session.setRelationshipLinesDirect(false);
+        assertFalse(r.isStraightLine());
+    }
+    
+    public void testSaveAndLoadRelationshipLineType() throws Exception {
+        ArchitectSwingSessionContext context = new StubContext();
+        ArchitectSwingSession session = context.createSession(false);
+        session.getProject().load(new ByteArrayInputStream(testData.getBytes()), new PlDotIni());
+        
+        boolean newValueForStraightLines = !session.getRelationshipLinesDirect();
+        session.setRelationshipLinesDirect(newValueForStraightLines);
+        
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        session.getProject().save(out, "utf-8");
+        
+        ArchitectSwingSession loadedSession = context.createSession(false);
+        loadedSession.getProject().load(new ByteArrayInputStream(out.toByteArray()), new PlDotIni());
+        assertEquals(newValueForStraightLines, loadedSession.getRelationshipLinesDirect());
+        
+        for (Relationship r : loadedSession.getPlayPen().getRelationships()) {
+            assertEquals(newValueForStraightLines, r.isStraightLine());
+        }
     }
 }

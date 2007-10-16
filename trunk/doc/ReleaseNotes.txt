@@ -18,6 +18,8 @@ IMPORTANT NOTE to users upgrading from pre-0.9.x versions of the Architect:
 *Added convenient shortcut for performing a structural comparison directly from
  tree view of source database connections.
 *Added the ability to used auto-increment in both MySQL and PostgreSQL
+*Added project option to have relationship lines drawn as direct, straight lines
+ or in the old rectilinear style.  The default is still the old style.
 
 0.9.7
 

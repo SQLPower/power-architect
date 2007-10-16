@@ -80,8 +80,13 @@ public class TestRelationship extends TestCase {
         TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
         ArchitectSwingSession session = context.createSession();
 		PlayPen newpp = new PlayPen(session, pp.getDatabase());
+        
 		Relationship rel2 = new Relationship(rel, newpp.getContentPane());
-		assertNotSame("The new relationship component has the same UI delegate as the original", rel.getUI(), rel2.getUI());
+        
+		assertNotSame("The new relationship component should not have the same UI delegate as the original",
+                rel.getUI(), rel2.getUI());
+        assertEquals(rel.isStraightLine(), rel2.isStraightLine());
+        assertSame(rel.getModel(), rel2.getModel());
 	}
 
     public void testHighlightWithRelationshipTypeChange() throws ArchitectException {               

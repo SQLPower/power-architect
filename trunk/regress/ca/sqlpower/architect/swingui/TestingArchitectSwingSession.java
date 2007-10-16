@@ -223,4 +223,18 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     public boolean isNew() {
         return false;
     }
+
+    /**
+     * Always returns false.
+     */
+    public boolean getRelationshipLinesDirect() {
+        return false;
+    }
+
+    /**
+     * Does nothing.
+     */
+    public void setRelationshipLinesDirect(boolean direct) {
+        // ignore
+    }
 }
