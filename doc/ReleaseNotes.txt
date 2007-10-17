@@ -20,6 +20,8 @@ IMPORTANT NOTE to users upgrading from pre-0.9.x versions of the Architect:
 *Added the ability to used auto-increment in both MySQL and PostgreSQL
 *Added project option to have relationship lines drawn as direct, straight lines
  or in the old rectilinear style.  The default is still the old style.
+*Made dragging tables much easier at extreme zoom levels by dragging the table
+ instead of a column when dragging with the Alt key held down (option key on Mac)
 
 0.9.7
 

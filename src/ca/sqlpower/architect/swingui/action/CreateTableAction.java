@@ -71,6 +71,6 @@ public class CreateTableAction extends AbstractArchitectAction {
 		
 		TablePane tp = new TablePane(t, playpen);
 		playpen.addFloating(tp);
-		PlayPen.setMouseMode(PlayPen.MouseModeType.CREATING_TABLE);
+		playpen.setMouseMode(PlayPen.MouseModeType.CREATING_TABLE);
 	}
 }
