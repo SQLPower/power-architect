@@ -62,6 +62,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -158,8 +159,68 @@ public class PlayPen extends JPanel
 						SELECT_COLUMN,
 						MULTI_SELECT,
 						RUBBERBAND_MOVE}
-	private static MouseModeType mouseMode = MouseModeType.IDLE;
+	private MouseModeType mouseMode = MouseModeType.IDLE;
 
+    /**
+     * A simple class that encapsulates the logic for making the cursor image
+     * look correct for the current activity.
+     */
+    private class CursorManager {
+        
+        private boolean draggingTable = false;
+        private boolean dragAllModeActive = false;
+        private boolean placeModeActive = false;
+        
+        void tableDragStarted() {
+            draggingTable = true;
+            modifyCursorImage();
+        }
+        
+        void tableDragFinished() {
+            draggingTable = false;
+            modifyCursorImage();
+        }
+        
+        void dragAllModeStarted() {
+            dragAllModeActive = true;
+            modifyCursorImage();
+        }
+        
+        void dragAllModeFinished() {
+            dragAllModeActive = false;
+            modifyCursorImage();
+        }
+
+        void placeModeStarted() {
+            placeModeActive = true;
+            modifyCursorImage();
+        }
+
+        void placeModeFinished() {
+            placeModeActive = false;
+            modifyCursorImage();
+        }
+        
+        /**
+         * Sets the appropriate cursor type based on the current
+         * state of this cursor manager.
+         */
+        private void modifyCursorImage() {
+            if (dragAllModeActive || draggingTable) {
+                setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+            } else if (placeModeActive) {
+                setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+            } else {
+                setCursor(null);
+            }
+        }
+    }
+    
+    /**
+     * The cursor manager for this play pen.
+     */
+    private final CursorManager cursorManager = new CursorManager();
+    
 	/**
 	 * Links this PlayPen with an instance of PlayPenDropListener so
 	 * users can drop stuff on the playpen.
@@ -293,7 +354,6 @@ public class PlayPen extends JPanel
 		dt = new DropTarget(this, new PlayPenDropListener());
 		bringToFrontAction = new BringToFrontAction(this);
 		sendToBackAction = new SendToBackAction(this);
-		//setupKeyboardActions(); //This may not work as the ArchitectFrame may not have been initialized yet
 		ppMouseListener = new PPMouseListener();
 		addMouseListener(ppMouseListener);
 		addMouseMotionListener(ppMouseListener);
@@ -557,6 +617,22 @@ public class PlayPen extends JPanel
 				session.getArchitectFrame().getEditColumnAction().actionPerformed(ev);
 			}
 		});
+        
+        addKeyListener(new KeyListener() {
+
+            private void changeCursor(KeyEvent e) {
+                if ((e.getModifiersEx() & KeyEvent.ALT_DOWN_MASK) != 0) {
+                    cursorManager.dragAllModeStarted();
+                } else {
+                    cursorManager.dragAllModeFinished();
+                }
+            }
+
+            public void keyPressed(KeyEvent e) { changeCursor(e); }
+            public void keyReleased(KeyEvent e) { changeCursor(e); }
+            public void keyTyped(KeyEvent e) { changeCursor(e); }
+            
+        });
 	}
 
 	// --------------------- Utility methods -----------------------
@@ -2187,6 +2263,11 @@ public class PlayPen extends JPanel
 							mouseMode = MouseModeType.MULTI_SELECT;
 						}
 
+                        // Alt-click drags table no matter where you clicked
+                        if ( (evt.getModifiersEx() & InputEvent.ALT_DOWN_MASK) != 0) {
+                            clickCol = TablePane.COLUMN_INDEX_TITLE;
+                        }
+                        
 						if ( clickCol > TablePane.COLUMN_INDEX_TITLE &&
 							 clickCol < tp.getModel().getColumns().size()) {
 
@@ -2435,9 +2516,9 @@ public class PlayPen extends JPanel
             //on the create new table icon.  If the user decides to click on the
             //icon but let go elsewhere, the create table action will not occur
             if (addToPP) {
-				pp.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+				pp.cursorManager.placeModeStarted();
 			} else {
-				pp.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+                pp.cursorManager.tableDragStarted();
 				pp.startCompoundEdit("Move"+tp.getName());
 			}
 		}
@@ -2474,7 +2555,7 @@ public class PlayPen extends JPanel
 						pp.db.addChild(tp.getModel());
 						pp.selectNone();
 						tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
-						mouseMode = MouseModeType.SELECT_TABLE;
+						pp.mouseMode = MouseModeType.SELECT_TABLE;
 					} catch (ArchitectException e) {
 						logger.error("Couldn't add table \"" + tp.getModel() + "\" to play pen:", e);
 						JOptionPane.showMessageDialog(null, "Failed to add table:\n" + e.getMessage());
@@ -2487,7 +2568,8 @@ public class PlayPen extends JPanel
 				}
 			}
 
-			pp.setCursor(null);
+            pp.cursorManager.placeModeFinished();
+            pp.cursorManager.tableDragFinished();
 			pp.removeMouseMotionListener(this);
 			pp.removeMouseListener(this);
 			pp.removeCancelableListener(this);
@@ -2626,8 +2708,8 @@ public class PlayPen extends JPanel
 		return contentPane;
 	}
 
-	public static void setMouseMode(MouseModeType mouseMode) {
-		PlayPen.mouseMode = mouseMode;
+	public void setMouseMode(MouseModeType mouseMode) {
+		this.mouseMode = mouseMode;
 	}
 
     public ArchitectSwingSession getSession() {
