@@ -18,8 +18,8 @@
 		</mediaobject>
 
 		<corpauthor>
-			<ulink url="http://www.sqlpower.ca">SQL Power</ulink>
-			Group Inc.
+			<ulink url="http://www.sqlpower.ca">SQL Power Group Inc.</ulink>
+		[XXX:I like to see all the hyper links high-lighted]
 		</corpauthor>
 
 		<date>Last Modified</date>
@@ -29,7 +29,6 @@
 			<holder>SQL Power Group Inc.</holder>
 		</copyright>
 		
-		XXX:I like to see all the hyper links high-lighted
 	</bookinfo>
 	<chapter id="intro-chapter">
 		<title>Introduction</title>
@@ -175,7 +174,7 @@
 
 		</sidebar>
 
-		<para> XXX: put in a section for licensing information here</para>
+		<para> [XXX: put in a section for licensing information here]</para>
 		
 		<epigraph>
 
@@ -305,13 +304,14 @@
 			<para>
 				Power*Architect can be obtained from the
 				<ulink url="http://download.sqlpower.ca">
-					download section  XXX: The link likes to an empty page  
+					download section  
 				</ulink>
+					[XXX: The link likes to an empty page]  
 				of the
 				<ulink url="http://www.sqlpower.ca/">
-					SQLPower Website
+					SQLPower 
 				</ulink>
-				. You should only need to download one file, choosing
+				Website. You should only need to download one file, choosing
 				the platform-appropriate distribution (Windows-Installer
 				for Microsoft Windows, "DMG" for Apple Macintosh, and
 				".tar.gz" for UNIX/Linux/other platforms). You should
@@ -424,7 +424,7 @@
 				and starting point for actions.
 			</para>
 
-			<para> XXX: need a new screen shot to show the new button icons, p01.png
+			<para> [XXX: need a new screen shot to show the new button icons, p01.png]
 				<inlinemediaobject>
 					<imageobject> 
 						<imagedata fileref="doc/images/basicui.png"
@@ -540,7 +540,7 @@
 				Microsoft&apos;s technology for database access).
 			</para>
 
-			<para> XXX: need new a screen shot to show the new buttons: add and remove database type
+			<para> [XXX: need new a screen shot to show the new buttons: add and remove database type]
 				<inlinemediaobject>
 					<imageobject>
 						<imagedata
@@ -556,7 +556,7 @@
 				JDBC. In this section of the User Preferences you are
 				telling the Power*Architect where the drivers are so
 				that they can be used when nescessary.
-				XXX: need a new item to explain new buttons on the left
+				[XXX: need a new item to explain new buttons on the left]
 			</para>
 
 			<itemizedlist>
@@ -779,7 +779,7 @@
 							Properties Dialog will appear. Rename this
 							table to Customers, and the Primary Key to
 							Customers_PK.
-							XXX: this is wrong, you can not enter pk name if there is no column in the table
+							[XXX: this is wrong, you can not enter pk name if there is no column in the table]
 						</para>
 
 					</listitem>
@@ -1004,6 +1004,7 @@
 							Click Start. You should see the SQL Preview
 							window again, but this time with just an ADD
 							for the column you just added:
+							[XXX: need a new screen shot]
 						</para>
 
 						<mediaobject>
@@ -1090,7 +1091,8 @@
 							width="4in" />
 					</imageobject>
 				</mediaobject>
-				<para>In this dialog, you can:</para>
+				<para>[XXX: need a new screen shot with architect icon]
+				 In this dialog, you can:</para>
 
 				<itemizedlist>
 
@@ -1150,7 +1152,7 @@
 
 				<title>Editing Columns</title>
 
-				<para>
+				<para> [XXX: missing image ]
 					<inlinemediaobject>
 						<imageobject>
 							<imagedata
@@ -1164,6 +1166,7 @@
 					toolbar.
 				</para>
 
+				<para> [XXX: need a new screen shot with architect icon on it]</para>
 				<mediaobject>
 					<imageobject>
 						<imagedata
@@ -1363,6 +1366,7 @@
 					appear.
 				</para>
 
+				<para> [XXX: need a new screen shot with architect icon on it]</para>
 				<mediaobject>
 					<imageobject>
 						<imagedata
@@ -1752,10 +1756,11 @@
 					This functions searches the whole playpen for any
 					relevant matches with the search constraints and
 					displays the resulting matches. The user can request
-					for those items to be focused on the screen.
-					XXX: need a screen shot here, instead of showing the find result directly
+					for those items to be focused on the screen [XXX: and replace].
+					[XXX: need a screen shot here, instead of showing the find result directly]
 				</para>
 
+				<para> [XXX: need new a screen shot to show architect icon] </para>
 				<mediaobject>
 					<imageobject>
 						<imagedata fileref="doc/images/find.png"
@@ -1791,7 +1796,7 @@
 
 		<section id="profiling">
 			<title>Profiling</title>
-			<para>
+			<para> [XXX: missing image, maybe that is information24.gif ]
 				<inlinemediaobject>
 					<imageobject>
 						<imagedata
@@ -1810,6 +1815,9 @@
 				or by right clicking on a selected item and select
 				"Profile.." from the context menu, or by selecting the
 				Profile Icon in the Advanced Tool icon bar.
+
+				[XXX: need a new screen shot to show the first step of table profiling,
+				also need to explain the new interface]
 
 				If there is still an existing Profile window, the new
 				profiling results will be added on to the existing
@@ -1847,6 +1855,8 @@
 					Architect will save all the displayed results. You
 					have the option to save it in CVS, PDF or HTML
 					format.
+					
+					[XXX: need to replace the screen shot, less buttons]
 				</para>
 				<mediaobject>
 					<imageobject>
@@ -1870,6 +1880,8 @@
 					portionality of the most frequent 'n' values in the
 					column (the value of 'n' can be set in the "Project
 					Settings" under the "File" menu).
+					
+					[XXX: need a new screen shot]
 				</para>
 				<mediaobject>
 					<imageobject>
@@ -1930,6 +1942,8 @@
 						way is to press the "Forward Engineering" button
 						at the top. This pops up a dialog that looks
 						similar to the one below:
+						
+						[XXX: need new screen shot with architect icon on it]
 					</para>
 
 					<mediaobject>
@@ -1948,6 +1962,8 @@
 						the Playpen will be displayed. It is the same
 						dialog used in CompareDataModel-Part 2- In SQL
 						Script.
+						
+						[XXX: need new screen shot with architect icon on it]
 					</para>
 
 					<mediaobject>
@@ -2009,6 +2025,8 @@
 							button will not enable. The similarities and
 							differences can be displayed either in SQL
 							Script language or in English.
+							
+							[XXX: need new screen shot with architect icon on it]
 						</para>
 
 						<mediaobject>
@@ -2169,7 +2187,7 @@
 
 				<title>How to Use Autolayout:</title>
 
-				<para>
+				<para> [XXX: the gif image does not work, use png]
 					<inlinemediaobject>
 						<imageobject>
 							<imagedata
@@ -2240,6 +2258,9 @@
 					UPDATE SQL statements (just select the template you
 					want and click "Apply Template" and the template
 					will replace the current Input Statement.
+					
+					[XXX: need new screen shot with architect icon on it, also
+					need to explain the new button [table view] on the output area]
 				</para>
 
 				<mediaobject>
@@ -2374,6 +2395,7 @@
 				<para>
 					There are several output modes for the display of
 					SQL "select" results: text, SQL, HTML and XML
+					[XXX: and also the table mode]
 					(output from the escape commands are always
 					displayed as plain text). Text mode is the default,
 					and is primarily a raw display format. SQL output is
@@ -2390,6 +2412,8 @@
 					from anecdotes" (a table in a sample bookstore web
 					site&apos;s database, used to display a casual
 					quotation about books) looked like this:
+					
+					[XXX: need new screen shot with architect icon, clear output button, table tab]
 				</para>
 
 				<mediaobject>
