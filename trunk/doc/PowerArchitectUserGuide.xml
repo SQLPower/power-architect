@@ -1744,6 +1744,11 @@
 
 		</section>
 
+		<section id="undo_redo">
+			<title>XXX: need a section talk about the undo redo function</title>
+		</section>
+		
+			
 		<section id="find">
 
 			<title>Find/Replace Function</title>
@@ -1795,7 +1800,7 @@
 		</section>
 
 		<section id="profiling">
-			<title>Profiling</title>
+			<title>Profiling [XXX: put this section after sqlrunner to match menu order]</title>
 			<para> [XXX: missing image, maybe that is information24.gif ]
 				<inlinemediaobject>
 					<imageobject>
@@ -2170,7 +2175,7 @@
 
 		<section id="autolayout">
 
-			<title>Autolayout</title>
+			<title>Autolayout [XXX: put this section after sqlrunner to match menu order]</title>
 
 			<section id="autolayout.what">
 
