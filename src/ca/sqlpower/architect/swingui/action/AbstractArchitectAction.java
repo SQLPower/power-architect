@@ -32,6 +32,7 @@
 package ca.sqlpower.architect.swingui.action;
 
 import javax.swing.AbstractAction;
+import javax.swing.Icon;
 
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
@@ -67,10 +68,29 @@ public abstract class AbstractArchitectAction extends AbstractAction {
             String actionDescription,
             String iconResourceName) {
         
-        super(actionName,
+        this(session, actionName, actionDescription,
                 iconResourceName == null ?
-                        null :
+                        (Icon) null :
                         SPSUtils.createIcon(iconResourceName, actionName, ArchitectSwingSessionContext.ICON_SIZE));
+    }
+
+    /**
+     * Helper constructor that all architect action subclasses that use an icon will call.
+     * Ensures that the session, its frame, and its frame's playpen are
+     * all non-null.
+     * 
+     * @param session The session that this action will operate on. Must not be null.
+     * @param actionName The name for this action. This will appear in menu items.
+     * @param actionDescription This action's description. Appears in tooltips.
+     * @param icon The icon to use.  Null means no icon.
+     */
+    public AbstractArchitectAction(
+            ArchitectSwingSession session,
+            String actionName,
+            String actionDescription,
+            Icon icon) {
+        
+        super(actionName, icon);
         putValue(SHORT_DESCRIPTION, actionDescription);
 
         this.session = session;
@@ -84,7 +104,7 @@ public abstract class AbstractArchitectAction extends AbstractAction {
         
 
     }
-    
+
     /**
      * Helper constructor that all architect action subclasses that do not
      * use an icon will call. Ensures that the session, its frame, and its 
@@ -99,6 +119,6 @@ public abstract class AbstractArchitectAction extends AbstractAction {
             ArchitectSwingSession session,
             String actionName,
             String actionDescription) {
-        this(session, actionName, actionDescription, null);
+        this(session, actionName, actionDescription, (Icon) null);
     }
 }

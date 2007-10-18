@@ -36,6 +36,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
 import javax.swing.AbstractAction;
+import javax.swing.Icon;
 import javax.swing.KeyStroke;
 
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
@@ -49,7 +50,7 @@ public class CloseProjectAction extends AbstractArchitectAction {
      * Creates a new close action for the given session.
      */
     public CloseProjectAction(ArchitectSwingSession session) {
-        super(session, "Close Project", "Close", null);
+        super(session, "Close Project", "Close", (Icon) null);
         putValue(AbstractAction.ACCELERATOR_KEY,
                 KeyStroke.getKeyStroke(KeyEvent.VK_W,
                         Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));

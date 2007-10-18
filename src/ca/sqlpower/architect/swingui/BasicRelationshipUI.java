@@ -61,8 +61,6 @@ public class BasicRelationshipUI extends RelationshipUI
 
 	protected Relationship relationship;
 
-	protected int orientation;
-
 	protected Rectangle computedBounds;
 
 	/**
@@ -91,16 +89,6 @@ public class BasicRelationshipUI extends RelationshipUI
 	 * @see #contains
 	 */
 	protected int radius = 4;
-
-	public static final int NO_FACING_EDGES = 0;
-	public static final int PARENT_FACES_RIGHT = 1;
-	public static final int PARENT_FACES_LEFT = 2;
-	public static final int PARENT_FACES_BOTTOM = 4;
-	public static final int PARENT_FACES_TOP = 8;
-	public static final int CHILD_FACES_RIGHT = 16;
-	public static final int CHILD_FACES_LEFT = 32;
-	public static final int CHILD_FACES_BOTTOM = 64;
-	public static final int CHILD_FACES_TOP = 128;
 
 	// ------------------------ ComponentUI methods ------------------------
 
