@@ -303,10 +303,9 @@
 
 			<para>
 				Power*Architect can be obtained from the
-				<ulink url="http://download.sqlpower.ca">
+				<ulink url="http://download.sqlpower.ca/architect/current.html">
 					download section  
 				</ulink>
-					[XXX: The link likes to an empty page]  
 				of the
 				<ulink url="http://www.sqlpower.ca/">
 					SQLPower 
@@ -424,7 +423,7 @@
 				and starting point for actions.
 			</para>
 
-			<para> [XXX: need a new screen shot to show the new button icons, p01.png]
+			<para>
 				<inlinemediaobject>
 					<imageobject> 
 						<imagedata fileref="doc/images/basicui.png"
@@ -540,7 +539,7 @@
 				Microsoft&apos;s technology for database access).
 			</para>
 
-			<para> [XXX: need new a screen shot to show the new buttons: add and remove database type]
+			<para>
 				<inlinemediaobject>
 					<imageobject>
 						<imagedata
@@ -556,7 +555,7 @@
 				JDBC. In this section of the User Preferences you are
 				telling the Power*Architect where the drivers are so
 				that they can be used when nescessary.
-				[XXX: need a new item to explain new buttons on the left]
+				[XXX: need an new item to explain new buttons on the left]
 			</para>
 
 			<itemizedlist>
@@ -1004,7 +1003,6 @@
 							Click Start. You should see the SQL Preview
 							window again, but this time with just an ADD
 							for the column you just added:
-							[XXX: need a new screen shot]
 						</para>
 
 						<mediaobject>
@@ -1091,7 +1089,7 @@
 							width="4in" />
 					</imageobject>
 				</mediaobject>
-				<para>[XXX: need a new screen shot with architect icon]
+				<para>
 				 In this dialog, you can:</para>
 
 				<itemizedlist>
@@ -1152,11 +1150,11 @@
 
 				<title>Editing Columns</title>
 
-				<para> [XXX: missing image ]
+				<para>
 					<inlinemediaobject>
 						<imageobject>
 							<imagedata
-								fileref="src/icons/edit_column16.gif" format="PNG" />
+								fileref="src/icons/edit_column16.png" format="PNG" />
 						</imageobject>
 					</inlinemediaobject>
 					Select the desired column, right click and select
@@ -1166,7 +1164,6 @@
 					toolbar.
 				</para>
 
-				<para> [XXX: need a new screen shot with architect icon on it]</para>
 				<mediaobject>
 					<imageobject>
 						<imagedata
@@ -1366,7 +1363,6 @@
 					appear.
 				</para>
 
-				<para> [XXX: need a new screen shot with architect icon on it]</para>
 				<mediaobject>
 					<imageobject>
 						<imagedata
@@ -1745,7 +1741,7 @@
 		</section>
 
 		<section id="undo_redo">
-			<title>XXX: need a section talk about the undo redo function</title>
+			<title>XXX: need a section to explain the undo redo function</title>
 		</section>
 		
 			
@@ -1762,13 +1758,11 @@
 					relevant matches with the search constraints and
 					displays the resulting matches. The user can request
 					for those items to be focused on the screen [XXX: and replace].
-					[XXX: need a screen shot here, instead of showing the find result directly]
 				</para>
 
-				<para> [XXX: need new a screen shot to show architect icon] </para>
 				<mediaobject>
 					<imageobject>
-						<imagedata fileref="doc/images/find.png"
+						<imagedata fileref="doc/images/find_and_replace.png"
 							format="PNG" width="4in" />
 					</imageobject>
 				</mediaobject>
@@ -1795,17 +1789,23 @@
 					press the "Show in Playpen" button.
 				</para>
 
+				<mediaobject>
+					<imageobject>
+						<imagedata fileref="doc/images/find.png"
+							format="PNG" width="4in" />
+					</imageobject>
+				</mediaobject>
 			</section>
 
 		</section>
 
 		<section id="profiling">
 			<title>Profiling [XXX: put this section after sqlrunner to match menu order]</title>
-			<para> [XXX: missing image, maybe that is information24.gif ]
+			<para>
 				<inlinemediaobject>
 					<imageobject>
 						<imagedata
-							fileref="doc/images/information24.png" format="GIF"
+							fileref="src/icons/Table_profiled16.png" format="PNG"
 							width="0.25in" />
 					</imageobject>
 				</inlinemediaobject>
@@ -1821,13 +1821,17 @@
 				"Profile.." from the context menu, or by selecting the
 				Profile Icon in the Advanced Tool icon bar.
 
-				[XXX: need a new screen shot to show the first step of table profiling,
-				also need to explain the new interface]
-
 				If there is still an existing Profile window, the new
 				profiling results will be added on to the existing
 				window, otherwise, the resulting profile will be
 				displayed in a new window.
+				
+				<mediaobject>
+					<imageobject>
+						<imagedata fileref="doc/images/table_profile.png"
+							format="PNG" width="4in" />
+					</imageobject>
+				</mediaobject>
 			</para>
 
 			<section id="profiling.tableView">
@@ -1861,7 +1865,6 @@
 					have the option to save it in CVS, PDF or HTML
 					format.
 					
-					[XXX: need to replace the screen shot, less buttons]
 				</para>
 				<mediaobject>
 					<imageobject>
@@ -1886,7 +1889,6 @@
 					column (the value of 'n' can be set in the "Project
 					Settings" under the "File" menu).
 					
-					[XXX: need a new screen shot]
 				</para>
 				<mediaobject>
 					<imageobject>
@@ -1948,7 +1950,6 @@
 						at the top. This pops up a dialog that looks
 						similar to the one below:
 						
-						[XXX: need new screen shot with architect icon on it]
 					</para>
 
 					<mediaobject>
@@ -1968,7 +1969,6 @@
 						dialog used in CompareDataModel-Part 2- In SQL
 						Script.
 						
-						[XXX: need new screen shot with architect icon on it]
 					</para>
 
 					<mediaobject>
@@ -2031,7 +2031,6 @@
 							differences can be displayed either in SQL
 							Script language or in English.
 							
-							[XXX: need new screen shot with architect icon on it]
 						</para>
 
 						<mediaobject>
@@ -2192,11 +2191,11 @@
 
 				<title>How to Use Autolayout:</title>
 
-				<para> [XXX: the gif image does not work, use png]
+				<para>
 					<inlinemediaobject>
 						<imageobject>
 							<imagedata
-								fileref="src/icons/auto_layout16.gif" format="GIF" />
+								fileref="src/icons/auto_layout16.png" format="PNG" />
 						</imageobject>
 					</inlinemediaobject>
 					Select the tables on the playpen that you want to
@@ -2264,8 +2263,7 @@
 					want and click "Apply Template" and the template
 					will replace the current Input Statement.
 					
-					[XXX: need new screen shot with architect icon on it, also
-					need to explain the new button [table view] on the output area]
+					[XXX: need to explain the new button [table view] on the output area]
 				</para>
 
 				<mediaobject>
