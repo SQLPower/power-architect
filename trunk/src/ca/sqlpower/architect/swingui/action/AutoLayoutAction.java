@@ -37,6 +37,8 @@ import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.Icon;
+
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.layout.ArchitectLayout;
@@ -55,13 +57,21 @@ public class AutoLayoutAction extends AbstractArchitectAction {
 
 	private int framesPerSecond = 25;
 
-	public AutoLayoutAction(ArchitectSwingSession session) {
-		super(session, "Auto Layout", "Automatic Layout", "auto_layout");
-	}
+    public AutoLayoutAction(ArchitectSwingSession session, String name, String description, String iconResourceName) {
+        super(session, name, description, iconResourceName);
+    }
+
+    public AutoLayoutAction(ArchitectSwingSession session, String name, String description, Icon icon) {
+        super(session, name, description, icon);
+    }
 
 	public void actionPerformed(ActionEvent evt) {
         
-        // not sure what the hell is up with this.
+        // This funny construction creates a new instance of the current
+        // type of layout.  It would be better to ask client code for a
+        // layout factory, then use the factory to make new instances for
+        // us.  Or just require implementations of ArchitectLayout to be
+        // reusable.. every call to setUp could reset the layout.
         try {
             layout = layout.getClass().newInstance();
         } catch (Exception e) {

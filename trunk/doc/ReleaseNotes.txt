@@ -22,6 +22,9 @@ IMPORTANT NOTE to users upgrading from pre-0.9.x versions of the Architect:
  or in the old rectilinear style.  The default is still the old style.
 *Made dragging tables much easier at extreme zoom levels by dragging the table
  instead of a column when dragging with the Alt key held down (option key on Mac)
+*Added a new feature to automatically straighten relationship lines that can be
+ straightened without moving any tables.  It can be found in the play pen's context
+ menu (also known as the popup menu or the right-click menu).
 
 0.9.7
 

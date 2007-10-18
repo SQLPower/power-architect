@@ -38,6 +38,22 @@ import java.awt.Shape;
 public abstract class RelationshipUI implements PlayPenComponentUI, java.io.Serializable {
 	public static final String UI_CLASS_ID = "RelationshipUI";
 
+    /**
+     * A bitmask of the constants (PARENT|CHILD)_FACES_(LEFT|RIGHT|TOP|BOTTOM).
+     */
+    protected int orientation;
+
+    public static final int NO_FACING_EDGES = 0;
+    public static final int PARENT_FACES_RIGHT = 1;
+    public static final int PARENT_FACES_LEFT = 2;
+    public static final int PARENT_FACES_BOTTOM = 4;
+    public static final int PARENT_FACES_TOP = 8;
+    public static final int CHILD_FACES_RIGHT = 16;
+    public static final int CHILD_FACES_LEFT = 32;
+    public static final int CHILD_FACES_BOTTOM = 64;
+    public static final int CHILD_FACES_TOP = 128;
+
+
 	public RelationshipUI() {
 		pkConnectionPoint = new Point();
 		fkConnectionPoint = new Point();
@@ -126,4 +142,14 @@ public abstract class RelationshipUI implements PlayPenComponentUI, java.io.Seri
 	public abstract Shape getShape();
 	
 	public abstract int getShapeLength();
+    
+    /**
+     * Returns the current orientation of this relationship; that is, which
+     * sides of its PK table and its FK table it is attached to. The return
+     * value is a bitmask of the constants
+     * (PARENT|CHILD)_FACES_(LEFT|RIGHT|TOP|BOTTOM).
+     */
+    public int getOrientation() {
+        return orientation;
+    }
 }

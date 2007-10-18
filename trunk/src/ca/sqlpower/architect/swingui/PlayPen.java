@@ -84,6 +84,8 @@ import java.util.WeakHashMap;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -117,7 +119,9 @@ import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.layout.LineStraightenerLayout;
 import ca.sqlpower.architect.swingui.Relationship.RelationshipDecorationMover;
+import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
 import ca.sqlpower.architect.swingui.action.CancelAction;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
@@ -1064,6 +1068,13 @@ public class PlayPen extends JPanel
 		mi.setAction(af.getCreateTableAction());
 		playPenPopup.add(mi);
 
+        mi = new JMenuItem();
+        Icon icon = new ImageIcon(ClassLoader.getSystemResource("icons/famfamfam/wrench.png"));
+        AutoLayoutAction layoutAction = new AutoLayoutAction(session, "Straighten Lines", "Sraighten Relationship Lines Where Possible", icon);
+        layoutAction.setLayout(new LineStraightenerLayout());
+        mi.setAction(layoutAction);
+        playPenPopup.add(mi);
+        
 		if (logger.isDebugEnabled()) {
 			playPenPopup.addSeparator();
 			mi = new JMenuItem("Show Relationships");
