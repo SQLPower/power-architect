@@ -38,7 +38,6 @@ import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 
 import javax.swing.AbstractAction;
-import javax.swing.Icon;
 
 import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
@@ -59,7 +58,7 @@ public class TestAutoLayoutAction extends TestCase {
         TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
 		ArchitectSwingSession session = context.createSession();
         PlayPen pp = session.getPlayPen();
-		layoutAction = new AutoLayoutAction(session, "Tree Layout", "Basic tree layout", (Icon) null);
+		layoutAction = new AutoLayoutAction(session, "Tree Layout", "Basic tree layout", "auto_layout");
 		layout = new BasicTreeAutoLayout();
 		pp.repaint();
 		//action = af.getAutoLayoutAction();
