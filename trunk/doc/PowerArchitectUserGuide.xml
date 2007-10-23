@@ -18,8 +18,8 @@
 		</mediaobject>
 
 		<corpauthor>
-			<ulink url="http://www.sqlpower.ca">SQL Power Group Inc.</ulink>
-		[XXX:I like to see all the hyper links high-lighted]
+		    <!-- Whether or not this link is underlined depends on the stylesheet, not the DocBook markup -->
+			<ulink url="http://www.sqlpower.ca/">SQL Power Group Inc.</ulink>
 		</corpauthor>
 
 		<date>Last Modified</date>
@@ -43,13 +43,29 @@
 		</para>
 
 		<para>
-			SQL Power Group&apos;s Power*Architect is an innovative data
-			modeling tool designed primarily for Data Warehouse and Data
-			Mart design. It allows the designer to open multiple
-			concurrent source Database connections, drag and drop source
-			schemas, tables and columns into the data modeling playpen,
-			and forward-engineer the resulting target database and its
-			associated ETL template.
+			SQL Power Group&apos;s Power*Architect is a visual data
+			modeling tool which places an emphasis on speed and ease
+			of use, and to the maximum extent possible, database platform
+			independence.  You are not required to declare up-front which
+			platform you intend to eventually create your data model in,
+			and in fact, the Architect makes it easy to maintain a database
+			schema which works well in multiple database platforms simultaneously.
+			This is a particular advantage for application developers who
+			have to maintain a database schema for an application that works
+			with several different backend database platforms.
+		</para>
+		
+		<para>
+			Additionally, the Architect includes several features designed
+			primarily for Data Warehouse and Data Mart design. It allows the
+			designer to open multiple concurrent source Database connections,
+			drag and drop source schemas, tables and columns into the data
+			modeling playpen, and forward-engineer the resulting target database and its
+			associated ETL template.  The Architect keeps track of the original
+			location each object was reverse-engineered from, and can produce a
+			visual mapping report as well as a starter set of Extract, Transform,
+			Load (ETL) procedures for use with the popular open source Kettle ETL
+			tool from Pentaho.
 		</para>
 
 		<para>
@@ -111,7 +127,7 @@
 
 				<para>
 					Forward engineer to Oracle, SQL Server, DB2,
-					PostgreSQL and other databases;
+					PostgreSQL, MySQL, and other databases;
 				</para>
 
 			</listitem>
@@ -119,42 +135,13 @@
 			<listitem>
 
 				<para>
-					Forward engineer ETL Templates containing
+					Produce ETL Templates containing
 					source-to-target data mappings;
 				</para>
 
 			</listitem>
 
-			<listitem>
-
-				<para>
-					Invoke ETL Engine to load initial set of data into
-					the target database;
-				</para>
-
-			</listitem>
-
-			<listitem>
-
-				<para>
-					Enable easy centralized installation and updates to
-					multiple end users (using
-					<trademark>Java WebStart</trademark>
-					technology).
-				</para>
-
-			</listitem>
-
 		</itemizedlist>
-
-		<para>
-			Power*Architect can open multiple source databases
-			concurrently, even those from competing database vendors.
-			Another key feature of the Power*Architect that sets it
-			apart from other data modeling tools is that it remembers
-			the origin of each column, and is capable of automatically
-			generating the source-to-target data mappings.
-		</para>
 
 		<para>
 			Whether you're building or maintaining your Data Warehouse
@@ -163,28 +150,90 @@
 			every aspect of your data warehouse design.
 		</para>
 
-		<para>We firmly believe you can...</para>
-
-		<sidebar>
-
-			<para>
-				Design your Data Warehouse in a fraction of the time
-				with Power*Architect.
+		<para>We firmly believe you can	Design your Data Warehouse in a fraction of the time
+				with the Power*Architect.
 			</para>
 
-		</sidebar>
-
-		<para> [XXX: put in a section for licensing information here]</para>
+		<para>
+		    In addition to all of the benefits outlined above, another key
+		    benefit of the Power*Architect is its licensing and distribution
+		    model.  The Architect is free and open source software, meaning
+		    that the source code is readily available.  Everyone is free to
+		    inspect, comment on, and modify the Architect's source code.  Anyone
+		    who modifies the program code is invited (but not required) to contribute
+		    their changes back to the project.  All contributions are subject
+		    to review and acceptance by the Power*Architect team, but we welcome
+		    contributions from the user community.
+		</para>
 		
-		<epigraph>
+		<para>
+		    The key advantage here is that software which is developed by the
+		    actual users of that same software tends to be much easier and more
+		    fun to use, and to include the features that matter most to users.
+		</para>
+		
+		<para>
+		    Specifically, the Power*Architect is distributed to the public under the
+		    New BSD License.  There is a large body of software already available under
+		    this license, so its terms are already well understood.  Here is the
+		    license for the Power*Architect in its entirety:
+		</para>
 
-			<para>
-				Power*Architect is a versatile tool for the busy data
-				warehousing practitioner.
-			</para>
+		<para>
+			Copyright (c) 2007, SQL Power Group Inc.
+		</para>
+		
+		<para>
+			All rights reserved.
+		</para>
+		
+		<para>
+			Redistribution and use in source and binary forms, with or without
+			modification, are permitted provided that the following conditions
+			are met:
+		</para>
 
-		</epigraph>
+		<itemizedlist>
+		
+		  <listitem>
+		    <para>
+		      Redistributions of source code must retain the above copyright
+		      notice, this list of conditions and the following disclaimer.
+      		</para>
+      	  </listitem>
 
+		  <listitem>
+		    <para>
+		      Redistributions in binary form must reproduce the above copyright
+		      notice, this list of conditions and the following disclaimer in
+		      the documentation and/or other materials provided with the
+		      distribution.
+      		</para>
+      	  </listitem>
+
+		  <listitem>
+		    <para>
+		      Neither the name of SQL Power Group Inc. nor the names of its
+		      contributors may be used to endorse or promote products derived
+		      from this software without specific prior written permission.
+      		</para>
+      	  </listitem>
+      	  
+		</itemizedlist>
+		
+		<para>
+			THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+			"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+			LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+			A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+			OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+			SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+			LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+			DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+			THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+			(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+			OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+		</para>
 
 		<sect1 id="about-this-book">
 
@@ -219,8 +268,10 @@
 				<ulink
 					url="http://developers.sun.com/product/jdbc/drivers">
 					Sun&apos;s web site
-				</ulink>
-				.
+				</ulink>.
+				There is also <ulink url="http://www.sqlpower.ca/forum/posts/list/401.page">a permanent thread</ulink>
+				in the Architect's user support forum where users can share information about
+				how to find and configure drivers for a particular database platform.
 			</para>
 
 			<para>
@@ -239,7 +290,7 @@
 
 			<para>
 				This book is a step-by-step guide on how to use the full
-				capabilities of Power*Architect . It covers topics from
+				capabilities of Power*Architect. It covers topics from
 				how to install the Power*Architect through setting up
 				database connections to engineering your data model.
 			</para>
@@ -264,9 +315,9 @@
 			<para>
 				For the section on creating a Kettle job we assume that 
 				the reader has some basic knowledge about ETL. For more 
-				information about ETL look for "Building the Data Warehouse" 
-				by W. H. Inmon or "The Data Warehouse Toolkit: The Complete 
-				Dimensional Modeling" by Ralph Kimball and Margy Ross.
+				information about ETL look for <emphasis>Building the Data Warehouse</emphasis>
+				by W. H. Inmon or <emphasis>The Data Warehouse Toolkit: The Complete 
+				Dimensional Modeling</emphasis> by Ralph Kimball and Margy Ross.
 			</para>
 			
 		</sect1>
@@ -282,17 +333,18 @@
 			<title>Power*Architect Prerequisites</title>
 			<para>
 
-				To run the Power*Architect you need a Java 1.5 or newer
-				Java Runtime ("Java VM" or "JVM"). A current version of
-				the Java VM for common platforms can be obtained from
+				To run the Power*Architect, you need a Java Runtime
+				Environment (JRE).  The Architect depends on Java 5, Standard Edition, or newer.
+				A current JRE for common operating systems can be obtained from
 				<ulink
-					url="http://java.sun.com/javase/downloads/index.html">
+					url="http://java.com/getjava/">
 					Sun Microsystems
-				</ulink>
-				. To ensure that your JVM is up-to-date, Apple Macintosh
-				users should use Software Update (from the Apple Menu)
-				while others should use the Java Updater (from, e.g.,
-				the Microsoft Windows Control Panel).
+				</ulink>. To ensure that your JRE is up-to-date, if you
+				are an Apple Macintosh user, you should use Software Update from the Apple Menu.
+				If you are a Windows user, use the Java Updater (found in
+				the Microsoft Windows Control Panel).  If you use a different system
+				such as Linux, Solaris, or BSD, you should use the normal procedures for obtaining
+				and updating software packages on your platform (packages, ports, etc.).
 			</para>
 
 		</section>
@@ -302,18 +354,18 @@
 			<title>How to Obtain the Power*Architect Software</title>
 
 			<para>
-				Power*Architect can be obtained from the
+				The Power*Architect can be obtained from the
 				<ulink url="http://download.sqlpower.ca/architect/current.html">
 					download section  
 				</ulink>
 				of the
 				<ulink url="http://www.sqlpower.ca/">
-					SQLPower 
+					SQL Power 
 				</ulink>
 				Website. You should only need to download one file, choosing
 				the platform-appropriate distribution (Windows-Installer
 				for Microsoft Windows, "DMG" for Apple Macintosh, and
-				".tar.gz" for UNIX/Linux/other platforms). You should
+				".tar.gz" for other platforms). You should
 				normally choose the download with the highest revision
 				number available.
 			</para>
@@ -333,6 +385,13 @@
 					This will launch the Microsoft Windows installer.
 					Follow the on-screen instructions.
 				</para>
+				
+				<para>
+				    If you are using Windows Vista, you will need to right-click
+				    the jar file and run it with administrative privileges, since
+				    it needs to write to your Program Files directory and to modify
+				    the Windows registry (to create the project file associations).
+				</para>
 
 			</section>
 
@@ -341,8 +400,12 @@
 				<title>Macintosh OS X</title>
 
 				<para>
-					Drag the architect-n.m.dmg file to the Applications
-					folder
+					Double-click the architect-n.m.dmg file, then agree to the
+					license.  At this point, a new Finder window will appear with
+					the Power*Architect icon hanging off of a rather fetching green
+					mobile crane.  Drag the Architect program icon off of the crane hook
+					and into your Applications folder.  Eject the disk image, then
+					delete the dmg download file.
 				</para>
 
 			</section>
@@ -370,7 +433,7 @@
 
 				<para>
 					From the start menu, select All Programs. Then
-					select the Power Loader Suite program group. Finally
+					select the Power Architect program group. Finally,
 					click on the Power Architect shortcut.
 				</para>
 
@@ -384,8 +447,8 @@
 					From the Finder, select Applications, then select
 					Power*Architect. To enable launching of the
 					Architect directly from the Dock, either drag the
-					image there or, while it is running, Apple-Click on
-					the running icon and select Keep In Dock.
+					program icon there or, while it is running, control-click on
+					the Architect's dock icon and select Keep In Dock.
 				</para>
 
 			</section>
@@ -397,10 +460,15 @@
 				<para>
 					In the directory into which you extracted the
 					Architect, run the command
-					<command>java -jar architect.jar</command>
-					. If you have a visual browser, you may be able to
-					launch the architect by clicking (or
-					double-clicking) on the architect.jar file.
+					<command>java -jar architect.jar</command>.  For larger projects,
+					the default maximum amount of memory allowed by the Java runtime may not be
+					enough.  In that case, use a command such as <command>java -Xmx600m -jar architect.jar</command>,
+					which increases the memory cap from the default 64MB to 600MB.
+			    </para>
+			    
+			    <para>
+					Alternatively, if your operating system has a visual filesystem browser, you may be able to
+					launch the architect by clicking (or double-clicking) on the architect.jar file.
 				</para>
 
 			</section>
@@ -457,12 +525,15 @@
 			<para>
 				<emphasis>Zoom Tools</emphasis>
 				- These tools allow you to control the magnification 
-				level of components display.
+				level of components display.  There are four zoom tools.
+				In order from top to bottom, their functions are: Zoom in,
+				zoom out, reset zoom level default, and zoom to fit entire
+				diagram.
 			</para>
 
 			<para>
 				<emphasis>Delete</emphasis>
-				- This will delete the selected component(s).
+				- Deletes the selected component or components.
 			</para>
 
 			<para>
@@ -483,11 +554,11 @@
 			<para>
 				When getting started, you need to set up some files and
 				drivers to use the full functionality of the
-				Power*Architect. If you have not already done so
+				Power*Architect. If you have not done so
 				already, please go to "User Preferences" under the File
-				Menu to configure the Power*Architect. This will pop up
-				a dialog (shown below) where you can specify your file
-				locations.
+				Menu (on Mac OS X, this is found under the application menu)
+				to configure the Power*Architect. The preferences dialog (shown below)
+				will appear.
 			</para>
 
 			<para>
@@ -500,24 +571,42 @@
 			</para>
 
 			<para>
-				The pl.ini file stores the database connections that you
+				The pl.ini file stores the settings for database connections that you
 				set up (see JDBC Drivers on page 8). If you leave this
 				location blank, the Architect program will prompt you to
 				use a default location when you start it up. If you have
 				a pl.ini file from other SQL Power applications you
-				should generally use the same file, as doing so will
+				should generally use the same file, because doing so will
 				save you from having to re-enter all your database
 				connection information. The next two settings are for log
-				files that will be written when you	use the ETL and 
-				Forward Engineering functions of the application. The 
-				next setting controls the operations of graphics in the 
-				PlayPen. Turning "antialiased rendering" on may give 
-				better display of the graphical	database layouts shown 
-				in the PlayPen, but may use more CPU time in the process.
+				files that will be written when you use the ETL and 
+				Forward Engineering functions of the application.
+			</para>
+			<para>
+				The next setting controls the operations of graphics in the 
+				PlayPen. Turning on "antialiased rendering" provides
+				better display of the graphical database layouts shown 
+				in the PlayPen, especially when zoomed out, but may cause slower performance
+				on some systems.  We recommend that you turn it on unless you experience
+				poor performance as a result.
+			</para>
+			<para>
 				The error reporting setting can be turned on to send 
-				SQL Power error reports when they occur. The last setting,
-				Show Welcome Screen, can be set to turn the welcome screen
-				on or off when starting Power*Architect.
+				SQL Power error reports when they occur. Error reports never include
+				any information that could be used to identify you, nor do they include
+				any information that could be used to deduce the contents or subject
+				matter of your project.  They simply include a Java stack trace that
+				tells developers where in the program code the Architect encountered a
+				failure, as well as generic information such as the version of your
+				Java Runtime Environment, the amount of RAM the Architect is currently
+				using, and so on.  These automatic error reports help the Power*Architect
+				development team prioritize bug fixes based on the estimated number of
+				times a particular problem has been encountered.
+			</para>
+			<para>
+				The last setting,
+				Show Welcome Screen, controls whether or not the welcome screen
+				appears when the Power*Architect starts up.
 			</para>
 
 		</section>
@@ -548,7 +637,7 @@
 					</imageobject>
 				</inlinemediaobject>
 			</para>
-
+<!-- I have reviewed and cleaned up to this point -JF -->
 			<para>
 				Note: The tie-in between Drivers and Connections might
 				seem a bit indirect if you are not used to using Java
