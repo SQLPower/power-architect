@@ -41,6 +41,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLIndex.IndexType;
 
@@ -372,6 +373,18 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
 	public String toIdentifier(String name) {
 		return toIdentifier(name,null);
 	}
+    
+    /**
+     * Adds support for the SQL Server <code>identity</code> feature.
+     */
+    @Override
+    public String columnType(SQLColumn c) {
+        String type = super.columnType(c);
+        if (c.isAutoIncrement()) {
+            type += " IDENTITY";
+        }
+        return type;
+    }
 
     @Override
     public void addIndex(SQLIndex index) throws ArchitectException {
