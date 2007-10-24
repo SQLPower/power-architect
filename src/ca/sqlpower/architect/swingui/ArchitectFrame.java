@@ -323,8 +323,8 @@ public class ArchitectFrame extends JFrame {
 
         Action kettleETL = new KettleJobAction(session);
         deleteSelectedAction = new DeleteSelectedAction(session);
-        createIdentifyingRelationshipAction = new CreateRelationshipAction(session, true);
-        createNonIdentifyingRelationshipAction = new CreateRelationshipAction(session, false);
+        createIdentifyingRelationshipAction = new CreateRelationshipAction(session, true, playpen.getCursorManager());
+        createNonIdentifyingRelationshipAction = new CreateRelationshipAction(session, false, playpen.getCursorManager());
         editRelationshipAction = new EditRelationshipAction(session);
         createTableAction = new CreateTableAction(session);
         editColumnAction = new EditColumnAction(session);

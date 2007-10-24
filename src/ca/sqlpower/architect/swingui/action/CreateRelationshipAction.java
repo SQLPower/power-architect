@@ -31,7 +31,6 @@
  */
 package ca.sqlpower.architect.swingui.action;
 
-import java.awt.Cursor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -50,6 +49,7 @@ import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.Selectable;
 import ca.sqlpower.architect.swingui.TablePane;
 import ca.sqlpower.architect.swingui.PlayPen.CancelableListener;
+import ca.sqlpower.architect.swingui.PlayPen.CursorManager;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 
@@ -61,7 +61,9 @@ public class CreateRelationshipAction extends AbstractArchitectAction
 	protected boolean identifying;
 	protected TablePane pkTable;
 	protected TablePane fkTable;
-
+	
+	private CursorManager cursorManager;
+	
 	/**
 	 * This property is true when we are actively creating a
 	 * relationship.  The original implementation was to add and
@@ -70,7 +72,7 @@ public class CreateRelationshipAction extends AbstractArchitectAction
 	 */
 	protected boolean active;
 
-	public CreateRelationshipAction(ArchitectSwingSession session, boolean identifying) {
+	public CreateRelationshipAction(ArchitectSwingSession session, boolean identifying, CursorManager cm) {
         super(session, 
               identifying ? "New Identifying Relationship" : "New Non-Identifying Relationship",
               identifying ? "New Identifying Relationship": "New Non-Identifying Relationship",
@@ -81,6 +83,7 @@ public class CreateRelationshipAction extends AbstractArchitectAction
 		} else {
 			putValue(ACCELERATOR_KEY,KeyStroke.getKeyStroke(KeyEvent.VK_R,KeyEvent.SHIFT_MASK));
 		}
+		cursorManager = cm;
 		this.identifying = identifying;
 		logger.debug("(constructor) hashcode is: " + super.hashCode());
         
@@ -99,7 +102,8 @@ public class CreateRelationshipAction extends AbstractArchitectAction
 		fkTable = null;
 		logger.debug("Starting to create relationship, setting active to TRUE!");
 		active = true;
-		playpen.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+		cursorManager.placeModeStarted();
+		//playpen.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 		// gets over the "can't select a selected item"
 		playpen.selectNone();
 	}
@@ -160,7 +164,7 @@ public class CreateRelationshipAction extends AbstractArchitectAction
 	private void resetAction() {
 		pkTable = null;
 		fkTable = null;
-		playpen.setCursor(null);
+		cursorManager.placeModeFinished();
 		active = false;
 	}
 
