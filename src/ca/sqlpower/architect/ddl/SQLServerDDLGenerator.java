@@ -387,6 +387,15 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
     }
 
     @Override
+    public void addColumn(SQLColumn c) {
+        print("\n ALTER TABLE ");
+        print(toQualifiedName(c.getParentTable()));
+        print(" ADD ");
+        print(columnDefinition(c,new HashMap()));
+        endStatement(DDLStatement.StatementType.CREATE, c);
+    }
+
+    @Override
     public void addIndex(SQLIndex index) throws ArchitectException {
         if (index.getType() == IndexType.STATISTIC )
             return;
