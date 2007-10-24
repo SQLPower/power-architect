@@ -169,38 +169,38 @@ public class PlayPen extends JPanel
      * A simple class that encapsulates the logic for making the cursor image
      * look correct for the current activity.
      */
-    private class CursorManager {
+    public class CursorManager {
         
         private boolean draggingTable = false;
         private boolean dragAllModeActive = false;
         private boolean placeModeActive = false;
         
-        void tableDragStarted() {
+        public void tableDragStarted() {
             draggingTable = true;
             modifyCursorImage();
         }
         
-        void tableDragFinished() {
+        public void tableDragFinished() {
             draggingTable = false;
             modifyCursorImage();
         }
         
-        void dragAllModeStarted() {
+        public void dragAllModeStarted() {
             dragAllModeActive = true;
             modifyCursorImage();
         }
         
-        void dragAllModeFinished() {
+        public void dragAllModeFinished() {
             dragAllModeActive = false;
             modifyCursorImage();
         }
 
-        void placeModeStarted() {
+        public void placeModeStarted() {
             placeModeActive = true;
             modifyCursorImage();
         }
 
-        void placeModeFinished() {
+        public void placeModeFinished() {
             placeModeActive = false;
             modifyCursorImage();
         }
@@ -2725,6 +2725,10 @@ public class PlayPen extends JPanel
 
     public ArchitectSwingSession getSession() {
         return session;
+    }
+    
+    public CursorManager getCursorManager() {
+        return cursorManager;
     }
 
 }
