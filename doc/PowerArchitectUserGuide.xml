@@ -572,12 +572,12 @@
 
 			<para>
 				The pl.ini file stores the settings for database connections that you
-				set up (see JDBC Drivers on page 8). If you leave this
+				set up (see the JDBC Drivers section later in this chapter). If you leave this
 				location blank, the Architect program will prompt you to
 				use a default location when you start it up. If you have
 				a pl.ini file from other SQL Power applications you
 				should generally use the same file, because doing so will
-				save you from having to re-enter all your database
+				save you from having to re-enter all of your database
 				connection information. The next two settings are for log
 				files that will be written when you use the ETL and 
 				Forward Engineering functions of the application.
@@ -613,21 +613,17 @@
 
 		<section id="JDBC_Drivers">
 
-			<title>JDBC Drivers</title>
+			<title>Setting up the Architect for different database types</title>
 
 			<para>
-				Besides setting up these file locations, you must also
-				tell the Power*Architect about the JDBC drivers you wish
-				to use. JDBC Drivers are needed to access most
-				databases, and are distributed in "JAR file" format.
-				Click on the "JDBC Drivers" tab and click Add... to
-				specify the location of a JDBC driver jar file; if it is
-				valid, the system will list the names of any Driver
-				classes found in it, as shown below (note that "ojdbc"
-				stands for Oracle&apos;s JDBC driver, whereas "ODBC" is
-				Microsoft&apos;s technology for database access).
+			    The Power*Architect comes pre-configured to work with several database
+			    platforms out-of-the-box.  If you plan to use the Architect with
+			    Microsoft SQL Server 2000 or newer, any version of PostgreSQL, or
+			    any version of MySQL, you can safely skip this section.  However, if
+			    you plan to use the Architect with another type of database, you will
+			    have to do a bit more work.
 			</para>
-
+			
 			<para>
 				<inlinemediaobject>
 					<imageobject>
@@ -637,140 +633,203 @@
 					</imageobject>
 				</inlinemediaobject>
 			</para>
-<!-- I have reviewed and cleaned up to this point -JF -->
+			
 			<para>
-				Note: The tie-in between Drivers and Connections might
-				seem a bit indirect if you are not used to using Java
-				JDBC. In this section of the User Preferences you are
-				telling the Power*Architect where the drivers are so
-				that they can be used when nescessary.
-				[XXX: need an new item to explain new buttons on the left]
+				It is important to realize that this section describes the procedure
+				for defining the general rules for how to connect to any database server
+				of a particular type.  At this point, you are not defining a connection to
+				a specific database server.
 			</para>
-
+			
+			<para>
+			    The information about database types includes:
+			</para>
+			
 			<itemizedlist>
-				<listitem>
-					<para>
-						On the left, there is a list of drivers. By
-						clicking on an item in the list, you can edit
-						its properties in the text fields to the right.
-					</para>
-				</listitem>
-
-				<listitem>
-					<para>
-						The "Name" field is used to assign a name to the
-						item in the list. These names will also be used
-						to assign a type to a new connection that you
-						are defining.
-					</para>
-				</listitem>
-
-				<listitem>
-					<para>
-						The "Driver Class" field is the class name of
-						the driver.
-					</para>
-				</listitem>
-
-				<listitem>
-					<para>
-						The "Connection String Template" field is used
-						to define a URL template. The URL template is
-						used by the Power*Architect to create a URL that
-						is used to attempt a database connection. The
-						pattern that the string must conform to is not
-						trivial but is made up of two simpler parts,
-						literals and variables.
-					</para>
-
-					<para>
-						Literals are enterd like normal text but may not
-						contain angle brackets (&lt; or &gt;) because
-						they are reserved for defining variables.
-						As their name implies, literals appear in the
-						URL in the same position and way they appear in
-						the template.
-					</para>
-
-					<para>
-						Variables are used to make it easier for things
-						that change often to be changed, such as the
-						schema or datbase name you wish to connect to.
-						They are defined in the template by
-						&lt;variable_name
-						:default_value&gt;. Once a variable is defined
-						in the template, a field labeled with the
-						variable's name will appear below with the
-						default value in it just below the template as a
-						preview to what you will later be able to modify
-						in "Connection Properties".
-					</para>
-					
-					<para>
-						Note: Default values are often useful,
-						but are optional. If you do not want a
-						variable to have a default value, define
-						it as &lt;variable_name&gt;. The default
-						value for these variables is blank.
-					</para>
-
-					<para>
-						For example, if we wanted to connect to a
-						Microsoft SQL Server database, the URL template
-						might look like
-						"jdbc:sqlserver://&lt;Hostname&gt;:&lt;Port:1433&gt;".
-						The URL this template will output is
-						"jdbc:sqlserver://:1433" where the 1433 was a
-						default value. If we were to enter "localhost"
-						in the Hostname field, we would get the URL
-						"jdbc:sqlserver://localhost:1433". By defining
-						the "Hostname" variable, we make it easier and
-						quicker to connect to a generic SQL Server
-						instance. SQL Server databases listen to port
-						1433 by default but can be configured to listen
-						to others so, by giving the variable this
-						default, we can have the most common value
-						inserted automatically while allowing us to
-						modify what is in the field to change the port
-						in specific cases.
-					</para>
-				</listitem>
-
-				<listitem>
-					<para>
-						If you click on the "Kettle" tab, there will be
-						a drop-down menu where you can specify the type
-						of Kettle connection to associate with the
-						selected item. If you do not use Kettle, do not
-						worry about this setting because it is only
-						nescessary when you wish to create a Kettle job
-						for ETL.
-					</para>
-					<para>
-						<inlinemediaobject>
-							<imageobject>
-								<imagedata
-									fileref="doc/images/UserPref-Kettle.png" format="PNG"
-									width="4in" />
-							</imageobject>
-						</inlinemediaobject>
-					</para>
-				</listitem>
-
-				<listitem>
-					<para>
-						The "Add JAR..." and "Remove JAR" buttons are
-						used to point the Power*Architect to the actual
-						locations of the JAR files that contain the
-						proper JDBC Driver. Once, you select a JAR file,
-						if there is a valid driver in it, a file tree
-						will appear in the area below the buttons. This
-						is a representation of the JAR file and its JDBC
-						contents. Select the driver you wish to use and
-						click the "OK" button at the bottom.
-					</para>
-				</listitem>
+				<listitem><para>The name you want to give the database type (for instance, PostgreSQL or SQL Server)</para></listitem>
+				<listitem><para>Where to find the JDBC driver</para></listitem>
+				<listitem><para>Which driver class within the JDBC driver JAR file to use</para></listitem>
+				<listitem><para>The general format of a JDBC URL for this database type</para></listitem>
 			</itemizedlist>
+			
+			<para>
+			    If you need to configure a database type, there are two possibilites:
+			    First, if your database type is already present in the list of database
+			    types along the left-hand side of the dialog, you are in luck!  All you
+			    need to do is tell the Architect the location of the JDBC driver.  In that
+			    case, skip to the section <link linkend="set_jdbc_jar_location">Setting the JDBC
+			    Driver Location</link> below.  On the other hand, if your database platform
+			    is not listed on the left-hand side, you will need to define a new database
+			    type from scratch.
+			</para>
+			
+			<section id="define_new_dbtype">
+				<title>Defining a new Database Type</title>
+
+				<para>
+					Start by clicking the <command>+</command> button near the lower
+					left-hand corner of the dialog.  This will create a new, blank
+					entry in the list.  From here, you simply need to fill in the
+					fields as described below.
+				</para>
+
+				<itemizedlist>
+					<listitem>
+						<para>
+							The "Name" field is used to assign a name to
+							the item in the list. These names will also
+							be used to assign a type to a new connection
+							that you are defining.
+						</para>
+					</listitem>
+
+					<listitem>
+						<para>
+							The "Driver Class" field is the class name
+							of the driver. This class will be contained
+							within one of the JAR files you specified
+							for this location.
+						</para>
+					</listitem>
+
+					<listitem>
+						<para>
+							The "Connection String Template" field is
+							used to define a URL template. The URL
+							template is used by the Power*Architect to
+							create a URL that is used to attempt a
+							database connection. The pattern that the
+							string must conform to is not trivial but is
+							made up of two simpler parts, literals and
+							variables.
+						</para>
+
+						<para>
+							Literals are enterd like normal text but may
+							not contain angle brackets (&lt; or &gt;)
+							because they are reserved for defining
+							variables. As their name implies, literals
+							appear in the URL in the same position and
+							way they appear in the template.
+						</para>
+
+						<para>
+							Variables are used to make it easier for
+							things that change often to be changed, such
+							as the schema or datbase name you wish to
+							connect to. They are defined in the template
+							by &lt;variable_name :default_value&gt;.
+							Once a variable is defined in the template,
+							a field labeled with the variable's name
+							will appear below with the default value in
+							it just below the template as a preview to
+							what you will later be able to modify in
+							"Connection Properties".
+						</para>
+
+						<para>
+							Note: Default values are often useful, but
+							are optional. If you do not want a variable
+							to have a default value, define it as
+							&lt;variable_name&gt;. The default value for
+							these variables is blank.
+						</para>
+
+						<para>
+							For example, if we wanted to connect to a
+							Microsoft SQL Server database, the URL
+							template might look like
+							"jdbc:sqlserver://&lt;Hostname&gt;:&lt;Port:1433&gt;".
+							The URL this template will output is
+							"jdbc:sqlserver://:1433" where the 1433 was
+							a default value. If we were to enter
+							"localhost" in the Hostname field, we would
+							get the URL
+							"jdbc:sqlserver://localhost:1433". By
+							defining the "Hostname" variable, we make it
+							easier and quicker to connect to a generic
+							SQL Server instance. SQL Server databases
+							listen to port 1433 by default but can be
+							configured to listen to others so, by giving
+							the variable this default, we can have the
+							most common value inserted automatically
+							while allowing us to modify what is in the
+							field to change the port in specific cases.
+						</para>
+					</listitem>
+
+					<listitem>
+						<para>
+							If you click on the "Kettle" tab, there will
+							be a drop-down menu where you can specify
+							the type of Kettle connection to associate
+							with the selected item. If you do not use
+							Kettle, do not worry about this setting
+							because it is only nescessary when you wish
+							to create a Kettle ETL jobs.
+						</para>
+						<para>
+							<inlinemediaobject>
+								<imageobject>
+									<imagedata
+										fileref="doc/images/UserPref-Kettle.png" format="PNG"
+										width="4in" />
+								</imageobject>
+							</inlinemediaobject>
+						</para>
+					</listitem>
+				</itemizedlist>
+				
+				<para>
+				    You're almost done!  All that is left to do is tell the Architect
+				    where to find the JDBC driver for your database platform.
+				</para>
+			</section>
+			
+			<section id="set_jdbc_jar_location">
+				
+				<title>Locating the JDBC Driver</title>
+				
+				<para>
+					Whether you have just configured the Architect for a new database platform,
+					or you are using one of the pre-configured platforms, the last step in setting
+					up a database type is to locate the JAR file (or files) that contain the means
+					for connecting to your database platform.
+				</para>
+				
+				<para>
+					Nearly all database platforms we have encountered provide drivers that are
+					fully backward compatible, meaning that is is always best to use the newest
+					driver available regardless of the software version on the specific database
+					server you intend to connect to.  The Oracle database is one exception.  It is
+					important to match the major version number of your JDBC driver with the major
+					version number of the Oracle database server you connect to.  For example, if you
+					are connecting to an Oracle 10g database, use the latest Oracle 10g driver.  If
+					you are connecting to an Oracle 9i database, you have to use the Oracle 9i driver.
+					For this reason, the Architect comes pre-configured with three database types for
+					Oracle, representing the three major versions still in regular use.
+				</para>
+
+				<para>
+					Download the JDBC driver for your database platform from the database vendor.
+					Save this file (it will usually be one or more JAR files) in a safe and permanent
+					location so that you will not be tempted to relocate it later on.  For example,
+					your Desktop is not an ideal location.  A good strategy is to create a "JDBC" folder
+					under your Documents folder and collect all of you JDBC driver JAR files there.
+				</para>
+								
+				<para>
+					With the JDBC driver JAR file in a permanent location, click
+					the <command>Add JAR...</command> button.  Locate the JAR file
+					in the file chooser and open it. If there is a valid
+					driver class in it, a file tree will appear in the
+					area below the buttons. This is a
+					representation of the JAR file and the JDBC driver classes
+					it contains. Select the driver you wish to use
+					and click the "OK" button at the bottom.
+				</para>
+			</section>
+
 		</section>
 
 		<section id="example">
@@ -865,9 +924,7 @@
 						<para>
 							Double click on the title, and the Table
 							Properties Dialog will appear. Rename this
-							table to Customers, and the Primary Key to
-							Customers_PK.
-							[XXX: this is wrong, you can not enter pk name if there is no column in the table]
+							table to Customers.
 						</para>
 
 					</listitem>
@@ -1830,7 +1887,23 @@
 		</section>
 
 		<section id="undo_redo">
-			<title>XXX: need a section to explain the undo redo function</title>
+			<title>Undo and Redo</title>
+			
+			<para>
+				Like most modern application software, the Architect keeps track of
+				your actions and allows you to undo them at a later time.  Currently,
+				the 100 most recent actions you have performed in the Architect are
+				remembered and can be undone in sequence.  If you undo too far back,
+				you can redo any of the actions you have just undone.  Be careful,
+				however: After undoing one or more actions, once you make a new change,
+				your redo history will be lost.
+			</para>
+			
+			<para>
+				The undo and redo features can be accessed from the Edit menu, or by
+				their keyboard shortcuts of Control-Z and Control-Y respectively (on
+				Mac OS X, use the Command key instead of Control).
+			</para>
 		</section>
 		
 			
@@ -1843,10 +1916,13 @@
 				<title>What It Does</title>
 
 				<para>
-					This functions searches the whole playpen for any
-					relevant matches with the search constraints and
-					displays the resulting matches. The user can request
-					for those items to be focused on the screen [XXX: and replace].
+					This function searches the playpen for any
+					relevant matches within the search constraints and
+					displays the resulting matches. If matches are found,
+					you can have them selected in the playpen. This operation
+					will also scroll the playpen to ensure the selected item is
+					visible on the screen.  This is particularly useful with
+					large data models that do not fit on the screen all at once.
 				</para>
 
 				<mediaobject>
@@ -1886,107 +1962,6 @@
 				</mediaobject>
 			</section>
 
-		</section>
-
-		<section id="profiling">
-			<title>Profiling [XXX: put this section after sqlrunner to match menu order]</title>
-			<para>
-				<inlinemediaobject>
-					<imageobject>
-						<imagedata
-							fileref="src/icons/Table_profiled16.png" format="PNG"
-							width="0.25in" />
-					</imageobject>
-				</inlinemediaobject>
-				Profiling displays a summary of the data found in a
-				database. The summary can be used for such tasks as;
-				database optimization and data migration.
-
-				Select the columns and tables that you wish to profile
-				from the database tree on the left hand side of the
-				screen. Then activate the profile feature by either
-				going to the "Profile" menu and selecting "Profile...",
-				or by right clicking on a selected item and select
-				"Profile.." from the context menu, or by selecting the
-				Profile Icon in the Advanced Tool icon bar.
-
-				If there is still an existing Profile window, the new
-				profiling results will be added on to the existing
-				window, otherwise, the resulting profile will be
-				displayed in a new window.
-				
-				<mediaobject>
-					<imageobject>
-						<imagedata fileref="doc/images/table_profile.png"
-							format="PNG" width="4in" />
-					</imageobject>
-				</mediaobject>
-			</para>
-
-			<section id="profiling.tableView">
-				<title>Table View</title>
-				<para>
-					In the profiling window, the profiling information
-					is sortable. Simply click on the column header and
-					it will sort the data by ascending or decesending
-					order.
-
-					In addition, if you place your mouse pointer over a
-					most frequent cell, it will display the value and
-					frequency of the most recurring items in the column.
-
-					You can narrow down the results by using the search
-					bar on the top right corner of the profile window.
-
-					To delete columns from the profile result, simply
-					select the desired columns and press the "Delete"
-					button.
-
-					As for refreshing the data within the profile table,
-					select any one of the columns within the table and
-					hit "Refresh". This will update the contents of the
-					whole table.
-
-					If you wish the save the profile results, you can
-					highlight the desired columns to save, and click the
-					"Save" button. If no column is selected, the
-					Architect will save all the displayed results. You
-					have the option to save it in CVS, PDF or HTML
-					format.
-					
-				</para>
-				<mediaobject>
-					<imageobject>
-						<imagedata fileref="doc/images/profileTable.png"
-							format="PNG" width="4in" />
-					</imageobject>
-				</mediaobject>
-			</section>
-
-			<section id="profiling.graphView">
-				<title>Graph View</title>
-				<para>
-					Besides the tabular view, there is also the
-					graphical view. Simply click on "Graph View" tab on
-					the top to switch. On the left side of this window,
-					you can select which column you want to profile. In
-					the middle, it will show statistics about that
-					particular column. It will also display the most
-					frequent 'n' values and its frequency within the
-					table. The pie chart on the right displays the
-					portionality of the most frequent 'n' values in the
-					column (the value of 'n' can be set in the "Project
-					Settings" under the "File" menu).
-					
-				</para>
-				<mediaobject>
-					<imageobject>
-						<imagedata
-							fileref="doc/images/profilePieChart.png" format="PNG"
-							width="4in" />
-					</imageobject>
-				</mediaobject>
-			</section>
 		</section>
 
 		<section id="forward_engineer_and_compare_dm">
@@ -2263,22 +2238,23 @@
 
 		<section id="autolayout">
 
-			<title>Autolayout [XXX: put this section after sqlrunner to match menu order]</title>
+			<title>Auto-layout</title>
 
 			<section id="autolayout.what">
 
 				<title>What It Does</title>
 
 				<para>
-					It displays the selected tables (or all tables) in
-					an organized manner.
+					The auto-layout feature automatically rearranges the selected tables
+					(all tables if none are selected) in an organized manner.  It is also
+					fun to watch.
 				</para>
 
 			</section>
 
 			<section id="autolayout.how">
 
-				<title>How to Use Autolayout:</title>
+				<title>How to Use Auto-layout</title>
 
 				<para>
 					<inlinemediaobject>
@@ -2288,9 +2264,9 @@
 						</imageobject>
 					</inlinemediaobject>
 					Select the tables on the playpen that you want to
-					organize and hit the autolayout button at the top.
+					organize and hit the auto-layout button at the top.
 					If one or zero tables are selected, the program will
-					autolayout every table in the playpen. Note that the
+					auto-layout every table in the playpen. Note that the
 					layout algorithm may produce a few surprises when
 					run with a small number of tables; it works best for
 					a large or medium-sized collection of tables.
@@ -2351,8 +2327,6 @@
 					UPDATE SQL statements (just select the template you
 					want and click "Apply Template" and the template
 					will replace the current Input Statement.
-					
-					[XXX: need to explain the new button [table view] on the output area]
 				</para>
 
 				<mediaobject>
@@ -2366,7 +2340,7 @@
 					one of a half-dozen escape commands listed below,
 					or, anything that is valid input to your
 					database&apos;s command interface (e.g., programs
-					such as psql or SQL*Plus™).
+					such as psql or Oracle SQL*Plus™).
 				</para>
 
 				<table id="SQLRunner.escape_chars">
@@ -2486,17 +2460,19 @@
 
 				<para>
 					There are several output modes for the display of
-					SQL "select" results: text, SQL, HTML and XML
-					[XXX: and also the table mode]
-					(output from the escape commands are always
-					displayed as plain text). Text mode is the default,
+					SQL "select" results: text, SQL, HTML, XML, and Table.
+					Output from the escape commands are always
+					displayed as plain text. Text mode is the default,
 					and is primarily a raw display format. SQL output is
 					most useful with the output of a SELECT statement;
 					it will generate SQL that will attempt to re-create
 					the data in another database. HTML mode generates an
 					HTML table to display the results of a Select. XML
 					format is similar but may be used for exporting data
-					into other applications.
+					into other applications.  Finally, table mode provides
+					a friendlier interface which ensures all of the columns
+					are lined up properly.  In this mode, it is even possible
+					to rearrange the columns by dragging them!
 				</para>
 
 				<para>
@@ -2559,6 +2535,108 @@
 
 			</section>
 
+		</section>
+
+		<section id="profiling">
+			<title>Profiling</title>
+			<para>
+				<inlinemediaobject>
+					<imageobject>
+						<imagedata
+							fileref="src/icons/Table_profiled16.png" format="PNG"
+							width="0.25in" />
+					</imageobject>
+				</inlinemediaobject>
+				Profiling displays a summary of the data found in a
+				database. The summary can be used for such tasks as;
+				database optimization and data migration.
+
+				Select the columns and tables that you wish to profile
+				from the database tree on the left hand side of the
+				screen. Then activate the profile feature by either
+				going to the "Profile" menu and selecting "Profile...",
+				or by right clicking on a selected item and select
+				"Profile.." from the context menu, or by selecting the
+				Profile Icon in the Advanced Tool icon bar.
+
+				If there is still an existing Profile window, the new
+				profiling results will be added on to the existing
+				window, otherwise, the resulting profile will be
+				displayed in a new window.
+				
+			</para>
+			
+			<mediaobject>
+				<imageobject>
+					<imagedata fileref="doc/images/table_profile.png"
+						format="PNG" width="4in" />
+				</imageobject>
+			</mediaobject>
+
+			<section id="profiling.tableView">
+				<title>Table View</title>
+				<para>
+					In the profiling window, the profiling information
+					is sortable. Simply click on the column header and
+					it will sort the data by ascending or decesending
+					order.
+
+					In addition, if you place your mouse pointer over a
+					most frequent cell, it will display the value and
+					frequency of the most recurring items in the column.
+
+					You can narrow down the results by using the search
+					bar on the top right corner of the profile window.
+
+					To delete columns from the profile result, simply
+					select the desired columns and press the "Delete"
+					button.
+
+					As for refreshing the data within the profile table,
+					select any one of the columns within the table and
+					hit "Refresh". This will update the contents of the
+					whole table.
+
+					If you wish the save the profile results, you can
+					highlight the desired columns to save, and click the
+					"Save" button. If no column is selected, the
+					Architect will save all the displayed results. You
+					have the option to save it in CVS, PDF or HTML
+					format.
+					
+				</para>
+				<mediaobject>
+					<imageobject>
+						<imagedata fileref="doc/images/profileTable.png"
+							format="PNG" width="4in" />
+					</imageobject>
+				</mediaobject>
+			</section>
+
+			<section id="profiling.graphView">
+				<title>Graph View</title>
+				<para>
+					Besides the tabular view, there is also the
+					graphical view. Simply click on "Graph View" tab on
+					the top to switch. On the left side of this window,
+					you can select which column you want to profile. In
+					the middle, it will show statistics about that
+					particular column. It will also display the most
+					frequent 'n' values and its frequency within the
+					table. The pie chart on the right displays the
+					portionality of the most frequent 'n' values in the
+					column (the value of 'n' can be set in the "Project
+					Settings" under the "File" menu).
+					
+				</para>
+				<mediaobject>
+					<imageobject>
+						<imagedata
+							fileref="doc/images/profilePieChart.png" format="PNG"
+							width="4in" />
+					</imageobject>
+				</mediaobject>
+			</section>
 		</section>
 
 		<section id="creating_a_kettle_job">
@@ -3187,6 +3265,24 @@
 	<chapter id="acknowledgements">
 		<title>Acknowledgements</title>
 
+		<section id="silk-icons">
+			<title>The FAMFAMFAM Silk Icon Set</title>
+			
+			<para>
+				The Power*Architect development team is grateful to Mark James
+				for the beautiful Silk icon set which is used extensively
+				throughout the Architect's user interface.
+			</para>
+			
+			<para>
+				The Silk icons are freely available under the
+				<ulink url="http://creativecommons.org/licenses/by/2.5/">Creative Commons Attribution 2.5 License</ulink>.
+				If you want to use these icons in your own work (and
+				why wouldn't you?), you can obtain the full set from 
+				<ulink url="http://www.famfamfam.com/lab/icons/silk/">the FAMFAMFAM web site</ulink>.
+			</para>
+		</section>
+		
 		<section id="ASF">
 			<title>The Apache Software Foundation</title>
 			<para>
