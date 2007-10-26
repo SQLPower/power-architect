@@ -88,22 +88,26 @@ import ca.sqlpower.swingui.SPSUtils;
 public class ProfileManagerView extends JPanel implements ProfileChangeListener {
     
     private static Logger logger = Logger.getLogger(ProfileManagerView.class);
-
-	ProfileManager pm;
+    
     /**
      * The number of rows we'd like the list to show by default
      */
-	final static int VISIBLE_ROWS = 8;
+    private final static int VISIBLE_ROWS = 8;
 
-    final ResultListPanel resultListPanel;
+    /**
+     * The profile manager this view is attached to.
+     */
+	private final ProfileManager pm;
 
-    final JScrollPane scrollPane;
+    private final ResultListPanel resultListPanel;
 
-    final JLabel statusText;
+    private final JScrollPane scrollPane;
 
-    final JTextField searchText;
+    private final JLabel statusText;
+
+    private final JTextField searchText;
     
-    final PageListener pageListener;
+    private final PageListener pageListener;
     
     /**
      * This is the sort order to show the profile results in. It will change
@@ -317,6 +321,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         resultListPanel.setLayout(new GridLayout(0, 1));
 
         // populate this panel with MyRowComponents
+        logger.debug("Populating profile manager view from profile manager " + System.identityHashCode(pm));
         for (TableProfileResult result : pm.getResults()) {
             ProfileRowComponent myRowComponent = new ProfileRowComponent(result, pm);
             list.add(myRowComponent);
