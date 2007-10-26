@@ -94,7 +94,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 	public void setUp() throws Exception {
         context = new TestingArchitectSwingSessionContext();
         session = context.createSession(false);
-		project = new SwingUIProject(session); // shouldn't this be session.getProject()?
+        project = session.getProject();
         plIni = new PlDotIni();
         // TODO add some database types and a test that loading the project finds them
 	}
