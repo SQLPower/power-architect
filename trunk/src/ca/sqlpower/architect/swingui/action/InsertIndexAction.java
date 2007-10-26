@@ -31,19 +31,16 @@
  */
 package ca.sqlpower.architect.swingui.action;
 
-import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
-import ca.sqlpower.architect.swingui.IndexEditPanel;
 import ca.sqlpower.architect.swingui.TablePane;
-import ca.sqlpower.swingui.DataEntryPanelBuilder;
 
 public class InsertIndexAction extends AbstractTableTargetedAction {
 
@@ -78,15 +75,15 @@ public class InsertIndexAction extends AbstractTableTargetedAction {
     }
     
     private void makeDialog(SQLTable parent) throws ArchitectException {
-        final JDialog d;
-        SQLIndex index = new SQLIndex();
-        final IndexEditPanel editPanel = new IndexEditPanel(index, parent, session);
-  
-        d = DataEntryPanelBuilder.createDataEntryPanelDialog(
-                editPanel, frame,
-                "Index Properties", "OK");
-        d.pack();
-        d.setLocationRelativeTo(frame);
-        d.setVisible(true);
+        
+        // This feature has been disabled because it needs a lot of
+        // work so that it (a) makes sense, and (b) doesn't put your
+        // project in a state where it can't be reopened after saving.
+        
+        // (check the revision history for the old implementation)
+        
+        JOptionPane.showMessageDialog(session.getArchitectFrame(),
+                "Index editing support will be available in\n" +
+                "an upcoming release of the Power*Architect.");
     }
 }
