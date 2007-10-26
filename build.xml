@@ -149,20 +149,20 @@
 		1) Download "Clover for Ant" from Cenqua at 
 				http://www.cenqua.com/download.jspa
 		2) Extract Clover to any directory you wish
-			(NOTE: There is a directory set aside for Clover
-				it is ext-tools-home/clover)
-		3) Obtain a liscense file from Cenqua and
+			(NOTE: There is a directory set aside for Clover:
+				   ext-tools-home/clover)
+		3) Obtain a license file from Cenqua and
 				place it in the (CLOVER_HOME)/lib
 				directory with the clover.jar file
 		4) Add the clover.jar file to the classpath
-			for the ant build
+			    for the ant build
 			
-		To generate an HTML report run the clover.report
+		To generate an HTML report, run the clover.report
 		target.
 		
-		Reports are sent to the reports directory but you can 
+		Reports are sent to the reports directory, but you can 
 		choose your own directory by changing the 'outfile' 
-		attribute of the 'current' tage in the clover.html 
+		attribute of the 'current' tag in the clover.html 
 		target.-->
 	<target name="with.clover" description="Activates Clover">
 	    <clover-setup initString="mycoverage.db" source="1.5"
