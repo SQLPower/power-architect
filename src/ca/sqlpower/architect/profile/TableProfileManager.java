@@ -210,8 +210,10 @@ public class TableProfileManager implements ProfileManager {
      * into this profile manager as it is reading in a project file.  It is
      * not appropriate to use otherwise.
      * <p>
-     * This method does not fire any events, beause it is only intended to be used
-     * while the project is still being loaded from a file.
+     * This method fires an event every time it adds a table profile result, because
+     * not doing so makes it necessary to create the profile manager view after
+     * loading in the profile results, and it is impossible to guarantee that policy
+     * from here.
      * <p>
      * The idea is, the SwingUIProject stores all profile results in a flat space
      * (table and column results are sibling elements) so it needs our help to
@@ -230,6 +232,7 @@ public class TableProfileManager implements ProfileManager {
         if (pr instanceof TableProfileResult) {
             TableProfileResult tpr = (TableProfileResult) pr;
             results.add(tpr);
+            fireProfileAdded(tpr);
         }
         // the column results will get added to the table result by
         // the project's profile result factory class
