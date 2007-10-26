@@ -134,11 +134,8 @@
 	 	<mkdir dir="${reports}"/>
 	</target>
 	
-	<!-- The routine tests that work can get listed here.
-	*** Right now findbugs runs out of memory
-	-->
-	<target name="alltests" depends="junit,pmd"
-		description="Runs all working test targets"
+	<target name="alltests" depends="junit,pmd,findbugs"
+		description="Runs all testing and checking targets"
 	/>
 
 	<!-- A target to configure the Clover environment. This
