@@ -32,7 +32,13 @@
 package ca.sqlpower.architect;
 
 /**
- * It is extremly important that this class has no dependancies outside of the standard java libraries.
+ * The ArchitectVersion class exists as a means of finding out which
+ * version of the Architect application you are dealing with.  It is
+ * also used during the build process in order to determine which version
+ * number to put in the archive file names.
+ * <p>
+ * It is extremely important that this class has no dependancies aside
+ * from the standard Java libraries.
  */
 public class ArchitectVersion {
     
