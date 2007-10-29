@@ -44,10 +44,85 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+/**
+ * The SQLRelationship class represents a foriegn key relationship between
+ * two SQLTable objects or two groups of columns within the same table.
+ */
 public class SQLRelationship extends SQLObject implements java.io.Serializable {
 
 	private static Logger logger = Logger.getLogger(SQLRelationship.class);
 
+    /**
+     * The enumeration of all referential integrity constraint checking
+     * policies.
+     */
+    public static enum Deferrability {
+        
+        /**
+         * Indicates the constrain is deferrable, and checking is deferred by
+         * default unless the current transaction has been set for immediate
+         * constraint checking.
+         */
+        INITIALLY_DEFERRED(5),
+        
+        /**
+         * Indicates the constrain is deferrable, and checking is performed
+         * immediately unless the current transaction has been set for deferred
+         * constraint checking.
+         */
+        INITIALLY_IMMEDIATE(6),
+        
+        /**
+         * Indicates that the checking for this constraint must always be immediate
+         * regardless of the current transaction setting.
+         */
+        NOT_DEFERRABLE(7);
+        
+        /**
+         * The JDBC code number for this deferrability policy.
+         */
+        private final int code;
+        
+        private Deferrability(int code) {
+            this.code = code;
+        }
+        
+        /**
+         * Returns the enumeration value associated with the given code number.
+         * The code numbers are defined in the JDBC specification.
+         * 
+         * @throws IllegalArgumentException if the given code number is not valid.
+         */
+        public static Deferrability ruleForCode(int code) {
+            for (Deferrability d : values()) {
+                if (d.code == code) return d;
+            }
+            throw new IllegalArgumentException("No such deferrability code " + code);
+        }
+        
+        /**
+         * Returns the enumeration value associated with the given code number,
+         * or the given default value if the given code number is not valid.
+         * This method exists mainly for backward compatibility with old projects
+         * where all the deferrability rules were defaulted to 0, which is an
+         * invalid code.  New code should normally be written to use {@link #ruleForCode(int)},
+         * which throws an exception when asked for an invalid code.
+         */
+        public static Deferrability ruleForCode(int code, Deferrability defaultValue) {
+            for (Deferrability d : values()) {
+                if (d.code == code) return d;
+            }
+            return defaultValue;
+        }
+        
+        /**
+         * Returns the JDBC code number for this deferrability rule.
+         */
+        public int getCode() {
+            return code;
+        }
+    }
+    
 	public static final int ZERO = 1;
 	public static final int ONE = 2;
 	public static final int MANY = 4;
@@ -59,7 +134,12 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 
 	protected int updateRule;
 	protected int deleteRule;
-	protected int deferrability;
+    
+    /**
+     * The deferrability rule for constraint checking on this relationship.
+     * Defaults to NOT_DEFERRABLE.
+     */
+	protected Deferrability deferrability = Deferrability.NOT_DEFERRABLE;
 
 	protected int pkCardinality;
 	protected int fkCardinality;
@@ -318,7 +398,13 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 				r.updateRule = rs.getInt(10);
 				r.deleteRule = rs.getInt(11);
 				r.setName(rs.getString(12));
-				r.deferrability = rs.getInt(14);
+                try {
+                    r.deferrability = Deferrability.ruleForCode(rs.getInt(14));
+                } catch (IllegalArgumentException ex) {
+                    logger.warn("Invalid code when reverse engineering" +
+                            " relationship. Defaulting to NOT_DEFERRABLE.", ex);
+                    r.deferrability = Deferrability.NOT_DEFERRABLE;
+                }
 				// FIXME: need to determine if the column is identifying or non-identifying!
 			}
 
@@ -812,22 +898,15 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		fireDbObjectChanged("deleteRule",oldDeleteRule,argDeleteRule);
 	}
 
-	/**
-	 * Gets the value of deferrability
-	 *
-	 * @return the value of deferrability
-	 */
-	public int getDeferrability()  {
+	public Deferrability getDeferrability()  {
 		return this.deferrability;
 	}
 
-	/**
-	 * Sets the value of deferrability
-	 *
-	 * @param argDeferrability Value to assign to this.deferrability
-	 */
-	public void setDeferrability(int argDeferrability) {
-		int oldDefferability = this.deferrability;
+	public void setDeferrability(Deferrability argDeferrability) {
+        if (argDeferrability == null) {
+            throw new NullPointerException("Deferrability policy must not be null");
+        }
+        Deferrability oldDefferability = this.deferrability;
 		this.deferrability = argDeferrability;
 		fireDbObjectChanged("deferrability",oldDefferability,argDeferrability);
 	}

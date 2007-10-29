@@ -181,6 +181,12 @@ public abstract class SQLTestCase extends ArchitectTestCase {
                 newVal = IndexType.STATISTIC;
             } else if ( property.getPropertyType() == SQLIndex.class){
                 newVal = new SQLIndex();
+            } else if ( property.getPropertyType() == SQLRelationship.Deferrability.class){
+                if (oldVal == SQLRelationship.Deferrability.INITIALLY_DEFERRED) {
+                    newVal = SQLRelationship.Deferrability.NOT_DEFERRABLE;
+                } else {
+                    newVal = SQLRelationship.Deferrability.INITIALLY_DEFERRED;
+                }
             } else {
 				throw new RuntimeException("This test case lacks a value for "+
 						property.getName()+
@@ -295,7 +301,13 @@ public abstract class SQLTestCase extends ArchitectTestCase {
                 newVal = new SQLIndex();
 			} else if ( property.getPropertyType() == IndexType.class){
                 newVal = IndexType.STATISTIC;
-    
+            } else if ( property.getPropertyType() == SQLRelationship.Deferrability.class){
+                if (oldVal == SQLRelationship.Deferrability.INITIALLY_DEFERRED) {
+                    newVal = SQLRelationship.Deferrability.NOT_DEFERRABLE;
+                } else {
+                    newVal = SQLRelationship.Deferrability.INITIALLY_DEFERRED;
+                }
+
             } else {
 				throw new RuntimeException("This test case lacks a value for "+
 						property.getName()+
