@@ -56,26 +56,26 @@ public class RelationshipEditPanel extends JPanel
 
 	private static final Logger logger = Logger.getLogger(RelationshipEditPanel.class);
 
-	protected SQLRelationship relationship;
+	private SQLRelationship relationship;
 
-	protected JTextField relationshipName;
+	private JTextField relationshipName;
 
-	protected ButtonGroup identifyingGroup;
-	protected JRadioButton identifyingButton;
-	protected JRadioButton nonIdentifyingButton;
+	private ButtonGroup identifyingGroup;
+	private JRadioButton identifyingButton;
+	private JRadioButton nonIdentifyingButton;
 
-	protected JLabel pkTableName;
-	protected ButtonGroup pkTypeGroup;
-	protected JRadioButton pkTypeZeroToMany;
-	protected JRadioButton pkTypeOneToMany;
-	protected JRadioButton pkTypeZeroOne;
-	protected JRadioButton pkTypeOne;
+	private JLabel pkTableName;
+	private ButtonGroup pkTypeGroup;
+	private JRadioButton pkTypeZeroToMany;
+	private JRadioButton pkTypeOneToMany;
+	private JRadioButton pkTypeZeroOne;
+	private JRadioButton pkTypeOne;
 
-	protected JLabel fkTableName;
-	protected ButtonGroup fkTypeGroup;
-	protected JRadioButton fkTypeZeroToMany;
-	protected JRadioButton fkTypeOneToMany;
-	protected JRadioButton fkTypeZeroOne;
+	private JLabel fkTableName;
+	private ButtonGroup fkTypeGroup;
+	private JRadioButton fkTypeZeroToMany;
+	private JRadioButton fkTypeOneToMany;
+	private JRadioButton fkTypeZeroOne;
 
 	public RelationshipEditPanel(ArchitectSwingSession session) {
 		super(new BorderLayout());
@@ -206,7 +206,7 @@ public class RelationshipEditPanel extends JPanel
 	 * The list of SQLObject property change event listeners
 	 * used for undo
 	 */
-	protected LinkedList<UndoCompoundEventListener> undoEventListeners = new LinkedList<UndoCompoundEventListener>();
+	private LinkedList<UndoCompoundEventListener> undoEventListeners = new LinkedList<UndoCompoundEventListener>();
 
 	
 	public void addUndoEventListener(UndoCompoundEventListener l) {
@@ -217,7 +217,7 @@ public class RelationshipEditPanel extends JPanel
 		undoEventListeners.remove(l);
 	}
 	
-	protected void fireUndoCompoundEvent(UndoCompoundEvent e) {
+	private void fireUndoCompoundEvent(UndoCompoundEvent e) {
 		Iterator it = undoEventListeners.iterator();
 		
 		
