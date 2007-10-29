@@ -53,6 +53,7 @@ import javax.swing.JOptionPane;
 import javax.swing.ProgressMonitor;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.digester.AbstractObjectCreationFactory;
 import org.apache.commons.digester.Digester;
 import org.apache.log4j.Logger;
@@ -73,6 +74,7 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLIndex.Column;
+import ca.sqlpower.architect.SQLRelationship.Deferrability;
 import ca.sqlpower.architect.SQLTable.Folder;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
@@ -99,6 +101,15 @@ import ca.sqlpower.xml.XMLHelper;
  * read older (release 1.0.19 or later) project files will get Airzooka'ed.
  */
 public class SwingUIProject {
+    
+    /*
+     * Any Jakarta Commons BeanUtils converters needed by the Digester should
+     * be registered here.  This guarantees they will be registered before
+     * they're needed, and that they won't be registered more than once.
+     */
+    static {
+        ConvertUtils.register(new DeferrabilityConverter(), Deferrability.class);
+    }
     
     /**
      * The constant value within the project file representing a playpen whose
@@ -679,6 +690,12 @@ public class SwingUIProject {
                 logger.warn("No ID found in relationship element while loading project!");
             }
 
+            // Try to set the deferrability. Old projects will use the value 0, which was the
+            // old default.  0 is now an invalid code, and the new default is NOT_DEFERRABLE.
+            String deferrability = attributes.getValue("deferrability");
+            int defCode = Integer.parseInt(deferrability);
+            rel.setDeferrability(Deferrability.ruleForCode(defCode, Deferrability.NOT_DEFERRABLE));
+            
             String fkTableId = attributes.getValue("fk-table-ref");
             String pkTableId = attributes.getValue("pk-table-ref");
 
@@ -1474,7 +1491,7 @@ public class SwingUIProject {
             propNames.put("fk-table-ref", objectIdMap.get(((SQLRelationship) o).getFkTable()));
             propNames.put("updateRule", new Integer(((SQLRelationship) o).getUpdateRule()));
             propNames.put("deleteRule", new Integer(((SQLRelationship) o).getDeleteRule()));
-            propNames.put("deferrability", new Integer(((SQLRelationship) o).getDeferrability()));
+            propNames.put("deferrability", new Integer(((SQLRelationship) o).getDeferrability().getCode()));
             propNames.put("pkCardinality", new Integer(((SQLRelationship) o).getPkCardinality()));
             propNames.put("fkCardinality", new Integer(((SQLRelationship) o).getFkCardinality()));
             propNames.put("identifying", new Boolean(((SQLRelationship) o).isIdentifying()));
