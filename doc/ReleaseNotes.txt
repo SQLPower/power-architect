@@ -10,6 +10,10 @@ IMPORTANT NOTE to users upgrading from pre-0.9.x versions of the Architect:
  of the Architect.  We apologize for the inconvenience, but the benefits will
  outweigh the costs!
 
+0.9.9
+*Added the ability to choose the constraint checking deferrability policy
+ on foreign key relationships.
+
 0.9.8
 *Fixed a bug where re-profiling a cancelled profile would freeze the GUI until
  the profiling was finished.
