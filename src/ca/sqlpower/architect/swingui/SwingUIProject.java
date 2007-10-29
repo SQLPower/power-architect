@@ -689,12 +689,6 @@ public class SwingUIProject {
             } else {
                 logger.warn("No ID found in relationship element while loading project!");
             }
-
-            // Try to set the deferrability. Old projects will use the value 0, which was the
-            // old default.  0 is now an invalid code, and the new default is NOT_DEFERRABLE.
-            String deferrability = attributes.getValue("deferrability");
-            int defCode = Integer.parseInt(deferrability);
-            rel.setDeferrability(Deferrability.ruleForCode(defCode, Deferrability.NOT_DEFERRABLE));
             
             String fkTableId = attributes.getValue("fk-table-ref");
             String pkTableId = attributes.getValue("pk-table-ref");
