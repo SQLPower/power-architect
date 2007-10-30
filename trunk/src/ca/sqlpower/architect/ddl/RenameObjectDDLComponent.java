@@ -78,12 +78,14 @@ public class RenameObjectDDLComponent extends GenericDDLWarningComponent {
         component = new JPanel();        
         component.add(getQuickFixButton());                 // XXX anti-pattern
         component.add(new JLabel(warning.getMessage()));
-        component.add(new JLabel(" Rename component to: "));
-        List<SQLObject> list = warning.getInvolvedObjects();
-        for (SQLObject obj : list) {
-            JTextField jtf = new JTextField(obj.getName());
-            component.add(jtf);
-            textFields.add(jtf);
+        if (warning.getQuickFixPropertyName() != null) {
+            component.add(new JLabel(" Change " + warning.getQuickFixPropertyName() + ": "));
+            List<SQLObject> list = warning.getInvolvedObjects();
+            for (SQLObject obj : list) {
+                JTextField jtf = new JTextField(obj.getName());
+                component.add(jtf);
+                textFields.add(jtf);
+            }
         }
     }
 

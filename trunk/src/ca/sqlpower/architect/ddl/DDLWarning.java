@@ -70,4 +70,13 @@ public interface DDLWarning {
     /** If isQuickFixable(), then this applies the quick fix */
     public boolean quickFix();
 
+    /**
+     * Returns the name of the Beans property of the involved object(s) that
+     * can be modified to fix the problem.  For example, if the warning is
+     * about a duplicate or illegal name, this method would return "name".
+     * If the warning is about an illegal type, this method would return "type".
+     * If the warning does not pertain to a problem that can be fixed by
+     * fiddling with a particular property value, this method will return null.
+     */
+    public String getQuickFixPropertyName();
 }
