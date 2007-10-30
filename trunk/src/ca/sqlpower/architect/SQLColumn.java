@@ -95,7 +95,24 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	protected String remarks ="";
 	protected String defaultValue;
 	protected Integer primaryKeySeq;
+    
+    /**
+     * This property indicates that values stored in this column should
+     * default to some automatcially-incrementing sequence of values.  Every
+     * database platform handles the specifics of this a little differently,
+     * but the DDL generators are responsible for taking care of that.
+     */
 	protected boolean autoIncrement;
+    
+    /**
+     * This property is a hint to the DDL generators to tell them what name
+     * to give to the database sequence that generates values for this column.
+     * Not all platforms need (or support) sequences, so setting this value
+     * doesn't guarantee it will be used.  If the value of this field is left
+     * null, the getter method will auto-generate a sequence name based on
+     * the table and column names.
+     */
+    private String autoIncrementSequenceName;
 
 	// *** REMEMBER *** update the copyProperties method if you add new properties!
 
@@ -240,6 +257,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 		target.defaultValue = source.defaultValue;
 		target.primaryKeySeq = source.primaryKeySeq;
 		target.autoIncrement = source.autoIncrement;
+        target.autoIncrementSequenceName = source.autoIncrementSequenceName;
 	}
 
 	/**
@@ -653,7 +671,47 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	    this.autoIncrement = argAutoIncrement;
 	    fireDbObjectChanged("autoIncrement",oldAutoIncrement,argAutoIncrement);
 	}
+    
+    /**
+     * Returns the auto-increment sequence name, or a made-up
+     * default (<code><i>parentTableName</i>_<i>columnName</i>_seq</code>) if the sequence name
+     * has not been set explicitly.  The auto-increment sequence
+     * name is a hint to DDL generators for platforms that need
+     * sequence objects to support auto-incrementing column values.
+     */
+    public String getAutoIncrementSequenceName() {
+        if (autoIncrementSequenceName == null) {
+            String tableName = getParentTable() == null ? "" : getParentTable().getName() + "_";
+            return tableName + getName() + "_seq";
+        } else {
+            return autoIncrementSequenceName;
+        }
+    }
+    
+    /**
+     * Only sets the name if it is different from the default name.  This is important
+     * in case the table name changes; the name should be expected to update.
+     */
+    public void setAutoIncrementSequenceName(String autoIncrementSequenceName) {
 
+        // have to use getter because it produces the default value
+        String oldName = getAutoIncrementSequenceName();
+        
+        if (!oldName.equals(autoIncrementSequenceName)) {
+            this.autoIncrementSequenceName = autoIncrementSequenceName;
+            fireDbObjectChanged("autoIncrementSequenceName", oldName, autoIncrementSequenceName);
+        }
+    }
+
+    /**
+     * Returns true if the auto-increment sequence name of this column has
+     * been changed from its default value.  Code that loads and saves this
+     * SQLColumn will want to know if the value is a default or not.
+     */
+    public boolean isAutoIncrementSequenceNameSet() {
+        return autoIncrementSequenceName != null;
+    }
+    
 	/**
 	 * This comparator helps you sort a list of columns so that the
 	 * primary key columns come first in their correct order, and all

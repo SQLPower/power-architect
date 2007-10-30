@@ -1478,6 +1478,9 @@ public class SwingUIProject {
             propNames.put("primaryKeySeq", ((SQLColumn) o).getPrimaryKeySeq());
             propNames.put("autoIncrement", new Boolean(((SQLColumn) o).isAutoIncrement()));
             propNames.put("referenceCount", new Integer(((SQLColumn)o).getReferenceCount()));
+            if (((SQLColumn) o).isAutoIncrementSequenceNameSet()) {
+                propNames.put("autoIncrementSequenceName", ((SQLColumn) o).getAutoIncrementSequenceName());
+            }
         } else if (o instanceof SQLRelationship) {
             id = "REL"+objectIdMap.size();
             type = "relationship";

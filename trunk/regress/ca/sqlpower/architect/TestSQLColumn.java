@@ -311,14 +311,15 @@ public class TestSQLColumn extends SQLTestCase {
 	
 	public void testGetDerivedInstance() throws Exception {
 		SQLColumn origCol = table1pk.getColumn(0);
+        origCol.setAutoIncrementSequenceName("custom_sequence_name");  // supress auto-generate behaviour
 		SQLColumn derivCol = SQLColumn.getDerivedInstance(origCol, table3pk);
 		
-		// These should be the only two differences between origCol and derivCol
+		// These should be the only differences between origCol and derivCol
 		assertEquals(table3pk, derivCol.getParentTable());
 		assertEquals(origCol, derivCol.getSourceColumn());
 		assertEquals("NUMERIC", derivCol.getSourceDataTypeName());
-		
-		Map origProps = BeanUtils.describe(origCol);
+
+        Map origProps = BeanUtils.describe(origCol);
 		Map derivProps = BeanUtils.describe(derivCol);
 		
 		derivProps.remove("parentTable");
@@ -686,6 +687,7 @@ public class TestSQLColumn extends SQLTestCase {
 	 */
 	public void testCopyConstructor() throws Exception {
 		SQLColumn cowCol = table1pk.getColumn(0);
+        cowCol.setAutoIncrementSequenceName("custom_sequence_name"); // supress auto-generate behaviour
 		SQLColumn tmpCol = new SQLColumn(cowCol);
 		
 		Set<String> propsToIgnore = new HashSet<String>();
@@ -1068,5 +1070,22 @@ public class TestSQLColumn extends SQLTestCase {
 		assertEquals("name",test2.getLastEventName());
 	}
 
+    public void testAutoGenerateSequenceNameWithParentTable() throws Exception {
+        SQLColumn col = table1pk.getColumn(0);
+        
+        assertEquals(table1pk.getName()+"_"+col.getName()+"_seq", col.getAutoIncrementSequenceName());
+    }
 
+    public void testAutoGenerateSequenceNameNoParentTable() throws Exception {
+        SQLColumn col = table1pk.getColumn(0);
+        table1pk.removeColumn(0);
+        
+        assertEquals(col.getName()+"_seq", col.getAutoIncrementSequenceName());
+    }
+    
+    public void testAutoIncrementSequenceNameNoStickyDefault() throws Exception {
+        SQLColumn col = table1pk.getColumn(0);
+        col.setAutoIncrementSequenceName(col.getAutoIncrementSequenceName());
+        assertFalse(col.isAutoIncrementSequenceNameSet());
+    }
 }
