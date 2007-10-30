@@ -58,6 +58,7 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLIndex.IndexType;
 import ca.sqlpower.architect.SQLRelationship.ColumnMapping;
+import ca.sqlpower.architect.SQLRelationship.Deferrability;
 import ca.sqlpower.architect.profile.ProfileFunctionDescriptor;
 
 public class GenericDDLGenerator implements DDLGenerator {
@@ -305,13 +306,18 @@ public class GenericDDLGenerator implements DDLGenerator {
 		endStatement(DDLStatement.StatementType.DROP, r);
 	}
 
+    /**
+     * Adds a statement for creating the given foreign key relationship in
+     * the target database.  Depends on the {@link #getDeferrabilityClause(SQLRelationship)}
+     * method for the target database's way of describing the deferrability policy.
+     */
 	public void addRelationship(SQLRelationship r) {
 
-		print("\n ALTER TABLE ");
+		print("\nALTER TABLE ");
 		print( toQualifiedName(r.getFkTable()) );
 		print(" ADD CONSTRAINT ");
-		print(r.getName());
-		print(" FOREIGN KEY ( ");
+		println(r.getName());
+		print("FOREIGN KEY (");
 		Map<String, SQLObject> colNameMap = new HashMap<String, SQLObject> ();
 		boolean firstColumn = true;
 
@@ -328,9 +334,11 @@ public class GenericDDLGenerator implements DDLGenerator {
 				colNameMap.put(c.getName(), c);
 			}
 		}
-		print(" ) REFERENCES ");
-		print( toQualifiedName(r.getPkTable()) );
-		print(" ( ");
+		println(")");
+        
+        print("REFERENCES ");
+		print(toQualifiedName(r.getPkTable()));
+		print(" (");
 		colNameMap.clear();
 		firstColumn = true;
 
@@ -349,11 +357,34 @@ public class GenericDDLGenerator implements DDLGenerator {
 			}
 		}
 
-		print(" )");
+		println(")");
+        
+        print(getDeferrabilityClause(r));
+        
 		endStatement(DDLStatement.StatementType.CREATE, r);
 
 	}
 
+    /**
+     * Returns the correct syntax for setting the deferrability of a foreign
+     * key relationship on this DDL Generator's target platform.
+     * 
+     * @param r The relationship the deferrability clause is for
+     * @return The SQL clause for declaring the deferrability policy
+     * in r.
+     */
+    public String getDeferrabilityClause(SQLRelationship r) {
+        if (r.getDeferrability() == Deferrability.NOT_DEFERRABLE) {
+            return "NOT DEFERRABLE";
+        } else if (r.getDeferrability() == Deferrability.INITIALLY_DEFERRED) {
+            return "DEFERRABLE INITIALLY DEFERRED";
+        } else if (r.getDeferrability() == Deferrability.INITIALLY_IMMEDIATE) {
+            return "DEFERRABLE INITIALLY IMMEDIATE";
+        } else {
+            throw new IllegalArgumentException("Unknown deferrability policy: " + r.getDeferrability());
+        }
+    }
+    
 	public void addColumn(SQLColumn c) {
 		Map colNameMap = new HashMap();
 		print("\n ALTER TABLE ");
@@ -560,44 +591,14 @@ public class GenericDDLGenerator implements DDLGenerator {
 		}
 	}
 
+    /**
+     * Adds statements for creating every exported key in the given table.
+     */
 	protected void writeExportedRelationships(SQLTable t) throws ArchitectException {
 		Iterator it = t.getExportedKeys().iterator();
 		while (it.hasNext()) {
 			SQLRelationship rel = (SQLRelationship) it.next();
-			// geneate a physical name for this relationship
-			createPhysicalName(topLevelNames,rel);
-			println("");
-			print("ALTER TABLE ");
-			// this works because all the tables have had their physical names generated already...
-			print( toQualifiedName(rel.getFkTable()) );
-
-			print(" ADD CONSTRAINT ");
-			print(rel.getPhysicalName());
-			println("");
-			print("FOREIGN KEY (");
-			StringBuffer pkCols = new StringBuffer();
-			StringBuffer fkCols = new StringBuffer();
-			boolean firstCol = true;
-			Iterator mappings = rel.getChildren().iterator();
-			while (mappings.hasNext()) {
-				SQLRelationship.ColumnMapping cmap = (SQLRelationship.ColumnMapping) mappings.next();
-				if (!firstCol) {
-					pkCols.append(", ");
-					fkCols.append(", ");
-				}
-				pkCols.append(cmap.getPkColumn().getPhysicalName());
-				fkCols.append(cmap.getFkColumn().getPhysicalName());
-				firstCol = false;
-			}
-			print(fkCols.toString());
-			println(")");
-			print("REFERENCES ");
-			print( toQualifiedName(rel.getPkTable()) );
-			print(" (");
-			print(pkCols.toString());
-			print(")");
-			endStatement(DDLStatement.StatementType.ADD_FK, t);
-
+			addRelationship(rel);
 		}
 	}
 
