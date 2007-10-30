@@ -80,6 +80,7 @@ public class ColumnEditPanel extends JPanel
 	private JTextField colDefaultValue;
 	private JCheckBox colInPK;
 	private JCheckBox colAutoInc;
+    private JTextField colAutoIncSequenceName;
 
 	public ColumnEditPanel(SQLColumn col) throws ArchitectException {
 		super(new BorderLayout(12,12));
@@ -123,10 +124,15 @@ public class ColumnEditPanel extends JPanel
 		centerPanel.add(colNullable = new JCheckBox());
 		colNullable.addActionListener(this);
 
-		centerPanel.add(new JLabel("Auto Increment"));
-		centerPanel.add(colAutoInc = new JCheckBox());
-		colAutoInc.addActionListener(this);
-		
+        centerPanel.add(new JLabel("Auto Increment"));
+        centerPanel.add(colAutoInc = new JCheckBox());
+        colAutoInc.addActionListener(this);
+
+        centerPanel.add(new JLabel("Sequence Name"));
+        centerPanel.add(colAutoIncSequenceName = new JTextField());
+        centerPanel.add(new JLabel(""));
+        centerPanel.add(new JLabel("Only applies to target platforms that use sequences"));
+
 		centerPanel.add(new JLabel("Remarks"));
 		centerPanel.add(colRemarks = new JTextField());
 	
@@ -188,6 +194,7 @@ public class ColumnEditPanel extends JPanel
 		colDefaultValue.setText(col.getDefaultValue());
 		colInPK.setSelected(col.getPrimaryKeySeq() != null);
 		colAutoInc.setSelected(col.isAutoIncrement());
+        colAutoIncSequenceName.setText(col.getAutoIncrementSequenceName());
 		updateComponents();
 		colName.requestFocus();
 		colName.selectAll();
@@ -232,6 +239,8 @@ public class ColumnEditPanel extends JPanel
 		    colNullable.setSelected(false);
 		    colNullable.setEnabled(false);
 		}
+        
+        colAutoIncSequenceName.setEnabled(colAutoInc.isSelected());
 	}
 	
 	/**
@@ -269,6 +278,7 @@ public class ColumnEditPanel extends JPanel
             } else {
                 column.setPrimaryKeySeq(colInPK.isSelected() ? new Integer(column.getPrimaryKeySeq()) : null);
             }
+            column.setAutoIncrementSequenceName(colAutoIncSequenceName.getText());
         } finally {
             column.endCompoundEdit("Column Edit Panel Changes");
         }
