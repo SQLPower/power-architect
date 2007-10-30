@@ -49,10 +49,12 @@ public class DuplicateNameDDLWarning extends AbstractDDLWarning {
             SQLObject whichObjectQuickFixRenames,
             String whatQuickFixShouldCallIt)
     {
-        super(involvedObjects, message,
+        super(involvedObjects,
+                message,
                 true,
                 quickFixMesssage,
-                whichObjectQuickFixRenames);
+                whichObjectQuickFixRenames,
+                "name");
         this.whatQuickFixShouldCallIt = whatQuickFixShouldCallIt;
     }
 

@@ -36,23 +36,32 @@ import java.util.Arrays;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLObject;
 
+/**
+ * A class of warning that means some column's data type cannot be
+ * accurately represented in the target database.
+ */
 public class TypeMapDDLWarning extends AbstractDDLWarning {
 
-    private SQLColumn column;
-    private String message;
-    private GenericTypeDescriptor oldType;
-    private GenericTypeDescriptor newType;
-
-    public TypeMapDDLWarning(SQLColumn column,
+    /**
+     * Creates a new warning about type mapping problems which have already been
+     * resolved.
+     * <p>
+     * XXX: This is inconsistent with the current QuickFix system; we should
+     * instead mark this problem as quickfixable and only when quickFix() is called
+     * should the column's type be updated.
+     * 
+     * @param column The column whose type had to be modified.
+     * @param message The message to display to the user about this problem.
+     * @param oldType The original generic data type that the column had. 
+     * @param td The new data type that the column will have in the target database.
+     */
+    public TypeMapDDLWarning(
+            SQLColumn column,
             String message,
-            GenericTypeDescriptor oldType, GenericTypeDescriptor td) {
-        super(Arrays.asList(new SQLObject[] { column }),
-                message, false, null, null);
-        this.column = column;
-        this.message = message;
-        this.oldType = oldType;
-        this.newType = td;
-
+            GenericTypeDescriptor oldType,
+            GenericTypeDescriptor td) {
+        super(Arrays.asList(new SQLObject[] { column }), message, false, null, null, null);
+        // TODO do something to hook in the old type and new type with the quickfix system
     }
 
 }
