@@ -110,6 +110,6 @@ public abstract class AbstractDDLWarning implements DDLWarning {
      * should initialize that value to the appropriate property name.
      */
     public String getQuickFixPropertyName() {
-        return null;
+        return quickFixPropertyName;
     }
 }
