@@ -451,11 +451,22 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                 currentWorker.setCancelled(true);
             }
             
-            JOptionPane.showMessageDialog(frame,
+            
+            Object[] options = {"Wait", "Force Quit"};
+            int n = JOptionPane.showOptionDialog(frame, 
                     "There are still unfinished tasks running on this project.\n" +
-                    "Please wait for them to finish, and then try again.",
-                    "Warning", JOptionPane.WARNING_MESSAGE);
-            return;
+                    "You can either wait for them to finish and try closing again later,\n" +
+                    "or force the project to close. Closing will leave these tasks unfinished.", 
+                    "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, 
+                    null, options, options[0]);
+            
+            if (n == 0) {
+                return;
+            } else {
+                for (SPSwingWorker currentWorker : swingWorkers) {
+                    currentWorker.kill();
+                }
+            }
         }
         
         try {
