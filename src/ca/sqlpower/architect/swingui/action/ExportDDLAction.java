@@ -63,10 +63,10 @@ import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DDLExportPanel;
-import ca.sqlpower.architect.swingui.MonitorableWorker;
 import ca.sqlpower.architect.swingui.SQLScriptDialog;
 import ca.sqlpower.swingui.DataEntryPanel;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
+import ca.sqlpower.swingui.MonitorableWorker;
 
 public class ExportDDLAction extends AbstractArchitectAction {
 
