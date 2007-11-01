@@ -44,8 +44,11 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLIndex;
+import ca.sqlpower.architect.SQLSequence;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLIndex.IndexType;
+import ca.sqlpower.architect.ddl.DDLStatement.StatementType;
+import ca.sqlpower.sql.SQL;
 
 /**
  * DDL Generator for Postgres 8.x (does not support e.g., ALTER COLUMN operations 7.[34]).
@@ -303,10 +306,12 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
 
     @Override
     protected String columnDefinition(SQLColumn c, Map colNameMap) {
+        String nameAndType = super.columnDefinition(c, colNameMap);
+        
         if (c.isAutoIncrement()) {
-            return createPhysicalName(colNameMap, c) + " SERIAL";
+            return nameAndType + " DEFAULT nextval(" + SQL.quote(c.getAutoIncrementSequenceName()) + ")";
         } else {
-            return super.columnDefinition(c, colNameMap);
+            return nameAndType;
         }
     }
     
@@ -370,5 +375,29 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
 
         print(" )");
         endStatement(DDLStatement.StatementType.CREATE, index);
+    }
+    
+    @Override
+    public void addTable(SQLTable t) throws SQLException, ArchitectException {
+        
+        // Create all the sequences that will be needed for auto-increment cols in this table
+        for (SQLColumn c : t.getColumns()) {
+            if (c.isAutoIncrement()) {
+                SQLSequence seq = new SQLSequence(toIdentifier(c.getAutoIncrementSequenceName()));
+                print("CREATE SEQUENCE " + seq.getName());
+                endStatement(StatementType.CREATE, seq);
+            }
+        }
+        
+        super.addTable(t);
+        
+        // attach sequences to columns
+        for (SQLColumn c : t.getColumns()) {
+            if (c.isAutoIncrement()) {
+                SQLSequence seq = new SQLSequence(toIdentifier(c.getAutoIncrementSequenceName()));
+                print("ALTER SEQUENCE " + seq.getName() + " OWNED BY " + toQualifiedName(t) + "." + c.getPhysicalName());
+                endStatement(StatementType.CREATE, seq);
+            }
+        }
     }
 }

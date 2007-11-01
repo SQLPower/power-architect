@@ -55,6 +55,7 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
+import ca.sqlpower.architect.SQLSequence;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.util.Monitorable;
 
@@ -290,6 +291,8 @@ public class ConflictResolver implements Monitorable {
    					logger.error("Relationship conflicts are not supported yet!");
                 } else if (clazz.equals(SQLIndex.class)) {
                     logger.error("Index conflicts not supported.");
+                } else if (clazz.equals(SQLSequence.class)) {
+                    logger.error("Sequence conflicts not supported.");
    				} else {
    					throw new IllegalArgumentException(
    							"Unknown subclass of SQLObject: " + clazz.getName());

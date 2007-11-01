@@ -40,8 +40,11 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLSequence;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.ddl.DDLStatement.StatementType;
 
 public class OracleDDLGenerator extends GenericDDLGenerator {
 
@@ -304,6 +307,11 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
             + fkName;
     }
 
+    /**
+     * Different from the generic generator because Oracle
+     * requires the non-standard keyword "MODIFY" instead of
+     * "ALTER COLUMN".
+     */
     @Override
     public void modifyColumn(SQLColumn c) {
 		Map colNameMap = new HashMap();
@@ -315,6 +323,10 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
 		endStatement(DDLStatement.StatementType.MODIFY, c);
 	}
 
+    /**
+     * Different from the generic generator because the "COLUMN"
+     * keyword is forbidden in Oracle.
+     */
     @Override
     public void addColumn(SQLColumn c) {
         Map colNameMap = new HashMap();
@@ -323,5 +335,24 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
         print(" ADD ");
         print(columnDefinition(c,colNameMap));
         endStatement(DDLStatement.StatementType.CREATE, c);
+    }
+    
+    /**
+     * Overridden to also create sequences if there are auto-increment columns
+     * in the table.
+     */
+    @Override
+    public void addTable(SQLTable t) throws SQLException, ArchitectException {
+        
+        // Create all the sequences that will be needed for auto-increment cols in this table
+        for (SQLColumn c : t.getColumns()) {
+            if (c.isAutoIncrement()) {
+                SQLSequence seq = new SQLSequence(toIdentifier(c.getAutoIncrementSequenceName()));
+                print("CREATE SEQUENCE " + seq.getName());
+                endStatement(StatementType.CREATE, seq);
+            }
+        }
+        
+        super.addTable(t);
     }
 }
