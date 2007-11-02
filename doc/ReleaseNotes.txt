@@ -13,6 +13,8 @@ IMPORTANT NOTE to users upgrading from pre-0.9.x versions of the Architect:
 0.9.9
 *Added the ability to choose the constraint checking deferrability policy
  on foreign key relationships.
+*Tweaked the database comparison feature to ignore meaningless data type
+ differences between columns (for example, DECIMAL vs. NUMERIC)
 
 0.9.8
 *Fixed a bug where re-profiling a cancelled profile would freeze the GUI until
