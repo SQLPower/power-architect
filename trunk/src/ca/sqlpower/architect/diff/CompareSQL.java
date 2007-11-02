@@ -31,6 +31,7 @@
  */
 package ca.sqlpower.architect.diff;
 
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -488,14 +489,16 @@ public class CompareSQL implements Monitorable {
 					keyChangeFlag = true;
 					//diffs.add(new DiffChunk<SQLObject>(targetColumn, DiffType.KEY_CHANGED));
 				}
-				if (targetColumn.getType() != sourceColumn.getType()
-					|| (targetColumn.getPrecision() != sourceColumn.getPrecision())
-					|| (targetColumn.getScale() != sourceColumn.getScale())
-					|| (targetColumn.getNullable() != sourceColumn.getNullable())					
-					) {				
-						diffs.add(new DiffChunk<SQLObject>(targetColumn, DiffType.MODIFIED));
-				} 
-				else {
+				if (columnsDiffer(targetColumn, sourceColumn)) {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Column " + sourceColumn.getName() + " differs!");
+                        logger.debug(String.format("  Type:      %10d %10d", targetColumn.getType(), sourceColumn.getType()));
+                        logger.debug(String.format("  Precision: %10d %10d", targetColumn.getPrecision(), sourceColumn.getPrecision()));
+                        logger.debug(String.format("  Scale:     %10d %10d", targetColumn.getScale(), sourceColumn.getScale()));
+                        logger.debug(String.format("  Nullable:  %10d %10d", targetColumn.getNullable(), sourceColumn.getNullable()));
+                    }
+				    diffs.add(new DiffChunk<SQLObject>(targetColumn, DiffType.MODIFIED));
+				} else {
 					diffs.add(new DiffChunk<SQLObject>(sourceColumn, DiffType.SAME));
 				}
 	
@@ -538,10 +541,61 @@ public class CompareSQL implements Monitorable {
 		return diffs;
 	}
 	
-	
-	// ------------------ Monitorable Interface --------------------
+    /**
+     * Checks if the definitions of two columns are materially different.
+     * Some data types (for example, DECIMAL and NUMERIC) are essentially
+     * the same.  Also, the precision and scale values on DATE columns are
+     * not of much consequence, but different databases report different
+     * values.
+     * 
+     * @param targetColumn One of the columns to compare. Must not be null.
+     * @param sourceColumn One of the columns to compare. Must not be null.
+     * @return True iff the source and target columns are materially different
+     * (as in, they are unlikely to be able to hold the same set of data as
+     * each other)
+     */
+	private boolean columnsDiffer(SQLColumn targetColumn, SQLColumn sourceColumn) {
 
-	public synchronized Integer getJobSize() {
+        // eliminate meaningless type differences
+        int targetType = compressType(targetColumn.getType());
+        int sourceType = compressType(sourceColumn.getType());
+
+        int targetPrecision = targetColumn.getPrecision();
+        int sourcePrecision = sourceColumn.getPrecision();
+        
+        if (targetType == Types.DATE) {
+            targetPrecision = 0;
+        }
+
+        if (sourceType == Types.DATE) {
+            sourcePrecision = 0;
+        }
+        
+        return (sourceType != targetType)
+            || (targetPrecision != sourcePrecision)
+            || (targetColumn.getScale() != sourceColumn.getScale())
+            || (targetColumn.getNullable() != sourceColumn.getNullable());
+	}
+	
+    /**
+     * Compresses all the different kinds of essentially identical types
+     * into an arbitrarily chosen one of them.  For instance, NUMERIC
+     * and DECIMAL both compress to NUMERIC.
+     * 
+     * @param type
+     * @return
+     */
+	private int compressType(int type) {
+        if (type == Types.DECIMAL) {
+            return Types.NUMERIC;
+        } else {
+            return type;
+        }
+	}
+
+    // ------------------ Monitorable Interface --------------------
+
+    public synchronized Integer getJobSize() {
 		return jobSize;
 	}
 
