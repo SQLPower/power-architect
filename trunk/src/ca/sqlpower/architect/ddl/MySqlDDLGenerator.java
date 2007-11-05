@@ -47,6 +47,7 @@ import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLIndex.IndexType;
+import ca.sqlpower.architect.SQLRelationship.Deferrability;
 
 public class MySqlDDLGenerator extends GenericDDLGenerator {
 
@@ -436,5 +437,17 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         }
         print(" )");
         endStatement(DDLStatement.StatementType.CREATE, index);
+    }
+    
+    @Override
+    public String getDeferrabilityClause(SQLRelationship r) {
+        if (r.getDeferrability() != Deferrability.NOT_DEFERRABLE) {
+            warnings.add(new UnsupportedFeatureDDLWarning(
+                    "MySQL does not support deferred constraint checking", r));
+            return "/* Warning: This relationship was marked deferrable, but " +
+                    "mySQL does not support deferred constraint checking */";
+        } else {
+            return "";
+        }
     }
 }
