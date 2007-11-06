@@ -782,7 +782,7 @@ public class CompareDMPanel extends JPanel {
 				IOException {
 			SQLObject o;
 			if (playPenRadio.isSelected()) {
-				o = session.getPlayPen().getDatabase();
+				o = session.getTargetDatabase();
 			} else if (physicalRadio.isSelected()) {
 				if (schemaDropdown.getSelectedItem() != null) {
 					o = (SQLObject) schemaDropdown.getSelectedItem();
@@ -806,7 +806,7 @@ public class CompareDMPanel extends JPanel {
                 // or better yet, set o=f, and do the load itself in the compare worker, because this approach would share the progress bar with the comparison activity itself
 				ArchitectSwingSession newSession = session.getContext().createSession(in, false);
 				
-                o = newSession.getPlayPen().getDatabase();
+                o = newSession.getTargetDatabase();
                 
 			} else {
 				throw new IllegalStateException(

@@ -31,9 +31,6 @@
  */
 package ca.sqlpower.architect.swingui;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.tree.TreePath;
@@ -55,15 +52,12 @@ public class TestDBTree extends TestCase {
 	protected void setUp() throws Exception {
 		ds = new SPDataSource(new PlDotIni());
 		db2ds = new SPDataSource(new PlDotIni());
-		SQLDatabase ppdb = new SQLDatabase(ds);
-		
-		List dbList = new ArrayList();
-		dbList.add(0,ppdb);
-		dbList.add(1,new SQLDatabase(db2ds));
-        
+
         TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
         ArchitectSwingSession session = context.createSession();
-		dbTree = new DBTree(session, dbList);
+        session.getTargetDatabase().setDataSource(ds);
+        session.getRootObject().addChild(1, new SQLDatabase(db2ds));
+		dbTree = new DBTree(session);
 	}
 	
 	public void testdbcsAlreadyExists() throws ArchitectException {

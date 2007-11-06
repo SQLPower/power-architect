@@ -196,7 +196,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
 					logger.debug("next item for delete is: " + item.getClass().getName());
 					if (item instanceof TablePane) {
 						TablePane tp = (TablePane) item;
-						playpen.getDatabase().removeChild(tp.getModel());
+						session.getTargetDatabase().removeChild(tp.getModel());
                         HashSet tableNames = playpen.getTableNames();
                         String remove = tp.getName().substring(11,tp.getName().length()-8);
                         tableNames.remove(remove.toLowerCase());
@@ -237,7 +237,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
 					SQLObject so = (SQLObject) tp.getLastPathComponent();
 					if (so instanceof SQLTable) {
 						SQLTable st = (SQLTable) so;
-						playpen.getDatabase().removeChild(st);
+						session.getTargetDatabase().removeChild(st);
 						playpen.getTablePanes().remove(st.getName().toLowerCase());
 					} else if (so instanceof SQLColumn) {
 						SQLColumn sc = (SQLColumn)so;

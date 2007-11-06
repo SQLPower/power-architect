@@ -63,6 +63,7 @@ import ca.sqlpower.architect.DepthFirstSearch;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLObjectRoot;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLGenerator;
@@ -105,17 +106,17 @@ public class DataMoverPanel {
     private ArchitectSwingSession session;
     
     public DataMoverPanel(ArchitectSession session) throws ArchitectException {
-        List<SQLDatabase> dblist = new ArrayList<SQLDatabase>();
+        SQLObjectRoot treeRoot = new SQLObjectRoot();
         for (SPDataSource ds : session.getUserSettings().getConnections()) {
-            dblist.add(new SQLDatabase(ds));
+            treeRoot.addChild(new SQLDatabase(ds));
         }
         
-        sourceTree = new JTree(new DBTreeModel(dblist,session));
+        sourceTree = new JTree(new DBTreeModel(session, treeRoot));
         sourceTree.setRootVisible(false);
         sourceTree.setShowsRootHandles(true);
         sourceTree.setCellRenderer(new DBTreeCellRenderer(session));
         
-        destTree = new JTree(new DBTreeModel(dblist,session));
+        destTree = new JTree(new DBTreeModel(session, treeRoot));
         destTree.setRootVisible(false);
         destTree.setShowsRootHandles(true);
         destTree.setCellRenderer(new DBTreeCellRenderer(session));

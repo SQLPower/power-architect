@@ -168,7 +168,7 @@ public class CompareDMFormatter {
                 if ( dmSetting.getSourceSettings().getDatastoreType().equals(CompareDMSettings.DatastoreType.FILE) )
                     db = null;
                 else if (dmSetting.getSourceSettings().getDatastoreType().equals(CompareDMSettings.DatastoreType.PROJECT) )
-                    db = session.getPlayPen().getDatabase();
+                    db = session.getTargetDatabase();
                 else
                     db = source.getDatabase();
                 logger.debug("We got to place #2");

@@ -56,18 +56,18 @@ public class TestRelationship extends TestCase {
         TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
         ArchitectSwingSession session = context.createSession();
 		pp = session.getPlayPen();
-		SQLTable t1 = new SQLTable(pp.getDatabase(), true);
+		SQLTable t1 = new SQLTable(session.getTargetDatabase(), true);
         t1.addColumn(new SQLColumn(t1, "pkcol_1", Types.INTEGER, 10,0));
         t1.addColumn(new SQLColumn(t1, "fkcol_1", Types.INTEGER, 10,0));
         t1.getColumnByName("pkcol_1").setPrimaryKeySeq(0);
 
-		pp.getDatabase().addChild(t1);
+		session.getTargetDatabase().addChild(t1);
 		pp.addTablePane(tp1 = new TablePane(t1, pp), new Point(0,0));
-		SQLTable t2 = new SQLTable(pp.getDatabase(), true);
+		SQLTable t2 = new SQLTable(session.getTargetDatabase(), true);
         t2.addColumn(new SQLColumn(t2, "col_1", Types.INTEGER, 10,0));
         t2.addColumn(new SQLColumn(t2, "fkcol", Types.INTEGER, 10,0));      
 
-		pp.getDatabase().addChild(t2);
+		session.getTargetDatabase().addChild(t2);
 		pp.addTablePane(tp2 = new TablePane(t2, pp), new Point(0,0));
 		SQLRelationship sqlrel = new SQLRelationship();
 		sqlrel.attachRelationship(t1, t2, false);
@@ -79,7 +79,7 @@ public class TestRelationship extends TestCase {
 	public void testCopyConstructor() throws ArchitectException, IOException {
         TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
         ArchitectSwingSession session = context.createSession();
-		PlayPen newpp = new PlayPen(session, pp.getDatabase());
+		PlayPen newpp = new PlayPen(session);
         
 		Relationship rel2 = new Relationship(rel, newpp.getContentPane());
         

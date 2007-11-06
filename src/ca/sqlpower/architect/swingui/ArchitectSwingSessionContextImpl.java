@@ -33,28 +33,24 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.Component;
 import java.awt.Window;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.prefs.Preferences;
 
 import javax.swing.JDialog;
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
 
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.ArchitectSession;
+import ca.sqlpower.architect.ArchitectSessionContext;
+import ca.sqlpower.architect.ArchitectSessionContextImpl;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.sql.SPDataSource;
-import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.db.DataSourceDialogFactory;
 import ca.sqlpower.swingui.db.DataSourceTypeDialogFactory;
 import ca.sqlpower.swingui.db.DatabaseConnectionManager;
@@ -72,23 +68,11 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     private static final Logger logger = Logger.getLogger(ArchitectSwingSessionContextImpl.class);
     
     private static final boolean MAC_OS_X = (System.getProperty("os.name").toLowerCase().startsWith("mac os x"));
-
-    /**
-     * The preferences node that user-specific preferences are stored in.
-     */
-    private final Preferences prefs = Preferences.userNodeForPackage(ArchitectSwingSessionContextImpl.class);
-
-    /**
-     * A more structured interface to the prefs node.  Might be going away soon.
-     */
-    CoreUserSettings userSettings;
     
     /**
-     * All live sessions that exist in (and were created by) this conext.  Sessions
-     * will be removed from this list when they fire their sessionClosing lifecycle
-     * event.
+     * This is the context that some work delegates to.
      */
-    private final Collection<ArchitectSwingSession> sessions;
+    private ArchitectSessionContext delegateContext;
    
     /**
      * The database connection manager GUI for this session context (because all sessions
@@ -133,13 +117,9 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      * @throws ArchitectException 
      */
     ArchitectSwingSessionContextImpl() throws ArchitectException {
-        sessions = new HashSet<ArchitectSwingSession>();
+        delegateContext = new ArchitectSessionContextImpl();
         
-        ArchitectUtils.startup();
-
         System.setProperty("apple.laf.useScreenMenuBar", "true");
-
-        ArchitectUtils.configureLog4j();
 
         // this doesn't appear to have any effect on the motion threshold
         // in the Playpen, but it does seem to work on the DBTree...
@@ -149,58 +129,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
 
         Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler(this));
         
-        userSettings = new CoreUserSettings(getPrefs());
-
-        while (!userSettings.isPlDotIniPathValid()) {
-            String message;
-            String[] options = new String[] {"Browse", "Create"};
-            if (userSettings.getPlDotIniPath() == null) {
-                message = "location is not set";
-            } else if (new File(userSettings.getPlDotIniPath()).isFile()) {
-                message = "file \n\n\""+userSettings.getPlDotIniPath()+"\"\n\n could not be read";
-            } else {
-                message = "file \n\n\""+userSettings.getPlDotIniPath()+"\"\n\n does not exist";
-            }
-            int choice = JOptionPane.showOptionDialog(null,   // blocking wait
-                    "The Architect keeps its list of database connections" +
-                    "\nin a file called PL.INI.  Your PL.INI "+message+"." +
-                    "\n\nYou can browse for an existing PL.INI file on your system" +
-                    "\nor allow the Architect to create a new one in your home directory." +
-                    "\n\nHint: If you are a Power*Loader Suite user, you should browse for" +
-                    "\nan existing PL.INI in your Power*Loader installation directory.",
-                    "Missing PL.INI", 0, JOptionPane.INFORMATION_MESSAGE, null, options, null);
-            File newPlIniFile;
-            if (choice == JOptionPane.CLOSED_OPTION) {
-                throw new ArchitectException("Can't start without a pl.ini file");
-            } else if (choice == 0) {
-                
-                // Don't use recent files menu for default dir here.. we're looking for PL.INI
-                JFileChooser fc = new JFileChooser();
-                
-                fc.setFileFilter(SPSUtils.INI_FILE_FILTER);
-                fc.setDialogTitle("Locate your PL.INI file");
-                int fcChoice = fc.showOpenDialog(null);       // blocking wait
-                if (fcChoice == JFileChooser.APPROVE_OPTION) {
-                    newPlIniFile = fc.getSelectedFile();
-                } else {
-                    newPlIniFile = null;
-                }
-            } else if (choice == 1) {
-                newPlIniFile = new File(System.getProperty("user.home"), "pl.ini");
-            } else
-                throw new ArchitectException("Unexpected return from JOptionPane.showOptionDialog to get pl.ini");
-
-            if (newPlIniFile != null) try {
-                newPlIniFile.createNewFile();
-                userSettings.setPlDotIniPath(newPlIniFile.getPath());
-            } catch (IOException e1) {
-                logger.error("Caught IO exception while creating empty PL.INI at \""
-                        +newPlIniFile.getPath()+"\"", e1);
-                JOptionPane.showMessageDialog(null, "Failed to create file \""+newPlIniFile.getPath()+"\":\n"+e1.getMessage(),
-                        "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-        dbConnectionManager = new DatabaseConnectionManager(userSettings.getPlDotIni(), dsDialogFactory,dsTypeDialogFactory);
+        dbConnectionManager = new DatabaseConnectionManager(getUserSettings().getPlDotIni(), dsDialogFactory,dsTypeDialogFactory);
         prefsEditor = new PreferencesEditor();
     }
     
@@ -219,11 +148,10 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      * not called on the Event Dispatch Thread.
      */
     public ArchitectSwingSession createSession(InputStream in, boolean showGUI) throws ArchitectException, IOException {
-
         ArchitectSwingSession session = createSessionImpl("Loading...", false);
         
         try {
-            session.getProject().load(in, session.getUserSettings().getPlDotIni());
+            session.getProject().load(in, getUserSettings().getPlDotIni());
 
             if (showGUI) {
                 session.initGUI();
@@ -263,6 +191,11 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     public ArchitectSwingSession createSession(boolean showGUI) throws ArchitectException {
         return createSessionImpl("New Project", showGUI);
     }
+    
+    /* javadoc inherited from interface */
+    public ArchitectSwingSession createSession(InputStream in) throws ArchitectException, IOException {
+        return createSession(in, true);
+    }
 
     /**
      * This is the one createSession() implementation to which all other overloads of
@@ -280,14 +213,14 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     private ArchitectSwingSession createSessionImpl(String projectName, boolean showGUI) throws ArchitectException {
         logger.debug("About to create a new session for project \"" + projectName + "\"");
         ArchitectSwingSessionImpl session = new ArchitectSwingSessionImpl(this, projectName);
-        sessions.add(session);
+        getSessions().add(session);
         session.addSessionLifecycleListener(sessionLifecycleListener);
         
         if (showGUI) {
             logger.debug("Creating the Architect frame...");
             session.initGUI();
         
-            if (sessions.size() == 1) {
+            if (getSessions().size() == 1) {
                 showWelcomeScreen(session.getArchitectFrame());
             }
         }
@@ -301,8 +234,8 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      */
     private SessionLifecycleListener sessionLifecycleListener = new SessionLifecycleListener() {
         public void sessionClosing(SessionLifecycleEvent e) {
-            sessions.remove(e.getSource());
-            if (sessions.isEmpty() && exitAfterAllSessionsClosed) {
+            getSessions().remove(e.getSource());
+            if (getSessions().isEmpty() && exitAfterAllSessionsClosed) {
                 System.exit(0);
             }
         }
@@ -324,18 +257,18 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      * @see ca.sqlpower.architect.swingui.ArchitectSwingSessionContext#getPrefs()
      */
     public Preferences getPrefs() {
-        return prefs;
+        return delegateContext.getPrefs();
     }
     
     /* (non-Javadoc)
      * @see ca.sqlpower.architect.swingui.ArchitectSwingSessionContext#getUserSettings()
      */
     public CoreUserSettings getUserSettings() {
-        return userSettings;
+        return delegateContext.getUserSettings();
     }
 
-    public Collection<ArchitectSwingSession> getSessions() {
-        return Collections.unmodifiableCollection(sessions);
+    public Collection<ArchitectSession> getSessions() {
+        return delegateContext.getSessions();
     }
     
     private void showWelcomeScreen(Component dialogOwner) {
@@ -345,7 +278,6 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
             ws.showWelcomeDialog(dialogOwner);
         }
     }
-    
 
     public void  showConnectionManager(Window owner) {
         dbConnectionManager.showDialog(owner);
@@ -361,11 +293,11 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      * when the "prompt for unsaved modifications" step happens.
      */
     public void closeAll() {
-        List<ArchitectSwingSession> doomedSessions =
-            new ArrayList<ArchitectSwingSession>(sessions);
+        List<ArchitectSession> doomedSessions =
+            new ArrayList<ArchitectSession>(getSessions());
         
-        for (ArchitectSwingSession s : doomedSessions) {
-            s.close();
+        for (ArchitectSession s : doomedSessions) {
+            ((ArchitectSwingSession) s).close();
         }
     }
 
@@ -376,5 +308,4 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     public void setExitAfterAllSessionsClosed(boolean allowExit) {
         exitAfterAllSessionsClosed = allowExit;
     }
-
 }

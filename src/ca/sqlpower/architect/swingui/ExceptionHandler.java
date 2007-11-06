@@ -43,6 +43,7 @@ import javax.swing.tree.TreeModel;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.swingui.SPSUtils;
@@ -93,8 +94,9 @@ public class ExceptionHandler implements UncaughtExceptionHandler {
         ExceptionReport report = new ExceptionReport(e, DEFAULT_REPORT_URL, ArchitectVersion.APP_VERSION, "Architect");
         
         StringBuffer remarks = new StringBuffer();
-        Collection<ArchitectSwingSession> sessions = context.getSessions();
-        for (ArchitectSwingSession session: sessions) {
+        Collection<ArchitectSession> sessions = context.getSessions();
+        for (ArchitectSession s: sessions) {
+            ArchitectSwingSession session = (ArchitectSwingSession) s;
             if (session != null) {
                 PlayPen pp = session.getPlayPen();
                 if (pp != null) {

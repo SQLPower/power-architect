@@ -182,7 +182,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		assertNotNull(tree);
 		assertEquals(tree.getComponentCount(), 1 );
 		
-		SQLDatabase target = session.getPlayPen().getDatabase(); 
+		SQLDatabase target = session.getTargetDatabase(); 
 		assertNotNull(target);
 		
 		assertEquals(target.getName(), "Not Configured");
@@ -195,7 +195,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
     public void testLoadPK() throws Exception {
         testLoad();
         
-        SQLDatabase target = session.getPlayPen().getDatabase();
+        SQLDatabase target = session.getTargetDatabase();
         
         SQLTable t1 = (SQLTable) target.getChild(0);
         assertEquals(1, t1.getPkSize());
@@ -220,7 +220,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
      */
     public void testSaveLoadPK() throws Exception {
         // make a table with a pksize of 2
-        SQLDatabase target = session.getPlayPen().getDatabase();
+        SQLDatabase target = session.getTargetDatabase();
         SQLTable t = new SQLTable(null, "test_pk", null, "TABLE", true);
         t.addColumn(new SQLColumn(t, "pk1", Types.CHAR, 10, 0));
         t.addColumn(new SQLColumn(t, "pk2", Types.CHAR, 10, 0));
@@ -248,7 +248,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         SwingUIProject project2 = new SwingUIProject(session2);
         project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
         
-        target = session2.getPlayPen().getDatabase();
+        target = session2.getTargetDatabase();
         t = target.getTableByName("test_pk");
         subroutineForTestSaveLoadPK(t);
     }
@@ -693,7 +693,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		final String tableName = "harry";
 		testLoad();
 		
-		SQLDatabase ppdb = session.getPlayPen().getDatabase();
+		SQLDatabase ppdb = session.getTargetDatabase();
 		SQLTable table = new SQLTable(ppdb, true);
 		table.setName(tableName);
 		SQLColumn target = new SQLColumn(table, "my cool test column", Types.INTEGER, 10, 10);
@@ -753,7 +753,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
 		
 		// grab the second database in the dbtree's model (the first is the play pen)
-		ppdb = (SQLDatabase) session2.getPlayPen().getDatabase();
+		ppdb = (SQLDatabase) session2.getTargetDatabase();
 		
 		target = ((SQLTable) ppdb.getTableByName(tableName)).getColumn(0);
 		
@@ -767,7 +767,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         final String tableName = "rama_llama_dingdong";  // the power of the llama will save you
         testLoad();
         
-        SQLDatabase ppdb = session.getPlayPen().getDatabase();
+        SQLDatabase ppdb = session.getTargetDatabase();
         SQLTable table = new SQLTable(ppdb, true);
         table.setName(tableName);
         SQLColumn col = new SQLColumn(table, "first", Types.VARCHAR, 10, 0);
@@ -815,7 +815,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         SwingUIProject project2 = new SwingUIProject(session2);
         project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
         
-        ppdb = (SQLDatabase) session2.getPlayPen().getDatabase();
+        ppdb = (SQLDatabase) session2.getTargetDatabase();
         
         SQLTable targetTable = (SQLTable) ppdb.getTableByName(tableName);
         System.out.println("target table=["+targetTable.getName()+"]");
@@ -834,7 +834,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         final String tableName = "delicatessen";
         testLoad();
         
-        SQLDatabase ppdb = session.getPlayPen().getDatabase();
+        SQLDatabase ppdb = session.getTargetDatabase();
         SQLTable table = new SQLTable(ppdb, true);
         table.setName(tableName);
         SQLIndex index = new SQLIndex("tasty index", false, null, null, null);
@@ -865,7 +865,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), plIni);
         
         // grab the second database in the dbtree's model (the first is the play pen)
-        ppdb = (SQLDatabase) session2.getPlayPen().getDatabase();
+        ppdb = (SQLDatabase) session2.getTargetDatabase();
         
         index = (SQLIndex) ((SQLTable) ppdb.getTableByName(tableName)).getIndicesFolder().getChild(0);
         
@@ -879,7 +879,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         final String tableName = "delicatessen";
         testLoad();
         
-        SQLDatabase ppdb = session.getPlayPen().getDatabase();
+        SQLDatabase ppdb = session.getTargetDatabase();
         SQLTable table = new SQLTable(ppdb, true);
         SQLColumn col = new SQLColumn(table,"col",1,0,0);
         table.setName(tableName);
@@ -927,7 +927,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         SwingUIProject project2 = new SwingUIProject(session2);
         project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), plIni);
         
-        ppdb = (SQLDatabase) session2.getPlayPen().getDatabase();
+        ppdb = (SQLDatabase) session2.getTargetDatabase();
         System.out.println(ppdb.getTableByName(tableName));
         index = (SQLIndex) ((SQLTable) ppdb.getTableByName(tableName)).getIndicesFolder().getChild(0);
         
@@ -941,7 +941,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         final String tableName = "delicatessen";
         testLoad();
         
-        SQLDatabase ppdb = session.getPlayPen().getDatabase();
+        SQLDatabase ppdb = session.getTargetDatabase();
         SQLTable table = new SQLTable(ppdb, true);
         SQLColumn col = new SQLColumn(table,"Column 1",1,1,1);
         table.addColumn(col);
@@ -978,7 +978,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         project2.load(new BufferedInputStream(new FileInputStream(tmp)), plIni);
         
         // grab the second database in the dbtree's model (the first is the play pen)
-        ppdb = (SQLDatabase) session2.getPlayPen().getDatabase();
+        ppdb = (SQLDatabase) session2.getTargetDatabase();
         
         // child 1 because setPrimaryKeySeq calls normalizePrimaryKey which creates
         // a primary key is there is none made. The primary key is placed as child 0
@@ -995,7 +995,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         final String tableName = "delicatessen";
         testLoad();
         
-        SQLDatabase ppdb = session.getPlayPen().getDatabase();
+        SQLDatabase ppdb = session.getTargetDatabase();
         SQLTable table = new SQLTable(ppdb, true);
         SQLColumn col = new SQLColumn(table,"Column 1",1,1,1);
         table.addColumn(col);
@@ -1023,8 +1023,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         SwingUIProject p = new SwingUIProject(session2);
         p.load(new ByteArrayInputStream(tempFile.toByteArray()), context.getUserSettings().getPlDotIni());
         
-        PlayPen pp = session2.getPlayPen();
-        ppdb = (SQLDatabase) pp.getDatabase();
+        ppdb = session2.getTargetDatabase();
         
         // child 1 because setPrimaryKeySeq calls normalizePrimaryKey which creates
         // a primary key is there is none made. The primary key is placed as child 0

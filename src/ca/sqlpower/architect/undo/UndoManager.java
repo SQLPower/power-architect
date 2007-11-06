@@ -347,7 +347,7 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 	 *             pen's database hierarchy.
 	 */
 	public UndoManager(PlayPen playPen) throws ArchitectException {
-		init(playPen, playPen.getDatabase());
+		init(playPen, playPen.getSession().getTargetDatabase());
 	}
 	
 	public UndoManager(SQLObject sqlObjectRoot) throws ArchitectException {

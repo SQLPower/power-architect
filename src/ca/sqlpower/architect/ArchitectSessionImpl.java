@@ -33,6 +33,7 @@ package ca.sqlpower.architect;
 
 
 import ca.sqlpower.architect.profile.TableProfileManager;
+import ca.sqlpower.sql.SPDataSource;
 
 /**
  * The ArchitectSession class represents a single user's session with
@@ -45,27 +46,29 @@ import ca.sqlpower.architect.profile.TableProfileManager;
  */
 public class ArchitectSessionImpl implements ArchitectSession {
     
-    protected static ArchitectSession instance;
-	protected CoreUserSettings userSettings;
+    private final ArchitectSessionContext context;
     private TableProfileManager profileManager;
+    private SQLDatabase db;
+    private String name;
+    private SQLObjectRoot rootObject;
+    
+    /**
+     * The project associated with this session.  The project provides save
+     * and load functionality, and houses the source database connections.
+     */
+    private CoreProject project;
 
-	public ArchitectSessionImpl() {
-        profileManager = new TableProfileManager();
-	}
-
-	/**
-	 * Gets the single ArchitectSession instance for this JVM.
-	 *
-	 * <p>Note: in the future, the ArchitectSession may no longer be a
-	 * singleton (for example, if the Architect gets a servlet or RMI
-	 * interface).  In that case, getInstance will necessarily change
-	 * or disappear.
-	 */
-	public static synchronized ArchitectSession getInstance() {
-		if (instance == null) {
-			instance = new ArchitectSessionImpl();
-		}
-		return instance;
+	public ArchitectSessionImpl(final ArchitectSessionContext context, String name) {
+	    this.context = context;
+	    this.name = name;
+        this.profileManager = new TableProfileManager();
+        this.project = new CoreProject(this);
+        this.db = new SQLDatabase();
+        this.rootObject = new SQLObjectRoot();
+        SPDataSource dbcs = new SPDataSource(context.getUserSettings().getPlDotIni());
+        dbcs.setName("Not Configured");
+        dbcs.setDisplayName("Not Configured");
+        db.setDataSource(dbcs);
 	}
 
 	// --------------- accessors and mutators ------------------
@@ -74,17 +77,44 @@ public class ArchitectSessionImpl implements ArchitectSession {
      * @see ca.sqlpower.architect.ArchitectSession#getUserSettings()
      */
 	public CoreUserSettings getUserSettings()  {
-		return this.userSettings;
+		return context.getUserSettings();
 	}
-
-	/* (non-Javadoc)
-     * @see ca.sqlpower.architect.ArchitectSession#setUserSettings(ca.sqlpower.architect.CoreUserSettings)
+	
+    /**
+     * Gets the value of name
+     *
+     * @return the value of name
      */
-	public void setUserSettings(CoreUserSettings argUserSettings) {
-		this.userSettings = argUserSettings;
-	}
+    public String getName()  {
+        return this.name;
+    }
+
+    /**
+     * Sets the value of name
+     *
+     * @param argName Value to assign to this.name
+     */
+    public void setName(String argName) {
+        this.name = argName;
+    }
 
     public TableProfileManager getProfileManager() {
         return profileManager;
+    }
+
+    public SQLDatabase getTargetDatabase() {
+        return db;
+    }
+
+    public CoreProject getProject() {
+        return project;
+    }
+    
+    public void setProject(CoreProject project) {
+        this.project = project;
+    }
+
+    public SQLObjectRoot getRootObject() {
+        return rootObject;
     }
 }

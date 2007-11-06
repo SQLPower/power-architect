@@ -36,7 +36,7 @@ import ca.sqlpower.architect.profile.ProfileManager;
 public interface ArchitectSession {
 
     public static final String PREFS_PL_INI_PATH = "PL.INI.PATH";
-
+    
     /**
      * See {@link #userSettings}.
      *
@@ -44,13 +44,45 @@ public interface ArchitectSession {
      */
     public CoreUserSettings getUserSettings();
 
-    /**
-     * See {@link #userSettings}.
-     *
-     * @param argUserSettings Value to assign to this.userSettings
-     */
-    public void setUserSettings(CoreUserSettings argUserSettings);
-
     public ProfileManager getProfileManager();
-
+    
+    /**
+     * Returns the database in use for this session. In a 
+     * gui session, this would be the playpen database. 
+     */
+    public SQLDatabase getTargetDatabase();
+    
+    /**
+     * Returns the top level object in the SQLObject hierarchy.
+     * It has no parent and its children are SQLDatabase's.
+     */
+    public SQLObjectRoot getRootObject();
+    
+    /**
+     * Sets the value of name
+     *
+     * @param argName Value to assign to this.name
+     */
+    public void setName(String argName);
+    
+    /**
+     * Gets the value of name
+     *
+     * @return the value of name
+     */
+    public String getName();
+    
+    /**
+     * Returns the project associated with this session.  The project
+     * holds the playpen objects, and can save and load itself in an
+     * XML format.
+     */
+    public CoreProject getProject();
+    
+    /**
+     *  This method is only used to create the correct type of project
+     *  for an ArchitectSwingSessionImpl and should not be called anywhere
+     *  else.
+     */
+    public void setProject(CoreProject project);
 }
