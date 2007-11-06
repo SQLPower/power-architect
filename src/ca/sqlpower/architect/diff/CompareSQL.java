@@ -563,17 +563,28 @@ public class CompareSQL implements Monitorable {
         int targetPrecision = targetColumn.getPrecision();
         int sourcePrecision = sourceColumn.getPrecision();
         
+        int targetScale = targetColumn.getScale();
+        int sourceScale = sourceColumn.getScale();
+
         if (targetType == Types.DATE) {
             targetPrecision = 0;
+            targetScale = 0;
+        } else if (targetType == Types.INTEGER) {
+            targetPrecision = 0;
+            targetScale = 0;
         }
 
         if (sourceType == Types.DATE) {
             sourcePrecision = 0;
+            sourceScale = 0;
+        } else if (sourceType == Types.INTEGER) {
+            sourcePrecision = 0;
+            sourceScale = 0;
         }
-        
+
         return (sourceType != targetType)
             || (targetPrecision != sourcePrecision)
-            || (targetColumn.getScale() != sourceColumn.getScale())
+            || (targetScale != sourceScale)
             || (targetColumn.getNullable() != sourceColumn.getNullable());
 	}
 	
