@@ -43,6 +43,7 @@ import javax.swing.tree.TreePath;
 
 import junit.framework.TestCase;
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectSessionContextImpl;
 import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
@@ -111,7 +112,7 @@ public class TestDBTreeModel extends TestCase {
     private DBTreeModel tm;
 
     protected void setUp() throws Exception {
-        tm = new DBTreeModel(new ArchitectSessionImpl());
+        tm = new DBTreeModel(new ArchitectSessionImpl(new ArchitectSessionContextImpl(), "TestSession"));
         tm.setTestMode(true);
 	}
 	

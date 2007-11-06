@@ -58,12 +58,12 @@ public class TestPlayPenContentPane extends TestCase {
         TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
         ArchitectSwingSession session = context.createSession();
 		pp = session.getPlayPen();
-		SQLTable t1 = new SQLTable(pp.getDatabase(), true);
-		pp.getDatabase().addChild(t1);
+		SQLTable t1 = new SQLTable(session.getTargetDatabase(), true);
+		session.getTargetDatabase().addChild(t1);
 		tp1 = new TablePane(t1,pp);
 		pp.addTablePane(tp1, new Point(0,-10));
-		SQLTable t2 = new SQLTable(pp.getDatabase(), true);
-		pp.getDatabase().addChild(t2);
+		SQLTable t2 = new SQLTable(session.getTargetDatabase(), true);
+		session.getTargetDatabase().addChild(t2);
 		tp2 =new TablePane(t2, pp);
 		pp.addTablePane(tp2, new Point(-10,0));
 		SQLRelationship sqlrel = new SQLRelationship();

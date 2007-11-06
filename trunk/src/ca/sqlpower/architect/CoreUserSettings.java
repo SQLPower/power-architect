@@ -238,7 +238,7 @@ public class CoreUserSettings {
             plDotIni = new PlDotIni();
             try {
                 logger.debug("Reading PL.INI defaults");
-                plDotIni.read(getClass().getClassLoader().getResourceAsStream("default_database_types.ini"));
+                plDotIni.read(getClass().getClassLoader().getResourceAsStream("ca/sqlpower/sql/default_database_types.ini"));
             } catch (IOException e) {
                 throw new ArchitectRuntimeException(new ArchitectException("Failed to read system resource default_database_types.ini",e));
             }

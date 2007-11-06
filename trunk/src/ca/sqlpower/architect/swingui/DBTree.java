@@ -107,8 +107,9 @@ public class DBTree extends JTree implements DragSourceListener {
 
 	// ----------- CONSTRUCTORS ------------
 
-	private DBTree(ArchitectSwingSession session) {
+	public DBTree(ArchitectSwingSession session) throws ArchitectException {
         this.session = session;
+        setModel(new DBTreeModel(session));
 		setUI(new MultiDragTreeUI());
 		setRootVisible(false);
 		setShowsRootHandles(true);
@@ -125,18 +126,7 @@ public class DBTree extends JTree implements DragSourceListener {
         setCellRenderer(new DBTreeCellRenderer(session));
 	}
 
-	public DBTree(ArchitectSwingSession session, List<SQLDatabase> initialDatabases) throws ArchitectException {
-		this(session);
-		setDatabaseList(initialDatabases);
-	}
-
-
-
 	// ----------- INSTANCE METHODS ------------
-
-	public void setDatabaseList(List<SQLDatabase> databases) throws ArchitectException {
-		setModel(new DBTreeModel(databases,session));
-	}
 
 	/**
 	 * Returns a list of all the databases in this DBTree's model.
@@ -558,7 +548,7 @@ public class DBTree extends JTree implements DragSourceListener {
 		if (tp == null) {
 			return false;
 		} else {
-			return session.getPlayPen().getDatabase() == tp.getLastPathComponent();
+			return session.getTargetDatabase() == tp.getLastPathComponent();
 		}
 	}
 
@@ -577,7 +567,7 @@ public class DBTree extends JTree implements DragSourceListener {
 
 		Object[] oo = tp.getPath();
 		for (int i = 0; i < oo.length; i++)
-			if (session.getPlayPen().getDatabase() == oo[i]) return true;
+			if (session.getTargetDatabase() == oo[i]) return true;
 		return false;
 	}
 
@@ -718,7 +708,7 @@ public class DBTree extends JTree implements DragSourceListener {
 			try {
 			    SQLDatabase selection = (SQLDatabase) tp.getLastPathComponent();
 			    SQLObject root = (SQLObject) getModel().getRoot();
-			    List dependants = ArchitectUtils.findColumnsSourcedFromDatabase(session.getPlayPen().getDatabase(), selection);
+			    List dependants = ArchitectUtils.findColumnsSourcedFromDatabase(session.getTargetDatabase(), selection);
 			    if (dependants.size() > 0) {
 			        JOptionPane.showMessageDialog(DBTree.this,
 			                new Object[] {"The following columns depend on objects in this database:",

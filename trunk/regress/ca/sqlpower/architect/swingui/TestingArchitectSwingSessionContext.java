@@ -40,6 +40,7 @@ import java.util.Collection;
 import java.util.prefs.Preferences;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.CoreUserSettings;
 
 /**
@@ -72,12 +73,15 @@ public class TestingArchitectSwingSessionContext implements ArchitectSwingSessio
         return new TestingArchitectSwingSession(this);
     }
 
+    public ArchitectSession createSession(InputStream in) throws ArchitectException, IOException {
+        return this.createSession();
+    }
+    
     public ArchitectSwingSession createSession(boolean showGUI) throws ArchitectException {
         return this.createSession();
     }
     
-    public Collection<ArchitectSwingSession> getSessions() {
-        // TODO Auto-generated method stub
+    public Collection<ArchitectSession> getSessions() {
         return null;
     }
 

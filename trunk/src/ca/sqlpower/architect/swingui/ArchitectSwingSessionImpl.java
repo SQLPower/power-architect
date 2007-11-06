@@ -37,7 +37,6 @@ import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -52,17 +51,20 @@ import javax.swing.ToolTipManager;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectSession;
+import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.ArchitectUtils;
+import ca.sqlpower.architect.CoreProject;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
+import ca.sqlpower.architect.SQLObjectRoot;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.architect.profile.ProfileManager;
-import ca.sqlpower.architect.profile.TableProfileManager;
 import ca.sqlpower.architect.swingui.action.AboutAction;
 import ca.sqlpower.architect.swingui.action.OpenProjectAction;
 import ca.sqlpower.architect.swingui.action.PreferencesAction;
@@ -78,26 +80,21 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     private static final Logger logger = Logger.getLogger(ArchitectSwingSessionImpl.class);
     
     private final ArchitectSwingSessionContext context;
-
+    
     /**
-     * The project associated with this session.  The project provides save
-     * and load functionality, and houses the source database connections.
+     * This is the core session that some tasks are delegated to.
      */
-    private final SwingUIProject project;
+    private final ArchitectSession delegateSession;
 
     /**
      * The Frame where the main part of the GUI for this session appears.
      */
     private ArchitectFrame frame;
 
-    private CoreUserSettings userSettings;
-    
     /**
      * The menu of recently-opened project files on this system.
      */
     private RecentMenu recent;
-    
-    private TableProfileManager profileManager;
     
     /** the dialog that contains the small ProfileManagerView */
     private JDialog profileDialog;
@@ -115,8 +112,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     private ProfileManagerView profileManagerView;
     
     private DBTree sourceDatabases;
-    
-    private String name;
     
     private GenericDDLGenerator ddlGenerator;
     
@@ -149,10 +144,9 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      */
     ArchitectSwingSessionImpl(final ArchitectSwingSessionContext context, String name)
     throws ArchitectException {
-
         this.isNew = true;
         this.context = context;
-        this.name = name;
+        this.delegateSession = new ArchitectSessionImpl(context, name);
         this.recent = new RecentMenu(this.getClass()) {
             @Override
             public void loadFile(String fileName) throws IOException {
@@ -169,17 +163,12 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             }
         };
         
-        userSettings = context.getUserSettings();
-        
         // Make sure we can load the pl.ini file so we can handle exceptions
         // XXX this is probably redundant now, since the context owns the pl.ini
-        userSettings.getPlDotIni();
+        getUserSettings().getPlDotIni();
 
-        project = new SwingUIProject(this);
-
-        profileManager = new TableProfileManager();
-
-
+        setProject(new SwingUIProject(this));
+        
         try {
             ddlGenerator = new GenericDDLGenerator();
         } catch (SQLException e) {
@@ -190,17 +179,15 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         
         kettleJob = new KettleJob();
         
-        SQLDatabase ppdb = new SQLDatabase();
-        playPen = new PlayPen(this, ppdb);
-        UserSettings sprefs = userSettings.getSwingSettings();
+        playPen = new PlayPen(this);
+        UserSettings sprefs = getUserSettings().getSwingSettings();
         if (sprefs != null) {
             playPen.setRenderingAntialiased(sprefs.getBoolean(ArchitectSwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false));
         }
         projectModificationWatcher = new ProjectModificationWatcher(playPen);
-
-        List<SQLDatabase> initialDBList = new ArrayList<SQLDatabase>();
-        initialDBList.add(playPen.getDatabase());
-        this.sourceDatabases = new DBTree(this, initialDBList);
+        
+        delegateSession.getRootObject().addChild(getTargetDatabase());
+        this.sourceDatabases = new DBTree(this);
         
         undoManager = new UndoManager(playPen);
         
@@ -216,15 +203,15 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
         ToolTipManager.sharedInstance().registerComponent(playPen);
 
-        frame = new ArchitectFrame(this, project);
+        frame = new ArchitectFrame(this, getProject());
         
         // MUST be called after constructed to set up the actions
         frame.init(); 
         frame.setVisible(true);
 
         profileDialog = new JDialog(frame, "Table Profiles");
-        profileManagerView = new ProfileManagerView(profileManager);
-        profileManager.addProfileChangeListener(profileManagerView);
+        profileManagerView = new ProfileManagerView(delegateSession.getProfileManager());
+        delegateSession.getProfileManager().addProfileChangeListener(profileManagerView);
         profileDialog.add(profileManagerView);
         
         
@@ -238,15 +225,15 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     }
 
     public SwingUIProject getProject() {
-        return project;
+        return (SwingUIProject) delegateSession.getProject();
+    }
+    
+    public void setProject(CoreProject project) {
+        delegateSession.setProject(project);
     }
 
     public CoreUserSettings getUserSettings() {
-        return userSettings;
-    }
-
-    public void setUserSettings(CoreUserSettings argUserSettings) {
-        this.userSettings = argUserSettings;
+        return context.getUserSettings();
     }
 
     public ArchitectSwingSessionContext getContext() {
@@ -492,16 +479,18 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         }
 
         // close connections
-        Iterator it = getSourceDatabases().getDatabaseList().iterator();
-        while (it.hasNext()) {
-            SQLDatabase db = (SQLDatabase) it.next();
-            logger.debug ("closing connection: " + db.getName());
-            db.disconnect();
+        try {
+            for (SQLDatabase db : (List<SQLDatabase>) getRootObject().getChildren()) {
+                logger.debug ("closing connection: " + db.getName());
+                db.disconnect();
+            }
+        } catch (ArchitectException ex) {
+            throw new AssertionError("Got impossible ArchitectException from root object");
         }
-        
+
         // Clear the profile manager (the effect we want is just to cancel running profiles.. clearing is a harmless side effect)
         // XXX this could/should be done by the profile manager with a session closing listener
-        profileManager.clear();
+        delegateSession.getProfileManager().clear();
         
         fireSessionClosing();
     }
@@ -524,15 +513,21 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         this.sourceDatabases = argSourceDatabases;
     }
 
-    public void setSourceDatabaseList(List databases) throws ArchitectException {
-        this.sourceDatabases.setModel(new DBTreeModel(databases,this));
+    public void setSourceDatabaseList(List<SQLDatabase> databases) throws ArchitectException {
+        SQLObject root = getRootObject();
+        while (root.getChildCount() > 0) {
+            root.removeChild(root.getChildCount() - 1);
+        }
+        for (SQLDatabase db : databases) {
+            root.addChild(db);
+        }
     }
 
     /**
      * Gets the target database in the playPen.
      */
     public SQLDatabase getTargetDatabase()  {
-        return playPen.getDatabase();
+        return delegateSession.getTargetDatabase();
     }
     
     /**
@@ -550,7 +545,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
          */
         public ProjectModificationWatcher(PlayPen pp) {
             try {
-                ArchitectUtils.listenToHierarchy(this, pp.getDatabase());
+                ArchitectUtils.listenToHierarchy(this, getTargetDatabase());
             } catch (ArchitectException e) {
                 logger.error("Can't listen to business model for changes", e);
             }
@@ -560,7 +555,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
         /** Marks project dirty, and starts listening to new kids. */
         public void dbChildrenInserted(SQLObjectEvent e) {
-            project.setModified(true);
+            getProject().setModified(true);
             SQLObject[] newKids = e.getChildren();
             for (int i = 0; i < newKids.length; i++) {
                 try {
@@ -574,7 +569,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
         /** Marks project dirty, and stops listening to removed kids. */
         public void dbChildrenRemoved(SQLObjectEvent e) {
-            project.setModified(true);
+            getProject().setModified(true);
             SQLObject[] oldKids = e.getChildren();
             for (int i = 0; i < oldKids.length; i++) {
                 oldKids[i].removeSQLObjectListener(this);
@@ -584,7 +579,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
         /** Marks project dirty. */
         public void dbObjectChanged(SQLObjectEvent e) {
-            project.setModified(true);
+            getProject().setModified(true);
             isNew = false;
         }
 
@@ -603,17 +598,17 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         }
 
         public void componentResized(PlayPenComponentEvent e) {
-            project.setModified(true);
+            getProject().setModified(true);
             isNew = false;
         }
 
         public void componentMoveStart(PlayPenComponentEvent e) {
-            project.setModified(true);
+            getProject().setModified(true);
             isNew = false;
         }
 
         public void componentMoveEnd(PlayPenComponentEvent e) {
-            project.setModified(true);
+            getProject().setModified(true);
             isNew = false;
         }
     }
@@ -624,7 +619,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * @return the value of name
      */
     public String getName()  {
-        return this.name;
+        return delegateSession.getName();
     }
 
     /**
@@ -633,7 +628,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
      * @param argName Value to assign to this.name
      */
     public void setName(String argName) {
-        this.name = argName;
+        delegateSession.setName(argName);
     }
     
     /**
@@ -674,7 +669,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     }
 
     public ProfileManager getProfileManager() {
-        return profileManager;
+        return delegateSession.getProfileManager();
     }
     
     public JDialog getProfileDialog() {
@@ -756,5 +751,9 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     
     public boolean getRelationshipLinesDirect() {
         return relationshipLinesDirect;
+    }
+
+    public SQLObjectRoot getRootObject() {
+        return delegateSession.getRootObject();
     }
 }

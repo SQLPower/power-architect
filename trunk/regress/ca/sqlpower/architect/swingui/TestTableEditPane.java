@@ -46,7 +46,7 @@ public class TestTableEditPane extends TestCase {
 		super.setUp();
         TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
         ArchitectSwingSession session = context.createSession();
-		t = new SQLTable(session.getPlayPen().getDatabase(), true);
+		t = new SQLTable(session.getTargetDatabase(), true);
 		t.setName("Test Table");
 		SQLColumn pk1 = new SQLColumn(t, "PKColumn1", Types.INTEGER, 10,0);
 		

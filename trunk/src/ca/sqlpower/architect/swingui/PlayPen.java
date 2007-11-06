@@ -233,13 +233,6 @@ public class PlayPen extends JPanel
 	protected DropTarget dt;
 
 	/**
-	 * This database is the container of all the SQLObjects in this
-	 * playpen.  Items added via the importTableCopy, addSchema, ... methods
-	 * will be added into this database.
-	 */
-	protected SQLDatabase db;
-
-	/**
 	 * Maps table names (Strings) to Integers.  Useful for making up
 	 * new table names if two tables of the same name are added todrag
 	 * this playpen.
@@ -351,6 +344,7 @@ public class PlayPen extends JPanel
 	public PlayPen(ArchitectSwingSession session) {
         if (session == null) throw new NullPointerException("A null session is not allowed here.");
 		this.session = session;
+		setDatabase(session.getTargetDatabase());
         zoom = 1.0;
 		setBackground(java.awt.Color.white);
 		contentPane = new PlayPenContentPane(this);
@@ -402,39 +396,23 @@ public class PlayPen extends JPanel
 		setSize(getPreferredSize());
 	}
 
-	public PlayPen(ArchitectSwingSession session, SQLDatabase db) {
-		this(session);
-		setDatabase(db);
-	}
-
-	public SQLDatabase getDatabase() {
-		return db;
-	}
-
     /**
      * Returns a new list of all tables in this play pen. The list returned will
      * be your own private (shallow) copy, so you are free to modify it.
      */
     public List<SQLTable> getTables() throws ArchitectException {
         List<SQLTable> tables = new ArrayList();
-        ArchitectUtils.extractTables(db,tables);
+        ArchitectUtils.extractTables(session.getTargetDatabase(),tables);
         return tables;
 
     }
 
 	private final void setDatabase(SQLDatabase newdb) {
 		if (newdb == null) throw new NullPointerException("db must be non-null");
-		this.db = newdb;
-		db.setPlayPenDatabase(true);
-		if (db.getDataSource() == null) {
-			SPDataSource dbcs = new SPDataSource(session.getContext().getUserSettings().getPlDotIni());
-			dbcs.setName("Not Configured");
-			dbcs.setDisplayName("Not Configured");
-			db.setDataSource(dbcs);
-		}
-		try {
-			ArchitectUtils.listenToHierarchy(this, db);
+		session.getTargetDatabase().setPlayPenDatabase(true);
 
+		try {
+			ArchitectUtils.listenToHierarchy(this, session.getTargetDatabase());
 		} catch (ArchitectException ex) {
 			logger.error("Couldn't listen to database", ex);
 		}
@@ -442,7 +420,7 @@ public class PlayPen extends JPanel
 	}
 
     protected void setDatabaseConnection(SPDataSource dbcs){
-        SPDataSource tSpec = db.getDataSource();
+        SPDataSource tSpec = session.getTargetDatabase().getDataSource();
         tSpec.setDisplayName(dbcs.getDisplayName());
         tSpec.getParentType().setJdbcDriver(dbcs.getDriverClass());
         tSpec.setUrl(dbcs.getUrl());
@@ -1227,7 +1205,7 @@ public class PlayPen extends JPanel
 	 * @see PlayPenLayout#addLayoutComponent(Component,Object)
 	 */
 	public synchronized TablePane importTableCopy(SQLTable source, Point preferredLocation) throws ArchitectException {
-		SQLTable newTable = SQLTable.getDerivedInstance(source, db); // adds newTable to db
+		SQLTable newTable = SQLTable.getDerivedInstance(source, session.getTargetDatabase()); // adds newTable to db
 		String key = source.getName().toLowerCase();
 
 		// ensure tablename is unique
@@ -2564,7 +2542,7 @@ public class PlayPen extends JPanel
 					logger.debug("Placing table at: " + p);
 					pp.addImpl(tp, p, pp.getPPComponentCount());
 					try {
-						pp.db.addChild(tp.getModel());
+						pp.getSession().getTargetDatabase().addChild(tp.getModel());
 						pp.selectNone();
 						tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
 						pp.mouseMode = MouseModeType.SELECT_TABLE;

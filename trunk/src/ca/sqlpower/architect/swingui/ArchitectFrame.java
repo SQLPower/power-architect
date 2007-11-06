@@ -318,7 +318,7 @@ public class ArchitectFrame extends JFrame {
         
         compareDMAction = new CompareDMAction(session,comapareDMDialog);
         dataMoverAction = new DataMoverAction(this, session);
-        Action exportCSVAction = new ExportCSVAction(this, playpen);
+        Action exportCSVAction = new ExportCSVAction(this, session);
         Action mappingReportAction = new VisualMappingReportAction(this, session);
 
         Action kettleETL = new KettleJobAction(session);

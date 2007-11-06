@@ -60,12 +60,12 @@ public class TestDeleteSelectedAction extends TestCase {
         ArchitectSwingSession session = context.createSession();
 		deleteAction = new DeleteSelectedAction(session);
 		pp = session.getPlayPen();
-		tp = new TablePane(new SQLTable(pp.getDatabase(),true),pp);
+		tp = new TablePane(new SQLTable(session.getTargetDatabase(),true),pp);
 		tp.getModel().setName("Table1");
 		tp.getModel().addColumn(new SQLColumn(tp.getModel(),"col1",Types.INTEGER,1,1));
 		tp.getModel().addColumn(new SQLColumn(tp.getModel(),"col2",Types.INTEGER,1,1));
 		
-		tp2 = new TablePane(new SQLTable(pp.getDatabase(),true),pp);
+		tp2 = new TablePane(new SQLTable(session.getTargetDatabase(),true),pp);
 		tp2.getModel().setName("Table2");
 		tp2.getModel().addColumn(new SQLColumn(tp.getModel(),"col1",Types.INTEGER,1,1));
 		tp2.getModel().addColumn(new SQLColumn(tp.getModel(),"col2",Types.INTEGER,1,1));

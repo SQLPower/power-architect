@@ -34,11 +34,9 @@ package ca.sqlpower.architect.swingui;
 import java.awt.Window;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collection;
-import java.util.prefs.Preferences;
 
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.CoreUserSettings;
+import ca.sqlpower.architect.ArchitectSessionContext;
 
 /**
  * The ArchitectSwingSessionContext interface specifies a set of
@@ -48,7 +46,7 @@ import ca.sqlpower.architect.CoreUserSettings;
  * to information that is attached to specific projects, which is
  * stored in the session).
  */
-public interface ArchitectSwingSessionContext {
+public interface ArchitectSwingSessionContext extends ArchitectSessionContext {
 
     /**
      * The size, in pixels, of the icons in the toolbar.  This used to be managed as a
@@ -57,12 +55,6 @@ public interface ArchitectSwingSessionContext {
      */
     public static final int ICON_SIZE = 16;
 
-    /**
-     * The URL where there is more information about finding and configuring
-     * JDBC drivers.
-     */
-    static final String DRIVERS_URL = "http://www.sqlpower.ca/forum/posts/list/401.page";
-    
     /**
      * Creates a new session within this parent context.  This will cause an
      * Architect Frame to appear on the user's desktop with a new empty project
@@ -108,21 +100,6 @@ public interface ArchitectSwingSessionContext {
      */
     public abstract boolean isMacOSX();
     
-    /**
-     * Returns the user preferences node associated with this context.
-     */
-    public abstract Preferences getPrefs();
-
-    /**
-     * Gets the user settings for this session 
-     */
-    public abstract CoreUserSettings getUserSettings();
-
-    /**
-     * Returns a collection containing all the sessions from this context. 
-     */
-    public Collection<ArchitectSwingSession> getSessions();
-
     /**
      * Closes all sessions and terminates the VM.  This is the typical "exit"
      * action for a project.

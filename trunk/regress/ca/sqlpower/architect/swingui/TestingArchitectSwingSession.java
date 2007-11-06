@@ -33,14 +33,17 @@ package ca.sqlpower.architect.swingui;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JDialog;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectSession;
+import ca.sqlpower.architect.ArchitectSessionImpl;
+import ca.sqlpower.architect.CoreProject;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLObjectRoot;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.architect.profile.ProfileManager;
@@ -61,11 +64,13 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     private PlayPen playpen;
     private UndoManager undoManager;
     private DBTree sourceDatabases;
+    private SQLObjectRoot rootObject;
     private TableProfileManager profileManager;
     private CompareDMSettings compareDMSettings;
     private GenericDDLGenerator ddlGenerator;
     private KettleJob kettleJob;
     private RecentMenu recent;
+    private ArchitectSession delegateSession;
     
     public TestingArchitectSwingSession(ArchitectSwingSessionContext context) throws ArchitectException {
         this.context = context;
@@ -75,14 +80,14 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
                 System.out.println("Fake load file for recent menu");
             }
         };
+        this.delegateSession = new ArchitectSessionImpl(context, "test");
         profileManager = new TableProfileManager();
         project = new SwingUIProject(this);
         userSettings = context.getUserSettings();
-        SQLDatabase ppdb = new SQLDatabase();
-        playpen = new PlayPen(this, ppdb);
-        List initialDBList = new ArrayList();
-        initialDBList.add(playpen.getDatabase());
-        sourceDatabases = new DBTree(this, initialDBList);
+        playpen = new PlayPen(this);
+        rootObject = new SQLObjectRoot();
+        rootObject.addChild(getTargetDatabase());
+        sourceDatabases = new DBTree(this);
         undoManager = new UndoManager(playpen);
         
         compareDMSettings = new CompareDMSettings();
@@ -190,8 +195,14 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         
     }
 
-    public void setSourceDatabaseList(List databases) throws ArchitectException {
-        this.sourceDatabases.setModel(new DBTreeModel(databases,this));
+    public void setSourceDatabaseList(List<SQLDatabase> databases) throws ArchitectException {
+        while (rootObject.getChildCount() > 0) {
+            rootObject.removeChild(rootObject.getChildCount() - 1);
+        }
+        
+        for (SQLDatabase db : databases) {
+            rootObject.addChild(db);
+        }
     }
 
     public KettleJob getKettleJob() {
@@ -236,5 +247,17 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
      */
     public void setRelationshipLinesDirect(boolean direct) {
         // ignore
+    }
+
+    public SQLDatabase getTargetDatabase() {
+        return delegateSession.getTargetDatabase();
+    }
+
+    public void setProject(CoreProject project) {
+        delegateSession.setProject(project);
+    }
+
+    public SQLObjectRoot getRootObject() {
+        return rootObject;
     }
 }

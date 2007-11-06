@@ -285,10 +285,10 @@ public class SearchReplace {
 
     public void showResults(JDialog parent, final PlayPen pp) throws ArchitectException {
     	try {
-	        final List results = doSearch(pp.getDatabase());
+	        final List results = doSearch(pp.getSession().getTargetDatabase());
 
             // The PlayPen Database is more of an implementation detail, so we don't count it as a hit
-            results.remove(pp.getDatabase());
+            results.remove(pp.getSession().getTargetDatabase());
             
 	        // XXX This JDialog has three buttons so we cannot use
 	        // ArchitectPanelBuilder to create it...

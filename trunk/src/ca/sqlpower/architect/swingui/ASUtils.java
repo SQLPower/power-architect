@@ -138,7 +138,7 @@ public class ASUtils {
      */
 	public static void setupTargetDBComboBox(final ArchitectSwingSession session, final JComboBox targetDB) {
         JComboBox newTargetDB = new JComboBox();
-        SPDataSource currentTarget = session.getPlayPen().getDatabase().getDataSource();
+        SPDataSource currentTarget = session.getTargetDatabase().getDataSource();
         newTargetDB.addItem(currentTarget);
         for (SPDataSource dbcs : session.getUserSettings().getConnections()) {
             if(!dbcs.equals(currentTarget)) {
@@ -149,7 +149,7 @@ public class ASUtils {
         targetDB.setModel(newTargetDB.getModel());
         targetDB.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                SPDataSource projectDS = session.getPlayPen().getDatabase().getDataSource();
+                SPDataSource projectDS = session.getTargetDatabase().getDataSource();
                 SPDataSource comboBoxDS = (SPDataSource)((JComboBox)e.getSource()).getSelectedItem();
                 if(!projectDS.equals(comboBoxDS)) {
                     projectDS.copyFrom(comboBoxDS);
@@ -169,11 +169,11 @@ public class ASUtils {
             final ArchitectSwingSession session,
             final JComboBox targetDB) {
         
-        JDialog d = showDbcsDialog(parentWindow, session.getPlayPen().db.getDataSource(), null);
+        JDialog d = showDbcsDialog(parentWindow, session.getTargetDatabase().getDataSource(), null);
         
         d.addWindowListener(new WindowAdapter(){
                 public void windowClosed(WindowEvent e){
-                    session.getPlayPen().getDatabase().getDataSource().setName("(Target Database)");
+                    session.getTargetDatabase().getDataSource().setName("(Target Database)");
                     ASUtils.setupTargetDBComboBox(session, targetDB);
                 }
             });

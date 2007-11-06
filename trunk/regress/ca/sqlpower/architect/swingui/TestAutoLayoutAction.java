@@ -73,7 +73,7 @@ public class TestAutoLayoutAction extends TestCase {
 	
 	public void testNoOverlaps() throws ArchitectException {
 		PlayPen pp = layoutAction.getPlayPen();
-		SQLDatabase ppdb = pp.getDatabase();
+		SQLDatabase ppdb = pp.getSession().getTargetDatabase();
 		SQLTable t1 = new SQLTable(ppdb, "This is the name of the first table", "", "TABLE", true);
 		SQLTable t2 = new SQLTable(ppdb, "This table is way cooler than the first one", "", "TABLE", true);
 		
@@ -94,7 +94,7 @@ public class TestAutoLayoutAction extends TestCase {
 	
 	public void testNoCrossingLinesEasy() throws ArchitectException {
 		PlayPen pp = layoutAction.getPlayPen();
-		SQLDatabase ppdb = pp.getDatabase();
+		SQLDatabase ppdb = pp.getSession().getTargetDatabase();
 		
 		SQLTable tables[] = new SQLTable[4];
 		TablePane tablePanes[] = new TablePane[tables.length];

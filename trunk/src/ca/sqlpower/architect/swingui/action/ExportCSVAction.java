@@ -44,17 +44,17 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectRuntimeException;
+import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.etl.ExportCSV;
-import ca.sqlpower.architect.swingui.PlayPen;
 
 public class ExportCSVAction extends AbstractAction {
 
     private static final Logger logger = Logger.getLogger(ExportCSVAction.class);
     
     /**
-     * The play pen that this action operates on.
+     * The session that this action operates on.
      */
-    private final PlayPen playpen;
+    private final ArchitectSession session;
     
     /**
      * The frame that will own the dialog(s) created by this action.
@@ -62,11 +62,11 @@ public class ExportCSVAction extends AbstractAction {
      */
     private final JFrame parentFrame;
     
-    public ExportCSVAction(JFrame parentFrame, PlayPen playpen) {
+    public ExportCSVAction(JFrame parentFrame, ArchitectSession session) {
         super("Export CSV");
         
-        if (playpen == null) throw new NullPointerException("Null playpen");
-        this.playpen = playpen;
+        if (session == null) throw new NullPointerException("Null session");
+        this.session = session;
 
         if (parentFrame == null) throw new NullPointerException("Null parentFrame");
         this.parentFrame = parentFrame;
@@ -75,7 +75,7 @@ public class ExportCSVAction extends AbstractAction {
     public void actionPerformed(ActionEvent e) {
         FileWriter output = null;
         try {
-            ExportCSV export = new ExportCSV(playpen.getDatabase().getTables());
+            ExportCSV export = new ExportCSV(session.getTargetDatabase().getTables());
 
             File file = null;
 

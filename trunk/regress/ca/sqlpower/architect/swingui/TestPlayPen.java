@@ -53,7 +53,7 @@ public class TestPlayPen extends TestCase {
         ArchitectSwingSession session = context.createSession(false);
 		af = session.getArchitectFrame();
 		pp = session.getPlayPen();
-		ppdb = pp.getDatabase();
+		ppdb = session.getTargetDatabase();
 
 	}
 

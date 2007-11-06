@@ -37,6 +37,7 @@ import javax.swing.JDialog;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
+import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.architect.undo.UndoManager;
@@ -49,18 +50,17 @@ import ca.sqlpower.swingui.SwingWorkerRegistry;
  * objects.
  */
 public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegistry {
-
-    /**
-     * Returns the project associated with this session.  The project
-     * holds the playpen objects, and can save and load itself in an
-     * XML format.
-     */
-    public SwingUIProject getProject();
-
+   
     /**
      * Returns the context that created this session.
      */
     public ArchitectSwingSessionContext getContext();
+    
+    /**
+     * Narrows the return type for the project: Swing Sessions
+     * have SwingUI projects, which are a subclass of CoreProject.
+     */
+    public SwingUIProject getProject();
     
     /**
      * Gets the recent menu list
@@ -160,7 +160,7 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
      * @param databases
      * @throws ArchitectException
      */
-    public void setSourceDatabaseList(List databases) throws ArchitectException;
+    public void setSourceDatabaseList(List<SQLDatabase> databases) throws ArchitectException;
     
     public KettleJob getKettleJob();
 

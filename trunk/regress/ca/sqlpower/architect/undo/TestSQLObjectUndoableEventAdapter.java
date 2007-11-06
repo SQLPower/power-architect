@@ -75,8 +75,8 @@ public class TestSQLObjectUndoableEventAdapter extends TestCase {
 	}*/
 	
 	public void testMove() throws ArchitectException, IOException {
-		PlayPen pp = new PlayPen(session, new SQLDatabase());
-		SQLTable table = new SQLTable(pp.getDatabase(),true);
+		PlayPen pp = new PlayPen(session);
+		SQLTable table = new SQLTable(session.getTargetDatabase(),true);
 		TablePane tp = new TablePane(table,pp);
 		pp.addTablePane(tp, new Point());
 		UndoManager undoManager = new UndoManager(pp);
@@ -99,8 +99,8 @@ public class TestSQLObjectUndoableEventAdapter extends TestCase {
 	
 	public void testMultiMove() throws ArchitectException 
 	{
-		SQLDatabase db = new SQLDatabase();
-		PlayPen pp = new PlayPen(session, db);
+		PlayPen pp = new PlayPen(session);
+		SQLDatabase db = session.getTargetDatabase();
 		SQLTable table = new SQLTable(db,true);
 		TablePane tp = new TablePane(table,pp);
 		SQLTable table2 = new SQLTable(db,true);
@@ -138,8 +138,7 @@ public class TestSQLObjectUndoableEventAdapter extends TestCase {
 	}
     
     public void testCompoundEditEvent() throws ArchitectException{
-        SQLDatabase db = new SQLDatabase();
-        PlayPen pp = new PlayPen(session, db);
+        PlayPen pp = new PlayPen(session);
         UndoManager manager = new UndoManager(pp);
         StateChangeTestListner listner = new StateChangeTestListner();
         manager.addChangeListener(listner);

@@ -92,10 +92,10 @@ public class TestUndoManager extends TestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		System.out.println("-----------------Start setup for "+getName()+"----------------");
-		SQLDatabase db = new SQLDatabase();
         TestingArchitectSwingSessionContext context = new TestingArchitectSwingSessionContext();
         ArchitectSwingSession session = context.createSession();
-		pp = new PlayPen(session, db);
+		pp = new PlayPen(session);
+		SQLDatabase db = session.getTargetDatabase();
 		fkTable = new SQLTable(db,true);
 		fkTable.setName("child");
 		TablePane tp = new TablePane(fkTable,pp);
