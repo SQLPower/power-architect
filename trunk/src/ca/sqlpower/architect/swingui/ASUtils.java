@@ -140,7 +140,7 @@ public class ASUtils {
         JComboBox newTargetDB = new JComboBox();
         SPDataSource currentTarget = session.getTargetDatabase().getDataSource();
         newTargetDB.addItem(currentTarget);
-        for (SPDataSource dbcs : session.getUserSettings().getConnections()) {
+        for (SPDataSource dbcs : session.getContext().getConnections()) {
             if(!dbcs.equals(currentTarget)) {
                 newTargetDB.addItem(dbcs);
             }

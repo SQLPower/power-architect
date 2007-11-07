@@ -34,7 +34,6 @@ package ca.sqlpower.architect.swingui;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -111,10 +110,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     /** the small dialog that lists the profiles */
     private ProfileManagerView profileManagerView;
     
-    private DBTree sourceDatabases;
-    
-    private GenericDDLGenerator ddlGenerator;
-    
     private CompareDMSettings compareDMSettings;
 
     private UndoManager undoManager;
@@ -122,6 +117,8 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     private boolean savingEntireSource;
     
     private boolean isNew;
+    
+    private DBTree sourceDatabases;
     
     private KettleJob kettleJob;
     // END STUFF BROUGHT IN FROM SwingUIProject
@@ -165,15 +162,9 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         
         // Make sure we can load the pl.ini file so we can handle exceptions
         // XXX this is probably redundant now, since the context owns the pl.ini
-        getUserSettings().getPlDotIni();
+        getContext().getPlDotIni();
 
         setProject(new SwingUIProject(this));
-        
-        try {
-            ddlGenerator = new GenericDDLGenerator();
-        } catch (SQLException e) {
-            throw new ArchitectException("SQL Error in ddlGenerator",e);
-        }
         
         compareDMSettings = new CompareDMSettings();
         
@@ -514,13 +505,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     }
 
     public void setSourceDatabaseList(List<SQLDatabase> databases) throws ArchitectException {
-        SQLObject root = getRootObject();
-        while (root.getChildCount() > 0) {
-            root.removeChild(root.getChildCount() - 1);
-        }
-        for (SQLDatabase db : databases) {
-            root.addChild(db);
-        }
+        delegateSession.setSourceDatabaseList(databases);
     }
 
     /**
@@ -648,14 +633,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     public RecentMenu getRecentMenu()  {
         return this.recent;    
     }
-    
-    public GenericDDLGenerator getDDLGenerator() {
-        return ddlGenerator;
-    }
-
-    public void setDDLGenerator(GenericDDLGenerator generator) {
-        ddlGenerator = generator;
-    }
 
     public CompareDMSettings getCompareDMSettings() {
         return compareDMSettings;
@@ -679,7 +656,6 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         }
         return profileDialog;
     }
-    
 
     /**
      * See {@link #savingEntireSource}.
@@ -755,5 +731,13 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
     public SQLObjectRoot getRootObject() {
         return delegateSession.getRootObject();
+    }
+
+    public GenericDDLGenerator getDDLGenerator() {
+        return delegateSession.getDDLGenerator();
+    }
+
+    public void setDDLGenerator(GenericDDLGenerator generator) {
+        delegateSession.setDDLGenerator(generator);
     }
 }

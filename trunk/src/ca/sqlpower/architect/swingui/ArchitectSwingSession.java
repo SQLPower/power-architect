@@ -31,14 +31,11 @@
  */
 package ca.sqlpower.architect.swingui;
 
-import java.util.List;
-
 import javax.swing.JDialog;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
-import ca.sqlpower.architect.SQLDatabase;
-import ca.sqlpower.architect.ddl.GenericDDLGenerator;
+import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.architect.undo.UndoManager;
 import ca.sqlpower.swingui.SwingWorkerRegistry;
@@ -94,16 +91,7 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
     public UndoManager getUndoManager();
     
     public CompareDMSettings getCompareDMSettings();
-    
-    /**
-     * Gets the value of name
-     *
-     * @return the value of name
-     */
-    public String getName();
-    
-    public GenericDDLGenerator getDDLGenerator();
-    
+      
     /**
      * Returns the JDialog containing the ProfileManagerView
      */
@@ -116,14 +104,12 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
      */
     public void close();
     
-    public void setDDLGenerator(GenericDDLGenerator generator);
-    
     /**
-     * Sets the value of name
+     * See {@link #userSettings}.
      *
-     * @param argName Value to assign to this.name
+     * @return the value of userSettings
      */
-    public void setName(String argName);
+    public CoreUserSettings getUserSettings();
     
     /**
      * Saves the project associated with this session, optionally showing a file
@@ -151,16 +137,6 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
      * @param argSavingEntireSource Value to assign to this.savingEntireSource
      */
     public void setSavingEntireSource(boolean argSavingEntireSource);
-    
-    /**
-     *  Replaces the entire list of source databases for this session.
-     *  This method is used reflectively by the code that does loading and saving,
-     *  so DON'T DELETE THIS METHOD even if it looks like it's unused.
-     * 
-     * @param databases
-     * @throws ArchitectException
-     */
-    public void setSourceDatabaseList(List<SQLDatabase> databases) throws ArchitectException;
     
     public KettleJob getKettleJob();
 

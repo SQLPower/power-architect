@@ -32,8 +32,11 @@
 package ca.sqlpower.architect;
 
 
+import java.sql.SQLException;
+import java.util.List;
+
+import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.profile.TableProfileManager;
-import ca.sqlpower.sql.SPDataSource;
 
 /**
  * The ArchitectSession class represents a single user's session with
@@ -52,33 +55,31 @@ public class ArchitectSessionImpl implements ArchitectSession {
     private String name;
     private SQLObjectRoot rootObject;
     
+    private GenericDDLGenerator ddlGenerator;
+    
     /**
      * The project associated with this session.  The project provides save
      * and load functionality, and houses the source database connections.
      */
     private CoreProject project;
 
-	public ArchitectSessionImpl(final ArchitectSessionContext context, String name) {
+	public ArchitectSessionImpl(final ArchitectSessionContext context,
+	        String name) throws ArchitectException {
 	    this.context = context;
 	    this.name = name;
         this.profileManager = new TableProfileManager();
         this.project = new CoreProject(this);
         this.db = new SQLDatabase();
         this.rootObject = new SQLObjectRoot();
-        SPDataSource dbcs = new SPDataSource(context.getUserSettings().getPlDotIni());
-        dbcs.setName("Not Configured");
-        dbcs.setDisplayName("Not Configured");
-        db.setDataSource(dbcs);
+        
+        try {
+            ddlGenerator = new GenericDDLGenerator();
+        } catch (SQLException e) {
+            throw new ArchitectException("SQL Error in ddlGenerator",e);
+        }
 	}
 
 	// --------------- accessors and mutators ------------------
-
-	/* (non-Javadoc)
-     * @see ca.sqlpower.architect.ArchitectSession#getUserSettings()
-     */
-	public CoreUserSettings getUserSettings()  {
-		return context.getUserSettings();
-	}
 	
     /**
      * Gets the value of name
@@ -116,5 +117,27 @@ public class ArchitectSessionImpl implements ArchitectSession {
 
     public SQLObjectRoot getRootObject() {
         return rootObject;
+    }
+
+    public ArchitectSessionContext getContext() {
+        return context;
+    }
+    
+    public void setSourceDatabaseList(List<SQLDatabase> databases) throws ArchitectException {
+        SQLObject root = getRootObject();
+        while (root.getChildCount() > 0) {
+            root.removeChild(root.getChildCount() - 1);
+        }
+        for (SQLDatabase db : databases) {
+            root.addChild(db);
+        }
+    }
+    
+    public GenericDDLGenerator getDDLGenerator() {
+        return ddlGenerator;
+    }
+
+    public void setDDLGenerator(GenericDDLGenerator generator) {
+        ddlGenerator = generator;
     }
 }

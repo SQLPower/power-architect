@@ -115,7 +115,7 @@ public class ArchitectSQLRunnerConfigurationManager implements ConfigurationMana
     
     public List<Configuration> getConfigurations() {
         List<SPDataSource> connections =
-            session.getUserSettings().getConnections();
+            session.getContext().getConnections();
         List<Configuration> results = new ArrayList<Configuration>();
         for (SPDataSource ds : connections) {
             results.add(new ArchitectDataSourceConfiguration(ds));

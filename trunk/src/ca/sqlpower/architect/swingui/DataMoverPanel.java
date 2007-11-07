@@ -107,7 +107,7 @@ public class DataMoverPanel {
     
     public DataMoverPanel(ArchitectSession session) throws ArchitectException {
         SQLObjectRoot treeRoot = new SQLObjectRoot();
-        for (SPDataSource ds : session.getUserSettings().getConnections()) {
+        for (SPDataSource ds : session.getContext().getConnections()) {
             treeRoot.addChild(new SQLDatabase(ds));
         }
         

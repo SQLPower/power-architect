@@ -410,6 +410,11 @@ public class PlayPen extends JPanel
 	private final void setDatabase(SQLDatabase newdb) {
 		if (newdb == null) throw new NullPointerException("db must be non-null");
 		session.getTargetDatabase().setPlayPenDatabase(true);
+        SPDataSource dbcs = new SPDataSource(session.getContext().getPlDotIni());
+        dbcs.setName("Not Configured");
+        dbcs.setDisplayName("Not Configured");
+        session.getTargetDatabase().setDataSource(dbcs);
+		
 
 		try {
 			ArchitectUtils.listenToHierarchy(this, session.getTargetDatabase());

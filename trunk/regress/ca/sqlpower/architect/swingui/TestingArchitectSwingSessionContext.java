@@ -37,11 +37,16 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.List;
 import java.util.prefs.Preferences;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.CoreUserSettings;
+import ca.sqlpower.sql.DataSourceCollection;
+import ca.sqlpower.sql.PlDotIni;
+import ca.sqlpower.sql.SPDataSource;
 
 /**
  * Minimally functional session context implementation that creates and returns an instance of
@@ -52,6 +57,16 @@ public class TestingArchitectSwingSessionContext implements ArchitectSwingSessio
     private Preferences prefs;
     private CoreUserSettings userSettings;
     private RecentMenu recent;
+    
+    /**
+     * The parsed list of connections.
+     */
+    private DataSourceCollection plDotIni;
+    
+    /**
+     * The location of the PL.INI file.
+     */
+    private String plDotIniPath;
 
     private static final boolean MAC_OS_X = (System.getProperty("os.name").toLowerCase().startsWith("mac os x"));
 
@@ -66,7 +81,7 @@ public class TestingArchitectSwingSessionContext implements ArchitectSwingSessio
 
         File newPlIniFile = File.createTempFile("pl_test", "ini");
         newPlIniFile.deleteOnExit();
-        userSettings.setPlDotIniPath(newPlIniFile.getPath());
+        setPlDotIniPath(newPlIniFile.getPath());
     }
     
     public ArchitectSwingSession createSession() throws ArchitectException {
@@ -138,5 +153,43 @@ public class TestingArchitectSwingSessionContext implements ArchitectSwingSessio
      */    
     public void showPreferenceDialog(Window owner) {
         // no op
+    }
+
+    public List<SPDataSource> getConnections() {
+        return getPlDotIni().getConnections();
+    }
+
+    public DataSourceCollection getPlDotIni() {
+        String path = getPlDotIniPath();
+        if (path == null) return null;
+        
+        if (plDotIni == null) {
+            plDotIni = new PlDotIni();
+            try {
+                plDotIni.read(getClass().getClassLoader().getResourceAsStream("ca/sqlpower/sql/default_database_types.ini"));
+            } catch (IOException e) {
+                throw new ArchitectRuntimeException(new ArchitectException("Failed to read system resource default_database_types.ini",e));
+            }
+            try {
+                if (plDotIni != null) {
+                    plDotIni.read(new File(path));
+                }
+            } catch (IOException e) {
+                throw new ArchitectRuntimeException(new ArchitectException("Failed to read pl.ini at \""+getPlDotIniPath()+"\"", e));
+            }
+        }
+        return plDotIni;
+    }
+
+    public String getPlDotIniPath() {
+        return plDotIniPath;
+    }
+
+    public void setPlDotIniPath(String plDotIniPath) {
+        if (this.plDotIniPath != null && this.plDotIniPath.equals(plDotIniPath)) {
+            return;
+        }
+        this.plDotIniPath = plDotIniPath;
+        this.plDotIni = null;
     }
 }

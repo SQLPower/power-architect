@@ -65,6 +65,7 @@ import javax.swing.SwingUtilities;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.layout.ArchitectLayout;
@@ -552,9 +553,9 @@ public class ArchitectFrame extends JFrame {
                 us.getSwingSettings().getBoolean(ArchitectSwingUserSettings.SHOW_WELCOMESCREEN, true));
 
 		us.write();
-
+        prefs.put(ArchitectSession.PREFS_PL_INI_PATH, session.getContext().getPlDotIniPath());
 		try {
-            us.getPlDotIni().write(new File(us.getPlDotIniPath()));
+            session.getContext().getPlDotIni().write(new File(session.getContext().getPlDotIniPath()));
         } catch (IOException e) {
             logger.error("Couldn't save PL.INI file!", e);
         }

@@ -50,6 +50,7 @@ import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.ArchitectSessionContextImpl;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.swingui.event.SessionLifecycleEvent;
+import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.db.DataSourceDialogFactory;
 import ca.sqlpower.swingui.db.DataSourceTypeDialogFactory;
@@ -68,6 +69,11 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
     private static final Logger logger = Logger.getLogger(ArchitectSwingSessionContextImpl.class);
     
     private static final boolean MAC_OS_X = (System.getProperty("os.name").toLowerCase().startsWith("mac os x"));
+    
+    /**
+     * A more structured interface to the prefs node.  Might be going away soon.
+     */
+    CoreUserSettings userSettings;
     
     /**
      * This is the context that some work delegates to.
@@ -120,6 +126,8 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         delegateContext = new ArchitectSessionContextImpl();
         
         System.setProperty("apple.laf.useScreenMenuBar", "true");
+        
+        userSettings = new CoreUserSettings(getPrefs());
 
         // this doesn't appear to have any effect on the motion threshold
         // in the Playpen, but it does seem to work on the DBTree...
@@ -129,7 +137,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
 
         Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler(this));
         
-        dbConnectionManager = new DatabaseConnectionManager(getUserSettings().getPlDotIni(), dsDialogFactory,dsTypeDialogFactory);
+        dbConnectionManager = new DatabaseConnectionManager(getPlDotIni(), dsDialogFactory,dsTypeDialogFactory);
         prefsEditor = new PreferencesEditor();
     }
     
@@ -151,7 +159,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         ArchitectSwingSession session = createSessionImpl("Loading...", false);
         
         try {
-            session.getProject().load(in, getUserSettings().getPlDotIni());
+            session.getProject().load(in, getPlDotIni());
 
             if (showGUI) {
                 session.initGUI();
@@ -264,7 +272,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      * @see ca.sqlpower.architect.swingui.ArchitectSwingSessionContext#getUserSettings()
      */
     public CoreUserSettings getUserSettings() {
-        return delegateContext.getUserSettings();
+        return userSettings;
     }
 
     public Collection<ArchitectSession> getSessions() {
@@ -307,5 +315,21 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
 
     public void setExitAfterAllSessionsClosed(boolean allowExit) {
         exitAfterAllSessionsClosed = allowExit;
+    }
+
+    public List<SPDataSource> getConnections() {
+        return delegateContext.getConnections();
+    }
+
+    public DataSourceCollection getPlDotIni() {
+        return delegateContext.getPlDotIni();
+    }
+
+    public String getPlDotIniPath() {
+        return delegateContext.getPlDotIniPath();
+    }
+
+    public void setPlDotIniPath(String plDotIniPath) {
+        delegateContext.setPlDotIniPath(plDotIniPath);
     }
 }
