@@ -2521,7 +2521,6 @@ public class PlayPen extends JPanel
 			pp.zoomPoint(e.getPoint());
 			p = new Point(e.getPoint().x - handle.x, e.getPoint().y - handle.y);
 			pp.setChildPosition(tp, p);
-			pp.repaint(); // FIXME: this shouldn't need to redraw the whole playpen!
 		}
 
 		/**
