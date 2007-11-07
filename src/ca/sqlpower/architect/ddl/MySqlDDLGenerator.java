@@ -296,6 +296,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         typeMap.put(Integer.valueOf(Types.BLOB), new GenericTypeDescriptor("LONGBLOB", Types.BLOB, 4000000000L, null, null, DatabaseMetaData.columnNullable, false, false));
         typeMap.put(Integer.valueOf(Types.CHAR), new GenericTypeDescriptor("CHAR", Types.CHAR, 2000, "'", "'", DatabaseMetaData.columnNullable, true, false));
         typeMap.put(Integer.valueOf(Types.CLOB), new GenericTypeDescriptor("LONGTEXT", Types.CLOB, 4000000000L, null, null, DatabaseMetaData.columnNullable, false, false));
+        typeMap.put(Integer.valueOf(Types.BOOLEAN), new GenericTypeDescriptor("BOOLEAN", Types.BOOLEAN, 1, null, null, DatabaseMetaData.columnNullable, false, false));
         typeMap.put(Integer.valueOf(Types.DATE), new GenericTypeDescriptor("DATE", Types.DATE, 0, "'", "'", DatabaseMetaData.columnNullable, false, false));
         typeMap.put(Integer.valueOf(Types.DECIMAL), new GenericTypeDescriptor("DECIMAL", Types.DECIMAL, 38, null, null, DatabaseMetaData.columnNullable, true, true));
         typeMap.put(Integer.valueOf(Types.DOUBLE), new GenericTypeDescriptor("DOUBLE PRECISION", Types.DOUBLE, 38, null, null, DatabaseMetaData.columnNullable, false, false));
