@@ -150,7 +150,7 @@ public class PreferencesPanel extends JPanel implements DataEntryPanel {
 	}
 
 	protected void revertToUserSettings() {
-		plIniName.setText(us.getPlDotIniPath());
+		plIniName.setText(context.getPlDotIniPath());
 		etlLogFileName.setText(us.getETLUserSettings().getString(ETLUserSettings.PROP_ETL_LOG_PATH,""));
 		ddlLogFileName.setText(us.getDDLUserSettings().getString(DDLUserSettings.PROP_DDL_LOG_PATH,""));
 		if (us.getSwingSettings().getBoolean(ArchitectSwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false)) {
@@ -171,7 +171,7 @@ public class PreferencesPanel extends JPanel implements DataEntryPanel {
 	}
 
 	public boolean applyChanges() {
-		us.setPlDotIniPath(plIniName.getText());
+		context.setPlDotIniPath(plIniName.getText());
 		us.getETLUserSettings().setString(ETLUserSettings.PROP_ETL_LOG_PATH,etlLogFileName.getText());
 		us.getDDLUserSettings().setString(DDLUserSettings.PROP_DDL_LOG_PATH,ddlLogFileName.getText());
 		us.getSwingSettings().setBoolean(ArchitectSwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, playPenAntialiasOn.isSelected());

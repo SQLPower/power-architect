@@ -235,7 +235,7 @@ public class KettleJobPanel implements DataEntryPanel {
         
         saveReposRadioButton = new JRadioButton("Save Job to Repository", !settings.isSavingToFile());
 
-        Object[] connectionArray = session.getUserSettings().getConnections().toArray();
+        Object[] connectionArray = session.getContext().getConnections().toArray();
         reposDB = new JComboBox(connectionArray);
         if (connectionArray.length > 0) {
             reposDB.setSelectedIndex(0);

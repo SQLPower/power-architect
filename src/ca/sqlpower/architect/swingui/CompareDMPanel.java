@@ -243,7 +243,7 @@ public class CompareDMPanel extends JPanel {
 		private Action newConnectionAction = new AbstractAction("New...") {
 			public void actionPerformed(ActionEvent e) {
 
-                final DataSourceCollection plDotIni = session.getContext().getUserSettings().getPlDotIni();
+                final DataSourceCollection plDotIni = session.getContext().getPlDotIni();
                 final SPDataSource dataSource = new SPDataSource(plDotIni);
                 Runnable onAccept = new Runnable() {
                     public void run() {
@@ -693,7 +693,7 @@ public class CompareDMPanel extends JPanel {
 
 			databaseDropdown = new JComboBox();
 			databaseDropdown.setName(prefix + "DatabaseDropdown");
-			databaseDropdown.setModel(new ConnectionComboBoxModel(session.getUserSettings().getPlDotIni()));
+			databaseDropdown.setModel(new ConnectionComboBoxModel(session.getContext().getPlDotIni()));
 			databaseDropdown.setEnabled(false);
 			databaseDropdown.setRenderer(dataSourceRenderer);
 
@@ -1265,7 +1265,7 @@ public class CompareDMPanel extends JPanel {
 		else if ( rbs == CompareDMSettings.DatastoreType.FILE )
 			stuff.loadRadio.doClick();
 
-		List<SPDataSource> lds = session.getUserSettings().getConnections();
+		List<SPDataSource> lds = session.getContext().getConnections();
 		for (SPDataSource ds : lds){
 			if (ds.getDisplayName().equals(set.getConnectName())){
 				stuff.databaseDropdown.setSelectedItem(ds);

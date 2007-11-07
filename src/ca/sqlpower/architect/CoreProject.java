@@ -61,7 +61,6 @@ import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ColumnValueCount;
 import ca.sqlpower.architect.profile.TableProfileResult;
-import ca.sqlpower.architect.swingui.DeferrabilityConverter;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.sql.SPDataSourceType;
@@ -222,7 +221,6 @@ public class CoreProject {
                         " folder manually. the table is [" + table.getName() + "]");
                 table.addChild(new Folder(Folder.INDICES, true));
             }
-            
             if ( table.getPrimaryKeyIndex() == null) {
                 logger.debug("primary key index is null in table: " + table);
                 logger.debug("number of children found in indices folder: " + table.getIndicesFolder().getChildCount());
@@ -394,7 +392,7 @@ public class CoreProject {
      */
     private class DBCSFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) {
-            SPDataSource dbcs = new SPDataSource(getSession().getUserSettings().getPlDotIni());
+            SPDataSource dbcs = new SPDataSource(getSession().getContext().getPlDotIni());
             
             String id = attributes.getValue("id");
             if (id != null) {

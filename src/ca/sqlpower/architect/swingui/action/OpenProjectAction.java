@@ -170,7 +170,7 @@ public class OpenProjectAction extends AbstractArchitectAction {
 
         @Override
         public void doStuff() throws Exception {
-            session.getProject().load(in, session.getUserSettings().getPlDotIni());
+            session.getProject().load(in, context.getPlDotIni());
             session.getProject().setFile(file);
         }
 

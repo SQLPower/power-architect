@@ -168,7 +168,7 @@ public class DBTree extends JTree implements DragSourceListener {
 	public SPDataSource getDuplicateDbcs(SPDataSource spec) {
 		SPDataSource dup = null;
 		boolean found = false;
-		Iterator it = session.getUserSettings().getConnections().iterator();
+		Iterator it = session.getContext().getConnections().iterator();
 		while (it.hasNext() && found == false) {
 			SPDataSource dbcs = (SPDataSource) it.next();
 			if (spec.equals(dbcs)) {
@@ -333,7 +333,7 @@ public class DBTree extends JTree implements DragSourceListener {
 
 		// populate
 
-		for (SPDataSource dbcs : session.getUserSettings().getConnections()) {
+		for (SPDataSource dbcs : session.getContext().getConnections()) {
 			connectionsMenu.add(new JMenuItem(new AddDBCSAction(dbcs)));
 		}
 		ASUtils.breakLongMenu(session.getArchitectFrame(),connectionsMenu);
@@ -651,7 +651,7 @@ public class DBTree extends JTree implements DragSourceListener {
 
 		public void actionPerformed(ActionEvent e) {
 
-            final DataSourceCollection plDotIni = session.getContext().getUserSettings().getPlDotIni();
+            final DataSourceCollection plDotIni = session.getContext().getPlDotIni();
             final SPDataSource dataSource = new SPDataSource(plDotIni);
             Runnable onAccept = new Runnable() {
                 public void run() {

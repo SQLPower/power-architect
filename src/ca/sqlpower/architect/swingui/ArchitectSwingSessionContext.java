@@ -37,6 +37,7 @@ import java.io.InputStream;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSessionContext;
+import ca.sqlpower.architect.CoreUserSettings;
 
 /**
  * The ArchitectSwingSessionContext interface specifies a set of
@@ -139,4 +140,9 @@ public interface ArchitectSwingSessionContext extends ArchitectSessionContext {
      * @param owner The owner of the dialog
      */
     public void showPreferenceDialog(Window owner);
+    
+    /**
+     * Gets the user settings for this session 
+     */
+    public abstract CoreUserSettings getUserSettings();
 }

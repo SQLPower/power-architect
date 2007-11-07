@@ -30,11 +30,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package ca.sqlpower.architect.swingui;
+package ca.sqlpower.architect;
 
 import org.apache.commons.beanutils.Converter;
 
 import ca.sqlpower.architect.SQLRelationship.Deferrability;
+
 
 /**
  * Converts between String and SQLRelationship.Deferrability values.

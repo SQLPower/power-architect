@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.prefs.Preferences;
 
 import javax.swing.JFileChooser;
@@ -44,6 +45,9 @@ import javax.swing.JOptionPane;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.sql.DataSourceCollection;
+import ca.sqlpower.sql.PlDotIni;
+import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.SPSUtils;
 
 public class ArchitectSessionContextImpl implements ArchitectSessionContext {
@@ -56,9 +60,14 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
     private final Preferences prefs = Preferences.userNodeForPackage(ArchitectSessionContextImpl.class);
     
     /**
-     * A more structured interface to the prefs node.  Might be going away soon.
+     * The parsed list of connections.
      */
-    CoreUserSettings userSettings;
+    private DataSourceCollection plDotIni;
+    
+    /**
+     * The location of the PL.INI file.
+     */
+    private String plDotIniPath;
     
     /**
      * All live sessions that exist in (and were created by) this conext.  Sessions
@@ -83,17 +92,17 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
 
         ArchitectUtils.configureLog4j();
 
-        userSettings = new CoreUserSettings(getPrefs());
+        setPlDotIniPath(prefs.get(ArchitectSession.PREFS_PL_INI_PATH, null));
 
-        while (!userSettings.isPlDotIniPathValid()) {
+        while (!isPlDotIniPathValid()) {
             String message;
             String[] options = new String[] {"Browse", "Create"};
-            if (userSettings.getPlDotIniPath() == null) {
+            if (getPlDotIniPath() == null) {
                 message = "location is not set";
-            } else if (new File(userSettings.getPlDotIniPath()).isFile()) {
-                message = "file \n\n\""+userSettings.getPlDotIniPath()+"\"\n\n could not be read";
+            } else if (new File(getPlDotIniPath()).isFile()) {
+                message = "file \n\n\""+getPlDotIniPath()+"\"\n\n could not be read";
             } else {
-                message = "file \n\n\""+userSettings.getPlDotIniPath()+"\"\n\n does not exist";
+                message = "file \n\n\""+getPlDotIniPath()+"\"\n\n does not exist";
             }
             int choice = JOptionPane.showOptionDialog(null,   // blocking wait
                     "The Architect keeps its list of database connections" +
@@ -126,7 +135,7 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
 
             if (newPlIniFile != null) try {
                 newPlIniFile.createNewFile();
-                userSettings.setPlDotIniPath(newPlIniFile.getPath());
+                setPlDotIniPath(newPlIniFile.getPath());
             } catch (IOException e1) {
                 logger.error("Caught IO exception while creating empty PL.INI at \""
                         +newPlIniFile.getPath()+"\"", e1);
@@ -142,7 +151,7 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
 
     public ArchitectSession createSession(InputStream in) throws ArchitectException, IOException {
         ArchitectSession session = createSessionImpl("Loading...");
-        session.getProject().load(in, getUserSettings().getPlDotIni());
+        session.getProject().load(in, getPlDotIni());
         return session;
     }
     
@@ -175,7 +184,69 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
         return sessions;
     }
 
-    public CoreUserSettings getUserSettings() {
-        return userSettings;
+    private boolean isPlDotIniPathValid() {
+        logger.debug("Checking pl.ini path: "+getPlDotIniPath());
+        String path = getPlDotIniPath();
+        if (path == null) {
+            return false;
+        } else {
+            File f = new File(path);
+            return (f.canRead() && f.isFile());
+        }
+    }
+    
+    /**
+     * Tries to read the plDotIni if it hasn't been done already.  If it can't be read,
+     * returns null and leaves the plDotIni property as null as well. See {@link #plDotIni}.
+     */
+    public DataSourceCollection getPlDotIni() {
+        String path = getPlDotIniPath();
+        if (path == null) return null;
+        
+        if (plDotIni == null) {
+            plDotIni = new PlDotIni();
+            try {
+                logger.debug("Reading PL.INI defaults");
+                plDotIni.read(getClass().getClassLoader().getResourceAsStream("ca/sqlpower/sql/default_database_types.ini"));
+            } catch (IOException e) {
+                throw new ArchitectRuntimeException(new ArchitectException("Failed to read system resource default_database_types.ini",e));
+            }
+            try {
+                if (plDotIni != null) {
+                    logger.debug("Reading new PL.INI instance");
+                    plDotIni.read(new File(path));
+                }
+            } catch (IOException e) {
+                throw new ArchitectRuntimeException(new ArchitectException("Failed to read pl.ini at \""+getPlDotIniPath()+"\"", e));
+            }
+        }
+        return plDotIni;
+    }
+    
+    /**
+     * See {@link #plDotIniPath}.
+     */
+    public String getPlDotIniPath() {
+        return plDotIniPath;
+    }
+    
+    /**
+     * Sets the plDotIniPath property, and nulls out the current plDotIni
+     * if the given value differs from the existing one.  See {@link #plDotIniPath}.
+     */
+    public void setPlDotIniPath(String plDotIniPath) {
+        logger.debug("PlDotIniPath changing from \""+this.plDotIniPath+"\" to \""+plDotIniPath+"\"");
+
+        // important to short-circuit when the value is not different
+        // (if we don't, the prefs panel doesn't save properly)
+        if (this.plDotIniPath != null && this.plDotIniPath.equals(plDotIniPath)) {
+            return;
+        }
+        this.plDotIniPath = plDotIniPath;
+        this.plDotIni = null;
+    }
+    
+    public List<SPDataSource> getConnections() {
+        return getPlDotIni().getConnections();
     }
 }

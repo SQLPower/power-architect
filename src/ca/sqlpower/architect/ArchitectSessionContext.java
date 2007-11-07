@@ -35,7 +35,11 @@ package ca.sqlpower.architect;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.List;
 import java.util.prefs.Preferences;
+
+import ca.sqlpower.sql.DataSourceCollection;
+import ca.sqlpower.sql.SPDataSource;
 
 /**
  * The ArchitectSessionContext interface specifies a set of
@@ -74,12 +78,23 @@ public interface ArchitectSessionContext {
     public abstract Preferences getPrefs();
 
     /**
-     * Gets the user settings for this session 
-     */
-    public abstract CoreUserSettings getUserSettings();
-
-    /**
      * Returns a collection containing all the sessions from this context. 
      */
     public Collection<ArchitectSession> getSessions();
+    
+    public String getPlDotIniPath();
+    
+    /**
+     * Tries to read the plDotIni if it hasn't been done already.  If it can't be read,
+     * returns null and leaves the plDotIni property as null as well. See {@link #plDotIni}.
+     */
+    public DataSourceCollection getPlDotIni();
+    
+    public List<SPDataSource> getConnections();
+    
+    /**
+     * Sets the plDotIniPath property, and nulls out the current plDotIni
+     * if the given value differs from the existing one.  See {@link #plDotIniPath}.
+     */
+    public void setPlDotIniPath(String plDotIniPath);
 }

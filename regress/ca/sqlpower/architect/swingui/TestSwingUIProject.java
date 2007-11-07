@@ -1021,7 +1021,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         ArchitectSwingSessionContext context = session.getContext();
         ArchitectSwingSession session2 = context.createSession(false);
         SwingUIProject p = new SwingUIProject(session2);
-        p.load(new ByteArrayInputStream(tempFile.toByteArray()), context.getUserSettings().getPlDotIni());
+        p.load(new ByteArrayInputStream(tempFile.toByteArray()), context.getPlDotIni());
         
         ppdb = session2.getTargetDatabase();
         

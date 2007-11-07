@@ -317,8 +317,6 @@
 		<!-- copies the template log4j config file into the build dir -->
 		<copy tofile="${build}/log4j.properties"
 			file="src/log4j.properties.example"/>
-		<copy tofile="${build}/default_database_types.ini"
-					file="src/default_database_types.ini"/>
     </target>
 
 	<!-- This target is used to make a architect library jar to embed
@@ -328,7 +326,8 @@
 			includes="ca/sqlpower/architect/*.class,
 						ca/sqlpower/architect/ddl/*.class,
 						ca/sqlpower/architect/diff/*.class,
-						ca/sqlpower/architect/undo/*.class">
+						ca/sqlpower/architect/undo/*.class,
+						ca/sqlpower/architect/profile/*.class">
 		</jar>
 	</target>
 	

@@ -31,20 +31,21 @@
  */
 package ca.sqlpower.architect;
 
+import java.util.List;
+
+import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.profile.ProfileManager;
 
 public interface ArchitectSession {
 
     public static final String PREFS_PL_INI_PATH = "PL.INI.PATH";
     
-    /**
-     * See {@link #userSettings}.
-     *
-     * @return the value of userSettings
-     */
-    public CoreUserSettings getUserSettings();
-
     public ProfileManager getProfileManager();
+    
+    /**
+     * Returns the context that created this session.
+     */
+    public ArchitectSessionContext getContext();
     
     /**
      * Returns the database in use for this session. In a 
@@ -85,4 +86,20 @@ public interface ArchitectSession {
      *  else.
      */
     public void setProject(CoreProject project);
+    
+    
+    /**
+     *  Replaces the entire list of source databases for this session.
+     *  This method is used reflectively by the code that does loading and saving,
+     *  so DON'T DELETE THIS METHOD even if it looks like it's unused.
+     * 
+     * @param databases
+     * @throws ArchitectException
+     */
+    public void setSourceDatabaseList(List<SQLDatabase> databases) throws ArchitectException;
+    
+    public GenericDDLGenerator getDDLGenerator();
+    
+    
+    public void setDDLGenerator(GenericDDLGenerator generator);
 }
