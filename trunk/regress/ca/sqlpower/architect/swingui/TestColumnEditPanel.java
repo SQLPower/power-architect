@@ -131,7 +131,7 @@ public class TestColumnEditPanel extends TestCase {
 		assertEquals("Panel check boxes borked",true,panel.getColAutoInc().getModel().isSelected());
 		assertEquals("Wrong column name","CHANGED",col2.getName());
 		assertEquals("Wrong Precision",1234,col2.getPrecision());
-		assertEquals("Wrong type",1,col2.getType());
+		assertEquals("Wrong type",16,col2.getType());
 		assertEquals("Wrong Scale",5432,col2.getScale());
 		assertTrue(col2.isAutoIncrement());
 		assertTrue(col2.isPrimaryKey());
