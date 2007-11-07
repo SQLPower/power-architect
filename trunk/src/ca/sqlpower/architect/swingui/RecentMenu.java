@@ -235,7 +235,6 @@ public abstract class RecentMenu extends JMenu {
 	 * Load or re-load the recentFileMenu
 	 */
 	public void loadRecentMenu() {
-	    logger.debug("Load menu", new Exception());
 	    recentFileNames.clear();
 		setEnabled(false);
 		removeAll();
