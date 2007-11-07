@@ -47,6 +47,7 @@ public class SQLType {
         new SQLType("BINARY", -2),
         new SQLType("BIT", -7),
         new SQLType("BLOB", 2004),
+        new SQLType("BOOLEAN", 16),
         new SQLType("CHAR", 1),
         new SQLType("CLOB", 2005),
         new SQLType("DATE", 91),

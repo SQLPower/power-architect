@@ -15,6 +15,10 @@ IMPORTANT NOTE to users upgrading from pre-0.9.x versions of the Architect:
  on foreign key relationships.
 *Tweaked the database comparison feature to ignore meaningless data type
  differences between columns (for example, DECIMAL vs. NUMERIC)
+*Got rid of an excessive repainting problem introduced in version 0.9.8
+*Added the SQL BOOLEAN type to the set of generic types.  It forward
+ engineers to BOOLEAN on platforms that support it, and TINYINT on
+ platforms that lack the BOOLEAN type.
 
 0.9.8
 *Fixed a bug where re-profiling a cancelled profile would freeze the GUI until
