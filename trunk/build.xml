@@ -96,13 +96,6 @@
 		<condition property="app.ver.suffix" value="-${date}">
 			<isset property="nightly"/>
 		</condition>
-		<condition property="downloadLinkBase" 
-			value="http://nightlybuild.sqlpower.ca/architect/${app_ver_major}.${app_ver_minor}.${app_ver_tiny}-${date}">
-			<isset property="nightly"/>
-		</condition>
-		<condition property="docLinkBase" value="http://nightlybuild.sqlpower.ca/architect">
-			<isset property="nightly"/>		
-		</condition>
 		<!-- Else, if app_ver_suffix is empty, then don't use a suffix -->
 		<condition property="app.ver.suffix" value="">
 			<and>
@@ -110,20 +103,26 @@
 				<not><isset property="app.ver.suffix"/></not>
 			</and>
 		</condition>
-		<condition property="downloadLinkBase"
-			value="http://power-architect.googlecode.com/files">
-			<not><isset property="downloadLinkBase"/></not>
-		</condition>
-		<condition property="docLinkBase" 
-			value="http://download.sqlpower.ca/architect">
-			<not><isset property="docLinkBase"/></not>
-		</condition>
 		<!-- otherwise, use the normal app_ver_suffix as the suffix -->
 		<condition property="app.ver.suffix" value="-${app_ver_suffix}">
 			<not><isset property="app.ver.suffix"/></not>
 		</condition>
 
 		<property name="app.version" value="${app_ver_major}.${app_ver_minor}.${app_ver_tiny}${app.ver.suffix}"/>
+		<condition property="downloadLinkBase" value="http://nightlybuild.sqlpower.ca/architect/nightly/${app.version}">
+			<isset property="nightly"/>
+		</condition>
+		<condition property="docLinkBase" value="${downloadLinkBase}">
+			<isset property="nightly"/>		
+		</condition>
+		<condition property="downloadLinkBase"
+			value="http://power-architect.googlecode.com/files">
+			<not><isset property="downloadLinkBase"/></not>
+		</condition>
+		<condition property="docLinkBase" 
+			value="http://download.sqlpower.ca/architect/${app.version}">
+			<not><isset property="docLinkBase"/></not>
+		</condition>
 
 		<echo message="Building Architect version: ${app.version}"/>
 		<property name="dist.dir" value="dist/architect-${app.version}"/>
