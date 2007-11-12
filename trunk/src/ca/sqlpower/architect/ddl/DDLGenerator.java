@@ -59,6 +59,14 @@ import ca.sqlpower.architect.SQLTable;
 public interface DDLGenerator {
 
     /**
+     * Returns the name of this DDL Generator, which should be a
+     * human-readable string with the vendor and/or product name
+     * (and version if the generator doesn't work with all versions)
+     * of the database platform this generator targets.
+     */
+    public String getName();
+    
+    /**
      * Creates a list of DDLStatement objects which create all of the tables,
      * their columns and primary keys, and the foreign key relationships of the
      * given database.

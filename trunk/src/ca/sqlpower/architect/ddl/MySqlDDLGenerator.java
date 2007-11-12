@@ -286,6 +286,9 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
 
     }
 
+    public String getName() {
+        return "MySQL";
+    }
 
     @Override
     protected void createTypeMap() throws SQLException {

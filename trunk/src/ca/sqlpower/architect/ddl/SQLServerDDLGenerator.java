@@ -237,6 +237,10 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
 		reservedWords.add("WRITETEXT");
 	}
 
+	public String getName() {
+	    return "Microsoft SQL Server";
+	}
+
 	public boolean isReservedWord(String word) {
 		return reservedWords.contains(word.toUpperCase());
 	}
@@ -400,6 +404,17 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
 
     @Override
     public void addIndex(SQLIndex index) throws ArchitectException {
+        if (logger.isDebugEnabled()) {
+            String parentTableName = null;
+            String parentFolder = null;
+            if (index.getParentTable() != null) {
+                parentTableName = index.getParentTable().getName();
+            }
+            if (index.getParent() != null) {
+                parentFolder = index.getParent().getName();
+            }
+            logger.debug("Adding index: " + index + " (parent table " + parentTableName + ") (parentFolder " + parentFolder + ")");
+        }
         if (index.getType() == IndexType.STATISTIC )
             return;
 

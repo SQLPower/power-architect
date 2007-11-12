@@ -158,6 +158,10 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
 
 	}
 
+	public String getName() {
+	    return "PostgreSQL";
+	}
+
     @Override
 	public boolean isReservedWord(String word) {
 		return reservedWords.contains(word.toUpperCase());
