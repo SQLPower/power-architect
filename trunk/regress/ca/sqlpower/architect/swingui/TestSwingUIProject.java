@@ -44,6 +44,7 @@ import java.sql.Connection;
 import java.sql.Types;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -52,16 +53,23 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.tools.ant.filters.StringInputStream;
 
 import ca.sqlpower.ArchitectTestCase;
 import ca.sqlpower.architect.AlwaysAcceptFileValidator;
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectSession;
+import ca.sqlpower.architect.ArchitectSessionContext;
+import ca.sqlpower.architect.ArchitectSessionContextImpl;
+import ca.sqlpower.architect.CoreProject;
 import ca.sqlpower.architect.FileValidator;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLObjectRoot;
+import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.StubSQLObject;
@@ -132,6 +140,25 @@ public class TestSwingUIProject extends ArchitectTestCase {
         "   <folder id='FOL11' populated='true' name='Imported Keys' type='2' >" +
         "   </folder>" +
         "  </table>" +
+        "  <table id=\"TAB1830\" populated=\"true\" name=\"mm_project\" objectType=\"TABLE\" physicalName=\"MM_PROJECT\" remarks=\"\" >" +
+        "   <folder id=\"FOL1831\" populated=\"true\" name=\"Columns\" physicalName=\"Columns\" type=\"1\" >" +
+        "    <column id=\"COL1832\" populated=\"true\" autoIncrement=\"true\" autoIncrementSequenceName=\"mm_project_oid_seq\" name=\"project_oid\" nullable=\"0\" physicalName=\"PROJECT_OID\" precision=\"22\" primaryKeySeq=\"0\" referenceCount=\"1\" remarks=\"\" scale=\"0\" type=\"4\" />" +
+        "    <column id=\"COL1833\" populated=\"true\" autoIncrement=\"false\" name=\"FOLDER_OID\" nullable=\"1\" physicalName=\"FOLDER_OID\" precision=\"22\" referenceCount=\"2\" remarks=\"\" scale=\"0\" type=\"4\" />" +
+        "    <column id=\"COL1834\" populated=\"true\" autoIncrement=\"false\" name=\"project_name\" nullable=\"1\" physicalName=\"PROJECT_NAME\" precision=\"80\" referenceCount=\"1\" remarks=\"\" scale=\"0\" type=\"12\" />" +
+        "   </folder>" +
+        "   <folder id=\"FOL1889\" populated=\"true\" name=\"Exported Keys\" physicalName=\"Exported Keys\" type=\"3\" >" +
+        "   </folder>" +
+        "   <folder id=\"FOL1890\" populated=\"true\" name=\"Imported Keys\" physicalName=\"Imported Keys\" type=\"2\" >" +
+        "   </folder>" +
+        "   <folder id=\"FOL1891\" populated=\"true\" name=\"Indices\" physicalName=\"Indices\" type=\"4\" >" +
+        "    <index id=\"IDX1892\" populated=\"true\" index-type=\"CLUSTERED\" name=\"mm_project_pk\" physicalName=\"PL_MATCH_PK\" primaryKeyIndex=\"true\" unique=\"true\" >" +
+        "     <index-column id=\"IDC1893\" populated=\"true\" ascending=\"false\" column-ref=\"COL1832\" descending=\"false\" name=\"project_oid\" physicalName=\"MATCH_OID\" />" +
+        "    </index>" +
+        "    <index id=\"IDX1894\" populated=\"true\" index-type=\"CLUSTERED\" name=\"PL_MATCH_UNIQUE\" physicalName=\"PL_MATCH_UNIQUE\" primaryKeyIndex=\"false\" unique=\"true\" >" +
+        "     <index-column id=\"IDC1895\" populated=\"true\" ascending=\"false\" column-ref=\"COL1834\" descending=\"false\" name=\"project_name\" physicalName=\"MATCH_ID\" />" +
+        "    </index>" +
+        "   </folder>" +
+        "  </table>" +
         "  <relationships>" +
         "   <relationship id='REL12' populated='true' deferrability='0' deleteRule='0' fk-table-ref='TAB0' fkCardinality='6' identifying='true' name='Orders_Customers_fk' pk-table-ref='TAB6' pkCardinality='2' updateRule='0' >" +
         "    <column-mapping id='CMP13' populated='true' fk-column-ref='COL2' pk-column-ref='COL8' />" +
@@ -176,17 +203,19 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		// StringReader r = new StringReader(testData);
 		ByteArrayInputStream r = new ByteArrayInputStream(testData.getBytes());
 		project.load(r, plIni);
-		assertFalse("Project starts out with undo history",session.getUndoManager().canUndoOrRedo());
+		assertFalse(
+		        "Project starts out with undo history",
+		        session.getUndoManager().canUndoOrRedo());
 
 		DBTree tree = session.getSourceDatabases();
 		assertNotNull(tree);
-		assertEquals(tree.getComponentCount(), 1 );
+		assertEquals(1, tree.getComponentCount());
 		
 		SQLDatabase target = session.getTargetDatabase(); 
 		assertNotNull(target);
 		
-		assertEquals(target.getName(), "Not Configured");
-		assertEquals(target.getChildCount(), 2);		
+		assertEquals("Not Configured", target.getName());
+		assertEquals(3, target.getChildCount());		
 	}
 	
     /**
@@ -1179,5 +1208,39 @@ public class TestSwingUIProject extends ArchitectTestCase {
         assertEquals("id", cpr.getProfiledObject().getName());
         assertEquals(5, cpr.getMinLength());
         assertEquals(6, cpr.getMaxLength());
+    }
+    
+    /**
+     * Checks the entire object tree loaded in to ensure all the
+     * parent references point to the parents we found the children
+     * in.  This actually was a problem when using a CoreProject from
+     * the matchmaker app.
+     */
+    public void testParentsConnected() throws Exception {
+        // testing using a core project, just for fun
+        ArchitectSessionContext ctx = new ArchitectSessionContextImpl();
+        ArchitectSession session = ctx.createSession(new StringInputStream(testData));
+        CoreProject prj = session.getProject();
+        SQLObjectRoot rootObject = session.getRootObject();
+        recursiveCheckParenting(rootObject, "Root");
+    }
+
+    /**
+     * Subroutine of testParentsConnected.
+     */
+    private void recursiveCheckParenting(SQLObject o, String path) throws Exception {
+        System.out.println("Checking children of " + path);
+        for (Iterator it = o.getChildren().iterator(); it.hasNext();) {
+            SQLObject child = (SQLObject) it.next();
+            if (o instanceof SQLObjectRoot) {
+                // skip, because database parent pointers are null
+            } else if (child instanceof SQLRelationship && o.getName().startsWith("Imported Keys")) {
+                // skip, because the exported keys folder should be the parent
+                // Note, if this is failing, maybe you renamed the "Imported Keys" folder! :)
+            } else {
+                assertSame(path, o, child.getParent());
+            }
+            recursiveCheckParenting(child, path + "/" + child.getName());
+        }
     }
 }
