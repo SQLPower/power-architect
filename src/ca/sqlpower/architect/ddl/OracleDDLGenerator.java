@@ -174,6 +174,10 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
 		reservedWords.add("WITH");
 	}
 
+	public String getName() {
+	    return "Oracle";
+	}
+
     @Override
 	public void writeHeader() {
 		println("-- Created by SQLPower Oracle 8i/9i/10g DDL Generator "+GENERATOR_VERSION+" --");

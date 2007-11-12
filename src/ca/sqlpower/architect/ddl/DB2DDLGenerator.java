@@ -43,11 +43,15 @@ import java.util.HashMap;
 
 public class DB2DDLGenerator extends GenericDDLGenerator {
 
-	public DB2DDLGenerator() throws SQLException {
+    public static final String GENERATOR_VERSION = "$Revision$";
+
+    public DB2DDLGenerator() throws SQLException {
 		super();
 	}
 
-	public static final String GENERATOR_VERSION = "$Revision$";
+    public String getName() {
+        return "IBM DB2";
+    }
 
     @Override
 	public void writeHeader() {

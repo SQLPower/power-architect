@@ -67,6 +67,10 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 	private static final Logger logger = Logger.getLogger(GenericDDLGenerator.class);
 
+	public String getName() {
+	    return "Generic SQL-92";
+	}
+	
      /**
      * Check to see if the word word is on the list of reserved words for this database
      * @return
