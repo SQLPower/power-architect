@@ -60,7 +60,6 @@ import ca.sqlpower.architect.AlwaysAcceptFileValidator;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContext;
-import ca.sqlpower.architect.ArchitectSessionContextImpl;
 import ca.sqlpower.architect.CoreProject;
 import ca.sqlpower.architect.FileValidator;
 import ca.sqlpower.architect.SQLCatalog;
@@ -73,6 +72,7 @@ import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.StubSQLObject;
+import ca.sqlpower.architect.TestingArchitectSessionContext;
 import ca.sqlpower.architect.SQLIndex.IndexType;
 import ca.sqlpower.architect.etl.kettle.KettleRepositoryDirectoryChooser;
 import ca.sqlpower.architect.etl.kettle.RootRepositoryDirectoryChooser;
@@ -1216,13 +1216,24 @@ public class TestSwingUIProject extends ArchitectTestCase {
      * in.  This actually was a problem when using a CoreProject from
      * the matchmaker app.
      */
-    public void testParentsConnected() throws Exception {
+    public void testParentsConnectedCoreProject() throws Exception {
         // testing using a core project, just for fun
-        ArchitectSessionContext ctx = new ArchitectSessionContextImpl();
+        ArchitectSessionContext ctx = new TestingArchitectSessionContext();
         ArchitectSession session = ctx.createSession(new StringInputStream(testData));
         CoreProject prj = session.getProject();
         SQLObjectRoot rootObject = session.getRootObject();
         recursiveCheckParenting(rootObject, "Root");
+    }
+
+    /**
+     * The "target" database (the one we edit in the playpen) needs to
+     * be marked as such, because it has different behaviour with regards
+     * to resetting and connecting.
+     */
+    public void testPlayPenProperty() throws Exception {
+        testLoad();
+        SQLDatabase ppdb = (SQLDatabase) project.getSession().getRootObject().getChild(0);
+        assertTrue(ppdb.isPlayPenDatabase());
     }
 
     /**
@@ -1242,5 +1253,19 @@ public class TestSwingUIProject extends ArchitectTestCase {
             }
             recursiveCheckParenting(child, path + "/" + child.getName());
         }
+    }
+    
+    /**
+     * The "target" database (the one we edit in the playpen) needs to
+     * be marked as such, because it has different behaviour with regards
+     * to resetting and connecting.
+     */
+    public void testPlayPenPropertyCoreProject() throws Exception {
+        ArchitectSessionContext ctx = new TestingArchitectSessionContext();
+        ArchitectSession session = ctx.createSession(new StringInputStream(testData));
+        CoreProject prj = session.getProject();
+        SQLObjectRoot rootObject = session.getRootObject();
+        SQLDatabase ppdb = (SQLDatabase) rootObject.getChild(0);
+        assertTrue(ppdb.isPlayPenDatabase());
     }
 }

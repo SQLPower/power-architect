@@ -172,6 +172,7 @@ public class CoreProject {
 
         SQLObject dbConnectionContainer = ((SQLObject) getSession().getRootObject());
         dbConnectionContainer.addChild(0, getSession().getTargetDatabase());
+        getSession().getTargetDatabase().setPlayPenDatabase(true);
 
         // hook up data source parent types
         for (SQLDatabase db : (List<SQLDatabase>) dbConnectionContainer.getChildren()) {

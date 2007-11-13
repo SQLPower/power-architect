@@ -409,15 +409,18 @@ public class PlayPen extends JPanel
 
 	private final void setDatabase(SQLDatabase newdb) {
 		if (newdb == null) throw new NullPointerException("db must be non-null");
-		session.getTargetDatabase().setPlayPenDatabase(true);
-        SPDataSource dbcs = new SPDataSource(session.getContext().getPlDotIni());
+		
+		// Note, this also happens in CoreProject, but that's only helpful when loading a project file
+		// And you get fireworks if you call setDataSource() on a non-playpen connection
+		newdb.setPlayPenDatabase(true);
+
+		SPDataSource dbcs = new SPDataSource(session.getContext().getPlDotIni());
         dbcs.setName("Not Configured");
         dbcs.setDisplayName("Not Configured");
-        session.getTargetDatabase().setDataSource(dbcs);
-		
+        newdb.setDataSource(dbcs);
 
 		try {
-			ArchitectUtils.listenToHierarchy(this, session.getTargetDatabase());
+			ArchitectUtils.listenToHierarchy(this, newdb);
 		} catch (ArchitectException ex) {
 			logger.error("Couldn't listen to database", ex);
 		}
