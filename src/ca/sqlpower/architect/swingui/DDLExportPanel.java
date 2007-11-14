@@ -44,11 +44,11 @@ import javax.swing.JTextField;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.DataEntryPanel;
-import ca.sqlpower.swingui.SPSUtils;
 
 
 public class DDLExportPanel implements DataEntryPanel {
@@ -60,6 +60,11 @@ public class DDLExportPanel implements DataEntryPanel {
 
     private JComboBox targetDB;
     private JButton newTargetDB;
+    
+    /**
+     * The selector for which DDL Generator to use.  The contents of this combo box
+     * are all of type <tt>Class&lt;? extends DDLGenerator&gt;</tt>.
+     */
     private JComboBox dbType;
 	
 	private JLabel catalogLabel;
@@ -75,7 +80,6 @@ public class DDLExportPanel implements DataEntryPanel {
 	}
 
 	private void setup() {		
-		GenericDDLGenerator ddlg = session.getDDLGenerator();		
         panel.setLayout(new FormLayout());
         JPanel panelProperties = new JPanel(new FormLayout());
         panelProperties.add(new JLabel("Create in:"));
@@ -92,21 +96,15 @@ public class DDLExportPanel implements DataEntryPanel {
             });
         
         panelProperties.add(new JLabel("Generate DDL for Database Type:"));
-		Vector<SPSUtils.LabelValueBean> ddlTypes =DDLUtils.getDDLTypes();
+        DDLGenerator ddlg = session.getDDLGenerator();
+		Vector<Class<? extends DDLGenerator>> ddlTypes =
+            DDLUtils.getDDLTypes(session.getContext().getPlDotIni());
+        if (!ddlTypes.contains(ddlg.getClass())) {
+            ddlTypes.add(ddlg.getClass());
+        }
         panelProperties.add(dbType = new JComboBox(ddlTypes));
-		SPSUtils.LabelValueBean unknownGenerator = SPSUtils.lvb("Unknown Generator", ddlg.getClass());
-		dbType.addItem(unknownGenerator);
-		dbType.setSelectedItem(unknownGenerator);
-		for (SPSUtils.LabelValueBean lvb : ddlTypes) {
-            if (ddlg.getClass() == lvb.getValue() && lvb != unknownGenerator) {
-                dbType.setSelectedItem(lvb);
-            }
-        }
-		if (dbType.getSelectedItem() != unknownGenerator) {
-            // remove the unknown generator if we have a known generator
-            dbType.removeItem(unknownGenerator);
-        }
-		
+        dbType.setRenderer(new DDLGeneratorListCellRenderer());
+		dbType.setSelectedItem(ddlg.getClass());
 		dbType.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 						setUpCatalogAndSchemaFields();
@@ -131,10 +129,10 @@ public class DDLExportPanel implements DataEntryPanel {
 	 * first time.
 	 */
 	private void setUpCatalogAndSchemaFields() {
-		Class selectedGeneratorClass = null;
+		Class<? extends DDLGenerator> selectedGeneratorClass = null;
 		try {
-			selectedGeneratorClass = (Class) ((SPSUtils.LabelValueBean) dbType.getSelectedItem()).getValue();
-			GenericDDLGenerator newGen = (GenericDDLGenerator) selectedGeneratorClass.newInstance();
+			selectedGeneratorClass = (Class<? extends DDLGenerator>) dbType.getSelectedItem();
+			DDLGenerator newGen = selectedGeneratorClass.newInstance();
 			if (newGen.getCatalogTerm() != null) {
 				catalogLabel.setText(newGen.getCatalogTerm());
 				catalogLabel.setEnabled(true);
@@ -168,15 +166,16 @@ public class DDLExportPanel implements DataEntryPanel {
 
 	// ------------------------ Architect Panel Stuff -------------------------
 	public boolean applyChanges() {
-		GenericDDLGenerator ddlg = session.getDDLGenerator();
-		Class selectedGeneratorClass = (Class) ((SPSUtils.LabelValueBean) dbType.getSelectedItem()).getValue();
+		DDLGenerator ddlg = session.getDDLGenerator();
+		Class<? extends DDLGenerator> selectedGeneratorClass =
+            (Class<? extends DDLGenerator>) dbType.getSelectedItem();
 		if (ddlg.getClass() != selectedGeneratorClass) {
 			try {
-				ddlg = (GenericDDLGenerator) selectedGeneratorClass.newInstance();
+				ddlg = selectedGeneratorClass.newInstance();
 				session.setDDLGenerator(ddlg);
 			} catch (Exception ex) {
 				logger.error("Problem creating user-selected DDL generator", ex);
-				throw new RuntimeException("Couldn't create a DDL generator of the selected type");
+				throw new RuntimeException("Couldn't create a DDL generator of the selected type", ex);
 			}
 		}
 		if (selectedGeneratorClass == GenericDDLGenerator.class) {

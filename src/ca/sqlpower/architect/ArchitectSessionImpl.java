@@ -35,6 +35,7 @@ package ca.sqlpower.architect;
 import java.sql.SQLException;
 import java.util.List;
 
+import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.profile.TableProfileManager;
 
@@ -55,7 +56,7 @@ public class ArchitectSessionImpl implements ArchitectSession {
     private String name;
     private SQLObjectRoot rootObject;
     
-    private GenericDDLGenerator ddlGenerator;
+    private DDLGenerator ddlGenerator;
     
     /**
      * The project associated with this session.  The project provides save
@@ -133,11 +134,11 @@ public class ArchitectSessionImpl implements ArchitectSession {
         }
     }
     
-    public GenericDDLGenerator getDDLGenerator() {
+    public DDLGenerator getDDLGenerator() {
         return ddlGenerator;
     }
 
-    public void setDDLGenerator(GenericDDLGenerator generator) {
+    public void setDDLGenerator(DDLGenerator generator) {
         ddlGenerator = generator;
     }
 }

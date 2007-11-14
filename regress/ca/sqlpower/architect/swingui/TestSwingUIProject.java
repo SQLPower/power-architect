@@ -74,6 +74,7 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.StubSQLObject;
 import ca.sqlpower.architect.TestingArchitectSessionContext;
 import ca.sqlpower.architect.SQLIndex.IndexType;
+import ca.sqlpower.architect.ddl.SQLServerDDLGenerator;
 import ca.sqlpower.architect.etl.kettle.KettleRepositoryDirectoryChooser;
 import ca.sqlpower.architect.etl.kettle.RootRepositoryDirectoryChooser;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
@@ -167,7 +168,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         "  </relationships>" +
         " </target-database>" +
         " <ddl-generator type='ca.sqlpower.architect.ddl.GenericDDLGenerator' allow-connection='true'> </ddl-generator>" + 
-        " <compare-dm-settings sqlScriptFormat='SQLServer 2000' outputFormatAsString='ENGLISH'>" +        
+        " <compare-dm-settings ddlGenerator='ca.sqlpower.architect.ddl.SQLServerDDLGenerator' outputFormatAsString='ENGLISH'>" +        
         " <source-stuff datastoreTypeAsString='PROJECT' connectName='Arthur_test' " +
         " schema='ARCHITECT_REGRESS' filepath='' />"+
         "<target-stuff datastoreTypeAsString='FILE' filePath='Testpath' /> </compare-dm-settings>"+
@@ -1075,15 +1076,15 @@ public class TestSwingUIProject extends ArchitectTestCase {
 		testLoad();
 		CompareDMSettings cds = session.getCompareDMSettings();		
 		File tmp = File.createTempFile("test", ".architect");
-		assertFalse (cds.getSaveFlag());
+		assertFalse(cds.getSaveFlag());
 		if (deleteOnExit) {
 			tmp.deleteOnExit();
 		}
-		PrintWriter out = new PrintWriter(tmp,ENCODING);
+		PrintWriter out = new PrintWriter(tmp, ENCODING);
 		assertNotNull(out);
-		project.save(out,ENCODING);
+		project.save(out, ENCODING);
 		assertFalse (cds.getSaveFlag());
-		assertEquals("SQLServer 2000", cds.getSqlScriptFormat());
+		assertEquals(SQLServerDDLGenerator.class, cds.getDdlGenerator());
 		assertEquals("ENGLISH", cds.getOutputFormatAsString());
 		assertEquals("PROJECT", cds.getSourceSettings().getDatastoreType().toString());
 		assertEquals("Arthur_test", cds.getSourceSettings().getConnectName());

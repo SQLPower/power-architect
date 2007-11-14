@@ -61,7 +61,7 @@ import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLObjectRoot;
 import ca.sqlpower.architect.UserSettings;
-import ca.sqlpower.architect.ddl.GenericDDLGenerator;
+import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.swingui.action.AboutAction;
@@ -733,11 +733,11 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         return delegateSession.getRootObject();
     }
 
-    public GenericDDLGenerator getDDLGenerator() {
+    public DDLGenerator getDDLGenerator() {
         return delegateSession.getDDLGenerator();
     }
 
-    public void setDDLGenerator(GenericDDLGenerator generator) {
+    public void setDDLGenerator(DDLGenerator generator) {
         delegateSession.setDDLGenerator(generator);
     }
 }

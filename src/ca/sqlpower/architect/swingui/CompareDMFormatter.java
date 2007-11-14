@@ -94,7 +94,7 @@ public class CompareDMFormatter {
             DefaultStyledDocument sourceDoc = new DefaultStyledDocument();
             DefaultStyledDocument targetDoc = new DefaultStyledDocument();
 
-            DDLGenerator gen =(DDLGenerator)((Class) dmSetting.getSqlScriptFormatValue()).newInstance();
+            DDLGenerator gen = dmSetting.getDdlGenerator().newInstance();
             if (dmSetting.getTargetSettings().getDatastoreType().equals(CompareDMSettings.DatastoreType.DATABASE)) {
                 // Set generator for target catalog/schema if "newer" schema comes from a physical database
                 SQLCatalog cat = (SQLCatalog) dmSetting.getSourceSettings().getCatalogObject();
