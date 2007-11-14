@@ -44,6 +44,7 @@ import ca.sqlpower.architect.CoreProject;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObjectRoot;
+import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.architect.profile.ProfileManager;
@@ -67,7 +68,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     private SQLObjectRoot rootObject;
     private TableProfileManager profileManager;
     private CompareDMSettings compareDMSettings;
-    private GenericDDLGenerator ddlGenerator;
+    private DDLGenerator ddlGenerator;
     private KettleJob kettleJob;
     private RecentMenu recent;
     private ArchitectSession delegateSession;
@@ -149,7 +150,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         return compareDMSettings;
     }
 
-    public GenericDDLGenerator getDDLGenerator() {
+    public DDLGenerator getDDLGenerator() {
         return ddlGenerator;
     }
 
@@ -180,7 +181,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         return false;
     }
 
-    public void setDDLGenerator(GenericDDLGenerator generator) {
+    public void setDDLGenerator(DDLGenerator generator) {
         // TODO Auto-generated method stub
         
     }

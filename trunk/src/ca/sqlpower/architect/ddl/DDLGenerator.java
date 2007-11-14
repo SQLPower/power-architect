@@ -81,6 +81,20 @@ public interface DDLGenerator {
     throws SQLException, ArchitectException;
 
     /**
+     * Generates the series of DDL Statements as in {@link #generateDDLStatements(Collection)},
+     * then compiles them into a formatted script complete with statement terminators
+     * and transaction start and end statements (if supported by the target platform).
+     * This script is appropriate to feed into a target database using a vendor-supplied
+     * tool for executing SQL scripts.
+     * 
+     * @param tables The collection of tables the generated script should create.
+     * @return The String representation of the generated DDL script.
+     * @throws SQLException If there is a problem getting type info from the target DB.
+     * @throws ArchitectException If there are problems with the Architect objects.
+     */
+    public String generateDDLScript(Collection<SQLTable> tables) throws SQLException, ArchitectException;
+    
+    /**
      * Appends the DDL statement for dropping the given column from its parent
      * table in this DDL Generator's target schema/catalog.
      *
@@ -269,4 +283,5 @@ public interface DDLGenerator {
      * @return
      */
     public String columnType(SQLColumn col);
+    
 }

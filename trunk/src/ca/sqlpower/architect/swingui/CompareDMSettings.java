@@ -31,19 +31,25 @@
  */
 package ca.sqlpower.architect.swingui;
 
+import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.swingui.CompareDMPanel.SourceOrTargetStuff;
 
 public class CompareDMSettings {
 	
 	public enum DatastoreType { PROJECT, DATABASE, FILE; }
 	public enum OutputFormat { SQL, ENGLISH; }
-	
+
+    /**
+     * The DDL Generator class the user has chosen.  This option
+     * only applies if the user chooses the SQL Script output
+     * format (as opposed to English descriptions).
+     */
+    private Class<? extends DDLGenerator> ddlGenerator;
+    
 	private OutputFormat outputFormat;
-	private String sqlScriptFormat;
     private boolean suppressSimilarities;
     private SourceOrTargetStuff targetStuff;
     private SourceOrTargetStuff sourceStuff;
-    private Object sqlScriptFormatValue;
     
     /**
      * This flag should be set to true after the user has potentially modified
@@ -134,12 +140,6 @@ public class CompareDMSettings {
 	public SourceOrTargetSettings getTargetSettings() {
 		return targetSettings;
 	}
-	public String getSqlScriptFormat() {
-		return sqlScriptFormat;
-	}
-	public void setSqlScriptFormat(String scriptFormat) {
-		sqlScriptFormat = scriptFormat;
-	}
 	
 	public OutputFormat getOutputFormat() {
 		return outputFormat;
@@ -180,12 +180,12 @@ public class CompareDMSettings {
         return sourceStuff;
     }
     
-    public void setSqlScriptFormatValue (Object o) {
-        sqlScriptFormatValue = o;
+    public Class<? extends DDLGenerator> getDdlGenerator() {
+        return ddlGenerator;
     }
     
-    public Object getSqlScriptFormatValue() {
-        return sqlScriptFormatValue;
+    public void setDdlGenerator(Class<? extends DDLGenerator> ddlGenerator) {
+        this.ddlGenerator = ddlGenerator;
     }
     
     /**

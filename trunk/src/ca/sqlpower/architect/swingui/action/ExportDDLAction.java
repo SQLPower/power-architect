@@ -59,7 +59,6 @@ import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLWarning;
 import ca.sqlpower.architect.ddl.DDLWarningComponent;
 import ca.sqlpower.architect.ddl.DDLWarningComponentFactory;
-import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DDLExportPanel;
@@ -96,13 +95,13 @@ public class ExportDDLAction extends AbstractArchitectAction {
                 try {
                     if (ddlPanel.applyChanges()) {
 
-                        GenericDDLGenerator ddlg = session.getDDLGenerator();
+                        DDLGenerator ddlg = session.getDDLGenerator();
                         ddlg.setTargetSchema(ddlPanel.getSchemaField().getText());
                         
                         boolean done = false;
                         while (!done) {
                             // generate DDL in order to come up with a list of warnings
-                            ddlg.generateDDL(session.getTargetDatabase());
+                            ddlg.generateDDLScript(session.getTargetDatabase().getChildren());
                             final List<DDLWarning> warnings = ddlg.getWarnings();
                             final JPanel outerPanel = new JPanel();
                             if (warnings.size() == 0) {

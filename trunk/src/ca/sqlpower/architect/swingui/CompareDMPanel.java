@@ -75,6 +75,7 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.diff.CompareSQL;
 import ca.sqlpower.architect.diff.DiffChunk;
@@ -89,7 +90,6 @@ import ca.sqlpower.swingui.MonitorableWorker;
 import ca.sqlpower.swingui.ProgressWatcher;
 import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.SPSwingWorker;
-import ca.sqlpower.swingui.SPSUtils.LabelValueBean;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.debug.FormDebugPanel;
@@ -169,6 +169,10 @@ public class CompareDMPanel extends JPanel {
 
 	private JPanel buttonPanel;
 
+    /**
+     * The list of all DDL Generators available.  The items stored in this
+     * combo box are of type <tt>Class&lt;? extends DDLGenerator&gt;</tt>.
+     */
 	private JComboBox sqlTypeDropdown;
 
 	private JRadioButton sqlButton;
@@ -935,7 +939,8 @@ public class CompareDMPanel extends JPanel {
 		progressBar.setIndeterminate(true);
 		progressBar.setVisible(false);
 
-		sqlTypeDropdown = new JComboBox(DDLUtils.getDDLTypes());
+		sqlTypeDropdown = new JComboBox(DDLUtils.getDDLTypes(session.getContext().getPlDotIni()));
+        sqlTypeDropdown.setRenderer(new DDLGeneratorListCellRenderer());
 		sqlTypeDropdown.setName("sqlTypeDropDown");
 		OutputChoiceListener listener = new OutputChoiceListener(sqlTypeDropdown);
         sqlTypeDropdown.setEnabled(false);
@@ -1049,11 +1054,10 @@ public class CompareDMPanel extends JPanel {
 		setPreferredSize(new Dimension(800,600));
 		try {
 			restoreSettingsFromProject();
-		} catch (ArchitectException e1) {
-			logger.warn("Failed to save user CompareDM preferences!");
+		} catch (ArchitectException e) {
+			logger.warn("Failed to save user CompareDM preferences!", e);
 		}
 	}
-
 
 
 	/**
@@ -1180,9 +1184,11 @@ public class CompareDMPanel extends JPanel {
 		CompareDMSettings s = session.getCompareDMSettings();
 		s.setSaveFlag(true);
 		s.setOutputFormat(englishButton.isSelected()?CompareDMSettings.OutputFormat.ENGLISH:CompareDMSettings.OutputFormat.SQL);
-		s.setSqlScriptFormat( ((LabelValueBean)sqlTypeDropdown.getSelectedItem()).getLabel() );
-        s.setSuppressSimilarities(showNoChanges.isSelected());
-        s.setSqlScriptFormatValue( ((LabelValueBean)sqlTypeDropdown.getSelectedItem()).getValue() );
+		s.setSuppressSimilarities(showNoChanges.isSelected());
+        
+        Class<? extends DDLGenerator> selectedGenerator = 
+            (Class<? extends DDLGenerator>) sqlTypeDropdown.getSelectedItem();
+        s.setDdlGenerator(selectedGenerator);
         
 		SourceOrTargetSettings sourceSetting = s.getSourceSettings();
 		copySourceOrTargetSettingsToProject(sourceSetting,source);
@@ -1241,16 +1247,7 @@ public class CompareDMPanel extends JPanel {
         
         showNoChanges.setSelected(s.getSuppressSimilarities());
 
-		if ( s.getSqlScriptFormat() != null && s.getSqlScriptFormat().length() > 0 ) {
-
-			for ( int i=0; i<sqlTypeDropdown.getItemCount(); i++ ) {
-				LabelValueBean lvb = (LabelValueBean)sqlTypeDropdown.getItemAt(i);
-				if ( lvb.getLabel().equals(s.getSqlScriptFormat())) {
-					sqlTypeDropdown.setSelectedItem(lvb);
-					break;
-				}
-			}
-		}
+        sqlTypeDropdown.setSelectedItem(s.getDdlGenerator());
 	}
 
 

@@ -33,7 +33,7 @@ package ca.sqlpower.architect;
 
 import java.util.List;
 
-import ca.sqlpower.architect.ddl.GenericDDLGenerator;
+import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.profile.ProfileManager;
 
 public interface ArchitectSession {
@@ -98,8 +98,13 @@ public interface ArchitectSession {
      */
     public void setSourceDatabaseList(List<SQLDatabase> databases) throws ArchitectException;
     
-    public GenericDDLGenerator getDDLGenerator();
+    /**
+     * The DDL Generator currently in use for this session.
+     */
+    public DDLGenerator getDDLGenerator();
     
-    
-    public void setDDLGenerator(GenericDDLGenerator generator);
+    /**
+     * Sets the new DDL Generator currently in use for this session.
+     */
+    public void setDDLGenerator(DDLGenerator generator);
 }

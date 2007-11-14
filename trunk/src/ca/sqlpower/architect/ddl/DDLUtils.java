@@ -36,8 +36,9 @@ import java.util.Vector;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
-import ca.sqlpower.swingui.SPSUtils;
+import ca.sqlpower.sql.SPDataSourceType;
 
 /**
  * DDLUtils is a collection of utilities related to creating and
@@ -156,15 +157,24 @@ public class DDLUtils {
         return toQualifiedName(newCatalog,newSchema,newName);
     }
 
-    public static Vector<SPSUtils.LabelValueBean> getDDLTypes()
-    {
-        Vector<SPSUtils.LabelValueBean> dbTypeList = new Vector();
-		dbTypeList.add(SPSUtils.lvb("SQL 92", GenericDDLGenerator.class));
-		dbTypeList.add(SPSUtils.lvb("DB2", DB2DDLGenerator.class));
-		dbTypeList.add(SPSUtils.lvb("Oracle 8i/9i/10g", OracleDDLGenerator.class));
-		dbTypeList.add(SPSUtils.lvb("PostgreSQL", PostgresDDLGenerator.class));
-		dbTypeList.add(SPSUtils.lvb("SQLServer 2000", SQLServerDDLGenerator.class));
-        dbTypeList.add(SPSUtils.lvb("MySQL", MySqlDDLGenerator.class));
+    /**
+     * Finds all DDL Generators configured in the given data source collection.
+     */
+    public static Vector<Class<? extends DDLGenerator>> getDDLTypes(DataSourceCollection dsc) {
+        Vector<Class<? extends DDLGenerator>> dbTypeList = new Vector();
+        for (SPDataSourceType dst : dsc.getDataSourceTypes()) {
+            if (dst.getDDLGeneratorClass() != null) {
+                try {
+                    Class<?> loadedClass = Class.forName(dst.getDDLGeneratorClass());
+                    Class<? extends DDLGenerator> ddlgClass = loadedClass.asSubclass(DDLGenerator.class);
+                    dbTypeList.add(ddlgClass);
+                } catch (Exception e) {
+                    logger.warn(
+                            "Couldn't initialize DDL Generator class " + dst.getDDLGeneratorClass() +
+                            " specified in database type " + dst.getName() + ". Skipping it.");
+                }
+            }
+        }
 		return dbTypeList;
     }
 

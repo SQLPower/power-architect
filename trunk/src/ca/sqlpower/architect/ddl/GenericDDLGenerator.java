@@ -31,7 +31,6 @@
  */
 package ca.sqlpower.architect.ddl;
 
-import java.io.File;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -85,13 +84,6 @@ public class GenericDDLGenerator implements DDLGenerator {
 	 * allowConnection == false.
 	 */
 	protected boolean allowConnection;
-
-	/**
-	 * This is the user's selected file for saving the generated DDL.
-	 * This class does not actually write DDL to disk, but you should
-	 * use this file when you save the generated DDL string.
-	 */
-	protected File file;
 
 	/**
 	 * This is where each DDL statement gets accumulated while it is
@@ -179,14 +171,11 @@ public class GenericDDLGenerator implements DDLGenerator {
 		createTypeMap();
 	}
 
-
-
-    public StringBuffer generateDDL(SQLDatabase source) throws SQLException, ArchitectException {
-        List statements = generateDDLStatements(source.getChildren());
+    public String generateDDLScript(Collection<SQLTable> tables) throws SQLException, ArchitectException {
+        List statements = generateDDLStatements(tables);
 
 		ddl = new StringBuffer(4000);
 		writeHeader();
-		writeCreateDB(source);
 		writeDDLTransactionBegin();
 
 		Iterator it = statements.iterator();
@@ -197,7 +186,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 		}
 
 		writeDDLTransactionEnd();
-		return ddl;
+		return ddl.toString();
 	}
 
 
@@ -722,24 +711,6 @@ public class GenericDDLGenerator implements DDLGenerator {
 	}
 
 	/**
-	 * Gets the value of file
-	 *
-	 * @return the value of file
-	 */
-	public File getFile()  {
-		return this.file;
-	}
-
-	/**
-	 * Sets the value of file
-	 *
-	 * @param argFile Value to assign to this.file
-	 */
-	public void setFile(File argFile) {
-		this.file = argFile;
-	}
-
-	/**
 	 * Gets the value of typeMap
 	 *
 	 * @return the value of typeMap
@@ -1074,6 +1045,5 @@ public class GenericDDLGenerator implements DDLGenerator {
         print(" )");
         endStatement(DDLStatement.StatementType.CREATE, index);
     }
-
 
 }

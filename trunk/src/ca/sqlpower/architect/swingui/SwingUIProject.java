@@ -69,6 +69,7 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ColumnValueCount;
 import ca.sqlpower.architect.profile.ProfileResult;
@@ -433,11 +434,6 @@ public class SwingUIProject extends CoreProject {
             ioo.niprint(out, " target-schema=\""+SQLPowerUtils.escapeXML(getSession().getDDLGenerator().getTargetSchema())+"\"");
         }
         ioo.niprint(out, ">");
-        ioo.indent++;
-        if (getSession().getDDLGenerator().getFile() != null) {
-            ioo.println(out, "<file path=\""+SQLPowerUtils.escapeXML(getSession().getDDLGenerator().getFile().getPath())+"\" />");
-        }
-        ioo.indent--;
         ioo.println(out, "</ddl-generator>");
     }
     
@@ -463,7 +459,10 @@ public class SwingUIProject extends CoreProject {
         if ( !getSession().getCompareDMSettings().getSaveFlag() )
             return;
         ioo.print(out, "<compare-dm-settings");
-        ioo.print(out, " sqlScriptFormat=\""+SQLPowerUtils.escapeXML(getSession().getCompareDMSettings().getSqlScriptFormat())+"\"");
+        Class<? extends DDLGenerator> ddlgClass = getSession().getCompareDMSettings().getDdlGenerator();
+        if (ddlgClass != null) {
+            ioo.print(out, " ddlGenerator=\""+SQLPowerUtils.escapeXML(ddlgClass.getName())+"\"");
+        }
         ioo.print(out, " outputFormatAsString=\""+SQLPowerUtils.escapeXML(getSession().getCompareDMSettings().getOutputFormatAsString())+"\"");
         ioo.println(out, ">");
         ioo.indent++;
