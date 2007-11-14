@@ -449,7 +449,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
             warnings.add(new UnsupportedFeatureDDLWarning(
                     "MySQL does not support deferred constraint checking", r));
             return "/* Warning: This relationship was marked deferrable, but " +
-                    "mySQL does not support deferred constraint checking */";
+                    "MySQL does not support deferred constraint checking */";
         } else {
             return "";
         }
