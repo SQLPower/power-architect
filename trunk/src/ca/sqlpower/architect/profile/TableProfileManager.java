@@ -298,4 +298,8 @@ public class TableProfileManager implements ProfileManager {
         }
     }
 
+    public void close() {
+        profileExecutor.shutdown();
+    }
+
 }

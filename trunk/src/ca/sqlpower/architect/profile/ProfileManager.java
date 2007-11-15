@@ -140,5 +140,10 @@ public interface ProfileManager {
      * part of this profile manager, but have not been calculated yet.
      */
     public void setProcessingOrder(List<TableProfileResult> tpr);
+    
+    /**
+     * Closes the Executor service. This stops it from running any further jobs.
+     */
+    public void close();
 
 }

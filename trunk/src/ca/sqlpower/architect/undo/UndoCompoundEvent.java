@@ -31,9 +31,8 @@
  */
 package ca.sqlpower.architect.undo;
 
-import java.awt.Event;
 
-public class UndoCompoundEvent extends Event {
+public class UndoCompoundEvent {
 
 	public enum EventTypes {
 		COMPOUND_EDIT_START,COMPOUND_EDIT_END;
@@ -44,9 +43,10 @@ public class UndoCompoundEvent extends Event {
 	}
 	
 	private EventTypes type;
+	private String message;
 	
-	public UndoCompoundEvent(Object target, EventTypes id, String message) {
-		super(target, id.ordinal(), message);
+	public UndoCompoundEvent(EventTypes id, String message) {
+		this.message = message;
 		this.type = id;
 	}
 
@@ -55,6 +55,6 @@ public class UndoCompoundEvent extends Event {
 	}
 	
 	public String getMessage() {
-		return arg.toString();
+		return message;
 	}
 }

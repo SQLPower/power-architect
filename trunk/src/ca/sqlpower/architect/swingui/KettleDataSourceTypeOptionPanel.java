@@ -98,7 +98,7 @@ public class KettleDataSourceTypeOptionPanel implements DataSourceTypeEditorTabP
             kettleConnectionType.setSelectedItem("");
         } else {
             kettleConnectionType.setSelectedItem
-            (dsType.getProperty(KettleOptions.KETTLE_CONNECTION_TYPE_KEY));
+            (dsType.getKettleNames().get(0));
         }
     }
 
