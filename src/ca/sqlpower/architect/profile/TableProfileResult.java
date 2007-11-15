@@ -186,7 +186,7 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
         try {
             ret = new Integer(temp.getColumns().size() + 1);
         } catch (ArchitectException e) {
-            throw new IllegalStateException("Failed to populate necessary columns.");
+            throw new IllegalStateException("Failed to populate necessary columns.", e);
         }
         return ret;
     }
