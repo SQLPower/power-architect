@@ -68,7 +68,7 @@ public class KettleUtils {
         String username = target.getUser();
         String password = target.getPass();
         SPDataSourceType targetType = target.getParentType();
-        String connectionType = targetType.getProperty(KettleOptions.KETTLE_CONNECTION_TYPE_KEY); 
+        String connectionType = targetType.getKettleNames().get(0);
         Map<String, String> map = targetType.retrieveURLParsing(target.getUrl());
         String hostname = map.get(KettleOptions.KETTLE_HOSTNAME);
         if (hostname == null) {

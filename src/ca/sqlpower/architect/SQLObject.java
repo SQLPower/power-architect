@@ -468,11 +468,11 @@ public abstract class SQLObject implements java.io.Serializable {
 	}
 	
 	public void startCompoundEdit(String message){
-		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.COMPOUND_EDIT_START,message));
+		fireUndoCompoundEvent(new UndoCompoundEvent(EventTypes.COMPOUND_EDIT_START,message));
 	}
 	
 	public void endCompoundEdit(String message){
-		fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.COMPOUND_EDIT_END,message));
+		fireUndoCompoundEvent(new UndoCompoundEvent(EventTypes.COMPOUND_EDIT_END,message));
 	}
 
 	public LinkedList<UndoCompoundEventListener> getUndoEventListeners() {

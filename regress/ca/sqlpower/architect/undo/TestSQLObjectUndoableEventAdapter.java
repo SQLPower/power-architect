@@ -145,10 +145,10 @@ public class TestSQLObjectUndoableEventAdapter extends TestCase {
         UndoManager.SQLObjectUndoableEventAdapter adapter = manager.getEventAdapter();
         assertTrue(adapter.canUndoOrRedo());
         
-        adapter.compoundEditStart(new UndoCompoundEvent(new SQLTable(),EventTypes.COMPOUND_EDIT_START, "Test"));
+        adapter.compoundEditStart(new UndoCompoundEvent(EventTypes.COMPOUND_EDIT_START, "Test"));
         assertEquals(" Improper number of state changes after first compound edit",1,listner.stateChanges);
         assertFalse(adapter.canUndoOrRedo());
-        adapter.compoundEditEnd(new UndoCompoundEvent(new SQLTable(),EventTypes.COMPOUND_EDIT_END, "Test"));
+        adapter.compoundEditEnd(new UndoCompoundEvent(EventTypes.COMPOUND_EDIT_END, "Test"));
         assertEquals(" Improper number of state changes after first compound edit",2,listner.stateChanges);
         assertTrue(adapter.canUndoOrRedo());
     }

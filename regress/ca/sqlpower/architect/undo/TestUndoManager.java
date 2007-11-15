@@ -164,16 +164,16 @@ public class TestUndoManager extends TestCase {
 		fkTable.setRemarks("old");
 		
 		undoManager.getEventAdapter().compoundEditStart(
-				new UndoCompoundEvent(this,EventTypes.COMPOUND_EDIT_START,"Starting compoundedit"));
+				new UndoCompoundEvent(EventTypes.COMPOUND_EDIT_START,"Starting compoundedit"));
 		pkTable.setName("one");
 		undoManager.getEventAdapter().compoundEditStart(
-				new UndoCompoundEvent(this,EventTypes.COMPOUND_EDIT_START,"Starting nested compoundedit"));
+				new UndoCompoundEvent(EventTypes.COMPOUND_EDIT_START,"Starting nested compoundedit"));
 		fkTable.setName("two");
 		undoManager.getEventAdapter().compoundEditEnd(
-				new UndoCompoundEvent(this,EventTypes.COMPOUND_EDIT_END,"Ending nested compoundedit"));
+				new UndoCompoundEvent(EventTypes.COMPOUND_EDIT_END,"Ending nested compoundedit"));
 		pkTable.setRemarks("three");
 		undoManager.getEventAdapter().compoundEditEnd(
-				new UndoCompoundEvent(this,EventTypes.COMPOUND_EDIT_END,"Ending compoundedit"));
+				new UndoCompoundEvent(EventTypes.COMPOUND_EDIT_END,"Ending compoundedit"));
 		fkTable.setRemarks("four");
 		
 		assertEquals("one", pkTable.getName());

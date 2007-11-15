@@ -267,11 +267,11 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
     }
 
     public void startCompoundEdit(String message){
-        fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.COMPOUND_EDIT_START,message));
+        fireUndoCompoundEvent(new UndoCompoundEvent(EventTypes.COMPOUND_EDIT_START,message));
     }
     
     public void endCompoundEdit(String message){
-        fireUndoCompoundEvent(new UndoCompoundEvent(this,EventTypes.COMPOUND_EDIT_END,message));
+        fireUndoCompoundEvent(new UndoCompoundEvent(EventTypes.COMPOUND_EDIT_END,message));
     }
     
     public JPanel getPanel() {
