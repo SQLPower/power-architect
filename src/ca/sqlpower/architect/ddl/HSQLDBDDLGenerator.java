@@ -61,6 +61,16 @@ public class HSQLDBDDLGenerator extends GenericDDLGenerator {
     }
  
     @Override
+    public String getCatalogTerm() {
+        return null;
+    }
+
+    @Override
+    public String getSchemaTerm() {
+        return "Schema";
+    }
+
+    @Override
     public String columnType(SQLColumn c) {
         if (c.isAutoIncrement()) {
             return "IDENTITY";
