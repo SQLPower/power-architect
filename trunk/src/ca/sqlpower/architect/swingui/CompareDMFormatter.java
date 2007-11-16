@@ -97,13 +97,10 @@ public class CompareDMFormatter {
             DDLGenerator gen = null;
             if (dmSetting.getOutputFormat().equals(CompareDMSettings.OutputFormat.SQL)) {
                 gen = dmSetting.getDdlGenerator().newInstance();
-                if (dmSetting.getTargetSettings().getDatastoreType().equals(CompareDMSettings.DatastoreType.DATABASE)) {
-                    // Set generator for target catalog/schema if "newer" schema comes from a physical database
-                    SQLCatalog cat = (SQLCatalog) dmSetting.getSourceSettings().getCatalogObject();
-                    SQLSchema sch = (SQLSchema) dmSetting.getSourceSettings().getSchemaObject();
-                    gen.setTargetCatalog(cat == null ? null : cat.getPhysicalName());
-                    gen.setTargetSchema(sch == null ? null : sch.getPhysicalName());
-                }
+                SQLCatalog cat = (SQLCatalog) dmSetting.getSourceSettings().getCatalogObject();
+                SQLSchema sch = (SQLSchema) dmSetting.getSourceSettings().getSchemaObject();
+                gen.setTargetCatalog(cat == null ? null : cat.getPhysicalName());
+                gen.setTargetSchema(sch == null ? null : sch.getPhysicalName());
             }
             
             final Map<DiffType, AttributeSet> styles = new HashMap<DiffType, AttributeSet>();
