@@ -217,6 +217,12 @@ public class ProfileResultsViewer {
         editorScrollPane.setPreferredSize(new Dimension(800, 600));
         editorScrollPane.setMinimumSize(new Dimension(10, 10));
 
+        ProfilePanel p = new ProfilePanel(tm);
+        p.setViewTable(viewTable);
+        p.setTabPane(tabPane);
+        p.setTableModel(tm);
+        tabPane.addTab("Graph View",p);
+        
         JPanel tableViewPane = new JPanel(new BorderLayout());
 
         tableViewPane.add(editorScrollPane,BorderLayout.CENTER);
@@ -230,11 +236,6 @@ public class ProfileResultsViewer {
         tableViewPane.add(searchPanel,BorderLayout.NORTH);
         tabPane.addTab("Table View", tableViewPane );
         
-        ProfilePanel p = new ProfilePanel(tm);
-        p.setViewTable(viewTable);
-        p.setTabPane(tabPane);
-        p.setTableModel(tm);
-        tabPane.addTab("Graph View",p);
 
         profilePanelMouseListener.setProfilePanel(p);
         p.setChartType(ChartTypes.PIE);
