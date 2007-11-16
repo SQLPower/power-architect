@@ -36,6 +36,8 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -236,7 +238,8 @@ public class CompareDMPanel extends JPanel {
 		
 		private SchemaPopulator schemaPop;
 		private CatalogPopulator catalogPop;
-
+		
+		private boolean isSource;
 
 		/**
 		 * The last database returned by getDatabase(). Never access this
@@ -671,6 +674,8 @@ public class CompareDMPanel extends JPanel {
 				prefix = "target";
 			}
 			
+			this.isSource = defaultPlayPen;
+			
 			this.schemaPop = schemaPop;
 			this.catalogPop = catalogPop;
 			
@@ -731,6 +736,22 @@ public class CompareDMPanel extends JPanel {
 
             catalogDropdown.addActionListener(schemaPop);
             databaseDropdown.addActionListener(catalogPop);
+            databaseDropdown.addItemListener(new ItemListener() {
+                public void itemStateChanged(ItemEvent e) {
+                    if (!isSource) {
+                        return;
+                    }
+                    SPDataSource dataSource = (SPDataSource)((JComboBox)e.getSource()).getSelectedItem();  
+                    if (dataSource != null) {
+                        try {
+                            sqlTypeDropdown.setSelectedItem(Class.forName(dataSource.getParentType().getDDLGeneratorClass()));
+                        } catch (ClassNotFoundException e1) {
+                            logger.error("Error when finding the DDLGenerator class for the selected database!", e1);
+                        }
+                    }
+                }
+                
+            });
             
 			ActionListener listener = new OptionGroupListener();
 			playPenRadio.addActionListener(listener);
@@ -896,6 +917,10 @@ public class CompareDMPanel extends JPanel {
 			newConnectionAction.setEnabled(enable);
 		}
 
+        boolean isSource() {
+            return isSource;
+        }
+
 	}
 
 	/**
@@ -909,7 +934,8 @@ public class CompareDMPanel extends JPanel {
 	 */
 	public boolean isStartable() {
 		logger.debug("isStartable is checking...");
-		return source.isThisPartStartable() && target.isThisPartStartable() && !(source.playPenRadio.isSelected() && sqlButton.isSelected());
+		
+		return source.isThisPartStartable() && target.isThisPartStartable() && source.physicalRadio.isSelected() && sqlButton.isSelected() && sqlTypeDropdown.getSelectedItem() != null;
 	}
 
 	public Action getStartCompareAction() {
@@ -1097,6 +1123,9 @@ public class CompareDMPanel extends JPanel {
 
 		public void actionPerformed(ActionEvent e) {
 			startCompareAction.setEnabled(false);
+			sqlButton.setEnabled(false);
+			englishButton.setEnabled(false);
+			sqlTypeDropdown.setEnabled(false);
 
 			copySettingsToProject();
 
@@ -1165,6 +1194,9 @@ public class CompareDMPanel extends JPanel {
                     CompareDMFormatter dmFormat = new CompareDMFormatter(session, CompareDMPanel.this, session.getCompareDMSettings());
                     dmFormat.format(diff, diff1, left, right);
                     startCompareAction.setEnabled(isStartable());
+                    sqlButton.setEnabled(true);
+                    englishButton.setEnabled(true);
+                    sqlTypeDropdown.setEnabled(true);
                     logger.debug("cleanup finished");
 				}
 
