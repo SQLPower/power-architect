@@ -76,4 +76,9 @@ public class TabbedDataEntryPanel implements DataEntryPanel {
         return tabbedPane;
     }
 
+    public boolean hasUnsavedChanges() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
 }

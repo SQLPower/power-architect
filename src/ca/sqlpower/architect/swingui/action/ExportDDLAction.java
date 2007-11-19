@@ -143,6 +143,11 @@ public class ExportDDLAction extends AbstractArchitectAction {
                                         outerPanel.add(sp, BorderLayout.CENTER);
                                         return outerPanel;
                                     }
+
+                                    public boolean hasUnsavedChanges() {
+                                        // TODO Auto-generated method stub
+                                        return false;
+                                    }
                                 };
                                 String[] options = {
                                         "QuickFix All",

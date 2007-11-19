@@ -102,4 +102,9 @@ public class KettleDataSourceTypeOptionPanel implements DataSourceTypeEditorTabP
         }
     }
 
+    public boolean hasUnsavedChanges() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
 }

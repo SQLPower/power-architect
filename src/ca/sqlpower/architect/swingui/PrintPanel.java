@@ -446,5 +446,10 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 
 	}
 
+    public boolean hasUnsavedChanges() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
 
 }

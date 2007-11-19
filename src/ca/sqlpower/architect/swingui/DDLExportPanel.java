@@ -240,4 +240,9 @@ public class DDLExportPanel implements DataEntryPanel {
     public SPDataSource getTargetDB(){
         return (SPDataSource)targetDB.getSelectedItem();
     }
+
+    public boolean hasUnsavedChanges() {
+        // TODO Auto-generated method stub
+        return false;
+    }
 }

@@ -126,4 +126,9 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
 		return this;
 	}
 
+    public boolean hasUnsavedChanges() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
 }
