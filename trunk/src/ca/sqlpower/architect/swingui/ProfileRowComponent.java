@@ -285,8 +285,6 @@ public class ProfileRowComponent extends JPanel implements Selectable {
         }
 
         public void removeLayoutComponent(Component comp) {
-            // TODO Auto-generated method stub
-
         }
 
     }

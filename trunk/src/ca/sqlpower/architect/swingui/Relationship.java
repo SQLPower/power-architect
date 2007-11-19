@@ -327,13 +327,9 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 		}
 
 		public void componentMoveStart(PlayPenComponentEvent e) {
-			// TODO Auto-generated method stub
-			
 		}
 
 		public void componentMoveEnd(PlayPenComponentEvent e) {
-			// TODO Auto-generated method stub
-			
 		}
 	}
 	

@@ -292,7 +292,7 @@ public class CompareSchemaWorker implements Runnable {
 			}
 
 		} catch (BadLocationException e) {
-			// TODO Auto-generated catch block
+			// TODO properly handle this error
 			e.printStackTrace();
 		} finally {
 			finished = true;

@@ -151,7 +151,6 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         }
 
         public boolean getScrollableTracksViewportHeight() {
-            // TODO Auto-generated method stub
             return false;
         }
 

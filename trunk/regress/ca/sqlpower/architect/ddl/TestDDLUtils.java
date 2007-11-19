@@ -35,18 +35,8 @@ import junit.framework.TestCase;
 
 public class TestDDLUtils extends TestCase {
 
-
-	
 	public TestDDLUtils() {
-		
 	}
-	@Override
-	protected void setUp() throws Exception {
-		// TODO Auto-generated method stub
-		super.setUp();
-	}
-	
-	
 	
 	public void testToQualifiedName(){
 		String sampleName= "Some Name";

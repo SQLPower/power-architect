@@ -45,8 +45,6 @@ public class TestArchitectSwingWorker extends TestCase {
 
 			@Override
 			public void cleanup() throws Exception {
-				// TODO Auto-generated method stub
-				
 			}
 
 			@Override
@@ -60,14 +58,10 @@ public class TestArchitectSwingWorker extends TestCase {
 
 			@Override
 			public void cleanup() throws Exception {
-				// TODO Auto-generated method stub
-				
 			}
 
 			@Override
 			public void doStuff() throws Exception {
-				// TODO Auto-generated method stub
-				
 			}
 			
 		};
@@ -75,14 +69,10 @@ public class TestArchitectSwingWorker extends TestCase {
 
 			@Override
 			public void cleanup() throws Exception {
-				// TODO Auto-generated method stub
-				
 			}
 
 			@Override
 			public void doStuff() throws Exception {
-				// TODO Auto-generated method stub
-				
 			}
 			
 		};

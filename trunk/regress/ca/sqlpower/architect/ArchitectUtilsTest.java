@@ -64,18 +64,12 @@ public class ArchitectUtilsTest extends TestCase {
 
 	public void testAddUndoListenerToHierarchy() throws ArchitectException{
 
+	    //listener that doesn't do anything
 		UndoCompoundEventListener listener = new UndoCompoundEventListener(){
-
 			public void compoundEditStart(UndoCompoundEvent e) {
-				// TODO Auto-generated method stub
-				
 			}
-
 			public void compoundEditEnd(UndoCompoundEvent e) {
-				// TODO Auto-generated method stub
-				
 			}
-
 		};
 		ArchitectUtils.addUndoListenerToHierarchy(listener,sqlo);
 		ArchitectUtils.addUndoListenerToHierarchy(listener,sqlo);
@@ -99,17 +93,10 @@ public class ArchitectUtilsTest extends TestCase {
 	{
 
 		UndoCompoundEventListener listener = new UndoCompoundEventListener(){
-
 			public void compoundEditStart(UndoCompoundEvent e) {
-				// TODO Auto-generated method stub
-				
 			}
-
 			public void compoundEditEnd(UndoCompoundEvent e) {
-				// TODO Auto-generated method stub
-				
 			}
-
 		};
 		ArchitectUtils.addUndoListenerToHierarchy(listener,sqlo);
 		ArchitectUtils.addUndoListenerToHierarchy(listener,sqlo);

@@ -407,13 +407,11 @@ public class UndoManager extends javax.swing.undo.UndoManager {
 	
 	@Override
 	public synchronized boolean canUndo() {
-	    // TODO Auto-generated method stub
 	    return super.canUndo() && eventAdapter.canUndoOrRedo();
 	}
     
     @Override
     public synchronized boolean canRedo() {
-        // TODO Auto-generated method stub
         return super.canRedo() && eventAdapter.canUndoOrRedo();
     }
 	

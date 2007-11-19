@@ -114,8 +114,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
     
     @Override
     public void cleanUp(ActionMonitor monitor) {
-        // TODO Auto-generated method stub
-        
+        // TODO might have to cleanup here
     }
 
     @Override

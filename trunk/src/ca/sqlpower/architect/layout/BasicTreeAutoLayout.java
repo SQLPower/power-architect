@@ -145,7 +145,6 @@ public class BasicTreeAutoLayout extends AbstractLayout {
 	}
 
 	public boolean isDone() {
-		// TODO Auto-generated method stub
 		return frame >= numFramesInAnim;
 	}
 

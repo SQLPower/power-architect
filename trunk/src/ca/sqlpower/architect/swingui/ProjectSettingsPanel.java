@@ -119,7 +119,7 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
 	}
 
 	public void discardChanges() {
-
+	    // TODO revert the changes made
 	}
 
 	public JPanel getPanel() {
@@ -127,7 +127,7 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
 	}
 
     public boolean hasUnsavedChanges() {
-        // TODO Auto-generated method stub
+        // TODO return whether this panel has been changed
         return false;
     }
 
