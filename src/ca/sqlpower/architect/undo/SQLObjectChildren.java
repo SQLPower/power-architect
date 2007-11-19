@@ -44,7 +44,6 @@ public abstract class SQLObjectChildren extends AbstractUndoableEdit {
 	
 	public SQLObjectChildren() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 	
 	public void createEditFromEvent(SQLObjectEvent event){

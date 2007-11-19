@@ -142,8 +142,6 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     }
 
     public void close() {
-        // TODO Auto-generated method stub
-        
     }
 
     public CompareDMSettings getCompareDMSettings() {
@@ -155,7 +153,6 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     }
 
     public String getName() {
-        // TODO Auto-generated method stub
         return null;
     }
 
@@ -164,7 +161,6 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     }
 
     public JDialog getProfileDialog() {
-        // TODO Auto-generated method stub
         return null;
     }
 
@@ -177,23 +173,16 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     }
 
     public boolean isSavingEntireSource() {
-        // TODO Auto-generated method stub
         return false;
     }
 
     public void setDDLGenerator(DDLGenerator generator) {
-        // TODO Auto-generated method stub
-        
     }
 
     public void setName(String argName) {
-        // TODO Auto-generated method stub
-        
     }
 
     public void setSavingEntireSource(boolean argSavingEntireSource) {
-        // TODO Auto-generated method stub
-        
     }
 
     public void setSourceDatabaseList(List<SQLDatabase> databases) throws ArchitectException {

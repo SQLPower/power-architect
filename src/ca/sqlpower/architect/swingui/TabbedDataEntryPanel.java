@@ -77,7 +77,11 @@ public class TabbedDataEntryPanel implements DataEntryPanel {
     }
 
     public boolean hasUnsavedChanges() {
-        // TODO Auto-generated method stub
+        for (DataEntryPanel panel : panels) {
+            if (panel.hasUnsavedChanges()) {
+                return true;
+            }
+        }
         return false;
     }
 

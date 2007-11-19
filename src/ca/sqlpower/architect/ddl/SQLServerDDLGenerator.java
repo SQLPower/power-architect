@@ -51,7 +51,6 @@ import ca.sqlpower.architect.SQLRelationship.Deferrability;
 public class SQLServerDDLGenerator extends GenericDDLGenerator {
 	public SQLServerDDLGenerator() throws SQLException {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	public static final String GENERATOR_VERSION = "$Revision$";

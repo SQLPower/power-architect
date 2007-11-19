@@ -45,9 +45,9 @@ import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 
 import ca.sqlpower.architect.ArchitectVersion;
-import ca.sqlpower.swingui.DataEntryPanel;
+import ca.sqlpower.swingui.AbstractNoEditDataEntryPanel;
 
-public class AboutPanel extends JPanel implements DataEntryPanel {
+public class AboutPanel extends AbstractNoEditDataEntryPanel {
 
 	public JLabel content;
 
@@ -131,23 +131,5 @@ public class AboutPanel extends JPanel implements DataEntryPanel {
         table.setSize(table.getPreferredSize());
 
         return table;
-    }
-
-	public boolean applyChanges() {
-		return true;
-        // read-only, nothing to apply
-	}
-
-	public void discardChanges() {
-        // read-only, nothing to discard
-	}
-
-	public JPanel getPanel() {
-		return this;
-	}
-
-    public boolean hasUnsavedChanges() {
-        // TODO Auto-generated method stub
-        return false;
     }
 }
