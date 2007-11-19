@@ -315,7 +315,7 @@ public class SQLScriptDialog extends JDialog {
 		public void doStuff() {
 
 			finished = false;
-
+			setCancelled(false);
 			hasStarted = true;
 			if (isCanceled() || finished) return;
 

@@ -934,8 +934,11 @@ public class CompareDMPanel extends JPanel {
 	 */
 	public boolean isStartable() {
 		logger.debug("isStartable is checking...");
-		
-		return source.isThisPartStartable() && target.isThisPartStartable() && source.physicalRadio.isSelected() && sqlButton.isSelected() && sqlTypeDropdown.getSelectedItem() != null;
+		boolean startable = true;
+		if (sqlButton.isSelected()) {
+		    startable = source.physicalRadio.isSelected() && sqlTypeDropdown.getSelectedItem() != null;
+		}
+	    return source.isThisPartStartable() && target.isThisPartStartable() && startable;
 	}
 
 	public Action getStartCompareAction() {
@@ -1125,7 +1128,11 @@ public class CompareDMPanel extends JPanel {
 			startCompareAction.setEnabled(false);
 			sqlButton.setEnabled(false);
 			englishButton.setEnabled(false);
-			sqlTypeDropdown.setEnabled(false);
+			if (sqlButton.isSelected()) {
+			    sqlTypeDropdown.setEnabled(false);
+			} else {
+			    showNoChanges.setEnabled(false);
+			}
 
 			copySettingsToProject();
 
@@ -1196,7 +1203,11 @@ public class CompareDMPanel extends JPanel {
                     startCompareAction.setEnabled(isStartable());
                     sqlButton.setEnabled(true);
                     englishButton.setEnabled(true);
-                    sqlTypeDropdown.setEnabled(true);
+                    if (sqlButton.isSelected()) {
+                        sqlTypeDropdown.setEnabled(true);
+                    } else {
+                        showNoChanges.setEnabled(true);
+                    }
                     logger.debug("cleanup finished");
 				}
 
