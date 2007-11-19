@@ -20,6 +20,9 @@ IMPORTANT NOTE to users upgrading from pre-0.9.x versions of the Architect:
  engineers to BOOLEAN on platforms that support it, and TINYINT on
  platforms that lack the BOOLEAN type.
 *Added DDL forward engineering support for HSQLDB
+*Fixed a bug in the SQL script dialog where if the user has chosen not to
+ continue after an error, clicking execute has no effect.
+
 
 0.9.8
 *Fixed a bug where re-profiling a cancelled profile would freeze the GUI until
