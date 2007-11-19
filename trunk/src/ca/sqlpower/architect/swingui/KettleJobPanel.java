@@ -373,4 +373,9 @@ public class KettleJobPanel implements DataEntryPanel {
         settings.setRepository((SPDataSource)reposDB.getSelectedItem());
         settings.setSavingToFile(isSaveFile());
     }
+
+    public boolean hasUnsavedChanges() {
+        // TODO Auto-generated method stub
+        return false;
+    }
 }

@@ -191,4 +191,9 @@ public class TableEditPanel extends JPanel implements DataEntryPanel {
         pkName.setText(newPkName);
     }
 
+    public boolean hasUnsavedChanges() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
 }

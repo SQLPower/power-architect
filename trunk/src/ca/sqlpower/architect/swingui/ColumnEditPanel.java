@@ -356,5 +356,10 @@ public class ColumnEditPanel extends JPanel
 	public JLabel getSourceTableCol() {
 		return sourceTableCol;
 	}
+
+    public boolean hasUnsavedChanges() {
+        // TODO Auto-generated method stub
+        return false;
+    }
 }
   

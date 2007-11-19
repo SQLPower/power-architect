@@ -285,4 +285,9 @@ public class IndexEditPanel extends JPanel implements DataEntryPanel {
     public void setNameText(String newName) {
         name.setText(newName);
     }
+
+    public boolean hasUnsavedChanges() {
+        // TODO Auto-generated method stub
+        return false;
+    }
 }

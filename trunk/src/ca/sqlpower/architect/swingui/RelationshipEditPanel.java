@@ -285,5 +285,11 @@ public class RelationshipEditPanel implements DataEntryPanel {
 	public JPanel getPanel() {
 		return panel;
 	}
+
+
+    public boolean hasUnsavedChanges() {
+        // TODO Auto-generated method stub
+        return false;
+    }
 	
 }
