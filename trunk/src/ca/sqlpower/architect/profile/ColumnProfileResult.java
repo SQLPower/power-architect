@@ -374,13 +374,15 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
     }
 
     public void addValueCount(Object value, int count) {
-        topTen.add(new ColumnValueCount(value,count));
-        return;
+        ColumnValueCount columnValueCount = new ColumnValueCount(value,count);
+        if (!topTen.contains(columnValueCount)) {
+            topTen.add(columnValueCount);
+            logger.debug("Added Value Count: Value: " + value + " Count: " + count);
+        }
     }
 
     public void addValueCount(ColumnValueCount value) {
         topTen.add(value);
-        return;
     }
     public List<ColumnValueCount> getValueCount() {
         return topTen;
