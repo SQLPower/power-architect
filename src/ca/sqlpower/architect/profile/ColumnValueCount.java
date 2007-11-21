@@ -46,6 +46,27 @@ public class ColumnValueCount {
     public Object getValue() {
         return value;
     }
-
-
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        } else if (!(obj instanceof ColumnValueCount)) {
+            return false;
+        }
+        ColumnValueCount other = (ColumnValueCount) obj;
+        
+        if ((value == null ? other.value == null : value.equals(other.value)) && count == other.count)  {
+            return true;
+        }
+        return false;
+    }
+    
+    @Override
+    public int hashCode() {
+        int result = 17;
+        result = 37*result + value.hashCode();
+        result = 37*result + count;
+        return result;
+    }
 }
