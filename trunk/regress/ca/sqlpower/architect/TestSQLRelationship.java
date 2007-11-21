@@ -729,4 +729,23 @@ public class TestSQLRelationship extends SQLTestCase {
         assertEquals(2, childTable.getColumns().size());
         assertEquals(1, childCol.getReferenceCount());
     }
+    
+    /**
+     * Self-referencing auto-mapping regressed at some point and we didn't notice.
+     * This test covers one of the many bugs repored in forum posting 1772.
+     */
+    public void testSelfReferencingAutoMapping() throws Exception {
+        SQLColumn parentCol = parentTable.getColumnByName("pkcol_1");
+        parentCol.setPrimaryKeySeq(0);
+
+        int oldColCount = parentTable.getColumns().size();
+        
+        SQLRelationship r = new SQLRelationship();
+        r.attachRelationship(parentTable, parentTable, true);
+        
+        assertEquals(1, r.getMappings().size());
+        SQLRelationship.ColumnMapping mapping = r.getMappings().get(0);
+        assertNotSame(mapping.getFkColumn(), mapping.getPkColumn());
+        assertEquals(oldColCount + 1, parentTable.getColumns().size());
+    }
 }

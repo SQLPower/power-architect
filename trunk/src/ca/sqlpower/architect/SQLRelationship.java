@@ -222,7 +222,12 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 
 					SQLColumn fkCol;
 					SQLColumn match = fkTable.getColumnByName(pkCol.getName());
-					if (match != null) {
+                    if (pkTable == fkTable) {
+                        // self-reference should never hijack the PK!
+                        fkCol = new SQLColumn(pkCol);
+                        fkCol.setName("parent_" + fkCol.getName());
+                        fkCol.setPrimaryKeySeq(null);
+                    } else if (match != null) {
 						// does the matching column have a compatible data type?
 						if (match.getType() == pkCol.getType() &&
 								match.getPrecision() == pkCol.getPrecision() &&
