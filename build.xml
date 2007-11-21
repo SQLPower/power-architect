@@ -257,11 +257,11 @@
 
 	<!-- Runs the Business and Auto test suites. The Swing UI test suite is
 	 	 not run because it fails randomly -->
-	<target name="junit" depends="compile,compile-tests">
+	<target name="junit" depends="compile-tests">
 		<property name="reports.junit" value="${reports}/junit"/>
 		<mkdir dir="${reports.junit}"/>
 		<!-- Output all System.out and System.err messages -->
-	   <junit printsummary="on">
+	   <junit printsummary="on" showoutput="yes">
 	   	   <sysproperty key="ca.sqlpower.architect.test.dir" value="${build.tests}"/>
 	       <classpath>
 	       		<path refid="test.classpath"/>
@@ -1008,7 +1008,9 @@
 			 compression="gzip" longfile="gnu">
 			<tarfileset dir="."
 				prefix="architect-src-only-${app.version}"
-				includes="${src}/**/*.java, 
+				includes="${src}/**/*.java,
+					  ${src}/**/*.png,
+					  ${src}/**/*.gif,
 					  regress/**/*.java,
 					  build.xml,
 					  build.properties.example,
