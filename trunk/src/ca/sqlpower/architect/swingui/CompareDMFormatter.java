@@ -41,7 +41,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.SwingUtilities;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
@@ -66,6 +65,7 @@ import ca.sqlpower.architect.diff.DiffChunk;
 import ca.sqlpower.architect.diff.DiffType;
 import ca.sqlpower.architect.swingui.CompareDMPanel.SourceOrTargetStuff;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
+import ca.sqlpower.swingui.SPSUtils;
 
 public class CompareDMFormatter {
 
@@ -156,7 +156,7 @@ public class CompareDMFormatter {
            
             // This is a little error-prone because the ancestor could be a frame,
             // So we just hope this is only ever used from the comparedmpanel's dialog
-            Dialog owner = (Dialog) SwingUtilities.getWindowAncestor(dialogOwner);
+            Dialog owner = (Dialog) SPSUtils.getWindowInHierarchy(dialogOwner);
            
             // get the title string for the compareDMFrame
             if (dmSetting.getOutputFormat().equals(CompareDMSettings.OutputFormat.SQL)) {
