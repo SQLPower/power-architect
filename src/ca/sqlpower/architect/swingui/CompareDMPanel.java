@@ -63,7 +63,6 @@ import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.ListCellRenderer;
-import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListDataEvent;
@@ -258,7 +257,7 @@ public class CompareDMPanel extends JPanel {
                         databaseDropdown.setSelectedItem(dataSource);
                     }
                 };
-                ASUtils.showDbcsDialog(SwingUtilities.getWindowAncestor(CompareDMPanel.this), dataSource, onAccept);
+                ASUtils.showDbcsDialog(SPSUtils.getWindowInHierarchy(CompareDMPanel.this), dataSource, onAccept);
 			}
 		};
 
@@ -364,7 +363,7 @@ public class CompareDMPanel extends JPanel {
 				} catch (ArchitectException e) {
 					logger.debug(
 						"Unexpected architect exception in ConnectionListener",	e);
-                    JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(CompareDMPanel.this),
+                    JOptionPane.showMessageDialog(SPSUtils.getWindowInHierarchy(CompareDMPanel.this),
                         "Unexpected architect exception in ConnectionListener" + "\n" + e, "Error",
                         JOptionPane.ERROR_MESSAGE);
 

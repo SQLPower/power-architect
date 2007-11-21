@@ -53,7 +53,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
-import javax.swing.SwingUtilities;
 import javax.swing.tree.TreePath;
 
 import ca.sqlpower.architect.ArchitectException;
@@ -71,6 +70,7 @@ import ca.sqlpower.architect.ddl.DDLStatement;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.sql.DataMover;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.swingui.SPSUtils;
 
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.ButtonBarFactory;
@@ -158,7 +158,7 @@ public class DataMoverPanel {
     private Action cancelAction = new AbstractAction("Cancel") {
         public void actionPerformed(ActionEvent e) {
             try {
-                Window w = SwingUtilities.getWindowAncestor(panel);
+                Window w = SPSUtils.getWindowInHierarchy(panel);
                 if (w != null) w.dispose();
             } catch (Exception ex) {
                 ASUtils.showExceptionDialog(session, "Failed to move data", ex);

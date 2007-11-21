@@ -47,7 +47,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -178,7 +177,7 @@ public class KettleJobPanel implements DataEntryPanel {
         newDatabaseButton.setText("Properties...");
         newDatabaseButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                Window parentWindow = SwingUtilities.getWindowAncestor(panel);
+                Window parentWindow = SPSUtils.getWindowInHierarchy(panel);
                 ASUtils.showTargetDbcsDialog(parentWindow, session, databaseComboBox);
             }
         });
@@ -244,7 +243,7 @@ public class KettleJobPanel implements DataEntryPanel {
         reposPropertiesButton.setText("Properties...");
         reposPropertiesButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                Window parentWindow = SwingUtilities.getWindowAncestor(panel);
+                Window parentWindow = SPSUtils.getWindowInHierarchy(panel);
                 ASUtils.showDbcsDialog(parentWindow, (SPDataSource)reposDB.getSelectedItem(), null);
             }
         });
