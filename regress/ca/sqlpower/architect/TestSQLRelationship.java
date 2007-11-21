@@ -41,11 +41,55 @@ import java.util.List;
 
 public class TestSQLRelationship extends SQLTestCase {
 
+    /**
+     * Set up by {@link #setUp()} to have this structure:
+     * <pre>
+     * CREATE TABLE parent (
+     *   pkcol_1 INTEGER NOT NULL,
+     *   pkcol_2 INTEGER NOT NULL,
+     *   attribute_1 INTEGER NOT NULL
+     * );
+     * </pre>
+     * <p>
+     * Note there are no columns in this table's primary key.
+     */
 	private SQLTable parentTable;
+    
+    /**
+     * Set up by {@link #setUp()} to have this structure:
+     * <pre>
+     * CREATE TABLE parent (
+     *   child_pkcol_1 INTEGER NOT NULL,
+     *   child_pkcol_2 INTEGER NOT NULL,
+     *   child_attribute INTEGER NOT NULL
+     * );
+     * </pre>
+     * <p>
+     * Note there are no columns in this table's primary key.
+     */
 	private SQLTable childTable1;
+    
+    /**
+     * Set up by {@link #setUp()} to have this structure:
+     * <pre>
+     * CREATE TABLE parent (
+     *   child2_pkcol_1 INTEGER NOT NULL,
+     *   child2_pkcol_2 INTEGER NOT NULL,
+     *   child2_attribute INTEGER NOT NULL
+     * );
+     * </pre>
+     * <p>
+     * Note there are no columns in this table's primary key.
+     */
 	private SQLTable childTable2;
+    
 	private SQLRelationship rel1;
 	private SQLRelationship rel2;
+    
+    /**
+     * The SQLDatabase that contains parentTable, childTable1, childTable2,
+     * rel1, and rel2 after {@link #setUp()} has run.
+     */
 	private SQLDatabase database;
 	
 	public TestSQLRelationship(String name) throws Exception {
@@ -646,5 +690,43 @@ public class TestSQLRelationship extends SQLTestCase {
 
         assertNotNull(table2.getPrimaryKeyIndex());
         assertNotNull(table2.getPrimaryKeyName());
+    }
+    
+    /**
+     * We discovered this case was untested while examining the Clover test coverage report.
+     */
+    public void testAutoMappingHijackWhenTargetColumnExists() throws Exception {
+        SQLColumn parentCol = parentTable.getColumnByName("pkcol_1");
+        parentCol.setPrimaryKeySeq(0);
+        
+        SQLTable childTable = new SQLTable(database, true);
+        database.addChild(childTable);
+        SQLColumn childCol = new SQLColumn(childTable, "pkcol_1", Types.INTEGER, 10, 0);
+        childTable.addColumn(childCol);
+        
+        SQLRelationship r = new SQLRelationship();
+        r.attachRelationship(parentTable, childTable, true);
+        
+        assertEquals(1, childTable.getColumns().size());
+        assertEquals(2, childCol.getReferenceCount());
+    }
+
+    /**
+     * We discovered this case was untested while examining the Clover test coverage report.
+     */
+    public void testAutoMappingNoHijackWhenTargetColumnExistsWithWrongType() throws Exception {
+        SQLColumn parentCol = parentTable.getColumnByName("pkcol_1");
+        parentCol.setPrimaryKeySeq(0);
+        
+        SQLTable childTable = new SQLTable(database, true);
+        database.addChild(childTable);
+        SQLColumn childCol = new SQLColumn(childTable, "pkcol_1", Types.VARCHAR, 10, 0);
+        childTable.addColumn(childCol);
+        
+        SQLRelationship r = new SQLRelationship();
+        r.attachRelationship(parentTable, childTable, true);
+        
+        assertEquals(2, childTable.getColumns().size());
+        assertEquals(1, childCol.getReferenceCount());
     }
 }
