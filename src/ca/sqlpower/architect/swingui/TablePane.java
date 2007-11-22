@@ -611,15 +611,29 @@ public class TablePane
 
 	// ------------------ utility methods ---------------------
 
-	/**
-	 * Returns the index of the column that point p is on top of.  If
-	 * p is on top of the table name, returns COLUMN_INDEX_TITLE.
-	 * Otherwise, p is not over a column or title and the returned
-	 * index is COLUMN_INDEX_NONE.
-	 */
-	public int pointToColumnIndex(Point p) throws ArchitectException {
-		return ((TablePaneUI) getUI()).pointToColumnIndex(p);
-	}
+    /**
+     * Returns the index of the column that point p is on top of.  If
+     * p is on top of the table name, returns COLUMN_INDEX_TITLE.
+     * Otherwise, p is not over a column or title and the returned
+     * index is COLUMN_INDEX_NONE.
+     */
+    public int pointToColumnIndex(Point p) throws ArchitectException {
+        return ((TablePaneUI) getUI()).pointToColumnIndex(p);
+    }
+
+    /**
+     * Returns the centre Y coordinate of the given column index.  The
+     * special {@link #COLUMN_INDEX_TITLE} value for <tt>colidx</tt>
+     * will produce the central Y coordinate for the title bar.
+     * 
+     * @param colidx the column number to get the central Y coordinate of.
+     * @return The Y coordinate at the visual centre point of the
+     * given column.  If the requested column index is out of range, the
+     * value <tt>-1</tt> is returned.
+     */
+    public int columnIndexToCentreY(int colidx) throws ArchitectException {
+        return ((TablePaneUI) getUI()).columnIndexToCentreY(colidx);
+    }
 
 	/**
 	 * Inserts the list of SQLObjects into this table at the specified location.

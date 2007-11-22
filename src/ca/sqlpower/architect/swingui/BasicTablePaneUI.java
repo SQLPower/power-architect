@@ -302,6 +302,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 	 * This method is specified by TablePane.pointToColumnIndex().
 	 * This implementation depends on the implementation of paint().
 	 */
+    @Override
 	public int pointToColumnIndex(Point p) throws ArchitectException {
 		Font font = tablePane.getFont();
 		FontMetrics metrics = tablePane.getFontMetrics(font);
@@ -336,6 +337,26 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 		}
 	}
 
+    @Override
+    public int columnIndexToCentreY(int colidx) throws ArchitectException {
+        Font font = tablePane.getFont();
+        FontMetrics metrics = tablePane.getFontMetrics(font);
+        int fontHeight = metrics.getHeight();
+        if (colidx == TablePane.COLUMN_INDEX_TITLE) {
+            return tablePane.getMargin().top + (fontHeight / 2);
+        } else if (colidx >= 0 && colidx < tablePane.getModel().getColumns().size()) {
+            int firstColY = fontHeight + gap + boxLineThickness + tablePane.getMargin().top;
+            int y = firstColY + (fontHeight * colidx) + (fontHeight / 2);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Column " + colidx + " Y value is " + y);
+                logger.debug("gap=" + gap + "; boxLineThickness=" + boxLineThickness + "; margin.top=" + tablePane.getMargin().top);
+            }
+            return y;
+        } else {
+            return -1;
+        }
+    }
+    
 	/**
 	 * Tells the component to revalidate (also causes a repaint) if
 	 * the given property change makes this necessary (any properties
