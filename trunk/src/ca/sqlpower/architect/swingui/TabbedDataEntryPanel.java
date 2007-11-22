@@ -56,6 +56,7 @@ public class TabbedDataEntryPanel implements DataEntryPanel {
         for (DataEntryPanel panel : panels) {
             success &= panel.applyChanges();
         }
+        // FIXME: how can we roll back changes if one of the updates fails?
         return success;
     }
 

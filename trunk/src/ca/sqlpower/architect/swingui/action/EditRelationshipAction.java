@@ -44,10 +44,12 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.swingui.ArchitectSwingConstants;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
+import ca.sqlpower.architect.swingui.ColumnMappingPanel;
 import ca.sqlpower.architect.swingui.DBTree;
 import ca.sqlpower.architect.swingui.Relationship;
 import ca.sqlpower.architect.swingui.RelationshipEditPanel;
 import ca.sqlpower.architect.swingui.Selectable;
+import ca.sqlpower.architect.swingui.TabbedDataEntryPanel;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
@@ -101,13 +103,21 @@ public class EditRelationshipAction extends AbstractArchitectAction implements S
 	}
 
 	private void makeDialog(SQLRelationship sqr) {
-		logger.debug ("making edit relationship dialog");
-		final RelationshipEditPanel editPanel = new RelationshipEditPanel(session);
+		logger.debug("making edit relationship dialog");
+		
+        RelationshipEditPanel editPanel = new RelationshipEditPanel(session);
+		editPanel.setRelationship(sqr);
+
+        ColumnMappingPanel mappingPanel = new ColumnMappingPanel(session, sqr);
+        
+        TabbedDataEntryPanel panel = new TabbedDataEntryPanel();
+        panel.addTab("Relationship", editPanel);
+        panel.addTab("Mappings", mappingPanel);
+        
 		final JDialog d = DataEntryPanelBuilder.createDataEntryPanelDialog(
-				editPanel,
+				panel,
 				frame, 
 				"Relationship Properties", "OK");
-		editPanel.setRelationship(sqr);
 				
 		d.pack();
 		d.setLocationRelativeTo(frame);
