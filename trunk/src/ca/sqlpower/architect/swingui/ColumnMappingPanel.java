@@ -37,6 +37,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -103,8 +104,11 @@ public class ColumnMappingPanel implements DataEntryPanel {
         
         @Override
         protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
             Graphics2D g2 = (Graphics2D) g;
+            boolean antialias = session.getContext().getUserSettings().getSwingSettings().getBoolean(ArchitectSwingUserSettings.PLAYPEN_RENDER_ANTIALIASED, false);
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, antialias ? RenderingHints.VALUE_ANTIALIAS_ON : RenderingHints.VALUE_ANTIALIAS_OFF);
+            
+            super.paintComponent(g2);
             
             lhsTable.paint(g2);
 
@@ -129,10 +133,11 @@ public class ColumnMappingPanel implements DataEntryPanel {
                                     " to " + fkCol.getName() + " (y=" + fky + ")");
                         }
                         if (fkCol == draggingHandle) {
+                            Point offsetDragPoint = new Point(draggingPoint.x - handleLength / 2, draggingPoint.y);
                             g2.setColor(Color.RED);
                             g2.drawLine(lhsTable.getX() + lhsTable.getWidth(), lhsTable.getY() + pky,
-                                        draggingPoint.x, draggingPoint.y);
-                            g2.fillRect(draggingPoint.x, draggingPoint.y - 1, handleLength, 3);
+                                        offsetDragPoint.x, offsetDragPoint.y);
+                            g2.fillRect(offsetDragPoint.x, offsetDragPoint.y - 1, handleLength, 3);
                             g2.setColor(getForeground());
                         } else {
                             g2.drawLine(lhsTable.getX() + lhsTable.getWidth(), lhsTable.getY() + pky,
@@ -233,6 +238,11 @@ public class ColumnMappingPanel implements DataEntryPanel {
     }
     
     /**
+     * The session this panel belongs to.
+     */
+    private final ArchitectSwingSession session;
+
+    /**
      * The relationship we are editing.
      */
     private final SQLRelationship r;
@@ -271,8 +281,9 @@ public class ColumnMappingPanel implements DataEntryPanel {
      * {@link #updateRelationshipFromMappings()}.
      */
     private Map<SQLColumn, SQLColumn> mappings = new HashMap<SQLColumn, SQLColumn>();
-    
+
     public ColumnMappingPanel(ArchitectSwingSession session, SQLRelationship r) {
+        this.session = session;
         this.r = r;
         PlayPen pp = new PlayPen(session);
         lhsTable = new TablePane(r.getPkTable(), pp);
