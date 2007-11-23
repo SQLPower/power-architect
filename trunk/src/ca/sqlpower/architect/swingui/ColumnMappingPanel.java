@@ -339,13 +339,18 @@ public class ColumnMappingPanel implements DataEntryPanel {
      * panel's internal representation of the mappings.
      */
     public void updateRelationshipFromMappings() throws ArchitectException {
-        logger.debug("Removing all mappings from relationship...");
-        while (r.getChildren().size() > 0) {
-            r.removeChild(r.getChildren().size() - 1);
-        }
-        for (Map.Entry<SQLColumn, SQLColumn> entry : mappings.entrySet()) {
-            logger.debug("Adding mapping " + entry.getKey() + " -> " + entry.getValue());
-            r.addMapping(entry.getKey(), entry.getValue());
+        try {
+            r.startCompoundEdit("Modify Column Mappings");
+            logger.debug("Removing all mappings from relationship...");
+            while (r.getChildren().size() > 0) {
+                r.removeChild(r.getChildren().size() - 1);
+            }
+            for (Map.Entry<SQLColumn, SQLColumn> entry : mappings.entrySet()) {
+                logger.debug("Adding mapping " + entry.getKey() + " -> " + entry.getValue());
+                r.addMapping(entry.getKey(), entry.getValue());
+            }
+        } finally {
+            r.endCompoundEdit("Modify Column Mappings");
         }
     }
 
