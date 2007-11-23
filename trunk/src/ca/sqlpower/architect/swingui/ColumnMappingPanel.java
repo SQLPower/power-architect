@@ -223,9 +223,37 @@ public class ColumnMappingPanel implements DataEntryPanel {
         }
 
         public void mouseReleased(MouseEvent e) {
-            // TODO: modify mappings
-            panel.setDraggingHandle(null);
-            panel.setDraggingPoint(null);
+            try {
+                if (panel.getDraggingHandle() == null) return;
+                SQLColumn oldFkCol = panel.getDraggingHandle();
+                Point p = e.getPoint();
+                int newFkColIdx = rhsTable.pointToColumnIndex(new Point(0, p.y));
+                if (newFkColIdx >= 0 && newFkColIdx < rhsTable.getModel().getColumns().size()) {
+                    SQLColumn newFkCol = rhsTable.getModel().getColumn(newFkColIdx);
+                    
+                    // XXX should hang onto pkcol too so we don't need this reverse lookup
+                    Map.Entry<SQLColumn, SQLColumn> oldEntry = null;
+                    for (Map.Entry<SQLColumn, SQLColumn> entry : mappings.entrySet()) {
+                        if (entry.getValue() == oldFkCol) {
+                            oldEntry = entry;
+                            break;
+                        }
+                    }
+                    
+                    if (oldEntry == null) {
+                        throw new IllegalStateException("Couldn't find existing mapping at end of drag operation!");
+                    }
+                    SQLColumn pkCol = oldEntry.getKey();
+                    mappings.remove(pkCol);
+                    mappings.put(pkCol, newFkCol);
+                    modified = true;
+                }
+            } catch (ArchitectException ex) {
+                throw new RuntimeException(ex);
+            } finally {
+                panel.setDraggingHandle(null);
+                panel.setDraggingPoint(null);
+            }
         }
 
         public void mouseDragged(MouseEvent e) {
@@ -275,6 +303,12 @@ public class ColumnMappingPanel implements DataEntryPanel {
     private final CustomPanel panel = new CustomPanel();
 
     /**
+     * Tracks whether or not any edits have been made on this panel.
+     * True means there have been changes made to the mappings.
+     */
+    private boolean modified = false;
+    
+    /**
      * The current mappings within the editor.  This map can be populated from
      * the SQLRelationship with {@link #updateMappingsFromRelationship()}, and
      * the SQLRelationship's mappings can be repopulated with
@@ -301,10 +335,12 @@ public class ColumnMappingPanel implements DataEntryPanel {
      * panel's internal representation of the mappings.
      */
     public void updateRelationshipFromMappings() throws ArchitectException {
+        logger.debug("Removing all mappings from relationship...");
         while (r.getChildren().size() > 0) {
             r.removeChild(r.getChildren().size() - 1);
         }
         for (Map.Entry<SQLColumn, SQLColumn> entry : mappings.entrySet()) {
+            logger.debug("Adding mapping " + entry.getKey() + " -> " + entry.getValue());
             r.addMapping(entry.getKey(), entry.getValue());
         }
     }
@@ -339,8 +375,7 @@ public class ColumnMappingPanel implements DataEntryPanel {
     }
 
     public boolean hasUnsavedChanges() {
-        // TODO implement this
-        return false;
+        return modified;
     }
 
 }
