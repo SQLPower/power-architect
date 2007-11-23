@@ -73,6 +73,10 @@ public class MappingReport {
             panes.put(targetTable, ttp);
             maxTargetWidth = Math.max(maxTargetWidth, ttp.getPreferredSize().width);
         }
+        
+        // This mapping report is not intended to be interactive, so we can
+        // destroy the temporary playpen now.
+        pp.destroy();
     }
 
     public Dimension drawHighLevelReport(Graphics2D g, Dimension pageSize) throws ArchitectException {
