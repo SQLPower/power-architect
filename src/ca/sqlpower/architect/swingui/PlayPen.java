@@ -336,7 +336,10 @@ public class PlayPen extends JPanel
 	private final ArchitectSwingSession session;
     
 	/**
-     * Creates a play pen with reasonable defaults.
+     * Creates a play pen with reasonable defaults.  If you are creating
+     * this PlayPen for temporary use (as opposed to creating a session's
+     * main PlayPen), don't forget to call {@link #destroy()} when you are
+     * done with it.
      * 
      * @param session
      *            The session this play pen belongs to. Null is not allowed.
@@ -369,6 +372,8 @@ public class PlayPen extends JPanel
 	 * copies of all the contained PlayPenComponents, but will share the same model as the original
 	 * play pen.  This was originally intended for use by the print preview panel, but it may end
 	 * up useful for other things too.
+     * <p>
+     * Remember to call {@link #destroy()} when you are done with this playpen!
 	 *
      * @param session The session that this new copy should live in.  If you specify a session other
      * than the session that the given playpen lives in, it should still produce a usable copy, however
@@ -395,6 +400,28 @@ public class PlayPen extends JPanel
 		}
 		setSize(getPreferredSize());
 	}
+    
+    /**
+     * Disconnects this play pen from everything it's listening to.
+     * It is important to do this whenever you make a temporary PlayPen
+     * instance for some specific purpose (for example, print preview
+     * and the column mapping editor panel create temporary play pens).
+     * The primary play pen of the session itself doesn't really need
+     * to be destroyed, because all of the listener interconnections are
+     * contained within the session, and the whole tangled mess can just
+     * go away together.
+     * <p>
+     * As the method name implies, once you have called this method,
+     * this PlayPen instance will not function properly, so you should
+     * stop using it.
+     */
+    public void destroy() {
+        try {
+            removeHierarcyListeners(session.getTargetDatabase());
+        } catch (ArchitectException ex) {
+            logger.error("Couldn't unlisten this playpen from the database");
+        }
+    }
 
     /**
      * Returns a new list of all tables in this play pen. The list returned will

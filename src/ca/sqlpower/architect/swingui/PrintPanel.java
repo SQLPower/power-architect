@@ -118,6 +118,9 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
         this.session = session;
 		this.pp = new PlayPen(session, session.getPlayPen());
 		
+        // don't need this playpen to be interactive or respond to SQLObject changes
+        pp.destroy();
+
 		add(new PrintPreviewPanel());
 		
 		job = PrinterJob.getPrinterJob();

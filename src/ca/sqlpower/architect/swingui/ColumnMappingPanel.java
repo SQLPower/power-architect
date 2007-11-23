@@ -47,6 +47,7 @@ import java.util.Map;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
 import org.apache.log4j.Logger;
 
@@ -326,6 +327,12 @@ public class ColumnMappingPanel implements DataEntryPanel {
         PlayPen pp = new PlayPen(session);
         lhsTable = new TablePane(r.getPkTable(), pp);
         rhsTable = new TablePane(r.getFkTable(), pp);
+        
+        // The playpen constructor hooks the playpen in as a hierarchy listener
+        // on the entire SQLObject tree.  Since we're not even using the playpen,
+        // we'll destroy it now instead of waiting until cleanup().
+        pp.destroy();
+        
         lhsTable.setLocation(0, 0);
         rhsTable.setLocation(lhsTable.getWidth() + gap, 0);
         updateMappingsFromRelationship();
@@ -371,20 +378,30 @@ public class ColumnMappingPanel implements DataEntryPanel {
             updateRelationshipFromMappings();
         } catch (ArchitectException e) {
             throw new RuntimeException(e);
+        } finally {
+            cleanup();
         }
         return true;
     }
 
     public void discardChanges() {
-        // do nothing
+        cleanup();
     }
 
     public JComponent getPanel() {
-        return panel;
+        return new JScrollPane(panel);
     }
 
     public boolean hasUnsavedChanges() {
         return modified;
     }
 
+    /**
+     * Detaches listeners from the SQLTable and SQLRelationship that were added
+     * during the creation of this instance.
+     */
+    private void cleanup() {
+        lhsTable.destroy();
+        rhsTable.destroy();
+    }
 }

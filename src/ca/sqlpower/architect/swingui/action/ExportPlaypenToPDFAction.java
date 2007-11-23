@@ -120,6 +120,10 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
     @Override
     public void doStuff(ActionMonitor monitor, Map<String, Object> properties) {
         PlayPen playPen = new PlayPen(session, playpen);
+        
+        // don't need this playpen to be interactive or respond to SQLObject changes
+        playpen.destroy();
+        
         /* We translate the graphics to (OUTSIDE_PADDING, OUTSIDE_PADDING) 
          * so nothing is drawn right on the edge of the document. So
          * we multiply by 2 so we can accomodate the translate and ensure
