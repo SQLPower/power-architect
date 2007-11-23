@@ -36,7 +36,12 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.JComponent;
@@ -67,9 +72,23 @@ public class ColumnMappingPanel implements DataEntryPanel {
     /**
      * A JPanel subclass that draws the RHS and LHS table panes and the column
      * mapping lines between them.
+     * <p>
+     * XXX Hiding this panel as an inner class is probably a bit of overengineering.
+     * It would probably be better to just let the ColumnMappingPanel itself extend JPanel.
      */
     private class CustomPanel extends JPanel {
         
+        /**
+         * If there is a drag operation currently in progress, this field
+         * will be non-null.  The SQLColumn it points to is the column that
+         * the handle was attached to before the user started dragging it.
+         * While the drag is in progress, the {@link ColumnMappingPanel#mappings}
+         * still contains the original entry as it existed before the drag started.
+         * The panel's paintComponent method knows about this arrangement, and
+         * draws the line attached to the dragging handle separately.
+         */
+        private SQLColumn draggingHandle;
+
         CustomPanel() {
             setBackground(Color.WHITE);
         }
@@ -102,7 +121,13 @@ public class ColumnMappingPanel implements DataEntryPanel {
                                     " from " + pkTable.getColumn(colidx).getName() + " (y=" + pky + ")" +
                                     " to " + fkCol.getName() + " (y=" + fky + ")");
                         }
-                        g2.drawLine(0, pky, gap, fky);
+                        if (fkCol == draggingHandle) {
+                            g2.setColor(Color.RED);
+                        } else {
+                            g2.setColor(getForeground());
+                        }
+                        g2.drawLine(0, pky, gap - handleLength, fky);
+                        g2.fillRect(gap - handleLength, fky - 1, handleLength, 3);
                     }
                 }
             } catch (ArchitectException ex) {
@@ -110,11 +135,88 @@ public class ColumnMappingPanel implements DataEntryPanel {
             }
         }
         
+        /**
+         * Returns the SQLColumn from the FK table 
+         * @param p
+         * @return
+         */
+        public Map.Entry<SQLColumn, SQLColumn> mappingForFkHandleAt(Point p) throws ArchitectException {
+            SQLTable fkTable = rhsTable.getModel();
+            List<SQLColumn> fkCols = fkTable.getColumns();
+            if ( (p.x < rhsTable.getX()) && (p.x > rhsTable.getX() - handleLength) ) {
+                int colIdx = rhsTable.pointToColumnIndex(new Point(0, p.y - rhsTable.getY()));
+                if (colIdx >= 0 && colIdx < fkCols.size()) {
+                    for (Map.Entry<SQLColumn, SQLColumn> entry : mappings.entrySet()) {
+                        if (entry.getValue() == fkCols.get(colIdx)) {
+                            return entry;
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+        
         @Override
         public Dimension getPreferredSize() {
             return new Dimension(
                     rhsTable.getX() + rhsTable.getWidth(),
                     Math.max(lhsTable.getHeight(), rhsTable.getHeight()));
+        }
+        
+        public void setDraggingHandle(SQLColumn newHandle) {
+            if (newHandle != draggingHandle) {
+                draggingHandle = newHandle;
+                logger.debug("DraggingHandle changed to " + draggingHandle);
+                repaint();
+            }
+        }
+    }
+    
+    /**
+     * Reacts to mouse events on the custom panel.
+     */
+    private class MouseHandler implements MouseListener, MouseMotionListener {
+
+        public void mouseClicked(MouseEvent e) {
+            // TODO Auto-generated method stub
+            
+        }
+
+        public void mouseEntered(MouseEvent e) {
+            // TODO Auto-generated method stub
+            
+        }
+
+        public void mouseExited(MouseEvent e) {
+            panel.setDraggingHandle(null);
+        }
+
+        public void mousePressed(MouseEvent e) {
+            // TODO Auto-generated method stub
+            
+        }
+
+        public void mouseReleased(MouseEvent e) {
+            // TODO Auto-generated method stub
+            
+        }
+
+        public void mouseDragged(MouseEvent e) {
+            // TODO Auto-generated method stub
+            
+        }
+
+        public void mouseMoved(MouseEvent e) {
+            try {
+                Map.Entry<SQLColumn, SQLColumn> entry = panel.mappingForFkHandleAt(e.getPoint());
+                if (entry != null) {
+                    panel.setDraggingHandle(entry.getValue());
+                } else {
+                    panel.setDraggingHandle(null);
+                }
+            } catch (ArchitectException ex) {
+                throw new RuntimeException(ex);
+            }
         }
     }
     
@@ -140,10 +242,16 @@ public class ColumnMappingPanel implements DataEntryPanel {
     private int gap = 100;
     
     /**
+     * The length of the handle, in pixels, that can be picked up and moved to
+     * modify a column mapping.
+     */
+    private int handleLength = 20;
+    
+    /**
      * The panel that contains the GUI.
      */
     private final CustomPanel panel = new CustomPanel();
-    
+
     /**
      * The current mappings within the editor.  This map can be populated from
      * the SQLRelationship with {@link #updateMappingsFromRelationship()}, and
@@ -160,6 +268,9 @@ public class ColumnMappingPanel implements DataEntryPanel {
         lhsTable.setLocation(0, 0);
         rhsTable.setLocation(lhsTable.getWidth() + gap, 0);
         updateMappingsFromRelationship();
+        MouseHandler mouseHandler = new MouseHandler();
+        panel.addMouseListener(mouseHandler);
+        panel.addMouseMotionListener(mouseHandler);
     }
     
     /**
