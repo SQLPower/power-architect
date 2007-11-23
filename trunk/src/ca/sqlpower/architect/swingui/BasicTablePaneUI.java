@@ -347,6 +347,9 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
         } else if (colidx >= 0 && colidx < tablePane.getModel().getColumns().size()) {
             int firstColY = fontHeight + gap + boxLineThickness + tablePane.getMargin().top;
             int y = firstColY + (fontHeight * colidx) + (fontHeight / 2);
+            if (colidx >= tablePane.getModel().getPkSize()) {
+                y += pkGap;
+            }
             if (logger.isDebugEnabled()) {
                 logger.debug("Column " + colidx + " Y value is " + y);
                 logger.debug("gap=" + gap + "; boxLineThickness=" + boxLineThickness + "; margin.top=" + tablePane.getMargin().top);
