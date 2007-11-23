@@ -231,6 +231,10 @@ public class ColumnMappingPanel implements DataEntryPanel {
                 if (newFkColIdx >= 0 && newFkColIdx < rhsTable.getModel().getColumns().size()) {
                     SQLColumn newFkCol = rhsTable.getModel().getColumn(newFkColIdx);
                     
+                    if (mappings.containsValue(newFkCol)) {
+                        return;
+                    }
+                    
                     // XXX should hang onto pkcol too so we don't need this reverse lookup
                     Map.Entry<SQLColumn, SQLColumn> oldEntry = null;
                     for (Map.Entry<SQLColumn, SQLColumn> entry : mappings.entrySet()) {
