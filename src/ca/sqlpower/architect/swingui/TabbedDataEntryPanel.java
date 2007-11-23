@@ -11,6 +11,8 @@ import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JTabbedPane;
 
+import org.apache.log4j.Logger;
+
 import ca.sqlpower.swingui.DataEntryPanel;
 
 /**
@@ -22,6 +24,8 @@ import ca.sqlpower.swingui.DataEntryPanel;
  */
 public class TabbedDataEntryPanel implements DataEntryPanel {
 
+    private static final Logger logger = Logger.getLogger(TabbedDataEntryPanel.class);
+    
     /**
      * The tabbed pane that holds all the GUIs added via addTab().
      */
@@ -52,8 +56,10 @@ public class TabbedDataEntryPanel implements DataEntryPanel {
      * @return True if and only if each panel's applyChanges() returned success.
      */
     public boolean applyChanges() {
+        logger.debug("Applying changes...");
         boolean success = true;
         for (DataEntryPanel panel : panels) {
+            logger.debug("       ... on " + panel);
             success &= panel.applyChanges();
         }
         // FIXME: how can we roll back changes if one of the updates fails?
