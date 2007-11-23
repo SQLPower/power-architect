@@ -89,6 +89,14 @@ public class ColumnMappingPanel implements DataEntryPanel {
          */
         private SQLColumn draggingHandle;
 
+        /**
+         * This is the place where the user has most recently dragged the dragging
+         * handle to.  The handle may not be painted at exactly this location, because
+         * it visually snaps into place when releasing the mouse button would result in
+         * a new mapping being formed.
+         */
+        private Point draggingPoint;
+        
         CustomPanel() {
             setBackground(Color.WHITE);
         }
@@ -105,7 +113,6 @@ public class ColumnMappingPanel implements DataEntryPanel {
             g2.translate(-rhsTable.getX(), -rhsTable.getY());
             
             // Now the connecting lines
-            g2.translate(lhsTable.getWidth(), 0);
             try {
                 SQLTable pkTable = lhsTable.getModel();
                 SQLTable fkTable = rhsTable.getModel();
@@ -123,11 +130,16 @@ public class ColumnMappingPanel implements DataEntryPanel {
                         }
                         if (fkCol == draggingHandle) {
                             g2.setColor(Color.RED);
-                        } else {
+                            g2.drawLine(lhsTable.getX() + lhsTable.getWidth(), lhsTable.getY() + pky,
+                                        draggingPoint.x, draggingPoint.y);
+                            g2.fillRect(draggingPoint.x, draggingPoint.y - 1, handleLength, 3);
                             g2.setColor(getForeground());
+                        } else {
+                            g2.drawLine(lhsTable.getX() + lhsTable.getWidth(), lhsTable.getY() + pky,
+                                        rhsTable.getX() - handleLength, rhsTable.getY() + fky);
+                            g2.fillRect(rhsTable.getX() - handleLength, rhsTable.getY() + fky - 1,
+                                        handleLength, 3);
                         }
-                        g2.drawLine(0, pky, gap - handleLength, fky);
-                        g2.fillRect(gap - handleLength, fky - 1, handleLength, 3);
                     }
                 }
             } catch (ArchitectException ex) {
@@ -170,6 +182,15 @@ public class ColumnMappingPanel implements DataEntryPanel {
                 repaint();
             }
         }
+        
+        public SQLColumn getDraggingHandle() {
+            return draggingHandle;
+        }
+
+        public void setDraggingPoint(Point point) {
+            draggingPoint = point;
+            repaint();
+        }
     }
     
     /**
@@ -177,47 +198,38 @@ public class ColumnMappingPanel implements DataEntryPanel {
      */
     private class MouseHandler implements MouseListener, MouseMotionListener {
 
-        public void mouseClicked(MouseEvent e) {
-            // TODO Auto-generated method stub
-            
-        }
-
-        public void mouseEntered(MouseEvent e) {
-            // TODO Auto-generated method stub
-            
-        }
-
-        public void mouseExited(MouseEvent e) {
-            panel.setDraggingHandle(null);
-        }
+        public void mouseClicked(MouseEvent e) { }
+        public void mouseEntered(MouseEvent e) { }
+        public void mouseExited(MouseEvent e) { }
 
         public void mousePressed(MouseEvent e) {
-            // TODO Auto-generated method stub
-            
-        }
-
-        public void mouseReleased(MouseEvent e) {
-            // TODO Auto-generated method stub
-            
-        }
-
-        public void mouseDragged(MouseEvent e) {
-            // TODO Auto-generated method stub
-            
-        }
-
-        public void mouseMoved(MouseEvent e) {
             try {
                 Map.Entry<SQLColumn, SQLColumn> entry = panel.mappingForFkHandleAt(e.getPoint());
                 if (entry != null) {
                     panel.setDraggingHandle(entry.getValue());
+                    panel.setDraggingPoint(e.getPoint());
                 } else {
                     panel.setDraggingHandle(null);
+                    panel.setDraggingPoint(null);
                 }
             } catch (ArchitectException ex) {
                 throw new RuntimeException(ex);
             }
         }
+
+        public void mouseReleased(MouseEvent e) {
+            // TODO: modify mappings
+            panel.setDraggingHandle(null);
+            panel.setDraggingPoint(null);
+        }
+
+        public void mouseDragged(MouseEvent e) {
+            if (panel.getDraggingHandle() != null) {
+                panel.setDraggingPoint(e.getPoint());
+            }
+        }
+
+        public void mouseMoved(MouseEvent e) { }
     }
     
     /**
