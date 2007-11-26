@@ -128,7 +128,7 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
 
     public boolean hasUnsavedChanges() {
         // TODO return whether this panel has been changed
-        return false;
+        return true;
     }
 
 }
