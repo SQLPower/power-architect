@@ -11,15 +11,17 @@ IMPORTANT NOTE to users upgrading from pre-0.9.x versions of the Architect:
  outweigh the costs!
 
 0.9.9
+*Added support for explicitly named sequences in PostgreSQL and Oracle
 *Added the ability to choose the constraint checking deferrability policy
  on foreign key relationships.
 *Tweaked the database comparison feature to ignore meaningless data type
  differences between columns (for example, DECIMAL vs. NUMERIC)
 *Got rid of an excessive repainting problem introduced in version 0.9.8
+ (improves drawing performance)
 *Added the SQL BOOLEAN type to the set of generic types.  It forward
  engineers to BOOLEAN on platforms that support it, and TINYINT on
  platforms that lack the BOOLEAN type.
-*Added DDL forward engineering support for HSQLDB
+*Added DDL (forward engineering) support for HSQLDB
 *Fixed a bug in the SQL script dialog where if the user has chosen not to
  continue after an error, clicking execute has no effect.
 
