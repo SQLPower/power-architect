@@ -35,6 +35,8 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.sql.DatabaseMetaData;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +52,8 @@ import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import org.apache.log4j.Logger;
 
@@ -132,7 +136,31 @@ public class ColumnEditPanel extends JPanel
         centerPanel.add(colAutoIncSequenceName = new JTextField());
         centerPanel.add(new JLabel(""));
         centerPanel.add(new JLabel("Only applies to target platforms that use sequences"));
+        
+        // Listener to update the sequence name when the column name changes
+        colName.getDocument().addDocumentListener(new DocumentListener() {
+            private String oldColName = colName.getText();
+            public void changedUpdate(DocumentEvent e) { doSync(); }
+            public void insertUpdate(DocumentEvent e) { doSync(); }
+            public void removeUpdate(DocumentEvent e) { doSync(); }
+            private void doSync() {
+                syncSequenceName(oldColName);
+                oldColName = colName.getText();
+            }
+        });
 
+        // Listener to reset the sequence name to its default value when the user clears it
+        colAutoIncSequenceName.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (colAutoIncSequenceName.getText().trim().equals("")) {
+                    // the null arg actually does an unconditional reset
+                    syncSequenceName(null);
+                }
+            }
+        });
+        
+        
 		centerPanel.add(new JLabel("Remarks"));
 		centerPanel.add(colRemarks = new JTextField());
 	
@@ -200,6 +228,23 @@ public class ColumnEditPanel extends JPanel
 		colName.selectAll();
 	}
 
+    /**
+     * Modifies the contents of the "auto-increment sequence name" field to
+     * match the naming scheme <tt><i>column_name</i>_seq</tt>. This
+     * modification is only performed if the previous name (as given) already
+     * matched that pattern.  The current column name is read directly
+     * from the {@link #colName} field, and the new sequence name is written
+     * directly to the {@link #colAutoIncSequenceName} field.
+     * 
+     * @param oldColName The previous column name in the colName text field. If null,
+     * the sync is performed unconditionally.
+     */
+    private void syncSequenceName(String oldColName) {
+        if ( oldColName == null || (oldColName + "_seq").equals(colAutoIncSequenceName.getText())) {
+            colAutoIncSequenceName.setText(colName.getText() + "_seq");
+        }
+    }
+    
 	/**
 	 * Implementation of ActionListener.
 	 */
