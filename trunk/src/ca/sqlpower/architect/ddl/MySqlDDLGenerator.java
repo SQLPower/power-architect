@@ -318,6 +318,14 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         typeMap.put(Integer.valueOf(Types.VARCHAR), new GenericTypeDescriptor("VARCHAR", Types.VARCHAR, 65535, "'", "'", DatabaseMetaData.columnNullable, true, false));
     }
 
+    @Override
+    public String toIdentifier(String name) {
+        if (name != null) {
+            name = name.toLowerCase();
+        }
+        return super.toIdentifier(name);
+    }
+    
     /**
      * Subroutine for toIdentifier().  Probably a generally useful feature that we
      * should pull up to the GenericDDLGenerator.
