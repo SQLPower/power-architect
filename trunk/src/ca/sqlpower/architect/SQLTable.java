@@ -1076,7 +1076,9 @@ public class SQLTable extends SQLObject {
 	/**
 	 * Sets the table name, and also modifies the primary key name if
 	 * it was previously null or set to the default of
-	 * "oldTableName_pk".
+	 * "oldTableName_pk".  Additionally, if any of this table's columns'
+     * sequence names have been explicitly set, the old table name within
+     * those sequence names will be replaced by the new table name.
 	 *
 	 * @param argName The new table name.  NULL is not allowed.
 	 */
@@ -1085,13 +1087,14 @@ public class SQLTable extends SQLObject {
         logger.debug("About to change table name from \""+getName()+"\" to \""+argName+"\"");
         
         // this method can be called very early in a SQLTable's life,
-        // before its indices folder exists.  Therefore, we have to
+        // before its folders exist.  Therefore, we have to
         // be careful not to look up the primary key before one exists.
 
-        if ( (!isMagicEnabled()) || (indicesFolder == null) ) {
+        if ( (!isMagicEnabled()) || (indicesFolder == null) || (columnsFolder == null) ) {
             super.setName(argName);
         } else try {
             String oldName = getName();
+            
             startCompoundEdit("Table Name Change");
             super.setName(argName);
             SQLIndex primaryKeyIndex = getPrimaryKeyIndex();
@@ -1101,6 +1104,13 @@ public class SQLTable extends SQLObject {
                     || "".equals(getPrimaryKeyName())
                     || (oldName+"_pk").equals(getPrimaryKeyName())) ) {
                 primaryKeyIndex.setName(getName()+"_pk");
+            }
+            
+            for (SQLColumn col : getColumns()) {
+                if (col.isAutoIncrementSequenceNameSet()) {
+                    String newName = col.getAutoIncrementSequenceName().replace(oldName, argName);
+                    col.setAutoIncrementSequenceName(newName);
+                }
             }
         } catch (ArchitectException e) {
             throw new ArchitectRuntimeException(e);

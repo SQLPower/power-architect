@@ -205,7 +205,24 @@ public class TestSQLTable extends SQLTestCase {
         table.getPrimaryKeyIndex().setName(newPKName);
         table.setName(newTableName);
         assertEquals(newPKName, table.getPrimaryKeyName());
-        
+    }
+    
+    public void testRenameTableRenamesSequences() throws Exception {
+        table.setName("old name");
+        table.getColumn(0).setAutoIncrementSequenceName("moo_" + table.getName() + "_cow");
+        table.setName("new name");
+        assertTrue(table.getColumn(0).isAutoIncrementSequenceNameSet());
+        assertEquals("moo_" + table.getName() + "_cow", table.getColumn(0).getAutoIncrementSequenceName());
+    }
+
+    public void testRenameTableDoesNotRenameUnnamedSequences() throws Exception {
+        table.setName("old name");
+        table.getColumn(0).setAutoIncrementSequenceName("moo_" + table.getName() + "_cow");
+        table.setName("new name");
+        assertTrue(table.getColumn(0).isAutoIncrementSequenceNameSet());
+        for (int i = 1; i < table.getColumnsFolder().getChildCount(); i++) {
+            assertFalse(table.getColumn(i).isAutoIncrementSequenceNameSet());
+        }
     }
     
     public void testInherit() throws ArchitectException {
