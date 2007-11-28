@@ -164,18 +164,24 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 			//editDialog.requestFocus();
 			
 		} else {
-		    final SQLColumn column =  new SQLColumn();
 				    
 		    logger.debug("Creating new column editor panel");
 		    
 			JPanel panel = new JPanel();
 			panel.setLayout(new BorderLayout(12,12));
 			panel.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
+
+            final SQLColumn column;
 			if (!addToTable) {
-			    columnEditPanel = new ColumnEditPanel(st.getColumn(colIdx));
+                column = st.getColumn(colIdx);
 			} else {
-			    columnEditPanel = new ColumnEditPanel(column);
+                column = new SQLColumn();
+                
+                // XXX it sucks to do this here, but the column can't determine its correct
+                //     sequence name until it has a parent. By then, it will be too late.
+                column.setAutoIncrementSequenceName(st.getName() + "_" + column.getName() + "_seq");
 			}
+			columnEditPanel = new ColumnEditPanel(column);
 			
 			panel.add(columnEditPanel, BorderLayout.CENTER);
 			

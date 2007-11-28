@@ -72,7 +72,7 @@ public class ColumnEditPanel extends JPanel
      * The column we're editing.
      */
     private SQLColumn column;
-    
+
 	private JLabel sourceDB;
 	private JLabel sourceTableCol;
 	private JTextField colName;
@@ -85,6 +85,22 @@ public class ColumnEditPanel extends JPanel
 	private JCheckBox colInPK;
 	private JCheckBox colAutoInc;
     private JTextField colAutoIncSequenceName;
+
+    /**
+     * The prefix string that comes before the current column name
+     * in the sequence name.  This is set via the {@link #discoverSequenceNamePattern()}
+     * method, which should be called automatically whenever the user
+     * changes the sequence name.
+     */
+    private String seqNamePrefix;
+
+    /**
+     * The suffix string that comes after the current column name
+     * in the sequence name.  This is set via the {@link #discoverSequenceNamePattern()}
+     * method, which should be called automatically whenever the user
+     * changes the sequence name.
+     */
+    private String seqNameSuffix;
 
 	public ColumnEditPanel(SQLColumn col) throws ArchitectException {
 		super(new BorderLayout(12,12));
@@ -139,23 +155,26 @@ public class ColumnEditPanel extends JPanel
         
         // Listener to update the sequence name when the column name changes
         colName.getDocument().addDocumentListener(new DocumentListener() {
-            private String oldColName = colName.getText();
             public void changedUpdate(DocumentEvent e) { doSync(); }
             public void insertUpdate(DocumentEvent e) { doSync(); }
             public void removeUpdate(DocumentEvent e) { doSync(); }
             private void doSync() {
-                syncSequenceName(oldColName);
-                oldColName = colName.getText();
+                syncSequenceName();
             }
         });
 
-        // Listener to reset the sequence name to its default value when the user clears it
+        // Listener to rediscover the sequence naming convention, and reset the sequence name
+        // to its original (according to the column's own sequence name) naming convention when
+        // the user clears the sequence name field
         colAutoIncSequenceName.addFocusListener(new FocusAdapter() {
             @Override
             public void focusLost(FocusEvent e) {
                 if (colAutoIncSequenceName.getText().trim().equals("")) {
-                    // the null arg actually does an unconditional reset
-                    syncSequenceName(null);
+                    colAutoIncSequenceName.setText(column.getAutoIncrementSequenceName());
+                    discoverSequenceNamePattern(column.getName());
+                    syncSequenceName();
+                } else {
+                    discoverSequenceNamePattern(colName.getText());
                 }
             }
         });
@@ -193,6 +212,8 @@ public class ColumnEditPanel extends JPanel
 	 * Updates all the UI components to reflect the given column's properties.
      * Also saves a reference to the given column so the changes made in the
      * UI can be written back into the column.
+     * 
+     * @param col The column to edit
 	 */
 	public void editColumn(SQLColumn col) throws ArchitectException {
 		logger.debug("Edit Column '"+col+"' is being called");
@@ -224,24 +245,40 @@ public class ColumnEditPanel extends JPanel
 		colAutoInc.setSelected(col.isAutoIncrement());
         colAutoIncSequenceName.setText(col.getAutoIncrementSequenceName());
 		updateComponents();
+        discoverSequenceNamePattern(col.getName());
 		colName.requestFocus();
 		colName.selectAll();
 	}
 
     /**
-     * Modifies the contents of the "auto-increment sequence name" field to
-     * match the naming scheme <tt><i>column_name</i>_seq</tt>. This
-     * modification is only performed if the previous name (as given) already
-     * matched that pattern.  The current column name is read directly
-     * from the {@link #colName} field, and the new sequence name is written
-     * directly to the {@link #colAutoIncSequenceName} field.
-     * 
-     * @param oldColName The previous column name in the colName text field. If null,
-     * the sync is performed unconditionally.
+     * Figures out what the sequence name prefix and suffix strings are,
+     * based on the current contents of the sequence name and column name
+     * fields.
      */
-    private void syncSequenceName(String oldColName) {
-        if ( oldColName == null || (oldColName + "_seq").equals(colAutoIncSequenceName.getText())) {
-            colAutoIncSequenceName.setText(colName.getText() + "_seq");
+    private void discoverSequenceNamePattern(String colName) {
+        String seqName = this.colAutoIncSequenceName.getText();
+        int prefixEnd = seqName.indexOf(colName);
+        if (prefixEnd >= 0 && colName.length() > 0) {
+            seqNamePrefix = seqName.substring(0, prefixEnd);
+            seqNameSuffix = seqName.substring(prefixEnd + colName.length());
+        } else {
+            seqNamePrefix = null;
+            seqNameSuffix = null;
+        }
+    }
+    
+    /**
+     * Modifies the contents of the "auto-increment sequence name" field to
+     * match the naming scheme as it is currently understood. This modification
+     * is only performed if the naming scheme has been successfully determined
+     * by the {@link #discoverSequenceNamePattern(String)} method. The new
+     * sequence name is written directly to the {@link #colAutoIncSequenceName}
+     * field.
+     */
+    private void syncSequenceName() {
+        if (seqNamePrefix != null && seqNameSuffix != null) {
+            String newName = seqNamePrefix + colName.getText() + seqNameSuffix;
+            colAutoIncSequenceName.setText(newName);
         }
     }
     
