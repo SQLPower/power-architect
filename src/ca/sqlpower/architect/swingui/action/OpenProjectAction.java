@@ -44,7 +44,6 @@ import java.io.InterruptedIOException;
 
 import javax.swing.AbstractAction;
 import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 import javax.swing.ProgressMonitorInputStream;
 
@@ -110,10 +109,6 @@ public class OpenProjectAction extends AbstractArchitectAction {
         try {
             worker = new LoadFileWorker(f, session, openInNewSession);
             new Thread(worker).start();
-        } catch (FileNotFoundException e1) {
-            JOptionPane.showMessageDialog(
-                    null,
-                    "File not found: "+f.getPath());
         } catch (Exception e1) {
             ASUtils.showExceptionDialogNoReport("Error loading file", e1);
         }

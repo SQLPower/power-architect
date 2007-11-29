@@ -37,7 +37,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import javax.swing.JOptionPane;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
 
@@ -210,7 +209,7 @@ public class DBTreeNode implements MutableTreeNode {
 				userObject.addChild(index, ((DBTreeNode) child).getSQLObject());
 			} catch (ArchitectException e) {
 				logger.error("Couldn't add \""+child.toString()+"\" to tree:", e);
-				JOptionPane.showMessageDialog(null, "Failed to add child:\n"+e.getMessage());
+				ASUtils.showExceptionDialogNoReport("Failed to add child node.", e);
 			}
 			child.setParent(this);
 		} else {

@@ -45,6 +45,7 @@ import javax.swing.JOptionPane;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.PlDotIni;
 import ca.sqlpower.sql.SPDataSource;
@@ -139,8 +140,7 @@ public class ArchitectSessionContextImpl implements ArchitectSessionContext {
             } catch (IOException e1) {
                 logger.error("Caught IO exception while creating empty PL.INI at \""
                         +newPlIniFile.getPath()+"\"", e1);
-                JOptionPane.showMessageDialog(null, "Failed to create file \""+newPlIniFile.getPath()+"\":\n"+e1.getMessage(),
-                        "Error", JOptionPane.ERROR_MESSAGE);
+                ASUtils.showExceptionDialogNoReport("Failed to create file \""+newPlIniFile.getPath()+"\".", e1);
             }
         }
     }

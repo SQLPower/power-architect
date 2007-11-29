@@ -39,6 +39,7 @@ package ca.sqlpower.architect.swingui;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.Collection;
 
+import javax.swing.JFrame;
 import javax.swing.tree.TreeModel;
 
 import org.apache.log4j.Logger;
@@ -100,7 +101,9 @@ public class ExceptionHandler implements UncaughtExceptionHandler {
     }
     
     private void handleAndReport(Throwable e) {
-        SPSUtils.showExceptionDialogNoReport("An unexpected exception has occured: ", e);
+        JFrame f = new JFrame();
+        f.setIconImage(ASUtils.getFrameIconImage());
+        SPSUtils.showExceptionDialogNoReport(f, "An unexpected exception has occured: ", e);
         UserSettings settings = context.getUserSettings().getQfaUserSettings();
         if (!settings.getBoolean(QFAUserSettings.EXCEPTION_REPORTING,true)) return;
         ExceptionReport report = new ExceptionReport(e, DEFAULT_REPORT_URL, ArchitectVersion.APP_VERSION, "Architect");

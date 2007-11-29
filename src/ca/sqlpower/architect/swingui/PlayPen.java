@@ -2159,7 +2159,7 @@ public class PlayPen extends JPanel
 					}
 				} catch (ArchitectException ex) {
 					logger.error("Couldn't drag column", ex);
-					JOptionPane.showMessageDialog(tp.getPlayPen(), "Can't drag column: "+ex.getMessage());
+					ASUtils.showExceptionDialog(session, "Couldn't drag column.", ex);
 				}
 			} else {
 				return;
@@ -2595,7 +2595,7 @@ public class PlayPen extends JPanel
 						pp.mouseMode = MouseModeType.SELECT_TABLE;
 					} catch (ArchitectException e) {
 						logger.error("Couldn't add table \"" + tp.getModel() + "\" to play pen:", e);
-						JOptionPane.showMessageDialog(null, "Failed to add table:\n" + e.getMessage());
+						ASUtils.showExceptionDialogNoReport("Failed to add table.", e);
 						return;
 					}
 				}

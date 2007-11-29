@@ -160,7 +160,7 @@ public class DDLExportPanel implements DataEntryPanel {
 				message += (":\n"+selectedGeneratorClass.getName());
 			}
 			logger.error(message, ex);
-			JOptionPane.showMessageDialog(panel, message, "Error", JOptionPane.ERROR_MESSAGE);
+			ASUtils.showExceptionDialogNoReport(panel, message, ex);
 		}
 	}
 

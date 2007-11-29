@@ -283,7 +283,7 @@ public class SearchReplace {
         searchExpression.requestFocus();
     }
 
-    public void showResults(JDialog parent, final PlayPen pp) throws ArchitectException {
+    public void showResults(final JDialog parent, final PlayPen pp) throws ArchitectException {
     	try {
 	        final List results = doSearch(pp.getSession().getTargetDatabase());
 
@@ -349,10 +349,8 @@ public class SearchReplace {
 	                            	} catch (ArchitectException ex) {
 	                            		logger.error("Failed to select column becuase getColumnIndex" +
 	                            				" threw the following exception:", ex);
-	                            		JOptionPane.showMessageDialog(
-	                            				null, "Sorry, couldn't select the column you asked for." +
-	                            						"\n\nMore information is available in the " +
-	                            						"application log.");
+	                            		ASUtils.showExceptionDialogNoReport(parent,
+	                            		        "Sorry, couldn't select the column you asked for.", ex);
 	                            	}
 	                            }
 	                        }
@@ -396,9 +394,8 @@ public class SearchReplace {
 	        d.setVisible(true);
     	 }
         catch(PatternSyntaxException e){
-
-        	JOptionPane.showMessageDialog(null,e.getDescription(),"Regular Expression Error",
-        			JOptionPane.INFORMATION_MESSAGE);
+            ASUtils.showExceptionDialogNoReport(parent,
+             "Regular Expression Error.", e);
         }
     }
 

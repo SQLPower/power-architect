@@ -501,7 +501,6 @@ public class CoreProject {
                     tab.initFolders(false);
                 } catch (ArchitectException e) {
                     logger.error("Couldn't add folder to table \""+tab.getName()+"\"", e);
-                    JOptionPane.showMessageDialog(null, "Failed to add folder to table:\n"+e.getMessage());
                 }
             }
 
