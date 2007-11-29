@@ -321,6 +321,13 @@ public class ColumnMappingPanel implements DataEntryPanel {
      */
     private Map<SQLColumn, SQLColumn> mappings = new HashMap<SQLColumn, SQLColumn>();
 
+    /**
+     * The colour with which to highlight the columns of the RHS table
+     * that are involved in relationships other than the one we're currently
+     * editing.
+     */
+    private Color otherRelColour = Color.RED;
+
     public ColumnMappingPanel(ArchitectSwingSession session, SQLRelationship r) {
         this.session = session;
         this.r = r;
@@ -339,8 +346,29 @@ public class ColumnMappingPanel implements DataEntryPanel {
         MouseHandler mouseHandler = new MouseHandler();
         panel.addMouseListener(mouseHandler);
         panel.addMouseMotionListener(mouseHandler);
+        
+        colourOtherRelationships();
     }
     
+    /**
+     * Colours columns of the RHS table's table pane if they are involved
+     * in other relationships.  This should help people when deciding if
+     * they should use a particular column in the current relationship mapping.
+     */
+    private void colourOtherRelationships() {
+        try {
+            SQLTable t = rhsTable.getModel();
+            for (SQLRelationship r : t.getImportedKeys()) {
+                if (r == this.r) continue;
+                for (SQLRelationship.ColumnMapping cm : r.getMappings()) {
+                    rhsTable.addColumnHighlight(cm.getFkColumn(), otherRelColour);
+                }
+            }
+        } catch (ArchitectException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
     /**
      * Updates the ColumnMapping children in {@link #r} to match those in this
      * panel's internal representation of the mappings.

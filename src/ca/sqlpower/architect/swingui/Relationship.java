@@ -53,6 +53,7 @@ import javax.swing.event.MouseInputAdapter;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLRelationship;
@@ -426,11 +427,23 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 
 	// ------------------ sqlobject listener ----------------
 	public void dbChildrenInserted(SQLObjectEvent e) {
-        // doesn't matter
+        if (isSelected()) {
+            for (SQLObject newChild : e.getChildren()) {
+                SQLRelationship.ColumnMapping cm = (ColumnMapping) newChild;
+                pkTable.addColumnHighlight(cm.getPkColumn(), columnHighlightColour);
+                fkTable.addColumnHighlight(cm.getFkColumn(), columnHighlightColour);
+            }
+        }
 	}
 
 	public void dbChildrenRemoved(SQLObjectEvent e) {
-        // FIXME: should check if the table is too short to meet the connection point
+        if (isSelected()) {
+            for (SQLObject oldChild : e.getChildren()) {
+                SQLRelationship.ColumnMapping cm = (ColumnMapping) oldChild;
+                pkTable.removeColumnHighlight(cm.getPkColumn(), columnHighlightColour);
+                fkTable.removeColumnHighlight(cm.getFkColumn(), columnHighlightColour);
+            }
+        }
 	}
 
 	public void dbObjectChanged(SQLObjectEvent e) {
