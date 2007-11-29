@@ -61,7 +61,6 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
@@ -305,7 +304,7 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 	// --- architect panel ----
 	public boolean applyChanges() {
 		try {
-			// set current printer as default
+		    // set current printer as default
 			if (printerBox.getItemCount() > 0 && printerBox.getSelectedItem() instanceof PrintService) {
 				session.getUserSettings().getPrintUserSettings().setDefaultPrinterName( ((PrintService)printerBox.getSelectedItem()).getName() );
 			} 		
@@ -315,7 +314,8 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 			job.print(jobAttributes);
 		} catch (PrinterException ex) {
 			logger.error("Printing failure", ex);
-			JOptionPane.showMessageDialog(this, "Printing failed: "+ex.getMessage());
+			ASUtils.showExceptionDialogNoReport(PrintPanel.this, "Failed to print.", ex);
+			return false;
 		}
 		return true;
 	}

@@ -43,7 +43,6 @@ import java.util.prefs.Preferences;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
@@ -161,7 +160,7 @@ public abstract class RecentMenu extends JMenu {
 			try {
 				openFile(mi.getText());
 			} catch (IOException e1) {
-				JOptionPane.showMessageDialog(RecentMenu.this, "Could not open file " + e1);
+			    ASUtils.showExceptionDialogNoReport("Couldn't open file.", e1);
 			}
 		}
 	};

@@ -446,9 +446,7 @@ public class ASUtils {
                 context = new ArchitectSwingSessionContextImpl();
                 context.setExitAfterAllSessionsClosed(true);
             } catch (ArchitectException e) {
-                JOptionPane.showMessageDialog(null, "Could not launch the Power*Architect.\n"
-                        + "Stacktrace is available on the Java Console");
-                e.printStackTrace();
+                showExceptionDialogNoReport("Couldn't launch the Power*Architect.", e);
                 System.exit(1);
             }
         }        
@@ -470,7 +468,9 @@ public class ASUtils {
      * @param t The exception that warranted a dialog
      */
     public static void showExceptionDialogNoReport(String message, Throwable t) {
-        SPSUtils.showExceptionDialogNoReport(message, t);
+        JFrame f = new JFrame();
+        f.setIconImage(getFrameIconImage());
+        SPSUtils.showExceptionDialogNoReport(f, message, t);
     }
     
     /**

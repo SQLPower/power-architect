@@ -34,13 +34,13 @@ package ca.sqlpower.architect.swingui.action;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
-import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.TablePane;
@@ -48,12 +48,11 @@ import ca.sqlpower.architect.swingui.TablePane;
 public class CreateTableAction extends AbstractArchitectAction {
 	private static final Logger logger = Logger.getLogger(CreateTableAction.class);
 
-	/**
-	 * The PlayPen instance that this Action operates on.
-	 */
-
+	private final ArchitectSwingSession session;
+	
 	public CreateTableAction(ArchitectSwingSession session) {
         super(session, "New Table", "New Table (Shortcut T)", "new_table");
+        this.session = session;
 		putValue(ACCELERATOR_KEY,KeyStroke.getKeyStroke(KeyEvent.VK_T,0));
 	}
 
@@ -65,7 +64,7 @@ public class CreateTableAction extends AbstractArchitectAction {
 			t.initFolders(true);
 		} catch (ArchitectException e) {
 			logger.error("Couldn't add folder to table \""+t.getName()+"\"", e);
-			JOptionPane.showMessageDialog(null, "Failed to add folder to table:\n"+e.getMessage());
+			ASUtils.showExceptionDialog(session, "Failed to add folder to table.", e);
 		}
 		t.setName("New_Table");
 		

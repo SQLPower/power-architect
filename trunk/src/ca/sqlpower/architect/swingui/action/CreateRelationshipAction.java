@@ -35,7 +35,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
-import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
 import org.apache.log4j.Logger;
@@ -43,6 +42,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.PlayPen;
 import ca.sqlpower.architect.swingui.Relationship;
@@ -124,7 +124,7 @@ public class CreateRelationshipAction extends AbstractArchitectAction
 			r.revalidate();
 		} catch (ArchitectException ex) {
 			logger.error("Couldn't create relationship", ex);
-			JOptionPane.showMessageDialog(pp, "Couldn't create relationship: "+ex.getMessage());
+			ASUtils.showExceptionDialogNoReport(pp, "Couldn't create relationship.", ex);
 		} finally {
 			fkTable.setMagicEnabled(true);
 			pp.endCompoundEdit("Ending the creation of a relationship");

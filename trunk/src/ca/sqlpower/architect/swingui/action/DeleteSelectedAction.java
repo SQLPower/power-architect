@@ -136,7 +136,8 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
 							deletingColumns = true;
 						}
 					} catch (ArchitectException ae) {
-						JOptionPane.showMessageDialog(playpen, ae.getMessage());
+					    ASUtils.showExceptionDialog(session,
+					            "Could not find selected columns." , ae);
 						return;
 					}
 

@@ -36,7 +36,6 @@ import java.awt.event.ActionListener;
 import java.util.List;
 
 import javax.swing.JComboBox;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import ca.sqlpower.architect.ArchitectException;
@@ -44,6 +43,7 @@ import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLSchema;
+import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.sql.SPDataSource;
 
 /*
@@ -98,9 +98,7 @@ public class CatalogComboBoxListener implements ActionListener {
 			}
 			schemaDropdown.setEnabled(true);
 		} catch (ArchitectException ex) {
-			JOptionPane.showMessageDialog(panel,
-					"Database Connection Erorr", "Error",
-					JOptionPane.ERROR_MESSAGE);
+		    ASUtils.showExceptionDialogNoReport(panel, "Database Connect Error", ex);
 		}
 	}
 }

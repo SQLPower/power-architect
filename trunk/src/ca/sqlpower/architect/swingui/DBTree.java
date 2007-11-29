@@ -489,7 +489,7 @@ public class DBTree extends JTree implements DragSourceListener {
             final SQLExceptionNode node = (SQLExceptionNode) p.getLastPathComponent();
             newMenu.add(new JMenuItem(new AbstractAction("Show Exception Details") {
                 public void actionPerformed(ActionEvent e) {
-                    ASUtils.showExceptionDialogNoReport(
+                    ASUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
                             "Exception Node Report", node.getException());
                 }
             }));
@@ -509,9 +509,10 @@ public class DBTree extends JTree implements DragSourceListener {
 									parent.addChild(new SQLExceptionNode(ex, "New exception during retry"));
 								} catch (ArchitectException e1) {
 									logger.error("Couldn't add SQLExceptionNode to menu:", e1);
-									JOptionPane.showMessageDialog(null, "Failed to add SQLExceptionNode:\n"+e1.getMessage());
+									ASUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
+									        "Failed to add SQLExceptionNode.", e1);
 								}
-                                ASUtils.showExceptionDialogNoReport(
+                                ASUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
                                         "Exception occurred during retry", ex);
                             }
                         }
@@ -618,7 +619,8 @@ public class DBTree extends JTree implements DragSourceListener {
 	        }
 	    } catch (ArchitectException ex) {
 	        logger.warn("Couldn't add new database to tree", ex);
-	        JOptionPane.showMessageDialog(DBTree.this, "Couldn't add new connection:\n"+ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+	        ASUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
+	                "Couldn't add new connection.", ex);
 	    }
 	}
     
@@ -725,10 +727,8 @@ public class DBTree extends JTree implements DragSourceListener {
 			    }
 			} catch (ArchitectException ex) {
 				logger.error("Couldn't locate dependant columns", ex);
-				JOptionPane.showMessageDialog(DBTree.this,
-						"Couldn't search for dependant columns:\n"+ex.getMessage()
-						+"\n\nDatabase connection not removed.",
-						"Couldn't remove", JOptionPane.ERROR_MESSAGE);
+				ASUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
+				        "Couldn't search for dependant columns!\nDatabase connection not removed.", ex);
 			}
 		}
 	}

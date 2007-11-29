@@ -47,7 +47,6 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComboBox;
 import javax.swing.JList;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
@@ -90,7 +89,7 @@ public class ProfilePanel extends JPanel {
     private ProfileGraphPanel displayPanel;
     
     private final JProgressBar progressBar = new JProgressBar();
-
+    
     private JTable viewTable;
     private JTabbedPane tabPane;
     private ProfileTableModel tableModel;
@@ -101,7 +100,6 @@ public class ProfilePanel extends JPanel {
     };
     
     public ProfilePanel(ProfileTableModel profileTableModel) {
-
         this.profileTableModel = profileTableModel;
         displayPanel = new ProfileGraphPanel(this, 0);
         setup();
@@ -145,7 +143,6 @@ public class ProfilePanel extends JPanel {
                     return;
                 }
                 try {
-                    
                     List<SQLColumn> columns = new ArrayList<SQLColumn>();
                     for (ColumnProfileResult cpr : tpr.getColumnProfileResults() ) {
                             SQLColumn column = cpr.getProfiledObject();
@@ -166,10 +163,8 @@ public class ProfilePanel extends JPanel {
                             columnSelector.setSelectedIndex(0);
                         }
                     }
-                } catch (Exception evt) {
-                    JOptionPane.showMessageDialog(null,
-                            "Error in profile", "Error", JOptionPane.ERROR_MESSAGE);
-                    evt.printStackTrace();
+                } catch (Exception ex) {
+                    ASUtils.showExceptionDialogNoReport(ProfilePanel.this, "Error in profile", ex);
                 }
             }
 

@@ -41,7 +41,6 @@ import java.awt.event.ItemListener;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -57,7 +56,6 @@ import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
@@ -363,10 +361,8 @@ public class CompareDMPanel extends JPanel {
 				} catch (ArchitectException e) {
 					logger.debug(
 						"Unexpected architect exception in ConnectionListener",	e);
-                    JOptionPane.showMessageDialog(SPSUtils.getWindowInHierarchy(CompareDMPanel.this),
-                        "Unexpected architect exception in ConnectionListener" + "\n" + e, "Error",
-                        JOptionPane.ERROR_MESSAGE);
-
+                    ASUtils.showExceptionDialogNoReport(CompareDMPanel.this,
+                            "Unexpected architect exception in ConnectionListener", e);
 				}
 			}
 
@@ -1160,21 +1156,13 @@ public class CompareDMPanel extends JPanel {
 						targetTables);
 				targetComp = new CompareSQL(targetTables,
 						sourceTables);
-			} catch (FileNotFoundException ex) {
-                JOptionPane.showMessageDialog(
-                        CompareDMPanel.this,
-                        "File not found: "+ex.getMessage());
-				logger.error("File could not be found.", ex);
-				return;
-			} catch (IOException ex) {
-                JOptionPane.showMessageDialog(
-                        CompareDMPanel.this,
-                        "Could not read file: "+ex.getMessage());
-				logger.error("Could not read file", ex);
-				return;
 			} catch (ArchitectException ex) {
-				ASUtils.showExceptionDialog(session,
-                        "Could not begin diff process", ex);
+			    ASUtils.showExceptionDialog(session,
+			            "Could not begin diff process", ex);
+			    return;
+			} catch (Exception ex) {
+			    ASUtils.showExceptionDialogNoReport(CompareDMPanel.this, "Couldn't read file.", ex);
+				logger.error("Could not read file", ex);
 				return;
 			}
 

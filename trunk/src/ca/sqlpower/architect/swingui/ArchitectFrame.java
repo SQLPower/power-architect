@@ -54,7 +54,6 @@ import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -246,9 +245,9 @@ public class ArchitectFrame extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 try {
                     createNewProject();
+                    throw new Exception();
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(ArchitectFrame.this,
-                            "Can't create new project: "+ex.getMessage());
+                    ASUtils.showExceptionDialog(session, "Couldn't create new project.", ex);
                     logger.error("Got exception while creating new project", ex);
                 }
             }
