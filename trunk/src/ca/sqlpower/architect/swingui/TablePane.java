@@ -986,16 +986,23 @@ public class TablePane
     /**
      * Changes the foreground colour of a column.  This is useful when outside forces
      * want to colour in a column.
+     * <p>
+     * When highlighting for the given column is no longer desired, remove the
+     * highlight with a call to {@link #removeColumnHighlight(SQLColumn, Color)}.
      *
      * @param i The column index to recolour
-     * @param colour The new colour to show the column in.  null means use this TablePane's current
-     * foreground colour.
+     * @param colour The new colour to show the column in.
      */
     public void addColumnHighlight(SQLColumn column, Color colour) {
         columnHighlight.get(column).add(colour);
         repaint(); // XXX: should constrain repaint region to column i
     }
 
+    /**
+     * Removes the given colour highlight from the given column.  This method
+     * should be called once and only once for each corresponding invocation
+     * of {@link #addColumnHighlight(SQLColumn, Color)} with the same arguments.
+     */
     public void removeColumnHighlight(SQLColumn column, Color colour) {
         columnHighlight.get(column).remove(colour);
         repaint();
