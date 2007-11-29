@@ -102,6 +102,7 @@ import ca.sqlpower.architect.swingui.action.SelectAllAction;
 import ca.sqlpower.architect.swingui.action.UndoAction;
 import ca.sqlpower.architect.swingui.action.VisualMappingReportAction;
 import ca.sqlpower.architect.swingui.action.ZoomAction;
+import ca.sqlpower.architect.swingui.action.ZoomResetAction;
 import ca.sqlpower.architect.swingui.action.ZoomToFitAction;
 import ca.sqlpower.architect.undo.UndoManager;
 import ca.sqlpower.swingui.SPSUtils;
@@ -143,8 +144,8 @@ public class ArchitectFrame extends JFrame {
     private ProfileAction profileAction;
     private ZoomAction zoomInAction;
     private ZoomAction zoomOutAction;
-    private Action zoomNormalAction;
-    private Action zoomAllAction;
+    private ZoomResetAction zoomNormalAction;
+    private ZoomToFitAction zoomToFitAction;
     private AutoLayoutAction autoLayoutAction;
     
     private EditColumnAction editColumnAction;
@@ -294,20 +295,10 @@ public class ArchitectFrame extends JFrame {
         zoomInAction = new ZoomAction(session, ZOOM_STEP);
         zoomOutAction = new ZoomAction(session, ZOOM_STEP * -1.0);
 
-        zoomNormalAction
-        = new AbstractAction("Reset Zoom",
-                SPSUtils.createIcon("zoom_reset",
-                        "Reset Zoom",
-                        sprefs.getInt(ArchitectSwingUserSettings.ICON_SIZE, ArchitectSwingSessionContext.ICON_SIZE))) {
-            public void actionPerformed(ActionEvent e) {
-                playpen.setZoom(1.0);
-            }
-        };
-        zoomNormalAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Reset Zoom");
+        zoomNormalAction = new ZoomResetAction(session);
 
-
-        zoomAllAction = new ZoomToFitAction(session);
-        zoomAllAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Zoom to fit");
+        zoomToFitAction = new ZoomToFitAction(session);
+        zoomToFitAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Zoom to fit");
 
         undoAction = new UndoAction(session, session.getUndoManager());
         redoAction = new RedoAction(session, session.getUndoManager());
@@ -462,7 +453,7 @@ public class ArchitectFrame extends JFrame {
         ppBar.add(zoomInAction);
         ppBar.add(zoomOutAction);
         ppBar.add(zoomNormalAction);
-        ppBar.add(zoomAllAction);
+        ppBar.add(zoomToFitAction);
         ppBar.addSeparator();
         tempButton = ppBar.add(deleteSelectedAction);
         tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
@@ -625,13 +616,21 @@ public class ArchitectFrame extends JFrame {
 		this.newProjectAction = newProjectAction;
 	}
 
-	public ZoomAction getZoomInAction() {
-		return zoomInAction;
-	}
+    public ZoomToFitAction getZoomToFitAction() {
+        return zoomToFitAction;
+    }
 
-	public ZoomAction getZoomOutAction() {
-		return zoomOutAction;
-	}
+    public ZoomAction getZoomInAction() {
+        return zoomInAction;
+    }
+
+    public ZoomAction getZoomOutAction() {
+        return zoomOutAction;
+    }
+
+    public ZoomResetAction getZoomResetAction() {
+        return zoomNormalAction;
+    }
 
     public PlayPen getPlayPen() {
         return playpen;

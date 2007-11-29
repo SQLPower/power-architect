@@ -32,10 +32,15 @@
 package ca.sqlpower.architect.swingui.action;
 
 import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Iterator;
+
+import javax.swing.AbstractAction;
+import javax.swing.KeyStroke;
 
 import org.apache.log4j.Logger;
 
@@ -59,6 +64,16 @@ public class ZoomAction extends AbstractArchitectAction implements PropertyChang
               amount > 0.0 ? "zoom_in" : "zoom_out");        
 		this.zoomStep = amount;
         playpen.addPropertyChangeListener(this);
+        if (amount > 0.0) {
+            // According to my probing of key events on OS X 10.4.11, you can't get a VK_PLUS
+            // event when modifiers in addition to SHIFT are present.. it's always VK_EQUALS.
+            putValue(AbstractAction.ACCELERATOR_KEY,
+                    KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS,
+                            Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() | KeyEvent.SHIFT_MASK));
+        } else {
+            putValue(AbstractAction.ACCELERATOR_KEY,
+                    KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+        }
 	}
 		
 	public void actionPerformed(ActionEvent e) {

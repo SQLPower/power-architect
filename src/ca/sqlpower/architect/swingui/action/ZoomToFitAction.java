@@ -33,8 +33,12 @@ package ca.sqlpower.architect.swingui.action;
 
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.swing.AbstractAction;
+import javax.swing.KeyStroke;
 
 import org.apache.log4j.Logger;
 
@@ -51,9 +55,12 @@ public class ZoomToFitAction extends AbstractArchitectAction {
     
     /**
      * Creates a new zoom action tied to the gicen session's play pen.
+     * By default, this action gives itself the accelerator key "z" with
+     * no modifiers.
      */
     public ZoomToFitAction(ArchitectSwingSession session) {
         super(session, "Zoom to fit", "Zoom to fit", "zoom_fit");
+        putValue(AbstractAction.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_Z, 0));
     }
     
     /**

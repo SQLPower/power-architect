@@ -561,17 +561,30 @@ public class PlayPen extends JPanel
 
 		InputMap inputMap = getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
-		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), KEY_DELETE_SELECTED);
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), KEY_DELETE_SELECTED);
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), KEY_DELETE_SELECTED);
 		getActionMap().put(KEY_DELETE_SELECTED, af.getDeleteSelectedAction());
 		if (af.getDeleteSelectedAction() == null) logger.warn("af.deleteSelectedAction is null!");
 
 		getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "CANCEL");
 		getActionMap().put("CANCEL", new CancelAction(this));
 
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getZoomToFitAction().getValue(Action.ACCELERATOR_KEY), "ZOOM TO FIT");
+        getActionMap().put("ZOOM TO FIT", af.getZoomToFitAction());
+
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getZoomInAction().getValue(Action.ACCELERATOR_KEY), "ZOOM IN");
+        getActionMap().put("ZOOM IN", af.getZoomInAction());
+
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getZoomOutAction().getValue(Action.ACCELERATOR_KEY), "ZOOM OUT");
+        getActionMap().put("ZOOM OUT", af.getZoomOutAction());
+
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getZoomResetAction().getValue(Action.ACCELERATOR_KEY), "ZOOM RESET");
+        getActionMap().put("ZOOM RESET", af.getZoomResetAction());
+
 		getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getCreateTableAction().getValue(Action.ACCELERATOR_KEY), "NEW TABLE");
 		getActionMap().put("NEW TABLE", af.getCreateTableAction());
 
-		getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getInsertColumnAction().getValue(Action.ACCELERATOR_KEY), "NEW COLUMN");
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getInsertColumnAction().getValue(Action.ACCELERATOR_KEY), "NEW COLUMN");
         getActionMap().put("NEW COLUMN", af.getInsertColumnAction());
         
 		getInputMap(WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) af.getCreateIdentifyingRelationshipAction().getValue(Action.ACCELERATOR_KEY), "NEW IDENTIFYING RELATION");
