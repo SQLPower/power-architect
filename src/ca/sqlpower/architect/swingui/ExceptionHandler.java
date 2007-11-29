@@ -88,6 +88,18 @@ public class ExceptionHandler implements UncaughtExceptionHandler {
      * properties (or the default if not specified).
      */
     public void uncaughtException(Thread t, Throwable e) {
+        try {
+            logger.error("Uncaught exception", e);
+            handleAndReport(e);
+        } catch (Throwable doubleTrouble) {
+            // if handling the exception results in a new exception, we don't
+            // want that fact to go unnoticed!  At this point, we can't trust
+            // log4j or our own exception dialog, so we're left with System.err
+            doubleTrouble.printStackTrace();
+        }
+    }
+    
+    private void handleAndReport(Throwable e) {
         SPSUtils.showExceptionDialogNoReport("An unexpected exception has occured: ", e);
         UserSettings settings = context.getUserSettings().getQfaUserSettings();
         if (!settings.getBoolean(QFAUserSettings.EXCEPTION_REPORTING,true)) return;
