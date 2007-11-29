@@ -525,10 +525,15 @@
 			<para>
 				<emphasis>Zoom Tools</emphasis>
 				- These tools allow you to control the magnification 
-				level of components display.  There are four zoom tools.
-				In order from top to bottom, their functions are: Zoom in,
-				zoom out, reset zoom level default, and zoom to fit entire
-				diagram.
+				level of your view into the playpen.  There are four zoom tools.
+				In order from top to bottom, their functions are: Zoom in a bit;
+				zoom out a bit; reset the zoom to its default level; and zoom to
+				fit the whole diagram.  If there are any selected components
+				in the playpen, they affect the behaviour of the zoom in and zoom
+				to fit tools: When zooming in, the Architect attempts to keep all
+				selected components visible (by scrolling your view to them); when
+				zooming to fit, the Architect will zoom to fit just the selected
+				components, and not the whole data model.
 			</para>
 
 			<para>

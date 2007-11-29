@@ -102,7 +102,7 @@ import ca.sqlpower.architect.swingui.action.SelectAllAction;
 import ca.sqlpower.architect.swingui.action.UndoAction;
 import ca.sqlpower.architect.swingui.action.VisualMappingReportAction;
 import ca.sqlpower.architect.swingui.action.ZoomAction;
-import ca.sqlpower.architect.swingui.action.ZoomAllAction;
+import ca.sqlpower.architect.swingui.action.ZoomToFitAction;
 import ca.sqlpower.architect.undo.UndoManager;
 import ca.sqlpower.swingui.SPSUtils;
 
@@ -306,7 +306,7 @@ public class ArchitectFrame extends JFrame {
         zoomNormalAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Reset Zoom");
 
 
-        zoomAllAction = new ZoomAllAction(session);
+        zoomAllAction = new ZoomToFitAction(session);
         zoomAllAction.putValue(AbstractAction.SHORT_DESCRIPTION, "Zoom to fit");
 
         undoAction = new UndoAction(session, session.getUndoManager());
