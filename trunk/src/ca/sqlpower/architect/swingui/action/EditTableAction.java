@@ -102,7 +102,7 @@ public class EditTableAction extends AbstractArchitectAction {
 
 	private JDialog d;
 	
-	private void makeDialog(SQLTable table) {
+	public void makeDialog(SQLTable table) {
 		final TableEditPanel editPanel = new TableEditPanel(session, table);
 
 		Callable<Boolean> okCall = new Callable<Boolean>() {
