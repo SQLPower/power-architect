@@ -245,7 +245,6 @@ public class ArchitectFrame extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 try {
                     createNewProject();
-                    throw new Exception();
                 } catch (Exception ex) {
                     ASUtils.showExceptionDialog(session, "Couldn't create new project.", ex);
                     logger.error("Got exception while creating new project", ex);
