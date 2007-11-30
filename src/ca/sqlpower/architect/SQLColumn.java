@@ -135,7 +135,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 	
 	public SQLColumn() {
 		logger.debug("NEW COLUMN (noargs) @"+hashCode());
-		setName("new column");
+		setName("New_Column");
 		type = Types.INTEGER;		
 		// scale = 10;
 		precision = 10;

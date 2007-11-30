@@ -123,6 +123,7 @@ import ca.sqlpower.architect.layout.LineStraightenerLayout;
 import ca.sqlpower.architect.swingui.Relationship.RelationshipDecorationMover;
 import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
 import ca.sqlpower.architect.swingui.action.CancelAction;
+import ca.sqlpower.architect.swingui.action.EditTableAction;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
@@ -2363,9 +2364,6 @@ public class PlayPen extends JPanel
 				} catch (ArchitectException e) {
 					logger.error("Exception converting point to column", e);
 				}
-
-
-
 			} else {
 				if ((evt.getModifiersEx() & InputEvent.BUTTON1_DOWN_MASK) != 0  && !evt.isPopupTrigger()) {
 					mouseMode = MouseModeType.IDLE;
@@ -2593,6 +2591,9 @@ public class PlayPen extends JPanel
 						pp.selectNone();
 						tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
 						pp.mouseMode = MouseModeType.SELECT_TABLE;
+						
+	                    EditTableAction editTableAction = new EditTableAction(pp.getSession());
+	                    editTableAction.makeDialog(tp.getModel());
 					} catch (ArchitectException e) {
 						logger.error("Couldn't add table \"" + tp.getModel() + "\" to play pen:", e);
 						ASUtils.showExceptionDialogNoReport("Failed to add table.", e);

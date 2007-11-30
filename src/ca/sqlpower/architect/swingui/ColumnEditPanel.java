@@ -321,6 +321,13 @@ public class ColumnEditPanel extends JPanel
 		    colNullable.setSelected(false);
 		    colNullable.setEnabled(false);
 		}
+		
+		if (colAutoInc.isSelected()) {
+		    colDefaultValue.setText("");
+		    colDefaultValue.setEnabled(false);
+		} else {
+		    colDefaultValue.setEnabled(true);
+		}
         
         colAutoIncSequenceName.setEnabled(colAutoInc.isSelected());
 	}

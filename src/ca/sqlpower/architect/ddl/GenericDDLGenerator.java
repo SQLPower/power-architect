@@ -424,6 +424,12 @@ public class GenericDDLGenerator implements DDLGenerator {
         def.append(columnType(c));
         def.append(" ");
 
+        if (c.getDefaultValue() != null && !c.getDefaultValue().equals("")) {
+            def.append("DEFAULT ");
+            def.append(c.getDefaultValue());
+            def.append(" ");
+        }
+        
         // Column nullability
         def.append(columnNullability(c));
 
@@ -510,8 +516,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 			print("                ");
 
 			print(columnDefinition(c,colNameMap));
-			// XXX: default values handled only in ETL?
-
+			
 			firstCol = false;
 		}
 		
