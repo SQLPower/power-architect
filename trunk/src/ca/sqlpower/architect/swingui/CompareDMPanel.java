@@ -1159,13 +1159,13 @@ public class CompareDMPanel extends JPanel {
 			} catch (ArchitectException ex) {
 			    ASUtils.showExceptionDialog(session,
 			            "Could not begin diff process", ex);
-			    reenableGUIComponents();
 			    return;
 			} catch (Exception ex) {
 			    ASUtils.showExceptionDialogNoReport(CompareDMPanel.this, "Couldn't read file.", ex);
 				logger.error("Could not read file", ex);
-				reenableGUIComponents();
 				return;
+			} finally {
+	             reenableGUIComponents();
 			}
 			
 			SPSwingWorker compareWorker = new SPSwingWorker(session) {
