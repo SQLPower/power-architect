@@ -351,7 +351,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 			
 			// checks the fk column and pk column are the same type,
 			// generates DDLWarning if not the same.
-			if (!columnType(c).equals(columnType(fkCol))) {
+			if (!compareColsTypes(c, fkCol)) {
 			    warnings.add(new RelationshipColumnsTypesMismatchDDLWarning(c, fkCol));
 			    typesMismatchMsg.append("        " + c + " -- " + fkCol + "\n");
 			}
@@ -377,14 +377,13 @@ public class GenericDDLGenerator implements DDLGenerator {
 		    errorMsg.append(typesMismatchMsg.toString());
 		}
 		
-		String deferrabilityClause = getDeferrabilityClause(r);
 		// adds to error msg if the deferrability was not a supported feature,
 		// add the deferrability clause otherwise.
-		if (deferrabilityClause.equals("NOT SUPPORTED")) {
+		try {
+		    sql.append(getDeferrabilityClause(r));
+		} catch (UnsupportedOperationException e){
 		    errorMsg.append("Warning: This relationship was marked deferrable, but " 
-		            + getName() + " does not support deferred constraint checking.\n");
-		} else {
-		    sql.append(deferrabilityClause);
+		            + e.getMessage() + "\n");
 		}
              
 		// properly comment the relationship create statement,
@@ -404,25 +403,73 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 	}
 
+	/**
+	 * Returns true if the given SQLColumns are of the same type,
+	 * false otherwise.
+	 * @return Whether the given SQLColumns are of the same type.
+	 */
+    private boolean compareColsTypes(SQLColumn sourceColumn, SQLColumn targetColumn) {
+        // eliminate meaningless type differences
+        int targetType = compressType(targetColumn.getType());
+        int sourceType = compressType(sourceColumn.getType());
+        return targetType == sourceType;
+    }
+    
+    /**
+     * Compresses all the different kinds of essentially identical types
+     * into an arbitrarily chosen one of them.  For instance, NUMERIC
+     * and DECIMAL both compress to NUMERIC.
+     * 
+     * @param type
+     * @return
+     */
+    private int compressType(int type) {
+        if (type == Types.DECIMAL) {
+            return Types.NUMERIC;
+        } else {
+            return type;
+        }
+    }
+
     /**
      * Returns the correct syntax for setting the deferrability of a foreign
-     * key relationship on this DDL Generator's target platform. Returns 
-     * "NOT SUPPORTED" if the platform does not support deferrability.
+     * key relationship on this DDL Generator's target platform. Throws
+     * an {@link UnsupportedOperationException} if the platform does not 
+     * support deferrability.
      * 
      * @param r The relationship the deferrability clause is for
      * @return The SQL clause for declaring the deferrability policy
      * in r.
      */
-    public String getDeferrabilityClause(SQLRelationship r) {
-        if (r.getDeferrability() == Deferrability.NOT_DEFERRABLE) {
-            return "NOT DEFERRABLE";
-        } else if (r.getDeferrability() == Deferrability.INITIALLY_DEFERRED) {
-            return "DEFERRABLE INITIALLY DEFERRED";
-        } else if (r.getDeferrability() == Deferrability.INITIALLY_IMMEDIATE) {
-            return "DEFERRABLE INITIALLY IMMEDIATE";
+    public String getDeferrabilityClause(SQLRelationship r) throws UnsupportedOperationException {
+        if (supportsDeferabilityClause()) {
+            if (r.getDeferrability() == Deferrability.NOT_DEFERRABLE) {
+                return "NOT DEFERRABLE";
+            } else if (r.getDeferrability() == Deferrability.INITIALLY_DEFERRED) {
+                return "DEFERRABLE INITIALLY DEFERRED";
+            } else if (r.getDeferrability() == Deferrability.INITIALLY_IMMEDIATE) {
+                return "DEFERRABLE INITIALLY IMMEDIATE";
+            } else {
+                throw new IllegalArgumentException("Unknown deferrability policy: " + r.getDeferrability());
+            }
         } else {
-            throw new IllegalArgumentException("Unknown deferrability policy: " + r.getDeferrability());
+            if (r.getDeferrability() != Deferrability.NOT_DEFERRABLE) {
+                warnings.add(new UnsupportedFeatureDDLWarning(
+                        getName() + " does not support deferred constraint checking", r));
+                throw new UnsupportedOperationException(getName() + " does not support deferred constraint checking");
+            } else {
+                return "";
+            }
         }
+    }
+    
+    /**
+     * Returns true if the platform supports deferability clauses,
+     * false otherwise.
+     * @return Whether the chosen platform supports deferability clauses.
+     */
+    public boolean supportsDeferabilityClause() {
+        return true;
     }
     
 	public void addColumn(SQLColumn c) {

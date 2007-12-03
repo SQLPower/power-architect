@@ -38,8 +38,6 @@ import java.sql.Types;
 import java.util.HashMap;
 
 import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.SQLRelationship.Deferrability;
 
 /**
  * Implements the quirks required for successful DDL generation that targets
@@ -80,14 +78,8 @@ public class HSQLDBDDLGenerator extends GenericDDLGenerator {
     }
     
     @Override
-    public String getDeferrabilityClause(SQLRelationship r) {
-        if (r.getDeferrability() != Deferrability.NOT_DEFERRABLE) {
-            warnings.add(new UnsupportedFeatureDDLWarning(
-                    "HSQLDB does not support deferred constraint checking", r));
-            return "NOT SUPPORTED";
-        } else {
-            return "";
-        }
+    public boolean supportsDeferabilityClause() {
+        return false;
     }
 
     @Override
