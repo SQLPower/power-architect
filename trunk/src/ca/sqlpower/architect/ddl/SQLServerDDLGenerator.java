@@ -43,9 +43,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLIndex;
-import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLIndex.IndexType;
-import ca.sqlpower.architect.SQLRelationship.Deferrability;
 
 
 public class SQLServerDDLGenerator extends GenericDDLGenerator {
@@ -441,13 +439,7 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
     }
     
     @Override
-    public String getDeferrabilityClause(SQLRelationship r) {
-        if (r.getDeferrability() != Deferrability.NOT_DEFERRABLE) {
-            warnings.add(new UnsupportedFeatureDDLWarning(
-                    "SQL Server does not support deferred constraint checking", r));
-            return "NOT SUPPORTED";
-        } else {
-            return "";
-        }
+    public boolean supportsDeferabilityClause() {
+        return false;
     }
 }
