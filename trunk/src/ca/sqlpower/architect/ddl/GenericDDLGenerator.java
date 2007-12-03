@@ -305,54 +305,99 @@ public class GenericDDLGenerator implements DDLGenerator {
      * method for the target database's way of describing the deferrability policy.
      */
 	public void addRelationship(SQLRelationship r) {
+	    StringBuilder sql = new StringBuilder();
+	    StringBuilder errorMsg = new StringBuilder();
+	    boolean skipStatement = false;
 
-		print("\nALTER TABLE ");
-		print( toQualifiedName(r.getFkTable()) );
-		print(" ADD CONSTRAINT ");
-		println(r.getName());
-		print("FOREIGN KEY (");
+	    StringBuilder typesMismatchMsg = new StringBuilder();
+	    // list of fk columns for checking types mismatch
+	    List<SQLColumn> fkCols = new ArrayList<SQLColumn>();
+
+	    sql.append("\nALTER TABLE ");
+		sql.append( toQualifiedName(r.getFkTable()) );
+		sql.append(" ADD CONSTRAINT ");
+		sql.append(r.getName() + "\n");
+		sql.append("FOREIGN KEY (");
 		Map<String, SQLObject> colNameMap = new HashMap<String, SQLObject> ();
 		boolean firstColumn = true;
 
 		for (ColumnMapping cm : r.getMappings()) {
 			SQLColumn c = cm.getFkColumn();
+			fkCols.add(c);
 			// make sure this is unique
 			if (colNameMap.get(c.getName()) == null) {
 				if (firstColumn) {
 					firstColumn = false;
-					print(createPhysicalName(colNameMap, c));
+					sql.append(createPhysicalName(colNameMap, c));
 				} else {
-					print(", " + createPhysicalName(colNameMap, c));
+					sql.append(", " + createPhysicalName(colNameMap, c));
 				}
 				colNameMap.put(c.getName(), c);
 			}
 		}
-		println(")");
+		sql.append(")\n");
         
-        print("REFERENCES ");
-		print(toQualifiedName(r.getPkTable()));
-		print(" (");
+        sql.append("REFERENCES ");
+		sql.append(toQualifiedName(r.getPkTable()));
+		sql.append(" (");
 		colNameMap.clear();
 		firstColumn = true;
 
+		int i = 0;
 		for (ColumnMapping cm : r.getMappings()) {
-
 			SQLColumn c = cm.getPkColumn();
+			SQLColumn fkCol = fkCols.get(i);
+			
+			// checks the fk column and pk column are the same type,
+			// generates DDLWarning if not the same.
+			if (!columnType(c).equals(columnType(fkCol))) {
+			    warnings.add(new RelationshipColumnsTypesMismatchDDLWarning(c, fkCol));
+			    typesMismatchMsg.append("        " + c + " -- " + fkCol + "\n");
+			}
 			// make sure this is unique
 			if (colNameMap.get(c.getName()) == null) {
 				if (firstColumn) {
 					firstColumn = false;
-					print(createPhysicalName(colNameMap, c));
+					sql.append(createPhysicalName(colNameMap, c));
 				} else {
-					print(", " + createPhysicalName(colNameMap, c));
+					sql.append(", " + createPhysicalName(colNameMap, c));
 				}
 				colNameMap.put(c.getName(), c);
 			}
+			i++;
 		}
 
-		println(")");
-        
-        print(getDeferrabilityClause(r));
+		sql.append(")\n");
+
+		// adds to error msg if there were types mismatch
+		if (typesMismatchMsg.length() != 0) {
+		    skipStatement = true;
+		    errorMsg.append("Warning: Column types mismatch in the following column mapping(s):\n");
+		    errorMsg.append(typesMismatchMsg.toString());
+		}
+		
+		String deferrabilityClause = getDeferrabilityClause(r);
+		// adds to error msg if the deferrability was not a supported feature,
+		// add the deferrability clause otherwise.
+		if (deferrabilityClause.equals("NOT SUPPORTED")) {
+		    errorMsg.append("Warning: This relationship was marked deferrable, but " 
+		            + getName() + " does not support deferred constraint checking.\n");
+		} else {
+		    sql.append(deferrabilityClause);
+		}
+             
+		// properly comment the relationship create statement,
+		// i.e. entire statement or just the error message.
+		if (errorMsg.length() != 0) {
+		    if (skipStatement) {
+		        sql.append("*/");
+		    } else {
+		        errorMsg.append("*/");
+		    }
+		    sql.insert(0, "/*\n" + errorMsg.toString());
+		}
+		
+        print("\n" + sql.toString());
         
 		endStatement(DDLStatement.StatementType.CREATE, r);
 
@@ -360,7 +405,8 @@ public class GenericDDLGenerator implements DDLGenerator {
 
     /**
      * Returns the correct syntax for setting the deferrability of a foreign
-     * key relationship on this DDL Generator's target platform.
+     * key relationship on this DDL Generator's target platform. Returns 
+     * "NOT SUPPORTED" if the platform does not support deferrability.
      * 
      * @param r The relationship the deferrability clause is for
      * @return The SQL clause for declaring the deferrability policy

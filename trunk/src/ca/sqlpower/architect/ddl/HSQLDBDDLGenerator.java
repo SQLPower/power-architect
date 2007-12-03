@@ -84,8 +84,7 @@ public class HSQLDBDDLGenerator extends GenericDDLGenerator {
         if (r.getDeferrability() != Deferrability.NOT_DEFERRABLE) {
             warnings.add(new UnsupportedFeatureDDLWarning(
                     "HSQLDB does not support deferred constraint checking", r));
-            return "/* Warning: This relationship was marked deferrable, but " +
-                    "HSQLDB does not support deferred constraint checking */";
+            return "NOT SUPPORTED";
         } else {
             return "";
         }
