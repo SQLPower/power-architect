@@ -528,7 +528,7 @@ public class TablePane
 	 * #selectNone()} is called rather than selecting a column.
 	 */
 	public void selectColumn(int i) {
-		if (i < 0 || i >= columnSelection.size()) {
+	    if (i < 0) {
 			selectNone();
 			return;
 		}
