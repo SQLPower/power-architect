@@ -2366,6 +2366,8 @@ public class PlayPen extends JPanel
 				}
 			} else {
 				if ((evt.getModifiersEx() & InputEvent.BUTTON1_DOWN_MASK) != 0  && !evt.isPopupTrigger()) {
+				    session.getArchitectFrame().getCreateIdentifyingRelationshipAction().cancel();
+				    session.getArchitectFrame().getCreateNonIdentifyingRelationshipAction().cancel();
 					mouseMode = MouseModeType.IDLE;
 					selectNone();
 					rubberBandOrigin = new Point(p);
