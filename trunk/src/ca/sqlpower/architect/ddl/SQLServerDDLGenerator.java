@@ -417,7 +417,7 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
         if (index.getType() == IndexType.STATISTIC )
             return;
 
-        checkDupIndexname(index);
+        createPhysicalName(topLevelNames, index);
 
         print("CREATE ");
         if (index.isUnique()) {

@@ -54,6 +54,7 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLIndex;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLRelationship;
+import ca.sqlpower.architect.SQLSequence;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.SQLIndex.IndexType;
 import ca.sqlpower.architect.SQLRelationship.ColumnMapping;
@@ -295,7 +296,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 		print( toQualifiedName(r.getFkTable()) );
 		print(" DROP CONSTRAINT ");
-		print(r.getName());
+		print(createPhysicalName(topLevelNames, r));
 		endStatement(DDLStatement.StatementType.DROP, r);
 	}
 
@@ -316,7 +317,7 @@ public class GenericDDLGenerator implements DDLGenerator {
 	    sql.append("\nALTER TABLE ");
 		sql.append( toQualifiedName(r.getFkTable()) );
 		sql.append(" ADD CONSTRAINT ");
-		sql.append(r.getName() + "\n");
+		sql.append(createPhysicalName(topLevelNames, r) + "\n");
 		sql.append("FOREIGN KEY (");
 		Map<String, SQLObject> colNameMap = new HashMap<String, SQLObject> ();
 		boolean firstColumn = true;
@@ -875,7 +876,7 @@ public class GenericDDLGenerator implements DDLGenerator {
         String physicalName = so.getPhysicalName();
         if(isReservedWord(physicalName)) {
             String renameTo = physicalName   + "_1";
-            warnings.add(new DuplicateNameDDLWarning(
+            warnings.add(new InvalidNameDDLWarning(
                     String.format("%s is a reserved word", physicalName),
                     Arrays.asList(new SQLObject[] { so }),
                     String.format("Rename %s to %s", physicalName, renameTo),
@@ -887,15 +888,15 @@ public class GenericDDLGenerator implements DDLGenerator {
         if (!so.getName().substring(pointIndex+1,pointIndex+2).matches("[a-zA-Z]")){
             String renameTo;
             if (so instanceof SQLTable) {
-                renameTo = "table_" + so.getName();
+                renameTo = "Table_" + so.getName();
             } else if (so instanceof SQLColumn) {
-                renameTo = "column_" + so.getName();
+                renameTo = "Column_" + so.getName();
             } else if (so instanceof SQLIndex) {
-                renameTo = "index_" + so.getName();
+                renameTo = "Index_" + so.getName();
             } else {
                 renameTo = "X_" + so.getName();
             }
-            warnings.add(new DuplicateNameDDLWarning(
+            warnings.add(new InvalidNameDDLWarning(
                     String.format("Name %s starts with a non-alpha character", physicalName),
                     Arrays.asList(new SQLObject[] { so }),
                     String.format("Rename %s to %s", physicalName, renameTo),
@@ -921,7 +922,6 @@ public class GenericDDLGenerator implements DDLGenerator {
                 count++;
             } while (object2 != null);
             
-            //String renameTo2 = physicalName2 + "_" + "2";
             String message;
             if (so instanceof SQLColumn) {
                 message = String.format("Column name %s in table %s already in use", 
@@ -932,7 +932,7 @@ public class GenericDDLGenerator implements DDLGenerator {
             }
             logger.debug("Rename to : " + renameTo2);
 
-            warnings.add(new DuplicateNameDDLWarning(
+            warnings.add(new InvalidNameDDLWarning(
                     message,
                     Arrays.asList(new SQLObject[] { so }),
                     String.format("Rename %s to %s", physicalName, renameTo2),
@@ -944,6 +944,74 @@ public class GenericDDLGenerator implements DDLGenerator {
 
 		return so.getPhysicalName();
 	}
+	
+	/**
+     * Generate, set, and return a valid identifier for this SQLSequence.
+     * Has a side effect of changing the given SQLColumn's autoIncrementSequenceName.
+     * @throws ArchitectException
+     * 
+     * @param dupCheck  The Map to check for duplicate names
+     * @param seq       The SQLSequence to generate, set and return a valid identifier for.
+     * @param col       The SQLColumn to where the side effect should occur.
+     */
+    protected String createSeqPhysicalName(Map<String, SQLObject> dupCheck, SQLSequence seq, SQLColumn col) {
+        logger.debug("transform identifier source: " + seq.getPhysicalName());
+        seq.setPhysicalName(toIdentifier(seq.getName()));
+        String physicalName = seq.getPhysicalName();
+        if(isReservedWord(physicalName)) {
+            String renameTo = physicalName   + "_1";
+            warnings.add(new InvalidSeqNameDDLWarning(
+                    String.format("%s is a reserved word", physicalName),
+                    seq, col,
+                    String.format("Rename %s to %s", physicalName, renameTo),
+                    renameTo));
+            return physicalName;
+        }
+
+        int pointIndex = seq.getPhysicalName().lastIndexOf('.');
+        if (!seq.getName().substring(pointIndex+1,pointIndex+2).matches("[a-zA-Z]")){
+            String renameTo = "Seq_" + seq.getName();
+            warnings.add(new InvalidSeqNameDDLWarning(
+                    String.format("Name %s starts with a non-alpha character", physicalName),
+                    seq, col,
+                    String.format("Rename %s to %s", physicalName, renameTo),
+                    renameTo));
+            return physicalName;
+        }
+
+        logger.debug("transform identifier result: " + seq.getPhysicalName());
+        // XXX should change checkDupName(Map where, so.getPhysicalName(), so, "Duplicate Physical Name", so.getName());
+
+        String physicalName2 = seq.getPhysicalName();
+        SQLObject object = dupCheck.get(physicalName2);
+        if (object == null) {
+            dupCheck.put(physicalName2, seq);
+        } else {
+            
+            int count = 1;
+            String renameTo2;
+            SQLObject object2;
+            do {
+                renameTo2 = physicalName2 + "_" + count;
+                object2 = dupCheck.get(renameTo2);
+                count++;
+            } while (object2 != null);
+            
+            String message = String.format("Global name %s already in use", physicalName);
+            logger.debug("Rename to : " + renameTo2);
+
+            warnings.add(new InvalidSeqNameDDLWarning(
+                    message,
+                    seq, col,
+                    String.format("Rename %s to %s", physicalName, renameTo2),
+                    renameTo2));
+            
+            dupCheck.put(renameTo2, seq);
+                    
+        }
+
+        return seq.getPhysicalName();
+    }
 
 	/**
      * Generate, set, and return a physicalPrimaryKeyName which is just the
@@ -956,7 +1024,7 @@ public class GenericDDLGenerator implements DDLGenerator {
     private String createPhysicalPrimaryKeyName(SQLTable t) throws ArchitectException {
         String physName = toIdentifier(t.getPrimaryKeyName());
         t.setPhysicalPrimaryKeyName(physName);
-        checkDupName(physName, t.getPrimaryKeyIndex(), "Duplicate Primary Key Name");
+        createPhysicalName(topLevelNames, t.getPrimaryKeyIndex());
         return physName;
     }
 
@@ -1017,46 +1085,6 @@ public class GenericDDLGenerator implements DDLGenerator {
 			endStatement(DDLStatement.StatementType.CREATE,t);
 		}
 	}
-
-    protected final void checkDupIndexname(SQLIndex index) {
-        String name = index.getName();
-        checkDupName(name, index, "Index name is not unique");
-    }
-
-    /**
-     * Check that given name is not already present in the top level namespace.
-     * @param name The top level name to be checked.
-     * @param obj The value to go with the name.
-     * @param warning The text of the name change warning to generate.
-     * @param name2 The name to go in the name change warning.
-     */
-    protected final void checkDupName(String name,
-            SQLObject obj,
-            String warning) {
-        
-        if (obj == null) {
-            throw new NullPointerException("All names must be associated with a SQLObject");
-        }
-        
-        SQLObject object = topLevelNames.get(name);
-        if (object == null) {
-            topLevelNames.put(name, obj);
-        } else {
-            int count = 1;
-            String newName;
-            do {
-                newName = name + "_" + count;
-                count++;
-            } while (topLevelNames.get(newName) != null);
-
-            warnings.add(
-                    new DuplicateNameDDLWarning(
-                            String.format("Global name %s already in use", name),
-                            Arrays.asList(new SQLObject[] { obj, object }),
-                            String.format("Rename %s to %s", name, newName),
-                            obj, newName));
-        }
-    }
     
     /**
      * Adds a DDL statement to this generator that will create the
@@ -1071,7 +1099,7 @@ public class GenericDDLGenerator implements DDLGenerator {
         if (index.getType() == IndexType.STATISTIC )
             return;
 
-        checkDupIndexname(index);
+        createPhysicalName(topLevelNames, index);
 
         println("");
         print("CREATE ");

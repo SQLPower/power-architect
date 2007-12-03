@@ -357,7 +357,7 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
     public void addIndex(SQLIndex index) throws ArchitectException {
         if (index.getType() == IndexType.STATISTIC )
             return;
-        checkDupIndexname(index);
+        createPhysicalName(topLevelNames, index);
         println("");
         print("CREATE ");
         if (index.isUnique()) {
@@ -389,7 +389,8 @@ public class PostgresDDLGenerator extends GenericDDLGenerator {
         for (SQLColumn c : t.getColumns()) {
             if (c.isAutoIncrement()) {
                 SQLSequence seq = new SQLSequence(toIdentifier(c.getAutoIncrementSequenceName()));
-                print("CREATE SEQUENCE " + seq.getName());
+                print("CREATE SEQUENCE ");
+                print(createSeqPhysicalName(topLevelNames, seq, c));
                 endStatement(StatementType.CREATE, seq);
             }
         }

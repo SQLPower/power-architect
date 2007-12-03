@@ -36,14 +36,14 @@ import java.util.List;
 import ca.sqlpower.architect.SQLObject;
 
 /**
- * A DDLWarning for name duplications that can be fixed by calling setName() on
+ * A DDLWarning for invalid name that can be fixed by calling setName() on
  * one of the involved objects
  */
-public class DuplicateNameDDLWarning extends AbstractDDLWarning {
+public class InvalidNameDDLWarning extends AbstractDDLWarning {
 
     protected String whatQuickFixShouldCallIt;
 
-    public DuplicateNameDDLWarning(String message,
+    public InvalidNameDDLWarning(String message,
             List<SQLObject> involvedObjects,
             String quickFixMesssage,
             SQLObject whichObjectQuickFixRenames,
