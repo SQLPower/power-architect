@@ -1159,13 +1159,15 @@ public class CompareDMPanel extends JPanel {
 			} catch (ArchitectException ex) {
 			    ASUtils.showExceptionDialog(session,
 			            "Could not begin diff process", ex);
+			    reenableGUIComponents();
 			    return;
 			} catch (Exception ex) {
 			    ASUtils.showExceptionDialogNoReport(CompareDMPanel.this, "Couldn't read file.", ex);
 				logger.error("Could not read file", ex);
+				reenableGUIComponents();
 				return;
 			}
-
+			
 			SPSwingWorker compareWorker = new SPSwingWorker(session) {
 
 				private List<DiffChunk<SQLObject>> diff;
@@ -1177,6 +1179,7 @@ public class CompareDMPanel extends JPanel {
 				}
 
 				public void cleanup() {
+				    reenableGUIComponents();
                     if (getDoStuffException() != null) {
                         Throwable exc = getDoStuffException();
                         logger.error("Error in doStuff()", exc);
@@ -1187,14 +1190,6 @@ public class CompareDMPanel extends JPanel {
 					logger.debug("cleanup starts");
                     CompareDMFormatter dmFormat = new CompareDMFormatter(session, CompareDMPanel.this, session.getCompareDMSettings());
                     dmFormat.format(diff, diff1, left, right);
-                    startCompareAction.setEnabled(isStartable());
-                    sqlButton.setEnabled(true);
-                    englishButton.setEnabled(true);
-                    if (sqlButton.isSelected()) {
-                        sqlTypeDropdown.setEnabled(true);
-                    } else {
-                        showNoChanges.setEnabled(true);
-                    }
                     logger.debug("cleanup finished");
 				}
 
@@ -1202,6 +1197,17 @@ public class CompareDMPanel extends JPanel {
 
 			new Thread(compareWorker).start();
 			ProgressWatcher.watchProgress(progressBar,sourceComp);
+		}
+		
+		private void reenableGUIComponents() {
+		    sqlButton.setEnabled(true);
+            englishButton.setEnabled(true);
+            if (sqlButton.isSelected()) {
+                sqlTypeDropdown.setEnabled(true);
+            } else {
+                showNoChanges.setEnabled(true);
+            }
+            startCompareAction.setEnabled(isStartable());
 		}
 
 	}
