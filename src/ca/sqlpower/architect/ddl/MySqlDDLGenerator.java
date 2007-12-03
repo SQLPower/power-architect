@@ -426,7 +426,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         if (index.getType() == IndexType.STATISTIC )
             return;
 
-        checkDupIndexname(index);
+        createPhysicalName(topLevelNames, index);
 
         println("");
         print("CREATE ");

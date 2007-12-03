@@ -353,7 +353,8 @@ public class OracleDDLGenerator extends GenericDDLGenerator {
         for (SQLColumn c : t.getColumns()) {
             if (c.isAutoIncrement()) {
                 SQLSequence seq = new SQLSequence(toIdentifier(c.getAutoIncrementSequenceName()));
-                print("CREATE SEQUENCE " + seq.getName());
+                print("CREATE SEQUENCE ");
+                print(createSeqPhysicalName(topLevelNames, seq, c));
                 endStatement(StatementType.CREATE, seq);
             }
         }
