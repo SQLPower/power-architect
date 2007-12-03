@@ -445,8 +445,7 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
         if (r.getDeferrability() != Deferrability.NOT_DEFERRABLE) {
             warnings.add(new UnsupportedFeatureDDLWarning(
                     "SQL Server does not support deferred constraint checking", r));
-            return "/* Warning: This relationship was marked deferrable, but " +
-                    "SQL Server does not support deferred constraint checking */";
+            return "NOT SUPPORTED";
         } else {
             return "";
         }
