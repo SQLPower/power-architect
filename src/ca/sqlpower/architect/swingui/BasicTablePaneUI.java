@@ -74,7 +74,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 	/**
 	 * The amount of extra (vertical) space between the PK columns and the non-PK columns. 
 	 */
-	private int pkGap = 10;
+	final int pkGap = 10;
 	
 	/**
 	 * Colour of the text background for selected tables and columns.
@@ -315,26 +315,31 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 
 		if (logger.isDebugEnabled()) logger.debug("p.y = "+p.y);
 		
+		int returnVal;
+		
 		if (p.y < 0) {
 		    logger.debug("y<0");
-		    return TablePane.COLUMN_INDEX_NONE;
+		    returnVal = TablePane.COLUMN_INDEX_NONE;
 		} else if (p.y <= fontHeight) {
 		    logger.debug("y<=fontHeight = "+fontHeight);
-			return TablePane.COLUMN_INDEX_TITLE;
+		    returnVal = TablePane.COLUMN_INDEX_TITLE;
 		} else if (numPkCols > 0 && p.y <= firstColStart + fontHeight*numPkCols - 1) {
 		    logger.debug("y<=firstColStart + fontHeight*numPkCols - 1= "+(firstColStart + fontHeight*numPkCols));
-		    return (p.y - firstColStart) / fontHeight;
+		    returnVal = (p.y - firstColStart) / fontHeight;
 		} else if (p.y <= pkLine + pkGap/2) {
 		    logger.debug("y<=pkLine + pkGap/2 = "+(pkLine + pkGap/2));
-		    return TablePane.COLUMN_INDEX_END_OF_PK;
+		    returnVal = TablePane.COLUMN_INDEX_END_OF_PK;
 		} else if (p.y <= firstColStart + fontHeight*numPkCols + pkGap) {
 		    logger.debug("y<=firstColStart + fontHeight*numPkCols + pkGap = "+(firstColStart + fontHeight*numPkCols + pkGap));
-		    return TablePane.COLUMN_INDEX_START_OF_NON_PK;
-		} else if (p.y <= firstColStart + pkGap + fontHeight*numCols) {
-		    return (p.y - firstColStart - pkGap) / fontHeight;
+		    returnVal = TablePane.COLUMN_INDEX_START_OF_NON_PK;
+		} else if (p.y < firstColStart + pkGap + fontHeight*numCols) {
+		    logger.debug("y<=firstColStart + pkGap + fontHeight*numCols = " + (firstColStart + pkGap + fontHeight*numCols));
+		    returnVal = (p.y - firstColStart - pkGap) / fontHeight;
 		} else {
-			return numCols;
+		    returnVal = TablePane.COLUMN_INDEX_NONE;
 		}
+		logger.debug("pointToColumnIndex return value is " + returnVal);
+		return returnVal;
 	}
 
     @Override
