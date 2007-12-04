@@ -162,11 +162,20 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		fkColumnManager = new RelationshipManager();
 	}
 
-	/*
-	 *  Ideally, loop through until you get a unique column name...
+	/**
+	 *  Adds a counter to the end of the default column name until
+	 *  it is unique in the given table.
 	 */
-	private static String generateUniqueColumnName(SQLColumn column, SQLTable table) {
-		return column.getParentTable().getName() + "_" + column.getName();  // FIXME: still might not be unique
+	private static String generateUniqueColumnName(String colName,
+	        SQLTable table) throws ArchitectException {
+	    if (table.getColumnByName(colName) == null) return colName;
+	    int count = 1;
+	    String uniqueName;
+	    do {
+	        uniqueName = colName + "_" + count; 
+	        count++;
+	    } while (table.getColumnByName(uniqueName) != null);
+	    return uniqueName;
 	}
 
     /**
@@ -209,6 +218,15 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 			fkTable.getColumnsFolder().setMagicEnabled(false);
 			fkTable.getImportedKeysFolder().setMagicEnabled(false);
 
+			boolean alreadyExists = false;
+			
+			for (SQLRelationship r : pkTable.getExportedKeys()) {
+			    if (r.getFkTable().equals(fkTable)) {
+			        alreadyExists = true;
+			        break;
+			    }
+			}
+			
 			pkTable.addExportedKey(this);
 			fkTable.addImportedKey(this);
 			if (autoGenerateMapping) {
@@ -225,10 +243,16 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
                     if (pkTable == fkTable) {
                         // self-reference should never hijack the PK!
                         fkCol = new SQLColumn(pkCol);
-                        fkCol.setName("Parent_" + fkCol.getName());
+                        String colName = "Parent_" + fkCol.getName();
+                        fkCol.setName(generateUniqueColumnName(colName, fkTable));
                         fkCol.setPrimaryKeySeq(null);
                         setIdentifying(false);
-                    } else if (match != null) {
+                    } else if (alreadyExists || match == null) { 
+                        // no match, so we need to import this column from PK table
+                        fkCol = new SQLColumn(pkCol);
+                        fkCol.setPrimaryKeySeq(null);
+                        fkCol.setName(generateUniqueColumnName(pkCol.getName(),fkTable));
+                    } else {
 						// does the matching column have a compatible data type?
 						if (match.getType() == pkCol.getType() &&
 								match.getPrecision() == pkCol.getPrecision() &&
@@ -237,15 +261,11 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 							fkCol = match;
 						} else {
 							fkCol = new SQLColumn(pkCol);
-							fkCol.setName(generateUniqueColumnName(pkCol,fkTable));
+						    String colName = pkCol.getParentTable().getName() + "_" + pkCol.getName();
+							fkCol.setName(generateUniqueColumnName(colName,fkTable));
 							fkCol.setPrimaryKeySeq(null);
 						}
-					} else {
-						// no match, so we need to import this column from PK table
-						fkCol = new SQLColumn(pkCol);
-						fkCol.setPrimaryKeySeq(null);
-					}
-
+                    }
 					this.addMapping(pkCol, fkCol);
 
 				}
