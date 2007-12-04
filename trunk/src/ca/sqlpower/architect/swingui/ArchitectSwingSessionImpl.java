@@ -148,14 +148,10 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
             @Override
             public void loadFile(String fileName) throws IOException {
                 File f = new File(fileName);
-                if (!isNew()) {
-                    try {
-                        OpenProjectAction.openAsynchronously(getContext().createSession(false), f, true);
-                    } catch (ArchitectException ex) {
-                        SPSUtils.showExceptionDialogNoReport(getArchitectFrame(), "An unexpected exception has occured ", ex);
-                    }
-                } else {
-                    OpenProjectAction.openAsynchronously(ArchitectSwingSessionImpl.this, f, false);
+                try {
+                    OpenProjectAction.openAsynchronously(getContext().createSession(false), f, ArchitectSwingSessionImpl.this);
+                } catch (ArchitectException ex) {
+                    SPSUtils.showExceptionDialogNoReport(getArchitectFrame(), "An unexpected exception has occured ", ex);
                 }
             }
         };

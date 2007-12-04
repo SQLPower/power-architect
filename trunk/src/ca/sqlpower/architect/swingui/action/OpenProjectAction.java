@@ -59,17 +59,16 @@ import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.SPSwingWorker;
 
 public class OpenProjectAction extends AbstractArchitectAction {
-    
+
     private static final Logger logger = Logger.getLogger(OpenProjectAction.class);
-    
+
     RecentMenu recent;
-    
+
     public OpenProjectAction(ArchitectSwingSession session) {
         super(session, "Open Project...", "Open", "folder");
         this.recent = session.getRecentMenu();
-        putValue(AbstractAction.ACCELERATOR_KEY,
-                KeyStroke.getKeyStroke(KeyEvent.VK_O,
-                        Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+        putValue(AbstractAction.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_O, Toolkit.getDefaultToolkit()
+                .getMenuShortcutKeyMask()));
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -78,89 +77,105 @@ public class OpenProjectAction extends AbstractArchitectAction {
         int returnVal = chooser.showOpenDialog(frame);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File f = chooser.getSelectedFile();
-            if (!session.isNew()) {
-                try {
-                    OpenProjectAction.openAsynchronously(session.getContext().createSession(false), f, true);
-                } catch (ArchitectException ex) {
-                    SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(), "An unexpected exception has occured", ex);
-                }
-            } else {
-                OpenProjectAction.openAsynchronously(session, f, false);
+            try {
+                OpenProjectAction.openAsynchronously(session.getContext().createSession(false), f, session);
+            } catch (ArchitectException ex) {
+                SPSUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
+                        "An unexpected exception has occured", ex);
             }
         }
     }
-    
+
     /**
-     * Opens a project file into the given session
-     * using a separate worker thread.  A dialog box with a progress bar will
-     * be displayed during the load process, and any errors that are encountered
-     * during the load will be displayed in additional dialogs.
+     * Opens a project file into the given session using a separate worker
+     * thread. A dialog box with a progress bar will be displayed during the
+     * load process, and any errors that are encountered during the load will be
+     * displayed in additional dialogs.
      * <p>
      * Note that this method always returns immediately, so as the caller of
      * this method you have no way of knowing if the load has worked/will work.
      * 
-     * @param session The session in which to load the project into.
-     * @param f The project file to load.
-     * @param openInNewSession Set to true if opening the file in a newly created session. 
-     * Otherwise, set to false.
+     * @param newSession
+     *            The session in which to load the project into.
+     * @param f
+     *            The project file to load.
+     * @param openingSession
+     *            The session from which this openAsynchronously call is made.
+     *            If the session being opened is the first session being
+     *            created, then simply set to null. If the
+     *            openingSession.isNew() returns true, (i.e. it's an new, empty,
+     *            and unmodified project) then openingSession.close() will be
+     *            called once the project is finished loading.
      */
-    public static void openAsynchronously(ArchitectSwingSession session, File f, boolean openInNewSession) {
-      LoadFileWorker worker;
+    public static void openAsynchronously(ArchitectSwingSession newSession, File f, ArchitectSwingSession openingSession) {
+        LoadFileWorker worker;
         try {
-            worker = new LoadFileWorker(f, session, openInNewSession);
+            worker = new LoadFileWorker(f, newSession, openingSession);
             new Thread(worker).start();
         } catch (Exception e1) {
             ASUtils.showExceptionDialogNoReport("Error loading file", e1);
         }
 
     }
-    
+
     /**
      * A worker for asynchronously loading a new project file.
      */
     private static class LoadFileWorker extends SPSwingWorker {
         private final ArchitectSwingSessionContext context;
+
         private final InputStream in;
+
         private final File file;
+
         private final RecentMenu recent;
-        private final boolean openInNewSession;
-        
+
+        private final ArchitectSwingSession openingSession;
+
         /**
-         * The session that will get created if loading the file
-         * in doStuff() is successful.
+         * The session that will get created if loading the file in doStuff() is
+         * successful.
          */
         private ArchitectSwingSession session;
-        
+
         /**
          * Load file worker creates a new worker and opens the given file.
-         *
-         * @param file  this file gets opened in the constructor
-         * @param session The session in which the project file should be opened
-         * @param openInNewSession Set to true if opening the file in a newly created session. 
-         * Otherwise, set to false.
-         * @throws ArchitectException when the project creation fails.
-         * @throws FileNotFoundException if file doesn't exist
+         * 
+         * @param file
+         *            this file gets opened in the constructor
+         * @param newSession
+         *            The session in which the project file should be opened
+         * @param openingSession
+         *            The session from which the open project operation is being
+         *            called. If the session being opened is the first session
+         *            being created, then simply set to null. If the
+         *            openingSession.isNew() returns true, (i.e. it's an new,
+         *            empty, and unmodified project) then openingSession.close()
+         *            will be called once the project is finished loading.
+         * @throws ArchitectException
+         *             when the project creation fails.
+         * @throws FileNotFoundException
+         *             if file doesn't exist
          */
-        public LoadFileWorker(File file, ArchitectSwingSession session, boolean openInNewSession) throws ArchitectException, FileNotFoundException {
-                // The super constructor registers the LoadFileWorker with the session.
-                super(session);
-                this.context = session.getContext();
-                this.file = file;
-                this.recent = session.getRecentMenu();
-                this.openInNewSession = openInNewSession;
-                
-                this.session = session;
-                
-                // XXX this progress dialog has the coffee cup icon instead
-                // of the architect icon. To fix this, we need to create an
-                // invisible owner frame in the context. we can set its icon
-                // to the architect icon, and use it as the owner of all
-                // "unowned" dialogs like this one.
-                in = new BufferedInputStream(
-                    new ProgressMonitorInputStream(
-                         null,
-                         "Reading " + file.getName(),
-                         new FileInputStream(file)));
+        public LoadFileWorker(File file, ArchitectSwingSession newSession, ArchitectSwingSession openingSession)
+                throws ArchitectException, FileNotFoundException {
+            // The super constructor registers the LoadFileWorker with the
+            // session.
+            super(newSession);
+            this.context = newSession.getContext();
+            this.file = file;
+            this.recent = newSession.getRecentMenu();
+            this.openingSession = openingSession;
+
+            this.session = newSession;
+
+            // XXX this progress dialog has the coffee cup icon instead
+            // of the architect icon. To fix this, we need to create an
+            // invisible owner frame in the context. we can set its icon
+            // to the architect icon, and use it as the owner of all
+            // "unowned" dialogs like this one.
+            in = new BufferedInputStream(new ProgressMonitorInputStream(null, "Reading " + file.getName(),
+                    new FileInputStream(file)));
         }
 
         @Override
@@ -173,13 +188,15 @@ public class OpenProjectAction extends AbstractArchitectAction {
         public void cleanup() throws ArchitectException {
             if (getDoStuffException() != null) {
                 Throwable cause = getDoStuffException().getCause();
-                // This if clause is to prevent an error from being thrown if the user cancelled the file load, 
-                // in which ProgressMonitorInputStream throws an InterruptedIOException with message "progress"
+                // This if clause is to prevent an error from being thrown if
+                // the user cancelled the file load,
+                // in which ProgressMonitorInputStream throws an
+                // InterruptedIOException with message "progress"
                 if (!(cause instanceof InterruptedIOException) || !(cause.getMessage().equals("progress"))) {
                     // We have to use the non-session exception dialogue here,
-                    // because there is no session available (we just failed to create one!)
-                    ASUtils.showExceptionDialogNoReport(
-                            "Cannot open project file '" + file.getAbsolutePath() + "'",
+                    // because there is no session available (we just failed to
+                    // create one!)
+                    ASUtils.showExceptionDialogNoReport("Cannot open project file '" + file.getAbsolutePath() + "'",
                             getDoStuffException());
                     logger.error("Got exception while opening a project", getDoStuffException());
                 }
@@ -189,14 +206,13 @@ public class OpenProjectAction extends AbstractArchitectAction {
                 }
             } else {
                 recent.putRecentFileName(file.getAbsolutePath());
-                if (openInNewSession) {
-                    session.initGUI();
-                } else {
-                    session.getArchitectFrame().setTitle(session.getName()+" - Power*Architect");
-                }
+                session.initGUI();
                 ((SQLObject) session.getSourceDatabases().getModel().getRoot()).fireDbStructureChanged();
+                if (openingSession.isNew()) {
+                    openingSession.close();
+                }
             }
-            
+
             try {
                 if (in != null) {
                     in.close();
@@ -207,4 +223,3 @@ public class OpenProjectAction extends AbstractArchitectAction {
         }
     }
 }
-
