@@ -34,6 +34,7 @@ package ca.sqlpower.architect.ddl;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -43,7 +44,9 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLIndex;
+import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLIndex.IndexType;
+import ca.sqlpower.architect.SQLRelationship.Deferrability;
 
 
 public class SQLServerDDLGenerator extends GenericDDLGenerator {
@@ -439,7 +442,21 @@ public class SQLServerDDLGenerator extends GenericDDLGenerator {
     }
     
     @Override
-    public boolean supportsDeferabilityClause() {
-        return false;
+    public String getDeferrabilityClause(SQLRelationship r) {
+        if (supportsDeferrabilityPolicy(r)) {
+            return "";
+        } else {
+            throw new UnsupportedOperationException(getName() + " does not support " + 
+                    r.getName() + "'s deferrability policy (" + r.getDeferrability() + ").");
+        }
+    }
+    
+    @Override
+    public boolean supportsDeferrabilityPolicy(SQLRelationship r) {
+        if (!Arrays.asList(Deferrability.values()).contains(r.getDeferrability())) {
+            throw new IllegalArgumentException("Unknown deferrability policy: " + r.getDeferrability());
+        } else {
+            return r.getDeferrability() == Deferrability.NOT_DEFERRABLE;
+        }
     }
 }
