@@ -225,8 +225,9 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
                     if (pkTable == fkTable) {
                         // self-reference should never hijack the PK!
                         fkCol = new SQLColumn(pkCol);
-                        fkCol.setName("parent_" + fkCol.getName());
+                        fkCol.setName("Parent_" + fkCol.getName());
                         fkCol.setPrimaryKeySeq(null);
+                        setIdentifying(false);
                     } else if (match != null) {
 						// does the matching column have a compatible data type?
 						if (match.getType() == pkCol.getType() &&

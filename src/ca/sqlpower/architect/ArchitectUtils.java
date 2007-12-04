@@ -32,6 +32,7 @@
 package ca.sqlpower.architect;
 
 import java.net.URL;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -626,5 +627,81 @@ public class ArchitectUtils {
             }
         }
         return sb.toString();
+    }
+    
+    /**
+     * Checks if the definitions of two columns are materially different.
+     * Some data types (for example, DECIMAL and NUMERIC) are essentially
+     * the same.  Also, the precision and scale values on DATE columns are
+     * not of much consequence, but different databases report different
+     * values.
+     * 
+     * @param targetColumn One of the columns to compare. Must not be null.
+     * @param sourceColumn One of the columns to compare. Must not be null.
+     * @return True iff the source and target columns are materially different
+     * (as in, they are unlikely to be able to hold the same set of data as
+     * each other)
+     */
+    public static boolean columnsDiffer(SQLColumn targetColumn, SQLColumn sourceColumn) {
+
+        // eliminate meaningless type differences
+        int targetType = compressType(targetColumn.getType());
+        int sourceType = compressType(sourceColumn.getType());
+
+        int targetPrecision = targetColumn.getPrecision();
+        int sourcePrecision = sourceColumn.getPrecision();
+        
+        int targetScale = targetColumn.getScale();
+        int sourceScale = sourceColumn.getScale();
+
+        if (targetType == Types.DATE) {
+            targetPrecision = 0;
+            targetScale = 0;
+        } else if (targetType == Types.INTEGER) {
+            targetPrecision = 0;
+            targetScale = 0;
+        }
+
+        if (sourceType == Types.DATE) {
+            sourcePrecision = 0;
+            sourceScale = 0;
+        } else if (sourceType == Types.INTEGER) {
+            sourcePrecision = 0;
+            sourceScale = 0;
+        }
+
+        return (sourceType != targetType)
+            || (targetPrecision != sourcePrecision)
+            || (targetScale != sourceScale)
+            || (targetColumn.getNullable() != sourceColumn.getNullable());
+    }
+    
+    /**
+     * Checks if the given column types materially differ. Some data 
+     * types (for example, DECIMAL and NUMERIC) are essentially the same.
+     * @param t1 One of the column types to compare
+     * @param t2 One of the column types to compare.
+     * @return True iff the given column types are materially different
+     */
+    public static boolean columnTypesDiffer(int t1, int t2) {
+        int sourceType = compressType(t1);
+        int targetType = compressType(t2);
+        return sourceType != targetType;
+    }
+    
+    /**
+     * Compresses all the different kinds of essentially identical types
+     * into an arbitrarily chosen one of them.  For instance, NUMERIC
+     * and DECIMAL both compress to NUMERIC.
+     * 
+     * @param type
+     * @return
+     */
+    private static int compressType(int type) {
+        if (type == Types.DECIMAL) {
+            return Types.NUMERIC;
+        } else {
+            return type;
+        }
     }
 }

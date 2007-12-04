@@ -35,9 +35,12 @@ package ca.sqlpower.architect.ddl;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import ca.sqlpower.architect.SQLColumn;
+import ca.sqlpower.architect.SQLRelationship;
+import ca.sqlpower.architect.SQLRelationship.Deferrability;
 
 /**
  * Implements the quirks required for successful DDL generation that targets
@@ -78,8 +81,22 @@ public class HSQLDBDDLGenerator extends GenericDDLGenerator {
     }
     
     @Override
-    public boolean supportsDeferabilityClause() {
-        return false;
+    public String getDeferrabilityClause(SQLRelationship r) {
+        if (supportsDeferrabilityPolicy(r)) {
+            return "";
+        } else {
+            throw new UnsupportedOperationException(getName() + " does not support " + 
+                    r.getName() + "'s deferrability policy (" + r.getDeferrability() + ").");
+        }
+    }
+    
+    @Override
+    public boolean supportsDeferrabilityPolicy(SQLRelationship r) {
+        if (!Arrays.asList(Deferrability.values()).contains(r.getDeferrability())) {
+            throw new IllegalArgumentException("Unknown deferrability policy: " + r.getDeferrability());
+        } else {
+            return r.getDeferrability() == Deferrability.NOT_DEFERRABLE;
+        }
     }
 
     @Override
