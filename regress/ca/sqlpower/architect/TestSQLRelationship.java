@@ -748,4 +748,62 @@ public class TestSQLRelationship extends SQLTestCase {
         assertNotSame(mapping.getFkColumn(), mapping.getPkColumn());
         assertEquals(oldColCount + 1, parentTable.getColumns().size());
     }
+    
+    /**
+     * This tests for uniqueness in the generated column names. It is
+     * simple and does not cover all cases of attachRelationship because
+     * each case is merely a slight deviation with the same logic. 
+     */
+    public void testGenerateUniqueColumnNames() throws Exception {
+        SQLTable table = new SQLTable(database, true);
+        database.addChild(table);
+        SQLColumn c1 = new SQLColumn(table, "Col", Types.INTEGER, 10, 0);
+        c1.setPrimaryKeySeq(0);
+        table.addColumn(c1);
+        
+        SQLColumn c2 = new SQLColumn(table, "Parent_Col", Types.INTEGER, 10, 0);
+        table.addColumn(c2);
+        
+        SQLRelationship r1 = new SQLRelationship();
+        r1.attachRelationship(table, table, true);
+        
+        SQLRelationship r2 = new SQLRelationship();
+        r2.attachRelationship(table, table, true);
+        
+        List<String> colNames = new ArrayList<String>();
+        for (SQLColumn c : table.getColumns()) {
+            String colName = c.getName();
+            assertFalse("Failed to generate unique column name, duplicated name : " + colName, colNames.contains(colName));
+            colNames.add(colName);
+        }
+    }
+    
+    /**
+     * This checks a new behavior of attachRelationship. It is a case where
+     * attaching a relationship to tables that were already related and a 
+     * match was found for hijacking should NOT hijack but create a new 
+     * column instead.
+     */
+    public void testAutoMappingNoHijackWhenRelationshipAlreadyExists() throws Exception {
+        SQLColumn parentCol = parentTable.getColumnByName("pkcol_1");
+        parentCol.setPrimaryKeySeq(0);
+        
+        SQLTable childTable = new SQLTable(database, true);
+        database.addChild(childTable);
+        
+        SQLRelationship r1 = new SQLRelationship();
+        r1.attachRelationship(parentTable, childTable, true);
+
+        // assumes that attaching the relationship caused creation 
+        // of a new column that is materially equal
+        assertEquals(1, childTable.getColumns().size());
+        assertEquals(1, childTable.getColumn(0).getReferenceCount());
+        
+        SQLRelationship r2 = new SQLRelationship();
+        r2.attachRelationship(parentTable, childTable, true);
+        
+        assertEquals("A new column should have been created.", 2, childTable.getColumns().size());
+        assertEquals("Incorrect column mapping.", 1, childTable.getColumn(0).getReferenceCount());
+        assertEquals("Incorrect column mapping.", 1, childTable.getColumn(1).getReferenceCount());
+    }
 }
