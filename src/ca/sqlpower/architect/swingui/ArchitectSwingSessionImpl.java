@@ -151,7 +151,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
                 try {
                     OpenProjectAction.openAsynchronously(getContext().createSession(false), f, ArchitectSwingSessionImpl.this);
                 } catch (ArchitectException ex) {
-                    SPSUtils.showExceptionDialogNoReport(getArchitectFrame(), "An unexpected exception has occured ", ex);
+                    SPSUtils.showExceptionDialogNoReport(getArchitectFrame(), "Failed to open project file", ex);
                 }
             }
         };
