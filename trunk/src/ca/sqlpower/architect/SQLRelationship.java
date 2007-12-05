@@ -238,32 +238,27 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 				for (SQLColumn pkCol : pkColListCopy) {
 					if (pkCol.getPrimaryKeySeq() == null) break;
 
-					SQLColumn fkCol;
 					SQLColumn match = fkTable.getColumnByName(pkCol.getName());
+					SQLColumn fkCol = new SQLColumn(pkCol);
+					fkCol.setPrimaryKeySeq(null);
                     if (pkTable == fkTable) {
                         // self-reference should never hijack the PK!
-                        fkCol = new SQLColumn(pkCol);
                         String colName = "Parent_" + fkCol.getName();
                         fkCol.setName(generateUniqueColumnName(colName, fkTable));
-                        fkCol.setPrimaryKeySeq(null);
                         setIdentifying(false);
-                    } else if (alreadyExists || match == null) { 
+                    } else if (match == null) { 
                         // no match, so we need to import this column from PK table
-                        fkCol = new SQLColumn(pkCol);
-                        fkCol.setPrimaryKeySeq(null);
                         fkCol.setName(generateUniqueColumnName(pkCol.getName(),fkTable));
                     } else {
 						// does the matching column have a compatible data type?
-						if (match.getType() == pkCol.getType() &&
+						if (!alreadyExists && match.getType() == pkCol.getType() &&
 								match.getPrecision() == pkCol.getPrecision() &&
 								match.getScale() == pkCol.getScale()) {
 							// column is an exact match, so we don't have to recreate it
 							fkCol = match;
 						} else {
-							fkCol = new SQLColumn(pkCol);
 						    String colName = pkCol.getParentTable().getName() + "_" + pkCol.getName();
 							fkCol.setName(generateUniqueColumnName(colName,fkTable));
-							fkCol.setPrimaryKeySeq(null);
 						}
                     }
 					this.addMapping(pkCol, fkCol);
