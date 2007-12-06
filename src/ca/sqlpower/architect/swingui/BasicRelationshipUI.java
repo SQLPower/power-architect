@@ -50,6 +50,8 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.ArchitectException;
+
 /**
  * The BasicRelationshipUI is responsible for drawing the lines
  * between tables.  Subclasses decorate the ends of the lines.
@@ -125,7 +127,6 @@ public class BasicRelationshipUI extends RelationshipUI
 		logger.debug("BasicRelationshipUI is painting");
 		Relationship r = (Relationship) c;
 		Graphics2D g2 = (Graphics2D) g;
-
 		if (g2 == null)
 		{
 			throw new NullPointerException("Graphics g2 is null");
@@ -319,6 +320,7 @@ public class BasicRelationshipUI extends RelationshipUI
 	 * Adjusts the UI's connection points to the default "best" position.
 	 */
 	public void bestConnectionPoints() {
+        logger.info("bestConnectionPoints()");
 		Rectangle pktBounds = relationship.getPkTable().getBounds();
 		Rectangle fktBounds = relationship.getFkTable().getBounds();
 
@@ -360,8 +362,12 @@ public class BasicRelationshipUI extends RelationshipUI
 					(int) (pkToFkBorderLine.x2 - fktBounds.x),
 					(int) (pkToFkBorderLine.y2 - fktBounds.y));
 		}
-	}
 
+		// deals with overlapping connections
+		fixConnectionPoints();
+
+	}
+	
 	private Line2D.Double calcConnectionPoints(Rectangle pktBounds, Rectangle fktBounds) {
 		Line2D.Double centreToCentreLine =
 			new Line2D.Double(pktBounds.getCenterX(),pktBounds.getCenterY(),
@@ -541,12 +547,165 @@ public class BasicRelationshipUI extends RelationshipUI
 		}
 		return answer;
 	}
+	
+	/**
+	 * Attempts to move the connection points if they collided with another 
+	 * relationship's connection points. It depends on the points having
+	 * a previous location point already, preferably the best connection point.
+	 * <p>
+	 * Guesses for new connection points in the following order:
+	 *             7  5  3  1  origin  2  4  6  8
+	 */
+	private void fixConnectionPoints() {
+	    logger.info("fixConnectionPoints()");
+	    PlayPen playPen = relationship.getPlayPen();
+	    Rectangle pktBounds = relationship.getPkTable().getBounds();
+        Rectangle fktBounds = relationship.getFkTable().getBounds();
+        
+        int orientation = getFacingEdges(pktBounds, fktBounds);
+        // hack for the orientation of self referencing relationships
+        if (relationship.getPkTable() == relationship.getFkTable()) {
+            orientation = PARENT_FACES_BOTTOM | CHILD_FACES_LEFT;
+        }
+	    
+        // sets up to fix the pkConnectionPoint
+        boolean isPkConnectionPoint = true;
+        Point connectionPoint;
+        TablePane table = relationship.getPkTable();
+        
+        // the last adjusted point that was not out of bounds
+        Point lastValidPoint = new Point(pkConnectionPoint);
+
+        // two passes: first, the setup (directly above) causes the code in the loop
+        // to update the PK connection point.  At the bottom of the loop, the setup
+        // changes to fix the FK connection point.
+        for (int i = 0; i < 2; i++) {
+    	    int count = 1;
+    	    
+            boolean collided;
+            
+            // indicate if an adjusted point has been out of bounds,
+            // two values for the two possible sides from the origin
+            boolean[] outOfBounds = {false, false};
+
+            do {
+                collided = false;
+
+                // skip this offset because this side has already went out of bounds
+                if (outOfBounds[count%2]) {
+                    collided = true;
+                } else {
+                    for (Relationship r : playPen.getRelationships()) {
+                        // skips this relationship and any that is not connected
+                        // to the current table pane
+                        if (r == relationship || (r.getPkTable() != table && r.getFkTable() != table)) continue;
+                        
+                        // checks for collision, r.contains() was not used because
+                        // it did not pick up collisions when the table was dragged
+                        // past the illegal orientation points.
+                        if (r.getPkConnectionPoint().equals(lastValidPoint) ||
+                                r.getFkConnectionPoint().equals(lastValidPoint)) {
+                            collided = true;
+                            
+                            // determines offset according to count in this order:
+                            // 1, -1, 2, -2, 3, -3, ...
+                            int offset = count/2;
+                            if (count%2 != 0) {
+                                offset = (offset + 1)*-1;
+                            } 
+                            
+                            connectionPoint = adjustConnectionPoint(orientation, isPkConnectionPoint, offset);
+                            
+                            // sets the indicators if the point was out of bounds
+                            if (connectionPoint == null) {
+                                outOfBounds[count%2] = true;
+                            // saves the new adjusted point
+                            } else {
+                                lastValidPoint = new Point(connectionPoint);
+                            }
+                            break;
+                        }
+                    }
+                }
+                count++;
+            } while (collided && !(outOfBounds[0] && outOfBounds[1]));
+            
+            // actual work to adjust the connection point
+            if (isPkConnectionPoint) {
+                pkConnectionPoint.move(lastValidPoint.x, lastValidPoint.y);
+            } else {
+                fkConnectionPoint.move(lastValidPoint.x, lastValidPoint.y);
+            }
+            
+            // sets up for the next connection point, assumes
+            // that there are only two: pkConnectionPoint, fkConnectionPoint
+            isPkConnectionPoint = false;
+            table = relationship.getFkTable();
+            lastValidPoint = new Point(fkConnectionPoint);
+        }
+	}
+	
+	/**
+	 * Adjusts and returns a new connection point that is an offset of either
+	 * the pkConnectionPoint or the fkConnection point. Returns null if the
+	 * new connection point was out of bounds.
+	 * 
+	 * @param orientation The orientation of the associated table
+	 * @param isPkConnectionPoint Whether the point of origin is the pkConnectionPoint, assumes
+	 *                            that there are only two: pkConnectionPoint, fkConnectionPoint
+	 * @param offset The offset to adjust the point by: multiplied by the snap radius * 2.
+	 * @return The new connection point, null if out of bounds.
+	 */
+	private Point adjustConnectionPoint(int orientation, boolean isPkConnectionPoint, int offset) {
+	    logger.info("adjustConnectionPoint()");
+	    Rectangle tBounds;
+	    Point connectionPoint;
+
+	    // sets up the corresponding orientations, bounds, 
+	    // and point of origin to check for according to
+	    // isPkConnectionPoint
+	    int[] orientations;
+	    if (isPkConnectionPoint) {
+	        tBounds = relationship.getPkTable().getBounds();
+	        orientations = new int[]{PARENT_FACES_TOP, PARENT_FACES_RIGHT,
+	                PARENT_FACES_BOTTOM, PARENT_FACES_LEFT};
+	        connectionPoint = new Point(pkConnectionPoint);
+	    } else {
+	        tBounds = relationship.getFkTable().getBounds();
+	        orientations = new int[]{CHILD_FACES_TOP, CHILD_FACES_RIGHT,
+	                CHILD_FACES_BOTTOM, CHILD_FACES_LEFT};
+	        connectionPoint = new Point(fkConnectionPoint);
+	    }
+
+	    int x = connectionPoint.x;
+	    int y = connectionPoint.y;
+
+	    // adjusts the x coordinate if the table faced top or bottom
+	    if ( ((orientation & orientations[2]) != 0) || ((orientation & orientations[0]) != 0) ) {
+	        x += offset * getSnapRadius() * 2;
+	        if ((x < getTerminationWidth()) || 
+	                (x > tBounds.width - getTerminationWidth())) {
+	            return null;
+	        }
+	    // adjusts the y coordinate if the table faced left or right
+	    } else if ( ((orientation & orientations[3]) != 0) || ((orientation & orientations[1]) != 0) ) {
+	        y += offset * getSnapRadius() * 2;
+	        if ((y < getTerminationWidth()) ||
+	                (y > tBounds.height - getTerminationWidth())) {
+	            return null;
+	        }
+	    }
+
+	    return new Point(x, y);
+	}
 
 	/**
 	 * Compute bounds should only be called by objects in this package or from regress.
+	 * @throws ArchitectException 
 	 *
 	 */
 	protected Rectangle computeBounds() {
+//        logger.info("computeBounds()");
 		// XXX: should check for valid cached bounds before recomputing!
 
 		TablePane pkTable = relationship.getPkTable();
