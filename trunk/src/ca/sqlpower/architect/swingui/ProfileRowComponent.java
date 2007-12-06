@@ -59,7 +59,7 @@ import org.apache.log4j.Logger;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileResultEvent;
 import ca.sqlpower.architect.profile.ProfileResultListener;
-import ca.sqlpower.architect.profile.TableProfileManager;
+import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
@@ -298,7 +298,7 @@ public class ProfileRowComponent extends JPanel implements Selectable {
                                     !getResult().isCancelled() &&
                                     !(obj instanceof JButton)) {
                         ProfileResultsViewer profileResultsViewer = 
-                            new ProfileResultsViewer((TableProfileManager) pm);
+                            new ProfileResultsViewer((ProfileManagerImpl) pm);
                         profileResultsViewer.clearScanList();
                         profileResultsViewer.addTableProfileResultToScan(result);
                         profileResultsViewer.addTableProfileResult(result);

@@ -69,7 +69,6 @@ import ca.sqlpower.architect.profile.ProfileChangeEvent;
 import ca.sqlpower.architect.profile.ProfileChangeListener;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileResult;
-import ca.sqlpower.architect.profile.TableProfileManager;
 import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
@@ -341,7 +340,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
         Action viewAllAction = new AbstractAction("View All") {
             public void actionPerformed(ActionEvent e) {
                 ProfileResultsViewer profileResultsViewer = 
-                    new ProfileResultsViewer((TableProfileManager) pm);
+                    new ProfileResultsViewer(pm);
                 profileResultsViewer.clearScanList();
                 for (ProfileRowComponent rowComp : showingRows) {
                     TableProfileResult result = rowComp.getResult();
@@ -357,7 +356,7 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
 
             public void actionPerformed(ActionEvent e) {
                 ProfileResultsViewer profileResultsViewer = 
-                    new ProfileResultsViewer((TableProfileManager) pm);
+                    new ProfileResultsViewer(pm);
                 profileResultsViewer.clearScanList();
                 for (ProfileRowComponent rowComp : showingRows) {
                     if (rowComp.isSelected()) {
