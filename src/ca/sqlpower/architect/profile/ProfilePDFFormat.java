@@ -68,7 +68,7 @@ import com.lowagie.text.pdf.PdfWriter;
 
 public class ProfilePDFFormat implements ProfileFormat {
 
-    private static final Logger logger = Logger.getLogger(TableProfileManager.class);
+    private static final Logger logger = Logger.getLogger(ProfilePDFFormat.class);
     private int totalColumn;
 
 
