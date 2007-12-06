@@ -174,13 +174,20 @@ public class ArchitectFrame extends JFrame {
     };
 
     /**
-	 * This constructor is used by the session implementation.  To obtain an Architect
-     * Frame, you have to create an {@link ArchitectSwingSessionContext} and then call
-     * its createSession() method to obtain a Swing session.
-	 *
-	 * @throws ArchitectException
-	 */
-	ArchitectFrame(ArchitectSwingSession architectSession, SwingUIProject project) throws ArchitectException {
+     * This constructor is used by the session implementation. To obtain an
+     * Architect Frame, you have to create an
+     * {@link ArchitectSwingSessionContext} and then call its createSession()
+     * method to obtain a Swing session.
+     * 
+     * @param architectSession
+     *            The ArchitectSwingSession related to this frame.
+     * @param bounds
+     *            A Rectangle whose x and y properties will be used to determine
+     *            the position of newly created ArchitectFrame
+     * 
+     * @throws ArchitectException
+     */
+	ArchitectFrame(ArchitectSwingSession architectSession, Rectangle bounds) throws ArchitectException {
 
         session = architectSession;
         ArchitectSwingSessionContext context = session.getContext();
@@ -205,12 +212,15 @@ public class ArchitectFrame extends JFrame {
         // Get the size of the default screen
         Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
         
-        Rectangle bounds = new Rectangle();
-        bounds.x = prefs.getInt(ArchitectSwingUserSettings.MAIN_FRAME_X, 40);
-        bounds.y = prefs.getInt(ArchitectSwingUserSettings.MAIN_FRAME_Y, 40);
+        if (bounds == null) {
+            bounds = new Rectangle();
+            bounds.x = prefs.getInt(ArchitectSwingUserSettings.MAIN_FRAME_X, 40);
+            bounds.y = prefs.getInt(ArchitectSwingUserSettings.MAIN_FRAME_Y, 40);
+        } 
+        
         bounds.width = prefs.getInt(ArchitectSwingUserSettings.MAIN_FRAME_WIDTH, (int) (dim.width * 0.8));
         bounds.height = prefs.getInt(ArchitectSwingUserSettings.MAIN_FRAME_HEIGHT, (int) (dim.height * 0.8));
-
+        
         setBounds(bounds);
         addWindowListener(new ArchitectFrameWindowListener());
         session.getUserSettings().getSwingSettings().setBoolean(ArchitectSwingUserSettings.SHOW_WELCOMESCREEN,
@@ -490,7 +500,7 @@ public class ArchitectFrame extends JFrame {
      * and opens it in a new ArchitectFrame instance.
      */
     private void createNewProject() throws ArchitectException {
-        session.getContext().createSession();
+        session.getContext().createSession(session);
     }
 
 	public SwingUIProject getProject() {

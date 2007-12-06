@@ -206,11 +206,8 @@ public class OpenProjectAction extends AbstractArchitectAction {
                 }
             } else {
                 recent.putRecentFileName(file.getAbsolutePath());
-                session.initGUI();
+                session.initGUI(openingSession);
                 ((SQLObject) session.getSourceDatabases().getModel().getRoot()).fireDbStructureChanged();
-                if (openingSession.isNew()) {
-                    openingSession.close();
-                }
             }
 
             try {

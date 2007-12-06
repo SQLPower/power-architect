@@ -95,6 +95,19 @@ public interface ArchitectSwingSessionContext extends ArchitectSessionContext {
     public abstract ArchitectSwingSession createSession(InputStream in, boolean showGUI) throws ArchitectException, IOException;
 
     /**
+     * Creates a new session that will have its GUI components positioned relative to the GUI components
+     * of the given ArchitectSwingSession. Typically, the given ArchitectSwingSession is the session from
+     * where the call to create a new session was made. (ex. the given session's 'Open Project' button was
+     * pressed). If the given session is null, then it will default to using the most recently saved GUI
+     * component positions in the user preferences in {@link ArchitectSwingUserSettings}. 
+     * 
+     * @param openingSession
+     * @return
+     * @throws ArchitectException
+     */
+    public abstract ArchitectSwingSession createSession(ArchitectSwingSession openingSession) throws ArchitectException;
+    
+    /**
      * Returns true iff this context is running on a Mac OS X machine.  Some
      * UI features are different under that platform to increase the illusion
      * that the Architect is a native application.

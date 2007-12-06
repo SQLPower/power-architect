@@ -153,6 +153,23 @@ public interface ArchitectSwingSession extends ArchitectSession, SwingWorkerRegi
     public void initGUI() throws ArchitectException;
 
     /**
+     * Like initGUI(), this method initializes the GUI components for this
+     * session, with the exception that the GUI components will get positioned
+     * relative to the GUI component of the given ArchitectSwingSession. As with
+     * initGUI(), call this only if you need a GUI. This method must be called
+     * on the Swing Event Dispatch Thread.
+     * 
+     * @param openingSession
+     *            The ArchitectSwingSession to which this session's GUI
+     *            components will be positioned relative to
+     * @throws ArchitectException
+     * @throws IllegalStateException
+     *             if showGUI==true and this method was not called on the Event
+     *             Dispatch Thread.
+     */
+    public void initGUI(ArchitectSwingSession openingSession) throws ArchitectException;
+    
+    /**
      * Returns true if the session contains a completely new and unmodified project.
      * Otherwise, it returns false.
      * <p>

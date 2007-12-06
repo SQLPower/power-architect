@@ -31,6 +31,7 @@
  */
 package ca.sqlpower.architect.swingui;
 
+import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -184,18 +185,35 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
     }
 
     public void initGUI() throws ArchitectException {
+        initGUI(null);
+    }
+
+    public void initGUI(ArchitectSwingSession openingSession) throws ArchitectException {
         if (!SwingUtilities.isEventDispatchThread()) {
             throw new IllegalStateException("This method must be called on the Swing Event Dispatch Thread.");
         }
 
         ToolTipManager.sharedInstance().registerComponent(playPen);
-
-        frame = new ArchitectFrame(this, getProject());
+        
+        if (openingSession != null) {
+            Rectangle bounds = openingSession.getArchitectFrame().getBounds();
+            if (!openingSession.isNew()) {
+                bounds.x += 20;
+                bounds.y += 20;
+            }
+            frame = new ArchitectFrame(this, bounds);
+        } else {
+            frame = new ArchitectFrame(this, null);
+        }
         
         // MUST be called after constructed to set up the actions
         frame.init(); 
         frame.setVisible(true);
 
+        if (openingSession != null && openingSession.isNew()) {
+            openingSession.close();
+        }
+        
         profileDialog = new JDialog(frame, "Table Profiles");
         profileManagerView = new ProfileManagerView(delegateSession.getProfileManager());
         delegateSession.getProfileManager().addProfileChangeListener(profileManagerView);
@@ -210,7 +228,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         
         profileDialog.setLocationRelativeTo(frame);
     }
-
+    
     public SwingUIProject getProject() {
         return (SwingUIProject) delegateSession.getProject();
     }

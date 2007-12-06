@@ -156,7 +156,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      * not called on the Event Dispatch Thread.
      */
     public ArchitectSwingSession createSession(InputStream in, boolean showGUI) throws ArchitectException, IOException {
-        ArchitectSwingSession session = createSessionImpl("Loading...", false);
+        ArchitectSwingSession session = createSessionImpl("Loading...", false, null);
         
         try {
             session.getProject().load(in, getPlDotIni());
@@ -197,7 +197,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
 
     /* javadoc inherited from interface */
     public ArchitectSwingSession createSession(boolean showGUI) throws ArchitectException {
-        return createSessionImpl("New Project", showGUI);
+        return createSessionImpl("New Project", showGUI, null);
     }
     
     /* javadoc inherited from interface */
@@ -205,6 +205,10 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         return createSession(in, true);
     }
 
+    public ArchitectSwingSession createSession(ArchitectSwingSession openingSession) throws ArchitectException {
+        return createSessionImpl("New Project", true, openingSession);
+    }
+    
     /**
      * This is the one createSession() implementation to which all other overloads of
      * createSession() actually delegate their work.
@@ -218,7 +222,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
      * @throws IllegalStateException if showGUI==true and this method was
      * not called on the Event Dispatch Thread.
      */
-    private ArchitectSwingSession createSessionImpl(String projectName, boolean showGUI) throws ArchitectException {
+    private ArchitectSwingSession createSessionImpl(String projectName, boolean showGUI, ArchitectSwingSession openingSession) throws ArchitectException {
         logger.debug("About to create a new session for project \"" + projectName + "\"");
         ArchitectSwingSessionImpl session = new ArchitectSwingSessionImpl(this, projectName);
         getSessions().add(session);
@@ -226,7 +230,7 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         
         if (showGUI) {
             logger.debug("Creating the Architect frame...");
-            session.initGUI();
+            session.initGUI(openingSession);
         
             if (getSessions().size() == 1) {
                 showWelcomeScreen(session.getArchitectFrame());
