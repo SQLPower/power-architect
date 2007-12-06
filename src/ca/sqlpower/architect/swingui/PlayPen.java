@@ -2209,6 +2209,8 @@ public class PlayPen extends JPanel
 				} else if(evt.getClickCount()==1){
 				    if (c.isSelected()&& componentPreviouslySelected)c.setSelected(false,SelectionEvent.SINGLE_SELECT);
                 }
+          		session.getArchitectFrame().getCreateIdentifyingRelationshipAction().cancel();
+				session.getArchitectFrame().getCreateNonIdentifyingRelationshipAction().cancel();
 			} else if ( c instanceof TablePane ) {
 				TablePane tp = (TablePane) c;
 				if ((evt.getModifiers() & MouseEvent.BUTTON1_MASK) != 0) {
@@ -2238,6 +2240,8 @@ public class PlayPen extends JPanel
 				    }
 				}
 			} else {
+                session.getArchitectFrame().getCreateIdentifyingRelationshipAction().cancel();
+                session.getArchitectFrame().getCreateNonIdentifyingRelationshipAction().cancel();
 				maybeShowPopup(evt);
 			}
 		}
@@ -2366,8 +2370,6 @@ public class PlayPen extends JPanel
 				}
 			} else {
 				if ((evt.getModifiersEx() & InputEvent.BUTTON1_DOWN_MASK) != 0  && !evt.isPopupTrigger()) {
-				    session.getArchitectFrame().getCreateIdentifyingRelationshipAction().cancel();
-				    session.getArchitectFrame().getCreateNonIdentifyingRelationshipAction().cancel();
 					mouseMode = MouseModeType.IDLE;
 					selectNone();
 					rubberBandOrigin = new Point(p);
