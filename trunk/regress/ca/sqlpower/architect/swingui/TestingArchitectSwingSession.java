@@ -93,7 +93,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         
         compareDMSettings = new CompareDMSettings();
         
-        frame = new ArchitectFrame(this, project);
+        frame = new ArchitectFrame(this, null);
         frame.init();
         
         try {
@@ -206,6 +206,10 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         throw new UnsupportedOperationException("Testing session impl doesn't make GUIs");
     }
 
+    public void initGUI(ArchitectSwingSession session) throws ArchitectException {
+        throw new UnsupportedOperationException("Testing session impl doesn't make GUIs");
+    }
+    
     public void registerSwingWorker(SPSwingWorker worker) {
         
     }

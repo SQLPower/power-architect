@@ -96,6 +96,10 @@ public class TestingArchitectSwingSessionContext implements ArchitectSwingSessio
         return this.createSession();
     }
     
+    public ArchitectSwingSession createSession(ArchitectSwingSession openingSession) throws ArchitectException {
+        return this.createSession();
+    }
+    
     public Collection<ArchitectSession> getSessions() {
         return null;
     }
