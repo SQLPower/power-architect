@@ -37,7 +37,7 @@ import java.util.List;
 
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
-import ca.sqlpower.architect.profile.TableProfileManager;
+import ca.sqlpower.architect.profile.ProfileManagerImpl;
 
 /**
  * The ArchitectSession class represents a single user's session with
@@ -51,7 +51,7 @@ import ca.sqlpower.architect.profile.TableProfileManager;
 public class ArchitectSessionImpl implements ArchitectSession {
     
     private final ArchitectSessionContext context;
-    private TableProfileManager profileManager;
+    private ProfileManagerImpl profileManager;
     private SQLDatabase db;
     private String name;
     private SQLObjectRoot rootObject;
@@ -68,7 +68,7 @@ public class ArchitectSessionImpl implements ArchitectSession {
 	        String name) throws ArchitectException {
 	    this.context = context;
 	    this.name = name;
-        this.profileManager = new TableProfileManager();
+        this.profileManager = new ProfileManagerImpl();
         this.project = new CoreProject(this);
         this.db = new SQLDatabase();
         this.rootObject = new SQLObjectRoot();
@@ -100,7 +100,7 @@ public class ArchitectSessionImpl implements ArchitectSession {
         this.name = argName;
     }
 
-    public TableProfileManager getProfileManager() {
+    public ProfileManagerImpl getProfileManager() {
         return profileManager;
     }
 

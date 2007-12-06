@@ -48,7 +48,7 @@ import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.architect.profile.ProfileManager;
-import ca.sqlpower.architect.profile.TableProfileManager;
+import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.architect.undo.UndoManager;
 import ca.sqlpower.swingui.SPSwingWorker;
 
@@ -66,7 +66,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
     private UndoManager undoManager;
     private DBTree sourceDatabases;
     private SQLObjectRoot rootObject;
-    private TableProfileManager profileManager;
+    private ProfileManager profileManager;
     private CompareDMSettings compareDMSettings;
     private DDLGenerator ddlGenerator;
     private KettleJob kettleJob;
@@ -82,7 +82,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
             }
         };
         this.delegateSession = new ArchitectSessionImpl(context, "test");
-        profileManager = new TableProfileManager();
+        profileManager = new ProfileManagerImpl();
         project = new SwingUIProject(this);
         userSettings = context.getUserSettings();
         playpen = new PlayPen(this);

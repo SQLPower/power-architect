@@ -47,20 +47,14 @@ import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLTable;
 
 /**
- * The profile manager implementation for tables. Provides a simple
- * implementation of the API for properly creating profiles using a separate
- * worker thread.
- * <p>
- * As of this writing, this is the only non-stub profile manager in the
- * Architect. When and if we make more kinds of profile managers, there will be
- * large swaths of code in this class that could be moved into an abstract base
- * profile manager.
+ * The default ProfileManager implementation. Creates profiles of tables,
+ * optionally using a separate worker thread.
  * 
  * @version $Id$
  */
-public class TableProfileManager implements ProfileManager {
+public class ProfileManagerImpl implements ProfileManager {
 
-    private static final Logger logger = Logger.getLogger(TableProfileManager.class);
+    private static final Logger logger = Logger.getLogger(ProfileManagerImpl.class);
     
     /**
      * The current list of listeners who want to know when the contents
