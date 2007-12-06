@@ -59,8 +59,8 @@ import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.profile.ProfileChangeEvent;
 import ca.sqlpower.architect.profile.ProfileChangeListener;
 import ca.sqlpower.architect.profile.ProfileColumn;
+import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileResult;
-import ca.sqlpower.architect.profile.TableProfileManager;
 import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.swingui.ProfilePanel.ChartTypes;
 import ca.sqlpower.architect.swingui.action.SaveProfileAction;
@@ -81,7 +81,7 @@ public class ProfileResultsViewer {
     /**
      * The profile manager that owns the results this component views.
      */
-    private final TableProfileManager profileManager;
+    private final ProfileManager profileManager;
 
     /**
      * The results this viewer is viewing.
@@ -181,7 +181,7 @@ public class ProfileResultsViewer {
     /**
      * Creates but does not show a new profile result viewer dialog.
      */
-    public ProfileResultsViewer(TableProfileManager profileManager) {
+    public ProfileResultsViewer(ProfileManager profileManager) {
         this.profileManager = profileManager;
         this.results = new ArrayList<TableProfileResult>();
         this.frame = new JFrame("Table Profiles");

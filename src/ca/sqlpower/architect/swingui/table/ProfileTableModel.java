@@ -56,7 +56,7 @@ import ca.sqlpower.architect.profile.ColumnValueCount;
 import ca.sqlpower.architect.profile.ProfileChangeEvent;
 import ca.sqlpower.architect.profile.ProfileChangeListener;
 import ca.sqlpower.architect.profile.ProfileColumn;
-import ca.sqlpower.architect.profile.TableProfileManager;
+import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.TableProfileResult;
 
 public class ProfileTableModel extends AbstractTableModel {
@@ -73,7 +73,7 @@ public class ProfileTableModel extends AbstractTableModel {
 
     static Logger logger = Logger.getLogger(ProfileTableModel.class);
 
-    private TableProfileManager profileManager;
+    private ProfileManager profileManager;
 
     /**
      * A list of profile results to show in the ProfileResultsViewer
@@ -87,7 +87,7 @@ public class ProfileTableModel extends AbstractTableModel {
     
     private List<SQLObject> filters;
 
-    public ProfileTableModel(TableProfileManager profileManager) {
+    public ProfileTableModel(ProfileManager profileManager) {
         filters = new ArrayList<SQLObject>();
         setProfileManager(profileManager);
     }
@@ -209,7 +209,7 @@ public class ProfileTableModel extends AbstractTableModel {
         return columnProfile.getException() != null;
 
     }
-    public TableProfileManager getProfileManager() {
+    public ProfileManager getProfileManager() {
         return profileManager;
     }
 
@@ -254,7 +254,7 @@ public class ProfileTableModel extends AbstractTableModel {
         return false;
     }
 
-    public void setProfileManager(TableProfileManager profileManager) {
+    public void setProfileManager(ProfileManager profileManager) {
         this.profileManager = profileManager;
         profileManager.addProfileChangeListener(new ProfileChangeListener(){
 
