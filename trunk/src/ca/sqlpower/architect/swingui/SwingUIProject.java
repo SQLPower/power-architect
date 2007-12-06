@@ -56,7 +56,6 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.architect.CoreProject;
@@ -72,8 +71,8 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ColumnValueCount;
+import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileResult;
-import ca.sqlpower.architect.profile.TableProfileManager;
 import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
 import ca.sqlpower.sql.DataSourceCollection;
@@ -587,12 +586,7 @@ public class SwingUIProject extends CoreProject {
      * @param out
      */
     private void saveProfiles(PrintWriter out) {
-        TableProfileManager profmgr;
-        if (getSession().getProfileManager() instanceof TableProfileManager) {
-            profmgr = (TableProfileManager) getSession().getProfileManager();
-        } else {
-            throw new ArchitectRuntimeException(new ArchitectException("Session.getProfileManager should be a TableProfileManager"));
-        }
+        ProfileManager profmgr = getSession().getProfileManager();
         ioo.println(out, "<profiles topNCount=\""+profmgr.getDefaultProfileSettings().getTopNCount()+"\">");
         ioo.indent++;
 
