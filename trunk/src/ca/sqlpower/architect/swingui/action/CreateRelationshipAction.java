@@ -156,7 +156,6 @@ public class CreateRelationshipAction extends AbstractArchitectAction
 				}
 			}
 		} else {
-		    resetAction();
 			if (logger.isDebugEnabled())
 				logger.debug("The user clicked on a non-table component: "+s);
 		}
