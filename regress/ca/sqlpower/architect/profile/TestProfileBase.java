@@ -73,7 +73,7 @@ public abstract class TestProfileBase extends TestCase {
      * Profile manager instance that contains profiles of the three tables
      * described in this class's comment.
      */
-    protected TableProfileManager pm;
+    protected ProfileManager pm;
 
     /**
      * SQLTable version of TEST_TABLE1.
@@ -177,7 +177,7 @@ public abstract class TestProfileBase extends TestCase {
             assertNotNull(t2);
             assertNotNull(t3);
             
-            pm = new TableProfileManager();
+            pm = new ProfileManagerImpl();
             pm.getDefaultProfileSettings().setFindingAvg(true);
             pm.getDefaultProfileSettings().setFindingMin(true);
             pm.getDefaultProfileSettings().setFindingMax(true);
