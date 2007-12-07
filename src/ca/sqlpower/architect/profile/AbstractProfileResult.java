@@ -45,6 +45,8 @@ import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.profile.event.ProfileResultEvent;
+import ca.sqlpower.architect.profile.event.ProfileResultListener;
 import ca.sqlpower.util.MonitorableImpl;
 
 public abstract class AbstractProfileResult<T extends SQLObject>

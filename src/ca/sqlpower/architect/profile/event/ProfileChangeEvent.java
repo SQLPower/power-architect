@@ -29,7 +29,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package ca.sqlpower.architect.profile;
+package ca.sqlpower.architect.profile.event;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,6 +37,8 @@ import java.util.EventObject;
 import java.util.List;
 
 import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.profile.ProfileManager;
+import ca.sqlpower.architect.profile.ProfileResult;
 
 /**
  * The ProfileChangeEvent represents a change in the contents of a

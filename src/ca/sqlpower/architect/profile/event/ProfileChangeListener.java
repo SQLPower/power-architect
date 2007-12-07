@@ -29,19 +29,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package ca.sqlpower.architect.profile;
+package ca.sqlpower.architect.profile.event;
 
 import java.util.EventListener;
 
+/**
+ * Interface for receiving notifications of changes to the collection
+ * of profiles in a ProfileManager.
+ */
 public interface ProfileChangeListener extends EventListener {
 
-    /** One or Many profiles were added */
+    /** One or Many profiles were added. */
     public void profilesAdded(ProfileChangeEvent e);
 
-    /** One or Many profiles were removed */
+    /** One or Many profiles were removed. */
     public void profilesRemoved(ProfileChangeEvent e);
 
-    /** The list changed in some major way; listeners should re-fetch it */
+    /** The list changed in some major way; listeners should re-fetch it. */
     public void profileListChanged(ProfileChangeEvent event);
 
 }
