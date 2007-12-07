@@ -29,7 +29,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package ca.sqlpower.architect.profile;
+package ca.sqlpower.architect.profile.output;
 
 import java.awt.Color;
 import java.io.IOException;
@@ -49,6 +49,10 @@ import ca.sqlpower.architect.ArchitectVersion;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLGenerator;
+import ca.sqlpower.architect.profile.ColumnProfileResult;
+import ca.sqlpower.architect.profile.ColumnValueCount;
+import ca.sqlpower.architect.profile.ProfileResult;
+import ca.sqlpower.architect.profile.TableProfileResult;
 
 import com.lowagie.text.Document;
 import com.lowagie.text.DocumentException;

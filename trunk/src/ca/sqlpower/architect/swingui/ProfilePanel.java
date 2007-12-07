@@ -62,9 +62,9 @@ import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
-import ca.sqlpower.architect.profile.ProfileColumn;
 import ca.sqlpower.architect.profile.ProfileResult;
 import ca.sqlpower.architect.profile.TableProfileResult;
+import ca.sqlpower.architect.profile.output.ProfileColumn;
 import ca.sqlpower.architect.swingui.table.ProfileTableModel;
 
 import com.jgoodies.forms.builder.PanelBuilder;

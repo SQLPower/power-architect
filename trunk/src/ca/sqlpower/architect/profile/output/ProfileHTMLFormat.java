@@ -29,7 +29,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package ca.sqlpower.architect.profile;
+package ca.sqlpower.architect.profile.output;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -43,6 +43,9 @@ import java.util.List;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
+import ca.sqlpower.architect.profile.ColumnProfileResult;
+import ca.sqlpower.architect.profile.ProfileResult;
+import ca.sqlpower.architect.profile.TableProfileResult;
 
 public class ProfileHTMLFormat implements ProfileFormat {
 

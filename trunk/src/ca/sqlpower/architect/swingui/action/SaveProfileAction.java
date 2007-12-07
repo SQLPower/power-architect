@@ -52,12 +52,12 @@ import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
 
 import ca.sqlpower.architect.profile.ColumnProfileResult;
-import ca.sqlpower.architect.profile.ProfileCSVFormat;
-import ca.sqlpower.architect.profile.ProfileFormat;
-import ca.sqlpower.architect.profile.ProfileHTMLFormat;
-import ca.sqlpower.architect.profile.ProfilePDFFormat;
 import ca.sqlpower.architect.profile.ProfileResult;
 import ca.sqlpower.architect.profile.TableProfileResult;
+import ca.sqlpower.architect.profile.output.ProfileCSVFormat;
+import ca.sqlpower.architect.profile.output.ProfileFormat;
+import ca.sqlpower.architect.profile.output.ProfileHTMLFormat;
+import ca.sqlpower.architect.profile.output.ProfilePDFFormat;
 import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.table.ProfileJTable;
 import ca.sqlpower.swingui.SPSUtils;
