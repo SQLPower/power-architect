@@ -193,8 +193,8 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 					 new Callable<Boolean>(){
 						public Boolean call() {
 						    EditColumnAction.this.putValue(SHORT_DESCRIPTION, "Editing "+columnEditPanel.getColName().getText() );
-						    tp.getModel().startCompoundEdit("adding a new column '" + columnEditPanel.getColName().getText() + "'");
 						    if (addToTable) {
+						        tp.getModel().startCompoundEdit("adding a new column '" + columnEditPanel.getColName().getText() + "'");
 							    try {
 							        tp.getModel().addColumn(colIdx, column);
 							    } catch (ArchitectException e) {
@@ -202,7 +202,9 @@ public class EditColumnAction extends AbstractArchitectAction implements Selecti
 							    }
 							}
 	                        Boolean ret = new Boolean(columnEditPanel.applyChanges());
-	                        tp.getModel().endCompoundEdit("adding a new column '" + columnEditPanel.getColName().getText() + "'");
+	                        if (addToTable) {
+	                            tp.getModel().endCompoundEdit("adding a new column '" + columnEditPanel.getColName().getText() + "'");
+						    }
 							return ret;
 						}
 					}, 
