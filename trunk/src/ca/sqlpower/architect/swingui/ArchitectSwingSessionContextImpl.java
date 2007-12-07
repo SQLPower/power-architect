@@ -40,6 +40,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.prefs.Preferences;
 
+import javax.swing.ImageIcon;
 import javax.swing.JDialog;
 
 import org.apache.log4j.Logger;
@@ -52,6 +53,7 @@ import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.swingui.event.SessionLifecycleEvent;
 import ca.sqlpower.sql.DataSourceCollection;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.db.DataSourceDialogFactory;
 import ca.sqlpower.swingui.db.DataSourceTypeDialogFactory;
 import ca.sqlpower.swingui.db.DatabaseConnectionManager;
@@ -139,6 +141,10 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         
         dbConnectionManager = new DatabaseConnectionManager(getPlDotIni(), dsDialogFactory,dsTypeDialogFactory);
         prefsEditor = new PreferencesEditor();
+
+        // sets the icon so exception dialogs handled by SPSUtils instead
+        // of ASUtils can still have the correct icon
+        SPSUtils.setMasterIcon(new ImageIcon(ASUtils.getFrameIconImage()));
     }
     
     /**
