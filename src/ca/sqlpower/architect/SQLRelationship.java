@@ -750,6 +750,7 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
                             +pkcol.getParentTable().getName()+"."+pkcol.getName()
                             +" to mapping");
                 }
+                if (pkcol.getParentTable().equals(fkTable)) return;
 				SQLColumn fkcol = fkTable.getColumnByName(pkcol.getName());
 				if (fkcol == null) fkcol = new SQLColumn(pkcol);
 				try {
