@@ -320,7 +320,7 @@ public class BasicRelationshipUI extends RelationshipUI
 	 * Adjusts the UI's connection points to the default "best" position.
 	 */
 	public void bestConnectionPoints() {
-        logger.info("bestConnectionPoints()");
+        logger.debug("bestConnectionPoints()");
 		Rectangle pktBounds = relationship.getPkTable().getBounds();
 		Rectangle fktBounds = relationship.getFkTable().getBounds();
 
@@ -557,7 +557,7 @@ public class BasicRelationshipUI extends RelationshipUI
 	 *             7  5  3  1  origin  2  4  6  8
 	 */
 	private void fixConnectionPoints() {
-	    logger.info("fixConnectionPoints()");
+	    logger.debug("fixConnectionPoints()");
 	    PlayPen playPen = relationship.getPlayPen();
 	    Rectangle pktBounds = relationship.getPkTable().getBounds();
         Rectangle fktBounds = relationship.getFkTable().getBounds();
@@ -657,7 +657,7 @@ public class BasicRelationshipUI extends RelationshipUI
 	 * @return The new connection point, null if out of bounds.
 	 */
 	private Point adjustConnectionPoint(int orientation, boolean isPkConnectionPoint, int offset) {
-	    logger.info("adjustConnectionPoint()");
+	    logger.debug("adjustConnectionPoint()");
 	    Rectangle tBounds;
 	    Point connectionPoint;
 
@@ -705,7 +705,7 @@ public class BasicRelationshipUI extends RelationshipUI
 	 *
 	 */
 	protected Rectangle computeBounds() {
-//        logger.info("computeBounds()");
+        logger.debug("computeBounds()");
 		// XXX: should check for valid cached bounds before recomputing!
 
 		TablePane pkTable = relationship.getPkTable();
