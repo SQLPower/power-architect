@@ -114,7 +114,7 @@ public class DeleteSelectedAction extends AbstractArchitectAction implements Sel
 				int tCount = playpen.getSelectedTables().size();
 				int rCount = playpen.getSelectedRelationShips().size();
 
-				int decision = JOptionPane.showConfirmDialog(playpen,
+				int decision = JOptionPane.showConfirmDialog(frame,
 															 "Are you sure you want to delete these "
 															 +tCount+" tables and "+rCount+" relationships?",
 															 "Multiple Delete",

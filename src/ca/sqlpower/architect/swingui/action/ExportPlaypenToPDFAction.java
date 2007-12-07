@@ -81,7 +81,7 @@ public class ExportPlaypenToPDFAction extends ProgressAction {
         
         File file = null;
         while (true) {
-            int response = chooser.showSaveDialog(null);
+            int response = chooser.showSaveDialog(session.getArchitectFrame());
 
             if (response != JFileChooser.APPROVE_OPTION) {
                 return false;

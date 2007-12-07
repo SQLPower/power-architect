@@ -712,7 +712,7 @@ public class DBTree extends JTree implements DragSourceListener {
 			    SQLObject root = (SQLObject) getModel().getRoot();
 			    List dependants = ArchitectUtils.findColumnsSourcedFromDatabase(session.getTargetDatabase(), selection);
 			    if (dependants.size() > 0) {
-			        JOptionPane.showMessageDialog(DBTree.this,
+			        JOptionPane.showMessageDialog(session.getArchitectFrame(),
 			                new Object[] {"The following columns depend on objects in this database:",
 			                				new JScrollPane(new JList(dependants.toArray())),
 			                				"You can't remove this connection unless you remove these",
