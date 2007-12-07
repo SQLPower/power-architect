@@ -39,6 +39,8 @@ import java.util.Collection;
 import java.util.List;
 
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.profile.output.ProfileCSVFormat;
+import ca.sqlpower.architect.profile.output.ProfileFormat;
 
 public class TestProfileCSV extends TestProfileBase {
 

@@ -29,7 +29,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package ca.sqlpower.architect.profile;
+package ca.sqlpower.architect.profile.output;
 
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -41,6 +41,9 @@ import java.util.List;
 
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.profile.ColumnProfileResult;
+import ca.sqlpower.architect.profile.ProfileResult;
+import ca.sqlpower.architect.profile.TableProfileResult;
 import ca.sqlpower.swingui.table.DateTableCellRenderer;
 import ca.sqlpower.swingui.table.DecimalTableCellRenderer;
 import ca.sqlpower.swingui.table.PercentTableCellRenderer;
@@ -50,7 +53,7 @@ import com.darwinsys.csv.CSVExport;
 public class ProfileCSVFormat implements ProfileFormat {
 
     /** The desired CSV column list is published in the ProfileColumn enum.
-     * @see ca.sqlpower.architect.profile.ProfileFormat#format(java.io.OutputStream, java.util.List, ca.sqlpower.architect.profile.TableProfileManager)
+     * @see ca.sqlpower.architect.profile.output.ProfileFormat#format(java.io.OutputStream, java.util.List, ca.sqlpower.architect.profile.TableProfileManager)
      */
     public void format(OutputStream nout, List<ProfileResult> profileResult) 
                                                                 throws Exception {
