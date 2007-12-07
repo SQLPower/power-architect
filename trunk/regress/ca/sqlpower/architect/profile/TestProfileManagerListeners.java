@@ -39,6 +39,7 @@ import java.util.Collection;
 import java.util.List;
 
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.profile.event.ProfileChangeListener;
 
 public class TestProfileManagerListeners extends TestProfileBase {
 

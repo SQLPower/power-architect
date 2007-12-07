@@ -5,6 +5,9 @@
  */
 package ca.sqlpower.architect.profile;
 
+import ca.sqlpower.architect.profile.event.ProfileChangeEvent;
+import ca.sqlpower.architect.profile.event.ProfileChangeListener;
+
 /**
  * The CountingProfileChangeListener just counts how many times
  * each of the listener methods was called.

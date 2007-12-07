@@ -56,11 +56,11 @@ import javax.swing.table.JTableHeader;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.SQLColumn;
-import ca.sqlpower.architect.profile.ProfileChangeEvent;
-import ca.sqlpower.architect.profile.ProfileChangeListener;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.ProfileResult;
 import ca.sqlpower.architect.profile.TableProfileResult;
+import ca.sqlpower.architect.profile.event.ProfileChangeEvent;
+import ca.sqlpower.architect.profile.event.ProfileChangeListener;
 import ca.sqlpower.architect.profile.output.ProfileColumn;
 import ca.sqlpower.architect.swingui.ProfilePanel.ChartTypes;
 import ca.sqlpower.architect.swingui.action.SaveProfileAction;

@@ -38,6 +38,7 @@ import java.util.concurrent.Future;
 
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.profile.event.ProfileChangeListener;
 
 /**
  * An interface for classes that create and keep track of ProfileResults.

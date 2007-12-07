@@ -1,4 +1,4 @@
-package ca.sqlpower.architect.profile;
+package ca.sqlpower.architect.profile.event;
 
 /**
  * An interface that defines an event listener that reacts to changes

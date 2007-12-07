@@ -53,9 +53,9 @@ import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLObjectRoot;
 import ca.sqlpower.architect.SQLRelationship;
-import ca.sqlpower.architect.profile.ProfileChangeEvent;
-import ca.sqlpower.architect.profile.ProfileChangeListener;
 import ca.sqlpower.architect.profile.ProfileResult;
+import ca.sqlpower.architect.profile.event.ProfileChangeEvent;
+import ca.sqlpower.architect.profile.event.ProfileChangeListener;
 
 public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serializable {
 

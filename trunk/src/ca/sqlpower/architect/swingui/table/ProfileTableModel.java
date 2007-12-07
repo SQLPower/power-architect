@@ -53,10 +53,10 @@ import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.architect.profile.ColumnProfileResult;
 import ca.sqlpower.architect.profile.ColumnValueCount;
-import ca.sqlpower.architect.profile.ProfileChangeEvent;
-import ca.sqlpower.architect.profile.ProfileChangeListener;
 import ca.sqlpower.architect.profile.ProfileManager;
 import ca.sqlpower.architect.profile.TableProfileResult;
+import ca.sqlpower.architect.profile.event.ProfileChangeEvent;
+import ca.sqlpower.architect.profile.event.ProfileChangeListener;
 import ca.sqlpower.architect.profile.output.ProfileColumn;
 
 public class ProfileTableModel extends AbstractTableModel {
