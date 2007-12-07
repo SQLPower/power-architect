@@ -31,22 +31,42 @@
  */
 package ca.sqlpower.architect.profile;
 
+/**
+ * A simple class for keeping track of a value and the number of occurrences
+ * associated with it.  Instances of this class are used in the "Top N most
+ * frequent values" property of a column's profile.
+ */
 public class ColumnValueCount {
 
     private Object value;
     private int count;
 
+    /**
+     * Creates a new ColumnValueCount instance that associates the given value
+     * with the given count.  Instances of this class are meant to be immtuable,
+     * so if the give value object is mutable, you must not modify it.
+     * 
+     * @param value The value to associate the count with.  Null is allowed.
+     * @param count The number of occurrences of <tt>value</tt> in the column
+     * being profiled.
+     */
     public ColumnValueCount(Object value, int count) {
         this.value = value;
         this.count = count;
     }
+    
     public int getCount() {
         return count;
     }
+    
     public Object getValue() {
         return value;
     }
     
+    /**
+     * Compares this ColumnValueCount to the other object based on both the
+     * value and the count.
+     */
     @Override
     public boolean equals(Object obj) {
         if (obj == this) {
@@ -65,8 +85,10 @@ public class ColumnValueCount {
     @Override
     public int hashCode() {
         int result = 17;
-        result = 37*result + value.hashCode();
-        result = 37*result + count;
+        if (value != null) {
+            result = 37 * result + value.hashCode();
+        }
+        result = 37 * result + count;
         return result;
     }
 }
