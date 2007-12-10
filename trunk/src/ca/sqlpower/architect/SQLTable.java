@@ -643,10 +643,13 @@ public class SQLTable extends SQLObject {
             col.primaryKeySeq = interimPkSeq;
             col.fireDbObjectChanged("primaryKeySeq", oldPkSeq, interimPkSeq);
 
-            columnsFolder.children.remove(oldIdx);
-            columnsFolder.fireDbChildRemoved(oldIdx, col);
-            columnsFolder.children.add(newIdx, col);
-            columnsFolder.fireDbChildInserted(newIdx, col);
+            // If the indices are the same, then there's no point in moving the column
+            if (oldIdx != newIdx) {
+                columnsFolder.children.remove(oldIdx);
+                columnsFolder.fireDbChildRemoved(oldIdx, col);
+                columnsFolder.children.add(newIdx, col);
+                columnsFolder.fireDbChildInserted(newIdx, col);
+            }
 
             normalizePrimaryKey();
         } finally {
