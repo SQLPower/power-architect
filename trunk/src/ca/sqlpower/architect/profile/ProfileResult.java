@@ -33,7 +33,6 @@ package ca.sqlpower.architect.profile;
 
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.profile.event.ProfileResultListener;
-import ca.sqlpower.util.Monitorable;
 
 /**
  * A ProfileResult is an interface for populating profile data about
@@ -44,7 +43,7 @@ import ca.sqlpower.util.Monitorable;
  * @param T The type of SQLObject that this profile result calculates
  * and holds results for.
  */
-public interface ProfileResult<T extends SQLObject> extends Monitorable {
+public interface ProfileResult<T extends SQLObject> {
     
     /**
      * Returns the SQLObject that is profiled by this ProfileResult.
@@ -75,15 +74,7 @@ public interface ProfileResult<T extends SQLObject> extends Monitorable {
      * without throwing an Exception.
      */
     public abstract Exception getException();
-
-    /**
-     * Populates the ProfileResult of the object being profiled. You can
-     * call this method as many times as you want, but it will have no effect
-     * if isFinished() returns true and getException() returns null (these
-     * are the conditions of a successful populate having happened in the past).
-     */
-    public void populate();
-
+    
     /**
      * Add a ProfileResultListener that should be notified of changes in the
      * status of this ProfileResult's progress during a profile operation 

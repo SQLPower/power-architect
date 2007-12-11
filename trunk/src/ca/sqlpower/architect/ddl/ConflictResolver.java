@@ -467,6 +467,13 @@ public class ConflictResolver implements Monitorable {
 	public void setCancelled(boolean cancelled) {
 		throw new RuntimeException("The Conflict Resolver can't be cancelled");
 	}
+
+    /**
+     * Not implemented. Always returns false.
+     */
+    public boolean isCancelled() {
+        return false;
+    }
 	
 	public String getMessage () {
 		return null;
