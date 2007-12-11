@@ -719,6 +719,10 @@ public class KettleJob implements Monitorable {
         monitor.setCancelled(cancelled);
     }
 
+    public boolean isCancelled() {
+        return monitor.isCancelled();
+    }
+    
     public boolean isSavingToFile() {
         return savingToFile;
     }

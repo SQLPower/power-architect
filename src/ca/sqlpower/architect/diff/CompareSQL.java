@@ -87,6 +87,11 @@ public class CompareSQL implements Monitorable {
 	 */
 	private boolean finished;
 
+    /**
+     * Flags whether or not this comparison has been cancelled.
+     */
+    private boolean cancelled;
+    
 	/**
 	 * The results we are working on (this will be returned by generateTableDiffs()).
 	 */
@@ -171,7 +176,7 @@ public class CompareSQL implements Monitorable {
 			}
 
 			// Will loop until one or both the list reaches its last table
-			while (sourceContinue && targetContinue) {
+			while (sourceContinue && targetContinue && !isCancelled()) {
 				// bring the source table up to the same level as the target
 				if (comparator.compare(sourceTable, targetTable) < 0) {
 					results.add(new DiffChunk<SQLObject>(sourceTable, DiffType.LEFTONLY));
@@ -225,7 +230,7 @@ public class CompareSQL implements Monitorable {
 
 			}
 			// If any tables in the sourceList still exist, the changes are added
-			while (sourceContinue) {
+			while (sourceContinue && !isCancelled()) {
 				results.add(new DiffChunk<SQLObject>(sourceTable, DiffType.LEFTONLY));
 				incProgress(1);
 				//results.addAll(generateColumnDiffs(sourceTable, null));
@@ -237,7 +242,7 @@ public class CompareSQL implements Monitorable {
 			}
 			
 			//If any remaining tables in the targetList still exist, they are now being added
-			while (targetContinue) {
+			while (targetContinue && !isCancelled()) {
 
 				results.add(new DiffChunk<SQLObject>(targetTable, DiffType.RIGHTONLY));
 				incProgress(1);
@@ -565,9 +570,13 @@ public class CompareSQL implements Monitorable {
 		return currentTableName;
 	}
 
-	public synchronized void setCancelled(boolean cancelled) {
-		cancelled = true;
-	}
+    public synchronized void setCancelled(boolean cancelled) {
+        this.cancelled = cancelled;
+    }
+
+    public synchronized boolean isCancelled() {
+        return cancelled;
+    }
 	
 	private synchronized void setJobSize(Integer jobSize) {
 		this.jobSize = jobSize;

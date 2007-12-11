@@ -29,48 +29,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 package ca.sqlpower.architect.profile;
 
-import java.util.Date;
+import ca.sqlpower.util.Monitorable;
 
-import junit.framework.TestCase;
-import ca.sqlpower.architect.SQLObject;
-import ca.sqlpower.architect.SQLTable;
+/**
+ * Service Provider Interface for creating profile results related to a
+ * particular database table.  Different implementations can use different
+ * strategies that perform better under certain circumstances, sacrifice
+ * accuracy for performance, and so on.
+ */
+public interface TableProfileCreator {
 
-public class AbstractProfileResultTest extends TestCase {
-    private class TestingAbstractProfileResult extends AbstractProfileResult<SQLObject> {
-
-        public TestingAbstractProfileResult(SQLObject s) {
-            super(s);
-        }
-        
-    }
-    
-    public void testCompareToWithDifferentTimes() {
-        SQLTable t = new SQLTable();
-        t.setName("name");
-        long curTime = new Date().getTime();
-        TestingAbstractProfileResult result1 = new TestingAbstractProfileResult(t);
-        result1.setCreateEndTime(curTime);
-        
-        TestingAbstractProfileResult result2 = new TestingAbstractProfileResult(t);
-        result2.setCreateEndTime(curTime+1000);
-        
-        assertFalse("compareTo ignores time", result1.compareTo(result2) == 0);
-    }
-    
-    public void testEqualsToWithDifferentTimes() {
-        SQLTable t = new SQLTable();
-        t.setName("name");
-        long curTime = new Date().getTime();
-        TestingAbstractProfileResult result1 = new TestingAbstractProfileResult(t);
-        result1.setCreateEndTime(curTime);
-        
-        TestingAbstractProfileResult result2 = new TestingAbstractProfileResult(t);
-        result2.setCreateEndTime(curTime+1000);
-        
-        assertFalse("compareTo ignores time", result1.equals(result2));
-
-    }
-
+    /**
+     * Populates the given {@link TableProfileResult} (which must not be
+     * populated already) and all of its {@link ColumnProfileResult} children.
+     * <p>
+     * This may be a long-running operation.  Its progress can be monitored and
+     * canceled via the TableProfileResult itself, which is {@link Monitorable}.
+     * 
+     * @param tpr The unpopulated profile result to populate.
+     * @return true if the profiling of the table and its columns has completed
+     * normally; false if the profiling operation was canceled before it had a
+     * chance to complete.
+     * @throws RuntimeException If the profiling fails for some reason other than
+     * a cancel request, an appropriate exception will be thrown.
+     */
+    public boolean doProfile(TableProfileResult tpr);
 }

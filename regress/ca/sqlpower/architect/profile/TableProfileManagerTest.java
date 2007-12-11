@@ -156,7 +156,7 @@ public class TableProfileManagerTest extends TestProfileBase {
         for (Future<TableProfileResult> f : futures) {
             try {
                 TableProfileResult tpr = f.get();
-                assertTrue(tpr.isFinished());
+                assertTrue(tpr.getProgressMonitor().isFinished());
             } catch (ExecutionException ex) {
                 // this is expected, but only for the garbage table
                 failureCount++;

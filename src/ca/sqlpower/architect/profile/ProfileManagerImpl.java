@@ -71,9 +71,10 @@ public class ProfileManagerImpl implements ProfileManager {
     
     /**
      * The defaults that new profile results will be created with.
+     * XXX these are specific to the remote database profiler!
      */
     private ProfileSettings defaultProfileSettings = new ProfileSettings();
-    
+
     /**
      * The Profile Executor manages the thread that actually does the work
      * of creating the profiles.
@@ -104,7 +105,9 @@ public class ProfileManagerImpl implements ProfileManager {
          * Populates the profile result, throwing any exceptions encountered.
          */
         public TableProfileResult call() throws Exception {
-            tpr.populate();
+            TableProfileCreator creator = new RemoteDatabaseProfileCreator(getDefaultProfileSettings());
+            creator.doProfile(tpr);
+            // XXX the creator should stash a reference to the exception in tpr, then throw it anyway 
             if (tpr.getException() != null) {
                 throw tpr.getException();
             }
@@ -120,7 +123,7 @@ public class ProfileManagerImpl implements ProfileManager {
         
         try {
             profileExecutor.submit(new ProfileResultCallable(tpr)).get();
-            assert (tpr.isFinished());
+            assert (tpr.getProgressMonitor().isFinished());
         } catch (InterruptedException ex) {
             logger.info("Profiling was interrupted (likely because this manager is being shut down)");
         } catch (ExecutionException ex) {

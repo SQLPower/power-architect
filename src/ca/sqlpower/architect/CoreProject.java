@@ -50,6 +50,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.digester.AbstractObjectCreationFactory;
 import org.apache.commons.digester.Digester;
+import org.apache.commons.digester.SetPropertiesRule;
 import org.apache.log4j.Logger;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -365,7 +366,12 @@ public class CoreProject {
 
         ProfileResultFactory profileResultFactory = new ProfileResultFactory();
         d.addFactoryCreate("*/profiles/profile-result", profileResultFactory);
-        d.addSetProperties("*/profiles/profile-result");
+        /* 
+         * backward compatibility: the exception property used to be a boolean, and now it's an actual exception.
+         * this causes an IllegalArgumentException when parsing old files.
+         * this workaround tells the digester not to auto-map the exception property.
+         */ 
+        d.addRule("*/profiles/profile-result", new SetPropertiesRule(new String[] {"exception"}, new String[] {}));
         d.addSetNext("*/profiles/profile-result", "loadResult");
 
         ProfileResultValueFactory profileResultValueFactory = new ProfileResultValueFactory();
@@ -757,7 +763,6 @@ public class CoreProject {
                 // XXX we should actually store the settings together with each profile result, not rehash the current defaults
                 tableProfileResult = new TableProfileResult(t, session.getProfileManager(), session.getProfileManager().getDefaultProfileSettings());
                 
-                tableProfileResult.finish(tableProfileResult.getCreateEndTime());
                 return tableProfileResult;
             } else if (className.equals(ColumnProfileResult.class.getName())) {
                 SQLColumn c = (SQLColumn) objectIdMap.get(refid);
