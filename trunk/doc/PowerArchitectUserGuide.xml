@@ -2064,7 +2064,7 @@
 					<mediaobject>
 						<imageobject>
 							<imagedata
-								fileref="doc/images/forward_engineer.png" format="PNG"
+								fileref="doc/images/SimpleExample4.png" format="PNG"
 								width="4in" />
 						</imageobject>
 					</mediaobject>
@@ -2083,7 +2083,7 @@
 					<mediaobject>
 						<imageobject>
 							<imagedata
-								fileref="doc/images/preview_sql.png" format="PNG" width="4in" />
+								fileref="doc/images/SimpleExample5.png" format="PNG" width="4in" />
 						</imageobject>
 					</mediaobject>
 				</section>
