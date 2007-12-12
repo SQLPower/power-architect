@@ -82,9 +82,8 @@ public class CompareDMFrame extends JDialog {
 	public CompareDMFrame(Dialog owner, AbstractDocument sourceOutputText, AbstractDocument targetOutputText, 
 						String leftTitle, String rightTitle)
 	{
-		super(owner);	
+		super(owner, "Data Model Comparison");	
 		
-		setTitle("Data Model comparison");
 		this.sourceOutputText = sourceOutputText;
 		this.targetOutputText = targetOutputText;
 		this.title = "Comparing " + leftTitle+ " to " + rightTitle;
@@ -104,7 +103,8 @@ public class CompareDMFrame extends JDialog {
 			e.printStackTrace();
 		}
 		
-	
+        pack();
+        setLocationRelativeTo(owner);
 	}
 	
 	public JComponent mainFrame() {		

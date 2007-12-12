@@ -57,18 +57,18 @@ public class CompareDMDialog extends JDialog {
     
     private CompareDMPanel compareDMPanel;
     
-    public CompareDMDialog(ArchitectFrame frame) {
+    public CompareDMDialog(ArchitectSwingSession session) {
         
         
         // This can not easily be replaced with ArchitectPanelBuilder
         // because the current CompareDMPanel is not an ArchitectPanel
         // (and has no intention of becoming one, without some work).
         
-        super(frame,"Compare Data Models");
+        super(session.getArchitectFrame(),"Compare Data Models");
         JPanel cp = new JPanel(new BorderLayout(12,12));
         cp.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
                 
-        compareDMPanel = new CompareDMPanel(frame.getArchitectSession());
+        compareDMPanel = new CompareDMPanel(session, this);
 
         cp.add(compareDMPanel, BorderLayout.CENTER);
         
@@ -90,7 +90,7 @@ public class CompareDMDialog extends JDialog {
         getRootPane().setDefaultButton(okButton);
         setContentPane(cp);
         pack();
-        setLocationRelativeTo(frame);
+        setLocationRelativeTo(session.getArchitectFrame());
     }
     
     /**

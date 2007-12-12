@@ -314,7 +314,7 @@ public class ArchitectFrame extends JFrame {
         autoLayout = new FruchtermanReingoldForceLayout();
         autoLayoutAction.setLayout(autoLayout);
         exportDDLAction = new ExportDDLAction(session);
-        comapareDMDialog = new CompareDMDialog(this);
+        comapareDMDialog = new CompareDMDialog(session);
         
         compareDMAction = new CompareDMAction(session,comapareDMDialog);
         dataMoverAction = new DataMoverAction(this, session);
