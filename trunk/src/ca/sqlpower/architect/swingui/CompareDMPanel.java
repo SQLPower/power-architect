@@ -196,6 +196,11 @@ public class CompareDMPanel extends JPanel {
      */
     private ArchitectSwingSession session;
     
+    /**
+     * The dialog that created and contains this panel
+     */
+    private JDialog parentDialog;
+    
 	/**
 	 * Contains all of the properties and GUI components that relate to the
 	 * source or target system. The idea is, the panel will have two instances
@@ -948,8 +953,9 @@ public class CompareDMPanel extends JPanel {
 		return buttonPanel;
 	}
 
-	public CompareDMPanel(ArchitectSwingSession session) {
+	public CompareDMPanel(ArchitectSwingSession session, JDialog ownerDialog) {
         this.session = session;
+        this.parentDialog = ownerDialog;
 		buildUI(target.new SchemaPopulator(session),target.new CatalogPopulator(session),
 		        source.new SchemaPopulator(session),source.new CatalogPopulator(session));
 	}
@@ -1188,7 +1194,7 @@ public class CompareDMPanel extends JPanel {
                         return;
                     }
 					logger.debug("cleanup starts");
-                    CompareDMFormatter dmFormat = new CompareDMFormatter(session, CompareDMPanel.this, session.getCompareDMSettings());
+                    CompareDMFormatter dmFormat = new CompareDMFormatter(session, parentDialog, session.getCompareDMSettings());
                     dmFormat.format(diff, diff1, left, right);
                     logger.debug("cleanup finished");
 				}

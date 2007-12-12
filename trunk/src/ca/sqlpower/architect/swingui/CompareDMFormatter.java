@@ -32,7 +32,6 @@
 package ca.sqlpower.architect.swingui;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dialog;
 import java.io.File;
 import java.sql.SQLException;
@@ -65,7 +64,6 @@ import ca.sqlpower.architect.diff.DiffChunk;
 import ca.sqlpower.architect.diff.DiffType;
 import ca.sqlpower.architect.swingui.CompareDMPanel.SourceOrTargetStuff;
 import ca.sqlpower.architect.swingui.CompareDMSettings.SourceOrTargetSettings;
-import ca.sqlpower.swingui.SPSUtils;
 
 public class CompareDMFormatter {
 
@@ -77,9 +75,9 @@ public class CompareDMFormatter {
     /**
      * The dialog that owns any additional dialogs popped up by this formatter.
      */
-    private final Component dialogOwner;
+    private final Dialog dialogOwner;
 
-    public CompareDMFormatter(ArchitectSwingSession session, Component dialogOwner, CompareDMSettings compDMSet) {
+    public CompareDMFormatter(ArchitectSwingSession session, Dialog dialogOwner, CompareDMSettings compDMSet) {
         super();
         this.session = session;
         this.dialogOwner = dialogOwner;
@@ -154,10 +152,6 @@ public class CompareDMFormatter {
                 "Don't know what type of output to make");
             }
            
-            // This is a little error-prone because the ancestor could be a frame,
-            // So we just hope this is only ever used from the comparedmpanel's dialog
-            Dialog owner = (Dialog) SPSUtils.getWindowInHierarchy(dialogOwner);
-           
             // get the title string for the compareDMFrame
             if (dmSetting.getOutputFormat().equals(CompareDMSettings.OutputFormat.SQL)) {
                 String titleString = "Generated SQL Script to turn "+ toTitleText(true, left)
@@ -173,14 +167,9 @@ public class CompareDMFormatter {
                     db = source.getDatabase();
                 logger.debug("We got to place #2");
 
-                SQLScriptDialog ssd = new SQLScriptDialog(owner,
-                        "Compare DM",
-                        titleString,
-                        false,
-                        gen,
-                        db == null?null:db.getDataSource(),
-                        false,
-                        session);
+                SQLScriptDialog ssd = new SQLScriptDialog(dialogOwner,
+                        "Compare DM", titleString, false, gen, db == null?null:db.getDataSource(),
+                        false, session);
                 ssd.setVisible(true);
                 logger.debug("We got to place #3");
 
@@ -189,7 +178,7 @@ public class CompareDMFormatter {
                 String rightTitle = toTitleText(false, right);
 
                 CompareDMFrame cf =
-                    new CompareDMFrame(owner, sourceDoc, targetDoc, leftTitle,rightTitle);
+                    new CompareDMFrame(dialogOwner, sourceDoc, targetDoc, leftTitle,rightTitle);
 
                 cf.pack();
                 cf.setVisible(true);
