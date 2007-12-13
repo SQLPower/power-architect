@@ -903,9 +903,22 @@ public class SQLTable extends SQLObject {
 				} else if (type == EXPORTED_KEYS) {
 					ResultSet rs = null;
 					Connection con = null;
+					DatabaseMetaData dbmd = null;
 					try {
 						con = parent.getParentDatabase().getConnection();
-						DatabaseMetaData dbmd = con.getMetaData();
+						dbmd = con.getMetaData();
+					} catch (SQLException ex) {
+                        throw new ArchitectException("Couldn't locate related tables", ex);
+                    } finally {
+                        // close the connection before it makes the recursive call
+                        // that could lead to opening more connections
+                        try {
+                            if (con != null) con.close();
+                        } catch (SQLException ex) {
+                            logger.warn("Couldn't close connection", ex);
+                        }
+                    }
+                    try {
 						rs = dbmd.getExportedKeys(parent.getCatalogName(), parent.getSchemaName(), parent.getName());
 						while (rs.next()) {
 							if (rs.getInt(9) != 1) {
@@ -930,7 +943,7 @@ public class SQLTable extends SQLObject {
 						try {
 							if (con != null) con.close();
 						} catch (SQLException ex) {
-							logger.warn("Couldn't close resultset", ex);
+							logger.warn("Couldn't close connection", ex);
 						}
 					}
                 } else if (type == INDICES) {

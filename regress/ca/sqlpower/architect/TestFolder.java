@@ -87,6 +87,11 @@ public class TestFolder extends SQLTestCase {
 			dropTableNoFail(con, "SQL_COLUMN_TEST_1PK");
 			dropTableNoFail(con, "SQL_COLUMN_TEST_3PK");
 			dropTableNoFail(con, "SQL_COLUMN_TEST_0PK");
+			
+			dropTableNoFail(con, "SQL_TABLE_POPULATE_TEST");
+			dropTableNoFail(con, "SQL_TABLE_1_POPULATE_TEST");
+	        dropTableNoFail(con, "SQL_TABLE_2_POPULATE_TEST");
+	        dropTableNoFail(con, "SQL_TABLE_3_POPULATE_TEST");
 	
 			stmt.executeUpdate("CREATE TABLE SQL_COLUMN_TEST_1PK (\n" +
 					" cow numeric(11),\n" +
@@ -104,6 +109,16 @@ public class TestFolder extends SQLTestCase {
 					" cow numeric(11),\n" +
 					" moo varchar(10),\n" +
 					" foo char(10))");
+            
+            stmt.executeUpdate("CREATE TABLE SQL_TABLE_POPULATE_TEST (\n" +
+                    " cow numeric(10) NOT NULL, \n" +
+                    " CONSTRAINT test4pk PRIMARY KEY (cow))");
+            stmt.executeUpdate("CREATE TABLE SQL_TABLE_1_POPULATE_TEST (\n" +
+                    " cow numeric(10) NOT NULL, \n" +
+                    " CONSTRAINT test5pk PRIMARY KEY(cow))");
+            stmt.executeUpdate("ALTER TABLE SQL_TABLE_1_POPULATE_TEST " +
+            		"ADD CONSTRAINT TEST_FK FOREIGN KEY (cow) " +
+            		"REFERENCES SQL_TABLE_POPULATE_TEST (cow)");
 
         } finally {
 			try {
@@ -212,11 +227,18 @@ public class TestFolder extends SQLTestCase {
 	}
 
 
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLTable.Folder.populate()'
+	/**
+	 * Tests for a regression case where populating a table's
+	 * exported keys folder, where that would cause recursive
+	 * calls to populate other tables. Ideally, only one connection
+	 * should ever be opened.
 	 */
-	public void testPopulate() {
-
+	public void testPopulateActiveConnections() throws Exception{
+	    SQLDatabase db = getDb();
+	    assertEquals(0, db.getMaxActiveConnections());
+        SQLTable t = db.getTableByName("SQL_TABLE_POPULATE_TEST");
+        t.getExportedKeys();
+	    assertEquals(1, db.getMaxActiveConnections());
 	}
 
 

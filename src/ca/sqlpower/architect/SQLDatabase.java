@@ -74,6 +74,11 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 	 * change.
 	 */
 	private boolean playPenDatabase = false;
+	
+	/**
+	 * Indicates the maximum number of connections held active ever.
+	 */
+	private int maxActiveConnections = 0;
 
 	/**
 	 * Constructor for instances that connect to a real database by JDBC.
@@ -547,6 +552,8 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 			return null;
 		} else {
 			try {
+			    maxActiveConnections = Math.max(maxActiveConnections,
+			            getConnectionPool().getNumActive() + 1);
 				return (Connection) getConnectionPool().borrowObject();
 			} catch (Exception e) {
 				throw new ArchitectException(
@@ -573,6 +580,7 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 		} finally {
 			connectionPool = null;
 		}
+		maxActiveConnections = 0;
 	}
 	
 	synchronized BaseObjectPool getConnectionPool() {
@@ -597,5 +605,13 @@ public class SQLDatabase extends SQLObject implements java.io.Serializable, Prop
 			return ((SQLObject)children.get(0)).getClass();
 		}
 	}
-	
+
+	/**
+	 * Returns the maximum number of active connections that
+	 * this database has ever opened. 
+	 * @return Maximum number of active connections ever opened.
+	 */
+    public int getMaxActiveConnections() {
+        return maxActiveConnections;
+    }
 }
