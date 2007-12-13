@@ -1489,7 +1489,8 @@ public class PlayPen extends JPanel
 		 */
 		public void cleanup() {
 			if (getDoStuffException() != null) {
-                ASUtils.showExceptionDialogNoReport(parentDialog, errorMessage, getDoStuffException());
+                ASUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
+                        errorMessage, getDoStuffException());
 				if (getNextProcess() != null) {
 					setCancelled(true);
 
