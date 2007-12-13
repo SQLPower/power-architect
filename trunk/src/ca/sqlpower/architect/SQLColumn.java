@@ -272,9 +272,20 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 		throws SQLException, DuplicateColumnException, ArchitectException {
 		Connection con = null;
 		ResultSet rs = null;
+		DatabaseMetaData dbmd = null;
 		try {
 			con = addTo.getParentDatabase().getConnection();
-			DatabaseMetaData dbmd = con.getMetaData();
+			dbmd = con.getMetaData();
+		} finally {
+		    // close the connection before it makes the recursive call
+            // that could lead to opening more connections
+		    try {
+		        if (con != null) con.close();
+		    } catch (SQLException ex) {
+		        logger.error("Couldn't close connection", ex);
+		    }
+		}
+		try {
 			logger.debug("SQLColumn.addColumnsToTable: catalog="+catalog+"; schema="+schema+"; tableName="+tableName);
 			rs = dbmd.getColumns(catalog, schema, tableName, "%");
 			while (rs.next()) {
@@ -315,19 +326,12 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 
 				// XXX: need to find out if column is auto-increment
 			}
-			rs.close();
-			rs = null;
 
 		} finally {
 			try {
 				if (rs != null) rs.close();
 			} catch (SQLException ex) {
 				logger.error("Couldn't close result set", ex);
-			}
-			try {
-				if (con != null) con.close();
-			} catch (SQLException ex) {
-				logger.error("Couldn't close connection", ex);
 			}
 		}
 	}

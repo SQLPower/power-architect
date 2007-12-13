@@ -552,10 +552,21 @@ public class SQLIndex extends SQLObject {
         throws SQLException, ArchitectException {
         Connection con = null;
         ResultSet rs = null;
+        DatabaseMetaData dbmd = null;
         try {
             con = addTo.getParentDatabase().getConnection();
-            DatabaseMetaData dbmd = con.getMetaData();
-            
+            dbmd = con.getMetaData();
+        } finally {
+            // close the connection before it makes the recursive call
+            // that could lead to opening more connections
+            try {
+                if (con != null) con.close();
+            } catch (SQLException ex) {
+                logger.error("Couldn't close connection", ex);
+            }
+        }
+         
+        try {
             String pkName = null;
             rs = dbmd.getPrimaryKeys(catalog, schema, tableName);
             while (rs.next()) {
@@ -648,11 +659,6 @@ public class SQLIndex extends SQLObject {
                 if (rs != null) rs.close();
             } catch (SQLException ex) {
                 logger.error("Couldn't close result set", ex);
-            }
-            try {
-                if (con != null) con.close();
-            } catch (SQLException ex) {
-                logger.error("Couldn't close connection", ex);
             }
         }
     }

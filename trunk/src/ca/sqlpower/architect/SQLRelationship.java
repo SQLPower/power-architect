@@ -364,14 +364,27 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 		}
 		Connection con = null;
 		ResultSet rs = null;
+		DatabaseMetaData dbmd = null;
 		try {
 			con = db.getConnection();
-			DatabaseMetaData dbmd = con.getMetaData();
+			dbmd = con.getMetaData();
+		} catch (SQLException e) {
+		    throw new ArchitectException("relationship.populate", e);
+		} finally {
+			// close the connection before it makes the recursive call
+            // that could lead to opening more connections
+		    try {
+		        if (con != null) con.close();
+		    } catch (SQLException e) {
+		        logger.warn("Couldn't close connection", e);
+		    }
+		}
+		try {
 			SQLRelationship r = null;
 			int currentKeySeq;
 			LinkedList newKeys = new LinkedList();
 
-			logger.debug("scarch relationship for table:"+table.getCatalogName()+"."+
+			logger.debug("search relationship for table:"+table.getCatalogName()+"."+
 					table.getSchemaName()+"."+
 					table.getName());
 
@@ -443,11 +456,6 @@ public class SQLRelationship extends SQLObject implements java.io.Serializable {
 				if (rs != null) rs.close();
 			} catch (SQLException e) {
 				logger.warn("Couldn't close resultset", e);
-			}
-			try {
-				if (con != null) con.close();
-			} catch (SQLException e) {
-				logger.warn("Couldn't close connection", e);
 			}
 		}
 	}
