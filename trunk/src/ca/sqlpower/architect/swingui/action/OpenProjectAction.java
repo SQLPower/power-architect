@@ -147,8 +147,7 @@ public class OpenProjectAction extends AbstractArchitectAction {
          *            The session in which the project file should be opened
          * @param openingSession
          *            The session from which the open project operation is being
-         *            called. If the session being opened is the first session
-         *            being created, then simply set to null. If the
+         *            called. Should not be null and should have a frame. If the
          *            openingSession.isNew() returns true, (i.e. it's an new,
          *            empty, and unmodified project) then openingSession.close()
          *            will be called once the project is finished loading.
@@ -169,13 +168,13 @@ public class OpenProjectAction extends AbstractArchitectAction {
 
             this.session = newSession;
 
-            // XXX this progress dialog has the coffee cup icon instead
-            // of the architect icon. To fix this, we need to create an
+            // This assumes that the opening session has a frame. 
+            // To get rid of this requirement, we need to create an
             // invisible owner frame in the context. we can set its icon
             // to the architect icon, and use it as the owner of all
             // "unowned" dialogs like this one.
-            in = new BufferedInputStream(new ProgressMonitorInputStream(null, "Reading " + file.getName(),
-                    new FileInputStream(file)));
+            in = new BufferedInputStream(new ProgressMonitorInputStream(openingSession.getArchitectFrame(),
+                    "Reading " + file.getName(), new FileInputStream(file)));
         }
 
         @Override
