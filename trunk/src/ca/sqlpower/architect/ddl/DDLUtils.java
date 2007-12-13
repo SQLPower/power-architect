@@ -167,7 +167,7 @@ public class DDLUtils {
                 try {
                     Class<?> loadedClass = Class.forName(dst.getDDLGeneratorClass());
                     Class<? extends DDLGenerator> ddlgClass = loadedClass.asSubclass(DDLGenerator.class);
-                    dbTypeList.add(ddlgClass);
+                    if (!dbTypeList.contains(ddlgClass)) dbTypeList.add(ddlgClass);
                 } catch (Exception e) {
                     logger.warn(
                             "Couldn't initialize DDL Generator class " + dst.getDDLGeneratorClass() +
