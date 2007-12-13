@@ -179,7 +179,7 @@ public class ExportDDLAction extends AbstractArchitectAction {
                                     break;
                                 case 2:     // "Cancel"
                                 case -1:    // Kill dialog
-                                	break;
+                                    return true;
                                 case 3: // apply all changes made
                                     for (DDLWarningComponent warningComponent : warningComponents) {
                                         warningComponent.applyChanges();
