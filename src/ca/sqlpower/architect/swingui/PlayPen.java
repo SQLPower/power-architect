@@ -1564,6 +1564,17 @@ public class PlayPen extends JPanel
 				hasStarted = false;
 				session.getPlayPen().endCompoundEdit("Ending multi-select");
 			}
+			
+			// deals with bug 1333, when the user tries to add inaccessible objects to the PlayPen
+			if (jobSize == 0) { 
+	            SwingUtilities.invokeLater(new Runnable() {
+	                public void run() {
+	                    JOptionPane.showMessageDialog(session.getArchitectFrame(),
+	                            "Could not find any objects to add to the PlayPen.", "No objects added",
+	                            JOptionPane.WARNING_MESSAGE);
+	                }
+	            });
+	        }
 		}
 
 		public boolean hasStarted () {
@@ -2000,6 +2011,7 @@ public class PlayPen extends JPanel
 							logger.error("Unknown object dropped in PlayPen: "+oo);
 						}
 					}
+
 					// null: no next task is chained off this
 					playpen.addObjects(sqlObjects, dropLoc, null);
 					dtde.dropComplete(true);
