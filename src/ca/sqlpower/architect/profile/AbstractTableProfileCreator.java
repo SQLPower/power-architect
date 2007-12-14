@@ -80,6 +80,6 @@ public abstract class AbstractTableProfileCreator implements TableProfileCreator
         return !pm.isCancelled();
     }
 
-    protected abstract boolean doProfileImpl(TableProfileResult tpr);
+    protected abstract boolean doProfileImpl(TableProfileResult tpr) throws Exception;
 
 }

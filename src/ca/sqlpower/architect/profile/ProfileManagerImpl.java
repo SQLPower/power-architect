@@ -82,6 +82,11 @@ public class ProfileManagerImpl implements ProfileManager {
     private ExecutorService profileExecutor = Executors.newSingleThreadExecutor();
 
     /**
+     * The creator that will be used to create profiles.
+     */
+    private TableProfileCreator creator = new LocalReservoirProfileCreator(getDefaultProfileSettings());
+
+    /**
      * A Callable interface which populates a single profile result then returns it.
      * Profile results don't throw the exceptions their populate() methods encounter,
      * but this callable wrapper knows about that, and digs up and rethrows the
@@ -105,7 +110,6 @@ public class ProfileManagerImpl implements ProfileManager {
          * Populates the profile result, throwing any exceptions encountered.
          */
         public TableProfileResult call() throws Exception {
-            TableProfileCreator creator = new RemoteDatabaseProfileCreator(getDefaultProfileSettings());
             creator.doProfile(tpr);
             // XXX the creator should stash a reference to the exception in tpr, then throw it anyway 
             if (tpr.getException() != null) {
