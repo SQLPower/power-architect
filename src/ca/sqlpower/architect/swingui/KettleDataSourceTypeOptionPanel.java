@@ -94,11 +94,11 @@ public class KettleDataSourceTypeOptionPanel implements DataSourceTypeEditorTabP
 
     public void editDsType(SPDataSourceType dsType) {
         this.dsType = dsType;
-        if (dsType == null) {
-            kettleConnectionType.setSelectedItem("");
-        } else {
+        if (dsType != null && dsType.getKettleNames().size() > 0) {
             kettleConnectionType.setSelectedItem
             (dsType.getKettleNames().get(0));
+        } else {
+            kettleConnectionType.setSelectedItem("");
         }
     }
 
