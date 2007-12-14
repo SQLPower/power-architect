@@ -940,11 +940,6 @@ public class SQLTable extends SQLObject {
 						} catch (SQLException ex) {
 							logger.warn("Couldn't close resultset", ex);
 						}
-						try {
-							if (con != null) con.close();
-						} catch (SQLException ex) {
-							logger.warn("Couldn't close connection", ex);
-						}
 					}
                 } else if (type == INDICES) {
                     parent.populateColumns();
