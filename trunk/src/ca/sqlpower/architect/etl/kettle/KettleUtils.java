@@ -59,16 +59,22 @@ public class KettleUtils {
      * Creates a DatabaseMeta object based on the SPDataSource given to it.
      * This will return null if an error occurred and execution should stop. 
      * 
-     * @param parent The parent JFrame used for showing dialog windows.
+     * @param target The target datasource to create the DatabaseMeta upon,
+     *               can not be null.
      */
-    public static DatabaseMeta createDatabaseMeta(SPDataSource target) throws RuntimeException {
+    public static DatabaseMeta createDatabaseMeta(SPDataSource target) {
         DatabaseMeta databaseMeta;
         
         String databaseName = target.getName();
         String username = target.getUser();
         String password = target.getPass();
         SPDataSourceType targetType = target.getParentType();
-        String connectionType = targetType.getKettleNames().get(0);
+        String connectionType = "";
+        if (targetType.getKettleNames().size() > 0) {
+            connectionType = targetType.getKettleNames().get(0);
+        } else {
+            return null;
+        }
         Map<String, String> map = targetType.retrieveURLParsing(target.getUrl());
         String hostname = map.get(KettleOptions.KETTLE_HOSTNAME);
         if (hostname == null) {
