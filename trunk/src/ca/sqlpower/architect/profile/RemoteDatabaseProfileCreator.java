@@ -52,12 +52,24 @@ import ca.sqlpower.util.MonitorableImpl;
 
 /**
  * A profile creator implementation that makes the RDBMS do all the hard work.
- * This profiler is best used when the database is separated from the local
- * JVM by a slow network, since only the results of the profile are transmitted
- * over the network.  This profile creator is a poor choice when the database
- * table being profiled is larger than the remote database's available work memory,
- * since it makes several full passes over the table, and involves several partial
- * sorts of the table as well.
+ * This profiler is best used when the database is separated from the local JVM
+ * by a slow network, since only the results of the profile are transmitted over
+ * the network. This profile creator is a poor choice when the database table
+ * being profiled is larger than the remote database's available work memory,
+ * since the SQL queries it issues require several full passes over the table,
+ * as well as several partial sorts of the table.
+ * <p>
+ * Since the profiling is done by asking the remote database to aggregate the
+ * data, some aggregates will not always be available on all data types. For
+ * example, if the remote database is PostgreSQL, the average date of a date
+ * column will be calculated; if the remote database is Oracle, the average date
+ * will not be calculated. This class looks for the configuration of which
+ * aggregate functions work with which data types in the SPDataSourceType of the
+ * given SQLTable's data source.  See {@link #createProfileFunctions(SPDataSourceType)}
+ * for details.
+ * <p>
+ * For a profiler better suited for use on large tables, see
+ * {@link LocalReservoirProfileCreator}.
  */
 public class RemoteDatabaseProfileCreator extends AbstractTableProfileCreator {
 
