@@ -63,6 +63,8 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.MouseInputAdapter;
@@ -100,6 +102,7 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 	private JSlider zoomSlider;
 	private JLabel pageCountLabel;
 	private JCheckBox printPageNumbersBox;
+	private JSpinner numOfCopies;
 	
 	private PrintPreviewPanel previewPanel;
 	
@@ -137,6 +140,10 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 		formPanel.add(new JLabel("Page Format"));
 		String pf = paperToPrintable(pageFormat);
 		formPanel.add(pageFormatLabel = new JLabel(pf.toString()));
+		
+		formPanel.add(new JLabel("Number of Copies"));
+		numOfCopies = new JSpinner(new SpinnerNumberModel(1, 1, null, 1));
+		formPanel.add(numOfCopies);
 		
 		formPanel.add(new JLabel("Change Page Format"));
 		formPanel.add(pageFormatButton = new JButton("Change Page Format"));
@@ -311,6 +318,7 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 			validateLayout();
 			job.setPrintService((PrintService) printerBox.getSelectedItem());
 			job.setPageable(this);
+			job.setCopies((Integer) numOfCopies.getValue());
 			job.print(jobAttributes);
 		} catch (PrinterException ex) {
 			logger.error("Printing failure", ex);
