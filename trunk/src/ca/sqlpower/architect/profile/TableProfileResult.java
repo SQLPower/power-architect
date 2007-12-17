@@ -66,11 +66,6 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
      */
     private List<ColumnProfileResult> columnProfileResults = new ArrayList<ColumnProfileResult>();
 
-    /**
-     * The profile manager that "owns" this profile result.
-     */
-    private ProfileManager manager;
-
     private Monitorable progressMonitor = new MonitorableImpl();
     
     /**
@@ -85,9 +80,8 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
      * @param manager
      * @param settings
      */
-    public TableProfileResult(SQLTable profiledObject, ProfileManager manager, ProfileSettings settings) {
+    public TableProfileResult(SQLTable profiledObject, ProfileSettings settings) {
         super(profiledObject);
-        this.manager = manager;
         setSettings(settings);
     }
 

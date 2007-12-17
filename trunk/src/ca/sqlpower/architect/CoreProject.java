@@ -761,7 +761,7 @@ public class CoreProject {
                 SQLTable t = (SQLTable) objectIdMap.get(refid);
                 
                 // XXX we should actually store the settings together with each profile result, not rehash the current defaults
-                tableProfileResult = new TableProfileResult(t, session.getProfileManager(), session.getProfileManager().getDefaultProfileSettings());
+                tableProfileResult = new TableProfileResult(t, session.getProfileManager().getDefaultProfileSettings());
                 
                 return tableProfileResult;
             } else if (className.equals(ColumnProfileResult.class.getName())) {
