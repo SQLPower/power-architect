@@ -129,7 +129,7 @@ public class ProfileManagerImpl implements ProfileManager {
     
     /* docs inherited from interface */
     public TableProfileResult createProfile(SQLTable table) throws ArchitectException {
-        TableProfileResult tpr = new TableProfileResult(table, this, getDefaultProfileSettings());
+        TableProfileResult tpr = new TableProfileResult(table, getDefaultProfileSettings());
         results.add(tpr);
         fireProfileAdded(tpr);
         
@@ -150,7 +150,7 @@ public class ProfileManagerImpl implements ProfileManager {
         
         List<TableProfileResult> profiles = new ArrayList<TableProfileResult>();
         for (SQLTable t : tables) {
-            profiles.add(new TableProfileResult(t, this, getDefaultProfileSettings()));
+            profiles.add(new TableProfileResult(t, getDefaultProfileSettings()));
         }
         
         results.addAll(profiles);
