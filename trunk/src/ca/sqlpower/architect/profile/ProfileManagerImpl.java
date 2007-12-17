@@ -32,6 +32,7 @@
 package ca.sqlpower.architect.profile;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -84,8 +85,15 @@ public class ProfileManagerImpl implements ProfileManager {
     /**
      * The creator that will be used to create profiles.
      */
-    private TableProfileCreator creator = new LocalReservoirProfileCreator(getDefaultProfileSettings());
-
+    private TableProfileCreator creator = new RemoteDatabaseProfileCreator(getDefaultProfileSettings());
+    
+    /**
+     * A list of the different existing profile creators that can be used.
+     */
+    private List<TableProfileCreator> profileCreators = Arrays.asList(
+            (TableProfileCreator) new LocalReservoirProfileCreator(getDefaultProfileSettings()),
+            new RemoteDatabaseProfileCreator(getDefaultProfileSettings()));
+    
     /**
      * A Callable interface which populates a single profile result then returns it.
      * Profile results don't throw the exceptions their populate() methods encounter,
@@ -303,6 +311,18 @@ public class ProfileManagerImpl implements ProfileManager {
 
     public void close() {
         profileExecutor.shutdown();
+    }
+
+    public List<TableProfileCreator> getProfileCreators() {
+        return Collections.unmodifiableList(profileCreators);
+    }
+
+    public TableProfileCreator getCreator() {
+        return creator;
+    }
+
+    public void setCreator(TableProfileCreator tpc) {
+        this.creator = tpc;
     }
 
 }

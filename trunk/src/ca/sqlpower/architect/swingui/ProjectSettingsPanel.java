@@ -33,6 +33,7 @@ package ca.sqlpower.architect.swingui;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
@@ -40,6 +41,7 @@ import javax.swing.JTextField;
 
 import org.apache.log4j.Logger;
 
+import ca.sqlpower.architect.profile.TableProfileCreator;
 import ca.sqlpower.swingui.DataEntryPanel;
 
 public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
@@ -59,6 +61,11 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
      * A profile manager setting: How many "top n" values to store.
      */
     private JTextField numberOfFreqValues;
+    
+    /**
+     * A profile manager setting: Which profile creator to use.
+     */
+    private JComboBox profileMode;
 
     private JRadioButton rectilinearRelationships;
     private JRadioButton directRelationships;
@@ -77,7 +84,10 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
         add(new JLabel("Number of Common Values in Profiles:"));
         add(numberOfFreqValues = new JTextField("",6));
         
-        add(new JLabel("Draw Relationships Eith:"));
+        add(new JLabel("Profile Creator Mode:"));
+        add(profileMode = new JComboBox(session.getProfileManager().getProfileCreators().toArray()));
+        
+        add(new JLabel("Draw Relationships With:"));
         add(rectilinearRelationships = new JRadioButton("Rectilinear Lines"));
         add(new JLabel());
         add(directRelationships = new JRadioButton("Direct Lines"));
@@ -89,6 +99,7 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
 	private void revertToProjectSettings() {
         logger.debug("Reverting project options");
         numberOfFreqValues.setText(String.valueOf(session.getProfileManager().getDefaultProfileSettings().getTopNCount()));
+        profileMode.setSelectedItem(session.getProfileManager().getCreator());
 		saveEntireSource.setSelected(session.isSavingEntireSource());
         if (session.getRelationshipLinesDirect()) {
             directRelationships.setSelected(true);
@@ -108,6 +119,8 @@ public class ProjectSettingsPanel extends JPanel implements DataEntryPanel {
                         "Number Format Error", e);
             }
         }
+        
+        session.getProfileManager().setCreator((TableProfileCreator) profileMode.getSelectedItem());
         
         if (directRelationships.isSelected()) {
             session.setRelationshipLinesDirect(true);
