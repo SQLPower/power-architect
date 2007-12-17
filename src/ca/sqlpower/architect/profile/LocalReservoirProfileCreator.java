@@ -225,8 +225,13 @@ public class LocalReservoirProfileCreator extends AbstractTableProfileCreator {
     class TopNValuesComparator implements Comparator<Map.Entry<Object, Integer>> {
 
         public int compare(Entry<Object, Integer> o1, Entry<Object, Integer> o2) {
-            return o1.getValue().compareTo(o2.getValue());
+            return o2.getValue().compareTo(o1.getValue());
         }
         
+    }
+    
+    @Override
+    public String toString() {
+        return "Local Reservoir";
     }
 }

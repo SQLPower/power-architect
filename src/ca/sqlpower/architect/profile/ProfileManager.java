@@ -147,4 +147,21 @@ public interface ProfileManager {
      */
     public void close();
 
+    /**
+     * Returns a list of the different types of profile creators.
+     * @return a List of the possible profile creators
+     */
+    public List<TableProfileCreator> getProfileCreators();
+    
+    /**
+     * Returns the current profile creator in use.
+     * @return the currently used profile creator object
+     */
+    public TableProfileCreator getCreator();
+    
+    /**
+     * Sets the profile manager to use the given profile creator.
+     * @param tpc the profile creator to use, must not be null.
+     */
+    public void setCreator(TableProfileCreator tpc);
 }

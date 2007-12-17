@@ -723,4 +723,9 @@ public class RemoteDatabaseProfileCreator extends AbstractTableProfileCreator {
             return forClass.getName();
         }
     }
+    
+    @Override
+    public String toString() {
+        return "Remote Database";
+    }
 }
