@@ -205,9 +205,10 @@ public class ArchitectFrame extends JFrame {
         splitPane.setLeftComponent(new JScrollPane(dbTree));
         splitPane.setRightComponent(new JScrollPane(playpen));
 
-        Preferences prefs = context.getPrefs();
+        final Preferences prefs = context.getPrefs();
         
         splitPane.setDividerLocation(prefs.getInt(ArchitectSwingUserSettings.DIVIDER_LOCATION,200));
+        splitPane.setOneTouchExpandable(true);
 
         // Get the size of the default screen
         Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
