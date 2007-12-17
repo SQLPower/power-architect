@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -469,5 +470,16 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
         } else {
             return r.getDeferrability() == Deferrability.NOT_DEFERRABLE;
         }
+    }
+    
+    @Override
+    public void modifyColumn(SQLColumn c) {
+        Map colNameMap = new HashMap();
+        SQLTable t = c.getParentTable();
+        print("\n ALTER TABLE ");
+        print(toQualifiedName(t));
+        print(" MODIFY COLUMN ");
+        print(columnDefinition(c,colNameMap));
+        endStatement(DDLStatement.StatementType.MODIFY, c);
     }
 }
