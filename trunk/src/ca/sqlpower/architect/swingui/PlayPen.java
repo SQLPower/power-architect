@@ -123,15 +123,16 @@ import ca.sqlpower.architect.layout.LineStraightenerLayout;
 import ca.sqlpower.architect.swingui.Relationship.RelationshipDecorationMover;
 import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
 import ca.sqlpower.architect.swingui.action.CancelAction;
-import ca.sqlpower.architect.swingui.action.EditTableAction;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent;
 import ca.sqlpower.architect.undo.UndoCompoundEventListener;
 import ca.sqlpower.architect.undo.UndoCompoundEvent.EventTypes;
 import ca.sqlpower.sql.SPDataSource;
+import ca.sqlpower.swingui.DataEntryPanelBuilder;
 import ca.sqlpower.swingui.MonitorableWorker;
 import ca.sqlpower.swingui.ProgressWatcher;
+import ca.sqlpower.swingui.SPSUtils;
 import ca.sqlpower.swingui.SPSwingWorker;
 
 
@@ -2608,12 +2609,27 @@ public class PlayPen extends JPanel
 						pp.selectNone();
 						tp.setSelected(true,SelectionEvent.SINGLE_SELECT);
 						pp.mouseMode = MouseModeType.SELECT_TABLE;
+										
+						final ArchitectFrame frame = pp.getSession().getArchitectFrame();
+						final TableEditPanel editPanel = new TableEditPanel(pp.getSession(), tp.getModel()) {
+						    @Override
+						    public void discardChanges() {
+						        pp.getSession().getTargetDatabase().removeChild(tp.getModel());
+                                pp.getTableNames().remove(tp.getModel().getName());
+						    }
+						};
+
+	                    
+						JDialog d = DataEntryPanelBuilder.createDataEntryPanelDialog(
+						        editPanel, frame,
+						        "Table Properties", "OK");
 						
-	                    EditTableAction editTableAction = new EditTableAction(pp.getSession());
-	                    editTableAction.makeDialog(tp.getModel());
+						d.pack();
+						d.setLocationRelativeTo(frame);
+						d.setVisible(true);
 					} catch (ArchitectException e) {
 						logger.error("Couldn't add table \"" + tp.getModel() + "\" to play pen:", e);
-						ASUtils.showExceptionDialogNoReport("Failed to add table.", e);
+						SPSUtils.showExceptionDialogNoReport(pp.getSession().getArchitectFrame(), "Failed to add table.", e);
 						return;
 					}
 				}
