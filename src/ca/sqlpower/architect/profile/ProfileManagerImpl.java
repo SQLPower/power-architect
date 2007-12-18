@@ -91,8 +91,8 @@ public class ProfileManagerImpl implements ProfileManager {
      * A list of the different existing profile creators that can be used.
      */
     private List<TableProfileCreator> profileCreators = Arrays.asList(
-            (TableProfileCreator) new LocalReservoirProfileCreator(getDefaultProfileSettings()),
-            new RemoteDatabaseProfileCreator(getDefaultProfileSettings()));
+            (TableProfileCreator)new RemoteDatabaseProfileCreator(getDefaultProfileSettings()),
+            new LocalReservoirProfileCreator(getDefaultProfileSettings()));
     
     /**
      * A Callable interface which populates a single profile result then returns it.
