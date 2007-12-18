@@ -73,7 +73,7 @@ public class KettleUtils {
         if (targetType.getKettleNames().size() > 0) {
             connectionType = targetType.getKettleNames().get(0);
         } else {
-            return null;
+            throw new RuntimeException("Error: invalid target datasource (it contains no Kettle names)");
         }
         Map<String, String> map = targetType.retrieveURLParsing(target.getUrl());
         String hostname = map.get(KettleOptions.KETTLE_HOSTNAME);
