@@ -2618,6 +2618,28 @@
 				</imageobject>
 			</mediaobject>
 
+			<section id="profiling.profileMode">
+				<title>Profiling Mode</title>
+				<para>
+					The profiling mode can be changed under File ->
+					Project Settings.There are two possible modes for
+					profiling:
+
+					First is the Remote Database option. This sends a
+					query to the database and has it calculate all of
+					the statistics. This system works well over a large
+					network because very little data is transfered.
+
+					The second option, Local Reservoir which transfers
+					all of the data to the local computer and then
+					samples and process the data there. This works well
+					over a fast network. This option is still under
+					construction and is known to cause an out of memory
+					error when profiling large tables in both MySQL and
+					PostgreSQL.
+				</para>
+			</section>
+
 			<section id="profiling.tableView">
 				<title>Table View</title>
 				<para>
