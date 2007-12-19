@@ -335,7 +335,7 @@ public class ProfileRowComponent extends JPanel implements Selectable {
         }
 
         public void profileFinished(ProfileResultEvent event) {
-            reProfileButton.setVisible(false);
+            reProfileButton.setVisible(true);
             cancelButton.setVisible(false);
             deleteButton.setVisible(true);
             statusLabel.setVisible(true);
@@ -346,10 +346,12 @@ public class ProfileRowComponent extends JPanel implements Selectable {
                 statusLabel.setText("Failed: " + result.getException().getMessage());
                 statusLabel.setForeground(Color.RED);
             }
+            progressBar.setVisible(false);
         }
 
         public void profileStarted(ProfileResultEvent event) {
-
+            reProfileButton.setVisible(false);
+            statusLabel.setVisible(false);
         }
     };
 
@@ -378,16 +380,12 @@ public class ProfileRowComponent extends JPanel implements Selectable {
         this.reProfileButton = new JButton(refreshIcon);
         reProfileButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if (result.getProgressMonitor().isCancelled()) {
-                    result.getProgressMonitor().setCancelled(false);
-                    cancelButton.setVisible(true);
-                    deleteButton.setVisible(false);
-                    reProfileButton.setVisible(false);
-                    progressBar.setVisible(true);
-                    ProgressWatcher.watchProgress(progressBar, result.getProgressMonitor());
-                    add(progressBar, ComponentType.PROGRESS_BAR);
-                    pm.scheduleProfile(result);
-                }
+                cancelButton.setVisible(true);
+                deleteButton.setVisible(false);
+                reProfileButton.setVisible(false);
+                ProgressWatcher.watchProgress(progressBar, result.getProgressMonitor());
+                add(progressBar, ComponentType.PROGRESS_BAR);
+                pm.scheduleProfile(result);
                 logger.debug("REFRESH");
             }
         });
@@ -427,6 +425,8 @@ public class ProfileRowComponent extends JPanel implements Selectable {
         add(statusLabel, ComponentType.TABLE_INFO);      
         add(cancelButton, ComponentType.CANCEL);  
         this.addMouseListener(new ProfileRowMouseListener());
+        
+        profileResultListener.profileFinished(null);
     }
 
     public TableProfileResult getResult() {

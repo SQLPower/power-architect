@@ -71,6 +71,8 @@ public abstract class AbstractTableProfileCreator implements TableProfileCreator
             tpr.setCreateEndTime(System.currentTimeMillis());
             pm.setProgress(pm.getProgress() + 1);
             pm.setFinished(true);
+            // this somehow fixes a progress bar visibility issue
+            pm.setStarted(false);
             if (pm.isCancelled()) {
                 tpr.fireProfileCancelled();
             } else {
