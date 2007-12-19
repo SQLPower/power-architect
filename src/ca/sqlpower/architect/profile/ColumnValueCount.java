@@ -32,14 +32,16 @@
 package ca.sqlpower.architect.profile;
 
 /**
- * A simple class for keeping track of a value and the number of occurrences
- * associated with it.  Instances of this class are used in the "Top N most
+ * A simple class for keeping track of a value, the number of occurrences
+ * associated with it, and the percentage of occurences in the table.  
+ * Instances of this class are used in the "Top N most
  * frequent values" property of a column's profile.
  */
 public class ColumnValueCount {
 
     private Object value;
     private int count;
+    private double percent;
 
     /**
      * Creates a new ColumnValueCount instance that associates the given value
@@ -49,10 +51,12 @@ public class ColumnValueCount {
      * @param value The value to associate the count with.  Null is allowed.
      * @param count The number of occurrences of <tt>value</tt> in the column
      * being profiled.
+     * @param percent The percentage of occurrences in the table.
      */
-    public ColumnValueCount(Object value, int count) {
+    public ColumnValueCount(Object value, int count, double percent) {
         this.value = value;
         this.count = count;
+        this.percent = percent;
     }
     
     public int getCount() {
@@ -63,9 +67,13 @@ public class ColumnValueCount {
         return value;
     }
     
+    public double getPercent() {
+        return percent;
+    }
+    
     /**
-     * Compares this ColumnValueCount to the other object based on both the
-     * value and the count.
+     * Compares this ColumnValueCount to the other object based on the
+     * value, the count, and the percent.
      */
     @Override
     public boolean equals(Object obj) {
@@ -76,7 +84,8 @@ public class ColumnValueCount {
         }
         ColumnValueCount other = (ColumnValueCount) obj;
         
-        if ((value == null ? other.value == null : value.equals(other.value)) && count == other.count)  {
+        if ((value == null ? other.value == null : value.equals(other.value)) 
+                && count == other.count && percent == other.percent)  {
             return true;
         }
         return false;

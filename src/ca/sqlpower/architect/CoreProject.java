@@ -801,18 +801,19 @@ public class CoreProject {
         public Object createObject(Attributes attributes) throws ArchitectException, ClassNotFoundException, InstantiationException, IllegalAccessException {
             String className = attributes.getValue("type");
             int count = Integer.valueOf(attributes.getValue("count"));
+            double percent = Double.valueOf(attributes.getValue("percent"));
             String value = attributes.getValue("value");
 
             if (className == null || className.length() == 0 ) {
-                return new ColumnValueCount(null,count);
+                return new ColumnValueCount(null,count, percent);
             } else if (className.equals(BigDecimal.class.getName()) ) {
-                return new ColumnValueCount(new BigDecimal(value),count);
+                return new ColumnValueCount(new BigDecimal(value),count, percent);
             } else if (className.equals(Timestamp.class.getName()) ) {
-                return new ColumnValueCount(new Timestamp( Timestamp.valueOf(value).getTime() ),count);
+                return new ColumnValueCount(new Timestamp( Timestamp.valueOf(value).getTime() ),count, percent);
             } else if (className.equals(String.class.getName()) ) {
-                return new ColumnValueCount(new String(value),count);
+                return new ColumnValueCount(new String(value),count, percent);
             } else {
-                return new ColumnValueCount(new String(value),count);
+                return new ColumnValueCount(new String(value),count, percent);
             }
         }
     }
