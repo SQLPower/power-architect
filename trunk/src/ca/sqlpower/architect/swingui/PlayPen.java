@@ -548,7 +548,7 @@ public class PlayPen extends JPanel
 						List selection = getSelectedItems();
 						if (selection.size() == 1) {
 							TablePane tp = (TablePane) selection.get(0);
-							JOptionPane.showMessageDialog(PlayPen.this, new JScrollPane(new JList(new java.util.Vector(tp.columnSelection))));
+							JOptionPane.showMessageDialog(PlayPen.this, new JScrollPane(new JList(new java.util.Vector(tp.selectedColumns))));
 						} else {
 							JOptionPane.showMessageDialog(PlayPen.this, "You can only show selected columns on one item at a time");
 						}

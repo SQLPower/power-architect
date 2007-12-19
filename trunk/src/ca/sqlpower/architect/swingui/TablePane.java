@@ -49,11 +49,12 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
+import java.util.Set;
 
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
@@ -129,7 +130,7 @@ public class TablePane
 	/**
 	 * Tracks which columns in this table are currently selected.
 	 */
-	protected ArrayList<Boolean> columnSelection;
+	protected Set<SQLColumn> selectedColumns;
 
 	/**
 	 * Tracks current highlight colours of the columns in this table.
@@ -159,7 +160,7 @@ public class TablePane
 		this.selectionListeners = new ArrayList<SelectionListener>();
 		this.dtl = new TablePaneDropListener(this);
 		this.margin = (Insets) tp.margin.clone();
-		this.columnSelection = new ArrayList<Boolean>(tp.columnSelection);
+		this.selectedColumns = new HashSet<SQLColumn>(tp.selectedColumns);
 		this.columnHighlight = new HashMap<SQLColumn,List<Color>>(tp.columnHighlight);
 		try {
 
@@ -271,8 +272,8 @@ public class TablePane
                     boolean wasSelectedPreviously = (e.getChildren()[i] == mostRecentSelectedRemoval);
                     if (wasSelectedPreviously) {
                         selectNone();
+                        selectedColumns.add((SQLColumn) e.getChildren()[i]);
                     }
-                    columnSelection.add(ci[i], wasSelectedPreviously);
                     // This is only supposed to work if we deselct the columns before selecting them
                     // this if stops the insert from wiping out a highlighted column
                     if (columnHighlight.get((SQLColumn) e.getChildren()[i]) == null) {
@@ -306,20 +307,16 @@ public class TablePane
                     logger.debug("Columns removed. Syncing select/highlight lists. Removed indices=["+sb+"]");
                 }
                 for (int i = 0; i < ci.length; i++) {
-                    if (columnSelection.get(ci[i]) == true) {
+                    if (selectedColumns.contains(e.getChildren()[i])) {
                         mostRecentSelectedRemoval = (SQLColumn) e.getChildren()[i];
                     }
-                    columnSelection.remove(ci[i]);
+                    selectedColumns.remove(e.getChildren()[i]);
                 }
-                if (columnSelection.size() > 0) {
-                    selectNone();
-                    columnSelection.set(Math.min(ci[0], columnSelection.size()-1), Boolean.TRUE);
-                }
-
-                // make sure everything is synced up
                 try {
-                    if (columnSelection.size() != model.getColumns().size()) {
-                        throw new IllegalStateException("out-of-sync selection list (event source="+e.getSource()+"): selection="+columnSelection+"; children="+model.getColumns());
+                    int size = model.getColumns().size();
+                    if (size > 0 ) {
+                        selectNone();
+                        selectedColumns.add(model.getColumn(Math.min(ci[0], size-1)));
                     }
                 } catch (ArchitectException ex) {
                     throw new ArchitectRuntimeException(ex);
@@ -355,10 +352,7 @@ public class TablePane
             logger.debug("TablePane got db structure change event. source="+e.getSource());
             if (e.getSource() == model.getColumnsFolder()) {
                 int numCols = e.getChildren().length;
-                columnSelection = new ArrayList<Boolean>(numCols);
-                for (int i = 0; i < numCols; i++) {
-                    columnSelection.add(Boolean.FALSE);
-                }
+                selectedColumns = new HashSet<SQLColumn>(numCols);
                 columnHighlight = new HashMap<SQLColumn,List<Color>>();
                 try {
                     for (SQLColumn child :((List<SQLColumn>) model.getColumnsFolder().getChildren())) {
@@ -410,10 +404,7 @@ public class TablePane
 
 
 		try {
-			columnSelection = new ArrayList<Boolean>(m.getColumns().size());
-			for (int i = 0; i < m.getColumns().size(); i++) {
-				columnSelection.add(Boolean.FALSE);
-			}
+		    selectedColumns = new HashSet<SQLColumn>(m.getColumns().size());
 			columnHighlight = new HashMap<SQLColumn,List<Color>>();
 			for (SQLColumn column: model.getColumns()) {
 				columnHighlight.put(column, new ArrayList<Color>());
@@ -503,9 +494,7 @@ public class TablePane
      * Deselects all columns in this tablepane.
      */
 	public void selectNone() {
-		for (int i = 0; i < columnSelection.size(); i++) {
-			columnSelection.set(i, Boolean.FALSE);
-		}
+	    selectedColumns.clear();
 		repaint();
 	}
 
@@ -519,7 +508,11 @@ public class TablePane
             selectNone();
             return;
         }
-        columnSelection.set(i, Boolean.FALSE);
+        try {
+            selectedColumns.remove(model.getColumn(i));
+        } catch (ArchitectException ex) {
+            throw new ArchitectRuntimeException(ex);
+        }
         repaint();
     }
 
@@ -532,7 +525,11 @@ public class TablePane
 			selectNone();
 			return;
 		}
-		columnSelection.set(i, Boolean.TRUE);
+	    try{
+	        selectedColumns.add(model.getColumn(i));
+	    } catch (ArchitectException ex) {
+	        throw new ArchitectRuntimeException(ex);
+	    }
 		repaint();
 	}
 
@@ -543,10 +540,9 @@ public class TablePane
 	 */
 	public boolean isColumnSelected(int i) {
 		try {
-			return ((Boolean) columnSelection.get(i)).booleanValue();
-		} catch (IndexOutOfBoundsException ex) {
-			logger.error("Couldn't determine selected status of col "+i+" on table "+model.getName());
-			return false;
+		    return selectedColumns.contains(model.getColumn(i));
+		} catch (ArchitectException ex) {
+		    throw new ArchitectRuntimeException(ex);
 		}
 	}
 
@@ -555,11 +551,12 @@ public class TablePane
 	 * COLUMN_INDEX_NONE if there are no selected columns.
 	 */
 	public int getSelectedColumnIndex() {
-		ListIterator<Boolean> it = columnSelection.listIterator();
-		while (it.hasNext()) {
-			if ((it.next()) == true) {
-				return it.previousIndex();
-			}
+		if (selectedColumns.size() > 0) {
+		    try {
+		        return model.getColumns().indexOf(selectedColumns.toArray()[0]);
+		    } catch (ArchitectException ex) {
+		        throw new ArchitectRuntimeException(ex);
+		    }
 		}
 		return COLUMN_INDEX_NONE;
 	}
