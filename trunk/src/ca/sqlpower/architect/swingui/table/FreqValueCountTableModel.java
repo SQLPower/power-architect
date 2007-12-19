@@ -43,33 +43,32 @@ public class FreqValueCountTableModel extends AbstractTableModel {
     
     private static final String COUNT="COUNT";
     private static final String VALUE="VALUE";
+    private static final String PERCENT="PERCENT";
     
     public FreqValueCountTableModel(ColumnProfileResult profile) {
         super();
         this.profile = profile;
     }
 
-
-
     @Override
     public String getColumnName(int column) {
         if ( column == 0 ) {
             return COUNT;
         } else if ( column == 1 ) {
+            return PERCENT;
+        } else if (column == 2) {
             return VALUE;
         } else {
             throw new IllegalStateException("Unknown Column Index:"+column);
         }
     }
     
-    
-    
     public int getRowCount() {
         return profile==null?0:profile.getValueCount().size();
     }
 
     public int getColumnCount() {
-        return 2;
+        return 3;
     }
 
     public Object getValueAt(int rowIndex, int columnIndex) {
@@ -79,6 +78,8 @@ public class FreqValueCountTableModel extends AbstractTableModel {
         if ( columnIndex == 0 ) {
             return profile.getValueCount().get(rowIndex).getCount();
         } else if ( columnIndex == 1 ) {
+            return profile.getValueCount().get(rowIndex).getPercent();
+        } else if (columnIndex == 2) {
             return profile.getValueCount().get(rowIndex).getValue();
         } else {
             throw new IllegalStateException("Unknown Column Index:"+columnIndex);
