@@ -801,7 +801,13 @@ public class CoreProject {
         public Object createObject(Attributes attributes) throws ArchitectException, ClassNotFoundException, InstantiationException, IllegalAccessException {
             String className = attributes.getValue("type");
             int count = Integer.valueOf(attributes.getValue("count"));
-            double percent = Double.valueOf(attributes.getValue("percent"));
+            
+            String per = attributes.getValue("percent");
+            double percent = -1;
+            if (per != null) {
+                percent = Double.valueOf(per);
+            }
+            
             String value = attributes.getValue("value");
 
             if (className == null || className.length() == 0 ) {
