@@ -71,31 +71,32 @@ public class ProfileAction extends AbstractArchitectAction {
     }
 
     private void profileItemsFromDBTree() {
-        if (dbTree.getSelectionPaths() == null) {
-            JOptionPane.showMessageDialog(session.getArchitectFrame(),
-                    "Please select table(s) in the Database Tree to profile them",
-                    "No selection", JOptionPane.INFORMATION_MESSAGE);
-            return;
-        }
-
         TreePath targetDBPath = dbTree.getPathForRow(0);
-        for (TreePath path: dbTree.getSelectionPaths()){
-            if (path.isDescendant(targetDBPath)) {
-
-                int answer = JOptionPane.showConfirmDialog(session.getArchitectFrame(),
-                        "Cannot perform profiling on the project database." +
-                        "\nDo you want to continue profiling?",
-                        "Continue Profiling",JOptionPane.OK_CANCEL_OPTION);
-                if (answer == JOptionPane.CANCEL_OPTION){
-                    return;
-                } else {
-                    break;
+        
+        if (dbTree.getSelectionPaths() != null) {
+            for (TreePath path: dbTree.getSelectionPaths()){
+                if (path.isDescendant(targetDBPath)) {
+    
+                    int answer = JOptionPane.showConfirmDialog(session.getArchitectFrame(),
+                            "Cannot perform profiling on the project database." +
+                            "\nDo you want to continue profiling?",
+                            "Continue Profiling",JOptionPane.OK_CANCEL_OPTION);
+                    if (answer == JOptionPane.CANCEL_OPTION){
+                        return;
+                    } else {
+                        break;
+                    }
+    
                 }
-
             }
+        } else {
+            //this is a very rare case where you load a project then immediately push 
+            //profile, it should not tell you to select a table. All other cases will
+            //have something selected
+            dbTree.setSelectionPath(targetDBPath);
         }
 
-        logger.debug("dbTree.getSelectionPaths() # = " + dbTree.getSelectionPaths().length);
+        //logger.debug("dbTree.getSelectionPaths() # = " + dbTree.getSelectionPaths().length);
         try {
             Set<SQLObject> sqlObject = new HashSet<SQLObject>();
             for ( TreePath tp : dbTree.getSelectionPaths() ) {
