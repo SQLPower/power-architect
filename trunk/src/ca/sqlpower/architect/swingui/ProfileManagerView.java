@@ -50,7 +50,6 @@ import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -72,7 +71,6 @@ import ca.sqlpower.architect.profile.event.ProfileChangeEvent;
 import ca.sqlpower.architect.profile.event.ProfileChangeListener;
 import ca.sqlpower.architect.swingui.event.SelectionEvent;
 import ca.sqlpower.architect.swingui.event.SelectionListener;
-import ca.sqlpower.swingui.SPSUtils;
 
 /**
  * The controlling view for the Profile Manager. Vaguely patterned on e.g., the
@@ -277,9 +275,8 @@ public class ProfileManagerView extends JPanel implements ProfileChangeListener 
             public void keyTyped(KeyEvent e) {}
         });
         topPanel.add(searchText);
-        ImageIcon clearSearchIcon = SPSUtils.createIcon("delete", "Clear Search", ArchitectSwingSessionContext.ICON_SIZE);
 
-        JButton clearSearchButton = new JButton(clearSearchIcon);
+        JButton clearSearchButton = new JButton("Clear Search");
         clearSearchButton.addKeyListener(pageListener);
         clearSearchButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
