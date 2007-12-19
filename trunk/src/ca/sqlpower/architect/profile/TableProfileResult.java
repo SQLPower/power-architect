@@ -111,15 +111,57 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
      * made public for use in UI controls that need an approximation
      * of the format for e.g., sizing a JLabel or other text component
      */
-    public static final String TOSTRING_FORMAT = "Rows: %d   %s   Time:  %d ms";
+    public static final String TOSTRING_FORMAT = "Rows: %d   %s   Time:  %s";
 
     @Override
     public String toString() {
         DateFormat df = DateFormat.getDateTimeInstance();
         Date date = new Date(getCreateStartTime());
-        return String.format(TOSTRING_FORMAT, rowCount, df.format(date), getTimeToCreate());
+        return String.format(TOSTRING_FORMAT, rowCount, df.format(date), formatCreateTime());
     }
     
+    /**
+     * Format the time it took to create so that it displays
+     * the proper time units.
+     * @return String representation fo the create time
+     * with the proper time units.
+     */
+    private String formatCreateTime() {
+        long time = getTimeToCreate();
+        int ms = (int) time % 1000;
+        time /= 1000;
+        int sec = (int) time % 60;
+        time /= 60;
+        int min = (int) time % 60;
+        time /= 60;
+        int hour = (int) time % 24;
+        time /= 24;
+        int day = (int) time % 365;
+        time /= 365;
+        int year = (int) time;
+
+        StringBuilder s = new StringBuilder();
+        if (year > 0) {
+            s.append(year + " yr(s) ");
+        }
+        if (day > 0) {
+            s.append(day + " day(s) ");
+        }
+        if (hour > 0) {
+            s.append(hour + " hr(s) ");
+        }
+        if (min > 0) {
+            s.append(min + " min(s) ");
+        }
+        if (sec > 0) {
+            s.append(sec + " sec(s) ");
+        }
+        if (ms > 0) {
+            s.append(ms + " ms(s) ");
+        }
+        return s.toString();
+    }
+
     /**
      * Returns an unmodifiable list of columnProfileResults that
      * belong to this table.
