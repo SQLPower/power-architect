@@ -31,6 +31,8 @@
  */
 package ca.sqlpower.architect.swingui.table;
 
+import java.text.NumberFormat;
+
 import javax.swing.table.AbstractTableModel;
 
 import ca.sqlpower.architect.profile.ColumnProfileResult;
@@ -78,7 +80,15 @@ public class FreqValueCountTableModel extends AbstractTableModel {
         if ( columnIndex == 0 ) {
             return profile.getValueCount().get(rowIndex).getCount();
         } else if ( columnIndex == 1 ) {
-            return profile.getValueCount().get(rowIndex).getPercent();
+            double d = profile.getValueCount().get(rowIndex).getPercent();
+            if (d == -1) {
+                //this is used to stop old saved files from breaking
+                return "n/a";
+            } else {
+                NumberFormat percentFormat = NumberFormat.getPercentInstance();
+                percentFormat.setMaximumFractionDigits(2);
+                return percentFormat.format(d);
+            }
         } else if (columnIndex == 2) {
             return profile.getValueCount().get(rowIndex).getValue();
         } else {

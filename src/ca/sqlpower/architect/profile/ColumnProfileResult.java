@@ -152,8 +152,9 @@ public class ColumnProfileResult extends AbstractProfileResult<SQLColumn> {
     }
 
     public void addValueCount(Object value, int count) {
-        ColumnValueCount columnValueCount = new ColumnValueCount(value,count,
-                count*100.00/parentResult.getRowCount());
+        double per =  count/(double)parentResult.getRowCount();
+
+        ColumnValueCount columnValueCount = new ColumnValueCount(value,count, per);
         if (!topTen.contains(columnValueCount)) {
             topTen.add(columnValueCount);
             logger.debug("Added Value Count: Value: " + value + " Count: " + count);
