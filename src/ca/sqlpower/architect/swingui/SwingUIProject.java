@@ -641,7 +641,8 @@ public class SwingUIProject extends CoreProject {
                                 (count.getValue() == null ? "" : count.getValue().getClass().getName()) +
                                 "\" value=\""+
                                 SQLPowerUtils.escapeXML(String.valueOf(count.getValue()))+
-                                "\"/>" );
+                                "\" percent=\"" + 
+                                count.getPercent() + "\"/>" );
                     }
                 }
                 ioo.indent--;
