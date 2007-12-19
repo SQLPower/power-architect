@@ -830,11 +830,7 @@ public class DBTree extends JTree implements DragSourceListener {
                 SQLTable table = col.getParentTable();
                 TablePane tp = pp.findTablePane(table);
                 pp.selectAndShow(table);
-                try {
-                    tp.columnSelection.set(table.getColumnIndex(col), Boolean.TRUE);
-                } catch (ArchitectException e1) {
-                  ASUtils.showExceptionDialog(session, "Error in selecting the column!", e1);
-                }
+                tp.selectedColumns.add(col);
             } else
                 pp.selectAndShow(selection);
 
