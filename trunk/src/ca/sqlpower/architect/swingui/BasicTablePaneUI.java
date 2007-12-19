@@ -113,6 +113,7 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 		TablePane tp = (TablePane) c;
 		try {
 			Graphics2D g2 = (Graphics2D) g;
+	
 			
 			if (logger.isDebugEnabled()) {
 				Rectangle clip = g2.getClipBounds();
@@ -130,8 +131,16 @@ public class BasicTablePaneUI extends TablePaneUI implements PropertyChangeListe
 
 			//  We don't want to paint inside the insets or borders.
 			Insets insets = c.getInsets();
+			
+			//builds a little buffer to reduce the clipping problem
+			//this only seams to work at a non-zoomed level. This could 
+			//use a little work (better fix)
+			g.setColor(Color.WHITE);
+			g.fillRect(0, 0, c.getWidth(), c.getHeight());
+			
 			g.translate(insets.left, insets.top);
-			int width = c.getWidth() - insets.left - insets.right;
+
+	        int width = c.getWidth() - insets.left - insets.right;
 			int height = c.getHeight() - insets.top - insets.bottom;
 
 			Font font = c.getFont();

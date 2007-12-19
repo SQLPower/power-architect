@@ -2411,7 +2411,8 @@ public class PlayPen extends JPanel
 				}
 			}
 			maybeShowPopup(evt);
-
+			
+			repaint();
 		}
 
 		// ---------------- MOUSEMOTION LISTENER INTERFACE -----------------
