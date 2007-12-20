@@ -147,6 +147,7 @@ public class ArchitectFrame extends JFrame {
     private ZoomToFitAction zoomToFitAction;
     private AutoLayoutAction autoLayoutAction;
     
+    private EditSelectedAction editSelectedAction;
     private EditColumnAction editColumnAction;
     private InsertColumnAction insertColumnAction;
     private InsertIndexAction insertIndexAction;
@@ -329,6 +330,7 @@ public class ArchitectFrame extends JFrame {
         editRelationshipAction = new EditRelationshipAction(session);
         createTableAction = new CreateTableAction(session);
         editColumnAction = new EditColumnAction(session);
+        editSelectedAction = new EditSelectedAction(session);
         insertColumnAction = new InsertColumnAction(session);
         insertIndexAction = new InsertIndexAction(session);
         editTableAction = new EditTableAction(session);
@@ -475,7 +477,7 @@ public class ArchitectFrame extends JFrame {
         ppBar.addSeparator();
         tempButton = ppBar.add(insertColumnAction);
         tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
-        tempButton = ppBar.add(editColumnAction);
+        tempButton = ppBar.add(editSelectedAction);
         tempButton.setActionCommand(ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN);
         ppBar.addSeparator();
         ppBar.add(createNonIdentifyingRelationshipAction);
@@ -659,6 +661,10 @@ public class ArchitectFrame extends JFrame {
 
     public PreferencesAction getPrefAction() {
         return prefAction;
+    }
+    
+    public EditSelectedAction getEditSelectedAction() {
+        return editSelectedAction;
     }
 
     public EditColumnAction getEditColumnAction() {
