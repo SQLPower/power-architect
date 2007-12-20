@@ -647,7 +647,7 @@ public class PlayPen extends JPanel
 				ActionEvent ev = new ActionEvent(e.getSource(), e.getID(),
 								ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN,
 								e.getWhen(), e.getModifiers());
-				session.getArchitectFrame().getEditColumnAction().actionPerformed(ev);
+				session.getArchitectFrame().getEditSelectedAction().actionPerformed(ev);
 			}
 		});
         
@@ -2411,7 +2411,6 @@ public class PlayPen extends JPanel
 				}
 			}
 			maybeShowPopup(evt);
-			
 			repaint();
 		}
 

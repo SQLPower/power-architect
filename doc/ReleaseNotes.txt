@@ -32,6 +32,8 @@ and foreign key are in the same table).
 in the playpen instead of the entire model. Useful for very large data models.
 *The table profiler can now optionally perform its calculations locally, instead
 of on the database server. This may improve profiling performance.
+*Changed the action for Enter in the play pen to edit the selected item, 
+it is no longer limited to columns.
 
 
 0.9.8
