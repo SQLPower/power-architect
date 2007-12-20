@@ -340,7 +340,7 @@ public class ProfileRowComponent extends JPanel implements Selectable {
             deleteButton.setVisible(true);
             statusLabel.setVisible(true);
             if (result.getException() == null) {
-                if (result.getCreateStartTime() - result.getCreateEndTime() != 0) {
+                if (result.getCreateStartTime() >= 0) {
                     statusLabel.setText(result.toString());
                     statusLabel.setForeground(null);
                 } else {
