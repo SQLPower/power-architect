@@ -2633,10 +2633,9 @@
 					The second option, Local Reservoir which transfers
 					all of the data to the local computer and then
 					samples and process the data there. This works well
-					over a fast network. This option is still under
-					construction and is known to cause an out of memory
-					error when profiling large tables in both MySQL and
-					PostgreSQL.
+					over a fast network. This option is still experimental
+					 and is known to cause an out of memory error when 
+					 profiling large tables.
 				</para>
 			</section>
 
