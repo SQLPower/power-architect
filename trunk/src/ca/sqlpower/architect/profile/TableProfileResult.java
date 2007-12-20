@@ -123,41 +123,38 @@ public class TableProfileResult extends AbstractProfileResult<SQLTable> {
     /**
      * Format the time it took to create so that it displays
      * the proper time units.
-     * @return String representation fo the create time
+     * @return String representation of the create time
      * with the proper time units.
      */
     private String formatCreateTime() {
         long time = getTimeToCreate();
-        int ms = (int) time % 1000;
+        
+        // when time is less than 1 ms
+        if (time == 0) {
+            return "0 ms";
+        }
+        
+        // holds the values for each time unit
+        int[] timeValues = new int[6];
+        int i = 5;
+        timeValues[i--] = (int) time % 1000;
         time /= 1000;
-        int sec = (int) time % 60;
+        timeValues[i--] = (int) time % 60;
         time /= 60;
-        int min = (int) time % 60;
+        timeValues[i--] = (int) time % 60;
         time /= 60;
-        int hour = (int) time % 24;
+        timeValues[i--] = (int) time % 24;
         time /= 24;
-        int day = (int) time % 365;
+        timeValues[i--] = (int) time % 365;
         time /= 365;
-        int year = (int) time;
+        timeValues[i--] = (int) time;
 
         StringBuilder s = new StringBuilder();
-        if (year > 0) {
-            s.append(year + " yr(s) ");
-        }
-        if (day > 0) {
-            s.append(day + " day(s) ");
-        }
-        if (hour > 0) {
-            s.append(hour + " hr(s) ");
-        }
-        if (min > 0) {
-            s.append(min + " min(s) ");
-        }
-        if (sec > 0) {
-            s.append(sec + " sec(s) ");
-        }
-        if (ms > 0) {
-            s.append(ms + " ms(s) ");
+        String[] timeUnits = new String[] {"yr", "day", "hr", "min", "sec", "ms"};
+        for (int j = 0; j < 6; j++) {
+            if (timeValues[j] > 0) {
+                s.append(timeValues[j] + " " + timeUnits[j] + " ");
+            }
         }
         return s.toString();
     }
