@@ -142,79 +142,81 @@ public class LocalReservoirProfileCreator extends AbstractTableProfileCreator {
     private void profileColumnsFromSample(TableProfileResult tpr, Object[][] sample, MonitorableImpl pm) {
         // Profile each column in a separate pass so we only have to track one set
         // of "top n values" at a time.
-        for (int col = 0; col < sample[0].length; col++) {
-            pm.setProgress(col + 1);
-            ColumnProfileResult cpr = tpr.getColumnProfileResults().get(col);
-            cpr.setCreateStartTime(System.currentTimeMillis());
-            
-            // this map is for counting distinct values as well as finding the "top n" values
-            Map<Object, Integer> valueCounts = new HashMap<Object, Integer>();
-            
-            // for calculating the average value (nulls count as 0)
-            double sum = 0.0;
-
-            // for calculating the average length, based on string length (nulls count as 0)
-            double lengthSum = 0.0;
-            
-            int minLength = 0;
-            int maxLength = 0;
-            
-            Comparable minValue = null;
-            Comparable maxValue = null;
-            
-            int nullCount = 0;
-            
-            for (int row = 0; row < sample.length; row++) {
-                Object val = sample[row][col];
-                String sval = (val == null ? null : String.valueOf(val));
+        if (sample.length > 0) {
+            for (int col = 0; col < sample[0].length; col++) {
+                pm.setProgress(col + 1);
+                ColumnProfileResult cpr = tpr.getColumnProfileResults().get(col);
+                cpr.setCreateStartTime(System.currentTimeMillis());
                 
-                Integer oldCount = valueCounts.get(val);
-                if (oldCount == null) oldCount = new Integer(0);
-                valueCounts.put(val, oldCount + 1);
+                // this map is for counting distinct values as well as finding the "top n" values
+                Map<Object, Integer> valueCounts = new HashMap<Object, Integer>();
                 
-                if (val == null) {
-                    nullCount++;
-                } else if (val instanceof Number) {
-                    sum += ((Number) val).doubleValue();
-                }
+                // for calculating the average value (nulls count as 0)
+                double sum = 0.0;
+    
+                // for calculating the average length, based on string length (nulls count as 0)
+                double lengthSum = 0.0;
                 
-                if (sval != null) {
-                    lengthSum += sval.length();
-                }
+                int minLength = 0;
+                int maxLength = 0;
                 
-                if (val instanceof Comparable) {
-                    Comparable cval = (Comparable) val;
-                    if (minValue == null || (cval.compareTo(minValue) < 0)) {
-                        minValue = cval;
+                Comparable minValue = null;
+                Comparable maxValue = null;
+                
+                int nullCount = 0;
+                
+                for (int row = 0; row < sample.length; row++) {
+                    Object val = sample[row][col];
+                    String sval = (val == null ? null : String.valueOf(val));
+                    
+                    Integer oldCount = valueCounts.get(val);
+                    if (oldCount == null) oldCount = new Integer(0);
+                    valueCounts.put(val, oldCount + 1);
+                    
+                    if (val == null) {
+                        nullCount++;
+                    } else if (val instanceof Number) {
+                        sum += ((Number) val).doubleValue();
                     }
-                    if (maxValue == null || (cval.compareTo(maxValue) > 0)) {
-                        maxValue = cval;
+                    
+                    if (sval != null) {
+                        lengthSum += sval.length();
+                    }
+                    
+                    if (val instanceof Comparable) {
+                        Comparable cval = (Comparable) val;
+                        if (minValue == null || (cval.compareTo(minValue) < 0)) {
+                            minValue = cval;
+                        }
+                        if (maxValue == null || (cval.compareTo(maxValue) > 0)) {
+                            maxValue = cval;
+                        }
                     }
                 }
+                
+                // TODO: scale results by the ratio of the sample size to the total row count
+                // (the actual row count is in tpr.getRowCount())
+                
+                cpr.setAvgLength(lengthSum / ((double) sample.length));
+                cpr.setAvgValue(sum / ((double) sample.length));
+                cpr.setDistinctValueCount(valueCounts.size());
+                cpr.setMaxLength(maxLength);
+                cpr.setMaxValue(maxValue);
+                cpr.setMinLength(minLength);
+                cpr.setMinValue(minValue);
+                cpr.setNullCount(nullCount);
+                
+                List<Map.Entry<Object, Integer>> topNList = new ArrayList<Entry<Object,Integer>>(valueCounts.entrySet());
+                Collections.sort(topNList, new TopNValuesComparator());
+                
+                for (int i = 0; i < settings.getTopNCount() && i < topNList.size(); i++) {
+                    Entry<Object, Integer> entry = topNList.get(i);
+                    cpr.addValueCount(entry.getKey(), entry.getValue().intValue());
+                }
+                
+                cpr.setCreateEndTime(System.currentTimeMillis());
+    
             }
-            
-            // TODO: scale results by the ratio of the sample size to the total row count
-            // (the actual row count is in tpr.getRowCount())
-            
-            cpr.setAvgLength(lengthSum / ((double) sample.length));
-            cpr.setAvgValue(sum / ((double) sample.length));
-            cpr.setDistinctValueCount(valueCounts.size());
-            cpr.setMaxLength(maxLength);
-            cpr.setMaxValue(maxValue);
-            cpr.setMinLength(minLength);
-            cpr.setMinValue(minValue);
-            cpr.setNullCount(nullCount);
-            
-            List<Map.Entry<Object, Integer>> topNList = new ArrayList<Entry<Object,Integer>>(valueCounts.entrySet());
-            Collections.sort(topNList, new TopNValuesComparator());
-            
-            for (int i = 0; i < settings.getTopNCount() && i < topNList.size(); i++) {
-                Entry<Object, Integer> entry = topNList.get(i);
-                cpr.addValueCount(entry.getKey(), entry.getValue().intValue());
-            }
-            
-            cpr.setCreateEndTime(System.currentTimeMillis());
-
         }
     }
 
