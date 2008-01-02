@@ -104,6 +104,9 @@ public class Relationship extends PlayPenComponent implements Selectable, SQLObj
 		try {
 			RelationshipUI ui = (RelationshipUI) r.getUI().getClass().newInstance();
 			ui.installUI(this);
+			ui.setFkConnectionPoint(((RelationshipUI) r.getUI()).getFkConnectionPoint());
+			ui.setPkConnectionPoint(((RelationshipUI) r.getUI()).getPkConnectionPoint());
+			ui.setOrientation(((RelationshipUI) r.getUI()).getOrientation());
 			setUI(ui);
 		} catch (InstantiationException e) {
 			throw new RuntimeException("Woops, couldn't invoke no-args constructor of "+r.getUI().getClass().getName());

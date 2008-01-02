@@ -99,6 +99,10 @@ public abstract class RelationshipUI implements PlayPenComponentUI, java.io.Seri
 	public Point getPkConnectionPoint() {
 		return pkConnectionPoint;
 	}
+	
+	public void setOrientation(int o) {
+	    this.orientation = o;
+	}
 
 	/**
 	 * This is the point where this relationship meets its FK table.
