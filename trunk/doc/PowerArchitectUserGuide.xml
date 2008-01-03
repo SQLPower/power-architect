@@ -2926,11 +2926,13 @@
 						</entry>
 						<entry>
 							<para>
-								Does not work; the current version
-								(10.1.2) has what we consider some
-								unwarranted chumminess with the JDBC
-								Driver Manager that breaks because we
-								use our own Java "ClassLoader"
+								Preliminary support exists.  Reverse engineering
+								databases in Derby 10.3.2 or later is possible; Derby-specific
+								forward engineering is not yet available.  You could try
+								using the forward engineering support for another platform
+								such as MySQL or HSQLDB.  Please post to our web support forum
+								if you are interested in forward engineering your data models
+								to Derby!
 							</para>
 						</entry>
 					</row>
