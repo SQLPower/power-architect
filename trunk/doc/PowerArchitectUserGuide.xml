@@ -463,12 +463,20 @@
 					<command>java -jar architect.jar</command>.  For larger projects,
 					the default maximum amount of memory allowed by the Java runtime may not be
 					enough.  In that case, use a command such as <command>java -Xmx600m -jar architect.jar</command>,
-					which increases the memory cap from the default 64MB to 600MB.
+					which increases the cap on memory usage from the default 64MB to 600MB.<footnote>
+					    <para>
+					        Note that this will not ause the Architect to immediately allocate that
+					        amount of memory: the Xmx setting simply sets the upper limit on the
+					        total amount of memory the Architect will be allowed to allocate. If you
+					        are familiar with Unix-like operating systems, you can think of this
+					        setting as being similar to ulimit(1).
+					    </para>
+					</footnote>
 			    </para>
 			    
 			    <para>
 					Alternatively, if your operating system has a visual filesystem browser, you may be able to
-					launch the architect by clicking (or double-clicking) on the architect.jar file.
+					launch the Architect by clicking (or double-clicking) on the architect.jar file.
 				</para>
 
 			</section>
