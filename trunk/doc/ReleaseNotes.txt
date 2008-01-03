@@ -10,6 +10,10 @@ IMPORTANT NOTE to users upgrading from pre-0.9.x versions of the Architect:
  of the Architect.  We apologize for the inconvenience, but the benefits will
  outweigh the costs!
 
+0.9.10
+*Fixed the relationship lines to be straight when printing if they were
+ already straight in the playpen.
+
 0.9.9
 *Added support for explicitly named sequences in PostgreSQL and Oracle
 *Added the ability to choose the constraint checking deferrability policy
