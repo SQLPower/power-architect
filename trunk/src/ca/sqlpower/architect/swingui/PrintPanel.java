@@ -397,7 +397,9 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 			g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
 								RenderingHints.VALUE_INTERPOLATION_BICUBIC);
 			//settings.pp.paint(g2);  This is slow in win32 and x11
-			for (int i = 0; i < pp.getPlayPenContentPane().getComponentCount(); i++) {
+			// components must be printed in reverse order
+			for (int i = pp.getPlayPenContentPane().getComponentCount()-1; i >=0; i--) {
+			    logger.debug(i);
 				PlayPenComponent ppc = pp.getPlayPenContentPane().getComponent(i);
 				g2.translate(ppc.getX(), ppc.getY());
 				ppc.paint(g2);
