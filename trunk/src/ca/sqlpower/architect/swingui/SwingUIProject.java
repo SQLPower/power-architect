@@ -217,6 +217,7 @@ public class SwingUIProject extends CoreProject {
                 int fky = Integer.parseInt(attributes.getValue("fk-y"));
                 r.setPkConnectionPoint(new Point(pkx, pky));
                 r.setFkConnectionPoint(new Point(fkx, fky));
+                r.updateUI();
             } catch (ArchitectException e) {
                 logger.error("Couldn't create relationship component", e);
             } catch (NumberFormatException e) {
