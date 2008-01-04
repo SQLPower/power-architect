@@ -52,6 +52,8 @@ public abstract class RelationshipUI implements PlayPenComponentUI, java.io.Seri
     public static final int CHILD_FACES_LEFT = 32;
     public static final int CHILD_FACES_BOTTOM = 64;
     public static final int CHILD_FACES_TOP = 128;
+    public static final int CHILD_MASK = 240;
+    public static final int PARENT_MASK = 15;
 
 
 	public RelationshipUI() {
