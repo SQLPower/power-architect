@@ -205,6 +205,7 @@ public class ArchitectFrame extends JFrame {
         splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         splitPane.setLeftComponent(new JScrollPane(dbTree));
         splitPane.setRightComponent(new JScrollPane(playpen));
+        playpen.setInitialViewPosition();
 
         final Preferences prefs = context.getPrefs();
         

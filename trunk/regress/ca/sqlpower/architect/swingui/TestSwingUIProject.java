@@ -31,6 +31,7 @@
  */
 package ca.sqlpower.architect.swingui;
 
+import java.awt.Point;
 import java.beans.PropertyDescriptor;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -53,6 +54,9 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.apache.tools.ant.filters.StringInputStream;
 
 import ca.sqlpower.ArchitectTestCase;
@@ -172,7 +176,7 @@ public class TestSwingUIProject extends ArchitectTestCase {
         " <source-stuff datastoreTypeAsString='PROJECT' connectName='Arthur_test' " +
         " schema='ARCHITECT_REGRESS' filepath='' />"+
         "<target-stuff datastoreTypeAsString='FILE' filePath='Testpath' /> </compare-dm-settings>"+
-        " <play-pen>" +
+        " <play-pen zoom=\"12.3\" viewportX=\"200\" viewportY=\"20\">" +
         "  <table-pane table-ref='TAB0' x='85' y='101' />" +
         "  <table-pane table-ref='TAB6' x='196' y='38' />" +
         "  <table-link relationship-ref='REL12' pk-x='76' pk-y='60' fk-x='114' fk-y='30' />" +
@@ -1115,6 +1119,41 @@ public class TestSwingUIProject extends ArchitectTestCase {
             getAllInterestingProperties(session.getKettleJob(), propertiesToIgnore);
         
         assertMapsEqual(oldDescription, newDescription);
+    }
+    
+    public void testSaveAndLoadCoversPlayPen() throws Exception{
+        testLoad();
+        
+        PlayPen oldPP = session.getPlayPen();
+        oldPP.setZoom(123.45);
+        oldPP.setViewPosition(new Point(5,4));
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        project.save(byteArrayOutputStream, ENCODING);
+
+        System.out.println(byteArrayOutputStream.toString());
+
+        SwingUIProject project2 = new SwingUIProject(session);
+        project2.load(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), plIni);
+        
+        PlayPen newPP = project2.getSession().getPlayPen();
+        
+        assertEquals(oldPP.getZoom(), newPP.getZoom());
+        assertEquals(oldPP.getViewPosition().getX(), newPP.getViewPosition().getX());
+        assertEquals(oldPP.getViewPosition().getY(), newPP.getViewPosition().getY());
+        
+    }
+    
+    public void testLoadCoversPlayPen()throws Exception{
+        BasicConfigurator.configure();
+        Logger.getRootLogger().setLevel(Level.DEBUG);
+        testLoad();
+        
+        PlayPen oldPP = project.getSession().getPlayPen();
+        
+        assertEquals(12.3, oldPP.getZoom());
+        assertEquals(20, oldPP.getViewPosition().y);
+        assertEquals(200, oldPP.getViewPosition().x);
+        
     }
     
     /**

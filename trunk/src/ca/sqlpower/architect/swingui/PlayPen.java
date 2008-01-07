@@ -336,6 +336,11 @@ public class PlayPen extends JPanel
      * The session that contains this playpen
      */
 	private final ArchitectSwingSession session;
+	
+	/**
+	 * The initial position of the viewport.
+	 */
+	private Point viewportPosition;
     
 	/**
      * Creates a play pen with reasonable defaults.  If you are creating
@@ -351,6 +356,7 @@ public class PlayPen extends JPanel
 		this.session = session;
 		setDatabase(session.getTargetDatabase());
         zoom = 1.0;
+        viewportPosition = new Point(0, 0);
 		setBackground(java.awt.Color.white);
 		contentPane = new PlayPenContentPane(this);
 		setName("Play Pen");
@@ -915,7 +921,7 @@ public class PlayPen extends JPanel
 			logger.debug("view position is: " + viewPosition);
 			return viewPosition;
 		} else {
-			return null;
+			return new Point(0, 0);
 		}
 	}
 
@@ -925,8 +931,17 @@ public class PlayPen extends JPanel
 		if (c != null) {
 			JViewport jvp = (JViewport) c;
 			logger.debug("view position set to: " + p);
-			jvp.setViewPosition(p);
+			Point newPosition = jvp.getViewPosition();
+			if (p != null) {
+			    jvp.setViewPosition(p);
+			}
+
 		}
+		viewportPosition = p;
+	}
+	
+	public void setInitialViewPosition() {
+	    setViewPosition(viewportPosition);
 	}
 
     /** See {@link #paintingEnabled}. */
