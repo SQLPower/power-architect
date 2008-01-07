@@ -51,6 +51,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.digester.AbstractObjectCreationFactory;
 import org.apache.commons.digester.Digester;
+import org.apache.commons.digester.Rule;
 import org.apache.log4j.Logger;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -145,7 +146,16 @@ public class SwingUIProject extends CoreProject {
         // the play pen
         PlayPenFactory ppFactory = new PlayPenFactory();
         d.addFactoryCreate("architect-project/play-pen", ppFactory);
-
+        
+        //Sets the view point again in the case that the viewport was invalid in the factory
+        d.addRule("architect-project/play-pen", new Rule() {
+            @Override
+            public void end() throws Exception {
+                super.end();
+                getSession().getPlayPen().setInitialViewPosition();
+            }
+        });
+        
         TablePaneFactory tablePaneFactory = new TablePaneFactory();
         d.addFactoryCreate("architect-project/play-pen/table-pane", tablePaneFactory);
         // factory will add the tablepanes to the playpen
@@ -171,9 +181,25 @@ public class SwingUIProject extends CoreProject {
 
         return d;
     }
+    
+    
 
     private class PlayPenFactory extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) {
+        	String zoomLevel = attributes.getValue("zoom");
+        	if (zoomLevel != null) {
+        	    getSession().getPlayPen().setZoom(Double.parseDouble(zoomLevel));
+        	}
+        	
+        	String viewportX = attributes.getValue("viewportX");
+        	String viewportY = attributes.getValue("viewportY");
+        	
+        	if (viewportX != null && viewportY != null) {
+        	    Point viewPoint = new Point(Integer.parseInt(viewportX), Integer.parseInt(viewportY));
+        		getSession().getPlayPen().setViewPosition(viewPoint);
+        	}
+        	logger.debug("Viewport position is " + getSession().getPlayPen().getViewPosition());
+        	
             String relStyle = attributes.getValue("relationship-style");
             boolean direct;
             if (relStyle == null) {
@@ -557,7 +583,10 @@ public class SwingUIProject extends CoreProject {
     private void savePlayPen(PrintWriter out) throws IOException, ArchitectException {
         String relStyle = getSession().getRelationshipLinesDirect() ?
                 RELATIONSHIP_STYLE_DIRECT : RELATIONSHIP_STYLE_RECTILINEAR;
-        ioo.println(out, "<play-pen relationship-style="+quote(relStyle)+">");
+        ioo.println(out, "<play-pen zoom=\"" + getSession().getPlayPen().getZoom() + 
+        		"\" viewportX=\"" + getSession().getPlayPen().getViewPosition().x + 
+        		"\" viewportY=\"" + getSession().getPlayPen().getViewPosition().y + 
+        		"\" relationship-style="+quote(relStyle) + ">");
         ioo.indent++;
         for(int i = getSession().getPlayPen().getTablePanes().size()-1; i>= 0; i--) {
             TablePane tp = getSession().getPlayPen().getTablePanes().get(i);
