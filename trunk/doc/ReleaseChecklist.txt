@@ -1,6 +1,6 @@
                      Power*Architect release checklist
 
-$Id:$
+$Id$
 
 This file is intended as a guide for the person who is packaging, posting,
 and announcing a new release of the Power*Architect.  This list is probably
@@ -42,7 +42,8 @@ Good luck with the release!
  *For Windows only, test the uninstaller
 *Commit, then tag the release in the SVN repository, if you made it all the way
  to this point without finding any new problems!
-
+*Add the current release number without the -alpha suffix to Bugzilla, as well
+ as the next release number with -alpha.
 
 Making the new release available
 *Upload generic, mac, and windows binaries to Google Code
