@@ -236,14 +236,16 @@ public class SwingUIProject extends CoreProject {
                     (SQLRelationship) objectIdMap.get(attributes.getValue("relationship-ref"));
                 r = new Relationship(getSession().getPlayPen(), rel);
                 getSession().getPlayPen().addRelationship(r);
+                r.updateUI();
 
                 int pkx = Integer.parseInt(attributes.getValue("pk-x"));
                 int pky = Integer.parseInt(attributes.getValue("pk-y"));
                 int fkx = Integer.parseInt(attributes.getValue("fk-x"));
                 int fky = Integer.parseInt(attributes.getValue("fk-y"));
+                int orientation = Integer.parseInt(attributes.getValue("orientation"));
+                ((RelationshipUI) r.getUI()).setOrientation(orientation);
                 r.setPkConnectionPoint(new Point(pkx, pky));
                 r.setFkConnectionPoint(new Point(fkx, fky));
-                r.updateUI();
             } catch (ArchitectException e) {
                 logger.error("Couldn't create relationship component", e);
             } catch (NumberFormatException e) {
@@ -605,7 +607,8 @@ public class SwingUIProject extends CoreProject {
                     +" pk-x=\""+r.getPkConnectionPoint().x+"\""
                     +" pk-y=\""+r.getPkConnectionPoint().y+"\""
                     +" fk-x=\""+r.getFkConnectionPoint().x+"\""
-                    +" fk-y=\""+r.getFkConnectionPoint().y+"\" />");
+                    +" fk-y=\""+r.getFkConnectionPoint().y+"\""
+                    +" orientation=\"" + ((RelationshipUI)r.getUI()).getOrientation() + "\" />");
         }
         ioo.indent--;
         ioo.println(out, "</play-pen>");
