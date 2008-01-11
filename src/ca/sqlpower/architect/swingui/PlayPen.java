@@ -341,6 +341,13 @@ public class PlayPen extends JPanel
 	 * The initial position of the viewport.
 	 */
 	private Point viewportPosition;
+	
+	/**
+	 * The font render context for cases where the play pen
+	 * has no graphics object to get the font render context
+	 * but we know it from another panel.
+	 */
+	private FontRenderContext fontRenderContext;
     
 	/**
      * Creates a play pen with reasonable defaults.  If you are creating
@@ -373,6 +380,7 @@ public class PlayPen extends JPanel
 		ds = new DragSource();
 		ds.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_MOVE, dgl);
 		logger.debug("DragGestureRecognizer motion threshold: " + getToolkit().getDesktopProperty("DnD.gestureMotionThreshold"));
+		fontRenderContext = null;
 	}
 
 	/**
@@ -390,7 +398,7 @@ public class PlayPen extends JPanel
 	 */
 	public PlayPen(ArchitectSwingSession session, PlayPen pp) {
 		this(session);
-
+		
 		for (int i = 0; i < pp.getContentPane().getComponentCount(); i++) {
 			PlayPenComponent ppc = pp.getContentPane().getComponent(i);
 			if (ppc instanceof TablePane) {
@@ -2746,18 +2754,26 @@ public class PlayPen extends JPanel
 	}
 
     /**
-     * @return The font render context at the current zoom setting.
+     * @return The font render context at the current zoom setting
+     *         or the font render context defined by the setter.
      */
     public FontRenderContext getFontRenderContext() {
+        
         Graphics2D g2 = (Graphics2D) getGraphics();
         FontRenderContext frc = null;
         if (g2 != null) {
             g2.scale(zoom, zoom);
             frc = g2.getFontRenderContext();
             g2.dispose();
+        } else {
+            frc = fontRenderContext;
         }
         if (logger.isDebugEnabled()) logger.debug("Returning frc="+frc);
         return frc;
+    }
+    
+    public void setFontRenderContext(FontRenderContext frc) {
+        fontRenderContext = frc;
     }
 
     /**

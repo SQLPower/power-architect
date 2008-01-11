@@ -36,11 +36,10 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.awt.font.FontRenderContext;
 import java.awt.geom.AffineTransform;
 import java.awt.print.PageFormat;
 import java.awt.print.Pageable;
@@ -340,12 +339,24 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 
 	public class PrintPreviewPanel extends JPanel implements PropertyChangeListener {
 
+	    /**
+	     * The preferred size of the play pen at the default zoom.
+	     */
+	    private Dimension playPenPreferredSize;
+	    
+	    /**
+	     * A copy of the play pen graphic to get the font render context from.
+	     */
+	    private Graphics fontContextGraphic;
+	    
 		public PrintPreviewPanel() {
 			setDoubleBuffered(false);
 			PrintPanel.this.addPropertyChangeListener(this);
 			PreviewZoomAdjuster adjuster = new PreviewZoomAdjuster(); 
 			addMouseMotionListener(adjuster);
 			addMouseListener(adjuster);
+			playPenPreferredSize = pp.getPreferredSize();
+			fontContextGraphic = session.getPlayPen().getGraphics().create();
 		}
 
 		/**
@@ -368,7 +379,7 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 		 * available space.
 		 */
 		private double calculateZoom() {
-			Dimension ppSize = pp.getPreferredSize();
+			Dimension ppSize = playPenPreferredSize;
 			double previewZoomX = (double) getWidth() / ppSize.width;
 			double previewZoomY = (double) getHeight() / ppSize.height;
 			return Math.min(previewZoomX, previewZoomY);
@@ -378,34 +389,24 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 			validateLayout();
 
 			Graphics2D g2 = (Graphics2D) g;
-			g2.setColor(pp.getBackground());
-			g2.fill(new Rectangle(0, 0, getWidth(), getHeight()));
 			double zoom = calculateZoom();
 			
-			int scaledWidth = (int) (getWidth()/zoom);
-			int scaledHeight = (int) (getHeight()/zoom);
+			//Set the font render context for the new panel for the play pen
+			Graphics2D fcg = (Graphics2D) fontContextGraphic;
+			AffineTransform backupContextTransform = ((Graphics2D)fcg).getTransform();
+            FontRenderContext frc = null;
+            if (fcg != null) {
+                fcg.scale(zoom, zoom);
+                frc = fcg.getFontRenderContext();
+                fcg.setTransform(backupContextTransform);
+            }
+	        pp.setFontRenderContext(frc);
 
-			if (logger.isDebugEnabled()) {
-			    Dimension ppSize = pp.getPreferredSize();
-			    logger.debug("PlayPen preferred size = "+ppSize.width+"x"+ppSize.height);
-			    logger.debug("After scaling, preview panel coordinate space is "+scaledWidth+"x"+scaledHeight);
-			}
+			pp.setZoom(zoom);
+			pp.paintComponent(g);
 			
-			// now draw the playpen
-			g2.scale(zoom, zoom);
-
-			g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-								RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-			//settings.pp.paint(g2);  This is slow in win32 and x11
-			// components must be printed in reverse order
-			for (int i = pp.getPlayPenContentPane().getComponentCount()-1; i >=0; i--) {
-			    logger.debug(i);
-				PlayPenComponent ppc = pp.getPlayPenContentPane().getComponent(i);
-				g2.translate(ppc.getX(), ppc.getY());
-				ppc.paint(g2);
-				g2.translate(-ppc.getX(), -ppc.getY());
-			}
-			
+	        int scaledWidth = (int) (getWidth()/zoom);
+	        int scaledHeight = (int) (getHeight()/zoom);
 			// and draw the lines where the page boundaries fall
 			double iW = pageFormat.getImageableWidth();
 			double iH = pageFormat.getImageableHeight();
@@ -420,7 +421,7 @@ public class PrintPanel extends JPanel implements DataEntryPanel, Pageable, Prin
 			for (int i = 0; i <= pagesDown; i++) {
 				g2.drawLine(0, (int) (i * iH), (int) (scaledWidth*PrintPanel.this.zoom), (int) (i * iH));
 				if (logger.isDebugEnabled()) logger.debug("Drew page separator at y="+(i*iH));
-			}			
+			}		
 		}
 
 		// ----- property change listener -----
