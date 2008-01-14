@@ -96,6 +96,12 @@ We recently made our Bugzilla database for Power*Architect open to the public at
 	
 You can browse through existing bugs and pick something to investigate, or if you've found any new bugs, you can sign up for a Bugzilla account and report them.
 
+
+= FishEye & Crucible =
+
+We are using Atlassian's FishEye (http://www.atlassian.com/software/fisheye/) tool to monitor changes and generate statistics from the Power*Architect's source code repository.  We are also using Atlassian's Crucible (http://www.atlassian.com/software/crucible/) tool for peer code review with FishEye. The FishEye server is available at http://trillian.sqlpower.ca/fisheye
+
+
 = The Wishlist =
 
 For developers new to Power*Architect that want to start making contributions to Power*Architect there is a wishlist included with the source code that the developers
