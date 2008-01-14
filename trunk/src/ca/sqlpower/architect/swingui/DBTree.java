@@ -188,7 +188,8 @@ public class DBTree extends JTree implements DragSourceListener {
 	 */
 	public int[] getDnDPathToNode(SQLObject node) {
 		DBTreeModel m = (DBTreeModel) getModel();
-		SQLObject[] sop = m.getPathToNode(node);
+		List<SQLObject[]> sopList = m.getPathsToNode(node);
+		SQLObject[] sop = sopList.get(0);
 		int[] dndp = new int[sop.length-1];
 		SQLObject current = sop[0];
 		for (int i = 1; i < sop.length; i++) {

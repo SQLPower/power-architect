@@ -31,9 +31,11 @@
  */
 package ca.sqlpower.architect.swingui;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 import javax.swing.SwingUtilities;
 import javax.swing.event.TreeModelEvent;
@@ -253,13 +255,6 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
 	 * because they have two parents! Use getPkPathToRelationship and
 	 * getFkPathToRelationship instead.
 	 *
-	 * <p>XXX: getPathToNode and get(Pk|Fk)PathToRelationship should
-	 * be merged into a new getPathsToNode method that returns a List
-	 * or array of paths.  Then all methods that call it (currently
-	 * they are only here and in DBTree) should be adapted to allow
-	 * multiple returned paths.  getPathToNode is not part of the
-	 * javax.swing.tree.TreeModel interface.
-	 *
 	 * @throws IllegalArgumentException if <code>node</code> is of class SQLRelationship.
 	 */
 	public SQLObject[] getPathToNode(SQLObject node) {
@@ -291,6 +286,26 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
         path[path.length - 2] = rel.getFkTable().getImportedKeysFolder();
 		path[path.length - 1] = rel;
 		return path;
+	}
+	
+	/**
+     * Returns the path from the conceptual, hidden root node (of type
+     * DBTreeRoot) to the given node.
+     * 
+     * If the node is not a relationship then the list will only contain
+     * one path to the object. Otherwise the list will contain the path
+     * to the primary key then the path to the foreign key.
+	 */
+	public List<SQLObject[]> getPathsToNode(SQLObject node) {
+	    List<SQLObject[]> nodePaths = new ArrayList<SQLObject[]>();
+	    if (node instanceof SQLRelationship) {
+	        SQLRelationship rel = (SQLRelationship) node;
+	        nodePaths.add(getPkPathToRelationship(rel));
+	        nodePaths.add(getFkPathToRelationship(rel));
+	    } else {
+	        nodePaths.add(getPathToNode(node));
+	    }
+	    return nodePaths;
 	}
 
 	/**
