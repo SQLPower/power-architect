@@ -2243,7 +2243,7 @@ public class PlayPen extends JPanel
 					(new ActionEvent(evt.getSource(),
 							ActionEvent.ACTION_PERFORMED,
 							ArchitectSwingConstants.ACTION_COMMAND_SRC_PLAYPEN));
-				} else if(evt.getClickCount()==1){
+				} else if(evt.getClickCount()==1 && evt.getButton() == MouseEvent.BUTTON1){
 				    if (c.isSelected()&& componentPreviouslySelected)c.setSelected(false,SelectionEvent.SINGLE_SELECT);
                 }
           		session.getArchitectFrame().getCreateIdentifyingRelationshipAction().cancel();
@@ -2303,7 +2303,7 @@ public class PlayPen extends JPanel
 
 					if ( (evt.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) != 0) {
 						mouseMode = MouseModeType.MULTI_SELECT;
-					} else {
+					} else if (evt.getButton() == MouseEvent.BUTTON1) {
 						mouseMode = MouseModeType.SELECT_RELATIONSHIP;
 						if ( !r.isSelected() ) {
 							pp.selectNone();
