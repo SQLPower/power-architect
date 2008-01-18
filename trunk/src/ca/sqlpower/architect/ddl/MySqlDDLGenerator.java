@@ -59,6 +59,13 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
 
     public static final String GENERATOR_VERSION = "$Revision$";
 
+    /**
+     * Systemwide setting (controlled by a system property) that tells whether or not
+     * this DDL generator will convert identifiers to lower case.
+     */
+    private static final boolean DOWNCASE_IDENTIFIERS = 
+        Boolean.parseBoolean(System.getProperty("ca.sqlpower.architect.ddl.MySqlDDLGenerator.DOWNCASE_IDENTIFIERS", "true"));
+    
     private static final Logger logger = Logger.getLogger(MySqlDDLGenerator.class);
 
     private static HashSet reservedWords;
@@ -322,7 +329,7 @@ public class MySqlDDLGenerator extends GenericDDLGenerator {
 
     @Override
     public String toIdentifier(String name) {
-        if (name != null) {
+        if (name != null && DOWNCASE_IDENTIFIERS) {
             name = name.toLowerCase();
         }
         return super.toIdentifier(name);
