@@ -225,7 +225,23 @@ public abstract class SQLObject implements java.io.Serializable {
 		if ( children.size() > 0 && 
 				! (children.get(0).getClass().isAssignableFrom(newChild.getClass())
 					|| newChild.getClass().isAssignableFrom(children.get(0).getClass()))) {
-			throw new ArchitectException("You Can't mix SQL Object Types! You gave: "+newChild.getClass().getName()+"; I need "+children.get(0).getClass());
+            
+            ArchitectException ex;
+            if (newChild instanceof SQLExceptionNode) {
+
+                // long term, we want to dispose of SQLExceptionNode altogether. This is a temporary workaround.
+                SQLExceptionNode sen = (SQLExceptionNode) newChild;
+                ex = new ArchitectException(
+                        "Can't add exception node here because there are already other children. " +
+                        "See exception cause for the original exception.",
+                        sen.getException());
+            } else {
+                ex = new ArchitectException(
+                        "You Can't mix SQL Object Types! You gave: " +
+                        newChild.getClass().getName() +
+                        "; I need " + children.get(0).getClass());
+            }
+			throw ex;
 		}
 		children.add(index, newChild);
 		newChild.setParent(this);
