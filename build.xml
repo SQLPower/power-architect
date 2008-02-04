@@ -326,7 +326,7 @@
 						ca/sqlpower/architect/ddl/*.class,
 						ca/sqlpower/architect/diff/*.class,
 						ca/sqlpower/architect/undo/*.class,
-						ca/sqlpower/architect/profile/*.class">
+						ca/sqlpower/architect/profile/**/*.class">
 		</jar>
 	</target>
 	
