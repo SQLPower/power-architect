@@ -712,7 +712,18 @@ public class SQLIndex extends SQLObject {
         addChild(col);
     }
 
-    public static SQLIndex getDerivedInstance(SQLIndex source, SQLTable parenTable) throws ArchitectException {
+    /**
+     * Returns a copy of a SQLIndex from a given SQLIndex in a parent SQLTable.
+     * This appears to be mainly used for creating a SQLIndex for a copied table
+     * in the playpen when importing tables from a source database as part of
+     * the reverse engineering feature.
+     * 
+     * @param source The source SQLIndex to copy
+     * @param parentTable The parent SQLTable of the source SQLIndex
+     * @return A copy of the given source SQLIndex.
+     * @throws ArchitectException
+     */
+    public static SQLIndex getDerivedInstance(SQLIndex source, SQLTable parentTable) throws ArchitectException {
         
         SQLIndex index = new SQLIndex();
         index.setName(source.getName());
@@ -724,13 +735,19 @@ public class SQLIndex extends SQLObject {
         index.setPrimaryKeyIndex(source.isPrimaryKeyIndex());
         
         for (Column column : source.getChildren()) {
-            SQLColumn sqlColumn = parenTable.getColumnByName(column.getColumn().getName());
-            if ( sqlColumn == null ) {
-                throw new ArchitectException("Can not derive instance, because coulmn " +
-                        column.getColumn().getName() + "is not found in parent table [" +
-                        parenTable.getName() + "]");
+            Column newColumn;
+
+            if (column.getColumn() != null) {
+                SQLColumn sqlColumn = parentTable.getColumnByName(column.getColumn().getName());
+                if ( sqlColumn == null ) {
+                    throw new ArchitectException("Can not derive instance, because coulmn " +
+                            column.getColumn().getName() + "is not found in parent table [" +
+                            parentTable.getName() + "]");
+                }
+                newColumn = index.new Column(sqlColumn,column.isAscending(),column.isDescending());
+            } else {
+                newColumn = index.new Column(column.getName(),column.isAscending(),column.isDescending());
             }
-            Column newColumn = index.new Column(sqlColumn,column.isAscending(),column.isDescending());
             index.addChild(newColumn);
         }
         return index;
