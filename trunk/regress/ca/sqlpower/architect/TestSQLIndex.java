@@ -382,4 +382,12 @@ public class TestSQLIndex extends SQLTestCase {
         assertEquals("Oh no wrong child!",i2.getChild(0),i.getChild(0));
         assertEquals("Oh no wrong child!",i2.getChild(1),i.getChild(1));
     }
+    
+    // Test to ensure NPE doesn't get thrown for a SQLIndex with no SQLColumn
+    public void testGetDerivedInstance() throws Exception {
+        SQLIndex derivedIndex;
+        Column newColumn = index.new Column("lower((name)::text))",false,false);
+        index.addChild(newColumn);
+        derivedIndex = SQLIndex.getDerivedInstance(index, table);
+    }
 }
