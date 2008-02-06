@@ -141,4 +141,12 @@ public class ArchitectSessionImpl implements ArchitectSession {
     public void setDDLGenerator(DDLGenerator generator) {
         ddlGenerator = generator;
     }
+    
+    /**
+     * Creates a user prompter that always responds with OK. This is appropriate for
+     * headless environments and embedded use.
+     */
+    public UserPrompter createUserPrompter(String question, String okText, String notOkText, String cancelText) {
+        return new AlwaysOKUserPrompter();
+    }
 }

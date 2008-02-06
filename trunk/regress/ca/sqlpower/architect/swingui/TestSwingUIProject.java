@@ -60,12 +60,12 @@ import org.apache.log4j.Logger;
 import org.apache.tools.ant.filters.StringInputStream;
 
 import ca.sqlpower.ArchitectTestCase;
-import ca.sqlpower.architect.AlwaysAcceptFileValidator;
+import ca.sqlpower.architect.AlwaysOKUserPrompter;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.CoreProject;
-import ca.sqlpower.architect.FileValidator;
+import ca.sqlpower.architect.UserPrompter;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
@@ -443,8 +443,8 @@ public class TestSwingUIProject extends ArchitectTestCase {
                     ((SQLIndex) newVal).setName("a new index");
                 } else if (props[i].getPropertyType() == File.class) {
                     newVal = new File("temp" + System.currentTimeMillis());
-                } else if (props[i].getPropertyType() == FileValidator.class) {
-                    newVal = new AlwaysAcceptFileValidator();
+                } else if (props[i].getPropertyType() == UserPrompter.class) {
+                    newVal = new AlwaysOKUserPrompter();
                 } else if (props[i].getPropertyType() == KettleRepositoryDirectoryChooser.class) {
                     newVal = new RootRepositoryDirectoryChooser();
                 } else if (props[i].getPropertyType() == SPDataSource.class) {

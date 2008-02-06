@@ -679,6 +679,7 @@ public class ArchitectUtils {
     /**
      * Checks if the given column types materially differ. Some data 
      * types (for example, DECIMAL and NUMERIC) are essentially the same.
+     * 
      * @param t1 One of the column types to compare
      * @param t2 One of the column types to compare.
      * @return True iff the given column types are materially different

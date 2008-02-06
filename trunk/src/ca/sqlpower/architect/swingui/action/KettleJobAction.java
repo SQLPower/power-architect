@@ -51,7 +51,6 @@ import org.apache.log4j.Logger;
 import org.pentaho.di.core.exception.KettleException;
 
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.FileValidator;
 import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.architect.etl.kettle.KettleRepositoryDirectoryChooser;
@@ -59,7 +58,6 @@ import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectFrame;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.KettleJobPanel;
-import ca.sqlpower.architect.swingui.PromptingFileValidator;
 import ca.sqlpower.architect.swingui.UserRepositoryDirectoryChooser;
 import ca.sqlpower.swingui.DataEntryPanelBuilder;
 import ca.sqlpower.swingui.ProgressWatcher;
@@ -96,10 +94,8 @@ public class KettleJobAction extends AbstractArchitectAction {
                 if (!kettleETLPanel.applyChanges()) {
                     return new Boolean(false);
                 }
-                FileValidator validator = new PromptingFileValidator(architectFrame);
                 KettleRepositoryDirectoryChooser chooser = new UserRepositoryDirectoryChooser(architectFrame);
                 final KettleJob kettleJob = session.getKettleJob();
-                kettleJob.setFileValidator(validator);
                 kettleJob.setRepositoryDirectoryChooser(chooser);
                 
                 final JDialog createKettleJobMonitor = new JDialog(architectFrame);
