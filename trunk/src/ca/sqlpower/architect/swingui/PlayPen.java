@@ -934,12 +934,11 @@ public class PlayPen extends JPanel
 	}
 
 	// set the position of the viewport that we are sitting in
-	public void setViewPosition(Point p ) {
+	public void setViewPosition(Point p) {
 		Container c = SwingUtilities.getAncestorOfClass(JViewport.class, this);
 		if (c != null) {
 			JViewport jvp = (JViewport) c;
 			logger.debug("view position set to: " + p);
-			Point newPosition = jvp.getViewPosition();
 			if (p != null) {
 			    jvp.setViewPosition(p);
 			}
@@ -1402,7 +1401,7 @@ public class PlayPen extends JPanel
 		                      0,
 			                  100);
 		AddObjectsTask t = new AddObjectsTask(list,
-				preferredLocation, pm, null, session);
+				preferredLocation, pm, session);
 		t.setNextProcess(nextProcess);
 		new Thread(t, "Objects-Adder").start();
 	}
@@ -1410,7 +1409,6 @@ public class PlayPen extends JPanel
 	protected class AddObjectsTask extends MonitorableWorker {
 		private List<SQLObject> sqlObjects;
 		private Point preferredLocation;
-		private JDialog parentDialog;
 		private boolean hasStarted = false;
 		private boolean finished = false;
 		private String message = null;
@@ -1422,12 +1420,10 @@ public class PlayPen extends JPanel
 		public AddObjectsTask(List<SQLObject> sqlObjects,
 				Point preferredLocation,
 				ProgressMonitor pm,
-				JDialog parentDialog, 
                 ArchitectSwingSession session) {
             super(session);
 			this.sqlObjects = sqlObjects;
 			this.preferredLocation = preferredLocation;
-			this.parentDialog = parentDialog;
 			finished = false;
 			ProgressWatcher.watchProgress(pm, this);
 			this.pm = pm;
