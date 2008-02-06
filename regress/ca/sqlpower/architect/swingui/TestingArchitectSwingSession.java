@@ -37,6 +37,7 @@ import java.util.List;
 
 import javax.swing.JDialog;
 
+import ca.sqlpower.architect.AlwaysOKUserPrompter;
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectSessionImpl;
@@ -44,6 +45,7 @@ import ca.sqlpower.architect.CoreProject;
 import ca.sqlpower.architect.CoreUserSettings;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLObjectRoot;
+import ca.sqlpower.architect.UserPrompter;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.GenericDDLGenerator;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
@@ -101,7 +103,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
         } catch (SQLException e) {
             throw new ArchitectException("SQL Error in ddlGenerator",e);
         }
-        kettleJob = new KettleJob();
+        kettleJob = new KettleJob(this);
         
     }
     
@@ -253,5 +255,9 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
 
     public SQLObjectRoot getRootObject() {
         return rootObject;
+    }
+
+    public UserPrompter createUserPrompter(String question, String okText, String notOkText, String cancelText) {
+        return new AlwaysOKUserPrompter();
     }
 }

@@ -65,14 +65,14 @@ import org.pentaho.di.trans.steps.mergejoin.MergeJoinMeta;
 import org.pentaho.di.trans.steps.tableinput.TableInputMeta;
 import org.pentaho.di.trans.steps.tableoutput.TableOutputMeta;
 
-import ca.sqlpower.architect.AlwaysAcceptFileValidator;
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.DepthFirstSearch;
-import ca.sqlpower.architect.FileValidator;
+import ca.sqlpower.architect.UserPrompter;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
-import ca.sqlpower.architect.FileValidator.FileValidationResponse;
+import ca.sqlpower.architect.UserPrompter.UserPromptResponse;
 import ca.sqlpower.architect.ddl.DDLUtils;
 import ca.sqlpower.util.Monitorable;
 import ca.sqlpower.util.MonitorableImpl;
@@ -120,12 +120,6 @@ public class KettleJob implements Monitorable {
     private List<String> tasksToDo;
     
     /**
-     * The file validator allows the selection for overwriting a file or not when saving
-     * the XML.
-     */
-    private FileValidator fileValidator;
-    
-    /**
      * This is the monitor implementation for this class. This is used to handle the progress bar
      * on the action window.
      */
@@ -146,18 +140,22 @@ public class KettleJob implements Monitorable {
      * to.
      */
     private KettleRepositoryDirectoryChooser dirChooser;
+
+    /**
+     * The session this job belongs to.
+     */
+    private final ArchitectSession session;
     
-    public KettleJob(FileValidator validator, KettleRepositoryDirectoryChooser chooser) {
-        this();
-        fileValidator = validator;
+    public KettleJob(ArchitectSession session, KettleRepositoryDirectoryChooser chooser) {
+        this(session);
         dirChooser = chooser;
     }
     
-    public KettleJob() {
+    public KettleJob(ArchitectSession session) {
         super();
         filePath = "";
         tasksToDo = new ArrayList<String>();
-        fileValidator = new AlwaysAcceptFileValidator();
+        this.session = session;
         monitor = new MonitorableImpl();
         dirChooser = new RootRepositoryDirectoryChooser();
     }
@@ -292,7 +290,7 @@ public class KettleJob implements Monitorable {
                 transformations.add(transMeta);
 
                 if (monitor.isCancelled()) {
-                    cancelled();
+                    cancel();
                     return;
                 }
                 
@@ -338,7 +336,7 @@ public class KettleJob implements Monitorable {
             }
 
             if (monitor.isCancelled()) {
-                cancelled();
+                cancel();
                 return;
             }
             
@@ -355,13 +353,11 @@ public class KettleJob implements Monitorable {
         }
     }
     
-
-    
     /**
      * This is a helper method that sets the taskToDo list with
      * the correct message to display.
      */
-    private void cancelled() {
+    private void cancel() {
         tasksToDo.clear();
         tasksToDo.add("The Kettle job was cancelled so some files may be missing.");
     }
@@ -399,10 +395,11 @@ public class KettleJob implements Monitorable {
     }
     
     /**
-     * This method outputs the xml for the given transformations and job to files.
-     * The path class variable and parent file must be set before using this method.
-     * The file is overwritten or not depending on the file validator. This method
-     *  is package private for testing purposes.
+     * This method outputs the xml for the given transformations and job to
+     * files. The path class variable and parent file must be set before using
+     * this method. The file is overwritten or not depending on the user
+     * prompter provided by the ArchitectSession. This method is exposed as
+     * package private for testing purposes.
      */
     void outputToXML(List<TransMeta> transformations, JobMeta job) throws IOException {
         Map<File, String> outputs = new LinkedHashMap<File, String>();
@@ -412,7 +409,7 @@ public class KettleJob implements Monitorable {
             transMeta.setFilename(file.getName());
             outputs.put(file, transMeta.getXML());
             if (monitor.isCancelled()) {
-                cancelled();
+                cancel();
                 return;
             }
         }
@@ -432,27 +429,24 @@ public class KettleJob implements Monitorable {
         job.setFilename(fileName);
         outputs.put(new File(fileName), job.getXML());
         
-        FileValidationResponse overwriteOption = FileValidationResponse.WRITE_OK;
+        UserPrompter up = session.createUserPrompter(
+                "The file {0} already exists. Overwrite?",
+                "Overwrite", "Don't Overwrite", "Cancel");
         for (File f : outputs.keySet()) {
             try {
-                if (overwriteOption == FileValidationResponse.WRITE_NOT_OK_ALWAYS) {
-                    continue;
-                }
                 logger.debug("The file to output is " + f.getPath());
                 if (f.exists()) {
-                    if (overwriteOption == FileValidationResponse.WRITE_OK_ALWAYS) {
+                    UserPromptResponse overwriteOption = up.promptUser(f.getAbsolutePath());
+                    if (overwriteOption == UserPromptResponse.OK) {
                         f.delete();
+                    } else if (overwriteOption == UserPromptResponse.NOT_OK) {
+                        continue;
+                    } else if (overwriteOption == UserPromptResponse.CANCEL) {
+                        cancel();
+                        return;
                     } else {
-                        String parentFilePath = f.getParentFile().getPath();
-                        overwriteOption = fileValidator.acceptFile(f.getName(), parentFilePath);
-                        if (overwriteOption == FileValidationResponse.WRITE_OK ||
-                                overwriteOption == FileValidationResponse.WRITE_OK_ALWAYS) {
-                        } else if (overwriteOption == FileValidationResponse.CANCEL) {
-                            cancelled();
-                            return;
-                        } else {
-                            continue;
-                        }
+                        throw new IllegalStateException(
+                                "Unknown response value from user prompt: " + overwriteOption);
                     }
                 }
                 f.createNewFile();
@@ -464,7 +458,7 @@ public class KettleJob implements Monitorable {
                 monitor.setProgress(monitor.getProgress() + 1);
                 
                 if (monitor.isCancelled()) {
-                    cancelled();
+                    cancel();
                     return;
                 }
             } catch (IOException er) {
@@ -517,27 +511,33 @@ public class KettleJob implements Monitorable {
             } 
 
             try {
-                FileValidationResponse overwriteOption = FileValidationResponse.WRITE_OK;
+                UserPrompter up = session.createUserPrompter(
+                        "{0} {1} already exists in the repository. Replace?",
+                        "Replace", "Don't Replace", "Cancel");
                 for (TransMeta tm: transformations) {
                     if (monitor.isCancelled()) {
-                        cancelled();
+                        cancel();
                         return;
                     }
                     tm.setDirectory(directory);
-                    if (overwriteOption == FileValidationResponse.WRITE_NOT_OK_ALWAYS) {
-                        monitor.setProgress(monitor.getProgress() + 1);
-                        continue;
-                    }
-                    if (overwriteOption != FileValidationResponse.WRITE_OK_ALWAYS) {
-                        long id = repo.getTransformationID(tm.getName(), directory.getID());
-                        if (id >= 0) {
-                            logger.debug("We found a transformation with the same name, the id is " + id);
-                            overwriteOption = fileValidator.acceptFile(tm.getName(), directory.getPath());
-                            if (overwriteOption == FileValidationResponse.WRITE_NOT_OK_ALWAYS ||
-                                    overwriteOption == FileValidationResponse.WRITE_NOT_OK) {
-                                monitor.setProgress(monitor.getProgress() + 1);
-                                continue;
-                            }
+                    
+                    // check for existing transaction having same name
+                    long id = repo.getTransformationID(tm.getName(), directory.getID());
+                    if (id >= 0) {
+                        logger.debug("We found a transformation with the same name, the id is " + id);
+                        UserPromptResponse overwriteOption = up.promptUser("Transformation", tm.getName());
+                        
+                        if (overwriteOption == UserPromptResponse.OK) {
+                            // will fall through and overwrite
+                        } else if (overwriteOption == UserPromptResponse.NOT_OK) {
+                            monitor.setProgress(monitor.getProgress() + 1);
+                            continue;
+                        } else if (overwriteOption == UserPromptResponse.CANCEL) {
+                            cancel();
+                            break;
+                        } else {
+                            throw new IllegalStateException(
+                                    "Unknown user prompt response: " + overwriteOption);
                         }
                     }
                     tm.saveRep(repo);
@@ -545,7 +545,7 @@ public class KettleJob implements Monitorable {
                     logger.debug("Progress is " + monitor.getProgress() + " out of " + monitor.getJobSize());
                 }
                 if (monitor.isCancelled()) {
-                    cancelled();
+                    cancel();
                     return;
                 }
 
@@ -553,21 +553,23 @@ public class KettleJob implements Monitorable {
                 //The first entry is not a transformation so skip it
                 //This is done here so we know where the files are being saved and that they are saved
                 for (int i = 1; i < jm.nrJobEntries(); i++) {
-                    JobEntryTrans trans = (JobEntryTrans)(jm.getJobEntry(i).getEntry());
+                    JobEntryTrans trans = (JobEntryTrans) (jm.getJobEntry(i).getEntry());
                     trans.setDirectory(directory);
                 }
 
                 jm.setDirectory(directory);
-                if (overwriteOption == FileValidationResponse.WRITE_NOT_OK_ALWAYS) {
-                    return;
-                }
-                if (overwriteOption != FileValidationResponse.WRITE_OK_ALWAYS) {
-                    if (repo.getTransformationID(jm.getName(), directory.getID()) >= 0) {
-                        overwriteOption = fileValidator.acceptFile(jm.getName(), directory.getPath());
-                        if (overwriteOption == FileValidationResponse.WRITE_NOT_OK_ALWAYS ||
-                                overwriteOption == FileValidationResponse.WRITE_NOT_OK) {
-                            return;
-                        }
+                if (repo.getTransformationID(jm.getName(), directory.getID()) >= 0) {
+                    UserPromptResponse overwriteOption = up.promptUser("Job", jm.getName());
+                    if (overwriteOption == UserPromptResponse.OK) {
+                        // will fall through and overwrite
+                    } else if (overwriteOption == UserPromptResponse.NOT_OK) {
+                        return;
+                    } else if (overwriteOption == UserPromptResponse.CANCEL) {
+                        cancel();
+                        return;
+                    } else {
+                        throw new IllegalStateException(
+                                "Unknown user prompt response: " + overwriteOption);
                     }
                 }
                 jm.saveRep(repo);
@@ -578,7 +580,7 @@ public class KettleJob implements Monitorable {
                 tasksToDo.add("Kettle job " + jm.getName() + " failed to save to respitory due to a Kettle error.");
                 throw e;
             }
-        }catch (SQLException e) {
+        } catch (SQLException e) {
             tasksToDo.clear();
             tasksToDo.add("Kettle job " + jm.getName() + " failed to save to respitory due to a SQL error.");
             throw e;
@@ -691,10 +693,6 @@ public class KettleJob implements Monitorable {
         return tasksToDo;
     }
 
-    public void setFileValidator(FileValidator fileValidator) {
-        this.fileValidator = fileValidator;
-    }
-    
     public Integer getJobSize() {
         return monitor.getJobSize();
     }

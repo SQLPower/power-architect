@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, SQL Power Group Inc.
+ * Copyright (c) 2008, SQL Power Group Inc.
  * 
  * All rights reserved.
  * 
@@ -29,17 +29,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 package ca.sqlpower.architect;
 
+public interface UserPrompterFactory {
 
-/**
- * A simple implementation of FileValidator that will accept any file.
- * This is normally used as a default for when we run headless.
- */
-public class AlwaysAcceptFileValidator implements FileValidator {
-
-    public FileValidationResponse acceptFile(String name, String path) {
-        return FileValidationResponse.WRITE_OK;
-    }
-
+    /**
+     * Creates a new user prompter instance with the given settings.  User prompter
+     * instances can be stateful (for example, an "always accept" button will cause
+     * that prompter to continue returning "OK" forever), so it is important to
+     * obtain a new user prompter from this factory for every overall operation.
+     * 
+     * @param question
+     *            The question the new prompter will pose when solociting a response
+     *            from the user.
+     * @param okText
+     *            The text to associate with the OK response. Try to use a word
+     *            or phrase from the question instead of a generic word like
+     *            "OK" or "Yes".
+     * @param notOkText
+     *            The text to associate with the "not OK" response. Try to use a
+     *            word or phrase from the question instead of a generic word
+     *            like "No".
+     * @param cancelText
+     *            The text to associate with response that cancels the whole operation.
+     */
+    public UserPrompter createUserPrompter(String question,
+            String okText, String notOkText, String cancelText);
 }

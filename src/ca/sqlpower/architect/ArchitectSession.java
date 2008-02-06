@@ -36,7 +36,7 @@ import java.util.List;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.profile.ProfileManager;
 
-public interface ArchitectSession {
+public interface ArchitectSession extends UserPrompterFactory {
 
     public static final String PREFS_PL_INI_PATH = "PL.INI.PATH";
     
@@ -107,4 +107,8 @@ public interface ArchitectSession {
      * Sets the new DDL Generator currently in use for this session.
      */
     public void setDDLGenerator(DDLGenerator generator);
+
+    /* docs inherit from interface */
+    public UserPrompter createUserPrompter(String question, String okText, String notOkText, String cancelText);
+
 }

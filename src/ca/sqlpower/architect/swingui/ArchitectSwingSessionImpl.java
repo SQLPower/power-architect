@@ -61,6 +61,7 @@ import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
 import ca.sqlpower.architect.SQLObjectRoot;
+import ca.sqlpower.architect.UserPrompter;
 import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
@@ -165,7 +166,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         
         compareDMSettings = new CompareDMSettings();
         
-        kettleJob = new KettleJob();
+        kettleJob = new KettleJob(this);
         
         playPen = new PlayPen(this);
         UserSettings sprefs = getUserSettings().getSwingSettings();
@@ -753,5 +754,14 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
 
     public void setDDLGenerator(DDLGenerator generator) {
         delegateSession.setDDLGenerator(generator);
+    }
+    
+    /**
+     * Creates a new user prompter that uses a modal dialog to pose the given question.
+     * 
+     * @see ModalDialogUserPrompter
+     */
+    public UserPrompter createUserPrompter(String question, String okText, String notOkText, String cancelText) {
+        return new ModalDialogUserPrompter(frame, question, okText, notOkText, cancelText);
     }
 }
