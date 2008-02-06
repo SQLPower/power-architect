@@ -35,6 +35,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.reflect.InvocationTargetException;
 import java.text.MessageFormat;
+import java.util.Arrays;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -181,6 +182,10 @@ public class ModalDialogUserPrompter implements UserPrompter {
      */
     public UserPromptResponse promptUser(final Object ... formatArgs) {
 
+        if (logger.isDebugEnabled()) {
+            logger.debug("Prompting user. Format Args: " + Arrays.asList(formatArgs));
+        }
+        
         if (applyToAll.isSelected()) {
             return response;
         }
