@@ -32,6 +32,8 @@
 
 package ca.sqlpower.architect;
 
+import java.text.MessageFormat;
+
 public interface UserPrompterFactory {
 
     /**
@@ -42,7 +44,18 @@ public interface UserPrompterFactory {
      * 
      * @param question
      *            The question the new prompter will pose when solociting a response
-     *            from the user.
+     *            from the user. This question string is not exactly plain text: it is
+     *            formatted according to to rules laid out in the {@link MessageFormat}
+     *            class. The most important implications are that the single quote (')
+     *            character and the open curly brace ({) characters are special and have
+     *            to be escaped in order to appear in the message.  The other important
+     *            thing (the benefit, that is) is that constructions of the form {0} are
+     *            placeholders that will be substituted every time the question is asked
+     *            via the {@link UserPrompter#promptUser(Object[])} method is called.  
+     *            See {@link MessageFormat} for details.
+     *            <p>
+     *            Also, UserPrompter implementations will ensure that newline characters
+     *            (\n) show up as new lines when the question is presented to the user.
      * @param okText
      *            The text to associate with the OK response. Try to use a word
      *            or phrase from the question instead of a generic word like

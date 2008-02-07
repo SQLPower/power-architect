@@ -41,8 +41,8 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
@@ -70,11 +70,11 @@ public class ModalDialogUserPrompter implements UserPrompter {
     private JFrame owner;
     
     /**
-     * The label that contains the question. The text of the label will be
-     * replaced every time {@link #promptUser(Object[])} gets called, based
-     * on the format arguments provided.
+     * The component that contains the question. The text will be replaced every
+     * time {@link #promptUser(Object[])} gets called, based on the format
+     * arguments provided.
      */
-    private final JLabel questionLabel;
+    private final JTextArea questionField;
     
     /**
      * The formatter responsible for doing formatting and parameter substitution
@@ -107,11 +107,6 @@ public class ModalDialogUserPrompter implements UserPrompter {
     public ModalDialogUserPrompter(
             JFrame owner, String questionMessage, String okText,
             String notOkText, String cancelText) {
-        /*
-         *         String fileNameMessage = fileName;
-         *         String filePathMessage = "at " + path;
-         *         String questionMessage = "already exists. Do you wish to overwrite it?";
-         */
         this.owner = owner;
         applyToAll = new JCheckBox("Apply to all");
         
@@ -119,7 +114,9 @@ public class ModalDialogUserPrompter implements UserPrompter {
         confirmDialog.setTitle("Overwrite");
         
         // this is just filled with the message pattern template to help with sizing
-        questionLabel = new JLabel(questionMessage);
+        questionField = new JTextArea(questionMessage);
+        questionField.setEditable(false);
+        questionField.setBackground(null);
         
         questionFormat = new MessageFormat(questionMessage);
         
@@ -130,11 +127,10 @@ public class ModalDialogUserPrompter implements UserPrompter {
         builder.setDefaultDialogBorder();
         
         builder.nextColumn(2);
-        builder.append(questionLabel);
+        builder.append(questionField);
         builder.nextLine();
         
-        builder.append("");
-        builder.append(applyToAll);
+        builder.appendParagraphGapRow();
         builder.nextLine();
         
         ButtonBarBuilder buttonBar = new ButtonBarBuilder();
@@ -169,6 +165,11 @@ public class ModalDialogUserPrompter implements UserPrompter {
         });
         builder.append("");
         builder.append(buttonBar.getPanel());
+        builder.nextLine();
+        
+        builder.append("");
+        builder.append(applyToAll);
+
         confirmDialog.setModal(true);
         confirmDialog.add(builder.getPanel());
     }
@@ -196,7 +197,7 @@ public class ModalDialogUserPrompter implements UserPrompter {
         
         Runnable promptUser = new Runnable() {
             public void run() {
-                questionLabel.setText(questionFormat.format(formatArgs));
+                questionField.setText(questionFormat.format(formatArgs));
                 if (firstPrompt) {
                     confirmDialog.pack();
                     confirmDialog.setLocationRelativeTo(owner);
