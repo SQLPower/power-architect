@@ -110,11 +110,6 @@ public class SQLObjectTest extends TestCase {
 		assertTrue(target.isPopulated());
 	}
 	
-	public final void testGetChildType()
-	{
-		
-	}
-
 	/*
 	 * Test method for 'ca.sqlpower.architect.SQLObject.setChildren(List)'
 	 * Note that setChildren copies elements, does not assign the list, and
@@ -144,98 +139,60 @@ public class SQLObjectTest extends TestCase {
 		assertEquals(Collections.EMPTY_LIST, target.getChildren());
 	}
 
-	class TestListener implements SQLObjectListener {
-
-		boolean childInserted;
-		boolean childRemoved;
-		boolean objectChanged;
-		boolean structureChanged;
-		
-		public void dbChildrenInserted(SQLObjectEvent e) {
-			System.out.println("Listener.dbChildrenInserted()");
-			setChildInserted(true);
-		}
-
-		public void dbChildrenRemoved(SQLObjectEvent e) {
-			System.out.println("Listener.dbChildrenRemoved()");
-			setChildRemoved(true);
-		}
-
-		public void dbObjectChanged(SQLObjectEvent e) {
-			System.out.println("Listener.dbObjectChanged()");
-			setObjectChanged(true);
-		}
-
-		public void dbStructureChanged(SQLObjectEvent e) {
-			System.out.println("Listener.dbStructureChanged()");
-			setStructureChanged(true);
-		}
-
-		public boolean isChildInserted() {
-			return childInserted;
-		}
-
-		public void setChildInserted(boolean childInserted) {
-			this.childInserted = childInserted;
-		}
-
-		public boolean isChildRemoved() {
-			return childRemoved;
-		}
-
-		public void setChildRemoved(boolean childRemoved) {
-			this.childRemoved = childRemoved;
-		}
-
-		public boolean isObjectChanged() {
-			return objectChanged;
-		}
-
-		public void setObjectChanged(boolean objectChanged) {
-			this.objectChanged = objectChanged;
-		}
-
-		public boolean isStructureChanged() {
-			return structureChanged;
-		}
-
-		public void setStructureChanged(boolean structureChanged) {
-			this.structureChanged = structureChanged;
-		}
-		
-	}
-	
-	/*
-	 * Test method for 'ca.sqlpower.architect.SQLObject.addSQLObjectListener(SQLObjectListener)'
-	 */
-	public final void testSQLObjectListenerHandling() throws ArchitectException {
-		SQLObjectListener t = new TestListener();
-		TestListener tt = (TestListener)t;
-		
-		target.addSQLObjectListener(t);
+	public final void testFiresAddEvent() throws ArchitectException {
+		CountingSQLObjectListener l = new CountingSQLObjectListener();
+		target.addSQLObjectListener(l);
 		((SQLObjectImpl) target).allowsChildren = true;
 		
-		tt.setChildInserted(false);
 		final SQLObjectImpl objectImpl = new SQLObjectImpl();
 		target.addChild(objectImpl);
-		assertTrue(tt.isChildInserted());
-		
-		tt.setObjectChanged(false);
-		((SQLObjectImpl)target).fakeObjectChanged("fred","old value","new value");
-		assertTrue(tt.isObjectChanged());
-		
-		tt.setObjectChanged(false);
-		((SQLObjectImpl)target).fakeObjectChanged("fred","old value","old value");
-		assertFalse(tt.isObjectChanged());
-		
-		tt.setStructureChanged(false);
-		((SQLObjectImpl)target).fakeStructureChanged();
-		assertTrue(tt.isStructureChanged());
-		
-		// MUST BE LAST!!
-		target.removeSQLObjectListener(t);
-		assertEquals(Collections.EMPTY_LIST, target.getSQLObjectListeners());
+		assertEquals(1, l.getInsertedCount());
+        assertEquals(0, l.getRemovedCount());
+        assertEquals(0, l.getChangedCount());
+        assertEquals(0, l.getStructureChangedCount());
+    }
 
+    public void testFireChangeEvent() throws Exception {
+        CountingSQLObjectListener l = new CountingSQLObjectListener();
+        target.addSQLObjectListener(l);
+
+        ((SQLObjectImpl)target).fakeObjectChanged("fred","old value","new value");
+        assertEquals(0, l.getInsertedCount());
+        assertEquals(0, l.getRemovedCount());
+        assertEquals(1, l.getChangedCount());
+        assertEquals(0, l.getStructureChangedCount());
+    }
+    
+    /** make sure "change" to same value doesn't fire useless event */
+    public void testDontFireChangeEvent() throws Exception {
+        CountingSQLObjectListener l = new CountingSQLObjectListener();
+        target.addSQLObjectListener(l);
+
+        ((SQLObjectImpl)target).fakeObjectChanged("fred","old value","old value");
+        assertEquals(0, l.getInsertedCount());
+        assertEquals(0, l.getRemovedCount());
+        assertEquals(0, l.getChangedCount());
+        assertEquals(0, l.getStructureChangedCount());
+    }
+
+    public void testFireStructureChangeEvent() throws Exception {
+        CountingSQLObjectListener l = new CountingSQLObjectListener();
+        target.addSQLObjectListener(l);
+		((SQLObjectImpl)target).fakeStructureChanged();
+        assertEquals(0, l.getInsertedCount());
+        assertEquals(0, l.getRemovedCount());
+        assertEquals(0, l.getChangedCount());
+        assertEquals(1, l.getStructureChangedCount());
+    }
+    
+    public void testAddRemoveListener() {
+        CountingSQLObjectListener l = new CountingSQLObjectListener();
+        
+        target.addSQLObjectListener(l);
+        assertEquals(1, target.getSQLObjectListeners().size());
+		
+        target.removeSQLObjectListener(l);
+		assertEquals(0, target.getSQLObjectListeners().size());
 	}
 	
 	public void testNoMixChildTypes() throws ArchitectException {
