@@ -36,11 +36,13 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import junit.framework.TestCase;
+public class SQLObjectTest extends SQLTestCase {
 
-public class SQLObjectTest extends TestCase {
+	public SQLObjectTest(String name) throws Exception {
+        super(name);
+    }
 
-	SQLObject target;
+    SQLObject target;
 	
 	private static class SQLObjectImpl extends SQLObject {
 	    protected boolean allowsChildren;
@@ -49,10 +51,6 @@ public class SQLObjectTest extends TestCase {
 		}
 		SQLObject parent = null;
 
-		@Override
-		public String getName() {
-			throw new RuntimeException("test abstract stub");
-		}
 		@Override
 		public SQLObject getParent() {
 			return parent;
@@ -67,7 +65,7 @@ public class SQLObjectTest extends TestCase {
 		}
 		@Override
 		public String getShortDisplayName() {
-			throw new RuntimeException("test abstract stub");
+            return "short display name";
 		}
 		@Override
 		public boolean allowsChildren() {
@@ -91,9 +89,15 @@ public class SQLObjectTest extends TestCase {
 		}
 	}
 	
-	public void setUp() {
+	public void setUp() throws Exception {
+        super.setUp();
 		target = new SQLObjectImpl();
 	}
+    
+    @Override
+    protected SQLObject getSQLObjectUnderTest() throws ArchitectException {
+        return target;
+    }
 
 	/*
 	 * Test method for 'ca.sqlpower.architect.SQLObject.isPopulated()'
@@ -213,6 +217,36 @@ public class SQLObjectTest extends TestCase {
 		// now test the other direction
 		target.removeChild(0);
 		target.addChild(new SQLObjectImpl());
+        
+        // test passes if no exceptions were thrown
 	}
 	
+    public void testPreRemoveEventNoVeto() throws Exception {
+        target.addChild(new SQLObjectImpl());
+
+        CountingSQLObjectPreEventListener l = new CountingSQLObjectPreEventListener();
+        target.addSQLObjectPreEventListener(l);
+        
+        l.setVetoing(false);
+        
+        target.removeChild(0);
+        
+        assertEquals("Event fired", 1, l.getPreRemoveCount());
+        assertEquals("Child removed", 0, target.getChildren().size());
+    }
+    
+    public void testPreRemoveEventVeto() throws Exception {
+        target.addChild(new SQLObjectImpl());
+
+        CountingSQLObjectPreEventListener l = new CountingSQLObjectPreEventListener();
+        target.addSQLObjectPreEventListener(l);
+        
+        l.setVetoing(true);
+        
+        target.removeChild(0);
+        
+        assertEquals("Event fired", 1, l.getPreRemoveCount());
+        assertEquals("Child not removed", 1, target.getChildren().size());
+    }
+
 }
