@@ -295,12 +295,18 @@ public abstract class SQLObject implements java.io.Serializable {
      * to override the behaviour of removeChild, override this method.
      */
     protected SQLObject removeImpl(int index) {
-        SQLObject removedChild = (SQLObject) children.remove(index);
-        if (removedChild != null) {
-            removedChild.setParent(null);
-            fireDbChildRemoved(index, removedChild);
+        boolean shouldProceed = fireDbChildPreRemove(index, (SQLObject) children.get(index));
+
+        if (shouldProceed) {
+            SQLObject removedChild = (SQLObject) children.remove(index);
+            if (removedChild != null) {
+                removedChild.setParent(null);
+                fireDbChildRemoved(index, removedChild);
+            }
+            return removedChild;
+        } else {
+            return null;
         }
-        return removedChild;
     }
 	
 	// ------------------- sql object event support -------------------
@@ -446,6 +452,82 @@ public abstract class SQLObject implements java.io.Serializable {
 		if (logger.isDebugEnabled()) logger.debug("Notified "+count+" listeners.");
 	}
 
+    // ------------------- sql object Pre-event support -------------------
+    private final transient List<SQLObjectPreEventListener> sqlObjectPreEventListeners = 
+        new ArrayList<SQLObjectPreEventListener>();
+
+    /**
+     * @return An immutable copy of the list of SQLObject pre-event listeners
+     */
+    public List<SQLObjectPreEventListener> getSQLObjectPreEventListeners() {
+            return sqlObjectPreEventListeners;
+    }
+    
+    public void addSQLObjectPreEventListener(SQLObjectPreEventListener l) {
+        if (l == null) throw new NullPointerException("You can't add a null listener");
+        synchronized(sqlObjectPreEventListeners) {
+            if (sqlObjectPreEventListeners.contains(l)) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("NOT Adding duplicate pre-event listener "+l+" to SQLObject "+this);
+                }
+                return;
+            }       
+            sqlObjectPreEventListeners.add(l);
+        }
+    }
+
+    public void removeSQLObjectPreEventListener(SQLObjectPreEventListener l) {
+        synchronized(sqlObjectPreEventListeners) {
+            sqlObjectPreEventListeners.remove(l);
+        }
+    }
+
+    /**
+     * Fires a pre-remove event, and returns the status of whether or not the
+     * operation should proceed.
+     * 
+     * @param oldIndices The child indices that might be removed
+     * @param oldChildren The children that might be removed
+     * @return  True if the operation should proceed; false if it should not. 
+     */
+    protected boolean fireDbChildrenPreRemove(int[] oldIndices, List oldChildren) {
+        if (logger.isDebugEnabled()) {
+            logger.debug(getClass().getName()+" "+toString()+": " +
+                    "firing dbChildrenPreRemove event");
+        }
+        SQLObjectPreEvent e = new SQLObjectPreEvent
+            (this,
+             oldIndices,
+             (SQLObject[]) oldChildren.toArray(new SQLObject[oldChildren.size()]));
+        int count = 0;
+        synchronized (sqlObjectPreEventListeners) {
+            SQLObjectPreEventListener[] listeners =
+                sqlObjectPreEventListeners.toArray(new SQLObjectPreEventListener[0]);
+            for (SQLObjectPreEventListener l : listeners) {
+                l.dbChildrenPreRemove(e);
+                count++;
+            }
+        }
+        if (logger.isDebugEnabled()) logger.debug("Notified "+count+" listeners. Veto="+e.isVetoed());
+        return !e.isVetoed();
+    }
+
+    /**
+     * Convenience method for {@link #fireDbChildrenPreRemove(int[], List)} when there
+     * is only one child being removed.
+     * 
+     * @param oldIndex The index of the child to be removed
+     * @param oldChild The child to be removed
+     */
+    protected boolean fireDbChildPreRemove(int oldIndex, SQLObject oldChild) {
+        int[] oldIndexArray = new int[1];
+        oldIndexArray[0] = oldIndex;
+        List oldChildList = new ArrayList(1);
+        oldChildList.add(oldChild);
+        return fireDbChildrenPreRemove(oldIndexArray, oldChildList);
+    }
+
+    
 	public abstract Class<? extends SQLObject> getChildType();
 	
 	/**

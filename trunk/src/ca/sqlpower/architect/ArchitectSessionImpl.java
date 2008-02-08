@@ -68,10 +68,10 @@ public class ArchitectSessionImpl implements ArchitectSession {
 	        String name) throws ArchitectException {
 	    this.context = context;
 	    this.name = name;
+	    this.rootObject = new SQLObjectRoot();
         this.profileManager = new ProfileManagerImpl();
         this.project = new CoreProject(this);
         this.db = new SQLDatabase();
-        this.rootObject = new SQLObjectRoot();
         
         try {
             ddlGenerator = new GenericDDLGenerator();
