@@ -108,6 +108,7 @@ import javax.swing.event.MouseInputAdapter;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.SQLCatalog;
 import ca.sqlpower.architect.SQLColumn;
@@ -116,9 +117,13 @@ import ca.sqlpower.architect.SQLExceptionNode;
 import ca.sqlpower.architect.SQLObject;
 import ca.sqlpower.architect.SQLObjectEvent;
 import ca.sqlpower.architect.SQLObjectListener;
+import ca.sqlpower.architect.SQLObjectPreEvent;
+import ca.sqlpower.architect.SQLObjectPreEventListener;
 import ca.sqlpower.architect.SQLRelationship;
 import ca.sqlpower.architect.SQLSchema;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.UserPrompter;
+import ca.sqlpower.architect.UserPrompter.UserPromptResponse;
 import ca.sqlpower.architect.layout.LineStraightenerLayout;
 import ca.sqlpower.architect.swingui.Relationship.RelationshipDecorationMover;
 import ca.sqlpower.architect.swingui.action.AutoLayoutAction;
@@ -142,8 +147,50 @@ import ca.sqlpower.swingui.SPSwingWorker;
 public class PlayPen extends JPanel
 	implements java.io.Serializable, SQLObjectListener, SelectionListener, Scrollable {
 
+    /**
+     * Watches the session's root object, and reacts when SQLDatabase items
+     * are removed. In that case, it ensures there are no dangling references
+     * from the playpen database back to the removed database or its children.
+     * If there are, the user is asked to decide to either cancel the operation
+     * or allow the ETL lineage (SQLColumn.sourceColumn) references to be broken.
+     */
+	public class DatabaseRemovalWatcher implements SQLObjectPreEventListener {
 
-	public interface CancelableListener {
+        public void dbChildrenPreRemove(SQLObjectPreEvent e) {
+            UserPrompter up = session.createUserPrompter(
+                    "{0} objects in the PlayPen were reverse engineered from\n" +
+                    "the database {1}, which you''re trying to remove.\n" +
+                    "\n" +
+                    "If you proceed, you will lose ETL lineage information for\n" +
+                    "the objects originally sourced from that database.",
+                    "Forget Lineage", "Keep Source Connection", "Cancel");
+            for (SQLObject so : e.getChildren()) {
+                SQLDatabase db = (SQLDatabase) so;
+                try {
+                    List<SQLColumn> refs = ArchitectUtils.findColumnsSourcedFromDatabase(session.getTargetDatabase(), db);
+                    if (!refs.isEmpty()) {
+                        UserPromptResponse response = up.promptUser(refs.size(), db.getName());
+                        if (response == UserPromptResponse.OK) {
+                            // disconnect those columns' source columns
+                            for (SQLColumn col : refs) {
+                                col.setSourceColumn(null);
+                            }
+                        } else if (response == UserPromptResponse.NOT_OK) {
+                            e.veto();
+                        } else if (response == UserPromptResponse.CANCEL) {
+                            e.veto();
+                        }
+                    }
+                } catch (ArchitectException ex) {
+                    throw new ArchitectRuntimeException(ex);
+                }
+            }
+        }
+
+    }
+
+
+    public interface CancelableListener {
 
 		public void cancel();
 
@@ -381,6 +428,8 @@ public class PlayPen extends JPanel
 		ds.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_MOVE, dgl);
 		logger.debug("DragGestureRecognizer motion threshold: " + getToolkit().getDesktopProperty("DnD.gestureMotionThreshold"));
 		fontRenderContext = null;
+        
+        session.getRootObject().addSQLObjectPreEventListener(new DatabaseRemovalWatcher());
 	}
 
 	/**
@@ -435,7 +484,7 @@ public class PlayPen extends JPanel
         try {
             removeHierarcyListeners(session.getTargetDatabase());
         } catch (ArchitectException ex) {
-            logger.error("Couldn't unlisten this playpen from the database");
+            logger.error("Couldn't unlisten this playpen from the database", ex);
         }
     }
 

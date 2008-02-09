@@ -219,7 +219,7 @@ public class ArchitectUtils {
 	 * @return A list of all columns in the target database whose source database is the same
 	 * as the given source object. Every item in the list will be of type SQLColumn.
 	 */
-	public static List findColumnsSourcedFromDatabase(SQLDatabase target, SQLDatabase source) throws ArchitectException {
+	public static List<SQLColumn> findColumnsSourcedFromDatabase(SQLDatabase target, SQLDatabase source) throws ArchitectException {
 		if (logger.isDebugEnabled()) logger.debug("Searching for dependencies on "+source+" in "+target);
 		List matches = new ArrayList();
 		Iterator it = target.getChildren().iterator();

@@ -708,28 +708,17 @@ public class DBTree extends JTree implements DragSourceListener {
 				return;
 			}
 
-			try {
-			    SQLDatabase selection = (SQLDatabase) tp.getLastPathComponent();
-			    SQLObject root = (SQLObject) getModel().getRoot();
-			    List dependants = ArchitectUtils.findColumnsSourcedFromDatabase(session.getTargetDatabase(), selection);
-			    if (dependants.size() > 0) {
-			        JOptionPane.showMessageDialog(session.getArchitectFrame(),
-			                new Object[] {"The following columns depend on objects in this database:",
-			                				new JScrollPane(new JList(dependants.toArray())),
-			                				"You can't remove this connection unless you remove these",
-			                				"dependencies."},
-			                "Can't delete",
-			                JOptionPane.INFORMATION_MESSAGE);
-			    } else if (root.removeChild(selection)) {
-			        selection.disconnect();
-			    } else {
-			        logger.error("root.removeChild(selection) returned false!");
-			        JOptionPane.showMessageDialog(DBTree.this, "Deletion of this database connection failed for an unknown reason.", "Couldn't remove", JOptionPane.ERROR_MESSAGE);
-			    }
-			} catch (ArchitectException ex) {
-				logger.error("Couldn't locate dependant columns", ex);
-				ASUtils.showExceptionDialogNoReport(session.getArchitectFrame(),
-				        "Couldn't search for dependant columns!\nDatabase connection not removed.", ex);
+            // Historical note: we used to check here if there were any objects in the
+            // play pen that depend on any children of this database before agreeing
+            // to remove it. Now this is handled by a listener in the PlayPen itself.
+            
+			SQLDatabase selection = (SQLDatabase) tp.getLastPathComponent();
+			SQLObject root = (SQLObject) getModel().getRoot();
+			if (root.removeChild(selection)) {
+			    selection.disconnect();
+			} else {
+			    logger.error("root.removeChild(selection) returned false!");
+			    JOptionPane.showMessageDialog(DBTree.this, "Deletion of this database connection failed for an unknown reason.", "Couldn't remove", JOptionPane.ERROR_MESSAGE);
 			}
 		}
 	}
