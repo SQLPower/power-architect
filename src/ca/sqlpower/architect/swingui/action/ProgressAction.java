@@ -168,13 +168,16 @@ public abstract class ProgressAction extends AbstractArchitectAction {
             @Override
             public void cleanup() throws Exception {
                 ProgressAction.this.cleanUp(monitor);
-                monitor.setFinished(true);
-                progressDialog.dispose();
             }
 
             @Override
             public void doStuff() throws Exception {
-                ProgressAction.this.doStuff(monitor,properties);
+                try {
+                    ProgressAction.this.doStuff(monitor,properties);
+                } finally {
+                    monitor.setFinished(true);
+                    progressDialog.dispose();
+                }
             }
         };
         ProgressWatcher.watchProgress(progressBar,monitor);
