@@ -494,7 +494,7 @@ public class DBTreeModel implements TreeModel, SQLObjectListener, java.io.Serial
             logger.debug("Not refiring because this is not the EDT.");
             return;
         }
-		TreeModelEvent tme = new TreeModelEvent(this, getPathToNode(e.getSQLSource()));
+		TreeModelEvent tme = new TreeModelEvent(this, getPathsToNode(e.getSQLSource()).get(0));
 		fireTreeStructureChanged(tme);
 	}
     
