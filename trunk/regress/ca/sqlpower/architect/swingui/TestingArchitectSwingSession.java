@@ -84,7 +84,7 @@ public class TestingArchitectSwingSession implements ArchitectSwingSession {
             }
         };
         this.delegateSession = new ArchitectSessionImpl(context, "test");
-        profileManager = new ProfileManagerImpl();
+        profileManager = new ProfileManagerImpl(this);
         project = new SwingUIProject(this);
         userSettings = context.getUserSettings();
         rootObject = new SQLObjectRoot();

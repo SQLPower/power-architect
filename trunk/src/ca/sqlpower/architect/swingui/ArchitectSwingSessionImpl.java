@@ -66,6 +66,7 @@ import ca.sqlpower.architect.UserSettings;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.etl.kettle.KettleJob;
 import ca.sqlpower.architect.profile.ProfileManager;
+import ca.sqlpower.architect.profile.ProfileManagerImpl;
 import ca.sqlpower.architect.swingui.action.AboutAction;
 import ca.sqlpower.architect.swingui.action.OpenProjectAction;
 import ca.sqlpower.architect.swingui.action.PreferencesAction;
@@ -146,6 +147,7 @@ public class ArchitectSwingSessionImpl implements ArchitectSwingSession {
         this.isNew = true;
         this.context = context;
         this.delegateSession = new ArchitectSessionImpl(context, name);
+        ((ArchitectSessionImpl)delegateSession).setProfileManager(new ProfileManagerImpl(this));
         this.recent = new RecentMenu(this.getClass()) {
             @Override
             public void loadFile(String fileName) throws IOException {

@@ -45,7 +45,14 @@ import java.util.concurrent.Future;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.ArchitectException;
+import ca.sqlpower.architect.ArchitectSession;
+import ca.sqlpower.architect.SQLDatabase;
+import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLObjectPreEvent;
+import ca.sqlpower.architect.SQLObjectPreEventListener;
 import ca.sqlpower.architect.SQLTable;
+import ca.sqlpower.architect.UserPrompter;
+import ca.sqlpower.architect.UserPrompter.UserPromptResponse;
 import ca.sqlpower.architect.profile.event.ProfileChangeEvent;
 import ca.sqlpower.architect.profile.event.ProfileChangeListener;
 
@@ -56,6 +63,50 @@ import ca.sqlpower.architect.profile.event.ProfileChangeListener;
  * @version $Id$
  */
 public class ProfileManagerImpl implements ProfileManager {
+    
+    /**
+     * Watches the session's root object, and reacts when SQLDatabase items
+     * are removed. In that case, it ensures there are no dangling references
+     * from the profiled tables back to the removed database or its children.
+     * If there are, the user is asked to decide to either cancel the operation
+     * or allow the ETL lineage (SQLColumn.sourceColumn) references to be broken.
+     */
+    private class DatabaseRemovalWatcher implements SQLObjectPreEventListener {
+
+        public void dbChildrenPreRemove(SQLObjectPreEvent e) {
+            logger.debug("Pre-remove on profile manager");
+            UserPrompter up = session.createUserPrompter(
+                    "{0} tables have been profiled from the database {1}.\n" +
+                    "\n" +
+                    "If you proceed, the profiling information from the database" +
+                    " will be removed.",
+                    "Remove Profiles", "Keep Profiles", "Cancel");
+            for (SQLObject so : e.getChildren()) {
+                SQLDatabase db = (SQLDatabase) so;
+                List<TableProfileResult> refs = new ArrayList<TableProfileResult>(); 
+                for (TableProfileResult tpr : getResults()) {
+                    if (tpr.getProfiledObject().getParentDatabase() != null && tpr.getProfiledObject().getParentDatabase().equals(db)) {
+                        refs.add(tpr);
+                    }
+                }
+                if (!refs.isEmpty()) {
+                    UserPromptResponse response = up.promptUser(refs.size(), db.getName());
+                    if (response == UserPromptResponse.OK) {
+                        logger.debug("We got the ok to delete.");
+                        // disconnect those columns' source columns
+                        for (TableProfileResult tpr : refs) {
+                            results.remove(tpr);
+                        }
+                    } else if (response == UserPromptResponse.NOT_OK) {
+                        e.veto();
+                    } else if (response == UserPromptResponse.CANCEL) {
+                        e.veto();
+                    }
+                }
+            }
+        }
+
+    }
 
     private static final Logger logger = Logger.getLogger(ProfileManagerImpl.class);
     
@@ -69,6 +120,11 @@ public class ProfileManagerImpl implements ProfileManager {
      * All profile results in this profile manager.
      */
     private final List<TableProfileResult> results = new ArrayList<TableProfileResult>();
+    
+    /**
+     * The session this manager is associated with.
+     */
+    private final ArchitectSession session;
     
     /**
      * The defaults that new profile results will be created with.
@@ -124,6 +180,13 @@ public class ProfileManagerImpl implements ProfileManager {
                 throw tpr.getException();
             }
             return tpr;
+        }
+    }
+    
+    public ProfileManagerImpl(ArchitectSession session) {
+        this.session = session;
+        if (session != null && session.getRootObject() != null) {
+            session.getRootObject().addSQLObjectPreEventListener(new DatabaseRemovalWatcher());
         }
     }
     
