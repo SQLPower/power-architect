@@ -33,6 +33,7 @@ package ca.sqlpower.architect.profile;
 
 import java.math.BigDecimal;
 import java.util.Collection;
+import java.util.List;
 
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLTable;
@@ -95,5 +96,20 @@ public class TestProfileManager extends TestProfileBase {
             }
         }
 
+    }
+    
+    /**
+     * This test will add a database, profile tables, and then remove the database 
+     * to see if the profiles dependent on the database are removed as well.
+     * This test came from bug 1521.
+     */
+    public void testRemovingDBRemovesProfiles() throws Exception {
+        List<TableProfileResult> t1Results = pm.getResults(t1);
+        for (TableProfileResult tpr : t1Results) {
+            assertEquals(mydb, tpr.getProfiledObject().getParentDatabase());
+        }
+        session.getRootObject().removeChild(mydb);
+        t1Results = pm.getResults(t1);
+        assertEquals(0, t1Results.size());
     }
 }

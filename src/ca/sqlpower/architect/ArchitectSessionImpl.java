@@ -69,7 +69,7 @@ public class ArchitectSessionImpl implements ArchitectSession {
 	    this.context = context;
 	    this.name = name;
 	    this.rootObject = new SQLObjectRoot();
-        this.profileManager = new ProfileManagerImpl();
+        this.profileManager = new ProfileManagerImpl(this);
         this.project = new CoreProject(this);
         this.db = new SQLDatabase();
         
@@ -140,6 +140,10 @@ public class ArchitectSessionImpl implements ArchitectSession {
 
     public void setDDLGenerator(DDLGenerator generator) {
         ddlGenerator = generator;
+    }
+    
+    public void setProfileManager(ProfileManagerImpl manager) {
+        profileManager = manager;
     }
     
     /**

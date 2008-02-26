@@ -39,6 +39,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import junit.framework.TestCase;
+import ca.sqlpower.architect.ArchitectSession;
+import ca.sqlpower.architect.ArchitectSessionContext;
+import ca.sqlpower.architect.ArchitectSessionContextImpl;
+import ca.sqlpower.architect.ArchitectSessionImpl;
 import ca.sqlpower.architect.SQLColumn;
 import ca.sqlpower.architect.SQLDatabase;
 import ca.sqlpower.architect.SQLTable;
@@ -91,6 +95,11 @@ public abstract class TestProfileBase extends TestCase {
     protected SQLTable t3;
     
     /**
+     * The session the database and tables are in.
+     */
+    protected ArchitectSession session;
+    
+    /**
      * When true, the setUp method will print a summary of what it did.
      */
     protected boolean debug = false;
@@ -116,6 +125,9 @@ public abstract class TestProfileBase extends TestCase {
          * Setting up a clean db for each of the tests
          */
         try {
+            ArchitectSessionContext context = new ArchitectSessionContextImpl();
+            session = new ArchitectSessionImpl(context, "TestProfileBase");
+            session.getRootObject().addChild(mydb);
             conn = mydb.getConnection();
             stmt = conn.createStatement();
             try {
@@ -177,7 +189,7 @@ public abstract class TestProfileBase extends TestCase {
             assertNotNull(t2);
             assertNotNull(t3);
             
-            pm = new ProfileManagerImpl();
+            pm = new ProfileManagerImpl(session);
             pm.getDefaultProfileSettings().setFindingAvg(true);
             pm.getDefaultProfileSettings().setFindingMin(true);
             pm.getDefaultProfileSettings().setFindingMax(true);
