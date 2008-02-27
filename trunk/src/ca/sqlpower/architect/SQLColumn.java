@@ -289,12 +289,40 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 			logger.debug("SQLColumn.addColumnsToTable: catalog="+catalog+"; schema="+schema+"; tableName="+tableName);
 			rs = dbmd.getColumns(catalog, schema, tableName, "%");
 			while (rs.next()) {
-				logger.debug("addColumnsToTable SQLColumn constructor invocation.");				
+				logger.debug("addColumnsToTable SQLColumn constructor invocation.");
+				
+				//Must check precision from the column against the database allowed precision
+				//as some jdbc drivers returns a display precision and not an allowed database
+				//precision.
+				ResultSet innerRs = null;
+				int precision = rs.getInt(7);
+				try {
+		            con = addTo.getParentDatabase().getConnection();
+				    innerRs = con.getMetaData().getTypeInfo();
+				    while (innerRs.next()) {
+				        if (innerRs.getInt(2) == rs.getInt(5) && (rs.getInt(7) < 1 || rs.getInt(7) > innerRs.getInt(3))) { //equate across java.sql.Types
+				            precision = innerRs.getInt(3);
+				        }
+				    }
+				} finally {
+		            try {
+		                if (innerRs != null) innerRs.close();
+		            } catch (SQLException ex) {
+		                logger.error("Couldn't close result set", ex);
+		            }
+		            // close the connection before it makes the recursive call
+		            // that could lead to opening more connections
+		            try {
+		                if (con != null) con.close();
+		            } catch (SQLException ex) {
+		                logger.error("Couldn't close connection", ex);
+		            }
+				}
 				SQLColumn col = new SQLColumn(addTo,
 											  rs.getString(4),  // col name
 											  rs.getInt(5), // data type (from java.sql.Types)
 											  rs.getString(6), // native type name
-											  rs.getInt(7), // column size (precision)
+											  precision, // column size (precision)
 											  rs.getInt(9), // decimal size (scale)
 											  rs.getInt(11), // nullable
 											  rs.getString(12) == null ? "" : rs.getString(12), // remarks
@@ -302,6 +330,7 @@ public class SQLColumn extends SQLObject implements java.io.Serializable {
 											  null, // primaryKeySeq
 											  false // isAutoIncrement
 											  );
+				logger.debug("Precision for the column " + rs.getString(4) + " is " + rs.getInt(7));
 
 				// work around oracle 8i bug: when table names are long and similar,
 				// getColumns() sometimes returns columns from multiple tables!
