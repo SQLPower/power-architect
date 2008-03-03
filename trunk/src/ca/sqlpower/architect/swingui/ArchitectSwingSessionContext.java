@@ -35,8 +35,6 @@ import java.awt.Window;
 import java.io.IOException;
 import java.io.InputStream;
 
-import javax.swing.JDialog;
-
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectSessionContext;
 import ca.sqlpower.architect.CoreUserSettings;
@@ -147,7 +145,7 @@ public interface ArchitectSwingSessionContext extends ArchitectSessionContext {
      * 
      * @param owner The owner of the dialog.
      */
-    public abstract JDialog showConnectionManager(Window owner);
+    public abstract void showConnectionManager(Window owner);
 
     /**
      * Shows the user preferences dialog for this application context.
