@@ -41,6 +41,7 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JProgressBar;
 
+import ca.sqlpower.architect.swingui.ASUtils;
 import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.swingui.ProgressWatcher;
 import ca.sqlpower.swingui.SPSwingWorker;
@@ -167,17 +168,17 @@ public abstract class ProgressAction extends AbstractArchitectAction {
         SPSwingWorker worker = new SPSwingWorker(session) {
             @Override
             public void cleanup() throws Exception {
+                if (getDoStuffException() != null) {
+                    ASUtils.showExceptionDialog(session, "An unexpected exception occurred during the export", getDoStuffException());
+                }
                 ProgressAction.this.cleanUp(monitor);
+                monitor.setFinished(true);
+                progressDialog.dispose();
             }
 
             @Override
             public void doStuff() throws Exception {
-                try {
-                    ProgressAction.this.doStuff(monitor,properties);
-                } finally {
-                    monitor.setFinished(true);
-                    progressDialog.dispose();
-                }
+                ProgressAction.this.doStuff(monitor,properties);
             }
         };
         ProgressWatcher.watchProgress(progressBar,monitor);
