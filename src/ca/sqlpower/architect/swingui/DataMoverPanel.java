@@ -38,6 +38,8 @@ package ca.sqlpower.architect.swingui;
 
 import java.awt.Window;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -49,6 +51,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -56,7 +59,6 @@ import javax.swing.JTree;
 import javax.swing.tree.TreePath;
 
 import ca.sqlpower.architect.ArchitectException;
-import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.ArchitectUtils;
 import ca.sqlpower.architect.DepthFirstSearch;
 import ca.sqlpower.architect.SQLCatalog;
@@ -68,6 +70,7 @@ import ca.sqlpower.architect.SQLTable;
 import ca.sqlpower.architect.ddl.DDLGenerator;
 import ca.sqlpower.architect.ddl.DDLStatement;
 import ca.sqlpower.architect.ddl.DDLUtils;
+import ca.sqlpower.architect.swingui.action.AbstractArchitectAction;
 import ca.sqlpower.sql.DataMover;
 import ca.sqlpower.sql.SPDataSource;
 import ca.sqlpower.swingui.SPSUtils;
@@ -95,6 +98,11 @@ public class DataMoverPanel {
     private JTree destTree;
     
     /**
+     * The root object of the source and destination trees.
+     */
+    private SQLObjectRoot treeRoot;
+    
+    /**
      * Checkbox for selecting whether or not to wipe out the destination
      * table's contents before loading.
      */
@@ -105,11 +113,10 @@ public class DataMoverPanel {
      */
     private ArchitectSwingSession session;
     
-    public DataMoverPanel(ArchitectSession session) throws ArchitectException {
-        SQLObjectRoot treeRoot = new SQLObjectRoot();
-        for (SPDataSource ds : session.getContext().getConnections()) {
-            treeRoot.addChild(new SQLDatabase(ds));
-        }
+    public DataMoverPanel(ArchitectSwingSession session) throws ArchitectException {
+        this.session = session;
+        
+        setupDBTrees();
         
         sourceTree = new JTree(new DBTreeModel(session, treeRoot));
         sourceTree.setRootVisible(false);
@@ -135,6 +142,38 @@ public class DataMoverPanel {
         pb.add(new JScrollPane(sourceTree), cc.xy(1, 3));
         pb.add(new JScrollPane(destTree), cc.xy(3, 3));
         
+        JButton dbcsManager = new JButton(new AbstractArchitectAction(session, "Database Connection Manager", "Database Connection Manager", "database_connect") {
+
+            public void actionPerformed(ActionEvent e) {
+                JDialog dbcsManager = session.getContext().showConnectionManager(session.getArchitectFrame());
+                dbcsManager.addWindowListener(new WindowListener() {
+                    public void windowOpened(WindowEvent e) {
+                    }
+                    public void windowIconified(WindowEvent e) {
+                    }
+                    public void windowDeiconified(WindowEvent e) {
+                    }
+                    public void windowDeactivated(WindowEvent e) {
+                    }
+                    public void windowClosing(WindowEvent e) {
+                    }
+                    public void windowClosed(WindowEvent e) {
+                        try {
+                            setupDBTrees();                            
+                        } catch (ArchitectException ex) {
+                            SPSUtils.showExceptionDialogNoReport(panel, "Could not get a database from the list of connections.", ex);
+                        }
+                    }
+                    public void windowActivated(WindowEvent e) {
+                    }
+                });
+                
+                
+                
+            }
+            
+        });
+        pb.add(dbcsManager, cc.xy(1, 5));
         pb.add(truncateDestinationTableBox = new JCheckBox("Truncate Destination Table?"), cc.xy(3, 5));
 
         pb.add(ButtonBarFactory.buildOKCancelBar(
@@ -143,6 +182,23 @@ public class DataMoverPanel {
         
         pb.setDefaultDialogBorder();
         panel = pb.getPanel();
+    }
+
+    /**
+     * Sets the trees in the data mover panel to have all of the connections
+     * in the current context.
+     */
+    private void setupDBTrees() throws ArchitectException {
+        if (treeRoot == null) {
+            treeRoot = new SQLObjectRoot();
+        } else {
+            for(int i = treeRoot.getChildCount() - 1; i >= 0; i--) {
+                treeRoot.removeChild(i);
+            }
+        }
+        for (SPDataSource ds : session.getContext().getConnections()) {
+            treeRoot.addChild(new SQLDatabase(ds));
+        }
     }
     
     private Action okAction = new AbstractAction("OK") {

@@ -37,8 +37,8 @@ import javax.swing.AbstractAction;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 
-import ca.sqlpower.architect.ArchitectSession;
 import ca.sqlpower.architect.swingui.ASUtils;
+import ca.sqlpower.architect.swingui.ArchitectSwingSession;
 import ca.sqlpower.architect.swingui.DataMoverPanel;
 
 /**
@@ -48,9 +48,9 @@ import ca.sqlpower.architect.swingui.DataMoverPanel;
 public class DataMoverAction extends AbstractAction {
 
     private final JFrame owner;
-    private final ArchitectSession architectSession;
+    private final ArchitectSwingSession architectSession;
     
-    public DataMoverAction(JFrame owner, ArchitectSession architectSession) {
+    public DataMoverAction(JFrame owner, ArchitectSwingSession architectSession) {
         super("Copy Table Data...");
         this.owner = owner;
         this.architectSession = architectSession;
