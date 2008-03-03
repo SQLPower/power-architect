@@ -31,8 +31,9 @@
  */
 package ca.sqlpower.architect.ddl;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -42,6 +43,8 @@ import javax.swing.JTextField;
 import org.apache.log4j.Logger;
 
 import ca.sqlpower.architect.SQLObject;
+import ca.sqlpower.architect.SQLObjectEvent;
+import ca.sqlpower.architect.SQLObjectListener;
 
 public class RenameObjectDDLComponent extends GenericDDLWarningComponent {
 
@@ -55,7 +58,7 @@ public class RenameObjectDDLComponent extends GenericDDLWarningComponent {
      * SQLObject in the list of involved objects for the warning
      * this component holds.
      */
-    final List<JTextField> textFields = new ArrayList<JTextField>();
+    final Map<JTextField, SQLObject> textFields = new HashMap<JTextField, SQLObject>();
     
     private Runnable changeApplicator;
 
@@ -72,6 +75,9 @@ public class RenameObjectDDLComponent extends GenericDDLWarningComponent {
                 //however, since the quick fix does not change the textbox,
                 //setting component values to textbox value would undo the 
                 //quick fix.
+                for (Map.Entry<JTextField, SQLObject> entry : textFields.entrySet()) {
+                    entry.getValue().setName(entry.getKey().getText());
+                }
             }
             
         };
@@ -82,9 +88,20 @@ public class RenameObjectDDLComponent extends GenericDDLWarningComponent {
             component.add(new JLabel(" Change " + warning.getQuickFixPropertyName() + ": "));
             List<SQLObject> list = warning.getInvolvedObjects();
             for (SQLObject obj : list) {
-                JTextField jtf = new JTextField(obj.getName());
+                final JTextField jtf = new JTextField(obj.getName());
+                obj.addSQLObjectListener(new SQLObjectListener() {
+                    public void dbStructureChanged(SQLObjectEvent e) {
+                    }
+                    public void dbObjectChanged(SQLObjectEvent e) {
+                        jtf.setText(e.getSQLSource().getName());
+                    }
+                    public void dbChildrenRemoved(SQLObjectEvent e) {
+                    }
+                    public void dbChildrenInserted(SQLObjectEvent e) {
+                    }
+                });
                 component.add(jtf);
-                textFields.add(jtf);
+                textFields.put(jtf, obj);
             }
         }
     }
