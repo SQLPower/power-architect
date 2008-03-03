@@ -132,7 +132,7 @@ public class KettleJobAction extends AbstractArchitectAction {
                     public void cleanup() throws Exception {
                         createKettleJobMonitor.dispose();
                         if (getDoStuffException() != null) {
-                            Exception ex = getDoStuffException();
+                            Throwable ex = getDoStuffException();
                             if (ex instanceof ArchitectException) {
                                 ASUtils.showExceptionDialog(session, "An error occurred reading from the tables for kettle", ex);
                             } else if (ex instanceof RuntimeException || ex instanceof IOException || ex instanceof SQLException) {
