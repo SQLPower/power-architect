@@ -40,8 +40,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.prefs.Preferences;
 
-import javax.swing.JDialog;
-
 import ca.sqlpower.architect.ArchitectException;
 import ca.sqlpower.architect.ArchitectRuntimeException;
 import ca.sqlpower.architect.ArchitectSession;
@@ -150,9 +148,8 @@ public class TestingArchitectSwingSessionContext implements ArchitectSwingSessio
     /**
      * Doesn't actually do anything!
      */
-    public JDialog showConnectionManager(Window owner) {
+    public void showConnectionManager(Window owner) {
         // no op
-        return null;
     }
 
     /**
