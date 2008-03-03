@@ -297,8 +297,8 @@ public class ArchitectSwingSessionContextImpl implements ArchitectSwingSessionCo
         }
     }
 
-    public void  showConnectionManager(Window owner) {
-        dbConnectionManager.showDialog(owner);
+    public JDialog showConnectionManager(Window owner) {
+        return dbConnectionManager.showDialog(owner);
     }
 
     public void showPreferenceDialog(Window owner) {

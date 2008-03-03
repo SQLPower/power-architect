@@ -706,7 +706,7 @@ public class TablePane
 				} else {
 					// importing column from a source database
 					getModel().inherit(insertionPoint, col, newColumnsInPk);
-					if (logger.isDebugEnabled()) logger.debug("Inherited "+col.getName()+" to table");
+					if (logger.isDebugEnabled()) logger.debug("Inherited "+col.getName()+" to table with precision " + col.getPrecision());
 				}
 			} else {
 				return false;
