@@ -467,6 +467,10 @@ public class CompareSQL implements Monitorable {
 			if (comparator.compare(sourceColumn, targetColumn) < 0) {
 				diffs.add(new DiffChunk<SQLObject>(sourceColumn,
 						DiffType.LEFTONLY));
+				logger.debug("The source column is " + sourceColumn);
+				if (sourceColumn.isPrimaryKey()) {
+                    keyChangeFlag = true;
+                }
 				if (sourceColIter.hasNext()) {
 					sourceColumn = sourceColIter.next();
 				} else {
@@ -479,6 +483,10 @@ public class CompareSQL implements Monitorable {
 			if (comparator.compare(sourceColumn, targetColumn) > 0) {
 				diffs.add(new DiffChunk<SQLObject>(targetColumn,
 						DiffType.RIGHTONLY));
+				logger.debug("The target column is " + targetColumn);
+				if (targetColumn.isPrimaryKey()) {
+                    keyChangeFlag = true;
+				}
 				if (targetColIter.hasNext()) {
 					targetColumn = targetColIter.next();
 				} else {
@@ -491,7 +499,7 @@ public class CompareSQL implements Monitorable {
 			if (comparator.compare(sourceColumn, targetColumn) == 0) {
 				
 				if (targetColumn.isPrimaryKey() != sourceColumn.isPrimaryKey()){
-					keyChangeFlag = true;
+				    keyChangeFlag = true;
 					//diffs.add(new DiffChunk<SQLObject>(targetColumn, DiffType.KEY_CHANGED));
 				}
 				if (ArchitectUtils.columnsDiffer(targetColumn, sourceColumn)) {
@@ -541,8 +549,12 @@ public class CompareSQL implements Monitorable {
 			}
 		}
 
-		if ( keyChangeFlag )
-			diffs.add(new DiffChunk<SQLObject>(targetTable, DiffType.KEY_CHANGED));
+		if ( keyChangeFlag ) {
+		    if (sourceTable.getPrimaryKeyIndex() != null) {
+		        diffs.add(new DiffChunk<SQLObject>(sourceTable, DiffType.DROP_KEY));
+		    }
+		    diffs.add(new DiffChunk<SQLObject>(targetTable, DiffType.KEY_CHANGED));
+		}
 		return diffs;
 	}
 	

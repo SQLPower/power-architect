@@ -122,6 +122,7 @@ public class CompareDMFormatter {
                 att = new SimpleAttributeSet();
                 StyleConstants.setForeground(att, Color.blue);
                 styles.put(DiffType.KEY_CHANGED, att);
+                styles.put(DiffType.DROP_KEY, att);
             }
            if (dmSetting.getOutputFormat().equals(CompareDMSettings.OutputFormat.SQL)) {
 
@@ -213,12 +214,17 @@ public class CompareDMFormatter {
                     SQLTable t = (SQLTable) chunk.getData();
                     if (hasKey(t)) {
                         gen.addPrimaryKey(t);
-                    } else {
+                    }
+                }
+            } else if (chunk.getType() == DiffType.DROP_KEY) {
+                if(chunk.getData() instanceof SQLTable)
+                {
+                    SQLTable t = (SQLTable) chunk.getData();
+                    if (hasKey(t)) {
                         gen.dropPrimaryKey(t);
                     }
                 }
-
-            }else if (chunk.getType() == DiffType.LEFTONLY)
+            } else if (chunk.getType() == DiffType.LEFTONLY)
             {
                 if (chunk.getData() instanceof SQLTable)
                 {
@@ -294,6 +300,11 @@ public class CompareDMFormatter {
                     currentTableName = o.getName();
                 }
                     
+                continue;
+            }
+            if (chunk.getType().equals(DiffType.DROP_KEY)) {
+                //Drop key does will be shown here by a key changed type
+                //Drop key is mainly used in sql script generation.
                 continue;
             }
             AttributeSet attributes = styles.get(chunk.getType());
@@ -385,6 +396,10 @@ public class CompareDMFormatter {
 
             case KEY_CHANGED:
                 diffTypeEnglish = "needs a different primary key";
+                break;
+                
+            case DROP_KEY:
+                diffTypeEnglish = "needs to drop the source primary key";
                 break;
 
             default:

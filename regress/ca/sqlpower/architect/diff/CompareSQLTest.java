@@ -432,7 +432,11 @@ public class CompareSQLTest extends TestCase {
 		assertTrue("No column mapping diffs found!", foundColMapDiff);
 	}
 	
-	public void testKeyChanged() throws ArchitectException{			
+	/**
+	 * This test adds a primary key to the source table which is not added
+	 * to the primary key target table. This will simulate a user removing a key from a table.
+	 */
+	public void testKeyRemovedFromPrimaryKey() throws ArchitectException{			
 		List<SQLTable> list1 = new ArrayList<SQLTable>();
 		SQLTable t1 = makeTable(4);
 		list1.add(t1);
@@ -453,6 +457,8 @@ public class CompareSQLTest extends TestCase {
 			if (dc.getData().getClass().equals(SQLTable.class)){
 				if(first_table){
 					assertEquals (DiffType.SAME ,dc.getType());
+				} else if (dc.getData().equals(t1)) {
+				    assertEquals(DiffType.DROP_KEY, dc.getType());
 				} else {
 					assertEquals (DiffType.KEY_CHANGED, dc.getType());
 				}
@@ -468,6 +474,177 @@ public class CompareSQLTest extends TestCase {
 		}		
 	}
 	
+	/**
+     * This test adds a primary key to the source table which is not added
+     * to the target table. This will simulate a user deleting a column that 
+     * was a primary key.
+     */
+    public void testKeyRemoved() throws ArchitectException{         
+        List<SQLTable> list1 = new ArrayList<SQLTable>();
+        SQLTable t1 = makeTable(4);
+        list1.add(t1);
+        SQLColumn c = t1.getColumn(3); 
+        c.setPrimaryKeySeq(new Integer(0));
+
+        List<SQLTable> list2 = new ArrayList<SQLTable>();
+        SQLTable t2 = makeTable(4);
+        t2.removeColumn(3);
+        list2.add(t2);
+                
+        CompareSQL sqlComparator = new CompareSQL(list1, list2);
+        List<DiffChunk<SQLObject>> diffs = sqlComparator.generateTableDiffs();
+        
+        
+        boolean first_table = true;
+        
+        for (DiffChunk dc : diffs){         
+            if (dc.getData().getClass().equals(SQLTable.class)){
+                if(first_table){
+                    assertEquals (DiffType.SAME ,dc.getType());
+                } else if (dc.getData().equals(t1)) {
+                    assertEquals(DiffType.DROP_KEY, dc.getType());
+                } else {
+                    assertEquals (DiffType.KEY_CHANGED, dc.getType());
+                }
+                first_table = false;
+            }
+            else if (dc.getData().getClass().equals(SQLColumn.class)){
+                if (((SQLObject) dc.getData()).getName().equals(c.getName())){
+                    assertEquals(DiffType.LEFTONLY, dc.getType());
+                } else {
+                    assertEquals (DiffType.SAME, dc.getType());
+                }
+            }
+        }       
+    }
+    
+    /**
+     * This test adds a primary key to the target table which is not added
+     * to the source table. This will simulate a user adding a new column 
+     * to be the primary key of a table.
+     */
+    public void testKeyAddedNew() throws ArchitectException{         
+        List<SQLTable> list1 = new ArrayList<SQLTable>();
+        SQLTable t1 = makeTable(4);
+        list1.add(t1);
+        t1.removeColumn(3);
+
+        List<SQLTable> list2 = new ArrayList<SQLTable>();
+        SQLTable t2 = makeTable(4);
+        list2.add(t2);
+        SQLColumn c = t2.getColumn(3); 
+        c.setPrimaryKeySeq(new Integer(0));
+                
+        CompareSQL sqlComparator = new CompareSQL(list1, list2);
+        List<DiffChunk<SQLObject>> diffs = sqlComparator.generateTableDiffs();
+        
+        
+        boolean first_table = true;
+        
+        for (DiffChunk dc : diffs){         
+            if (dc.getData().getClass().equals(SQLTable.class)){
+                if(first_table){
+                    assertEquals (DiffType.SAME ,dc.getType());
+                } else {
+                    assertEquals (DiffType.KEY_CHANGED, dc.getType());
+                }
+                first_table = false;
+            }
+            else if (dc.getData().getClass().equals(SQLColumn.class)){
+                if (((SQLObject) dc.getData()).getName().equals(c.getName())){
+                    assertEquals(DiffType.RIGHTONLY, dc.getType());
+                } else {
+                    assertEquals (DiffType.SAME, dc.getType());
+                }
+            }
+        }       
+    }
+    
+    /**
+     * This test adds a primary key to the target table which is in
+     * the source table. This will simulate a user setting an existing
+     * column to be the primary key of a table.
+     */
+    public void testKeyAddedFromExisting() throws ArchitectException{         
+        List<SQLTable> list1 = new ArrayList<SQLTable>();
+        SQLTable t1 = makeTable(4);
+        list1.add(t1);
+
+        List<SQLTable> list2 = new ArrayList<SQLTable>();
+        SQLTable t2 = makeTable(4);
+        list2.add(t2);
+        SQLColumn c = t2.getColumn(3); 
+        c.setPrimaryKeySeq(new Integer(0));
+                
+        CompareSQL sqlComparator = new CompareSQL(list1, list2);
+        List<DiffChunk<SQLObject>> diffs = sqlComparator.generateTableDiffs();
+        
+        
+        boolean first_table = true;
+        
+        for (DiffChunk dc : diffs){         
+            if (dc.getData().getClass().equals(SQLTable.class)){
+                if(first_table){
+                    assertEquals (DiffType.SAME ,dc.getType());
+                } else {
+                    assertEquals (DiffType.KEY_CHANGED, dc.getType());
+                }
+                first_table = false;
+            }
+            else if (dc.getData().getClass().equals(SQLColumn.class)){
+                if (((SQLObject) dc.getData()).getName().equals(c.getName())){
+                    assertEquals(DiffType.MODIFIED, dc.getType());
+                } else {
+                    assertEquals (DiffType.SAME, dc.getType());
+                }
+            }
+        }       
+    }
+	
+    /**
+     * This test changes the primary key of a table to be a different
+     * column in the same table. This will simulate a user changing
+     * the primary key of a table but not adding or removing any columns.
+     */
+    public void testKeyModified() throws ArchitectException{         
+        List<SQLTable> list1 = new ArrayList<SQLTable>();
+        SQLTable t1 = makeTable(4);
+        list1.add(t1);
+        SQLColumn c1 = t1.getColumn(3); 
+        c1.setPrimaryKeySeq(new Integer(0));
+
+        List<SQLTable> list2 = new ArrayList<SQLTable>();
+        SQLTable t2 = makeTable(4);
+        list2.add(t2);
+        SQLColumn c2 = t2.getColumn(2); 
+        c2.setPrimaryKeySeq(new Integer(0));
+                
+        CompareSQL sqlComparator = new CompareSQL(list1, list2);
+        List<DiffChunk<SQLObject>> diffs = sqlComparator.generateTableDiffs();
+        
+        
+        boolean first_table = true;
+        
+        for (DiffChunk dc : diffs){         
+            if (dc.getData().getClass().equals(SQLTable.class)){
+                if(first_table){
+                    assertEquals (DiffType.SAME ,dc.getType());
+                } else if (dc.getData().equals(t1)) {
+                    assertEquals(DiffType.DROP_KEY, dc.getType());
+                } else {
+                    assertEquals (DiffType.KEY_CHANGED, dc.getType());
+                }
+                first_table = false;
+            }
+            else if (dc.getData().getClass().equals(SQLColumn.class)){
+                if (((SQLObject) dc.getData()).getName().equals(c1.getName()) || ((SQLObject) dc.getData()).getName().equals(c2.getName())){
+                    assertEquals(DiffType.MODIFIED, dc.getType());
+                } else {
+                    assertEquals (DiffType.SAME, dc.getType());
+                }
+            }
+        }       
+    }
 
 	/**
 	 * Creates a table with the name <tt>table_<i>i</i></tt> (where <i>i</i> is the 
